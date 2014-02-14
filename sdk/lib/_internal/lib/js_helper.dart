@@ -3055,3 +3055,15 @@ int random64() {
   int int32b = JS("int", "(Math.random() * 0x100000000) >>> 0");
   return int32a + int32b * 0x100000000;
 }
+
+/**
+ * Returns a property name for placing data on JavaScript objects shared between
+ * DOM isolates.  This happens when multiple programs are loaded in the same
+ * JavaScript context (i.e. page).  The name is based on [name] but with an
+ * additional part that is unique for each isolate.
+ *
+ * The form of the name is '___dart_$name_$id'.
+ */
+String getIsolateAffinityTag(String name) {
+  return JS('String', 'init.getIsolateTag(#)', name);
+}
