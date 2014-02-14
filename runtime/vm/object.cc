@@ -2029,7 +2029,6 @@ intptr_t Class::NumOwnTypeArguments() const {
   }
   ASSERT(!IsMixinApplication() || is_mixin_type_applied());
   const AbstractType& sup_type = AbstractType::Handle(isolate, super_type());
-  ASSERT(sup_type.IsResolved());
   const TypeArguments& sup_type_args =
       TypeArguments::Handle(isolate, sup_type.arguments());
   if (sup_type_args.IsNull()) {
@@ -2045,6 +2044,8 @@ intptr_t Class::NumOwnTypeArguments() const {
   // finalized, but the last num_sup_type_args type arguments will not be
   // modified by finalization, only shifted to higher indices in the vector.
   // They may however get wrapped in a BoundedType, which we skip.
+  // The super type may not even be resolved yet. This is not necessary, since
+  // we only check for matching type parameters, which are resolved by default.
   const TypeArguments& type_params =
       TypeArguments::Handle(isolate, type_parameters());
   // Determine the maximum overlap of a prefix of the vector consisting of the
@@ -4367,6 +4368,7 @@ RawTypeArguments* TypeArguments::CloneUnfinalized() const {
   if (IsNull() || IsFinalized()) {
     return raw();
   }
+  ASSERT(IsResolved());
   AbstractType& type = AbstractType::Handle();
   const intptr_t num_types = Length();
   const TypeArguments& clone = TypeArguments::Handle(
@@ -4376,6 +4378,7 @@ RawTypeArguments* TypeArguments::CloneUnfinalized() const {
     type = type.CloneUnfinalized();
     clone.SetTypeAt(i, type);
   }
+  ASSERT(clone.IsResolved());
   return clone.raw();
 }
 
@@ -12569,6 +12572,7 @@ RawType* Type::NewNonParameterizedType(const Class& type_class) {
     // If the dynamic type has not been setup in the VM isolate, then we need
     // to allocate it here.
     if (Object::dynamic_type() != reinterpret_cast<RawType*>(RAW_NULL)) {
+      ASSERT(Type::Handle(Object::dynamic_type()).IsFinalized());
       return Object::dynamic_type();
     }
     ASSERT(Isolate::Current() == Dart::vm_isolate());
@@ -12582,6 +12586,7 @@ RawType* Type::NewNonParameterizedType(const Class& type_class) {
     type.SetIsFinalized();
     type ^= type.Canonicalize();
   }
+  ASSERT(type.IsFinalized());
   return type.raw();
 }
 
@@ -12604,7 +12609,7 @@ void Type::ResetIsFinalized() const {
 
 
 void Type::set_is_being_finalized() const {
-  ASSERT(!IsFinalized() && !IsBeingFinalized());
+  ASSERT(IsResolved() && !IsFinalized() && !IsBeingFinalized());
   set_type_state(RawType::kBeingFinalized);
 }
 
@@ -12648,15 +12653,9 @@ void Type::set_error(const LanguageError& value) const {
 }
 
 
-bool Type::IsResolved() const {
-  if (IsFinalized()) {
-    return true;
-  }
-  if (!HasResolvedTypeClass()) {
-    return false;
-  }
-  const TypeArguments& args = TypeArguments::Handle(arguments());
-  return args.IsNull() || args.IsResolved();
+void Type::set_is_resolved() const {
+  ASSERT(!IsResolved());
+  set_type_state(RawType::kResolved);
 }
 
 
@@ -12811,7 +12810,9 @@ RawAbstractType* Type::CloneUnfinalized() const {
   TypeArguments& type_args = TypeArguments::Handle(arguments());
   type_args = type_args.CloneUnfinalized();
   const Class& type_cls = Class::Handle(type_class());
-  return Type::New(type_cls, type_args, token_pos());
+  const Type& type = Type::Handle(Type::New(type_cls, type_args, token_pos()));
+  type.set_is_resolved();
+  return type.raw();
 }
 
 
@@ -12961,10 +12962,8 @@ void Type::set_token_pos(intptr_t token_pos) const {
 
 
 void Type::set_type_state(int8_t state) const {
-  ASSERT((state == RawType::kAllocated) ||
-         (state == RawType::kBeingFinalized) ||
-         (state == RawType::kFinalizedInstantiated) ||
-         (state == RawType::kFinalizedUninstantiated));
+  ASSERT((state >= RawType::kAllocated) &&
+         (state <= RawType::kFinalizedUninstantiated));
   raw_ptr()->type_state_ = state;
 }
 

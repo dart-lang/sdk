@@ -305,7 +305,6 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
     OS::Print("Resolving redirecting factory: %s\n",
               String::Handle(factory.name()).ToCString());
   }
-  ResolveType(cls, type);
   type ^= FinalizeType(cls, type, kCanonicalize);
   factory.SetRedirectionType(type);
   if (type.IsMalformedOrMalbounded()) {
@@ -461,16 +460,21 @@ void ClassFinalizer::ResolveTypeClass(const Class& cls,
 
 
 void ClassFinalizer::ResolveType(const Class& cls, const AbstractType& type) {
-  // TODO(regis): Add a kResolved bit in type_state_ for efficiency.
-  if (type.IsFinalized() || type.IsResolved()) {
+  if (type.IsResolved()) {
     return;
   }
+  ASSERT(type.IsType());
   if (FLAG_trace_type_finalization) {
     OS::Print("Resolve type '%s'\n", String::Handle(type.Name()).ToCString());
   }
-
   ResolveTypeClass(cls, type);
-
+  if (type.IsMalformed()) {
+    ASSERT(type.IsResolved());
+    return;
+  }
+  // Mark type as resolved before resolving its type arguments in order to avoid
+  // repeating resolution of recursive types.
+  Type::Cast(type).set_is_resolved();
   // Resolve type arguments, if any.
   const TypeArguments& arguments = TypeArguments::Handle(type.arguments());
   if (!arguments.IsNull()) {
@@ -768,7 +772,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(
     return TypeRef::New(type);
   }
 
-  ASSERT(type.IsResolved());
+  ResolveType(cls, type);
   if (FLAG_trace_type_finalization) {
     OS::Print("Finalizing type '%s' for class '%s'\n",
               String::Handle(type.Name()).ToCString(),
@@ -990,7 +994,6 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
   AbstractType& type = AbstractType::Handle(function.result_type());
   // It is not a compile time error if this name does not resolve to a class or
   // interface.
-  ResolveType(cls, type);
   type = FinalizeType(cls, type, kCanonicalize);
   // The result type may be malformed or malbounded.
   function.set_result_type(type);
@@ -998,7 +1001,6 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
   const intptr_t num_parameters = function.NumParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = function.ParameterTypeAt(i);
-    ResolveType(cls, type);
     type = FinalizeType(cls, type, kCanonicalize);
     // The parameter type may be malformed or malbounded.
     function.SetParameterTypeAt(i, type);
@@ -1127,7 +1129,6 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   for (intptr_t i = 0; i < num_fields; i++) {
     field ^= array.At(i);
     type = field.type();
-    ResolveType(cls, type);
     type = FinalizeType(cls, type, kCanonicalize);
     field.set_type(type);
     name = field.name();

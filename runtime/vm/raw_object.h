@@ -1135,6 +1135,7 @@ class RawAbstractType : public RawInstance {
  protected:
   enum TypeState {
     kAllocated,  // Initial state.
+    kResolved,  // Type class and type arguments resolved.
     kBeingFinalized,  // In the process of being finalized.
     kFinalizedInstantiated,  // Instantiated type ready for use.
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.

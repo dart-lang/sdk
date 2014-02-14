@@ -1287,12 +1287,13 @@ class TypeArguments : public Object {
   bool IsEquivalent(const TypeArguments& other,
                     GrowableObjectArray* trail = NULL) const;
 
-  bool IsResolved() const;
   bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
   bool IsUninstantiatedIdentity() const;
   bool CanShareInstantiatorTypeArguments(const Class& instantiator_class) const;
 
-  // Returns true if all types of this vector are finalized.
+  // Returns true if all types of this vector are respectively, resolved,
+  // finalized, or bounded.
+  bool IsResolved() const;
   bool IsFinalized() const;
   bool IsBounded() const;
 
@@ -4192,8 +4193,8 @@ class Type : public AbstractType {
   }
   virtual bool IsFinalized() const {
     return
-    (raw_ptr()->type_state_ == RawType::kFinalizedInstantiated) ||
-    (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated);
+        (raw_ptr()->type_state_ == RawType::kFinalizedInstantiated) ||
+        (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated);
   }
   void SetIsFinalized() const;
   void ResetIsFinalized() const;  // Ignore current state and set again.
@@ -4206,7 +4207,10 @@ class Type : public AbstractType {
   virtual bool IsMalformedOrMalbounded() const;
   virtual RawLanguageError* error() const { return raw_ptr()->error_; }
   virtual void set_error(const LanguageError& value) const;
-  virtual bool IsResolved() const;  // Class and all arguments classes resolved.
+  virtual bool IsResolved() const {
+    return raw_ptr()->type_state_ >= RawType::kResolved;
+  }
+  void set_is_resolved() const;
   virtual bool HasResolvedTypeClass() const;  // Own type class resolved.
   virtual RawClass* type_class() const;
   void set_type_class(const Object& value) const;
