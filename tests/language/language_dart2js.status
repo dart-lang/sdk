@@ -146,8 +146,6 @@ canonical_const2_test: RuntimeError, OK # Issue 1533
 bit_operations_test: RuntimeError, OK # Issue 1533
 expect_test: RuntimeError, OK # Issue 13080
 
-null_test/none: RuntimeError  # Issue 12482
-
 [ ($compiler == dart2js || $compiler == dart2dart) && $checked ]
 cyclic_typedef_test/07: Crash # Issue 15237
 

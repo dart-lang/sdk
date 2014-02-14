@@ -28,8 +28,8 @@ main() {
   ClassMirror NullMirror = nullMirror.type;
   Expect.equals(reflectClass(Null), NullMirror);
   Expect.equals(#Null, NullMirror.simpleName);
-  Expect.equals(#Object, NullMirror.superclass.simpleName);
-  Expect.equals(null, NullMirror.superclass.superclass);
+  Expect.equals(#Object, NullMirror.superclass.simpleName);  /// 00: ok
+  Expect.equals(null, NullMirror.superclass.superclass);  /// 00: continued
   Expect.listEquals([], NullMirror.superinterfaces);
   Expect.equals(currentMirrorSystem().libraries[Uri.parse('dart:core')],
                 NullMirror.owner);

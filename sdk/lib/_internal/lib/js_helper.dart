@@ -978,6 +978,7 @@ class Primitives {
     if (JS('bool', '# == "num"', className)) return const JSNumber();
     if (JS('bool', '# == "bool"', className)) return const JSBool();
     if (JS('bool', '# == "List"', className)) return const JSArray();
+    if (JS('bool', '# == "Null"', className)) return const JSNull();
     return JS('var', 'init.allClasses[#]', className);
   }
 

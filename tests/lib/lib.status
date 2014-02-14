@@ -78,7 +78,6 @@ mirrors/method_mirror_source_line_ending_test : RuntimeError # Issue 6490
 mirrors/mirrors_test: RuntimeError # TODO(ahe): I'm working on fixing this.
 mirrors/mixin_test: RuntimeError # Issue 12464
 mirrors/mixin_application_test/none: RuntimeError # Issue 12464
-mirrors/null_test : RuntimeError # Issue 12129
 mirrors/parameter_test/none: RuntimeError # Issue 6490
 mirrors/parameter_metadata_test: RuntimeError # Issue 10905
 mirrors/private_symbol_test: CompileTimeError # Issue 13597
@@ -108,6 +107,7 @@ typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for Typed
 typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 mirrors/to_string_test: Fail # Safari bug TODO(ahe): Add bug number if able to submit bug.
+mirrors/null_test: Fail # http://dartbug.com/16831
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
@@ -175,7 +175,8 @@ async/timer_not_available_test: Fail, OK # only meant to test when there is no w
                                          # implement timer (currently only in d8)
 
 [ $compiler == dart2js && $minified ]
-mirrors/intercepted_superclass_test: RuntimeError # Issue 16389
+mirrors/intercepted_superclass_test: RuntimeError # Issue 16804
+mirrors/null_test/00: RuntimeError # Issue 16804. Please remove the multi-test comments when this test starts succeeding.
 
 [ $compiler == dart2dart ]
 mirrors/*: Skip # http://dartbug.com/11511
