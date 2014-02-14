@@ -12,15 +12,21 @@ check(value, expectComparable, expectPattern) {
 int inscrutable(int x) => x == 0 ? 0 : x | inscrutable(x & (x - 1));
 
 class A implements Comparable {
+  int compareTo(o) => 0;
 }
 
 class B {
 }
 
 class C implements Pattern {
+  matchAsPrefix(String s, [int start = 0]) => null;
+  allMatches(String s) => null;
 }
 
 class D implements Pattern, Comparable {
+  int compareTo(o) => 0;
+  matchAsPrefix(String s, [int start = 0]) => null;
+  allMatches(String s) => null;
 }
 
 main() {

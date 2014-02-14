@@ -11,18 +11,19 @@ class B extends A1 {
   method() {}
 }
 
-class A1 {
+abstract class A1 {
   A1() {}
   method();  // Abstract.
   factory A1.make() { return new B(); }
 }
 
 class A2 {
-  method();  // Abstract.
+  // Intentionally abstract method.
+  method();  /// 00: static type warning
   A2.make() {}
 }
 
 main() {
   new A1.make();
-  new A2.make();              /// 00: static type warning
+  new A2.make();              /// 00: continued
 }

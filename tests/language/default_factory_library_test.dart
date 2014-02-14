@@ -13,7 +13,7 @@ class B implements lib.A, C {
   int methodB() { return 2; }
 }
 
-class C {
+abstract class C implements lib.A {
   // Referenced from an abstract class in another library
   factory C.A () { return new B(); }
 }

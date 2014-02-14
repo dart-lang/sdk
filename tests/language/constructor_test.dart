@@ -23,10 +23,11 @@ class B {
 
 // Test the order of initialization: first the instance variable then
 // the super constructor.
-class Alpha {
+abstract class Alpha {
   Alpha(v) {
     this.foo(v);
   }
+  foo(v) => throw 'Alpha.foo should never be called.';
 }
 
 class Beta extends Alpha {

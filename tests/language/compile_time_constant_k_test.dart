@@ -4,11 +4,15 @@
 
 import "package:expect/expect.dart";
 
-const x = const { 'a': 3, 'a': 4 };
-const y = const { 'a': 10, 'b': 11, 'a': 12, 'b': 13, 'a': 14 };
-const z = const { '__proto__': 496,
-                  '__proto__': 497,
-                  '__proto__': 498,
+const x = const {
+                  'a': 3,  /// 01: static type warning
+                  'a': 4 };
+const y = const { 'a': 10, 'b': 11, 'a': 12,  /// 02: static type warning
+                  'b': 13, 'a': 14 };         /// 02: continued
+const z = const {
+                  '__proto__': 496,  /// 03: static type warning
+                  '__proto__': 497,  /// 03: continued
+                  '__proto__': 498,  /// 03: continued
                   '__proto__': 499 };
 
 const x2 = const { 'a': 4 };
@@ -17,6 +21,6 @@ const z2 = const { '__proto__': 499 };
 
 main() {
   Expect.identical(x2, x);
-  Expect.identical(y2, y);
+  Expect.identical(y2, y);  /// 02: continued
   Expect.identical(z2, z);
 }

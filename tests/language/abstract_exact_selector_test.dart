@@ -8,7 +8,8 @@
 import "package:expect/expect.dart";
 import "compiler_annotations.dart";
 
-abstract class Foo {
+abstract /// 01: static type warning
+class Foo {
   noSuchMethod(im) => 42;
 }
 

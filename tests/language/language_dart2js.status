@@ -213,7 +213,8 @@ prefix16_test: Fail # Issue 13081
 prefix22_test: Fail # Issue 13081
 
 # Calling unresolved class constructor:
-call_nonexistent_constructor_test: Fail # Issue 13082
+call_nonexistent_constructor_test/01: Fail # Issue 13082
+call_nonexistent_constructor_test/02: Fail # Issue 13082
 
 bad_override_test/01: Fail # Issue 11496
 bad_override_test/02: Fail # Issue 11496
