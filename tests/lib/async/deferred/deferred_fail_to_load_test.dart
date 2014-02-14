@@ -15,6 +15,7 @@ main() {
       expect(lib1.f(), equals("hi"));
     }));
     b.load().then((_) {
+      expect(false, true);
       lib2.foo("");
     }).catchError(expectAsync((_) {
       expect(true, true);
