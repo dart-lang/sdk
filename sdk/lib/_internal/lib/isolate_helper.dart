@@ -501,6 +501,8 @@ typedef _MainFunction();
 typedef _MainFunctionArgs(args);
 typedef _MainFunctionArgsMessage(args, message);
 
+/// Note: IsolateNatives depends on _globalState which is only set up correctly
+/// when 'dart:isolate' has been imported.
 class IsolateNatives {
 
   static String thisScript = computeThisScript();
