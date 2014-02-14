@@ -201,7 +201,7 @@ mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
 typed_data/*: Fail # Issue 11971
 convert/chunked_conversion_utf88_test: Pass, Slow, Timeout  # Issue 12029
 convert/streamed_conversion_json_utf8_decode_test: Pass, Timeout # Issue 12029
-async/deferred/deferred_api_test: Pass, Timeout # http://dartbug.com/12635
+async/deferred/*: Pass, Fail, Timeout # http://dartbug.com/12635
 convert/streamed_conversion_utf8_decode_test: Pass, Timeout # http://dartbug.com/12768
 convert/utf85_test: Skip # Issue 12029.
 convert/json_util_test: Fail # Issue 16109
@@ -271,7 +271,7 @@ mirrors/find_in_context_fake_function_test: Fail # Issue 13719: Needs VM flag
 # Issue 13921: spawnFunction is not allowed on Dartium's DOM thread.
 async/timer_isolate_test: Fail
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == vm) ]
+[ $compiler == dart2dart || ($compiler == none && ($runtime == drt || $runtime == dartium || $runtime == vm)) ]
 # Deferred loading is not implemented in the VM so the error-handling will never be triggered.
 async/deferred/deferred_fail_to_load_test: Fail
 # Deferred loading is not implemented in the VM so the error-handling will never be triggered.
