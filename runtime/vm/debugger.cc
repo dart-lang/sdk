@@ -432,12 +432,6 @@ intptr_t ActivationFrame::ContextLevel() {
 
 
 RawContext* ActivationFrame::GetSavedEntryContext() {
-  if (ctx_.IsNull()) {
-    // We have bailed on providing a context for this frame.  Bail for
-    // the caller as well.
-    return Context::null();
-  }
-
   // Attempt to find a saved context.
   GetVarDescriptors();
   intptr_t var_desc_len = var_descriptors_.Length();
@@ -466,6 +460,7 @@ RawContext* ActivationFrame::GetSavedCurrentContext() {
       return GetLocalContextVar(var_info.index);
     }
   }
+  UNREACHABLE();
   return Context::null();
 }
 
@@ -611,9 +606,15 @@ RawInstance* ActivationFrame::GetLocalInstanceVar(intptr_t slot_index) {
 RawContext* ActivationFrame::GetLocalContextVar(intptr_t slot_index) {
   Object& context = Object::Handle(GetLocalVar(slot_index));
   if (context.IsContext()) {
+    // We found a saved context.
     return Context::Cast(context).raw();
+  } else if (context.raw() == Symbols::OptimizedOut().raw()) {
+    // The optimizing compiler has eliminated the saved context.
+    return Context::null();
+  } else {
+    UNREACHABLE();
+    return Context::null();
   }
-  return Context::null();
 }
 
 
@@ -638,9 +639,14 @@ void ActivationFrame::VariableAt(intptr_t i,
     *value = GetLocalInstanceVar(var_info.index);
   } else {
     ASSERT(var_info.kind == RawLocalVarDescriptors::kContextVar);
+    if (ctx_.IsNull()) {
+      // The context has been removed by the optimizing compiler.
+      *value = Symbols::OptimizedOut().raw();
+      return;
+    }
+
     // The context level at the PC/token index of this activation frame.
     intptr_t frame_ctx_level = ContextLevel();
-    ASSERT(!ctx_.IsNull());
 
     // The context level of the variable.
     intptr_t var_ctx_level = var_info.scope_id;
@@ -1063,6 +1069,7 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
   if (callee_activation == NULL) {
     // No callee.  Use incoming entry context.  Could be from
     // isolate's top context or from an entry frame.
+    ASSERT(!entry_ctx.IsNull());
     activation->SetContext(entry_ctx);
 
   } else if (callee_activation->function().IsClosureFunction()) {
@@ -1077,6 +1084,9 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
     // Use the context provided by our callee.  This is either the
     // callee's context or a context that was saved in the callee's
     // frame.
+    //
+    // The callee's saved context may be NULL if it was eliminated by
+    // the optimizing compiler.
     const Context& callee_ctx =
         Context::Handle(isolate, callee_activation->GetSavedEntryContext());
     activation->SetContext(callee_ctx);

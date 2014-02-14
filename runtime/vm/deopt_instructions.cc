@@ -367,7 +367,9 @@ RawArray* DeoptContext::DestFrameAsArray() {
     ASSERT(obj.IsNull() ||
            obj.IsInstance() ||
            obj.IsContext() ||
-           obj.IsTypeArguments());
+           obj.IsTypeArguments() ||
+           obj.IsClass() ||  // TODO(turnidge): Ask around and find out why
+           obj.IsField());   // Class/Field show up here.  Maybe type feedback?
     dest_array.SetAt(i, obj);
   }
   return dest_array.raw();
