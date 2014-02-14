@@ -9,6 +9,10 @@ part of dart.html;
  */
 class _WrappedEvent implements Event {
   final Event wrapped;
+
+  /** The CSS selector involved with event delegation. */
+  String _selector;
+
   _WrappedEvent(this.wrapped);
 
   bool get bubbles => wrapped.bubbles;
@@ -46,4 +50,41 @@ class _WrappedEvent implements Event {
   void stopPropagation() {
     wrapped.stopPropagation();
   }
+
+  /**
+   * A pointer to the element whose CSS selector matched within which an event
+   * was fired. If this Event was not associated with any Event delegation,
+   * accessing this value will throw an [UnsupportedError].
+   */
+  Element get matchingTarget {
+    if (_selector == null) {
+      throw new UnsupportedError('Cannot call matchingTarget if this Event did'
+          ' not arise as a result of event delegation.');
+    }
+    var currentTarget = this.currentTarget;
+    var target = this.target;
+    var matchedTarget;
+    do {
+      if (target.matches(_selector)) return target;
+      target = target.parent;
+    } while (target != null && target != currentTarget.parent);
+    throw new StateError('No selector matched for populating matchedTarget.');
+  }
+
+  /**
+   * This event's path, taking into account shadow DOM.
+   *
+   * ## Other resources
+   *
+   * * [Shadow DOM extensions to Event]
+   * (http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event) from
+   * W3C.
+   */
+  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
+  @Experimental()
+  List<Node> get path => wrapped.path;
+
+  dynamic get _get_currentTarget => wrapped._get_currentTarget;
+
+  dynamic get _get_target => wrapped._get_target;
 }

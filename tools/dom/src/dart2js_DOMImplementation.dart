@@ -49,6 +49,17 @@ class _DOMWindowCrossFrame implements WindowBase {
       return new _DOMWindowCrossFrame(w);
     }
   }
+
+  // TODO(efortuna): Remove this method. dartbug.com/16814
+  Events get on => throw new UnimplementedError();
+  // TODO(efortuna): Remove this method. dartbug.com/16814
+  void addEventListener(String type, EventListener listener, [bool useCapture])
+      => throw new UnimplementedError();
+  // TODO(efortuna): Remove this method. dartbug.com/16814
+  bool dispatchEvent(Event event) => throw new UnimplementedError();
+  // TODO(efortuna): Remove this method. dartbug.com/16814
+  void removeEventListener(String type, EventListener listener,
+      [bool useCapture]) => throw new UnimplementedError();
 }
 
 class _LocationCrossFrame implements LocationBase {
