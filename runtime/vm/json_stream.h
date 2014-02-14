@@ -62,7 +62,6 @@ class JSONStream : ValueObject {
   void PrintValue(const char* s);
   void PrintfValue(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void PrintValue(const Object& o, bool ref = true);
-  void PrintValue(const Field& f, const Instance& instance, bool ref = true);
   void PrintValue(SourceBreakpoint* bpt);
 
   void PrintPropertyBool(const char* name, bool b);
@@ -156,12 +155,6 @@ class JSONArray : public ValueObject {
   void AddValue(const char* s) const { stream_->PrintValue(s); }
   void AddValue(const Object& obj, bool ref = true) const {
     stream_->PrintValue(obj, ref);
-  }
-  // Print a field bound to a value.  Value is looked up from 'instance'.
-  void AddValue(const Field& field,
-                const Instance& instance,
-                bool ref = true) const {
-    stream_->PrintValue(field, instance, ref);
   }
   void AddValue(SourceBreakpoint* bpt) const {
     stream_->PrintValue(bpt);

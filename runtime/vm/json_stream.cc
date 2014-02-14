@@ -127,14 +127,6 @@ void JSONStream::PrintValue(const Object& o, bool ref) {
 }
 
 
-void JSONStream::PrintValue(const Field& field,
-                            const Instance& instance,
-                            bool ref) {
-  PrintCommaIfNeeded();
-  field.PrintToJSONStreamWithInstance(this, instance, ref);
-}
-
-
 void JSONStream::PrintValue(SourceBreakpoint* bpt) {
   PrintCommaIfNeeded();
   bpt->PrintToJSONStream(this);

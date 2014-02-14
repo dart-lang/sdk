@@ -6,6 +6,17 @@
 </head>
 <polymer-element name="stack-frame" extends="observatory-element">
   <template>
+    <style>
+      .memberList {
+          margin-left: 3em;
+          border-spacing: 0;
+          border-collapse: collapse;
+      }
+      .member {
+          vertical-align: top;
+          padding: 0 1em;
+      }
+    </style>
     <div class="row">
       <div class="col-md-1"></div>
       <div class="col-md-1">
@@ -18,18 +29,19 @@
       <div class="col-md-1"></div>
     </div>
 
-    <template repeat="{{ v in frame['vars'] }}">
-      <div class="row">
-        <div class="col-md-3"></div>
-        <div class="col-md-1">
-          {{ v['name'] }}
-        </div>
-        <div class="col-md-6">
-          <instance-ref app="{{ app }}" ref="{{ v['value'] }}"></instance-ref>
-        </div>
-        <div class="col-md-2"></div>
+    <div class="row">
+      <div class="col-md-3"></div>
+      <div class="col-md-9">
+        <table class="memberList">
+          <tr template repeat="{{ v in frame['vars'] }}">
+            <td class="member">{{ v['name']}}</td>
+            <td class="member">
+            <instance-ref app="{{ app }}" ref="{{ v['value'] }}"></instance-ref>
+            </td>
+          </tr>
+        </table>
       </div>
-    </template>
+    </div>
 
   </template>
   <script type="application/dart" src="stack_frame.dart"></script>

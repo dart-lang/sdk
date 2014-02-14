@@ -72,20 +72,69 @@
 </template>
 
 </polymer-element><polymer-element name="instance-ref" extends="service-ref">
-<template>
-<div>
-  <template if="{{ (ref['type'] == 'null') }}">
-    unexpected null
-  </template>
-  <template if="{{ (ref['type'] == '@Null') }}">
-    {{ name }}
-  </template>
-  <template if="{{ (ref['type'] != 'null') &amp;&amp; ref['type'] != '@Null' }}">
-    <a href="{{ url }}">{{ name }} </a>
-  </template>
- </div>
-</template>
+  <template>
+    <style>
+      .memberList {
+          margin-left: 3em;
+          border-spacing: 0;
+          border-collapse: collapse;
+      }
+      .member {
+          vertical-align: top;
+          padding: 0 1em;
+      }
+    </style>
+    <div>
+      <template if="{{ isUnexpectedRef(ref['type']) }}">
+        unexpected reference type &lt;{{ ref['type'] }}&gt;
+      </template>
 
+      <template if="{{ isNullRef(ref['type']) }}">
+        {{ name }}
+      </template>
+
+      <template if="{{ (isStringRef(ref['type']) ||
+                        isBoolRef(ref['type']) ||
+                        isIntRef(ref['type'])) }}">
+        <a href="{{ url }}">{{ name }}</a>
+      </template>
+
+      <template if="{{ isInstanceRef(ref['type']) }}">
+        <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em></a> {
+        <a on-click="{{ toggleExpand }}">...</a>
+        <template if="{{ expanded }}">
+          <table class="memberList">
+            <tbody><tr template="" repeat="{{ field in ref['fields'] }}">
+
+              <td class="member">{{ field['decl']['user_name'] }}</td>
+              <td class="member">
+                <instance-ref app="{{ app }}" ref="{{ field['value'] }}"></instance-ref>
+              </td>
+            </tr>
+          </tbody></table>
+        </template>
+        }
+      </template>
+
+      <template if="{{ isListRef(ref['type']) }}">
+        <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em> ({{ ref['length']}})</a> {
+        <a on-click="{{ toggleExpand }}">...</a>
+        <template if="{{ expanded }}">
+          <table class="memberList">
+            <tbody><tr template="" repeat="{{ element in ref['elements'] }}">
+              <td class="member">[{{ element['index']}}]</td>
+              <td class="member">
+                <instance-ref app="{{ app }}" ref="{{ element['value'] }}"></instance-ref>
+              </td>
+            </tr>
+          </tbody></table>
+        </template>
+        }
+      </template>
+
+    </div>
+  </template>
+  
 </polymer-element>
 <polymer-element name="library-ref" extends="service-ref">
 <template>
@@ -434,7 +483,7 @@
             <table class="table table-hover">
              <tbody>
                 <tr template="" repeat="{{ field in instance['fields'] }}">
-                  <td><field-ref app="{{ app }}" ref="{{ field }}"></field-ref></td>
+                  <td><field-ref app="{{ app }}" ref="{{ field['decl'] }}"></field-ref></td>
                   <td><instance-ref app="{{ app }}" ref="{{ field['value'] }}"></instance-ref></td>
                 </tr>
               </tbody>
@@ -632,6 +681,17 @@
 
 </polymer-element><polymer-element name="stack-frame" extends="observatory-element">
   <template>
+    <style>
+      .memberList {
+          margin-left: 3em;
+          border-spacing: 0;
+          border-collapse: collapse;
+      }
+      .member {
+          vertical-align: top;
+          padding: 0 1em;
+      }
+    </style>
     <div class="row">
       <div class="col-md-1"></div>
       <div class="col-md-1">
@@ -644,18 +704,19 @@
       <div class="col-md-1"></div>
     </div>
 
-    <template repeat="{{ v in frame['vars'] }}">
-      <div class="row">
-        <div class="col-md-3"></div>
-        <div class="col-md-1">
-          {{ v['name'] }}
-        </div>
-        <div class="col-md-6">
-          <instance-ref app="{{ app }}" ref="{{ v['value'] }}"></instance-ref>
-        </div>
-        <div class="col-md-2"></div>
+    <div class="row">
+      <div class="col-md-3"></div>
+      <div class="col-md-9">
+        <table class="memberList">
+          <tbody><tr template="" repeat="{{ v in frame['vars'] }}">
+            <td class="member">{{ v['name']}}</td>
+            <td class="member">
+            <instance-ref app="{{ app }}" ref="{{ v['value'] }}"></instance-ref>
+            </td>
+          </tr>
+        </tbody></table>
       </div>
-    </template>
+    </div>
 
   </template>
   

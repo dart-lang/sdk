@@ -94,4 +94,43 @@ class ObservatoryElement extends PolymerElement {
     var shortFile = file.substring(file.lastIndexOf('/') + 1);
     return "${shortFile}:${frame['line']}";    
   }
+
+  bool isNullRef(String type) {
+    return type == '@Null';
+  }
+
+  bool isIntRef(String type) {
+    return (type == '@Smi' ||
+            type == '@Mint' ||
+            type == '@Bigint');
+  }
+
+  bool isBoolRef(String type) {
+    return type == '@Bool';
+  }
+
+  bool isStringRef(String type) {
+    return type == '@String';
+  }
+
+  bool isInstanceRef(String type) {
+    return type == '@Instance';
+  }
+
+  bool isListRef(String type) {
+    return (type == '@GrowableObjectArray' ||
+            type == '@Array');
+  }
+
+  bool isUnexpectedRef(String type) {
+    return (!['@Null',
+              '@Smi',
+              '@Mint',
+              '@Biginit',
+              '@Bool',
+              '@String',
+              '@Instance',
+              '@GrowableObjectArray'
+              '@Array'].contains(type));
+  }
 }

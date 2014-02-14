@@ -6373,13 +6373,6 @@ const char* Field::ToCString() const {
 }
 
 void Field::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  PrintToJSONStreamWithInstance(stream, Object::null_instance(), ref);
-}
-
-
-void Field::PrintToJSONStreamWithInstance(JSONStream* stream,
-                                          const Instance& instance,
-                                          bool ref) const {
   JSONObject jsobj(stream);
   const char* internal_field_name = String::Handle(name()).ToCString();
   const char* field_name = String::Handle(UserVisibleName()).ToCString();
@@ -6392,10 +6385,7 @@ void Field::PrintToJSONStreamWithInstance(JSONStream* stream,
   jsobj.AddProperty("name", internal_field_name);
   jsobj.AddProperty("user_name", field_name);
   if (is_static()) {
-    const Object& valueObj = Object::Handle(value());
-    jsobj.AddProperty("value", valueObj);
-  } else if (!instance.IsNull()) {
-    const Object& valueObj = Object::Handle(instance.GetField(*this));
+    const Instance& valueObj = Instance::Handle(value());
     jsobj.AddProperty("value", valueObj);
   }
 
@@ -12077,6 +12067,7 @@ void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
 
   // Walk the superclass chain, adding all instance fields.
   {
+    Instance& fieldValue = Instance::Handle();
     JSONArray jsarr(&jsobj, "fields");
     while (!cls.IsNull()) {
       const Array& field_array = Array::Handle(cls.fields());
@@ -12085,7 +12076,10 @@ void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
         for (intptr_t i = 0; i < field_array.Length(); i++) {
           field ^= field_array.At(i);
           if (!field.is_static()) {
-            jsarr.AddValue(field, *this);
+            fieldValue ^= GetField(field);
+            JSONObject jsfield(&jsarr);
+            jsfield.AddProperty("decl", field);
+            jsfield.AddProperty("value", fieldValue);
           }
         }
       }
@@ -16199,7 +16193,28 @@ const char* Array::ToCString() const {
 
 
 void Array::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Instance::PrintToJSONStream(stream, ref);
+  JSONObject jsobj(stream);
+  Class& cls = Class::Handle(this->clazz());
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddProperty("type", JSONType(ref));
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  jsobj.AddProperty("class", cls);
+  jsobj.AddProperty("length", Length());
+  if (ref) {
+    return;
+  }
+  {
+    JSONArray jsarr(&jsobj, "elements");
+    for (intptr_t index = 0; index < Length(); index++) {
+      JSONObject jselement(&jsarr);
+      jselement.AddProperty("index", index);
+
+      Instance& instance = Instance::Handle();
+      instance ^= At(index);
+      jselement.AddProperty("value", instance);
+    }
+  }
 }
 
 
@@ -16510,7 +16525,28 @@ const char* GrowableObjectArray::ToUserCString(intptr_t max_len,
 
 void GrowableObjectArray::PrintToJSONStream(JSONStream* stream,
                                             bool ref) const {
-  Instance::PrintToJSONStream(stream, ref);
+  JSONObject jsobj(stream);
+  Class& cls = Class::Handle(this->clazz());
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddProperty("type", JSONType(ref));
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  jsobj.AddProperty("class", cls);
+  jsobj.AddProperty("length", Length());
+  if (ref) {
+    return;
+  }
+  {
+    JSONArray jsarr(&jsobj, "elements");
+    for (intptr_t index = 0; index < Length(); index++) {
+      JSONObject jselement(&jsarr);
+      jselement.AddProperty("index", index);
+
+      Instance& instance = Instance::Handle();
+      instance ^= At(index);
+      jselement.AddProperty("value", instance);
+    }
+  }
 }
 
 
