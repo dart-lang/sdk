@@ -32,6 +32,32 @@ _callInIsolate(_IsolateContext isolate, Function function) {
   return result;
 }
 
+/// Marks entering a javascript async operation to keep the worker alive.
+/// Marks entering a JavaScript async operation to keep the worker alive.
+///
+/// To be called by library code before starting an async operation controlled
+/// by the JavaScript event handler.
+///
+/// Also call [leaveJsAsync] in all callback handlers marking the end of that
+/// async operation (also error handlers) so the worker can be released.
+///
+/// These functions only has to be called for code that can be run from a
+/// worker-isolate (so not for general dom operations).
+enterJsAsync() {
+  _globalState.topEventLoop._activeJsAsyncCount++;
+}
+
+/// Marks leaving a javascript async operation.
+///
+/// See [enterJsAsync].
+leaveJsAsync() {
+  _globalState.topEventLoop._activeJsAsyncCount--;
+  assert(_globalState.topEventLoop._activeJsAsyncCount >= 0);
+}
+
+/// Returns true if we are currently in a worker context.
+bool isWorker() => _globalState.isWorker;
+
 /**
  * Called by the compiler to fetch the current isolate context.
  */
@@ -208,12 +234,12 @@ class _Manager {
 
   /**
    * Close the worker running this code if all isolates are done and
-   * there is no active timer.
+   * there are no active async JavaScript tasks still running.
    */
   void maybeCloseWorker() {
     if (isWorker
         && isolates.isEmpty
-        && topEventLoop.activeTimerCount == 0) {
+        && topEventLoop._activeJsAsyncCount == 0) {
       mainManager.postMessage(_serializeMessage({'command': 'close'}));
     }
   }
@@ -346,7 +372,14 @@ class _IsolateContext implements IsolateContext {
 /** Represent the event loop on a javascript thread (DOM or worker). */
 class _EventLoop {
   final Queue<_IsolateEvent> events = new Queue<_IsolateEvent>();
-  int activeTimerCount = 0;
+
+  /// The number of waiting callbacks not controlled by the dart event loop.
+  ///
+  /// This could be timers or http requests. The worker will only be killed if
+  /// this count reaches 0.
+  /// Access this by using [enterJsAsync] before starting a JavaScript async
+  /// operation and [leaveJsAsync] when the callback has fired.
+  int _activeJsAsyncCount = 0;
 
   _EventLoop();
 
@@ -484,6 +517,8 @@ class IsolateNatives {
     if (currentScript != null) {
       return JS('String', 'String(#.src)', currentScript);
     }
+    // A worker has no script tag - so get an url from a stack-trace.
+    if (_globalState.isWorker) return computeThisScriptFromTrace();
     if (Primitives.isD8) return computeThisScriptD8();
     if (Primitives.isJsshell) return computeThisScriptJsshell();
     return null;
@@ -493,10 +528,11 @@ class IsolateNatives {
     return JS('String|Null', 'thisFilename()');
   }
 
-  static String computeThisScriptD8() {
-    // TODO(ahe): The following is for supporting D8.  We should move this code
-    // to a helper library that is only loaded when testing on D8.
+  // TODO(ahe): The following is for supporting D8.  We should move this code
+  // to a helper library that is only loaded when testing on D8.
+  static String computeThisScriptD8() => computeThisScriptFromTrace();
 
+  static String computeThisScriptFromTrace() {
     var stack = JS('String|Null', 'new Error().stack');
     if (stack == null) {
       // According to Internet Explorer documentation, the stack
@@ -1365,11 +1401,12 @@ class TimerImpl implements Timer {
 
       void internalCallback() {
         _handle = null;
-        _globalState.topEventLoop.activeTimerCount--;
+        leaveJsAsync();
         callback();
       }
 
-      _globalState.topEventLoop.activeTimerCount++;
+      enterJsAsync();
+
       _handle = JS('int', '#.setTimeout(#, #)',
                    globalThis,
                    convertDartClosureToJS(internalCallback, 0),
@@ -1383,7 +1420,7 @@ class TimerImpl implements Timer {
   TimerImpl.periodic(int milliseconds, void callback(Timer timer))
       : _once = false {
     if (hasTimer()) {
-      _globalState.topEventLoop.activeTimerCount++;
+      enterJsAsync();
       _handle = JS('int', '#.setInterval(#, #)',
                    globalThis,
                    convertDartClosureToJS(() { callback(this); }, 0),
@@ -1399,7 +1436,7 @@ class TimerImpl implements Timer {
         throw new UnsupportedError("Timer in event loop cannot be canceled.");
       }
       if (_handle == null) return;
-      _globalState.topEventLoop.activeTimerCount--;
+      leaveJsAsync();
       if (_once) {
         JS('void', '#.clearTimeout(#)', globalThis, _handle);
       } else {

@@ -271,6 +271,13 @@ mirrors/find_in_context_fake_function_test: Fail # Issue 13719: Needs VM flag
 # Issue 13921: spawnFunction is not allowed on Dartium's DOM thread.
 async/timer_isolate_test: Fail
 
+[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == vm) ]
+# Deferred loading is not implemented in the VM so the error-handling will never be triggered.
+async/deferred/deferred_fail: Fail
+# Deferred loading is not implemented in the VM so the error-handling will never be triggered.
+# Issue 13921: spawnFunction is not allowed on Dartium's DOM thread.
+async/deferred/deferred_in_isolate_test: Fail
+
 [ $compiler == dart2js ]
 async/schedule_microtask_test: Fail # Issue 9002
 
