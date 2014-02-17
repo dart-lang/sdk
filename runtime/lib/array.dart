@@ -27,12 +27,12 @@ class _List<E> implements List<E> {
 
   void insert(int index, E element) {
     throw new UnsupportedError(
-        "Cannot add to a non-extendable array");
+        "Cannot insert into a fixed-length list");
   }
 
   void insertAll(int index, Iterable<E> iterable) {
     throw new UnsupportedError(
-        "Cannot add to a non-extendable array");
+        "Cannot insert into a fixed-length list");
   }
 
   void setAll(int index, Iterable<E> iterable) {
@@ -41,22 +41,22 @@ class _List<E> implements List<E> {
 
   E removeAt(int index) {
     throw new UnsupportedError(
-        "Cannot remove element of a non-extendable array");
+        "Cannot remove from a fixed-length list");
   }
 
   bool remove(Object element) {
     throw new UnsupportedError(
-        "Cannot remove element of a non-extendable array");
+        "Cannot remove from a fixed-length list");
   }
 
   void removeWhere(bool test(E element)) {
     throw new UnsupportedError(
-        "Cannot remove element of a non-extendable array");
+        "Cannot remove from a fixed-length list");
   }
 
   void retainWhere(bool test(E element)) {
     throw new UnsupportedError(
-        "Cannot remove element of a non-extendable array");
+        "Cannot remove from a fixed-length list");
   }
 
   Iterable<E> getRange(int start, [int end]) {
@@ -95,12 +95,12 @@ class _List<E> implements List<E> {
 
   void removeRange(int start, int end) {
     throw new UnsupportedError(
-        "Cannot remove range of a non-extendable array");
+        "Cannot remove range from a fixed-length list");
   }
 
   void replaceRange(int start, int end, Iterable<E> iterable) {
     throw new UnsupportedError(
-        "Cannot remove range of a non-extendable array");
+        "Cannot remove range from a fixed-length list");
   }
 
   void fillRange(int start, int end, [E fillValue]) {
@@ -223,27 +223,27 @@ class _List<E> implements List<E> {
 
   void add(E element) {
     throw new UnsupportedError(
-        "Cannot add to a non-extendable array");
+        "Cannot add to a fixed-length list");
   }
 
   void addAll(Iterable<E> iterable) {
     throw new UnsupportedError(
-        "Cannot add to a non-extendable array");
+        "Cannot add to a fixed-length list");
   }
 
   void clear() {
     throw new UnsupportedError(
-        "Cannot clear a non-extendable array");
+        "Cannot clear a fixed-length list");
   }
 
   void set length(int length) {
     throw new UnsupportedError(
-        "Cannot change the length of a non-extendable array");
+        "Cannot resize a fixed-length list");
   }
 
   E removeLast() {
     throw new UnsupportedError(
-        "Cannot remove in a non-extendable array");
+        "Cannot remove from a fixed-length list");
   }
 
   E get first {
@@ -509,7 +509,7 @@ class _ImmutableList<E> implements List<E> {
 
   E removeLast() {
     throw new UnsupportedError(
-        "Cannot remove in a non-extendable array");
+        "Cannot remove from a fixed-length list");
   }
 
   E get first {
