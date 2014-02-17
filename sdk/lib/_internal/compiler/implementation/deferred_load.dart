@@ -541,10 +541,13 @@ class DeferredLoadTask extends CompilerTask {
 
     // For each deferred import we find out which outputUnits to load.
     for (Import import in _allDeferredImports.keys) {
+      if (import == _fakeMainImport) continue;
       hunksToLoad[importDeferName(import)] = new Set<OutputUnit>();
       for (OutputUnit outputUnit in allOutputUnits) {
         if (outputUnit == mainOutputUnit) continue;
-        hunksToLoad[importDeferName(import)].add(outputUnit);
+        if (outputUnit.imports.contains(import)) {
+          hunksToLoad[importDeferName(import)].add(outputUnit);
+        }
       }
     }
   }

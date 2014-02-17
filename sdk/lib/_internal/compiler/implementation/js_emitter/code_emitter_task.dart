@@ -972,20 +972,51 @@ class CodeEmitterTask extends CompilerTask {
     return "${namer.isolateAccess(isolateMain)}($mainAccess)";
   }
 
-  jsAst.Expression generateDispatchPropertyInitialization() {
+  /**
+   * Emits code that sets `init.isolateTag` to a unique string.
+   */
+  jsAst.Expression generateIsolateAffinityTagInitialization() {
     return js('!#', js.fun([], [
-        js('var objectProto = Object.prototype'),
+
+        // On V8, the 'intern' function converts a string to a symbol, which
+        // makes property access much faster.
+        new jsAst.FunctionDeclaration(new jsAst.VariableDeclaration('intern'),
+            js.fun(['s'], [
+                js('var o = {}'),
+                js('o[s] = 1'),
+                js.return_(js('Object.keys(convertToFastObject(o))[0]'))])),
+
+
+        js('init.getIsolateTag = #',
+            js.fun(['name'],
+                js.return_('intern("___dart_" + name + init.isolateTag)'))),
+
+        // To ensure that different programs loaded into the same context (page)
+        // use distinct dispatch properies, we place an object on `Object` to
+        // contain the names already in use.
+        js('var tableProperty = "___dart_isolate_tags_"'),
+        js('var usedProperties = Object[tableProperty] ||'
+            '(Object[tableProperty] = Object.create(null))'),
+
+        js('var rootProperty = "_${generateIsolateTagRoot()}"'),
         js.for_('var i = 0', null, 'i++', [
-            js('var property = "${generateDispatchPropertyName(0)}"'),
-            js.if_('i > 0', js('property = rootProperty + "_" + i')),
-            js.if_('!(property in  objectProto)',
-                   js.return_(
-                       js('init.dispatchPropertyName = property')))])])());
+            js('property = intern(rootProperty + "_" + i + "_")'),
+            js.if_('!(property in usedProperties)', [
+                js('usedProperties[property] = 1'),
+                js('init.isolateTag = property'),
+                new jsAst.Break(null)])])])
+        ());
+
   }
 
-  String generateDispatchPropertyName(int seed) {
+  jsAst.Expression generateDispatchPropertyNameInitialization() {
+    return js(
+        'init.dispatchPropertyName = init.getIsolateTag("dispatch_record")');
+  }
+
+  String generateIsolateTagRoot() {
     // TODO(sra): MD5 of contributing source code or URIs?
-    return '___dart_dispatch_record_ZxYxX_${seed}_';
+    return 'ZxYxX';
   }
 
   emitMain(CodeBuffer buffer) {
@@ -999,12 +1030,21 @@ class CodeEmitterTask extends CompilerTask {
     } else {
       mainCall = '${namer.isolateAccess(main)}()';
     }
-    if (backend.needToInitializeDispatchProperty) {
+
+    if (backend.needToInitializeIsolateAffinityTag) {
       buffer.write(
-          jsAst.prettyPrint(generateDispatchPropertyInitialization(),
+          jsAst.prettyPrint(generateIsolateAffinityTagInitialization(),
                             compiler));
       buffer.write(N);
     }
+    if (backend.needToInitializeDispatchProperty) {
+      assert(backend.needToInitializeIsolateAffinityTag);
+      buffer.write(
+          jsAst.prettyPrint(generateDispatchPropertyNameInitialization(),
+              compiler));
+      buffer.write(N);
+    }
+
     addComment('BEGIN invoke [main].', buffer);
     // This code finds the currently executing script by listening to the
     // onload event of all script tags and getting the first script which

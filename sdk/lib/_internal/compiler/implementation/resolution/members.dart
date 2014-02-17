@@ -803,7 +803,7 @@ class ResolverTask extends CompilerTask {
       element.origin.ensureResolved(compiler);
       // Ensure that the type is computed.
       element.computeType(compiler);
-      // Copy class hiearchy from origin.
+      // Copy class hierarchy from origin.
       element.supertype = element.origin.supertype;
       element.interfaces = element.origin.interfaces;
       element.allSupertypesAndSelf = element.origin.allSupertypesAndSelf;

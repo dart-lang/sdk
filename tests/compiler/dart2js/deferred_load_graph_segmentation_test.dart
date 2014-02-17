@@ -65,6 +65,26 @@ void main() {
     // InputElement is native, so it should not appear on a classList
     Expect.isFalse(outputClassLists[outputUnitForElement(inputElement)]
         .contains(inputElement));
+
+    var hunksToLoad = compiler.deferredLoadTask.hunksToLoad;
+    var hunksLib1 = new Set.from(hunksToLoad["lib1"].map((o) => o.name));
+    var hunksLib2 = new Set.from(hunksToLoad["lib2"].map((o) => o.name));
+    var hunksLib4_1 = new Set.from(hunksToLoad["lib4_1"].map((o) => o.name));
+    var hunksLib4_2 =  new Set.from(hunksToLoad["lib4_2"].map((o) => o.name));
+    Expect.equals(hunksLib1.length, 2);
+    Expect.isTrue(hunksLib1.contains("lib1"));
+    Expect.isTrue(hunksLib1.contains("lib1_lib2") ||
+                  hunksLib1.contains("lib2_lib1"));
+    Expect.isTrue(hunksLib2.contains("lib2"));
+    Expect.equals(hunksLib2.length, 2);
+    Expect.isTrue(hunksLib2.contains("lib1_lib2") ||
+                  hunksLib1.contains("lib2_lib1"));
+    Expect.isTrue(hunksLib4_1.contains("lib4_1"));
+    Expect.equals(hunksLib4_1.length, 1);
+    Expect.isTrue(hunksLib4_2.contains("lib4_2"));
+    Expect.equals(hunksLib4_2.length, 1);
+    Expect.equals(hunksToLoad["main"], null);
+
   }));
 }
 

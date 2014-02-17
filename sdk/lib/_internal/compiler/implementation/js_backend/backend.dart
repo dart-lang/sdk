@@ -142,7 +142,12 @@ class JavaScriptBackend extends Backend {
   Map<ClassElement, ClassElement> implementationClasses;
 
   Element getNativeInterceptorMethod;
+  bool needToInitializeIsolateAffinityTag = false;
   bool needToInitializeDispatchProperty = false;
+
+  /// Holds the method "getIsolateAffinityTag" when dart:_js_helper has been
+  /// loaded.
+  FunctionElement getIsolateAffinityTagMarker;
 
   final Namer namer;
 
@@ -801,6 +806,7 @@ class JavaScriptBackend extends Backend {
     TreeElements elements = compiler.globalDependencies;
     enqueue(enqueuer, getNativeInterceptorMethod, elements);
     enqueueClass(enqueuer, jsPlainJavaScriptObjectClass, elements);
+    needToInitializeIsolateAffinityTag = true;
     needToInitializeDispatchProperty = true;
   }
 
@@ -1552,6 +1558,8 @@ class JavaScriptBackend extends Backend {
       mustPreserveNames = true;
     } else if (element == preserveMetadataMarker) {
       mustRetainMetadata = true;
+    } else if (element == getIsolateAffinityTagMarker) {
+      needToInitializeIsolateAffinityTag = true;
     }
     customElementsAnalysis.registerStaticUse(element, enqueuer);
   }
@@ -1612,6 +1620,9 @@ class JavaScriptBackend extends Backend {
     } else if (uri == Uri.parse('dart:_js_names')) {
       preserveNamesMarker =
           library.find('preserveNames');
+    } else if (uri == Uri.parse('dart:_js_helper')) {
+      getIsolateAffinityTagMarker =
+          library.find('getIsolateAffinityTag');
     }
     return new Future.value();
   }
