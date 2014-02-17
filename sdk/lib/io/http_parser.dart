@@ -515,6 +515,10 @@ class _HttpParser
               throw new HttpException("Invalid response status code");
             }
             _state = _State.RESPONSE_LINE_REASON_PHRASE;
+          } else if (byte == _CharCode.CR) {
+            // Some HTTP servers does not follow the spec. and send
+            // \r\n right after the status code.
+            _state = _State.RESPONSE_LINE_ENDING;
           } else {
             if (byte < 0x30 && 0x39 < byte) {
               throw new HttpException("Invalid response status code");
