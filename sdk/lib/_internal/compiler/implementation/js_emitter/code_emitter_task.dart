@@ -963,15 +963,13 @@ class CodeEmitterTask extends CompilerTask {
 ''');
   }
 
-  /// Returns the code equivalent to:
-  ///   `function(args) { $.startRootIsolate(X.main$closure(), args); }`
-  String buildIsolateSetupClosure(CodeBuffer buffer,
-                                  Element appMain,
-                                  Element isolateMain) {
+  String buildIsolateSetup(CodeBuffer buffer,
+                           Element appMain,
+                           Element isolateMain) {
     String mainAccess = "${namer.isolateStaticClosureAccess(appMain)}";
     // Since we pass the closurized version of the main method to
     // the isolate method, we must make sure that it exists.
-    return "(function(a){${namer.isolateAccess(isolateMain)}($mainAccess,a)})";
+    return "${namer.isolateAccess(isolateMain)}($mainAccess)";
   }
 
   /**
@@ -1024,13 +1022,13 @@ class CodeEmitterTask extends CompilerTask {
   emitMain(CodeBuffer buffer) {
     if (compiler.isMockCompilation) return;
     Element main = compiler.mainFunction;
-    String mainCallClosure = null;
+    String mainCall = null;
     if (compiler.hasIsolateSupport()) {
       Element isolateMain =
         compiler.isolateHelperLibrary.find(Compiler.START_ROOT_ISOLATE);
-      mainCallClosure = buildIsolateSetupClosure(buffer, main, isolateMain);
+      mainCall = buildIsolateSetup(buffer, main, isolateMain);
     } else {
-      mainCallClosure = '${namer.isolateAccess(main)}';
+      mainCall = '${namer.isolateAccess(main)}()';
     }
 
     if (backend.needToInitializeIsolateAffinityTag) {
@@ -1077,9 +1075,9 @@ class CodeEmitterTask extends CompilerTask {
   init.currentScript = currentScript;
 
   if (typeof dartMainRunner === "function") {
-    dartMainRunner(${mainCallClosure}, []);
+    dartMainRunner(function() { ${mainCall}; });
   } else {
-    ${mainCallClosure}([]);
+    ${mainCall};
   }
 })$N''');
     addComment('END invoke [main].', buffer);

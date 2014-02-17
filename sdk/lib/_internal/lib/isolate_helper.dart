@@ -70,8 +70,7 @@ _IsolateContext _currentIsolate() => _globalState.currentContext;
  * is needed. For single-isolate applications (e.g. hello world), this
  * call is not emitted.
  */
-void startRootIsolate(entry, args) {
-  if (args == null) args = [];
+void startRootIsolate(entry) {
   _globalState = new _Manager(entry);
 
   // Don't start the main loop again, if we are in a worker.
@@ -86,9 +85,9 @@ void startRootIsolate(entry, args) {
   _globalState.currentContext = rootContext;
 
   if (entry is _MainFunctionArgs) {
-    rootContext.eval(() { entry(args); });
+    rootContext.eval(() { entry([]); });
   } else if (entry is _MainFunctionArgsMessage) {
-    rootContext.eval(() { entry(args, null); });
+    rootContext.eval(() { entry([], null); });
   } else {
     rootContext.eval(entry);
   }
