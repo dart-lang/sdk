@@ -100,9 +100,6 @@ oom_error_stacktrace_test: Pass # The test only fails at runtime.
 # Skip until we stabilize language tests.
 *: Skip
 
-[ $arch == arm ]
-io/internet_address_test: Fail  # localhost is an Unknown name?
-
 [ $arch == simarm ]
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
