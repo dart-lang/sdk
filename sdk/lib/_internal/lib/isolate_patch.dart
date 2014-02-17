@@ -12,9 +12,10 @@ import 'dart:_isolate_helper' show CapabilityImpl,
                                    RawReceivePortImpl;
 
 patch class Isolate {
-  patch static Future<Isolate> spawn(void entryPoint(message), var message) {
+  patch static Future<Isolate> spawn(void entryPoint(message), var message,
+                                     { bool paused: false }) {
     try {
-      return IsolateNatives.spawnFunction(entryPoint, message)
+      return IsolateNatives.spawnFunction(entryPoint, message, paused)
           .then((msg) => new Isolate._fromControlPort(msg[1], msg[2]));
     } catch (e, st) {
       return new Future<Isolate>.error(e, st);
@@ -22,7 +23,7 @@ patch class Isolate {
   }
 
   patch static Future<Isolate> spawnUri(
-      Uri uri, List<String> args, var message) {
+      Uri uri, List<String> args, var message, { bool paused: false }) {
     try {
       if (args is List<String>) {
         for (int i = 0; i < args.length; i++) {
@@ -33,7 +34,7 @@ patch class Isolate {
       } else if (args != null) {
         throw new ArgumentError("Args must be a list of Strings $args");
       }
-      return IsolateNatives.spawnUri(uri, args, message)
+      return IsolateNatives.spawnUri(uri, args, message, paused)
           .then((msg) => new Isolate._fromControlPort(msg[1], msg[2]));
     } catch (e, st) {
       return new Future<Isolate>.error(e, st);

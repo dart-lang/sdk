@@ -10,8 +10,9 @@ isolate_stress_test: Fail # Issue 12588: This should be able to pass when we hav
 serialization_test: SkipByDesign # Tests dart2js-specific serialization code
 isolate_throws_test/01: Skip # Issue 12587
 compile_time_error_test/01: Skip # Issue 12587
-capability_test: Fail  # Not implemented yet
-pause_test: Fail       # Not implemented yet
+capability_test: Fail   # Not implemented yet
+pause_test: Fail        # Not implemented yet
+start_paused_test: Fail # Not implemented yet
 
 [ $compiler == dart2js && $jscl ]
 browser/*: SkipByDesign  # Browser specific tests

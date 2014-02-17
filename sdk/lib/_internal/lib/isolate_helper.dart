@@ -264,7 +264,7 @@ class _IsolateContext implements IsolateContext {
 
   final Capability pauseCapability = new Capability();
 
-  // TODO(lrn): Store these in single "pausestate" object, so they don't take
+  // TODO(lrn): Store these in single "PauseState" object, so they don't take
   // up as much room when not pausing.
   bool isPaused = false;
   List<_IsolateEvent> delayedEvents = [];
@@ -279,6 +279,7 @@ class _IsolateContext implements IsolateContext {
     if (pauseTokens.add(resume) && !isPaused) {
       isPaused = true;
     }
+    _updateGlobalState();
   }
 
   void removePause(Capability resume) {
@@ -291,6 +292,7 @@ class _IsolateContext implements IsolateContext {
       }
       isPaused = false;
     }
+    _updateGlobalState();
   }
 
   /**
@@ -354,7 +356,7 @@ class _IsolateContext implements IsolateContext {
   }
 
   _updateGlobalState() {
-    if (ports.length - weakPorts.length > 0) {
+    if (ports.length - weakPorts.length > 0 || isPaused) {
       _globalState.isolates[id] = this; // indicate this isolate is active
     } else {
       _globalState.isolates.remove(id); // indicate this isolate is not active
@@ -592,10 +594,12 @@ class IsolateNatives {
         var args = msg['args'];
         var message = _deserializeMessage(msg['msg']);
         var isSpawnUri = msg['isSpawnUri'];
+        var startPaused = msg['startPaused'];
         var replyTo = _deserializeMessage(msg['replyTo']);
         var context = new _IsolateContext();
         _globalState.topEventLoop.enqueue(context, () {
-          _startIsolate(entryPoint, args, message, isSpawnUri, replyTo);
+          _startIsolate(entryPoint, args, message,
+                        isSpawnUri, startPaused, replyTo);
         }, 'worker-start');
         // Make sure we always have a current context in this worker.
         // TODO(7907): This is currently needed because we're using
@@ -609,7 +613,8 @@ class IsolateNatives {
       case 'spawn-worker':
         _spawnWorker(msg['functionName'], msg['uri'],
                      msg['args'], msg['msg'],
-                     msg['isSpawnUri'], msg['replyPort']);
+                     msg['isSpawnUri'], msg['startPaused'],
+                     msg['replyPort']);
         break;
       case 'message':
         SendPort port = msg['port'];
@@ -677,17 +682,24 @@ class IsolateNatives {
   }
 
   static Future<List> spawnFunction(void topLevelFunction(message),
-                                        message) {
+                                    var message,
+                                    bool startPaused) {
     final name = _getJSFunctionName(topLevelFunction);
     if (name == null) {
       throw new UnsupportedError(
           "only top-level functions can be spawned.");
     }
-    return spawn(name, null, null, message, false, false);
+    bool isLight = false;
+    bool isSpawnUri = false;
+    return spawn(name, null, null, message, isLight, isSpawnUri, startPaused);
   }
 
-  static Future<List> spawnUri(Uri uri, List<String> args, message) {
-    return spawn(null, uri.toString(), args, message, false, true);
+  static Future<List> spawnUri(Uri uri, List<String> args, var message,
+                               bool startPaused) {
+    bool isLight = false;
+    bool isSpawnUri = true;
+    return spawn(null, uri.toString(), args, message,
+                 isLight, isSpawnUri, startPaused);
   }
 
   // TODO(sigmund): clean up above, after we make the new API the default:
@@ -695,7 +707,7 @@ class IsolateNatives {
   /// If [uri] is `null` it is replaced with the current script.
   static Future<List> spawn(String functionName, String uri,
                             List<String> args, message,
-                            bool isLight, bool isSpawnUri) {
+                            bool isLight, bool isSpawnUri, bool startPaused) {
     // Assume that the compiled version of the Dart file lives just next to the
     // dart file.
     // TODO(floitsch): support precompiled version of dart2js output.
@@ -710,10 +722,12 @@ class IsolateNatives {
     SendPort signalReply = port.sendPort;
 
     if (_globalState.useWorkers && !isLight) {
-      _startWorker(functionName, uri, args, message, isSpawnUri, signalReply);
+      _startWorker(functionName, uri, args, message, isSpawnUri, startPaused,
+                   signalReply);
     } else {
       _startNonWorker(
-          functionName, uri, args, message, isSpawnUri, signalReply);
+          functionName, uri, args, message, isSpawnUri, startPaused,
+          signalReply);
     }
     return result;
   }
@@ -722,6 +736,7 @@ class IsolateNatives {
       String functionName, String uri,
       List<String> args, message,
       bool isSpawnUri,
+      bool startPaused,
       SendPort replyPort) {
     if (_globalState.isWorker) {
       _globalState.mainManager.postMessage(_serializeMessage({
@@ -731,16 +746,19 @@ class IsolateNatives {
           'msg': message,
           'uri': uri,
           'isSpawnUri': isSpawnUri,
+          'startPaused': startPaused,
           'replyPort': replyPort}));
     } else {
-      _spawnWorker(functionName, uri, args, message, isSpawnUri, replyPort);
+      _spawnWorker(functionName, uri, args, message,
+                   isSpawnUri, startPaused, replyPort);
     }
   }
 
   static void _startNonWorker(
       String functionName, String uri,
-      List<String> args, message,
+      List<String> args, var message,
       bool isSpawnUri,
+      bool startPaused,
       SendPort replyPort) {
     // TODO(eub): support IE9 using an iframe -- Dart issue 1702.
     if (uri != null) {
@@ -749,13 +767,14 @@ class IsolateNatives {
     }
     _globalState.topEventLoop.enqueue(new _IsolateContext(), () {
       final func = _getJSFunctionFromName(functionName);
-      _startIsolate(func, args, message, isSpawnUri, replyPort);
+      _startIsolate(func, args, message, isSpawnUri, startPaused, replyPort);
     }, 'nonworker start');
   }
 
   static void _startIsolate(Function topLevel,
                             List<String> args, message,
                             bool isSpawnUri,
+                            bool startPaused,
                             SendPort replyTo) {
     _IsolateContext context = JS_CURRENT_ISOLATE_CONTEXT();
     Primitives.initializeStatics(context.id);
@@ -763,14 +782,25 @@ class IsolateNatives {
     replyTo.send([_SPAWNED_SIGNAL,
                   context.controlPort.sendPort,
                   context.pauseCapability]);
-    if (!isSpawnUri) {
-      topLevel(message);
-    } else if (topLevel is _MainFunctionArgsMessage) {
-      topLevel(args, message);
-    } else if (topLevel is _MainFunctionArgs) {
-      topLevel(args);
+
+    void runStartFunction() {
+      if (!isSpawnUri) {
+        topLevel(message);
+      } else if (topLevel is _MainFunctionArgsMessage) {
+        topLevel(args, message);
+      } else if (topLevel is _MainFunctionArgs) {
+        topLevel(args);
+      } else {
+        topLevel();
+      }
+    }
+
+    if (startPaused) {
+      context.addPause(context.pauseCapability, context.pauseCapability);
+      _globalState.topEventLoop.enqueue(context, runStartFunction,
+                                        'start isolate');
     } else {
-      topLevel();
+      runStartFunction();
     }
   }
 
@@ -781,6 +811,7 @@ class IsolateNatives {
   static void _spawnWorker(functionName, String uri,
                            List<String> args, message,
                            bool isSpawnUri,
+                           bool startPaused,
                            SendPort replyPort) {
     if (uri == null) uri = thisScript;
     final worker = JS('var', 'new Worker(#)', uri);
@@ -805,6 +836,7 @@ class IsolateNatives {
         'args': args,
         'msg': _serializeMessage(message),
         'isSpawnUri': isSpawnUri,
+        'startPaused': startPaused,
         'functionName': functionName }));
   }
 }
@@ -844,7 +876,6 @@ class _NativeJsSendPort extends _BaseSendPort implements SendPort {
     final isolate = _globalState.isolates[_isolateId];
     if (isolate == null) return;
     if (_receivePort._isClosed) return;
-
     // We force serialization/deserialization as a simple way to ensure
     // isolate communication restrictions are respected between isolates that
     // live in the same worker. [_NativeJsSendPort] delivers both messages

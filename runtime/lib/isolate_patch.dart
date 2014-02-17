@@ -227,7 +227,8 @@ void _startIsolate(Function entryPoint, bool isSpawnUri) {
 
 patch class Isolate {
   /* patch */ static Future<Isolate> spawn(
-      void entryPoint(message), var message) {
+      void entryPoint(message), var message, { bool paused: false }) {
+    // `paused` isn't handled yet.
     try {
       // The VM will invoke [_startIsolate] with entryPoint as argument.
       SendPort controlPort = _spawnFunction(entryPoint);
@@ -246,7 +247,8 @@ patch class Isolate {
   }
 
   /* patch */ static Future<Isolate> spawnUri(
-      Uri uri, List<String> args, var message) {
+      Uri uri, List<String> args, var message, { bool paused: false }) {
+    // `paused` isn't handled yet.
     try {
       // The VM will invoke [_startIsolate] and not `main`.
       SendPort controlPort = _spawnUri(uri.toString());
