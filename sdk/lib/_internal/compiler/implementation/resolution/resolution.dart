@@ -27,7 +27,8 @@ import '../elements/modelx.dart'
          TypedefElementX,
          SynthesizedConstructorElementX,
          MetadataAnnotationX,
-         ParameterMetadataAnnotation;
+         ParameterMetadataAnnotation,
+         MetadataContainer;
 import '../util/util.dart';
 
 import 'secret_tree_element.dart' show getTreeElement, setTreeElement;

@@ -1231,6 +1231,18 @@ class ResolverTask extends CompilerTask {
     // TODO(ahe): Make non-fatal.
     compiler.reportFatalError(node, kind, arguments);
   }
+
+  resolveMetadata(MetadataContainer variables, VariableDefinitions node) {
+    LinkBuilder<MetadataAnnotation> metadata =
+        new LinkBuilder<MetadataAnnotation>();
+    for (Metadata annotation in node.metadata.nodes) {
+      ParameterMetadataAnnotation metadataAnnotation =
+          new ParameterMetadataAnnotation(annotation);
+      metadataAnnotation.annotatedElement = variables;
+      metadata.addLast(metadataAnnotation.ensureResolved(compiler));
+    }
+    variables.metadata = metadata.toLink();
+  }
 }
 
 class ConstantMapper extends Visitor {
@@ -2969,7 +2981,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     VariableDefinitionsVisitor visitor =
         new VariableDefinitionsVisitor(compiler, node, this,
                                        ElementKind.VARIABLE);
-    VariableListElement variables = visitor.variables;
+    VariableListElementX variables = visitor.variables;
     // Ensure that we set the type of the [VariableListElement] since it depends
     // on the current scope. If the current scope is a [MethodScope] or
     // [BlockScope] it will not be available for the
@@ -3010,15 +3022,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       }
     }
     if (node.metadata != null) {
-      // TODO(johnniwinther): Unify handling of metadata on locals/formals.
-      for (Link<Node> link = node.metadata.nodes;
-           !link.isEmpty;
-           link = link.tail) {
-        ParameterMetadataAnnotation metadata =
-            new ParameterMetadataAnnotation(link.head);
-        variables.addMetadata(metadata);
-        metadata.ensureResolved(compiler);
-      }
+      compiler.resolver.resolveMetadata(variables, node);
     }
     visitor.visit(node.definitions);
   }

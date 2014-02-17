@@ -1123,7 +1123,12 @@ class TypedefElementX extends ElementX implements TypedefElement {
   accept(ElementVisitor visitor) => visitor.visitTypedefElement(this);
 }
 
-class VariableElementX extends ElementX implements VariableElement {
+abstract class MetadataContainer extends Element {
+  Link<MetadataAnnotation> metadata;
+}
+
+class VariableElementX extends ElementX implements VariableElement,
+    MetadataContainer {
   final VariableListElement variables;
   Expression cachedNode; // The send or the identifier in the variables list.
 
@@ -1221,7 +1226,8 @@ class FieldParameterElementX extends ParameterElementX
 // It contains the node, and the type. A [VariableElement] always
 // references its [VariableListElement]. It forwards its
 // [computeType] and [parseNode] methods to this element.
-class VariableListElementX extends ElementX implements VariableListElement {
+class VariableListElementX extends ElementX implements VariableListElement,
+    MetadataContainer {
   VariableDefinitions cachedNode;
   DartType type;
   final Modifiers modifiers;
@@ -1276,7 +1282,7 @@ class VariableListElementX extends ElementX implements VariableListElement {
 /// to ensure that default values on parameters are computed once (on the
 /// origin parameter) but can be found through both the origin and the patch.
 class ParameterElementX extends ElementX
-    implements VariableElement, VariableListElement {
+    implements VariableElement, VariableListElement, MetadataContainer {
   VariableDefinitions definitions;
   Expression cachedNode;
   DartType type;
