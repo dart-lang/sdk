@@ -715,14 +715,7 @@ void StdHandle::DoClose() {
       locker.Wait(Monitor::kNoTimeout);
     }
   }
-  if (handle_ == GetStdHandle(STD_OUTPUT_HANDLE)) {
-    int fd = _open("NUL", _O_WRONLY);
-    ASSERT(fd >= 0);
-    _dup2(fd, _fileno(stdout));
-    close(fd);
-  } else {
-    Handle::DoClose();
-  }
+  Handle::DoClose();
 }
 
 

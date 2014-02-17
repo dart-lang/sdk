@@ -117,10 +117,11 @@ void FUNCTION_NAME(Logger_PrintString)(Dart_NativeArguments args) {
     // an isolate gets interrupted by the embedder in the middle of
     // Dart_StringToUTF8?  We need to make sure not to swallow the
     // interrupt.
-    Platform::PrintBlocking(stdout, "%s\n", Dart_GetError(result));
+    fprintf(stdout, "%s\n", Dart_GetError(result));
   } else {
-    Platform::PrintBlocking(stdout, "%.*s\n", static_cast<int>(length), chars);
+    fprintf(stdout, "%.*s\n", static_cast<int>(length), chars);
   }
+  fflush(stdout);
 }
 
 }  // namespace bin

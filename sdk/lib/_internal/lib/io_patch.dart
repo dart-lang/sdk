@@ -322,6 +322,9 @@ patch class _StdIOUtils {
   patch static int _socketType(nativeSocket) {
     throw new UnsupportedError("StdIOUtils._socketType");
   }
+  patch static _getStdioHandleType(int fd) {
+    throw new UnsupportedError("StdIOUtils._getStdioHandleType");
+  }
 }
 
 patch class _WindowsCodePageDecoder {

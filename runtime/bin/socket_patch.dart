@@ -964,10 +964,9 @@ class _RawSocket extends Stream<RawSocketEvent>
     );
   }
 
-  factory _RawSocket._writePipe(int fd) {
+  factory _RawSocket._writePipe() {
     var native = new _NativeSocket.pipe();
     native.isClosedRead = true;
-    if (fd != null) _getStdioHandle(native, fd);
     return new _RawSocket(native);
   }
 
@@ -1233,8 +1232,8 @@ class _Socket extends Stream<List<int>> implements Socket {
     _raw.writeEventsEnabled = false;
   }
 
-  factory _Socket._writePipe([int fd]) {
-    return new _Socket(new _RawSocket._writePipe(fd));
+  factory _Socket._writePipe() {
+    return new _Socket(new _RawSocket._writePipe());
   }
 
   factory _Socket._readPipe([int fd]) {

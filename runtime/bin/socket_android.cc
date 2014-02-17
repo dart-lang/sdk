@@ -225,7 +225,6 @@ int Socket::GetType(intptr_t fd) {
 
 
 intptr_t Socket::GetStdioHandle(intptr_t num) {
-  Socket::SetNonBlocking(num);
   return num;
 }
 
