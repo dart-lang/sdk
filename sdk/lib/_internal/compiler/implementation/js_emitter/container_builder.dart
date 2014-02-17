@@ -491,7 +491,9 @@ class ContainerBuilder extends CodeEmitterHelper {
           compiler.constantHandler.addCompileTimeConstantForEmission(a.value);
           return task.metadataEmitter.reifyMetadata(a);
         });
-        expressions.add(metadataIndices.isNotEmpty ? metadataIndices.toList()
+        // TODO(karlklose): store metadata on elements in correct source order.
+        metadataIndices = metadataIndices.toList().reversed.toList();
+        expressions.add(metadataIndices.isNotEmpty ? metadataIndices
                                                    : js('[]'));
       });
     }
