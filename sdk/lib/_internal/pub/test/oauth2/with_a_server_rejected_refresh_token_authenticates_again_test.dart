@@ -41,7 +41,7 @@ main() {
       });
     });
 
-    expect(pub.nextLine(), completion(matches(r'Uploading\.\.\.+')));
+    pub.stdout.expect(startsWith('Uploading...'));
     authorizePub(pub, server, 'new access token');
 
     server.handle('GET', '/api/packages/versions/new', (request) {

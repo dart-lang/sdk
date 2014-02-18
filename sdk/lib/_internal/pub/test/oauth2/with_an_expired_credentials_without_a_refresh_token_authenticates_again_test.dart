@@ -23,8 +23,8 @@ main() {
     var pub = startPublish(server);
     confirmPublish(pub);
 
-    expect(pub.nextErrLine(), completion(equals("Pub's authorization to upload "
-          "packages has expired and can't be automatically refreshed.")));
+    pub.stderr.expect("Pub's authorization to upload packages has expired and "
+        "can't be automatically refreshed.");
     authorizePub(pub, server, "new access token");
 
     server.handle('GET', '/api/packages/versions/new', (request) {

@@ -4,6 +4,7 @@
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
+import 'package:scheduled_test/scheduled_stream.dart';
 
 import '../../lib/src/exit_codes.dart' as exit_codes;
 import '../descriptor.dart' as d;
@@ -22,10 +23,12 @@ main() {
     var pub = startPublish(server, args: ['--dry-run']);
 
     pub.shouldExit(exit_codes.SUCCESS);
-    expect(pub.remainingStderr(), completion(contains(
-        'Suggestions:\n* Author "Nathan Weizenbaum" in pubspec.yaml should '
-            'have an email address\n'
-        '  (e.g. "name <email>").\n\n'
-        'Package has 1 warning.')));
+    pub.stderr.expect(consumeThrough('Suggestions:'));
+    pub.stderr.expect(emitsLines(
+        '* Author "Nathan Weizenbaum" in pubspec.yaml should have an email '
+            'address\n'
+        '  (e.g. "name <email>").\n'
+        '\n'
+        'Package has 1 warning.'));
   });
 }

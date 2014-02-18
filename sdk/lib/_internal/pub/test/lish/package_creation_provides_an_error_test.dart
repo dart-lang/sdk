@@ -32,8 +32,7 @@ main() {
       request.response.close();
     });
 
-    expect(pub.nextErrLine(),
-        completion(equals('Your package was too boring.')));
+    pub.stderr.expect('Your package was too boring.');
     pub.shouldExit(1);
   });
 }

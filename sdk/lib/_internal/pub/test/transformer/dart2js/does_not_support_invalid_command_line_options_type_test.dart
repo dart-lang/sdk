@@ -34,11 +34,11 @@ main() {
     var server = pubServe();
     // Make a request first to trigger compilation.
     requestShould404("main.dart.js");
-    expect(server.nextErrLine(), completion(equals('Build error:')));
-    expect(server.nextErrLine(), completion(equals(
+    server.stderr.expect(emitsLines(
+        'Build error:\n'
         'Transform Dart2JS on myapp|web/main.dart threw error: '
             'FormatException: Invalid value for \$dart2js.commandLineOptions: '
-            '"foo" (expected list of strings).')));
+            '"foo" (expected list of strings).'));
     endPubServe();
   });
 }

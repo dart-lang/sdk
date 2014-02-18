@@ -21,8 +21,8 @@ main() {
     ]).create();
 
     var pub = startPubServe();
-    expect(pub.nextErrLine(), completion(equals(
-        'Transformer library "package:myapp/transform.dart" not found.')));
+    pub.stderr.expect(
+        'Transformer library "package:myapp/transform.dart" not found.');
     pub.shouldExit(1);
   });
 }

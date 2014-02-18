@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 import 'package:scheduled_test/scheduled_process.dart';
+import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
 import 'metatest.dart';
@@ -128,16 +129,19 @@ void main(_, message) {
       });
 
       var process = startDartProcess('');
-      expect(process.nextLine(), completion(equals('hello')));
-      expect(process.nextLine(), completion(equals('world')));
+      process.stdout.expect('hello');
+      process.stdout.expect('world');
       process.shouldExit(0);
     });
 
     test('test 2', () {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
       expect(errors.length, anyOf(1, 2));
-      expect(errors[0].error, isStateError);
-      expect(errors[0].error.message, equals("No elements"));
+      expect(errors[0].error, new isInstanceOf<TestFailure>());
+      expect(errors[0].error.message, equals(
+          "Expected: 'hello'\n"
+          " Emitted: \n"
+          "   Which: unexpected end of stream"));
 
       // Whether or not this error appears depends on how quickly the "no
       // elements" error is handled.
@@ -161,171 +165,29 @@ void main(_, message) {
     });
   });
 
-  expectTestsPass("nextLine returns the next line of stdout from the process",
-      () {
+  expectTestsPass("stdout exposes the standard output from the process", () {
     test('test', () {
       var process = startDartProcess(r'print("hello\n\nworld"); print("hi");');
-      expect(process.nextLine(), completion(equals('hello')));
-      expect(process.nextLine(), completion(equals('')));
-      expect(process.nextLine(), completion(equals('world')));
-      expect(process.nextLine(), completion(equals('hi')));
+      process.stdout.expect('hello');
+      process.stdout.expect('');
+      process.stdout.expect('world');
+      process.stdout.expect('hi');
+      process.stdout.expect(isDone);
       process.shouldExit(0);
     });
   });
 
-  expectTestsPass("nextLine throws an error if there's no more stdout", () {
-    var errors;
-    test('test 1', () {
-      currentSchedule.onException.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      var process = startDartProcess('print("hello");');
-      expect(process.nextLine(), completion(equals('hello')));
-      expect(process.nextLine(), completion(equals('world')));
-      process.shouldExit(0);
-    });
-
-    test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, anyOf(1, 2));
-      expect(errors[0].error, isStateError);
-      expect(errors[0].error.message, equals("No elements"));
-
-      // Whether or not this error appears depends on how quickly the "no
-      // elements" error is handled.
-      if (errors.length == 2) {
-        expect(errors[1].error.toString(), matches(r"^Process "
-            r"'[^']+[\\/]dart(\.exe)? [^']+' ended earlier than scheduled with "
-            r"exit code 0\."));
-      }
-    });
-  }, passing: ['test 2']);
-
-  expectTestsPass("nextErrLine returns the next line of stderr from the "
-      "process", () {
+  expectTestsPass("stderr exposes the stderr from the process", () {
     test('test', () {
       var process = startDartProcess(r'''
           stderr.write("hello\n\nworld\n");
           stderr.write("hi");
           ''');
-      expect(process.nextErrLine(), completion(equals('hello')));
-      expect(process.nextErrLine(), completion(equals('')));
-      expect(process.nextErrLine(), completion(equals('world')));
-      expect(process.nextErrLine(), completion(equals('hi')));
-      process.shouldExit(0);
-    });
-  });
-
-  expectTestsPass("nextErrLine throws an error if there's no more stderr", () {
-    var errors;
-    test('test 1', () {
-      currentSchedule.onException.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      var process = startDartProcess(r'stderr.write("hello\n");');
-      expect(process.nextErrLine(), completion(equals('hello')));
-      expect(process.nextErrLine(), completion(equals('world')));
-      process.shouldExit(0);
-    });
-
-    test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, anyOf(1, 2));
-      expect(errors[0].error, isStateError);
-      expect(errors[0].error.message, equals("No elements"));
-
-      // Whether or not this error appears depends on how quickly the "no
-      // elements" error is handled.
-      if (errors.length == 2) {
-        expect(errors[1].error.toString(), matches(r"^Process "
-            r"'[^']+[\\/]dart(\.exe)? [^']+' ended earlier than scheduled with "
-            r"exit code 0\."));
-      }
-    });
-  }, passing: ['test 2']);
-
-  expectTestsPass("remainingStdout returns all the stdout if it's not consumed "
-      "any other way", () {
-    test('test', () {
-      var process = startDartProcess(r'print("hello\n\nworld"); print("hi");');
-      process.shouldExit(0);
-      expect(process.remainingStdout(),
-          completion(equals("hello\n\nworld\nhi")));
-    });
-  });
-
-  expectTestsPass("remainingStdout returns the empty string if there's no "
-      "stdout", () {
-    test('test', () {
-      var process = startDartProcess(r'');
-      process.shouldExit(0);
-      expect(process.remainingStdout(), completion(isEmpty));
-    });
-  });
-
-  expectTestsPass("remainingStdout returns the remaining stdout after the "
-      "lines consumed by nextLine", () {
-    test('test', () {
-      var process = startDartProcess(r'print("hello\n\nworld"); print("hi");');
-      expect(process.nextLine(), completion(equals("hello")));
-      expect(process.nextLine(), completion(equals("")));
-      process.shouldExit(0);
-      expect(process.remainingStdout(), completion(equals("world\nhi")));
-    });
-  });
-
-  expectTestsPass("remainingStdout can't be called before the process is "
-      "scheduled to end", () {
-    test('test', () {
-      var process = startDartProcess(r'');
-      expect(process.remainingStdout, throwsA(isStateError));
-      process.shouldExit(0);
-    });
-  });
-
-  expectTestsPass("remainingStderr returns all the stderr if it's not consumed "
-      "any other way", () {
-    test('test', () {
-      var process = startDartProcess(r'''
-          stderr.write("hello\n\nworld\n");
-          stderr.write("hi\n");
-          ''');
-      process.shouldExit(0);
-      expect(process.remainingStderr(),
-          completion(equals("hello\n\nworld\nhi")));
-    });
-  });
-
-  expectTestsPass("remainingStderr returns the empty string if there's no "
-      "stderr", () {
-    test('test', () {
-      var process = startDartProcess(r'');
-      process.shouldExit(0);
-      expect(process.remainingStderr(), completion(isEmpty));
-    });
-  });
-
-  expectTestsPass("remainingStderr returns the remaining stderr after the "
-      "lines consumed by nextLine", () {
-    test('test', () {
-      var process = startDartProcess(r'''
-          stderr.write("hello\n\nworld\n");
-          stderr.write("hi\n");
-          ''');
-      expect(process.nextErrLine(), completion(equals("hello")));
-      expect(process.nextErrLine(), completion(equals("")));
-      process.shouldExit(0);
-      expect(process.remainingStderr(), completion(equals("world\nhi")));
-    });
-  });
-
-  expectTestsPass("remainingStderr can't be called before the process is "
-      "scheduled to end", () {
-    test('test', () {
-      var process = startDartProcess(r'');
-      expect(process.remainingStderr, throwsA(isStateError));
+      process.stderr.expect('hello');
+      process.stderr.expect('');
+      process.stderr.expect('world');
+      process.stderr.expect('hi');
+      process.stderr.expect(isDone);
       process.shouldExit(0);
     });
   });
@@ -337,9 +199,9 @@ void main(_, message) {
           stdinLines.listen((line) => print("> $line"));
           ''');
       process.writeLine("hello");
-      expect(process.nextLine(), completion(equals("> hello")));
+      process.stdout.expect("> hello");
       process.writeLine("world");
-      expect(process.nextLine(), completion(equals("> world")));
+      process.stdout.expect("> world");
       process.kill();
     });
   });
@@ -352,7 +214,7 @@ void main(_, message) {
           ''');
       process.closeStdin();
       process.shouldExit(0);
-      expect(process.nextLine(), completion(equals('stdin closed')));
+      process.stdout.expect('stdin closed');
     });
   });
 }

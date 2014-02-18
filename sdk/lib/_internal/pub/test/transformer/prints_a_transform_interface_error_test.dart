@@ -41,10 +41,10 @@ main() {
     createLockFile('myapp', pkg: ['barback']);
 
     var server = pubServe();
-    expect(server.nextErrLine(), completion(equals('Build error:')));
-    expect(server.nextErrLine(), completion(equals("Transform Rewrite on "
-        "myapp|web/foo.txt threw error: Class 'RewriteTransformer' has no "
-        "instance method 'apply'.")));
+    server.stderr.expect(emitsLines(
+        "Build error:\n"
+        "Transform Rewrite on myapp|web/foo.txt threw error: Class "
+            "'RewriteTransformer' has no instance method 'apply'."));
     endPubServe();
   });
 }

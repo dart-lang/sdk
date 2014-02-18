@@ -10,6 +10,7 @@ import 'dart:io';
 
 import 'package:stack_trace/stack_trace.dart';
 
+import 'scheduled_stream.dart';
 import 'scheduled_test.dart';
 import 'src/utils.dart';
 import 'src/value_future.dart';
@@ -44,7 +45,8 @@ class ScheduledProcess {
   Stream<String> _stdoutLog;
 
   /// A line-by-line view of the standard output stream of the process.
-  StreamIterator<String> _stdout;
+  ScheduledStream<String> get stdout => _stdout;
+  ScheduledStream<String> _stdout;
 
   /// A canceller that controls both [_stdout] and [_stdoutLog].
   StreamCanceller _stdoutCanceller;
@@ -54,7 +56,8 @@ class ScheduledProcess {
   Stream<String> _stderrLog;
 
   /// A line-by-line view of the standard error stream of the process.
-  StreamIterator<String> _stderr;
+  ScheduledStream<String> get stderr => _stderr;
+  ScheduledStream<String> _stderr;
 
   /// A canceller that controls both [_stderr] and [_stderrLog].
   StreamCanceller _stderrCanceller;
@@ -112,8 +115,8 @@ class ScheduledProcess {
     _stderrCanceller = stderrWithCanceller.last;
     _stderrLog = stderrWithCanceller.first;
 
-    _stdout = new StreamIterator<String>(stdoutStream());
-    _stderr = new StreamIterator<String>(stderrStream());
+    _stdout = new ScheduledStream<String>(stdoutStream());
+    _stderr = new ScheduledStream<String>(stderrStream());
   }
 
   /// Updates [_description] to reflect [executable] and [arguments], which are
@@ -251,37 +254,6 @@ class ScheduledProcess {
     }, "cleaning up process '$description'");
   }
 
-  /// Reads the next line of stdout from the process.
-  Future<String> nextLine() => schedule(() => streamIteratorFirst(_stdout),
-      "reading the next stdout line from process '$description'");
-
-  /// Reads the next line of stderr from the process.
-  Future<String> nextErrLine() => schedule(() => streamIteratorFirst(_stderr),
-      "reading the next stderr line from process '$description'");
-
-  /// Reads the remaining stdout from the process. This should only be called
-  /// after kill() or shouldExit().
-  Future<String> remainingStdout() {
-    if (!_endScheduled) {
-      throw new StateError("remainingStdout() should only be called after "
-          "kill() or shouldExit().");
-    }
-    return schedule(() => concatRest(_stdout),
-        "reading the remaining stdout from process '$description'");
-  }
-
-  /// Reads the remaining stderr from the process. This should only be called
-  /// after kill() or shouldExit().
-  Future<String> remainingStderr() {
-    if (!_endScheduled) {
-      throw new StateError("remainingStderr() should only be called after "
-          "kill() or shouldExit().");
-    }
-
-    return schedule(() => concatRest(_stderr),
-        "reading the remaining stderr from process '$description'");
-  }
-
   /// Returns a stream that will emit anything the process emits via the
   /// process's standard output from now on.
   ///
@@ -289,8 +261,7 @@ class ScheduledProcess {
   /// standard output, including other calls to [stdoutStream].
   ///
   /// This can be overridden by subclasses to return a derived standard output
-  /// stream. This stream will then be used for [nextLine], [nextErrLine],
-  /// [remainingStdout], and [remainingStderr].
+  /// stream. This stream will then be used for [stdout] and [stderr].
   Stream<String> stdoutStream() {
     var pair = tee(_stdoutLog);
     _stdoutLog = pair.first;

@@ -26,17 +26,14 @@ main() {
     createLockFile('myapp', pkg: ['barback']);
 
     var server = pubServe();
-    expect(server.nextLine(),
-        completion(equals("Build completed successfully")));
+    server.stdout.expect("Build completed successfully");
 
     // Once we request the output, it should start compiling and fail.
     requestShould404("syntax-error.dart.js");
-    expect(server.nextLine(),
-        completion(equals("[Info from Dart2JS]:")));
-    expect(server.nextLine(),
-        completion(equals("Compiling myapp|web/syntax-error.dart...")));
-    expect(server.nextLine(),
-        completion(equals("Build completed with 1 errors.")));
+    server.stdout.expect(emitsLines(
+        "[Info from Dart2JS]:\n"
+        "Compiling myapp|web/syntax-error.dart...\n"
+        "Build completed with 1 errors."));
     endPubServe();
   });
 }

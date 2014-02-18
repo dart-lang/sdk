@@ -4,6 +4,7 @@
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
+import 'package:scheduled_test/scheduled_stream.dart';
 
 import '../../lib/src/exit_codes.dart' as exit_codes;
 import '../descriptor.dart' as d;
@@ -22,8 +23,7 @@ main() {
     var pub = startPublish(server, args: ['--force']);
 
     pub.shouldExit(exit_codes.SUCCESS);
-    expect(pub.remainingStderr(), completion(contains(
-        "Sorry, your package is missing a requirement and can't be "
-        "published yet.")));
+    pub.stderr.expect(consumeThrough("Sorry, your package is missing a "
+        "requirement and can't be published yet."));
   });
 }

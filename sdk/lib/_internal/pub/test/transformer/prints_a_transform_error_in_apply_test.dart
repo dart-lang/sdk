@@ -43,10 +43,9 @@ main() {
     createLockFile('myapp', pkg: ['barback']);
 
     var server = pubServe();
-    expect(server.nextErrLine(),
-        completion(equals('Build error:')));
-    expect(server.nextErrLine(), completion(equals('Transform Rewrite on '
-        'myapp|web/foo.txt threw error: oh no!')));
+    server.stderr.expect(emitsLines(
+        'Build error:\n'
+        'Transform Rewrite on myapp|web/foo.txt threw error: oh no!'));
     endPubServe();
   });
 }

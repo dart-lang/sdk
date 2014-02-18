@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:scheduled_test/scheduled_process.dart';
+import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
 import '../test_pub.dart';
@@ -115,13 +116,10 @@ ScheduledProcess startPubServe([Iterable<String> args]) {
 /// Schedules starting the "pub serve" process and records its port number for
 /// future requests.
 ///
-/// If [shouldGetFirst] is `true`, validates that pub get is run first. In that
-/// case, you can also pass [numDownloads] to specify how many packages should
-/// be downloaded during the get.
+/// If [shouldGetFirst] is `true`, validates that pub get is run first.
 ///
 /// Returns the `pub serve` process.
-ScheduledProcess pubServe({bool shouldGetFirst: false,
-    Iterable<String> args, int numDownloads: 0}) {
+ScheduledProcess pubServe({bool shouldGetFirst: false, Iterable<String> args}) {
   _pubServer = startPubServe(args);
 
   currentSchedule.onComplete.schedule(() {
@@ -133,24 +131,10 @@ ScheduledProcess pubServe({bool shouldGetFirst: false,
   });
 
   if (shouldGetFirst) {
-    expect(_pubServer.nextLine(),
-        completion(anyOf(
-             startsWith("Your pubspec has changed"),
-             startsWith("You don't have a lockfile"),
-             startsWith("You are missing some dependencies"))));
-    expect(_pubServer.nextLine(),
-        completion(startsWith("Resolving dependencies...")));
-
-    for (var i = 0; i < numDownloads; i++) {
-      expect(_pubServer.nextLine(),
-          completion(startsWith("Downloading")));
-    }
-
-    expect(_pubServer.nextLine(),
-        completion(equals("Got dependencies!")));
+    _pubServer.stdout.expect(consumeThrough("Got dependencies!"));
   }
 
-  expect(_pubServer.nextLine().then(_parsePort), completes);
+  expect(schedule(() => _pubServer.stdout.next()).then(_parsePort), completes);
   return _pubServer;
 }
 
@@ -223,18 +207,8 @@ void postShould405(String urlPath) {
 ///
 /// The schedule will not proceed until the output is found. If not found, it
 /// will eventually time out.
-void waitForBuildSuccess() {
-  nextLine() {
-    return _pubServer.nextLine().then((line) {
-      if (line.contains("successfully")) return null;
-
-      // This line wasn't it, so ignore it and keep trying.
-      return nextLine();
-    });
-  }
-
-  schedule(nextLine);
-}
+void waitForBuildSuccess() =>
+  _pubServer.stdout.expect(consumeThrough(contains("successfully")));
 
 /// Schedules opening a web socket connection to the currently running pub
 /// serve.

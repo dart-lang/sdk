@@ -264,6 +264,29 @@ void main(_, message) {
     stream.expect(1);
   });
 
+  expectTestPasses("never() consumes everything if the matcher never matches",
+      () {
+    var stream = createStream();
+    stream.expect(never(inOrder([2, 1])));
+  });
+
+  expectTestFails("never() fails if the matcher matches", () {
+    var stream = createStream();
+    stream.expect(never(inOrder([2, 3])));
+  }, (errors) {
+    expect(errors, hasLength(1));
+    expect(errors.first.error.message, equals(
+        "Expected: never\n"
+        "        |   * <2>\n"
+        "        |   * <3>\n"
+        " Emitted: * 1\n"
+        "          * 2\n"
+        "          * 3\n"
+        "   Which: matched\n"
+        "        |   * <2>\n"
+        "        |   * <3>"));
+  });
+
   expectTestPasses("isDone succeeds at the end of the stream", () {
     var stream = createStream();
     stream.expect(consumeThrough(5));

@@ -31,8 +31,7 @@ main() {
     // TODO(nweiz): This should provide more context about how the option got
     // passed to dart2js. See issue 16008.
     var pub = startPubServe();
-    expect(pub.nextErrLine(), completion(
-        equals('Unrecognized dart2js option "invalidOption".')));
+    pub.stderr.expect('Unrecognized dart2js option "invalidOption".');
     pub.shouldExit(1);
   });
 }

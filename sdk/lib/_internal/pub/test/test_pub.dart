@@ -17,6 +17,7 @@ import 'package:http/testing.dart';
 import 'package:path/path.dart' as path;
 import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_server.dart';
+import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:unittest/compact_vm_config.dart';
 import 'package:yaml/yaml.dart';
@@ -394,19 +395,20 @@ void schedulePub({List args, Pattern output, Pattern error, outputJson,
   var stderr;
 
   expect(Future.wait([
-    pub.remainingStdout(),
-    pub.remainingStderr()
+    pub.stdoutStream().toList(),
+    pub.stderrStream().toList()
   ]).then((results) {
-    stderr = results[1];
+    var stdout = results[0].join("\n");
+    stderr = results[1].join("\n");
 
     if (outputJson == null) {
-      _validateOutput(failures, 'stdout', output, results[0]);
+      _validateOutput(failures, 'stdout', output, stdout);
       return null;
     }
 
     // Allow the expected JSON to contain futures.
     return awaitObject(outputJson).then((resolved) {
-      _validateOutputJson(failures, 'stdout', resolved, results[0]);
+      _validateOutputJson(failures, 'stdout', resolved, stdout);
     });
   }).then((_) {
     _validateOutput(failures, 'stderr', error, stderr);
@@ -434,16 +436,14 @@ ScheduledProcess startPublish(ScheduledServer server, {List args}) {
 void confirmPublish(ScheduledProcess pub) {
   // TODO(rnystrom): This is overly specific and inflexible regarding different
   // test packages. Should validate this a little more loosely.
-  expect(pub.nextLine(), completion(startsWith(
-      'Publishing test_pkg 1.0.0 to ')));
-  expect(pub.nextLine(), completion(equals("|-- LICENSE")));
-  expect(pub.nextLine(), completion(equals("|-- lib")));
-  expect(pub.nextLine(), completion(equals("|   '-- test_pkg.dart")));
-  expect(pub.nextLine(), completion(equals("'-- pubspec.yaml")));
-  expect(pub.nextLine(), completion(equals("")));
-  expect(pub.nextLine(), completion(equals('Looks great! Are you ready to '
-      'upload your package (y/n)?')));
-
+  pub.stdout.expect(startsWith('Publishing test_pkg 1.0.0 to '));
+  pub.stdout.expect(emitsLines(
+      "|-- LICENSE\n"
+      "|-- lib\n"
+      "|   '-- test_pkg.dart\n"
+      "'-- pubspec.yaml\n"
+      "\n"
+      "Looks great! Are you ready to upload your package (y/n)?"));
   pub.writeLine("y");
 }
 
@@ -507,8 +507,8 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
 }
 
 /// A subclass of [ScheduledProcess] that parses pub's verbose logging output
-/// and makes [nextLine], [nextErrLine], [remainingStdout], and
-/// [remainingStderr] work as though pub weren't running in verbose mode.
+/// and makes [stdout] and [stderr] work as though pub weren't running in
+/// verbose mode.
 class PubProcess extends ScheduledProcess {
   Stream<Pair<log.Level, String>> _log;
   Stream<String> _stdout;
@@ -574,7 +574,8 @@ class PubProcess extends ScheduledProcess {
   Stream<String> stderrStream() {
     if (_stderr == null) {
       _stderr = _logStream().expand((entry) {
-        if (entry.first != log.Level.ERROR && entry.first != log.Level.WARNING) {
+        if (entry.first != log.Level.ERROR &&
+            entry.first != log.Level.WARNING) {
           return [];
         }
         return [entry.last];
@@ -866,3 +867,6 @@ class _PairMatcher extends Matcher {
     description.addAll("(", ", ", ")", [_firstMatcher, _lastMatcher]);
   }
 }
+
+/// A [StreamMatcher] that matches multiple lines of output.
+StreamMatcher emitsLines(String output) => inOrder(output.split("\n"));

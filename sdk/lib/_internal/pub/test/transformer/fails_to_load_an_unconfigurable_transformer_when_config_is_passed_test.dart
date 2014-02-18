@@ -28,8 +28,8 @@ main() {
     createLockFile('myapp', pkg: ['barback']);
 
     var pub = startPubServe();
-    expect(pub.nextErrLine(), completion(startsWith('No transformers that '
-        'accept configuration were defined in ')));
+    pub.stderr.expect(startsWith('No transformers that accept configuration '
+        'were defined in '));
     pub.shouldExit(1);
   });
 }

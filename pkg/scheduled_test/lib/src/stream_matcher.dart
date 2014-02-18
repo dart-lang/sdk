@@ -82,6 +82,14 @@ StreamMatcher either(streamMatcher1, streamMatcher2) =>
 /// [streamMatcher] can be a [StreamMatcher], a [Matcher], or an [Object].
 StreamMatcher allow(streamMatcher) => new _AllowMatcher(streamMatcher);
 
+/// A matcher that asserts that a stream never emits values matching
+/// [streamMatcher].
+///
+/// This will consume the remainder of a stream.
+///
+/// [streamMatcher] can be a [StreamMatcher], a [Matcher], or an [Object].
+StreamMatcher never(streamMatcher) => new _NeverMatcher(streamMatcher);
+
 /// A matcher that matches a stream that emits no more values.
 StreamMatcher get isDone => new _IsDoneMatcher();
 
@@ -277,6 +285,38 @@ class _AllowMatcher implements StreamMatcher {
         .add(prefixLines(_matcher.toString()))
         .toString();
   }
+}
+
+/// See [never].
+class _NeverMatcher implements StreamMatcher {
+  final StreamMatcher _matcher;
+
+  _NeverMatcher(streamMatcher)
+      : _matcher = new StreamMatcher.wrap(streamMatcher);
+
+  Future<Description> tryMatch(ScheduledStream stream) {
+    consumeNext() {
+      return stream.hasNext.then((hasNext) {
+        if (!hasNext) return new Future.value();
+
+        var fork = stream.fork();
+        return _matcher.tryMatch(fork).whenComplete(fork.close)
+            .then((description) {
+          if (description != null) {
+            return stream.next().then((_) => consumeNext());
+          }
+
+          return new StringDescription("matched\n")
+              .add(prefixLines(_matcher.toString(), prefix: '  '));
+        });
+      });
+    }
+
+    return consumeNext();
+  }
+
+  String toString() =>
+    'never\n${prefixLines(_matcher.toString(), prefix: '  ')}';
 }
 
 /// See [isDone].

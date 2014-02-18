@@ -56,11 +56,11 @@ main() {
 
     var process = startPubServe();
     process.shouldExit(1);
-    expect(process.remainingStderr(), completion(equals(
+    process.stderr.expect(emitsLines(
         "Transformer cycle detected:\n"
         "  bar depends on foo\n"
         "  foo is transformed by myapp/transformer\n"
         "  myapp depends on baz\n"
-        "  baz is transformed by bar/transformer")));
+        "  baz is transformed by bar/transformer"));
   });
 }

@@ -24,8 +24,8 @@ main() {
 
     var body = {'url': 'http://example.com/upload'};
     handleUploadForm(server, body);
-    expect(pub.nextErrLine(), completion(equals('Invalid server response:')));
-    expect(pub.nextErrLine(), completion(equals(JSON.encode(body))));
+    pub.stderr.expect('Invalid server response:');
+    pub.stderr.expect(JSON.encode(body));
     pub.shouldExit(1);
   });
 }

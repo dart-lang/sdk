@@ -4,8 +4,9 @@
 
 import 'dart:convert';
 
-import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
+import 'package:scheduled_test/scheduled_stream.dart';
+import 'package:scheduled_test/scheduled_test.dart';
 
 import '../../lib/src/exit_codes.dart' as exit_codes;
 import '../descriptor.dart' as d;
@@ -32,7 +33,6 @@ main() {
     });
 
     pub.shouldExit(exit_codes.SUCCESS);
-    expect(pub.remainingStdout(), completion(contains(
-        'Package test_pkg 1.0.0 uploaded!')));
+    pub.stdout.expect(consumeThrough('Package test_pkg 1.0.0 uploaded!'));
   });
 }
