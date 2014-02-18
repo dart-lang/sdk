@@ -1149,6 +1149,9 @@ class MoreSpecificVisitor extends AbstractTypeRelation {
         identical(t.element, compiler.nullClass)) {
       return true;
     }
+    if (t.isVoid || s.isVoid) {
+      return false;
+    }
     if (t.treatAsDynamic) {
       return false;
     }

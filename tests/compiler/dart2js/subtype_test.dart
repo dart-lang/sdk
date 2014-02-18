@@ -62,6 +62,14 @@ void testInterfaceSubtype() {
     DartType int_ = env['int'];
     DartType String_ = env['String'];
     DartType dynamic_ = env['dynamic'];
+    DartType void_ = env['void'];
+
+    expect(true, void_, void_);
+    expect(true, void_, dynamic_);
+    // Unsure about the next one, see dartbug.com/14933.
+    expect(true, dynamic_, void_, expectMoreSpecific: false);
+    expect(false, void_, Object_);
+    expect(false, Object_, void_);
 
     expect(true, Object_, Object_);
     expect(true, num_, Object_);
