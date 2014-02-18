@@ -510,6 +510,15 @@ void TextBuffer::Clear() {
 }
 
 
+const char* TextBuffer::Steal() {
+  const char* r = buf_;
+  buf_ = NULL;
+  buf_size_ = 0;
+  msg_len_ = 0;
+  return r;
+}
+
+
 void TextBuffer::AddChar(char ch) {
   EnsureCapacity(sizeof(ch));
   buf_[msg_len_] = ch;

@@ -4555,4 +4555,25 @@ DART_EXPORT Dart_Isolate Dart_GetServiceIsolate(void* callback_data) {
   return Api::CastIsolate(Service::GetServiceIsolate(callback_data));
 }
 
+
+DART_EXPORT bool Dart_IsServiceRunning() {
+  return Service::IsRunning();
+}
+
+
+DART_EXPORT void Dart_RegisterIsolateServiceRequestCallback(
+    const char* name,
+    Dart_ServiceRequestCallback callback,
+    void* user_data) {
+  Service::RegisterIsolateEmbedderCallback(name, callback, user_data);
+}
+
+
+DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
+    const char* name,
+    Dart_ServiceRequestCallback callback,
+    void* user_data) {
+  Service::RegisterRootEmbedderCallback(name, callback, user_data);
+}
+
 }  // namespace dart

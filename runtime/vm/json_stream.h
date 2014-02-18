@@ -56,6 +56,11 @@ class JSONStream : ValueObject {
 
   const char* LookupOption(const char* key) const;
 
+  const char* command() const { return command_; }
+  const char** arguments() const { return arguments_; }
+  const char** option_keys() const { return option_keys_; }
+  const char** option_values() const { return option_values_; }
+
  private:
   void Clear();
 

@@ -104,6 +104,45 @@ class Resources {
 };
 
 
+class EmbedderServiceHandler {
+ public:
+  explicit EmbedderServiceHandler(const char* name) : name_(NULL),
+                                                      callback_(NULL),
+                                                      user_data_(NULL),
+                                                      next_(NULL) {
+    ASSERT(name != NULL);
+    name_ = strdup(name);
+  }
+
+  ~EmbedderServiceHandler() {
+    free(name_);
+  }
+
+  const char* name() const { return name_; }
+
+  Dart_ServiceRequestCallback callback() const { return callback_; }
+  void set_callback(Dart_ServiceRequestCallback callback) {
+    callback_ = callback;
+  }
+
+  void* user_data() const { return user_data_; }
+  void set_user_data(void* user_data) {
+    user_data_ = user_data;
+  }
+
+  EmbedderServiceHandler* next() const { return next_; }
+  void set_next(EmbedderServiceHandler* next) {
+    next_ = next;
+  }
+
+ private:
+  char* name_;
+  Dart_ServiceRequestCallback callback_;
+  void* user_data_;
+  EmbedderServiceHandler* next_;
+};
+
+
 static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
   return reinterpret_cast<uint8_t*>(new_ptr);
@@ -186,9 +225,12 @@ static Dart_NativeFunction VmServiceNativeResolver(Dart_Handle name,
 }
 
 
+EmbedderServiceHandler* Service::isolate_service_handler_head_ = NULL;
+EmbedderServiceHandler* Service::root_service_handler_head_ = NULL;
 Isolate* Service::service_isolate_ = NULL;
 Dart_LibraryTagHandler Service::default_handler_ = NULL;
 Dart_Port Service::port_ = ILLEGAL_PORT;
+
 
 static Dart_Port ExtractPort(Dart_Handle receivePort) {
   HANDLESCOPE(Isolate::Current());
@@ -527,13 +569,20 @@ void Service::HandleIsolateMessage(Isolate* isolate, const Instance& msg) {
     {
       JSONStream js;
       js.Setup(zone.GetZone(), reply_port, path, option_keys, option_values);
-
       if (handler == NULL) {
-        PrintError(&js, "Unrecognized path");
+        // Check for an embedder handler.
+        EmbedderServiceHandler* e_handler =
+            FindIsolateEmbedderHandler(path_segment_c);
+        if (e_handler != NULL) {
+          EmbedderHandleMessage(e_handler, &js);
+        } else {
+          PrintError(&js, "Unrecognized path");
+        }
         js.PostReply();
       } else {
         if (handler(isolate, &js)) {
           // Handler returns true if the reply is ready to be posted.
+          // TODO(johnmccutchan): Support asynchronous replies.
           js.PostReply();
         }
       }
@@ -1097,21 +1146,33 @@ void Service::HandleRootMessage(const Instance& msg) {
     ASSERT(option_keys.Length() == option_values.Length());
 
     String& path_segment = String::Handle();
-    path_segment ^= path.At(0);
+    if (path.Length() > 0) {
+      path_segment ^= path.At(0);
+    } else {
+      path_segment ^= Symbols::Empty().raw();
+    }
     ASSERT(!path_segment.IsNull());
     const char* path_segment_c = path_segment.ToCString();
+
     RootMessageHandler handler =
         FindRootMessageHandler(path_segment_c);
-
     {
       JSONStream js;
       js.Setup(zone.GetZone(), reply_port, path, option_keys, option_values);
       if (handler == NULL) {
-        PrintError(&js, "Unrecognized path");
+        // Check for an embedder handler.
+        EmbedderServiceHandler* e_handler =
+            FindRootEmbedderHandler(path_segment_c);
+        if (e_handler != NULL) {
+          EmbedderHandleMessage(e_handler, &js);
+        } else {
+          PrintError(&js, "Unrecognized path");
+        }
         js.PostReply();
       } else {
         if (handler(&js)) {
           // Handler returns true if the reply is ready to be posted.
+          // TODO(johnmccutchan): Support asynchronous replies.
           js.PostReply();
         }
       }
@@ -1153,6 +1214,102 @@ static RootMessageHandler FindRootMessageHandler(const char* command) {
   }
   if (FLAG_trace_service) {
     OS::Print("Service has no root message handler for <%s>\n", command);
+  }
+  return NULL;
+}
+
+
+void Service::EmbedderHandleMessage(EmbedderServiceHandler* handler,
+                                    JSONStream* js) {
+  ASSERT(handler != NULL);
+  Dart_ServiceRequestCallback callback = handler->callback();
+  ASSERT(callback != NULL);
+  const char* r = NULL;
+  const char* name = js->command();
+  const char** arguments = js->arguments();
+  const char** keys = js->option_keys();
+  const char** values = js->option_values();
+  r = callback(name, arguments, js->num_arguments(), keys, values,
+               js->num_options(), handler->user_data());
+  ASSERT(r != NULL);
+  // TODO(johnmccutchan): Allow for NULL returns?
+  TextBuffer* buffer = js->buffer();
+  buffer->AddString(r);
+  free(const_cast<char*>(r));
+}
+
+
+void Service::RegisterIsolateEmbedderCallback(
+    const char* name,
+    Dart_ServiceRequestCallback callback,
+    void* user_data) {
+  if (name == NULL) {
+    return;
+  }
+  EmbedderServiceHandler* handler = FindIsolateEmbedderHandler(name);
+  if (handler != NULL) {
+    // Update existing handler entry.
+    handler->set_callback(callback);
+    handler->set_user_data(user_data);
+    return;
+  }
+  // Create a new handler.
+  handler = new EmbedderServiceHandler(name);
+  handler->set_callback(callback);
+  handler->set_user_data(user_data);
+
+  // Insert into isolate_service_handler_head_ list.
+  handler->set_next(isolate_service_handler_head_);
+  isolate_service_handler_head_ = handler;
+}
+
+
+EmbedderServiceHandler* Service::FindIsolateEmbedderHandler(
+    const char* name) {
+  EmbedderServiceHandler* current = isolate_service_handler_head_;
+  while (current != NULL) {
+    if (!strcmp(name, current->name())) {
+      return current;
+    }
+    current = current->next();
+  }
+  return NULL;
+}
+
+
+void Service::RegisterRootEmbedderCallback(
+    const char* name,
+    Dart_ServiceRequestCallback callback,
+    void* user_data) {
+  if (name == NULL) {
+    return;
+  }
+  EmbedderServiceHandler* handler = FindRootEmbedderHandler(name);
+  if (handler != NULL) {
+    // Update existing handler entry.
+    handler->set_callback(callback);
+    handler->set_user_data(user_data);
+    return;
+  }
+  // Create a new handler.
+  handler = new EmbedderServiceHandler(name);
+  handler->set_callback(callback);
+  handler->set_user_data(user_data);
+
+  // Insert into root_service_handler_head_ list.
+  handler->set_next(root_service_handler_head_);
+  root_service_handler_head_ = handler;
+}
+
+
+EmbedderServiceHandler* Service::FindRootEmbedderHandler(
+    const char* name) {
+  EmbedderServiceHandler* current = root_service_handler_head_;
+  while (current != NULL) {
+    if (!strcmp(name, current->name())) {
+      return current;
+    }
+    current = current->next();
   }
   return NULL;
 }

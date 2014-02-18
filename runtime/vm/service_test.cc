@@ -614,4 +614,106 @@ TEST_CASE(Service_Coverage) {
       "[3,0,3,1,5,1,5,1,5,1,6,1,6,1]}", handler.msg());
 }
 
+
+static const char* alpha_callback(
+    const char* name,
+    const char** arguments,
+    intptr_t num_arguments,
+    const char** option_keys,
+    const char** option_values,
+    intptr_t num_options,
+    void* user_data) {
+  return strdup("alpha");
+}
+
+
+static const char* beta_callback(
+    const char* name,
+    const char** arguments,
+    intptr_t num_arguments,
+    const char** option_keys,
+    const char** option_values,
+    intptr_t num_options,
+    void* user_data) {
+  return strdup("beta");
+}
+
+
+TEST_CASE(Service_EmbedderRootHandler) {
+  const char* kScript =
+    "var port;\n"  // Set to our mock port by C++.
+    "\n"
+    "var x = 7;\n"
+    "main() {\n"
+    "  x = x * x;\n"
+    "  x = x / 13;\n"
+    "}";
+
+  Dart_RegisterRootServiceRequestCallback("alpha", alpha_callback, NULL);
+  Dart_RegisterRootServiceRequestCallback("beta", beta_callback, NULL);
+
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port =
+      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
+
+
+  Instance& service_msg = Instance::Handle();
+  service_msg = Eval(lib, "[port, ['alpha'], [], []]");
+  Service::HandleRootMessage(service_msg);
+  handler.HandleNextMessage();
+  EXPECT_STREQ("alpha", handler.msg());
+  service_msg = Eval(lib, "[port, ['beta'], [], []]");
+  Service::HandleRootMessage(service_msg);
+  handler.HandleNextMessage();
+  EXPECT_STREQ("beta", handler.msg());
+}
+
+TEST_CASE(Service_EmbedderIsolateHandler) {
+  const char* kScript =
+    "var port;\n"  // Set to our mock port by C++.
+    "\n"
+    "var x = 7;\n"
+    "main() {\n"
+    "  x = x * x;\n"
+    "  x = x / 13;\n"
+    "}";
+
+  Dart_RegisterIsolateServiceRequestCallback("alpha", alpha_callback, NULL);
+  Dart_RegisterIsolateServiceRequestCallback("beta", beta_callback, NULL);
+
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port =
+      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
+
+  Instance& service_msg = Instance::Handle();
+  service_msg = Eval(lib, "[port, ['alpha'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_STREQ("alpha", handler.msg());
+  service_msg = Eval(lib, "[port, ['beta'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_STREQ("beta", handler.msg());
+}
+
 }  // namespace dart
