@@ -723,6 +723,7 @@
 </polymer-element>
 <polymer-element name="stack-trace" extends="observatory-element">
   <template>
+    <button type="button" on-click="{{refresh}}">Refresh</button>
     <template if="{{ trace['members'].isEmpty }}">
       <div class="col-md-1"></div>
       <div class="col-md-11">

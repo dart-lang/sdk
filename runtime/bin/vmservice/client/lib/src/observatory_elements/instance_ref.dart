@@ -28,7 +28,6 @@ class InstanceRefElement extends ServiceRefElement {
       expanded = false;
     } else {
       app.requestManager.requestMap(url).then((map) {
-          print(map);
           ref['fields'] = map['fields'];
           ref['elements'] = map['elements'];
           ref['length'] = map['length'];
