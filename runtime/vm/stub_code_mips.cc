@@ -1396,7 +1396,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   __ EnterStubFrame(true);  // Uses pool pointer to pass cls to runtime.
   __ LoadObject(TMP, cls);
 
-  __ addiu(SP, SP, Immediate(-4 * kWordSize));
+  __ addiu(SP, SP, Immediate(-3 * kWordSize));
   // Space on stack for return value.
   __ LoadImmediate(T7, reinterpret_cast<intptr_t>(Object::null()));
   __ sw(T7, Address(SP, 2 * kWordSize));
