@@ -4,7 +4,6 @@
 
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/core/List/sort_A01_t04: Fail, Pass, Timeout # Must be a bug in jsshell, test sometimes times out.
-LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 LibTest/core/Uri/encodeComponent_A01_t02: Skip

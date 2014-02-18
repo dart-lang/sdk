@@ -84,7 +84,7 @@ third_party/angular_tests/browser_test: Skip # uses dart:html
 source_maps/test/vlq_test: RuntimeError # A VLQ test checks for large numbers that
                                 # overflow in JS (numbers slightly larger than
                                 # 32 bits where we do bitwise operations).
-[ $runtime == ff && $system != windows ]
+[ ($runtime == ff || $runtime == jsshell) && $system != windows ]
 # Bug in Spidermonkey's Uint8ClampedArray on x64 (non-Win FF is x64, Win is x86)
 # See https://bugzilla.mozilla.org/show_bug.cgi?id=940972
 # Likely to get patched only on some versions of Firefox.
