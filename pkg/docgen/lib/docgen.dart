@@ -116,9 +116,9 @@ Future<bool> docgen(List<String> files, {String packageRoot,
     bool outputToYaml: true, bool includePrivate: false, bool includeSdk: false,
     bool parseSdk: false, bool append: false, String introFileName: '',
     out: _DEFAULT_OUTPUT_DIRECTORY, List<String> excludeLibraries : const [],
-    bool includeDependentPackages: false, bool compile: false, bool serve: false,
-    bool noDocs: false, String startPage, 
-    String pubScript, String dartBinary}) {
+    bool includeDependentPackages: false, bool compile: false,
+    bool serve: false, bool noDocs: false, String startPage, String pubScript,
+    String dartBinary}) {
   var result;
   if (!noDocs) {
     _Viewer.ensureMovedViewerCode();
@@ -136,7 +136,7 @@ Future<bool> docgen(List<String> files, {String packageRoot,
           _createViewer(serve);
         }
       });
-    } 
+    }
   } else if (compile || serve) {
     _createViewer(serve);
   }
@@ -149,7 +149,7 @@ void _createViewer(bool serve) {
   if (serve) {
      _Viewer._runServer();
    }
-} 
+}
 
 /// Analyzes set of libraries by getting a mirror system and triggers the
 /// documentation of the libraries.
@@ -696,7 +696,7 @@ class _Viewer {
         /// Move the generated json/yaml docs directory to the dartdoc-viewer
         /// directory, to run as a webpage.
         var processResult = Process.runSync(_Generator._pubScript,
-            ['upgrade'], runInShell: true, 
+            ['upgrade'], runInShell: true,
             workingDirectory: path.join(_dartdocViewerDir.path, 'client'));
         print('process output: ${processResult.stdout}');
         print('process stderr: ${processResult.stderr}');
@@ -1589,6 +1589,8 @@ abstract class OwnedIndexable extends Indexable {
     var parts = domName.split('.');
     if (parts.length == 2) return _mdnMemberComment(parts[0], parts[1]);
     if (parts.length == 1) return _mdnTypeComment(parts[0]);
+
+    throw new StateError('More than two items is not supported: $parts');
   }
 
   String get packagePrefix => owner.packagePrefix;
