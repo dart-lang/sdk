@@ -140,8 +140,8 @@ class _NextValuesMatcher implements StreamMatcher {
       });
     }
 
-    return collectValues(_n).then((description) {
-      if (description != null) return description;
+    return collectValues(_n).then((failure) {
+      if (failure != null) return failure;
       var matchState = {};
       if (_matcher.matches(collectedValues, matchState)) return null;
       return _matcher.describeMismatch(collectedValues, new StringDescription(),
@@ -170,12 +170,12 @@ class _InOrderMatcher implements StreamMatcher {
     matchNext() {
       if (matchers.isEmpty) return new Future.value();
       var matcher = matchers.removeFirst();
-      return matcher.tryMatch(stream).then((description) {
-        if (description == null) return matchNext();
-        var newDescription = new StringDescription(
+      return matcher.tryMatch(stream).then((failure) {
+        if (failure == null) return matchNext();
+        var newFailure = new StringDescription(
               'matcher #${_matchers.length - matchers.length} failed');
-        if (description.length != 0) newDescription.add(':\n$description');
-        return newDescription;
+        if (failure.length != 0) newFailure.add(':\n$failure');
+        return newFailure;
       });
     }
 
@@ -231,26 +231,26 @@ class _EitherMatcher implements StreamMatcher {
     return Future.wait([
       _matcher1.tryMatch(stream1).whenComplete(stream1.close),
       _matcher2.tryMatch(stream2).whenComplete(stream2.close)
-    ]).then((descriptions) {
-      var description1 = descriptions.first;
-      var description2 = descriptions.last;
+    ]).then((failures) {
+      var failure1 = failures.first;
+      var failure2 = failures.last;
 
       // If both matchers matched, use the one that consumed more of the stream.
-      if (description1 == null && description2 == null) {
+      if (failure1 == null && failure2 == null) {
         if (stream1.emittedValues.length >= stream2.emittedValues.length) {
           return _matcher1.tryMatch(stream);
         } else {
           return _matcher2.tryMatch(stream);
         }
-      } else if (description1 == null) {
+      } else if (failure1 == null) {
         return _matcher1.tryMatch(stream);
-      } else if (description2 == null) {
+      } else if (failure2 == null) {
         return _matcher2.tryMatch(stream);
       } else {
         return new StringDescription('both\n')
-            .add(prefixLines(description1.toString(), prefix: '  '))
+            .add(prefixLines(failure1.toString(), prefix: '  '))
             .add('\nand\n')
-            .add(prefixLines(description2.toString(), prefix: '  '))
+            .add(prefixLines(failure2.toString(), prefix: '  '))
             .toString();
       }
     });
@@ -274,8 +274,8 @@ class _AllowMatcher implements StreamMatcher {
 
   Future<Description> tryMatch(ScheduledStream stream) {
     var fork = stream.fork();
-    return _matcher.tryMatch(fork).whenComplete(fork.close).then((description) {
-      if (description != null) return null;
+    return _matcher.tryMatch(fork).whenComplete(fork.close).then((failure) {
+      if (failure != null) return null;
       return _matcher.tryMatch(stream);
     });
   }
@@ -301,8 +301,8 @@ class _NeverMatcher implements StreamMatcher {
 
         var fork = stream.fork();
         return _matcher.tryMatch(fork).whenComplete(fork.close)
-            .then((description) {
-          if (description != null) {
+            .then((failure) {
+          if (failure != null) {
             return stream.next().then((_) => consumeNext());
           }
 
