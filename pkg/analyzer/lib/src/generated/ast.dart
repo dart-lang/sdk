@@ -16468,4 +16468,7 @@ class NodeList<E extends ASTNode> extends Object with ListMixin<E> {
     _elements[index] = node;
   }
   int get length => _elements.length;
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize NodeList.");
+  }
 }
