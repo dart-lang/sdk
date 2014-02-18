@@ -3,17 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/assert.h"
-#include "vm/object.h"
+
+#include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/json_stream.h"
+#include "vm/message.h"
+#include "vm/object.h"
 
 
 namespace dart {
+
+DECLARE_FLAG(bool, trace_service);
 
 JSONStream::JSONStream(intptr_t buf_size)
     : open_objects_(0),
       buffer_(buf_size),
       reply_port_(ILLEGAL_PORT),
+      command_(""),
       arguments_(NULL),
       num_arguments_(0),
       option_keys_(NULL),
@@ -23,6 +29,94 @@ JSONStream::JSONStream(intptr_t buf_size)
 
 
 JSONStream::~JSONStream() {
+}
+
+
+void JSONStream::Setup(Zone* zone,
+                       const Instance& reply_port,
+                       const GrowableObjectArray& path,
+                       const GrowableObjectArray& option_keys,
+                       const GrowableObjectArray& option_values) {
+  // Setup the reply port.
+  const Object& id_obj = Object::Handle(
+      DartLibraryCalls::PortGetId(reply_port));
+  if (id_obj.IsError()) {
+    Exceptions::PropagateError(Error::Cast(id_obj));
+  }
+  const Integer& id = Integer::Cast(id_obj);
+  Dart_Port port = static_cast<Dart_Port>(id.AsInt64Value());
+  ASSERT(port != ILLEGAL_PORT);
+  set_reply_port(port);
+
+  // Setup JSONStream arguments and options. The arguments and options
+  // are zone allocated and will be freed immediately after handling the
+  // message.
+  const char** arguments = zone->Alloc<const char*>(path.Length());
+  String& string_iterator = String::Handle();
+  for (intptr_t i = 0; i < path.Length(); i++) {
+    string_iterator ^= path.At(i);
+    arguments[i] = zone->MakeCopyOfString(string_iterator.ToCString());
+    if (i == 0) {
+      command_ = arguments[i];
+    }
+  }
+  SetArguments(arguments, path.Length());
+  if (option_keys.Length() > 0) {
+    const char** option_keys_native =
+        zone->Alloc<const char*>(option_keys.Length());
+    const char** option_values_native =
+        zone->Alloc<const char*>(option_keys.Length());
+    for (intptr_t i = 0; i < option_keys.Length(); i++) {
+      string_iterator ^= option_keys.At(i);
+      option_keys_native[i] =
+          zone->MakeCopyOfString(string_iterator.ToCString());
+      string_iterator ^= option_values.At(i);
+      option_values_native[i] =
+          zone->MakeCopyOfString(string_iterator.ToCString());
+    }
+    SetOptions(option_keys_native, option_values_native, option_keys.Length());
+  }
+  if (FLAG_trace_service) {
+    Isolate* isolate = Isolate::Current();
+    ASSERT(isolate != NULL);
+    const char* isolate_name = isolate->name();
+    OS::Print("Isolate %s processing service request /%s\n",
+              isolate_name, command_);
+    setup_time_micros_ = OS::GetCurrentTimeMicros();
+  }
+}
+
+
+static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
+  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
+  return reinterpret_cast<uint8_t*>(new_ptr);
+}
+
+
+void JSONStream::PostReply() {
+  Dart_Port port = reply_port();
+  ASSERT(port != ILLEGAL_PORT);
+  set_reply_port(ILLEGAL_PORT);  // Prevent double replies.
+  int64_t process_delta_micros = 0;
+  if (FLAG_trace_service) {
+    process_delta_micros = OS::GetCurrentTimeMicros() - setup_time_micros_;
+  }
+  const String& reply = String::Handle(String::New(ToCString()));
+  ASSERT(!reply.IsNull());
+
+  uint8_t* data = NULL;
+  MessageWriter writer(&data, &allocator);
+  writer.WriteMessage(reply);
+  PortMap::PostMessage(new Message(port, data,
+                                   writer.BytesWritten(),
+                                   Message::kNormalPriority));
+  if (FLAG_trace_service) {
+    Isolate* isolate = Isolate::Current();
+    ASSERT(isolate != NULL);
+    const char* isolate_name = isolate->name();
+    OS::Print("Isolate %s processed service request /%s in %" Pd64" us.\n",
+              isolate_name, command_, process_delta_micros);
+  }
 }
 
 

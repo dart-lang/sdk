@@ -28,6 +28,8 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, trace_service, false, "Trace VM service requests.");
+
 struct ResourcesEntry {
   const char* path_;
   const char* resource_;
@@ -439,68 +441,6 @@ struct RootMessageHandlerEntry {
 static RootMessageHandler FindRootMessageHandler(const char* command);
 
 
-static void PostReply(JSONStream* js) {
-  Dart_Port reply_port = js->reply_port();
-  ASSERT(reply_port != ILLEGAL_PORT);
-  js->set_reply_port(ILLEGAL_PORT);  // Prevent double replies.
-
-  const String& reply = String::Handle(String::New(js->ToCString()));
-  ASSERT(!reply.IsNull());
-
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator);
-  writer.WriteMessage(reply);
-  PortMap::PostMessage(new Message(reply_port, data,
-                                   writer.BytesWritten(),
-                                   Message::kNormalPriority));
-}
-
-
-static void SetupJSONStream(JSONStream* js, Zone* zone,
-                            const Instance& reply_port,
-                            const GrowableObjectArray& path,
-                            const GrowableObjectArray& option_keys,
-                            const GrowableObjectArray& option_values) {
-  // Setup the reply port.
-  const Object& id_obj = Object::Handle(
-      DartLibraryCalls::PortGetId(reply_port));
-  if (id_obj.IsError()) {
-    Exceptions::PropagateError(Error::Cast(id_obj));
-  }
-  const Integer& id = Integer::Cast(id_obj);
-  Dart_Port port = static_cast<Dart_Port>(id.AsInt64Value());
-  ASSERT(port != ILLEGAL_PORT);
-  js->set_reply_port(port);
-
-  // Setup JSONStream arguments and options. The arguments and options
-  // are zone allocated and will be freed immediately after handling the
-  // message.
-  const char** arguments = zone->Alloc<const char*>(path.Length());
-  String& string_iterator = String::Handle();
-  for (intptr_t i = 0; i < path.Length(); i++) {
-    string_iterator ^= path.At(i);
-    arguments[i] = zone->MakeCopyOfString(string_iterator.ToCString());
-  }
-  js->SetArguments(arguments, path.Length());
-  if (option_keys.Length() > 0) {
-    const char** option_keys_native =
-        zone->Alloc<const char*>(option_keys.Length());
-    const char** option_values_native =
-        zone->Alloc<const char*>(option_keys.Length());
-    for (intptr_t i = 0; i < option_keys.Length(); i++) {
-      string_iterator ^= option_keys.At(i);
-      option_keys_native[i] =
-          zone->MakeCopyOfString(string_iterator.ToCString());
-      string_iterator ^= option_values.At(i);
-      option_values_native[i] =
-          zone->MakeCopyOfString(string_iterator.ToCString());
-    }
-    js->SetOptions(option_keys_native, option_values_native,
-                  option_keys.Length());
-  }
-}
-
-
 static void PrintArgumentsAndOptions(const JSONObject& obj, JSONStream* js) {
   JSONObject jsobj(&obj, "message");
   {
@@ -573,27 +513,28 @@ void Service::HandleIsolateMessage(Isolate* isolate, const Instance& msg) {
     // Same number of option keys as values.
     ASSERT(option_keys.Length() == option_values.Length());
 
-    String& pathSegment = String::Handle();
+    String& path_segment = String::Handle();
     if (path.Length() > 0) {
-      pathSegment ^= path.At(0);
+      path_segment ^= path.At(0);
     } else {
-      pathSegment ^= Symbols::Empty().raw();
+      path_segment ^= Symbols::Empty().raw();
     }
-    ASSERT(!pathSegment.IsNull());
+    ASSERT(!path_segment.IsNull());
+    const char* path_segment_c = path_segment.ToCString();
 
     IsolateMessageHandler handler =
-        FindIsolateMessageHandler(pathSegment.ToCString());
+        FindIsolateMessageHandler(path_segment_c);
     {
       JSONStream js;
-      SetupJSONStream(&js, zone.GetZone(),
-                      reply_port, path, option_keys, option_values);
+      js.Setup(zone.GetZone(), reply_port, path, option_keys, option_values);
+
       if (handler == NULL) {
         PrintError(&js, "Unrecognized path");
-        PostReply(&js);
+        js.PostReply();
       } else {
         if (handler(isolate, &js)) {
           // Handler returns true if the reply is ready to be posted.
-          PostReply(&js);
+          js.PostReply();
         }
       }
     }
@@ -1117,6 +1058,9 @@ static IsolateMessageHandler FindIsolateMessageHandler(const char* command) {
       return entry.handler;
     }
   }
+  if (FLAG_trace_service) {
+    OS::Print("Service has no isolate message handler for <%s>\n", command);
+  }
   return NULL;
 }
 
@@ -1151,23 +1095,23 @@ void Service::HandleRootMessage(const Instance& msg) {
     // Same number of option keys as values.
     ASSERT(option_keys.Length() == option_values.Length());
 
-    String& pathSegment = String::Handle();
-    pathSegment ^= path.At(0);
-    ASSERT(!pathSegment.IsNull());
-
+    String& path_segment = String::Handle();
+    path_segment ^= path.At(0);
+    ASSERT(!path_segment.IsNull());
+    const char* path_segment_c = path_segment.ToCString();
     RootMessageHandler handler =
-        FindRootMessageHandler(pathSegment.ToCString());
+        FindRootMessageHandler(path_segment_c);
+
     {
       JSONStream js;
-      SetupJSONStream(&js, zone.GetZone(),
-                      reply_port, path, option_keys, option_values);
+      js.Setup(zone.GetZone(), reply_port, path, option_keys, option_values);
       if (handler == NULL) {
         PrintError(&js, "Unrecognized path");
-        PostReply(&js);
+        js.PostReply();
       } else {
         if (handler(&js)) {
           // Handler returns true if the reply is ready to be posted.
-          PostReply(&js);
+          js.PostReply();
         }
       }
     }
@@ -1205,6 +1149,9 @@ static RootMessageHandler FindRootMessageHandler(const char* command) {
     if (!strcmp(command, entry.command)) {
       return entry.handler;
     }
+  }
+  if (FLAG_trace_service) {
+    OS::Print("Service has no root message handler for <%s>\n", command);
   }
   return NULL;
 }

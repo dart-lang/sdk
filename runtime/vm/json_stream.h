@@ -12,16 +12,25 @@
 namespace dart {
 
 class Field;
+class GrowableObjectArray;
 class Instance;
 class JSONArray;
 class JSONObject;
 class Object;
 class SourceBreakpoint;
+class Zone;
 
 class JSONStream : ValueObject {
  public:
   explicit JSONStream(intptr_t buf_size = 256);
   ~JSONStream();
+
+  void Setup(Zone* zone,
+             const Instance& reply_port,
+             const GrowableObjectArray& path,
+             const GrowableObjectArray& option_keys,
+             const GrowableObjectArray& option_values);
+  void PostReply();
 
   TextBuffer* buffer() { return &buffer_; }
   const char* ToCString() { return buffer_.buf(); }
@@ -81,11 +90,13 @@ class JSONStream : ValueObject {
   intptr_t open_objects_;
   TextBuffer buffer_;
   Dart_Port reply_port_;
+  const char* command_;
   const char** arguments_;
   intptr_t num_arguments_;
   const char** option_keys_;
   const char** option_values_;
   intptr_t num_options_;
+  int64_t setup_time_micros_;
 
   friend class JSONObject;
   friend class JSONArray;
