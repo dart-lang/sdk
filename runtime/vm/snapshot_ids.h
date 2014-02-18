@@ -14,6 +14,7 @@ enum {
   kNullObject = 0,
   kSentinelObject,
   kEmptyArrayObject,
+  kZeroArrayObject,
   kTrueValue,
   kFalseValue,
   kClassIdsOffset = kFalseValue,

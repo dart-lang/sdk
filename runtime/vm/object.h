@@ -367,6 +367,10 @@ class Object {
     ASSERT(empty_array_ != NULL);
     return *empty_array_;
   }
+  static const Array& zero_array() {
+    ASSERT(zero_array_ != NULL);
+    return *zero_array_;
+  }
 
   static const PcDescriptors& empty_descriptors() {
     ASSERT(empty_descriptors_ != NULL);
@@ -614,6 +618,7 @@ class Object {
   static Instance* null_instance_;
   static TypeArguments* null_type_arguments_;
   static Array* empty_array_;
+  static Array* zero_array_;
   static PcDescriptors* empty_descriptors_;
   static Instance* sentinel_;
   static Instance* transition_sentinel_;

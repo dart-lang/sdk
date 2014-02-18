@@ -1814,6 +1814,10 @@ TEST_CASE(Array) {
 
   EXPECT_EQ(0, Object::empty_array().Length());
 
+  EXPECT_EQ(1, Object::zero_array().Length());
+  element = Object::zero_array().At(0);
+  EXPECT(Smi::Cast(element).IsZero());
+
   array.MakeImmutable();
   Object& obj = Object::Handle(array.raw());
   EXPECT(obj.IsArray());

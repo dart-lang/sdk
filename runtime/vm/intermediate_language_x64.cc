@@ -2073,23 +2073,21 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   // generated code size.
   __ LoadObject(RDI, type_arguments(), PP);
   __ movq(RDI, FieldAddress(RDI, TypeArguments::instantiations_offset()));
-  __ movq(RBX, FieldAddress(RDI, Array::length_offset()));
   __ leaq(RDI, FieldAddress(RDI, Array::data_offset()));
-  __ leaq(RBX, Address(RDI, RBX, TIMES_2, 0));  // RBX is smi.
+  // The instantiations cache is initialized with Object::zero_array() and is
+  // therefore guaranteed to contain kNoInstantiator. No length check needed.
   Label loop, found, slow_case;
   __ Bind(&loop);
-  __ cmpq(RDI, RBX);
-  __ j(ABOVE_EQUAL, &slow_case);
   __ movq(RDX, Address(RDI, 0 * kWordSize));  // Cached instantiator.
   __ cmpq(RDX, RAX);
   __ j(EQUAL, &found, Assembler::kNearJump);
-  __ cmpq(RDX, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
-  __ j(EQUAL, &slow_case);
   __ addq(RDI, Immediate(2 * kWordSize));
-  __ jmp(&loop, Assembler::kNearJump);
+  __ cmpq(RDX, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
+  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+  __ jmp(&slow_case, Assembler::kNearJump);
   __ Bind(&found);
   __ movq(RAX, Address(RDI, 1 * kWordSize));  // Cached instantiated args.
-  __ jmp(&type_arguments_instantiated);
+  __ jmp(&type_arguments_instantiated, Assembler::kNearJump);
 
   __ Bind(&slow_case);
   // Instantiate non-null type arguments.

@@ -1120,13 +1120,12 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   const int kInlineInstanceSize = 12;  // In words.
   const intptr_t instance_size = cls.instance_size();
   ASSERT(instance_size > 0);
-  Label slow_case_with_type_arguments;
+  if (is_cls_parameterized) {
+    __ movl(EDX, Address(ESP, kObjectTypeArgumentsOffset));
+    // EDX: instantiated type arguments.
+  }
   if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
-    Label slow_case_reload_type_arguments;
-    if (is_cls_parameterized) {
-      __ movl(EDX, Address(ESP, kObjectTypeArgumentsOffset));
-      // EDX: instantiated type arguments.
-    }
+    Label slow_case;
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     // EDX: instantiated type arguments (if is_cls_parameterized).
@@ -1138,9 +1137,9 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // EBX: potential next object start.
     __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
     if (FLAG_use_slow_path) {
-      __ jmp(&slow_case_with_type_arguments);
+      __ jmp(&slow_case);
     } else {
-      __ j(ABOVE_EQUAL, &slow_case_with_type_arguments);
+      __ j(ABOVE_EQUAL, &slow_case);
     }
     __ movl(Address::Absolute(heap->TopAddress()), EBX);
     __ UpdateAllocationStats(cls.id(), ECX);
@@ -1198,12 +1197,8 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ addl(EAX, Immediate(kHeapObjectTag));
     __ ret();
 
-    __ Bind(&slow_case_reload_type_arguments);
+    __ Bind(&slow_case);
   }
-  if (is_cls_parameterized) {
-    __ movl(EDX, Address(ESP, kObjectTypeArgumentsOffset));
-  }
-  __ Bind(&slow_case_with_type_arguments);
   // If is_cls_parameterized:
   // EDX: new object type arguments.
   // Create a stub frame as we are pushing some objects on the stack before

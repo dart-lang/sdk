@@ -93,6 +93,7 @@ String* Object::null_string_ = NULL;
 Instance* Object::null_instance_ = NULL;
 TypeArguments* Object::null_type_arguments_ = NULL;
 Array* Object::empty_array_ = NULL;
+Array* Object::zero_array_ = NULL;
 PcDescriptors* Object::empty_descriptors_ = NULL;
 Instance* Object::sentinel_ = NULL;
 Instance* Object::transition_sentinel_ = NULL;
@@ -449,6 +450,7 @@ void Object::InitOnce() {
   null_instance_ = Instance::ReadOnlyHandle();
   null_type_arguments_ = TypeArguments::ReadOnlyHandle();
   empty_array_ = Array::ReadOnlyHandle();
+  zero_array_ = Array::ReadOnlyHandle();
   empty_descriptors_ = PcDescriptors::ReadOnlyHandle();
   sentinel_ = Instance::ReadOnlyHandle();
   transition_sentinel_ = Instance::ReadOnlyHandle();
@@ -477,9 +479,11 @@ void Object::InitOnce() {
   *null_instance_ = Instance::null();
   *null_type_arguments_ = TypeArguments::null();
 
-  // Initialize the empty array handle to null_ in order to be able to check
-  // if the empty array was allocated (RAW_NULL is not available).
+  // Initialize the empty and zero array handles to null_ in order to be able to
+  // check if the empty and zero arrays were allocated (RAW_NULL is not
+  // available).
   *empty_array_ = Array::null();
+  *zero_array_ = Array::null();
 
   Class& cls = Class::Handle();
 
@@ -657,6 +661,17 @@ void Object::InitOnce() {
     empty_array_->raw_ptr()->length_ = Smi::New(0);
   }
 
+  // Allocate and initialize the zero_array instance.
+  {
+    uword address = heap->Allocate(Array::InstanceSize(1), Heap::kOld);
+    InitializeObject(address, kArrayCid, Array::InstanceSize(1));
+    Array::initializeHandle(
+        zero_array_,
+        reinterpret_cast<RawArray*>(address + kHeapObjectTag));
+    zero_array_->raw_ptr()->length_ = Smi::New(1);
+    zero_array_->raw_ptr()->data()[0] = Smi::New(0);
+  }
+
   // Allocate and initialize the empty_descriptors instance.
   {
     uword address = heap->Allocate(PcDescriptors::InstanceSize(0), Heap::kOld);
@@ -720,6 +735,8 @@ void Object::InitOnce() {
   ASSERT(null_type_arguments_->IsTypeArguments());
   ASSERT(!empty_array_->IsSmi());
   ASSERT(empty_array_->IsArray());
+  ASSERT(!zero_array_->IsSmi());
+  ASSERT(zero_array_->IsArray());
   ASSERT(!sentinel_->IsSmi());
   ASSERT(sentinel_->IsInstance());
   ASSERT(!transition_sentinel_->IsSmi());
@@ -4220,9 +4237,11 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   // Lookup instantiator and, if found, return paired instantiated result.
   Array& prior_instantiations = Array::Handle(instantiations());
   ASSERT(!prior_instantiations.IsNull() && prior_instantiations.IsArray());
-  intptr_t length = prior_instantiations.Length();
+  // The instantiations cache is initialized with Object::zero_array() and is
+  // therefore guaranteed to contain kNoInstantiator. No length check needed.
+  ASSERT(prior_instantiations.Length() > 0);
   intptr_t index = 0;
-  while (index < length) {
+  while (true) {
     if (prior_instantiations.At(index) == instantiator_type_arguments.raw()) {
       return TypeArguments::RawCast(prior_instantiations.At(index + 1));
     }
@@ -4240,19 +4259,20 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   // Instantiation did not result in bound error. Canonicalize type arguments.
   result = result.Canonicalize();
   // Add instantiator and result to instantiations array.
-  if ((index + 2) > length) {
+  intptr_t length = prior_instantiations.Length();
+  if ((index + 2) >= length) {
     // Grow the instantiations array.
-    length = (length == 0) ? 2 : length + 4;
+    // The initial array is Object::zero_array() of length 1.
+    length = (length == 1) ? 3 : length + 4;
     prior_instantiations =
         Array::Grow(prior_instantiations, length, Heap::kOld);
     set_instantiations(prior_instantiations);
+    ASSERT((index + 2) < length);
   }
   prior_instantiations.SetAt(index, instantiator_type_arguments);
   prior_instantiations.SetAt(index + 1, result);
-  if ((index + 2) < length) {
-    prior_instantiations.SetAt(index + 2,
-        Smi::Handle(Smi::New(StubCode::kNoInstantiator)));
-  }
+  prior_instantiations.SetAt(index + 2,
+                             Smi::Handle(Smi::New(StubCode::kNoInstantiator)));
   return result.raw();
 }
 
@@ -4272,7 +4292,10 @@ RawTypeArguments* TypeArguments::New(intptr_t len, Heap::Space space) {
     // Length must be set before we start storing into the array.
     result.SetLength(len);
   }
-  result.set_instantiations(Object::empty_array());
+  // The zero array should have been initialized.
+  ASSERT(Object::zero_array().raw() != Array::null());
+  COMPILE_ASSERT(StubCode::kNoInstantiator == 0, kNoInstantiator_must_be_zero);
+  result.set_instantiations(Object::zero_array());
   return result.raw();
 }
 

@@ -1110,13 +1110,12 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   const int kInlineInstanceSize = 12;
   const intptr_t instance_size = cls.instance_size();
   ASSERT(instance_size > 0);
-  Label slow_case_with_type_arguments;
+  if (is_cls_parameterized) {
+    __ ldr(R1, Address(SP, 0));
+    // R1: instantiated type arguments.
+  }
   if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
-    Label slow_case_reload_type_arguments;
-    if (is_cls_parameterized) {
-      __ ldr(R1, Address(SP, 0));
-      // R1: instantiated type arguments.
-    }
+    Label slow_case;
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     // R1: instantiated type arguments (if is_cls_parameterized).
@@ -1131,9 +1130,9 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ ldr(IP, Address(IP, 0));
     __ cmp(R3, ShifterOperand(IP));
     if (FLAG_use_slow_path) {
-      __ b(&slow_case_with_type_arguments);
+      __ b(&slow_case);
     } else {
-      __ b(&slow_case_with_type_arguments, CS);  // Unsigned higher or equal.
+      __ b(&slow_case, CS);  // Unsigned higher or equal.
     }
     __ str(R3, Address(R5, 0));
     __ UpdateAllocationStats(cls.id(), R5);
@@ -1194,12 +1193,8 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // R0: new object.
     __ Ret();
 
-    __ Bind(&slow_case_reload_type_arguments);
+    __ Bind(&slow_case);
   }
-  if (is_cls_parameterized) {
-    __ ldr(R1, Address(SP, 0));
-  }
-  __ Bind(&slow_case_with_type_arguments);
   // If is_cls_parameterized:
   // R1: new object type arguments.
   // Create a stub frame as we are pushing some objects on the stack before

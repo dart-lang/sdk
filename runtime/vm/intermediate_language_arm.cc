@@ -2197,20 +2197,18 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
 
   __ LoadObject(R2, type_arguments());
   __ ldr(R2, FieldAddress(R2, TypeArguments::instantiations_offset()));
-  __ ldr(R3, FieldAddress(R2, Array::length_offset()));
   __ AddImmediate(R2, Array::data_offset() - kHeapObjectTag);
-  __ add(R3, R2, ShifterOperand(R3, LSL, 1));  // R3 is Smi.
+  // The instantiations cache is initialized with Object::zero_array() and is
+  // therefore guaranteed to contain kNoInstantiator. No length check needed.
   Label loop, found, slow_case;
   __ Bind(&loop);
-  __ cmp(R2, ShifterOperand(R3));
-  __ b(&slow_case, CS);  // Unsigned higher or equal.
   __ ldr(R1, Address(R2, 0 * kWordSize));  // Cached instantiator.
   __ cmp(R1, ShifterOperand(R0));
   __ b(&found, EQ);
-  __ CompareImmediate(R1, Smi::RawValue(StubCode::kNoInstantiator));
-  __ b(&slow_case, EQ);
   __ AddImmediate(R2, 2 * kWordSize);
-  __ b(&loop);
+  __ CompareImmediate(R1, Smi::RawValue(StubCode::kNoInstantiator));
+  __ b(&loop, NE);
+  __ b(&slow_case);
   __ Bind(&found);
   __ ldr(R0, Address(R2, 1 * kWordSize));  // Cached instantiated args.
   __ b(&type_arguments_instantiated);

@@ -2186,23 +2186,21 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   // generated code size.
   __ LoadObject(EDI, type_arguments());
   __ movl(EDI, FieldAddress(EDI, TypeArguments::instantiations_offset()));
-  __ movl(EBX, FieldAddress(EDI, Array::length_offset()));
   __ leal(EDI, FieldAddress(EDI, Array::data_offset()));
-  __ leal(EBX, Address(EDI, EBX, TIMES_2, 0));  // EBX is smi.
+  // The instantiations cache is initialized with Object::zero_array() and is
+  // therefore guaranteed to contain kNoInstantiator. No length check needed.
   Label loop, found, slow_case;
   __ Bind(&loop);
-  __ cmpl(EDI, EBX);
-  __ j(ABOVE_EQUAL, &slow_case);
   __ movl(EDX, Address(EDI, 0 * kWordSize));  // Cached instantiator.
   __ cmpl(EDX, EAX);
   __ j(EQUAL, &found, Assembler::kNearJump);
-  __ cmpl(EDX, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
-  __ j(EQUAL, &slow_case);
   __ addl(EDI, Immediate(2 * kWordSize));
-  __ jmp(&loop, Assembler::kNearJump);
+  __ cmpl(EDX, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
+  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+  __ jmp(&slow_case, Assembler::kNearJump);
   __ Bind(&found);
   __ movl(EAX, Address(EDI, 1 * kWordSize));  // Cached instantiated args.
-  __ jmp(&type_arguments_instantiated);
+  __ jmp(&type_arguments_instantiated, Assembler::kNearJump);
 
   __ Bind(&slow_case);
   // Instantiate non-null type arguments.
