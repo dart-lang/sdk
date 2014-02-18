@@ -70,7 +70,14 @@ _IsolateContext _currentIsolate() => _globalState.currentContext;
  * is needed. For single-isolate applications (e.g. hello world), this
  * call is not emitted.
  */
-void startRootIsolate(entry) {
+void startRootIsolate(entry, args) {
+  // The dartMainRunner can inject a new arguments array. We pass the arguments
+  // through a "JS", so that the type-inferrer loses track of it.
+  args = JS("", "#", args);
+  if (args == null) args = [];
+  if (args is! List) {
+    throw new ArgumentError("Arguments to main must be a List: $args");
+  }
   _globalState = new _Manager(entry);
 
   // Don't start the main loop again, if we are in a worker.
@@ -85,9 +92,9 @@ void startRootIsolate(entry) {
   _globalState.currentContext = rootContext;
 
   if (entry is _MainFunctionArgs) {
-    rootContext.eval(() { entry([]); });
+    rootContext.eval(() { entry(args); });
   } else if (entry is _MainFunctionArgsMessage) {
-    rootContext.eval(() { entry([], null); });
+    rootContext.eval(() { entry(args, null); });
   } else {
     rootContext.eval(entry);
   }

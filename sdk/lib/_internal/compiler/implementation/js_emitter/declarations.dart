@@ -57,12 +57,14 @@ const String GENERATED_BY = """
 
 const String HOOKS_API_USAGE = """
 // The code supports the following hooks:
-// dartPrint(message)   - if this function is defined it is called
-//                        instead of the Dart [print] method.
-// dartMainRunner(main) - if this function is defined, the Dart [main]
-//                        method will not be invoked directly.
-//                        Instead, a closure that will invoke [main] is
-//                        passed to [dartMainRunner].
+// dartPrint(message):
+//    if this function is defined it is called instead of the Dart [print]
+//    method.
+//
+// dartMainRunner(main, args):
+//    if this function is defined, the Dart [main] method will not be invoked
+//    directly. Instead, a closure that will invoke [main], and its arguments
+//    [args] is passed to [dartMainRunner].
 """;
 
 // Compact field specifications.  The format of the field specification is
