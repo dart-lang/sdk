@@ -13,8 +13,6 @@ simple_inferrer_const_closure_test: Fail # Issue 16507
 simple_inferrer_const_closure2_test: Fail # Issue 16507
 simple_inferrer_global_field_closure_test: Fail # Issue 16507
 
-mirrors/relation_subclass_test: Fail # Issue 16737
-
 [ $mode == debug ]
 mirror_final_field_inferrer2_test: Crash, Pass, Slow # dartbug.com/15581
 
