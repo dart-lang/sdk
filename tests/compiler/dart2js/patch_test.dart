@@ -163,6 +163,53 @@ testPatchConstructor() {
   }));
 }
 
+testPatchRedirectingConstructor() {
+  asyncTest(() => applyPatch(
+      """
+      class Class {
+        Class(x) : this._(x, false);
+
+        external Class._(x, y);
+      }
+      """,
+      r"""
+      patch class Class {
+        patch Class._(x, y) { print('$x,$y'); }
+      }
+      """).then((compiler) {
+    var classOrigin = ensure(compiler, "Class", compiler.coreLibrary.find,
+                             expectIsPatched: true);
+    classOrigin.ensureResolved(compiler);
+
+    var classPatch = ensure(compiler, "Class", compiler.coreLibrary.patch.find,
+                            expectIsPatch: true);
+
+    Expect.equals(classOrigin, classPatch.origin);
+    Expect.equals(classPatch, classOrigin.patch);
+
+    var constructorRedirecting =
+        ensure(compiler, "",
+               (name) => classOrigin.localLookup(name));
+    var constructorOrigin =
+        ensure(compiler, "_",
+               (name) => classOrigin.localLookup(name),
+               expectIsPatched: true);
+    var constructorPatch =
+        ensure(compiler, "_",
+               (name) => classPatch.localLookup(name),
+               expectIsPatch: true);
+    Expect.equals(constructorOrigin, constructorPatch.origin);
+    Expect.equals(constructorPatch, constructorOrigin.patch);
+
+    compiler.resolver.resolve(constructorRedirecting);
+
+    Expect.isTrue(compiler.warnings.isEmpty,
+                  "Unexpected warnings: ${compiler.warnings}");
+    Expect.isTrue(compiler.errors.isEmpty,
+                  "Unexpected errors: ${compiler.errors}");
+   }));
+}
+
 testPatchMember() {
   asyncTest(() => applyPatch(
       """
@@ -813,6 +860,7 @@ void testTypecheckPatchedMembers() {
 
 main() {
   testPatchConstructor();
+  testPatchRedirectingConstructor();
   testPatchFunction();
   testPatchMember();
   testPatchGetter();

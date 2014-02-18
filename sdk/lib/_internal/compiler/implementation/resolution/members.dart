@@ -305,19 +305,19 @@ class ResolverTask extends CompilerTask {
                                      Node node,
                                      FunctionElement constructor,
                                      FunctionElement redirection) {
+    assert(invariant(node, constructor.isImplementation,
+        message: 'Redirecting constructors must be resolved on implementation '
+                 'elements.'));
     Setlet<FunctionElement> seen = new Setlet<FunctionElement>();
     seen.add(constructor);
     while (redirection != null) {
+      // Ensure that we follow redirections through implementation elements.
+      redirection = redirection.implementation;
       if (seen.contains(redirection)) {
         resolver.visitor.error(node, MessageKind.REDIRECTING_CONSTRUCTOR_CYCLE);
         return;
       }
       seen.add(redirection);
-
-      if (redirection.isPatched) {
-        checkMatchingPatchSignatures(constructor, redirection.patch);
-        redirection = redirection.patch;
-      }
       redirection = resolver.visitor.resolveConstructorRedirection(redirection);
     }
   }
