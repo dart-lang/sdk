@@ -12076,14 +12076,27 @@ void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("type", ref ? "@Null" : "Null");
     jsobj.AddProperty("id", "objects/being-initialized");
     return;
+  } else if (raw() == Symbols::OptimizedOut().raw()) {
+    // TODO(turnidge): This is a hack.  The user could have this
+    // special string in their program.  Fixing this involves updating
+    // the debugging api a bit.
+    jsobj.AddProperty("type", ref ? "@Null" : "Null");
+    jsobj.AddProperty("id", "objects/optimized-out");
+    jsobj.AddProperty("preview", "<optimized out>");
+    return;
   } else {
     ObjectIdRing* ring = Isolate::Current()->object_id_ring();
     intptr_t id = ring->GetIdForObject(raw());
-    jsobj.AddProperty("type", JSONType(ref));
+    if (IsClosure()) {
+      const Function& closureFunc = Function::Handle(Closure::function(*this));
+      jsobj.AddProperty("closureFunc", closureFunc);
+      jsobj.AddProperty("type", ref ? "@Closure" : "Closure");
+    } else {
+      jsobj.AddProperty("type", JSONType(ref));
+    }
     jsobj.AddPropertyF("id", "objects/%" Pd "", id);
     jsobj.AddProperty("class", cls);
   }
-
   if (ref) {
     return;
   }

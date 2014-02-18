@@ -117,6 +117,10 @@ class ObservatoryElement extends PolymerElement {
     return type == '@Instance';
   }
 
+  bool isClosureRef(String type) {
+    return type == '@Closure';
+  }
+
   bool isListRef(String type) {
     return (type == '@GrowableObjectArray' ||
             type == '@Array');
@@ -129,8 +133,9 @@ class ObservatoryElement extends PolymerElement {
               '@Biginit',
               '@Bool',
               '@String',
+              '@Closure',
               '@Instance',
-              '@GrowableObjectArray'
+              '@GrowableObjectArray',
               '@Array'].contains(type));
   }
 }

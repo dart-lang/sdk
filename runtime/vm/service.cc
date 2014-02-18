@@ -831,7 +831,8 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
   // special nulls.
   if (strcmp(arg, "null") == 0 ||
       strcmp(arg, "not-initialized") == 0 ||
-      strcmp(arg, "being-initialized") == 0) {
+      strcmp(arg, "being-initialized") == 0 ||
+      strcmp(arg, "optimized-out") == 0) {
     Object::null_object().PrintToJSONStream(js, false);
     return true;
 

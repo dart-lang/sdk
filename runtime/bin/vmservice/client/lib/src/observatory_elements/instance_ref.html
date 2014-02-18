@@ -30,6 +30,12 @@
         <a href="{{ url }}">{{ name }}</a>
       </template>
 
+      <template if="{{ isClosureRef(ref['type']) }}">
+        <a href="{{ url }}">
+          {{ ref['closureFunc']['user_name'] }}
+        </a>
+      </template>
+
       <template if="{{ isInstanceRef(ref['type']) }}">
         <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em></a> {
         <a on-click="{{ toggleExpand }}">...</a>

@@ -43,6 +43,9 @@
     <template if="{{ messageType == 'Field' }}">
       <field-view app="{{ app }}" field="{{ message }}"></field-view>
     </template>
+    <template if="{{ messageType == 'Closure' }}">
+      <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
+    </template>
     <template if="{{ messageType == 'Instance' }}">
       <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
     </template>

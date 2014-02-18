@@ -98,6 +98,12 @@
         <a href="{{ url }}">{{ name }}</a>
       </template>
 
+      <template if="{{ isClosureRef(ref['type']) }}">
+        <a href="{{ url }}">
+          {{ ref['closureFunc']['user_name'] }}
+        </a>
+      </template>
+
       <template if="{{ isInstanceRef(ref['type']) }}">
         <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em></a> {
         <a on-click="{{ toggleExpand }}">...</a>
@@ -770,6 +776,9 @@
     <template if="{{ messageType == 'Field' }}">
       <field-view app="{{ app }}" field="{{ message }}"></field-view>
     </template>
+    <template if="{{ messageType == 'Closure' }}">
+      <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
+    </template>
     <template if="{{ messageType == 'Instance' }}">
       <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
     </template>
@@ -806,7 +815,8 @@
     <!-- Add new views and message types in the future here. -->
   </template>
   
-</polymer-element><polymer-element name="navigation-bar-isolate" extends="observatory-element">
+</polymer-element>
+<polymer-element name="navigation-bar-isolate" extends="observatory-element">
     <template>
       <ul class="nav navbar-nav">
         <li><a href="{{ currentIsolateLink('') }}"> {{currentIsolateName()}}</a></li>
