@@ -5,22 +5,27 @@
 // Library tag to allow dartium to run the test.
 library sha1_test;
 
-import "package:expect/expect.dart";
 import "package:crypto/crypto.dart";
+import "package:unittest/unittest.dart";
 
 part 'sha1_long_test_vectors.dart';
 part 'sha1_short_test_vectors.dart';
 
-List<int> createTestArr(int len) {
-  var arr = new List<int>(len);
-  for (var i = 0; i < len; i++) {
-    arr[i] = i;
-  }
-  return arr;
+
+void main() {
+  test('expected values', _testExpectedValues);
+  test('invalid use', _testInvalidUse);
+  test('repeated digest', _testRepeatedDigest);
+  test('long inputs', () {
+    _testStandardVectors(sha1_long_inputs, sha1_long_mds);
+  });
+  test('short inputs', () {
+    _testStandardVectors(sha1_short_inputs, sha1_short_mds);
+  });
 }
 
-void test() {
-  final expected_values = const [
+void _testExpectedValues() {
+  var expectedValues = const [
     "da39a3ee5e6b4b0d3255bfef95601890afd80709",
     "5ba93c9db0cff93f52b521d7420e43f6eda2784f",
     "3f29546453678b855931c174a97d6c0894b8f546",
@@ -534,39 +539,31 @@ void test() {
     "3dce8306f3c1810d5d81ed5ebb0ccea947277a61",
     "11bca5b61fc1f6d59078ec5354bc6d9adecc0c5d",
   ];
-  for (var i = 0; i < expected_values.length; i++) {
+  for (var i = 0; i < expectedValues.length; i++) {
     var hash = new SHA1();
-    hash.add(createTestArr(i));
+    hash.add(new List<int>.generate(i, (j) => j, growable: false));
     var digest = hash.close();
-    Expect.equals(expected_values[i], CryptoUtils.bytesToHex(digest));
+    expect(expectedValues[i], CryptoUtils.bytesToHex(digest));
   }
 }
 
-void testInvalidUse() {
+void _testInvalidUse() {
   var sha = new SHA1();
   sha.close();
-  Expect.throws(() => sha.add([0]), (e) => e is StateError);
+  expect(() => sha.add([0]), throwsStateError);
 }
 
-void testRepeatedDigest() {
+void _testRepeatedDigest() {
   var sha = new SHA1();
   var digest = sha.close();
-  Expect.listEquals(digest, sha.close());
+  expect(digest, sha.close());
 }
 
-void testStandardVectors(inputs, mds) {
+void _testStandardVectors(inputs, mds) {
   for (var i = 0; i < inputs.length; i++) {
     var hash = new SHA1();
     hash.add(inputs[i]);
     var d = hash.close();
-    Expect.equals(mds[i], CryptoUtils.bytesToHex(d), '$i');
+    expect(mds[i], CryptoUtils.bytesToHex(d), reason: '$i');
   }
-}
-
-void main() {
-  test();
-  testInvalidUse();
-  testRepeatedDigest();
-  testStandardVectors(sha1_long_inputs, sha1_long_mds);
-  testStandardVectors(sha1_short_inputs, sha1_short_mds);
 }

@@ -22,6 +22,15 @@ int _rotl32(int val, int shift) {
 // Base class encapsulating common behavior for cryptographic hash
 // functions.
 abstract class _HashBase implements Hash {
+  final int _chunkSizeInWords;
+  final int _digestSizeInWords;
+  final bool _bigEndianWords;
+  final List<int> _currentChunk;
+  final List<int> _h;
+  int _lengthInBytes = 0;
+  List<int> _pendingData;
+  bool _digestCalled = false;
+
   _HashBase(int chunkSizeInWords,
             int digestSizeInWords,
             bool this._bigEndianWords)
@@ -139,14 +148,4 @@ abstract class _HashBase implements Hash {
       _pendingData.addAll(_wordToBytes(0));
     }
   }
-
-  // Hasher state.
-  final int _chunkSizeInWords;
-  final int _digestSizeInWords;
-  final bool _bigEndianWords;
-  int _lengthInBytes = 0;
-  List<int> _pendingData;
-  final List<int> _currentChunk;
-  final List<int> _h;
-  bool _digestCalled = false;
 }

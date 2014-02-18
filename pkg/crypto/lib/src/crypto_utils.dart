@@ -78,9 +78,9 @@ abstract class _CryptoUtils {
       out[j++] = lookup.codeUnitAt(x & 0x3f);
       // Add optional line separator for each 76 char output.
       if (addLineSeparator && ++c == 19 && j < outputLen - 2) {
-          out[j++] = CR;
-          out[j++] = LF;
-          c = 0;
+        out[j++] = CR;
+        out[j++] = LF;
+        c = 0;
       }
     }
 
@@ -117,7 +117,7 @@ abstract class _CryptoUtils {
       int c = _decodeTable[input.codeUnitAt(i)];
       if (c < 0) {
         extrasLen++;
-        if(c == -2) {
+        if (c == -2) {
           throw new FormatException('Invalid character: ${input[i]}');
         }
       }
@@ -138,10 +138,10 @@ abstract class _CryptoUtils {
     int outputLen = (((len - extrasLen) * 6) >> 3) - padLength;
     List<int> out = new List<int>(outputLen);
 
-    for (int i = 0, o = 0; o < outputLen;) {
+    for (int i = 0, o = 0; o < outputLen; ) {
       // Accumulate 4 valid 6 bit Base 64 characters into an int.
       int x = 0;
-      for (int j = 4; j > 0;) {
+      for (int j = 4; j > 0; ) {
         int c = _decodeTable[input.codeUnitAt(i++)];
         if (c >= 0) {
           x = ((x << 6) & 0xFFFFFF) | c;

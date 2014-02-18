@@ -5,20 +5,23 @@
 // Library tag to allow the test to run on Dartium.
 library hmac_sha1_test;
 
-import "package:expect/expect.dart";
 import "package:crypto/crypto.dart";
+import "package:unittest/unittest.dart";
 
 part 'hmac_sha1_test_vectors.dart';
 
-void testStandardVectors(inputs, keys, macs) {
+
+void main() {
+  test('standard vectors', () {
+    _testStandardVectors(hmac_sha1_inputs, hmac_sha1_keys, hmac_sha1_macs);
+  });
+}
+
+void _testStandardVectors(inputs, keys, macs) {
   for (var i = 0; i < inputs.length; i++) {
     var hmac = new HMAC(new SHA1(), keys[i]);
     hmac.add(inputs[i]);
     var d = hmac.close();
-    Expect.isTrue(CryptoUtils.bytesToHex(d).startsWith(macs[i]), '$i');
+    expect(CryptoUtils.bytesToHex(d).startsWith(macs[i]), isTrue);
   }
-}
-
-void main() {
-  testStandardVectors(hmac_sha1_inputs, hmac_sha1_keys, hmac_sha1_macs);
 }

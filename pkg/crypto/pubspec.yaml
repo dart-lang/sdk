@@ -1,9 +1,10 @@
 name: crypto
-version: 0.9.0
-author: "Dart Team <misc@dartlang.org>"
+version: 0.9.1-dev
+author: Dart Team <misc@dartlang.org>
+description: Library of cryptographic functions.
 homepage: http://www.dartlang.org
-documentation: http://api.dartlang.org/docs/pkg/crypto
-description: >
- Library of cryptographic functions.
 environment:
-  sdk: ">=0.8.10+6 <2.0.0"
+  sdk: '>=0.8.10+6 <2.0.0'
+documentation: http://api.dartlang.org/docs/pkg/crypto
+dev_dependencies:
+  unittest: '>=0.10.0 <0.11.0'
