@@ -183,6 +183,8 @@ class Range;
 
 // A list of core functions that internally dispatch based on received id.
 #define POLYMORPHIC_TARGET_LIST(V)                                             \
+  V(_StringBase, [], StringBaseCharAt, 585372763)                              \
+  V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 1958436584)                 \
   V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 272598802)                     \
   V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 831354841)                   \
   V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 1832126257)                  \
@@ -3706,9 +3708,9 @@ class StringFromCharCodeInstr : public TemplateDefinition<1> {
  public:
   StringFromCharCodeInstr(Value* char_code, intptr_t cid) : cid_(cid) {
     ASSERT(char_code != NULL);
-    ASSERT(char_code->definition()->IsLoadIndexed() &&
-           (char_code->definition()->AsLoadIndexed()->class_id() ==
-            kOneByteStringCid));
+    ASSERT(char_code->definition()->IsLoadIndexed());
+    ASSERT(char_code->definition()->AsLoadIndexed()->class_id() ==
+           kOneByteStringCid);
     SetInputAt(0, char_code);
   }
 

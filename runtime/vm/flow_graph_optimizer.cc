@@ -1405,6 +1405,10 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
       return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
                                       kTypedDataInt32x4ArrayCid,
                                       ic_data, entry, last);
+    case MethodRecognizer::kStringBaseCodeUnitAt:
+      return InlineStringCodeUnitAt(call, receiver_cid, entry, last);
+    case MethodRecognizer::kStringBaseCharAt:
+      return InlineStringBaseCharAt(call, receiver_cid, entry, last);
     default:
       return false;
   }
@@ -2413,42 +2417,139 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
 }
 
 
-LoadIndexedInstr* FlowGraphOptimizer::BuildStringCodeUnitAt(
-    InstanceCallInstr* call,
-    intptr_t cid) {
+bool FlowGraphOptimizer::TryReplaceInstanceCallWithInline(
+    InstanceCallInstr* call) {
+  ASSERT(call->HasICData());
+  Function& target = Function::Handle();
+  GrowableArray<intptr_t> class_ids;
+  call->ic_data()->GetCheckAt(0, &class_ids, &target);
+  const intptr_t receiver_cid = class_ids[0];
+
+  TargetEntryInstr* entry;
+  Definition* last;
+  if (!TryInlineRecognizedMethod(receiver_cid,
+                                 target,
+                                 call,
+                                 call->ArgumentAt(0),
+                                 call->token_pos(),
+                                 *call->ic_data(),
+                                 &entry, &last)) {
+    return false;
+  }
+
+  // Insert receiver class check.
+  AddReceiverCheck(call);
+  // Remove the original push arguments.
+  for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
+    PushArgumentInstr* push = call->PushArgumentAt(i);
+    push->ReplaceUsesWith(push->value()->definition());
+    push->RemoveFromGraph();
+  }
+  // Replace all uses of this definition with the result.
+  call->ReplaceUsesWith(last);
+  // Finally insert the sequence other definition in place of this one in the
+  // graph.
+  call->previous()->LinkTo(entry->next());
+  entry->UnuseAllInputs();  // Entry block is not in the graph.
+  last->LinkTo(call);
+  // Remove through the iterator.
+  ASSERT(current_iterator()->Current() == call);
+  current_iterator()->RemoveCurrentFromGraph();
+  call->set_previous(NULL);
+  call->set_next(NULL);
+  return true;
+}
+
+
+// Returns the LoadIndexedInstr.
+Definition* FlowGraphOptimizer::PrepareInlineStringIndexOp(
+    Instruction* call,
+    intptr_t cid,
+    Definition* str,
+    Definition* index,
+    Instruction* cursor) {
+
+  cursor = flow_graph()->AppendTo(cursor,
+                                  new CheckSmiInstr(new Value(index),
+                                                    call->deopt_id()),
+                                  call->env(),
+                                  Definition::kEffect);
+
+  // Load the length of the string.
+  LoadFieldInstr* length = BuildLoadStringLength(str);
+  cursor = flow_graph()->AppendTo(cursor, length, NULL, Definition::kValue);
+  // Bounds check.
+  cursor = flow_graph()->AppendTo(cursor,
+                                   new CheckArrayBoundInstr(new Value(length),
+                                                            new Value(index),
+                                                            call->deopt_id()),
+                                   call->env(),
+                                   Definition::kEffect);
+
+  LoadIndexedInstr* load_indexed = new LoadIndexedInstr(
+      new Value(str),
+      new Value(index),
+      FlowGraphCompiler::ElementSizeFor(cid),
+      cid,
+      Isolate::kNoDeoptId);
+
+  cursor = flow_graph()->AppendTo(cursor,
+                                  load_indexed,
+                                  NULL,
+                                  Definition::kValue);
+  ASSERT(cursor == load_indexed);
+  return load_indexed;
+}
+
+
+bool FlowGraphOptimizer::InlineStringCodeUnitAt(
+    Instruction* call,
+    intptr_t cid,
+    TargetEntryInstr** entry,
+    Definition** last) {
+  // TODO(johnmccutchan): Handle external strings in PrepareInlineStringIndexOp.
+  if (RawObject::IsExternalStringClassId(cid)) {
+    return false;
+  }
+
   Definition* str = call->ArgumentAt(0);
   Definition* index = call->ArgumentAt(1);
-  AddReceiverCheck(call);
-  InsertBefore(call,
-               new CheckSmiInstr(new Value(index), call->deopt_id()),
-               call->env(),
-               Definition::kEffect);
-  // If both index and string are constants, then do a compile-time check.
-  // TODO(srdjan): Remove once constant propagation handles bounds checks.
-  bool skip_check = false;
-  if (str->IsConstant() && index->IsConstant()) {
-    const String& constant_string =
-        String::Cast(str->AsConstant()->value());
-    const Object& constant_index = index->AsConstant()->value();
-    skip_check = constant_index.IsSmi() &&
-        (Smi::Cast(constant_index).Value() < constant_string.Length());
+
+  *entry = new TargetEntryInstr(flow_graph()->allocate_block_id(),
+                                call->GetBlock()->try_index());
+  (*entry)->InheritDeoptTarget(call);
+
+  *last = PrepareInlineStringIndexOp(call, cid, str, index, *entry);
+
+  return true;
+}
+
+
+bool FlowGraphOptimizer::InlineStringBaseCharAt(
+    Instruction* call,
+    intptr_t cid,
+    TargetEntryInstr** entry,
+    Definition** last) {
+  // TODO(johnmccutchan): Handle external strings in PrepareInlineStringIndexOp.
+  if (RawObject::IsExternalStringClassId(cid) || cid != kOneByteStringCid) {
+    return false;
   }
-  if (!skip_check) {
-    // Insert bounds check.
-    LoadFieldInstr* length = BuildLoadStringLength(str);
-    InsertBefore(call, length, NULL, Definition::kValue);
-    InsertBefore(call,
-                 new CheckArrayBoundInstr(new Value(length),
-                                          new Value(index),
-                                          call->deopt_id()),
-                 call->env(),
-                 Definition::kEffect);
-  }
-  return new LoadIndexedInstr(new Value(str),
-                              new Value(index),
-                              FlowGraphCompiler::ElementSizeFor(cid),
-                              cid,
-                              Isolate::kNoDeoptId);  // Can't deoptimize.
+  Definition* str = call->ArgumentAt(0);
+  Definition* index = call->ArgumentAt(1);
+
+  *entry = new TargetEntryInstr(flow_graph()->allocate_block_id(),
+                                call->GetBlock()->try_index());
+  (*entry)->InheritDeoptTarget(call);
+
+  *last = PrepareInlineStringIndexOp(call, cid, str, index, *entry);
+
+  StringFromCharCodeInstr* char_at =
+          new StringFromCharCodeInstr(new Value(*last), cid);
+
+  flow_graph()->AppendTo(*last, char_at, NULL, Definition::kValue);
+  *last = char_at;
+
+  return true;
 }
 
 
@@ -2535,26 +2636,15 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     return true;
   }
 
-  if ((recognized_kind == MethodRecognizer::kStringBaseCodeUnitAt) &&
+  if (((recognized_kind == MethodRecognizer::kStringBaseCodeUnitAt) ||
+       (recognized_kind == MethodRecognizer::kStringBaseCharAt)) &&
       (ic_data.NumberOfChecks() == 1) &&
       ((class_ids[0] == kOneByteStringCid) ||
        (class_ids[0] == kTwoByteStringCid))) {
-    LoadIndexedInstr* instr = BuildStringCodeUnitAt(call, class_ids[0]);
-    ReplaceCall(call, instr);
-    return true;
+    return TryReplaceInstanceCallWithInline(call);
   }
+
   if ((class_ids[0] == kOneByteStringCid) && (ic_data.NumberOfChecks() == 1)) {
-    if (recognized_kind == MethodRecognizer::kStringBaseCharAt) {
-      // TODO(fschneider): Handle TwoByteString.
-      LoadIndexedInstr* load_char_code =
-          BuildStringCodeUnitAt(call, class_ids[0]);
-      InsertBefore(call, load_char_code, NULL, Definition::kValue);
-      StringFromCharCodeInstr* char_at =
-          new StringFromCharCodeInstr(new Value(load_char_code),
-                                      kOneByteStringCid);
-      ReplaceCall(call, char_at);
-      return true;
-    }
     if (recognized_kind == MethodRecognizer::kOneByteStringSetAt) {
       // This is an internal method, no need to check argument types nor
       // range.
@@ -3298,46 +3388,7 @@ bool FlowGraphOptimizer::BuildByteArrayViewLoad(InstanceCallInstr* call,
   if (simd_view && !ShouldInlineSimd()) {
     return false;
   }
-
-  ASSERT(call->HasICData());
-  Function& target = Function::Handle();
-  GrowableArray<intptr_t> class_ids;
-  call->ic_data()->GetCheckAt(0, &class_ids, &target);
-  const intptr_t receiver_cid = class_ids[0];
-
-  TargetEntryInstr* entry;
-  Definition* last;
-  if (!TryInlineRecognizedMethod(receiver_cid,
-                                 target,
-                                 call,
-                                 call->ArgumentAt(0),
-                                 call->token_pos(),
-                                 *call->ic_data(),
-                                 &entry, &last)) {
-    return false;
-  }
-
-  // Insert receiver class check.
-  AddReceiverCheck(call);
-  // Remove the original push arguments.
-  for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-    PushArgumentInstr* push = call->PushArgumentAt(i);
-    push->ReplaceUsesWith(push->value()->definition());
-    push->RemoveFromGraph();
-  }
-  // Replace all uses of this definition with the result.
-  call->ReplaceUsesWith(last);
-  // Finally insert the sequence other definition in place of this one in the
-  // graph.
-  call->previous()->LinkTo(entry->next());
-  entry->UnuseAllInputs();  // Entry block is not in the graph.
-  last->LinkTo(call);
-  // Remove through the iterator.
-  ASSERT(current_iterator()->Current() == call);
-  current_iterator()->RemoveCurrentFromGraph();
-  call->set_previous(NULL);
-  call->set_next(NULL);
-  return true;
+  return TryReplaceInstanceCallWithInline(call);
 }
 
 
@@ -3348,112 +3399,7 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(InstanceCallInstr* call,
   if (simd_view && !ShouldInlineSimd()) {
     return false;
   }
-  ASSERT(call->HasICData());
-  Function& target = Function::Handle();
-  GrowableArray<intptr_t> class_ids;
-  call->ic_data()->GetCheckAt(0, &class_ids, &target);
-  const intptr_t receiver_cid = class_ids[0];
-
-  TargetEntryInstr* entry;
-  Definition* last;
-  if (!TryInlineRecognizedMethod(receiver_cid,
-                                 target,
-                                 call,
-                                 call->ArgumentAt(0),
-                                 call->token_pos(),
-                                 *call->ic_data(),
-                                 &entry, &last)) {
-    return false;
-  }
-
-  // Insert receiver class check.
-  AddReceiverCheck(call);
-  // Remove the original push arguments.
-  for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-    PushArgumentInstr* push = call->PushArgumentAt(i);
-    push->ReplaceUsesWith(push->value()->definition());
-    push->RemoveFromGraph();
-  }
-  // Replace all uses of this definition with the result.
-  call->ReplaceUsesWith(last);
-  // Finally insert the sequence other definition in place of this one in the
-  // graph.
-  call->previous()->LinkTo(entry->next());
-  entry->UnuseAllInputs();  // Entry block is not in the graph.
-  last->LinkTo(call);
-  // Remove through the iterator.
-  ASSERT(current_iterator()->Current() == call);
-  current_iterator()->RemoveCurrentFromGraph();
-  call->set_previous(NULL);
-  call->set_next(NULL);
-  return true;
-}
-
-
-void FlowGraphOptimizer::PrepareByteArrayViewOp(
-    InstanceCallInstr* call,
-    intptr_t receiver_cid,
-    intptr_t view_cid,
-    Definition** array) {
-  Definition* byte_index = call->ArgumentAt(1);
-
-  AddReceiverCheck(call);
-  const bool is_immutable = true;
-  LoadFieldInstr* length = new LoadFieldInstr(
-      new Value(*array),
-      CheckArrayBoundInstr::LengthOffsetFor(receiver_cid),
-      Type::ZoneHandle(Type::SmiType()),
-      is_immutable);
-  length->set_result_cid(kSmiCid);
-  length->set_recognized_kind(
-      LoadFieldInstr::RecognizedKindFromArrayCid(receiver_cid));
-  InsertBefore(call, length, NULL, Definition::kValue);
-
-  // len_in_bytes = length * kBytesPerElement(receiver)
-  intptr_t element_size = FlowGraphCompiler::ElementSizeFor(receiver_cid);
-  ConstantInstr* bytes_per_element =
-      flow_graph()->GetConstant(Smi::Handle(Smi::New(element_size)));
-  BinarySmiOpInstr* len_in_bytes =
-      new BinarySmiOpInstr(Token::kMUL,
-                           new Value(length),
-                           new Value(bytes_per_element),
-                           call->deopt_id());
-  InsertBefore(call, len_in_bytes, call->env(), Definition::kValue);
-
-  ConstantInstr* length_adjustment =
-      flow_graph()->GetConstant(Smi::Handle(Smi::New(
-          FlowGraphCompiler::ElementSizeFor(view_cid) - 1)));
-  // adjusted_length = len_in_bytes - (element_size - 1).
-  BinarySmiOpInstr* adjusted_length =
-      new BinarySmiOpInstr(Token::kSUB,
-                           new Value(len_in_bytes),
-                           new Value(length_adjustment),
-                           call->deopt_id());
-  InsertBefore(call, adjusted_length, call->env(), Definition::kValue);
-  // Check adjusted_length > 0.
-  ConstantInstr* zero = flow_graph()->GetConstant(Smi::Handle(Smi::New(0)));
-  InsertBefore(call,
-               new CheckArrayBoundInstr(new Value(adjusted_length),
-                                        new Value(zero),
-                                        call->deopt_id()),
-               call->env(),
-               Definition::kEffect);
-  // Check 0 <= byte_index < adjusted_length.
-  InsertBefore(call,
-               new CheckArrayBoundInstr(new Value(adjusted_length),
-                                        new Value(byte_index),
-                                        call->deopt_id()),
-               call->env(),
-               Definition::kEffect);
-
-  // Insert load of elements for external typed arrays.
-  if (RawObject::IsExternalTypedDataClassId(receiver_cid)) {
-    LoadUntaggedInstr* elements =
-        new LoadUntaggedInstr(new Value(*array),
-                              ExternalTypedData::data_offset());
-    InsertBefore(call, elements, NULL, Definition::kValue);
-    *array = elements;
-  }
+  return TryReplaceInstanceCallWithInline(call);
 }
 
 

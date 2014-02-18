@@ -120,8 +120,23 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   void ReplaceWithInstanceOf(InstanceCallInstr* instr);
   void ReplaceWithTypeCast(InstanceCallInstr* instr);
 
-  LoadIndexedInstr* BuildStringCodeUnitAt(InstanceCallInstr* call,
-                                          intptr_t cid);
+  bool TryReplaceInstanceCallWithInline(InstanceCallInstr* call);
+
+  Definition* PrepareInlineStringIndexOp(Instruction* call,
+                                         intptr_t cid,
+                                         Definition* str,
+                                         Definition* index,
+                                         Instruction* cursor);
+
+  bool InlineStringCodeUnitAt(Instruction* call,
+                              intptr_t cid,
+                              TargetEntryInstr** entry,
+                              Definition** last);
+
+  bool InlineStringBaseCharAt(Instruction* call,
+                              intptr_t cid,
+                              TargetEntryInstr** entry,
+                              Definition** last);
 
   bool InlineByteArrayViewLoad(Instruction* call,
                                Definition* receiver,
@@ -151,10 +166,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                               intptr_t view_cid);
   bool BuildByteArrayViewStore(InstanceCallInstr* call,
                                intptr_t view_cid);
-  void PrepareByteArrayViewOp(InstanceCallInstr* call,
-                              intptr_t receiver_cid,
-                              intptr_t view_cid,
-                              Definition** array);
 
   // Insert a check of 'to_check' determined by 'unary_checks'.  If the
   // check fails it will deoptimize to 'deopt_id' using the deoptimization
