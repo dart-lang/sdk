@@ -28955,13 +28955,13 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -38057,6 +38057,21 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
  *
  * KeyEvent tries to provide a higher level, more polished keyboard event
  * information on top of the "raw" [KeyboardEvent].
+ *
+ * The mechanics of using KeyEvents is a little different from the underlying
+ * [KeyboardEvent]. To use KeyEvents, you need to create a stream and then add
+ * KeyEvents to the stream, rather than using the [EventTarget.dispatchEvent].
+ * Here's an example usage:
+ *
+ *     // Initialize a stream for the KeyEvents:
+ *     var stream = KeyEvent.keyPressEvent.forTarget(document.body);
+ *     // Start listening to the stream of KeyEvents.
+ *     stream.listen((keyEvent) =>
+ *         window.console.log('KeyPress event detected ${keyEvent.charCode}'));
+ *     ...
+ *     // Add a new KeyEvent of someone pressing the 'A' key to the stream so
+ *     // listeners can know a KeyEvent happened.
+ *     stream.add(new KeyEvent('keypress', keyCode: 65, charCode: 97));
  *
  * This class is very much a work in progress, and we'd love to get information
  * on how we can make this class work with as many international keyboards as
