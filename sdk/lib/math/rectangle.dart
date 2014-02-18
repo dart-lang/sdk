@@ -12,6 +12,10 @@ part of dart.math;
  *
  * See also:
  *    [W3C Coordinate Systems Specification](http://www.w3.org/TR/SVG/coords.html#InitialCoordinateSystem).
+ *
+ * The rectangle is the set of points with representable coordinates greater
+ * than or equal to left/top, and with distance to left/top no greater than
+ * width/height (to the limit of the precission of the coordinates).
  */
 abstract class _RectangleBase<T extends num> {
   const _RectangleBase();
@@ -20,9 +24,9 @@ abstract class _RectangleBase<T extends num> {
   T get left;
   /** The y-coordinate of the top edge. */
   T get top;
-  /** The `width` of the rectangle. */
+  /** The width of the rectangle. */
   T get width;
-  /** The `height` of the rectangle. */
+  /** The height of the rectangle. */
   T get height;
 
   /** The x-coordinate of the right edge. */
@@ -130,8 +134,35 @@ class Rectangle<T extends num> extends _RectangleBase<T> {
   final T width;
   final T height;
 
-  const Rectangle(this.left, this.top, this.width, this.height);
+  /**
+   * Create a rectangle spanned by `(left, top)` and `(left+width, top+height)`.
+   *
+   * The rectangle contains the points
+   * with x-coordinate between `left` and `left + width`, and
+   * with y-coordiante between `top` and `top + height`, both inclusive.
+   *
+   * The `width` and `height` should be non-negative.
+   * If `width` or `height` are negative, they are clamped to zero.
+   *
+   * If `width` and `height` are zero, the "rectangle" comprises only the single
+   * point `(left, top)`.
+   */
+  const Rectangle(this.left, this.top, T width, T height)
+      : this.width = (width >= 0) ? width : -width * 0,  // Inline _clampToZero.
+        this.height = (height >= 0) ? height : -height * 0;
 
+  /*
+   * Create a rectangle spanned by the points [a] and [b];
+   *
+   * The rectangle contains the points
+   * with x-coordinate between `a.x` and `b.x`, and
+   * with y-coordiante between `a.y` and `b.y`, both inclusive.
+   *
+   * If the distance between `a.x` and `b.x` is not representable
+   * (which can happen if one or both is a double),
+   * the actual right edge might be slightly off from `max(a.x, b.x)`.
+   * Similar for the y-coordinates and the bottom edge.
+   */
   factory Rectangle.fromPoints(Point<T> a, Point<T> b) {
     T left = min(a.x, b.x);
     T width = max(a.x, b.x) - left;
@@ -145,15 +176,54 @@ class Rectangle<T extends num> extends _RectangleBase<T> {
  * A class for representing two-dimensional axis-aligned rectangles with mutable
  * properties.
  */
-class MutableRectangle<T extends num>  extends _RectangleBase<T>
-    implements Rectangle<T> {
+class MutableRectangle<T extends num> extends _RectangleBase<T>
+                                      implements Rectangle<T> {
+
+  /**
+   * The x-coordinate of the left edge.
+   *
+   * Setting the value will move the rectangle without changing its width.
+   */
   T left;
+  /**
+   * The y-coordinate of the left edge.
+   *
+   * Setting the value will move the rectangle without changing its height.
+   */
   T top;
-  T width;
-  T height;
+  T _width;
+  T _height;
 
-  MutableRectangle(this.left, this.top, this.width, this.height);
+  /**
+   * Create a mutable rectangle spanned by `(left, top)` and
+   * `(left+width, top+height)`.
+   *
+   * The rectangle contains the points
+   * with x-coordinate between `left` and `left + width`, and
+   * with y-coordiante between `top` and `top + height`, both inclusive.
+   *
+   * The `width` and `height` should be non-negative.
+   * If `width` or `height` are negative, they are clamped to zero.
+   *
+   * If `width` and `height` are zero, the "rectangle" comprises only the single
+   * point `(left, top)`.
+   */
+  MutableRectangle(this.left, this.top, T width, T height)
+      : this._width = (width >= 0) ? width : _clampToZero(width),
+        this._height = (height >= 0) ? height : _clampToZero(height);
 
+  /*
+   * Create a mutable rectangle spanned by the points [a] and [b];
+   *
+   * The rectangle contains the points
+   * with x-coordinate between `a.x` and `b.x`, and
+   * with y-coordiante between `a.y` and `b.y`, both inclusive.
+   *
+   * If the distance between `a.x` and `b.x` is not representable
+   * (which can happen if one or both is a double),
+   * the actual right edge might be slightly off from `max(a.x, b.x)`.
+   * Similar for the y-coordinates and the bottom edge.
+   */
   factory MutableRectangle.fromPoints(Point<T> a, Point<T> b) {
     T left = min(a.x, b.x);
     T width = max(a.x, b.x) - left;
@@ -161,4 +231,46 @@ class MutableRectangle<T extends num>  extends _RectangleBase<T>
     T height = max(a.y, b.y) - top;
     return new MutableRectangle<T>(left, top, width, height);
   }
+
+  T get width => _width;
+
+ /**
+   * Sets the width of the rectangle.
+   *
+   * The width must be non-negative.
+   * If a negative width is supplied, it is clamped to zero.
+   *
+   * Setting the value will change the right edge of the rectangle,
+   * but will not change [left].
+   */
+  void set width(T width) {
+    if (width < 0) width = _clampToZero(width);
+    _width = width;
+  }
+
+  T get height => _height;
+
+  /**
+   * Sets the height of the rectangle.
+   *
+   * The height must be non-negative.
+   * If a negative height is supplied, it is clamped to zero.
+   *
+   * Setting the value will change the bottom edge of the rectangle,
+   * but will not change [top].
+   */
+  void set height(T height) {
+    if (height < 0) height = _clampToZero(height);
+    _height = height;
+  }
+}
+
+/**
+ * Converts a negative [int] or [double] to a zero-value of the same type.
+ *
+ * Returns `0` if value is int, `0.0` if value is double.
+ */
+num _clampToZero(num value) {
+  assert(value < 0);
+  return -value * 0;
 }

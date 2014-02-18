@@ -160,4 +160,22 @@ main() {
     expect(r1.width, 1.0);
     expect(r2.width, 2.0);
   });
+
+  test('negative lengths', () {
+    // Constructor allows negative lengths, but clamps them to zero.
+    expect(new Rectangle(4, 4, -2, -2), new Rectangle(4, 4, 0, 0));
+    expect(new MutableRectangle(4, 4, -2, -2), new Rectangle(4, 4, 0, 0));
+
+    // Setters clamp negative lengths to zero.
+    var r = new MutableRectangle(0, 0, 1, 1);
+    r.width = -1;
+    r.height = -1;
+    expect(r, new Rectangle(0, 0, 0, 0));
+
+    // Test that doubles are clamped to double zero.
+    r = new Rectangle(1.5, 1.5, -2.5, -2.5);
+    expect(identical(r.width, 0.0), isTrue);
+    expect(identical(r.height, 0.0), isTrue);
+  });
 }
+
