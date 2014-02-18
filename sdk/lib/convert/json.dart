@@ -345,22 +345,21 @@ class _JsonStringifier {
   static const int CHAR_t          = 0x74;
   static const int CHAR_u          = 0x75;
 
-  final Function toEncodable;
-  final StringSink sink;
-  final Set<Object> seen;
+  final Function _toEncodable;
+  final StringSink _sink;
+  final Set<Object> _seen;
 
-  _JsonStringifier(this.sink, this.toEncodable)
-      : this.seen = new HashSet.identity();
+  _JsonStringifier(this._sink, this._toEncodable)
+      : this._seen = new HashSet.identity();
 
-  static String stringify(final object, toEncodable(object)) {
+  static String stringify(object, toEncodable(object)) {
     if (toEncodable == null) toEncodable = _defaultToEncodable;
     StringBuffer output = new StringBuffer();
-    _JsonStringifier stringifier = new _JsonStringifier(output, toEncodable);
-    stringifier.stringifyValue(object);
+    printOn(object, output, toEncodable);
     return output.toString();
   }
 
-  static void printOn(final object, StringSink output, toEncodable(object)) {
+  static void printOn(object, StringSink output, toEncodable(object)) {
     _JsonStringifier stringifier = new _JsonStringifier(output, toEncodable);
     stringifier.stringifyValue(object);
   }
@@ -372,7 +371,7 @@ class _JsonStringifier {
   // ('0' + x) or ('a' + x - 10)
   static int hexDigit(int x) => x < 10 ? 48 + x : 87 + x;
 
-  static void escape(StringSink sb, String s) {
+  void escape(String s) {
     final int length = s.length;
     bool needsEscape = false;
     final charCodes = new List<int>();
@@ -413,28 +412,28 @@ class _JsonStringifier {
         charCodes.add(charCode);
       }
     }
-    sb.write(needsEscape ? new String.fromCharCodes(charCodes) : s);
+    _sink.write(needsEscape ? new String.fromCharCodes(charCodes) : s);
   }
 
-  void checkCycle(final object) {
-    if (seen.contains(object)) {
+  void checkCycle(object) {
+    if (_seen.contains(object)) {
       throw new JsonCyclicError(object);
     }
-    seen.add(object);
+    _seen.add(object);
   }
 
-  void stringifyValue(final object) {
+  void stringifyValue(object) {
     // Tries stringifying object directly. If it's not a simple value, List or
     // Map, call toJson() to get a custom representation and try serializing
     // that.
     if (!stringifyJsonValue(object)) {
       checkCycle(object);
       try {
-        var customJson = toEncodable(object);
+        var customJson = _toEncodable(object);
         if (!stringifyJsonValue(customJson)) {
           throw new JsonUnsupportedObjectError(object);
         }
-        seen.remove(object);
+        _seen.remove(object);
       } catch (e) {
         throw new JsonUnsupportedObjectError(object, cause: e);
       }
@@ -447,57 +446,57 @@ class _JsonStringifier {
    * Returns true if the value is one of these types, and false if not.
    * If a value is both a [List] and a [Map], it's serialized as a [List].
    */
-  bool stringifyJsonValue(final object) {
+  bool stringifyJsonValue(object) {
     if (object is num) {
       if (!object.isFinite) return false;
-      sink.write(numberToString(object));
+      _sink.write(numberToString(object));
       return true;
     } else if (identical(object, true)) {
-      sink.write('true');
+      _sink.write('true');
       return true;
     } else if (identical(object, false)) {
-      sink.write('false');
+      _sink.write('false');
        return true;
     } else if (object == null) {
-      sink.write('null');
+      _sink.write('null');
       return true;
     } else if (object is String) {
-      sink.write('"');
-      escape(sink, object);
-      sink.write('"');
+      _sink.write('"');
+      escape(object);
+      _sink.write('"');
       return true;
     } else if (object is List) {
       checkCycle(object);
       List a = object;
-      sink.write('[');
+      _sink.write('[');
       if (a.length > 0) {
         stringifyValue(a[0]);
         for (int i = 1; i < a.length; i++) {
-          sink.write(',');
+          _sink.write(',');
           stringifyValue(a[i]);
         }
       }
-      sink.write(']');
-      seen.remove(object);
+      _sink.write(']');
+      _seen.remove(object);
       return true;
     } else if (object is Map) {
       checkCycle(object);
       Map<String, Object> m = object;
-      sink.write('{');
+      _sink.write('{');
       bool first = true;
       m.forEach((String key, Object value) {
         if (!first) {
-          sink.write(',"');
+          _sink.write(',"');
         } else {
-          sink.write('"');
+          _sink.write('"');
         }
-        escape(sink, key);
-        sink.write('":');
+        escape(key);
+        _sink.write('":');
         stringifyValue(value);
         first = false;
       });
-      sink.write('}');
-      seen.remove(object);
+      _sink.write('}');
+      _seen.remove(object);
       return true;
     } else {
       return false;
