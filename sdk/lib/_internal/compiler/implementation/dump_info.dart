@@ -121,7 +121,9 @@ class ElementInfoNode implements InfoNode {
         extraString].join(' ');
 
     if (contents != null) {
+      buffer.write('\n');
       buffer.write(div("+$describe", cls: "container"));
+      buffer.write('\n');
       buffer.write('<div class="contained">');
       if (contents.isEmpty) {
         buffer.writeln("No members");
@@ -150,6 +152,7 @@ class CodeInfoNode implements InfoNode {
   CodeInfoNode({this.description: "", this.generatedCode});
 
   void emitHtml(ProgramInfo programInfo, StringBuffer buffer) {
+    buffer.write('\n');
     buffer.write(div(description + ' ' +
                      sizeDescription(generatedCode.length, programInfo),
                      cls: 'kind') +
@@ -175,6 +178,7 @@ class InferredInfoNode implements InfoNode {
   InferredInfoNode({this.name: "", this.description, this.type});
 
   void emitHtml(ProgramInfo programInfo, StringSink buffer) {
+    buffer.write('\n');
     buffer.write(div('${span("Inferred " + description, cls: "kind")} '
                      '${span(esc(name),
                      cls: "name")} '
