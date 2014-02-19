@@ -554,7 +554,7 @@ LibTest/typed_data/Uint16List/toList_A01_t01: fail # co19-roll r559: Please tria
 LibTest/typed_data/Uint16List/toList_A01_t01: timeout # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint16List/Uint16List.view_A06_t01: fail # co19-roll r587: Please triage this failure
 LibTest/typed_data/Uint32List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Uint32List/toList_A01_t01: timeout # co19-roll r559: Please triage this failure
+LibTest/typed_data/Uint32List/toList_A01_t01: RuntimeError, timeout # issue 16934, co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint32List/Uint32List.view_A06_t01: fail # co19-roll r587: Please triage this failure
 LibTest/typed_data/Uint8ClampedList/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8ClampedList/toList_A01_t01: fail, timeout # co19-roll r559: Please triage this failure
