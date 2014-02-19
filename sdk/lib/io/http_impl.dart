@@ -1343,8 +1343,9 @@ class _HttpClientConnection {
           _nextResponseCompleter.future
               .then((incoming) {
                 _currentUri = null;
-                incoming.dataDone.then((_) {
-                  if (!_dispose &&
+                incoming.dataDone.then((closing) {
+                  if (!closing &&
+                      !_dispose &&
                       incoming.headers.persistentConnection &&
                       request.persistentConnection) {
                     // Return connection, now we are done.

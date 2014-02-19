@@ -1121,15 +1121,13 @@ void EventHandlerImplementation::HandleWrite(Handle* handle,
                                              OverlappedBuffer* buffer) {
   handle->WriteComplete(buffer);
 
-  if (bytes > 0) {
+  if (bytes >= 0) {
     if (!handle->IsError() && !handle->IsClosing()) {
       int event_mask = 1 << kOutEvent;
       if ((handle->mask() & event_mask) != 0) {
         DartUtils::PostInt32(handle->port(), event_mask);
       }
     }
-  } else if (bytes == 0) {
-    HandleClosed(handle);
   } else {
     HandleError(handle);
   }
