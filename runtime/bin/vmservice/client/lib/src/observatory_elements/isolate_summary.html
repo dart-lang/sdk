@@ -1,5 +1,7 @@
 <head>
+  <link rel="import" href="function_ref.html">
   <link rel="import" href="observatory_element.html">
+  <link rel="import" href="script_ref.html">
 </head>
 <polymer-element name="isolate-summary" extends="observatory-element">
   <template>
@@ -81,12 +83,11 @@
       </div>
       <div class="col-md-6">
         <template if="{{ isolate.topFrame != null }}">
-          <a href="{{ app.locationManager.relativeLink(isolate.id, isolate.topFrame['function']['id']) }}">
-            {{ isolate.topFrame['function']['user_name'] }}
-          </a>
-          (<a href="{{ app.locationManager.relativeLink(isolate.id, isolate.topFrame['script']['id']) }}">
-            {{ isolate.topFrame | fileAndLine }}
-          </a>)
+          <function-ref app="{{ app }}" isolate="{{ isolate }}"
+                        ref="{{ isolate.topFrame['function'] }}"></function-ref>
+          (<script-ref app="{{ app }}" isolate="{{ isolate }}"
+                       ref="{{ isolate.topFrame['script'] }}"
+                       line="{{ isolate.topFrame['line'] }}"></script-ref>)
           <br>
           <pre>{{ isolate.topFrame['line'] }} &nbsp; {{ isolate.topFrame['lineString'] }}</pre>
         </template>

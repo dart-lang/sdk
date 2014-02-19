@@ -24,7 +24,8 @@
       </div>
       <div class="col-md-9">
         <function-ref app="{{ app }}" ref="{{ frame['function'] }}"></function-ref>
-        ( <script-ref app="{{ app }}" ref="{{ frame['script'] }}"></script-ref>:{{ frame['line'] }} )
+        ( <script-ref app="{{ app }}" ref="{{ frame['script'] }}" line="{{ frame['line'] }}">
+        </script-ref> )
       </div>
       <div class="col-md-1"></div>
     </div>

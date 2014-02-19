@@ -11,6 +11,7 @@ import 'observatory_element.dart';
 class ServiceRefElement extends ObservatoryElement {
   @published Map ref;
   @published bool internal = false;
+  @published Isolate isolate = null;
   ServiceRefElement.created() : super.created();
 
   void refChanged(oldValue) {
@@ -20,8 +21,8 @@ class ServiceRefElement extends ObservatoryElement {
   }
 
   String get url {
-    if ((app != null) && (ref != null)) {
-      return app.locationManager.currentIsolateRelativeLink(ref['id']);
+    if (ref != null) {
+      return relativeLink(ref['id']);
     }
     return '';
   }
@@ -46,5 +47,20 @@ class ServiceRefElement extends ObservatoryElement {
       return ref['name'];
     }
     return '';
+  }
+
+  void isolateChanged(oldValue) {
+    notifyPropertyChange(#relativeLink, 0, 1);
+  }
+
+  @observable
+  String relativeLink(String link) {
+    if (app == null) {
+      return '';
+    } else if (isolate == null) {
+      return app.locationManager.currentIsolateRelativeLink(link);
+    } else {
+      return app.locationManager.relativeLink(isolate.id, link);
+    }
   }
 }

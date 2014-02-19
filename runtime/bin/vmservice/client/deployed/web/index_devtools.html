@@ -356,7 +356,13 @@
   </div>
   </template>
   
-</polymer-element><polymer-element name="isolate-summary" extends="observatory-element">
+</polymer-element><polymer-element name="script-ref" extends="service-ref">
+<template>
+  <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
+</template>
+
+</polymer-element>
+<polymer-element name="isolate-summary" extends="observatory-element">
   <template>
     <div class="row">
       <div class="col-md-1">
@@ -436,12 +442,8 @@
       </div>
       <div class="col-md-6">
         <template if="{{ isolate.topFrame != null }}">
-          <a href="{{ app.locationManager.relativeLink(isolate.id, isolate.topFrame['function']['id']) }}">
-            {{ isolate.topFrame['function']['user_name'] }}
-          </a>
-          (<a href="{{ app.locationManager.relativeLink(isolate.id, isolate.topFrame['script']['id']) }}">
-            {{ isolate.topFrame | fileAndLine }}
-          </a>)
+          <function-ref app="{{ app }}" isolate="{{ isolate }}" ref="{{ isolate.topFrame['function'] }}"></function-ref>
+          (<script-ref app="{{ app }}" isolate="{{ isolate }}" ref="{{ isolate.topFrame['script'] }}" line="{{ isolate.topFrame['line'] }}"></script-ref>)
           <br>
           <pre>{{ isolate.topFrame['line'] }} &nbsp; {{ isolate.topFrame['lineString'] }}</pre>
         </template>
@@ -534,12 +536,7 @@
   </template>
   
 </polymer-element>
-<polymer-element name="script-ref" extends="service-ref">
-<template>
-  <a href="{{ url }}">{{ name }}</a>
-</template>
-
-</polymer-element><polymer-element name="library-view" extends="observatory-element">
+<polymer-element name="library-view" extends="observatory-element">
   <template>
   <div class="alert alert-success">Library {{ library['name'] }}</div>
   <div class="alert alert-info">Scripts</div>
@@ -704,7 +701,8 @@
       </div>
       <div class="col-md-9">
         <function-ref app="{{ app }}" ref="{{ frame['function'] }}"></function-ref>
-        ( <script-ref app="{{ app }}" ref="{{ frame['script'] }}"></script-ref>:{{ frame['line'] }} )
+        ( <script-ref app="{{ app }}" ref="{{ frame['script'] }}" line="{{ frame['line'] }}">
+        </script-ref> )
       </div>
       <div class="col-md-1"></div>
     </div>
