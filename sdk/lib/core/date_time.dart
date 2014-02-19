@@ -397,6 +397,26 @@ class DateTime implements Comparable {
                                                    isUtc: true);
   }
 
+  static String _fourDigits(int n) {
+    int absN = n.abs();
+    String sign = n < 0 ? "-" : "";
+    if (absN >= 1000) return "$n";
+    if (absN >= 100) return "${sign}0$absN";
+    if (absN >= 10) return "${sign}00$absN";
+    return "${sign}000$absN";
+  }
+
+  static String _threeDigits(int n) {
+    if (n >= 100) return "${n}";
+    if (n >= 10) return "0${n}";
+    return "00${n}";
+  }
+
+  static String _twoDigits(int n) {
+    if (n >= 10) return "${n}";
+    return "0${n}";
+  }
+
   /**
    * Returns a human-readable string for this instance.
    *
@@ -407,37 +427,38 @@ class DateTime implements Comparable {
    * at the pub shared packages repo.
    */
   String toString() {
-    String fourDigits(int n) {
-      int absN = n.abs();
-      String sign = n < 0 ? "-" : "";
-      if (absN >= 1000) return "$n";
-      if (absN >= 100) return "${sign}0$absN";
-      if (absN >= 10) return "${sign}00$absN";
-      return "${sign}000$absN";
-    }
-
-    String threeDigits(int n) {
-      if (n >= 100) return "${n}";
-      if (n >= 10) return "0${n}";
-      return "00${n}";
-    }
-
-    String twoDigits(int n) {
-      if (n >= 10) return "${n}";
-      return "0${n}";
-    }
-
-    String y = fourDigits(year);
-    String m = twoDigits(month);
-    String d = twoDigits(day);
-    String h = twoDigits(hour);
-    String min = twoDigits(minute);
-    String sec = twoDigits(second);
-    String ms = threeDigits(millisecond);
+    String y = _fourDigits(year);
+    String m = _twoDigits(month);
+    String d = _twoDigits(day);
+    String h = _twoDigits(hour);
+    String min = _twoDigits(minute);
+    String sec = _twoDigits(second);
+    String ms = _threeDigits(millisecond);
     if (isUtc) {
       return "$y-$m-$d $h:$min:$sec.${ms}Z";
     } else {
       return "$y-$m-$d $h:$min:$sec.$ms";
+    }
+  }
+
+  /**
+   * Returns an ISO-8601 full-precision extended format representation.
+   *
+   * The format is "YYYY-MM-DDTHH:mm:ss.sssZ" for UTC time, and
+   * "YYYY-MM-DDTHH:mm:ss.sss" (no trailing "Z") for local/non-UTC time.
+   */
+  String toIso8601String() {
+    String y = _fourDigits(year);
+    String m = _twoDigits(month);
+    String d = _twoDigits(day);
+    String h = _twoDigits(hour);
+    String min = _twoDigits(minute);
+    String sec = _twoDigits(second);
+    String ms = _threeDigits(millisecond);
+    if (isUtc) {
+      return "$y-$m-${d}T$h:$min:$sec.${ms}Z";
+    } else {
+      return "$y-$m-${d}T$h:$min:$sec.$ms";
     }
   }
 
@@ -447,7 +468,6 @@ class DateTime implements Comparable {
    *     DateTime today = new DateTime.now();
    *     DateTime sixtyDaysFromNow = today.add(new Duration(days: 60));
    */
-
   DateTime add(Duration duration) {
     int ms = millisecondsSinceEpoch;
     return new DateTime.fromMillisecondsSinceEpoch(

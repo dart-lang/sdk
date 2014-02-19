@@ -279,6 +279,91 @@ abstract class Stream<T> {
   }
 
   /**
+   * Creates a new stream with each data event of this stream asynchronously
+   * mapped to a new event.
+   *
+   * This acts like [map], except that [convert] may return a [Future],
+   * and in that case, the stream waits for that future to complete before
+   * continuing with its result.
+   */
+  Stream asyncMap(convert(T event)) {
+    StreamController controller;
+    StreamSubscription subscription;
+    controller = new StreamController(sync: true,
+      onListen: () {
+        var add = controller.add;
+        var addError = controller.addError;
+        subscription = this.listen(
+            (T event) {
+              var newValue;
+              try {
+                newValue = convert(event);
+              } catch (e, s) {
+                controller.addError(e, s);
+                return;
+              }
+              if (newValue is Future) {
+                subscription.pause();
+                newValue.then(add, onError: addError)
+                        .whenComplete(subscription.resume);
+              } else {
+                controller.add(newValue);
+              }
+            },
+            onError: addError,
+            onDone: controller.close
+        );
+      },
+      onPause: () { subscription.pause(); },
+      onResume: () { subscription.resume(); },
+      onCancel: () { subscription.cancel(); }
+    );
+    return controller.stream;
+  }
+
+  /**
+   * Creates a new stream with the events of a stream per original event.
+   *
+   * This acts like [expand], except that [convert] returns a [Stream]
+   * instead of an [Iterable].
+   * The events of the returned stream becomes the events of the returned
+   * stream, in the order they are produced.
+   *
+   * If [convert] returns `null`, no value is put on the output stream,
+   * just as if it returned an empty stream.
+   */
+  Stream asyncExpand(Stream convert(T event)) {
+    StreamController controller;
+    StreamSubscription subscription;
+    controller = new StreamController(sync: true,
+      onListen: () {
+        subscription = this.listen(
+            (T event) {
+              Stream newStream;
+              try {
+                newStream = convert(event);
+              } catch (e, s) {
+                controller.addError(e, s);
+                return;
+              }
+              if (newStream != null) {
+                subscription.pause();
+                controller.addStream(newStream)
+                          .whenComplete(subscription.resume);
+              }
+            },
+            onError: controller.addError,
+            onDone: controller.close
+        );
+      },
+      onPause: () { subscription.pause(); },
+      onResume: () { subscription.resume(); },
+      onCancel: () { subscription.cancel(); }
+    );
+    return controller.stream;
+  }
+
+  /**
    * Creates a wrapper Stream that intercepts some errors from this stream.
    *
    * If this stream sends an error that matches [test], then it is intercepted
