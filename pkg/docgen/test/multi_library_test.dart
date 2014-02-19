@@ -91,19 +91,19 @@ const String DART_LIBRARY_3 = '''
   }
 ''';
 
-Directory TEMP_DIRNAME;
+Directory _tempDir;
 
-List writeLibFiles() {
-  TEMP_DIRNAME = Directory.systemTemp.createTempSync('single_library_');
-  var fileName = path.join(TEMP_DIRNAME.path, 'temp.dart');
+List<Uri> _writeLibFiles() {
+  _tempDir = Directory.systemTemp.createTempSync('single_library_');
+  var fileName = path.join(_tempDir.path, 'temp.dart');
   var file = new File(fileName);
   file.writeAsStringSync(DART_LIBRARY_1);
 
-  var fileName2 = path.join(TEMP_DIRNAME.path, 'temp2.dart');
+  var fileName2 = path.join(_tempDir.path, 'temp2.dart');
   file = new File(fileName2);
   file.writeAsStringSync(DART_LIBRARY_2);
 
-  var fileName3 = path.join(TEMP_DIRNAME.path, 'temp3.dart');
+  var fileName3 = path.join(_tempDir.path, 'temp3.dart');
   file = new File(fileName3);
   file.writeAsStringSync(DART_LIBRARY_3);
   return [new Uri.file(fileName, windows: Platform.isWindows),
@@ -111,12 +111,12 @@ List writeLibFiles() {
           new Uri.file(fileName3, windows: Platform.isWindows)];
 }
 
-main() {
+void main() {
   group('Generate docs for', () {
     test('multiple libraries.', () {
-      var files = writeLibFiles();
-      getMirrorSystem(files)
-        .then(expectAsync1((mirrorSystem) {
+      var files = _writeLibFiles();
+      return getMirrorSystem(files)
+        .then((mirrorSystem) {
           var testLibraryUri = files[0];
           var library = new Library(mirrorSystem.libraries[testLibraryUri]);
 

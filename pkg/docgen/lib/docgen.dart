@@ -224,7 +224,7 @@ abstract class MirrorBased {
   DeclarationMirror get mirror;
 
   /// Returns a list of meta annotations assocated with a mirror.
-  List<Annotation> _createAnnotations(DeclarationMirror mirror,
+  static List<Annotation> _createAnnotations(DeclarationMirror mirror,
       Library owningLibrary) {
     var annotationMirrors = mirror.metadata.where((e) =>
         e is dart2js_mirrors.Dart2JsConstructedConstantMirror);
@@ -1669,7 +1669,7 @@ class Class extends OwnedIndexable implements Comparable {
         dart2js_util.variablesOf(classMirror.declarations), this);
     methods = _createMethods(classMirror.declarations.values.where(
         (mirror) => mirror is MethodMirror), this);
-    annotations = _createAnnotations(classMirror, _getOwningLibrary(owner));
+    annotations = MirrorBased._createAnnotations(classMirror, _getOwningLibrary(owner));
     generics = _createGenerics(classMirror);
     isAbstract = classMirror.isAbstract;
     inheritedMethods = new Map<String, Method>();
@@ -1852,7 +1852,7 @@ class Typedef extends OwnedIndexable {
     returnType = Indexable.getDocgenObject(mirror.referent.returnType).docName;
     generics = _createGenerics(mirror);
     parameters = _createParameters(mirror.referent.parameters, owningLibrary);
-    annotations = _createAnnotations(mirror, owningLibrary);
+    annotations = MirrorBased._createAnnotations(mirror, owningLibrary);
   }
 
   Map toMap() => {
@@ -1896,7 +1896,7 @@ class Variable extends OwnedIndexable {
     isStatic = mirror.isStatic;
     isConst = mirror.isConst;
     type = new Type(mirror.type, _getOwningLibrary(owner));
-    annotations = _createAnnotations(mirror, _getOwningLibrary(owner));
+    annotations = MirrorBased._createAnnotations(mirror, _getOwningLibrary(owner));
   }
 
   String get name => _variableName;
@@ -1906,9 +1906,9 @@ class Variable extends OwnedIndexable {
     'name': name,
     'qualifiedName': qualifiedName,
     'comment': comment,
-    'final': isFinal.toString(),
-    'static': isStatic.toString(),
-    'constant': isConst.toString(),
+    'final': isFinal,
+    'static': isStatic,
+    'constant': isConst,
     'type': new List.filled(1, type.toMap()),
     'annotations': annotations.map((a) => a.toMap()).toList()
   };
@@ -1975,7 +1975,7 @@ class Method extends OwnedIndexable {
     isConst = mirror.isConstConstructor;
     returnType = new Type(mirror.returnType, _getOwningLibrary(owner));
     parameters = _createParameters(mirror.parameters, owner);
-    annotations = _createAnnotations(mirror, _getOwningLibrary(owner));
+    annotations = MirrorBased._createAnnotations(mirror, _getOwningLibrary(owner));
   }
 
   Method get originallyInheritedFrom => methodInheritedFrom == null ?
@@ -2041,9 +2041,9 @@ class Method extends OwnedIndexable {
         : commentInheritedFrom),
     'inheritedFrom': (methodInheritedFrom == null? '' :
         originallyInheritedFrom.docName),
-    'static': isStatic.toString(),
-    'abstract': isAbstract.toString(),
-    'constant': isConst.toString(),
+    'static': isStatic,
+    'abstract': isAbstract,
+    'constant': isConst,
     'return': new List.filled(1, returnType.toMap()),
     'parameters': recurseMap(parameters),
     'annotations': annotations.map((a) => a.toMap()).toList()
@@ -2086,32 +2086,32 @@ class Method extends OwnedIndexable {
 /// Docgen wrapper around the dart2js mirror for a Dart
 /// method/function parameter.
 class Parameter extends MirrorBased {
-  ParameterMirror mirror;
-  String name;
-  bool isOptional;
-  bool isNamed;
-  bool hasDefaultValue;
-  Type type;
-  String defaultValue;
+  final ParameterMirror mirror;
+  final String name;
+  final bool isOptional;
+  final bool isNamed;
+  final bool hasDefaultValue;
+  final Type type;
+  final String defaultValue;
   /// List of the meta annotations on the parameter.
-  List<Annotation> annotations;
+  final List<Annotation> annotations;
 
-  Parameter(this.mirror, Library owningLibrary) {
-    name = dart2js_util.nameOf(mirror);
-    isOptional = mirror.isOptional;
-    isNamed = mirror.isNamed;
-    hasDefaultValue = mirror.hasDefaultValue;
-    defaultValue = '${mirror.defaultValue}';
-    type = new Type(mirror.type, owningLibrary);
-    annotations = _createAnnotations(mirror, owningLibrary);
-  }
+  Parameter(ParameterMirror mirror, Library owningLibrary)
+      : this.mirror = mirror,
+        name = dart2js_util.nameOf(mirror),
+        isOptional = mirror.isOptional,
+        isNamed = mirror.isNamed,
+        hasDefaultValue = mirror.hasDefaultValue,
+        defaultValue = '${mirror.defaultValue}',
+        type = new Type(mirror.type, owningLibrary),
+        annotations = MirrorBased._createAnnotations(mirror, owningLibrary);
 
   /// Generates a map describing the [Parameter] object.
   Map toMap() => {
     'name': name,
-    'optional': isOptional.toString(),
-    'named': isNamed.toString(),
-    'default': hasDefaultValue.toString(),
+    'optional': isOptional,
+    'named': isNamed,
+    'default': hasDefaultValue,
     'type': new List.filled(1, type.toMap()),
     'value': defaultValue,
     'annotations': annotations.map((a) => a.toMap()).toList()
@@ -2120,7 +2120,7 @@ class Parameter extends MirrorBased {
 
 /// A Docgen wrapper around the dart2js mirror for a generic type.
 class Generic extends MirrorBased {
-  TypeVariableMirror mirror;
+  final TypeVariableMirror mirror;
   Generic(this.mirror);
   Map toMap() => {
     'name': dart2js_util.nameOf(mirror),
@@ -2158,8 +2158,8 @@ class Generic extends MirrorBased {
 ///                    - "outer" : "dart-core.int"
 ///                      "inner" :
 class Type extends MirrorBased {
-  TypeMirror mirror;
-  Library owningLibrary;
+  final TypeMirror mirror;
+  final Library owningLibrary;
 
   Type(this.mirror, this.owningLibrary);
 
@@ -2188,13 +2188,13 @@ class Type extends MirrorBased {
 
 /// Holds the name of the annotation, and its parameters.
 class Annotation extends MirrorBased {
-  List<String> parameters;
   /// The class of this annotation.
-  ClassMirror mirror;
-  Library owningLibrary;
+  final ClassMirror mirror;
+  final Library owningLibrary;
+  List<String> parameters;
 
-  Annotation(InstanceMirror originalMirror, this.owningLibrary) {
-    mirror = originalMirror.type;
+  Annotation(InstanceMirror originalMirror, this.owningLibrary)
+      : mirror = originalMirror.type {
     parameters = dart2js_util.variablesOf(originalMirror.type.declarations)
         .where((e) => e.isFinal)
         .map((e) => originalMirror.getField(e.simpleName).reflectee)
