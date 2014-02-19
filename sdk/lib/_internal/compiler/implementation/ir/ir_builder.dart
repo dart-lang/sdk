@@ -4,24 +4,24 @@
 
 library dart2js.ir_builder;
 
-import 'ir_nodes.dart';
+import 'ir_nodes.dart' as ir;
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show FunctionElementX;
 import '../dart2jslib.dart';
 import '../source_file.dart';
-import '../tree/tree.dart';
+import '../tree/tree.dart' as ast;
 import '../scanner/scannerlib.dart' show Token;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import 'ir_pickler.dart' show Unpickler, IrConstantPool;
 
 /**
- * This task iterates through all resolved elements and builds [IrNode]s. The
+ * This task iterates through all resolved elements and builds [ir.Node]s. The
  * nodes are stored in the [nodes] map and accessible through [hasIr] and
  * [getIr].
  *
  * The functionality of the IrNodes is added gradually, therefore elements might
  * have an IR or not, depending on the language features that are used. For
- * elements that do have an IR, the tree [Node]s and the [Token]s are not used
+ * elements that do have an IR, the tree [ast.Node]s and the [Token]s are not used
  * in the rest of the compilation. This is ensured by setting the element's
  * cached tree to [:null:] and also breaking the token stream to crash future
  * attempts to parse.
@@ -32,7 +32,7 @@ import 'ir_pickler.dart' show Unpickler, IrConstantPool;
  * re-implemented to work directly on the IR.
  */
 class IrBuilderTask extends CompilerTask {
-  final Map<Element, IrNode> nodes = new Map<Element, IrNode>();
+  final Map<Element, ir.Node> nodes = new Map<Element, ir.Node>();
 
   IrBuilderTask(Compiler compiler) : super(compiler);
 
@@ -40,7 +40,7 @@ class IrBuilderTask extends CompilerTask {
 
   bool hasIr(Element element) => nodes.containsKey(element.implementation);
 
-  IrNode getIr(Element element) => nodes[element.implementation];
+  ir.Node getIr(Element element) => nodes[element.implementation];
 
   void buildNodes() {
     if (!irEnabled()) return;
@@ -54,7 +54,7 @@ class IrBuilderTask extends CompilerTask {
           SourceFile sourceFile = elementSourceFile(element);
           IrNodeBuilderVisitor visitor =
               new IrNodeBuilderVisitor(elementsMapping, compiler, sourceFile);
-          IrNode irNode;
+          ir.Node irNode;
           ElementKind kind = element.kind;
           if (kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
             // TODO(lry): build ir for constructors.
@@ -194,7 +194,7 @@ class IrBuilderTask extends CompilerTask {
  * to the [builder] and return the last added statement for trees that represent
  * an expression.
  */
-class IrNodeBuilderVisitor extends ResolvedVisitor<IrNode> {
+class IrNodeBuilderVisitor extends ResolvedVisitor<ir.Node> {
   final SourceFile sourceFile;
 
   IrNodeBuilderVisitor(
@@ -206,25 +206,25 @@ class IrNodeBuilderVisitor extends ResolvedVisitor<IrNode> {
   IrBuilder builder;
 
   /**
-   * Builds the [IrFunction] for a function element. In case the function
+   * Builds the [ir.Function] for a function element. In case the function
    * uses features that cannot be expressed in the IR, this function returns
    * [:null:].
    */
-  IrFunction buildMethod(FunctionElement functionElement) {
+  ir.Function buildMethod(FunctionElement functionElement) {
     return nullIfGiveup(() => buildMethodInternal(functionElement));
   }
 
-  IrFunction buildMethodInternal(FunctionElement functionElement) {
+  ir.Function buildMethodInternal(FunctionElement functionElement) {
     assert(invariant(functionElement, functionElement.isImplementation));
-    FunctionExpression function = functionElement.parseNode(compiler);
+    ast.FunctionExpression function = functionElement.parseNode(compiler);
     assert(function != null);
     assert(!function.modifiers.isExternal());
     assert(elements[function] != null);
 
     int endPosition = function.getEndToken().charOffset;
     int namePosition = elements[function].position().charOffset;
-    IrFunction result = new IrFunction(
-        nodePosition(function), endPosition, namePosition, <IrNode>[]);
+    ir.Function result = new ir.Function(
+        nodePosition(function), endPosition, namePosition, <ir.Node>[]);
     builder = new IrBuilder(this);
     builder.enterBlock();
     if (function.hasBody()) {
@@ -240,10 +240,10 @@ class IrNodeBuilderVisitor extends ResolvedVisitor<IrNode> {
 
   ConstantSystem get constantSystem => compiler.backend.constantSystem;
 
-  /* int | PositionWithIdentifierName */ nodePosition(Node node) {
+  /* int | PositionWithIdentifierName */ nodePosition(ast.Node node) {
     Token token = node.getBeginToken();
     if (token.isIdentifier()) {
-      return new PositionWithIdentifierName(token.charOffset, token.value);
+      return new ir.PositionWithIdentifierName(token.charOffset, token.value);
     } else {
       return token.charOffset;
     }
@@ -256,24 +256,24 @@ class IrNodeBuilderVisitor extends ResolvedVisitor<IrNode> {
    * statement on each branch. This includes functions with an empty body,
    * such as [:foo(){ }:].
    */
-  void ensureReturn(FunctionExpression node) {
+  void ensureReturn(ast.FunctionExpression node) {
     if (blockReturns) return;
-    IrConstant nullValue =
+    ir.Constant nullValue =
         builder.addConstant(constantSystem.createNull(), node);
-    builder.addStatement(new IrReturn(nodePosition(node), nullValue));
+    builder.addStatement(new ir.Return(nodePosition(node), nullValue));
   }
 
-  IrNode visitBlock(Block node) {
-    for (Node n in node.statements.nodes) {
+  ir.Node visitBlock(ast.Block node) {
+    for (ast.Node n in node.statements.nodes) {
       n.accept(this);
       if (blockReturns) return null;
     }
     return null;
   }
 
-  IrNode visitReturn(Return node) {
+  ir.Node visitReturn(ast.Return node) {
     assert(!blockReturns);
-    IrExpression value;
+    ir.Expression value;
     // TODO(lry): support native returns.
     if (node.beginToken.value == 'native') giveup();
     if (node.expression == null) {
@@ -281,29 +281,29 @@ class IrNodeBuilderVisitor extends ResolvedVisitor<IrNode> {
     } else {
       value = node.expression.accept(this);
     }
-    builder.addStatement(new IrReturn(nodePosition(node), value));
+    builder.addStatement(new ir.Return(nodePosition(node), value));
     builder.block.hasReturn = true;
     return null;
   }
 
-  IrConstant visitLiteralBool(LiteralBool node) {
+  ir.Constant visitLiteralBool(ast.LiteralBool node) {
     return builder.addConstant(constantSystem.createBool(node.value), node);
   }
 
-  IrConstant visitLiteralDouble(LiteralDouble node) {
+  ir.Constant visitLiteralDouble(ast.LiteralDouble node) {
     return builder.addConstant(constantSystem.createDouble(node.value), node);
   }
 
-  IrConstant visitLiteralInt(LiteralInt node) {
+  ir.Constant visitLiteralInt(ast.LiteralInt node) {
     return builder.addConstant(constantSystem.createInt(node.value), node);
   }
 
-  IrConstant visitLiteralString(LiteralString node) {
+  ir.Constant visitLiteralString(ast.LiteralString node) {
     Constant value = constantSystem.createString(node.dartString);
     return builder.addConstant(value, node);
   }
 
-  IrConstant visitLiteralNull(LiteralNull node) {
+  ir.Constant visitLiteralNull(ast.LiteralNull node) {
     return builder.addConstant(constantSystem.createNull(), node);
   }
 
@@ -313,32 +313,32 @@ class IrNodeBuilderVisitor extends ResolvedVisitor<IrNode> {
 //  IrNode visitLiteralMapEntry(LiteralMapEntry node) => visitNode(node);
 //  IrNode visitLiteralSymbol(LiteralSymbol node) => visitExpression(node);
 
-  IrNode visitAssert(Send node) {
+  ir.Node visitAssert(ast.Send node) {
     giveup();
     return null;
   }
 
-  IrNode visitClosureSend(Send node) {
+  ir.Node visitClosureSend(ast.Send node) {
     giveup();
     return null;
   }
 
-  IrNode visitDynamicSend(Send node) {
+  ir.Node visitDynamicSend(ast.Send node) {
     giveup();
     return null;
   }
 
-  IrNode visitGetterSend(Send node) {
+  ir.Node visitGetterSend(ast.Send node) {
     giveup();
     return null;
   }
 
-  IrNode visitOperatorSend(Send node) {
+  ir.Node visitOperatorSend(ast.Send node) {
     giveup();
     return null;
   }
 
-  IrNode visitStaticSend(Send node) {
+  ir.Node visitStaticSend(ast.Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
 
@@ -354,7 +354,7 @@ class IrNodeBuilderVisitor extends ResolvedVisitor<IrNode> {
     // TODO(lry): support named arguments
     if (selector.namedArgumentCount != 0) giveup();
 
-    List<IrExpression> arguments = <IrExpression>[];
+    List<ir.Expression> arguments = <ir.Expression>[];
     // TODO(lry): support default arguments, need support for locals.
     bool succeeded = selector.addArgumentsToList(
         node.arguments, arguments, element.implementation,
@@ -365,26 +365,26 @@ class IrNodeBuilderVisitor extends ResolvedVisitor<IrNode> {
     }
     // TODO(lry): generate IR for object identicality.
     if (element == compiler.identicalFunction) giveup();
-    IrInvokeStatic result = builder.addStatement(
-        new IrInvokeStatic(nodePosition(node), element, selector, arguments));
+    ir.InvokeStatic result = builder.addStatement(
+        new ir.InvokeStatic(nodePosition(node), element, selector, arguments));
     return result;
   }
 
-  IrNode visitSuperSend(Send node) {
+  ir.Node visitSuperSend(ast.Send node) {
     giveup();
     return null;
   }
 
-  IrNode visitTypeReferenceSend(Send node) {
+  ir.Node visitTypeReferenceSend(ast.Send node) {
     giveup();
     return null;
   }
 
   static final String ABORT_IRNODE_BUILDER = "IrNode builder aborted";
 
-  IrNode giveup() => throw ABORT_IRNODE_BUILDER;
+  ir.Node giveup() => throw ABORT_IRNODE_BUILDER;
 
-  IrNode nullIfGiveup(IrNode action()) {
+  ir.Node nullIfGiveup(ir.Node action()) {
     try {
       return action();
     } catch(e) {
@@ -393,7 +393,7 @@ class IrNodeBuilderVisitor extends ResolvedVisitor<IrNode> {
     }
   }
 
-  void internalError(String reason, {Node node}) {
+  void internalError(String reason, {ast.Node node}) {
     giveup();
   }
 }
@@ -406,14 +406,14 @@ class IrBuilder {
 
   BlockBuilder get block => blockBuilders.last;
 
-  Map<Constant, IrConstant> constants = <Constant, IrConstant>{};
+  Map<Constant, ir.Constant> constants = <Constant, ir.Constant>{};
 
-  IrConstant addConstant(Constant value, Node node) {
+  ir.Constant addConstant(Constant value, ast.Node node) {
     return constants.putIfAbsent(
-      value, () => new IrConstant(visitor.nodePosition(node), value));
+      value, () => new ir.Constant(visitor.nodePosition(node), value));
   }
 
-  IrNode addStatement(IrNode statement) {
+  ir.Node addStatement(ir.Node statement) {
     block.statements.add(statement);
     return statement;
   }
@@ -428,6 +428,6 @@ class IrBuilder {
 }
 
 class BlockBuilder {
-  List<IrNode> statements = <IrNode>[];
+  List<ir.Node> statements = <ir.Node>[];
   bool hasReturn = false;
 }

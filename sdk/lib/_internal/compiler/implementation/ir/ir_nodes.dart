@@ -6,7 +6,7 @@
 // dependencies on other parts of the system.
 library dart2js.ir_nodes;
 
-import '../dart2jslib.dart' show Constant;
+import '../dart2jslib.dart' as dart2js show Constant;
 import '../elements/elements.dart' show FunctionElement, LibraryElement;
 import 'ir_pickler.dart' show Pickler, IrConstantPool;
 import '../universe/universe.dart' show Selector, SelectorKind;
@@ -22,13 +22,13 @@ class PositionWithIdentifierName {
   PositionWithIdentifierName(this.offset, this.sourceName);
 }
 
-abstract class IrNode implements Spannable {
+abstract class Node implements Spannable {
   static int hashCount = 0;
   final int hashCode = hashCount = (hashCount + 1) & 0x3fffffff;
 
   final /* int | PositionWithIdentifierName */ position;
 
-  const IrNode(this.position);
+  const Node(this.position);
 
   int get offset => (position is int) ? position : position.offset;
 
@@ -38,45 +38,45 @@ abstract class IrNode implements Spannable {
     return new Pickler(constantPool).pickle(this);
   }
 
-  accept(IrNodesVisitor visitor);
+  accept(NodesVisitor visitor);
 }
 
-abstract class IrExpression extends IrNode {
-  IrExpression(position) : super(position);
+abstract class Expression extends Node {
+  Expression(position) : super(position);
 }
 
-class IrFunction extends IrExpression {
-  final List<IrNode> statements;
+class Function extends Expression {
+  final List<Node> statements;
 
   final int endOffset;
   final int namePosition;
 
-  IrFunction(position, this.endOffset, this.namePosition, this.statements)
+  Function(position, this.endOffset, this.namePosition, this.statements)
     : super(position);
 
-  accept(IrNodesVisitor visitor) => visitor.visitIrFunction(this);
+  accept(NodesVisitor visitor) => visitor.visitFunction(this);
 }
 
-class IrReturn extends IrNode {
-  final IrExpression value;
+class Return extends Node {
+  final Expression value;
 
-  IrReturn(position, this.value) : super(position);
+  Return(position, this.value) : super(position);
 
-  accept(IrNodesVisitor visitor) => visitor.visitIrReturn(this);
+  accept(NodesVisitor visitor) => visitor.visitReturn(this);
 }
 
-class IrConstant extends IrExpression {
-  final Constant value;
+class Constant extends Expression {
+  final dart2js.Constant value;
 
-  IrConstant(position, this.value) : super(position);
+  Constant(position, this.value) : super(position);
 
-  accept(IrNodesVisitor visitor) => visitor.visitIrConstant(this);
+  accept(NodesVisitor visitor) => visitor.visitConstant(this);
 }
 
-class IrInvokeStatic extends IrExpression {
+class InvokeStatic extends Expression {
   final FunctionElement target;
 
-  final List<IrExpression> arguments;
+  final List<Expression> arguments;
 
   /**
    * The selector encodes how the function is invoked: number of positional
@@ -85,37 +85,37 @@ class IrInvokeStatic extends IrExpression {
    */
   final Selector selector;
 
-  IrInvokeStatic(position, this.target, this.selector, this.arguments)
+  InvokeStatic(position, this.target, this.selector, this.arguments)
     : super(position) {
     assert(selector.kind == SelectorKind.CALL);
     assert(selector.name == target.name);
   }
 
-  accept(IrNodesVisitor visitor) => visitor.visitIrInvokeStatic(this);
+  accept(NodesVisitor visitor) => visitor.visitInvokeStatic(this);
 }
 
 /**
  * This class is only used during SSA generation, its instances never appear in
  * the representation of a function. See [SsaFromAstInliner.enterInlinedMethod].
  */
-class IrInlinedInvocationDummy extends IrExpression {
-  IrInlinedInvocationDummy() : super(0);
-  accept(IrNodesVisitor visitor) => throw "IrInlinedInvocationDummy.accept";
+class InlinedInvocationDummy extends Expression {
+  InlinedInvocationDummy() : super(0);
+  accept(NodesVisitor visitor) => throw "IrInlinedInvocationDummy.accept";
 }
 
 
-abstract class IrNodesVisitor<T> {
-  T visit(IrNode node) => node.accept(this);
+abstract class NodesVisitor<T> {
+  T visit(Node node) => node.accept(this);
 
-  void visitAll(List<IrNode> nodes) {
-    for (IrNode n in nodes) visit(n);
+  void visitAll(List<Node> nodes) {
+    for (Node n in nodes) visit(n);
   }
 
-  T visitIrNode(IrNode node);
+  T visitNode(Node node);
 
-  T visitIrExpression(IrExpression node) => visitIrNode(node);
-  T visitIrFunction(IrFunction node) => visitIrExpression(node);
-  T visitIrReturn(IrReturn node) => visitIrNode(node);
-  T visitIrConstant(IrConstant node) => visitIrExpression(node);
-  T visitIrInvokeStatic(IrInvokeStatic node) => visitIrExpression(node);
+  T visitExpression(Expression node) => visitNode(node);
+  T visitFunction(Function node) => visitExpression(node);
+  T visitReturn(Return node) => visitNode(node);
+  T visitConstant(Constant node) => visitExpression(node);
+  T visitInvokeStatic(InvokeStatic node) => visitExpression(node);
 }

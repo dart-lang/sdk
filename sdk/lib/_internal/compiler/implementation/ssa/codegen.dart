@@ -20,13 +20,13 @@ class SsaCodeGeneratorTask extends CompilerTask {
     // was on a wrapping node.
     SourceFile sourceFile = sourceFileOfElement(element);
     if (compiler.irBuilder.hasIr(element)) {
-      IrFunction function = compiler.irBuilder.getIr(element);
+      ir.Function function = compiler.irBuilder.getIr(element);
       node.sourcePosition = new OffsetSourceFileLocation(
           sourceFile, function.offset, function.sourceName);
       node.endSourcePosition = new OffsetSourceFileLocation(
           sourceFile, function.endOffset);
     } else {
-      Node expression = element.implementation.parseNode(backend.compiler);
+      ast.Node expression = element.implementation.parseNode(backend.compiler);
       Token beginToken;
       Token endToken;
       if (expression == null) {
@@ -445,7 +445,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (len == 0) return new js.EmptyStatement();
     if (len == 1) {
       js.Statement result = block.statements[0];
-      if (result is Block) return unwrapStatement(result);
+      if (result is ast.Block) return unwrapStatement(result);
       return result;
     }
     return block;
@@ -1354,7 +1354,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       TargetElement target = node.target;
       if (!tryCallAction(continueAction, target)) {
-        if (target.statement is SwitchStatement) {
+        if (target.statement is ast.SwitchStatement) {
           pushStatement(new js.Continue(
               backend.namer.implicitContinueLabelName(target)), node);
         } else {

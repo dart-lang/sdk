@@ -5,13 +5,13 @@
 part of ssa;
 
 /**
- * This class implements an [IrNodesVisitor] that inlines a function represented
+ * This class implements an [ir.NodesVisitor] that inlines a function represented
  * as IR into an [SsaFromAstBuilder].
  */
-class SsaFromIrInliner extends IrNodesVisitor with
-    SsaBuilderMixin<IrNode>,
+class SsaFromIrInliner extends ir.NodesVisitor with
+    SsaBuilderMixin<ir.Node>,
     SsaFromIrMixin,
-    SsaBuilderDelegate<IrNode, Node> {
+    SsaBuilderDelegate<ir.Node, ast.Node> {
   final SsaFromAstBuilder builder;
 
   SsaFromIrInliner.internal(this.builder);
@@ -24,14 +24,14 @@ class SsaFromIrInliner extends IrNodesVisitor with
     return irInliner;
   }
 
-  final List<IrExpression> inlinedCalls = <IrExpression>[];
+  final List<ir.Expression> inlinedCalls = <ir.Expression>[];
 
   /**
    * This function is invoked when we are currently inlining an IR function
    * into an AST builder, and we encounter an infocation that is inlined.
    */
   void enterInlinedMethod(FunctionElement function,
-                          IrNode callNode,
+                          ir.Node callNode,
                           List<HInstruction> compiledArguments) {
     assert(callNode != null);
     inlinedCalls.add(callNode);
@@ -49,13 +49,13 @@ class SsaFromIrInliner extends IrNodesVisitor with
     builder.doInline(function);
   }
 
-  void emitReturn(HInstruction value, IrReturn node) {
+  void emitReturn(HInstruction value, ir.Return node) {
     builder.localsHandler.updateLocal(builder.returnElement, value);
   }
 }
 
-class IrInlineWeeder extends IrNodesVisitor {
-  static bool canBeInlined(IrFunction irFunction,
+class IrInlineWeeder extends ir.NodesVisitor {
+  static bool canBeInlined(ir.Function irFunction,
                            int maxInliningNodes,
                            bool useMaxInliningNodes) {
     IrInlineWeeder weeder =
@@ -83,19 +83,19 @@ class IrInlineWeeder extends IrNodesVisitor {
     }
   }
 
-  void visitIrNode(IrNode node) {
+  void visitNode(ir.Node node) {
     if (!registerNode()) return;
     if (seenReturn) {
       tooDifficult = true;
     }
   }
 
-  void visitIrReturn(IrReturn node) {
-    visitIrNode(node);
+  void visitReturn(ir.Return node) {
+    visitNode(node);
     seenReturn = true;
   }
 
-  void visitIrFunction(IrFunction node) {
+  void visitFunction(ir.Function node) {
     tooDifficult = true;
   }
 }

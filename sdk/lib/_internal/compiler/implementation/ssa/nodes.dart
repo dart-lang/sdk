@@ -191,7 +191,7 @@ class HGraph {
         compiler.backend.constantSystem.createDouble(d), compiler);
   }
 
-  HConstant addConstantString(DartString str,
+  HConstant addConstantString(ast.DartString str,
                               Compiler compiler) {
     return addConstant(
         compiler.backend.constantSystem.createString(str),
@@ -2458,7 +2458,7 @@ class HRangeConversion extends HCheck {
 }
 
 class HStringConcat extends HInstruction {
-  final Node node;
+  final ast.Node node;
   HStringConcat(HInstruction left, HInstruction right, this.node, TypeMask type)
       : super(<HInstruction>[left, right], type) {
     // TODO(sra): Until Issue 9293 is fixed, this false dependency keeps the
@@ -2479,7 +2479,7 @@ class HStringConcat extends HInstruction {
  * into a String value.
  */
 class HStringify extends HInstruction {
-  final Node node;
+  final ast.Node node;
   HStringify(HInstruction input, this.node, TypeMask type)
       : super(<HInstruction>[input], type) {
     sideEffects.setAllSideEffects();
@@ -2663,14 +2663,14 @@ class HLabeledBlockInformation implements HStatementInformation {
     visitor.visitLabeledBlockInfo(this);
 }
 
-class LoopTypeVisitor extends Visitor {
+class LoopTypeVisitor extends ast.Visitor {
   const LoopTypeVisitor();
-  int visitNode(Node node) => HLoopBlockInformation.NOT_A_LOOP;
-  int visitWhile(While node) => HLoopBlockInformation.WHILE_LOOP;
-  int visitFor(For node) => HLoopBlockInformation.FOR_LOOP;
-  int visitDoWhile(DoWhile node) => HLoopBlockInformation.DO_WHILE_LOOP;
-  int visitForIn(ForIn node) => HLoopBlockInformation.FOR_IN_LOOP;
-  int visitSwitchStatement(SwitchStatement node) =>
+  int visitNode(ast.Node node) => HLoopBlockInformation.NOT_A_LOOP;
+  int visitWhile(ast.While node) => HLoopBlockInformation.WHILE_LOOP;
+  int visitFor(ast.For node) => HLoopBlockInformation.FOR_LOOP;
+  int visitDoWhile(ast.DoWhile node) => HLoopBlockInformation.DO_WHILE_LOOP;
+  int visitForIn(ast.ForIn node) => HLoopBlockInformation.FOR_IN_LOOP;
+  int visitSwitchStatement(ast.SwitchStatement node) =>
       HLoopBlockInformation.SWITCH_CONTINUE_LOOP;
 }
 
@@ -2725,7 +2725,7 @@ class HLoopBlockInformation implements HStatementInformation {
     return body.end;
   }
 
-  static int loopType(Node node) {
+  static int loopType(ast.Node node) {
     return node.accept(const LoopTypeVisitor());
   }
 

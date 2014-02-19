@@ -159,7 +159,7 @@ class LocalsHandler {
    * If the scope (function or loop) [node] has captured variables then this
    * method creates a box and sets up the redirections.
    */
-  void enterScope(Node node, Element element) {
+  void enterScope(ast.Node node, Element element) {
     // See if any variable in the top-scope of the function is captured. If yes
     // we need to create a box-object.
     ClosureScope scopeData = closureData.capturingScopes[node];
@@ -223,7 +223,7 @@ class LocalsHandler {
    *
    * Invariant: [function] must be an implementation element.
    */
-  void startFunction(Element element, Expression node) {
+  void startFunction(Element element, ast.Expression node) {
     assert(invariant(element, element.isImplementation));
     Compiler compiler = builder.compiler;
     closureData = compiler.closureToClassMapper.computeClosureToClassMapping(
@@ -454,16 +454,16 @@ class LocalsHandler {
    * initializers.
    *
    * The [LocalsHandler] will make the boxes and updates at the right moment.
-   * The builder just needs to call [enterLoopBody] and [enterLoopUpdates] (for
-   * [For] loops) at the correct places. For phi-handling [beginLoopHeader] and
-   * [endLoop] must also be called.
+   * The builder just needs to call [enterLoopBody] and [enterLoopUpdates]
+   * (for [ast.For] loops) at the correct places. For phi-handling
+   * [beginLoopHeader] and [endLoop] must also be called.
    *
    * The correct place for the box depends on the given loop. In most cases
    * the box will be created when entering the loop-body: while, do-while, and
    * for-in (assuming the call to [:next:] is inside the body) can always be
    * constructed this way.
    *
-   * Things are slightly more complicated for [For] loops. If no declared
+   * Things are slightly more complicated for [ast.For] loops. If no declared
    * loop variable is boxed then the loop-body approach works here too. If a
    * loop-variable is boxed we need to introduce a new box for the
    * loop-variable before we enter the initializer so that the initializer
@@ -483,7 +483,7 @@ class LocalsHandler {
    *     print("--");
    *     for (var i = 0; i < 2; i++) fs[i]();
    *
-   * We solve this by emitting the following code (only for [For] loops):
+   * We solve this by emitting the following code (only for [ast.For] loops):
    *  <Create box>    <== move the first box creation outside the loop.
    *  <initializer>;
    *  loop-entry:
@@ -494,7 +494,7 @@ class LocalsHandler {
    *    goto loop-entry;
    *  loop-exit:
    */
-  void startLoop(Node node) {
+  void startLoop(ast.Node node) {
     ClosureScope scopeData = closureData.capturingScopes[node];
     if (scopeData == null) return;
     if (scopeData.hasBoxedLoopVariables()) {
@@ -532,7 +532,7 @@ class LocalsHandler {
     });
   }
 
-  void enterLoopBody(Node node) {
+  void enterLoopBody(ast.Node node) {
     ClosureScope scopeData = closureData.capturingScopes[node];
     if (scopeData == null) return;
     // If there are no declared boxed loop variables then we did not create the
@@ -542,7 +542,7 @@ class LocalsHandler {
     }
   }
 
-  void enterLoopUpdates(Node node) {
+  void enterLoopUpdates(ast.Node node) {
     // If there are declared boxed loop variables then the updates might have
     // access to the box and we must switch to a new box before executing the
     // updates.
@@ -749,7 +749,7 @@ class TargetJumpHandler implements JumpHandler {
       continueInstruction = new HContinue.toLabel(label);
       // Switch case continue statements must be handled by the
       // [SwitchCaseJumpHandler].
-      assert(label.target.statement is! SwitchCase);
+      assert(label.target.statement is! ast.SwitchCase);
     }
     LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
     builder.close(continueInstruction);
@@ -806,16 +806,16 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
 
   SwitchCaseJumpHandler(SsaFromAstMixin builder,
                         TargetElement target,
-                        SwitchStatement node)
+                        ast.SwitchStatement node)
       : super(builder, target) {
     // The switch case indices must match those computed in
     // [SsaFromAstMixin.buildSwitchCaseConstants].
     // Switch indices are 1-based so we can bypass the synthetic loop when no
     // cases match simply by branching on the index (which defaults to null).
     int switchIndex = 1;
-    for (SwitchCase switchCase in node.cases) {
-      for (Node labelOrCase in switchCase.labelsAndCases) {
-        Node label = labelOrCase.asLabel();
+    for (ast.SwitchCase switchCase in node.cases) {
+      for (ast.Node labelOrCase in switchCase.labelsAndCases) {
+        ast.Node label = labelOrCase.asLabel();
         if (label != null) {
           LabelElement labelElement = builder.elements[label];
           if (labelElement != null && labelElement.isContinueTarget) {
@@ -886,7 +886,7 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
  * and [SsaFromAstBuilder].
  *
  * The type parameter [N] represents the node type from which the SSA form is
- * built, either [IrNode] or [Node].
+ * built, either [ir.Node] or [ast.Node].
  *
  * The following diagram shows the mixin structure of the AST and IR builders
  * and inliners, which is explained in the text below.
@@ -1287,11 +1287,11 @@ abstract class SsaBuilderMixin<N> {
       }
       bool canInline;
       if (hasIr) {
-        IrFunction irFunction = compiler.irBuilder.getIr(function);
+        ir.Function irFunction = compiler.irBuilder.getIr(function);
         canInline = IrInlineWeeder.canBeInlined(
             irFunction, maxInliningNodes, useMaxInliningNodes);
       } else {
-        FunctionExpression functionNode = function.parseNode(compiler);
+        ast.FunctionExpression functionNode = function.parseNode(compiler);
         canInline = InlineWeeder.canBeInlined(
             functionNode, maxInliningNodes, useMaxInliningNodes);
       }
@@ -1455,7 +1455,7 @@ abstract class SsaBuilderDelegate<N, M> implements SsaBuilderMixin<N> {
  * [SsaFromAstBuilder] and [SsaFromAstInliner].
  */
 abstract class SsaFromAstMixin
-    implements ResolvedVisitor, SsaBuilderMixin<Node> {
+    implements ResolvedVisitor, SsaBuilderMixin<ast.Node> {
   CodegenWorkItem get work;
   ConstantSystem get constantSystem;
   RuntimeTypes get rti;
@@ -1512,14 +1512,14 @@ abstract class SsaFromAstMixin
 
   bool inTryStatement = false;
 
-  Constant getConstantForNode(Node node) {
+  Constant getConstantForNode(ast.Node node) {
     Constant constant = elements.getConstant(node);
     assert(invariant(node, constant != null,
         message: 'No constant computed for $node'));
     return constant;
   }
 
-  HInstruction addConstant(Node node) {
+  HInstruction addConstant(ast.Node node) {
     return graph.addConstant(getConstantForNode(node), compiler);
   }
 
@@ -1568,7 +1568,7 @@ abstract class SsaFromAstMixin
   HGraph buildMethod(FunctionElement functionElement) {
     assert(invariant(functionElement, functionElement.isImplementation));
     graph.calledInLoop = compiler.world.isCalledInLoop(functionElement);
-    FunctionExpression function = functionElement.parseNode(compiler);
+    ast.FunctionExpression function = functionElement.parseNode(compiler);
     assert(function != null);
     assert(!function.modifiers.isExternal());
     assert(elements[function] != null);
@@ -1615,9 +1615,9 @@ abstract class SsaFromAstMixin
   }
 
   HGraph buildLazyInitializer(VariableElement variable) {
-    SendSet node = variable.parseNode(compiler);
+    ast.SendSet node = variable.parseNode(compiler);
     openFunction(variable, node);
-    Link<Node> link = node.arguments;
+    Link<ast.Node> link = node.arguments;
     assert(!link.isEmpty && link.tail.isEmpty);
     visit(link.head);
     HInstruction value = pop();
@@ -1636,7 +1636,7 @@ abstract class SsaFromAstMixin
     assert(constructor.isGenerativeConstructor());
     assert(invariant(constructor, constructor.isImplementation));
     if (constructor.isSynthesized) return null;
-    FunctionExpression node = constructor.parseNode(compiler);
+    ast.FunctionExpression node = constructor.parseNode(compiler);
     // If we know the body doesn't have any code, we don't generate it.
     if (!node.hasBody()) return null;
     if (node.hasEmptyBody()) return null;
@@ -1768,7 +1768,7 @@ abstract class SsaFromAstMixin
     if (function.isGenerativeConstructor()) {
       buildFactory(function);
     } else {
-      FunctionExpression functionNode = function.parseNode(compiler);
+      ast.FunctionExpression functionNode = function.parseNode(compiler);
       functionNode.body.accept(this);
     }
   }
@@ -1786,7 +1786,7 @@ abstract class SsaFromAstMixin
     }
   }
 
-  bool providedArgumentsKnownToBeComplete(Node currentNode) {
+  bool providedArgumentsKnownToBeComplete(ast.Node currentNode) {
     /* When inlining the iterator methods generated for a [:for-in:] loop, the
      * [currentNode] is the [ForIn] tree. The compiler-generated iterator
      * invocations are known to have fully specified argument lists, no default
@@ -1875,7 +1875,7 @@ abstract class SsaFromAstMixin
       TreeElements oldElements = elements;
       elements = compiler.enqueuer.resolution.getCachedElements(callee);
       ClosureClassMap oldClosureData = localsHandler.closureData;
-      Node node = callee.parseNode(compiler);
+      ast.Node node = callee.parseNode(compiler);
       ClosureClassMap newClosureData =
           compiler.closureToClassMapper.computeClosureToClassMapping(
               callee, node, elements);
@@ -1923,22 +1923,22 @@ abstract class SsaFromAstMixin
           constructor);
       return;
     }
-    FunctionExpression functionNode = constructor.parseNode(compiler);
+    ast.FunctionExpression functionNode = constructor.parseNode(compiler);
 
     bool foundSuperOrRedirect = false;
     if (functionNode.initializers != null) {
-      Link<Node> initializers = functionNode.initializers.nodes;
-      for (Link<Node> link = initializers; !link.isEmpty; link = link.tail) {
-        assert(link.head is Send);
-        if (link.head is !SendSet) {
+      Link<ast.Node> initializers = functionNode.initializers.nodes;
+      for (Link<ast.Node> link = initializers; !link.isEmpty; link = link.tail) {
+        assert(link.head is ast.Send);
+        if (link.head is !ast.SendSet) {
           // A super initializer or constructor redirection.
           foundSuperOrRedirect = true;
-          Send call = link.head;
-          assert(Initializers.isSuperConstructorCall(call) ||
-                 Initializers.isConstructorRedirect(call));
+          ast.Send call = link.head;
+          assert(ast.Initializers.isSuperConstructorCall(call) ||
+                 ast.Initializers.isConstructorRedirect(call));
           FunctionElement target = elements[call].implementation;
           Selector selector = elements.getSelector(call);
-          Link<Node> arguments = call.arguments;
+          Link<ast.Node> arguments = call.arguments;
           List<HInstruction> compiledArguments = new List<HInstruction>();
           inlinedFrom(constructor, () {
             addStaticSendArgumentsToList(selector,
@@ -1953,8 +1953,8 @@ abstract class SsaFromAstMixin
                                 constructor);
         } else {
           // A field initializer.
-          SendSet init = link.head;
-          Link<Node> arguments = init.arguments;
+          ast.SendSet init = link.head;
+          Link<ast.Node> arguments = init.arguments;
           assert(!arguments.isEmpty && arguments.tail.isEmpty);
           inlinedFrom(constructor, () {
             visit(arguments.head);
@@ -1980,7 +1980,7 @@ abstract class SsaFromAstMixin
           compiler.internalError("no default constructor available");
         }
         List<HInstruction> arguments = <HInstruction>[];
-        selector.addArgumentsToList(const Link<Node>(),
+        selector.addArgumentsToList(const Link<ast.Node>(),
                                     arguments,
                                     target.implementation,
                                     null,
@@ -2008,8 +2008,8 @@ abstract class SsaFromAstMixin
         (ClassElement enclosingClass, Element member) {
           compiler.withCurrentElement(member, () {
             TreeElements definitions = compiler.analyzeElement(member);
-            Node node = member.parseNode(compiler);
-            SendSet assignment = node.asSendSet();
+            ast.Node node = member.parseNode(compiler);
+            ast.SendSet assignment = node.asSendSet();
             if (assignment == null) {
               // Unassigned fields of native classes are not initialized to
               // prevent overwriting pre-initialized native properties.
@@ -2017,7 +2017,7 @@ abstract class SsaFromAstMixin
                 fieldValues[member] = graph.addConstantNull(compiler);
               }
             } else {
-              Node right = assignment.arguments.head;
+              ast.Node right = assignment.arguments.head;
               TreeElements savedElements = elements;
               elements = definitions;
               // In case the field initializer uses closures, run the
@@ -2047,7 +2047,7 @@ abstract class SsaFromAstMixin
         functionElement.getEnclosingClass().implementation;
     bool isNativeUpgradeFactory =
         Elements.isNativeOrExtendsNative(classElement);
-    FunctionExpression function = functionElement.parseNode(compiler);
+    ast.FunctionExpression function = functionElement.parseNode(compiler);
     // Note that constructors (like any other static function) do not need
     // to deal with optional arguments. It is the callers job to provide all
     // arguments as if they were positional.
@@ -2218,7 +2218,7 @@ abstract class SsaFromAstMixin
       bodyCallInputs.add(newObject);
       TreeElements elements =
           compiler.enqueuer.resolution.getCachedElements(constructor);
-      Node node = constructor.parseNode(compiler);
+      ast.Node node = constructor.parseNode(compiler);
       ClosureClassMap parameterClosureData =
           compiler.closureToClassMapper.getMappingForNestedFunction(node);
 
@@ -2273,7 +2273,7 @@ abstract class SsaFromAstMixin
    *
    * Invariant: [functionElement] must be the implementation element.
    */
-  void openFunction(Element element, Expression node) {
+  void openFunction(Element element, ast.Expression node) {
     assert(invariant(element, element.isImplementation));
     HBasicBlock block = graph.addNewBlock();
     open(graph.entry);
@@ -2370,12 +2370,12 @@ abstract class SsaFromAstMixin
     return other;
   }
 
-  void assertIsSubtype(Node node, DartType subtype, DartType supertype,
+  void assertIsSubtype(ast.Node node, DartType subtype, DartType supertype,
                        String message) {
     HInstruction subtypeInstruction = analyzeTypeArgument(subtype);
     HInstruction supertypeInstruction = analyzeTypeArgument(supertype);
     HInstruction messageInstruction =
-        graph.addConstantString(new DartString.literal(message), compiler);
+        graph.addConstantString(new ast.DartString.literal(message), compiler);
     Element element = backend.getAssertIsSubtype();
     var inputs = <HInstruction>[subtypeInstruction, supertypeInstruction,
                                 messageInstruction];
@@ -2397,7 +2397,7 @@ abstract class SsaFromAstMixin
     stack.add(instruction);
   }
 
-  void pushWithPosition(HInstruction instruction, Node node) {
+  void pushWithPosition(HInstruction instruction, ast.Node node) {
     push(attachPosition(instruction, node));
   }
 
@@ -2422,20 +2422,20 @@ abstract class SsaFromAstMixin
     return result;
   }
 
-  HInstruction attachPosition(HInstruction target, Node node) {
+  HInstruction attachPosition(HInstruction target, ast.Node node) {
     if (node != null) {
       target.sourcePosition = sourceFileLocationForBeginToken(node);
     }
     return target;
   }
 
-  SourceFileLocation sourceFileLocationForBeginToken(Node node) =>
+  SourceFileLocation sourceFileLocationForBeginToken(ast.Node node) =>
       sourceFileLocationForToken(node, node.getBeginToken());
 
-  SourceFileLocation sourceFileLocationForEndToken(Node node) =>
+  SourceFileLocation sourceFileLocationForEndToken(ast.Node node) =>
       sourceFileLocationForToken(node, node.getEndToken());
 
-  SourceFileLocation sourceFileLocationForToken(Node node, Token token) {
+  SourceFileLocation sourceFileLocationForToken(ast.Node node, Token token) {
     SourceFile sourceFile = currentSourceFile();
     SourceFileLocation location =
         new TokenSourceFileLocation(sourceFile, token);
@@ -2443,14 +2443,14 @@ abstract class SsaFromAstMixin
     return location;
   }
 
-  void visit(Node node) {
+  void visit(ast.Node node) {
     if (node != null) node.accept(this);
   }
 
-  visitBlock(Block node) {
+  visitBlock(ast.Block node) {
     assert(!isAborted());
     if (!isReachable) return;  // This can only happen when inlining.
-    for (Link<Node> link = node.statements.nodes;
+    for (Link<ast.Node> link = node.statements.nodes;
          !link.isEmpty;
          link = link.tail) {
       visit(link.head);
@@ -2464,11 +2464,11 @@ abstract class SsaFromAstMixin
     if (!stack.isEmpty) compiler.cancel('non-empty instruction stack');
   }
 
-  visitClassNode(ClassNode node) {
+  visitClassNode(ast.ClassNode node) {
     compiler.internalError('visitClassNode should not be called', node: node);
   }
 
-  visitThrowExpression(Expression expression) {
+  visitThrowExpression(ast.Expression expression) {
     bool old = inThrowExpression;
     try {
       inThrowExpression = true;
@@ -2478,9 +2478,9 @@ abstract class SsaFromAstMixin
     }
   }
 
-  visitExpressionStatement(ExpressionStatement node) {
+  visitExpressionStatement(ast.ExpressionStatement node) {
     if (!isReachable) return;
-    Throw throwExpression = node.expression.asThrow();
+    ast.Throw throwExpression = node.expression.asThrow();
     if (throwExpression != null && inliningStack.isEmpty) {
       visitThrowExpression(throwExpression.expression);
       handleInTryStatement();
@@ -2496,7 +2496,7 @@ abstract class SsaFromAstMixin
    * is closed with an [HGoto] and replaced by the newly created block.
    * Also notifies the locals handler that we're entering a loop.
    */
-  JumpHandler beginLoopHeader(Node node) {
+  JumpHandler beginLoopHeader(ast.Node node) {
     assert(!isAborted());
     HBasicBlock previousBlock = close(new HGoto());
 
@@ -2575,7 +2575,7 @@ abstract class SsaFromAstMixin
   // For while loops, initializer and update are null.
   // The condition function must return a boolean result.
   // None of the functions must leave anything on the stack.
-  void handleLoop(Node loop,
+  void handleLoop(ast.Node loop,
                   void initialize(),
                   HInstruction condition(),
                   void update(),
@@ -2766,12 +2766,12 @@ abstract class SsaFromAstMixin
     loopNesting--;
   }
 
-  visitFor(For node) {
+  visitFor(ast.For node) {
     assert(isReachable);
     assert(node.body != null);
     void buildInitializer() {
       if (node.initializer == null) return;
-      Node initializer = node.initializer;
+      ast.Node initializer = node.initializer;
       if (initializer != null) {
         visit(initializer);
         if (initializer.asExpression() != null) {
@@ -2787,7 +2787,7 @@ abstract class SsaFromAstMixin
       return popBoolified();
     }
     void buildUpdate() {
-      for (Expression expression in node.update) {
+      for (ast.Expression expression in node.update) {
         visit(expression);
         assert(!isAborted());
         // The result of the update instruction isn't used, and can just
@@ -2801,7 +2801,7 @@ abstract class SsaFromAstMixin
     handleLoop(node, buildInitializer, buildCondition, buildUpdate, buildBody);
   }
 
-  visitWhile(While node) {
+  visitWhile(ast.While node) {
     assert(isReachable);
     HInstruction buildCondition() {
       visit(node.condition);
@@ -2814,7 +2814,7 @@ abstract class SsaFromAstMixin
                () { visit(node.body); });
   }
 
-  visitDoWhile(DoWhile node) {
+  visitDoWhile(ast.DoWhile node) {
     assert(isReachable);
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     localsHandler.startLoop(node);
@@ -2947,7 +2947,7 @@ abstract class SsaFromAstMixin
     loopNesting--;
   }
 
-  visitFunctionExpression(FunctionExpression node) {
+  visitFunctionExpression(ast.FunctionExpression node) {
     ClosureClassMap nestedClosureData =
         compiler.closureToClassMapper.getMappingForNestedFunction(node);
     assert(nestedClosureData != null);
@@ -2982,13 +2982,13 @@ abstract class SsaFromAstMixin
     }
   }
 
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  visitFunctionDeclaration(ast.FunctionDeclaration node) {
     assert(isReachable);
     visit(node.function);
     localsHandler.updateLocal(elements[node], pop());
   }
 
-  visitIdentifier(Identifier node) {
+  visitIdentifier(ast.Identifier node) {
     if (node.isThis()) {
       stack.add(localsHandler.readThis());
     } else {
@@ -2997,7 +2997,7 @@ abstract class SsaFromAstMixin
     }
   }
 
-  visitIf(If node) {
+  visitIf(ast.If node) {
     assert(isReachable);
     handleIf(node,
              () => visit(node.condition),
@@ -3005,13 +3005,13 @@ abstract class SsaFromAstMixin
              node.elsePart != null ? () => visit(node.elsePart) : null);
   }
 
-  void handleIf(Node diagnosticNode,
+  void handleIf(ast.Node diagnosticNode,
                 void visitCondition(), void visitThen(), void visitElse()) {
     SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, diagnosticNode);
     branchBuilder.handleIf(visitCondition, visitThen, visitElse);
   }
 
-  void visitLogicalAndOr(Send node, Operator op) {
+  void visitLogicalAndOr(ast.Send node, ast.Operator op) {
     SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, node);
     branchBuilder.handleLogicalAndOrWithLeftNode(
         node.receiver,
@@ -3019,15 +3019,15 @@ abstract class SsaFromAstMixin
         isAnd: ("&&" == op.source));
   }
 
-  void visitLogicalNot(Send node) {
-    assert(node.argumentsNode is Prefix);
+  void visitLogicalNot(ast.Send node) {
+    assert(node.argumentsNode is ast.Prefix);
     visit(node.receiver);
     HNot not = new HNot(popBoolified(), backend.boolType);
     pushWithPosition(not, node);
   }
 
-  void visitUnary(Send node, Operator op) {
-    assert(node.argumentsNode is Prefix);
+  void visitUnary(ast.Send node, ast.Operator op) {
+    assert(node.argumentsNode is ast.Prefix);
     visit(node.receiver);
     assert(!identical(op.token.kind, PLUS_TOKEN));
     HInstruction operand = pop();
@@ -3047,10 +3047,10 @@ abstract class SsaFromAstMixin
   }
 
   void visitBinary(HInstruction left,
-                   Operator op,
+                   ast.Operator op,
                    HInstruction right,
                    Selector selector,
-                   Send send) {
+                   ast.Send send) {
     switch (op.source) {
       case "===":
         pushWithPosition(
@@ -3069,7 +3069,7 @@ abstract class SsaFromAstMixin
     }
   }
 
-  HInstruction generateInstanceSendReceiver(Send send) {
+  HInstruction generateInstanceSendReceiver(ast.Send send) {
     assert(Elements.isInstanceSend(send, elements));
     if (send.receiver == null) {
       return localsHandler.readThis();
@@ -3090,7 +3090,7 @@ abstract class SsaFromAstMixin
    * Returns a set of interceptor classes that contain the given
    * [selector].
    */
-  void generateInstanceGetterWithCompiledReceiver(Send send,
+  void generateInstanceGetterWithCompiledReceiver(ast.Send send,
                                                   Selector selector,
                                                   HInstruction receiver) {
     assert(Elements.isInstanceSend(send, elements));
@@ -3098,7 +3098,7 @@ abstract class SsaFromAstMixin
     pushInvokeDynamic(send, selector, [receiver]);
   }
 
-  void generateGetter(Send send, Element element) {
+  void generateGetter(ast.Send send, Element element) {
     if (Elements.isStaticOrTopLevelField(element)) {
       Constant value;
       if (element.isField() && !element.isAssignable()) {
@@ -3151,17 +3151,17 @@ abstract class SsaFromAstMixin
       // An erroneous element indicates an unresolved static getter.
       generateThrowNoSuchMethod(send,
                                 getTargetName(element, 'get'),
-                                argumentNodes: const Link<Node>());
+                                argumentNodes: const Link<ast.Node>());
     } else {
       stack.add(localsHandler.readLocal(element));
     }
   }
 
-  void generateInstanceSetterWithCompiledReceiver(Send send,
+  void generateInstanceSetterWithCompiledReceiver(ast.Send send,
                                                   HInstruction receiver,
                                                   HInstruction value,
                                                   {Selector selector,
-                                                   Node location}) {
+                                                   ast.Node location}) {
     assert(send == null || Elements.isInstanceSend(send, elements));
     if (selector == null) {
       assert(send != null);
@@ -3177,10 +3177,10 @@ abstract class SsaFromAstMixin
     stack.add(value);
   }
 
-  void generateNonInstanceSetter(SendSet send,
+  void generateNonInstanceSetter(ast.SendSet send,
                                  Element element,
                                  HInstruction value,
-                                 {Node location}) {
+                                 {ast.Node location}) {
     assert(send == null || !Elements.isInstanceSend(send, elements));
     if (location == null) {
       assert(send != null);
@@ -3261,8 +3261,8 @@ abstract class SsaFromAstMixin
     }
   }
 
-  visitOperatorSend(Send node) {
-    Operator op = node.selector;
+  visitOperatorSend(ast.Send node) {
+    ast.Operator op = node.selector;
     if ("[]" == op.source) {
       visitDynamicSend(node);
     } else if ("&&" == op.source ||
@@ -3270,7 +3270,7 @@ abstract class SsaFromAstMixin
       visitLogicalAndOr(node, op);
     } else if ("!" == op.source) {
       visitLogicalNot(node);
-    } else if (node.argumentsNode is Prefix) {
+    } else if (node.argumentsNode is ast.Prefix) {
       visitUnary(node, op);
     } else if ("is" == op.source) {
       visitIsSend(node);
@@ -3296,7 +3296,7 @@ abstract class SsaFromAstMixin
     }
   }
 
-  void visitIsSend(Send node) {
+  void visitIsSend(ast.Send node) {
     visit(node.receiver);
     HInstruction expression = pop();
     bool isNot = node.isIsNotCheck;
@@ -3310,7 +3310,7 @@ abstract class SsaFromAstMixin
     push(instruction);
   }
 
-  HInstruction buildIsNode(Node node, DartType type, HInstruction expression) {
+  HInstruction buildIsNode(ast.Node node, DartType type, HInstruction expression) {
     type = type.unalias(compiler);
     if (type.kind == TypeKind.FUNCTION) {
       List arguments = [buildFunctionType(type), expression];
@@ -3364,13 +3364,13 @@ abstract class SsaFromAstMixin
     return pop();
   }
 
-  void addDynamicSendArgumentsToList(Send node, List<HInstruction> list) {
+  void addDynamicSendArgumentsToList(ast.Send node, List<HInstruction> list) {
     Selector selector = elements.getSelector(node);
     if (selector.namedArgumentCount == 0) {
       addGenericSendArgumentsToList(node.arguments, list);
     } else {
       // Visit positional arguments and add them to the list.
-      Link<Node> arguments = node.arguments;
+      Link<ast.Node> arguments = node.arguments;
       int positionalArgumentCount = selector.positionalArgumentCount;
       for (int i = 0;
            i < positionalArgumentCount;
@@ -3405,12 +3405,12 @@ abstract class SsaFromAstMixin
    * Invariant: [element] must be an implementation element.
    */
   bool addStaticSendArgumentsToList(Selector selector,
-                                    Link<Node> arguments,
+                                    Link<ast.Node> arguments,
                                     FunctionElement element,
                                     List<HInstruction> list) {
     assert(invariant(element, element.isImplementation));
 
-    HInstruction compileArgument(Node argument) {
+    HInstruction compileArgument(ast.Node argument) {
       visit(argument);
       return pop();
     }
@@ -3423,14 +3423,14 @@ abstract class SsaFromAstMixin
                                        compiler);
   }
 
-  void addGenericSendArgumentsToList(Link<Node> link, List<HInstruction> list) {
+  void addGenericSendArgumentsToList(Link<ast.Node> link, List<HInstruction> list) {
     for (; !link.isEmpty; link = link.tail) {
       visit(link.head);
       list.add(pop());
     }
   }
 
-  visitDynamicSend(Send node) {
+  visitDynamicSend(ast.Send node) {
     Selector selector = elements.getSelector(node);
 
     List<HInstruction> inputs = <HInstruction>[];
@@ -3445,7 +3445,7 @@ abstract class SsaFromAstMixin
     }
   }
 
-  visitClosureSend(Send node) {
+  visitClosureSend(ast.Send node) {
     Selector selector = elements.getSelector(node);
     assert(node.receiver == null);
     Element element = elements[node];
@@ -3466,8 +3466,8 @@ abstract class SsaFromAstMixin
         node);
   }
 
-  void handleForeignJs(Send node) {
-    Link<Node> link = node.arguments;
+  void handleForeignJs(ast.Send node) {
+    Link<ast.Node> link = node.arguments;
     // If the invoke is on foreign code, don't visit the first
     // argument, which is the type, and the second argument,
     // which is the foreign code.
@@ -3489,7 +3489,7 @@ abstract class SsaFromAstMixin
     return;
   }
 
-  void handleForeignJsCurrentIsolateContext(Send node) {
+  void handleForeignJsCurrentIsolateContext(ast.Send node) {
     if (!node.arguments.isEmpty) {
       compiler.cancel(
           'Too many arguments to JS_CURRENT_ISOLATE_CONTEXT', node: node);
@@ -3515,9 +3515,9 @@ abstract class SsaFromAstMixin
     }
   }
 
-  void handleForeignJsGetName(Send node) {
-    List<Node> arguments = node.arguments.toList();
-    Node argument;
+  void handleForeignJsGetName(ast.Send node) {
+    List<ast.Node> arguments = node.arguments.toList();
+    ast.Node argument;
     switch (arguments.length) {
     case 0:
       compiler.reportError(
@@ -3535,7 +3535,7 @@ abstract class SsaFromAstMixin
       }
       return;
     }
-    LiteralString string = argument.asLiteralString();
+    ast.LiteralString string = argument.asLiteralString();
     if (string == null) {
       compiler.reportError(
           argument, MessageKind.GENERIC,
@@ -3547,11 +3547,11 @@ abstract class SsaFromAstMixin
                 argument, string.dartString.slowToString())));
   }
 
-  void handleJsInterceptorConstant(Send node) {
+  void handleJsInterceptorConstant(ast.Send node) {
     // Single argument must be a TypeConstant which is converted into a
     // InterceptorConstant.
     if (!node.arguments.isEmpty && node.arguments.tail.isEmpty) {
-      Node argument = node.arguments.head;
+      ast.Node argument = node.arguments.head;
       visit(argument);
       HInstruction argumentInstruction = pop();
       if (argumentInstruction is HConstant) {
@@ -3570,8 +3570,8 @@ abstract class SsaFromAstMixin
     stack.add(graph.addConstantNull(compiler));
   }
 
-  void handleForeignJsCallInIsolate(Send node) {
-    Link<Node> link = node.arguments;
+  void handleForeignJsCallInIsolate(ast.Send node) {
+    Link<ast.Node> link = node.arguments;
     if (!compiler.hasIsolateSupport()) {
       // If the isolate library is not used, we just invoke the
       // closure.
@@ -3593,12 +3593,12 @@ abstract class SsaFromAstMixin
     }
   }
 
-  FunctionSignature handleForeignRawFunctionRef(Send node, String name) {
+  FunctionSignature handleForeignRawFunctionRef(ast.Send node, String name) {
     if (node.arguments.isEmpty || !node.arguments.tail.isEmpty) {
       compiler.cancel('"$name" requires exactly one argument',
                       node: node.argumentsNode);
     }
-    Node closure = node.arguments.head;
+    ast.Node closure = node.arguments.head;
     Element element = elements[closure];
     if (!Elements.isStaticOrTopLevelFunction(element)) {
       compiler.cancel(
@@ -3624,14 +3624,14 @@ abstract class SsaFromAstMixin
     return params;
   }
 
-  void handleForeignDartClosureToJs(Send node, String name) {
+  void handleForeignDartClosureToJs(ast.Send node, String name) {
     // TODO(ahe): This implements DART_CLOSURE_TO_JS and should probably take
     // care to wrap the closure in another closure that saves the current
     // isolate.
     handleForeignRawFunctionRef(node, name);
   }
 
-  void handleForeignSetCurrentIsolate(Send node) {
+  void handleForeignSetCurrentIsolate(ast.Send node) {
     if (node.arguments.isEmpty || !node.arguments.tail.isEmpty) {
       compiler.cancel('Exactly one argument required',
                       node: node.argumentsNode);
@@ -3646,7 +3646,7 @@ abstract class SsaFromAstMixin
                       effects: sideEffects));
   }
 
-  void handleForeignCreateIsolate(Send node) {
+  void handleForeignCreateIsolate(ast.Send node) {
     if (!node.arguments.isEmpty) {
       compiler.cancel('Too many arguments',
                       node: node.argumentsNode);
@@ -3657,7 +3657,7 @@ abstract class SsaFromAstMixin
                       <HInstruction>[]));
   }
 
-  void handleForeignDartObjectJsConstructorFunction(Send node) {
+  void handleForeignDartObjectJsConstructorFunction(ast.Send node) {
     if (!node.arguments.isEmpty) {
       compiler.cancel('Too many arguments', node: node.argumentsNode);
     }
@@ -3667,7 +3667,7 @@ abstract class SsaFromAstMixin
                       <HInstruction>[]));
   }
 
-  void handleForeignJsCurrentIsolate(Send node) {
+  void handleForeignJsCurrentIsolate(ast.Send node) {
     if (!node.arguments.isEmpty) {
       compiler.cancel('Too many arguments', node: node.argumentsNode);
     }
@@ -3676,7 +3676,7 @@ abstract class SsaFromAstMixin
                       <HInstruction>[]));
   }
 
-  visitForeignSend(Send node) {
+  visitForeignSend(ast.Send node) {
     Selector selector = elements.getSelector(node);
     String name = selector.name;
     if (name == 'JS') {
@@ -3745,7 +3745,7 @@ abstract class SsaFromAstMixin
     }
   }
 
-  generateSuperNoSuchMethodSend(Send node,
+  generateSuperNoSuchMethodSend(ast.Send node,
                                 Selector selector,
                                 List<HInstruction> arguments) {
     String name = selector.name;
@@ -3764,11 +3764,11 @@ abstract class SsaFromAstMixin
     if (selector.isSetter()) publicName += '=';
 
     Constant nameConstant = constantSystem.createString(
-        new DartString.literal(publicName));
+        new ast.DartString.literal(publicName));
 
     String internalName = backend.namer.invocationName(selector);
     Constant internalNameConstant =
-        constantSystem.createString(new DartString.literal(internalName));
+        constantSystem.createString(new ast.DartString.literal(internalName));
 
     Element createInvocationMirror = backend.getCreateInvocationMirror();
     var argumentsInstruction = buildLiteralList(arguments);
@@ -3777,7 +3777,7 @@ abstract class SsaFromAstMixin
     var argumentNames = new List<HInstruction>();
     for (String argumentName in selector.namedArguments) {
       Constant argumentNameConstant =
-          constantSystem.createString(new DartString.literal(argumentName));
+          constantSystem.createString(new ast.DartString.literal(argumentName));
       argumentNames.add(graph.addConstant(argumentNameConstant, compiler));
     }
     var argumentNamesInstruction = buildLiteralList(argumentNames);
@@ -3799,7 +3799,7 @@ abstract class SsaFromAstMixin
     push(buildInvokeSuper(compiler.noSuchMethodSelector, element, inputs));
   }
 
-  visitSuperSend(Send node) {
+  visitSuperSend(ast.Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
     if (Elements.isUnresolved(element)) {
@@ -3867,7 +3867,7 @@ abstract class SsaFromAstMixin
       // segmentation of '$'.
       String substitutionNameString = backend.namer.getNameForRti(cls);
       HInstruction substitutionName = graph.addConstantString(
-          new LiteralDartString(substitutionNameString), compiler);
+          new ast.LiteralDartString(substitutionNameString), compiler);
       pushInvokeStatic(null,
                        backend.getGetRuntimeTypeArgument(),
                        [target, substitutionName, index],
@@ -3965,7 +3965,7 @@ abstract class SsaFromAstMixin
   }
 
   HInstruction handleListConstructor(InterfaceType type,
-                                     Node currentNode,
+                                     ast.Node currentNode,
                                      HInstruction newObject) {
     if (!backend.classNeedsRti(type.element) || type.treatAsRaw) {
       return newObject;
@@ -4011,8 +4011,8 @@ abstract class SsaFromAstMixin
     return pop();
   }
 
-  handleNewSend(NewExpression node) {
-    Send send = node.send;
+  handleNewSend(ast.NewExpression node) {
+    ast.Send send = node.send;
     bool isFixedList = false;
     bool isFixedListConstructorCall =
         Elements.isFixedListConstructorCall(elements[send], send, compiler);
@@ -4186,7 +4186,7 @@ abstract class SsaFromAstMixin
 
   /// In checked mode checks the [type] of [node] to be well-bounded. The method
   /// returns [:true:] if an error can be statically determined.
-  bool checkTypeVariableBounds(NewExpression node, InterfaceType type) {
+  bool checkTypeVariableBounds(ast.NewExpression node, InterfaceType type) {
     if (!compiler.enableTypeAssertions) return false;
 
     Map<DartType, Set<DartType>> seenChecksMap =
@@ -4248,7 +4248,7 @@ abstract class SsaFromAstMixin
     visitStaticSend(node);
   }
 
-  visitStaticSend(Send node) {
+  visitStaticSend(ast.Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
     if (element.isForeign(compiler)) {
@@ -4295,12 +4295,12 @@ abstract class SsaFromAstMixin
   }
 
   HConstant addConstantString(String string) {
-    DartString dartString = new DartString.literal(string);
+    ast.DartString dartString = new ast.DartString.literal(string);
     Constant constant = constantSystem.createString(dartString);
     return graph.addConstant(constant, compiler);
   }
 
-  visitTypeReferenceSend(Send node) {
+  visitTypeReferenceSend(ast.Send node) {
     Element element = elements[node];
     if (element.isClass() || element.isTypedef()) {
       // TODO(karlklose): add type representation
@@ -4338,44 +4338,44 @@ abstract class SsaFromAstMixin
     }
   }
 
-  visitGetterSend(Send node) {
+  visitGetterSend(ast.Send node) {
     generateGetter(node, elements[node]);
   }
 
   // TODO(antonm): migrate rest of SsaFromAstMixin to internalError.
-  internalError(String reason, {Node node}) {
+  internalError(String reason, {ast.Node node}) {
     compiler.internalError(reason, node: node);
   }
 
-  void generateError(Node node, String message, Element helper) {
+  void generateError(ast.Node node, String message, Element helper) {
     HInstruction errorMessage = addConstantString(message);
     pushInvokeStatic(node, helper, [errorMessage]);
   }
 
-  void generateRuntimeError(Node node, String message) {
+  void generateRuntimeError(ast.Node node, String message) {
     generateError(node, message, backend.getThrowRuntimeError());
   }
 
-  void generateTypeError(Node node, String message) {
+  void generateTypeError(ast.Node node, String message) {
     generateError(node, message, backend.getThrowTypeError());
   }
 
-  void generateAbstractClassInstantiationError(Node node, String message) {
+  void generateAbstractClassInstantiationError(ast.Node node, String message) {
     generateError(node,
                   message,
                   backend.getThrowAbstractClassInstantiationError());
   }
 
-  void generateThrowNoSuchMethod(Node diagnosticNode,
+  void generateThrowNoSuchMethod(ast.Node diagnosticNode,
                                  String methodName,
-                                 {Link<Node> argumentNodes,
+                                 {Link<ast.Node> argumentNodes,
                                   List<HInstruction> argumentValues,
                                   List<String> existingArguments}) {
     Element helper = backend.getThrowNoSuchMethod();
     Constant receiverConstant =
-        constantSystem.createString(new DartString.empty());
+        constantSystem.createString(new ast.DartString.empty());
     HInstruction receiver = graph.addConstant(receiverConstant, compiler);
-    DartString dartString = new DartString.literal(methodName);
+    ast.DartString dartString = new ast.DartString.literal(methodName);
     Constant nameConstant = constantSystem.createString(dartString);
     HInstruction name = graph.addConstant(nameConstant, compiler);
     if (argumentValues == null) {
@@ -4393,7 +4393,7 @@ abstract class SsaFromAstMixin
       List<HInstruction> existingNames = <HInstruction>[];
       for (String name in existingArguments) {
         HInstruction nameConstant =
-            graph.addConstantString(new DartString.literal(name), compiler);
+            graph.addConstantString(new ast.DartString.literal(name), compiler);
         existingNames.add(nameConstant);
       }
       existingNamesList = buildLiteralList(existingNames);
@@ -4411,9 +4411,9 @@ abstract class SsaFromAstMixin
    * method with a wrong number of arguments or mismatching named optional
    * arguments.
    */
-  void generateWrongArgumentCountError(Node diagnosticNode,
+  void generateWrongArgumentCountError(ast.Node diagnosticNode,
                                        FunctionElement function,
-                                       Link<Node> argumentNodes) {
+                                       Link<ast.Node> argumentNodes) {
     List<String> existingArguments = <String>[];
     FunctionSignature signature = function.computeSignature(compiler);
     signature.forEachParameter((Element parameter) {
@@ -4425,7 +4425,7 @@ abstract class SsaFromAstMixin
                               existingArguments: existingArguments);
   }
 
-  visitNewExpression(NewExpression node) {
+  visitNewExpression(ast.NewExpression node) {
     Element element = elements[node.send];
     final bool isSymbolConstructor = element == compiler.symbolConstructor;
     if (!Elements.isErroneousElement(element)) {
@@ -4455,10 +4455,10 @@ abstract class SsaFromAstMixin
     }
   }
 
-  void pushInvokeDynamic(Node node,
+  void pushInvokeDynamic(ast.Node node,
                          Selector selector,
                          List<HInstruction> arguments,
-                         {Node location}) {
+                         {ast.Node location}) {
     if (location == null) location = node;
 
     // We prefer to not inline certain operations on indexables,
@@ -4531,7 +4531,7 @@ abstract class SsaFromAstMixin
     }
   }
 
-  void pushInvokeStatic(Node location,
+  void pushInvokeStatic(ast.Node location,
                         Element element,
                         List<HInstruction> arguments,
                         [TypeMask type]) {
@@ -4591,9 +4591,9 @@ abstract class SsaFromAstMixin
     return instruction;
   }
 
-  void handleComplexOperatorSend(SendSet node,
+  void handleComplexOperatorSend(ast.SendSet node,
                                  HInstruction receiver,
-                                 Link<Node> arguments) {
+                                 Link<ast.Node> arguments) {
     HInstruction rhs;
     if (node.isPrefix || node.isPostfix) {
       rhs = graph.addConstantInt(1, compiler);
@@ -4606,15 +4606,15 @@ abstract class SsaFromAstMixin
                 elements.getOperatorSelectorInComplexSendSet(node), node);
   }
 
-  visitSendSet(SendSet node) {
+  visitSendSet(ast.SendSet node) {
     Element element = elements[node];
     if (!Elements.isUnresolved(element) && element.impliesType()) {
-      Identifier selector = node.selector;
+      ast.Identifier selector = node.selector;
       generateThrowNoSuchMethod(node, selector.source,
                                 argumentNodes: node.arguments);
       return;
     }
-    Operator op = node.assignmentOperator;
+    ast.Operator op = node.assignmentOperator;
     if (node.isSuperCall) {
       HInstruction result;
       List<HInstruction> setterInputs = <HInstruction>[];
@@ -4624,7 +4624,7 @@ abstract class SsaFromAstMixin
       } else {
         Element getter = elements[node.selector];
         List<HInstruction> getterInputs = <HInstruction>[];
-        Link<Node> arguments = node.arguments;
+        Link<ast.Node> arguments = node.arguments;
         if (node.isIndex) {
           // If node is of the from [:super.foo[0] += 2:], the send has
           // two arguments: the index and the left hand side. We get
@@ -4675,7 +4675,7 @@ abstract class SsaFromAstMixin
       } else {
         visit(node.receiver);
         HInstruction receiver = pop();
-        Link<Node> arguments = node.arguments;
+        Link<ast.Node> arguments = node.arguments;
         HInstruction index;
         if (node.isIndex) {
           visit(arguments.head);
@@ -4703,7 +4703,7 @@ abstract class SsaFromAstMixin
         }
       }
     } else if ("=" == op.source) {
-      Link<Node> link = node.arguments;
+      Link<ast.Node> link = node.arguments;
       assert(!link.isEmpty && link.tail.isEmpty);
       if (Elements.isInstanceSend(node, elements)) {
         HInstruction receiver = generateInstanceSendReceiver(node);
@@ -4724,7 +4724,7 @@ abstract class SsaFromAstMixin
       Element getter = elements[node.selector];
 
       if (!Elements.isUnresolved(getter) && getter.impliesType()) {
-        Identifier selector = node.selector;
+        ast.Identifier selector = node.selector;
         generateThrowNoSuchMethod(node, selector.source,
                                   argumentNodes: node.arguments);
         return;
@@ -4753,29 +4753,29 @@ abstract class SsaFromAstMixin
     }
   }
 
-  void visitLiteralInt(LiteralInt node) {
+  void visitLiteralInt(ast.LiteralInt node) {
     stack.add(graph.addConstantInt(node.value, compiler));
   }
 
-  void visitLiteralDouble(LiteralDouble node) {
+  void visitLiteralDouble(ast.LiteralDouble node) {
     stack.add(graph.addConstantDouble(node.value, compiler));
   }
 
-  void visitLiteralBool(LiteralBool node) {
+  void visitLiteralBool(ast.LiteralBool node) {
     stack.add(graph.addConstantBool(node.value, compiler));
   }
 
-  void visitLiteralString(LiteralString node) {
+  void visitLiteralString(ast.LiteralString node) {
     stack.add(graph.addConstantString(node.dartString, compiler));
   }
 
-  void visitLiteralSymbol(LiteralSymbol node) {
+  void visitLiteralSymbol(ast.LiteralSymbol node) {
     stack.add(addConstant(node));
     compiler.enqueuer.codegen.registerConstSymbol(
         node.slowNameString, elements);
   }
 
-  void visitStringJuxtaposition(StringJuxtaposition node) {
+  void visitStringJuxtaposition(ast.StringJuxtaposition node) {
     if (!node.isInterpolation) {
       // This is a simple string with no interpolations.
       stack.add(graph.addConstantString(node.dartString, compiler));
@@ -4786,12 +4786,12 @@ abstract class SsaFromAstMixin
     stack.add(stringBuilder.result);
   }
 
-  void visitLiteralNull(LiteralNull node) {
+  void visitLiteralNull(ast.LiteralNull node) {
     stack.add(graph.addConstantNull(compiler));
   }
 
-  visitNodeList(NodeList node) {
-    for (Link<Node> link = node.nodes; !link.isEmpty; link = link.tail) {
+  visitNodeList(ast.NodeList node) {
+    for (Link<ast.Node> link = node.nodes; !link.isEmpty; link = link.tail) {
       if (isAborted()) {
         compiler.reportWarning(link.head, 'dead code');
       } else {
@@ -4800,22 +4800,22 @@ abstract class SsaFromAstMixin
     }
   }
 
-  void visitParenthesizedExpression(ParenthesizedExpression node) {
+  void visitParenthesizedExpression(ast.ParenthesizedExpression node) {
     visit(node.expression);
   }
 
-  visitOperator(Operator node) {
+  visitOperator(ast.Operator node) {
     // Operators are intercepted in their surrounding Send nodes.
     compiler.internalError('visitOperator should not be called', node: node);
   }
 
-  visitCascade(Cascade node) {
+  visitCascade(ast.Cascade node) {
     visit(node.expression);
     // Remove the result and reveal the duplicated receiver on the stack.
     pop();
   }
 
-  visitCascadeReceiver(CascadeReceiver node) {
+  visitCascadeReceiver(ast.CascadeReceiver node) {
     visit(node.expression);
     dup();
   }
@@ -4828,7 +4828,7 @@ abstract class SsaFromAstMixin
     open(newBlock);
   }
 
-  visitRethrow(Rethrow node) {
+  visitRethrow(ast.Rethrow node) {
     HInstruction exception = rethrowableException;
     if (exception == null) {
       exception = graph.addConstantNull(compiler);
@@ -4839,7 +4839,7 @@ abstract class SsaFromAstMixin
     closeAndGotoExit(new HThrow(exception, isRethrow: true));
   }
 
-  visitReturn(Return node) {
+  visitReturn(ast.Return node) {
     if (identical(node.getBeginToken().stringValue, 'native')) {
       native.handleSsaNative(this, node.expression);
       return;
@@ -4890,7 +4890,7 @@ abstract class SsaFromAstMixin
     emitReturn(value, node);
   }
 
-  visitThrow(Throw node) {
+  visitThrow(ast.Throw node) {
     visitThrowExpression(node.expression);
     if (isReachable) {
       handleInTryStatement();
@@ -4899,29 +4899,29 @@ abstract class SsaFromAstMixin
     }
   }
 
-  visitTypeAnnotation(TypeAnnotation node) {
+  visitTypeAnnotation(ast.TypeAnnotation node) {
     compiler.internalError('visiting type annotation in SSA builder',
                            node: node);
   }
 
-  visitVariableDefinitions(VariableDefinitions node) {
+  visitVariableDefinitions(ast.VariableDefinitions node) {
     assert(isReachable);
-    for (Link<Node> link = node.definitions.nodes;
+    for (Link<ast.Node> link = node.definitions.nodes;
          !link.isEmpty;
          link = link.tail) {
-      Node definition = link.head;
-      if (definition is Identifier) {
+      ast.Node definition = link.head;
+      if (definition is ast.Identifier) {
         HInstruction initialValue = graph.addConstantNull(compiler);
         localsHandler.updateLocal(elements[definition], initialValue);
       } else {
-        assert(definition is SendSet);
+        assert(definition is ast.SendSet);
         visitSendSet(definition);
         pop();  // Discard value.
       }
     }
   }
 
-  HInstruction setRtiIfNeeded(HInstruction object, Node node) {
+  HInstruction setRtiIfNeeded(HInstruction object, ast.Node node) {
     InterfaceType type = elements.getType(node);
     if (!backend.classNeedsRti(type.element) || type.treatAsRaw) {
       return object;
@@ -4935,14 +4935,14 @@ abstract class SsaFromAstMixin
     return callSetRuntimeTypeInfo(type.element, arguments, object);
   }
 
-  visitLiteralList(LiteralList node) {
+  visitLiteralList(ast.LiteralList node) {
     HInstruction instruction;
 
     if (node.isConst()) {
       instruction = addConstant(node);
     } else {
       List<HInstruction> inputs = <HInstruction>[];
-      for (Link<Node> link = node.elements.nodes;
+      for (Link<ast.Node> link = node.elements.nodes;
            !link.isEmpty;
            link = link.tail) {
         visit(link.head);
@@ -4959,34 +4959,34 @@ abstract class SsaFromAstMixin
     stack.add(instruction);
   }
 
-  visitConditional(Conditional node) {
+  visitConditional(ast.Conditional node) {
     SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
     brancher.handleConditional(() => visit(node.condition),
                                () => visit(node.thenExpression),
                                () => visit(node.elseExpression));
   }
 
-  visitStringInterpolation(StringInterpolation node) {
+  visitStringInterpolation(ast.StringInterpolation node) {
     StringBuilderVisitor stringBuilder = new StringBuilderVisitor(this, node);
     stringBuilder.visit(node);
     stack.add(stringBuilder.result);
   }
 
-  visitStringInterpolationPart(StringInterpolationPart node) {
+  visitStringInterpolationPart(ast.StringInterpolationPart node) {
     // The parts are iterated in visitStringInterpolation.
     compiler.internalError('visitStringInterpolation should not be called',
                            node: node);
   }
 
-  visitEmptyStatement(EmptyStatement node) {
+  visitEmptyStatement(ast.EmptyStatement node) {
     // Do nothing, empty statement.
   }
 
-  visitModifiers(Modifiers node) {
+  visitModifiers(ast.Modifiers node) {
     compiler.unimplemented('SsaFromAstMixin.visitModifiers', node: node);
   }
 
-  visitBreakStatement(BreakStatement node) {
+  visitBreakStatement(ast.BreakStatement node) {
     assert(!isAborted());
     handleInTryStatement();
     TargetElement target = elements[node];
@@ -5001,7 +5001,7 @@ abstract class SsaFromAstMixin
     }
   }
 
-  visitContinueStatement(ContinueStatement node) {
+  visitContinueStatement(ast.ContinueStatement node) {
     handleInTryStatement();
     TargetElement target = elements[node];
     assert(target != null);
@@ -5025,13 +5025,13 @@ abstract class SsaFromAstMixin
    * to distinguish the synthetized loop created for a switch statement with
    * continue statements from simple switch statements.
    */
-  JumpHandler createJumpHandler(Statement node, {bool isLoopJump}) {
+  JumpHandler createJumpHandler(ast.Statement node, {bool isLoopJump}) {
     TargetElement element = elements[node];
     if (element == null || !identical(element.statement, node)) {
       // No breaks or continues to this node.
       return new NullJumpHandler(compiler);
     }
-    if (isLoopJump && node is SwitchStatement) {
+    if (isLoopJump && node is ast.SwitchStatement) {
       // Create a special jump handler for loops created for switch statements
       // with continue statements.
       return new SwitchCaseJumpHandler(this, element, node);
@@ -5039,7 +5039,7 @@ abstract class SsaFromAstMixin
     return new JumpHandler(this, element);
   }
 
-  visitForIn(ForIn node) {
+  visitForIn(ast.ForIn node) {
     // Generate a structure equivalent to:
     //   Iterator<E> $iter = <iterable>.iterator;
     //   while ($iter.moveNext()) {
@@ -5065,7 +5065,7 @@ abstract class SsaFromAstMixin
       Selector call = elements.getCurrentSelector(node);
       pushInvokeDynamic(node, call, [iterator]);
 
-      Node identifier = node.declaredIdentifier;
+      ast.Node identifier = node.declaredIdentifier;
       Element variable = elements[identifier];
       Selector selector = elements.getSelector(identifier);
 
@@ -5090,14 +5090,14 @@ abstract class SsaFromAstMixin
     handleLoop(node, buildInitializer, buildCondition, () {}, buildBody);
   }
 
-  visitLabel(Label node) {
+  visitLabel(ast.Label node) {
     compiler.internalError('SsaFromAstMixin.visitLabel', node: node);
   }
 
-  visitLabeledStatement(LabeledStatement node) {
-    Statement body = node.statement;
-    if (body is Loop
-        || body is SwitchStatement
+  visitLabeledStatement(ast.LabeledStatement node) {
+    ast.Statement body = node.statement;
+    if (body is ast.Loop
+        || body is ast.SwitchStatement
         || Elements.isUnusedLabel(node, elements)) {
       // Loops and switches handle their own labels.
       visit(body);
@@ -5136,13 +5136,13 @@ abstract class SsaFromAstMixin
     handler.close();
   }
 
-  visitLiteralMap(LiteralMap node) {
+  visitLiteralMap(ast.LiteralMap node) {
     if (node.isConst()) {
       stack.add(addConstant(node));
       return;
     }
     List<HInstruction> inputs = <HInstruction>[];
-    for (Link<Node> link = node.entries.nodes;
+    for (Link<ast.Node> link = node.entries.nodes;
          !link.isEmpty;
          link = link.tail) {
       visit(link.head);
@@ -5156,21 +5156,21 @@ abstract class SsaFromAstMixin
     stack.add(setRtiIfNeeded(pop(), node));
   }
 
-  visitLiteralMapEntry(LiteralMapEntry node) {
+  visitLiteralMapEntry(ast.LiteralMapEntry node) {
     visit(node.value);
     visit(node.key);
   }
 
-  visitNamedArgument(NamedArgument node) {
+  visitNamedArgument(ast.NamedArgument node) {
     visit(node.expression);
   }
 
-  Map<CaseMatch, Constant> buildSwitchCaseConstants(SwitchStatement node) {
-    Map<CaseMatch, Constant> constants = new Map<CaseMatch, Constant>();
-    for (SwitchCase switchCase in node.cases) {
-      for (Node labelOrCase in switchCase.labelsAndCases) {
-        if (labelOrCase is CaseMatch) {
-          CaseMatch match = labelOrCase;
+  Map<ast.CaseMatch, Constant> buildSwitchCaseConstants(ast.SwitchStatement node) {
+    Map<ast.CaseMatch, Constant> constants = new Map<ast.CaseMatch, Constant>();
+    for (ast.SwitchCase switchCase in node.cases) {
+      for (ast.Node labelOrCase in switchCase.labelsAndCases) {
+        if (labelOrCase is ast.CaseMatch) {
+          ast.CaseMatch match = labelOrCase;
           Constant constant = getConstantForNode(match.expression);
           constants[labelOrCase] = constant;
         }
@@ -5179,18 +5179,18 @@ abstract class SsaFromAstMixin
     return constants;
   }
 
-  visitSwitchStatement(SwitchStatement node) {
-    Map<CaseMatch,Constant> constants = buildSwitchCaseConstants(node);
+  visitSwitchStatement(ast.SwitchStatement node) {
+    Map<ast.CaseMatch,Constant> constants = buildSwitchCaseConstants(node);
 
     // The switch case indices must match those computed in
     // [SwitchCaseJumpHandler].
     bool hasContinue = false;
-    Map<SwitchCase, int> caseIndex = new Map<SwitchCase, int>();
+    Map<ast.SwitchCase, int> caseIndex = new Map<ast.SwitchCase, int>();
     int switchIndex = 1;
     bool hasDefault = false;
-    for (SwitchCase switchCase in node.cases) {
-      for (Node labelOrCase in switchCase.labelsAndCases) {
-        Node label = labelOrCase.asLabel();
+    for (ast.SwitchCase switchCase in node.cases) {
+      for (ast.Node labelOrCase in switchCase.labelsAndCases) {
+        ast.Node label = labelOrCase.asLabel();
         if (label != null) {
           LabelElement labelElement = elements[label];
           if (labelElement != null && labelElement.isContinueTarget) {
@@ -5217,26 +5217,26 @@ abstract class SsaFromAstMixin
    * Builds a simple switch statement which does not handle uses of continue
    * statements to labeled switch cases.
    */
-  void buildSimpleSwitchStatement(SwitchStatement node,
-                                  Map<CaseMatch, Constant> constants) {
+  void buildSimpleSwitchStatement(ast.SwitchStatement node,
+                                  Map<ast.CaseMatch, Constant> constants) {
     JumpHandler jumpHandler = createJumpHandler(node, isLoopJump: false);
     HInstruction buildExpression() {
       visit(node.expression);
       return pop();
     }
-    Iterable<Constant> getConstants(SwitchCase switchCase) {
+    Iterable<Constant> getConstants(ast.SwitchCase switchCase) {
       List<Constant> constantList = <Constant>[];
-      for (Node labelOrCase in switchCase.labelsAndCases) {
-        if (labelOrCase is CaseMatch) {
+      for (ast.Node labelOrCase in switchCase.labelsAndCases) {
+        if (labelOrCase is ast.CaseMatch) {
           constantList.add(constants[labelOrCase]);
         }
       }
       return constantList;
     }
-    bool isDefaultCase(SwitchCase switchCase) {
+    bool isDefaultCase(ast.SwitchCase switchCase) {
       return switchCase.isDefaultCase;
     }
-    void buildSwitchCase(SwitchCase node) {
+    void buildSwitchCase(ast.SwitchCase node) {
       visit(node.statements);
     }
     handleSwitch(node,
@@ -5253,9 +5253,9 @@ abstract class SsaFromAstMixin
    * Builds a switch statement that can handle arbitrary uses of continue
    * statements to labeled switch cases.
    */
-  void buildComplexSwitchStatement(SwitchStatement node,
-                                   Map<CaseMatch, Constant> constants,
-                                   Map<SwitchCase, int> caseIndex,
+  void buildComplexSwitchStatement(ast.SwitchStatement node,
+                                   Map<ast.CaseMatch, Constant> constants,
+                                   Map<ast.SwitchCase, int> caseIndex,
                                    bool hasDefault) {
     // If the switch statement has switch cases targeted by continue
     // statements we create the following encoding:
@@ -5301,21 +5301,21 @@ abstract class SsaFromAstMixin
       visit(node.expression);
       return pop();
     }
-    Iterable<Constant> getConstants(SwitchCase switchCase) {
+    Iterable<Constant> getConstants(ast.SwitchCase switchCase) {
       List<Constant> constantList = <Constant>[];
       if (switchCase != null) {
-        for (Node labelOrCase in switchCase.labelsAndCases) {
-          if (labelOrCase is CaseMatch) {
+        for (ast.Node labelOrCase in switchCase.labelsAndCases) {
+          if (labelOrCase is ast.CaseMatch) {
             constantList.add(constants[labelOrCase]);
           }
         }
       }
       return constantList;
     }
-    bool isDefaultCase(SwitchCase switchCase) {
+    bool isDefaultCase(ast.SwitchCase switchCase) {
       return switchCase == null || switchCase.isDefaultCase;
     }
-    void buildSwitchCase(SwitchCase switchCase) {
+    void buildSwitchCase(ast.SwitchCase switchCase) {
       if (switchCase != null) {
         // Generate 'target = i; break;' for switch case i.
         int index = caseIndex[switchCase];
@@ -5344,10 +5344,10 @@ abstract class SsaFromAstMixin
       HInstruction buildExpression() {
         return localsHandler.readLocal(switchTarget);
       }
-      Iterable<Constant> getConstants(SwitchCase switchCase) {
+      Iterable<Constant> getConstants(ast.SwitchCase switchCase) {
         return <Constant>[constantSystem.createInt(caseIndex[switchCase])];
       }
-      void buildSwitchCase(SwitchCase switchCase) {
+      void buildSwitchCase(ast.SwitchCase switchCase) {
         visit(switchCase.statements);
         if (!isAborted()) {
           // Ensure that we break the loop if the case falls through. (This
@@ -5393,21 +5393,21 @@ abstract class SsaFromAstMixin
    *
    * [jumpHandler] is the [JumpHandler] for the created switch statement.
    * [buildExpression] creates the switch expression.
-   * [switchCases] must be either an [Iterable] of [SwitchCase] nodes or
-   *   a [Link] or a [NodeList] of [SwitchCase] nodes.
+   * [switchCases] must be either an [Iterable] of [ast.SwitchCase] nodes or
+   *   a [Link] or a [ast.NodeList] of [ast.SwitchCase] nodes.
    * [getConstants] returns the set of constants for a switch case.
    * [isDefaultCase] returns [:true:] if the provided switch case should be
    *   considered default for the created switch statement.
    * [buildSwitchCase] creates the statements for the switch case.
    */
-  void handleSwitch(Node errorNode,
+  void handleSwitch(ast.Node errorNode,
                     JumpHandler jumpHandler,
                     HInstruction buildExpression(),
                     var switchCases,
-                    Iterable<Constant> getConstants(SwitchCase switchCase),
-                    bool isDefaultCase(SwitchCase switchCase),
-                    void buildSwitchCase(SwitchCase switchCase)) {
-    Map<CaseMatch, Constant> constants = new Map<CaseMatch, Constant>();
+                    Iterable<Constant> getConstants(ast.SwitchCase switchCase),
+                    bool isDefaultCase(ast.SwitchCase switchCase),
+                    void buildSwitchCase(ast.SwitchCase switchCase)) {
+    Map<ast.CaseMatch, Constant> constants = new Map<ast.CaseMatch, Constant>();
 
     HBasicBlock expressionStart = openNewBlock();
     HInstruction expression = buildExpression();
@@ -5422,10 +5422,10 @@ abstract class SsaFromAstMixin
     List<HStatementInformation> statements = <HStatementInformation>[];
     bool hasDefault = false;
     Element getFallThroughErrorElement = backend.getFallThroughError();
-    HasNextIterator<Node> caseIterator =
-        new HasNextIterator<Node>(switchCases.iterator);
+    HasNextIterator<ast.Node> caseIterator =
+        new HasNextIterator<ast.Node>(switchCases.iterator);
     while (caseIterator.hasNext) {
-      SwitchCase switchCase = caseIterator.next();
+      ast.SwitchCase switchCase = caseIterator.next();
       HBasicBlock block = graph.addNewBlock();
       for (Constant constant in getConstants(switchCase)) {
         HConstant hConstant = graph.addConstant(constant, compiler);
@@ -5520,15 +5520,15 @@ abstract class SsaFromAstMixin
     jumpHandler.close();
   }
 
-  visitSwitchCase(SwitchCase node) {
+  visitSwitchCase(ast.SwitchCase node) {
     compiler.internalError('SsaFromAstMixin.visitSwitchCase');
   }
 
-  visitCaseMatch(CaseMatch node) {
+  visitCaseMatch(ast.CaseMatch node) {
     compiler.internalError('SsaFromAstMixin.visitCaseMatch');
   }
 
-  visitTryStatement(TryStatement node) {
+  visitTryStatement(ast.TryStatement node) {
     // Save the current locals. The catch block and the finally block
     // must not reuse the existing locals handler. None of the variables
     // that have been defined in the body-block will be used, but for
@@ -5576,9 +5576,9 @@ abstract class SsaFromAstMixin
       pushInvokeStatic(node, backend.getExceptionUnwrapper(), [exception]);
       HInvokeStatic unwrappedException = pop();
       tryInstruction.exception = exception;
-      Link<Node> link = node.catchBlocks.nodes;
+      Link<ast.Node> link = node.catchBlocks.nodes;
 
-      void pushCondition(CatchBlock catchBlock) {
+      void pushCondition(ast.CatchBlock catchBlock) {
         if (catchBlock.onKeyword != null) {
           DartType type = elements.getType(catchBlock.type);
           if (type == null) {
@@ -5588,7 +5588,7 @@ abstract class SsaFromAstMixin
               buildIsNode(catchBlock.type, type, unwrappedException);
           push(condition);
         } else {
-          VariableDefinitions declaration = catchBlock.formals.nodes.head;
+          ast.VariableDefinitions declaration = catchBlock.formals.nodes.head;
           HInstruction condition = null;
           if (declaration.type == null) {
             condition = graph.addConstantBool(true, compiler);
@@ -5609,13 +5609,13 @@ abstract class SsaFromAstMixin
       }
 
       void visitThen() {
-        CatchBlock catchBlock = link.head;
+        ast.CatchBlock catchBlock = link.head;
         link = link.tail;
         if (catchBlock.exception != null) {
           localsHandler.updateLocal(elements[catchBlock.exception],
                                     unwrappedException);
         }
-        Node trace = catchBlock.trace;
+        ast.Node trace = catchBlock.trace;
         if (trace != null) {
           pushInvokeStatic(trace, backend.getTraceFromException(), [exception]);
           HInstruction traceInstruction = pop();
@@ -5628,14 +5628,14 @@ abstract class SsaFromAstMixin
         if (link.isEmpty) {
           closeAndGotoExit(new HThrow(exception, isRethrow: true));
         } else {
-          CatchBlock newBlock = link.head;
+          ast.CatchBlock newBlock = link.head;
           handleIf(node,
                    () { pushCondition(newBlock); },
                    visitThen, visitElse);
         }
       }
 
-      CatchBlock firstBlock = link.head;
+      ast.CatchBlock firstBlock = link.head;
       handleIf(node, () { pushCondition(firstBlock); }, visitThen, visitElse);
       if (!isAborted()) endCatchBlock = close(new HGoto());
 
@@ -5720,15 +5720,15 @@ abstract class SsaFromAstMixin
     inTryStatement = oldInTryStatement;
   }
 
-  visitCatchBlock(CatchBlock node) {
+  visitCatchBlock(ast.CatchBlock node) {
     visit(node.block);
   }
 
-  visitTypedef(Typedef node) {
+  visitTypedef(ast.Typedef node) {
     compiler.unimplemented('SsaFromAstMixin.visitTypedef', node: node);
   }
 
-  visitTypeVariable(TypeVariable node) {
+  visitTypeVariable(ast.TypeVariable node) {
     compiler.internalError('SsaFromAstMixin.visitTypeVariable');
   }
 }
@@ -5737,9 +5737,9 @@ abstract class SsaFromAstMixin
  * This class builds SSA nodes for functions represented in AST.
  */
 class SsaFromAstBuilder extends ResolvedVisitor with
-    SsaBuilderMixin<Node>,
+    SsaBuilderMixin<ast.Node>,
     SsaFromAstMixin,
-    SsaBuilderFields<Node> {
+    SsaBuilderFields<ast.Node> {
   final Compiler compiler;
   final JavaScriptBackend backend;
   final ConstantSystem constantSystem;
@@ -5771,7 +5771,7 @@ class SsaFromAstBuilder extends ResolvedVisitor with
    * that should be inlined.
    */
   void enterInlinedMethod(FunctionElement function,
-                          Node _,
+                          ast.Node _,
                           List<HInstruction> compiledArguments) {
     SsaFromIrInliner irInliner;
     if (compiler.irBuilder.hasIr(function)) {
@@ -5804,7 +5804,7 @@ class SsaFromAstBuilder extends ResolvedVisitor with
     }
   }
 
-  void emitReturn(HInstruction value, Node node) {
+  void emitReturn(HInstruction value, ast.Node node) {
     if (inliningStack.isEmpty) {
       closeAndGotoExit(attachPosition(new HReturn(value), node));
     } else {
@@ -5817,9 +5817,9 @@ class SsaFromAstBuilder extends ResolvedVisitor with
  * This class inlines an AST function into an [SsaFromIrBuilder].
  */
 class SsaFromAstInliner extends ResolvedVisitor with
-    SsaBuilderMixin<Node>,
+    SsaBuilderMixin<ast.Node>,
     SsaFromAstMixin,
-    SsaBuilderDelegate<Node, IrNode> {
+    SsaBuilderDelegate<ast.Node, ir.Node> {
   final SsaFromIrBuilder builder;
 
   SsaFromAstInliner.internal(SsaFromIrBuilder builder)
@@ -5838,13 +5838,13 @@ class SsaFromAstInliner extends ResolvedVisitor with
   RuntimeTypes get rti => builder.backend.rti;
   CodegenWorkItem get work => builder.work;
 
-  void emitReturn(HInstruction value, Node node) {
+  void emitReturn(HInstruction value, ast.Node node) {
     IrInliningState state = inliningStack.last;
     builder.emitted[state.invokeNode] = value;
   }
 
   void enterInlinedMethod(FunctionElement function,
-                          Node currentNode,
+                          ast.Node currentNode,
                           List<HInstruction> compiledArguments) {
     // At this point we are inside the [SsaFromAstInliner] (inlining an AST
     // function into an IR builder), and we encounter a function invocation that
@@ -5855,13 +5855,13 @@ class SsaFromAstInliner extends ResolvedVisitor with
     // Since we are currently inlining an AST function, the invocation node is
     // an AST node. A synthetic [IrInlinedInvocationDummy] is added to the
     // [emitted] map to hold the result of the inlined function.
-    IrNode invokeNode = new IrInlinedInvocationDummy();
+    ir.Node invokeNode = new ir.InlinedInvocationDummy();
     builder.enterInlinedMethod(function, invokeNode, compiledArguments);
   }
 
   void leaveInlinedMethod() {
     IrInliningState state = inliningStack.last;
-    assert(state.invokeNode is IrInlinedInvocationDummy);
+    assert(state.invokeNode is ir.InlinedInvocationDummy);
     HInstruction result = builder.emitted.remove(state.invokeNode);
     if (result == null) {
       // When the inlined function is in AST form, it might not have an explicit
@@ -5886,9 +5886,9 @@ class SsaFromAstInliner extends ResolvedVisitor with
  * TODO(lrn): Consider whether to handle compile time constant int/boolean
  * expressions as well.
  */
-class StringBuilderVisitor extends Visitor {
+class StringBuilderVisitor extends ast.Visitor {
   final SsaFromAstMixin builder;
-  final Node diagnosticNode;
+  final ast.Node diagnosticNode;
 
   /**
    * The string value generated so far.
@@ -5897,15 +5897,15 @@ class StringBuilderVisitor extends Visitor {
 
   StringBuilderVisitor(this.builder, this.diagnosticNode);
 
-  void visit(Node node) {
+  void visit(ast.Node node) {
     node.accept(this);
   }
 
-  visitNode(Node node) {
+  visitNode(ast.Node node) {
     builder.compiler.internalError('unexpected node', node: node);
   }
 
-  void visitExpression(Node node) {
+  void visitExpression(ast.Node node) {
     node.accept(builder);
     HInstruction expression = builder.pop();
     if (!expression.isConstantString()) {
@@ -5915,20 +5915,20 @@ class StringBuilderVisitor extends Visitor {
     result = (result == null) ? expression : concat(result, expression);
   }
 
-  void visitStringInterpolation(StringInterpolation node) {
+  void visitStringInterpolation(ast.StringInterpolation node) {
     node.visitChildren(this);
   }
 
-  void visitStringInterpolationPart(StringInterpolationPart node) {
+  void visitStringInterpolationPart(ast.StringInterpolationPart node) {
     visit(node.expression);
     visit(node.string);
   }
 
-  void visitStringJuxtaposition(StringJuxtaposition node) {
+  void visitStringJuxtaposition(ast.StringJuxtaposition node) {
     node.visitChildren(this);
   }
 
-  void visitNodeList(NodeList node) {
+  void visitNodeList(ast.NodeList node) {
      node.visitChildren(this);
   }
 
@@ -5944,7 +5944,7 @@ class StringBuilderVisitor extends Visitor {
  * This class visits the method that is a candidate for inlining and
  * finds whether it is too difficult to inline.
  */
-class InlineWeeder extends Visitor {
+class InlineWeeder extends ast.Visitor {
   // Invariant: *INSIDE_LOOP* > *OUTSIDE_LOOP*
   static const INLINING_NODES_OUTSIDE_LOOP = 18;
   static const INLINING_NODES_OUTSIDE_LOOP_ARG_FACTOR = 3;
@@ -5959,7 +5959,7 @@ class InlineWeeder extends Visitor {
 
   InlineWeeder(this.maxInliningNodes, this.useMaxInliningNodes);
 
-  static bool canBeInlined(FunctionExpression functionExpression,
+  static bool canBeInlined(ast.FunctionExpression functionExpression,
                            int maxInliningNodes,
                            bool useMaxInliningNodes) {
     InlineWeeder weeder =
@@ -5979,11 +5979,11 @@ class InlineWeeder extends Visitor {
     }
   }
 
-  void visit(Node node) {
+  void visit(ast.Node node) {
     if (node != null) node.accept(this);
   }
 
-  void visitNode(Node node) {
+  void visitNode(ast.Node node) {
     if (!registerNode()) return;
     if (seenReturn) {
       tooDifficult = true;
@@ -5992,34 +5992,34 @@ class InlineWeeder extends Visitor {
     }
   }
 
-  void visitFunctionExpression(Node node) {
+  void visitFunctionExpression(ast.Node node) {
     if (!registerNode()) return;
     tooDifficult = true;
   }
 
-  void visitFunctionDeclaration(Node node) {
+  void visitFunctionDeclaration(ast.Node node) {
     if (!registerNode()) return;
     tooDifficult = true;
   }
 
-  void visitSend(Send node) {
+  void visitSend(ast.Send node) {
     if (!registerNode()) return;
     node.visitChildren(this);
   }
 
-  visitLoop(Node node) {
+  visitLoop(ast.Node node) {
     // It's actually not difficult to inline a method with a loop, but
     // our measurements show that it's currently better to not inline a
     // method that contains a loop.
     tooDifficult = true;
   }
 
-  void visitRethrow(Rethrow node) {
+  void visitRethrow(ast.Rethrow node) {
     if (!registerNode()) return;
     tooDifficult = true;
   }
 
-  void visitReturn(Return node) {
+  void visitReturn(ast.Return node) {
     if (!registerNode()) return;
     if (seenReturn
         || identical(node.getBeginToken().stringValue, 'native')
@@ -6031,12 +6031,12 @@ class InlineWeeder extends Visitor {
     seenReturn = true;
   }
 
-  void visitTryStatement(Node node) {
+  void visitTryStatement(ast.Node node) {
     if (!registerNode()) return;
     tooDifficult = true;
   }
 
-  void visitThrow(Throw node) {
+  void visitThrow(ast.Throw node) {
     if (!registerNode()) return;
     // For now, we don't want to handle throw after a return even if
     // it is in an "if".
@@ -6075,7 +6075,7 @@ class AstInliningState extends InliningState {
 }
 
 class IrInliningState extends InliningState {
-  final IrNode invokeNode;
+  final ir.Node invokeNode;
   final SsaFromAstInliner astInliner;
 
   IrInliningState(FunctionElement function, this.invokeNode, this.astInliner)
@@ -6094,7 +6094,7 @@ class SsaBranch {
 
 class SsaBranchBuilder {
   final SsaFromAstMixin builder;
-  final Node diagnosticNode;
+  final ast.Node diagnosticNode;
 
   SsaBranchBuilder(this.builder, [this.diagnosticNode]);
 
@@ -6236,7 +6236,7 @@ class SsaBranchBuilder {
     builder.stack.add(result);
   }
 
-  void handleLogicalAndOrWithLeftNode(Node left,
+  void handleLogicalAndOrWithLeftNode(ast.Node left,
                                       void visitRight(),
                                       {bool isAnd}) {
     // This method is similar to [handleLogicalAndOr] but optimizes the case
@@ -6253,13 +6253,13 @@ class SsaBranchBuilder {
     //   }
     //   result = phi(t3, false);
 
-    Send send = left.asSend();
+    ast.Send send = left.asSend();
     if (send != null &&
         (isAnd ? send.isLogicalAnd : send.isLogicalOr)) {
-      Node newLeft = send.receiver;
-      Link<Node> link = send.argumentsNode.nodes;
+      ast.Node newLeft = send.receiver;
+      Link<ast.Node> link = send.argumentsNode.nodes;
       assert(link.tail.isEmpty);
-      Node middle = link.head;
+      ast.Node middle = link.head;
       handleLogicalAndOrWithLeftNode(
           newLeft,
           () => handleLogicalAndOrWithLeftNode(middle, visitRight,
@@ -6363,7 +6363,7 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaFromAstMixin> {
 
     Link<DartType> namedParameterTypes = type.namedParameterTypes;
     for (String name in type.namedParameters) {
-      DartString dartString = new DartString.literal(name);
+      ast.DartString dartString = new ast.DartString.literal(name);
       inputs.add(
           builder.graph.addConstantString(dartString, builder.compiler));
       namedParameterTypes.head.accept(this, builder);

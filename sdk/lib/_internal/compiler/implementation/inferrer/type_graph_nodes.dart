@@ -229,7 +229,7 @@ class ElementTypeInformation extends TypeInformation {
    * This map contains the callers of [element]. It stores all unique call sites
    * to enable counting the global number of call sites of [element].
    *
-   * A call site is either an AST [Node], an [IrNode] or in the case of
+   * A call site is either an AST [ast.Node], an [ir.Node] or in the case of
    * synthesized calls, an [Element] (see uses of [synthesizeForwardingCall]
    * in [SimpleTypeInferrerVisitor]).
    */
@@ -248,7 +248,7 @@ class ElementTypeInformation extends TypeInformation {
   }
 
   void addCall(Element caller, Spannable node) {
-    assert(node is Node || node is IrNode || node is Element);
+    assert(node is ast.Node || node is ir.Node || node is Element);
     _callers.putIfAbsent(caller, () => new Setlet()).add(node);
   }
 
@@ -405,7 +405,7 @@ class ElementTypeInformation extends TypeInformation {
 /**
  * A [CallSiteTypeInformation] is a call found in the AST, or a
  * synthesized call for implicit calls in Dart (such as forwarding
- * factories). The [call] field is a [Node] for the former, and an
+ * factories). The [call] field is a [ast.Node] for the former, and an
  * [Element] for the latter.
  *
  * In the inferrer graph, [CallSiteTypeInformation] nodes do not have
@@ -1062,7 +1062,7 @@ class ValueInMapTypeInformation extends InferredTypeInformation {
  * [ElementTypeInformation], that is local to a method.
  */
 class PhiElementTypeInformation extends TypeInformation {
-  final Node branchNode;
+  final ast.Node branchNode;
   final bool isLoopPhi;
   final Element element;
 
@@ -1080,7 +1080,7 @@ class PhiElementTypeInformation extends TypeInformation {
 }
 
 class ClosureTypeInformation extends TypeInformation {
-  final Node node;
+  final ast.Node node;
   final Element element;
 
   ClosureTypeInformation(this.node, this.element);

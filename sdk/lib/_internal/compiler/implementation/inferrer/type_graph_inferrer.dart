@@ -7,8 +7,8 @@ library type_graph_inferrer;
 import 'dart:collection' show Queue, IterableBase;
 import '../dart_types.dart' show DartType, InterfaceType, TypeKind;
 import '../elements/elements.dart';
-import '../tree/tree.dart' show LiteralList, Node;
-import '../ir/ir_nodes.dart' show IrNode;
+import '../tree/tree.dart' as ast show LiteralList, Node;
+import '../ir/ir_nodes.dart' as ir show Node;
 import '../types/types.dart'
   show TypeMask, ContainerTypeMask, MapTypeMask, TypesInferrer;
 import '../universe/universe.dart' show Selector, TypedSelector, SideEffects;
@@ -64,12 +64,12 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
       new Map<Element, TypeInformation>();
 
   /// [ListTypeInformation] for allocated lists.
-  final Map<Node, TypeInformation> allocatedLists =
-      new Map<Node, TypeInformation>();
+  final Map<ast.Node, TypeInformation> allocatedLists =
+      new Map<ast.Node, TypeInformation>();
 
   /// [MapTypeInformation] for allocated Maps.
-  final Map<Node, TypeInformation> allocatedMaps =
-      new Map<Node, TypeInformation>();
+  final Map<ast.Node, TypeInformation> allocatedMaps =
+      new Map<ast.Node, TypeInformation>();
 
   /// Closures found during the analysis.
   final Set<TypeInformation> allocatedClosures = new Set<TypeInformation>();
@@ -291,7 +291,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   }
 
   TypeInformation allocateList(TypeInformation type,
-                               Node node,
+                               ast.Node node,
                                Element enclosing,
                                [TypeInformation elementType, int length]) {
     bool isTypedArray = (compiler.typedDataClass != null)
@@ -317,14 +317,14 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
         new ListTypeInformation(mask, element, length);
   }
 
-  TypeInformation allocateClosure(Node node, Element element) {
+  TypeInformation allocateClosure(ast.Node node, Element element) {
     TypeInformation result = new ClosureTypeInformation(node, element);
     allocatedClosures.add(result);
     return result;
   }
 
   TypeInformation allocateMap(ConcreteTypeInformation type,
-                              Node node,
+                              ast.Node node,
                               Element element,
                               [TypeInformation keyType,
                               TypeInformation valueType]) {
@@ -374,7 +374,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     return result;
   }
 
-  PhiElementTypeInformation allocatePhi(Node node,
+  PhiElementTypeInformation allocatePhi(ast.Node node,
                                         Element element,
                                         inputType) {
     // Check if [inputType] is a phi for a local updated in
@@ -391,7 +391,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     return result;
   }
 
-  TypeInformation simplifyPhi(Node node,
+  TypeInformation simplifyPhi(ast.Node node,
                               Element element,
                               PhiElementTypeInformation phiType) {
     if (phiType.assignments.length == 1) return phiType.assignments.first;
@@ -605,7 +605,7 @@ class TypeGraphInferrerEngine
     addedInGraph++;
 
     if (element.isField()) {
-      Node node = element.parseNode(compiler);
+      ast.Node node = element.parseNode(compiler);
       if (element.modifiers.isFinal() || element.modifiers.isConst()) {
         // If [element] is final and has an initializer, we record
         // the inferred type.
@@ -865,7 +865,7 @@ class TypeGraphInferrerEngine
     return info;
   }
 
-  TypeInformation registerCalledSelector(Node node,
+  TypeInformation registerCalledSelector(ast.Node node,
                                          Selector selector,
                                          TypeInformation receiverType,
                                          Element caller,
@@ -889,7 +889,7 @@ class TypeGraphInferrerEngine
     return info;
   }
 
-  TypeInformation registerCalledClosure(Node node,
+  TypeInformation registerCalledClosure(ast.Node node,
                                         Selector selector,
                                         TypeInformation closure,
                                         Element caller,
@@ -1026,12 +1026,12 @@ class TypeGraphInferrer implements TypesInferrer {
     return inferrer.types.getInferredTypeOf(element).type;
   }
 
-  TypeMask getTypeOfNode(Element owner, Node node) {
+  TypeMask getTypeOfNode(Element owner, ast.Node node) {
     if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
     return inferrer.types.allocatedLists[node].type;
   }
 
-  bool isFixedArrayCheckedForGrowable(Node node) {
+  bool isFixedArrayCheckedForGrowable(ast.Node node) {
     if (compiler.disableTypeInference) return true;
     ListTypeInformation info = inferrer.types.allocatedLists[node];
     return info.checksGrowable;

@@ -702,7 +702,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction directFieldGet(HInstruction receiver, Element field) {
-    Modifiers modifiers = field.modifiers;
+    ast.Modifiers modifiers = field.modifiers;
     bool isAssignable = !compiler.world.fieldNeverChanges(field);
 
     TypeMask type;
@@ -784,7 +784,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     HInstruction folded = graph.addConstant(
         constantSystem.createString(
-            new DartString.concat(leftString.value, rightString.value)),
+            new ast.DartString.concat(leftString.value, rightString.value)),
         compiler);
     if (prefix == null) return folded;
     return new HStringConcat(prefix, folded, node.node, backend.stringType);
