@@ -224,7 +224,9 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
       DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
   intptr_t length =
       DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 3));
+  bool short_write = false;
   if (short_socket_writes) {
+    if (length > 1) short_write = true;
     length = (length + 1) / 2;
   }
   Dart_TypedData_Type type;
@@ -238,7 +240,13 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
   intptr_t bytes_written = Socket::Write(socket, buffer, length);
   if (bytes_written >= 0) {
     Dart_TypedDataReleaseData(buffer_obj);
-    Dart_SetReturnValue(args, Dart_NewInteger(bytes_written));
+    if (short_write) {
+      // If the write was forced 'short', indicate by returning the negative
+      // number of bytes. A forced short write may not trigger a write event.
+      Dart_SetReturnValue(args, Dart_NewInteger(-bytes_written));
+    } else {
+      Dart_SetReturnValue(args, Dart_NewInteger(bytes_written));
+    }
   } else {
     // Extract OSError before we release data, as it may override the error.
     OSError os_error;

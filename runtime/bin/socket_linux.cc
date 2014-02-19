@@ -20,6 +20,7 @@
 #include "bin/log.h"
 #include "bin/signal_blocker.h"
 #include "bin/socket.h"
+#include "vm/thread.h"
 
 
 namespace dart {
@@ -205,11 +206,13 @@ SocketAddress* Socket::GetRemotePeer(intptr_t fd, intptr_t* port) {
 
 void Socket::GetError(intptr_t fd, OSError* os_error) {
   int len = sizeof(errno);
+  int err = 0;
   getsockopt(fd,
              SOL_SOCKET,
              SO_ERROR,
-             &errno,
+             &err,
              reinterpret_cast<socklen_t*>(&len));
+  errno = err;
   os_error->SetCodeAndMessage(OSError::kSystem, errno);
 }
 

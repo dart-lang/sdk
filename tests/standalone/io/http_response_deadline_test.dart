@@ -63,6 +63,7 @@ void testDeadlineAndDetach(int connections) {
         new Timer(const Duration(milliseconds: 100), () {
           socket.write('stuff');
           socket.close();
+          socket.listen(null);
         });
       });
     });

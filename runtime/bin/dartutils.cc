@@ -811,6 +811,15 @@ bool DartUtils::PostInt32(Dart_Port port_id, int32_t value) {
 }
 
 
+bool DartUtils::PostInt64(Dart_Port port_id, int64_t value) {
+  // Post a message with the integer value.
+  Dart_CObject object;
+  object.type = Dart_CObject_kInt64;
+  object.value.as_int64 = value;
+  return Dart_PostCObject(port_id, &object);
+}
+
+
 Dart_Handle DartUtils::GetDartType(const char* library_url,
                                    const char* class_name) {
   return Dart_GetType(Dart_LookupLibrary(NewString(library_url)),

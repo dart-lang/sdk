@@ -150,7 +150,8 @@ patch class _FileSystemWatcher {
   }
 
   static Stream _listenOnSocket(int socketId, int id, int pathId) {
-    var socket = new _RawSocket(new _NativeSocket.watch(socketId));
+    var native = new _NativeSocket.watch(socketId);
+    var socket = new _RawSocket(native);
     return socket.expand((event) {
       var stops = [];
       var events = [];
@@ -182,9 +183,12 @@ patch class _FileSystemWatcher {
             add(event[4], new FileSystemDeleteEvent._(getPath(event), isDir));
           }
         }
-        while (socket.available() > 0) {
+        int eventCount;
+        do {
+          eventCount = 0;
           for (var event in _readEvents(id, pathId)) {
             if (event == null) continue;
+            eventCount++;
             int pathId = event[4];
             bool isDir = getIsDir(event);
             var path = getPath(event);
@@ -222,7 +226,10 @@ patch class _FileSystemWatcher {
               stops.add([event[4], null]);
             }
           }
-        }
+        } while (eventCount > 0);
+        // Be sure to clear this manually, as the sockets are not read through
+        // the _NativeSocket interface.
+        native.available = 0;
         for (var map in pair.values) {
           for (var event in map.values) {
             rewriteMove(event, getIsDir(event));

@@ -41,11 +41,14 @@ void testGoogleUrl(bool expectSuccess) {
   InternetAddress.lookup('www.google.com').then((_) {
     HttpClient client = new HttpClient();
     client.getUrl(Uri.parse('https://www.google.com'))
-      .then((request) => request.close())
+      .then((request) {
+        request.followRedirects = false;
+        return request.close();
+      })
       .then((response) {
         Expect.isTrue(expectSuccess, "Unexpected successful connection");
         print('SUCCESS');
-        return response.last;
+        return response.drain().catchError((_) {});
       })
       .catchError((error) {
         // Allow SocketExceptions if www.google.com is unreachable or down.

@@ -973,7 +973,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   _sendReadEvent() {
     _pendingReadEvent = false;
-    if (_readEventsEnabled &&
+    if (_status != CLOSED &&
+        _readEventsEnabled &&
         _pauseCount == 0 &&
         _secureFilter != null &&
         !_secureFilter.buffers[READ_PLAINTEXT].isEmpty) {
@@ -1164,16 +1165,16 @@ class _ExternalBuffer {
     int written = 0;
     int toWrite = linearFree;
     // Loop over zero, one, or two linear data ranges.
-    while (toWrite > 0) {
+    do {
       // Source returns at most toWrite bytes, and it returns null when empty.
       var inputData = getData(toWrite);
-      if (inputData == null) break;
+      if (inputData == null || inputData.length == 0) break;
       var len = inputData.length;
       data.setRange(end, end + len, inputData);
       advanceEnd(len);
       written += len;
       toWrite = linearFree;
-    }
+    } while (toWrite > 0);
     return written;
   }
 
