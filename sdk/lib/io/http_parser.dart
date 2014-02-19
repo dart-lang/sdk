@@ -739,21 +739,15 @@ class _HttpParser extends Stream<_HttpIncoming> {
           // The body is not handled one byte at a time but in blocks.
           _index--;
           int dataAvailable = _buffer.length - _index;
-          List<int> data;
-          if (_remainingContent == -1 ||
-              dataAvailable <= _remainingContent) {
-            if (_index == 0) {
-              data = _buffer;
-            } else {
-              data = new Uint8List.view(_buffer.buffer,
-                                        _index,
-                                        dataAvailable);
-            }
-          } else {
-            data = new Uint8List.view(_buffer.buffer,
-                                      _index,
-                                      _remainingContent);
+          if (_remainingContent >= 0 && dataAvailable > _remainingContent) {
+            dataAvailable = _remainingContent;
           }
+          // Always present the data as a view. This way we can handle all
+          // cases like this, and the user will not experince different data
+          // typed (which could lead to polymorphic user code).
+          List<int> data = new Uint8List.view(_buffer.buffer,
+                                              _buffer.offsetInBytes + _index,
+                                              dataAvailable);
           _bodyController.add(data);
           if (_remainingContent != -1) {
             _remainingContent -= data.length;
