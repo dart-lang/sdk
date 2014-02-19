@@ -10,6 +10,8 @@
 /// on the physical filesystem, or [Descriptor.validate] to schedule an
 /// assertion that that structure exists. For example:
 ///
+///     import 'dart:io';
+///
 ///     import 'package:scheduled_test/descriptor.dart' as d;
 ///     import 'package:scheduled_test/scheduled_test.dart';
 ///
@@ -31,7 +33,7 @@
 ///             d.file('child', 'child-contents')
 ///           ])
 ///         ]).validate();
-///       })
+///       });
 ///     }
 ///
 /// Usually you don't want your tests cluttering up your working directory with
