@@ -895,6 +895,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
           _secureFilter = null;
           return;
         }
+        _socket.readEventsEnabled = true;
         if (_filterStatus.writeEmpty && _closedWrite && !_socketClosedWrite) {
           // Checks for and handles all cases of partially closed sockets.
           shutdown(SocketDirection.SEND);
@@ -948,6 +949,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     var buffer = _secureFilter.buffers[READ_ENCRYPTED];
     if (buffer.writeFromSource(_readSocketOrBufferedData) > 0) {
       _filterStatus.readEmpty = false;
+    } else {
+      _socket.readEventsEnabled = false;
     }
   }
 
@@ -1165,7 +1168,7 @@ class _ExternalBuffer {
     int written = 0;
     int toWrite = linearFree;
     // Loop over zero, one, or two linear data ranges.
-    do {
+    while (toWrite > 0) {
       // Source returns at most toWrite bytes, and it returns null when empty.
       var inputData = getData(toWrite);
       if (inputData == null || inputData.length == 0) break;
@@ -1174,7 +1177,7 @@ class _ExternalBuffer {
       advanceEnd(len);
       written += len;
       toWrite = linearFree;
-    } while (toWrite > 0);
+    }
     return written;
   }
 
