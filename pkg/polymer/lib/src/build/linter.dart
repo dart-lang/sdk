@@ -8,10 +8,7 @@
  */
 library polymer.src.build.linter;
 
-import 'dart:io';
 import 'dart:async';
-import 'dart:mirrors';
-import 'dart:convert' show JSON;
 
 import 'package:barback/barback.dart';
 import 'package:html5lib/dom.dart';
@@ -79,7 +76,7 @@ class Linter extends Transformer with PolymerTransformer {
       Document document, AssetId sourceId, Transform transform) {
     var importIds = [];
     var logger = transform.logger;
-    for (var tag in document.queryAll('link')) {
+    for (var tag in document.querySelectorAll('link')) {
       if (tag.attributes['rel'] != 'import') continue;
       var href = tag.attributes['href'];
       var span = tag.sourceSpan;
@@ -99,7 +96,7 @@ class Linter extends Transformer with PolymerTransformer {
 
   void _addElements(Document document, TransformLogger logger,
       Map<String, _ElementSummary> elements) {
-    for (var tag in document.queryAll('polymer-element')) {
+    for (var tag in document.querySelectorAll('polymer-element')) {
       var name = tag.attributes['name'];
       if (name == null) continue;
       var extendsTag = tag.attributes['extends'];

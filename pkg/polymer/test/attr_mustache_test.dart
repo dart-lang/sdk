@@ -51,8 +51,8 @@ main() {
   setUp(() => Polymer.onReady);
 
   test('mustache attributes', () {
-    final xtest = document.query('#test');
-    final xtarget = xtest.shadowRoot.query('#target');
+    final xtest = document.querySelector('#test');
+    final xtarget = xtest.shadowRoot.querySelector('#target');
     return xtarget.foundSrc;
   });
 }

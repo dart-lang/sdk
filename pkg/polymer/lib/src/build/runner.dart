@@ -276,7 +276,7 @@ Future _emitTransformedFiles(AssetSet assets, BarbackOptions options) {
  * Adds a package symlink from each directory under `out/web/foo/` to
  * `out/packages`.
  */
-Future _addPackagesSymlinks(AssetSet assets, BarbackOptions options) {
+void _addPackagesSymlinks(AssetSet assets, BarbackOptions options) {
   var outPackages = path.join(options.outDir, 'packages');
   var currentPackage = options.currentPackage;
   for (var asset in assets) {

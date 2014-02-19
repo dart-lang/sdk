@@ -53,34 +53,34 @@ main() {
   test('host event', () {
     // Note: this test is currently the only event in
     // polymer/test/js/events.js at commit #7936ff8
-    var testA = query('#a');
+    var testA = querySelector('#a');
     expect(testA.clicks, isEmpty);
     testA.click();
     expect(testA.clicks, ['host click on: test-a (id a)']);
   });
 
   test('local event', () {
-    var testB = query('#b');
+    var testB = querySelector('#b');
     expect(testB.clicks, isEmpty);
     testB.click();
     expect(testB.clicks, []);
-    var b1 = testB.shadowRoot.query('#b-1');
+    var b1 = testB.shadowRoot.querySelector('#b-1');
     b1.click();
     expect(testB.clicks, []);
-    var b2 = testB.shadowRoot.query('#b-2');
+    var b2 = testB.shadowRoot.querySelector('#b-2');
     b2.click();
     expect(testB.clicks, ['local click under test-b (id b) on b-2']);
   });
 
   test('event on superclass', () {
-    var testC = query('#c');
+    var testC = querySelector('#c');
     expect(testC.clicks, isEmpty);
     testC.click();
     expect(testC.clicks, []);
-    var c1 = testC.shadowRoot.query('#c-1');
+    var c1 = testC.shadowRoot.querySelector('#c-1');
     c1.click();
     expect(testC.clicks, []);
-    var c2 = testC.shadowRoot.query('#c-2');
+    var c2 = testC.shadowRoot.querySelector('#c-2');
     c2.click();
     expect(testC.clicks, ['local click under test-c (id c) on c-2']);
   });

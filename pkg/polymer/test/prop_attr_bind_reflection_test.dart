@@ -33,7 +33,8 @@ main() {
   setUp(() => Polymer.onReady);
 
   test('attribute reflected to property name', () {
-    var child = query('my-element').shadowRoot.query('my-child-element');
+    var child = querySelector('my-element')
+        .shadowRoot.querySelector('my-child-element');
     expect(child.lowercase, 11);
     expect(child.camelCase, 11);
 

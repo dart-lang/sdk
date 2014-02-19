@@ -34,7 +34,7 @@ class InlineCodeExtractor extends Transformer with PolymerTransformer {
     return readPrimaryAsHtml(transform).then((document) {
       int count = 0;
       bool htmlChanged = false;
-      for (var tag in document.queryAll('script')) {
+      for (var tag in document.querySelectorAll('script')) {
         // Only process tags that have inline Dart code
         if (tag.attributes['type'] != 'application/dart' ||
           tag.attributes.containsKey('src')) {

@@ -52,9 +52,9 @@ main() {
   Polymer.register('x-compose', XCompose);
 
   test('property attribute reflection', () {
-    var xcompose = query('x-compose');
-    var xfoo = query('x-foo');
-    var xbar = query('x-bar');
+    var xcompose = querySelector('x-compose');
+    var xfoo = querySelector('x-foo');
+    var xbar = querySelector('x-bar');
     xfoo.foo = 5;
     return onAttributeChange(xfoo).then((_) {
       expect(xcompose.$['bar'].attributes.containsKey('zim'), false,

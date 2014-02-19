@@ -22,7 +22,6 @@
  */
 library polymer.deploy;
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';

@@ -318,7 +318,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   /** Locate nodes with id and store references to them in [$] hash. */
   void marshalNodeReferences(Node root) {
     if (root == null) return;
-    for (var n in (root as dynamic).queryAll('[id]')) {
+    for (var n in (root as dynamic).querySelectorAll('[id]')) {
       $[n.id] = n;
     }
   }

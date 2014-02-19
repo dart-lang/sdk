@@ -69,7 +69,7 @@ final unboundSymbol = reflectClass(Polymer).declarations.keys
 _unbound(node) => reflect(node).getField(unboundSymbol).reflectee;
 
 unbindTests() {
-  var xTest = document.query('x-test');
+  var xTest = document.querySelector('x-test');
   xTest.foo = 'bar';
   scheduleMicrotask(Observable.dirtyCheck);
 

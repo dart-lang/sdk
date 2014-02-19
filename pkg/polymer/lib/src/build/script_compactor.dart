@@ -13,7 +13,6 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:barback/barback.dart';
-import 'package:html5lib/parser.dart' show parseFragment;
 import 'package:path/path.dart' as path;
 import 'package:source_maps/span.dart' show SourceFile;
 
@@ -53,7 +52,7 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
         var mainScriptTag;
         bool changed = false;
 
-        for (var tag in document.queryAll('script')) {
+        for (var tag in document.querySelectorAll('script')) {
           var src = tag.attributes['src'];
           if (src == 'packages/polymer/boot.js') {
             tag.remove();

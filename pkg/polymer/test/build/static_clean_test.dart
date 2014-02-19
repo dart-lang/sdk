@@ -6,6 +6,8 @@ library polymer.test.build.static_clean_test;
 
 import 'package:polymer/builder.dart';
 
+_unused() => build;
+
 void main() {
   // Check that builder.dart is statically clean. Nothing to do.
 }

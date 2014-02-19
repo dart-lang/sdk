@@ -127,7 +127,7 @@ List<String> _discoverScripts(Document doc, String baseUri,
   seen.add(doc);
 
   bool scriptSeen = false;
-  for (var node in doc.queryAll('script,link[rel="import"]')) {
+  for (var node in doc.querySelectorAll('script,link[rel="import"]')) {
     if (node is LinkElement) {
       _discoverScripts(node.import, node.href, seen, scripts);
     } else if (node is ScriptElement && node.type == 'application/dart') {

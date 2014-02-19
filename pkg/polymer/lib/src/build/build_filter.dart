@@ -39,7 +39,7 @@ class BuildFilter extends Transformer with PolymerTransformer {
     return readPrimaryAsHtml(transform).then((document) {
       // Keep .html files that don't use polymer, since the app developer might
       // have non-polymer entrypoints.
-      if (document.queryAll('polymer-element').isEmpty) {
+      if (document.querySelectorAll('polymer-element').isEmpty) {
         transform.addOutput(transform.primaryInput);
       }
     });
