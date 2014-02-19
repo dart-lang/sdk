@@ -31,7 +31,7 @@ class InterruptMessage {
 class SocketData {
  public:
   explicit SocketData(intptr_t fd)
-      : tracked_by_epoll_(false), fd_(fd), port_(0), mask_(0) {
+      : tracked_by_epoll_(false), fd_(fd), port_(0) {
     ASSERT(fd_ != -1);
   }
 
@@ -45,23 +45,17 @@ class SocketData {
 
   void Close() {
     port_ = 0;
-    mask_ = 0;
     close(fd_);
     fd_ = -1;
   }
 
-  bool IsListeningSocket() { return (mask_ & (1 << kListeningSocket)) != 0; }
-  bool IsPipe() { return (mask_ & (1 << kPipe)) != 0; }
-
-  void SetPortAndMask(Dart_Port port, intptr_t mask) {
+  void SetPort(Dart_Port port) {
     ASSERT(fd_ != -1);
     port_ = port;
-    mask_ = mask;
   }
 
   intptr_t fd() { return fd_; }
   Dart_Port port() { return port_; }
-  intptr_t mask() { return mask_; }
   bool tracked_by_epoll() { return tracked_by_epoll_; }
   void set_tracked_by_epoll(bool value) { tracked_by_epoll_ = value; }
 

@@ -48,12 +48,12 @@ static void RemoveFromEpollInstance(intptr_t epoll_fd_, SocketData* sd) {
 }
 
 
-static void AddToEpollInstance(intptr_t epoll_fd_, SocketData* sd) {
+static void AddToEpollInstance(intptr_t epoll_fd_, SocketData* sd, int mask) {
   ASSERT(!sd->tracked_by_epoll());
   struct epoll_event event;
   event.events = EPOLLET | EPOLLRDHUP;
-  if ((sd->mask() & (1 << kInEvent)) != 0) event.events |= EPOLLIN;
-  if ((sd->mask() & (1 << kOutEvent)) != 0) event.events |= EPOLLOUT;
+  if ((mask & (1 << kInEvent)) != 0) event.events |= EPOLLIN;
+  if ((mask & (1 << kOutEvent)) != 0) event.events |= EPOLLOUT;
   event.data.ptr = sd;
   int status = TEMP_FAILURE_RETRY(epoll_ctl(epoll_fd_,
                                             EPOLL_CTL_ADD,
@@ -190,8 +190,8 @@ void EventHandlerImplementation::HandleInterruptFd() {
       bool is_new = false;
       SocketData* sd = GetSocketData(msg[i].id, &is_new);
       if (is_new) {
-        sd->SetPortAndMask(msg[i].dart_port, msg[i].data);
-        AddToEpollInstance(epoll_fd_, sd);
+        sd->SetPort(msg[i].dart_port);
+        AddToEpollInstance(epoll_fd_, sd, msg[i].data);
       }
       if ((msg[i].data & (1 << kShutdownReadCommand)) != 0) {
         ASSERT(msg[i].data == (1 << kShutdownReadCommand));
@@ -241,47 +241,14 @@ intptr_t EventHandlerImplementation::GetPollEvents(intptr_t events,
 #ifdef DEBUG_POLL
   PrintEventMask(sd->fd(), events);
 #endif
-  intptr_t event_mask = 0;
-  if (sd->IsListeningSocket()) {
-    // For listening sockets the EPOLLIN event indicate that there are
-    // connections ready for accept unless accompanied with one of the
-    // other flags.
-    if ((events & EPOLLIN) != 0) {
-      if ((events & EPOLLHUP) != 0) event_mask |= (1 << kCloseEvent);
-      if ((events & EPOLLERR) != 0) event_mask |= (1 << kErrorEvent);
-      if (event_mask == 0) event_mask |= (1 << kInEvent);
-    }
-  } else {
-    // Prioritize data events over close and error events.
-    if ((events & (EPOLLIN | EPOLLHUP | EPOLLRDHUP)) != 0) {
-      // If we have EPOLLIN and we have available bytes, report that.
-      if ((events & EPOLLIN) != 0) {
-        event_mask = (1 << kInEvent);
-      }
-      if ((events & (EPOLLHUP | EPOLLRDHUP)) != 0) {
-        // If both EPOLLHUP and EPOLLERR are reported treat it as an
-        // error.
-        if ((events & EPOLLERR) != 0) {
-          event_mask = (1 << kErrorEvent);
-        } else {
-          event_mask |= (1 << kCloseEvent);
-        }
-      } else if ((events & EPOLLERR) != 0) {
-        event_mask = (1 << kErrorEvent);
-      }
-    }
-
-    if ((events & EPOLLOUT) != 0) {
-      if ((events & EPOLLERR) != 0) {
-        if (!sd->IsPipe()) {
-          event_mask = (1 << kErrorEvent);
-        }
-      } else {
-        event_mask |= (1 << kOutEvent);
-      }
-    }
+  if (events & EPOLLERR) {
+    // Return only error if EPOLLIN is present.
+    return (events & EPOLLIN) ? (1 << kErrorEvent) : 0;
   }
-
+  intptr_t event_mask = 0;
+  if (events & EPOLLIN) event_mask |= (1 << kInEvent);
+  if (events & EPOLLOUT) event_mask |= (1 << kOutEvent);
+  if (events & (EPOLLHUP | EPOLLRDHUP)) event_mask |= (1 << kCloseEvent);
   return event_mask;
 }
 
