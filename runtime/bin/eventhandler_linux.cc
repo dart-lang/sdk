@@ -24,7 +24,6 @@
 #include "platform/hashmap.h"
 #include "platform/thread.h"
 #include "platform/utils.h"
-#include "vm/thread.h"
 
 
 namespace dart {
@@ -249,9 +248,7 @@ intptr_t EventHandlerImplementation::GetPollEvents(intptr_t events,
     // other flags.
     if ((events & EPOLLIN) != 0) {
       if ((events & EPOLLHUP) != 0) event_mask |= (1 << kCloseEvent);
-      if ((events & EPOLLERR) != 0) {
-        event_mask |= (1 << kErrorEvent);
-      }
+      if ((events & EPOLLERR) != 0) event_mask |= (1 << kErrorEvent);
       if (event_mask == 0) event_mask |= (1 << kInEvent);
     }
   } else {
