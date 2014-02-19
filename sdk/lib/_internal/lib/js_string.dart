@@ -180,35 +180,80 @@ class JSString extends Interceptor implements String, JSIndexable {
   String trim() {
     const int CARRIAGE_RETURN = 0x0D;
     const int SPACE = 0x20;
+    const int NEL = 0x85;
+    const int BOM = 0xFEFF;
 
+    // Start by doing JS trim. Then check if it leaves a NEL or BOM at
+    // either end of the string.
+    String result = JS("String", "#.trim()", this);
+
+    if (result.length == 0) return result;
+    int firstCode = result.codeUnitAt(0);
     int startIndex = 0;
-    while (startIndex < this.length) {
-      int codeUnit = this.codeUnitAt(startIndex);
-      if (codeUnit == SPACE ||
-          codeUnit == CARRIAGE_RETURN ||
-          _isWhitespace(codeUnit)) {
-        startIndex++;
-      } else {
-        break;
+    if (firstCode == NEL || firstCode == BOM) {
+      startIndex++;
+      while (startIndex < result.length) {
+        int codeUnit = result.codeUnitAt(startIndex);
+        if (codeUnit == SPACE ||
+            codeUnit == CARRIAGE_RETURN ||
+            _isWhitespace(codeUnit)) {
+          startIndex++;
+        } else {
+          break;
+        }
       }
+      if (startIndex == result.length) return "";
     }
-    if (startIndex == this.length) return "";
 
-    int endIndex = this.length;
+    int endIndex = result.length;
     // We know that there is at least one character that is non-whitespace.
     // Therefore we don't need to verify that endIndex > startIndex.
-    while (true) {
-      int codeUnit = this.codeUnitAt(endIndex - 1);
-      if (codeUnit == SPACE ||
-          codeUnit == CARRIAGE_RETURN ||
-          _isWhitespace(codeUnit)) {
-        endIndex--;
-      } else {
-        break;
+    int lastCode = result.codeUnitAt(endIndex - 1);
+    if (lastCode == NEL || lastCode == BOM) {
+      endIndex--;
+      while (true) {
+        int codeUnit = result.codeUnitAt(endIndex - 1);
+        if (codeUnit == SPACE ||
+            codeUnit == CARRIAGE_RETURN ||
+            _isWhitespace(codeUnit)) {
+          endIndex--;
+        } else {
+          break;
+        }
       }
     }
-    if (startIndex == 0 && endIndex == this.length) return this;
-    return JS('String', r'#.substring(#, #)', this, startIndex, endIndex);
+    if (startIndex == 0 && endIndex == result.length) return result;
+    return JS('String', r'#.substring(#, #)', result, startIndex, endIndex);
+  }
+
+  String repeat(int times, [String separator = ""]) {
+    if (times < 0) throw new RangeError.value(times);
+    if (times == 0) return "";
+    if (separator.isEmpty) {
+      return JS('String', "new Array(# + 1).join(#)", times, this);
+    } else {
+      var list = new JSArray.growable(times);
+      for (int i = 0; i < times; i++) list[i] = this;
+      return JS('String', "#.join(#)", list, separator);
+    }
+  }
+
+  String padLeft(int newLength, String padding) {
+    if (padding.length != 1) throw new ArgumentError(padding);
+    int delta = newLength - this.length;
+    if (delta <= 0) return this;
+    var list = new JSArray.growable(delta + 1);
+    list[delta] = this;
+    return JS("String", "#.join(#)", list, padding);
+  }
+
+  String padRight(int newLength, String padding) {
+    if (padding.length != 1) throw new ArgumentError(padding);
+    int delta = newLength - this.length;
+    if (delta <= 0) return this;
+    var list = new JSArray.growable(delta + 1);
+    list[0] = this;
+    return JS("String", "#.join(#)", list, padding);
   }
 
   List<int> get codeUnits => new _CodeUnits(this);

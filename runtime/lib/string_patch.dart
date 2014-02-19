@@ -302,6 +302,48 @@ class _StringBase {
     }
   }
 
+  String repeat(int times, [String separator = ""]) {
+    if (times < 0) throw new RangeError.value(times);
+    if (times == 0) return "";
+    if (times == 1) return this;
+    StringBuffer buffer = new StringBuffer(this);
+    if (separator.isEmpty) {
+      for (int i = 1; i < times; i++) {
+        buffer.write(this);
+      }
+      return buffer.toString();
+    }
+    for (int i = 1; i < times; i++) {
+      buffer.write(separator);
+      buffer.write(this);
+    }
+    return buffer.toString();
+  }
+
+  String padLeft(int newLength, String padding) {
+    if (padding.length != 1) throw new ArgumentError(padding);
+    int delta = newLength - this.length;
+    if (delta <= 0) return this;
+    StringBuffer buffer = new StringBuffer();
+    for (int i = 0; i < delta; i++) {
+      buffer.write(padding);
+    }
+    buffer.write(this);
+    return buffer.toString();
+  }
+
+  String padRight(int newLength, String padding, { int size }) {
+    if (padding.length != 1) throw new ArgumentError(padding);
+    int delta = newLength - this.length;
+    if (delta <= 0) return this;
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(this);
+    for (int i = 0; i < delta; i++) {
+      buffer.write(padding);
+    }
+    return buffer.toString();
+  }
+
   bool contains(Pattern pattern, [int startIndex = 0]) {
     if (pattern is String) {
       if (startIndex < 0 || startIndex > this.length) {
@@ -630,6 +672,90 @@ class _OneByteString extends _StringBase implements String {
       }
     }
     return super.contains(pattern, start);
+  }
+
+  String repeat(int times, [String separator = ""]) {
+    if (times == 0) return "";
+    if (times == 1) return this;
+    if (times < 0) throw new RangeError.value(times);
+    if (separator.isEmpty) {
+      int length = this.length;
+      if (this.isEmpty) return this;  // Don't clone empty string.
+      _OneByteString result = _OneByteString._allocate(length * times);
+      int index = 0;
+      for (int i = 0; i < times; i ++) {
+        for (int j = 0; j < length; j++) {
+          result._setAt(index++, this.codeUnitAt(j));
+        }
+      }
+      return result;
+    }
+    int sepCid = separator._cid;
+    if (sepCid != _OneByteString._classId &&
+        sepCid != _ExternalOneByteString._classId) {
+      return super.repeat(times, separator);
+    }
+    int length = this.length;
+    int sepLength = separator.length;
+    _OneByteString result =
+        _OneByteString._allocate(length * times + sepLength * (times - 1));
+    int index = 0;
+    for (int j = 0; j < length; j++) {
+      result._setAt(index++, this.codeUnitAt(j));
+    }
+    for (int i = 1; i < times; i ++) {
+      for (int j = 0; j < sepLength; j++) {
+        result._setAt(index++, separator.codeUnitAt(j));
+      }
+      for (int j = 0; j < length; j++) {
+        result._setAt(index++, this.codeUnitAt(j));
+      }
+    }
+    return result;
+  }
+
+  String padLeft(int newLength, String padding) {
+    if (padding.length != 1) throw new ArgumentError(padding);
+    int padCid = padding._cid;
+    if (padCid != _OneByteString._classId &&
+        padCid != _ExternalOneByteString._classId) {
+      return super.padLeft(newLength, padding);
+    }
+    int length = this.length;
+    int delta = newLength - length;
+    if (delta <= 0) return this;
+    _OneByteString result = _OneByteString._allocate(newLength);
+    int index = 0;
+    int padChar = padding.codeUnitAt(0);
+    for (int i = 0; i < delta; i++) {
+      result._setAt(index++, padChar);
+    }
+    for (int i = 0; i < length; i++) {
+      result._setAt(index++, this.codeUnitAt(i));
+    }
+    return result;
+  }
+
+  String padRight(int newLength, String padding, { int size }) {
+    if (padding.length != 1) throw new ArgumentError(padding);
+    int padCid = padding._cid;
+    if (padCid != _OneByteString._classId &&
+        padCid != _ExternalOneByteString._classId) {
+      return super.padRight(newLength, padding);
+    }
+    int length = this.length;
+    int delta = newLength - length;
+    if (delta <= 0) return this;
+    _OneByteString result = _OneByteString._allocate(newLength);
+    int index = 0;
+    for (int i = 0; i < length; i++) {
+      result._setAt(index++, this.codeUnitAt(i));
+    }
+    int padChar = padding.codeUnitAt(0);
+    for (int i = 0; i < delta; i++) {
+      result._setAt(index++, padChar);
+    }
+    return result;
   }
 
   // Allocates a string of given length, expecting its content to be

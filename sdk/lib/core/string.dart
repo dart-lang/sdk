@@ -326,6 +326,44 @@ abstract class String implements Comparable<String>, Pattern {
   String trim();
 
   /**
+   * Creates a new string that repeats this string a number of times.
+   *
+   * If [separator] is provided, it is inserted between the copies
+   * of this string.
+   *
+   * The [times] number must be non-negative.
+   */
+  String repeat(int times, [String separator = ""]);
+
+  /**
+   * Pads this string on the left if it is shorther than [newSize].
+   *
+   * Return a new string that prepends [padding] onto this string
+   * until the total length is [newLength].
+   *
+   * If [newLength] is already smaller than or equal to `this.length`,
+   * no padding will happen. A negative `newLength` is allowed,
+   * but no padding happens.
+   *
+   * The [padding] must have length 1.
+   */
+  String padLeft(int newLength, String padding);
+
+  /**
+   * Pads this string on the right if it is shorther than [newSize].
+   *
+   * Return a new string that append [padding] after this string
+   * until the total length is [newLength].
+   *
+   * If [newLength] is already smaller than or equal to `this.length`,
+   * no padding will happen. A negative `newLength` is allowed,
+   * but no padding happens.
+   *
+   * The [padding] must have length 1.
+   */
+  String padRight(int newLength, String padding);
+
+  /**
    * Returns true if this string contains a match of [other]:
    *
    *     var string = 'Dart strings';
