@@ -310,9 +310,9 @@ unittest/test/missing_tick_test: Fail, OK # Expected to fail, due to timeout.
 source_maps/test/parser_test: Pass, Timeout # Issue 13719: Please triage this failure.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
-docgen/test/generate_json_test: StaticWarning
-docgen/test/single_library_test: StaticWarning
-docgen/test/multi_library_test: StaticWarning
+docgen/test/generate_json_test: StaticWarning # Issue 16950
+docgen/test/single_library_test: StaticWarning # Issue 16950
+docgen/test/multi_library_test: StaticWarning # Issue 16950
 unittest/test/matchers_test: StaticWarning, OK # testing error creating abstract class
 
 [ $runtime == vm && ($system == windows || $system == macos) ]

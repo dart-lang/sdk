@@ -2,113 +2,24 @@ library single_library_test;
 
 import 'dart:io';
 
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:unittest/unittest.dart';
 
 import '../lib/docgen.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart'
     as dart2js_util;
 
-const String DART_LIBRARY_1 = '''
-  library testLib;
-  import 'temp2.dart';
-  import 'temp3.dart';
-  export 'temp2.dart';
-  export 'temp3.dart';
-
-  /**
-   * Doc comment for class [A].
-   *
-   * Multiline Test
-   */
-  /*
-   * Normal comment for class A.
-   */
-  class A {
-
-    int _someNumber;
-
-    A() {
-      _someNumber = 12;
-    }
-
-    A.customConstructor();
-
-    /**
-     * Test for linking to parameter [A]
-     */
-    void doThis(int A) {
-      print(A);
-    }
-  }
-''';
-
-const String DART_LIBRARY_2 = '''
-  library testLib2.foo;
-  import 'temp.dart';
-
-  /**
-   * Doc comment for class [B].
-   *
-   * Multiline Test
-   */
-
-  /*
-   * Normal comment for class B.
-   */
-  class B extends A {
-
-    B();
-    B.fooBar();
-
-    /**
-     * Test for linking to super
-     */
-    int doElse(int b) {
-      print(b);
-    }
-
-    /**
-     * Test for linking to parameter [c]
-     */
-    void doThis(int c) {
-      print(a);
-    }
-  }
-
-  int testFunc(int a) {
-  }
-''';
-
-const String DART_LIBRARY_3 = '''
-  library testLib.bar;
-  import 'temp.dart';
-
-  /*
-   * Normal comment for class C.
-   */
-  class C {
-  }
-''';
-
-Directory _tempDir;
+import 'util.dart';
 
 List<Uri> _writeLibFiles() {
-  _tempDir = Directory.systemTemp.createTempSync('single_library_');
-  var fileName = path.join(_tempDir.path, 'temp.dart');
-  var file = new File(fileName);
-  file.writeAsStringSync(DART_LIBRARY_1);
+  var codePath = getMultiLibraryCodePath();
 
-  var fileName2 = path.join(_tempDir.path, 'temp2.dart');
-  file = new File(fileName2);
-  file.writeAsStringSync(DART_LIBRARY_2);
+  codePath = p.join(codePath, 'lib');
 
-  var fileName3 = path.join(_tempDir.path, 'temp3.dart');
-  file = new File(fileName3);
-  file.writeAsStringSync(DART_LIBRARY_3);
-  return [new Uri.file(fileName, windows: Platform.isWindows),
-          new Uri.file(fileName2, windows: Platform.isWindows),
-          new Uri.file(fileName3, windows: Platform.isWindows)];
+  return new Directory(codePath).listSync()
+      .where((fse) => fse is File)
+      .map((fse) => p.toUri(fse.path))
+      .toList();
 }
 
 void main() {
@@ -175,7 +86,7 @@ void main() {
               'testFunc').children.first.text;
           expect(methodParameterDocComment, 'testLib.testFunc');
 
-        }).whenComplete(() => _tempDir.deleteSync(recursive: true));
+        });
     });
   });
 }
