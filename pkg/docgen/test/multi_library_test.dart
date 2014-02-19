@@ -175,7 +175,7 @@ void main() {
               'testFunc').children.first.text;
           expect(methodParameterDocComment, 'testLib.testFunc');
 
-        })).whenComplete(() => TEMP_DIRNAME.deleteSync(recursive: true));
+        }).whenComplete(() => _tempDir.deleteSync(recursive: true));
     });
   });
 }
