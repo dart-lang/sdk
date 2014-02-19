@@ -882,7 +882,7 @@ void testWeekday() {
 }
 
 void testToStrings() {
-  function test(date, time) {
+  void test(date, time) {
     { // UTC time.
       String source1 = "$date ${time}Z";
       String source2 = "${date}T${time}Z";
