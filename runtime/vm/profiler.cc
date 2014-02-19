@@ -148,62 +148,12 @@ void Profiler::EndExecution(Isolate* isolate) {
 }
 
 
-void Profiler::RecordTickInterruptCallback(const InterruptedThreadState& state,
-                                           void* data) {
-  Isolate* isolate = reinterpret_cast<Isolate*>(data);
-  if (isolate == NULL) {
-    return;
-  }
-  IsolateProfilerData* profiler_data = isolate->profiler_data();
-  if (profiler_data == NULL) {
-    return;
-  }
-  SampleBuffer* sample_buffer = profiler_data->sample_buffer();
-  if (sample_buffer == NULL) {
-    return;
-  }
-  Sample* sample = sample_buffer->ReserveSample();
-  sample->Init(Sample::kIsolateSample, isolate, OS::GetCurrentTimeMicros(),
-               state.tid);
-}
-
-
-void Profiler::RecordSampleInterruptCallback(
-    const InterruptedThreadState& state,
-    void* data) {
-  Isolate* isolate = reinterpret_cast<Isolate*>(data);
-  if (isolate == NULL) {
-    return;
-  }
-  IsolateProfilerData* profiler_data = isolate->profiler_data();
-  if (profiler_data == NULL) {
-    return;
-  }
-  SampleBuffer* sample_buffer = profiler_data->sample_buffer();
-  if (sample_buffer == NULL) {
-    return;
-  }
-  Sample* sample = sample_buffer->ReserveSample();
-  sample->Init(Sample::kIsolateSample, isolate, OS::GetCurrentTimeMicros(),
-               state.tid);
-  uintptr_t stack_lower = 0;
-  uintptr_t stack_upper = 0;
-  isolate->GetStackBounds(&stack_lower, &stack_upper);
-  if ((stack_lower == 0) || (stack_upper == 0)) {
-    stack_lower = 0;
-    stack_upper = 0;
-  }
-  ProfilerSampleStackWalker stackWalker(sample, stack_lower, stack_upper,
-                                        state.pc, state.fp, state.sp);
-  stackWalker.walk();
-}
-
-
 struct AddressEntry {
-  uintptr_t pc;
-  uintptr_t ticks;
+  uword pc;
+  intptr_t ticks;
 };
 
+typedef bool (*RegionCompare)(uword pc, uword region_start, uword region_end);
 
 // A region of code. Each region is a kind of code (Dart, Collected, or Native).
 class CodeRegion : public ZoneAllocated {
@@ -214,7 +164,7 @@ class CodeRegion : public ZoneAllocated {
     kNativeCode
   };
 
-  CodeRegion(Kind kind, uintptr_t start, uintptr_t end) :
+  CodeRegion(Kind kind, uword start, uword end) :
       kind_(kind),
       start_(start),
       end_(end),
@@ -222,32 +172,42 @@ class CodeRegion : public ZoneAllocated {
       exclusive_ticks_(0),
       name_(NULL),
       address_table_(new ZoneGrowableArray<AddressEntry>()) {
+    ASSERT(start_ < end_);
   }
 
   ~CodeRegion() {
   }
 
-  uintptr_t start() const { return start_; }
-  void set_start(uintptr_t start) {
+  uword start() const { return start_; }
+  void set_start(uword start) {
     start_ = start;
   }
 
-  uintptr_t end() const { return end_; }
-  void set_end(uintptr_t end) {
+  uword end() const { return end_; }
+  void set_end(uword end) {
     end_ = end;
   }
 
-  void AdjustExtent(uintptr_t start, uintptr_t end) {
+  void AdjustExtent(uword start, uword end) {
     if (start < start_) {
       start_ = start;
     }
     if (end > end_) {
       end_ = end;
     }
+    ASSERT(start_ < end_);
   }
 
-  bool contains(uintptr_t pc) const {
+  bool contains(uword pc) const {
     return (pc >= start_) && (pc < end_);
+  }
+
+  bool overlaps(const CodeRegion* other) const {
+    ASSERT(other != NULL);
+    return other->contains(start_)   ||
+           other->contains(end_ - 1) ||
+           contains(other->start())  ||
+           contains(other->end() - 1);
   }
 
   intptr_t inclusive_ticks() const { return inclusive_ticks_; }
@@ -294,12 +254,12 @@ class CodeRegion : public ZoneAllocated {
     }
   }
 
-  void DebugPrint() {
-    printf("%s [%" Px ", %" Px ") %s\n", name_, start(), end(),
-           KindToCString(kind_));
+  void DebugPrint() const {
+    printf("%s [%" Px ", %" Px ") %s\n", KindToCString(kind_), start(), end(),
+           name_);
   }
 
-  void AddTickAtAddress(uintptr_t pc) {
+  void AddTickAtAddress(uword pc) {
     const intptr_t length = address_table_->length();
     intptr_t i = 0;
     for (; i < length; i++) {
@@ -383,14 +343,39 @@ class CodeRegion : public ZoneAllocated {
   }
 
   Kind kind_;
-  uintptr_t start_;
-  uintptr_t end_;
+  uword start_;
+  uword end_;
   intptr_t inclusive_ticks_;
   intptr_t exclusive_ticks_;
   const char* name_;
   ZoneGrowableArray<AddressEntry>* address_table_;
 
   DISALLOW_COPY_AND_ASSIGN(CodeRegion);
+};
+
+
+class ScopeStopwatch : public ValueObject {
+ public:
+  explicit ScopeStopwatch(const char* name) : name_(name) {
+    start_ = OS::GetCurrentTimeMillis();
+  }
+
+  intptr_t GetElapsed() const {
+    intptr_t end = OS::GetCurrentTimeMillis();
+    ASSERT(end >= start_);
+    return end - start_;
+  }
+
+  ~ScopeStopwatch() {
+    if (FLAG_trace_profiled_isolates) {
+      intptr_t elapsed = GetElapsed();
+      OS::Print("%s took %" Pd " millis.\n", name_, elapsed);
+    }
+  }
+
+ private:
+  const char* name_;
+  intptr_t start_;
 };
 
 
@@ -406,7 +391,7 @@ class ProfilerCodeRegionTable : public ValueObject {
   ~ProfilerCodeRegionTable() {
   }
 
-  void AddTick(uintptr_t pc, bool exclusive, bool tick_address) {
+  void AddTick(uword pc, bool exclusive, bool tick_address) {
     intptr_t index = FindIndex(pc);
     if (index < 0) {
       CodeRegion* code_region = CreateCodeRegion(pc);
@@ -427,19 +412,57 @@ class ProfilerCodeRegionTable : public ValueObject {
     return (*code_region_table_)[idx];
   }
 
+#if defined(DEBUG)
+  void Verify() {
+    VerifyOrder();
+    VerifyOverlap();
+  }
+#endif
+
  private:
-  intptr_t FindIndex(uintptr_t pc) {
-    const intptr_t length = code_region_table_->length();
-    for (intptr_t i = 0; i < length; i++) {
-      const CodeRegion* code_region = (*code_region_table_)[i];
-      if (code_region->contains(pc)) {
-        return i;
+  intptr_t FindRegionIndex(uword pc, RegionCompare comparator) {
+    ASSERT(comparator != NULL);
+    intptr_t count = code_region_table_->length();
+    intptr_t first = 0;
+    while (count > 0) {
+      intptr_t it = first;
+      intptr_t step = count / 2;
+      it += step;
+      const CodeRegion* code_region = (*code_region_table_)[it];
+      if (comparator(pc, code_region->start(), code_region->end())) {
+        first = ++it;
+        count -= (step + 1);
+      } else {
+        count = step;
       }
+    }
+    return first;
+  }
+
+  static bool CompareUpperBound(uword pc, uword start, uword end) {
+    return pc >= end;
+  }
+
+  static bool CompareLowerBound(uword pc, uword start, uword end) {
+    return end <= pc;
+  }
+
+  intptr_t FindIndex(uword pc) {
+    intptr_t index = FindRegionIndex(pc, &CompareLowerBound);
+    const CodeRegion* code_region = NULL;
+    if (index == code_region_table_->length()) {
+      // Not present.
+      return -1;
+    }
+    code_region = (*code_region_table_)[index];
+    if (code_region->contains(pc)) {
+      // Found at index.
+      return index;
     }
     return -1;
   }
 
-  CodeRegion* CreateCodeRegion(uintptr_t pc) {
+  CodeRegion* CreateCodeRegion(uword pc) {
     Code& code = Code::Handle(Code::LookupCode(pc));
     if (!code.IsNull()) {
       return new CodeRegion(CodeRegion::kDartCode, code.EntryPoint(),
@@ -448,8 +471,7 @@ class ProfilerCodeRegionTable : public ValueObject {
     if (heap_->CodeContains(pc)) {
       const intptr_t kDartCodeAlignment = 0x10;
       const intptr_t kDartCodeAlignmentMask = ~(kDartCodeAlignment - 1);
-      return new CodeRegion(CodeRegion::kCollectedCode,
-                            (pc & kDartCodeAlignmentMask),
+      return new CodeRegion(CodeRegion::kCollectedCode, pc,
                             (pc & kDartCodeAlignmentMask) + kDartCodeAlignment);
     }
     uintptr_t native_start = 0;
@@ -466,36 +488,128 @@ class ProfilerCodeRegionTable : public ValueObject {
     return code_region;
   }
 
+  void HandleOverlap(CodeRegion* region, CodeRegion* code_region,
+                     uword start, uword end) {
+    // We should never see overlapping Dart code regions.
+    ASSERT(region->kind() != CodeRegion::kDartCode);
+    // When code regions overlap, they should be of the same kind.
+    ASSERT(region->kind() == code_region->kind());
+    region->AdjustExtent(start, end);
+  }
+
   intptr_t InsertCodeRegion(CodeRegion* code_region) {
+    const uword start = code_region->start();
+    const uword end = code_region->end();
     const intptr_t length = code_region_table_->length();
-    const uintptr_t start = code_region->start();
-    const uintptr_t end = code_region->end();
-    intptr_t i = 0;
-    for (; i < length; i++) {
-      CodeRegion* region = (*code_region_table_)[i];
-      if (region->contains(start) || region->contains(end - 1)) {
-        // We should only see overlapping native code regions.
-        ASSERT(region->kind() == CodeRegion::kNativeCode);
-        // When code regions overlap, they should be of the same kind.
-        ASSERT(region->kind() == code_region->kind());
-        // Overlapping code region.
-        region->AdjustExtent(start, end);
-        return i;
-      } else if (start >= region->end()) {
-        // Insert here.
-        break;
+    if (length == 0) {
+      code_region_table_->Add(code_region);
+      return length;
+    }
+    // Determine the correct place to insert or merge code_region into table.
+    intptr_t lo = FindRegionIndex(start, &CompareLowerBound);
+    intptr_t hi = FindRegionIndex(end - 1, &CompareUpperBound);
+    if ((lo == length) && (hi == length)) {
+      lo = length - 1;
+    }
+    if (lo == length) {
+      CodeRegion* region = (*code_region_table_)[hi];
+      if (region->overlaps(code_region)) {
+        HandleOverlap(region, code_region, start, end);
+        return hi;
+      }
+      code_region_table_->Add(code_region);
+      return length;
+    } else if (hi == length) {
+      CodeRegion* region = (*code_region_table_)[lo];
+      if (region->overlaps(code_region)) {
+        HandleOverlap(region, code_region, start, end);
+        return lo;
+      }
+      code_region_table_->Add(code_region);
+      return length;
+    } else if (lo == hi) {
+      CodeRegion* region = (*code_region_table_)[lo];
+      if (region->overlaps(code_region)) {
+        HandleOverlap(region, code_region, start, end);
+        return lo;
+      }
+      code_region_table_->InsertAt(lo, code_region);
+      return lo;
+    } else {
+      CodeRegion* region = (*code_region_table_)[lo];
+      if (region->overlaps(code_region)) {
+        HandleOverlap(region, code_region, start, end);
+        return lo;
+      }
+      region = (*code_region_table_)[hi];
+      if (region->overlaps(code_region)) {
+        HandleOverlap(region, code_region, start, end);
+        return hi;
+      }
+      code_region_table_->InsertAt(hi, code_region);
+      return hi;
+    }
+    UNREACHABLE();
+  }
+
+#if defined(DEBUG)
+  void VerifyOrder() {
+    const intptr_t length = code_region_table_->length();
+    if (length == 0) {
+      return;
+    }
+    uword last = (*code_region_table_)[0]->end();
+    for (intptr_t i = 1; i < length; i++) {
+      CodeRegion* a = (*code_region_table_)[i];
+      ASSERT(last <= a->start());
+      last = a->end();
+    }
+  }
+
+  void VerifyOverlap() {
+    const intptr_t length = code_region_table_->length();
+    for (intptr_t i = 0; i < length; i++) {
+      CodeRegion* a = (*code_region_table_)[i];
+      for (intptr_t j = i+1; j < length; j++) {
+        CodeRegion* b = (*code_region_table_)[j];
+        ASSERT(!a->contains(b->start()) &&
+               !a->contains(b->end() - 1) &&
+               !b->contains(a->start()) &&
+               !b->contains(a->end() - 1));
       }
     }
-    if (i != length) {
-      code_region_table_->InsertAt(i, code_region);
-      return i;
-    }
-    code_region_table_->Add(code_region);
-    return code_region_table_->length() - 1;
   }
+#endif
 
   Heap* heap_;
   ZoneGrowableArray<CodeRegion*>* code_region_table_;
+};
+
+
+class CodeRegionTableBuilder : public SampleVisitor {
+ public:
+  CodeRegionTableBuilder(Isolate* isolate,
+                         ProfilerCodeRegionTable* code_region_table)
+      : SampleVisitor(isolate), code_region_table_(code_region_table) {
+    frames_ = 0;
+  }
+
+  void VisitSample(Sample* sample) {
+    code_region_table_->AddTick(sample->At(0), true, false);
+    // Give all frames an inclusive tick and tick the address.
+    for (intptr_t i = 0; i < FLAG_profile_depth; i++) {
+      if (sample->At(i) == 0) {
+        break;
+      }
+      frames_++;
+      code_region_table_->AddTick(sample->At(i), false, true);
+    }
+  }
+
+  intptr_t frames() const { return frames_; }
+ private:
+  intptr_t frames_;
+  ProfilerCodeRegionTable* code_region_table_;
 };
 
 
@@ -519,9 +633,23 @@ void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream,
     {
       // Build code region table.
       ProfilerCodeRegionTable code_region_table(isolate);
-      intptr_t samples =
-          ProcessSamples(isolate, &code_region_table, sample_buffer);
+      CodeRegionTableBuilder builder(isolate, &code_region_table);
       {
+        ScopeStopwatch sw("CodeTableBuild");
+        sample_buffer->VisitSamples(&builder);
+      }
+#if defined(DEBUG)
+      code_region_table.Verify();
+#endif
+      // Number of samples we processed.
+      intptr_t samples = builder.visited();
+      intptr_t frames = builder.frames();
+      if (FLAG_trace_profiled_isolates) {
+        OS::Print("%" Pd " frames produced %" Pd " code objects.\n",
+                  frames, code_region_table.Length());
+      }
+      {
+        ScopeStopwatch sw("CodeTableStream");
         // Serialize to JSON.
         JSONObject obj(stream);
         obj.AddProperty("type", "Profile");
@@ -530,65 +658,13 @@ void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream,
         for (intptr_t i = 0; i < code_region_table.Length(); i++) {
           CodeRegion* region = code_region_table.At(i);
           ASSERT(region != NULL);
-          region->PrintToJSONArray(&codes, full);
+          region->PrintToJSONArray(&codes, false);
         }
       }
     }
   }
   // Enable profile interrupts.
   BeginExecution(isolate);
-}
-
-
-intptr_t Profiler::ProcessSamples(Isolate* isolate,
-                                  ProfilerCodeRegionTable* code_region_table,
-                                  SampleBuffer* sample_buffer) {
-  int64_t start = OS::GetCurrentTimeMillis();
-  intptr_t samples = 0;
-  Sample* sample = Sample::Allocate();
-  for (intptr_t i = 0; i < sample_buffer->capacity(); i++) {
-    sample_buffer->CopySample(i, sample);
-    if (sample->isolate() != isolate) {
-      continue;
-    }
-    if (sample->timestamp() == 0) {
-      continue;
-    }
-    samples += ProcessSample(isolate, code_region_table, sample);
-  }
-  free(sample);
-  int64_t end = OS::GetCurrentTimeMillis();
-  if (FLAG_trace_profiled_isolates) {
-    int64_t delta = end - start;
-    OS::Print("Processed %" Pd " samples from %s in %" Pd64 " milliseconds.\n",
-        samples,
-        isolate->name(),
-        delta);
-  }
-  return samples;
-}
-
-
-intptr_t Profiler::ProcessSample(Isolate* isolate,
-                                 ProfilerCodeRegionTable* code_region_table,
-                                Sample* sample) {
-  if (sample->type() != Sample::kIsolateSample) {
-    return 0;
-  }
-  if (sample->At(0) == 0) {
-    // No frames in this sample.
-    return 0;
-  }
-  // i points to the leaf (exclusive) PC sample. Do not tick the address.
-  code_region_table->AddTick(sample->At(0), true, false);
-  // Give all frames an inclusive tick and tick the address.
-  for (intptr_t i = 0; i < FLAG_profile_depth; i++) {
-    if (sample->At(i) == 0) {
-      break;
-    }
-    code_region_table->AddTick(sample->At(i), false, true);
-  }
-  return 1;
 }
 
 
@@ -659,14 +735,14 @@ void Sample::InitOnce() {
 }
 
 
-uintptr_t Sample::At(intptr_t i) const {
+uword Sample::At(intptr_t i) const {
   ASSERT(i >= 0);
   ASSERT(i < FLAG_profile_depth);
   return pcs_[i];
 }
 
 
-void Sample::SetAt(intptr_t i, uintptr_t pc) {
+void Sample::SetAt(intptr_t i, uword pc) {
   ASSERT(i >= 0);
   ASSERT(i < FLAG_profile_depth);
   pcs_[i] = pc;
@@ -743,20 +819,28 @@ Sample* SampleBuffer::At(intptr_t idx) const {
 }
 
 
-ProfilerSampleStackWalker::ProfilerSampleStackWalker(Sample* sample,
-                                                     uintptr_t stack_lower,
-                                                     uintptr_t stack_upper,
-                                                     uintptr_t pc,
-                                                     uintptr_t fp,
-                                                     uintptr_t sp) :
-    sample_(sample),
-    stack_lower_(stack_lower),
-    stack_upper_(stack_upper),
-    original_pc_(pc),
-    original_fp_(fp),
-    original_sp_(sp),
-    lower_bound_(stack_lower) {
-  ASSERT(sample_ != NULL);
+void SampleBuffer::VisitSamples(SampleVisitor* visitor) {
+  ASSERT(visitor != NULL);
+  Sample* sample = Sample::Allocate();
+  const intptr_t length = capacity();
+  for (intptr_t i = 0; i < length; i++) {
+    CopySample(i, sample);
+    if (sample->isolate() != visitor->isolate()) {
+      // Another isolate.
+      continue;
+    }
+    if (sample->timestamp() == 0) {
+      // Empty.
+      continue;
+    }
+    if (sample->At(0) == 0) {
+      // No frames.
+      continue;
+    }
+    visitor->IncrementVisited();
+    visitor->VisitSample(sample);
+  }
+  free(sample);
 }
 
 
@@ -768,77 +852,131 @@ ProfilerSampleStackWalker::ProfilerSampleStackWalker(Sample* sample,
 // recent GCC versions with optimizing enabled) the stack walking code may
 // fail (sometimes leading to a crash).
 //
+class ProfilerSampleStackWalker : public ValueObject {
+ public:
+  ProfilerSampleStackWalker(Sample* sample,
+                            uword stack_lower,
+                            uword stack_upper,
+                            uword pc,
+                            uword fp,
+                            uword sp)
+      : sample_(sample),
+        stack_lower_(stack_lower),
+        stack_upper_(stack_upper),
+        original_pc_(pc),
+        original_fp_(fp),
+        original_sp_(sp),
+        lower_bound_(stack_lower) {
+    ASSERT(sample_ != NULL);
+  }
 
-int ProfilerSampleStackWalker::walk() {
-  const intptr_t kMaxStep = 0x1000;  // 4K.
-  const bool kWalkStack = true;  // Walk the stack.
-  // Always store the exclusive PC.
-  sample_->SetAt(0, original_pc_);
-  if (!kWalkStack) {
-    // Not walking the stack, only took exclusive sample.
-    return 1;
-  }
-  uword* pc = reinterpret_cast<uword*>(original_pc_);
-  uword* fp = reinterpret_cast<uword*>(original_fp_);
-  uword* previous_fp = fp;
-  if (original_sp_ > original_fp_) {
-    // Stack pointer should not be above frame pointer.
-    return 1;
-  }
-  intptr_t gap = original_fp_ - original_sp_;
-  if (gap >= kMaxStep) {
-    // Gap between frame pointer and stack pointer is
-    // too large.
-    return 1;
-  }
-  if (original_sp_ < lower_bound_) {
-    // The stack pointer gives us a better lower bound than
-    // the isolates stack limit.
-    lower_bound_ = original_sp_;
-  }
-  int i = 0;
-  for (; i < FLAG_profile_depth; i++) {
-    sample_->SetAt(i, reinterpret_cast<uintptr_t>(pc));
-    if (!ValidFramePointer(fp)) {
-      return i + 1;
+  int walk() {
+    const intptr_t kMaxStep = 0x1000;  // 4K.
+    const bool kWalkStack = true;  // Walk the stack.
+    // Always store the exclusive PC.
+    sample_->SetAt(0, original_pc_);
+    if (!kWalkStack) {
+      // Not walking the stack, only took exclusive sample.
+      return 1;
     }
-    pc = CallerPC(fp);
-    previous_fp = fp;
-    fp = CallerFP(fp);
-    intptr_t step = fp - previous_fp;
-    if ((step >= kMaxStep) || (fp <= previous_fp) || !ValidFramePointer(fp)) {
-      // Frame pointer step is too large.
-      // Frame pointer did not move to a higher address.
-      // Frame pointer is outside of isolate stack bounds.
-      return i + 1;
+    uword* pc = reinterpret_cast<uword*>(original_pc_);
+    uword* fp = reinterpret_cast<uword*>(original_fp_);
+    uword* previous_fp = fp;
+    if (original_sp_ > original_fp_) {
+      // Stack pointer should not be above frame pointer.
+      return 1;
     }
-    // Move the lower bound up.
-    lower_bound_ = reinterpret_cast<uintptr_t>(fp);
+    intptr_t gap = original_fp_ - original_sp_;
+    if (gap >= kMaxStep) {
+      // Gap between frame pointer and stack pointer is
+      // too large.
+      return 1;
+    }
+    if (original_sp_ < lower_bound_) {
+      // The stack pointer gives us a better lower bound than
+      // the isolates stack limit.
+      lower_bound_ = original_sp_;
+    }
+    int i = 0;
+    for (; i < FLAG_profile_depth; i++) {
+      sample_->SetAt(i, reinterpret_cast<uword>(pc));
+      if (!ValidFramePointer(fp)) {
+        return i + 1;
+      }
+      pc = CallerPC(fp);
+      previous_fp = fp;
+      fp = CallerFP(fp);
+      intptr_t step = fp - previous_fp;
+      if ((step >= kMaxStep) || (fp <= previous_fp) || !ValidFramePointer(fp)) {
+        // Frame pointer step is too large.
+        // Frame pointer did not move to a higher address.
+        // Frame pointer is outside of isolate stack bounds.
+        return i + 1;
+      }
+      // Move the lower bound up.
+      lower_bound_ = reinterpret_cast<uword>(fp);
+    }
+    return i;
   }
-  return i;
-}
 
-
-uword* ProfilerSampleStackWalker::CallerPC(uword* fp) {
-  ASSERT(fp != NULL);
-  return reinterpret_cast<uword*>(*(fp + kSavedCallerPcSlotFromFp));
-}
-
-
-uword* ProfilerSampleStackWalker::CallerFP(uword* fp) {
-  ASSERT(fp != NULL);
-  return reinterpret_cast<uword*>(*(fp + kSavedCallerFpSlotFromFp));
-}
-
-
-bool ProfilerSampleStackWalker::ValidFramePointer(uword* fp) {
-  if (fp == NULL) {
-    return false;
+ private:
+  uword* CallerPC(uword* fp) const {
+    ASSERT(fp != NULL);
+    return reinterpret_cast<uword*>(*(fp + kSavedCallerPcSlotFromFp));
   }
-  uintptr_t cursor = reinterpret_cast<uintptr_t>(fp);
-  cursor += sizeof(fp);
-  bool r = cursor >= lower_bound_ && cursor < stack_upper_;
-  return r;
+
+  uword* CallerFP(uword* fp) const {
+    ASSERT(fp != NULL);
+    return reinterpret_cast<uword*>(*(fp + kSavedCallerFpSlotFromFp));
+  }
+
+  bool ValidFramePointer(uword* fp) const {
+    if (fp == NULL) {
+      return false;
+    }
+    uword cursor = reinterpret_cast<uword>(fp);
+    cursor += sizeof(fp);
+    bool r = cursor >= lower_bound_ && cursor < stack_upper_;
+    return r;
+  }
+
+  Sample* sample_;
+  const uword stack_lower_;
+  const uword stack_upper_;
+  const uword original_pc_;
+  const uword original_fp_;
+  const uword original_sp_;
+  uword lower_bound_;
+};
+
+void Profiler::RecordSampleInterruptCallback(
+    const InterruptedThreadState& state,
+    void* data) {
+  Isolate* isolate = reinterpret_cast<Isolate*>(data);
+  if (isolate == NULL) {
+    return;
+  }
+  IsolateProfilerData* profiler_data = isolate->profiler_data();
+  if (profiler_data == NULL) {
+    return;
+  }
+  SampleBuffer* sample_buffer = profiler_data->sample_buffer();
+  if (sample_buffer == NULL) {
+    return;
+  }
+  Sample* sample = sample_buffer->ReserveSample();
+  sample->Init(Sample::kIsolateSample, isolate, OS::GetCurrentTimeMicros(),
+               state.tid);
+  uword stack_lower = 0;
+  uword stack_upper = 0;
+  isolate->GetStackBounds(&stack_lower, &stack_upper);
+  if ((stack_lower == 0) || (stack_upper == 0)) {
+    stack_lower = 0;
+    stack_upper = 0;
+  }
+  ProfilerSampleStackWalker stackWalker(sample, stack_lower, stack_upper,
+                                        state.pc, state.fp, state.sp);
+  stackWalker.walk();
 }
 
 

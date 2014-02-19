@@ -479,15 +479,15 @@ void Isolate::SetStackLimit(uword limit) {
 }
 
 
-bool Isolate::GetStackBounds(uintptr_t* lower, uintptr_t* upper) {
-  uintptr_t stack_lower = stack_limit();
-  if (stack_lower == static_cast<uintptr_t>(~0)) {
+bool Isolate::GetStackBounds(uword* lower, uword* upper) {
+  uword stack_lower = stack_limit();
+  if (stack_lower == kUwordMax) {
     stack_lower = saved_stack_limit();
   }
-  if (stack_lower == static_cast<uintptr_t>(~0)) {
+  if (stack_lower == kUwordMax) {
     return false;
   }
-  uintptr_t stack_upper = stack_lower + GetSpecifiedStackSize();
+  uword stack_upper = stack_lower + GetSpecifiedStackSize();
   *lower = stack_lower;
   *upper = stack_upper;
   return true;

@@ -45,17 +45,6 @@ class Profiler : public AllStatic {
   static bool initialized_;
   static Monitor* monitor_;
 
-  static intptr_t ProcessSamples(Isolate* isolate,
-                                 ProfilerCodeRegionTable* code_region_table,
-                                 SampleBuffer* sample_buffer);
-
-  static intptr_t ProcessSample(Isolate* isolate,
-                                ProfilerCodeRegionTable* code_region_table,
-                                Sample* sample);
-
-  static void RecordTickInterruptCallback(const InterruptedThreadState& state,
-                                          void* data);
-
   static void RecordSampleInterruptCallback(const InterruptedThreadState& state,
                                             void* data);
 
@@ -90,8 +79,8 @@ class Sample {
 
   static void InitOnce();
 
-  uintptr_t At(intptr_t i) const;
-  void SetAt(intptr_t i, uintptr_t pc);
+  uword At(intptr_t i) const;
+  void SetAt(intptr_t i, uword pc);
   void Init(SampleType type, Isolate* isolate, int64_t timestamp, ThreadId tid);
   void CopyInto(Sample* dst) const;
 
@@ -120,9 +109,36 @@ class Sample {
   SampleType type_;
   // Note: This class has a size determined at run-time. The pcs_ array
   // must be the final field.
-  uintptr_t pcs_[0];
+  uword pcs_[0];
 
   DISALLOW_COPY_AND_ASSIGN(Sample);
+};
+
+
+class SampleVisitor {
+ public:
+  explicit SampleVisitor(Isolate* isolate) : isolate_(isolate), visited_(0) { }
+  virtual ~SampleVisitor() {}
+
+  virtual void VisitSample(Sample* sample) = 0;
+
+  intptr_t visited() const {
+    return visited_;
+  }
+
+  void IncrementVisited() {
+    visited_++;
+  }
+
+  Isolate* isolate() const {
+    return isolate_;
+  }
+
+ private:
+  Isolate* isolate_;
+  intptr_t visited_;
+
+  DISALLOW_IMPLICIT_CONSTRUCTORS(SampleVisitor);
 };
 
 
@@ -139,41 +155,14 @@ class SampleBuffer {
   void CopySample(intptr_t i, Sample* sample) const;
   Sample* At(intptr_t idx) const;
 
+  void VisitSamples(SampleVisitor* visitor);
+
  private:
   Sample* samples_;
   intptr_t capacity_;
   uintptr_t cursor_;
 
   DISALLOW_COPY_AND_ASSIGN(SampleBuffer);
-};
-
-
-class ProfilerSampleStackWalker : public ValueObject {
- public:
-  ProfilerSampleStackWalker(Sample* sample,
-                            uintptr_t stack_lower,
-                            uintptr_t stack_upper,
-                            uintptr_t pc,
-                            uintptr_t fp,
-                            uintptr_t sp);
-
-  int walk();
-
- private:
-  uword* CallerPC(uword* fp);
-  uword* CallerFP(uword* fp);
-
-  bool ValidInstructionPointer(uword* pc);
-
-  bool ValidFramePointer(uword* fp);
-
-  Sample* sample_;
-  const uintptr_t stack_lower_;
-  const uintptr_t stack_upper_;
-  const uintptr_t original_pc_;
-  const uintptr_t original_fp_;
-  const uintptr_t original_sp_;
-  uintptr_t lower_bound_;
 };
 
 
