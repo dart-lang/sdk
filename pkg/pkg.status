@@ -297,6 +297,7 @@ third_party/html5lib/test/browser/browser_test: Skip
 polymer_expressions/test/globals_test: Fail # Issue 16568
 
 [ $runtime == safari || $runtime == chrome || $runtime == ie9 || $runtime == ff || $runtime == dartium || $runtime == drt ]
+docgen/test/generate_json_test: Skip  # Uses dart:io
 docgen/test/single_library_test: Skip # Uses dart:io
 docgen/test/multi_library_test: Skip # Uses dart:io
 scheduled_test/test/scheduled_server_test: Skip # Uses dart:io
@@ -309,6 +310,7 @@ unittest/test/missing_tick_test: Fail, OK # Expected to fail, due to timeout.
 source_maps/test/parser_test: Pass, Timeout # Issue 13719: Please triage this failure.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+docgen/test/generate_json_test: StaticWarning
 docgen/test/single_library_test: StaticWarning
 docgen/test/multi_library_test: StaticWarning
 unittest/test/matchers_test: StaticWarning, OK # testing error creating abstract class
