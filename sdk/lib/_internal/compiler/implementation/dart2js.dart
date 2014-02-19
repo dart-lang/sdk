@@ -7,7 +7,7 @@ library dart2js.cmdline;
 import 'dart:async'
     show Future, EventSink;
 import 'dart:io'
-    show exit, File, FileMode, Platform, RandomAccessFile;
+    show exit, File, FileMode, Platform, RandomAccessFile, FileSystemException;
 import 'dart:math' as math;
 
 import '../compiler.dart' as api;
@@ -384,8 +384,12 @@ Future compile(List<String> argv) {
       fail('Error: Unhandled scheme ${uri.scheme} in $uri.');
     }
 
-    RandomAccessFile output =
-        new File(uri.toFilePath()).openSync(mode: FileMode.WRITE);
+    RandomAccessFile output;
+    try {
+      output = new File(uri.toFilePath()).openSync(mode: FileMode.WRITE);
+    } on FileSystemException catch(e) {
+      fail('$e');
+    }
 
     allOutputFiles.add(relativize(currentDirectory, uri, isWindows));
 
