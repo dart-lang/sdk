@@ -64,6 +64,8 @@ verifyResult(ignored) {
   verify('5 some currency or other.');
   verify('1 Canadian dollar');
   verify('2 Canadian dollars');
+  verify('1 thing:');
+  verify('2 things:');
 
   var fr_lines = expanded.skip(1).skipWhile(
       (line) => !line.contains('----')).toList();
@@ -124,6 +126,8 @@ verifyResult(ignored) {
   verify('5 certaine devise ou autre.');
   verify('1 dollar Canadien');
   verify('2 dollars Canadiens');
+  verify('1 chose:');
+  verify('2 choses:');
 
   var de_lines = fr_lines.skip(1).skipWhile(
       (line) => !line.contains('----')).toList();
@@ -184,4 +188,6 @@ verifyResult(ignored) {
   verify('5 einige Währung oder anderen.');
   verify('1 Kanadischer dollar');
   verify('2 Kanadischen dollar');
+  verify('eins:');
+  verify('2 Dinge:');
 }

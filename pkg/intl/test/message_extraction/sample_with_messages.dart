@@ -73,6 +73,13 @@ outerPlural(n) => Intl.plural(n, zero: 'none', one: 'one', other: 'some',
 outerGender(g) => Intl.gender(g, male: 'm', female: 'f', other: 'o',
     name: 'outerGender', desc: 'A gender with no enclosing message', args: [g]);
 
+pluralThatFailsParsing(noOfThings) => Intl.plural(noOfThings,
+    one: "1 thing:",
+    other: "$noOfThings things:",
+    name: "pluralThatFailsParsing",
+    args: [noOfThings],
+    desc: "How many things are there?");
+
 // A standalone gender message where we don't provide name or args. This should
 // be rejected by validation code.
 invalidOuterGender(g) => Intl.gender(g, other: 'o');
@@ -184,6 +191,8 @@ printStuff(Intl locale) {
     printOut(outerSelect("EUR", 5));
     printOut(nestedSelect("CDN", 1));
     printOut(nestedSelect("CDN", 2));
+    printOut(pluralThatFailsParsing(1));
+    printOut(pluralThatFailsParsing(2));
   });
 }
 

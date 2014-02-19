@@ -48,6 +48,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static outerSelect(currency, amount) => "${Intl.select(currency, {'CDN': '$amount dollars Canadiens', 'other': '$amount certaine devise ou autre.', })}";
 
+  static pluralThatFailsParsing(noOfThings) => "${Intl.plural(noOfThings, one: '1 chose:', other: '$noOfThings choses:')}";
+
   static plurals(num) => "${Intl.plural(num, zero: 'Est-ce que nulle est pluriel?', one: 'C\'est singulier', other: 'C\'est pluriel ($num).')}";
 
   static staticMessage() => "Cela vient d\'une méthode statique";
@@ -77,6 +79,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "outerGender" : outerGender,
     "outerPlural" : outerPlural,
     "outerSelect" : outerSelect,
+    "pluralThatFailsParsing" : pluralThatFailsParsing,
     "plurals" : plurals,
     "staticMessage" : staticMessage,
     "trickyInterpolation" : trickyInterpolation,

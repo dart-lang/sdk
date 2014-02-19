@@ -107,7 +107,7 @@ void generateIndividualMessageFile(String locale,
       a.originalMessage.name.compareTo(b.originalMessage.name));
   for (var translation in usableTranslations) {
     result
-        .write("  ")
+        ..write("  ")
         ..write(translation.originalMessage.toCodeForLocale(locale))
         ..write("\n\n");
   }
