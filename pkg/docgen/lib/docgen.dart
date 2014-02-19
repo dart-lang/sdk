@@ -113,9 +113,10 @@ and
 ///
 /// Returned Future completes with true if document generation is successful.
 Future<bool> docgen(List<String> files, {String packageRoot,
-    bool outputToYaml: true, bool includePrivate: false, bool includeSdk: false,
+    bool outputToYaml: false, bool includePrivate: false, bool includeSdk: false,
     bool parseSdk: false, bool append: false, String introFileName: '',
-    out: _DEFAULT_OUTPUT_DIRECTORY, List<String> excludeLibraries : const [],
+    String out: _DEFAULT_OUTPUT_DIRECTORY,
+    List<String> excludeLibraries : const [],
     bool includeDependentPackages: false, bool compile: false,
     bool serve: false, bool noDocs: false, String startPage, String pubScript,
     String dartBinary}) {
