@@ -346,7 +346,7 @@ void AstPrinter::VisitStoreIndexedNode(StoreIndexedNode* node) {
 
 
 void AstPrinter::VisitNativeBodyNode(NativeBodyNode* node) {
-  OS::Print("(%s \"%s\" (%d args))",
+  OS::Print("(%s \"%s\" (%" Pd " args))",
             node->PrettyName(),
             node->native_c_function_name().ToCString(),
             NativeArguments::ParameterCountForResolution(node->function()));

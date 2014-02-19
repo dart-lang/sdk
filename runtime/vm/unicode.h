@@ -29,7 +29,7 @@ class Utf : AllStatic {
   }
 
   // Returns true if the code point value is above Plane 17.
-  static bool IsOutOfRange(int32_t code_point) {
+  static bool IsOutOfRange(intptr_t code_point) {
     return (code_point < 0) || (code_point > kMaxCodePoint);
   }
 };

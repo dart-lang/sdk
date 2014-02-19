@@ -135,10 +135,10 @@ class NativeArguments {
     return AutoSetupScopeBits::mask_in_place();
   }
 
-  static int ParameterCountForResolution(const Function& function) {
+  static intptr_t ParameterCountForResolution(const Function& function) {
     ASSERT(function.is_native());
     ASSERT(!function.IsConstructor());  // Not supported.
-    int count = function.NumParameters();
+    intptr_t count = function.NumParameters();
     if (function.is_static() && function.IsClosureFunction()) {
       // The closure object is hidden and not accessible from native code.
       // However, if the function is an instance closure function, the captured

@@ -9,7 +9,7 @@
 
 package/invalid_uri_test: Fail, OK # CompileTimeErrors intentionally
 
-issue14236_test: Crash # Issue 14516.
+issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
 
 [ $runtime == vm ]
 package/package_isolate_test: Fail # Issue 12474

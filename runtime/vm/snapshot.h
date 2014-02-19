@@ -129,7 +129,7 @@ class Snapshot {
     kMessage,   // A partial snapshot used only for isolate messaging.
   };
 
-  static const int kHeaderSize = 2 * sizeof(int32_t);
+  static const int kHeaderSize = 2 * sizeof(int64_t);
   static const int kLengthIndex = 0;
   static const int kSnapshotFlagIndex = 1;
 
@@ -137,7 +137,7 @@ class Snapshot {
 
   // Getters.
   const uint8_t* content() const { return content_; }
-  int32_t length() const { return length_; }
+  int64_t length() const { return length_; }
   Kind kind() const { return static_cast<Kind>(kind_); }
 
   bool IsMessageSnapshot() const { return kind_ == kMessage; }
@@ -153,8 +153,8 @@ class Snapshot {
  private:
   Snapshot() : length_(0), kind_(kFull) {}
 
-  int32_t length_;  // Stream length.
-  int32_t kind_;  // Kind of snapshot.
+  int64_t length_;  // Stream length.
+  int64_t kind_;  // Kind of snapshot.
   uint8_t content_[];  // Stream content.
 
   DISALLOW_COPY_AND_ASSIGN(Snapshot);
@@ -436,7 +436,7 @@ class BaseWriter {
   }
 
   void FillHeader(Snapshot::Kind kind) {
-    int32_t* data = reinterpret_cast<int32_t*>(stream_.buffer());
+    int64_t* data = reinterpret_cast<int64_t*>(stream_.buffer());
     data[Snapshot::kLengthIndex] = stream_.bytes_written();
     data[Snapshot::kSnapshotFlagIndex] = kind;
   }

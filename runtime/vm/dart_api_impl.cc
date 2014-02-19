@@ -4175,8 +4175,8 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
                          " snapshot.", CURRENT_FUNC);
   }
   if (snapshot->length() != buffer_len) {
-    return Api::NewError("%s: 'buffer_len' of %" Pd " is not equal to %d which"
-                         " is the expected length in the snapshot.",
+    return Api::NewError("%s: 'buffer_len' of %" Pd " is not equal to %" Pd64
+                         " which is the expected length in the snapshot.",
                          CURRENT_FUNC, buffer_len, snapshot->length());
   }
   Library& library =

@@ -47,12 +47,12 @@ void File::Close() {
   ASSERT(handle_->fd() >= 0);
   if (handle_->fd() == STDOUT_FILENO) {
     // If stdout, redirect fd to /dev/null.
-    int null_fd = TEMP_FAILURE_RETRY(open("/dev/null", O_WRONLY));
+    intptr_t null_fd = TEMP_FAILURE_RETRY(open("/dev/null", O_WRONLY));
     ASSERT(null_fd >= 0);
     VOID_TEMP_FAILURE_RETRY(dup2(null_fd, handle_->fd()));
     VOID_TEMP_FAILURE_RETRY(close(null_fd));
   } else {
-    int err = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(handle_->fd()));
+    intptr_t err = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(handle_->fd()));
     if (err != 0) {
       const int kBufferSize = 1024;
       char error_message[kBufferSize];

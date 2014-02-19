@@ -73,15 +73,17 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
     intptr_t value = Smi::Cast(index_object).Value();
     if (Utf::IsOutOfRange(value)) {
       Exceptions::ThrowByType(Exceptions::kArgument, Object::empty_array());
-    } else {
-      if (!Utf::IsLatin1(value)) {
-        is_one_byte_string = false;
-        if (Utf::IsSupplementary(value)) {
-          utf16_len += 1;
-        }
+      UNREACHABLE();
+    }
+    // Now it is safe to cast the value.
+    int32_t value32 = static_cast<int32_t>(value);
+    if (!Utf::IsLatin1(value32)) {
+      is_one_byte_string = false;
+      if (Utf::IsSupplementary(value32)) {
+        utf16_len += 1;
       }
     }
-    utf32_array[i] = value;
+    utf32_array[i] = value32;
   }
   if (is_one_byte_string) {
     return OneByteString::New(utf32_array, array_len, Heap::kNew);
@@ -237,7 +239,7 @@ DEFINE_NATIVE_ENTRY(String_getLength, 1) {
 static int32_t StringValueAt(const String& str, const Integer& index) {
   if (index.IsSmi()) {
     const Smi& smi = Smi::Cast(index);
-    int32_t index = smi.Value();
+    intptr_t index = smi.Value();
     if ((index < 0) || (index >= str.Length())) {
       const Array& args = Array::Handle(Array::New(1));
       args.SetAt(0, smi);

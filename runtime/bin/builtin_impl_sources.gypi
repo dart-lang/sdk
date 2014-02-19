@@ -53,6 +53,7 @@
     'fdutils_macos.cc',
     'hashmap_test.cc',
     'isolate_data.h',
+    'signal_blocker.h',
     'thread.h',
     'utils.h',
     'utils_android.cc',

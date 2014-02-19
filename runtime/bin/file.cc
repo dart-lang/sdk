@@ -31,7 +31,7 @@ bool File::ReadFully(void* buffer, int64_t num_bytes) {
   int64_t remaining = num_bytes;
   char* current_buffer = reinterpret_cast<char*>(buffer);
   while (remaining > 0) {
-    int bytes_read = Read(current_buffer, remaining);
+    int64_t bytes_read = Read(current_buffer, remaining);
     if (bytes_read <= 0) {
       return false;
     }
@@ -46,7 +46,7 @@ bool File::WriteFully(const void* buffer, int64_t num_bytes) {
   int64_t remaining = num_bytes;
   const char* current_buffer = reinterpret_cast<const char*>(buffer);
   while (remaining > 0) {
-    int bytes_read = Write(current_buffer, remaining);
+    int64_t bytes_read = Write(current_buffer, remaining);
     if (bytes_read < 0) {
       return false;
     }

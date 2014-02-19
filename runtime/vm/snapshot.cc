@@ -117,7 +117,7 @@ const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
   ASSERT(raw_memory != NULL);
   ASSERT(kHeaderSize == sizeof(Snapshot));
   ASSERT(kLengthIndex == length_offset());
-  ASSERT((kSnapshotFlagIndex * sizeof(int32_t)) == kind_offset());
+  ASSERT((kSnapshotFlagIndex * sizeof(int64_t)) == kind_offset());
   ASSERT((kHeapObjectTag & kInlined));
   // The kWatchedBit and kMarkBit are only set during GC operations. This
   // allows the two low bits in the header to be used for snapshotting.

@@ -5131,9 +5131,9 @@ bool Function::AreValidArgumentCounts(intptr_t num_arguments,
     }
     return false;  // Too many named arguments.
   }
-  const int num_pos_args = num_arguments - num_named_arguments;
-  const int num_opt_pos_params = NumOptionalPositionalParameters();
-  const int num_pos_params = num_fixed_parameters() + num_opt_pos_params;
+  const intptr_t num_pos_args = num_arguments - num_named_arguments;
+  const intptr_t num_opt_pos_params = NumOptionalPositionalParameters();
+  const intptr_t num_pos_params = num_fixed_parameters() + num_opt_pos_params;
   if (num_pos_args > num_pos_params) {
     if (error_message != NULL) {
       const intptr_t kMessageBufferSize = 64;
@@ -12007,7 +12007,7 @@ RawInstance* Instance::New(const Class& cls, Heap::Space space) {
 }
 
 
-bool Instance::IsValidFieldOffset(int offset) const {
+bool Instance::IsValidFieldOffset(intptr_t offset) const {
   const Class& cls = Class::Handle(clazz());
   return (offset >= 0 && offset <= (cls.instance_size() - kWordSize));
 }
@@ -16259,7 +16259,9 @@ void Array::PrintToJSONStream(JSONStream* stream, bool ref) const {
 }
 
 
-RawArray* Array::Grow(const Array& source, int new_length, Heap::Space space) {
+RawArray* Array::Grow(const Array& source,
+                      intptr_t new_length,
+                      Heap::Space space) {
   const Array& result = Array::Handle(Array::New(new_length, space));
   intptr_t len = 0;
   if (!source.IsNull()) {

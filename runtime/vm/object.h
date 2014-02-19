@@ -4032,7 +4032,7 @@ class Instance : public Object {
   void SetFieldAtOffset(intptr_t offset, const Object& value) const {
     StorePointer(FieldAddrAtOffset(offset), value.raw());
   }
-  bool IsValidFieldOffset(int offset) const;
+  bool IsValidFieldOffset(intptr_t offset) const;
 
   static intptr_t NextFieldOffset() {
     return sizeof(RawInstance);
@@ -5642,7 +5642,7 @@ class Array : public Instance {
   // 'source' to the new array. 'new_length' must be greater than or equal to
   // 'source.Length()'. 'source' can be null.
   static RawArray* Grow(const Array& source,
-                        int new_length,
+                        intptr_t new_length,
                         Heap::Space space = Heap::kNew);
 
   // Return an Array object that contains all the elements currently present
