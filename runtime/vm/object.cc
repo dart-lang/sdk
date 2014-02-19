@@ -9811,11 +9811,7 @@ intptr_t DeoptInfo::Instruction(intptr_t index) const {
 
 
 intptr_t DeoptInfo::FrameSize() const {
-  intptr_t pos = 0;
-  while (Instruction(pos) == DeoptInstr::kMaterializeObject) {
-    pos++;
-  }
-  return TranslationLength() - pos;
+  return TranslationLength() - NumMaterializations();
 }
 
 
@@ -9829,6 +9825,15 @@ intptr_t DeoptInfo::TranslationLength() const {
   intptr_t suffix_length =
       DeoptInstr::DecodeSuffix(FromIndex(length - 1), &ignored);
   return length + suffix_length - 1;
+}
+
+
+intptr_t DeoptInfo::NumMaterializations() const {
+  intptr_t pos = 0;
+  while (Instruction(pos) == DeoptInstr::kMaterializeObject) {
+    pos++;
+  }
+  return pos;
 }
 
 

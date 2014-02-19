@@ -262,7 +262,7 @@ void DeoptContext::FillDestFrame() {
   // described as part of the expression stack for the bottom-most deoptimized
   // frame. They will be used during materialization and removed from the stack
   // right before control switches to the unoptimized code.
-  const intptr_t num_materializations = len - frame_size;
+  const intptr_t num_materializations = deopt_info.NumMaterializations();
   PrepareForDeferredMaterialization(num_materializations);
   for (intptr_t from_index = 0, to_index = kDartFrameFixedSize;
        from_index < num_materializations;

@@ -3091,6 +3091,9 @@ class DeoptInfo : public Object {
   // instructions in the prefix.
   intptr_t FrameSize() const;
 
+  // Returns the number of kMaterializeObject instructions in the prefix.
+  intptr_t NumMaterializations() const;
+
   static RawDeoptInfo* New(intptr_t num_commands);
 
   static const intptr_t kBytesPerElement = (kNumberOfEntries * kWordSize);
