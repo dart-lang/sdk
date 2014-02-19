@@ -70,7 +70,7 @@ class HttpParserTest {
       int unparsedBytesReceived;
       bool upgraded;
 
-      controller.stream.pipe(httpParser);
+      httpParser.listenToStream(controller.stream);
       var subscription = httpParser.listen((incoming) {
         method = incoming.method;
         uri = incoming.uri;
@@ -158,7 +158,7 @@ class HttpParserTest {
       httpParser = new _HttpParser.requestParser();
       controller = new StreamController(sync: true);
       var port = new ReceivePort();
-      controller.stream.pipe(httpParser);
+      httpParser.listenToStream(controller.stream);
       var subscription = httpParser.listen((incoming) {
         Expect.fail("Expected request");
       });
@@ -221,7 +221,7 @@ class HttpParserTest {
       httpParser = new _HttpParser.responseParser();
       controller = new StreamController(sync: true);
       var port = new ReceivePort();
-      controller.stream.pipe(httpParser);
+      httpParser.listenToStream(controller.stream);
       int doneCallCount = 0;
       // Called when done parsing entire message and done parsing body.
       // Only executed when both are done.
@@ -307,7 +307,7 @@ class HttpParserTest {
       if (chunkSize == -1) chunkSize = requestData.length;
 
       var port = new ReceivePort();
-      controller.stream.pipe(httpParser);
+      httpParser.listenToStream(controller.stream);
       var subscription = httpParser.listen((incoming) {
         incoming.listen(
           (data) {},

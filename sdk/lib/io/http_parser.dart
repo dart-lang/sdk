@@ -234,9 +234,7 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
  * and should be handled according to whatever protocol is being
  * upgraded to.
  */
-class _HttpParser
-    extends Stream<_HttpIncoming>
-    implements StreamConsumer<List<int>> {
+class _HttpParser extends Stream<_HttpIncoming> {
   // State.
   bool _parserCalled = false;
 
@@ -315,25 +313,16 @@ class _HttpParser
                                      cancelOnError: cancelOnError);
   }
 
-  Future<_HttpParser> addStream(Stream<List<int>> stream) {
+  void listenToStream(Stream<List<int>> stream) {
     // Listen to the stream and handle data accordingly. When a
     // _HttpIncoming is created, _dataPause, _dataResume, _dataDone is
     // given to provide a way of controlling the parser.
     // TODO(ajohnsen): Remove _dataPause, _dataResume and _dataDone and clean up
     // how the _HttpIncoming signals the parser.
-    var completer = new Completer();
     _socketSubscription = stream.listen(
         _onData,
         onError: _onError,
-        onDone: () {
-          completer.complete(this);
-        });
-    return completer.future;
-  }
-
-  Future<_HttpParser> close() {
-    _onDone();
-    return new Future.value(this);
+        onDone: _onDone);
   }
 
   void _parse() {

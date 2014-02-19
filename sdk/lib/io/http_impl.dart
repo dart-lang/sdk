@@ -1246,7 +1246,7 @@ class _HttpClientConnection {
   _HttpClientConnection(this.key, this._socket, this._httpClient,
                         [this._proxyTunnel = false])
       : _httpParser = new _HttpParser.responseParser() {
-    _socket.pipe(_httpParser);
+    _httpParser.listenToStream(_socket);
 
     // Set up handlers on the parser here, so we are sure to get 'onDone' from
     // the parser.
@@ -1909,7 +1909,7 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection> {
   _HttpConnection(this._socket, this._httpServer)
       : _httpParser = new _HttpParser.requestParser() {
     _startTimeout();
-    _socket.pipe(_httpParser);
+    _httpParser.listenToStream(_socket);
     _subscription = _httpParser.listen(
         (incoming) {
           _stopTimeout();
@@ -1946,8 +1946,7 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection> {
                   // received data was handled.
                   destroy();
                 }
-              })
-              .catchError((e) {
+              }, onError: (_) {
                 destroy();
               });
           response._ignoreBody = request.method == "HEAD";
