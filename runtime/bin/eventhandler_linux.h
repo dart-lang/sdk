@@ -63,7 +63,6 @@ class SocketData {
   bool tracked_by_epoll_;
   intptr_t fd_;
   Dart_Port port_;
-  intptr_t mask_;
 };
 
 
