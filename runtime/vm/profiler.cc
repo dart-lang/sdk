@@ -861,7 +861,6 @@ class ProfilerSampleStackWalker : public ValueObject {
                             uword fp,
                             uword sp)
       : sample_(sample),
-        stack_lower_(stack_lower),
         stack_upper_(stack_upper),
         original_pc_(pc),
         original_fp_(fp),
@@ -941,7 +940,6 @@ class ProfilerSampleStackWalker : public ValueObject {
   }
 
   Sample* sample_;
-  const uword stack_lower_;
   const uword stack_upper_;
   const uword original_pc_;
   const uword original_fp_;
