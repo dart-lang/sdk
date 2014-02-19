@@ -608,7 +608,7 @@ void testUnderflowAndOverflow() {
   Expect.equals(dtBase1.millisecond, dtTick.millisecond);
 }
 
-static void testDateStrings() {
+void testDateStrings() {
   // TODO(floitsch): Clean up the DateTime API that deals with strings.
   var dt1 = DateTime.parse("2011-05-11 18:58:35Z");
   Expect.equals(1305140315000, dt1.millisecondsSinceEpoch);
