@@ -82,6 +82,16 @@ part of dart.core;
  *     Duration difference = berlinWallFell.difference(moonLanding)
  *     assert(difference.inDays == 7416);
  *
+ * The difference between two dates in different time zones
+ * is just the number of nanoseconds between the two points in time.
+ * It doesn't take calendar days into account.
+ * That means that the difference between two midnights in local time may be
+ * less than 24 hours times the number of days between them,
+ * if there is a daylight saving change in between.
+ * If the difference above is calculated using Australian local time, the
+ * difference is 7415 days and 23 hours, which is only 7415 whole days as
+ * reported by `inDays`.
+ *
  * ## Other resources
  *
  * See [Duration] to represent a span of time.
@@ -148,34 +158,30 @@ class DateTime implements Comparable {
    *
    *     DateTime annularEclipse = new DateTime(2014, DateTime.APRIL, 29, 6, 4);
    */
-  // TODO(8042): This should be a redirecting constructor and not a factory.
-  factory DateTime(int year,
+  DateTime(int year,
            [int month = 1,
             int day = 1,
             int hour = 0,
             int minute = 0,
             int second = 0,
-            int millisecond = 0]) {
-    return new DateTime._internal(
-          year, month, day, hour, minute, second, millisecond, false);
-  }
+            int millisecond = 0])
+      : this._internal(
+            year, month, day, hour, minute, second, millisecond, false);
 
   /**
    * Constructs a [DateTime] instance specified in the UTC time zone.
    *
    *     DateTime dDay = new DateTime.utc(1944, DateTime.JUNE, 6);
    */
-  // TODO(8042): This should be a redirecting constructor and not a factory.
-  factory DateTime.utc(int year,
-                       [int month = 1,
-                        int day = 1,
-                        int hour = 0,
-                        int minute = 0,
-                        int second = 0,
-                        int millisecond = 0]) {
-    return new DateTime._internal(
+  DateTime.utc(int year,
+               [int month = 1,
+                int day = 1,
+                int hour = 0,
+                int minute = 0,
+                int second = 0,
+                int millisecond = 0])
+    : this._internal(
           year, month, day, hour, minute, second, millisecond, true);
-  }
 
   /**
    * Constructs a [DateTime] instance with current date and time in the
@@ -184,15 +190,21 @@ class DateTime implements Comparable {
    *     DateTime thisInstant = new DateTime.now();
    *
    */
-  // TODO(8042): This should be a redirecting constructor and not a factory.
-  factory DateTime.now() { return new DateTime._now(); }
+  DateTime.now() : this._now();
 
   /**
    * Constructs a new [DateTime] instance based on [formattedString].
    *
    * Throws a [FormatException] if the input cannot be parsed.
    *
-   * The function parses a subset of ISO 8601. Examples of accepted strings:
+   * The function parses a subset of ISO 8601
+   * which includes the subset accepted by RFC 3339.
+   *
+   * The result is always in either local time or UTC.
+   * If a time zone offset other than UTC is specified,
+   * the time is converted to the equivalent UTC time.
+   *
+   * Examples of accepted strings:
    *
    * * `"2012-02-27 13:27:00"`
    * * `"2012-02-27 13:27:00.123456z"`
@@ -203,15 +215,18 @@ class DateTime implements Comparable {
    * * `"2012-02-27T14Z"`
    * * `"2012-02-27T14+00:00"`
    * * `"-123450101 00:00:00 Z"`: in the year -12345.
+   * * `"2002-02-27T14:00:00-0500"`: Same as `"2002-02-27T19:00:00Z"`
    */
   // TODO(floitsch): specify grammar.
+  // TODO(lrn): restrict incorrect values like  2003-02-29T50:70:80.
   static DateTime parse(String formattedString) {
     /*
      * date ::= yeardate time_opt timezone_opt
      * yeardate ::= year colon_opt month colon_opt day
      * year ::= sign_opt digit{4,5}
      * colon_opt :: <empty> | ':'
-     * sign_opt ::=  <empty> | '+' | '-'
+     * sign ::= '+' | '-'
+     * sign_opt ::=  <empty> | sign
      * month ::= digit{2}
      * day ::= digit{2}
      * time_opt ::= <empty> | (' ' | 'T') hour minutes_opt
@@ -220,13 +235,13 @@ class DateTime implements Comparable {
      * millis_opt ::= <empty> | '.' digit{1,6}
      * timezone_opt ::= <empty> | space_opt timezone
      * space_opt :: ' ' | <empty>
-     * timezone ::= 'z' | 'Z' | '+' '0' '0' timezonemins_opt
-     * timezonemins_opt ::= <empty> | colon_opt '0' '0'
+     * timezone ::= 'z' | 'Z' | sign digit{2} timezonemins_opt
+     * timezonemins_opt ::= <empty> | colon_opt digit{2}
      */
     final RegExp re = new RegExp(
-        r'^([+-]?\d?\d\d\d\d)-?(\d\d)-?(\d\d)'  // The day part.
+        r'^([+-]?\d{4,5})-?(\d\d)-?(\d\d)'  // The day part.
         r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(.\d{1,6})?)?)?' // The time part
-        r'( ?[zZ]| ?\+00(?::?00)?)?)?$'); // The timezone part
+        r'( ?[zZ]| ?([-+])(\d\d)(?::?(\d\d))?)?)?$'); // The timezone part
 
     Match match = re.firstMatch(formattedString);
     if (match != null) {
@@ -252,7 +267,18 @@ class DateTime implements Comparable {
         addOneMillisecond = true;
         millisecond = 999;
       }
-      bool isUtc = (match[8] != null);
+      bool isUtc = false;
+      if (match[8] != null) {  // timezone part
+        isUtc = true;
+        if (match[9] != null) {
+          // timezone other than 'Z' and 'z'.
+          int sign = (match[9] == '-') ? -1 : 1;
+          int hourDifference = int.parse(match[10]);
+          int minuteDifference = parseIntOrZero(match[11]);
+          minuteDifference += 60 * hourDifference;
+          minute -= sign * minuteDifference;
+        }
+      }
       int millisecondsSinceEpoch = _brokenDownDateToMillisecondsSinceEpoch(
           years, month, day, hour, minute, second, millisecond, isUtc);
       if (millisecondsSinceEpoch == null) {
@@ -525,7 +551,7 @@ class DateTime implements Comparable {
    * The time zone offset, which
    * is the difference between local time and UTC.
    *
-   * The offset is positive for time zones west of UTC.
+   * The offset is positive for time zones east of UTC.
    *
    * Note, that JavaScript, Python and C return the difference between UTC and
    * local time. Java, C# and Ruby return the difference between local time and
