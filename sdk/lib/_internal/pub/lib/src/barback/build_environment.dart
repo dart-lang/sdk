@@ -33,10 +33,16 @@ class BuildEnvironment {
   /// Creates a new build environment for working with the assets used by
   /// [entrypoint] and its dependencies.
   ///
-  /// Spawns an HTTP server on [hostname] and [port]. Loads all used
-  /// transformers using [mode] (including dart2js if [useDart2JS] is true).
+  /// Spawns an HTTP server for each directory in [rootDirectories]. These
+  /// servers will be on [hostname] and have ports based on [basePort].
+  /// [basePort] itself is reserved for "web/" and `basePort + 1` is reserved
+  /// for "test/"; further ports will be allocated for other root directories as
+  /// necessary. If [basePort] is zero, each server will have an ephemeral port.
   ///
-  /// Includes [buildDirectories] in the root package, as well as "lib" and
+  /// Loads all used transformers using [mode] (including dart2js if
+  /// [useDart2JS] is true).
+  ///
+  /// Includes [rootDirectories] in the root package, as well as "lib" and
   /// "asset".
   ///
   /// If [watcherType] is not [WatcherType.NONE], watches source assets for
@@ -45,17 +51,17 @@ class BuildEnvironment {
   /// Returns a [Future] that completes to the environment once the inputs,
   /// transformers, and server are loaded and ready.
   static Future<BuildEnvironment> create(Entrypoint entrypoint,
-      String hostname, int port, BarbackMode mode, WatcherType watcherType,
-      Set<String> buildDirectories,
+      String hostname, int basePort, BarbackMode mode, WatcherType watcherType,
+      Iterable<String> rootDirectories,
       {bool useDart2JS: true}) {
     return entrypoint.loadPackageGraph().then((graph) {
       var barback = new Barback(new PubPackageProvider(graph));
       barback.log.listen(_log);
 
-      return BarbackServer.bind(hostname, port, barback,
-          graph.entrypoint.root.name).then((server) {
-        var environment = new BuildEnvironment._(graph, server, mode,
-            watcherType, buildDirectories);
+      return _startServers(hostname, basePort, mode, graph, barback,
+          rootDirectories).then((servers) {
+        var environment = new BuildEnvironment._(graph, servers, mode,
+            watcherType, rootDirectories);
 
         // If the entrypoint package manually configures the dart2js
         // transformer, don't include it in the built-in transformer list.
@@ -78,11 +84,43 @@ class BuildEnvironment {
     });
   }
 
-  /// The server serving this environment's assets.
-  final BarbackServer server;
+  /// Start the [BarbackServer]s that will serve [rootDirectories].
+  static Future<List<BarbackServer>> _startServers(String hostname,
+      int basePort, BarbackMode mode, PackageGraph graph, Barback barback,
+      Iterable<String> rootDirectories) {
+    _bind(port, rootDirectory) {
+      if (basePort == 0) port = 0;
+      return BarbackServer.bind(hostname, port, barback,
+          graph.entrypoint.root.name, rootDirectory);
+    }
+
+    rootDirectories = rootDirectories.toList();
+
+    // For consistency, "web/" should always have the first available port and
+    // "test/" should always have the second. Other directories are assigned
+    // the following ports in alphabetical order.
+    var serverFutures = [];
+    if (rootDirectories.remove('web')) {
+      serverFutures.add(_bind(basePort, 'web'));
+    }
+    if (rootDirectories.remove('test')) {
+      serverFutures.add(_bind(basePort + 1, 'test'));
+    }
+
+    var i = 0;
+    for (var dir in rootDirectories) {
+      serverFutures.add(_bind(basePort + 2 + i, dir));
+      i += 1;
+    }
+
+    return Future.wait(serverFutures);
+  }
+
+  /// The servers serving this environment's assets.
+  final List<BarbackServer> servers;
 
   /// The [Barback] instance used to process assets in this environment.
-  Barback get barback => server.barback;
+  Barback get barback => servers.first.barback;
 
   /// The root package being built.
   Package get rootPackage => graph.entrypoint.root;
@@ -100,12 +138,13 @@ class BuildEnvironment {
   /// How source files should be watched.
   final WatcherType _watcherType;
 
-  /// The set of top-level directories in the entrypoint package that should be
-  /// built.
-  final Set<String> _buildDirectories;
+  /// The set of top-level directories in the entrypoint package that will be
+  /// exposed.
+  final Set<String> _rootDirectories;
 
-  BuildEnvironment._(this.graph, this.server, this.mode, this._watcherType,
-      this._buildDirectories);
+  BuildEnvironment._(this.graph, this.servers, this.mode, this._watcherType,
+      Iterable<String> rootDirectories)
+      : _rootDirectories = rootDirectories.toSet();
 
   /// Gets the built-in [Transformer]s that should be added to [package].
   ///
@@ -121,7 +160,7 @@ class BuildEnvironment {
     return _builtInTransformers;
   }
 
-  /// Creates a [BarbackServer] for this environment.
+  /// Loads the assets and transformers for this environment.
   ///
   /// This transforms and serves all library and asset files in all packages in
   /// the environment's package graph. It loads any transformer plugins defined
@@ -134,21 +173,24 @@ class BuildEnvironment {
     return _provideSources(barback).then((_) {
       var completer = new Completer();
 
-      // If any errors get emitted either by barback or by the server,
+      // If any errors get emitted either by barback or by the primary server,
       // including non-programmatic barback errors, they should take down the
       // whole program.
       var subscriptions = [
-        server.barback.errors.listen((error) {
+        barback.errors.listen((error) {
           if (error is TransformerException) error = error.error;
           if (!completer.isCompleted) {
             completer.completeError(error, new Chain.current());
           }
         }),
-        server.barback.results.listen((_) {}, onError: (error, stackTrace) {
+        barback.results.listen((_) {},
+            onError: (error, stackTrace) {
           if (completer.isCompleted) return;
           completer.completeError(error, stackTrace);
         }),
-        server.results.listen((_) {}, onError: (error, stackTrace) {
+        // We only listen to the first server here because that's the one used
+        // to initialize all the transformers during the initial load.
+        servers.first.results.listen((_) {}, onError: (error, stackTrace) {
           if (completer.isCompleted) return;
           completer.completeError(error, stackTrace);
         })
@@ -296,7 +338,7 @@ class BuildEnvironment {
     var directories = ["asset", "lib"];
 
     if (package.name == entrypoint.root.name) {
-      directories.addAll(_buildDirectories);
+      directories.addAll(_rootDirectories);
     }
 
     return directories;

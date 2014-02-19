@@ -68,12 +68,12 @@ class BuildCommand extends PubCommand {
 
       // Show in-progress errors, but not results. Those get handled implicitly
       // by getAllAssets().
-      environment.server.barback.errors.listen((error) {
+      environment.barback.errors.listen((error) {
         log.error(log.red("Build error:\n$error"));
       });
 
       return log.progress("Building ${entrypoint.root.name}",
-          () => environment.server.barback.getAllAssets()).then((assets) {
+          () => environment.barback.getAllAssets()).then((assets) {
         // Find all of the JS entrypoints we built.
         var dart2JSEntrypoints = assets
             .where((asset) => asset.id.path.endsWith(".dart.js"))

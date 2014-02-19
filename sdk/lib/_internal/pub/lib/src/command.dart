@@ -85,7 +85,7 @@ abstract class PubCommand {
     buffer.writeln('Available ${isSubcommand ? "sub" : ""}commands:');
     for (var name in names) {
       buffer.writeln('  ${padRight(name, length)}   '
-          '${commands[name].description}');
+          '${commands[name].description.split("\n").first}');
     }
 
     return buffer.toString();

@@ -25,9 +25,13 @@ class BarbackServer {
   /// The underlying HTTP server.
   final HttpServer _server;
 
-  /// The name of the root package, from whose `web` directory root assets will
-  /// be served.
+  /// The name of the root package, from whose [rootDirectory] assets will be
+  /// served.
   final String _rootPackage;
+
+  /// The directory in [_rootPackage] which will serve as the root of this
+  /// server.
+  final String rootDirectory;
 
   /// The barback instance from which this serves assets.
   final Barback barback;
@@ -61,12 +65,14 @@ class BarbackServer {
   /// This server will serve assets from [barback], and use [rootPackage] as
   /// the root package.
   static Future<BarbackServer> bind(String host, int port,
-      Barback barback, String rootPackage) {
-    return Chain.track(HttpServer.bind(host, port))
-        .then((server) => new BarbackServer._(server, barback, rootPackage));
+      Barback barback, String rootPackage, String rootDirectory) {
+    return Chain.track(HttpServer.bind(host, port)).then((server) {
+      return new BarbackServer._(server, barback, rootPackage, rootDirectory);
+    });
   }
 
-  BarbackServer._(HttpServer server, this.barback, this._rootPackage)
+  BarbackServer._(HttpServer server, this.barback, this._rootPackage,
+      this.rootDirectory)
       : _server = server,
         port = server.port,
         address = server.address {
@@ -262,13 +268,13 @@ class BarbackServer {
     var id = specialUrlToId(url);
     if (id != null) return id;
 
-    // Otherwise, it's a path in current package's web directory.
+    // Otherwise, it's a path in current package's [rootDirectory].
     var parts = path.url.split(url.path);
 
     // Strip the leading "/" from the URL.
     if (parts.isNotEmpty && parts.first == "/") parts = parts.skip(1);
 
-    var relativePath = path.url.join("web", path.url.joinAll(parts));
+    var relativePath = path.url.join(rootDirectory, path.url.joinAll(parts));
     return new AssetId(_rootPackage, relativePath);
   }
 

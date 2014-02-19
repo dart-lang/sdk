@@ -14,13 +14,15 @@ import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
+import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
 /// The pub process running "pub serve".
 ScheduledProcess _pubServer;
 
-/// The ephemeral port assigned to the running server.
-int _port;
+/// The ephemeral ports assigned to the running servers, associated with the
+/// directories they're serving.
+final _ports = new Map<String, int>();
 
 /// The web socket connection to the running pub process, or `null` if no
 /// connection has been made.
@@ -100,7 +102,8 @@ class DartTransformer extends Transformer {
 /// so may be used to test for errors in the initialization process.
 ///
 /// Returns the `pub serve` process.
-ScheduledProcess startPubServe([Iterable<String> args]) {
+ScheduledProcess startPubServe({Iterable<String> args,
+    bool createWebDir: true}) {
   // Use port 0 to get an ephemeral port.
   var pubArgs = ["serve", "--port=0", "--hostname=127.0.0.1", "--force-poll"];
 
@@ -110,6 +113,7 @@ ScheduledProcess startPubServe([Iterable<String> args]) {
   // timeout to cope with that.
   currentSchedule.timeout *= 1.5;
 
+  if (createWebDir) d.dir(appPath, [d.dir("web")]).create();
   return startPub(args: pubArgs);
 }
 
@@ -118,11 +122,17 @@ ScheduledProcess startPubServe([Iterable<String> args]) {
 ///
 /// If [shouldGetFirst] is `true`, validates that pub get is run first.
 ///
+/// If [createWebDir] is `true`, creates a `web/` directory if one doesn't exist
+/// so pub doesn't complain about having nothing to serve.
+///
 /// Returns the `pub serve` process.
-ScheduledProcess pubServe({bool shouldGetFirst: false, Iterable<String> args}) {
-  _pubServer = startPubServe(args);
+ScheduledProcess pubServe({bool shouldGetFirst: false, bool createWebDir: true,
+    Iterable<String> args}) {
+  _pubServer = startPubServe(args: args, createWebDir: createWebDir);
 
   currentSchedule.onComplete.schedule(() {
+    _ports.clear();
+
     if (_webSocket != null) {
       _webSocket.close();
       _webSocket = null;
@@ -134,16 +144,25 @@ ScheduledProcess pubServe({bool shouldGetFirst: false, Iterable<String> args}) {
     _pubServer.stdout.expect(consumeThrough("Got dependencies!"));
   }
 
-  expect(schedule(() => _pubServer.stdout.next()).then(_parsePort), completes);
+  // The server should emit one or more ports.
+  _pubServer.stdout.expect(
+      consumeWhile(predicate(_parsePort, 'emits server url')));
+  schedule(() => expect(_ports, isNot(isEmpty)));
+
   return _pubServer;
 }
 
+/// The regular expression for parsing pub's output line describing the URL for
+/// the server.
+final _parsePortRegExp = new RegExp(r"([^ ]+) +on http://127\.0\.0\.1:(\d+)");
+
 /// Parses the port number from the "Serving blah on 127.0.0.1:1234" line
 /// printed by pub serve.
-void _parsePort(String line) {
-  var match = new RegExp(r"127\.0\.0\.1:(\d+)").firstMatch(line);
-  assert(match != null);
-  _port = int.parse(match[1]);
+bool _parsePort(String line) {
+  var match = _parsePortRegExp.firstMatch(line);
+  if (match == null) return false;
+  _ports[match[1]] = int.parse(match[2]);
+  return true;
 }
 
 void endPubServe() {
@@ -154,10 +173,11 @@ void endPubServe() {
 /// verifies that it responds with a body that matches [expectation].
 ///
 /// [expectation] may either be a [Matcher] or a string to match an exact body.
+/// [root] indicates which server should be accessed, and defaults to "web".
 /// [headers] may be either a [Matcher] or a map to match an exact headers map.
-void requestShouldSucceed(String urlPath, expectation, {headers}) {
+void requestShouldSucceed(String urlPath, expectation, {String root, headers}) {
   schedule(() {
-    return http.get("http://127.0.0.1:$_port/$urlPath").then((response) {
+    return http.get("${_serverUrl(root)}/$urlPath").then((response) {
       if (expectation != null) expect(response.body, expectation);
       if (headers != null) expect(response.headers, headers);
     });
@@ -166,9 +186,11 @@ void requestShouldSucceed(String urlPath, expectation, {headers}) {
 
 /// Schedules an HTTP request to the running pub server with [urlPath] and
 /// verifies that it responds with a 404.
-void requestShould404(String urlPath) {
+///
+/// [root] indicates which server should be accessed, and defaults to "web".
+void requestShould404(String urlPath, {String root}) {
   schedule(() {
-    return http.get("http://127.0.0.1:$_port/$urlPath").then((response) {
+    return http.get("${_serverUrl(root)}/$urlPath").then((response) {
       expect(response.statusCode, equals(404));
     });
   }, "request $urlPath");
@@ -178,11 +200,12 @@ void requestShould404(String urlPath) {
 /// verifies that it responds with a redirect to the given [redirectTarget].
 ///
 /// [redirectTarget] may be either a [Matcher] or a string to match an exact
-/// URL.
-void requestShouldRedirect(String urlPath, redirectTarget) {
+/// URL. [root] indicates which server should be accessed, and defaults to
+/// "web".
+void requestShouldRedirect(String urlPath, redirectTarget, {String root}) {
   schedule(() {
     var request = new http.Request("GET",
-        Uri.parse("http://127.0.0.1:$_port/$urlPath"));
+        Uri.parse("${_serverUrl(root)}/$urlPath"));
     request.followRedirects = false;
     return request.send().then((response) {
       expect(response.statusCode ~/ 100, equals(3));
@@ -194,9 +217,11 @@ void requestShouldRedirect(String urlPath, redirectTarget) {
 
 /// Schedules an HTTP POST to the running pub server with [urlPath] and verifies
 /// that it responds with a 405.
-void postShould405(String urlPath) {
+///
+/// [root] indicates which server should be accessed, and defaults to "web".
+void postShould405(String urlPath, {String root}) {
   schedule(() {
-    return http.post("http://127.0.0.1:$_port/$urlPath").then((response) {
+    return http.post("${_serverUrl(root)}/$urlPath").then((response) {
       expect(response.statusCode, equals(405));
     });
   }, "request $urlPath");
@@ -217,10 +242,13 @@ Future _ensureWebSocket() {
   if (_webSocket != null) return new Future.value();
 
   // Server should already be running.
-  assert(_pubServer != null);
-  assert(_port != null);
+  expect(_pubServer, isNotNull);
+  expect(_ports, isNot(isEmpty));
 
-  return WebSocket.connect("ws://127.0.0.1:$_port").then((socket) {
+  // TODO(nweiz): once we have a separate port for a web interface into the
+  // server, use that port for the websocket interface.
+  var port = _ports.values.first;
+  return WebSocket.connect("ws://127.0.0.1:$port").then((socket) {
     _webSocket = socket;
     // TODO(rnystrom): Works around #13913.
     _webSocketBroadcastStream = _webSocket.asBroadcastStream();
@@ -241,4 +269,11 @@ void webSocketShouldReply(request, expectation, {bool encodeRequest: true}) {
       expect(JSON.decode(value), expectation);
     });
   }), "send $request to web socket and expect reply that $expectation");
+}
+
+/// Returns the URL for the server serving from [root].
+String _serverUrl([String root]) {
+  if (root == null) root = 'web';
+  expect(_ports, contains(root));
+  return "http://127.0.0.1:${_ports[root]}";
 }

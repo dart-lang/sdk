@@ -366,8 +366,11 @@ Future<Set> loadTransformers(BuildEnvironment environment, TransformerId id) {
   return id.getAssetId(environment.barback).then((assetId) {
     var path = assetId.path.replaceFirst('lib/', '');
     // TODO(nweiz): load from a "package:" URI when issue 12474 is fixed.
-    var baseUrl = baseUrlForAddress(environment.server.address,
-                                    environment.server.port);
+
+    // We could load the transformers from any server, since they all serve the
+    // packages' library files. We choose the first one arbitrarily.
+    var baseUrl = baseUrlForAddress(environment.servers.first.address,
+                                    environment.servers.first.port);
     var uri = '$baseUrl/packages/${id.package}/$path';
     var code = 'import "$uri";\n' +
         _TRANSFORMER_ISOLATE.replaceAll('<<URL_BASE>>', baseUrl);

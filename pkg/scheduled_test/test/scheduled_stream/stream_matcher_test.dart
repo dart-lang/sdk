@@ -208,6 +208,20 @@ void main(_, message) {
         "   Which: unexpected end of stream"));
   });
 
+  expectTestPasses("consumeWhile() consumes values while the given matcher "
+      "matches", () {
+    var stream = createStream();
+    stream.expect(consumeWhile(lessThan(4)));
+    stream.expect(4);
+  });
+
+  expectTestPasses("consumeWhile() will stop if the first value doesn't match",
+      () {
+    var stream = createStream();
+    stream.expect(consumeWhile(2));
+    stream.expect(1);
+  });
+
   expectTestPasses("either() will match if the first branch matches", () {
     createStream().expect(either(1, 100));
   });

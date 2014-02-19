@@ -41,6 +41,7 @@ final _green = getSpecial('\u001b[32m');
 final _magenta = getSpecial('\u001b[35m');
 final _red = getSpecial('\u001b[31m');
 final _yellow = getSpecial('\u001b[33m');
+final _gray = getSpecial('\u001b[1;30m');
 final _none = getSpecial('\u001b[0m');
 final _bold = getSpecial('\u001b[1m');
 
@@ -236,6 +237,12 @@ Future progress(String message, Future callback()) {
 ///
 /// Use this to highlight the most important piece of a long chunk of text.
 String bold(text) => "$_bold$text$_none";
+
+/// Wraps [text] in the ANSI escape codes to make it gray when on a platform
+/// that supports that.
+///
+/// Use this for text that's less important than the text around it.
+String gray(text) => "$_gray$text$_none";
 
 /// Wraps [text] in the ANSI escape codes to color it cyan when on a platform
 /// that supports that.

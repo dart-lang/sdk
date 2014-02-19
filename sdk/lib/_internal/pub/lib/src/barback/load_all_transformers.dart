@@ -18,8 +18,9 @@ import '../utils.dart';
 
 /// Loads all transformers depended on by packages in [environment].
 ///
-/// This uses [environment]'s server to serve the Dart files from which
-/// transformers are loaded, then adds the transformers to `server.barback`.
+/// This uses [environment]'s primary server to serve the Dart files from which
+/// transformers are loaded, then adds the transformers to
+/// `environment.barback`.
 ///
 /// Any built-in transformers that are provided by the environment will
 /// automatically be added to the end of the root package's cascade.

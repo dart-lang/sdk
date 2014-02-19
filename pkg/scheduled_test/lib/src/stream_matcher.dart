@@ -64,6 +64,14 @@ StreamMatcher inOrder(Iterable streamMatchers) {
 /// [matcher] can be a [Matcher] or an [Object], but not a [StreamMatcher].
 StreamMatcher consumeThrough(matcher) => new _ConsumeThroughMatcher(matcher);
 
+/// A matcher that consumes values emitted by a stream as long as they match
+/// [matcher].
+///
+/// This matcher will always match a stream. It exists to consume values.
+///
+/// [matcher] can be a [Matcher] or an [Object], but not a [StreamMatcher].
+StreamMatcher consumeWhile(matcher) => new _ConsumeWhileMatcher(matcher);
+
 /// A matcher that matches either [streamMatcher1], [streamMatcher2], or both.
 ///
 /// If both matchers match the stream, the one that consumed more values will be
@@ -211,7 +219,35 @@ class _ConsumeThroughMatcher implements StreamMatcher {
 
   String toString() {
     return new StringDescription('values followed by ')
-      .addDescriptionOf(_matcher).toString();
+        .addDescriptionOf(_matcher).toString();
+  }
+}
+
+/// See [consumeWhile].
+class _ConsumeWhileMatcher implements StreamMatcher {
+  final Matcher _matcher;
+
+  _ConsumeWhileMatcher(matcher)
+      : _matcher = wrapMatcher(matcher);
+
+  Future<Description> tryMatch(ScheduledStream stream) {
+    consumeNext() {
+      return stream.hasNext.then((hasNext) {
+        if (!hasNext) return new Future.value();
+
+        return _peek(stream).then((value) {
+          if (!_matcher.matches(value, {})) return null;
+          return stream.next().then((_) => consumeNext());
+        });
+      });
+    }
+
+    return consumeNext();
+  }
+
+  String toString() {
+    return new StringDescription('any number of ')
+        .addDescriptionOf(_matcher).toString();
   }
 }
 
@@ -331,4 +367,11 @@ class _IsDoneMatcher implements StreamMatcher {
   }
 
   String toString() => 'is done';
+}
+
+/// Returns a [Future] that completes to the next value emitted by [stream]
+/// without actually consuming that value.
+Future _peek(ScheduledStream stream) {
+  var fork = stream.fork();
+  return fork.next().whenComplete(fork.close);
 }
