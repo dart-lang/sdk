@@ -16,7 +16,6 @@ pkg/stack_trace: PubGetError
 pkg/unittest: PubGetError
 
 [ $use_public_packages ]
-pkg/watcher: PubGetError # Issue 16026
 pkg/template_binding: Pass, PubGetError # Issue 16026
 pkg/polymer: PubGetError # Issue 16026
 pkg/polymer_expressions: PubGetError # Issue 16026
