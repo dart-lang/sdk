@@ -269,7 +269,7 @@ class Intl {
       case 1 : return (one == null) ? other : one;
       case 2: return (two == null) ? ((few == null) ? other : few) : two;
       default:
-        if (howMany == 3 || howMany == 4 && few != null) return few;
+        if ((howMany == 3 || howMany == 4) && few != null) return few;
         if (howMany > 10 && howMany < 100 && many != null) return many;
         return other;
     }
