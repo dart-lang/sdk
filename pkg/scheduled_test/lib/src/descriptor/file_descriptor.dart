@@ -28,22 +28,22 @@ abstract class FileDescriptor extends Descriptor implements ReadableDescriptor {
   /// contents against [matcher]. If the file is created, it's considered to be
   /// empty.
   factory FileDescriptor.matcher(String name, Matcher matcher) =>
-    new _MatcherFileDescriptor(name, matcher, isBinary: false);
+      new _MatcherFileDescriptor(name, matcher, isBinary: false);
 
   /// Creates a new binary [FileDescriptor] with [name] that matches its binary
   /// contents against [matcher]. If the file is created, it's considered to be
   /// empty.
   factory FileDescriptor.binaryMatcher(String name, Matcher matcher) =>
-    new _MatcherFileDescriptor(name, matcher, isBinary: true);
+      new _MatcherFileDescriptor(name, matcher, isBinary: true);
 
   /// Creates a new binary [FileDescriptor] descriptor with [name] and
   /// [contents].
   factory FileDescriptor.binary(String name, List<int> contents) =>
-    new _BinaryFileDescriptor(name, contents);
+      new _BinaryFileDescriptor(name, contents);
 
   /// Creates a new text [FileDescriptor] with [name] and [contents].
   factory FileDescriptor(String name, String contents) =>
-    new _StringFileDescriptor(name, contents);
+      new _StringFileDescriptor(name, contents);
 
   FileDescriptor._(String name, this.contents)
       : super(name);
