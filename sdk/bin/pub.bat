@@ -23,11 +23,17 @@ set SNAPSHOT=%BIN_DIR%\snapshots\pub.dart.snapshot
 set BUILD_DIR=%SDK_DIR%\..\build\ReleaseIA32
 set PACKAGES_DIR=%BUILD_DIR%\packages
 set DART_IN_BUILT_SDK=%BUILD_DIR%\dart-sdk\bin\dart
+set VM_OPTIONS=
+
+rem Give the VM extra memory for dart2js.
+rem # TODO(rnystrom): Remove when #8355 is fixed.
+rem See comments regarding options below in dart2js shell script.
+set VM_OPTIONS=%VM_OPTIONS% --old_gen_heap_size=1024
 
 if exist "%SNAPSHOT%" (
-  "%DART%" "%SNAPSHOT%" %*
+  "%DART%" %VM_OPTIONS% "%SNAPSHOT%" %*
 ) else (
-  "%DART_IN_BUILT_SDK%" --package-root="%PACKAGES_DIR%" "%PUB%" %*
+  "%DART_IN_BUILT_SDK%" %VM_OPTIONS% --package-root="%PACKAGES_DIR%" "%PUB%" %*
 )
 
 endlocal
