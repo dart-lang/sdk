@@ -968,6 +968,11 @@ abstract class HInstruction implements Spannable {
   }
 
   bool isString(Compiler compiler) {
+    return instructionType.containsOnlyString(compiler)
+        && !instructionType.isNullable;
+  }
+
+  bool isStringOrNull(Compiler compiler) {
     return instructionType.containsOnlyString(compiler);
   }
 

@@ -1803,7 +1803,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
       HInstruction left = relational.left;
       HInstruction right = relational.right;
-      if (left.isString(compiler) && right.isString(compiler)) {
+      if (left.isStringOrNull(compiler) && right.isStringOrNull(compiler)) {
         return true;
       }
 

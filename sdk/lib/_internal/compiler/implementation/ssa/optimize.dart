@@ -263,10 +263,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
             target = backend.jsArrayAdd;
           }
         }
-      } else if (input.isString(compiler)) {
+      } else if (input.isStringOrNull(compiler)) {
         if (selector.applies(backend.jsStringSplit, compiler)) {
           HInstruction argument = node.inputs[2];
-          if (argument.isString(compiler) && !argument.canBeNull()) {
+          if (argument.isString(compiler)) {
             target = backend.jsStringSplit;
           }
         } else if (selector.applies(backend.jsStringOperatorAdd, compiler)) {
@@ -274,7 +274,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
           // make sure the receiver and the argument are not null.
           HInstruction argument = node.inputs[2];
           if (argument.isString(compiler)
-              && !argument.canBeNull()
               && !input.canBeNull()) {
             target = backend.jsStringOperatorAdd;
           }
@@ -792,7 +791,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction visitStringify(HStringify node) {
     HInstruction input = node.inputs[0];
-    if (input.isString(compiler) && !input.canBeNull()) return input;
+    if (input.isString(compiler)) return input;
     if (input.isConstant()) {
       HConstant constant = input;
       if (!constant.constant.isPrimitive()) return node;
