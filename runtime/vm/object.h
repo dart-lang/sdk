@@ -4140,6 +4140,9 @@ class AbstractType : public Instance {
   // Check if this type represents the 'Float32x4' type.
   bool IsFloat32x4Type() const;
 
+  // Check if this type represents the 'Float64x2' type.
+  bool IsFloat64x2Type() const;
+
   // Check if this type represents the 'Int32x4' type.
   bool IsInt32x4Type() const;
 
@@ -4266,6 +4269,9 @@ class Type : public AbstractType {
 
   // The 'Float32x4' type.
   static RawType* Float32x4();
+
+  // The 'Float64x2' type.
+  static RawType* Float64x2();
 
   // The 'Int32x4' type.
   static RawType* Int32x4();

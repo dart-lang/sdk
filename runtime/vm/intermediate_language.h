@@ -168,6 +168,9 @@ class Range;
   V(_Float32x4Array, []=, Float32x4ArraySetIndexed, 1583018506)                \
   V(_Int32x4Array, [], Int32x4ArrayGetIndexed, 1911863146)                     \
   V(_Int32x4Array, []=, Int32x4ArraySetIndexed, 973572811)                     \
+  V(_Float64x2Array, [], Float64x2ArrayGetIndexed, 325873961)                  \
+  V(_Float64x2Array, []=, Float64x2ArraySetIndexed, 2105580462)                \
+
 
 
 // A list of core function that should always be inlined.
@@ -710,6 +713,8 @@ class EmbeddedArray<T, 0> {
   M(Int32x4ToFloat32x4)                                                        \
   M(BinaryInt32x4Op)                                                           \
   M(TestSmi)                                                                   \
+  M(BoxFloat64x2)                                                              \
+  M(UnboxFloat64x2)                                                            \
 
 
 #define FORWARD_DECLARATION(type) class type##Instr;
@@ -976,6 +981,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class UnboxIntegerInstr;
   friend class UnboxDoubleInstr;
   friend class UnboxFloat32x4Instr;
+  friend class UnboxFloat64x2Instr;
   friend class UnboxInt32x4Instr;
   friend class BinaryDoubleOpInstr;
   friend class BinaryFloat32x4OpInstr;
@@ -4570,6 +4576,43 @@ class BoxFloat32x4Instr : public TemplateDefinition<1> {
 };
 
 
+class BoxFloat64x2Instr : public TemplateDefinition<1> {
+ public:
+  explicit BoxFloat64x2Instr(Value* value) {
+    SetInputAt(0, value);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    return Isolate::kNoDeoptId;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedFloat64x2;
+  }
+
+  DECLARE_INSTRUCTION(BoxFloat64x2)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+  Definition* Canonicalize(FlowGraph* flow_graph);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BoxFloat64x2Instr);
+};
+
+
+
 class BoxInt32x4Instr : public TemplateDefinition<1> {
  public:
   explicit BoxInt32x4Instr(Value* value) {
@@ -4706,6 +4749,40 @@ class UnboxFloat32x4Instr : public TemplateDefinition<1> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxFloat32x4Instr);
+};
+
+
+class UnboxFloat64x2Instr : public TemplateDefinition<1> {
+ public:
+  UnboxFloat64x2Instr(Value* value, intptr_t deopt_id) {
+    SetInputAt(0, value);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const {
+    return (value()->Type()->ToCid() != kFloat64x2Cid);
+  }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat64x2;
+  }
+
+  DECLARE_INSTRUCTION(UnboxFloat64x2)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+  Definition* Canonicalize(FlowGraph* flow_graph);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(UnboxFloat64x2Instr);
 };
 
 

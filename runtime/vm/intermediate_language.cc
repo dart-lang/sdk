@@ -1572,6 +1572,30 @@ Definition* UnboxFloat32x4Instr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+Definition* BoxFloat64x2Instr::Canonicalize(FlowGraph* flow_graph) {
+  if (input_use_list() == NULL) {
+    // Environments can accomodate any representation. No need to box.
+    return value()->definition();
+  }
+
+  // Fold away BoxFloat64x2(UnboxFloat64x2(v)).
+  UnboxFloat64x2Instr* defn = value()->definition()->AsUnboxFloat64x2();
+  if ((defn != NULL) && (defn->value()->Type()->ToCid() == kFloat64x2Cid)) {
+    return defn->value()->definition();
+  }
+
+  return this;
+}
+
+
+Definition* UnboxFloat64x2Instr::Canonicalize(FlowGraph* flow_graph) {
+  // Fold away UnboxFloat64x2(BoxFloat64x2(v)).
+  BoxFloat64x2Instr* defn = value()->definition()->AsBoxFloat64x2();
+  return (defn != NULL) ? defn->value()->definition() : this;
+}
+
+
+
 Definition* BoxInt32x4Instr::Canonicalize(FlowGraph* flow_graph) {
   if (input_use_list() == NULL) {
     // Environments can accomodate any representation. No need to box.

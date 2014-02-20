@@ -23,6 +23,7 @@ enum Representation {
   kUnboxedMint,
   kUnboxedFloat32x4,
   kUnboxedInt32x4,
+  kUnboxedFloat64x2,
   kNumRepresentations
 };
 

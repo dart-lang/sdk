@@ -134,6 +134,14 @@ class DeoptContext {
         deferred_boxes_);
   }
 
+  void DeferFloat64x2Materialization(simd128_value_t value,
+                                     RawFloat64x2** slot) {
+    deferred_boxes_ = new DeferredFloat64x2(
+        value,
+        reinterpret_cast<RawInstance**>(slot),
+        deferred_boxes_);
+  }
+
   void DeferInt32x4Materialization(simd128_value_t value,
                                     RawInt32x4** slot) {
     deferred_boxes_ = new DeferredInt32x4(
@@ -210,11 +218,13 @@ class DeoptInstr : public ZoneAllocated {
     kFpuRegister,
     kInt64FpuRegister,
     kFloat32x4FpuRegister,
+    kFloat64x2FpuRegister,
     kInt32x4FpuRegister,
     kStackSlot,
     kDoubleStackSlot,
     kInt64StackSlot,
     kFloat32x4StackSlot,
+    kFloat64x2StackSlot,
     kInt32x4StackSlot,
     kPcMarker,
     kPp,

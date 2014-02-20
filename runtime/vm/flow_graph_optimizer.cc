@@ -622,6 +622,13 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     converted = new UnboxInt32x4Instr(use->CopyWithType(), deopt_id);
   } else if ((from == kUnboxedInt32x4) && (to == kTagged)) {
     converted = new BoxInt32x4Instr(use->CopyWithType());
+  } else if ((from == kTagged) && (to == kUnboxedFloat64x2)) {
+    ASSERT((deopt_target != NULL) || (use->Type()->ToCid() == kFloat64x2Cid));
+    const intptr_t deopt_id = (deopt_target != NULL) ?
+        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+    converted = new UnboxFloat64x2Instr(use->CopyWithType(), deopt_id);
+  } else if ((from == kUnboxedFloat64x2) && (to == kTagged)) {
+    converted = new BoxFloat64x2Instr(use->CopyWithType());
   } else {
     // We have failed to find a suitable conversion instruction.
     // Insert two "dummy" conversion instructions with the correct
@@ -640,6 +647,8 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
       boxed = new BoxFloat32x4Instr(use->CopyWithType());
     } else if (from == kUnboxedMint) {
       boxed = new BoxIntegerInstr(use->CopyWithType());
+    } else if (from == kUnboxedFloat64x2) {
+      boxed = new BoxFloat64x2Instr(use->CopyWithType());
     } else {
       UNIMPLEMENTED();
     }
@@ -654,6 +663,8 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
       converted = new UnboxFloat32x4Instr(to_value, deopt_id);
     } else if (to == kUnboxedMint) {
       converted = new UnboxIntegerInstr(to_value, deopt_id);
+    } else if (to == kUnboxedFloat64x2) {
+      converted = new UnboxFloat64x2Instr(to_value, deopt_id);
     } else {
       UNIMPLEMENTED();
     }
@@ -1050,6 +1061,10 @@ static intptr_t MethodKindToCid(MethodRecognizer::Kind kind) {
     case MethodRecognizer::kInt32x4ArraySetIndexed:
       return kTypedDataInt32x4ArrayCid;
 
+    case MethodRecognizer::kFloat64x2ArrayGetIndexed:
+    case MethodRecognizer::kFloat64x2ArraySetIndexed:
+      return kTypedDataFloat64x2ArrayCid;
+
     default:
       break;
   }
@@ -1175,6 +1190,13 @@ bool FlowGraphOptimizer::InlineSetIndexed(
         ASSERT(value_type.IsInstantiated());
         break;
       }
+      case kTypedDataFloat64x2ArrayCid: {
+        type_args = instantiator = flow_graph_->constant_null();
+        ASSERT((array_cid != kTypedDataFloat64x2ArrayCid) ||
+               value_type.IsFloat64x2Type());
+        ASSERT(value_type.IsInstantiated());
+        break;
+      }
       default:
         // TODO(fschneider): Add support for other array types.
         UNREACHABLE();
@@ -1262,7 +1284,10 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
     case MethodRecognizer::kUint16ArrayGetIndexed:
       return InlineGetIndexed(kind, call, receiver, ic_data, entry, last);
     case MethodRecognizer::kFloat32x4ArrayGetIndexed:
-      if (!ShouldInlineSimd()) return false;
+    case MethodRecognizer::kFloat64x2ArrayGetIndexed:
+      if (!ShouldInlineSimd()) {
+        return false;
+      }
       return InlineGetIndexed(kind, call, receiver, ic_data, entry, last);
     case MethodRecognizer::kInt32ArrayGetIndexed:
     case MethodRecognizer::kUint32ArrayGetIndexed:
@@ -1284,13 +1309,17 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
     case MethodRecognizer::kExternalUint8ClampedArraySetIndexed:
     case MethodRecognizer::kInt16ArraySetIndexed:
     case MethodRecognizer::kUint16ArraySetIndexed:
-      if (!ArgIsAlways(kSmiCid, ic_data, 2)) return false;
+      if (!ArgIsAlways(kSmiCid, ic_data, 2)) {
+        return false;
+      }
       value_check = ic_data.AsUnaryClassChecksForArgNr(2);
       return InlineSetIndexed(kind, target, call, receiver, token_pos,
                               &ic_data, value_check, entry, last);
     case MethodRecognizer::kInt32ArraySetIndexed:
     case MethodRecognizer::kUint32ArraySetIndexed:
-      if (!CanUnboxInt32()) return false;
+      if (!CanUnboxInt32()) {
+        return false;
+      }
       // Check that value is always smi or mint, if the platform has unboxed
       // mints (ia32 with at least SSE 4.1).
       value_check = ic_data.AsUnaryClassChecksForArgNr(2);
@@ -1306,14 +1335,31 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
     case MethodRecognizer::kFloat32ArraySetIndexed:
     case MethodRecognizer::kFloat64ArraySetIndexed:
       // Check that value is always double.
-      if (!ArgIsAlways(kDoubleCid, ic_data, 2)) return false;
+      if (!ArgIsAlways(kDoubleCid, ic_data, 2)) {
+        return false;
+      }
       value_check = ic_data.AsUnaryClassChecksForArgNr(2);
       return InlineSetIndexed(kind, target, call, receiver, token_pos,
                               &ic_data, value_check, entry, last);
     case MethodRecognizer::kFloat32x4ArraySetIndexed:
-      if (!ShouldInlineSimd()) return false;
+      if (!ShouldInlineSimd()) {
+        return false;
+      }
       // Check that value is always a Float32x4.
-      if (!ArgIsAlways(kFloat32x4Cid, ic_data, 2)) return false;
+      if (!ArgIsAlways(kFloat32x4Cid, ic_data, 2)) {
+        return false;
+      }
+      value_check = ic_data.AsUnaryClassChecksForArgNr(2);
+      return InlineSetIndexed(kind, target, call, receiver, token_pos,
+                              &ic_data, value_check, entry, last);
+    case MethodRecognizer::kFloat64x2ArraySetIndexed:
+      if (!ShouldInlineSimd()) {
+        return false;
+      }
+      // Check that value is always a Float32x4.
+      if (!ArgIsAlways(kFloat64x2Cid, ic_data, 2)) {
+        return false;
+      }
       value_check = ic_data.AsUnaryClassChecksForArgNr(2);
       return InlineSetIndexed(kind, target, call, receiver, token_pos,
                               &ic_data, value_check, entry, last);
@@ -1334,12 +1380,16 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
                                      kTypedDataUint16ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetInt32:
-      if (!CanUnboxInt32()) return false;
+      if (!CanUnboxInt32()) {
+        return false;
+      }
       return InlineByteArrayViewLoad(call, receiver, receiver_cid,
                                      kTypedDataInt32ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetUint32:
-      if (!CanUnboxInt32()) return false;
+      if (!CanUnboxInt32()) {
+        return false;
+      }
       return InlineByteArrayViewLoad(call, receiver, receiver_cid,
                                      kTypedDataUint32ArrayCid,
                                      ic_data, entry, last);
@@ -1352,12 +1402,16 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
                                      kTypedDataFloat64ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetFloat32x4:
-      if (!ShouldInlineSimd()) return false;
+      if (!ShouldInlineSimd()) {
+        return false;
+      }
       return InlineByteArrayViewLoad(call, receiver, receiver_cid,
                                      kTypedDataFloat32x4ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetInt32x4:
-      if (!ShouldInlineSimd()) return false;
+      if (!ShouldInlineSimd()) {
+        return false;
+      }
       return InlineByteArrayViewLoad(call, receiver, receiver_cid,
                                      kTypedDataInt32x4ArrayCid,
                                      ic_data, entry, last);
@@ -1378,12 +1432,16 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
                                       kTypedDataUint16ArrayCid,
                                       ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseSetInt32:
-      if (!CanUnboxInt32()) return false;
+      if (!CanUnboxInt32()) {
+        return false;
+      }
       return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
                                       kTypedDataInt32ArrayCid,
                                       ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseSetUint32:
-      if (!CanUnboxInt32()) return false;
+      if (!CanUnboxInt32()) {
+        return false;
+      }
       return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
                                       kTypedDataUint32ArrayCid,
                                       ic_data, entry, last);
@@ -1396,12 +1454,16 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
                                       kTypedDataFloat64ArrayCid,
                                       ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseSetFloat32x4:
-      if (!ShouldInlineSimd()) return false;
+      if (!ShouldInlineSimd()) {
+        return false;
+      }
       return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
                                       kTypedDataFloat32x4ArrayCid,
                                       ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseSetInt32x4:
-      if (!ShouldInlineSimd()) return false;
+      if (!ShouldInlineSimd()) {
+        return false;
+      }
       return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
                                       kTypedDataInt32x4ArrayCid,
                                       ic_data, entry, last);
@@ -7660,6 +7722,28 @@ void ConstantPropagator::VisitUnboxFloat32x4(UnboxFloat32x4Instr* instr) {
 
 
 void ConstantPropagator::VisitBoxFloat32x4(BoxFloat32x4Instr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(value)) {
+    // TODO(kmillikin): Handle conversion.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitUnboxFloat64x2(UnboxFloat64x2Instr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(value)) {
+    // TODO(kmillikin): Handle conversion.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitBoxFloat64x2(BoxFloat64x2Instr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsNonConstant(value)) {
     SetValue(instr, non_constant_);

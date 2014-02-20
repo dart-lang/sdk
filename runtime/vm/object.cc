@@ -12408,6 +12408,12 @@ bool AbstractType::IsFloat32x4Type() const {
 }
 
 
+bool AbstractType::IsFloat64x2Type() const {
+  return HasResolvedTypeClass() &&
+      (type_class() == Type::Handle(Type::Float64x2()).type_class());
+}
+
+
 bool AbstractType::IsInt32x4Type() const {
   return HasResolvedTypeClass() &&
       (type_class() == Type::Handle(Type::Int32x4()).type_class());
@@ -12573,6 +12579,11 @@ RawType* Type::Double() {
 
 RawType* Type::Float32x4() {
   return Isolate::Current()->object_store()->float32x4_type();
+}
+
+
+RawType* Type::Float64x2() {
+  return Isolate::Current()->object_store()->float64x2_type();
 }
 
 

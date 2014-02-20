@@ -86,6 +86,8 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
           Isolate::Current()->object_store()->double_class())),
       float32x4_class_(Class::ZoneHandle(
           Isolate::Current()->object_store()->float32x4_class())),
+      float64x2_class_(Class::ZoneHandle(
+          Isolate::Current()->object_store()->float64x2_class())),
       int32x4_class_(Class::ZoneHandle(
           Isolate::Current()->object_store()->int32x4_class())),
       list_class_(Class::ZoneHandle(

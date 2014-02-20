@@ -769,6 +769,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
       return CompileType::FromCid(kFloat32x4Cid);
     case kTypedDataInt32x4ArrayCid:
       return CompileType::FromCid(kInt32x4Cid);
+    case kTypedDataFloat64x2ArrayCid:
+      return CompileType::FromCid(kFloat64x2Cid);
 
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
@@ -813,6 +815,8 @@ Representation LoadIndexedInstr::representation() const {
       return kUnboxedInt32x4;
     case kTypedDataFloat32x4ArrayCid:
       return kUnboxedFloat32x4;
+    case kTypedDataFloat64x2ArrayCid:
+      return kUnboxedFloat64x2;
     default:
       UNIMPLEMENTED();
       return kTagged;
@@ -839,9 +843,10 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(bool opt) const {
                           index()->definition()->AsConstant()->value())
                       : Location::RequiresRegister());
   }
-  if ((representation() == kUnboxedDouble) ||
+  if ((representation() == kUnboxedDouble)    ||
       (representation() == kUnboxedFloat32x4) ||
-      (representation() == kUnboxedInt32x4)) {
+      (representation() == kUnboxedInt32x4)   ||
+      (representation() == kUnboxedFloat64x2)) {
     locs->set_out(Location::RequiresFpuRegister());
   } else {
     locs->set_out(Location::RequiresRegister());
@@ -874,9 +879,10 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
             Smi::Cast(index.constant()).Value());
   }
 
-  if ((representation() == kUnboxedDouble) ||
+  if ((representation() == kUnboxedDouble)    ||
       (representation() == kUnboxedFloat32x4) ||
-      (representation() == kUnboxedInt32x4)) {
+      (representation() == kUnboxedInt32x4)   ||
+      (representation() == kUnboxedFloat64x2)) {
     if ((index_scale() == 1) && index.IsRegister()) {
       __ SmiUntag(index.reg());
     }
@@ -890,8 +896,9 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     } else if (class_id() == kTypedDataFloat64ArrayCid) {
       __ movsd(result, element_address);
     } else {
-      ASSERT((class_id() == kTypedDataInt32x4ArrayCid) ||
-             (class_id() == kTypedDataFloat32x4ArrayCid));
+      ASSERT((class_id() == kTypedDataInt32x4ArrayCid)   ||
+             (class_id() == kTypedDataFloat32x4ArrayCid) ||
+             (class_id() == kTypedDataFloat64x2ArrayCid));
       __ movups(result, element_address);
     }
     return;
@@ -964,6 +971,8 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
       return kUnboxedFloat32x4;
     case kTypedDataInt32x4ArrayCid:
       return kUnboxedInt32x4;
+    case kTypedDataFloat64x2ArrayCid:
+      return kUnboxedFloat64x2;
     default:
       UNIMPLEMENTED();
       return kTagged;
@@ -1022,6 +1031,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(bool opt) const {
       locs->set_in(2, Location::RequiresFpuRegister());
       break;
     case kTypedDataInt32x4ArrayCid:
+    case kTypedDataFloat64x2ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
       locs->set_in(2, Location::RequiresFpuRegister());
       break;
@@ -1140,6 +1150,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movsd(element_address, locs()->in(2).fpu_reg());
       break;
     case kTypedDataInt32x4ArrayCid:
+    case kTypedDataFloat64x2ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
       __ movups(element_address, locs()->in(2).fpu_reg());
       break;
@@ -1867,6 +1878,38 @@ class BoxFloat32x4SlowPath : public SlowPathCode {
     const Code& stub =
         Code::Handle(StubCode::GetAllocationStubForClass(float32x4_class));
     const ExternalLabel label(float32x4_class.ToCString(), stub.EntryPoint());
+
+    LocationSummary* locs = instruction_->locs();
+    locs->live_registers()->Remove(locs->out());
+
+    compiler->SaveLiveRegisters(locs);
+    compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
+                           &label,
+                           PcDescriptors::kOther,
+                           locs);
+    __ MoveRegister(locs->out().reg(), RAX);
+    compiler->RestoreLiveRegisters(locs);
+
+    __ jmp(exit_label());
+  }
+
+ private:
+  Instruction* instruction_;
+};
+
+
+class BoxFloat64x2SlowPath : public SlowPathCode {
+ public:
+  explicit BoxFloat64x2SlowPath(Instruction* instruction)
+      : instruction_(instruction) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    __ Comment("BoxFloat64x2SlowPath");
+    __ Bind(entry_label());
+    const Class& float64x2_class = compiler->float64x2_class();
+    const Code& stub =
+        Code::Handle(StubCode::GetAllocationStubForClass(float64x2_class));
+    const ExternalLabel label(float64x2_class.ToCString(), stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
     locs->live_registers()->Remove(locs->out());
@@ -3028,6 +3071,64 @@ void UnboxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ j(NOT_EQUAL, deopt);
   }
   __ movups(result, FieldAddress(value, Float32x4::value_offset()));
+}
+
+
+LocationSummary* BoxFloat64x2Instr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs,
+                          kNumTemps,
+                          LocationSummary::kCallOnSlowPath);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresRegister());
+  return summary;
+}
+
+
+void BoxFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  BoxFloat64x2SlowPath* slow_path = new BoxFloat64x2SlowPath(this);
+  compiler->AddSlowPathCode(slow_path);
+
+  Register out_reg = locs()->out().reg();
+  XmmRegister value = locs()->in(0).fpu_reg();
+
+  __ TryAllocate(compiler->float64x2_class(),
+                 slow_path->entry_label(),
+                 Assembler::kFarJump,
+                 out_reg,
+                 kNoRegister);
+  __ Bind(slow_path->exit_label());
+  __ movups(FieldAddress(out_reg, Float64x2::value_offset()), value);
+}
+
+
+LocationSummary* UnboxFloat64x2Instr::MakeLocationSummary(bool opt) const {
+  const intptr_t value_cid = value()->Type()->ToCid();
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = value_cid == kFloat64x2Cid ? 0 : 1;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
+}
+
+
+void UnboxFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const intptr_t value_cid = value()->Type()->ToCid();
+  const Register value = locs()->in(0).reg();
+  const XmmRegister result = locs()->out().fpu_reg();
+
+  if (value_cid != kFloat64x2Cid) {
+    Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptCheckClass);
+    __ testq(value, Immediate(kSmiTagMask));
+    __ j(ZERO, deopt);
+    __ CompareClassId(value, kFloat64x2Cid);
+    __ j(NOT_EQUAL, deopt);
+  }
+  __ movups(result, FieldAddress(value, Float64x2::value_offset()));
 }
 
 

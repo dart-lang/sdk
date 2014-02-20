@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--deoptimization_counter_threshold=1000 --optimization-counter-threshold=10
 
-// Library tag to be able to run in html test framework.
-library float32x4_test;
+library float64x2_functional_test;
 
 import "package:expect/expect.dart";
 import 'dart:typed_data';

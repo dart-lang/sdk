@@ -2959,6 +2959,28 @@ void UnboxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* BoxFloat64x2Instr::MakeLocationSummary(bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void BoxFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* UnboxFloat64x2Instr::MakeLocationSummary(bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void UnboxFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
 LocationSummary* BoxInt32x4Instr::MakeLocationSummary(bool opt) const {
   UNIMPLEMENTED();
   return NULL;
