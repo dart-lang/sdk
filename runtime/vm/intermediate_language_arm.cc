@@ -3096,9 +3096,9 @@ void BoxFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(slow_path->exit_label());
 
   __ StoreDToOffset(value_even, out_reg,
-      Float32x4::value_offset() - kHeapObjectTag);
+      Float64x2::value_offset() - kHeapObjectTag);
   __ StoreDToOffset(value_odd, out_reg,
-      Float32x4::value_offset() + 2 * kWordSize - kHeapObjectTag);
+      Float64x2::value_offset() + 2 * kWordSize - kHeapObjectTag);
 }
 
 
