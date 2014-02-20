@@ -1318,7 +1318,32 @@ class SourceVisitor implements ASTVisitor {
     visitNodes(node.metadata, followedBy: newlines);
     modifier(node.keyword);
     visitNode(node.type, followedBy: space);
-    visitCommaSeparatedNodes(node.variables);
+
+    var variables = node.variables;
+    // Decls with initializers get their own lines (dartbug.com/16849)
+    if (variables.any((v) => (v.initializer != null))) {
+      var size = variables.length;
+      if (size > 0) {
+        var variable;
+        for (var i = 0; i < size; i++) {
+          variable = variables[i];
+          if (i > 0) {
+            var comma = variable.beginToken.previous;
+            token(comma);
+            newlines();
+          }
+          if (i == 1) {
+            indent(2);
+          }
+          variable.accept(this);
+        }
+        if (size > 1) {
+          unindent(2);
+        }
+      }
+    } else {
+      visitCommaSeparatedNodes(node.variables);
+    }
   }
 
   visitVariableDeclarationStatement(VariableDeclarationStatement node) {

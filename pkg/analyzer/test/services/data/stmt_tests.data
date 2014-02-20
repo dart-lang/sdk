@@ -133,3 +133,17 @@ void main() {
 void main() {
 
 }
+>>> Decls with initializers get their own lines (dartbug.com/16849)
+var x, y;
+<<<
+var x, y;
+>>>
+var x = 3, y = 4;
+<<<
+var x = 3,
+    y = 4;
+>>>
+var x = 2, y;
+<<<
+var x = 2,
+    y;
