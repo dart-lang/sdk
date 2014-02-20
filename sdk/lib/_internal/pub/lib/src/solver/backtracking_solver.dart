@@ -402,14 +402,12 @@ class BacktrackingSolver {
       }
     } else {
       // Otherwise, indent it under the current selected package.
-      message = "| $message";
+      message = prefixLines(message);
     }
 
     // Indent for the previous selections.
-    var buffer = new StringBuffer();
-    buffer.writeAll(_selected.skip(1).map((_) => '| '));
-    buffer.write(message);
-    log.solver(buffer);
+    var prefix = _selected.skip(1).map((_) => '| ').join();
+    log.solver(prefixLines(message, prefix: prefix));
   }
 }
 
@@ -545,7 +543,11 @@ class Traverser {
 
         // See if it's possible for a package to match that constraint.
         if (constraint.isEmpty) {
-          _solver.logSolve('disjoint constraints on ${dep.name}');
+          var constraints = _getDependencies(dep.name)
+              .map((dep) => "  ${dep.dep.constraint} from ${dep.depender}")
+              .join('\n');
+          _solver.logSolve(
+              'disjoint constraints on ${dep.name}:\n$constraints');
           throw new DisjointConstraintException(dep.name, dependencies);
         }
 
