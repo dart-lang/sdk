@@ -81,7 +81,7 @@ class EventHandlerImplementation {
   // Gets the socket data structure for a given file
   // descriptor. Creates a new one if one is not found.
   SocketData* GetSocketData(intptr_t fd, bool* is_new);
-  void SendData(intptr_t id, Dart_Port dart_port, intptr_t data);
+  void Notify(intptr_t id, Dart_Port dart_port, intptr_t data);
   void Start(EventHandler* handler);
   void Shutdown();
 

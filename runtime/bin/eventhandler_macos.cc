@@ -408,13 +408,13 @@ void EventHandlerImplementation::Start(EventHandler* handler) {
 
 
 void EventHandlerImplementation::Shutdown() {
-  SendData(kShutdownId, 0, 0);
+  Notify(kShutdownId, 0, 0);
 }
 
 
-void EventHandlerImplementation::SendData(intptr_t id,
-                                          Dart_Port dart_port,
-                                          int64_t data) {
+void EventHandlerImplementation::Notify(intptr_t id,
+                                        Dart_Port dart_port,
+                                        int64_t data) {
   WakeupHandler(id, dart_port, data);
 }
 

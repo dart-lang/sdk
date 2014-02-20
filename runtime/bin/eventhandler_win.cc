@@ -1213,9 +1213,9 @@ int64_t EventHandlerImplementation::GetTimeout() {
 }
 
 
-void EventHandlerImplementation::SendData(intptr_t id,
-                                          Dart_Port dart_port,
-                                          int64_t data) {
+void EventHandlerImplementation::Notify(intptr_t id,
+                                        Dart_Port dart_port,
+                                        int64_t data) {
   InterruptMessage* msg = new InterruptMessage;
   msg->id = id;
   msg->dart_port = dart_port;
@@ -1299,7 +1299,7 @@ void EventHandlerImplementation::Start(EventHandler* handler) {
 
 
 void EventHandlerImplementation::Shutdown() {
-  SendData(kShutdownId, 0, 0);
+  Notify(kShutdownId, 0, 0);
 }
 
 }  // namespace bin

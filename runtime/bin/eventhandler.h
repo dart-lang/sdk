@@ -105,7 +105,7 @@ namespace bin {
 class EventHandler {
  public:
   void SendData(intptr_t id, Dart_Port dart_port, int64_t data) {
-    delegate_.SendData(id, dart_port, data);
+    delegate_.Notify(id, dart_port, data);
   }
 
   /**
