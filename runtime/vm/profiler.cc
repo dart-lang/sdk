@@ -32,26 +32,15 @@ DEFINE_FLAG(charp, profile_dir, NULL,
 DEFINE_FLAG(int, profile_period, 1000,
             "Time between profiler samples in microseconds. Minimum 250.");
 DEFINE_FLAG(int, profile_depth, 8,
-            "Maximum number stack frames walked. Minimum 1. Maximum 128.");
+            "Maximum number stack frames walked. Minimum 1. Maximum 255.");
 
 bool Profiler::initialized_ = false;
 SampleBuffer* Profiler::sample_buffer_ = NULL;
 
 void Profiler::InitOnce() {
-  const int kMinimumProfilePeriod = 250;
-  const int kMinimumDepth = 1;
-  const int kMaximumDepth = 128;
   // Place some sane restrictions on user controlled flags.
-  if (FLAG_profile_period < kMinimumProfilePeriod) {
-    FLAG_profile_period = kMinimumProfilePeriod;
-  }
-  if (FLAG_profile_depth < kMinimumDepth) {
-    FLAG_profile_depth = kMinimumDepth;
-  } else if (FLAG_profile_depth > kMaximumDepth) {
-    FLAG_profile_depth = kMaximumDepth;
-  }
-  // We must always initialize the Sample, even when the profiler is disabled.
-  Sample::InitOnce();
+  SetSamplePeriod(FLAG_profile_period);
+  SetSampleDepth(FLAG_profile_depth);
   if (!FLAG_profile) {
     return;
   }
@@ -71,6 +60,29 @@ void Profiler::Shutdown() {
   ASSERT(initialized_);
   ThreadInterrupter::Shutdown();
   NativeSymbolResolver::ShutdownOnce();
+}
+
+
+void Profiler::SetSampleDepth(intptr_t depth) {
+  const int kMinimumDepth = 1;
+  const int kMaximumDepth = kSampleFramesSize - 1;
+  if (depth < kMinimumDepth) {
+    FLAG_profile_depth = kMinimumDepth;
+  } else if (depth > kMaximumDepth) {
+    FLAG_profile_depth = kMaximumDepth;
+  } else {
+    FLAG_profile_depth = depth;
+  }
+}
+
+
+void Profiler::SetSamplePeriod(intptr_t period) {
+  const int kMinimumProfilePeriod = 250;
+  if (period < kMinimumProfilePeriod) {
+    FLAG_profile_period = kMinimumProfilePeriod;
+  } else {
+    FLAG_profile_period = period;
+  }
 }
 
 
@@ -726,76 +738,6 @@ IsolateProfilerData::~IsolateProfilerData() {
 }
 
 
-intptr_t Sample::instance_size_ = 0;
-
-void Sample::InitOnce() {
-  ASSERT(FLAG_profile_depth >= 1);
-  instance_size_ =
-     sizeof(Sample) + (sizeof(intptr_t) * FLAG_profile_depth);  // NOLINT.
-}
-
-
-uword Sample::At(intptr_t i) const {
-  ASSERT(i >= 0);
-  ASSERT(i < FLAG_profile_depth);
-  return pcs_[i];
-}
-
-
-void Sample::SetAt(intptr_t i, uword pc) {
-  ASSERT(i >= 0);
-  ASSERT(i < FLAG_profile_depth);
-  pcs_[i] = pc;
-}
-
-
-void Sample::Init(SampleType type, Isolate* isolate, int64_t timestamp,
-                  ThreadId tid) {
-  timestamp_ = timestamp;
-  tid_ = tid;
-  isolate_ = isolate;
-  type_ = type;
-  for (int i = 0; i < FLAG_profile_depth; i++) {
-    pcs_[i] = 0;
-  }
-}
-
-
-void Sample::CopyInto(Sample* dst) const {
-  ASSERT(dst != NULL);
-  dst->timestamp_ = timestamp_;
-  dst->tid_ = tid_;
-  dst->isolate_ = isolate_;
-  dst->type_ = type_;
-  for (intptr_t i = 0; i < FLAG_profile_depth; i++) {
-    dst->pcs_[i] = pcs_[i];
-  }
-}
-
-
-Sample* Sample::Allocate() {
-  return reinterpret_cast<Sample*>(malloc(instance_size()));
-}
-
-
-SampleBuffer::SampleBuffer(intptr_t capacity) {
-  capacity_ = capacity;
-  samples_ = reinterpret_cast<Sample*>(
-      calloc(capacity, Sample::instance_size()));
-  cursor_ = 0;
-}
-
-
-SampleBuffer::~SampleBuffer() {
-  if (samples_ != NULL) {
-    free(samples_);
-    samples_ = NULL;
-    cursor_ = 0;
-    capacity_ = 0;
-  }
-}
-
-
 Sample* SampleBuffer::ReserveSample() {
   ASSERT(samples_ != NULL);
   uintptr_t cursor = AtomicOperations::FetchAndIncrement(&cursor_);
@@ -803,46 +745,6 @@ Sample* SampleBuffer::ReserveSample() {
   cursor = cursor % capacity_;
   return At(cursor);
 }
-
-
-void SampleBuffer::CopySample(intptr_t i, Sample* sample) const {
-  At(i)->CopyInto(sample);
-}
-
-
-Sample* SampleBuffer::At(intptr_t idx) const {
-  ASSERT(idx >= 0);
-  ASSERT(idx < capacity_);
-  intptr_t offset = idx * Sample::instance_size();
-  uint8_t* samples = reinterpret_cast<uint8_t*>(samples_);
-  return reinterpret_cast<Sample*>(samples + offset);
-}
-
-
-void SampleBuffer::VisitSamples(SampleVisitor* visitor) {
-  ASSERT(visitor != NULL);
-  Sample* sample = Sample::Allocate();
-  const intptr_t length = capacity();
-  for (intptr_t i = 0; i < length; i++) {
-    CopySample(i, sample);
-    if (sample->isolate() != visitor->isolate()) {
-      // Another isolate.
-      continue;
-    }
-    if (sample->timestamp() == 0) {
-      // Empty.
-      continue;
-    }
-    if (sample->At(0) == 0) {
-      // No frames.
-      continue;
-    }
-    visitor->IncrementVisited();
-    visitor->VisitSample(sample);
-  }
-  free(sample);
-}
-
 
 // Notes on stack frame walking:
 //
@@ -963,8 +865,7 @@ void Profiler::RecordSampleInterruptCallback(
     return;
   }
   Sample* sample = sample_buffer->ReserveSample();
-  sample->Init(Sample::kIsolateSample, isolate, OS::GetCurrentTimeMicros(),
-               state.tid);
+  sample->Init(isolate, OS::GetCurrentTimeMicros(), state.tid);
   uword stack_lower = 0;
   uword stack_upper = 0;
   isolate->GetStackBounds(&stack_lower, &stack_upper);

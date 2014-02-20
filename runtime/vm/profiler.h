@@ -26,6 +26,9 @@ class Profiler : public AllStatic {
   static void InitOnce();
   static void Shutdown();
 
+  static void SetSampleDepth(intptr_t depth);
+  static void SetSamplePeriod(intptr_t period);
+
   static void InitProfilingForIsolate(Isolate* isolate,
                                       bool shared_buffer = true);
   static void ShutdownProfilingForIsolate(Isolate* isolate);
@@ -70,51 +73,6 @@ class IsolateProfilerData {
 };
 
 
-// Profile sample.
-class Sample {
- public:
-  enum SampleType {
-    kIsolateSample,
-  };
-
-  static void InitOnce();
-
-  uword At(intptr_t i) const;
-  void SetAt(intptr_t i, uword pc);
-  void Init(SampleType type, Isolate* isolate, int64_t timestamp, ThreadId tid);
-  void CopyInto(Sample* dst) const;
-
-  static Sample* Allocate();
-  static intptr_t instance_size() {
-    return instance_size_;
-  }
-
-  SampleType type() const {
-    return type_;
-  }
-
-  Isolate* isolate() const {
-    return isolate_;
-  }
-
-  int64_t timestamp() const {
-    return timestamp_;
-  }
-
- private:
-  static intptr_t instance_size_;
-  int64_t timestamp_;
-  ThreadId tid_;
-  Isolate* isolate_;
-  SampleType type_;
-  // Note: This class has a size determined at run-time. The pcs_ array
-  // must be the final field.
-  uword pcs_[0];
-
-  DISALLOW_COPY_AND_ASSIGN(Sample);
-};
-
-
 class SampleVisitor {
  public:
   explicit SampleVisitor(Isolate* isolate) : isolate_(isolate), visited_(0) { }
@@ -141,21 +99,106 @@ class SampleVisitor {
   DISALLOW_IMPLICIT_CONSTRUCTORS(SampleVisitor);
 };
 
+// The maximum number of stack frames a sample can hold.
+#define kSampleFramesSize 256
 
-// Ring buffer of samples.
+// Each Sample holds a stack trace from an isolate.
+class Sample {
+ public:
+  void Init(Isolate* isolate, int64_t timestamp, ThreadId tid) {
+    timestamp_ = timestamp;
+    tid_ = tid;
+    isolate_ = isolate;
+    for (intptr_t i = 0; i < kSampleFramesSize; i++) {
+      pcs_[i] = 0;
+    }
+  }
+
+  // Isolate sample was taken from.
+  Isolate* isolate() const {
+    return isolate_;
+  }
+
+  // Timestamp sample was taken at.
+  int64_t timestamp() const {
+    return timestamp_;
+  }
+
+  // Get stack trace entry.
+  uword At(intptr_t i) const {
+    ASSERT(i >= 0);
+    ASSERT(i < kSampleFramesSize);
+    return pcs_[i];
+  }
+
+  // Set stack trace entry.
+  void SetAt(intptr_t i, uword pc) {
+    ASSERT(i >= 0);
+    ASSERT(i < kSampleFramesSize);
+    pcs_[i] = pc;
+  }
+
+ private:
+  int64_t timestamp_;
+  ThreadId tid_;
+  Isolate* isolate_;
+  uword pcs_[kSampleFramesSize];
+};
+
+
+// Ring buffer of Samples that is (usually) shared by many isolates.
 class SampleBuffer {
  public:
   static const intptr_t kDefaultBufferCapacity = 120000;  // 2 minutes @ 1000hz.
 
-  explicit SampleBuffer(intptr_t capacity = kDefaultBufferCapacity);
-  ~SampleBuffer();
+  explicit SampleBuffer(intptr_t capacity = kDefaultBufferCapacity) {
+    samples_ = reinterpret_cast<Sample*>(calloc(capacity, sizeof(*samples_)));
+    capacity_ = capacity;
+    cursor_ = 0;
+  }
+
+  ~SampleBuffer() {
+    if (samples_ != NULL) {
+      free(samples_);
+      samples_ = NULL;
+      cursor_ = 0;
+      capacity_ = 0;
+    }
+  }
 
   intptr_t capacity() const { return capacity_; }
-  Sample* ReserveSample();
-  void CopySample(intptr_t i, Sample* sample) const;
-  Sample* At(intptr_t idx) const;
 
-  void VisitSamples(SampleVisitor* visitor);
+  Sample* ReserveSample();
+
+  Sample* At(intptr_t idx) const {
+    ASSERT(idx >= 0);
+    ASSERT(idx < capacity_);
+    return &samples_[idx];
+  }
+
+  void VisitSamples(SampleVisitor* visitor) {
+    ASSERT(visitor != NULL);
+    Sample sample;
+    const intptr_t length = capacity();
+    for (intptr_t i = 0; i < length; i++) {
+      // Copy the sample.
+      sample = *At(i);
+      if (sample.isolate() != visitor->isolate()) {
+        // Another isolate.
+        continue;
+      }
+      if (sample.timestamp() == 0) {
+        // Empty.
+        continue;
+      }
+      if (sample.At(0) == 0) {
+        // No frames.
+        continue;
+      }
+      visitor->IncrementVisited();
+      visitor->VisitSample(&sample);
+    }
+  }
 
  private:
   Sample* samples_;
