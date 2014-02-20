@@ -207,18 +207,21 @@ main() {
     group('constructor', () {
       test('takes a min and max', () {
         var range = new VersionRange(min: v123, max: v124);
+        expect(range.isAny, isFalse);
         expect(range.min, equals(v123));
         expect(range.max, equals(v124));
       });
 
       test('allows omitting max', () {
         var range = new VersionRange(min: v123);
+        expect(range.isAny, isFalse);
         expect(range.min, equals(v123));
         expect(range.max, isNull);
       });
 
       test('allows omitting min and max', () {
         var range = new VersionRange();
+        expect(range.isAny, isTrue);
         expect(range.min, isNull);
         expect(range.max, isNull);
       });
@@ -367,6 +370,7 @@ main() {
 
     test('empty', () {
       expect(VersionConstraint.empty.isEmpty, isTrue);
+      expect(VersionConstraint.empty.isAny, isFalse);
       expect(VersionConstraint.empty, doesNotAllow([
         new Version.parse('0.0.0-blah'),
         new Version.parse('1.2.3'),

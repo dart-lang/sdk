@@ -449,7 +449,7 @@ class VersionRange implements VersionConstraint {
 
   bool get isEmpty => false;
 
-  bool get isAny => !includeMin && !includeMax;
+  bool get isAny => min == null && max == null;
 
   /// Tests if [other] matches falls within this version range.
   bool allows(Version other) {
