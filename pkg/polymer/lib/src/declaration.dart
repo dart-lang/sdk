@@ -490,7 +490,7 @@ class PolymerDeclaration extends HtmlElement {
       if (method is! MethodMirror || method.isStatic
           || !method.isRegularMethod) continue;
 
-      for (var meta in _safeGetMetadata(method)) {
+      for (var meta in method.metadata) {
         if (meta.reflectee is! ObserveProperty) continue;
 
         if (_observe == null) _observe = new HashMap();
@@ -597,19 +597,6 @@ DeclarationMirror _getProperty(ClassMirror cls, Symbol property) {
     // the code later on expects a List of ints.
   } while (cls != _objectType);
   return null;
-}
-
-List _safeGetMetadata(MethodMirror method) {
-  // TODO(jmesserly): dart2js blows up getting metadata from methods in some
-  // cases. Why does this happen? It seems like the culprit might be named
-  // arguments. Unfortunately even calling method.parameters also
-  // triggers the bug in computeFunctionRti. For now we guard against it
-  // with this check.
-  try {
-    return method.metadata;
-  } catch (e) {
-    return [];
-  }
 }
 
 bool _hasSetter(ClassMirror cls, MethodMirror getter) {
