@@ -16,9 +16,9 @@ List<Uri> _writeLibFiles() {
 
   codePath = p.join(codePath, 'lib');
 
-  return new Directory(codePath).listSync()
-      .where((fse) => fse is File)
-      .map((fse) => p.toUri(fse.path))
+  return ['temp.dart', 'temp2.dart', 'temp3.dart']
+      .map((name) => p.join(codePath, name))
+      .map(p.toUri)
       .toList();
 }
 
