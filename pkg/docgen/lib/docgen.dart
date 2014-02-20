@@ -664,6 +664,38 @@ class _Viewer {
   static Directory _webDocsDir;
   static bool movedViewerCode = false;
 
+  static String _viewerCodePath;
+
+  /*
+   * dartdoc-viewer currently has the web app code under a 'client' directory
+   *
+   * This is confusing for folks that want to clone and modify the code.
+   * It also includes a number of python files and other content related to
+   * app engine hosting that are not needed.
+   *
+   * This logic exists to support the current model and a (future) updated
+   * dartdoc-viewer repo where the 'client' content exists at the root of the
+   * project and the other content is removed.
+   */
+  static String get viewerCodePath {
+    if(_viewerCodePath == null) {
+      var pubspecFileName = 'pubspec.yaml';
+
+      var thePath = _dartdocViewerDir.path;
+
+      if(!FileSystemEntity.isFileSync(path.join(thePath, pubspecFileName))) {
+        thePath = path.join(thePath, 'client');
+        print('trying the fallback: $thePath');
+        if (!FileSystemEntity.isFileSync(path.join(thePath, pubspecFileName))) {
+          throw new StateError('Could not find a pubspec file');
+        }
+      }
+
+      _viewerCodePath = thePath;
+    }
+    return _viewerCodePath;
+  }
+
   /// If our dartdoc-viewer code is already checked out, move it to a temporary
   /// directory outside of the package directory, so we don't try to process it
   /// for documentation.
@@ -698,13 +730,13 @@ class _Viewer {
         /// directory, to run as a webpage.
         var processResult = Process.runSync(_Generator._pubScript,
             ['upgrade'], runInShell: true,
-            workingDirectory: path.join(_dartdocViewerDir.path, 'client'));
+            workingDirectory: path.join(viewerCodePath, 'client'));
         print('process output: ${processResult.stdout}');
         print('process stderr: ${processResult.stderr}');
 
         var dir = new Directory(_Generator._outputDirectory == null? 'docs' :
             _Generator._outputDirectory);
-        _webDocsDir = new Directory(path.join(_dartdocViewerDir.path, 'client',
+        _webDocsDir = new Directory(path.join(viewerCodePath, 'client',
             'web', 'docs'));
         if (dir.existsSync()) {
           // Move the docs folder to dartdoc-viewer/client/web/docs
@@ -723,11 +755,11 @@ class _Viewer {
       // Compile the code to JavaScript so we can run on any browser.
       print('Compile app to JavaScript for viewing.');
       var processResult = Process.runSync(_Generator._dartBinary,
-          ['deploy.dart'], workingDirectory : path.join(_dartdocViewerDir.path,
+          ['deploy.dart'], workingDirectory : path.join(viewerCodePath,
           'client'), runInShell: true);
       print('process output: ${processResult.stdout}');
       print('process stderr: ${processResult.stderr}');
-      var outputDir = path.join(_dartdocViewerDir.path, 'client', 'out', 'web');
+      var outputDir = path.join(viewerCodePath, 'client', 'out', 'web');
       print('Docs are available at $outputDir');
     }
   }
@@ -741,7 +773,7 @@ class _Viewer {
           'http://localhost:${httpServer.port}');
       httpServer.listen((HttpRequest request) {
         var response = request.response;
-        var basePath = path.join(_dartdocViewerDir.path, 'client', 'out',
+        var basePath = path.join(viewerCodePath, 'client', 'out',
             'web');
         var requestPath = path.join(basePath, request.uri.path.substring(1));
         bool found = true;
