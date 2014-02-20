@@ -449,7 +449,9 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
       throw new ArgumentError("Illegal length $len");
     }
     if (isClosing || isClosed) return null;
-    var result = nativeRead(min(available, len == null ? available : len));
+    len = min(available, len == null ? available : len);
+    if (len == 0) return null;
+    var result = nativeRead(len);
     if (result is OSError) {
       reportError(result, "Read failed");
       return null;
