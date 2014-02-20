@@ -65,10 +65,12 @@ class TimeoutQueue {
   bool HasTimeout() const { return next_timeout_ != NULL; }
 
   int64_t CurrentTimeout() const {
+    ASSERT(next_timeout_ != NULL);
     return next_timeout_->timeout();
   }
 
   Dart_Port CurrentPort() const {
+    ASSERT(next_timeout_ != NULL);
     return next_timeout_->port();
   }
 

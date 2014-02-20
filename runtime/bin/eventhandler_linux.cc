@@ -131,13 +131,16 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
                                               int size) {
   for (int i = 0; i < size; i++) {
     uint64_t data = events[i].data.u64;
+    // ILLEGAL_PORT is used to identify timer-fd.
     if (data == ILLEGAL_PORT) {
       int64_t val;
       VOID_TEMP_FAILURE_RETRY(read(timer_fd_, &val, sizeof(val)));
+      timer_mutex_.Lock();
       if (timeout_queue_.HasTimeout()) {
         DartUtils::PostNull(timeout_queue_.CurrentPort());
         timeout_queue_.RemoveCurrent();
       }
+      timer_mutex_.Unlock();
     } else {
       int32_t event_mask = GetPollEvents(events[i].events);
       if (event_mask != 0) {
