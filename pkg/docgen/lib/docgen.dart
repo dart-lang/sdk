@@ -685,7 +685,6 @@ class _Viewer {
 
       if(!FileSystemEntity.isFileSync(path.join(thePath, pubspecFileName))) {
         thePath = path.join(thePath, 'client');
-        print('trying the fallback: $thePath');
         if (!FileSystemEntity.isFileSync(path.join(thePath, pubspecFileName))) {
           throw new StateError('Could not find a pubspec file');
         }

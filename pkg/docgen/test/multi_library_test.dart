@@ -1,7 +1,5 @@
 library single_library_test;
 
-import 'dart:io';
-
 import 'package:path/path.dart' as p;
 import 'package:unittest/unittest.dart';
 
