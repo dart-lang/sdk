@@ -94,21 +94,21 @@ class BuildEnvironment {
           graph.entrypoint.root.name, rootDirectory);
     }
 
-    rootDirectories = rootDirectories.toList();
+    var rootDirectoryList = rootDirectories.toList();
 
     // For consistency, "web/" should always have the first available port and
     // "test/" should always have the second. Other directories are assigned
     // the following ports in alphabetical order.
     var serverFutures = [];
-    if (rootDirectories.remove('web')) {
+    if (rootDirectoryList.remove('web')) {
       serverFutures.add(_bind(basePort, 'web'));
     }
-    if (rootDirectories.remove('test')) {
+    if (rootDirectoryList.remove('test')) {
       serverFutures.add(_bind(basePort + 1, 'test'));
     }
 
     var i = 0;
-    for (var dir in rootDirectories) {
+    for (var dir in rootDirectoryList) {
       serverFutures.add(_bind(basePort + 2 + i, dir));
       i += 1;
     }
