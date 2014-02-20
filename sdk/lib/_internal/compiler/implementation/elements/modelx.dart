@@ -407,7 +407,7 @@ class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
     if (warning != null) {
       Spannable spannable = warning.spannable;
       if (spannable == null) spannable = usageSpannable;
-      listener.reportWarningCode(
+      listener.reportWarning(
           spannable, warning.messageKind, warning.messageArguments);
     }
     if (info != null) {
@@ -513,10 +513,8 @@ class ScopeX {
       if (!identical(existing, element)) {
         listener.reportError(
             element, MessageKind.DUPLICATE_DEFINITION, {'name': name});
-        listener.reportMessage(
-            listener.spanFromSpannable(existing),
-            MessageKind.EXISTING_DEFINITION.error({'name': name}),
-            api.Diagnostic.INFO);
+        listener.reportInfo(existing,
+            MessageKind.EXISTING_DEFINITION, {'name': name});
       }
     }
   }
@@ -616,10 +614,7 @@ class CompilationUnitElementX extends ElementX
       return;
     }
     if (partTag != null) {
-      listener.reportMessage(
-          listener.spanFromSpannable(tag),
-          MessageKind.DUPLICATED_PART_OF.error(),
-          api.Diagnostic.WARNING);
+      listener.reportWarning(tag, MessageKind.DUPLICATED_PART_OF);
       return;
     }
     partTag = tag;
@@ -628,12 +623,12 @@ class CompilationUnitElementX extends ElementX
     if (libraryTag != null) {
       String expectedName = libraryTag.name.toString();
       if (expectedName != actualName) {
-        listener.reportWarningCode(tag.name,
+        listener.reportWarning(tag.name,
             MessageKind.LIBRARY_NAME_MISMATCH,
             {'libraryName': expectedName});
       }
     } else {
-      listener.reportWarningCode(getLibrary(),
+      listener.reportWarning(getLibrary(),
           MessageKind.MISSING_LIBRARY_NAME,
           {'libraryName': actualName});
       listener.reportInfo(tag.name,

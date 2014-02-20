@@ -88,8 +88,8 @@ class TestCompiler extends apiimpl.Compiler {
         break;
       case 'warning':
         onTest(testMarker, testType);
-        reportWarningCode(CURRENT_ELEMENT_SPANNABLE,
-                          MessageKind.GENERIC, {'text': marker});
+        reportWarning(CURRENT_ELEMENT_SPANNABLE,
+                      MessageKind.GENERIC, {'text': marker});
         break;
       case 'error':
         onTest(testMarker, testType);

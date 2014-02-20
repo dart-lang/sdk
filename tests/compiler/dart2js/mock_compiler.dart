@@ -339,35 +339,13 @@ class MockCompiler extends Compiler {
     return library;
   }
 
-  void reportWarning(Spannable node, var message) {
-    if (message is! Message) message = message.message;
-    warnings.add(new WarningMessage(node, message));
-    reportDiagnostic(spanFromSpannable(node),
-        'Warning: $message', api.Diagnostic.WARNING);
-  }
-
-  void reportError(Spannable node,
-                   MessageKind errorCode,
-                   [Map arguments = const {}]) {
-    Message message = errorCode.message(arguments);
-    errors.add(new WarningMessage(node, message));
-    reportDiagnostic(spanFromSpannable(node), '$message', api.Diagnostic.ERROR);
-  }
-
-  void reportInfo(Spannable node,
-                   MessageKind errorCode,
-                   [Map arguments = const {}]) {
-    Message message = errorCode.message(arguments);
-    infos.add(new WarningMessage(node, message));
-    reportDiagnostic(spanFromSpannable(node), '$message', api.Diagnostic.INFO);
-  }
-
-  void reportHint(Spannable node,
-                   MessageKind errorCode,
-                   [Map arguments = const {}]) {
-    Message message = errorCode.message(arguments);
-    hints.add(new WarningMessage(node, message));
-    reportDiagnostic(spanFromSpannable(node), '$message', api.Diagnostic.HINT);
+  // TODO(johnniwinther): Remove this when we don't filter certain type checker
+  // warnings.
+  void reportWarning(Spannable node, MessageKind errorCode,
+                     [Map arguments = const {}]) {
+    reportDiagnostic(node,
+        errorCode.error(arguments, terseDiagnostics),
+        api.Diagnostic.WARNING);
   }
 
   void reportFatalError(Spannable node,
@@ -376,8 +354,10 @@ class MockCompiler extends Compiler {
     reportError(node, errorCode, arguments);
   }
 
-  void reportMessage(SourceSpan span, var message, api.Diagnostic kind) {
-    var diagnostic = new WarningMessage(null, message.message);
+  void reportDiagnostic(Spannable node,
+                        Diagnostic message,
+                        api.Diagnostic kind) {
+    var diagnostic = new WarningMessage(node, message.message);
     if (kind == api.Diagnostic.ERROR) {
       errors.add(diagnostic);
     } else if (kind == api.Diagnostic.WARNING) {
@@ -387,15 +367,12 @@ class MockCompiler extends Compiler {
     } else if (kind == api.Diagnostic.HINT) {
       hints.add(diagnostic);
     }
-    reportDiagnostic(span, "$message", kind);
-  }
-
-  void reportDiagnostic(SourceSpan span, String message, api.Diagnostic kind) {
     if (diagnosticHandler != null) {
+      SourceSpan span = spanFromSpannable(node);
       if (span != null) {
-        diagnosticHandler(span.uri, span.begin, span.end, message, kind);
+        diagnosticHandler(span.uri, span.begin, span.end, '$message', kind);
       } else {
-        diagnosticHandler(null, null, null, message, kind);
+        diagnosticHandler(null, null, null, '$message', kind);
       }
     }
   }

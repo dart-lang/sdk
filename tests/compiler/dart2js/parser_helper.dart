@@ -40,7 +40,7 @@ class LoggerCanceler implements DiagnosticListener {
     log(message);
   }
 
-  SourceSpan spanFromSpannable(node, [uri]) {
+  SourceSpan spanFromSpannable(node) {
     throw 'unsupported operation';
   }
 
@@ -49,6 +49,10 @@ class LoggerCanceler implements DiagnosticListener {
   }
 
   void reportError(Spannable node, MessageKind errorCode, [Map arguments]) {
+    log(new Message(errorCode, arguments, false));
+  }
+
+  void reportWarning(Spannable node, MessageKind errorCode, [Map arguments]) {
     log(new Message(errorCode, arguments, false));
   }
 

@@ -305,7 +305,7 @@ class CompileTimeConstantEvaluator extends Visitor {
       if (!map.containsKey(key)) {
         keys.add(key);
       } else {
-        compiler.reportWarningCode(entry.key, MessageKind.EQUAL_MAP_ENTRY_KEY);
+        compiler.reportWarning(entry.key, MessageKind.EQUAL_MAP_ENTRY_KEY);
       }
       map[key] = evaluateConstant(entry.value);
     }

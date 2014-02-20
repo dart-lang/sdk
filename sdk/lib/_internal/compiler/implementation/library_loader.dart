@@ -343,16 +343,16 @@ class LibraryLoaderTask extends LibraryLoader {
       LibraryElement existing =
           libraryNames.putIfAbsent(name, () => library);
       if (!identical(existing, library)) {
-        Uri uri = library.entryCompilationUnit.script.uri;
-        compiler.reportMessage(
-            compiler.spanFromSpannable(tag.name, uri),
-            MessageKind.DUPLICATED_LIBRARY_NAME.error({'libraryName': name}),
-            api.Diagnostic.WARNING);
-        Uri existingUri = existing.entryCompilationUnit.script.uri;
-        compiler.reportMessage(
-            compiler.spanFromSpannable(existing.libraryTag.name, existingUri),
-            MessageKind.DUPLICATED_LIBRARY_NAME.error({'libraryName': name}),
-            api.Diagnostic.WARNING);
+        compiler.withCurrentElement(library, () {
+          compiler.reportWarning(tag.name,
+              MessageKind.DUPLICATED_LIBRARY_NAME,
+              {'libraryName': name});
+        });
+        compiler.withCurrentElement(existing, () {
+          compiler.reportWarning(existing.libraryTag.name,
+              MessageKind.DUPLICATED_LIBRARY_NAME,
+              {'libraryName': name});
+        });
       }
     }
   }

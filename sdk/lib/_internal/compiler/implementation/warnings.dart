@@ -1949,16 +1949,6 @@ class Diagnostic {
   String toString() => message.toString();
 }
 
-class TypeWarning extends Diagnostic {
-  TypeWarning(MessageKind kind, Map arguments, bool terse)
-    : super(kind, arguments, terse);
-}
-
-class ResolutionWarning extends Diagnostic {
-  ResolutionWarning(MessageKind kind, Map arguments, bool terse)
-    : super(kind, arguments, terse);
-}
-
 class CompileTimeConstantError extends Diagnostic {
   CompileTimeConstantError(MessageKind kind, Map arguments, bool terse)
     : super(kind, arguments, terse);

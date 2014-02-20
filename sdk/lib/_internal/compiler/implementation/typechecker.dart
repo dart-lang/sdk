@@ -316,8 +316,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   reportTypeWarning(Spannable spannable, MessageKind kind,
                     [Map arguments = const {}]) {
-    compiler.reportWarning(
-        spannable, new TypeWarning(kind, arguments, compiler.terseDiagnostics));
+    compiler.reportWarning(spannable, kind, arguments);
   }
 
   reportTypeInfo(Spannable spannable, MessageKind kind,

@@ -357,11 +357,9 @@ class ResolverTask extends CompilerTask {
             {'methodName': origin.name,
              'originParameter': originParameterText,
              'patchParameter': patchParameterText});
-        compiler.reportMessage(
-            compiler.spanFromSpannable(patchParameter),
-            MessageKind.PATCH_POINT_TO_PARAMETER.error(
-                {'parameterName': patchParameter.name}),
-            Diagnostic.INFO);
+        compiler.reportInfo(patchParameter,
+            MessageKind.PATCH_POINT_TO_PARAMETER,
+            {'parameterName': patchParameter.name});
       }
       DartType originParameterType = originParameter.computeType(compiler);
       DartType patchParameterType = patchParameter.computeType(compiler);
@@ -373,11 +371,9 @@ class ResolverTask extends CompilerTask {
              'parameterName': originParameter.name,
              'originParameterType': originParameterType,
              'patchParameterType': patchParameterType});
-        compiler.reportMessage(
-            compiler.spanFromSpannable(patchParameter),
-            MessageKind.PATCH_POINT_TO_PARAMETER.error(
-                {'parameterName': patchParameter.name}),
-            Diagnostic.INFO);
+        compiler.reportInfo(patchParameter,
+            MessageKind.PATCH_POINT_TO_PARAMETER,
+            {'parameterName': patchParameter.name});
       }
 
       originParameters = originParameters.tail;
@@ -1552,10 +1548,8 @@ class CommonResolverVisitor<R> extends Visitor<R> {
     compiler.reportFatalError(node, kind, arguments);
   }
 
-  void warning(Node node, MessageKind kind, [Map arguments = const {}]) {
-    ResolutionWarning message =
-        new ResolutionWarning(kind, arguments, compiler.terseDiagnostics);
-    compiler.reportWarning(node, message);
+  void warning(Spannable node, MessageKind kind, [Map arguments = const {}]) {
+    compiler.reportWarning(node, kind, arguments);
   }
 
   void cancel(Node node, String message) {
@@ -1843,7 +1837,7 @@ class TypeResolver {
                                    DartType bound) {
       compiler.backend.registerTypeVariableBoundCheck(elements);
       if (!compiler.types.isSubtype(typeArgument, bound)) {
-        compiler.reportWarningCode(node,
+        compiler.reportWarning(node,
             MessageKind.INVALID_TYPE_VARIABLE_BOUND,
             {'typeVariable': typeVariable,
              'bound': bound,
@@ -1938,13 +1932,10 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
   void reportDuplicateDefinition(/*Node|String*/ name,
                                  Spannable definition,
                                  Spannable existing) {
-    compiler.reportError(
-        definition,
+    compiler.reportError(definition,
         MessageKind.DUPLICATE_DEFINITION, {'name': name});
-    compiler.reportMessage(
-        compiler.spanFromSpannable(existing),
-        MessageKind.EXISTING_DEFINITION.error({'name': name}),
-        Diagnostic.INFO);
+    compiler.reportInfo(existing,
+        MessageKind.EXISTING_DEFINITION, {'name': name});
   }
 }
 
@@ -2106,9 +2097,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
                                                  String name,
                                                  DualKind kind,
                                                  [Map arguments = const {}]) {
-    ResolutionWarning warning = new ResolutionWarning(
-        kind.warning, arguments, compiler.terseDiagnostics);
-    compiler.reportWarning(node, warning);
+    compiler.reportWarning(node, kind.warning, arguments);
     return new ErroneousElementX(kind.error, arguments, name, enclosingElement);
   }
 
@@ -3484,7 +3473,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
           // It's only a warning if it shadows another label.
           existingElement = statementScope.lookupLabel(labelName);
           if (existingElement != null) {
-            compiler.reportWarningCode(
+            compiler.reportWarning(
                 label,
                 MessageKind.DUPLICATE_LABEL.warning, {'labelName': labelName});
             compiler.reportInfo(
@@ -3928,7 +3917,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     if (identical(node.classKeyword.stringValue, 'typedef')) {
       // TODO(aprelev@gmail.com): Remove this deprecation diagnostic
       // together with corresponding TODO in parser.dart.
-      compiler.reportWarningCode(node.classKeyword,
+      compiler.reportWarning(node.classKeyword,
           MessageKind.DEPRECATED_TYPEDEF_MIXIN_SYNTAX);
     }
 
@@ -4387,10 +4376,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     if (inConstContext) {
       compiler.reportError(diagnosticNode, kind.error, arguments);
     } else {
-      ResolutionWarning warning  =
-          new ResolutionWarning(
-              kind.warning, arguments, compiler.terseDiagnostics);
-      compiler.reportWarning(diagnosticNode, warning);
+      compiler.reportWarning(diagnosticNode, kind.warning, arguments);
     }
     return new ErroneousElementX(
         kind.error, arguments, targetName, enclosing);

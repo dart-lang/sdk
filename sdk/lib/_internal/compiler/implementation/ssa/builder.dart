@@ -4793,7 +4793,8 @@ abstract class SsaFromAstMixin
   visitNodeList(ast.NodeList node) {
     for (Link<ast.Node> link = node.nodes; !link.isEmpty; link = link.tail) {
       if (isAborted()) {
-        compiler.reportWarning(link.head, 'dead code');
+        compiler.reportWarning(link.head,
+            MessageKind.GENERIC, {'text': 'dead code'});
       } else {
         visit(link.head);
       }
