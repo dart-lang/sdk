@@ -1333,7 +1333,7 @@ class _HttpClientConnection {
     }
     // Start sending the request (lazy, delayed until the user provides
     // data).
-    _httpParser.responseToMethod = method;
+    _httpParser.isHead = method == "HEAD";
     _streamFuture = outgoing.done
         .then((s) {
           // Request sent, set up response completer.
