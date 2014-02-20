@@ -893,9 +893,13 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
 
   HInstruction zapInstructionCache;
   HInstruction get zapInstruction {
-    return (zapInstructionCache == null)
-        ? zapInstructionCache = analyzer.graph.addConstantInt(0, compiler)
-        : zapInstructionCache;
+    if (zapInstructionCache == null) {
+      // A constant with no type does not pollute types at phi nodes.
+      Constant constant =
+          new DummyReceiverConstant(const TypeMask.nonNullEmpty());
+      zapInstructionCache = analyzer.graph.addConstant(constant, compiler);
+    }
+    return zapInstructionCache;
   }
 
   /// Returns whether the next throwing instruction that may have side
