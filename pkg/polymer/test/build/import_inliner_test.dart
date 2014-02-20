@@ -88,6 +88,37 @@ void importTests() {
       'a|web/test2.html.scriptUrls': '[]',
     });
 
+  testPhases('preserves order of scripts', phases,
+    {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<script type="text/javascript">/*first*/</script>'
+          '<script src="second.js"></script>'
+          '<link rel="import" href="test2.html">'
+          '<script type="application/dart">/*forth*/</script>'
+          '</head></html>',
+      'a|web/test2.html':
+          '<!DOCTYPE html><html><head><script>/*third*/</script>'
+          '</head><body><polymer-element>2</polymer-element></html>',
+      'a|web/second.js': '/*second*/'
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '</head><body>'
+          '<script type="text/javascript">/*first*/</script>'
+          '<script src="second.js"></script>'
+          '<script>/*third*/</script>'
+          '<polymer-element>2</polymer-element>'
+          '<script type="application/dart">/*forth*/</script>'
+          '</body></html>',
+      'a|web/test.html.scriptUrls': '[]',
+      'a|web/test2.html':
+          '<!DOCTYPE html><html><head><script>/*third*/</script>'
+          '</head><body><polymer-element>2</polymer-element></html>',
+      'a|web/test2.html.scriptUrls': '[]',
+      'a|web/second.js': '/*second*/'
+    });
+
   testPhases('no transformation outside web/', phases,
     {
       'a|lib/test.html':
@@ -564,9 +595,9 @@ void stylesheetTests() {
           'h1 { font-size: 70px; }',
     }, {
       'a|web/test.html':
-          '<!DOCTYPE html><html><head>'
+          '<!DOCTYPE html><html><head></head><body>'
           '<style>h1 { font-size: 70px; }</style>'
-          '</head><body></body></html>',
+          '</body></html>',
       'a|web/test.html.scriptUrls': '[]',
       'a|web/test2.css':
           'h1 { font-size: 70px; }',
@@ -611,4 +642,27 @@ void stylesheetTests() {
       'b|asset/test4.png': 'PNG',
       'c|lib/test5.png': 'PNG',
     });
+
+
+  testPhases('shallow, inlines css and preserves order', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<style>.first { color: black }</style>'
+          '<link rel="stylesheet" href="test2.css">'
+          '<style>.second { color: black }</style>'
+          '</head></html>',
+      'a|web/test2.css':
+          'h1 { font-size: 70px; }',
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<style>.first { color: black }</style>'
+          '<style>h1 { font-size: 70px; }</style>'
+          '<style>.second { color: black }</style>'
+          '</body></html>',
+      'a|web/test.html.scriptUrls': '[]',
+      'a|web/test2.css':
+          'h1 { font-size: 70px; }',
+    });
+
 }

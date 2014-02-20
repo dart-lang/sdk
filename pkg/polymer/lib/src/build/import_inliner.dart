@@ -24,8 +24,10 @@ class _HtmlInliner extends PolymerTransformer {
   final TransformLogger logger;
   final AssetId docId;
   final seen = new Set<AssetId>();
-  final imported = new DocumentFragment();
   final scriptIds = <AssetId>[];
+
+  static const TYPE_DART = 'application/dart';
+  static const TYPE_JS = 'text/javascript';
 
   _HtmlInliner(this.options, Transform transform)
       : transform = transform,
@@ -40,12 +42,11 @@ class _HtmlInliner extends PolymerTransformer {
     return readPrimaryAsHtml(transform).then((document) =>
         _visitImports(document, docId).then((importsFound) {
 
+      var output = transform.primaryInput;
       if (importsFound) {
-        document.body.insertBefore(imported, document.body.firstChild);
-        transform.addOutput(new Asset.fromString(docId, document.outerHtml));
-      } else {
-        transform.addOutput(transform.primaryInput);
+        output = new Asset.fromString(docId, document.outerHtml);
       }
+      transform.addOutput(output);
 
       // We produce a secondary asset with extra information for later phases.
       transform.addOutput(new Asset.fromString(
@@ -65,6 +66,8 @@ class _HtmlInliner extends PolymerTransformer {
   Future<bool> _visitImports(Document document, AssetId sourceId) {
     bool changed = false;
 
+    _moveHeadToBody(document);
+
     // Note: we need to preserve the import order in the generated output.
     return Future.forEach(document.querySelectorAll('link'), (Element tag) {
       var rel = tag.attributes['rel'];
@@ -76,21 +79,53 @@ class _HtmlInliner extends PolymerTransformer {
 
       if (rel == 'import') {
         changed = true;
-        tag.remove();
-        if (id == null || !seen.add(id)) return null;
-        return _inlineImport(id);
+        if (id == null || !seen.add(id)) {
+          tag.remove();
+          return null;
+        }
+        return _inlineImport(id, tag);
 
       } else if (rel == 'stylesheet') {
         if (id == null) return null;
         changed = true;
+
         return _inlineStylesheet(id, tag);
       }
     }).then((_) => changed);
   }
 
+  /**
+   * To preserve the order of scripts with respect to inlined
+   * link rel=import, we move both of those into the body before we do any
+   * inlining.
+   *
+   * Note: we do this for stylesheets as well to preserve ordering with
+   * respect to eachother, because stylesheets can be pulled in transitively
+   * from imports.
+   */
+  // TODO(jmesserly): vulcanizer doesn't need this because they inline JS
+  // scripts, causing them to be naturally moved as part of the inlining.
+  // Should we do the same? Alternatively could we inline head into head and
+  // body into body and avoid this whole thing?
+  void _moveHeadToBody(Document doc) {
+    var insertionPoint = doc.body.firstChild;
+    for (var node in doc.head.nodes.toList(growable: false)) {
+      if (node is! Element) continue;
+      var tag = node.tagName;
+      var type = node.attributes['type'];
+      var rel = node.attributes['rel'];
+      if (tag == 'style' || tag == 'script' &&
+            (type == null || type == TYPE_JS || type == TYPE_DART) ||
+          tag == 'link' && (rel == 'stylesheet' || rel == 'import')) {
+        // Move the node into the body, where its contents will be placed.
+        doc.body.insertBefore(node, insertionPoint);
+      }
+    }
+  }
+
   // Loads an asset identified by [id], visits its imports and collects its
   // html imports. Then inlines it into the main document.
-  Future _inlineImport(AssetId id) =>
+  Future _inlineImport(AssetId id, Element link) =>
       readAsHtml(id, transform).then((doc) => _visitImports(doc, id).then((_) {
 
     new _UrlNormalizer(transform, id).visit(doc);
@@ -98,7 +133,9 @@ class _HtmlInliner extends PolymerTransformer {
 
     // TODO(jmesserly): figure out how this is working in vulcanizer.
     // Do they produce a <body> tag with a <head> and <body> inside?
+    var imported = new DocumentFragment();
     imported.nodes..addAll(doc.head.nodes)..addAll(doc.body.nodes);
+    link.replaceWith(imported);
   }));
 
   Future _inlineStylesheet(AssetId id, Element link) {
@@ -118,7 +155,7 @@ class _HtmlInliner extends PolymerTransformer {
   void _extractScripts(Document document) {
     bool first = true;
     for (var script in document.querySelectorAll('script')) {
-      if (script.attributes['type'] == 'application/dart') {
+      if (script.attributes['type'] == TYPE_DART) {
         script.remove();
 
         // only one Dart script per document is supported in Dartium.
