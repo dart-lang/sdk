@@ -185,7 +185,7 @@ class JSString extends Interceptor implements String, JSIndexable {
 
     // Start by doing JS trim. Then check if it leaves a NEL or BOM at
     // either end of the string.
-    String result = JS("String", "#.trim()", this);
+    String result = JS('String', '#.trim()', this);
 
     if (result.length == 0) return result;
     int firstCode = result.codeUnitAt(0);
@@ -226,34 +226,34 @@ class JSString extends Interceptor implements String, JSIndexable {
     return JS('String', r'#.substring(#, #)', result, startIndex, endIndex);
   }
 
-  String repeat(int times, [String separator = ""]) {
-    if (times < 0) throw new RangeError.value(times);
-    if (times == 0) return "";
-    if (separator.isEmpty) {
-      return JS('String', "new Array(# + 1).join(#)", times, this);
-    } else {
-      var list = new JSArray.growable(times);
-      for (int i = 0; i < times; i++) list[i] = this;
-      return JS('String', "#.join(#)", list, separator);
+  String operator*(int times) {
+    if (0 >= times) return '';  // Unnecessary but hoists argument type check.
+    if (times == 1 || this.length == 0) return this;
+    if (times != JS('JSUInt32', '# >>> 0', times)) {
+      // times >= 2^32. We can't create a string that big.
+      throw const OutOfMemoryError();
     }
+    var result = '';
+    var s = this;
+    while (true) {
+      if (times & 1 == 1) result = s + result;
+      times = JS('JSUInt31', '# >>> 1', times);
+      if (times == 0) break;
+      s += s;
+    }
+    return result;
   }
 
-  String padLeft(int newLength, String padding) {
-    if (padding.length != 1) throw new ArgumentError(padding);
-    int delta = newLength - this.length;
+  String padLeft(int width, [String padding = ' ']) {
+    int delta = width - this.length;
     if (delta <= 0) return this;
-    var list = new JSArray.growable(delta + 1);
-    list[delta] = this;
-    return JS("String", "#.join(#)", list, padding);
+    return padding * delta + this;
   }
 
-  String padRight(int newLength, String padding) {
-    if (padding.length != 1) throw new ArgumentError(padding);
-    int delta = newLength - this.length;
+  String padRight(int width, [String padding = ' ']) {
+    int delta = width - this.length;
     if (delta <= 0) return this;
-    var list = new JSArray.growable(delta + 1);
-    list[0] = this;
-    return JS("String", "#.join(#)", list, padding);
+    return this + padding * delta;
   }
 
   List<int> get codeUnits => new _CodeUnits(this);

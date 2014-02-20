@@ -411,35 +411,46 @@ void testRepeat() {
     1,
     2,
     3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
     10,
-    100
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    127,
+    128,
+    129
   ];
-  void testRepeat(str, repeat, sep) {
+  void testRepeat(str, repeat) {
     String expect;
-    if (repeat == 0) {
+    if (repeat <= 0) {
       expect = "";
     } else if (repeat == 1) {
       expect = str;
     } else {
-      StringBuffer buf = new StringBuffer(str);
-      for (int i = 1; i < repeat; i++) {
-        buf.write(sep);
+      StringBuffer buf = new StringBuffer();
+      for (int i = 0; i < repeat; i++) {
         buf.write(str);
       }
       expect = buf.toString();
     }
-    String actual = str.repeat(repeat, sep);
+    String actual = str * repeat;
     Expect.equals(expect, actual,
-                  "$str#${str.length}*$repeat/$sep#${sep.length}");
+                  "$str#${str.length} * $repeat");
   }
   for (String str in testStrings) {
-    for (String sep in testStrings) {
-      for (int repeat in counts) {
-        testRepeat(str, repeat, sep);
-      }
+    for (int repeat in counts) {
+      testRepeat(str, repeat);
     }
   }
-  Expect.throws(() { "a".repeat(-1); });
 }
 
 void testPadLeft() {
@@ -455,9 +466,11 @@ void testPadLeft() {
   Expect.equals('aaaaa', ''.padLeft(5, 'a'));
   Expect.equals('', ''.padLeft(-2, 'a'));
 
-  Expect.throws(() { ' '.padLeft(5, ''); });
-  Expect.throws(() { ' '.padLeft(5, 'xx'); });
-  Expect.throws(() { ' '.padLeft(5, '\u{10002}'); });
+  Expect.equals('xyzxyzxyzxyzxyz', ''.padLeft(5, 'xyz'));
+  Expect.equals('xyzxyzxyzxyza', 'a'.padLeft(5, 'xyz'));
+  Expect.equals('xyzxyzxyzaa', 'aa'.padLeft(5, 'xyz'));
+  Expect.equals('\u{10002}\u{10002}\u{10002}aa', 'aa'.padLeft(5, '\u{10002}'));
+  Expect.equals('a', 'a'.padLeft(10, ''));
 }
 
 void testPadRight() {
@@ -473,7 +486,9 @@ void testPadRight() {
   Expect.equals('aaaaa', ''.padRight(5, 'a'));
   Expect.equals('', ''.padRight(-2, 'a'));
 
-  Expect.throws(() { ' '.padRight(5, ''); });
-  Expect.throws(() { ' '.padRight(5, 'xx'); });
-  Expect.throws(() { ' '.padRight(5, '\u{10002}'); });
+  Expect.equals('xyzxyzxyzxyzxyz', ''.padRight(5, 'xyz'));
+  Expect.equals('axyzxyzxyzxyz', 'a'.padRight(5, 'xyz'));
+  Expect.equals('aaxyzxyzxyz', 'aa'.padRight(5, 'xyz'));
+  Expect.equals('aa\u{10002}\u{10002}\u{10002}', 'aa'.padRight(5, '\u{10002}'));
+  Expect.equals('a', 'a'.padRight(10, ''));
 }

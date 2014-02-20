@@ -302,27 +302,18 @@ class _StringBase {
     }
   }
 
-  String repeat(int times, [String separator = ""]) {
-    if (times < 0) throw new RangeError.value(times);
-    if (times == 0) return "";
+  String operator*(int times) {
+    if (times <= 0) return "";
     if (times == 1) return this;
     StringBuffer buffer = new StringBuffer(this);
-    if (separator.isEmpty) {
-      for (int i = 1; i < times; i++) {
-        buffer.write(this);
-      }
-      return buffer.toString();
-    }
     for (int i = 1; i < times; i++) {
-      buffer.write(separator);
       buffer.write(this);
     }
     return buffer.toString();
   }
 
-  String padLeft(int newLength, String padding) {
-    if (padding.length != 1) throw new ArgumentError(padding);
-    int delta = newLength - this.length;
+  String padLeft(int width, [String padding = ' ']) {
+    int delta = width - this.length;
     if (delta <= 0) return this;
     StringBuffer buffer = new StringBuffer();
     for (int i = 0; i < delta; i++) {
@@ -332,12 +323,10 @@ class _StringBase {
     return buffer.toString();
   }
 
-  String padRight(int newLength, String padding, { int size }) {
-    if (padding.length != 1) throw new ArgumentError(padding);
-    int delta = newLength - this.length;
+  String padRight(int width, [String padding = ' ']) {
+    int delta = width - this.length;
     if (delta <= 0) return this;
-    StringBuffer buffer = new StringBuffer();
-    buffer.write(this);
+    StringBuffer buffer = new StringBuffer(this);
     for (int i = 0; i < delta; i++) {
       buffer.write(padding);
     }
@@ -674,39 +663,14 @@ class _OneByteString extends _StringBase implements String {
     return super.contains(pattern, start);
   }
 
-  String repeat(int times, [String separator = ""]) {
-    if (times == 0) return "";
+  String operator*(int times) {
+    if (times <= 0) return "";
     if (times == 1) return this;
-    if (times < 0) throw new RangeError.value(times);
-    if (separator.isEmpty) {
-      int length = this.length;
-      if (this.isEmpty) return this;  // Don't clone empty string.
-      _OneByteString result = _OneByteString._allocate(length * times);
-      int index = 0;
-      for (int i = 0; i < times; i ++) {
-        for (int j = 0; j < length; j++) {
-          result._setAt(index++, this.codeUnitAt(j));
-        }
-      }
-      return result;
-    }
-    int sepCid = separator._cid;
-    if (sepCid != _OneByteString._classId &&
-        sepCid != _ExternalOneByteString._classId) {
-      return super.repeat(times, separator);
-    }
     int length = this.length;
-    int sepLength = separator.length;
-    _OneByteString result =
-        _OneByteString._allocate(length * times + sepLength * (times - 1));
+    if (this.isEmpty) return this;  // Don't clone empty string.
+    _OneByteString result = _OneByteString._allocate(length * times);
     int index = 0;
-    for (int j = 0; j < length; j++) {
-      result._setAt(index++, this.codeUnitAt(j));
-    }
-    for (int i = 1; i < times; i ++) {
-      for (int j = 0; j < sepLength; j++) {
-        result._setAt(index++, separator.codeUnitAt(j));
-      }
+    for (int i = 0; i < times; i ++) {
       for (int j = 0; j < length; j++) {
         result._setAt(index++, this.codeUnitAt(j));
       }
@@ -714,21 +678,30 @@ class _OneByteString extends _StringBase implements String {
     return result;
   }
 
-  String padLeft(int newLength, String padding) {
-    if (padding.length != 1) throw new ArgumentError(padding);
+  String padLeft(int width, [String padding = ' ']) {
     int padCid = padding._cid;
     if (padCid != _OneByteString._classId &&
         padCid != _ExternalOneByteString._classId) {
-      return super.padLeft(newLength, padding);
+      return super.padLeft(width, padding);
     }
     int length = this.length;
-    int delta = newLength - length;
+    int delta = width - length;
     if (delta <= 0) return this;
-    _OneByteString result = _OneByteString._allocate(newLength);
+    int padLength = padding.length;
+    int resultLength = padLength * delta + length;
+    _OneByteString result = _OneByteString._allocate(resultLength);
     int index = 0;
-    int padChar = padding.codeUnitAt(0);
-    for (int i = 0; i < delta; i++) {
-      result._setAt(index++, padChar);
+    if (padLength == 1) {
+      int padChar = padding.codeUnitAt(0);
+      for (int i = 0; i < delta; i++) {
+        result._setAt(index++, padChar);
+      }
+    } else {
+      for (int i = 0; i < delta; i++) {
+        for (int j = 0; j < padLength; j++) {
+          result._setAt(index++, padding.codeUnitAt(j));
+        }
+      }
     }
     for (int i = 0; i < length; i++) {
       result._setAt(index++, this.codeUnitAt(i));
@@ -736,24 +709,33 @@ class _OneByteString extends _StringBase implements String {
     return result;
   }
 
-  String padRight(int newLength, String padding, { int size }) {
-    if (padding.length != 1) throw new ArgumentError(padding);
+  String padRight(int width, [String padding = ' ']) {
     int padCid = padding._cid;
     if (padCid != _OneByteString._classId &&
         padCid != _ExternalOneByteString._classId) {
-      return super.padRight(newLength, padding);
+      return super.padRight(width, padding);
     }
     int length = this.length;
-    int delta = newLength - length;
+    int delta = width - length;
     if (delta <= 0) return this;
-    _OneByteString result = _OneByteString._allocate(newLength);
+    int padLength = padding.length;
+    int resultLength = length + padLength * delta;
+    _OneByteString result = _OneByteString._allocate(resultLength);
     int index = 0;
     for (int i = 0; i < length; i++) {
       result._setAt(index++, this.codeUnitAt(i));
     }
-    int padChar = padding.codeUnitAt(0);
-    for (int i = 0; i < delta; i++) {
-      result._setAt(index++, padChar);
+    if (padLength == 1) {
+      int padChar = padding.codeUnitAt(0);
+      for (int i = 0; i < delta; i++) {
+        result._setAt(index++, padChar);
+      }
+    } else {
+      for (int i = 0; i < delta; i++) {
+        for (int j = 0; j < padLength; j++) {
+          result._setAt(index++, padding.codeUnitAt(j));
+        }
+      }
     }
     return result;
   }

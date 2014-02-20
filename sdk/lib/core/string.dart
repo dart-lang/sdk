@@ -326,42 +326,51 @@ abstract class String implements Comparable<String>, Pattern {
   String trim();
 
   /**
-   * Creates a new string that repeats this string a number of times.
+   * Creates a new string by concatenating this string with itself a number
+   * of times.
    *
-   * If [separator] is provided, it is inserted between the copies
-   * of this string.
+   * The result of `str * n` is equivalent to
+   * `str + str + ...`(n times)`... + str`.
    *
-   * The [times] number must be non-negative.
+   * Returns an empty string if [times] is zero or negative.
    */
-  String repeat(int times, [String separator = ""]);
+  String operator *(int times);
 
   /**
-   * Pads this string on the left if it is shorther than [newSize].
+   * Pads this string on the left if it is shorther than [width].
    *
    * Return a new string that prepends [padding] onto this string
-   * until the total length is [newLength].
+   * one time for each position the length is less than [width].
    *
-   * If [newLength] is already smaller than or equal to `this.length`,
-   * no padding will happen. A negative `newLength` is allowed,
-   * but no padding happens.
+   * If [width] is already smaller than or equal to `this.length`,
+   * no padding is added. A negative `width` is treated as zero.
    *
-   * The [padding] must have length 1.
+   * If [padding] has length different from 1, the result will not
+   * have length `width`. This may be useful for cases where the
+   * padding is a longer string representing a single character, like
+   * `"&nbsp;"` or `"\u{10002}`".
+   * In that case, the user should make sure that `this.length` is
+   * the correct measure of the strings length.
    */
-  String padLeft(int newLength, String padding);
+  String padLeft(int width, [String padding = ' ']);
 
   /**
-   * Pads this string on the right if it is shorther than [newSize].
+   * Pads this string on the right if it is shorther than [width].
    *
-   * Return a new string that append [padding] after this string
-   * until the total length is [newLength].
+   * Return a new string that appends [padding] after this string
+   * one time for each position the length is less than [width].
    *
-   * If [newLength] is already smaller than or equal to `this.length`,
-   * no padding will happen. A negative `newLength` is allowed,
-   * but no padding happens.
+   * If [width] is already smaller than or equal to `this.length`,
+   * no padding is added. A negative `width` is treated as zero.
    *
-   * The [padding] must have length 1.
+   * If [padding] has length different from 1, the result will not
+   * have length `width`. This may be useful for cases where the
+   * padding is a longer string representing a single character, like
+   * `"&nbsp;"` or `"\u{10002}`".
+   * In that case, the user should make sure that `this.length` is
+   * the correct measure of the strings length.
    */
-  String padRight(int newLength, String padding);
+  String padRight(int width, [String padding = ' ']);
 
   /**
    * Returns true if this string contains a match of [other]:
