@@ -35,10 +35,10 @@ main() {
 
     var pub = pubServe();
     waitForBuildSuccess();
-    endPubServe();
 
     var assetsPath = path.join('web', 'assets');
     pub.stderr.expect(consumeThrough(matches(getWarningRegExp(assetsPath))));
+    endPubServe();
   });
 
   integration('warns user about assets dir nested anywhere in "web"', () {
@@ -54,10 +54,10 @@ main() {
 
     var pub = pubServe();
     waitForBuildSuccess();
-    endPubServe();
 
     var assetsPath = path.join('web', 'foo', 'assets');
     pub.stderr.expect(consumeThrough(matches(getWarningRegExp(assetsPath))));
+    endPubServe();
   });
 
   integration('warns user about assets file in the root of "web"', () {
@@ -71,10 +71,10 @@ main() {
 
     var pub = pubServe();
     waitForBuildSuccess();
-    endPubServe();
 
     var assetsPath = path.join('web', 'assets');
     pub.stderr.expect(consumeThrough(matches(getWarningRegExp(assetsPath))));
+    endPubServe();
   });
 
   integration('warns user about assets file nested anywhere in "web"', () {
@@ -90,10 +90,10 @@ main() {
 
     var pub = pubServe();
     waitForBuildSuccess();
-    endPubServe();
 
     var assetsPath = path.join('web', 'foo', 'assets');
     pub.stderr.expect(consumeThrough(matches(getWarningRegExp(assetsPath))));
+    endPubServe();
   });
 
   integration('does not warn if no assets dir or file anywhere in "web"', () {
