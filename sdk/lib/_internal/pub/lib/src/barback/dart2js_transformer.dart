@@ -20,6 +20,7 @@ import '../../../../compiler/implementation/source_file.dart';
 import '../barback.dart';
 import '../dart.dart' as dart;
 import '../io.dart';
+import '../pool.dart';
 import '../utils.dart';
 import 'build_environment.dart';
 
@@ -32,18 +33,15 @@ final _validOptions = new Set<String>.from([
 /// A [Transformer] that uses dart2js's library API to transform Dart
 /// entrypoints in "web" to JavaScript.
 class Dart2JSTransformer extends Transformer implements LazyTransformer {
-  final BuildEnvironment _environment;
-  final BarbackSettings _settings;
-
-  /// If this is non-null, then the transformer is currently being applied, so
-  /// subsequent calls to [apply] will wait for this to finish before
-  /// proceeding.
+  /// We use this to ensure that only one compilation is in progress at a time.
   ///
   /// Dart2js uses lots of memory, so if we try to actually run compiles in
-  /// parallel, it takes down the VM. Instead, the transformer will force
-  /// all applies to be sequential. The tracking bug to do something better
+  /// parallel, it takes down the VM. The tracking bug to do something better
   /// is here: https://code.google.com/p/dart/issues/detail?id=14730.
-  Future _running;
+  static final _pool = new Pool(1);
+
+  final BuildEnvironment _environment;
+  final BarbackSettings _settings;
 
   Dart2JSTransformer.withSettings(this._environment, this._settings) {
     var invalidOptions = _settings.configuration.keys.toSet()
@@ -70,72 +68,60 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
   }
 
   Future apply(Transform transform) {
-    transform.logger.info("Compiling ${transform.primaryInput.id}...");
+    var stopwatch = new Stopwatch();
 
     // Wait for any ongoing apply to finish first.
-    // TODO(rnystrom): If there are multiple simultaneous compiles, this will
-    // resume and pause them repeatedly. It still serializes them correctly,
-    // but it might be cleaner to use a real queue.
-    // TODO(rnystrom): Add a test that this is functionality is helpful.
-    if (_running != null) {
-      return _running.then((_) => apply(transform));
-    }
+    return _pool.withResource(() {
+      transform.logger.info("Compiling ${transform.primaryInput.id}...");
+      stopwatch.start();
 
-    var completer = new Completer();
-    _running = completer.future;
+      return transform.primaryInput.readAsString().then((code) {
+        try {
+          var id = transform.primaryInput.id;
+          var name = id.path;
+          if (id.package != _environment.rootPackage.name) {
+            name += " in ${id.package}";
+          }
 
-    var stopwatch = new Stopwatch();
-    stopwatch.start();
-
-    return transform.primaryInput.readAsString().then((code) {
-      try {
-        var id = transform.primaryInput.id;
-        var name = id.path;
-        if (id.package != _environment.rootPackage.name) {
-          name += " in ${id.package}";
+          var parsed = parseCompilationUnit(code, name: name);
+          if (!dart.isEntrypoint(parsed)) return null;
+        } on AnalyzerErrorGroup catch (e) {
+          transform.logger.error(e.message);
+          return null;
         }
 
-        var parsed = parseCompilationUnit(code, name: name);
-        if (!dart.isEntrypoint(parsed)) return null;
-      } on AnalyzerErrorGroup catch (e) {
-        transform.logger.error(e.message);
-        return null;
-      }
+        var provider = new _BarbackCompilerProvider(_environment, transform);
 
-      var provider = new _BarbackCompilerProvider(_environment, transform);
+        // Create a "path" to the entrypoint script. The entrypoint may not
+        // actually be on disk, but this gives dart2js a root to resolve
+        // relative paths against.
+        var id = transform.primaryInput.id;
 
-      // Create a "path" to the entrypoint script. The entrypoint may not
-      // actually be on disk, but this gives dart2js a root to resolve
-      // relative paths against.
-      var id = transform.primaryInput.id;
+        var entrypoint = path.join(_environment.graph.packages[id.package].dir,
+            id.path);
 
-      var entrypoint = path.join(_environment.graph.packages[id.package].dir,
-          id.path);
-
-      // TODO(rnystrom): Should have more sophisticated error-handling here.
-      // Need to report compile errors to the user in an easily visible way.
-      // Need to make sure paths in errors are mapped to the original source
-      // path so they can understand them.
-      return Chain.track(dart.compile(
-          entrypoint, provider,
-          commandLineOptions: _configCommandLineOptions,
-          checked: _configBool('checked'),
-          minify: _configBool(
-              'minify', defaultsTo: _settings.mode == BarbackMode.RELEASE),
-          verbose: _configBool('verbose'),
-          environment: _configEnvironment,
-          packageRoot: path.join(_environment.rootPackage.dir,
-                                 "packages"),
-          analyzeAll: _configBool('analyzeAll'),
-          suppressWarnings: _configBool('suppressWarnings'),
-          suppressHints: _configBool('suppressHints'),
-          terse: _configBool('terse'))).then((_) {
-        stopwatch.stop();
-        transform.logger.info("Took ${stopwatch.elapsed} to compile $id.");
+        // TODO(rnystrom): Should have more sophisticated error-handling here.
+        // Need to report compile errors to the user in an easily visible way.
+        // Need to make sure paths in errors are mapped to the original source
+        // path so they can understand them.
+        return Chain.track(dart.compile(
+            entrypoint, provider,
+            commandLineOptions: _configCommandLineOptions,
+            checked: _configBool('checked'),
+            minify: _configBool(
+                'minify', defaultsTo: _settings.mode == BarbackMode.RELEASE),
+            verbose: _configBool('verbose'),
+            environment: _configEnvironment,
+            packageRoot: path.join(_environment.rootPackage.dir,
+                                   "packages"),
+            analyzeAll: _configBool('analyzeAll'),
+            suppressWarnings: _configBool('suppressWarnings'),
+            suppressHints: _configBool('suppressHints'),
+            terse: _configBool('terse'))).then((_) {
+          stopwatch.stop();
+          transform.logger.info("Took ${stopwatch.elapsed} to compile $id.");
+        });
       });
-    }).whenComplete(() {
-      completer.complete();
-      _running = null;
     });
   }
 
