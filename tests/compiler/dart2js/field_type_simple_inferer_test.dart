@@ -10,6 +10,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/types/types.dart'
 
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
+import 'type_mask_test_helper.dart';
 
 void compileAndFind(String code,
                     String className,
@@ -487,7 +488,7 @@ void doTest(String test, bool disableInlining, Map<String, Function> fields) {
         TypeMask type = f(compiler.typesTask);
         var inferrer = compiler.typesTask.typesInferrer;
         TypeMask inferredType =
-            inferrer.getTypeOfElement(field).simplify(inferrer.compiler);
+            simplify(inferrer.getTypeOfElement(field), inferrer.compiler);
         Expect.equals(type, inferredType, test);
     });
   });

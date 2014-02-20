@@ -8,6 +8,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/types/types.dart'
     show TypeMask;
 
 import 'compiler_helper.dart';
+import 'type_mask_test_helper.dart';
 
 const String TEST = """
 returnInt1() {
@@ -174,7 +175,7 @@ void main() {
     checkReturn(String name, type) {
       var element = findElement(compiler, name);
       Expect.equals(type,
-          typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
+          simplify(typesInferrer.getReturnTypeOfElement(element), compiler));
     }
 
     checkReturn('returnInt1', typesTask.uint31Type);

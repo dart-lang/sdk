@@ -65,8 +65,6 @@ class FlatTypeMask implements TypeMask {
     return isNullable ? new FlatTypeMask.internal(base, flags & ~1) : this;
   }
 
-  TypeMask simplify(Compiler compiler) => this;
-
   bool contains(ClassElement type, Compiler compiler) {
     assert(type.isDeclaration);
     if (isEmpty) {

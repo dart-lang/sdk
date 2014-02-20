@@ -7,6 +7,7 @@ import "compiler_helper.dart";
 import "parser_helper.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/ssa/ssa.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/types/types.dart";
+import "type_mask_test_helper.dart";
 
 TypeMask nullType;
 TypeMask objectType;
@@ -97,7 +98,7 @@ class RuleSet {
 
 void testUnion(MockCompiler compiler) {
   RuleSet ruleSet = new RuleSet('union',
-      (t1, t2) => t1.union(t2, compiler).simplify(compiler));
+      (t1, t2) => simplify(t1.union(t2, compiler), compiler));
   rule(type1, type2, result) => ruleSet.rule(type1, type2, result);
   check(type1, type2, predicate) => ruleSet.check(type1, type2, predicate);
 

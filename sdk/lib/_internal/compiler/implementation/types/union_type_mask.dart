@@ -188,8 +188,6 @@ class UnionTypeMask implements TypeMask {
     return new UnionTypeMask._(newIterable);
   }
 
-  TypeMask simplify(Compiler compiler) => flatten(disjointMasks, compiler);
-
   bool get isEmpty => false;
   bool get isNullable => disjointMasks.any((e) => e.isNullable);
   bool get isExact => false;

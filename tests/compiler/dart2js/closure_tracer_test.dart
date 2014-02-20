@@ -7,6 +7,7 @@ import "package:async_helper/async_helper.dart";
 
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
+import 'type_mask_test_helper.dart';
 
 const String TEST = '''
 testFunctionStatement() {
@@ -116,7 +117,7 @@ void main() {
     checkType(String name, type) {
       var element = findElement(compiler, name);
       var mask = typesInferrer.getReturnTypeOfElement(element);
-      Expect.equals(type.nullable(), mask.simplify(compiler), name);
+      Expect.equals(type.nullable(), simplify(mask, compiler), name);
     }
 
     checkType('testFunctionStatement', typesTask.uint31Type);

@@ -883,10 +883,6 @@ class DynamicTypeMask implements TypeMask {
     throw new UnsupportedError("");
   }
 
-  TypeMask simplify(Compiler compiler) {
-    throw new UnsupportedError("");
-  }
-
   bool get isEmpty {
     throw new UnsupportedError("");
   }

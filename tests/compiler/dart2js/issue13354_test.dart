@@ -6,6 +6,7 @@ import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
+import 'type_mask_test_helper.dart';
 
 const String TEST = """
 bar() => 42;
@@ -36,7 +37,7 @@ void main() {
       var element = findElement(compiler, name);
       Expect.equals(
           type,
-          typesInferrer.getReturnTypeOfElement(element).simplify(compiler),
+          simplify(typesInferrer.getReturnTypeOfElement(element), compiler),
           name);
     }
 
@@ -44,7 +45,7 @@ void main() {
       var cls = findElement(compiler, className);
       var element = cls.lookupLocalMember(methodName);
       Expect.equals(type,
-          typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
+          simplify(typesInferrer.getReturnTypeOfElement(element), compiler));
     }
 
     checkReturn('bar', typesTask.uint31Type);

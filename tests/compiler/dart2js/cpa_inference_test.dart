@@ -11,6 +11,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/inferrer/concrete_typ
 
 import "parser_helper.dart";
 import "compiler_helper.dart";
+import "type_mask_test_helper.dart";
 import 'dart:mirrors';
 
 /**
@@ -1571,7 +1572,7 @@ testConcreteTypeToTypeMask() {
                   new TypeMask.subclass(a));
 
     Expect.equals(
-        convert(singleton(b).union(singleton(d))).simplify(result.compiler),
+        simplify(convert(singleton(b).union(singleton(d))), result.compiler),
         new TypeMask.nonNullSubtype(a));
   });
 }

@@ -13,7 +13,7 @@ import
 
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
-
+import 'type_mask_test_helper.dart';
 
 const String TEST = r'''
 var myList = [42];
@@ -32,7 +32,7 @@ void main() {
     checkType(String name, type) {
       var element = findElement(compiler, name);
       ContainerTypeMask mask = typesInferrer.getTypeOfElement(element);
-      Expect.equals(type, mask.elementType.simplify(compiler), name);
+      Expect.equals(type, simplify(mask.elementType, compiler), name);
     }
 
     checkType('myList', compiler.typesTask.uint31Type);

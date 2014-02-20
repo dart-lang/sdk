@@ -10,7 +10,7 @@ import
 
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
-
+import 'type_mask_test_helper.dart';
 
 String generateTest(String listAllocation) {
   return """
@@ -208,7 +208,7 @@ void doTest(String allocation, {bool nullify}) {
       var element = findElement(compiler, name);
       ContainerTypeMask mask = typesInferrer.getTypeOfElement(element);
       if (nullify) type = type.nullable();
-      Expect.equals(type, mask.elementType.simplify(compiler), name);
+      Expect.equals(type, simplify(mask.elementType, compiler), name);
     }
 
     checkType('listInField', typesTask.numType);

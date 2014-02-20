@@ -7,9 +7,11 @@ import "package:async_helper/async_helper.dart";
 import
     '../../../sdk/lib/_internal/compiler/implementation/types/types.dart'
     show TypeMask;
+import 'type_mask_test_helper.dart';
 
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
+import 'type_mask_test_helper.dart';
 
 const String TEST = """
 returnNum1(a) {
@@ -714,7 +716,7 @@ void main() {
       var element = findElement(compiler, name);
       Expect.equals(
           type,
-          typesInferrer.getReturnTypeOfElement(element).simplify(compiler),
+          simplify(typesInferrer.getReturnTypeOfElement(element), compiler),
           name);
     }
     var interceptorType =
@@ -775,9 +777,11 @@ void main() {
     checkReturn('returnTopLevelGetter', typesTask.uint31Type);
     checkReturn('testDeadCode', typesTask.uint31Type);
     checkReturn('testLabeledIf', typesTask.uint31Type.nullable());
-    checkReturn('testSwitch1', typesTask.intType
-        .union(typesTask.doubleType, compiler)
-        .nullable().simplify(compiler));
+    checkReturn('testSwitch1', simplify(
+        typesTask.intType
+            .union(typesTask.doubleType, compiler)
+            .nullable(),
+        compiler));
     checkReturn('testSwitch2', typesTask.uint31Type);
     checkReturn('testSwitch3', interceptorType.nullable());
     checkReturn('testSwitch4', typesTask.uint31Type);
@@ -800,7 +804,7 @@ void main() {
       var cls = findElement(compiler, className);
       var element = cls.lookupLocalMember(methodName);
       Expect.equals(type,
-          typesInferrer.getReturnTypeOfElement(element).simplify(compiler),
+          simplify(typesInferrer.getReturnTypeOfElement(element), compiler),
           '$className:$methodName');
     }
 
