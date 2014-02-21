@@ -16,8 +16,12 @@ class ClassBuilder {
   String functionType;
   List<jsAst.Node> fieldMetadata;
 
+  final Namer namer;
+
   /// Set to true by user if class is indistinguishable from its superclass.
   bool isTrivial = false;
+
+  ClassBuilder(this.namer);
 
   // Has the same signature as [DefineStubFunction].
   void addProperty(String name, jsAst.Expression value) {
@@ -50,7 +54,8 @@ class ClassBuilder {
           new jsAst.ArrayInitializer.from([classData]..addAll(fieldMetadata));
     }
     var fieldsAndProperties =
-        [new jsAst.Property(js.string(''), classData)]
+        [new jsAst.Property(js.string(namer.classDescriptorProperty),
+                            classData)]
         ..addAll(properties);
     return new jsAst.ObjectInitializer(fieldsAndProperties, isOneLiner: false);
   }

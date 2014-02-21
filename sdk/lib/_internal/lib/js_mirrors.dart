@@ -569,7 +569,8 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
     // This is a native class, or an intercepted class.
     // TODO(ahe): Preserve descriptor for such classes.
   } else {
-    fields = JS('', '#[""]', descriptor);
+    fields = JS('', '#[#]', descriptor,
+        JS_GET_NAME('CLASS_DESCRIPTOR_PROPERTY'));
     if (fields is List) {
       fieldsMetadata = fields.getRange(1, fields.length).toList();
       fields = fields[0];
@@ -1592,7 +1593,10 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     var staticDescriptor = JS('', 'init.statics[#]', _mangledName);
     if (staticDescriptor != null) {
       parseCompactFieldSpecification(
-          fieldOwner, JS('', '#[""]', staticDescriptor), true, result);
+          fieldOwner,
+          JS('', '#[#]',
+              staticDescriptor, JS_GET_NAME('CLASS_DESCRIPTOR_PROPERTY')),
+          true, result);
     }
     return result;
   }
@@ -2685,7 +2689,10 @@ bool isOperatorName(String name) {
 /// Returns true if the key represent ancillary reflection data, that is, not a
 /// method.
 bool isReflectiveDataInPrototype(String key) {
-  if (key == '' || key == METHODS_WITH_OPTIONAL_ARGUMENTS) return true;
+  if (key == JS_GET_NAME('CLASS_DESCRIPTOR_PROPERTY') ||
+      key == METHODS_WITH_OPTIONAL_ARGUMENTS) {
+    return true;
+  }
   String firstChar = key[0];
   return firstChar == '*' || firstChar == '+';
 }
