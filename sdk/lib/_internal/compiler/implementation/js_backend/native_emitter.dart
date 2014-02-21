@@ -342,7 +342,7 @@ class NativeEmitter {
 
     String superName = backend.namer.getNameOfClass(superclass);
 
-    ClassBuilder builder = new ClassBuilder();
+    ClassBuilder builder = new ClassBuilder(backend.namer);
     emitter.classEmitter.emitClassConstructor(classElement, builder, null);
     bool hasFields = emitter.classEmitter.emitFields(
         classElement, builder, superName, classIsNative: true);

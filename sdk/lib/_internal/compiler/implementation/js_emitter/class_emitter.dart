@@ -36,7 +36,7 @@ class ClassEmitter extends CodeEmitterHelper {
       task.needsMixinSupport = true;
     }
 
-    ClassBuilder builder = new ClassBuilder();
+    ClassBuilder builder = new ClassBuilder(namer);
     emitClassConstructor(classElement, builder, runtimeName,
                          onlyForRti: onlyForRti);
     emitFields(classElement, builder, superName, onlyForRti: onlyForRti);
@@ -314,7 +314,7 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     List<jsAst.Property> statics = new List<jsAst.Property>();
-    ClassBuilder staticsBuilder = new ClassBuilder();
+    ClassBuilder staticsBuilder = new ClassBuilder(namer);
     if (emitFields(classElement, staticsBuilder, null, emitStatics: true)) {
       statics.add(staticsBuilder.toObjectInitializer().properties.single);
     }

@@ -224,7 +224,7 @@ String getReflectionDataParser(String classesCollector,
     var globalObject = data[3];
     var descriptor = data[4];
     var isRoot = !!data[5];
-    var fields = descriptor && descriptor[""];
+    var fields = descriptor && descriptor["${namer.classDescriptorProperty}"];
     var classes = [];
     var functions = [];
 ''';
@@ -233,7 +233,7 @@ String getReflectionDataParser(String classesCollector,
     function processStatics(descriptor) {
       for (var property in descriptor) {
         if (!hasOwnProperty.call(descriptor, property)) continue;
-        if (property === "") continue;
+        if (property === "${namer.classDescriptorProperty}") continue;
         var element = descriptor[property];
         var firstChar = property.substring(0, 1);
         var previousProperty;
