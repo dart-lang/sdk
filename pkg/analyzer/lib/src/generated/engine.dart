@@ -756,6 +756,13 @@ abstract class AnalysisOptions {
    * @return `true` if analysis is to parse comments
    */
   bool get preserveComments;
+
+  /**
+   * Return `true` if analysis is to analyze Angular.
+   *
+   * @return `true` if analysis is to analyze Angular
+   */
+  bool get analyzeAngular;
 }
 
 /**
@@ -5138,28 +5145,30 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _cache.put(source, htmlCopy);
         return new ResolveHtmlTask(this, source);
       }
-      CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
-      if (identical(angularErrorsState, CacheState.INVALID)) {
-        AngularApplicationInfo entryInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_ENTRY);
-        if (entryInfo != null) {
-          HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
-          htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.IN_PROCESS);
-          _cache.put(source, htmlCopy);
-          return new ResolveAngularEntryHtmlTask(this, source, entryInfo);
-        }
-        AngularApplicationInfo applicationInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
-        if (applicationInfo != null) {
-          AngularComponentElement component = htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
-          if (component != null) {
+      if (_options.analyzeAngular) {
+        CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
+        if (identical(angularErrorsState, CacheState.INVALID)) {
+          AngularApplicationInfo entryInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_ENTRY);
+          if (entryInfo != null) {
             HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
             htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.IN_PROCESS);
             _cache.put(source, htmlCopy);
-            return new ResolveAngularComponentTemplateTask(this, source, component, applicationInfo);
+            return new ResolveAngularEntryHtmlTask(this, source, entryInfo);
           }
+          AngularApplicationInfo applicationInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
+          if (applicationInfo != null) {
+            AngularComponentElement component = htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
+            if (component != null) {
+              HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
+              htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.IN_PROCESS);
+              _cache.put(source, htmlCopy);
+              return new ResolveAngularComponentTemplateTask(this, source, component, applicationInfo);
+            }
+          }
+          HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
+          htmlCopy.setValue(HtmlEntry.ANGULAR_ERRORS, AnalysisError.NO_ERRORS);
+          _cache.put(source, htmlCopy);
         }
-        HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
-        htmlCopy.setValue(HtmlEntry.ANGULAR_ERRORS, AnalysisError.NO_ERRORS);
-        _cache.put(source, htmlCopy);
       }
     }
     return null;
@@ -5333,19 +5342,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         sources.add(source);
         return;
       }
-      CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
-      if (identical(angularErrorsState, CacheState.INVALID)) {
-        AngularApplicationInfo entryInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_ENTRY);
-        if (entryInfo != null) {
-          sources.add(source);
-          return;
-        }
-        AngularApplicationInfo applicationInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
-        if (applicationInfo != null) {
-          AngularComponentElement component = htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
-          if (component != null) {
+      if (_options.analyzeAngular) {
+        CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
+        if (identical(angularErrorsState, CacheState.INVALID)) {
+          AngularApplicationInfo entryInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_ENTRY);
+          if (entryInfo != null) {
             sources.add(source);
             return;
+          }
+          AngularApplicationInfo applicationInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
+          if (applicationInfo != null) {
+            AngularComponentElement component = htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
+            if (component != null) {
+              sources.add(source);
+              return;
+            }
           }
         }
       }
@@ -5481,6 +5492,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @param dartCopy the [DartEntryImpl] to record new Angular components
    */
   void recordAngularComponents(HtmlEntryImpl entry, AngularApplicationInfo app) {
+    if (!_options.analyzeAngular) {
+      return;
+    }
     // reset old Angular errors
     AngularApplicationInfo oldApp = entry.getValue(HtmlEntry.ANGULAR_ENTRY);
     if (oldApp != null) {
@@ -6671,9 +6685,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool incremental = false;
 
   /**
-   * flag indicating whether analysis is to parse comments.
+   * A flag indicating whether analysis is to parse comments.
    */
   bool preserveComments = true;
+
+  /**
+   * A flag indicating whether analysis is to parse comments.
+   */
+  bool analyzeAngular = true;
 
   /**
    * Initialize a newly created set of analysis options to have their default values.
@@ -6691,6 +6710,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     dart2jsHint = options.dart2jsHint;
     hint = options.hint;
     incremental = options.incremental;
+    analyzeAngular = options.analyzeAngular;
   }
 }
 
@@ -10903,8 +10923,10 @@ class ResolveHtmlTask extends AnalysisTask {
     RecordingErrorListener errorListener = builder.errorListener;
     LineInfo lineInfo = context.getLineInfo(source);
     // try to resolve as an Angular entry point
-    _isAngularApplication2 = AngularHtmlUnitResolver.hasAngularAnnotation(unit);
-    _angularApplication = new AngularHtmlUnitResolver(context, errorListener, source, lineInfo, unit).calculateAngularApplication();
+    if (context.analysisOptions.analyzeAngular) {
+      _isAngularApplication2 = AngularHtmlUnitResolver.hasAngularAnnotation(unit);
+      _angularApplication = new AngularHtmlUnitResolver(context, errorListener, source, lineInfo, unit).calculateAngularApplication();
+    }
     // record all resolution errors
     _resolutionErrors = errorListener.getErrors2(source);
     // remember resolved unit
