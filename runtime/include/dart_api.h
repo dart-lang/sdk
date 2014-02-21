@@ -2091,12 +2091,22 @@ DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,
 DART_EXPORT int Dart_GetNativeArgumentCount(Dart_NativeArguments args);
 
 /**
- * Gets the native instance field of the native argument at some index.
+ * Gets all the native fields of the native argument at some index.
+ * \param args Native arguments structure.
+ * \param arg_index Index of the desired argument in the structure above.
+ * \param num_fields size of the intptr_t array 'field_values' passed in.
+ * \param field_values intptr_t array in which native field values are returned.
+ * \return Success if the native fields where copied in successfully. Otherwise
+ *   returns an error handle. On success the native field values are copied
+ *   into the 'field_values' array, if the argument at 'arg_index' is a
+ *   null object then 0 is copied as the native field values into the
+ *   'field_values' array.
  */
-DART_EXPORT Dart_Handle Dart_GetNativeFieldOfArgument(Dart_NativeArguments args,
-                                                      int arg_index,
-                                                      int fld_index,
-                                                      intptr_t* value);
+DART_EXPORT Dart_Handle Dart_GetNativeFieldsOfArgument(
+    Dart_NativeArguments args,
+    int arg_index,
+    int num_fields,
+    intptr_t* field_values);
 
 /**
  * Gets the native field of the receiver.

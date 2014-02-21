@@ -3987,7 +3987,14 @@ class Instance : public Object {
     return ((index >= 0) && (index < clazz()->ptr()->num_native_fields_));
   }
 
-  inline intptr_t GetNativeField(Isolate* isolate, int index) const;
+  inline intptr_t GetNativeField(int index) const;
+  inline void GetNativeFields(uint16_t num_fields,
+                              intptr_t* field_values) const;
+
+  uint16_t NumNativeFields() const {
+    return clazz()->ptr()->num_native_fields_;
+  }
+
   void SetNativeField(int index, intptr_t value) const;
 
   // Returns true if the instance is a closure object.
@@ -6573,7 +6580,7 @@ void Context::SetAt(intptr_t index, const Instance& value) const {
 }
 
 
-intptr_t Instance::GetNativeField(Isolate* isolate, int index) const {
+intptr_t Instance::GetNativeField(int index) const {
   ASSERT(IsValidNativeIndex(index));
   NoGCScope no_gc;
   RawTypedData* native_fields =
@@ -6582,6 +6589,25 @@ intptr_t Instance::GetNativeField(Isolate* isolate, int index) const {
     return 0;
   }
   return reinterpret_cast<intptr_t*>(native_fields->ptr()->data_)[index];
+}
+
+
+void Instance::GetNativeFields(uint16_t num_fields,
+                               intptr_t* field_values) const {
+  NoGCScope no_gc;
+  ASSERT(num_fields == NumNativeFields());
+  ASSERT(field_values != NULL);
+  RawTypedData* native_fields =
+      reinterpret_cast<RawTypedData*>(*NativeFieldsAddr());
+  if (native_fields == TypedData::null()) {
+    for (intptr_t i = 0; i < num_fields; i++) {
+      field_values[i] = 0;
+    }
+  }
+  intptr_t* fields = reinterpret_cast<intptr_t*>(native_fields->ptr()->data_);
+  for (intptr_t i = 0; i < num_fields; i++) {
+    field_values[i] = fields[i];
+  }
 }
 
 

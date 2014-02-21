@@ -3779,7 +3779,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
         "%s: invalid index %d passed in to access native instance field",
         CURRENT_FUNC, index);
   }
-  *value = instance.GetNativeField(isolate, index);
+  *value = instance.GetNativeField(index);
   return Api::Success();
 }
 
@@ -3831,38 +3831,43 @@ DART_EXPORT int Dart_GetNativeArgumentCount(Dart_NativeArguments args) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_GetNativeFieldOfArgument(Dart_NativeArguments args,
-                                                      int arg_index,
-                                                      int fld_index,
-                                                      intptr_t* value) {
+DART_EXPORT Dart_Handle Dart_GetNativeFieldsOfArgument(
+    Dart_NativeArguments args,
+    int arg_index,
+    int num_fields,
+    intptr_t* field_values) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   if ((arg_index < 0) || (arg_index >= arguments->NativeArgCount())) {
     return Api::NewError(
         "%s: argument 'arg_index' out of range. Expected 0..%d but saw %d.",
         CURRENT_FUNC, arguments->NativeArgCount() - 1, arg_index);
   }
+  if (field_values == NULL) {
+    RETURN_NULL_ERROR(field_values);
+  }
   Isolate* isolate = arguments->isolate();
   DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate,
-                                     arguments->NativeArgAt(arg_index));
+  ReusableObjectHandleScope reused_obj_handle(isolate);
+  Object& obj = reused_obj_handle.Handle();
+  obj = arguments->NativeArgAt(arg_index);
+  if (obj.IsNull()) {
+    for (intptr_t i = 0; i < num_fields; i++) {
+      field_values[i] = 0;
+    }
+    return Api::Success();
+  }
   if (!obj.IsInstance()) {
     return Api::NewError("%s expects argument at index '%d' to be of"
                          " type Instance.", CURRENT_FUNC, arg_index);
   }
-  if (obj.IsNull()) {
-    return Api::NewError("%s expects argument at index '%d' to be non-null.",
-                         CURRENT_FUNC, arg_index);
-  }
   const Instance& instance = Instance::Cast(obj);
-  if (!instance.IsValidNativeIndex(fld_index)) {
+  uint16_t field_count = instance.NumNativeFields();
+  if (num_fields != field_count) {
     return Api::NewError(
-        "%s: invalid index %d passed in to access native instance field",
-        CURRENT_FUNC, fld_index);
+        "%s: invalid 'field_values' array specified for returning field values",
+        CURRENT_FUNC);
   }
-  if (value == NULL) {
-    RETURN_NULL_ERROR(value);
-  }
-  *value = instance.GetNativeField(isolate, fld_index);
+  instance.GetNativeFields(num_fields, field_values);
   return Api::Success();
 }
 

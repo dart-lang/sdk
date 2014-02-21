@@ -3786,6 +3786,87 @@ TEST_CASE(InjectNativeFields4) {
 }
 
 
+static const int kTestNumNativeFields = 2;
+static const intptr_t kNativeField1Value = 30;
+static const intptr_t kNativeField2Value = 40;
+
+void TestNativeFieldsAccess_init(Dart_NativeArguments args) {
+  Dart_Handle receiver = Dart_GetNativeArgument(args, 0);
+  Dart_SetNativeInstanceField(receiver, 0, kNativeField1Value);
+  Dart_SetNativeInstanceField(receiver, 1, kNativeField2Value);
+}
+
+
+void TestNativeFieldsAccess_access(Dart_NativeArguments args) {
+  intptr_t field_values[kTestNumNativeFields];
+  Dart_Handle result = Dart_GetNativeFieldsOfArgument(args,
+                                                      0,
+                                                      kTestNumNativeFields,
+                                                      field_values);
+  EXPECT_VALID(result);
+  EXPECT_EQ(kNativeField1Value, field_values[0]);
+  EXPECT_EQ(kNativeField2Value, field_values[1]);
+  result = Dart_GetNativeFieldsOfArgument(args,
+                                          1,
+                                          kTestNumNativeFields,
+                                          field_values);
+  EXPECT_VALID(result);
+  EXPECT_EQ(0, field_values[0]);
+  EXPECT_EQ(0, field_values[1]);
+}
+
+
+static Dart_NativeFunction TestNativeFieldsAccess_lookup(Dart_Handle name,
+                                                         int argument_count,
+                                                         bool* auto_scope) {
+  ASSERT(auto_scope != NULL);
+  *auto_scope = true;
+  const Object& obj = Object::Handle(Api::UnwrapHandle(name));
+  if (!obj.IsString()) {
+    return NULL;
+  }
+  const char* function_name = obj.ToCString();
+  ASSERT(function_name != NULL);
+  if (!strcmp(function_name, "TestNativeFieldsAccess_init")) {
+    return reinterpret_cast<Dart_NativeFunction>(&TestNativeFieldsAccess_init);
+  } else if (!strcmp(function_name, "TestNativeFieldsAccess_access")) {
+    return reinterpret_cast<Dart_NativeFunction>(
+        &TestNativeFieldsAccess_access);
+  } else {
+    return NULL;
+  }
+}
+
+
+TEST_CASE(TestNativeFieldsAccess) {
+  const char* kScriptChars =
+      "import 'dart:nativewrappers';"
+      "class NativeFields extends NativeFieldWrapperClass2 {\n"
+      "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
+      "  int fld1;\n"
+      "  final int fld2;\n"
+      "  static int fld3;\n"
+      "  static const int fld4 = 10;\n"
+      "  int initNativeFlds() native 'TestNativeFieldsAccess_init';\n"
+      "  int accessNativeFlds(int i) native 'TestNativeFieldsAccess_access';\n"
+      "}\n"
+      "NativeFields testMain() {\n"
+      "  NativeFields obj = new NativeFields(10, 20);\n"
+      "  obj.initNativeFlds();\n"
+      "  obj.accessNativeFlds(null);\n"
+      "  return obj;\n"
+      "}\n";
+
+  // Load up a test script in the test library.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars,
+                                             TestNativeFieldsAccess_lookup);
+
+  // Invoke a function which returns an object of type NativeFields.
+  Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
+  EXPECT_VALID(result);
+}
+
+
 TEST_CASE(InjectNativeFieldsSuperClass) {
   const char* kScriptChars =
       "import 'dart:nativewrappers';"
