@@ -331,12 +331,13 @@ class CodeEmitterTask extends CompilerTask {
            * string encoding fields, constructor and superclass.  Get
            * the superclass and the fields in the format
            *   '[name/]Super;field1,field2'
-           * from the null-string property on the descriptor.
+           * from the CLASS_DESCRIPTOR_PROPERTY property on the descriptor.
            * The 'name/' is optional and contains the name that should be used
            * when printing the runtime type string.  It is used, for example, to
            * print the runtime type JSInt as 'int'.
            */
-          js('var classData = desc[""], supr, name = cls, fields = classData'),
+           js('var classData = desc["${namer.classDescriptorProperty}"], '
+              'supr, name = cls, fields = classData'),
           optional(
               backend.hasRetainedMetadata,
               js.if_('typeof classData == "object" && '
@@ -828,7 +829,7 @@ class CodeEmitterTask extends CompilerTask {
         backend.generatedCode.keys.where(isStaticFunction);
 
     for (Element element in Elements.sortedByPosition(elements)) {
-      ClassBuilder builder = new ClassBuilder();
+      ClassBuilder builder = new ClassBuilder(namer);
       containerBuilder.addMember(element, builder);
       getElementDecriptor(element).properties.addAll(builder.properties);
     }
@@ -1231,8 +1232,7 @@ mainBuffer.add(r'''
 
     for (OutputUnit outputUnit in compiler.deferredLoadTask.allOutputUnits) {
       ClassBuilder descriptor =
-          descriptors.putIfAbsent(outputUnit, ()
-              => new ClassBuilder());
+          descriptors.putIfAbsent(outputUnit, () => new ClassBuilder(namer));
       if (descriptor.properties.isEmpty) continue;
       bool isDeferred =
           outputUnit != compiler.deferredLoadTask.mainOutputUnit;
@@ -1350,7 +1350,7 @@ mainBuffer.add(r'''
           // not see libraries that only have fields.
           if (element.isLibrary()) {
             LibraryElement library = element;
-            ClassBuilder builder = new ClassBuilder();
+            ClassBuilder builder = new ClassBuilder(namer);
             if (classEmitter.emitFields(
                     library, builder, null, emitStatics: true)) {
               OutputUnit mainUnit = compiler.deferredLoadTask.mainOutputUnit;
@@ -1548,7 +1548,7 @@ if (typeof $printHelperName === "function") {
         elementDescriptors.putIfAbsent(
             element, () => new Map<OutputUnit, ClassBuilder>());
     return descriptors.putIfAbsent(outputUnit,
-        () => new ClassBuilder());
+        () => new ClassBuilder(namer));
   }
 
   ClassBuilder getElementDecriptor(Element element) {
