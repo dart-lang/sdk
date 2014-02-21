@@ -1308,9 +1308,18 @@ UNIT_TEST_CASE(Debug_IsolateID) {
 
 static Monitor* sync = NULL;
 static bool isolate_interrupted = false;
+static bool pause_event_handled = false;
 static Dart_IsolateId interrupt_isolate_id = ILLEGAL_ISOLATE_ID;
 static volatile bool continue_isolate_loop = true;
 
+
+static void InterruptIsolateHandler(Dart_IsolateId isolateId,
+                                    intptr_t breakpointId,
+                                    const Dart_CodeLocation& location) {
+  MonitorLocker ml(sync);
+  pause_event_handled = true;
+  ml.Notify();
+}
 
 static void TestInterruptIsolate(Dart_IsolateId isolate_id,
                                  Dart_IsolateEvent kind) {
@@ -1328,7 +1337,7 @@ static void TestInterruptIsolate(Dart_IsolateId isolate_id,
       MonitorLocker ml(sync);
       isolate_interrupted = true;
       continue_isolate_loop = false;
-      ml.Notify();
+      Dart_SetStepInto();
     }
   } else if (kind == kShutdown) {
     if (interrupt_isolate_id == isolate_id) {
@@ -1394,6 +1403,7 @@ TEST_CASE(Debug_InterruptIsolate) {
   Dart_SetIsolateEventHandler(&TestInterruptIsolate);
   sync = new Monitor();
   EXPECT(interrupt_isolate_id == ILLEGAL_ISOLATE_ID);
+  Dart_SetPausedEventHandler(InterruptIsolateHandler);
   int result = Thread::Start(InterruptIsolateRun, 0);
   EXPECT_EQ(0, result);
 
@@ -1413,11 +1423,12 @@ TEST_CASE(Debug_InterruptIsolate) {
   // Wait for the test isolate to be interrupted.
   {
     MonitorLocker ml(sync);
-    while (!isolate_interrupted) {
+    while (!isolate_interrupted || !pause_event_handled) {
       ml.Wait();
     }
   }
   EXPECT(isolate_interrupted);
+  EXPECT(pause_event_handled);
 
   // Wait for the test isolate to shutdown.
   {
