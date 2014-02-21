@@ -206,6 +206,8 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
 }
 
 
+// TODO(regis): Not used anymore. Delete.
+
 // Allocate a new closure.
 // The type argument vector of a closure is always the vector of type parameters
 // of its signature class, i.e. an uninstantiated identity vector. Therefore,

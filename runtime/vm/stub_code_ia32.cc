@@ -1222,6 +1222,9 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 }
 
 
+// TODO(regis): This stub is not called anymore to allocate regular closures,
+// but only implicit instance closures. Simplify.
+
 // Called for inline allocation of closures.
 // Input parameters:
 //   ESP + 8 : receiver (null if not an implicit instance closure).

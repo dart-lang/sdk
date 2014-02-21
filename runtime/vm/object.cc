@@ -4263,7 +4263,9 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   if ((index + 2) >= length) {
     // Grow the instantiations array.
     // The initial array is Object::zero_array() of length 1.
-    length = (length == 1) ? 3 : length + 4;
+    length = (length > 64) ?
+        (length + 64) :
+        ((length == 1) ? 3 : ((length - 1) * 2 + 1));
     prior_instantiations =
         Array::Grow(prior_instantiations, length, Heap::kOld);
     set_instantiations(prior_instantiations);
@@ -12893,13 +12895,13 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
   if (canonical_types.IsNull()) {
     canonical_types = empty_array().raw();
   }
-  const intptr_t canonical_types_len = canonical_types.Length();
+  const intptr_t length = canonical_types.Length();
   // Linear search to see whether this type is already present in the
   // list of canonicalized types.
   // TODO(asiva): Try to re-factor this lookup code to make sharing
   // easy between the 4 versions of this loop.
   intptr_t index = 0;
-  while (index < canonical_types_len) {
+  while (index < length) {
     type ^= canonical_types.At(index);
     if (type.IsNull()) {
       break;
@@ -12918,9 +12920,10 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
   type_args = type_args.Canonicalize(trail);
   set_arguments(type_args);
   // The type needs to be added to the list. Grow the list if it is full.
-  if (index == canonical_types_len) {
-    const intptr_t kLengthIncrement = 2;  // Raw and parameterized.
-    const intptr_t new_length = canonical_types.Length() + kLengthIncrement;
+  if (index == length) {
+    const intptr_t new_length = (length > 64) ?
+        (length + 64) :
+        ((length == 0) ? 1 : (length * 2));
     const Array& new_canonical_types = Array::Handle(
         isolate, Array::Grow(canonical_types, new_length, Heap::kOld));
     cls.set_canonical_types(new_canonical_types);
