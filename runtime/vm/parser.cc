@@ -5351,8 +5351,9 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
   NativeFunction native_function = NativeEntry::ResolveNative(
       library, native_name, num_params, &auto_setup_scope);
   if (native_function == NULL) {
-    ErrorMsg(native_pos, "native function '%s' cannot be found",
-        native_name.ToCString());
+    ErrorMsg(native_pos,
+             "native function '%s' (%" Pd " arguments) cannot be found",
+             native_name.ToCString(), func.NumParameters());
   }
   func.SetIsNativeAutoSetupScope(auto_setup_scope);
 
