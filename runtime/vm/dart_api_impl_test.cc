@@ -6022,7 +6022,8 @@ TEST_CASE(SetNativeResolver) {
   EXPECT_VALID(result);
 
   EXPECT_ERROR(Dart_Invoke(type, NewString("baz"), 0, NULL),
-               "native function 'SomeNativeFunction3' cannot be found");
+               "native function 'SomeNativeFunction3' (0 arguments) "
+               "cannot be found");
 }
 
 
