@@ -12,7 +12,7 @@ import "package:expect/expect.dart";
 import 'dart:async';
 
 @lazy
-import 'deferred_api_library.dart';
+import 'deferred_api_library.dart' as lib;
 
 const lazy = const DeferredLibrary('deferred_api_library');
 
@@ -23,14 +23,14 @@ main() {
   lazy.load().then((bool didLoad) {
     Expect.isTrue(didLoad);
     Expect.equals(1, ++counter);
-    Expect.equals(42, foo('b'));
+    Expect.equals(42, lib.foo('b'));
     print('lazy was loaded');
   });
   Expect.equals(0, counter);
   lazy.load().then((bool didLoad) {
     Expect.isFalse(didLoad);
     Expect.equals(2, ++counter);
-    Expect.equals(42, foo('b'));
+    Expect.equals(42, lib.foo('b'));
     print('lazy was loaded');
     print('unittest-suite-success');
   });

@@ -7,7 +7,7 @@ import 'package:expect/expect.dart';
 
 import 'dart:async';
 
-@lazy import 'deferred_class_library2.dart';
+@lazy import 'deferred_class_library2.dart' as lib;
 
 const lazy = const DeferredLibrary('deferred_class_library2');
 
@@ -15,7 +15,7 @@ main() {
   asyncStart();
   lazy.load().then((bool didLoad) {
     Expect.isTrue(didLoad);
-    Expect.equals(499, C1.value);
+    Expect.equals(499, lib.C1.value);
     asyncEnd();
   });
 }

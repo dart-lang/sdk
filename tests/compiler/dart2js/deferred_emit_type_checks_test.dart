@@ -65,13 +65,13 @@ void main() {
 const Map MEMORY_SOURCE_FILES = const {"main.dart": """
 import "dart:async";
 
-@def import 'lib.dart' show f, A;
+@def import 'lib.dart' as lib show f, A;
 
 const def = const DeferredLibrary("deferred");
 
 void main() {
   def.load().then((_) {
-    print(f(new A<A>()));
+    print(lib.f(new lib.A<lib.A>()));
   });
 }
 """, "lib.dart": """

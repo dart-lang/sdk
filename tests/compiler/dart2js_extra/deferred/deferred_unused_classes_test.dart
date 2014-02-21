@@ -7,7 +7,7 @@
 import "package:expect/expect.dart";
 import 'dart:async';
 
-@lazy import 'deferred_class_library.dart';
+@lazy import 'deferred_class_library.dart' as lib;
 
 const lazy = const DeferredLibrary('deferred_class_library');
 

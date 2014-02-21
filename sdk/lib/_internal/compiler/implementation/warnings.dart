@@ -1201,6 +1201,18 @@ main() => A.A = 1;
             "Try adding a '@DeferredLibrary(...)' annotation in the main "
             "library");
 
+  static const MessageKind DEFERRED_LIBRARY_WITHOUT_PREFIX =
+      const MessageKind(
+          "Error: This import is deferred but there is no prefix keyword.",
+          howToFix:
+            "Try adding a prefix to the import.");
+
+  static const MessageKind DEFERRED_LIBRARY_DUPLICATE_PREFIX =
+      const MessageKind(
+          "Error: The prefix of this deferred import is not unique.",
+          howToFix:
+            "Try changing the import prefix.");
+
   static const MessageKind ILLEGAL_STATIC = const MessageKind(
       "Error: Modifier static is only allowed on functions declared in "
       "a class.");

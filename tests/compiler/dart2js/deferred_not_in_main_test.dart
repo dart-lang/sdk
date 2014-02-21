@@ -68,12 +68,12 @@ void main() {
 library lib1;
 
 import 'dart:async';
-@def import 'lib2.dart';
+@def import 'lib2.dart' as lib2;
 
 const def = const DeferredLibrary('lib2');
 
 void foo1() {
-  def.load().then((_) => foo2());
+  def.load().then((_) => lib2.foo2());
 }
 """,
   "lib2.dart":"""
