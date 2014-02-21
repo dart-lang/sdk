@@ -125,6 +125,7 @@ LibTest/core/int/operator_addition_A01_t01: RuntimeError, OK # co19 issue 200
 LibTest/core/int/toDouble_A01_t01: RuntimeError, OK # co19 issue 200
 
 LibTest/core/List/sort_A01_t06: Slow, Pass # Slow tests that needs extra time to finish.
+LibTest/collection/LinkedList/add_A01_t01: Pass, Slow # Slow tests that needs extra time to finish.
 
 LibTest/core/List/getRange_A03_t01: RuntimeError, OK # Tests that fail because they use the legacy try-catch syntax. co19 issue 184.
 
@@ -247,7 +248,6 @@ LibTest/core/int/toRadixString_A01_t01: RuntimeError, OK # Bad test: uses Expect
 [ $compiler == dart2js && $runtime == ie9 ]
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # co19-roll r607: Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # co19-roll r607: Please triage this failure
-LibTest/collection/LinkedList/add_A01_t01: Pass, Timeout  # co19-roll r607: Please triage this failure
 LibTest/core/Uri/Uri_A06_t03: Timeout # Issue 13511
 LibTest/math/cos_A01_t01: Fail # co19 issue 44
 
