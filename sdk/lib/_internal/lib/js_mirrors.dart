@@ -569,8 +569,7 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
     // This is a native class, or an intercepted class.
     // TODO(ahe): Preserve descriptor for such classes.
   } else {
-    fields = JS('', '#[#]', descriptor,
-        JS_GET_NAME('CLASS_DESCRIPTOR_PROPERTY'));
+    fields = JS('', '#[""]', descriptor);
     if (fields is List) {
       fieldsMetadata = fields.getRange(1, fields.length).toList();
       fields = fields[0];
@@ -1593,10 +1592,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     var staticDescriptor = JS('', 'init.statics[#]', _mangledName);
     if (staticDescriptor != null) {
       parseCompactFieldSpecification(
-          fieldOwner,
-          JS('', '#[#]',
-              staticDescriptor, JS_GET_NAME('CLASS_DESCRIPTOR_PROPERTY')),
-          true, result);
+          fieldOwner, JS('', '#[""]', staticDescriptor), true, result);
     }
     return result;
   }

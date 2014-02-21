@@ -227,8 +227,6 @@ class Namer implements ClosureNamer {
   final String methodsWithOptionalArgumentsField =
       r'$methodsWithOptionalArguments';
 
-  final String classDescriptorProperty = r'^';
-
   // Name of property in a class description for the native dispatch metadata.
   final String nativeSpecProperty = '%';
 
@@ -292,7 +290,6 @@ class Namer implements ClosureNamer {
       case 'SETTER_PREFIX': return setterPrefix;
       case 'CALL_CATCH_ALL': return callCatchAllName;
       case 'REFLECTABLE': return reflectableField;
-      case 'CLASS_DESCRIPTOR_PROPERTY': return classDescriptorProperty;
       default:
         compiler.reportError(
             node, MessageKind.GENERIC,
