@@ -729,14 +729,13 @@ class _Viewer {
         /// directory, to run as a webpage.
         var processResult = Process.runSync(_Generator._pubScript,
             ['upgrade'], runInShell: true,
-            workingDirectory: path.join(viewerCodePath, 'client'));
+            workingDirectory: viewerCodePath);
         print('process output: ${processResult.stdout}');
         print('process stderr: ${processResult.stderr}');
 
         var dir = new Directory(_Generator._outputDirectory == null? 'docs' :
             _Generator._outputDirectory);
-        _webDocsDir = new Directory(path.join(viewerCodePath, 'client',
-            'web', 'docs'));
+        _webDocsDir = new Directory(path.join(viewerCodePath, 'web', 'docs'));
         if (dir.existsSync()) {
           // Move the docs folder to dartdoc-viewer/client/web/docs
           dir.renameSync(_webDocsDir.path);
@@ -754,11 +753,10 @@ class _Viewer {
       // Compile the code to JavaScript so we can run on any browser.
       print('Compile app to JavaScript for viewing.');
       var processResult = Process.runSync(_Generator._dartBinary,
-          ['deploy.dart'], workingDirectory : path.join(viewerCodePath,
-          'client'), runInShell: true);
+          ['deploy.dart'], workingDirectory: viewerCodePath, runInShell: true);
       print('process output: ${processResult.stdout}');
       print('process stderr: ${processResult.stderr}');
-      var outputDir = path.join(viewerCodePath, 'client', 'out', 'web');
+      var outputDir = path.join(viewerCodePath, 'out', 'web');
       print('Docs are available at $outputDir');
     }
   }
@@ -772,8 +770,7 @@ class _Viewer {
           'http://localhost:${httpServer.port}');
       httpServer.listen((HttpRequest request) {
         var response = request.response;
-        var basePath = path.join(viewerCodePath, 'client', 'out',
-            'web');
+        var basePath = path.join(viewerCodePath, 'out', 'web');
         var requestPath = path.join(basePath, request.uri.path.substring(1));
         bool found = true;
         var file = new File(requestPath);
