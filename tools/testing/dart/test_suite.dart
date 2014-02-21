@@ -28,7 +28,7 @@ part "browser_test.dart";
 
 RegExp multiHtmlTestGroupRegExp = new RegExp(r"\s*[^/]\s*group\('[^,']*");
 RegExp multiHtmlTestRegExp = new RegExp(r"useHtmlIndividualConfiguration()");
-RegExp multiTestRegExp = new RegExp(r"/// [0-9][0-9]:(.*)");
+RegExp multiTestRegExp = new RegExp(r"\S\s*/// \w+:(.*)");
 
 /**
  * A simple function that tests [arg] and returns `true` or `false`.

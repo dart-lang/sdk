@@ -179,7 +179,12 @@ Set<String> _findAllRelativeImports(Path topLibrary) {
   Set<String> foundImports = new Set<String>();
   Path libraryDir = topLibrary.directoryPath;
   RegExp relativeImportRegExp = new RegExp(
-      '^(import|part)\\s+["\'](?!(dart:|dart-ext:|package:|/))([^"\']*)["\']');
+      '^(?:@.*\\s+)?' // Allow for a meta-data annotation.
+      '(import|part)'
+      '\\s+["\']'
+      '(?!(dart:|dart-ext:|package:|/))' // Look-ahead: not in package.
+      '([^"\']*)' // The path to the imported file.
+      '["\']');
   while (!toSearch.isEmpty) {
     var thisPass = toSearch;
     toSearch = new Set<Path>();
