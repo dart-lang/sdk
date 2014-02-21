@@ -199,7 +199,7 @@ void main() {
 void doTest(String allocation, {bool nullify}) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(generateTest(allocation), uri,
-                             allowErrors: false, allowWarnings: false);
+      expectedErrors: 0, expectedWarnings: 1);
   asyncTest(() => compiler.runCompiler(uri).then((_) {
     var typesTask = compiler.typesTask;
     var typesInferrer = typesTask.typesInferrer;

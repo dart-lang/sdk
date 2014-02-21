@@ -215,7 +215,7 @@ void doTest(String allocation, [String keyElement,
             String valueElement]) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(generateTest(allocation), uri,
-                             allowErrors: false, allowWarnings: false);
+      expectedErrors: 0, expectedWarnings: 0);
   asyncTest(() => compiler.runCompiler(uri).then((_) {
     var keyType, valueType;
     var typesTask = compiler.typesTask;

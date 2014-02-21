@@ -237,8 +237,11 @@ class MockCompiler extends Compiler {
   List<WarningMessage> errors;
   List<WarningMessage> hints;
   List<WarningMessage> infos;
-  final bool allowWarnings;
-  final bool allowErrors;
+  /// Expected number of warnings. If `null`, the number of warnings is
+  /// not checked.
+  final int expectedWarnings;
+  /// Expected number of errors. If `null`, the number of errors is not checked.
+  final int expectedErrors;
   final Map<String, SourceFile> sourceFiles;
   Node parsedTree;
 
@@ -258,8 +261,8 @@ class MockCompiler extends Compiler {
                 // Our unit tests check code generation output that is
                 // affected by inlining support.
                 bool disableInlining: true,
-                bool this.allowWarnings: true,
-                bool this.allowErrors: true})
+                int this.expectedWarnings,
+                int this.expectedErrors})
       : warnings = [], errors = [], hints = [], infos = [],
         sourceFiles = new Map<String, SourceFile>(),
         super(enableTypeAssertions: enableTypeAssertions,
@@ -305,9 +308,11 @@ class MockCompiler extends Compiler {
 
   Future runCompiler(Uri uri) {
     return super.runCompiler(uri).then((result) {
-      if (!allowErrors && !errors.isEmpty) {
+      if (expectedErrors != null &&
+          expectedErrors != errors.length) {
         throw "unexpected error during compilation ${errors}";
-      } else if (!allowWarnings && !warnings.isEmpty) {
+      } else if (expectedWarnings != null &&
+                 expectedWarnings != warnings.length) {
         throw "unexpected warnings during compilation ${warnings}";
       } else {
         return result;

@@ -604,14 +604,11 @@ testMethodInvocationsInClass() {
   check(c, "int k = staticMethod('string');");
   check(c, "String k = staticMethod('string');",
         NOT_ASSIGNABLE);
-  check(d, "staticMethod();",
-        MessageKind.MISSING_ARGUMENT);
-  check(d, "staticMethod(1);",
-        NOT_ASSIGNABLE);
-  check(d, "staticMethod('string');");
-  check(d, "int k = staticMethod('string');");
-  check(d, "String k = staticMethod('string');",
-        NOT_ASSIGNABLE);
+  check(d, "staticMethod();", MessageKind.METHOD_NOT_FOUND);
+  check(d, "staticMethod(1);", MessageKind.METHOD_NOT_FOUND);
+  check(d, "staticMethod('string');", MessageKind.METHOD_NOT_FOUND);
+  check(d, "int k = staticMethod('string');", MessageKind.METHOD_NOT_FOUND);
+  check(d, "String k = staticMethod('string');", MessageKind.METHOD_NOT_FOUND);
 
   // Invocation on dynamic variable.
   check(c, "e.foo();");
@@ -1127,7 +1124,7 @@ void testTypeVariableExpressions() {
 
   analyzeIn(method, "{ String typeName = T.toString(); }");
   analyzeIn(method, "{ T.foo; }", MEMBER_NOT_FOUND);
-  analyzeIn(method, "{ T.foo = 0; }", MessageKind.PROPERTY_NOT_FOUND);
+  analyzeIn(method, "{ T.foo = 0; }", MessageKind.SETTER_NOT_FOUND);
   analyzeIn(method, "{ T.foo(); }", MessageKind.METHOD_NOT_FOUND);
   analyzeIn(method, "{ T + 1; }", MessageKind.OPERATOR_NOT_FOUND);
 }
@@ -1536,10 +1533,8 @@ void testGetterSetterInvocation() {
   check("int v = c.overriddenField;");
   check("c.overriddenField = 0;");
   check("int v = c.getterField;");
-  // TODO(johnniwinther): Check write of property without setter.
-  //check("c.getterField = 0;", MessageKind.CANNOT_RESOLVE_SETTER);
-  // TODO(johnniwinther): Check read of property without getter.
-  //check("int v = c.setterField;", MessageKind.CANNOT_RESOLVE_GETTER);
+  check("c.getterField = 0;", MessageKind.SETTER_NOT_FOUND);
+  check("int v = c.setterField;", MessageKind.GETTER_NOT_FOUND);
   check("c.setterField = 0;");
 
   check("int v = gc.overriddenField;");
@@ -1547,15 +1542,13 @@ void testGetterSetterInvocation() {
   check("int v = gc.setterField;");
   check("gc.setterField = 0;");
   check("int v = gc.getterField;");
-  // TODO(johnniwinther): Check write of property without setter.
-  //check("gc.getterField = 0;", MessageKind.CANNOT_RESOLVE_SETTER);
+  check("gc.getterField = 0;", MessageKind.SETTER_NOT_FOUND);
 
   check("int v = sc.overriddenField;");
   check("sc.overriddenField = 0;");
   check("int v = sc.getterField;");
   check("sc.getterField = 0;");
-  // TODO(johnniwinther): Check read of property without getter.
-  //check("int v = sc.setterField;", MessageKind.CANNOT_RESOLVE_GETTER);
+  check("int v = sc.setterField;", MessageKind.GETTER_NOT_FOUND);
   check("sc.setterField = 0;");
 }
 

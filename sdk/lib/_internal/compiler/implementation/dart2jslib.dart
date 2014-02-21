@@ -31,6 +31,7 @@ import '../compiler.dart' as api;
 import 'patch_parser.dart';
 import 'types/types.dart' as ti;
 import 'resolution/resolution.dart';
+import 'resolution/class_members.dart' show MembersCreator;
 import 'source_file.dart' show SourceFile;
 import 'js/js.dart' as js;
 import 'deferred_load.dart' show DeferredLoadTask;

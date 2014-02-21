@@ -2223,6 +2223,12 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   void forEachInterfaceMember(f(MemberSignature member)) {
     interfaceMembers.forEach((_, member) => f(member));
   }
+
+  FunctionType get callType {
+    MemberSignature member =
+        lookupInterfaceMember(const PublicName(Compiler.CALL_OPERATOR_NAME));
+    return member != null && member.isMethod ? member.type : null;
+  }
 }
 
 abstract class ClassElementX extends BaseClassElementX {

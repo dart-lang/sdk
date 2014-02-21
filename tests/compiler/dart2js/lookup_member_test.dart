@@ -9,7 +9,7 @@ import "package:async_helper/async_helper.dart";
 import 'type_test_helper.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart"
-       show Element, ClassElement;
+       show Element, ClassElement, MemberSignature, PublicName;
 
 void main() {
   test();
@@ -32,9 +32,10 @@ void test() {
       """).then((env) {
     void expect(InterfaceType receiverType, String memberName,
                 DartType expectedType) {
-      InterfaceTypeMember member = receiverType.lookupMember(memberName);
+      MemberSignature member = receiverType.lookupInterfaceMember(
+          new PublicName(memberName));
       Expect.isNotNull(member);
-      DartType memberType = member.computeType(env.compiler);
+      DartType memberType = member.type;
       Expect.equals(expectedType, memberType,
           'Wrong member type for $receiverType.$memberName.');
     }

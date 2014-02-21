@@ -13,8 +13,11 @@ class TypeCheckerTask extends CompilerTask {
     compiler.withCurrentElement(element, () {
       measure(() {
         Node tree = element.parseNode(compiler);
-        Visitor visitor =
+        TypeCheckerVisitor visitor =
             new TypeCheckerVisitor(compiler, elements, compiler.types);
+        if (element.isField()) {
+          visitor.analyzingInitializer = true;
+        }
         tree.accept(visitor);
       });
     });
@@ -62,13 +65,13 @@ abstract class ElementAccess {
 
 /// An access of a instance member.
 class MemberAccess extends ElementAccess {
-  final InterfaceTypeMember member;
+  final MemberSignature member;
 
-  MemberAccess(InterfaceTypeMember this.member);
+  MemberAccess(MemberSignature this.member);
 
-  Element get element => member.element;
+  Element get element => member.declarations.first.element;
 
-  DartType computeType(Compiler compiler) => member.computeType(compiler);
+  DartType computeType(Compiler compiler) => member.type;
 
   String toString() => 'MemberAccess($member)';
 }
@@ -231,6 +234,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   Link<DartType> cascadeTypes = const Link<DartType>();
 
+  bool analyzingInitializer = false;
+
   DartType intType;
   DartType doubleType;
   DartType boolType;
@@ -359,7 +364,9 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     return node != null ? analyze(node) : defaultValue;
   }
 
-  DartType analyze(Node node) {
+  /// If [inInitializer] is true, assignment should be interpreted as write to
+  /// a field and not to a setter.
+  DartType analyze(Node node, {bool inInitializer: false}) {
     if (node == null) {
       final String error = 'unexpected node: null';
       if (lastSeenNode != null) {
@@ -370,7 +377,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     } else {
       lastSeenNode = node;
     }
+    bool previouslyInitializer = analyzingInitializer;
+    analyzingInitializer = inInitializer;
     DartType result = node.accept(this);
+    analyzingInitializer = previouslyInitializer;
     if (result == null) {
       compiler.internalError('type is null', node: node);
     }
@@ -568,7 +578,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         }
       });
       if (node.initializers != null) {
-        analyze(node.initializers);
+        analyze(node.initializers, inInitializer: true);
       }
     } else {
       FunctionType functionType = element.computeType(compiler);
@@ -636,10 +646,14 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   ElementAccess lookupMember(Node node, DartType receiverType, String name,
-                             MemberKind memberKind, Element receiverElement) {
+                             MemberKind memberKind, Element receiverElement,
+                             {bool lookupClassMember: false}) {
     if (receiverType.treatAsDynamic) {
       return const DynamicAccess();
     }
+
+    Name memberName = new Name(name, currentLibrary,
+        isSetter: memberKind == MemberKind.SETTER);
 
     // Compute the unaliased type of the first non type variable bound of
     // [type].
@@ -667,15 +681,23 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       return type;
     }
 
+    // Lookup the class or interface member [name] in [interface].
+    MemberSignature lookupMemberSignature(Name name, InterfaceType interface) {
+      MembersCreator.computeClassMembers(compiler, interface.element);
+      return lookupClassMember || analyzingInitializer
+          ? interface.lookupClassMember(name)
+          : interface.lookupInterfaceMember(name);
+    }
+
     // Compute the access of [name] on [type]. This function takes the special
     // 'call' method into account.
-    ElementAccess getAccess(DartType unaliasedBound, InterfaceType interface) {
-      InterfaceTypeMember member = interface.lookupMember(name,
-          isSetter: identical(memberKind, MemberKind.SETTER));
+    ElementAccess getAccess(Name name,
+                            DartType unaliasedBound, InterfaceType interface) {
+      MemberSignature member = lookupMemberSignature(memberName, interface);
       if (member != null) {
         return new MemberAccess(member);
       }
-      if (name == 'call' && memberKind != MemberKind.SETTER) {
+      if (name == const PublicName('call')) {
         if (unaliasedBound.kind == TypeKind.FUNCTION) {
           // This is an access the implicit 'call' method of a function type.
           return new FunctionCallAccess(receiverElement, unaliasedBound);
@@ -692,9 +714,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
     DartType unaliasedBound = computeUnaliasedBound(receiverType);
     InterfaceType interface = computeInterfaceType(unaliasedBound);
-    ElementAccess access = getAccess(unaliasedBound, interface);
+    ElementAccess access = getAccess(memberName, unaliasedBound, interface);
     if (access != null) {
-      checkPrivateAccess(node, access.element, name);
       return access;
     }
     if (receiverElement != null &&
@@ -706,7 +727,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           if (!typePromotion.isValid) {
             DartType unaliasedBound = computeUnaliasedBound(typePromotion.type);
             InterfaceType interface = computeInterfaceType(unaliasedBound);
-            if (getAccess(unaliasedBound, interface) != null) {
+            if (getAccess(memberName, unaliasedBound, interface) != null) {
               reportTypePromotionHint(typePromotion);
             }
           }
@@ -715,23 +736,52 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       }
     }
     if (!interface.element.isProxy) {
-      switch (memberKind) {
-        case MemberKind.METHOD:
-          reportTypeWarning(node, MessageKind.METHOD_NOT_FOUND,
-              {'className': receiverType.name, 'memberName': name});
-          break;
-        case MemberKind.OPERATOR:
-          reportTypeWarning(node, MessageKind.OPERATOR_NOT_FOUND,
-              {'className': receiverType.name, 'memberName': name});
-          break;
-        case MemberKind.GETTER:
-          reportTypeWarning(node, MessageKind.MEMBER_NOT_FOUND.warning,
-              {'className': receiverType.name, 'memberName': name});
-          break;
-        case MemberKind.SETTER:
-          reportTypeWarning(node, MessageKind.PROPERTY_NOT_FOUND,
-              {'className': receiverType.name, 'memberName': name});
-          break;
+      bool foundPrivateMember = false;
+      if (memberName.isPrivate) {
+        void findPrivateMember(MemberSignature member) {
+          if (memberName.isSimilarTo(member.name)) {
+            PrivateName privateName = member.name;
+            reportTypeWarning(
+                 node,
+                 MessageKind.PRIVATE_ACCESS,
+                 {'name': name,
+                  'libraryName': privateName.library.getLibraryOrScriptName()});
+            foundPrivateMember = true;
+          }
+        }
+        if (lookupClassMember) {
+          interface.element.forEachClassMember(findPrivateMember);
+        } else {
+          interface.element.forEachInterfaceMember(findPrivateMember);
+        }
+
+      }
+      if (!foundPrivateMember) {
+        switch (memberKind) {
+          case MemberKind.METHOD:
+            reportTypeWarning(node, MessageKind.METHOD_NOT_FOUND,
+                {'className': receiverType.name, 'memberName': name});
+            break;
+          case MemberKind.OPERATOR:
+            reportTypeWarning(node, MessageKind.OPERATOR_NOT_FOUND,
+                {'className': receiverType.name, 'memberName': name});
+            break;
+          case MemberKind.GETTER:
+            if (lookupMemberSignature(memberName.setter, interface) != null) {
+              // A setter is present so warn explicitly about the missing
+              // getter.
+              reportTypeWarning(node, MessageKind.GETTER_NOT_FOUND,
+                  {'className': receiverType.name, 'memberName': name});
+            } else {
+              reportTypeWarning(node, MessageKind.MEMBER_NOT_FOUND.warning,
+                  {'className': receiverType.name, 'memberName': name});
+            }
+            break;
+          case MemberKind.SETTER:
+            reportTypeWarning(node, MessageKind.SETTER_NOT_FOUND,
+                {'className': receiverType.name, 'memberName': name});
+            break;
+        }
       }
     }
     return const DynamicAccess();
@@ -739,7 +789,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   DartType lookupMemberType(Node node, DartType type, String name,
                             MemberKind memberKind) {
-    return lookupMember(node, type, name, memberKind, null).computeType(compiler);
+    return lookupMember(node, type, name, memberKind, null)
+        .computeType(compiler);
   }
 
   void analyzeArguments(Send send, Element element, DartType type,
@@ -866,7 +917,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
    * [element] provided for [node] by the resolver.
    */
   ElementAccess computeAccess(Send node, String name, Element element,
-                              MemberKind memberKind) {
+                              MemberKind memberKind,
+                              {bool lookupClassMember: false}) {
     if (element != null && element.isErroneous()) {
       // An error has already been reported for this node.
       return const DynamicAccess();
@@ -887,7 +939,9 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       }
       TypeKind receiverKind = receiverType.kind;
       return lookupMember(node, receiverType, name, memberKind,
-          elements[node.receiver]);
+          elements[node.receiver],
+          lookupClassMember: lookupClassMember ||
+              element != null && element.modifiers.isStatic());
     } else {
       return computeResolvedAccess(node, name, element, memberKind);
     }
@@ -916,8 +970,9 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       }
       return createResolvedAccess(node, name, element);
     } else if (element.isMember()) {
-      // foo() where foo is an instance member.
-      return lookupMember(node, thisType, name, memberKind, null);
+      // foo() where foo is a member.
+      return lookupMember(node, thisType, name, memberKind, null,
+          lookupClassMember: element.modifiers.isStatic());
     } else if (element.isFunction()) {
       // foo() where foo is a method in the same class.
       return createResolvedAccess(node, name, element);
@@ -956,9 +1011,11 @@ class TypeCheckerVisitor extends Visitor<DartType> {
    * [element] provided for [node] by the resolver.
    */
   DartType computeAccessType(Send node, String name, Element element,
-                             MemberKind memberKind) {
+                             MemberKind memberKind,
+                             {bool lookupClassMember: false}) {
     DartType type =
-        computeAccess(node, name, element, memberKind).computeType(compiler);
+        computeAccess(node, name, element, memberKind,
+            lookupClassMember: lookupClassMember).computeType(compiler);
     if (type == null) {
       compiler.internalError('type is null on access of $name on $node',
                              node: node);
@@ -1009,6 +1066,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       if (node.receiver != null) {
         receiverType = analyze(node.receiver);
       } else if (node.selector.isSuper()) {
+        // TODO(johnniwinther): Lookup super-member in class members.
         receiverType = superType;
       } else {
         assert(node.selector.isThis());
@@ -1311,8 +1369,18 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         return value;
       } else {
         // target = value
-        DartType target = computeAccessType(node, selector.source,
-                                            element, MemberKind.SETTER);
+        DartType target;
+        if (analyzingInitializer) {
+          // Field declaration `Foo target = value;` or initializer
+          // `this.target = value`. Lookup the getter `target` in the class
+          // members.
+          target = computeAccessType(node, selector.source, element,
+              MemberKind.GETTER, lookupClassMember: true);
+        } else {
+          // Normal assignment `target = value`.
+          target = computeAccessType(
+              node, selector.source, element, MemberKind.SETTER);
+        }
         final Node valueNode = node.arguments.head;
         final DartType value = analyze(valueNode);
         checkAssignable(node.assignmentOperator, value, target);
@@ -1445,7 +1513,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     DartType type = StatementType.NOT_RETURNING;
     bool reportedDeadCode = false;
     for (Link<Node> link = node.nodes; !link.isEmpty; link = link.tail) {
-      DartType nextType = analyze(link.head);
+      DartType nextType =
+          analyze(link.head, inInitializer: analyzingInitializer);
       if (type == StatementType.RETURNING) {
         if (!reportedDeadCode) {
           reportTypeWarning(link.head, MessageKind.UNREACHABLE_CODE);

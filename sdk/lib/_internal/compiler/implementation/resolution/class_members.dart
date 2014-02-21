@@ -35,7 +35,10 @@ class MembersCreator {
   Map<dynamic/* Member | Element */, Set<MessageKind>> reportedMessages =
       new Map<dynamic, Set<MessageKind>>();
 
-  MembersCreator(Compiler this.compiler, ClassElement this.cls);
+  MembersCreator(Compiler this.compiler, ClassElement this.cls) {
+    assert(invariant(cls, cls.isDeclaration,
+        message: "Members may only be computed on declarations."));
+  }
 
   void reportMessage(var marker, MessageKind kind, report()) {
     Set<MessageKind> messages =
@@ -128,7 +131,7 @@ class MembersCreator {
       LibraryElement library = cls.getLibrary();
       InterfaceType thisType = cls.thisType;
 
-      cls.forEachLocalMember((Element element) {
+      void createMember(Element element) {
         if (element.isConstructor()) return;
 
         Name name = new Name(element.name, library);
@@ -168,7 +171,16 @@ class MembersCreator {
           declaredMembers[name] = new DeclaredMember(
               name, element, thisType, type, type);
         }
-      });
+      };
+
+      cls.forEachLocalMember(createMember);
+      if (cls.isPatched) {
+        cls.implementation.forEachLocalMember((Element element) {
+          if (element.isDeclaration) {
+            createMember(element);
+          }
+        });
+      }
     }
 
     declaredMembers.values.forEach((Member member) {

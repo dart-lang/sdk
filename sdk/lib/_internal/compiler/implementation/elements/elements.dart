@@ -975,6 +975,10 @@ abstract class ClassElement extends TypeDeclarationElement
 
   /// Calls [f] with each member of the interface of this class.
   void forEachInterfaceMember(f(MemberSignature member));
+
+  /// Returns the type of the 'call' method in the interface of this class, or
+  /// `null` if the interface has no 'call' method.
+  FunctionType get callType;
 }
 
 abstract class MixinApplicationElement extends ClassElement {

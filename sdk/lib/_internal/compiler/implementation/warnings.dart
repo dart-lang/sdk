@@ -132,8 +132,11 @@ class MessageKind {
   static const MessageKind OPERATOR_NOT_FOUND = const MessageKind(
       "Warning: No operator '#{memberName}' in class '#{className}'.");
 
-  static const MessageKind PROPERTY_NOT_FOUND = const MessageKind(
-      "Warning: No property named '#{memberName}' in class '#{className}'.");
+  static const MessageKind SETTER_NOT_FOUND = const MessageKind(
+      "Warning: No setter named '#{memberName}' in class '#{className}'.");
+
+  static const MessageKind GETTER_NOT_FOUND = const MessageKind(
+      "Warning: No getter named '#{memberName}' in class '#{className}'.");
 
   static const MessageKind NOT_CALLABLE = const MessageKind(
       "Warning: '#{elementName}' is not callable.");

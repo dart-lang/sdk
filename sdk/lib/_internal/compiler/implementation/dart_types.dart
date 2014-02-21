@@ -490,68 +490,20 @@ class InterfaceType extends GenericType {
 
   DartType unalias(Compiler compiler) => this;
 
-  /**
-   * Finds the method, field or property named [name] declared or inherited
-   * on this interface type.
-   */
-  InterfaceTypeMember lookupMember(String name, {bool isSetter: false}) {
-    // Abstract field returned when setter was needed but only a getter was
-    // present and vice-versa.
-    InterfaceTypeMember fallbackAbstractField;
-
-    InterfaceTypeMember createMember(ClassElement classElement,
-                                     InterfaceType receiver,
-                                     InterfaceType declarer) {
-      Element member = classElement.implementation.lookupLocalMember(name);
-      if (member == null) return null;
-      if (member.isConstructor() || member.isPrefix()) return null;
-      assert(member.isFunction() ||
-             member.isAbstractField() ||
-             member.isField());
-
-      if (member.isAbstractField()) {
-        AbstractFieldElement abstractFieldElement = member;
-        if (fallbackAbstractField == null) {
-          fallbackAbstractField =
-              new InterfaceTypeMember(receiver, declarer, member,
-                                      isSetter: isSetter);
-        }
-        if (isSetter && abstractFieldElement.setter == null) {
-          // Keep searching further up the hierarchy.
-          member = null;
-        } else if (!isSetter && abstractFieldElement.getter == null) {
-          // Keep searching further up the hierarchy.
-          member = null;
-        }
-      }
-      return member != null
-          ? new InterfaceTypeMember(receiver, declarer, member,
-                                    isSetter: isSetter)
-          : null;
+  MemberSignature lookupInterfaceMember(Name name) {
+    MemberSignature member = element.lookupInterfaceMember(name);
+    if (member != null && isGeneric) {
+      return new InterfaceMember(this, member);
     }
+    return member;
+  }
 
-    ClassElement classElement = element;
-    InterfaceType receiver = this;
-    InterfaceType declarer = receiver;
-    // TODO(johnniwinther): Lookup and callers should handle private members and
-    // injected members.
-    InterfaceTypeMember member = createMember(classElement, receiver, declarer);
-    if (member != null) return member;
-
-    assert(invariant(element, classElement.allSupertypes != null,
-        message: 'Supertypes not computed for $classElement'));
-    for (InterfaceType supertype in classElement.allSupertypes) {
-      // Skip mixin applications since their supertypes are also in the list of
-      // [allSupertypes].
-      if (supertype.element.isMixinApplication) continue;
-      declarer = supertype;
-      ClassElement lookupTarget = declarer.element;
-      InterfaceTypeMember member =
-          createMember(lookupTarget, receiver, declarer);
-      if (member != null) return member;
+  MemberSignature lookupClassMember(Name name) {
+    MemberSignature member = element.lookupClassMember(name);
+    if (member != null && isGeneric) {
+      return new InterfaceMember(this, member);
     }
-
-    return fallbackAbstractField;
+    return member;
   }
 
   int get hashCode => super.hashCode;
@@ -560,6 +512,13 @@ class InterfaceType extends GenericType {
 
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitInterfaceType(this, argument);
+  }
+
+  /// Returns the type of the 'call' method in this interface type, or
+  /// `null` if the interface type has no 'call' method.
+  FunctionType get callType {
+    FunctionType type = element.callType;
+    return type != null && isGeneric ? type.substByContext(this) : type;
   }
 }
 
@@ -847,7 +806,7 @@ class DynamicType extends InterfaceType {
 }
 
 /**
- * [InterfaceTypeMember] encapsulates a member (method, field, property) with
+ * [InterfaceMember] encapsulates a member (method, field, property) with
  * the types of the declarer and receiver in order to do substitution on the
  * member type.
  *
@@ -858,67 +817,32 @@ class DynamicType extends InterfaceType {
  *     }
  *     class B<F> extends A<F> {}
  *
- * In an [InterfaceTypeMember] for `b.field` the [receiver] is the type
+ * In an [InterfaceMember] for `b.field` the [receiver] is the type
  * `B<String>` and the declarer is the type `A<F>`, which is the supertype of
  * `B<F>` from which `field` has been inherited. To compute the type of
  * `b.field` we must first substitute `E` by `F` using the relation between
  * `A<E>` and `A<F>`, and then `F` by `String` using the relation between
  * `B<F>` and `B<String>`.
  */
-// TODO(johnniwinther): Add [isReadable] and [isWritable] predicates.
-class InterfaceTypeMember {
-  final InterfaceType receiver;
-  final InterfaceType declarer;
-  final Element element;
-  DartType cachedType;
-  final bool isSetter;
+class InterfaceMember implements MemberSignature {
+  final InterfaceType instance;
+  final MemberSignature member;
 
-  InterfaceTypeMember(this.receiver, this.declarer, this.element,
-         {bool this.isSetter: false}) {
-    assert(invariant(element, element.isAbstractField() ||
-                     element.isField() ||
-                     element.isFunction(),
-                message: "Unsupported InterfaceTypeMember element: $element"));
-  }
+  InterfaceMember(this.instance, this.member);
 
-  DartType computeType(Compiler compiler) {
-    if (cachedType == null) {
-      DartType type;
-      if (element.isAbstractField()) {
-        AbstractFieldElement abstractFieldElement = element;
-        // Use setter if present and required or if no getter is available.
-        if ((isSetter && abstractFieldElement.setter != null) ||
-            abstractFieldElement.getter == null) {
-          // TODO(johnniwinther): Add check of read of field with no getter.
-          FunctionType functionType =
-              abstractFieldElement.setter.computeType(
-                  compiler);
-          type = functionType.parameterTypes.head;
-          if (type == null) {
-            type = compiler.types.dynamicType;
-          }
-        } else {
-          // TODO(johnniwinther): Add check of assignment to field with no
-          // setter.
-          FunctionType functionType =
-              abstractFieldElement.getter.computeType(compiler);
-          type = functionType.returnType;
-        }
-      } else {
-        type = element.computeType(compiler);
-      }
-      if (!declarer.element.typeVariables.isEmpty) {
-        type = type.substByContext(declarer);
-        type = type.substByContext(receiver);
-      }
-      cachedType = type;
-    }
-    return cachedType;
-  }
+  Name get name => member.name;
 
-  String toString() {
-    return '$receiver.${element.name}';
-  }
+  DartType get type => member.type.substByContext(instance);
+
+  FunctionType get functionType => member.functionType.substByContext(instance);
+
+  bool get isGetter => member.isGetter;
+
+  bool get isSetter => member.isSetter;
+
+  bool get isMethod => member.isMethod;
+
+  Iterable<Member> get declarations => member.declarations;
 }
 
 abstract class DartTypeVisitor<R, A> {
@@ -1219,22 +1143,13 @@ class SubtypeVisitor extends MoreSpecificVisitor {
   bool visitInterfaceType(InterfaceType t, DartType s) {
     if (super.visitInterfaceType(t, s)) return true;
 
-    InterfaceTypeMember lookupCall(type) =>
-        type.lookupMember(Compiler.CALL_OPERATOR_NAME);
-
-    bool hasCallMethod(type) {
-      InterfaceTypeMember member = lookupCall(type);
-      return member != null && member.element.isFunction();
-    }
-
     if (s is InterfaceType &&
         s.element == compiler.functionClass &&
-        hasCallMethod(t)) {
+        t.element.callType != null) {
       return true;
     } else if (s is FunctionType) {
-      InterfaceTypeMember call = lookupCall(t);
-      if (call == null) return false;
-      return isSubtype(call.computeType(compiler), s);
+      FunctionType callType = t.callType;
+      return callType != null && isSubtype(callType, s);
     }
     return false;
   }
