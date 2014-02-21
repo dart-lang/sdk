@@ -187,6 +187,7 @@ analyzer/test/options_test: Fail, OK # Uses dart:io.
 analyzer/test/services/formatter_test: Fail, OK # Uses dart:io.
 analyzer/test/parse_compilation_unit_test: Fail, OK # Uses dart:io.
 barback/test/*: Fail, OK # Uses dart:io.
+code_transformers/test/*: Skip # Uses dart:io.
 http/test/client_test: Fail, OK # Uses dart:io.
 http/test/http_test: Fail, OK # Uses dart:io.
 http/test/mock_client_test: Fail, OK # Uses dart:io.
