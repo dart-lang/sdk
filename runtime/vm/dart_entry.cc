@@ -13,6 +13,7 @@
 #include "vm/simulator.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/timer_scope.h"
 
 namespace dart {
 
@@ -52,23 +53,25 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
     }
   }
   // Now Call the invoke stub which will invoke the dart function.
+  Isolate* isolate = Isolate::Current();
+  TIMERSCOPE(isolate, time_dart_execution);
   invokestub entrypoint = reinterpret_cast<invokestub>(
       StubCode::InvokeDartCodeEntryPoint());
-  const Code& code = Code::Handle(function.CurrentCode());
+  const Code& code = Code::Handle(isolate, function.CurrentCode());
   ASSERT(!code.IsNull());
-  ASSERT(Isolate::Current()->no_callback_scope_depth() == 0);
+  ASSERT(isolate->no_callback_scope_depth() == 0);
 #if defined(USING_SIMULATOR)
-    return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
-        reinterpret_cast<int32_t>(entrypoint),
-        static_cast<int32_t>(code.EntryPoint()),
-        reinterpret_cast<int32_t>(&arguments_descriptor),
-        reinterpret_cast<int32_t>(&arguments),
-        reinterpret_cast<int32_t>(&context)));
+  return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
+      reinterpret_cast<int32_t>(entrypoint),
+      static_cast<int32_t>(code.EntryPoint()),
+      reinterpret_cast<int32_t>(&arguments_descriptor),
+      reinterpret_cast<int32_t>(&arguments),
+      reinterpret_cast<int32_t>(&context)));
 #else
-    return entrypoint(code.EntryPoint(),
-                      arguments_descriptor,
-                      arguments,
-                      context);
+  return entrypoint(code.EntryPoint(),
+                    arguments_descriptor,
+                    arguments,
+                    context);
 #endif
 }
 

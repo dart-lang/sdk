@@ -1596,7 +1596,7 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
   EXPECT(Dart_IsString(crappy_string_result));
 
   {
-    DARTSCOPE(isolate);
+    HANDLESCOPE(isolate);
 
     {
       StackZone zone(Isolate::Current());
@@ -1687,7 +1687,7 @@ UNIT_TEST_CASE(DartGeneratedListMessages) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(isolate);
+    HANDLESCOPE(isolate);
     {
       // Generate a list of nulls from Dart code.
       ApiNativeScope scope;
@@ -1805,7 +1805,7 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(isolate);
+    HANDLESCOPE(isolate);
     {
       // Generate a list of nulls from Dart code.
       ApiNativeScope scope;
@@ -2037,7 +2037,7 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(isolate);
+    HANDLESCOPE(isolate);
 
     {
       // Generate a list of strings from Dart code.
@@ -2242,7 +2242,7 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(isolate);
+    HANDLESCOPE(isolate);
     {
       // Generate a list of strings from Dart code.
       ApiNativeScope scope;
@@ -2461,7 +2461,7 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(isolate);
+    HANDLESCOPE(isolate);
     {
       // Generate a list of Uint8Lists from Dart code.
       ApiNativeScope scope;

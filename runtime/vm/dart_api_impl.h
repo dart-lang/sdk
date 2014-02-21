@@ -8,6 +8,8 @@
 #include "vm/allocation.h"
 #include "vm/native_arguments.h"
 #include "vm/object.h"
+#include "vm/timer.h"
+#include "vm/timer_scope.h"
 
 namespace dart {
 
@@ -65,7 +67,8 @@ const char* CanonicalFunction(const char* func);
       FATAL1("%s expects to find a current scope. Did you forget to call "     \
            "Dart_EnterScope?", CURRENT_FUNC);                                  \
     }                                                                          \
-  } while (0)
+  } while (0);                                                                 \
+  NativeToVmTimerScope __temp_isolate_timer__(isolate);
 
 #define DARTSCOPE(isolate)                                                     \
   Isolate* __temp_isolate__ = (isolate);                                       \

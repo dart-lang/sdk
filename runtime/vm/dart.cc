@@ -138,6 +138,7 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   // There is a planned and known asymmetry here: We enter one scope for the VM
   // isolate so that we can allocate the "persistent" scoped handles for the
   // predefined API values (such as Dart_True, Dart_False and Dart_Null).
+  START_TIMER(vm_isolate_, time_native_execution);
   Dart_EnterScope();
   Api::InitHandles();
 
@@ -171,6 +172,7 @@ const char* Dart::Cleanup() {
   // There is a planned and known asymmetry here: We exit one scope for the VM
   // isolate to account for the scope that was entered in Dart_InitOnce.
   Dart_ExitScope();
+  STOP_TIMER(vm_isolate_, time_native_execution);
 
   ShutdownIsolate();
   vm_isolate_ = NULL;
@@ -193,8 +195,8 @@ Isolate* Dart::CreateIsolate(const char* name_prefix) {
 
 RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Initialize the new isolate.
-  TIMERSCOPE(time_isolate_initialization);
   Isolate* isolate = Isolate::Current();
+  TIMERSCOPE(isolate, time_isolate_initialization);
   ASSERT(isolate != NULL);
   StackZone zone(isolate);
   HandleScope handle_scope(isolate);

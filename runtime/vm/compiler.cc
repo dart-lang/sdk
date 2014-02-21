@@ -257,9 +257,9 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
   if (optimized && !function.IsOptimizable()) {
     return false;
   }
-  TimerScope timer(FLAG_compiler_stats, &CompilerStats::codegen_timer);
-  bool is_compiled = false;
   Isolate* isolate = Isolate::Current();
+  TimerScope timer(FLAG_compiler_stats, &CompilerStats::codegen_timer, isolate);
+  bool is_compiled = false;
   HANDLESCOPE(isolate);
   isolate->set_cha_used(false);
 
@@ -352,7 +352,8 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         // Inlining (mutates the flow graph)
         if (FLAG_use_inlining) {
           TimerScope timer(FLAG_compiler_stats,
-                           &CompilerStats::graphinliner_timer);
+                           &CompilerStats::graphinliner_timer,
+                           isolate);
           // Propagate types to create more inlining opportunities.
           FlowGraphTypePropagator::Propagate(flow_graph);
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -747,7 +748,7 @@ static RawError* CompileFunctionHelper(const Function& function,
     return Error::null();
   }
   if (setjmp(*jump.Set()) == 0) {
-    TIMERSCOPE(time_compilation);
+    TIMERSCOPE(isolate, time_compilation);
     Timer per_compile_timer(FLAG_trace_compiler, "Compilation time");
     per_compile_timer.Start();
     ParsedFunction* parsed_function =

@@ -104,9 +104,6 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   StartIsolateScope start_scope(isolate_);
   StackZone zone(isolate_);
   HandleScope handle_scope(isolate_);
-  // TODO(turnidge): Rework collection total dart execution.  This can
-  // overcount when other things (gc, compilation) are active.
-  TIMERSCOPE(time_dart_execution);
 
   // If the message is in band we lookup the receive port to dispatch to.  If
   // the receive port is closed, we drop the message without deserializing it.
@@ -255,6 +252,7 @@ bool IsolateMessageHandler::ProcessUnhandledException(
 
   // Invoke the isolate's unhandled exception callback if there is one.
   if (Isolate::UnhandledExceptionCallback() != NULL) {
+    VmToNativeTimerScope timer(Isolate::Current());
     Dart_EnterScope();
     Dart_Handle error = Api::NewHandle(isolate_, result.raw());
     (Isolate::UnhandledExceptionCallback())(error);

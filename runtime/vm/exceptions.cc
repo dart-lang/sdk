@@ -279,6 +279,10 @@ static void JumpToExceptionHandler(uword program_counter,
   // by the simulator, because the target stack_pointer is a simulated stack
   // pointer and not the C++ stack pointer.
 
+  // From the VM we are about to jump back to dart code so start the dart
+  // timer back on.
+  START_TIMER(Isolate::Current(), time_dart_execution);
+
   // Continue simulating at the given pc in the given frame after setting up the
   // exception object in the kExceptionObjectReg register and the stacktrace
   // object (may be raw null) in the kStackTraceObjectReg register.
@@ -304,6 +308,9 @@ static void JumpToExceptionHandler(uword program_counter,
   uword current_sp = reinterpret_cast<uword>(&program_counter) - 1024;
   __asan_unpoison_memory_region(reinterpret_cast<void*>(current_sp),
                                 stack_pointer - current_sp);
+  // From the VM we are about to jump back to dart code so start the dart
+  // timer back on.
+  START_TIMER(isolate, time_dart_execution);
   func(program_counter, stack_pointer, frame_pointer,
        raw_exception, raw_stacktrace);
 #endif

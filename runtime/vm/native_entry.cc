@@ -30,10 +30,12 @@ NativeFunction NativeEntry::ResolveNative(const Library& library,
     // class belongs in.
     return NULL;
   }
+  Isolate* isolate = Isolate::Current();
+  VmToNativeTimerScope timer(isolate);
   Dart_EnterScope();  // Enter a new Dart API scope as we invoke API entries.
   Dart_NativeEntryResolver resolver = library.native_entry_resolver();
   Dart_NativeFunction native_function =
-      resolver(Api::NewHandle(Isolate::Current(), function_name.raw()),
+      resolver(Api::NewHandle(isolate, function_name.raw()),
                number_of_arguments, auto_setup_scope);
   Dart_ExitScope();  // Exit the Dart API scope.
   return reinterpret_cast<NativeFunction>(native_function);
@@ -51,6 +53,7 @@ void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
   VERIFY_ON_TRANSITION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   Isolate* isolate = arguments->isolate();
+  DartToVmTimerScope timer(isolate);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   ApiLocalScope* current_top_scope = state->top_scope();
@@ -68,7 +71,10 @@ void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
   }
   state->set_top_scope(scope);  // New scope is now the top scope.
 
-  func(args);
+  {
+    VmToNativeTimerScope native_timer(isolate);
+    func(args);
+  }
 
   ASSERT(current_top_scope == scope->previous());
   state->set_top_scope(current_top_scope);  // Reset top scope to previous.

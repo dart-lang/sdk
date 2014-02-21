@@ -353,8 +353,9 @@ void Parser::SetPosition(intptr_t position) {
 
 void Parser::ParseCompilationUnit(const Library& library,
                                   const Script& script) {
-  ASSERT(Isolate::Current()->long_jump_base()->IsSafeToJump());
-  TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->long_jump_base()->IsSafeToJump());
+  TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer, isolate);
   Parser parser(script, library, 0);
   parser.ParseTopLevel();
 }
@@ -702,8 +703,10 @@ static bool HasReturnNode(SequenceNode* seq) {
 
 void Parser::ParseClass(const Class& cls) {
   if (!cls.is_synthesized_class()) {
-    TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
     Isolate* isolate = Isolate::Current();
+    TimerScope timer(FLAG_compiler_stats,
+                     &CompilerStats::parser_timer,
+                     isolate);
     ASSERT(isolate->long_jump_base()->IsSafeToJump());
     const Script& script = Script::Handle(isolate, cls.script());
     const Library& lib = Library::Handle(isolate, cls.library());
@@ -760,8 +763,8 @@ RawObject* Parser::ParseFunctionParameters(const Function& func) {
 
 
 void Parser::ParseFunction(ParsedFunction* parsed_function) {
-  TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
   Isolate* isolate = Isolate::Current();
+  TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer, isolate);
   ASSERT(isolate->long_jump_base()->IsSafeToJump());
   ASSERT(parsed_function != NULL);
   const Function& func = parsed_function->function();
@@ -4884,6 +4887,7 @@ RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
   }
   // Block class finalization attempts when calling into the library
   // tag handler.
+  VmToNativeTimerScope timer(isolate());
   isolate()->BlockClassFinalization();
   DartApiScope api_scope(isolate());
   Dart_Handle result = handler(tag,
