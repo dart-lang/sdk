@@ -20,6 +20,8 @@ class Foo {
      {@ParameterAnnotation("hval") p}) {}
   f5(@ParameterAnnotation("fisk") a,
      [@ParameterAnnotation("hval") p]) {}
+  f6({@ParameterAnnotation("fisk") z,
+      @ParameterAnnotation("hval") p}) {}
 }
 
 expectAnnotations(Type type, Symbol method, int parameterIndex,
@@ -45,4 +47,6 @@ main() {
   expectAnnotations(Foo, #f4, 1, ["hval"]);
   expectAnnotations(Foo, #f5, 0, ["fisk"]);
   expectAnnotations(Foo, #f5, 1, ["hval"]);
+  expectAnnotations(Foo, #f6, 0, ["fisk"]);
+  expectAnnotations(Foo, #f6, 1, ["hval"]);
 }
