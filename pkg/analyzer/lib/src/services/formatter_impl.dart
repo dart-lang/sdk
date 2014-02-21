@@ -137,13 +137,15 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
 
     var formattedSource = formatter.writer.toString();
 
-    checkTokenStreams(startToken, tokenize(formattedSource));
+    checkTokenStreams(startToken, tokenize(formattedSource),
+                      allowTransforms: options.codeTransforms);
 
     return new FormattedSource(formattedSource, formatter.selection);
   }
 
-  checkTokenStreams(Token t1, Token t2) =>
-      new TokenStreamComparator(lineInfo, t1, t2).verifyEquals();
+  checkTokenStreams(Token t1, Token t2, {allowTransforms: false}) =>
+      new TokenStreamComparator(lineInfo, t1, t2, transforms: allowTransforms).
+          verifyEquals();
 
   ASTNode parse(CodeKind kind, Token start) {
 
@@ -185,8 +187,10 @@ class TokenStreamComparator {
 
   final LineInfo lineInfo;
   Token token1, token2;
+  bool allowTransforms;
 
-  TokenStreamComparator(this.lineInfo, this.token1, this.token2);
+  TokenStreamComparator(this.lineInfo, this.token1, this.token2,
+      {transforms: false}) : this.allowTransforms = transforms;
 
   /// Verify that these two token streams are equal.
   verifyEquals() {
@@ -274,10 +278,23 @@ class TokenStreamComparator {
         return true;
       }
     }
-    // Advance past synthetic { } tokens
-    if (isOPEN_CURLY_BRACKET(token2) || isCLOSE_CURLY_BRACKET(token2)) {
-      token2 = token2.next;
-      return checkTokens();
+
+    // Transform-related special casing
+    if (allowTransforms) {
+
+      // Advance past empty statements
+      if (isSEMICOLON(token1)) {
+        // TODO whitelist
+        token1 = token1.next;
+        return checkTokens();
+      }
+
+      // Advance past synthetic { } tokens
+      if (isOPEN_CURLY_BRACKET(token2) || isCLOSE_CURLY_BRACKET(token2)) {
+        token2 = token2.next;
+        return checkTokens();
+      }
+
     }
 
     return false;
@@ -722,7 +739,9 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitEmptyStatement(EmptyStatement node) {
-    token(node.semicolon);
+    if (!codeTransforms || node.parent is! Block) {
+      token(node.semicolon);
+    }
   }
 
   visitExportDirective(ExportDirective node) {

@@ -147,3 +147,23 @@ var x = 2, y;
 <<<
 var x = 2,
     y;
+>>> dartbug.com/16810 [Note: transforms are enabled]
+void f() {
+  var a;;;
+}
+<<<
+void f() {
+  var a;
+}
+>>>
+while (true);
+<<<
+while (true);
+>>>
+for ( ; ; ) {
+  print('!');
+}
+<<<
+for ( ; ; ) {
+  print('!');
+}
