@@ -74,6 +74,7 @@ class HttpAnalysisServer {
       print('Missing required port number');
       print('');
       _printUsage(parser);
+      exitCode = 1;
       return;
     }
 
@@ -85,6 +86,7 @@ class HttpAnalysisServer {
       print('Invalid port number: ${results[PORT_OPTION]}');
       print('');
       _printUsage(parser);
+      exitCode = 1;
       return;
     }
   }
