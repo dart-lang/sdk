@@ -1683,7 +1683,7 @@ class InBodyPhase extends Phase {
         }
         // Not sure this is the correct name for the parse error
         parser.parseError(token.span, "expected-one-end-tag-but-got-another",
-            {"expectedName": "body", "gotName": node.tagName});
+            {"gotName": "body", "expectedName": node.tagName});
         break;
       }
     }
