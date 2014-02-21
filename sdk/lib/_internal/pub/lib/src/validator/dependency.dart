@@ -110,7 +110,7 @@ class DependencyValidator extends Validator {
     var locked = entrypoint.loadLockFile().packages[dep.name];
     if (locked != null) {
       var constraint;
-      if (locked.version == dep.constraint.max) {
+      if (locked.version == (dep.constraint as VersionRange).max) {
         constraint = _constraintForVersion(locked.version);
       } else {
         constraint = '">=${locked.version} ${dep.constraint}"';
@@ -134,7 +134,7 @@ class DependencyValidator extends Validator {
         '\n'
         'dependencies:\n'
         '  ${dep.name}: "${dep.constraint} '
-            '${_upperBoundForVersion(dep.constraint.min)}"\n'
+            '${_upperBoundForVersion((dep.constraint as VersionRange).min)}"\n'
         '\n'
         'Without an upper bound, you\'re promising to support '
             '${log.bold("all")} future versions of ${dep.name}.');
