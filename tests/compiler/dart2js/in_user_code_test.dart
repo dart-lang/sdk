@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test that the debugging helper [Compiler.inUserCode] works as intended.
+// Test that the helper [Compiler.inUserCode] works as intended.
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';

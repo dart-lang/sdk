@@ -279,6 +279,7 @@ Future compile(List<String> argv) {
     new OptionHandler('--dump-info', passThrough),
     new OptionHandler('--disallow-unsafe-eval',
                       (_) => hasDisallowUnsafeEval = true),
+    new OptionHandler('--hide-package-warnings', passThrough),
     new OptionHandler('-D.+=.*', addInEnvironment),
 
     // The following two options must come last.
@@ -556,6 +557,9 @@ Supported options:
   --terse
     Emit diagnostics without suggestions for how to get rid of the diagnosed
     problems.
+
+  --hide-package-warnings
+    Hide warnings and hints generated from packages.
 
 The following options are only used for compiler development and may
 be removed in a future version:

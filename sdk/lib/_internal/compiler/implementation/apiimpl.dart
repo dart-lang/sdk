@@ -62,7 +62,9 @@ class Compiler extends leg.Compiler {
             dumpInfo: hasOption(options, '--dump-info'),
             buildId: extractStringOption(
                 options, '--build-id=',
-                "build number could not be determined")) {
+                "build number could not be determined"),
+            hidePackageWarnings:
+                hasOption(options, '--hide-package-warnings')) {
     if (!libraryRoot.path.endsWith("/")) {
       throw new ArgumentError("libraryRoot must end with a /");
     }

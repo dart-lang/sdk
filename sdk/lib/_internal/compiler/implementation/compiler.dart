@@ -393,6 +393,13 @@ abstract class Compiler implements DiagnosticListener {
   /// Emit terse diagnostics without howToFix.
   final bool terseDiagnostics;
 
+  /// If `true`, warnings and hints not from user code are not reported.
+  final bool hidePackageWarnings;
+
+  /// `true` if the last diagnostic was filtered, in which case the
+  /// accompanying info message should be filtered as well.
+  bool lastDiagnosticWasFiltered = false;
+
   final api.CompilerOutputProvider outputProvider;
 
   bool disableInlining = false;
@@ -615,6 +622,7 @@ abstract class Compiler implements DiagnosticListener {
             this.buildId: UNDETERMINED_BUILD_ID,
             this.terseDiagnostics: false,
             this.dumpInfo: false,
+            this.hidePackageWarnings: false,
             outputProvider,
             List<String> strips: const []})
       : this.analyzeOnly = analyzeOnly || analyzeSignaturesOnly,
@@ -740,12 +748,25 @@ abstract class Compiler implements DiagnosticListener {
     } else if (node is Element) {
       return spanFromElement(node);
     } else if (node is MetadataAnnotation) {
-      MetadataAnnotation annotation = node;
-      Uri uri = annotation.annotatedElement.getCompilationUnit().script.uri;
-      return spanFromTokens(annotation.beginToken, annotation.endToken, uri);
+      Uri uri = node.annotatedElement.getCompilationUnit().script.uri;
+      return spanFromTokens(node.beginToken, node.endToken, uri);
     } else {
       throw 'No error location.';
     }
+  }
+
+  /// Finds the approximate [Element] for [node]. [currentElement] is used as
+  /// the default value.
+  Element elementFromSpannable(Spannable node) {
+    Element element;
+    if (node is Element) {
+      element = node;
+    } else if (node is HInstruction) {
+      element = node.sourceElement;
+    } else if (node is MetadataAnnotation) {
+      element = node.annotatedElement;
+    }
+    return element != null ? element : currentElement;
   }
 
   void log(message) {
@@ -1326,9 +1347,7 @@ abstract class Compiler implements DiagnosticListener {
   void reportError(Spannable node,
                    MessageKind errorCode,
                    [Map arguments = const {}]) {
-    reportDiagnostic(node,
-                     errorCode.error(arguments, terseDiagnostics),
-                     api.Diagnostic.ERROR);
+    reportDiagnosticInternal(node, errorCode, arguments, api.Diagnostic.ERROR);
   }
 
   void reportFatalError(Spannable node, MessageKind errorCode,
@@ -1345,23 +1364,18 @@ abstract class Compiler implements DiagnosticListener {
     // is more complete.
     if (errorCode == MessageKind.MISSING_RETURN) return;
     if (errorCode == MessageKind.MAYBE_MISSING_RETURN) return;
-    reportDiagnostic(node,
-                  errorCode.error(arguments, terseDiagnostics),
-                  api.Diagnostic.WARNING);
+    reportDiagnosticInternal(
+        node, errorCode, arguments, api.Diagnostic.WARNING);
   }
 
   void reportInfo(Spannable node, MessageKind errorCode,
                   [Map arguments = const {}]) {
-    reportDiagnostic(node,
-                     errorCode.error(arguments, terseDiagnostics),
-                     api.Diagnostic.INFO);
+    reportDiagnosticInternal(node, errorCode, arguments, api.Diagnostic.INFO);
   }
 
   void reportHint(Spannable node, MessageKind errorCode,
                   [Map arguments = const {}]) {
-    reportDiagnostic(node,
-                     errorCode.error(arguments, terseDiagnostics),
-                     api.Diagnostic.HINT);
+    reportDiagnosticInternal(node, errorCode, arguments, api.Diagnostic.HINT);
   }
 
   /// For debugging only, print a message with a source location.
@@ -1372,6 +1386,30 @@ abstract class Compiler implements DiagnosticListener {
   void reportInternalError(Spannable node, String message) {
     reportError(
         node, MessageKind.GENERIC, {'text': 'Internal Error: $message'});
+  }
+
+  void reportDiagnosticInternal(Spannable node,
+                                MessageKind errorCode,
+                                Map arguments,
+                                api.Diagnostic kind) {
+    if (hidePackageWarnings) {
+      switch (kind) {
+      case api.Diagnostic.WARNING:
+      case api.Diagnostic.HINT:
+        if (!inUserCode(elementFromSpannable(node))) {
+          lastDiagnosticWasFiltered = true;
+          return;
+        }
+        break;
+      case api.Diagnostic.INFO:
+        if (lastDiagnosticWasFiltered) {
+          return;
+        }
+        break;
+      }
+    }
+    lastDiagnosticWasFiltered = false;
+    reportDiagnostic(node, errorCode.error(arguments, terseDiagnostics), kind);
   }
 
   // TODO(ahe): The names Diagnostic and api.Diagnostic are in conflict. Fix it.
@@ -1535,16 +1573,15 @@ abstract class Compiler implements DiagnosticListener {
     });
   }
 
-  /// Debugging helper for determining whether the current element is declared
-  /// within 'user code'.
+  /// Helper for determining whether the current element is declared within
+  /// 'user code'.
   ///
   /// See [inUserCode] for what defines 'user code'.
   bool currentlyInUserCode() {
     return inUserCode(currentElement);
   }
 
-  /// Debugging helper for determining whether [element] is declared within
-  /// 'user code'.
+  /// Helper for determining whether [element] is declared within 'user code'.
   ///
   /// What constitutes 'user code' is defined by the URI(s) provided by the
   /// entry point(s) of compilation or analysis:
