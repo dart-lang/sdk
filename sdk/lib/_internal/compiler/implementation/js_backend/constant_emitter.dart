@@ -145,7 +145,7 @@ class ConstantReferenceEmitter implements ConstantVisitor<jsAst.Expression> {
     return emitCanonicalVersion(constant);
   }
 
-  jsAst.Expression visitDummyReceiver(DummyReceiverConstant constant) {
+  jsAst.Expression visitDummy(DummyConstant constant) {
     return new jsAst.LiteralNumber('0');
   }
 }
@@ -318,7 +318,7 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
         'prototype');
   }
 
-  jsAst.Expression visitDummyReceiver(DummyReceiverConstant constant) {
+  jsAst.Expression visitDummy(DummyConstant constant) {
     return _reference(constant);
   }
 

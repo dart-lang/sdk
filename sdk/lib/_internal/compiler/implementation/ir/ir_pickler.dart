@@ -8,7 +8,7 @@ import 'ir_nodes.dart' as ir;
 import '../dart2jslib.dart' show
     Constant, FalseConstant, TrueConstant, IntConstant, DoubleConstant,
     StringConstant, NullConstant, ListConstant, MapConstant,
-    InterceptorConstant, DummyReceiverConstant, FunctionConstant, TypeConstant,
+    InterceptorConstant, DummyConstant, FunctionConstant, TypeConstant,
     ConstructedConstant,
     ConstantVisitor, ConstantSystem,
     Compiler;
@@ -462,7 +462,7 @@ class ConstantPickler extends ConstantVisitor {
   void visitList(ListConstant constant) => abort(constant);
   void visitMap(MapConstant constant) => abort(constant);
   void visitInterceptor(InterceptorConstant constant) => abort(constant);
-  void visitDummyReceiver(DummyReceiverConstant constant) => abort(constant);
+  void visitDummy(DummyConstant constant) => abort(constant);
   void visitFunction(FunctionConstant constant) => abort(constant);
   void visitType(TypeConstant constant) => abort(constant);
   void visitConstructed(ConstructedConstant constant) => abort(constant);
