@@ -51,6 +51,7 @@ async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
 unittest/test/missing_tick_test: Fail # Timer interface not supported: dartbug.com/7728.
 
 [ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
+code_transformers/test/resolver_test: Skip # Issue 17030
 polymer/example: Skip # Uses dart:html
 polymer/test/attr_deserialize_test: Skip # uses dart:html
 polymer/test/attr_mustache_test: Skip #uses dart:html
