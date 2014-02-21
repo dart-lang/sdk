@@ -907,7 +907,14 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(bool opt) const {
       (representation() == kUnboxedFloat32x4) ||
       (representation() == kUnboxedInt32x4)   ||
       (representation() == kUnboxedFloat64x2)) {
-    locs->set_out(Location::RequiresFpuRegister());
+    if (class_id() == kTypedDataFloat32ArrayCid) {
+      // Need register <= Q7 for float operations.
+      // TODO(fschneider): Add a register policy to specify a subset of
+      // registers.
+      locs->set_out(Location::FpuRegisterLocation(Q7));
+    } else {
+      locs->set_out(Location::RequiresFpuRegister());
+    }
   } else {
     locs->set_out(Location::RequiresRegister());
   }
@@ -972,12 +979,11 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         UNIMPLEMENTED();
         break;
       case kTypedDataFloat32ArrayCid:
-        // Load single precision float and promote to double.
+        // Load single precision float.
         // vldrs does not support indexed addressing.
         __ add(index.reg(), index.reg(), ShifterOperand(array));
         element_address = Address(index.reg(), 0);
-        __ vldrs(STMP, element_address);
-        __ vcvtds(dresult0, STMP);
+        __ vldrs(EvenSRegisterOf(dresult0), element_address);
         break;
       case kTypedDataFloat64ArrayCid:
         // vldrd does not support indexed addressing.
@@ -1113,6 +1119,9 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(bool opt) const {
       locs->set_in(2, Location::WritableRegister());
       break;
     case kTypedDataFloat32ArrayCid:
+      // Need low register (<= Q7).
+      locs->set_in(2, Location::FpuRegisterLocation(Q7));
+      break;
     case kTypedDataFloat64ArrayCid:  // TODO(srdjan): Support Float64 constants.
     case kTypedDataInt32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
@@ -1242,12 +1251,10 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case kTypedDataFloat32ArrayCid: {
-      DRegister in2 = EvenDRegisterOf(locs()->in(2).fpu_reg());
-      // Convert to single precision.
-      __ vcvtsd(STMP, in2);
-      // Store.
+      SRegister value =
+          EvenSRegisterOf(EvenDRegisterOf(locs()->in(2).fpu_reg()));
       __ add(index.reg(), index.reg(), ShifterOperand(array));
-      __ StoreSToOffset(STMP, index.reg(), 0);
+      __ StoreSToOffset(value, index.reg(), 0);
       break;
     }
     case kTypedDataFloat64ArrayCid: {
@@ -4335,35 +4342,51 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* DoubleToDoubleInstr::MakeLocationSummary(bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* DoubleToFloatInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* result =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  // Low (<= Q7) Q registers are needed for the conversion instructions.
   result->set_in(0, Location::RequiresFpuRegister());
+  result->set_out(Location::FpuRegisterLocation(Q7));
+  return result;
+}
+
+
+void DoubleToFloatInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  DRegister value = EvenDRegisterOf(locs()->in(0).fpu_reg());
+  SRegister result = EvenSRegisterOf(EvenDRegisterOf(locs()->out().fpu_reg()));
+  __ vcvtsd(result, value);
+}
+
+
+LocationSummary* FloatToDoubleInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  // Low (<= Q7) Q registers are needed for the conversion instructions.
+  result->set_in(0, Location::FpuRegisterLocation(Q7));
   result->set_out(Location::RequiresFpuRegister());
   return result;
 }
 
 
-void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // QRegister value = locs()->in(0).fpu_reg();
-  // QRegister result = locs()->out().fpu_reg();
-  switch (recognized_kind()) {
-    case MethodRecognizer::kDoubleTruncate:
-      UNIMPLEMENTED();
-      // __ roundsd(result, value,  Assembler::kRoundToZero);
-      break;
-    case MethodRecognizer::kDoubleFloor:
-      UNIMPLEMENTED();
-      // __ roundsd(result, value,  Assembler::kRoundDown);
-      break;
-    case MethodRecognizer::kDoubleCeil:
-      UNIMPLEMENTED();
-      // __ roundsd(result, value,  Assembler::kRoundUp);
-      break;
-    default:
-      UNREACHABLE();
-  }
+void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  SRegister value = EvenSRegisterOf(EvenDRegisterOf(locs()->in(0).fpu_reg()));
+  DRegister result = EvenDRegisterOf(locs()->out().fpu_reg());
+  __ vcvtds(result, value);
 }
 
 

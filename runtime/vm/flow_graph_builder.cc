@@ -2392,7 +2392,7 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
 }
 
 
-static intptr_t GetResultCidOfNative(const Function& function) {
+static intptr_t GetResultCidOfNativeFactory(const Function& function) {
   const Class& function_class = Class::Handle(function.Owner());
   if (function_class.library() == Library::TypedDataLibrary()) {
     const String& function_name = String::Handle(function.name());
@@ -2435,8 +2435,11 @@ void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
                           arguments,
                           owner()->ic_data_array());
   if (node->function().is_native()) {
-    const intptr_t result_cid = GetResultCidOfNative(node->function());
-    call->set_result_cid(result_cid);
+    const intptr_t result_cid = GetResultCidOfNativeFactory(node->function());
+    if (result_cid != kDynamicCid) {
+      call->set_result_cid(result_cid);
+      call->set_is_native_list_factory(true);
+    }
   }
   ReturnDefinition(call);
 }

@@ -1285,6 +1285,35 @@ static Definition* CanonicalizeCommutativeArithmetic(Token::Kind op,
 }
 
 
+Definition* DoubleToFloatInstr::Canonicalize(FlowGraph* flow_graph) {
+#ifdef DEBUG
+  // Must only be used in Float32 StoreIndexedInstr or FloatToDoubleInstr or
+  // Phis introduce by load forwarding.
+  ASSERT(env_use_list() == NULL);
+  for (Value* use = input_use_list();
+       use != NULL;
+       use = use->next_use()) {
+    ASSERT(use->instruction()->IsPhi() ||
+           use->instruction()->IsFloatToDouble() ||
+           (use->instruction()->IsStoreIndexed() &&
+            (use->instruction()->AsStoreIndexed()->class_id() ==
+             kTypedDataFloat32ArrayCid)));
+  }
+#endif
+  if (!HasUses()) return NULL;
+  if (value()->definition()->IsFloatToDouble()) {
+    // F2D(D2F(v)) == v.
+    return value()->definition()->AsFloatToDouble()->value()->definition();
+  }
+  return this;
+}
+
+
+Definition* FloatToDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
+  return HasUses() ? this : NULL;
+}
+
+
 Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
   Definition* result = NULL;
 
@@ -1435,10 +1464,14 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   // call we can replace the length load with the length argument passed to
   // the constructor.
   StaticCallInstr* call = instance()->definition()->AsStaticCall();
-  if ((call != NULL) &&
-      call->is_known_list_constructor() &&
-      IsFixedLengthArrayCid(call->Type()->ToCid())) {
-    return call->ArgumentAt(1);
+  if (call != NULL) {
+    if (call->is_known_list_constructor() &&
+        IsFixedLengthArrayCid(call->Type()->ToCid())) {
+      return call->ArgumentAt(1);
+    }
+    if (call->is_native_list_factory()) {
+      return call->ArgumentAt(0);
+    }
   }
   // For arrays with guarded lengths, replace the length load
   // with a constant.
@@ -1838,7 +1871,23 @@ Instruction* GuardFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   if (field().guarded_list_length() != Field::kNoFixedLength) {
-    // We are still guarding the list length.
+    // We are still guarding the list length. Check if length is statically
+    // known.
+    StaticCallInstr* call = value()->definition()->AsStaticCall();
+    if (call != NULL) {
+      ConstantInstr* length = NULL;
+      if (call->is_known_list_constructor() &&
+          LoadFieldInstr::IsFixedLengthArrayCid(call->Type()->ToCid())) {
+        length = call->ArgumentAt(1)->AsConstant();
+      }
+      if (call->is_native_list_factory()) {
+        length = call->ArgumentAt(0)->AsConstant();
+      }
+      if ((length != NULL) && length->value().IsSmi()) {
+        intptr_t known_length = Smi::Cast(length->value()).Value();
+        return (known_length != field().guarded_list_length()) ? this : NULL;
+      }
+    }
     return this;
   }
 

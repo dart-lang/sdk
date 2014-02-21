@@ -663,6 +663,8 @@ class EmbeddedArray<T, 0> {
   M(DoubleToInteger)                                                           \
   M(DoubleToSmi)                                                               \
   M(DoubleToDouble)                                                            \
+  M(DoubleToFloat)                                                             \
+  M(FloatToDouble)                                                             \
   M(CheckClass)                                                                \
   M(CheckSmi)                                                                  \
   M(Constant)                                                                  \
@@ -1021,6 +1023,8 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class LICM;
   friend class DoubleToSmiInstr;
   friend class DoubleToDoubleInstr;
+  friend class DoubleToFloatInstr;
+  friend class FloatToDoubleInstr;
   friend class InvokeMathCFunctionInstr;
   friend class MergedMathInstr;
   friend class FlowGraphOptimizer;
@@ -3203,7 +3207,8 @@ class StaticCallInstr : public TemplateDefinition<0> {
         argument_names_(argument_names),
         arguments_(arguments),
         result_cid_(kDynamicCid),
-        is_known_list_constructor_(false) {
+        is_known_list_constructor_(false),
+        is_native_list_factory_(false) {
     ASSERT(function.IsZoneHandle());
     ASSERT(argument_names.IsZoneHandle() ||  argument_names.InVMHeap());
   }
@@ -3242,6 +3247,11 @@ class StaticCallInstr : public TemplateDefinition<0> {
     is_known_list_constructor_ = value;
   }
 
+  bool is_native_list_factory() const { return is_native_list_factory_; }
+  void set_is_native_list_factory(bool value) {
+    is_native_list_factory_ = value;
+  }
+
   virtual bool MayThrow() const { return true; }
 
  private:
@@ -3254,6 +3264,7 @@ class StaticCallInstr : public TemplateDefinition<0> {
 
   // 'True' for recognized list constructors.
   bool is_known_list_constructor_;
+  bool is_native_list_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticCallInstr);
 };
@@ -6613,6 +6624,92 @@ class DoubleToDoubleInstr : public TemplateDefinition<1> {
   const MethodRecognizer::Kind recognized_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(DoubleToDoubleInstr);
+};
+
+
+class DoubleToFloatInstr: public TemplateDefinition<1> {
+ public:
+  DoubleToFloatInstr(Value* value, intptr_t deopt_id) {
+    SetInputAt(0, value);
+    // Override generated deopt-id.
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  DECLARE_INSTRUCTION(DoubleToFloat)
+
+  virtual CompileType ComputeType() const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    // This works since double is the representation that the typed array
+    // store expects.
+    // TODO(fschneider): Change this to a genuine float representation once it
+    // is supported.
+    return kUnboxedDouble;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedDouble;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(DoubleToFloatInstr);
+};
+
+
+class FloatToDoubleInstr: public TemplateDefinition<1> {
+ public:
+  FloatToDoubleInstr(Value* value, intptr_t deopt_id) {
+    SetInputAt(0, value);
+    // Override generated deopt-id.
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  DECLARE_INSTRUCTION(FloatToDouble)
+
+  virtual CompileType ComputeType() const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedDouble;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedDouble;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(FloatToDoubleInstr);
 };
 
 

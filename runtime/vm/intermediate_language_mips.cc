@@ -1043,9 +1043,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         UNIMPLEMENTED();
         break;
       case kTypedDataFloat32ArrayCid:
-        // Load single precision float and promote to double.
-        __ lwc1(STMP1, element_address);
-        __ cvtds(result, STMP1);
+        // Load single precision float.
+        __ lwc1(EvenFRegisterOf(result), element_address);
         break;
       case kTypedDataFloat64ArrayCid:
         __ LoadDFromOffset(result, index.reg(),
@@ -1308,12 +1307,11 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       break;
     }
-    case kTypedDataFloat32ArrayCid:
-      // Convert to single precision.
-      __ cvtsd(STMP1, locs()->in(2).fpu_reg());
-      // Store.
-      __ swc1(STMP1, element_address);
+    case kTypedDataFloat32ArrayCid: {
+      FRegister value = EvenFRegisterOf(locs()->in(2).fpu_reg());
+      __ swc1(value, element_address);
       break;
+    }
     case kTypedDataFloat64ArrayCid:
       __ StoreDToOffset(locs()->in(2).fpu_reg(), index.reg(),
           FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
@@ -3546,8 +3544,44 @@ void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* DoubleToFloatInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::RequiresFpuRegister());
+  result->set_out(Location::SameAsFirstInput());
+  return result;
+}
+
+
+void DoubleToFloatInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  DRegister value = locs()->in(0).fpu_reg();
+  FRegister result = EvenFRegisterOf(locs()->out().fpu_reg());
+  __ cvtsd(result, value);
+}
+
+
+LocationSummary* FloatToDoubleInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::RequiresFpuRegister());
+  result->set_out(Location::SameAsFirstInput());
+  return result;
+}
+
+
+void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  FRegister value = EvenFRegisterOf(locs()->in(0).fpu_reg());
+  DRegister result = locs()->out().fpu_reg();
+  __ cvtds(result, value);
+}
+
+
 LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(bool opt) const {
-  // Calling convetion on MIPS uses D6 and D7 to pass the first two
+  // Calling convention on MIPS uses D6 and D7 to pass the first two
   // double arguments.
   ASSERT((InputCount() == 1) || (InputCount() == 2));
   const intptr_t kNumTemps = 0;

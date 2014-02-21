@@ -1242,6 +1242,15 @@ bool FlowGraphOptimizer::InlineSetIndexed(
                                     Definition::kEffect);
   }
 
+  if (array_cid == kTypedDataFloat32ArrayCid) {
+    stored_value =
+        new DoubleToFloatInstr(new Value(stored_value), call->deopt_id());
+    cursor = flow_graph()->AppendTo(cursor,
+                                    stored_value,
+                                    NULL,
+                                    Definition::kValue);
+  }
+
   intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(array_cid);
   *last = new StoreIndexedInstr(new Value(array),
                                 new Value(index),
@@ -1578,10 +1587,19 @@ bool FlowGraphOptimizer::InlineGetIndexed(MethodRecognizer::Kind kind,
                                index_scale,
                                array_cid,
                                deopt_id);
-  flow_graph()->AppendTo(cursor,
-                         *last,
-                         deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
-                         Definition::kValue);
+  cursor = flow_graph()->AppendTo(
+      cursor,
+      *last,
+      deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
+      Definition::kValue);
+
+  if (array_cid == kTypedDataFloat32ArrayCid) {
+    *last = new FloatToDoubleInstr(new Value(*last), deopt_id);
+    flow_graph()->AppendTo(cursor,
+                           *last,
+                           deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
+                           Definition::kValue);
+  }
   return true;
 }
 
@@ -3227,10 +3245,19 @@ bool FlowGraphOptimizer::InlineByteArrayViewLoad(Instruction* call,
                                1,
                                view_cid,
                                deopt_id);
-  flow_graph()->AppendTo(cursor,
-                         *last,
-                         deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
-                         Definition::kValue);
+  cursor = flow_graph()->AppendTo(
+      cursor,
+      *last,
+      deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
+      Definition::kValue);
+
+  if (view_cid == kTypedDataFloat32ArrayCid) {
+    *last = new FloatToDoubleInstr(new Value(*last), deopt_id);
+    flow_graph()->AppendTo(cursor,
+                           *last,
+                           deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
+                           Definition::kValue);
+  }
   return true;
 }
 
@@ -3341,6 +3368,16 @@ bool FlowGraphOptimizer::InlineByteArrayViewStore(const Function& target,
     AddCheckClass(stored_value, value_check, call->deopt_id(), call->env(),
                   call);
   }
+
+  if (view_cid == kTypedDataFloat32ArrayCid) {
+    stored_value =
+        new DoubleToFloatInstr(new Value(stored_value), call->deopt_id());
+    cursor = flow_graph()->AppendTo(cursor,
+                                    stored_value,
+                                    NULL,
+                                    Definition::kValue);
+  }
+
   StoreBarrierType needs_store_barrier = kNoStoreBarrier;
   *last = new StoreIndexedInstr(new Value(array),
                                 new Value(index),
@@ -5325,8 +5362,8 @@ class AliasedSet : public ZoneAllocated {
 
   const PhiPlaceMoves* phi_moves() const { return phi_moves_; }
 
-  // Returns true if the result of AllocateObject can be aliased by some
-  // other SSA variable and false otherwise. Currently simply checks if
+  // Returns true if the result of an allocation instruction can be aliased by
+  // some other SSA variable and false otherwise. Currently simply checks if
   // this value is stored in a field, escapes to another function or
   // participates in a phi.
   static bool CanBeAliased(AllocateObjectInstr* alloc) {
@@ -5787,6 +5824,7 @@ class LoadOptimizer : public ValueObject {
           if ((array_store == NULL) ||
               (array_store->class_id() == kArrayCid) ||
               (array_store->class_id() == kTypedDataFloat64ArrayCid) ||
+              (array_store->class_id() == kTypedDataFloat32ArrayCid) ||
               (array_store->class_id() == kTypedDataFloat32x4ArrayCid)) {
             bool is_load = false;
             Place store_place(instr, &is_load);
@@ -7497,6 +7535,18 @@ void ConstantPropagator::VisitDoubleToSmi(DoubleToSmiInstr* instr) {
 
 
 void ConstantPropagator::VisitDoubleToDouble(DoubleToDoubleInstr* instr) {
+  // TODO(kmillikin): Handle conversion.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitDoubleToFloat(DoubleToFloatInstr* instr) {
+  // TODO(kmillikin): Handle conversion.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloatToDouble(FloatToDoubleInstr* instr) {
   // TODO(kmillikin): Handle conversion.
   SetValue(instr, non_constant_);
 }

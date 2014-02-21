@@ -1236,6 +1236,17 @@ CompileType DoubleToDoubleInstr::ComputeType() const {
 }
 
 
+CompileType FloatToDoubleInstr::ComputeType() const {
+  return CompileType::FromCid(kDoubleCid);
+}
+
+
+CompileType DoubleToFloatInstr::ComputeType() const {
+  // Type is double when converted back.
+  return CompileType::FromCid(kDoubleCid);
+}
+
+
 CompileType InvokeMathCFunctionInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }

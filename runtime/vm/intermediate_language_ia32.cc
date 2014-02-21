@@ -966,9 +966,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ movss(result, element_address);
         break;
       case kTypedDataFloat32ArrayCid:
-        // Load single precision float and promote to double.
         __ movss(result, element_address);
-        __ cvtss2sd(result, locs()->out().fpu_reg());
         break;
       case kTypedDataFloat64ArrayCid:
         __ movsd(result, element_address);
@@ -1118,9 +1116,6 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(bool opt) const {
                       : Location::RequiresFpuRegister());
       break;
     case kTypedDataFloat32ArrayCid:
-      // Need temp register for float-to-double conversion.
-      locs->AddTemp(Location::RequiresFpuRegister());
-      // Fall through.
     case kTypedDataFloat64ArrayCid:
       // TODO(srdjan): Support Float64 constants.
       locs->set_in(2, Location::RequiresFpuRegister());
@@ -1239,10 +1234,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       break;
     case kTypedDataFloat32ArrayCid:
-      // Convert to single precision.
-      __ cvtsd2ss(locs()->temp(0).fpu_reg(), locs()->in(2).fpu_reg());
-      // Store.
-      __ movss(element_address, locs()->temp(0).fpu_reg());
+      __ movss(element_address, locs()->in(2).fpu_reg());
       break;
     case kTypedDataFloat64ArrayCid:
       __ movsd(element_address, locs()->in(2).fpu_reg());
@@ -4268,6 +4260,38 @@ void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     default:
       UNREACHABLE();
   }
+}
+
+
+LocationSummary* DoubleToFloatInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::RequiresFpuRegister());
+  result->set_out(Location::SameAsFirstInput());
+  return result;
+}
+
+
+void DoubleToFloatInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ cvtsd2ss(locs()->out().fpu_reg(), locs()->in(0).fpu_reg());
+}
+
+
+LocationSummary* FloatToDoubleInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::RequiresFpuRegister());
+  result->set_out(Location::SameAsFirstInput());
+  return result;
+}
+
+
+void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ cvtss2sd(locs()->out().fpu_reg(), locs()->in(0).fpu_reg());
 }
 
 
