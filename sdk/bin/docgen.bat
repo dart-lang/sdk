@@ -25,9 +25,9 @@ if not defined DART_CONFIGURATION set DART_CONFIGURATION=ReleaseIA32
 
 set BUILD_DIR=%SDK_DIR%\..\build\%DART_CONFIGURATION%
 if exist "%SNAPSHOT%" (
-  "%DART%" "%SNAPSHOT%" "docgen" "--sdk=%SDK_DIR" %*
+  "%DART%" "%SNAPSHOT%" "docgen" "--sdk=%SDK_DIR%" %*
 ) else (
-  "%BUILD_DIR%\dart-sdk\bin\dart" "--package-root=%BUILD_DIR%\packages" "%DOCGEN%" "--sdk=%SDK_DIR" %*
+  "%BUILD_DIR%\dart-sdk\bin\dart" "--package-root=%BUILD_DIR%\packages" "%DOCGEN%" "--sdk=%SDK_DIR%" %*
 )
 
 endlocal
