@@ -11,32 +11,39 @@ import 'package:path/path.dart' as path;
 
 /// Attempts to provide the current Dart SDK directory.
 ///
+/// This will return null if the SDK cannot be found
+///
 /// Note that this may not be correct when executing outside of `pub`.
 String get dartSdkDirectory {
+
+  bool isSdkDir(String dirname) =>
+      new File(path.join(dirname, 'lib', '_internal', 'libraries.dart'))
+        .existsSync();
+
   if (path.split(Platform.executable).length == 1) {
     // TODO(blois): make this cross-platform.
     // HACK: A single part, hope it's on the path.
     var result = Process.runSync('which', ['dart'],
         stdoutEncoding: convert.UTF8);
-    return path.dirname(path.dirname(result.stdout));
+
+    var sdkDir = path.dirname(path.dirname(result.stdout));
+    if (isSdkDir(sdkDir)) return sdkDir;
   }
-  var sdkDir = path.dirname(path.absolute(Platform.executable));
+  var dartDir = path.dirname(path.absolute(Platform.executable));
   // If there's a sub-dir named dart-sdk then we're most likely executing from
   // a dart enlistment build directory.
-  if (new Directory(path.join(sdkDir, 'dart-sdk')).existsSync()) {
-    return path.join(sdkDir, 'dart-sdk');
+  if (isSdkDir(path.join(dartDir, 'dart-sdk'))) {
+    return path.join(dartDir, 'dart-sdk');
   }
   // If we can find libraries.dart then it's the root of the SDK.
-  if (new File(path.join(sdkDir, 'lib', '_internal', 'libraries.dart'))
-      .existsSync()) {
-    return sdkDir;
-  }
+  if (isSdkDir(dartDir)) return dartDir;
 
-  var parts = path.split(sdkDir);
+  var parts = path.split(dartDir);
   // If the dart executable is within the sdk dir then get the root.
   if (parts.contains('dart-sdk')) {
-    return path.joinAll(parts.take(parts.indexOf('dart-sdk') + 1));
+    var dartSdkDir = path.joinAll(parts.take(parts.indexOf('dart-sdk') + 1));
+    if (isSdkDir(dartSdkDir)) return dartSdkDir;
   }
 
-  return sdkDir;
+  return null;
 }

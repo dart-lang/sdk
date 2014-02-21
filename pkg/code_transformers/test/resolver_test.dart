@@ -4,17 +4,28 @@
 
 library code_transformers.test.resolver_test;
 
+import 'dart:io' show File, Platform;
+
 import 'package:barback/barback.dart';
 import 'package:code_transformers/resolver.dart';
 import 'package:code_transformers/tests.dart';
+import 'package:path/path.dart' as path;
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 
 main() {
   useCompactVMConfiguration();
 
+  var sdkDir = dartSdkDirectory;
+  if (sdkDir == null) {
+    // If we cannot find the SDK dir, then assume this is being run from Dart's
+    // source directory and this script is the main script.
+    sdkDir = path.join(
+        path.dirname(path.fromUri(Platform.script)), '..', '..', '..', 'sdk');
+  }
+
   var entryPoint = new AssetId('a', 'web/main.dart');
-  var transformer = new ResolverTransformer(dartSdkDirectory,
+  var transformer = new ResolverTransformer(sdkDir,
       (asset) => asset.id == entryPoint);
 
   var phases = [[transformer]];
