@@ -233,6 +233,7 @@ static void ReadFileThread(uword args) {
 
 
 void Handle::ReadSyncCompleteAsync() {
+  ScopedLock lock(this);
   ASSERT(pending_read_ != NULL);
   ASSERT(pending_read_->GetBufferSize() >= kStdOverlappedBufferSize);
 
