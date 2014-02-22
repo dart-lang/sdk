@@ -8,7 +8,10 @@ description: >
 dependencies:
   barback: ">=0.9.0 <0.12.0"
   logging: ">=0.9.0 <0.10.0"
-transformers: [smoke/src/default_transformer]
+#TODO(sigmund): uncomment this once we have some easier way to do global
+# app-level transformers or a way to enable this selectively from the
+# application package.
+#transformers: [smoke/src/default_transformer]
 dev_dependencies:
   unittest: ">=0.9.0 <0.10.0"
 environment:
