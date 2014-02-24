@@ -160,7 +160,6 @@ bool Handle::CreateCompletionPort(HANDLE completion_port) {
                                             reinterpret_cast<ULONG_PTR>(this),
                                             0);
   if (completion_port_ == NULL) {
-    Log::PrintErr("Error CreateIoCompletionPort: %d\n", GetLastError());
     return false;
   }
   return true;
@@ -247,9 +246,6 @@ void Handle::ReadSyncCompleteAsync() {
                      &bytes_read,
                      NULL);
   if (!ok) {
-    if (GetLastError() != ERROR_BROKEN_PIPE) {
-      Log::PrintErr("ReadFile failed %d\n", GetLastError());
-    }
     bytes_read = 0;
   }
   OVERLAPPED* overlapped = pending_read_->GetCleanOverlapped();
@@ -423,7 +419,6 @@ bool ListenSocket::LoadAcceptEx() {
                         NULL,
                         NULL);
   if (status == SOCKET_ERROR) {
-    Log::PrintErr("Error WSAIoctl failed: %d\n", WSAGetLastError());
     return false;
   }
   return true;
@@ -491,7 +486,6 @@ void ListenSocket::AcceptComplete(OverlappedBuffer* buffer,
         accepted_tail_ = client_socket;
       }
     } else {
-      Log::PrintErr("setsockopt failed: %d\n", WSAGetLastError());
       closesocket(buffer->client());
     }
   } else {
@@ -667,9 +661,6 @@ void StdHandle::WriteSyncCompleteAsync() {
                       &bytes_written,
                       NULL);
   if (!ok) {
-    if (GetLastError() != ERROR_BROKEN_PIPE) {
-      Log::PrintErr("WriteFile failed %d\n", GetLastError());
-    }
     bytes_written = 0;
   }
   thread_wrote_ += bytes_written;
@@ -745,7 +736,6 @@ bool ClientSocket::LoadDisconnectEx() {
                         NULL,
                         NULL);
   if (status == SOCKET_ERROR) {
-    Log::PrintErr("Error WSAIoctl failed: %d\n", WSAGetLastError());
     return false;
   }
   return true;
