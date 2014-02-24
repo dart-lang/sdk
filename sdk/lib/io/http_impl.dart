@@ -2007,7 +2007,7 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection> {
 
 // HTTP server waiting for socket connections.
 class _HttpServer extends Stream<HttpRequest> implements HttpServer {
-  String serverHeader = _getHttpVersion();
+  String serverHeader;
 
   Duration idleTimeout = const Duration(seconds: 120);
 
