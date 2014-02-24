@@ -258,7 +258,7 @@ testAdditionalComponents() {
   check("file:///path#fragment");
   check("file:///path?query#fragment");
   check("file://host/path", windowsOk: true);
-  check("file://user@password:host/path");
+  check("file://user:password@host/path", windowsOk: true);
 }
 
 main() {

@@ -118,17 +118,229 @@ class Uri {
   /**
    * Creates a new URI object by parsing a URI string.
    */
-  static Uri parse(String uri) => new Uri._fromMatch(_splitRe.firstMatch(uri));
+  static Uri parse(String uri) {
+    // This parsing will not validate percent-encoding, IPv6, etc. When done
+    // it will call `new Uri(...)` which will perform these validations.
+    // This is purely splitting up the URI string into components.
+    //
+    // Important parts of the RFC 3986 used here:
+    // URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
+    //
+    // hier-part     = "//" authority path-abempty
+    //               / path-absolute
+    //               / path-rootless
+    //               / path-empty
+    //
+    // URI-reference = URI / relative-ref
+    //
+    // absolute-URI  = scheme ":" hier-part [ "?" query ]
+    //
+    // relative-ref  = relative-part [ "?" query ] [ "#" fragment ]
+    //
+    // relative-part = "//" authority path-abempty
+    //               / path-absolute
+    //               / path-noscheme
+    //               / path-empty
+    //
+    // scheme        = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+    //
+    // authority     = [ userinfo "@" ] host [ ":" port ]
+    // userinfo      = *( unreserved / pct-encoded / sub-delims / ":" )
+    // host          = IP-literal / IPv4address / reg-name
+    // port          = *DIGIT
+    // reg-name      = *( unreserved / pct-encoded / sub-delims )
+    //
+    // path          = path-abempty    ; begins with "/" or is empty
+    //               / path-absolute   ; begins with "/" but not "//"
+    //               / path-noscheme   ; begins with a non-colon segment
+    //               / path-rootless   ; begins with a segment
+    //               / path-empty      ; zero characters
+    //
+    // path-abempty  = *( "/" segment )
+    // path-absolute = "/" [ segment-nz *( "/" segment ) ]
+    // path-noscheme = segment-nz-nc *( "/" segment )
+    // path-rootless = segment-nz *( "/" segment )
+    // path-empty    = 0<pchar>
+    //
+    // segment       = *pchar
+    // segment-nz    = 1*pchar
+    // segment-nz-nc = 1*( unreserved / pct-encoded / sub-delims / "@" )
+    //               ; non-zero-length segment without any colon ":"
+    //
+    // pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
+    //
+    // query         = *( pchar / "/" / "?" )
+    //
+    // fragment      = *( pchar / "/" / "?" )
+    bool isRegName(int ch) {
+      return ch < 128 && ((_regNameTable[ch >> 4] & (1 << (ch & 0x0f))) != 0);
+    }
 
-  Uri._fromMatch(Match m) :
-    this(scheme: _makeScheme(_emptyIfNull(m[_COMPONENT_SCHEME])),
-         userInfo: _emptyIfNull(m[_COMPONENT_USER_INFO]),
-         host: _eitherOf(
-         m[_COMPONENT_HOST], m[_COMPONENT_HOST_IPV6]),
-         port: _parseIntOrZero(m[_COMPONENT_PORT]),
-         path: _emptyIfNull(m[_COMPONENT_PATH]),
-         query: _emptyIfNull(m[_COMPONENT_QUERY_DATA]),
-         fragment: _emptyIfNull(m[_COMPONENT_FRAGMENT]));
+    int ipV6Address(List<int> codeUnits, int index) {
+      // IPv6. Skip to ']'.
+      index = codeUnits.indexOf(_RIGHT_BRACKET, index);
+      if (index == -1) {
+        throw new FormatException("Bad end of IPv6 host");
+      }
+      return index + 1;
+    }
+
+    List<int> codeUnits = uri.codeUnits;
+    int length = codeUnits.length;
+    int index = 0;
+
+    int schemeEndIndex = 0;
+
+    if (length == 0) {
+      return new Uri();
+    }
+
+    if (codeUnits[0] != _SLASH) {
+      // Can be scheme.
+      while (index < length) {
+        // Look for ':'. If found, continue from the post of ':'. If not (end
+        // reached or invalid scheme char found) back up one char, and continue
+        // to path.
+        // Note that scheme-chars is contained in path-chars.
+        int codeUnit = codeUnits[index++];
+        if (!_isSchemeCharacter(codeUnit)) {
+          if (codeUnit == _COLON) {
+            schemeEndIndex = index;
+          } else {
+            // Back up one char, since we met an invalid scheme char.
+            index--;
+          }
+          break;
+        }
+      }
+    }
+
+    int userInfoEndIndex = -1;
+    int portIndex = -1;
+    int authorityEndIndex = schemeEndIndex;
+    // If we see '//', there must be an authority.
+    if (authorityEndIndex == index &&
+        authorityEndIndex + 1 < length &&
+        codeUnits[authorityEndIndex] == _SLASH &&
+        codeUnits[authorityEndIndex + 1] == _SLASH) {
+      // Skip '//'.
+      authorityEndIndex += 2;
+      // It can both be host and userInfo.
+      while (authorityEndIndex < length) {
+        int codeUnit = codeUnits[authorityEndIndex++];
+        if (!isRegName(codeUnit)) {
+          if (codeUnit == _LEFT_BRACKET) {
+            authorityEndIndex = ipV6Address(codeUnits, authorityEndIndex);
+          } else if (portIndex == -1 && codeUnit == _COLON) {
+            // First time ':'.
+            portIndex = authorityEndIndex;
+          } else if (codeUnit == _AT_SIGN || codeUnit == _COLON) {
+            // Second time ':' or first '@'. Must be userInfo.
+            userInfoEndIndex = codeUnits.indexOf('@'.codeUnitAt(0),
+                                                 authorityEndIndex - 1);
+            // Not found. Must be path then.
+            if (userInfoEndIndex == -1) {
+              authorityEndIndex = index;
+              break;
+            }
+            portIndex = -1;
+            authorityEndIndex = userInfoEndIndex + 1;
+            // Now it can only be host:port.
+            while (authorityEndIndex < length) {
+              int codeUnit = codeUnits[authorityEndIndex++];
+              if (!isRegName(codeUnit)) {
+                if (codeUnit == _LEFT_BRACKET) {
+                  authorityEndIndex = ipV6Address(codeUnits, authorityEndIndex);
+                } else if (codeUnit == _COLON) {
+                  if (portIndex != -1) {
+                    throw new FormatException("Double port in host");
+                  }
+                  portIndex = authorityEndIndex;
+                } else {
+                  authorityEndIndex--;
+                  break;
+                }
+              }
+            }
+            break;
+          } else {
+            authorityEndIndex--;
+            break;
+          }
+        }
+      }
+    } else {
+      authorityEndIndex = schemeEndIndex;
+    }
+
+    // At path now.
+    int pathEndIndex = authorityEndIndex;
+    while (pathEndIndex < length) {
+      int codeUnit = codeUnits[pathEndIndex++];
+      if (codeUnit == _QUESTION || codeUnit == _NUMBER_SIGN) {
+        pathEndIndex--;
+        break;
+      }
+    }
+
+    // Maybe query.
+    int queryEndIndex = pathEndIndex;
+    if (queryEndIndex < length && codeUnits[queryEndIndex] == _QUESTION) {
+      while (queryEndIndex < length) {
+        int codeUnit = codeUnits[queryEndIndex++];
+        if (codeUnit == _NUMBER_SIGN) {
+          queryEndIndex--;
+          break;
+        }
+      }
+    }
+
+    var scheme = null;
+    if (schemeEndIndex > 0) {
+      scheme = uri.substring(0, schemeEndIndex - 1);
+    }
+
+    var host = "";
+    var userInfo = "";
+    var port = 0;
+    if (schemeEndIndex != authorityEndIndex) {
+      int startIndex = schemeEndIndex + 2;
+      if (userInfoEndIndex > 0) {
+        userInfo = uri.substring(startIndex, userInfoEndIndex);
+        startIndex = userInfoEndIndex + 1;
+      }
+      if (portIndex > 0) {
+        var portStr = uri.substring(portIndex, authorityEndIndex);
+        try {
+          port = int.parse(portStr);
+        } catch (_) {
+          throw new FormatException("Invalid port: '$portStr'");
+        }
+        host = uri.substring(startIndex, portIndex - 1);
+      } else {
+        host = uri.substring(startIndex, authorityEndIndex);
+      }
+    }
+
+    var path = uri.substring(authorityEndIndex, pathEndIndex);
+    var query = "";
+    if (pathEndIndex < queryEndIndex) {
+      query = uri.substring(pathEndIndex + 1, queryEndIndex);
+    }
+    var fragment = "";
+    // If queryEndIndex is not at end (length), there is a fragment.
+    if (queryEndIndex < length) {
+      fragment = uri.substring(queryEndIndex + 1, length);
+    }
+
+    return new Uri(scheme: scheme,
+                   userInfo: userInfo,
+                   host: host,
+                   port: port,
+                   path: path,
+                   query: query,
+                   fragment: fragment);
+  }
 
   /**
    * Creates a new URI from its components.
@@ -545,10 +757,6 @@ class Uri {
              ((_schemeLowerTable[ch >> 4] & (1 << (ch & 0x0f))) != 0);
     }
 
-    bool isSchemeCharacter(int ch) {
-      return ch < 128 && ((_schemeTable[ch >> 4] & (1 << (ch & 0x0f))) != 0);
-    }
-
     if (scheme == null) return "";
     bool allLowercase = true;
     int length = scheme.length;
@@ -559,7 +767,7 @@ class Uri {
         throw new ArgumentError('Illegal scheme: $scheme');
       }
       if (!isSchemeLowerCharacter(codeUnit)) {
-        if (isSchemeCharacter(codeUnit)) {
+        if (_isSchemeCharacter(codeUnit)) {
           allLowercase = false;
         } else {
           throw new ArgumentError('Illegal scheme: $scheme');
@@ -724,57 +932,10 @@ class Uri {
     return result.toString();
   }
 
-  static String _emptyIfNull(String val) => val != null ? val : '';
-
-  static int _parseIntOrZero(String val) {
-    if (val != null && val != '') {
-      return int.parse(val);
-    } else {
-      return 0;
-    }
+  static bool _isSchemeCharacter(int ch) {
+    return ch < 128 && ((_schemeTable[ch >> 4] & (1 << (ch & 0x0f))) != 0);
   }
 
-  static String _eitherOf(String val1, String val2) {
-    if (val1 != null) return val1;
-    if (val2 != null) return val2;
-    return '';
-  }
-
-  // NOTE: This code was ported from: closure-library/closure/goog/uri/utils.js
-  static final RegExp _splitRe = new RegExp(
-      '^'
-      '(?:'
-        '([^:/?#]+)'                    // scheme - ignore special characters
-                                        // used by other URL parts such as :,
-                                        // ?, /, #, and .
-      ':)?'
-      '(?://'
-        '(?:([^/?#]*)@)?'               // userInfo
-        '(?:'
-          r'([\w\d\-\u0100-\uffff.%]*)'
-                                        // host - restrict to letters,
-                                        // digits, dashes, dots, percent
-                                        // escapes, and unicode characters.
-          '|'
-          // TODO(ajohnsen): Only allow a max number of parts?
-          r'\[([A-Fa-f0-9:.]*)\])'
-                                        // IPv6 host - restrict to hex,
-                                        // dot and colon.
-        '(?::([0-9]+))?'                // port
-      ')?'
-      r'([^?#[]+)?'                     // path
-      r'(?:\?([^#]*))?'                 // query
-      '(?:#(.*))?'                      // fragment
-      r'$');
-
-  static const _COMPONENT_SCHEME = 1;
-  static const _COMPONENT_USER_INFO = 2;
-  static const _COMPONENT_HOST = 3;
-  static const _COMPONENT_HOST_IPV6 = 4;
-  static const _COMPONENT_PORT = 5;
-  static const _COMPONENT_PATH = 6;
-  static const _COMPONENT_QUERY_DATA = 7;
-  static const _COMPONENT_FRAGMENT = 8;
 
   /**
    * Returns whether the URI is absolute.
@@ -1374,6 +1535,7 @@ class Uri {
   // Frequently used character codes.
   static const int _SPACE = 0x20;
   static const int _DOUBLE_QUOTE = 0x22;
+  static const int _NUMBER_SIGN = 0x23;
   static const int _PERCENT = 0x25;
   static const int _ASTERISK = 0x2A;
   static const int _PLUS = 0x2B;
@@ -1619,6 +1781,27 @@ class Uri {
       0x0000,   // 0x10 - 0x1f  0000000000000000
                 //               !  $ &'()*+,-.
       0x7fd2,   // 0x20 - 0x2f  0100101111111110
+                //              0123456789 ; =
+      0x2bff,   // 0x30 - 0x3f  1111111111010100
+                //               ABCDEFGHIJKLMNO
+      0xfffe,   // 0x40 - 0x4f  0111111111111111
+                //              PQRSTUVWXYZ    _
+      0x87ff,   // 0x50 - 0x5f  1111111111100001
+                //               abcdefghijklmno
+      0xfffe,   // 0x60 - 0x6f  0111111111111111
+                //              pqrstuvwxyz   ~
+      0x47ff];  // 0x70 - 0x7f  1111111111100010
+
+  // Characters allowed in the reg-name as of RFC 3986.
+  // RFC 3986 Apendix A
+  // reg-name = *( unreserved / pct-encoded / sub-delims )
+  static const _regNameTable = const [
+                //             LSB            MSB
+                //              |              |
+      0x0000,   // 0x00 - 0x0f  0000000000000000
+      0x0000,   // 0x10 - 0x1f  0000000000000000
+                //               !  $%&'()*+,-.
+      0x7ff2,   // 0x20 - 0x2f  0100111111111110
                 //              0123456789 ; =
       0x2bff,   // 0x30 - 0x3f  1111111111010100
                 //               ABCDEFGHIJKLMNO

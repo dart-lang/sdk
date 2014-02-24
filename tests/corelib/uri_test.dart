@@ -256,4 +256,9 @@ main() {
   testEncodeDecodeQueryComponent("A + B", "A+%2B+B", "A+%2B+B", "A+%2B+B");
   testEncodeDecodeQueryComponent(
       "æ ø å", "%C3%A6+%C3%B8+%C3%A5", "%E6+%F8+%E5", null);
+
+  // Invalid URI - : and @ is swapped, port ("host") should be numeric.
+  Expect.throws(
+      () => Uri.parse("file://user@password:host/path"),
+      (e) => e is FormatException);
 }
