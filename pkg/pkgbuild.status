@@ -18,7 +18,6 @@ pkg/unittest: PubGetError
 [ $use_public_packages ]
 pkg/template_binding: Pass, PubGetError # Issue 16026
 pkg/polymer: PubGetError # Issue 16026
-pkg/code_transformers: PubGetError # Issue 16026
 pkg/polymer_expressions: PubGetError # Issue 16026
 
 [ $builder_tag == russian ]
