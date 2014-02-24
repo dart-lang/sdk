@@ -297,15 +297,17 @@ class _MethodClosure extends Function {
 
   _MethodClosure(this.receiver, this.methodName);
 
-  // We shouldn't need to include [call] here, but we do to work around an
-  // analyzer bug (see dartbug.com/16078). Interestingly, if [call] is invoked
-  // with the wrong number of arguments, then noSuchMethod is anyways invoked
-  // instead.
-  call() => invoke(receiver, methodName, const []);
-
-  noSuchMethod(Invocation inv) {
-    if (inv.memberName != #call) return null;
-    return invoke(receiver, methodName,
-        inv.positionalArguments, namedArgs: inv.namedArguments);
-  }
+  // Technically we could just use noSuchMethod to implement [call], but we
+  // don't for 3 reasons:
+  //   * noSuchMethod makes the code a lot bigger.
+  //   * even with noSuchMethod, an analyzer bug requires to declare [call] (see
+  //     dartbug.com/16078).
+  //   * having [call] also allows `is` checks to work for functions of 0
+  //     through 3 arguments.  We depend on this in
+  //     `polymer_expressions/lib/eval.dart` to check whether a function is a
+  //     filter (takes a single argument). (Note that it's possible to include
+  //     both [call] and [noSuchMethod], which would make instance-of checks
+  //     work with the signature of [call], but will allow invoking the function
+  //     using [noSuchMethod].
+  call([a, b, c]) => invoke(receiver, methodName, [a, b, c], adjust: true);
 }

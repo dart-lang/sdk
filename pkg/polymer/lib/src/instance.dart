@@ -363,32 +363,34 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   void attributeToProperty(String name, String value) {
     // try to match this attribute to a property (attributes are
     // all lower-case, so this is case-insensitive search)
-    var property = propertyForAttribute(name);
-    if (property == null) return;
+    var decl = propertyForAttribute(name);
+    if (decl == null) return;
 
     // filter out 'mustached' values, these are to be
     // replaced with bound-data and are not yet values
     // themselves.
     if (value == null || value.contains(Polymer.bindPattern)) return;
 
-    // get original value
-    final self = reflect(this);
-    final currentValue = self.getField(property.simpleName).reflectee;
+    final currentValue = smoke.read(this, decl.name);
 
     // deserialize Boolean or Number values from attribute
-    final newValue = deserializeValue(value, currentValue,
-        _inferPropertyType(currentValue, property));
+    var type = decl.type;
+    if ((type == Object || type == dynamic) && currentValue != null) {
+      // Attempt to infer field type from the current value.
+      type = currentValue.runtimeType;
+    }
+    final newValue = deserializeValue(value, currentValue, type);
 
     // only act if the value has changed
     if (!identical(newValue, currentValue)) {
       // install new value (has side-effects)
-      self.setField(property.simpleName, newValue);
+      smoke.write(this, decl.name, newValue);
     }
   }
 
   /** Return the published property matching name, or null. */
   // TODO(jmesserly): should we just return Symbol here?
-  DeclarationMirror propertyForAttribute(String name) {
+  smoke.Declaration propertyForAttribute(String name) {
     final publishLC = _declaration._publishLC;
     if (publishLC == null) return null;
     //console.log('propertyForAttribute:', name, 'matches', match);
@@ -398,10 +400,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   /**
    * Convert representation of [value] based on [type] and [currentValue].
    */
-  // TODO(jmesserly): this should probably take a ClassMirror instead of
-  // TypeMirror, but it is currently impossible to get from a TypeMirror to a
-  // ClassMirror.
-  Object deserializeValue(String value, Object currentValue, TypeMirror type) =>
+  Object deserializeValue(String value, Object currentValue, Type type) =>
       deserialize.deserializeValue(value, currentValue, type);
 
   String serializeValue(Object value) {
@@ -458,15 +457,15 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     // property changes that occur as a result of binding will be observed.
     if (!_elementPrepared) prepareElement();
 
-    var property = propertyForAttribute(name);
-    if (property == null) {
+    var decl = propertyForAttribute(name);
+    if (decl == null) {
       // Cannot call super.bind because template_binding is its own package
       return nodeBindFallback(this).bind(name, bindable, oneTime: oneTime);
     } else {
       // clean out the closets
       unbind(name);
       // use n-way Polymer binding
-      var observer = bindProperty(property.simpleName, bindable);
+      var observer = bindProperty(decl.name, bindable);
 
       // reflect bound property to attribute when binding
       // to ensure binding is not left on attribute if property
@@ -476,7 +475,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
 
       // TODO(jmesserly): polymer has the path_ in their observer object, should
       // we use that too instead of allocating it here?
-      reflectPropertyToAttribute(new PropertyPath([property.simpleName]));
+      reflectPropertyToAttribute(new PropertyPath([decl.name]));
       return bindings[name] = observer;
     }
   }
@@ -598,7 +597,8 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
         // observes the value if it is an array
         observeArrayValue(path, newValue, oldValue);
         // Dart note: JS passes "arguments", so we pass along our args.
-        invokeMethod(method, [oldValue, newValue, newValues, oldValues, paths]);
+        smoke.invoke(this, method,
+            [oldValue, newValue, newValues, oldValues, paths], adjust: true);
       }
     });
   }
@@ -628,7 +628,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
       }
       var sub = value.listChanges.listen((changes) {
         for (var callback in callbacks) {
-          invokeMethod(callback, [old]);
+          smoke.invoke(this, callback, [old], adjust: true);
         }
       });
       registerObserver('${name}__array', sub);
@@ -761,9 +761,16 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     if (log) _eventsLog.fine('>>> [$localName]: dispatch $callbackOrMethod');
 
     if (callbackOrMethod is Function) {
+      int maxArgs = smoke.maxArgs(callbackOrMethod);
+      if (maxArgs == -1) {
+        _eventsLog.warning(
+            'invalid callback: expected callback of 0, 1, 2, or 3 arguments');
+      }
+      args.length = maxArgs;
       Function.apply(callbackOrMethod, args);
     } else if (callbackOrMethod is String) {
-      _invokeMethod(object, new Symbol(callbackOrMethod), args);
+      smoke.invoke(object, smoke.nameToSymbol(callbackOrMethod), args,
+          adjust: true);
     } else {
       _eventsLog.warning('invalid callback');
     }
@@ -799,31 +806,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
 
   /** Call [methodName] method on this object with [args]. */
   invokeMethod(Symbol methodName, List args) =>
-      _invokeMethod(this, methodName, args);
-
-  /** Call [methodName] method on [receiver] with [args]. */
-  static _invokeMethod(receiver, Symbol methodName, List args) {
-    // TODO(jmesserly): use function type tests instead of mirrors for dispatch.
-    var receiverMirror = reflect(receiver);
-    var method = _findMethod(receiverMirror.type, methodName);
-    if (method != null) {
-      // This will either truncate the argument list or extend it with extra
-      // null arguments, so it will match the signature.
-      // TODO(sigmund): consider accepting optional arguments when we can tell
-      // them appart from named arguments (see http://dartbug.com/11334)
-      args.length = method.parameters.where((p) => !p.isOptional).length;
-    }
-    return receiverMirror.invoke(methodName, args).reflectee;
-  }
-
-  static MethodMirror _findMethod(ClassMirror type, Symbol name) {
-    do {
-      var member = type.declarations[name];
-      if (member is MethodMirror) return member;
-      type = type.superclass;
-    } while (type != null);
-    return null; // unreachable
-  }
+      smoke.invoke(this, methodName, args, adjust: true);
 
   /**
    * Invokes a function asynchronously.
@@ -1002,28 +985,26 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
 // TODO(jmesserly): our approach leads to race conditions in the bindings.
 // See http://code.google.com/p/dart/issues/detail?id=13567
 class _PolymerBinding extends Bindable {
-  final InstanceMirror _target;
+  final Polymer _target;
   final Symbol _property;
   final Bindable _bindable;
   StreamSubscription _sub;
   Object _lastValue;
 
-  _PolymerBinding(Polymer node, this._property, this._bindable)
-      : _target = reflect(node) {
-
-    _sub = node.changes.listen(_propertyValueChanged);
+  _PolymerBinding(this._target, this._property, this._bindable) {
+    _sub = _target.changes.listen(_propertyValueChanged);
     _updateNode(open(_updateNode));
   }
 
   void _updateNode(newValue) {
     _lastValue = newValue;
-    _target.setField(_property, newValue);
+    smoke.write(_target, _property, newValue);
   }
 
   void _propertyValueChanged(List<ChangeRecord> records) {
     for (var record in records) {
       if (record is PropertyChangeRecord && record.name == _property) {
-        final newValue = _target.getField(_property).reflectee;
+        final newValue = smoke.read(_target, _property);
         if (!identical(_lastValue, newValue)) {
           this.value = newValue;
         }
@@ -1046,35 +1027,6 @@ class _PolymerBinding extends Bindable {
 }
 
 bool _toBoolean(value) => null != value && false != value;
-
-TypeMirror _propertyType(DeclarationMirror property) =>
-    property is VariableMirror ? property.type
-        : (property as MethodMirror).returnType;
-
-TypeMirror _inferPropertyType(Object value, DeclarationMirror property) {
-  var type = _propertyType(property);
-  if (type.qualifiedName == #dart.core.Object ||
-      type.qualifiedName == #dynamic) {
-    // Attempt to infer field type from the default value.
-    if (value != null) {
-      Type t = _getCoreType(value);
-      if (t != null) return reflectClass(t);
-      return reflect(value).type;
-    }
-  }
-  return type;
-}
-
-Type _getCoreType(Object value) {
-  if (value == null) return Null;
-  if (value is int) return int;
-  // Avoid "is double" to prevent warning that it won't work in dart2js.
-  if (value is num) return double;
-  if (value is bool) return bool;
-  if (value is String) return String;
-  if (value is DateTime) return DateTime;
-  return null;
-}
 
 final Logger _observeLog = new Logger('polymer.observe');
 final Logger _eventsLog = new Logger('polymer.events');

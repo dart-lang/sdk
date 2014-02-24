@@ -46,7 +46,7 @@ import 'dart:js' as js;
 
 @MirrorsUsed(metaTargets:
     const [Reflectable, ObservableProperty, CustomTag, _InitMethodAnnotation],
-    override: const ['polymer', 'polymer.deserialize'])
+    override: const ['smoke.mirrors', 'polymer'])
 import 'dart:mirrors';
 
 import 'package:logging/logging.dart' show Logger, Level;
@@ -55,6 +55,8 @@ import 'package:observe/src/dirty_check.dart' show dirtyCheckZone;
 import 'package:path/path.dart' as path;
 import 'package:polymer_expressions/polymer_expressions.dart'
     show PolymerExpressions;
+import 'package:smoke/smoke.dart' as smoke;
+import 'package:smoke/mirrors.dart' as smoke;
 import 'package:template_binding/template_binding.dart';
 import 'package:web_components/polyfill.dart' show customElementsReady;
 

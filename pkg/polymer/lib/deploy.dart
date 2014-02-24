@@ -45,6 +45,8 @@ main(List<String> arguments) {
         releaseMode: !args['debug']);
     var phases = createDeployPhases(transformOps);
     options = new BarbackOptions(phases, outDir,
+        // TODO(sigmund): include here also smoke transformer when it's on by
+        // default.
         packagePhases: {'polymer': phasesForPolymer});
   } else {
     options = _createTestOptions(
@@ -77,6 +79,10 @@ BarbackOptions _createTestOptions(String testFile, String outDir,
   }
   var packageName = readCurrentPackageFromPubspec(pubspecDir);
 
+  // Find the dart-root so we can include both polymer and smoke as additional
+  // packages whose transformers we need to run.
+  var pkgDir = path.join(_findDirWithDir(path.absolute(testDir), 'pkg'), 'pkg');
+
   var phases = createDeployPhases(new TransformOptions(
       entryPoints: [path.relative(testFile, from: pubspecDir)],
       directlyIncludeJS: directlyIncludeJS,
@@ -84,13 +90,32 @@ BarbackOptions _createTestOptions(String testFile, String outDir,
       releaseMode: releaseMode));
   return new BarbackOptions(phases, outDir,
       currentPackage: packageName,
-      packageDirs: {packageName : pubspecDir},
+      packageDirs: {
+        'polymer': path.join(pkgDir, 'polymer'),
+        'smoke': path.join(pkgDir, 'smoke'),
+        // packageName may be a duplicate of 'polymer', but that's ok, the
+        // following will be the value used in the map (they should also be the
+        // same value).
+        packageName: pubspecDir,
+      },
+      // TODO(sigmund): include here also smoke transformer when it's on by
+      // default.
       packagePhases: {'polymer': phasesForPolymer},
       transformTests: true);
 }
 
 String _findDirWithFile(String dir, String filename) {
   while (!new File(path.join(dir, filename)).existsSync()) {
+    var parentDir = path.dirname(dir);
+    // If we reached root and failed to find it, bail.
+    if (parentDir == dir) return null;
+    dir = parentDir;
+  }
+  return dir;
+}
+
+String _findDirWithDir(String dir, String subdir) {
+  while (!new Directory(path.join(dir, subdir)).existsSync()) {
     var parentDir = path.dirname(dir);
     // If we reached root and failed to find it, bail.
     if (parentDir == dir) return null;

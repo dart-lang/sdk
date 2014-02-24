@@ -47,21 +47,21 @@ class PolymerDeclaration extends HtmlElement {
   String get name => _name;
 
   /**
-   * Map of publish properties. Can be a [VariableMirror] or a [MethodMirror]
-   * representing a getter. If it is a getter, there will also be a setter.
+   * Map of publish properties. Can be a field or a property getter, but if this
+   * map contains a getter, is because it also has a corresponding setter.
    *
-   * Note: technically these are always single properties, so we could use
-   * a Symbol instead of a PropertyPath. However there are lookups between
-   * this map and [_observe] so it is easier to just track paths.
+   * Note: technically these are always single properties, so we could use a
+   * Symbol instead of a PropertyPath. However there are lookups between this
+   * map and [_observe] so it is easier to just track paths.
    */
-  Map<PropertyPath, DeclarationMirror> _publish;
+  Map<PropertyPath, smoke.Declaration> _publish;
 
   /** The names of published properties for this polymer-element. */
   Iterable<String> get publishedProperties =>
       _publish != null ? _publish.keys.map((p) => '$p') : const [];
 
   /** Same as [_publish] but with lower case names. */
-  Map<String, DeclarationMirror> _publishLC;
+  Map<String, smoke.Declaration> _publishLC;
 
   Map<PropertyPath, List<Symbol>> _observe;
 
@@ -189,17 +189,15 @@ class PolymerDeclaration extends HtmlElement {
     _supertype = _getRegisteredType(extendee);
     if (_supertype != null) _super = _getDeclaration(extendee);
 
-    var cls = reflectClass(_type);
-
     // transcribe `attributes` declarations onto own prototype's `publish`
-    publishAttributes(cls, _super);
+    publishAttributes(_super);
 
-    publishProperties(_type);
+    publishProperties();
 
-    inferObservers(cls);
+    inferObservers();
 
     // desugar compound observer syntax, e.g. @ObserveProperty('a b c')
-    explodeObservers(cls);
+    explodeObservers();
 
     // Skip the rest in Dart:
     // chain various meta-data objects to inherited versions
@@ -230,15 +228,10 @@ class PolymerDeclaration extends HtmlElement {
     // under ShadowDOMPolyfill, transforms to approximate missing CSS features
     _shimShadowDomStyling(templateContent, name, extendee);
 
-    var cls = reflectClass(type);
     // TODO(jmesserly): this feels unnatrual in Dart. Since we have convenient
     // lazy static initialization, can we get by without it?
-    var registered = cls.declarations[#registerCallback];
-    if (registered != null &&
-        registered is MethodMirror &&
-        registered.isStatic &&
-        registered.isRegularMethod) {
-      cls.invoke(#registerCallback, [this]);
+    if (smoke.hasStaticMethod(type, #registerCallback)) {
+      smoke.invoke(type, #registerCallback, [this]);
     }
   }
 
@@ -268,7 +261,7 @@ class PolymerDeclaration extends HtmlElement {
     document.register(name, type, extendsTag: baseTag);
   }
 
-  void publishAttributes(ClassMirror cls, PolymerDeclaration superDecl) {
+  void publishAttributes(PolymerDeclaration superDecl) {
     // get properties to publish
     if (superDecl != null && superDecl._publish != null) {
       // Dart note: even though we walk the type hierarchy in
@@ -277,7 +270,7 @@ class PolymerDeclaration extends HtmlElement {
       _publish = new Map.from(superDecl._publish);
     }
 
-    _publish = _getPublishedProperties(cls, _publish);
+    _publish = _getPublishedProperties(_type, _publish);
 
     // merge names from 'attributes' attribute
     var attrs = attributes['attributes'];
@@ -297,14 +290,14 @@ class PolymerDeclaration extends HtmlElement {
           continue;
         }
 
-        var mirror = _getProperty(cls, property);
-        if (mirror == null) {
+        var decl = smoke.getDeclaration(_type, property);
+        if (decl == null || !decl.isProperty || decl.isFinal) {
           window.console.warn('property for attribute $attr of polymer-element '
               'name=$name not found.');
           continue;
         }
         if (_publish == null) _publish = {};
-        _publish[path] = mirror;
+        _publish[path] = decl;
       }
     }
 
@@ -460,20 +453,17 @@ class PolymerDeclaration extends HtmlElement {
    * Fetch a list of all *Changed methods so we can observe the associated
    * properties.
    */
-  void inferObservers(ClassMirror cls) {
-    if (cls == _htmlElementType) return;
-    inferObservers(cls.superclass);
-    for (var method in cls.declarations.values) {
-      if (method is! MethodMirror || method.isStatic
-          || !method.isRegularMethod) continue;
-
-      String name = MirrorSystem.getName(method.simpleName);
+  void inferObservers() {
+    var options = const smoke.QueryOptions(includeProperties: false,
+        includeMethods: true, includeInherited: true);
+    for (var decl in smoke.query(_type, options)) {
+      String name = smoke.symbolToName(decl.name);
       if (name.endsWith(_OBSERVE_SUFFIX) && name != 'attributeChanged') {
         // TODO(jmesserly): now that we have a better system, should we
         // deprecate *Changed methods?
         if (_observe == null) _observe = new HashMap();
         name = name.substring(0, name.length - 7);
-        _observe[new PropertyPath(name)] = [method.simpleName];
+        _observe[new PropertyPath(name)] = [decl.name];
       }
     }
   }
@@ -482,28 +472,22 @@ class PolymerDeclaration extends HtmlElement {
    * Fetch a list of all methods annotated with [ObserveProperty] so we can
    * observe the associated properties.
    */
-  void explodeObservers(ClassMirror cls) {
-    if (cls == _htmlElementType) return;
-
-    explodeObservers(cls.superclass);
-    for (var method in cls.declarations.values) {
-      if (method is! MethodMirror || method.isStatic
-          || !method.isRegularMethod) continue;
-
-      for (var meta in method.metadata) {
-        if (meta.reflectee is! ObserveProperty) continue;
-
+  void explodeObservers() {
+    var options = const smoke.QueryOptions(includeProperties: false,
+        includeMethods: true, includeInherited: true,
+        withAnnotations: const [ObserveProperty]);
+    for (var decl in smoke.query(_type, options)) {
+      for (var meta in decl.annotations) {
+        if (meta is! ObserveProperty) continue;
         if (_observe == null) _observe = new HashMap();
-
-        for (String name in meta.reflectee.names) {
-          _observe.putIfAbsent(new PropertyPath(name), () => [])
-              .add(method.simpleName);
+        for (String name in meta.names) {
+          _observe.putIfAbsent(new PropertyPath(name), () => []).add(decl.name);
         }
       }
     }
   }
 
-  void publishProperties(Type type) {
+  void publishProperties() {
     // Dart note: _publish was already populated by publishAttributes
     if (_publish != null) _publishLC = _lowerCaseMap(_publish);
   }
@@ -548,63 +532,17 @@ final Map _declarations = new Map<String, PolymerDeclaration>();
 bool _isRegistered(String name) => _declarations.containsKey(name);
 PolymerDeclaration _getDeclaration(String name) => _declarations[name];
 
-final _objectType = reflectClass(Object);
-final _htmlElementType = reflectClass(HtmlElement);
-
-Map _getPublishedProperties(ClassMirror cls, Map props) {
-  if (cls == _htmlElementType) return props;
-  props = _getPublishedProperties(cls.superclass, props);
-  for (var member in cls.declarations.values) {
-    if (member.isStatic || member.isPrivate) continue;
-
-    if (member is VariableMirror && !member.isFinal
-        || member is MethodMirror && member.isGetter) {
-
-      for (var meta in member.metadata) {
-        if (meta.reflectee is PublishedProperty) {
-          // Note: we delay the setter check until we find @published because
-          // it's a tad expensive.
-          if (member is! MethodMirror || _hasSetter(cls, member)) {
-            if (props == null) props = {};
-            props[new PropertyPath([member.simpleName])] = member;
-          }
-          break;
-        }
-      }
-    }
+Map<PropertyPath, smoke.Declaration> _getPublishedProperties(
+    Type type, Map<PropertyPath, smoke.Declaration> props) {
+  var options = const smoke.QueryOptions(includeInherited: true,
+      withAnnotations: const [PublishedProperty]);
+  for (var decl in smoke.query(type, options)) {
+    if (decl.isFinal) continue;
+    if (props == null) props = {};
+    props[new PropertyPath([decl.name])] = decl;
   }
-
   return props;
 }
-
-DeclarationMirror _getProperty(ClassMirror cls, Symbol property) {
-  do {
-    var mirror = cls.declarations[property];
-    if (mirror is MethodMirror && mirror.isGetter && _hasSetter(cls, mirror)
-        || mirror is VariableMirror) {
-      return mirror;
-    }
-    cls = cls.superclass;
-
-    // It's generally a good idea to stop at Object, since we know it doesn't
-    // have what we want.
-    // TODO(jmesserly): This is also a workaround for what appears to be a V8
-    // bug introduced between Chrome 31 and 32. After 32
-    // JsClassMirror.declarations on Object calls
-    // JsClassMirror.typeVariables, which tries to get the _jsConstructor's
-    // .prototype["<>"]. This ends up getting the "" property instead, maybe
-    // because "<>" doesn't exist, and gets ";" which then blows up because
-    // the code later on expects a List of ints.
-  } while (cls != _objectType);
-  return null;
-}
-
-bool _hasSetter(ClassMirror cls, MethodMirror getter) {
-  var setterName = new Symbol('${MirrorSystem.getName(getter.simpleName)}=');
-  var mirror = cls.declarations[setterName];
-  return mirror is MethodMirror && mirror.isSetter;
-}
-
 
 /** Attribute prefix used for declarative event handlers. */
 const _EVENT_PREFIX = 'on-';

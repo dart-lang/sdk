@@ -195,7 +195,9 @@ Future deploy({List<String> entryPoints, CommandLineOptions options,
   var barbackOptions = new BarbackOptions(
       phases, options.outDir, currentPackage: currentPackage,
       packageDirs: packageDirs, machineFormat: options.machineFormat,
-      packagePhases: {'polymer' : phasesForPolymer});
+      // TODO(sigmund): include here also smoke transformer when it's on by
+      // default.
+      packagePhases: {'polymer': phasesForPolymer});
   return runBarback(barbackOptions)
       .then((_) => print('Done! All files written to "${options.outDir}"'));
 }

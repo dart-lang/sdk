@@ -34,3 +34,6 @@ class DefaultTransformer extends Transformer {
   }
 }
 
+/** Transformer phases which should be applied to the smoke package. */
+List<List<Transformer>> get phasesForSmoke =>
+    [[new DefaultTransformer.asPlugin()]];
