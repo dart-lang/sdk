@@ -246,6 +246,7 @@ LibTest/core/int/toDouble_A01_t01: RuntimeError, OK # Requires big int.
 LibTest/core/int/toRadixString_A01_t01: RuntimeError, OK # Bad test: uses Expect.fail, Expect.throws, assumes case of result, and uses unsupported radixes.
 
 [ $compiler == dart2js && $runtime == ie9 ]
+LibTest/collection/LinkedList/add_A01_t01: Pass, Slow, Timeout # Slow tests that needs extra time to finish.
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # co19-roll r607: Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Uri/Uri_A06_t03: Timeout # Issue 13511
