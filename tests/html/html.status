@@ -377,6 +377,7 @@ postmessage_structured_test: Skip  # Test cannot run under CSP restrictions (tim
 
 [ $compiler == dart2js && ($runtime == drt || $runtime ==chrome) ]
 wheelevent_test: Fail # http://dartbug.com/12958
+touchevent_test/supported: Fail # Issue 17061
 
 [ $compiler == none && $runtime == dartium ]
 async_test: Timeout # Issue 13719: Please triage this failure.
