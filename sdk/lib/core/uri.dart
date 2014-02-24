@@ -617,6 +617,9 @@ class Uri {
   }
 
   static String _normalize(String component) {
+    int index = component.indexOf('%');
+    if (index < 0) return component;
+
     bool isNormalizedHexDigit(int digit) {
       return (_ZERO <= digit && digit <= _NINE) ||
           (_UPPER_CASE_A <= digit && digit <= _UPPER_CASE_F);
@@ -666,7 +669,6 @@ class Uri {
     // Start building the normalized component string.
     StringBuffer result;
     int length = component.length;
-    int index = 0;
     int prevIndex = 0;
 
     // Copy a part of the component string to the result.
@@ -680,42 +682,45 @@ class Uri {
     }
 
     while (index < length) {
-
       // Normalize percent-encoding to uppercase and don't encode
       // unreserved characters.
-      if (component.codeUnitAt(index) == _PERCENT) {
-        if (length < index + 2) {
-            throw new ArgumentError(
-                "Invalid percent-encoding in URI component: $component");
-        }
+      assert(component.codeUnitAt(index) == _PERCENT);
+      if (length < index + 2) {
+          throw new ArgumentError(
+              "Invalid percent-encoding in URI component: $component");
+      }
 
-        var codeUnit1 = component.codeUnitAt(index + 1);
-        var codeUnit2 = component.codeUnitAt(index + 2);
-        var decodedCodeUnit = decodeHexDigitPair(index + 1);
-        if (isNormalizedHexDigit(codeUnit1) &&
-            isNormalizedHexDigit(codeUnit2) &&
-            !isUnreserved(decodedCodeUnit)) {
-          index += 3;
-        } else {
-          fillResult();
-          if (isUnreserved(decodedCodeUnit)) {
-            result.writeCharCode(decodedCodeUnit);
-          } else {
-            result.write("%");
-            result.writeCharCode(normalizeHexDigit(index + 1));
-            result.writeCharCode(normalizeHexDigit(index + 2));
-          }
-          index += 3;
-          prevIndex = index;
-        }
+      var codeUnit1 = component.codeUnitAt(index + 1);
+      var codeUnit2 = component.codeUnitAt(index + 2);
+      var decodedCodeUnit = decodeHexDigitPair(index + 1);
+      if (isNormalizedHexDigit(codeUnit1) &&
+          isNormalizedHexDigit(codeUnit2) &&
+          !isUnreserved(decodedCodeUnit)) {
+        index += 3;
       } else {
-        index++;
+        fillResult();
+        if (isUnreserved(decodedCodeUnit)) {
+          result.writeCharCode(decodedCodeUnit);
+        } else {
+          result.write("%");
+          result.writeCharCode(normalizeHexDigit(index + 1));
+          result.writeCharCode(normalizeHexDigit(index + 2));
+        }
+        index += 3;
+        prevIndex = index;
+      }
+      int next = component.indexOf('%', index);
+      if (next >= index) {
+        index = next;
+      } else {
+        index = length;
       }
     }
+    if (result == null) return component;
+
     if (result != null && prevIndex != index) fillResult();
     assert(index == length);
 
-    if (result == null) return component;
     return result.toString();
   }
 
