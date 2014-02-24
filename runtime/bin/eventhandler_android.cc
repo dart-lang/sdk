@@ -25,6 +25,12 @@
 #include "platform/utils.h"
 
 
+// Android doesn't define EPOLLRDHUP.
+#if !defined(EPOLLRDHUP)
+#define EPOLLRDHUP 0x2000
+#endif  // !defined(EPOLLRDHUP)
+
+
 namespace dart {
 namespace bin {
 
