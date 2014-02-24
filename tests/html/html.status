@@ -37,6 +37,7 @@ isolates_test: Fail # Issue 13921
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
+touchevent_test/supported: Pass, Fail # Issue 17061
 
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
