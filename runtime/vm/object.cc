@@ -5585,9 +5585,9 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   ASSERT(!IsConstructor());
   Function& clone = Function::Handle();
   clone ^= Object::Clone(*this, Heap::kOld);
-  const Class& owner = Class::Handle(this->Owner());
+  const Class& origin = Class::Handle(this->origin());
   const PatchClass& clone_owner =
-      PatchClass::Handle(PatchClass::New(new_owner, owner));
+      PatchClass::Handle(PatchClass::New(new_owner, origin));
   clone.set_owner(clone_owner);
   clone.StorePointer(&clone.raw_ptr()->code_, Code::null());
   clone.StorePointer(&clone.raw_ptr()->unoptimized_code_, Code::null());
