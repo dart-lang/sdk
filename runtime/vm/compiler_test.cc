@@ -81,7 +81,6 @@ TEST_CASE(EvalExpression) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle obj_handle =
       Dart_Invoke(lib, Dart_NewStringFromCString("makeObj"), 0,  NULL);
-  NativeToVmTimerScope timer(Isolate::Current());
   EXPECT(!Dart_IsNull(obj_handle));
   EXPECT(!Dart_IsError(obj_handle));
   const Object& obj = Object::Handle(Api::UnwrapHandle(obj_handle));

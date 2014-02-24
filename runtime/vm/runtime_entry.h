@@ -9,7 +9,6 @@
 #include "vm/assembler.h"
 #include "vm/flags.h"
 #include "vm/native_arguments.h"
-#include "vm/timer_scope.h"
 
 namespace dart {
 
@@ -62,7 +61,6 @@ class RuntimeEntry : public ValueObject {
   static void DRT_Helper##name(Isolate* isolate, NativeArguments arguments);   \
   void DRT_##name(NativeArguments arguments) {                                 \
     CHECK_STACK_ALIGNMENT;                                                     \
-    DartToVmTimerScope timer(arguments.isolate());                             \
     VERIFY_ON_TRANSITION;                                                      \
     ASSERT(arguments.ArgCount() == argument_count);                            \
     if (FLAG_trace_runtime_calls) OS::Print("Runtime call: %s\n", ""#name);    \

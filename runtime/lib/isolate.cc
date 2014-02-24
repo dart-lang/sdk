@@ -108,7 +108,6 @@ static bool CanonicalizeUri(Isolate* isolate,
                             const String& uri,
                             char** canonical_uri,
                             char** error) {
-  VmToNativeTimerScope timer(isolate);
   Zone* zone = isolate->current_zone();
   bool retval = false;
   Dart_LibraryTagHandler handler = isolate->library_tag_handler();

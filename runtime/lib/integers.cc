@@ -241,7 +241,6 @@ DEFINE_NATIVE_ENTRY(Integer_fromEnvironment, 3) {
   // Call the embedder to supply us with the environment.
   Dart_EnvironmentCallback callback = isolate->environment_callback();
   if (callback != NULL) {
-    VmToNativeTimerScope timer(isolate);
     Dart_Handle response = callback(Api::NewHandle(isolate, name.raw()));
     if (Dart_IsString(response)) {
       const String& value = String::Cast(

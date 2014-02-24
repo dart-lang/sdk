@@ -83,7 +83,6 @@ class Timer : public ValueObject {
   V(time_compilation, "Function compilation")                                  \
   V(time_bootstrap, "Bootstrap of core classes")                               \
   V(time_dart_execution, "Dart execution")                                     \
-  V(time_native_execution, "Native code execution")                            \
   V(time_total_runtime, "Total runtime for isolate")                           \
 
 // Maintains a list of timers per isolate.
@@ -99,7 +98,6 @@ class TimerList : public ValueObject {
 #undef TIMER_FIELD_ACCESSOR
 
   void ReportTimers();
-  void ReportTimerState(const char* prefix);
 
   void PrintTimersToJSONProperty(JSONObject* jsobj);
 
@@ -112,14 +110,51 @@ class TimerList : public ValueObject {
 };
 
 // Timer Usage.
-#define START_TIMER(isolate, name)                                             \
-  isolate->timer_list().name().Start();
+#define START_TIMER(name)                                                      \
+  Isolate::Current()->timer_list().name().Start();
 
-#define STOP_TIMER(isolate, name)                                              \
-  isolate->timer_list().name().Stop();
+#define STOP_TIMER(name)                                                       \
+  Isolate::Current()->timer_list().name().Stop();
 
-#define TIMER_STATE(isolate, prefix)                                           \
-  isolate->timer_list().ReportTimerState(prefix);
+// The class TimerScope is used to start and stop a timer within a scope.
+// It is used as follows:
+// {
+//   TIMERSCOPE(name_of_timer);
+//   ....
+//   .....
+//   code that needs to be timed.
+//   ....
+// }
+class TimerScope : public StackResource {
+ public:
+  TimerScope(bool flag, Timer* timer, BaseIsolate* isolate = NULL)
+      : StackResource(isolate), flag_(flag), nested_(false), timer_(timer) {
+    if (flag_) {
+      if (!timer_->running()) {
+        timer_->Start();
+      } else {
+        nested_ = true;
+      }
+    }
+  }
+  ~TimerScope() {
+    if (flag_) {
+      if (!nested_) {
+        timer_->Stop();
+      }
+    }
+  }
+
+ private:
+  bool flag_;
+  bool nested_;
+  Timer* timer_;
+  DISALLOW_COPY_AND_ASSIGN(TimerScope);
+};
+
+#define TIMERSCOPE(name)                                                       \
+  TimerScope vm_internal_timer_(true,                                          \
+                                &(Isolate::Current()->timer_list().name()))
 
 }  // namespace dart
 

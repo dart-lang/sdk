@@ -297,12 +297,9 @@ Isolate* Service::GetServiceIsolate(void* callback_data) {
       isolate, Script::New(url_str, source_str, RawScript::kLibraryTag));
     library.SetLoadInProgress();
     Dart_EnterScope();  // Need to enter scope for tag handler.
-    {
-      NativeToVmTimerScope timer(isolate);
-      const Error& error = Error::Handle(isolate,
-                                         Compiler::Compile(library, script));
-      ASSERT(error.IsNull());
-    }
+    const Error& error = Error::Handle(isolate,
+                                       Compiler::Compile(library, script));
+    ASSERT(error.IsNull());
     Dart_ExitScope();
     library.SetLoaded();
     // Install embedder default library tag handler again.

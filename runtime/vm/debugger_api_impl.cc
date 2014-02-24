@@ -112,7 +112,6 @@ static Dart_BreakpointHandler* legacy_bp_handler = NULL;
 static void DebuggerEventHandler(Debugger::DebuggerEvent* event) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
-  VmToNativeTimerScope timer(isolate);
   ASSERT(isolate->debugger() != NULL);
   Dart_EnterScope();
   Dart_IsolateId isolate_id = isolate->debugger()->GetIsolateId();

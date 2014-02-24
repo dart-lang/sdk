@@ -219,7 +219,6 @@ TEST_CASE(StackmapGC) {
       "}\n";
   // First setup the script and compile the script.
   TestCase::LoadTestScript(kScriptChars, native_resolver);
-  NativeToVmTimerScope timer(Isolate::Current());
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const String& name = String::Handle(String::New(TestCase::url()));
   const Library& lib = Library::Handle(Library::LookupLibrary(name));

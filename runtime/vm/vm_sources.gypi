@@ -356,7 +356,6 @@
     'thread_test.cc',
     'timer.cc',
     'timer.h',
-    'timer_scope.h',
     'token.cc',
     'token.h',
     'trace_buffer.cc',

@@ -9,7 +9,6 @@
 
 #include "vm/ast.h"
 #include "vm/dart.h"
-#include "vm/dart_api_impl.h"
 #include "vm/globals.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
@@ -55,7 +54,6 @@
 #define ASSEMBLER_TEST_RUN(name, test)                                         \
   static void AssemblerTestRun##name(AssemblerTest* test);                     \
   TEST_CASE(name) {                                                            \
-    NativeToVmTimerScope timer(Isolate::Current());                            \
     Assembler __assembler__;                                                   \
     AssemblerTest test(""#name, &__assembler__);                               \
     AssemblerTestGenerate##name(test.assembler());                             \
@@ -79,7 +77,6 @@
 #define CODEGEN_TEST_RUN(name, expected)                                       \
   static void CodeGenTestRun##name(const Function& function);                  \
   TEST_CASE(name) {                                                            \
-    NativeToVmTimerScope timer(Isolate::Current());                            \
     CodeGenTest __test__(""#name);                                             \
     CodeGenTestGenerate##name(&__test__);                                      \
     __test__.Compile();                                                        \
@@ -100,7 +97,6 @@
 #define CODEGEN_TEST_RAW_RUN(name, function)                                   \
   static void CodeGenTestRun##name(const Function& function);                  \
   TEST_CASE(name) {                                                            \
-    NativeToVmTimerScope timer(Isolate::Current());                            \
     CodeGenTest __test__(""#name);                                             \
     CodeGenTestGenerate##name(&__test__);                                      \
     __test__.Compile();                                                        \
@@ -114,7 +110,6 @@
 #define CODEGEN_TEST2_RUN(name1, name2, expected)                              \
   static void CodeGenTestRun##name1(const Function& function);                 \
   TEST_CASE(name1) {                                                           \
-    NativeToVmTimerScope timer(Isolate::Current());                            \
     /* Generate code for name2 */                                              \
     CodeGenTest __test2__(""#name2);                                           \
     CodeGenTestGenerate##name2(&__test2__);                                    \

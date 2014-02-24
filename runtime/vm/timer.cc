@@ -26,7 +26,7 @@ TimerList::TimerList()
 
 
 #define TIMER_FIELD_REPORT(name, msg)                                          \
-  if (name().report() && name().message() != NULL) {                           \
+  if (name().report() && name().message() != NULL) {       \
     OS::Print("%s :  %" Pd64 " micros.\n",                                     \
               name().message(),                                                \
               name().TotalElapsedTime());                                      \
@@ -35,17 +35,6 @@ void TimerList::ReportTimers() {
   TIMER_LIST(TIMER_FIELD_REPORT);
 }
 #undef TIMER_FIELD_REPORT
-
-
-#define TIMER_STATE_REPORT(prefix, name)                                       \
-  ASSERT(name().message() != NULL);                                            \
-  OS::Print("%s %s : %s\n",                                                    \
-            prefix, name().message(), name().running() ? "on" : "off");
-void TimerList::ReportTimerState(const char* prefix) {
-  TIMER_STATE_REPORT(prefix, time_native_execution);
-  TIMER_STATE_REPORT(prefix, time_dart_execution);
-}
-#undef TIMER_STATE_REPORT
 
 
 #define JSON_TIMER(name, msg)                                                  \

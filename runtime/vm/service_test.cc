@@ -45,12 +45,6 @@ class ServiceTestMessageHandler : public MessageHandler {
 };
 
 
-static void ServiceIsolateMessage(Isolate* isolate, const Instance& msg) {
-  NativeToVmTimerScope timer(isolate);
-  Service::HandleIsolateMessage(isolate, msg);
-}
-
-
 static RawInstance* Eval(Dart_Handle lib, const char* expr) {
   Dart_Handle result = Dart_EvaluateExpr(lib, NewString(expr));
   EXPECT_VALID(result);
@@ -136,7 +130,7 @@ TEST_CASE(Service_Isolate) {
 
   // Get the isolate summary.
   service_msg = Eval(lib, "[port, [], [], []]");
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
 
   JSONReader reader(handler.msg());
@@ -192,7 +186,7 @@ TEST_CASE(Service_StackTrace) {
 
   // Get the stacktrace.
   service_msg = Eval(lib, "[port, ['stacktrace'], [], []]");
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
       "{\"type\":\"StackTrace\",\"members\":[]}",
@@ -200,7 +194,7 @@ TEST_CASE(Service_StackTrace) {
 
   // Malformed request.
   service_msg = Eval(lib, "[port, ['stacktrace', 'jamboree'], [], []]");
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
       "{\"type\":\"Error\",\"text\":\"Command too long\","
@@ -237,7 +231,7 @@ TEST_CASE(Service_DebugBreakpoints) {
 
   // Get the breakpoint list.
   service_msg = Eval(lib, "[port, ['debug', 'breakpoints'], [], []]");
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
       "{\"type\":\"BreakpointList\",\"breakpoints\":[{"
@@ -249,7 +243,7 @@ TEST_CASE(Service_DebugBreakpoints) {
 
   // Individual breakpoint.
   service_msg = Eval(lib, "[port, ['debug', 'breakpoints', '1'], [], []]");
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
       "{\"type\":\"Breakpoint\",\"id\":1,\"enabled\":true,"
@@ -260,7 +254,7 @@ TEST_CASE(Service_DebugBreakpoints) {
 
   // Missing sub-command.
   service_msg = Eval(lib, "[port, ['debug'], [], []]");
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
       "{\"type\":\"Error\","
@@ -271,7 +265,7 @@ TEST_CASE(Service_DebugBreakpoints) {
 
   // Unrecognized breakpoint.
   service_msg = Eval(lib, "[port, ['debug', 'breakpoints', '1111'], [], []]");
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ("{\"type\":\"Error\","
                 "\"text\":\"Unrecognized breakpoint id 1111\","
@@ -283,7 +277,7 @@ TEST_CASE(Service_DebugBreakpoints) {
   // Command too long.
   service_msg =
       Eval(lib, "[port, ['debug', 'breakpoints', '1111', 'green'], [], []]");
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ("{\"type\":\"Error\",\"text\":\"Command too long\","
                 "\"message\":{\"arguments\":[\"debug\",\"breakpoints\","
@@ -293,7 +287,7 @@ TEST_CASE(Service_DebugBreakpoints) {
 
   // Unrecognized subcommand.
   service_msg = Eval(lib, "[port, ['debug', 'nosferatu'], [], []]");
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ("{\"type\":\"Error\","
                 "\"text\":\"Unrecognized subcommand 'nosferatu'\","
@@ -345,7 +339,7 @@ TEST_CASE(Service_Classes) {
 
   // Request an invalid class id.
   service_msg = Eval(h_lib, "[port, ['classes', '999999'], [], []]");
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
     "{\"type\":\"Error\",\"text\":\"999999 is not a valid class id.\","
@@ -354,7 +348,7 @@ TEST_CASE(Service_Classes) {
 
   // Request the class A over the service.
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "'], [], []]", cid);
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
 
   EXPECT_SUBSTRING("\"type\":\"Class\"", handler.msg());
@@ -363,7 +357,7 @@ TEST_CASE(Service_Classes) {
 
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'functions', '0'],"
                               "[], []]", cid);
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Function\"", handler.msg());
   ExpectSubstringF(handler.msg(),
@@ -373,7 +367,7 @@ TEST_CASE(Service_Classes) {
   // Request field 0 from class A.
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'fields', '0'],"
                               "[], []]", cid);
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Field\"", handler.msg());
   ExpectSubstringF(handler.msg(),
@@ -383,7 +377,7 @@ TEST_CASE(Service_Classes) {
   // Invalid sub command.
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'huh', '0'],"
                               "[], []]", cid);
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
     "{\"type\":\"Error\",\"text\":\"Invalid sub collection huh\",\"message\":"
@@ -393,7 +387,7 @@ TEST_CASE(Service_Classes) {
   // Invalid field request.
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'fields', '9'],"
                               "[], []]", cid);
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
     "{\"type\":\"Error\",\"text\":\"Field 9 not found\","
@@ -403,7 +397,7 @@ TEST_CASE(Service_Classes) {
   // Invalid function request.
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'functions', '9'],"
                               "[], []]", cid);
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
     "{\"type\":\"Error\",\"text\":\"Function 9 not found\","
@@ -414,7 +408,7 @@ TEST_CASE(Service_Classes) {
   // Invalid field subcommand.
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'fields', '9', 'x']"
                              ",[], []]", cid);
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
     "{\"type\":\"Error\",\"text\":\"Command too long\",\"message\":"
@@ -424,7 +418,7 @@ TEST_CASE(Service_Classes) {
   // Invalid function request.
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'functions', '9',"
                              "'x'], [], []]", cid);
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
     "{\"type\":\"Error\",\"text\":\"Command too long\",\"message\":"
@@ -482,7 +476,7 @@ TEST_CASE(Service_Code) {
 
   // Request an invalid code object.
   service_msg = Eval(h_lib, "[port, ['code', '0'], [], []]");
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
     "{\"type\":\"Error\",\"text\":\"Could not find code at 0\",\"message\":"
@@ -494,7 +488,7 @@ TEST_CASE(Service_Code) {
   // Request code object at code.EntryPoint()
   // Expect this to succeed as it is inside [entry, entry + size).
   service_msg = EvalF(h_lib, "[port, ['code', '%" Px "'], [], []]", entry);
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   {
     // Only perform a partial match.
@@ -509,7 +503,7 @@ TEST_CASE(Service_Code) {
   // Expect this to succeed as it is inside [entry, entry + size).
   uintptr_t address = entry + 16;
   service_msg = EvalF(h_lib, "[port, ['code', '%" Px "'], [], []]", address);
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   {
     // Only perform a partial match.
@@ -524,7 +518,7 @@ TEST_CASE(Service_Code) {
   // Expect this to succeed as it is inside [entry, entry + size).
   address = last - 1;
   service_msg = EvalF(h_lib, "[port, ['code', '%" Px "'], [], []]", address);
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   {
     // Only perform a partial match.
@@ -539,7 +533,7 @@ TEST_CASE(Service_Code) {
   // to fail as it's outside of [entry, entry + size).
   address = last;
   service_msg = EvalF(h_lib, "[port, ['code', '%" Px "'], [], []]", address);
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   {
     const intptr_t kBufferSize = 1024;
@@ -610,7 +604,7 @@ TEST_CASE(Service_Coverage) {
 
   Instance& service_msg = Instance::Handle();
   service_msg = Eval(h_lib, "[port, ['coverage'], [], []]");
-  ServiceIsolateMessage(isolate, service_msg);
+  Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING(
       "{\"source\":\"dart:test-lib\",\"script\":{"

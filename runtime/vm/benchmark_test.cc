@@ -37,7 +37,6 @@ void Benchmark::RunAll(const char* executable) {
 BENCHMARK(CorelibCompileAll) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
-  NativeToVmTimerScope scope_timer(Isolate::Current());
   Timer timer(true, "Compile all of Core lib benchmark");
   timer.Start();
   const Error& error = Error::Handle(benchmark->isolate(),

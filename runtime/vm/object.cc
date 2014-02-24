@@ -900,7 +900,7 @@ void Object::RegisterPrivateClass(const Class& cls,
 
 
 RawError* Object::Init(Isolate* isolate) {
-  TIMERSCOPE(isolate, time_bootstrap);
+  TIMERSCOPE(time_bootstrap);
   ObjectStore* object_store = isolate->object_store();
 
   Class& cls = Class::Handle();
@@ -1334,7 +1334,7 @@ RawError* Object::Init(Isolate* isolate) {
 
 
 void Object::InitFromSnapshot(Isolate* isolate) {
-  TIMERSCOPE(isolate, time_bootstrap);
+  TIMERSCOPE(time_bootstrap);
   ObjectStore* object_store = isolate->object_store();
 
   Class& cls = Class::Handle();
@@ -7296,12 +7296,11 @@ void Script::Tokenize(const String& private_key) const {
   }
 
   // Get the source, scan and allocate the token stream.
-  Isolate* isolate = Isolate::Current();
-  TimerScope timer(FLAG_compiler_stats, &CompilerStats::scanner_timer, isolate);
-  const String& src = String::Handle(isolate, Source());
+  TimerScope timer(FLAG_compiler_stats, &CompilerStats::scanner_timer);
+  const String& src = String::Handle(Source());
   Scanner scanner(src, private_key);
-  set_tokens(TokenStream::Handle(isolate, TokenStream::New(scanner.GetStream(),
-                                                           private_key)));
+  set_tokens(TokenStream::Handle(TokenStream::New(scanner.GetStream(),
+                                                  private_key)));
   if (FLAG_compiler_stats) {
     CompilerStats::src_length += src.Length();
   }

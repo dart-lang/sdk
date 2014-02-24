@@ -10,7 +10,6 @@
 #include "vm/code_generator.h"
 #include "vm/exceptions.h"
 #include "vm/native_arguments.h"
-#include "vm/timer_scope.h"
 #include "vm/verifier.h"
 
 #include "include/dart_api.h"
@@ -41,9 +40,8 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
                                     NativeArguments* arguments);               \
   void NATIVE_ENTRY_FUNCTION(name)(Dart_NativeArguments args) {                \
     CHECK_STACK_ALIGNMENT;                                                     \
-    NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);     \
-    DartToVmTimerScope timer(arguments->isolate());                            \
     VERIFY_ON_TRANSITION;                                                      \
+    NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);     \
     ASSERT(arguments->NativeArgCount() == argument_count);                     \
     TRACE_NATIVE_CALL("%s", ""#name);                                          \
     {                                                                          \
