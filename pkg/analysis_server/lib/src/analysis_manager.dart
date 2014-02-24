@@ -15,7 +15,8 @@ class AnalysisManager {
   static const int PORT = 3333;
 
   /**
-   * The analysis server process being managed.
+   * The analysis server process being managed
+   * or `null` if managing an analysis server that was already running.
    */
   final Process process;
 
@@ -31,13 +32,26 @@ class AnalysisManager {
   static Future<AnalysisManager> start(String pathToServer) {
     // TODO dynamically allocate port and/or allow client to specify port
     return Process.start(Platform.executable, [pathToServer, "--port",
-        PORT.toString()]).then(_connect);
+        PORT.toString()]).then(_attach).catchError((error) {
+          print("Failed to launch analysis server: $error");
+          exitCode = 1;
+          throw error;
+        });
   }
 
   /**
-   * Open a connection to the analysis server.
+   * Open a connection to a running analysis server
    */
-  static Future<AnalysisManager> _connect(Process process) {
+  static Future<AnalysisManager> connect(String url) {
+    return WebSocket.connect(url)
+        .then((WebSocket socket) => new AnalysisManager(null, socket));
+  }
+
+  /**
+   * Attach this process to the newly launched analysis server process,
+   * and open a connection to the analysis server.
+   */
+  static Future<AnalysisManager> _attach(Process process) {
     var url = 'ws://${InternetAddress.LOOPBACK_IP_V4.address}:$PORT/';
     process.stderr.pipe(stderr);
     Stream out = process.stdout.transform(UTF8.decoder).asBroadcastStream();
@@ -55,6 +69,8 @@ class AnalysisManager {
         .then((WebSocket socket) => new AnalysisManager(process, socket))
         .catchError((error) {
           process.kill();
+          print("Failed to connect to analysis server: $error");
+          exitCode = 1;
           throw error;
         });
   }
@@ -67,9 +83,10 @@ class AnalysisManager {
   /**
    * Stop the analysis server.
    *
-   * Returns [:true:] if the signal is successfully sent and process is killed.
-   * Otherwise the signal could not be sent, usually meaning that the process
-   * is already dead.
+   * Returns `true` if the signal is successfully sent and process is killed.
+   * Otherwise there was no attached process or the signal could not be sent,
+   * usually meaning that the process is already dead.
    */
-  bool stop() => process.kill();
+  // TODO request analysis server stop
+  bool stop() => process != null ? process.kill() : false;
 }

@@ -35,7 +35,7 @@ class AnalysisServer {
    * The channel from which requests are received and to which responses should
    * be sent.
    */
-  CommunicationChannel channel;
+  final CommunicationChannel channel;
 
   /**
    * A flag indicating whether the server is running.
@@ -63,11 +63,11 @@ class AnalysisServer {
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    */
-  AnalysisServer(CommunicationChannel channel) {
+  AnalysisServer(this.channel) {
     AnalysisEngine.instance.logger = new AnalysisLogger();
     running = true;
-    this.channel = channel;
-    this.channel.listen(handleRequest, onError: error, onDone: done);
+    // TODO set running=false on done or error
+    channel.listen(handleRequest);
   }
 
   /**

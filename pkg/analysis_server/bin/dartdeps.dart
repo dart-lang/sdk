@@ -33,6 +33,11 @@ class _DartDependencyAnalyzer {
   static const String HELP_OPTION = "help";
 
   /**
+   * The name of the option used to specify an already running server.
+   */
+  static const String SERVER_OPTION = "server";
+
+  /**
    * Parse the command line arguments to determine the application to be
    * analyzed, then launch and manage an analysis server to do the work.
    * If there is a problem with the given arguments, then return a non zero
@@ -40,12 +45,25 @@ class _DartDependencyAnalyzer {
    */
   void start(List<String> args) {
     var parser = new ArgParser();
-    parser.addFlag(HELP_OPTION, help:
-        "print this help message without starting analysis", defaultsTo: false,
+    parser.addFlag(HELP_OPTION,
+        help: "print this help message without starting analysis",
+        defaultsTo: false,
         negatable: false);
+    parser.addOption(
+        SERVER_OPTION,
+        help: "[serverUrl] use an analysis server thats already running");
 
     // Parse arguments
-    ArgResults results = parser.parse(args);
+    ArgResults results;
+    try {
+      results = parser.parse(args);
+    } on FormatException catch(e) {
+      print(e.message);
+      print('');
+      printUsage(parser);
+      exitCode = 1;
+      return;
+    }
     if (results[HELP_OPTION]) {
       printUsage(parser);
       return;
@@ -71,14 +89,22 @@ class _DartDependencyAnalyzer {
       return;
     }
 
-    // Assume that the analysis server entry point is in the same directory
-    StringBuffer path = new StringBuffer();
-    path.write(FileSystemEntity.parentOf(Platform.script.toFilePath()));
-    path.write(Platform.pathSeparator);
-    path.write("server.dart");
+    Future<AnalysisManager> future;
+    String serverUrl = results[SERVER_OPTION];
+    if (serverUrl != null) {
+      // Connect to an already running analysis server
+      future = AnalysisManager.connect(serverUrl);
 
-    // Launch analysis server
-    AnalysisManager.start(path.toString()).then(analyze);
+    } else {
+      // Launch and connect to a new analysis server
+      // Assume that the analysis server entry point is in the same directory
+      StringBuffer path = new StringBuffer();
+      path.write(FileSystemEntity.parentOf(Platform.script.toFilePath()));
+      path.write(Platform.pathSeparator);
+      path.write("server.dart");
+      future = AnalysisManager.start(path.toString());
+    }
+    future.then(analyze);
   }
 
   void analyze(AnalysisManager mgr) {
