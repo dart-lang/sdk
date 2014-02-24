@@ -4,8 +4,8 @@
 
 import "dart:async";
 
-import "deferred_constraints_lib2.dart" as lib;
-@lazy import "deferred_constraints_lib.dart" as lib;
+// Loading a deferred library without prefix is not allowed.
+@lazy import "deferred_constraints_lib2.dart"; /// 01: compile-time error
 
 const lazy = const DeferredLibrary('lib');
 
