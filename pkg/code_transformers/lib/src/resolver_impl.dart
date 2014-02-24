@@ -16,11 +16,14 @@ import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:barback/barback.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as native_path;
 import 'package:source_maps/refactor.dart';
 import 'package:source_maps/span.dart' show SourceFile, Span;
 
 import 'resolver.dart';
+
+// We should always be using url paths here since it's always Dart/pub code.
+final path = native_path.url;
 
 /// Resolves and updates an AST based on Barback-based assets.
 ///
@@ -466,25 +469,24 @@ class _DartSourceProxy implements Source {
 AssetId _resolve(AssetId source, String url, TransformLogger logger,
     Span span) {
   if (url == null || url == '') return null;
-  var urlBuilder = path.url;
   var uri = Uri.parse(url);
 
   if (uri.scheme == 'package') {
     var segments = new List.from(uri.pathSegments);
     var package = segments[0];
     segments[0] = 'lib';
-    return new AssetId(package, segments.join(urlBuilder.separator));
+    return new AssetId(package, segments.join(path.separator));
   }
   // Dart SDK libraries do not have assets.
   if (uri.scheme == 'dart') return null;
 
-  if (uri.host != '' || uri.scheme != '' || urlBuilder.isAbsolute(url)) {
+  if (uri.host != '' || uri.scheme != '' || path.isAbsolute(url)) {
     logger.error('absolute paths not allowed: "$url"', span: span);
     return null;
   }
 
-  var targetPath = urlBuilder.normalize(
-      urlBuilder.join(urlBuilder.dirname(source.path), url));
+  var targetPath = path.normalize(
+      path.join(path.dirname(source.path), url));
   return new AssetId(source.package, targetPath);
 }
 
