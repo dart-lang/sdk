@@ -1419,7 +1419,6 @@ class Library extends Indexable {
     if (_hasBeenCheckedForPackage) return packageName;
     _hasBeenCheckedForPackage = true;
     if (mirror.uri.scheme != 'file') return '';
-    // We assume that we are documenting only libraries under package/lib
     packageName = _packageName(mirror);
     // Associate the package readme with all the libraries. This is a bit
     // wasteful, but easier than trying to figure out which partial match
@@ -1429,6 +1428,7 @@ class Library extends Indexable {
   }
 
   String _packageIntro(packageDir) {
+    if (packageDir == null) return null;
     var dir = new Directory(packageDir);
     var files = dir.listSync();
     var readmes = files.where((FileSystemEntity each) => (each is File &&
@@ -1446,16 +1446,40 @@ class Library extends Indexable {
   }
 
   /// Given a LibraryMirror that is a library, return the name of the directory
-  /// holding that library.
-  static String _getRootdir(LibraryMirror mirror) =>
-      path.dirname(path.dirname(mirror.uri.toFilePath()));
+  /// holding the package information for that library. If the library is not 
+  /// part of a package, return null.
+  static String _getRootdir(LibraryMirror mirror) {
+    var file = mirror.uri.toFilePath();
+    // Any file that's in a package will be in a directory of the form 
+    // packagename/lib/.../filename.dart, so we know that a possible
+    // package directory is at least in the directory above the one containing
+    // [file]
+    var directoryAbove = path.dirname(path.dirname(file));
+    return _packageDirectoryFor(directoryAbove);
+  }
 
   /// Read a pubspec and return the library name given a [LibraryMirror].
   static String _packageName(LibraryMirror mirror) {
     if (mirror.uri.scheme != 'file') return '';
     var rootdir = _getRootdir(mirror);
+    if (rootdir == null) return '';
     return packageNameFor(rootdir);
   }
+
+  /// Recursively walk up from directory name looking for a pubspec. Return
+  /// the directory that contains it, or null if none is found.
+  static String _packageDirectoryFor(String directoryName) {
+    var dir = directoryName;
+    while (!_pubspecFor(dir).existsSync()) {
+      var newDir = path.dirname(dir);
+      if (newDir == dir) return null;
+      dir = newDir;
+    }
+    return dir;
+  }
+
+  static File _pubspecFor(String directoryName) =>
+      new File(path.join(directoryName, 'pubspec.yaml'));
 
   /// Read a pubspec and return the library name, given a directory
   static String packageNameFor(String directoryName) {
