@@ -176,17 +176,16 @@ class Uri {
       return ch < 128 && ((_regNameTable[ch >> 4] & (1 << (ch & 0x0f))) != 0);
     }
 
-    int ipV6Address(List<int> codeUnits, int index) {
+    int ipV6Address(int index) {
       // IPv6. Skip to ']'.
-      index = codeUnits.indexOf(_RIGHT_BRACKET, index);
+      index = uri.indexOf(']', index);
       if (index == -1) {
         throw new FormatException("Bad end of IPv6 host");
       }
       return index + 1;
     }
 
-    List<int> codeUnits = uri.codeUnits;
-    int length = codeUnits.length;
+    int length = uri.length;
     int index = 0;
 
     int schemeEndIndex = 0;
@@ -195,14 +194,14 @@ class Uri {
       return new Uri();
     }
 
-    if (codeUnits[0] != _SLASH) {
+    if (uri.codeUnitAt(0) != _SLASH) {
       // Can be scheme.
       while (index < length) {
         // Look for ':'. If found, continue from the post of ':'. If not (end
         // reached or invalid scheme char found) back up one char, and continue
         // to path.
         // Note that scheme-chars is contained in path-chars.
-        int codeUnit = codeUnits[index++];
+        int codeUnit = uri.codeUnitAt(index++);
         if (!_isSchemeCharacter(codeUnit)) {
           if (codeUnit == _COLON) {
             schemeEndIndex = index;
@@ -221,23 +220,22 @@ class Uri {
     // If we see '//', there must be an authority.
     if (authorityEndIndex == index &&
         authorityEndIndex + 1 < length &&
-        codeUnits[authorityEndIndex] == _SLASH &&
-        codeUnits[authorityEndIndex + 1] == _SLASH) {
+        uri.codeUnitAt(authorityEndIndex) == _SLASH &&
+        uri.codeUnitAt(authorityEndIndex + 1) == _SLASH) {
       // Skip '//'.
       authorityEndIndex += 2;
       // It can both be host and userInfo.
       while (authorityEndIndex < length) {
-        int codeUnit = codeUnits[authorityEndIndex++];
+        int codeUnit = uri.codeUnitAt(authorityEndIndex++);
         if (!isRegName(codeUnit)) {
           if (codeUnit == _LEFT_BRACKET) {
-            authorityEndIndex = ipV6Address(codeUnits, authorityEndIndex);
+            authorityEndIndex = ipV6Address(authorityEndIndex);
           } else if (portIndex == -1 && codeUnit == _COLON) {
             // First time ':'.
             portIndex = authorityEndIndex;
           } else if (codeUnit == _AT_SIGN || codeUnit == _COLON) {
             // Second time ':' or first '@'. Must be userInfo.
-            userInfoEndIndex = codeUnits.indexOf('@'.codeUnitAt(0),
-                                                 authorityEndIndex - 1);
+            userInfoEndIndex = uri.indexOf('@', authorityEndIndex - 1);
             // Not found. Must be path then.
             if (userInfoEndIndex == -1) {
               authorityEndIndex = index;
@@ -247,10 +245,10 @@ class Uri {
             authorityEndIndex = userInfoEndIndex + 1;
             // Now it can only be host:port.
             while (authorityEndIndex < length) {
-              int codeUnit = codeUnits[authorityEndIndex++];
+              int codeUnit = uri.codeUnitAt(authorityEndIndex++);
               if (!isRegName(codeUnit)) {
                 if (codeUnit == _LEFT_BRACKET) {
-                  authorityEndIndex = ipV6Address(codeUnits, authorityEndIndex);
+                  authorityEndIndex = ipV6Address(authorityEndIndex);
                 } else if (codeUnit == _COLON) {
                   if (portIndex != -1) {
                     throw new FormatException("Double port in host");
@@ -276,7 +274,7 @@ class Uri {
     // At path now.
     int pathEndIndex = authorityEndIndex;
     while (pathEndIndex < length) {
-      int codeUnit = codeUnits[pathEndIndex++];
+      int codeUnit = uri.codeUnitAt(pathEndIndex++);
       if (codeUnit == _QUESTION || codeUnit == _NUMBER_SIGN) {
         pathEndIndex--;
         break;
@@ -285,9 +283,9 @@ class Uri {
 
     // Maybe query.
     int queryEndIndex = pathEndIndex;
-    if (queryEndIndex < length && codeUnits[queryEndIndex] == _QUESTION) {
+    if (queryEndIndex < length && uri.codeUnitAt(queryEndIndex) == _QUESTION) {
       while (queryEndIndex < length) {
-        int codeUnit = codeUnits[queryEndIndex++];
+        int codeUnit = uri.codeUnitAt(queryEndIndex++);
         if (codeUnit == _NUMBER_SIGN) {
           queryEndIndex--;
           break;
