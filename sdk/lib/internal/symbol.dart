@@ -15,29 +15,44 @@ part of dart._internal;
 class Symbol implements core.Symbol {
   final String _name;
 
-  static final RegExp validationPattern =
-      new RegExp(r'^(?:[a-zA-Z$][a-zA-Z$0-9_]*\.)*(?:[a-zA-Z$][a-zA-Z$0-9_]*=?|'
-                 r'-|'
-                 r'unary-|'
-                 r'\[\]=|'
-                 r'~|'
-                 r'==|'
-                 r'\[\]|'
-                 r'\*|'
-                 r'/|'
-                 r'%|'
-                 r'~/|'
-                 r'\+|'
-                 r'<<|'
-                 r'>>|'
-                 r'>=|'
-                 r'>|'
-                 r'<=|'
-                 r'<|'
-                 r'&|'
-                 r'\^|'
-                 r'\|'
-                 r')$');
+  // Reserved words are not allowed as identifiers.
+  static const String reservedWordRE =
+      r'(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|d(?:efault|o)|'
+      r'e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|i[fns]|n(?:ew|ull)|'
+      r'ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|r(?:ue|y))|'
+      r'v(?:ar|oid)|w(?:hile|ith))';
+  // Mathces a public identifier (identifier not starting with '_').
+  static const String publicIdentifierRE =
+      r'(?!' '$reservedWordRE' r'\b(?!\$))[a-zA-Z$][\w$]*';
+  // Matches the names of declarable operators.
+  static const String operatorRE =
+      r'(?:[\-+*/%&|^]|\[\]=?|==|~/?|<[<=]?|>[>=]?|unary-)';
+
+  // Grammar:
+  //    symbol ::= qualifiedName | <empty>
+  //    qualifiedName ::= publicIdentifier '.' qualifiedName | name
+  //    name ::= publicIdentifier
+  //           | publicIdentifier '='
+  //           | operator
+  // where publicIdentifier is any valid identifier (not a reserved word)
+  // that isn't private (doesn't start with '_').
+  //
+  // Railroad diagram of the accepted grammar:
+  //
+  //    /----------------\
+  //    |                |
+  //    |          /-[.]-/     /-[=]-\
+  //    \         /           /       \
+  //  -------[id]------------------------->
+  //       \                     /
+  //        \------[operator]---/
+  //            \              /
+  //             \------------/
+  //
+
+  // Validates non-empty symbol (empty symbol is handled before using this).
+  static final RegExp validationPattern = new RegExp(
+      '^(?:$operatorRE\$|$publicIdentifierRE(?:=?\$|[.](?!\$)))+?\$');
 
   external const Symbol(String name);
 
@@ -64,14 +79,14 @@ class Symbol implements core.Symbol {
   static String getName(Symbol symbol) => symbol._name;
 
   static String validate(String name) {
-    if (name.isEmpty) return name;
+    if (name.isEmpty || validationPattern.hasMatch(name)) return name;
     if (name.startsWith('_')) {
+      // There may be other private parts in a qualified name than the first
+      // one, but this is a common case that deserves a specific error
+      // message.
       throw new ArgumentError('"$name" is a private identifier');
     }
-    if (!validationPattern.hasMatch(name)) {
-      throw new ArgumentError(
-          '"$name" is not an identifier or an empty String');
-    }
-    return name;
+    throw new ArgumentError(
+        '"$name" is not a valid (qualified) symbol name');
   }
 }

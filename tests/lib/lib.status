@@ -88,7 +88,7 @@ mirrors/relation_assignable_test: RuntimeError # Issue 6490
 mirrors/relation_subtype_test: RuntimeError # Issue 6490
 mirrors/relation_subclass_test: RuntimeError # Issue 6490
 mirrors/repeated_private_anon_mixin_app_test: RuntimeError # Issue 14670
-mirrors/symbol_validation_test: RuntimeError # Issue 13597
+mirrors/symbol_validation_test/none: RuntimeError # Issue 13597
 mirrors/static_members_test: RuntimeError # Issue 14633, Issue 12164
 mirrors/synthetic_accessor_properties_test: RuntimeError # Issue 14633
 mirrors/toplevel_members_test: RuntimeError # Issue 14633, Issue 12164

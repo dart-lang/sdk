@@ -9,10 +9,24 @@ class Symbol {
   /**
    * Constructs a new Symbol.
    *
-   * An [ArgumentError] is thrown if [name] starts with an underscore, or if
-   * [name] is not a [String].  An [ArgumentError] is thrown if [name] is not
-   * an empty string and is not a valid qualified identifier optionally
-   * followed by [:'=':].
+   * The name must be a valid public Dart member name,
+   * public constructor name, or library name, optionally qualified.
+   *
+   * A qualified name is a valid name preceded by a public identifier name
+   * and a '`.`', e.g., `foo.bar.baz=` is a qualified version of `baz=`.
+   * That means that the content of the [name] String must be either
+   *
+   * * a valid public Dart identifier
+   *   (that is, an identifier not starting with "`_`"),
+   * * such an identifier followed by "=" (a setter name),
+   * * the name of a declarable operator
+   *   (one of "`+`", "`-`", "`*`", "`/`", "`%`", "`~/`", "`&`", "`|`",
+   *   "`^`", "`~`", "`<<`", "`>>`", "`<`", "`<=`", "`>`", "`>=`", "`==`",
+   *   "`[]`", "`[]=`", or "`unary-`"),
+   * * any of the above preceeded by any number of qualifiers,
+   *   where a qualifier is a non-private identifier followed by '`.`',
+   * * or the empty string (the default name of a library with not library
+   *   name declaration).
    *
    * The following text is non-normative:
    *
