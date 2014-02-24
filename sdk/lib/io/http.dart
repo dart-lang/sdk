@@ -98,6 +98,9 @@ abstract class HttpServer implements Stream<HttpRequest> {
    *
    * Default is 120 seconds.
    *
+   * Note that it may take up to `2 * idleTimeout` before a idle connection is
+   * aborted.
+   *
    * To disable, set [idleTimeout] to `null`.
    */
   Duration idleTimeout;

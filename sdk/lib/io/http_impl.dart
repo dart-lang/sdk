@@ -1895,24 +1895,22 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection> {
   static const _CLOSING = 2;
   static const _DETACHED = 3;
 
-  int _state = _IDLE;
-
   final Socket _socket;
   final _HttpServer _httpServer;
   final _HttpParser _httpParser;
+  int _state = _IDLE;
   StreamSubscription _subscription;
   Timer _idleTimer;
   final Uint8List _headersBuffer = new Uint8List(_HEADERS_BUFFER_SIZE);
-
+  bool _idleMark = false;
   Future _streamFuture;
 
   _HttpConnection(this._socket, this._httpServer)
       : _httpParser = new _HttpParser.requestParser() {
-    _startTimeout();
     _httpParser.listenToStream(_socket);
     _subscription = _httpParser.listen(
         (incoming) {
-          _stopTimeout();
+          _httpServer._markActive(this);
           // If the incoming was closed, close the connection.
           incoming.dataDone.then((closing) {
             if (closing) destroy();
@@ -1937,7 +1935,8 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection> {
                     !_httpParser.upgrade &&
                     !_httpServer.closed) {
                   _state = _IDLE;
-                  _startTimeout();
+                  _idleMark = false;
+                  _httpServer._markIdle(this);
                   // Resume the subscription for incoming requests as the
                   // request is now processed.
                   _subscription.resume();
@@ -1962,21 +1961,13 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection> {
         });
   }
 
-  void _startTimeout() {
-    assert(_state == _IDLE);
-    _stopTimeout();
-    if (_httpServer.idleTimeout == null) return;
-    _idleTimer = new Timer(_httpServer.idleTimeout, () {
-      destroy();
-    });
+  void markIdle() {
+    _idleMark = true;
   }
 
-  void _stopTimeout() {
-    if (_idleTimer != null) _idleTimer.cancel();
-  }
+  bool get isMarkedIdle => _idleMark;
 
   void destroy() {
-    _stopTimeout();
     if (_state == _CLOSING || _state == _DETACHED) return;
     _state = _CLOSING;
     _socket.destroy();
@@ -1984,7 +1975,6 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection> {
   }
 
   Future<Socket> detachSocket() {
-    _stopTimeout();
     _state = _DETACHED;
     // Remove connection from server.
     _httpServer._connectionClosed(this);
@@ -2009,7 +1999,8 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection> {
 class _HttpServer extends Stream<HttpRequest> implements HttpServer {
   String serverHeader;
 
-  Duration idleTimeout = const Duration(seconds: 120);
+  Duration _idleTimeout;
+  Timer _idleTimer;
 
   static Future<HttpServer> bind(address, int port, int backlog) {
     return ServerSocket.bind(address, port, backlog: backlog).then((socket) {
@@ -2036,11 +2027,34 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
   _HttpServer._(this._serverSocket, this._closeServer) {
     _controller = new StreamController<HttpRequest>(sync: true,
                                                     onCancel: close);
+    idleTimeout = const Duration(seconds: 120);
   }
 
   _HttpServer.listenOn(this._serverSocket) : _closeServer = false {
     _controller = new StreamController<HttpRequest>(sync: true,
                                                     onCancel: close);
+    idleTimeout = const Duration(seconds: 120);
+  }
+
+  Duration get idleTimeout => _idleTimeout;
+
+  void set idleTimeout(Duration duration) {
+    if (_idleTimer != null) {
+      _idleTimer.cancel();
+      _idleTimer = null;
+    }
+    _idleTimeout = duration;
+    if (_idleTimeout != null) {
+      _idleTimer = new Timer.periodic(_idleTimeout, (_) {
+        for (var idle in _idleConnections.toList()) {
+          if (idle.isMarkedIdle) {
+            idle.destroy();
+          } else {
+            idle.markIdle();
+          }
+        }
+      });
+    }
   }
 
   StreamSubscription<HttpRequest> listen(void onData(HttpRequest event),
@@ -2052,7 +2066,7 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
           socket.setOption(SocketOption.TCP_NODELAY, true);
           // Accept the client connection.
           _HttpConnection connection = new _HttpConnection(socket, this);
-          _connections.add(connection);
+          _idleConnections.add(connection);
         },
         onError: (error) {
           // Ignore HandshakeExceptions as they are bound to a single request,
@@ -2076,15 +2090,15 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
     } else {
       result = new Future.value();
     }
+    idleTimeout = null;
     if (force) {
-      for (var c in _connections.toList()) {
+      for (var c in _activeConnections.toList()) {
         c.destroy();
       }
-      assert(_connections.isEmpty);
-    } else {
-      for (var c in _connections.where((c) => c._isIdle).toList()) {
-        c.destroy();
-      }
+      assert(_activeConnections.isEmpty);
+    }
+    for (var c in _idleConnections.toList()) {
+      c.destroy();
     }
     _maybeCloseSessionManager();
     return result;
@@ -2092,7 +2106,8 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
 
   void _maybeCloseSessionManager() {
     if (closed &&
-        _connections.isEmpty &&
+        _idleConnections.isEmpty &&
+        _activeConnections.isEmpty &&
         _sessionManagerInstance != null) {
       _sessionManagerInstance.close();
       _sessionManagerInstance = null;
@@ -2120,8 +2135,19 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
   }
 
   void _connectionClosed(_HttpConnection connection) {
-    _connections.remove(connection);
+    // Remove itself from either idle or active connections.
+    connection.unlink();
     _maybeCloseSessionManager();
+  }
+
+  void _markIdle(_HttpConnection connection) {
+    _activeConnections.remove(connection);
+    _idleConnections.add(connection);
+  }
+
+  void _markActive(_HttpConnection connection) {
+    _idleConnections.remove(connection);
+    _activeConnections.add(connection);
   }
 
   _HttpSessionManager get _sessionManager {
@@ -2134,16 +2160,18 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
 
   HttpConnectionsInfo connectionsInfo() {
     HttpConnectionsInfo result = new HttpConnectionsInfo();
-    result.total = _connections.length;
-    _connections.forEach((_HttpConnection conn) {
+    result.total = _activeConnections.length + _idleConnections.length;
+    _activeConnections.forEach((_HttpConnection conn) {
       if (conn._isActive) {
         result.active++;
-      } else if (conn._isIdle) {
-        result.idle++;
       } else {
         assert(conn._isClosing);
         result.closing++;
       }
+    });
+    _idleConnections.forEach((_HttpConnection conn) {
+      result.idle++;
+      assert(conn._isIdle);
     });
     return result;
   }
@@ -2159,10 +2187,11 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
   final bool _closeServer;
 
   // Set of currently connected clients.
-  final LinkedList<_HttpConnection> _connections
+  final LinkedList<_HttpConnection> _activeConnections
+      = new LinkedList<_HttpConnection>();
+  final LinkedList<_HttpConnection> _idleConnections
       = new LinkedList<_HttpConnection>();
   StreamController<HttpRequest> _controller;
-  // TODO(ajohnsen): Use close queue?
 }
 
 
