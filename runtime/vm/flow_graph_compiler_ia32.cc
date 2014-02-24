@@ -9,6 +9,7 @@
 
 #include "vm/ast_printer.h"
 #include "vm/compiler.h"
+#include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
 #include "vm/il_printer.h"
@@ -43,7 +44,7 @@ FlowGraphCompiler::~FlowGraphCompiler() {
 
 bool FlowGraphCompiler::SupportsUnboxedMints() {
   // Support unboxed mints when SSE 4.1 is available.
-  return FLAG_unbox_mints && CPUFeatures::sse4_1_supported();
+  return FLAG_unbox_mints && TargetCPUFeatures::sse4_1_supported();
 }
 
 
