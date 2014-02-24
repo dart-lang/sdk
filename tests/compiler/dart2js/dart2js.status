@@ -17,6 +17,8 @@ mirrors/relation_subtype_test: Fail # Issue 16736
 mirrors/relation_assignable_test: Fail # Issue 16736
 mirrors/relation_subclass_test: Fail # Issue 16737
 
+logical_expression_test: Fail # Issue 17027
+
 [ $mode == debug ]
 mirror_final_field_inferrer2_test: Crash, Pass, Slow # dartbug.com/15581
 

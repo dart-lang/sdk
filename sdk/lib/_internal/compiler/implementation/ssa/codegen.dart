@@ -1817,6 +1817,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       handledBySpecialCase = true;
       if (input is HIs) {
         emitIs(input, '!==');
+      } else if (input is HNot) {
+        use(input.inputs[0]);
       } else if (input is HIdentity) {
         HIdentity identity = input;
         emitIdentityComparison(identity.left, identity.right, true);
@@ -1866,11 +1868,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else if (node.inputs[1].isConstantBoolean()) {
       String operation = node.inputs[1].isConstantFalse() ? '&&' : '||';
       if (operation == '||') {
-        if (input is HNot) {
-          use(input.inputs[0]);
-        } else {
-          generateNot(input);
-        }
+        generateNot(input);
       } else {
         use(input);
       }
