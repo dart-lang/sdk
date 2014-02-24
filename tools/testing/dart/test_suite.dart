@@ -28,7 +28,9 @@ part "browser_test.dart";
 
 RegExp multiHtmlTestGroupRegExp = new RegExp(r"\s*[^/]\s*group\('[^,']*");
 RegExp multiHtmlTestRegExp = new RegExp(r"useHtmlIndividualConfiguration()");
-RegExp multiTestRegExp = new RegExp(r"/// [0-9][0-9]:(.*)");
+// Require at least one non-space character before '///'
+RegExp multiTestRegExp = new RegExp(r"\S *"
+                                    r"/// \w+:(.*)");
 
 /**
  * A simple function that tests [arg] and returns `true` or `false`.
