@@ -7,14 +7,15 @@ library observe.src.observable;
 import 'dart:async';
 import 'dart:collection';
 
+// TODO(sigmund): figure out how to remove this annotation entirely
 // Note: ObservableProperty is in this list only for the unusual use case of
 // dart2js without deploy tool. The deploy tool (see "transformer.dart") will
 // add the @reflectable annotation, which makes it work with Polymer's
 // @published.
 @MirrorsUsed(metaTargets: const [Reflectable, ObservableProperty],
-    override: 'observe.src.observable')
-import 'dart:mirrors';
-
+    override: 'smoke.mirrors')
+import 'dart:mirrors' show MirrorsUsed;
+import 'package:smoke/smoke.dart' as smoke;
 import 'package:observe/observe.dart';
 
 // Note: this is an internal library so we can import it from tests.
@@ -46,7 +47,6 @@ abstract class Observable {
   static void dirtyCheck() => dirtyCheckObservables();
 
   StreamController _changes;
-  InstanceMirror _mirror;
 
   Map<Symbol, Object> _values;
   List<ChangeRecord> _records;
@@ -75,32 +75,20 @@ abstract class Observable {
     // Register this object for dirty checking purposes.
     registerObservable(this);
 
-    var mirror = reflect(this);
     var values = new Map<Symbol, Object>();
 
     // Note: we scan for @observable regardless of whether the base type
     // actually includes this mixin. While perhaps too inclusive, it lets us
     // avoid complex logic that walks "with" and "implements" clauses.
-    for (var type = mirror.type; type != objectType; type = type.superclass) {
-      for (var field in type.declarations.values) {
-        if (field is! VariableMirror ||
-            field.isFinal ||
-            field.isStatic ||
-            field.isPrivate) continue;
-
-        for (var meta in field.metadata) {
-          if (meta.reflectee is ObservableProperty) {
-            var name = field.simpleName;
-            // Note: since this is a field, getting the value shouldn't execute
-            // user code, so we don't need to worry about errors.
-            values[name] = mirror.getField(name).reflectee;
-            break;
-          }
-        }
-      }
+    var queryOptions = new smoke.QueryOptions(includeInherited: true,
+        includeProperties: false, withAnnotations: const [ObservableProperty]);
+    for (var decl in smoke.query(this.runtimeType, queryOptions)) {
+      var name = decl.name;
+      // Note: since this is a field, getting the value shouldn't execute
+      // user code, so we don't need to worry about errors.
+      values[name] = smoke.read(this, name);
     }
 
-    _mirror = mirror;
     _values = values;
   }
 
@@ -109,7 +97,6 @@ abstract class Observable {
     // Note: we don't need to explicitly unregister from the dirty check list.
     // This will happen automatically at the next call to dirtyCheck.
     if (_values != null) {
-      _mirror = null;
       _values = null;
     }
   }
@@ -145,7 +132,7 @@ abstract class Observable {
     _records = null;
 
     _values.forEach((name, oldValue) {
-      var newValue = _mirror.getField(name).reflectee;
+      var newValue = smoke.read(this, name);
       if (oldValue != newValue) {
         if (records == null) records = [];
         records.add(new PropertyChangeRecord(this, name, oldValue, newValue));
@@ -202,6 +189,3 @@ notifyPropertyChangeHelper(Observable obj, Symbol field, Object oldValue,
   }
   return newValue;
 }
-
-// NOTE: this is not exported publically.
-final objectType = reflectClass(Object);

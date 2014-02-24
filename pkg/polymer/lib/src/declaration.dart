@@ -291,7 +291,7 @@ class PolymerDeclaration extends HtmlElement {
         }
 
         var decl = smoke.getDeclaration(_type, property);
-        if (decl == null || !decl.isProperty || decl.isFinal) {
+        if (decl == null || decl.isMethod || decl.isFinal) {
           window.console.warn('property for attribute $attr of polymer-element '
               'name=$name not found.');
           continue;
@@ -454,8 +454,8 @@ class PolymerDeclaration extends HtmlElement {
    * properties.
    */
   void inferObservers() {
-    var options = const smoke.QueryOptions(includeProperties: false,
-        includeMethods: true, includeInherited: true);
+    var options = const smoke.QueryOptions(includeFields: false,
+        includeProperties: false, includeMethods: true, includeInherited: true);
     for (var decl in smoke.query(_type, options)) {
       String name = smoke.symbolToName(decl.name);
       if (name.endsWith(_OBSERVE_SUFFIX) && name != 'attributeChanged') {
@@ -473,8 +473,8 @@ class PolymerDeclaration extends HtmlElement {
    * observe the associated properties.
    */
   void explodeObservers() {
-    var options = const smoke.QueryOptions(includeProperties: false,
-        includeMethods: true, includeInherited: true,
+    var options = const smoke.QueryOptions(includeFields: false,
+        includeProperties: false, includeMethods: true, includeInherited: true,
         withAnnotations: const [ObserveProperty]);
     for (var decl in smoke.query(_type, options)) {
       for (var meta in decl.annotations) {

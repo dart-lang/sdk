@@ -84,15 +84,18 @@ Symbol nameToSymbol(String name) =>
 /// hierarchy. For now only public instance symbols can be queried (no private,
 /// no static).
 class QueryOptions {
-  /// Whether to include fields, getters, and setters.
+  /// Whether to include fields (default is true).
+  final bool includeFields;
+
+  /// Whether to include getters and setters (default is true). Note that to
+  /// include fields you also need to enable [includeFields].
   final bool includeProperties;
 
   /// Whether to include symbols from the given type and its superclasses
   /// (except [Object]).
   final bool includeInherited;
 
-  /// Whether to include final fields.
-  // TODO(sigmund): should this exclude getter-only properties too?
+  /// Whether to include final fields and getter-only properties.
   final bool excludeFinal;
 
   /// Whether to include methods (default is false).
@@ -103,8 +106,12 @@ class QueryOptions {
   /// included.
   final List withAnnotations;
 
-  const QueryOptions({this.includeProperties: true, this.includeInherited: true,
-      this.excludeFinal: false, this.includeMethods: false,
+  const QueryOptions({
+      this.includeFields: true,
+      this.includeProperties: true,
+      this.includeInherited: true,
+      this.excludeFinal: false,
+      this.includeMethods: false,
       this.withAnnotations: null});
 }
 
@@ -114,18 +121,24 @@ class Declaration {
   /// Name of the property or method
   final Symbol name;
 
-  /// Whether the symbol is a property (either this or [isMethod] is true).
-  bool get isProperty => !isMethod;
+  /// Kind of declaration (field, property, or method).
+  final DeclarationKind kind;
 
-  /// Whether the symbol is a method (either this or [isProperty] is true)
-  final bool isMethod;
+  /// Whether the symbol is a field (and not a getter/setter property).
+  bool get isField => kind == FIELD;
 
-  /// If this is a property, whether it's read only (final fields or properties
-  /// with no setter).
+  /// Whether the symbol is a getter/setter and not a field.
+  bool get isProperty => kind == PROPERTY;
+
+  /// Whether the symbol is a method.
+  bool get isMethod => kind == METHOD;
+
+  /// For fields, whether they are final, for properties, whether they are
+  /// read-only (they have no setter).
   final bool isFinal;
 
-  /// If this is a property, it's declared type (including dynamic if it's not
-  /// declared). For methods, the returned type.
+  /// If this is a field or property, it's declared type (including dynamic if
+  /// it's not declared). For methods, the returned type.
   final Type type;
 
   /// Whether this symbol is static.
@@ -134,7 +147,7 @@ class Declaration {
   /// List of annotations in this declaration.
   final List annotations;
 
-  const Declaration(this.name, this.type, {this.isMethod:false,
+  const Declaration(this.name, this.type, {this.kind: FIELD,
       this.isFinal: false, this.isStatic: false, this.annotations: const []});
 
   String toString() {
@@ -148,6 +161,21 @@ class Declaration {
         ..write(']')).toString();
   }
 }
+
+/// Enumeration for declaration kinds (field, property, or method)
+class DeclarationKind {
+  final int kind;
+  const DeclarationKind(this.kind);
+}
+
+/// Declaration kind used to denote a raw field.
+const FIELD = const DeclarationKind(0);
+
+/// Declaration kind used to denote a getter/setter.
+const PROPERTY = const DeclarationKind(1);
+
+/// Declaration kind used to denote a method.
+const METHOD = const DeclarationKind(2);
 
 
 /// A service that provides a way to implement simple operations on objects like

@@ -164,6 +164,7 @@ class _GeneratedTypeInspectorService implements TypeInspectorService {
       throw new MissingCodeException('declarations for $type');
     }
     for (var decl in map.values) {
+      if (!options.includeFields && decl.isField) continue;
       if (!options.includeProperties && decl.isProperty) continue;
       if (options.excludeFinal && decl.isFinal) continue;
       if (!options.includeMethods && decl.isMethod) continue;

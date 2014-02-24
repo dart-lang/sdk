@@ -140,7 +140,8 @@ main() {
   test('get declaration', () {
     var d = smoke.getDeclaration(B, #a);
     expect(d.name, #a);
-    expect(d.isProperty, isTrue);
+    expect(d.isField, isTrue);
+    expect(d.isProperty, isFalse);
     expect(d.isMethod, isFalse);
     expect(d.isFinal, isFalse);
     expect(d.isStatic, isFalse);
@@ -149,6 +150,7 @@ main() {
 
     d = smoke.getDeclaration(B, #w);
     expect(d.name, #w);
+    expect(d.isField, isFalse);
     expect(d.isProperty, isTrue);
     expect(d.isMethod, isFalse);
     expect(d.isFinal, isFalse);
@@ -158,6 +160,7 @@ main() {
 
     d = smoke.getDeclaration(A, #inc1);
     expect(d.name, #inc1);
+    expect(d.isField, isFalse);
     expect(d.isProperty, isFalse);
     expect(d.isMethod, isTrue);
     expect(d.isFinal, isFalse);
@@ -167,6 +170,7 @@ main() {
 
     d = smoke.getDeclaration(F, #staticMethod);
     expect(d.name, #staticMethod);
+    expect(d.isField, isFalse);
     expect(d.isProperty, isFalse);
     expect(d.isMethod, isTrue);
     expect(d.isFinal, isFalse);
@@ -176,7 +180,8 @@ main() {
 
     d = smoke.getDeclaration(G, #b);
     expect(d.name, #b);
-    expect(d.isProperty, isTrue);
+    expect(d.isField, isTrue);
+    expect(d.isProperty, isFalse);
     expect(d.isMethod, isFalse);
     expect(d.isFinal, isFalse);
     expect(d.isStatic, isFalse);
@@ -185,7 +190,8 @@ main() {
 
     d = smoke.getDeclaration(G, #d);
     expect(d.name, #d);
-    expect(d.isProperty, isTrue);
+    expect(d.isField, isTrue);
+    expect(d.isProperty, isFalse);
     expect(d.isMethod, isFalse);
     expect(d.isFinal, isFalse);
     expect(d.isStatic, isFalse);
@@ -200,16 +206,35 @@ main() {
       expect(res.map((e) => e.name), [#i, #j, #j2]);
     });
 
+    test('only fields', () {
+      var options = new smoke.QueryOptions(includeProperties: false);
+      var res = smoke.query(A, options);
+      expect(res.map((e) => e.name), [#i, #j]);
+    });
+
+    test('only properties', () {
+      var options = new smoke.QueryOptions(includeFields: false);
+      var res = smoke.query(A, options);
+      expect(res.map((e) => e.name), [#j2]);
+    });
+
     test('properties and methods', () {
       var options = new smoke.QueryOptions(includeMethods: true);
       var res = smoke.query(A, options);
       expect(res.map((e) => e.name), [#i, #j, #j2, #inc0, #inc1, #inc2]);
     });
 
-    test('inherited properties', () {
+    test('inherited properties and fields', () {
       var options = new smoke.QueryOptions(includeInherited: true);
       var res = smoke.query(D, options);
       expect(res.map((e) => e.name), [#x, #y, #b, #i, #j, #j2, #x2, #i2]);
+    });
+
+    test('inherited fields only', () {
+      var options = new smoke.QueryOptions(includeInherited: true,
+          includeProperties: false);
+      var res = smoke.query(D, options);
+      expect(res.map((e) => e.name), [#x, #y, #b, #i, #j]);
     });
 
     test('exact annotation', () {

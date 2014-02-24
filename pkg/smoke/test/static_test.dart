@@ -4,7 +4,7 @@
 
 library smoke.test.static_test;
 
-import 'package:smoke/smoke.dart' show Declaration;
+import 'package:smoke/smoke.dart' show Declaration, PROPERTY, METHOD;
 import 'package:smoke/static.dart';
 import 'package:unittest/unittest.dart';
 import 'common.dart' hide main;
@@ -45,43 +45,43 @@ var _config = new StaticConfiguration(
     declarations: { 
       B: {
         #a: const Declaration(#a, A),
-        #w: const Declaration(#w, int),
+        #w: const Declaration(#w, int, kind: PROPERTY),
         #f: const Declaration(#f, int, isFinal: true),
       },
       A: {
         #i: const Declaration(#i, int),
         #j: const Declaration(#j, int),
-        #j2: const Declaration(#j2, int),
-        #inc0: const Declaration(#inc0, Function, isMethod: true),
-        #inc1: const Declaration(#inc1, Function, isMethod: true),
-        #inc2: const Declaration(#inc2, Function, isMethod: true),
+        #j2: const Declaration(#j2, int, kind: PROPERTY),
+        #inc0: const Declaration(#inc0, Function, kind: METHOD),
+        #inc1: const Declaration(#inc1, Function, kind: METHOD),
+        #inc2: const Declaration(#inc2, Function, kind: METHOD),
       },
       C: {
         #x: const Declaration(#x, int),
         #y: const Declaration(#y, String),
         #b: const Declaration(#b, B),
-        #inc: const Declaration(#inc, Function, isMethod: true),
+        #inc: const Declaration(#inc, Function, kind: METHOD),
       },
       C_with_A: {
         #i: const Declaration(#i, int),
         #j: const Declaration(#j, int),
-        #j2: const Declaration(#j2, int),
-        #inc0: const Declaration(#inc0, Function, isMethod: true),
-        #inc1: const Declaration(#inc1, Function, isMethod: true),
-        #inc2: const Declaration(#inc2, Function, isMethod: true),
+        #j2: const Declaration(#j2, int, kind: PROPERTY),
+        #inc0: const Declaration(#inc0, Function, kind: METHOD),
+        #inc1: const Declaration(#inc1, Function, kind: METHOD),
+        #inc2: const Declaration(#inc2, Function, kind: METHOD),
       },
       D: {
-        #x2: const Declaration(#x2, int),
-        #i2: const Declaration(#i2, int),
+        #x2: const Declaration(#x2, int, kind: PROPERTY),
+        #i2: const Declaration(#i2, int, kind: PROPERTY),
       },
       E: {
-        #y: const Declaration(#y, int, isFinal: true),
+        #y: const Declaration(#y, int, isFinal: true, kind: PROPERTY),
         #noSuchMethod:
-           const Declaration(#noSuchMethody, Function, isMethod: true),
+           const Declaration(#noSuchMethody, Function, kind: METHOD),
       },
       E2: const {},
       F: {#staticMethod: const Declaration(#staticMethod, Function,
-             isMethod: true, isStatic: true)},
+             kind: METHOD, isStatic: true)},
       F2: const {},
       G: {
         #a: const Declaration(#a, int),

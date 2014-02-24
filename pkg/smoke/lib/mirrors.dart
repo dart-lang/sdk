@@ -145,7 +145,7 @@ class ReflectiveTypeInspectorService implements TypeInspectorService {
       var name = member.simpleName;
       bool isMethod = false;
       if (member is VariableMirror) {
-        if (!options.includeProperties) continue;
+        if (!options.includeFields) continue;
         if (options.excludeFinal && member.isFinal) continue;
       }
 
@@ -248,12 +248,14 @@ class _MirrorDeclaration implements Declaration {
 
   Symbol get name => _original.simpleName;
 
-  /// Whether the symbol is a property (either this or [isMethod] is true).
-  bool get isProperty => _original is VariableMirror ||
-      (_original is MethodMirror && !_original.isRegularMethod);
+  DeclarationKind get kind => isField ? FIELD : isProperty ? PROPERTY : METHOD;
 
-  /// Whether the symbol is a method (either this or [isProperty] is true)
-  bool get isMethod => !isProperty;
+  bool get isField => _original is VariableMirror;
+
+  bool get isProperty =>
+      _original is MethodMirror && !_original.isRegularMethod;
+
+  bool get isMethod => !isField && !isProperty;
 
   /// If this is a property, whether it's read only (final fields or properties
   /// with no setter).
@@ -283,7 +285,8 @@ class _MirrorDeclaration implements Declaration {
     return (new StringBuffer()
         ..write('[declaration ')
         ..write(name)
-        ..write(isProperty ? ' (property) ' : ' (method) ')
+        ..write(isField ? ' (field) '
+            : (isProperty ? ' (property) ' : ' (method) '))
         ..write(isFinal ? 'final ' : '')
         ..write(isStatic ? 'static ' : '')
         ..write(annotations)

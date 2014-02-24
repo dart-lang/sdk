@@ -8,11 +8,13 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:math' show min;
 @MirrorsUsed(metaTargets: const [Reflectable, ObservableProperty],
-    override: 'observe.src.path_observer')
-import 'dart:mirrors';
+    override: 'smoke.mirrors')
+import 'dart:mirrors' show MirrorsUsed;
+
 import 'package:logging/logging.dart' show Logger, Level;
 import 'package:observe/observe.dart';
 import 'package:observe/src/observable.dart' show objectType;
+import 'package:smoke/smoke.dart' as smoke;
 
 /// A data-bound path starting from a view-model or model object, for example
 /// `foo.bar.baz`.
@@ -41,7 +43,7 @@ class PathObserver extends _Observer implements Bindable {
   bool get _isClosed => _path == null;
 
   /// Sets the value at this path.
-  @reflectable void set value(Object newValue) {
+  void set value(Object newValue) {
     if (_path != null) _path.setValueFrom(_object, newValue);
   }
 
@@ -148,7 +150,7 @@ class PropertyPath {
   String toString() {
     if (!isValid) return '<invalid path>';
     return _segments
-        .map((s) => s is Symbol ? MirrorSystem.getName(s) : s)
+        .map((s) => s is Symbol ? smoke.symbolToName(s) : s)
         .join('.');
   }
 
@@ -229,7 +231,7 @@ bool _changeRecordMatches(record, key) {
     return (record as PropertyChangeRecord).name == key;
   }
   if (record is MapChangeRecord) {
-    if (key is Symbol) key = MirrorSystem.getName(key);
+    if (key is Symbol) key = smoke.symbolToName(key);
     return (record as MapChangeRecord).key == key;
   }
   return false;
@@ -243,22 +245,21 @@ _getObjectProperty(object, property) {
       return object[property];
     }
   } else if (property is Symbol) {
-    var mirror = reflect(object);
-    final type = mirror.type;
+    final type = object.runtimeType;
     try {
-      if (_maybeHasGetter(type, property)) {
-        return mirror.getField(property).reflectee;
+      if (smoke.hasGetter(type, property) || smoke.hasNoSuchMethod(type)) {
+        return smoke.read(object, property);
       }
       // Support indexer if available, e.g. Maps or polymer_expressions Scope.
       // This is the default syntax used by polymer/nodebind and
       // polymer/observe-js PathObserver.
-      if (_hasMethod(type, const Symbol('[]'))) {
-        return object[MirrorSystem.getName(property)];
+      if (smoke.hasInstanceMethod(type, const Symbol('[]'))) {
+        return object[smoke.symbolToName(property)];
       }
     } on NoSuchMethodError catch (e) {
       // Rethrow, unless the type implements noSuchMethod, in which case we
       // interpret the exception as a signal that the method was not found.
-      if (!_hasMethod(type, #noSuchMethod)) rethrow;
+      if (!smoke.hasNoSuchMethod(type)) rethrow;
     }
   }
 
@@ -277,20 +278,19 @@ bool _setObjectProperty(object, property, value) {
       return true;
     }
   } else if (property is Symbol) {
-    var mirror = reflect(object);
-    final type = mirror.type;
+    final type = object.runtimeType;
     try {
-      if (_maybeHasSetter(type, property)) {
-        mirror.setField(property, value);
+      if (smoke.hasSetter(type, property) || smoke.hasNoSuchMethod(type)) {
+        smoke.write(object, property, value);
         return true;
       }
       // Support indexer if available, e.g. Maps or polymer_expressions Scope.
-      if (_hasMethod(type, const Symbol('[]='))) {
-        object[MirrorSystem.getName(property)] = value;
+      if (smoke.hasInstanceMethod(type, const Symbol('[]='))) {
+        object[smoke.symbolToName(property)] = value;
         return true;
       }
     } on NoSuchMethodError catch (e) {
-      if (!_hasMethod(type, #noSuchMethod)) rethrow;
+      if (!smoke.hasNoSuchMethod(type)) rethrow;
     }
   }
 
@@ -298,57 +298,6 @@ bool _setObjectProperty(object, property, value) {
     _logger.finer("can't set $property in $object");
   }
   return false;
-}
-
-bool _maybeHasGetter(ClassMirror type, Symbol name) {
-  while (type != objectType) {
-    final members = type.declarations;
-    if (members.containsKey(name)) return true;
-    if (members.containsKey(#noSuchMethod)) return true;
-    type = _safeSuperclass(type);
-  }
-  return false;
-}
-
-// TODO(jmesserly): workaround for:
-// https://code.google.com/p/dart/issues/detail?id=10029
-Symbol _setterName(Symbol getter) =>
-    new Symbol('${MirrorSystem.getName(getter)}=');
-
-bool _maybeHasSetter(ClassMirror type, Symbol name) {
-  var setterName = _setterName(name);
-  while (type != objectType) {
-    final members = type.declarations;
-    if (members[name] is VariableMirror) return true;
-    if (members.containsKey(setterName)) return true;
-    if (members.containsKey(#noSuchMethod)) return true;
-    type = _safeSuperclass(type);
-  }
-  return false;
-}
-
-/// True if the type has a method, other than on Object.
-/// Doesn't consider noSuchMethod, unless [name] is `#noSuchMethod`.
-bool _hasMethod(ClassMirror type, Symbol name) {
-  while (type != objectType) {
-    final member = type.declarations[name];
-    if (member is MethodMirror && member.isRegularMethod) return true;
-    type = _safeSuperclass(type);
-  }
-  return false;
-}
-
-ClassMirror _safeSuperclass(ClassMirror type) {
-  try {
-    return type.superclass;
-  } /*on UnsupportedError*/ catch (e) {
-    // Note: dart2js throws UnsupportedError when the type is not
-    // reflectable.
-    // TODO(jmesserly): dart2js also throws a NoSuchMethodError if the `type` is
-    // a bound generic, because they are not fully implemented. See
-    // https://code.google.com/p/dart/issues/detail?id=15573
-    return objectType;
-  }
 }
 
 // From: https://github.com/rafaelw/ChangeSummary/blob/master/change_summary.js
@@ -570,7 +519,7 @@ abstract class _Observer extends Bindable {
     return _value;
   }
 
-  @reflectable get value {
+  get value {
     _check(skipChanges: true);
     return _value;
   }
