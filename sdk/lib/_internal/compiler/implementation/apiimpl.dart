@@ -288,7 +288,7 @@ class Compiler extends leg.Compiler {
   }
 
   void reportDiagnostic(leg.Spannable node,
-                        leg.Diagnostic message,
+                        leg.Message message,
                         api.Diagnostic kind) {
     leg.SourceSpan span = spanFromSpannable(node);
     if (identical(kind, api.Diagnostic.ERROR)

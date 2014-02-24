@@ -75,22 +75,22 @@ void analyze(String text, [expectedWarnings]) {
 
 void main() {
   // Read from private variable.
-  analyze('var value = _privateVariable;', MessageKind.CANNOT_RESOLVE.warning);
+  analyze('var value = _privateVariable;', MessageKind.CANNOT_RESOLVE);
   // Write to private variable.
-  analyze('_privateVariable = 0;', MessageKind.CANNOT_RESOLVE.warning);
+  analyze('_privateVariable = 0;', MessageKind.CANNOT_RESOLVE);
   // Access private function.
-  analyze('var value = _privateFunction;', MessageKind.CANNOT_RESOLVE.warning);
+  analyze('var value = _privateFunction;', MessageKind.CANNOT_RESOLVE);
   // Call private function.
-  analyze('_privateFunction();', MessageKind.CANNOT_RESOLVE.warning);
+  analyze('_privateFunction();', MessageKind.CANNOT_RESOLVE);
 
   // Call unnamed (public) constructor on private class.
-  analyze('new _PrivateClass();', MessageKind.CANNOT_RESOLVE.warning);
+  analyze('new _PrivateClass();', MessageKind.CANNOT_RESOLVE);
   // Call public constructor on private class.
   analyze('new _PrivateClass.publicConstructor();',
-          MessageKind.CANNOT_RESOLVE.warning);
+          MessageKind.CANNOT_RESOLVE);
   // Call private constructor on private class.
   analyze('new _PrivateClass._privateConstructor();',
-      MessageKind.CANNOT_RESOLVE.warning);
+      MessageKind.CANNOT_RESOLVE);
   // Call public getter of private type.
   analyze('var value = publicClass.private;');
   // Read from private field on private class.
@@ -131,7 +131,7 @@ void main() {
   analyze('publicClass = new PublicClass.publicConstructor();');
   // Call private constructor on public class.
   analyze('publicClass = new PublicClass._privateConstructor();',
-      MessageKind.CANNOT_FIND_CONSTRUCTOR.warning);
+      MessageKind.CANNOT_FIND_CONSTRUCTOR);
   // Read from private field on public class.
   analyze('var value = publicClass._privateField;',
       MessageKind.PRIVATE_ACCESS);

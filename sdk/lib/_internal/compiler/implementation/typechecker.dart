@@ -481,10 +481,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
                        {bool isConst: false}) {
     if (!types.isAssignable(from, to)) {
       if (compiler.enableTypeAssertions && isConst) {
-        compiler.reportError(spannable, MessageKind.NOT_ASSIGNABLE.error,
+        compiler.reportError(spannable, MessageKind.NOT_ASSIGNABLE,
                              {'fromType': from, 'toType': to});
       } else {
-        reportTypeWarning(spannable, MessageKind.NOT_ASSIGNABLE.warning,
+        reportTypeWarning(spannable, MessageKind.NOT_ASSIGNABLE,
                           {'fromType': from, 'toType': to});
       }
       return false;
@@ -773,7 +773,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
               reportTypeWarning(node, MessageKind.GETTER_NOT_FOUND,
                   {'className': receiverType.name, 'memberName': name});
             } else {
-              reportTypeWarning(node, MessageKind.MEMBER_NOT_FOUND.warning,
+              reportTypeWarning(node, MessageKind.MEMBER_NOT_FOUND,
                   {'className': receiverType.name, 'memberName': name});
             }
             break;

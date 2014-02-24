@@ -626,7 +626,7 @@ abstract class WarnOnUseElement extends Element {
 }
 
 abstract class AmbiguousElement extends Element {
-  DualKind get messageKind;
+  MessageKind get messageKind;
   Map get messageArguments;
   Element get existingElement;
   Element get newElement;

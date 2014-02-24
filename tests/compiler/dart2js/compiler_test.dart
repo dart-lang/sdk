@@ -21,17 +21,21 @@ class CallbackMockCompiler extends MockCompiler {
   setOnWarning(var f) => onWarning = f;
 
   void reportWarning(Spannable node,
-                     MessageKind errorCode,
+                     MessageKind messageKind,
                      [Map arguments = const {}]) {
-    if (onWarning != null) onWarning(this, node, errorCode.error(arguments));
-    super.reportWarning(node, errorCode, arguments);
+    if (onWarning != null) {
+      onWarning(this, node, messageKind.message(arguments));
+    }
+    super.reportWarning(node, messageKind, arguments);
   }
 
   void reportError(Spannable node,
-                   MessageKind errorCode,
+                   MessageKind messageKind,
                    [Map arguments = const {}]) {
-    if (onError != null) onError(this, node, errorCode.error(arguments));
-    super.reportError(node, errorCode, arguments);
+    if (onError != null) {
+      onError(this, node, messageKind.message(arguments));
+    }
+    super.reportError(node, messageKind, arguments);
   }
 }
 

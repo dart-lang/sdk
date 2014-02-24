@@ -44,7 +44,7 @@ class LoggerCanceler implements DiagnosticListener {
     throw 'unsupported operation';
   }
 
-  void reportMessage(SourceSpan span, Diagnostic message, kind) {
+  void reportMessage(SourceSpan span, Message message, kind) {
     log(message);
   }
 

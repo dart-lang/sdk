@@ -4434,7 +4434,7 @@ abstract class SsaFromAstMixin
     }
     if (Elements.isErroneousElement(element)) {
       ErroneousElement error = element;
-      if (error.messageKind == MessageKind.CANNOT_FIND_CONSTRUCTOR.error) {
+      if (error.messageKind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
         generateThrowNoSuchMethod(node.send,
                                   getTargetName(error, 'constructor'),
                                   argumentNodes: node.send.arguments);

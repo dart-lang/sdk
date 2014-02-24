@@ -17,8 +17,8 @@ import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart';
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 
-final MessageKind NOT_ASSIGNABLE = MessageKind.NOT_ASSIGNABLE.warning;
-final MessageKind MEMBER_NOT_FOUND = MessageKind.MEMBER_NOT_FOUND.warning;
+final MessageKind NOT_ASSIGNABLE = MessageKind.NOT_ASSIGNABLE;
+final MessageKind MEMBER_NOT_FOUND = MessageKind.MEMBER_NOT_FOUND;
 
 DartType voidType;
 DartType intType;
@@ -1585,7 +1585,7 @@ testTypePromotionHints() {
             if (a is C) {
               var x = a.c;
             }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND],
         hints: [MessageKind.NOT_MORE_SPECIFIC_SUBTYPE],
         infos: []);
 
@@ -1594,8 +1594,8 @@ testTypePromotionHints() {
             if (a is C) {
               var x = '${a.c}${a.c}';
             }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning,
-                   MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND,
+                   MessageKind.MEMBER_NOT_FOUND],
         hints: [MessageKind.NOT_MORE_SPECIFIC_SUBTYPE],
         infos: []);
 
@@ -1604,8 +1604,8 @@ testTypePromotionHints() {
             if (a is C) {
               var x = '${a.d}${a.d}'; // Type promotion wouldn't help.
             }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning,
-                   MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND,
+                   MessageKind.MEMBER_NOT_FOUND],
         hints: [],
         infos: []);
 
@@ -1614,7 +1614,7 @@ testTypePromotionHints() {
            if (d is E) { // Suggest E<int>.
              var x = d.e;
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND],
         hints: [checkMessage(MessageKind.NOT_MORE_SPECIFIC_SUGGESTION,
                              {'shownTypeSuggestion': 'E<int>'})],
         infos: []);
@@ -1624,7 +1624,7 @@ testTypePromotionHints() {
            if (d is F) { // Suggest F<int, dynamic>.
              var x = d.f;
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND],
         hints: [checkMessage(MessageKind.NOT_MORE_SPECIFIC_SUGGESTION,
                              {'shownTypeSuggestion': 'F<int, dynamic>'})],
         infos: []);
@@ -1634,7 +1634,7 @@ testTypePromotionHints() {
            if (d is G) { // Suggest G<int>.
              var x = d.f;
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND],
         hints: [checkMessage(MessageKind.NOT_MORE_SPECIFIC_SUGGESTION,
                              {'shownTypeSuggestion': 'G<int>'})],
         infos: []);
@@ -1644,7 +1644,7 @@ testTypePromotionHints() {
            if (f is G) { // Cannot suggest a more specific type.
              var x = f.g;
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND],
         hints: [MessageKind.NOT_MORE_SPECIFIC],
         infos: []);
 
@@ -1653,7 +1653,7 @@ testTypePromotionHints() {
            if (d is E) {
              var x = d.f; // Type promotion wouldn't help.
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND],
         hints: [],
         infos: []);
 
@@ -1663,7 +1663,7 @@ testTypePromotionHints() {
              a = null;
              var x = a.b;
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND],
         hints: [MessageKind.POTENTIAL_MUTATION],
         infos: [MessageKind.POTENTIAL_MUTATION_HERE]);
 
@@ -1673,7 +1673,7 @@ testTypePromotionHints() {
              a = null;
              var x = a.c; // Type promotion wouldn't help.
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND],
         hints: [],
         infos: []);
 
@@ -1683,7 +1683,7 @@ testTypePromotionHints() {
            if (a is B) {
              var x = a.b;
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND],
         hints: [MessageKind.POTENTIAL_MUTATION_IN_CLOSURE],
         infos: [MessageKind.POTENTIAL_MUTATION_IN_CLOSURE_HERE]);
 
@@ -1693,7 +1693,7 @@ testTypePromotionHints() {
            if (a is B) {
              var x = a.c; // Type promotion wouldn't help.
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND],
         hints: [],
         infos: []);
 
@@ -1704,7 +1704,7 @@ testTypePromotionHints() {
              var y = a.b;
            }
            a = new A();''',
-      warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+      warnings: [MessageKind.MEMBER_NOT_FOUND],
       hints: [MessageKind.ACCESSED_IN_CLOSURE],
       infos: [MessageKind.ACCESSED_IN_CLOSURE_HERE,
               MessageKind.POTENTIAL_MUTATION_HERE]);
@@ -1716,7 +1716,7 @@ testTypePromotionHints() {
              var y = a.c; // Type promotion wouldn't help.
            }
            a = new A();''',
-      warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+      warnings: [MessageKind.MEMBER_NOT_FOUND],
       hints: [],
       infos: []);
 }

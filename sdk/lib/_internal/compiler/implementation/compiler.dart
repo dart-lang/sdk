@@ -690,7 +690,7 @@ abstract class Compiler implements DiagnosticListener {
   void internalError(String message,
                      {Node node, Token token, HInstruction instruction,
                       Element element}) {
-    cancel('Internal Error: $message',
+    cancel(message,
            node: node, token: token,
            instruction: instruction, element: element);
   }
@@ -703,7 +703,7 @@ abstract class Compiler implements DiagnosticListener {
     if (hasCrashed) return;
     hasCrashed = true;
     reportDiagnostic(element,
-                     MessageKind.COMPILER_CRASHED.error(),
+                     MessageKind.COMPILER_CRASHED.message(),
                      api.Diagnostic.CRASH);
     pleaseReportCrash();
   }
@@ -728,7 +728,7 @@ abstract class Compiler implements DiagnosticListener {
     } else {
       throw 'No error location for error: $reason';
     }
-    reportError(spannable, MessageKind.GENERIC, {'text': reason});
+    reportInternalError(spannable, MessageKind.GENERIC, {'text': reason});
     throw new CompilerCancelledException(reason);
   }
 
@@ -771,7 +771,7 @@ abstract class Compiler implements DiagnosticListener {
 
   void log(message) {
     reportDiagnostic(null,
-        MessageKind.GENERIC.error({'text': '$message'}),
+        MessageKind.GENERIC.message({'text': '$message'}),
         api.Diagnostic.VERBOSE_INFO);
   }
 
@@ -788,7 +788,7 @@ abstract class Compiler implements DiagnosticListener {
         if (!hasCrashed) {
           hasCrashed = true;
           reportDiagnostic(new SourceSpan(uri, 0, 0),
-                           MessageKind.COMPILER_CRASHED.error(),
+                           MessageKind.COMPILER_CRASHED.message(),
                            api.Diagnostic.CRASH);
           pleaseReportCrash();
         }
@@ -1043,26 +1043,21 @@ abstract class Compiler implements DiagnosticListener {
           reportFatalError(
               mainApp,
               MessageKind.GENERIC,
-              {'text': "Error: Could not find '$MAIN'."});
+              {'text': "Could not find '$MAIN'."});
         } else if (!analyzeAll) {
-          reportFatalError(
-              mainApp,
-              MessageKind.GENERIC,
-              {'text': "Error: Could not find '$MAIN'. "
-              "No source will be analyzed. "
-              "Use '--analyze-all' to analyze all code in the library."});
+          reportFatalError(mainApp, MessageKind.GENERIC,
+              {'text': "Could not find '$MAIN'. "
+                       "No source will be analyzed. "
+                       "Use '--analyze-all' to analyze all code in the "
+                       "library."});
         }
       } else {
         if (main.isErroneous()) {
-          reportFatalError(
-              main,
-              MessageKind.GENERIC,
-              {'text': "Error: Cannot determine which '$MAIN' to use."});
+          reportFatalError(main, MessageKind.GENERIC,
+              {'text': "Cannot determine which '$MAIN' to use."});
         } else if (!main.isFunction()) {
-          reportFatalError(
-              main,
-              MessageKind.GENERIC,
-              {'text': "Error: '$MAIN' is not a function."});
+          reportFatalError(main, MessageKind.GENERIC,
+              {'text': "'$MAIN' is not a function."});
         }
         mainFunction = main;
         FunctionSignature parameters = mainFunction.computeSignature(this);
@@ -1070,11 +1065,8 @@ abstract class Compiler implements DiagnosticListener {
           int index = 0;
           parameters.forEachParameter((Element parameter) {
             if (index++ < 2) return;
-            reportError(
-                parameter,
-                MessageKind.GENERIC,
-                {'text':
-                  "Error: '$MAIN' cannot have more than two parameters."});
+            reportError(parameter, MessageKind.GENERIC,
+                {'text': "'$MAIN' cannot have more than two parameters."});
           });
         }
       }
@@ -1345,37 +1337,38 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void reportError(Spannable node,
-                   MessageKind errorCode,
+                   MessageKind messageKind,
                    [Map arguments = const {}]) {
-    reportDiagnosticInternal(node, errorCode, arguments, api.Diagnostic.ERROR);
+    reportDiagnosticInternal(
+        node, messageKind, arguments, api.Diagnostic.ERROR);
   }
 
-  void reportFatalError(Spannable node, MessageKind errorCode,
+  void reportFatalError(Spannable node, MessageKind messageKind,
                         [Map arguments = const {}]) {
-    reportError(node, errorCode, arguments);
+    reportError(node, messageKind, arguments);
     // TODO(ahe): Make this only abort the current method.
     throw new CompilerCancelledException(
         'Error: Cannot continue due to previous error.');
   }
 
-  void reportWarning(Spannable node, MessageKind errorCode,
+  void reportWarning(Spannable node, MessageKind messageKind,
                      [Map arguments = const {}]) {
     // TODO(ahe): Don't suppress these warning when the type checker
     // is more complete.
-    if (errorCode == MessageKind.MISSING_RETURN) return;
-    if (errorCode == MessageKind.MAYBE_MISSING_RETURN) return;
+    if (messageKind == MessageKind.MISSING_RETURN) return;
+    if (messageKind == MessageKind.MAYBE_MISSING_RETURN) return;
     reportDiagnosticInternal(
-        node, errorCode, arguments, api.Diagnostic.WARNING);
+        node, messageKind, arguments, api.Diagnostic.WARNING);
   }
 
-  void reportInfo(Spannable node, MessageKind errorCode,
+  void reportInfo(Spannable node, MessageKind messageKind,
                   [Map arguments = const {}]) {
-    reportDiagnosticInternal(node, errorCode, arguments, api.Diagnostic.INFO);
+    reportDiagnosticInternal(node, messageKind, arguments, api.Diagnostic.INFO);
   }
 
-  void reportHint(Spannable node, MessageKind errorCode,
+  void reportHint(Spannable node, MessageKind messageKind,
                   [Map arguments = const {}]) {
-    reportDiagnosticInternal(node, errorCode, arguments, api.Diagnostic.HINT);
+    reportDiagnosticInternal(node, messageKind, arguments, api.Diagnostic.HINT);
   }
 
   /// For debugging only, print a message with a source location.
@@ -1383,13 +1376,14 @@ abstract class Compiler implements DiagnosticListener {
     reportInfo(node, MessageKind.GENERIC, {'text': 'HERE: $debugMessage'});
   }
 
-  void reportInternalError(Spannable node, String message) {
-    reportError(
-        node, MessageKind.GENERIC, {'text': 'Internal Error: $message'});
+  void reportInternalError(Spannable node, MessageKind messageKind,
+                           [Map arguments = const {}]) {
+    reportDiagnosticInternal(
+        node, messageKind, arguments, api.Diagnostic.CRASH);
   }
 
   void reportDiagnosticInternal(Spannable node,
-                                MessageKind errorCode,
+                                MessageKind messageKind,
                                 Map arguments,
                                 api.Diagnostic kind) {
     if (hidePackageWarnings) {
@@ -1409,12 +1403,12 @@ abstract class Compiler implements DiagnosticListener {
       }
     }
     lastDiagnosticWasFiltered = false;
-    reportDiagnostic(node, errorCode.error(arguments, terseDiagnostics), kind);
+    reportDiagnostic(
+        node, messageKind.message(arguments, terseDiagnostics), kind);
   }
 
-  // TODO(ahe): The names Diagnostic and api.Diagnostic are in conflict. Fix it.
   void reportDiagnostic(Spannable span,
-                        Diagnostic message,
+                        Message message,
                         api.Diagnostic kind);
 
   void reportAssertionFailure(SpannableAssertionFailure ex) {

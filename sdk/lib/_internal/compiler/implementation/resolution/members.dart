@@ -1315,7 +1315,7 @@ class InitializerResolver {
     if (isFieldInitializer(init)) {
       target = constructor.getEnclosingClass().lookupLocalMember(name);
       if (target == null) {
-        error(selector, MessageKind.CANNOT_RESOLVE.error, {'name': name});
+        error(selector, MessageKind.CANNOT_RESOLVE, {'name': name});
       } else if (target.kind != ElementKind.FIELD) {
         error(selector, MessageKind.NOT_A_FIELD, {'fieldName': name});
       } else if (!target.isInstanceMember()) {
@@ -1707,17 +1707,17 @@ class TypeResolver {
 
     Element element = resolveTypeName(visitor.scope, prefixName, typeName);
 
-    DartType reportFailureAndCreateType(DualKind messageKind,
+    DartType reportFailureAndCreateType(MessageKind messageKind,
                                         Map messageArguments,
                                         {DartType userProvidedBadType}) {
       if (malformedIsError) {
-        visitor.error(node, messageKind.error, messageArguments);
+        visitor.error(node, messageKind, messageArguments);
       } else {
         compiler.backend.registerThrowRuntimeError(visitor.mapping);
-        visitor.warning(node, messageKind.warning, messageArguments);
+        visitor.warning(node, messageKind, messageArguments);
       }
       Element erroneousElement = new ErroneousElementX(
-          messageKind.error, messageArguments, typeName.source,
+          messageKind, messageArguments, typeName.source,
           visitor.enclosingElement);
       LinkBuilder<DartType> arguments = new LinkBuilder<DartType>();
       resolveTypeArguments(visitor, node, null, arguments);
@@ -1869,7 +1869,7 @@ class TypeResolver {
          typeArguments = typeArguments.tail) {
       if (typeVariables != null && typeVariables.isEmpty) {
         visitor.warning(
-            typeArguments.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT.warning);
+            typeArguments.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT);
         typeArgumentCountMismatch = true;
       }
       DartType argType = resolveTypeAnnotation(visitor, typeArguments.head);
@@ -1880,7 +1880,7 @@ class TypeResolver {
     }
     if (typeVariables != null && !typeVariables.isEmpty) {
       visitor.warning(node.typeArguments,
-                      MessageKind.MISSING_TYPE_ARGUMENT.warning);
+                      MessageKind.MISSING_TYPE_ARGUMENT);
       typeArgumentCountMismatch = true;
     }
     return typeArgumentCountMismatch;
@@ -2044,9 +2044,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
       } else if (result.isAmbiguous()) {
         AmbiguousElement ambiguous = result;
         compiler.reportError(
-            node, ambiguous.messageKind.error, ambiguous.messageArguments);
+            node, ambiguous.messageKind, ambiguous.messageArguments);
         ambiguous.diagnose(enclosingElement, compiler);
-        return new ErroneousElementX(ambiguous.messageKind.error,
+        return new ErroneousElementX(ambiguous.messageKind,
                                      ambiguous.messageArguments,
                                      name, enclosingElement);
       }
@@ -2095,10 +2095,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
 
   ErroneousElement warnAndCreateErroneousElement(Node node,
                                                  String name,
-                                                 DualKind kind,
+                                                 MessageKind kind,
                                                  [Map arguments = const {}]) {
-    compiler.reportWarning(node, kind.warning, arguments);
-    return new ErroneousElementX(kind.error, arguments, name, enclosingElement);
+    compiler.reportWarning(node, kind, arguments);
+    return new ErroneousElementX(kind, arguments, name, enclosingElement);
   }
 
   Element visitIdentifier(Identifier node) {
@@ -2426,7 +2426,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // TODO(karlklose): this should be reported by the caller of
         // [resolveSend] to select better warning messages for getters and
         // setters.
-        DualKind kind = (target == null)
+        MessageKind kind = (target == null)
             ? MessageKind.MEMBER_NOT_FOUND
             : MessageKind.MEMBER_NOT_STATIC;
         return warnAndCreateErroneousElement(node, name, kind,
@@ -2693,7 +2693,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     compiler.backend.registerThrowNoSuchMethod(mapping);
     // TODO(karlklose): we can be more precise about the reason of the
     // mismatch.
-    warning(node.argumentsNode, MessageKind.INVALID_ARGUMENTS.warning,
+    warning(node.argumentsNode, MessageKind.INVALID_ARGUMENTS,
             {'methodName': target.name});
   }
 
@@ -2853,8 +2853,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
     world.registerStaticUse(compiler.symbolConstructor.declaration);
     world.registerConstSymbol(node.slowNameString, mapping);
     if (!validateSymbol(node, node.slowNameString, reportError: false)) {
-      compiler.reportError(node, MessageKind.UNSUPPORTED_LITERAL_SYMBOL,
-                           {'value': node.slowNameString});
+      compiler.reportInternalError(node,
+          MessageKind.UNSUPPORTED_LITERAL_SYMBOL,
+          {'value': node.slowNameString});
     }
     analyzeConstant(node);
   }
@@ -2934,7 +2935,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     FunctionType constructorType = constructor.computeType(compiler);
     bool isSubtype = compiler.types.isSubtype(targetType, constructorType);
     if (!isSubtype) {
-      warning(node, MessageKind.NOT_ASSIGNABLE.warning,
+      warning(node, MessageKind.NOT_ASSIGNABLE,
               {'fromType': targetType, 'toType': constructorType});
     }
 
@@ -3181,11 +3182,11 @@ class ResolverVisitor extends MappingVisitor<Element> {
       Link<Node> nodes = arguments.nodes;
       if (nodes.isEmpty) {
         // The syntax [: <>[] :] is not allowed.
-        error(arguments, MessageKind.MISSING_TYPE_ARGUMENT.error);
+        error(arguments, MessageKind.MISSING_TYPE_ARGUMENT);
       } else {
         typeArgument = resolveTypeAnnotation(nodes.head);
         for (nodes = nodes.tail; !nodes.isEmpty; nodes = nodes.tail) {
-          warning(nodes.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT.warning);
+          warning(nodes.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT);
           resolveTypeAnnotation(nodes.head);
         }
       }
@@ -3396,16 +3397,16 @@ class ResolverVisitor extends MappingVisitor<Element> {
       Link<Node> nodes = arguments.nodes;
       if (nodes.isEmpty) {
         // The syntax [: <>{} :] is not allowed.
-        error(arguments, MessageKind.MISSING_TYPE_ARGUMENT.error);
+        error(arguments, MessageKind.MISSING_TYPE_ARGUMENT);
       } else {
         keyTypeArgument = resolveTypeAnnotation(nodes.head);
         nodes = nodes.tail;
         if (nodes.isEmpty) {
-          warning(arguments, MessageKind.MISSING_TYPE_ARGUMENT.warning);
+          warning(arguments, MessageKind.MISSING_TYPE_ARGUMENT);
         } else {
           valueTypeArgument = resolveTypeAnnotation(nodes.head);
           for (nodes = nodes.tail; !nodes.isEmpty; nodes = nodes.tail) {
-            warning(nodes.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT.warning);
+            warning(nodes.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT);
             resolveTypeAnnotation(nodes.head);
           }
         }
@@ -3465,7 +3466,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
           // It's an error if the same label occurs twice in the same switch.
           compiler.reportError(
               label,
-              MessageKind.DUPLICATE_LABEL.error, {'labelName': labelName});
+              MessageKind.DUPLICATE_LABEL, {'labelName': labelName});
           compiler.reportInfo(
               existingElement.label,
               MessageKind.EXISTING_LABEL, {'labelName': labelName});
@@ -3475,7 +3476,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
           if (existingElement != null) {
             compiler.reportWarning(
                 label,
-                MessageKind.DUPLICATE_LABEL.warning, {'labelName': labelName});
+                MessageKind.DUPLICATE_LABEL, {'labelName': labelName});
             compiler.reportInfo(
                 existingElement.label,
                 MessageKind.EXISTING_LABEL, {'labelName': labelName});
@@ -3871,13 +3872,13 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     if (!element.hasConstructor) {
       Element superMember = element.superclass.localLookup('');
       if (superMember == null || !superMember.isGenerativeConstructor()) {
-        DualKind kind = MessageKind.CANNOT_FIND_CONSTRUCTOR;
+        MessageKind kind = MessageKind.CANNOT_FIND_CONSTRUCTOR;
         Map arguments = {'constructorName': ''};
         // TODO(ahe): Why is this a compile-time error? Or if it is an error,
         // why do we bother to registerThrowNoSuchMethod below?
-        compiler.reportError(node, kind.error, arguments);
+        compiler.reportError(node, kind, arguments);
         superMember = new ErroneousElementX(
-            kind.error, arguments, '', element);
+            kind, arguments, '', element);
         compiler.backend.registerThrowNoSuchMethod(mapping);
       } else {
         Selector callToMatch = new Selector.call("", element.getLibrary(), 0);
@@ -4288,7 +4289,7 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
     Identifier selector = node.selector.asIdentifier();
     var e = prefixElement.lookupLocalMember(selector.source);
     if (e == null || !e.impliesType()) {
-      error(node.selector, MessageKind.CANNOT_RESOLVE_TYPE.error,
+      error(node.selector, MessageKind.CANNOT_RESOLVE_TYPE,
             {'typeName': node.selector});
       return;
     }
@@ -4366,7 +4367,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
   }
 
   failOrReturnErroneousElement(Element enclosing, Node diagnosticNode,
-                               String targetName, DualKind kind,
+                               String targetName, MessageKind kind,
                                Map arguments) {
     if (kind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
       compiler.backend.registerThrowNoSuchMethod(resolver.mapping);
@@ -4374,12 +4375,11 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
       compiler.backend.registerThrowRuntimeError(resolver.mapping);
     }
     if (inConstContext) {
-      compiler.reportError(diagnosticNode, kind.error, arguments);
+      compiler.reportError(diagnosticNode, kind, arguments);
     } else {
-      compiler.reportWarning(diagnosticNode, kind.warning, arguments);
+      compiler.reportWarning(diagnosticNode, kind, arguments);
     }
-    return new ErroneousElementX(
-        kind.error, arguments, targetName, enclosing);
+    return new ErroneousElementX(kind, arguments, targetName, enclosing);
   }
 
   Selector createConstructorSelector(String constructorName) {
@@ -4486,7 +4486,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
             MessageKind.CANNOT_RESOLVE,
             {'name': name});
       } else if (!element.isClass()) {
-        error(node, MessageKind.NOT_A_TYPE.error, {'node': name});
+        error(node, MessageKind.NOT_A_TYPE, {'node': name});
       }
     } else {
       internalError(node.receiver, 'unexpected element $element');
@@ -4512,7 +4512,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
       error(node, MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
             {'typeVariableName': name});
     } else if (!element.isClass() && !element.isPrefix()) {
-      error(node, MessageKind.NOT_A_TYPE.error, {'node': name});
+      error(node, MessageKind.NOT_A_TYPE, {'node': name});
     }
     return element;
   }

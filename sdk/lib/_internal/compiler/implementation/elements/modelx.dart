@@ -5,7 +5,6 @@
 library elements.modelx;
 
 import 'elements.dart';
-import '../../compiler.dart' as api;
 import '../tree/tree.dart';
 import '../util/util.dart';
 import '../resolution/resolution.dart';
@@ -436,7 +435,7 @@ class AmbiguousElementX extends ElementX implements AmbiguousElement {
   /**
    * The message to report on resolving this element.
    */
-  final DualKind messageKind;
+  final MessageKind messageKind;
 
   /**
    * The message arguments to report on resolving this element.

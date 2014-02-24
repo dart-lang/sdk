@@ -135,7 +135,7 @@ class ConstantHandler extends CompilerTask {
                                           constantType, elementType)) {
               if (isConst) {
                 compiler.reportFatalError(
-                    node, MessageKind.NOT_ASSIGNABLE.error,
+                    node, MessageKind.NOT_ASSIGNABLE,
                     {'fromType': constantType, 'toType': elementType});
               } else {
                 // If the field cannot be lazily initialized, we will throw
@@ -575,7 +575,7 @@ class CompileTimeConstantEvaluator extends Visitor {
       DartType conditionType = condition.computeType(compiler);
       if (isEvaluatingConstant) {
         compiler.reportFatalError(
-            node.condition, MessageKind.NOT_ASSIGNABLE.error,
+            node.condition, MessageKind.NOT_ASSIGNABLE,
             {'fromType': conditionType, 'toType': compiler.boolClass.rawType});
       }
       return null;
@@ -613,7 +613,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     if (!succeeded) {
       compiler.reportFatalError(
           node,
-          MessageKind.INVALID_ARGUMENTS.error, {'methodName': target.name});
+          MessageKind.INVALID_ARGUMENTS, {'methodName': target.name});
     }
     return compiledArguments;
   }
@@ -655,7 +655,7 @@ class CompileTimeConstantEvaluator extends Visitor {
       if (firstArgument is! StringConstant) {
         DartType type = defaultValue.computeType(compiler);
         compiler.reportFatalError(
-            send.arguments.head, MessageKind.NOT_ASSIGNABLE.error,
+            send.arguments.head, MessageKind.NOT_ASSIGNABLE,
             {'fromType': type, 'toType': compiler.stringClass.rawType});
       }
 
@@ -663,7 +663,7 @@ class CompileTimeConstantEvaluator extends Visitor {
           && !(defaultValue is NullConstant || defaultValue is IntConstant)) {
         DartType type = defaultValue.computeType(compiler);
         compiler.reportFatalError(
-            send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE.error,
+            send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE,
             {'fromType': type, 'toType': compiler.intClass.rawType});
       }
 
@@ -671,7 +671,7 @@ class CompileTimeConstantEvaluator extends Visitor {
           && !(defaultValue is NullConstant || defaultValue is BoolConstant)) {
         DartType type = defaultValue.computeType(compiler);
         compiler.reportFatalError(
-            send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE.error,
+            send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE,
             {'fromType': type, 'toType': compiler.boolClass.rawType});
       }
 
@@ -680,7 +680,7 @@ class CompileTimeConstantEvaluator extends Visitor {
                || defaultValue is StringConstant)) {
         DartType type = defaultValue.computeType(compiler);
         compiler.reportFatalError(
-            send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE.error,
+            send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE,
             {'fromType': type, 'toType': compiler.stringClass.rawType});
       }
 
@@ -773,6 +773,13 @@ class TryCompileTimeConstantEvaluator extends CompileTimeConstantEvaluator {
   }
 }
 
+class CompileTimeConstantError {
+  final Message message;
+  CompileTimeConstantError(MessageKind kind, Map arguments, bool terse)
+    : message = new Message(kind, arguments, terse);
+  String toString() => message.toString();
+}
+
 class ConstructorEvaluator extends CompileTimeConstantEvaluator {
   final FunctionElement constructor;
   final Map<Element, Constant> definitions;
@@ -816,7 +823,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       if (elementType.element.isTypeVariable()) return;
       if (!constantSystem.isSubtype(compiler, constantType, elementType)) {
         compiler.reportFatalError(
-            node, MessageKind.NOT_ASSIGNABLE.error,
+            node, MessageKind.NOT_ASSIGNABLE,
             {'fromType': elementType, 'toType': constantType});
       }
     }

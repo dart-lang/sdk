@@ -237,6 +237,7 @@ class MockCompiler extends Compiler {
   List<WarningMessage> errors;
   List<WarningMessage> hints;
   List<WarningMessage> infos;
+  List<WarningMessage> crashes;
   /// Expected number of warnings. If `null`, the number of warnings is
   /// not checked.
   final int expectedWarnings;
@@ -263,8 +264,7 @@ class MockCompiler extends Compiler {
                 bool disableInlining: true,
                 int this.expectedWarnings,
                 int this.expectedErrors})
-      : warnings = [], errors = [], hints = [], infos = [],
-        sourceFiles = new Map<String, SourceFile>(),
+      : sourceFiles = new Map<String, SourceFile>(),
         super(enableTypeAssertions: enableTypeAssertions,
               enableMinification: enableMinification,
               enableConcreteTypeInference: enableConcreteTypeInference,
@@ -274,6 +274,7 @@ class MockCompiler extends Compiler {
               analyzeOnly: analyzeOnly,
               emitJavaScript: emitJavaScript,
               preserveComments: preserveComments) {
+    clearMessages();
     coreLibrary = createLibrary("core", coreSource);
 
     // We need to set the assert method to avoid calls with a 'null'
@@ -346,24 +347,26 @@ class MockCompiler extends Compiler {
 
   // TODO(johnniwinther): Remove this when we don't filter certain type checker
   // warnings.
-  void reportWarning(Spannable node, MessageKind errorCode,
+  void reportWarning(Spannable node, MessageKind messageKind,
                      [Map arguments = const {}]) {
     reportDiagnostic(node,
-        errorCode.error(arguments, terseDiagnostics),
-        api.Diagnostic.WARNING);
+                     messageKind.message(arguments, terseDiagnostics),
+                     api.Diagnostic.WARNING);
   }
 
   void reportFatalError(Spannable node,
-                        MessageKind errorCode,
+                        MessageKind messageKind,
                         [Map arguments = const {}]) {
-    reportError(node, errorCode, arguments);
+    reportError(node, messageKind, arguments);
   }
 
   void reportDiagnostic(Spannable node,
-                        Diagnostic message,
+                        Message message,
                         api.Diagnostic kind) {
-    var diagnostic = new WarningMessage(node, message.message);
-    if (kind == api.Diagnostic.ERROR) {
+    var diagnostic = new WarningMessage(node, message);
+    if (kind == api.Diagnostic.CRASH) {
+      crashes.add(diagnostic);
+    } else if (kind == api.Diagnostic.ERROR) {
       errors.add(diagnostic);
     } else if (kind == api.Diagnostic.WARNING) {
       warnings.add(diagnostic);
@@ -382,13 +385,14 @@ class MockCompiler extends Compiler {
     }
   }
 
-  bool get compilationFailed => !errors.isEmpty;
+  bool get compilationFailed => !crashes.isEmpty || !errors.isEmpty;
 
   void clearMessages() {
     warnings = [];
     errors = [];
     hints = [];
     infos = [];
+    crashes = [];
   }
 
   CollectingTreeElements resolveStatement(String text) {

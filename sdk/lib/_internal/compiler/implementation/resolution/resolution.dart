@@ -6,9 +6,8 @@ library resolution;
 
 import 'dart:collection' show Queue;
 
-import '../dart2jslib.dart' hide Diagnostic;
+import '../dart2jslib.dart';
 import '../dart_types.dart';
-import '../../compiler.dart' show Diagnostic;
 import '../tree/tree.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
