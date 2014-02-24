@@ -64,12 +64,12 @@ EventHandlerImplementation::EventHandlerImplementation() : shutdown_(false) {
   static const int kEpollInitialSize = 64;
   epoll_fd_ = TEMP_FAILURE_RETRY(epoll_create(kEpollInitialSize));
   if (epoll_fd_ == -1) {
-    FATAL("Failed creating epoll file descriptor");
+    FATAL1("Failed creating epoll file descriptor: %i", errno);
   }
   FDUtils::SetCloseOnExec(epoll_fd_);
   timer_fd_ = TEMP_FAILURE_RETRY(timerfd_create(CLOCK_REALTIME, TFD_CLOEXEC));
-  if (epoll_fd_ == -1) {
-    FATAL("Failed creating timerfd file descriptor");
+  if (timer_fd_ == -1) {
+    FATAL1("Failed creating timerfd file descriptor: %i", errno);
   }
   // Register the timer_fd_ with the epoll instance.
   struct epoll_event event;
