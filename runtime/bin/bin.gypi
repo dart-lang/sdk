@@ -170,6 +170,7 @@
     {
       'target_name': 'libdart_io',
       'type': 'static_library',
+      'toolsets': ['host', 'target'],
       'include_dirs': [
         '..',
       ],
@@ -545,6 +546,7 @@
       'dependencies': [
         'libdart_withcore',
         'libdart_builtin',
+        'libdart_io',
         'generate_snapshot_file#host',
         'generate_snapshot_test_dat_file#host',
       ],
