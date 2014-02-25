@@ -525,17 +525,15 @@ class Traverser {
         // The length check here is to ensure we only add the barback
         // dependency once.
         if (dep.name == "barback" && dependencies.length == 1) {
-          var range = new VersionRange(
-              min: barback.supportedVersion, includeMin: true,
-              max: barback.supportedVersion.nextMinor, includeMax: false);
-          _solver.logSolve('add implicit $range pub dependency on barback');
+          _solver.logSolve('add implicit ${barback.supportedVersions} pub '
+              'dependency on barback');
 
           // Use the same source and description as the explicit dependency.
           // That way, this doesn't fail with a source/desc conflict if users
           // (like Dart team members) use things like a path dependency to
           // find barback.
-          var barbackDep = new PackageDep(dep.name, dep.source, range,
-              dep.description);
+          var barbackDep = new PackageDep(dep.name, dep.source,
+              barback.supportedVersions, dep.description);
           dependencies.add(new Dependency("pub itself", barbackDep));
         }
 

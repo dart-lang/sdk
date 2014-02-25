@@ -12,10 +12,10 @@ import 'package:path/path.dart' as path;
 import 'utils.dart';
 import 'version.dart';
 
-/// The currently supported version of the Barback package that this version of
+/// The currently supported versions of the Barback package that this version of
 /// pub works with.
 ///
-/// Pub implicitly constrains barback to this version or later patch versions.
+/// Pub implicitly constrains barback to these versions.
 ///
 /// Barback is in a unique position. Pub imports it, so a copy of Barback is
 /// physically included in the SDK. Packages also depend on Barback (from
@@ -31,7 +31,7 @@ import 'version.dart';
 ///
 /// Whenever a new non-patch version of barback is published, this *must* be
 /// incremented to synchronize with that.
-final supportedVersion = new Version(0, 12, 0);
+final supportedVersions = new VersionConstraint.parse(">=0.11.0 <0.13.0");
 
 /// A list of the names of all built-in transformers that pub exposes.
 const _BUILT_IN_TRANSFORMERS = const ['\$dart2js'];
