@@ -411,144 +411,155 @@ class _Future<T> implements Future<T> {
         _propagateMultipleListeners(source, listeners);
         return;
       }
-      Zone zone = listener._zone;
-      if (hasError && !source._zone.inSameErrorZone(zone)) {
-        // Don't cross zone boundaries with errors.
-        _AsyncError asyncError = source._error;
-        source._zone.handleUncaughtError(
-            asyncError.error, asyncError.stackTrace);
-        return;
-      }
-      Zone oldZone;
-      if (!identical(Zone.current, zone)) {
-        // Change zone if it's not current.
-        oldZone = Zone._enter(zone);
-      }
       // Do the actual propagation.
-      bool listenerHasValue;
-      var listenerValueOrError;
+      // Set initial state of listenerHasValue and listenerValueOrError. These
+      // variables are updated, with the outcome of potential callbacks.
+      bool listenerHasValue = true;
+      var listenerValueOrError = source._value;
       // Set to true if a whenComplete needs to wait for a future.
       // The whenComplete action will resume the propagation by itself.
       bool isPropagationAborted = false;
       // TODO(floitsch): mark the listener as pending completion. Currently
       // we can't do this, since the markPendingCompletion verifies that
       // the future is not already marked (or chained).
-
-      bool handleValueCallback() {
-        try {
-          listenerValueOrError = zone.runUnary(listener._onValue,
-                                               source._value);
-          return true;
-        } catch (e, s) {
-          listenerValueOrError = new _AsyncError(e, s);
-          return false;
+      // Only if we either have an error or callbacks, go into this, somewhat
+      // expensive, branch. Here we'll enter/leave the zone. Many futures
+      // doesn't have callbacks, so this is a significant optimization.
+      if (hasError ||
+          listener._onValue != null ||
+          listener._whenCompleteAction != null) {
+        Zone zone = listener._zone;
+        if (hasError && !source._zone.inSameErrorZone(zone)) {
+          // Don't cross zone boundaries with errors.
+          _AsyncError asyncError = source._error;
+          source._zone.handleUncaughtError(
+              asyncError.error, asyncError.stackTrace);
+          return;
         }
-      }
 
-      void handleError() {
-        _AsyncError asyncError = source._error;
-        _FutureErrorTest test = listener._errorTest;
-        bool matchesTest = true;
-        if (test != null) {
+        Zone oldZone;
+        if (!identical(Zone.current, zone)) {
+          // Change zone if it's not current.
+          oldZone = Zone._enter(zone);
+        }
+
+        bool handleValueCallback() {
           try {
-            matchesTest = zone.runUnary(test, asyncError.error);
+            listenerValueOrError = zone.runUnary(listener._onValue,
+                                                 listenerValueOrError);
+            return true;
           } catch (e, s) {
-            // TODO(ajohnsen): Should we suport rethrow for test throws?
-            listenerValueOrError = identical(asyncError.error, e) ?
-                asyncError : new _AsyncError(e, s);
-            listenerHasValue = false;
-            return;
-          }
-        }
-        Function errorCallback = listener._onError;
-        if (matchesTest && errorCallback != null) {
-          try {
-            if (errorCallback is ZoneBinaryCallback) {
-              listenerValueOrError = zone.runBinary(errorCallback,
-                                                    asyncError.error,
-                                                    asyncError.stackTrace);
-            } else {
-              listenerValueOrError = zone.runUnary(errorCallback,
-                                                   asyncError.error);
-            }
-          } catch (e, s) {
-            listenerValueOrError = identical(asyncError.error, e) ?
-                asyncError : new _AsyncError(e, s);
-            listenerHasValue = false;
-            return;
-          }
-          listenerHasValue = true;
-        } else {
-          // Copy over the error from the source.
-          listenerValueOrError = asyncError;
-          listenerHasValue = false;
-        }
-      }
-
-      void handleWhenCompleteCallback() {
-        var completeResult;
-        try {
-          completeResult = zone.run(listener._whenCompleteAction);
-        } catch (e, s) {
-          if (hasError && identical(source._error.error, e)) {
-            listenerValueOrError = source._error;
-          } else {
             listenerValueOrError = new _AsyncError(e, s);
+            return false;
           }
-          listenerHasValue = false;
         }
-        if (completeResult is Future) {
-          listener._isChained = true;
-          isPropagationAborted = true;
-          completeResult.then((ignored) {
-            // Try again. Since the future is marked as chained it won't run
-            // the whenComplete again.
-            _propagateToListeners(source, listener);
-          }, onError: (error, [stackTrace]) {
-            // When there is an error, we have to make the error the new
-            // result of the current listener.
-            if (completeResult is! _Future) {
-              // This should be a rare case.
-              completeResult = new _Future();
-              completeResult._setError(error, stackTrace);
+
+        void handleError() {
+          _AsyncError asyncError = source._error;
+          _FutureErrorTest test = listener._errorTest;
+          bool matchesTest = true;
+          if (test != null) {
+            try {
+              matchesTest = zone.runUnary(test, asyncError.error);
+            } catch (e, s) {
+              // TODO(ajohnsen): Should we suport rethrow for test throws?
+              listenerValueOrError = identical(asyncError.error, e) ?
+                  asyncError : new _AsyncError(e, s);
+              listenerHasValue = false;
+              return;
             }
-            _propagateToListeners(completeResult, listener);
-          });
+          }
+          Function errorCallback = listener._onError;
+          if (matchesTest && errorCallback != null) {
+            try {
+              if (errorCallback is ZoneBinaryCallback) {
+                listenerValueOrError = zone.runBinary(errorCallback,
+                                                      asyncError.error,
+                                                      asyncError.stackTrace);
+              } else {
+                listenerValueOrError = zone.runUnary(errorCallback,
+                                                     asyncError.error);
+              }
+            } catch (e, s) {
+              listenerValueOrError = identical(asyncError.error, e) ?
+                  asyncError : new _AsyncError(e, s);
+              listenerHasValue = false;
+              return;
+            }
+            listenerHasValue = true;
+          } else {
+            // Copy over the error from the source.
+            listenerValueOrError = asyncError;
+            listenerHasValue = false;
+          }
         }
-      }
 
-      if (!hasError) {
-        if (listener._onValue != null) {
-          listenerHasValue = handleValueCallback();
+        void handleWhenCompleteCallback() {
+          var completeResult;
+          try {
+            completeResult = zone.run(listener._whenCompleteAction);
+          } catch (e, s) {
+            if (hasError && identical(source._error.error, e)) {
+              listenerValueOrError = source._error;
+            } else {
+              listenerValueOrError = new _AsyncError(e, s);
+            }
+            listenerHasValue = false;
+          }
+          if (completeResult is Future) {
+            listener._isChained = true;
+            isPropagationAborted = true;
+            completeResult.then((ignored) {
+              // Try again. Since the future is marked as chained it won't run
+              // the whenComplete again.
+              _propagateToListeners(source, listener);
+            }, onError: (error, [stackTrace]) {
+              // When there is an error, we have to make the error the new
+              // result of the current listener.
+              if (completeResult is! _Future) {
+                // This should be a rare case.
+                completeResult = new _Future();
+                completeResult._setError(error, stackTrace);
+              }
+              _propagateToListeners(completeResult, listener);
+            });
+          }
+        }
+
+        if (!hasError) {
+          if (listener._onValue != null) {
+            listenerHasValue = handleValueCallback();
+          }
         } else {
-          listenerValueOrError = source._value;
-          listenerHasValue = true;
+          handleError();
         }
-      } else {
-        handleError();
-      }
-      if (listener._whenCompleteAction != null) {
-        handleWhenCompleteCallback();
-      }
-      // If we changed zone, oldZone will not be null.
-      if (oldZone != null) Zone._leave(oldZone);
-      if (isPropagationAborted) return;
-      // If the listener's value is a future we need to chain it.
-      if (listenerHasValue && listenerValueOrError is Future) {
-        Future chainSource = listenerValueOrError;
-        // Shortcut if the chain-source is already completed. Just continue the
-        // loop.
-        if (chainSource is _Future && chainSource._isComplete) {
-          // propagate the value (simulating a tail call).
-          listener._isChained = true;
-          source = chainSource;
-          listeners = listener;
-          continue;
+        if (listener._whenCompleteAction != null) {
+          handleWhenCompleteCallback();
         }
-        _chainFutures(chainSource, listener);
-        return;
-      }
+        // If we changed zone, oldZone will not be null.
+        if (oldZone != null) Zone._leave(oldZone);
 
+        if (isPropagationAborted) return;
+        // If the listener's value is a future we need to chain it. Note that
+        // this can only happen if there is a callback. Since 'is' checks
+        // can be expensive, we're trying to avoid it.
+        if (listenerHasValue &&
+            !identical(source._value, listenerValueOrError) &&
+            listenerValueOrError is Future) {
+          Future chainSource = listenerValueOrError;
+          // Shortcut if the chain-source is already completed. Just continue
+          // the loop.
+          if (chainSource is _Future && chainSource._isComplete) {
+            // propagate the value (simulating a tail call).
+            listener._isChained = true;
+            source = chainSource;
+            listeners = listener;
+            continue;
+          }
+          _chainFutures(chainSource, listener);
+          return;
+        }
+      }
       if (listenerHasValue) {
         listeners = listener._removeListeners();
         listener._setValue(listenerValueOrError);
