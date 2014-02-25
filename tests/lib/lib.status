@@ -164,9 +164,6 @@ async/stream_asyncmap_test: RuntimeError # Timer interface not supported: dartbu
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Pass, Slow # Issue 12029.
 
-[ $compiler == dart2js && $checked && $runtime == d8 ]
-async/stream_transform_test: Fail # https://code.google.com/p/v8/issues/detail?id=3084
-
 [ $compiler == dart2js ]
 convert/chunked_conversion_utf88_test: Slow, Pass
 convert/utf85_test: Slow, Pass
