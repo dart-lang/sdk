@@ -609,6 +609,7 @@ LibTest/core/Stopwatch/elapsed_A01_t01: RuntimeError # co19-roll r672: Please tr
 LibTest/core/Stopwatch/elapsed_A01_t02: RuntimeError # co19-roll r672: Please triage this failure
 LibTest/core/Stopwatch/elapsed_A01_t03: RuntimeError # co19-roll r672: Please triage this failure
 LibTest/core/Stopwatch/stop_A01_t01: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/math/sin_A01_t02: RuntimeError # V8 issue 3006, https://code.google.com/p/v8/issues/detail?id=3006
 
 [ $compiler == dart2js && $minified ]
 Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: fail # co19-roll r559: Please triage this failure
