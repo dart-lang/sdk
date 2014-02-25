@@ -395,6 +395,10 @@ void _log(LogEntry entry) {
     case LogLevel.INFO:
       log.message("${log.cyan(prefix)}\n$message");
       break;
+
+    case LogLevel.FINE:
+      log.fine("${log.gray(prefix)}\n$message");
+      break;
   }
 }
 

@@ -84,7 +84,7 @@ class PackageGraph {
       cascade.onLog.listen((entry) {
         if (_logController.hasListener) {
           _logController.add(entry);
-        } else {
+        } else if (entry.level != LogLevel.FINE) {
           // No listeners, so just print entry.
           var buffer = new StringBuffer();
           buffer.write("[${entry.level} ${entry.transform}] ");

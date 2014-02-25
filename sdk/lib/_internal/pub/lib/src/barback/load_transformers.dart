@@ -482,6 +482,8 @@ Map _serializeTransform(Transform transform) {
       var method;
       if (message['level'] == 'Info') {
         method = transform.logger.info;
+      } else if (message['level'] == 'Fine') {
+        method = transform.logger.fine;
       } else if (message['level'] == 'Warning') {
         method = transform.logger.warning;
       } else {

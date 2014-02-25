@@ -31,7 +31,7 @@ import 'version.dart';
 ///
 /// Whenever a new non-patch version of barback is published, this *must* be
 /// incremented to synchronize with that.
-final supportedVersion = new Version(0, 11, 0);
+final supportedVersion = new Version(0, 12, 0);
 
 /// A list of the names of all built-in transformers that pub exposes.
 const _BUILT_IN_TRANSFORMERS = const ['\$dart2js'];
