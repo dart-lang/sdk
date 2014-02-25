@@ -29,6 +29,7 @@ main() {
   var c4 = ({a: 1}) => 'c4 $a';
   var c5 = ({a: 1, b: 2}) => 'c5 $a $b';
   var c6 = ({b: 1, a: 2}) => 'c6 $a $b';
+  var c7 = (x, {b: 1, a: 2}) => 'c7 $x $a $b';
 
   Expect.equals('c1', apply(c1, new ArgumentDescriptor(null, null)));
   Expect.equals('c1', apply(c1, new ArgumentDescriptor([], null)));
@@ -87,4 +88,18 @@ main() {
   throwsNSME(() => apply(c6, new ArgumentDescriptor([1], {})));
   throwsNSME(() =>
       apply(c6, new ArgumentDescriptor([], {'a': 1, 'b': 2, 'c': 3})));
+
+  Expect.equals('c7 7 2 1', apply(c7, new ArgumentDescriptor([7], null)));
+  Expect.equals('c7 7 3 1', apply(c7, new ArgumentDescriptor([7], {'a': 3})));
+  Expect.equals('c7 7 2 1', apply(c7, new ArgumentDescriptor([7], {})));
+  Expect.equals('c7 7 3 4',
+      apply(c7, new ArgumentDescriptor([7], {'a': 3, 'b': 4})));
+  Expect.equals('c7 7 4 3',
+      apply(c7, new ArgumentDescriptor([7], {'b': 3, 'a': 4})));
+  Expect.equals('c7 7 2 3',
+      apply(c7, new ArgumentDescriptor([7], {'b': 3})));
+  throwsNSME(() => apply(c7, new ArgumentDescriptor([], {'a': 1})));
+  throwsNSME(() => apply(c7, new ArgumentDescriptor([], {})));
+  throwsNSME(() =>
+      apply(c7, new ArgumentDescriptor([7], {'a': 1, 'b': 2, 'c': 3})));
 }
