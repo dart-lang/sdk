@@ -425,8 +425,18 @@ class ContainerBuilder extends CodeEmitterHelper {
         if (member.isInstanceMember()) {
           Set invokedSelectors =
               compiler.codegenWorld.invokedNames[member.name];
+          //if (invokedSelectors != null && invokedSelectors.contains(selector)) {
             expressions.add(js.string(namer.invocationName(selector)));
+          //} else {
+          //  // Don't add a stub for calling this as a regular instance method,
+          //  // we only need the "call" stub for implicit closures of this
+          //  // method.
+          //  expressions.add("null");
+          //}
         } else {
+          // Static methods don't need "named" stubs as the default arguments
+          // are inlined at call sites. But static methods might need "call"
+          // stubs for implicit closures.
           expressions.add("null");
           // TOOD(ahe): Since we know when reading static data versus instance
           // data, we can eliminate this element.
@@ -474,7 +484,7 @@ class ContainerBuilder extends CodeEmitterHelper {
         ..addAll(task.metadataEmitter.reifyDefaultArguments(member));
 
     if (canBeReflected || canBeApplied) {
-      parameters.forEachParameter((Element parameter) {
+      parameters.orderedForEachParameter((Element parameter) {
         expressions.add(task.metadataEmitter.reifyName(parameter.name));
         List<MetadataAnnotation> annotations = parameter.metadata.toList();
         Iterable<int> metadataIndices = annotations.map((MetadataAnnotation a) {

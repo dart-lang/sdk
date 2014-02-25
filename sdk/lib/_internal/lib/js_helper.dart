@@ -366,8 +366,6 @@ class ReflectionInfo {
   /// type variables).
   final functionType;
 
-  List cachedSortedIndices;
-
   ReflectionInfo.internal(this.jsFunction,
                           this.data,
                           this.isAccessor,
@@ -412,53 +410,6 @@ class ReflectionInfo {
     if (parameter < requiredParameterCount) return null;
     return JS('int', '#[# + # - #]', data,
               FIRST_DEFAULT_ARGUMENT, parameter, requiredParameterCount);
-  }
-
-  /// Returns the default value of the [parameter]th entry of the list of
-  /// parameters sorted by name.
-  int defaultValueInOrder(int parameter) {
-    if (parameter < requiredParameterCount) return null;
-
-    if (!areOptionalParametersNamed || optionalParameterCount == 1) {
-      return defaultValue(parameter);
-    }
-
-    int index = sortedIndex(parameter - requiredParameterCount);
-    return defaultValue(index);
-  }
-
-  /// Returns the default value of the [parameter]th entry of the list of
-  /// parameters sorted by name.
-  String parameterNameInOrder(int parameter) {
-    if (parameter < requiredParameterCount) return null;
-
-    if (!areOptionalParametersNamed ||
-        optionalParameterCount == 1) {
-      return parameterName(parameter);
-    }
-
-    int index = sortedIndex(parameter - requiredParameterCount);
-    return parameterName(index);
-  }
-
-  /// Computes the index of the parameter in the list of named parameters sorted
-  /// by their name.
-  int sortedIndex(int unsortedIndex) {
-    if (cachedSortedIndices == null) {
-      // TODO(karlklose): cache this between [ReflectionInfo] instances or cache
-      // [ReflectionInfo] instances by [jsFunction].
-      cachedSortedIndices = new List(optionalParameterCount);
-      Map<String, int> positions = <String, int>{};
-      for (int i = 0; i < optionalParameterCount; i++) {
-        int index = requiredParameterCount + i;
-        positions[parameterName(index)] = index;
-      }
-      int index = 0;
-      (positions.keys.toList()..sort()).forEach((String name) {
-        cachedSortedIndices[index++] = positions[name] + requiredParameterCount;
-      });
-    }
-    return cachedSortedIndices[unsortedIndex];
   }
 
   @NoInline()
@@ -972,10 +923,9 @@ class Primitives {
       }
       var defaultArguments = new Map();
       for (int i = 0; i < info.optionalParameterCount; i++) {
-        int index = i + info.requiredParameterCount;
-        var parameterName = info.parameterNameInOrder(index);
-        var value = info.defaultValueInOrder(index);
-        var defaultValue = getMetadata(value);
+        var parameterName = info.parameterName(i + info.requiredParameterCount);
+        var defaultValue =
+            getMetadata(info.defaultValue(i + info.requiredParameterCount));
         defaultArguments[parameterName] = defaultValue;
       }
       bool bad = false;

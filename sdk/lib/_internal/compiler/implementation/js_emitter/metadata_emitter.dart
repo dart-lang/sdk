@@ -46,7 +46,7 @@ class MetadataEmitter extends CodeEmitterHelper {
     FunctionSignature signature = function.computeSignature(compiler);
     if (signature.optionalParameterCount == 0) return const [];
     List<int> defaultValues = <int>[];
-    for (Element element in signature.optionalParameters) {
+    for (Element element in signature.orderedOptionalParameters) {
       Constant value =
           compiler.constantHandler.initialVariableValues[element];
       String stringRepresentation = (value == null)

@@ -80,6 +80,7 @@ mirrors/mirrors_test: RuntimeError # TODO(ahe): I'm working on fixing this.
 mirrors/mixin_test: RuntimeError # Issue 12464
 mirrors/mixin_application_test/none: RuntimeError # Issue 12464
 mirrors/parameter_test/none: RuntimeError # Issue 6490
+mirrors/parameter_metadata_test: RuntimeError # Issue 10905
 mirrors/private_symbol_test: CompileTimeError # Issue 13597
 mirrors/proxy_type_test: RuntimeError # Issue 13842
 mirrors/redirecting_factory_test/none: RuntimeError # Issue 6490
