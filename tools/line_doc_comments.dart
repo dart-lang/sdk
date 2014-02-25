@@ -57,11 +57,13 @@ String fixContents(List<String> lines, String path) {
         line = null;
       } else {
         var match = blockLine.firstMatch(line);
-        var comment = match[1];
-        if (comment != '') {
-          line = '$indent/// $comment';
-        } else {
-          line = '$indent///';
+        if (match != null) {
+          var comment = match[1];
+          if (comment != '') {
+            line = '$indent/// $comment';
+          } else {
+            line = '$indent///';
+          }
         }
       }
     } else {

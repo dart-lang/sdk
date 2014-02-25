@@ -20,15 +20,11 @@ String _removeTrailingWhitespace(String str) =>
     str.splitMapJoin('\n',
         onNonMatch: (s) => s.replaceAll(new RegExp(r'\s+$'), ''));
 
-/**
- * A helper package provider that has files stored in memory, also wraps
- * [Barback] to simply our tests.
- */
+/// A helper package provider that has files stored in memory, also wraps
+/// [Barback] to simply our tests.
 class TestHelper implements PackageProvider {
-  /**
-   * Maps from an asset string identifier of the form 'package|path' to the
-   * file contents.
-   */
+  /// Maps from an asset string identifier of the form 'package|path' to the
+  /// file contents.
   final Map<String, String> files;
   final Iterable<String> packages;
   final List<String> messages;
@@ -88,10 +84,8 @@ class TestHelper implements PackageProvider {
     logSubscription.cancel();
   }
 
-  /**
-   * Tells barback which files have changed, and thus anything that depends on
-   * it on should be computed. By default mark all the input files.
-   */
+  /// Tells barback which files have changed, and thus anything that depends on
+  /// it on should be computed. By default mark all the input files.
   void run([Iterable<String> paths]) {
     if (paths == null) paths = files.keys;
     barback.updateSources(paths.map(idFromString));

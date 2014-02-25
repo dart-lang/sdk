@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/** Transfomer that combines multiple dart script tags into a single one. */
+/// Transfomer that combines multiple dart script tags into a single one.
 library polymer.src.build.script_compactor;
 
 import 'dart:async';
@@ -19,24 +19,22 @@ import 'package:source_maps/span.dart' show SourceFile;
 import 'code_extractor.dart'; // import just for documentation.
 import 'common.dart';
 
-/**
- * Combines Dart script tags into a single script tag, and creates a new Dart
- * file that calls the main function of each of the original script tags.
- *
- * This transformer assumes that all script tags point to external files. To
- * support script tags with inlined code, use this transformer after running
- * [InlineCodeExtractor] on an earlier phase.
- *
- * Internally, this transformer will convert each script tag into an import
- * statement to a library, and then uses `initPolymer` (see polymer.dart)  to
- * process `@initMethod` and `@CustomTag` annotations in those libraries.
- */
+/// Combines Dart script tags into a single script tag, and creates a new Dart
+/// file that calls the main function of each of the original script tags.
+///
+/// This transformer assumes that all script tags point to external files. To
+/// support script tags with inlined code, use this transformer after running
+/// [InlineCodeExtractor] on an earlier phase.
+///
+/// Internally, this transformer will convert each script tag into an import
+/// statement to a library, and then uses `initPolymer` (see polymer.dart)  to
+/// process `@initMethod` and `@CustomTag` annotations in those libraries.
 class ScriptCompactor extends Transformer with PolymerTransformer {
   final TransformOptions options;
 
   ScriptCompactor(this.options);
 
-  /** Only run on entry point .html files. */
+  /// Only run on entry point .html files.
   Future<bool> isPrimary(Asset input) =>
       new Future.value(options.isHtmlEntryPoint(input.id));
 
@@ -123,11 +121,9 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
     });
   }
 
-  /**
-   * Computes the initializers of [dartLibrary]. That is, a closure that calls
-   * Polymer.register for each @CustomTag, and any public top-level methods
-   * labeled with @initMethod.
-   */
+  /// Computes the initializers of [dartLibrary]. That is, a closure that calls
+  /// Polymer.register for each @CustomTag, and any public top-level methods
+  /// labeled with @initMethod.
   Future<List<_Initializer>> _initializersOf(
       AssetId dartLibrary, Transform transform, TransformLogger logger) {
     var initializers = [];
@@ -171,10 +167,8 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
       source.path.startsWith('lib/')
       ? 'package:${source.package}/${source.path.substring(4)}' : source.path;
 
-  /**
-   * Filter [exportedInitializers] according to [directive]'s show/hide
-   * combinators and add the result to [initializers].
-   */
+  /// Filter [exportedInitializers] according to [directive]'s show/hide
+  /// combinators and add the result to [initializers].
   // TODO(sigmund): call the analyzer's resolver instead?
   static _processExportDirective(ExportDirective directive,
       List<_Initializer> exportedInitializers,
@@ -191,10 +185,8 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
     initializers.addAll(exportedInitializers);
   }
 
-  /**
-   * Add an initializer to register [node] as a polymer element if it contains
-   * an appropriate [CustomTag] annotation.
-   */
+  /// Add an initializer to register [node] as a polymer element if it contains
+  /// an appropriate [CustomTag] annotation.
   static _processClassDeclaration(ClassDeclaration node,
       List<_Initializer> initializers, SourceFile file,
       TransformLogger logger) {
@@ -218,7 +210,7 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
     }
   }
 
-  /**  a method initializer for [function]. */
+  /// Add a method initializer for [function].
   static _processFunctionDeclaration(FunctionDeclaration function,
       List<_Initializer> initializers, SourceFile file,
       TransformLogger logger) {
@@ -232,7 +224,7 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
   }
 }
 
-/** Parse [code] using analyzer. */
+/// Parse [code] using analyzer.
 CompilationUnit _parseCompilationUnit(String code) {
   var errorListener = new _ErrorCollector();
   var reader = new CharSequenceReader(code);

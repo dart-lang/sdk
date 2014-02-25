@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/** Tests how canonicalization works when using the deployed app. */
+/// Tests how canonicalization works when using the deployed app.
 library canonicalization.deploy_test;
 
 import 'package:unittest/unittest.dart';

@@ -4,13 +4,11 @@
 
 part of polymer;
 
-/**
- * **Warning**: this class is experiental and subject to change.
- *
- * The implementation for the `polymer-element` element.
- *
- * Normally you do not need to use this class directly, see [PolymerElement].
- */
+/// **Warning**: this class is experiental and subject to change.
+///
+/// The implementation for the `polymer-element` element.
+///
+/// Normally you do not need to use this class directly, see [PolymerElement].
 class PolymerDeclaration extends HtmlElement {
   static const _TAG = 'polymer-element';
 
@@ -46,21 +44,19 @@ class PolymerDeclaration extends HtmlElement {
   String _name;
   String get name => _name;
 
-  /**
-   * Map of publish properties. Can be a field or a property getter, but if this
-   * map contains a getter, is because it also has a corresponding setter.
-   *
-   * Note: technically these are always single properties, so we could use a
-   * Symbol instead of a PropertyPath. However there are lookups between this
-   * map and [_observe] so it is easier to just track paths.
-   */
+  /// Map of publish properties. Can be a field or a property getter, but if
+  /// this map contains a getter, is because it also has a corresponding setter.
+  ///
+  /// Note: technically these are always single properties, so we could use a
+  /// Symbol instead of a PropertyPath. However there are lookups between this
+  /// map and [_observe] so it is easier to just track paths.
   Map<PropertyPath, smoke.Declaration> _publish;
 
-  /** The names of published properties for this polymer-element. */
+  /// The names of published properties for this polymer-element.
   Iterable<String> get publishedProperties =>
       _publish != null ? _publish.keys.map((p) => '$p') : const [];
 
-  /** Same as [_publish] but with lower case names. */
+  /// Same as [_publish] but with lower case names.
   Map<String, smoke.Declaration> _publishLC;
 
   Map<PropertyPath, List<Symbol>> _observe;
@@ -78,10 +74,10 @@ class PolymerDeclaration extends HtmlElement {
     return template != null ? templateBind(template).content : null;
   }
 
-  /** Maps event names and their associated method in the element class. */
+  /// Maps event names and their associated method in the element class.
   final Map<String, String> _eventDelegates = {};
 
-  /** Expected events per element node. */
+  /// Expected events per element node.
   // TODO(sigmund): investigate whether we need more than 1 set of local events
   // per element (why does the js implementation stores 1 per template node?)
   Expando<Set<String>> _templateDelegates;
@@ -174,13 +170,11 @@ class PolymerDeclaration extends HtmlElement {
     // publishConstructor();
   }
 
-  /**
-   * Gets the Dart type registered for this name, and sets up declarative
-   * features. Fills in the [type] and [supertype] fields.
-   *
-   * *Note*: unlike the JavaScript version, we do not have to metaprogram the
-   * prototype, which simplifies this method.
-   */
+  /// Gets the Dart type registered for this name, and sets up declarative
+  /// features. Fills in the [type] and [supertype] fields.
+  ///
+  /// *Note*: unlike the JavaScript version, we do not have to metaprogram the
+  /// prototype, which simplifies this method.
   void buildType(String name, String extendee) {
     // get our custom type
     _type = _getRegisteredType(name);
@@ -207,7 +201,7 @@ class PolymerDeclaration extends HtmlElement {
     // x-platform fixup
   }
 
-  /** Implement various declarative features. */
+  /// Implement various declarative features.
   void desugar(name, extendee) {
     // compile list of attributes to copy to instances
     accumulateInstanceAttributes();
@@ -328,7 +322,7 @@ class PolymerDeclaration extends HtmlElement {
     return !blackList.containsKey(name) && !name.startsWith('on-');
   }
 
-  /** Extracts events from the element tag attributes. */
+  /// Extracts events from the element tag attributes.
   void parseHostEvents() {
     addAttributeDelegates(_eventDelegates);
   }
@@ -351,10 +345,8 @@ class PolymerDeclaration extends HtmlElement {
     return (url.split('/')..removeLast()..add('')).join('/');
   }
 
-  /**
-   * Install external stylesheets loaded in <element> elements into the
-   * element's template.
-   */
+  /// Install external stylesheets loaded in <element> elements into the
+  /// element's template.
   void installSheets() {
     cacheSheets();
     cacheStyles();
@@ -372,14 +364,12 @@ class PolymerDeclaration extends HtmlElement {
     for (var s in styles) s.remove();
   }
 
-  /**
-   * Takes external stylesheets loaded in an `<element>` element and moves
-   * their content into a style element inside the `<element>`'s template.
-   * The sheet is then removed from the `<element>`. This is done only so
-   * that if the element is loaded in the main document, the sheet does
-   * not become active.
-   * Note, ignores sheets with the attribute 'polymer-scope'.
-   */
+  /// Takes external stylesheets loaded in an `<element>` element and moves
+  /// their content into a style element inside the `<element>`'s template.
+  /// The sheet is then removed from the `<element>`. This is done only so
+  /// that if the element is loaded in the main document, the sheet does
+  /// not become active.
+  /// Note, ignores sheets with the attribute 'polymer-scope'.
   void installLocalSheets() {
     var sheets = this.sheets.where(
         (s) => !s.attributes.containsKey(_SCOPE_ATTR));
@@ -407,13 +397,11 @@ class PolymerDeclaration extends HtmlElement {
     return nodes;
   }
 
-  /**
-   * Promotes external stylesheets and style elements with the attribute
-   * polymer-scope='global' into global scope.
-   * This is particularly useful for defining @keyframe rules which
-   * currently do not function in scoped or shadow style elements.
-   * (See wkb.ug/72462)
-   */
+  /// Promotes external stylesheets and style elements with the attribute
+  /// polymer-scope='global' into global scope.
+  /// This is particularly useful for defining @keyframe rules which
+  /// currently do not function in scoped or shadow style elements.
+  /// (See wkb.ug/72462)
   // TODO(sorvell): remove when wkb.ug/72462 is addressed.
   void installGlobalStyles() {
     var style = styleForScope(_STYLE_GLOBAL_SCOPE);
@@ -449,10 +437,8 @@ class PolymerDeclaration extends HtmlElement {
         ..attributes[_STYLE_SCOPE_ATTRIBUTE] = '$name-$scopeDescriptor';
   }
 
-  /**
-   * Fetch a list of all *Changed methods so we can observe the associated
-   * properties.
-   */
+  /// Fetch a list of all *Changed methods so we can observe the associated
+  /// properties.
   void inferObservers() {
     var options = const smoke.QueryOptions(includeFields: false,
         includeProperties: false, includeMethods: true, includeInherited: true);
@@ -468,10 +454,8 @@ class PolymerDeclaration extends HtmlElement {
     }
   }
 
-  /**
-   * Fetch a list of all methods annotated with [ObserveProperty] so we can
-   * observe the associated properties.
-   */
+  /// Fetch a list of all methods annotated with [ObserveProperty] so we can
+  /// observe the associated properties.
   void explodeObservers() {
     var options = const smoke.QueryOptions(includeFields: false,
         includeProperties: false, includeMethods: true, includeInherited: true,
@@ -544,17 +528,15 @@ Map<PropertyPath, smoke.Declaration> _getPublishedProperties(
   return props;
 }
 
-/** Attribute prefix used for declarative event handlers. */
+/// Attribute prefix used for declarative event handlers.
 const _EVENT_PREFIX = 'on-';
 
-/** Whether an attribute declares an event. */
+/// Whether an attribute declares an event.
 bool _hasEventPrefix(String attr) => attr.startsWith(_EVENT_PREFIX);
 
 String _removeEventPrefix(String name) => name.substring(_EVENT_PREFIX.length);
 
-/**
- * Using Polymer's platform/src/ShadowCSS.js passing the style tag's content.
- */
+/// Using Polymer's platform/src/ShadowCSS.js passing the style tag's content.
 void _shimShadowDomStyling(DocumentFragment template, String name,
     String extendee) {
   if (template == null || !_hasShadowDomPolyfill) return;

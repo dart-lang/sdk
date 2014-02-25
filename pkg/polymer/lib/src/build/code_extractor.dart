@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/** Transfomer that extracts inlined script code into separate assets. */
+/// Transfomer that extracts inlined script code into separate assets.
 library polymer.src.build.code_extractor;
 
 import 'dart:async';
@@ -16,16 +16,14 @@ import 'package:path/path.dart' as path;
 
 import 'common.dart';
 
-/**
- * Transformer that extracts Dart code inlined in HTML script tags and outputs a
- * separate file for each.
- */
+/// Transformer that extracts Dart code inlined in HTML script tags and outputs
+/// a separate file for each.
 class InlineCodeExtractor extends Transformer with PolymerTransformer {
   final TransformOptions options;
 
   InlineCodeExtractor(this.options);
 
-  /** Only run this transformer on .html files. */
+  /// Only run this transformer on .html files.
   final String allowedExtensions = ".html";
 
   Future apply(Transform transform) {
@@ -69,7 +67,7 @@ class InlineCodeExtractor extends Transformer with PolymerTransformer {
   }
 }
 
-/** Parse [code] and determine whether it has a library directive. */
+/// Parse [code] and determine whether it has a library directive.
 bool _hasLibraryDirective(String code) {
   var errorListener = new _ErrorCollector();
   var reader = new CharSequenceReader(code);

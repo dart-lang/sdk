@@ -7,9 +7,7 @@ import 'package:polymer/polymer.dart';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 
-/**
- * This test runs the news example and checks the state of the initial page.
- */
+/// This test runs the news example and checks the state of the initial page.
 main() {
   initPolymer();
   useHtmlConfiguration();

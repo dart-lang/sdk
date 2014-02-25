@@ -2,24 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * **Note**: If you already have a `build.dart` in your application, we
- * recommend to use the `package:polymer/builder.dart` library instead.
+/// **Note**: If you already have a `build.dart` in your application, we
+/// recommend to use the `package:polymer/builder.dart` library instead.
 
- * Temporary deploy command used to create a version of the app that can be
- * compiled with dart2js and deployed. Following pub layout conventions, this
- * script will treat any HTML file under a package 'web/' and 'test/'
- * directories as entry points.
- *
- * From an application package you can run deploy by creating a small program
- * as follows:
- *
- *    import "package:polymer/deploy.dart" as deploy;
- *    main() => deploy.main();
- *
- * This library should go away once `pub deploy` can be configured to run
- * barback transformers.
- */
+/// Temporary deploy command used to create a version of the app that can be
+/// compiled with dart2js and deployed. Following pub layout conventions, this
+/// script will treat any HTML file under a package 'web/' and 'test/'
+/// directories as entry points.
+///
+/// From an application package you can run deploy by creating a small program
+/// as follows:
+///
+///    import "package:polymer/deploy.dart" as deploy;
+///    main() => deploy.main();
+///
+/// This library should go away once `pub deploy` can be configured to run
+/// barback transformers.
 library polymer.deploy;
 
 import 'dart:io';

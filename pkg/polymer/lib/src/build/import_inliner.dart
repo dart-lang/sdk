@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/** Transfomer that inlines polymer-element definitions from html imports. */
+/// Transfomer that inlines polymer-element definitions from html imports.
 library polymer.src.build.import_inliner;
 
 import 'dart:async';
@@ -55,14 +55,12 @@ class _HtmlInliner extends PolymerTransformer {
     }));
   }
 
-  /**
-   * Visits imports in [document] and add the imported documents to documents.
-   * Documents are added in the order they appear, transitive imports are added
-   * first.
-   *
-   * Returns `true` if and only if the document was changed and should be
-   * written out.
-   */
+  /// Visits imports in [document] and add the imported documents to documents.
+  /// Documents are added in the order they appear, transitive imports are added
+  /// first.
+  ///
+  /// Returns `true` if and only if the document was changed and should be
+  /// written out.
   Future<bool> _visitImports(Document document, AssetId sourceId) {
     bool changed = false;
 
@@ -94,15 +92,13 @@ class _HtmlInliner extends PolymerTransformer {
     }).then((_) => changed);
   }
 
-  /**
-   * To preserve the order of scripts with respect to inlined
-   * link rel=import, we move both of those into the body before we do any
-   * inlining.
-   *
-   * Note: we do this for stylesheets as well to preserve ordering with
-   * respect to eachother, because stylesheets can be pulled in transitively
-   * from imports.
-   */
+  /// To preserve the order of scripts with respect to inlined
+  /// link rel=import, we move both of those into the body before we do any
+  /// inlining.
+  ///
+  /// Note: we do this for stylesheets as well to preserve ordering with
+  /// respect to eachother, because stylesheets can be pulled in transitively
+  /// from imports.
   // TODO(jmesserly): vulcanizer doesn't need this because they inline JS
   // scripts, causing them to be naturally moved as part of the inlining.
   // Should we do the same? Alternatively could we inline head into head and
@@ -146,12 +142,10 @@ class _HtmlInliner extends PolymerTransformer {
     });
   }
 
-  /**
-   * Split Dart script tags from all the other elements. Now that Dartium
-   * only allows a single script tag per page, we can't inline script
-   * tags. Instead, we collect the urls of each script tag so we import
-   * them directly from the Dart bootstrap code.
-   */
+  /// Split Dart script tags from all the other elements. Now that Dartium
+  /// only allows a single script tag per page, we can't inline script
+  /// tags. Instead, we collect the urls of each script tag so we import
+  /// them directly from the Dart bootstrap code.
   void _extractScripts(Document document) {
     bool first = true;
     for (var script in document.querySelectorAll('script')) {
@@ -182,21 +176,20 @@ class _HtmlInliner extends PolymerTransformer {
   }
 }
 
-/**
- * Recursively inlines the contents of HTML imports. Produces as output a single
- * HTML file that inlines the polymer-element definitions, and a text file that
- * contains, in order, the URIs to each library that sourced in a script tag.
- *
- * This transformer assumes that all script tags point to external files. To
- * support script tags with inlined code, use this transformer after running
- * [InlineCodeExtractor] on an earlier phase.
- */
+/// Recursively inlines the contents of HTML imports. Produces as output a
+/// single HTML file that inlines the polymer-element definitions, and a text
+/// file that contains, in order, the URIs to each library that sourced in a
+/// script tag.
+///
+/// This transformer assumes that all script tags point to external files. To
+/// support script tags with inlined code, use this transformer after running
+/// [InlineCodeExtractor] on an earlier phase.
 class ImportInliner extends Transformer {
   final TransformOptions options;
 
   ImportInliner(this.options);
 
-  /** Only run on entry point .html files. */
+  /// Only run on entry point .html files.
   Future<bool> isPrimary(Asset input) =>
       new Future.value(options.isHtmlEntryPoint(input.id));
 
@@ -205,11 +198,11 @@ class ImportInliner extends Transformer {
 }
 
 
-/** Internally adjusts urls in the html that we are about to inline. */
+/// Internally adjusts urls in the html that we are about to inline.
 class _UrlNormalizer extends TreeVisitor {
   final Transform transform;
 
-  /** Asset where the original content (and original url) was found. */
+  /// Asset where the original content (and original url) was found.
   final AssetId sourceId;
 
   _UrlNormalizer(this.transform, this.sourceId);
@@ -229,7 +222,7 @@ class _UrlNormalizer extends TreeVisitor {
   static final _URL = new RegExp(r'url\(([^)]*)\)', multiLine: true);
   static final _QUOTE = new RegExp('["\']', multiLine: true);
 
-  /** Visit the CSS text and replace any relative URLs so we can inline it. */
+  /// Visit the CSS text and replace any relative URLs so we can inline it.
   // Ported from:
   // https://github.com/Polymer/vulcanize/blob/c14f63696797cda18dc3d372b78aa3378acc691f/lib/vulcan.js#L149
   // TODO(jmesserly): use csslib here instead? Parsing with RegEx is sadness.
@@ -278,13 +271,11 @@ class _UrlNormalizer extends TreeVisitor {
   }
 }
 
-/**
- * HTML attributes that expect a URL value.
- * <http://dev.w3.org/html5/spec/section-index.html#attributes-1>
- *
- * Every one of these attributes is a URL in every context where it is used in
- * the DOM. The comments show every DOM element where an attribute can be used.
- */
+/// HTML attributes that expect a URL value.
+/// <http://dev.w3.org/html5/spec/section-index.html#attributes-1>
+///
+/// Every one of these attributes is a URL in every context where it is used in
+/// the DOM. The comments show every DOM element where an attribute can be used.
 const _urlAttributes = const [
   'action',     // in form
   'background', // in body

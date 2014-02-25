@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/** Tests canonicalization during development from a subdir. */
+/// Tests canonicalization during development from a subdir.
 library canonicalization.dir.dev2_test;
 
 import 'package:unittest/unittest.dart';
