@@ -6,6 +6,7 @@ library stack_trace_element;
 
 import 'dart:html';
 import 'observatory_element.dart';
+import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
 
 @CustomTag('stack-trace')

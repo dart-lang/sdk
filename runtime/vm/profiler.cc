@@ -162,7 +162,21 @@ void Profiler::EndExecution(Isolate* isolate) {
 
 struct AddressEntry {
   uword pc;
-  intptr_t ticks;
+  intptr_t exclusive_ticks;
+  intptr_t inclusive_ticks;
+
+  void tick(bool exclusive) {
+    if (exclusive) {
+      exclusive_ticks++;
+    } else {
+      inclusive_ticks++;
+    }
+  }
+};
+
+struct CallEntry {
+  intptr_t code_table_index;
+  intptr_t count;
 };
 
 typedef bool (*RegionCompare)(uword pc, uword region_start, uword region_end);
@@ -183,7 +197,9 @@ class CodeRegion : public ZoneAllocated {
       inclusive_ticks_(0),
       exclusive_ticks_(0),
       name_(NULL),
-      address_table_(new ZoneGrowableArray<AddressEntry>()) {
+      address_table_(new ZoneGrowableArray<AddressEntry>()),
+      callers_table_(new ZoneGrowableArray<CallEntry>()),
+      callees_table_(new ZoneGrowableArray<CallEntry>()) {
     ASSERT(start_ < end_);
   }
 
@@ -258,26 +274,33 @@ class CodeRegion : public ZoneAllocated {
     return NULL;
   }
 
-  void AddTick(bool exclusive) {
-    if (exclusive) {
-      exclusive_ticks_++;
-    } else {
-      inclusive_ticks_++;
-    }
-  }
-
   void DebugPrint() const {
     printf("%s [%" Px ", %" Px ") %s\n", KindToCString(kind_), start(), end(),
            name_);
   }
 
-  void AddTickAtAddress(uword pc) {
+  void AddTickAtAddress(uword pc, bool exclusive, intptr_t serial) {
+    // Assert that exclusive ticks are never passed a valid serial number.
+    ASSERT((exclusive && (serial == -1)) || (!exclusive && (serial != -1)));
+    if (!exclusive && (inclusive_tick_serial_ == serial)) {
+      // We've already given this code object an inclusive tick for this sample.
+      return;
+    }
+    // Tick the code object.
+    if (exclusive) {
+      exclusive_ticks_++;
+    } else {
+      // Mark the last serial we ticked the inclusive count.
+      inclusive_tick_serial_ = serial;
+      inclusive_ticks_++;
+    }
+    // Tick the address entry.
     const intptr_t length = address_table_->length();
     intptr_t i = 0;
     for (; i < length; i++) {
       AddressEntry& entry = (*address_table_)[i];
       if (entry.pc == pc) {
-        entry.ticks++;
+        entry.tick(exclusive);
         return;
       }
       if (entry.pc > pc) {
@@ -286,7 +309,7 @@ class CodeRegion : public ZoneAllocated {
     }
     AddressEntry entry;
     entry.pc = pc;
-    entry.ticks = 1;
+    entry.tick(exclusive);
     if (i < length) {
       // Insert at i.
       address_table_->InsertAt(i, entry);
@@ -296,6 +319,13 @@ class CodeRegion : public ZoneAllocated {
     }
   }
 
+  void AddCaller(intptr_t index) {
+    AddCallEntry(callers_table_, index);
+  }
+
+  void AddCallee(intptr_t index) {
+    AddCallEntry(callees_table_, index);
+  }
 
   void PrintToJSONArray(JSONArray* events, bool full) {
     JSONObject obj(events);
@@ -311,7 +341,8 @@ class CodeRegion : public ZoneAllocated {
       func ^= code.function();
       if (func.IsNull()) {
         if (name() == NULL) {
-          GenerateAndSetSymbolName("Stub");
+          const char* stub_name = StubCode::NameOfStub(start());
+          GenerateAndSetSymbolName(stub_name == NULL ? "Stub" : stub_name);
         }
         obj.AddPropertyF("start", "%" Px "", start());
         obj.AddPropertyF("end", "%" Px "", end());
@@ -340,12 +371,52 @@ class CodeRegion : public ZoneAllocated {
       for (intptr_t i = 0; i < address_table_->length(); i++) {
         const AddressEntry& entry = (*address_table_)[i];
         ticks.AddValueF("%" Px "", entry.pc);
-        ticks.AddValueF("%" Pd "", entry.ticks);
+        ticks.AddValueF("%" Pd "", entry.exclusive_ticks);
+        ticks.AddValueF("%" Pd "", entry.inclusive_ticks);
+      }
+    }
+    {
+      JSONArray callers(&obj, "callers");
+      for (intptr_t i = 0; i < callers_table_->length(); i++) {
+        const CallEntry& entry = (*callers_table_)[i];
+        callers.AddValueF("%" Pd "", entry.code_table_index);
+        callers.AddValueF("%" Pd "", entry.count);
+      }
+    }
+    {
+      JSONArray callees(&obj, "callees");
+      for (intptr_t i = 0; i < callees_table_->length(); i++) {
+        const CallEntry& entry = (*callees_table_)[i];
+        callees.AddValueF("%" Pd "", entry.code_table_index);
+        callees.AddValueF("%" Pd "", entry.count);
       }
     }
   }
 
  private:
+  void AddCallEntry(ZoneGrowableArray<CallEntry>* table, intptr_t index) {
+    const intptr_t length = table->length();
+    intptr_t i = 0;
+    for (; i < length; i++) {
+      CallEntry& entry = (*table)[i];
+      if (entry.code_table_index == index) {
+        entry.count++;
+        return;
+      }
+      if (entry.code_table_index > index) {
+        break;
+      }
+    }
+    CallEntry entry;
+    entry.code_table_index = index;
+    entry.count = 1;
+    if (i < length) {
+      table->InsertAt(i, entry);
+    } else {
+      table->Add(entry);
+    }
+  }
+
   void GenerateAndSetSymbolName(const char* prefix) {
     const intptr_t kBuffSize = 512;
     char buff[kBuffSize];
@@ -359,9 +430,11 @@ class CodeRegion : public ZoneAllocated {
   uword end_;
   intptr_t inclusive_ticks_;
   intptr_t exclusive_ticks_;
+  intptr_t inclusive_tick_serial_;
   const char* name_;
   ZoneGrowableArray<AddressEntry>* address_table_;
-
+  ZoneGrowableArray<CallEntry>* callers_table_;
+  ZoneGrowableArray<CallEntry>* callees_table_;
   DISALLOW_COPY_AND_ASSIGN(CodeRegion);
 };
 
@@ -403,7 +476,7 @@ class ProfilerCodeRegionTable : public ValueObject {
   ~ProfilerCodeRegionTable() {
   }
 
-  void AddTick(uword pc, bool exclusive, bool tick_address) {
+  void AddTick(uword pc, bool exclusive, intptr_t serial) {
     intptr_t index = FindIndex(pc);
     if (index < 0) {
       CodeRegion* code_region = CreateCodeRegion(pc);
@@ -412,16 +485,30 @@ class ProfilerCodeRegionTable : public ValueObject {
     }
     ASSERT(index >= 0);
     ASSERT(index < code_region_table_->length());
-    (*code_region_table_)[index]->AddTick(exclusive);
-    if (tick_address) {
-      (*code_region_table_)[index]->AddTickAtAddress(pc);
-    }
+
+    // Update code object counters.
+    (*code_region_table_)[index]->AddTickAtAddress(pc, exclusive, serial);
   }
 
   intptr_t Length() const { return code_region_table_->length(); }
 
   CodeRegion* At(intptr_t idx) {
     return (*code_region_table_)[idx];
+  }
+
+  intptr_t FindIndex(uword pc) const {
+    intptr_t index = FindRegionIndex(pc, &CompareLowerBound);
+    const CodeRegion* code_region = NULL;
+    if (index == code_region_table_->length()) {
+      // Not present.
+      return -1;
+    }
+    code_region = (*code_region_table_)[index];
+    if (code_region->contains(pc)) {
+      // Found at index.
+      return index;
+    }
+    return -1;
   }
 
 #if defined(DEBUG)
@@ -432,7 +519,7 @@ class ProfilerCodeRegionTable : public ValueObject {
 #endif
 
  private:
-  intptr_t FindRegionIndex(uword pc, RegionCompare comparator) {
+  intptr_t FindRegionIndex(uword pc, RegionCompare comparator) const {
     ASSERT(comparator != NULL);
     intptr_t count = code_region_table_->length();
     intptr_t first = 0;
@@ -457,21 +544,6 @@ class ProfilerCodeRegionTable : public ValueObject {
 
   static bool CompareLowerBound(uword pc, uword start, uword end) {
     return end <= pc;
-  }
-
-  intptr_t FindIndex(uword pc) {
-    intptr_t index = FindRegionIndex(pc, &CompareLowerBound);
-    const CodeRegion* code_region = NULL;
-    if (index == code_region_table_->length()) {
-      // Not present.
-      return -1;
-    }
-    code_region = (*code_region_table_)[index];
-    if (code_region->contains(pc)) {
-      // Found at index.
-      return index;
-    }
-    return -1;
   }
 
   CodeRegion* CreateCodeRegion(uword pc) {
@@ -607,23 +679,64 @@ class CodeRegionTableBuilder : public SampleVisitor {
   }
 
   void VisitSample(Sample* sample) {
-    code_region_table_->AddTick(sample->At(0), true, false);
-    // Give all frames an inclusive tick and tick the address.
+    // Give the bottom frame an exclusive tick.
+    code_region_table_->AddTick(sample->At(0), true, -1);
+    // Give all frames (including the bottom) an inclusive tick.
     for (intptr_t i = 0; i < FLAG_profile_depth; i++) {
       if (sample->At(i) == 0) {
         break;
       }
       frames_++;
-      code_region_table_->AddTick(sample->At(i), false, true);
+      code_region_table_->AddTick(sample->At(i), false, visited());
     }
   }
 
   intptr_t frames() const { return frames_; }
+
  private:
   intptr_t frames_;
   ProfilerCodeRegionTable* code_region_table_;
 };
 
+
+class CodeRegionTableCallersBuilder : public SampleVisitor {
+ public:
+  CodeRegionTableCallersBuilder(Isolate* isolate,
+                                ProfilerCodeRegionTable* code_region_table)
+      : SampleVisitor(isolate), code_region_table_(code_region_table) {
+    ASSERT(code_region_table_ != NULL);
+  }
+
+  void VisitSample(Sample* sample) {
+    intptr_t current_index = code_region_table_->FindIndex(sample->At(0));
+    ASSERT(current_index != -1);
+    CodeRegion* current = code_region_table_->At(current_index);
+    intptr_t caller_index = -1;
+    CodeRegion* caller = NULL;
+    intptr_t callee_index = -1;
+    CodeRegion* callee = NULL;
+    for (intptr_t i = 1; i < FLAG_profile_depth; i++) {
+      if (sample->At(i) == 0) {
+        break;
+      }
+      caller_index = code_region_table_->FindIndex(sample->At(i));
+      ASSERT(caller_index != -1);
+      caller = code_region_table_->At(caller_index);
+      current->AddCaller(caller_index);
+      if (callee != NULL) {
+        current->AddCallee(callee_index);
+      }
+      // Move cursors.
+      callee_index = current_index;
+      callee = current;
+      current_index = caller_index;
+      current = caller;
+    }
+  }
+
+ private:
+  ProfilerCodeRegionTable* code_region_table_;
+};
 
 void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream,
                                  bool full) {
@@ -646,6 +759,7 @@ void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream,
       // Build code region table.
       ProfilerCodeRegionTable code_region_table(isolate);
       CodeRegionTableBuilder builder(isolate, &code_region_table);
+      CodeRegionTableCallersBuilder build_callers(isolate, &code_region_table);
       {
         ScopeStopwatch sw("CodeTableBuild");
         sample_buffer->VisitSamples(&builder);
@@ -653,6 +767,10 @@ void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream,
 #if defined(DEBUG)
       code_region_table.Verify();
 #endif
+      {
+        ScopeStopwatch sw("CodeTableCallersBuild");
+        sample_buffer->VisitSamples(&build_callers);
+      }
       // Number of samples we processed.
       intptr_t samples = builder.visited();
       intptr_t frames = builder.frames();
@@ -670,7 +788,7 @@ void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream,
         for (intptr_t i = 0; i < code_region_table.Length(); i++) {
           CodeRegion* region = code_region_table.At(i);
           ASSERT(region != NULL);
-          region->PrintToJSONArray(&codes, false);
+          region->PrintToJSONArray(&codes, full);
         }
       }
     }

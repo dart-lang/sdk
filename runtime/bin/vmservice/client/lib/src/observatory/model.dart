@@ -55,8 +55,15 @@ class CodeKind {
 
 class CodeTick {
   final int address;
-  final int ticks;
-  CodeTick(this.address, this.ticks);
+  final int exclusive_ticks;
+  final int inclusive_ticks;
+  CodeTick(this.address, this.exclusive_ticks, this.inclusive_ticks);
+}
+
+class CodeCallCount {
+  final Code code;
+  final int count;
+  CodeCallCount(this.code, this.count);
 }
 
 class Code extends Observable {
@@ -64,30 +71,143 @@ class Code extends Observable {
   final int startAddress;
   final int endAddress;
   final List<CodeTick> ticks = [];
+  final List<CodeCallCount> callers = [];
+  final List<CodeCallCount> callees = [];
   int inclusiveTicks = 0;
   int exclusiveTicks = 0;
   @observable final List<CodeInstruction> instructions = toObservable([]);
   @observable Map functionRef = toObservable({});
   @observable Map codeRef = toObservable({});
   @observable String name;
-  @observable String user_name;
+  @observable String userName;
 
   Code(this.kind, this.name, this.startAddress, this.endAddress);
 
-  Code.fromMap(Map m) :
+  Code.fromMap(Map map) :
     kind = CodeKind.Dart,
-    startAddress = int.parse(m['start'], radix:16),
-    endAddress = int.parse(m['end'], radix:16) {
-    functionRef = toObservable(m['function']);
-    codeRef = {
+    startAddress = int.parse(map['start'], radix: 16),
+    endAddress = int.parse(map['end'], radix: 16) {
+    functionRef = toObservable(map['function']);
+    codeRef = toObservable({
       'type': '@Code',
-      'id': m['id'],
-      'name': m['name'],
-      'user_name': m['user_name']
-    };
-    name = m['name'];
-    user_name = m['user_name'];
-    _loadInstructions(m['disassembly']);
+      'id': map['id'],
+      'name': map['name'],
+      'user_name': map['user_name']
+    });
+    name = map['name'];
+    userName = map['user_name'];
+    if (map['disassembly'] != null) {
+      _loadInstructions(map['disassembly']);
+    }
+  }
+
+  factory Code.fromProfileMap(Map map) {
+    var kind = CodeKind.fromString(map['kind']);
+    var startAddress;
+    var endAddress;
+    var name;
+    var userName;
+    var codeRef;
+    var functionRef;
+    // Initial extraction of startAddress, endAddress, and name depends on what
+    // kind of code this is and whether or not the code has been collected.
+    if (kind == CodeKind.Dart) {
+      var code = map['code'];
+      if (code != null) {
+        // Extract from Dart code.
+        startAddress = int.parse(code['start'], radix:16);
+        endAddress = int.parse(code['end'], radix:16);
+        name = code['name'];
+        userName = code['user_name'];
+        codeRef = toObservable({
+          'type': '@Code',
+          'id': code['id'],
+          'name': name,
+          'user_name': userName
+        });
+        functionRef = toObservable(code['function']);
+      }
+    }
+    if (startAddress == null) {
+      // Extract from Profile code.
+      // This is either a native or collected piece of code.
+      startAddress = int.parse(map['start'], radix:16);
+      endAddress = int.parse(map['end'], radix: 16);
+      name = map['name'];
+      userName = name;
+    }
+    var code = new Code(kind, name, startAddress, endAddress);
+    code.codeRef = codeRef;
+    code.functionRef = functionRef;
+    code.userName = userName;
+    if (map['disassembly'] != null) {
+      code._loadInstructions(map['disassembly']);
+    }
+    return code;
+  }
+
+  // Refresh tick counts, etc for a code object.
+  void _refresh(Map map) {
+    inclusiveTicks = int.parse(map['inclusive_ticks']);
+    exclusiveTicks = int.parse(map['exclusive_ticks']);
+    // Load address ticks.
+    var ticksList = map['ticks'];
+    if ((ticksList != null) && (ticksList.length > 0)) {
+      assert((ticks.length % 3) == 0);
+      for (var i = 0; i < ticksList.length; i += 3) {
+        var address = int.parse(ticksList[i], radix:16);
+        var inclusive_ticks = int.parse(ticksList[i + 1]);
+        var exclusive_ticks = int.parse(ticksList[i + 2]);
+        var codeTick = new CodeTick(address, exclusive_ticks, inclusive_ticks);
+        ticks.add(codeTick);
+      }
+    }
+  }
+
+  /// Sum all caller counts.
+  int sumCallersCount() => _sumCallCount(callers);
+  /// Specific caller count.
+  int callersCount(Code code) => _callCount(callers, code);
+  /// Sum of callees count.
+  int sumCalleesCount() => _sumCallCount(callees);
+  /// Specific callee count.
+  int calleesCount(Code code) => _callCount(callees, code);
+
+  int _sumCallCount(List<CodeCallCount> calls) {
+    var sum = 0;
+    for (CodeCallCount caller in calls) {
+      sum += caller.count;
+    }
+    return sum;
+  }
+
+  int _callCount(List<CodeCallCount> calls, Code code) {
+    for (CodeCallCount caller in calls) {
+      if (caller.code == code) {
+        return caller.count;
+      }
+    }
+    return 0;
+  }
+
+  void resolveCalls(Map code, List<Code> codes) {
+    _resolveCalls(callers, code['callers'], codes);
+    _resolveCalls(callees, code['callees'], codes);
+  }
+
+  void _resolveCalls(List<CodeCallCount> calls, List data, List<Code> codes) {
+    // Clear.
+    calls.clear();
+    // Resolve.
+    for (var i = 0; i < data.length; i += 2) {
+      var index = int.parse(data[i]);
+      var count = int.parse(data[i + 1]);
+      assert(index >= 0);
+      assert(index < codes.length);
+      calls.add(new CodeCallCount(codes[index], count));
+    }
+    // Sort to descending count order.
+    calls.sort((a, b) => b.count - a.count);
   }
 
   /// Resets all tick counts to 0.
@@ -136,12 +256,16 @@ class Code extends Observable {
 
 class Profile {
   final Isolate isolate;
+  final List<Code> _codeObjectsInImportOrder = new List<Code>();
+  int totalSamples = 0;
+
   Profile.fromMap(this.isolate, Map m) {
     var codes = m['codes'];
     totalSamples = m['samples'];
     Logger.root.info('Creating profile from ${totalSamples} samples '
                      'and ${codes.length} code objects.');
     isolate.resetCodeTicks();
+    _codeObjectsInImportOrder.clear();
     codes.forEach((code) {
       try {
         _processCode(code);
@@ -149,77 +273,39 @@ class Profile {
         Logger.root.warning('Error processing code object. $e $st', e, st);
       }
     });
-  }
-  int totalSamples = 0;
-
-  Code _processDartCode(Map dartCode) {
-    var codeObject = dartCode['code'];
-    if ((codeObject == null)) {
-      // Detached code objects are handled like 'other' code.
-      return _processOtherCode(CodeKind.Dart, dartCode);
+    // Now that code objects have been loaded, post-process them
+    // and resolve callers and callees.
+    assert(_codeObjectsInImportOrder.length == codes.length);
+    for (var i = 0; i < codes.length; i++) {
+      Code code = _codeObjectsInImportOrder[i];
+      code.resolveCalls(codes[i], _codeObjectsInImportOrder);
     }
-    var code = new Code.fromMap(codeObject);
-    return code;
+    _codeObjectsInImportOrder.clear();
   }
 
-  Code _processOtherCode(CodeKind kind, Map otherCode) {
-    var startAddress = int.parse(otherCode['start'], radix:16);
-    var endAddress = int.parse(otherCode['end'], radix: 16);
-    var name = otherCode['name'];
-    assert(name != null);
-    return new Code(kind, name, startAddress, endAddress);
+  int _extractCodeStartAddress(Map code) {
+    var kind = CodeKind.fromString(code['kind']);
+    if ((kind == CodeKind.Dart) && (code['code'] != null)) {
+      // Start address is inside the dart code map.
+      return int.parse(code['code']['start'], radix:16);
+    }
+    // Start address is inside the profile code map.
+    return int.parse(code['start'], radix:16);
   }
 
   void _processCode(Map profileCode) {
     if (profileCode['type'] != 'ProfileCode') {
       return;
     }
-    var kind = CodeKind.fromString(profileCode['kind']);
-    var address;
-    if (kind == CodeKind.Dart) {
-      if (profileCode['code'] != null) {
-        address = int.parse(profileCode['code']['start'], radix:16);
-      } else {
-        address = int.parse(profileCode['start'], radix:16);
-      }
-    } else {
-      address = int.parse(profileCode['start'], radix:16);
-    }
-    assert(address != null);
+    int address = _extractCodeStartAddress(profileCode);
     var code = isolate.findCodeByAddress(address);
     if (code == null) {
-      if (kind == CodeKind.Dart) {
-        code = _processDartCode(profileCode);
-      } else {
-        code = _processOtherCode(kind, profileCode);
-      }
-      assert(code != null);
+      // Never seen a code object at this address before, create a new one.
+      code = new Code.fromProfileMap(profileCode);
       isolate.codes.add(code);
     }
-    // Load code object tick counts and set them.
-    var inclusive = int.parse(profileCode['inclusive_ticks']);
-    var exclusive = int.parse(profileCode['exclusive_ticks']);
-    code.inclusiveTicks = inclusive;
-    code.exclusiveTicks = exclusive;
-    // Load address specific ticks.
-    List ticksList = profileCode['ticks'];
-    if (ticksList != null && (ticksList.length > 0)) {
-      for (var i = 0; i < ticksList.length; i += 2) {
-        var address = int.parse(ticksList[i], radix:16);
-        var ticks = int.parse(ticksList[i + 1]);
-        var codeTick = new CodeTick(address, ticks);
-        code.ticks.add(codeTick);
-      }
-    }
-    if ((code.ticks.length > 0) && (code.instructions.length > 0)) {
-      // Apply address ticks to instruction stream.
-      code.ticks.forEach((CodeTick tick) {
-        code.tick(tick.address, tick.ticks);
-      });
-      code.instructions.forEach((i) {
-        i.updateTickString(code);
-      });
-    }
+    code._refresh(profileCode);
+    _codeObjectsInImportOrder.add(code);
   }
 
   List<Code> topExclusive(int count) {
@@ -231,17 +317,6 @@ class Profile {
       return exclusive;
     }
     return exclusive.sublist(0, count);
-  }
-
-  List<Code> topInclusive(int count) {
-    List<Code> inclusive = isolate.codes;
-    inclusive.sort((Code a, Code b) {
-      return b.inclusiveTicks - a.inclusiveTicks;
-    });
-    if ((inclusive.length < count) || (count == 0)) {
-      return inclusive;
-    }
-    return inclusive.sublist(0, count);
   }
 }
 
