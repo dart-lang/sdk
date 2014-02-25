@@ -131,6 +131,10 @@ class BarbackServer {
         request.response.statusCode = 302;
         request.response.headers.add('location', '${request.uri}/');
         request.response.close();
+      }).catchError((newError, newTrace) {
+        // If we find neither the original file or the index, we should report
+        // the error about the original to the user.
+        throw newError is AssetNotFoundException ? error : newError;
       });
     }).catchError((error, trace) {
       if (error is! AssetNotFoundException) {
