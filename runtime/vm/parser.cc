@@ -7872,13 +7872,15 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original,
     if (name.IsNull()) {
       ErrorMsg(left_pos, "expression is not assignable");
     }
-    result = ThrowNoSuchMethodError(original->token_pos(),
-                                    *target_cls,
-                                    name,
-                                    NULL,  // No arguments.
-                                    InvocationMirror::kStatic,
-                                    InvocationMirror::kSetter,
-                                    NULL);  // No existing function.
+    result = ThrowNoSuchMethodError(
+                 original->token_pos(),
+                 *target_cls,
+                 name,
+                 NULL,  // No arguments.
+                 InvocationMirror::kStatic,
+                 original->IsLoadLocalNode() ?
+                     InvocationMirror::kLocalVar : InvocationMirror::kSetter,
+                 NULL);  // No existing function.
   } else if (result->IsStoreIndexedNode() ||
              result->IsInstanceSetterNode() ||
              result->IsStaticSetterNode() ||

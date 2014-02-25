@@ -21,8 +21,9 @@ class InvocationMirror : public AllStatic {
     kGetter = 1,
     kSetter = 2,
     kField  = 3,
+    kLocalVar = 4,
     kTypeShift = 0,
-    kTypeBits = 2,
+    kTypeBits = 3,
     kTypeMask = (1 << kTypeBits) - 1
   };
 
