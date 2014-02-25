@@ -765,7 +765,7 @@ class _Viewer {
   /// so it shouldn't have any external dependencies.
   static void _runServer() {
     // Launch a server to serve out of the directory dartdoc-viewer/client/web.
-    HttpServer.bind('localhost', 8080).then((HttpServer httpServer) {
+    HttpServer.bind(InternetAddress.ANY_IP_V6, 8080).then((HttpServer httpServer) {
       print('Server launched. Navigate your browser to: '
           'http://localhost:${httpServer.port}');
       httpServer.listen((HttpRequest request) {
