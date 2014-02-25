@@ -9,60 +9,52 @@ import 'dart:collection' show ListBase, UnmodifiableListView;
 import 'package:observe/observe.dart';
 import 'list_diff.dart' show projectListSplices, calcSplices;
 
-/**
- * Represents an observable list of model values. If any items are added,
- * removed, or replaced, then observers that are listening to [changes]
- * will be notified.
- */
+/// Represents an observable list of model values. If any items are added,
+/// removed, or replaced, then observers that are listening to [changes]
+/// will be notified.
 class ObservableList<E> extends ListBase<E> with ChangeNotifier {
   List<ListChangeRecord> _listRecords;
 
   StreamController _listChanges;
 
-  /** The inner [List<E>] with the actual storage. */
+  /// The inner [List<E>] with the actual storage.
   final List<E> _list;
 
-  /**
-   * Creates an observable list of the given [length].
-   *
-   * If no [length] argument is supplied an extendable list of
-   * length 0 is created.
-   *
-   * If a [length] argument is supplied, a fixed size list of that
-   * length is created.
-   */
+  /// Creates an observable list of the given [length].
+  ///
+  /// If no [length] argument is supplied an extendable list of
+  /// length 0 is created.
+  ///
+  /// If a [length] argument is supplied, a fixed size list of that
+  /// length is created.
   ObservableList([int length])
       : _list = length != null ? new List<E>(length) : <E>[];
 
-  /**
-   * Creates an observable list with the elements of [other]. The order in
-   * the list will be the order provided by the iterator of [other].
-   */
+  /// Creates an observable list with the elements of [other]. The order in
+  /// the list will be the order provided by the iterator of [other].
   factory ObservableList.from(Iterable<E> other) =>
       new ObservableList<E>()..addAll(other);
 
-  /**
-   * The stream of summarized list changes, delivered asynchronously.
-   *
-   * Each list change record contains information about an individual mutation.
-   * The records are projected so they can be applied sequentially. For example,
-   * this set of mutations:
-   *
-   *     var model = new ObservableList.from(['a', 'b']);
-   *     model.listChanges.listen((records) => records.forEach(print));
-   *     model.removeAt(1);
-   *     model.insertAll(0, ['c', 'd', 'e']);
-   *     model.removeRange(1, 3);
-   *     model.insert(1, 'f');
-   *
-   * The change records will be summarized so they can be "played back", using
-   * the final list positions to figure out which item was added:
-   *
-   *     #<ListChangeRecord index: 0, removed: [], addedCount: 2>
-   *     #<ListChangeRecord index: 3, removed: [b], addedCount: 0>
-   *
-   * [deliverChanges] can be called to force synchronous delivery.
-   */
+  /// The stream of summarized list changes, delivered asynchronously.
+  ///
+  /// Each list change record contains information about an individual mutation.
+  /// The records are projected so they can be applied sequentially. For
+  /// example, this set of mutations:
+  ///
+  ///     var model = new ObservableList.from(['a', 'b']);
+  ///     model.listChanges.listen((records) => records.forEach(print));
+  ///     model.removeAt(1);
+  ///     model.insertAll(0, ['c', 'd', 'e']);
+  ///     model.removeRange(1, 3);
+  ///     model.insert(1, 'f');
+  ///
+  /// The change records will be summarized so they can be "played back", using
+  /// the final list positions to figure out which item was added:
+  ///
+  ///     #<ListChangeRecord index: 0, removed: [], addedCount: 2>
+  ///     #<ListChangeRecord index: 3, removed: [b], addedCount: 0>
+  ///
+  /// [deliverChanges] can be called to force synchronous delivery.
   Stream<List<ListChangeRecord>> get listChanges {
     if (_listChanges == null) {
       // TODO(jmesserly): split observed/unobserved notions?
@@ -272,28 +264,24 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifier {
     return false;
   }
 
-  /**
-   * Calculates the changes to the list, if lacking individual splice mutation
-   * information.
-   *
-   * This is not needed for change records produced by [ObservableList] itself,
-   * but it can be used if the list instance was replaced by another list.
-   *
-   * The minimal set of splices can be synthesized given the previous state and
-   * final state of a list. The basic approach is to calculate the edit distance
-   * matrix and choose the shortest path through it.
-   *
-   * Complexity is `O(l * p)` where `l` is the length of the current list and
-   * `p` is the length of the old list.
-   */
+  /// Calculates the changes to the list, if lacking individual splice mutation
+  /// information.
+  ///
+  /// This is not needed for change records produced by [ObservableList] itself,
+  /// but it can be used if the list instance was replaced by another list.
+  ///
+  /// The minimal set of splices can be synthesized given the previous state and
+  /// final state of a list. The basic approach is to calculate the edit
+  /// distance matrix and choose the shortest path through it.
+  ///
+  /// Complexity is `O(l * p)` where `l` is the length of the current list and
+  /// `p` is the length of the old list.
   static List<ListChangeRecord> calculateChangeRecords(
       List<Object> oldValue, List<Object> newValue) =>
       calcSplices(newValue, 0, newValue.length, oldValue, 0, oldValue.length);
 
-  /**
-   * Updates the [previous] list using the change [records]. For added items,
-   * the [current] list is used to find the current value.
-   */
+  /// Updates the [previous] list using the change [records]. For added items,
+  /// the [current] list is used to find the current value.
   static void applyChangeRecords(List<Object> previous, List<Object> current,
       List<ListChangeRecord> changeRecords) {
 

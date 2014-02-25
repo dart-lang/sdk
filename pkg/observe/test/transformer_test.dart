@@ -125,7 +125,7 @@ _testInitializers(String args, String expected) {
   });
 }
 
-/** Helper that applies the transform by creating mock assets. */
+/// Helper that applies the transform by creating mock assets.
 Future<String> _transform(String code) {
   var id = new AssetId('foo', 'a/b/c.dart');
   var asset = new Asset.fromString(id, code);

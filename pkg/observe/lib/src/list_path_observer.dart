@@ -11,9 +11,7 @@ import 'package:observe/observe.dart';
 // https://raw.github.com/rafaelw/ChangeSummary/master/util/array_reduction.js
 // The main difference is we support anything on the rich Dart Iterable API.
 
-/**
- * Observes a path starting from each item in the list.
- */
+/// Observes a path starting from each item in the list.
 class ListPathObserver<E, P> extends ChangeNotifier {
   final ObservableList<E> list;
   final String _itemPath;

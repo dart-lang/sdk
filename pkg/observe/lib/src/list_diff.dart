@@ -7,30 +7,26 @@ library observe.src.list_diff;
 import 'dart:math' as math;
 import 'dart:collection' show UnmodifiableListView;
 
-/**
- * A summary of an individual change to a [List].
- *
- * Each delta represents that at the [index], [removed] sequence of items were
- * removed, and counting forward from [index], [addedCount] items were added.
- */
+/// A summary of an individual change to a [List].
+///
+/// Each delta represents that at the [index], [removed] sequence of items were
+/// removed, and counting forward from [index], [addedCount] items were added.
 class ListChangeRecord {
-  /** The list that changed. */
+  /// The list that changed.
   final List object;
 
-  /** The index of the change. */
+  /// The index of the change.
   int get index => _index;
 
-  /** The items removed, if any. Otherwise this will be an empty list. */
+  /// The items removed, if any. Otherwise this will be an empty list.
   List get removed => _unmodifiableRemoved;
   UnmodifiableListView _unmodifiableRemoved;
 
-  /**
-   * Mutable version of [removed], used during the algorithms as they are
-   * constructing the object.
-   */
+  /// Mutable version of [removed], used during the algorithms as they are
+  /// constructing the object.
   List _removed;
 
-  /** The number of items added. */
+  /// The number of items added.
   int get addedCount => _addedCount;
 
   // Note: conceptually these are final, but for convenience we increment it as
@@ -50,7 +46,7 @@ class ListChangeRecord {
     return new ListChangeRecord._(object, index, removed, addedCount);
   }
 
-  /** Returns true if the provided index was changed by this operation. */
+  /// Returns true if the provided index was changed by this operation.
   bool indexChanged(key) {
     // If key isn't an int, or before the index, then it wasn't changed.
     if (key is! int || key < index) return false;
@@ -182,16 +178,14 @@ int _sharedSuffix(List arr1, List arr2, int searchLength) {
   return count;
 }
 
-/**
- * Lacking individual splice mutation information, the minimal set of
- * splices can be synthesized given the previous state and final state of an
- * array. The basic approach is to calculate the edit distance matrix and
- * choose the shortest path through it.
- *
- * Complexity: O(l * p)
- *   l: The length of the current array
- *   p: The length of the old array
- */
+/// Lacking individual splice mutation information, the minimal set of
+/// splices can be synthesized given the previous state and final state of an
+/// array. The basic approach is to calculate the edit distance matrix and
+/// choose the shortest path through it.
+///
+/// Complexity: O(l * p)
+///   l: The length of the current array
+///   p: The length of the old array
 List<ListChangeRecord> calcSplices(List current, int currentStart,
     int currentEnd, List old, int oldStart, int oldEnd) {
 
@@ -363,22 +357,20 @@ List<ListChangeRecord> _createInitialSplices(List<Object> list,
   return splices;
 }
 
-/**
- * We need to summarize change records. Consumers of these records want to
- * apply the batch sequentially, and ensure that they can find inserted
- * items by looking at that position in the list. This property does not
- * hold in our record-as-you-go records. Consider:
- *
- *     var model = toObservable(['a', 'b']);
- *     model.removeAt(1);
- *     model.insertAll(0, ['c', 'd', 'e']);
- *     model.removeRange(1, 3);
- *     model.insert(1, 'f');
- *
- * Here, we inserted some records and then removed some of them.
- * If someone processed these records naively, they would "play back" the
- * insert incorrectly, because those items will be shifted.
- */
+/// We need to summarize change records. Consumers of these records want to
+/// apply the batch sequentially, and ensure that they can find inserted
+/// items by looking at that position in the list. This property does not
+/// hold in our record-as-you-go records. Consider:
+///
+///     var model = toObservable(['a', 'b']);
+///     model.removeAt(1);
+///     model.insertAll(0, ['c', 'd', 'e']);
+///     model.removeRange(1, 3);
+///     model.insert(1, 'f');
+///
+/// Here, we inserted some records and then removed some of them.
+/// If someone processed these records naively, they would "play back" the
+/// insert incorrectly, because those items will be shifted.
 List<ListChangeRecord> projectListSplices(List list,
     List<ListChangeRecord> records) {
   if (records.length <= 1) return records;

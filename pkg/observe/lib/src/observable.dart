@@ -24,26 +24,22 @@ import 'package:observe/observe.dart';
 // above.
 import 'dirty_check.dart';
 
-/**
- * Represents an object with observable properties. This is used by data in
- * model-view architectures to notify interested parties of [changes] to the
- * object's properties (fields or getter/setter pairs).
- *
- * The interface does not require any specific technique to implement
- * observability. You can implement it in the following ways:
- *
- * - extend or mixin this class, and let the application call [dirtyCheck]
- *   periodically to check for changes to your object.
- * - extend or mixin [ChangeNotifier], and implement change notifications
- *   manually by calling [notifyPropertyChange] from your setters.
- * - implement this interface and provide your own implementation.
- */
+/// Represents an object with observable properties. This is used by data in
+/// model-view architectures to notify interested parties of [changes] to the
+/// object's properties (fields or getter/setter pairs).
+///
+/// The interface does not require any specific technique to implement
+/// observability. You can implement it in the following ways:
+///
+/// - extend or mixin this class, and let the application call [dirtyCheck]
+///   periodically to check for changes to your object.
+/// - extend or mixin [ChangeNotifier], and implement change notifications
+///   manually by calling [notifyPropertyChange] from your setters.
+/// - implement this interface and provide your own implementation.
 abstract class Observable {
-  /**
-   * Performs dirty checking of objects that inherit from [Observable].
-   * This scans all observed objects using mirrors and determines if any fields
-   * have changed. If they have, it delivers the changes for the object.
-   */
+  /// Performs dirty checking of objects that inherit from [Observable].
+  /// This scans all observed objects using mirrors and determines if any fields
+  /// have changed. If they have, it delivers the changes for the object.
   static void dirtyCheck() => dirtyCheckObservables();
 
   StreamController _changes;
@@ -51,12 +47,10 @@ abstract class Observable {
   Map<Symbol, Object> _values;
   List<ChangeRecord> _records;
 
-  /**
-   * The stream of change records to this object. Records will be delivered
-   * asynchronously.
-   *
-   * [deliverChanges] can be called to force synchronous delivery.
-   */
+  /// The stream of change records to this object. Records will be delivered
+  /// asynchronously.
+  ///
+  /// [deliverChanges] can be called to force synchronous delivery.
   Stream<List<ChangeRecord>> get changes {
     if (_changes == null) {
       _changes = new StreamController.broadcast(sync: true,
@@ -65,10 +59,8 @@ abstract class Observable {
     return _changes.stream;
   }
 
-  /**
-   * True if this object has any observers, and should call
-   * [notifyChange] for changes.
-   */
+  /// True if this object has any observers, and should call
+  /// [notifyChange] for changes.
   bool get hasObservers => _changes != null && _changes.hasListener;
 
   void _observed() {
@@ -92,7 +84,7 @@ abstract class Observable {
     _values = values;
   }
 
-  /** Release data associated with observation. */
+  /// Release data associated with observation.
   void _unobserved() {
     // Note: we don't need to explicitly unregister from the dirty check list.
     // This will happen automatically at the next call to dirtyCheck.
@@ -101,10 +93,8 @@ abstract class Observable {
     }
   }
 
-  /**
-   * Synchronously deliver pending [changes]. Returns true if any records were
-   * delivered, otherwise false.
-   */
+  /// Synchronously deliver pending [changes]. Returns true if any records were
+  /// delivered, otherwise false.
   // TODO(jmesserly): this is a bit different from the ES Harmony version, which
   // allows delivery of changes to a particular observer:
   // http://wiki.ecmascript.org/doku.php?id=harmony:observe#object.deliverchangerecords
@@ -146,30 +136,26 @@ abstract class Observable {
     return true;
   }
 
-  /**
-   * Notify that the field [name] of this object has been changed.
-   *
-   * The [oldValue] and [newValue] are also recorded. If the two values are
-   * equal, no change will be recorded.
-   *
-   * For convenience this returns [newValue].
-   */
+  /// Notify that the field [name] of this object has been changed.
+  ///
+  /// The [oldValue] and [newValue] are also recorded. If the two values are
+  /// equal, no change will be recorded.
+  ///
+  /// For convenience this returns [newValue].
   notifyPropertyChange(Symbol field, Object oldValue, Object newValue)
       => notifyPropertyChangeHelper(this, field, oldValue, newValue);
 
-  /**
-   * Notify observers of a change.
-   *
-   * For most objects [Observable.notifyPropertyChange] is more convenient, but
-   * collections sometimes deliver other types of changes such as a
-   * [ListChangeRecord].
-   *
-   * Notes:
-   * - This is *not* required for fields if you mixin or extend [Observable],
-   *   but you can use it for computed properties.
-   * - Unlike [ChangeNotifier] this will not schedule [deliverChanges]; use
-   *   [Observable.dirtyCheck] instead.
-   */
+  /// Notify observers of a change.
+  ///
+  /// For most objects [Observable.notifyPropertyChange] is more convenient, but
+  /// collections sometimes deliver other types of changes such as a
+  /// [ListChangeRecord].
+  ///
+  /// Notes:
+  /// - This is *not* required for fields if you mixin or extend [Observable],
+  ///   but you can use it for computed properties.
+  /// - Unlike [ChangeNotifier] this will not schedule [deliverChanges]; use
+  ///   [Observable.dirtyCheck] instead.
   void notifyChange(ChangeRecord record) {
     if (!hasObservers) return;
 

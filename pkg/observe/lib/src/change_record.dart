@@ -7,22 +7,22 @@ library observe.src.change_record;
 import 'package:observe/observe.dart';
 
 
-/** Records a change to an [Observable]. */
+/// Records a change to an [Observable].
 // TODO(jmesserly): remove this type
 abstract class ChangeRecord {}
 
-/** A change record to a field of an observable object. */
+/// A change record to a field of an observable object.
 class PropertyChangeRecord<T> extends ChangeRecord {
-  /** The object that changed. */
+  /// The object that changed.
   final object;
 
-  /** The name of the property that changed. */
+  /// The name of the property that changed.
   final Symbol name;
 
-  /** The previous value of the property. */
+  /// The previous value of the property.
   final T oldValue;
 
-  /** The new value of the property. */
+  /// The new value of the property.
   final T newValue;
 
   PropertyChangeRecord(this.object, this.name, this.oldValue, this.newValue);

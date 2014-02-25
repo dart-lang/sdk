@@ -19,19 +19,19 @@ class MapChangeRecord<K, V> extends ChangeRecord {
   // TODO(jmesserly): we could store this more compactly if it matters, with
   // subtypes for inserted and removed.
 
-  /** The map key that changed. */
+  /// The map key that changed.
   final K key;
 
-  /** The previous value associated with this key. */
+  /// The previous value associated with this key.
   final V oldValue;
 
-  /** The new value associated with this key. */
+  /// The new value associated with this key.
   final V newValue;
 
-  /** True if this key was inserted. */
+  /// True if this key was inserted.
   final bool isInsert;
 
-  /** True if this key was removed. */
+  /// True if this key was removed.
   final bool isRemove;
 
   MapChangeRecord(this.key, this.oldValue, this.newValue)
@@ -49,37 +49,33 @@ class MapChangeRecord<K, V> extends ChangeRecord {
   }
 }
 
-/**
- * Represents an observable map of model values. If any items are added,
- * removed, or replaced, then observers that are listening to [changes]
- * will be notified.
- */
+/// Represents an observable map of model values. If any items are added,
+/// removed, or replaced, then observers that are listening to [changes]
+/// will be notified.
 class ObservableMap<K, V> extends ChangeNotifier implements Map<K, V> {
   final Map<K, V> _map;
 
-  /** Creates an observable map. */
+  /// Creates an observable map.
   ObservableMap() : _map = new HashMap<K, V>();
 
-  /** Creates a new observable map using a [LinkedHashMap]. */
+  /// Creates a new observable map using a [LinkedHashMap].
   ObservableMap.linked() : _map = new LinkedHashMap<K, V>();
 
-  /** Creates a new observable map using a [SplayTreeMap]. */
+  /// Creates a new observable map using a [SplayTreeMap].
   ObservableMap.sorted() : _map = new SplayTreeMap<K, V>();
 
-  /**
-   * Creates an observable map that contains all key value pairs of [other].
-   * It will attempt to use the same backing map type if the other map is a
-   * [LinkedHashMap], [SplayTreeMap], or [HashMap]. Otherwise it defaults to
-   * [HashMap].
-   *
-   * Note this will perform a shallow conversion. If you want a deep conversion
-   * you should use [toObservable].
-   */
+  /// Creates an observable map that contains all key value pairs of [other].
+  /// It will attempt to use the same backing map type if the other map is a
+  /// [LinkedHashMap], [SplayTreeMap], or [HashMap]. Otherwise it defaults to
+  /// [HashMap].
+  ///
+  /// Note this will perform a shallow conversion. If you want a deep conversion
+  /// you should use [toObservable].
   factory ObservableMap.from(Map<K, V> other) {
     return new ObservableMap<K, V>.createFromType(other)..addAll(other);
   }
 
-  /** Like [ObservableMap.from], but creates an empty map. */
+  /// Like [ObservableMap.from], but creates an empty map.
   factory ObservableMap.createFromType(Map<K, V> other) {
     ObservableMap result;
     if (other is SplayTreeMap) {

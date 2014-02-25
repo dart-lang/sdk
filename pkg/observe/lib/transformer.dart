@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Code transform for @observable. The core transformation is relatively
- * straightforward, and essentially like an editor refactoring.
- */
+/// Code transform for @observable. The core transformation is relatively
+/// straightforward, and essentially like an editor refactoring.
 library observe.transformer;
 
 import 'dart:async';
@@ -18,13 +16,11 @@ import 'package:barback/barback.dart';
 import 'package:source_maps/refactor.dart';
 import 'package:source_maps/span.dart' show SourceFile;
 
-/**
- * A [Transformer] that replaces observables based on dirty-checking with an
- * implementation based on change notifications.
- *
- * The transformation adds hooks for field setters and notifies the observation
- * system of the change.
- */
+/// A [Transformer] that replaces observables based on dirty-checking with an
+/// implementation based on change notifications.
+///
+/// The transformation adds hooks for field setters and notifies the observation
+/// system of the change.
 class ObservableTransformer extends Transformer {
 
   final List<String> _files;
@@ -112,7 +108,7 @@ TextEditTransaction _transformCompilationUnit(
   return code;
 }
 
-/** Parse [code] using analyzer. */
+/// Parse [code] using analyzer.
 CompilationUnit _parseCompilationUnit(String code) {
   var errorListener = new _ErrorCollector();
   var reader = new CharSequenceReader(code);
@@ -129,7 +125,7 @@ class _ErrorCollector extends AnalysisErrorListener {
 
 _getSpan(SourceFile file, ASTNode node) => file.span(node.offset, node.end);
 
-/** True if the node has the `@observable` or `@published` annotation. */
+/// True if the node has the `@observable` or `@published` annotation.
 // TODO(jmesserly): it is not good to be hard coding Polymer support here.
 bool _hasObservable(AnnotatedNode node) =>
     node.metadata.any(_isObservableAnnotation);
@@ -262,7 +258,7 @@ void _transformClass(ClassDeclaration cls, TextEditTransaction code,
   }
 }
 
-/** Adds "with ChangeNotifier" and associated implementation. */
+/// Adds "with ChangeNotifier" and associated implementation.
 void _mixinObservable(ClassDeclaration cls, TextEditTransaction code) {
   // Note: we need to be careful to put the with clause after extends, but
   // before implements clause.
