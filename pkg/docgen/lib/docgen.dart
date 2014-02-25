@@ -1423,7 +1423,7 @@ class Library extends Indexable {
     // Associate the package readme with all the libraries. This is a bit
     // wasteful, but easier than trying to figure out which partial match
     // is best.
-    packageIntro = _packageIntro(_getRootdir(mirror));
+    packageIntro = _packageIntro(_getPackageDirectory(mirror));
     return packageName;
   }
 
@@ -1446,22 +1446,30 @@ class Library extends Indexable {
   }
 
   /// Given a LibraryMirror that is a library, return the name of the directory
-  /// holding the package information for that library. If the library is not 
+  /// holding the package information for that library. If the library is not
   /// part of a package, return null.
-  static String _getRootdir(LibraryMirror mirror) {
+  static String _getPackageDirectory(LibraryMirror mirror) {
     var file = mirror.uri.toFilePath();
-    // Any file that's in a package will be in a directory of the form 
+    // Any file that's in a package will be in a directory of the form
     // packagename/lib/.../filename.dart, so we know that a possible
     // package directory is at least in the directory above the one containing
     // [file]
     var directoryAbove = path.dirname(path.dirname(file));
-    return _packageDirectoryFor(directoryAbove);
+    var possiblePackage = _packageDirectoryFor(directoryAbove);
+    // We only want components that are somewhere underneath the lib directory.
+    var subPath = path.relative(file, from: possiblePackage);
+    var subPathComponents = path.split(subPath);
+    if (subPathComponents.isNotEmpty && subPathComponents.first == 'lib') {
+      return possiblePackage;
+    } else {
+      return null;
+    }
   }
 
   /// Read a pubspec and return the library name given a [LibraryMirror].
   static String _packageName(LibraryMirror mirror) {
     if (mirror.uri.scheme != 'file') return '';
-    var rootdir = _getRootdir(mirror);
+    var rootdir = _getPackageDirectory(mirror);
     if (rootdir == null) return '';
     return packageNameFor(rootdir);
   }
