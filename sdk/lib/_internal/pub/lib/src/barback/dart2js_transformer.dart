@@ -27,7 +27,8 @@ import 'build_environment.dart';
 /// The set of all valid configuration options for this transformer.
 final _validOptions = new Set<String>.from([
   'commandLineOptions', 'checked', 'minify', 'verbose', 'environment',
-  'analyzeAll', 'suppressWarnings', 'suppressHints', 'terse'
+  'analyzeAll', 'suppressWarnings', 'suppressHints', 'suppressPackageWarnings',
+  'terse'
 ]);
 
 /// A [Transformer] that uses dart2js's library API to transform Dart
@@ -117,6 +118,8 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
             analyzeAll: _configBool('analyzeAll'),
             suppressWarnings: _configBool('suppressWarnings'),
             suppressHints: _configBool('suppressHints'),
+            suppressPackageWarnings: _configBool(
+                'suppressPackageWarnings', defaultsTo: true),
             terse: _configBool('terse'))).then((_) {
           stopwatch.stop();
           transform.logger.info("Took ${stopwatch.elapsed} to compile $id.");

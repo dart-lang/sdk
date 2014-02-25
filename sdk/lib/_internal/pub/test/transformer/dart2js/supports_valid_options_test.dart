@@ -27,6 +27,7 @@ main() {
             "analyzeAll": true,
             "suppressWarnings": true,
             "suppressHints": true,
+            "suppressPackageWarnings": false,
             "terse": true
           }
         }]
