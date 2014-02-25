@@ -47,6 +47,15 @@ final _friendlyFrame = new RegExp(
 
 final _initialDot = new RegExp(r"^\.");
 
+/// "dart:" libraries that are incorrectly reported without a "dart:" prefix.
+///
+/// See issue 11901. All these libraries should be in "dart:io".
+final _ioLibraries = new Set.from([
+  new Uri(path: 'timer_impl.dart'),
+  new Uri(path: 'http_impl.dart'),
+  new Uri(path: 'http_parser.dart')
+]);
+
 /// A single stack frame. Each frame points to a precise location in Dart code.
 class Frame {
   /// The URI of the file in which the code is located.
@@ -130,10 +139,7 @@ class Frame {
     // always be found. The column is optional.
     var member = match[1].replaceAll("<anonymous closure>", "<fn>");
     var uri = Uri.parse(match[2]);
-    // Work around issue 11901.
-    if (uri == new Uri(path: 'timer_impl.dart')) {
-      uri = Uri.parse('dart:async/timer_impl.dart');
-    }
+    if (_ioLibraries.contains(uri)) uri = Uri.parse('dart:io/${uri.path}');
     var line = int.parse(match[3]);
     var column = null;
     var columnMatch = match[4];

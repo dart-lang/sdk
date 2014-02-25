@@ -33,7 +33,25 @@ void main() {
     test('parses a stack frame with timer_impl correctly', () {
       var frame = new Frame.parseVM("#1      Foo._bar "
           "(timer_impl.dart:24)");
-      expect(frame.uri, equals(Uri.parse("dart:async/timer_impl.dart")));
+      expect(frame.uri, equals(Uri.parse("dart:io/timer_impl.dart")));
+      expect(frame.line, equals(24));
+      expect(frame.column, null);
+      expect(frame.member, equals('Foo._bar'));
+    });
+
+    test('parses a stack frame with http_parser correctly', () {
+      var frame = new Frame.parseVM("#1      Foo._bar "
+          "(http_parser.dart:24)");
+      expect(frame.uri, equals(Uri.parse("dart:io/http_parser.dart")));
+      expect(frame.line, equals(24));
+      expect(frame.column, null);
+      expect(frame.member, equals('Foo._bar'));
+    });
+
+    test('parses a stack frame with http_impl correctly', () {
+      var frame = new Frame.parseVM("#1      Foo._bar "
+          "(http_impl.dart:24)");
+      expect(frame.uri, equals(Uri.parse("dart:io/http_impl.dart")));
       expect(frame.line, equals(24));
       expect(frame.column, null);
       expect(frame.member, equals('Foo._bar'));
