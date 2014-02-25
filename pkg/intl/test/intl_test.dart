@@ -34,4 +34,48 @@ main() {
     expect(Intl.canonicalizedLocale('xx_YYY'), 'xx_YYY');
     expect(Intl.canonicalizedLocale('C'), 'en_ISO');
   });
+
+  test("Verifying locale fallback for numbers", () {
+    expect(Intl.verifiedLocale('en-us', NumberFormat.localeExists), 'en_US');
+    expect(Intl.verifiedLocale('en_us', NumberFormat.localeExists), 'en_US');
+    expect(Intl.verifiedLocale('es-419', NumberFormat.localeExists), 'es_419');
+    expect(Intl.verifiedLocale('en-ZZ', NumberFormat.localeExists), 'en');
+    expect(Intl.verifiedLocale('es-999', NumberFormat.localeExists), 'es');
+
+    void checkAsNumberDefault(String locale, String expected) {
+      var oldDefault = Intl.defaultLocale;
+      Intl.defaultLocale = locale;
+      var format = new NumberFormat();
+      expect(format.locale, expected);
+      Intl.defaultLocale = oldDefault;
+    }
+
+    checkAsNumberDefault('en-us', 'en_US');
+    checkAsNumberDefault('en_us', 'en_US');
+    checkAsNumberDefault('es-419', 'es_419');
+    checkAsNumberDefault('en-ZZ', 'en');
+    checkAsNumberDefault('es-999', 'es');
+  });
+
+  test("Verifying locale fallback for dates", () {
+    expect(Intl.verifiedLocale('en-us', DateFormat.localeExists), 'en_US');
+    expect(Intl.verifiedLocale('en_us', DateFormat.localeExists), 'en_US');
+    expect(Intl.verifiedLocale('es-419', DateFormat.localeExists), 'es_419');
+    expect(Intl.verifiedLocale('en-ZZ', DateFormat.localeExists), 'en');
+    expect(Intl.verifiedLocale('es-999', DateFormat.localeExists), 'es');
+
+    void checkAsDateDefault(String locale, String expected) {
+      var oldDefault = Intl.defaultLocale;
+      Intl.defaultLocale = locale;
+      var format = new DateFormat();
+      expect(format.locale, expected);
+      Intl.defaultLocale = oldDefault;
+    }
+
+    checkAsDateDefault('en-us', 'en_US');
+    checkAsDateDefault('en_us', 'en_US');
+    checkAsDateDefault('es-419', 'es_419');
+    checkAsDateDefault('en-ZZ', 'en');
+    checkAsDateDefault('es-999', 'es');
+  });
 }

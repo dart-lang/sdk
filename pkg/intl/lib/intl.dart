@@ -192,7 +192,10 @@ class Intl {
     // difficult. As a result, we call this more often. Consider keeping
     // verified locales for each purpose if it turns out to be a performance
     // issue.
-    if (newLocale == null) return getCurrentLocale();
+    if (newLocale == null) {
+      return verifiedLocale(getCurrentLocale(), localeExists,
+          onFailure: onFailure);
+    }
     if (localeExists(newLocale)) {
       return newLocale;
     }

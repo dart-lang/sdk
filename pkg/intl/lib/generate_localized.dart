@@ -226,7 +226,8 @@ Future initializeMessages(String localeName) {
 }
 
 MessageLookupByLibrary _findGeneratedMessagesFor(locale) {
-  var actualLocale = Intl.verifiedLocale(locale, (x) => _findExact(x) != null);
+  var actualLocale = Intl.verifiedLocale(locale, (x) => _findExact(x) != null,
+      onFailure: (_) => null);
   if (actualLocale == null) return null;
   return _findExact(actualLocale);
 }
