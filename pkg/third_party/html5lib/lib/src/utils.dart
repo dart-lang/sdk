@@ -1,4 +1,4 @@
-/** Misc things that were useful when porting the code from Python. */
+/// Misc things that were useful when porting the code from Python.
 library utils;
 
 import 'constants.dart';
@@ -71,11 +71,9 @@ String padWithZeros(String str, int size) {
 
 // TODO(jmesserly): this implementation is pretty wrong, but I need something
 // quick until dartbug.com/1694 is fixed.
-/**
- * Format a string like Python's % string format operator. Right now this only
- * supports a [data] dictionary used with %s or %08x. Those were the only things
- * needed for [errorMessages].
- */
+/// Format a string like Python's % string format operator. Right now this only
+/// supports a [data] dictionary used with %s or %08x. Those were the only
+/// things needed for [errorMessages].
 String formatStr(String format, Map data) {
   if (data == null) return format;
   data.forEach((key, value) {

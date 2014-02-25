@@ -6,11 +6,9 @@ import 'inputstream.dart';
 
 // TODO(jmesserly): I converted StopIteration to StateError("No more elements").
 // Seems strange to throw this from outside of an iterator though.
-/**
- * String-like object with an associated position and various extra methods
- * If the position is ever greater than the string length then an exception is
- * raised.
- */
+/// String-like object with an associated position and various extra methods
+/// If the position is ever greater than the string length then an exception is
+/// raised.
 class EncodingBytes extends IterableBase<String> {
   final String _bytes;
   int _position = -1;
@@ -62,7 +60,7 @@ class EncodingBytes extends IterableBase<String> {
 
   String get currentByte => _bytes[position];
 
-  /** Skip past a list of characters. Defaults to skipping [isWhitespace]. */
+  /// Skip past a list of characters. Defaults to skipping [isWhitespace].
   String skipChars([CharPreciate skipChars]) {
     if (skipChars == null) skipChars = isWhitespace;
     var p = position;  // use property for the error-checking
@@ -91,11 +89,9 @@ class EncodingBytes extends IterableBase<String> {
     return null;
   }
 
-  /**
-   * Look for a sequence of bytes at the start of a string. If the bytes
-   * are found return true and advance the position to the byte after the
-   * match. Otherwise return false and leave the position alone.
-   */
+  /// Look for a sequence of bytes at the start of a string. If the bytes
+  /// are found return true and advance the position to the byte after the
+  /// match. Otherwise return false and leave the position alone.
   bool matchBytes(String bytes) {
     var p = position;
     if (_bytes.length < p + bytes.length) {
@@ -109,10 +105,8 @@ class EncodingBytes extends IterableBase<String> {
     return false;
   }
 
-  /**
-   * Look for the next sequence of bytes matching a given sequence. If
-   * a match is found advance the position to the last byte of the match
-   */
+  /// Look for the next sequence of bytes matching a given sequence. If
+  /// a match is found advance the position to the last byte of the match
   bool jumpTo(String bytes) {
     var newPosition = _bytes.indexOf(bytes, position);
     if (newPosition >= 0) {
@@ -130,12 +124,12 @@ class EncodingBytes extends IterableBase<String> {
   }
 }
 
-/** Mini parser for detecting character encoding from meta elements. */
+/// Mini parser for detecting character encoding from meta elements.
 class EncodingParser {
   final EncodingBytes data;
   String encoding;
 
-  /** [bytes] - the data to work on for encoding detection. */
+  /// [bytes] - the data to work on for encoding detection.
   EncodingParser(List<int> bytes)
       // Note: this is intentionally interpreting bytes as codepoints.
       : data = new EncodingBytes(new String.fromCharCodes(bytes).toLowerCase());
@@ -173,7 +167,7 @@ class EncodingParser {
     return encoding;
   }
 
-  /** Skip over comments. */
+  /// Skip over comments.
   bool handleComment() => data.jumpTo("-->");
 
   bool handleMeta() {
@@ -243,10 +237,8 @@ class EncodingParser {
 
   bool handleOther() => data.jumpTo(">");
 
-  /**
-   * Return a name,value pair for the next attribute in the stream,
-   * if one is found, or null
-   */
+  /// Return a name,value pair for the next attribute in the stream,
+  /// if one is found, or null
   List<String> getAttribute() {
     // Step 1 (skip chars)
     var c = data.skipChars((x) => x == "/" || isWhitespace(x));

@@ -109,7 +109,7 @@ void main() {
   }
 }
 
-/** Extract the name for the test based on the test input data. */
+/// Extract the name for the test based on the test input data.
 _nameFor(String input) {
   // Using JSON.decode to unescape other unicode characters
   var escapeQuote = input

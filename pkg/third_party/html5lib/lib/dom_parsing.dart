@@ -1,12 +1,10 @@
-/**
- * This library contains extra APIs that aren't in the DOM, but are useful
- * when interacting with the parse tree.
- */
+/// This library contains extra APIs that aren't in the DOM, but are useful
+/// when interacting with the parse tree.
 library dom_parsing;
 
 import 'dom.dart';
 
-/** A simple tree visitor for the DOM nodes. */
+/// A simple tree visitor for the DOM nodes.
 class TreeVisitor {
   visit(Node node) {
     switch (node.nodeType) {
@@ -25,11 +23,9 @@ class TreeVisitor {
     for (var child in node.nodes.toList()) visit(child);
   }
 
-  /**
-   * The fallback handler if the more specific visit method hasn't been
-   * overriden. Only use this from a subclass of [TreeVisitor], otherwise
-   * call [visit] instead.
-   */
+  /// The fallback handler if the more specific visit method hasn't been
+  /// overriden. Only use this from a subclass of [TreeVisitor], otherwise
+  /// call [visit] instead.
   visitNodeFallback(Node node) => visitChildren(node);
 
   visitDocument(Document node) => visitNodeFallback(node);
@@ -47,20 +43,16 @@ class TreeVisitor {
   visitDocumentFragment(DocumentFragment node) => visitDocument(node);
 }
 
-/**
- * Converts the DOM tree into an HTML string with code markup suitable for
- * displaying the HTML's source code with CSS colors for different parts of the
- * markup. See also [CodeMarkupVisitor].
- */
+/// Converts the DOM tree into an HTML string with code markup suitable for
+/// displaying the HTML's source code with CSS colors for different parts of the
+/// markup. See also [CodeMarkupVisitor].
 String htmlToCodeMarkup(Node node) {
   return (new CodeMarkupVisitor()..visit(node)).toString();
 }
 
-/**
- * Converts the DOM tree into an HTML string with code markup suitable for
- * displaying the HTML's source code with CSS colors for different parts of the
- * markup. See also [htmlToCodeMarkup].
- */
+/// Converts the DOM tree into an HTML string with code markup suitable for
+/// displaying the HTML's source code with CSS colors for different parts of the
+/// markup. See also [htmlToCodeMarkup].
 class CodeMarkupVisitor extends TreeVisitor {
   final StringBuffer _str;
 
@@ -113,23 +105,21 @@ class CodeMarkupVisitor extends TreeVisitor {
 
 // TODO(jmesserly): reconcile this with dart:web htmlEscape.
 // This one might be more useful, as it is HTML5 spec compliant.
-/**
- * Escapes [text] for use in the
- * [HTML fragment serialization algorithm][1]. In particular, as described
- * in the [specification][2]:
- *
- * - Replace any occurrence of the `&` character by the string `&amp;`.
- * - Replace any occurrences of the U+00A0 NO-BREAK SPACE character by the
- *   string `&nbsp;`.
- * - If the algorithm was invoked in [attributeMode], replace any occurrences of
- *   the `"` character by the string `&quot;`.
- * - If the algorithm was not invoked in [attributeMode], replace any
- *   occurrences of the `<` character by the string `&lt;`, and any occurrences
- *   of the `>` character by the string `&gt;`.
- *
- * [1]: http://www.whatwg.org/specs/web-apps/current-work/multipage/the-end.html#serializing-html-fragments
- * [2]: http://www.whatwg.org/specs/web-apps/current-work/multipage/the-end.html#escapingString
- */
+/// Escapes [text] for use in the
+/// [HTML fragment serialization algorithm][1]. In particular, as described
+/// in the [specification][2]:
+///
+/// - Replace any occurrence of the `&` character by the string `&amp;`.
+/// - Replace any occurrences of the U+00A0 NO-BREAK SPACE character by the
+///   string `&nbsp;`.
+/// - If the algorithm was invoked in [attributeMode], replace any occurrences
+///   of the `"` character by the string `&quot;`.
+/// - If the algorithm was not invoked in [attributeMode], replace any
+///   occurrences of the `<` character by the string `&lt;`, and any occurrences
+///   of the `>` character by the string `&gt;`.
+///
+/// [1]: http://www.whatwg.org/specs/web-apps/current-work/multipage/the-end.html#serializing-html-fragments
+/// [2]: http://www.whatwg.org/specs/web-apps/current-work/multipage/the-end.html#escapingString
 String htmlSerializeEscape(String text, {bool attributeMode: false}) {
   // TODO(jmesserly): is it faster to build up a list of codepoints?
   // StringBuffer seems cleaner assuming Dart can unbox 1-char strings.
@@ -156,12 +146,10 @@ String htmlSerializeEscape(String text, {bool attributeMode: false}) {
 }
 
 
-/**
- * Returns true if this tag name is a void element.
- * This method is useful to a pretty printer, because void elements must not
- * have an end tag.
- * See <http://dev.w3.org/html5/markup/syntax.html#void-elements> for more info.
- */
+/// Returns true if this tag name is a void element.
+/// This method is useful to a pretty printer, because void elements must not
+/// have an end tag.
+/// See also: <http://dev.w3.org/html5/markup/syntax.html#void-elements>.
 bool isVoidElement(String tagName) {
   switch (tagName) {
     case "area": case "base": case "br": case "col": case "command":

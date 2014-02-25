@@ -26,9 +26,7 @@ Map<String, List<String>> entitiesByFirstChar = (() {
 // - use switch instead of the sequential if tests
 // - avoid string concat
 
-/**
- * This class takes care of tokenizing HTML.
- */
+/// This class takes care of tokenizing HTML.
 class HtmlTokenizer implements Iterator<Token> {
   // TODO(jmesserly): a lot of these could be made private
 
@@ -38,26 +36,22 @@ class HtmlTokenizer implements Iterator<Token> {
 
   final bool lowercaseAttrName;
 
-  /** True to generate spans in for [Token.span]. */
+  /// True to generate spans in for [Token.span].
   final bool generateSpans;
 
-  /** True to generate spans for attributes. */
+  /// True to generate spans for attributes.
   final bool attributeSpans;
 
-  /**
-   * This reference to the parser is used for correct CDATA handling.
-   * The [HtmlParser] will set this at construction time.
-   */
+  /// This reference to the parser is used for correct CDATA handling.
+  /// The [HtmlParser] will set this at construction time.
   HtmlParser parser;
 
   final Queue<Token> tokenQueue;
 
-  /** Holds the token that is currently being processed. */
+  /// Holds the token that is currently being processed.
   Token currentToken;
 
-  /**
-   * Holds a reference to the method to be invoked for the next parser state.
-   */
+  /// Holds a reference to the method to be invoked for the next parser state.
   // TODO(jmesserly): the type should be "Predicate" but a dart2js checked mode
   // bug prevents us from doing that. See http://dartbug.com/12465
   Function state;
@@ -124,13 +118,11 @@ class HtmlTokenizer implements Iterator<Token> {
     if (attributeSpans) attr.start = stream.position - name.length;
   }
 
-  /**
-   * This is where the magic happens.
-   *
-   * We do our usually processing through the states and when we have a token
-   * to return we yield the token which pauses processing until the next token
-   * is requested.
-   */
+  /// This is where the magic happens.
+  ///
+  /// We do our usually processing through the states and when we have a token
+  /// to return we yield the token which pauses processing until the next token
+  /// is requested.
   bool moveNext() {
     // Start processing. When EOF is reached state will return false;
     // instead of true and the loop will terminate.
@@ -149,10 +141,8 @@ class HtmlTokenizer implements Iterator<Token> {
     return true;
   }
 
-  /**
-   * Resets the tokenizer state. Calling this does not reset the [stream] or
-   * the [parser].
-   */
+  /// Resets the tokenizer state. Calling this does not reset the [stream] or
+  /// the [parser].
   void reset() {
     _lastOffset = 0;
     tokenQueue.clear();
@@ -163,7 +153,7 @@ class HtmlTokenizer implements Iterator<Token> {
     state = dataState;
   }
 
-  /** Adds a token to the queue. Sets the span if needed. */
+  /// Adds a token to the queue. Sets the span if needed.
   void _addToken(Token token) {
     if (generateSpans && token.span == null) {
       int offset = stream.position;
@@ -175,11 +165,9 @@ class HtmlTokenizer implements Iterator<Token> {
     tokenQueue.add(token);
   }
 
-  /**
-   * This function returns either U+FFFD or the character based on the
-   * decimal or hexadecimal representation. It also discards ";" if present.
-   * If not present it will add a [ParseErrorToken].
-   */
+  /// This function returns either U+FFFD or the character based on the
+  /// decimal or hexadecimal representation. It also discards ";" if present.
+  /// If not present it will add a [ParseErrorToken].
   String consumeNumberEntity(bool isHex) {
     var allowed = isDigit;
     var radix = 10;
@@ -345,16 +333,14 @@ class HtmlTokenizer implements Iterator<Token> {
     }
   }
 
-  /** This method replaces the need for "entityInAttributeValueState". */
+  /// This method replaces the need for "entityInAttributeValueState".
   void processEntityInAttribute(String allowedChar) {
     consumeEntity(allowedChar: allowedChar, fromAttribute: true);
   }
 
-  /**
-   * This method is a generic handler for emitting the tags. It also sets
-   * the state to "data" because that's what's needed after a token has been
-   * emitted.
-   */
+  /// This method is a generic handler for emitting the tags. It also sets
+  /// the state to "data" because that's what's needed after a token has been
+  /// emitted.
   void emitCurrentToken() {
     var token = currentToken;
     // Add token to the queue to be yielded

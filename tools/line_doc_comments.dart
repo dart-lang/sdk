@@ -33,18 +33,21 @@ main(List<String> args) {
 
 void fixFile(String path) {
   var file = new File(path);
-  file.readAsLines().then(fixContents).then((fixed) {
+  file.readAsLines().then((lines) => fixContents(lines, path)).then((fixed) {
     return new File(path).writeAsString(fixed);
   }).then((file) {
     print(file.path);
   });
 }
 
-String fixContents(List<String> lines) {
+String fixContents(List<String> lines, String path) {
   var buffer = new StringBuffer();
+  var linesOut = 0;
   var inBlock = false;
   var indent;
+
   for (var line in lines) {
+    var oldLine = line;
     if (inBlock) {
       // See if it's the end of the comment.
       if (endBlock.hasMatch(line)) {
@@ -92,7 +95,21 @@ String fixContents(List<String> lines) {
       }
     }
 
-    if (line != null) buffer.write('$line\n');
+    if (line != null) {
+      linesOut++;
+
+      // Warn about lines that crossed 80 columns as a result of the change.
+      if (line.length > 80 && oldLine.length <= 80) {
+        const _PURPLE = '\u001b[35m';
+        const _RED = '\u001b[31m';
+        const _NO_COLOR = '\u001b[0m';
+
+        print('$_PURPLE$path$_NO_COLOR:$_RED$linesOut$_NO_COLOR: '
+            'line exceeds 80 cols:\n    $line');
+      }
+
+      buffer.write('$line\n');
+    }
   }
 
   return buffer.toString();

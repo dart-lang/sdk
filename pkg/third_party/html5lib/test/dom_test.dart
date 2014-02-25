@@ -1,4 +1,4 @@
-/** Additional feature tests that aren't based on test data. */
+/// Additional feature tests that aren't based on test data.
 library dom_test;
 
 import 'package:unittest/unittest.dart';

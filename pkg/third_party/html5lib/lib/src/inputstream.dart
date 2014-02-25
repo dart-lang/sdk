@@ -8,7 +8,7 @@ import 'constants.dart';
 import 'utils.dart';
 import 'encoding_parser.dart';
 
-/** Hooks to call into dart:io without directly referencing it. */
+/// Hooks to call into dart:io without directly referencing it.
 class ConsoleSupport {
   List<int> bytesFromFile(source) => null;
 }
@@ -16,36 +16,32 @@ class ConsoleSupport {
 // TODO(jmesserly): use lazy init here when supported.
 ConsoleSupport consoleSupport = new ConsoleSupport();
 
-/**
- * Provides a unicode stream of characters to the HtmlTokenizer.
- *
- * This class takes care of character encoding and removing or replacing
- * incorrect byte-sequences and also provides column and line tracking.
- */
+/// Provides a unicode stream of characters to the HtmlTokenizer.
+///
+/// This class takes care of character encoding and removing or replacing
+/// incorrect byte-sequences and also provides column and line tracking.
 class HtmlInputStream {
-  /**
-   * Number of bytes to use when looking for a meta element with
-   * encoding information.
-   */
+  /// Number of bytes to use when looking for a meta element with
+  /// encoding information.
   static const int numBytesMeta = 512;
 
-  /** Encoding to use if no other information can be found. */
+  /// Encoding to use if no other information can be found.
   static const String defaultEncoding = 'windows-1252';
 
-  /** The name of the character encoding. */
+  /// The name of the character encoding.
   String charEncodingName;
 
-  /** True if we are certain about [charEncodingName], false for tenative. */
+  /// True if we are certain about [charEncodingName], false for tenative.
   bool charEncodingCertain = true;
 
   final bool generateSpans;
 
-  /** Location where the contents of the stream were found. */
+  /// Location where the contents of the stream were found.
   final String sourceUrl;
 
   List<int> _rawBytes;
 
-  /** Raw UTF-16 codes, used if a Dart String is passed in. */
+  /// Raw UTF-16 codes, used if a Dart String is passed in.
   Iterable<int> _rawChars;
 
   Queue<String> errors;
@@ -58,22 +54,20 @@ class HtmlInputStream {
 
   int _offset;
 
-  /**
-   * Initialises the HtmlInputStream.
-   *
-   * HtmlInputStream(source, [encoding]) -> Normalized stream from source
-   * for use by html5lib.
-   *
-   * [source] can be either a [String] or a [List<int>] containing the raw
-   * bytes, or a file if [consoleSupport] is initialized.
-   *
-   * The optional encoding parameter must be a string that indicates
-   * the encoding.  If specified, that encoding will be used,
-   * regardless of any BOM or later declaration (such as in a meta
-   * element)
-   *
-   * [parseMeta] - Look for a <meta> element containing encoding information
-   */
+  /// Initialises the HtmlInputStream.
+  ///
+  /// HtmlInputStream(source, [encoding]) -> Normalized stream from source
+  /// for use by html5lib.
+  ///
+  /// [source] can be either a [String] or a [List<int>] containing the raw
+  /// bytes, or a file if [consoleSupport] is initialized.
+  ///
+  /// The optional encoding parameter must be a string that indicates
+  /// the encoding.  If specified, that encoding will be used,
+  /// regardless of any BOM or later declaration (such as in a meta
+  /// element)
+  ///
+  /// [parseMeta] - Look for a <meta> element containing encoding information
   HtmlInputStream(source, [String encoding, bool parseMeta = true,
         this.generateSpans = false, this.sourceUrl])
       : charEncodingName = codecName(encoding) {
@@ -195,11 +189,9 @@ class HtmlInputStream {
     }
   }
 
-  /**
-   * Attempts to detect at BOM at the start of the stream. If
-   * an encoding can be determined from the BOM return the name of the
-   * encoding otherwise return null.
-   */
+  /// Attempts to detect at BOM at the start of the stream. If
+  /// an encoding can be determined from the BOM return the name of the
+  /// encoding otherwise return null.
   String detectBOM() {
     // Try detecting the BOM using bytes from the string
     if (hasUtf8Bom(_rawBytes)) {
@@ -216,7 +208,7 @@ class HtmlInputStream {
     return null;
   }
 
-  /** Report the encoding declared by the meta element. */
+  /// Report the encoding declared by the meta element.
   String detectEncodingMeta() {
     var parser = new EncodingParser(slice(_rawBytes, 0, numBytesMeta));
     var encoding = parser.getEncoding();
@@ -228,16 +220,12 @@ class HtmlInputStream {
     return encoding;
   }
 
-  /**
-   * Returns the current offset in the stream, i.e. the number of codepoints
-   * since the start of the file.
-   */
+  /// Returns the current offset in the stream, i.e. the number of codepoints
+  /// since the start of the file.
   int get position => _offset;
 
-  /**
-   * Read one character from the stream or queue if available. Return
-   * EOF when EOF is reached.
-   */
+  /// Read one character from the stream or queue if available. Return
+  /// EOF when EOF is reached.
   String char() {
     if (_offset >= _chars.length) return EOF;
     return new String.fromCharCodes([_chars[_offset++]]);
@@ -248,10 +236,8 @@ class HtmlInputStream {
     return new String.fromCharCodes([_chars[_offset]]);
   }
 
-  /**
-   * Returns a string of characters from the stream up to but not
-   * including any character in 'characters' or EOF.
-   */
+  /// Returns a string of characters from the stream up to but not
+  /// including any character in 'characters' or EOF.
   String charsUntil(String characters, [bool opposite = false]) {
     int start = _offset;
     String c;
@@ -296,10 +282,8 @@ bool invalidUnicode(int c) {
   return false;
 }
 
-/**
- * Return the python codec name corresponding to an encoding or null if the
- * string doesn't correspond to a valid encoding.
- */
+/// Return the python codec name corresponding to an encoding or null if the
+/// string doesn't correspond to a valid encoding.
 String codecName(String encoding) {
   final asciiPunctuation = new RegExp(
       "[\u0009-\u000D\u0020-\u002F\u003A-\u0040\u005B-\u0060\u007B-\u007E]");

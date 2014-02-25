@@ -1,18 +1,16 @@
-/**
- * This library has a parser for HTML5 documents, that lets you parse HTML
- * easily from a script or server side application:
- *
- *     import 'package:html5lib/parser.dart' show parse;
- *     import 'package:html5lib/dom.dart';
- *     main() {
- *       var document = parse(
- *           '<body>Hello world! <a href="www.html5rocks.com">HTML5 rocks!');
- *       print(document.outerHtml);
- *     }
- *
- * The resulting document you get back has a DOM-like API for easy tree
- * traversal and manipulation.
- */
+/// This library has a parser for HTML5 documents, that lets you parse HTML
+/// easily from a script or server side application:
+///
+///     import 'package:html5lib/parser.dart' show parse;
+///     import 'package:html5lib/dom.dart';
+///     main() {
+///       var document = parse(
+///           '<body>Hello world! <a href="www.html5rocks.com">HTML5 rocks!');
+///       print(document.outerHtml);
+///     }
+///
+/// The resulting document you get back has a DOM-like API for easy tree
+/// traversal and manipulation.
 library parser;
 
 import 'dart:collection';
@@ -27,19 +25,17 @@ import 'src/tokenizer.dart';
 import 'src/utils.dart';
 import 'dom.dart';
 
-/**
- * Parse the [input] html5 document into a tree. The [input] can be
- * a [String], [List<int>] of bytes or an [HtmlTokenizer].
- *
- * If [input] is not a [HtmlTokenizer], you can optionally specify the file's
- * [encoding], which must be a string. If specified, that encoding will be used,
- * regardless of any BOM or later declaration (such as in a meta element).
- *
- * Set [generateSpans] if you want to generate [Span]s, otherwise the
- * [Node.sourceSpan] property will be `null`. When using [generateSpans] you can
- * additionally pass [sourceUrl] to indicate where the [input] was extracted
- * from.
- */
+/// Parse the [input] html5 document into a tree. The [input] can be
+/// a [String], [List<int>] of bytes or an [HtmlTokenizer].
+///
+/// If [input] is not a [HtmlTokenizer], you can optionally specify the file's
+/// [encoding], which must be a string. If specified that encoding will be
+/// used regardless of any BOM or later declaration (such as in a meta element).
+///
+/// Set [generateSpans] if you want to generate [Span]s, otherwise the
+/// [Node.sourceSpan] property will be `null`. When using [generateSpans] you
+/// can additionally pass [sourceUrl] to indicate where the [input] was
+/// extracted from.
 Document parse(input, {String encoding, bool generateSpans: false,
     String sourceUrl}) {
   var p = new HtmlParser(input, encoding: encoding,
@@ -48,20 +44,18 @@ Document parse(input, {String encoding, bool generateSpans: false,
 }
 
 
-/**
- * Parse the [input] html5 document fragment into a tree. The [input] can be
- * a [String], [List<int>] of bytes or an [HtmlTokenizer]. The [container]
- * element can optionally be specified, otherwise it defaults to "div".
- *
- * If [input] is not a [HtmlTokenizer], you can optionally specify the file's
- * [encoding], which must be a string. If specified, that encoding will be used,
- * regardless of any BOM or later declaration (such as in a meta element).
- *
- * Set [generateSpans] if you want to generate [Span]s, otherwise the
- * [Node.sourceSpan] property will be `null`. When using [generateSpans] you can
- * additionally pass [sourceUrl] to indicate where the [input] was extracted
- * from.
- */
+/// Parse the [input] html5 document fragment into a tree. The [input] can be
+/// a [String], [List<int>] of bytes or an [HtmlTokenizer]. The [container]
+/// element can optionally be specified, otherwise it defaults to "div".
+///
+/// If [input] is not a [HtmlTokenizer], you can optionally specify the file's
+/// [encoding], which must be a string. If specified, that encoding will be used,
+/// regardless of any BOM or later declaration (such as in a meta element).
+///
+/// Set [generateSpans] if you want to generate [Span]s, otherwise the
+/// [Node.sourceSpan] property will be `null`. When using [generateSpans] you can
+/// additionally pass [sourceUrl] to indicate where the [input] was extracted
+/// from.
 DocumentFragment parseFragment(input, {String container: "div",
     String encoding, bool generateSpans: false, String sourceUrl}) {
   var p = new HtmlParser(input, encoding: encoding,
@@ -70,15 +64,13 @@ DocumentFragment parseFragment(input, {String container: "div",
 }
 
 
-/**
- * Parser for HTML, which generates a tree structure from a stream of
- * (possibly malformed) characters.
- */
+/// Parser for HTML, which generates a tree structure from a stream of
+/// (possibly malformed) characters.
 class HtmlParser {
-  /** Raise an exception on the first error encountered. */
+  /// Raise an exception on the first error encountered.
   final bool strict;
 
-  /** True to generate [Span]s for the [Node.sourceSpan] property. */
+  /// True to generate [Span]s for the [Node.sourceSpan] property.
   final bool generateSpans;
 
   final HtmlTokenizer tokenizer;
@@ -92,10 +84,10 @@ class HtmlParser {
   bool firstStartTag = false;
 
   // TODO(jmesserly): use enum?
-  /** "quirks" / "limited quirks" / "no quirks" */
+  /// "quirks" / "limited quirks" / "no quirks"
   String compatMode = "no quirks";
 
-  /** innerHTML container when parsing document fragment. */
+  /// innerHTML container when parsing document fragment.
   String innerHTML;
 
   Phase phase;
@@ -133,23 +125,21 @@ class HtmlParser {
   AfterAfterBodyPhase _afterAfterBodyPhase;
   AfterAfterFramesetPhase _afterAfterFramesetPhase;
 
-  /**
-   * Create a new HtmlParser and configure the [tree] builder and [strict] mode.
-   * The [input] can be a [String], [List<int>] of bytes or an [HtmlTokenizer].
-   *
-   * If [input] is not a [HtmlTokenizer], you can specify a few more arguments.
-   *
-   * The [encoding] must be a string that indicates the encoding. If specified,
-   * that encoding will be used, regardless of any BOM or later declaration
-   * (such as in a meta element).
-   *
-   * Set [parseMeta] to false if you want to disable parsing the meta element.
-   *
-   * Set [lowercaseElementName] or [lowercaseAttrName] to false to disable the
-   * automatic conversion of element and attribute names to lower case. Note
-   * that standard way to parse HTML is to lowercase, which is what the browser
-   * DOM will do if you request [Node.outerHTML], for example.
-   */
+  /// Create an HtmlParser and configure the [tree] builder and [strict] mode.
+  /// The [input] can be a [String], [List<int>] of bytes or an [HtmlTokenizer].
+  ///
+  /// If [input] is not a [HtmlTokenizer], you can specify a few more arguments.
+  ///
+  /// The [encoding] must be a string that indicates the encoding. If specified,
+  /// that encoding will be used, regardless of any BOM or later declaration
+  /// (such as in a meta element).
+  ///
+  /// Set [parseMeta] to false if you want to disable parsing the meta element.
+  ///
+  /// Set [lowercaseElementName] or [lowercaseAttrName] to false to disable the
+  /// automatic conversion of element and attribute names to lower case. Note
+  /// that standard way to parse HTML is to lowercase, which is what the browser
+  /// DOM will do if you request [Node.outerHTML], for example.
   HtmlParser(input, {String encoding, bool parseMeta: true,
       bool lowercaseElementName: true, bool lowercaseAttrName: true,
       this.strict: false, bool generateSpans: false, String sourceUrl,
@@ -194,21 +184,17 @@ class HtmlParser {
 
   bool get innerHTMLMode => innerHTML != null;
 
-  /**
-   * Parse an html5 document into a tree.
-   * After parsing, [errors] will be populated with parse errors, if any.
-   */
+  /// Parse an html5 document into a tree.
+  /// After parsing, [errors] will be populated with parse errors, if any.
   Document parse() {
     innerHTML = null;
     _parse();
     return tree.getDocument();
   }
 
-  /**
-   * Parse an html5 document fragment into a tree.
-   * Pass a [container] to change the type of the containing element.
-   * After parsing, [errors] will be populated with parse errors, if any.
-   */
+  /// Parse an html5 document fragment into a tree.
+  /// Pass a [container] to change the type of the containing element.
+  /// After parsing, [errors] will be populated with parse errors, if any.
   DocumentFragment parseFragment([String container = "div"]) {
     if (container == null) throw new ArgumentError('container');
     innerHTML = container.toLowerCase();
@@ -375,10 +361,8 @@ class HtmlParser {
     }
   }
 
-  /**
-   * The last span available. Used for EOF errors if we don't have something
-   * better.
-   */
+  /// The last span available. Used for EOF errors if we don't have something
+  /// better.
   Span get _lastSpan {
     var pos = tokenizer.stream.position;
     return new FileSpan(tokenizer.stream.fileInfo, pos, pos);
@@ -544,10 +528,8 @@ class HtmlParser {
     phase = _inBodyPhase;
   }
 
-  /**
-   * Generic RCDATA/RAWTEXT Parsing algorithm
-   * [contentType] - RCDATA or RAWTEXT
-   */
+  /// Generic RCDATA/RAWTEXT Parsing algorithm
+  /// [contentType] - RCDATA or RAWTEXT
   void parseRCDataRawtext(Token token, String contentType) {
     assert(contentType == "RAWTEXT" || contentType == "RCDATA");
 
@@ -565,7 +547,7 @@ class HtmlParser {
 }
 
 
-/** Base class for helper object that implements each phase of processing. */
+/// Base class for helper object that implements each phase of processing.
 class Phase {
   // Order should be (they can be omitted):
   // * EOF
@@ -631,7 +613,7 @@ class Phase {
     throw new UnimplementedError();
   }
 
-  /** Helper method for popping openElements. */
+  /// Helper method for popping openElements.
   void popOpenElementsUntil(String name) {
     var node = tree.openElements.removeLast();
     while (node.tagName != name) {
@@ -1568,7 +1550,7 @@ class InBodyPhase extends Phase {
     startTagRawtext(token);
   }
 
-  /** iframe, noembed noframes, noscript(if scripting enabled). */
+  /// iframe, noembed noframes, noscript(if scripting enabled).
   void startTagRawtext(StartTagToken token) {
     parser.parseRCDataRawtext(token, "RAWTEXT");
   }
@@ -1637,13 +1619,11 @@ class InBodyPhase extends Phase {
     }
   }
 
-  /**
-   * Elements that should be children of other elements that have a
-   * different insertion mode; here they are ignored
-   * "caption", "col", "colgroup", "frame", "frameset", "head",
-   * "option", "optgroup", "tbody", "td", "tfoot", "th", "thead",
-   * "tr", "noscript"
-  */
+  /// Elements that should be children of other elements that have a
+  /// different insertion mode; here they are ignored
+  /// "caption", "col", "colgroup", "frame", "frameset", "head",
+  /// "option", "optgroup", "tbody", "td", "tfoot", "th", "thead",
+  /// "tr", "noscript"
   void startTagMisplaced(StartTagToken token) {
     parser.parseError(token.span, "unexpected-start-tag-ignored",
         {"name": token.name});
@@ -1770,7 +1750,7 @@ class InBodyPhase extends Phase {
     }
   }
 
-  /** The much-feared adoption agency algorithm. */
+  /// The much-feared adoption agency algorithm.
   endTagFormatting(EndTagToken token) {
     // http://www.whatwg.org/specs/web-apps/current-work/multipage/tree-construction.html#adoptionAgency
     // TODO(jmesserly): the comments here don't match the numbered steps in the
@@ -3350,7 +3330,7 @@ class AfterAfterFramesetPhase extends Phase {
 }
 
 
-/** Error in parsed document. */
+/// Error in parsed document.
 class ParseError implements Exception {
   final String errorCode;
   final Span span;
@@ -3362,14 +3342,12 @@ class ParseError implements Exception {
 
   int get column => span.start.column;
 
-  /**
-   * Gets the human readable error message for this error. Use
-   * [span.getLocationMessage] or [toString] to get a message including span
-   * information. If there is a file associated with the span, both
-   * [span.getLocationMessage] and [toString] are equivalent. Otherwise,
-   * [span.getLocationMessage] will not show any source url information, but
-   * [toString] will include 'ParserError:' as a prefix.
-   */
+  /// Gets the human readable error message for this error. Use
+  /// [span.getLocationMessage] or [toString] to get a message including span
+  /// information. If there is a file associated with the span, both
+  /// [span.getLocationMessage] and [toString] are equivalent. Otherwise,
+  /// [span.getLocationMessage] will not show any source url information, but
+  /// [toString] will include 'ParserError:' as a prefix.
   String get message => formatStr(errorMessages[errorCode], data);
 
   String toString() {

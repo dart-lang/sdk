@@ -1,4 +1,4 @@
-/** Internals to the tree builders. */
+/// Internals to the tree builders.
 library treebuilder;
 
 import 'dart:collection';
@@ -66,7 +66,7 @@ bool _nodesEqual(Node node1, Node node2) {
       _mapEquals(node1.attributes, node2.attributes);
 }
 
-/** Basic treebuilder implementation. */
+/// Basic treebuilder implementation.
 class TreeBuilder {
   final String defaultNamespace;
 
@@ -80,10 +80,8 @@ class TreeBuilder {
 
   Node formPointer;
 
-  /**
-   * Switch the function used to insert an element from the
-   * normal one to the misnested table one and back again
-   */
+  /// Switch the function used to insert an element from the
+  /// normal one to the misnested table one and back again
   bool insertFromTable;
 
   TreeBuilder(bool namespaceHTMLElements)
@@ -212,11 +210,9 @@ class TreeBuilder {
     }
   }
 
-  /**
-   * Check if an element exists between the end of the active
-   * formatting elements and the last marker. If it does, return it, else
-   * return null.
-   */
+  /// Check if an element exists between the end of the active
+  /// formatting elements and the last marker. If it does, return it, else
+  /// return null.
   Node elementInActiveFormattingElements(String name) {
     for (Node item in activeFormattingElements.reversed) {
       // Check for Marker first because if it's a Marker it doesn't have a
@@ -249,7 +245,7 @@ class TreeBuilder {
     parent.nodes.add(new Comment(token.data)..sourceSpan = token.span);
   }
 
-  /** Create an element but don't insert it anywhere */
+  /// Create an element but don't insert it anywhere
   Element createElement(StartTagToken token) {
     var name = token.name;
     var namespace = token.namespace;
@@ -278,7 +274,7 @@ class TreeBuilder {
   }
 
   Element insertElementTable(token) {
-    /** Create an element and insert it into the tree */
+    /// Create an element and insert it into the tree
     var element = createElement(token);
     if (!tableInsertModeElements.contains(openElements.last.tagName)) {
       return insertElementNormal(token);
@@ -299,7 +295,7 @@ class TreeBuilder {
     return element;
   }
 
-  /** Insert text data. */
+  /// Insert text data.
   void insertText(String data, FileSpan span) {
     var parent = openElements.last;
 
@@ -314,10 +310,8 @@ class TreeBuilder {
     }
   }
 
-  /**
-   * Insert [data] as text in the current node, positioned before the
-   * start of node [refNode] or to the end of the node's text.
-   */
+  /// Insert [data] as text in the current node, positioned before the
+  /// start of node [refNode] or to the end of the node's text.
   static void _insertText(Node parent, String data, FileSpan span,
       [Element refNode]) {
     var nodes = parent.nodes;
@@ -344,10 +338,8 @@ class TreeBuilder {
     }
   }
 
-  /**
-   * Get the foster parent element, and sibling to insert before
-   * (or null) when inserting a misnested table node
-   */
+  /// Get the foster parent element, and sibling to insert before
+  /// (or null) when inserting a misnested table node
   List<Node> getTableMisnestedNodePosition() {
     // The foster parent element is the one which comes before the most
     // recently opened table element
@@ -388,10 +380,10 @@ class TreeBuilder {
     }
   }
 
-  /** Return the final tree. */
+  /// Return the final tree.
   Document getDocument() => document;
 
-  /** Return the final fragment. */
+  /// Return the final fragment.
   DocumentFragment getFragment() {
     //XXX assert innerHTML
     var fragment = new DocumentFragment();

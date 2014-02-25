@@ -1,7 +1,5 @@
-/**
- * A simple tree API that results from parsing html. Intended to be compatible
- * with dart:html, but right now it resembles the classic JS DOM.
- */
+/// A simple tree API that results from parsing html. Intended to be compatible
+/// with dart:html, but right now it resembles the classic JS DOM.
 library dom;
 
 import 'dart:collection';
@@ -18,13 +16,13 @@ import 'parser.dart';
 // TODO(jmesserly): this needs to be replaced by an AttributeMap for attributes
 // that exposes namespace info.
 class AttributeName implements Comparable {
-  /** The namespace prefix, e.g. `xlink`. */
+  /// The namespace prefix, e.g. `xlink`.
   final String prefix;
 
-  /** The attribute name, e.g. `title`. */
+  /// The attribute name, e.g. `title`.
   final String name;
 
-  /** The namespace url, e.g. `http://www.w3.org/1999/xlink` */
+  /// The namespace url, e.g. `http://www.w3.org/1999/xlink`
   final String namespace;
 
   const AttributeName(this.prefix, this.name, this.namespace);
@@ -62,7 +60,7 @@ class AttributeName implements Comparable {
   }
 }
 
-/** Really basic implementation of a DOM-core like Node. */
+/// Really basic implementation of a DOM-core like Node.
 abstract class Node {
   static const int ATTRIBUTE_NODE = 2;
   static const int CDATA_SECTION_NODE = 4;
@@ -78,35 +76,31 @@ abstract class Node {
   static const int TEXT_NODE = 3;
 
   // TODO(jmesserly): this should be on Element
-  /** The tag name associated with the node. */
+  /// The tag name associated with the node.
   final String tagName;
 
-  /** The parent of the current node (or null for the document node). */
+  /// The parent of the current node (or null for the document node).
   Node parent;
 
   // TODO(jmesserly): should move to Element.
-  /**
-   * A map holding name, value pairs for attributes of the node.
-   *
-   * Note that attribute order needs to be stable for serialization, so we use a
-   * LinkedHashMap. Each key is a [String] or [AttributeName].
-   */
+  /// A map holding name, value pairs for attributes of the node.
+  ///
+  /// Note that attribute order needs to be stable for serialization, so we use
+  /// a LinkedHashMap. Each key is a [String] or [AttributeName].
   LinkedHashMap<dynamic, String> attributes = new LinkedHashMap();
 
-  /**
-   * A list of child nodes of the current node. This must
-   * include all elements but not necessarily other node types.
-   */
+  /// A list of child nodes of the current node. This must
+  /// include all elements but not necessarily other node types.
   final NodeList nodes = new NodeList._();
 
   List<Element> _elements;
 
   // TODO(jmesserly): consider using an Expando for this, and put it in
   // dom_parsing. Need to check the performance affect.
-  /** The source span of this node, if it was created by the [HtmlParser]. */
+  /// The source span of this node, if it was created by the [HtmlParser].
   FileSpan sourceSpan;
 
-  /** The attribute spans if requested. Otherwise null. */
+  /// The attribute spans if requested. Otherwise null.
   LinkedHashMap<dynamic, FileSpan> _attributeSpans;
   LinkedHashMap<dynamic, FileSpan> _attributeValueSpans;
 
@@ -114,23 +108,19 @@ abstract class Node {
     nodes._parent = this;
   }
 
-  /**
-   * If [sourceSpan] is available, this contains the spans of each attribute.
-   * The span of an attribute is the entire attribute, including the name and
-   * quotes (if any). For example, the span of "attr" in `<a attr="value">`
-   * would be the text `attr="value"`.
-   */
+  /// If [sourceSpan] is available, this contains the spans of each attribute.
+  /// The span of an attribute is the entire attribute, including the name and
+  /// quotes (if any). For example, the span of "attr" in `<a attr="value">`
+  /// would be the text `attr="value"`.
   LinkedHashMap<dynamic, FileSpan> get attributeSpans {
     _ensureAttributeSpans();
     return _attributeSpans;
   }
 
-  /**
-   * If [sourceSpan] is available, this contains the spans of each attribute's
-   * value. Unlike [attributeSpans], this span will inlcude only the value.
-   * For example, the value span of "attr" in `<a attr="value">` would be the
-   * text `value`.
-   */
+  /// If [sourceSpan] is available, this contains the spans of each attribute's
+  /// value. Unlike [attributeSpans], this span will inlcude only the value.
+  /// For example, the value span of "attr" in `<a attr="value">` would be the
+  /// text `value`.
   LinkedHashMap<dynamic, FileSpan> get attributeValueSpans {
     _ensureAttributeSpans();
     return _attributeValueSpans;
@@ -144,20 +134,18 @@ abstract class Node {
   }
 
   // TODO(jmesserly): needs to support deep clone.
-  /**
-   * Return a shallow copy of the current node i.e. a node with the same
-   * name and attributes but with no parent or child nodes.
-   */
+  /// Return a shallow copy of the current node i.e. a node with the same
+  /// name and attributes but with no parent or child nodes.
   Node clone();
 
   String get namespace => null;
 
   int get nodeType;
 
-  /** *Deprecated* use [text], [Text.data] or [Comment.data]. */
+  /// *Deprecated* use [text], [Text.data] or [Comment.data].
   @deprecated String get value => null;
 
-  /** *Deprecated* use [nodeType]. */
+  /// *Deprecated* use [nodeType].
   @deprecated int get $dom_nodeType => nodeType;
 
   String get outerHtml {
@@ -203,12 +191,10 @@ abstract class Node {
     return this;
   }
 
-  /**
-   * Insert [node] as a child of the current node, before [refNode] in the
-   * list of child nodes. Raises [UnsupportedOperationException] if [refNode]
-   * is not a child of the current node. If refNode is null, this adds to the
-   * end of the list.
-   */
+  /// Insert [node] as a child of the current node, before [refNode] in the
+  /// list of child nodes. Raises [UnsupportedOperationException] if [refNode]
+  /// is not a child of the current node. If refNode is null, this adds to the
+  /// end of the list.
   void insertBefore(Node node, Node refNode) {
     if (refNode == null) {
       nodes.add(node);
@@ -217,7 +203,7 @@ abstract class Node {
     }
   }
 
-  /** Replaces this node with another node. */
+  /// Replaces this node with another node.
   Node replaceWith(Node otherNode) {
     if (parent == null) {
       throw new UnsupportedError('Node must have a parent to replace it.');
@@ -227,7 +213,7 @@ abstract class Node {
   }
 
   // TODO(jmesserly): should this be a property or remove?
-  /** Return true if the node has children or text. */
+  /// Return true if the node has children or text.
   bool hasContent() => nodes.length > 0;
 
   Pair<String, String> get nameTuple {
@@ -235,38 +221,32 @@ abstract class Node {
     return new Pair(ns, tagName);
   }
 
-  /**
-   * Move all the children of the current node to [newParent].
-   * This is needed so that trees that don't store text as nodes move the
-   * text in the correct way.
-   */
+  /// Move all the children of the current node to [newParent].
+  /// This is needed so that trees that don't store text as nodes move the
+  /// text in the correct way.
   void reparentChildren(Node newParent) {
     newParent.nodes.addAll(nodes);
     nodes.clear();
   }
 
-  /** *Deprecated* use [querySelector] instead. */
+  /// *Deprecated* use [querySelector] instead.
   @deprecated
   Element query(String selectors) => querySelector(selectors);
 
-  /** *Deprecated* use [querySelectorAll] instead. */
+  /// *Deprecated* use [querySelectorAll] instead.
   @deprecated
   List<Element> queryAll(String selectors) => querySelectorAll(selectors);
 
-  /**
-   * Seaches for the first descendant node matching the given selectors, using a
-   * preorder traversal. NOTE: right now, this supports only a single type
-   * selectors, e.g. `node.query('div')`.
-   */
+  /// Seaches for the first descendant node matching the given selectors, using a
+  /// preorder traversal. NOTE: right now, this supports only a single type
+  /// selectors, e.g. `node.query('div')`.
 
   Element querySelector(String selectors) =>
       _queryType(_typeSelector(selectors));
 
-  /**
-   * Returns all descendant nodes matching the given selectors, using a
-   * preorder traversal. NOTE: right now, this supports only a single type
-   * selectors, e.g. `node.queryAll('div')`.
-   */
+  /// Returns all descendant nodes matching the given selectors, using a
+  /// preorder traversal. NOTE: right now, this supports only a single type
+  /// selectors, e.g. `node.queryAll('div')`.
   List<Element> querySelectorAll(String selectors) {
     var results = new List<Element>();
     _queryAllType(_typeSelector(selectors), results);
@@ -285,12 +265,10 @@ abstract class Node {
     return selectors;
   }
 
-  /**
-   * Checks if this is a type selector.
-   * See <http://www.w3.org/TR/CSS2/grammar.html>.
-   * Note: this doesn't support '*', the universal selector, non-ascii chars or
-   * escape chars.
-   */
+  /// Checks if this is a type selector.
+  /// See <http://www.w3.org/TR/CSS2/grammar.html>.
+  /// Note: this doesn't support '*', the universal selector, non-ascii chars or
+  /// escape chars.
   bool _isTypeSelector(String selector) {
     // Parser:
 
@@ -345,7 +323,7 @@ abstract class Node {
     }
   }
 
-  /** Initialize [attributeSpans] using [sourceSpan]. */
+  /// Initialize [attributeSpans] using [sourceSpan].
   void _ensureAttributeSpans() {
     if (_attributeSpans != null) return;
 
@@ -439,7 +417,7 @@ class Text extends Node {
 
   Text(this.data) : super(null);
 
-  /** *Deprecated* use [data]. */
+  /// *Deprecated* use [data].
   @deprecated String get value => data;
   @deprecated set value(String x) { data = x; }
 
@@ -720,10 +698,8 @@ class NodeList extends ListProxy<Node> {
 }
 
 
-/**
- * An indexable collection of a node's descendants in the document tree,
- * filtered so that only elements are in the collection.
- */
+/// An indexable collection of a node's descendants in the document tree,
+/// filtered so that only elements are in the collection.
 // TODO(jmesserly): this was copied from dart:html
 // TODO(jmesserly): "implements List<Element>" is a workaround for analyzer bug.
 class FilteredElementList extends IterableBase<Element> with ListMixin<Element>
@@ -732,14 +708,12 @@ class FilteredElementList extends IterableBase<Element> with ListMixin<Element>
   final Node _node;
   final List<Node> _childNodes;
 
-  /**
-   * Creates a collection of the elements that descend from a node.
-   *
-   * Example usage:
-   *
-   *     var filteredElements = new FilteredElementList(query("#container"));
-   *     // filteredElements is [a, b, c].
-   */
+  /// Creates a collection of the elements that descend from a node.
+  ///
+  /// Example usage:
+  ///
+  ///     var filteredElements = new FilteredElementList(query("#container"));
+  ///     // filteredElements is [a, b, c].
   FilteredElementList(Node node): _childNodes = node.nodes, _node = node;
 
   // We can't memoize this, since it's possible that children will be messed

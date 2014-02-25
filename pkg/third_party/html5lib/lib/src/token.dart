@@ -1,10 +1,10 @@
-/** This library contains token types used by the html5 tokenizer. */
+/// This library contains token types used by the html5 tokenizer.
 library token;
 
 import 'dart:collection';
 import 'package:source_maps/span.dart' show FileSpan;
 
-/** An html5 token. */
+/// An html5 token.
 abstract class Token {
   FileSpan span;
 
@@ -20,18 +20,16 @@ abstract class TagToken extends Token {
 }
 
 class StartTagToken extends TagToken {
-  /**
-   * The tag's attributes. A map from the name to the value, where the name
-   * can be a [String] or [AttributeName].
-   */
+  /// The tag's attributes. A map from the name to the value, where the name
+  /// can be a [String] or [AttributeName].
   LinkedHashMap<dynamic, String> data;
 
-  /** The attribute spans if requested. Otherwise null. */
+  /// The attribute spans if requested. Otherwise null.
   List<TagAttribute> attributeSpans;
 
   bool selfClosingAcknowledged;
 
-  /** The namespace. This is filled in later during tree building. */
+  /// The namespace. This is filled in later during tree building.
   String namespace;
 
   StartTagToken(String name, {this.data, bool selfClosing: false,
@@ -54,7 +52,7 @@ abstract class StringToken extends Token {
 }
 
 class ParseErrorToken extends StringToken {
-  /** Extra information that goes along with the error message. */
+  /// Extra information that goes along with the error message.
   Map messageParams;
 
   ParseErrorToken(String data, {this.messageParams}) : super(data);
@@ -91,11 +89,9 @@ class DoctypeToken extends Token {
   int get kind => TokenKind.doctype;
 }
 
-/**
- * These are used by the tokenizer to build up the attribute map.
- * They're also used by [StartTagToken.attributeSpans] if attribute spans are
- * requested.
- */
+/// These are used by the tokenizer to build up the attribute map.
+/// They're also used by [StartTagToken.attributeSpans] if attribute spans are
+/// requested.
 class TagAttribute {
   String name;
   String value;
