@@ -23,6 +23,7 @@ namespace bin {
 // Advanced I/O classes like sockets and process management are implemented
 // using functions listed in io_natives.cc.
 #define BUILTIN_NATIVE_LIST(V)                                                 \
+  V(Crypto_GetRandomBytes, 1)                                                  \
   V(Directory_Exists, 1)                                                       \
   V(Directory_Create, 1)                                                       \
   V(Directory_Current, 0)                                                      \
@@ -61,13 +62,6 @@ namespace bin {
   V(File_GetStdioHandleType, 1)                                                \
   V(File_GetType, 2)                                                           \
   V(File_AreIdentical, 2)                                                      \
-  V(FileSystemWatcher_CloseWatcher, 1)                                         \
-  V(FileSystemWatcher_GetSocketId, 2)                                          \
-  V(FileSystemWatcher_InitWatcher, 0)                                          \
-  V(FileSystemWatcher_IsSupported, 0)                                          \
-  V(FileSystemWatcher_ReadEvents, 2)                                           \
-  V(FileSystemWatcher_UnwatchPath, 2)                                          \
-  V(FileSystemWatcher_WatchPath, 4)                                            \
   V(Logger_PrintString, 1)
 
 BUILTIN_NATIVE_LIST(DECLARE_FUNCTION);
