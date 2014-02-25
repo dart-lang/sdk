@@ -71,8 +71,9 @@ js_test: Fail # Issue 14246
 worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
 
 [ $runtime == chrome ]
-xhr_test: Pass, Fail # Issue 11884
+touchevent_test/supported: Pass, Fail # Issue 17061
 xhr_cross_origin_test: Pass, Fail # Issue 11884
+xhr_test: Pass, Fail # Issue 11884
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid]
 webgl_1_test: Pass, Fail # Issue 8219
