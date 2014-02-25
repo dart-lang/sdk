@@ -8597,7 +8597,7 @@ function I(){}
 init()
 $=I.p
 var $$={}
-;init.mangledNames={gBA:"__$methodCountSelected",gCO:"_oldPieChart",gDF:"requestManager",gF0:"__$cls",gF8:"__$instruction",gGQ:"_newPieDataTable",gGj:"_message",gHX:"__$displayValue",gJ0:"_newPieChart",gKM:"$",gL4:"human",gLE:"timers",gN7:"__$library",gOc:"_oldPieDataTable",gOl:"__$profile",gP:"value",gPe:"__$internal",gPw:"__$isolate",gPy:"__$error",gRd:"line",gSw:"lines",gUy:"_collapsed",gUz:"__$script",gV4:"__$trace",gVa:"__$frame",gX3:"_first",gXR:"scripts",gXh:"__$instance",gYu:"address",gZ0:"codes",gZ6:"locationManager",gZ8:"__$function",ga:"a",gan:"_tableChart",gb:"b",gc:"c",ge6:"_tableDataTable",geE:"__$msg",geJ:"__$code",geb:"__$json",gfb:"methodCounts",ghm:"__$app",gi2:"isolates",giZ:"__$topInclusiveCodes",gk5:"__$devtools",gkf:"_count",gm0:"__$isolate",gm7:"machine",gnI:"isolateManager",gqX:"__$expanded",gqY:"__$topExclusiveCodes",grK:"__$links",gtY:"__$ref",gvH:"index",gva:"instructions",gvt:"__$field",gzh:"__$iconClass",gzw:"__$line"};init.mangledGlobalNames={BO:"ALLOCATED_BEFORE_GC",DI:"_closeIconClass",V1g:"LIVE_AFTER_GC_SIZE",Vl:"_openIconClass",Xa:"ALLOCATED_BEFORE_GC_SIZE",d6:"ALLOCATED_SINCE_GC_SIZE",r1K:"ALLOCATED_SINCE_GC",xK:"LIVE_AFTER_GC"};(function (reflectionData) {
+;init.mangledNames={gBA:"__$methodCountSelected",gCO:"_oldPieChart",gDF:"requestManager",gF0:"__$cls",gF8:"__$instruction",gGQ:"_newPieDataTable",gGj:"_message",gHX:"__$displayValue",gJ0:"_newPieChart",gKM:"$",gL4:"human",gLE:"timers",gMt:"__$expanded",gN7:"__$library",gOc:"_oldPieDataTable",gOl:"__$profile",gP:"value",gPe:"__$internal",gPw:"__$isolate",gPy:"__$error",gRd:"line",gSw:"lines",gUy:"_collapsed",gUz:"__$script",gV4:"__$trace",gVa:"__$frame",gX3:"_first",gXR:"scripts",gXh:"__$instance",gYu:"address",gZ0:"codes",gZ6:"locationManager",gZ8:"__$function",ga:"a",gan:"_tableChart",gb:"b",gc:"c",ge6:"_tableDataTable",geE:"__$msg",geJ:"__$code",geb:"__$json",gfb:"methodCounts",ghm:"__$app",gi2:"isolates",giZ:"__$topInclusiveCodes",gk5:"__$devtools",gkf:"_count",gm0:"__$isolate",gm7:"machine",gnI:"isolateManager",gqX:"__$expanded",gqY:"__$topExclusiveCodes",grK:"__$links",gtY:"__$ref",gvH:"index",gva:"instructions",gvt:"__$field",gzh:"__$iconClass",gzw:"__$line"};init.mangledGlobalNames={BO:"ALLOCATED_BEFORE_GC",DI:"_closeIconClass",V1g:"LIVE_AFTER_GC_SIZE",Vl:"_openIconClass",Xa:"ALLOCATED_BEFORE_GC_SIZE",d6:"ALLOCATED_SINCE_GC_SIZE",r1K:"ALLOCATED_SINCE_GC",xK:"LIVE_AFTER_GC"};(function (reflectionData) {
   "use strict";
   function map(x){x={x:x};delete x.x;return x}
     function processStatics(descriptor) {
@@ -22299,9 +22299,13 @@ Ds:{
 $isd3:true}}],["stack_frame_element","package:observatory/src/observatory_elements/stack_frame.dart",,K,{
 "":"",
 nm:{
-"":["V14;Va%-348,AP,fn,hm-349,AP,fn,AP,fn,dZ,Sa,Uk,oq,Wz,SO,B7,X0-350",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,function(){return[C.nJ]}],
+"":["V14;Va%-348,Mt%-356,AP,fn,hm-349,AP,fn,AP,fn,dZ,Sa,Uk,oq,Wz,SO,B7,X0-350",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,function(){return[C.nJ]}],
 gz1:[function(a){return a.Va},null,null,1,0,351,"frame",352,353],
 sz1:[function(a,b){a.Va=this.ct(a,C.rE,a.Va,b)},null,null,3,0,354,23,"frame",352],
+goE:[function(a){return a.Mt},null,null,1,0,367,"expanded",352,353],
+soE:[function(a,b){a.Mt=this.ct(a,C.mr,a.Mt,b)},null,null,3,0,368,23,"expanded",352],
+AZ:[function(a,b,c,d){var z=a.Mt
+a.Mt=this.ct(a,C.mr,z,z!==!0)},"call$3","ghM",6,0,466,123,180,277,"toggleExpand"],
 "@":function(){return[C.pE]},
 static:{an:[function(a){var z,y,x,w,v
 z=H.B7([],P.L5(null,null,null,null,null))
@@ -22312,6 +22316,7 @@ w=J.O
 v=W.cv
 v=H.VM(new V.qC(P.Py(null,null,null,w,v),null,null),[w,v])
 a.Va=z
+a.Mt=!1
 a.SO=y
 a.B7=x
 a.X0=v
@@ -24017,7 +24022,7 @@ $.Td=!1
 $.Bh=0
 $.uP=!0
 $.To=null
-$.Dq=["AZ","Ak","B2","BN","BT","BX","Ba","Bf","Bk","C","C0","CL","Ch","D","D3","D6","Dd","De","E","Ec","F","FL","FV","Fr","GB","GG","GT","HG","Hn","Hs","IW","Id","Ih","Is","J","J2","J3","JG","JP","JV","Ja","Jk","Kb","M8","Md","Mi","Mq","Mu","NC","NZ","Nj","O","Om","On","PM","PQ","PZ","Pa","Pk","Pv","Pz","Q0","Qi","Qq","R3","R4","RB","RP","RR","Rg","Rz","SS","Se","T","TP","TW","Ta","Tc","Tk","Tp","U","UD","UH","UZ","Ub","Uc","V","V1","VR","Vk","Vr","W","W3","W4","WL","WO","WZ","Wt","X6","XG","XL","XU","Xl","Y","Y9","YU","YW","Z","Z1","Z2","ZB","ZL","Ze","Zn","Zv","aC","aN","aZ","bA","bS","bj","br","bu","cO","cU","cn","cp","ct","d0","dR","dd","du","eR","ea","ek","eo","er","es","ev","ez","f6","fZ","fk","fm","g","gA","gAq","gAy","gB","gB1","gBA","gCO","gCY","gCd","gCj","gDD","gEh","gF0","gF8","gG0","gG1","gG3","gGQ","gGd","gGg","gGj","gHX","gHu","gI","gIF","gIt","gJ0","gJS","gJf","gJp","gKE","gKM","gKV","gLA","gLm","gLx","gM0","gMB","gMU","gMj","gN","gN7","gNF","gNI","gNa","gNh","gO3","gOc","gOl","gP","gP1","gPe","gPu","gPw","gPy","gQ7","gQW","gQg","gQr","gRA","gRd","gRn","gRu","gTq","gUQ","gUV","gUj","gUy","gUz","gV4","gVa","gVl","gW0","gX3","gXc","gXh","gXt","gZ8","gZf","ga4","gaK","gai","gan","gbG","gbP","gbx","gcC","ge6","geE","geJ","geT","geb","gey","gfN","gfY","gfb","gfc","ghU","ghf","ghm","gi9","giC","giO","giZ","gig","gjL","gjO","gjTE","gjb","gk5","gkG","gkU","gkc","gkf","gkp","gl0","gl7","glc","gm0","gm2","gmH","gmW","gmm","gnv","goE","goc","gor","gpQ","gpo","gq6","gqX","gqY","gqn","grK","grZ","grj","grs","gt0","gt5","gtD","gtH","gtN","gtT","gtY","gtp","guD","guw","gvH","gvL","gvc","gvt","gwd","gx8","gxX","gxj","gxr","gyH","gyT","gys","gz1","gzP","gzZ","gzh","gzj","gzw","h","h8","hZ","hc","hr","i","i4","iM","iw","j","jT","jh","jp","jx","k0","kO","l5","lJ","lj","m","mK","n","n8","nB","nC","nH","nN","ni","nq","nt","oB","oC","oP","oW","oX","oZ","od","oo","pM","pZ","pr","ps","q1","qA","qC","qH","qZ","r4","r6","rJ","sAq","sAy","sB","sB1","sBA","sCO","sCY","sCd","sCj","sEh","sF0","sF8","sG1","sG3","sGQ","sGd","sGg","sGj","sHX","sHu","sIF","sIt","sJ0","sJS","sKM","sKV","sLA","sLx","sM0","sMB","sMU","sMj","sN","sN7","sNF","sNI","sNa","sNh","sO3","sOc","sOl","sP","sPe","sPu","sPw","sPy","sQ7","sQr","sRA","sRd","sRn","sRu","sTq","sUQ","sUy","sUz","sV4","sVa","sX3","sXc","sXh","sXt","sZ8","sa4","saK","sai","san","sbG","sbP","scC","se6","seE","seJ","seT","seb","sfN","sfY","sfb","sfc","shU","shf","shm","siC","siZ","sig","sjL","sjO","sjTE","sjb","sk5","skG","skU","skc","skf","skp","sl7","sm0","sm2","smH","snv","soE","soc","spQ","spo","sq6","sqX","sqY","srK","srs","st0","st5","stD","stN","stT","stY","suD","suw","svH","svL","svt","swd","sxX","sxj","sxr","syH","syT","sys","sz1","szZ","szh","szj","szw","t","tZ","tg","tt","u","u8","uB","uq","vD","w","wE","wH","wL","wR","wW","wg","x3","xc","xo","y0","yC","yG","yM","yN","yc","ym","yn","yq","yu","yx","yy","z2","zV","zr"]
+$.Dq=["AZ","Ak","B2","BN","BT","BX","Ba","Bf","Bk","C","C0","CL","Ch","D","D3","D6","Dd","De","E","Ec","F","FL","FV","Fr","GB","GG","GT","HG","Hn","Hs","IW","Id","Ih","Is","J","J2","J3","JG","JP","JV","Ja","Jk","Kb","M8","Md","Mi","Mq","Mu","NC","NZ","Nj","O","Om","On","PM","PQ","PZ","Pa","Pk","Pv","Pz","Q0","Qi","Qq","R3","R4","RB","RP","RR","Rg","Rz","SS","Se","T","TP","TW","Ta","Tc","Tk","Tp","U","UD","UH","UZ","Ub","Uc","V","V1","VR","Vk","Vr","W","W3","W4","WL","WO","WZ","Wt","X6","XG","XL","XU","Xl","Y","Y9","YU","YW","Z","Z1","Z2","ZB","ZL","Ze","Zn","Zv","aC","aN","aZ","bA","bS","bj","br","bu","cO","cU","cn","cp","ct","d0","dR","dd","du","eR","ea","ek","eo","er","es","ev","ez","f6","fZ","fk","fm","g","gA","gAq","gAy","gB","gB1","gBA","gCO","gCY","gCd","gCj","gDD","gEh","gF0","gF8","gG0","gG1","gG3","gGQ","gGd","gGg","gGj","gHX","gHu","gI","gIF","gIt","gJ0","gJS","gJf","gJp","gKE","gKM","gKV","gLA","gLm","gLx","gM0","gMB","gMU","gMj","gMt","gN","gN7","gNF","gNI","gNa","gNh","gO3","gOc","gOl","gP","gP1","gPe","gPu","gPw","gPy","gQ7","gQW","gQg","gQr","gRA","gRd","gRn","gRu","gTq","gUQ","gUV","gUj","gUy","gUz","gV4","gVa","gVl","gW0","gX3","gXc","gXh","gXt","gZ8","gZf","ga4","gaK","gai","gan","gbG","gbP","gbx","gcC","ge6","geE","geJ","geT","geb","gey","gfN","gfY","gfb","gfc","ghU","ghf","ghm","gi9","giC","giO","giZ","gig","gjL","gjO","gjTE","gjb","gk5","gkG","gkU","gkc","gkf","gkp","gl0","gl7","glc","gm0","gm2","gmH","gmW","gmm","gnv","goE","goc","gor","gpQ","gpo","gq6","gqX","gqY","gqn","grK","grZ","grj","grs","gt0","gt5","gtD","gtH","gtN","gtT","gtY","gtp","guD","guw","gvH","gvL","gvc","gvt","gwd","gx8","gxX","gxj","gxr","gyH","gyT","gys","gz1","gzP","gzZ","gzh","gzj","gzw","h","h8","hZ","hc","hr","i","i4","iM","iw","j","jT","jh","jp","jx","k0","kO","l5","lJ","lj","m","mK","n","n8","nB","nC","nH","nN","ni","nq","nt","oB","oC","oP","oW","oX","oZ","od","oo","pM","pZ","pr","ps","q1","qA","qC","qH","qZ","r4","r6","rJ","sAq","sAy","sB","sB1","sBA","sCO","sCY","sCd","sCj","sEh","sF0","sF8","sG1","sG3","sGQ","sGd","sGg","sGj","sHX","sHu","sIF","sIt","sJ0","sJS","sKM","sKV","sLA","sLx","sM0","sMB","sMU","sMj","sMt","sN","sN7","sNF","sNI","sNa","sNh","sO3","sOc","sOl","sP","sPe","sPu","sPw","sPy","sQ7","sQr","sRA","sRd","sRn","sRu","sTq","sUQ","sUy","sUz","sV4","sVa","sX3","sXc","sXh","sXt","sZ8","sa4","saK","sai","san","sbG","sbP","scC","se6","seE","seJ","seT","seb","sfN","sfY","sfb","sfc","shU","shf","shm","siC","siZ","sig","sjL","sjO","sjTE","sjb","sk5","skG","skU","skc","skf","skp","sl7","sm0","sm2","smH","snv","soE","soc","spQ","spo","sq6","sqX","sqY","srK","srs","st0","st5","stD","stN","stT","stY","suD","suw","svH","svL","svt","swd","sxX","sxj","sxr","syH","syT","sys","sz1","szZ","szh","szj","szw","t","tZ","tg","tt","u","u8","uB","uq","vD","w","wE","wH","wL","wR","wW","wg","x3","xc","xo","y0","yC","yG","yM","yN","yc","ym","yn","yq","yu","yx","yy","z2","zV","zr"]
 $.Au=[C.Ye,Z.hx,{created:Z.Co},C.kYf,M.fx,{created:M.SP},C.q0,H.Dg,{"":H.bu},C.b4,Q.Tg,{created:Q.rt},C.Dl,V.F1,{created:V.fv},C.RJ,Q.JG,{created:Q.Zo},C.z7,B.G6,{created:B.Dw},C.Qa,L.u7,{created:L.Cu},C.Wup,H.LZ,{"":H.UI},C.hG,A.ir,{created:A.oa},C.aj,U.fI,{created:U.Ry},C.Qw,E.Fv,{created:E.AH},C.G4,O.CN,{created:O.On},C.KJ,N.mk,{created:N.N0},C.pa,A.jM,{created:A.cY},C.nW,A.knI,{created:A.Th},C.HI,H.Pg,{"":H.aR},C.ila,Q.xI,{created:Q.lK},C.KI,R.LU,{created:R.rA},C.JZ,X.E7,{created:X.jD},C.wd,Z.vj,{created:Z.mA},C.Oi,F.Xd,{created:F.L1},C.Pa,D.St,{created:D.JR},C.cx5,D.m8,{created:D.Tt},C.YV,Z.uL,{created:Z.Hx},C.vW6,L.PF,{created:L.A5},C.Xb,F.vc,{created:F.Fe},C.yG,K.nm,{created:K.an},C.ow,F.E9,{created:F.TW},C.Rg,K.NM,{created:K.op},C.bh,R.i6,{created:R.Hv},C.Bm,A.XP,{created:A.XL},C.MY,W.hd,{},C.dd,B.pR,{created:B.lu},C.Ud8,Z.Ps,{created:Z.zg},C.zy,U.GG,{created:U.v9},C.pn,Q.qT,{created:Q.BW},C.ri,W.yy,{},C.IWi,X.Vu,{created:X.B4}]
 I.$lazy($,"globalThis","DX","jk",function(){return function() { return this; }()})
 I.$lazy($,"globalWindow","pG","Qm",function(){return $.jk().window})
@@ -31247,7 +31252,8 @@ if(!"name" in Ds)Ds.name="Ds"
 $desc=$collectedClasses.Ds
 if($desc instanceof Array)$desc=$desc[1]
 Ds.prototype=$desc
-function nm(Va,AP,fn,hm,AP,fn,AP,fn,dZ,Sa,Uk,oq,Wz,SO,B7,X0){this.Va=Va
+function nm(Va,Mt,AP,fn,hm,AP,fn,AP,fn,dZ,Sa,Uk,oq,Wz,SO,B7,X0){this.Va=Va
+this.Mt=Mt
 this.AP=AP
 this.fn=fn
 this.hm=hm
@@ -31271,6 +31277,10 @@ nm.prototype.gVa=function(receiver){return receiver.Va}
 nm.prototype.gVa.$reflectable=1
 nm.prototype.sVa=function(receiver,v){return receiver.Va=v}
 nm.prototype.sVa.$reflectable=1
+nm.prototype.gMt=function(receiver){return receiver.Mt}
+nm.prototype.gMt.$reflectable=1
+nm.prototype.sMt=function(receiver,v){return receiver.Mt=v}
+nm.prototype.sMt.$reflectable=1
 function V14(){}V14.builtin$cls="V14"
 if(!"name" in V14)V14.name="V14"
 $desc=$collectedClasses.V14

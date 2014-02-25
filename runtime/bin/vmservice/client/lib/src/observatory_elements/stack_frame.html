@@ -25,24 +25,25 @@
       <div class="col-md-9">
         <function-ref app="{{ app }}" ref="{{ frame['function'] }}"></function-ref>
         ( <script-ref app="{{ app }}" ref="{{ frame['script'] }}" line="{{ frame['line'] }}">
-        </script-ref> )
+        </script-ref> ) {
+        <a on-click="{{ toggleExpand }}">...</a>
+
+        <template if="{{ expanded }}">
+          <table class="memberList">
+            <tr template repeat="{{ v in frame['vars'] }}">
+              <td class="member">{{ v['name']}}</td>
+              <td class="member">
+                <instance-ref app="{{ app }}" ref="{{ v['value'] }}"></instance-ref>
+              </td>
+            </tr>
+          </table>
+        </template>
+        }
+
       </div>
       <div class="col-md-1"></div>
     </div>
 
-    <div class="row">
-      <div class="col-md-3"></div>
-      <div class="col-md-9">
-        <table class="memberList">
-          <tr template repeat="{{ v in frame['vars'] }}">
-            <td class="member">{{ v['name']}}</td>
-            <td class="member">
-            <instance-ref app="{{ app }}" ref="{{ v['value'] }}"></instance-ref>
-            </td>
-          </tr>
-        </table>
-      </div>
-    </div>
 
   </template>
   <script type="application/dart" src="stack_frame.dart"></script>
