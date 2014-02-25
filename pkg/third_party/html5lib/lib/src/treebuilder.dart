@@ -3,6 +3,7 @@ library treebuilder;
 
 import 'dart:collection';
 import 'package:html5lib/dom.dart';
+import 'package:html5lib/parser.dart' show getElementNameTuple;
 import 'package:source_maps/span.dart' show FileSpan;
 import 'constants.dart';
 import 'list_proxy.dart';
@@ -14,18 +15,18 @@ import 'utils.dart';
 // from "leaking" into tables, object elements, and marquees.
 const Node Marker = null;
 
-// TODO(jmesserly): this should extend ListBase<Node>, but my simple attempt
+// TODO(jmesserly): this should extend ListBase<Element>, but my simple attempt
 // didn't work.
-class ActiveFormattingElements extends ListProxy<Node> {
+class ActiveFormattingElements extends ListProxy<Element> {
   ActiveFormattingElements() : super();
 
   // Override the "add" method.
   // TODO(jmesserly): I'd rather not override this; can we do this in the
   // calling code instead?
-  void add(Node node) {
+  void add(Element node) {
     int equalCount = 0;
     if (node != Marker) {
-      for (Node element in reversed) {
+      for (var element in reversed) {
         if (element == Marker) {
           break;
         }
@@ -61,8 +62,8 @@ bool _mapEquals(Map a, Map b) {
 }
 
 
-bool _nodesEqual(Node node1, Node node2) {
-  return node1.nameTuple == node2.nameTuple &&
+bool _nodesEqual(Element node1, Element node2) {
+  return getElementNameTuple(node1) == getElementNameTuple(node2) &&
       _mapEquals(node1.attributes, node2.attributes);
 }
 
@@ -72,7 +73,7 @@ class TreeBuilder {
 
   Document document;
 
-  final openElements = <Node>[];
+  final List<Element> openElements = <Element>[];
 
   final activeFormattingElements = new ActiveFormattingElements();
 
@@ -105,7 +106,7 @@ class TreeBuilder {
   bool elementInScope(target, {String variant}) {
     //If we pass a node in we match that. if we pass a string
     //match any node with that name
-    bool exactNode = target is Node && target.nameTuple != null;
+    bool exactNode = target is Node;
 
     List listElements1 = scopingElements;
     List listElements2 = const [];
@@ -133,13 +134,13 @@ class TreeBuilder {
       }
     }
 
-    for (Node node in openElements.reversed) {
-      if (node.tagName == target && !exactNode ||
-          node == target && exactNode) {
+    for (var node in openElements.reversed) {
+      if (!exactNode && node.localName == target ||
+          exactNode && node == target) {
         return true;
       } else if (invert !=
-          (listElements1.contains(node.nameTuple) ||
-           listElements2.contains(node.nameTuple))) {
+          (listElements1.contains(getElementNameTuple(node)) ||
+           listElements2.contains(getElementNameTuple(node)))) {
         return false;
       }
     }
@@ -185,8 +186,8 @@ class TreeBuilder {
 
       // TODO(jmesserly): optimize this. No need to create a token.
       var cloneToken = new StartTagToken(
-          entry.tagName,
-          namespace: entry.namespace,
+          entry.localName,
+          namespace: entry.namespaceUri,
           data: new LinkedHashMap.from(entry.attributes))
           ..span = entry.sourceSpan;
 
@@ -213,13 +214,13 @@ class TreeBuilder {
   /// Check if an element exists between the end of the active
   /// formatting elements and the last marker. If it does, return it, else
   /// return null.
-  Node elementInActiveFormattingElements(String name) {
-    for (Node item in activeFormattingElements.reversed) {
+  Element elementInActiveFormattingElements(String name) {
+    for (var item in activeFormattingElements.reversed) {
       // Check for Marker first because if it's a Marker it doesn't have a
       // name attribute.
       if (item == Marker) {
         break;
-      } else if (item.tagName == name) {
+      } else if (item.localName == name) {
         return item;
       }
     }
@@ -276,7 +277,7 @@ class TreeBuilder {
   Element insertElementTable(token) {
     /// Create an element and insert it into the tree
     var element = createElement(token);
-    if (!tableInsertModeElements.contains(openElements.last.tagName)) {
+    if (!tableInsertModeElements.contains(openElements.last.localName)) {
       return insertElementNormal(token);
     } else {
       // We should be in the InTable mode. This means we want to do
@@ -300,7 +301,7 @@ class TreeBuilder {
     var parent = openElements.last;
 
     if (!insertFromTable || insertFromTable &&
-        !tableInsertModeElements.contains(openElements.last.tagName)) {
+        !tableInsertModeElements.contains(openElements.last.localName)) {
       _insertText(parent, data, span);
     } else {
       // We should be in the InTable mode. This means we want to do
@@ -347,8 +348,8 @@ class TreeBuilder {
     Node lastTable = null;
     Node fosterParent = null;
     var insertBefore = null;
-    for (Node elm in openElements.reversed) {
-      if (elm.tagName == "table") {
+    for (var elm in openElements.reversed) {
+      if (elm.localName == "table") {
         lastTable = elm;
         break;
       }
@@ -369,7 +370,7 @@ class TreeBuilder {
   }
 
   void generateImpliedEndTags([String exclude]) {
-    var name = openElements.last.tagName;
+    var name = openElements.last.localName;
     // XXX td, th and tr are not actually needed
     if (name != exclude && const ["dd", "dt", "li", "option", "optgroup", "p",
         "rp", "rt"].contains(name)) {

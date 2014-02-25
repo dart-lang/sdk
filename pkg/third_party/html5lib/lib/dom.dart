@@ -75,9 +75,13 @@ abstract class Node {
   static const int PROCESSING_INSTRUCTION_NODE = 7;
   static const int TEXT_NODE = 3;
 
-  // TODO(jmesserly): this should be on Element
-  /// The tag name associated with the node.
-  final String tagName;
+  /// Note: For now we use it to implement the deprecated tagName property.
+  final String _tagName;
+
+  /// *Deprecated* use [Element.localName] instead.
+  /// Note: after removal, this will be replaced by a correct version that
+  /// returns uppercase [as specified](http://dom.spec.whatwg.org/#dom-element-tagname).
+  @deprecated String get tagName => _tagName;
 
   /// The parent of the current node (or null for the document node).
   Node parent;
@@ -104,7 +108,10 @@ abstract class Node {
   LinkedHashMap<dynamic, FileSpan> _attributeSpans;
   LinkedHashMap<dynamic, FileSpan> _attributeValueSpans;
 
-  Node(this.tagName) {
+  /// *Deprecated* use [new Element.tag] instead.
+  @deprecated Node(String tagName) : this._(tagName);
+
+  Node._([this._tagName]) {
     nodes._parent = this;
   }
 
@@ -138,7 +145,8 @@ abstract class Node {
   /// name and attributes but with no parent or child nodes.
   Node clone();
 
-  String get namespace => null;
+  /// *Deprecated* use [Element.namespaceUri] instead.
+  @deprecated String get namespace => null;
 
   int get nodeType;
 
@@ -148,23 +156,31 @@ abstract class Node {
   /// *Deprecated* use [nodeType].
   @deprecated int get $dom_nodeType => nodeType;
 
-  String get outerHtml {
+  /// *Deprecated* use [Element.outerHtml]
+  @deprecated String get outerHtml => _outerHtml;
+
+  /// *Deprecated* use [Element.innerHtml]
+  @deprecated String get innerHtml => _innerHtml;
+  @deprecated set innerHtml(String value) { _innerHtml = value; }
+
+  // http://domparsing.spec.whatwg.org/#extensions-to-the-element-interface
+  String get _outerHtml {
     var str = new StringBuffer();
     _addOuterHtml(str);
     return str.toString();
   }
 
-  String get innerHtml {
+  String get _innerHtml {
     var str = new StringBuffer();
     _addInnerHtml(str);
     return str.toString();
   }
 
-  set innerHtml(String value) {
+  set _innerHtml(String value) {
     nodes.clear();
     // TODO(jmesserly): should be able to get the same effect by adding the
     // fragment directly.
-    nodes.addAll(parseFragment(value, container: tagName).nodes);
+    nodes.addAll(parseFragment(value, container: _tagName).nodes);
   }
 
   // Implemented per: http://dom.spec.whatwg.org/#dom-node-textcontent
@@ -180,8 +196,6 @@ abstract class Node {
   void _addInnerHtml(StringBuffer str) {
     for (Node child in nodes) child._addOuterHtml(str);
   }
-
-  String toString() => tagName;
 
   Node remove() {
     // TODO(jmesserly): is parent == null an error?
@@ -216,10 +230,9 @@ abstract class Node {
   /// Return true if the node has children or text.
   bool hasContent() => nodes.length > 0;
 
-  Pair<String, String> get nameTuple {
-    var ns = namespace != null ? namespace : Namespaces.html;
-    return new Pair(ns, tagName);
-  }
+  /// *Deprecated* construct a pair using the namespaceUri and the name.
+  @deprecated Pair<String, String> get nameTuple =>
+      this is Element ? getElementNameTuple(this) : null;
 
   /// Move all the children of the current node to [newParent].
   /// This is needed so that trees that don't store text as nodes move the
@@ -308,7 +321,7 @@ abstract class Node {
   Element _queryType(String tag) {
     for (var node in nodes) {
       if (node is! Element) continue;
-      if (node.tagName == tag) return node;
+      if (node.localName == tag) return node;
       var result = node._queryType(tag);
       if (result != null) return result;
     }
@@ -318,7 +331,7 @@ abstract class Node {
   void _queryAllType(String tag, List<Element> results) {
     for (var node in nodes) {
       if (node is! Element) continue;
-      if (node.tagName == tag) results.add(node);
+      if (node.localName == tag) results.add(node);
       node._queryAllType(tag, results);
     }
   }
@@ -353,7 +366,7 @@ abstract class Node {
 }
 
 class Document extends Node {
-  Document() : super(null);
+  Document() : super._();
   factory Document.html(String html) => parse(html);
 
   int get nodeType => Node.DOCUMENT_NODE;
@@ -362,6 +375,14 @@ class Document extends Node {
   Element get documentElement => querySelector('html');
   Element get head => documentElement.querySelector('head');
   Element get body => documentElement.querySelector('body');
+
+  /// Returns a fragment of HTML or XML that represents the element and its
+  /// contents.
+  // TODO(jmesserly): this API is not specified in:
+  // <http://domparsing.spec.whatwg.org/> nor is it in dart:html, instead
+  // only Element has outerHtml. However it is quite useful. Should we move it
+  // to dom_parsing, where we keep other custom APIs?
+  String get outerHtml => _outerHtml;
 
   String toString() => "#document";
 
@@ -385,10 +406,13 @@ class DocumentFragment extends Document {
 }
 
 class DocumentType extends Node {
+  final String name;
   final String publicId;
   final String systemId;
 
-  DocumentType(String name, this.publicId, this.systemId) : super(name);
+  DocumentType(String name, this.publicId, this.systemId)
+      // Note: once Node.tagName is removed, don't pass "name" to super
+      : name = name, super._(name);
 
   int get nodeType => Node.DOCUMENT_TYPE_NODE;
 
@@ -398,9 +422,9 @@ class DocumentType extends Node {
       // it seems useful, and the parser can handle it, so for now keeping it.
       var pid = publicId != null ? publicId : '';
       var sid = systemId != null ? systemId : '';
-      return '<!DOCTYPE $tagName "$pid" "$sid">';
+      return '<!DOCTYPE $name "$pid" "$sid">';
     } else {
-      return '<!DOCTYPE $tagName>';
+      return '<!DOCTYPE $name>';
     }
   }
 
@@ -409,13 +433,13 @@ class DocumentType extends Node {
     str.write(toString());
   }
 
-  DocumentType clone() => new DocumentType(tagName, publicId, systemId);
+  DocumentType clone() => new DocumentType(name, publicId, systemId);
 }
 
 class Text extends Node {
   String data;
 
-  Text(this.data) : super(null);
+  Text(this.data) : super._();
 
   /// *Deprecated* use [data].
   @deprecated String get value => data;
@@ -425,15 +449,7 @@ class Text extends Node {
 
   String toString() => '"$data"';
 
-  void _addOuterHtml(StringBuffer str) {
-    // Don't escape text for certain elements, notably <script>.
-    if (rcdataElements.contains(parent.tagName) ||
-        parent.tagName == 'plaintext') {
-      str.write(data);
-    } else {
-      str.write(htmlSerializeEscape(data));
-    }
-  }
+  void _addOuterHtml(StringBuffer str) => writeTextNodeAsHtml(str, this);
 
   Text clone() => new Text(data);
 
@@ -442,12 +458,19 @@ class Text extends Node {
 }
 
 class Element extends Node {
-  final String namespace;
+  final String namespaceUri;
 
-  // TODO(jmesserly): deprecate in favor of Element.tag? Or rename?
-  Element(String name, [this.namespace]) : super(name);
+  @deprecated String get namespace => namespaceUri;
 
-  Element.tag(String name) : namespace = null, super(name);
+  /// The [local name](http://dom.spec.whatwg.org/#concept-element-local-name)
+  /// of this element.
+  String get localName => _tagName;
+
+  // TODO(jmesserly): deprecate in favor of [Document.createElementNS].
+  // However we need every element to have a Document before this can work.
+  Element(String name, [this.namespaceUri]) : super._(name);
+
+  Element.tag(String name) : namespaceUri = null, super._(name);
 
   static final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 
@@ -506,25 +529,37 @@ class Element extends Node {
   int get nodeType => Node.ELEMENT_NODE;
 
   String toString() {
-    if (namespace == null) return "<$tagName>";
-    return "<${Namespaces.getPrefix(namespace)} $tagName>";
+    if (namespaceUri == null) return "<$localName>";
+    return "<${Namespaces.getPrefix(namespaceUri)} $localName>";
   }
 
   String get text => _getText(this);
   set text(String value) => _setText(this, value);
 
+  /// Returns a fragment of HTML or XML that represents the element and its
+  /// contents.
+  String get outerHtml => _outerHtml;
+
+  /// Returns a fragment of HTML or XML that represents the element's contents.
+  /// Can be set, to replace the contents of the element with nodes parsed from
+  /// the given string.
+  String get innerHtml => _innerHtml;
+  // TODO(jmesserly): deprecate in favor of:
+  // <https://api.dartlang.org/apidocs/channels/stable/#dart-dom-html.Element@id_setInnerHtml>
+  set innerHtml(String value) { _innerHtml = value; }
+
   void _addOuterHtml(StringBuffer str) {
     // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-end.html#serializing-html-fragments
     // Element is the most complicated one.
-    if (namespace == null ||
-        namespace == Namespaces.html ||
-        namespace == Namespaces.mathml ||
-        namespace == Namespaces.svg) {
-      str.write('<$tagName');
+    if (namespaceUri == null ||
+        namespaceUri == Namespaces.html ||
+        namespaceUri == Namespaces.mathml ||
+        namespaceUri == Namespaces.svg) {
+      str.write('<$localName');
     } else {
       // TODO(jmesserly): the spec doesn't define "qualified name".
       // I'm not sure if this is correct, but it should parse reasonably.
-      str.write('<${Namespaces.getPrefix(namespace)}:$tagName');
+      str.write('<${Namespaces.getPrefix(namespaceUri)}:$localName');
     }
 
     if (attributes.length > 0) {
@@ -538,7 +573,8 @@ class Element extends Node {
     str.write('>');
 
     if (nodes.length > 0) {
-      if (tagName == 'pre' || tagName == 'textarea' || tagName == 'listing') {
+      if (localName == 'pre' || localName == 'textarea' ||
+          localName == 'listing') {
         final first = nodes[0];
         if (first is Text && first.data.startsWith('\n')) {
           // These nodes will remove a leading \n at parse time, so if we still
@@ -552,10 +588,10 @@ class Element extends Node {
 
     // void elements must not have an end tag
     // http://dev.w3.org/html5/markup/syntax.html#void-elements
-    if (!isVoidElement(tagName)) str.write('</$tagName>');
+    if (!isVoidElement(localName)) str.write('</$localName>');
   }
 
-  Element clone() => new Element(tagName, namespace)
+  Element clone() => new Element(localName, namespaceUri)
       ..attributes = new LinkedHashMap.from(attributes);
 
   String get id {
@@ -575,7 +611,7 @@ class Element extends Node {
 class Comment extends Node {
   String data;
 
-  Comment(this.data) : super(null);
+  Comment(this.data) : super._();
 
   int get nodeType => Node.COMMENT_NODE;
 

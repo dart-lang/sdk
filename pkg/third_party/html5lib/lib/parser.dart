@@ -249,28 +249,28 @@ class HtmlParser {
     framesetOK = true;
   }
 
-  bool isHTMLIntegrationPoint(Node element) {
-    if (element.tagName == "annotation-xml" &&
-        element.namespace == Namespaces.mathml) {
+  bool isHTMLIntegrationPoint(Element element) {
+    if (element.localName == "annotation-xml" &&
+        element.namespaceUri == Namespaces.mathml) {
       var enc = element.attributes["encoding"];
       if (enc != null) enc = asciiUpper2Lower(enc);
       return enc == "text/html" || enc == "application/xhtml+xml";
     } else {
       return htmlIntegrationPointElements.contains(
-          new Pair(element.namespace, element.tagName));
+          new Pair(element.namespaceUri, element.localName));
     }
   }
 
-  bool isMathMLTextIntegrationPoint(Node element) {
+  bool isMathMLTextIntegrationPoint(Element element) {
     return mathmlTextIntegrationPointElements.contains(
-        new Pair(element.namespace, element.tagName));
+        new Pair(element.namespaceUri, element.localName));
   }
 
   bool inForeignContent(Token token, int type) {
     if (tree.openElements.length == 0) return false;
 
     var node = tree.openElements.last;
-    if (node.namespace == tree.defaultNamespace) return false;
+    if (node.namespaceUri == tree.defaultNamespace) return false;
 
     if (isMathMLTextIntegrationPoint(node)) {
       if (type == TokenKind.startTag &&
@@ -283,7 +283,7 @@ class HtmlParser {
       }
     }
 
-    if (node.tagName == "annotation-xml" && type == TokenKind.startTag &&
+    if (node.localName == "annotation-xml" && type == TokenKind.startTag &&
         (token as StartTagToken).name == "svg") {
       return false;
     }
@@ -491,8 +491,8 @@ class HtmlParser {
   void resetInsertionMode() {
     // The name of this method is mostly historical. (It's also used in the
     // specification.)
-    for (Node node in tree.openElements.reversed) {
-      var nodeName = node.tagName;
+    for (var node in tree.openElements.reversed) {
+      var nodeName = node.localName;
       bool last = node == tree.openElements[0];
       if (last) {
         assert(innerHTMLMode);
@@ -505,7 +505,7 @@ class HtmlParser {
           assert(innerHTMLMode);
           break;
       }
-      if (!last && node.namespace != tree.defaultNamespace) {
+      if (!last && node.namespaceUri != tree.defaultNamespace) {
         continue;
       }
       switch (nodeName) {
@@ -616,7 +616,7 @@ class Phase {
   /// Helper method for popping openElements.
   void popOpenElementsUntil(String name) {
     var node = tree.openElements.removeLast();
-    while (node.tagName != name) {
+    while (node.localName != name) {
       node = tree.openElements.removeLast();
     }
   }
@@ -971,7 +971,7 @@ class InHeadPhase extends Phase {
 
   void endTagHead(EndTagToken token) {
     var node = parser.tree.openElements.removeLast();
-    assert(node.tagName == "head");
+    assert(node.localName == "head");
     parser.phase = parser._afterHeadPhase;
   }
 
@@ -1049,8 +1049,8 @@ class AfterHeadPhase extends Phase {
       {"name": token.name});
     tree.openElements.add(tree.headPointer);
     parser._inHeadPhase.processStartTag(token);
-    for (Node node in tree.openElements.reversed) {
-      if (node.tagName == "head") {
+    for (var node in tree.openElements.reversed) {
+      if (node.localName == "head") {
         tree.openElements.remove(node);
         break;
       }
@@ -1196,8 +1196,9 @@ class InBodyPhase extends Phase {
     }
   }
 
-  bool isMatchingFormattingElement(Node node1, Node node2) {
-    if (node1.tagName != node2.tagName || node1.namespace != node2.namespace) {
+  bool isMatchingFormattingElement(Element node1, Element node2) {
+    if (node1.localName != node2.localName ||
+        node1.namespaceUri != node2.namespaceUri) {
       return false;
     } else if (node1.attributes.length != node2.attributes.length) {
       return false;
@@ -1234,8 +1235,8 @@ class InBodyPhase extends Phase {
 
   // the real deal
   bool processEOF() {
-    for (Node node in tree.openElements.reversed) {
-      switch (node.tagName) {
+    for (var node in tree.openElements.reversed) {
+      switch (node.localName) {
         case "dd": case "dt": case "li": case "p": case "tbody": case "td":
         case "tfoot": case "th": case "thead": case "tr": case "body":
         case "html":
@@ -1255,7 +1256,7 @@ class InBodyPhase extends Phase {
     dropNewline = false;
     if (data.startsWith("\n")) {
       var lastOpen = tree.openElements.last;
-      if (const ["pre", "listing", "textarea"].contains(lastOpen.tagName)
+      if (const ["pre", "listing", "textarea"].contains(lastOpen.localName)
           && !lastOpen.hasContent()) {
         data = data.substring(1);
       }
@@ -1296,7 +1297,7 @@ class InBodyPhase extends Phase {
   void startTagBody(StartTagToken token) {
     parser.parseError(token.span, "unexpected-start-tag", {"name": "body"});
     if (tree.openElements.length == 1
-        || tree.openElements[1].tagName != "body") {
+        || tree.openElements[1].localName != "body") {
       assert(parser.innerHTMLMode);
     } else {
       parser.framesetOK = false;
@@ -1309,13 +1310,13 @@ class InBodyPhase extends Phase {
   void startTagFrameset(StartTagToken token) {
     parser.parseError(token.span, "unexpected-start-tag", {"name": "frameset"});
     if ((tree.openElements.length == 1 ||
-        tree.openElements[1].tagName != "body")) {
+        tree.openElements[1].localName != "body")) {
       assert(parser.innerHTMLMode);
     } else if (parser.framesetOK) {
       if (tree.openElements[1].parent != null) {
         tree.openElements[1].parent.nodes.remove(tree.openElements[1]);
       }
-      while (tree.openElements.last.tagName != "html") {
+      while (tree.openElements.last.localName != "html") {
         tree.openElements.removeLast();
       }
       tree.insertElement(token);
@@ -1358,13 +1359,13 @@ class InBodyPhase extends Phase {
                                 "dt": const ["dt", "dd"],
                                 "dd": const ["dt", "dd"]};
     var stopNames = stopNamesMap[token.name];
-    for (Node node in tree.openElements.reversed) {
-      if (stopNames.contains(node.tagName)) {
-        parser.phase.processEndTag(new EndTagToken(node.tagName));
+    for (var node in tree.openElements.reversed) {
+      if (stopNames.contains(node.localName)) {
+        parser.phase.processEndTag(new EndTagToken(node.localName));
         break;
       }
-      if (specialElements.contains(node.nameTuple) &&
-          !const ["address", "div", "p"].contains(node.tagName)) {
+      if (specialElements.contains(getElementNameTuple(node)) &&
+          !const ["address", "div", "p"].contains(node.localName)) {
         break;
       }
     }
@@ -1388,7 +1389,7 @@ class InBodyPhase extends Phase {
     if (tree.elementInScope("p", variant: "button")) {
       endTagP(new EndTagToken("p"));
     }
-    if (headingElements.contains(tree.openElements.last.tagName)) {
+    if (headingElements.contains(tree.openElements.last.localName)) {
       parser.parseError(token.span, "unexpected-start-tag",
           {"name": token.name});
       tree.openElements.removeLast();
@@ -1556,7 +1557,7 @@ class InBodyPhase extends Phase {
   }
 
   void startTagOpt(StartTagToken token) {
-    if (tree.openElements.last.tagName == "option") {
+    if (tree.openElements.last.localName == "option") {
       parser.phase.processEndTag(new EndTagToken("option"));
     }
     tree.reconstructActiveFormattingElements();
@@ -1584,7 +1585,7 @@ class InBodyPhase extends Phase {
     if (tree.elementInScope("ruby")) {
       tree.generateImpliedEndTags();
       var last = tree.openElements.last;
-      if (last.tagName != "ruby") {
+      if (last.localName != "ruby") {
         parser.parseError(last.sourceSpan, 'undefined-error');
       }
     }
@@ -1642,7 +1643,7 @@ class InBodyPhase extends Phase {
       endTagP(new EndTagToken("p"));
     } else {
       tree.generateImpliedEndTags("p");
-      if (tree.openElements.last.tagName != "p") {
+      if (tree.openElements.last.localName != "p") {
         parser.parseError(token.span, "unexpected-end-tag", {"name": "p"});
       }
       popOpenElementsUntil("p");
@@ -1653,9 +1654,9 @@ class InBodyPhase extends Phase {
     if (!tree.elementInScope("body")) {
       parser.parseError(token.span, 'undefined-error');
       return;
-    } else if (tree.openElements.last.tagName != "body") {
-      for (Node node in slice(tree.openElements, 2)) {
-        switch (node.tagName) {
+    } else if (tree.openElements.last.localName != "body") {
+      for (Element node in slice(tree.openElements, 2)) {
+        switch (node.localName) {
           case "dd": case "dt": case "li": case "optgroup": case "option":
           case "p": case "rp": case "rt": case "tbody": case "td": case "tfoot":
           case "th": case "thead": case "tr": case "body": case "html":
@@ -1663,7 +1664,7 @@ class InBodyPhase extends Phase {
         }
         // Not sure this is the correct name for the parse error
         parser.parseError(token.span, "expected-one-end-tag-but-got-another",
-            {"gotName": "body", "expectedName": node.tagName});
+            {"gotName": "body", "expectedName": node.localName});
         break;
       }
     }
@@ -1688,7 +1689,7 @@ class InBodyPhase extends Phase {
     if (inScope) {
       tree.generateImpliedEndTags();
     }
-    if (tree.openElements.last.tagName != token.name) {
+    if (tree.openElements.last.localName != token.name) {
       parser.parseError(token.span, "end-tag-too-early", {"name": token.name});
     }
     if (inScope) {
@@ -1721,7 +1722,7 @@ class InBodyPhase extends Phase {
       parser.parseError(token.span, "unexpected-end-tag", {"name": token.name});
     } else {
       tree.generateImpliedEndTags(token.name);
-      if (tree.openElements.last.tagName != token.name) {
+      if (tree.openElements.last.localName != token.name) {
         parser.parseError(token.span, "end-tag-too-early", {"name": token.name});
       }
       popOpenElementsUntil(token.name);
@@ -1735,15 +1736,15 @@ class InBodyPhase extends Phase {
         break;
       }
     }
-    if (tree.openElements.last.tagName != token.name) {
+    if (tree.openElements.last.localName != token.name) {
       parser.parseError(token.span, "end-tag-too-early", {"name": token.name});
     }
 
     for (var item in headingElements) {
       if (tree.elementInScope(item)) {
-        item = tree.openElements.removeLast();
-        while (!headingElements.contains(item.tagName)) {
-          item = tree.openElements.removeLast();
+        var node = tree.openElements.removeLast();
+        while (!headingElements.contains(node.localName)) {
+          node = tree.openElements.removeLast();
         }
         break;
       }
@@ -1766,7 +1767,7 @@ class InBodyPhase extends Phase {
           token.name);
       if (formattingElement == null ||
           (tree.openElements.contains(formattingElement) &&
-           !tree.elementInScope(formattingElement.tagName))) {
+           !tree.elementInScope(formattingElement.localName))) {
         parser.parseError(token.span, "adoption-agency-1.1",
             {"name": token.name});
         return;
@@ -1789,7 +1790,7 @@ class InBodyPhase extends Phase {
       var afeIndex = tree.openElements.indexOf(formattingElement);
       Node furthestBlock = null;
       for (Node element in slice(tree.openElements, afeIndex)) {
-        if (specialElements.contains(element.nameTuple)) {
+        if (specialElements.contains(getElementNameTuple(element))) {
           furthestBlock = element;
           break;
         }
@@ -1866,7 +1867,7 @@ class InBodyPhase extends Phase {
       }
 
       if (const ["table", "tbody", "tfoot", "thead", "tr"].contains(
-          commonAncestor.tagName)) {
+          commonAncestor.localName)) {
         var nodePos = tree.getTableMisnestedNodePosition();
         nodePos[0].insertBefore(lastNode, nodePos[1]);
       } else {
@@ -1898,7 +1899,7 @@ class InBodyPhase extends Phase {
     if (tree.elementInScope(token.name)) {
       tree.generateImpliedEndTags();
     }
-    if (tree.openElements.last.tagName != token.name) {
+    if (tree.openElements.last.localName != token.name) {
       parser.parseError(token.span, "end-tag-too-early", {"name": token.name});
     }
     if (tree.elementInScope(token.name)) {
@@ -1916,17 +1917,17 @@ class InBodyPhase extends Phase {
   }
 
   void endTagOther(EndTagToken token) {
-    for (Node node in tree.openElements.reversed) {
-      if (node.tagName == token.name) {
+    for (var node in tree.openElements.reversed) {
+      if (node.localName == token.name) {
         tree.generateImpliedEndTags(token.name);
-        if (tree.openElements.last.tagName != token.name) {
+        if (tree.openElements.last.localName != token.name) {
           parser.parseError(token.span, "unexpected-end-tag",
               {"name": token.name});
         }
         while (tree.openElements.removeLast() != node);
         break;
       } else {
-        if (specialElements.contains(node.nameTuple)) {
+        if (specialElements.contains(getElementNameTuple(node))) {
           parser.parseError(token.span, "unexpected-end-tag",
               {"name": token.name});
           break;
@@ -1956,7 +1957,7 @@ class TextPhase extends Phase {
   bool processEOF() {
     var last = tree.openElements.last;
     parser.parseError(last.sourceSpan, "expected-named-closing-tag-but-got-eof",
-        {'name': last.tagName});
+        {'name': last.localName});
     tree.openElements.removeLast();
     parser.phase = parser.originalPhase;
     return true;
@@ -1964,7 +1965,7 @@ class TextPhase extends Phase {
 
   void endTagScript(EndTagToken token) {
     var node = tree.openElements.removeLast();
-    assert(node.tagName == "script");
+    assert(node.localName == "script");
     parser.phase = parser.originalPhase;
     //The rest of this method is all stuff that only happens if
     //document.write works
@@ -2009,8 +2010,8 @@ class InTablePhase extends Phase {
   // helper methods
   void clearStackToTableContext() {
     // "clear the stack back to a table context"
-    while (tree.openElements.last.tagName != "table" &&
-           tree.openElements.last.tagName != "html") {
+    while (tree.openElements.last.localName != "table" &&
+           tree.openElements.last.localName != "html") {
       //parser.parseError(token.span, "unexpected-implied-end-tag-in-table",
       //  {"name":  tree.openElements.last.name})
       tree.openElements.removeLast();
@@ -2021,7 +2022,7 @@ class InTablePhase extends Phase {
   // processing methods
   bool processEOF() {
     var last = tree.openElements.last;
-    if (last.tagName != "html") {
+    if (last.localName != "html") {
       parser.parseError(last.sourceSpan, "eof-in-table");
     } else {
       assert(parser.innerHTMLMode);
@@ -2130,11 +2131,11 @@ class InTablePhase extends Phase {
     if (tree.elementInScope("table", variant: "table")) {
       tree.generateImpliedEndTags();
       var last = tree.openElements.last;
-      if (last.tagName != "table") {
+      if (last.localName != "table") {
         parser.parseError(token.span, "end-tag-too-early-named",
-            {"gotName": "table", "expectedName": last.tagName});
+            {"gotName": "table", "expectedName": last.localName});
       }
-      while (tree.openElements.last.tagName != "table") {
+      while (tree.openElements.last.localName != "table") {
         tree.openElements.removeLast();
       }
       tree.openElements.removeLast();
@@ -2287,12 +2288,12 @@ class InCaptionPhase extends Phase {
     if (!ignoreEndTagCaption()) {
       // AT this code is quite similar to endTagTable in "InTable"
       tree.generateImpliedEndTags();
-      if (tree.openElements.last.tagName != "caption") {
+      if (tree.openElements.last.localName != "caption") {
         parser.parseError(token.span, "expected-one-end-tag-but-got-another",
           {"gotName": "caption",
-           "expectedName": tree.openElements.last.tagName});
+           "expectedName": tree.openElements.last.localName});
       }
-      while (tree.openElements.last.tagName != "caption") {
+      while (tree.openElements.last.localName != "caption") {
         tree.openElements.removeLast();
       }
       tree.openElements.removeLast();
@@ -2346,7 +2347,7 @@ class InColumnGroupPhase extends Phase {
   }
 
   bool ignoreEndTagColgroup() {
-    return tree.openElements.last.tagName == "html";
+    return tree.openElements.last.localName == "html";
   }
 
   bool processEOF() {
@@ -2431,12 +2432,12 @@ class InTableBodyPhase extends Phase {
   // helper methods
   void clearStackToTableBodyContext() {
     var tableTags = const ["tbody", "tfoot", "thead", "html"];
-    while (!tableTags.contains(tree.openElements.last.tagName)) {
+    while (!tableTags.contains(tree.openElements.last.localName)) {
       //XXX parser.parseError(token.span, "unexpected-implied-end-tag-in-table",
       //  {"name": tree.openElements.last.name})
       tree.openElements.removeLast();
     }
-    if (tree.openElements.last.tagName == "html") {
+    if (tree.openElements.last.localName == "html") {
       assert(parser.innerHTMLMode);
     }
   }
@@ -2491,7 +2492,7 @@ class InTableBodyPhase extends Phase {
         tree.elementInScope("thead", variant: "table") ||
         tree.elementInScope("tfoot", variant: "table")) {
       clearStackToTableBodyContext();
-      endTagTableRowGroup(new EndTagToken(tree.openElements.last.tagName));
+      endTagTableRowGroup(new EndTagToken(tree.openElements.last.localName));
       return token;
     } else {
       // innerHTML case
@@ -2544,11 +2545,11 @@ class InRowPhase extends Phase {
   void clearStackToTableRowContext() {
     while (true) {
       var last = tree.openElements.last;
-      if (last.tagName == "tr" || last.tagName == "html") break;
+      if (last.localName == "tr" || last.localName == "html") break;
 
       parser.parseError(last.sourceSpan,
           "unexpected-implied-end-tag-in-table-row",
-          {"name": tree.openElements.last.tagName});
+          {"name": tree.openElements.last.localName});
       tree.openElements.removeLast();
     }
   }
@@ -2694,7 +2695,7 @@ class InCellPhase extends Phase {
   void endTagTableCell(EndTagToken token) {
     if (tree.elementInScope(token.name, variant: "table")) {
       tree.generateImpliedEndTags(token.name);
-      if (tree.openElements.last.tagName != token.name) {
+      if (tree.openElements.last.localName != token.name) {
         parser.parseError(token.span, "unexpected-cell-end-tag",
             {"name": token.name});
         popOpenElementsUntil(token.name);
@@ -2756,7 +2757,7 @@ class InSelectPhase extends Phase {
   // http://www.whatwg.org/specs/web-apps/current-work///in-select
   bool processEOF() {
     var last = tree.openElements.last;
-    if (last.tagName != "html") {
+    if (last.localName != "html") {
       parser.parseError(last.sourceSpan, "eof-in-select");
     } else {
       assert(parser.innerHTMLMode);
@@ -2774,17 +2775,17 @@ class InSelectPhase extends Phase {
 
   void startTagOption(StartTagToken token) {
     // We need to imply </option> if <option> is the current node.
-    if (tree.openElements.last.tagName == "option") {
+    if (tree.openElements.last.localName == "option") {
       tree.openElements.removeLast();
     }
     tree.insertElement(token);
   }
 
   void startTagOptgroup(StartTagToken token) {
-    if (tree.openElements.last.tagName == "option") {
+    if (tree.openElements.last.localName == "option") {
       tree.openElements.removeLast();
     }
-    if (tree.openElements.last.tagName == "optgroup") {
+    if (tree.openElements.last.localName == "optgroup") {
       tree.openElements.removeLast();
     }
     tree.insertElement(token);
@@ -2817,7 +2818,7 @@ class InSelectPhase extends Phase {
   }
 
   void endTagOption(EndTagToken token) {
-    if (tree.openElements.last.tagName == "option") {
+    if (tree.openElements.last.localName == "option") {
       tree.openElements.removeLast();
     } else {
       parser.parseError(token.span, "unexpected-end-tag-in-select",
@@ -2827,12 +2828,12 @@ class InSelectPhase extends Phase {
 
   void endTagOptgroup(EndTagToken token) {
     // </optgroup> implicitly closes <option>
-    if (tree.openElements.last.tagName == "option" &&
-      tree.openElements[tree.openElements.length - 2].tagName == "optgroup") {
+    if (tree.openElements.last.localName == "option" &&
+      tree.openElements[tree.openElements.length - 2].localName == "optgroup") {
       tree.openElements.removeLast();
     }
     // It also closes </optgroup>
-    if (tree.openElements.last.tagName == "optgroup") {
+    if (tree.openElements.last.localName == "optgroup") {
       tree.openElements.removeLast();
     // But nothing else
     } else {
@@ -2995,7 +2996,7 @@ class InForeignContentPhase extends Phase {
 
       parser.parseError(token.span,
           "unexpected-html-element-in-foreign-content", {'name': token.name});
-      while (tree.openElements.last.namespace !=
+      while (tree.openElements.last.namespaceUri !=
            tree.defaultNamespace &&
            !parser.isHTMLIntegrationPoint(tree.openElements.last) &&
            !parser.isMathMLTextIntegrationPoint(tree.openElements.last)) {
@@ -3004,14 +3005,14 @@ class InForeignContentPhase extends Phase {
       return token;
 
     } else {
-      if (currentNode.namespace == Namespaces.mathml) {
+      if (currentNode.namespaceUri == Namespaces.mathml) {
         parser.adjustMathMLAttributes(token);
-      } else if (currentNode.namespace == Namespaces.svg) {
+      } else if (currentNode.namespaceUri == Namespaces.svg) {
         adjustSVGTagNames(token);
         parser.adjustSVGAttributes(token);
       }
       parser.adjustForeignAttributes(token);
-      token.namespace = currentNode.namespace;
+      token.namespace = currentNode.namespaceUri;
       tree.insertElement(token);
       if (token.selfClosing) {
         tree.openElements.removeLast();
@@ -3024,13 +3025,13 @@ class InForeignContentPhase extends Phase {
   Token processEndTag(EndTagToken token) {
     var nodeIndex = tree.openElements.length - 1;
     var node = tree.openElements.last;
-    if (node.tagName != token.name) {
+    if (node.localName != token.name) {
       parser.parseError(token.span, "unexpected-end-tag", {"name": token.name});
     }
 
     var newToken = null;
     while (true) {
-      if (asciiUpper2Lower(node.tagName) == token.name) {
+      if (asciiUpper2Lower(node.localName) == token.name) {
         //XXX this isn't in the spec but it seems necessary
         if (parser.phase == parser._inTableTextPhase) {
           InTableTextPhase inTableText = parser.phase;
@@ -3046,7 +3047,7 @@ class InForeignContentPhase extends Phase {
       nodeIndex -= 1;
 
       node = tree.openElements[nodeIndex];
-      if (node.namespace != tree.defaultNamespace) {
+      if (node.namespaceUri != tree.defaultNamespace) {
         continue;
       } else {
         newToken = parser.phase.processEndTag(token);
@@ -3137,7 +3138,7 @@ class InFramesetPhase extends Phase {
 
   bool processEOF() {
     var last = tree.openElements.last;
-    if (last.tagName != "html") {
+    if (last.localName != "html") {
       parser.parseError(last.sourceSpan, "eof-in-frameset");
     } else {
       assert(parser.innerHTMLMode);
@@ -3170,14 +3171,15 @@ class InFramesetPhase extends Phase {
   }
 
   void endTagFrameset(EndTagToken token) {
-    if (tree.openElements.last.tagName == "html") {
+    if (tree.openElements.last.localName == "html") {
       // innerHTML case
       parser.parseError(token.span,
           "unexpected-frameset-in-frameset-innerhtml");
     } else {
       tree.openElements.removeLast();
     }
-    if (!parser.innerHTMLMode && tree.openElements.last.tagName != "frameset") {
+    if (!parser.innerHTMLMode &&
+        tree.openElements.last.localName != "frameset") {
       // If we're not in innerHTML mode and the the current node is not a
       // "frameset" element (anymore) then switch.
       parser.phase = parser._afterFramesetPhase;
@@ -3354,4 +3356,12 @@ class ParseError implements Exception {
     var res = span.getLocationMessage(message);
     return span.sourceUrl == null ? 'ParserError$res' : res;
   }
+}
+
+
+/// Convenience function to get the pair of namespace and localName.
+Pair<String, String> getElementNameTuple(Element e) {
+  var ns = e.namespaceUri;
+  if (ns == null) ns = Namespaces.html;
+  return new Pair(ns, e.localName);
 }

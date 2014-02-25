@@ -161,7 +161,7 @@ class _LinterVisitor extends TreeVisitor {
   }
 
   void visitElement(Element node) {
-    switch (node.tagName) {
+    switch (node.localName) {
       case 'link': _validateLinkElement(node); break;
       case 'element': _validateElementElement(node); break;
       case 'polymer-element': _validatePolymerElement(node); break;
@@ -327,7 +327,7 @@ class _LinterVisitor extends TreeVisitor {
     });
 
     // Validate uses of custom-tags
-    var nodeTag = node.tagName;
+    var nodeTag = node.localName;
     var hasIsAttribute;
     var customTagName;
     if (_isCustomTag(nodeTag)) {

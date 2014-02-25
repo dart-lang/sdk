@@ -3,6 +3,7 @@
 library dom_parsing;
 
 import 'dom.dart';
+import 'src/constants.dart' show rcdataElements;
 
 /// A simple tree visitor for the DOM nodes.
 class TreeVisitor {
@@ -67,17 +68,17 @@ class CodeMarkupVisitor extends TreeVisitor {
   }
 
   visitDocumentType(DocumentType node) {
-    _str.write('<code class="markup doctype">&lt;!DOCTYPE ${node.tagName}>'
+    _str.write('<code class="markup doctype">&lt;!DOCTYPE ${node.name}>'
         '</code>');
   }
 
   visitText(Text node) {
-    // TODO(jmesserly): would be nice to use _addOuterHtml directly.
-    _str.write(node.outerHtml);
+    writeTextNodeAsHtml(_str, node);
   }
 
   visitElement(Element node) {
-    _str.write('&lt;<code class="markup element-name">${node.tagName}</code>');
+    final tag = node.localName;
+    _str.write('&lt;<code class="markup element-name">$tag</code>');
     if (node.attributes.length > 0) {
       node.attributes.forEach((key, v) {
         v = htmlSerializeEscape(v, attributeMode: true);
@@ -88,12 +89,12 @@ class CodeMarkupVisitor extends TreeVisitor {
     if (node.nodes.length > 0) {
       _str.write(">");
       visitChildren(node);
-    } else if (isVoidElement(node.tagName)) {
+    } else if (isVoidElement(tag)) {
       _str.write(">");
       return;
     }
     _str.write(
-        '&lt;/<code class="markup element-name">${node.tagName}</code>>');
+        '&lt;/<code class="markup element-name">$tag</code>>');
   }
 
   visitComment(Comment node) {
@@ -159,4 +160,19 @@ bool isVoidElement(String tagName) {
       return true;
   }
   return false;
+}
+
+/// Serialize text node according to:
+/// <http://www.whatwg.org/specs/web-apps/current-work/multipage/the-end.html#html-fragment-serialization-algorithm>
+void writeTextNodeAsHtml(StringBuffer str, Text node) {
+  // Don't escape text for certain elements, notably <script>.
+  final parent = node.parent;
+  if (parent is Element) {
+    var tag = parent.localName;
+    if (rcdataElements.contains(tag) || tag == 'plaintext') {
+      str.write(node.data);
+      return;
+    }
+  }
+  str.write(htmlSerializeEscape(node.data));
 }
