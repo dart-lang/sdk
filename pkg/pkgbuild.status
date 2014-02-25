@@ -19,6 +19,7 @@ pkg/unittest: PubGetError
 pkg/template_binding: Pass, PubGetError # Issue 16026
 pkg/polymer: PubGetError # Issue 16026
 pkg/polymer_expressions: PubGetError # Issue 16026
+pkg/observe: Pass, PubGetError # Issue 16026
 
 [ $builder_tag == russian ]
 samples/third_party/pop-pop-win: Fail # Issue 16356
