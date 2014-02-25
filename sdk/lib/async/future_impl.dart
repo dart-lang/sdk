@@ -415,7 +415,8 @@ class _Future<T> implements Future<T> {
       // Set initial state of listenerHasValue and listenerValueOrError. These
       // variables are updated, with the outcome of potential callbacks.
       bool listenerHasValue = true;
-      var listenerValueOrError = source._value;
+      final sourceValue = source._hasValue ? source._value : null;
+      var listenerValueOrError = sourceValue;
       // Set to true if a whenComplete needs to wait for a future.
       // The whenComplete action will resume the propagation by itself.
       bool isPropagationAborted = false;
@@ -446,7 +447,7 @@ class _Future<T> implements Future<T> {
         bool handleValueCallback() {
           try {
             listenerValueOrError = zone.runUnary(listener._onValue,
-                                                 listenerValueOrError);
+                                                 sourceValue);
             return true;
           } catch (e, s) {
             listenerValueOrError = new _AsyncError(e, s);
@@ -544,7 +545,7 @@ class _Future<T> implements Future<T> {
         // this can only happen if there is a callback. Since 'is' checks
         // can be expensive, we're trying to avoid it.
         if (listenerHasValue &&
-            !identical(source._value, listenerValueOrError) &&
+            !identical(sourceValue, listenerValueOrError) &&
             listenerValueOrError is Future) {
           Future chainSource = listenerValueOrError;
           // Shortcut if the chain-source is already completed. Just continue
