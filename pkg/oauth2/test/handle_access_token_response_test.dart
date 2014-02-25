@@ -138,6 +138,11 @@ void main() {
       expect(credentials.accessToken, equals('access token'));
     });
 
+    test('with a JavScript content-type returns the correct credentials', () {
+      var credentials = handleSuccess(contentType: 'text/javascript');
+      expect(credentials.accessToken, equals('access token'));
+    });
+
     test('with a null access token throws a FormatException', () {
       expect(() => handleSuccess(accessToken: null), throwsFormatException);
     });
