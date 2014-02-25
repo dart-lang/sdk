@@ -121,7 +121,9 @@ class ElementInfoNode implements InfoNode {
         extraString].join(' ');
 
     if (contents != null) {
+      buffer.write('\n');
       buffer.write(div("+$describe", cls: "container"));
+      buffer.write('\n');
       buffer.write('<div class="contained">');
       if (contents.isEmpty) {
         buffer.writeln("No members");
@@ -131,7 +133,7 @@ class ElementInfoNode implements InfoNode {
       }
       buffer.write("</div>");
     } else {
-      buffer.writeln(describe);
+      buffer.writeln(div('$describe', cls: "element"));
     }
   }
 }
@@ -150,6 +152,7 @@ class CodeInfoNode implements InfoNode {
   CodeInfoNode({this.description: "", this.generatedCode});
 
   void emitHtml(ProgramInfo programInfo, StringBuffer buffer) {
+    buffer.write('\n');
     buffer.write(div(description + ' ' +
                      sizeDescription(generatedCode.length, programInfo),
                      cls: 'kind') +
@@ -175,10 +178,12 @@ class InferredInfoNode implements InfoNode {
   InferredInfoNode({this.name: "", this.description, this.type});
 
   void emitHtml(ProgramInfo programInfo, StringSink buffer) {
-    buffer.write(div('${span("Inferred " + description, cls: "kind")} '
-                     '${span(esc(name),
-                     cls: "name")} '
-        '${span(esc(type), cls: 'type')} '));
+    buffer.write('\n');
+    buffer.write(
+        div('${span("Inferred " + description, cls: "kind")} '
+            '${span(esc(name), cls: "name")} '
+            '${span(esc(type), cls: "type")} ',
+            cls: "attr"));
   }
 }
 
@@ -453,11 +458,16 @@ class DumpInfoTask extends CompilerTask {
   <head>
     <title>Dart2JS compilation information</title>
        <style>
-         code {margin-left: 20px; display: block;}
+         code {margin-left: 20px; display: block; white-space: pre; }
+         div.container, div.contained, div.element, div.attr {
+           margin-top:0px;
+           margin-bottom: 0px;
+         }
+         div.container, div.element, div.attr {
+           white-space: pre;
+         }
          div.contained {margin-left: 20px;}
-         div {margin-top:0px;
-         margin-bottom: 0px;
-         white-space: pre; /*border: 1px solid;*/}
+         div {/*border: 1px solid;*/}
          span.kind {}
          span.modifiers {font-weight:bold;}
          span.name {font-weight:bold; font-family: monospace;}
