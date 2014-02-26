@@ -29,6 +29,11 @@ abstract class CommunicationChannel {
   void sendNotification(Notification notification);
 
   /**
+   * Send the given [request] to the server.
+   */
+  void sendRequest(Request request);
+
+  /**
    * Send the given [response] to the client.
    */
   void sendResponse(Response response);
@@ -44,6 +49,8 @@ class WebSocketChannel implements CommunicationChannel {
    */
   final WebSocket socket;
 
+  final JsonEncoder jsonEncoder = const JsonEncoder(null);
+
   /**
    * Initialize a newly create [WebSocket] wrapper to wrap the given [socket].
    */
@@ -57,14 +64,17 @@ class WebSocketChannel implements CommunicationChannel {
 
   @override
   void sendNotification(Notification notification) {
-    JsonEncoder encoder = const JsonEncoder(null);
-    socket.add(encoder.convert(notification.toJson()));
+    socket.add(jsonEncoder.convert(notification.toJson()));
+  }
+
+  @override
+  void sendRequest(Request request) {
+    socket.add(jsonEncoder.convert(request.toJson()));
   }
 
   @override
   void sendResponse(Response response) {
-    JsonEncoder encoder = const JsonEncoder(null);
-    socket.add(encoder.convert(response.toJson()));
+    socket.add(jsonEncoder.convert(response.toJson()));
   }
 
   /**

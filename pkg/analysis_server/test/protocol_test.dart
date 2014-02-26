@@ -14,6 +14,7 @@ main() {
     test('getParameter_undefined', RequestTest.getParameter_undefined);
     test('getRequiredParameter_defined', RequestTest.getRequiredParameter_defined);
     test('getRequiredParameter_undefined', RequestTest.getRequiredParameter_undefined);
+    test('toJson', RequestTest.toJson);
   });
   group('Response', () {
     test('create_contextDoesNotExist', ResponseTest.create_contextDoesNotExist);
@@ -51,6 +52,14 @@ class RequestTest {
     String name = 'name';
     Request request = new Request('0', '');
     expect(() => request.getRequiredParameter(name), throwsA(new isInstanceOf<RequestFailure>()));
+  }
+
+  static void toJson() {
+    Request original = new Request('one', 'aMethod');
+    expect(original.toJson(), equals({
+      Request.ID: 'one',
+      Request.METHOD : 'aMethod'
+    }));
   }
 }
 

@@ -147,6 +147,20 @@ class Request {
     }
     throw new RequestFailure(new Response.expectedInteger(this, value));
   }
+
+  /**
+   * Return a table representing the structure of the Json object that will be
+   * sent to the client to represent this response.
+   */
+  Map<String, Object> toJson() {
+    Map jsonObject = new Map();
+    jsonObject[ID] = id;
+    jsonObject[METHOD] = method;
+    params.forEach((String key, Object value) {
+      jsonObject[key] = value;
+    });
+    return jsonObject;
+  }
 }
 
 /**

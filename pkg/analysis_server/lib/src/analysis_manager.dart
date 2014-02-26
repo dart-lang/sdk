@@ -24,9 +24,9 @@ class AnalysisManager {
   Process process;
 
   /**
-   * The socket used to communicate with the analysis server.
+   * The channel used to communicate with the analysis server.
    */
-  WebSocket socket;
+  CommunicationChannel channel;
 
   /**
    * Launch analysis server in a separate process
@@ -100,7 +100,7 @@ class AnalysisManager {
       return WebSocket.connect(serverUrl)
           .catchError(onError)
           .then((WebSocket socket) {
-            this.socket = socket;
+            this.channel = new WebSocketChannel(socket);
             return this;
           });
     } catch (error) {
@@ -119,10 +119,8 @@ class AnalysisManager {
     if (process == null) {
       return new Future.value(false);
     }
-    var shutdownRequest = {
-        Request.ID : '0',
-        Request.METHOD : ServerDomainHandler.SHUTDOWN_METHOD };
-    socket.add(JSON.encoder.convert(shutdownRequest));
+    var request = new Request('0', ServerDomainHandler.SHUTDOWN_METHOD);
+    channel.sendRequest(request);
     return process.exitCode
         .timeout(new Duration(seconds: 10))
         .catchError((error) {
