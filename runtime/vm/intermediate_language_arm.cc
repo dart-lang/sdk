@@ -1639,7 +1639,8 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps,
-          (field().guarded_cid() == kIllegalCid) || (is_initialization_)
+          !field().IsNull() &&
+          ((field().guarded_cid() == kIllegalCid) || is_initialization_)
           ? LocationSummary::kCallOnSlowPath
           : LocationSummary::kNoCall);
 
@@ -1701,10 +1702,10 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ Bind(slow_path->exit_label());
       __ MoveRegister(temp2, temp);
       __ StoreIntoObject(instance_reg,
-                         FieldAddress(instance_reg, field().Offset()),
+                         FieldAddress(instance_reg, offset_in_bytes_),
                          temp2);
     } else {
-      __ ldr(temp, FieldAddress(instance_reg, field().Offset()));
+      __ ldr(temp, FieldAddress(instance_reg, offset_in_bytes_));
     }
     switch (cid) {
       case kDoubleCid:
@@ -1769,7 +1770,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           new StoreInstanceFieldSlowPath(this, compiler->double_class());
       compiler->AddSlowPathCode(slow_path);
 
-      __ ldr(temp, FieldAddress(instance_reg, field().Offset()));
+      __ ldr(temp, FieldAddress(instance_reg, offset_in_bytes_));
       __ CompareImmediate(temp,
                           reinterpret_cast<intptr_t>(Object::null()));
       __ b(&copy_double, NE);
@@ -1781,7 +1782,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ Bind(slow_path->exit_label());
       __ MoveRegister(temp2, temp);
       __ StoreIntoObject(instance_reg,
-                         FieldAddress(instance_reg, field().Offset()),
+                         FieldAddress(instance_reg, offset_in_bytes_),
                          temp2);
       __ Bind(&copy_double);
       __ LoadDFromOffset(fpu_temp,
@@ -1800,7 +1801,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           new StoreInstanceFieldSlowPath(this, compiler->float32x4_class());
       compiler->AddSlowPathCode(slow_path);
 
-      __ ldr(temp, FieldAddress(instance_reg, field().Offset()));
+      __ ldr(temp, FieldAddress(instance_reg, offset_in_bytes_));
       __ CompareImmediate(temp,
                           reinterpret_cast<intptr_t>(Object::null()));
       __ b(&copy_float32x4, NE);
@@ -1812,7 +1813,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ Bind(slow_path->exit_label());
       __ MoveRegister(temp2, temp);
       __ StoreIntoObject(instance_reg,
-                         FieldAddress(instance_reg, field().Offset()),
+                         FieldAddress(instance_reg, offset_in_bytes_),
                          temp2);
       __ Bind(&copy_float32x4);
       // TODO(zra): Maybe use vldmd here.
@@ -1833,19 +1834,19 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (ShouldEmitStoreBarrier()) {
     Register value_reg = locs()->in(1).reg();
     __ StoreIntoObject(instance_reg,
-                       FieldAddress(instance_reg, field().Offset()),
+                       FieldAddress(instance_reg, offset_in_bytes_),
                        value_reg,
                        CanValueBeSmi());
   } else {
     if (locs()->in(1).IsConstant()) {
       __ StoreIntoObjectNoBarrier(
           instance_reg,
-          FieldAddress(instance_reg, field().Offset()),
+          FieldAddress(instance_reg, offset_in_bytes_),
           locs()->in(1).constant());
     } else {
       Register value_reg = locs()->in(1).reg();
       __ StoreIntoObjectNoBarrier(instance_reg,
-          FieldAddress(instance_reg, field().Offset()), value_reg);
+          FieldAddress(instance_reg, offset_in_bytes_), value_reg);
     }
   }
   __ Bind(&skip_store);
@@ -4985,32 +4986,6 @@ void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadObject(result, Bool::True());
   __ cmp(result, ShifterOperand(value));
   __ LoadObject(result, Bool::False(), EQ);
-}
-
-
-LocationSummary* StoreVMFieldInstr::MakeLocationSummary(bool opt) const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, value()->NeedsStoreBuffer() ? Location::WritableRegister()
-                                              : Location::RequiresRegister());
-  locs->set_in(1, Location::RequiresRegister());
-  return locs;
-}
-
-
-void StoreVMFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register value_reg = locs()->in(0).reg();
-  Register dest_reg = locs()->in(1).reg();
-
-  if (value()->NeedsStoreBuffer()) {
-    __ StoreIntoObject(dest_reg, FieldAddress(dest_reg, offset_in_bytes()),
-                       value_reg);
-  } else {
-    __ StoreIntoObjectNoBarrier(
-        dest_reg, FieldAddress(dest_reg, offset_in_bytes()), value_reg);
-  }
 }
 
 

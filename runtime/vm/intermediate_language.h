@@ -648,7 +648,6 @@ class EmbeddedArray<T, 0> {
   M(CreateClosure)                                                             \
   M(AllocateObject)                                                            \
   M(LoadField)                                                                 \
-  M(StoreVMField)                                                              \
   M(LoadUntagged)                                                              \
   M(LoadClassId)                                                               \
   M(InstantiateType)                                                           \
@@ -3490,6 +3489,20 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
                           StoreBarrierType emit_store_barrier,
                           bool is_initialization = false)
       : field_(field),
+        offset_in_bytes_(field.Offset()),
+        emit_store_barrier_(emit_store_barrier),
+        is_initialization_(is_initialization) {
+    SetInputAt(kInstancePos, instance);
+    SetInputAt(kValuePos, value);
+  }
+
+  StoreInstanceFieldInstr(intptr_t offset_in_bytes,
+                          Value* instance,
+                          Value* value,
+                          StoreBarrierType emit_store_barrier,
+                          bool is_initialization = false)
+      : field_(Field::Handle()),
+        offset_in_bytes_(offset_in_bytes),
         emit_store_barrier_(emit_store_barrier),
         is_initialization_(is_initialization) {
     SetInputAt(kInstancePos, instance);
@@ -3509,6 +3522,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
   virtual CompileType* ComputeInitialType() const;
 
   const Field& field() const { return field_; }
+  intptr_t offset_in_bytes() const { return offset_in_bytes_; }
 
   bool ShouldEmitStoreBarrier() const {
     return value()->NeedsStoreBuffer()
@@ -3548,6 +3562,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
   }
 
   const Field& field_;
+  intptr_t offset_in_bytes_;
   const StoreBarrierType emit_store_barrier_;
   const bool is_initialization_;  // Marks stores in the constructor.
 
@@ -4245,6 +4260,21 @@ class LoadFieldInstr : public TemplateDefinition<1> {
     SetInputAt(0, instance);
   }
 
+  LoadFieldInstr(Value* instance,
+                 const Field* field,
+                 const AbstractType& type,
+                 bool immutable = false)
+      : offset_in_bytes_(field->Offset()),
+        type_(type),
+        result_cid_(kDynamicCid),
+        immutable_(immutable),
+        recognized_kind_(MethodRecognizer::kUnknown),
+        field_(field) {
+    ASSERT(field->IsZoneHandle());
+    ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
+    SetInputAt(0, instance);
+  }
+
   Value* instance() const { return inputs_[0]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
   const AbstractType& type() const { return type_; }
@@ -4252,7 +4282,6 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   intptr_t result_cid() const { return result_cid_; }
 
   const Field* field() const { return field_; }
-  void set_field(const Field* field) { field_ = field; }
 
   virtual Representation representation() const;
 
@@ -4303,47 +4332,6 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   const Field* field_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadFieldInstr);
-};
-
-
-class StoreVMFieldInstr : public TemplateDefinition<2> {
- public:
-  StoreVMFieldInstr(Value* dest,
-                    intptr_t offset_in_bytes,
-                    Value* value,
-                    const AbstractType& type)
-      : offset_in_bytes_(offset_in_bytes), type_(type) {
-    ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
-    SetInputAt(kValuePos, value);
-    SetInputAt(kObjectPos, dest);
-  }
-
-  enum {
-    kValuePos = 0,
-    kObjectPos = 1
-  };
-
-  DECLARE_INSTRUCTION(StoreVMField)
-  virtual CompileType* ComputeInitialType() const;
-
-  Value* value() const { return inputs_[kValuePos]; }
-  Value* dest() const { return inputs_[kObjectPos]; }
-  intptr_t offset_in_bytes() const { return offset_in_bytes_; }
-  const AbstractType& type() const { return type_; }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  const intptr_t offset_in_bytes_;
-  const AbstractType& type_;
-
-  DISALLOW_COPY_AND_ASSIGN(StoreVMFieldInstr);
 };
 
 

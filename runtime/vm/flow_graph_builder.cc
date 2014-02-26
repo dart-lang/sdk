@@ -705,13 +705,10 @@ Definition* EffectGraphVisitor::BuildLoadExprTemp() {
 }
 
 
-Definition* EffectGraphVisitor::BuildStoreLocal(
-    const LocalVariable& local, Value* value, bool result_is_needed) {
+Definition* EffectGraphVisitor::BuildStoreLocal(const LocalVariable& local,
+                                                Value* value) {
   if (local.is_captured()) {
-    if (result_is_needed) {
-      value = Bind(BuildStoreExprTemp(value));
-    }
-
+    LocalVariable* tmp_var = EnterTempLocalScope(value);
     intptr_t delta =
         owner()->context_level() - local.owner()->context_level();
     ASSERT(delta >= 0);
@@ -720,18 +717,14 @@ Definition* EffectGraphVisitor::BuildStoreLocal(
       context = Bind(new LoadFieldInstr(
           context, Context::parent_offset(), Type::ZoneHandle()));
     }
-
-    StoreVMFieldInstr* store =
-        new StoreVMFieldInstr(context,
-                              Context::variable_offset(local.index()),
-                              value,
-                              local.type());
-    if (result_is_needed) {
-      Do(store);
-      return BuildLoadExprTemp();
-    } else {
-      return store;
-    }
+    Value* tmp_val = Bind(new LoadLocalInstr(*tmp_var));
+    StoreInstanceFieldInstr* store =
+        new StoreInstanceFieldInstr(Context::variable_offset(local.index()),
+                                    context,
+                                    tmp_val,
+                                    kEmitStoreBarrier);
+    Do(store);
+    return ExitTempLocalScope(tmp_var);
   } else {
     return new StoreLocalInstr(local, value);
   }
@@ -760,7 +753,7 @@ Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
 // Stores current context into the 'variable'
 void EffectGraphVisitor::BuildSaveContext(const LocalVariable& variable) {
   Value* context = Bind(new CurrentContextInstr());
-  Do(BuildStoreLocal(variable, context, kResultNotNeeded));
+  Do(BuildStoreLocal(variable, context));
 }
 
 
@@ -953,7 +946,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
 
   if (node->inlined_finally_list_length() > 0) {
     LocalVariable* temp = node->saved_return_value_var();
-    Do(BuildStoreLocal(*temp, return_value, kResultNotNeeded));
+    Do(BuildStoreLocal(*temp, return_value));
     for (intptr_t i = 0; i < node->inlined_finally_list_length(); i++) {
       InlineBailout("EffectGraphVisitor::VisitReturnNode (exception)");
       EffectGraphVisitor for_effect(owner());
@@ -3097,8 +3090,7 @@ void ValueGraphVisitor::VisitLoadLocalNode(LoadLocalNode* node) {
 
 // <Expression> ::= StoreLocal { local: LocalVariable
 //                               value: <Expression> }
-void EffectGraphVisitor::HandleStoreLocal(StoreLocalNode* node,
-                                          bool result_is_needed) {
+void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
   // If the right hand side is an expression that does not contain
   // a safe point for the debugger to stop, add an explicit stub
   // call.
@@ -3118,20 +3110,8 @@ void EffectGraphVisitor::HandleStoreLocal(StoreLocalNode* node,
                                        node->local().type(),
                                        node->local().name());
   }
-  Definition* store = BuildStoreLocal(node->local(),
-                                      store_value,
-                                      result_is_needed);
+  Definition* store = BuildStoreLocal(node->local(), store_value);
   ReturnDefinition(store);
-}
-
-
-void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
-  HandleStoreLocal(node, kResultNotNeeded);
-}
-
-
-void ValueGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
-  HandleStoreLocal(node, kResultNeeded);
 }
 
 
@@ -3142,9 +3122,8 @@ void EffectGraphVisitor::VisitLoadInstanceFieldNode(
   Append(for_instance);
   LoadFieldInstr* load = new LoadFieldInstr(
       for_instance.value(),
-      node->field().Offset(),
+      &node->field(),
       AbstractType::ZoneHandle(node->field().type()));
-  load->set_field(&node->field());
   if (owner()->exit_collector() != NULL) {
     // While inlining into an optimized function, the field has
     // to be added to the list of guarded fields of the caller.
@@ -3460,6 +3439,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       // allocated context but saved on entry and restored on exit as to prevent
       // memory leaks.
       // In this case, the parser pre-allocates a variable to save the context.
+      Value* tmp_val = Bind(new LoadLocalInstr(*tmp_var));
       Value* parent_context = NULL;
       if (MustSaveRestoreContext(node)) {
         BuildSaveContext(
@@ -3468,11 +3448,10 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       } else {
         parent_context = Bind(new CurrentContextInstr());
       }
-      Value* tmp_val = Bind(new LoadLocalInstr(*tmp_var));
-      Do(new StoreVMFieldInstr(tmp_val,
-                               Context::parent_offset(),
-                               parent_context,
-                               Type::ZoneHandle()));
+      Do(new StoreInstanceFieldInstr(Context::parent_offset(),
+                                     tmp_val,
+                                     parent_context,
+                                     kEmitStoreBarrier));
       AddInstruction(
           new StoreContextInstr(Bind(ExitTempLocalScope(tmp_var))));
     }
@@ -3500,13 +3479,13 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
 
           // Copy parameter from local frame to current context.
           Value* load = Bind(BuildLoadLocal(*temp_local));
-          Do(BuildStoreLocal(parameter, load, kResultNotNeeded));
+          Do(BuildStoreLocal(parameter, load));
           // Write NULL to the source location to detect buggy accesses and
           // allow GC of passed value if it gets overwritten by a new value in
           // the function.
           Value* null_constant =
               Bind(new ConstantInstr(Object::ZoneHandle()));
-          Do(BuildStoreLocal(*temp_local, null_constant, kResultNotNeeded));
+          Do(BuildStoreLocal(*temp_local, null_constant));
         }
       }
     }
@@ -3542,7 +3521,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         // Store the type checked argument back to its corresponding local
         // variable so that ssa renaming detects the dependency and makes use
         // of the checked type in type propagation.
-        Do(BuildStoreLocal(parameter, parameter_value, kResultNotNeeded));
+        Do(BuildStoreLocal(parameter, parameter_value));
       }
       pos++;
     }

@@ -991,11 +991,6 @@ CompileType LoadFieldInstr::ComputeType() const {
 }
 
 
-CompileType* StoreVMFieldInstr::ComputeInitialType() const {
-  return value()->Type();
-}
-
-
 CompileType BinarySmiOpInstr::ComputeType() const {
   return CompileType::FromCid(kSmiCid);
 }
