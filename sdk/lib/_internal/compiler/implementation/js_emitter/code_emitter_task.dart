@@ -1277,7 +1277,7 @@ mainBuffer.add(r'''
 
       // Using a named function here produces easier to read stack traces in
       // Chrome/V8.
-      mainBuffer.add('function dart() {}');
+      mainBuffer.add('function dart(){${_}this.x$_=${_}0$_}');
       for (String globalObject in Namer.reservedGlobalObjectNames) {
         // The global objects start as so-called "slow objects". For V8, this
         // means that it won't try to make map transitions as we add properties
