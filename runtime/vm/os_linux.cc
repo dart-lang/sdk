@@ -41,7 +41,7 @@ DEFINE_FLAG(bool, ll_prof, false,
     "Generate compiled code log file for processing with ll_prof.py.");
 DEFINE_FLAG(charp, generate_pprof_symbols, NULL,
     "Writes pprof events symbols to the provided file");
-DEFINE_FLAG(bool, generate_perf_jitdump, true,
+DEFINE_FLAG(bool, generate_perf_jitdump, false,
     "Writes jitdump data for profiling with perf annotate");
 
 class LowLevelProfileCodeObserver : public CodeObserver {
