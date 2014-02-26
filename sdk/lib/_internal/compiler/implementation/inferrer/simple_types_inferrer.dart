@@ -602,6 +602,19 @@ class SimpleTypeInferrerVisitor<T>
     return type;
   }
 
+  T visitStringInterpolation(ast.StringInterpolation node) {
+    // Interpolation could have any effects since it could call any toString()
+    // method.
+    // TODO(sra): This could be modelled by a call to toString() but with a
+    // guaranteed String return type.  Interpolation of known types would get
+    // specialized effects.  This would not currently be effective since the JS
+    // code in the toString methods for intercepted primitive types is assumed
+    // to have all effects.  Effect annotations on JS code would be needed to
+    // get the benefit.
+    sideEffects.setAllSideEffects();
+    return super.visitStringInterpolation(node);
+  }
+
   T visitLiteralList(ast.LiteralList node) {
     // We only set the type once. We don't need to re-visit the children
     // when re-analyzing the node.
@@ -1016,10 +1029,11 @@ class SimpleTypeInferrerVisitor<T>
           compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
       sideEffects.add(nativeBehavior.sideEffects);
       return inferrer.typeOfNativeBehavior(nativeBehavior);
-    } else if (name == 'JS_OPERATOR_IS_PREFIX'
-               || name == 'JS_OPERATOR_AS_PREFIX'
+    } else if (name == 'JS_GET_NAME'
+               || name == 'JS_NULL_CLASS_NAME'
                || name == 'JS_OBJECT_CLASS_NAME'
-               || name == 'JS_NULL_CLASS_NAME') {
+               || name == 'JS_OPERATOR_IS_PREFIX'
+               || name == 'JS_OPERATOR_AS_PREFIX') {
       return types.stringType;
     } else {
       sideEffects.setAllSideEffects();
