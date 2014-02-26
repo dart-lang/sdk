@@ -167,6 +167,8 @@ convert/utf85_test: Pass, Slow # Issue 12029.
 [ $compiler == dart2js ]
 convert/chunked_conversion_utf88_test: Slow, Pass
 convert/utf85_test: Slow, Pass
+mirrors/globalized_closures_test/00: RuntimeError # Issue 17118. Please remove the multi-test comments when this test starts succeeding.
+mirrors/globalized_closures2_test/00: RuntimeError # Issue 17118. Please remove the multi-test comments when this test starts succeeding.
 
 
 [ $compiler == dart2js && $browser ]

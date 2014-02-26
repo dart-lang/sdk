@@ -679,6 +679,12 @@ class CodeEmitterTask extends CompilerTask {
       // marking the function as invokable by reflection.
       return '$name=';
     }
+    if (elementOrSelector is Element && elementOrSelector.isClosure()) {
+      // Closures are synthesized and their name might conflict with existing
+      // globals. Assign an illegal name, and make sure they don't clash
+      // with each other.
+      return " $mangledName";
+    }
     if (elementOrSelector is Selector
         || elementOrSelector.isFunction()
         || elementOrSelector.isConstructor()) {
