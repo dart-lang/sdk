@@ -5,7 +5,7 @@
 \usepackage{hyperref}
 \newcommand{\code}[1]{{\sf #1}}
 \title{Dart Programming Language  Specification \\
-{\large Version 1.11}}
+{\large Version 1.2}}
 \author{The Dart Team}
 \begin{document}
 \maketitle
@@ -209,7 +209,9 @@ Good tooling should of course endeavor to inform programmers of such situations 
 \subsection{Privacy}
 \label{privacy}
 
-Dart supports two levels of privacy: {\em public} and {\em private}. A declaration is {\em private} iff its name begins with an underscore (the \_ character) otherwise it is {\em public.} 
+Dart supports two levels of privacy: {\em public} and {\em private}.  A declaration is {\em private} iff its name is private, otherwise it is {\em public.}  A  name $q$ is private iff any one of the identifiers that comprise $q$ is private,  otherwise it is {\em public.}  An identifier is private iff it
+begins with an underscore (the \_ character) otherwise it is {\em public.} 
+
 A declaration $m$ is {\em accessible to library $L$}  if $m$ is declared in $L$ or if $m$ is public.
 
 \commentary{
@@ -218,9 +220,8 @@ This means private declarations may only be accessed within the library in which
 
 Privacy applies only to declarations within a library, not to library declarations themselves. 
 
-\rationale{
-Libraries do not reference each other by name and so the idea of a private library is meaningless.
-Thus, if the name of a library begins with an underscore, it has no special significance.
+\rationale{Libraries do not reference each other by name and so the idea of a private library is meaningless.
+Thus, if the name of a library begins with an underscore, it has no effect on the accessibility of the library or its members.
 }
 
 \rationale{Privacy is, at this point, a static notion tied to a particular piece of code (a library). It is designed to support software engineering concerns rather than security concerns. Untrusted code should always run in an another isolate.  It is possible that libraries will become first class objects and privacy will be a dynamic notion tied to a library instance.
@@ -1667,7 +1668,7 @@ Let $J$ be an interface and $K$ be a library. We define $inherited(J, K)$  to be
 \item $m$ is accessible to $K$ and 
 \item $A$ is a direct superinterface of $J$ and either 
   \begin{itemize}
-  \item $m$ is a member of  $A$  or
+  \item $A$ declares a member $m$  or
   \item $m$ is a member of $inherited(A, K)$.
   \end{itemize}
 \item $m$ is not overridden by $J$.
@@ -1681,7 +1682,7 @@ Furthermore, we define $overrides(J, K)$  to be the set of members $m^\prime$ su
 \item $m^\prime$ is accessible to $K$.  
 \item $A$ is a direct superinterface of $J$ and either
   \begin{itemize}
-  \item $m^\prime$ is a member of $A$ or 
+  \item $A$ declares a member $m^\prime$ or 
   \item $m^\prime$ is a member of $inherited(A, K)$.
   \end{itemize}
 \end{itemize}
@@ -4832,7 +4833,7 @@ It is a dynamic type error if $o$ is not of type \code{bool} or of type \code{Fu
 
 A Dart program consists of one or more libraries, and may be built out of one or more {\em compilation units}. A compilation unit may be a library or a part (\ref{parts}). 
 
-A library consists of (a possibly empty) set of imports, a set of exports, and a set of top-level declarations. A top-level declaration is either a class (\ref{classes}), a type alias declaration (\ref{typedef}), a function (\ref{functions}) or a variable declaration (\ref{variables}). The members of a library $L$ are those top level declarations given within a $L$.
+A library consists of (a possibly empty) set of imports, a set of exports,  and a set of top-level declarations. A top-level declaration is either a class (\ref{classes}), a type alias declaration (\ref{typedef}), a function (\ref{functions}) or a variable declaration (\ref{variables}). The members of a library $L$ are those top level declarations given within a $L$.
 
  \begin{grammar}
 {\bf topLevelDefinition:}classDefinition;
