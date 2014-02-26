@@ -29,6 +29,7 @@ collection/test/equality_test/none: Pass, Fail # Issue 14348
 third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 docgen/test/multi_library_test: Slow, Pass # issue 17060
+third_party/angular_tests/browser_test/core/parser/parser: RuntimeError # Issue 17073
 
 [ $compiler == dart2js && $checked ]
 crypto/test/base64_test: Slow, Pass
