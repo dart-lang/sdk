@@ -109,8 +109,6 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Creates('Null')", # JS date object.
     ],
 
-    'FileReader.result': ["@Creates('String|NativeByteBuffer|Null')"],
-
     'FocusEvent.relatedTarget': [
       "@Creates('Null')",
     ],

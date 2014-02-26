@@ -12729,7 +12729,7 @@ class FileList extends Interceptor with ListMixin<File>, ImmutableListMixin<File
   @DocsEditable()
   File item(int index) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12737,6 +12737,17 @@ class FileList extends Interceptor with ListMixin<File>, ImmutableListMixin<File
 @DocsEditable()
 @DomName('FileReader')
 class FileReader extends EventTarget native "FileReader" {
+
+  @DomName('FileReader.result')
+  @DocsEditable()
+  Object get result {
+    var res = JS('Null|String|NativeByteBuffer', '#.result', this);
+    if (res is ByteBuffer) {
+      return new Uint8List.view(res);
+    }
+    return res;
+  }
+
   // To suppress missing implicit constructor warnings.
   factory FileReader._() { throw new UnsupportedError("Not supported"); }
 
@@ -12827,11 +12838,6 @@ class FileReader extends EventTarget native "FileReader" {
   @DocsEditable()
   final int readyState;
 
-  @DomName('FileReader.result')
-  @DocsEditable()
-  @Creates('String|NativeByteBuffer|Null')
-  final Object result;
-
   @DomName('FileReader.abort')
   @DocsEditable()
   void abort() native;
@@ -12878,6 +12884,7 @@ class FileReader extends EventTarget native "FileReader" {
   @DomName('FileReader.onprogress')
   @DocsEditable()
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
