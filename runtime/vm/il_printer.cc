@@ -311,6 +311,12 @@ const char* RangeBoundary::ToCString() const {
 }
 
 
+void DropTempsInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%" Pd ", ", num_temps());
+  value()->PrintTo(f);
+}
+
+
 void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
   f->Print(", %s, '%s'",
@@ -500,15 +506,6 @@ void CreateArrayInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
   if (ArgumentCount() > 0) f->Print(", ");
   element_type()->PrintTo(f);
-}
-
-
-void CreateClosureInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", function().ToCString());
-  for (intptr_t i = 0; i < ArgumentCount(); ++i) {
-    if (i > 0) f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
-  }
 }
 
 

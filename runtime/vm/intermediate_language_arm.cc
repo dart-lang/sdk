@@ -5004,25 +5004,6 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Drop(ArgumentCount());  // Discard arguments.
 }
 
-
-LocationSummary* CreateClosureInstr::MakeLocationSummary(bool opt) const {
-  return MakeCallSummary();
-}
-
-
-void CreateClosureInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Function& closure_function = function();
-  ASSERT(!closure_function.IsImplicitStaticClosureFunction());
-  const Code& stub = Code::Handle(
-      StubCode::GetAllocationStubForClosure(closure_function));
-  const ExternalLabel label(closure_function.ToCString(), stub.EntryPoint());
-  compiler->GenerateCall(token_pos(),
-                         &label,
-                         PcDescriptors::kOther,
-                         locs());
-  __ Drop(2);  // Discard type arguments and receiver.
-}
-
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM

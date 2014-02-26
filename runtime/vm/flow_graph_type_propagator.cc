@@ -930,15 +930,6 @@ CompileType CreateArrayInstr::ComputeType() const {
 }
 
 
-CompileType CreateClosureInstr::ComputeType() const {
-  const Function& fun = function();
-  const Class& signature_class = Class::Handle(fun.signature_class());
-  return CompileType::FromAbstractType(
-      Type::ZoneHandle(signature_class.SignatureType()),
-      CompileType::kNonNullable);
-}
-
-
 CompileType AllocateObjectInstr::ComputeType() const {
   if (!closure_function().IsNull()) {
     ASSERT(cls().raw() == closure_function().signature_class());

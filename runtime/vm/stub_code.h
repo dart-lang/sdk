@@ -156,7 +156,6 @@ class StubCode {
 #undef STUB_CODE_ACCESSOR
 
   static RawCode* GetAllocationStubForClass(const Class& cls);
-  static RawCode* GetAllocationStubForClosure(const Function& func);
 
   static const intptr_t kNoInstantiator = 0;
 
@@ -192,8 +191,6 @@ class StubCode {
   static void GenerateMegamorphicMissStub(Assembler* assembler);
   static void GenerateAllocationStubForClass(Assembler* assembler,
                                              const Class& cls);
-  static void GenerateAllocationStubForClosure(Assembler* assembler,
-                                               const Function& func);
   static void GenerateNArgsCheckInlineCacheStub(
       Assembler* assembler,
       intptr_t num_args,

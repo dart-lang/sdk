@@ -206,53 +206,6 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
 }
 
 
-// TODO(regis): Not used anymore. Delete.
-
-// Allocate a new closure.
-// The type argument vector of a closure is always the vector of type parameters
-// of its signature class, i.e. an uninstantiated identity vector. Therefore,
-// the instantiator type arguments can be used as the instantiated closure type
-// arguments and is passed here as the type arguments.
-// Arg0: local function.
-// Arg1: type arguments of the closure (i.e. instantiator).
-// Return value: newly allocated closure.
-DEFINE_RUNTIME_ENTRY(AllocateClosure, 2) {
-  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
-  ASSERT(function.IsClosureFunction() && !function.IsImplicitClosureFunction());
-  const TypeArguments& type_arguments =
-      TypeArguments::CheckedHandle(arguments.ArgAt(1));
-  ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
-  // The current context was saved in the Isolate structure when entering the
-  // runtime.
-  const Context& context = Context::Handle(isolate->top_context());
-  ASSERT(!context.IsNull());
-  const Instance& closure = Instance::Handle(Closure::New(function, context));
-  Closure::SetTypeArguments(closure, type_arguments);
-  arguments.SetReturn(closure);
-}
-
-
-// Allocate a new implicit instance closure.
-// Arg0: local function.
-// Arg1: receiver object.
-// Arg2: type arguments of the closure.
-// Return value: newly allocated closure.
-DEFINE_RUNTIME_ENTRY(AllocateImplicitInstanceClosure, 3) {
-  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
-  ASSERT(function.IsImplicitInstanceClosureFunction());
-  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(1));
-  const TypeArguments& type_arguments =
-      TypeArguments::CheckedHandle(arguments.ArgAt(2));
-  ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
-  Context& context = Context::Handle();
-  context = Context::New(1);
-  context.SetAt(0, receiver);
-  const Instance& closure = Instance::Handle(Closure::New(function, context));
-  Closure::SetTypeArguments(closure, type_arguments);
-  arguments.SetReturn(closure);
-}
-
-
 // Allocate a new context large enough to hold the given number of variables.
 // Arg0: number of variables.
 // Return value: newly allocated context.

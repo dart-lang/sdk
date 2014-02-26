@@ -645,7 +645,6 @@ class EmbeddedArray<T, 0> {
   M(BooleanNegate)                                                             \
   M(InstanceOf)                                                                \
   M(CreateArray)                                                               \
-  M(CreateClosure)                                                             \
   M(AllocateObject)                                                            \
   M(LoadField)                                                                 \
   M(LoadUntagged)                                                              \
@@ -3348,6 +3347,8 @@ class DropTempsInstr : public TemplateDefinition<1> {
 
   virtual CompileType* ComputeInitialType() const;
 
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
   virtual bool CanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const {
@@ -4139,43 +4140,6 @@ class CreateArrayInstr : public TemplateDefinition<2> {
   const intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateArrayInstr);
-};
-
-
-class CreateClosureInstr : public TemplateDefinition<0> {
- public:
-  CreateClosureInstr(const Function& function,
-                     ZoneGrowableArray<PushArgumentInstr*>* arguments,
-                     intptr_t token_pos)
-      : function_(function),
-        arguments_(arguments),
-        token_pos_(token_pos) { }
-
-  DECLARE_INSTRUCTION(CreateClosure)
-  virtual CompileType ComputeType() const;
-
-  intptr_t token_pos() const { return token_pos_; }
-  const Function& function() const { return function_; }
-
-  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
-  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
-    return (*arguments_)[index];
-  }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  const Function& function_;
-  ZoneGrowableArray<PushArgumentInstr*>* arguments_;
-  intptr_t token_pos_;
-
-  DISALLOW_COPY_AND_ASSIGN(CreateClosureInstr);
 };
 
 

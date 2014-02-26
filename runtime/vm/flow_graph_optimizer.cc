@@ -7247,12 +7247,6 @@ void ConstantPropagator::VisitCreateArray(CreateArrayInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitCreateClosure(CreateClosureInstr* instr) {
-  // TODO(kmillikin): Treat closures as constants.
-  SetValue(instr, non_constant_);
-}
-
-
 void ConstantPropagator::VisitAllocateObject(AllocateObjectInstr* instr) {
   SetValue(instr, non_constant_);
 }

@@ -810,11 +810,6 @@ class CallSiteInliner : public ValueObject {
       // Find the closure of the callee.
       ASSERT(call->ArgumentCount() > 0);
       Function& target = Function::ZoneHandle();
-      CreateClosureInstr* closure =
-          call->ArgumentAt(0)->AsCreateClosure();
-      if (closure != NULL) {
-        target ^= closure->function().raw();
-      }
       AllocateObjectInstr* alloc =
           call->ArgumentAt(0)->AsAllocateObject();
       if ((alloc != NULL) && !alloc->closure_function().IsNull()) {

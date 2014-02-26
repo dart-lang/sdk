@@ -2218,133 +2218,131 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
     ReturnDefinition(new ConstantInstr(closure));
     return;
   }
-  if (function.IsNonImplicitClosureFunction()) {
-    // The context scope may have already been set by the non-optimizing
-    // compiler.  If it was not, set it here.
-    if (function.context_scope() == ContextScope::null()) {
-      const ContextScope& context_scope = ContextScope::ZoneHandle(
-          node->scope()->PreserveOuterScope(owner()->context_level()));
-      ASSERT(!function.HasCode());
-      ASSERT(function.context_scope() == ContextScope::null());
-      function.set_context_scope(context_scope);
-      const Class& cls = Class::Handle(
-          owner()->parsed_function()->function().Owner());
-      // The closure is now properly setup, add it to the lookup table.
+  const bool is_implicit = function.IsImplicitInstanceClosureFunction();
+  ASSERT(is_implicit || function.IsNonImplicitClosureFunction());
+  // The context scope may have already been set by the non-optimizing
+  // compiler.  If it was not, set it here.
+  if (function.context_scope() == ContextScope::null()) {
+    ASSERT(!is_implicit);
+    const ContextScope& context_scope = ContextScope::ZoneHandle(
+        node->scope()->PreserveOuterScope(owner()->context_level()));
+    ASSERT(!function.HasCode());
+    ASSERT(function.context_scope() == ContextScope::null());
+    function.set_context_scope(context_scope);
+    const Class& cls = Class::Handle(
+        owner()->parsed_function()->function().Owner());
+    // The closure is now properly setup, add it to the lookup table.
 #if DEBUG
-      const Function& found_func = Function::Handle(
-          cls.LookupClosureFunction(function.token_pos()));
-      ASSERT(found_func.IsNull() ||
-             (found_func.token_pos() != function.token_pos()) ||
-             // TODO(hausner): The following check should not be necessary.
-             // Since we only lookup based on the token_pos we can get
-             // duplicate entries due to closurized and non-closurized parent
-             // functions (see Parser::ParseFunctionStatement).
-             // We need two ways to lookup in this cache: One way to cache the
-             // appropriate closure function and one way to find the functions
-             // while debugging (we might need to set breakpoints in multiple
-             // different function for a single token index.)
-             (found_func.parent_function() != function.parent_function()));
+    const Function& found_func = Function::Handle(
+        cls.LookupClosureFunction(function.token_pos()));
+    ASSERT(found_func.IsNull() ||
+           (found_func.token_pos() != function.token_pos()) ||
+           // TODO(hausner): The following check should not be necessary.
+           // Since we only lookup based on the token_pos we can get
+           // duplicate entries due to closurized and non-closurized parent
+           // functions (see Parser::ParseFunctionStatement).
+           // We need two ways to lookup in this cache: One way to cache the
+           // appropriate closure function and one way to find the functions
+           // while debugging (we might need to set breakpoints in multiple
+           // different function for a single token index.)
+           (found_func.parent_function() != function.parent_function()));
 #endif  // DEBUG
-      cls.AddClosureFunction(function);
-    }
-    ZoneGrowableArray<PushArgumentInstr*>* arguments =
-        new ZoneGrowableArray<PushArgumentInstr*>(2);
-    ASSERT(function.context_scope() != ContextScope::null());
+    cls.AddClosureFunction(function);
+  }
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(1);
+  ASSERT(function.context_scope() != ContextScope::null());
 
-    // The function type of a closure may have type arguments. In that case,
-    // pass the type arguments of the instantiator.
-    const Class& cls = Class::ZoneHandle(function.signature_class());
-    ASSERT(!cls.IsNull());
-    const bool requires_type_arguments = cls.NumTypeArguments() > 0;
-    Value* type_arguments = NULL;
-    if (requires_type_arguments) {
-      ASSERT(cls.type_arguments_field_offset() ==
-             Closure::type_arguments_offset());
-      const Class& instantiator_class = Class::Handle(
-          owner()->parsed_function()->function().Owner());
-      type_arguments = BuildInstantiatorTypeArguments(node->token_pos(),
-                                                      instantiator_class,
-                                                      NULL);
-      arguments->Add(PushArgument(type_arguments));
-    }
-    AllocateObjectInstr* alloc = new AllocateObjectInstr(node->token_pos(),
-                                                         cls,
-                                                         arguments);
-    alloc->set_closure_function(function);
+  // The function type of a closure may have type arguments. In that case,
+  // pass the type arguments of the instantiator.
+  const Class& cls = Class::ZoneHandle(function.signature_class());
+  ASSERT(!cls.IsNull());
+  const bool requires_type_arguments = cls.NumTypeArguments() > 0;
+  Value* type_arguments = NULL;
+  if (requires_type_arguments) {
+    ASSERT(cls.type_arguments_field_offset() ==
+           Closure::type_arguments_offset());
+    ASSERT(cls.instance_size() == Closure::InstanceSize());
+    const Class& instantiator_class = Class::Handle(
+        owner()->parsed_function()->function().Owner());
+    type_arguments = BuildInstantiatorTypeArguments(node->token_pos(),
+                                                    instantiator_class,
+                                                    NULL);
+    arguments->Add(PushArgument(type_arguments));
+  }
+  AllocateObjectInstr* alloc = new AllocateObjectInstr(node->token_pos(),
+                                                       cls,
+                                                       arguments);
+  alloc->set_closure_function(function);
 
-    // Create fake fields for function and context. Only the context field is
-    // stored at the allocation to be used later when inlining a closure call.
-    const Field& function_field =
-        Field::ZoneHandle(
-            Field::New(Symbols::ClosureFunctionField(),
-            false,  // !static
-            false,  // !final
-            false,  // !const
-            alloc->cls(),
-            0));  // No token position.
-    function_field.SetOffset(Closure::function_offset());
-    const Field& context_field =
-        Field::ZoneHandle(Field::New(
-            Symbols::ClosureContextField(),
-            false,  // !static
-            false,  // !final
-            false,  // !const
-            alloc->cls(),
-            0));  // No token position.
-    context_field.SetOffset(Closure::context_offset());
-    alloc->set_context_field(context_field);
+  // Create fake fields for function and context. Only the context field is
+  // stored at the allocation to be used later when inlining a closure call.
+  const Field& function_field =
+      Field::ZoneHandle(
+          Field::New(Symbols::ClosureFunctionField(),
+          false,  // !static
+          false,  // !final
+          false,  // !const
+          alloc->cls(),
+          0));  // No token position.
+  function_field.SetOffset(Closure::function_offset());
+  const Field& context_field =
+      Field::ZoneHandle(Field::New(
+          Symbols::ClosureContextField(),
+          false,  // !static
+          false,  // !final
+          false,  // !const
+          alloc->cls(),
+          0));  // No token position.
+  context_field.SetOffset(Closure::context_offset());
+  alloc->set_context_field(context_field);
 
-    Value* closure_val = Bind(alloc);
-    { LocalVariable* tmp_var = EnterTempLocalScope(closure_val);
-      // Store function.
-      Value* tmp_val = Bind(new LoadLocalInstr(*tmp_var));
-      Value* func_val =
-          Bind(new ConstantInstr(Function::ZoneHandle(function.raw())));
-      Do(new StoreInstanceFieldInstr(function_field,
-                                     tmp_val,
-                                     func_val,
-                                     kEmitStoreBarrier));
-      // Store current context.
-      tmp_val = Bind(new LoadLocalInstr(*tmp_var));
+  Value* closure_val = Bind(alloc);
+  { LocalVariable* closure_tmp_var = EnterTempLocalScope(closure_val);
+    // Store function.
+    Value* closure_tmp_val = Bind(new LoadLocalInstr(*closure_tmp_var));
+    Value* func_val =
+        Bind(new ConstantInstr(Function::ZoneHandle(function.raw())));
+    Do(new StoreInstanceFieldInstr(function_field,
+                                   closure_tmp_val,
+                                   func_val,
+                                   kEmitStoreBarrier));
+    if (is_implicit) {
+      // Create new context containing the receiver.
+      const intptr_t kNumContextVariables = 1;  // The receiver.
+      Value* allocated_context =
+          Bind(new AllocateContextInstr(node->token_pos(),
+                                        kNumContextVariables));
+      { LocalVariable* context_tmp_var = EnterTempLocalScope(allocated_context);
+        // Store receiver in context.
+        Value* context_tmp_val = Bind(new LoadLocalInstr(*context_tmp_var));
+        ValueGraphVisitor for_receiver(owner());
+        node->receiver()->Visit(&for_receiver);
+        Append(for_receiver);
+        Value* receiver = for_receiver.value();
+        Do(new StoreInstanceFieldInstr(Context::variable_offset(0),
+                                       context_tmp_val,
+                                       receiver,
+                                       kEmitStoreBarrier));
+        // Store new context in closure.
+        closure_tmp_val = Bind(new LoadLocalInstr(*closure_tmp_var));
+        context_tmp_val = Bind(new LoadLocalInstr(*context_tmp_var));
+        Do(new StoreInstanceFieldInstr(context_field,
+                                       closure_tmp_val,
+                                       context_tmp_val,
+                                       kEmitStoreBarrier));
+        Do(ExitTempLocalScope(context_tmp_var));
+      }
+    } else {
+      // Store current context in closure.
+      closure_tmp_val = Bind(new LoadLocalInstr(*closure_tmp_var));
       Value* context = Bind(new CurrentContextInstr());
       Do(new StoreInstanceFieldInstr(context_field,
-                                     tmp_val,
+                                     closure_tmp_val,
                                      context,
                                      kEmitStoreBarrier));
-      ReturnDefinition(ExitTempLocalScope(tmp_var));
     }
-  } else {
-    ASSERT(function.IsImplicitInstanceClosureFunction());
-    ValueGraphVisitor for_receiver(owner());
-    node->receiver()->Visit(&for_receiver);
-    Append(for_receiver);
-    Value* receiver = for_receiver.value();
-
-    PushArgumentInstr* push_receiver = PushArgument(receiver);
-    ZoneGrowableArray<PushArgumentInstr*>* arguments =
-        new ZoneGrowableArray<PushArgumentInstr*>(2);
-    arguments->Add(push_receiver);
-    ASSERT(function.context_scope() != ContextScope::null());
-
-    // The function type of a closure may have type arguments. In that case,
-    // pass the type arguments of the instantiator. Otherwise, pass null object.
-    const Class& cls = Class::Handle(function.signature_class());
-    ASSERT(!cls.IsNull());
-    const bool requires_type_arguments = cls.NumTypeArguments() > 0;
-    Value* type_arguments = NULL;
-    if (requires_type_arguments) {
-      const Class& instantiator_class = Class::Handle(
-          owner()->parsed_function()->function().Owner());
-      type_arguments = BuildInstantiatorTypeArguments(node->token_pos(),
-                                                      instantiator_class,
-                                                      NULL);
-    } else {
-      type_arguments = BuildNullValue();
-    }
-    PushArgumentInstr* push_type_arguments = PushArgument(type_arguments);
-    arguments->Add(push_type_arguments);
-    ReturnDefinition(
-        new CreateClosureInstr(node->function(), arguments, node->token_pos()));
+    ReturnDefinition(ExitTempLocalScope(closure_tmp_var));
   }
 }
 

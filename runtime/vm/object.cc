@@ -4607,27 +4607,6 @@ void Function::set_implicit_static_closure(const Instance& closure) const {
 }
 
 
-RawCode* Function::closure_allocation_stub() const {
-  if (IsClosureFunction()) {
-    const Object& obj = Object::Handle(raw_ptr()->data_);
-    ASSERT(!obj.IsNull());
-    return ClosureData::Cast(obj).closure_allocation_stub();
-  }
-  return Code::null();
-}
-
-
-void Function::set_closure_allocation_stub(const Code& value) const {
-  if (IsClosureFunction()) {
-    const Object& obj = Object::Handle(raw_ptr()->data_);
-    ASSERT(!obj.IsNull());
-    ClosureData::Cast(obj).set_closure_allocation_stub(value);
-    return;
-  }
-  UNREACHABLE();
-}
-
-
 RawFunction* Function::extracted_method_closure() const {
   ASSERT(kind() == RawFunction::kMethodExtractor);
   const Object& obj = Object::Handle(raw_ptr()->data_);
@@ -6125,13 +6104,6 @@ void ClosureData::set_implicit_static_closure(const Instance& closure) const {
   ASSERT(!closure.IsNull());
   ASSERT(raw_ptr()->closure_ == Instance::null());
   StorePointer(&raw_ptr()->closure_, closure.raw());
-}
-
-
-void ClosureData::set_closure_allocation_stub(const Code& value) const {
-  ASSERT(!value.IsNull());
-  ASSERT(raw_ptr()->closure_allocation_stub_ == Code::null());
-  StorePointer(&raw_ptr()->closure_allocation_stub_, value.raw());
 }
 
 
