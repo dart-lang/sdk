@@ -1785,6 +1785,7 @@ class ConcreteTypesInferrer
         augmentListElementType(nullConcreteType);
       }
     }
+    return null;
   }
 
   /**
@@ -1902,7 +1903,7 @@ class ConcreteTypesInferrer
   }
 
   @override
-  bool recordType(Element element, ConcreteType type) {
+  void recordType(Element element, ConcreteType type) {
     assert(element is FieldElement);
     augmentFieldType(element, type);
   }
@@ -1961,7 +1962,6 @@ class ConcreteTypesInferrer
                                      ArgumentsTypes<ConcreteType> arguments,
                                      SideEffects sideEffects,
                                      bool inLoop) {
-
     caller = getRealCaller(caller);
     if ((selector == null) || (selector.kind == SelectorKind.CALL)) {
       callee = callee.implementation;
@@ -1987,7 +1987,8 @@ class ConcreteTypesInferrer
           Send send = node;
           if (send.receiver != null) {
             if (send.receiver.isSuper()) {
-              receiverClass = currentWorkItem.environment.classOfThis.superclass;
+              receiverClass =
+                  currentWorkItem.environment.classOfThis.superclass;
             } else {
               receiverClass = currentWorkItem.environment.classOfThis;
             }
@@ -2027,6 +2028,7 @@ class ConcreteTypesInferrer
     } else {
       throw new ArgumentError("unexpected selector kind");
     }
+    return null;
   }
 
   @override

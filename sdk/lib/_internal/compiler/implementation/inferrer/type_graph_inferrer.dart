@@ -822,9 +822,8 @@ class TypeGraphInferrerEngine
     types.getInferredTypeOf(element).addAssignment(type);
   }
 
-  bool recordType(Element element, TypeInformation type) {
+  void recordType(Element element, TypeInformation type) {
     types.getInferredTypeOf(element).addAssignment(type);
-    return false;
   }
 
   void recordReturnType(Element element, TypeInformation type) {

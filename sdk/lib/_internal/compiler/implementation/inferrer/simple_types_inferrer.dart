@@ -186,10 +186,9 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   void recordTypeOfNonFinalField(Spannable node, Element field, T type);
 
   /**
-   * Records that [element] is of type [type]. Returns whether the
-   * type is useful for the inferrer.
+   * Records that [element] is of type [type].
    */
-  bool recordType(Element element, T type);
+  void recordType(Element element, T type);
 
   /**
    * Records that the return type [element] is of type [type].
