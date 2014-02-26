@@ -10,6 +10,8 @@
 
 namespace dart {
 
+class Mutex;
+
 // Object observing code creation events. Used by external profilers and
 // debuggers to map address ranges to function names.
 class CodeObserver {
@@ -53,7 +55,12 @@ class CodeObservers : public AllStatic {
 
   static void DeleteAll();
 
+  static Mutex* mutex() {
+    return mutex_;
+  }
+
  private:
+  static Mutex* mutex_;
   static intptr_t observers_length_;
   static CodeObserver** observers_;
 };
