@@ -8,22 +8,22 @@ library angular_vm_tests;
 
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
-import '../../../third_party/pkg/angular/test/tools/selector_spec.dart' as test_0;
-import '../../../third_party/pkg/angular/test/tools/source_metadata_extractor_spec.dart' as test_1;
-import '../../../third_party/pkg/angular/test/tools/html_extractor_spec.dart' as test_2;
+import '../../../third_party/pkg/angular/test/tools/html_extractor_spec.dart' as test_0;
+import '../../../third_party/pkg/angular/test/tools/selector_spec.dart' as test_1;
+import '../../../third_party/pkg/angular/test/tools/source_metadata_extractor_spec.dart' as test_2;
 
 main() {
   useCompactVMConfiguration();
 
-  group('tools/selector', () {
+  group('tools/html_extractor', () {
     test_0.main();
   });
 
-  group('tools/source_metadata_extractor', () {
+  group('tools/selector', () {
     test_1.main();
   });
 
-  group('tools/html_extractor', () {
+  group('tools/source_metadata_extractor', () {
     test_2.main();
   });
 }
