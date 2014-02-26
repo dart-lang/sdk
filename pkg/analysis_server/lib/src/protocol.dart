@@ -77,9 +77,11 @@ class Request {
       String method = result[Request.METHOD];
       Map<String, Object> params = result[Request.PARAMS];
       Request request = new Request(id, method);
-      params.forEach((String key, Object value) {
-        request.setParameter(key, value);
-      });
+      if (params != null) {
+        params.forEach((String key, Object value) {
+          request.setParameter(key, value);
+        });
+      }
       return request;
     } catch (exception) {
       return null;

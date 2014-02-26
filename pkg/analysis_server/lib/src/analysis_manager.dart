@@ -5,10 +5,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:analysis_server/src/channel.dart';
+import 'package:analysis_server/src/domain_server.dart';
+import 'package:analysis_server/src/protocol.dart';
 
 /**
  * [AnalysisManager] is used to launch and manage an analysis server
- * running in a separate process using the static [start] method.
+ * running in a separate process using either the [start] or [connect] methods.
  */
 class AnalysisManager {
   // TODO dynamically allocate port and/or allow client to specify port
@@ -18,75 +21,120 @@ class AnalysisManager {
    * The analysis server process being managed
    * or `null` if managing an analysis server that was already running.
    */
-  final Process process;
+  Process process;
 
   /**
-   * The websocket used to communicate with the analysis server.
+   * The socket used to communicate with the analysis server.
    */
-  final WebSocket socket;
+  WebSocket socket;
 
   /**
-   * Launch analysis server in a separate process and return a
-   * [Future<AnalysisManager>] for managing that analysis server.
+   * Launch analysis server in a separate process
+   * and return a future with a manager for that analysis server.
    */
-  static Future<AnalysisManager> start(String pathToServer) {
-    // TODO dynamically allocate port and/or allow client to specify port
-    return Process.start(Platform.executable, [pathToServer, "--port",
-        PORT.toString()]).then(_attach).catchError((error) {
-          print("Failed to launch analysis server: $error");
-          exitCode = 1;
-          throw error;
-        });
+  static Future<AnalysisManager> start(String serverPath) {
+    return new AnalysisManager()._launchServer(serverPath);
   }
 
   /**
    * Open a connection to a running analysis server
+   * and return a future with a manager for that analysis server.
    */
-  static Future<AnalysisManager> connect(String url) {
-    return WebSocket.connect(url)
-        .then((WebSocket socket) => new AnalysisManager(null, socket));
+  static Future<AnalysisManager> connect(String serverUrl) {
+    return new AnalysisManager()._openConnection(serverUrl);
   }
 
   /**
-   * Attach this process to the newly launched analysis server process,
-   * and open a connection to the analysis server.
+   * Launch an analysis server and open a connection to that server.
    */
-  static Future<AnalysisManager> _attach(Process process) {
-    var url = 'ws://${InternetAddress.LOOPBACK_IP_V4.address}:$PORT/';
-    process.stderr.pipe(stderr);
-    Stream out = process.stdout.transform(UTF8.decoder).asBroadcastStream();
-    out.listen((line) {
-      print(line);
-    });
-    return out
-        .any((String line) => line.startsWith("Listening on port"))
-        .then((bool listening) {
-          if (!listening) {
-            throw "Expected analysis server to listen on a port";
-          }
-        })
-        .then((_) => WebSocket.connect(url))
-        .then((WebSocket socket) => new AnalysisManager(process, socket))
+  Future<AnalysisManager> _launchServer(String pathToServer) {
+    // TODO dynamically allocate port and/or allow client to specify port
+    var serverArgs = [pathToServer, '--port', PORT.toString()];
+    return Process.start(Platform.executable, serverArgs)
         .catchError((error) {
-          process.kill();
-          print("Failed to connect to analysis server: $error");
           exitCode = 1;
-          throw error;
+          throw 'Failed to launch analysis server: $error';
+        })
+        .then(_listenForPort);
+  }
+
+  /**
+   * Listen for a port from the given analysis server process.
+   */
+  Future<AnalysisManager> _listenForPort(Process process) {
+    this.process = process;
+
+    // Echo stdout and stderr
+    Stream out = process.stdout.transform(UTF8.decoder).asBroadcastStream();
+    out.listen((line) => print(line));
+    process.stderr.pipe(stderr);
+
+    // Listen for port from server
+    const String pattern = 'Listening on port ';
+    return out.firstWhere((String line) => line.startsWith(pattern))
+        .timeout(new Duration(seconds: 10))
+        .catchError((error) {
+          exitCode = 1;
+          process.kill();
+          throw 'Expected port from analysis server';
+        })
+        .then((String line) {
+          String port = line.substring(pattern.length).trim();
+          var url = 'ws://${InternetAddress.LOOPBACK_IP_V4.address}:$port/';
+          return _openConnection(url);
         });
   }
 
   /**
-   * Create a new instance that manages the specified analysis server process.
+   * Open a connection to the analysis server using the given URL.
    */
-  AnalysisManager(this.process, this.socket);
+  Future<AnalysisManager> _openConnection(String serverUrl) {
+    var onError = (error) {
+      exitCode = 1;
+      if (process != null) {
+        process.kill();
+      }
+      throw 'Failed to connect to analysis server at $serverUrl\n  $error';
+    };
+    try {
+      return WebSocket.connect(serverUrl)
+          .catchError(onError)
+          .then((WebSocket socket) {
+            this.socket = socket;
+            return this;
+          });
+    } catch (error) {
+      onError(error);
+    }
+  }
 
   /**
    * Stop the analysis server.
    *
-   * Returns `true` if the signal is successfully sent and process is killed.
+   * Returns `true` if the signal is successfully sent and process terminates.
    * Otherwise there was no attached process or the signal could not be sent,
    * usually meaning that the process is already dead.
    */
-  // TODO request analysis server stop
-  bool stop() => process != null ? process.kill() : false;
+  Future<bool> stop() {
+    if (process == null) {
+      return new Future.value(false);
+    }
+    var shutdownRequest = {
+        Request.ID : '0',
+        Request.METHOD : ServerDomainHandler.SHUTDOWN_METHOD };
+    socket.add(JSON.encoder.convert(shutdownRequest));
+    return process.exitCode
+        .timeout(new Duration(seconds: 10))
+        .catchError((error) {
+          process.kill();
+          throw 'Expected server to shutdown';
+        })
+        .then((result) {
+          if (result != 0) {
+            exitCode = result;
+          }
+          return true;
+        });
+  }
+
 }

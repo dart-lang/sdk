@@ -51,7 +51,8 @@ class WebSocketChannel implements CommunicationChannel {
 
   @override
   void listen(void onRequest(Request request), {void onError(), void onDone()}) {
-    socket.listen((data) => _readRequest(data, onRequest), onError: onError, onDone: onDone);
+    socket.listen((data) =>
+        _readRequest(data, onRequest), onError: onError, onDone: onDone);
   }
 
   @override
