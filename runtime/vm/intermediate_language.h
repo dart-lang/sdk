@@ -183,6 +183,24 @@ class Range;
   V(ListIterator, moveNext, ListIteratorMoveNext, 2062984847)                  \
   V(_GrowableList, get:iterator, GrowableArrayIterator, 1155241039)            \
   V(_GrowableList, forEach, GrowableArrayForEach, 195359970)                   \
+  V(_Uint8ArrayView, [], Uint8ArrayViewGetIndexed, 250795553)                  \
+  V(_Uint8ArrayView, []=, Uint8ArrayViewSetIndexed, 533993880)                 \
+  V(_Int8ArrayView, [], Int8ArrayViewGetIndexed, 530738523)                    \
+  V(_Int8ArrayView, []=, Int8ArrayViewSetIndexed, 1513635170)                  \
+  V(::, asin, MathASin, 1528431637)                                            \
+  V(::, acos, MathACos, 1558635398)                                            \
+  V(::, atan, MathATan, 209476605)                                             \
+  V(::, atan2, MathATan2, 2059468649)                                          \
+  V(::, cos, MathCos, 1282146521)                                              \
+  V(::, exp, MathExp, 1951779581)                                              \
+  V(::, log, MathLog, 255699484)                                               \
+  V(::, max, MathMax, 612058870)                                               \
+  V(::, min, MathMin, 1022567780)                                              \
+  V(::, pow, MathPow, 1880071137)                                              \
+  V(::, sin, MathSin, 730107143)                                               \
+  V(::, sqrt, MathSqrt, 465520247)                                             \
+  V(::, tan, MathTan, 2077846426)                                              \
+
 
 // A list of core functions that internally dispatch based on received id.
 #define POLYMORPHIC_TARGET_LIST(V)                                             \
