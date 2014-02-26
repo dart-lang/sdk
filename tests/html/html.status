@@ -155,6 +155,7 @@ blob_constructor_test: Fail
 custom/document_register_type_extensions_test/namespaces: Fail # Issue 13193
 dom_constructors_test: Fail
 element_test/click: Fail                # IE does not support firing this event.
+filereader_test: Fail   # Not supported.
 form_element_test: Fail # Issue 4793.
 localstorage_test: Fail
 postmessage_structured_test: Skip   # BUG(5685): times out.
