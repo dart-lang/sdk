@@ -50,6 +50,7 @@ stack_trace/test/vm_test: RuntimeError, OK # VM-specific traces
 stack_trace/test/chain_test: Fail # Issues 15171 and 15105
 async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
 unittest/test/missing_tick_test: Fail # Timer interface not supported: dartbug.com/7728.
+scheduled_test/test/unittest_compatibility_test: RuntimeError # Issue 17134
 
 [ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
 polymer/example: Skip # Uses dart:html
