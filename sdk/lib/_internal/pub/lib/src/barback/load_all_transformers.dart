@@ -10,6 +10,7 @@ import 'package:barback/barback.dart';
 
 import 'build_environment.dart';
 import 'dart2js_transformer.dart';
+import 'excluding_transformer.dart';
 import 'load_transformers.dart';
 import 'rewrite_import_transformer.dart';
 import '../barback.dart';
@@ -275,6 +276,10 @@ class _TransformerLoader {
     try {
       transformer = new Dart2JSTransformer.withSettings(_environment,
           new BarbackSettings(id.configuration, _environment.mode));
+
+      // Handle any exclusions.
+      transformer = ExcludingTransformer.wrap(transformer,
+          id.includes, id.excludes);
     } on FormatException catch (error, stackTrace) {
       fail(error.message, error, stackTrace);
     }

@@ -241,13 +241,14 @@ dependencies:
           '"transformers.pkg" field must be a map');
     });
 
-    test("throws if a transformer's configuration contains a top-level key "
-        "beginning with a dollar sign", () {
+    test("throws if a transformer's configuration contains an unknown "
+        "reserved key at the top level", () {
       expectPubspecException('''
 name: pkg
 transformers: [{pkg: {\$key: "value"}}]''',
           (pubspec) => pubspec.transformers,
-          '"transformers.pkg" field cannot contain reserved field "\$key"');
+          'Invalid transformer configuration for "transformers.pkg": '
+          'Unknown reserved field "\$key"');
     });
 
     test("doesn't throw if a transformer's configuration contains a "
@@ -262,13 +263,55 @@ transformers:
       expect(pkg.configuration["outer"]["\$inner"], equals("value"));
     });
 
+    test("throws if the \$include value is not a string or list", () {
+      expectPubspecException('''
+name: pkg
+transformers:
+- pkg: {\$include: 123}''',
+          (pubspec) => pubspec.transformers,
+          'Invalid transformer configuration for "transformers.pkg": '
+          '"\$include" field must be a string or list, but was "123"');
+    });
+
+    test("throws if the \$include list contains a non-string", () {
+      expectPubspecException('''
+name: pkg
+transformers:
+- pkg: {\$include: ["ok", 123, "alright", null]}''',
+        (pubspec) => pubspec.transformers,
+        'Invalid transformer configuration for "transformers.pkg": '
+        '"\$include" list field may only contain strings, but contained '
+        '"123" and "null"');
+    });
+
+    test("throws if the \$exclude value is not a string or list", () {
+      expectPubspecException('''
+name: pkg
+transformers:
+- pkg: {\$exclude: 123}''',
+        (pubspec) => pubspec.transformers,
+        'Invalid transformer configuration for "transformers.pkg": '
+        '"\$exclude" field must be a string or list, but was "123"');
+    });
+
+    test("throws if the \$exclude list contains a non-string", () {
+      expectPubspecException('''
+name: pkg
+transformers:
+- pkg: {\$exclude: ["ok", 123, "alright", null]}''',
+        (pubspec) => pubspec.transformers,
+        'Invalid transformer configuration for "transformers.pkg": '
+        '"\$exclude" list field may only contain strings, but contained '
+        '"123" and "null"');
+    });
+
     test("throws if a transformer is not from a dependency", () {
       expectPubspecException('''
 name: pkg
 transformers: [foo]
 ''',
-          (pubspec) => pubspec.transformers,
-          '"transformers.foo" refers to a package that\'s not a dependency.');
+        (pubspec) => pubspec.transformers,
+        '"transformers.foo" refers to a package that\'s not a dependency.');
     });
 
     test("allows a transformer from a normal dependency", () {

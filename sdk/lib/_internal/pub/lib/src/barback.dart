@@ -60,6 +60,27 @@ class TransformerId {
   /// This will be an empty map if no configuration was provided.
   final Map configuration;
 
+  /// The primary input inclusions.
+  ///
+  /// Each inclusion is an asset path. If this set is non-empty, than *only*
+  /// matching assets are allowed as a primary input by this transformer. If
+  /// `null`, all assets are included.
+  ///
+  /// This is processed before [excludes]. If a transformer has both includes
+  /// and excludes, then the set of included assets is determined and assets
+  /// are excluded from that resulting set.
+  final Set<String> includes;
+
+  /// The primary input exclusions.
+  ///
+  /// Any asset whose pach is in this is not allowed as a primary input by
+  /// this transformer.
+  ///
+  /// This is processed after [includes]. If a transformer has both includes
+  /// and excludes, then the set of included assets is determined and assets
+  /// are excluded from that resulting set.
+  final Set<String> excludes;
+
   /// Whether this ID points to a built-in transformer exposed by pub.
   bool get isBuiltInTransformer => package.startsWith('\$');
 
@@ -79,11 +100,63 @@ class TransformerId {
     if (parts.length == 1) {
       return new TransformerId(parts.single, null, configuration);
     }
+
     return new TransformerId(parts.first, parts.last, configuration);
   }
 
-  TransformerId(this.package, this.path, Map configuration)
-      : configuration = configuration == null ? {} : configuration {
+  factory TransformerId(String package, String path, Map configuration) {
+    parseField(key) {
+      if (!configuration.containsKey(key)) return null;
+      var field = configuration.remove(key);
+
+      if (field is String) return new Set<String>.from([field]);
+
+      if (field is List) {
+        var nonstrings = field
+            .where((element) => element is! String)
+            .map((element) => '"$element"');
+
+        if (nonstrings.isNotEmpty) {
+          throw new FormatException(
+              '"$key" list field may only contain strings, but contained '
+              '${toSentence(nonstrings)}.');
+        }
+
+        return new Set<String>.from(field);
+      } else {
+        throw new FormatException(
+            '"$key" field must be a string or list, but was "$field".');
+      }
+    }
+
+    var includes = null;
+    var excludes = null;
+
+    if (configuration == null) {
+      configuration = {};
+    } else {
+      // Pull out the exclusions/inclusions.
+      includes = parseField("\$include");
+      excludes = parseField("\$exclude");
+
+      // All other keys starting with "$" are unexpected.
+      var reservedKeys = configuration.keys
+          .where((key) => key is String && key.startsWith(r'$'))
+          .map((key) => '"$key"');
+
+      if (reservedKeys.isNotEmpty) {
+        throw new FormatException(
+            'Unknown reserved ${pluralize('field', reservedKeys.length)} '
+            '${toSentence(reservedKeys)}.');
+      }
+    }
+
+    return new TransformerId._(package, path, configuration,
+        includes, excludes);
+  }
+
+  TransformerId._(this.package, this.path, this.configuration,
+      this.includes, this.excludes) {
     if (!package.startsWith('\$')) return;
     if (_BUILT_IN_TRANSFORMERS.contains(package)) return;
     throw new FormatException('Unsupported built-in transformer $package.');

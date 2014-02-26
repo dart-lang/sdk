@@ -19,6 +19,7 @@ import '../dart.dart' as dart;
 import '../log.dart' as log;
 import '../utils.dart';
 import 'build_environment.dart';
+import 'excluding_transformer.dart';
 
 /// A Dart script to run in an isolate.
 ///
@@ -386,7 +387,9 @@ Future<Set> loadTransformers(BuildEnvironment environment, TransformerId id) {
         // TODO(nweiz): support non-JSON-encodable configuration maps.
         'configuration': JSON.encode(id.configuration)
       }).then((transformers) {
-        transformers = transformers.map(_deserializeTransformerOrGroup).toSet();
+        transformers = transformers.map(
+            (transformer) => _deserializeTransformerOrGroup(transformer, id))
+            .toSet();
         log.fine("Transformers from $assetId: $transformers");
         return transformers;
       });
@@ -447,9 +450,10 @@ class _ForeignGroup implements TransformerGroup {
   /// The result of calling [toString] on the transformer group in the isolate.
   final String _toString;
 
-  _ForeignGroup(Map map)
+  _ForeignGroup(TransformerId id, Map map)
       : phases = map['phases'].map((phase) {
-          return phase.map(_deserializeTransformerOrGroup).toList();
+          return phase.map((transformer) => _deserializeTransformerOrGroup(
+              transformer, id)).toList();
         }).toList(),
         _toString = map['toString'];
 
@@ -457,10 +461,14 @@ class _ForeignGroup implements TransformerGroup {
 }
 
 /// Converts a serializable map into a [Transformer] or a [TransformerGroup].
-_deserializeTransformerOrGroup(Map map) {
-  if (map['type'] == 'Transformer') return new _ForeignTransformer(map);
+_deserializeTransformerOrGroup(Map map, TransformerId id) {
+  if (map['type'] == 'Transformer') {
+    var transformer = new _ForeignTransformer(map);
+    return ExcludingTransformer.wrap(transformer, id.includes, id.excludes);
+  }
+
   assert(map['type'] == 'TransformerGroup');
-  return new _ForeignGroup(map);
+  return new _ForeignGroup(id, map);
 }
 
 /// Converts [transform] into a serializable map.
