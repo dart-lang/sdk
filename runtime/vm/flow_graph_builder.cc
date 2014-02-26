@@ -3460,17 +3460,18 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       // allocated context but saved on entry and restored on exit as to prevent
       // memory leaks.
       // In this case, the parser pre-allocates a variable to save the context.
+      Value* parent_context = NULL;
       if (MustSaveRestoreContext(node)) {
         BuildSaveContext(
             *owner()->parsed_function()->saved_entry_context_var());
-        Value* null_context = Bind(new ConstantInstr(Object::ZoneHandle()));
-        AddInstruction(new StoreContextInstr(null_context));
+        parent_context = Bind(new ConstantInstr(Object::ZoneHandle()));
+      } else {
+        parent_context = Bind(new CurrentContextInstr());
       }
-      Value* current_context = Bind(new CurrentContextInstr());
       Value* tmp_val = Bind(new LoadLocalInstr(*tmp_var));
       Do(new StoreVMFieldInstr(tmp_val,
                                Context::parent_offset(),
-                               current_context,
+                               parent_context,
                                Type::ZoneHandle()));
       AddInstruction(
           new StoreContextInstr(Bind(ExitTempLocalScope(tmp_var))));
