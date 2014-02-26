@@ -67,6 +67,19 @@ class ReflectiveObjectAccessorService implements ObjectAccessorService {
 
 /// Implements [TypeInspectorService] using mirrors.
 class ReflectiveTypeInspectorService implements TypeInspectorService {
+  bool isSubclassOf(Type type, Type supertype) {
+    if (type == supertype || supertype == Object) return true;
+    // TODO(sigmund): change to mirror.isSubclassOf when it gets implemented in
+    // dart2js. (dartbug.com/12439)
+    var mirror = reflectClass(type);
+    var top = reflectClass(supertype);
+    while (mirror != _objectType) {
+      mirror = _safeSuperclass(mirror);
+      if (mirror == top) return true;
+    }
+    return false;
+  }
+
   bool hasGetter(Type type, Symbol name) {
     var mirror = reflectType(type);
     if (mirror is! ClassMirror) return false;
@@ -137,8 +150,12 @@ class ReflectiveTypeInspectorService implements TypeInspectorService {
   }
 
   List<Declaration> _query(ClassMirror cls, QueryOptions options) {
-    var result = (!options.includeInherited || cls.superclass == _objectType)
-        ? [] : _query(cls.superclass, options);
+    final visitParent = options.includeInherited && cls.superclass != null && 
+        // TODO(sigmund): use _toType(cls.superclass) != options.includeUpTo
+        // when dartbug.com/16925 gets fixed (_toType fails in dart2js if
+        // applied to classes with type-arguments).
+        cls.superclass != reflectClass(options.includeUpTo);
+    var result = visitParent ? _query(cls.superclass, options) : [];
     for (var member in cls.declarations.values) {
       if (member is! VariableMirror && member is! MethodMirror) continue;
       if (member.isStatic || member.isPrivate) continue;

@@ -43,7 +43,9 @@ import 'dart:html';
 import 'dart:js' as js;
 
 @MirrorsUsed(metaTargets:
-    const [Reflectable, ObservableProperty, CustomTag, _InitMethodAnnotation],
+    const [Reflectable, ObservableProperty, PublishedProperty, CustomTag,
+        _InitMethodAnnotation],
+    targets: const [PublishedProperty],
     override: const ['smoke.mirrors', 'polymer'])
 import 'dart:mirrors';
 

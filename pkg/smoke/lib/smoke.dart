@@ -42,6 +42,17 @@ invoke(receiver, Symbol method, List args,
     implementation.objectAccessor.invoke(
         receiver, method, args, namedArgs: namedArgs, adjust: adjust);
 
+/// Tells whether [type] is transitively a subclass of [supertype].
+bool isSubclassOf(Type type, Type supertype) =>
+    implementation.typeInspector.isSubclassOf(type, supertype);
+
+// TODO(sigmund): consider adding also:
+// * isImplementationOf(type, subtype) to tells whether [type] declares that it
+//   implements the [supertype] interface.
+// * isSubtypeOf(type, subtype): Tells whether [type]'s interface is a sybtype
+//   of [supertype]. That is, whether it is a subclass or if [type] implements
+//   [supertype].
+
 /// Tells whether [type] has a field or getter for [field].
 bool hasGetter(Type type, Symbol field) =>
     implementation.typeInspector.hasGetter(type, field);
@@ -95,6 +106,10 @@ class QueryOptions {
   /// (except [Object]).
   final bool includeInherited;
 
+  /// If [includeInherited], walk up the type hierarchy up to this type
+  /// (defaults to [Object]).
+  final Type includeUpTo;
+
   /// Whether to include final fields and getter-only properties.
   final bool excludeFinal;
 
@@ -110,6 +125,7 @@ class QueryOptions {
       this.includeFields: true,
       this.includeProperties: true,
       this.includeInherited: true,
+      this.includeUpTo: Object,
       this.excludeFinal: false,
       this.includeMethods: false,
       this.withAnnotations: null});
@@ -197,6 +213,9 @@ abstract class ObjectAccessorService {
 
 /// A service that provides partial inspection into Dart types.
 abstract class TypeInspectorService {
+  /// Tells whether [type] is transitively a subclass of [supertype].
+  bool isSubclassOf(Type type, Type supertype);
+
   /// Tells whether [type] has a field or getter for [name].
   bool hasGetter(Type type, Symbol name);
 

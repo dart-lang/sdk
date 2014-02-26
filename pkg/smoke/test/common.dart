@@ -199,6 +199,21 @@ main() {
     expect(d.type, int);
   });
 
+  test('isSuperclass', () {
+    expect(smoke.isSubclassOf(D, C), isTrue);
+    expect(smoke.isSubclassOf(H, G), isTrue);
+    expect(smoke.isSubclassOf(H, H), isTrue);
+    expect(smoke.isSubclassOf(H, Object), isTrue);
+    expect(smoke.isSubclassOf(B, Object), isTrue);
+    expect(smoke.isSubclassOf(A, Object), isTrue);
+    expect(smoke.isSubclassOf(AnnotB, Annot), isTrue);
+
+    expect(smoke.isSubclassOf(D, A), isFalse);
+    expect(smoke.isSubclassOf(H, B), isFalse);
+    expect(smoke.isSubclassOf(B, A), isFalse);
+    expect(smoke.isSubclassOf(Object, A), isFalse);
+  });
+
   group('query', () {
     test('default', () {
       var options = new smoke.QueryOptions();
@@ -258,14 +273,14 @@ main() {
       var options = new smoke.QueryOptions(includeInherited: true,
           withAnnotations: const [Annot]);
       var res = smoke.query(H, options);
-      expect(res.map((e) => e.name), [#b, #f, #g]);
+      expect(res.map((e) => e.name), [#b, #f, #g, #i]);
     });
 
     test('mixed annotations (type and exact)', () {
       var options = new smoke.QueryOptions(includeInherited: true,
           withAnnotations: const [a2, Annot]);
       var res = smoke.query(H, options);
-      expect(res.map((e) => e.name), [#b, #d, #f, #g, #h]);
+      expect(res.map((e) => e.name), [#b, #d, #f, #g, #h, #i]);
     });
 
     test('symbol to name', () {
@@ -339,8 +354,10 @@ class F {
 class F2 extends F {}
 
 class Annot { const Annot(); }
+class AnnotB extends Annot { const AnnotB(); }
 const a1 = const Annot();
 const a2 = 32;
+const a3 = const AnnotB();
 
 
 class G {
@@ -355,4 +372,5 @@ class H extends G {
   @a1 int f;
   @a1 int g;
   @a2 int h;
+  @a3 int i;
 }

@@ -441,7 +441,8 @@ class PolymerDeclaration extends HtmlElement {
   /// properties.
   void inferObservers() {
     var options = const smoke.QueryOptions(includeFields: false,
-        includeProperties: false, includeMethods: true, includeInherited: true);
+        includeProperties: false, includeMethods: true, includeInherited: true,
+        includeUpTo: HtmlElement);
     for (var decl in smoke.query(_type, options)) {
       String name = smoke.symbolToName(decl.name);
       if (name.endsWith(_OBSERVE_SUFFIX) && name != 'attributeChanged') {
@@ -459,7 +460,7 @@ class PolymerDeclaration extends HtmlElement {
   void explodeObservers() {
     var options = const smoke.QueryOptions(includeFields: false,
         includeProperties: false, includeMethods: true, includeInherited: true,
-        withAnnotations: const [ObserveProperty]);
+        includeUpTo: HtmlElement, withAnnotations: const [ObserveProperty]);
     for (var decl in smoke.query(_type, options)) {
       for (var meta in decl.annotations) {
         if (meta is! ObserveProperty) continue;
@@ -519,7 +520,7 @@ PolymerDeclaration _getDeclaration(String name) => _declarations[name];
 Map<PropertyPath, smoke.Declaration> _getPublishedProperties(
     Type type, Map<PropertyPath, smoke.Declaration> props) {
   var options = const smoke.QueryOptions(includeInherited: true,
-      withAnnotations: const [PublishedProperty]);
+      includeUpTo: HtmlElement, withAnnotations: const [PublishedProperty]);
   for (var decl in smoke.query(type, options)) {
     if (decl.isFinal) continue;
     if (props == null) props = {};

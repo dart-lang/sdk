@@ -29,7 +29,14 @@ var _config = new StaticConfiguration(
       #i: (o, v) { o.i = v; },
       #j2: (o, v) { o.j2 = v; },
     },
-    parents: const {
+    // TODO(sigmund): this could be a const map, but that triggers
+    // dartbug.com/17123
+    // TODO(sigmund): before doing codegen for this, consider changing smoke's
+    // defaults so we don't need to specify obvious things like `int`, or `*:
+    // Object`.
+    parents: {
+      Annot: Object,
+      AnnotB: Annot,
       A: Object,
       B: Object,
       C: Object,
@@ -41,6 +48,7 @@ var _config = new StaticConfiguration(
       F2: F,
       G: Object,
       H: G,
+      int: Object,
     },
     declarations: { 
       B: {
@@ -94,6 +102,7 @@ var _config = new StaticConfiguration(
         #f: const Declaration(#f, int, annotations: const [a1]),
         #g: const Declaration(#g, int, annotations: const [a1]),
         #h: const Declaration(#h, int, annotations: const [a2]),
+        #i: const Declaration(#i, int, annotations: const [a3]),
       },
     },
     names: {#i: 'i'});

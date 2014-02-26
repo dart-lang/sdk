@@ -506,14 +506,13 @@ abstract class _Observer extends Bindable {
       throw new StateError('Observer has already been opened.');
     }
 
-    if (_minArgumentCount(callback) > _reportArgumentCount) {
+    if (smoke.minArgs(callback) > _reportArgumentCount) {
       throw new ArgumentError('callback should take $_reportArgumentCount or '
           'fewer arguments');
     }
 
     _notifyCallback = callback;
-    _notifyArgumentCount = min(_reportArgumentCount,
-        _maxArgumentCount(callback));
+    _notifyArgumentCount = min(_reportArgumentCount, smoke.maxArgs(callback));
 
     _connect();
     return _value;
@@ -558,27 +557,6 @@ abstract class _Observer extends Bindable {
       new Completer().completeError(e, s);
     }
   }
-}
-
-typedef _Func0();
-typedef _Func1(a);
-typedef _Func2(a, b);
-typedef _Func3(a, b, c);
-
-int _minArgumentCount(fn) {
-  if (fn is _Func0) return 0;
-  if (fn is _Func1) return 1;
-  if (fn is _Func2) return 2;
-  if (fn is _Func3) return 3;
-  return 4; // at least 4 arguments are required.
-}
-
-int _maxArgumentCount(fn) {
-  if (fn is _Func3) return 3;
-  if (fn is _Func2) return 2;
-  if (fn is _Func1) return 1;
-  if (fn is _Func0) return 0;
-  return -1;
 }
 
 class _ObservedSet {

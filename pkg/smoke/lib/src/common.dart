@@ -5,6 +5,8 @@
 /// Some common utilities used by other libraries in this package.
 library smoke.src.common;
 
+import 'package:smoke/smoke.dart' as smoke show isSubclassOf;
+
 /// Returns [input] adjusted to be within [min] and [max] length. Truncating it
 /// if it's longer, or padding it with nulls if it's shorter. The returned list
 /// is a new copy if any modification is needed, otherwise [input] is returned.
@@ -23,8 +25,14 @@ List adjustList(List input, int min, int max) {
 /// an annotation in [queryAnnotations] or whose type is listed in
 /// [queryAnnotations].
 bool matchesAnnotation(Iterable metadata, Iterable queryAnnotations) {
-  return metadata.any((m) => queryAnnotations.contains(m) ||
-      queryAnnotations.contains(m.runtimeType));
+  for (var meta in metadata) {
+    for (var queryMeta in queryAnnotations) {
+      if (meta == queryMeta) return true;
+      if (queryMeta is Type &&
+          smoke.isSubclassOf(meta.runtimeType, queryMeta)) return true;
+    }
+  }
+  return false;
 }
 
 /// Number of arguments supported by [minArgs] and [maxArgs].

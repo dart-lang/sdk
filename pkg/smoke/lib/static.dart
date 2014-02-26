@@ -114,6 +114,19 @@ class _GeneratedObjectAccessorService implements ObjectAccessorService {
 
 /// Implements [TypeInspectorService] using a static configuration.
 class _GeneratedTypeInspectorService implements TypeInspectorService {
+  bool isSubclassOf(Type type, Type supertype) {
+    if (type == supertype || supertype == Object) return true;
+    while (type != Object) {
+      var parentType = _configuration.parents[type];
+      if (parentType == supertype) return true;
+      if (parentType == null) {
+        throw new MissingCodeException('superclass of "$type" ($parentType)');
+      }
+      type = parentType;
+    }
+    return false;
+  }
+
   bool hasGetter(Type type, Symbol name) {
     var decl = _findDeclaration(type, name);
     // No need to check decl.isProperty because methods are also automatically
@@ -155,7 +168,8 @@ class _GeneratedTypeInspectorService implements TypeInspectorService {
       if (superclass == null) {
         throw new MissingCodeException('superclass of "$type"');
       }
-      result = (superclass == Object) ? [] : query(superclass, options);
+      result = (superclass == options.includeUpTo) ? []
+          : query(superclass, options);
     } else {
       result = [];
     }
