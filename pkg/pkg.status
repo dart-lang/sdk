@@ -283,6 +283,8 @@ polymer/example/canonicalization/test/deploy2_test: Fail, OK # tests deploy only
 polymer/example/canonicalization/test/deploy3_test: Fail, OK # tests deploy only behavior
 polymer/example/canonicalization/test/dir/deploy_test: Fail, OK # tests deploy only behavior
 polymer/example/canonicalization/test/dir/deploy2_test: Fail, OK # tests deploy only behavior
+third_party/angular_tests/browser_test/directive/ng_repeat: Skip # Issue 17152
+third_party/angular_tests/browser_test/change_detection/dirty_checking_change_detector: Skip # Issue 17152
 
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) && $checked ]
 polymer/test/custom_event_test: Skip # http://dartbug.com/15517
