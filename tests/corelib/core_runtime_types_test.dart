@@ -83,9 +83,10 @@ class CoreRuntimeTypesTest {
   static testOperatorErrors() {
     var objs = [1, '2', [3], null, true, new Map()];
     for (var i=0; i < objs.length; i++) {
-      for (var j=i+1; j < objs.length; j++) {
+      for (var j= i + 1; j < objs.length; j++) {
         testBinaryOperatorErrors(objs[i], objs[j]);
-        testBinaryOperatorErrors(objs[j], objs[i]);
+        // Allow "String * int".
+        if (j > 2) testBinaryOperatorErrors(objs[j], objs[i]);
       }
       if (objs[i] != 1) {
         testUnaryOperatorErrors(objs[i]);

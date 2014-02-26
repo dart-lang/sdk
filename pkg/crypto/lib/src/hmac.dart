@@ -12,12 +12,15 @@ part of crypto;
  */
 // TODO(floitsch): make Hash implement Sink, EventSink or similar.
 class HMAC {
+  final List<int> _message;
+  Hash _hash;
+  List<int> _key;
   bool _isClosed = false;
 
   /**
    * Create an [HMAC] object from a [Hash] and a key.
    */
-  HMAC(Hash this._hash, List<int> this._key) : _message = [];
+  HMAC(Hash this._hash, List<int> this._key): _message = [];
 
   /**
    * Add a list of bytes to the message.
@@ -106,9 +109,4 @@ class HMAC {
     }
     return result == 0;
   }
-
-  // HMAC internal state.
-  Hash _hash;
-  List<int> _key;
-  final List<int> _message;
 }

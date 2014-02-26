@@ -73,7 +73,7 @@ main() {
       }), completes);
     });
 
-    expect(pub.nextLine(), completion(equals('Good job!')));
+    pub.stdout.expect('Good job!');
     pub.shouldExit(exit_codes.SUCCESS);
   });
 
@@ -91,7 +91,7 @@ main() {
       request.response.close();
     });
 
-    expect(pub.nextLine(), completion(equals('Good job!')));
+    pub.stdout.expect('Good job!');
     pub.shouldExit(exit_codes.SUCCESS);
   });
 
@@ -111,7 +111,7 @@ main() {
       request.response.close();
     });
 
-    expect(pub.nextLine(), completion(equals('Good job!')));
+    pub.stdout.expect('Good job!');
     pub.shouldExit(exit_codes.SUCCESS);
   });
 
@@ -130,7 +130,7 @@ main() {
       request.response.close();
     });
 
-    expect(pub.nextErrLine(), completion(equals('Bad job!')));
+    pub.stderr.expect('Bad job!');
     pub.shouldExit(1);
   });
 
@@ -150,7 +150,7 @@ main() {
       request.response.close();
     });
 
-    expect(pub.nextErrLine(), completion(equals('Bad job!')));
+    pub.stderr.expect('Bad job!');
     pub.shouldExit(1);
   });
 
@@ -164,8 +164,9 @@ main() {
       request.response.close();
     });
 
-    expect(pub.nextErrLine(), completion(equals('Invalid server response:')));
-    expect(pub.nextErrLine(), completion(equals('{not json')));
+    pub.stderr.expect(emitsLines(
+        'Invalid server response:\n'
+        '{not json'));
     pub.shouldExit(1);
   });
 
@@ -179,8 +180,9 @@ main() {
       request.response.close();
     });
 
-    expect(pub.nextErrLine(), completion(equals('Invalid server response:')));
-    expect(pub.nextErrLine(), completion(equals('{not json')));
+    pub.stderr.expect(emitsLines(
+        'Invalid server response:\n'
+        '{not json'));
     pub.shouldExit(1);
   });
 }

@@ -89,6 +89,11 @@ abstract class Message {
       return "The 'name' argument for Intl.message must be a simple string "
           "literal.";
     }
+    if (outerName != null && outerName != messageName.expression.value) {
+      return "The 'name' argument for Intl.message must match "
+          "the name of the containing function ("
+          "'${messageName.expression.value}' vs. '$outerName')";
+    }
     var simpleArguments = arguments.where(
         (each) => each is NamedExpression
         && ["desc", "name"].contains(each.name.label.name));
@@ -99,6 +104,7 @@ abstract class Message {
             "a simple string literal";
       }
     }
+    return null;
   }
 
   /**
@@ -351,7 +357,7 @@ class MainMessage extends ComplexMessage {
    * the name.
    */
   String get name => _name == null ? computeName() : _name;
-  void set name(x) {_name = x;}
+  set name(String newName) { _name = newName; }
 
   String computeName() => name = expanded((msg, chunk) => "");
 
@@ -369,7 +375,7 @@ class MainMessage extends ComplexMessage {
    * Record the translation for this message in the given locale, after
    * suitably escaping it.
    */
-  String addTranslation(String locale, Message translated) {
+  void addTranslation(String locale, Message translated) {
       translated.parent = this;
       translations[locale] = translated.toCode();
   }

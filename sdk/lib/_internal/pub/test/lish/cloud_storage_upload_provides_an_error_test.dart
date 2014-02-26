@@ -37,8 +37,7 @@ main() {
 
     // TODO(nweiz): This should use the server's error message once the client
     // can parse the XML.
-    expect(pub.nextErrLine(),
-        completion(equals('Failed to upload the package.')));
+    pub.stderr.expect('Failed to upload the package.');
     pub.shouldExit(1);
   });
 }

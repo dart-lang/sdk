@@ -17,22 +17,24 @@ import '../../lib/src/utils.dart';
 
 void authorizePub(ScheduledProcess pub, ScheduledServer server,
     [String accessToken="access token"]) {
-  expect(pub.nextLine(), completion(equals('Pub needs your authorization to '
-      'upload packages on your behalf.')));
+  pub.stdout.expect('Pub needs your authorization to upload packages on your '
+      'behalf.');
 
-  expect(pub.nextLine().then((line) {
-    var match = new RegExp(r'[?&]redirect_uri=([0-9a-zA-Z.%+-]+)[$&]')
-        .firstMatch(line);
-    expect(match, isNotNull);
+  schedule(() {
+    return pub.stdout.next().then((line) {
+      var match = new RegExp(r'[?&]redirect_uri=([0-9a-zA-Z.%+-]+)[$&]')
+          .firstMatch(line);
+      expect(match, isNotNull);
 
-    var redirectUrl = Uri.parse(Uri.decodeComponent(match.group(1)));
-    redirectUrl = addQueryParameters(redirectUrl, {'code': 'access code'});
-    return (new http.Request('GET', redirectUrl)..followRedirects = false)
-      .send();
-  }).then((response) {
-    expect(response.headers['location'],
-        equals('http://pub.dartlang.org/authorized'));
-  }), completes);
+      var redirectUrl = Uri.parse(Uri.decodeComponent(match.group(1)));
+      redirectUrl = addQueryParameters(redirectUrl, {'code': 'access code'});
+      return (new http.Request('GET', redirectUrl)..followRedirects = false)
+        .send();
+    }).then((response) {
+      expect(response.headers['location'],
+          equals('http://pub.dartlang.org/authorized'));
+    });
+  });
 
   handleAccessTokenRequest(server, accessToken);
 }

@@ -10,7 +10,9 @@ closure_call_wrong_argument_count_negative_test: skip
 built_in_identifier_prefix_test: CompileTimeError # Issue 12694
 
 # Issue 15315
-class_literal_test: fail
+class_literal_test/01: CompileTimeError
+class_literal_test/03: CompileTimeError
+class_literal_test/07: CompileTimeError
 constructor_call_as_function_test/01: fail
 call_type_literal_test/01: fail
 
@@ -41,7 +43,6 @@ final_syntax_test/03: Fail # Issue 11124
 metadata_test: fail
 
 # test issue 11575, classes with abstrac members are not marked as abstract
-abstract_factory_constructor_test/none: fail # Issue 11575
 get_set_syntax_test/none: fail # Issue 11575
 implicit_this_test/none: fail # Issue 11575
 interface_test/none: fail # Issue 11575
@@ -174,9 +175,6 @@ least_upper_bound_expansive_test/12: MissingStaticWarning # Issue 15060
 proxy_test/05: StaticWarning # Issue 15467
 proxy_test/06: StaticWarning # Issue 15467
 
-# test issue 15714
-typevariable_substitution2_test/01: StaticWarning # Issue 15714
-
 # analyzer does not handle @proxy and noSuchMethod correctly
 override_inheritance_no_such_method_test/03: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/04: StaticWarning # Issue 16132
@@ -191,7 +189,6 @@ override_inheritance_abstract_test/27: StaticWarning # Issue 16134
 override_inheritance_generic_test/03: StaticWarning # Issue 16134
 
 # missing warning for override
-override_inheritance_field_test/10: MissingStaticWarning # Issue 16135
 override_inheritance_generic_test/04: MissingStaticWarning # Issue 16135
 override_inheritance_generic_test/06: MissingStaticWarning # Issue 16135
 override_inheritance_generic_test/07: MissingStaticWarning # Issue 16135
@@ -206,27 +203,19 @@ override_inheritance_field_test/33: MissingStaticWarning, Pass # Issue 16498
 override_inheritance_field_test/33a: MissingStaticWarning, Pass # Issue 16498
 override_inheritance_generic_test/09: MissingStaticWarning, Pass # Issue 16498
 
+# missing warning for assignment to method
+assign_top_method_test/01: MissingStaticWarning # Issue 16672
 
-abstract_exact_selector_test: StaticWarning
-abstract_getter_test: StaticWarning
+# missing warning for assignment to type variable
+checked_setter3_test/01: MissingStaticWarning # Issue 16673
+checked_setter3_test/02: MissingStaticWarning # Issue 16673
+
 abstract_object_method_test: StaticWarning
-abstract_runtime_error_test: StaticWarning
 application_negative_test: CompileTimeError
 bad_constructor_test/05: CompileTimeError
 bad_initializer1_negative_test: CompileTimeError
 bad_named_constructor_negative_test: CompileTimeError
-bad_named_parameters2_test: StaticWarning
-bad_named_parameters_test: StaticWarning
-bit_operations_test: StaticWarning
 body_less_constructor_wrong_arg_negative_test: CompileTimeError
-call_constructor_on_unresolvable_class_test/04: StaticWarning
-call_constructor_on_unresolvable_class_test/05: StaticWarning
-call_constructor_on_unresolvable_class_test/06: StaticWarning
-call_nonexistent_constructor_test: StaticWarning
-checked_null_test: StaticWarning
-checked_setter2_test: StaticWarning
-checked_setter_test: StaticWarning
-closure_type_test: StaticWarning
 compile_time_constant_checked2_test/02: MissingCompileTimeError
 compile_time_constant_checked2_test/03: MissingCompileTimeError
 compile_time_constant_checked2_test/04: MissingCompileTimeError
@@ -236,27 +225,13 @@ compile_time_constant_checked3_test/03: MissingCompileTimeError
 compile_time_constant_checked3_test/04: MissingCompileTimeError
 compile_time_constant_checked3_test/06: MissingCompileTimeError
 compile_time_constant_checked_test/02: MissingCompileTimeError
-compile_time_constant_k_test: StaticWarning
-compile_time_constant_o_test: StaticWarning
 const_counter_negative_test: CompileTimeError
-const_objects_are_immutable_test: StaticWarning
 const_optional_args_negative_test: CompileTimeError
-constructor_named_arguments_test/01: StaticWarning
 constructor_redirect1_negative_test: CompileTimeError
 constructor_redirect2_negative_test: CompileTimeError
 constructor_setter_negative_test: CompileTimeError
-constructor_test: StaticWarning
-core_type_check_test: StaticWarning
-crash_6725_test: StaticWarning
-default_factory_library_test: StaticWarning
-default_factory_test: StaticWarning
-double_to_string_as_exponential2_test: StaticWarning
-double_to_string_as_fixed2_test: StaticWarning
-double_to_string_as_precision2_test: StaticWarning
 duplicate_export_negative_test: CompileTimeError
 duplicate_interface_negative_test: CompileTimeError
-dynamic_field_test: StaticWarning
-dynamic_prefix_core_test: StaticWarning
 empty_block_case_test: StaticWarning
 error_stacktrace_test: StaticWarning
 export_ambiguous_main_negative_test: CompileTimeError
@@ -357,14 +332,11 @@ method_override6_test: StaticWarning
 method_override_test: StaticWarning
 mixin_illegal_static_access_test: StaticWarning
 mixin_illegal_syntax_test/13: CompileTimeError
-mixin_typedef_constructor_test: StaticWarning
-mixin_type_parameter2_test: StaticWarning
 mixin_type_parameters_mixin_extends_test: StaticWarning
 mixin_type_parameters_mixin_test: StaticWarning
 mixin_type_parameters_super_extends_test: StaticWarning
 mixin_type_parameters_super_test: StaticWarning
 mixin_with_two_implicit_constructors_test: StaticWarning
-mixin_bound_test: StaticWarning
 mixin_invalid_bound_test/none: StaticWarning # legitimate StaticWarning, cannot be annotated
 mixin_invalid_bound2_test/none: StaticWarning # legitimate StaticWarning, cannot be annotated
 named_constructor_test/01: StaticWarning
@@ -498,4 +470,3 @@ unresolved_top_level_method_negative_test: CompileTimeError
 vm/type_cast_vm_test: StaticWarning
 vm/type_vm_test: StaticWarning
 void_type_test: StaticWarning
-

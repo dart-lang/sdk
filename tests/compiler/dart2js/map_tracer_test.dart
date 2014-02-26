@@ -10,6 +10,7 @@ import
 
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
+import 'type_mask_test_helper.dart';
 
 
 String generateTest(String mapAllocation) {
@@ -214,7 +215,7 @@ void doTest(String allocation, [String keyElement,
             String valueElement]) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(generateTest(allocation), uri,
-                             allowErrors: false, allowWarnings: false);
+      expectedErrors: 0, expectedWarnings: 0);
   asyncTest(() => compiler.runCompiler(uri).then((_) {
     var keyType, valueType;
     var typesTask = compiler.typesTask;
@@ -236,12 +237,12 @@ void doTest(String allocation, [String keyElement,
     checkType(String name, keyType, valueType) {
       var element = findElement(compiler, name);
       MapTypeMask mask = typesInferrer.getTypeOfElement(element);
-      Expect.equals(keyType, mask.keyType.simplify(compiler), name);
-      Expect.equals(valueType, mask.valueType.simplify(compiler), name);
+      Expect.equals(keyType, simplify(mask.keyType, compiler), name);
+      Expect.equals(valueType, simplify(mask.valueType, compiler), name);
     }
 
-    K(TypeMask other) => keyType.union(other, compiler).simplify(compiler);
-    V(TypeMask other) => valueType.union(other, compiler).simplify(compiler);
+    K(TypeMask other) => simplify(keyType.union(other, compiler), compiler);
+    V(TypeMask other) => simplify(valueType.union(other, compiler), compiler);
 
     checkType('mapInField', K(aKeyType), V(typesTask.numType));
     checkType('mapPassedToMethod', K(aKeyType), V(typesTask.numType));

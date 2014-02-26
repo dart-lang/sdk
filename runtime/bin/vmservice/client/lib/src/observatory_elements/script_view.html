@@ -16,7 +16,7 @@
           <tr template repeat="{{ line in script.linesForDisplay }}">
             <td style="{{ hitsStyle(line) }}">  </td>
             <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{line.line}}</td>
-            <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;">{{line.text}}</td>
+            <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: pre;">{{line.text}}</td>
           </tr>
           </tbody>
         </table>

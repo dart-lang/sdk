@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:scheduled_test/scheduled_test.dart';
-import 'package:scheduled_test/src/mock_clock.dart' as mock_clock;
 
 import '../metatest.dart';
 import '../utils.dart';

@@ -101,6 +101,7 @@ void testHttpServerZoneError() {
         socket.write('GET / HTTP/1.1\r\nContent-Length: 100\r\n\r\n');
         socket.write('some body');
         socket.close();
+        socket.listen(null);
       });
     });
   }, onError: (e) {

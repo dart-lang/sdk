@@ -8,6 +8,8 @@ part of crypto;
  * SHA256 hash function implementation.
  */
 class SHA256 extends _HashBase {
+  final List<int> _w;
+
   // Construct a SHA256 hasher object.
   SHA256() : _w = new List(64), super(16, 8, true) {
     // Initial value of the hash parts. First 32 bits of the fractional parts
@@ -102,6 +104,4 @@ class SHA256 extends _HashBase {
     _h[6] = _add32(g, _h[6]);
     _h[7] = _add32(h, _h[7]);
   }
-
-  final List<int> _w;
 }

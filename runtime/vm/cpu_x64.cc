@@ -8,12 +8,17 @@
 
 #include "vm/cpu.h"
 
+#include "vm/assembler.h"
 #include "vm/constants_x64.h"
+#include "vm/cpuinfo.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 
 namespace dart {
+
+DEFINE_FLAG(bool, use_sse41, true, "Use SSE 4.1 if available");
+
 
 void CPU::FlushICache(uword start, uword size) {
   // Nothing to be done here.
@@ -22,6 +27,38 @@ void CPU::FlushICache(uword start, uword size) {
 
 const char* CPU::Id() {
   return "x64";
+}
+
+
+bool HostCPUFeatures::sse2_supported_ = true;
+bool HostCPUFeatures::sse4_1_supported_ = false;
+const char* HostCPUFeatures::hardware_ = NULL;
+#if defined(DEBUG)
+bool HostCPUFeatures::initialized_ = false;
+#endif
+
+void HostCPUFeatures::InitOnce() {
+  CpuInfo::InitOnce();
+  hardware_ = CpuInfo::GetCpuModel();
+  sse4_1_supported_ =
+      CpuInfo::FieldContains(kCpuInfoFeatures, "sse4_1") ||
+      CpuInfo::FieldContains(kCpuInfoFeatures, "sse4.1");
+
+#if defined(DEBUG)
+  initialized_ = true;
+#endif
+}
+
+
+void HostCPUFeatures::Cleanup() {
+  DEBUG_ASSERT(initialized_);
+#if defined(DEBUG)
+  initialized_ = false;
+#endif
+  ASSERT(hardware_ != NULL);
+  delete[] hardware_;
+  hardware_ = NULL;
+  CpuInfo::Cleanup();
 }
 
 }  // namespace dart

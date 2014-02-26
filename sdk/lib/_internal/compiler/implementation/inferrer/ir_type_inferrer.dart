@@ -4,7 +4,7 @@
 
 library dart2js.ir_type_inferrer;
 
-import '../ir/ir_nodes.dart';
+import '../ir/ir_nodes.dart' as ir;
 import 'inferrer_visitor.dart' show TypeSystem, ArgumentsTypes;
 import 'simple_types_inferrer.dart' show InferrerEngine;
 import '../elements/elements.dart' show
@@ -14,7 +14,7 @@ import 'type_graph_inferrer.dart' show TypeInformation;
 import '../universe/universe.dart' show Selector, SideEffects;
 
 
-class IrTypeInferrerVisitor extends IrNodesVisitor {
+class IrTypeInferrerVisitor extends ir.NodesVisitor {
   final Compiler compiler;
   final Element analyzedElement;
   final Element outermostElement;
@@ -40,7 +40,7 @@ class IrTypeInferrerVisitor extends IrNodesVisitor {
     return outermostElement;
   }
 
-  final Map<IrNode, TypeInformation> analyzed = <IrNode, TypeInformation>{};
+  final Map<ir.Node, TypeInformation> analyzed = <ir.Node, TypeInformation>{};
 
   TypeInformation returnType;
 
@@ -50,7 +50,7 @@ class IrTypeInferrerVisitor extends IrNodesVisitor {
 
     FunctionElement function = analyzedElement;
     FunctionSignature signature = function.computeSignature(compiler);
-    IrFunction node = compiler.irBuilder.getIr(function);
+    ir.Function node = compiler.irBuilder.getIr(function);
 
     // TODO(lry): handle parameters.
     assert(function.computeSignature(compiler).parameterCount == 0);
@@ -70,7 +70,7 @@ class IrTypeInferrerVisitor extends IrNodesVisitor {
     return inferrer.types.getConcreteTypeFor(constant.computeMask(compiler));
   }
 
-  TypeInformation handleStaticSend(IrNode node,
+  TypeInformation handleStaticSend(ir.Node node,
                                    Selector selector,
                                    Element element,
                                    ArgumentsTypes arguments) {
@@ -80,7 +80,7 @@ class IrTypeInferrerVisitor extends IrNodesVisitor {
   }
 
   ArgumentsTypes<TypeInformation> analyzeArguments(
-      Selector selector, List<IrNode> arguments) {
+      Selector selector, List<ir.Node> arguments) {
     // TODO(lry): support named arguments, necessary information should be
     // in [selector].
     assert(selector.namedArgumentCount == 0);
@@ -89,16 +89,16 @@ class IrTypeInferrerVisitor extends IrNodesVisitor {
     return new ArgumentsTypes<TypeInformation>(positional, null);
   }
 
-  void visitIrConstant(IrConstant node) {
+  void visitConstant(ir.Constant node) {
     analyzed[node] = typeOfConstant(node.value);
   }
 
-  void visitIrReturn(IrReturn node) {
+  void visitReturn(ir.Return node) {
     TypeInformation type = analyzed[node.value];
     returnType = inferrer.addReturnTypeFor(analyzedElement, returnType, type);
   }
 
-  void visitIrInvokeStatic(IrInvokeStatic node) {
+  void visitInvokeStatic(ir.InvokeStatic node) {
     FunctionElement element = node.target;
     Selector selector = node.selector;
     // TODO(lry): handle foreign functions.
@@ -113,7 +113,7 @@ class IrTypeInferrerVisitor extends IrNodesVisitor {
     }
   }
 
-  void visitIrNode(IrNode node) {
+  void visitNode(ir.Node node) {
     compiler.internalError('Unexpected IrNode $node');
   }
 }

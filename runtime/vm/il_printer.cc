@@ -551,14 +551,6 @@ void InstantiateTypeArgumentsInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void ExtractConstructorTypeArgumentsInstr::PrintOperandsTo(
-    BufferFormatter* f) const {
-  const String& type_args = String::Handle(type_arguments().Name());
-  f->Print("%s, ", type_args.ToCString());
-  instantiator()->PrintTo(f);
-}
-
-
 void AllocateContextInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%" Pd "", num_context_variables());
 }

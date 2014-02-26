@@ -50,15 +50,15 @@ class SsaFromIrBuilderTask extends CompilerTask {
  * [SsaFromIrInliner].
  */
 abstract class SsaFromIrMixin
-    implements IrNodesVisitor, SsaBuilderMixin<IrNode> {
+    implements ir.NodesVisitor, SsaBuilderMixin<ir.Node> {
   /**
    * Maps IR expressions to the generated [HInstruction]. Because the IR is
-   * in an SSA form, the arguments of an [IrNode] have already been visited
+   * in an SSA form, the arguments of an [ir.Node] have already been visited
    * prior to the node. This map is used to obtain the corresponding generated
    * SSA node.
    */
-  final Map<IrExpression, HInstruction> emitted =
-      new Map<IrExpression, HInstruction>();
+  final Map<ir.Expression, HInstruction> emitted =
+      new Map<ir.Expression, HInstruction>();
 
   /**
    * This method sets up the state of the IR visitor for inlining an invocation
@@ -78,20 +78,20 @@ abstract class SsaFromIrMixin
   void visitInlinedFunction(FunctionElement function) {
     assert(compiler.irBuilder.hasIr(function));
     potentiallyCheckInlinedParameterTypes(function);
-    IrFunction functionNode = compiler.irBuilder.getIr(function);
+    ir.Function functionNode = compiler.irBuilder.getIr(function);
     visitAll(functionNode.statements);
   }
 
-  void addExpression(IrExpression irNode, HInstruction ssaNode) {
+  void addExpression(ir.Expression irNode, HInstruction ssaNode) {
     current.add(emitted[irNode] = ssaNode);
   }
 
-  HInstruction attachPosition(HInstruction target, IrNode node) {
+  HInstruction attachPosition(HInstruction target, ir.Node node) {
     target.sourcePosition = sourceFileLocation(node);
     return target;
   }
 
-  SourceFileLocation sourceFileLocation(IrNode node) {
+  SourceFileLocation sourceFileLocation(ir.Node node) {
     SourceFile sourceFile = currentSourceFile();
     SourceFileLocation location =
         new OffsetSourceFileLocation(sourceFile, node.offset, node.sourceName);
@@ -104,16 +104,16 @@ abstract class SsaFromIrMixin
     assert(!compiler.enableTypeAssertions);
   }
 
-  bool providedArgumentsKnownToBeComplete(IrNode currentNode) {
+  bool providedArgumentsKnownToBeComplete(ir.Node currentNode) {
     // See comment in [SsaFromAstBuilder.providedArgumentsKnownToBeComplete].
     return false;
   }
 
-  List<HInstruction> toInstructionList(List<IrNode> nodes) {
+  List<HInstruction> toInstructionList(List<ir.Node> nodes) {
     return nodes.map((e) => emitted[e]).toList(growable: false);
   }
 
-  void addInvokeStatic(IrInvokeStatic node,
+  void addInvokeStatic(ir.InvokeStatic node,
                        FunctionElement function,
                        List<HInstruction> arguments,
                        [TypeMask type]) {
@@ -142,21 +142,21 @@ abstract class SsaFromIrMixin
     addExpression(node, attachPosition(instruction, node));
   }
 
-  void visitIrConstant(IrConstant node) {
+  void visitConstant(ir.Constant node) {
     emitted[node] = graph.addConstant(node.value, compiler);
   }
 
-  void visitIrInvokeStatic(IrInvokeStatic node) {
+  void visitInvokeStatic(ir.InvokeStatic node) {
     FunctionElement function = node.target;
     List<HInstruction> arguments = toInstructionList(node.arguments);
     addInvokeStatic(node, function, arguments);
   }
 
-  void visitIrNode(IrNode node) {
+  void visitNode(ir.Node node) {
     compiler.internalError('Cannot build SSA from IR for $node');
   }
 
-  void visitIrReturn(IrReturn node) {
+  void visitReturn(ir.Return node) {
     HInstruction value = emitted[node.value];
     // TODO(lry): add code for dynamic type check.
     // value = potentiallyCheckType(value, returnType);
@@ -169,10 +169,10 @@ abstract class SsaFromIrMixin
  * [SsaBuilderMixin] to share functionality with the [SsaFromAstBuilder] that
  * creates SSA nodes from trees.
  */
-class SsaFromIrBuilder extends IrNodesVisitor with
-    SsaBuilderMixin<IrNode>,
+class SsaFromIrBuilder extends ir.NodesVisitor with
+    SsaBuilderMixin<ir.Node>,
     SsaFromIrMixin,
-    SsaBuilderFields<IrNode> {
+    SsaBuilderFields<ir.Node> {
   final Compiler compiler;
   final JavaScriptBackend backend;
   final CodegenWorkItem work;
@@ -200,14 +200,14 @@ class SsaFromIrBuilder extends IrNodesVisitor with
     close(new HGoto()).addSuccessor(block);
     open(block);
 
-    IrFunction function = compiler.irBuilder.getIr(functionElement);
+    ir.Function function = compiler.irBuilder.getIr(functionElement);
     visitAll(function.statements);
     if (!isAborted()) closeAndGotoExit(new HGoto());
     graph.finalize();
     return graph;
   }
 
-  void emitReturn(HInstruction value, IrReturn node) {
+  void emitReturn(HInstruction value, ir.Return node) {
     if (inliningStack.isEmpty) {
       closeAndGotoExit(attachPosition(new HReturn(value), node));
     } else {
@@ -225,7 +225,7 @@ class SsaFromIrBuilder extends IrNodesVisitor with
    * that should be inlined.
    */
   void enterInlinedMethod(FunctionElement function,
-                          IrNode callNode,
+                          ir.Node callNode,
                           List<HInstruction> compiledArguments) {
     bool hasIr = compiler.irBuilder.hasIr(function);
 

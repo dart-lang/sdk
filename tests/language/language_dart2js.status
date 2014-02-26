@@ -129,6 +129,7 @@ mixin_regress_13688_test: RuntimeError # Issue 13109.
 modulo_test: RuntimeError # Issue 15246
 truncdiv_test: RuntimeError # Issue 15246
 invocation_mirror2_test: RuntimeError # Issue 6490 (wrong retval).
+generic_closure_test: RuntimeError # Issue 12605
 
 # Compilation errors.
 const_var_test: CompileTimeError # Issue 12793
@@ -211,7 +212,8 @@ prefix16_test: Fail # Issue 13081
 prefix22_test: Fail # Issue 13081
 
 # Calling unresolved class constructor:
-call_nonexistent_constructor_test: Fail # Issue 13082
+call_nonexistent_constructor_test/01: Fail # Issue 13082
+call_nonexistent_constructor_test/02: Fail # Issue 13082
 
 bad_override_test/01: Fail # Issue 11496
 bad_override_test/02: Fail # Issue 11496

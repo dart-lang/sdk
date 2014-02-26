@@ -5,6 +5,7 @@
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
+import 'type_mask_test_helper.dart';
 
 const String TEST = """
 class X {}
@@ -64,7 +65,7 @@ void main() {
     checkReturn(String name, type) {
       var element = findElement(compiler, name);
       Expect.equals(type,
-          typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
+          simplify(typesInferrer.getReturnTypeOfElement(element), compiler));
     }
 
     var subclassOfInterceptor =

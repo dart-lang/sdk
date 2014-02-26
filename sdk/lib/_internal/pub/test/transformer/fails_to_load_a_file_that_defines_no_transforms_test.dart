@@ -4,6 +4,7 @@
 
 library pub_tests;
 
+import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
 import '../descriptor.dart' as d;
@@ -27,11 +28,9 @@ main() {
     createLockFile('myapp', pkg: ['barback']);
 
     var pub = startPubServe();
-    expect(pub.nextErrLine(), completion(startsWith('No transformers were '
-       'defined in ')));
-    expect(pub.nextErrLine(), completion(startsWith('required by myapp.')));
+    pub.stderr.expect(startsWith('No transformers were defined in '));
+    pub.stderr.expect(startsWith('required by myapp.'));
     pub.shouldExit(1);
-    expect(pub.remainingStderr(),
-        completion(isNot(contains('This is an unexpected error'))));
+    pub.stderr.expect(never(contains('This is an unexpected error')));
   });
 }

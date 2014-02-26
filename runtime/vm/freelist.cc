@@ -43,6 +43,12 @@ void FreeListElement::InitOnce() {
 }
 
 
+intptr_t FreeListElement::HeaderSizeFor(intptr_t size) {
+  if (size == 0) return 0;
+  return ((size > RawObject::SizeTag::kMaxSizeTag) ? 3 : 2) * kWordSize;
+}
+
+
 FreeList::FreeList() {
   Reset();
 }
@@ -65,7 +71,7 @@ uword FreeList::TryAllocate(intptr_t size, bool is_protected) {
       bool status =
           VirtualMemory::Protect(reinterpret_cast<void*>(element),
                                  size,
-                                 VirtualMemory::kReadWrite /*Execute*/);
+                                 VirtualMemory::kReadWrite);
       ASSERT(status);
     }
     return reinterpret_cast<uword>(element);
@@ -84,12 +90,12 @@ uword FreeList::TryAllocate(intptr_t size, bool is_protected) {
         // If the remainder size is zero, only the element itself needs to
         // be made writable.
         intptr_t remainder_size = element->Size() - size;
-        intptr_t region_size = size +
-            ((remainder_size > 0) ? FreeListElement::kHeaderSize : 0);
+        intptr_t region_size =
+            size + FreeListElement::HeaderSizeFor(remainder_size);
         bool status =
             VirtualMemory::Protect(reinterpret_cast<void*>(element),
                                    region_size,
-                                   VirtualMemory::kReadWrite /*Execute*/);
+                                   VirtualMemory::kReadWrite);
         ASSERT(status);
       }
       SplitElementAfterAndEnqueue(element, size, is_protected);
@@ -103,19 +109,20 @@ uword FreeList::TryAllocate(intptr_t size, bool is_protected) {
     if (current->Size() >= size) {
       // Found an element large enough to hold the requested size. Dequeue,
       // split and enqueue the remainder.
+      intptr_t remainder_size = current->Size() - size;
+      intptr_t region_size =
+          size + FreeListElement::HeaderSizeFor(remainder_size);
       if (is_protected) {
         // Make the allocated block and the header of the remainder element
         // writable.  The remainder will be non-writable if necessary after
         // the call to SplitElementAfterAndEnqueue.
-        intptr_t remainder_size = current->Size() - size;
-        intptr_t region_size = size +
-            ((remainder_size > 0) ? FreeListElement::kHeaderSize : 0);
         bool status =
             VirtualMemory::Protect(reinterpret_cast<void*>(current),
                                    region_size,
-                                   VirtualMemory::kReadWrite /*Execute*/);
+                                   VirtualMemory::kReadWrite);
         ASSERT(status);
       }
+
       if (previous == NULL) {
         free_lists_[kNumLists] = current->next();
       } else {
@@ -126,8 +133,7 @@ uword FreeList::TryAllocate(intptr_t size, bool is_protected) {
         uword target_address = 0L;
         if (is_protected) {
           uword writable_start = reinterpret_cast<uword>(current);
-          uword writable_end =
-              writable_start + size + FreeListElement::kHeaderSize - 1;
+          uword writable_end = writable_start + region_size - 1;
           target_address = previous->next_address();
           target_is_protected =
               !VirtualMemory::InSamePage(target_address, writable_start) &&
@@ -137,7 +143,7 @@ uword FreeList::TryAllocate(intptr_t size, bool is_protected) {
           bool status =
               VirtualMemory::Protect(reinterpret_cast<void*>(target_address),
                                      kWordSize,
-                                     VirtualMemory::kReadWrite /*Execute*/);
+                                     VirtualMemory::kReadWrite);
           ASSERT(status);
         }
         previous->set_next(current->next());

@@ -5,6 +5,7 @@
 #include "vm/dart.h"
 
 #include "vm/code_observers.h"
+#include "vm/cpu.h"
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/flags.h"
@@ -123,10 +124,10 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
     Symbols::InitOnce(vm_isolate_);
     Scanner::InitOnce();
     Object::CreateInternalMetaData();
-    CPUFeatures::InitOnce();
+    TargetCPUFeatures::InitOnce();
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
     // Dart VM requires at least SSE2.
-    if (!CPUFeatures::sse2_supported()) {
+    if (!TargetCPUFeatures::sse2_supported()) {
       return "SSE2 is required.";
     }
 #endif
@@ -178,6 +179,7 @@ const char* Dart::Cleanup() {
 
   Profiler::Shutdown();
   CodeObservers::DeleteAll();
+  TargetCPUFeatures::Cleanup();
 
   return NULL;
 }
@@ -216,7 +218,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
     ASSERT(snapshot->kind() == Snapshot::kFull);
     if (FLAG_trace_isolates) {
-      OS::Print("Size of isolate snapshot = %d\n", snapshot->length());
+      OS::Print("Size of isolate snapshot = %" Pd64 "\n", snapshot->length());
     }
     SnapshotReader reader(snapshot->content(), snapshot->length(),
                           Snapshot::kFull, isolate);

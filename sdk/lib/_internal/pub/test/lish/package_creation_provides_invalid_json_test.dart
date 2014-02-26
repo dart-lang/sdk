@@ -27,8 +27,9 @@ main() {
       request.response.close();
     });
 
-    expect(pub.nextErrLine(), completion(equals('Invalid server response:')));
-    expect(pub.nextErrLine(), completion(equals('{not json')));
+    pub.stderr.expect(emitsLines(
+        'Invalid server response:\n'
+        '{not json'));
     pub.shouldExit(1);
   });
 }

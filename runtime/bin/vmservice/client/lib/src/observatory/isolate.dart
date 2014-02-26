@@ -8,7 +8,7 @@ part of observatory;
 /// State for a running isolate.
 class Isolate extends Observable {
   static ObservatoryApplication _application;
-  
+
   @observable Profile profile;
   @observable final Map<String, Script> scripts =
       toObservable(new Map<String, Script>());
@@ -25,9 +25,9 @@ class Isolate extends Observable {
 
   @observable Map topFrame = null;
   @observable String fileAndLine = null;
-  
+
   Isolate.fromId(this.id) : name = '' {}
-  
+
   Isolate.fromMap(Map map)
       : id = map['id'], name = map['name'] {
   }
@@ -40,7 +40,7 @@ class Isolate extends Observable {
           Logger.root.severe('Error while updating isolate summary: $e\n$trace');
       });
   }
-  
+
   void update(Map map) {
     if (map['type'] != 'Isolate') {
       Logger.root.severe('Unexpected message type in Isolate.update: ${map["type"]}');
@@ -66,7 +66,6 @@ class Isolate extends Observable {
     map['timers'].forEach((timer) {
         timerMap[timer['name']] = timer['time'];
       });
-    print(timerMap);
     timers['total'] = timerMap['time_total_runtime'];
     timers['compile'] = timerMap['time_compilation'];
     timers['gc'] = 0.0;  // TODO(turnidge): Export this from VM.
@@ -88,6 +87,7 @@ class Isolate extends Observable {
         return codes[i];
       }
     }
+    return null;
   }
 
   Code findCodeByName(String name) {
@@ -96,6 +96,7 @@ class Isolate extends Observable {
         return codes[i];
       }
     }
+    return null;
   }
 
   void resetCodeTicks() {

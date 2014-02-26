@@ -453,8 +453,7 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
     *reader->ArrayHandle() ^= reader->ReadObjectImpl();
     type_arguments.set_instantiations(*reader->ArrayHandle());
   } else {
-    // TODO(regis): Change to Object::zero_array() once supported.
-    type_arguments.set_instantiations(Object::empty_array());
+    type_arguments.set_instantiations(Object::zero_array());
   }
 
   // Now set all the type fields.

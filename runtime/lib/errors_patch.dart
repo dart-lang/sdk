@@ -212,11 +212,15 @@ patch class NoSuchMethodError {
     var level = (_invocation_type >> _InvocationMirror._CALL_SHIFT) &
          _InvocationMirror._CALL_MASK;
     var type_str =
-        (const ["method", "getter", "setter", "getter or setter"])[type];
+        (const ["method", "getter", "setter", "getter or setter", "variable"])[type];
     var args_message = args_mismatch ? " with matching arguments" : "";
     var msg;
     var memberName =
         (_memberName == null) ? "" : internal.Symbol.getName(_memberName);
+
+    if (type == _InvocationMirror._LOCAL_VAR) {
+      return "cannot assign to final variable '$memberName'.\n\n";
+    }
     switch (level) {
       case _InvocationMirror._DYNAMIC: {
         if (_receiver == null) {
@@ -294,9 +298,13 @@ patch class NoSuchMethodError {
     }
     var memberName =
         (_memberName == null) ? "" : internal.Symbol.getName(_memberName);
-    if (!args_mismatch) {
+    var type = _invocation_type & _InvocationMirror._TYPE_MASK;
+    if (type == _InvocationMirror._LOCAL_VAR) {
       msg_buf.write(
-          "NoSuchMethodError : method not found: '$memberName'\n"
+          "NoSuchMethodError: cannot assign to final variable '$memberName'");
+    } else if (!args_mismatch) {
+      msg_buf.write(
+          "NoSuchMethodError: method not found: '$memberName'\n"
           "Receiver: $receiver_str\n"
           "Arguments: [$actual_buf]");
     } else {

@@ -229,7 +229,7 @@ class Trace implements StackTrace {
   ///
   /// This is useful for limiting the amount of library code that appears in a
   /// stack trace by only showing user code and code that's called by user code.
-  Trace foldFrames(bool predicate(frame)) {
+  Trace foldFrames(bool predicate(Frame frame)) {
     var newFrames = <Frame>[];
     for (var frame in frames.reversed) {
       if (!predicate(frame)) {

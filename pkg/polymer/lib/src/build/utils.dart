@@ -4,11 +4,9 @@
 
 library polymer.src.utils;
 
-/**
- * Converts a string name with hyphens into an identifier, by removing hyphens
- * and capitalizing the following letter. Optionally [startUppercase] to
- * captialize the first letter.
- */
+/// Converts a string name with hyphens into an identifier, by removing hyphens
+/// and capitalizing the following letter. Optionally [startUppercase] to
+/// captialize the first letter.
 String toCamelCase(String hyphenedName, {bool startUppercase: false}) {
   var segments = hyphenedName.split('-');
   int start = startUppercase ? 0 : 1;
@@ -22,7 +20,7 @@ String toCamelCase(String hyphenedName, {bool startUppercase: false}) {
   return segments.join('');
 }
 
-/** Reverse of [toCamelCase]. */
+/// Reverse of [toCamelCase].
 String toHyphenedName(String word) {
   var sb = new StringBuffer();
   for (int i = 0; i < word.length; i++) {

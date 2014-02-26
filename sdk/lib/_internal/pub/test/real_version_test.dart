@@ -33,7 +33,7 @@ main() {
         Platform.operatingSystem == "windows" ? "pub.bat" : "pub");
 
     var pub = new ScheduledProcess.start(pubPath, ['version']);
-    expect(pub.nextLine(), completion(startsWith("Pub")));
+    pub.stdout.expect(startsWith("Pub"));
     pub.shouldExit(exit_codes.SUCCESS);
   });
 }

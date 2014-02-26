@@ -82,7 +82,7 @@ static void ThrowNoSuchMethod(const Instance& receiver,
   // Parameter 4 (named arguments): We omit this parameters since we cannot
   // invoke functions with named parameters reflectively (using mirrors).
   if (!function.IsNull()) {
-    const int total_num_parameters = function.NumParameters();
+    const intptr_t total_num_parameters = function.NumParameters();
     const Array& array = Array::Handle(Array::New(total_num_parameters));
     String& param_name = String::Handle();
     for (int i = 0; i < total_num_parameters; i++) {
@@ -433,7 +433,7 @@ static RawInstance* CreateMirrorSystem() {
   const GrowableObjectArray& libraries =
       GrowableObjectArray::Handle(isolate->object_store()->libraries());
 
-  const int num_libraries = libraries.Length();
+  const intptr_t num_libraries = libraries.Length();
   const Array& library_mirrors = Array::Handle(Array::New(num_libraries));
   Library& library = Library::Handle();
   Instance& library_mirror = Instance::Handle();
@@ -1481,7 +1481,7 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_find_in_context, 2) {
   const bool callable = closure.IsCallable(&function, NULL);
   ASSERT(callable);
 
-  const int parts_len = lookup_parts.Length();
+  const intptr_t parts_len = lookup_parts.Length();
   // Lookup name is always the last part.
   const String& lookup_name = String::Handle(String::RawCast(
       lookup_parts.At(parts_len - 1)));
@@ -1587,7 +1587,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
         UNREACHABLE();
       }
       // Make room for the closure (receiver) in the argument list.
-      int numArgs = args.Length();
+      intptr_t numArgs = args.Length();
       const Array& call_args = Array::Handle(Array::New(numArgs + 1));
       Object& temp = Object::Handle();
       for (int i = 0; i < numArgs; i++) {
@@ -1883,7 +1883,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
         UNREACHABLE();
       }
       // Make room for the closure (receiver) in arguments.
-      int numArgs = args.Length();
+      intptr_t numArgs = args.Length();
       const Array& call_args = Array::Handle(Array::New(numArgs + 1));
       Object& temp = Object::Handle();
       for (int i = 0; i < numArgs; i++) {

@@ -33,6 +33,7 @@ class LogTransformer extends MockTransformer {
           case "error":   logFn = transform.logger.error; break;
           case "warning": logFn = transform.logger.warning; break;
           case "info":    logFn = transform.logger.info; break;
+          case "fine":    logFn = transform.logger.fine; break;
         }
 
         logFn(parts[1].trim());

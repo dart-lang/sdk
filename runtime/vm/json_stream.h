@@ -12,16 +12,25 @@
 namespace dart {
 
 class Field;
+class GrowableObjectArray;
 class Instance;
 class JSONArray;
 class JSONObject;
 class Object;
 class SourceBreakpoint;
+class Zone;
 
 class JSONStream : ValueObject {
  public:
   explicit JSONStream(intptr_t buf_size = 256);
   ~JSONStream();
+
+  void Setup(Zone* zone,
+             const Instance& reply_port,
+             const GrowableObjectArray& path,
+             const GrowableObjectArray& option_keys,
+             const GrowableObjectArray& option_values);
+  void PostReply();
 
   TextBuffer* buffer() { return &buffer_; }
   const char* ToCString() { return buffer_.buf(); }
@@ -47,6 +56,11 @@ class JSONStream : ValueObject {
 
   const char* LookupOption(const char* key) const;
 
+  const char* command() const { return command_; }
+  const char** arguments() const { return arguments_; }
+  const char** option_keys() const { return option_keys_; }
+  const char** option_values() const { return option_values_; }
+
  private:
   void Clear();
 
@@ -62,7 +76,6 @@ class JSONStream : ValueObject {
   void PrintValue(const char* s);
   void PrintfValue(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void PrintValue(const Object& o, bool ref = true);
-  void PrintValue(const Field& f, const Instance& instance, bool ref = true);
   void PrintValue(SourceBreakpoint* bpt);
 
   void PrintPropertyBool(const char* name, bool b);
@@ -82,11 +95,13 @@ class JSONStream : ValueObject {
   intptr_t open_objects_;
   TextBuffer buffer_;
   Dart_Port reply_port_;
+  const char* command_;
   const char** arguments_;
   intptr_t num_arguments_;
   const char** option_keys_;
   const char** option_values_;
   intptr_t num_options_;
+  int64_t setup_time_micros_;
 
   friend class JSONObject;
   friend class JSONArray;
@@ -156,12 +171,6 @@ class JSONArray : public ValueObject {
   void AddValue(const char* s) const { stream_->PrintValue(s); }
   void AddValue(const Object& obj, bool ref = true) const {
     stream_->PrintValue(obj, ref);
-  }
-  // Print a field bound to a value.  Value is looked up from 'instance'.
-  void AddValue(const Field& field,
-                const Instance& instance,
-                bool ref = true) const {
-    stream_->PrintValue(field, instance, ref);
   }
   void AddValue(SourceBreakpoint* bpt) const {
     stream_->PrintValue(bpt);

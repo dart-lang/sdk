@@ -20,8 +20,14 @@ namespace bin {
 // Some classes, like File and Directory, list their implementations in
 // builtin_natives.cc instead.
 #define IO_NATIVE_LIST(V)                                                      \
-  V(Crypto_GetRandomBytes, 1)                                                  \
   V(EventHandler_SendData, 3)                                                  \
+  V(FileSystemWatcher_CloseWatcher, 1)                                         \
+  V(FileSystemWatcher_GetSocketId, 2)                                          \
+  V(FileSystemWatcher_InitWatcher, 0)                                          \
+  V(FileSystemWatcher_IsSupported, 0)                                          \
+  V(FileSystemWatcher_ReadEvents, 2)                                           \
+  V(FileSystemWatcher_UnwatchPath, 2)                                          \
+  V(FileSystemWatcher_WatchPath, 4)                                            \
   V(Filter_CreateZLibDeflate, 3)                                               \
   V(Filter_CreateZLibInflate, 1)                                               \
   V(Filter_End, 1)                                                             \

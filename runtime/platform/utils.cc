@@ -8,13 +8,16 @@ namespace dart {
 
 // Implementation is from "Hacker's Delight" by Henry S. Warren, Jr.,
 // figure 3-3, page 48, where the function is called clp2.
-uint32_t Utils::RoundUpToPowerOfTwo(uint32_t x) {
+uintptr_t Utils::RoundUpToPowerOfTwo(uintptr_t x) {
   x = x - 1;
   x = x | (x >> 1);
   x = x | (x >> 2);
   x = x | (x >> 4);
   x = x | (x >> 8);
   x = x | (x >> 16);
+#if defined(ARCH_IS_64_BIT)
+  x = x | (x >> 32);
+#endif  // defined(ARCH_IS_64_BIT)
   return x + 1;
 }
 

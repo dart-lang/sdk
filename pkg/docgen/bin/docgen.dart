@@ -6,16 +6,9 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:logging/logging.dart';
-
-import '../lib/docgen.dart';
 import 'package:path/path.dart' as path;
 
-List<String> excludedLibraries = [];
-
-/**
- * The files/directories that we're being asked to document.
- */
-List<String> _files;
+import '../lib/docgen.dart';
 
 /**
  * Analyzes Dart files and generates a representation of included libraries,
@@ -23,11 +16,11 @@ List<String> _files;
  */
 void main(List<String> arguments) {
   var options = _initArgParser().parse(arguments);
-  _files = options.rest.map(path.normalize).toList();
-  if (_files.isEmpty) _printHelpAndExit();
+  var files = options.rest.map(path.normalize).toList();
+  if (files.isEmpty) _printHelpAndExit();
   var startPage = options['start-page'];
-  if (_singlePackage(_files) && startPage == null) {
-    startPage = _defaultStartPage;
+  if (_singlePackage(files) && startPage == null) {
+    startPage = _defaultStartPageFor(files);
     print("Using default options for documenting a single package: "
         "--start-page=$startPage");
   }
@@ -35,13 +28,16 @@ void main(List<String> arguments) {
   var scriptDir = path.dirname(Platform.script.toFilePath());
   var introduction = includeSdk ? '' : options['introduction'];
 
-  var pubScript = options['sdk'] != null ? 
+  var pubScript = options['sdk'] != null ?
       path.join(options['sdk'], 'bin', 'pub') : 'pub';
 
-  var dartBinary = options['sdk'] != null ? 
+  var dartBinary = options['sdk'] != null ?
       path.join(options['sdk'], 'bin', 'dart') : 'dart';
 
-  docgen(_files,
+  var excludedLibraries = options['exclude-lib'];
+  if(excludedLibraries == null) excludedLibraries = [];
+
+  docgen(files,
       packageRoot: options['package-root'],
       outputToYaml: !options['json'],
       includePrivate: options['include-private'],
@@ -84,10 +80,10 @@ bool _singlePackage(List files) {
  * If we've specified just a package and no other command-line options,
  * use the single package name as the start page.
  */
-String get _defaultStartPage {
-    var pubspec = new File(path.join(_files.first, 'pubspec.yaml'));
-    if (!pubspec.existsSync()) return null;
-    return Library.packageNameFor(_files.first);
+String _defaultStartPageFor(files) {
+  var pubspec = new File(path.join(files.first, 'pubspec.yaml'));
+  if (!pubspec.existsSync()) return null;
+  return Library.packageNameFor(files.first);
 }
 
 /**
@@ -107,9 +103,9 @@ ArgParser _initArgParser() {
         if (verbose) Logger.root.level = Level.FINEST;
       });
   parser.addFlag('json', abbr: 'j',
-      help: 'Outputs to JSON. Files are outputted to YAML by default. '
+      help: 'Outputs to JSON. If negated, outputs to YAML. '
         'If --append is used, it takes the file-format of the previous '
-        'run stated in library_list.json ignoring the flag.',
+        'run stated in library_list.json, ignoring the flag.',
       negatable: true, defaultsTo: true);
   parser.addFlag('include-private',
       help: 'Flag to include private declarations.', negatable: false);
@@ -142,8 +138,7 @@ ArgParser _initArgParser() {
       defaultsTo: 'docs');
   parser.addOption('exclude-lib',
       help: 'Exclude the library by this name from the documentation',
-      allowMultiple: true,
-      callback: (libs) => excludedLibraries.addAll(libs));
+      allowMultiple: true);
   parser.addFlag('include-dependent-packages',
       help: 'Assumes we are documenting a single package and are running '
         'in the directory with its pubspec. Includes documentation for all '
@@ -153,7 +148,7 @@ ArgParser _initArgParser() {
       help: 'SDK directory',
       defaultsTo: null);
   parser.addOption('start-page',
-      help: 'By default the viewer will start at the SDK introduction page.'
+      help: 'By default the viewer will start at the SDK introduction page. '
         'To start at some other page, e.g. for a package, provide the name '
         'of the package in this argument, e.g. --start-page=intl will make '
         'the start page of the viewer be the intl package.',

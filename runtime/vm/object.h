@@ -367,6 +367,10 @@ class Object {
     ASSERT(empty_array_ != NULL);
     return *empty_array_;
   }
+  static const Array& zero_array() {
+    ASSERT(zero_array_ != NULL);
+    return *zero_array_;
+  }
 
   static const PcDescriptors& empty_descriptors() {
     ASSERT(empty_descriptors_ != NULL);
@@ -614,6 +618,7 @@ class Object {
   static Instance* null_instance_;
   static TypeArguments* null_type_arguments_;
   static Array* empty_array_;
+  static Array* zero_array_;
   static PcDescriptors* empty_descriptors_;
   static Instance* sentinel_;
   static Instance* transition_sentinel_;
@@ -992,6 +997,11 @@ class Class : public Object {
   }
   void set_is_fields_marked_nullable() const;
 
+  bool is_cycle_free() const {
+    return CycleFreeBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_cycle_free() const;
+
   uint16_t num_native_fields() const {
     return raw_ptr()->num_native_fields_;
   }
@@ -1100,6 +1110,7 @@ class Class : public Object {
     kMixinAppAliasBit = 9,
     kMixinTypeAppliedBit = 10,
     kFieldsMarkedNullableBit = 11,
+    kCycleFreeBit = 12,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<bool, kImplementedBit, 1> {};
@@ -1114,6 +1125,7 @@ class Class : public Object {
   class MixinTypeAppliedBit : public BitField<bool, kMixinTypeAppliedBit, 1> {};
   class FieldsMarkedNullableBit : public BitField<bool,
       kFieldsMarkedNullableBit, 1> {};  // NOLINT
+  class CycleFreeBit : public BitField<bool, kCycleFreeBit, 1> {};
 
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;
@@ -1280,12 +1292,13 @@ class TypeArguments : public Object {
   bool IsEquivalent(const TypeArguments& other,
                     GrowableObjectArray* trail = NULL) const;
 
-  bool IsResolved() const;
   bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
   bool IsUninstantiatedIdentity() const;
   bool CanShareInstantiatorTypeArguments(const Class& instantiator_class) const;
 
-  // Returns true if all types of this vector are finalized.
+  // Returns true if all types of this vector are respectively, resolved,
+  // finalized, or bounded.
+  bool IsResolved() const;
   bool IsFinalized() const;
   bool IsBounded() const;
 
@@ -2180,12 +2193,6 @@ class Field : public Object {
   static RawString* NameFromSetter(const String& setter_name);
   static bool IsGetterName(const String& function_name);
   static bool IsSetterName(const String& function_name);
-
-  // When we print a field to a JSON stream, we want to make it appear
-  // that the value is a property of the field, so we allow the actual
-  // instance to be supplied here.
-  virtual void PrintToJSONStreamWithInstance(
-      JSONStream* stream, const Instance& instance, bool ref) const;
 
  private:
   friend class StoreInstanceFieldInstr;  // Generated code access to bit field.
@@ -3084,6 +3091,9 @@ class DeoptInfo : public Object {
   // instructions in the prefix.
   intptr_t FrameSize() const;
 
+  // Returns the number of kMaterializeObject instructions in the prefix.
+  intptr_t NumMaterializations() const;
+
   static RawDeoptInfo* New(intptr_t num_commands);
 
   static const intptr_t kBytesPerElement = (kNumberOfEntries * kWordSize);
@@ -3977,7 +3987,14 @@ class Instance : public Object {
     return ((index >= 0) && (index < clazz()->ptr()->num_native_fields_));
   }
 
-  inline intptr_t GetNativeField(Isolate* isolate, int index) const;
+  inline intptr_t GetNativeField(int index) const;
+  inline void GetNativeFields(uint16_t num_fields,
+                              intptr_t* field_values) const;
+
+  uint16_t NumNativeFields() const {
+    return clazz()->ptr()->num_native_fields_;
+  }
+
   void SetNativeField(int index, intptr_t value) const;
 
   // Returns true if the instance is a closure object.
@@ -4022,7 +4039,7 @@ class Instance : public Object {
   void SetFieldAtOffset(intptr_t offset, const Object& value) const {
     StorePointer(FieldAddrAtOffset(offset), value.raw());
   }
-  bool IsValidFieldOffset(int offset) const;
+  bool IsValidFieldOffset(intptr_t offset) const;
 
   static intptr_t NextFieldOffset() {
     return sizeof(RawInstance);
@@ -4130,6 +4147,9 @@ class AbstractType : public Instance {
   // Check if this type represents the 'Float32x4' type.
   bool IsFloat32x4Type() const;
 
+  // Check if this type represents the 'Float64x2' type.
+  bool IsFloat64x2Type() const;
+
   // Check if this type represents the 'Int32x4' type.
   bool IsInt32x4Type() const;
 
@@ -4185,8 +4205,8 @@ class Type : public AbstractType {
   }
   virtual bool IsFinalized() const {
     return
-    (raw_ptr()->type_state_ == RawType::kFinalizedInstantiated) ||
-    (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated);
+        (raw_ptr()->type_state_ == RawType::kFinalizedInstantiated) ||
+        (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated);
   }
   void SetIsFinalized() const;
   void ResetIsFinalized() const;  // Ignore current state and set again.
@@ -4199,7 +4219,10 @@ class Type : public AbstractType {
   virtual bool IsMalformedOrMalbounded() const;
   virtual RawLanguageError* error() const { return raw_ptr()->error_; }
   virtual void set_error(const LanguageError& value) const;
-  virtual bool IsResolved() const;  // Class and all arguments classes resolved.
+  virtual bool IsResolved() const {
+    return raw_ptr()->type_state_ >= RawType::kResolved;
+  }
+  void set_is_resolved() const;
   virtual bool HasResolvedTypeClass() const;  // Own type class resolved.
   virtual RawClass* type_class() const;
   void set_type_class(const Object& value) const;
@@ -4253,6 +4276,9 @@ class Type : public AbstractType {
 
   // The 'Float32x4' type.
   static RawType* Float32x4();
+
+  // The 'Float64x2' type.
+  static RawType* Float64x2();
 
   // The 'Int32x4' type.
   static RawType* Int32x4();
@@ -5629,7 +5655,7 @@ class Array : public Instance {
   // 'source' to the new array. 'new_length' must be greater than or equal to
   // 'source.Length()'. 'source' can be null.
   static RawArray* Grow(const Array& source,
-                        int new_length,
+                        intptr_t new_length,
                         Heap::Space space = Heap::kNew);
 
   // Return an Array object that contains all the elements currently present
@@ -6554,7 +6580,7 @@ void Context::SetAt(intptr_t index, const Instance& value) const {
 }
 
 
-intptr_t Instance::GetNativeField(Isolate* isolate, int index) const {
+intptr_t Instance::GetNativeField(int index) const {
   ASSERT(IsValidNativeIndex(index));
   NoGCScope no_gc;
   RawTypedData* native_fields =
@@ -6563,6 +6589,25 @@ intptr_t Instance::GetNativeField(Isolate* isolate, int index) const {
     return 0;
   }
   return reinterpret_cast<intptr_t*>(native_fields->ptr()->data_)[index];
+}
+
+
+void Instance::GetNativeFields(uint16_t num_fields,
+                               intptr_t* field_values) const {
+  NoGCScope no_gc;
+  ASSERT(num_fields == NumNativeFields());
+  ASSERT(field_values != NULL);
+  RawTypedData* native_fields =
+      reinterpret_cast<RawTypedData*>(*NativeFieldsAddr());
+  if (native_fields == TypedData::null()) {
+    for (intptr_t i = 0; i < num_fields; i++) {
+      field_values[i] = 0;
+    }
+  }
+  intptr_t* fields = reinterpret_cast<intptr_t*>(native_fields->ptr()->data_);
+  for (intptr_t i = 0; i < num_fields; i++) {
+    field_values[i] = fields[i];
+  }
 }
 
 

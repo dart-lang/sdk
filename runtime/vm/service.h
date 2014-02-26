@@ -11,8 +11,10 @@
 
 namespace dart {
 
+class EmbedderServiceHandler;
 class Instance;
 class Isolate;
+class JSONStream;
 class RawInstance;
 
 class Service : public AllStatic {
@@ -26,8 +28,25 @@ class Service : public AllStatic {
   static Isolate* GetServiceIsolate(void* callback_data);
   static bool SendIsolateStartupMessage();
   static bool SendIsolateShutdownMessage();
- private:
   static bool IsRunning();
+
+  static void RegisterIsolateEmbedderCallback(
+      const char* name,
+      Dart_ServiceRequestCallback callback,
+      void* user_data);
+
+  static void RegisterRootEmbedderCallback(
+      const char* name,
+      Dart_ServiceRequestCallback callback,
+      void* user_data);
+
+ private:
+  static void EmbedderHandleMessage(EmbedderServiceHandler* handler,
+                                    JSONStream* js);
+  static EmbedderServiceHandler* FindIsolateEmbedderHandler(const char* name);
+  static EmbedderServiceHandler* isolate_service_handler_head_;
+  static EmbedderServiceHandler* FindRootEmbedderHandler(const char* name);
+  static EmbedderServiceHandler* root_service_handler_head_;
   static Isolate* service_isolate_;
   static Dart_LibraryTagHandler default_handler_;
   static Dart_Port port_;

@@ -225,7 +225,6 @@ int Socket::GetType(intptr_t fd) {
 
 
 intptr_t Socket::GetStdioHandle(intptr_t num) {
-  Socket::SetNonBlocking(num);
   return num;
 }
 
@@ -238,16 +237,22 @@ AddressList<SocketAddress>* Socket::LookupAddress(const char* host,
   memset(&hints, 0, sizeof(hints));
   hints.ai_family = SocketAddress::FromType(type);
   hints.ai_socktype = SOCK_STREAM;
-  hints.ai_flags = 0;
+  hints.ai_flags = (AI_V4MAPPED | AI_ADDRCONFIG);
   hints.ai_protocol = IPPROTO_TCP;
   struct addrinfo* info = NULL;
   int status = getaddrinfo(host, 0, &hints, &info);
   if (status != 0) {
-    ASSERT(*os_error == NULL);
-    *os_error = new OSError(status,
-                            gai_strerror(status),
-                            OSError::kGetAddressInfo);
-    return NULL;
+    // We failed, try without AI_ADDRCONFIG. This can happen when looking up
+    // e.g. '::1', when there are no IPv6 addresses.
+    hints.ai_flags = AI_V4MAPPED;
+    status = getaddrinfo(host, 0, &hints, &info);
+    if (status != 0) {
+      ASSERT(*os_error == NULL);
+      *os_error = new OSError(status,
+                              gai_strerror(status),
+                              OSError::kGetAddressInfo);
+      return NULL;
+    }
   }
   intptr_t count = 0;
   for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {

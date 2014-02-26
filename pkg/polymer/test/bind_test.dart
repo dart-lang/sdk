@@ -50,5 +50,5 @@ main() {
 
   setUp(() => Polymer.onReady);
 
-  test('ready called', () => (query('x-foo') as XFoo).onTestDone);
+  test('ready called', () => (querySelector('x-foo') as XFoo).onTestDone);
 }

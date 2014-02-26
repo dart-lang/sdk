@@ -79,7 +79,8 @@ class NativeTypedData implements TypedData native "ArrayBufferView" {
   }
 
   void _checkIndex(int index, int length) {
-    if (JS('bool', '(# >>> 0 != #)', index, index) || index >= length) {
+    if (JS('bool', '(# >>> 0) !== #', index, index) ||
+        JS('int', '#', index) >= length) {  // 'int' guaranteed by above test.
       _invalidIndex(index, length);
     }
   }

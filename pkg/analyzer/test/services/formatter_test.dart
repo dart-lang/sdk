@@ -18,8 +18,11 @@ main() {
 
   /// Data-driven statement tests
   group('stmt_tests.data', () {
+    // NOTE: statement tests are run with transforms enabled
     runTests('stmt_tests.data', (input, expectedOutput) {
-      expect(formatStatement(input) + '\n', equals(expectedOutput));
+      expect(formatStatement(input,
+          options: new FormatterOptions(codeTransforms: true)) + '\n',
+          equals(expectedOutput));
     });
   });
 

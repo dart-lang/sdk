@@ -35,7 +35,10 @@ class MembersCreator {
   Map<dynamic/* Member | Element */, Set<MessageKind>> reportedMessages =
       new Map<dynamic, Set<MessageKind>>();
 
-  MembersCreator(Compiler this.compiler, ClassElement this.cls);
+  MembersCreator(Compiler this.compiler, ClassElement this.cls) {
+    assert(invariant(cls, cls.isDeclaration,
+        message: "Members may only be computed on declarations."));
+  }
 
   void reportMessage(var marker, MessageKind kind, report()) {
     Set<MessageKind> messages =
@@ -128,7 +131,7 @@ class MembersCreator {
       LibraryElement library = cls.getLibrary();
       InterfaceType thisType = cls.thisType;
 
-      cls.forEachLocalMember((Element element) {
+      void createMember(Element element) {
         if (element.isConstructor()) return;
 
         Name name = new Name(element.name, library);
@@ -168,7 +171,16 @@ class MembersCreator {
           declaredMembers[name] = new DeclaredMember(
               name, element, thisType, type, type);
         }
-      });
+      };
+
+      cls.forEachLocalMember(createMember);
+      if (cls.isPatched) {
+        cls.implementation.forEachLocalMember((Element element) {
+          if (element.isDeclaration) {
+            createMember(element);
+          }
+        });
+      }
     }
 
     declaredMembers.values.forEach((Member member) {
@@ -221,9 +233,9 @@ class MembersCreator {
               () => new Set<Member>()).add(inherited);
         }
         if (someAreGetters && !allAreGetters) {
-          compiler.reportWarningCode(cls,
-                                     MessageKind.INHERIT_GETTER_AND_METHOD,
-                                     {'class': thisType, 'name': name.text });
+          compiler.reportWarning(cls,
+                                 MessageKind.INHERIT_GETTER_AND_METHOD,
+                                 {'class': thisType, 'name': name.text });
           for (Member inherited in inheritedMembers) {
             MessageKind kind;
             if (inherited.isMethod) {
@@ -357,7 +369,7 @@ class MembersCreator {
         }
         reportMessage(
             interfaceMember.element, MessageKind.ABSTRACT_METHOD, () {
-          compiler.reportWarningCode(
+          compiler.reportWarning(
               interfaceMember.element, kind,
               {'class': cls.name, 'name': name.text});
         });
@@ -369,7 +381,7 @@ class MembersCreator {
           Member inherited = interfaceMember.declarations.first;
           reportMessage(
               interfaceMember, MessageKind.UNIMPLEMENTED_METHOD, () {
-            compiler.reportWarningCode(cls,
+            compiler.reportWarning(cls,
                 interfaceMember.declarations.length == 1
                     ? singleKind : multipleKind,
                 {'class': cls.name,
@@ -418,7 +430,7 @@ class MembersCreator {
           if (superMember != null && superMember.isStatic) {
             reportMessage(superMember, MessageKind.INSTANCE_STATIC_SAME_NAME,
                 () {
-              compiler.reportWarningCode(
+              compiler.reportWarning(
                   declared.element,
                   MessageKind.INSTANCE_STATIC_SAME_NAME,
                   {'memberName': declared.name,
@@ -479,7 +491,7 @@ class MembersCreator {
                                MessageKind warningKind,
                                MessageKind infoKind) {
               reportMessage(marker, MessageKind.INVALID_OVERRIDE_METHOD, () {
-                compiler.reportWarningCode(declared.element, warningKind,
+                compiler.reportWarning(declared.element, warningKind,
                     {'declaredType': declared.type,
                      'name': declared.name.text,
                      'class': cls.thisType,

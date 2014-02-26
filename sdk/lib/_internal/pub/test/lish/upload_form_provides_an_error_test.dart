@@ -29,7 +29,7 @@ main() {
       request.response.close();
     });
 
-    expect(pub.nextErrLine(), completion(equals('your request sucked')));
+    pub.stderr.expect('your request sucked');
     pub.shouldExit(1);
   });
 }

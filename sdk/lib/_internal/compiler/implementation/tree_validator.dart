@@ -16,7 +16,7 @@ class TreeValidatorTask extends CompilerTask {
     void report(node, message) {
       final error = new InvalidNodeError(node, message);
       errors.add(error);
-      compiler.reportWarning(node, message);
+      compiler.reportWarning(node, MessageKind.GENERIC, {'text': message});
     };
     final validator = new ValidatorVisitor(report);
     tree.accept(new TraversingVisitor(validator));

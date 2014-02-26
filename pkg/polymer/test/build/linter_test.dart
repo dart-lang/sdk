@@ -6,7 +6,6 @@ library polymer.test.linter_test;
 
 import 'package:polymer/src/build/common.dart';
 import 'package:polymer/src/build/linter.dart';
-import 'package:source_maps/span.dart';
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 

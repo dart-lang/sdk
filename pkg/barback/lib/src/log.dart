@@ -12,6 +12,7 @@ import 'errors.dart';
 /// The severity of a logged message.
 class LogLevel {
   static const INFO = const LogLevel("Info");
+  static const FINE = const LogLevel("Fine");
   static const WARNING = const LogLevel("Warning");
   static const ERROR = const LogLevel("Error");
 

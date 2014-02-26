@@ -1,7 +1,7 @@
 // TODO(jmesserly): remove this once we have a subclassable growable list
 // in our libraries.
 
-/** A [List] proxy that you can subclass. */
+/// A [List] proxy that you can subclass.
 library list_proxy;
 
 import 'dart:collection';
@@ -10,14 +10,12 @@ import 'dart:math' show Random;
 // TOOD(jmesserly): this needs to be removed, but fixing NodeList is tricky.
 class ListProxy<E> extends IterableBase<E> implements List<E> {
 
-  /** The inner [List<T>] with the actual storage. */
+  /// The inner [List<T>] with the actual storage.
   final List<E> _list;
 
-  /**
-   * Creates a list proxy.
-   * You can optionally specify the list to use for [storage] of the items,
-   * otherwise this will create a [List<E>].
-   */
+  /// Creates a list proxy.
+  /// You can optionally specify the list to use for [storage] of the items,
+  /// otherwise this will create a [List<E>].
   ListProxy([List<E> storage])
      : _list = storage != null ? storage : <E>[];
 

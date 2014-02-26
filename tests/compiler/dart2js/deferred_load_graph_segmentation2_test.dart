@@ -59,7 +59,7 @@ void main() {
 const Map MEMORY_SOURCE_FILES = const {"main.dart": """
 import "dart:async";
 
-@def import 'lib.dart' show f1;
+@def import 'lib.dart' as lib show f1;
 import 'lib.dart' show f2;
 
 const def = const DeferredLibrary("deferred");
@@ -67,7 +67,7 @@ const def = const DeferredLibrary("deferred");
 void main() {
   print(f2());
   def.load().then((_) {
-    print(f1());
+    print(lib.f1());
   });
 }
 """, "lib.dart": """

@@ -4,7 +4,6 @@
 
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/core/List/sort_A01_t04: Fail, Pass, Timeout # Must be a bug in jsshell, test sometimes times out.
-LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 LibTest/core/Uri/encodeComponent_A01_t02: Skip
@@ -126,6 +125,7 @@ LibTest/core/int/operator_addition_A01_t01: RuntimeError, OK # co19 issue 200
 LibTest/core/int/toDouble_A01_t01: RuntimeError, OK # co19 issue 200
 
 LibTest/core/List/sort_A01_t06: Slow, Pass # Slow tests that needs extra time to finish.
+LibTest/collection/LinkedList/add_A01_t01: Pass, Slow # Slow tests that needs extra time to finish.
 
 LibTest/core/List/getRange_A03_t01: RuntimeError, OK # Tests that fail because they use the legacy try-catch syntax. co19 issue 184.
 
@@ -246,9 +246,9 @@ LibTest/core/int/toDouble_A01_t01: RuntimeError, OK # Requires big int.
 LibTest/core/int/toRadixString_A01_t01: RuntimeError, OK # Bad test: uses Expect.fail, Expect.throws, assumes case of result, and uses unsupported radixes.
 
 [ $compiler == dart2js && $runtime == ie9 ]
+LibTest/collection/LinkedList/add_A01_t01: Pass, Slow, Timeout # Slow tests that needs extra time to finish.
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # co19-roll r607: Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # co19-roll r607: Please triage this failure
-LibTest/collection/LinkedList/add_A01_t01: Pass, Timeout  # co19-roll r607: Please triage this failure
 LibTest/core/Uri/Uri_A06_t03: Timeout # Issue 13511
 LibTest/math/cos_A01_t01: Fail # co19 issue 44
 
@@ -555,7 +555,7 @@ LibTest/typed_data/Uint16List/toList_A01_t01: fail # co19-roll r559: Please tria
 LibTest/typed_data/Uint16List/toList_A01_t01: timeout # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint16List/Uint16List.view_A06_t01: fail # co19-roll r587: Please triage this failure
 LibTest/typed_data/Uint32List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Uint32List/toList_A01_t01: timeout # co19-roll r559: Please triage this failure
+LibTest/typed_data/Uint32List/toList_A01_t01: RuntimeError, timeout # issue 16934, co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint32List/Uint32List.view_A06_t01: fail # co19-roll r587: Please triage this failure
 LibTest/typed_data/Uint8ClampedList/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8ClampedList/toList_A01_t01: fail, timeout # co19-roll r559: Please triage this failure
@@ -609,6 +609,7 @@ LibTest/core/Stopwatch/elapsed_A01_t01: RuntimeError # co19-roll r672: Please tr
 LibTest/core/Stopwatch/elapsed_A01_t02: RuntimeError # co19-roll r672: Please triage this failure
 LibTest/core/Stopwatch/elapsed_A01_t03: RuntimeError # co19-roll r672: Please triage this failure
 LibTest/core/Stopwatch/stop_A01_t01: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/math/sin_A01_t02: RuntimeError # V8 issue 3006, https://code.google.com/p/v8/issues/detail?id=3006
 
 [ $compiler == dart2js && $minified ]
 Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: fail # co19-roll r559: Please triage this failure

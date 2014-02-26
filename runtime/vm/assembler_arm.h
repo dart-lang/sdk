@@ -63,26 +63,6 @@ class Label : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(Label);
 };
 
-
-class CPUFeatures : public AllStatic {
- public:
-  static void InitOnce();
-  static bool double_truncate_round_supported() { return false; }
-  static bool integer_division_supported();
-  static bool neon_supported();
-#if defined(USING_SIMULATOR)
-  static void set_integer_division_supported(bool supported);
-  static void set_neon_supported(bool supported);
-#endif
- private:
-  static bool integer_division_supported_;
-  static bool neon_supported_;
-#if defined(DEBUG)
-  static bool initialized_;
-#endif
-};
-
-
 // Encodes Addressing Mode 1 - Data-processing operands.
 class ShifterOperand : public ValueObject {
  public:

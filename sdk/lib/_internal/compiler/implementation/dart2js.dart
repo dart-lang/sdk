@@ -7,7 +7,7 @@ library dart2js.cmdline;
 import 'dart:async'
     show Future, EventSink;
 import 'dart:io'
-    show exit, File, FileMode, Platform, RandomAccessFile;
+    show exit, File, FileMode, Platform, RandomAccessFile, FileSystemException;
 import 'dart:math' as math;
 
 import '../compiler.dart' as api;
@@ -279,6 +279,7 @@ Future compile(List<String> argv) {
     new OptionHandler('--dump-info', passThrough),
     new OptionHandler('--disallow-unsafe-eval',
                       (_) => hasDisallowUnsafeEval = true),
+    new OptionHandler('--hide-package-warnings', passThrough),
     new OptionHandler('-D.+=.*', addInEnvironment),
 
     // The following two options must come last.
@@ -384,8 +385,12 @@ Future compile(List<String> argv) {
       fail('Error: Unhandled scheme ${uri.scheme} in $uri.');
     }
 
-    RandomAccessFile output =
-        new File(uri.toFilePath()).openSync(mode: FileMode.WRITE);
+    RandomAccessFile output;
+    try {
+      output = new File(uri.toFilePath()).openSync(mode: FileMode.WRITE);
+    } on FileSystemException catch(e) {
+      fail('$e');
+    }
 
     allOutputFiles.add(relativize(currentDirectory, uri, isWindows));
 
@@ -552,6 +557,9 @@ Supported options:
   --terse
     Emit diagnostics without suggestions for how to get rid of the diagnosed
     problems.
+
+  --hide-package-warnings
+    Hide warnings and hints generated from packages.
 
 The following options are only used for compiler development and may
 be removed in a future version:

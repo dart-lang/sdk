@@ -8,6 +8,8 @@ part of crypto;
  * SHA1 hash function implementation.
  */
 class SHA1 extends _HashBase {
+  final List<int> _w;
+
   // Construct a SHA1 hasher object.
   SHA1() : _w = new List(80), super(16, 5, true) {
     _h[0] = 0x67452301;
@@ -64,6 +66,4 @@ class SHA1 extends _HashBase {
     _h[3] = _add32(d, _h[3]);
     _h[4] = _add32(e, _h[4]);
   }
-
-  List<int> _w;
 }

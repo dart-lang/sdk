@@ -23,7 +23,7 @@ class X {
   X({a: 'defa', b: 'defb'}) : this.i = a, this.j = b;
   X.foo() : this(b: 1, a: 2);
   X.bar() : this(
-                     1,  /// 01: runtime error
+                     1,  /// 01: static type warning, runtime error
                      a: 2);
   X.baz() : this(a: 1, b: 2);
   X.qux() : this(b: 2);

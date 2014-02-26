@@ -32,6 +32,32 @@ _callInIsolate(_IsolateContext isolate, Function function) {
   return result;
 }
 
+/// Marks entering a javascript async operation to keep the worker alive.
+/// Marks entering a JavaScript async operation to keep the worker alive.
+///
+/// To be called by library code before starting an async operation controlled
+/// by the JavaScript event handler.
+///
+/// Also call [leaveJsAsync] in all callback handlers marking the end of that
+/// async operation (also error handlers) so the worker can be released.
+///
+/// These functions only has to be called for code that can be run from a
+/// worker-isolate (so not for general dom operations).
+enterJsAsync() {
+  _globalState.topEventLoop._activeJsAsyncCount++;
+}
+
+/// Marks leaving a javascript async operation.
+///
+/// See [enterJsAsync].
+leaveJsAsync() {
+  _globalState.topEventLoop._activeJsAsyncCount--;
+  assert(_globalState.topEventLoop._activeJsAsyncCount >= 0);
+}
+
+/// Returns true if we are currently in a worker context.
+bool isWorker() => _globalState.isWorker;
+
 /**
  * Called by the compiler to fetch the current isolate context.
  */
@@ -44,7 +70,14 @@ _IsolateContext _currentIsolate() => _globalState.currentContext;
  * is needed. For single-isolate applications (e.g. hello world), this
  * call is not emitted.
  */
-void startRootIsolate(entry) {
+void startRootIsolate(entry, args) {
+  // The dartMainRunner can inject a new arguments array. We pass the arguments
+  // through a "JS", so that the type-inferrer loses track of it.
+  args = JS("", "#", args);
+  if (args == null) args = [];
+  if (args is! List) {
+    throw new ArgumentError("Arguments to main must be a List: $args");
+  }
   _globalState = new _Manager(entry);
 
   // Don't start the main loop again, if we are in a worker.
@@ -59,9 +92,9 @@ void startRootIsolate(entry) {
   _globalState.currentContext = rootContext;
 
   if (entry is _MainFunctionArgs) {
-    rootContext.eval(() { entry([]); });
+    rootContext.eval(() { entry(args); });
   } else if (entry is _MainFunctionArgsMessage) {
-    rootContext.eval(() { entry([], null); });
+    rootContext.eval(() { entry(args, null); });
   } else {
     rootContext.eval(entry);
   }
@@ -208,12 +241,12 @@ class _Manager {
 
   /**
    * Close the worker running this code if all isolates are done and
-   * there is no active timer.
+   * there are no active async JavaScript tasks still running.
    */
   void maybeCloseWorker() {
     if (isWorker
         && isolates.isEmpty
-        && topEventLoop.activeTimerCount == 0) {
+        && topEventLoop._activeJsAsyncCount == 0) {
       mainManager.postMessage(_serializeMessage({'command': 'close'}));
     }
   }
@@ -238,7 +271,7 @@ class _IsolateContext implements IsolateContext {
 
   final Capability pauseCapability = new Capability();
 
-  // TODO(lrn): Store these in single "pausestate" object, so they don't take
+  // TODO(lrn): Store these in single "PauseState" object, so they don't take
   // up as much room when not pausing.
   bool isPaused = false;
   List<_IsolateEvent> delayedEvents = [];
@@ -253,6 +286,7 @@ class _IsolateContext implements IsolateContext {
     if (pauseTokens.add(resume) && !isPaused) {
       isPaused = true;
     }
+    _updateGlobalState();
   }
 
   void removePause(Capability resume) {
@@ -265,6 +299,7 @@ class _IsolateContext implements IsolateContext {
       }
       isPaused = false;
     }
+    _updateGlobalState();
   }
 
   /**
@@ -328,7 +363,7 @@ class _IsolateContext implements IsolateContext {
   }
 
   _updateGlobalState() {
-    if (ports.length - weakPorts.length > 0) {
+    if (ports.length - weakPorts.length > 0 || isPaused) {
       _globalState.isolates[id] = this; // indicate this isolate is active
     } else {
       _globalState.isolates.remove(id); // indicate this isolate is not active
@@ -346,7 +381,14 @@ class _IsolateContext implements IsolateContext {
 /** Represent the event loop on a javascript thread (DOM or worker). */
 class _EventLoop {
   final Queue<_IsolateEvent> events = new Queue<_IsolateEvent>();
-  int activeTimerCount = 0;
+
+  /// The number of waiting callbacks not controlled by the dart event loop.
+  ///
+  /// This could be timers or http requests. The worker will only be killed if
+  /// this count reaches 0.
+  /// Access this by using [enterJsAsync] before starting a JavaScript async
+  /// operation and [leaveJsAsync] when the callback has fired.
+  int _activeJsAsyncCount = 0;
 
   _EventLoop();
 
@@ -468,6 +510,8 @@ typedef _MainFunction();
 typedef _MainFunctionArgs(args);
 typedef _MainFunctionArgsMessage(args, message);
 
+/// Note: IsolateNatives depends on _globalState which is only set up correctly
+/// when 'dart:isolate' has been imported.
 class IsolateNatives {
 
   static String thisScript = computeThisScript();
@@ -486,6 +530,8 @@ class IsolateNatives {
     }
     if (Primitives.isD8) return computeThisScriptD8();
     if (Primitives.isJsshell) return computeThisScriptJsshell();
+    // A worker has no script tag - so get an url from a stack-trace.
+    if (_globalState.isWorker) return computeThisScriptFromTrace();
     return null;
   }
 
@@ -493,10 +539,11 @@ class IsolateNatives {
     return JS('String|Null', 'thisFilename()');
   }
 
-  static String computeThisScriptD8() {
-    // TODO(ahe): The following is for supporting D8.  We should move this code
-    // to a helper library that is only loaded when testing on D8.
+  // TODO(ahe): The following is for supporting D8.  We should move this code
+  // to a helper library that is only loaded when testing on D8.
+  static String computeThisScriptD8() => computeThisScriptFromTrace();
 
+  static String computeThisScriptFromTrace() {
     var stack = JS('String|Null', 'new Error().stack');
     if (stack == null) {
       // According to Internet Explorer documentation, the stack
@@ -554,10 +601,12 @@ class IsolateNatives {
         var args = msg['args'];
         var message = _deserializeMessage(msg['msg']);
         var isSpawnUri = msg['isSpawnUri'];
+        var startPaused = msg['startPaused'];
         var replyTo = _deserializeMessage(msg['replyTo']);
         var context = new _IsolateContext();
         _globalState.topEventLoop.enqueue(context, () {
-          _startIsolate(entryPoint, args, message, isSpawnUri, replyTo);
+          _startIsolate(entryPoint, args, message,
+                        isSpawnUri, startPaused, replyTo);
         }, 'worker-start');
         // Make sure we always have a current context in this worker.
         // TODO(7907): This is currently needed because we're using
@@ -571,7 +620,8 @@ class IsolateNatives {
       case 'spawn-worker':
         _spawnWorker(msg['functionName'], msg['uri'],
                      msg['args'], msg['msg'],
-                     msg['isSpawnUri'], msg['replyPort']);
+                     msg['isSpawnUri'], msg['startPaused'],
+                     msg['replyPort']);
         break;
       case 'message':
         SendPort port = msg['port'];
@@ -639,17 +689,24 @@ class IsolateNatives {
   }
 
   static Future<List> spawnFunction(void topLevelFunction(message),
-                                        message) {
+                                    var message,
+                                    bool startPaused) {
     final name = _getJSFunctionName(topLevelFunction);
     if (name == null) {
       throw new UnsupportedError(
           "only top-level functions can be spawned.");
     }
-    return spawn(name, null, null, message, false, false);
+    bool isLight = false;
+    bool isSpawnUri = false;
+    return spawn(name, null, null, message, isLight, isSpawnUri, startPaused);
   }
 
-  static Future<List> spawnUri(Uri uri, List<String> args, message) {
-    return spawn(null, uri.toString(), args, message, false, true);
+  static Future<List> spawnUri(Uri uri, List<String> args, var message,
+                               bool startPaused) {
+    bool isLight = false;
+    bool isSpawnUri = true;
+    return spawn(null, uri.toString(), args, message,
+                 isLight, isSpawnUri, startPaused);
   }
 
   // TODO(sigmund): clean up above, after we make the new API the default:
@@ -657,7 +714,7 @@ class IsolateNatives {
   /// If [uri] is `null` it is replaced with the current script.
   static Future<List> spawn(String functionName, String uri,
                             List<String> args, message,
-                            bool isLight, bool isSpawnUri) {
+                            bool isLight, bool isSpawnUri, bool startPaused) {
     // Assume that the compiled version of the Dart file lives just next to the
     // dart file.
     // TODO(floitsch): support precompiled version of dart2js output.
@@ -672,10 +729,12 @@ class IsolateNatives {
     SendPort signalReply = port.sendPort;
 
     if (_globalState.useWorkers && !isLight) {
-      _startWorker(functionName, uri, args, message, isSpawnUri, signalReply);
+      _startWorker(functionName, uri, args, message, isSpawnUri, startPaused,
+                   signalReply);
     } else {
       _startNonWorker(
-          functionName, uri, args, message, isSpawnUri, signalReply);
+          functionName, uri, args, message, isSpawnUri, startPaused,
+          signalReply);
     }
     return result;
   }
@@ -684,6 +743,7 @@ class IsolateNatives {
       String functionName, String uri,
       List<String> args, message,
       bool isSpawnUri,
+      bool startPaused,
       SendPort replyPort) {
     if (_globalState.isWorker) {
       _globalState.mainManager.postMessage(_serializeMessage({
@@ -693,16 +753,19 @@ class IsolateNatives {
           'msg': message,
           'uri': uri,
           'isSpawnUri': isSpawnUri,
+          'startPaused': startPaused,
           'replyPort': replyPort}));
     } else {
-      _spawnWorker(functionName, uri, args, message, isSpawnUri, replyPort);
+      _spawnWorker(functionName, uri, args, message,
+                   isSpawnUri, startPaused, replyPort);
     }
   }
 
   static void _startNonWorker(
       String functionName, String uri,
-      List<String> args, message,
+      List<String> args, var message,
       bool isSpawnUri,
+      bool startPaused,
       SendPort replyPort) {
     // TODO(eub): support IE9 using an iframe -- Dart issue 1702.
     if (uri != null) {
@@ -711,13 +774,14 @@ class IsolateNatives {
     }
     _globalState.topEventLoop.enqueue(new _IsolateContext(), () {
       final func = _getJSFunctionFromName(functionName);
-      _startIsolate(func, args, message, isSpawnUri, replyPort);
+      _startIsolate(func, args, message, isSpawnUri, startPaused, replyPort);
     }, 'nonworker start');
   }
 
   static void _startIsolate(Function topLevel,
                             List<String> args, message,
                             bool isSpawnUri,
+                            bool startPaused,
                             SendPort replyTo) {
     _IsolateContext context = JS_CURRENT_ISOLATE_CONTEXT();
     Primitives.initializeStatics(context.id);
@@ -725,14 +789,25 @@ class IsolateNatives {
     replyTo.send([_SPAWNED_SIGNAL,
                   context.controlPort.sendPort,
                   context.pauseCapability]);
-    if (!isSpawnUri) {
-      topLevel(message);
-    } else if (topLevel is _MainFunctionArgsMessage) {
-      topLevel(args, message);
-    } else if (topLevel is _MainFunctionArgs) {
-      topLevel(args);
+
+    void runStartFunction() {
+      if (!isSpawnUri) {
+        topLevel(message);
+      } else if (topLevel is _MainFunctionArgsMessage) {
+        topLevel(args, message);
+      } else if (topLevel is _MainFunctionArgs) {
+        topLevel(args);
+      } else {
+        topLevel();
+      }
+    }
+
+    if (startPaused) {
+      context.addPause(context.pauseCapability, context.pauseCapability);
+      _globalState.topEventLoop.enqueue(context, runStartFunction,
+                                        'start isolate');
     } else {
-      topLevel();
+      runStartFunction();
     }
   }
 
@@ -743,6 +818,7 @@ class IsolateNatives {
   static void _spawnWorker(functionName, String uri,
                            List<String> args, message,
                            bool isSpawnUri,
+                           bool startPaused,
                            SendPort replyPort) {
     if (uri == null) uri = thisScript;
     final worker = JS('var', 'new Worker(#)', uri);
@@ -767,6 +843,7 @@ class IsolateNatives {
         'args': args,
         'msg': _serializeMessage(message),
         'isSpawnUri': isSpawnUri,
+        'startPaused': startPaused,
         'functionName': functionName }));
   }
 }
@@ -806,7 +883,6 @@ class _NativeJsSendPort extends _BaseSendPort implements SendPort {
     final isolate = _globalState.isolates[_isolateId];
     if (isolate == null) return;
     if (_receivePort._isClosed) return;
-
     // We force serialization/deserialization as a simple way to ensure
     // isolate communication restrictions are respected between isolates that
     // live in the same worker. [_NativeJsSendPort] delivers both messages
@@ -1365,11 +1441,12 @@ class TimerImpl implements Timer {
 
       void internalCallback() {
         _handle = null;
-        _globalState.topEventLoop.activeTimerCount--;
+        leaveJsAsync();
         callback();
       }
 
-      _globalState.topEventLoop.activeTimerCount++;
+      enterJsAsync();
+
       _handle = JS('int', '#.setTimeout(#, #)',
                    globalThis,
                    convertDartClosureToJS(internalCallback, 0),
@@ -1383,7 +1460,7 @@ class TimerImpl implements Timer {
   TimerImpl.periodic(int milliseconds, void callback(Timer timer))
       : _once = false {
     if (hasTimer()) {
-      _globalState.topEventLoop.activeTimerCount++;
+      enterJsAsync();
       _handle = JS('int', '#.setInterval(#, #)',
                    globalThis,
                    convertDartClosureToJS(() { callback(this); }, 0),
@@ -1399,7 +1476,7 @@ class TimerImpl implements Timer {
         throw new UnsupportedError("Timer in event loop cannot be canceled.");
       }
       if (_handle == null) return;
-      _globalState.topEventLoop.activeTimerCount--;
+      leaveJsAsync();
       if (_once) {
         JS('void', '#.clearTimeout(#)', globalThis, _handle);
       } else {

@@ -288,7 +288,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
             // TODO(15933): Make automatically generated property extraction
             // closures work with the dummy receiver optimization.
             if (!invoke.selector.isGetter()) {
-              Constant constant = new DummyReceiverConstant(
+              Constant constant = new DummyConstant(
                   receiverArgument.instructionType);
               HConstant dummy = graph.addConstant(constant, compiler);
               receiverArgument.usedBy.remove(invoke);

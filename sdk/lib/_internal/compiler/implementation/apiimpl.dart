@@ -14,6 +14,7 @@ import 'ssa/tracer.dart' as ssa;
 import '../../libraries.dart';
 import 'source_file.dart';
 
+
 class Compiler extends leg.Compiler {
   api.CompilerInputProvider provider;
   api.DiagnosticHandler handler;
@@ -61,7 +62,9 @@ class Compiler extends leg.Compiler {
             dumpInfo: hasOption(options, '--dump-info'),
             buildId: extractStringOption(
                 options, '--build-id=',
-                "build number could not be determined")) {
+                "build number could not be determined"),
+            hidePackageWarnings:
+                hasOption(options, '--hide-package-warnings')) {
     if (!libraryRoot.path.endsWith("/")) {
       throw new ArgumentError("libraryRoot must end with a /");
     }
@@ -284,8 +287,10 @@ class Compiler extends leg.Compiler {
     });
   }
 
-  void reportDiagnostic(leg.SourceSpan span, String message,
+  void reportDiagnostic(leg.Spannable node,
+                        leg.Message message,
                         api.Diagnostic kind) {
+    leg.SourceSpan span = spanFromSpannable(node);
     if (identical(kind, api.Diagnostic.ERROR)
         || identical(kind, api.Diagnostic.CRASH)) {
       compilationFailed = true;
@@ -293,10 +298,10 @@ class Compiler extends leg.Compiler {
     // [:span.uri:] might be [:null:] in case of a [Script] with no [uri]. For
     // instance in the [Types] constructor in typechecker.dart.
     if (span == null || span.uri == null) {
-      callUserHandler(null, null, null, message, kind);
+      callUserHandler(null, null, null, '$message', kind);
     } else {
       callUserHandler(
-          translateUri(span.uri, null), span.begin, span.end, message, kind);
+          translateUri(span.uri, null), span.begin, span.end, '$message', kind);
     }
   }
 

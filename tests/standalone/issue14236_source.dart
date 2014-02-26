@@ -9,9 +9,11 @@
 // test.
 // 
 // When issue14236_test.dart fails, you must regenerate it using the VM 
-// with your changes. Notes on regenerating:
+// with your changes. You should understand what in your change makes
+// regeneration of the snapshot necessary.
+// Steps for regenerating:
 // 1) Swap the test and main functions below.
-// 2) $ dart --snapshot=issue14236_test.dart issue14236_source.dart
+// 2) $ ./xcodebuild/DebugIA32/dart --package-root=./xcodebuild/DebugIA32/packages --snapshot=tests/standalone/issue14236_test.dart tests/standalone/issue14236_source.dart
 // 3) Undo changes in 1.
 
 library test.issue14236;
@@ -19,9 +21,15 @@ import "dart:isolate";
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 
+
 /*
 test(SendPort replyTo) {
   replyTo.send("from Isolate");
+}
+*/
+
+test() {
+  Expect.fail("Don't expect this to run at all");
 }
 
 main() {
@@ -32,12 +40,4 @@ main() {
     Expect.equals("from Isolate", msg);
     asyncEnd();
   });
-}
-*/
-
-test() {
-  Expect.fail("Don't expect this to run at all");
-}
-main() {
-  Expect.fail("Don't expect this to run at all");
 }

@@ -36,25 +36,25 @@ main() {
   setUp(() => Polymer.onReady);
 
   test('bubbling in the right order', () {
-    var item1 = query('#item1');
-    var menuButton = query('#menuButton');
+    var item1 = querySelector('#item1');
+    var menuButton = querySelector('#menuButton');
     // Note: polymer uses automatic node finding (menuButton.$.menu)
     // also note that their node finding code also reachs into the ids
     // from the parent shadow (menu.$.selectorContent instead of
     // menu.$.menuShadow.$.selectorContent)
-    var menu = menuButton.shadowRoot.query('#menu');
-    var overlay = menuButton.shadowRoot.query('#overlay');
+    var menu = menuButton.shadowRoot.querySelector('#menu');
+    var overlay = menuButton.shadowRoot.querySelector('#overlay');
     var expectedPath = <Node>[
         item1,
-        menuButton.shadowRoot.query('#menuButtonContent'),
-        menu.shadowRoot.olderShadowRoot.query('#selectorContent'),
-        menu.shadowRoot.olderShadowRoot.query('#selectorDiv'),
+        menuButton.shadowRoot.querySelector('#menuButtonContent'),
+        menu.shadowRoot.olderShadowRoot.querySelector('#selectorContent'),
+        menu.shadowRoot.olderShadowRoot.querySelector('#selectorDiv'),
         menu.shadowRoot.olderShadowRoot,
-        menu.shadowRoot.query('#menuShadow'),
-        menu.shadowRoot.query('#menuDiv'),
+        menu.shadowRoot.querySelector('#menuShadow'),
+        menu.shadowRoot.querySelector('#menuDiv'),
         menu.shadowRoot,
         menu,
-        menuButton.shadowRoot.query('#menuButtonDiv'),
+        menuButton.shadowRoot.querySelector('#menuButtonDiv'),
         // TODO(sigmund): this test is currently broken because currently
         // registerElement is sensitive to the order in which each custom
         // element is registered. When fixed, we should be able to add the
@@ -69,7 +69,7 @@ main() {
     for (int i = 0; i < expectedPath.length; i++) {
       var node = expectedPath[i];
       expect(node, isNotNull, reason: "Should not be null at $i");
-      node.on['x'].listen(expectAsync1((e) {
+      node.on['x'].listen(expectAsync((e) {
         expect(e.currentTarget, node);
         expect(x++, i);
       }));

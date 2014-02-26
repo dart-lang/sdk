@@ -9,13 +9,11 @@
 library polymer.test.event_path_declarative_test;
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:html';
 
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'package:polymer/polymer.dart';
-import 'package:template_binding/template_binding.dart';
 
 var _observedEvents = [];
 var _testFired;

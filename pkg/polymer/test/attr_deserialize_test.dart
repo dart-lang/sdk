@@ -26,7 +26,7 @@ main() {
   setUp(() => Polymer.onReady);
 
   test('attributes were deserialized', () {
-    MyElement elem = query('my-element');
+    MyElement elem = querySelector('my-element');
     final msg = 'property should match attribute.';
     expect(elem.volume, 11.0, reason: '"volume" should match attribute');
     expect(elem.factor, 3, reason: '"factor" should match attribute');

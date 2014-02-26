@@ -7,6 +7,7 @@ library pub.validator.dependency;
 import 'dart:async';
 
 import '../entrypoint.dart';
+import '../log.dart' as log;
 import '../package.dart';
 import '../validator.dart';
 import '../version.dart';
@@ -22,7 +23,17 @@ class DependencyValidator extends Validator {
         return _warnAboutSource(dependency);
       }
 
-      if (dependency.constraint.isAny) _warnAboutConstraint(dependency);
+      if (dependency.constraint.isAny) {
+        _warnAboutNoConstraint(dependency);
+      } else if (dependency.constraint is Version) {
+        _warnAboutSingleVersionConstraint(dependency);
+      } else if (dependency.constraint is VersionRange) {
+        if (dependency.constraint.min == null) {
+          _warnAboutNoConstraintLowerBound(dependency);
+        } else if (dependency.constraint.max == null) {
+          _warnAboutNoConstraintUpperBound(dependency);
+        }
+      }
 
       return new Future.value();
     });
@@ -63,7 +74,7 @@ class DependencyValidator extends Validator {
   }
 
   /// Warn that dependencies should have version constraints.
-  void _warnAboutConstraint(PackageDep dep) {
+  void _warnAboutNoConstraint(PackageDep dep) {
     var lockFile = entrypoint.loadLockFile();
     var message = 'Your dependency on "${dep.name}" should have a version '
         'constraint.';
@@ -75,15 +86,69 @@ class DependencyValidator extends Validator {
         '  ${dep.name}: ${_constraintForVersion(locked.version)}\n';
     }
     warnings.add("$message\n"
-        "Without a constraint, you're promising to support all future "
-        "versions of ${dep.name}.");
+        'Without a constraint, you\'re promising to support ${log.bold("all")} '
+            'future versions of "${dep.name}".');
+  }
+
+  // Warn that dependencies should allow more than a single version.
+  void _warnAboutSingleVersionConstraint(PackageDep dep) {
+    warnings.add(
+        'Your dependency on "${dep.name}" should allow more than one version. '
+            'For example:\n'
+        '\n'
+        'dependencies:\n'
+        '  ${dep.name}: ${_constraintForVersion(dep.constraint)}\n'
+        '\n'
+        'Constraints that are too tight will make it difficult for people to '
+            'use your package\n'
+        'along with other packages that also depend on "${dep.name}".');
+  }
+
+  // Warn that dependencies should have lower bounds on their constraints.
+  void _warnAboutNoConstraintLowerBound(PackageDep dep) {
+    var message = 'Your dependency on "${dep.name}" should have a lower bound.';
+    var locked = entrypoint.loadLockFile().packages[dep.name];
+    if (locked != null) {
+      var constraint;
+      if (locked.version == (dep.constraint as VersionRange).max) {
+        constraint = _constraintForVersion(locked.version);
+      } else {
+        constraint = '">=${locked.version} ${dep.constraint}"';
+      }
+
+      message = '$message For example:\n'
+        '\n'
+        'dependencies:\n'
+        '  ${dep.name}: $constraint\n';
+    }
+    warnings.add("$message\n"
+        'Without a constraint, you\'re promising to support ${log.bold("all")} '
+            'previous versions of "${dep.name}".');
+  }
+
+  // Warn that dependencies should have upper bounds on their constraints.
+  void _warnAboutNoConstraintUpperBound(PackageDep dep) {
+    warnings.add(
+        'Your dependency on "${dep.name}" should have an upper bound. For '
+            'example:\n'
+        '\n'
+        'dependencies:\n'
+        '  ${dep.name}: "${dep.constraint} '
+            '${_upperBoundForVersion((dep.constraint as VersionRange).min)}"\n'
+        '\n'
+        'Without an upper bound, you\'re promising to support '
+            '${log.bold("all")} future versions of ${dep.name}.');
   }
 
   /// Returns the suggested version constraint for a dependency that was tested
   /// against [version].
-  String _constraintForVersion(Version version) {
-    if (version.major != 0) return '">=$version <${version.major + 1}.0.0"';
-    return '">=$version <${version.major}.${version.minor}.'
-        '${version.patch + 1}"';
+  String _constraintForVersion(Version version) =>
+      '">=$version ${_upperBoundForVersion(version)}"';
+
+  /// Returns the suggested upper bound for a dependency that was tested against
+  /// [version].
+  String _upperBoundForVersion(Version version) {
+    if (version.major != 0) return '<${version.major + 1}.0.0';
+    return '<${version.major}.${version.minor + 1}.0';
   }
 }

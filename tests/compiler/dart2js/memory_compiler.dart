@@ -8,7 +8,6 @@ import 'memory_source_file_helper.dart';
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
        show NullSink;
-import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 
 import '../../../sdk/lib/_internal/compiler/compiler.dart'
        show Diagnostic, DiagnosticHandler;
@@ -26,6 +25,8 @@ class DiagnosticMessage {
   final Diagnostic kind;
 
   DiagnosticMessage(this.uri, this.begin, this.end, this.message, this.kind);
+
+  String toString() => '$uri:$begin:$end:$message:$kind';
 }
 
 class DiagnosticCollector {
@@ -51,6 +52,10 @@ class DiagnosticCollector {
 
   Iterable<DiagnosticMessage> get hints {
     return filterMessagesByKind(Diagnostic.HINT);
+  }
+
+  Iterable<DiagnosticMessage> get infos {
+    return filterMessagesByKind(Diagnostic.INFO);
   }
 }
 

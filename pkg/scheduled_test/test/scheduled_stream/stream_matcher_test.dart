@@ -208,6 +208,20 @@ void main(_, message) {
         "   Which: unexpected end of stream"));
   });
 
+  expectTestPasses("consumeWhile() consumes values while the given matcher "
+      "matches", () {
+    var stream = createStream();
+    stream.expect(consumeWhile(lessThan(4)));
+    stream.expect(4);
+  });
+
+  expectTestPasses("consumeWhile() will stop if the first value doesn't match",
+      () {
+    var stream = createStream();
+    stream.expect(consumeWhile(2));
+    stream.expect(1);
+  });
+
   expectTestPasses("either() will match if the first branch matches", () {
     createStream().expect(either(1, 100));
   });
@@ -262,6 +276,29 @@ void main(_, message) {
     var stream = createStream();
     stream.expect(allow(inOrder([1, 2, 100])));
     stream.expect(1);
+  });
+
+  expectTestPasses("never() consumes everything if the matcher never matches",
+      () {
+    var stream = createStream();
+    stream.expect(never(inOrder([2, 1])));
+  });
+
+  expectTestFails("never() fails if the matcher matches", () {
+    var stream = createStream();
+    stream.expect(never(inOrder([2, 3])));
+  }, (errors) {
+    expect(errors, hasLength(1));
+    expect(errors.first.error.message, equals(
+        "Expected: never\n"
+        "        |   * <2>\n"
+        "        |   * <3>\n"
+        " Emitted: * 1\n"
+        "          * 2\n"
+        "          * 3\n"
+        "   Which: matched\n"
+        "        |   * <2>\n"
+        "        |   * <3>"));
   });
 
   expectTestPasses("isDone succeeds at the end of the stream", () {

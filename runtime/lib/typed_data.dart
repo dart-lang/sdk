@@ -408,27 +408,27 @@ abstract class _TypedListBase {
 
   set length(newLength) {
     throw new UnsupportedError(
-        "Cannot resize a non-extendable array");
+        "Cannot resize a fixed-length list");
   }
 
   void add(value) {
     throw new UnsupportedError(
-        "Cannot add to a non-extendable array");
+        "Cannot add to a fixed-length list");
   }
 
   void addAll(Iterable value) {
     throw new UnsupportedError(
-        "Cannot add to a non-extendable array");
+        "Cannot add to a fixed-length list");
   }
 
   void insert(int index, value) {
     throw new UnsupportedError(
-        "Cannot insert into a non-extendable array");
+        "Cannot insert into a fixed-length list");
   }
 
   void insertAll(int index, Iterable values) {
     throw new UnsupportedError(
-        "Cannot insert into a non-extendable array");
+        "Cannot insert into a fixed-length list");
   }
 
   void sort([int compare(a, b)]) {
@@ -449,32 +449,32 @@ abstract class _TypedListBase {
 
   void clear() {
     throw new UnsupportedError(
-        "Cannot remove from a non-extendable array");
+        "Cannot remove from a fixed-length list");
   }
 
   int removeLast() {
     throw new UnsupportedError(
-        "Cannot remove from a non-extendable array");
+        "Cannot remove from a fixed-length list");
   }
 
   bool remove(Object element) {
     throw new UnsupportedError(
-        "Cannot remove from a non-extendable array");
+        "Cannot remove from a fixed-length list");
   }
 
   bool removeAt(int index) {
     throw new UnsupportedError(
-        "Cannot remove from a non-extendable array");
+        "Cannot remove from a fixed-length list");
   }
 
   void removeWhere(bool test(element)) {
     throw new UnsupportedError(
-        "Cannot remove from a non-extendable array");
+        "Cannot remove from a fixed-length list");
   }
 
   void retainWhere(bool test(element)) {
     throw new UnsupportedError(
-        "Cannot remove from a non-extendable array");
+        "Cannot remove from a fixed-length list");
   }
 
   dynamic get first {
@@ -495,12 +495,12 @@ abstract class _TypedListBase {
 
   void removeRange(int start, int end) {
     throw new UnsupportedError(
-        "Cannot remove from a non-extendable array");
+        "Cannot remove from a fixed-length list");
   }
 
   void replaceRange(int start, int end, Iterable iterable) {
     throw new UnsupportedError(
-        "Cannot remove from a non-extendable array");
+        "Cannot remove from a fixed-length list");
   }
 
   List toList({bool growable: true}) {

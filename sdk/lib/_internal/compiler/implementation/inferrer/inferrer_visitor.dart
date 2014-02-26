@@ -290,6 +290,16 @@ abstract class MinimalInferrerEngine<T> {
    * [type].
    */
   void recordTypeOfNonFinalField(Node node, Element field, T type);
+
+  /**
+   * Records that the captured variable [local] is read.
+   */
+  void recordCapturedLocalRead(Element local);
+
+  /**
+   * Records that the variable [local] is being updated.
+   */
+  void recordLocalUpdate(Element local, T type);
 }
 
 /**
@@ -300,6 +310,7 @@ class LocalsHandler<T> {
   final TypeSystem<T> types;
   final MinimalInferrerEngine<T> inferrer;
   final VariableScope<T> locals;
+  final Map<Element, Element> captured;
   final Map<Element, Element> capturedAndBoxed;
   final FieldInitializationScope<T> fieldScope;
   LocalsHandler<T> tryBlock;
@@ -317,6 +328,7 @@ class LocalsHandler<T> {
                 Node block,
                 [this.fieldScope])
       : locals = new VariableScope<T>(block),
+        captured = new Map<Element, Element>(),
         capturedAndBoxed = new Map<Element, Element>(),
         tryBlock = null;
 
@@ -325,6 +337,7 @@ class LocalsHandler<T> {
                      {bool useOtherTryBlock: true})
       : locals = new VariableScope<T>(block, other.locals),
         fieldScope = new FieldInitializationScope<T>.from(other.fieldScope),
+        captured = other.captured,
         capturedAndBoxed = other.capturedAndBoxed,
         types = other.types,
         inferrer = other.inferrer,
@@ -335,6 +348,7 @@ class LocalsHandler<T> {
   LocalsHandler.deepCopyOf(LocalsHandler<T> other)
       : locals = new VariableScope<T>.deepCopyOf(other.locals),
         fieldScope = new FieldInitializationScope<T>.from(other.fieldScope),
+        captured = other.captured,
         capturedAndBoxed = other.capturedAndBoxed,
         tryBlock = other.tryBlock,
         types = other.types,
@@ -342,15 +356,27 @@ class LocalsHandler<T> {
         compiler = other.compiler;
 
   T use(Element local) {
-    return capturedAndBoxed.containsKey(local)
-        ? inferrer.typeOfElement(capturedAndBoxed[local])
-        : locals[local];
+    if (capturedAndBoxed.containsKey(local)) {
+      return inferrer.typeOfElement(capturedAndBoxed[local]);
+    } else {
+      if (captured.containsKey(local)) {
+        inferrer.recordCapturedLocalRead(local);
+      }
+      return locals[local];
+    }
   }
 
   void update(Element local, T type, Node node) {
     assert(type != null);
     if (compiler.trustTypeAnnotations || compiler.enableTypeAssertions) {
       type = types.narrowType(type, local.computeType(compiler));
+    }
+    updateLocal() {
+      T currentType = locals[local];
+      locals[local] = type;
+      if (currentType != type) {
+        inferrer.recordLocalUpdate(local, type);
+      }
     }
     if (capturedAndBoxed.containsKey(local)) {
       inferrer.recordTypeOfNonFinalField(
@@ -369,10 +395,14 @@ class LocalsHandler<T> {
       }
       // Update the current handler unconditionnally with the new
       // type.
-      locals[local] = type;
+      updateLocal();
     } else {
-      locals[local] = type;
+      updateLocal();
     }
+  }
+
+  void setCaptured(Element local, Element field) {
+    captured[local] = field;
   }
 
   void setCapturedAndBoxed(Element local, Element field) {

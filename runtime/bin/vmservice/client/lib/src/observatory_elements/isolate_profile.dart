@@ -6,8 +6,52 @@ library isolate_profile_element;
 
 import 'dart:html';
 import 'package:logging/logging.dart';
+import 'package:observatory/observatory.dart';
 import 'package:polymer/polymer.dart';
 import 'observatory_element.dart';
+
+class ProfileCallerTreeRow extends TableTreeRow {
+  final Isolate isolate;
+  @observable final Code code;
+
+  static String formatPercent(num a, num total) {
+    var percent = 100.0 * (a / total);
+    return '${percent.toStringAsFixed(2)}%';
+  }
+
+  ProfileCallerTreeRow(this.isolate, this.code, ProfileCallerTreeRow parent) :
+      super(parent) {
+    // When the row is created, fill out the columns.
+    columns.add(
+        formatPercent(code.exclusiveTicks, isolate.profile.totalSamples));
+    if (parent == null) {
+      // Fill with dummy data.
+      columns.add('');
+    } else {
+      var totalAttributedCalls = parent.code.callersCount(code);
+      var totalParentCalls = parent.code.sumCallersCount();
+      columns.add(formatPercent(totalAttributedCalls, totalParentCalls));
+    }
+    columns.add(
+        formatPercent(code.inclusiveTicks, isolate.profile.totalSamples));
+  }
+
+  void onShow() {
+    if (children.length > 0) {
+      // Child rows already created.
+      return;
+    }
+    // Create child rows on demand.
+    code.callers.forEach((CodeCallCount codeCaller) {
+      var row =
+          new ProfileCallerTreeRow(isolate, codeCaller.code, this);
+      children.add(row);
+    });
+  }
+
+  void onHide() {
+  }
+}
 
 /// Displays an IsolateProfile
 @CustomTag('isolate-profile')
@@ -15,8 +59,9 @@ class IsolateProfileElement extends ObservatoryElement {
   IsolateProfileElement.created() : super.created();
   @observable int methodCountSelected = 0;
   final List methodCounts = [10, 20, 50];
-  @observable List topInclusiveCodes = toObservable([]);
   @observable List topExclusiveCodes = toObservable([]);
+  final _id = '#tableTree';
+  TableTree tree;
 
   void enteredView() {
     var isolateId = app.locationManager.currentIsolateId();
@@ -24,7 +69,8 @@ class IsolateProfileElement extends ObservatoryElement {
     if (isolate == null) {
       return;
     }
-    _refreshTopMethods(isolate);
+    tree = new TableTree(['Method', 'Exclusive', 'Caller', 'Inclusive']);
+    _refresh(isolate);
   }
 
   void _startRequest() {
@@ -35,13 +81,13 @@ class IsolateProfileElement extends ObservatoryElement {
     // TODO(johnmccutchan): Indicate visually.
   }
 
-  methodCountSelectedChanged(oldValue) {;
+  methodCountSelectedChanged(oldValue) {
     var isolateId = app.locationManager.currentIsolateId();
     var isolate = app.isolateManager.getIsolate(isolateId);
     if (isolate == null) {
       return;
     }
-    _refreshTopMethods(isolate);
+    _refresh(isolate);
   }
 
   void refreshData(Event e, var detail, Node target) {
@@ -66,48 +112,50 @@ class IsolateProfileElement extends ObservatoryElement {
 
   void _loadProfileData(Isolate isolate, int totalSamples, Map response) {
     isolate.profile = new Profile.fromMap(isolate, response);
-    _refreshTopMethods(isolate);
+    _refresh(isolate);
   }
+
+  void _refresh(Isolate isolate) {
+    _refreshTopMethods(isolate);
+    _refreshTree(isolate);
+  }
+
+  void _refreshTree(Isolate isolate) {
+    var rootChildren = [];
+    for (var code in topExclusiveCodes) {
+      var row = new ProfileCallerTreeRow(isolate, code, null);
+      rootChildren.add(row);
+    }
+    tree.initialize(rootChildren);
+    notifyPropertyChange(#tree, null, tree);
+  }
+
 
   void _refreshTopMethods(Isolate isolate) {
     topExclusiveCodes.clear();
-    topInclusiveCodes.clear();
     if ((isolate == null) || (isolate.profile == null)) {
       return;
     }
     var count = methodCounts[methodCountSelected];
     var topExclusive = isolate.profile.topExclusive(count);
     topExclusiveCodes.addAll(topExclusive);
-    var topInclusive = isolate.profile.topInclusive(count);
-    topInclusiveCodes.addAll(topInclusive);
-
   }
 
-  String codeTicks(Code code, bool inclusive) {
-    if (code == null) {
-      return '';
-    }
-    return inclusive ? '${code.inclusiveTicks}' : '${code.exclusiveTicks}';
+  @observable String padding(TableTreeRow row) {
+    return 'padding-left: ${row.depth * 16}px;';
   }
 
-  String codePercent(Code code, bool inclusive) {
-    if (code == null) {
-      return '';
-    }
-    var isolateId = app.locationManager.currentIsolateId();
-    var isolate = app.isolateManager.getIsolate(isolateId);
-    if (isolate == null) {
-      return '';
-    }
-    var ticks = inclusive ? code.inclusiveTicks : code.exclusiveTicks;
-    var total = ticks / isolate.profile.totalSamples;
-    return (total * 100.0).toStringAsFixed(2);
+  @observable String coloring(TableTreeRow row) {
+    const colors = const ['active', 'success', 'warning', 'danger', 'info'];
+    var index = row.depth % colors.length;
+    return colors[index];
   }
 
-  String codeName(Code code) {
-    if ((code == null) || (code.name == null)) {
-      return '';
+  @observable void toggleExpanded(Event e, var detail, Element target) {
+    var row = target.parent;
+    if (row is TableRowElement) {
+      // Subtract 1 to get 0 based indexing.
+      tree.toggle(row.rowIndex - 1);
     }
-    return code.name;
   }
 }

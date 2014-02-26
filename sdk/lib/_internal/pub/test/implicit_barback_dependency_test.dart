@@ -10,11 +10,11 @@ import '../lib/src/version.dart';
 main() {
   initConfig();
 
-  var current = barback.supportedVersion.toString();
-  var previous = new Version(barback.supportedVersion.major,
-      barback.supportedVersion.minor - 1, 0).toString();
-  var nextPatch = barback.supportedVersion.nextPatch.toString();
-  var max = barback.supportedVersion.nextMinor.toString();
+  var current = barback.supportedVersions.min.toString();
+  var previous = new Version(barback.supportedVersions.min.major,
+      barback.supportedVersions.min.minor - 1, 0).toString();
+  var nextPatch = barback.supportedVersions.min.nextPatch.toString();
+  var max = barback.supportedVersions.max.toString();
 
   forBothPubGetAndUpgrade((command) {
     integration("implicitly constrains barback to versions pub supports", () {
@@ -32,7 +32,7 @@ main() {
       pubCommand(command);
 
       d.packagesDir({
-        "barback": barback.supportedVersion.nextPatch.toString()
+        "barback": barback.supportedVersions.min.nextPatch.toString()
       }).validate();
     });
 

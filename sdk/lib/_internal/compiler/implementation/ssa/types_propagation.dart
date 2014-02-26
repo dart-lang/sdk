@@ -126,6 +126,13 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   }
 
   TypeMask visitNegate(HNegate instruction) {
+    HInstruction operand = instruction.operand;
+    // We have integer subclasses that represent ranges, so widen any int
+    // subclass to full integer.
+    if (operand.isInteger(compiler)) {
+      JavaScriptBackend backend = compiler.backend;
+      return backend.intType;
+    }
     return instruction.operand.instructionType;
   }
 

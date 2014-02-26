@@ -104,7 +104,7 @@ main() {
     }
   }
 
-  var objectsDyn = [[], new A(), new A<Dynamic>()];
+  var objectsDyn = [[], new A(), new A<dynamic>()];
   var objectsInt = [<int>[], new A<int>()];
   var objectsStr = [<String>[], new A<String>()];
   var objectsLst = [<List>[], new A<List>()];

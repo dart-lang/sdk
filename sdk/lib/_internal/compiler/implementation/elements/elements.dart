@@ -626,7 +626,7 @@ abstract class WarnOnUseElement extends Element {
 }
 
 abstract class AmbiguousElement extends Element {
-  DualKind get messageKind;
+  MessageKind get messageKind;
   Map get messageArguments;
   Element get existingElement;
   Element get newElement;
@@ -766,6 +766,7 @@ abstract class FieldParameterElement extends VariableElement {
   VariableElement get fieldElement;
 }
 
+// TODO(johnniwinther): Remove this interface.
 abstract class VariableListElement extends Element {
   DartType get type;
   FunctionSignature get functionSignature;
@@ -974,6 +975,10 @@ abstract class ClassElement extends TypeDeclarationElement
 
   /// Calls [f] with each member of the interface of this class.
   void forEachInterfaceMember(f(MemberSignature member));
+
+  /// Returns the type of the 'call' method in the interface of this class, or
+  /// `null` if the interface has no 'call' method.
+  FunctionType get callType;
 }
 
 abstract class MixinApplicationElement extends ClassElement {

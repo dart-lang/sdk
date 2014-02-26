@@ -485,7 +485,7 @@ class EventHandlerImplementation {
   EventHandlerImplementation();
   virtual ~EventHandlerImplementation();
 
-  void SendData(intptr_t id, Dart_Port dart_port, int64_t data);
+  void Notify(intptr_t id, Dart_Port dart_port, int64_t data);
   void Start(EventHandler* handler);
   void Shutdown();
 

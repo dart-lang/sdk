@@ -5,11 +5,30 @@
 // Library tag to allow the test to run on Dartium.
 library hmac_md5_test;
 
-import "package:expect/expect.dart";
 import "package:crypto/crypto.dart";
+import "package:unittest/unittest.dart";
+
+void main() {
+  test('standard vectors', () {
+    _testStandardVectors(_HMAC_MD5_INPUTS, _HMAC_MD5_KEYS,
+        _HMAC_MD5_STRING_MACS, _HMAC_MD5_MACS);
+  });
+}
+
+void _testStandardVectors(inputs, keys, string_macs, macs) {
+  for (var i = 0; i < inputs.length; i++) {
+    var h = new HMAC(new MD5(), keys[i]);
+    h.add(inputs[i]);
+    var d = h.close();
+    expect(CryptoUtils.bytesToHex(d).startsWith(string_macs[i]), isTrue);
+    expect(h.verify(macs[i]), isTrue);
+    expect(h.verify(macs[(i + 1) % macs.length]), isFalse);
+    expect(() => h.verify([]), throws);
+  }
+}
 
 // Data from http://tools.ietf.org/html/rfc2202.
-var hmac_md5_inputs =
+const _HMAC_MD5_INPUTS =
     const [
       const [ 0x48, 0x69, 0x20, 0x54, 0x68, 0x65, 0x72, 0x65 ],
       const [ 0x77, 0x68, 0x61, 0x74, 0x20, 0x64, 0x6f, 0x20, 0x79, 0x61,
@@ -42,7 +61,7 @@ var hmac_md5_inputs =
               0x6f, 0x63, 0x6b, 0x2d, 0x53, 0x69, 0x7a, 0x65, 0x20, 0x44,
               0x61, 0x74, 0x61 ] ];
 
-var hmac_md5_keys =
+const _HMAC_MD5_KEYS =
     const [ const [0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b,
                    0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b],
             const [ 0x4a, 0x65, 0x66, 0x65 ],
@@ -72,7 +91,7 @@ var hmac_md5_keys =
                     0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
                     0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa ] ];
 
-var hmac_md5_string_macs =
+const _HMAC_MD5_STRING_MACS =
     const [ '9294727a3638bb1c13f48ef8158bfc9d',
             '750c783e6ab0b503eaa86e310a5db738',
             '56be34521d144c88dbb8c733f0e8b3f6',
@@ -81,7 +100,7 @@ var hmac_md5_string_macs =
             '6b1ab7fe4bd7bf8f0b62e6ce61b9d0cd',
             '6f630fad67cda0ee1fb1f562db3aa53e' ];
 
-var hmac_md5_macs =
+const _HMAC_MD5_MACS =
     const [ const [0x92, 0x94, 0x72, 0x7a, 0x36, 0x38, 0xbb, 0x1c, 0x13, 0xf4,
                    0x8e, 0xf8, 0x15, 0x8b, 0xfc, 0x9d],
             const [0x75, 0x0c, 0x78, 0x3e, 0x6a, 0xb0, 0xb5, 0x03, 0xea, 0xa8,
@@ -96,20 +115,3 @@ var hmac_md5_macs =
                    0xe6, 0xce, 0x61, 0xb9, 0xd0, 0xcd],
             const [0x6f, 0x63, 0x0f, 0xad, 0x67, 0xcd, 0xa0, 0xee, 0x1f, 0xb1,
                    0xf5, 0x62, 0xdb, 0x3a, 0xa5, 0x3e]];
-
-void testStandardVectors(inputs, keys, string_macs, macs) {
-  for (var i = 0; i < inputs.length; i++) {
-    var h = new HMAC(new MD5(), keys[i]);
-    h.add(inputs[i]);
-    var d = h.close();
-    Expect.isTrue(CryptoUtils.bytesToHex(d).startsWith(string_macs[i]), '$i');
-    Expect.isTrue(h.verify(macs[i]));
-    Expect.isFalse(h.verify(macs[(i+1)%macs.length]));
-    Expect.throws(() => h.verify([]));
-  }
-}
-
-void main() {
-  testStandardVectors(hmac_md5_inputs, hmac_md5_keys,
-                      hmac_md5_string_macs, hmac_md5_macs);
-}

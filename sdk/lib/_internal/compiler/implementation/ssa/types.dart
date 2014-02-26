@@ -30,7 +30,8 @@ class TypeMaskFactory {
         compiler);
   }
 
-  static TypeMask inferredForNode(Element owner, Node node, Compiler compiler) {
+  static TypeMask inferredForNode(Element owner, ast.Node node,
+                                  Compiler compiler) {
     return fromInferredType(
         compiler.typesTask.getGuaranteedTypeOfNode(owner, node),
         compiler);

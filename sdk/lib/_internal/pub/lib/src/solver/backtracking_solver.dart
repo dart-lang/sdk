@@ -402,14 +402,12 @@ class BacktrackingSolver {
       }
     } else {
       // Otherwise, indent it under the current selected package.
-      message = "| $message";
+      message = prefixLines(message);
     }
 
     // Indent for the previous selections.
-    var buffer = new StringBuffer();
-    buffer.writeAll(_selected.skip(1).map((_) => '| '));
-    buffer.write(message);
-    log.solver(buffer);
+    var prefix = _selected.skip(1).map((_) => '| ').join();
+    log.solver(prefixLines(message, prefix: prefix));
   }
 }
 
@@ -527,17 +525,15 @@ class Traverser {
         // The length check here is to ensure we only add the barback
         // dependency once.
         if (dep.name == "barback" && dependencies.length == 1) {
-          var range = new VersionRange(
-              min: barback.supportedVersion, includeMin: true,
-              max: barback.supportedVersion.nextMinor, includeMax: false);
-          _solver.logSolve('add implicit $range pub dependency on barback');
+          _solver.logSolve('add implicit ${barback.supportedVersions} pub '
+              'dependency on barback');
 
           // Use the same source and description as the explicit dependency.
           // That way, this doesn't fail with a source/desc conflict if users
           // (like Dart team members) use things like a path dependency to
           // find barback.
-          var barbackDep = new PackageDep(dep.name, dep.source, range,
-              dep.description);
+          var barbackDep = new PackageDep(dep.name, dep.source,
+              barback.supportedVersions, dep.description);
           dependencies.add(new Dependency("pub itself", barbackDep));
         }
 
@@ -545,7 +541,11 @@ class Traverser {
 
         // See if it's possible for a package to match that constraint.
         if (constraint.isEmpty) {
-          _solver.logSolve('disjoint constraints on ${dep.name}');
+          var constraints = _getDependencies(dep.name)
+              .map((dep) => "  ${dep.dep.constraint} from ${dep.depender}")
+              .join('\n');
+          _solver.logSolve(
+              'disjoint constraints on ${dep.name}:\n$constraints');
           throw new DisjointConstraintException(dep.name, dependencies);
         }
 

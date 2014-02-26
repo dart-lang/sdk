@@ -65,10 +65,12 @@ class TimeoutQueue {
   bool HasTimeout() const { return next_timeout_ != NULL; }
 
   int64_t CurrentTimeout() const {
+    ASSERT(next_timeout_ != NULL);
     return next_timeout_->timeout();
   }
 
   Dart_Port CurrentPort() const {
+    ASSERT(next_timeout_ != NULL);
     return next_timeout_->port();
   }
 
@@ -105,7 +107,7 @@ namespace bin {
 class EventHandler {
  public:
   void SendData(intptr_t id, Dart_Port dart_port, int64_t data) {
-    delegate_.SendData(id, dart_port, data);
+    delegate_.Notify(id, dart_port, data);
   }
 
   /**

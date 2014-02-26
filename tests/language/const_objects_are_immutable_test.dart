@@ -24,6 +24,6 @@ main() {
   Expect.equals(1, a1.x);
 
   A a2 = const A(1, 2);
-  Expect.throws(() => a2.x = 499);
+  Expect.throws(() => a2.x = 499); /// 01: static type warning
   Expect.equals(1, a2.x);
 }

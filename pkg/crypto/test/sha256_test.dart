@@ -5,22 +5,25 @@
 // Library tag to allow Dartium to run the tests.
 library sha256_test;
 
-import "package:expect/expect.dart";
+import "package:unittest/unittest.dart";
 import "package:crypto/crypto.dart";
 
 part 'sha256_long_test_vectors.dart';
 part 'sha256_short_test_vectors.dart';
 
-List<int> createTestArr(int len) {
-  var arr = new List<int>(len);
-  for (var i = 0; i < len; i++) {
-    arr[i] = i;
-  }
-  return arr;
+
+void main() {
+  test('expected values', _testExpectedValues);
+  test('invalid use', _testInvalidUse);
+  test('repeated digest', _testRepeatedDigest);
+  test('long inputs',
+      () => _testStandardVectors(sha256_long_inputs, sha256_long_mds));
+  test('short inputs',
+      () => _testStandardVectors(sha256_short_inputs, sha256_short_mds));
 }
 
-void test() {
-  final expected_values = const [
+void _testExpectedValues() {
+  var expectedValues = const [
       'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
       '6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d',
       'b413f47d13ee2fe6c845b2ee141af81de858df4ec549a58b7970bb96645bc8d2',
@@ -278,40 +281,31 @@ void test() {
       'd6a8bdb01e763fb64f3a02512e7be905679a5add6bb408f8750d679d17cad92f',
       '3f8591112c6bbe5c963965954e293108b7208ed2af893e500d859368c654eabe' ];
 
-  for (var i = 0; i < expected_values.length; i++) {
+  for (var i = 0; i < expectedValues.length; i++) {
     var hash = new SHA256();
-    hash.add(createTestArr(i));
+    hash.add(new List<int>.generate(i, (j) => j, growable: false));
     var d = hash.close();
-    Expect.equals(expected_values[i], CryptoUtils.bytesToHex(d), '$i');
+    expect(expectedValues[i], CryptoUtils.bytesToHex(d), reason: '$i');
   }
 }
 
-void testInvalidUse() {
+void _testInvalidUse() {
   var sha = new SHA256();
   sha.close();
-  Expect.throws(() => sha.add([0]), (e) => e is StateError);
+  expect(() => sha.add([0]), throwsStateError);
 }
 
-void testRepeatedDigest() {
+void _testRepeatedDigest() {
   var sha = new SHA256();
   var digest = sha.close();
-  Expect.listEquals(digest, sha.close());
+  expect(digest, sha.close());
 }
 
-void testStandardVectors(inputs, mds) {
+void _testStandardVectors(inputs, mds) {
   for (var i = 0; i < inputs.length; i++) {
     var hash = new SHA256();
     hash.add(inputs[i]);
     var d = hash.close();
-    Expect.equals(mds[i], CryptoUtils.bytesToHex(d), '$i');
+    expect(mds[i], CryptoUtils.bytesToHex(d), reason: '$i');
   }
 }
-
-void main() {
-  test();
-  testInvalidUse();
-  testRepeatedDigest();
-  testStandardVectors(sha256_long_inputs, sha256_long_mds);
-  testStandardVectors(sha256_short_inputs, sha256_short_mds);
-}
-

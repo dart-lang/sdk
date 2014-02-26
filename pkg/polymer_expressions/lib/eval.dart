@@ -7,17 +7,18 @@ library polymer_expressions.eval;
 import 'dart:async';
 import 'dart:collection';
 
-@MirrorsUsed(metaTargets: const [Reflectable, ObservableProperty],
-    override: 'polymer_expressions.eval')
-import 'dart:mirrors';
+@MirrorsUsed(
+    metaTargets: const [Reflectable, ObservableProperty],
+    override: 'smoke.mirrors')
+import 'dart:mirrors' show MirrorsUsed;
 
 import 'package:observe/observe.dart';
+import 'package:smoke/smoke.dart' as smoke;
 
 import 'async.dart';
 import 'expression.dart';
 import 'filter.dart';
 import 'visitor.dart';
-import 'src/mirrors.dart';
 
 final _BINARY_OPERATORS = {
   '+':  (a, b) => a + b,
@@ -142,7 +143,7 @@ void assign(Expression expr, Object value, Scope scope) {
   if (isIndex) {
     o[property] = value;
   } else {
-    reflect(o).setField(new Symbol(property), value);
+    smoke.write(o, smoke.nameToSymbol(property), value);
   }
 }
 
@@ -159,33 +160,19 @@ class Scope {
   final Object model;
   // TODO(justinfagnani): disallow adding/removing names
   final ObservableMap<String, Object> _variables;
-  InstanceMirror __modelMirror;
 
   Scope({this.model, Map<String, Object> variables, this.parent})
       : _variables = new ObservableMap.from(variables == null ? {} : variables);
-
-  InstanceMirror get _modelMirror {
-    if (__modelMirror != null) return __modelMirror;
-    __modelMirror = reflect(model);
-    return __modelMirror;
-  }
 
   Object operator[](String name) {
     if (name == 'this') {
       return model;
     } else if (_variables.containsKey(name)) {
       return _convert(_variables[name]);
-    } else if (model != null) {
-      var symbol = new Symbol(name);
-      var classMirror = _modelMirror.type;
-      var memberMirror = getMemberMirror(classMirror, symbol);
-      // TODO(jmesserly): simplify once dartbug.com/13002 is fixed.
-      // This can just be "if memberMirror != null" and delete the Method class.
-      if (memberMirror is VariableMirror ||
-          (memberMirror is MethodMirror && memberMirror.isGetter)) {
-        return _convert(_modelMirror.getField(symbol).reflectee);
-      } else if (memberMirror is MethodMirror) {
-        return new Method(_modelMirror, symbol);
+    } else {
+      var symbol = smoke.nameToSymbol(name);
+      if (model != null && smoke.hasGetter(model.runtimeType, symbol)) {
+        return _convert(smoke.read(model, symbol));
       }
     }
     if (parent != null) {
@@ -203,12 +190,8 @@ class Scope {
       return null;
     } else if (_variables.containsKey(name)) {
       return _variables;
-    } else {
-      var symbol = new Symbol(name);
-      var classMirror = _modelMirror.type;
-      if (getMemberMirror(classMirror, symbol) != null) {
-        return model;
-      }
+    } else if (smoke.hasGetter(model.runtimeType, smoke.nameToSymbol(name))) {
+      return model;
     }
     if (parent != null) {
       return parent.ownerOf(name);
@@ -216,14 +199,9 @@ class Scope {
   }
 
   bool contains(String name) {
-    if (_variables.containsKey(name)) {
+    if (_variables.containsKey(name) ||
+        smoke.hasGetter(model.runtimeType, smoke.nameToSymbol(name))) {
       return true;
-    } else {
-      var symbol = new Symbol(name);
-      var classMirror = _modelMirror.type;
-      if (getMemberMirror(classMirror, symbol) != null) {
-        return true;
-      }
     }
     if (parent != null) {
       return parent.contains(name);
@@ -480,7 +458,7 @@ class IdentifierObserver extends ExpressionObserver<Identifier>
 
     var owner = scope.ownerOf(value);
     if (owner is Observable) {
-      var symbol = new Symbol(value);
+      var symbol = smoke.nameToSymbol(value);
       _subscription = (owner as Observable).changes.listen((changes) {
         if (changes.any(
             (c) => c is PropertyChangeRecord && c.name == symbol)) {
@@ -590,9 +568,8 @@ class GetterObserver extends ExpressionObserver<Getter> implements Getter {
       _value = null;
       return;
     }
-    var mirror = reflect(receiverValue);
-    var symbol = new Symbol(_expr.name);
-    _value = mirror.getField(symbol).reflectee;
+    var symbol = smoke.nameToSymbol(_expr.name);
+    _value = smoke.read(receiverValue, symbol);
 
     if (receiverValue is Observable) {
       _subscription = (receiverValue as Observable).changes.listen((changes) {
@@ -657,11 +634,10 @@ class InvokeObserver extends ExpressionObserver<Invoke> implements Invoke {
       // changed? listen to the scope to see if the top-level method has
       // changed?
       assert(receiverValue is Function);
-      _value = call(receiverValue, args);
+      _value = _convert(Function.apply(receiverValue, args));
     } else {
-      var mirror = reflect(receiverValue);
-      var symbol = new Symbol(_expr.method);
-      _value = mirror.invoke(symbol, args, null).reflectee;
+      var symbol = smoke.nameToSymbol(_expr.method);
+      _value = smoke.invoke(receiverValue, symbol, args);
 
       if (receiverValue is Observable) {
         _subscription = (receiverValue as Observable).changes.listen(
@@ -706,20 +682,6 @@ class InObserver extends ExpressionObserver<InExpression>
 
 _toBool(v) => (v == null) ? false : v;
 
-/** Call a [Function] or a [Method]. */
-// TODO(jmesserly): remove this once dartbug.com/13002 is fixed.
-// Just inline `_convert(Function.apply(...))` to the call site.
-Object call(Object receiver, List args) {
-  var result;
-  if (receiver is Method) {
-    Method method = receiver;
-    result = method.mirror.invoke(method.symbol, args, null).reflectee;
-  } else {
-    result = Function.apply(receiver, args, null);
-  }
-  return _convert(result);
-}
-
 /**
  * A comprehension declaration ("a in b"). [identifier] is the loop variable
  * that's added to the scope during iteration. [iterable] is the set of
@@ -731,20 +693,6 @@ class Comprehension {
 
   Comprehension(this.identifier, Iterable iterable)
       : iterable = (iterable != null) ? iterable : const [];
-}
-
-/** A method on a model object in a [Scope]. */
-class Method {
-  final InstanceMirror mirror;
-  final Symbol symbol;
-
-  Method(this.mirror, this.symbol);
-
-  /**
-   * Support for calling single argument methods like [Filter]s.
-   * This does not work for calls that need to pass more than one argument.
-   */
-  call(arg0) => mirror.invoke(symbol, [arg0], null).reflectee;
 }
 
 class EvalException implements Exception {

@@ -64,9 +64,10 @@ void testInvalidBind() {
 void testSimpleConnect() {
   asyncStart();
   RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
-    server.listen((_) { });
-    RawSocket.connect("127.0.0.1", server.port).then((_) {
+    server.listen((socket) { socket.close(); });
+    RawSocket.connect("127.0.0.1", server.port).then((socket) {
       server.close();
+      socket.close();
       asyncEnd();
     });
   });
@@ -113,9 +114,11 @@ void testServerListenAfterConnect() {
   asyncStart();
   RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     Expect.isTrue(server.port > 0);
-    RawSocket.connect("127.0.0.1", server.port).then((_) {
-      server.listen((_) {
+    RawSocket.connect("127.0.0.1", server.port).then((client) {
+      server.listen((socket) {
+        client.close();
         server.close();
+        socket.close();
         asyncEnd();
       });
     });
@@ -258,7 +261,8 @@ testPauseServerSocket() {
   asyncStart();
   RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     Expect.isTrue(server.port > 0);
-    var subscription = server.listen((_) {
+    var subscription = server.listen((socket) {
+      socket.close();
       Expect.isTrue(resumed);
       if (++acceptCount == socketCount) {
         server.close();
@@ -272,14 +276,17 @@ testPauseServerSocket() {
     subscription.pause();
     var connectCount = 0;
     for (int i = 0; i < socketCount / 2; i++) {
-      RawSocket.connect("127.0.0.1", server.port).then((_) {
+      RawSocket.connect("127.0.0.1", server.port).then((socket) {
         if (++connectCount == socketCount / 2) {
           subscription.resume();
           resumed = true;
           for (int i = connectCount; i < socketCount; i++) {
-            RawSocket.connect("127.0.0.1", server.port).then((_) {});
+            RawSocket.connect("127.0.0.1", server.port).then((socket) {
+              socket.close();
+            });
           }
         }
+        socket.close();
       });
     }
   });

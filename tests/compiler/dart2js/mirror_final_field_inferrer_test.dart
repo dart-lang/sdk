@@ -8,6 +8,7 @@ import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'memory_compiler.dart' show compilerFor;
 import 'compiler_helper.dart' show findElement;
+import 'type_mask_test_helper.dart';
 
 const MEMORY_SOURCE_FILES = const <String, String> {
   'main.dart': """
@@ -27,9 +28,9 @@ void main() {
   asyncTest(() => compiler.runCompiler(Uri.parse('memory:main.dart')).then((_) {
     var element = findElement(compiler, 'field');
     var typesTask = compiler.typesTask;
-    var typesInferrer = typesTask.typesInferrer;        
+    var typesInferrer = typesTask.typesInferrer;
     Expect.equals(typesTask.uint31Type,
-                  typesInferrer.getTypeOfElement(element).simplify(compiler),
+                  simplify(typesInferrer.getTypeOfElement(element), compiler),
                   'field');
   }));
 }

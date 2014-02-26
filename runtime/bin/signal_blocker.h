@@ -56,10 +56,10 @@ class ThreadSignalBlocker {
 
 #define TEMP_FAILURE_RETRY_BLOCK_SIGNALS(expression)                           \
     ({ ThreadSignalBlocker tsb(SIGPROF);                                       \
-       int64_t __result;                                                       \
+       intptr_t __result;                                                      \
        do {                                                                    \
-         __result = static_cast<int64_t>(expression);                          \
-       } while (__result == -1L && errno == EINTR);                            \
+         __result = (expression);                                              \
+       } while ((__result == -1L) && (errno == EINTR));                        \
        __result; })
 
 #define VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(expression)                      \

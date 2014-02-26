@@ -209,6 +209,28 @@ main() {
             ''');
     });
 
+    integration('shows non-truncated help', () {
+      schedulePub(args: ['help', 'serve'],
+          output: '''
+            Run a local web development server.
+
+            By default, this serves "web/" and "test/", but an explicit list of 
+            directories to serve can be provided as well.
+
+            Usage: pub serve [directories...]
+            -h, --help               Print usage information for this command.
+                --port               The base port to listen on.
+                                     (defaults to "8080")
+
+                --[no-]dart2js       Compile Dart to JavaScript.
+                                     (defaults to on)
+
+                --[no-]force-poll    Force the use of a polling filesystem watcher.
+                --mode               Mode to run transformers in.
+                                     (defaults to "debug")
+            ''');
+    });
+
     integration('shows help for a subcommand', () {
       schedulePub(args: ['help', 'cache', 'list'],
           output: '''

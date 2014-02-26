@@ -10,7 +10,7 @@ import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
 import '../tree/tree.dart';
 import '../util/util.dart';
 import '../universe/universe.dart';
-import 'concrete_types_inferrer.dart' show ConcreteTypesInferrer;
+import '../inferrer/concrete_types_inferrer.dart' show ConcreteTypesInferrer;
 
 part 'container_type_mask.dart';
 part 'map_type_mask.dart';
@@ -37,7 +37,8 @@ abstract class TypesInferrer {
  * The types task infers guaranteed types globally.
  */
 class TypesTask extends CompilerTask {
-  static final bool DUMP_SURPRISING_RESULTS = false;
+  static final bool DUMP_BAD_CPA_RESULTS = false;
+  static final bool DUMP_GOOD_CPA_RESULTS = false;
 
   final String name = 'Type inference';
   TypesInferrer typesInferrer;
@@ -220,121 +221,35 @@ class TypesTask extends CompilerTask {
     return nullTypeCache;
   }
 
-
-  /// Replaces native types by their backend implementation.
-  Element normalize(Element cls) {
-    if (cls == compiler.boolClass) {
-      return compiler.backend.boolImplementation;
-    }
-    if (cls == compiler.intClass) {
-      return compiler.backend.intImplementation;
-    }
-    if (cls == compiler.doubleClass) {
-      return compiler.backend.doubleImplementation;
-    }
-    if (cls == compiler.numClass) {
-      return compiler.backend.numImplementation;
-    }
-    if (cls == compiler.stringClass) {
-      return compiler.backend.stringImplementation;
-    }
-    if (cls == compiler.listClass) {
-      return compiler.backend.listImplementation;
-    }
-    return cls;
+  /** Helper method for [intersection]. */
+  TypeMask _intersection(TypeMask type1, TypeMask type2) {
+    if (type1 == null) return type2;
+    if (type2 == null) return type1;
+    return type1.intersection(type2, compiler);
   }
 
-  /// Checks that two types are the same modulo normalization.
-  bool same(ClassElement type1, ClassElement type2) {
-    return (type1 == type2) || normalize(type1) == normalize(type2);
-  }
-
-  /**
-   * Checks that one of [type1] and [type2] is a subtype of the other.
-   */
-  bool related(ClassElement type1, ClassElement type2) {
-    return compiler.types.isSubtype(type1.rawType, type2.rawType)
-        || compiler.types.isSubtype(type2.rawType, type1.rawType);
-  }
-
-  /**
-   * Return the more precise of both types, giving precedence in that order to
-   * exactness, subclassing, subtyping and nullability. The [element] parameter
-   * is for debugging purposes only and can be omitted.
-   */
-  FlatTypeMask best(TypeMask type1, TypeMask type2, [element]) {
-    // TODO(polux): Handle [UnionTypeMask].
-    if (type1 != null) type1 = type1.simplify(compiler);
-    if (type2 != null) type2 = type2.simplify(compiler);
-    FlatTypeMask result = _best(type1, type2);
-    // Tests type1 and type2 for equality modulo normalization of native types.
-    // Only called when DUMP_SURPRISING_RESULTS is true.
-    bool similar() {
-      if (type1 == null || type2 == null || type1.isEmpty || type2.isEmpty) {
-        return type1 == type2;
-      }
-      FlatTypeMask flat1 = type1;
-      FlatTypeMask flat2 = type2;
-      return same(flat1.base, flat2.base);
+  /** Computes the intersection of [type1] and [type2] */
+  TypeMask intersection(TypeMask type1, TypeMask type2, element) {
+    TypeMask result = _intersection(type1, type2);
+    if (DUMP_BAD_CPA_RESULTS && better(type1, type2)) {
+      print("CPA is worse for $element: $type1 /\ $type2 = $result");
     }
-    if (DUMP_SURPRISING_RESULTS && result == type1 && !similar()) {
-      print("$type1 better than $type2 for $element");
+    if (DUMP_GOOD_CPA_RESULTS && better(type2, type1)) {
+      print("CPA is better for $element: $type1 /\ $type2 = $result");
     }
     return result;
   }
 
-  /// Helper method for [best].
-  FlatTypeMask _best(var type1, var type2) {
-    if (type1 == null) return type2;
-    if (type2 == null) return type1;
-    FlatTypeMask flat1 = type1.isContainer ? type1.asFlat : type1;
-    FlatTypeMask flat2 = type2.isContainer ? type2.asFlat : type2;
-    if (flat1.isExact) {
-      if (flat2.isExact) {
-        // TODO(polux): Update the code to not have this situation.
-        if (flat1.base != flat2.base) return flat1;
-        assert(same(flat1.base, flat2.base));
-        return flat1.isNullable ? flat2 : flat1;
-      } else {
-        return flat1;
-      }
-    } else if (flat2.isExact) {
-      return flat2;
-    } else if (flat1.isSubclass) {
-      if (flat2.isSubclass) {
-        assert(related(flat1.base, flat2.base));
-        if (same(flat1.base, flat2.base)) {
-          return flat1.isNullable ? flat2 : flat1;
-        } else if (compiler.types.isSubtype(flat1.base.rawType,
-                                            flat2.base.rawType)) {
-          return flat1;
-        } else {
-          return flat2;
-        }
-      } else {
-        return flat1;
-      }
-    } else if (flat2.isSubclass) {
-      return flat2;
-    } else if (flat1.isSubtype) {
-      if (flat2.isSubtype) {
-        assert(related(flat1.base, flat2.base));
-        if (same(flat1.base, flat2.base)) {
-          return flat1.isNullable ? flat2 : flat1;
-        } else if (compiler.types.isSubtype(flat1.base.rawType,
-                                            flat2.base.rawType)) {
-          return flat1;
-        } else {
-          return flat2;
-        }
-      } else {
-        return flat1;
-      }
-    } else if (flat2.isSubtype) {
-      return flat2;
-    } else {
-      return flat1.isNullable ? flat2 : flat1;
+  /** Returns true if [type1] is strictly bettern than [type2]. */
+  bool better(TypeMask type1, TypeMask type2) {
+    if (type1 == null) return false;
+    if (type2 == null) {
+      return (type1 != null) &&
+             (type1 != new TypeMask.subclass(compiler.objectClass));
     }
+    return (type1 != type2) &&
+           type2.containsMask(type1, compiler) &&
+           !type1.containsMask(type2, compiler);
   }
 
   /**
@@ -364,9 +279,9 @@ class TypesTask extends CompilerTask {
       TypeMask guaranteedType = typesInferrer.getTypeOfElement(element);
       return (concreteTypesInferrer == null)
           ? guaranteedType
-          : best(guaranteedType,
-                 concreteTypesInferrer.getTypeOfElement(element),
-                 element);
+          : intersection(guaranteedType,
+                         concreteTypesInferrer.getTypeOfElement(element),
+                         element);
     });
   }
 
@@ -376,9 +291,9 @@ class TypesTask extends CompilerTask {
           typesInferrer.getReturnTypeOfElement(element);
       return (concreteTypesInferrer == null)
           ? guaranteedType
-          : best(guaranteedType,
-                 concreteTypesInferrer.getReturnTypeOfElement(element),
-                 element);
+          : intersection(guaranteedType,
+                         concreteTypesInferrer.getReturnTypeOfElement(element),
+                         element);
     });
   }
 
@@ -391,9 +306,9 @@ class TypesTask extends CompilerTask {
       TypeMask guaranteedType = typesInferrer.getTypeOfNode(owner, node);
       return (concreteTypesInferrer == null)
           ? guaranteedType
-          : best(guaranteedType,
-                 concreteTypesInferrer.getTypeOfNode(owner, node),
-                 node);
+          : intersection(guaranteedType,
+                         concreteTypesInferrer.getTypeOfNode(owner, node),
+                         node);
     });
   }
 
@@ -406,9 +321,9 @@ class TypesTask extends CompilerTask {
           typesInferrer.getTypeOfSelector(selector);
       return (concreteTypesInferrer == null)
           ? guaranteedType
-          : best(guaranteedType,
-                 concreteTypesInferrer.getTypeOfSelector(selector),
-                 selector);
+          : intersection(guaranteedType,
+                         concreteTypesInferrer.getTypeOfSelector(selector),
+                         selector);
     });
   }
 }

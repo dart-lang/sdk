@@ -336,14 +336,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
       intptr_t token_pos,
       const TypeArguments& type_arguments);
 
-  // Creates a possibly uninstantiated type argument vector and the type
-  // argument vector of the instantiator used in
-  // preparation of a constructor call.
-  // May be called only if allocating an object of a parameterized class.
-  void BuildConstructorTypeArguments(
-      ConstructorCallNode* node,
-      ZoneGrowableArray<PushArgumentInstr*>* call_arguments);
-
   void BuildTypecheckPushArguments(
       intptr_t token_pos,
       PushArgumentInstr** push_instantiator,

@@ -22,9 +22,9 @@ main() {
 
     var pub = startPubServe();
     // Ignore the line containing the path to the pubspec.
-    expect(pub.nextErrLine(), completes);
-    expect(pub.nextErrLine(), completion(equals('"transformers.foo" refers to '
-        'a package that\'s not listed in "dependencies".')));
+    pub.stderr.expect(anything);
+    pub.stderr.expect('"transformers.foo" refers to a package that\'s not a '
+        'dependency.');
     pub.shouldExit(1);
   });
 }

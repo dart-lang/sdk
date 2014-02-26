@@ -15,18 +15,19 @@ abstract class DiagnosticListener {
                      {Node node, Token token, HInstruction instruction,
                       Element element});
 
-  SourceSpan spanFromSpannable(Spannable node, [Uri uri]);
+  SourceSpan spanFromSpannable(Spannable node);
 
-  void reportMessage(SourceSpan span, Diagnostic message, api.Diagnostic kind);
+  void reportError(Spannable node, MessageKind errorCode,
+                   [Map arguments = const {}]);
 
-  void reportError(Spannable node, MessageKind errorCode, [Map arguments]);
+  void reportWarning(Spannable node, MessageKind errorCode,
+                     [Map arguments = const {}]);
 
-  // TODO(johnniwinther): Rename to [reportWarning] when
-  // [Compiler.reportWarning] has been removed.
-  void reportWarningCode(Spannable node, MessageKind errorCode,
-                         [Map arguments = const {}]);
+  void reportHint(Spannable node, MessageKind errorCode,
+                  [Map arguments = const {}]);
 
-  void reportInfo(Spannable node, MessageKind errorCode, [Map arguments]);
+  void reportInfo(Spannable node, MessageKind errorCode,
+                  [Map arguments = const {}]);
 
   // TODO(ahe): We should not expose this here.  Perhaps a
   // [SourceSpan] should implement [Spannable], and we should have a

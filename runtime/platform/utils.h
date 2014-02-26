@@ -76,7 +76,7 @@ class Utils {
     return reinterpret_cast<T*>(RoundUp(reinterpret_cast<uword>(x), n));
   }
 
-  static uint32_t RoundUpToPowerOfTwo(uint32_t x);
+  static uintptr_t RoundUpToPowerOfTwo(uintptr_t x);
   static int CountOneBits(uint32_t x);
 
   static int HighestBit(int64_t v);

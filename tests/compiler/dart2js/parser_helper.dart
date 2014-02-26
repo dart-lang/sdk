@@ -40,15 +40,19 @@ class LoggerCanceler implements DiagnosticListener {
     log(message);
   }
 
-  SourceSpan spanFromSpannable(node, [uri]) {
+  SourceSpan spanFromSpannable(node) {
     throw 'unsupported operation';
   }
 
-  void reportMessage(SourceSpan span, Diagnostic message, kind) {
+  void reportMessage(SourceSpan span, Message message, kind) {
     log(message);
   }
 
   void reportError(Spannable node, MessageKind errorCode, [Map arguments]) {
+    log(new Message(errorCode, arguments, false));
+  }
+
+  void reportWarning(Spannable node, MessageKind errorCode, [Map arguments]) {
     log(new Message(errorCode, arguments, false));
   }
 

@@ -606,7 +606,8 @@ static Location::Kind RegisterKindForResult(Instruction* instr) {
   if ((instr->representation() == kUnboxedDouble) ||
       (instr->representation() == kUnboxedMint) ||
       (instr->representation() == kUnboxedFloat32x4) ||
-      (instr->representation() == kUnboxedInt32x4)) {
+      (instr->representation() == kUnboxedInt32x4) ||
+      (instr->representation() == kUnboxedFloat64x2)) {
     return Location::kFpuRegister;
   } else {
     return Location::kRegister;
@@ -1602,7 +1603,8 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
   // parallel move resolution.
   const bool need_quad = (register_kind_ == Location::kFpuRegister) &&
       ((range->representation() == kUnboxedFloat32x4) ||
-       (range->representation() == kUnboxedInt32x4));
+       (range->representation() == kUnboxedInt32x4)   ||
+       (range->representation() == kUnboxedFloat64x2));
 
   // Search for a free spill slot among allocated: the value in it should be
   // dead and its type should match (e.g. it should not be a part of the quad if
@@ -1651,7 +1653,8 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
 
     Location location;
     if ((range->representation() == kUnboxedFloat32x4) ||
-        (range->representation() == kUnboxedInt32x4)) {
+        (range->representation() == kUnboxedInt32x4) ||
+        (range->representation() == kUnboxedFloat64x2)) {
       ASSERT(need_quad);
       location = Location::QuadStackSlot(slot_idx);
     } else {

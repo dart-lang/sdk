@@ -5,6 +5,7 @@
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
+import 'type_mask_test_helper.dart';
 
 const String TEST = """
 returnInt1() {
@@ -123,7 +124,7 @@ void main() {
     checkReturn(String name, type) {
       var element = findElement(compiler, name);
       Expect.equals(type,
-          typesInferrer.getReturnTypeOfElement(element).simplify(compiler),
+          simplify(typesInferrer.getReturnTypeOfElement(element), compiler),
           name);
     }
 
@@ -142,7 +143,7 @@ void main() {
       var cls = findElement(compiler, className);
       var element = cls.lookupLocalMember(methodName);
       Expect.equals(type,
-          typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
+          simplify(typesInferrer.getReturnTypeOfElement(element), compiler));
     }
     var cls = findElement(compiler, 'A');
     checkReturnInClass('A', 'foo', new TypeMask.nonNullExact(cls));

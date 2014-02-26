@@ -35,9 +35,16 @@ abstract class Name {
   /// is returned.
   Name get setter;
 
-  /// Returned `true` an entity of this name is accessible from library
+  /// Returns `true` if an entity of this name is accessible from library
   /// [element].
   bool isAccessibleFrom(LibraryElement element);
+
+  /// Returns `true` if this name is private.
+  bool get isPrivate;
+
+  /// Returns `true` if this name is the same as [other] not taking the library
+  /// privacy into account.
+  bool isSimilarTo(Name other);
 }
 
 class PublicName implements Name {
@@ -52,12 +59,17 @@ class PublicName implements Name {
 
   bool isAccessibleFrom(LibraryElement element) => true;
 
+  bool get isPrivate => false;
+
   int get hashCode => text.hashCode + 11 * isSetter.hashCode;
 
   bool operator ==(other) {
     if (other is! PublicName) return false;
-    return text == other.text && isSetter == other.isSetter;
+    return isSimilarTo(other);
   }
+
+  bool isSimilarTo(Name other) =>
+      text == other.text && isSetter == other.isSetter;
 
   String toString() => isSetter ? '$text=' : text;
 }
@@ -75,6 +87,8 @@ class PrivateName extends PublicName {
   }
 
   bool isAccessibleFrom(LibraryElement element) => library == element;
+
+  bool get isPrivate => true;
 
   int get hashCode => super.hashCode + 13 * library.hashCode;
 

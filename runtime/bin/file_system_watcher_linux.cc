@@ -11,6 +11,7 @@
 #include <sys/inotify.h>  // NOLINT
 
 #include "bin/fdutils.h"
+#include "bin/socket.h"
 
 
 namespace dart {
@@ -70,7 +71,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
   const intptr_t kEventSize = sizeof(struct inotify_event);
   const intptr_t kBufferSize = kEventSize + NAME_MAX + 1;
   uint8_t buffer[kBufferSize];
-  intptr_t bytes = TEMP_FAILURE_RETRY(read(id, buffer, kBufferSize));
+  intptr_t bytes = Socket::Read(id, buffer, kBufferSize);
   if (bytes < 0) {
     return DartUtils::NewDartOSError();
   }

@@ -82,10 +82,28 @@ class FormattingDiagnosticHandler {
   void info(var message, [api.Diagnostic kind = api.Diagnostic.VERBOSE_INFO]) {
     if (!verbose && kind == api.Diagnostic.VERBOSE_INFO) return;
     if (enableColors) {
-      print('${colors.green("info:")} $message');
+      print('${colors.green("Info:")} $message');
     } else {
-      print('info: $message');
+      print('Info: $message');
     }
+  }
+
+  /// Adds [kind] specific prefix to [message].
+  String prefixMessage(String message, api.Diagnostic kind) {
+    switch (kind) {
+      case api.Diagnostic.ERROR:
+        return 'Error: $message';
+      case api.Diagnostic.WARNING:
+        return 'Warning: $message';
+      case api.Diagnostic.HINT:
+        return 'Hint: $message';
+      case api.Diagnostic.CRASH:
+        return 'Internal Error: $message';
+      case api.Diagnostic.INFO:
+      case api.Diagnostic.VERBOSE_INFO:
+        return 'Info: $message';
+    }
+    throw 'Unexpected diagnostic kind: $kind (${kind.ordinal})';
   }
 
   void diagnosticHandler(Uri uri, int begin, int end, String message,
@@ -95,6 +113,9 @@ class FormattingDiagnosticHandler {
 
     if (isAborting) return;
     isAborting = (kind == api.Diagnostic.CRASH);
+
+    message = prefixMessage(message, kind);
+
     bool fatal = (kind.ordinal & FATAL) != 0;
     bool isInfo = (kind.ordinal & INFO) != 0;
     if (isInfo && uri == null && kind != api.Diagnostic.INFO) {

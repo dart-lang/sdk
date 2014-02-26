@@ -38,22 +38,27 @@ class FileHandle {
 
 
 File::~File() {
-  // Close the file (unless it's a standard stream).
-  if (handle_->fd() > STDERR_FILENO) {
-    Close();
-  }
+  Close();
   delete handle_;
 }
 
 
 void File::Close() {
   ASSERT(handle_->fd() >= 0);
-  int err = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(handle_->fd()));
-  if (err != 0) {
-    const int kBufferSize = 1024;
-    char error_message[kBufferSize];
-    strerror_r(errno, error_message, kBufferSize);
-    Log::PrintErr("%s\n", error_message);
+  if (handle_->fd() == STDOUT_FILENO) {
+    // If stdout, redirect fd to /dev/null.
+    int null_fd = TEMP_FAILURE_RETRY(open("/dev/null", O_WRONLY));
+    ASSERT(null_fd >= 0);
+    VOID_TEMP_FAILURE_RETRY(dup2(null_fd, handle_->fd()));
+    VOID_TEMP_FAILURE_RETRY(close(null_fd));
+  } else {
+    int err = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(handle_->fd()));
+    if (err != 0) {
+      const int kBufferSize = 1024;
+      char error_message[kBufferSize];
+      strerror_r(errno, error_message, kBufferSize);
+      Log::PrintErr("%s\n", error_message);
+    }
   }
   handle_->set_fd(kClosedFd);
 }

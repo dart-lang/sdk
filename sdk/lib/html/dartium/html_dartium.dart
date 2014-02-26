@@ -13044,16 +13044,16 @@ class FileList extends NativeFieldWrapperClass2 with ListMixin<File>, ImmutableL
   File item(int index) native "FileList_item_Callback";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 
 @DocsEditable()
 @DomName('FileReader')
 class FileReader extends EventTarget {
+
+
   // To suppress missing implicit constructor warnings.
   factory FileReader._() { throw new UnsupportedError("Not supported"); }
 
@@ -15694,6 +15694,17 @@ class HttpRequest extends HttpRequestEventTarget {
    * This is similar to [request] but specialized for HTTP GET requests which
    * return text content.
    *
+   * To add query parameters, append them to the [url] following a `?`,
+   * joining each key to its value with `=` and separating key-value pairs with
+   * `&`.
+   *
+   *     var name = Uri.encodeQueryComponent('John');
+   *     var id = Uri.encodeQueryComponent('42');
+   *     HttpRequest.getString('users.json?name=$name&id=$id')
+   *       .then((HttpRequest resp) {
+   *         // Do something with the response.
+   *     });
+   *
    * See also:
    *
    * * [request]
@@ -15710,6 +15721,20 @@ class HttpRequest extends HttpRequestEventTarget {
    * This is roughly the POST equivalent of getString. This method is similar
    * to sending a FormData object with broader browser support but limited to
    * String values.
+   *
+   * If [data] is supplied, the key/value pairs are URI encoded with
+   * [Uri.encodeQueryComponent] and converted into an HTTP query string.
+   *
+   * Unless otherwise specified, this method appends the following header:
+   *
+   *     Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+   *
+   * Here's an example of using this method:
+   *
+   *     var data = { 'firstName' : 'John', 'lastName' : 'Doe' };
+   *     HttpRequest.postFormData('/send', data).then((HttpRequest resp) {
+   *       // Do something with the response.
+   *     });
    *
    * See also:
    *
@@ -15761,6 +15786,24 @@ class HttpRequest extends HttpRequestEventTarget {
    * * The `Access-Control-Allow-Origin` header of `url` cannot contain a wildcard (*).
    * * The `Access-Control-Allow-Credentials` header of `url` must be set to true.
    * * If `Access-Control-Expose-Headers` has not been set to true, only a subset of all the response headers will be returned when calling [getAllRequestHeaders].
+   *
+   * The following is equivalent to the [getString] sample above:
+   *
+   *     var name = Uri.encodeQueryComponent('John');
+   *     var id = Uri.encodeQueryComponent('42');
+   *     HttpRequest.request('users.json?name=$name&id=$id')
+   *       .then((HttpRequest resp) {
+   *         // Do something with the response.
+   *     });
+   *
+   * Here's an example of submitting an entire form with [FormData].
+   *
+   *     var myForm = querySelector('form#myForm');
+   *     var data = new FormData(myForm);
+   *     HttpRequest.request('/submit', method: 'POST', sendData: data)
+   *       .then((HttpRequest resp) {
+   *         // Do something with the response.
+   *     });
    *
    * Note that requests for file:// URIs are only supported by Chrome extensions
    * with appropriate permissions in their manifest. Requests to file:// URIs
@@ -18168,11 +18211,9 @@ class LegendElement extends HtmlElement {
   FormElement get form native "HTMLLegendElement_form_Getter";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 
 @DocsEditable()
@@ -18253,6 +18294,11 @@ class LinkElement extends HtmlElement {
   @DocsEditable()
   void set type(String value) native "HTMLLinkElement_type_Setter";
 
+
+    /// Checks if HTML imports are supported on the current platform.
+  bool get supportsImport {
+    return true;
+  }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34786,7 +34832,7 @@ class _MarginCssRect extends CssRect {
  * animation frame is discouraged. See also:
  * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
  */
-abstract class CssRect extends MutableRectangle<num> implements Rectangle<num> {
+abstract class CssRect extends MutableRectangle<num> {
   Element _element;
 
   CssRect(this._element) : super(0, 0, 0, 0);
@@ -38011,6 +38057,21 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
  *
  * KeyEvent tries to provide a higher level, more polished keyboard event
  * information on top of the "raw" [KeyboardEvent].
+ *
+ * The mechanics of using KeyEvents is a little different from the underlying
+ * [KeyboardEvent]. To use KeyEvents, you need to create a stream and then add
+ * KeyEvents to the stream, rather than using the [EventTarget.dispatchEvent].
+ * Here's an example usage:
+ *
+ *     // Initialize a stream for the KeyEvents:
+ *     var stream = KeyEvent.keyPressEvent.forTarget(document.body);
+ *     // Start listening to the stream of KeyEvents.
+ *     stream.listen((keyEvent) =>
+ *         window.console.log('KeyPress event detected ${keyEvent.charCode}'));
+ *     ...
+ *     // Add a new KeyEvent of someone pressing the 'A' key to the stream so
+ *     // listeners can know a KeyEvent happened.
+ *     stream.add(new KeyEvent('keypress', keyCode: 65, charCode: 97));
  *
  * This class is very much a work in progress, and we'd love to get information
  * on how we can make this class work with as many international keyboards as

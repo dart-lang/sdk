@@ -62,9 +62,9 @@ main() {
 
       pub.shouldExit(1);
 
-      expect(pub.remainingStderr(), completion(equals(
+      pub.stderr.expect(emitsLines(
           "Pub 0.1.2+3 is incompatible with the current version of 127.0.0.1.\n"
-          "Upgrade pub to the latest version and try again.")));
+          "Upgrade pub to the latest version and try again."));
     });
   });
 }

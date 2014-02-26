@@ -22,11 +22,11 @@ class BadNamedParameters2Test {
     try {
       caught = false;
       // No formal parameter named b.
-      np.foo(b:25);  /// static type warning
+      np.foo(b:25);  /// 01: static type warning
     } on NoSuchMethodError catch (e) {
       caught = true;
     }
-    Expect.equals(true, caught);
+    Expect.equals(true, caught); /// 01: continued
   }
 }
 

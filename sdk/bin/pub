@@ -25,10 +25,23 @@ SDK_DIR="$(cd "${BIN_DIR}/.." ; pwd -P)"
 
 SNAPSHOT="$BIN_DIR/snapshots/pub.dart.snapshot"
 
+unset VM_OPTIONS
+declare -a VM_OPTIONS
+
+# Give the VM extra memory for dart2js.
+# TODO(rnystrom): Remove when #8355 is fixed.
+VM_OPTIONS+=("--old_gen_heap_size=1024")
+
+# Allow extra VM options to be passed in through an environment variable.
+if [[ $DART_VM_OPTIONS ]]; then
+  read -a OPTIONS <<< "$DART_VM_OPTIONS"
+  VM_OPTIONS+=("${OPTIONS[@]}")
+fi
+
 if test -f "$SNAPSHOT"; then
   # We are running the snapshot in the built SDK.
   DART="$BIN_DIR/dart"
-  exec "$DART" "$SNAPSHOT" "$@"
+  exec "$DART" "${VM_OPTIONS[@]}" "$SNAPSHOT" "$@"
 else
   # We are running pub from source in the development repo.
   if [ -z "$DART_CONFIGURATION" ];
@@ -50,5 +63,5 @@ else
 
   PUB="$SDK_DIR/lib/_internal/pub/bin/pub.dart"
 
-  exec "$DART" "--package-root=$PACKAGES_DIR" "$PUB" "$@"
+  exec "$DART" "${VM_OPTIONS[@]}" "--package-root=$PACKAGES_DIR" "$PUB" "$@"
 fi

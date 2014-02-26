@@ -62,17 +62,6 @@ void testInvalidBind() {
       });
 }
 
-void testConnectNoDestroy() {
-  asyncStart();
-  ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
-    server.listen((_) { });
-    Socket.connect("127.0.0.1", server.port).then((_) {
-      server.close();
-      asyncEnd();
-    });
-  });
-}
-
 void testConnectImmediateDestroy() {
   asyncStart();
   ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
@@ -210,26 +199,10 @@ void testConnectStreamDataCloseCancel(bool useDestroy) {
   });
 }
 
-void testCloseWriteNoListen() {
-  asyncStart();
-  ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
-    server.listen(
-        (client) {
-          client.close();
-        });
-    Socket.connect("127.0.0.1", server.port).then((socket) {
-      socket.close();
-      server.close();
-      asyncEnd();
-    });
-  });
-}
-
 main() {
   testArguments();
   testSimpleBind();
   testInvalidBind();
-  testConnectNoDestroy();
   testConnectImmediateDestroy();
   testConnectConsumerClose();
   testConnectConsumerWriteClose();
@@ -238,5 +211,4 @@ main() {
   testConnectStreamDataClose(false);
   testConnectStreamDataCloseCancel(true);
   testConnectStreamDataCloseCancel(false);
-  testCloseWriteNoListen();
 }

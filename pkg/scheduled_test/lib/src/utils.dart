@@ -17,7 +17,7 @@ class Pair<E, F> {
 
   String toString() => '($first, $last)';
 
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is! Pair) return false;
     return other.first == first && other.last == last;
   }
@@ -126,7 +126,7 @@ String prefixLines(String text, {String prefix: '| ', String firstPrefix}) {
 /// Returns a [Future] that completes after pumping the event queue [times]
 /// times. By default, this should pump the event queue enough times to allow
 /// any code to run, as long as it's not waiting on some external event.
-Future pumpEventQueue([int times=20]) {
+Future pumpEventQueue([int times = 20]) {
   if (times == 0) return new Future.value();
   // We use a delayed future to allow microtask events to finish. The
   // Future.value or Future() constructors use scheduleMicrotask themselves and

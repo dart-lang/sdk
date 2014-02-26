@@ -7,6 +7,7 @@ library stack_trace.chain;
 import 'dart:async';
 import 'dart:collection';
 
+import 'frame.dart';
 import 'stack_zone_specification.dart';
 import 'trace.dart';
 import 'utils.dart';
@@ -167,6 +168,32 @@ class Chain implements StackTrace {
     // (top-most) one so that the chain isn't empty.
     if (nonEmptyTraces.isEmpty && terseTraces.isNotEmpty) {
       return new Chain([terseTraces.last]);
+    }
+
+    return new Chain(nonEmptyTraces);
+  }
+
+  /// Returns a new [Chain] based on [this] where multiple stack frames matching
+  /// [predicate] are folded together.
+  ///
+  /// This means that whenever there are multiple frames in a row that match
+  /// [predicate], only the last one is kept. In addition, traces that are
+  /// composed entirely of frames matching [predicate] are omitted.
+  ///
+  /// This is useful for limiting the amount of library code that appears in a
+  /// stack trace by only showing user code and code that's called by user code.
+  Chain foldFrames(bool predicate(Frame frame)) {
+    var foldedTraces = traces.map((trace) => trace.foldFrames(predicate));
+    var nonEmptyTraces = foldedTraces.where((trace) {
+      // Ignore traces that contain only folded frames. These traces will be
+      // folded into a single frame each.
+      return trace.frames.length > 1;
+    });
+
+    // If all the traces contain only internal processing, preserve the last
+    // (top-most) one so that the chain isn't empty.
+    if (nonEmptyTraces.isEmpty && foldedTraces.isNotEmpty) {
+      return new Chain([foldedTraces.last]);
     }
 
     return new Chain(nonEmptyTraces);

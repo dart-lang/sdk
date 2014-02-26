@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--deoptimization_counter_threshold=1000 --optimization-counter-threshold=10
 
-// Library tag to be able to run in html test framework.
-library float32x4_test;
+library float64x2_functional_test;
 
 import "package:expect/expect.dart";
 import 'dart:typed_data';
@@ -70,10 +69,10 @@ testAdd() {
 }
 
 testSub() {
-  var m = new Float64x2(1.0, -2.0);
+  var m = new Float64x2(1.5, -2.0);
   var n = new Float64x2(1.0, 2.0);
   var o = m - n;
-  Expect.equals(0.0, o.x);
+  Expect.equals(0.5, o.x);
   Expect.equals(-4.0, o.y);
 }
 
@@ -111,11 +110,11 @@ testAbs() {
 
 testClamp() {
   var m = new Float64x2(1.0, -2.0);
-  var lo = new Float64x2(0.0, 0.0);
+  var lo = new Float64x2(0.0, 0.5);
   var hi = new Float64x2(2.0, 2.0);
   m = m.clamp(lo, hi);
   Expect.equals(1.0, m.x);
-  Expect.equals(0.0, m.y);
+  Expect.equals(0.5, m.y);
 }
 
 testSignMask() {
@@ -138,10 +137,10 @@ testMin() {
 }
 
 testMax() {
-  var m = new Float64x2(0.0, -99.0);
+  var m = new Float64x2(0.5, -99.0);
   var n = new Float64x2(-1.0, -1.0);
   var o = m.max(n);
-  Expect.equals(0.0, o.x);
+  Expect.equals(0.5, o.x);
   Expect.equals(-1.0, o.y);
 }
 

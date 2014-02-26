@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/** Includes any additional polyfills that may needed by the deployed app. */
+/// Includes any additional polyfills that may needed by the deployed app.
 library polymer.src.build.polyfill_injector;
 
 import 'dart:async';
@@ -13,20 +13,18 @@ import 'package:html5lib/dom.dart' show
 import 'package:html5lib/parser.dart' show parseFragment;
 import 'common.dart';
 
-/**
- * Ensures that any scripts and polyfills needed to run a polymer application
- * are included. For example, this transformer will ensure that there is a
- * script tag that loads the polyfills and interop.js (used for css shimming).
- *
- * This step also replaces "packages/browser/dart.js" and the Dart script tag
- * with a script tag that loads the dart2js compiled code directly.
- */
+/// Ensures that any scripts and polyfills needed to run a polymer application
+/// are included. For example, this transformer will ensure that there is a
+/// script tag that loads the polyfills and interop.js (used for css shimming).
+///
+/// This step also replaces "packages/browser/dart.js" and the Dart script tag
+/// with a script tag that loads the dart2js compiled code directly.
 class PolyfillInjector extends Transformer with PolymerTransformer {
   final TransformOptions options;
 
   PolyfillInjector(this.options);
 
-  /** Only run on entry point .html files. */
+  /// Only run on entry point .html files.
   Future<bool> isPrimary(Asset input) =>
       new Future.value(options.isHtmlEntryPoint(input.id));
 

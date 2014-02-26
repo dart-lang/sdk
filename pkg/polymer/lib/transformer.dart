@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/** Transfomer used for pub-serve and pub-deploy. */
+/// Transfomer used for pub-serve and pub-deploy.
 library polymer.transformer;
 
 import 'package:barback/barback.dart';
@@ -16,17 +16,15 @@ import 'src/build/linter.dart';
 import 'src/build/polyfill_injector.dart';
 import 'src/build/script_compactor.dart';
 
-/**
- * The Polymer transformer, which internally runs several phases that will:
- *   * Extract inlined script tags into their separate files
- *   * Apply the observable transformer on every Dart script.
- *   * Inline imported html files
- *   * Combine scripts from multiple files into a single script tag
- *   * Inject extra polyfills needed to run on all browsers.
- *
- * At the end of these phases, this tranformer produces a single entrypoint HTML
- * file with a single Dart script that can later be compiled with dart2js.
- */
+/// The Polymer transformer, which internally runs several phases that will:
+///   * Extract inlined script tags into their separate files
+///   * Apply the observable transformer on every Dart script.
+///   * Inline imported html files
+///   * Combine scripts from multiple files into a single script tag
+///   * Inject extra polyfills needed to run on all browsers.
+///
+/// At the end of these phases, this tranformer produces a single entrypoint
+/// HTML file with a single Dart script that can later be compiled with dart2js.
 class PolymerTransformerGroup implements TransformerGroup {
   final Iterable<Iterable> phases;
 

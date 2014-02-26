@@ -7,6 +7,7 @@ library StatusFileParserTest;
 import "package:expect/expect.dart";
 import "dart:io";
 import "../../../tools/testing/dart/status_file_parser.dart";
+import "../../../tools/testing/dart/utils.dart";
 
 
 void main() {
@@ -35,7 +36,7 @@ void TestReadStatusFile(String filePath) {
   File file = new File(fixedFilePath(filePath));
   if (file.existsSync()) {
     List<Section> sections = new List<Section>();
-    ReadConfigurationInto(file.path, sections, () {
+    ReadConfigurationInto(new Path(file.path), sections, () {
       Expect.isTrue(sections.length > 0);
     });
   }

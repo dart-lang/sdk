@@ -367,7 +367,8 @@ class Debugger {
   void DebuggerStepCallback();
 
   void SignalExceptionThrown(const Instance& exc);
-  static void SignalIsolateEvent(EventType type);
+  void SignalIsolateEvent(EventType type);
+  static void SignalIsolateInterrupted();
 
   uword GetPatchedStubAddress(uword breakpoint_address);
 
@@ -441,6 +442,8 @@ class Debugger {
   // Handles any events which pause vm execution.  Breakpoints,
   // interrupts, etc.
   void Pause(DebuggerEvent* event);
+
+  void HandleSteppingRequest(DebuggerStackTrace* stack_trace);
 
   Isolate* isolate_;
   Dart_Port isolate_id_;  // A unique ID for the isolate in the debugger.

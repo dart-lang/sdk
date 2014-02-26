@@ -23,7 +23,7 @@ import 'dart:_interceptors' show JSExtendableArray;
  *
  * Throws [FormatException] if the input is not valid JSON text.
  */
-patch _parseJson(String source, reviver(var key, var value)) {
+patch _parseJson(String source, reviver(key, value)) {
   if (source is! String) throw new ArgumentError(source);
 
   var parsed;

@@ -26,6 +26,9 @@ class Profiler : public AllStatic {
   static void InitOnce();
   static void Shutdown();
 
+  static void SetSampleDepth(intptr_t depth);
+  static void SetSamplePeriod(intptr_t period);
+
   static void InitProfilingForIsolate(Isolate* isolate,
                                       bool shared_buffer = true);
   static void ShutdownProfilingForIsolate(Isolate* isolate);
@@ -44,17 +47,6 @@ class Profiler : public AllStatic {
  private:
   static bool initialized_;
   static Monitor* monitor_;
-
-  static intptr_t ProcessSamples(Isolate* isolate,
-                                 ProfilerCodeRegionTable* code_region_table,
-                                 SampleBuffer* sample_buffer);
-
-  static intptr_t ProcessSample(Isolate* isolate,
-                                ProfilerCodeRegionTable* code_region_table,
-                                Sample* sample);
-
-  static void RecordTickInterruptCallback(const InterruptedThreadState& state,
-                                          void* data);
 
   static void RecordSampleInterruptCallback(const InterruptedThreadState& state,
                                             void* data);
@@ -81,63 +73,132 @@ class IsolateProfilerData {
 };
 
 
-// Profile sample.
-class Sample {
+class SampleVisitor {
  public:
-  enum SampleType {
-    kIsolateSample,
-  };
+  explicit SampleVisitor(Isolate* isolate) : isolate_(isolate), visited_(0) { }
+  virtual ~SampleVisitor() {}
 
-  static void InitOnce();
+  virtual void VisitSample(Sample* sample) = 0;
 
-  uintptr_t At(intptr_t i) const;
-  void SetAt(intptr_t i, uintptr_t pc);
-  void Init(SampleType type, Isolate* isolate, int64_t timestamp, ThreadId tid);
-  void CopyInto(Sample* dst) const;
-
-  static Sample* Allocate();
-  static intptr_t instance_size() {
-    return instance_size_;
+  intptr_t visited() const {
+    return visited_;
   }
 
-  SampleType type() const {
-    return type_;
+  void IncrementVisited() {
+    visited_++;
   }
 
   Isolate* isolate() const {
     return isolate_;
   }
 
+ private:
+  Isolate* isolate_;
+  intptr_t visited_;
+
+  DISALLOW_IMPLICIT_CONSTRUCTORS(SampleVisitor);
+};
+
+// The maximum number of stack frames a sample can hold.
+#define kSampleFramesSize 256
+
+// Each Sample holds a stack trace from an isolate.
+class Sample {
+ public:
+  void Init(Isolate* isolate, int64_t timestamp, ThreadId tid) {
+    timestamp_ = timestamp;
+    tid_ = tid;
+    isolate_ = isolate;
+    for (intptr_t i = 0; i < kSampleFramesSize; i++) {
+      pcs_[i] = 0;
+    }
+  }
+
+  // Isolate sample was taken from.
+  Isolate* isolate() const {
+    return isolate_;
+  }
+
+  // Timestamp sample was taken at.
   int64_t timestamp() const {
     return timestamp_;
   }
 
+  // Get stack trace entry.
+  uword At(intptr_t i) const {
+    ASSERT(i >= 0);
+    ASSERT(i < kSampleFramesSize);
+    return pcs_[i];
+  }
+
+  // Set stack trace entry.
+  void SetAt(intptr_t i, uword pc) {
+    ASSERT(i >= 0);
+    ASSERT(i < kSampleFramesSize);
+    pcs_[i] = pc;
+  }
+
  private:
-  static intptr_t instance_size_;
   int64_t timestamp_;
   ThreadId tid_;
   Isolate* isolate_;
-  SampleType type_;
-  // Note: This class has a size determined at run-time. The pcs_ array
-  // must be the final field.
-  uintptr_t pcs_[0];
-
-  DISALLOW_COPY_AND_ASSIGN(Sample);
+  uword pcs_[kSampleFramesSize];
 };
 
 
-// Ring buffer of samples.
+// Ring buffer of Samples that is (usually) shared by many isolates.
 class SampleBuffer {
  public:
   static const intptr_t kDefaultBufferCapacity = 120000;  // 2 minutes @ 1000hz.
 
-  explicit SampleBuffer(intptr_t capacity = kDefaultBufferCapacity);
-  ~SampleBuffer();
+  explicit SampleBuffer(intptr_t capacity = kDefaultBufferCapacity) {
+    samples_ = reinterpret_cast<Sample*>(calloc(capacity, sizeof(*samples_)));
+    capacity_ = capacity;
+    cursor_ = 0;
+  }
+
+  ~SampleBuffer() {
+    if (samples_ != NULL) {
+      free(samples_);
+      samples_ = NULL;
+      cursor_ = 0;
+      capacity_ = 0;
+    }
+  }
 
   intptr_t capacity() const { return capacity_; }
+
   Sample* ReserveSample();
-  void CopySample(intptr_t i, Sample* sample) const;
-  Sample* At(intptr_t idx) const;
+
+  Sample* At(intptr_t idx) const {
+    ASSERT(idx >= 0);
+    ASSERT(idx < capacity_);
+    return &samples_[idx];
+  }
+
+  void VisitSamples(SampleVisitor* visitor) {
+    ASSERT(visitor != NULL);
+    Sample sample;
+    const intptr_t length = capacity();
+    for (intptr_t i = 0; i < length; i++) {
+      // Copy the sample.
+      sample = *At(i);
+      if (sample.isolate() != visitor->isolate()) {
+        // Another isolate.
+        continue;
+      }
+      if (sample.timestamp() == 0) {
+        // Empty.
+        continue;
+      }
+      if (sample.At(0) == 0) {
+        // No frames.
+        continue;
+      }
+      visitor->IncrementVisited();
+      visitor->VisitSample(&sample);
+    }
+  }
 
  private:
   Sample* samples_;
@@ -145,35 +206,6 @@ class SampleBuffer {
   uintptr_t cursor_;
 
   DISALLOW_COPY_AND_ASSIGN(SampleBuffer);
-};
-
-
-class ProfilerSampleStackWalker : public ValueObject {
- public:
-  ProfilerSampleStackWalker(Sample* sample,
-                            uintptr_t stack_lower,
-                            uintptr_t stack_upper,
-                            uintptr_t pc,
-                            uintptr_t fp,
-                            uintptr_t sp);
-
-  int walk();
-
- private:
-  uword* CallerPC(uword* fp);
-  uword* CallerFP(uword* fp);
-
-  bool ValidInstructionPointer(uword* pc);
-
-  bool ValidFramePointer(uword* fp);
-
-  Sample* sample_;
-  const uintptr_t stack_lower_;
-  const uintptr_t stack_upper_;
-  const uintptr_t original_pc_;
-  const uintptr_t original_fp_;
-  const uintptr_t original_sp_;
-  uintptr_t lower_bound_;
 };
 
 

@@ -192,7 +192,10 @@ class Intl {
     // difficult. As a result, we call this more often. Consider keeping
     // verified locales for each purpose if it turns out to be a performance
     // issue.
-    if (newLocale == null) return getCurrentLocale();
+    if (newLocale == null) {
+      return verifiedLocale(getCurrentLocale(), localeExists,
+          onFailure: onFailure);
+    }
     if (localeExists(newLocale)) {
       return newLocale;
     }
@@ -269,7 +272,7 @@ class Intl {
       case 1 : return (one == null) ? other : one;
       case 2: return (two == null) ? ((few == null) ? other : few) : two;
       default:
-        if (howMany == 3 || howMany == 4 && few != null) return few;
+        if ((howMany == 3 || howMany == 4) && few != null) return few;
         if (howMany > 10 && howMany < 100 && many != null) return many;
         return other;
     }

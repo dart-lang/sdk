@@ -99,50 +99,38 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
   static bool short_socket_reads = Dart_IsVMFlagSet("short_socket_read");
   intptr_t socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
-  intptr_t available = Socket::Available(socket);
-  if (available > 0) {
-    int64_t length = 0;
-    if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &length)) {
-      if (length == -1 || available < length) {
-        length = available;
-      }
-      if (short_socket_reads) {
-        length = (length + 1) / 2;
-      }
-      uint8_t* buffer = NULL;
-      Dart_Handle result = IOBuffer::Allocate(length, &buffer);
-      if (Dart_IsError(result)) Dart_PropagateError(result);
-      ASSERT(buffer != NULL);
-      intptr_t bytes_read = Socket::Read(socket, buffer, length);
-      if (bytes_read == length) {
-        Dart_SetReturnValue(args, result);
-      } else if (bytes_read < length) {
-        // On MacOS when reading from a tty Ctrl-D will result in reading one
-        // less byte then reported as available.
-        if (bytes_read == 0) {
-          Dart_SetReturnValue(args, Dart_Null());
-        } else {
-          uint8_t* new_buffer = NULL;
-          Dart_Handle new_result = IOBuffer::Allocate(bytes_read, &new_buffer);
-          if (Dart_IsError(new_result)) Dart_PropagateError(new_result);
-          ASSERT(new_buffer != NULL);
-          memmove(new_buffer, buffer, bytes_read);
-          Dart_SetReturnValue(args, new_result);
-        }
-      } else {
-        ASSERT(bytes_read == -1);
-        Dart_SetReturnValue(args, DartUtils::NewDartOSError());
-      }
-    } else {
-      OSError os_error(-1, "Invalid argument", OSError::kUnknown);
-      Dart_Handle err = DartUtils::NewDartOSError(&os_error);
-      if (Dart_IsError(err)) Dart_PropagateError(err);
-      Dart_SetReturnValue(args, err);
+  int64_t length = 0;
+  if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &length)) {
+    if (short_socket_reads) {
+      length = (length + 1) / 2;
     }
-  } else if (available == 0) {
-    Dart_SetReturnValue(args, Dart_Null());
+    uint8_t* buffer = NULL;
+    Dart_Handle result = IOBuffer::Allocate(length, &buffer);
+    if (Dart_IsError(result)) Dart_PropagateError(result);
+    ASSERT(buffer != NULL);
+    intptr_t bytes_read = Socket::Read(socket, buffer, length);
+    if (bytes_read == length) {
+      Dart_SetReturnValue(args, result);
+    } else if (bytes_read > 0) {
+      uint8_t* new_buffer = NULL;
+      Dart_Handle new_result = IOBuffer::Allocate(bytes_read, &new_buffer);
+      if (Dart_IsError(new_result)) Dart_PropagateError(new_result);
+      ASSERT(new_buffer != NULL);
+      memmove(new_buffer, buffer, bytes_read);
+      Dart_SetReturnValue(args, new_result);
+    } else if (bytes_read == 0) {
+      // On MacOS when reading from a tty Ctrl-D will result in reading one
+      // less byte then reported as available.
+      Dart_SetReturnValue(args, Dart_Null());
+    } else {
+      ASSERT(bytes_read == -1);
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    }
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
+    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
+    if (Dart_IsError(err)) Dart_PropagateError(err);
+    Dart_SetReturnValue(args, err);
   }
 }
 
@@ -224,7 +212,9 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
       DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
   intptr_t length =
       DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 3));
+  bool short_write = false;
   if (short_socket_writes) {
+    if (length > 1) short_write = true;
     length = (length + 1) / 2;
   }
   Dart_TypedData_Type type;
@@ -238,7 +228,13 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
   intptr_t bytes_written = Socket::Write(socket, buffer, length);
   if (bytes_written >= 0) {
     Dart_TypedDataReleaseData(buffer_obj);
-    Dart_SetReturnValue(args, Dart_NewInteger(bytes_written));
+    if (short_write) {
+      // If the write was forced 'short', indicate by returning the negative
+      // number of bytes. A forced short write may not trigger a write event.
+      Dart_SetReturnValue(args, Dart_NewInteger(-bytes_written));
+    } else {
+      Dart_SetReturnValue(args, Dart_NewInteger(bytes_written));
+    }
   } else {
     // Extract OSError before we release data, as it may override the error.
     OSError os_error;

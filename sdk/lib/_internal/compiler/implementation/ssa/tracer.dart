@@ -449,7 +449,7 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String visitStringify(HStringify node) {
-    return "Stringify: ${node.inputs[0]}";
+    return "Stringify ${temporaryId(node.inputs[0])}";
   }
 
   String visitSubtract(HSubtract node) => handleInvokeBinary(node, '-');

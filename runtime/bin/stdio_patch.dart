@@ -29,7 +29,6 @@ patch class _StdIOUtils {
       case _STDIO_HANDLE_TYPE_TERMINAL:
       case _STDIO_HANDLE_TYPE_PIPE:
       case _STDIO_HANDLE_TYPE_SOCKET:
-        return wrap(new _Socket._writePipe(fd));
       case _STDIO_HANDLE_TYPE_FILE:
         return wrap(new IOSink(new _FileStreamConsumer.fromStdio(fd)));
       default:
@@ -44,6 +43,8 @@ patch class _StdIOUtils {
     }
     return result;
   }
+
+  static _getStdioHandleType(int fd) native "File_GetStdioHandleType";
 }
 
 patch class Stdin {
@@ -87,5 +88,4 @@ patch class Stdout {
 
 
 _getStdioHandle(_NativeSocket socket, int num) native "Socket_GetStdioHandle";
-_getStdioHandleType(int num) native "File_GetStdioHandleType";
 _getSocketType(_NativeSocket nativeSocket) native "Socket_GetType";

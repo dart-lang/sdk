@@ -10,6 +10,8 @@
 /// on the physical filesystem, or [Descriptor.validate] to schedule an
 /// assertion that that structure exists. For example:
 ///
+///     import 'dart:io';
+///
 ///     import 'package:scheduled_test/descriptor.dart' as d;
 ///     import 'package:scheduled_test/scheduled_test.dart';
 ///
@@ -31,7 +33,7 @@
 ///             d.file('child', 'child-contents')
 ///           ])
 ///         ]).validate();
-///       })
+///       });
 ///     }
 ///
 /// Usually you don't want your tests cluttering up your working directory with
@@ -100,7 +102,7 @@ FileDescriptor file(String name, [String contents='']) =>
 
 /// Creates a new binary [FileDescriptor] descriptor with [name] and [contents].
 FileDescriptor binaryFile(String name, List<int> contents) =>
-  new FileDescriptor.binary(name, contents);
+    new FileDescriptor.binary(name, contents);
 
 /// Creates a new text [FileDescriptor] with [name] that matches its String
 /// contents against [matcher]. If the file is created, it's considered to be
@@ -112,16 +114,15 @@ FileDescriptor matcherFile(String name, matcher) =>
 /// contents against [matcher]. If the file is created, it's considered to be
 /// empty.
 FileDescriptor binaryMatcherFile(String name, matcher) =>
-  new FileDescriptor.binaryMatcher(name, wrapMatcher(matcher));
+    new FileDescriptor.binaryMatcher(name, wrapMatcher(matcher));
 
 /// Creates a new [DirectoryDescriptor] descriptor with [name] and [contents].
 DirectoryDescriptor dir(String name, [Iterable<Descriptor> contents]) =>
-   new DirectoryDescriptor(name, contents == null? <Descriptor>[] : contents);
+    new DirectoryDescriptor(name, contents == null ? <Descriptor>[] : contents);
 
 /// Creates a new descriptor wrapping a [Future]. This descriptor forwards all
 /// asynchronous operations to the result of [future].
-AsyncDescriptor async(Future<Descriptor> future) =>
-  new AsyncDescriptor(future);
+AsyncDescriptor async(Future<Descriptor> future) => new AsyncDescriptor(future);
 
 /// Creates a new [NothingDescriptor] descriptor that asserts that no entry
 /// named [name] exists.
@@ -131,7 +132,7 @@ NothingDescriptor nothing(String name) => new NothingDescriptor(name);
 /// a name matching [pattern] exists, and matches the [Descriptor] returned
 /// by [fn].
 PatternDescriptor pattern(Pattern name, EntryCreator fn) =>
-  new PatternDescriptor(name, fn);
+    new PatternDescriptor(name, fn);
 
 /// A convenience method for creating a [PatternDescriptor] descriptor that
 /// constructs a [FileDescriptor] descriptor.
@@ -141,4 +142,4 @@ PatternDescriptor filePattern(Pattern name, [String contents='']) =>
 /// A convenience method for creating a [PatternDescriptor] descriptor that
 /// constructs a [DirectoryDescriptor] descriptor.
 PatternDescriptor dirPattern(Pattern name, [Iterable<Descriptor> contents]) =>
-  pattern(name, (realName) => dir(realName, contents));
+    pattern(name, (realName) => dir(realName, contents));

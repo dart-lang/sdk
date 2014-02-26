@@ -2,16 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Logic to validate that developers are correctly using Polymer constructs.
- * This is mainly used to produce warnings for feedback in the editor.
- */
+/// Logic to validate that developers are correctly using Polymer constructs.
+/// This is mainly used to produce warnings for feedback in the editor.
 library polymer.src.build.linter;
 
-import 'dart:io';
 import 'dart:async';
-import 'dart:mirrors';
-import 'dart:convert' show JSON;
 
 import 'package:barback/barback.dart';
 import 'package:html5lib/dom.dart';
@@ -21,15 +16,13 @@ import 'package:source_maps/span.dart';
 import 'common.dart';
 import 'utils.dart';
 
-/**
- * A linter that checks for common Polymer errors and produces warnings to
- * show on the editor or the command line. Leaves sources unchanged, but creates
- * a new asset containing all the warnings.
- */
+/// A linter that checks for common Polymer errors and produces warnings to
+/// show on the editor or the command line. Leaves sources unchanged, but
+/// creates a new asset containing all the warnings.
 class Linter extends Transformer with PolymerTransformer {
   final TransformOptions options;
 
-  /** Only run on .html files. */
+  /// Only run on .html files.
   final String allowedExtensions = '.html';
 
   Linter(this.options);
@@ -49,12 +42,10 @@ class Linter extends Transformer with PolymerTransformer {
     });
   }
 
-  /**
-   * Collect into [elements] any data about each polymer-element defined in
-   * [document] or any of it's imports, unless they have already been [seen].
-   * Elements are added in the order they appear, transitive imports are added
-   * first.
-   */
+  /// Collect into [elements] any data about each polymer-element defined in
+  /// [document] or any of it's imports, unless they have already been [seen].
+  /// Elements are added in the order they appear, transitive imports are added
+  /// first.
   Future<Map<String, _ElementSummary>> _collectElements(
       Document document, AssetId sourceId, Transform transform,
       Set<AssetId> seen, [Map<String, _ElementSummary> elements]) {
@@ -79,7 +70,7 @@ class Linter extends Transformer with PolymerTransformer {
       Document document, AssetId sourceId, Transform transform) {
     var importIds = [];
     var logger = transform.logger;
-    for (var tag in document.queryAll('link')) {
+    for (var tag in document.querySelectorAll('link')) {
       if (tag.attributes['rel'] != 'import') continue;
       var href = tag.attributes['href'];
       var span = tag.sourceSpan;
@@ -99,7 +90,7 @@ class Linter extends Transformer with PolymerTransformer {
 
   void _addElements(Document document, TransformLogger logger,
       Map<String, _ElementSummary> elements) {
-    for (var tag in document.queryAll('polymer-element')) {
+    for (var tag in document.querySelectorAll('polymer-element')) {
       var name = tag.attributes['name'];
       if (name == null) continue;
       var extendsTag = tag.attributes['extends'];
@@ -123,13 +114,11 @@ class Linter extends Transformer with PolymerTransformer {
 }
 
 
-/**
- * Information needed about other polymer-element tags in order to validate
- * how they are used and extended.
- *
- * Note: these are only created for polymer-element, because pure custom
- * elements don't have a declarative form.
- */
+/// Information needed about other polymer-element tags in order to validate
+/// how they are used and extended.
+///
+/// Note: these are only created for polymer-element, because pure custom
+/// elements don't have a declarative form.
 class _ElementSummary {
   final String tagName;
   final String extendsTag;
@@ -164,7 +153,7 @@ class _LinterVisitor extends TreeVisitor {
   }
 
   void visitElement(Element node) {
-    switch (node.tagName) {
+    switch (node.localName) {
       case 'link': _validateLinkElement(node); break;
       case 'element': _validateElementElement(node); break;
       case 'polymer-element': _validatePolymerElement(node); break;
@@ -184,7 +173,7 @@ class _LinterVisitor extends TreeVisitor {
     }
   }
 
-  /** Produce warnings for invalid link-rel tags. */
+  /// Produce warnings for invalid link-rel tags.
   void _validateLinkElement(Element node) {
     var rel = node.attributes['rel'];
     if (rel != 'import' && rel != 'stylesheet') return;
@@ -202,16 +191,14 @@ class _LinterVisitor extends TreeVisitor {
     _logger.warning('link rel="$rel" missing href.', span: node.sourceSpan);
   }
 
-  /** Produce warnings if using `<element>` instead of `<polymer-element>`. */
+  /// Produce warnings if using `<element>` instead of `<polymer-element>`.
   void _validateElementElement(Element node) {
     _logger.warning('<element> elements are not supported, use'
         ' <polymer-element> instead', span: node.sourceSpan);
   }
 
-  /**
-   * Produce warnings if using `<polymer-element>` in the wrong place or if the
-   * definition is not complete.
-   */
+  /// Produce warnings if using `<polymer-element>` in the wrong place or if the
+  /// definition is not complete.
   void _validatePolymerElement(Element node) {
     if (_inPolymerElement) {
       _logger.error('Nested polymer element definitions are not allowed.',
@@ -257,17 +244,15 @@ class _LinterVisitor extends TreeVisitor {
     _inPolymerElement = oldValue;
   }
 
-  /**
-   * Produces warnings for malformed script tags. In html5 leaving off type= is
-   * fine, but it defaults to text/javascript. Because this might be a common
-   * error, we warn about it when  src file ends in .dart, but the type is
-   * incorrect, or when users write code in an inline script tag of a custom
-   * element.
-   *
-   * The hope is that these cases shouldn't break existing valid code, but that
-   * they'll help Polymer authors avoid having their Dart code accidentally
-   * interpreted as JavaScript by the browser.
-   */
+  /// Produces warnings for malformed script tags. In html5 leaving off type= is
+  /// fine, but it defaults to text/javascript. Because this might be a common
+  /// error, we warn about it when  src file ends in .dart, but the type is
+  /// incorrect, or when users write code in an inline script tag of a custom
+  /// element.
+  ///
+  /// The hope is that these cases shouldn't break existing valid code, but that
+  /// they'll help Polymer authors avoid having their Dart code accidentally
+  /// interpreted as JavaScript by the browser.
   void _validateScriptElement(Element node) {
     var scriptType = node.attributes['type'];
     var isDart = scriptType == 'application/dart';
@@ -317,10 +302,8 @@ class _LinterVisitor extends TreeVisitor {
     }
   }
 
-  /**
-   * Produces warnings for misuses of on-foo event handlers, and for instanting
-   * custom tags incorrectly.
-   */
+  /// Produces warnings for misuses of on-foo event handlers, and for instanting
+  /// custom tags incorrectly.
   void _validateNormalElement(Element node) {
     // Event handlers only allowed inside polymer-elements
     node.attributes.forEach((name, value) {
@@ -330,7 +313,7 @@ class _LinterVisitor extends TreeVisitor {
     });
 
     // Validate uses of custom-tags
-    var nodeTag = node.tagName;
+    var nodeTag = node.localName;
     var hasIsAttribute;
     var customTagName;
     if (_isCustomTag(nodeTag)) {
@@ -383,9 +366,7 @@ class _LinterVisitor extends TreeVisitor {
     }
   }
 
-  /**
-   * Validate an attribute on a custom-element. Returns true if valid.
-   */
+  /// Validate an attribute on a custom-element. Returns true if valid.
   bool _validateCustomAttributeName(String name, FileSpan span) {
     if (name.contains('-')) {
       var newName = toCamelCase(name);
@@ -397,7 +378,7 @@ class _LinterVisitor extends TreeVisitor {
     return true;
   }
 
-  /** Validate event handlers are used correctly. */
+  /// Validate event handlers are used correctly.
   void _validateEventHandler(Element node, String name, String value) {
     if (!name.startsWith('on-')) {
       _logger.warning('Event handler "$name" will be interpreted as an inline'
@@ -437,10 +418,8 @@ var _invalidTagNames = const {
   'missing-glyph': '',
 };
 
-/**
- * Returns true if this is a valid custom element name. See:
- * <https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/custom/index.html#dfn-custom-element-name>
- */
+/// Returns true if this is a valid custom element name. See:
+/// <https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/custom/index.html#dfn-custom-element-name>
 bool _isCustomTag(String name) {
   if (name == null || !name.contains('-')) return false;
   return !_invalidTagNames.containsKey(name);

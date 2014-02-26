@@ -273,8 +273,12 @@ IOSink get stderr {
 StdioType stdioType(object) {
   if (object is _StdStream) {
     object = object._stream;
-  } else if (object is _StdSink) {
-    object = object._sink;
+  } else if (object == stdout || object == stderr) {
+    switch (_StdIOUtils._getStdioHandleType(object == stdout ? 1 : 2)) {
+      case _STDIO_HANDLE_TYPE_TERMINAL: return StdioType.TERMINAL;
+      case _STDIO_HANDLE_TYPE_PIPE: return StdioType.PIPE;
+      case _STDIO_HANDLE_TYPE_FILE:  return StdioType.FILE;
+    }
   }
   if (object is _FileStream) {
     return StdioType.FILE;
@@ -303,4 +307,5 @@ class _StdIOUtils {
   external static _getStdioOutputStream(int fd);
   external static Stdin _getStdioInputStream();
   external static int _socketType(nativeSocket);
+  external static _getStdioHandleType(int fd);
 }

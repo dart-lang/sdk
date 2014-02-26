@@ -234,9 +234,7 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
  * and should be handled according to whatever protocol is being
  * upgraded to.
  */
-class _HttpParser
-    extends Stream<_HttpIncoming>
-    implements StreamConsumer<List<int>> {
+class _HttpParser extends Stream<_HttpIncoming> {
   // State.
   bool _parserCalled = false;
 
@@ -249,10 +247,11 @@ class _HttpParser
   int _httpVersionIndex;
   int _messageType;
   int _statusCode = 0;
-  List _method_or_status_code;
-  List _uri_or_reason_phrase;
-  List _headerField;
-  List _headerValue;
+  int _statusCodeLength = 0;
+  final List<int> _method = [];
+  final List<int> _uri_or_reason_phrase = [];
+  final List<int> _headerField = [];
+  final List<int> _headerValue = [];
 
   int _httpVersion;
   int _transferLength = -1;
@@ -260,8 +259,7 @@ class _HttpParser
   bool _connectionUpgrade;
   bool _chunked;
 
-  bool _noMessageBody;
-  String _responseToMethod;  // Indicates the method used for the request.
+  bool _noMessageBody = false;
   int _remainingContent = -1;
 
   _HttpHeaders _headers;
@@ -286,7 +284,6 @@ class _HttpParser
     _controller = new StreamController<_HttpIncoming>(
         sync: true,
         onListen: () {
-          _socketSubscription.resume();
           _paused = false;
         },
         onPause: () {
@@ -316,26 +313,16 @@ class _HttpParser
                                      cancelOnError: cancelOnError);
   }
 
-  Future<_HttpParser> addStream(Stream<List<int>> stream) {
+  void listenToStream(Stream<List<int>> stream) {
     // Listen to the stream and handle data accordingly. When a
     // _HttpIncoming is created, _dataPause, _dataResume, _dataDone is
     // given to provide a way of controlling the parser.
     // TODO(ajohnsen): Remove _dataPause, _dataResume and _dataDone and clean up
     // how the _HttpIncoming signals the parser.
-    var completer = new Completer();
     _socketSubscription = stream.listen(
         _onData,
         onError: _onError,
-        onDone: () {
-          completer.complete(this);
-        });
-    _socketSubscription.pause();
-    return completer.future;
-  }
-
-  Future<_HttpParser> close() {
-    _onDone();
-    return new Future.value(this);
+        onDone: _onDone);
   }
 
   void _parse() {
@@ -387,7 +374,7 @@ class _HttpParser
             if (!_isTokenChar(byte)) {
               throw new HttpException("Invalid request method");
             }
-            _method_or_status_code.add(byte);
+            _method.add(byte);
             if (!_requestParser) {
               throw new HttpException("Invalid response line");
             }
@@ -412,12 +399,12 @@ class _HttpParser
           } else {
             // Did not parse HTTP version. Expect method instead.
             for (int i = 0; i < _httpVersionIndex; i++) {
-              _method_or_status_code.add(_Const.HTTP[i]);
+              _method.add(_Const.HTTP[i]);
             }
             if (byte == _CharCode.SP) {
               _state = _State.REQUEST_LINE_URI;
             } else {
-              _method_or_status_code.add(byte);
+              _method.add(byte);
               _httpVersion = _HttpVersion.UNDETERMINED;
               if (!_requestParser) {
                 throw new HttpException("Invalid response line");
@@ -462,7 +449,7 @@ class _HttpParser
                 byte == _CharCode.LF) {
               throw new HttpException("Invalid request method");
             }
-            _method_or_status_code.add(byte);
+            _method.add(byte);
           }
           break;
 
@@ -513,19 +500,17 @@ class _HttpParser
 
         case _State.RESPONSE_LINE_STATUS_CODE:
           if (byte == _CharCode.SP) {
-            if (_method_or_status_code.length != 3) {
-              throw new HttpException("Invalid response status code");
-            }
             _state = _State.RESPONSE_LINE_REASON_PHRASE;
           } else if (byte == _CharCode.CR) {
             // Some HTTP servers does not follow the spec. and send
             // \r\n right after the status code.
             _state = _State.RESPONSE_LINE_ENDING;
           } else {
-            if (byte < 0x30 && 0x39 < byte) {
+            _statusCodeLength++;
+            if ((byte < 0x30 && 0x39 < byte) || _statusCodeLength > 3) {
               throw new HttpException("Invalid response status code");
             } else {
-              _method_or_status_code.add(byte);
+              _statusCode = _statusCode * 10 + byte - 0x30;
             }
           }
           break;
@@ -544,14 +529,14 @@ class _HttpParser
         case _State.RESPONSE_LINE_ENDING:
           _expect(byte, _CharCode.LF);
           _messageType == _MessageType.RESPONSE;
-          _statusCode = int.parse(
-              new String.fromCharCodes(_method_or_status_code));
           if (_statusCode < 100 || _statusCode > 599) {
             throw new HttpException("Invalid response status code");
           } else {
             // Check whether this response will never have a body.
-            _noMessageBody = _statusCode <= 199 || _statusCode == 204 ||
-                _statusCode == 304;
+            if (_statusCode <= 199 || _statusCode == 204 ||
+                _statusCode == 304) {
+              _noMessageBody = true;
+            }
           }
           _state = _State.HEADER_START;
           break;
@@ -608,13 +593,14 @@ class _HttpParser
             String headerField = new String.fromCharCodes(_headerField);
             String headerValue = new String.fromCharCodes(_headerValue);
             if (headerField == "transfer-encoding" &&
-                       headerValue.toLowerCase() == "chunked") {
+                _caseInsensitiveCompare("chunked".codeUnits, _headerValue)) {
               _chunked = true;
             }
             if (headerField == "connection") {
               List<String> tokens = _tokenizeFieldValue(headerValue);
               for (int i = 0; i < tokens.length; i++) {
-                if (tokens[i].toLowerCase() == "upgrade") {
+                if (_caseInsensitiveCompare("upgrade".codeUnits,
+                                            tokens[i].codeUnits)) {
                   _connectionUpgrade = true;
                 }
                 _headers._add(headerField, tokens[i]);
@@ -659,7 +645,7 @@ class _HttpParser
           _createIncoming(_transferLength);
           if (_requestParser) {
             _incoming.method =
-                new String.fromCharCodes(_method_or_status_code);
+                new String.fromCharCodes(_method);
             _incoming.uri =
                 Uri.parse(
                     new String.fromCharCodes(_uri_or_reason_phrase));
@@ -668,7 +654,7 @@ class _HttpParser
             _incoming.reasonPhrase =
                 new String.fromCharCodes(_uri_or_reason_phrase);
           }
-          _method_or_status_code.clear();
+          _method.clear();
           _uri_or_reason_phrase.clear();
           if (_connectionUpgrade) {
             _incoming.upgraded = true;
@@ -679,8 +665,7 @@ class _HttpParser
             return;
           }
           if (_transferLength == 0 ||
-              (_messageType == _MessageType.RESPONSE &&
-               (_noMessageBody || _responseToMethod == "HEAD"))) {
+              (_messageType == _MessageType.RESPONSE && _noMessageBody)) {
             _reset();
             var tmp = _incoming;
             _closeIncoming();
@@ -752,21 +737,15 @@ class _HttpParser
           // The body is not handled one byte at a time but in blocks.
           _index--;
           int dataAvailable = _buffer.length - _index;
-          List<int> data;
-          if (_remainingContent == -1 ||
-              dataAvailable <= _remainingContent) {
-            if (_index == 0) {
-              data = _buffer;
-            } else {
-              data = new Uint8List.view(_buffer.buffer,
-                                        _index,
-                                        dataAvailable);
-            }
-          } else {
-            data = new Uint8List.view(_buffer.buffer,
-                                      _index,
-                                      _remainingContent);
+          if (_remainingContent >= 0 && dataAvailable > _remainingContent) {
+            dataAvailable = _remainingContent;
           }
+          // Always present the data as a view. This way we can handle all
+          // cases like this, and the user will not experince different data
+          // typed (which could lead to polymorphic user code).
+          List<int> data = new Uint8List.view(_buffer.buffer,
+                                              _buffer.offsetInBytes + _index,
+                                              dataAvailable);
           _bodyController.add(data);
           if (_remainingContent != -1) {
             _remainingContent -= data.length;
@@ -885,7 +864,9 @@ class _HttpParser
   bool get upgrade => _connectionUpgrade && _state == _State.UPGRADED;
   bool get persistentConnection => _persistentConnection;
 
-  void set responseToMethod(String method) { _responseToMethod = method; }
+  void set isHead(bool value) {
+    if (value) _noMessageBody = true;
+  }
 
   _HttpDetachedIncoming detachIncoming() {
     // Simulate detached by marking as upgraded.
@@ -906,12 +887,13 @@ class _HttpParser
     if (_state == _State.UPGRADED) return;
     _state = _State.START;
     _messageType = _MessageType.UNDETERMINED;
-    _headerField = new List();
-    _headerValue = new List();
-    _method_or_status_code = new List();
-    _uri_or_reason_phrase = new List();
+    _headerField.clear();
+    _headerValue.clear();
+    _method.clear();
+    _uri_or_reason_phrase.clear();
 
     _statusCode = 0;
+    _statusCodeLength = 0;
 
     _httpVersion = _HttpVersion.UNDETERMINED;
     _transferLength = -1;
@@ -920,7 +902,6 @@ class _HttpParser
     _chunked = false;
 
     _noMessageBody = false;
-    _responseToMethod = null;
     _remainingContent = -1;
 
     _headers = null;
@@ -957,6 +938,15 @@ class _HttpParser
     final int zCode = "Z".codeUnitAt(0);
     final int delta = "a".codeUnitAt(0) - aCode;
     return (aCode <= byte && byte <= zCode) ? byte + delta : byte;
+  }
+
+  // expected should already be lowercase.
+  bool _caseInsensitiveCompare(List<int> expected, List<int> value) {
+    if (expected.length != value.length) return false;
+    for (int i = 0; i < expected.length; i++) {
+      if (expected[i] != _toLowerCase(value[i])) return false;
+    }
+    return true;
   }
 
   int _expect(int val1, int val2) {

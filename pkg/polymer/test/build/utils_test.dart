@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/** Tests for some of the utility helper functions used by the compiler. */
+/// Tests for some of the utility helper functions used by the compiler.
 library polymer.test.utils_test;
 
 import 'package:unittest/compact_vm_config.dart';

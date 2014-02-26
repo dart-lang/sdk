@@ -58,7 +58,8 @@ class Isolate {
    * Returns a future that will complete with an [Isolate] instance if the
    * spawning succeeded. It will complete with an error otherwise.
    */
-  external static Future<Isolate> spawn(void entryPoint(message), var message);
+  external static Future<Isolate> spawn(void entryPoint(message), var message,
+                                        { bool paused: false });
 
   /**
    * Creates and spawns an isolate that runs the code from the library with
@@ -80,7 +81,7 @@ class Isolate {
    * spawning succeeded. It will complete with an error otherwise.
    */
   external static Future<Isolate> spawnUri(
-      Uri uri, List<String> args, var message);
+      Uri uri, List<String> args, var message, { bool paused: false });
 
 
   /**

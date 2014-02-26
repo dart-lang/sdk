@@ -1,8 +1,9 @@
-/** Internals to the tree builders. */
+/// Internals to the tree builders.
 library treebuilder;
 
 import 'dart:collection';
 import 'package:html5lib/dom.dart';
+import 'package:html5lib/parser.dart' show getElementNameTuple;
 import 'package:source_maps/span.dart' show FileSpan;
 import 'constants.dart';
 import 'list_proxy.dart';
@@ -14,18 +15,18 @@ import 'utils.dart';
 // from "leaking" into tables, object elements, and marquees.
 const Node Marker = null;
 
-// TODO(jmesserly): this should extend ListBase<Node>, but my simple attempt
+// TODO(jmesserly): this should extend ListBase<Element>, but my simple attempt
 // didn't work.
-class ActiveFormattingElements extends ListProxy<Node> {
+class ActiveFormattingElements extends ListProxy<Element> {
   ActiveFormattingElements() : super();
 
   // Override the "add" method.
   // TODO(jmesserly): I'd rather not override this; can we do this in the
   // calling code instead?
-  void add(Node node) {
+  void add(Element node) {
     int equalCount = 0;
     if (node != Marker) {
-      for (Node element in reversed) {
+      for (var element in reversed) {
         if (element == Marker) {
           break;
         }
@@ -61,18 +62,18 @@ bool _mapEquals(Map a, Map b) {
 }
 
 
-bool _nodesEqual(Node node1, Node node2) {
-  return node1.nameTuple == node2.nameTuple &&
+bool _nodesEqual(Element node1, Element node2) {
+  return getElementNameTuple(node1) == getElementNameTuple(node2) &&
       _mapEquals(node1.attributes, node2.attributes);
 }
 
-/** Basic treebuilder implementation. */
+/// Basic treebuilder implementation.
 class TreeBuilder {
   final String defaultNamespace;
 
   Document document;
 
-  final openElements = <Node>[];
+  final List<Element> openElements = <Element>[];
 
   final activeFormattingElements = new ActiveFormattingElements();
 
@@ -80,10 +81,8 @@ class TreeBuilder {
 
   Node formPointer;
 
-  /**
-   * Switch the function used to insert an element from the
-   * normal one to the misnested table one and back again
-   */
+  /// Switch the function used to insert an element from the
+  /// normal one to the misnested table one and back again
   bool insertFromTable;
 
   TreeBuilder(bool namespaceHTMLElements)
@@ -107,7 +106,7 @@ class TreeBuilder {
   bool elementInScope(target, {String variant}) {
     //If we pass a node in we match that. if we pass a string
     //match any node with that name
-    bool exactNode = target is Node && target.nameTuple != null;
+    bool exactNode = target is Node;
 
     List listElements1 = scopingElements;
     List listElements2 = const [];
@@ -135,13 +134,13 @@ class TreeBuilder {
       }
     }
 
-    for (Node node in openElements.reversed) {
-      if (node.tagName == target && !exactNode ||
-          node == target && exactNode) {
+    for (var node in openElements.reversed) {
+      if (!exactNode && node.localName == target ||
+          exactNode && node == target) {
         return true;
       } else if (invert !=
-          (listElements1.contains(node.nameTuple) ||
-           listElements2.contains(node.nameTuple))) {
+          (listElements1.contains(getElementNameTuple(node)) ||
+           listElements2.contains(getElementNameTuple(node)))) {
         return false;
       }
     }
@@ -187,8 +186,8 @@ class TreeBuilder {
 
       // TODO(jmesserly): optimize this. No need to create a token.
       var cloneToken = new StartTagToken(
-          entry.tagName,
-          namespace: entry.namespace,
+          entry.localName,
+          namespace: entry.namespaceUri,
           data: new LinkedHashMap.from(entry.attributes))
           ..span = entry.sourceSpan;
 
@@ -212,18 +211,16 @@ class TreeBuilder {
     }
   }
 
-  /**
-   * Check if an element exists between the end of the active
-   * formatting elements and the last marker. If it does, return it, else
-   * return null.
-   */
-  Node elementInActiveFormattingElements(String name) {
-    for (Node item in activeFormattingElements.reversed) {
+  /// Check if an element exists between the end of the active
+  /// formatting elements and the last marker. If it does, return it, else
+  /// return null.
+  Element elementInActiveFormattingElements(String name) {
+    for (var item in activeFormattingElements.reversed) {
       // Check for Marker first because if it's a Marker it doesn't have a
       // name attribute.
       if (item == Marker) {
         break;
-      } else if (item.tagName == name) {
+      } else if (item.localName == name) {
         return item;
       }
     }
@@ -249,7 +246,7 @@ class TreeBuilder {
     parent.nodes.add(new Comment(token.data)..sourceSpan = token.span);
   }
 
-  /** Create an element but don't insert it anywhere */
+  /// Create an element but don't insert it anywhere
   Element createElement(StartTagToken token) {
     var name = token.name;
     var namespace = token.namespace;
@@ -278,9 +275,9 @@ class TreeBuilder {
   }
 
   Element insertElementTable(token) {
-    /** Create an element and insert it into the tree */
+    /// Create an element and insert it into the tree
     var element = createElement(token);
-    if (!tableInsertModeElements.contains(openElements.last.tagName)) {
+    if (!tableInsertModeElements.contains(openElements.last.localName)) {
       return insertElementNormal(token);
     } else {
       // We should be in the InTable mode. This means we want to do
@@ -299,12 +296,12 @@ class TreeBuilder {
     return element;
   }
 
-  /** Insert text data. */
+  /// Insert text data.
   void insertText(String data, FileSpan span) {
     var parent = openElements.last;
 
     if (!insertFromTable || insertFromTable &&
-        !tableInsertModeElements.contains(openElements.last.tagName)) {
+        !tableInsertModeElements.contains(openElements.last.localName)) {
       _insertText(parent, data, span);
     } else {
       // We should be in the InTable mode. This means we want to do
@@ -314,17 +311,15 @@ class TreeBuilder {
     }
   }
 
-  /**
-   * Insert [data] as text in the current node, positioned before the
-   * start of node [refNode] or to the end of the node's text.
-   */
+  /// Insert [data] as text in the current node, positioned before the
+  /// start of node [refNode] or to the end of the node's text.
   static void _insertText(Node parent, String data, FileSpan span,
       [Element refNode]) {
     var nodes = parent.nodes;
     if (refNode == null) {
       if (nodes.length > 0 && nodes.last is Text) {
         Text last = nodes.last;
-        last.value = '${last.value}$data';
+        last.data = '${last.data}$data';
 
         if (span != null) {
           last.sourceSpan = span.file.span(last.sourceSpan.start.offset,
@@ -337,17 +332,15 @@ class TreeBuilder {
       int index = nodes.indexOf(refNode);
       if (index > 0 && nodes[index - 1] is Text) {
         Text last = nodes[index - 1];
-        last.value = '${last.value}$data';
+        last.data = '${last.data}$data';
       } else {
         nodes.insert(index, new Text(data)..sourceSpan = span);
       }
     }
   }
 
-  /**
-   * Get the foster parent element, and sibling to insert before
-   * (or null) when inserting a misnested table node
-   */
+  /// Get the foster parent element, and sibling to insert before
+  /// (or null) when inserting a misnested table node
   List<Node> getTableMisnestedNodePosition() {
     // The foster parent element is the one which comes before the most
     // recently opened table element
@@ -355,8 +348,8 @@ class TreeBuilder {
     Node lastTable = null;
     Node fosterParent = null;
     var insertBefore = null;
-    for (Node elm in openElements.reversed) {
-      if (elm.tagName == "table") {
+    for (var elm in openElements.reversed) {
+      if (elm.localName == "table") {
         lastTable = elm;
         break;
       }
@@ -377,7 +370,7 @@ class TreeBuilder {
   }
 
   void generateImpliedEndTags([String exclude]) {
-    var name = openElements.last.tagName;
+    var name = openElements.last.localName;
     // XXX td, th and tr are not actually needed
     if (name != exclude && const ["dd", "dt", "li", "option", "optgroup", "p",
         "rp", "rt"].contains(name)) {
@@ -388,10 +381,10 @@ class TreeBuilder {
     }
   }
 
-  /** Return the final tree. */
+  /// Return the final tree.
   Document getDocument() => document;
 
-  /** Return the final fragment. */
+  /// Return the final fragment.
   DocumentFragment getFragment() {
     //XXX assert innerHTML
     var fragment = new DocumentFragment();

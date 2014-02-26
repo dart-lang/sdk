@@ -17,7 +17,8 @@ main() {
     var transformer = new LogTransformer([
       "error: This is an error.",
       "warning: This is a warning.",
-      "info: This is info."
+      "info: This is info.",
+      "fine: This is fine."
     ]);
     initGraph(["app|foo.txt"], {
       "app": [[transformer]]
@@ -27,13 +28,15 @@ main() {
     buildShouldLog(LogLevel.ERROR, equals("This is an error."));
     buildShouldLog(LogLevel.WARNING, equals("This is a warning."));
     buildShouldLog(LogLevel.INFO, equals("This is info."));
+    buildShouldLog(LogLevel.FINE, equals("This is fine."));
   });
 
   test("logs messages from a transformer group", () {
     var transformer = new LogTransformer([
       "error: This is an error.",
       "warning: This is a warning.",
-      "info: This is info."
+      "info: This is info.",
+      "fine: This is fine."
     ]);
 
     initGraph(["app|foo.txt"], {"app": [
@@ -44,5 +47,6 @@ main() {
     buildShouldLog(LogLevel.ERROR, equals("This is an error."));
     buildShouldLog(LogLevel.WARNING, equals("This is a warning."));
     buildShouldLog(LogLevel.INFO, equals("This is info."));
+    buildShouldLog(LogLevel.FINE, equals("This is fine."));
   });
 }

@@ -1,4 +1,4 @@
-/** Additional feature tests that aren't based on test data. */
+/// Additional feature tests that aren't based on test data.
 library parser_feature_test;
 
 import 'package:unittest/unittest.dart';
@@ -9,9 +9,9 @@ import 'package:html5lib/src/treebuilder.dart';
 
 main() {
   test('doctype is cloneable', () {
-    var doc = parse('<!DOCTYPE HTML>');
+    var doc = parse('<!doctype HTML>');
     DocumentType doctype = doc.nodes[0];
-    expect(doctype.clone().outerHtml, '<!DOCTYPE html>');
+    expect(doctype.clone().toString(), '<!DOCTYPE html>');
   });
 
   test('line counter', () {
@@ -22,12 +22,12 @@ main() {
 
   test('namespace html elements on', () {
     var doc = new HtmlParser('', tree: new TreeBuilder(true)).parse();
-    expect(doc.nodes[0].namespace, Namespaces.html);
+    expect(doc.nodes[0].namespaceUri, Namespaces.html);
   });
 
   test('namespace html elements off', () {
     var doc = new HtmlParser('', tree: new TreeBuilder(false)).parse();
-    expect(doc.nodes[0].namespace, null);
+    expect(doc.nodes[0].namespaceUri, null);
   });
 
   test('parse error spans - full', () {
@@ -81,9 +81,9 @@ ParseError:4:3: Unexpected DOCTYPE. Ignored.
     var textContent = '\n  hello {{name}}';
     var html = '<body><div>$textContent</div>';
     var doc = parse(html, generateSpans: true);
-    var text = doc.body.nodes[0].nodes[0];
+    Text text = doc.body.nodes[0].nodes[0];
     expect(text, new isInstanceOf<Text>());
-    expect(text.value, textContent);
+    expect(text.data, textContent);
     expect(text.sourceSpan.start.offset, html.indexOf(textContent));
     expect(text.sourceSpan.length, textContent.length);
   });
@@ -156,60 +156,62 @@ ParseError:4:3: Unexpected DOCTYPE. Ignored.
 
   test('empty document has html, body, and head', () {
     var doc = parse('');
-    expect(doc.outerHtml, '<html><head></head><body></body></html>');
+    var html = '<html><head></head><body></body></html>';
+    expect(doc.outerHtml, html);
+    expect(doc.documentElement.outerHtml, html);
     expect(doc.head.outerHtml, '<head></head>');
     expect(doc.body.outerHtml, '<body></body>');
   });
 
   test('strange table case', () {
-    var doc = parseFragment('<table><tbody><foo>');
-    expect(doc.outerHtml, '<foo></foo><table><tbody></tbody></table>');
+    var doc = parse('<table><tbody><foo>').body;
+    expect(doc.innerHtml, '<foo></foo><table><tbody></tbody></table>');
   });
 
   group('html serialization', () {
     test('attribute order', () {
       // Note: the spec only requires a stable order.
       // However, we preserve the input order via LinkedHashMap
-      var doc = parseFragment('<foo d=1 a=2 c=3 b=4>');
-      expect(doc.outerHtml, '<foo d="1" a="2" c="3" b="4"></foo>');
-      expect(doc.querySelector('foo').attributes.remove('a'), '2');
-      expect(doc.outerHtml, '<foo d="1" c="3" b="4"></foo>');
-      doc.querySelector('foo').attributes['a'] = '0';
-      expect(doc.outerHtml, '<foo d="1" c="3" b="4" a="0"></foo>');
+      var body = parse('<foo d=1 a=2 c=3 b=4>').body;
+      expect(body.innerHtml, '<foo d="1" a="2" c="3" b="4"></foo>');
+      expect(body.querySelector('foo').attributes.remove('a'), '2');
+      expect(body.innerHtml, '<foo d="1" c="3" b="4"></foo>');
+      body.querySelector('foo').attributes['a'] = '0';
+      expect(body.innerHtml, '<foo d="1" c="3" b="4" a="0"></foo>');
     });
 
     test('escaping Text node in <script>', () {
-      var doc = parseFragment('<script>a && b</script>');
-      expect(doc.outerHtml, '<script>a && b</script>');
+      Element e = parseFragment('<script>a && b</script>').firstChild;
+      expect(e.outerHtml, '<script>a && b</script>');
     });
 
     test('escaping Text node in <span>', () {
-      var doc = parseFragment('<span>a && b</span>');
-      expect(doc.outerHtml, '<span>a &amp;&amp; b</span>');
+      Element e = parseFragment('<span>a && b</span>').firstChild;
+      expect(e.outerHtml, '<span>a &amp;&amp; b</span>');
     });
 
     test('Escaping attributes', () {
-      var doc = parseFragment('<div class="a<b>">');
-      expect(doc.outerHtml, '<div class="a<b>"></div>');
-      doc = parseFragment('<div class=\'a"b\'>');
-      expect(doc.outerHtml, '<div class="a&quot;b"></div>');
+      Element e = parseFragment('<div class="a<b>">').firstChild;
+      expect(e.outerHtml, '<div class="a<b>"></div>');
+      e = parseFragment('<div class=\'a"b\'>').firstChild;
+      expect(e.outerHtml, '<div class="a&quot;b"></div>');
     });
 
     test('Escaping non-breaking space', () {
       var text = '<span>foO\u00A0bar</span>';
       expect(text.codeUnitAt(text.indexOf('O') + 1), 0xA0);
-      var doc = parseFragment(text);
-      expect(doc.outerHtml, '<span>foO&nbsp;bar</span>');
+      Element e = parseFragment(text).firstChild;
+      expect(e.outerHtml, '<span>foO&nbsp;bar</span>');
     });
 
     test('Newline after <pre>', () {
-      var doc = parseFragment('<pre>\n\nsome text</span>');
-      expect(doc.querySelector('pre').nodes[0].value, '\nsome text');
-      expect(doc.outerHtml, '<pre>\n\nsome text</pre>');
+      Element e = parseFragment('<pre>\n\nsome text</span>').firstChild;
+      expect((e.firstChild as Text).data, '\nsome text');
+      expect(e.outerHtml, '<pre>\n\nsome text</pre>');
 
-      doc = parseFragment('<pre>\nsome text</span>');
-      expect(doc.querySelector('pre').nodes[0].value, 'some text');
-      expect(doc.outerHtml, '<pre>some text</pre>');
+      e = parseFragment('<pre>\nsome text</span>').firstChild;
+      expect((e.firstChild as Text).data, 'some text');
+      expect(e.outerHtml, '<pre>some text</pre>');
     });
 
     test('xml namespaces', () {
@@ -245,5 +247,46 @@ ParseError:4:3: Unexpected DOCTYPE. Ignored.
     expect(parser.errors[0].toString(),
         'ParserError:1:4: Unexpected non-space characters. '
         'Expected DOCTYPE.');
+  });
+
+  test('Element.text', () {
+    var doc = parseFragment('<div>foo<div>bar</div>baz</div>');
+    var e = doc.firstChild;
+    var text = e.firstChild;
+    expect((text as Text).data, 'foo');
+    expect(e.text, 'foobarbaz');
+
+    e.text = 'FOO';
+    expect(e.nodes.length, 1);
+    expect(e.firstChild, isNot(text), reason: 'should create a new tree');
+    expect((e.firstChild as Text).data, 'FOO');
+    expect(e.text, 'FOO');
+  });
+
+  test('Text.text', () {
+    var doc = parseFragment('<div>foo<div>bar</div>baz</div>');
+    var e = doc.firstChild;
+    Text text = e.firstChild;
+    expect(text.data, 'foo');
+    expect(text.text, 'foo');
+
+    text.text = 'FOO';
+    expect(text.data, 'FOO');
+    expect(e.text, 'FOObarbaz');
+    expect(text.text, 'FOO');
+  });
+
+  test('Comment.text', () {
+    var doc = parseFragment('<div><!--foo-->bar</div>');
+    var e = doc.firstChild;
+    var c = e.firstChild;
+    expect((c as Comment).data, 'foo');
+    expect(c.text, 'foo');
+    expect(e.text, 'bar');
+
+    c.text = 'qux';
+    expect(c.data, 'qux');
+    expect(c.text, 'qux');
+    expect(e.text, 'bar');
   });
 }

@@ -4,7 +4,7 @@
 
 /**
  * Support for interoperating with JavaScript.
- * 
+ *
  * This library provides access to JavaScript objects from Dart, allowing
  * Dart code to get and set properties, and call methods of JavaScript objects
  * and invoke JavaScript functions. The library takes care of converting
@@ -27,14 +27,14 @@
  * global function `alert()`:
  *
  *     import 'dart:js';
- *     
+ *
  *     main() => context.callMethod('alert', ['Hello from Dart!']);
  *
  * This example shows how to create a [JsObject] from a JavaScript constructor
  * and access its properties:
  *
  *     import 'dart:js';
- *     
+ *
  *     main() {
  *       var object = new JsObject(context['Object']);
  *       object['greeting'] = 'Hello';
@@ -44,7 +44,7 @@
  *     }
  *
  * ## Proxying and automatic conversion
- * 
+ *
  * When setting properties on a JsObject or passing arguments to a Javascript
  * method or function, Dart objects are automatically converted or proxied to
  * JavaScript objects. When accessing JavaScript properties, or when a Dart
@@ -80,7 +80,7 @@
  * `a` and `b` defined:
  *
  *     var jsMap = new JsObject.jsify({'a': 1, 'b': 2});
- * 
+ *
  * This expression creates a JavaScript array:
  *
  *     var jsArray = new JsObject.jsify([1, 2, 3]);
@@ -166,7 +166,7 @@ class JsObject {
    * Use this constructor only if you wish to get access to JavaScript
    * properties attached to a browser host object, such as a Node or Blob, that
    * is normally automatically converted into a native Dart object.
-   * 
+   *
    * An exception will be thrown if [object] either is `null` or has the type
    * `bool`, `num`, or `String`.
    */
@@ -233,7 +233,7 @@ class JsObject {
     }
     return _convertToDart(JS('', '#[#]', _jsObject, property));
   }
-  
+
   /**
    * Sets the value associated with [property] on the proxied JavaScript
    * object.
@@ -411,7 +411,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
   }
 
   void addAll(Iterable<E> iterable) {
-    var list = (JS('bool', '# instanceof Array', iterable)) 
+    var list = (JS('bool', '# instanceof Array', iterable))
         ? iterable
         : new List.from(iterable);
     callMethod('push', list);
@@ -483,6 +483,9 @@ Object _getOwnProperty(o, String name) {
 
 bool _isLocalObject(o) => JS('bool', '# instanceof Object', o);
 
+// The shared constructor function for proxies to Dart objects in JavaScript.
+final _dartProxyCtor = JS('', 'function DartObject(o) { this.o = o; }');
+
 dynamic _convertToJS(dynamic o) {
   if (o == null) {
     return null;
@@ -502,8 +505,9 @@ dynamic _convertToJS(dynamic o) {
       return jsFunction;
     });
   } else {
+    var ctor = _dartProxyCtor;
     return _getJsProxy(o, _JS_OBJECT_PROPERTY_NAME,
-        (o) => JS('', 'new DartObject(#)', o));
+        (o) => JS('', 'new #(#)', ctor, o));
   }
 }
 
@@ -532,7 +536,7 @@ Object _convertToDart(o) {
   } else if (JS('bool', '# instanceof Date', o)) {
     var ms = JS('num', '#.getMilliseconds()', o);
     return new DateTime.fromMillisecondsSinceEpoch(ms);
-  } else if (JS('bool', '#.constructor === DartObject', o)) {
+  } else if (JS('bool', '#.constructor === #', o, _dartProxyCtor)) {
     return JS('', '#.o', o);
   } else {
     return _wrapToDart(o);

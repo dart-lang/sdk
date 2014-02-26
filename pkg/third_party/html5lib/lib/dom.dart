@@ -1,7 +1,5 @@
-/**
- * A simple tree API that results from parsing html. Intended to be compatible
- * with dart:html, but right now it resembles the classic JS DOM.
- */
+/// A simple tree API that results from parsing html. Intended to be compatible
+/// with dart:html, but right now it resembles the classic JS DOM.
 library dom;
 
 import 'dart:collection';
@@ -18,13 +16,13 @@ import 'parser.dart';
 // TODO(jmesserly): this needs to be replaced by an AttributeMap for attributes
 // that exposes namespace info.
 class AttributeName implements Comparable {
-  /** The namespace prefix, e.g. `xlink`. */
+  /// The namespace prefix, e.g. `xlink`.
   final String prefix;
 
-  /** The attribute name, e.g. `title`. */
+  /// The attribute name, e.g. `title`.
   final String name;
 
-  /** The namespace url, e.g. `http://www.w3.org/1999/xlink` */
+  /// The namespace url, e.g. `http://www.w3.org/1999/xlink`
   final String namespace;
 
   const AttributeName(this.prefix, this.name, this.namespace);
@@ -62,7 +60,7 @@ class AttributeName implements Comparable {
   }
 }
 
-/** Really basic implementation of a DOM-core like Node. */
+/// Really basic implementation of a DOM-core like Node.
 abstract class Node {
   static const int ATTRIBUTE_NODE = 2;
   static const int CDATA_SECTION_NODE = 4;
@@ -77,60 +75,59 @@ abstract class Node {
   static const int PROCESSING_INSTRUCTION_NODE = 7;
   static const int TEXT_NODE = 3;
 
-  // TODO(jmesserly): this should be on Element
-  /** The tag name associated with the node. */
-  final String tagName;
+  /// Note: For now we use it to implement the deprecated tagName property.
+  final String _tagName;
 
-  /** The parent of the current node (or null for the document node). */
+  /// *Deprecated* use [Element.localName] instead.
+  /// Note: after removal, this will be replaced by a correct version that
+  /// returns uppercase [as specified](http://dom.spec.whatwg.org/#dom-element-tagname).
+  @deprecated String get tagName => _tagName;
+
+  /// The parent of the current node (or null for the document node).
   Node parent;
 
   // TODO(jmesserly): should move to Element.
-  /**
-   * A map holding name, value pairs for attributes of the node.
-   *
-   * Note that attribute order needs to be stable for serialization, so we use a
-   * LinkedHashMap. Each key is a [String] or [AttributeName].
-   */
+  /// A map holding name, value pairs for attributes of the node.
+  ///
+  /// Note that attribute order needs to be stable for serialization, so we use
+  /// a LinkedHashMap. Each key is a [String] or [AttributeName].
   LinkedHashMap<dynamic, String> attributes = new LinkedHashMap();
 
-  /**
-   * A list of child nodes of the current node. This must
-   * include all elements but not necessarily other node types.
-   */
+  /// A list of child nodes of the current node. This must
+  /// include all elements but not necessarily other node types.
   final NodeList nodes = new NodeList._();
 
   List<Element> _elements;
 
   // TODO(jmesserly): consider using an Expando for this, and put it in
   // dom_parsing. Need to check the performance affect.
-  /** The source span of this node, if it was created by the [HtmlParser]. */
+  /// The source span of this node, if it was created by the [HtmlParser].
   FileSpan sourceSpan;
 
-  /** The attribute spans if requested. Otherwise null. */
+  /// The attribute spans if requested. Otherwise null.
   LinkedHashMap<dynamic, FileSpan> _attributeSpans;
   LinkedHashMap<dynamic, FileSpan> _attributeValueSpans;
 
-  Node(this.tagName) {
+  /// *Deprecated* use [new Element.tag] instead.
+  @deprecated Node(String tagName) : this._(tagName);
+
+  Node._([this._tagName]) {
     nodes._parent = this;
   }
 
-  /**
-   * If [sourceSpan] is available, this contains the spans of each attribute.
-   * The span of an attribute is the entire attribute, including the name and
-   * quotes (if any). For example, the span of "attr" in `<a attr="value">`
-   * would be the text `attr="value"`.
-   */
+  /// If [sourceSpan] is available, this contains the spans of each attribute.
+  /// The span of an attribute is the entire attribute, including the name and
+  /// quotes (if any). For example, the span of "attr" in `<a attr="value">`
+  /// would be the text `attr="value"`.
   LinkedHashMap<dynamic, FileSpan> get attributeSpans {
     _ensureAttributeSpans();
     return _attributeSpans;
   }
 
-  /**
-   * If [sourceSpan] is available, this contains the spans of each attribute's
-   * value. Unlike [attributeSpans], this span will inlcude only the value.
-   * For example, the value span of "attr" in `<a attr="value">` would be the
-   * text `value`.
-   */
+  /// If [sourceSpan] is available, this contains the spans of each attribute's
+  /// value. Unlike [attributeSpans], this span will inlcude only the value.
+  /// For example, the value span of "attr" in `<a attr="value">` would be the
+  /// text `value`.
   LinkedHashMap<dynamic, FileSpan> get attributeValueSpans {
     _ensureAttributeSpans();
     return _attributeValueSpans;
@@ -144,41 +141,53 @@ abstract class Node {
   }
 
   // TODO(jmesserly): needs to support deep clone.
-  /**
-   * Return a shallow copy of the current node i.e. a node with the same
-   * name and attributes but with no parent or child nodes.
-   */
+  /// Return a shallow copy of the current node i.e. a node with the same
+  /// name and attributes but with no parent or child nodes.
   Node clone();
 
-  String get namespace => null;
-
-  // TODO(jmesserly): do we need this here?
-  /** The value of the current node (applies to text nodes and comments). */
-  String get value => null;
-
-  // TODO(jmesserly): this is a workaround for http://dartbug.com/4754
-  int get $dom_nodeType => nodeType;
+  /// *Deprecated* use [Element.namespaceUri] instead.
+  @deprecated String get namespace => null;
 
   int get nodeType;
 
-  String get outerHtml {
+  /// *Deprecated* use [text], [Text.data] or [Comment.data].
+  @deprecated String get value => null;
+
+  /// *Deprecated* use [nodeType].
+  @deprecated int get $dom_nodeType => nodeType;
+
+  /// *Deprecated* use [Element.outerHtml]
+  @deprecated String get outerHtml => _outerHtml;
+
+  /// *Deprecated* use [Element.innerHtml]
+  @deprecated String get innerHtml => _innerHtml;
+  @deprecated set innerHtml(String value) { _innerHtml = value; }
+
+  // http://domparsing.spec.whatwg.org/#extensions-to-the-element-interface
+  String get _outerHtml {
     var str = new StringBuffer();
     _addOuterHtml(str);
     return str.toString();
   }
 
-  String get innerHtml {
+  String get _innerHtml {
     var str = new StringBuffer();
     _addInnerHtml(str);
     return str.toString();
   }
 
-  set innerHtml(String value) {
+  set _innerHtml(String value) {
     nodes.clear();
     // TODO(jmesserly): should be able to get the same effect by adding the
     // fragment directly.
-    nodes.addAll(parseFragment(value, container: tagName).nodes);
+    nodes.addAll(parseFragment(value, container: _tagName).nodes);
   }
+
+  // Implemented per: http://dom.spec.whatwg.org/#dom-node-textcontent
+  String get text => null;
+  set text(String value) {}
+
+  void append(Node node) => nodes.add(node);
 
   Node get firstChild => nodes.isNotEmpty ? nodes[0] : null;
 
@@ -188,8 +197,6 @@ abstract class Node {
     for (Node child in nodes) child._addOuterHtml(str);
   }
 
-  String toString() => tagName;
-
   Node remove() {
     // TODO(jmesserly): is parent == null an error?
     if (parent != null) {
@@ -198,12 +205,10 @@ abstract class Node {
     return this;
   }
 
-  /**
-   * Insert [node] as a child of the current node, before [refNode] in the
-   * list of child nodes. Raises [UnsupportedOperationException] if [refNode]
-   * is not a child of the current node. If refNode is null, this adds to the
-   * end of the list.
-   */
+  /// Insert [node] as a child of the current node, before [refNode] in the
+  /// list of child nodes. Raises [UnsupportedOperationException] if [refNode]
+  /// is not a child of the current node. If refNode is null, this adds to the
+  /// end of the list.
   void insertBefore(Node node, Node refNode) {
     if (refNode == null) {
       nodes.add(node);
@@ -212,7 +217,7 @@ abstract class Node {
     }
   }
 
-  /** Replaces this node with another node. */
+  /// Replaces this node with another node.
   Node replaceWith(Node otherNode) {
     if (parent == null) {
       throw new UnsupportedError('Node must have a parent to replace it.');
@@ -222,46 +227,39 @@ abstract class Node {
   }
 
   // TODO(jmesserly): should this be a property or remove?
-  /** Return true if the node has children or text. */
+  /// Return true if the node has children or text.
   bool hasContent() => nodes.length > 0;
 
-  Pair<String, String> get nameTuple {
-    var ns = namespace != null ? namespace : Namespaces.html;
-    return new Pair(ns, tagName);
-  }
+  /// *Deprecated* construct a pair using the namespaceUri and the name.
+  @deprecated Pair<String, String> get nameTuple =>
+      this is Element ? getElementNameTuple(this) : null;
 
-  /**
-   * Move all the children of the current node to [newParent].
-   * This is needed so that trees that don't store text as nodes move the
-   * text in the correct way.
-   */
+  /// Move all the children of the current node to [newParent].
+  /// This is needed so that trees that don't store text as nodes move the
+  /// text in the correct way.
   void reparentChildren(Node newParent) {
     newParent.nodes.addAll(nodes);
     nodes.clear();
   }
 
-  /** *Deprecated* use [querySelector] instead. */
+  /// *Deprecated* use [querySelector] instead.
   @deprecated
   Element query(String selectors) => querySelector(selectors);
 
-  /** *Deprecated* use [querySelectorAll] instead. */
+  /// *Deprecated* use [querySelectorAll] instead.
   @deprecated
   List<Element> queryAll(String selectors) => querySelectorAll(selectors);
 
-  /**
-   * Seaches for the first descendant node matching the given selectors, using a
-   * preorder traversal. NOTE: right now, this supports only a single type
-   * selectors, e.g. `node.query('div')`.
-   */
+  /// Seaches for the first descendant node matching the given selectors, using a
+  /// preorder traversal. NOTE: right now, this supports only a single type
+  /// selectors, e.g. `node.query('div')`.
 
   Element querySelector(String selectors) =>
       _queryType(_typeSelector(selectors));
 
-  /**
-   * Returns all descendant nodes matching the given selectors, using a
-   * preorder traversal. NOTE: right now, this supports only a single type
-   * selectors, e.g. `node.queryAll('div')`.
-   */
+  /// Returns all descendant nodes matching the given selectors, using a
+  /// preorder traversal. NOTE: right now, this supports only a single type
+  /// selectors, e.g. `node.queryAll('div')`.
   List<Element> querySelectorAll(String selectors) {
     var results = new List<Element>();
     _queryAllType(_typeSelector(selectors), results);
@@ -280,12 +278,10 @@ abstract class Node {
     return selectors;
   }
 
-  /**
-   * Checks if this is a type selector.
-   * See <http://www.w3.org/TR/CSS2/grammar.html>.
-   * Note: this doesn't support '*', the universal selector, non-ascii chars or
-   * escape chars.
-   */
+  /// Checks if this is a type selector.
+  /// See <http://www.w3.org/TR/CSS2/grammar.html>.
+  /// Note: this doesn't support '*', the universal selector, non-ascii chars or
+  /// escape chars.
   bool _isTypeSelector(String selector) {
     // Parser:
 
@@ -325,7 +321,7 @@ abstract class Node {
   Element _queryType(String tag) {
     for (var node in nodes) {
       if (node is! Element) continue;
-      if (node.tagName == tag) return node;
+      if (node.localName == tag) return node;
       var result = node._queryType(tag);
       if (result != null) return result;
     }
@@ -335,12 +331,12 @@ abstract class Node {
   void _queryAllType(String tag, List<Element> results) {
     for (var node in nodes) {
       if (node is! Element) continue;
-      if (node.tagName == tag) results.add(node);
+      if (node.localName == tag) results.add(node);
       node._queryAllType(tag, results);
     }
   }
 
-  /** Initialize [attributeSpans] using [sourceSpan]. */
+  /// Initialize [attributeSpans] using [sourceSpan].
   void _ensureAttributeSpans() {
     if (_attributeSpans != null) return;
 
@@ -370,7 +366,7 @@ abstract class Node {
 }
 
 class Document extends Node {
-  Document() : super(null);
+  Document() : super._();
   factory Document.html(String html) => parse(html);
 
   int get nodeType => Node.DOCUMENT_NODE;
@@ -379,6 +375,14 @@ class Document extends Node {
   Element get documentElement => querySelector('html');
   Element get head => documentElement.querySelector('head');
   Element get body => documentElement.querySelector('body');
+
+  /// Returns a fragment of HTML or XML that represents the element and its
+  /// contents.
+  // TODO(jmesserly): this API is not specified in:
+  // <http://domparsing.spec.whatwg.org/> nor is it in dart:html, instead
+  // only Element has outerHtml. However it is quite useful. Should we move it
+  // to dom_parsing, where we keep other custom APIs?
+  String get outerHtml => _outerHtml;
 
   String toString() => "#document";
 
@@ -396,13 +400,19 @@ class DocumentFragment extends Document {
   String toString() => "#document-fragment";
 
   DocumentFragment clone() => new DocumentFragment();
+
+  String get text => _getText(this);
+  set text(String value) => _setText(this, value);
 }
 
 class DocumentType extends Node {
+  final String name;
   final String publicId;
   final String systemId;
 
-  DocumentType(String name, this.publicId, this.systemId) : super(name);
+  DocumentType(String name, this.publicId, this.systemId)
+      // Note: once Node.tagName is removed, don't pass "name" to super
+      : name = name, super._(name);
 
   int get nodeType => Node.DOCUMENT_TYPE_NODE;
 
@@ -412,9 +422,9 @@ class DocumentType extends Node {
       // it seems useful, and the parser can handle it, so for now keeping it.
       var pid = publicId != null ? publicId : '';
       var sid = systemId != null ? systemId : '';
-      return '<!DOCTYPE $tagName "$pid" "$sid">';
+      return '<!DOCTYPE $name "$pid" "$sid">';
     } else {
-      return '<!DOCTYPE $tagName>';
+      return '<!DOCTYPE $name>';
     }
   }
 
@@ -423,39 +433,44 @@ class DocumentType extends Node {
     str.write(toString());
   }
 
-  DocumentType clone() => new DocumentType(tagName, publicId, systemId);
+  DocumentType clone() => new DocumentType(name, publicId, systemId);
 }
 
 class Text extends Node {
-  // TODO(jmesserly): this should be text?
-  String value;
+  String data;
 
-  Text(this.value) : super(null);
+  Text(this.data) : super._();
+
+  /// *Deprecated* use [data].
+  @deprecated String get value => data;
+  @deprecated set value(String x) { data = x; }
 
   int get nodeType => Node.TEXT_NODE;
 
-  String toString() => '"$value"';
+  String toString() => '"$data"';
 
-  void _addOuterHtml(StringBuffer str) {
-    // Don't escape text for certain elements, notably <script>.
-    if (rcdataElements.contains(parent.tagName) ||
-        parent.tagName == 'plaintext') {
-      str.write(value);
-    } else {
-      str.write(htmlSerializeEscape(value));
-    }
-  }
+  void _addOuterHtml(StringBuffer str) => writeTextNodeAsHtml(str, this);
 
-  Text clone() => new Text(value);
+  Text clone() => new Text(data);
+
+  String get text => data;
+  set text(String value) { data = value; }
 }
 
 class Element extends Node {
-  final String namespace;
+  final String namespaceUri;
 
-  // TODO(jmesserly): deprecate in favor of Element.tag? Or rename?
-  Element(String name, [this.namespace]) : super(name);
+  @deprecated String get namespace => namespaceUri;
 
-  Element.tag(String name) : namespace = null, super(name);
+  /// The [local name](http://dom.spec.whatwg.org/#concept-element-local-name)
+  /// of this element.
+  String get localName => _tagName;
+
+  // TODO(jmesserly): deprecate in favor of [Document.createElementNS].
+  // However we need every element to have a Document before this can work.
+  Element(String name, [this.namespaceUri]) : super._(name);
+
+  Element.tag(String name) : namespaceUri = null, super._(name);
 
   static final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 
@@ -514,22 +529,37 @@ class Element extends Node {
   int get nodeType => Node.ELEMENT_NODE;
 
   String toString() {
-    if (namespace == null) return "<$tagName>";
-    return "<${Namespaces.getPrefix(namespace)} $tagName>";
+    if (namespaceUri == null) return "<$localName>";
+    return "<${Namespaces.getPrefix(namespaceUri)} $localName>";
   }
+
+  String get text => _getText(this);
+  set text(String value) => _setText(this, value);
+
+  /// Returns a fragment of HTML or XML that represents the element and its
+  /// contents.
+  String get outerHtml => _outerHtml;
+
+  /// Returns a fragment of HTML or XML that represents the element's contents.
+  /// Can be set, to replace the contents of the element with nodes parsed from
+  /// the given string.
+  String get innerHtml => _innerHtml;
+  // TODO(jmesserly): deprecate in favor of:
+  // <https://api.dartlang.org/apidocs/channels/stable/#dart-dom-html.Element@id_setInnerHtml>
+  set innerHtml(String value) { _innerHtml = value; }
 
   void _addOuterHtml(StringBuffer str) {
     // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-end.html#serializing-html-fragments
     // Element is the most complicated one.
-    if (namespace == null ||
-        namespace == Namespaces.html ||
-        namespace == Namespaces.mathml ||
-        namespace == Namespaces.svg) {
-      str.write('<$tagName');
+    if (namespaceUri == null ||
+        namespaceUri == Namespaces.html ||
+        namespaceUri == Namespaces.mathml ||
+        namespaceUri == Namespaces.svg) {
+      str.write('<$localName');
     } else {
       // TODO(jmesserly): the spec doesn't define "qualified name".
       // I'm not sure if this is correct, but it should parse reasonably.
-      str.write('<${Namespaces.getPrefix(namespace)}:$tagName');
+      str.write('<${Namespaces.getPrefix(namespaceUri)}:$localName');
     }
 
     if (attributes.length > 0) {
@@ -543,8 +573,10 @@ class Element extends Node {
     str.write('>');
 
     if (nodes.length > 0) {
-      if (tagName == 'pre' || tagName == 'textarea' || tagName == 'listing') {
-        if (nodes[0] is Text && nodes[0].value.startsWith('\n')) {
+      if (localName == 'pre' || localName == 'textarea' ||
+          localName == 'listing') {
+        final first = nodes[0];
+        if (first is Text && first.data.startsWith('\n')) {
           // These nodes will remove a leading \n at parse time, so if we still
           // have one, it means we started with two. Add it back.
           str.write('\n');
@@ -556,10 +588,10 @@ class Element extends Node {
 
     // void elements must not have an end tag
     // http://dev.w3.org/html5/markup/syntax.html#void-elements
-    if (!isVoidElement(tagName)) str.write('</$tagName>');
+    if (!isVoidElement(localName)) str.write('</$localName>');
   }
 
-  Element clone() => new Element(tagName, namespace)
+  Element clone() => new Element(localName, namespaceUri)
       ..attributes = new LinkedHashMap.from(attributes);
 
   String get id {
@@ -577,9 +609,9 @@ class Element extends Node {
 }
 
 class Comment extends Node {
-  final String data;
+  String data;
 
-  Comment(this.data) : super(null);
+  Comment(this.data) : super._();
 
   int get nodeType => Node.COMMENT_NODE;
 
@@ -590,6 +622,11 @@ class Comment extends Node {
   }
 
   Comment clone() => new Comment(data);
+
+  String get text => data;
+  set text(String value) {
+    this.data = value;
+  }
 }
 
 
@@ -697,10 +734,8 @@ class NodeList extends ListProxy<Node> {
 }
 
 
-/**
- * An indexable collection of a node's descendants in the document tree,
- * filtered so that only elements are in the collection.
- */
+/// An indexable collection of a node's descendants in the document tree,
+/// filtered so that only elements are in the collection.
 // TODO(jmesserly): this was copied from dart:html
 // TODO(jmesserly): "implements List<Element>" is a workaround for analyzer bug.
 class FilteredElementList extends IterableBase<Element> with ListMixin<Element>
@@ -709,14 +744,12 @@ class FilteredElementList extends IterableBase<Element> with ListMixin<Element>
   final Node _node;
   final List<Node> _childNodes;
 
-  /**
-   * Creates a collection of the elements that descend from a node.
-   *
-   * Example usage:
-   *
-   *     var filteredElements = new FilteredElementList(query("#container"));
-   *     // filteredElements is [a, b, c].
-   */
+  /// Creates a collection of the elements that descend from a node.
+  ///
+  /// Example usage:
+  ///
+  ///     var filteredElements = new FilteredElementList(query("#container"));
+  ///     // filteredElements is [a, b, c].
   FilteredElementList(Node node): _childNodes = node.nodes, _node = node;
 
   // We can't memoize this, since it's possible that children will be messed
@@ -880,4 +913,24 @@ class FilteredElementList extends IterableBase<Element> with ListMixin<Element>
   Element get last => _filtered.last;
 
   Element get single => _filtered.single;
+}
+
+// http://dom.spec.whatwg.org/#dom-node-textcontent
+// For Element and DocumentFragment
+String _getText(Node node) =>
+    (new _ConcatTextVisitor()..visit(node)).toString();
+
+void _setText(Node node, String value) {
+  node.nodes.clear();
+  node.append(new Text(value));
+}
+
+class _ConcatTextVisitor extends TreeVisitor {
+  final _str = new StringBuffer();
+
+  String toString() => _str.toString();
+
+  visitText(Text node) {
+    _str.write(node.data);
+  }
 }

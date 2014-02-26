@@ -286,6 +286,7 @@ class InlinedFunctionsIterator : public ValueObject {
   void SetDone() { index_ = -1; }
 
   intptr_t index_;
+  intptr_t num_materializations_;
   Code& code_;
   DeoptInfo& deopt_info_;
   Function& function_;

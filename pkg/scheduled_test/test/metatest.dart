@@ -137,7 +137,7 @@ Future<Map> _runInIsolate(String description) {
 /// an error occurred.
 bool _hasError(Map results) {
   return results['errors'] > 0 || results['uncaughtError'] != null ||
-    (results['passed'] == 0 && results['failed'] == 0);
+      (results['passed'] == 0 && results['failed'] == 0);
 }
 
 /// Returns a string description of the test run descibed by [results].

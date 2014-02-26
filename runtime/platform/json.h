@@ -136,6 +136,10 @@ class TextBuffer : ValueObject {
   char* buf() { return buf_; }
   intptr_t length() { return msg_len_; }
 
+  // Steal ownership of the buffer pointer.
+  // NOTE: TextBuffer is empty afterwards.
+  const char* Steal();
+
  private:
   void EnsureCapacity(intptr_t len);
   char* buf_;

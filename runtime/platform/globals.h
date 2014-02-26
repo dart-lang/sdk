@@ -481,7 +481,7 @@ inline D bit_copy(const S& source) {
     ({ intptr_t __result;                                                      \
        do {                                                                    \
          __result = (expression);                                              \
-       } while (__result == -1L && errno == EINTR);                            \
+       } while ((__result == -1L) && (errno == EINTR));                        \
        __result; })
 #endif  // !defined(TEMP_FAILURE_RETRY)
 

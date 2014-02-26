@@ -8,6 +8,11 @@ part of dart.core;
  * A simple stopwatch interface to measure elapsed time.
  */
 class Stopwatch {
+  /**
+   * Frequency of the elapsed counter in Hz.
+   */
+  final int frequency = _frequency();
+
   // The _start and _stop fields capture the time when [start] and [stop]
   // are called respectively.
   // If _start is null, then the [Stopwatch] has not been started yet.
@@ -24,7 +29,7 @@ class Stopwatch {
    *
    *     Stopwatch stopwatch = new Stopwatch()..start();
    */
-  Stopwatch() : _start = null, _stop = null {}
+  Stopwatch();
 
   /**
    * Starts the [Stopwatch].
@@ -116,10 +121,6 @@ class Stopwatch {
     return (elapsedTicks * 1000) ~/ frequency;
   }
 
-  /**
-   * Returns the frequency of the elapsed counter in Hz.
-   */
-  int get frequency => _frequency();
 
   /**
    * Returns wether the [StopWatch] is currently running.

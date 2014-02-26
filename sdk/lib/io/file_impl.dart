@@ -190,23 +190,26 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
     Completer<File> completer = new Completer<File>();
     _openFuture
       .then((openedFile) {
+        void error(e, [StackTrace stackTrace]) {
+          _subscription.cancel();
+          openedFile.close();
+          completer.completeError(e, stackTrace);
+        }
         _subscription = stream.listen(
           (d) {
             _subscription.pause();
-            openedFile.writeFrom(d, 0, d.length)
-              .then((_) => _subscription.resume())
-              .catchError((e) {
-                openedFile.close();
-                completer.completeError(e);
-              });
+            try {
+              openedFile.writeFrom(d, 0, d.length)
+                .then((_) => _subscription.resume(),
+                      onError: error);
+            } catch (e, stackTrace) {
+              error(e, stackTrace);
+            }
           },
           onDone: () {
             completer.complete(_file);
           },
-          onError: (e, [StackTrace stackTrace]) {
-            openedFile.close();
-            completer.completeError(e, stackTrace);
-          },
+          onError: error,
           cancelOnError: true);
       })
       .catchError((e) {

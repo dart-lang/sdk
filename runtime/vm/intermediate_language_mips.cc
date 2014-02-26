@@ -1043,9 +1043,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         UNIMPLEMENTED();
         break;
       case kTypedDataFloat32ArrayCid:
-        // Load single precision float and promote to double.
-        __ lwc1(STMP1, element_address);
-        __ cvtds(result, STMP1);
+        // Load single precision float.
+        __ lwc1(EvenFRegisterOf(result), element_address);
         break;
       case kTypedDataFloat64ArrayCid:
         __ LoadDFromOffset(result, index.reg(),
@@ -1308,12 +1307,11 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       break;
     }
-    case kTypedDataFloat32ArrayCid:
-      // Convert to single precision.
-      __ cvtsd(STMP1, locs()->in(2).fpu_reg());
-      // Store.
-      __ swc1(STMP1, element_address);
+    case kTypedDataFloat32ArrayCid: {
+      FRegister value = EvenFRegisterOf(locs()->in(2).fpu_reg());
+      __ swc1(value, element_address);
       break;
+    }
     case kTypedDataFloat64ArrayCid:
       __ StoreDToOffset(locs()->in(2).fpu_reg(), index.reg(),
           FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
@@ -2139,6 +2137,8 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   __ TraceSimMsg("InstantiateTypeArgumentsInstr");
   Register instantiator_reg = locs()->in(0).reg();
   Register result_reg = locs()->out().reg();
+  ASSERT(instantiator_reg == T0);
+  ASSERT(instantiator_reg == result_reg);
 
   // 'instantiator_reg' is the instantiator TypeArguments object (or null).
   ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
@@ -2153,6 +2153,24 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
     __ BranchEqual(instantiator_reg, reinterpret_cast<int32_t>(Object::null()),
                    &type_arguments_instantiated);
   }
+
+  __ LoadObject(T2, type_arguments());
+  __ lw(T2, FieldAddress(T2, TypeArguments::instantiations_offset()));
+  __ AddImmediate(T2, Array::data_offset() - kHeapObjectTag);
+  // The instantiations cache is initialized with Object::zero_array() and is
+  // therefore guaranteed to contain kNoInstantiator. No length check needed.
+  Label loop, found, slow_case;
+  __ Bind(&loop);
+  __ lw(T1, Address(T2, 0 * kWordSize));  // Cached instantiator.
+  __ beq(T1, T0, &found);
+  __ BranchNotEqual(T1, Smi::RawValue(StubCode::kNoInstantiator), &loop);
+  __ delay_slot()->addiu(T2, T2, Immediate(2 * kWordSize));
+  __ b(&slow_case);
+  __ Bind(&found);
+  __ lw(T0, Address(T2, 1 * kWordSize));  // Cached instantiated args.
+  __ b(&type_arguments_instantiated);
+
+  __ Bind(&slow_case);
   // Instantiate non-null type arguments.
   // A runtime call to instantiate the type arguments is required.
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
@@ -2173,86 +2191,6 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   // Drop instantiator and uninstantiated type arguments.
   __ addiu(SP, SP, Immediate(3 * kWordSize));
   __ Bind(&type_arguments_instantiated);
-  ASSERT(instantiator_reg == result_reg);
-}
-
-
-LocationSummary*
-ExtractConstructorTypeArgumentsInstr::MakeLocationSummary(bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_out(Location::SameAsFirstInput());
-  return locs;
-}
-
-
-void ExtractConstructorTypeArgumentsInstr::EmitNativeCode(
-    FlowGraphCompiler* compiler) {
-  Register instantiator_reg = locs()->in(0).reg();
-  Register result_reg = locs()->out().reg();
-  ASSERT(instantiator_reg == result_reg);
-
-  // instantiator_reg is the instantiator type argument vector,
-  // i.e. a TypeArguments object (or null).
-  ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
-         !type_arguments().CanShareInstantiatorTypeArguments(
-             instantiator_class()));
-  // If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of dynamic, then use null as
-  // the type arguments.
-  Label type_arguments_instantiated;
-  ASSERT(type_arguments().IsRawInstantiatedRaw(type_arguments().Length()));
-  __ BranchEqual(instantiator_reg, reinterpret_cast<int32_t>(Object::null()),
-                 &type_arguments_instantiated);
-  // Instantiate non-null type arguments.
-  // In the non-factory case, we rely on the allocation stub to
-  // instantiate the type arguments.
-  __ LoadObject(result_reg, type_arguments());
-  // result_reg: uninstantiated type arguments.
-  __ Bind(&type_arguments_instantiated);
-
-  // result_reg: uninstantiated or instantiated type arguments.
-}
-
-
-LocationSummary*
-ExtractConstructorInstantiatorInstr::MakeLocationSummary(bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_out(Location::SameAsFirstInput());
-  return locs;
-}
-
-
-void ExtractConstructorInstantiatorInstr::EmitNativeCode(
-    FlowGraphCompiler* compiler) {
-  Register instantiator_reg = locs()->in(0).reg();
-  ASSERT(locs()->out().reg() == instantiator_reg);
-
-  // instantiator_reg is the instantiator TypeArguments object (or null).
-  ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
-         !type_arguments().CanShareInstantiatorTypeArguments(
-             instantiator_class()));
-
-  // If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of dynamic, then use null as
-  // the type arguments and do not pass the instantiator.
-  ASSERT(type_arguments().IsRawInstantiatedRaw(type_arguments().Length()));
-  Label instantiator_not_null;
-  __ BranchNotEqual(instantiator_reg, reinterpret_cast<int32_t>(Object::null()),
-                    &instantiator_not_null);
-  // Null was used in VisitExtractConstructorTypeArguments as the
-  // instantiated type arguments, no proper instantiator needed.
-  __ LoadImmediate(instantiator_reg,
-                   Smi::RawValue(StubCode::kNoInstantiator));
-  __ Bind(&instantiator_not_null);
-  // instantiator_reg: instantiator or kNoInstantiator.
 }
 
 
@@ -3019,6 +2957,28 @@ void UnboxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* BoxFloat64x2Instr::MakeLocationSummary(bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void BoxFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* UnboxFloat64x2Instr::MakeLocationSummary(bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void UnboxFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
 LocationSummary* BoxInt32x4Instr::MakeLocationSummary(bool opt) const {
   UNIMPLEMENTED();
   return NULL;
@@ -3584,8 +3544,44 @@ void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* DoubleToFloatInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::RequiresFpuRegister());
+  result->set_out(Location::SameAsFirstInput());
+  return result;
+}
+
+
+void DoubleToFloatInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  DRegister value = locs()->in(0).fpu_reg();
+  FRegister result = EvenFRegisterOf(locs()->out().fpu_reg());
+  __ cvtsd(result, value);
+}
+
+
+LocationSummary* FloatToDoubleInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::RequiresFpuRegister());
+  result->set_out(Location::SameAsFirstInput());
+  return result;
+}
+
+
+void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  FRegister value = EvenFRegisterOf(locs()->in(0).fpu_reg());
+  DRegister result = locs()->out().fpu_reg();
+  __ cvtds(result, value);
+}
+
+
 LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(bool opt) const {
-  // Calling convetion on MIPS uses D6 and D7 to pass the first two
+  // Calling convention on MIPS uses D6 and D7 to pass the first two
   // double arguments.
   ASSERT((InputCount() == 1) || (InputCount() == 2));
   const intptr_t kNumTemps = 0;

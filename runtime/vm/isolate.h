@@ -224,7 +224,7 @@ class Isolate : public BaseIsolate {
   uword saved_stack_limit() const { return saved_stack_limit_; }
 
   // Retrieve the stack address bounds.
-  bool GetStackBounds(uintptr_t* lower, uintptr_t* upper);
+  bool GetStackBounds(uword* lower, uword* upper);
 
   static uword GetSpecifiedStackSize();
 

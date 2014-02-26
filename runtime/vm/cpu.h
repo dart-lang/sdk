@@ -5,6 +5,7 @@
 #ifndef VM_CPU_H_
 #define VM_CPU_H_
 
+#include "vm/globals.h"
 #include "vm/allocation.h"
 
 namespace dart {
@@ -21,5 +22,17 @@ class CPU : public AllStatic {
 };
 
 }  // namespace dart
+
+#if defined(TARGET_ARCH_IA32)
+#include "vm/cpu_ia32.h"
+#elif defined(TARGET_ARCH_X64)
+#include "vm/cpu_x64.h"
+#elif defined(TARGET_ARCH_ARM)
+#include "vm/cpu_arm.h"
+#elif defined(TARGET_ARCH_MIPS)
+#include "vm/cpu_mips.h"
+#else
+#error Unknown architecture.
+#endif
 
 #endif  // VM_CPU_H_

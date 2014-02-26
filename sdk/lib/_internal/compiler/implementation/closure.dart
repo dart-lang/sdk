@@ -109,6 +109,7 @@ class ClosureFieldElement extends ElementX implements VariableElement {
 class ClosureClassElement extends ClassElementX {
   DartType rawType;
   DartType thisType;
+  FunctionType callType;
   /// Node that corresponds to this closure, used for source position.
   final FunctionExpression node;
 
@@ -133,6 +134,7 @@ class ClosureClassElement extends ClassElementX {
     thisType = rawType = new InterfaceType(this);
     allSupertypesAndSelf =
         superclass.allSupertypesAndSelf.extendClass(thisType);
+    callType = methodElement.computeType(compiler);
   }
 
   bool isClosure() => true;

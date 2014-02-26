@@ -195,24 +195,12 @@ int Socket::GetType(intptr_t fd) {
 
 
 intptr_t Socket::GetStdioHandle(intptr_t num) {
-  HANDLE handle;
-  switch (num) {
-    case 0:
-      handle = GetStdHandle(STD_INPUT_HANDLE);
-      break;
-    case 1:
-      handle = GetStdHandle(STD_OUTPUT_HANDLE);
-      break;
-    case 2:
-      handle = GetStdHandle(STD_ERROR_HANDLE);
-      break;
-    default: UNREACHABLE();
-  }
+  if (num != 0) return -1;
+  HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
   if (handle == INVALID_HANDLE_VALUE) {
     return -1;
   }
   StdHandle* std_handle = new StdHandle(handle);
-  if (std_handle == NULL) return -1;
   std_handle->MarkDoesNotSupportOverlappedIO();
   std_handle->EnsureInitialized(EventHandler::delegate());
   return reinterpret_cast<intptr_t>(std_handle);

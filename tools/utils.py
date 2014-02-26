@@ -318,6 +318,14 @@ def ReadVersionFile():
     return None
 
 def GetSVNRevision():
+  # When building from tarball use tools/SVN_REVISION
+  svn_revision_file = os.path.join(DART_DIR, 'tools', 'SVN_REVISION')
+  try:
+    with open(svn_revision_file) as fd:
+      return fd.read()
+  except:
+    pass
+
   # FIXME(kustermann): Make this work for newer SVN versions as well (where
   # we've got only one '.svn' directory)
   custom_env = dict(os.environ)
@@ -338,14 +346,6 @@ def GetSVNRevision():
   revision = ParseSvnInfoOutput(output)
   if revision:
     return revision
-
-  # When building from tarball use tools/SVN_REVISION
-  svn_revision_file = os.path.join(DART_DIR, 'tools', 'SVN_REVISION')
-  try:
-    with open(svn_revision_file) as fd:
-      return fd.read()
-  except:
-    pass
 
   # Only fail on the buildbot in case of a SVN client version mismatch.
   user = GetUserName()

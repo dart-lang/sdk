@@ -163,6 +163,53 @@ testPatchConstructor() {
   }));
 }
 
+testPatchRedirectingConstructor() {
+  asyncTest(() => applyPatch(
+      """
+      class Class {
+        Class(x) : this._(x, false);
+
+        external Class._(x, y);
+      }
+      """,
+      r"""
+      patch class Class {
+        patch Class._(x, y) { print('$x,$y'); }
+      }
+      """).then((compiler) {
+    var classOrigin = ensure(compiler, "Class", compiler.coreLibrary.find,
+                             expectIsPatched: true);
+    classOrigin.ensureResolved(compiler);
+
+    var classPatch = ensure(compiler, "Class", compiler.coreLibrary.patch.find,
+                            expectIsPatch: true);
+
+    Expect.equals(classOrigin, classPatch.origin);
+    Expect.equals(classPatch, classOrigin.patch);
+
+    var constructorRedirecting =
+        ensure(compiler, "",
+               (name) => classOrigin.localLookup(name));
+    var constructorOrigin =
+        ensure(compiler, "_",
+               (name) => classOrigin.localLookup(name),
+               expectIsPatched: true);
+    var constructorPatch =
+        ensure(compiler, "_",
+               (name) => classPatch.localLookup(name),
+               expectIsPatch: true);
+    Expect.equals(constructorOrigin, constructorPatch.origin);
+    Expect.equals(constructorPatch, constructorOrigin.patch);
+
+    compiler.resolver.resolve(constructorRedirecting);
+
+    Expect.isTrue(compiler.warnings.isEmpty,
+                  "Unexpected warnings: ${compiler.warnings}");
+    Expect.isTrue(compiler.errors.isEmpty,
+                  "Unexpected errors: ${compiler.errors}");
+   }));
+}
+
 testPatchMember() {
   asyncTest(() => applyPatch(
       """
@@ -402,7 +449,7 @@ testExternalWithoutImplementationTopLevel() {
     Expect.isTrue(
         compiler.errors[0].message.kind ==
             MessageKind.PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION);
-    Expect.stringEquals('Error: External method without an implementation.',
+    Expect.stringEquals('External method without an implementation.',
                         compiler.errors[0].message.toString());
   }));
 }
@@ -434,7 +481,7 @@ testExternalWithoutImplementationMember() {
     Expect.isTrue(
         compiler.errors[0].message.kind ==
             MessageKind.PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION);
-    Expect.stringEquals('Error: External method without an implementation.',
+    Expect.stringEquals('External method without an implementation.',
                         compiler.errors[0].message.toString());
   }));
 }
@@ -776,14 +823,14 @@ void testAnalyzeAllInjectedMembers() {
     }));
   }
 
-  expect('String s = 0;', MessageKind.NOT_ASSIGNABLE.warning);
-  expect('void method() { String s = 0; }', MessageKind.NOT_ASSIGNABLE.warning);
+  expect('String s = 0;', MessageKind.NOT_ASSIGNABLE);
+  expect('void method() { String s = 0; }', MessageKind.NOT_ASSIGNABLE);
   expect('''
          class Class {
            String s = 0;
          }
          ''',
-         MessageKind.NOT_ASSIGNABLE.warning);
+         MessageKind.NOT_ASSIGNABLE);
   expect('''
          class Class {
            void method() {
@@ -791,7 +838,7 @@ void testAnalyzeAllInjectedMembers() {
            }
          }
          ''',
-         MessageKind.NOT_ASSIGNABLE.warning);
+         MessageKind.NOT_ASSIGNABLE);
 }
 
 void testTypecheckPatchedMembers() {
@@ -806,13 +853,14 @@ void testTypecheckPatchedMembers() {
     compiler.librariesToAnalyzeWhenRun = [Uri.parse('dart:core')];
     return compiler.runCompiler(null).then((_) {
       compareWarningKinds(patchText,
-          [MessageKind.NOT_ASSIGNABLE.warning], compiler.warnings);
+          [MessageKind.NOT_ASSIGNABLE], compiler.warnings);
     });
   }));
 }
 
 main() {
   testPatchConstructor();
+  testPatchRedirectingConstructor();
   testPatchFunction();
   testPatchMember();
   testPatchGetter();

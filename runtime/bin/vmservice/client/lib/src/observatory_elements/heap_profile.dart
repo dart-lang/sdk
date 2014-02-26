@@ -4,7 +4,6 @@
 
 library heap_profile_element;
 
-import 'dart:async';
 import 'dart:html';
 import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
@@ -133,6 +132,7 @@ class HeapProfileElement extends ObservatoryElement {
       case 8:
         return v['old'][LIVE_AFTER_GC_SIZE];
     }
+    return null;
   }
 
   void refreshData(Event e, var detail, Node target) {

@@ -97,7 +97,5 @@ abstract class ForwardingTypeMask implements TypeMask {
     return forwardTo.locateSingleElement(selector, compiler);
   }
 
-  TypeMask simplify(Compiler compiler) => forwardTo.simplify(compiler);
-
   bool equalsDisregardNull(other);
 }

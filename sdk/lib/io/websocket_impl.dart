@@ -781,6 +781,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
 
   int _outCloseCode;
   String _outCloseReason;
+  Timer _closeTimer;
 
   static final HttpClient _httpClient = new HttpClient();
 
@@ -879,6 +880,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
           }
         },
         onError: (error) {
+          if (_closeTimer != null) _closeTimer.cancel();
           if (error is FormatException) {
             _close(WebSocketStatus.INVALID_FRAME_PAYLOAD_DATA);
           } else {
@@ -887,6 +889,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
           _controller.close();
         },
         onDone: () {
+          if (_closeTimer != null) _closeTimer.cancel();
           if (_readyState == WebSocket.OPEN) {
             _readyState = WebSocket.CLOSING;
             if (!_isReservedStatusCode(transformer.closeCode)) {
@@ -956,6 +959,13 @@ class _WebSocketImpl extends Stream implements WebSocket {
     if (_outCloseCode == null) {
       _outCloseCode = code;
       _outCloseReason = reason;
+    }
+    if (_closeTimer == null && !_controller.isClosed) {
+      // When closing the web-socket, we no longer accept data.
+      _closeTimer = new Timer(const Duration(seconds: 5), () {
+        _subscription.cancel();
+        _controller.close();
+      });
     }
     return _sink.close();
   }

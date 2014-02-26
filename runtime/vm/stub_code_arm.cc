@@ -1097,8 +1097,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 // Called for inline allocation of objects.
 // Input parameters:
 //   LR : return address.
-//   SP + 4 : type arguments object (only if class is parameterized).
-//   SP + 0 : type arguments of instantiator (only if class is parameterized).
+//   SP + 0 : type arguments object (only if class is parameterized).
 void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
                                               const Class& cls) {
   // The generated code is different if the class is parameterized.
@@ -1111,46 +1110,15 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   const int kInlineInstanceSize = 12;
   const intptr_t instance_size = cls.instance_size();
   ASSERT(instance_size > 0);
-  Label slow_case_with_type_arguments;
+  if (is_cls_parameterized) {
+    __ ldr(R1, Address(SP, 0));
+    // R1: instantiated type arguments.
+  }
   if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
-    Label slow_case_reload_type_arguments;
-    if (is_cls_parameterized) {
-      // Instantiation of the type arguments vector is only required if an
-      // instantiator is provided (not kNoInstantiator, but may be null).
-      __ ldm(IA, SP, (1 << R0) | (1 << R1));
-      // R1: type arguments, instantiated or not.
-      // R0: instantiator type arguments or kNoInstantiator.
-      Label type_arguments_ready;
-      __ CompareImmediate(R0, Smi::RawValue(StubCode::kNoInstantiator));
-      __ b(&type_arguments_ready, EQ);
-      // Lookup instantiator R0 in instantiations array of type arguments R1
-      // and, if found, use cached instantiated type arguments.
-      __ ldr(R2, FieldAddress(R1, TypeArguments::instantiations_offset()));
-      __ ldr(R3, FieldAddress(R2, Array::length_offset()));
-      __ AddImmediate(R2, Array::data_offset() - kHeapObjectTag);
-      __ add(R3, R2, ShifterOperand(R3, LSL, 1));  // R3 is Smi.
-      Label loop, found;
-      __ Bind(&loop);
-      __ cmp(R2, ShifterOperand(R3));
-      __ b(&slow_case_reload_type_arguments, CS);  // Unsigned higher or equal.
-      __ ldr(R1, Address(R2, 0 * kWordSize));  // Cached instantiator.
-      __ cmp(R1, ShifterOperand(R0));
-      __ b(&found, EQ);
-      __ CompareImmediate(R1, Smi::RawValue(StubCode::kNoInstantiator));
-      __ b(&slow_case_reload_type_arguments, EQ);
-      __ AddImmediate(R2, 2 * kWordSize);
-      __ b(&loop);
-      __ Bind(&found);
-      __ ldr(R1, Address(R2, 1 * kWordSize));  // Cached instantiated args.
-      __ LoadImmediate(R0, Smi::RawValue(StubCode::kNoInstantiator));
-      __ Bind(&type_arguments_ready);
-      // R1: instantiated type arguments.
-      // R0: kNoInstantiator.
-    }
+    Label slow_case;
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     // R1: instantiated type arguments (if is_cls_parameterized).
-    // R0: kNoInstantiator (if is_cls_parameterized).
     Heap* heap = Isolate::Current()->heap();
     __ LoadImmediate(R5, heap->TopAddress());
     __ ldr(R2, Address(R5, 0));
@@ -1162,9 +1130,9 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ ldr(IP, Address(IP, 0));
     __ cmp(R3, ShifterOperand(IP));
     if (FLAG_use_slow_path) {
-      __ b(&slow_case_with_type_arguments);
+      __ b(&slow_case);
     } else {
-      __ b(&slow_case_with_type_arguments, CS);  // Unsigned higher or equal.
+      __ b(&slow_case, CS);  // Unsigned higher or equal.
     }
     __ str(R3, Address(R5, 0));
     __ UpdateAllocationStats(cls.id(), R5);
@@ -1225,15 +1193,10 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // R0: new object.
     __ Ret();
 
-    __ Bind(&slow_case_reload_type_arguments);
+    __ Bind(&slow_case);
   }
-  if (is_cls_parameterized) {
-    __ ldm(IA, SP, (1 << R0) | (1 << R1));
-  }
-  __ Bind(&slow_case_with_type_arguments);
   // If is_cls_parameterized:
-  // R1: new object type arguments (instantiated or not).
-  // R0: instantiator type arguments or kNoInstantiator.
+  // R1: new object type arguments.
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame(true);  // Uses pool pointer to pass cls to runtime.
@@ -1241,15 +1204,14 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   __ Push(R2);  // Setup space on stack for return value.
   __ PushObject(cls);  // Push class of object to be allocated.
   if (is_cls_parameterized) {
-    // Push type arguments of object to be allocated and of instantiator.
-    __ PushList((1 << R0) | (1 << R1));
+    // Push type arguments.
+    __ Push(R1);
   } else {
-    // Push null type arguments and kNoInstantiator.
-    __ LoadImmediate(R1, Smi::RawValue(StubCode::kNoInstantiator));
-    __ PushList((1 << R1) | (1 << R2));
+    // Push null type arguments.
+    __ Push(R2);
   }
-  __ CallRuntime(kAllocateObjectRuntimeEntry, 3);  // Allocate object.
-  __ Drop(3);  // Pop arguments.
+  __ CallRuntime(kAllocateObjectRuntimeEntry, 2);  // Allocate object.
+  __ Drop(2);  // Pop arguments.
   __ Pop(R0);  // Pop result (newly allocated object).
   // R0: new object
   // Restore the frame pointer.

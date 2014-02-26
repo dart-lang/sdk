@@ -5,8 +5,14 @@
 // Test of IsolateNatives.computeThisScript().
 
 import 'dart:_isolate_helper';
+// The isolate helper library is not correctly set up if the dart:isolate
+// library hasn't been loaded.
+import 'dart:isolate';
 
 main() {
+  // Need to use the isolate-library so dart2js correctly initializes the
+  // library.
+  Capability cab = new Capability();
   String script = IsolateNatives.computeThisScript();
 
   // This is somewhat brittle and relies on an implementation detail

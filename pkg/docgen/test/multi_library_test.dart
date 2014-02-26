@@ -1,122 +1,31 @@
 library single_library_test;
 
-import 'dart:io';
-
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:unittest/unittest.dart';
 
 import '../lib/docgen.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart'
     as dart2js_util;
 
-const String DART_LIBRARY_1 = '''
-  library testLib;
-  import 'temp2.dart';
-  import 'temp3.dart';
-  export 'temp2.dart';
-  export 'temp3.dart';
+import 'util.dart';
 
-  /**
-   * Doc comment for class [A].
-   *
-   * Multiline Test
-   */
-  /*
-   * Normal comment for class A.
-   */
-  class A {
+List<Uri> _writeLibFiles() {
+  var codePath = getMultiLibraryCodePath();
 
-    int _someNumber;
+  codePath = p.join(codePath, 'lib');
 
-    A() {
-      _someNumber = 12;
-    }
-
-    A.customConstructor();
-
-    /**
-     * Test for linking to parameter [A]
-     */
-    void doThis(int A) {
-      print(A);
-    }
-  }
-''';
-
-const String DART_LIBRARY_2 = '''
-  library testLib2.foo;
-  import 'temp.dart';
-
-  /**
-   * Doc comment for class [B].
-   *
-   * Multiline Test
-   */
-
-  /*
-   * Normal comment for class B.
-   */
-  class B extends A {
-
-    B();
-    B.fooBar();
-
-    /**
-     * Test for linking to super
-     */
-    int doElse(int b) {
-      print(b);
-    }
-
-    /**
-     * Test for linking to parameter [c]
-     */
-    void doThis(int c) {
-      print(a);
-    }
-  }
-
-  int testFunc(int a) {
-  }
-''';
-
-const String DART_LIBRARY_3 = '''
-  library testLib.bar;
-  import 'temp.dart';
-
-  /*
-   * Normal comment for class C.
-   */
-  class C {
-  }
-''';
-
-Directory TEMP_DIRNAME;
-
-List writeLibFiles() {
-  TEMP_DIRNAME = Directory.systemTemp.createTempSync('single_library_');
-  var fileName = path.join(TEMP_DIRNAME.path, 'temp.dart');
-  var file = new File(fileName);
-  file.writeAsStringSync(DART_LIBRARY_1);
-
-  var fileName2 = path.join(TEMP_DIRNAME.path, 'temp2.dart');
-  file = new File(fileName2);
-  file.writeAsStringSync(DART_LIBRARY_2);
-
-  var fileName3 = path.join(TEMP_DIRNAME.path, 'temp3.dart');
-  file = new File(fileName3);
-  file.writeAsStringSync(DART_LIBRARY_3);
-  return [new Uri.file(fileName, windows: Platform.isWindows),
-          new Uri.file(fileName2, windows: Platform.isWindows),
-          new Uri.file(fileName3, windows: Platform.isWindows)];
+  return ['temp.dart', 'temp2.dart', 'temp3.dart']
+      .map((name) => p.join(codePath, name))
+      .map(p.toUri)
+      .toList();
 }
 
-main() {
+void main() {
   group('Generate docs for', () {
     test('multiple libraries.', () {
-      var files = writeLibFiles();
-      getMirrorSystem(files)
-        .then(expectAsync1((mirrorSystem) {
+      var files = _writeLibFiles();
+      return getMirrorSystem(files)
+        .then((mirrorSystem) {
           var testLibraryUri = files[0];
           var library = new Library(mirrorSystem.libraries[testLibraryUri]);
 
@@ -175,7 +84,7 @@ main() {
               'testFunc').children.first.text;
           expect(methodParameterDocComment, 'testLib.testFunc');
 
-        })).whenComplete(() => TEMP_DIRNAME.deleteSync(recursive: true));
+        });
     });
   });
 }

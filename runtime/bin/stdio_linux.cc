@@ -18,12 +18,10 @@ namespace dart {
 namespace bin {
 
 int Stdin::ReadByte() {
-  FDUtils::SetBlocking(STDIN_FILENO);
   int c = getchar();
   if (c == EOF) {
     c = -1;
   }
-  FDUtils::SetNonBlocking(STDIN_FILENO);
   return c;
 }
 

@@ -70,24 +70,6 @@ void Platform::FreeEnvironment(char** env, intptr_t count) {
   delete[] env;
 }
 
-
-void Platform::PrintBlocking(FILE* file, const char* format, ...) {
-  int fd = fileno(file);
-  FDUtils::SetBlocking(fd);
-  va_list args;
-  va_start(args, format);
-  vfprintf(file, format, args);
-  fflush(file);
-  va_end(args);
-  FDUtils::SetNonBlocking(fd);
-}
-
-
-void Platform::Cleanup() {
-  FDUtils::SetBlocking(fileno(stdout));
-  FDUtils::SetBlocking(fileno(stderr));
-}
-
 }  // namespace bin
 }  // namespace dart
 

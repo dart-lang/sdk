@@ -44,8 +44,6 @@ abstract class TypeMask {
    */
   TypeMask nonNullable();
 
-  TypeMask simplify(Compiler compiler);
-
   bool get isEmpty;
   bool get isNullable;
   bool get isExact;

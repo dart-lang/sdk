@@ -5,6 +5,7 @@
 library pub_tests;
 
 import 'package:path/path.dart' as path;
+import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
 import '../../lib/src/utils.dart';
@@ -16,7 +17,7 @@ getWarningRegExp(String assetsPath) {
   // Escape backslashes since they are metacharacters in a regex.
   assetsPath = quoteRegExp(assetsPath);
   return new RegExp(
-      '^Warning: Pub reserves paths containing "assets" for using assets from '
+      r'^Warning: Pub reserves paths containing "assets" for using assets from '
       'packages\\. Please rename the path "$assetsPath"\\.\$');
 }
 
@@ -34,11 +35,10 @@ main() {
 
     var pub = pubServe();
     waitForBuildSuccess();
-    endPubServe();
 
     var assetsPath = path.join('web', 'assets');
-    expect(pub.remainingStderr(), completion(
-        matches(getWarningRegExp(assetsPath))));
+    pub.stderr.expect(consumeThrough(matches(getWarningRegExp(assetsPath))));
+    endPubServe();
   });
 
   integration('warns user about assets dir nested anywhere in "web"', () {
@@ -54,11 +54,10 @@ main() {
 
     var pub = pubServe();
     waitForBuildSuccess();
-    endPubServe();
 
     var assetsPath = path.join('web', 'foo', 'assets');
-    expect(pub.remainingStderr(), completion(
-        matches(getWarningRegExp(assetsPath))));
+    pub.stderr.expect(consumeThrough(matches(getWarningRegExp(assetsPath))));
+    endPubServe();
   });
 
   integration('warns user about assets file in the root of "web"', () {
@@ -72,11 +71,10 @@ main() {
 
     var pub = pubServe();
     waitForBuildSuccess();
-    endPubServe();
 
     var assetsPath = path.join('web', 'assets');
-    expect(pub.remainingStderr(), completion(
-        matches(getWarningRegExp(assetsPath))));
+    pub.stderr.expect(consumeThrough(matches(getWarningRegExp(assetsPath))));
+    endPubServe();
   });
 
   integration('warns user about assets file nested anywhere in "web"', () {
@@ -92,11 +90,10 @@ main() {
 
     var pub = pubServe();
     waitForBuildSuccess();
-    endPubServe();
 
     var assetsPath = path.join('web', 'foo', 'assets');
-    expect(pub.remainingStderr(), completion(
-        matches(getWarningRegExp(assetsPath))));
+    pub.stderr.expect(consumeThrough(matches(getWarningRegExp(assetsPath))));
+    endPubServe();
   });
 
   integration('does not warn if no assets dir or file anywhere in "web"', () {
@@ -112,7 +109,7 @@ main() {
     waitForBuildSuccess();
     endPubServe();
 
-    expect(pub.remainingStderr(), completion(
-        matches(r'^(?!Warning: Pub reserves paths containing "assets").*$')));
+    pub.stderr.expect(never(startsWith('Warning: Pub reserves paths containing '
+        '"assets"')));
   });
 }

@@ -29,6 +29,17 @@ class TransformLogger {
     _logFunction(asset, LogLevel.INFO, message, span);
   }
 
+  /// Logs a message that won't be displayed unless the user is running in
+  /// verbose mode.
+  ///
+  /// If [asset] is provided, the log entry is associated with that asset.
+  /// Otherwise it's associated with the primary input of [transformer].
+  /// If [span] is provided, indicates the location in the input asset that
+  /// caused the message.
+  void fine(String message, {AssetId asset, Span span}) {
+    _logFunction(asset, LogLevel.FINE, message, span);
+  }
+
   /// Logs a warning message.
   ///
   /// If [asset] is provided, the log entry is associated with that asset.

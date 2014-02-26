@@ -617,21 +617,68 @@ class DeferredLoadTask extends CompilerTask {
     _allDeferredImports[_fakeMainImport] = compiler.mainApp;
     bool deferredUsedFromMain = false;
     var lastDeferred;
+    // When detecting duplicate prefixes of deferred libraries there are 4
+    // cases of duplicate prefixes:
+    // 1.
+    // @DeferredLibrary("a") import "lib.dart" as a;
+    // @DeferredLibrary("b") import "lib2.dart" as a;
+    // 2.
+    // @DeferredLibrary("a") import "lib.dart" as a;
+    // import "lib2.dart" as a;
+    // 3.
+    // import "lib.dart" as a;
+    // @DeferredLibrary("a") import "lib2.dart" as a;
+    // 4.
+    // import "lib.dart" as a;
+    // import "lib2.dart" as a;
+    // We must be able to signal error for case 1, 2, 3, but accept case 4.
+    
+    // The prefixes that have been used by any imports in this library.
+    Setlet<String> usedPrefixes = new Setlet<String>();
+    // The last deferred import we saw with a given prefix (if any).
+    Map<String, Import> prefixDeferredImport = new Map<String, Import>();
     for (LibraryElement library in compiler.libraries.values) {
-      // TODO(sigurdm): Make helper getLibraryImportTags when tags is a List
-      // instead of a Link.
-      for (LibraryTag tag in library.tags) {
-        if (tag is! Import) continue;
-        Import import = tag;
-        if (_isImportDeferred(import)) {
-          splitProgram = true;
-          _allDeferredImports[tag] = library.getLibraryFromTag(tag);
-          lastDeferred = import.metadata.first;
-          if (library == compiler.mainApp) {
-            deferredUsedFromMain = true;
+      compiler.withCurrentElement(library, () {
+        prefixDeferredImport.clear();
+        usedPrefixes.clear();
+        // TODO(sigurdm): Make helper getLibraryImportTags when tags is a List
+        // instead of a Link.
+        for (LibraryTag tag in library.tags) {
+          if (tag is! Import) continue;
+          Import import = tag;
+          String prefix = (import.prefix != null)
+              ? import.prefix.toString()
+              : null;
+          // The last import we saw with the same prefix.
+          Import previousDeferredImport = prefixDeferredImport[prefix];
+          bool isDeferred = _isImportDeferred(import);
+          if (isDeferred) {
+            if (prefix == null) {
+              compiler.reportError(import,
+                  MessageKind.DEFERRED_LIBRARY_WITHOUT_PREFIX);
+            } else {
+              prefixDeferredImport[prefix] = import;
+            }
+            splitProgram = true;
+            _allDeferredImports[tag] = library.getLibraryFromTag(tag);
+            lastDeferred = import.metadata.first;
+            if (library == compiler.mainApp) {
+              deferredUsedFromMain = true;
+            }
+          }
+          if (prefix != null) {
+            if (previousDeferredImport != null ||
+                (isDeferred && usedPrefixes.contains(prefix))) {
+              Import failingImport = (previousDeferredImport != null)
+                  ? previousDeferredImport
+                  : import;
+              compiler.reportError(failingImport.prefix,
+                  MessageKind.DEFERRED_LIBRARY_DUPLICATE_PREFIX);
+            }
+            usedPrefixes.add(prefix);
           }
         }
-      }
+      });
     }
     if (splitProgram && !deferredUsedFromMain) {
       compiler.reportInfo(

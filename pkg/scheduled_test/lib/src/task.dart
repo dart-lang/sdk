@@ -64,10 +64,10 @@ class Task {
   final Chain stackChain;
 
   Task(fn(), String description, TaskQueue queue)
-    : this._(fn, description, queue, null, queue.contents.length);
+      : this._(fn, description, queue, null, queue.contents.length);
 
   Task._child(fn(), String description, Task parent)
-    : this._(fn, description, parent.queue, parent, parent.children.length);
+      : this._(fn, description, parent.queue, parent, parent.children.length);
 
   Task._(fn(), this.description, TaskQueue queue, this.parent, this._id)
       : queue = queue,

@@ -28,46 +28,30 @@ class InterruptMessage {
 };
 
 
-enum PortDataFlags {
-  kClosedRead = 0,
-  kClosedWrite = 1,
-};
-
-
 class SocketData {
  public:
   explicit SocketData(intptr_t fd)
-      : tracked_by_epoll_(false), fd_(fd), port_(0), mask_(0), flags_(0) {
+      : tracked_by_epoll_(false), fd_(fd), port_(0), mask_(0) {
     ASSERT(fd_ != -1);
   }
 
-  intptr_t GetPollEvents();
-
   void ShutdownRead() {
     shutdown(fd_, SHUT_RD);
-    MarkClosedRead();
   }
 
   void ShutdownWrite() {
     shutdown(fd_, SHUT_WR);
-    MarkClosedWrite();
   }
 
   void Close() {
     port_ = 0;
     mask_ = 0;
-    flags_ = 0;
     close(fd_);
     fd_ = -1;
   }
 
   bool IsListeningSocket() { return (mask_ & (1 << kListeningSocket)) != 0; }
   bool IsPipe() { return (mask_ & (1 << kPipe)) != 0; }
-  bool IsClosedRead() { return (flags_ & (1 << kClosedRead)) != 0; }
-  bool IsClosedWrite() { return (flags_ & (1 << kClosedWrite)) != 0; }
-
-  void MarkClosedRead() { flags_ |= (1 << kClosedRead); }
-  void MarkClosedWrite() { flags_ |= (1 << kClosedWrite); }
 
   void SetPortAndMask(Dart_Port port, intptr_t mask) {
     ASSERT(fd_ != -1);
@@ -86,7 +70,6 @@ class SocketData {
   intptr_t fd_;
   Dart_Port port_;
   intptr_t mask_;
-  intptr_t flags_;
 };
 
 
@@ -97,8 +80,8 @@ class EventHandlerImplementation {
 
   // Gets the socket data structure for a given file
   // descriptor. Creates a new one if one is not found.
-  SocketData* GetSocketData(intptr_t fd);
-  void SendData(intptr_t id, Dart_Port dart_port, intptr_t data);
+  SocketData* GetSocketData(intptr_t fd, bool* is_new);
+  void Notify(intptr_t id, Dart_Port dart_port, intptr_t data);
   void Start(EventHandler* handler);
   void Shutdown();
 

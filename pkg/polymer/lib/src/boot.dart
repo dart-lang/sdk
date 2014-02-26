@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/** Ported from `polymer/src/boot.js`. **/
+/// Ported from `polymer/src/boot.js`. *
 part of polymer;
 
-/** Prevent a flash of unstyled content. */
+/// Prevent a flash of unstyled content.
 _preventFlashOfUnstyledContent() {
 
   var style = new StyleElement();

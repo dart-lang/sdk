@@ -5,45 +5,173 @@
 part of dart.io;
 
 /**
- * FileMode describes the modes in which a file can be opened.
+ * The modes in which a File can be opened.
  */
 class FileMode {
-  /// The [FileMode] for opening a file only for reading.
+  /// The mode for opening a file only for reading.
   static const READ = const FileMode._internal(0);
-  /// The [FileMode] for opening a file for reading and writing. The file will
-  /// be overwritten. If the file does not exist, it will be created.
+  /// The mode for opening a file for reading and writing. The file is
+  /// overwritten if it already exists. The file is created if it does not
+  /// already exist.
   static const WRITE = const FileMode._internal(1);
-  /// The [FileMode] for opening a file for reading a file and writing to the
-  /// end of it. If the file does not exist, it will be created.
+  /// The mode for opening a file for reading and writing to the
+  /// end of it. The file is created if it does not already exist.
   static const APPEND = const FileMode._internal(2);
   final int _mode;
 
   const FileMode._internal(this._mode);
 }
 
-/// The [FileMode] for opening a file only for reading.
+/// The mode for opening a file only for reading.
 const READ = FileMode.READ;
-/// The [FileMode] for opening a file for reading and writing. The file will be
-/// overwritten. If the file does not exist, it will be created.
+/// The mode for opening a file for reading and writing. The file is
+/// overwritten if it already exists. The file is created if it does not
+/// already exist.
 const WRITE = FileMode.WRITE;
-/// The [FileMode] for opening a file for reading a file and writing to the end
-/// of it. If the file does not exist, it will be created.
+/// The mode for opening a file for reading and writing to the
+/// end of it. The file is created if it does not already exist.
 const APPEND = FileMode.APPEND;
 
 /**
  * A reference to a file on the file system.
  *
- * If [path] is a symbolic link, rather than a file, then
- * the methods of [File] operate on the ultimate target of the
- * link, except for File.delete and File.deleteSync, which operate on
+ * A File instance is an object that holds a [path] on which operations can
+ * be performed.
+ * You can get the parent directory of the file using the getter [parent],
+ * a property inherited from [FileSystemEntity].
+ *
+ * Create a new File object with a pathname to access the specified file on the
+ * file system from your program.
+ *
+ *     var myFile = new File('file.txt');
+ *
+ * The File class contains methods for manipulating files and their contents.
+ * Using methods in this class, you can open and close files, read to and write
+ * from them, create and delete them, and check for their existence.
+ *
+ * When reading or writing a file, you can use streams (with [openRead]),
+ * random access operations (with [open]),
+ * or convenience methods such as [readAsString],
+ *
+ * Most methods in this class occur in synchronous and asynchronous pairs,
+ * for example, [readAsString] and [readAsStringSync].
+ * Unless you have a specific reason for using the synchronous version
+ * of a method, prefer the asynchronous version to avoid blocking your program.
+ *
+ * ## If path is a link
+ *
+ * If [path] is a symbolic link, rather than a file,
+ * then the methods of File operate on the ultimate target of the
+ * link, except for [delete] and [deleteSync], which operate on
  * the link.
  *
- * To operate on the underlying file data there are two options:
+ * ## Read from a file
  *
- *  * Use streaming: read the contents of the file from the [Stream]
- *    this.[openRead]() and write to the file by writing to the [IOSink]
- *    this.[openWrite]().
- *  * Open the file for random access operations using [open].
+ * The following code sample reads the entire contents from a file as a string
+ * using the asynchronous [readAsString] method:
+ *
+ *     import 'dart:async';
+ *     import 'dart:io';
+ *
+ *     void main() {
+ *       new File('file.txt').readAsString().then((String contents) {
+ *         print(contents);
+ *       });
+ *     }
+ *
+ * A more flexible and useful way to read a file is with a [Stream].
+ * Open the file with [openRead], which returns a stream that
+ * provides the data in the file as chunks of bytes.
+ * Listen to the stream for data and process as needed.
+ * You can use various transformers in succession to manipulate the
+ * data into the required format or to prepare it for output.
+ *
+ * You might want to use a stream to read large files,
+ * to manipulate the data with tranformers,
+ * or for compatibility with another API, such as [WebSocket]s.
+ * 
+ *     import 'dart:io';
+ *     import 'dart:convert';
+ *     import 'dart:async';
+ *
+ *     main() {
+ *       final file = new File('file.txt');
+ *       Stream<List<int>> inputStream = file.openRead();
+ *
+ *       inputStream
+ *         .transform(UTF8.decoder)       // Decode bytes to UTF8.
+ *         .transform(new LineSplitter()) // Convert stream to individual lines.
+ *         .listen((String line) {        // Process results.
+ *             print('$line: ${line.length} bytes');
+ *           },
+ *           onDone: () { print('File is now closed.'); },
+ *           onError: (e) { print(e.toString()); });
+ *     }
+ *
+ * ## Write to a file
+ *
+ * To write a string to a file, use the [writeAsString] method:
+ *
+ *     import 'dart:io';
+ *
+ *     void main() {
+ *       final filename = 'file.txt';
+ *       new File(filename).writeAsString('some content')
+ *         .then((File file) {
+ *           // Do something with the file.
+ *         });
+ *     }
+ *
+ * You can also write to a file using a [Stream]. Open the file with
+ * [openWrite], which returns a stream to which you can write data.
+ * Be sure to close the file with the [close] method.
+ *
+ *     import 'dart:io';
+ *    
+ *     void main() {
+ *       var file = new File('file.txt');
+ *       var sink = file.openWrite();
+ *       sink.write('FILE ACCESSED ${new DateTime.now()}\n');
+ *
+ *       // Close the IOSink to free system resources.
+ *       sink.close();
+ *     }
+ *
+ * ## The use of Futures
+ *
+ * To avoid unintentional blocking of the program,
+ * several methods use a [Future] to return a value. For example,
+ * the [length] method, which gets the length of a file, returns a Future.
+ * Use `then` to register a callback function, which is called when
+ * the value is ready.
+ *
+ *     import 'dart:io';
+ *
+ *     main() {
+ *       final file = new File('file.txt');
+ *     
+ *       file.length().then((len) {
+ *         print(len);
+ *       });
+ *     }
+ *
+ * In addition to length, the [exists], [lastModified], [stat], and
+ * other methods, return Futures.
+ *
+ * ## Other resources
+ *
+ * * [Dart by Example](https://www.dartlang.org/dart-by-example/#files-directories-and-symlinks)
+ * provides additional task-oriented code samples that show how to use 
+ * various API from the Directory class and the related [File] class.
+ *
+ * * [I/O for Command-Line Apps](https://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-dartio---file-and-socket-io-for-command-line-apps)
+ * a section from _A Tour of the Dart Libraries_
+ * covers files and directories.
+ *
+ * * [Write Command-Line Apps](https://www.dartlang.org/docs/tutorials/cmdline/),
+ * a tutorial about writing command-line apps, includes information
+ * about files and directories.
+
  */
 abstract class File extends FileSystemEntity {
   /**

@@ -37,19 +37,23 @@ class FileHandle {
 
 
 File::~File() {
-  // Close the file (unless it's a standard stream).
-  if (handle_->fd() > 2) {
-    Close();
-  }
+  Close();
   delete handle_;
 }
 
 
 void File::Close() {
   ASSERT(handle_->fd() >= 0);
-  int err = close(handle_->fd());
-  if (err != 0) {
-    Log::PrintErr("%s\n", strerror(errno));
+  if (handle_->fd() == _fileno(stdout)) {
+    int fd = _open("NUL", _O_WRONLY);
+    ASSERT(fd >= 0);
+    _dup2(fd, handle_->fd());
+    close(fd);
+  } else {
+    int err = close(handle_->fd());
+    if (err != 0) {
+      Log::PrintErr("%s\n", strerror(errno));
+    }
   }
   handle_->set_fd(kClosedFd);
 }
@@ -131,8 +135,17 @@ File* File::Open(const char* name, FileOpenMode mode) {
 
 
 File* File::OpenStdio(int fd) {
-  UNREACHABLE();
-  return NULL;
+  switch (fd) {
+    case 1:
+      fd = _fileno(stdout);
+      break;
+    case 2:
+      fd = _fileno(stderr);
+      break;
+    default:
+      UNREACHABLE();
+  }
+  return new File(new FileHandle(fd));
 }
 
 

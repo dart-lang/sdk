@@ -7,6 +7,7 @@ import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
+import 'type_mask_test_helper.dart';
 
 const String TEST1 = """
 class A {
@@ -101,7 +102,7 @@ main() {
     var element = findElement(compiler, name);
     Expect.equals(
         type,
-        typesInferrer.getReturnTypeOfElement(element).simplify(compiler),
+        simplify(typesInferrer.getReturnTypeOfElement(element), compiler),
         name);
   }
 

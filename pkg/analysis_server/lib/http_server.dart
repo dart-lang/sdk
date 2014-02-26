@@ -39,7 +39,7 @@ class HttpAnalysisServer {
    * The analysis server that was created when an UPGRADE request was received,
    * or `null` if no such request has yet been received.
    */
-  AnalysisServer server;
+  AnalysisServer analysisServer;
 
   /**
    * An object that can handle GET requests.
@@ -74,6 +74,7 @@ class HttpAnalysisServer {
       print('Missing required port number');
       print('');
       _printUsage(parser);
+      exitCode = 1;
       return;
     }
 
@@ -85,6 +86,7 @@ class HttpAnalysisServer {
       print('Invalid port number: ${results[PORT_OPTION]}');
       print('');
       _printUsage(parser);
+      exitCode = 1;
       return;
     }
   }
@@ -92,11 +94,11 @@ class HttpAnalysisServer {
   /**
    * Attach a listener to a newly created HTTP server.
    */
-  void _handleServer(HttpServer server) {
-    server.listen((HttpRequest request) {
+  void _handleServer(HttpServer httServer) {
+    httServer.listen((HttpRequest request) {
       List<String> updateValues = request.headers[HttpHeaders.UPGRADE];
       if (updateValues != null && updateValues.indexOf('websocket') >= 0) {
-        if (server != null) {
+        if (analysisServer != null) {
           _returnServerAlreadyStarted(request);
           return;
         }
@@ -117,7 +119,7 @@ class HttpAnalysisServer {
   void _handleGetRequest(HttpRequest request) {
     if (getHandler == null) {
       getHandler = new GetHandler();
-      getHandler.server = server;
+      getHandler.server = analysisServer;
     }
     getHandler.handleGetRequest(request);
   }
@@ -127,12 +129,12 @@ class HttpAnalysisServer {
    * running an analysis server on a [WebSocket]-based communication channel.
    */
   void _handleWebSocket(WebSocket socket) {
-    server = new AnalysisServer(new WebSocketChannel(socket));
-    _initializeHandlers(server);
+    analysisServer = new AnalysisServer(new WebSocketChannel(socket));
+    _initializeHandlers(analysisServer);
     if (getHandler != null) {
-      getHandler.server = server;
+      getHandler.server = analysisServer;
     }
-    server.run();
+    analysisServer.run();
   }
 
   /**

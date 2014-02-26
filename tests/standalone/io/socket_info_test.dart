@@ -15,7 +15,8 @@ void testHostAndPort() {
         Expect.equals(clientSocket.remotePort, socket.port);
         Expect.equals(socket.remoteAddress.address, "127.0.0.1");
         Expect.equals(clientSocket.remoteAddress.address, "127.0.0.1");
-
+        socket.destroy();
+        clientSocket.destroy();
         server.close();
       });
     });

@@ -282,8 +282,6 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
     void setAttribute(MainMessage msg, String fieldName, String fieldValue) {
       if (["name", "desc", "examples", "args"].contains(fieldName)) {
         msg[fieldName] = fieldValue;
-      } else {
-        pluralOrGender[fieldName] = fieldValue;
       }
     }
     return _messageFromNode(node, extractFromPluralOrGender, setAttribute);

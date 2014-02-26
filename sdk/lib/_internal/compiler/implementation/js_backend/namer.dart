@@ -1189,7 +1189,7 @@ class ConstantNamingVisitor implements ConstantVisitor {
     add('methods');
   }
 
-  visitDummyReceiver(DummyReceiverConstant constant) {
+  visitDummy(DummyConstant constant) {
     add('dummy_receiver');
   }
 }
@@ -1269,7 +1269,7 @@ class ConstantCanonicalHasher implements ConstantVisitor<int> {
     return _hashString(5, typeName);
   }
 
-  visitDummyReceiver(DummyReceiverConstant constant) {
+  visitDummy(DummyConstant constant) {
     compiler.internalError(
         'DummyReceiverConstant should never be named and never be subconstant');
   }

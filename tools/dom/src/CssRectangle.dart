@@ -157,7 +157,7 @@ class _MarginCssRect extends CssRect {
  * animation frame is discouraged. See also:
  * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
  */
-abstract class CssRect extends MutableRectangle<num> implements Rectangle<num> {
+abstract class CssRect extends MutableRectangle<num> {
   Element _element;
 
   CssRect(this._element) : super(0, 0, 0, 0);

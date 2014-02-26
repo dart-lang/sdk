@@ -6,14 +6,14 @@
 // In general, it seems like we want a convenient way to take a Stream plus a
 // getter and convert this into an Observable.
 
-/** Helpers for exposing dart:html as observable data. */
+/// Helpers for exposing dart:html as observable data.
 library observe.html;
 
 import 'dart:html';
 
 import 'observe.dart';
 
-/** An observable version of [window.location.hash]. */
+/// An observable version of [window.location.hash].
 final ObservableLocationHash windowLocation = new ObservableLocationHash._();
 
 class ObservableLocationHash extends ChangeNotifier {
@@ -33,10 +33,8 @@ class ObservableLocationHash extends ChangeNotifier {
 
   @reflectable String get hash => window.location.hash;
 
-  /**
-   * Pushes a new URL state, similar to the affect of clicking a link.
-   * Has no effect if the [value] already equals [window.location.hash].
-   */
+  /// Pushes a new URL state, similar to the affect of clicking a link.
+  /// Has no effect if the [value] already equals [window.location.hash].
   @reflectable void set hash(String value) {
     if (value == hash) return;
 
@@ -51,11 +49,9 @@ class ObservableLocationHash extends ChangeNotifier {
   }
 }
 
-/**
- * *Deprecated* use [CssClassSet.toggle] instead.
- *
- * Add or remove CSS class [className] based on the [value].
- */
+/// *Deprecated* use [CssClassSet.toggle] instead.
+///
+/// Add or remove CSS class [className] based on the [value].
 @deprecated
 void updateCssClass(Element element, String className, bool value) {
   if (value == true) {
@@ -65,12 +61,10 @@ void updateCssClass(Element element, String className, bool value) {
   }
 }
 
-/**
- * *Deprecated* use `class="{{ binding }}"` in your HTML instead. It will also
- * work on a `<polymer-element>`.
- *
- * Bind a CSS class to the observable [object] and property [path].
- */
+/// *Deprecated* use `class="{{ binding }}"` in your HTML instead. It will also
+/// work on a `<polymer-element>`.
+///
+/// Bind a CSS class to the observable [object] and property [path].
 @deprecated
 PathObserver bindCssClass(Element element, String className,
     Observable object, String path) {

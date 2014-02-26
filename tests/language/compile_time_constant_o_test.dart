@@ -8,8 +8,12 @@ import "package:expect/expect.dart";
 const str = "foo";
 const m1 = const { "foo": 499 };
 const m2 = const { "$str": 499 };
-const m3 = const { "$str": 42, "foo": 499 };
-const m4 = const { "foo": 42, "$str": 499 };
+const m3 = const {
+                   "$str": 42, /// 01: static type warning
+                   "foo": 499 };
+const m4 = const {
+                   "foo": 42, /// 02: static type warning
+                   "$str": 499 };
 const m5 = const { "f" "o" "o": 499 };
 
 const mm1 = const { "afoo#foo": 499 };

@@ -6,12 +6,6 @@
 # implementation files are in builtin_impl_sources.gypi.
 {
   'sources': [
-    'crypto.cc',
-    'crypto.h',
-    'crypto_android.cc',
-    'crypto_linux.cc',
-    'crypto_macos.cc',
-    'crypto_win.cc',
     'eventhandler.cc',
     'eventhandler.h',
     'eventhandler_android.cc',
@@ -21,6 +15,12 @@
     'eventhandler_macos.h',
     'eventhandler_win.cc',
     'eventhandler_win.h',
+    'file_system_watcher.cc',
+    'file_system_watcher.h',
+    'file_system_watcher_android.cc',
+    'file_system_watcher_linux.cc',
+    'file_system_watcher_macos.cc',
+    'file_system_watcher_win.cc',
     'filter.cc',
     'filter.h',
     'filter_unsupported.cc',

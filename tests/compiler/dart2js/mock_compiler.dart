@@ -237,8 +237,12 @@ class MockCompiler extends Compiler {
   List<WarningMessage> errors;
   List<WarningMessage> hints;
   List<WarningMessage> infos;
-  final bool allowWarnings;
-  final bool allowErrors;
+  List<WarningMessage> crashes;
+  /// Expected number of warnings. If `null`, the number of warnings is
+  /// not checked.
+  final int expectedWarnings;
+  /// Expected number of errors. If `null`, the number of errors is not checked.
+  final int expectedErrors;
   final Map<String, SourceFile> sourceFiles;
   Node parsedTree;
 
@@ -258,10 +262,9 @@ class MockCompiler extends Compiler {
                 // Our unit tests check code generation output that is
                 // affected by inlining support.
                 bool disableInlining: true,
-                bool this.allowWarnings: true,
-                bool this.allowErrors: true})
-      : warnings = [], errors = [], hints = [], infos = [],
-        sourceFiles = new Map<String, SourceFile>(),
+                int this.expectedWarnings,
+                int this.expectedErrors})
+      : sourceFiles = new Map<String, SourceFile>(),
         super(enableTypeAssertions: enableTypeAssertions,
               enableMinification: enableMinification,
               enableConcreteTypeInference: enableConcreteTypeInference,
@@ -271,6 +274,7 @@ class MockCompiler extends Compiler {
               analyzeOnly: analyzeOnly,
               emitJavaScript: emitJavaScript,
               preserveComments: preserveComments) {
+    clearMessages();
     coreLibrary = createLibrary("core", coreSource);
 
     // We need to set the assert method to avoid calls with a 'null'
@@ -305,9 +309,11 @@ class MockCompiler extends Compiler {
 
   Future runCompiler(Uri uri) {
     return super.runCompiler(uri).then((result) {
-      if (!allowErrors && !errors.isEmpty) {
+      if (expectedErrors != null &&
+          expectedErrors != errors.length) {
         throw "unexpected error during compilation ${errors}";
-      } else if (!allowWarnings && !warnings.isEmpty) {
+      } else if (expectedWarnings != null &&
+                 expectedWarnings != warnings.length) {
         throw "unexpected warnings during compilation ${warnings}";
       } else {
         return result;
@@ -339,46 +345,28 @@ class MockCompiler extends Compiler {
     return library;
   }
 
-  void reportWarning(Node node, var message) {
-    if (message is! Message) message = message.message;
-    warnings.add(new WarningMessage(node, message));
-    reportDiagnostic(spanFromNode(node),
-        'Warning: $message', api.Diagnostic.WARNING);
-  }
-
-  void reportError(Spannable node,
-                   MessageKind errorCode,
-                   [Map arguments = const {}]) {
-    Message message = errorCode.message(arguments);
-    errors.add(new WarningMessage(node, message));
-    reportDiagnostic(spanFromSpannable(node), '$message', api.Diagnostic.ERROR);
-  }
-
-  void reportInfo(Spannable node,
-                   MessageKind errorCode,
-                   [Map arguments = const {}]) {
-    Message message = errorCode.message(arguments);
-    infos.add(new WarningMessage(node, message));
-    reportDiagnostic(spanFromSpannable(node), '$message', api.Diagnostic.INFO);
-  }
-
-  void reportHint(Spannable node,
-                   MessageKind errorCode,
-                   [Map arguments = const {}]) {
-    Message message = errorCode.message(arguments);
-    hints.add(new WarningMessage(node, message));
-    reportDiagnostic(spanFromSpannable(node), '$message', api.Diagnostic.HINT);
+  // TODO(johnniwinther): Remove this when we don't filter certain type checker
+  // warnings.
+  void reportWarning(Spannable node, MessageKind messageKind,
+                     [Map arguments = const {}]) {
+    reportDiagnostic(node,
+                     messageKind.message(arguments, terseDiagnostics),
+                     api.Diagnostic.WARNING);
   }
 
   void reportFatalError(Spannable node,
-                        MessageKind errorCode,
+                        MessageKind messageKind,
                         [Map arguments = const {}]) {
-    reportError(node, errorCode, arguments);
+    reportError(node, messageKind, arguments);
   }
 
-  void reportMessage(SourceSpan span, var message, api.Diagnostic kind) {
-    var diagnostic = new WarningMessage(null, message.message);
-    if (kind == api.Diagnostic.ERROR) {
+  void reportDiagnostic(Spannable node,
+                        Message message,
+                        api.Diagnostic kind) {
+    var diagnostic = new WarningMessage(node, message);
+    if (kind == api.Diagnostic.CRASH) {
+      crashes.add(diagnostic);
+    } else if (kind == api.Diagnostic.ERROR) {
       errors.add(diagnostic);
     } else if (kind == api.Diagnostic.WARNING) {
       warnings.add(diagnostic);
@@ -387,26 +375,24 @@ class MockCompiler extends Compiler {
     } else if (kind == api.Diagnostic.HINT) {
       hints.add(diagnostic);
     }
-    reportDiagnostic(span, "$message", kind);
-  }
-
-  void reportDiagnostic(SourceSpan span, String message, api.Diagnostic kind) {
     if (diagnosticHandler != null) {
+      SourceSpan span = spanFromSpannable(node);
       if (span != null) {
-        diagnosticHandler(span.uri, span.begin, span.end, message, kind);
+        diagnosticHandler(span.uri, span.begin, span.end, '$message', kind);
       } else {
-        diagnosticHandler(null, null, null, message, kind);
+        diagnosticHandler(null, null, null, '$message', kind);
       }
     }
   }
 
-  bool get compilationFailed => !errors.isEmpty;
+  bool get compilationFailed => !crashes.isEmpty || !errors.isEmpty;
 
   void clearMessages() {
     warnings = [];
     errors = [];
     hints = [];
     infos = [];
+    crashes = [];
   }
 
   CollectingTreeElements resolveStatement(String text) {

@@ -11,9 +11,15 @@ import 'package:unittest/unittest.dart';
 
 import 'common.dart';
 
+final phases = [[new ImportInliner(new TransformOptions())]];
+
 void main() {
   useCompactVMConfiguration();
-  var phases = [[new ImportInliner(new TransformOptions())]];
+  group('rel=import', importTests);
+  group('rel=stylesheet', stylesheetTests);
+}
+
+void importTests() {
   testPhases('no changes', phases, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
     }, {
@@ -80,6 +86,37 @@ void main() {
           '<!DOCTYPE html><html><head>'
           '</head><body><polymer-element>2</polymer-element></html>',
       'a|web/test2.html.scriptUrls': '[]',
+    });
+
+  testPhases('preserves order of scripts', phases,
+    {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<script type="text/javascript">/*first*/</script>'
+          '<script src="second.js"></script>'
+          '<link rel="import" href="test2.html">'
+          '<script type="application/dart">/*forth*/</script>'
+          '</head></html>',
+      'a|web/test2.html':
+          '<!DOCTYPE html><html><head><script>/*third*/</script>'
+          '</head><body><polymer-element>2</polymer-element></html>',
+      'a|web/second.js': '/*second*/'
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '</head><body>'
+          '<script type="text/javascript">/*first*/</script>'
+          '<script src="second.js"></script>'
+          '<script>/*third*/</script>'
+          '<polymer-element>2</polymer-element>'
+          '<script type="application/dart">/*forth*/</script>'
+          '</body></html>',
+      'a|web/test.html.scriptUrls': '[]',
+      'a|web/test2.html':
+          '<!DOCTYPE html><html><head><script>/*third*/</script>'
+          '</head><body><polymer-element>2</polymer-element></html>',
+      'a|web/test2.html.scriptUrls': '[]',
+      'a|web/second.js': '/*second*/'
     });
 
   testPhases('no transformation outside web/', phases,
@@ -501,4 +538,131 @@ void main() {
           '</head><body>'
           '<polymer-element>3</polymer-element></body></html>',
     });
+}
+
+void stylesheetTests() {
+
+  testPhases('empty stylesheet', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="stylesheet" href="">' // empty href
+          '</head></html>',
+      'a|web/test2.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="stylesheet">'         // no href
+          '</head></html>',
+    }, {
+      'a|web/test.html':
+        '<!DOCTYPE html><html><head>'
+        '<link rel="stylesheet" href="">' // empty href
+        '</head></html>',
+      'a|web/test.html.scriptUrls': '[]',
+      'a|web/test2.html':
+        '<!DOCTYPE html><html><head>'
+        '<link rel="stylesheet">'         // no href
+        '</head></html>',
+      'a|web/test2.html.scriptUrls': '[]',
+    });
+
+  testPhases('absolute uri', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="stylesheet" href="/foo.css">'
+          '</head></html>',
+      'a|web/test2.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="stylesheet" href="http://example.com/bar.css">'
+          '</head></html>',
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="stylesheet" href="/foo.css">'
+          '</head></html>',
+      'a|web/test.html.scriptUrls': '[]',
+      'a|web/test2.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="stylesheet" href="http://example.com/bar.css">'
+          '</head></html>',
+      'a|web/test2.html.scriptUrls': '[]',
+    });
+
+  testPhases('shallow, inlines css', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="stylesheet" href="test2.css">'
+          '</head></html>',
+      'a|web/test2.css':
+          'h1 { font-size: 70px; }',
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<style>h1 { font-size: 70px; }</style>'
+          '</body></html>',
+      'a|web/test.html.scriptUrls': '[]',
+      'a|web/test2.css':
+          'h1 { font-size: 70px; }',
+    });
+
+  testPhases('deep, inlines css', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="import" href="test2.html">'
+          '</head></html>',
+      'a|web/test2.html':
+          '<polymer-element>2'
+          '<link rel="stylesheet" href="assets/b/test3.css">'
+          '</polymer-element>',
+      'b|asset/test3.css':
+          'body {\n  background: #eaeaea url("assets/b/test4.png");\n}\n'
+          '.foo {\n  background: url("../../packages/c/test5.png");\n}',
+      'b|asset/test4.png': 'PNG',
+      'c|lib/test5.png': 'PNG',
+    }, {
+      'a|web/test.html':
+        '<!DOCTYPE html><html><head></head><body>'
+        '<polymer-element>2'
+        '<style>'
+        'body {\n  background: #eaeaea url(assets/b/test4.png);\n}\n'
+        '.foo {\n  background: url(packages/c/test5.png);\n}'
+        '</style>'
+        '</polymer-element>'
+        '</body></html>',
+      'a|web/test2.html':
+          '<html><head></head><body>'
+          '<polymer-element>2'
+          '<style>'
+          'body {\n  background: #eaeaea url(assets/b/test4.png);\n}\n'
+          '.foo {\n  background: url(packages/c/test5.png);\n}'
+          '</style>'
+          '</polymer-element>'
+          '</body></html>',
+      'b|asset/test3.css':
+          'body {\n  background: #eaeaea url("assets/b/test4.png");\n}\n'
+          '.foo {\n  background: url("../../packages/c/test5.png");\n}',
+      'b|asset/test4.png': 'PNG',
+      'c|lib/test5.png': 'PNG',
+    });
+
+
+  testPhases('shallow, inlines css and preserves order', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<style>.first { color: black }</style>'
+          '<link rel="stylesheet" href="test2.css">'
+          '<style>.second { color: black }</style>'
+          '</head></html>',
+      'a|web/test2.css':
+          'h1 { font-size: 70px; }',
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<style>.first { color: black }</style>'
+          '<style>h1 { font-size: 70px; }</style>'
+          '<style>.second { color: black }</style>'
+          '</body></html>',
+      'a|web/test.html.scriptUrls': '[]',
+      'a|web/test2.css':
+          'h1 { font-size: 70px; }',
+    });
+
 }

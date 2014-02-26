@@ -5,8 +5,65 @@
 part of dart.io;
 
 /**
- * The [Platform] class exposes details of the machine and operating
- * system.
+ * Information about the environment in which the current program is running.
+ *
+ * Platform provides information such as the operating system,
+ * the hostname of the computer, the value of environment variables,
+ * the path to the running program,
+ * and so on.
+ *
+ * ## Get the URI to the current Dart script
+ *
+ * Use the [script] getter to get the URI to the currently running
+ * Dart script.
+ *
+ *     import 'dart:io' show Platform;
+ *
+ *     void main() {
+ *       // Get the URI of the script being run.
+ *       var uri = Platform.script;
+ *       // Convert the URI to a path.
+ *       var path = uri.toFilePath();
+ *     }
+ *
+ * ## Get the value of an environment variable
+ *
+ * The [environment] getter returns a the names and values of environment
+ * variables in a [Map] that contains key-value pairs of strings. The Map is
+ * unmodifiable. This sample shows how to get the value of the `PATH`
+ * environment variable.
+ *
+ *     import 'dart:io' show Platform;
+ *
+ *     void main() {
+ *       Map<String, String> envVars = Platform.environment;
+ *       print(envVars['PATH']);
+ *     }
+ * 
+ * ## Determine the OS
+ *
+ * You can get the name of the operating system as a string with the
+ * [operatingSystem] getter. You can also use one of the static boolean
+ * getters: [isMacOS], [isLinux], and [isWindows].
+ *
+ *     import 'dart:io' show Platform, stdout;
+ *
+ *     void main() {
+ *       // Get the operating system as a string.
+ *       String os = Platform.operatingSystem;
+ *       // Or, use a predicate getter.
+ *       if (Platform.isMacOS) {
+ *         Print('is a Mac'); 
+ *       } else {
+ *        print('is not a Mac');
+ *       }
+ *     }
+ *
+ * ## Other resources
+ *
+ * [Dart by Example](https://www.dartlang.org/dart-by-example/#dart-io-and-command-line-apps)
+ * provides additional task-oriented code samples that show how to use 
+ * various API from the [dart:io] library.
  */
 class Platform {
   static final _numberOfProcessors = _Platform.numberOfProcessors;
@@ -63,7 +120,7 @@ class Platform {
   /**
    * Get the environment for this process.
    *
-   * The returned environment is a unmodifiable map which content is
+   * The returned environment is an unmodifiable map which content is
    * retrieved from the operating system on its first use.
    *
    * Environment variables on Windows are case-insensitive. The map

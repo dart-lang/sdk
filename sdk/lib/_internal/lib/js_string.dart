@@ -180,35 +180,80 @@ class JSString extends Interceptor implements String, JSIndexable {
   String trim() {
     const int CARRIAGE_RETURN = 0x0D;
     const int SPACE = 0x20;
+    const int NEL = 0x85;
+    const int BOM = 0xFEFF;
 
+    // Start by doing JS trim. Then check if it leaves a NEL or BOM at
+    // either end of the string.
+    String result = JS('String', '#.trim()', this);
+
+    if (result.length == 0) return result;
+    int firstCode = result.codeUnitAt(0);
     int startIndex = 0;
-    while (startIndex < this.length) {
-      int codeUnit = this.codeUnitAt(startIndex);
-      if (codeUnit == SPACE ||
-          codeUnit == CARRIAGE_RETURN ||
-          _isWhitespace(codeUnit)) {
-        startIndex++;
-      } else {
-        break;
+    if (firstCode == NEL || firstCode == BOM) {
+      startIndex++;
+      while (startIndex < result.length) {
+        int codeUnit = result.codeUnitAt(startIndex);
+        if (codeUnit == SPACE ||
+            codeUnit == CARRIAGE_RETURN ||
+            _isWhitespace(codeUnit)) {
+          startIndex++;
+        } else {
+          break;
+        }
       }
+      if (startIndex == result.length) return "";
     }
-    if (startIndex == this.length) return "";
 
-    int endIndex = this.length;
+    int endIndex = result.length;
     // We know that there is at least one character that is non-whitespace.
     // Therefore we don't need to verify that endIndex > startIndex.
-    while (true) {
-      int codeUnit = this.codeUnitAt(endIndex - 1);
-      if (codeUnit == SPACE ||
-          codeUnit == CARRIAGE_RETURN ||
-          _isWhitespace(codeUnit)) {
-        endIndex--;
-      } else {
-        break;
+    int lastCode = result.codeUnitAt(endIndex - 1);
+    if (lastCode == NEL || lastCode == BOM) {
+      endIndex--;
+      while (true) {
+        int codeUnit = result.codeUnitAt(endIndex - 1);
+        if (codeUnit == SPACE ||
+            codeUnit == CARRIAGE_RETURN ||
+            _isWhitespace(codeUnit)) {
+          endIndex--;
+        } else {
+          break;
+        }
       }
     }
-    if (startIndex == 0 && endIndex == this.length) return this;
-    return JS('String', r'#.substring(#, #)', this, startIndex, endIndex);
+    if (startIndex == 0 && endIndex == result.length) return result;
+    return JS('String', r'#.substring(#, #)', result, startIndex, endIndex);
+  }
+
+  String operator*(int times) {
+    if (0 >= times) return '';  // Unnecessary but hoists argument type check.
+    if (times == 1 || this.length == 0) return this;
+    if (times != JS('JSUInt32', '# >>> 0', times)) {
+      // times >= 2^32. We can't create a string that big.
+      throw const OutOfMemoryError();
+    }
+    var result = '';
+    var s = this;
+    while (true) {
+      if (times & 1 == 1) result = s + result;
+      times = JS('JSUInt31', '# >>> 1', times);
+      if (times == 0) break;
+      s += s;
+    }
+    return result;
+  }
+
+  String padLeft(int width, [String padding = ' ']) {
+    int delta = width - this.length;
+    if (delta <= 0) return this;
+    return padding * delta + this;
+  }
+
+  String padRight(int width, [String padding = ' ']) {
+    int delta = width - this.length;
+    if (delta <= 0) return this;
+    return this + padding * delta;
   }
 
   List<int> get codeUnits => new _CodeUnits(this);

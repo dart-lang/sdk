@@ -744,7 +744,7 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
     for (int i = 0; i < kSignalsCount; i++) {
       sigaddset(&act.sa_mask, kSignals[i]);
     }
-    int status = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
+    intptr_t status = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
         sigaction(signal, &act, NULL));
     if (status < 0) {
       VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(fds[0]));

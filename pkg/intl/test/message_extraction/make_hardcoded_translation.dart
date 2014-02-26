@@ -97,6 +97,11 @@ var french = {
         ['female', 'femme'],
         ['other', 'autre'],
       ], null)),
+  "pluralThatFailsParsing" : writer.write(new Plural.from("noOfThings",
+      [
+        ['one', '1 chose:'],
+        ['other', '\$noOfThings choses:']
+      ], null)),
   "nestedOuter" : writer.write ( new Plural.from("number",
       [
         ['other', new Gender.from("gen",
@@ -182,6 +187,11 @@ var german = {
         ['male', 'Mann'],
         ['female', 'Frau'],
         ['other', 'andere'],
+      ], null)),
+  "pluralThatFailsParsing" : writer.write(new Plural.from("noOfThings",
+      [
+        ['one', 'eins:'],
+        ['other', '\$noOfThings Dinge:']
       ], null)),
   "nestedOuter" : writer.write (new Plural.from("number",
       [

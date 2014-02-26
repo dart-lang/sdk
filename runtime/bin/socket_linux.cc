@@ -20,6 +20,7 @@
 #include "bin/log.h"
 #include "bin/signal_blocker.h"
 #include "bin/socket.h"
+#include "vm/thread.h"
 
 
 namespace dart {
@@ -59,8 +60,8 @@ bool Socket::Initialize() {
 
 intptr_t Socket::Create(RawAddr addr) {
   intptr_t fd;
-  fd = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(socket(addr.ss.ss_family, SOCK_STREAM,
-                                               0));
+  fd = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(socket(
+      addr.ss.ss_family, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0));
   if (fd < 0) {
     const int kBufferSize = 1024;
     char error_buf[kBufferSize];
@@ -68,8 +69,6 @@ intptr_t Socket::Create(RawAddr addr) {
                   strerror_r(errno, error_buf, kBufferSize));
     return -1;
   }
-
-  FDUtils::SetCloseOnExec(fd);
   return fd;
 }
 
@@ -93,9 +92,6 @@ intptr_t Socket::CreateConnect(RawAddr addr, const intptr_t port) {
   if (fd < 0) {
     return fd;
   }
-
-  Socket::SetNonBlocking(fd);
-
   return Socket::Connect(fd, addr, port);
 }
 
@@ -205,11 +201,13 @@ SocketAddress* Socket::GetRemotePeer(intptr_t fd, intptr_t* port) {
 
 void Socket::GetError(intptr_t fd, OSError* os_error) {
   int len = sizeof(errno);
+  int err = 0;
   getsockopt(fd,
              SOL_SOCKET,
              SO_ERROR,
-             &errno,
+             &err,
              reinterpret_cast<socklen_t*>(&len));
+  errno = err;
   os_error->SetCodeAndMessage(OSError::kSystem, errno);
 }
 
@@ -226,7 +224,6 @@ int Socket::GetType(intptr_t fd) {
 
 
 intptr_t Socket::GetStdioHandle(intptr_t num) {
-  Socket::SetNonBlocking(num);
   return num;
 }
 
@@ -239,16 +236,22 @@ AddressList<SocketAddress>* Socket::LookupAddress(const char* host,
   memset(&hints, 0, sizeof(hints));
   hints.ai_family = SocketAddress::FromType(type);
   hints.ai_socktype = SOCK_STREAM;
-  hints.ai_flags = 0;
+  hints.ai_flags = (AI_V4MAPPED | AI_ADDRCONFIG);
   hints.ai_protocol = IPPROTO_TCP;
   struct addrinfo* info = NULL;
   int status = getaddrinfo(host, 0, &hints, &info);
   if (status != 0) {
-    ASSERT(*os_error == NULL);
-    *os_error = new OSError(status,
-                            gai_strerror(status),
-                            OSError::kGetAddressInfo);
-    return NULL;
+    // We failed, try without AI_ADDRCONFIG. This can happen when looking up
+    // e.g. '::1', when there are no global IPv6 addresses.
+    hints.ai_flags = AI_V4MAPPED;
+    status = getaddrinfo(host, 0, &hints, &info);
+    if (status != 0) {
+      ASSERT(*os_error == NULL);
+      *os_error = new OSError(status,
+                              gai_strerror(status),
+                              OSError::kGetAddressInfo);
+      return NULL;
+    }
   }
   intptr_t count = 0;
   for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
@@ -307,11 +310,11 @@ intptr_t Socket::CreateBindDatagram(
     RawAddr* addr, intptr_t port, bool reuseAddress) {
   intptr_t fd;
 
-  fd = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
-      socket(addr->addr.sa_family, SOCK_DGRAM, IPPROTO_UDP));
+  fd = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(socket(
+      addr->addr.sa_family,
+      SOCK_DGRAM | SOCK_CLOEXEC | SOCK_NONBLOCK,
+      IPPROTO_UDP));
   if (fd < 0) return -1;
-
-  FDUtils::SetCloseOnExec(fd);
 
   if (reuseAddress) {
     int optval = 1;
@@ -327,8 +330,6 @@ intptr_t Socket::CreateBindDatagram(
     TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(fd));
     return -1;
   }
-
-  Socket::SetNonBlocking(fd);
   return fd;
 }
 
@@ -390,11 +391,9 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
                                         bool v6_only) {
   intptr_t fd;
 
-  fd = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(socket(addr.ss.ss_family, SOCK_STREAM,
-                                               0));
+  fd = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(socket(
+      addr.ss.ss_family, SOCK_STREAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0));
   if (fd < 0) return -1;
-
-  FDUtils::SetCloseOnExec(fd);
 
   int optval = 1;
   TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
@@ -432,7 +431,6 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
     return -1;
   }
 
-  Socket::SetNonBlocking(fd);
   return fd;
 }
 
@@ -451,7 +449,8 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
   intptr_t socket;
   struct sockaddr clientaddr;
   socklen_t addrlen = sizeof(clientaddr);
-  socket = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(accept(fd, &clientaddr, &addrlen));
+  socket = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(accept4(
+        fd, &clientaddr, &addrlen, SOCK_NONBLOCK | SOCK_CLOEXEC));
   if (socket == -1) {
     if (IsTemporaryAcceptError(errno)) {
       // We need to signal to the caller that this is actually not an
@@ -460,8 +459,6 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
       ASSERT(kTemporaryFailure != -1);
       socket = kTemporaryFailure;
     }
-  } else {
-    Socket::SetNonBlocking(socket);
   }
   return socket;
 }
@@ -475,16 +472,6 @@ void Socket::Close(intptr_t fd) {
     char error_buf[kBufferSize];
     Log::PrintErr("%s\n", strerror_r(errno, error_buf, kBufferSize));
   }
-}
-
-
-bool Socket::SetNonBlocking(intptr_t fd) {
-  return FDUtils::SetNonBlocking(fd);
-}
-
-
-bool Socket::SetBlocking(intptr_t fd) {
-  return FDUtils::SetBlocking(fd);
 }
 
 

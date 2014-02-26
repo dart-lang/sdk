@@ -34,7 +34,12 @@ Credentials handleAccessTokenResponse(
   if (contentType != null) {
     contentType = ContentType.parse(contentType);
   }
-  validate(contentType != null && contentType.value == "application/json",
+
+  // The spec requires a content-type of application/json, but some endpoints
+  // (e.g. Dropbox) serve it as text/javascript instead.
+  validate(contentType != null &&
+      (contentType.value == "application/json" ||
+       contentType.value == "text/javascript"),
       'content-type was "$contentType", expected "application/json"');
 
   var parameters;

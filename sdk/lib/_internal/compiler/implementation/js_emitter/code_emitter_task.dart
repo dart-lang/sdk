@@ -926,9 +926,9 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   bool isConstantInlinedOrAlreadyEmitted(Constant constant) {
-    if (constant.isFunction()) return true;       // Already emitted.
-    if (constant.isPrimitive()) return true;      // Inlined.
-    if (constant.isDummyReceiver()) return true;  // Inlined.
+    if (constant.isFunction()) return true;    // Already emitted.
+    if (constant.isPrimitive()) return true;   // Inlined.
+    if (constant.isDummy()) return true;       // Inlined.
     // The name is null when the constant is already a JS constant.
     // TODO(floitsch): every constant should be registered, so that we can
     // share the ones that take up too much space (like some strings).
@@ -964,13 +964,15 @@ class CodeEmitterTask extends CompilerTask {
 ''');
   }
 
-  String buildIsolateSetup(CodeBuffer buffer,
-                           Element appMain,
-                           Element isolateMain) {
+  /// Returns the code equivalent to:
+  ///   `function(args) { $.startRootIsolate(X.main$closure(), args); }`
+  String buildIsolateSetupClosure(CodeBuffer buffer,
+                                  Element appMain,
+                                  Element isolateMain) {
     String mainAccess = "${namer.isolateStaticClosureAccess(appMain)}";
     // Since we pass the closurized version of the main method to
     // the isolate method, we must make sure that it exists.
-    return "${namer.isolateAccess(isolateMain)}($mainAccess)";
+    return "(function(a){${namer.isolateAccess(isolateMain)}($mainAccess,a)})";
   }
 
   /**
@@ -1023,13 +1025,13 @@ class CodeEmitterTask extends CompilerTask {
   emitMain(CodeBuffer buffer) {
     if (compiler.isMockCompilation) return;
     Element main = compiler.mainFunction;
-    String mainCall = null;
+    String mainCallClosure = null;
     if (compiler.hasIsolateSupport()) {
       Element isolateMain =
         compiler.isolateHelperLibrary.find(Compiler.START_ROOT_ISOLATE);
-      mainCall = buildIsolateSetup(buffer, main, isolateMain);
+      mainCallClosure = buildIsolateSetupClosure(buffer, main, isolateMain);
     } else {
-      mainCall = '${namer.isolateAccess(main)}()';
+      mainCallClosure = '${namer.isolateAccess(main)}';
     }
 
     if (backend.needToInitializeIsolateAffinityTag) {
@@ -1076,9 +1078,9 @@ class CodeEmitterTask extends CompilerTask {
   init.currentScript = currentScript;
 
   if (typeof dartMainRunner === "function") {
-    dartMainRunner(function() { ${mainCall}; });
+    dartMainRunner(${mainCallClosure}, []);
   } else {
-    ${mainCall};
+    ${mainCallClosure}([]);
   }
 })$N''');
     addComment('END invoke [main].', buffer);
@@ -1275,7 +1277,7 @@ mainBuffer.add(r'''
 
       // Using a named function here produces easier to read stack traces in
       // Chrome/V8.
-      mainBuffer.add('function dart() {}');
+      mainBuffer.add('function dart(){${_}this.x$_=${_}0$_}');
       for (String globalObject in Namer.reservedGlobalObjectNames) {
         // The global objects start as so-called "slow objects". For V8, this
         // means that it won't try to make map transitions as we add properties

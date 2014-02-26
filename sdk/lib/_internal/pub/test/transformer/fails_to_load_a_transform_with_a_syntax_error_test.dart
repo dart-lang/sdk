@@ -4,6 +4,7 @@
 
 library pub_tests;
 
+import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
 import '../descriptor.dart' as d;
@@ -29,9 +30,8 @@ main() {
     createLockFile('myapp', pkg: ['barback']);
 
     var pub = startPubServe();
-    expect(pub.nextErrLine(), completion(startsWith('Error on line')));
+    pub.stderr.expect(startsWith('Error on line'));
     pub.shouldExit(1);
-    expect(pub.remainingStderr(),
-        completion(isNot(contains('This is an unexpected error'))));
+    pub.stderr.expect(never(contains('This is an unexpected error')));
   });
 }

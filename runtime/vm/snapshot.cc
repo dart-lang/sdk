@@ -117,7 +117,7 @@ const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
   ASSERT(raw_memory != NULL);
   ASSERT(kHeaderSize == sizeof(Snapshot));
   ASSERT(kLengthIndex == length_offset());
-  ASSERT((kSnapshotFlagIndex * sizeof(int32_t)) == kind_offset());
+  ASSERT((kSnapshotFlagIndex * sizeof(int64_t)) == kind_offset());
   ASSERT((kHeapObjectTag & kInlined));
   // The kWatchedBit and kMarkBit are only set during GC operations. This
   // allows the two low bits in the header to be used for snapshotting.
@@ -759,6 +759,9 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
   if (object_id == kEmptyArrayObject) {
     return Object::empty_array().raw();
   }
+  if (object_id == kZeroArrayObject) {
+    return Object::zero_array().raw();
+  }
   if (object_id == kDynamicType) {
     return Object::dynamic_type();
   }
@@ -955,6 +958,12 @@ void SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
   // Check if it is a singleton empty array object.
   if (rawobj == Object::empty_array().raw()) {
     WriteVMIsolateObject(kEmptyArrayObject);
+    return;
+  }
+
+  // Check if it is a singleton zero array object.
+  if (rawobj == Object::zero_array().raw()) {
+    WriteVMIsolateObject(kZeroArrayObject);
     return;
   }
 

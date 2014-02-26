@@ -622,9 +622,9 @@ class Listener {
   }
 
   void reportError(Spannable spannable,
-                   MessageKind errorCode,
+                   MessageKind messageKind,
                    [Map arguments = const {}]) {
-    String message = errorCode.error(arguments, true).toString();
+    String message = messageKind.message(arguments, true).toString();
     Token token;
     Node node;
     if (spannable is Token) {

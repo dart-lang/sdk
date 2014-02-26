@@ -393,6 +393,13 @@ abstract class Compiler implements DiagnosticListener {
   /// Emit terse diagnostics without howToFix.
   final bool terseDiagnostics;
 
+  /// If `true`, warnings and hints not from user code are not reported.
+  final bool hidePackageWarnings;
+
+  /// `true` if the last diagnostic was filtered, in which case the
+  /// accompanying info message should be filtered as well.
+  bool lastDiagnosticWasFiltered = false;
+
   final api.CompilerOutputProvider outputProvider;
 
   bool disableInlining = false;
@@ -615,6 +622,7 @@ abstract class Compiler implements DiagnosticListener {
             this.buildId: UNDETERMINED_BUILD_ID,
             this.terseDiagnostics: false,
             this.dumpInfo: false,
+            this.hidePackageWarnings: false,
             outputProvider,
             List<String> strips: const []})
       : this.analyzeOnly = analyzeOnly || analyzeSignaturesOnly,
@@ -682,7 +690,7 @@ abstract class Compiler implements DiagnosticListener {
   void internalError(String message,
                      {Node node, Token token, HInstruction instruction,
                       Element element}) {
-    cancel('Internal Error: $message',
+    cancel(message,
            node: node, token: token,
            instruction: instruction, element: element);
   }
@@ -694,8 +702,8 @@ abstract class Compiler implements DiagnosticListener {
   void unhandledExceptionOnElement(Element element) {
     if (hasCrashed) return;
     hasCrashed = true;
-    reportDiagnostic(spanFromElement(element),
-                     MessageKind.COMPILER_CRASHED.error().toString(),
+    reportDiagnostic(element,
+                     MessageKind.COMPILER_CRASHED.message(),
                      api.Diagnostic.CRASH);
     pleaseReportCrash();
   }
@@ -720,11 +728,11 @@ abstract class Compiler implements DiagnosticListener {
     } else {
       throw 'No error location for error: $reason';
     }
-    reportError(spannable, MessageKind.GENERIC, {'text': reason});
+    reportInternalError(spannable, MessageKind.GENERIC, {'text': reason});
     throw new CompilerCancelledException(reason);
   }
 
-  SourceSpan spanFromSpannable(Spannable node, [Uri uri]) {
+  SourceSpan spanFromSpannable(Spannable node) {
     if (node == null) return null;
     if (node == CURRENT_ELEMENT_SPANNABLE) {
       node = currentElement;
@@ -732,24 +740,39 @@ abstract class Compiler implements DiagnosticListener {
     if (node is SourceSpan) {
       return node;
     } else if (node is Node) {
-      return spanFromNode(node, uri);
+      return spanFromNode(node);
     } else if (node is Token) {
-      return spanFromTokens(node, node, uri);
+      return spanFromTokens(node, node);
     } else if (node is HInstruction) {
       return spanFromHInstruction(node);
     } else if (node is Element) {
       return spanFromElement(node);
     } else if (node is MetadataAnnotation) {
-      MetadataAnnotation annotation = node;
-      uri = annotation.annotatedElement.getCompilationUnit().script.uri;
-      return spanFromTokens(annotation.beginToken, annotation.endToken, uri);
+      Uri uri = node.annotatedElement.getCompilationUnit().script.uri;
+      return spanFromTokens(node.beginToken, node.endToken, uri);
     } else {
       throw 'No error location.';
     }
   }
 
+  /// Finds the approximate [Element] for [node]. [currentElement] is used as
+  /// the default value.
+  Element elementFromSpannable(Spannable node) {
+    Element element;
+    if (node is Element) {
+      element = node;
+    } else if (node is HInstruction) {
+      element = node.sourceElement;
+    } else if (node is MetadataAnnotation) {
+      element = node.annotatedElement;
+    }
+    return element != null ? element : currentElement;
+  }
+
   void log(message) {
-    reportDiagnostic(null, message, api.Diagnostic.VERBOSE_INFO);
+    reportDiagnostic(null,
+        MessageKind.GENERIC.message({'text': '$message'}),
+        api.Diagnostic.VERBOSE_INFO);
   }
 
   Future<bool> run(Uri uri) {
@@ -765,7 +788,7 @@ abstract class Compiler implements DiagnosticListener {
         if (!hasCrashed) {
           hasCrashed = true;
           reportDiagnostic(new SourceSpan(uri, 0, 0),
-                           MessageKind.COMPILER_CRASHED.error().toString(),
+                           MessageKind.COMPILER_CRASHED.message(),
                            api.Diagnostic.CRASH);
           pleaseReportCrash();
         }
@@ -1020,26 +1043,21 @@ abstract class Compiler implements DiagnosticListener {
           reportFatalError(
               mainApp,
               MessageKind.GENERIC,
-              {'text': "Error: Could not find '$MAIN'."});
+              {'text': "Could not find '$MAIN'."});
         } else if (!analyzeAll) {
-          reportFatalError(
-              mainApp,
-              MessageKind.GENERIC,
-              {'text': "Error: Could not find '$MAIN'. "
-              "No source will be analyzed. "
-              "Use '--analyze-all' to analyze all code in the library."});
+          reportFatalError(mainApp, MessageKind.GENERIC,
+              {'text': "Could not find '$MAIN'. "
+                       "No source will be analyzed. "
+                       "Use '--analyze-all' to analyze all code in the "
+                       "library."});
         }
       } else {
         if (main.isErroneous()) {
-          reportFatalError(
-              main,
-              MessageKind.GENERIC,
-              {'text': "Error: Cannot determine which '$MAIN' to use."});
+          reportFatalError(main, MessageKind.GENERIC,
+              {'text': "Cannot determine which '$MAIN' to use."});
         } else if (!main.isFunction()) {
-          reportFatalError(
-              main,
-              MessageKind.GENERIC,
-              {'text': "Error: '$MAIN' is not a function."});
+          reportFatalError(main, MessageKind.GENERIC,
+              {'text': "'$MAIN' is not a function."});
         }
         mainFunction = main;
         FunctionSignature parameters = mainFunction.computeSignature(this);
@@ -1047,11 +1065,8 @@ abstract class Compiler implements DiagnosticListener {
           int index = 0;
           parameters.forEachParameter((Element parameter) {
             if (index++ < 2) return;
-            reportError(
-                parameter,
-                MessageKind.GENERIC,
-                {'text':
-                  "Error: '$MAIN' cannot have more than two parameters."});
+            reportError(parameter, MessageKind.GENERIC,
+                {'text': "'$MAIN' cannot have more than two parameters."});
           });
         }
       }
@@ -1231,9 +1246,9 @@ abstract class Compiler implements DiagnosticListener {
     }
     log('Excess resolution work: ${resolved.length}.');
     for (Element e in resolved) {
-      SourceSpan span = spanFromElement(e);
-      reportDiagnostic(span, 'Warning: $e resolved but not compiled.',
-                       api.Diagnostic.WARNING);
+      reportWarning(e,
+          MessageKind.GENERIC,
+          {'text': 'Warning: $e resolved but not compiled.'});
     }
   }
 
@@ -1310,12 +1325,6 @@ abstract class Compiler implements DiagnosticListener {
                               () => resolver.resolveSignature(element));
   }
 
-  FunctionSignature resolveFunctionExpression(Element element,
-                                              FunctionExpression node) {
-    return withCurrentElement(element,
-        () => resolver.resolveFunctionExpression(element, node));
-  }
-
   void resolveTypedef(TypedefElement element) {
     withCurrentElement(element,
                        () => resolver.resolve(element));
@@ -1327,53 +1336,39 @@ abstract class Compiler implements DiagnosticListener {
         () => resolver.computeFunctionType(element, signature));
   }
 
-  reportWarning(Spannable node, var message) {
-    if (message is TypeWarning) {
-      // TODO(ahe): Don't supress these warning when the type checker
-      // is more complete.
-      if (message.message.kind == MessageKind.MISSING_RETURN) return;
-      if (message.message.kind == MessageKind.MAYBE_MISSING_RETURN) return;
-    }
-    SourceSpan span = spanFromSpannable(node);
-    reportDiagnostic(span, '$message', api.Diagnostic.WARNING);
-  }
-
   void reportError(Spannable node,
-                   MessageKind errorCode,
+                   MessageKind messageKind,
                    [Map arguments = const {}]) {
-    reportMessage(spanFromSpannable(node),
-                  errorCode.error(arguments, terseDiagnostics),
-                  api.Diagnostic.ERROR);
+    reportDiagnosticInternal(
+        node, messageKind, arguments, api.Diagnostic.ERROR);
   }
 
-  void reportFatalError(Spannable node, MessageKind errorCode,
+  void reportFatalError(Spannable node, MessageKind messageKind,
                         [Map arguments = const {}]) {
-    reportError(node, errorCode, arguments);
+    reportError(node, messageKind, arguments);
     // TODO(ahe): Make this only abort the current method.
     throw new CompilerCancelledException(
         'Error: Cannot continue due to previous error.');
   }
 
-  // TODO(ahe): Rename to reportWarning when that method has been removed.
-  void reportWarningCode(Spannable node, MessageKind errorCode,
-                         [Map arguments = const {}]) {
-    reportMessage(spanFromSpannable(node),
-                  errorCode.error(arguments, terseDiagnostics),
-                  api.Diagnostic.WARNING);
+  void reportWarning(Spannable node, MessageKind messageKind,
+                     [Map arguments = const {}]) {
+    // TODO(ahe): Don't suppress these warning when the type checker
+    // is more complete.
+    if (messageKind == MessageKind.MISSING_RETURN) return;
+    if (messageKind == MessageKind.MAYBE_MISSING_RETURN) return;
+    reportDiagnosticInternal(
+        node, messageKind, arguments, api.Diagnostic.WARNING);
   }
 
-  void reportInfo(Spannable node, MessageKind errorCode,
+  void reportInfo(Spannable node, MessageKind messageKind,
                   [Map arguments = const {}]) {
-    reportMessage(spanFromSpannable(node),
-                  errorCode.error(arguments, terseDiagnostics),
-                  api.Diagnostic.INFO);
+    reportDiagnosticInternal(node, messageKind, arguments, api.Diagnostic.INFO);
   }
 
-  void reportHint(Spannable node, MessageKind errorCode,
+  void reportHint(Spannable node, MessageKind messageKind,
                   [Map arguments = const {}]) {
-    reportMessage(spanFromSpannable(node),
-                  errorCode.error(arguments, terseDiagnostics),
-                  api.Diagnostic.HINT);
+    reportDiagnosticInternal(node, messageKind, arguments, api.Diagnostic.HINT);
   }
 
   /// For debugging only, print a message with a source location.
@@ -1381,18 +1376,40 @@ abstract class Compiler implements DiagnosticListener {
     reportInfo(node, MessageKind.GENERIC, {'text': 'HERE: $debugMessage'});
   }
 
-  void reportInternalError(Spannable node, String message) {
-    reportError(
-        node, MessageKind.GENERIC, {'text': 'Internal Error: $message'});
+  void reportInternalError(Spannable node, MessageKind messageKind,
+                           [Map arguments = const {}]) {
+    reportDiagnosticInternal(
+        node, messageKind, arguments, api.Diagnostic.CRASH);
   }
 
-  void reportMessage(SourceSpan span, Diagnostic message, api.Diagnostic kind) {
-    // TODO(ahe): The names Diagnostic and api.Diagnostic are in
-    // conflict. Fix it.
-    reportDiagnostic(span, "$message", kind);
+  void reportDiagnosticInternal(Spannable node,
+                                MessageKind messageKind,
+                                Map arguments,
+                                api.Diagnostic kind) {
+    if (hidePackageWarnings) {
+      switch (kind) {
+      case api.Diagnostic.WARNING:
+      case api.Diagnostic.HINT:
+        if (!inUserCode(elementFromSpannable(node))) {
+          lastDiagnosticWasFiltered = true;
+          return;
+        }
+        break;
+      case api.Diagnostic.INFO:
+        if (lastDiagnosticWasFiltered) {
+          return;
+        }
+        break;
+      }
+    }
+    lastDiagnosticWasFiltered = false;
+    reportDiagnostic(
+        node, messageKind.message(arguments, terseDiagnostics), kind);
   }
 
-  void reportDiagnostic(SourceSpan span, String message, api.Diagnostic kind);
+  void reportDiagnostic(Spannable span,
+                        Message message,
+                        api.Diagnostic kind);
 
   void reportAssertionFailure(SpannableAssertionFailure ex) {
     String message = (ex.message != null) ? tryToString(ex.message)
@@ -1415,8 +1432,8 @@ abstract class Compiler implements DiagnosticListener {
       (beginOffset, endOffset) => new SourceSpan(uri, beginOffset, endOffset));
   }
 
-  SourceSpan spanFromNode(Node node, [Uri uri]) {
-    return spanFromTokens(node.getBeginToken(), node.getEndToken(), uri);
+  SourceSpan spanFromNode(Node node) {
+    return spanFromTokens(node.getBeginToken(), node.getEndToken());
   }
 
   SourceSpan spanFromElement(Element element) {
@@ -1550,16 +1567,15 @@ abstract class Compiler implements DiagnosticListener {
     });
   }
 
-  /// Debugging helper for determining whether the current element is declared
-  /// within 'user code'.
+  /// Helper for determining whether the current element is declared within
+  /// 'user code'.
   ///
   /// See [inUserCode] for what defines 'user code'.
   bool currentlyInUserCode() {
     return inUserCode(currentElement);
   }
 
-  /// Debugging helper for determining whether [element] is declared within
-  /// 'user code'.
+  /// Helper for determining whether [element] is declared within 'user code'.
   ///
   /// What constitutes 'user code' is defined by the URI(s) provided by the
   /// entry point(s) of compilation or analysis:

@@ -58,5 +58,5 @@ main() {
 
   setUp(() => Polymer.onReady);
 
-  test('inserted called', () => (query('x-test') as XTest).onTestDone);
+  test('inserted called', () => (querySelector('x-test') as XTest).onTestDone);
 }

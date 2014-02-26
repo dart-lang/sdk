@@ -40,7 +40,8 @@ main() {
   var compiler2 = compilerFor(SOURCE, uri, analyzeAll: true);
   asyncTest(() => compiler2.runCompiler(uri).then((_) {
     Expect.isTrue(compiler2.compilationFailed);
-    Expect.isTrue(compiler2.warnings.isEmpty, 'unexpected warnings');
+    Expect.isTrue(compiler2.warnings.isEmpty,
+                  'unexpected warnings: ${compiler2.warnings}');
     Expect.equals(2, compiler2.errors.length,
                   'expected exactly two errors, but got ${compiler2.errors}');
 

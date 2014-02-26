@@ -104,7 +104,9 @@ class TypeVariableHandler {
     if (constructors.isEmpty && constructors.tail.isEmpty) {
       compiler.reportInternalError(
           typeVariableClass,
-          "Class '$typeVariableClass' should only have one constructor");
+          MessageKind.GENERIC,
+          {'text': "Class '$typeVariableClass' should only "
+                   "have one constructor"});
     }
     typeVariableConstructor = typeVariableClass.constructors.head;
     backend.enqueueInResolution(typeVariableConstructor,

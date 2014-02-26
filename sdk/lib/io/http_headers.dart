@@ -396,25 +396,31 @@ class _HttpHeaders implements HttpHeaders {
     }
 
     // Format headers.
-    _headers.forEach((String name, List<String> values) {
+    for (String name in _headers.keys) {
+      List<String> values = _headers[name];
       bool fold = _foldHeader(name);
       var nameData = name.codeUnits;
       write(nameData);
-      write(const [_CharCode.COLON, _CharCode.SP]);
+      buffer[offset++] = _CharCode.COLON;
+      buffer[offset++] = _CharCode.SP;
       for (int i = 0; i < values.length; i++) {
         if (i > 0) {
           if (fold) {
-            write(const [_CharCode.COMMA, _CharCode.SP]);
+            buffer[offset++] = _CharCode.COMMA;
+            buffer[offset++] = _CharCode.SP;
           } else {
-            write(const [_CharCode.CR, _CharCode.LF]);
+            buffer[offset++] = _CharCode.CR;
+            buffer[offset++] = _CharCode.LF;
             write(nameData);
-            write(const [_CharCode.COLON, _CharCode.SP]);
+            buffer[offset++] = _CharCode.COLON;
+            buffer[offset++] = _CharCode.SP;
           }
         }
         write(values[i].codeUnits);
       }
-      write(const [_CharCode.CR, _CharCode.LF]);
-    });
+      buffer[offset++] = _CharCode.CR;
+      buffer[offset++] = _CharCode.LF;
+    }
     return offset;
   }
 

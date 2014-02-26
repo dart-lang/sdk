@@ -48,8 +48,9 @@ main() {
       var fileName = path.join(temporaryDir.path, 'temp.dart');
       var file = new File(fileName);
       file.writeAsStringSync(DART_LIBRARY);
-      getMirrorSystem([new Uri.file(fileName)])
-        .then(expectAsync1((mirrorSystem) {
+
+      return getMirrorSystem([new Uri.file(fileName)])
+        .then((mirrorSystem) {
           var testLibraryUri = new Uri.file(path.absolute(fileName),
                                             windows: Platform.isWindows);
           var library = new Library(mirrorSystem.libraries[testLibraryUri]);
@@ -121,7 +122,7 @@ main() {
           // Testing something with no reference
           var libraryDocComment = method.fixReference('foobar').text;
           expect(libraryDocComment, 'foobar');
-        })).whenComplete(() => temporaryDir.deleteSync(recursive: true));
+        }).whenComplete(() => temporaryDir.deleteSync(recursive: true));
     });
   });
 }

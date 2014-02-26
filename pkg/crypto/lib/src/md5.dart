@@ -11,7 +11,7 @@ part of crypto;
  * required for backwards compatibility.
  */
 class MD5 extends _HashBase {
-  MD5() : super(16, 4, false) {
+  MD5(): super(16, 4, false) {
     _h[0] = 0x67452301;
     _h[1] = 0xefcdab89;
     _h[2] = 0x98badcfe;

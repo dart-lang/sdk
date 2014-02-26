@@ -55,7 +55,6 @@ LibTest/core/List/removeAt_A02_t01: Fail # co19 issue 670
 #end [ $compiler == none && $runtime == vm && $checked ]
 
 [ $compiler == none && $runtime == vm && $mode == debug ]
-Language/15_Types/4_Interface_Types_A11_t01: Pass, Slow
 LibTest/core/List/List_class_A01_t01: Pass, Slow
 
 [ $compiler == none && $runtime == vm && $arch != x64 ]

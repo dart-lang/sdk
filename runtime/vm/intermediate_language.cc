@@ -6,6 +6,7 @@
 
 #include "vm/bigint_operations.h"
 #include "vm/bit_vector.h"
+#include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph_allocator.h"
 #include "vm/flow_graph_builder.h"
@@ -33,6 +34,7 @@ DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, trace_constant_propagation);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
+DECLARE_FLAG(bool, enable_type_checks);
 
 Definition::Definition()
     : range_(NULL),
@@ -1284,6 +1286,35 @@ static Definition* CanonicalizeCommutativeArithmetic(Token::Kind op,
 }
 
 
+Definition* DoubleToFloatInstr::Canonicalize(FlowGraph* flow_graph) {
+#ifdef DEBUG
+  // Must only be used in Float32 StoreIndexedInstr or FloatToDoubleInstr or
+  // Phis introduce by load forwarding.
+  ASSERT(env_use_list() == NULL);
+  for (Value* use = input_use_list();
+       use != NULL;
+       use = use->next_use()) {
+    ASSERT(use->instruction()->IsPhi() ||
+           use->instruction()->IsFloatToDouble() ||
+           (use->instruction()->IsStoreIndexed() &&
+            (use->instruction()->AsStoreIndexed()->class_id() ==
+             kTypedDataFloat32ArrayCid)));
+  }
+#endif
+  if (!HasUses()) return NULL;
+  if (value()->definition()->IsFloatToDouble()) {
+    // F2D(D2F(v)) == v.
+    return value()->definition()->AsFloatToDouble()->value()->definition();
+  }
+  return this;
+}
+
+
+Definition* FloatToDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
+  return HasUses() ? this : NULL;
+}
+
+
 Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
   Definition* result = NULL;
 
@@ -1434,10 +1465,14 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   // call we can replace the length load with the length argument passed to
   // the constructor.
   StaticCallInstr* call = instance()->definition()->AsStaticCall();
-  if ((call != NULL) &&
-      call->is_known_list_constructor() &&
-      IsFixedLengthArrayCid(call->Type()->ToCid())) {
-    return call->ArgumentAt(1);
+  if (call != NULL) {
+    if (call->is_known_list_constructor() &&
+        IsFixedLengthArrayCid(call->Type()->ToCid())) {
+      return call->ArgumentAt(1);
+    }
+    if (call->is_native_list_factory()) {
+      return call->ArgumentAt(0);
+    }
   }
   // For arrays with guarded lengths, replace the length load
   // with a constant.
@@ -1495,6 +1530,11 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
     instantiator_type_arguments()->BindTo(null_constant);
   }
   return this;
+}
+
+
+Definition* InstantiateTypeArgumentsInstr::Canonicalize(FlowGraph* flow_graph) {
+  return (FLAG_enable_type_checks || HasUses()) ? this : NULL;
 }
 
 
@@ -1564,6 +1604,30 @@ Definition* UnboxFloat32x4Instr::Canonicalize(FlowGraph* flow_graph) {
   BoxFloat32x4Instr* defn = value()->definition()->AsBoxFloat32x4();
   return (defn != NULL) ? defn->value()->definition() : this;
 }
+
+
+Definition* BoxFloat64x2Instr::Canonicalize(FlowGraph* flow_graph) {
+  if (input_use_list() == NULL) {
+    // Environments can accomodate any representation. No need to box.
+    return value()->definition();
+  }
+
+  // Fold away BoxFloat64x2(UnboxFloat64x2(v)).
+  UnboxFloat64x2Instr* defn = value()->definition()->AsUnboxFloat64x2();
+  if ((defn != NULL) && (defn->value()->Type()->ToCid() == kFloat64x2Cid)) {
+    return defn->value()->definition();
+  }
+
+  return this;
+}
+
+
+Definition* UnboxFloat64x2Instr::Canonicalize(FlowGraph* flow_graph) {
+  // Fold away UnboxFloat64x2(BoxFloat64x2(v)).
+  BoxFloat64x2Instr* defn = value()->definition()->AsBoxFloat64x2();
+  return (defn != NULL) ? defn->value()->definition() : this;
+}
+
 
 
 Definition* BoxInt32x4Instr::Canonicalize(FlowGraph* flow_graph) {
@@ -1808,7 +1872,23 @@ Instruction* GuardFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   if (field().guarded_list_length() != Field::kNoFixedLength) {
-    // We are still guarding the list length.
+    // We are still guarding the list length. Check if length is statically
+    // known.
+    StaticCallInstr* call = value()->definition()->AsStaticCall();
+    if (call != NULL) {
+      ConstantInstr* length = NULL;
+      if (call->is_known_list_constructor() &&
+          LoadFieldInstr::IsFixedLengthArrayCid(call->Type()->ToCid())) {
+        length = call->ArgumentAt(1)->AsConstant();
+      }
+      if (call->is_native_list_factory()) {
+        length = call->ArgumentAt(0)->AsConstant();
+      }
+      if ((length != NULL) && length->value().IsSmi()) {
+        intptr_t known_length = Smi::Cast(length->value()).Value();
+        return (known_length != field().guarded_list_length()) ? this : NULL;
+      }
+    }
     return this;
   }
 
@@ -3029,7 +3109,7 @@ intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
     case MethodRecognizer::kDoubleTruncate:
     case MethodRecognizer::kDoubleFloor:
     case MethodRecognizer::kDoubleCeil: {
-      ASSERT(!CPUFeatures::double_truncate_round_supported());
+      ASSERT(!TargetCPUFeatures::double_truncate_round_supported());
       return 1;
     }
     case MethodRecognizer::kDoubleRound:

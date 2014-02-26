@@ -10,6 +10,7 @@ typed_locals_test: Fail
 no_such_method_test: Fail # Wrong Invocation.memberName.
 deferred/deferred_constant_test: Fail # http://dartbug.com/11138
 constant_javascript_semantics4_test: Fail, OK
+17094_test: Fail # http://dartbug.com/17094
 
 [ $compiler == dart2js && $runtime == jsshell ]
 mirror_printer_test: Pass, Slow # Issue 16473
@@ -18,7 +19,7 @@ mirror_printer_test: Pass, Slow # Issue 16473
 variable_type_test/03: Fail, OK
 variable_type_test/01: Fail, OK
 
-[ $compiler == dart2js && $checked && ($runtime == d8 || $runtime == chrome) ]
+[ $compiler == dart2js && ($runtime == d8 || $runtime == chrome || $runtime == drt) ]
 bound_closure_interceptor_type_test: Fail, Pass # v8 issue 3084. https://code.google.com/p/v8/issues/detail?id=3084
 
 [ $compiler == dart2js && $host_checked && $checked == false ]
@@ -56,9 +57,9 @@ timer_negative_test: Fail, OK # A negative runtime test.
 bailout8_test: Fail, OK # Mismatch in thrown exception.
 
 [ $csp ]
-deferred/deferred_class_test: Fail # http://dartbug.com/3940
-deferred/deferred_constant_test: Fail # http://dartbug.com/3940
-deferred/deferred_constant2_test: Fail # http://dartbug.com/3940
-deferred/deferred_constant3_test: Fail # http://dartbug.com/3940
-deferred/deferred_constant4_test: Fail # http://dartbug.com/3940
-deferred/deferred_constant5_test: Fail # http://dartbug.com/3940
+deferred/deferred_class_test: Fail # http://dartbug.com/16898
+deferred/deferred_constant_test: Fail # http://dartbug.com/16898
+deferred/deferred_constant2_test: Fail # http://dartbug.com/16898
+deferred/deferred_constant3_test: Fail # http://dartbug.com/16898
+deferred/deferred_constant4_test: Fail # http://dartbug.com/16898
+deferred/deferred_constant5_test: Fail # http://dartbug.com/16898

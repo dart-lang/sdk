@@ -9,6 +9,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/types/types.dart'
 
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
+import 'type_mask_test_helper.dart';
 
 void compileAndFind(String code,
                     String className,
@@ -225,7 +226,7 @@ void doTest(String test, bool enableInlining, Function f) {
       var inferrer = compiler.typesTask.typesInferrer;
       signature.forEachParameter((Element element) {
         Expect.equals(expectedTypes[index++],
-            inferrer.getTypeOfElement(element).simplify(compiler),
+            simplify(inferrer.getTypeOfElement(element), compiler),
             test);
       });
       Expect.equals(index, expectedTypes.length);

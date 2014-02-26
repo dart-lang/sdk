@@ -96,12 +96,7 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
       list.add(e);
     }
     if (growable) return list;
-    int length = list.length;
-    List<E> fixedList = new List<E>(length);
-    for (int i = 0; i < length; i++) {
-      fixedList[i] = list[i];
-    }
-    return fixedList;
+    return makeListFixedLength(list);
   }
 
   /**

@@ -95,6 +95,7 @@ class TestingServers {
     "/foo",
     "/bar",
     "/NonExistingFile",
+    "/NonExistingFile.js",
     "/hahaURL",
   ];
 

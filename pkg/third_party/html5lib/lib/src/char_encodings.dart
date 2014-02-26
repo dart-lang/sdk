@@ -1,15 +1,13 @@
-/** Decodes bytes using the correct name. See [decodeBytes]. */
+/// Decodes bytes using the correct name. See [decodeBytes].
 library char_encodings;
 
 import 'dart:collection';
 import 'package:utf/utf.dart';
 
 // TODO(jmesserly): this function is conspicuously absent from dart:utf.
-/**
- * Returns true if the [bytes] starts with a UTF-8 byte order mark.
- * Since UTF-8 doesn't have byte order, it's somewhat of a misnomer, but it is
- * used in HTML to detect the UTF-
- */
+/// Returns true if the [bytes] starts with a UTF-8 byte order mark.
+/// Since UTF-8 doesn't have byte order, it's somewhat of a misnomer, but it is
+/// used in HTML to detect the UTF-
 bool hasUtf8Bom(List<int> bytes, [int offset = 0, int length]) {
   int end = length != null ? offset + length : bytes.length;
   return (offset + 3) <= end &&
@@ -20,11 +18,9 @@ bool hasUtf8Bom(List<int> bytes, [int offset = 0, int length]) {
 
 // TODO(jmesserly): it's unfortunate that this has to be one-shot on the entire
 // file, but dart:utf does not expose stream-based decoders yet.
-/**
- * Decodes the [bytes] with the provided [encoding] and returns an iterable for
- * the codepoints. Supports the major unicode encodings as well as ascii and
- * and windows-1252 encodings.
- */
+/// Decodes the [bytes] with the provided [encoding] and returns an iterable for
+/// the codepoints. Supports the major unicode encodings as well as ascii and
+/// and windows-1252 encodings.
 Iterable<int> decodeBytes(String encoding, List<int> bytes,
     [int offset = 0, int length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
@@ -78,10 +74,8 @@ Iterable<int> decodeBytes(String encoding, List<int> bytes,
 
 
 // TODO(jmesserly): use dart:utf once http://dartbug.com/6476 is fixed.
-/**
- * Returns the code points for the [input]. This works like [String.charCodes]
- * but it decodes UTF-16 surrogate pairs.
- */
+/// Returns the code points for the [input]. This works like [String.charCodes]
+/// but it decodes UTF-16 surrogate pairs.
 List<int> toCodepoints(String input) {
   var newCodes = <int>[];
   for (int i = 0; i < input.length; i++) {
@@ -102,12 +96,10 @@ List<int> toCodepoints(String input) {
 }
 
 
-/**
- * Decodes [windows-1252](http://en.wikipedia.org/wiki/Windows-1252) bytes as an
- * iterable. Thus, the consumer can only convert as much of the input as needed.
- * Set the [replacementCharacter] to null to throw an [ArgumentError]
- * rather than replace the bad value.
- */
+/// Decodes [windows-1252](http://en.wikipedia.org/wiki/Windows-1252) bytes as
+/// an iterable. Thus, the consumer can only convert as much of the input as
+/// needed. Set the [replacementCharacter] to null to throw an [ArgumentError]
+/// rather than replace the bad value.
 IterableWindows1252Decoder decodeWindows1252AsIterable(List<int> bytes,
     [int offset = 0, int length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
@@ -116,11 +108,9 @@ IterableWindows1252Decoder decodeWindows1252AsIterable(List<int> bytes,
 }
 
 
-/**
- * Return type of [decodeWindows1252AsIterable] and variants. The Iterable type
- * provides an iterator on demand and the iterator will only translate bytes
- * as requested by the user of the iterator. (Note: results are not cached.)
- */
+/// Return type of [decodeWindows1252AsIterable] and variants. The Iterable type
+/// provides an iterator on demand and the iterator will only translate bytes
+/// as requested by the user of the iterator. (Note: results are not cached.)
 class IterableWindows1252Decoder extends IterableBase<int> {
   final List<int> bytes;
   final int offset;
@@ -136,14 +126,12 @@ class IterableWindows1252Decoder extends IterableBase<int> {
 }
 
 
-/**
- * Provides an iterator of Unicode codepoints from windows-1252 encoded bytes.
- * The parameters can set an offset into a list of bytes (as int), limit the
- * length of the values to be decoded, and override the default Unicode
- * replacement character. Set the replacementCharacter to null to throw an
- * ArgumentError rather than replace the bad value. The return value
- * from this method can be used as an Iterable (e.g. in a for-loop).
- */
+/// Provides an iterator of Unicode codepoints from windows-1252 encoded bytes.
+/// The parameters can set an offset into a list of bytes (as int), limit the
+/// length of the values to be decoded, and override the default Unicode
+/// replacement character. Set the replacementCharacter to null to throw an
+/// ArgumentError rather than replace the bad value. The return value
+/// from this method can be used as an Iterable (e.g. in a for-loop).
 class Windows1252Decoder implements Iterator<int> {
   final int replacementCodepoint;
   final List<int> _bytes;

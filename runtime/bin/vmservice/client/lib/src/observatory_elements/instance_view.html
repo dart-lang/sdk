@@ -27,7 +27,7 @@
             <table class="table table-hover">
              <tbody>
                 <tr template repeat="{{ field in instance['fields'] }}">
-                  <td><field-ref app="{{ app }}" ref="{{ field }}"></field-ref></td>
+                  <td><field-ref app="{{ app }}" ref="{{ field['decl'] }}"></field-ref></td>
                   <td><instance-ref app="{{ app }}" ref="{{ field['value'] }}"></instance-ref></td>
                 </tr>
               </tbody>

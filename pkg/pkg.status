@@ -19,10 +19,6 @@ scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 
 polymer/test/event_path_test: Pass, Fail # Issue 15766
 
-# Skip test not runnable via test.dart
-third_party/html5lib/test/dom_compat_test: Skip
-third_party/html5lib/test/browser/browser_test: Skip
-
 [ $compiler == dart2js ]
 collection/test/equality_test/01: Fail # Issue 1533
 collection/test/equality_test/02: Fail # Issue 1533
@@ -32,6 +28,8 @@ collection/test/equality_test/05: Fail # Issue 1533
 collection/test/equality_test/none: Pass, Fail # Issue 14348
 third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
+docgen/test/multi_library_test: Slow, Pass # issue 17060
+third_party/angular_tests/browser_test/core/parser/parser: RuntimeError # Issue 17073
 
 [ $compiler == dart2js && $checked ]
 crypto/test/base64_test: Slow, Pass
@@ -53,6 +51,7 @@ stack_trace/test/vm_test: RuntimeError, OK # VM-specific traces
 stack_trace/test/chain_test: Fail # Issues 15171 and 15105
 async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
 unittest/test/missing_tick_test: Fail # Timer interface not supported: dartbug.com/7728.
+scheduled_test/test/unittest_compatibility_test: RuntimeError # Issue 17134
 
 [ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
 polymer/example: Skip # Uses dart:html
@@ -88,7 +87,7 @@ third_party/angular_tests/browser_test: Skip # uses dart:html
 source_maps/test/vlq_test: RuntimeError # A VLQ test checks for large numbers that
                                 # overflow in JS (numbers slightly larger than
                                 # 32 bits where we do bitwise operations).
-[ $runtime == ff && $system != windows ]
+[ ($runtime == ff || $runtime == jsshell) && $system != windows ]
 # Bug in Spidermonkey's Uint8ClampedArray on x64 (non-Win FF is x64, Win is x86)
 # See https://bugzilla.mozilla.org/show_bug.cgi?id=940972
 # Likely to get patched only on some versions of Firefox.
@@ -191,6 +190,7 @@ analyzer/test/options_test: Fail, OK # Uses dart:io.
 analyzer/test/services/formatter_test: Fail, OK # Uses dart:io.
 analyzer/test/parse_compilation_unit_test: Fail, OK # Uses dart:io.
 barback/test/*: Fail, OK # Uses dart:io.
+code_transformers/test/*: Skip # Uses dart:io.
 http/test/client_test: Fail, OK # Uses dart:io.
 http/test/http_test: Fail, OK # Uses dart:io.
 http/test/mock_client_test: Fail, OK # Uses dart:io.
@@ -246,6 +246,7 @@ unittest/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2J
 [ $arch == simarm || $arch == simmips ]
 barback/test/too_many_open_files_test: Skip # 14220
 third_party/html5lib/test/tokenizer_test: Pass, Slow
+docgen/test/generate_json_test: Skip # Issue 17003
 
 [ $arch == simarm && $checked ]
 watcher/test/directory_watcher/linux_test: Skip # Issue 16118
@@ -287,8 +288,10 @@ polymer/example/canonicalization/test/dir/deploy2_test: Fail, OK # tests deploy 
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) && $checked ]
 polymer/test/custom_event_test: Skip # http://dartbug.com/15517
 
-# Skip tests on the VM if the package depends on dart:html
 [ $runtime == vm ]
+intl/test/message_extraction/message_extraction_test: Skip # Issue 17130
+
+# Skip tests on the VM if the package depends on dart:html
 custom_element: Skip
 template_binding: Skip
 mutation_observer: Skip
@@ -301,6 +304,7 @@ third_party/html5lib/test/browser/browser_test: Skip
 polymer_expressions/test/globals_test: Fail # Issue 16568
 
 [ $runtime == safari || $runtime == chrome || $runtime == ie9 || $runtime == ff || $runtime == dartium || $runtime == drt ]
+docgen/test/generate_json_test: Skip  # Uses dart:io
 docgen/test/single_library_test: Skip # Uses dart:io
 docgen/test/multi_library_test: Skip # Uses dart:io
 scheduled_test/test/scheduled_server_test: Skip # Uses dart:io
@@ -313,8 +317,9 @@ unittest/test/missing_tick_test: Fail, OK # Expected to fail, due to timeout.
 source_maps/test/parser_test: Pass, Timeout # Issue 13719: Please triage this failure.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
-docgen/test/single_library_test: StaticWarning
-docgen/test/multi_library_test: StaticWarning
+docgen/test/generate_json_test: StaticWarning # Issue 16950
+docgen/test/single_library_test: StaticWarning # Issue 16950
+docgen/test/multi_library_test: StaticWarning # Issue 16950
 unittest/test/matchers_test: StaticWarning, OK # testing error creating abstract class
 
 [ $runtime == vm && ($system == windows || $system == macos) ]

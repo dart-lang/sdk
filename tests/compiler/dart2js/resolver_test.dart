@@ -114,9 +114,11 @@ class Bar extends Foo implements X<Bar> {}
 """);
   compiler.resolveStatement("Bar bar;");
   ClassElement classBar = compiler.mainApp.find("Bar");
-  Expect.equals(1, compiler.errors.length);
   Expect.equals(0, compiler.warnings.length);
-  Expect.equals(MessageKind.MULTI_INHERITANCE, compiler.errors[0].message.kind);
+  Expect.equals(0, compiler.errors.length);
+  Expect.equals(1, compiler.crashes.length);
+  Expect.equals(MessageKind.MULTI_INHERITANCE,
+                compiler.crashes[0].message.kind);
 }
 
 testTypeVariables() {
@@ -150,7 +152,7 @@ testTypeVariables() {
   compiler.parseScript('class Foo<T, U> {}');
   compiler.resolveStatement('Foo<notype, int> x;');
   Expect.equals(1, compiler.warnings.length);
-  Expect.equals(MessageKind.CANNOT_RESOLVE_TYPE.warning,
+  Expect.equals(MessageKind.CANNOT_RESOLVE_TYPE,
                 compiler.warnings[0].message.kind);
   Expect.equals(0, compiler.errors.length);
 
@@ -159,7 +161,7 @@ testTypeVariables() {
   compiler.resolveStatement('var x = new Foo<notype, int>();');
   Expect.equals(1, compiler.warnings.length);
   Expect.equals(0, compiler.errors.length);
-  Expect.equals(MessageKind.CANNOT_RESOLVE_TYPE.warning,
+  Expect.equals(MessageKind.CANNOT_RESOLVE_TYPE,
                 compiler.warnings[0].message.kind);
 
   compiler = new MockCompiler();
@@ -438,7 +440,7 @@ testTypeAnnotation() {
 
   Expect.equals(
       new Message(
-          MessageKind.CANNOT_RESOLVE_TYPE.warning,  {'typeName': 'Foo'}, false),
+          MessageKind.CANNOT_RESOLVE_TYPE,  {'typeName': 'Foo'}, false),
       compiler.warnings[0].message);
   VariableDefinitions definition = compiler.parsedTree;
   Expect.equals(warningNode, definition.type);
@@ -487,7 +489,7 @@ testVarSuperclass() {
   Expect.equals(1, compiler.errors.length);
   Expect.equals(
       new Message(
-          MessageKind.CANNOT_RESOLVE_TYPE.warning, {'typeName': 'var'}, false),
+          MessageKind.CANNOT_RESOLVE_TYPE, {'typeName': 'var'}, false),
       compiler.errors[0].message);
   compiler.clearMessages();
 }
@@ -499,7 +501,7 @@ testOneInterface() {
   Expect.equals(1, compiler.errors.length);
   Expect.equals(
       new Message(
-          MessageKind.CANNOT_RESOLVE_TYPE.warning, {'typeName': 'bar'}, false),
+          MessageKind.CANNOT_RESOLVE_TYPE, {'typeName': 'bar'}, false),
       compiler.errors[0].message);
   compiler.clearMessages();
 
@@ -584,7 +586,7 @@ testConstructorArgumentMismatch() {
   compiler.resolver.resolve(fooElement);
 
   compareWarningKinds(
-      script, [MessageKind.INVALID_ARGUMENTS.warning], compiler.warnings);
+      script, [MessageKind.INVALID_ARGUMENTS], compiler.warnings);
   compareWarningKinds(script, [], compiler.errors);
 }
 
@@ -665,7 +667,7 @@ testClassHierarchy() {
   Expect.equals(2, compiler.errors.length);
   Expect.equals(MessageKind.CYCLIC_CLASS_HIERARCHY,
                 compiler.errors[0].message.kind);
-  Expect.equals(MessageKind.CANNOT_FIND_CONSTRUCTOR.error,
+  Expect.equals(MessageKind.CANNOT_FIND_CONSTRUCTOR,
                 compiler.errors[1].message.kind);
 
   compiler = new MockCompiler();
@@ -732,9 +734,10 @@ testClassHierarchy() {
   mainElement = compiler.mainApp.find(MAIN);
   compiler.resolver.resolve(mainElement);
   Expect.equals(0, compiler.warnings.length);
-  Expect.equals(1, compiler.errors.length);
+  Expect.equals(0, compiler.errors.length);
+  Expect.equals(1, compiler.crashes.length);
   Expect.equals(MessageKind.MULTI_INHERITANCE,
-                compiler.errors[0].message.kind);
+                compiler.crashes[0].message.kind);
 }
 
 testInitializers() {
@@ -767,7 +770,7 @@ testInitializers() {
               }""";
   resolveConstructor(script, "A a = new A();", "A", "", 0,
                      expectedWarnings: [],
-                     expectedErrors: [MessageKind.CANNOT_RESOLVE.error]);
+                     expectedErrors: [MessageKind.CANNOT_RESOLVE]);
 
   script = """class A {
                 int foo;

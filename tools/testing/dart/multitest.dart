@@ -100,12 +100,12 @@ void ExtractTestsFromMultitest(Path filePath,
         continue;
       } else {
         for (String nextOutcome in annotation.outcomesList) {
-          outcomes[annotation.key].add(nextOutcome);
-          if (!validMultitestOutcomes.contains(nextOutcome)) {
-            print(
-                "Invalid test directive '$nextOutcome' on line ${lineCount}:\n"
-                "${annotation.rest} ");
-            exit(1);
+          if (validMultitestOutcomes.contains(nextOutcome)) {
+            outcomes[annotation.key].add(nextOutcome);
+          } else {
+            DebugLogger.warning(
+                "Warning: Invalid test directive '$nextOutcome' on line "
+                "${lineCount}:\n${annotation.rest} ");
           }
         }
       }
@@ -115,14 +115,21 @@ void ExtractTestsFromMultitest(Path filePath,
     }
   }
 
+  var keysToDelete = [];
   // Check that every key (other than the none case) has at least one outcome
   for (var outcomeKey in outcomes.keys) {
     if (outcomeKey != 'none' && outcomes[outcomeKey].isEmpty) {
-      print("Test ${outcomeKey} has no valid annotated outcomes.\n"
-            "Expected one of: ${validMultitestOutcomes.toString()}");
-      exit(1);
+      DebugLogger.warning(
+          "Warning: Test ${outcomeKey} has no valid annotated outcomes.\n"
+          "Expected one of: ${validMultitestOutcomes.toString()}");
+      // If this multitest doesn't have an outcome, mark the multitest for
+      // deletion.
+      keysToDelete.add(outcomeKey);
     }
   }
+  // If a key/multitest was marked for deletion, do the necessary cleanup.
+  keysToDelete.forEach((key) => outcomes.remove(key));
+  keysToDelete.forEach((key) => testsAsLines.remove(key));
 
   // Add the template, with no multitest lines, as a test with key 'none'.
   testsAsLines['none'] = testTemplate;
@@ -141,11 +148,22 @@ class _Annotation {
   List<String> outcomesList;
   _Annotation() {}
   factory _Annotation.from(String line) {
+    // Do an early return with "null" if this is not a valid multitest
+    // annotation.
     if (!line.contains('///')) {
       return null;
     }
+    var parts = line
+        .split('///')[1]
+        .split(':')
+        .map((s) => s.trim())
+        .where((s) => s.length > 0)
+        .toList();
+    if (parts.length <= 1) {
+      return null;
+    }
+
     var annotation = new _Annotation();
-    var parts = line.split('///')[1].split(':').map((s) => s.trim()).toList();
     annotation.key = parts[0];
     annotation.rest = parts[1];
     annotation.outcomesList = annotation.rest.split(',')
@@ -161,7 +179,12 @@ Set<String> _findAllRelativeImports(Path topLibrary) {
   Set<String> foundImports = new Set<String>();
   Path libraryDir = topLibrary.directoryPath;
   RegExp relativeImportRegExp = new RegExp(
-      '^(import|part)\\s+["\'](?!(dart:|dart-ext:|package:|/))([^"\']*)["\']');
+      '^(?:@.*\\s+)?' // Allow for a meta-data annotation.
+      '(import|part)'
+      '\\s+["\']'
+      '(?!(dart:|dart-ext:|package:|/))' // Look-ahead: not in package.
+      '([^"\']*)' // The path to the imported file.
+      '["\']');
   while (!toSearch.isEmpty) {
     var thisPass = toSearch;
     toSearch = new Set<Path>();

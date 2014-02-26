@@ -4,10 +4,6 @@
 
 part of dart2js.mirrors;
 
-//------------------------------------------------------------------------------
-// Types
-//------------------------------------------------------------------------------
-
 abstract class ClassMirrorMixin implements ClassSourceMirror {
   bool get hasReflectedType => false;
   Type get reflectedType {
@@ -55,11 +51,19 @@ abstract class Dart2JsTypeMirror
   bool get isDynamic => false;
 
   bool isSubtypeOf(TypeMirror other) {
-    return mirrorSystem.compiler.types.isSubtype(this._type, other._type);
+    if (other is Dart2JsTypeMirror) {
+      return mirrorSystem.compiler.types.isSubtype(this._type, other._type);
+    } else {
+      throw new ArgumentError(other);
+    }
   }
 
   bool isAssignableTo(TypeMirror other) {
-    return mirrorSystem.compiler.types.isAssignable(this._type, other._type);
+    if (other is Dart2JsTypeMirror) {
+      return mirrorSystem.compiler.types.isAssignable(this._type, other._type);
+    } else {
+      throw new ArgumentError(other);
+    }
   }
 
   String toString() => _type.toString();
@@ -235,15 +239,14 @@ class Dart2JsClassDeclarationMirror
       : super(system, type);
 
   bool isSubclassOf(ClassMirror other) {
-    if (other is! ClassMirror) throw new ArgumentError(other);
-    ClassMirror otherDeclaration = other.originalDeclaration;
-    ClassMirror c = this;
-    while (c != null) {
-      c = c.originalDeclaration;
-      if (c == otherDeclaration) return true;
-      c = c.superclass;
+    if (other is Dart2JsFunctionTypeMirror) {
+      return false;
+    } else if (other is Dart2JsClassDeclarationMirror) {
+      Dart2JsClassDeclarationMirror otherDeclaration =
+          other.originalDeclaration;
+      return _element.isSubclassOf(otherDeclaration._element);
     }
-    return false;
+    throw new ArgumentError(other);
   }
 
   String toString() => 'Mirror on class ${_type.name}';

@@ -71,20 +71,75 @@
 </template>
 
 </polymer-element><polymer-element name="instance-ref" extends="service-ref">
-<template>
-<div>
-  <template if="{{ (ref['type'] == 'null') }}">
-    unexpected null
-  </template>
-  <template if="{{ (ref['type'] == '@Null') }}">
-    {{ name }}
-  </template>
-  <template if="{{ (ref['type'] != 'null') &amp;&amp; ref['type'] != '@Null' }}">
-    <a href="{{ url }}">{{ name }} </a>
-  </template>
- </div>
-</template>
+  <template>
+    <style>
+      .memberList {
+          margin-left: 3em;
+          border-spacing: 0;
+          border-collapse: collapse;
+      }
+      .member {
+          vertical-align: top;
+          padding: 0 1em;
+      }
+    </style>
+    <div>
+      <template if="{{ isUnexpectedRef(ref['type']) }}">
+        unexpected reference type &lt;{{ ref['type'] }}&gt;
+      </template>
 
+      <template if="{{ isNullRef(ref['type']) }}">
+        {{ name }}
+      </template>
+
+      <template if="{{ (isStringRef(ref['type']) ||
+                        isBoolRef(ref['type']) ||
+                        isIntRef(ref['type'])) }}">
+        <a href="{{ url }}">{{ name }}</a>
+      </template>
+
+      <template if="{{ isClosureRef(ref['type']) }}">
+        <a href="{{ url }}">
+          {{ ref['closureFunc']['user_name'] }}
+        </a>
+      </template>
+
+      <template if="{{ isInstanceRef(ref['type']) }}">
+        <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em></a> {
+        <a on-click="{{ toggleExpand }}">...</a>
+        <template if="{{ expanded }}">
+          <table class="memberList">
+            <tbody><tr template="" repeat="{{ field in ref['fields'] }}">
+
+              <td class="member">{{ field['decl']['user_name'] }}</td>
+              <td class="member">
+                <instance-ref app="{{ app }}" ref="{{ field['value'] }}"></instance-ref>
+              </td>
+            </tr>
+          </tbody></table>
+        </template>
+        }
+      </template>
+
+      <template if="{{ isListRef(ref['type']) }}">
+        <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em> ({{ ref['length']}})</a> {
+        <a on-click="{{ toggleExpand }}">...</a>
+        <template if="{{ expanded }}">
+          <table class="memberList">
+            <tbody><tr template="" repeat="{{ element in ref['elements'] }}">
+              <td class="member">[{{ element['index']}}]</td>
+              <td class="member">
+                <instance-ref app="{{ app }}" ref="{{ element['value'] }}"></instance-ref>
+              </td>
+            </tr>
+          </tbody></table>
+        </template>
+        }
+      </template>
+
+    </div>
+  </template>
+  
 </polymer-element>
 <polymer-element name="library-ref" extends="service-ref">
 <template>
@@ -301,7 +356,13 @@
   </div>
   </template>
   
-</polymer-element><polymer-element name="isolate-summary" extends="observatory-element">
+</polymer-element><polymer-element name="script-ref" extends="service-ref">
+<template>
+  <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
+</template>
+
+</polymer-element>
+<polymer-element name="isolate-summary" extends="observatory-element">
   <template>
     <div class="row">
       <div class="col-md-1">
@@ -381,12 +442,8 @@
       </div>
       <div class="col-md-6">
         <template if="{{ isolate.topFrame != null }}">
-          <a href="{{ app.locationManager.relativeLink(isolate.id, isolate.topFrame['function']['id']) }}">
-            {{ isolate.topFrame['function']['user_name'] }}
-          </a>
-          (<a href="{{ app.locationManager.relativeLink(isolate.id, isolate.topFrame['script']['id']) }}">
-            {{ isolate.topFrame | fileAndLine }}
-          </a>)
+          <function-ref app="{{ app }}" isolate="{{ isolate }}" ref="{{ isolate.topFrame['function'] }}"></function-ref>
+          (<script-ref app="{{ app }}" isolate="{{ isolate }}" ref="{{ isolate.topFrame['script'] }}" line="{{ isolate.topFrame['line'] }}"></script-ref>)
           <br>
           <pre>{{ isolate.topFrame['line'] }} &nbsp; {{ isolate.topFrame['lineString'] }}</pre>
         </template>
@@ -433,7 +490,7 @@
             <table class="table table-hover">
              <tbody>
                 <tr template="" repeat="{{ field in instance['fields'] }}">
-                  <td><field-ref app="{{ app }}" ref="{{ field }}"></field-ref></td>
+                  <td><field-ref app="{{ app }}" ref="{{ field['decl'] }}"></field-ref></td>
                   <td><instance-ref app="{{ app }}" ref="{{ field['value'] }}"></instance-ref></td>
                 </tr>
               </tbody>
@@ -479,12 +536,7 @@
   </template>
   
 </polymer-element>
-<polymer-element name="script-ref" extends="service-ref">
-<template>
-  <a href="{{ url }}">{{ name }}</a>
-</template>
-
-</polymer-element><polymer-element name="library-view" extends="observatory-element">
+<polymer-element name="library-view" extends="observatory-element">
   <template>
   <div class="alert alert-success">Library {{ library['name'] }}</div>
   <div class="alert alert-info">Scripts</div>
@@ -620,7 +672,7 @@
           <tr template="" repeat="{{ line in script.linesForDisplay }}">
             <td style="{{ hitsStyle(line) }}">  </td>
             <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{line.line}}</td>
-            <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;">{{line.text}}</td>
+            <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: pre;">{{line.text}}</td>
           </tr>
           </tbody>
         </table>
@@ -631,6 +683,17 @@
 
 </polymer-element><polymer-element name="stack-frame" extends="observatory-element">
   <template>
+    <style>
+      .memberList {
+          margin-left: 3em;
+          border-spacing: 0;
+          border-collapse: collapse;
+      }
+      .member {
+          vertical-align: top;
+          padding: 0 1em;
+      }
+    </style>
     <div class="row">
       <div class="col-md-1"></div>
       <div class="col-md-1">
@@ -638,29 +701,33 @@
       </div>
       <div class="col-md-9">
         <function-ref app="{{ app }}" ref="{{ frame['function'] }}"></function-ref>
-        ( <script-ref app="{{ app }}" ref="{{ frame['script'] }}"></script-ref>:{{ frame['line'] }} )
+        ( <script-ref app="{{ app }}" ref="{{ frame['script'] }}" line="{{ frame['line'] }}">
+        </script-ref> ) {
+        <a on-click="{{ toggleExpand }}">...</a>
+
+        <template if="{{ expanded }}">
+          <table class="memberList">
+            <tbody><tr template="" repeat="{{ v in frame['vars'] }}">
+              <td class="member">{{ v['name']}}</td>
+              <td class="member">
+                <instance-ref app="{{ app }}" ref="{{ v['value'] }}"></instance-ref>
+              </td>
+            </tr>
+          </tbody></table>
+        </template>
+        }
+
       </div>
       <div class="col-md-1"></div>
     </div>
 
-    <template repeat="{{ v in frame['vars'] }}">
-      <div class="row">
-        <div class="col-md-3"></div>
-        <div class="col-md-1">
-          {{ v['name'] }}
-        </div>
-        <div class="col-md-6">
-          <instance-ref app="{{ app }}" ref="{{ v['value'] }}"></instance-ref>
-        </div>
-        <div class="col-md-2"></div>
-      </div>
-    </template>
 
   </template>
   
 </polymer-element>
 <polymer-element name="stack-trace" extends="observatory-element">
   <template>
+    <button type="button" on-click="{{refresh}}">Refresh</button>
     <template if="{{ trace['members'].isEmpty }}">
       <div class="col-md-1"></div>
       <div class="col-md-11">
@@ -708,6 +775,9 @@
     <template if="{{ messageType == 'Field' }}">
       <field-view app="{{ app }}" field="{{ message }}"></field-view>
     </template>
+    <template if="{{ messageType == 'Closure' }}">
+      <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
+    </template>
     <template if="{{ messageType == 'Instance' }}">
       <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
     </template>
@@ -744,7 +814,8 @@
     <!-- Add new views and message types in the future here. -->
   </template>
   
-</polymer-element><polymer-element name="navigation-bar-isolate" extends="observatory-element">
+</polymer-element>
+<polymer-element name="navigation-bar-isolate" extends="observatory-element">
     <template>
       <ul class="nav navbar-nav">
         <li><a href="{{ currentIsolateLink('') }}"> {{currentIsolateName()}}</a></li>
@@ -770,34 +841,34 @@
   
 </polymer-element><polymer-element name="isolate-profile" extends="observatory-element">
   <template>
-    <p> P R O F I L E </p>
     <div>
       <button type="button" on-click="{{refreshData}}">Refresh profile data</button>
       <span>Top</span>
       <select selectedindex="{{methodCountSelected}}" value="{{methodCounts[methodCountSelected]}}">
         <option template="" repeat="{{count in methodCounts}}">{{count}}</option>
       </select>
-      <span>methods</span>
+      <span>exclusive methods</span>
     </div>
-    <blockquote><strong>Top Exclusive</strong></blockquote>
-    <table class="table table-hover">
+    <table id="tableTree" class="table table-hover">
       <thead>
         <tr>
-          <th>Ticks</th>
-          <th>Percent</th>
           <th>Method</th>
+          <th>Exclusive</th>
+          <th>Caller</th>
+          <th>Inclusive</th>
         </tr>
       </thead>
       <tbody>
-        <tr template="" repeat="{{ code in topExclusiveCodes }}">
-            <td>{{ codeTicks(code, false) }}</td>
-            <td>{{ codePercent(code, false) }}</td>
-            <td>
-            <span>{{ codeName(code) }}</span>
-            <code-ref app="{{ app }}" ref="{{ code.codeRef }}"></code-ref>
-            </td>
+        <tr template="" repeat="{{row in tree.rows }}" style="{{}}">
+          <td on-click="{{toggleExpanded}}" class="{{ coloring(row) }}" style="{{ padding(row) }}">
+            <code-ref app="{{ app }}" ref="{{ row.code.codeRef }}"></code-ref>
+          </td>
+          <td class="{{ coloring(row) }}">{{row.columns[0]}}</td>
+          <td class="{{ coloring(row) }}">{{row.columns[1]}}</td>
+          <td class="{{ coloring(row) }}">{{row.columns[2]}}</td>
         </tr>
-    </tbody></table>
+      </tbody>
+    </table>
   </template>
   
 </polymer-element>

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/** Transfomer that inlines polymer-element definitions from html imports. */
+/// Transfomer that inlines polymer-element definitions from html imports.
 library polymer.src.build.import_inliner;
 
 import 'dart:async';
@@ -13,7 +13,7 @@ import 'package:path/path.dart' as path;
 import 'package:html5lib/dom.dart' show
     Document, DocumentFragment, Element, Node;
 import 'package:html5lib/dom_parsing.dart' show TreeVisitor;
-import 'package:source_maps/span.dart' show Span;
+import 'package:source_maps/span.dart';
 
 import 'code_extractor.dart'; // import just for documentation.
 import 'common.dart';
@@ -24,8 +24,10 @@ class _HtmlInliner extends PolymerTransformer {
   final TransformLogger logger;
   final AssetId docId;
   final seen = new Set<AssetId>();
-  final imported = new DocumentFragment();
   final scriptIds = <AssetId>[];
+
+  static const TYPE_DART = 'application/dart';
+  static const TYPE_JS = 'text/javascript';
 
   _HtmlInliner(this.options, Transform transform)
       : transform = transform,
@@ -40,12 +42,11 @@ class _HtmlInliner extends PolymerTransformer {
     return readPrimaryAsHtml(transform).then((document) =>
         _visitImports(document, docId).then((importsFound) {
 
+      var output = transform.primaryInput;
       if (importsFound) {
-        document.body.insertBefore(imported, document.body.firstChild);
-        transform.addOutput(new Asset.fromString(docId, document.outerHtml));
-      } else {
-        transform.addOutput(transform.primaryInput);
+        output = new Asset.fromString(docId, document.outerHtml);
       }
+      transform.addOutput(output);
 
       // We produce a secondary asset with extra information for later phases.
       transform.addOutput(new Asset.fromString(
@@ -54,32 +55,73 @@ class _HtmlInliner extends PolymerTransformer {
     }));
   }
 
-  /**
-   * Visits imports in [document] and add the imported documents to [documents].
-   * Documents are added in the order they appear, transitive imports are added
-   * first.
-   */
+  /// Visits imports in [document] and add the imported documents to documents.
+  /// Documents are added in the order they appear, transitive imports are added
+  /// first.
+  ///
+  /// Returns `true` if and only if the document was changed and should be
+  /// written out.
   Future<bool> _visitImports(Document document, AssetId sourceId) {
-    bool hasImports = false;
+    bool changed = false;
+
+    _moveHeadToBody(document);
 
     // Note: we need to preserve the import order in the generated output.
     return Future.forEach(document.querySelectorAll('link'), (Element tag) {
-      if (tag.attributes['rel'] != 'import') return null;
+      var rel = tag.attributes['rel'];
+      if (rel != 'import' && rel != 'stylesheet') return null;
+
       var href = tag.attributes['href'];
-      var id = resolve(sourceId, href, transform.logger, tag.sourceSpan);
-      hasImports = true;
+      var id = resolve(sourceId, href, transform.logger, tag.sourceSpan,
+          allowAbsolute: rel == 'stylesheet');
 
-      tag.remove();
-      if (id == null || !seen.add(id) ||
-         (id.package == 'polymer' && id.path == 'lib/init.html')) return null;
+      if (rel == 'import') {
+        changed = true;
+        if (id == null || !seen.add(id)) {
+          tag.remove();
+          return null;
+        }
+        return _inlineImport(id, tag);
 
-      return _inlineImport(id);
-    }).then((_) => hasImports);
+      } else if (rel == 'stylesheet') {
+        if (id == null) return null;
+        changed = true;
+
+        return _inlineStylesheet(id, tag);
+      }
+    }).then((_) => changed);
+  }
+
+  /// To preserve the order of scripts with respect to inlined
+  /// link rel=import, we move both of those into the body before we do any
+  /// inlining.
+  ///
+  /// Note: we do this for stylesheets as well to preserve ordering with
+  /// respect to eachother, because stylesheets can be pulled in transitively
+  /// from imports.
+  // TODO(jmesserly): vulcanizer doesn't need this because they inline JS
+  // scripts, causing them to be naturally moved as part of the inlining.
+  // Should we do the same? Alternatively could we inline head into head and
+  // body into body and avoid this whole thing?
+  void _moveHeadToBody(Document doc) {
+    var insertionPoint = doc.body.firstChild;
+    for (var node in doc.head.nodes.toList(growable: false)) {
+      if (node is! Element) continue;
+      var tag = node.tagName;
+      var type = node.attributes['type'];
+      var rel = node.attributes['rel'];
+      if (tag == 'style' || tag == 'script' &&
+            (type == null || type == TYPE_JS || type == TYPE_DART) ||
+          tag == 'link' && (rel == 'stylesheet' || rel == 'import')) {
+        // Move the node into the body, where its contents will be placed.
+        doc.body.insertBefore(node, insertionPoint);
+      }
+    }
   }
 
   // Loads an asset identified by [id], visits its imports and collects its
   // html imports. Then inlines it into the main document.
-  Future _inlineImport(AssetId id) =>
+  Future _inlineImport(AssetId id, Element link) =>
       readAsHtml(id, transform).then((doc) => _visitImports(doc, id).then((_) {
 
     new _UrlNormalizer(transform, id).visit(doc);
@@ -87,21 +129,27 @@ class _HtmlInliner extends PolymerTransformer {
 
     // TODO(jmesserly): figure out how this is working in vulcanizer.
     // Do they produce a <body> tag with a <head> and <body> inside?
-    imported.nodes
-        ..addAll(doc.head.nodes)
-        ..addAll(doc.body.nodes);
+    var imported = new DocumentFragment();
+    imported.nodes..addAll(doc.head.nodes)..addAll(doc.body.nodes);
+    link.replaceWith(imported);
   }));
 
-  /**
-   * Split Dart script tags from all the other elements. Now that Dartium
-   * only allows a single script tag per page, we can't inline script
-   * tags. Instead, we collect the urls of each script tag so we import
-   * them directly from the Dart bootstrap code.
-   */
+  Future _inlineStylesheet(AssetId id, Element link) {
+    return transform.readInputAsString(id).then((css) {
+      var url = spanUrlFor(id, transform);
+      css = new _UrlNormalizer(transform, id).visitCss(css, url);
+      link.replaceWith(new Element.tag('style')..text = css);
+    });
+  }
+
+  /// Split Dart script tags from all the other elements. Now that Dartium
+  /// only allows a single script tag per page, we can't inline script
+  /// tags. Instead, we collect the urls of each script tag so we import
+  /// them directly from the Dart bootstrap code.
   void _extractScripts(Document document) {
     bool first = true;
     for (var script in document.querySelectorAll('script')) {
-      if (script.attributes['type'] == 'application/dart') {
+      if (script.attributes['type'] == TYPE_DART) {
         script.remove();
 
         // only one Dart script per document is supported in Dartium.
@@ -128,21 +176,20 @@ class _HtmlInliner extends PolymerTransformer {
   }
 }
 
-/**
- * Recursively inlines the contents of HTML imports. Produces as output a single
- * HTML file that inlines the polymer-element definitions, and a text file that
- * contains, in order, the URIs to each library that sourced in a script tag.
- *
- * This transformer assumes that all script tags point to external files. To
- * support script tags with inlined code, use this transformer after running
- * [InlineCodeExtractor] on an earlier phase.
- */
+/// Recursively inlines the contents of HTML imports. Produces as output a
+/// single HTML file that inlines the polymer-element definitions, and a text
+/// file that contains, in order, the URIs to each library that sourced in a
+/// script tag.
+///
+/// This transformer assumes that all script tags point to external files. To
+/// support script tags with inlined code, use this transformer after running
+/// [InlineCodeExtractor] on an earlier phase.
 class ImportInliner extends Transformer {
   final TransformOptions options;
 
   ImportInliner(this.options);
 
-  /** Only run on entry point .html files. */
+  /// Only run on entry point .html files.
   Future<bool> isPrimary(Asset input) =>
       new Future.value(options.isHtmlEntryPoint(input.id));
 
@@ -151,11 +198,11 @@ class ImportInliner extends Transformer {
 }
 
 
-/** Internally adjusts urls in the html that we are about to inline. */
+/// Internally adjusts urls in the html that we are about to inline.
 class _UrlNormalizer extends TreeVisitor {
   final Transform transform;
 
-  /** Asset where the original content (and original url) was found. */
+  /// Asset where the original content (and original url) was found.
   final AssetId sourceId;
 
   _UrlNormalizer(this.transform, this.sourceId);
@@ -170,6 +217,25 @@ class _UrlNormalizer extends TreeVisitor {
       }
     }
     super.visitElement(node);
+  }
+
+  static final _URL = new RegExp(r'url\(([^)]*)\)', multiLine: true);
+  static final _QUOTE = new RegExp('["\']', multiLine: true);
+
+  /// Visit the CSS text and replace any relative URLs so we can inline it.
+  // Ported from:
+  // https://github.com/Polymer/vulcanize/blob/c14f63696797cda18dc3d372b78aa3378acc691f/lib/vulcan.js#L149
+  // TODO(jmesserly): use csslib here instead? Parsing with RegEx is sadness.
+  // Maybe it's reliable enough for finding URLs in CSS? I'm not sure.
+  String visitCss(String cssText, String url) {
+    var src = new SourceFile.text(url, cssText);
+    return cssText.replaceAllMapped(_URL, (match) {
+      // Extract the URL, without any surrounding quotes.
+      var span = src.span(match.start, match.end);
+      var href = match[1].replaceAll(_QUOTE, '');
+      href = _newUrl(href, span);
+      return 'url($href)';
+    });
   }
 
   _newUrl(String href, Span span) {
@@ -205,13 +271,11 @@ class _UrlNormalizer extends TreeVisitor {
   }
 }
 
-/**
- * HTML attributes that expect a URL value.
- * <http://dev.w3.org/html5/spec/section-index.html#attributes-1>
- *
- * Every one of these attributes is a URL in every context where it is used in
- * the DOM. The comments show every DOM element where an attribute can be used.
- */
+/// HTML attributes that expect a URL value.
+/// <http://dev.w3.org/html5/spec/section-index.html#attributes-1>
+///
+/// Every one of these attributes is a URL in every context where it is used in
+/// the DOM. The comments show every DOM element where an attribute can be used.
 const _urlAttributes = const [
   'action',     // in form
   'background', // in body

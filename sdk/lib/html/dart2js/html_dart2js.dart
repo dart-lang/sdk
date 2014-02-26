@@ -12729,7 +12729,7 @@ class FileList extends Interceptor with ListMixin<File>, ImmutableListMixin<File
   @DocsEditable()
   File item(int index) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12737,6 +12737,17 @@ class FileList extends Interceptor with ListMixin<File>, ImmutableListMixin<File
 @DocsEditable()
 @DomName('FileReader')
 class FileReader extends EventTarget native "FileReader" {
+
+  @DomName('FileReader.result')
+  @DocsEditable()
+  Object get result {
+    var res = JS('Null|String|NativeByteBuffer', '#.result', this);
+    if (res is ByteBuffer) {
+      return new Uint8List.view(res);
+    }
+    return res;
+  }
+
   // To suppress missing implicit constructor warnings.
   factory FileReader._() { throw new UnsupportedError("Not supported"); }
 
@@ -12827,11 +12838,6 @@ class FileReader extends EventTarget native "FileReader" {
   @DocsEditable()
   final int readyState;
 
-  @DomName('FileReader.result')
-  @DocsEditable()
-  @Creates('String|NativeByteBuffer|Null')
-  final Object result;
-
   @DomName('FileReader.abort')
   @DocsEditable()
   void abort() native;
@@ -12878,6 +12884,7 @@ class FileReader extends EventTarget native "FileReader" {
   @DomName('FileReader.onprogress')
   @DocsEditable()
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14590,6 +14597,17 @@ class HttpRequest extends HttpRequestEventTarget native "XMLHttpRequest" {
    * This is similar to [request] but specialized for HTTP GET requests which
    * return text content.
    *
+   * To add query parameters, append them to the [url] following a `?`,
+   * joining each key to its value with `=` and separating key-value pairs with
+   * `&`.
+   *
+   *     var name = Uri.encodeQueryComponent('John');
+   *     var id = Uri.encodeQueryComponent('42');
+   *     HttpRequest.getString('users.json?name=$name&id=$id')
+   *       .then((HttpRequest resp) {
+   *         // Do something with the response.
+   *     });
+   *
    * See also:
    *
    * * [request]
@@ -14606,6 +14624,20 @@ class HttpRequest extends HttpRequestEventTarget native "XMLHttpRequest" {
    * This is roughly the POST equivalent of getString. This method is similar
    * to sending a FormData object with broader browser support but limited to
    * String values.
+   *
+   * If [data] is supplied, the key/value pairs are URI encoded with
+   * [Uri.encodeQueryComponent] and converted into an HTTP query string.
+   *
+   * Unless otherwise specified, this method appends the following header:
+   *
+   *     Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+   *
+   * Here's an example of using this method:
+   *
+   *     var data = { 'firstName' : 'John', 'lastName' : 'Doe' };
+   *     HttpRequest.postFormData('/send', data).then((HttpRequest resp) {
+   *       // Do something with the response.
+   *     });
    *
    * See also:
    *
@@ -14657,6 +14689,24 @@ class HttpRequest extends HttpRequestEventTarget native "XMLHttpRequest" {
    * * The `Access-Control-Allow-Origin` header of `url` cannot contain a wildcard (*).
    * * The `Access-Control-Allow-Credentials` header of `url` must be set to true.
    * * If `Access-Control-Expose-Headers` has not been set to true, only a subset of all the response headers will be returned when calling [getAllRequestHeaders].
+   *
+   * The following is equivalent to the [getString] sample above:
+   *
+   *     var name = Uri.encodeQueryComponent('John');
+   *     var id = Uri.encodeQueryComponent('42');
+   *     HttpRequest.request('users.json?name=$name&id=$id')
+   *       .then((HttpRequest resp) {
+   *         // Do something with the response.
+   *     });
+   *
+   * Here's an example of submitting an entire form with [FormData].
+   *
+   *     var myForm = querySelector('form#myForm');
+   *     var data = new FormData(myForm);
+   *     HttpRequest.request('/submit', method: 'POST', sendData: data)
+   *       .then((HttpRequest resp) {
+   *         // Do something with the response.
+   *     });
    *
    * Note that requests for file:// URIs are only supported by Chrome extensions
    * with appropriate permissions in their manifest. Requests to file:// URIs
@@ -16757,7 +16807,7 @@ class LegendElement extends HtmlElement native "HTMLLegendElement" {
   @DocsEditable()
   final FormElement form;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16815,6 +16865,12 @@ class LinkElement extends HtmlElement native "HTMLLinkElement" {
   @DomName('HTMLLinkElement.type')
   @DocsEditable()
   String type;
+
+
+    /// Checks if HTML imports are supported on the current platform.
+  bool get supportsImport {
+    return JS('bool', '("import" in #)', this);
+  }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32027,7 +32083,7 @@ class _MarginCssRect extends CssRect {
  * animation frame is discouraged. See also:
  * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
  */
-abstract class CssRect extends MutableRectangle<num> implements Rectangle<num> {
+abstract class CssRect extends MutableRectangle<num> {
   Element _element;
 
   CssRect(this._element) : super(0, 0, 0, 0);
@@ -35421,6 +35477,21 @@ class _HistoryCrossFrame implements HistoryBase {
  *
  * KeyEvent tries to provide a higher level, more polished keyboard event
  * information on top of the "raw" [KeyboardEvent].
+ *
+ * The mechanics of using KeyEvents is a little different from the underlying
+ * [KeyboardEvent]. To use KeyEvents, you need to create a stream and then add
+ * KeyEvents to the stream, rather than using the [EventTarget.dispatchEvent].
+ * Here's an example usage:
+ *
+ *     // Initialize a stream for the KeyEvents:
+ *     var stream = KeyEvent.keyPressEvent.forTarget(document.body);
+ *     // Start listening to the stream of KeyEvents.
+ *     stream.listen((keyEvent) =>
+ *         window.console.log('KeyPress event detected ${keyEvent.charCode}'));
+ *     ...
+ *     // Add a new KeyEvent of someone pressing the 'A' key to the stream so
+ *     // listeners can know a KeyEvent happened.
+ *     stream.add(new KeyEvent('keypress', keyCode: 65, charCode: 97));
  *
  * This class is very much a work in progress, and we'd love to get information
  * on how we can make this class work with as many international keyboards as

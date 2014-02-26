@@ -40,6 +40,7 @@ class SocketExceptionTest {
     asyncStart();
     ServerSocket.bind("127.0.0.1", 0).then((server) {
       Socket.connect("127.0.0.1", server.port).then((socket) {
+        socket.destroy();
         server.close();
         server.listen(
           (incoming) => Expect.fail("Unexpected socket"),
@@ -53,8 +54,11 @@ class SocketExceptionTest {
     ServerSocket.bind("127.0.0.1", 0).then((server) {
       Socket.connect("127.0.0.1", server.port).then((socket) {
         server.listen(
-          (incoming) => server.close(),
-          onDone: asyncEnd);
+          (incoming) {
+            incoming.destroy();
+            socket.destroy();
+            server.close();
+          }, onDone: asyncEnd);
       });
     });
   }

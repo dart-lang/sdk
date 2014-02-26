@@ -7,25 +7,23 @@ library observe.src.bind_property;
 import 'dart:async';
 import 'package:observe/observe.dart';
 
-/**
- * Forwards an observable property from one object to another. For example:
- *
- *     class MyModel extends Observable {
- *       StreamSubscription _sub;
- *       MyOtherModel _otherModel;
- *
- *       MyModel() {
- *         ...
- *         _sub = onPropertyChange(_otherModel, #value,
- *             () => notifyProperty(this, #prop);
- *       }
- *
- *       String get prop => _otherModel.value;
- *       set prop(String value) { _otherModel.value = value; }
- *     }
- *
- * See also [notifyProperty].
- */
+/// Forwards an observable property from one object to another. For example:
+///
+///     class MyModel extends Observable {
+///       StreamSubscription _sub;
+///       MyOtherModel _otherModel;
+///
+///       MyModel() {
+///         ...
+///         _sub = onPropertyChange(_otherModel, #value,
+///             () => notifyProperty(this, #prop);
+///       }
+///
+///       String get prop => _otherModel.value;
+///       set prop(String value) { _otherModel.value = value; }
+///     }
+///
+/// See also [notifyProperty].
 // TODO(jmesserly): make this an instance method?
 StreamSubscription onPropertyChange(Observable source, Symbol sourceName,
     void callback()) {

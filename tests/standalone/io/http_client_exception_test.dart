@@ -20,6 +20,9 @@ void testInvalidUrl() {
       () => client.getUrl(Uri.parse('http://::1')),
       (e) => e.toString().contains("No host specified"));
   Expect.throws(
+      () => client.getUrl(Uri.parse('http://user@:1')),
+      (e) => e.toString().contains("No host specified"));
+  Expect.throws(
       () => client.getUrl(Uri.parse('http:///')),
       (e) => e.toString().contains("No host specified"));
   Expect.throws(

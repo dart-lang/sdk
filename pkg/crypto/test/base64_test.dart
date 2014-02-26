@@ -5,27 +5,37 @@
 // Library tag to allow the test to run on Dartium.
 library base64_test;
 
-import "package:expect/expect.dart";
-import "package:crypto/crypto.dart";
 import 'dart:math';
 
+import "package:crypto/crypto.dart";
+import "package:unittest/unittest.dart";
+
+void main() {
+  test('encoder', _testEncoder);
+  test('decoder', _testDecoder);
+  test('decoder for malformed input', _testDecoderForMalformedInput);
+  test('encode decode lists', _testEncodeDecodeLists);
+  test('url safe encode-decode', _testUrlSafeEncodeDecode);
+  test('performance', _testPerformance);
+}
+
 // Data from http://tools.ietf.org/html/rfc4648.
-var inputs =
+const _INPUTS =
     const [ '', 'f', 'fo', 'foo', 'foob', 'fooba', 'foobar'];
-var results =
+const _RESULTS =
     const [ '', 'Zg==', 'Zm8=', 'Zm9v', 'Zm9vYg==', 'Zm9vYmE=', 'Zm9vYmFy'];
 
 // Test data with only zeroes.
 var inputsWithZeroes = [[0, 0, 0], [0, 0], [0], []];
-var resultsWithZeroes = ['AAAA', 'AAA=', 'AA==', ''];
+const _RESULTS_WITH_ZEROS = const ['AAAA', 'AAA=', 'AA==', ''];
 
-var longLine =
+const _LONG_LINE =
     "Man is distinguished, not only by his reason, but by this singular "
     "passion from other animals, which is a lust of the mind, that by a "
     "perseverance of delight in the continued and indefatigable generation "
     "of knowledge, exceeds the short vehemence of any carnal pleasure.";
 
-var longLineResult =
+const _LONG_LINE_RESULT =
     "TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbm"
     "x5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz\r\n"
     "IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlci"
@@ -37,7 +47,7 @@ var longLineResult =
     "ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm"
     "5hbCBwbGVhc3VyZS4=";
 
-var longLineResultNoBreak =
+const _LONG_LINE_RESULT_NO_BREAK =
     "TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbm"
     "x5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz"
     "IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlci"
@@ -49,55 +59,57 @@ var longLineResultNoBreak =
     "ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm"
     "5hbCBwbGVhc3VyZS4=";
 
-testEncoder() {
-  for (var i = 0; i < inputs.length; i++) {
-    Expect.equals(results[i], CryptoUtils.bytesToBase64(inputs[i].codeUnits));
+void _testEncoder() {
+  for (var i = 0; i < _INPUTS.length; i++) {
+    expect(CryptoUtils.bytesToBase64(_INPUTS[i].codeUnits), _RESULTS[i]);
   }
   for (var i = 0; i < inputsWithZeroes.length; i++) {
-    Expect.equals(resultsWithZeroes[i],
-        CryptoUtils.bytesToBase64(inputsWithZeroes[i]));
+    expect(CryptoUtils.bytesToBase64(inputsWithZeroes[i]),
+        _RESULTS_WITH_ZEROS[i]);
   }
-  Expect.equals(
-      CryptoUtils.bytesToBase64(longLine.codeUnits, addLineSeparator : true),
-      longLineResult);
-  Expect.equals(CryptoUtils.bytesToBase64(longLine.codeUnits),
-                longLineResultNoBreak);
+  expect(
+      CryptoUtils.bytesToBase64(_LONG_LINE.codeUnits, addLineSeparator : true),
+      _LONG_LINE_RESULT);
+  expect(CryptoUtils.bytesToBase64(_LONG_LINE.codeUnits),
+      _LONG_LINE_RESULT_NO_BREAK);
 }
 
-testDecoder() {
-  for (var i = 0; i < results.length; i++) {
-    Expect.equals(inputs[i],
-        new String.fromCharCodes(CryptoUtils.base64StringToBytes(results[i])));
+void _testDecoder() {
+  for (var i = 0; i < _RESULTS.length; i++) {
+    expect(
+        new String.fromCharCodes(CryptoUtils.base64StringToBytes(_RESULTS[i])),
+        _INPUTS[i]);
   }
-  for (var i = 0; i < resultsWithZeroes.length; i++) {
-    Expect.listEquals(inputsWithZeroes[i],
-        CryptoUtils.base64StringToBytes(resultsWithZeroes[i]));
+  for (var i = 0; i < _RESULTS_WITH_ZEROS.length; i++) {
+    expect(CryptoUtils.base64StringToBytes(_RESULTS_WITH_ZEROS[i]),
+        inputsWithZeroes[i]);
   }
-  var longLineDecoded = CryptoUtils.base64StringToBytes(longLineResult);
-  Expect.equals(new String.fromCharCodes(longLineDecoded), longLine);
-  var longLineResultNoBreak = CryptoUtils.base64StringToBytes(longLineResult);
-  Expect.equals(new String.fromCharCodes(longLineResultNoBreak), longLine);
+  var longLineDecoded = CryptoUtils.base64StringToBytes(_LONG_LINE_RESULT);
+  expect(new String.fromCharCodes(longLineDecoded), _LONG_LINE);
+  var longLineResultNoBreak =
+      CryptoUtils.base64StringToBytes(_LONG_LINE_RESULT);
+  expect(new String.fromCharCodes(longLineResultNoBreak), _LONG_LINE);
 }
 
-testDecoderForMalformedInput() {
-  Expect.throws(() {
-      CryptoUtils.base64StringToBytes('AB~');
-    }, (e) => e is FormatException);
+void _testDecoderForMalformedInput() {
+  expect(() {
+    CryptoUtils.base64StringToBytes('AB~');
+  }, throwsFormatException);
 
-  Expect.throws(() {
+  expect(() {
     CryptoUtils.base64StringToBytes('A');
-  }, (e) => e is FormatException);
+  }, throwsFormatException);
 }
 
-testUrlSafeEncodeDecode() {
+void _testUrlSafeEncodeDecode() {
   List<int> decUrlSafe = CryptoUtils.base64StringToBytes('-_A=');
   List<int> dec = CryptoUtils.base64StringToBytes('+/A=');
-  Expect.listEquals(decUrlSafe, dec);
-  Expect.equals('-_A=', CryptoUtils.bytesToBase64(dec, urlSafe: true));
-  Expect.equals('+/A=', CryptoUtils.bytesToBase64(dec));
+  expect(decUrlSafe, dec);
+  expect(CryptoUtils.bytesToBase64(dec, urlSafe: true), '-_A=');
+  expect(CryptoUtils.bytesToBase64(dec), '+/A=');
 }
 
-testEncodeDecodeLists() {
+void _testEncodeDecodeLists() {
   for (int i = 0; i < 10; i++) {
     for (int j = 0; j < 256 - i; j++) {
       List<int> x = new List<int>(i);
@@ -106,22 +118,22 @@ testEncodeDecodeLists() {
       }
       var enc = CryptoUtils.bytesToBase64(x);
       var dec = CryptoUtils.base64StringToBytes(enc);
-      Expect.listEquals(x, dec);
+      expect(dec, x);
     }
   }
 }
 
-fillRandom(List<int> l) {
+void _fillRandom(List<int> l) {
   var random = new Random(0xBABE);
-  for(int j=0; j < l.length; j++) {
+  for (int j = 0; j < l.length; j++) {
     l[j] = random.nextInt(255);
   }
 }
 
-testPerformance() {
+void _testPerformance() {
     var l = new List<int>(1024);
     var iters = 5000;
-    fillRandom(l);
+    _fillRandom(l);
     String enc;
     var w = new Stopwatch()..start();
     for( int i = 0; i < iters; ++i ) {
@@ -138,13 +150,4 @@ testPerformance() {
     perSec = (iters * l.length) * 1000 ~/ ms;
     // print('''Decode into ${l.length} bytes for $iters
     //     times: $ms msec. $perSec b/s''');
-}
-
-void main() {
-  testEncoder();
-  testDecoder();
-  testDecoderForMalformedInput();
-  testEncodeDecodeLists();
-  testUrlSafeEncodeDecode();
-  testPerformance();
 }

@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 
 import 'dart:async';
 
-@lazy import 'deferred_function_library.dart';
+@lazy import 'deferred_function_library.dart' as lib;
 
 const lazy = const DeferredLibrary('deferred_function_library');
 
@@ -20,11 +20,11 @@ readFoo() {
   // TODO(ahe): There is a problem with type inference of deferred
   // function closures.  We think they are never null.
   if (new DateTime.now().millisecondsSinceEpoch == 87) return null;
-  return foo;
+  return lib.foo;
 }
 
 main() {
-  Expect.throws(() { foo('a'); }, isNoSuchMethodError);
+  Expect.throws(() { lib.foo('a'); }, isNoSuchMethodError);
   Expect.throws(readFoo, isNoSuchMethodError);
   int counter = 0;
   asyncStart();
@@ -32,7 +32,7 @@ main() {
     Expect.isTrue(didLoad);
     Expect.equals(1, ++counter);
     print('lazy was loaded');
-    Expect.equals(42, foo('b'));
+    Expect.equals(42, lib.foo('b'));
     Expect.isNotNull(readFoo());
     asyncEnd();
   });
@@ -42,11 +42,11 @@ main() {
     Expect.isFalse(didLoad);
     Expect.equals(2, ++counter);
     print('lazy was loaded');
-    Expect.equals(42, foo('b'));
+    Expect.equals(42, lib.foo('b'));
     Expect.isNotNull(readFoo());
     asyncEnd();
   });
   Expect.equals(0, counter);
-  Expect.throws(() { foo('a'); }, isNoSuchMethodError);
+  Expect.throws(() { lib.foo('a'); }, isNoSuchMethodError);
   Expect.throws(readFoo, isNoSuchMethodError);
 }

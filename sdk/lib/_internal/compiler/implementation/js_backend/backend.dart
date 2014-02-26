@@ -1910,7 +1910,7 @@ class ConstantCopier implements ConstantVisitor {
 
   void visitInterceptor(InterceptorConstant constant) => copy(constant);
 
-  void visitDummyReceiver(DummyReceiverConstant constant) => copy(constant);
+  void visitDummy(DummyConstant constant) => copy(constant);
 
   void visitList(ListConstant constant) {
     copy(constant.entries);

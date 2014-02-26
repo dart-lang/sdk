@@ -170,7 +170,7 @@
     {
       'target_name': 'libdart_io',
       'type': 'static_library',
-      'toolsets':['target', 'host'],
+      'toolsets': ['host', 'target'],
       'include_dirs': [
         '..',
       ],
@@ -256,7 +256,6 @@
       'dependencies': [
         'libdart_withcore',
         'libdart_builtin',
-        'libdart_io',
       ],
       'include_dirs': [
         '..',
@@ -492,7 +491,6 @@
     {
       'target_name': 'run_vm_tests',
       'type': 'executable',
-      'toolsets':['target'],
       'dependencies': [
         'libdart_withcore',
         'libdart_builtin',

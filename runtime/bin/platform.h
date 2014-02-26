@@ -62,12 +62,6 @@ class Platform {
     return argv_;
   }
 
-  static void PrintBlocking(FILE* file, const char* format, ...)
-      PRINTF_ATTRIBUTE(2, 3);
-
-  // Perform platform-specific cleanups.
-  static void Cleanup();
-
  private:
   static const char* executable_name_;
   static const char* package_root_;

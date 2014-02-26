@@ -10,9 +10,10 @@ import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 
 import 'analyze_helper.dart';
 
+const String SIMPLIFY_NEVER_CALLED = "The method 'simplify' is never called";
+
 void main() {
   var uri = currentDirectory.resolve(
       'sdk/lib/_internal/compiler/implementation/use_unused_api.dart');
-  asyncTest(
-      () => analyze([uri], {}, analyzeAll: false));
+  asyncTest(() => analyze([uri], {}, analyzeAll: false));
 }

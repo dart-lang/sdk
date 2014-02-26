@@ -2,32 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * **Note**: If you already have a `build.dart` in your application, we
- * recommend to use the `package:polymer/builder.dart` library instead.
+/// **Note**: If you already have a `build.dart` in your application, we
+/// recommend to use the `package:polymer/builder.dart` library instead.
 
- * Temporary deploy command used to create a version of the app that can be
- * compiled with dart2js and deployed. Following pub layout conventions, this
- * script will treat any HTML file under a package 'web/' and 'test/'
- * directories as entry points.
- *
- * From an application package you can run deploy by creating a small program
- * as follows:
- *
- *    import "package:polymer/deploy.dart" as deploy;
- *    main() => deploy.main();
- *
- * This library should go away once `pub deploy` can be configured to run
- * barback transformers.
- */
+/// Temporary deploy command used to create a version of the app that can be
+/// compiled with dart2js and deployed. Following pub layout conventions, this
+/// script will treat any HTML file under a package 'web/' and 'test/'
+/// directories as entry points.
+///
+/// From an application package you can run deploy by creating a small program
+/// as follows:
+///
+///    import "package:polymer/deploy.dart" as deploy;
+///    main() => deploy.main();
+///
+/// This library should go away once `pub deploy` can be configured to run
+/// barback transformers.
 library polymer.deploy;
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
-import 'src/build/common.dart' show TransformOptions;
+import 'src/build/common.dart' show TransformOptions, phasesForPolymer;
 import 'src/build/runner.dart';
 import 'transformer.dart';
 
@@ -44,7 +41,11 @@ main(List<String> arguments) {
         directlyIncludeJS: args['js'],
         contentSecurityPolicy: args['csp'],
         releaseMode: !args['debug']);
-    options = new BarbackOptions(createDeployPhases(transformOps), outDir);
+    var phases = createDeployPhases(transformOps);
+    options = new BarbackOptions(phases, outDir,
+        // TODO(sigmund): include here also smoke transformer when it's on by
+        // default.
+        packagePhases: {'polymer': phasesForPolymer});
   } else {
     options = _createTestOptions(
         test, outDir, args['js'], args['csp'], !args['debug']);
@@ -76,6 +77,10 @@ BarbackOptions _createTestOptions(String testFile, String outDir,
   }
   var packageName = readCurrentPackageFromPubspec(pubspecDir);
 
+  // Find the dart-root so we can include both polymer and smoke as additional
+  // packages whose transformers we need to run.
+  var pkgDir = path.join(_findDirWithDir(path.absolute(testDir), 'pkg'), 'pkg');
+
   var phases = createDeployPhases(new TransformOptions(
       entryPoints: [path.relative(testFile, from: pubspecDir)],
       directlyIncludeJS: directlyIncludeJS,
@@ -83,12 +88,32 @@ BarbackOptions _createTestOptions(String testFile, String outDir,
       releaseMode: releaseMode));
   return new BarbackOptions(phases, outDir,
       currentPackage: packageName,
-      packageDirs: {packageName : pubspecDir},
+      packageDirs: {
+        'polymer': path.join(pkgDir, 'polymer'),
+        'smoke': path.join(pkgDir, 'smoke'),
+        // packageName may be a duplicate of 'polymer', but that's ok, the
+        // following will be the value used in the map (they should also be the
+        // same value).
+        packageName: pubspecDir,
+      },
+      // TODO(sigmund): include here also smoke transformer when it's on by
+      // default.
+      packagePhases: {'polymer': phasesForPolymer},
       transformTests: true);
 }
 
 String _findDirWithFile(String dir, String filename) {
   while (!new File(path.join(dir, filename)).existsSync()) {
+    var parentDir = path.dirname(dir);
+    // If we reached root and failed to find it, bail.
+    if (parentDir == dir) return null;
+    dir = parentDir;
+  }
+  return dir;
+}
+
+String _findDirWithDir(String dir, String subdir) {
+  while (!new Directory(path.join(dir, subdir)).existsSync()) {
     var parentDir = path.dirname(dir);
     // If we reached root and failed to find it, bail.
     if (parentDir == dir) return null;

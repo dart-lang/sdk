@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/** Transfomer that extracts inlined script code into separate assets. */
+/// Transfomer that extracts inlined script code into separate assets.
 library polymer.src.build.code_extractor;
 
 import 'dart:async';
@@ -16,16 +16,14 @@ import 'package:path/path.dart' as path;
 
 import 'common.dart';
 
-/**
- * Transformer that extracts Dart code inlined in HTML script tags and outputs a
- * separate file for each.
- */
+/// Transformer that extracts Dart code inlined in HTML script tags and outputs
+/// a separate file for each.
 class InlineCodeExtractor extends Transformer with PolymerTransformer {
   final TransformOptions options;
 
   InlineCodeExtractor(this.options);
 
-  /** Only run this transformer on .html files. */
+  /// Only run this transformer on .html files.
   final String allowedExtensions = ".html";
 
   Future apply(Transform transform) {
@@ -34,7 +32,7 @@ class InlineCodeExtractor extends Transformer with PolymerTransformer {
     return readPrimaryAsHtml(transform).then((document) {
       int count = 0;
       bool htmlChanged = false;
-      for (var tag in document.queryAll('script')) {
+      for (var tag in document.querySelectorAll('script')) {
         // Only process tags that have inline Dart code
         if (tag.attributes['type'] != 'application/dart' ||
           tag.attributes.containsKey('src')) {
@@ -52,7 +50,7 @@ class InlineCodeExtractor extends Transformer with PolymerTransformer {
         // TODO(sigmund): ensure this filename is unique (dartbug.com/12618).
         tag.attributes['src'] = '$filename.$count.dart';
         var textContent = tag.nodes.first;
-        var code = textContent.value;
+        var code = textContent.text;
         var newId = id.addExtension('.$count.dart');
         if (!_hasLibraryDirective(code)) {
           var libname = path.withoutExtension(newId.path)
@@ -69,7 +67,7 @@ class InlineCodeExtractor extends Transformer with PolymerTransformer {
   }
 }
 
-/** Parse [code] and determine whether it has a library directive. */
+/// Parse [code] and determine whether it has a library directive.
 bool _hasLibraryDirective(String code) {
   var errorListener = new _ErrorCollector();
   var reader = new CharSequenceReader(code);

@@ -263,10 +263,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
             target = backend.jsArrayAdd;
           }
         }
-      } else if (input.isString(compiler)) {
+      } else if (input.isStringOrNull(compiler)) {
         if (selector.applies(backend.jsStringSplit, compiler)) {
           HInstruction argument = node.inputs[2];
-          if (argument.isString(compiler) && !argument.canBeNull()) {
+          if (argument.isString(compiler)) {
             target = backend.jsStringSplit;
           }
         } else if (selector.applies(backend.jsStringOperatorAdd, compiler)) {
@@ -274,7 +274,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
           // make sure the receiver and the argument are not null.
           HInstruction argument = node.inputs[2];
           if (argument.isString(compiler)
-              && !argument.canBeNull()
               && !input.canBeNull()) {
             target = backend.jsStringOperatorAdd;
           }
@@ -702,7 +701,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction directFieldGet(HInstruction receiver, Element field) {
-    Modifiers modifiers = field.modifiers;
+    ast.Modifiers modifiers = field.modifiers;
     bool isAssignable = !compiler.world.fieldNeverChanges(field);
 
     TypeMask type;
@@ -784,7 +783,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     HInstruction folded = graph.addConstant(
         constantSystem.createString(
-            new DartString.concat(leftString.value, rightString.value)),
+            new ast.DartString.concat(leftString.value, rightString.value)),
         compiler);
     if (prefix == null) return folded;
     return new HStringConcat(prefix, folded, node.node, backend.stringType);
@@ -792,7 +791,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction visitStringify(HStringify node) {
     HInstruction input = node.inputs[0];
-    if (input.isString(compiler) && !input.canBeNull()) return input;
+    if (input.isString(compiler)) return input;
     if (input.isConstant()) {
       HConstant constant = input;
       if (!constant.constant.isPrimitive()) return node;
@@ -894,9 +893,12 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
 
   HInstruction zapInstructionCache;
   HInstruction get zapInstruction {
-    return (zapInstructionCache == null)
-        ? zapInstructionCache = analyzer.graph.addConstantInt(0, compiler)
-        : zapInstructionCache;
+    if (zapInstructionCache == null) {
+      // A constant with no type does not pollute types at phi nodes.
+      Constant constant = new DummyConstant(const TypeMask.nonNullEmpty());
+      zapInstructionCache = analyzer.graph.addConstant(constant, compiler);
+    }
+    return zapInstructionCache;
   }
 
   /// Returns whether the next throwing instruction that may have side

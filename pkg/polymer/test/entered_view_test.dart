@@ -40,13 +40,13 @@ _tests() {
   setUp(() => Polymer.onReady);
 
   test('element created properly', () {
-    XOuter outer = query('x-outer');
+    XOuter outer = querySelector('x-outer');
     outer.expand = true;
     return outer.onMutation(outer.shadowRoot).then((_) {
       // Element upgrade is also using mutation observers. Wait another tick so
       // it goes before we do.
       return new Future(() {
-        XInner inner = outer.shadowRoot.query('x-inner');
+        XInner inner = outer.shadowRoot.querySelector('x-inner');
         expect(inner.enteredCount, 1, reason: 'enteredView should be called');
       });
     });

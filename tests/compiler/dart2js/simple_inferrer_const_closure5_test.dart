@@ -5,6 +5,7 @@
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
+import 'type_mask_test_helper.dart';
 
 const String TEST = """
 
@@ -36,7 +37,7 @@ void main() {
       var signature = functionElement.functionSignature;
       var element = signature.requiredParameters.first;
       Expect.equals(type,
-          typesInferrer.getTypeOfElement(element).simplify(compiler),
+          simplify(typesInferrer.getTypeOfElement(element), compiler),
           functionName);
     }
 

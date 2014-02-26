@@ -22,7 +22,8 @@ main() {
   array[0].c = new C();
   bool inCheckedMode = false;
   try {
-    String a = 42;
+    var i = 42;
+    String a = i;
   } catch (e) {
     inCheckedMode = true;
   }

@@ -233,6 +233,9 @@ abstract class RequestManager extends Observable {
   Future<String> request(String requestString);
 
   Future<Map> requestMap(String requestString) {
+    if (requestString.startsWith('#')) {
+      requestString = requestString.substring(1);
+    }
     return request(requestString).then((response) {
       try {
         var m = JSON.decode(response);

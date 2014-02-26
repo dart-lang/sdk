@@ -1035,8 +1035,6 @@ void main(int argc, char** argv) {
     free(environment);
   }
 
-  Platform::Cleanup();
-
   exit(Process::GlobalExitCode());
 }
 

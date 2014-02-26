@@ -1206,6 +1206,16 @@ CompileType BoxFloat32x4Instr::ComputeType() const {
 }
 
 
+CompileType UnboxFloat64x2Instr::ComputeType() const {
+  return CompileType::FromCid(kFloat64x2Cid);
+}
+
+
+CompileType BoxFloat64x2Instr::ComputeType() const {
+  return CompileType::FromCid(kFloat64x2Cid);
+}
+
+
 CompileType UnboxInt32x4Instr::ComputeType() const {
   return CompileType::FromCid(kInt32x4Cid);
 }
@@ -1222,6 +1232,17 @@ CompileType SmiToDoubleInstr::ComputeType() const {
 
 
 CompileType DoubleToDoubleInstr::ComputeType() const {
+  return CompileType::FromCid(kDoubleCid);
+}
+
+
+CompileType FloatToDoubleInstr::ComputeType() const {
+  return CompileType::FromCid(kDoubleCid);
+}
+
+
+CompileType DoubleToFloatInstr::ComputeType() const {
+  // Type is double when converted back.
   return CompileType::FromCid(kDoubleCid);
 }
 

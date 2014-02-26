@@ -134,12 +134,10 @@ List normalizeTokens(List tokens) {
 }
 
 
-/**
- * Test whether the test has passed or failed
- *
- * If the ignoreErrorOrder flag is set to true we don't test the relative
- * positions of parse errors and non parse errors.
- */
+/// Test whether the test has passed or failed
+///
+/// If the ignoreErrorOrder flag is set to true we don't test the relative
+/// positions of parse errors and non parse errors.
 void expectTokensMatch(List expectedTokens, List receivedTokens,
     bool ignoreErrorOrder, [bool ignoreErrors = false, String message]) {
 

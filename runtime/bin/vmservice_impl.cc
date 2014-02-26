@@ -9,7 +9,9 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/isolate_data.h"
+#include "bin/platform.h"
 #include "bin/thread.h"
+#include "platform/json.h"
 
 namespace dart {
 namespace bin {

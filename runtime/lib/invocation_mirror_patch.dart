@@ -9,8 +9,9 @@ class _InvocationMirror implements Invocation {
   static const int _GETTER = 1;
   static const int _SETTER = 2;
   static const int _FIELD = 3;
+  static const int _LOCAL_VAR = 4;
   static const int _TYPE_SHIFT = 0;
-  static const int _TYPE_BITS = 2;
+  static const int _TYPE_BITS = 3;
   static const int _TYPE_MASK = (1 << _TYPE_BITS) - 1;
 
   // These values, except _DYNAMIC and _SUPER, are only used when throwing

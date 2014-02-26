@@ -7,7 +7,7 @@ import 'package:expect/expect.dart';
 
 import 'dart:async';
 
-@lazy import 'deferred_class_library2.dart';
+@lazy import 'deferred_class_library2.dart' as lib;
 
 const lazy = const DeferredLibrary('deferred_class_library2');
 
@@ -15,19 +15,19 @@ main() {
   asyncStart();
   lazy.load().then((bool didLoad) {
     Expect.isTrue(didLoad);
-    Expect.equals(499, C1.value);
-    Expect.equals(99, C2[0].value);
-    Expect.equals(42, foo().value);
-    Expect.equals(777, bar().value);
-    Expect.equals(111, new Gee().value);
-    Expect.equals(321, new Gee.n321().value);
-    Expect.equals(135, new Gee.n135().value);
-    Expect.equals(246, new Gee.n246().value);
-    Expect.equals(888, new Gee.n888().value);
-    Expect.equals(979, new Gee2().value);
-    Expect.equals(321, new Gee2.n321().value);
-    Expect.equals(151, new Gee2.n151().value);
-    Expect.equals(888, new Gee2.n888().value);
+    Expect.equals(499, lib.C1.value);
+    Expect.equals(99, lib.C2[0].value);
+    Expect.equals(42, lib.foo().value);
+    Expect.equals(777, lib.bar().value);
+    Expect.equals(111, new lib.Gee().value);
+    Expect.equals(321, new lib.Gee.n321().value);
+    Expect.equals(135, new lib.Gee.n135().value);
+    Expect.equals(246, new lib.Gee.n246().value);
+    Expect.equals(888, new lib.Gee.n888().value);
+    Expect.equals(979, new lib.Gee2().value);
+    Expect.equals(321, new lib.Gee2.n321().value);
+    Expect.equals(151, new lib.Gee2.n151().value);
+    Expect.equals(888, new lib.Gee2.n888().value);
     asyncEnd();
   });
 }

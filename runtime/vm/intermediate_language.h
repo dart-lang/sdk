@@ -168,6 +168,9 @@ class Range;
   V(_Float32x4Array, []=, Float32x4ArraySetIndexed, 1583018506)                \
   V(_Int32x4Array, [], Int32x4ArrayGetIndexed, 1911863146)                     \
   V(_Int32x4Array, []=, Int32x4ArraySetIndexed, 973572811)                     \
+  V(_Float64x2Array, [], Float64x2ArrayGetIndexed, 325873961)                  \
+  V(_Float64x2Array, []=, Float64x2ArraySetIndexed, 2105580462)                \
+
 
 
 // A list of core function that should always be inlined.
@@ -183,6 +186,8 @@ class Range;
 
 // A list of core functions that internally dispatch based on received id.
 #define POLYMORPHIC_TARGET_LIST(V)                                             \
+  V(_StringBase, [], StringBaseCharAt, 585372763)                              \
+  V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 1958436584)                 \
   V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 272598802)                     \
   V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 831354841)                   \
   V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 1832126257)                  \
@@ -193,6 +198,16 @@ class Range;
   V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 1356392173)              \
   V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 1239681356)          \
   V(_TypedList, _getInt32x4, ByteArrayBaseGetInt32x4, 163795162)               \
+  V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 1793798234)                    \
+  V(_TypedList, _setUint8, ByteArrayBaseSetInt8, 67253374)                     \
+  V(_TypedList, _setInt16, ByteArrayBaseSetInt16, 10467750)                    \
+  V(_TypedList, _setUint16, ByteArrayBaseSetInt16, 1596986894)                 \
+  V(_TypedList, _setInt32, ByteArrayBaseSetInt32, 868037529)                   \
+  V(_TypedList, _setUint32, ByteArrayBaseSetUint32, 1776345006)                \
+  V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 1807927533)              \
+  V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 399659907)               \
+  V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 1612092224)          \
+  V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 74799321)                \
 
 // Class that recognizes the name and owner of a function and returns the
 // corresponding enum. See RECOGNIZED_LIST above for list of recognizable
@@ -638,8 +653,6 @@ class EmbeddedArray<T, 0> {
   M(LoadClassId)                                                               \
   M(InstantiateType)                                                           \
   M(InstantiateTypeArguments)                                                  \
-  M(ExtractConstructorTypeArguments)                                           \
-  M(ExtractConstructorInstantiator)                                            \
   M(AllocateContext)                                                           \
   M(CloneContext)                                                              \
   M(BinarySmiOp)                                                               \
@@ -650,6 +663,8 @@ class EmbeddedArray<T, 0> {
   M(DoubleToInteger)                                                           \
   M(DoubleToSmi)                                                               \
   M(DoubleToDouble)                                                            \
+  M(DoubleToFloat)                                                             \
+  M(FloatToDouble)                                                             \
   M(CheckClass)                                                                \
   M(CheckSmi)                                                                  \
   M(Constant)                                                                  \
@@ -700,6 +715,8 @@ class EmbeddedArray<T, 0> {
   M(Int32x4ToFloat32x4)                                                        \
   M(BinaryInt32x4Op)                                                           \
   M(TestSmi)                                                                   \
+  M(BoxFloat64x2)                                                              \
+  M(UnboxFloat64x2)                                                            \
 
 
 #define FORWARD_DECLARATION(type) class type##Instr;
@@ -966,6 +983,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class UnboxIntegerInstr;
   friend class UnboxDoubleInstr;
   friend class UnboxFloat32x4Instr;
+  friend class UnboxFloat64x2Instr;
   friend class UnboxInt32x4Instr;
   friend class BinaryDoubleOpInstr;
   friend class BinaryFloat32x4OpInstr;
@@ -1005,6 +1023,8 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class LICM;
   friend class DoubleToSmiInstr;
   friend class DoubleToDoubleInstr;
+  friend class DoubleToFloatInstr;
+  friend class FloatToDoubleInstr;
   friend class InvokeMathCFunctionInstr;
   friend class MergedMathInstr;
   friend class FlowGraphOptimizer;
@@ -3187,7 +3207,8 @@ class StaticCallInstr : public TemplateDefinition<0> {
         argument_names_(argument_names),
         arguments_(arguments),
         result_cid_(kDynamicCid),
-        is_known_list_constructor_(false) {
+        is_known_list_constructor_(false),
+        is_native_list_factory_(false) {
     ASSERT(function.IsZoneHandle());
     ASSERT(argument_names.IsZoneHandle() ||  argument_names.InVMHeap());
   }
@@ -3226,6 +3247,11 @@ class StaticCallInstr : public TemplateDefinition<0> {
     is_known_list_constructor_ = value;
   }
 
+  bool is_native_list_factory() const { return is_native_list_factory_; }
+  void set_is_native_list_factory(bool value) {
+    is_native_list_factory_ = value;
+  }
+
   virtual bool MayThrow() const { return true; }
 
  private:
@@ -3238,6 +3264,7 @@ class StaticCallInstr : public TemplateDefinition<0> {
 
   // 'True' for recognized list constructors.
   bool is_known_list_constructor_;
+  bool is_native_list_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticCallInstr);
 };
@@ -3698,9 +3725,9 @@ class StringFromCharCodeInstr : public TemplateDefinition<1> {
  public:
   StringFromCharCodeInstr(Value* char_code, intptr_t cid) : cid_(cid) {
     ASSERT(char_code != NULL);
-    ASSERT(char_code->definition()->IsLoadIndexed() &&
-           (char_code->definition()->AsLoadIndexed()->class_id() ==
-            kOneByteStringCid));
+    ASSERT(char_code->definition()->IsLoadIndexed());
+    ASSERT(char_code->definition()->AsLoadIndexed()->class_id() ==
+           kOneByteStringCid);
     SetInputAt(0, char_code);
   }
 
@@ -3939,7 +3966,7 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
         closure_function_(Function::ZoneHandle()),
         context_field_(Field::ZoneHandle()) {
     // Either no arguments or one type-argument and one instantiator.
-    ASSERT(arguments->is_empty() || (arguments->length() == 2));
+    ASSERT(arguments->is_empty() || (arguments->length() == 1));
   }
 
   DECLARE_INSTRUCTION(AllocateObject)
@@ -4388,84 +4415,14 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1> {
 
   virtual bool MayThrow() const { return true; }
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
  private:
   const intptr_t token_pos_;
   const TypeArguments& type_arguments_;
   const Class& instantiator_class_;
 
   DISALLOW_COPY_AND_ASSIGN(InstantiateTypeArgumentsInstr);
-};
-
-
-class ExtractConstructorTypeArgumentsInstr : public TemplateDefinition<1> {
- public:
-  ExtractConstructorTypeArgumentsInstr(
-      intptr_t token_pos,
-      const TypeArguments& type_arguments,
-      const Class& instantiator_class,
-      Value* instantiator)
-      : token_pos_(token_pos),
-        type_arguments_(type_arguments),
-        instantiator_class_(instantiator_class) {
-    SetInputAt(0, instantiator);
-  }
-
-  DECLARE_INSTRUCTION(ExtractConstructorTypeArguments)
-
-  Value* instantiator() const { return inputs_[0]; }
-  const TypeArguments& type_arguments() const {
-    return type_arguments_;
-  }
-  const Class& instantiator_class() const { return instantiator_class_; }
-  intptr_t token_pos() const { return token_pos_; }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  const intptr_t token_pos_;
-  const TypeArguments& type_arguments_;
-  const Class& instantiator_class_;
-
-  DISALLOW_COPY_AND_ASSIGN(ExtractConstructorTypeArgumentsInstr);
-};
-
-
-class ExtractConstructorInstantiatorInstr : public TemplateDefinition<1> {
- public:
-  ExtractConstructorInstantiatorInstr(ConstructorCallNode* ast_node,
-                                      const Class& instantiator_class,
-                                      Value* instantiator)
-      : ast_node_(*ast_node), instantiator_class_(instantiator_class) {
-    SetInputAt(0, instantiator);
-  }
-
-  DECLARE_INSTRUCTION(ExtractConstructorInstantiator)
-
-  Value* instantiator() const { return inputs_[0]; }
-  const TypeArguments& type_arguments() const {
-    return ast_node_.type_arguments();
-  }
-  const Function& constructor() const { return ast_node_.constructor(); }
-  const Class& instantiator_class() const { return instantiator_class_; }
-  intptr_t token_pos() const { return ast_node_.token_pos(); }
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  const ConstructorCallNode& ast_node_;
-  const Class& instantiator_class_;
-
-  DISALLOW_COPY_AND_ASSIGN(ExtractConstructorInstantiatorInstr);
 };
 
 
@@ -4630,6 +4587,43 @@ class BoxFloat32x4Instr : public TemplateDefinition<1> {
 };
 
 
+class BoxFloat64x2Instr : public TemplateDefinition<1> {
+ public:
+  explicit BoxFloat64x2Instr(Value* value) {
+    SetInputAt(0, value);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    return Isolate::kNoDeoptId;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedFloat64x2;
+  }
+
+  DECLARE_INSTRUCTION(BoxFloat64x2)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+  Definition* Canonicalize(FlowGraph* flow_graph);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BoxFloat64x2Instr);
+};
+
+
+
 class BoxInt32x4Instr : public TemplateDefinition<1> {
  public:
   explicit BoxInt32x4Instr(Value* value) {
@@ -4766,6 +4760,40 @@ class UnboxFloat32x4Instr : public TemplateDefinition<1> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxFloat32x4Instr);
+};
+
+
+class UnboxFloat64x2Instr : public TemplateDefinition<1> {
+ public:
+  UnboxFloat64x2Instr(Value* value, intptr_t deopt_id) {
+    SetInputAt(0, value);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const {
+    return (value()->Type()->ToCid() != kFloat64x2Cid);
+  }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat64x2;
+  }
+
+  DECLARE_INSTRUCTION(UnboxFloat64x2)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+  Definition* Canonicalize(FlowGraph* flow_graph);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(UnboxFloat64x2Instr);
 };
 
 
@@ -6596,6 +6624,92 @@ class DoubleToDoubleInstr : public TemplateDefinition<1> {
   const MethodRecognizer::Kind recognized_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(DoubleToDoubleInstr);
+};
+
+
+class DoubleToFloatInstr: public TemplateDefinition<1> {
+ public:
+  DoubleToFloatInstr(Value* value, intptr_t deopt_id) {
+    SetInputAt(0, value);
+    // Override generated deopt-id.
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  DECLARE_INSTRUCTION(DoubleToFloat)
+
+  virtual CompileType ComputeType() const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    // This works since double is the representation that the typed array
+    // store expects.
+    // TODO(fschneider): Change this to a genuine float representation once it
+    // is supported.
+    return kUnboxedDouble;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedDouble;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(DoubleToFloatInstr);
+};
+
+
+class FloatToDoubleInstr: public TemplateDefinition<1> {
+ public:
+  FloatToDoubleInstr(Value* value, intptr_t deopt_id) {
+    SetInputAt(0, value);
+    // Override generated deopt-id.
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  DECLARE_INSTRUCTION(FloatToDouble)
+
+  virtual CompileType ComputeType() const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedDouble;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedDouble;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(FloatToDoubleInstr);
 };
 
 

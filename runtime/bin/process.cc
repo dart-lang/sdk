@@ -209,7 +209,6 @@ void FUNCTION_NAME(Process_Exit)(Dart_NativeArguments args) {
   DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &status);
   Dart_ExitIsolate();
   Dart_Cleanup();
-  Platform::Cleanup();
   exit(static_cast<int>(status));
 }
 

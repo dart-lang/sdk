@@ -91,4 +91,11 @@ DEFINE_NATIVE_ENTRY(GrowableList_setData, 2) {
   return Object::null();
 }
 
+
+DEFINE_NATIVE_ENTRY(Internal_makeListFixedLength, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(GrowableObjectArray, array,
+                               arguments->NativeArgAt(0));
+  return Array::MakeArray(array);
+}
+
 }  // namespace dart

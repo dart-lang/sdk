@@ -19,17 +19,18 @@ main() {
   int i = 0;
   new A.foo(42);
   try {
-    new A.bar(foo());  // Args are evaluated before throwing NoSuchMethodError.
+    // Args are evaluated before throwing NoSuchMethodError:
+    new A.bar(foo()); /// 01: static type warning
   } on NoSuchMethodError catch (e) {
     i = -1;
   } on String catch (e) {
     i = 1;
   }
-  Expect.equals(1, i);
+  Expect.equals(1, i); /// 01: continued
   try {
-    new A();
+    new A(); /// 02: static type warning
   } on NoSuchMethodError catch (e) {
     i = 2;
   }
-  Expect.equals(2, i);
+  Expect.equals(2, i); /// 02: continued
 }

@@ -22,7 +22,7 @@ import 'elements/visitor.dart' as elements_visitor;
 
 import 'js/js.dart' as js;
 
-import 'types/concrete_types_inferrer.dart' as concrete_types_inferrer;
+import 'inferrer/concrete_types_inferrer.dart' as concrete_types_inferrer;
 
 import 'colors.dart' as colors;
 

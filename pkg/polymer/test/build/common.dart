@@ -20,15 +20,11 @@ String _removeTrailingWhitespace(String str) =>
     str.splitMapJoin('\n',
         onNonMatch: (s) => s.replaceAll(new RegExp(r'\s+$'), ''));
 
-/**
- * A helper package provider that has files stored in memory, also wraps
- * [Barback] to simply our tests.
- */
+/// A helper package provider that has files stored in memory, also wraps
+/// [Barback] to simply our tests.
 class TestHelper implements PackageProvider {
-  /**
-   * Maps from an asset string identifier of the form 'package|path' to the
-   * file contents.
-   */
+  /// Maps from an asset string identifier of the form 'package|path' to the
+  /// file contents.
   final Map<String, String> files;
   final Iterable<String> packages;
   final List<String> messages;
@@ -66,6 +62,8 @@ class TestHelper implements PackageProvider {
     });
 
     logSubscription = barback.log.listen((entry) {
+      // Ignore info messages.
+      if (entry.level == LogLevel.INFO) return;
       if (entry.level == LogLevel.ERROR) errorSeen = true;
       // We only check messages when an expectation is provided.
       if (messages == null) return;
@@ -86,10 +84,8 @@ class TestHelper implements PackageProvider {
     logSubscription.cancel();
   }
 
-  /**
-   * Tells barback which files have changed, and thus anything that depends on
-   * it on should be computed. By default mark all the input files.
-   */
+  /// Tells barback which files have changed, and thus anything that depends on
+  /// it on should be computed. By default mark all the input files.
   void run([Iterable<String> paths]) {
     if (paths == null) paths = files.keys;
     barback.updateSources(paths.map(idFromString));
@@ -109,11 +105,14 @@ class TestHelper implements PackageProvider {
   }
 
   Future checkAll(Map<String, String> files) {
-    var futures = [];
-    files.forEach((k, v) {
-      futures.add(check(k, v));
-    });
-    return Future.wait(futures).then((_) {
+    return barback.results.first.then((_) {
+      if (files == null) return null;
+      var futures = [];
+      files.forEach((k, v) {
+        futures.add(check(k, v));
+      });
+      return Future.wait(futures);
+    }).then((_) {
       // We only check messages when an expectation is provided.
       if (messages == null) return;
       expect(messages.length, messagesSeen,

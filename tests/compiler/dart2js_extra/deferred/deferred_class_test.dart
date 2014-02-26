@@ -7,7 +7,7 @@ import 'package:expect/expect.dart';
 
 import 'dart:async';
 
-@lazy import 'deferred_class_library.dart';
+@lazy import 'deferred_class_library.dart' as lib;
 
 const lazy = const DeferredLibrary('deferred_class_library');
 
@@ -15,7 +15,7 @@ isNoSuchMethodError(e) => e is NoSuchMethodError;
 
 main() {
   var x;
-  Expect.throws(() { x = new MyClass(); }, isNoSuchMethodError);
+  Expect.throws(() { x = new lib.MyClass(); }, isNoSuchMethodError);
   Expect.isNull(x);
   int counter = 0;
   asyncStart();
@@ -23,7 +23,7 @@ main() {
     Expect.isTrue(didLoad);
     Expect.equals(1, ++counter);
     print('deferred_class_library was loaded');
-    x = new MyClass();
+    x = new lib.MyClass();
     Expect.equals(42, x.foo(87));
     asyncEnd();
   });
@@ -34,12 +34,12 @@ main() {
     Expect.isFalse(didLoad);
     Expect.equals(2, ++counter);
     print('deferred_class_library was loaded');
-    x = new MyClass();
+    x = new lib.MyClass();
     Expect.equals(42, x.foo(87));
     asyncEnd();
   });
   Expect.equals(0, counter);
   Expect.isNull(x);
-  Expect.throws(() { x = new MyClass(); }, isNoSuchMethodError);
+  Expect.throws(() { x = new lib.MyClass(); }, isNoSuchMethodError);
   Expect.isNull(x);
 }

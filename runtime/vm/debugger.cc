@@ -187,23 +187,30 @@ ActivationFrame::ActivationFrame(
 
 void Debugger::SignalIsolateEvent(EventType type) {
   if (event_handler_ != NULL) {
-    Debugger* debugger = Isolate::Current()->debugger();
-    ASSERT(debugger != NULL);
     DebuggerEvent event(type);
-    event.isolate_id = debugger->GetIsolateId();
+    event.isolate_id = isolate_id_;
     ASSERT(event.isolate_id != ILLEGAL_ISOLATE_ID);
     if (type == kIsolateInterrupted) {
-      DebuggerStackTrace* stack_trace = debugger->CollectStackTrace();
-      ASSERT(stack_trace->Length() > 0);
-      ASSERT(debugger->stack_trace_ == NULL);
-      debugger->stack_trace_ = stack_trace;
-      debugger->Pause(&event);
-      debugger->stack_trace_ = NULL;
-      // TODO(asiva): Need some work here to be able to single step after
-      // an interrupt.
+      DebuggerStackTrace* trace = CollectStackTrace();
+      ASSERT(trace->Length() > 0);
+      ASSERT(stack_trace_ == NULL);
+      stack_trace_ = trace;
+      resume_action_ = kContinue;
+      Pause(&event);
+      HandleSteppingRequest(trace);
+      stack_trace_ = NULL;
     } else {
       (*event_handler_)(&event);
     }
+  }
+}
+
+
+void Debugger::SignalIsolateInterrupted() {
+  if (event_handler_ != NULL) {
+    Debugger* debugger = Isolate::Current()->debugger();
+    ASSERT(debugger != NULL);
+    debugger->SignalIsolateEvent(kIsolateInterrupted);
   }
 }
 
@@ -432,12 +439,6 @@ intptr_t ActivationFrame::ContextLevel() {
 
 
 RawContext* ActivationFrame::GetSavedEntryContext() {
-  if (ctx_.IsNull()) {
-    // We have bailed on providing a context for this frame.  Bail for
-    // the caller as well.
-    return Context::null();
-  }
-
   // Attempt to find a saved context.
   GetVarDescriptors();
   intptr_t var_desc_len = var_descriptors_.Length();
@@ -466,6 +467,7 @@ RawContext* ActivationFrame::GetSavedCurrentContext() {
       return GetLocalContextVar(var_info.index);
     }
   }
+  UNREACHABLE();
   return Context::null();
 }
 
@@ -611,9 +613,15 @@ RawInstance* ActivationFrame::GetLocalInstanceVar(intptr_t slot_index) {
 RawContext* ActivationFrame::GetLocalContextVar(intptr_t slot_index) {
   Object& context = Object::Handle(GetLocalVar(slot_index));
   if (context.IsContext()) {
+    // We found a saved context.
     return Context::Cast(context).raw();
+  } else if (context.raw() == Symbols::OptimizedOut().raw()) {
+    // The optimizing compiler has eliminated the saved context.
+    return Context::null();
+  } else {
+    UNREACHABLE();
+    return Context::null();
   }
-  return Context::null();
 }
 
 
@@ -638,9 +646,14 @@ void ActivationFrame::VariableAt(intptr_t i,
     *value = GetLocalInstanceVar(var_info.index);
   } else {
     ASSERT(var_info.kind == RawLocalVarDescriptors::kContextVar);
+    if (ctx_.IsNull()) {
+      // The context has been removed by the optimizing compiler.
+      *value = Symbols::OptimizedOut().raw();
+      return;
+    }
+
     // The context level at the PC/token index of this activation frame.
     intptr_t frame_ctx_level = ContextLevel();
-    ASSERT(!ctx_.IsNull());
 
     // The context level of the variable.
     intptr_t var_ctx_level = var_info.scope_id;
@@ -1063,6 +1076,7 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
   if (callee_activation == NULL) {
     // No callee.  Use incoming entry context.  Could be from
     // isolate's top context or from an entry frame.
+    ASSERT(!entry_ctx.IsNull());
     activation->SetContext(entry_ctx);
 
   } else if (callee_activation->function().IsClosureFunction()) {
@@ -1077,6 +1091,9 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
     // Use the context provided by our callee.  This is either the
     // callee's context or a context that was saved in the callee's
     // frame.
+    //
+    // The callee's saved context may be NULL if it was eliminated by
+    // the optimizing compiler.
     const Context& callee_ctx =
         Context::Handle(isolate, callee_activation->GetSavedEntryContext());
     activation->SetContext(callee_ctx);
@@ -1916,6 +1933,28 @@ void Debugger::Pause(DebuggerEvent* event) {
 }
 
 
+void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace) {
+  stepping_fp_ = 0;
+  if (resume_action_ == kSingleStep) {
+    isolate_->set_single_step(true);
+  } else if (resume_action_ == kStepOver) {
+    isolate_->set_single_step(true);
+    ASSERT(stack_trace->Length() > 0);
+    stepping_fp_ = stack_trace->FrameAt(0)->fp();
+  } else if (resume_action_ == kStepOut) {
+    isolate_->set_single_step(true);
+    // Find topmost caller that is debuggable.
+    for (intptr_t i = 1; i < stack_trace->Length(); i++) {
+      ActivationFrame* frame = stack_trace->FrameAt(i);
+      if (frame->IsDebuggable()) {
+        stepping_fp_ = frame->fp();
+        break;
+      }
+    }
+  }
+}
+
+
 bool Debugger::IsDebuggable(const Function& func) {
   if (!IsDebuggableFunctionKind(func)) {
     return false;
@@ -1937,17 +1976,6 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
   event.top_frame = top_frame;
   event.breakpoint = bpt;
   Pause(&event);
-}
-
-
-static uword DebuggableCallerFP(DebuggerStackTrace* stack_trace) {
-  for (intptr_t i = 1; i < stack_trace->Length(); i++) {
-    ActivationFrame* frame = stack_trace->FrameAt(i);
-    if (frame->IsDebuggable()) {
-      return frame->fp();
-    }
-  }
-  return 0;
 }
 
 
@@ -1998,17 +2026,7 @@ void Debugger::DebuggerStepCallback() {
   ASSERT(stack_trace_ == NULL);
   stack_trace_ = CollectStackTrace();
   SignalPausedEvent(frame, NULL);
-
-  if (resume_action_ == kSingleStep) {
-    isolate_->set_single_step(true);
-    stepping_fp_ = 0;
-  } else if (resume_action_ == kStepOver) {
-    isolate_->set_single_step(true);
-    stepping_fp_ = frame->fp();
-  } else if (resume_action_ == kStepOut) {
-    isolate_->set_single_step(true);
-    stepping_fp_ = DebuggableCallerFP(stack_trace_);
-  }
+  HandleSteppingRequest(stack_trace_);
   stack_trace_ = NULL;
 }
 
@@ -2040,18 +2058,8 @@ void Debugger::SignalBpReached() {
   ASSERT(stack_trace_ == NULL);
   stack_trace_ = stack_trace;
   SignalPausedEvent(top_frame, bpt->src_bpt_);
+  HandleSteppingRequest(stack_trace_);
   stack_trace_ = NULL;
-
-  if (resume_action_ == kSingleStep) {
-    isolate_->set_single_step(true);
-    stepping_fp_ = 0;
-  } else if (resume_action_ == kStepOver) {
-    isolate_->set_single_step(true);
-    stepping_fp_ = top_frame->fp();
-  } else if (resume_action_ == kStepOut) {
-    isolate_->set_single_step(true);
-    stepping_fp_ = DebuggableCallerFP(stack_trace);
-  }
   if (bpt->IsInternal()) {
     RemoveInternalBreakpoints();
   }
