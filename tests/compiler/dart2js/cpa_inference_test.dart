@@ -471,6 +471,27 @@ testToplevelVariable2() {
   });
 }
 
+testToplevelVariable3() {
+  final String source = r"""
+      var top = "a";
+      
+      f() => top;
+
+      main() {
+        var foo = f();
+        var bar = top;
+        top = 42;
+        var baz = top;
+        foo; bar; baz;
+      }
+      """;
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.int, result.string]);
+    result.checkNodeHasType('bar', [result.int, result.string]);
+    result.checkNodeHasType('baz', [result.int, result.string]);
+  });
+}
+
 testNonRecusiveFunction() {
   final String source = r"""
       f(x, y) => true ? x : y;
@@ -690,6 +711,28 @@ testDynamicGetters() {
   });
 }
 
+testToplevelGetters() {
+  final String source = """
+      int _x = 42;
+      get x => _x;
+ 
+      f() => x;
+
+      main() {
+        var foo = f();
+        var bar = x;
+        _x = "a";
+        var baz = x;
+        foo; bar; baz;
+      }
+      """;
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.int, result.string]);
+    result.checkNodeHasType('bar', [result.int, result.string]);
+    result.checkNodeHasType('baz', [result.int, result.string]);
+  });
+}
+
 testSetters() {
   final String source = """
       class A {
@@ -729,6 +772,30 @@ testSetters() {
                               result.double]);  // dynamic.y = 3.14
   });
 }
+
+testToplevelSetters() {
+  final String source = """
+      int _x = 42;
+      set x(y) => _x = y;
+ 
+      f(y) { x = y; }
+
+      main() {
+        var foo = _x;
+        x = "a";
+        var bar = _x;
+        f(true);
+        var baz = _x;
+        foo; bar; baz;
+      }
+      """;
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.int, result.string, result.bool]);
+    result.checkNodeHasType('bar', [result.int, result.string, result.bool]);
+    result.checkNodeHasType('baz', [result.int, result.string, result.bool]);
+  });
+}
+
 
 testOptionalNamedParameters() {
   final String source = r"""
@@ -2039,6 +2106,7 @@ void main() {
     testForIn,
     testToplevelVariable,
     testToplevelVariable2,
+    testToplevelVariable3,
     testNonRecusiveFunction,
     testMultipleReturns,
     testRecusiveFunction,
@@ -2050,8 +2118,10 @@ void main() {
     testSendToThis4,
     testConstructor,
     testGetters,
+    testToplevelGetters,
     testDynamicGetters,
     testSetters,
+    testToplevelSetters,
     testOptionalNamedParameters,
     testOptionalPositionalParameters,
     testListLiterals,
