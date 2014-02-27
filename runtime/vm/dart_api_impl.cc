@@ -133,6 +133,28 @@ CLASS_LIST_FOR_HANDLES(DEFINE_UNWRAP)
 #undef DEFINE_UNWRAP
 
 
+const String& Api::UnwrapStringHandle(const ReusableObjectHandleScope& reuse,
+                                      Dart_Handle dart_handle) {
+  Object& ref = reuse.Handle();
+  ref = Api::UnwrapHandle(dart_handle);
+  if (ref.IsString()) {
+    return String::Cast(ref);
+  }
+  return Object::null_string();
+}
+
+
+const Instance& Api::UnwrapInstanceHandle(
+    const ReusableObjectHandleScope& reuse, Dart_Handle dart_handle) {
+  Object& ref = reuse.Handle();
+  ref = Api::UnwrapHandle(dart_handle);
+  if (ref.IsInstance()) {
+    return Instance::Cast(ref);
+  }
+  return Object::null_instance();
+}
+
+
 PersistentHandle* Api::UnwrapAsPersistentHandle(Dart_PersistentHandle object) {
   ASSERT(Isolate::Current()->api_state()->IsValidPersistentHandle(object));
   return reinterpret_cast<PersistentHandle*>(object);
@@ -261,11 +283,10 @@ void Api::InitHandles() {
 }
 
 
-bool Api::StringGetPeerHelper(Dart_NativeArguments args,
+bool Api::StringGetPeerHelper(NativeArguments* arguments,
                               int arg_index,
                               void** peer) {
   NoGCScope no_gc_scope;
-  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   RawObject* raw_obj = arguments->NativeArgAt(arg_index);
   if (!raw_obj->IsHeapObject()) {
     return false;
@@ -294,9 +315,8 @@ bool Api::StringGetPeerHelper(Dart_NativeArguments args,
 }
 
 
-bool Api::GetNativeReceiver(Dart_NativeArguments args, intptr_t* value) {
+bool Api::GetNativeReceiver(NativeArguments* arguments, intptr_t* value) {
   NoGCScope no_gc_scope;
-  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   RawObject* raw_obj = arguments->NativeArg0();
   if (raw_obj->IsHeapObject()) {
     intptr_t cid = raw_obj->GetClassId();
@@ -316,11 +336,10 @@ bool Api::GetNativeReceiver(Dart_NativeArguments args, intptr_t* value) {
 }
 
 
-bool Api::GetNativeBooleanArgument(Dart_NativeArguments args,
+bool Api::GetNativeBooleanArgument(NativeArguments* arguments,
                                    int arg_index,
                                    bool* value) {
   NoGCScope no_gc_scope;
-  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   RawObject* raw_obj = arguments->NativeArgAt(arg_index);
   if (raw_obj->IsHeapObject()) {
       intptr_t cid = raw_obj->GetClassId();
@@ -599,7 +618,9 @@ static Dart_WeakPersistentHandle AllocateFinalizableHandle(
     Dart_Handle object,
     void* peer,
     Dart_WeakPersistentHandleFinalizer callback) {
-  const Object& ref = Object::Handle(isolate, Api::UnwrapHandle(object));
+  ReusableObjectHandleScope reused_obj_handle(isolate);
+  Object& ref = reused_obj_handle.Handle();
+  ref = Api::UnwrapHandle(object);
   FinalizablePersistentHandle* finalizable_ref = handles->AllocateHandle();
   finalizable_ref->set_raw(ref);
   finalizable_ref->set_peer(peer);
@@ -613,7 +634,7 @@ DART_EXPORT Dart_WeakPersistentHandle Dart_NewWeakPersistentHandle(
     void* peer,
     Dart_WeakPersistentHandleFinalizer callback) {
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
+  CHECK_ISOLATE(isolate);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   return AllocateFinalizableHandle(isolate,
@@ -629,7 +650,7 @@ DART_EXPORT Dart_WeakPersistentHandle Dart_NewPrologueWeakPersistentHandle(
     void* peer,
     Dart_WeakPersistentHandleFinalizer callback) {
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
+  CHECK_ISOLATE(isolate);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   return AllocateFinalizableHandle(isolate,
@@ -1347,9 +1368,11 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
 
 DART_EXPORT bool Dart_IsInstance(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
-  return obj.IsInstance();
+  CHECK_ISOLATE(isolate);
+  ReusableObjectHandleScope reused_obj_handle(isolate);
+  Object& ref = reused_obj_handle.Handle();
+  ref = Api::UnwrapHandle(object);
+  return ref.IsInstance();
 }
 
 
@@ -1442,8 +1465,10 @@ DART_EXPORT bool Dart_IsClosure(Dart_Handle object) {
   // We can't use a fast class index check here because there are many
   // different signature classes for closures.
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Instance& closure_obj = Api::UnwrapInstanceHandle(isolate, object);
+  CHECK_ISOLATE(isolate);
+  ReusableObjectHandleScope reused_obj_handle(isolate);
+  const Instance& closure_obj =
+      Api::UnwrapInstanceHandle(reused_obj_handle, object);
   return (!closure_obj.IsNull() && closure_obj.IsClosure());
 }
 
@@ -1690,8 +1715,9 @@ DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle boolean_obj,
 
 DART_EXPORT Dart_Handle Dart_StringLength(Dart_Handle str, intptr_t* len) {
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const String& str_obj = Api::UnwrapStringHandle(isolate, str);
+  CHECK_ISOLATE(isolate);
+  ReusableObjectHandleScope reused_obj_handle(isolate);
+  const String& str_obj = Api::UnwrapStringHandle(reused_obj_handle, str);
   if (str_obj.IsNull()) {
     RETURN_TYPE_ERROR(isolate, str, String);
   }
@@ -1887,8 +1913,9 @@ DART_EXPORT Dart_Handle Dart_StringToUTF16(Dart_Handle str,
 DART_EXPORT Dart_Handle Dart_StringStorageSize(Dart_Handle str,
                                                intptr_t* size) {
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const String& str_obj = Api::UnwrapStringHandle(isolate, str);
+  CHECK_ISOLATE(isolate);
+  ReusableObjectHandleScope reused_obj_handle(isolate);
+  const String& str_obj = Api::UnwrapStringHandle(reused_obj_handle, str);
   if (str_obj.IsNull()) {
     RETURN_TYPE_ERROR(isolate, str, String);
   }
@@ -1959,8 +1986,9 @@ DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle object,
                                                  intptr_t* str_len,
                                                  void** peer) {
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const String& str = Api::UnwrapStringHandle(isolate, object);
+  CHECK_ISOLATE(isolate);
+  ReusableObjectHandleScope reused_obj_handle(isolate);
+  const String& str = Api::UnwrapStringHandle(reused_obj_handle, object);
   if (str.IsNull()) {
     RETURN_TYPE_ERROR(isolate, object, String);
   }
@@ -3754,8 +3782,9 @@ DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
 DART_EXPORT Dart_Handle Dart_GetNativeInstanceFieldCount(Dart_Handle obj,
                                                          int* count) {
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Instance& instance = Api::UnwrapInstanceHandle(isolate, obj);
+  CHECK_ISOLATE(isolate);
+  ReusableObjectHandleScope reused_obj_handle(isolate);
+  const Instance& instance = Api::UnwrapInstanceHandle(reused_obj_handle, obj);
   if (instance.IsNull()) {
     RETURN_TYPE_ERROR(isolate, obj, Instance);
   }
@@ -3769,8 +3798,9 @@ DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
                                                     int index,
                                                     intptr_t* value) {
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Instance& instance = Api::UnwrapInstanceHandle(isolate, obj);
+  CHECK_ISOLATE(isolate);
+  ReusableObjectHandleScope reused_obj_handle(isolate);
+  const Instance& instance = Api::UnwrapInstanceHandle(reused_obj_handle, obj);
   if (instance.IsNull()) {
     RETURN_TYPE_ERROR(isolate, obj, Instance);
   }
@@ -3788,8 +3818,9 @@ DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
                                                     int index,
                                                     intptr_t value) {
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Instance& instance = Api::UnwrapInstanceHandle(isolate, obj);
+  CHECK_ISOLATE(isolate);
+  ReusableObjectHandleScope reused_obj_handle(isolate);
+  const Instance& instance = Api::UnwrapInstanceHandle(reused_obj_handle, obj);
   if (instance.IsNull()) {
     RETURN_TYPE_ERROR(isolate, obj, Instance);
   }
@@ -3846,7 +3877,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeFieldsOfArgument(
     RETURN_NULL_ERROR(field_values);
   }
   Isolate* isolate = arguments->isolate();
-  DARTSCOPE(isolate);
+  CHECK_ISOLATE(isolate);
   ReusableObjectHandleScope reused_obj_handle(isolate);
   Object& obj = reused_obj_handle.Handle();
   obj = arguments->NativeArgAt(arg_index);
@@ -3880,7 +3911,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeReceiver(Dart_NativeArguments args,
   if (value == NULL) {
     RETURN_NULL_ERROR(value);
   }
-  if (Api::GetNativeReceiver(args, value)) {
+  if (Api::GetNativeReceiver(arguments, value)) {
     return Api::Success();
   }
   return Api::NewError("%s expects receiver argument to be non-null and of"
@@ -3894,7 +3925,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeStringArgument(Dart_NativeArguments args,
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   Isolate* isolate = arguments->isolate();
   CHECK_ISOLATE(isolate);
-  if (Api::StringGetPeerHelper(args, arg_index, peer)) {
+  if (Api::StringGetPeerHelper(arguments, arg_index, peer)) {
     return Api::Success();
   }
   *peer = NULL;
@@ -3961,7 +3992,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeBooleanArgument(Dart_NativeArguments args,
         "%s: argument 'index' out of range. Expected 0..%d but saw %d.",
         CURRENT_FUNC, arguments->NativeArgCount() - 1, index);
   }
-  if (Api::GetNativeBooleanArgument(args, index, value)) {
+  if (Api::GetNativeBooleanArgument(arguments, index, value)) {
     return Api::Success();
   }
   return Api::NewError("%s: argument %d is not a Boolean argument.",
@@ -4211,10 +4242,8 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
 
 DART_EXPORT Dart_Handle Dart_RootLibrary() {
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  Library& library =
-      Library::Handle(isolate, isolate->object_store()->root_library());
-  return Api::NewHandle(isolate, library.raw());
+  CHECK_ISOLATE(isolate);
+  return Api::NewHandle(isolate, isolate->object_store()->root_library());
 }
 
 
@@ -4520,8 +4549,10 @@ DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer) {
     RETURN_NULL_ERROR(peer);
   }
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+  CHECK_ISOLATE(isolate);
+  ReusableObjectHandleScope reused_obj_handle(isolate);
+  Object& obj = reused_obj_handle.Handle();
+  obj = Api::UnwrapHandle(object);
   if (obj.IsNull() || obj.IsNumber() || obj.IsBool()) {
     const char* msg =
         "%s: argument 'object' cannot be a subtype of Null, num, or bool";
@@ -4538,8 +4569,10 @@ DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer) {
 
 DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer) {
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+  CHECK_ISOLATE(isolate);
+  ReusableObjectHandleScope reused_obj_handle(isolate);
+  Object& obj = reused_obj_handle.Handle();
+  obj = Api::UnwrapHandle(object);
   if (obj.IsNull() || obj.IsNumber() || obj.IsBool()) {
     const char* msg =
         "%s: argument 'object' cannot be a subtype of Null, num, or bool";
