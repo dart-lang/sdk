@@ -50,7 +50,8 @@ void CpuId::InitOnce() {
   CpuId::sse41_ = (info[2] & (1 << 19)) != 0;
   CpuId::sse2_ = (info[3] & (1 << 26)) != 0;
 
-  char* brand_string = reinterpret_cast<char*>(3 * 4 * sizeof(uint32_t));
+  char* brand_string =
+      reinterpret_cast<char*>(malloc(3 * 4 * sizeof(uint32_t)));
   for (uint32_t i = 0x80000002; i <= 0x80000004; i++) {
     uint32_t off = (i - 0x80000002U) * 4 * sizeof(uint32_t);
     GetCpuId(i, info);
