@@ -5624,7 +5624,6 @@ static PhiPlaceMoves* ComputePhiMoves(
                       result->id());
           }
         }
-
         phi_moves->CreateOutgoingMove(block->PredecessorAt(j),
                                       result->id(),
                                       place->id());
@@ -5770,8 +5769,6 @@ class LoadOptimizer : public ValueObject {
   // Loads that are locally redundant will be replaced as we go through
   // instructions.
   void ComputeInitialSets() {
-    BitVector* forwarded_loads = new BitVector(aliased_set_->max_place_id());
-
     for (BlockIterator block_it = graph_->reverse_postorder_iterator();
          !block_it.Done();
          block_it.Advance()) {
@@ -5930,12 +5927,6 @@ class LoadOptimizer : public ValueObject {
         (*out_values)[place_id] = defn;
       }
 
-      PhiPlaceMoves::MovesList phi_moves =
-          aliased_set_->phi_moves()->GetOutgoingMoves(block);
-      if (phi_moves != NULL) {
-        PerformPhiMoves(phi_moves, gen, forwarded_loads);
-      }
-
       exposed_values_[preorder_number] = exposed_values;
       out_values_[preorder_number] = out_values;
     }
@@ -5972,6 +5963,7 @@ class LoadOptimizer : public ValueObject {
   void ComputeOutSets() {
     BitVector* temp = new BitVector(aliased_set_->max_place_id());
     BitVector* forwarded_loads = new BitVector(aliased_set_->max_place_id());
+    BitVector* temp_out = new BitVector(aliased_set_->max_place_id());
 
     bool changed = true;
     while (changed) {
@@ -5999,9 +5991,17 @@ class LoadOptimizer : public ValueObject {
           for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
             BlockEntryInstr* pred = block->PredecessorAt(i);
             BitVector* pred_out = out_[pred->preorder_number()];
-            if (pred_out != NULL) {
-              temp->Intersect(pred_out);
+            if (pred_out == NULL) continue;
+            PhiPlaceMoves::MovesList phi_moves =
+                aliased_set_->phi_moves()->GetOutgoingMoves(pred);
+            if (phi_moves != NULL) {
+              // If there are phi moves, perform intersection with
+              // a copy of pred_out where the phi moves are applied.
+              temp_out->CopyFrom(pred_out);
+              PerformPhiMoves(phi_moves, temp_out, forwarded_loads);
+              pred_out = temp_out;
             }
+            temp->Intersect(pred_out);
           }
         }
 
@@ -6011,12 +6011,6 @@ class LoadOptimizer : public ValueObject {
 
           temp->RemoveAll(block_kill);
           temp->AddAll(block_gen);
-
-          PhiPlaceMoves::MovesList phi_moves =
-              aliased_set_->phi_moves()->GetOutgoingMoves(block);
-          if (phi_moves != NULL) {
-            PerformPhiMoves(phi_moves, temp, forwarded_loads);
-          }
 
           if ((block_out == NULL) || !block_out->Equals(*temp)) {
             if (block_out == NULL) {
