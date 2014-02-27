@@ -65,11 +65,11 @@ void CpuId::InitOnce() {
 
 void CpuId::Cleanup() {
   ASSERT(id_string_ != NULL);
-  free(id_string_);
+  free(const_cast<char*>(id_string_));
   id_string_ = NULL;
 
   ASSERT(brand_string_ != NULL);
-  free(brand_string_);
+  free(const_cast<char*>(brand_string_));
   brand_string_ = NULL;
 }
 
