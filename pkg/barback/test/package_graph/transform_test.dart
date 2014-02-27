@@ -120,15 +120,15 @@ main() {
     buildShouldSucceed();
   });
 
-  test("outputs are inaccessible once used", () {
+  test("outputs are passed through transformers by default", () {
     initGraph(["app|foo.a"], {"app": [
       [new RewriteTransformer("a", "b")],
       [new RewriteTransformer("a", "c")]
     ]});
     updateSources(["app|foo.a"]);
+    expectAsset("app|foo.a", "foo");
     expectAsset("app|foo.b", "foo.b");
-    expectNoAsset("app|foo.a");
-    expectNoAsset("app|foo.c");
+    expectAsset("app|foo.c", "foo.c");
     buildShouldSucceed();
   });
 
@@ -551,8 +551,8 @@ main() {
     buildShouldSucceed();
   });
 
-  test("doesn't return an asset until we know it won't be transformed",
-      () {
+  test("doesn't return a pass-through asset until we know it won't be "
+      "overwritten", () {
     var rewrite = new RewriteTransformer("txt", "txt");
     initGraph(["app|foo.a"], {"app": [[rewrite]]});
 
@@ -565,8 +565,29 @@ main() {
     buildShouldSucceed();
   });
 
-  test("doesn't return a modified asset until we know it will still be "
-      "transformed", () {
+  test("doesn't return a pass-through asset until we know it won't be "
+      "overwritten when secondary inputs change", () {
+    var manyToOne = new ManyToOneTransformer("txt");
+    initGraph({
+      "app|foo.txt": "bar.in",
+      "app|bar.in": "bar"
+    }, {"app": [[manyToOne]]});
+
+    updateSources(["app|foo.txt", "app|bar.in"]);
+    expectAsset("app|foo.txt", "bar.in");
+    expectAsset("app|foo.out", "bar");
+
+    manyToOne.pauseApply();
+    updateSources(["app|bar.in"]);
+    expectAssetDoesNotComplete("app|foo.txt");
+
+    manyToOne.resumeApply();
+    expectAsset("app|foo.txt", "bar.in");
+    buildShouldSucceed();
+  });
+
+  test("doesn't return an overwritten asset until we know it will still "
+      "be overwritten", () {
     var rewrite = new RewriteTransformer("txt", "txt");
     initGraph(["app|foo.txt"], {"app": [[rewrite]]});
 
@@ -847,8 +868,7 @@ main() {
       buildShouldSucceed();
     });
 
-    test("doesn't pass an asset through a phase in which a transform consumes "
-        "it", () {
+    test("passes an asset through a phase in which a transform uses it", () {
       initGraph([
         "app|foo.in",
       ], {"app": [
@@ -858,8 +878,24 @@ main() {
       ]});
 
       updateSources(["app|foo.in"]);
+      expectAsset("app|foo.in", "foo");
+      expectAsset("app|foo.mid", "foo.mid");
       expectAsset("app|foo.phase2", "foo.mid.phase2");
-      expectNoAsset("app|foo.phase3");
+      expectAsset("app|foo.phase3", "foo.mid.phase3");
+      buildShouldSucceed();
+    });
+
+    // If the asset were to get passed through, it might either cause a
+    // collision or silently supersede the overwriting asset. We want to assert
+    // that that doesn't happen.
+    test("doesn't pass an asset through a phase in which a transform "
+        "overwrites it", () {
+      initGraph([
+        "app|foo.txt"
+      ], {"app": [[new RewriteTransformer("txt", "txt")]]});
+
+      updateSources(["app|foo.txt"]);
+      expectAsset("app|foo.txt", "foo.txt");
       buildShouldSucceed();
     });
 
@@ -958,6 +994,68 @@ main() {
       removeSources(["app|foo.txt"]);
       check.resumeIsPrimary("app|foo.txt");
       expectNoAsset("app|foo.txt");
+      buildShouldSucceed();
+    });
+
+    test("passes an asset through when its overwriting transform becomes "
+        "non-primary during apply", () {
+      var check = new CheckContentTransformer("yes", " modified");
+      initGraph({"app|foo.txt": "yes"}, {"app": [[check]]});
+
+      check.pauseApply();
+      updateSources(["app|foo.txt"]);
+      expectAssetDoesNotComplete("app|foo.txt");
+
+      modifyAsset("app|foo.txt", "no");
+      updateSources(["app|foo.txt"]);
+      check.resumeApply();
+
+      expectAsset("app|foo.txt", "no");
+      buildShouldSucceed();
+    });
+
+    test("doesn't pass an asset through when its overwriting transform becomes "
+        "non-primary during apply if another transform overwrites it", () {
+      var check = new CheckContentTransformer("yes", " modified");
+      initGraph({
+        "app|foo.txt": "yes"
+      }, {
+        "app": [[check, new RewriteTransformer("txt", "txt")]]
+      });
+
+      check.pauseApply();
+      updateSources(["app|foo.txt"]);
+      // Ensure we're waiting on [check.apply]
+      schedule(pumpEventQueue);
+
+      modifyAsset("app|foo.txt", "no");
+      updateSources(["app|foo.txt"]);
+      check.resumeApply();
+
+      expectAsset("app|foo.txt", "no.txt");
+      buildShouldSucceed();
+    });
+
+    test("doesn't pass an asset through when one overwriting transform becomes "
+        "non-primary if another transform still overwrites it", () {
+      initGraph({
+        "app|foo.txt": "yes"
+      }, {
+        "app": [[
+          new CheckContentTransformer("yes", " modified"),
+          new RewriteTransformer("txt", "txt")
+        ]]
+      });
+
+      updateSources(["app|foo.txt"]);
+      // This could be either the output of [CheckContentTransformer] or
+      // [RewriteTransformer], depending which completes first.
+      expectAsset("app|foo.txt", anything);
+      buildShouldFail([isAssetCollisionException("app|foo.txt")]);
+
+      modifyAsset("app|foo.txt", "no");
+      updateSources(["app|foo.txt"]);
+      expectAsset("app|foo.txt", "no.txt");
       buildShouldSucceed();
     });
   });

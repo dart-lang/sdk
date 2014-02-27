@@ -114,15 +114,6 @@ main() {
     buildShouldFail([isTransformerException(equals(BadTransformer.ERROR))]);
   });
 
-  test("doesn't yield a source if a transform fails on it", () {
-    initGraph(["app|foo.txt"], {"app": [
-      [new BadTransformer(["app|foo.txt"])]
-    ]});
-
-    updateSources(["app|foo.txt"]);
-    expectNoAsset("app|foo.txt");
-  });
-
   test("catches errors even if nothing is waiting for process results", () {
     initGraph(["app|foo.txt"], {"app": [[new BadTransformer([])]]});
 

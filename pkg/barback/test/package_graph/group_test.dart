@@ -21,7 +21,6 @@ main() {
       ])]
     ]});
     updateSources(["app|foo.a"]);
-    expectNoAsset("app|foo.b");
     expectAsset("app|foo.c", "foo.b.c");
     buildShouldSucceed();
   });
@@ -35,7 +34,6 @@ main() {
       [new RewriteTransformer("c", "d")]
     ]});
     updateSources(["app|foo.a"]);
-    expectNoAsset("app|foo.c");
     expectAsset("app|foo.d", "foo.b.c.d");
     buildShouldSucceed();
   });
@@ -49,7 +47,6 @@ main() {
       ])]
     ]});
     updateSources(["app|foo.a"]);
-    expectNoAsset("app|foo.b");
     expectAsset("app|foo.d", "foo.b.c.d");
     buildShouldSucceed();
   });
@@ -100,7 +97,6 @@ main() {
     ]});
 
     updateSources(["app|foo.a"]);
-    expectNoAsset("app|foo.b");
     expectAsset("app|foo.c", "foo.b.c");
     buildShouldSucceed();
 
@@ -121,7 +117,6 @@ main() {
     ]});
 
     updateSources(["app|foo.a", "app|bar.x"]);
-    expectNoAsset("app|foo.b");
     expectAsset("app|foo.c", "foo.b.c");
     expectAsset("app|bar.c", "bar.b.c");
     buildShouldSucceed();
@@ -196,21 +191,23 @@ main() {
       buildShouldSucceed();
     });
 
-    test("parallel groups' intermediate assets can't collide", () {
-      initGraph(["app|foo.a", "app|foo.x"], {"app": [
-        [new TransformerGroup([
-          [new RewriteTransformer("a", "b")],
-          [new RewriteTransformer("b", "c")]
-        ]), new TransformerGroup([
-          [new RewriteTransformer("x", "b")],
-          [new RewriteTransformer("b", "z")]
-        ])]
-      ]});
-      updateSources(["app|foo.a", "app|foo.x"]);
-      expectAsset("app|foo.c", "foo.b.c");
-      expectAsset("app|foo.z", "foo.b.z");
-      buildShouldSucceed();
-    });
+    // TODO(nweiz): re-enable this test when a transformer can consume its
+    // primary input (issue 16612).
+    // test("parallel groups' intermediate assets can't collide", () {
+    //   initGraph(["app|foo.a", "app|foo.x"], {"app": [
+    //     [new TransformerGroup([
+    //       [new RewriteTransformer("a", "b")],
+    //       [new RewriteTransformer("b", "c")]
+    //     ]), new TransformerGroup([
+    //       [new RewriteTransformer("x", "b")],
+    //       [new RewriteTransformer("b", "z")]
+    //     ])]
+    //   ]});
+    //   updateSources(["app|foo.a", "app|foo.x"]);
+    //   expectAsset("app|foo.c", "foo.b.c");
+    //   expectAsset("app|foo.z", "foo.b.z");
+    //   buildShouldSucceed();
+    // });
   });
 
   group("pass-through", () {
@@ -224,6 +221,20 @@ main() {
       updateSources(["app|foo.x"]);
       expectNoAsset("app|foo.c");
       expectAsset("app|foo.x", "foo");
+      buildShouldSucceed();
+    });
+
+    test("passes non-overwritten inputs through a group", () {
+      initGraph(["app|foo.a"], {"app": [
+        [new TransformerGroup([
+          [new RewriteTransformer("a", "b")],
+          [new RewriteTransformer("b", "c")]
+        ])]
+      ]});
+      updateSources(["app|foo.a"]);
+      expectAsset("app|foo.a", "foo");
+      expectAsset("app|foo.b", "foo.b");
+      expectAsset("app|foo.c", "foo.b.c");
       buildShouldSucceed();
     });
 
@@ -259,35 +270,32 @@ main() {
       buildShouldSucceed();
     });
 
-    test("doesn't pass through an input that's used by a group but not by "
-        "transformers", () {
+    test("doesn't pass through an input that's overwritten by a group but not "
+        "by transformers", () {
       initGraph(["app|foo.a"], {"app": [[
         new TransformerGroup([
-          [new RewriteTransformer("a", "b")],
-          [new RewriteTransformer("b", "c")]
+          [new RewriteTransformer("a", "a")],
         ]),
         new RewriteTransformer("x", "y")
       ]]});
       updateSources(["app|foo.a"]);
-      expectNoAsset("app|foo.a");
       expectNoAsset("app|foo.y");
-      expectAsset("app|foo.c", "foo.b.c");
+      expectAsset("app|foo.a", "foo.a");
       buildShouldSucceed();
     });
 
-    test("doesn't pass through an input that's used by transformers but not by "
-        "a group", () {
+    test("doesn't pass through an input that's overwritten by transformers but "
+        "not by a group", () {
       initGraph(["app|foo.x"], {"app": [[
         new TransformerGroup([
           [new RewriteTransformer("a", "b")],
           [new RewriteTransformer("b", "c")]
         ]),
-        new RewriteTransformer("x", "y")
+        new RewriteTransformer("x", "x")
       ]]});
       updateSources(["app|foo.x"]);
-      expectNoAsset("app|foo.x");
       expectNoAsset("app|foo.c");
-      expectAsset("app|foo.y", "foo.y");
+      expectAsset("app|foo.x", "foo.x");
       buildShouldSucceed();
     });
 
@@ -313,31 +321,6 @@ main() {
       ]]});
       updateSources(["app|foo.a"]);
       expectAsset("app|foo.a", "foo.a");
-      buildShouldSucceed();
-    });
-
-    test("doesn't pass-through an asset that ceases to be forwarded due to a "
-        "resolved collision", () {
-      initGraph({
-        "app|foo.a": "foo.a",
-        "app|foo.x": "foo.x"
-      }, {"app": [
-        [new TransformerGroup([[
-          new CheckContentAndRenameTransformer(
-              "a", "new foo.a", "z", "modified foo.a"),
-          new RewriteTransformer('x', 'a')
-        ]])]
-      ]});
-
-      updateSources(["app|foo.a", "app|foo.x"]);
-      expectAsset("app|foo.a", "foo.a");
-      expectNoAsset("app|foo.z");
-      buildShouldFail([isAssetCollisionException("app|foo.a")]);
-
-      modifyAsset('app|foo.a', 'new foo.a');
-      updateSources(["app|foo.a"]);
-      expectAsset("app|foo.a", "foo.x.a");
-      expectAsset("app|foo.z", "modified foo.a");
       buildShouldSucceed();
     });
   });
@@ -383,7 +366,8 @@ main() {
     expect(rewrite2.numRuns, completion(equals(1)));
   });
 
-  test("doesn't pass through an input that's used by an added group", () {
+  test("doesn't pass through an input that's overwritten by an added group",
+      () {
     var rewrite = new RewriteTransformer("x", "z");
     initGraph(["app|foo.a"], {"app": [[rewrite]]});
 
@@ -392,13 +376,9 @@ main() {
     buildShouldSucceed();
 
     updateTransformers("app", [
-      [rewrite, new TransformerGroup([
-        [new RewriteTransformer("a", "b")],
-        [new RewriteTransformer("b", "c")]
-      ])]
+      [rewrite, new TransformerGroup([[new RewriteTransformer("a", "a")]])]
     ]);
-    expectNoAsset("app|foo.a");
-    expectAsset("app|foo.c", "foo.b.c");
+    expectAsset("app|foo.a", "foo.a");
     buildShouldSucceed();
   });
 

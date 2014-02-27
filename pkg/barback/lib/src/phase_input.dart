@@ -10,6 +10,7 @@ import 'dart:collection';
 import 'asset.dart';
 import 'asset_forwarder.dart';
 import 'asset_node.dart';
+import 'asset_node_set.dart';
 import 'errors.dart';
 import 'log.dart';
 import 'phase.dart';
@@ -45,17 +46,20 @@ class PhaseInput {
   /// The asset node for this input.
   AssetNode get input => _inputForwarder.node;
 
-  /// The controller that's used for the output node if [input] isn't consumed
-  /// by any transformers.
+  /// The controller that's used for the output node if [input] isn't
+  /// overwritten by any transformers.
   ///
   /// This needs an intervening controller to ensure that the output can be
-  /// marked dirty when determining whether transforms apply, and removed if
-  /// they do. It's null if the asset is not being passed through.
+  /// marked dirty when determining whether transforms will overwrite it, and be
+  /// marked removed if they do. It's null if the asset is not being passed
+  /// through.
   AssetNodeController _passThroughController;
 
   /// Whether [_passThroughController] has been newly created since [process]
   /// last completed.
   bool _newPassThrough = false;
+
+  final _outputs = new AssetNodeSet();
 
   /// A Future that will complete once the transformers that consume [input] are
   /// determined.
@@ -137,12 +141,6 @@ class PhaseInput {
       });
     }
 
-    if (_transforms.isEmpty && _adjustTransformersFuture == null &&
-        _passThroughController == null) {
-      _passThroughController = new AssetNodeController.from(input);
-      _newPassThrough = true;
-    }
-
     var brandNewTransformers = newTransformers.difference(oldTransformers);
     if (brandNewTransformers.isEmpty) return;
 
@@ -170,8 +168,8 @@ class PhaseInput {
     // kick off a build, even if that build does nothing.
     _onDirtyController.add(null);
 
-    // If there's a pass-through for this input, mark it dirty while we figure
-    // out whether we need to add any transforms for it.
+    // If there's a pass-through for this input, mark it dirty until we figure
+    // out if a transformer will emit an asset with that id.
     if (_passThroughController != null) _passThroughController.setDirty();
 
     // Once the input is available, hook up transformers for it. If it changes
@@ -243,32 +241,13 @@ class PhaseInput {
         var transform = new TransformNode(
             _phase, transformer, input, _location);
         _transforms.add(transform);
+        transform.onDirty.listen((_) {
+          if (_passThroughController != null) _passThroughController.setDirty();
+        });
         _onDirtyPool.add(transform.onDirty);
         _onLogPool.add(transform.onLog);
       });
     }));
-  }
-
-  /// Adjust whether [input] is passed through the phase unmodified, based on
-  /// whether it's consumed by other transforms in this phase.
-  ///
-  /// If [input] was already passed-through, this will update the passed-through
-  /// value.
-  void _adjustPassThrough() {
-    assert(input.state.isAvailable);
-
-    if (_transforms.isEmpty) {
-      if (_passThroughController != null) {
-        _passThroughController.setAvailable(input.asset);
-      } else {
-        _passThroughController = new AssetNodeController.from(input);
-        _newPassThrough = true;
-      }
-    } else if (_passThroughController != null) {
-      _passThroughController.setRemoved();
-      _passThroughController = null;
-      _newPassThrough = false;
-    }
   }
 
   /// Like [AssetNode.tryUntilStable], but also re-runs [callback] if this
@@ -291,8 +270,27 @@ class PhaseInput {
   /// for this input. The assets returned this way are guaranteed not to be
   /// [AssetState.REMOVED].
   Future<Set<AssetNode>> process() {
-    return _waitForTransformers(() => _processTransforms()).then((outputs) {
+    return _waitForTransformers(() {
+      if (input.state.isRemoved) return new Future.value(new Set());
+
+      return Future.wait(_transforms.map((transform) {
+        if (!transform.isDirty) return new Future.value(new Set());
+        return transform.apply();
+      })).then((outputs) => unionAll(outputs));
+    }).then((outputs) {
       if (input.state.isRemoved) return new Set();
+
+      for (var output in outputs) {
+        assert(!output.state.isRemoved);
+        _outputs.add(output);
+        output.whenRemoved(_adjustPassThrough);
+      }
+
+      _adjustPassThrough();
+      if (_newPassThrough) {
+        outputs.add(_passThroughController.node);
+        _newPassThrough = false;
+      }
       return outputs;
     });
   }
@@ -309,21 +307,30 @@ class PhaseInput {
         (_) => _waitForTransformers(callback));
   }
 
-  /// Applies all currently wired up and dirty transforms.
-  Future<Set<AssetNode>> _processTransforms() {
-    if (input.state.isRemoved) return new Future.value(new Set());
+  /// Adjust whether [input] is passed through the phase unmodified, based on
+  /// whether it's overwritten by other transforms in this phase.
+  ///
+  /// If [input] was already passed-through, this will update the passed-through
+  /// value.
+  void _adjustPassThrough() {
+    if (!input.state.isAvailable) return;
 
-    if (_passThroughController != null) {
-      if (!_newPassThrough) return new Future.value(new Set());
-      _newPassThrough = false;
-      return new Future.value(
-          new Set<AssetNode>.from([_passThroughController.node]));
+    // If there's an output with the same id as the primary input, that
+    // overwrites the input so it doesn't get passed through. Otherwise,
+    // create a pass-through controller if none exists, or set the existing
+    // one available.
+    if (_outputs.any((output) => output.id == input.id)) {
+      if (_passThroughController != null) {
+        _passThroughController.setRemoved();
+        _passThroughController = null;
+        _newPassThrough = false;
+      }
+    } else if (_passThroughController == null) {
+      _passThroughController = new AssetNodeController.from(input);
+      _newPassThrough = true;
+    } else if (_passThroughController.node.state.isDirty) {
+      _passThroughController.setAvailable(input.asset);
     }
-
-    return Future.wait(_transforms.map((transform) {
-      if (!transform.isDirty) return new Future.value(new Set());
-      return transform.apply();
-    })).then((outputs) => unionAll(outputs));
   }
 
   String toString() => "phase input in $_location for $input";
