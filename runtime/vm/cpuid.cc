@@ -36,10 +36,10 @@ void CpuId::GetCpuId(int32_t level, uint32_t info[4]) {
 
 
 void CpuId::InitOnce() {
-  uint32_t info[4] = {-1};
+  uint32_t info[4] = {static_cast<uint32_t>(-1)};
 
   GetCpuId(0, info);
-  char* id_string = new char[3 * sizeof(int32_t)];
+  char* id_string = reinterpret_cast<char*>(malloc(3 * sizeof(int32_t)));
   // Yes, these are supposed to be out of order.
   *reinterpret_cast<uint32_t*>(id_string) = info[1];
   *reinterpret_cast<uint32_t*>(id_string + 4) = info[3];
@@ -50,7 +50,7 @@ void CpuId::InitOnce() {
   CpuId::sse41_ = (info[2] & (1 << 19)) != 0;
   CpuId::sse2_ = (info[3] & (1 << 26)) != 0;
 
-  char* brand_string = new char[3 * 4 * sizeof(uint32_t)];
+  char* brand_string = reinterpret_cast<char*>(3 * 4 * sizeof(uint32_t));
   for (uint32_t i = 0x80000002; i <= 0x80000004; i++) {
     uint32_t off = (i - 0x80000002U) * 4 * sizeof(uint32_t);
     GetCpuId(i, info);
@@ -65,11 +65,11 @@ void CpuId::InitOnce() {
 
 void CpuId::Cleanup() {
   ASSERT(id_string_ != NULL);
-  delete[] id_string_;
+  free(id_string_);
   id_string_ = NULL;
 
   ASSERT(brand_string_ != NULL);
-  delete[] brand_string_;
+  free(brand_string_);
   brand_string_ = NULL;
 }
 

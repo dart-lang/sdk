@@ -38,7 +38,7 @@ void ProcCpuInfo::InitOnce() {
   }
 
   // Read the contents of the cpuinfo file.
-  data_ = new char[datalen_ + 1];
+  data_ = reinterpret_cast<char*>(malloc(datalen_ + 1));
   fp = fopen(PATHNAME, "r");
   if (fp != NULL) {
     for (intptr_t offset = 0; offset < datalen_; ) {
@@ -58,7 +58,7 @@ void ProcCpuInfo::InitOnce() {
 
 void ProcCpuInfo::Cleanup() {
   ASSERT(data_);
-  delete[] data_;
+  free(data_);
   data_ = NULL;
 }
 
@@ -115,7 +115,7 @@ bool ProcCpuInfo::FieldContains(const char* field, const char* search_string) {
 
 // Extract the content of a the first occurrence of a given field in
 // the content of the cpuinfo file and return it as a heap-allocated
-// string that must be freed by the caller using delete[].
+// string that must be freed by the caller using free.
 // Return NULL if not found.
 const char* ProcCpuInfo::ExtractField(const char* field) {
   ASSERT(field != NULL);
@@ -133,7 +133,7 @@ const char* ProcCpuInfo::ExtractField(const char* field) {
   }
 
   intptr_t len = q - p;
-  char* result = new char[len + 1];  // plus one for null-terminator.
+  char* result = reinterpret_cast<char*>(malloc(len + 1));
   // Copy the line into result, leaving enough room for a null-terminator.
   char saved_end = *q;
   *q = '\0';
