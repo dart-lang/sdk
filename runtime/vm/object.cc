@@ -11923,9 +11923,7 @@ void Instance::SetNativeField(int index, intptr_t value) const {
   Object& native_fields = Object::Handle(*NativeFieldsAddr());
   if (native_fields.IsNull()) {
     // Allocate backing storage for the native fields.
-    const Class& cls = Class::Handle(clazz());
-    int num_native_fields = cls.num_native_fields();
-    native_fields = TypedData::New(kIntPtrCid, num_native_fields);
+    native_fields = TypedData::New(kIntPtrCid, NumNativeFields());
     StorePointer(NativeFieldsAddr(), native_fields.raw());
   }
   intptr_t byte_offset = index * sizeof(intptr_t);
