@@ -874,13 +874,15 @@ Sample* SampleBuffer::ReserveSample() {
 //
 class ProfilerSampleStackWalker : public ValueObject {
  public:
-  ProfilerSampleStackWalker(Sample* sample,
+  ProfilerSampleStackWalker(Heap* heap,
+                            Sample* sample,
                             uword stack_lower,
                             uword stack_upper,
                             uword pc,
                             uword fp,
                             uword sp)
-      : sample_(sample),
+      : heap_(heap),
+        sample_(sample),
         stack_upper_(stack_upper),
         original_pc_(pc),
         original_fp_(fp),
@@ -918,6 +920,9 @@ class ProfilerSampleStackWalker : public ValueObject {
     }
     int i = 0;
     for (; i < FLAG_profile_depth; i++) {
+#if defined(DEBUG_STACK_WALK)
+      VerifyCodeAddress(i, reinterpret_cast<uword>(pc));
+#endif
       sample_->SetAt(i, reinterpret_cast<uword>(pc));
       if (!ValidFramePointer(fp)) {
         return i + 1;
@@ -939,6 +944,22 @@ class ProfilerSampleStackWalker : public ValueObject {
   }
 
  private:
+#if defined(DEBUG_STACK_WALK)
+  void VerifyCodeAddress(int i, uword pc) {
+    if (heap_ != NULL) {
+      if (heap_->Contains(pc) && !heap_->CodeContains(pc)) {
+        for (int j = 0; j < i; j++) {
+          OS::Print("%d %" Px "\n", j, sample_->At(j));
+        }
+        OS::Print("%d %" Px " <--\n", i, pc);
+        OS::Print("---ASSERT-FAILED---\n");
+        OS::Print("%" Px " %" Px "\n", original_pc_, original_fp_);
+        UNREACHABLE();
+      }
+    }
+  }
+#endif
+
   uword* CallerPC(uword* fp) const {
     ASSERT(fp != NULL);
     return reinterpret_cast<uword*>(*(fp + kSavedCallerPcSlotFromFp));
@@ -959,6 +980,7 @@ class ProfilerSampleStackWalker : public ValueObject {
     return r;
   }
 
+  Heap* heap_;
   Sample* sample_;
   const uword stack_upper_;
   const uword original_pc_;
@@ -991,8 +1013,9 @@ void Profiler::RecordSampleInterruptCallback(
     stack_lower = 0;
     stack_upper = 0;
   }
-  ProfilerSampleStackWalker stackWalker(sample, stack_lower, stack_upper,
-                                        state.pc, state.fp, state.sp);
+  ProfilerSampleStackWalker stackWalker(isolate->heap(), sample, stack_lower,
+                                        stack_upper, state.pc, state.fp,
+                                        state.sp);
   stackWalker.walk();
 }
 

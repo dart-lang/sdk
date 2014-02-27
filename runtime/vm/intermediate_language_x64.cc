@@ -3980,13 +3980,17 @@ LocationSummary* MathUnaryInstr::MakeLocationSummary(bool opt) const {
     // currently we can't specify these registers because ParallelMoveResolver
     // assumes that XMM0 is free at all times.
     // TODO(vegorov): allow XMM0 to be used.
-    const intptr_t kNumTemps = 0;
+    const intptr_t kNumTemps = 1;
     LocationSummary* summary =
         new LocationSummary(InputCount(), kNumTemps, LocationSummary::kCall);
     summary->set_in(0, Location::FpuRegisterLocation(XMM1));
+    // R13 is chosen because it is callee saved so we do not need to back it
+    // up before calling into the runtime.
+    summary->set_temp(0, Location::RegisterLocation(R13));
     summary->set_out(Location::FpuRegisterLocation(XMM1));
     return summary;
   }
+  ASSERT(kind() == MethodRecognizer::kMathSqrt);
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -4001,12 +4005,16 @@ void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (kind() == MethodRecognizer::kMathSqrt) {
     __ sqrtsd(locs()->out().fpu_reg(), locs()->in(0).fpu_reg());
   } else {
-    __ EnterFrame(0);
+    ASSERT((kind() == MethodRecognizer::kMathSin) ||
+           (kind() == MethodRecognizer::kMathCos));
+    // Save RSP.
+    __ movq(locs()->temp(0).reg(), RSP);
     __ ReserveAlignedFrameSpace(0);
     __ movaps(XMM0, locs()->in(0).fpu_reg());
     __ CallRuntime(TargetFunction(), InputCount());
     __ movaps(locs()->out().fpu_reg(), XMM0);
-    __ leave();
+    // Restore RSP.
+    __ movq(RSP, locs()->temp(0).reg());
   }
 }
 
@@ -4322,15 +4330,18 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(bool opt) const {
   // assumes that XMM0 is free at all times.
   // TODO(vegorov): allow XMM0 to be used.
   ASSERT((InputCount() == 1) || (InputCount() == 2));
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = 1;
   LocationSummary* result =
       new LocationSummary(InputCount(), kNumTemps, LocationSummary::kCall);
+  result->set_temp(0, Location::RegisterLocation(R13));
   result->set_in(0, Location::FpuRegisterLocation(XMM2));
   if (InputCount() == 2) {
     result->set_in(1, Location::FpuRegisterLocation(XMM1));
   }
   if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
+    // Temp index 1.
     result->AddTemp(Location::RegisterLocation(RAX));
+    // Temp index 2.
     result->AddTemp(Location::FpuRegisterLocation(XMM4));
   }
   result->set_out(Location::FpuRegisterLocation(XMM3));
@@ -4339,7 +4350,8 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(bool opt) const {
 
 
 void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ EnterFrame(0);
+  // Save RSP.
+  __ movq(locs()->temp(kSavedSpTempIndex).reg(), RSP);
   __ ReserveAlignedFrameSpace(0);
   __ movaps(XMM0, locs()->in(0).fpu_reg());
   if (InputCount() == 2) {
@@ -4357,8 +4369,8 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     XmmRegister base = locs()->in(0).fpu_reg();
     XmmRegister exp = locs()->in(1).fpu_reg();
     XmmRegister result = locs()->out().fpu_reg();
-    Register temp = locs()->temp(0).reg();
-    XmmRegister zero_temp = locs()->temp(1).fpu_reg();
+    Register temp = locs()->temp(kObjectTempIndex).reg();
+    XmmRegister zero_temp = locs()->temp(kDoubleTempIndex).fpu_reg();
 
     // Check if exponent is 0.0 -> return 1.0;
     __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(0)), PP);
@@ -4395,7 +4407,8 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ CallRuntime(TargetFunction(), InputCount());
   __ movaps(locs()->out().fpu_reg(), XMM0);
   __ Bind(&skip_call);
-  __ leave();
+  // Restore RSP.
+  __ movq(RSP, locs()->temp(kSavedSpTempIndex).reg());
 }
 
 
@@ -4415,10 +4428,13 @@ LocationSummary* MergedMathInstr::MakeLocationSummary(bool opt) const {
   }
   if (kind() == MergedMathInstr::kSinCos) {
     const intptr_t kNumInputs = 1;
-    const intptr_t kNumTemps = 0;
+    const intptr_t kNumTemps = 1;
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
     summary->set_in(0, Location::FpuRegisterLocation(XMM1));
+    // R13 is chosen because it is callee saved so we do not need to back it
+    // up before calling into the runtime.
+    summary->set_temp(0, Location::RegisterLocation(R13));
     summary->set_out(Location::RegisterLocation(RAX));
     return summary;
   }
@@ -4541,7 +4557,8 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
   if (kind() == MergedMathInstr::kSinCos) {
-    __ EnterFrame(0);
+    // Save RSP.
+    __ movq(locs()->temp(0).reg(), RSP);
     // +-------------------------------+
     // | double-argument               |  <- TOS
     // +-------------------------------+
@@ -4564,7 +4581,8 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ CallRuntime(kSinCosRuntimeEntry, InputCount());
     __ movsd(XMM0, Address(RSP, 2 * kWordSize + kDoubleSize * 2));  // sin.
     __ movsd(XMM1, Address(RSP, 2 * kWordSize + kDoubleSize));  // cos.
-    __ leave();
+    // Restore RSP.
+    __ movq(RSP, locs()->temp(0).reg());
 
     Register result = locs()->out().reg();
     const TypedData& res_array = TypedData::ZoneHandle(

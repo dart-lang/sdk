@@ -6731,6 +6731,9 @@ class InvokeMathCFunctionInstr : public Definition {
   virtual bool MayThrow() const { return false; }
 
  private:
+  static const intptr_t kSavedSpTempIndex = 0;
+  static const intptr_t kObjectTempIndex = 1;
+  static const intptr_t kDoubleTempIndex = 2;
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     (*inputs_)[i] = value;
   }
