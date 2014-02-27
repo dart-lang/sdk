@@ -99,9 +99,8 @@ abstract class Message {
         && ["desc", "name"].contains(each.name.label.name));
     var values = simpleArguments.map((each) => each.expression).toList();
     for (var arg in values) {
-      if (arg is! SimpleStringLiteral) {
-        return "Intl.message argument '$arg' must be "
-            "a simple string literal";
+      if (arg is! StringLiteral) {
+        return( "Intl.message arguments must be string literals: $arg");
       }
     }
     return null;
