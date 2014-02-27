@@ -1091,6 +1091,13 @@ static bool HandleAllocationProfile(Isolate* isolate, JSONStream* js) {
 }
 
 
+static bool HandleUnpin(Isolate* isolate, JSONStream* js) {
+  // TODO(johnmccutchan): What do I respond with??
+  isolate->ClosePinPort();
+  return true;
+}
+
+
 static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "_echo", HandleIsolateEcho },
   { "", HandleIsolate },
@@ -1104,6 +1111,7 @@ static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "objecthistogram", HandleObjectHistogram},
   { "objects", HandleObjects },
   { "profile", HandleProfile },
+  { "unpin", HandleUnpin },
   { "scripts", HandleScripts },
   { "stacktrace", HandleStackTrace },
 };
