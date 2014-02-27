@@ -7,14 +7,24 @@ library test.protocol;
 import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/matcher.dart';
 import 'package:unittest/unittest.dart';
+import 'dart:convert';
 
 main() {
+  group('Notification', () {
+    test('getParameter_defined', NotificationTest.getParameter_defined);
+    test('getParameter_undefined', NotificationTest.getParameter_undefined);
+    test('fromJson', NotificationTest.fromJson);
+    test('fromJson_withParams', NotificationTest.fromJson_withParams);
+  });
   group('Request', () {
     test('getParameter_defined', RequestTest.getParameter_defined);
     test('getParameter_undefined', RequestTest.getParameter_undefined);
     test('getRequiredParameter_defined', RequestTest.getRequiredParameter_defined);
     test('getRequiredParameter_undefined', RequestTest.getRequiredParameter_undefined);
+    test('fromJson', RequestTest.fromJson);
+    test('fromJson_withParams', RequestTest.fromJson_withParams);
     test('toJson', RequestTest.toJson);
+    test('toJson_withParams', RequestTest.toJson_withParams);
   });
   group('Response', () {
     test('create_contextDoesNotExist', ResponseTest.create_contextDoesNotExist);
@@ -22,7 +32,51 @@ main() {
     test('create_missingRequiredParameter', ResponseTest.create_missingRequiredParameter);
     test('create_unknownRequest', ResponseTest.create_unknownRequest);
     test('setResult', ResponseTest.setResult);
+    test('fromJson', ResponseTest.fromJson);
+    test('fromJson_withError', ResponseTest.fromJson_withError);
+    test('fromJson_withResult', ResponseTest.fromJson_withResult);
   });
+}
+
+class NotificationTest {
+  static void getParameter_defined() {
+    Notification notification = new Notification('foo');
+    notification.setParameter('x', 'y');
+    expect(notification.event, equals('foo'));
+    expect(notification.params.length, equals(1));
+    expect(notification.getParameter('x'), equals('y'));
+    expect(notification.toJson(), equals({
+      'event' : 'foo',
+      'params' : {'x' : 'y'}
+    }));
+  }
+
+  static void getParameter_undefined() {
+    Notification notification = new Notification('foo');
+    expect(notification.event, equals('foo'));
+    expect(notification.params.length, equals(0));
+    expect(notification.getParameter('x'), isNull);
+    expect(notification.toJson(), equals({
+      'event' : 'foo'
+    }));
+  }
+
+  static void fromJson() {
+    Notification original = new Notification('foo');
+    Notification notification = new Notification.fromJson(original.toJson());
+    expect(notification.event, equals('foo'));
+    expect(notification.params.length, equals(0));
+    expect(notification.getParameter('x'), isNull);
+  }
+
+  static void fromJson_withParams() {
+    Notification original = new Notification('foo');
+    original.setParameter('x', 'y');
+    Notification notification = new Notification.fromJson(original.toJson());
+    expect(notification.event, equals('foo'));
+    expect(notification.params.length, equals(1));
+    expect(notification.getParameter('x'), equals('y'));
+  }
 }
 
 class RequestTest {
@@ -54,11 +108,39 @@ class RequestTest {
     expect(() => request.getRequiredParameter(name), throwsA(new isInstanceOf<RequestFailure>()));
   }
 
-  static void toJson() {
+  static void fromJson() {
     Request original = new Request('one', 'aMethod');
-    expect(original.toJson(), equals({
-      Request.ID: 'one',
+    String json = new JsonEncoder(null).convert(original.toJson());
+    Request request = new Request.fromString(json);
+    expect(request.id, equals('one'));
+    expect(request.method, equals('aMethod'));
+  }
+
+  static void fromJson_withParams() {
+    Request original = new Request('one', 'aMethod');
+    original.setParameter('foo', 'bar');
+    String json = new JsonEncoder(null).convert(original.toJson());
+    Request request = new Request.fromString(json);
+    expect(request.id, equals('one'));
+    expect(request.method, equals('aMethod'));
+    expect(request.getParameter('foo'), equals('bar'));
+  }
+
+  static void toJson() {
+    Request request = new Request('one', 'aMethod');
+    expect(request.toJson(), equals({
+      Request.ID : 'one',
       Request.METHOD : 'aMethod'
+    }));
+  }
+
+  static void toJson_withParams() {
+    Request request = new Request('one', 'aMethod');
+    request.setParameter('foo', 'bar');
+    expect(request.toJson(), equals({
+      Request.ID : 'one',
+      Request.METHOD : 'aMethod',
+      Request.PARAMS : {'foo' : 'bar'}
     }));
   }
 }
@@ -116,5 +198,31 @@ class ResponseTest {
         resultName: resultValue
       }
     }));
+  }
+
+  static void fromJson() {
+    Response original = new Response('myId');
+    Response response = new Response.fromJson(original.toJson());
+    expect(response.id, equals('myId'));
+  }
+
+  static void fromJson_withError() {
+    Response original = new Response.invalidRequestFormat();
+    Response response = new Response.fromJson(original.toJson());
+    expect(response.id, equals(''));
+    expect(response.error, isNotNull);
+    RequestError error = response.error;
+    expect(error.code, equals(-4));
+    expect(error.message, equals('Invalid request'));
+  }
+
+  static void fromJson_withResult() {
+    Response original = new Response('myId');
+    original.setResult('foo', 'bar');
+    Response response = new Response.fromJson(original.toJson());
+    expect(response.id, equals('myId'));
+    Map<String, Object> result = response.result;
+    expect(result.length, equals(1));
+    expect(result['foo'], equals('bar'));
   }
 }

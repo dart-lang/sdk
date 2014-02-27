@@ -35,7 +35,7 @@ class AnalysisServer {
    * The channel from which requests are received and to which responses should
    * be sent.
    */
-  final CommunicationChannel channel;
+  final ServerCommunicationChannel channel;
 
   /**
    * A flag indicating whether the server is running.

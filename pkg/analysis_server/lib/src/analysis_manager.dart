@@ -26,7 +26,7 @@ class AnalysisManager {
   /**
    * The channel used to communicate with the analysis server.
    */
-  CommunicationChannel channel;
+  ClientCommunicationChannel channel;
 
   /**
    * Launch analysis server in a separate process
@@ -100,7 +100,7 @@ class AnalysisManager {
       return WebSocket.connect(serverUrl)
           .catchError(onError)
           .then((WebSocket socket) {
-            this.channel = new WebSocketChannel(socket);
+            this.channel = new WebSocketClientChannel(socket);
             return this;
           });
     } catch (error) {
