@@ -534,7 +534,7 @@ Object _convertToDart(o) {
     // long line: dart2js doesn't allow string concatenation in the JS() form
     return JS('Blob|Event|KeyRange|ImageData|Node|TypedData|Window', '#', o);
   } else if (JS('bool', '# instanceof Date', o)) {
-    var ms = JS('num', '#.getMilliseconds()', o);
+    var ms = JS('num', '#.getTime()', o);
     return new DateTime.fromMillisecondsSinceEpoch(ms);
   } else if (JS('bool', '#.constructor === #', o, _dartProxyCtor)) {
     return JS('', '#.o', o);
