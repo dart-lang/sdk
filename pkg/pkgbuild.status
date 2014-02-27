@@ -12,7 +12,6 @@ pkg/docgen: Pass, Slow
 [ $use_repository_packages ]
 pkg/analyzer: PubGetError
 pkg/args: PubGetError
-pkg/unittest: PubGetError
 
 [ $use_public_packages ]
 pkg/template_binding: Pass, PubGetError # Issue 16026
