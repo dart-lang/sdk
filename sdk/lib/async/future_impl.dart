@@ -259,31 +259,42 @@ class _Future<T> implements Future<T> {
     return prev;
   }
 
-  static void _chainFutures(Future source, _Future target) {
+  // Take the value (when completed) of source and complete target with that
+  // value (or error). This function can chain all Futures, but is slower
+  // for _Future than _chainCoreFuture - Use _chainCoreFuture in that case.
+  static void _chainForeignFuture(Future source, _Future target) {
     assert(!target._isComplete);
+    assert(source is! _Future);
 
     // Mark the target as chained (and as such half-completed).
     target._isChained = true;
-    if (source is _Future) {
-      _Future internalFuture = source;
-      if (internalFuture._isComplete) {
-        _propagateToListeners(internalFuture, target);
-      } else {
-        internalFuture._addListener(target);
-      }
+    source.then((value) {
+        assert(target._isChained);
+        target._completeWithValue(value);
+      },
+      // TODO(floitsch): eventually we would like to make this non-optional
+      // and dependent on the listeners of the target future. If none of
+      // the target future's listeners want to have the stack trace we don't
+      // need a trace.
+      onError: (error, [stackTrace]) {
+        assert(target._isChained);
+        target._completeError(error, stackTrace);
+      });
+  }
+
+  // Take the value (when completed) of source and complete target with that
+  // value (or error). This function expects that source is a _Future.
+  static void _chainCoreFuture(_Future source, _Future target) {
+    assert(!target._isComplete);
+    assert(source is _Future);
+
+    // Mark the target as chained (and as such half-completed).
+    target._isChained = true;
+    _Future internalFuture = source;
+    if (internalFuture._isComplete) {
+      _propagateToListeners(internalFuture, target);
     } else {
-      source.then((value) {
-          assert(target._isChained);
-          target._complete(value);
-        },
-        // TODO(floitsch): eventually we would like to make this non-optional
-        // and dependent on the listeners of the target future. If none of
-        // the target future's listeners want to have the stack trace we don't
-        // need a trace.
-        onError: (error, [stackTrace]) {
-          assert(target._isChained);
-          target._completeError(error, stackTrace);
-        });
+      internalFuture._addListener(target);
     }
   }
 
@@ -295,9 +306,26 @@ class _Future<T> implements Future<T> {
     assert(_errorTest == null);
 
     if (value is Future) {
-      _chainFutures(value, this);
-      return;
+      if (value is _Future) {
+        _chainCoreFuture(value, this);
+      } else {
+        _chainForeignFuture(value, this);
+      }
+    } else {
+      _Future listeners = _removeListeners();
+      _setValue(value);
+      _propagateToListeners(this, listeners);
     }
+  }
+
+  void _completeWithValue(value) {
+    assert(!_isComplete);
+    assert(_onValue == null);
+    assert(_onError == null);
+    assert(_whenCompleteAction == null);
+    assert(_errorTest == null);
+    assert(value is! Future);
+
     _Future listeners = _removeListeners();
     _setValue(value);
     _propagateToListeners(this, listeners);
@@ -332,26 +360,37 @@ class _Future<T> implements Future<T> {
     // unhandled error, even though we know we are already going to listen to
     // it.
 
-    // Assign to typed variables so we get earlier checks in checked mode.
-    if (value is Future) {
+    if (value == null) {
+      // No checks for `null`.
+    } else if (value is Future) {
+      // Assign to typed variables so we get earlier checks in checked mode.
       Future<T> typedFuture = value;
+      if (typedFuture is _Future) {
+        _Future<T> coreFuture = typedFuture;
+        if (coreFuture._isComplete && coreFuture._hasError) {
+          // Case 1 from above. Delay completion to enable the user to register
+          // callbacks.
+          _markPendingCompletion();
+          _zone.scheduleMicrotask(() {
+            _chainCoreFuture(coreFuture, this);
+          });
+        } else {
+          _chainCoreFuture(coreFuture, this);
+        }
+      } else {
+        // Case 2 from above. Chain the future immidiately.
+        // Note that we are still completing asynchronously (through
+        // _chainForeignFuture)..
+        _chainForeignFuture(typedFuture, this);
+      }
+      return;
     } else {
       T typedValue = value;
     }
 
-    if (value is Future &&
-        (value is! _Future || !(value as _Future)._isComplete)) {
-      // Case 2 from above. We need to register.
-      // Note that we are still completing asynchronously: either we register
-      // through .then (in which case the completing is asynchronous), or we
-      // have a _Future which isn't complete yet.
-      _complete(value);
-      return;
-    }
-
     _markPendingCompletion();
     _zone.scheduleMicrotask(() {
-      _complete(value);
+      _completeWithValue(value);
     });
   }
 
@@ -550,14 +589,19 @@ class _Future<T> implements Future<T> {
           Future chainSource = listenerValueOrError;
           // Shortcut if the chain-source is already completed. Just continue
           // the loop.
-          if (chainSource is _Future && chainSource._isComplete) {
-            // propagate the value (simulating a tail call).
-            listener._isChained = true;
-            source = chainSource;
-            listeners = listener;
-            continue;
+          if (chainSource is _Future) {
+            if (chainSource._isComplete) {
+              // propagate the value (simulating a tail call).
+              listener._isChained = true;
+              source = chainSource;
+              listeners = listener;
+              continue;
+            } else {
+              _chainCoreFuture(chainSource, listener);
+            }
+          } else {
+            _chainForeignFuture(chainSource, listener);
           }
-          _chainFutures(chainSource, listener);
           return;
         }
       }
@@ -574,7 +618,7 @@ class _Future<T> implements Future<T> {
     }
   }
 
-  Future timeout(Duration timeLimit, {void onTimeout()}) {
+  Future timeout(Duration timeLimit, {onTimeout()}) {
     if (_isComplete) return new _Future.immediate(this);
     _Future result = new _Future();
     Timer timer;
@@ -597,7 +641,7 @@ class _Future<T> implements Future<T> {
     this.then((T v) {
       if (timer.isActive) {
         timer.cancel();
-        result._complete(v);
+        result._completeWithValue(v);
       }
     }, onError: (e, s) {
       if (timer.isActive) {
