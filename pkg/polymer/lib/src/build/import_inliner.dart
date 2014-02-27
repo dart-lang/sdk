@@ -40,7 +40,7 @@ class _HtmlInliner extends PolymerTransformer {
     Document document;
 
     return readPrimaryAsHtml(transform).then((document) =>
-        _visitImports(document, docId).then((importsFound) {
+        _visitImports(document).then((importsFound) {
 
       var output = transform.primaryInput;
       if (importsFound) {
@@ -61,7 +61,7 @@ class _HtmlInliner extends PolymerTransformer {
   ///
   /// Returns `true` if and only if the document was changed and should be
   /// written out.
-  Future<bool> _visitImports(Document document, AssetId sourceId) {
+  Future<bool> _visitImports(Document document) {
     bool changed = false;
 
     _moveHeadToBody(document);
@@ -71,8 +71,9 @@ class _HtmlInliner extends PolymerTransformer {
       var rel = tag.attributes['rel'];
       if (rel != 'import' && rel != 'stylesheet') return null;
 
+      // Note: URL has already been normalized so use docId.
       var href = tag.attributes['href'];
-      var id = resolve(sourceId, href, transform.logger, tag.sourceSpan,
+      var id = resolve(docId, href, transform.logger, tag.sourceSpan,
           allowAbsolute: rel == 'stylesheet');
 
       if (rel == 'import') {
@@ -107,7 +108,7 @@ class _HtmlInliner extends PolymerTransformer {
     var insertionPoint = doc.body.firstChild;
     for (var node in doc.head.nodes.toList(growable: false)) {
       if (node is! Element) continue;
-      var tag = node.tagName;
+      var tag = node.localName;
       var type = node.attributes['type'];
       var rel = node.attributes['rel'];
       if (tag == 'style' || tag == 'script' &&
@@ -121,18 +122,20 @@ class _HtmlInliner extends PolymerTransformer {
 
   // Loads an asset identified by [id], visits its imports and collects its
   // html imports. Then inlines it into the main document.
-  Future _inlineImport(AssetId id, Element link) =>
-      readAsHtml(id, transform).then((doc) => _visitImports(doc, id).then((_) {
+  Future _inlineImport(AssetId id, Element link) {
+    return readAsHtml(id, transform).then((doc) {
+      new _UrlNormalizer(transform, id).visit(doc);
+      return _visitImports(doc).then((_) {
+        _extractScripts(doc);
 
-    new _UrlNormalizer(transform, id).visit(doc);
-    _extractScripts(doc);
-
-    // TODO(jmesserly): figure out how this is working in vulcanizer.
-    // Do they produce a <body> tag with a <head> and <body> inside?
-    var imported = new DocumentFragment();
-    imported.nodes..addAll(doc.head.nodes)..addAll(doc.body.nodes);
-    link.replaceWith(imported);
-  }));
+        // TODO(jmesserly): figure out how this is working in vulcanizer.
+        // Do they produce a <body> tag with a <head> and <body> inside?
+        var imported = new DocumentFragment();
+        imported.nodes..addAll(doc.head.nodes)..addAll(doc.body.nodes);
+        link.replaceWith(imported);
+      });
+    });
+  }
 
   Future _inlineStylesheet(AssetId id, Element link) {
     return transform.readInputAsString(id).then((css) {

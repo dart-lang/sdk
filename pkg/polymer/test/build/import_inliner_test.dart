@@ -643,6 +643,44 @@ void stylesheetTests() {
       'c|lib/test5.png': 'PNG',
     });
 
+  testPhases('deep, inlines css, multiple nesting', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="import" href="foo/test2.html">'
+          '</head></html>',
+      'a|web/foo/test2.html':
+          '<link rel="import" href="bar/test3.html">'
+          '<polymer-element>2'
+          '<link rel="stylesheet" href="test.css">'
+          '</polymer-element>',
+      'a|web/foo/bar/test3.html':
+          '<img src="qux.png">',
+      'a|web/foo/test.css':
+          'body {\n  background: #eaeaea url("test4.png");\n}\n'
+          '.foo {\n  background: url("test5.png");\n}',
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<img src="foo/bar/qux.png">'
+          '<polymer-element>2'
+          '<style>'
+          'body {\n  background: #eaeaea url(foo/test4.png);\n}\n'
+          '.foo {\n  background: url(foo/test5.png);\n}'
+          '</style></polymer-element></body></html>',
+      'a|web/foo/test2.html':
+          '<html><head></head><body>'
+          '<img src="bar/qux.png">'
+          '<polymer-element>2'
+          '<style>'
+          'body {\n  background: #eaeaea url(test4.png);\n}\n'
+          '.foo {\n  background: url(test5.png);\n}'
+          '</style></polymer-element></body></html>',
+      'a|web/foo/bar/test3.html':
+          '<img src="qux.png">',
+      'a|web/foo/test.css':
+          'body {\n  background: #eaeaea url("test4.png");\n}\n'
+          '.foo {\n  background: url("test5.png");\n}',
+    });
 
   testPhases('shallow, inlines css and preserves order', phases, {
       'a|web/test.html':

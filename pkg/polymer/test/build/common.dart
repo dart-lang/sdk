@@ -123,8 +123,8 @@ class TestHelper implements PackageProvider {
 
 testPhases(String testName, List<List<Transformer>> phases,
     Map<String, String> inputFiles, Map<String, String> expectedFiles,
-    [List<String> expectedMessages]) {
-  test(testName, () {
+    [List<String> expectedMessages, bool solo = false]) {
+  (solo ? solo_test : test)(testName, () {
     var helper = new TestHelper(phases, inputFiles, expectedMessages)..run();
     return helper.checkAll(expectedFiles).then((_) => helper.tearDown());
   });
