@@ -874,15 +874,13 @@ Sample* SampleBuffer::ReserveSample() {
 //
 class ProfilerSampleStackWalker : public ValueObject {
  public:
-  ProfilerSampleStackWalker(Heap* heap,
-                            Sample* sample,
+  ProfilerSampleStackWalker(Sample* sample,
                             uword stack_lower,
                             uword stack_upper,
                             uword pc,
                             uword fp,
                             uword sp)
-      : heap_(heap),
-        sample_(sample),
+      : sample_(sample),
         stack_upper_(stack_upper),
         original_pc_(pc),
         original_fp_(fp),
@@ -890,6 +888,12 @@ class ProfilerSampleStackWalker : public ValueObject {
         lower_bound_(stack_lower) {
     ASSERT(sample_ != NULL);
   }
+
+#if defined(DEBUG_STACK_WALK)
+  void set_heap(Heap* heap) {
+    heap_ = heap;
+  }
+#endif
 
   int walk() {
     const intptr_t kMaxStep = 0x1000;  // 4K.
@@ -980,7 +984,9 @@ class ProfilerSampleStackWalker : public ValueObject {
     return r;
   }
 
+#if defined(DEBUG_STACK_WALK)
   Heap* heap_;
+#endif
   Sample* sample_;
   const uword stack_upper_;
   const uword original_pc_;
@@ -1013,9 +1019,11 @@ void Profiler::RecordSampleInterruptCallback(
     stack_lower = 0;
     stack_upper = 0;
   }
-  ProfilerSampleStackWalker stackWalker(isolate->heap(), sample, stack_lower,
-                                        stack_upper, state.pc, state.fp,
-                                        state.sp);
+  ProfilerSampleStackWalker stackWalker(sample, stack_lower, stack_upper,
+                                        state.pc, state.fp, state.sp);
+#if defined(DEBUG_STACK_WALK)
+  stackWalker.set_heap(isolate->heap());
+#endif
   stackWalker.walk();
 }
 
