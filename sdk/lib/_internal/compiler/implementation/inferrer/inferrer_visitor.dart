@@ -835,6 +835,18 @@ abstract class InferrerVisitor
     }
   }
 
+  /// Stops the accumulation of is-checks.
+  ///
+  /// Nulls the [isChecks] field.
+  ///
+  /// Returns the old value of [accumulateIsChecks].
+  bool stopAccumulatingIsChecks() {
+    bool oldAccumulateIsChecks = accumulateIsChecks;
+    accumulateIsChecks = false;
+    isChecks = null;
+    return oldAccumulateIsChecks;
+  }
+
   T visitOperatorSend(Send node) {
     Operator op = node.selector;
     if ("[]" == op.source) {
@@ -842,11 +854,15 @@ abstract class InferrerVisitor
     } else if ("&&" == op.source) {
       conditionIsSimple = false;
       bool oldAccumulateIsChecks = accumulateIsChecks;
-      accumulateIsChecks = true;
-      if (isChecks == null) isChecks = <Send>[];
+      if (!accumulateIsChecks) {
+        accumulateIsChecks = true;
+        isChecks = <Send>[];
+      }
       visit(node.receiver);
-      accumulateIsChecks = oldAccumulateIsChecks;
-      if (!accumulateIsChecks) isChecks = null;
+      if (!oldAccumulateIsChecks) {
+        accumulateIsChecks = false;
+        isChecks = null;
+      }
       LocalsHandler<T> saved = locals;
       locals = new LocalsHandler<T>.from(locals, node);
       updateIsChecks(isChecks, usePositive: true);
@@ -857,20 +873,18 @@ abstract class InferrerVisitor
     } else if ("||" == op.source) {
       conditionIsSimple = false;
       List<Send> tests = <Send>[];
-      handleCondition(node.receiver, tests);
+      bool isSimple = handleCondition(node.receiver, tests);
       LocalsHandler<T> saved = locals;
       locals = new LocalsHandler<T>.from(locals, node);
-      updateIsChecks(tests, usePositive: false);
-      bool oldAccumulateIsChecks = accumulateIsChecks;
-      accumulateIsChecks = false;
+      if (isSimple) updateIsChecks(tests, usePositive: false);
+      bool oldAccumulateIsChecks = stopAccumulatingIsChecks();
       visit(node.arguments.head);
       accumulateIsChecks = oldAccumulateIsChecks;
       saved.mergeDiamondFlow(locals, null);
       locals = saved;
       return types.boolType;
     } else if ("!" == op.source) {
-      bool oldAccumulateIsChecks = accumulateIsChecks;
-      accumulateIsChecks = false;
+      bool oldAccumulateIsChecks = stopAccumulatingIsChecks();
       node.visitChildren(this);
       accumulateIsChecks = oldAccumulateIsChecks;
       return types.boolType;
