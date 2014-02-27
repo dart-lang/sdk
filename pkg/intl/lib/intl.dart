@@ -156,11 +156,11 @@ class Intl {
    * We may in the future modify the code during compilation to make manually
    * passing those arguments unnecessary.
    */
-  static String message(String message_str, {final String desc: '',
-      final Map examples: const {}, String locale, String name,
-      List<String> args}) {
+  static String message(String message_str, {String desc: '',
+      Map<String, String> examples: const {}, String locale, String name,
+      List<String> args, String meaning}) {
     return messageLookup.lookupMessage(
-        message_str, desc, examples, locale, name, args);
+        message_str, desc, examples, locale, name, args, meaning);
   }
 
   /**
@@ -251,7 +251,8 @@ class Intl {
    * the provided alternatives. The [other] named argument is mandatory.
    */
   static String plural(int howMany, {zero, one, two, few, many, other,
-      desc, examples, locale, name, args}) {
+      String desc, Map<String, String> examples, String locale, String name,
+      List<String> args, String meaning}) {
     // If we are passed a name and arguments, then we are operating as a
     // top-level message, so look up our translation by calling Intl.message
     // with ourselves as an argument.
@@ -261,7 +262,8 @@ class Intl {
             zero: zero, one: one, two: two, few: few, many: many, other: other),
         name: name,
         args: args,
-        locale: locale);
+        locale: locale,
+        meaning: meaning);
     }
     if (other == null) {
       throw new ArgumentError("The 'other' named argument must be provided");
@@ -285,8 +287,8 @@ class Intl {
    */
   static String gender(String targetGender,
       {String male, String female, String other,
-       String desc, Map examples, String locale, String name,
-       List<String>args}) {
+       String desc, Map<String, String> examples, String locale, String name,
+       List<String>args, String meaning}) {
     // If we are passed a name and arguments, then we are operating as a
     // top-level message, so look up our translation by calling Intl.message
     // with ourselves as an argument.
@@ -295,7 +297,8 @@ class Intl {
         gender(targetGender, male: male, female: female, other: other),
         name: name,
         args: args,
-        locale: locale);
+        locale: locale,
+        meaning: meaning);
     }
 
     if (other == null) {
@@ -315,8 +318,8 @@ class Intl {
    * of an Intl.message message that is to be translated.
    */
   static String select(String choice, Map<String, String> cases,
-       {String desc, Map examples, String locale, String name,
-       List<String>args}) {
+       {String desc, Map<String, String> examples, String locale, String name,
+       List<String>args, String meaning}) {
     // If we are passed a name and arguments, then we are operating as a
     // top-level message, so look up our translation by calling Intl.message
     // with ourselves as an argument.

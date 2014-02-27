@@ -66,6 +66,8 @@ verifyResult(ignored) {
   verify('2 Canadian dollars');
   verify('1 thing:');
   verify('2 things:');
+  verify('rent');
+  verify('rent');
 
   var fr_lines = expanded.skip(1).skipWhile(
       (line) => !line.contains('----')).toList();
@@ -128,6 +130,9 @@ verifyResult(ignored) {
   verify('2 dollars Canadiens');
   verify('1 chose:');
   verify('2 choses:');
+  verify('louer');
+  verify('loyer');
+
 
   var de_lines = fr_lines.skip(1).skipWhile(
       (line) => !line.contains('----')).toList();
@@ -190,4 +195,6 @@ verifyResult(ignored) {
   verify('2 Kanadischen dollar');
   verify('eins:');
   verify('2 Dinge:');
+  verify('mieten');
+  verify('Miete');
 }

@@ -280,7 +280,7 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
     }
 
     void setAttribute(MainMessage msg, String fieldName, String fieldValue) {
-      if (["name", "desc", "examples", "args"].contains(fieldName)) {
+      if (msg.attributeNames.contains(fieldName)) {
         msg[fieldName] = fieldValue;
       }
     }
@@ -413,6 +413,7 @@ class PluralAndGenderVisitor extends SimpleASTVisitor {
    */
   String checkValidity(MethodInvocation node) {
     // TODO(alanknight): Add reasonable validity checks.
+    return null;
   }
 
   /**
