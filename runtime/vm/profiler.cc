@@ -329,7 +329,31 @@ class CodeRegion : public ZoneAllocated {
     AddCallEntry(callees_table_, index);
   }
 
-  void PrintToJSONArray(JSONArray* events, bool full) {
+  void PrintNativeCode(JSONObject* profile_code_obj) {
+    ASSERT(kind() == kNativeCode);
+    JSONObject obj(profile_code_obj, "code");
+    obj.AddProperty("type", "@Code");
+    obj.AddProperty("kind", "Native");
+    obj.AddProperty("name", name());
+    obj.AddProperty("user_name", name());
+    obj.AddPropertyF("start", "%" Px "", start());
+    obj.AddPropertyF("end", "%" Px "", end());
+    obj.AddPropertyF("id", "code/native/%" Px "", start());
+  }
+
+  void PrintCollectedCode(JSONObject* profile_code_obj) {
+    ASSERT(kind() == kCollectedCode);
+    JSONObject obj(profile_code_obj, "code");
+    obj.AddProperty("type", "@Code");
+    obj.AddProperty("kind", "Collected");
+    obj.AddProperty("name", name());
+    obj.AddProperty("user_name", name());
+    obj.AddPropertyF("start", "%" Px "", start());
+    obj.AddPropertyF("end", "%" Px "", end());
+    obj.AddPropertyF("id", "code/collected/%" Px "", start());
+  }
+
+  void PrintToJSONArray(Isolate* isolate, JSONArray* events, bool full) {
     JSONObject obj(events);
     obj.AddProperty("type", "ProfileCode");
     obj.AddProperty("kind", KindToCString(kind()));
@@ -337,36 +361,27 @@ class CodeRegion : public ZoneAllocated {
     obj.AddPropertyF("exclusive_ticks", "%" Pd "", exclusive_ticks());
     if (kind() == kDartCode) {
       // Look up code in Dart heap.
-      Code& code = Code::Handle(Code::LookupCode(start()));
-      Function& func = Function::Handle();
-      ASSERT(!code.IsNull());
-      func ^= code.function();
-      if (func.IsNull()) {
-        if (name() == NULL) {
-          const char* stub_name = StubCode::NameOfStub(start());
-          GenerateAndSetSymbolName(stub_name == NULL ? "Stub" : stub_name);
-        }
-        obj.AddPropertyF("start", "%" Px "", start());
-        obj.AddPropertyF("end", "%" Px "", end());
-        obj.AddProperty("name", name());
-      } else {
-        obj.AddProperty("code", code, !full);
+      Code& code = Code::Handle();
+      code ^= Code::LookupCode(start());
+      if (code.IsNull()) {
+        // Code is a stub in the Vm isolate.
+        code ^= Code::LookupCodeInVmIsolate(start());
       }
+      ASSERT(!code.IsNull());
+      obj.AddProperty("code", code, !full);
     } else if (kind() == kCollectedCode) {
       if (name() == NULL) {
+        // Lazily set generated name.
         GenerateAndSetSymbolName("Collected");
       }
-      obj.AddPropertyF("start", "%" Px "", start());
-      obj.AddPropertyF("end", "%" Px "", end());
-      obj.AddProperty("name", name());
+      PrintCollectedCode(&obj);
     } else {
       ASSERT(kind() == kNativeCode);
       if (name() == NULL) {
+        // Lazily set generated name.
         GenerateAndSetSymbolName("Native");
       }
-      obj.AddPropertyF("start", "%" Px "", start());
-      obj.AddPropertyF("end", "%" Px "", end());
-      obj.AddProperty("name", name());
+      PrintNativeCode(&obj);
     }
     {
       JSONArray ticks(&obj, "ticks");
@@ -549,13 +564,19 @@ class ProfilerCodeRegionTable : public ValueObject {
   }
 
   CodeRegion* CreateCodeRegion(uword pc) {
-    Code& code = Code::Handle(Code::LookupCode(pc));
+    Code& code = Code::Handle();
+    code ^= Code::LookupCode(pc);
+    if (!code.IsNull()) {
+      return new CodeRegion(CodeRegion::kDartCode, code.EntryPoint(),
+                            code.EntryPoint() + code.Size());
+    }
+    code ^= Code::LookupCodeInVmIsolate(pc);
     if (!code.IsNull()) {
       return new CodeRegion(CodeRegion::kDartCode, code.EntryPoint(),
                             code.EntryPoint() + code.Size());
     }
     if (heap_->CodeContains(pc)) {
-      const intptr_t kDartCodeAlignment = 0x10;
+      const intptr_t kDartCodeAlignment = OS::PreferredCodeAlignment();
       const intptr_t kDartCodeAlignmentMask = ~(kDartCodeAlignment - 1);
       return new CodeRegion(CodeRegion::kCollectedCode, pc,
                             (pc & kDartCodeAlignmentMask) + kDartCodeAlignment);
@@ -790,7 +811,7 @@ void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream,
         for (intptr_t i = 0; i < code_region_table.Length(); i++) {
           CodeRegion* region = code_region_table.At(i);
           ASSERT(region != NULL);
-          region->PrintToJSONArray(&codes, full);
+          region->PrintToJSONArray(isolate, &codes, full);
         }
       }
     }

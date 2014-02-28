@@ -88,12 +88,7 @@ class Code extends Observable {
     startAddress = int.parse(map['start'], radix: 16),
     endAddress = int.parse(map['end'], radix: 16) {
     functionRef = toObservable(map['function']);
-    codeRef = toObservable({
-      'type': '@Code',
-      'id': map['id'],
-      'name': map['name'],
-      'user_name': map['user_name']
-    });
+    codeRef = toObservable(map);
     name = map['name'];
     userName = map['user_name'];
     if (map['disassembly'] != null) {
@@ -107,41 +102,20 @@ class Code extends Observable {
     var endAddress;
     var name;
     var userName;
-    var codeRef;
-    var functionRef;
-    // Initial extraction of startAddress, endAddress, and name depends on what
-    // kind of code this is and whether or not the code has been collected.
-    if (kind == CodeKind.Dart) {
-      var code = map['code'];
-      if (code != null) {
-        // Extract from Dart code.
-        startAddress = int.parse(code['start'], radix:16);
-        endAddress = int.parse(code['end'], radix:16);
-        name = code['name'];
-        userName = code['user_name'];
-        codeRef = toObservable({
-          'type': '@Code',
-          'id': code['id'],
-          'name': name,
-          'user_name': userName
-        });
-        functionRef = toObservable(code['function']);
-      }
-    }
-    if (startAddress == null) {
-      // Extract from Profile code.
-      // This is either a native or collected piece of code.
-      startAddress = int.parse(map['start'], radix:16);
-      endAddress = int.parse(map['end'], radix: 16);
-      name = map['name'];
-      userName = name;
-    }
+    var codeRef = map['code'];
+    assert(codeRef != null);
+    startAddress = int.parse(codeRef['start'], radix:16);
+    endAddress = int.parse(codeRef['end'], radix:16);
+    name = codeRef['name'];
+    userName = codeRef['user_name'];
     var code = new Code(kind, name, startAddress, endAddress);
     code.codeRef = codeRef;
-    code.functionRef = functionRef;
+    code.functionRef = toObservable(codeRef['function']);;
     code.userName = userName;
-    if (map['disassembly'] != null) {
-      code._loadInstructions(map['disassembly']);
+    if (codeRef['disassembly'] != null) {
+      code._loadInstructions(codeRef['disassembly']);
+      // Throw the JSON version away after loading the disassembly.
+      codeRef['disassembly'] = null;
     }
     return code;
   }
@@ -284,13 +258,7 @@ class Profile {
   }
 
   int _extractCodeStartAddress(Map code) {
-    var kind = CodeKind.fromString(code['kind']);
-    if ((kind == CodeKind.Dart) && (code['code'] != null)) {
-      // Start address is inside the dart code map.
-      return int.parse(code['code']['start'], radix:16);
-    }
-    // Start address is inside the profile code map.
-    return int.parse(code['start'], radix:16);
+    return int.parse(code['code']['start'], radix:16);
   }
 
   void _processCode(Map profileCode) {

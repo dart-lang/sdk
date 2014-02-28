@@ -439,6 +439,7 @@ class RawObject {
 
   friend class Api;
   friend class Array;
+  friend class Code;
   friend class FreeListElement;
   friend class GCMarker;
   friend class ExternalTypedData;
@@ -816,7 +817,10 @@ class RawCode : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->instructions_);
   }
   RawInstructions* instructions_;
-  RawFunction* function_;
+  // If owner_ is Function::null() the owner is a regular stub.
+  // If owner_ is a Class the owner is the allocation stub for that class.
+  // Else, owner_ is a regular Dart Function.
+  RawObject* owner_;  // Function, Null, or a Class.
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
   RawArray* deopt_info_array_;

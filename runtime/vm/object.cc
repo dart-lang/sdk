@@ -4528,7 +4528,7 @@ void Function::SetCode(const Code& value) const {
   StorePointer(&raw_ptr()->code_, value.raw());
   ASSERT(Function::Handle(value.function()).IsNull() ||
     (value.function() == this->raw()));
-  value.set_function(*this);
+  value.set_owner(*this);
 }
 
 
@@ -10258,8 +10258,8 @@ bool Code::FindRawCodeVisitor::FindObject(RawObject* obj) const {
 }
 
 
-RawCode* Code::LookupCode(uword pc) {
-  Isolate* isolate = Isolate::Current();
+RawCode* Code::LookupCodeInIsolate(Isolate* isolate, uword pc) {
+  ASSERT((isolate == Isolate::Current()) || (isolate == Dart::vm_isolate()));
   NoGCScope no_gc;
   FindRawCodeVisitor visitor(pc);
   RawInstructions* instr;
@@ -10271,6 +10271,16 @@ RawCode* Code::LookupCode(uword pc) {
     return instr->ptr()->code_;
   }
   return Code::null();
+}
+
+
+RawCode* Code::LookupCode(uword pc) {
+  return LookupCodeInIsolate(Isolate::Current(), pc);
+}
+
+
+RawCode* Code::LookupCodeInVmIsolate(uword pc) {
+  return LookupCodeInIsolate(Dart::vm_isolate(), pc);
 }
 
 
@@ -10322,31 +10332,68 @@ const char* Code::ToCString() const {
 }
 
 
+RawString* Code::Name() const {
+  const Object& obj = Object::Handle(owner());
+  if (obj.IsNull()) {
+    // Regular stub.
+    const char* name = StubCode::NameOfStub(EntryPoint());
+    ASSERT(name != NULL);
+    return String::New(name);
+  } else if (obj.IsClass()) {
+    // Allocation stub.
+    const Class& cls = Class::Cast(obj);
+    String& cls_name = String::Handle(cls.Name());
+    ASSERT(!cls_name.IsNull());
+    return String::Concat(Symbols::AllocationStubFor(), cls_name);
+  } else {
+    ASSERT(obj.IsFunction());
+    // Dart function.
+    return Function::Cast(obj).name();
+  }
+}
+
+
+RawString* Code::UserName() const {
+  const Object& obj = Object::Handle(owner());
+  if (obj.IsNull()) {
+    // Regular stub.
+    const char* name = StubCode::NameOfStub(EntryPoint());
+    ASSERT(name != NULL);
+    return String::New(name);
+  } else if (obj.IsClass()) {
+    // Allocation stub.
+    const Class& cls = Class::Cast(obj);
+    String& cls_name = String::Handle(cls.Name());
+    ASSERT(!cls_name.IsNull());
+    return String::Concat(Symbols::AllocationStubFor(), cls_name);
+  } else {
+    ASSERT(obj.IsFunction());
+    // Dart function.
+    return Function::Cast(obj).QualifiedUserVisibleName();
+  }
+}
+
+
 void Code::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "code/%" Px "", EntryPoint());
   jsobj.AddPropertyF("start", "%" Px "", EntryPoint());
   jsobj.AddPropertyF("end", "%" Px "", EntryPoint() + Size());
-  Function& func = Function::Handle();
-  func ^= function();
-  ASSERT(!func.IsNull());
-  String& name = String::Handle();
-  ASSERT(!func.IsNull());
-  name ^= func.name();
-  const char* internal_function_name = name.ToCString();
-  jsobj.AddPropertyF("name", "%s%s", is_optimized() ? "*" : "",
-                                     internal_function_name);
-  name ^= func.QualifiedUserVisibleName();
-  const char* function_name = name.ToCString();
-  jsobj.AddPropertyF("user_name", "%s%s", is_optimized() ? "*" : "",
-                                          function_name);
+  jsobj.AddProperty("is_optimized", is_optimized());
+  jsobj.AddProperty("is_alive", is_alive());
+  const String& name = String::Handle(Name());
+  const String& user_name = String::Handle(UserName());
+  const char* name_prefix = is_optimized() ? "*" : "";
+  jsobj.AddPropertyF("name", "%s%s", name_prefix, name.ToCString());
+  jsobj.AddPropertyF("user_name", "%s%s", name_prefix, user_name.ToCString());
+  const Object& obj = Object::Handle(owner());
+  if (obj.IsFunction()) {
+    jsobj.AddProperty("function", obj);
+  }
   if (ref) {
     return;
   }
-  jsobj.AddProperty("is_optimized", is_optimized());
-  jsobj.AddProperty("is_alive", is_alive());
-  jsobj.AddProperty("function", Object::Handle(function()));
   JSONArray jsarr(&jsobj, "disassembly");
   if (is_alive()) {
     // Only disassemble alive code objects.

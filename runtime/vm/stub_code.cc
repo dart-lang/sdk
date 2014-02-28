@@ -105,6 +105,7 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     const char* name = cls.ToCString();
     StubCode::GenerateAllocationStubForClass(&assembler, cls);
     stub ^= Code::FinalizeCode(name, &assembler);
+    stub.set_owner(cls);
     cls.set_allocation_stub(stub);
     if (FLAG_disassemble_stubs) {
       OS::Print("Code for allocation stub '%s': {\n", name);

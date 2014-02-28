@@ -3276,11 +3276,22 @@ class Code : public Object {
   }
 
   RawFunction* function() const {
-    return raw_ptr()->function_;
+    return reinterpret_cast<RawFunction*>(raw_ptr()->owner_);
   }
-  void set_function(const Function& function) const {
+
+  RawObject* owner() const {
+    return raw_ptr()->owner_;
+  }
+
+  void set_owner(const Function& function) const {
     ASSERT(function.IsOld());
-    StorePointer(&raw_ptr()->function_, function.raw());
+    StorePointer(&raw_ptr()->owner_,
+                 reinterpret_cast<RawObject*>(function.raw()));
+  }
+
+  void set_owner(const Class& cls) {
+    ASSERT(cls.IsOld());
+    StorePointer(&raw_ptr()->owner_, reinterpret_cast<RawObject*>(cls.raw()));
   }
 
   // We would have a VisitPointers function here to traverse all the
@@ -3305,6 +3316,7 @@ class Code : public Object {
                                Assembler* assembler,
                                bool optimized = false);
   static RawCode* LookupCode(uword pc);
+  static RawCode* LookupCodeInVmIsolate(uword pc);
 
   int32_t GetPointerOffsetAt(int index) const {
     return *PointerOffsetAddrAt(index);
@@ -3330,6 +3342,9 @@ class Code : public Object {
 
   // Returns an array indexed by deopt id, containing the extracted ICData.
   RawArray* ExtractTypeFeedbackArray() const;
+
+  RawString* Name() const;
+  RawString* UserName() const;
 
  private:
   void set_state_bits(intptr_t bits) const;
@@ -3383,6 +3398,7 @@ class Code : public Object {
   }
 
   intptr_t BinarySearchInSCallTable(uword pc) const;
+  static RawCode* LookupCodeInIsolate(Isolate* isolate, uword pc);
 
   // New is a private method as RawInstruction and RawCode objects should
   // only be created using the Code::FinalizeCode method. This method creates
@@ -4937,6 +4953,7 @@ class String : public Instance {
           ch_(0),
           index_(-1),
           end_(str.Length()) {
+      ASSERT(!str_.IsNull());
     }
 
     CodePointIterator(const String& str, intptr_t start, intptr_t length)

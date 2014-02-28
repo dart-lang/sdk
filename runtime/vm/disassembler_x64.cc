@@ -802,7 +802,6 @@ static const char* ObjectToCStringNoGC(const Object& obj) {
 
 
 void DisassemblerX64::AppendAddressToBuffer(uint8_t* addr_byte_ptr) {
-  NoGCScope no_gc;
   uword addr = reinterpret_cast<uword>(addr_byte_ptr);
   AppendToBuffer("%#" Px "", addr);
   // Try to print as heap object or stub name
@@ -810,6 +809,7 @@ void DisassemblerX64::AppendAddressToBuffer(uint8_t* addr_byte_ptr) {
       reinterpret_cast<RawObject*>(addr)->IsOldObject() &&
       !Isolate::Current()->heap()->CodeContains(addr) &&
       Disassembler::CanFindOldObject(addr)) {
+    NoGCScope no_gc;
     const Object& obj = Object::Handle(reinterpret_cast<RawObject*>(addr));
     if (obj.IsArray()) {
       const Array& arr = Array::Cast(obj);
@@ -838,13 +838,9 @@ void DisassemblerX64::AppendAddressToBuffer(uint8_t* addr_byte_ptr) {
       // Print only if jumping to entry point.
       const Code& code = Code::Handle(Code::LookupCode(addr));
       if (!code.IsNull() && (code.EntryPoint() == addr)) {
-        const Function& function = Function::Handle(code.function());
-        if (function.IsNull()) {
-          AppendToBuffer(" [ stub ]");
-        } else {
-          const char* name_of_function = function.ToFullyQualifiedCString();
-          AppendToBuffer(" [%s]", name_of_function);
-        }
+        const String& name = String::Handle(code.UserName());
+        const char* name_c = name.ToCString();
+        AppendToBuffer(" [%s]", name_c);
       }
     }
   }

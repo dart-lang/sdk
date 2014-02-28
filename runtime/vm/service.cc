@@ -216,7 +216,7 @@ static Dart_NativeFunction VmServiceNativeResolver(Dart_Handle name,
       sizeof(_VmServiceNativeEntries) / sizeof(_VmServiceNativeEntries[0]);
   for (intptr_t i = 0; i < n; i++) {
     VmServiceNativeEntry entry = _VmServiceNativeEntries[i];
-    if (!strcmp(function_name, entry.name) &&
+    if ((strcmp(function_name, entry.name) == 0) &&
         (num_arguments == entry.num_arguments)) {
       return entry.function;
     }
@@ -834,15 +834,15 @@ static bool HandleClasses(Isolate* isolate, JSONStream* js) {
     return true;
   } else if (js->num_arguments() >= 3) {
     const char* second = js->GetArgument(2);
-    if (!strcmp(second, "closures")) {
+    if (strcmp(second, "closures") == 0) {
       return HandleClassesClosures(isolate, cls, js);
-    } else if (!strcmp(second, "fields")) {
+    } else if (strcmp(second, "fields") == 0) {
       return HandleClassesFields(isolate, cls, js);
-    } else if (!strcmp(second, "functions")) {
+    } else if (strcmp(second, "functions") == 0) {
       return HandleClassesFunctions(isolate, cls, js);
-    } else if (!strcmp(second, "implicit_closures")) {
+    } else if (strcmp(second, "implicit_closures") == 0) {
       return HandleClassesImplicitClosures(isolate, cls, js);
-    } else if (!strcmp(second, "dispatchers")) {
+    } else if (strcmp(second, "dispatchers") == 0) {
       return HandleClassesDispatchers(isolate, cls, js);
     } else {
       PrintError(js, "Invalid sub collection %s", second);
@@ -1015,7 +1015,7 @@ static bool HandleDebug(Isolate* isolate, JSONStream* js) {
     return true;
   }
   const char* command = js->GetArgument(1);
-  if (!strcmp(command, "breakpoints")) {
+  if (strcmp(command, "breakpoints") == 0) {
     if (js->num_arguments() == 2) {
       // Print breakpoint list.
       JSONObject jsobj(js);
@@ -1057,19 +1057,50 @@ static bool HandleCpu(Isolate* isolate, JSONStream* js) {
 }
 
 
+static bool HandleNullCode(uintptr_t pc, JSONStream* js) {
+  Object::null_object().PrintToJSONStream(js, false);
+  return true;
+}
+
+
 static bool HandleCode(Isolate* isolate, JSONStream* js) {
   REQUIRE_COLLECTION_ID("code");
   uintptr_t pc;
+  if (js->num_arguments() > 3) {
+    PrintError(js, "Command too long");
+    return true;
+  }
+  if (js->num_arguments() == 3) {
+    const char* command = js->GetArgument(1);
+    if ((strcmp("collected", command) == 0) ||
+        (strcmp("native", command) == 0)) {
+      if (!GetUnsignedIntegerId(js->GetArgument(1), &pc, 16)) {
+        PrintError(js, "Must specify code address: code/%s/c0deadd0.", command);
+        return true;
+      }
+      return HandleNullCode(pc, js);
+    } else {
+      PrintError(js, "Unrecognized subcommand '%s'", js->GetArgument(1));
+      return true;
+    }
+  }
+  ASSERT(js->num_arguments() == 2);
   if (!GetUnsignedIntegerId(js->GetArgument(1), &pc, 16)) {
     PrintError(js, "Must specify code address: code/c0deadd0.");
     return true;
   }
-  Code& code = Code::Handle(Code::LookupCode(pc));
-  if (code.IsNull()) {
-    PrintError(js, "Could not find code at %" Px "", pc);
+  Code& code = Code::Handle();
+  code ^= Code::LookupCode(pc);
+  if (!code.IsNull()) {
+    code.PrintToJSONStream(js, false);
     return true;
   }
-  code.PrintToJSONStream(js, false);
+  code ^= Code::LookupCodeInVmIsolate(pc);
+  if (!code.IsNull()) {
+    code.PrintToJSONStream(js, false);
+    return true;
+  }
+  PrintError(js, "Could not find code at %" Px "", pc);
   return true;
 }
 
@@ -1122,7 +1153,7 @@ static IsolateMessageHandler FindIsolateMessageHandler(const char* command) {
                                   sizeof(isolate_handlers[0]);
   for (intptr_t i = 0; i < num_message_handlers; i++) {
     const IsolateMessageHandlerEntry& entry = isolate_handlers[i];
-    if (!strcmp(command, entry.command)) {
+    if (strcmp(command, entry.command) == 0) {
       return entry.handler;
     }
   }
@@ -1226,7 +1257,7 @@ static RootMessageHandler FindRootMessageHandler(const char* command) {
                                   sizeof(root_handlers[0]);
   for (intptr_t i = 0; i < num_message_handlers; i++) {
     const RootMessageHandlerEntry& entry = root_handlers[i];
-    if (!strcmp(command, entry.command)) {
+    if (strcmp(command, entry.command) == 0) {
       return entry.handler;
     }
   }
@@ -1286,7 +1317,7 @@ EmbedderServiceHandler* Service::FindIsolateEmbedderHandler(
     const char* name) {
   EmbedderServiceHandler* current = isolate_service_handler_head_;
   while (current != NULL) {
-    if (!strcmp(name, current->name())) {
+    if (strcmp(name, current->name()) == 0) {
       return current;
     }
     current = current->next();
@@ -1324,7 +1355,7 @@ EmbedderServiceHandler* Service::FindRootEmbedderHandler(
     const char* name) {
   EmbedderServiceHandler* current = root_service_handler_head_;
   while (current != NULL) {
-    if (!strcmp(name, current->name())) {
+    if (strcmp(name, current->name()) == 0) {
       return current;
     }
     current = current->next();
