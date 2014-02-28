@@ -1,11 +1,11 @@
 name: mutation_observer
-version: 0.9.0
+version: 0.9.0+1
 author: "Polymer.dart Team <web-ui-dev@dartlang.org>"
 homepage: https://code.google.com/p/dart/source/browse/branches/bleeding_edge/dart/pkg/mutation_observer/
 documentation: https://api.dartlang.org/docs/releases/latest/dart_html/MutationObserver.html
 description: >
-  Mutation Observers provide a way to react to changes in the DOM.
+  *Deprecated* newer version is in web_components package.
 dev_dependencies:
-  unittest: ">=0.9.0 <0.10.0"
+  unittest: ">=0.9.0 <0.11.0"
 environment:
   sdk: ">=1.0.0 <2.0.0"
