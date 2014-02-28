@@ -4,6 +4,8 @@
 
 library code_transformer.src.resolver;
 
+import 'dart:async';
+
 import 'package:analyzer/src/generated/element.dart';
 import 'package:barback/barback.dart';
 import 'package:source_maps/refactor.dart';
@@ -14,6 +16,16 @@ import 'package:source_maps/span.dart' show SourceFile, Span;
 abstract class Resolver {
   /// The Dart entry point file where parsing begins.
   AssetId get entryPoint;
+
+  /// Update the status of all the sources referenced by the entryPoint and
+  /// update the resolved library.
+  ///
+  /// [release] must be called when done handling this Resolver to allow it
+  /// to be used by later phases.
+  Future<Resolver> resolve(Transform transform);
+
+  /// Release this resolver so it can be updated by following transforms.
+  void release();
 
   /// Gets the resolved Dart library for the entry asset, or null if
   /// the AST has not been resolved.

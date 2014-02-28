@@ -4,6 +4,7 @@
 
 library code_transformers.test.resolver_test;
 
+import 'dart:async';
 import 'dart:io' show File, Platform;
 
 import 'package:barback/barback.dart';
@@ -25,19 +26,24 @@ main() {
   }
 
   var entryPoint = new AssetId('a', 'web/main.dart');
-  var transformer = new ResolverTransformer(sdkDir,
-      (asset) => asset.id == entryPoint);
+  var resolvers = new Resolvers(sdkDir);
 
-  var phases = [[transformer]];
+  Future validateResolver({Map<String, String> inputs, void validator(Resolver),
+      List<String> messages: const[]}) {
+    return applyTransformers(
+          [[new TestTransformer(resolvers, entryPoint, validator)]],
+          inputs: inputs,
+          messages: messages);
+  }
 
   group('Resolver', () {
 
     test('should handle empty files', () {
-      return applyTransformers(phases,
+      return validateResolver(
           inputs: {
             'a|web/main.dart': '',
-          }).then((_) {
-            var resolver = transformer.getResolver(entryPoint);
+          },
+          validator: (resolver) {
             var source = resolver.sources[entryPoint];
             expect(source.modificationStamp, 1);
 
@@ -48,11 +54,11 @@ main() {
     });
 
     test('should update when sources change', () {
-      return applyTransformers(phases,
+      return validateResolver(
           inputs: {
             'a|web/main.dart': ''' main() {} ''',
-          }).then((_) {
-            var resolver = transformer.getResolver(entryPoint);
+          },
+          validator: (resolver) {
             var source = resolver.sources[entryPoint];
             expect(source.modificationStamp, 2);
 
@@ -63,7 +69,7 @@ main() {
     });
 
     test('should follow imports', () {
-      return applyTransformers(phases,
+      return validateResolver(
           inputs: {
             'a|web/main.dart': '''
               import 'a.dart';
@@ -73,8 +79,8 @@ main() {
             'a|web/a.dart': '''
               library a;
               ''',
-          }).then((_) {
-            var resolver = transformer.getResolver(entryPoint);
+          },
+          validator: (resolver) {
             var lib = resolver.entryLibrary;
             expect(lib.importedLibraries.length, 2);
             var libA = lib.importedLibraries.where((l) => l.name == 'a').single;
@@ -83,7 +89,7 @@ main() {
     });
 
     test('should update changed imports', () {
-      return applyTransformers(phases,
+      return validateResolver(
           inputs: {
             'a|web/main.dart': '''
               import 'a.dart';
@@ -94,8 +100,9 @@ main() {
               library a;
               class Foo {}
               ''',
-          }).then((_) {
-            var lib = transformer.getResolver(entryPoint).entryLibrary;
+          },
+          validator: (resolver) {
+            var lib = resolver.entryLibrary;
             expect(lib.importedLibraries.length, 2);
             var libA = lib.importedLibraries.where((l) => l.name == 'a').single;
             expect(libA.getType('Foo'), isNotNull);
@@ -103,7 +110,7 @@ main() {
     });
 
     test('should follow package imports', () {
-      return applyTransformers(phases,
+      return validateResolver(
           inputs: {
             'a|web/main.dart': '''
               import 'package:b/b.dart';
@@ -113,8 +120,9 @@ main() {
             'b|lib/b.dart': '''
               library b;
               ''',
-          }).then((_) {
-            var lib = transformer.getResolver(entryPoint).entryLibrary;
+          },
+          validator: (resolver) {
+            var lib = resolver.entryLibrary;
             expect(lib.importedLibraries.length, 2);
             var libB = lib.importedLibraries.where((l) => l.name == 'b').single;
             expect(libB.getType('Foo'), isNull);
@@ -122,7 +130,7 @@ main() {
     });
 
     test('should update on changed package imports', () {
-      return applyTransformers(phases,
+      return validateResolver(
           inputs: {
             'a|web/main.dart': '''
               import 'package:b/b.dart';
@@ -133,8 +141,9 @@ main() {
               library b;
               class Bar {}
               ''',
-          }).then((_) {
-            var lib = transformer.getResolver(entryPoint).entryLibrary;
+          },
+          validator: (resolver) {
+            var lib = resolver.entryLibrary;
             expect(lib.importedLibraries.length, 2);
             var libB = lib.importedLibraries.where((l) => l.name == 'b').single;
             expect(libB.getType('Bar'), isNotNull);
@@ -142,7 +151,7 @@ main() {
     });
 
     test('should handle deleted files', () {
-      return applyTransformers(phases,
+      return validateResolver(
           inputs: {
             'a|web/main.dart': '''
               import 'package:b/b.dart';
@@ -153,14 +162,15 @@ main() {
           messages: [
             'error: Unable to find asset for "package:b/b.dart"',
             'error: Unable to find asset for "package:b/b.dart"',
-          ]).then((_) {
-            var lib = transformer.getResolver(entryPoint).entryLibrary;
+          ],
+          validator: (resolver) {
+            var lib = resolver.entryLibrary;
             expect(lib.importedLibraries.length, 1);
           });
     });
 
     test('should fail on absolute URIs', () {
-      return applyTransformers(phases,
+      return validateResolver(
           inputs: {
             'a|web/main.dart': '''
               import '/b.dart';
@@ -174,14 +184,15 @@ main() {
             // Then two from the resolver.
             'error: absolute paths not allowed: "/b.dart"',
             'error: absolute paths not allowed: "/b.dart"',
-          ]).then((_) {
-            var lib = transformer.getResolver(entryPoint).entryLibrary;
+          ],
+          validator: (resolver) {
+            var lib = resolver.entryLibrary;
             expect(lib.importedLibraries.length, 1);
           });
     });
 
     test('should list all libraries', () {
-      return applyTransformers(phases,
+      return validateResolver(
           inputs: {
             'a|web/main.dart': '''
               library a.main;
@@ -191,8 +202,8 @@ main() {
             'a|lib/a.dart': 'library a.a;\n import "package:a/c.dart";',
             'a|lib/b.dart': 'library a.b;\n import "c.dart";',
             'a|lib/c.dart': 'library a.c;'
-          }).then((_) {
-            var resolver = transformer.getResolver(entryPoint);
+          },
+          validator: (resolver) {
             var libs = resolver.libraries.where((l) => !l.isInSdk);
             expect(libs.map((l) => l.name), unorderedEquals([
               'a.main',
@@ -204,7 +215,7 @@ main() {
     });
 
     test('should resolve types and library uris', () {
-      return applyTransformers(phases,
+      return validateResolver(
           inputs: {
             'a|web/main.dart': '''
               import 'dart:core';
@@ -223,9 +234,8 @@ main() {
                 library a.web.sub_dir.d;
                 class Baz{}
                 ''',
-          }).then((_) {
-            var resolver = transformer.getResolver(entryPoint);
-
+          },
+          validator: (resolver) {
             var a = resolver.getLibraryByName('a.a');
             expect(a, isNotNull);
             expect(resolver.getImportUri(a).toString(),
@@ -264,35 +274,35 @@ main() {
     });
 
     test('deleted files should be removed', () {
-      return applyTransformers(phases,
+      return validateResolver(
           inputs: {
             'a|web/main.dart': '''import 'package:a/a.dart';''',
             'a|lib/a.dart': '''import 'package:a/b.dart';''',
             'a|lib/b.dart': '''class Engine{}''',
-          }).then((_) {
-            var resolver = transformer.getResolver(entryPoint);
+          },
+          validator: (resolver) {
             var engine = resolver.getType('Engine');
             var uri = resolver.getImportUri(engine.library);
             expect(uri.toString(), 'package:a/b.dart');
           }).then((_) {
-            return applyTransformers(phases,
+            return validateResolver(
               inputs: {
                 'a|web/main.dart': '''import 'package:a/a.dart';''',
                 'a|lib/a.dart': '''lib a;\n class Engine{}'''
-              });
-          }).then((_) {
-            var resolver = transformer.getResolver(entryPoint);
-            var engine = resolver.getType('Engine');
-            var uri = resolver.getImportUri(engine.library);
-            expect(uri.toString(), 'package:a/a.dart');
+              },
+              validator: (resolver) {
+                var engine = resolver.getType('Engine');
+                var uri = resolver.getImportUri(engine.library);
+                expect(uri.toString(), 'package:a/a.dart');
 
-            // Make sure that we haven't leaked any sources.
-            expect(resolver.sources.length, 2);
+                // Make sure that we haven't leaked any sources.
+                expect(resolver.sources.length, 2);
+              });
           });
     });
 
     test('handles circular imports', () {
-      return applyTransformers(phases,
+      return validateResolver(
           inputs: {
             'a|web/main.dart': '''
                 library main;
@@ -303,13 +313,49 @@ main() {
             'a|lib/b.dart': '''
                 library b;
                 import 'package:a/a.dart'; ''',
-          }).then((_) {
-            var resolver = transformer.getResolver(entryPoint);
-
+          },
+          validator: (resolver) {
             var libs = resolver.libraries.map((lib) => lib.name);
             expect(libs.contains('a'), isTrue);
             expect(libs.contains('b'), isTrue);
           });
     });
+
+    test('handles parallel resolves', () {
+      return Future.wait([
+        validateResolver(
+          inputs: {
+            'a|web/main.dart': '''
+                library foo;'''
+          },
+          validator: (resolver) {
+            expect(resolver.entryLibrary.name, 'foo');
+          }),
+        validateResolver(
+          inputs: {
+            'a|web/main.dart': '''
+                library bar;'''
+          },
+          validator: (resolver) {
+            expect(resolver.entryLibrary.name, 'bar');
+          }),
+      ]);
+    });
   });
+}
+
+class TestTransformer extends Transformer with ResolverTransformer {
+  final AssetId primary;
+  final Function validator;
+
+  TestTransformer(Resolvers resolvers, this.primary, this.validator) {
+    this.resolvers = resolvers;
+  }
+
+  Future<bool> isPrimary(Asset input) =>
+      new Future.value(input.id == primary);
+
+  applyResolver(Transform transform, Resolver resolver) {
+    return validator(resolver);
+  }
 }

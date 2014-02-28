@@ -8,10 +8,7 @@ import 'dart:async';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_io.dart';
-import 'package:analyzer/src/generated/parser.dart' show Parser;
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:analyzer/src/generated/source.dart';
@@ -46,6 +43,12 @@ class ResolverImpl implements Resolver {
   /// The currently resolved library, or null if unresolved.
   LibraryElement _entryLibrary;
 
+  /// Future indicating when this resolver is done in the current phase.
+  Future _lastPhaseComplete = new Future.value();
+
+  /// Completer for wrapping up the current phase.
+  Completer _currentPhaseComplete;
+
   /// Handler for all Dart SDK (dart:) sources.
   DirectoryBasedDartSdk _dartSdk;
 
@@ -73,19 +76,36 @@ class ResolverImpl implements Resolver {
 
   LibraryElement get entryLibrary => _entryLibrary;
 
+  Future<Resolver> resolve(Transform transform) {
+    // Can only have one resolve in progress at a time, so chain the current
+    // resolution to be after the last one.
+    var phaseComplete = new Completer();
+    var future = _lastPhaseComplete.then((_) {
+      _currentPhaseComplete = phaseComplete;
 
-  /// Update the status of all the sources referenced by the entryPoint and
-  /// update the resolved library.
-  ///
-  /// This will be invoked automatically by [ResolverTransformer]. Only one
-  /// transformer may update this at a time.
-  Future updateSources(Transform transform) {
+      return _performResolve(transform);
+    }).then((_) => this);
+    // Advance the lastPhaseComplete to be done when this phase is all done.
+    _lastPhaseComplete = phaseComplete.future;
+    return future;
+  }
+
+  void release() {
+    if (_currentPhaseComplete == null) {
+      throw new StateError('Releasing without current lock.');
+    }
+    _currentPhaseComplete.complete(null);
+    _currentPhaseComplete = null;
+
+    // Clear out the entry lib since it should not be referenced after release.
+    _entryLibrary = null;
+  }
+
+  Future _performResolve(Transform transform) {
     if (_currentTransform != null) {
       throw new StateError('Cannot be accessed by concurrent transforms');
     }
     _currentTransform = transform;
-    // Clear this out and update once all asset changes have been processed.
-    _entryLibrary = null;
 
     // Basic approach is to start at the first file, update it's contents
     // and see if it changed, then walk all files accessed by it.
@@ -470,6 +490,13 @@ AssetId _resolve(AssetId source, String url, TransformLogger logger,
     Span span) {
   if (url == null || url == '') return null;
   var uri = Uri.parse(url);
+
+  // Workaround for dartbug.com/17156- pub transforms package: imports from
+  // files of the transformers package to have absolute /packages/ URIs.
+  if (uri.scheme == '' && path.isAbsolute(url)
+      && uri.pathSegments[0] == 'packages') {
+    uri = Uri.parse('package:${uri.pathSegments.skip(1).join(path.separator)}');
+  }
 
   if (uri.scheme == 'package') {
     var segments = new List.from(uri.pathSegments);
