@@ -1920,13 +1920,14 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
 
   bool get isAbstract => throw new UnimplementedError();
 
-  bool isSubclassOf(JsClassMirror other) {
+  bool isSubclassOf(ClassMirror other) {
     if (other is! ClassMirror) {
       throw new ArgumentError(other);
     }
     if (other is JsFunctionTypeMirror) {
       return false;
-    } if (JS('bool', '# == #', other._jsConstructor, _jsConstructor)) {
+    } if (other is JsClassMirror &&
+          JS('bool', '# == #', other._jsConstructor, _jsConstructor)) {
       return true;
     } else if (superclass == null) {
       return false;
