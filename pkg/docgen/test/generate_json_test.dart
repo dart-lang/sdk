@@ -28,8 +28,6 @@ void main() {
    });
 
   test('json output', () {
-    print(d.defaultRoot);
-
     schedule(() {
       var codeDir = getMultiLibraryCodePath();
       expect(FileSystemEntity.isDirectorySync(codeDir), isTrue);
