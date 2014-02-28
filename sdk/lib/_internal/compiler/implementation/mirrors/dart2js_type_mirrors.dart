@@ -239,12 +239,12 @@ class Dart2JsClassDeclarationMirror
       : super(system, type);
 
   bool isSubclassOf(ClassMirror other) {
-    if (other is Dart2JsFunctionTypeMirror) {
-      return false;
-    } else if (other is Dart2JsClassDeclarationMirror) {
+    if (other is Dart2JsClassDeclarationMirror) {
       Dart2JsClassDeclarationMirror otherDeclaration =
           other.originalDeclaration;
       return _element.isSubclassOf(otherDeclaration._element);
+    } else if (other is TypeMirror) {
+      return false;
     }
     throw new ArgumentError(other);
   }
