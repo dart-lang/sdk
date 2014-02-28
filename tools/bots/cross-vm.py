@@ -47,8 +47,7 @@ def cross_compiling_builder(arch, mode):
       with bot.BuildStep('Create build tarball'):
         run(['tar', '-cjf', tarball, '--exclude=**/obj',
              '--exclude=**/obj.host', '--exclude=**/obj.target',
-             '--exclude=**/*analyzer*', '--exclude=**/run_vm_tests.host',
-             'out/'])
+             '--exclude=**/*analyzer*', 'out/'])
 
       with bot.BuildStep('Upload build tarball'):
         uri = "%s/%s" % (GCS_BUCKET, tarball)
