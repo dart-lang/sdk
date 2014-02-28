@@ -1,5 +1,5 @@
 URL: http://code.google.com/p/double-conversion/
-Version: c8b89fb5c5b4 ('Merge in branch unused.').
+Version: double-conversion 1.1.5
 License: BSD
 License File: LICENSE
 
@@ -8,4 +8,4 @@ This is the double->string and string->double library that has been developed
 for v8.
 
 Local Modifications:
-Removed the test directory, the Makefile and the scons-files.
+Removed the test directory and the build files.

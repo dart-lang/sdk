@@ -37,6 +37,8 @@ enum FastDtoaMode {
   // result will be the most accurate number of this length. Longer
   // representations might be more accurate.
   FAST_DTOA_SHORTEST,
+  // Same as FAST_DTOA_SHORTEST but for single-precision floats.
+  FAST_DTOA_SHORTEST_SINGLE,
   // Computes a representation where the precision (number of digits) is
   // given as input. The precision is independent of the decimal point.
   FAST_DTOA_PRECISION
@@ -45,6 +47,8 @@ enum FastDtoaMode {
 // FastDtoa will produce at most kFastDtoaMaximalLength digits. This does not
 // include the terminating '\0' character.
 static const int kFastDtoaMaximalLength = 17;
+// Same for single-precision numbers.
+static const int kFastDtoaMaximalSingleLength = 9;
 
 // Provides a decimal representation of v.
 // The result should be interpreted as buffer * 10^(point - length).

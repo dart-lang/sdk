@@ -1,4 +1,4 @@
-// Copyright 2010 the V8 project authors. All rights reserved.
+// Copyright 2012 the V8 project authors. All rights reserved.
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -154,7 +154,14 @@ class DoubleToStringConverter {
   // Returns true if the conversion succeeds. The conversion always succeeds
   // except when the input value is special and no infinity_symbol or
   // nan_symbol has been given to the constructor.
-  bool ToShortest(double value, StringBuilder* result_builder) const;
+  bool ToShortest(double value, StringBuilder* result_builder) const {
+    return ToShortestIeeeNumber(value, result_builder, SHORTEST);
+  }
+
+  // Same as ToShortest, but for single-precision floats.
+  bool ToShortestSingle(float value, StringBuilder* result_builder) const {
+    return ToShortestIeeeNumber(value, result_builder, SHORTEST_SINGLE);
+  }
 
 
   // Computes a decimal representation with a fixed number of digits after the
@@ -269,6 +276,8 @@ class DoubleToStringConverter {
     // For example the output of 0.299999999999999988897 is (the less accurate
     // but correct) 0.3.
     SHORTEST,
+    // Same as SHORTEST, but for single-precision floats.
+    SHORTEST_SINGLE,
     // Produce a fixed number of digits after the decimal point.
     // For instance fixed(0.1, 4) becomes 0.1000
     // If the input number is big, the output will be big.
@@ -285,7 +294,11 @@ class DoubleToStringConverter {
   // should be at least kBase10MaximalLength + 1 characters long.
   static const int kBase10MaximalLength = 17;
 
-  // Converts the given double 'v' to ascii.
+  // Converts the given double 'v' to ascii. 'v' must not be NaN, +Infinity, or
+  // -Infinity. In SHORTEST_SINGLE-mode this restriction also applies to 'v'
+  // after it has been casted to a single-precision float. That is, in this
+  // mode static_cast<float>(v) must not be NaN, +Infinity or -Infinity.
+  //
   // The result should be interpreted as buffer * 10^(point-length).
   //
   // The output depends on the given mode:
@@ -296,6 +309,7 @@ class DoubleToStringConverter {
   //   'v'. If there are two at the same distance, than the one farther away
   //   from 0 is chosen (halfway cases - ending with 5 - are rounded up).
   //   In this mode the 'requested_digits' parameter is ignored.
+  //  - SHORTEST_SINGLE: same as SHORTEST but with single-precision.
   //  - FIXED: produces digits necessary to print a given number with
   //   'requested_digits' digits after the decimal point. The produced digits
   //   might be too short in which case the caller has to fill the remainder
@@ -313,9 +327,11 @@ class DoubleToStringConverter {
   // DoubleToAscii expects the given buffer to be big enough to hold all
   // digits and a terminating null-character. In SHORTEST-mode it expects a
   // buffer of at least kBase10MaximalLength + 1. In all other modes the
-  // requested_digits parameter (+ 1 for the null-character) limits the size of
-  // the output. The given length is only used in debug mode to ensure the
-  // buffer is big enough.
+  // requested_digits parameter and the padding-zeroes limit the size of the
+  // output. Don't forget the decimal point, the exponent character and the
+  // terminating null-character when computing the maximal output size.
+  // The given length is only used in debug mode to ensure the buffer is big
+  // enough.
   static void DoubleToAscii(double v,
                             DtoaMode mode,
                             int requested_digits,
@@ -326,6 +342,11 @@ class DoubleToStringConverter {
                             int* point);
 
  private:
+  // Implementation for ToShortest and ToShortestSingle.
+  bool ToShortestIeeeNumber(double value,
+                            StringBuilder* result_builder,
+                            DtoaMode mode) const;
+
   // If the value is a special value (NaN or Infinity) constructs the
   // corresponding string using the configured infinity/nan-symbol.
   // If either of them is NULL or the value is not special then the
@@ -481,7 +502,19 @@ class StringToDoubleConverter {
   // in the 'processed_characters_count'. Trailing junk is never included.
   double StringToDouble(const char* buffer,
                         int length,
-                        int* processed_characters_count);
+                        int* processed_characters_count) const {
+    return StringToIeee(buffer, length, processed_characters_count, true);
+  }
+
+  // Same as StringToDouble but reads a float.
+  // Note that this is not equivalent to static_cast<float>(StringToDouble(...))
+  // due to potential double-rounding.
+  float StringToFloat(const char* buffer,
+                      int length,
+                      int* processed_characters_count) const {
+    return static_cast<float>(StringToIeee(buffer, length,
+                                           processed_characters_count, false));
+  }
 
  private:
   const int flags_;
@@ -489,6 +522,11 @@ class StringToDoubleConverter {
   const double junk_string_value_;
   const char* const infinity_symbol_;
   const char* const nan_symbol_;
+
+  double StringToIeee(const char* buffer,
+                      int length,
+                      int* processed_characters_count,
+                      bool read_as_double) const;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StringToDoubleConverter);
 };

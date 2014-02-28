@@ -37,6 +37,8 @@ enum BignumDtoaMode {
   // For example the output of 0.299999999999999988897 is (the less accurate but
   // correct) 0.3.
   BIGNUM_DTOA_SHORTEST,
+  // Same as BIGNUM_DTOA_SHORTEST but for single-precision floats.
+  BIGNUM_DTOA_SHORTEST_SINGLE,
   // Return a fixed number of digits after the decimal point.
   // For instance fixed(0.1, 4) becomes 0.1000
   // If the input number is big, the output will be big.

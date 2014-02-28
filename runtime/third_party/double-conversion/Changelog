@@ -1,0 +1,33 @@
+2014-01-12:
+  Tagged v1.1.5.
+  Enabled shared libraries in v1.1 branch.
+
+2014-01-12:
+  Tagged v1.1.4.
+  Backported SConstruct improvements.
+
+2014-01-12:
+  Tagged v1.1.3.
+  Backported warning fixes from 2.0 branch.
+
+2013-12-23:
+  Fix compilation for ARMv8 64bit (used wrong define).
+
+2013-11-09:
+  Tagged v1.1.2.
+  Add support for ARM 64 and OsX ppc.
+  Rewrite tests so they pass under Visual Studio.
+  Add CMake build system support.
+  Fix warnings.
+
+2012-06-10:
+  Tagged v1.1.1.
+  Null terminate exponent buffer (only an issue when asserts are enabled).
+  Support more architectures.
+
+2012-02-05:
+  Merged in Single-branch with single-precision support.
+  Tagged v1.1 (based on b28450f33e1db493948a535d8f84e88fa211bd10).
+
+2012-02-05:
+  Tagged v1.0 (based on eda0196e9ac8fcdf59e92cb62885ee0af5391969).

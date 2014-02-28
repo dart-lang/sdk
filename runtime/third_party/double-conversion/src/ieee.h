@@ -1,4 +1,4 @@
-// Copyright 2010 the V8 project authors. All rights reserved.
+// Copyright 2012 the V8 project authors. All rights reserved.
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,6 +35,8 @@ namespace double_conversion {
 // We assume that doubles and uint64_t have the same endianness.
 static uint64_t double_to_uint64(double d) { return BitCast<uint64_t>(d); }
 static double uint64_to_double(uint64_t d64) { return BitCast<double>(d64); }
+static uint32_t float_to_uint32(float f) { return BitCast<uint32_t>(f); }
+static float uint32_to_float(uint32_t d32) { return BitCast<float>(d32); }
 
 // Helper functions for doubles.
 class Double {
@@ -93,6 +95,16 @@ class Double {
       return Double(d64_ - 1).value();
     } else {
       return Double(d64_ + 1).value();
+    }
+  }
+
+  double PreviousDouble() const {
+    if (d64_ == (kInfinity | kSignMask)) return -Double::Infinity();
+    if (Sign() < 0) {
+      return Double(d64_ + 1).value();
+    } else {
+      if (Significand() == 0) return -0.0;
+      return Double(d64_ - 1).value();
     }
   }
 
@@ -159,16 +171,9 @@ class Double {
   void NormalizedBoundaries(DiyFp* out_m_minus, DiyFp* out_m_plus) const {
     ASSERT(value() > 0.0);
     DiyFp v = this->AsDiyFp();
-    bool significand_is_zero = (v.f() == kHiddenBit);
     DiyFp m_plus = DiyFp::Normalize(DiyFp((v.f() << 1) + 1, v.e() - 1));
     DiyFp m_minus;
-    if (significand_is_zero && v.e() != kDenormalExponent) {
-      // The boundary is closer. Think of v = 1000e10 and v- = 9999e9.
-      // Then the boundary (== (v - v-)/2) is not just at a distance of 1e9 but
-      // at a distance of 1e8.
-      // The only exception is for the smallest normal: the largest denormal is
-      // at the same distance as its successor.
-      // Note: denormals have the same exponent as the smallest normals.
+    if (LowerBoundaryIsCloser()) {
       m_minus = DiyFp((v.f() << 2) - 1, v.e() - 2);
     } else {
       m_minus = DiyFp((v.f() << 1) - 1, v.e() - 1);
@@ -177,6 +182,19 @@ class Double {
     m_minus.set_e(m_plus.e());
     *out_m_plus = m_plus;
     *out_m_minus = m_minus;
+  }
+
+  bool LowerBoundaryIsCloser() const {
+    // The boundary is closer if the significand is of the form f == 2^p-1 then
+    // the lower boundary is closer.
+    // Think of v = 1000e10 and v- = 9999e9.
+    // Then the boundary (== (v - v-)/2) is not just at a distance of 1e9 but
+    // at a distance of 1e8.
+    // The only exception is for the smallest normal: the largest denormal is
+    // at the same distance as its successor.
+    // Note: denormals have the same exponent as the smallest normals.
+    bool physical_significand_is_zero = ((AsUint64() & kSignificandMask) == 0);
+    return physical_significand_is_zero && (Exponent() != kDenormalExponent);
   }
 
   double value() const { return uint64_to_double(d64_); }
@@ -238,6 +256,145 @@ class Double {
     return (significand & kSignificandMask) |
         (biased_exponent << kPhysicalSignificandSize);
   }
+
+  DISALLOW_COPY_AND_ASSIGN(Double);
+};
+
+class Single {
+ public:
+  static const uint32_t kSignMask = 0x80000000;
+  static const uint32_t kExponentMask = 0x7F800000;
+  static const uint32_t kSignificandMask = 0x007FFFFF;
+  static const uint32_t kHiddenBit = 0x00800000;
+  static const int kPhysicalSignificandSize = 23;  // Excludes the hidden bit.
+  static const int kSignificandSize = 24;
+
+  Single() : d32_(0) {}
+  explicit Single(float f) : d32_(float_to_uint32(f)) {}
+  explicit Single(uint32_t d32) : d32_(d32) {}
+
+  // The value encoded by this Single must be greater or equal to +0.0.
+  // It must not be special (infinity, or NaN).
+  DiyFp AsDiyFp() const {
+    ASSERT(Sign() > 0);
+    ASSERT(!IsSpecial());
+    return DiyFp(Significand(), Exponent());
+  }
+
+  // Returns the single's bit as uint64.
+  uint32_t AsUint32() const {
+    return d32_;
+  }
+
+  int Exponent() const {
+    if (IsDenormal()) return kDenormalExponent;
+
+    uint32_t d32 = AsUint32();
+    int biased_e =
+        static_cast<int>((d32 & kExponentMask) >> kPhysicalSignificandSize);
+    return biased_e - kExponentBias;
+  }
+
+  uint32_t Significand() const {
+    uint32_t d32 = AsUint32();
+    uint32_t significand = d32 & kSignificandMask;
+    if (!IsDenormal()) {
+      return significand + kHiddenBit;
+    } else {
+      return significand;
+    }
+  }
+
+  // Returns true if the single is a denormal.
+  bool IsDenormal() const {
+    uint32_t d32 = AsUint32();
+    return (d32 & kExponentMask) == 0;
+  }
+
+  // We consider denormals not to be special.
+  // Hence only Infinity and NaN are special.
+  bool IsSpecial() const {
+    uint32_t d32 = AsUint32();
+    return (d32 & kExponentMask) == kExponentMask;
+  }
+
+  bool IsNan() const {
+    uint32_t d32 = AsUint32();
+    return ((d32 & kExponentMask) == kExponentMask) &&
+        ((d32 & kSignificandMask) != 0);
+  }
+
+  bool IsInfinite() const {
+    uint32_t d32 = AsUint32();
+    return ((d32 & kExponentMask) == kExponentMask) &&
+        ((d32 & kSignificandMask) == 0);
+  }
+
+  int Sign() const {
+    uint32_t d32 = AsUint32();
+    return (d32 & kSignMask) == 0? 1: -1;
+  }
+
+  // Computes the two boundaries of this.
+  // The bigger boundary (m_plus) is normalized. The lower boundary has the same
+  // exponent as m_plus.
+  // Precondition: the value encoded by this Single must be greater than 0.
+  void NormalizedBoundaries(DiyFp* out_m_minus, DiyFp* out_m_plus) const {
+    ASSERT(value() > 0.0);
+    DiyFp v = this->AsDiyFp();
+    DiyFp m_plus = DiyFp::Normalize(DiyFp((v.f() << 1) + 1, v.e() - 1));
+    DiyFp m_minus;
+    if (LowerBoundaryIsCloser()) {
+      m_minus = DiyFp((v.f() << 2) - 1, v.e() - 2);
+    } else {
+      m_minus = DiyFp((v.f() << 1) - 1, v.e() - 1);
+    }
+    m_minus.set_f(m_minus.f() << (m_minus.e() - m_plus.e()));
+    m_minus.set_e(m_plus.e());
+    *out_m_plus = m_plus;
+    *out_m_minus = m_minus;
+  }
+
+  // Precondition: the value encoded by this Single must be greater or equal
+  // than +0.0.
+  DiyFp UpperBoundary() const {
+    ASSERT(Sign() > 0);
+    return DiyFp(Significand() * 2 + 1, Exponent() - 1);
+  }
+
+  bool LowerBoundaryIsCloser() const {
+    // The boundary is closer if the significand is of the form f == 2^p-1 then
+    // the lower boundary is closer.
+    // Think of v = 1000e10 and v- = 9999e9.
+    // Then the boundary (== (v - v-)/2) is not just at a distance of 1e9 but
+    // at a distance of 1e8.
+    // The only exception is for the smallest normal: the largest denormal is
+    // at the same distance as its successor.
+    // Note: denormals have the same exponent as the smallest normals.
+    bool physical_significand_is_zero = ((AsUint32() & kSignificandMask) == 0);
+    return physical_significand_is_zero && (Exponent() != kDenormalExponent);
+  }
+
+  float value() const { return uint32_to_float(d32_); }
+
+  static float Infinity() {
+    return Single(kInfinity).value();
+  }
+
+  static float NaN() {
+    return Single(kNaN).value();
+  }
+
+ private:
+  static const int kExponentBias = 0x7F + kPhysicalSignificandSize;
+  static const int kDenormalExponent = -kExponentBias + 1;
+  static const int kMaxExponent = 0xFF - kExponentBias;
+  static const uint32_t kInfinity = 0x7F800000;
+  static const uint32_t kNaN = 0x7FC00000;
+
+  const uint32_t d32_;
+
+  DISALLOW_COPY_AND_ASSIGN(Single);
 };
 
 }  // namespace double_conversion
