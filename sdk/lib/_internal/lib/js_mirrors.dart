@@ -796,8 +796,12 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
 
   bool get isAbstract => throw new UnimplementedError();
 
-  bool isSubclassOf(ClassMirror other) => throw new UnimplementedError();
+  bool isSubclassOf(ClassMirror other) {
+    superclass.isSubclassOf(other) || mixin.isSubclassOf(other);
+  }
+
   bool isSubtypeOf(TypeMirror other) => throw new UnimplementedError();
+
   bool isAssignableTo(TypeMirror other) => throw new UnimplementedError();
 }
 
@@ -1148,6 +1152,15 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
         super(originalDeclaration.simpleName);
 
   String get _prettyName => 'ClassMirror';
+
+  String toString() {
+    String result = '$_prettyName on ${n(simpleName)}';
+    if (typeArguments != null) {
+      result = "$result<${typeArguments.join(', ')}>";
+    }
+    return result;
+  }
+
   String get _mangledName {
     for (TypeMirror typeArgument in typeArguments) {
       if (typeArgument != JsMirrorSystem._dynamicType) {
@@ -1394,6 +1407,7 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
   Function operator [](Symbol name) => throw new UnimplementedError();
 
   bool isSubtypeOf(TypeMirror other) => throw new UnimplementedError();
+
   bool isAssignableTo(TypeMirror other) => throw new UnimplementedError();
 }
 
@@ -1906,7 +1920,20 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
 
   bool get isAbstract => throw new UnimplementedError();
 
-  bool isSubclassOf(ClassMirror other) => throw new UnimplementedError();
+  bool isSubclassOf(JsClassMirror other) {
+    if (other is! ClassMirror) {
+      throw new ArgumentError(other);
+    }
+    if (other is JsFunctionTypeMirror) {
+      return false;
+    } if (JS('bool', '# == #', other._jsConstructor, _jsConstructor)) {
+      return true;
+    } else if (superclass == null) {
+      return false;
+    } else {
+      return superclass.isSubclassOf(other);
+    }
+  }
 }
 
 class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
@@ -2503,8 +2530,10 @@ class JsFunctionTypeMirror extends BrokenClassMirror
     return _cachedToString = "$s'";
   }
 
-  bool isSubclassOf(ClassMirror other) => throw new UnimplementedError();
+  bool isSubclassOf(ClassMirror other) => false;
+
   bool isSubtypeOf(TypeMirror other) => throw new UnimplementedError();
+
   bool isAssignableTo(TypeMirror other) => throw new UnimplementedError();
 
   // TODO(ahe): Implement this method.
