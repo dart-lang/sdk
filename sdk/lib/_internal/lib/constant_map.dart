@@ -28,7 +28,8 @@ class ConstantStringMap<K, V> extends ConstantMap<K, V>
 
   // This constructor is not used.  The instantiation is shortcut by the
   // compiler. It is here to make the uninitialized final fields legal.
-  const ConstantStringMap._(this.length, this._jsObject, this._keys) : super._();
+  const ConstantStringMap._(this.length, this._jsObject, this._keys)
+      : super._();
 
   final int length;
   // A constant map is backed by a JavaScript object.
@@ -41,18 +42,27 @@ class ConstantStringMap<K, V> extends ConstantMap<K, V>
 
   bool containsKey(Object key) {
     if (key is! String) return false;
-    if (key == '__proto__') return false;
+    if ('__proto__' == key) return false;
     return jsHasOwnProperty(_jsObject, key);
   }
 
   V operator [](Object key) {
-    if (key is! String) return null;
     if (!containsKey(key)) return null;
-    return jsPropertyAccess(_jsObject, key);
+    return _fetch(key);
   }
 
+  // [_fetch] is the indexer for keys for which `containsKey(key)` is true.
+  _fetch(key) => jsPropertyAccess(_jsObject, key);
+
   void forEach(void f(K key, V value)) {
-    _keys.forEach((key) => f(key, this[key]));
+    // Use a JS 'cast' to get efficient loop.  Type inferrence doesn't get this
+    // since constant map representation is chosen after type inferrence and the
+    // instantiation is shortcut by the compiler.
+    var keys = JS('JSArray', '#', _keys);
+    for (int i = 0; i < keys.length; i++) {
+      var key = keys[i];
+      f(key, _fetch(key));
+    }
   }
 
   Iterable<K> get keys {
@@ -60,28 +70,26 @@ class ConstantStringMap<K, V> extends ConstantMap<K, V>
   }
 
   Iterable<V> get values {
-    return new MappedIterable<K, V>(_keys, (key) => this[key]);
+    return new MappedIterable<K, V>(_keys, (key) => _fetch(key));
   }
 }
 
-// This class has no constructor. This is on purpose since the instantiation
-// is shortcut by the compiler.
 class ConstantProtoMap<K, V> extends ConstantStringMap<K, V> {
   // This constructor is not used.  The instantiation is shortcut by the
   // compiler. It is here to make the uninitialized final fields legal.
-  ConstantProtoMap._(length, jsObject, keys, this._protoValue) : super._(length, jsObject, keys);
+  ConstantProtoMap._(length, jsObject, keys, this._protoValue)
+      : super._(length, jsObject, keys);
 
   final V _protoValue;
 
   bool containsKey(Object key) {
-    if (key == '__proto__') return true;
-    return super.containsKey(key);
+    if (key is! String) return false;
+    if ('__proto__' == key) return true;
+    return jsHasOwnProperty(_jsObject, key);
   }
 
-  V operator [](Object key) {
-    if (key == '__proto__') return _protoValue;
-    return super[key];
-  }
+  _fetch(key) =>
+      '__proto__' == key ? _protoValue : jsPropertyAccess(_jsObject, key);
 }
 
 class _ConstantMapKeyIterable<K> extends IterableBase<K> {
