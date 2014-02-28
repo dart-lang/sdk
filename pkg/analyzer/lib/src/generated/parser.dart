@@ -308,7 +308,11 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     } else if (identical(_oldNode, node.implementsClause)) {
       return _parser.parseImplementsClause();
     } else if (node.members.contains(_oldNode)) {
-      return _parser.parseClassMember(node.name.name);
+      ClassMember member = _parser.parseClassMember(node.name.name);
+      if (member == null) {
+        throw new InsufficientContextException();
+      }
+      return member;
     }
     return notAChild(node);
   }
@@ -1692,6 +1696,14 @@ class Parser {
         return parseOperator(commentAndMetadata, modifiers.externalKeyword, null);
       }
       reportError14(ParserErrorCode.EXPECTED_CLASS_MEMBER, _currentToken, []);
+      if (commentAndMetadata.comment != null || !commentAndMetadata.metadata.isEmpty) {
+        //
+        // We appear to have found an incomplete declaration at the end of the class. At this point
+        // it consists of a metadata, which we don't want to loose, so we'll treat it as a method
+        // declaration with a missing name, parameters and empty body.
+        //
+        return new MethodDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, null, null, null, null, null, createSyntheticIdentifier(), new FormalParameterList(null, new List<FormalParameter>(), null, null, null), new EmptyFunctionBody(createSyntheticToken2(TokenType.SEMICOLON)));
+      }
       return null;
     } else if (matches4(peek(), TokenType.PERIOD) && matchesIdentifier2(peek2(2)) && matches4(peek2(3), TokenType.OPEN_PAREN)) {
       return parseConstructor(commentAndMetadata, modifiers.externalKeyword, validateModifiersForConstructor(modifiers), modifiers.factoryKeyword, parseSimpleIdentifier(), andAdvance, parseSimpleIdentifier(), parseFormalParameterList());
@@ -2772,6 +2784,21 @@ class Parser {
   }
 
   /**
+   * If [currentToken] is a semicolon, returns it; otherwise reports error and creates a
+   * synthetic one.
+   *
+   * TODO(scheglov) consider pushing this into [expect]
+   */
+  Token expectSemicolon() {
+    if (matches5(TokenType.SEMICOLON)) {
+      return andAdvance;
+    } else {
+      reportError14(ParserErrorCode.EXPECTED_TOKEN, _currentToken.previous, [";"]);
+      return createSyntheticToken2(TokenType.SEMICOLON);
+    }
+  }
+
+  /**
    * Search the given list of ranges for a range that contains the given index. Return the range
    * that was found, or `null` if none of the ranges contain the index.
    *
@@ -3833,7 +3860,8 @@ class Parser {
   CommentReference parseCommentReference(String referenceSource, int sourceOffset) {
     // TODO(brianwilkerson) The errors are not getting the right offset/length and are being duplicated.
     if (referenceSource.length == 0) {
-      return null;
+      Token syntheticToken = new SyntheticStringToken(TokenType.IDENTIFIER, "", sourceOffset);
+      return new CommentReference(null, new SimpleIdentifier(syntheticToken));
     }
     try {
       BooleanErrorListener listener = new BooleanErrorListener();
@@ -3900,19 +3928,32 @@ class Parser {
       while (leftIndex >= 0 && leftIndex + 1 < length) {
         List<int> range = findRange(codeBlockRanges, leftIndex);
         if (range == null) {
+          int nameOffset = token.offset + leftIndex + 1;
           int rightIndex = JavaString.indexOf(comment, ']', leftIndex);
           if (rightIndex >= 0) {
             int firstChar = comment.codeUnitAt(leftIndex + 1);
             if (firstChar != 0x27 && firstChar != 0x22) {
               if (isLinkText(comment, rightIndex)) {
               } else {
-                CommentReference reference = parseCommentReference(comment.substring(leftIndex + 1, rightIndex), token.offset + leftIndex + 1);
+                CommentReference reference = parseCommentReference(comment.substring(leftIndex + 1, rightIndex), nameOffset);
                 if (reference != null) {
                   references.add(reference);
                 }
               }
             }
           } else {
+            // terminating ']' is not typed yet
+            int charAfterLeft = comment.codeUnitAt(leftIndex + 1);
+            if (Character.isLetterOrDigit(charAfterLeft)) {
+              int nameEnd = StringUtilities.indexOfFirstNotLetterDigit(comment, leftIndex + 1);
+              String name = comment.substring(leftIndex + 1, nameEnd);
+              Token nameToken = new StringToken(TokenType.IDENTIFIER, name, nameOffset);
+              references.add(new CommentReference(null, new SimpleIdentifier(nameToken)));
+            } else {
+              Token nameToken = new SyntheticStringToken(TokenType.IDENTIFIER, "", nameOffset);
+              references.add(new CommentReference(null, new SimpleIdentifier(nameToken)));
+            }
+            // next character
             rightIndex = leftIndex + 1;
           }
           leftIndex = JavaString.indexOf(comment, '[', rightIndex);
@@ -4322,7 +4363,7 @@ class Parser {
     Token exportKeyword = expect(Keyword.EXPORT);
     StringLiteral libraryUri = parseStringLiteral();
     List<Combinator> combinators = parseCombinators();
-    Token semicolon = expect2(TokenType.SEMICOLON);
+    Token semicolon = expectSemicolon();
     return new ExportDirective(commentAndMetadata.comment, commentAndMetadata.metadata, exportKeyword, libraryUri, combinators, semicolon);
   }
 
@@ -4815,7 +4856,7 @@ class Parser {
       prefix = parseSimpleIdentifier();
     }
     List<Combinator> combinators = parseCombinators();
-    Token semicolon = expect2(TokenType.SEMICOLON);
+    Token semicolon = expectSemicolon();
     return new ImportDirective(commentAndMetadata.comment, commentAndMetadata.metadata, importKeyword, libraryUri, asToken, prefix, combinators, semicolon);
   }
 
@@ -5472,9 +5513,7 @@ class Parser {
     if (!_currentToken.type.isIncrementOperator) {
       return operand;
     }
-    if (operand is Literal || operand is FunctionExpressionInvocation) {
-      reportError13(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, []);
-    }
+    ensureAssignable(operand);
     Token operator = andAdvance;
     return new PostfixExpression(operand, operator);
   }
@@ -6952,7 +6991,7 @@ class Parser {
    */
   Token validateModifiersForConstructor(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null) {
-      reportError13(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
+      reportError14(ParserErrorCode.ABSTRACT_CLASS_MEMBER, modifiers.abstractKeyword, []);
     }
     if (modifiers.finalKeyword != null) {
       reportError14(ParserErrorCode.FINAL_CONSTRUCTOR, modifiers.finalKeyword, []);

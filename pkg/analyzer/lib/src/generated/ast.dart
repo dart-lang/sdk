@@ -10094,6 +10094,11 @@ class SimpleStringLiteral extends StringLiteral {
   String _value;
 
   /**
+   * The toolkit specific element associated with this literal, or `null`.
+   */
+  Element _toolkitElement;
+
+  /**
    * Initialize a newly created simple string literal.
    *
    * @param literal the token representing the literal
@@ -10108,6 +10113,13 @@ class SimpleStringLiteral extends StringLiteral {
   Token get beginToken => literal;
 
   Token get endToken => literal;
+
+  /**
+   * Return the toolkit specific, non-Dart, element associated with this literal, or `null`.
+   *
+   * @return the element associated with this literal
+   */
+  Element get toolkitElement => _toolkitElement;
 
   /**
    * Return the value of the literal.
@@ -10155,6 +10167,15 @@ class SimpleStringLiteral extends StringLiteral {
   bool get isRaw => literal.lexeme.codeUnitAt(0) == 0x72;
 
   bool get isSynthetic => literal.isSynthetic;
+
+  /**
+   * Set the toolkit specific, non-Dart, element associated with this literal.
+   *
+   * @param element the toolkit specific element to be associated with this literal
+   */
+  void set toolkitElement(Element element) {
+    _toolkitElement = element;
+  }
 
   /**
    * Set the value of the literal to the given string.
@@ -12176,6 +12197,7 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
         } else if (leftOperand is double && rightOperand is double) {
           return leftOperand ~/ rightOperand;
         }
+      } else {
       }
       break;
     }
@@ -12258,6 +12280,7 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
         } else if (operand is double) {
           return -operand;
         }
+      } else {
       }
       break;
     }

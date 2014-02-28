@@ -9,7 +9,7 @@ library engine.source;
 
 import 'java_core.dart';
 import 'sdk.dart' show DartSdk;
-import 'engine.dart' show AnalysisContext;
+import 'engine.dart' show AnalysisContext, TimestampedData;
 
 /**
  * Instances of interface `LocalSourcePredicate` are used to determine if the given
@@ -68,11 +68,6 @@ class SourceFactory {
   AnalysisContext context;
 
   /**
-   * A cache of content used to override the default content of a source.
-   */
-  ContentCache _contentCache;
-
-  /**
    * The resolvers used to resolve absolute URI's.
    */
   List<UriResolver> _resolvers;
@@ -80,26 +75,16 @@ class SourceFactory {
   /**
    * The predicate to determine is [Source] is local.
    */
-  LocalSourcePredicate _localSourcePredicate;
+  LocalSourcePredicate _localSourcePredicate = LocalSourcePredicate.NOT_SDK;
 
   /**
    * Initialize a newly created source factory.
    *
-   * @param contentCache the cache holding content used to override the default content of a source
    * @param resolvers the resolvers used to resolve absolute URI's
    */
-  SourceFactory.con1(ContentCache contentCache, List<UriResolver> resolvers) {
-    this._contentCache = contentCache;
+  SourceFactory(List<UriResolver> resolvers) {
     this._resolvers = resolvers;
-    this._localSourcePredicate = LocalSourcePredicate.NOT_SDK;
   }
-
-  /**
-   * Initialize a newly created source factory.
-   *
-   * @param resolvers the resolvers used to resolve absolute URI's
-   */
-  SourceFactory.con2(List<UriResolver> resolvers) : this.con1(new ContentCache(), resolvers);
 
   /**
    * Return a source object representing the given absolute URI, or `null` if the URI is not a
@@ -138,7 +123,7 @@ class SourceFactory {
     try {
       Uri uri = parseUriWithException(encoding.substring(1));
       for (UriResolver resolver in _resolvers) {
-        Source result = resolver.fromEncoding(_contentCache, kind, uri);
+        Source result = resolver.fromEncoding(kind, uri);
         if (result != null) {
           return result;
         }
@@ -148,13 +133,6 @@ class SourceFactory {
       throw new IllegalArgumentException("Invalid URI in encoding");
     }
   }
-
-  /**
-   * Return a cache of content used to override the default content of a source.
-   *
-   * @return a cache of content used to override the default content of a source
-   */
-  ContentCache get contentCache => _contentCache;
 
   /**
    * Return the [DartSdk] associated with this [SourceFactory], or `null` if there
@@ -220,17 +198,6 @@ class SourceFactory {
   }
 
   /**
-   * Set the contents of the given source to the given contents. This has the effect of overriding
-   * the default contents of the source. If the contents are `null` the override is removed so
-   * that the default contents will be returned.
-   *
-   * @param source the source whose contents are being overridden
-   * @param contents the new contents of the source
-   * @return the original cached contents or `null` if none
-   */
-  String setContents(Source source, String contents) => _contentCache.setContents(source, contents);
-
-  /**
    * Sets the [LocalSourcePredicate].
    *
    * @param localSourcePredicate the predicate to determine is [Source] is local
@@ -238,30 +205,6 @@ class SourceFactory {
   void set localSourcePredicate(LocalSourcePredicate localSourcePredicate) {
     this._localSourcePredicate = localSourcePredicate;
   }
-
-  /**
-   * Return the contents of the given source, or `null` if this factory does not override the
-   * contents of the source.
-   *
-   * <b>Note:</b> This method is not intended to be used except by
-   * [FileBasedSource#getContents].
-   *
-   * @param source the source whose content is to be returned
-   * @return the contents of the given source
-   */
-  String getContents(Source source) => _contentCache.getContents(source);
-
-  /**
-   * Return the modification stamp of the given source, or `null` if this factory does not
-   * override the contents of the source.
-   *
-   * <b>Note:</b> This method is not intended to be used except by
-   * [FileBasedSource#getModificationStamp].
-   *
-   * @param source the source whose modification stamp is to be returned
-   * @return the modification stamp of the given source
-   */
-  int getModificationStamp(Source source) => _contentCache.getModificationStamp(source);
 
   /**
    * Return a source object representing the URI that results from resolving the given (possibly
@@ -276,7 +219,7 @@ class SourceFactory {
   Source resolveUri2(Source containingSource, Uri containedUri) {
     if (containedUri.isAbsolute) {
       for (UriResolver resolver in _resolvers) {
-        Source result = resolver.resolveAbsolute(_contentCache, containedUri);
+        Source result = resolver.resolveAbsolute(containedUri);
         if (result != null) {
           return result;
         }
@@ -302,23 +245,21 @@ abstract class UriResolver {
    * [Source] representing the file to which it was resolved, or `null` if it
    * could not be resolved.
    *
-   * @param contentCache the content cache used to access the contents of the returned source
    * @param kind the kind of URI that was originally resolved in order to produce an encoding with
    *          the given URI
    * @param uri the URI to be resolved
    * @return a [Source] representing the file to which given URI was resolved
    */
-  Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri);
+  Source fromEncoding(UriKind kind, Uri uri);
 
   /**
    * Resolve the given absolute URI. Return a [Source] representing the file to which
    * it was resolved, or `null` if it could not be resolved.
    *
-   * @param contentCache the content cache used to access the contents of the returned source
    * @param uri the URI to be resolved
    * @return a [Source] representing the file to which given URI was resolved
    */
-  Source resolveAbsolute(ContentCache contentCache, Uri uri);
+  Source resolveAbsolute(Uri uri);
 
   /**
    * Return an absolute URI that represents the given source.
@@ -355,20 +296,37 @@ abstract class Source {
   /**
    * Return `true` if this source exists.
    *
+   * Clients should consider using the the method [AnalysisContext#exists] because
+   * contexts can have local overrides of the content of a source that the source is not aware of
+   * and a source with local content is considered to exist even if there is no file on disk.
+   *
    * @return `true` if this source exists
    */
   bool exists();
 
   /**
-   * Get the contents of this source and pass it to the given receiver. Exactly one of the methods
-   * defined on the receiver will be invoked unless an exception is thrown. The method that will be
-   * invoked depends on which of the possible representations of the contents is the most efficient.
-   * Whichever method is invoked, it will be invoked before this method returns.
+   * Get the contents and timestamp of this source.
+   *
+   * Clients should consider using the the method [AnalysisContext#getContents]
+   * because contexts can have local overrides of the content of a source that the source is not
+   * aware of.
+   *
+   * @return the contents and timestamp of the source
+   * @throws Exception if the contents of this source could not be accessed
+   */
+  TimestampedData<String> get contents;
+
+  /**
+   * Get the contents of this source and pass it to the given content receiver.
+   *
+   * Clients should consider using the the method
+   * [AnalysisContext#getContentsToReceiver] because contexts can have local
+   * overrides of the content of a source that the source is not aware of.
    *
    * @param receiver the content receiver to which the content of this source will be passed
    * @throws Exception if the contents of this source could not be accessed
    */
-  void getContents(Source_ContentReceiver receiver);
+  void getContentsToReceiver(Source_ContentReceiver receiver);
 
   /**
    * Return an encoded representation of this source that can be used to create a source that is
@@ -394,6 +352,10 @@ abstract class Source {
    * the modification stamp was accessed then the same value will be returned, but if the contents
    * of the source have been modified one or more times (even if the net change is zero) the stamps
    * will be different.
+   *
+   * Clients should consider using the the method
+   * [AnalysisContext#getModificationStamp] because contexts can have local overrides
+   * of the content of a source that the source is not aware of.
    *
    * @return the modification stamp for this source
    */
@@ -739,9 +701,9 @@ class DartUriResolver extends UriResolver {
     this._sdk = sdk;
   }
 
-  Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri) {
+  Source fromEncoding(UriKind kind, Uri uri) {
     if (identical(kind, UriKind.DART_URI)) {
-      return _sdk.fromEncoding(contentCache, kind, uri);
+      return _sdk.fromEncoding(kind, uri);
     }
     return null;
   }
@@ -753,7 +715,7 @@ class DartUriResolver extends UriResolver {
    */
   DartSdk get dartSdk => _sdk;
 
-  Source resolveAbsolute(ContentCache contentCache, Uri uri) {
+  Source resolveAbsolute(Uri uri) {
     if (!isDartUri(uri)) {
       return null;
     }
@@ -854,7 +816,7 @@ class ContentCache {
    * contents of the source.
    *
    * <b>Note:</b> This method is not intended to be used except by
-   * [SourceFactory#getContents].
+   * [AnalysisContext#getContents].
    *
    * @param source the source whose content is to be returned
    * @return the contents of the given source
@@ -866,7 +828,7 @@ class ContentCache {
    * override the contents of the source.
    *
    * <b>Note:</b> This method is not intended to be used except by
-   * [SourceFactory#getModificationStamp].
+   * [AnalysisContext#getModificationStamp].
    *
    * @param source the source whose modification stamp is to be returned
    * @return the modification stamp of the given source

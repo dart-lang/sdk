@@ -15,7 +15,7 @@ import 'source.dart';
 import 'scanner.dart' show Keyword;
 import 'ast.dart';
 import 'sdk.dart' show DartSdk;
-import 'html.dart' show XmlTagNode;
+import 'html.dart' show XmlAttributeNode, XmlTagNode;
 import 'engine.dart' show AnalysisContext;
 import 'constant.dart' show EvaluationResultImpl;
 import 'utilities_dart.dart';
@@ -157,9 +157,11 @@ abstract class ClassElement implements Element {
   InterfaceType get supertype;
 
   /**
-   * Return an array containing all of the toolkit specific objects attached to this class.
+   * Return an array containing all of the toolkit specific objects associated with this class. The
+   * array will be empty if the class does not have any toolkit specific objects or if the
+   * compilation unit containing the class has not yet had toolkit references resolved.
    *
-   * @return the toolkit objects attached to this class
+   * @return the toolkit objects associated with this class
    */
   List<ToolkitObjectElement> get toolkitObjects;
 
@@ -210,6 +212,14 @@ abstract class ClassElement implements Element {
    * @return `true` if this class is abstract
    */
   bool get isAbstract;
+
+  /**
+   * Return `true` if this class [isProxy], or if it inherits the proxy annotation
+   * from a supertype.
+   *
+   * @return `true` if this class defines or inherits a proxy
+   */
+  bool get isOrInheritsProxy;
 
   /**
    * Return `true` if this element has an annotation of the form '@proxy'.
@@ -340,6 +350,15 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   List<PropertyAccessorElement> get accessors;
 
   /**
+   * Return an array containing all of the Angular views defined in this compilation unit. The array
+   * will be empty if the element does not have any Angular views or if the compilation unit has not
+   * yet had toolkit references resolved.
+   *
+   * @return the Angular views defined in this compilation unit.
+   */
+  List<AngularViewElement> get angularViews;
+
+  /**
    * Return the library in which this compilation unit is defined.
    *
    * @return the library in which this compilation unit is defined
@@ -413,7 +432,9 @@ abstract class ConstructorElement implements ClassMemberElement, ExecutableEleme
   ConstructorDeclaration get node;
 
   /**
-   * Return the constructor to which this constructor is redirecting.
+   * Return the constructor to which this constructor is redirecting, or `null` if this constructor
+   * does not redirect to another constructor or if the library containing this constructor has
+   * not yet been resolved.
    *
    * @return the constructor to which this constructor is redirecting
    */
@@ -556,7 +577,9 @@ abstract class Element {
   ElementLocation get location;
 
   /**
-   * Return an array containing all of the metadata associated with this element.
+   * Return an array containing all of the metadata associated with this element. The array will be
+   * empty if the element does not have any metadata or if the library containing this element has
+   * not yet been resolved.
    *
    * @return the metadata associated with this element
    */
@@ -625,6 +648,13 @@ abstract class Element {
    * @return `true` if this element is deprecated
    */
   bool get isDeprecated;
+
+  /**
+   * Return `true` if this element has an annotation of the form '@override'.
+   *
+   * @return `true` if this element is overridden
+   */
+  bool get isOverride;
 
   /**
    * Return `true` if this element is private. Private elements are visible only within the
@@ -717,57 +747,61 @@ class ElementKind extends Enum<ElementKind> {
 
   static final ElementKind ANGULAR_PROPERTY = new ElementKind('ANGULAR_PROPERTY', 4, "Angular property");
 
-  static final ElementKind ANGULAR_SELECTOR = new ElementKind('ANGULAR_SELECTOR', 5, "Angular selector");
+  static final ElementKind ANGULAR_SCOPE_PROPERTY = new ElementKind('ANGULAR_SCOPE_PROPERTY', 5, "Angular scope property");
 
-  static final ElementKind CLASS = new ElementKind('CLASS', 6, "class");
+  static final ElementKind ANGULAR_SELECTOR = new ElementKind('ANGULAR_SELECTOR', 6, "Angular selector");
 
-  static final ElementKind COMPILATION_UNIT = new ElementKind('COMPILATION_UNIT', 7, "compilation unit");
+  static final ElementKind ANGULAR_VIEW = new ElementKind('ANGULAR_VIEW', 7, "Angular view");
 
-  static final ElementKind CONSTRUCTOR = new ElementKind('CONSTRUCTOR', 8, "constructor");
+  static final ElementKind CLASS = new ElementKind('CLASS', 8, "class");
 
-  static final ElementKind DYNAMIC = new ElementKind('DYNAMIC', 9, "<dynamic>");
+  static final ElementKind COMPILATION_UNIT = new ElementKind('COMPILATION_UNIT', 9, "compilation unit");
 
-  static final ElementKind EMBEDDED_HTML_SCRIPT = new ElementKind('EMBEDDED_HTML_SCRIPT', 10, "embedded html script");
+  static final ElementKind CONSTRUCTOR = new ElementKind('CONSTRUCTOR', 10, "constructor");
 
-  static final ElementKind ERROR = new ElementKind('ERROR', 11, "<error>");
+  static final ElementKind DYNAMIC = new ElementKind('DYNAMIC', 11, "<dynamic>");
 
-  static final ElementKind EXPORT = new ElementKind('EXPORT', 12, "export directive");
+  static final ElementKind EMBEDDED_HTML_SCRIPT = new ElementKind('EMBEDDED_HTML_SCRIPT', 12, "embedded html script");
 
-  static final ElementKind EXTERNAL_HTML_SCRIPT = new ElementKind('EXTERNAL_HTML_SCRIPT', 13, "external html script");
+  static final ElementKind ERROR = new ElementKind('ERROR', 13, "<error>");
 
-  static final ElementKind FIELD = new ElementKind('FIELD', 14, "field");
+  static final ElementKind EXPORT = new ElementKind('EXPORT', 14, "export directive");
 
-  static final ElementKind FUNCTION = new ElementKind('FUNCTION', 15, "function");
+  static final ElementKind EXTERNAL_HTML_SCRIPT = new ElementKind('EXTERNAL_HTML_SCRIPT', 15, "external html script");
 
-  static final ElementKind GETTER = new ElementKind('GETTER', 16, "getter");
+  static final ElementKind FIELD = new ElementKind('FIELD', 16, "field");
 
-  static final ElementKind HTML = new ElementKind('HTML', 17, "html");
+  static final ElementKind FUNCTION = new ElementKind('FUNCTION', 17, "function");
 
-  static final ElementKind IMPORT = new ElementKind('IMPORT', 18, "import directive");
+  static final ElementKind GETTER = new ElementKind('GETTER', 18, "getter");
 
-  static final ElementKind LABEL = new ElementKind('LABEL', 19, "label");
+  static final ElementKind HTML = new ElementKind('HTML', 19, "html");
 
-  static final ElementKind LIBRARY = new ElementKind('LIBRARY', 20, "library");
+  static final ElementKind IMPORT = new ElementKind('IMPORT', 20, "import directive");
 
-  static final ElementKind LOCAL_VARIABLE = new ElementKind('LOCAL_VARIABLE', 21, "local variable");
+  static final ElementKind LABEL = new ElementKind('LABEL', 21, "label");
 
-  static final ElementKind METHOD = new ElementKind('METHOD', 22, "method");
+  static final ElementKind LIBRARY = new ElementKind('LIBRARY', 22, "library");
 
-  static final ElementKind NAME = new ElementKind('NAME', 23, "<name>");
+  static final ElementKind LOCAL_VARIABLE = new ElementKind('LOCAL_VARIABLE', 23, "local variable");
 
-  static final ElementKind PARAMETER = new ElementKind('PARAMETER', 24, "parameter");
+  static final ElementKind METHOD = new ElementKind('METHOD', 24, "method");
 
-  static final ElementKind PREFIX = new ElementKind('PREFIX', 25, "import prefix");
+  static final ElementKind NAME = new ElementKind('NAME', 25, "<name>");
 
-  static final ElementKind SETTER = new ElementKind('SETTER', 26, "setter");
+  static final ElementKind PARAMETER = new ElementKind('PARAMETER', 26, "parameter");
 
-  static final ElementKind TOP_LEVEL_VARIABLE = new ElementKind('TOP_LEVEL_VARIABLE', 27, "top level variable");
+  static final ElementKind PREFIX = new ElementKind('PREFIX', 27, "import prefix");
 
-  static final ElementKind FUNCTION_TYPE_ALIAS = new ElementKind('FUNCTION_TYPE_ALIAS', 28, "function type alias");
+  static final ElementKind SETTER = new ElementKind('SETTER', 28, "setter");
 
-  static final ElementKind TYPE_PARAMETER = new ElementKind('TYPE_PARAMETER', 29, "type parameter");
+  static final ElementKind TOP_LEVEL_VARIABLE = new ElementKind('TOP_LEVEL_VARIABLE', 29, "top level variable");
 
-  static final ElementKind UNIVERSE = new ElementKind('UNIVERSE', 30, "<universe>");
+  static final ElementKind FUNCTION_TYPE_ALIAS = new ElementKind('FUNCTION_TYPE_ALIAS', 30, "function type alias");
+
+  static final ElementKind TYPE_PARAMETER = new ElementKind('TYPE_PARAMETER', 31, "type parameter");
+
+  static final ElementKind UNIVERSE = new ElementKind('UNIVERSE', 32, "<universe>");
 
   static final List<ElementKind> values = [
       ANGULAR_FILTER,
@@ -775,7 +809,9 @@ class ElementKind extends Enum<ElementKind> {
       ANGULAR_CONTROLLER,
       ANGULAR_DIRECTIVE,
       ANGULAR_PROPERTY,
+      ANGULAR_SCOPE_PROPERTY,
       ANGULAR_SELECTOR,
+      ANGULAR_VIEW,
       CLASS,
       COMPILATION_UNIT,
       CONSTRUCTOR,
@@ -862,7 +898,11 @@ abstract class ElementVisitor<R> {
 
   R visitAngularPropertyElement(AngularPropertyElement element);
 
+  R visitAngularScopePropertyElement(AngularScopePropertyElement element);
+
   R visitAngularSelectorElement(AngularSelectorElement element);
+
+  R visitAngularViewElement(AngularViewElement element);
 
   R visitClassElement(ClassElement element);
 
@@ -1348,7 +1388,8 @@ abstract class LibraryElement implements Element {
   bool hasExtUri();
 
   /**
-   * Return `true` if this library is created for Angular analysis.
+   * Return `true` if this library is created for Angular analysis. If this library has not
+   * yet had toolkit references resolved, then `false` will be returned.
    *
    * @return `true` if this library is created for Angular analysis
    */
@@ -1477,6 +1518,23 @@ abstract class MultiplyDefinedElement implements Element {
    * @return the type of this element as the dynamic type
    */
   Type2 get type;
+}
+
+/**
+ * The interface [MultiplyInheritedExecutableElement] defines all of the behavior of an
+ * [ExecutableElement], with the additional information of an array of
+ * [ExecutableElement]s from which this element was composed.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class MultiplyInheritedExecutableElement implements ExecutableElement {
+  /**
+   * Return an array containing all of the executable elements defined within this executable
+   * element.
+   *
+   * @return the elements defined within this executable element
+   */
+  List<ExecutableElement> get inheritedElements;
 }
 
 /**
@@ -1827,11 +1885,17 @@ abstract class VariableElement implements Element {
  *
  * @coverage dart.engine.element
  */
-abstract class AngularComponentElement implements AngularHasSelectorElement {
+abstract class AngularComponentElement implements AngularHasSelectorElement, AngularHasTemplateElement {
   /**
    * Return an array containing all of the properties declared by this component.
    */
   List<AngularPropertyElement> get properties;
+
+  /**
+   * Return an array containing all of the scope properties set in the implementation of this
+   * component.
+   */
+  List<AngularScopePropertyElement> get scopeProperties;
 
   /**
    * Returns the CSS file URI.
@@ -1844,23 +1908,6 @@ abstract class AngularComponentElement implements AngularHasSelectorElement {
    * @return the offset of the style URI
    */
   int get styleUriOffset;
-
-  /**
-   * Returns the HTML template [Source], `null` if not resolved.
-   */
-  Source get templateSource;
-
-  /**
-   * Returns the HTML template URI.
-   */
-  String get templateUri;
-
-  /**
-   * Return the offset of the [getTemplateUri] in the [getSource].
-   *
-   * @return the offset of the template URI
-   */
-  int get templateUriOffset;
 }
 
 /**
@@ -1901,6 +1948,13 @@ abstract class AngularElement implements ToolkitObjectElement {
    * An empty array of angular elements.
    */
   static final List<AngularElement> EMPTY_ARRAY = new List<AngularElement>(0);
+
+  /**
+   * Returns the [AngularApplication] this element is used in.
+   *
+   * @return the [AngularApplication] this element is used in
+   */
+  AngularApplication get application;
 }
 
 /**
@@ -1910,6 +1964,18 @@ abstract class AngularElement implements ToolkitObjectElement {
  * @coverage dart.engine.element
  */
 abstract class AngularFilterElement implements AngularElement {
+}
+
+/**
+ * [AngularSelectorElement] based on presence of attribute.
+ */
+abstract class AngularHasAttributeSelectorElement implements AngularSelectorElement {
+}
+
+/**
+ * [AngularSelectorElement] based on presence of a class.
+ */
+abstract class AngularHasClassSelectorElement implements AngularSelectorElement {
 }
 
 /**
@@ -1925,6 +1991,31 @@ abstract class AngularHasSelectorElement implements AngularElement {
    * @return the [AngularSelectorElement] specified for this element
    */
   AngularSelectorElement get selector;
+}
+
+/**
+ * The interface `AngularHasTemplateElement` defines common behavior for
+ * [AngularElement] that have template URI / [Source].
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularHasTemplateElement implements AngularElement {
+  /**
+   * Returns the HTML template [Source], `null` if not resolved.
+   */
+  Source get templateSource;
+
+  /**
+   * Returns the HTML template URI.
+   */
+  String get templateUri;
+
+  /**
+   * Return the offset of the [getTemplateUri] in the [getSource].
+   *
+   * @return the offset of the template URI
+   */
+  int get templateUriOffset;
 }
 
 /**
@@ -1947,7 +2038,8 @@ abstract class AngularPropertyElement implements AngularElement {
   FieldElement get field;
 
   /**
-   * Return the offset of the field name of this property in the property map.
+   * Return the offset of the field name of this property in the property map, or `-1` if
+   * property was created using annotation on [FieldElement].
    *
    * @return the offset of the field name of this property
    */
@@ -2022,6 +2114,26 @@ class AngularPropertyKind_TWO_WAY extends AngularPropertyKind {
 }
 
 /**
+ * The interface `AngularScopeVariableElement` defines the Angular <code>Scope</code>
+ * property. They are created for every <code>scope['property'] = value;</code> code snippet.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularScopePropertyElement implements AngularElement {
+  /**
+   * An empty array of scope property elements.
+   */
+  static final List<AngularScopePropertyElement> EMPTY_ARRAY = [];
+
+  /**
+   * Returns the type of this property, not `null`, maybe <code>dynamic</code>.
+   *
+   * @return the type of this property.
+   */
+  Type2 get type;
+}
+
+/**
  * [AngularSelectorElement] is used to decide when Angular object should be applied.
  *
  * This class is an [Element] to support renaming component tag names, which are identifiers
@@ -2035,6 +2147,25 @@ abstract class AngularSelectorElement implements AngularElement {
    * @return `true` if the given [XmlTagNode] matches, or `false` otherwise
    */
   bool apply(XmlTagNode node);
+}
+
+/**
+ * [AngularSelectorElement] based on tag name.
+ */
+abstract class AngularTagSelectorElement implements AngularSelectorElement {
+}
+
+/**
+ * The interface `AngularViewElement` defines the Angular view defined using invocation like
+ * <code>view('views/create.html')</code>.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularViewElement implements AngularHasTemplateElement {
+  /**
+   * An empty array of view elements.
+   */
+  static final List<AngularViewElement> EMPTY_ARRAY = new List<AngularViewElement>(0);
 }
 
 /**
@@ -2109,7 +2240,11 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
 
   R visitAngularPropertyElement(AngularPropertyElement element) => visitAngularElement(element);
 
+  R visitAngularScopePropertyElement(AngularScopePropertyElement element) => visitAngularElement(element);
+
   R visitAngularSelectorElement(AngularSelectorElement element) => visitAngularElement(element);
+
+  R visitAngularViewElement(AngularViewElement element) => visitAngularElement(element);
 
   R visitClassElement(ClassElement element) => visitElement(element);
 
@@ -2220,7 +2355,17 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
     return null;
   }
 
+  R visitAngularScopePropertyElement(AngularScopePropertyElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
   R visitAngularSelectorElement(AngularSelectorElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  R visitAngularViewElement(AngularViewElement element) {
     element.visitChildren(this);
     return null;
   }
@@ -2355,7 +2500,11 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
 
   R visitAngularPropertyElement(AngularPropertyElement element) => null;
 
+  R visitAngularScopePropertyElement(AngularScopePropertyElement element) => null;
+
   R visitAngularSelectorElement(AngularSelectorElement element) => null;
+
+  R visitAngularViewElement(AngularViewElement element) => null;
 
   R visitClassElement(ClassElement element) => null;
 
@@ -2489,7 +2638,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   List<TypeParameterElement> _typeParameters = TypeParameterElementImpl.EMPTY_ARRAY;
 
   /**
-   * An empty array of type elements.
+   * An empty array of class elements.
    */
   static List<ClassElement> EMPTY_ARRAY = new List<ClassElement>(0);
 
@@ -2653,6 +2802,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   bool hasReferenceToSuper() => hasModifier(Modifier.REFERENCES_SUPER);
 
   bool get isAbstract => hasModifier(Modifier.ABSTRACT);
+
+  bool get isOrInheritsProxy => isOrInheritsProxy2(this, new Set<ClassElement>());
 
   bool get isProxy {
     for (ElementAnnotation annotation in metadata) {
@@ -2914,6 +3065,31 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
       }
     }
   }
+
+  bool isOrInheritsProxy2(ClassElement classElt, Set<ClassElement> visitedClassElts) {
+    if (visitedClassElts.contains(classElt)) {
+      return false;
+    }
+    visitedClassElts.add(classElt);
+    if (classElt.isProxy) {
+      return true;
+    } else if (classElt.supertype != null && isOrInheritsProxy2(classElt.supertype.element, visitedClassElts)) {
+      return true;
+    }
+    List<InterfaceType> supertypes = classElt.interfaces;
+    for (int i = 0; i < supertypes.length; i++) {
+      if (isOrInheritsProxy2(supertypes[i].element, visitedClassElts)) {
+        return true;
+      }
+    }
+    supertypes = classElt.mixins;
+    for (int i = 0; i < supertypes.length; i++) {
+      if (isOrInheritsProxy2(supertypes[i].element, visitedClassElts)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 /**
@@ -2971,6 +3147,11 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
   String uri;
 
   /**
+   * An array containing all of the Angular views contained in this compilation unit.
+   */
+  List<AngularViewElement> _angularViews = AngularViewElement.EMPTY_ARRAY;
+
+  /**
    * Initialize a newly created compilation unit element to have the given name.
    *
    * @param name the name of this element
@@ -2982,6 +3163,8 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
   bool operator ==(Object object) => object != null && runtimeType == object.runtimeType && source == (object as CompilationUnitElementImpl).source;
 
   List<PropertyAccessorElement> get accessors => _accessors;
+
+  List<AngularViewElement> get angularViews => _angularViews;
 
   ElementImpl getChild(String identifier) {
     //
@@ -3055,6 +3238,18 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
   }
 
   /**
+   * Set the Angular views defined in this compilation unit.
+   *
+   * @param angularViews the Angular views defined in this compilation unit
+   */
+  void set angularViews(List<AngularViewElement> angularViews) {
+    for (AngularViewElement view in angularViews) {
+      (view as AngularViewElementImpl).enclosingElement = this;
+    }
+    this._angularViews = angularViews;
+  }
+
+  /**
    * Set the top-level functions contained in this compilation unit to the given functions.
    *
    * @param functions the top-level functions contained in this compilation unit
@@ -3109,6 +3304,7 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
     safelyVisitChildren(_typeAliases, visitor);
     safelyVisitChildren(_types, visitor);
     safelyVisitChildren(_variables, visitor);
+    safelyVisitChildren(_angularViews, visitor);
   }
 
   void appendTo(JavaStringBuilder builder) {
@@ -3241,7 +3437,16 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
    *
    * @param name the name of this element
    */
-  ConstructorElementImpl(Identifier name) : super.con1(name);
+  ConstructorElementImpl.con1(Identifier name) : super.con1(name);
+
+  /**
+   * Initialize a newly created constructor element to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  ConstructorElementImpl.con2(String name, int nameOffset) : super.con2(name, nameOffset);
 
   accept(ElementVisitor visitor) => visitor.visitConstructorElement(this);
 
@@ -3615,6 +3820,15 @@ abstract class ElementImpl implements Element {
   bool get isDeprecated {
     for (ElementAnnotation annotation in metadata) {
       if (annotation.isDeprecated) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool get isOverride {
+    for (ElementAnnotation annotation in metadata) {
+      if (annotation.isOverride) {
         return true;
       }
     }
@@ -4862,13 +5076,14 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   static bool isUpToDate(LibraryElement library, int timeStamp, Set<LibraryElement> visitedLibraries) {
     if (!visitedLibraries.contains(library)) {
       visitedLibraries.add(library);
+      AnalysisContext context = library.context;
       // Check the defining compilation unit.
-      if (timeStamp < library.definingCompilationUnit.source.modificationStamp) {
+      if (timeStamp < context.getModificationStamp(library.definingCompilationUnit.source)) {
         return false;
       }
       // Check the parted compilation units.
       for (CompilationUnitElement element in library.parts) {
-        if (timeStamp < element.source.modificationStamp) {
+        if (timeStamp < context.getModificationStamp(element.source)) {
           return false;
         }
       }
@@ -5584,6 +5799,8 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   bool get isDeprecated => false;
 
+  bool get isOverride => false;
+
   bool get isPrivate {
     String name = displayName;
     if (name == null) {
@@ -5611,6 +5828,54 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
 
   void visitChildren(ElementVisitor visitor) {
+  }
+}
+
+/**
+ * The interface [MultiplyInheritedMethodElementImpl] defines all of the behavior of an
+ * [MethodElementImpl], with the additional information of an array of
+ * [ExecutableElement]s from which this element was composed.
+ *
+ * @coverage dart.engine.element
+ */
+class MultiplyInheritedMethodElementImpl extends MethodElementImpl implements MultiplyInheritedExecutableElement {
+  /**
+   * An array the array of executable elements that were used to compose this element.
+   */
+  List<ExecutableElement> _elements = MethodElementImpl.EMPTY_ARRAY;
+
+  MultiplyInheritedMethodElementImpl(Identifier name) : super.con1(name) {
+    synthetic = true;
+  }
+
+  List<ExecutableElement> get inheritedElements => _elements;
+
+  void set inheritedElements(List<ExecutableElement> elements) {
+    this._elements = elements;
+  }
+}
+
+/**
+ * The interface [MultiplyInheritedPropertyAccessorElementImpl] defines all of the behavior of
+ * an [PropertyAccessorElementImpl], with the additional information of an array of
+ * [ExecutableElement]s from which this element was composed.
+ *
+ * @coverage dart.engine.element
+ */
+class MultiplyInheritedPropertyAccessorElementImpl extends PropertyAccessorElementImpl implements MultiplyInheritedExecutableElement {
+  /**
+   * An array the array of executable elements that were used to compose this element.
+   */
+  List<ExecutableElement> _elements = PropertyAccessorElementImpl.EMPTY_ARRAY;
+
+  MultiplyInheritedPropertyAccessorElementImpl(Identifier name) : super.con1(name) {
+    synthetic = true;
+  }
+
+  List<ExecutableElement> get inheritedElements => _elements;
+
+  void set inheritedElements(List<ExecutableElement> elements) {
+    this._elements = elements;
   }
 }
 
@@ -5777,6 +6042,7 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
       } else if (parameterKind == ParameterKind.POSITIONAL) {
         left = "[";
         right = "]";
+      } else if (parameterKind == ParameterKind.REQUIRED) {
       }
       break;
     }
@@ -6189,8 +6455,8 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
 
   /**
    * Return the result of evaluating this variable's initializer as a compile-time constant
-   * expression, or `null` if this variable is not a 'const' variable or does not have an
-   * initializer.
+   * expression, or `null` if this variable is not a 'const' variable, if it does not have an
+   * initializer, or if the compilation unit containing the variable has not been resolved.
    *
    * @return the result of evaluating this variable's initializer
    */
@@ -6205,8 +6471,9 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
   bool get isFinal => hasModifier(Modifier.FINAL);
 
   /**
-   * Return `true` if this variable is potentially mutated somewhere in closure. This
-   * information is only available for local variables (including parameters).
+   * Return `true` if this variable is potentially mutated somewhere in a closure. This
+   * information is only available for local variables (including parameters) and only after the
+   * compilation unit containing the variable has been resolved.
    *
    * @return `true` if this variable is potentially mutated somewhere in closure
    */
@@ -6214,7 +6481,8 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
 
   /**
    * Return `true` if this variable is potentially mutated somewhere in its scope. This
-   * information is only available for local variables (including parameters).
+   * information is only available for local variables (including parameters) and only after the
+   * compilation unit containing the variable has been resolved.
    *
    * @return `true` if this variable is potentially mutated somewhere in its scope
    */
@@ -6273,6 +6541,28 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
 }
 
 /**
+ * Information about Angular application.
+ */
+class AngularApplication {
+  final Source entryPoint;
+
+  Set<Source> _librarySources;
+
+  final List<AngularElement> elements;
+
+  final List<Source> elementSources;
+
+  AngularApplication(this.entryPoint, Set<Source> librarySources, this.elements, this.elementSources) {
+    this._librarySources = librarySources;
+  }
+
+  /**
+   * Checks if this application depends on the library with the given [Source].
+   */
+  bool dependsOn(Source librarySource) => _librarySources.contains(librarySource);
+}
+
+/**
  * Implementation of `AngularComponentElement`.
  *
  * @coverage dart.engine.element
@@ -6287,6 +6577,11 @@ class AngularComponentElementImpl extends AngularHasSelectorElementImpl implemen
    * The array containing all of the properties declared by this component.
    */
   List<AngularPropertyElement> _properties = AngularPropertyElement.EMPTY_ARRAY;
+
+  /**
+   * The array containing all of the scope properties set by this component.
+   */
+  List<AngularScopePropertyElement> _scopeProperties = AngularScopePropertyElement.EMPTY_ARRAY;
 
   /**
    * The the CSS file URI.
@@ -6330,6 +6625,8 @@ class AngularComponentElementImpl extends AngularHasSelectorElementImpl implemen
 
   List<AngularPropertyElement> get properties => _properties;
 
+  List<AngularScopePropertyElement> get scopeProperties => _scopeProperties;
+
   /**
    * Set an array containing all of the properties declared by this component.
    *
@@ -6342,8 +6639,21 @@ class AngularComponentElementImpl extends AngularHasSelectorElementImpl implemen
     this._properties = properties;
   }
 
+  /**
+   * Set an array containing all of the scope properties declared by this component.
+   *
+   * @param properties the properties to set
+   */
+  void set scopeProperties(List<AngularScopePropertyElement> properties) {
+    for (AngularScopePropertyElement property in properties) {
+      encloseElement(property as AngularScopePropertyElementImpl);
+    }
+    this._scopeProperties = properties;
+  }
+
   void visitChildren(ElementVisitor visitor) {
     safelyVisitChildren(_properties, visitor);
+    safelyVisitChildren(_scopeProperties, visitor);
     super.visitChildren(visitor);
   }
 
@@ -6435,6 +6745,11 @@ class AngularDirectiveElementImpl extends AngularHasSelectorElementImpl implemen
  */
 abstract class AngularElementImpl extends ToolkitObjectElementImpl implements AngularElement {
   /**
+   * The [AngularApplication] this element is used in.
+   */
+  AngularApplication _application;
+
+  /**
    * Initialize a newly created Angular element to have the given name.
    *
    * @param name the name of this element
@@ -6442,6 +6757,15 @@ abstract class AngularElementImpl extends ToolkitObjectElementImpl implements An
    *          declaration of this element
    */
   AngularElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  AngularApplication get application => _application;
+
+  /**
+   * Set the [AngularApplication] this element is used in.
+   */
+  void set application(AngularApplication application) {
+    this._application = application;
+  }
 }
 
 /**
@@ -6462,6 +6786,34 @@ class AngularFilterElementImpl extends AngularElementImpl implements AngularFilt
   accept(ElementVisitor visitor) => visitor.visitAngularFilterElement(this);
 
   ElementKind get kind => ElementKind.ANGULAR_FILTER;
+}
+
+/**
+ * Implementation of [AngularSelectorElement] based on presence of a class.
+ */
+class AngularHasClassSelectorElementImpl extends AngularSelectorElementImpl implements AngularHasClassSelectorElement {
+  AngularHasClassSelectorElementImpl(String name, int offset) : super(name, offset);
+
+  bool apply(XmlTagNode node) {
+    XmlAttributeNode attribute = node.getAttribute("class");
+    if (attribute != null) {
+      String text = attribute.text;
+      if (text != null) {
+        String name = this.name;
+        for (String className in StringUtils.split(text)) {
+          if (className == name) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  void appendTo(JavaStringBuilder builder) {
+    builder.append(".");
+    builder.append(name);
+  }
 }
 
 /**
@@ -6535,6 +6887,31 @@ class AngularPropertyElementImpl extends AngularElementImpl implements AngularPr
 }
 
 /**
+ * Implementation of `AngularScopePropertyElement`.
+ *
+ * @coverage dart.engine.element
+ */
+class AngularScopePropertyElementImpl extends AngularElementImpl implements AngularScopePropertyElement {
+  /**
+   * The type of the property
+   */
+  final Type2 type;
+
+  /**
+   * Initialize a newly created Angular scope property to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  AngularScopePropertyElementImpl(String name, int nameOffset, this.type) : super(name, nameOffset);
+
+  accept(ElementVisitor visitor) => visitor.visitAngularScopePropertyElement(this);
+
+  ElementKind get kind => ElementKind.ANGULAR_SCOPE_PROPERTY;
+}
+
+/**
  * Implementation of `AngularFilterElement`.
  *
  * @coverage dart.engine.element
@@ -6555,9 +6932,56 @@ abstract class AngularSelectorElementImpl extends AngularElementImpl implements 
 }
 
 /**
+ * Implementation of [AngularSelectorElement] based on tag name.
+ */
+class AngularTagSelectorElementImpl extends AngularSelectorElementImpl implements AngularTagSelectorElement {
+  AngularTagSelectorElementImpl(String name, int offset) : super(name, offset);
+
+  bool apply(XmlTagNode node) {
+    String tagName = name;
+    return node.tag == tagName;
+  }
+
+  AngularApplication get application => (enclosingElement as AngularElementImpl).application;
+}
+
+/**
+ * Implementation of `AngularViewElement`.
+ *
+ * @coverage dart.engine.element
+ */
+class AngularViewElementImpl extends AngularElementImpl implements AngularViewElement {
+  /**
+   * The HTML template URI.
+   */
+  final String templateUri;
+
+  /**
+   * The offset of the [templateUri] in the [getSource].
+   */
+  final int templateUriOffset;
+
+  /**
+   * The HTML template source.
+   */
+  Source templateSource;
+
+  /**
+   * Initialize a newly created Angular view.
+   */
+  AngularViewElementImpl(this.templateUri, this.templateUriOffset) : super(null, -1);
+
+  accept(ElementVisitor visitor) => visitor.visitAngularViewElement(this);
+
+  ElementKind get kind => ElementKind.ANGULAR_VIEW;
+
+  String get identifier => "AngularView@${templateUriOffset}";
+}
+
+/**
  * Implementation of [AngularSelectorElement] based on presence of attribute.
  */
-class HasAttributeSelectorElementImpl extends AngularSelectorElementImpl {
+class HasAttributeSelectorElementImpl extends AngularSelectorElementImpl implements AngularHasAttributeSelectorElement {
   HasAttributeSelectorElementImpl(String attributeName, int offset) : super(attributeName, offset);
 
   bool apply(XmlTagNode node) {
@@ -6565,11 +6989,15 @@ class HasAttributeSelectorElementImpl extends AngularSelectorElementImpl {
     return node.getAttribute(attributeName) != null;
   }
 
-  String get displayName => "[${super.displayName}]";
+  void appendTo(JavaStringBuilder builder) {
+    builder.append("[");
+    builder.append(name);
+    builder.append("]");
+  }
 }
 
 /**
- * Combination of [IsTagSelectorElementImpl] and [HasAttributeSelectorElementImpl].
+ * Combination of [AngularTagSelectorElementImpl] and [HasAttributeSelectorElementImpl].
  */
 class IsTagHasAttributeSelectorElementImpl extends AngularSelectorElementImpl {
   final String tagName;
@@ -6579,18 +7007,6 @@ class IsTagHasAttributeSelectorElementImpl extends AngularSelectorElementImpl {
   IsTagHasAttributeSelectorElementImpl(this.tagName, this.attributeName) : super(null, -1);
 
   bool apply(XmlTagNode node) => node.tag == tagName && node.getAttribute(attributeName) != null;
-}
-
-/**
- * Implementation of [AngularSelectorElement] based on tag name.
- */
-class IsTagSelectorElementImpl extends AngularSelectorElementImpl {
-  IsTagSelectorElementImpl(String name, int offset) : super(name, offset);
-
-  bool apply(XmlTagNode node) {
-    String tagName = name;
-    return node.tag == tagName;
-  }
 }
 
 /**
@@ -6887,6 +7303,8 @@ abstract class Member implements Element {
 
   bool get isDeprecated => _baseElement.isDeprecated;
 
+  bool get isOverride => _baseElement.isOverride;
+
   bool get isPrivate => _baseElement.isPrivate;
 
   bool get isPublic => _baseElement.isPublic;
@@ -7136,6 +7554,7 @@ class ParameterMember extends VariableMember implements ParameterElement {
       } else if (baseElement.parameterKind == ParameterKind.POSITIONAL) {
         left = "[";
         right = "]";
+      } else if (baseElement.parameterKind == ParameterKind.REQUIRED) {
       }
       break;
     }

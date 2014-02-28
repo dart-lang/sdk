@@ -52,7 +52,7 @@ class AnalyzerImpl {
     }
     var sourceFile = new JavaFile(sourcePath);
     var uriKind = getUriKind(sourceFile);
-    var librarySource = new FileBasedSource.con2(contentCache, sourceFile, uriKind);
+    var librarySource = new FileBasedSource.con2(sourceFile, uriKind);
     // prepare context
     prepareAnalysisContext(sourceFile);
     // don't try to analyzer parts
@@ -101,7 +101,7 @@ class AnalyzerImpl {
         resolvers.add(new PackageUriResolver([packageDirectory]));
       }
     }
-    sourceFactory = new SourceFactory.con1(contentCache, resolvers);
+    sourceFactory = new SourceFactory(resolvers);
     context = AnalysisEngine.instance.createAnalysisContext();
     context.sourceFactory = sourceFactory;
 

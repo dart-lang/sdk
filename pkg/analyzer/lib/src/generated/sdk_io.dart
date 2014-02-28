@@ -176,12 +176,20 @@ class DirectoryBasedDartSdk implements DartSdk {
    *
    * @param sdkDirectory the directory containing the SDK
    */
-  DirectoryBasedDartSdk(JavaFile sdkDirectory) {
+  DirectoryBasedDartSdk(JavaFile sdkDirectory) : this.con1(sdkDirectory, false);
+
+  /**
+   * Initialize a newly created SDK to represent the Dart SDK installed in the given directory.
+   *
+   * @param sdkDirectory the directory containing the SDK
+   * @param useDart2jsPaths `true` if the dart2js path should be used when it is available
+   */
+  DirectoryBasedDartSdk.con1(JavaFile sdkDirectory, bool useDart2jsPaths) {
     this._sdkDirectory = sdkDirectory.getAbsoluteFile();
     initializeSdk();
-    initializeLibraryMap();
+    initializeLibraryMap(useDart2jsPaths);
     _analysisContext = new AnalysisContextImpl();
-    _analysisContext.sourceFactory = new SourceFactory.con2([new DartUriResolver(this)]);
+    _analysisContext.sourceFactory = new SourceFactory([new DartUriResolver(this)]);
     List<String> uris = this.uris;
     ChangeSet changeSet = new ChangeSet();
     for (String uri in uris) {
@@ -190,7 +198,7 @@ class DirectoryBasedDartSdk implements DartSdk {
     _analysisContext.applyChanges(changeSet);
   }
 
-  Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri) => new FileBasedSource.con2(contentCache, new JavaFile.fromUri(uri), kind);
+  Source fromEncoding(UriKind kind, Uri uri) => new FileBasedSource.con2(new JavaFile.fromUri(uri), kind);
 
   AnalysisContext get context => _analysisContext;
 
@@ -342,7 +350,7 @@ class DirectoryBasedDartSdk implements DartSdk {
     if (library == null) {
       return null;
     }
-    return new FileBasedSource.con2(_analysisContext.sourceFactory.contentCache, new JavaFile.relative(libraryDirectory, library.path), UriKind.DART_URI);
+    return new FileBasedSource.con2(new JavaFile.relative(libraryDirectory, library.path), UriKind.DART_URI);
   }
 
   /**
@@ -382,12 +390,14 @@ class DirectoryBasedDartSdk implements DartSdk {
 
   /**
    * Read all of the configuration files to initialize the library maps.
+   *
+   * @param useDart2jsPaths `true` if the dart2js path should be used when it is available
    */
-  void initializeLibraryMap() {
+  void initializeLibraryMap(bool useDart2jsPaths) {
     JavaFile librariesFile = new JavaFile.relative(new JavaFile.relative(libraryDirectory, _INTERNAL_DIR), _LIBRARIES_FILE);
     try {
       String contents = librariesFile.readAsStringSync();
-      _libraryMap = new SdkLibrariesReader().readFrom(librariesFile, contents);
+      _libraryMap = new SdkLibrariesReader(useDart2jsPaths).readFrom(librariesFile, contents);
     } on JavaException catch (exception) {
       AnalysisEngine.instance.logger.logError2("Could not initialize the library map from ${librariesFile.getAbsolutePath()}", exception);
       _libraryMap = new LibraryMap();
@@ -431,13 +441,28 @@ class DirectoryBasedDartSdk implements DartSdk {
  */
 class SdkLibrariesReader {
   /**
+   * A flag indicating whether the dart2js path should be used when it is available.
+   */
+  bool _useDart2jsPaths = false;
+
+  /**
+   * Initialize a newly created library reader to use the dart2js path if the given value is
+   * `true`.
+   *
+   * @param useDart2jsPaths `true` if the dart2js path should be used when it is available
+   */
+  SdkLibrariesReader(bool useDart2jsPaths) {
+    this._useDart2jsPaths = useDart2jsPaths;
+  }
+
+  /**
    * Return the library map read from the given source.
    *
    * @param file the [File] of the library file
    * @param libraryFileContents the contents from the library file
    * @return the library map read from the given source
    */
-  LibraryMap readFrom(JavaFile file, String libraryFileContents) => readFrom2(new FileBasedSource.con2(null, file, UriKind.FILE_URI), libraryFileContents);
+  LibraryMap readFrom(JavaFile file, String libraryFileContents) => readFrom2(new FileBasedSource.con2(file, UriKind.FILE_URI), libraryFileContents);
 
   /**
    * Return the library map read from the given source.
@@ -451,7 +476,7 @@ class SdkLibrariesReader {
     Scanner scanner = new Scanner(source, new CharSequenceReader(libraryFileContents), errorListener);
     Parser parser = new Parser(source, errorListener);
     CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
-    SdkLibrariesReader_LibraryBuilder libraryBuilder = new SdkLibrariesReader_LibraryBuilder();
+    SdkLibrariesReader_LibraryBuilder libraryBuilder = new SdkLibrariesReader_LibraryBuilder(_useDart2jsPaths);
     // If any syntactic errors were found then don't try to visit the AST structure.
     if (!errorListener.errorReported) {
       unit.accept(libraryBuilder);

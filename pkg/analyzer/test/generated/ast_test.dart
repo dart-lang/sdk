@@ -870,6 +870,7 @@ class SimpleIdentifierTest extends ParserTestCase {
         expression = ASTFactory.propertyAccess2(expression, "_");
       } else if (wrapper == WrapperKind.PROPERTY_RIGHT) {
         expression = ASTFactory.propertyAccess(ASTFactory.identifier3("_"), identifier);
+      } else if (wrapper == WrapperKind.NONE) {
       }
       break;
     }
@@ -892,6 +893,7 @@ class SimpleIdentifierTest extends ParserTestCase {
         ASTFactory.assignmentExpression(expression, TokenType.EQ, ASTFactory.identifier3("_"));
       } else if (assignment == AssignmentKind.SIMPLE_RIGHT) {
         ASTFactory.assignmentExpression(ASTFactory.identifier3("_"), TokenType.EQ, expression);
+      } else if (assignment == AssignmentKind.NONE) {
       }
       break;
     }

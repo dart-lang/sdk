@@ -281,8 +281,8 @@ class LibraryElementImplTest extends EngineTestCase {
     AnalysisContext context = createAnalysisContext();
     LibraryElementImpl library = ElementFactory.library(context, "test");
     CompilationUnitElement unitLib = library.definingCompilationUnit;
-    CompilationUnitElementImpl unitA = ElementFactory.compilationUnit(context, "unit_a.dart");
-    CompilationUnitElementImpl unitB = ElementFactory.compilationUnit(context, "unit_b.dart");
+    CompilationUnitElementImpl unitA = ElementFactory.compilationUnit("unit_a.dart");
+    CompilationUnitElementImpl unitB = ElementFactory.compilationUnit("unit_b.dart");
     library.parts = <CompilationUnitElement> [unitA, unitB];
     EngineTestCase.assertEqualsIgnoreOrder(<CompilationUnitElement> [unitLib, unitA, unitB], library.units);
   }
@@ -348,9 +348,9 @@ class LibraryElementImplTest extends EngineTestCase {
 
   void test_isUpToDate() {
     AnalysisContext context = createAnalysisContext();
-    context.sourceFactory = new SourceFactory.con2([]);
+    context.sourceFactory = new SourceFactory([]);
     LibraryElement library = ElementFactory.library(context, "foo");
-    context.sourceFactory.setContents(library.definingCompilationUnit.source, "sdfsdff");
+    context.setContents(library.definingCompilationUnit.source, "sdfsdff");
     // Assert that we are not up to date if the target has an old time stamp.
     JUnitTestCase.assertFalse(library.isUpToDate2(0));
     // Assert that we are up to date with a target modification time in the future.
@@ -2486,8 +2486,8 @@ class ElementFactory {
 
   static ClassElementImpl classElement2(String typeName, List<String> parameterNames) => classElement(typeName, object.type, parameterNames);
 
-  static CompilationUnitElementImpl compilationUnit(AnalysisContext context, String fileName) {
-    FileBasedSource source = new FileBasedSource.con1(context.sourceFactory.contentCache, FileUtilities2.createFile(fileName));
+  static CompilationUnitElementImpl compilationUnit(String fileName) {
+    FileBasedSource source = new FileBasedSource.con1(FileUtilities2.createFile(fileName));
     CompilationUnitElementImpl unit = new CompilationUnitElementImpl(fileName);
     unit.source = source;
     return unit;
@@ -2495,7 +2495,7 @@ class ElementFactory {
 
   static ConstructorElementImpl constructorElement(ClassElement definingClass, String name, bool isConst, List<Type2> argumentTypes) {
     Type2 type = definingClass.type;
-    ConstructorElementImpl constructor = new ConstructorElementImpl(name == null ? null : ASTFactory.identifier3(name));
+    ConstructorElementImpl constructor = new ConstructorElementImpl.con1(name == null ? null : ASTFactory.identifier3(name));
     constructor.const2 = isConst;
     int count = argumentTypes.length;
     List<ParameterElement> parameters = new List<ParameterElement>(count);
@@ -2654,7 +2654,7 @@ class ElementFactory {
   }
 
   static HtmlElementImpl htmlUnit(AnalysisContext context, String fileName) {
-    FileBasedSource source = new FileBasedSource.con1(context.sourceFactory.contentCache, FileUtilities2.createFile(fileName));
+    FileBasedSource source = new FileBasedSource.con1(FileUtilities2.createFile(fileName));
     HtmlElementImpl unit = new HtmlElementImpl(context, fileName);
     unit.source = source;
     return unit;
@@ -2670,7 +2670,7 @@ class ElementFactory {
 
   static LibraryElementImpl library(AnalysisContext context, String libraryName) {
     String fileName = "/${libraryName}.dart";
-    CompilationUnitElementImpl unit = compilationUnit(context, fileName);
+    CompilationUnitElementImpl unit = compilationUnit(fileName);
     LibraryElementImpl library = new LibraryElementImpl(context, ASTFactory.libraryIdentifier2([libraryName]));
     library.definingCompilationUnit = unit;
     return library;

@@ -123,8 +123,9 @@ class ListUtilities {
    * @param elements the elements to be added to the list
    */
   static void addAll(List list, List<Object> elements) {
-    for (Object element in elements) {
-      list.add(element);
+    int count = elements.length;
+    for (int i = 0; i < count; i++) {
+      list.add(elements[i]);
     }
   }
 }

@@ -284,7 +284,7 @@ class PrintStringWriter extends PrintWriter {
 }
 
 class StringUtils {
-  static List<String> split(String s, String pattern) => s.split(pattern);
+  static List<String> split(String s, [String pattern = '']) => s.split(pattern);
   static String replace(String s, String from, String to) => s.replaceAll(from, to);
   static String repeat(String s, int n) {
     StringBuffer sb = new StringBuffer();

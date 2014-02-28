@@ -1212,6 +1212,16 @@ abstract class IndexConstants {
    * location (the right operand). This is used for methods.
    */
   static final Relationship IS_INVOKED_BY_UNQUALIFIED = Relationship.getRelationship("is-invoked-by-unqualified");
+
+  /**
+   * Reference to some [AngularElement].
+   */
+  static final Relationship ANGULAR_REFERENCE = Relationship.getRelationship("angular-reference");
+
+  /**
+   * Reference to some closing tag of an XML element.
+   */
+  static final Relationship ANGULAR_CLOSING_TAG_REFERENCE = Relationship.getRelationship("angular-closing-tag-reference");
 }
 
 /**
@@ -1248,7 +1258,7 @@ class AngularHtmlIndexContributor extends ExpressionVisitor {
       SimpleIdentifier identifier = expression;
       Element element = identifier.bestElement;
       if (element is AngularElement) {
-        _store.recordRelationship(element, IndexConstants.IS_REFERENCED_BY, createLocation(identifier));
+        _store.recordRelationship(element, IndexConstants.ANGULAR_REFERENCE, createLocation(identifier));
         return;
       }
     }
@@ -1268,7 +1278,7 @@ class AngularHtmlIndexContributor extends ExpressionVisitor {
     if (element != null) {
       ht.Token nameToken = node.nameToken;
       Location location = createLocation2(nameToken);
-      _store.recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
+      _store.recordRelationship(element, IndexConstants.ANGULAR_REFERENCE, location);
     }
     return super.visitXmlAttributeNode(node);
   }
@@ -1276,9 +1286,18 @@ class AngularHtmlIndexContributor extends ExpressionVisitor {
   Object visitXmlTagNode(ht.XmlTagNode node) {
     Element element = node.element;
     if (element != null) {
-      ht.Token tagToken = node.tagToken;
-      Location location = createLocation2(tagToken);
-      _store.recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
+      // tag
+      {
+        ht.Token tagToken = node.tagToken;
+        Location location = createLocation2(tagToken);
+        _store.recordRelationship(element, IndexConstants.ANGULAR_REFERENCE, location);
+      }
+      // maybe add closing tag range
+      ht.Token closingTag = node.closingTag;
+      if (closingTag != null) {
+        Location location = createLocation2(closingTag);
+        _store.recordRelationship(element, IndexConstants.ANGULAR_CLOSING_TAG_REFERENCE, location);
+      }
     }
     return super.visitXmlTagNode(node);
   }
@@ -1299,7 +1318,7 @@ class IndexContributor_AngularHtmlIndexContributor extends IndexContributor {
     AngularElement angularElement = AngularHtmlUnitResolver.getAngularElement(element);
     if (angularElement != null) {
       element = angularElement;
-      relationship = IndexConstants.IS_REFERENCED_BY;
+      relationship = IndexConstants.ANGULAR_REFERENCE;
     }
     super.recordRelationship(element, relationship, location);
   }
@@ -1564,13 +1583,17 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
     Element usedElement = null;
     if (parent is PrefixedIdentifier) {
       PrefixedIdentifier prefixed = parent;
-      usedElement = prefixed.staticElement;
-      info._periodEnd = prefixed.period.end;
+      if (identical(prefixed.prefix, prefixNode)) {
+        usedElement = prefixed.staticElement;
+        info._periodEnd = prefixed.period.end;
+      }
     }
     if (parent is MethodInvocation) {
       MethodInvocation invocation = parent;
-      usedElement = invocation.methodName.staticElement;
-      info._periodEnd = invocation.period.end;
+      if (identical(invocation.target, prefixNode)) {
+        usedElement = invocation.methodName.staticElement;
+        info._periodEnd = invocation.period.end;
+      }
     }
     // we need used Element
     if (usedElement == null) {
@@ -1738,6 +1761,14 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
     }
     // done
     return location;
+  }
+
+  /**
+   * @return `true` if given "node" is part of an import [Combinator].
+   */
+  static bool isIdentifierInImportCombinator(SimpleIdentifier node) {
+    ASTNode parent = node.parent;
+    return parent is Combinator;
   }
 
   /**
@@ -1923,6 +1954,11 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
 
   Object visitConstructorName(ConstructorName node) {
     ConstructorElement element = node.staticElement;
+    // in 'class B = A;' actually A constructors are invoked
+    if (element != null && element.isSynthetic && element.redirectedConstructor != null) {
+      element = element.redirectedConstructor;
+    }
+    // prepare location
     Location location;
     if (node.name != null) {
       int start = node.period.offset;
@@ -1932,6 +1968,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
       int start = node.type.end;
       location = createLocation4(start, 0);
     }
+    // record relationship
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitConstructorName(node);
   }
@@ -2240,6 +2277,9 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
    * top-level element and not qualified with import prefix.
    */
   void recordImportElementReferenceWithoutPrefix(SimpleIdentifier node) {
+    if (isIdentifierInImportCombinator(node)) {
+      return;
+    }
     if (isIdentifierInPrefixedIdentifier(node)) {
       return;
     }
@@ -2559,11 +2599,17 @@ class AngularDartIndexContributor extends GeneralizingASTVisitor<Object> {
     indexProperties(directive.properties);
   }
 
+  /**
+   * Index [FieldElement] references from [AngularPropertyElement]s.
+   */
   void indexProperties(List<AngularPropertyElement> properties) {
     for (AngularPropertyElement property in properties) {
       FieldElement field = property.field;
       if (field != null) {
         int offset = property.fieldNameOffset;
+        if (offset == -1) {
+          continue;
+        }
         int length = field.name.length;
         Location location = new Location(property, offset, length);
         // getter reference

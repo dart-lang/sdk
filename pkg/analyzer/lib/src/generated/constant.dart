@@ -517,11 +517,12 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
         return leftResult.divide(_typeProvider, node, rightResult);
       } else if (operatorType == TokenType.TILDE_SLASH) {
         return leftResult.integerDivide(_typeProvider, node, rightResult);
+      } else {
+        // TODO(brianwilkerson) Figure out which error to report.
+        return error(node, null);
       }
       break;
     }
-    // TODO(brianwilkerson) Figure out which error to report.
-    return error(node, null);
   }
 
   EvaluationResultImpl visitBooleanLiteral(BooleanLiteral node) => valid2(_typeProvider.boolType, BoolState.from(node.value));
@@ -724,11 +725,12 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
         return operand.bitNot(_typeProvider, node);
       } else if (node.operator.type == TokenType.MINUS) {
         return operand.negated(_typeProvider, node);
+      } else {
+        // TODO(brianwilkerson) Figure out which error to report.
+        return error(node, null);
       }
       break;
     }
-    // TODO(brianwilkerson) Figure out which error to report.
-    return error(node, null);
   }
 
   EvaluationResultImpl visitPropertyAccess(PropertyAccess node) => getConstantValue(node, node.propertyName.staticElement);

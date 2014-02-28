@@ -210,12 +210,12 @@ class AngularCode extends Enum<AngularCode> implements ErrorCode {
    */
   AngularCode.con2(String name, int ordinal, String message, ErrorSeverity severity) : super(name, ordinal) {
     this._message = message;
-    this._severity = severity;
+    this._severity = ErrorSeverity.INFO;
   }
 
   String get correction => null;
 
-  ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
+  ErrorSeverity get errorSeverity => _severity;
 
   String get message => _message;
 
@@ -656,7 +656,22 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    *
    * @param returnType the name of the declared return type
    */
-  static final HintCode MISSING_RETURN = new HintCode.con2('MISSING_RETURN', 10, "This function declares a return type of '%s', but does not end with a return statement.", "Either add a return statement or change the return type to 'void'.");
+  static final HintCode MISSING_RETURN = new HintCode.con2('MISSING_RETURN', 10, "This function declares a return type of '%s', but does not end with a return statement", "Either add a return statement or change the return type to 'void'");
+
+  /**
+   * A getter with the override annotation does not override an existing getter.
+   */
+  static final HintCode OVERRIDE_ON_NON_OVERRIDING_GETTER = new HintCode.con1('OVERRIDE_ON_NON_OVERRIDING_GETTER', 11, "Getter does not override an inherited getter");
+
+  /**
+   * A method with the override annotation does not override an existing method.
+   */
+  static final HintCode OVERRIDE_ON_NON_OVERRIDING_METHOD = new HintCode.con1('OVERRIDE_ON_NON_OVERRIDING_METHOD', 12, "Method does not override an inherited method");
+
+  /**
+   * A setter with the override annotation does not override an existing setter.
+   */
+  static final HintCode OVERRIDE_ON_NON_OVERRIDING_SETTER = new HintCode.con1('OVERRIDE_ON_NON_OVERRIDING_SETTER', 13, "Setter does not override an inherited setter");
 
   /**
    * It is not in best practice to declare a private method that happens to override the method in a
@@ -667,24 +682,24 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @param memberName some private member name
    * @param className the class name where the member is overriding the functionality
    */
-  static final HintCode OVERRIDDING_PRIVATE_MEMBER = new HintCode.con1('OVERRIDDING_PRIVATE_MEMBER', 11, "The %s '%s' does not override the definition from '%s' because it is private and in a different library");
+  static final HintCode OVERRIDDING_PRIVATE_MEMBER = new HintCode.con1('OVERRIDDING_PRIVATE_MEMBER', 14, "The %s '%s' does not override the definition from '%s' because it is private and in a different library");
 
   /**
    * Hint for classes that override equals, but not hashCode.
    *
    * @param className the name of the current class
    */
-  static final HintCode OVERRIDE_EQUALS_BUT_NOT_HASH_CODE = new HintCode.con1('OVERRIDE_EQUALS_BUT_NOT_HASH_CODE', 12, "The class '%s' overrides 'operator==', but not 'get hashCode'");
+  static final HintCode OVERRIDE_EQUALS_BUT_NOT_HASH_CODE = new HintCode.con1('OVERRIDE_EQUALS_BUT_NOT_HASH_CODE', 15, "The class '%s' overrides 'operator==', but not 'get hashCode'");
 
   /**
    * Type checks of the type `x is! Null` should be done with `x != null`.
    */
-  static final HintCode TYPE_CHECK_IS_NOT_NULL = new HintCode.con1('TYPE_CHECK_IS_NOT_NULL', 13, "Tests for non-null should be done with '!= null'");
+  static final HintCode TYPE_CHECK_IS_NOT_NULL = new HintCode.con1('TYPE_CHECK_IS_NOT_NULL', 16, "Tests for non-null should be done with '!= null'");
 
   /**
    * Type checks of the type `x is Null` should be done with `x == null`.
    */
-  static final HintCode TYPE_CHECK_IS_NULL = new HintCode.con1('TYPE_CHECK_IS_NULL', 14, "Tests for null should be done with '== null'");
+  static final HintCode TYPE_CHECK_IS_NULL = new HintCode.con1('TYPE_CHECK_IS_NULL', 17, "Tests for null should be done with '== null'");
 
   /**
    * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_GETTER] or
@@ -696,7 +711,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @see StaticTypeWarningCode#UNDEFINED_GETTER
    * @see StaticWarningCode#UNDEFINED_GETTER
    */
-  static final HintCode UNDEFINED_GETTER = new HintCode.con1('UNDEFINED_GETTER', 15, StaticTypeWarningCode.UNDEFINED_GETTER.message);
+  static final HintCode UNDEFINED_GETTER = new HintCode.con1('UNDEFINED_GETTER', 18, StaticTypeWarningCode.UNDEFINED_GETTER.message);
 
   /**
    * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_METHOD] would
@@ -706,7 +721,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @param typeName the resolved type name that the method lookup is happening on
    * @see StaticTypeWarningCode#UNDEFINED_METHOD
    */
-  static final HintCode UNDEFINED_METHOD = new HintCode.con1('UNDEFINED_METHOD', 16, StaticTypeWarningCode.UNDEFINED_METHOD.message);
+  static final HintCode UNDEFINED_METHOD = new HintCode.con1('UNDEFINED_METHOD', 19, StaticTypeWarningCode.UNDEFINED_METHOD.message);
 
   /**
    * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_OPERATOR]
@@ -716,7 +731,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @param enclosingType the name of the enclosing type where the operator is being looked for
    * @see StaticTypeWarningCode#UNDEFINED_OPERATOR
    */
-  static final HintCode UNDEFINED_OPERATOR = new HintCode.con1('UNDEFINED_OPERATOR', 17, StaticTypeWarningCode.UNDEFINED_OPERATOR.message);
+  static final HintCode UNDEFINED_OPERATOR = new HintCode.con1('UNDEFINED_OPERATOR', 20, StaticTypeWarningCode.UNDEFINED_OPERATOR.message);
 
   /**
    * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_SETTER] or
@@ -728,27 +743,27 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @see StaticTypeWarningCode#UNDEFINED_SETTER
    * @see StaticWarningCode#UNDEFINED_SETTER
    */
-  static final HintCode UNDEFINED_SETTER = new HintCode.con1('UNDEFINED_SETTER', 18, StaticTypeWarningCode.UNDEFINED_SETTER.message);
+  static final HintCode UNDEFINED_SETTER = new HintCode.con1('UNDEFINED_SETTER', 21, StaticTypeWarningCode.UNDEFINED_SETTER.message);
 
   /**
    * Unnecessary cast.
    */
-  static final HintCode UNNECESSARY_CAST = new HintCode.con1('UNNECESSARY_CAST', 19, "Unnecessary cast");
+  static final HintCode UNNECESSARY_CAST = new HintCode.con1('UNNECESSARY_CAST', 22, "Unnecessary cast");
 
   /**
    * Unnecessary type checks, the result is always true.
    */
-  static final HintCode UNNECESSARY_TYPE_CHECK_FALSE = new HintCode.con1('UNNECESSARY_TYPE_CHECK_FALSE', 20, "Unnecessary type check, the result is always false");
+  static final HintCode UNNECESSARY_TYPE_CHECK_FALSE = new HintCode.con1('UNNECESSARY_TYPE_CHECK_FALSE', 23, "Unnecessary type check, the result is always false");
 
   /**
    * Unnecessary type checks, the result is always false.
    */
-  static final HintCode UNNECESSARY_TYPE_CHECK_TRUE = new HintCode.con1('UNNECESSARY_TYPE_CHECK_TRUE', 21, "Unnecessary type check, the result is always true");
+  static final HintCode UNNECESSARY_TYPE_CHECK_TRUE = new HintCode.con1('UNNECESSARY_TYPE_CHECK_TRUE', 24, "Unnecessary type check, the result is always true");
 
   /**
    * Unused imports are imports which are never not used.
    */
-  static final HintCode UNUSED_IMPORT = new HintCode.con1('UNUSED_IMPORT', 22, "Unused import");
+  static final HintCode UNUSED_IMPORT = new HintCode.con1('UNUSED_IMPORT', 25, "Unused import");
 
   /**
    * Hint for cases where the source expects a method or function to return a non-void result, but
@@ -756,7 +771,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    *
    * @param name the name of the method or function that returns void
    */
-  static final HintCode USE_OF_VOID_RESULT = new HintCode.con1('USE_OF_VOID_RESULT', 23, "The result of '%s' is being used, even though it is declared to be 'void'");
+  static final HintCode USE_OF_VOID_RESULT = new HintCode.con1('USE_OF_VOID_RESULT', 26, "The result of '%s' is being used, even though it is declared to be 'void'");
 
   static final List<HintCode> values = [
       DEAD_CODE,
@@ -770,6 +785,9 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
       IS_NOT_DOUBLE,
       IS_NOT_INT,
       MISSING_RETURN,
+      OVERRIDE_ON_NON_OVERRIDING_GETTER,
+      OVERRIDE_ON_NON_OVERRIDING_METHOD,
+      OVERRIDE_ON_NON_OVERRIDING_SETTER,
       OVERRIDDING_PRIVATE_MEMBER,
       OVERRIDE_EQUALS_BUT_NOT_HASH_CODE,
       TYPE_CHECK_IS_NOT_NULL,
@@ -2421,7 +2439,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * to be thrown, because no setter is defined for it. The assignment will also give rise to a
    * static warning for the same reason.
    */
-  static final StaticWarningCode ASSIGNMENT_TO_FINAL = new StaticWarningCode.con1('ASSIGNMENT_TO_FINAL', 3, "Final variables cannot be assigned a value");
+  static final StaticWarningCode ASSIGNMENT_TO_FINAL = new StaticWarningCode.con1('ASSIGNMENT_TO_FINAL', 3, "'%s' cannot be used as a setter, it is final");
 
   /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>. It is a static type
@@ -2871,7 +2889,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param memberName the name of the fourth member
    * @param additionalCount the number of additional missing members that aren't listed
    */
-  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS = new StaticWarningCode.con1('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS', 49, "Missing inherited members: '%s', '%s', '%s', '%s' and %d more");
+  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS = new StaticWarningCode.con1('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS', 49, "Missing concrete implementation of '%s', '%s', '%s', '%s' and %d more");
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -2890,7 +2908,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param memberName the name of the third member
    * @param memberName the name of the fourth member
    */
-  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR = new StaticWarningCode.con1('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR', 50, "Missing inherited members: '%s', '%s', '%s' and '%s'");
+  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR = new StaticWarningCode.con1('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR', 50, "Missing concrete implementation of '%s', '%s', '%s' and '%s'");
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -2906,7 +2924,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    *
    * @param memberName the name of the member
    */
-  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE = new StaticWarningCode.con1('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE', 51, "Missing inherited member '%s'");
+  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE = new StaticWarningCode.con1('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE', 51, "Missing concrete implementation of '%s'");
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -2924,7 +2942,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param memberName the name of the second member
    * @param memberName the name of the third member
    */
-  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE = new StaticWarningCode.con1('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE', 52, "Missing inherited members: '%s', '%s' and '%s'");
+  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE = new StaticWarningCode.con1('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE', 52, "Missing concrete implementation of '%s', '%s' and '%s'");
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -2941,7 +2959,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param memberName the name of the first member
    * @param memberName the name of the second member
    */
-  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO = new StaticWarningCode.con1('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO', 53, "Missing inherited members: '%s' and '%s'");
+  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO = new StaticWarningCode.con1('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO', 53, "Missing concrete implementation of '%s' and '%s'");
 
   /**
    * 13.11 Try: An on-catch clause of the form <i>on T catch (p<sub>1</sub>, p<sub>2</sub>) s</i> or
@@ -3389,7 +3407,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * * Otherwise none of the members <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i> is inherited.
    * </ol>
    */
-  static final StaticTypeWarningCode INCONSISTENT_METHOD_INHERITANCE = new StaticTypeWarningCode.con1('INCONSISTENT_METHOD_INHERITANCE', 3, "'%s' is inherited by at least two interfaces inconsistently");
+  static final StaticTypeWarningCode INCONSISTENT_METHOD_INHERITANCE = new StaticTypeWarningCode.con1('INCONSISTENT_METHOD_INHERITANCE', 3, "'%s' is inherited by at least two interfaces inconsistently, from %s");
 
   /**
    * 12.15.1 Ordinary Invocation: It is a static type warning if <i>T</i> does not have an

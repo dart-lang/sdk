@@ -5,6 +5,7 @@
 library analyzer.string_source;
 
 import 'generated/source.dart';
+import 'generated/engine.dart' show TimestampedData;
 
 /// An implementation of [Source] that's based on an in-memory Dart string.
 class StringSource implements Source {
@@ -25,8 +26,10 @@ class StringSource implements Source {
 
   bool exists() => true;
 
-  void getContents(Source_ContentReceiver receiver) =>
+  void getContentsToReceiver(Source_ContentReceiver receiver) =>
       receiver.accept(_contents, modificationStamp);
+
+  TimestampedData<String> get contents => new TimestampedData(modificationStamp, _contents);
 
   String get encoding => throw new UnsupportedError("StringSource doesn't support "
       "encoding.");

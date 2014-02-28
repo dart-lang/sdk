@@ -17,6 +17,7 @@ import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
@@ -1695,6 +1696,20 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_extraPositionalArguments_implicitConstructor() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A<E extends num> {",
+        "  A(E x, E y);",
+        "}",
+        "class B<E extends num> = A<E>;",
+        "void main() {",
+        "   B<int> x = new B<int>(0,0);",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_extraPositionalArguments_typedef_local() {
     Source source = addSource(EngineTestCase.createSource([
         "typedef A(p1, p2);",
@@ -2941,6 +2956,52 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_nonAbstractClassInheritsAbstractMemberOne_mixin_getter() {
+    // 17034
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  var a;",
+        "}",
+        "abstract class M {",
+        "  get a;",
+        "}",
+        "class B extends A with M {}",
+        "class C extends B {}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nonAbstractClassInheritsAbstractMemberOne_mixin_method() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  m() {}",
+        "}",
+        "abstract class M {",
+        "  m();",
+        "}",
+        "class B extends A with M {}",
+        "class C extends B {}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nonAbstractClassInheritsAbstractMemberOne_mixin_setter() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  var a;",
+        "}",
+        "abstract class M {",
+        "  set a(dynamic v);",
+        "}",
+        "class B extends A with M {}",
+        "class C extends B {}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_accessor() {
     Source source = addSource(EngineTestCase.createSource([
         "abstract class A {",
@@ -3467,6 +3528,73 @@ class NonErrorResolverTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertNoErrors(source);
+  }
+
+  void test_proxy_annotation_superclass() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library L;",
+        "class B extends A {",
+        "  m() {",
+        "    n();",
+        "    var x = g;",
+        "    s = 1;",
+        "    var y = this + this;",
+        "  }",
+        "}",
+        "@proxy",
+        "class A {}"]));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  void test_proxy_annotation_superclass_mixin() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library L;",
+        "class B extends Object with A {",
+        "  m() {",
+        "    n();",
+        "    var x = g;",
+        "    s = 1;",
+        "    var y = this + this;",
+        "  }",
+        "}",
+        "@proxy",
+        "class A {}"]));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  void test_proxy_annotation_superinterface() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library L;",
+        "class B implements A {",
+        "  m() {",
+        "    n();",
+        "    var x = g;",
+        "    s = 1;",
+        "    var y = this + this;",
+        "  }",
+        "}",
+        "@proxy",
+        "class A {}"]));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  void test_proxy_annotation_superinterface_infiniteLoop() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library L;",
+        "class C implements A {",
+        "  m() {",
+        "    n();",
+        "    var x = g;",
+        "    s = 1;",
+        "    var y = this + this;",
+        "  }",
+        "}",
+        "class B implements A{}",
+        "class A implements B{}"]));
+    resolve(source);
   }
 
   void test_recursiveConstructorRedirect() {
@@ -4672,6 +4800,10 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_extraPositionalArguments_function);
       });
+      _ut.test('test_extraPositionalArguments_implicitConstructor', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_extraPositionalArguments_implicitConstructor);
+      });
       _ut.test('test_extraPositionalArguments_typedef_local', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_extraPositionalArguments_typedef_local);
@@ -5132,6 +5264,18 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_newWithUndefinedConstructorDefault);
       });
+      _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_mixin_getter', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_mixin_getter);
+      });
+      _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_mixin_method', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_mixin_method);
+      });
+      _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_mixin_setter', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_mixin_setter);
+      });
       _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_accessor', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_accessor);
@@ -5311,6 +5455,22 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_proxy_annotation_simple', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_proxy_annotation_simple);
+      });
+      _ut.test('test_proxy_annotation_superclass', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_proxy_annotation_superclass);
+      });
+      _ut.test('test_proxy_annotation_superclass_mixin', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_proxy_annotation_superclass_mixin);
+      });
+      _ut.test('test_proxy_annotation_superinterface', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_proxy_annotation_superinterface);
+      });
+      _ut.test('test_proxy_annotation_superinterface_infiniteLoop', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_proxy_annotation_superinterface_infiniteLoop);
       });
       _ut.test('test_recursiveConstructorRedirect', () {
         final __test = new NonErrorResolverTest();
@@ -5654,7 +5814,7 @@ class LibraryTest extends EngineTestCase {
   Library _library5;
 
   void setUp() {
-    _sourceFactory = new SourceFactory.con2([new FileUriResolver()]);
+    _sourceFactory = new SourceFactory([new FileUriResolver()]);
     _analysisContext = new AnalysisContextImpl();
     _analysisContext.sourceFactory = _sourceFactory;
     _errorListener = new GatheringErrorListener();
@@ -5725,7 +5885,7 @@ class LibraryTest extends EngineTestCase {
     JUnitTestCase.assertSame(element, _library5.libraryElement);
   }
 
-  Library library(String definingCompilationUnitPath) => new Library(_analysisContext, _errorListener, new FileBasedSource.con1(_sourceFactory.contentCache, FileUtilities2.createFile(definingCompilationUnitPath)));
+  Library library(String definingCompilationUnitPath) => new Library(_analysisContext, _errorListener, new FileBasedSource.con1(FileUtilities2.createFile(definingCompilationUnitPath)));
 
   static dartSuite() {
     _ut.group('LibraryTest', () {
@@ -6969,6 +7129,13 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_wrongNumberOfTypeArguments_classAlias() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class B<F extends num> = A<F>;"]));
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
+    verify([source]);
+  }
+
   void test_wrongNumberOfTypeArguments_tooFew() {
     Source source = addSource(EngineTestCase.createSource(["class A<E, F> {}", "A<A> a = null;"]));
     resolve(source);
@@ -7408,6 +7575,10 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
       _ut.test('test_unqualifiedReferenceToNonLocalStaticMember_setter', () {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_unqualifiedReferenceToNonLocalStaticMember_setter);
+      });
+      _ut.test('test_wrongNumberOfTypeArguments_classAlias', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_wrongNumberOfTypeArguments_classAlias);
       });
       _ut.test('test_wrongNumberOfTypeArguments_tooFew', () {
         final __test = new StaticTypeWarningCodeTest();
@@ -8017,6 +8188,51 @@ class HintCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_overrideOnNonOverridingGetter_invalid() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "}",
+        "class B extends A {",
+        "  @override",
+        "  int get m => 1;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER]);
+    verify([source]);
+  }
+
+  void test_overrideOnNonOverridingMethod_invalid() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "}",
+        "class B extends A {",
+        "  @override",
+        "  int m() => 1;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD]);
+    verify([source]);
+  }
+
+  void test_overrideOnNonOverridingSetter_invalid() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "}",
+        "class B extends A {",
+        "  @override",
+        "  set m(int x) {}",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER]);
+    verify([source]);
+  }
+
   void test_typeCheck_type_is_Null() {
     Source source = addSource(EngineTestCase.createSource(["m(i) {", "  bool b = i is Null;", "}"]));
     resolve(source);
@@ -8541,6 +8757,18 @@ class HintCodeTest extends ResolverTestCase {
         final __test = new HintCodeTest();
         runJUnitTest(__test, __test.test_missingReturn_method);
       });
+      _ut.test('test_overrideOnNonOverridingGetter_invalid', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_overrideOnNonOverridingGetter_invalid);
+      });
+      _ut.test('test_overrideOnNonOverridingMethod_invalid', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_overrideOnNonOverridingMethod_invalid);
+      });
+      _ut.test('test_overrideOnNonOverridingSetter_invalid', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_overrideOnNonOverridingSetter_invalid);
+      });
       _ut.test('test_typeCheck_type_is_Null', () {
         final __test = new HintCodeTest();
         runJUnitTest(__test, __test.test_typeCheck_type_is_Null);
@@ -8732,10 +8960,10 @@ class TypeResolverVisitorTest extends EngineTestCase {
 
   void setUp() {
     _listener = new GatheringErrorListener();
-    SourceFactory factory = new SourceFactory.con2([new FileUriResolver()]);
+    SourceFactory factory = new SourceFactory([new FileUriResolver()]);
     AnalysisContextImpl context = new AnalysisContextImpl();
     context.sourceFactory = factory;
-    Source librarySource = new FileBasedSource.con1(factory.contentCache, FileUtilities2.createFile("/lib.dart"));
+    Source librarySource = new FileBasedSource.con1(FileUtilities2.createFile("/lib.dart"));
     _library = new Library(context, _listener, librarySource);
     LibraryElementImpl element = new LibraryElementImpl(context, ASTFactory.libraryIdentifier2(["lib"]));
     element.definingCompilationUnit = new CompilationUnitElementImpl("lib.dart");
@@ -9052,11 +9280,6 @@ class TypeResolverVisitorTest extends EngineTestCase {
 
 class ResolverTestCase extends EngineTestCase {
   /**
-   * The source factory used to create [Source].
-   */
-  SourceFactory _sourceFactory;
-
-  /**
    * The analysis context used to parse the compilation units being resolved.
    */
   AnalysisContextImpl _analysisContext;
@@ -9127,8 +9350,8 @@ class ResolverTestCase extends EngineTestCase {
    * @return the source object representing the cached file
    */
   Source cacheSource(String filePath, String contents) {
-    Source source = new FileBasedSource.con1(_sourceFactory.contentCache, FileUtilities2.createFile(filePath));
-    _sourceFactory.setContents(source, contents);
+    Source source = new FileBasedSource.con1(FileUtilities2.createFile(filePath));
+    _analysisContext.setContents(source, contents);
     return source;
   }
 
@@ -9170,8 +9393,6 @@ class ResolverTestCase extends EngineTestCase {
 
   AnalysisContext get analysisContext => _analysisContext;
 
-  SourceFactory get sourceFactory => _sourceFactory;
-
   /**
    * Return a type provider that can be used to test the results of resolution.
    *
@@ -9186,7 +9407,6 @@ class ResolverTestCase extends EngineTestCase {
    */
   void reset() {
     _analysisContext = AnalysisContextFactory.contextWithCore();
-    _sourceFactory = _analysisContext.sourceFactory;
   }
 
   /**
@@ -9234,8 +9454,8 @@ class ResolverTestCase extends EngineTestCase {
    * @return the source that was created
    */
   FileBasedSource createSource2(String fileName) {
-    FileBasedSource source = new FileBasedSource.con1(_sourceFactory.contentCache, FileUtilities2.createFile(fileName));
-    _sourceFactory.setContents(source, "");
+    FileBasedSource source = new FileBasedSource.con1(FileUtilities2.createFile(fileName));
+    _analysisContext.setContents(source, "");
     return source;
   }
 
@@ -9358,6 +9578,8 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_getMapOfMembersInheritedFromClasses_accessor_extends() {
+    // class A { int get g; }
+    // class B extends A {}
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String getterName = "g";
     PropertyAccessorElement getterG = ElementFactory.getterElement(getterName, false, _typeProvider.intType);
@@ -9373,6 +9595,8 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_getMapOfMembersInheritedFromClasses_accessor_implements() {
+    // class A { int get g; }
+    // class B implements A {}
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String getterName = "g";
     PropertyAccessorElement getterG = ElementFactory.getterElement(getterName, false, _typeProvider.intType);
@@ -9389,6 +9613,8 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_getMapOfMembersInheritedFromClasses_accessor_with() {
+    // class A { int get g; }
+    // class B extends Object with A {}
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String getterName = "g";
     PropertyAccessorElement getterG = ElementFactory.getterElement(getterName, false, _typeProvider.intType);
@@ -9404,7 +9630,17 @@ class InheritanceManagerTest extends EngineTestCase {
     assertNoErrors(classB);
   }
 
+  void test_getMapOfMembersInheritedFromClasses_implicitExtends() {
+    // class A {}
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject, mapA.size);
+    assertNoErrors(classA);
+  }
+
   void test_getMapOfMembersInheritedFromClasses_method_extends() {
+    // class A { int g(); }
+    // class B extends A {}
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String methodName = "m";
     MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
@@ -9421,6 +9657,8 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_getMapOfMembersInheritedFromClasses_method_implements() {
+    // class A { int g(); }
+    // class B implements A {}
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String methodName = "m";
     MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
@@ -9437,6 +9675,8 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_getMapOfMembersInheritedFromClasses_method_with() {
+    // class A { int g(); }
+    // class B extends Object with A {}
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String methodName = "m";
     MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
@@ -9453,6 +9693,8 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_getMapOfMembersInheritedFromInterfaces_accessor_extends() {
+    // class A { int get g; }
+    // class B extends A {}
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String getterName = "g";
     PropertyAccessorElement getterG = ElementFactory.getterElement(getterName, false, _typeProvider.intType);
@@ -9468,6 +9710,8 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_getMapOfMembersInheritedFromInterfaces_accessor_implements() {
+    // class A { int get g; }
+    // class B implements A {}
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String getterName = "g";
     PropertyAccessorElement getterG = ElementFactory.getterElement(getterName, false, _typeProvider.intType);
@@ -9484,6 +9728,8 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_getMapOfMembersInheritedFromInterfaces_accessor_with() {
+    // class A { int get g; }
+    // class B extends Object with A {}
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String getterName = "g";
     PropertyAccessorElement getterG = ElementFactory.getterElement(getterName, false, _typeProvider.intType);
@@ -9499,7 +9745,129 @@ class InheritanceManagerTest extends EngineTestCase {
     assertNoErrors(classB);
   }
 
+  void test_getMapOfMembersInheritedFromInterfaces_implicitExtends() {
+    // class A {}
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject, mapA.size);
+    assertNoErrors(classA);
+  }
+
+  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_getter_method() {
+    // class I1 { int m(); }
+    // class I2 { int get m; }
+    // class A implements I2, I1 {}
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    String methodName = "m";
+    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    classI1.methods = <MethodElement> [methodM];
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    PropertyAccessorElement getter = ElementFactory.getterElement(methodName, false, _typeProvider.intType);
+    classI2.accessors = <PropertyAccessorElement> [getter];
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    classA.interfaces = <InterfaceType> [classI2.type, classI1.type];
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject, mapA.size);
+    JUnitTestCase.assertNull(mapA.get(methodName));
+    assertErrors(classA, [StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD]);
+  }
+
+  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_int_str() {
+    // class I1 { int m(); }
+    // class I2 { String m(); }
+    // class A implements I1, I2 {}
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    String methodName = "m";
+    MethodElement methodM1 = ElementFactory.methodElement(methodName, null, [_typeProvider.intType]);
+    classI1.methods = <MethodElement> [methodM1];
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    MethodElement methodM2 = ElementFactory.methodElement(methodName, null, [_typeProvider.stringType]);
+    classI2.methods = <MethodElement> [methodM2];
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    classA.interfaces = <InterfaceType> [classI1.type, classI2.type];
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject, mapA.size);
+    JUnitTestCase.assertNull(mapA.get(methodName));
+    assertErrors(classA, [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
+  }
+
+  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_method_getter() {
+    // class I1 { int m(); }
+    // class I2 { int get m; }
+    // class A implements I1, I2 {}
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    String methodName = "m";
+    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    classI1.methods = <MethodElement> [methodM];
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    PropertyAccessorElement getter = ElementFactory.getterElement(methodName, false, _typeProvider.intType);
+    classI2.accessors = <PropertyAccessorElement> [getter];
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    classA.interfaces = <InterfaceType> [classI1.type, classI2.type];
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject, mapA.size);
+    JUnitTestCase.assertNull(mapA.get(methodName));
+    assertErrors(classA, [StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD]);
+  }
+
+  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_numOfRequiredParams() {
+    // class I1 { dynamic m(int, [int]); }
+    // class I2 { dynamic m(int, int, int); }
+    // class A implements I1, I2 {}
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    String methodName = "m";
+    MethodElementImpl methodM1 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, []);
+    ParameterElementImpl parameter1 = new ParameterElementImpl.con1(ASTFactory.identifier3("a1"));
+    parameter1.type = _typeProvider.intType;
+    parameter1.parameterKind = ParameterKind.REQUIRED;
+    ParameterElementImpl parameter2 = new ParameterElementImpl.con1(ASTFactory.identifier3("a2"));
+    parameter2.type = _typeProvider.intType;
+    parameter2.parameterKind = ParameterKind.POSITIONAL;
+    methodM1.parameters = <ParameterElement> [parameter1, parameter2];
+    classI1.methods = <MethodElement> [methodM1];
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    MethodElementImpl methodM2 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, []);
+    ParameterElementImpl parameter3 = new ParameterElementImpl.con1(ASTFactory.identifier3("a3"));
+    parameter3.type = _typeProvider.intType;
+    parameter3.parameterKind = ParameterKind.REQUIRED;
+    ParameterElementImpl parameter4 = new ParameterElementImpl.con1(ASTFactory.identifier3("a4"));
+    parameter4.type = _typeProvider.intType;
+    parameter4.parameterKind = ParameterKind.REQUIRED;
+    ParameterElementImpl parameter5 = new ParameterElementImpl.con1(ASTFactory.identifier3("a5"));
+    parameter5.type = _typeProvider.intType;
+    parameter5.parameterKind = ParameterKind.REQUIRED;
+    methodM2.parameters = <ParameterElement> [parameter3, parameter4, parameter5];
+    classI2.methods = <MethodElement> [methodM2];
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    classA.interfaces = <InterfaceType> [classI1.type, classI2.type];
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject, mapA.size);
+    JUnitTestCase.assertNull(mapA.get(methodName));
+    assertErrors(classA, [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
+  }
+
+  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_str_int() {
+    // class I1 { int m(); }
+    // class I2 { String m(); }
+    // class A implements I2, I1 {}
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    String methodName = "m";
+    MethodElement methodM1 = ElementFactory.methodElement(methodName, null, [_typeProvider.stringType]);
+    classI1.methods = <MethodElement> [methodM1];
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    MethodElement methodM2 = ElementFactory.methodElement(methodName, null, [_typeProvider.intType]);
+    classI2.methods = <MethodElement> [methodM2];
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    classA.interfaces = <InterfaceType> [classI2.type, classI1.type];
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject, mapA.size);
+    JUnitTestCase.assertNull(mapA.get(methodName));
+    assertErrors(classA, [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
+  }
+
   void test_getMapOfMembersInheritedFromInterfaces_method_extends() {
+    // class A { int g(); }
+    // class B extends A {}
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String methodName = "m";
     MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
@@ -9515,6 +9883,8 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_getMapOfMembersInheritedFromInterfaces_method_implements() {
+    // class A { int g(); }
+    // class B implements A {}
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String methodName = "m";
     MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
@@ -9531,6 +9901,8 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_getMapOfMembersInheritedFromInterfaces_method_with() {
+    // class A { int g(); }
+    // class B extends Object with A {}
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String methodName = "m";
     MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
@@ -9544,6 +9916,294 @@ class InheritanceManagerTest extends EngineTestCase {
     JUnitTestCase.assertSame(methodM, mapB.get(methodName));
     assertNoErrors(classA);
     assertNoErrors(classB);
+  }
+
+  void test_getMapOfMembersInheritedFromInterfaces_union_differentNames() {
+    // class I1 { int m1(); }
+    // class I2 { int m2(); }
+    // class A implements I1, I2 {}
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    String methodName1 = "m1";
+    MethodElement methodM1 = ElementFactory.methodElement(methodName1, _typeProvider.intType, []);
+    classI1.methods = <MethodElement> [methodM1];
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    String methodName2 = "m2";
+    MethodElement methodM2 = ElementFactory.methodElement(methodName2, _typeProvider.intType, []);
+    classI2.methods = <MethodElement> [methodM2];
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    classA.interfaces = <InterfaceType> [classI1.type, classI2.type];
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject + 2, mapA.size);
+    JUnitTestCase.assertSame(methodM1, mapA.get(methodName1));
+    JUnitTestCase.assertSame(methodM2, mapA.get(methodName2));
+    assertNoErrors(classA);
+  }
+
+  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_getters() {
+    // class I1 { int get g; }
+    // class I2 { num get g; }
+    // class A implements I1, I2 {}
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    String accessorName = "g";
+    PropertyAccessorElement getter1 = ElementFactory.getterElement(accessorName, false, _typeProvider.intType);
+    classI1.accessors = <PropertyAccessorElement> [getter1];
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    PropertyAccessorElement getter2 = ElementFactory.getterElement(accessorName, false, _typeProvider.numType);
+    classI2.accessors = <PropertyAccessorElement> [getter2];
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    classA.interfaces = <InterfaceType> [classI1.type, classI2.type];
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject + 1, mapA.size);
+    PropertyAccessorElement syntheticAccessor = ElementFactory.getterElement(accessorName, false, _typeProvider.dynamicType);
+    JUnitTestCase.assertEquals(syntheticAccessor.type, mapA.get(accessorName).type);
+    assertNoErrors(classA);
+  }
+
+  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_methods() {
+    // class I1 { dynamic m(int); }
+    // class I2 { dynamic m(num); }
+    // class A implements I1, I2 {}
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    String methodName = "m";
+    MethodElementImpl methodM1 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, []);
+    ParameterElementImpl parameter1 = new ParameterElementImpl.con1(ASTFactory.identifier3("a0"));
+    parameter1.type = _typeProvider.intType;
+    parameter1.parameterKind = ParameterKind.REQUIRED;
+    methodM1.parameters = <ParameterElement> [parameter1];
+    classI1.methods = <MethodElement> [methodM1];
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    MethodElementImpl methodM2 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, []);
+    ParameterElementImpl parameter2 = new ParameterElementImpl.con1(ASTFactory.identifier3("a0"));
+    parameter2.type = _typeProvider.numType;
+    parameter2.parameterKind = ParameterKind.REQUIRED;
+    methodM2.parameters = <ParameterElement> [parameter2];
+    classI2.methods = <MethodElement> [methodM2];
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    classA.interfaces = <InterfaceType> [classI1.type, classI2.type];
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject + 1, mapA.size);
+    MethodElement syntheticMethod = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, [_typeProvider.dynamicType]);
+    JUnitTestCase.assertEquals(syntheticMethod.type, mapA.get(methodName).type);
+    assertNoErrors(classA);
+  }
+
+  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_setters() {
+    // class I1 { set s(int); }
+    // class I2 { set s(num); }
+    // class A implements I1, I2 {}
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    String accessorName = "s";
+    PropertyAccessorElement setter1 = ElementFactory.setterElement(accessorName, false, _typeProvider.intType);
+    classI1.accessors = <PropertyAccessorElement> [setter1];
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    PropertyAccessorElement setter2 = ElementFactory.setterElement(accessorName, false, _typeProvider.numType);
+    classI2.accessors = <PropertyAccessorElement> [setter2];
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    classA.interfaces = <InterfaceType> [classI1.type, classI2.type];
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject + 1, mapA.size);
+    PropertyAccessorElementImpl syntheticAccessor = ElementFactory.setterElement(accessorName, false, _typeProvider.dynamicType);
+    syntheticAccessor.returnType = _typeProvider.dynamicType;
+    JUnitTestCase.assertEquals(syntheticAccessor.type, mapA.get("${accessorName}=").type);
+    assertNoErrors(classA);
+  }
+
+  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_getters() {
+    // class A {}
+    // class B extends A {}
+    // class C extends B {}
+    // class I1 { A get g; }
+    // class I2 { B get g; }
+    // class I3 { C get g; }
+    // class D implements I1, I2, I3 {}
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    ClassElementImpl classC = ElementFactory.classElement("C", classB.type, []);
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    String accessorName = "g";
+    PropertyAccessorElement getter1 = ElementFactory.getterElement(accessorName, false, classA.type);
+    classI1.accessors = <PropertyAccessorElement> [getter1];
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    PropertyAccessorElement getter2 = ElementFactory.getterElement(accessorName, false, classB.type);
+    classI2.accessors = <PropertyAccessorElement> [getter2];
+    ClassElementImpl classI3 = ElementFactory.classElement2("I3", []);
+    PropertyAccessorElement getter3 = ElementFactory.getterElement(accessorName, false, classC.type);
+    classI3.accessors = <PropertyAccessorElement> [getter3];
+    ClassElementImpl classD = ElementFactory.classElement2("D", []);
+    classD.interfaces = <InterfaceType> [classI1.type, classI2.type, classI3.type];
+    MemberMap mapD = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classD);
+    JUnitTestCase.assertEquals(_numOfMembersInObject + 1, mapD.size);
+    PropertyAccessorElement syntheticAccessor = ElementFactory.getterElement(accessorName, false, _typeProvider.dynamicType);
+    JUnitTestCase.assertEquals(syntheticAccessor.type, mapD.get(accessorName).type);
+    assertNoErrors(classD);
+  }
+
+  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_methods() {
+    // class A {}
+    // class B extends A {}
+    // class C extends B {}
+    // class I1 { dynamic m(A a); }
+    // class I2 { dynamic m(B b); }
+    // class I3 { dynamic m(C c); }
+    // class D implements I1, I2, I3 {}
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    ClassElementImpl classC = ElementFactory.classElement("C", classB.type, []);
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    String methodName = "m";
+    MethodElementImpl methodM1 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, []);
+    ParameterElementImpl parameter1 = new ParameterElementImpl.con1(ASTFactory.identifier3("a0"));
+    parameter1.type = classA.type;
+    parameter1.parameterKind = ParameterKind.REQUIRED;
+    methodM1.parameters = <ParameterElement> [parameter1];
+    classI1.methods = <MethodElement> [methodM1];
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    MethodElementImpl methodM2 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, []);
+    ParameterElementImpl parameter2 = new ParameterElementImpl.con1(ASTFactory.identifier3("a0"));
+    parameter2.type = classB.type;
+    parameter2.parameterKind = ParameterKind.REQUIRED;
+    methodM2.parameters = <ParameterElement> [parameter2];
+    classI2.methods = <MethodElement> [methodM2];
+    ClassElementImpl classI3 = ElementFactory.classElement2("I3", []);
+    MethodElementImpl methodM3 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, []);
+    ParameterElementImpl parameter3 = new ParameterElementImpl.con1(ASTFactory.identifier3("a0"));
+    parameter3.type = classC.type;
+    parameter3.parameterKind = ParameterKind.REQUIRED;
+    methodM3.parameters = <ParameterElement> [parameter3];
+    classI3.methods = <MethodElement> [methodM3];
+    ClassElementImpl classD = ElementFactory.classElement2("D", []);
+    classD.interfaces = <InterfaceType> [classI1.type, classI2.type, classI3.type];
+    MemberMap mapD = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classD);
+    JUnitTestCase.assertEquals(_numOfMembersInObject + 1, mapD.size);
+    MethodElement syntheticMethod = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, [_typeProvider.dynamicType]);
+    JUnitTestCase.assertEquals(syntheticMethod.type, mapD.get(methodName).type);
+    assertNoErrors(classD);
+  }
+
+  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_setters() {
+    // class A {}
+    // class B extends A {}
+    // class C extends B {}
+    // class I1 { set s(A); }
+    // class I2 { set s(B); }
+    // class I3 { set s(C); }
+    // class D implements I1, I2, I3 {}
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    ClassElementImpl classC = ElementFactory.classElement("C", classB.type, []);
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    String accessorName = "s";
+    PropertyAccessorElement setter1 = ElementFactory.setterElement(accessorName, false, classA.type);
+    classI1.accessors = <PropertyAccessorElement> [setter1];
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    PropertyAccessorElement setter2 = ElementFactory.setterElement(accessorName, false, classB.type);
+    classI2.accessors = <PropertyAccessorElement> [setter2];
+    ClassElementImpl classI3 = ElementFactory.classElement2("I3", []);
+    PropertyAccessorElement setter3 = ElementFactory.setterElement(accessorName, false, classC.type);
+    classI3.accessors = <PropertyAccessorElement> [setter3];
+    ClassElementImpl classD = ElementFactory.classElement2("D", []);
+    classD.interfaces = <InterfaceType> [classI1.type, classI2.type, classI3.type];
+    MemberMap mapD = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classD);
+    JUnitTestCase.assertEquals(_numOfMembersInObject + 1, mapD.size);
+    PropertyAccessorElementImpl syntheticAccessor = ElementFactory.setterElement(accessorName, false, _typeProvider.dynamicType);
+    syntheticAccessor.returnType = _typeProvider.dynamicType;
+    JUnitTestCase.assertEquals(syntheticAccessor.type, mapD.get("${accessorName}=").type);
+    assertNoErrors(classD);
+  }
+
+  void test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_2_methods() {
+    // class I1 { int m(); }
+    // class I2 { int m([int]); }
+    // class A implements I1, I2 {}
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    String methodName = "m";
+    MethodElement methodM1 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    classI1.methods = <MethodElement> [methodM1];
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    MethodElementImpl methodM2 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    ParameterElementImpl parameter1 = new ParameterElementImpl.con1(ASTFactory.identifier3("a1"));
+    parameter1.type = _typeProvider.intType;
+    parameter1.parameterKind = ParameterKind.POSITIONAL;
+    methodM2.parameters = <ParameterElement> [parameter1];
+    classI2.methods = <MethodElement> [methodM2];
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    classA.interfaces = <InterfaceType> [classI1.type, classI2.type];
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject + 1, mapA.size);
+    JUnitTestCase.assertSame(methodM2, mapA.get(methodName));
+    assertNoErrors(classA);
+  }
+
+  void test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_3_methods() {
+    // class I1 { int m(); }
+    // class I2 { int m([int]); }
+    // class I3 { int m([int, int]); }
+    // class A implements I1, I2, I3 {}
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    String methodName = "m";
+    MethodElementImpl methodM1 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    classI1.methods = <MethodElement> [methodM1];
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    MethodElementImpl methodM2 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    ParameterElementImpl parameter1 = new ParameterElementImpl.con1(ASTFactory.identifier3("a1"));
+    parameter1.type = _typeProvider.intType;
+    parameter1.parameterKind = ParameterKind.POSITIONAL;
+    methodM1.parameters = <ParameterElement> [parameter1];
+    classI2.methods = <MethodElement> [methodM2];
+    ClassElementImpl classI3 = ElementFactory.classElement2("I3", []);
+    MethodElementImpl methodM3 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    ParameterElementImpl parameter2 = new ParameterElementImpl.con1(ASTFactory.identifier3("a2"));
+    parameter2.type = _typeProvider.intType;
+    parameter2.parameterKind = ParameterKind.POSITIONAL;
+    ParameterElementImpl parameter3 = new ParameterElementImpl.con1(ASTFactory.identifier3("a3"));
+    parameter3.type = _typeProvider.intType;
+    parameter3.parameterKind = ParameterKind.POSITIONAL;
+    methodM3.parameters = <ParameterElement> [parameter2, parameter3];
+    classI3.methods = <MethodElement> [methodM3];
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    classA.interfaces = <InterfaceType> [classI1.type, classI2.type, classI3.type];
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject + 1, mapA.size);
+    JUnitTestCase.assertSame(methodM3, mapA.get(methodName));
+    assertNoErrors(classA);
+  }
+
+  void test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_4_methods() {
+    // class I1 { int m(); }
+    // class I2 { int m(); }
+    // class I3 { int m([int]); }
+    // class I4 { int m([int, int]); }
+    // class A implements I1, I2, I3, I4 {}
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    String methodName = "m";
+    MethodElement methodM1 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    classI1.methods = <MethodElement> [methodM1];
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    MethodElement methodM2 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    classI2.methods = <MethodElement> [methodM2];
+    ClassElementImpl classI3 = ElementFactory.classElement2("I3", []);
+    MethodElementImpl methodM3 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    ParameterElementImpl parameter1 = new ParameterElementImpl.con1(ASTFactory.identifier3("a1"));
+    parameter1.type = _typeProvider.intType;
+    parameter1.parameterKind = ParameterKind.POSITIONAL;
+    methodM3.parameters = <ParameterElement> [parameter1];
+    classI3.methods = <MethodElement> [methodM3];
+    ClassElementImpl classI4 = ElementFactory.classElement2("I4", []);
+    MethodElementImpl methodM4 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    ParameterElementImpl parameter2 = new ParameterElementImpl.con1(ASTFactory.identifier3("a2"));
+    parameter2.type = _typeProvider.intType;
+    parameter2.parameterKind = ParameterKind.POSITIONAL;
+    ParameterElementImpl parameter3 = new ParameterElementImpl.con1(ASTFactory.identifier3("a3"));
+    parameter3.type = _typeProvider.intType;
+    parameter3.parameterKind = ParameterKind.POSITIONAL;
+    methodM4.parameters = <ParameterElement> [parameter2, parameter3];
+    classI4.methods = <MethodElement> [methodM4];
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    classA.interfaces = <InterfaceType> [classI1.type, classI2.type, classI3.type, classI4.type];
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject + 1, mapA.size);
+    JUnitTestCase.assertSame(methodM4, mapA.get(methodName));
+    assertNoErrors(classA);
   }
 
   void test_lookupInheritance_interface_getter() {
@@ -9610,56 +10270,6 @@ class InheritanceManagerTest extends EngineTestCase {
     JUnitTestCase.assertNull(_inheritanceManager.lookupInheritance(classA, "name"));
     assertNoErrors(classA);
     assertNoErrors(classB);
-  }
-
-  void test_lookupInheritance_interfaces_STWC_inconsistentMethodInheritance() {
-    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
-    String methodName = "m";
-    MethodElement methodM1 = ElementFactory.methodElement(methodName, null, [_typeProvider.intType]);
-    classI1.methods = <MethodElement> [methodM1];
-    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
-    MethodElement methodM2 = ElementFactory.methodElement(methodName, null, [_typeProvider.stringType]);
-    classI2.methods = <MethodElement> [methodM2];
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    classA.interfaces = <InterfaceType> [classI1.type, classI2.type];
-    JUnitTestCase.assertNull(_inheritanceManager.lookupInheritance(classA, methodName));
-    assertNoErrors(classI1);
-    assertNoErrors(classI2);
-    assertErrors(classA, [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
-  }
-
-  void test_lookupInheritance_interfaces_SWC_inconsistentMethodInheritance() {
-    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
-    String methodName = "m";
-    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
-    classI1.methods = <MethodElement> [methodM];
-    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
-    PropertyAccessorElement getter = ElementFactory.getterElement(methodName, false, _typeProvider.intType);
-    classI2.accessors = <PropertyAccessorElement> [getter];
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    classA.interfaces = <InterfaceType> [classI1.type, classI2.type];
-    JUnitTestCase.assertNull(_inheritanceManager.lookupInheritance(classA, methodName));
-    assertNoErrors(classI1);
-    assertNoErrors(classI2);
-    assertErrors(classA, [StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD]);
-  }
-
-  void test_lookupInheritance_interfaces_union1() {
-    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
-    String methodName1 = "m1";
-    MethodElement methodM1 = ElementFactory.methodElement(methodName1, _typeProvider.intType, []);
-    classI1.methods = <MethodElement> [methodM1];
-    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
-    String methodName2 = "m2";
-    MethodElement methodM2 = ElementFactory.methodElement(methodName2, _typeProvider.intType, []);
-    classI2.methods = <MethodElement> [methodM2];
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    classA.interfaces = <InterfaceType> [classI1.type, classI2.type];
-    JUnitTestCase.assertSame(methodM1, _inheritanceManager.lookupInheritance(classA, methodName1));
-    JUnitTestCase.assertSame(methodM2, _inheritanceManager.lookupInheritance(classA, methodName2));
-    assertNoErrors(classI1);
-    assertNoErrors(classI2);
-    assertNoErrors(classA);
   }
 
   void test_lookupInheritance_interfaces_union2() {
@@ -9881,7 +10491,7 @@ class InheritanceManagerTest extends EngineTestCase {
    */
   InheritanceManager createInheritanceManager() {
     AnalysisContextImpl context = AnalysisContextFactory.contextWithCore();
-    FileBasedSource source = new FileBasedSource.con1(new ContentCache(), FileUtilities2.createFile("/test.dart"));
+    FileBasedSource source = new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
     CompilationUnitElementImpl definingCompilationUnit = new CompilationUnitElementImpl("test.dart");
     definingCompilationUnit.source = source;
     _definingLibrary = ElementFactory.library(context, "test");
@@ -9902,6 +10512,10 @@ class InheritanceManagerTest extends EngineTestCase {
       _ut.test('test_getMapOfMembersInheritedFromClasses_accessor_with', () {
         final __test = new InheritanceManagerTest();
         runJUnitTest(__test, __test.test_getMapOfMembersInheritedFromClasses_accessor_with);
+      });
+      _ut.test('test_getMapOfMembersInheritedFromClasses_implicitExtends', () {
+        final __test = new InheritanceManagerTest();
+        runJUnitTest(__test, __test.test_getMapOfMembersInheritedFromClasses_implicitExtends);
       });
       _ut.test('test_getMapOfMembersInheritedFromClasses_method_extends', () {
         final __test = new InheritanceManagerTest();
@@ -9927,6 +10541,30 @@ class InheritanceManagerTest extends EngineTestCase {
         final __test = new InheritanceManagerTest();
         runJUnitTest(__test, __test.test_getMapOfMembersInheritedFromInterfaces_accessor_with);
       });
+      _ut.test('test_getMapOfMembersInheritedFromInterfaces_implicitExtends', () {
+        final __test = new InheritanceManagerTest();
+        runJUnitTest(__test, __test.test_getMapOfMembersInheritedFromInterfaces_implicitExtends);
+      });
+      _ut.test('test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_getter_method', () {
+        final __test = new InheritanceManagerTest();
+        runJUnitTest(__test, __test.test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_getter_method);
+      });
+      _ut.test('test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_int_str', () {
+        final __test = new InheritanceManagerTest();
+        runJUnitTest(__test, __test.test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_int_str);
+      });
+      _ut.test('test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_method_getter', () {
+        final __test = new InheritanceManagerTest();
+        runJUnitTest(__test, __test.test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_method_getter);
+      });
+      _ut.test('test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_numOfRequiredParams', () {
+        final __test = new InheritanceManagerTest();
+        runJUnitTest(__test, __test.test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_numOfRequiredParams);
+      });
+      _ut.test('test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_str_int', () {
+        final __test = new InheritanceManagerTest();
+        runJUnitTest(__test, __test.test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_str_int);
+      });
       _ut.test('test_getMapOfMembersInheritedFromInterfaces_method_extends', () {
         final __test = new InheritanceManagerTest();
         runJUnitTest(__test, __test.test_getMapOfMembersInheritedFromInterfaces_method_extends);
@@ -9938,6 +10576,46 @@ class InheritanceManagerTest extends EngineTestCase {
       _ut.test('test_getMapOfMembersInheritedFromInterfaces_method_with', () {
         final __test = new InheritanceManagerTest();
         runJUnitTest(__test, __test.test_getMapOfMembersInheritedFromInterfaces_method_with);
+      });
+      _ut.test('test_getMapOfMembersInheritedFromInterfaces_union_differentNames', () {
+        final __test = new InheritanceManagerTest();
+        runJUnitTest(__test, __test.test_getMapOfMembersInheritedFromInterfaces_union_differentNames);
+      });
+      _ut.test('test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_getters', () {
+        final __test = new InheritanceManagerTest();
+        runJUnitTest(__test, __test.test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_getters);
+      });
+      _ut.test('test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_methods', () {
+        final __test = new InheritanceManagerTest();
+        runJUnitTest(__test, __test.test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_methods);
+      });
+      _ut.test('test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_setters', () {
+        final __test = new InheritanceManagerTest();
+        runJUnitTest(__test, __test.test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_setters);
+      });
+      _ut.test('test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_getters', () {
+        final __test = new InheritanceManagerTest();
+        runJUnitTest(__test, __test.test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_getters);
+      });
+      _ut.test('test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_methods', () {
+        final __test = new InheritanceManagerTest();
+        runJUnitTest(__test, __test.test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_methods);
+      });
+      _ut.test('test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_setters', () {
+        final __test = new InheritanceManagerTest();
+        runJUnitTest(__test, __test.test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_setters);
+      });
+      _ut.test('test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_2_methods', () {
+        final __test = new InheritanceManagerTest();
+        runJUnitTest(__test, __test.test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_2_methods);
+      });
+      _ut.test('test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_3_methods', () {
+        final __test = new InheritanceManagerTest();
+        runJUnitTest(__test, __test.test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_3_methods);
+      });
+      _ut.test('test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_4_methods', () {
+        final __test = new InheritanceManagerTest();
+        runJUnitTest(__test, __test.test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_4_methods);
       });
       _ut.test('test_lookupInheritance_interface_getter', () {
         final __test = new InheritanceManagerTest();
@@ -9955,14 +10633,6 @@ class InheritanceManagerTest extends EngineTestCase {
         final __test = new InheritanceManagerTest();
         runJUnitTest(__test, __test.test_lookupInheritance_interface_staticMember);
       });
-      _ut.test('test_lookupInheritance_interfaces_STWC_inconsistentMethodInheritance', () {
-        final __test = new InheritanceManagerTest();
-        runJUnitTest(__test, __test.test_lookupInheritance_interfaces_STWC_inconsistentMethodInheritance);
-      });
-      _ut.test('test_lookupInheritance_interfaces_SWC_inconsistentMethodInheritance', () {
-        final __test = new InheritanceManagerTest();
-        runJUnitTest(__test, __test.test_lookupInheritance_interfaces_SWC_inconsistentMethodInheritance);
-      });
       _ut.test('test_lookupInheritance_interfaces_infiniteLoop', () {
         final __test = new InheritanceManagerTest();
         runJUnitTest(__test, __test.test_lookupInheritance_interfaces_infiniteLoop);
@@ -9970,10 +10640,6 @@ class InheritanceManagerTest extends EngineTestCase {
       _ut.test('test_lookupInheritance_interfaces_infiniteLoop2', () {
         final __test = new InheritanceManagerTest();
         runJUnitTest(__test, __test.test_lookupInheritance_interfaces_infiniteLoop2);
-      });
-      _ut.test('test_lookupInheritance_interfaces_union1', () {
-        final __test = new InheritanceManagerTest();
-        runJUnitTest(__test, __test.test_lookupInheritance_interfaces_union1);
       });
       _ut.test('test_lookupInheritance_interfaces_union2', () {
         final __test = new InheritanceManagerTest();
@@ -15441,10 +16107,9 @@ class ElementResolverTest extends EngineTestCase {
    */
   ElementResolver createResolver() {
     AnalysisContextImpl context = new AnalysisContextImpl();
-    ContentCache contentCache = new ContentCache();
-    SourceFactory sourceFactory = new SourceFactory.con1(contentCache, [new DartUriResolver(DirectoryBasedDartSdk.defaultSdk)]);
+    SourceFactory sourceFactory = new SourceFactory([new DartUriResolver(DirectoryBasedDartSdk.defaultSdk)]);
     context.sourceFactory = sourceFactory;
-    FileBasedSource source = new FileBasedSource.con1(contentCache, FileUtilities2.createFile("/test.dart"));
+    FileBasedSource source = new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
     CompilationUnitElementImpl definingCompilationUnit = new CompilationUnitElementImpl("test.dart");
     definingCompilationUnit.source = source;
     _definingLibrary = ElementFactory.library(context, "test");
@@ -17078,6 +17743,24 @@ class StaticWarningCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_invalidGetterOverrideReturnType_twoInterfaces() {
+    // test from language/override_inheritance_field_test_11.dart
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class I {",
+        "  int get getter => null;",
+        "}",
+        "abstract class J {",
+        "  num get getter => null;",
+        "}",
+        "abstract class A implements I, J {}",
+        "class B extends A {",
+        "  String get getter => null;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE]);
+    verify([source]);
+  }
+
   void test_invalidMethodOverrideNamedParamType() {
     Source source = addSource(EngineTestCase.createSource([
         "class A {",
@@ -17104,6 +17787,23 @@ class StaticWarningCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_invalidMethodOverrideNormalParamType_twoInterfaces() {
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class I {",
+        "  m(int n);",
+        "}",
+        "abstract class J {",
+        "  m(num n);",
+        "}",
+        "abstract class A implements I, J {}",
+        "class B extends A {",
+        "  m(String n) {}",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
+    verify([source]);
+  }
+
   void test_invalidMethodOverrideOptionalParamType() {
     Source source = addSource(EngineTestCase.createSource([
         "class A {",
@@ -17111,6 +17811,23 @@ class StaticWarningCodeTest extends ResolverTestCase {
         "}",
         "class B implements A {",
         "  m([String a]) {}",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE]);
+    verify([source]);
+  }
+
+  void test_invalidMethodOverrideOptionalParamType_twoInterfaces() {
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class I {",
+        "  m([int n]);",
+        "}",
+        "abstract class J {",
+        "  m([num n]);",
+        "}",
+        "abstract class A implements I, J {}",
+        "class B extends A {",
+        "  m([String n]) {}",
         "}"]));
     resolve(source);
     assertErrors(source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE]);
@@ -17130,7 +17847,7 @@ class StaticWarningCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
-  void test_invalidMethodOverrideReturnType_interface2() {
+  void test_invalidMethodOverrideReturnType_interface_grandparent() {
     Source source = addSource(EngineTestCase.createSource([
         "abstract class A {",
         "  int m();",
@@ -17171,7 +17888,7 @@ class StaticWarningCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
-  void test_invalidMethodOverrideReturnType_superclass2() {
+  void test_invalidMethodOverrideReturnType_superclass_grandparent() {
     Source source = addSource(EngineTestCase.createSource([
         "class A {",
         "  int m() { return 0; }",
@@ -17180,6 +17897,23 @@ class StaticWarningCodeTest extends ResolverTestCase {
         "}",
         "class C extends B {",
         "  String m() { return 'a'; }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
+    verify([source]);
+  }
+
+  void test_invalidMethodOverrideReturnType_twoInterfaces() {
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class I {",
+        "  int m();",
+        "}",
+        "abstract class J {",
+        "  num m();",
+        "}",
+        "abstract class A implements I, J {}",
+        "class B extends A {",
+        "  String m() => '';",
         "}"]));
     resolve(source);
     assertErrors(source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
@@ -17316,6 +18050,24 @@ class StaticWarningCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_invalidSetterOverrideNormalParamType_twoInterfaces() {
+    // test from language/override_inheritance_field_test_34.dart
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class I {",
+        "  set setter14(int _) => null;",
+        "}",
+        "abstract class J {",
+        "  set setter14(num _) => null;",
+        "}",
+        "abstract class A implements I, J {}",
+        "class B extends A {",
+        "  set setter14(String _) => null;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]);
+    verify([source]);
+  }
+
   void test_listElementTypeNotAssignable() {
     Source source = addSource(EngineTestCase.createSource(["var v = <String> [42];"]));
     resolve(source);
@@ -17394,7 +18146,9 @@ class StaticWarningCodeTest extends ResolverTestCase {
         "  }",
         "}"]));
     resolve(source);
-    assertErrors(source, [StaticWarningCode.MIXED_RETURN_TYPES]);
+    assertErrors(source, [
+        StaticWarningCode.MIXED_RETURN_TYPES,
+        StaticWarningCode.MIXED_RETURN_TYPES]);
     verify([source]);
   }
 
@@ -17409,7 +18163,9 @@ class StaticWarningCodeTest extends ResolverTestCase {
         "  }",
         "}"]));
     resolve(source);
-    assertErrors(source, [StaticWarningCode.MIXED_RETURN_TYPES]);
+    assertErrors(source, [
+        StaticWarningCode.MIXED_RETURN_TYPES,
+        StaticWarningCode.MIXED_RETURN_TYPES]);
     verify([source]);
   }
 
@@ -17422,7 +18178,9 @@ class StaticWarningCodeTest extends ResolverTestCase {
         "  return 0;",
         "}"]));
     resolve(source);
-    assertErrors(source, [StaticWarningCode.MIXED_RETURN_TYPES]);
+    assertErrors(source, [
+        StaticWarningCode.MIXED_RETURN_TYPES,
+        StaticWarningCode.MIXED_RETURN_TYPES]);
     verify([source]);
   }
 
@@ -17646,6 +18404,23 @@ class StaticWarningCodeTest extends ResolverTestCase {
         "  int x(int a, [int b]);",
         "}",
         "class C implements A, B {",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
+    verify([source]);
+  }
+
+  void test_nonAbstractClassInheritsAbstractMemberOne_setter_and_implicitSetter() {
+    // test from language/override_inheritance_abstract_test_14.dart
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class A {",
+        "  set field(_);",
+        "}",
+        "abstract class I {",
+        "  var field;",
+        "}",
+        "class B extends A implements I {",
+        "  get field => 0;",
         "}"]));
     resolve(source);
     assertErrors(source, [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
@@ -18542,6 +19317,10 @@ class StaticWarningCodeTest extends ResolverTestCase {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_invalidGetterOverrideReturnType_implicit);
       });
+      _ut.test('test_invalidGetterOverrideReturnType_twoInterfaces', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_invalidGetterOverrideReturnType_twoInterfaces);
+      });
       _ut.test('test_invalidMethodOverrideNamedParamType', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_invalidMethodOverrideNamedParamType);
@@ -18550,17 +19329,25 @@ class StaticWarningCodeTest extends ResolverTestCase {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_invalidMethodOverrideNormalParamType);
       });
+      _ut.test('test_invalidMethodOverrideNormalParamType_twoInterfaces', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_invalidMethodOverrideNormalParamType_twoInterfaces);
+      });
       _ut.test('test_invalidMethodOverrideOptionalParamType', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_invalidMethodOverrideOptionalParamType);
+      });
+      _ut.test('test_invalidMethodOverrideOptionalParamType_twoInterfaces', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_invalidMethodOverrideOptionalParamType_twoInterfaces);
       });
       _ut.test('test_invalidMethodOverrideReturnType_interface', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_invalidMethodOverrideReturnType_interface);
       });
-      _ut.test('test_invalidMethodOverrideReturnType_interface2', () {
+      _ut.test('test_invalidMethodOverrideReturnType_interface_grandparent', () {
         final __test = new StaticWarningCodeTest();
-        runJUnitTest(__test, __test.test_invalidMethodOverrideReturnType_interface2);
+        runJUnitTest(__test, __test.test_invalidMethodOverrideReturnType_interface_grandparent);
       });
       _ut.test('test_invalidMethodOverrideReturnType_mixin', () {
         final __test = new StaticWarningCodeTest();
@@ -18570,9 +19357,13 @@ class StaticWarningCodeTest extends ResolverTestCase {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_invalidMethodOverrideReturnType_superclass);
       });
-      _ut.test('test_invalidMethodOverrideReturnType_superclass2', () {
+      _ut.test('test_invalidMethodOverrideReturnType_superclass_grandparent', () {
         final __test = new StaticWarningCodeTest();
-        runJUnitTest(__test, __test.test_invalidMethodOverrideReturnType_superclass2);
+        runJUnitTest(__test, __test.test_invalidMethodOverrideReturnType_superclass_grandparent);
+      });
+      _ut.test('test_invalidMethodOverrideReturnType_twoInterfaces', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_invalidMethodOverrideReturnType_twoInterfaces);
       });
       _ut.test('test_invalidMethodOverrideReturnType_void', () {
         final __test = new StaticWarningCodeTest();
@@ -18613,6 +19404,10 @@ class StaticWarningCodeTest extends ResolverTestCase {
       _ut.test('test_invalidSetterOverrideNormalParamType', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_invalidSetterOverrideNormalParamType);
+      });
+      _ut.test('test_invalidSetterOverrideNormalParamType_twoInterfaces', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_invalidSetterOverrideNormalParamType_twoInterfaces);
       });
       _ut.test('test_listElementTypeNotAssignable', () {
         final __test = new StaticWarningCodeTest();
@@ -18725,6 +19520,10 @@ class StaticWarningCodeTest extends ResolverTestCase {
       _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_method_optionalParamCount', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_method_optionalParamCount);
+      });
+      _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_setter_and_implicitSetter', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_setter_and_implicitSetter);
       });
       _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_setter_fromInterface', () {
         final __test = new StaticWarningCodeTest();
@@ -18952,29 +19751,18 @@ class StaticWarningCodeTest extends ResolverTestCase {
 class AnalysisContextHelper {
   AnalysisContext context;
 
-  SourceFactory _sourceFactory;
-
-  ContentCache _cache;
-
   /**
    * Creates new [AnalysisContext] using [AnalysisContextFactory#contextWithCore].
    */
   AnalysisContextHelper() {
     context = AnalysisContextFactory.contextWithCore();
-    _sourceFactory = context.sourceFactory;
-    _cache = _sourceFactory.contentCache;
   }
 
   Source addSource(String path, String code) {
-    Source source = new FileBasedSource.con1(_cache, FileUtilities2.createFile(path));
-    // add source
-    {
-      _sourceFactory.setContents(source, "");
-      ChangeSet changeSet = new ChangeSet();
-      changeSet.added(source);
-      context.applyChanges(changeSet);
-    }
-    // update source
+    Source source = new FileBasedSource.con1(FileUtilities2.createFile(path));
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.added(source);
+    context.applyChanges(changeSet);
     context.setContents(source, code);
     return source;
   }
@@ -19229,7 +20017,12 @@ class TestTypeProvider implements TypeProvider {
     if (_mapType == null) {
       ClassElementImpl mapElement = ElementFactory.classElement2("Map", ["K", "V"]);
       _mapType = mapElement.type;
+      Type2 kType = mapElement.typeParameters[0].type;
+      Type2 vType = mapElement.typeParameters[1].type;
       mapElement.accessors = <PropertyAccessorElement> [ElementFactory.getterElement("length", false, intType)];
+      mapElement.methods = <MethodElement> [
+          ElementFactory.methodElement("[]", vType, [objectType]),
+          ElementFactory.methodElement("[]=", VoidTypeImpl.instance, [kType, vType])];
       propagateTypeArguments(mapElement);
     }
     return _mapType;
@@ -19505,7 +20298,7 @@ class AnalysisContextFactory {
     elementMap[coreSource] = coreLibrary;
     elementMap[htmlSource] = htmlLibrary;
     (sdkContext as AnalysisContextImpl).recordLibraryElements(elementMap);
-    sourceFactory = new SourceFactory.con2([
+    sourceFactory = new SourceFactory([
         new DartUriResolver(sdkContext.sourceFactory.dartSdk),
         new FileUriResolver()]);
     context.sourceFactory = sourceFactory;
@@ -19516,6 +20309,7 @@ class AnalysisContextFactory {
 class LibraryImportScopeTest extends ResolverTestCase {
   void test_conflictingImports() {
     AnalysisContext context = new AnalysisContextImpl();
+    context.sourceFactory = new SourceFactory([]);
     String typeNameA = "A";
     String typeNameB = "B";
     String typeNameC = "C";
@@ -19570,6 +20364,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
 
   void test_creation_nonEmpty() {
     AnalysisContext context = new AnalysisContextImpl();
+    context.sourceFactory = new SourceFactory([]);
     String importedTypeName = "A";
     ClassElement importedType = new ClassElementImpl(ASTFactory.identifier3(importedTypeName));
     LibraryElement importedLibrary = createTestLibrary2(context, "imported", []);
@@ -19608,6 +20403,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
 
   void test_nonConflictingImports_sameElement() {
     AnalysisContext context = new AnalysisContextImpl();
+    context.sourceFactory = new SourceFactory([]);
     String typeNameA = "A";
     String typeNameB = "B";
     ClassElement typeA = ElementFactory.classElement2(typeNameA, []);
@@ -19628,6 +20424,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
 
   void test_prefixedAndNonPrefixed() {
     AnalysisContext context = new AnalysisContextImpl();
+    context.sourceFactory = new SourceFactory([]);
     String typeName = "C";
     String prefixName = "p";
     ClassElement prefixedType = ElementFactory.classElement2(typeName, []);
@@ -20031,6 +20828,7 @@ class LibraryScopeTest extends ResolverTestCase {
 
   void test_creation_nonEmpty() {
     AnalysisContext context = new AnalysisContextImpl();
+    context.sourceFactory = new SourceFactory([]);
     String importedTypeName = "A";
     ClassElement importedType = new ClassElementImpl(ASTFactory.identifier3(importedTypeName));
     LibraryElement importedLibrary = createTestLibrary2(context, "imported", []);
@@ -20132,7 +20930,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     InterfaceType superclassType = superclass.type;
     ClassElement subclass = ElementFactory.classElement("B", superclassType, []);
     Expression node = ASTFactory.asExpression(ASTFactory.thisExpression(), ASTFactory.typeName(subclass, []));
-    JUnitTestCase.assertSame(subclass.type, analyze2(node, superclassType));
+    JUnitTestCase.assertSame(subclass.type, analyze3(node, superclassType));
     _listener.assertNoErrors();
   }
 
@@ -20280,8 +21078,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     FormalParameter p2 = ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("p2"), resolvedInteger(0));
     setType(p2, dynamicType);
     FunctionExpression node = resolvedFunctionExpression(ASTFactory.formalParameterList([p1, p2]), ASTFactory.blockFunctionBody2([]));
-    analyze3(p1);
-    analyze3(p2);
+    analyze5(p1);
+    analyze5(p2);
     Type2 resultType = analyze(node);
     Map<String, Type2> expectedNamedTypes = new Map<String, Type2>();
     expectedNamedTypes["p1"] = dynamicType;
@@ -20296,7 +21094,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     FormalParameter p = ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("p"), resolvedInteger(0));
     setType(p, dynamicType);
     FunctionExpression node = resolvedFunctionExpression(ASTFactory.formalParameterList([p]), ASTFactory.expressionFunctionBody(resolvedInteger(0)));
-    analyze3(p);
+    analyze5(p);
     Type2 resultType = analyze(node);
     Map<String, Type2> expectedNamedTypes = new Map<String, Type2>();
     expectedNamedTypes["p"] = dynamicType;
@@ -20312,8 +21110,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     FormalParameter p2 = ASTFactory.simpleFormalParameter3("p2");
     setType(p2, dynamicType);
     FunctionExpression node = resolvedFunctionExpression(ASTFactory.formalParameterList([p1, p2]), ASTFactory.blockFunctionBody2([]));
-    analyze3(p1);
-    analyze3(p2);
+    analyze5(p1);
+    analyze5(p2);
     Type2 resultType = analyze(node);
     assertFunctionType(dynamicType, <Type2> [dynamicType, dynamicType], null, null, resultType);
     _listener.assertNoErrors();
@@ -20325,7 +21123,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     FormalParameter p = ASTFactory.simpleFormalParameter3("p");
     setType(p, dynamicType);
     FunctionExpression node = resolvedFunctionExpression(ASTFactory.formalParameterList([p]), ASTFactory.expressionFunctionBody(resolvedInteger(0)));
-    analyze3(p);
+    analyze5(p);
     Type2 resultType = analyze(node);
     assertFunctionType(_typeProvider.intType, <Type2> [dynamicType], null, null, resultType);
     _listener.assertNoErrors();
@@ -20339,7 +21137,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     FormalParameter p2 = ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("p2"), resolvedInteger(0));
     setType(p2, dynamicType);
     FunctionExpression node = resolvedFunctionExpression(ASTFactory.formalParameterList([p1, p2]), ASTFactory.blockFunctionBody2([]));
-    analyze3(p2);
+    analyze5(p2);
     Type2 resultType = analyze(node);
     Map<String, Type2> expectedNamedTypes = new Map<String, Type2>();
     expectedNamedTypes["p2"] = dynamicType;
@@ -20355,7 +21153,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     FormalParameter p2 = ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("p2"), resolvedInteger(0));
     setType(p2, dynamicType);
     FunctionExpression node = resolvedFunctionExpression(ASTFactory.formalParameterList([p1, p2]), ASTFactory.expressionFunctionBody(resolvedInteger(0)));
-    analyze3(p2);
+    analyze5(p2);
     Type2 resultType = analyze(node);
     Map<String, Type2> expectedNamedTypes = new Map<String, Type2>();
     expectedNamedTypes["p2"] = dynamicType;
@@ -20371,8 +21169,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     FormalParameter p2 = ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("p2"), resolvedInteger(0));
     setType(p2, dynamicType);
     FunctionExpression node = resolvedFunctionExpression(ASTFactory.formalParameterList([p1, p2]), ASTFactory.blockFunctionBody2([]));
-    analyze3(p1);
-    analyze3(p2);
+    analyze5(p1);
+    analyze5(p2);
     Type2 resultType = analyze(node);
     assertFunctionType(dynamicType, <Type2> [dynamicType], <Type2> [dynamicType], null, resultType);
     _listener.assertNoErrors();
@@ -20386,8 +21184,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     FormalParameter p2 = ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("p2"), resolvedInteger(0));
     setType(p2, dynamicType);
     FunctionExpression node = resolvedFunctionExpression(ASTFactory.formalParameterList([p1, p2]), ASTFactory.expressionFunctionBody(resolvedInteger(0)));
-    analyze3(p1);
-    analyze3(p2);
+    analyze5(p1);
+    analyze5(p2);
     Type2 resultType = analyze(node);
     assertFunctionType(_typeProvider.intType, <Type2> [dynamicType], <Type2> [dynamicType], null, resultType);
     _listener.assertNoErrors();
@@ -20401,8 +21199,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     FormalParameter p2 = ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("p2"), resolvedInteger(0));
     setType(p2, dynamicType);
     FunctionExpression node = resolvedFunctionExpression(ASTFactory.formalParameterList([p1, p2]), ASTFactory.blockFunctionBody2([]));
-    analyze3(p1);
-    analyze3(p2);
+    analyze5(p1);
+    analyze5(p2);
     Type2 resultType = analyze(node);
     assertFunctionType(dynamicType, null, <Type2> [dynamicType, dynamicType], null, resultType);
     _listener.assertNoErrors();
@@ -20414,7 +21212,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     FormalParameter p = ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("p"), resolvedInteger(0));
     setType(p, dynamicType);
     FunctionExpression node = resolvedFunctionExpression(ASTFactory.formalParameterList([p]), ASTFactory.expressionFunctionBody(resolvedInteger(0)));
-    analyze3(p);
+    analyze5(p);
     Type2 resultType = analyze(node);
     assertFunctionType(_typeProvider.intType, null, <Type2> [dynamicType], null, resultType);
     _listener.assertNoErrors();
@@ -20709,7 +21507,26 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
-  void test_visitPropertyAccess_getter() {
+  void test_visitPropertyAccess_propagated_getter() {
+    Type2 boolType = _typeProvider.boolType;
+    PropertyAccessorElementImpl getter = ElementFactory.getterElement("b", false, boolType);
+    PropertyAccess node = ASTFactory.propertyAccess2(ASTFactory.identifier3("a"), "b");
+    node.propertyName.propagatedElement = getter;
+    JUnitTestCase.assertSame(boolType, analyze2(node, false));
+    _listener.assertNoErrors();
+  }
+
+  void test_visitPropertyAccess_propagated_setter() {
+    Type2 boolType = _typeProvider.boolType;
+    FieldElementImpl field = ElementFactory.fieldElement("b", false, false, false, boolType);
+    PropertyAccessorElement setter = field.setter;
+    PropertyAccess node = ASTFactory.propertyAccess2(ASTFactory.identifier3("a"), "b");
+    node.propertyName.propagatedElement = setter;
+    JUnitTestCase.assertSame(boolType, analyze2(node, false));
+    _listener.assertNoErrors();
+  }
+
+  void test_visitPropertyAccess_static_getter() {
     Type2 boolType = _typeProvider.boolType;
     PropertyAccessorElementImpl getter = ElementFactory.getterElement("b", false, boolType);
     PropertyAccess node = ASTFactory.propertyAccess2(ASTFactory.identifier3("a"), "b");
@@ -20718,7 +21535,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
-  void test_visitPropertyAccess_setter() {
+  void test_visitPropertyAccess_static_setter() {
     Type2 boolType = _typeProvider.boolType;
     FieldElementImpl field = ElementFactory.fieldElement("b", false, false, false, boolType);
     PropertyAccessorElement setter = field.setter;
@@ -20750,7 +21567,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     InterfaceType superType = ElementFactory.classElement2("A", []).type;
     InterfaceType thisType = ElementFactory.classElement("B", superType, []).type;
     Expression node = ASTFactory.superExpression();
-    JUnitTestCase.assertSame(thisType, analyze2(node, thisType));
+    JUnitTestCase.assertSame(thisType, analyze3(node, thisType));
     _listener.assertNoErrors();
   }
 
@@ -20762,7 +21579,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // this
     InterfaceType thisType = ElementFactory.classElement("B", ElementFactory.classElement2("A", []).type, []).type;
     Expression node = ASTFactory.thisExpression();
-    JUnitTestCase.assertSame(thisType, analyze2(node, thisType));
+    JUnitTestCase.assertSame(thisType, analyze3(node, thisType));
     _listener.assertNoErrors();
   }
 
@@ -20787,7 +21604,18 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
    * @param node the expression with which the type is associated
    * @return the type associated with the expression
    */
-  Type2 analyze(Expression node) => analyze2(node, null);
+  Type2 analyze(Expression node) => analyze4(node, null, true);
+
+  /**
+   * Return the type associated with the given expression after the static or propagated type
+   * analyzer has computed a type for it.
+   *
+   * @param node the expression with which the type is associated
+   * @param useStaticType `true` if the static type is being requested, and `false` if
+   *          the propagated type is being requested
+   * @return the type associated with the expression
+   */
+  Type2 analyze2(Expression node, bool useStaticType) => analyze4(node, null, useStaticType);
 
   /**
    * Return the type associated with the given expression after the static type analyzer has
@@ -20797,14 +21625,30 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
    * @param thisType the type of 'this'
    * @return the type associated with the expression
    */
-  Type2 analyze2(Expression node, InterfaceType thisType) {
+  Type2 analyze3(Expression node, InterfaceType thisType) => analyze4(node, thisType, true);
+
+  /**
+   * Return the type associated with the given expression after the static type analyzer has
+   * computed a type for it.
+   *
+   * @param node the expression with which the type is associated
+   * @param thisType the type of 'this'
+   * @param useStaticType `true` if the static type is being requested, and `false` if
+   *          the propagated type is being requested
+   * @return the type associated with the expression
+   */
+  Type2 analyze4(Expression node, InterfaceType thisType, bool useStaticType) {
     try {
       _analyzer.thisType_J2DAccessor = thisType;
     } on JavaException catch (exception) {
       throw new IllegalArgumentException("Could not set type of 'this'", exception);
     }
     node.accept(_analyzer);
-    return node.staticType;
+    if (useStaticType) {
+      return node.staticType;
+    } else {
+      return node.propagatedType;
+    }
   }
 
   /**
@@ -20814,7 +21658,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
    * @param node the parameter with which the type is associated
    * @return the type associated with the parameter
    */
-  Type2 analyze3(FormalParameter node) {
+  Type2 analyze5(FormalParameter node) {
     node.accept(_analyzer);
     return (node.identifier.staticElement as ParameterElement).type;
   }
@@ -20889,9 +21733,9 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
    */
   StaticTypeAnalyzer createAnalyzer() {
     AnalysisContextImpl context = new AnalysisContextImpl();
-    SourceFactory sourceFactory = new SourceFactory.con2([new DartUriResolver(DirectoryBasedDartSdk.defaultSdk)]);
+    SourceFactory sourceFactory = new SourceFactory([new DartUriResolver(DirectoryBasedDartSdk.defaultSdk)]);
     context.sourceFactory = sourceFactory;
-    FileBasedSource source = new FileBasedSource.con1(sourceFactory.contentCache, FileUtilities2.createFile("/lib.dart"));
+    FileBasedSource source = new FileBasedSource.con1(FileUtilities2.createFile("/lib.dart"));
     CompilationUnitElementImpl definingCompilationUnit = new CompilationUnitElementImpl("lib.dart");
     definingCompilationUnit.source = source;
     LibraryElementImpl definingLibrary = new LibraryElementImpl(context, null);
@@ -21240,13 +22084,21 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
         final __test = new StaticTypeAnalyzerTest();
         runJUnitTest(__test, __test.test_visitPrefixedIdentifier_variable);
       });
-      _ut.test('test_visitPropertyAccess_getter', () {
+      _ut.test('test_visitPropertyAccess_propagated_getter', () {
         final __test = new StaticTypeAnalyzerTest();
-        runJUnitTest(__test, __test.test_visitPropertyAccess_getter);
+        runJUnitTest(__test, __test.test_visitPropertyAccess_propagated_getter);
       });
-      _ut.test('test_visitPropertyAccess_setter', () {
+      _ut.test('test_visitPropertyAccess_propagated_setter', () {
         final __test = new StaticTypeAnalyzerTest();
-        runJUnitTest(__test, __test.test_visitPropertyAccess_setter);
+        runJUnitTest(__test, __test.test_visitPropertyAccess_propagated_setter);
+      });
+      _ut.test('test_visitPropertyAccess_static_getter', () {
+        final __test = new StaticTypeAnalyzerTest();
+        runJUnitTest(__test, __test.test_visitPropertyAccess_static_getter);
+      });
+      _ut.test('test_visitPropertyAccess_static_setter', () {
+        final __test = new StaticTypeAnalyzerTest();
+        runJUnitTest(__test, __test.test_visitPropertyAccess_static_setter);
       });
       _ut.test('test_visitSimpleStringLiteral', () {
         final __test = new StaticTypeAnalyzerTest();
@@ -21529,6 +22381,102 @@ class NonHintCodeTest extends ResolverTestCase {
         "class A {",
         "  bool operator ==(x) { return x; }",
         "  get hashCode => 0;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_overrideOnNonOverridingGetter_inInterface() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "  int get m => 0;",
+        "}",
+        "class B implements A {",
+        "  @override",
+        "  int get m => 1;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_overrideOnNonOverridingGetter_inSuperclass() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "  int get m => 0;",
+        "}",
+        "class B extends A {",
+        "  @override",
+        "  int get m => 1;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_overrideOnNonOverridingMethod_inInterface() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "  int m() => 0;",
+        "}",
+        "class B implements A {",
+        "  @override",
+        "  int m() => 1;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_overrideOnNonOverridingMethod_inSuperclass() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "  int m() => 0;",
+        "}",
+        "class B extends A {",
+        "  @override",
+        "  int m() => 1;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_overrideOnNonOverridingSetter_inInterface() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "  set m(int x) {}",
+        "}",
+        "class B implements A {",
+        "  @override",
+        "  set m(int x) {}",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_overrideOnNonOverridingSetter_inSuperclass() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "  set m(int x) {}",
+        "}",
+        "class B extends A {",
+        "  @override",
+        "  set m(int x) {}",
         "}"]));
     resolve(source);
     assertNoErrors(source);
@@ -21948,6 +22896,30 @@ class NonHintCodeTest extends ResolverTestCase {
         final __test = new NonHintCodeTest();
         runJUnitTest(__test, __test.test_overrideEqualsButNotHashCode);
       });
+      _ut.test('test_overrideOnNonOverridingGetter_inInterface', () {
+        final __test = new NonHintCodeTest();
+        runJUnitTest(__test, __test.test_overrideOnNonOverridingGetter_inInterface);
+      });
+      _ut.test('test_overrideOnNonOverridingGetter_inSuperclass', () {
+        final __test = new NonHintCodeTest();
+        runJUnitTest(__test, __test.test_overrideOnNonOverridingGetter_inSuperclass);
+      });
+      _ut.test('test_overrideOnNonOverridingMethod_inInterface', () {
+        final __test = new NonHintCodeTest();
+        runJUnitTest(__test, __test.test_overrideOnNonOverridingMethod_inInterface);
+      });
+      _ut.test('test_overrideOnNonOverridingMethod_inSuperclass', () {
+        final __test = new NonHintCodeTest();
+        runJUnitTest(__test, __test.test_overrideOnNonOverridingMethod_inSuperclass);
+      });
+      _ut.test('test_overrideOnNonOverridingSetter_inInterface', () {
+        final __test = new NonHintCodeTest();
+        runJUnitTest(__test, __test.test_overrideOnNonOverridingSetter_inInterface);
+      });
+      _ut.test('test_overrideOnNonOverridingSetter_inSuperclass', () {
+        final __test = new NonHintCodeTest();
+        runJUnitTest(__test, __test.test_overrideOnNonOverridingSetter_inSuperclass);
+      });
       _ut.test('test_proxy_annotation_prefixed', () {
         final __test = new NonHintCodeTest();
         runJUnitTest(__test, __test.test_proxy_annotation_prefixed);
@@ -22108,12 +23080,16 @@ class Scope_EnclosedScopeTest_test_define_normal extends Scope {
 
 class LibraryElementBuilderTest extends EngineTestCase {
   /**
-   * The source factory used to create [Source].
+   * The analysis context used to analyze sources.
    */
-  SourceFactory _sourceFactory;
+  AnalysisContextImpl _context;
 
   void setUp() {
-    _sourceFactory = new SourceFactory.con2([new FileUriResolver()]);
+    SourceFactory sourceFactory = new SourceFactory([
+        new DartUriResolver(DirectoryBasedDartSdk.defaultSdk),
+        new FileUriResolver()]);
+    _context = new AnalysisContextImpl();
+    _context.sourceFactory = sourceFactory;
   }
 
   void test_accessorsAcrossFiles() {
@@ -22214,8 +23190,8 @@ class LibraryElementBuilderTest extends EngineTestCase {
    * @return the source object representing the added file
    */
   Source addSource(String filePath, String contents) {
-    Source source = new FileBasedSource.con1(_sourceFactory.contentCache, FileUtilities2.createFile(filePath));
-    _sourceFactory.setContents(source, contents);
+    Source source = new FileBasedSource.con1(FileUtilities2.createFile(filePath));
+    _context.setContents(source, contents);
     return source;
   }
 
@@ -22254,11 +23230,7 @@ class LibraryElementBuilderTest extends EngineTestCase {
    * @throws Exception if the element model could not be built
    */
   LibraryElement buildLibrary(Source librarySource, List<ErrorCode> expectedErrorCodes) {
-    AnalysisContextImpl context = new AnalysisContextImpl();
-    context.sourceFactory = new SourceFactory.con2([
-        new DartUriResolver(DirectoryBasedDartSdk.defaultSdk),
-        new FileUriResolver()]);
-    LibraryResolver resolver = new LibraryResolver(context);
+    LibraryResolver resolver = new LibraryResolver(_context);
     LibraryElementBuilder builder = new LibraryElementBuilder(resolver);
     Library library = resolver.createLibrary(librarySource);
     LibraryElement element = builder.buildLibrary(library);
@@ -22552,6 +23524,38 @@ class SimpleResolverTest extends ResolverTestCase {
   void test_empty() {
     Source source = addSource("");
     resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_entryPoint_exported() {
+    addSource2("/two.dart", EngineTestCase.createSource(["library two;", "main() {}"]));
+    Source source = addSource2("/one.dart", EngineTestCase.createSource(["library one;", "export 'two.dart';"]));
+    LibraryElement library = resolve(source);
+    JUnitTestCase.assertNotNull(library);
+    FunctionElement main = library.entryPoint;
+    JUnitTestCase.assertNotNull(main);
+    JUnitTestCase.assertNotSame(library, main.library);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_entryPoint_local() {
+    Source source = addSource2("/one.dart", EngineTestCase.createSource(["library one;", "main() {}"]));
+    LibraryElement library = resolve(source);
+    JUnitTestCase.assertNotNull(library);
+    FunctionElement main = library.entryPoint;
+    JUnitTestCase.assertNotNull(main);
+    JUnitTestCase.assertSame(library, main.library);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_entryPoint_none() {
+    Source source = addSource2("/one.dart", EngineTestCase.createSource(["library one;"]));
+    LibraryElement library = resolve(source);
+    JUnitTestCase.assertNotNull(library);
+    JUnitTestCase.assertNull(library.entryPoint);
     assertNoErrors(source);
     verify([source]);
   }
@@ -23203,6 +24207,18 @@ class SimpleResolverTest extends ResolverTestCase {
         final __test = new SimpleResolverTest();
         runJUnitTest(__test, __test.test_empty);
       });
+      _ut.test('test_entryPoint_exported', () {
+        final __test = new SimpleResolverTest();
+        runJUnitTest(__test, __test.test_entryPoint_exported);
+      });
+      _ut.test('test_entryPoint_local', () {
+        final __test = new SimpleResolverTest();
+        runJUnitTest(__test, __test.test_entryPoint_local);
+      });
+      _ut.test('test_entryPoint_none', () {
+        final __test = new SimpleResolverTest();
+        runJUnitTest(__test, __test.test_entryPoint_none);
+      });
       _ut.test('test_extractedMethodAsConstant', () {
         final __test = new SimpleResolverTest();
         runJUnitTest(__test, __test.test_extractedMethodAsConstant);
@@ -23459,7 +24475,7 @@ class SubtypeManagerTest extends EngineTestCase {
   void setUp() {
     super.setUp();
     AnalysisContextImpl context = AnalysisContextFactory.contextWithCore();
-    FileBasedSource source = new FileBasedSource.con1(new ContentCache(), FileUtilities2.createFile("/test.dart"));
+    FileBasedSource source = new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
     _definingCompilationUnit = new CompilationUnitElementImpl("test.dart");
     _definingCompilationUnit.source = source;
     LibraryElementImpl definingLibrary = ElementFactory.library(context, "test");

@@ -69,7 +69,7 @@ class ResolverImpl implements Resolver {
     _dartSdk = new _DirectoryBasedDartSdkProxy(new JavaFile(sdkDir));
     _dartSdk.context.analysisOptions = options;
 
-    _context.sourceFactory = new SourceFactory.con2([
+    _context.sourceFactory = new SourceFactory([
         new DartUriResolverProxy(_dartSdk),
         new _AssetUriResolver(this)]);
   }
@@ -241,7 +241,7 @@ class ResolverImpl implements Resolver {
     var sourceFile = _getSourceFile(element);
     if (sourceFile == null) return null;
 
-    return new TextEditTransaction(source.contents, sourceFile);
+    return new TextEditTransaction(source.rawContents, sourceFile);
   }
 
   /// Gets the SourceFile for the source of the element.
@@ -251,7 +251,7 @@ class ResolverImpl implements Resolver {
 
     var importUri = _getSourceUri(element, from: entryPoint);
     var spanPath = importUri != null ? importUri.toString() : assetId.path;
-    return new SourceFile.text(spanPath, sources[assetId].contents);
+    return new SourceFile.text(spanPath, sources[assetId].rawContents);
   }
 }
 
@@ -303,7 +303,11 @@ class _AssetBasedSource extends Source {
   }
 
   /// Contents of the file.
-  String get contents => _contents;
+  TimestampedData<String> get contents =>
+      new TimestampedData<String>(modificationStamp, _contents);
+
+  /// Contents of the file.
+  String get rawContents => _contents;
 
   /// Logger for the current transform.
   ///
@@ -320,8 +324,8 @@ class _AssetBasedSource extends Source {
 
   int get hashCode => assetId.hashCode;
 
-  void getContents(Source_ContentReceiver receiver) {
-    receiver.accept(contents, modificationStamp);
+  void getContentsToReceiver(Source_ContentReceiver receiver) {
+    receiver.accept(rawContents, modificationStamp);
   }
 
   String get encoding =>
@@ -359,7 +363,7 @@ class _AssetBasedSource extends Source {
     var uri = getSourceUri(_resolver.entryPoint);
     var path = uri != null ? uri.toString() : assetId.path;
 
-    return new SourceFile.text(path, contents);
+    return new SourceFile.text(path, rawContents);
   }
 
   /// Gets a URI which would be appropriate for importing this file.
@@ -384,7 +388,7 @@ class _AssetUriResolver implements UriResolver {
   final ResolverImpl _resolver;
   _AssetUriResolver(this._resolver);
 
-  Source resolveAbsolute(ContentCache contentCache, Uri uri) {
+  Source resolveAbsolute(Uri uri) {
     var assetId = _resolve(null, uri.toString(), logger, null);
     var source = _resolver.sources[assetId];
     /// All resolved assets should be available by this point.
@@ -394,7 +398,7 @@ class _AssetUriResolver implements UriResolver {
     return source;
   }
 
-  Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri) =>
+  Source fromEncoding(UriKind kind, Uri uri) =>
       throw new UnsupportedError('fromEncoding is not supported');
 
   Uri restoreAbsolute(Source source) =>
@@ -423,12 +427,12 @@ class DartUriResolverProxy implements DartUriResolver {
   DartUriResolverProxy(DirectoryBasedDartSdk sdk) :
       _proxy = new DartUriResolver(sdk);
 
-  Source resolveAbsolute(ContentCache contentCache, Uri uri) =>
-    _DartSourceProxy.wrap(_proxy.resolveAbsolute(contentCache, uri), uri);
+  Source resolveAbsolute(Uri uri) =>
+    _DartSourceProxy.wrap(_proxy.resolveAbsolute(uri), uri);
 
   DartSdk get dartSdk => _proxy.dartSdk;
 
-  Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri) =>
+  Source fromEncoding(UriKind kind, Uri uri) =>
       throw new UnsupportedError('fromEncoding is not supported');
 
   Uri restoreAbsolute(Source source) =>
@@ -468,9 +472,11 @@ class _DartSourceProxy implements Source {
 
   int get hashCode => _proxy.hashCode;
 
-  void getContents(Source_ContentReceiver receiver) {
-    _proxy.getContents(receiver);
+  void getContentsToReceiver(Source_ContentReceiver receiver) {
+    _proxy.getContentsToReceiver(receiver);
   }
+
+  TimestampedData<String> get contents => _proxy.contents;
 
   String get encoding => _proxy.encoding;
 

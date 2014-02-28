@@ -209,6 +209,11 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
   static String _IMPLEMENTATION = "implementation";
 
   /**
+   * The name of the optional parameter used to specify the path used when compiling for dart2js.
+   */
+  static String _DART2JS_PATH = "dart2jsPath";
+
+  /**
    * The name of the optional parameter used to indicate whether the library is documented.
    */
   static String _DOCUMENTED = "documented";
@@ -231,10 +236,33 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
   static String _VM_PLATFORM = "VM_PLATFORM";
 
   /**
+   * A flag indicating whether the dart2js path should be used when it is available.
+   */
+  bool _useDart2jsPaths = false;
+
+  /**
    * The library map that is populated by visiting the AST structure parsed from the contents of
    * the libraries file.
    */
-  final LibraryMap librariesMap = new LibraryMap();
+  LibraryMap _librariesMap = new LibraryMap();
+
+  /**
+   * Initialize a newly created library builder to use the dart2js path if the given value is
+   * `true`.
+   *
+   * @param useDart2jsPaths `true` if the dart2js path should be used when it is available
+   */
+  SdkLibrariesReader_LibraryBuilder(bool useDart2jsPaths) {
+    this._useDart2jsPaths = useDart2jsPaths;
+  }
+
+  /**
+   * Return the library map that was populated by visiting the AST structure parsed from the
+   * contents of the libraries file.
+   *
+   * @return the library map describing the contents of the SDK
+   */
+  LibraryMap get librariesMap => _librariesMap;
 
   Object visitMapLiteralEntry(MapLiteralEntry node) {
     String libraryName = null;
@@ -267,10 +295,14 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
                 library.setDart2JsLibrary();
               }
             }
+          } else if (_useDart2jsPaths && name == _DART2JS_PATH) {
+            if (expression is SimpleStringLiteral) {
+              library.path = expression.value;
+            }
           }
         }
       }
-      librariesMap.setLibrary(libraryName, library);
+      _librariesMap.setLibrary(libraryName, library);
     }
     return null;
   }
@@ -352,13 +384,12 @@ abstract class DartSdk {
   /**
    * Return the source representing the file with the given URI.
    *
-   * @param contentCache the content cache used to access the contents of the mapped source
    * @param kind the kind of URI that was originally resolved in order to produce an encoding with
    *          the given URI
    * @param uri the URI of the file to be returned
    * @return the source representing the specified file
    */
-  Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri);
+  Source fromEncoding(UriKind kind, Uri uri);
 
   /**
    * Return the [AnalysisContext] used for all of the sources in this [DartSdk].

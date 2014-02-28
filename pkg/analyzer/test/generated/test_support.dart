@@ -14,7 +14,7 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/ast.dart' show ASTNode, NodeLocator;
 import 'package:analyzer/src/generated/element.dart' show InterfaceType, MethodElement, PropertyAccessorElement;
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext, AnalysisContextImpl, RecordingErrorListener;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:unittest/unittest.dart' as _ut;
 
 /**
@@ -781,7 +781,7 @@ class EngineTestCase extends JUnitTestCase {
 
   AnalysisContextImpl createAnalysisContext() {
     AnalysisContextImpl context = new AnalysisContextImpl();
-    context.sourceFactory = new SourceFactory.con2([]);
+    context.sourceFactory = new SourceFactory([]);
     return context;
   }
 
@@ -836,7 +836,7 @@ class TestSource implements Source {
   AnalysisContext get context {
     throw new UnsupportedOperationException();
   }
-  void getContents(Source_ContentReceiver receiver) {
+  void getContentsToReceiver(Source_ContentReceiver receiver) {
     throw new UnsupportedOperationException();
   }
   String get fullName {
@@ -862,6 +862,9 @@ class TestSource implements Source {
     throw new UnsupportedOperationException();
   }
   UriKind get uriKind {
+    throw new UnsupportedOperationException();
+  }
+  TimestampedData<String> get contents {
     throw new UnsupportedOperationException();
   }
 }

@@ -10,7 +10,7 @@ library engine.source.io;
 import 'source.dart';
 import 'java_core.dart';
 import 'java_io.dart';
-import 'engine.dart' show AnalysisContext, AnalysisEngine;
+import 'engine.dart' show AnalysisContext, AnalysisEngine, TimestampedData;
 export 'source.dart';
 
 /**
@@ -64,12 +64,6 @@ class LocalSourcePredicate_NOT_SDK implements LocalSourcePredicate {
  */
 class FileBasedSource implements Source {
   /**
-   * The content cache used to access the contents of this source if they have been overridden from
-   * what is on disk or cached.
-   */
-  ContentCache _contentCache;
-
-  /**
    * The file represented by this source.
    */
   JavaFile _file;
@@ -88,41 +82,29 @@ class FileBasedSource implements Source {
    * Initialize a newly created source object. The source object is assumed to not be in a system
    * library.
    *
-   * @param contentCache the content cache used to access the contents of this source
    * @param file the file represented by this source
    */
-  FileBasedSource.con1(ContentCache contentCache, JavaFile file) : this.con2(contentCache, file, UriKind.FILE_URI);
+  FileBasedSource.con1(JavaFile file) : this.con2(file, UriKind.FILE_URI);
 
   /**
    * Initialize a newly created source object.
    *
-   * @param contentCache the content cache used to access the contents of this source
    * @param file the file represented by this source
    * @param flags `true` if this source is in one of the system libraries
    */
-  FileBasedSource.con2(ContentCache contentCache, JavaFile file, UriKind uriKind) {
-    this._contentCache = contentCache;
+  FileBasedSource.con2(JavaFile file, UriKind uriKind) {
     this._file = file;
     this._uriKind = uriKind;
   }
 
   bool operator ==(Object object) => object != null && this.runtimeType == object.runtimeType && _file == (object as FileBasedSource)._file;
 
-  bool exists() => _contentCache.getContents(this) != null || _file.isFile();
+  bool exists() => _file.isFile();
 
-  void getContents(Source_ContentReceiver receiver) {
-    //
-    // First check to see whether our content cache has an override for our contents.
-    //
-    String contents = _contentCache.getContents(this);
-    if (contents != null) {
-      receiver.accept(contents, _contentCache.getModificationStamp(this));
-      return;
-    }
-    //
-    // If not, read the contents from the file using native I/O.
-    //
-    getContentsFromFile(receiver);
+  TimestampedData<String> get contents => contentsFromFile;
+
+  void getContentsToReceiver(Source_ContentReceiver receiver) {
+    getContentsFromFileToReceiver(receiver);
   }
 
   String get encoding {
@@ -134,13 +116,7 @@ class FileBasedSource implements Source {
 
   String get fullName => _file.getAbsolutePath();
 
-  int get modificationStamp {
-    int stamp = _contentCache.getModificationStamp(this);
-    if (stamp != null) {
-      return stamp;
-    }
-    return _file.lastModified();
-  }
+  int get modificationStamp => _file.lastModified();
 
   String get shortName => _file.getName();
 
@@ -153,7 +129,7 @@ class FileBasedSource implements Source {
   Source resolveRelative(Uri containedUri) {
     try {
       Uri resolvedUri = file.toURI().resolveUri(containedUri);
-      return new FileBasedSource.con2(_contentCache, new JavaFile.fromUri(resolvedUri), _uriKind);
+      return new FileBasedSource.con2(new JavaFile.fromUri(resolvedUri), _uriKind);
     } on JavaException catch (exception) {
     }
     return null;
@@ -167,24 +143,34 @@ class FileBasedSource implements Source {
   }
 
   /**
-   * Get the contents of underlying file and pass it to the given receiver. Exactly one of the
-   * methods defined on the receiver will be invoked unless an exception is thrown. The method that
-   * will be invoked depends on which of the possible representations of the contents is the most
-   * efficient. Whichever method is invoked, it will be invoked before this method returns.
+   * Get the contents and timestamp of the underlying file.
+   *
+   * Clients should consider using the the method [AnalysisContext#getContents]
+   * because contexts can have local overrides of the content of a source that the source is not
+   * aware of.
+   *
+   * @return the contents of the source paired with the modification stamp of the source
+   * @throws Exception if the contents of this source could not be accessed
+   * @see #getContents()
+   */
+  TimestampedData<String> get contentsFromFile {
+    return new TimestampedData<String>(_file.lastModified(), _file.readAsStringSync());
+  }
+
+  /**
+   * Get the contents of underlying file and pass it to the given receiver.
    *
    * @param receiver the content receiver to which the content of this source will be passed
    * @throws Exception if the contents of this source could not be accessed
-   * @see #getContents(com.google.dart.engine.source.Source.ContentReceiver)
+   * @see #getContentsToReceiver(ContentReceiver)
    */
-  void getContentsFromFile(Source_ContentReceiver receiver) {
-    {
-    }
-    receiver.accept(file.readAsStringSync(), file.lastModified());
+  void getContentsFromFileToReceiver(Source_ContentReceiver receiver) {
+    throw new UnsupportedOperationException();
   }
 
   /**
    * Return the file represented by this source. This is an internal method that is only intended to
-   * be used by [UriResolver].
+   * be used by subclasses of [UriResolver] that are designed to work with file-based sources.
    *
    * @return the file represented by this source
    */
@@ -239,14 +225,14 @@ class PackageUriResolver extends UriResolver {
     this._packagesDirectories = packagesDirectories;
   }
 
-  Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri) {
+  Source fromEncoding(UriKind kind, Uri uri) {
     if (identical(kind, UriKind.PACKAGE_SELF_URI) || identical(kind, UriKind.PACKAGE_URI)) {
-      return new FileBasedSource.con2(contentCache, new JavaFile.fromUri(uri), kind);
+      return new FileBasedSource.con2(new JavaFile.fromUri(uri), kind);
     }
     return null;
   }
 
-  Source resolveAbsolute(ContentCache contentCache, Uri uri) {
+  Source resolveAbsolute(Uri uri) {
     if (!isPackageUri(uri)) {
       return null;
     }
@@ -277,10 +263,10 @@ class PackageUriResolver extends UriResolver {
       if (resolvedFile.exists()) {
         JavaFile canonicalFile = getCanonicalFile(packagesDirectory, pkgName, relPath);
         UriKind uriKind = isSelfReference(packagesDirectory, canonicalFile) ? UriKind.PACKAGE_SELF_URI : UriKind.PACKAGE_URI;
-        return new FileBasedSource.con2(contentCache, canonicalFile, uriKind);
+        return new FileBasedSource.con2(canonicalFile, uriKind);
       }
     }
-    return new FileBasedSource.con2(contentCache, getCanonicalFile(_packagesDirectories[0], pkgName, relPath), UriKind.PACKAGE_URI);
+    return new FileBasedSource.con2(getCanonicalFile(_packagesDirectories[0], pkgName, relPath), UriKind.PACKAGE_URI);
   }
 
   Uri restoreAbsolute(Source source) {
@@ -425,17 +411,17 @@ class FileUriResolver extends UriResolver {
    */
   static bool isFileUri(Uri uri) => uri.scheme == FILE_SCHEME;
 
-  Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri) {
+  Source fromEncoding(UriKind kind, Uri uri) {
     if (identical(kind, UriKind.FILE_URI)) {
-      return new FileBasedSource.con2(contentCache, new JavaFile.fromUri(uri), kind);
+      return new FileBasedSource.con2(new JavaFile.fromUri(uri), kind);
     }
     return null;
   }
 
-  Source resolveAbsolute(ContentCache contentCache, Uri uri) {
+  Source resolveAbsolute(Uri uri) {
     if (!isFileUri(uri)) {
       return null;
     }
-    return new FileBasedSource.con1(contentCache, new JavaFile.fromUri(uri));
+    return new FileBasedSource.con1(new JavaFile.fromUri(uri));
   }
 }
