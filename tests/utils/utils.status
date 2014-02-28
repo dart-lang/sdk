@@ -16,8 +16,5 @@ dart2js_test: Skip # Uses dart:io.
 [ $compiler == none && $runtime == dartium ]
 dart2js_test: Skip # Uses dart:io.
 
-[ $compiler == dartanalyzer ]
-source_mirrors_test: StaticWarning # issue 16466
-
 [ $compiler == dart2analyzer ]
 source_mirrors_test: StaticWarning # issue 16466
