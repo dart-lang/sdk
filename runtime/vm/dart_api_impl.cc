@@ -546,7 +546,7 @@ DART_EXPORT Dart_Handle Dart_ToString(Dart_Handle object) {
 
 DART_EXPORT bool Dart_IdentityEquals(Dart_Handle obj1, Dart_Handle obj2) {
   Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
+  DARTSCOPE(isolate);
   {
     NoGCScope ngc;
     if (Api::UnwrapHandle(obj1) == Api::UnwrapHandle(obj2)) {
@@ -3788,8 +3788,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeInstanceFieldCount(Dart_Handle obj,
   if (instance.IsNull()) {
     RETURN_TYPE_ERROR(isolate, obj, Instance);
   }
-  const Class& cls = Class::Handle(isolate, instance.clazz());
-  *count = cls.num_native_fields();
+  *count = instance.NumNativeFields();
   return Api::Success();
 }
 
@@ -3798,7 +3797,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
                                                     int index,
                                                     intptr_t* value) {
   Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
+  DARTSCOPE(isolate);
   ReusableObjectHandleScope reused_obj_handle(isolate);
   const Instance& instance = Api::UnwrapInstanceHandle(reused_obj_handle, obj);
   if (instance.IsNull()) {
@@ -3818,7 +3817,7 @@ DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
                                                     int index,
                                                     intptr_t value) {
   Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
+  DARTSCOPE(isolate);
   ReusableObjectHandleScope reused_obj_handle(isolate);
   const Instance& instance = Api::UnwrapInstanceHandle(reused_obj_handle, obj);
   if (instance.IsNull()) {
