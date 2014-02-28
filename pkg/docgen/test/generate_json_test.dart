@@ -36,7 +36,7 @@ void main() {
 
     d.dir('docs', [
         d.matcherFile('index.json', _isJsonMap),
-        d.matcherFile('index.txt', isNotNull),
+        d.matcherFile('index.txt', _hasSortedLines),
         d.matcherFile('library_list.json', _isJsonMap),
         d.matcherFile('testLib-bar.C.json', _isJsonMap),
         d.matcherFile('testLib-bar.json', _isJsonMap),
@@ -47,8 +47,18 @@ void main() {
         d.matcherFile('testLib2-foo.B.json', _isJsonMap),
         d.matcherFile('testLib2-foo.json', _isJsonMap)
     ]).validate();
+
   });
 }
+
+final Matcher _hasSortedLines = predicate((String input) {
+  var lines = new LineSplitter().convert(input);
+
+  var sortedLines = new List.from(lines)..sort();
+
+  var orderedMatcher = orderedEquals(sortedLines);
+  return orderedMatcher.matches(lines, {});
+}, 'String has sorted lines');
 
 final Matcher _isJsonMap = predicate((input) {
   try {
