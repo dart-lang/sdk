@@ -1,6 +1,10 @@
 # Changelog - unittest
 
-##0.10.0-dev
+##0.10.1-dev
+
+* `equals` now allows a nested matcher as an expected list element or map value when doing deep matching.
+
+##0.10.0
 
 * Each test is run in a separate `Zone`. This ensures that any exceptions that
 occur is async operations are reported back to the source test case.
@@ -19,6 +23,5 @@ and `protectAsync2`
 * `runTests`, `tearDown`, `setUp`, `test`, `group`, `solo_test`, and
   `solo_group` now throw a `StateError` if called while tests are running.
 * `rerunTests` has been removed.
-* `equals` now allows a nested matcher as an expected list element or map value when doing deep matching.
 
 ##0.9.3 - 2014-01-13
