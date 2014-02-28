@@ -17,8 +17,6 @@ class Instance;
 
 // Declaration of runtime entries called from stub or generated code.
 DECLARE_RUNTIME_ENTRY(AllocateArray);
-DECLARE_RUNTIME_ENTRY(AllocateClosure);
-DECLARE_RUNTIME_ENTRY(AllocateImplicitInstanceClosure);
 DECLARE_RUNTIME_ENTRY(AllocateContext);
 DECLARE_RUNTIME_ENTRY(AllocateObject);
 DECLARE_RUNTIME_ENTRY(BreakpointRuntimeHandler);

@@ -29,7 +29,6 @@ collection/test/equality_test/none: Pass, Fail # Issue 14348
 third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 docgen/test/multi_library_test: Slow, Pass # issue 17060
-third_party/angular_tests/browser_test/core/parser/parser: RuntimeError # Issue 17073
 
 [ $compiler == dart2js && $checked ]
 crypto/test/base64_test: Slow, Pass
@@ -51,7 +50,7 @@ stack_trace/test/vm_test: RuntimeError, OK # VM-specific traces
 stack_trace/test/chain_test: Fail # Issues 15171 and 15105
 async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
 unittest/test/missing_tick_test: Fail # Timer interface not supported: dartbug.com/7728.
-scheduled_test/test/unittest_compatibility_test: RuntimeError # Issue 17134
+scheduled_test/test/unittest_compatibility_test: RuntimeError # Issue 7728
 
 [ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
 polymer/example: Skip # Uses dart:html
@@ -179,6 +178,7 @@ docgen/test/single_library_test: Fail # TODO(kasperl): Please triage.
 intl/test/date_time_format_http_request_test: Fail # TODO(kasperl): Please triage.
 
 [ $browser ]
+analysis_server/test/channel_test: Skip # Uses dart:io.
 analyzer/test/generated/ast_test: Fail, OK # Uses dart:io.
 analyzer/test/generated/element_test: Fail, OK # Uses dart:io.
 analyzer/test/generated/parser_test: Fail, OK # Uses dart:io.
@@ -336,6 +336,8 @@ third_party/angular_tests/*: Skip
 third_party/angular_tests/browser_test/angular: Skip # Requires checked mode.
 third_party/angular_tests/browser_test/core/scope: Skip # Requires checked mode.
 third_party/angular_tests/browser_test/core/zone: Skip # Requires checked mode.
+third_party/angular_tests/browser_test/directive/ng_repeat: Skip # Issue 17152
+third_party/angular_tests/browser_test/change_detection/dirty_checking_change_detector: Skip # Issue 17152
 
 [ $use_repository_packages ]
 analyzer/test/error_test: PubGetError

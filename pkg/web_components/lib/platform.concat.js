@@ -3378,6 +3378,22 @@ window.ShadowDOMPolyfill = {};
 
 })(window.ShadowDOMPolyfill);
 
+/*
+ * Copyright 2014 The Polymer Authors. All rights reserved.
+ * Use of this source code is goverened by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+
+(function(scope) {
+  'use strict';
+
+  // TODO(arv): Implement.
+
+  scope.wrapHTMLCollection = scope.wrapNodeList;
+  scope.wrappers.HTMLCollection = scope.wrappers.NodeList;
+
+})(window.ShadowDOMPolyfill);
+
 // Copyright 2012 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
@@ -5137,6 +5153,191 @@ window.ShadowDOMPolyfill = {};
   scope.wrappers.Option = Option;
 })(window.ShadowDOMPolyfill);
 
+// Copyright 2014 The Polymer Authors. All rights reserved.
+// Use of this source code is goverened by a BSD-style
+// license that can be found in the LICENSE file.
+
+(function(scope) {
+  'use strict';
+
+  var HTMLElement = scope.wrappers.HTMLElement;
+  var mixin = scope.mixin;
+  var registerWrapper = scope.registerWrapper;
+  var unwrap = scope.unwrap;
+  var wrap = scope.wrap;
+
+  var OriginalHTMLSelectElement = window.HTMLSelectElement;
+
+  function HTMLSelectElement(node) {
+    HTMLElement.call(this, node);
+  }
+  HTMLSelectElement.prototype = Object.create(HTMLElement.prototype);
+  mixin(HTMLSelectElement.prototype, {
+    add: function(element, before) {
+      if (typeof before === 'object')  // also includes null
+        before = unwrap(before);
+      unwrap(this).add(unwrap(element), before);
+    },
+
+    remove: function(indexOrNode) {
+      // Spec only allows index but implementations allow index or node.
+      // remove() is also allowed which is same as remove(undefined)
+      if (typeof indexOrNode === 'object')
+        indexOrNode = unwrap(indexOrNode);
+      unwrap(this).remove(indexOrNode);
+    },
+
+    get form() {
+      return wrap(unwrap(this).form);
+    }
+  });
+
+  registerWrapper(OriginalHTMLSelectElement, HTMLSelectElement,
+                  document.createElement('select'));
+
+  scope.wrappers.HTMLSelectElement = HTMLSelectElement;
+})(window.ShadowDOMPolyfill);
+
+/*
+ * Copyright 2014 The Polymer Authors. All rights reserved.
+ * Use of this source code is goverened by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+
+(function(scope) {
+  'use strict';
+
+  var HTMLElement = scope.wrappers.HTMLElement;
+  var mixin = scope.mixin;
+  var registerWrapper = scope.registerWrapper;
+  var unwrap = scope.unwrap;
+  var wrap = scope.wrap;
+  var wrapHTMLCollection = scope.wrapHTMLCollection;
+
+  var OriginalHTMLTableElement = window.HTMLTableElement;
+
+  function HTMLTableElement(node) {
+    HTMLElement.call(this, node);
+  }
+  HTMLTableElement.prototype = Object.create(HTMLElement.prototype);
+  mixin(HTMLTableElement.prototype, {
+    get caption() {
+      return wrap(unwrap(this).caption);
+    },
+    createCaption: function() {
+      return wrap(unwrap(this).createCaption());
+    },
+
+    get tHead() {
+      return wrap(unwrap(this).tHead);
+    },
+    createTHead: function() {
+      return wrap(unwrap(this).createTHead());
+    },
+
+    createTFoot: function() {
+      return wrap(unwrap(this).createTFoot());
+    },
+    get tFoot() {
+      return wrap(unwrap(this).tFoot);
+    },
+
+    get tBodies() {
+      return wrapHTMLCollection(unwrap(this).tBodies);
+    },
+    createTBody: function() {
+      return wrap(unwrap(this).createTBody());
+    },
+
+    get rows() {
+      return wrapHTMLCollection(unwrap(this).rows);
+    },
+    insertRow: function(index) {
+      return wrap(unwrap(this).insertRow(index));
+    }
+  });
+
+  registerWrapper(OriginalHTMLTableElement, HTMLTableElement,
+                  document.createElement('table'));
+
+  scope.wrappers.HTMLTableElement = HTMLTableElement;
+})(window.ShadowDOMPolyfill);
+
+/*
+ * Copyright 2014 The Polymer Authors. All rights reserved.
+ * Use of this source code is goverened by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+
+(function(scope) {
+  'use strict';
+
+  var HTMLElement = scope.wrappers.HTMLElement;
+  var mixin = scope.mixin;
+  var registerWrapper = scope.registerWrapper;
+  var wrapHTMLCollection = scope.wrapHTMLCollection;
+  var unwrap = scope.unwrap;
+  var wrap = scope.wrap;
+
+  var OriginalHTMLTableSectionElement = window.HTMLTableSectionElement;
+
+  function HTMLTableSectionElement(node) {
+    HTMLElement.call(this, node);
+  }
+  HTMLTableSectionElement.prototype = Object.create(HTMLElement.prototype);
+  mixin(HTMLTableSectionElement.prototype, {
+    get rows() {
+      return wrapHTMLCollection(unwrap(this).rows);
+    },
+    insertRow: function(index) {
+      return wrap(unwrap(this).insertRow(index));
+    }
+  });
+
+  registerWrapper(OriginalHTMLTableSectionElement, HTMLTableSectionElement,
+                  document.createElement('thead'));
+
+  scope.wrappers.HTMLTableSectionElement = HTMLTableSectionElement;
+})(window.ShadowDOMPolyfill);
+
+/*
+ * Copyright 2014 The Polymer Authors. All rights reserved.
+ * Use of this source code is goverened by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+
+(function(scope) {
+  'use strict';
+
+  var HTMLElement = scope.wrappers.HTMLElement;
+  var mixin = scope.mixin;
+  var registerWrapper = scope.registerWrapper;
+  var wrapHTMLCollection = scope.wrapHTMLCollection;
+  var unwrap = scope.unwrap;
+  var wrap = scope.wrap;
+
+  var OriginalHTMLTableRowElement = window.HTMLTableRowElement;
+
+  function HTMLTableRowElement(node) {
+    HTMLElement.call(this, node);
+  }
+  HTMLTableRowElement.prototype = Object.create(HTMLElement.prototype);
+  mixin(HTMLTableRowElement.prototype, {
+    get cells() {
+      return wrapHTMLCollection(unwrap(this).cells);
+    },
+
+    insertCell: function(index) {
+      return wrap(unwrap(this).insertCell(index));
+    }
+  });
+
+  registerWrapper(OriginalHTMLTableRowElement, HTMLTableRowElement,
+                  document.createElement('tr'));
+
+  scope.wrappers.HTMLTableRowElement = HTMLTableRowElement;
+})(window.ShadowDOMPolyfill);
+
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
@@ -5702,7 +5903,10 @@ window.ShadowDOMPolyfill = {};
   }
 
   function getDistributedChildNodes(insertionPoint) {
-    return distributedChildNodesTable.get(insertionPoint);
+    var rv = distributedChildNodesTable.get(insertionPoint);
+    if (!rv)
+      distributedChildNodesTable.set(insertionPoint, rv = []);
+    return rv;
   }
 
   function getChildNodesSnapshot(node) {
@@ -5810,9 +6014,12 @@ window.ShadowDOMPolyfill = {};
   var renderTimer;
 
   function renderAllPending() {
+    // TODO(arv): Order these in document order. That way we do not have to
+    // render something twice.
     for (var i = 0; i < pendingDirtyRenderers.length; i++) {
       pendingDirtyRenderers[i].render();
     }
+
     pendingDirtyRenderers = [];
   }
 
@@ -5986,7 +6193,8 @@ window.ShadowDOMPolyfill = {};
 
       if (isShadowHost(node)) {
         var renderer = getRendererForHost(node);
-        renderNode.skip = !renderer.dirty;
+        // renderNode.skip = !renderer.dirty;
+        renderer.invalidate();
         renderer.render(renderNode);
       } else {
         for (var child = node.firstChild; child; child = child.nextSibling) {
@@ -6273,7 +6481,7 @@ window.ShadowDOMPolyfill = {};
     'HTMLObjectElement',
     // HTMLOptionElement is handled in HTMLOptionElement.js
     'HTMLOutputElement',
-    'HTMLSelectElement',
+    // HTMLSelectElement is handled in HTMLSelectElement.js
     'HTMLTextAreaElement',
   ];
 
@@ -6764,38 +6972,44 @@ window.ShadowDOMPolyfill = {};
   // for.
   var elements = {
     'a': 'HTMLAnchorElement',
-
     // Do not create an applet element by default since it shows a warning in
     // IE.
     // https://github.com/Polymer/polymer/issues/217
     // 'applet': 'HTMLAppletElement',
-
     'area': 'HTMLAreaElement',
-    'br': 'HTMLBRElement',
+    'audio': 'HTMLAudioElement',
     'base': 'HTMLBaseElement',
     'body': 'HTMLBodyElement',
+    'br': 'HTMLBRElement',
     'button': 'HTMLButtonElement',
+    'canvas': 'HTMLCanvasElement',
+    'caption': 'HTMLTableCaptionElement',
+    'col': 'HTMLTableColElement',
     // 'command': 'HTMLCommandElement',  // Not fully implemented in Gecko.
-    'dl': 'HTMLDListElement',
-    'datalist': 'HTMLDataListElement',
+    'content': 'HTMLContentElement',
     'data': 'HTMLDataElement',
+    'datalist': 'HTMLDataListElement',
+    'del': 'HTMLModElement',
     'dir': 'HTMLDirectoryElement',
     'div': 'HTMLDivElement',
+    'dl': 'HTMLDListElement',
     'embed': 'HTMLEmbedElement',
     'fieldset': 'HTMLFieldSetElement',
     'font': 'HTMLFontElement',
     'form': 'HTMLFormElement',
     'frame': 'HTMLFrameElement',
     'frameset': 'HTMLFrameSetElement',
-    'hr': 'HTMLHRElement',
-    'head': 'HTMLHeadElement',
     'h1': 'HTMLHeadingElement',
+    'head': 'HTMLHeadElement',
+    'hr': 'HTMLHRElement',
     'html': 'HTMLHtmlElement',
     'iframe': 'HTMLIFrameElement',
+    'img': 'HTMLImageElement',
     'input': 'HTMLInputElement',
-    'li': 'HTMLLIElement',
+    'keygen': 'HTMLKeygenElement',
     'label': 'HTMLLabelElement',
     'legend': 'HTMLLegendElement',
+    'li': 'HTMLLIElement',
     'link': 'HTMLLinkElement',
     'map': 'HTMLMapElement',
     'marquee': 'HTMLMarqueeElement',
@@ -6803,9 +7017,8 @@ window.ShadowDOMPolyfill = {};
     'menuitem': 'HTMLMenuItemElement',
     'meta': 'HTMLMetaElement',
     'meter': 'HTMLMeterElement',
-    'del': 'HTMLModElement',
-    'ol': 'HTMLOListElement',
     'object': 'HTMLObjectElement',
+    'ol': 'HTMLOListElement',
     'optgroup': 'HTMLOptGroupElement',
     'option': 'HTMLOptionElement',
     'output': 'HTMLOutputElement',
@@ -6816,23 +7029,23 @@ window.ShadowDOMPolyfill = {};
     'q': 'HTMLQuoteElement',
     'script': 'HTMLScriptElement',
     'select': 'HTMLSelectElement',
+    'shadow': 'HTMLShadowElement',
     'source': 'HTMLSourceElement',
     'span': 'HTMLSpanElement',
     'style': 'HTMLStyleElement',
-    'time': 'HTMLTimeElement',
-    'caption': 'HTMLTableCaptionElement',
+    'table': 'HTMLTableElement',
+    'tbody': 'HTMLTableSectionElement',
     // WebKit and Moz are wrong:
     // https://bugs.webkit.org/show_bug.cgi?id=111469
     // https://bugzilla.mozilla.org/show_bug.cgi?id=848096
     // 'td': 'HTMLTableCellElement',
-    'col': 'HTMLTableColElement',
-    'table': 'HTMLTableElement',
-    'tr': 'HTMLTableRowElement',
-    'thead': 'HTMLTableSectionElement',
-    'tbody': 'HTMLTableSectionElement',
+    'template': 'HTMLTemplateElement',
     'textarea': 'HTMLTextAreaElement',
-    'track': 'HTMLTrackElement',
+    'thead': 'HTMLTableSectionElement',
+    'time': 'HTMLTimeElement',
     'title': 'HTMLTitleElement',
+    'tr': 'HTMLTableRowElement',
+    'track': 'HTMLTrackElement',
     'ul': 'HTMLUListElement',
     'video': 'HTMLVideoElement',
   };
@@ -6852,9 +7065,6 @@ window.ShadowDOMPolyfill = {};
   Object.getOwnPropertyNames(scope.wrappers).forEach(function(name) {
     window[name] = scope.wrappers[name]
   });
-
-  // Export for testing.
-  scope.knownElements = elements;
 
 })(window.ShadowDOMPolyfill);
 
@@ -7028,7 +7238,7 @@ var ShadowCSS = {
   // 2. optionally tag root nodes with scope name
   // 3. shim polyfill directives /* @polyfill */ and /* @polyfill-rule */
   // 4. shim :host and scoping
-  shimStyling: function(root, name, extendsName) {
+  shimStyling: function(root, name, extendsName, ownSheet) {
     var typeExtension = this.isTypeExtension(extendsName);
     // use caching to make working with styles nodes easier and to facilitate
     // lookup of extendee
@@ -7050,7 +7260,11 @@ var ShadowCSS = {
       s.parentNode.removeChild(s);
     }
     // add style to document
-    addCssToDocument(cssText);
+    if (ownSheet) {
+      addOwnSheet(cssText, name);
+    } else {
+      addCssToDocument(cssText);
+    }
   },
   // apply @polyfill rules + :host and scope shimming
   stylesToShimmedCssText: function(rootStyles, scopeStyles, name,
@@ -7203,8 +7417,12 @@ var ShadowCSS = {
     cssText = this.convertColonAncestor(cssText);
     cssText = this.convertCombinators(cssText);
     if (name) {
-      var rules = cssToRules(cssText);
-      cssText = this.scopeRules(rules, name, typeExtension);
+      var self = this, cssText;
+      
+      withCssRules(cssText, function(rules) {
+        cssText = self.scopeRules(rules, name, typeExtension);
+      });
+
     }
     return cssText;
   },
@@ -7273,19 +7491,21 @@ var ShadowCSS = {
   // change a selector like 'div' to 'name div'
   scopeRules: function(cssRules, name, typeExtension) {
     var cssText = '';
-    Array.prototype.forEach.call(cssRules, function(rule) {
-      if (rule.selectorText && (rule.style && rule.style.cssText)) {
-        cssText += this.scopeSelector(rule.selectorText, name, typeExtension, 
-          this.strictStyling) + ' {\n\t';
-        cssText += this.propertiesFromRule(rule) + '\n}\n\n';
-      } else if (rule.media) {
-        cssText += '@media ' + rule.media.mediaText + ' {\n';
-        cssText += this.scopeRules(rule.cssRules, name, typeExtension);
-        cssText += '\n}\n\n';
-      } else if (rule.cssText) {
-        cssText += rule.cssText + '\n\n';
-      }
-    }, this);
+    if (cssRules) {
+      Array.prototype.forEach.call(cssRules, function(rule) {
+        if (rule.selectorText && (rule.style && rule.style.cssText)) {
+          cssText += this.scopeSelector(rule.selectorText, name, typeExtension, 
+            this.strictStyling) + ' {\n\t';
+          cssText += this.propertiesFromRule(rule) + '\n}\n\n';
+        } else if (rule.type === CSSRule.MEDIA_RULE) {
+          cssText += '@media ' + rule.media.mediaText + ' {\n';
+          cssText += this.scopeRules(rule.cssRules, name, typeExtension);
+          cssText += '\n}\n\n';
+        } else if (rule.cssText) {
+          cssText += rule.cssText + '\n\n';
+        }
+      }, this);
+    }
     return cssText;
   },
   scopeSelector: function(selector, name, typeExtension, strict) {
@@ -7399,9 +7619,63 @@ function cssTextToStyle(cssText) {
 function cssToRules(cssText) {
   var style = cssTextToStyle(cssText);
   document.head.appendChild(style);
-  var rules = style.sheet.cssRules;
+  var rules = [];
+  if (style.sheet) {
+    // TODO(sorvell): Firefox throws when accessing the rules of a stylesheet
+    // with an @import
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=625013
+    try {
+      rules = style.sheet.cssRules;
+    } catch(e) {
+      //
+    }
+  } else {
+    console.warn('sheet not found', style);
+  }
   style.parentNode.removeChild(style);
   return rules;
+}
+
+var frame = document.createElement('iframe');
+frame.style.display = 'none';
+
+function initFrame() {
+  frame.initialized = true;
+  document.body.appendChild(frame);
+  var doc = frame.contentDocument;
+  var base = doc.createElement('base');
+  base.href = document.baseURI;
+  doc.head.appendChild(base);
+}
+
+function inFrame(fn) {
+  if (!frame.initialized) {
+    initFrame();
+  }
+  document.body.appendChild(frame);
+  fn(frame.contentDocument);
+  document.body.removeChild(frame);
+}
+
+// TODO(sorvell): use an iframe if the cssText contains an @import to workaround
+// https://code.google.com/p/chromium/issues/detail?id=345114
+var isChrome = navigator.userAgent.match('Chrome');
+function withCssRules(cssText, callback) {
+  if (!callback) {
+    return;
+  }
+  var rules;
+  if (cssText.match('@import') && isChrome) {
+    var style = cssTextToStyle(cssText);
+    inFrame(function(doc) {
+      doc.head.appendChild(style.impl);
+      rules = style.sheet.cssRules;
+      callback(rules);
+    });
+  } else {
+    rules = cssToRules(cssText);
+    callback(rules);
+  }
 }
 
 function rulesToCss(cssRules) {
@@ -7415,6 +7689,13 @@ function addCssToDocument(cssText) {
   if (cssText) {
     getSheet().appendChild(document.createTextNode(cssText));
   }
+}
+
+function addOwnSheet(cssText, name) {
+  var style = cssTextToStyle(cssText);
+  style.setAttribute(name, '');
+  style.setAttribute(SHIMMED_ATTRIBUTE, '');
+  document.head.appendChild(style);
 }
 
 var SHIM_ATTRIBUTE = 'shim-shadowdom';
@@ -8290,17 +8571,6 @@ scope.mixin = mixin;
     })();
   }
 
-  // TODO(sorvell): workaround for bug:
-  // https://code.google.com/p/chromium/issues/detail?id=229142
-  // remove when this bug is addressed
-  // give main document templates a base that allows them to fetch eagerly
-  // resolved paths relative to the main document
-  var template = document.createElement('template');
-  var base = document.createElement('base');
-  base.href = document.baseURI;
-  template.content.ownerDocument.appendChild(base);
-  
-
   // utility
 
   function createDOM(inTagOrNode, inHTML, inAttrs) {
@@ -8329,7 +8599,9 @@ scope.mixin = mixin;
 
   // deliver queued delcarations
   scope.deliverDeclarations = function() {
-    scope.deliverDeclarations = null;
+    scope.deliverDeclarations = function() {
+     throw 'Possible attempt to load Polymer twice';
+    };
     return elementDeclarations;
   }
 
@@ -8682,6 +8954,9 @@ var urlResolver = {
         }
       }
     }
+  },
+  resolveTemplate: function(template) {
+    this.resolveDom(template.content, template.ownerDocument.baseURI);
   },
   resolveStyles: function(root, url) {
     var styles = root.querySelectorAll('style');
@@ -9598,9 +9873,12 @@ var importParser = {
     document.head.appendChild(elt);
   },
   // tracks when a loadable element has loaded
-  trackElement: function(elt) {
+  trackElement: function(elt, callback) {
     var self = this;
-    var done = function() {
+    var done = function(e) {
+      if (callback) {
+        callback(e);
+      }
       self.markParsingComplete(elt);
     };
     elt.addEventListener('load', done);
@@ -9632,31 +9910,23 @@ var importParser = {
       }
     }
   },
+  // NOTE: execute scripts by injecting them and watching for the load/error
+  // event. Inline scripts are handled via dataURL's because browsers tend to
+  // provide correct parsing errors in this case. If this has any compatibility
+  // issues, we can switch to injecting the inline script with textContent.
+  // Scripts with dataURL's do not appear to generate load events and therefore
+  // we assume they execute synchronously.
   parseScript: function(scriptElt) {
-    // acquire code to execute
-    var code = (scriptElt.__resource || scriptElt.textContent).trim();
-    if (code) {
-      // calculate source map hint
-      var moniker = scriptElt.__nodeUrl;
-      if (!moniker) {
-        moniker = scriptElt.ownerDocument.baseURI;
-        // there could be more than one script this url
-        var tag = '[' + Math.floor((Math.random()+1)*1000) + ']';
-        // TODO(sjmiles): Polymer hack, should be pluggable if we need to allow 
-        // this sort of thing
-        var matches = code.match(/Polymer\(['"]([^'"]*)/);
-        tag = matches && matches[1] || tag;
-        // tag the moniker
-        moniker += '/' + tag + '.js';
-      }
-      // source map hint
-      code += "\n//# sourceURL=" + moniker + "\n";
-      // evaluate the code
-      scope.currentScript = scriptElt;
-      eval.call(window, code);
-      scope.currentScript = null;
-    }
-    this.markParsingComplete(scriptElt);
+    var script = document.createElement('script');
+    script.__importElement = scriptElt;
+    script.src = scriptElt.src ? scriptElt.src : 
+        generateScriptDataUrl(scriptElt);
+    scope.currentScript = scriptElt;
+    this.trackElement(script, function(e) {
+      script.parentNode.removeChild(script);
+      scope.currentScript = null;  
+    });
+    document.head.appendChild(script);
   },
   // determine the next element in the tree which should be parsed
   nextToParse: function() {
@@ -9688,15 +9958,45 @@ var importParser = {
     if (nodeIsImport(node) && !node.import) {
       return false;
     }
-    if (node.localName === 'script' && node.src && !node.__resource) {
-      return false;
-    }
     return true;
   }
 };
 
 function nodeIsImport(elt) {
   return (elt.localName === 'link') && (elt.rel === IMPORT_LINK_TYPE);
+}
+
+function generateScriptDataUrl(script) {
+  var scriptContent = generateScriptContent(script), b64;
+  try {
+    b64 = btoa(scriptContent);
+  } catch(e) {
+    b64 = btoa(unescape(encodeURIComponent(scriptContent)));
+    console.warn('Script contained non-latin characters that were forced ' +
+      'to latin. Some characters may be wrong.', script);
+  }
+  return 'data:text/javascript;base64,' + b64;
+}
+
+function generateScriptContent(script) {
+  return script.textContent + generateSourceMapHint(script);
+}
+
+// calculate source map hint
+function generateSourceMapHint(script) {
+  var moniker = script.__nodeUrl;
+  if (!moniker) {
+    moniker = script.ownerDocument.baseURI;
+    // there could be more than one script this url
+    var tag = '[' + Math.floor((Math.random()+1)*1000) + ']';
+    // TODO(sjmiles): Polymer hack, should be pluggable if we need to allow 
+    // this sort of thing
+    var matches = script.textContent.match(/Polymer\(['"]([^'"]*)/);
+    tag = matches && matches[1] || tag;
+    // tag the moniker
+    moniker += '/' + tag + '.js';
+  }
+  return '\n//# sourceURL=' + moniker + '\n';
 }
 
 // style/stylesheet handling
@@ -9773,8 +10073,6 @@ if (!useNative) {
 
   // for any document, importer:
   // - loads any linked import documents (with deduping)
-  // for any import document, importer also:
-  // - loads text of external script tags
 
   var importer = {
     documents: {},
@@ -9782,9 +10080,7 @@ if (!useNative) {
     documentPreloadSelectors: 'link[rel=' + IMPORT_LINK_TYPE + ']',
     // nodes to load in imports
     importsPreloadSelectors: [
-        'link[rel=' + IMPORT_LINK_TYPE + ']',
-        'script[src]:not([type])',
-        'script[src][type="text/javascript"]'
+      'link[rel=' + IMPORT_LINK_TYPE + ']'
     ].join(','),
     loadNode: function(node) {
       importLoader.addNode(node);
@@ -9871,6 +10167,11 @@ if (!useNative) {
     if (!doc.baseURI) {
       doc.baseURI = url;
     }
+    // ensure UTF-8 charset
+    var meta = doc.createElement('meta');
+    meta.setAttribute('charset', 'utf-8');
+
+    doc.head.appendChild(meta);
     doc.head.appendChild(base);
     // install HTML last as it may trigger CustomElement upgrades
     // TODO(sjmiles): problem wrt to template boostrapping below,
@@ -10441,7 +10742,6 @@ function upgradeDocument(doc) {
 
 function upgradeDocumentTree(doc) {
   doc = wrapIfNeeded(doc);
-  upgradeDocument(doc);
   //console.log('upgradeDocumentTree: ', (doc.baseURI).split('/').pop());
   // upgrade contained imported documents
   var imports = doc.querySelectorAll('link[rel=' + IMPORT_LINK_TYPE + ']');
@@ -10450,6 +10750,7 @@ function upgradeDocumentTree(doc) {
       upgradeDocumentTree(n.import);
     }
   }
+  upgradeDocument(doc);
 }
 
 // exports
@@ -10723,11 +11024,9 @@ if (useNative) {
     var used = {};
     // start with inSrc
     var p = inSrc;
-    // sometimes the default is HTMLUnknownElement.prototype instead of
-    // HTMLElement.prototype, so we add a test
-    // the idea is to avoid mixing in native prototypes, so adding
-    // the second test is WLOG
-    while (p !== inNative && p !== HTMLUnknownElement.prototype) {
+    // The default is HTMLElement.prototype, so we add a test to avoid mixing in
+    // native prototypes
+    while (p !== inNative && p !== HTMLElement.prototype) {
       var keys = Object.getOwnPropertyNames(p);
       for (var i=0, k; k=keys[i]; i++) {
         if (!used[k]) {
@@ -10799,6 +11098,17 @@ if (useNative) {
     };
   }
 
+  var HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
+  function createElementNS(namespace, tag, typeExtension) {
+    // NOTE: we do not support non-HTML elements,
+    // just call createElementNS for non HTML Elements
+    if (namespace === HTML_NAMESPACE) {
+      return createElement(tag, typeExtension);
+    } else {
+      return domCreateElementNS(namespace, tag);
+    }
+  }
+
   function createElement(tag, typeExtension) {
     // TODO(sjmiles): ignore 'tag' when using 'typeExtension', we could
     // error check it, or perhaps there should only ever be one argument
@@ -10851,6 +11161,7 @@ if (useNative) {
   // capture native createElement before we override it
 
   var domCreateElement = document.createElement.bind(document);
+  var domCreateElementNS = document.createElementNS.bind(document);
 
   // capture native cloneNode before we override it
 
@@ -10860,6 +11171,7 @@ if (useNative) {
 
   document.registerElement = register;
   document.createElement = createElement; // override
+  document.createElementNS = createElementNS; // override
   Node.prototype.cloneNode = cloneNode; // override
 
   scope.registry = registry;
@@ -10877,6 +11189,32 @@ if (useNative) {
    */
   scope.upgrade = upgradeElement;
 }
+
+// Create a custom 'instanceof'. This is necessary when CustomElements
+// are implemented via a mixin strategy, as for example on IE10.
+var isInstance;
+if (!Object.__proto__ && !useNative) {
+  isInstance = function(obj, ctor) {
+    var p = obj;
+    while (p) {
+      // NOTE: this is not technically correct since we're not checking if
+      // an object is an instance of a constructor; however, this should
+      // be good enough for the mixin strategy.
+      if (p === ctor.prototype) {
+        return true;
+      }
+      p = p.__proto__;
+    }
+    return false;
+  }
+} else {
+  isInstance = function(obj, base) {
+    return obj instanceof base;
+  }
+}
+
+// exports
+scope.instanceof = isInstance;
 
 // bc
 document.register = document.registerElement;
@@ -11026,12 +11364,6 @@ if (document.readyState === 'complete' || scope.flags.eager) {
  */
 (function() {
 
-// inject style sheet
-var style = document.createElement('style');
-style.textContent = 'element {display: none !important;} /* injected by platform.js */';
-var head = document.querySelector('head');
-head.insertBefore(style, head.firstChild);
-
 if (window.ShadowDOMPolyfill) {
 
   // ensure wrapped inputs for these functions
@@ -11061,87 +11393,158 @@ if (window.ShadowDOMPolyfill) {
  * license that can be found in the LICENSE file.
  */
 (function(scope) {
+  var endOfMicrotask = scope.endOfMicrotask;
 
-var STYLE_SELECTOR = 'style';
+  // Generic url loader
+  function Loader(regex) {
+    this.regex = regex;
+  }
+  Loader.prototype = {
+    // TODO(dfreedm): there may be a better factoring here
+    // extract absolute urls from the text (full of relative urls)
+    extractUrls: function(text, base) {
+      var matches = [];
+      var matched, u;
+      while ((matched = this.regex.exec(text))) {
+        u = new URL(matched[1], base);
+        matches.push({matched: matched[0], url: u.href});
+      }
+      return matches;
+    },
+    // take a text blob, a root url, and a callback and load all the urls found within the text
+    // returns a map of absolute url to text
+    process: function(text, root, callback) {
+      var matches = this.extractUrls(text, root);
+      this.fetch(matches, {}, callback);
+    },
+    // build a mapping of url -> text from matches
+    fetch: function(matches, map, callback) {
+      var inflight = matches.length;
+
+      // return early if there is no fetching to be done
+      if (!inflight) {
+        return callback(map);
+      }
+
+      var done = function() {
+        if (--inflight === 0) {
+          callback(map);
+        }
+      };
+
+      // map url -> responseText
+      var handleXhr = function(err, request) {
+        var match = request.match;
+        var key = match.url;
+        // handle errors with an empty string
+        if (err) {
+          map[key] = '';
+          return done();
+        }
+        var response = request.response || request.responseText;
+        map[key] = response;
+        this.fetch(this.extractUrls(response, key), map, done);
+      };
+
+      var m, req, url;
+      for (var i = 0; i < inflight; i++) {
+        m = matches[i];
+        url = m.url;
+        // if this url has already been requested, skip requesting it again
+        if (map[url]) {
+          // Async call to done to simplify the inflight logic
+          endOfMicrotask(done);
+          continue;
+        }
+        req = this.xhr(url, handleXhr, this);
+        req.match = m;
+        // tag the map with an XHR request to deduplicate at the same level
+        map[url] = req;
+      }
+    },
+    xhr: function(url, callback, scope) {
+      var request = new XMLHttpRequest();
+      request.open('GET', url, true);
+      request.send();
+      request.onload = function() {
+        callback.call(scope, null, request);
+      };
+      request.onerror = function() {
+        callback.call(scope, null, request);
+      };
+      return request;
+    }
+  };
+
+  scope.Loader = Loader;
+})(window.Platform);
+
+/*
+ * Copyright 2014 The Polymer Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+(function(scope) {
 
 var urlResolver = scope.urlResolver;
+var Loader = scope.Loader;
 
-var loader = {
-  cacheStyles: function(styles, callback) {
-    var css = [];
-    for (var i=0, l=styles.length, s; (i<l) && (s=styles[i]); i++) {
-      css.push(s.textContent);
-    }
-    cacheCssText(css.join('\n'), callback);
+function StyleResolver() {
+  this.loader = new Loader(this.regex);
+}
+StyleResolver.prototype = {
+  regex: /@import\s+(?:url)?["'\(]*([^'"\)]*)['"\)]*;/g,
+  // Recursively replace @imports with the text at that url
+  resolve: function(text, url, callback) {
+    var done = function(map) {
+      callback(this.flatten(text, url, map));
+    }.bind(this);
+    this.loader.process(text, url, done);
   },
-  xhrStyles: function(styles, callback) {
+  // resolve the textContent of a style node
+  resolveNode: function(style, callback) {
+    var text = style.textContent;
+    var url = style.ownerDocument.baseURI;
+    var done = function(text) {
+      style.textContent = text;
+      callback(style);
+    };
+    this.resolve(text, url, done);
+  },
+  // flatten all the @imports to text
+  flatten: function(text, base, map) {
+    var matches = this.loader.extractUrls(text, base);
+    var match, url, intermediate;
+    for (var i = 0; i < matches.length; i++) {
+      match = matches[i];
+      url = match.url;
+      // resolve any css text to be relative to the importer
+      intermediate = urlResolver.resolveCssText(map[url], url);
+      // flatten intermediate @imports
+      intermediate = this.flatten(intermediate, url, map);
+      text = text.replace(match.matched, intermediate);
+    }
+    return text;
+  },
+  loadStyles: function(styles, callback) {
     var loaded=0, l = styles.length;
     // called in the context of the style
     function loadedStyle(style) {
-      //console.log(style.textContent);
       loaded++;
       if (loaded === l && callback) {
         callback();
       }
     }
     for (var i=0, s; (i<l) && (s=styles[i]); i++) {
-      xhrLoadStyle(s, loadedStyle);
+      this.resolveNode(s, loadedStyle);
     }
   }
 };
 
-// use the platform to preload styles
-var preloadElement = document.createElement('preloader');
-preloadElement.style.display = 'none';
-var preloadRoot = preloadElement.createShadowRoot();
-document.head.appendChild(preloadElement);
-
-function cacheCssText(cssText, callback) {
-  var style = createStyleElement(cssText);
-  if (callback) {
-    style.addEventListener('load', callback);
-    style.addEventListener('error', callback);
-  }
-  preloadRoot.appendChild(style);
-}
-
-function createStyleElement(cssText, scope) {
-  scope = scope || document;
-  scope = scope.createElement ? scope : scope.ownerDocument;
-  var style = scope.createElement('style');
-  style.textContent = cssText;
-  return style;
-}
-
-// TODO(sorvell): use a common loader shared with HTMLImports polyfill
-// currently, this just loads the first @import per style element 
-// and does not recurse into loaded elements; we'll address this with a 
-// generalized loader that's built out of the one in the HTMLImports polyfill.
-// polyfill the loading of a style element's @import via xhr
-function xhrLoadStyle(style, callback) {
-  HTMLImports.xhr.load(atImportUrlFromStyle(style), function (err, resource,
-      url) {
-    replaceAtImportWithCssText(this, url, resource);
-    this.textContent = urlResolver.resolveCssText(this.textContent, url);
-    callback && callback(this);
-  }, style);
-}
-
-var atImportRe = /@import\s[(]?['"]?([^\s'";)]*)/;
-
-// get the first @import rule from a style
-function atImportUrlFromStyle(style) {
-  var matches = style.textContent.match(atImportRe);
-  return matches && matches[1];
-}
-
-function replaceAtImportWithCssText(style, url, cssText) {
-  var re = new RegExp('@import[^;]*' + url + '[^;]*;', 'i');
-  style.textContent = style.textContent.replace(re, cssText);
-}
+var styleResolver = new StyleResolver();
 
 // exports
-scope.loader = loader;
+scope.styleResolver = styleResolver;
 
 })(window.Platform);
 
@@ -11650,12 +12053,15 @@ scope.loader = loader;
     },
     // EVENTS
     down: function(inEvent) {
+      inEvent.bubbles = true;
       this.fireEvent('pointerdown', inEvent);
     },
     move: function(inEvent) {
+      inEvent.bubbles = true;
       this.fireEvent('pointermove', inEvent);
     },
     up: function(inEvent) {
+      inEvent.bubbles = true;
       this.fireEvent('pointerup', inEvent);
     },
     enter: function(inEvent) {
@@ -11675,6 +12081,7 @@ scope.loader = loader;
       this.fireEvent('pointerout', inEvent);
     },
     cancel: function(inEvent) {
+      inEvent.bubbles = true;
       this.fireEvent('pointercancel', inEvent);
     },
     leaveOut: function(event) {
@@ -12998,9 +13405,19 @@ PointerGestureEvent.prototype.preventTap = function() {
  * @class hold
  */
 /**
- * Milliseconds pointer has been held down.
+ * Type of pointer that made the holding event.
+ * @type String
+ * @property pointerType
+ */
+/**
+ * Screen X axis position of the held pointer
  * @type Number
- * @property holdTime
+ * @property clientX
+ */
+/**
+ * Screen Y axis position of the held pointer
+ * @type Number
+ * @property clientY
  */
 /**
  * Type of pointer that made the holding event.
@@ -13014,14 +13431,14 @@ PointerGestureEvent.prototype.preventTap = function() {
  * @extends hold
  */
 /**
+ * Milliseconds pointer has been held down.
+ * @type Number
+ * @property holdTime
+ */
+/**
  * This event is fired when a held pointer is released or moved.
  *
  * @class released
- */
-/**
- * Type of pointer that made the holding event.
- * @type String
- * @property pointerType
  */
 
 (function(scope) {
@@ -13081,7 +13498,9 @@ PointerGestureEvent.prototype.preventTap = function() {
     },
     fireHold: function(inType, inHoldTime) {
       var p = {
-        pointerType: this.heldPointer.pointerType
+        pointerType: this.heldPointer.pointerType,
+        clientX: this.heldPointer.clientX,
+        clientY: this.heldPointer.clientY
       };
       if (inHoldTime) {
         p.holdTime = inHoldTime;
@@ -13648,9 +14067,15 @@ PointerGestureEvent.prototype.preventTap = function() {
         }
       }
     },
+    shouldTap: function(e) {
+      if (!e.tapPrevented) {
+        // only allow left click to tap for mouse
+        return e.pointerType === 'mouse' ? e.buttons === 1 : true;
+      }
+    },
     pointerup: function(inEvent) {
       var start = pointermap.get(inEvent.pointerId);
-      if (start && !inEvent.tapPrevented) {
+      if (start && this.shouldTap(inEvent)) {
         var t = scope.findLCA(start.target, inEvent.target);
         if (t) {
           var e = dispatcher.makeEvent('tap', {
@@ -13876,6 +14301,9 @@ PointerGestureEvent.prototype.preventTap = function() {
       case 'select-multiple':
       case 'select-one':
         return 'change';
+      case 'range':
+        if (/Trident|MSIE/.test(navigator.userAgent))
+          return 'change';
       default:
         return 'input';
     }
@@ -14228,6 +14656,20 @@ PointerGestureEvent.prototype.preventTap = function() {
   };
 
   var hasTemplateElement = typeof HTMLTemplateElement !== 'undefined';
+  if (hasTemplateElement) {
+    // TODO(rafaelw): Remove when fix for
+    // https://codereview.chromium.org/164803002/
+    // makes it to Chrome release.
+    (function() {
+      var t = document.createElement('template');
+      var d = t.content.ownerDocument;
+      var html = d.appendChild(d.createElement('html'));
+      var head = html.appendChild(d.createElement('head'));
+      var base = d.createElement('base');
+      base.href = document.baseURI;
+      head.appendChild(base);
+    })();
+  }
 
   var allTemplatesSelectors = 'template, ' +
       Object.keys(semanticTemplateElements).map(function(tagName) {
@@ -14325,6 +14767,14 @@ PointerGestureEvent.prototype.preventTap = function() {
       var owner = template.ownerDocument;
       if (!owner.stagingDocument_) {
         owner.stagingDocument_ = owner.implementation.createHTMLDocument('');
+
+        // TODO(rafaelw): Remove when fix for
+        // https://codereview.chromium.org/164803002/
+        // makes it to Chrome release.
+        var base = owner.stagingDocument_.createElement('base');
+        base.href = document.baseURI;
+        owner.stagingDocument_.head.appendChild(base);
+
         owner.stagingDocument_.stagingDocument_ = owner.stagingDocument_;
       }
 

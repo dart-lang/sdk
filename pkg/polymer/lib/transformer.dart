@@ -9,7 +9,6 @@ import 'package:barback/barback.dart';
 import 'package:observe/transformer.dart';
 
 import 'src/build/build_filter.dart';
-import 'src/build/code_extractor.dart';
 import 'src/build/common.dart';
 import 'src/build/import_inliner.dart';
 import 'src/build/linter.dart';
@@ -66,14 +65,17 @@ _readEntrypoints(value) {
   return entryPoints;
 }
 
+/// Create deploy phases for Polymer. Note that inlining HTML Imports
+/// comes first (other than linter, if [options.linter] is enabled), which
+/// allows the rest of the HTML-processing phases to operate only on HTML that
+/// is actually imported.
 List<List<Transformer>> _createDeployPhases(TransformOptions options) {
-  return [
-    [new Linter(options)],
-    [new InlineCodeExtractor(options)],
-    [new ObservableTransformer()],
+  var phases = options.lint ? [[new Linter(options)]] : [];
+  return phases..addAll([
     [new ImportInliner(options)],
+    [new ObservableTransformer()],
     [new ScriptCompactor(options)],
     [new PolyfillInjector(options)],
     [new BuildFilter(options)]
-  ];
+  ]);
 }

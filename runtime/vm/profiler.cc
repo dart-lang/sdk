@@ -33,6 +33,8 @@ DEFINE_FLAG(int, profile_period, 1000,
             "Time between profiler samples in microseconds. Minimum 250.");
 DEFINE_FLAG(int, profile_depth, 8,
             "Maximum number stack frames walked. Minimum 1. Maximum 255.");
+DEFINE_FLAG(bool, profile_verify_stack_walk, false,
+            "Verify instruction addresses while walking the stack.");
 
 bool Profiler::initialized_ = false;
 SampleBuffer* Profiler::sample_buffer_ = NULL;
@@ -889,7 +891,7 @@ class ProfilerSampleStackWalker : public ValueObject {
     ASSERT(sample_ != NULL);
   }
 
-  int walk() {
+  int walk(Heap* heap) {
     const intptr_t kMaxStep = 0x1000;  // 4K.
     const bool kWalkStack = true;  // Walk the stack.
     // Always store the exclusive PC.
@@ -918,6 +920,9 @@ class ProfilerSampleStackWalker : public ValueObject {
     }
     int i = 0;
     for (; i < FLAG_profile_depth; i++) {
+      if (FLAG_profile_verify_stack_walk) {
+        VerifyCodeAddress(heap, i, reinterpret_cast<uword>(pc));
+      }
       sample_->SetAt(i, reinterpret_cast<uword>(pc));
       if (!ValidFramePointer(fp)) {
         return i + 1;
@@ -939,6 +944,20 @@ class ProfilerSampleStackWalker : public ValueObject {
   }
 
  private:
+  void VerifyCodeAddress(Heap* heap, int i, uword pc) {
+    if (heap != NULL) {
+      if (heap->Contains(pc) && !heap->CodeContains(pc)) {
+        for (int j = 0; j < i; j++) {
+          OS::Print("%d %" Px "\n", j, sample_->At(j));
+        }
+        OS::Print("%d %" Px " <--\n", i, pc);
+        OS::Print("---ASSERT-FAILED---\n");
+        OS::Print("%" Px " %" Px "\n", original_pc_, original_fp_);
+        UNREACHABLE();
+      }
+    }
+  }
+
   uword* CallerPC(uword* fp) const {
     ASSERT(fp != NULL);
     return reinterpret_cast<uword*>(*(fp + kSavedCallerPcSlotFromFp));
@@ -958,6 +977,7 @@ class ProfilerSampleStackWalker : public ValueObject {
     bool r = cursor >= lower_bound_ && cursor < stack_upper_;
     return r;
   }
+
 
   Sample* sample_;
   const uword stack_upper_;
@@ -993,7 +1013,7 @@ void Profiler::RecordSampleInterruptCallback(
   }
   ProfilerSampleStackWalker stackWalker(sample, stack_lower, stack_upper,
                                         state.pc, state.fp, state.sp);
-  stackWalker.walk();
+  stackWalker.walk(isolate->heap());
 }
 
 

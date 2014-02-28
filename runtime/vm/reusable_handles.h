@@ -42,7 +42,7 @@ class ReusableObjectHandleScope : public StackResource {
     isolate()->set_reusable_handle_scope_active(false);
     Handle().raw_ = Object::null();
   }
-  Object& Handle() {
+  Object& Handle() const {
     ASSERT(isolate_->Object_handle_ != NULL);
     return *isolate_->Object_handle_;
   }
@@ -75,7 +75,7 @@ class ReusableHandleScope : public StackResource {
   }
 
 #define REUSABLE_HANDLE_ACCESSORS(object)                                      \
-  object& object##Handle() {                                                   \
+  object& object##Handle() const {                                             \
     ASSERT(isolate_->object##_handle_ != NULL);                                \
     return *isolate_->object##_handle_;                                        \
   }                                                                            \
@@ -99,7 +99,7 @@ class ReusableObjectHandleScope : public ValueObject {
   ~ReusableObjectHandleScope() {
     handle_->raw_ = Object::null();
   }
-  Object& Handle() {
+  Object& Handle() const {
     ASSERT(handle_ != NULL);
     return *handle_;
   }
@@ -124,7 +124,7 @@ class ReusableHandleScope : public ValueObject {
   }
 
 #define REUSABLE_HANDLE_ACCESSORS(object)                                      \
-  object& object##Handle() {                                                   \
+  object& object##Handle() const {                                             \
     ASSERT(isolate_->object##_handle_ != NULL);                                \
     return *isolate_->object##_handle_;                                        \
   }                                                                            \

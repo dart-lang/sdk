@@ -232,10 +232,10 @@ class TypesTask extends CompilerTask {
   TypeMask intersection(TypeMask type1, TypeMask type2, element) {
     TypeMask result = _intersection(type1, type2);
     if (DUMP_BAD_CPA_RESULTS && better(type1, type2)) {
-      print("CPA is worse for $element: $type1 /\ $type2 = $result");
+      print("CPA is worse for $element: $type1 /\\ $type2 = $result");
     }
     if (DUMP_GOOD_CPA_RESULTS && better(type2, type1)) {
-      print("CPA is better for $element: $type1 /\ $type2 = $result");
+      print("CPA is better for $element: $type1 /\\ $type2 = $result");
     }
     return result;
   }

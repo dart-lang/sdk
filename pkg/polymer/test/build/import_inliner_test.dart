@@ -4,12 +4,14 @@
 
 library polymer.test.build.import_inliner_test;
 
+import 'dart:convert' show JSON;
 import 'package:polymer/src/build/common.dart';
 import 'package:polymer/src/build/import_inliner.dart';
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
-
 import 'common.dart';
+
+part 'code_extractor.dart';
 
 final phases = [[new ImportInliner(new TransformOptions())]];
 
@@ -17,6 +19,7 @@ void main() {
   useCompactVMConfiguration();
   group('rel=import', importTests);
   group('rel=stylesheet', stylesheetTests);
+  group('script type=dart', codeExtractorTests);
 }
 
 void importTests() {
@@ -109,9 +112,10 @@ void importTests() {
           '<script src="second.js"></script>'
           '<script>/*third*/</script>'
           '<polymer-element>2</polymer-element>'
-          '<script type="application/dart">/*forth*/</script>'
+          '<script type="application/dart" src="test.html.0.dart"></script>'
           '</body></html>',
       'a|web/test.html.scriptUrls': '[]',
+      'a|web/test.html.0.dart': 'library a.web.test_html;\n/*forth*/',
       'a|web/test2.html':
           '<!DOCTYPE html><html><head><script>/*third*/</script>'
           '</head><body><polymer-element>2</polymer-element></html>',
@@ -643,6 +647,44 @@ void stylesheetTests() {
       'c|lib/test5.png': 'PNG',
     });
 
+  testPhases('deep, inlines css, multiple nesting', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="import" href="foo/test2.html">'
+          '</head></html>',
+      'a|web/foo/test2.html':
+          '<link rel="import" href="bar/test3.html">'
+          '<polymer-element>2'
+          '<link rel="stylesheet" href="test.css">'
+          '</polymer-element>',
+      'a|web/foo/bar/test3.html':
+          '<img src="qux.png">',
+      'a|web/foo/test.css':
+          'body {\n  background: #eaeaea url("test4.png");\n}\n'
+          '.foo {\n  background: url("test5.png");\n}',
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<img src="foo/bar/qux.png">'
+          '<polymer-element>2'
+          '<style>'
+          'body {\n  background: #eaeaea url(foo/test4.png);\n}\n'
+          '.foo {\n  background: url(foo/test5.png);\n}'
+          '</style></polymer-element></body></html>',
+      'a|web/foo/test2.html':
+          '<html><head></head><body>'
+          '<img src="bar/qux.png">'
+          '<polymer-element>2'
+          '<style>'
+          'body {\n  background: #eaeaea url(test4.png);\n}\n'
+          '.foo {\n  background: url(test5.png);\n}'
+          '</style></polymer-element></body></html>',
+      'a|web/foo/bar/test3.html':
+          '<img src="qux.png">',
+      'a|web/foo/test.css':
+          'body {\n  background: #eaeaea url("test4.png");\n}\n'
+          '.foo {\n  background: url("test5.png");\n}',
+    });
 
   testPhases('shallow, inlines css and preserves order', phases, {
       'a|web/test.html':
@@ -666,3 +708,4 @@ void stylesheetTests() {
     });
 
 }
+

@@ -1994,13 +1994,21 @@ void Debugger::DebuggerStepCallback() {
   // grows towards lower addresses.
   ActivationFrame* frame = TopDartFrame();
   ASSERT(frame != NULL);
-  if ((stepping_fp_ != 0) && (stepping_fp_ > frame->fp())) {
-    return;
+
+  if (stepping_fp_ != 0) {
+    // There is an "interesting frame" set. Only pause at appropriate
+    // locations in this frame.
+    if (stepping_fp_ > frame->fp()) {
+      // We are in a callee of the frame we're interested in.
+      // Ignore this stepping break.
+      return;
+    } else if (frame->fp() > stepping_fp_) {
+      // We returned from the "interesting frame", there can be no more
+      // stepping breaks for it. Pause at the next appropriate location
+      // and let the user set the "interesting" frame again.
+      stepping_fp_ = 0;
+    }
   }
-  // If an "interesting" frame is set, we are either in that frame
-  // or the program has returned from that frame. Let the user set
-  // the "interesting" frame again next time we pause.
-  stepping_fp_ = 0;
 
   if (!frame->IsDebuggable()) {
     return;

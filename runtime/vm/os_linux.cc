@@ -14,6 +14,9 @@
 #include <sys/resource.h>  // NOLINT
 #include <sys/time.h>  // NOLINT
 #include <sys/types.h>  // NOLINT
+#include <sys/syscall.h>  // NOLINT
+#include <sys/stat.h>  // NOLINT
+#include <fcntl.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 
 #include "platform/utils.h"
@@ -21,6 +24,7 @@
 #include "vm/dart.h"
 #include "vm/debuginfo.h"
 #include "vm/isolate.h"
+#include "vm/thread.h"
 #include "vm/vtune.h"
 #include "vm/zone.h"
 
@@ -37,6 +41,8 @@ DEFINE_FLAG(bool, ll_prof, false,
     "Generate compiled code log file for processing with ll_prof.py.");
 DEFINE_FLAG(charp, generate_pprof_symbols, NULL,
     "Writes pprof events symbols to the provided file");
+DEFINE_FLAG(bool, generate_perf_jitdump, false,
+    "Writes jitdump data for profiling with perf annotate");
 
 class LowLevelProfileCodeObserver : public CodeObserver {
  public:
@@ -56,7 +62,7 @@ class LowLevelProfileCodeObserver : public CodeObserver {
 #elif defined(TARGET_ARCH_MIPS)
     const char arch[] = "mips";
 #else
-    const char arch[] = "unknown";
+#error Unknown architecture.
 #endif
     LowLevelLogWriteBytes(arch, sizeof(arch));
   }
@@ -110,9 +116,12 @@ class LowLevelProfileCodeObserver : public CodeObserver {
     event.code_address = base;
     event.code_size = size;
 
-    LowLevelLogWriteStruct(event);
-    LowLevelLogWriteBytes(name_buffer, len);
-    LowLevelLogWriteBytes(reinterpret_cast<char*>(base), size);
+    {
+      MutexLocker ml(CodeObservers::mutex());
+      LowLevelLogWriteStruct(event);
+      LowLevelLogWriteBytes(name_buffer, len);
+      LowLevelLogWriteBytes(reinterpret_cast<char*>(base), size);
+    }
   }
 
  private:
@@ -164,7 +173,10 @@ class PerfCodeObserver : public CodeObserver {
     char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
     OS::SNPrint(buffer, len + 1, format, base, size, marker, name);
     ASSERT(out_file_ != NULL);
-    (*file_write)(buffer, len, out_file_);
+    {
+      MutexLocker ml(CodeObservers::mutex());
+      (*file_write)(buffer, len, out_file_);
+    }
   }
 
  private:
@@ -204,6 +216,7 @@ class PprofCodeObserver : public CodeObserver {
     int buffer_size = debug_region->size();
     void* buffer = debug_region->data();
     if (buffer_size > 0) {
+      MutexLocker ml(CodeObservers::mutex());
       ASSERT(buffer != NULL);
       (*file_write)(buffer, buffer_size, out_file);
     }
@@ -266,6 +279,214 @@ class GdbCodeObserver : public CodeObserver {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(GdbCodeObserver);
+};
+
+
+#define CLOCKFD 3
+#define FD_TO_CLOCKID(fd)       ((~(clockid_t) (fd) << 3) | CLOCKFD)  // NOLINT
+
+class JitdumpCodeObserver : public CodeObserver {
+ public:
+  JitdumpCodeObserver() {
+    ASSERT(FLAG_generate_perf_jitdump);
+    out_file_ = NULL;
+    clock_fd_ = -1;
+    clock_id_ = kInvalidClockId;
+    code_sequence_ = 0;
+    Dart_FileOpenCallback file_open = Isolate::file_open_callback();
+    Dart_FileWriteCallback file_write = Isolate::file_write_callback();
+    Dart_FileCloseCallback file_close = Isolate::file_close_callback();
+    if ((file_open == NULL) || (file_write == NULL) || (file_close == NULL)) {
+      return;
+    }
+    // The Jitdump code observer writes all jitted code into
+    // /tmp/jit-<pid>.dump, we open the file once on initialization and close
+    // it when the VM is going down.
+    {
+      // Open the file.
+      const char* format = "/tmp/jit-%" Pd ".dump";
+      intptr_t pid = getpid();
+      intptr_t len = OS::SNPrint(NULL, 0, format, pid);
+      char* filename = new char[len + 1];
+      OS::SNPrint(filename, len + 1, format, pid);
+      out_file_ = (*file_open)(filename, true);
+      ASSERT(out_file_ != NULL);
+      // Write the jit dump header.
+      WriteHeader();
+    }
+    // perf uses an internal clock and because our output is merged with data
+    // collected by perf our timestamps must be consistent. Using
+    // the posix-clock-module (/dev/trace_clock) as our time source ensures
+    // we are consistent with the perf timestamps.
+    clock_id_ = kInvalidClockId;
+    clock_fd_ = open("/dev/trace_clock", O_RDONLY);
+    if (clock_fd_ >= 0) {
+      clock_id_ = FD_TO_CLOCKID(clock_fd_);
+    }
+  }
+
+  ~JitdumpCodeObserver() {
+    Dart_FileCloseCallback file_close = Isolate::file_close_callback();
+    if (file_close == NULL) {
+      return;
+    }
+    ASSERT(out_file_ != NULL);
+    (*file_close)(out_file_);
+    if (clock_fd_ >= 0) {
+      close(clock_fd_);
+    }
+  }
+
+  virtual bool IsActive() const {
+    return FLAG_generate_perf_jitdump && (out_file_ != NULL);
+  }
+
+  virtual void Notify(const char* name,
+                      uword base,
+                      uword prologue_offset,
+                      uword size,
+                      bool optimized) {
+    WriteCodeLoad(name, base, prologue_offset, size, optimized);
+  }
+
+ private:
+  static const uint32_t kJitHeaderMagic = 0x4F74496A;
+  static const uint32_t kJitHeaderVersion = 0x2;
+  static const uint32_t kElfMachIA32 = 3;
+  static const uint32_t kElfMachX64 = 62;
+  static const uint32_t kElfMachARM = 40;
+  static const uint32_t kElfMachMIPS = 10;
+  static const int kInvalidClockId = -1;
+
+  struct jitheader {
+    uint32_t magic;
+    uint32_t version;
+    uint32_t total_size;
+    uint32_t elf_mach;
+    uint32_t pad1;
+    uint32_t pid;
+    uint64_t timestamp;
+  };
+
+  enum jit_record_type {
+    JIT_CODE_LOAD = 0,
+    /* JIT_CODE_UNLOAD = 1, */
+    /* JIT_CODE_CLOSE = 2, */
+    /* JIT_CODE_DEBUG_INFO = 3, */
+    JIT_CODE_MAX = 4,
+  };
+
+  struct jr_code_load {
+    uint32_t id;
+    uint32_t total_size;
+    uint64_t timestamp;
+    uint32_t pid;
+    uint32_t tid;
+    uint64_t vma;
+    uint64_t code_addr;
+    uint32_t code_size;
+    uint64_t code_index;
+    uint32_t align;
+  };
+
+  const char* GenerateCodeName(const char* name, bool optimized) {
+    const char* format = "%s%s";
+    const char* marker = optimized ? "*" : "";
+    intptr_t len = OS::SNPrint(NULL, 0, format, marker, name);
+    char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+    OS::SNPrint(buffer, len + 1, format, marker, name);
+    return buffer;
+  }
+
+  uint32_t GetElfMach() {
+#if defined(TARGET_ARCH_IA32)
+    return kElfMachIA32;
+#elif defined(TARGET_ARCH_X64)
+    return kElfMachX64;
+#elif defined(TARGET_ARCH_ARM)
+    return kElfMachARM;
+#elif defined(TARGET_ARCH_MIPS)
+    return kElfMachMIPS;
+#else
+#error Unknown architecture.
+#endif
+  }
+
+  pid_t gettid() {
+    // libc doesn't wrap the Linux-specific gettid system call.
+    // Note that this thread id is not the same as the posix thread id.
+    return syscall(SYS_gettid);
+  }
+
+  uint64_t GetKernelTimeNanos() {
+    if (clock_id_ != kInvalidClockId) {
+      struct timespec ts;
+      int r = clock_gettime(clock_id_, &ts);
+      ASSERT(r == 0);
+      uint64_t nanos = static_cast<uint64_t>(ts.tv_sec) *
+                       static_cast<uint64_t>(kNanosecondsPerSecond);
+      nanos += static_cast<uint64_t>(ts.tv_nsec);
+      return nanos;
+    } else {
+      return OS::GetCurrentTimeMicros() * kNanosecondsPerMicrosecond;
+    }
+  }
+
+  void WriteHeader() {
+    Dart_FileWriteCallback file_write = Isolate::file_write_callback();
+    ASSERT(file_write != NULL);
+    ASSERT(out_file_ != NULL);
+    jitheader header;
+    header.magic = kJitHeaderMagic;
+    header.version = kJitHeaderVersion;
+    header.total_size = sizeof(jitheader);
+    header.pad1 = 0xdeadbeef;
+    header.elf_mach = GetElfMach();
+    header.pid = getpid();
+    header.timestamp = GetKernelTimeNanos();
+    {
+      MutexLocker ml(CodeObservers::mutex());
+      (*file_write)(&header, sizeof(header), out_file_);
+    }
+  }
+
+  void WriteCodeLoad(const char* name, uword base, uword prologue_offset,
+                     uword code_size, bool optimized) {
+    Dart_FileWriteCallback file_write = Isolate::file_write_callback();
+    ASSERT(file_write != NULL);
+    ASSERT(out_file_ != NULL);
+
+    const char* code_name = GenerateCodeName(name, optimized);
+    const intptr_t code_name_size = strlen(code_name) + 1;
+    uint8_t* code_pointer = reinterpret_cast<uint8_t*>(base);
+
+    jr_code_load code_load;
+    code_load.id = JIT_CODE_LOAD;
+    code_load.total_size = sizeof(code_load) + code_name_size + code_size;
+    code_load.timestamp = GetKernelTimeNanos();
+    code_load.pid = getpid();
+    code_load.tid = gettid();
+    code_load.vma = 0x0;  //  Our addresses are absolute.
+    code_load.code_addr = base;
+    code_load.code_size = code_size;
+    code_load.align = OS::PreferredCodeAlignment();
+
+    {
+      MutexLocker ml(CodeObservers::mutex());
+      // Set this field under the index.
+      code_load.code_index = code_sequence_++;
+      // Write structures.
+      (*file_write)(&code_load, sizeof(code_load), out_file_);
+      (*file_write)(code_name, code_name_size, out_file_);
+      (*file_write)(code_pointer, code_size, out_file_);
+    }
+  }
+
+  void* out_file_;
+  int clock_fd_;
+  int clock_id_;
+  uint64_t code_sequence_;
+  DISALLOW_COPY_AND_ASSIGN(JitdumpCodeObserver);
 };
 
 
@@ -511,6 +732,9 @@ void OS::RegisterCodeObservers() {
   }
   if (FLAG_generate_pprof_symbols != NULL) {
     CodeObservers::Register(new PprofCodeObserver);
+  }
+  if (FLAG_generate_perf_jitdump) {
+    CodeObservers::Register(new JitdumpCodeObserver);
   }
 #if defined(DART_VTUNE_SUPPORT)
   CodeObservers::Register(new VTuneCodeObserver);

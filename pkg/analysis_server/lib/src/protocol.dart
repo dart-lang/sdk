@@ -75,11 +75,13 @@ class Request {
       }
       String id = result[Request.ID];
       String method = result[Request.METHOD];
-      Map<String, Object> params = result[Request.PARAMS];
+      var params = result[Request.PARAMS];
       Request request = new Request(id, method);
-      params.forEach((String key, Object value) {
-        request.setParameter(key, value);
-      });
+      if (params is Map) {
+        params.forEach((String key, Object value) {
+          request.setParameter(key, value);
+        });
+      }
       return request;
     } catch (exception) {
       return null;
@@ -144,6 +146,20 @@ class Request {
       });
     }
     throw new RequestFailure(new Response.expectedInteger(this, value));
+  }
+
+  /**
+   * Return a table representing the structure of the Json object that will be
+   * sent to the client to represent this response.
+   */
+  Map<String, Object> toJson() {
+    Map<String, Object> jsonObject = new Map<String, Object>();
+    jsonObject[ID] = id;
+    jsonObject[METHOD] = method;
+    if (params.isNotEmpty) {
+      jsonObject[PARAMS] = params;
+    }
+    return jsonObject;
   }
 }
 
@@ -245,6 +261,32 @@ class Response {
     : this(request.id, new RequestError(-7, 'Unknown request'));
 
   /**
+   * Initialize a newly created instance based upon the given JSON data
+   */
+  factory Response.fromJson(Map<String, Object> json) {
+    try {
+      // TODO process result
+      String id = json[Response.ID];
+      var error = json[Response.ERROR];
+      var result = json[Response.RESULT];
+      Response response;
+      if (error is Map) {
+        response = new Response(id, new RequestError.fromJson(error));
+      } else {
+        response = new Response(id);
+      }
+      if (result is Map) {
+        result.forEach((String key, Object value) {
+          response.setResult(key, value);
+        });
+      }
+      return response;
+    } catch (exception) {
+      return null;
+    }
+  }
+
+  /**
    * Return the value of the result field with the given [name].
    */
   Object getResult(String name) {
@@ -263,7 +305,7 @@ class Response {
    * sent to the client to represent this response.
    */
   Map<String, Object> toJson() {
-    Map jsonObject = new Map();
+    Map<String, Object> jsonObject = new Map<String, Object>();
     jsonObject[ID] = id;
     if (error == null) {
       jsonObject[ERROR] = null;
@@ -383,6 +425,26 @@ class RequestError {
   RequestError.internalError() : this(CODE_INTERNAL_ERROR, "Internal error");
 
   /**
+   * Initialize a newly created [Error] from the given JSON.
+   */
+  factory RequestError.fromJson(Map<String, Object> json) {
+    try {
+      int code = json[RequestError.CODE];
+      String message = json[RequestError.MESSAGE];
+      Map<String, Object> data = json[RequestError.DATA];
+      RequestError requestError = new RequestError(code, message);
+      if (data != null) {
+        data.forEach((String key, Object value) {
+          requestError.setData(key, value);
+        });
+      }
+      return requestError;
+    } catch (exception) {
+      return null;
+    }
+  }
+
+  /**
    * Return the value of the data with the given [name], or `null` if there is
    * no such data associated with this error.
    */
@@ -400,7 +462,7 @@ class RequestError {
    * sent to the client to represent this response.
    */
   Map<String, Object> toJson() {
-    Map jsonObject = new Map();
+    Map<String, Object> jsonObject = new Map<String, Object>();
     jsonObject[CODE] = code;
     jsonObject[MESSAGE] = message;
     if (!data.isEmpty) {
@@ -442,6 +504,25 @@ class Notification {
   Notification(this.event);
 
   /**
+   * Initialize a newly created instance based upon the given JSON data
+   */
+  factory Notification.fromJson(Map<String, Object> json) {
+    try {
+      String event = json[Notification.EVENT];
+      var params = json[Notification.PARAMS];
+      Notification notification = new Notification(event);
+      if (params is Map) {
+        params.forEach((String key, Object value) {
+          notification.setParameter(key, value);
+        });
+      }
+      return notification;
+    } catch (exception) {
+      return null;
+    }
+  }
+
+  /**
    * Return the value of the parameter with the given [name], or `null` if there
    * is no such parameter associated with this notification.
    */
@@ -459,7 +540,7 @@ class Notification {
    * sent to the client to represent this response.
    */
   Map<String, Object> toJson() {
-    Map jsonObject = new Map();
+    Map<String, Object> jsonObject = new Map<String, Object>();
     jsonObject[EVENT] = event;
     if (!params.isEmpty) {
       jsonObject[PARAMS] = params;

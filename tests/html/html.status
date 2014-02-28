@@ -16,7 +16,6 @@ custom/js_custom_test: Fail # Issue 14643
 custom/created_callback_test: Fail # Support for created constructor.
 
 [ $compiler == dart2js && ($runtime == safari || $runtime == ff || $runtime == chrome || $runtime == ie9 || $runtime == ie10) ]
-custom/document_register_type_extensions_test/namespaces: Fail # Polyfill does not support createElementNS
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 

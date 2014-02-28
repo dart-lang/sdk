@@ -8,7 +8,7 @@
 #     - set "PRERELEASE_PATCH 0"
 #
 #  * Doing a push-to-trunk from bleeding_edge:
-#    (The first push-to-trunk in the release cycle will set PRERELEASE to 1)
+#    (The first push-to-trunk in the release cycle will set PRERELEASE to 0)
 #     - increase PRERELEASE by 1
 #     - set "PRERELEASE_PATCH 0"
 #
@@ -27,5 +27,5 @@ CHANNEL dev
 MAJOR 1
 MINOR 3
 PATCH 0
-PRERELEASE 0
-PRERELEASE_PATCH 1
+PRERELEASE 1
+PRERELEASE_PATCH 0

@@ -234,7 +234,12 @@ class InfoDumpVisitor extends ElementVisitor<InfoNode> {
         .getGeneratedSizeOf(element);
     if (size == 0) return null;
     stack.add(element);
-    element.forEachLocalMember((Element member) {
+    // For some reason the patch library contains the origin libraries members,
+    // but the origin library does not contain the patch members.
+    LibraryElement contentsLibrary = element.isPatched
+        ? element.patch
+        : element;
+    contentsLibrary.forEachLocalMember((Element member) {
       InfoNode info = member.accept(this);
       if (info != null) {
         contents.add(info);

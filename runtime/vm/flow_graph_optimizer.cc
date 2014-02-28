@@ -2216,10 +2216,9 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   }
   LoadFieldInstr* load = new LoadFieldInstr(
       new Value(call->ArgumentAt(0)),
-      field.Offset(),
+      &field,
       AbstractType::ZoneHandle(field.type()),
       field.is_final());
-  load->set_field(&field);
   if (field.guarded_cid() != kIllegalCid) {
     if (!field.is_nullable() || (field.guarded_cid() == kNullCid)) {
       load->set_result_cid(field.guarded_cid());
@@ -2692,11 +2691,11 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     // This is an internal method, no need to check argument types.
     Definition* array = call->ArgumentAt(0);
     Definition* value = call->ArgumentAt(1);
-    StoreVMFieldInstr* store = new StoreVMFieldInstr(
-        new Value(array),
+    StoreInstanceFieldInstr* store = new StoreInstanceFieldInstr(
         GrowableObjectArray::data_offset(),
+        new Value(array),
         new Value(value),
-        Type::ZoneHandle());
+        kEmitStoreBarrier);
     ReplaceCall(call, store);
     return true;
   }
@@ -2708,11 +2707,11 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     // range.
     Definition* array = call->ArgumentAt(0);
     Definition* value = call->ArgumentAt(1);
-    StoreVMFieldInstr* store = new StoreVMFieldInstr(
-        new Value(array),
+    StoreInstanceFieldInstr* store = new StoreInstanceFieldInstr(
         GrowableObjectArray::length_offset(),
+        new Value(array),
         new Value(value),
-        Type::ZoneHandle());
+        kEmitStoreBarrier);
     ReplaceCall(call, store);
     return true;
   }
@@ -4963,24 +4962,18 @@ class Place : public ValueObject {
       }
 
       case Instruction::kStoreInstanceField: {
-        StoreInstanceFieldInstr* store_instance_field =
+        StoreInstanceFieldInstr* store =
             instr->AsStoreInstanceField();
-        kind_ = kField;
-        representation_ = store_instance_field->
-            RequiredInputRepresentation(StoreInstanceFieldInstr::kValuePos);
-        instance_ =
-            OriginalDefinition(store_instance_field->instance()->definition());
-        field_ = &store_instance_field->field();
-        break;
-      }
-
-      case Instruction::kStoreVMField: {
-        StoreVMFieldInstr* store_vm_field = instr->AsStoreVMField();
-        kind_ = kVMField;
-        representation_ = store_vm_field->
-            RequiredInputRepresentation(StoreVMFieldInstr::kValuePos);
-        instance_ = OriginalDefinition(store_vm_field->dest()->definition());
-        offset_in_bytes_ = store_vm_field->offset_in_bytes();
+        representation_ = store->RequiredInputRepresentation(
+            StoreInstanceFieldInstr::kValuePos);
+        instance_ = OriginalDefinition(store->instance()->definition());
+        if (!store->field().IsNull()) {
+          kind_ = kField;
+          field_ = &store->field();
+        } else {
+          kind_ = kVMField;
+          offset_in_bytes_ = store->offset_in_bytes();
+        }
         break;
       }
 
@@ -5265,13 +5258,11 @@ class AliasedSet : public ZoneAllocated {
         instr->AsStoreInstanceField();
     if (store_instance_field != NULL) {
       Definition* instance = store_instance_field->instance()->definition();
-      return Alias::Field(GetInstanceFieldId(instance,
-                                             store_instance_field->field()));
-    }
-
-    StoreVMFieldInstr* store_vm_field = instr->AsStoreVMField();
-    if (store_vm_field != NULL) {
-      return Alias::VMField(store_vm_field->offset_in_bytes());
+      if (!store_instance_field->field().IsNull()) {
+        return Alias::Field(GetInstanceFieldId(instance,
+                                               store_instance_field->field()));
+      }
+      return Alias::VMField(store_instance_field->offset_in_bytes());
     }
 
     if (instr->IsStoreContext()) {
@@ -5375,8 +5366,6 @@ class AliasedSet : public ZoneAllocated {
            use = use->next_use()) {
         Instruction* instr = use->instruction();
         if (instr->IsPushArgument() ||
-            (instr->IsStoreVMField()
-             && (use->use_index() != StoreVMFieldInstr::kObjectPos)) ||
             (instr->IsStoreInstanceField()
              && (use->use_index() != StoreInstanceFieldInstr::kInstancePos)) ||
             instr->IsStoreStaticField() ||
@@ -5577,11 +5566,6 @@ static Definition* GetStoredValue(Instruction* instr) {
     return store_instance_field->value()->definition();
   }
 
-  StoreVMFieldInstr* store_vm_field = instr->AsStoreVMField();
-  if (store_vm_field != NULL) {
-    return store_vm_field->value()->definition();
-  }
-
   StoreStaticFieldInstr* store_static_field = instr->AsStoreStaticField();
   if (store_static_field != NULL) {
     return store_static_field->value()->definition();
@@ -5640,7 +5624,6 @@ static PhiPlaceMoves* ComputePhiMoves(
                       result->id());
           }
         }
-
         phi_moves->CreateOutgoingMove(block->PredecessorAt(j),
                                       result->id(),
                                       place->id());
@@ -5786,8 +5769,6 @@ class LoadOptimizer : public ValueObject {
   // Loads that are locally redundant will be replaced as we go through
   // instructions.
   void ComputeInitialSets() {
-    BitVector* forwarded_loads = new BitVector(aliased_set_->max_place_id());
-
     for (BlockIterator block_it = graph_->reverse_postorder_iterator();
          !block_it.Done();
          block_it.Advance()) {
@@ -5946,12 +5927,6 @@ class LoadOptimizer : public ValueObject {
         (*out_values)[place_id] = defn;
       }
 
-      PhiPlaceMoves::MovesList phi_moves =
-          aliased_set_->phi_moves()->GetOutgoingMoves(block);
-      if (phi_moves != NULL) {
-        PerformPhiMoves(phi_moves, gen, forwarded_loads);
-      }
-
       exposed_values_[preorder_number] = exposed_values;
       out_values_[preorder_number] = out_values;
     }
@@ -5988,6 +5963,7 @@ class LoadOptimizer : public ValueObject {
   void ComputeOutSets() {
     BitVector* temp = new BitVector(aliased_set_->max_place_id());
     BitVector* forwarded_loads = new BitVector(aliased_set_->max_place_id());
+    BitVector* temp_out = new BitVector(aliased_set_->max_place_id());
 
     bool changed = true;
     while (changed) {
@@ -6015,9 +5991,17 @@ class LoadOptimizer : public ValueObject {
           for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
             BlockEntryInstr* pred = block->PredecessorAt(i);
             BitVector* pred_out = out_[pred->preorder_number()];
-            if (pred_out != NULL) {
-              temp->Intersect(pred_out);
+            if (pred_out == NULL) continue;
+            PhiPlaceMoves::MovesList phi_moves =
+                aliased_set_->phi_moves()->GetOutgoingMoves(pred);
+            if (phi_moves != NULL) {
+              // If there are phi moves, perform intersection with
+              // a copy of pred_out where the phi moves are applied.
+              temp_out->CopyFrom(pred_out);
+              PerformPhiMoves(phi_moves, temp_out, forwarded_loads);
+              pred_out = temp_out;
             }
+            temp->Intersect(pred_out);
           }
         }
 
@@ -6027,12 +6011,6 @@ class LoadOptimizer : public ValueObject {
 
           temp->RemoveAll(block_kill);
           temp->AddAll(block_gen);
-
-          PhiPlaceMoves::MovesList phi_moves =
-              aliased_set_->phi_moves()->GetOutgoingMoves(block);
-          if (phi_moves != NULL) {
-            PerformPhiMoves(phi_moves, temp, forwarded_loads);
-          }
 
           if ((block_out == NULL) || !block_out->Equals(*temp)) {
             if (block_out == NULL) {
@@ -7263,12 +7241,6 @@ void ConstantPropagator::VisitCreateArray(CreateArrayInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitCreateClosure(CreateClosureInstr* instr) {
-  // TODO(kmillikin): Treat closures as constants.
-  SetValue(instr, non_constant_);
-}
-
-
 void ConstantPropagator::VisitAllocateObject(AllocateObjectInstr* instr) {
   SetValue(instr, non_constant_);
 }
@@ -7324,11 +7296,6 @@ void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
     }
   }
   SetValue(instr, non_constant_);
-}
-
-
-void ConstantPropagator::VisitStoreVMField(StoreVMFieldInstr* instr) {
-  SetValue(instr, instr->value()->definition()->constant_value());
 }
 
 
@@ -7987,8 +7954,7 @@ void ConstantPropagator::Transform() {
           !defn->IsPushArgument() &&
           !defn->IsStoreIndexed() &&
           !defn->IsStoreInstanceField() &&
-          !defn->IsStoreStaticField() &&
-          !defn->IsStoreVMField()) {
+          !defn->IsStoreStaticField()) {
         if (FLAG_trace_constant_propagation) {
           OS::Print("Constant v%" Pd " = %s\n",
                     defn->ssa_temp_index(),
@@ -8578,9 +8544,8 @@ void AllocationSinking::CreateMaterializationAt(
   for (intptr_t i = 0; i < fields.length(); i++) {
     const Field* field = fields[i];
     LoadFieldInstr* load = new LoadFieldInstr(new Value(alloc),
-                                              field->Offset(),
+                                              field,
                                               AbstractType::ZoneHandle());
-    load->set_field(field);
     flow_graph_->InsertBefore(
         exit, load, NULL, Definition::kValue);
     values->Add(new Value(load));

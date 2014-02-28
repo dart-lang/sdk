@@ -9,14 +9,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_maps/span.dart' show SourceFile;
 
-import 'code_extractor.dart'; // import just for documentation.
+import 'import_inliner.dart' show ImportInliner; // just for docs.
 import 'common.dart';
 
 /// Combines Dart script tags into a single script tag, and creates a new Dart
@@ -24,7 +21,7 @@ import 'common.dart';
 ///
 /// This transformer assumes that all script tags point to external files. To
 /// support script tags with inlined code, use this transformer after running
-/// [InlineCodeExtractor] on an earlier phase.
+/// [ImportInliner] on an earlier phase.
 ///
 /// Internally, this transformer will convert each script tag into an import
 /// statement to a library, and then uses `initPolymer` (see polymer.dart)  to
@@ -129,7 +126,7 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
     var initializers = [];
     return transform.readInputAsString(dartLibrary).then((code) {
       var file = new SourceFile.text(_simpleUriForSource(dartLibrary), code);
-      var unit = _parseCompilationUnit(code);
+      var unit = parseCompilationUnit(code);
 
       return Future.forEach(unit.directives, (directive) {
         // Include anything from parts.
@@ -222,21 +219,6 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
     }
     initializers.add(new _InitMethodInitializer(name));
   }
-}
-
-/// Parse [code] using analyzer.
-CompilationUnit _parseCompilationUnit(String code) {
-  var errorListener = new _ErrorCollector();
-  var reader = new CharSequenceReader(code);
-  var scanner = new Scanner(null, reader, errorListener);
-  var token = scanner.tokenize();
-  var parser = new Parser(null, errorListener);
-  return parser.parseCompilationUnit(token);
-}
-
-class _ErrorCollector extends AnalysisErrorListener {
-  final errors = <AnalysisError>[];
-  onError(error) => errors.add(error);
 }
 
 // TODO(sigmund): consider support for importing annotations with prefixes.

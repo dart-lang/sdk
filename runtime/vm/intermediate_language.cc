@@ -171,12 +171,16 @@ Representation LoadFieldInstr::representation() const {
 
 
 bool StoreInstanceFieldInstr::IsUnboxedStore() const {
-  return FLAG_unbox_numeric_fields && field().IsUnboxedField();
+  return FLAG_unbox_numeric_fields
+      && !field().IsNull()
+      && field().IsUnboxedField();
 }
 
 
 bool StoreInstanceFieldInstr::IsPotentialUnboxedStore() const {
-  return FLAG_unbox_numeric_fields && field().IsPotentialUnboxedField();
+  return FLAG_unbox_numeric_fields
+      && !field().IsNull()
+      && field().IsPotentialUnboxedField();
 }
 
 

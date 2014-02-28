@@ -8570,6 +8570,14 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       } else {
         // Left is not a primary node; this must be a closure call.
         AstNode* closure = left;
+        if (parsing_metadata_) {
+            // Compiling closure calls involves saving the current context based
+            // on the current function, and metadata has no current function.
+            // Fail early rather than limping along only to discover later that
+            // we parsed something that isn't a compile-time constant.
+            ErrorMsg(closure->token_pos(),
+              "expression is not a valid compile-time constant");
+        }
         selector = ParseClosureCall(closure);
       }
     } else {

@@ -17,7 +17,10 @@ class YouveGotMessages {
       name: 'staticMessage');
 
   // An instance method, rather than a standalone function.
-  method() => Intl.message("This comes from a method", name: 'method');
+  method() => Intl.message("This comes from a method", name: 'method',
+      desc: 'This is a method with a '
+            'long description which spans '
+            'multiple lines.');
 
   // A non-lambda, i.e. not using => syntax, and with an additional statement
   // before the Intl.message call.

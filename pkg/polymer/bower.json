@@ -1,0 +1,12 @@
+{
+  "name": "polymer-dart",
+  "authors": [
+    "Polymer.dart Authors <web-ui-dev@dartlang.org>"
+  ],
+  "dependencies": {
+    "polymer-elements": "Polymer/polymer-elements#master",
+    "polymer-ui-elements": "Polymer/polymer-ui-elements#master"
+  },
+  "license": "BSD",
+  "private": true
+}

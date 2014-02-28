@@ -4,7 +4,6 @@
 
 /// Tests priority queue implementations utilities.
 
-import "dart:collection";
 import "package:collection/priority_queue.dart";
 import "package:unittest/unittest.dart";
 

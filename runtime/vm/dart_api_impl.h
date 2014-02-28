@@ -18,6 +18,7 @@ class ApiState;
 class FinalizablePersistentHandle;
 class LocalHandle;
 class PersistentHandle;
+class ReusableObjectHandleScope;
 
 const char* CanonicalFunction(const char* func);
 
@@ -122,6 +123,12 @@ class Api : AllStatic {
   CLASS_LIST_FOR_HANDLES(DECLARE_UNWRAP)
 #undef DECLARE_UNWRAP
 
+  // Unwraps the raw object from the handle using a reused handle.
+  static const String& UnwrapStringHandle(
+      const ReusableObjectHandleScope& reused, Dart_Handle object);
+  static const Instance& UnwrapInstanceHandle(
+      const ReusableObjectHandleScope& reused, Dart_Handle object);
+
   // Validates and converts the passed in handle as a persistent handle.
   static PersistentHandle* UnwrapAsPersistentHandle(
       Dart_PersistentHandle object);
@@ -205,15 +212,15 @@ class Api : AllStatic {
   static void InitHandles();
 
   // Helper function to get the peer value of an external string object.
-  static bool StringGetPeerHelper(Dart_NativeArguments args,
+  static bool StringGetPeerHelper(NativeArguments* args,
                                   int arg_index,
                                   void** peer);
 
   // Helper function to get the native field from a native receiver argument.
-  static bool GetNativeReceiver(Dart_NativeArguments args, intptr_t* value);
+  static bool GetNativeReceiver(NativeArguments* args, intptr_t* value);
 
   // Helper function to get the boolean value of a Bool native argument.
-  static bool GetNativeBooleanArgument(Dart_NativeArguments args,
+  static bool GetNativeBooleanArgument(NativeArguments* args,
                                        int arg_index,
                                        bool* value);
 

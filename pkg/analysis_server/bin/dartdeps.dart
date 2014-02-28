@@ -13,8 +13,13 @@ import 'package:analysis_server/src/analysis_manager.dart';
  * to analyze the application specified on the command line.
  */
 void main(List<String> args) {
-  _DartDependencyAnalyzer analyzer = new _DartDependencyAnalyzer();
-  analyzer.start(args);
+  new _DartDependencyAnalyzer(args).run()
+      .catchError((error, stack) {
+        print('Analysis failed: $error');
+        if (stack != null) {
+          print(stack);
+        }
+      });
 }
 
 /**
@@ -30,28 +35,47 @@ class _DartDependencyAnalyzer {
   /**
    * The name of the option used to print usage information.
    */
-  static const String HELP_OPTION = "help";
+  static const String HELP_OPTION = 'help';
 
   /**
    * The name of the option used to specify an already running server.
    */
-  static const String SERVER_OPTION = "server";
+  static const String SERVER_OPTION = 'server';
+
+  /**
+   * The command line arguments.
+   */
+  final List<String> args;
+
+  /**
+   * The manager for the analysis server.
+   */
+  AnalysisManager manager;
+
+  _DartDependencyAnalyzer(this.args);
 
   /**
    * Parse the command line arguments to determine the application to be
    * analyzed, then launch and manage an analysis server to do the work.
-   * If there is a problem with the given arguments, then return a non zero
-   * value, otherwise return zero.
    */
-  void start(List<String> args) {
+  Future run() {
+    return new Future(start).then(analyze).whenComplete(stop);
+  }
+
+  /**
+   * Parse the command line arguments to determine the application to be
+   * analyzed, then launch an analysis server.
+   * Return `null` if the command line arguments are invalid.
+   */
+  Future<AnalysisManager> start() {
     var parser = new ArgParser();
     parser.addFlag(HELP_OPTION,
-        help: "print this help message without starting analysis",
+        help: 'print this help message without starting analysis',
         defaultsTo: false,
         negatable: false);
     parser.addOption(
         SERVER_OPTION,
-        help: "[serverUrl] use an analysis server thats already running");
+        help: '[serverUrl] use an analysis server thats already running');
 
     // Parse arguments
     ArgResults results;
@@ -62,16 +86,16 @@ class _DartDependencyAnalyzer {
       print('');
       printUsage(parser);
       exitCode = 1;
-      return;
+      return null;
     }
     if (results[HELP_OPTION]) {
       printUsage(parser);
-      return;
+      return null;
     }
     if (results.rest.length == 0) {
       printUsage(parser);
       exitCode = 1;
-      return;
+      return null;
     }
     Directory appDir = new Directory(results.rest[0]);
     if (!appDir.existsSync()) {
@@ -79,43 +103,49 @@ class _DartDependencyAnalyzer {
       print('');
       printUsage(parser);
       exitCode = 1;
-      return;
+      return null;
     }
     if (results.rest.length > 1) {
       print('Unexpected arguments after $appDir');
       print('');
       printUsage(parser);
       exitCode = 1;
-      return;
+      return null;
     }
 
-    Future<AnalysisManager> future;
+    // Connect to an already running analysis server
     String serverUrl = results[SERVER_OPTION];
     if (serverUrl != null) {
-      // Connect to an already running analysis server
-      future = AnalysisManager.connect(serverUrl);
-
-    } else {
-      // Launch and connect to a new analysis server
-      // Assume that the analysis server entry point is in the same directory
-      StringBuffer path = new StringBuffer();
-      path.write(FileSystemEntity.parentOf(Platform.script.toFilePath()));
-      path.write(Platform.pathSeparator);
-      path.write("server.dart");
-      future = AnalysisManager.start(path.toString());
+      return AnalysisManager.connect(serverUrl);
     }
-    future.then(analyze);
+
+    // Launch and connect to a new analysis server
+    // Assume that the analysis server entry point is in the same directory
+    StringBuffer path = new StringBuffer();
+    path.write(FileSystemEntity.parentOf(Platform.script.toFilePath()));
+    path.write(Platform.pathSeparator);
+    path.write('server.dart');
+    return AnalysisManager.start(path.toString());
   }
 
-  void analyze(AnalysisManager mgr) {
-    print("Analyzing...");
-    new Timer(new Duration(seconds: 5), () {
-      if (mgr.stop()) {
-        print("stopped");
-      } else {
-        print("already stopped");
-      }
-    });
+  /**
+   * Use the given manager to perform the analysis.
+   */
+  void analyze(AnalysisManager manager) {
+    if (manager == null) {
+      return;
+    }
+    this.manager = manager;
+    print('Analyzing...');
+  }
+
+  /**
+   * Stop the analysis server.
+   */
+  void stop() {
+    if (manager != null) {
+      manager.stop();
+    }
   }
 
   /**

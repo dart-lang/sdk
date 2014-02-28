@@ -29,7 +29,7 @@ main() {
     var pub = startPubServe();
     pub.stderr.expect(emitsLines(
         'Error in pubspec for package "myapp" loaded from pubspec.yaml:\n'
-        'Invalid transformer identifier for "transformers.\$nonexistent": '
+        'Invalid transformer configuration for "transformers.\$nonexistent": '
             'Unsupported built-in transformer \$nonexistent.'));
     pub.shouldExit(1);
   });

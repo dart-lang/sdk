@@ -129,7 +129,7 @@ class HttpAnalysisServer {
    * running an analysis server on a [WebSocket]-based communication channel.
    */
   void _handleWebSocket(WebSocket socket) {
-    analysisServer = new AnalysisServer(new WebSocketChannel(socket));
+    analysisServer = new AnalysisServer(new WebSocketServerChannel(socket));
     _initializeHandlers(analysisServer);
     if (getHandler != null) {
       getHandler.server = analysisServer;

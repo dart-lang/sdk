@@ -183,6 +183,24 @@ class Range;
   V(ListIterator, moveNext, ListIteratorMoveNext, 2062984847)                  \
   V(_GrowableList, get:iterator, GrowableArrayIterator, 1155241039)            \
   V(_GrowableList, forEach, GrowableArrayForEach, 195359970)                   \
+  V(_Uint8ArrayView, [], Uint8ArrayViewGetIndexed, 250795553)                  \
+  V(_Uint8ArrayView, []=, Uint8ArrayViewSetIndexed, 533993880)                 \
+  V(_Int8ArrayView, [], Int8ArrayViewGetIndexed, 530738523)                    \
+  V(_Int8ArrayView, []=, Int8ArrayViewSetIndexed, 1513635170)                  \
+  V(::, asin, MathASin, 1528431637)                                            \
+  V(::, acos, MathACos, 1558635398)                                            \
+  V(::, atan, MathATan, 209476605)                                             \
+  V(::, atan2, MathATan2, 2059468649)                                          \
+  V(::, cos, MathCos, 1282146521)                                              \
+  V(::, exp, MathExp, 1951779581)                                              \
+  V(::, log, MathLog, 255699484)                                               \
+  V(::, max, MathMax, 612058870)                                               \
+  V(::, min, MathMin, 1022567780)                                              \
+  V(::, pow, MathPow, 1880071137)                                              \
+  V(::, sin, MathSin, 730107143)                                               \
+  V(::, sqrt, MathSqrt, 465520247)                                             \
+  V(::, tan, MathTan, 2077846426)                                              \
+
 
 // A list of core functions that internally dispatch based on received id.
 #define POLYMORPHIC_TARGET_LIST(V)                                             \
@@ -645,10 +663,8 @@ class EmbeddedArray<T, 0> {
   M(BooleanNegate)                                                             \
   M(InstanceOf)                                                                \
   M(CreateArray)                                                               \
-  M(CreateClosure)                                                             \
   M(AllocateObject)                                                            \
   M(LoadField)                                                                 \
-  M(StoreVMField)                                                              \
   M(LoadUntagged)                                                              \
   M(LoadClassId)                                                               \
   M(InstantiateType)                                                           \
@@ -3349,6 +3365,8 @@ class DropTempsInstr : public TemplateDefinition<1> {
 
   virtual CompileType* ComputeInitialType() const;
 
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
   virtual bool CanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const {
@@ -3490,6 +3508,20 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
                           StoreBarrierType emit_store_barrier,
                           bool is_initialization = false)
       : field_(field),
+        offset_in_bytes_(field.Offset()),
+        emit_store_barrier_(emit_store_barrier),
+        is_initialization_(is_initialization) {
+    SetInputAt(kInstancePos, instance);
+    SetInputAt(kValuePos, value);
+  }
+
+  StoreInstanceFieldInstr(intptr_t offset_in_bytes,
+                          Value* instance,
+                          Value* value,
+                          StoreBarrierType emit_store_barrier,
+                          bool is_initialization = false)
+      : field_(Field::Handle()),
+        offset_in_bytes_(offset_in_bytes),
         emit_store_barrier_(emit_store_barrier),
         is_initialization_(is_initialization) {
     SetInputAt(kInstancePos, instance);
@@ -3509,6 +3541,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
   virtual CompileType* ComputeInitialType() const;
 
   const Field& field() const { return field_; }
+  intptr_t offset_in_bytes() const { return offset_in_bytes_; }
 
   bool ShouldEmitStoreBarrier() const {
     return value()->NeedsStoreBuffer()
@@ -3548,6 +3581,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
   }
 
   const Field& field_;
+  intptr_t offset_in_bytes_;
   const StoreBarrierType emit_store_barrier_;
   const bool is_initialization_;  // Marks stores in the constructor.
 
@@ -4127,43 +4161,6 @@ class CreateArrayInstr : public TemplateDefinition<2> {
 };
 
 
-class CreateClosureInstr : public TemplateDefinition<0> {
- public:
-  CreateClosureInstr(const Function& function,
-                     ZoneGrowableArray<PushArgumentInstr*>* arguments,
-                     intptr_t token_pos)
-      : function_(function),
-        arguments_(arguments),
-        token_pos_(token_pos) { }
-
-  DECLARE_INSTRUCTION(CreateClosure)
-  virtual CompileType ComputeType() const;
-
-  intptr_t token_pos() const { return token_pos_; }
-  const Function& function() const { return function_; }
-
-  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
-  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
-    return (*arguments_)[index];
-  }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  const Function& function_;
-  ZoneGrowableArray<PushArgumentInstr*>* arguments_;
-  intptr_t token_pos_;
-
-  DISALLOW_COPY_AND_ASSIGN(CreateClosureInstr);
-};
-
-
 class LoadUntaggedInstr : public TemplateDefinition<1> {
  public:
   LoadUntaggedInstr(Value* object, intptr_t offset) : offset_(offset) {
@@ -4245,6 +4242,21 @@ class LoadFieldInstr : public TemplateDefinition<1> {
     SetInputAt(0, instance);
   }
 
+  LoadFieldInstr(Value* instance,
+                 const Field* field,
+                 const AbstractType& type,
+                 bool immutable = false)
+      : offset_in_bytes_(field->Offset()),
+        type_(type),
+        result_cid_(kDynamicCid),
+        immutable_(immutable),
+        recognized_kind_(MethodRecognizer::kUnknown),
+        field_(field) {
+    ASSERT(field->IsZoneHandle());
+    ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
+    SetInputAt(0, instance);
+  }
+
   Value* instance() const { return inputs_[0]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
   const AbstractType& type() const { return type_; }
@@ -4252,7 +4264,6 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   intptr_t result_cid() const { return result_cid_; }
 
   const Field* field() const { return field_; }
-  void set_field(const Field* field) { field_ = field; }
 
   virtual Representation representation() const;
 
@@ -4303,47 +4314,6 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   const Field* field_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadFieldInstr);
-};
-
-
-class StoreVMFieldInstr : public TemplateDefinition<2> {
- public:
-  StoreVMFieldInstr(Value* dest,
-                    intptr_t offset_in_bytes,
-                    Value* value,
-                    const AbstractType& type)
-      : offset_in_bytes_(offset_in_bytes), type_(type) {
-    ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
-    SetInputAt(kValuePos, value);
-    SetInputAt(kObjectPos, dest);
-  }
-
-  enum {
-    kValuePos = 0,
-    kObjectPos = 1
-  };
-
-  DECLARE_INSTRUCTION(StoreVMField)
-  virtual CompileType* ComputeInitialType() const;
-
-  Value* value() const { return inputs_[kValuePos]; }
-  Value* dest() const { return inputs_[kObjectPos]; }
-  intptr_t offset_in_bytes() const { return offset_in_bytes_; }
-  const AbstractType& type() const { return type_; }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  const intptr_t offset_in_bytes_;
-  const AbstractType& type_;
-
-  DISALLOW_COPY_AND_ASSIGN(StoreVMFieldInstr);
 };
 
 
@@ -6761,6 +6731,9 @@ class InvokeMathCFunctionInstr : public Definition {
   virtual bool MayThrow() const { return false; }
 
  private:
+  static const intptr_t kSavedSpTempIndex = 0;
+  static const intptr_t kObjectTempIndex = 1;
+  static const intptr_t kDoubleTempIndex = 2;
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     (*inputs_)[i] = value;
   }

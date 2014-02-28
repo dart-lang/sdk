@@ -65,8 +65,9 @@ void main() {
           '<!DOCTYPE html><html><head>'
           '$WEB_COMPONENTS_TAG'
           '$INTEROP_TAG'
+          '</head><body>'
           '<script src="test.html_bootstrap.dart.js"></script>'
-          '</head><body></body></html>',
+          '</body></html>',
 
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
@@ -81,6 +82,12 @@ void main() {
       'a|web/test.html.0.dart':
           _sampleObservableOutput("B", "bar"),
     });
+
+  const onlyOne = 'warning: Only one "application/dart" script tag per document'
+      ' is allowed.';
+  const moreNotSupported =
+      'warning: more than one Dart script per HTML document is not supported. '
+      'Script will be ignored.';
 
   testPhases('several scripts', phases, {
       'a|web/test.html':
@@ -103,8 +110,8 @@ void main() {
           '<!DOCTYPE html><html><head>'
           '$WEB_COMPONENTS_TAG'
           '$INTEROP_TAG'
-          '<script src="test.html_bootstrap.dart.js"></script>'
           '</head><body>'
+          '<script src="test.html_bootstrap.dart.js"></script>'
           '<div></div>'
           '</body></html>',
 
@@ -119,9 +126,16 @@ void main() {
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/a.dart': _sampleObservableOutput('A', 'foo'),
-      'a|web/test.html.0.dart': _sampleObservableOutput("B", "bar"),
-      'a|web/test.html.1.dart': _sampleObservableOutput("C", "car"),
-    });
+    }, [
+      // These should not be emitted multiple times. See:
+      // https://code.google.com/p/dart/issues/detail?id=17197
+      '$onlyOne (web/test.html 0 81)',
+      '$onlyOne (web/test.html 7 27)',
+      '$onlyOne (web/test.html 14 15)',
+      '$moreNotSupported (web/test.html 0 81)',
+      '$moreNotSupported (web/test.html 7 27)',
+      '$moreNotSupported (web/test.html 14 15)'
+    ]);
 
   testPhases('with imports', phases, {
       'a|web/index.html':
@@ -146,7 +160,7 @@ void main() {
           '</body></html>',
       'a|web/index.html_bootstrap.dart':
           '''$MAIN_HEADER
-          import 'test2.html.0.dart' as i0;
+          import 'index.html.0.dart' as i0;
           import 'b.dart' as i1;
 
           void main() {
@@ -155,7 +169,7 @@ void main() {
             i1.main();
           }
           '''.replaceAll('\n          ', '\n'),
-      'a|web/test2.html.0.dart': _sampleObservableOutput("A", "foo"),
+      'a|web/index.html.0.dart': _sampleObservableOutput("A", "foo"),
       'a|web/b.dart': _sampleObservableOutput('B', 'bar'),
     });
 }

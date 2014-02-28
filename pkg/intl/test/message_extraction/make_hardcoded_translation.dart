@@ -53,6 +53,8 @@ var french = {
   "thisNameIsNotInTheOriginal" : "Could this lead to something malicious?",
   "originalNotInBMP" : "Anciens caractères grecs jeux du pendu: 𐅆𐅇.",
   "escapable" : "Escapes: \n\r\f\b\t\v.",
+  "rentToBePaid" : "loyer",
+  "rentAsVerb" : "louer",
   "plurals" : writer.write(new Plural.from("num",
       [
         ["zero", "Est-ce que nulle est pluriel?"],
@@ -143,6 +145,8 @@ var german = {
   "staticMessage" : "Dies ergibt sich aus einer statischen Methode",
   "originalNotInBMP" : "Antike griechische Galgenmännchen Zeichen: 𐅆𐅇",
   "escapable" : "Escapes: \n\r\f\b\t\v.",
+  "rentToBePaid" : "Miete",
+  "rentAsVerb" : "mieten",
   "plurals" : writer.write(new Plural.from("num",
     [
       ["zero", "Ist Null Plural?"],

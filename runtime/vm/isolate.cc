@@ -41,6 +41,8 @@ DEFINE_FLAG(bool, report_usage_count, false,
             "Track function usage and report.");
 DEFINE_FLAG(bool, trace_isolates, false,
             "Trace isolate creation and shut down.");
+DEFINE_FLAG(bool, pin_isolates, false,
+            "Stop isolates from being destroyed automatically.");
 
 
 void Isolate::RegisterClass(const Class& cls) {
@@ -282,6 +284,7 @@ Isolate::Isolate()
       message_notify_callback_(NULL),
       name_(NULL),
       start_time_(OS::GetCurrentTimeMicros()),
+      pin_port_(0),
       main_port_(0),
       heap_(NULL),
       object_store_(NULL),
@@ -421,6 +424,9 @@ Isolate* Isolate::Init(const char* name_prefix) {
   result->SetStackLimitFromCurrentTOS(reinterpret_cast<uword>(&result));
   result->set_main_port(PortMap::CreatePort(result->message_handler()));
   result->BuildName(name_prefix);
+  if (FLAG_pin_isolates) {
+    result->CreatePinPort();
+  }
 
   result->debugger_ = new Debugger();
   result->debugger_->Initialize(result);
@@ -433,6 +439,28 @@ Isolate* Isolate::Init(const char* name_prefix) {
 
 
   return result;
+}
+
+
+void Isolate::CreatePinPort() {
+  ASSERT(FLAG_pin_isolates);
+  // Only do this once.
+  ASSERT(pin_port_ == 0);
+  pin_port_ = PortMap::CreatePort(message_handler());
+  ASSERT(pin_port_ != 0);
+  PortMap::SetLive(pin_port_);
+}
+
+
+void Isolate::ClosePinPort() {
+  if (pin_port_ == 0) {
+    // Support multiple calls to close.
+    return;
+  }
+  ASSERT(pin_port_ != 0);
+  bool r = PortMap::ClosePort(pin_port_);
+  ASSERT(r);
+  pin_port_ = 0;
 }
 
 

@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 #include "vm/code_observers.h"
 
+#include "platform/thread.h"
 #include "vm/os.h"
 
 namespace dart {
 
+Mutex* CodeObservers::mutex_ = NULL;
 intptr_t CodeObservers::observers_length_ = 0;
 CodeObserver** CodeObservers::observers_ = NULL;
 
@@ -56,6 +59,9 @@ void CodeObservers::DeleteAll() {
 
 
 void CodeObservers::InitOnce() {
+  ASSERT(mutex_ == NULL);
+  mutex_ = new Mutex();
+  ASSERT(mutex_ != NULL);
   OS::RegisterCodeObservers();
 }
 

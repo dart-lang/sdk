@@ -1269,13 +1269,9 @@ class ConcreteTypesInferrer
    * Returns the current inferred concrete type of [field].
    */
   ConcreteType getFieldType(Selector selector, Element field) {
+    ensureFieldInitialized(field);
     ConcreteType result = inferredFieldTypes[field];
-    if (result == null) {
-      // field is a toplevel variable, we trigger its analysis because no object
-      // creation is ever going to trigger it
-      result = analyzeFieldInitialization(field);
-      return (result == null) ? emptyConcreteType : result;
-    }
+    result = (result == null) ? emptyConcreteType : result;
     if (selector != null) {
       Element enclosing = field.enclosingElement;
       if (enclosing.isClass()) {
@@ -1293,14 +1289,12 @@ class ConcreteTypesInferrer
    * concrete type so far and of [type].
    */
   void augmentFieldType(Element field, ConcreteType type) {
+    ensureFieldInitialized(field);
     ConcreteType oldType = inferredFieldTypes[field];
     ConcreteType newType = (oldType != null) ? oldType.union(type) : type;
     if (oldType != newType) {
       inferredFieldTypes[field] = newType;
-      final readers = fieldReaders[field];
-      if (readers != null) {
-        readers.forEach(invalidate);
-      }
+      invalidateReaders(field);
     }
   }
 
@@ -1388,6 +1382,16 @@ class ConcreteTypesInferrer
     Set<Element> methodCallers = callers[function];
     if (methodCallers != null) {
       methodCallers.forEach(invalidate);
+    }
+  }
+
+  /**
+   * Invalidate all reader of [field].
+   */
+  void invalidateReaders(Element field) {
+    Set<Element> readers = fieldReaders[field];
+    if (readers != null) {
+      readers.forEach(invalidate);
     }
   }
 
@@ -1737,18 +1741,28 @@ class ConcreteTypesInferrer
   }
 
   /**
-   * Analyzes the initialization of a field. Returns [:null:] if and only if
-   * [element] has no initialization expression.
+   * Analyze the initializer of a field if it has not yet been done and update
+   * [inferredFieldTypes] accordingly. Invalidate the readers of the field if
+   * needed.
    */
-  ConcreteType analyzeFieldInitialization(VariableElement element) {
-    TreeElements elements =
-        compiler.enqueuer.resolution.resolvedElements[element];
-    assert(elements != null);
-    Visitor visitor = new TypeInferrerVisitor(element, this, null, new Map());
-    Node tree = element.parseNode(compiler);
+  void ensureFieldInitialized(Element field) {
+    // This is test is needed for fitering out BoxFieldElements.
+    if (field is FieldElement && inferredFieldTypes[field] == null) {
+      analyzeFieldInitialization(field);
+    }
+  }
+
+  /**
+   * Analyze the initializer of a field and update [inferredFieldTypes]
+   * accordingly. Invalidate the readers of the field if needed.
+   */
+  ConcreteType analyzeFieldInitialization(Element field) {
+    Visitor visitor = new TypeInferrerVisitor(field, this, null, new Map());
+    Node tree = field.parseNode(compiler);
     ConcreteType type = initializerDo(tree, (node) => node.accept(visitor));
     if (type != null) {
-      augmentFieldType(element, type);
+      inferredFieldTypes[field] = type;
+      invalidateReaders(field);
     }
     return type;
   }
@@ -1785,6 +1799,7 @@ class ConcreteTypesInferrer
         augmentListElementType(nullConcreteType);
       }
     }
+    return null;
   }
 
   /**
@@ -1902,7 +1917,7 @@ class ConcreteTypesInferrer
   }
 
   @override
-  bool recordType(Element element, ConcreteType type) {
+  void recordType(Element element, ConcreteType type) {
     assert(element is FieldElement);
     augmentFieldType(element, type);
   }
@@ -1961,7 +1976,6 @@ class ConcreteTypesInferrer
                                      ArgumentsTypes<ConcreteType> arguments,
                                      SideEffects sideEffects,
                                      bool inLoop) {
-
     caller = getRealCaller(caller);
     if ((selector == null) || (selector.kind == SelectorKind.CALL)) {
       callee = callee.implementation;
@@ -1987,7 +2001,8 @@ class ConcreteTypesInferrer
           Send send = node;
           if (send.receiver != null) {
             if (send.receiver.isSuper()) {
-              receiverClass = currentWorkItem.environment.classOfThis.superclass;
+              receiverClass =
+                  currentWorkItem.environment.classOfThis.superclass;
             } else {
               receiverClass = currentWorkItem.environment.classOfThis;
             }
@@ -2021,12 +2036,15 @@ class ConcreteTypesInferrer
         // exceptions for instance, we need to do it by uncommenting the
         // following line.
         // inferrer.addCaller(setter, currentMethod);
-        return getSendReturnType(selector, setter, callee.enclosingElement,
+        Element enclosing = callee.enclosingElement.isCompilationUnit()
+            ? null : callee.enclosingElement;
+        return getSendReturnType(selector, setter, enclosing,
             new ArgumentsTypes([argumentType], new Map()));
       }
     } else {
       throw new ArgumentError("unexpected selector kind");
     }
+    return null;
   }
 
   @override

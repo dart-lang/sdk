@@ -50,6 +50,10 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static plurals(num) => "${Intl.plural(num, zero: 'Ist Null Plural?', one: 'Dies ist einmalig', other: 'Dies ist Plural ($num).')}";
 
+  static rentAsVerb() => "mieten";
+
+  static rentToBePaid() => "Miete";
+
   static staticMessage() => "Dies ergibt sich aus einer statischen Methode";
 
   static trickyInterpolation(s) => "Interpolation ist schwierig, wenn es einen Satz wie dieser endet ${s}.";
@@ -78,6 +82,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "outerSelect" : outerSelect,
     "pluralThatFailsParsing" : pluralThatFailsParsing,
     "plurals" : plurals,
+    "rentAsVerb" : rentAsVerb,
+    "rentToBePaid" : rentToBePaid,
     "staticMessage" : staticMessage,
     "trickyInterpolation" : trickyInterpolation,
     "types" : types,

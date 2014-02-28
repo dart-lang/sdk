@@ -318,12 +318,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
   Definition* BuildStoreExprTemp(Value* value);
   Definition* BuildLoadExprTemp();
 
-  Definition* BuildStoreLocal(const LocalVariable& local,
-                              Value* value,
-                              bool result_is_needed);
+  Definition* BuildStoreLocal(const LocalVariable& local, Value* value);
   Definition* BuildLoadLocal(const LocalVariable& local);
-
-  void HandleStoreLocal(StoreLocalNode* node, bool result_is_needed);
 
   // Helpers for translating parts of the AST.
   void BuildPushArguments(const ArgumentListNode& node,
@@ -470,7 +466,6 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   virtual void VisitBinaryOpNode(BinaryOpNode* node);
   virtual void VisitConditionalExprNode(ConditionalExprNode* node);
   virtual void VisitLoadLocalNode(LoadLocalNode* node);
-  virtual void VisitStoreLocalNode(StoreLocalNode* node);
   virtual void VisitStoreIndexedNode(StoreIndexedNode* node);
   virtual void VisitInstanceSetterNode(InstanceSetterNode* node);
   virtual void VisitThrowNode(ThrowNode* node);

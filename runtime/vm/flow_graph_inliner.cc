@@ -675,15 +675,18 @@ class CallSiteInliner : public ValueObject {
       // TODO(fschneider): Avoid setting the context, if not needed.
       Definition* closure =
           closure_call->PushArgumentAt(0)->value()->definition();
-      LoadFieldInstr* context =
-          new LoadFieldInstr(new Value(closure),
-                             Closure::context_offset(),
-                             Type::ZoneHandle());
       AllocateObjectInstr* alloc =
           closure_call->ArgumentAt(0)->AsAllocateObject();
+      Definition* context = NULL;
       if ((alloc != NULL) && !alloc->closure_function().IsNull()) {
         ASSERT(!alloc->context_field().IsNull());
-        context->set_field(&alloc->context_field());
+        context = new LoadFieldInstr(new Value(closure),
+                                     &alloc->context_field(),
+                                     Type::ZoneHandle());
+      } else {
+        context = new LoadFieldInstr(new Value(closure),
+                                     Closure::context_offset(),
+                                     Type::ZoneHandle());
       }
 
       context->set_ssa_temp_index(caller_graph()->alloc_ssa_temp_index());
@@ -807,11 +810,6 @@ class CallSiteInliner : public ValueObject {
       // Find the closure of the callee.
       ASSERT(call->ArgumentCount() > 0);
       Function& target = Function::ZoneHandle();
-      CreateClosureInstr* closure =
-          call->ArgumentAt(0)->AsCreateClosure();
-      if (closure != NULL) {
-        target ^= closure->function().raw();
-      }
       AllocateObjectInstr* alloc =
           call->ArgumentAt(0)->AsAllocateObject();
       if ((alloc != NULL) && !alloc->closure_function().IsNull()) {

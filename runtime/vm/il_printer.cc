@@ -311,6 +311,12 @@ const char* RangeBoundary::ToCString() const {
 }
 
 
+void DropTempsInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%" Pd ", ", num_temps());
+  value()->PrintTo(f);
+}
+
+
 void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
   f->Print(", %s, '%s'",
@@ -420,9 +426,13 @@ void GuardFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void StoreInstanceFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s {%" Pd "}, ",
-           String::Handle(field().name()).ToCString(),
-           field().Offset());
+  if (field().IsNull()) {
+    f->Print("{%" Pd "}, ", offset_in_bytes());
+  } else {
+    f->Print("%s {%" Pd "}, ",
+             String::Handle(field().name()).ToCString(),
+             field().Offset());
+  }
   instance()->PrintTo(f);
   f->Print(", ");
   value()->PrintTo(f);
@@ -499,15 +509,6 @@ void CreateArrayInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void CreateClosureInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", function().ToCString());
-  for (intptr_t i = 0; i < ArgumentCount(); ++i) {
-    if (i > 0) f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
-  }
-}
-
-
 void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance()->PrintTo(f);
   f->Print(", %" Pd, offset_in_bytes());
@@ -527,13 +528,6 @@ void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
 
   f->Print(", immutable=%d", immutable_);
-}
-
-
-void StoreVMFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
-  dest()->PrintTo(f);
-  f->Print(", %" Pd ", ", offset_in_bytes());
-  value()->PrintTo(f);
 }
 
 
