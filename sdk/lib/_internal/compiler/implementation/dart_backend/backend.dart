@@ -13,12 +13,6 @@ class ElementAst {
 
   ElementAst(this.ast, this.treeElements);
 
-  factory ElementAst.rewrite(compiler, ast, treeElements, stripAsserts) {
-    final rewriter =
-        new FunctionBodyRewriter(compiler, treeElements, stripAsserts);
-    return new ElementAst(rewriter.visit(ast), rewriter.cloneTreeElements);
-  }
-
   ElementAst.forClassLike(this.ast)
       : this.treeElements = new TreeElementMapping(null);
 }
@@ -64,55 +58,6 @@ class VariableListAst extends ElementAst {
     AggregatedTreeElements e = this.treeElements;
     e[element.cachedNode] = element;
     e.treeElements.add(treeElements);
-  }
-}
-
-class FunctionBodyRewriter extends CloningVisitor {
-  final Compiler compiler;
-  final bool stripAsserts;
-
-  FunctionBodyRewriter(this.compiler, originalTreeElements, this.stripAsserts)
-      : super(originalTreeElements);
-
-  visitBlock(Block block) {
-    shouldOmit(Statement statement) {
-      if (statement is EmptyStatement) return true;
-      ExpressionStatement expressionStatement =
-          statement.asExpressionStatement();
-      if (expressionStatement != null) {
-        Send send = expressionStatement.expression.asSend();
-        if (send != null) {
-          Element element = originalTreeElements[send];
-          if (stripAsserts && identical(element, compiler.assertMethod)) {
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-
-    rewriteStatement(Statement statement) {
-      Block block = statement.asBlock();
-      if (block != null) {
-        Link statements = block.statements.nodes;
-        if (!statements.isEmpty && statements.tail.isEmpty) {
-          Statement single = statements.head;
-          bool isDeclaration =
-              single is VariableDefinitions || single is FunctionDeclaration;
-          if (!isDeclaration) return single;
-        }
-      }
-      return statement;
-    }
-
-    NodeList statements = block.statements;
-    LinkBuilder<Statement> builder = new LinkBuilder<Statement>();
-    for (Statement statement in statements.nodes) {
-      if (!shouldOmit(statement)) {
-        builder.addLast(visit(rewriteStatement(statement)));
-      }
-    }
-    return new Block(rewriteNodeList(statements, builder.toLink()));
   }
 }
 
@@ -364,8 +309,7 @@ class DartBackend extends Backend {
     });
     resolvedElements.forEach((element, treeElements) {
       if (!shouldOutput(element) || treeElements == null) return;
-      var elementAst = new ElementAst.rewrite(
-          compiler, parse(element), treeElements, stripAsserts);
+      var elementAst = new ElementAst(parse(element), treeElements);
       if (element.isField()) {
         final list = (element as VariableElement).variables;
         elementAst = elementAsts.putIfAbsent(
