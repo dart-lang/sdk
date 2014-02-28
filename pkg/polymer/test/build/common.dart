@@ -126,7 +126,7 @@ testPhases(String testName, List<List<Transformer>> phases,
     [List<String> expectedMessages, bool solo = false]) {
   (solo ? solo_test : test)(testName, () {
     var helper = new TestHelper(phases, inputFiles, expectedMessages)..run();
-    return helper.checkAll(expectedFiles).then((_) => helper.tearDown());
+    return helper.checkAll(expectedFiles).whenComplete(() => helper.tearDown());
   });
 }
 

@@ -8,6 +8,10 @@ library polymer.src.build.common;
 import 'dart:async';
 import 'dart:math' show min, max;
 
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:barback/barback.dart';
 import 'package:html5lib/dom.dart' show Document;
 import 'package:html5lib/parser.dart' show HtmlParser;
@@ -101,26 +105,26 @@ abstract class PolymerTransformer {
     });
   }
 
-  /// Gets the appropriate URL to use in a [Span] to produce messages
-  /// (e.g. warnings) for users. This will attempt to format the URL in the most
-  /// useful way:
-  ///
-  /// - If the asset is within the primary package, then use the [id.path],
-  ///   the user will know it is a file from their own code.
-  /// - If the asset is from another package, then use [assetUrlFor], this will
-  ///   likely be a "package:" url to the file in the other package, which is
-  ///   enough for users to identify where the error is.
-  String spanUrlFor(AssetId id, Transform transform) {
-    var primaryId = transform.primaryInput.id;
-    bool samePackage = id.package == primaryId.package;
-    return samePackage ? id.path
-        : assetUrlFor(id, primaryId, transform.logger, allowAssetUrl: true);
-  }
-
   Future<bool> assetExists(AssetId id, Transform transform) =>
       transform.getInput(id).then((_) => true).catchError((_) => false);
 
   String toString() => 'polymer ($runtimeType)';
+}
+
+/// Gets the appropriate URL to use in a [Span] to produce messages
+/// (e.g. warnings) for users. This will attempt to format the URL in the most
+/// useful way:
+///
+/// - If the asset is within the primary package, then use the [id.path],
+///   the user will know it is a file from their own code.
+/// - If the asset is from another package, then use [assetUrlFor], this will
+///   likely be a "package:" url to the file in the other package, which is
+///   enough for users to identify where the error is.
+String spanUrlFor(AssetId id, Transform transform) {
+  var primaryId = transform.primaryInput.id;
+  bool samePackage = id.package == primaryId.package;
+  return samePackage ? id.path
+      : assetUrlFor(id, primaryId, transform.logger, allowAssetUrl: true);
 }
 
 /// Transformer phases which should be applied to the Polymer package.
@@ -249,4 +253,20 @@ String assetUrlFor(AssetId id, AssetId sourceId, TransformLogger logger,
 String _systemToAssetPath(String assetPath) {
   if (path.Style.platform != path.Style.windows) return assetPath;
   return path.posix.joinAll(path.split(assetPath));
+}
+
+
+/// Parse [code] using analyzer.
+CompilationUnit parseCompilationUnit(String code) {
+  var errorListener = new _ErrorCollector();
+  var reader = new CharSequenceReader(code);
+  var scanner = new Scanner(null, reader, errorListener);
+  var token = scanner.tokenize();
+  var parser = new Parser(null, errorListener);
+  return parser.parseCompilationUnit(token);
+}
+
+class _ErrorCollector extends AnalysisErrorListener {
+  final errors = <AnalysisError>[];
+  onError(error) => errors.add(error);
 }

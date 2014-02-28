@@ -8,14 +8,15 @@ library polymer.src.build.import_inliner;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:analyzer/src/generated/ast.dart';
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 import 'package:html5lib/dom.dart' show
     Document, DocumentFragment, Element, Node;
 import 'package:html5lib/dom_parsing.dart' show TreeVisitor;
+import 'package:source_maps/refactor.dart' show TextEditTransaction;
 import 'package:source_maps/span.dart';
 
-import 'code_extractor.dart'; // import just for documentation.
 import 'common.dart';
 
 class _HtmlInliner extends PolymerTransformer {
@@ -26,8 +27,9 @@ class _HtmlInliner extends PolymerTransformer {
   final seen = new Set<AssetId>();
   final scriptIds = <AssetId>[];
 
-  static const TYPE_DART = 'application/dart';
-  static const TYPE_JS = 'text/javascript';
+  /// The number of extracted inline Dart scripts. Used as a counter to give
+  /// unique-ish filenames.
+  int inlineScriptCounter = 0;
 
   _HtmlInliner(this.options, Transform transform)
       : transform = transform,
@@ -38,21 +40,26 @@ class _HtmlInliner extends PolymerTransformer {
     seen.add(docId);
 
     Document document;
+    bool changed;
 
-    return readPrimaryAsHtml(transform).then((document) =>
-        _visitImports(document).then((importsFound) {
+    return readPrimaryAsHtml(transform).then((doc) {
+      document = doc;
+      // Add the main script's ID, or null if none is present.
+      // This will be used by ScriptCompactor.
+      changed = _extractScripts(document, docId);
+      return _visitImports(document);
+    }).then((importsFound) {
+      changed = changed || importsFound;
 
       var output = transform.primaryInput;
-      if (importsFound) {
-        output = new Asset.fromString(docId, document.outerHtml);
-      }
+      if (changed) output = new Asset.fromString(docId, document.outerHtml);
       transform.addOutput(output);
 
       // We produce a secondary asset with extra information for later phases.
       transform.addOutput(new Asset.fromString(
           docId.addExtension('.scriptUrls'),
           JSON.encode(scriptIds, toEncodable: (id) => id.serialize())));
-    }));
+    });
   }
 
   /// Visits imports in [document] and add the imported documents to documents.
@@ -120,13 +127,14 @@ class _HtmlInliner extends PolymerTransformer {
     }
   }
 
-  // Loads an asset identified by [id], visits its imports and collects its
-  // html imports. Then inlines it into the main document.
+  /// Loads an asset identified by [id], visits its imports and collects its
+  /// html imports. Then inlines it into the main document.
   Future _inlineImport(AssetId id, Element link) {
     return readAsHtml(id, transform).then((doc) {
       new _UrlNormalizer(transform, id).visit(doc);
       return _visitImports(doc).then((_) {
-        _extractScripts(doc);
+        _extractScripts(doc, id);
+        _removeScripts(doc);
 
         // TODO(jmesserly): figure out how this is working in vulcanizer.
         // Do they produce a <body> tag with a <head> and <body> inside?
@@ -139,45 +147,94 @@ class _HtmlInliner extends PolymerTransformer {
 
   Future _inlineStylesheet(AssetId id, Element link) {
     return transform.readInputAsString(id).then((css) {
-      var url = spanUrlFor(id, transform);
-      css = new _UrlNormalizer(transform, id).visitCss(css, url);
+      css = new _UrlNormalizer(transform, id).visitCss(css);
       link.replaceWith(new Element.tag('style')..text = css);
     });
   }
 
-  /// Split Dart script tags from all the other elements. Now that Dartium
-  /// only allows a single script tag per page, we can't inline script
-  /// tags. Instead, we collect the urls of each script tag so we import
-  /// them directly from the Dart bootstrap code.
-  void _extractScripts(Document document) {
-    bool first = true;
-    for (var script in document.querySelectorAll('script')) {
+  /// Remove scripts from HTML imports, and remember their [AssetId]s for later
+  /// use.
+  ///
+  /// Dartium only allows a single script tag per page, so we can't inline
+  /// the script tags. Instead we remove them entirely.
+  void _removeScripts(Document doc) {
+    for (var script in doc.querySelectorAll('script')) {
       if (script.attributes['type'] == TYPE_DART) {
         script.remove();
+        var src = script.attributes['src'];
+        scriptIds.add(resolve(docId, src, logger, script.sourceSpan));
 
-        // only one Dart script per document is supported in Dartium.
-        if (first) {
-          first = false;
-
-          var src = script.attributes['src'];
-          if (src == null) {
-            logger.warning('unexpected script without a src url. The '
-              'ImportInliner transformer should run after running the '
-              'InlineCodeExtractor', span: script.sourceSpan);
-            continue;
-          }
-          scriptIds.add(resolve(docId, src, logger, script.sourceSpan));
-
-        } else {
-          // TODO(jmesserly): remove this when we are running linter.
-          logger.warning('more than one Dart script per HTML '
-              'document is not supported. Script will be ignored.',
-              span: script.sourceSpan);
-        }
+        // only the first script needs to be added.
+        // others are already removed by _extractScripts
+        return;
       }
     }
   }
+
+  /// Split inline scripts into their own files. We need to do this for dart2js
+  /// to be able to compile them.
+  ///
+  /// This also validates that there weren't any duplicate scripts.
+  bool _extractScripts(Document doc, AssetId sourceId) {
+    bool changed = false;
+    bool first = true;
+    for (var script in doc.querySelectorAll('script')) {
+      if (script.attributes['type'] != TYPE_DART) continue;
+
+      // only one Dart script per document is supported in Dartium.
+      if (!first) {
+        // Remove the script. It's invalid to have more than one in Dartium.
+        script.remove();
+        changed = true;
+
+        // TODO(jmesserly): remove this when we are running linter.
+        logger.warning('more than one Dart script per HTML '
+            'document is not supported. Script will be ignored.',
+            span: script.sourceSpan);
+        continue;
+      }
+
+      first = false;
+
+      var src = script.attributes['src'];
+      if (src != null) continue;
+
+      final filename = path.url.basename(docId.path);
+      final count = inlineScriptCounter++;
+      var code = script.text;
+      // TODO(sigmund): ensure this path is unique (dartbug.com/12618).
+      script.attributes['src'] = src = '$filename.$count.dart';
+      script.text = '';
+      changed = true;
+
+      var newId = docId.addExtension('.$count.dart');
+      // TODO(jmesserly): consolidate this check with our other parsing of the
+      // Dart code, so we only parse it once.
+      if (!_hasLibraryDirective(code)) {
+        // Inject a library tag with an appropriate library name.
+
+        // Transform AssetId into a package name. For example:
+        //   myPkgName|lib/foo/bar.html -> myPkgName.foo.bar_html
+        //   myPkgName|web/foo/bar.html -> myPkgName.web.foo.bar_html
+        // This should roughly match the recommended library name conventions.
+        var libName = '${path.withoutExtension(sourceId.path)}_'
+            '${path.extension(sourceId.path).substring(1)}';
+        if (libName.startsWith('lib/')) libName = libName.substring(4);
+        libName = libName.replaceAll('/', '.').replaceAll('-', '_');
+        libName = '${sourceId.package}.$libName';
+
+        code = "library $libName;\n$code";
+      }
+      transform.addOutput(new Asset.fromString(newId, code));
+    }
+    return changed;
+  }
 }
+
+/// Parse [code] and determine whether it has a library directive.
+bool _hasLibraryDirective(String code) =>
+    parseCompilationUnit(code).directives.any((d) => d is LibraryDirective);
+
 
 /// Recursively inlines the contents of HTML imports. Produces as output a
 /// single HTML file that inlines the polymer-element definitions, and a text
@@ -200,6 +257,8 @@ class ImportInliner extends Transformer {
       new _HtmlInliner(options, transform).apply();
 }
 
+const TYPE_DART = 'application/dart';
+const TYPE_JS = 'text/javascript';
 
 /// Internally adjusts urls in the html that we are about to inline.
 class _UrlNormalizer extends TreeVisitor {
@@ -211,13 +270,20 @@ class _UrlNormalizer extends TreeVisitor {
   _UrlNormalizer(this.transform, this.sourceId);
 
   visitElement(Element node) {
-    for (var key in node.attributes.keys) {
-      if (_urlAttributes.contains(key)) {
-        var url = node.attributes[key];
-        if (url != null && url != '' && !url.startsWith('{{')) {
-          node.attributes[key] = _newUrl(url, node.sourceSpan);
+    node.attributes.forEach((name, value) {
+      if (_urlAttributes.contains(name)) {
+        if (value != '' && !value.trim().startsWith('{{')) {
+          node.attributes[name] = _newUrl(value, node.sourceSpan);
         }
       }
+    });
+    if (node.localName == 'style') {
+      node.text = visitCss(node.text);
+    } else if (node.localName == 'script' &&
+        node.attributes['type'] == TYPE_DART) {
+      // TODO(jmesserly): we might need to visit JS too to handle ES Harmony
+      // modules.
+      node.text = visitInlineDart(node.text);
     }
     super.visitElement(node);
   }
@@ -230,7 +296,8 @@ class _UrlNormalizer extends TreeVisitor {
   // https://github.com/Polymer/vulcanize/blob/c14f63696797cda18dc3d372b78aa3378acc691f/lib/vulcan.js#L149
   // TODO(jmesserly): use csslib here instead? Parsing with RegEx is sadness.
   // Maybe it's reliable enough for finding URLs in CSS? I'm not sure.
-  String visitCss(String cssText, String url) {
+  String visitCss(String cssText) {
+    var url = spanUrlFor(sourceId, transform);
     var src = new SourceFile.text(url, cssText);
     return cssText.replaceAllMapped(_URL, (match) {
       // Extract the URL, without any surrounding quotes.
@@ -241,7 +308,35 @@ class _UrlNormalizer extends TreeVisitor {
     });
   }
 
-  _newUrl(String href, Span span) {
+  String visitInlineDart(String code) {
+    var unit = parseCompilationUnit(code);
+    var file = new SourceFile.text(spanUrlFor(sourceId, transform), code);
+    var output = new TextEditTransaction(code, file);
+
+    for (Directive directive in unit.directives) {
+      if (directive is UriBasedDirective) {
+        var uri = directive.uri.stringValue;
+        var span = _getSpan(file, directive.uri);
+
+        var id = resolve(sourceId, uri, transform.logger, span);
+        if (id == null) continue;
+
+        var primaryId = transform.primaryInput.id;
+        var newUri = assetUrlFor(id, primaryId, transform.logger);
+        if (newUri != uri) {
+          output.edit(span.start.offset, span.end.offset, "'$newUri'");
+        }
+      }
+    }
+
+    if (!output.hasEdits) return code;
+
+    // TODO(sigmund): emit source maps when barback supports it (see
+    // dartbug.com/12340)
+    return (output.commit()..build(file.url)).text;
+  }
+
+  String _newUrl(String href, Span span) {
     var uri = Uri.parse(href);
     if (uri.isAbsolute) return href;
     if (!uri.scheme.isEmpty) return href;
@@ -292,3 +387,5 @@ const _urlAttributes = const [
   'src',        // in audio, embed, iframe, img, input, script, source, track,
                 //    video
 ];
+
+_getSpan(SourceFile file, ASTNode node) => file.span(node.offset, node.end);
