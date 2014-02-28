@@ -842,14 +842,19 @@ abstract class InferrerVisitor
     } else if ("&&" == op.source) {
       conditionIsSimple = false;
       bool oldAccumulateIsChecks = accumulateIsChecks;
-      accumulateIsChecks = true;
-      if (isChecks == null) isChecks = <Send>[];
+      List<Send> oldIsChecks = isChecks;
+      if (!accumulateIsChecks) {
+        accumulateIsChecks = true;
+        isChecks = <Send>[];
+      }
       visit(node.receiver);
-      accumulateIsChecks = oldAccumulateIsChecks;
-      if (!accumulateIsChecks) isChecks = null;
       LocalsHandler<T> saved = locals;
       locals = new LocalsHandler<T>.from(locals, node);
       updateIsChecks(isChecks, usePositive: true);
+      if (!oldAccumulateIsChecks) {
+        accumulateIsChecks = false;
+        isChecks = oldIsChecks;
+      }
       visit(node.arguments.head);
       saved.mergeDiamondFlow(locals, null);
       locals = saved;
@@ -857,10 +862,10 @@ abstract class InferrerVisitor
     } else if ("||" == op.source) {
       conditionIsSimple = false;
       List<Send> tests = <Send>[];
-      handleCondition(node.receiver, tests);
+      bool isSimple = handleCondition(node.receiver, tests);
       LocalsHandler<T> saved = locals;
       locals = new LocalsHandler<T>.from(locals, node);
-      updateIsChecks(tests, usePositive: false);
+      if (isSimple) updateIsChecks(tests, usePositive: false);
       bool oldAccumulateIsChecks = accumulateIsChecks;
       accumulateIsChecks = false;
       visit(node.arguments.head);
