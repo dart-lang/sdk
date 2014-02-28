@@ -193,6 +193,14 @@ class Dart2JsInterfaceTypeMirror
     return null;
   }
 
+  bool isSubclassOf(Mirror other) {
+    if (other is Dart2JsTypeMirror) {
+      return _element.isSubclassOf(other._type.element);
+    } else {
+      throw new ArgumentError(other);
+    }
+  }
+
   ClassMirror get mixin {
     if (_element.isMixinApplication) {
       MixinApplicationElement mixinApplication = _element;
@@ -407,6 +415,8 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeMirror
   }
 
   String toString() => 'Mirror on function type $_type';
+
+  bool isSubclassOf(ClassMirror other) => false;
 }
 
 class Dart2JsVoidMirror extends Dart2JsTypeMirror {
