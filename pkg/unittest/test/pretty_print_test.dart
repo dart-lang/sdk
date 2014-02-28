@@ -48,6 +48,11 @@ void main() {
           "]"));
     });
 
+    test('containing a matcher', () {
+      expect(prettyPrint(['foo', endsWith('qux')]),
+          equals("['foo', <a string ending with 'qux'>]"));
+    });
+
     test("that's under maxLineLength", () {
       expect(prettyPrint([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], maxLineLength: 30),
           equals("[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]"));
@@ -136,6 +141,16 @@ void main() {
           "    'bar': 'baz\\n'\n"
           "    'qux'\n"
           "}"));
+    });
+
+    test('containing a matcher key', () {
+      expect(prettyPrint({endsWith('bar'): 'qux'}),
+          equals("{<a string ending with 'bar'>: 'qux'}"));
+    });
+
+    test('containing a matcher value', () {
+      expect(prettyPrint({'foo': endsWith('qux')}),
+          equals("{'foo': <a string ending with 'qux'>}"));
     });
 
     test("that's under maxLineLength", () {

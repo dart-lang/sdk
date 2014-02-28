@@ -67,7 +67,7 @@ class _IsFalse extends Matcher {
 
 /**
  * Returns a matches that matches if the value is the same instance
- * as [object] (`===`).
+ * as [expected], using [identical].
  */
 Matcher same(expected) => new _IsSameAs(expected);
 
@@ -81,9 +81,15 @@ class _IsSameAs extends Matcher {
 }
 
 /**
- * Returns a matcher that does a deep recursive match. This only works
- * with scalars, Maps and Iterables. To handle cyclic structures a
- * recursion depth [limit] can be provided. The default limit is 100.
+ * Returns a matcher that matches if the value is structurally equal to
+ * [expected].
+ *
+ * If [expected] is a [Matcher], then it matches using that. Otherwise it tests
+ * for equality using `==` on the expected value.
+ *
+ * For [Iterable]s and [Map]s, this will recursively match the elements. To
+ * handle cyclic structures a recursion depth [limit] can be provided. The
+ * default limit is 100.
  */
 Matcher equals(expected, [limit=100]) =>
     expected is String
@@ -99,106 +105,99 @@ class _DeepMatcher extends Matcher {
 
   // Returns a pair (reason, location)
   List _compareIterables(expected, actual, matcher, depth, location) {
-    if (actual is! Iterable) {
-      return ['is not Iterable', location];
-    }
+    if (actual is! Iterable) return ['is not Iterable', location];
+
     var expectedIterator = expected.iterator;
     var actualIterator = actual.iterator;
-    var index = 0;
-    while (true) {
+    for (var index = 0;; index++) {
+      // Advance in lockstep.
+      var expectedNext = expectedIterator.moveNext();
+      var actualNext = actualIterator.moveNext();
+
+      // If we reached the end of both, we succeeded.
+      if (!expectedNext && !actualNext) return null;
+
+      // Fail if their lengths are different.
       var newLocation = '${location}[${index}]';
-      if (expectedIterator.moveNext()) {
-        if (actualIterator.moveNext()) {
-          var rp = matcher(expectedIterator.current,
-                           actualIterator.current, newLocation,
-                           depth);
-          if (rp != null) return rp;
-          ++index;
-        } else {
-          return ['shorter than expected', newLocation];
-        }
-      } else if (actualIterator.moveNext()) {
-        return ['longer than expected', newLocation];
-      } else {
-        return null;
-      }
+      if (!expectedNext) return ['longer than expected', newLocation];
+      if (!actualNext) return ['shorter than expected', newLocation];
+
+      // Match the elements.
+      var rp = matcher(expectedIterator.current, actualIterator.current,
+          newLocation, depth);
+      if (rp != null) return rp;
     }
-    return null;
   }
 
   List _recursiveMatch(expected, actual, String location, int depth) {
-    String reason = null;
-    // If _limit is 1 we can only recurse one level into object.
-    bool canRecurse = depth == 0 || _limit > 1;
-    bool equal;
-    try {
-      equal = (expected == actual);
-    } catch (e, s) {
-      // TODO(gram): Add a test for this case.
-      reason = '== threw "$e"';
-      return [reason, location];
-    }
-    if (equal) {
-      // Do nothing.
-    } else if (depth > _limit) {
-      reason = 'recursion depth limit exceeded';
+    // If the expected value is a matcher, try to match it.
+    if (expected is Matcher) {
+      var matchState = {};
+      if (expected.matches(actual, matchState)) return null;
+
+      var description = new StringDescription();
+      expected.describe(description);
+      return ['does not match $description', location];
     } else {
-      if (expected is Iterable && canRecurse) {
-        List result = _compareIterables(expected, actual,
-            _recursiveMatch, depth + 1, location);
-        if (result != null) {
-          reason = result[0];
-          location = result[1];
-        }
-      } else if (expected is Map && canRecurse) {
-        if (actual is! Map) {
-          reason = 'expected a map';
-        } else {
-          var err = (expected.length == actual.length) ? '' :
-                    'has different length and ';
-          for (var key in expected.keys) {
-            if (!actual.containsKey(key)) {
-              reason = '${err}is missing map key \'$key\'';
-              break;
-            }
-          }
-          if (reason == null) {
-            for (var key in actual.keys) {
-              if (!expected.containsKey(key)) {
-                reason = '${err}has extra map key \'$key\'';
-                break;
-              }
-            }
-            if (reason == null) {
-              for (var key in expected.keys) {
-                var rp = _recursiveMatch(expected[key], actual[key],
-                    "${location}['${key}']", depth + 1);
-                if (rp != null) {
-                  reason = rp[0];
-                  location = rp[1];
-                  break;
-                }
-              }
-            }
-          }
-        }
-      } else {
-        var description = new StringDescription();
-        // If we have recursed, show the expected value too; if not,
-        // expect() will show it for us.
-        if (depth > 0) {
-          description.add('was ').
-              addDescriptionOf(actual).
-              add(' instead of ').
-              addDescriptionOf(expected);
-          reason = description.toString();
-        } else {
-          reason = ''; // We're not adding any value to the actual value.
-        }
+      // Otherwise, test for equality.
+      try {
+        if (expected == actual) return null;
+      } catch (e, s) {
+        // TODO(gram): Add a test for this case.
+        return ['== threw "$e"', location];
       }
     }
-    if (reason == null) return null;
-    return [reason, location];
+
+    if (depth > _limit) return ['recursion depth limit exceeded', location];
+
+    // If _limit is 1 we can only recurse one level into object.
+    bool canRecurse = depth == 0 || _limit > 1;
+
+    if (expected is Iterable && canRecurse) {
+      return _compareIterables(expected, actual, _recursiveMatch, depth + 1,
+          location);
+    }
+
+    if (expected is Map && canRecurse) {
+      if (actual is! Map) return ['expected a map', location];
+
+      var err = (expected.length == actual.length) ? '' :
+                'has different length and ';
+      for (var key in expected.keys) {
+        if (!actual.containsKey(key)) {
+          return ["${err}is missing map key '$key'", location];
+        }
+      }
+
+      for (var key in actual.keys) {
+        if (!expected.containsKey(key)) {
+          return ["${err}has extra map key '$key'", location];
+        }
+      }
+
+      for (var key in expected.keys) {
+        var rp = _recursiveMatch(expected[key], actual[key],
+            "${location}['${key}']", depth + 1);
+        if (rp != null) return rp;
+      }
+
+      return null;
+    }
+
+    var description = new StringDescription();
+
+    // If we have recursed, show the expected value too; if not, expect() will
+    // show it for us.
+    if (depth > 0) {
+      description.add('was ').
+          addDescriptionOf(actual).
+          add(' instead of ').
+          addDescriptionOf(expected);
+      return [description.toString(), location];
+    }
+
+    // We're not adding any value to the actual value.
+    return ["", location];
   }
 
   String _match(expected, actual, Map matchState) {

@@ -4,6 +4,7 @@
 
 library unittest.pretty_print;
 
+import '../matcher.dart';
 import 'utils.dart';
 
 /**
@@ -19,6 +20,13 @@ import 'utils.dart';
  */
 String prettyPrint(object, {int maxLineLength, int maxItems}) {
   String _prettyPrint(object, int indent, Set seen, bool top) {
+    // If the object is a matcher, use its description.
+    if (object is Matcher) {
+      var description = new StringDescription();
+      object.describe(description);
+      return "<$description>";
+    }
+
     // Avoid looping infinitely on recursively-nested data structures.
     if (seen.contains(object)) return "(recursive)";
     seen = seen.union(new Set.from([object]));
