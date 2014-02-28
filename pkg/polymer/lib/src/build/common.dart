@@ -64,8 +64,13 @@ class TransformOptions {
   /// minified versions of the polyfills rather than the debug versions.
   final bool releaseMode;
 
+  /// True to run liner on all html files before starting other phases.
+  // TODO(jmesserly): instead of this flag, we should only run linter on
+  // reachable (entry point+imported) html if deploying. See dartbug.com/17199.
+  final bool lint;
+
   TransformOptions({entryPoints, this.contentSecurityPolicy: false,
-      this.directlyIncludeJS: true, this.releaseMode: true})
+      this.directlyIncludeJS: true, this.releaseMode: true, this.lint: true})
       : entryPoints = entryPoints == null ? null
           : entryPoints.map(_systemToAssetPath).toList();
 

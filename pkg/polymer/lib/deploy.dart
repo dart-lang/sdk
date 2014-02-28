@@ -64,6 +64,7 @@ createDeployPhases(options) => new PolymerTransformerGroup(options).phases;
 
 BarbackOptions _createTestOptions(String testFile, String outDir,
     bool directlyIncludeJS, bool contentSecurityPolicy, bool releaseMode) {
+
   var testDir = path.normalize(path.dirname(testFile));
 
   // A test must be allowed to import things in the package.
@@ -85,7 +86,8 @@ BarbackOptions _createTestOptions(String testFile, String outDir,
       entryPoints: [path.relative(testFile, from: pubspecDir)],
       directlyIncludeJS: directlyIncludeJS,
       contentSecurityPolicy: contentSecurityPolicy,
-      releaseMode: releaseMode));
+      releaseMode: releaseMode,
+      lint: false));
   return new BarbackOptions(phases, outDir,
       currentPackage: packageName,
       packageDirs: {

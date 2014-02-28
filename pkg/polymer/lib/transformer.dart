@@ -66,15 +66,16 @@ _readEntrypoints(value) {
 }
 
 /// Create deploy phases for Polymer. Note that inlining HTML Imports
-/// comes first (other than linter), which allows the rest of the
-/// HTML-processing phases to operate only on HTML that is actually imported.
+/// comes first (other than linter, if [options.linter] is enabled), which
+/// allows the rest of the HTML-processing phases to operate only on HTML that
+/// is actually imported.
 List<List<Transformer>> _createDeployPhases(TransformOptions options) {
-  return [
-    [new Linter(options)],
+  var phases = options.lint ? [[new Linter(options)]] : [];
+  return phases..addAll([
     [new ImportInliner(options)],
     [new ObservableTransformer()],
     [new ScriptCompactor(options)],
     [new PolyfillInjector(options)],
     [new BuildFilter(options)]
-  ];
+  ]);
 }
