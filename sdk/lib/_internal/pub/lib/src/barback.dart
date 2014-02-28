@@ -57,7 +57,9 @@ class TransformerId {
 
   /// The configuration to pass to the transformer.
   ///
-  /// This will be an empty map if no configuration was provided.
+  /// Any pub-specific configuration (i.e. keys starting with "$") will have
+  /// been stripped out of this and handled separately. This will be an empty
+  /// map if no configuration was provided.
   final Map configuration;
 
   /// The primary input inclusions.
