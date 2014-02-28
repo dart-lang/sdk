@@ -20,6 +20,7 @@ main() {
 
     updateTransformers("app", [[new RewriteTransformer("blub", "blab")]]);
     expectAsset("app|foo.blab", "foo.blab");
+    expectNoAsset("app|foo.blub");
     buildShouldSucceed();
   });
 
@@ -42,10 +43,12 @@ main() {
 
     updateSources(["app|foo.blub"]);
     expectAsset("app|foo.blab", "foo.blab");
+    expectNoAsset("app|foo.blub");
     buildShouldSucceed();
 
     updateTransformers("app", [[rewrite]]);
     expectAsset("app|foo.blab", "foo.blab");
+    expectNoAsset("app|foo.blub");
     buildShouldSucceed();
 
     expect(rewrite.numRuns, completion(equals(1)));
@@ -58,6 +61,7 @@ main() {
 
     updateSources(["app|foo.txt"]);
     expectAsset("app|foo.blab", "foo.blub.blab");
+    expectNoAsset("app|foo.blub");
     buildShouldSucceed();
 
     updateTransformers("app", [[rewrite2], [rewrite1]]);
@@ -90,6 +94,7 @@ main() {
 
     updateSources(["app|foo.blub"]);
     expectAsset("app|foo.blab", "foo.blab");
+    expectNoAsset("app|foo.blub");
     buildShouldSucceed();
 
     updateTransformers("app", []);
@@ -187,6 +192,22 @@ main() {
     buildShouldSucceed();
   });
 
+  test("a new transformer can see pass-through assets", () {
+    var rewrite = new RewriteTransformer("zip", "zap");
+    initGraph(["app|foo.blub"], {"app": [[rewrite]]});
+
+    updateSources(["app|foo.blub"]);
+    buildShouldSucceed();
+
+    updateTransformers("app", [
+      [rewrite],
+      [new RewriteTransformer("blub", "blab")]
+    ]);
+    expectAsset("app|foo.blab", "foo.blab");
+    expectNoAsset("app|foo.blub");
+    buildShouldSucceed();
+  });
+
   test("a cross-package transform sees a new transformer in a new phase", () {
     var rewrite = new RewriteTransformer("inc", "inc");
     initGraph({
@@ -230,108 +251,6 @@ main() {
     updateTransformers("pkg2", [[rewrite]]);
     expectAsset("pkg1|foo.out", "foo.inc");
     buildShouldSucceed();
-  });
-
-  group("pass-through", () {
-    test("a new transformer can see pass-through assets", () {
-      var rewrite = new RewriteTransformer("zip", "zap");
-      initGraph(["app|foo.blub"], {"app": [[rewrite]]});
-
-      updateSources(["app|foo.blub"]);
-      buildShouldSucceed();
-
-      updateTransformers("app", [
-        [rewrite],
-        [new RewriteTransformer("blub", "blab")]
-      ]);
-      expectAsset("app|foo.blab", "foo.blab");
-      buildShouldSucceed();
-    });
-
-    test("a new transformer can overwrite an old asset", () {
-      var rewrite = new RewriteTransformer("zip", "zap");
-      initGraph(["app|foo.txt"], {"app": [[rewrite]]});
-
-      updateSources(["app|foo.txt"]);
-      expectAsset("app|foo.txt", "foo");
-      buildShouldSucceed();
-
-      // Add a transformer that will overwrite the previously-passed-through
-      // "foo.txt" asset. The transformed asset should be emitted, not the
-      // passed-through asset.
-      updateTransformers("app", [
-        [rewrite, new RewriteTransformer("txt", "txt")]
-      ]);
-      expectAsset("app|foo.txt", "foo.txt");
-      buildShouldSucceed();
-    });
-
-    test("passes an asset through when an overwriting transform is removed",
-        () {
-      initGraph(["app|foo.txt"], {
-        "app": [[new RewriteTransformer("txt", "txt")]]
-      });
-
-      updateSources(["app|foo.txt"]);
-      expectAsset("app|foo.txt", "foo.txt");
-      buildShouldSucceed();
-
-      updateTransformers("app", [[]]);
-      expectAsset("app|foo.txt", "foo");
-      buildShouldSucceed();
-    });
-
-    test("passes an asset through when its overwriting transform is removed "
-        "during apply", () {
-      var rewrite = new RewriteTransformer("txt", "txt");
-      initGraph(["app|foo.txt"], {"app": [[rewrite]]});
-
-      rewrite.pauseApply();
-      updateSources(["app|foo.txt"]);
-      expectAssetDoesNotComplete("app|foo.txt");
-
-      updateTransformers("app", [[]]);
-      rewrite.resumeApply();
-      expectAsset("app|foo.txt", "foo");
-      buildShouldSucceed();
-    });
-
-    test("doesn't pass an asset through when its overwriting transform is "
-        "removed during apply if another transform overwrites it", () {
-      var rewrite1 = new RewriteTransformer("txt", "txt");
-      var rewrite2 = new RewriteTransformer("txt", "txt");
-      initGraph(["app|foo.txt"], {"app": [[rewrite1, rewrite2]]});
-
-      rewrite1.pauseApply();
-      updateSources(["app|foo.txt"]);
-      expectAssetDoesNotComplete("app|foo.txt");
-      // Ensure we're waiting on [rewrite1.apply]
-      schedule(pumpEventQueue);
-
-      updateTransformers("app", [[rewrite2]]);
-      rewrite1.resumeApply();
-      expectAsset("app|foo.txt", "foo.txt");
-      buildShouldSucceed();
-    });
-
-    test("doesn't pass an asset through when one overwriting transform is "
-        "removed if another transform still overwrites it", () {
-      var rewrite = new RewriteTransformer("txt", "txt");
-      initGraph(["app|foo.txt"], {"app": [[
-        rewrite,
-        new RewriteTransformer("txt", "txt")
-      ]]});
-
-      updateSources(["app|foo.txt"]);
-      // This could be either the output of [CheckContentTransformer] or
-      // [RewriteTransformer], depending which completes first.
-      expectAsset("app|foo.txt", anything);
-      buildShouldFail([isAssetCollisionException("app|foo.txt")]);
-
-      updateTransformers("app", [[rewrite]]);
-      expectAsset("app|foo.txt", "foo.txt");
-      buildShouldSucceed();
-    });
   });
 
   // Regression test.

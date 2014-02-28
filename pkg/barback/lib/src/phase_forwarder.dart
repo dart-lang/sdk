@@ -7,7 +7,6 @@ library barback.phase_forwarder;
 import 'dart:async';
 
 import 'asset_node.dart';
-import 'asset_node_set.dart';
 
 /// A class that takes care of forwarding assets within a phase.
 ///
@@ -41,7 +40,7 @@ class PhaseForwarder {
   int _numChannels;
 
   /// The intermediate forwarded assets.
-  final _intermediateAssets = new AssetNodeSet();
+  final _intermediateAssets = new Set<AssetNode>();
 
   /// The final forwarded asset.
   ///
@@ -70,7 +69,11 @@ class PhaseForwarder {
     }
 
     _intermediateAssets.add(asset);
-    asset.onStateChange.listen((_) => _adjustOutput());
+
+    asset.onStateChange.listen((state) {
+      if (state.isRemoved) _intermediateAssets.remove(asset);
+      _adjustOutput();
+    });
 
     _adjustOutput();
   }

@@ -8,7 +8,6 @@ import 'dart:async';
 
 import 'asset_cascade.dart';
 import 'asset_node.dart';
-import 'asset_node_set.dart';
 import 'log.dart';
 import 'phase.dart';
 import 'stream_pool.dart';
@@ -51,7 +50,7 @@ class GroupRunner {
   ///
   /// [process] is expected to only return new outputs, so this is used to
   /// ensure that it does so.
-  final _alreadyEmittedOutputs = new AssetNodeSet();
+  final _alreadyEmittedOutputs = new Set<AssetNode>();
 
   GroupRunner(AssetCascade cascade, this._group, this._location) {
     var lastPhase = new Phase(cascade, _group.phases.first, _location);
@@ -99,6 +98,9 @@ class GroupRunner {
     // If we get here, all phases are done processing.
     var newOutputs = _phases.last.availableOutputs
         .difference(_alreadyEmittedOutputs);
+    for (var output in newOutputs) {
+      output.whenRemoved(() => _alreadyEmittedOutputs.remove(output));
+    }
     _alreadyEmittedOutputs.addAll(newOutputs);
 
     return new Future.value(newOutputs);

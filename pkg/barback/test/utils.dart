@@ -249,10 +249,9 @@ Future<LogEntry> _getNextLog(String description) {
 /// Schedules an expectation that the graph will deliver an asset matching
 /// [name] and [contents].
 ///
-/// [contents] may be a [String] or a [Matcher] that matches a string. If
-/// [contents] is omitted, defaults to the asset's filename without an extension
-/// (which is the same default that [initGraph] uses).
-void expectAsset(String name, [contents]) {
+/// If [contents] is omitted, defaults to the asset's filename without an
+/// extension (which is the same default that [initGraph] uses).
+void expectAsset(String name, [String contents]) {
   var id = new AssetId.parse(name);
 
   if (contents == null) {
@@ -263,7 +262,7 @@ void expectAsset(String name, [contents]) {
     return _barback.getAssetById(id).then((asset) {
       // TODO(rnystrom): Make an actual Matcher class for this.
       expect(asset.id, equals(id));
-      expect(asset.readAsString(), completion(contents));
+      expect(asset.readAsString(), completion(equals(contents)));
     });
   }, "get asset $name");
 }
