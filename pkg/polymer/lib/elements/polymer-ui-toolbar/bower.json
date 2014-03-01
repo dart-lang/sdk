@@ -1,0 +1,11 @@
+{
+  "name": "polymer-ui-toolbar",
+  "private": true,
+  "dependencies": {
+    "polymer-ui-icon-button": "Polymer/polymer-ui-icon-button#master",
+    "polymer": "Polymer/polymer#master",
+    "polymer-ui-theme-aware": "Polymer/polymer-ui-theme-aware#master",
+    "polymer-media-query": "Polymer/polymer-media-query#master",
+    "polymer-flex-layout": "Polymer/polymer-flex-layout#master"
+  }
+}

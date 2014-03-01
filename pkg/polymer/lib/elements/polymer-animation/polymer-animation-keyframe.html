@@ -1,0 +1,32 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<polymer-element name="polymer-animation-keyframe" attributes="offset value easing">
+	<script>
+		/**
+     * Defines a keyframe in an animation. Its children should be
+     * `<polymer-animation-prop>` elements specifying the css
+     * property value at the keyframe.
+     *
+		 * @class polymer-animation-keyframe
+		 */
+		/**
+		 * From 0 to 1.
+		 * @property offset
+		 * @type Number
+		 */
+		Polymer('polymer-animation-keyframe', {
+			get properties() {
+        var props = {};
+        var children = this.querySelectorAll('polymer-animation-prop');
+        Array.prototype.forEach.call(children, function(c) {
+          props[c.name] = c.value;
+        });
+				if (this.offset !== null) {
+					props.offset = this.offset;
+				}
+				return props;
+			}
+		});
+	</script>
+</polymer-element>
+

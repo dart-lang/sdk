@@ -1,0 +1,113 @@
+<!--
+Copyright 2013 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE html><meta charset="UTF-8">
+<body></body>
+<script src="../bootstrap.js" nochecks></script>
+<script>
+"use strict";
+
+var body = document.querySelector("body");
+
+test(function() {
+  var anAnimation = new Animation(body, {left: '100px'}, 1);
+  var player = document.timeline.play(anAnimation);
+  assert_false(player._needsHandlerPass);
+  anAnimation.onstart = function() { };
+  assert_true(player._needsHandlerPass);
+  anAnimation.onstart = undefined;
+  assert_false(player._needsHandlerPass);
+}, 'player sees handler changes after play called');
+
+test(function() {
+  var anAnimation = new Animation(body, {left: '100px'}, 1);
+  anAnimation.onend = function() { };
+  var player = document.timeline.play(anAnimation);
+  assert_true(player._needsHandlerPass);
+  anAnimation.onend = null;
+  assert_false(player._needsHandlerPass);
+  var player = document.timeline.play(anAnimation);
+  assert_false(player._needsHandlerPass);
+}, 'player gets appropriate handler state for changes before play is called');
+
+test(function() {
+  var anAnimation = new Animation(body, {left: '100px'}, 1);
+  anAnimation.oniteration = function() { };
+  var player = document.timeline.play(anAnimation);
+  assert_true(player._needsHandlerPass);
+  anAnimation.oncancel = function() { };
+  assert_true(player._needsHandlerPass);
+  anAnimation.oniteration = null;
+  assert_true(player._needsHandlerPass);
+  anAnimation.oncancel = undefined;
+  assert_false(player._needsHandlerPass);
+}, 'player needs a handler pass while at least one handler exists in the tree');
+
+test(function() {
+
+  var aTree = new ParGroup([
+    new SeqGroup([
+      new Animation(body, {left: '100px'}, 1),
+      new Animation(body, {left: '100px'}, 1)
+    ]),
+    new Animation(body, {left: '100px'}, 1)
+  ]);
+  aTree.children[1].onend = function() { };
+  var player = document.timeline.play(aTree);
+  assert_true(player._needsHandlerPass);
+  aTree.children[1].onend = undefined;
+  assert_false(player._needsHandlerPass);
+  aTree.children[0].children[0].onstart = function() { };
+  assert_true(player._needsHandlerPass);
+  aTree.children[0].children[1].oncancel = function() { };
+  assert_true(player._needsHandlerPass);
+  aTree.children[0].children[0].onstart = null;
+  assert_true(player._needsHandlerPass);
+  aTree.children[0].children[1].oncancel = undefined;
+  assert_false(player._needsHandlerPass);
+  aTree.oniteration = function() { };
+  assert_true(player._needsHandlerPass);
+  aTree.oniteration = null;
+  assert_false(player._needsHandlerPass);
+}, 'needsHandlerPass correctly calculated for non-trivial trees');
+
+test(function() {
+  var anAnimation = new Animation(body, {left: '100px'}, 1);
+  anAnimation.onstart = function() { };
+  var aGroup = new ParGroup([anAnimation]);
+  var player = document.timeline.play(aGroup);
+  assert_true(player._needsHandlerPass);
+}, 'needsHandlerPass correctly passed from child to parent on construction');
+
+test(function() {
+  var anAnimation = new Animation(body, {left: '100px'}, 1);
+  anAnimation.onstart = function() { };
+  var aGroup = new ParGroup([]);
+  aGroup.append(anAnimation);
+  var player = document.timeline.play(aGroup);
+  assert_true(player._needsHandlerPass);
+}, 'needsHandlerPass correctly passed from child to parent on addition');
+
+test(function() {
+  var anAnimation = new Animation(body, {left: '100px'}, 1);
+  anAnimation.onstart = function() { };
+  var aGroup = new ParGroup([]);
+  var player = document.timeline.play(aGroup);
+  aGroup.append(anAnimation);
+  assert_true(player._needsHandlerPass);
+}, 'needsHandlerPass correctly passed from child to parent on ' +
+   'addition after player creation');
+</script>

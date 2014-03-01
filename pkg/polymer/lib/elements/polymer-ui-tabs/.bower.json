@@ -1,0 +1,19 @@
+{
+  "name": "polymer-ui-tabs",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master",
+    "polymer-selector": "Polymer/polymer-selector#master",
+    "polymer-flex-layout": "Polymer/polymer-flex-layout#master"
+  },
+  "homepage": "https://github.com/Polymer/polymer-ui-tabs",
+  "_release": "23ae607397",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "23ae6073977ca74237d404a64f6915a7d1bddb22"
+  },
+  "_source": "git://github.com/Polymer/polymer-ui-tabs.git",
+  "_target": "master",
+  "_originalSource": "Polymer/polymer-ui-tabs"
+}

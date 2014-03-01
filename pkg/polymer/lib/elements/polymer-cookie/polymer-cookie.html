@@ -1,0 +1,82 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<link rel="import" href="../polymer/polymer.html">
+
+<polymer-element name="polymer-cookie" attributes="name value expires secure domain path max-age">
+  <template>
+    <style>
+      :host { display: none; }
+    </style>
+  </template>
+  <script>
+    (function() {
+      var EXPIRE_NOW = 'Thu, 01 Jan 1970 00:00:00 GMT';
+      var FOREVER = 'Fri, 31 Dec 9999 23:59:59 GMT';
+      var cookieProps = ['expires', 'secure', 'max-age', 'domain', 'path'];
+      Polymer('polymer-cookie', {
+        expires: FOREVER,
+        ready: function() {
+          this.load();
+        },
+        parseCookie: function() {
+          var pairs = document.cookie.split(/\s*;\s*/);
+          var map = pairs.map(function(kv) {
+            var eq = kv.indexOf('=');
+            return {
+              name: unescape(kv.slice(0, eq)),
+              value: unescape(kv.slice(eq + 1))
+            };
+          });
+          var nom = this.name;
+          return map.filter(function(kv){ return kv.name === nom; })[0];
+        },
+        load: function() {
+          var kv = this.parseCookie();
+          this.value = kv && kv.value;
+        },
+        valueChanged: function() {
+          this.expire = FOREVER;
+          this.save();
+        },
+        // TODO(dfreedman): collapse these when 'multiple props -> single change function' exists in Polymer
+        expiresChanged: function() {
+          this.save();
+        },
+        secureChanged: function() {
+          this.save();
+        },
+        domainChanged: function() {
+          this.save();
+        },
+        pathChanged: function() {
+          this.save();
+        },
+        maxAgeChanged: function() {
+          this.save();
+        },
+        isCookieStored: function() {
+          return Boolean(this.parseCookie());
+        },
+        deleteCookie: function() {
+          this.expires = EXPIRE_NOW;
+        },
+        prepareProperties: function() {
+          var prepared = '';
+          for (var i = 0, k; i < cookieProps.length; i++) {
+            k = cookieProps[i];
+            if (this[k]) {
+              prepared += (';' + k + '=' + this[k]);
+            }
+          }
+          return prepared;
+        },
+        save: function() {
+          document.cookie = escape(this.name) + '=' + escape(this.value) + this.prepareProperties();
+        }
+      });
+    })();
+  </script>
+</polymer-element>

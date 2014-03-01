@@ -1,0 +1,38 @@
+
+<!doctype html>
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>polymer-ui-submenu-item</title>
+    <script src="../platform/platform.js"></script>
+    <link rel="import" href="polymer-ui-submenu-item.html">
+    <link rel="import" href="../polymer-ui-menu-item/polymer-ui-menu-item.html">
+    <link rel="stylesheet" href="../polymer-ui-base/base.css">
+    <style>
+      section {
+        width: 300px;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body class="polymer-ui-body-text" unresolved>
+    <h2>polymer-ui-light-theme</h2>
+    <section theme="polymer-ui-light-theme">
+      <polymer-ui-submenu-item icon="settings" label="Topics" active>
+        <polymer-ui-menu-item label="Topics 1"></polymer-ui-menu-item>
+        <polymer-ui-menu-item label="Topics 2"></polymer-ui-menu-item>
+      </polymer-ui-submenu-item>
+    </section>
+    <h2>polymer-ui-dark-theme</h2>
+    <section style="background: #333;" theme="polymer-ui-dark-theme">
+      <polymer-ui-submenu-item icon="settings" label="Topics" active>
+        <polymer-ui-menu-item label="Topics 1"></polymer-ui-menu-item>
+        <polymer-ui-menu-item label="Topics 2"></polymer-ui-menu-item>
+      </polymer-ui-submenu-item>
+    </section>
+  </body>
+</html>

@@ -1,0 +1,40 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<link rel="import" href="../polymer/polymer.html">
+
+<polymer-element name="polymer-ui-theme-aware" attributes="theme">
+  <script>
+    PolymerUI = {
+      validateTheme: function() {
+        var theme = this.theme;
+        var defaultTheme = this.defaultTheme;
+        if (!theme) {
+          var p = this;
+          while (p && !theme) {
+            theme = p.getAttribute && p.getAttribute('theme');
+            defaultTheme = defaultTheme || p.defaultTheme;
+            p = p.parentNode || p.host;
+          }
+        }
+        this.activeTheme = this.theme || theme || defaultTheme;
+      }
+    };
+    Polymer('polymer-ui-theme-aware', {
+      defaultTheme: '',
+      activeTheme: '',
+      validateTheme: PolymerUI.validateTheme,
+      enteredView: function() {
+        this.validateTheme();
+      },
+      themeChanged: function() {
+        this.activeTheme = this.theme;
+      },
+      activeThemeChanged: function(old) {
+        this.classList.switch(old, this.activeTheme);
+      }
+    });
+  </script>
+</polymer-element>

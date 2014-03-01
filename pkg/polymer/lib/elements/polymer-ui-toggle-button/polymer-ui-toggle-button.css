@@ -1,0 +1,96 @@
+/*
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+*/
+
+:host {
+  display: inline-block;
+  position: relative;
+  min-width: 60px;
+  height: 24px;
+  overflow: hidden;
+  border: 1px solid #b6b6b6;
+  border-radius: 2px;
+  box-shadow: inset 0px 0px 1px 0 rgba(0,0,0,0.1);
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-transition: border 0.130s ease-out;
+  transition: border 0.130s ease-out;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+:host(.on:host) {
+  border: 1px solid #0fb2c6;
+}
+
+.toggle {
+  position: absolute;
+  left: -webkit-calc(-100% + 24px);
+  left: -moz-calc(-100% + 24px);
+  left: calc(-100% + 24px);
+  width: -webkit-calc(200% - 24px);
+  width: -moz-calc(200% - 24px);
+  width: calc(200% - 24px);
+  height: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  /* Safari bug: https://bugs.webkit.org/show_bug.cgi?id=100568 */
+  /*-webkit-transition: left 0.130s ease-out;*/
+  transition: left 0.130s ease-out;
+}
+
+/* workaround for https://github.com/Polymer/platform/issues/36 */
+/* @polyfill-unscoped-rule polymer-ui-toggle-button .toggle {
+  left: -webkit-calc(-100% + 24px);
+  width: -webkit-calc(200% - 24px);
+} */
+
+.toggle.dragging {
+  -webkit-transition: none;
+  transition: none;
+}
+
+.toggle.on {
+  left: 0;
+}
+
+.toggle > * {
+  float: left;
+}
+
+.on-label, .off-label {
+  width: 50%;
+  height: 100%;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+}
+
+.on-label {
+  padding-right: 12px;
+  background-color: #2fb2c6;
+  color: white;
+}
+
+.off-label {
+  padding-left: 12px;
+  background-color: #bfbfbf;
+  color: #716f6f;
+}
+
+.thumb {
+  position: absolute;
+  left: -webkit-calc(50% - 12px);
+  left: -moz-calc(50% - 12px);
+  left: calc(50% - 12px);
+  width: 24px;
+  height: 100%;
+  border-radius: 1px;
+  background-color: white;
+}
+
+/* @polyfill-unscoped-rule polymer-ui-toggle-button .thumb {
+  left: -webkit-calc(50% - 12px);
+} */

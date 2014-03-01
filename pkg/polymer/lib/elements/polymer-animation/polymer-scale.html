@@ -1,0 +1,31 @@
+<link rel="import" href="polymer-animation.html">
+<polymer-element name="polymer-scale" extends="polymer-animation" attributes="fromX fromY toX toY">
+  <template>
+  </template>
+  <script>
+    Polymer('polymer-scale', {
+      fromX: '1',
+      fromY: '1',
+      toX: '1',
+      toY: '1',
+      fromXChanged: function() {
+        this.generate();
+      },
+      fromYChanged: function() {
+        this.generate();
+      },
+      toXChanged: function() {
+        this.generate();
+      },
+      toYChanged: function() {
+        this.generate();
+      },
+      generate: function() {
+        this.keyframes = [
+          {transform: 'scale(' + this.fromX + ',' + this.fromY + ')'},
+          {transform: 'scale(' + this.toX + ',' + this.toY + ')'}
+        ];
+      }
+    });
+  </script>
+</polymer-element>

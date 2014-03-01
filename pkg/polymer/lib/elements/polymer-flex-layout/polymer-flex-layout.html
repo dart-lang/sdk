@@ -1,0 +1,152 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!--
+/**
+ * @module Polymer Elements
+ */
+/**
+ * polymer-flex-layout provides a helper to use CSS3 Flexible Boxes.  By putting
+ * polymer-flex-layout inside an element it makes the element a flex
+ * container. Use 'flex' attribute to make the flex item flexible.
+ *
+ * Example:
+ *
+ *     <div>
+ *       <polymer-flex-layout></polymer-flex-layout>
+ *       <div>Left</div>
+ *       <div flex>Main</div>
+ *       <div>Right</div>
+ *     </div>
+ *
+ *     ---------------------------------
+ *     |-------------------------------|
+ *     ||Left|       Main       |Right||
+ *     |-------------------------------|
+ *     ---------------------------------
+ *
+ *     <div>
+ *       <polymer-flex-layout vertical></polymer-flex-layout>
+ *       <div>Header</div>
+ *       <div flex>Body</div>
+ *       <div>Footer</div>
+ *     </div>
+ *
+ *     ----------
+ *     ||------||
+ *     ||Header||
+ *     ||------||
+ *     ||Body  ||
+ *     ||      ||
+ *     ||      ||
+ *     ||      ||
+ *     ||      ||
+ *     ||      ||
+ *     ||      ||
+ *     ||------||
+ *     ||Footer||
+ *     ||------||
+ *     ----------
+ *
+ * @class polymer-flex-layout
+ */
+/**
+ * If true, flex items are aligned vertically.
+ *
+ * @attribute vertical
+ * @type boolean
+ * @default false
+ */
+/**
+ * Defines the default for how flex items are laid out along the cross axis on 
+ * the current line.  Possible values are 'start', 'center' and 'end'.
+ *
+ * @attribute align
+ * @type string
+ * @default ''
+ */
+/**
+ * Defines how flex items are laid out along the main axis on the current line.
+ * Possible values are 'start', 'center' and 'end'.
+ *
+ * @attribute justify
+ * @type string
+ * @default ''
+ */
+/**
+ * If true, polymer-flex-layout is the flex container.
+ *
+ * Example:
+ *
+ *     <polymer-flex-layout isContainer>
+ *       <div>Left</div>
+ *       <div flex>Main</div>
+ *       <div>Right</div>
+ *     </polymer-flex-layout>
+ *
+ *     ---------------------------------
+ *     |-------------------------------|
+ *     ||Left|       Main       |Right||
+ *     |-------------------------------|
+ *     ---------------------------------
+ *
+ * @attribute isContainer
+ * @type boolean
+ * @default false
+ */
+-->
+<link rel="import" href="../polymer/polymer.html">
+
+<polymer-element name="polymer-flex-layout" attributes="vertical align justify isContainer">
+  <template>
+    <link rel="stylesheet" polymer-scope="controller" href="polymer-flex-layout.css">
+    <link rel="stylesheet" href="polymer-flex-layout.css">
+    <content></content>
+  </template>
+  <script>
+    Polymer('polymer-flex-layout', {
+      vertical: false,
+      isContainer: false,
+      layoutContainer: null,
+      enteredView: function() {
+        this.installControllerStyles();
+        this.layoutContainer = this.isContainer ? 
+            this : (this.parentNode.host || this.parentNode);
+        this.verticalChanged();
+        this.alignChanged();
+        this.justifyChanged();
+      },
+      leftView: function() {
+        this.layoutContainer = null;
+      },
+      layoutContainerChanged: function(old) {
+        if (old) {
+          old.classList.remove('flexbox');
+        }
+        this.style.display = this.layoutContainer === this ? '' : 'none';
+        if (this.layoutContainer) {
+          this.layoutContainer.classList.add('flexbox');
+        }
+      },
+      switchContainerClass: function(prefix, old, name) {
+        if (this.layoutContainer && name) {
+          this.layoutContainer.classList.switch(
+              prefix + old, prefix + name);
+        }
+      },
+      verticalChanged: function() {
+        if (this.layoutContainer) {
+          this.layoutContainer.classList.toggle('column', this.vertical);
+        }
+      },
+      alignChanged: function(old) {
+        this.switchContainerClass('align-', old, this.align);
+      },
+      justifyChanged: function(old) {
+        this.switchContainerClass('justify-', old, this.justify);
+      }
+    });
+  </script>
+</polymer-element>

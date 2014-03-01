@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>polymer-file</title>
+  <script src="../platform/platform.js"></script>
+  <link rel="import" href="polymer-file.html">
+</head>
+<body>
+  <polymer-file auto readas="text"></polymer-file>
+
+  <p>Read result:</p>
+  <textarea cols="20" rows="5"></textarea>
+  
+  <script>
+    document.addEventListener('polymer-ready', function() {
+      var pfile = document.querySelector('polymer-file');
+      pfile.blob = new Blob(['abc123'], {type: 'text/plain'});
+      //pfile.auto = true;
+      //pfile.read();
+
+      pfile.addEventListener('polymer-result', function(e) {
+        document.querySelector('textarea').value = e.detail.result;
+      });
+    });
+  </script>
+</body>
+</html>

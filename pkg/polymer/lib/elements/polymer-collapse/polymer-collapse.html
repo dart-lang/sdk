@@ -1,0 +1,240 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!--
+/**
+ * @module Polymer Elements
+ */
+/**
+ * polymer-collapse is used to add collapsible behavior to the
+ * target element.  It adjusts the height or width of the target element
+ * to make the element collapse and expand.
+ *
+ * Example:
+ *
+ *     <button on-click="{{toggle}}">toggle collapse</button>
+ *     <div id="demo">
+ *       ...
+ *     </div>
+ *     <polymer-collapse id="collapse" targetId="demo"></polymer-collapse>
+ *
+ *     ...
+ *
+ *     toggle: function() {
+ *       this.$.collapse.toggle();
+ *     }
+ *
+ * @class polymer-collapse
+ */
+-->
+<link rel="import" href="../polymer/polymer.html">
+
+<polymer-element name="polymer-collapse" attributes="targetId target horizontal closed duration fixedSize size">
+  <template>
+    <link rel="stylesheet" polymer-scope="controller" href="polymer-collapse.css">
+    <link rel="stylesheet" href="polymer-collapse.css">
+    <style>
+      :host {
+        display: none;
+      }
+    </style>
+  </template>
+  <script>
+    Polymer('polymer-collapse', {
+      /**
+       * The id of the target element.
+       *
+       * @attribute targetId
+       * @type string
+       * @default ''
+       */
+      targetId: '',
+      /**
+       * The target element.
+       *
+       * @attribute target
+       * @type object
+       * @default null
+       */
+      target: null,
+      /**
+       * If true, the orientation is horizontal; otherwise is vertical.
+       *
+       * @attribute horizontal
+       * @type boolean
+       * @default false
+       */
+      horizontal: false,
+      /**
+       * If true, the target element is hidden/collapsed.
+       *
+       * @attribute closed
+       * @type boolean
+       * @default false
+       */
+      closed: false,
+      /**
+       * Collapsing/expanding animation duration in second.
+       *
+       * @attribute duration
+       * @type number
+       * @default 0.33
+       */
+      duration: 0.33,
+      /**
+       * If true, the size of the target element is fixed and is set
+       * on the element.  Otherwise it will try to 
+       * use auto to determine the natural size to use
+       * for collapsing/expanding.
+       *
+       * @attribute fixedSize
+       * @type boolean
+       * @default false
+       */
+      fixedSize: false,
+      size: null,
+      attached: function() {
+        this.installControllerStyles();
+        this.inDocument = true;
+        this.async(function() {
+          this.afterInitialUpdate = true;
+        });
+      },
+      detached: function() {
+        if (this.target) {
+          this.removeListeners(this.target);
+        }
+      },
+      targetIdChanged: function() {
+        var p = this.parentNode;
+        while (p.parentNode) {
+          p = p.parentNode;
+        }
+        this.target = p.querySelector('#' + this.targetId);
+      },
+      targetChanged: function(old) {
+        if (old) {
+          this.removeListeners(old);
+        }
+        this.horizontalChanged();
+        this.isTargetReady = !!this.target;
+        if (this.target) {
+          this.target.style.overflow = 'hidden';
+          this.addListeners(this.target);
+          // set polymer-collapse-closed class initially to hide the target
+          this.toggleClosedClass(true);
+        }
+        // don't need to update if the size is already set and it's opened
+        if (!this.fixedSize || !this.closed) {
+          this.update();
+        }
+      },
+      addListeners: function(node) {
+        this.transitionEndListener = this.transitionEndListener || 
+            this.transitionEnd.bind(this);
+        node.addEventListener('webkitTransitionEnd', this.transitionEndListener);
+        node.addEventListener('transitionend', this.transitionEndListener);
+      },
+      removeListeners: function(node) {
+        node.removeEventListener('webkitTransitionEnd', this.transitionEndListener);
+        node.removeEventListener('transitionend', this.transitionEndListener);
+      },
+      horizontalChanged: function() {
+        this.dimension = this.horizontal ? 'width' : 'height';
+      },
+      closedChanged: function() {
+        this.update();
+      },
+      /** 
+       * Toggle the closed state of the collapsible.
+       *
+       * @method toggle
+       */
+      toggle: function() {
+        this.closed = !this.closed;
+      },
+      setTransitionDuration: function(duration) {
+        var s = this.target.style;
+        s.webkitTransition = s.transition = duration ? 
+            (this.dimension + ' ' + duration + 's') : null;
+        if (duration === 0) {
+          this.async('transitionEnd');
+        }
+      },
+      transitionEnd: function() {
+        if (!this.closed && !this.fixedSize) {
+          this.updateSize('auto', null);
+        }
+        this.setTransitionDuration(null);
+        this.toggleClosedClass(this.closed);
+      },
+      toggleClosedClass: function(add) {
+        this.hasClosedClass = add;
+        this.target.classList.toggle('polymer-collapse-closed', add);
+      },
+      updateSize: function(size, duration, forceEnd) {
+        if (duration) {
+          this.calcSize();
+        }
+        this.setTransitionDuration(duration);
+        var s = this.target.style;
+        var nochange = s[this.dimension] === size;
+        s[this.dimension] = size;
+        // transitonEnd will not be called if the size has not changed
+        if (forceEnd && nochange) {
+          this.transitionEnd();
+        }
+      },
+      update: function() {
+        if (!this.target || !this.inDocument) {
+          return;
+        }
+        if (!this.isTargetReady) {
+          this.targetChanged(); 
+        }
+        this.horizontalChanged();
+        this[this.closed ? 'hide' : 'show']();
+      },
+      calcSize: function() {
+        return this.target.getBoundingClientRect()[this.dimension] + 'px';
+      },
+      getComputedSize: function() {
+        return getComputedStyle(this.target)[this.dimension];
+      },
+      show: function() {
+        this.toggleClosedClass(false);
+        // for initial update, skip the expanding animation to optimize
+        // performance e.g. skip calcSize
+        if (!this.afterInitialUpdate) {
+          this.transitionEnd();
+          return;
+        }
+        if (!this.fixedSize) {
+          this.updateSize('auto', null);
+          var s = this.calcSize();
+          this.updateSize(0, null);
+        }
+        this.async(function() {
+          this.updateSize(this.size || s, this.duration, true);
+        });
+      },
+      hide: function() {
+        // don't need to do anything if it's already hidden
+        if (this.hasClosedClass && !this.fixedSize) {
+          return;
+        }
+        if (this.fixedSize) {
+          // save the size before hiding it
+          this.size = this.getComputedSize();
+        } else {
+          this.updateSize(this.calcSize(), null);
+        }
+        this.async(function() {
+          this.updateSize(0, this.duration);
+        });
+      }
+    });
+  </script>
+</polymer-element>

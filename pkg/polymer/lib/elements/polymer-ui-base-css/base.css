@@ -1,0 +1,23 @@
+/*
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+*/
+.polymer-ui-full-bleed {
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+}
+
+.polymer-ui-fit {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.polymer-ui-body-text {
+  font: 16px 'Helvetica Neue', Helvetica, Arial, Roboto;
+}
+

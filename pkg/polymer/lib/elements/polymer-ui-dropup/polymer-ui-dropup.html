@@ -1,0 +1,53 @@
+<link href="../polymer/polymer.html" rel="import">
+<link href="../polymer-animation/polymer-translate.html" rel="import">
+<link href="../polymer-flex-layout/polymer-flex-layout.html" rel="import">
+<link href="../polymer-overlay/polymer-overlay.html" rel="import">
+<link href="../polymer-ui-icon-button/polymer-ui-icon-button.html" rel="import">
+<link href="../polymer-ui-menu/polymer-ui-menu.html" rel="import">
+<polymer-element name="polymer-ui-dropup" extends="polymer-ui-menu" attributes="header" on-polymer-select="{{toggle}}">
+  <template>
+    <style>
+      :host {
+        display: block;
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        background-color: white;
+        border-top: 1px solid rgba(0, 0, 0, 0.25);
+      }
+      #dropupHeader {
+        padding: 0.4em 0.4em 0.4em 1.2em;
+        color: #999;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+      }
+      /* @polyfill polymer-ui-menu > *  */
+      content::content > * {
+        background-color: white;
+        margin: 0.4em;
+      }
+    </style>
+    <polymer-overlay id="dropupOverlay" transitions="{{transitions}}"></polymer-overlay>
+    <polymer-translate id="dropupTransition" fromY="100%" easing="ease-out" duration="0.1"></polymer-translate>
+    <div id="dropupBody">
+      <div id="dropupHeader">
+        <polymer-flex-layout align="center"></polymer-flex-layout>
+        <div flex>{{header}}</div>
+        <polymer-ui-icon-button icon="close" on-tap="{{toggle}}"></polymer-ui-icon-button>
+      </div>
+      <shadow></shadow>
+    </div>
+  </template>
+  <script>
+    Polymer('polymer-ui-dropup', {
+      ready: function() {
+        this.super();
+        this.transitions = [this.$.dropupTransition, null];
+        this.$.dropupOverlay.target = this;
+      },
+      toggle: function() {
+        this.$.dropupOverlay.toggle();
+      }
+    });
+  </script>
+</polymer-element>

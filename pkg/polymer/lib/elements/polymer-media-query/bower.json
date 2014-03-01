@@ -1,0 +1,7 @@
+{
+  "name": "polymer-media-query",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master"
+  }
+}

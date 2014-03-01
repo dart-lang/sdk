@@ -1,0 +1,83 @@
+
+<!doctype html>
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+<head>
+  <title>polymer-ui-menu-button</title>
+  <script src="../platform/platform.js"></script>
+  <link rel="import" href="polymer-ui-menu-button.html">
+	<link rel="import" href="../polymer-ui-menu-item/polymer-ui-menu-item.html">
+  <link rel="import" href="../polymer-ui-toolbar/polymer-ui-toolbar.html">
+	<link rel="import" href="../polymer-flex-layout/polymer-flex-layout.html">
+  <link rel="stylesheet" href="../polymer-ui-base/base.css">
+  <style>
+    body {
+			position: absolute;
+			margin: 0;
+			height: 100%;
+			width: 100%;
+    }
+		.narrow {
+			width: 80%;
+			height: 100%;
+      margin: 0 auto;
+		}
+  </style>
+</head>
+<body class="polymer-ui-body-text" unresolved>
+	<div class="narrow">
+		<polymer-flex-layout vertical></polymer-flex-layout>
+		<polymer-ui-toolbar theme="polymer-ui-light-theme">
+			<polymer-ui-icon-button icon="menu"></polymer-ui-icon-button>
+			<div flex>Toolbar: polymer-ui-light-theme</div>
+			<polymer-ui-icon-button icon="refresh"></polymer-ui-icon-button>
+			<polymer-ui-menu-button selected="0" halign="right">
+				<polymer-ui-menu-item icon="settings" label="Settings"></polymer-ui-menu-item>
+				<polymer-ui-menu-item icon="dialog" label="Dialog"></polymer-ui-menu-item>
+				<polymer-ui-menu-item icon="search" label="Search"></polymer-ui-menu-item>
+			</polymer-ui-menu-button>
+			<polymer-ui-menu-button selected="0" halign="right">
+				<polymer-ui-menu-item icon="settings" label="Settings"></polymer-ui-menu-item>
+				<polymer-ui-menu-item icon="dialog" label="Dialog"></polymer-ui-menu-item>
+				<polymer-ui-menu-item icon="search" label="Search"></polymer-ui-menu-item>
+			</polymer-ui-menu-button>
+		</polymer-ui-toolbar>
+		<div flex>
+			<br><br><br><br><br><br><br><br><br><br>
+			<polymer-ui-menu-button selected="0" theme="polymer-ui-light-theme">
+				<polymer-ui-menu-item icon="settings" label="Settings"></polymer-ui-menu-item>
+				<polymer-ui-menu-item icon="dialog" label="Dialog"></polymer-ui-menu-item>
+				<polymer-ui-menu-item icon="search" label="Search"></polymer-ui-menu-item>
+			</polymer-ui-menu-button>
+			<polymer-ui-menu-button selected="0" theme="polymer-ui-light-theme" valign="top">
+				<polymer-ui-menu-item icon="settings" label="Settings"></polymer-ui-menu-item>
+				<polymer-ui-menu-item icon="dialog" label="Dialog"></polymer-ui-menu-item>
+				<polymer-ui-menu-item icon="search" label="Search"></polymer-ui-menu-item>
+			</polymer-ui-menu-button>
+			<polymer-ui-menu-button selected="0" theme="polymer-ui-light-theme" valign="top">
+				<polymer-ui-menu-item icon="settings" label="Settings"></polymer-ui-menu-item>
+				<polymer-ui-menu-item icon="dialog" label="Dialog"></polymer-ui-menu-item>
+			</polymer-ui-menu-button>
+		</div>
+		<polymer-ui-toolbar theme="polymer-ui-light-theme">
+			<polymer-ui-icon-button icon="menu"></polymer-ui-icon-button>
+			<div flex>Toolbar: polymer-ui-light-theme</div>
+			<polymer-ui-icon-button icon="refresh"></polymer-ui-icon-button>
+			<polymer-ui-menu-button selected="0" halign="right" valign="top">
+				<polymer-ui-menu-item icon="settings" label="Settings"></polymer-ui-menu-item>
+				<polymer-ui-menu-item icon="dialog" label="Dialog"></polymer-ui-menu-item>
+				<polymer-ui-menu-item icon="search" label="Search"></polymer-ui-menu-item>
+			</polymer-ui-menu-button>
+			<polymer-ui-menu-button selected="0" halign="right" valign="top">
+				<polymer-ui-menu-item icon="settings" label="Settings"></polymer-ui-menu-item>
+				<polymer-ui-menu-item icon="dialog" label="Dialog"></polymer-ui-menu-item>
+				<polymer-ui-menu-item icon="search" label="Search"></polymer-ui-menu-item>
+			</polymer-ui-menu-button>
+		</polymer-ui-toolbar>
+	</div>
+</body>
+</html>

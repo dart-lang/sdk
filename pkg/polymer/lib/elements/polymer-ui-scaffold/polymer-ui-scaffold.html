@@ -1,0 +1,148 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+
+<!--
+/**
+* Polymer UI Elements
+*
+* @module Polymer UI Elements
+*/
+/**
+ * @class polymer-ui-scaffold
+ */
+-->
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer-grid-layout/polymer-grid-layout.html">
+<link rel="import" href="../polymer-ui-toolbar/polymer-ui-toolbar.html">
+<link rel="import" href="../polymer-ui-icon-button/polymer-ui-icon-button.html">
+
+<polymer-element name="polymer-ui-scaffold" attributes="menuActive hideMenuButton">
+  <template>
+    <link rel="stylesheet" href="polymer-ui-scaffold.css">
+    <polymer-grid-layout id="grid"></polymer-grid-layout>
+    <section class="animate" offscreen="basement">
+      <content select="[navigation]"></content>
+    </section>
+    <polymer-ui-toolbar class="animate">
+      <polymer-ui-icon-button icon="menu" hidden?="{{hideMenuButton}}" on-tap="{{menuActionTap}}" active="{{menuActive}}"></polymer-ui-icon-button>
+      <content select="[tool]"></content>
+    </polymer-ui-toolbar>
+    <section class="animate">
+      <content select="*"></content>
+    </section>
+  </template>
+  <script>
+    (function() {
+      Polymer('polymer-ui-scaffold', {
+        menuActive: false,
+        hideMenuButton: false,
+        layouts: {
+          main:[
+            [2, 2],
+            [3, 3],
+            [3, 3]
+          ],
+          menu: [
+            [1, 2, 2],
+            [1, 3, 3],
+            [1, 3, 3]
+          ]
+        },
+        ready: function() {
+          this.$.grid.layout = this.layouts.main;
+        },
+        menuActionTap: function() {
+          this.menuActive = !this.menuActive;
+          Platform.flush();
+        },
+        menuActiveChanged: function() {
+          this.$.grid.layout = this.layouts[this.menuActive ? 'menu' : 'main'];
+        }
+      });
+    })();
+  </script>
+</polymer-element>
+
+<polymer-element name="polymer-ui-scaffold2" attributes="">
+  <template>
+    <link rel="stylesheet" href="polymer-ui-scaffold.css">
+    <polymer-grid-layout id="grid"></polymer-grid-layout>
+    <section>
+      <content select="[navigation]"></content>
+    </section>
+    <polymer-ui-toolbar class="animate">
+      <content select="[tool]"></content>
+    </polymer-ui-toolbar>
+    <section class="animate">
+      <content select="[main]"></content>
+    </section>
+  </template>
+  <script>
+    (function() {
+      Polymer('polymer-ui-scaffold2', {
+        menuActive: false,
+        layouts: {
+          main:[
+            [3, 3, 1],
+            [3, 3, 1],
+            [2, 2, 1]
+          ]
+        },
+        ready: function() {
+          this.$.grid.layout = this.layouts.main;
+        },
+      });
+    })();
+  </script>
+</polymer-element>
+
+<polymer-element name="polymer-ui-scaffold3" attributes="menuActive hideMenuButton">
+  <template>
+    <link rel="stylesheet" href="polymer-ui-scaffold.css">
+    <polymer-grid-layout id="grid"></polymer-grid-layout>
+    <section class="animate" style="z-index: 10;" offscreen="left">
+      <content select="[navigation]"></content>
+    </section>
+    <section id="scrim" on-tap="{{menuActionTap}}" offscreen="right"></section>
+    <polymer-ui-toolbar offscreen="basement">
+      <polymer-ui-icon-button icon="menu" hidden?="{{hideMenuButton}}" on-tap="{{menuActionTap}}" active="{{menuActive}}"></polymer-ui-icon-button>
+      <content select="[tool]"></content>
+    </polymer-ui-toolbar>
+    <section offscreen="basement">
+      <content select="*"></content>
+    </section>
+  </template>
+  <script>
+    (function() {
+      Polymer('polymer-ui-scaffold3', {
+        menuActive: false,
+        hideMenuButton: false,
+        layouts: {
+          main:[
+            [3, 3],
+            [4, 4],
+            [4, 4]
+          ],
+          menu: [
+            [1, 2],
+            [1, 2],
+            [1, 2]
+          ]
+        },
+        ready: function() {
+          this.$.grid.layout = this.layouts.main;
+        },
+        menuActionTap: function() {
+          this.menuActive = !this.menuActive;
+          Platform.flush();
+        },
+        menuActiveChanged: function() {
+          this.$.grid.layout = this.layouts[this.menuActive ? 'menu' : 'main'];
+        }
+      });
+    })();
+  </script>
+</polymer-element>

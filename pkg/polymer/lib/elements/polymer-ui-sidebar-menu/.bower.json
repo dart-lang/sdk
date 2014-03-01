@@ -1,0 +1,22 @@
+{
+  "name": "polymer-ui-sidebar-menu",
+  "private": true,
+  "dependencies": {
+    "polymer-ui-submenu-item": "Polymer/polymer-ui-submenu-item#master",
+    "polymer": "Polymer/polymer#master",
+    "polymer-ui-sidebar-header": "Polymer/polymer-ui-sidebar-header#master",
+    "polymer-ui-menu": "Polymer/polymer-ui-menu#master",
+    "polymer-ui-nav-arrow": "Polymer/polymer-ui-nav-arrow#master",
+    "polymer-flex-layout": "Polymer/polymer-flex-layout#master"
+  },
+  "homepage": "https://github.com/Polymer/polymer-ui-sidebar-menu",
+  "_release": "9c0921cbf1",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "9c0921cbf1ca8d40b1e3672e3d1b6c0953e58df5"
+  },
+  "_source": "git://github.com/Polymer/polymer-ui-sidebar-menu.git",
+  "_target": "master",
+  "_originalSource": "Polymer/polymer-ui-sidebar-menu"
+}

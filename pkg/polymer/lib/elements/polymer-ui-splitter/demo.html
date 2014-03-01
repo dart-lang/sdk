@@ -1,0 +1,72 @@
+
+<!doctype html>
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>polymer-ui-splitter</title>
+    <script src="../platform/platform.js"></script>
+    <link rel="import" href="polymer-ui-splitter.html">
+    <link rel="stylesheet" href="../polymer-flex-layout/polymer-flex-layout.css">
+    <link rel="stylesheet" href="../polymer-ui-base/base.css">
+    <style>
+      body {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -webkit-tap-highlight-color: rgba(0,0,0,0);
+      }
+      
+      .container {
+        width: 400px;
+        height: 200px;
+        border: 4px solid #aaa;
+      }
+      
+      .container div {
+        overflow: hidden;
+      }
+      
+      #box1, #box3, #box5, #box6 {
+        width: 100px;
+      }
+      
+      #box2, #box4 {
+        height: 40px;
+      }
+    </style>
+  </head>
+  <body class="polymer-ui-body-text" unresolved>
+    <div class="container flexbox">
+      <div id="box1">left</div>
+      <polymer-ui-splitter direction="left"></polymer-ui-splitter>
+      <div flex>right</div>
+    </div>
+    <br>
+    <div class="container flexbox column">
+      <div id="box2">top</div>
+      <polymer-ui-splitter direction="up"></polymer-ui-splitter>
+      <div flex>bottom</div>
+    </div>
+    <br>
+    <div class="container flexbox">
+      <div id="box3">1</div>
+      <polymer-ui-splitter direction="left"></polymer-ui-splitter>
+      <div class="flexbox column" flex>
+        <div id="box4">2</div>
+        <polymer-ui-splitter direction="up"></polymer-ui-splitter>
+        <div flex>3</div>
+      </div>
+    </div>
+    <br>
+    <div class="container flexbox">
+      <div id="box5">left</div>
+      <polymer-ui-splitter direction="left"></polymer-ui-splitter>
+      <div flex>center</div>
+      <polymer-ui-splitter direction="right"></polymer-ui-splitter>
+      <div id="box6">right</div>
+    </div>
+  </body>
+</html>

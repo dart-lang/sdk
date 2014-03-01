@@ -1,0 +1,66 @@
+<!--
+Copyright 2013 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE html><meta charset="UTF-8">
+<div id="anim"></div>
+
+<script src="../bootstrap.js"></script>
+<script>
+"use strict";
+
+var anim = new Animation(document.getElementById("anim"), {left: "100px"},
+    {iterations: 3.0});
+var parGroup = new ParGroup();
+var seqGroup = new SeqGroup();
+
+// Should use intrinsic duration if Timing.duration is undefined.
+// Animation
+test(function() {assert_equals(anim.duration,  0.0)},
+     "Animation duration should use intrinsic value");
+anim.specified.duration = 1.0;
+test(function() {assert_equals(anim.duration,  1.0)},
+     "Animation duration should use specified value");
+// ParGroup
+test(function() {assert_equals(parGroup.duration,  0.0)},
+     "ParGroup duration should use intrinsic value");
+parGroup.append(anim);
+test(function() {assert_equals(parGroup.duration,  3.0)},
+     "ParGroup duration should be derived from child");
+parGroup.specified.duration = 2.0;
+test(function() {assert_equals(parGroup.duration,  2.0)},
+     "ParGroup duration should use specified value");
+// SeqGroup
+test(function() {assert_equals(seqGroup.duration,  0.0)},
+     "SeqGroup duration should use intrinsic value");
+seqGroup.append(anim);
+test(function() {assert_equals(seqGroup.duration,  3.0)},
+     "SeqGroup duration should be derived from child");
+seqGroup.specified.duration = 4.0;
+test(function() {assert_equals(seqGroup.duration,  4.0)},
+     "SeqGroup duration should use specified value");
+
+test(function() {
+  assert_throws(new TypeError(), function() {
+    anim.duration = 5.0;
+  });
+  assert_equals(anim.duration,  1.0);
+}, "Animation.duration should be read-only");
+
+anim.specified.duration = 14.0;
+test(function() {assert_equals(anim.activeDuration,  42.0)},
+     "activeDuration should always reflect TimedItem.duration");
+
+</script>

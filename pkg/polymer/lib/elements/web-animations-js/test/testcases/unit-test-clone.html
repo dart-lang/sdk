@@ -1,0 +1,80 @@
+<!--
+Copyright 2013 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE html><meta charset="UTF-8">
+<div id="anim"></div>
+
+<script src="../bootstrap.js"></script>
+<script>
+"use strict";
+
+var elem = document.getElementById("anim");
+var animFunc = {left: "100px"};
+
+// Animation
+var anim = new Animation(elem, animFunc, 1.0);
+var clone = anim.clone();
+test(function() {assert_true(clone instanceof Animation)},
+     "Clone should be an Animation");
+test(function() {assert_equals(clone.specified.duration, 1.0)},
+     "Clone should take Timing.duration");
+test(function() {assert_equals(clone.target, elem)},
+     "Clone should take target");
+
+// ParGroup
+var parGroup = new ParGroup([anim, clone], 4.0);
+var parGroupClone = parGroup.clone();
+test(function() {assert_true(parGroupClone instanceof ParGroup, true)},
+     "ParGroup clone should be a ParGroup");
+test(function() {assert_equals(parGroupClone.specified.duration, 4.0)},
+     "ParGroup clone should take Timing.duration");
+test(function() {assert_equals(parGroupClone.children.length, 2)},
+     "ParGroup clone should clone children");
+test(function() {assert_not_equals(parGroupClone.children[0], anim)},
+     "ParGroup clone should clone first child");
+test(function() {assert_equals(parGroupClone.children[0].duration, 1.0)},
+     "ParGroup clone should clone first child's duration");
+test(function() {assert_not_equals(parGroupClone.children[1], clone)},
+     "ParGroup clone should clone second child");
+test(function() {assert_equals(parGroupClone.children[1].duration, 1.0)},
+     "ParGroup clone should clone second child's duration");
+
+// SeqGroup
+var seqGroup = new SeqGroup([anim, clone], 6.0);
+var seqGroupClone = seqGroup.clone();
+test(function() {assert_true(seqGroupClone instanceof SeqGroup)},
+     "SeqGroup clone should be a SeqGroup");
+test(function() {assert_equals(seqGroupClone.specified.duration, 6.0)},
+     "SeqGroup clone should take Timing.duration");
+test(function() {assert_equals(seqGroupClone.children.length, 2)},
+     "SeqGroup clone should clone children");
+test(function() {assert_not_equals(seqGroupClone.children[0], anim)},
+     "SeqGroup clone should clone first child");
+test(function() {assert_equals(seqGroupClone.children[0].duration, 1.0)},
+     "SeqGroup clone should clone first child's duration");
+test(function() {assert_not_equals(seqGroupClone.children[1], clone)},
+     "SeqGroup clone should clone second child");
+test(function() {assert_equals(seqGroupClone.children[1].duration, 1.0)},
+     "SeqGroup clone should clone second child's duration");
+
+// Child
+var childClone = anim.clone();
+test(function() {assert_equals(anim.parent, seqGroup)},
+     "Child clone should not equal seqGroup");
+test(function() {assert_equals(childClone.parent, null)},
+     "Child clone should not take parent");
+
+</script>

@@ -1,0 +1,17 @@
+{
+  "name": "polymer-shared-lib",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master"
+  },
+  "homepage": "https://github.com/Polymer/polymer-shared-lib",
+  "_release": "2aec3fec1a",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "2aec3fec1a31fdadf802586eb1fe04ae1ebee10d"
+  },
+  "_source": "git://github.com/Polymer/polymer-shared-lib.git",
+  "_target": "master",
+  "_originalSource": "Polymer/polymer-shared-lib"
+}

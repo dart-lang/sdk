@@ -1,0 +1,91 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<link rel="import" href="../polymer/polymer.html">
+
+<polymer-element name="polymer-shared-lib" attributes="url notifyEvent">
+  <script>
+    (function() {
+      Polymer('polymer-shared-lib', {
+        notifyEvent: 'polymer-shared-lib-loaded',
+        ready: function() {
+        },
+        urlChanged: function() {
+          requireApi(this);
+        },
+        provide: function() {
+          this.async('notify');
+        },
+        notify: function() {
+          this.fire(this.notifyEvent, arguments);
+        }
+      });
+
+      function nameFromInstance(instance) {
+        return instance.url.replace(/[\:\/\%\?\.\=]/g, '_') + '_api';
+      }
+
+      var apiMap = {};
+      function requireApi(instance) {
+        instance._api_name = nameFromInstance(instance);
+        var loader = apiMap[instance._api_name];
+        if (!loader) {
+          loader = new Loader(instance);
+          apiMap[name] = loader;
+        }
+        loader.requireApi(instance);
+      }
+      
+      Loader = function(instance) {
+        this.instances = [];
+        this.load(instance);
+      };
+      Loader.prototype = {
+        loaded: false,
+        requireApi: function(instance) {
+          if (this.loaded) {
+            this.provide(instance);
+          } else {
+            this.instances.push(instance);
+          }
+        },
+        load: function(instance) {
+          this.callbackName = instance._api_name + '_loaded';
+          window[this.callbackName] = this.success.bind(this);
+          var url = instance.url.replace('%%callback%%', this.callbackName);
+          this.addScript(url);
+        },
+        addScript: function(src) {
+          var script = document.createElement('script');
+          script.src = src;
+          script.onerror = this.error.bind(this);
+          var s = document.querySelector('script');
+          s.parentNode.insertBefore(script, s);
+          this.script = script;
+        },
+        removeScript: function() {
+          if (this.script.parentNode) {
+            this.script.parentNode.removeChild(this.script);
+          }
+          this.script = null;
+        },
+        error: function() {
+          this.cleanup();
+        },
+        success: function() {
+          this.cleanup();
+          this.result = Array.prototype.slice.call(arguments);
+          this.instances.forEach(this.provide, this);
+        },
+        cleanup: function() {
+          delete window[this.callbackName];
+        },
+        provide: function(instance) {
+          instance.notify.apply(instance, this.result);
+        }
+      };
+    })();
+  </script>
+</polymer-element>

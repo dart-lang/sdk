@@ -1,0 +1,96 @@
+{
+    "project": {
+        "name": "Docs",
+        "description": "Docs"
+    },
+    "files": {
+        "..\\..\\polymer-flex-layout\\polymer-flex-layout.html": {
+            "name": "..\\..\\polymer-flex-layout\\polymer-flex-layout.html",
+            "modules": {
+                "Polymer Elements": 1
+            },
+            "classes": {
+                "polymer-flex-layout": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        }
+    },
+    "modules": {
+        "Polymer Elements": {
+            "name": "Polymer Elements",
+            "submodules": {},
+            "classes": {
+                "polymer-flex-layout": 1
+            },
+            "fors": {},
+            "namespaces": {},
+            "tag": "module",
+            "file": "..\\..\\polymer-flex-layout\\polymer-flex-layout.html",
+            "line": 10
+        }
+    },
+    "classes": {
+        "polymer-flex-layout": {
+            "name": "polymer-flex-layout",
+            "shortname": "polymer-flex-layout",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "Polymer Elements",
+            "namespace": "",
+            "file": "..\\..\\polymer-flex-layout\\polymer-flex-layout.html",
+            "line": 10,
+            "description": "polymer-flex-layout provides a helper to use CSS3 Flexible Boxes.  By putting\npolymer-flex-layout inside an element it makes the element a flex\ncontainer. Use 'flex' attribute to make the flex item flexible.\n\nExample:\n\n    <div>\n      <polymer-flex-layout></polymer-flex-layout>\n      <div>Left</div>\n      <div flex>Main</div>\n      <div>Right</div>\n    </div>\n\n    ---------------------------------\n    |-------------------------------|\n    ||Left|       Main       |Right||\n    |-------------------------------|\n    ---------------------------------\n\n    <div>\n      <polymer-flex-layout vertical></polymer-flex-layout>\n      <div>Header</div>\n      <div flex>Body</div>\n      <div>Footer</div>\n    </div>\n\n    ----------\n    ||------||\n    ||Header||\n    ||------||\n    ||Body  ||\n    ||      ||\n    ||      ||\n    ||      ||\n    ||      ||\n    ||      ||\n    ||      ||\n    ||------||\n    ||Footer||\n    ||------||\n    ----------"
+        }
+    },
+    "classitems": [
+        {
+            "file": "..\\..\\polymer-flex-layout\\polymer-flex-layout.html",
+            "line": 55,
+            "description": "If true, flex items are aligned vertically.",
+            "itemtype": "attribute",
+            "name": "vertical",
+            "type": "boolean",
+            "default": "false",
+            "class": "polymer-flex-layout",
+            "module": "Polymer Elements"
+        },
+        {
+            "file": "..\\..\\polymer-flex-layout\\polymer-flex-layout.html",
+            "line": 62,
+            "description": "Defines the default for how flex items are laid out along the cross axis on \nthe current line.  Possible values are 'start', 'center' and 'end'.",
+            "itemtype": "attribute",
+            "name": "align",
+            "type": "string",
+            "default": "''",
+            "class": "polymer-flex-layout",
+            "module": "Polymer Elements"
+        },
+        {
+            "file": "..\\..\\polymer-flex-layout\\polymer-flex-layout.html",
+            "line": 70,
+            "description": "Defines how flex items are laid out along the main axis on the current line.\nPossible values are 'start', 'center' and 'end'.",
+            "itemtype": "attribute",
+            "name": "justify",
+            "type": "string",
+            "default": "''",
+            "class": "polymer-flex-layout",
+            "module": "Polymer Elements"
+        },
+        {
+            "file": "..\\..\\polymer-flex-layout\\polymer-flex-layout.html",
+            "line": 78,
+            "description": "If true, polymer-flex-layout is the flex container.\n\nExample:\n\n    <polymer-flex-layout isContainer>\n      <div>Left</div>\n      <div flex>Main</div>\n      <div>Right</div>\n    </polymer-flex-layout>\n\n    ---------------------------------\n    |-------------------------------|\n    ||Left|       Main       |Right||\n    |-------------------------------|\n    ---------------------------------",
+            "itemtype": "attribute",
+            "name": "isContainer",
+            "type": "boolean",
+            "default": "false",
+            "class": "polymer-flex-layout",
+            "module": "Polymer Elements"
+        }
+    ],
+    "warnings": []
+}

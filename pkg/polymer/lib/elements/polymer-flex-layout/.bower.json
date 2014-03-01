@@ -1,0 +1,17 @@
+{
+  "name": "polymer-flex-layout",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master"
+  },
+  "homepage": "https://github.com/Polymer/polymer-flex-layout",
+  "_release": "e73e29b1bc",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "e73e29b1bc108ea2d329fbc8433cbf4f344d6b6a"
+  },
+  "_source": "git://github.com/Polymer/polymer-flex-layout.git",
+  "_target": "master",
+  "_originalSource": "Polymer/polymer-flex-layout"
+}

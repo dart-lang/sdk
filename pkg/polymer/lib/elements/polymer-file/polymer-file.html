@@ -1,0 +1,141 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+
+<!--
+/**
+ * @module Polymer Elements
+ */
+
+/**
+ * polymer-file provides File API operations.
+ *
+ * Examples:
+ *
+ *     <polymer-file id="file" readas="dataurl" 
+ *                   on-polymer-result="{{handleResult}}"></polymer-file>
+ *     ...
+ *     this.$.file.blob = new Blob(['abc'], {type: 'text/plain'});
+ *     this.$.file.read();
+ *
+ *     ---
+ *
+ *     <polymer-file id="file" readas="arraybuffer" auto
+ *                   result="{{result}}"></polymer-file>
+ *     ...
+ *     this.$.file.blob = new Blob(['abc'], {type: 'text/plain'});
+ *
+ * @class polymer-file
+ */
+/**
+ * Fired when a file read has complete.
+ * 
+ * @event polymer-result
+ * @param {Object} detail
+ * @param {Object} detail.result The result of the read.
+ */
+/**
+ * Fired if there is an error in the file read.
+ * 
+ * @event polymer-error
+ * @param {Object} detail
+ * @param {Object} detail.error Information on the error.
+ * 
+ */
+-->
+<link rel="import" href="../polymer/polymer.html">
+
+<polymer-element name="polymer-file" attributes="blob result auto readas">
+<template>
+  <style>
+    :host {
+      display: none;
+    }
+  </style>
+</template>
+<script>
+Polymer('polymer-file', {
+  /**
+   * Contains the result of a read operation.
+   *
+   * @attribute result
+   * @type Blob|File
+   * @default null
+   */
+  result: null,
+  /**
+   * The Blob-like object to read.
+   *
+   * @attribute blob
+   * @type Blob|File
+   * @default null
+   */
+  blob: null,
+  /**
+   * If true, automatically performs the file read (if a blob has been set).
+   *
+   * @attribute auto
+   * @type boolean
+   * @default false
+   */
+  auto: false,
+  /**
+   * The format the result should be returned as. One of 'arraybuffer', 'text',
+   * 'dataurl', 'binarystring'. 
+   *
+   * @attribute readas
+   * @type string
+   * @default 'text'
+   */
+  readas: 'text',
+  blobChanged: function() {
+    // result is set at end of microtask in read. This won't call resultChanged.
+    this.result = null;
+    if (this.auto) {
+      this.read();
+    }
+  },
+  resultChanged: function() {
+    this.fire('polymer-result', {result: this.result});
+  },
+  read: function() {
+    // Send back same result if blob hasn't changed.
+    if (this.result || !this.blob) {
+      // Wrap in asyncMethod for situations where read() is called immediately.
+      this.asyncMethod(function() {
+        this.fire('polymer-result', {result: this.result});
+      });
+      return;
+    }
+
+    // TODO: reader.abort() a in-flight read.
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      this.result = e.target.result;
+    }.bind(this);
+    reader.onerror = function(e) {
+      this.fire('polymer-error', {error: e.target.error});
+    }.bind(this);
+
+    switch(this.readas) {
+      case 'dataurl':
+        reader.readAsDataURL(this.blob);
+        break;
+      case 'arraybuffer':
+        reader.readAsArrayBuffer(this.blob);
+        break;
+      case 'binarystring':
+        reader.readAsBinaryString(this.blob);
+        break;
+      case 'text':
+        // Default to text.
+      default:
+        reader.readAsText(this.blob);
+        break;
+    }
+  }
+});
+</script>
+</polymer-element>

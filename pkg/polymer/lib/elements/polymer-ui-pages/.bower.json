@@ -1,0 +1,18 @@
+{
+  "name": "polymer-ui-pages",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master",
+    "polymer-selector": "Polymer/polymer-selector#master"
+  },
+  "homepage": "https://github.com/Polymer/polymer-ui-pages",
+  "_release": "19c4ce7330",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "19c4ce7330455b0d844f64c9057998859d12a3ab"
+  },
+  "_source": "git://github.com/Polymer/polymer-ui-pages.git",
+  "_target": "master",
+  "_originalSource": "Polymer/polymer-ui-pages"
+}

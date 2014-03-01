@@ -1,0 +1,55 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!--
+/**
+ * @module Polymer UI Elements
+ */
+/**
+ * polymer-ui-accordion is a simple accordion style element.  It should 
+ * be used in conjunction with polymer-ui-collapsible.  By default
+ * only one collapsible stays open at a time.  To have multiple
+ * collapsibles open set "multi" property on the accordion.
+ *
+ * Example:
+ *
+ *     <polymer-ui-accordion selected="0">
+ *       <polymer-ui-collapsible>
+ *         <div class="polymer-ui-collapsible-header">Header 1</div>
+ *         <div>....</div>
+ *       </polymer-ui-collapsible>
+ *       <polymer-ui-collapsible>
+ *         <div class="polymer-ui-collapsible-header">Header 2</div>
+ *         <div>....</div>
+ *       </polymer-ui-collapsible>
+ *       <polymer-ui-collapsible>
+ *         <div class="polymer-ui-collapsible-header">Header 3</div>
+ *         <div>....</div>
+ *       </polymer-ui-collapsible>
+ *     </polymer-ui-accordion>
+ *
+ * @class polymer-ui-accordion
+ * @extends polymer-selector
+ */
+-->
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer-selector/polymer-selector.html">
+<link rel="import" href="../polymer-ui-collapsible/polymer-ui-collapsible.html">
+
+<polymer-element name="polymer-ui-accordion" extends="polymer-selector">
+  <template>
+    <link rel="stylesheet" href="polymer-ui-accordion.css">
+    <shadow></shadow>
+  </template>
+  <script>
+    Polymer('polymer-ui-accordion', {
+      activateHandler: function(e) {
+        if (!e.notap) {
+          this.super(arguments);
+        }
+      }
+    })
+  </script>
+</polymer-element>

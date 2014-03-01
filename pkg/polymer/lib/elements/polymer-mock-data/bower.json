@@ -1,0 +1,7 @@
+{
+  "name": "polymer-mock-data",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master"
+  }
+}

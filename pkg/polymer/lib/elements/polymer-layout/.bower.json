@@ -1,0 +1,17 @@
+{
+  "name": "polymer-layout",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master"
+  },
+  "homepage": "https://github.com/Polymer/polymer-layout",
+  "_release": "cf9b4b3cba",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "cf9b4b3cba15157e7ce7385f97a628e0f1971067"
+  },
+  "_source": "git://github.com/Polymer/polymer-layout.git",
+  "_target": "master",
+  "_originalSource": "Polymer/polymer-layout"
+}

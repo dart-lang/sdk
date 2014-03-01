@@ -1,0 +1,62 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!--
+/**
+ * @module Polymer UI Elements
+ */
+/**
+ * polymer-ui-sidebar-menu is a polymer-menu styled to look like a sidebar menu.
+ * The sidebar menu is styled with an arrow pointing to the selected menu item.
+ * Use it in conjunction with polymer-ui-menu-item.
+ *
+ * Example:
+ *
+ *     <polymer-ui-sidebar-menu selected="0">
+ *       <polymer-ui-menu-item icon="menu" label="Home"></polymer-ui-menu-item>
+ *       <polymer-ui-menu-item icon="menu" label="Explore"></polymer-ui-menu-item>
+ *       <polymer-ui-menu-item icon="menu" label="Favorites"></polymer-ui-menu-item>
+ *     </polymer-ui-sidebar-menu>
+ * 
+ * @class polymer-ui-sidebar-menu
+ * @extends polymer-ui-menu
+ */
+-->
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer-ui-sidebar-header/polymer-ui-sidebar-header.html">
+<link rel="import" href="../polymer-ui-menu/polymer-ui-menu.html">
+<link rel="import" href="../polymer-ui-nav-arrow/polymer-ui-nav-arrow.html">
+<link rel="import" href="../polymer-flex-layout/polymer-flex-layout.html">
+
+<polymer-element name="polymer-ui-sidebar-menu" extends="polymer-ui-menu" attributes="label" noscript>
+  <template>
+    <link rel="stylesheet" href="polymer-ui-sidebar-menu.css">
+    <polymer-flex-layout vertical></polymer-flex-layout>
+    <polymer-ui-sidebar-header label="{{label}}">
+      <content select="[logo]"></content>
+    </polymer-ui-sidebar-header>
+    <div class="sidebar-menu" flex>
+      <shadow></shadow>
+      <polymer-ui-nav-arrow target="{{selectedItem}}"></polymer-ui-nav-arrow>
+    </div>
+  </template>
+</polymer-element>
+
+<!-- 
+<shadow> reprojection is not supported in the polyfill
+https://github.com/Polymer/ShadowDOM/issues/5
+-->
+<!-- <polymer-element name="polymer-ui-sidebar-menu" extends="polymer-ui-menu" attributes="label">
+  <template>
+    <link rel="stylesheet" href="polymer-ui-sidebar-menu.css">
+    <polymer-ui-sidebar label="{{label}}">
+      <content select="[logo]"></content>
+      <div class="sidebar-menu" flex>
+        <shadow></shadow>
+        <polymer-ui-nav-arrow target="{{selectedItem}}"></polymer-ui-nav-arrow>
+      </div>
+    </polymer-ui-sidebar>
+  </template>
+</polymer-element> -->

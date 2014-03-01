@@ -1,0 +1,17 @@
+{
+  "name": "polymer-google-jsapi",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master"
+  },
+  "homepage": "https://github.com/Polymer/polymer-google-jsapi",
+  "_release": "5902a4130a",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "5902a4130af4b2b4ebb29ef32a3bb7d2fec44d6e"
+  },
+  "_source": "git://github.com/Polymer/polymer-google-jsapi.git",
+  "_target": "master",
+  "_originalSource": "Polymer/polymer-google-jsapi"
+}

@@ -1,0 +1,69 @@
+
+<!doctype html>
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>polymer-ui-sidebar-menu</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <!-- load toolkit -->
+    <script src="../platform/platform.js"></script>
+    <!-- import elements-->
+    <link rel="import" href="polymer-ui-sidebar-menu.html">
+    <link rel="import" href="../polymer-ui-menu-item/polymer-ui-menu-item.html">
+    <link rel="import" href="../polymer-ui-submenu-item/polymer-ui-submenu-item.html">
+    <!-- -->
+    <link rel="stylesheet" href="../polymer-ui-base/base.css">
+    <style>
+      html, body {
+        height: 100%;
+      }
+      
+      body {
+        margin: 0;
+      }
+
+      polymer-ui-sidebar-menu {
+        width: 240px;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body class="polymer-ui-body-text" theme="polymer-ui-dark-theme" unresolved>
+    <polymer-ui-sidebar-menu selected="0" label="Polymer">
+      <polymer-ui-submenu-item icon="settings" label="Home">
+        <polymer-ui-menu-item label="Home 1"></polymer-ui-menu-item>
+        <polymer-ui-menu-item label="Home 2"></polymer-ui-menu-item>
+        <polymer-ui-menu-item label="Home 3"></polymer-ui-menu-item>
+      </polymer-ui-submenu-item>
+      <polymer-ui-submenu-item icon="settings" label="Explore">
+        <polymer-ui-menu-item label="Explore 1"></polymer-ui-menu-item>
+        <polymer-ui-menu-item label="Explore 2"></polymer-ui-menu-item>
+        <polymer-ui-submenu-item label="Explore 3">
+          <polymer-ui-menu-item label="Explore 3.1"></polymer-ui-menu-item>
+          <polymer-ui-menu-item label="Explore 3.2"></polymer-ui-menu-item>
+          <polymer-ui-menu-item label="Explore 3.3"></polymer-ui-menu-item>
+        </polymer-ui-submenu-item>
+        <polymer-ui-menu-item label="Explore 4"></polymer-ui-menu-item>
+        <polymer-ui-menu-item label="Explore 5"></polymer-ui-menu-item>
+        <polymer-ui-menu-item label="Explore 6"></polymer-ui-menu-item>
+      </polymer-ui-submenu-item>
+      <polymer-ui-submenu-item icon="settings" label="Search">
+        <polymer-ui-menu-item label="Search 1"></polymer-ui-menu-item>
+        <polymer-ui-menu-item label="Search 2"></polymer-ui-menu-item>
+        <polymer-ui-menu-item label="Search 3"></polymer-ui-menu-item>
+        <polymer-ui-menu-item label="Search 4"></polymer-ui-menu-item>
+      </polymer-ui-submenu-item>
+      <polymer-ui-submenu-item icon="settings" label="Favorites">
+        <polymer-ui-menu-item label="Favorites 1"></polymer-ui-menu-item>
+        <polymer-ui-menu-item label="Favorites 2"></polymer-ui-menu-item>
+        <polymer-ui-menu-item label="Favorites 3"></polymer-ui-menu-item>
+        <polymer-ui-menu-item label="Favorites 4"></polymer-ui-menu-item>
+      </polymer-ui-submenu-item>
+    </polymer-ui-sidebar-menu>
+  </body>
+</html>

@@ -1,0 +1,78 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+
+<!--
+/**
+ * @module Polymer UI Elements
+ */
+-->
+
+<!--
+/**
+ * polymer-ui-ratings allows users to rate items.
+ *
+ * Example:
+ *
+ *     <polymer-ui-ratings value="3"></polymer-ui-ratings>
+ *
+ * By default polymer-ui-ratings shows 5 stars but can be configured using 
+ * "count" attribute:
+ *
+ *     <polymer-ui-ratings value="3" count="10"></polymer-ui-ratings>
+ *
+ * @class polymer-ui-ratings
+ */
+-->
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer-ui-theme-aware/polymer-ui-theme-aware.html">
+
+<polymer-element name="polymer-ui-ratings" extends="polymer-ui-theme-aware" attributes="count value">
+  <template>
+    <link rel="stylesheet" href="polymer-ui-ratings.css">
+    <template repeat="{{star in stars}}">
+      <span id="star" index="{{star.index}}" class="{{star.starClass}}" on-tap="{{updateValue}}"></span>
+    </template>
+  </template>
+  <script>
+    Polymer('polymer-ui-ratings', {
+      /**
+       * Number of stars to display.
+       *
+       * @attribute count
+       * @type number
+       * @default 5
+       */
+      count: 5,
+      /**
+       * Number of selected stars.
+       *
+       * @attribute value
+       * @type number
+       * @default 0
+       */
+      value: 0,
+      ready: function() {
+        this.countChanged();
+      },
+      countChanged: function() {
+        this.stars = [];
+        for (var i = 0; i < this.count; i++) {
+          this.stars.push({index: i});
+        }
+        this.valueChanged();
+      },
+      valueChanged: function() {
+        this.stars && this.stars.forEach(function(s, i) {
+          s.starClass = i < this.value ? 'full' : '';
+        }.bind(this));
+      },
+      updateValue: function(event, detail, sender) {
+        var s = sender.templateInstance.model.star;
+        this.value = s.index + (s.starClass ? 0 : 1);
+      }
+    });
+  </script>
+</polymer-element>

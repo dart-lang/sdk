@@ -1,0 +1,52 @@
+
+<!doctype html>
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>Breadcrumbs</title>
+    <script src="../platform/platform.js"></script>
+    <link rel="import" href="polymer-ui-breadcrumbs.html">
+    <link rel="import" href="../polymer-ui-toolbar/polymer-ui-toolbar.html">
+    <link rel="stylesheet" href="../polymer-ui-base/base.css">
+    <style>
+      html, body {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body class="polymer-ui-body-text" unresolved>
+    <polymer-element name="x-test">
+      <template>
+        <style>
+          polymer-ui-breadcrumbs {
+            padding-left: 20px;
+          }
+        </style>
+        <polymer-ui-toolbar>
+          <polymer-ui-breadcrumbs crumbs="{{crumbs}}" selected="{{selected}}" selectedCrumb="{{selectedCrumb}}"></polymer-ui-breadcrumbs>
+        </polymer-ui-toolbar>
+        <br><br>
+        <div>label: {{selectedCrumb.label}}</div>
+        selected: <input value="{{selected}}">
+      </template>
+      <script>
+        Polymer('x-test', {
+          ready: function() {
+            this.crumbs = [
+              {label: 'Overview'}, 
+              {label: 'Subitem1'}, 
+              {label: 'Subitem2'},
+              {label: 'Subitem3'}
+            ];
+          }
+        });
+      </script>
+    </polymer-element>
+    
+    <x-test></x-test>
+  </body>
+</html>

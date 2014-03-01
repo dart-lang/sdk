@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>polymer-ui-dropdown</title>
+  <link rel="import" href="polymer-ui-dropdown.html">
+  <link rel="import" href="../polymer-ui-icon-button/polymer-ui-icon-button.html" rel="import">
+  <link rel="import" href="../polymer-ui-menu-item/polymer-ui-menu-item.html" rel="import">
+  <link rel="import" href="../polymer-ui-toolbar/polymer-ui-toolbar.html" rel="import">
+  <script src="../platform/platform.js"></script>
+  <link rel="stylesheet" href="../polymer-ui-base/base.css">
+  <style>
+    body {
+      background-color: #ccc;
+    }
+    polymer-ui-dropdown {
+      position: relative;
+      z-index: -1 !important;
+    }
+  </style>
+</head>
+<body class="polymer-ui-body-text polymer-ui-full-bleed polymer-ui-light-bg">
+  <polymer-ui-toolbar>
+    <polymer-ui-icon-button icon="back"></polymer-ui-icon-button>
+    <div flex></div>
+    <polymer-ui-icon-button icon="search"></polymer-ui-icon-button>
+    <polymer-ui-icon-button id="dots" icon="dots"></polymer-ui-icon-button>
+  </polymer-ui-toolbar>
+  <polymer-ui-dropdown id="dropdown">
+    <polymer-ui-menu-item icon="down">Archive</polymer-ui-menu-item>
+    <polymer-ui-menu-item icon="trash">Delete</polymer-ui-menu-item>
+    <polymer-ui-menu-item icon="add">Hide Checkboxes</polymer-ui-menu-item>
+    <polymer-ui-menu-item icon="shortcut">Share</polymer-ui-menu-item>
+  </polymer-ui-dropdown>
+  <script>
+    document.addEventListener('polymer-ready', function() {
+      document.querySelector('#dots').addEventListener('tap', function() {
+        document.querySelector('#dropdown').toggle();
+      });
+    });
+  </script>
+</body>
+</html>

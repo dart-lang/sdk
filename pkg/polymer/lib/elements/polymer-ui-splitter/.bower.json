@@ -1,0 +1,17 @@
+{
+  "name": "polymer-ui-splitter",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master"
+  },
+  "homepage": "https://github.com/Polymer/polymer-ui-splitter",
+  "_release": "51d738e0e6",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "51d738e0e62a014843c8989b9d4ab193ba02f1ba"
+  },
+  "_source": "git://github.com/Polymer/polymer-ui-splitter.git",
+  "_target": "master",
+  "_originalSource": "Polymer/polymer-ui-splitter"
+}

@@ -1,0 +1,7 @@
+{
+  "name": "polymer-ui-toggle-button",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master"
+  }
+}

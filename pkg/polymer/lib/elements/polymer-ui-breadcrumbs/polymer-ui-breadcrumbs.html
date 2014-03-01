@@ -1,0 +1,81 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!--
+/**
+ * @module Polymer UI Elements
+ */
+/**
+ * polymer-ui-breadcrumbs shows the user where they are in relation to a
+ * hierarchy.  Use 'crumbs' property to specify the content for breadcumbs.
+ *
+ * Example: 
+ *
+ *     <polymer-ui-breadcrumbs crumbs="{{crumbs}}" selectedCrumb="{{crumb}}"></polymer-ui-breadcrumbs>
+ *
+ *     ....
+ *     this.crumbs = [
+ *       {label: 'Overview'}, 
+ *       {label: 'Subitem1'}, 
+ *       {label: 'Subitem2'},
+ *       {label: 'Subitem3'}
+ *     ];
+ *
+ * @class polymer-ui-breadcrumbs
+ */
+/**
+ * An array of objects describing the content for breadcrumbs.
+ *
+ * Example:
+ *
+ *     this.crumbs = [
+ *       {label: 'Overview'}, 
+ *       {label: 'Subitem1'}, 
+ *       {label: 'Subitem2'},
+ *       {label: 'Subitem3'}
+ *     ];
+ *
+ * @attribute crumbs
+ * @type object
+ * @default null
+ */
+/**
+ * The index of the selected crumb.
+ *
+ * @attribute selected
+ * @type number
+ * @default null
+ */
+/**
+ * Returns the model associated with the selected crumb.
+ *
+ * @attribute selectedCrumb
+ * @type object
+ * @default null
+ */
+-->
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer-ui-icon/polymer-ui-icon.html">
+<link rel="import" href="../polymer-selector/polymer-selector.html">
+
+<polymer-element name="polymer-ui-breadcrumbs" attributes="crumbs selected selectedCrumb">
+  <template>
+    <link rel="stylesheet" href="polymer-ui-breadcrumbs.css">
+    <div id="crumbs">
+      <template repeat="{{crumbs}}">
+        <li class="label"><a href="{{href}}" disabled?="{{!href}}">{{label}}</a></li>
+        <polymer-ui-icon icon="dropdown"></polymer-ui-icon>
+      </template>
+    </div>
+    <polymer-selector target="{{$.crumbs}}" itemsSelector="li" selected="{{selected}}" selectedModel="{{selectedCrumb}}"></polymer-selector>
+  </template>
+  <script>
+    Polymer('polymer-ui-breadcrumbs', {
+      created: function() {
+        this.crumbs = [];
+      }
+    });
+  </script>
+</polymer-element>

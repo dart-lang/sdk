@@ -1,0 +1,142 @@
+{
+    "project": {
+        "name": "Docs",
+        "description": "Docs"
+    },
+    "files": {
+        "..\\..\\polymer-file\\polymer-file.html": {
+            "name": "..\\..\\polymer-file\\polymer-file.html",
+            "modules": {
+                "Polymer Elements": 1
+            },
+            "classes": {
+                "polymer-file": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        }
+    },
+    "modules": {
+        "Polymer Elements": {
+            "name": "Polymer Elements",
+            "submodules": {},
+            "classes": {
+                "polymer-file": 1
+            },
+            "fors": {},
+            "namespaces": {},
+            "tag": "module",
+            "file": "..\\..\\polymer-file\\polymer-file.html",
+            "line": 12
+        }
+    },
+    "classes": {
+        "polymer-file": {
+            "name": "polymer-file",
+            "shortname": "polymer-file",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "Polymer Elements",
+            "namespace": "",
+            "file": "..\\..\\polymer-file\\polymer-file.html",
+            "line": 12,
+            "description": "polymer-file provides File API operations.\n\nExamples:\n\n    <polymer-file id=\"file\" readas=\"dataurl\" \n                  on-polymer-result=\"{{handleResult}}\"></polymer-file>\n    ...\n    this.$.file.blob = new Blob(['abc'], {type: 'text/plain'});\n    this.$.file.read();\n\n    ---\n\n    <polymer-file id=\"file\" readas=\"arraybuffer\" auto\n                  result=\"{{result}}\"></polymer-file>\n    ...\n    this.$.file.blob = new Blob(['abc'], {type: 'text/plain'});"
+        }
+    },
+    "classitems": [
+        {
+            "file": "..\\..\\polymer-file\\polymer-file.html",
+            "line": 32,
+            "description": "Fired when a file read has complete.",
+            "itemtype": "event",
+            "name": "polymer-result",
+            "params": [
+                {
+                    "name": "detail",
+                    "description": "",
+                    "type": "Object",
+                    "props": [
+                        {
+                            "name": "result",
+                            "description": "The result of the read.",
+                            "type": "Object"
+                        }
+                    ]
+                }
+            ],
+            "class": "polymer-file",
+            "module": "Polymer Elements"
+        },
+        {
+            "file": "..\\..\\polymer-file\\polymer-file.html",
+            "line": 39,
+            "description": "Fired if there is an error in the file read.",
+            "itemtype": "event",
+            "name": "polymer-error",
+            "params": [
+                {
+                    "name": "detail",
+                    "description": "",
+                    "type": "Object",
+                    "props": [
+                        {
+                            "name": "error",
+                            "description": "Information on the error.",
+                            "type": "Object"
+                        }
+                    ]
+                }
+            ],
+            "class": "polymer-file",
+            "module": "Polymer Elements"
+        },
+        {
+            "file": "..\\..\\polymer-file\\polymer-file.html",
+            "line": 60,
+            "description": "Contains the result of a read operation.",
+            "itemtype": "attribute",
+            "name": "result",
+            "type": "Blob|File",
+            "default": "null",
+            "class": "polymer-file",
+            "module": "Polymer Elements"
+        },
+        {
+            "file": "..\\..\\polymer-file\\polymer-file.html",
+            "line": 68,
+            "description": "The Blob-like object to read.",
+            "itemtype": "attribute",
+            "name": "blob",
+            "type": "Blob|File",
+            "default": "null",
+            "class": "polymer-file",
+            "module": "Polymer Elements"
+        },
+        {
+            "file": "..\\..\\polymer-file\\polymer-file.html",
+            "line": 76,
+            "description": "If true, automatically performs the file read (if a blob has been set).",
+            "itemtype": "attribute",
+            "name": "auto",
+            "type": "boolean",
+            "default": "false",
+            "class": "polymer-file",
+            "module": "Polymer Elements"
+        },
+        {
+            "file": "..\\..\\polymer-file\\polymer-file.html",
+            "line": 84,
+            "description": "The format the result should be returned as. One of 'arraybuffer', 'text',\n'dataurl', 'binarystring'.",
+            "itemtype": "attribute",
+            "name": "readas",
+            "type": "string",
+            "default": "'text'",
+            "class": "polymer-file",
+            "module": "Polymer Elements"
+        }
+    ],
+    "warnings": []
+}

@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+  <title>polymer-collapse</title>
+  <script src="../../../platform/platform.js"></script>
+  <script src="../../../tools/test/htmltest.js"></script>
+  <script src="../../../tools/test/chai/chai.js"></script>
+  <link rel="import" href="../../polymer-collapse.html">
+</head>
+<body>
+  <button onclick="document.querySelector('#collapse').toggle()">toggle collapse</button>
+  <div id="box">
+    Forma temperiemque cornua sidera dissociata cornua recessit innabilis ligavit: solidumque coeptis nullus caelum sponte phoebe di regat mentisque tanta austro capacius amphitrite sui quin postquam semina fossae liquidum umor galeae coeptis caligine liberioris quin liquidum matutinis invasit posset: flexi glomeravit radiis certis invasit oppida postquam onerosior inclusum dominari opifex terris pace finxit quam aquae nunc sine altae auroram quam habentem homo totidemque scythiam in pondus ensis tegit caecoque poena lapidosos humanas coeperunt poena aetas totidem nec natura aethera locavit caelumque distinxit animalibus phoebe cingebant moderantum porrexerat terrae possedit sua sole diu summaque obliquis melioris orbem
+  </div>
+  <polymer-collapse id="collapse" targetId="box" duration="0.1"></polymer-collapse>
+  
+  <script>
+    var assert = chai.assert;
+    var delay = 200;
+    document.addEventListener('polymer-ready', function() {
+      var c = document.querySelector('#collapse');
+      assert.equal(c.closed, false);
+      Platform.flush();
+      setTimeout(function() {
+        var origH = getBoxComputedHeight();
+        assert.notEqual(origH, 0);
+        c.closed = true;
+        Platform.flush();
+        setTimeout(function() {
+          // after closed, height is 0
+          assert.equal(getBoxComputedHeight(), 0);
+          // should be set to display: none
+          assert.equal(getBoxComputedStyle().display, 'none');
+          c.closed = false;
+          Platform.flush();
+          setTimeout(function() {
+            // verify computed height
+            assert.equal(getBoxComputedHeight(), origH);
+            // after opened, height is set to 'auto'
+            assert.equal(document.querySelector('#box').style.height, 'auto');
+            done();
+          }, delay);
+        }, delay);
+      }, delay);
+    });
+    
+    function getBoxComputedStyle() {
+      var b = document.querySelector('#box');
+      return getComputedStyle(b);
+    }
+    
+    function getBoxComputedHeight() {
+      return parseInt(getBoxComputedStyle().height);
+    }
+  </script>
+</body>
+</html>

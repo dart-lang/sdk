@@ -1,0 +1,19 @@
+{
+  "name": "polymer-overlay",
+  "private": true,
+  "dependencies": {
+    "polymer-animation": "Polymer/polymer-animation#master",
+    "polymer": "Polymer/polymer#master",
+    "polymer-key-helper": "Polymer/polymer-key-helper#master"
+  },
+  "homepage": "https://github.com/Polymer/polymer-overlay",
+  "_release": "b234f1fcf7",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "b234f1fcf73556060b5cf193c3711c3cb7687134"
+  },
+  "_source": "git://github.com/Polymer/polymer-overlay.git",
+  "_target": "master",
+  "_originalSource": "Polymer/polymer-overlay"
+}

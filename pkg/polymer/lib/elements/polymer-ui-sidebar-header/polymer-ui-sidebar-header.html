@@ -1,0 +1,35 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!--
+/**
+ * @module Polymer UI Elements
+ */
+/**
+ * polymer-ui-sidebar-header is a header that styles to be used along with 
+ * polymer-ui-sidebar.
+ * 
+ * @class polymer-ui-sidebar-header
+ */
+/**
+ * Sidebar header label.
+ *
+ * @attribute label
+ * @type string
+ * @default ''
+ */
+-->
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer-ui-toolbar/polymer-ui-toolbar.html">
+
+<polymer-element name="polymer-ui-sidebar-header" attributes="label" noscript>
+  <template>
+    <link rel="stylesheet" href="polymer-ui-sidebar-header.css">
+    <polymer-ui-toolbar theme="sidebar">
+      <content></content>
+      <div class="sidebar-title">{{label}}</div>
+    </polymer-ui-toolbar>
+  </template>
+</polymer-element>

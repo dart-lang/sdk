@@ -1,0 +1,63 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<link rel="import" href="../polymer/polymer.html">
+
+<polymer-element name="polymer-google-jsapi">
+  <script>
+    (function() {
+      var state = '', instances = [], f;
+      function load() {
+        f = document.createElement('iframe');
+        f.style.display = 'none';
+        document.body.appendChild(f);
+        var d = f.contentWindow ? f.contentWindow.document : (f.contentDocument.document ? f.contentDocument.document : f.contentDocument);
+        d.open();
+        d.write(loader);
+        d.close();
+      }
+      var api;
+      var loaded = function(google) {
+        window.__polymer_google_jsapi = undefined;
+        window.google = api = google;
+        instances.forEach(function(i) {
+          i.provide();
+        });
+      }
+      var loader =  
+        '<script type="text/javascript" src="https://www.google.com/jsapi"></scr' + 'ipt>' +
+        '<script>parent.__polymer_google_jsapi(google);</scr' + 'ipt>'
+      ;
+      window.__polymer_google_jsapi = loaded;
+      
+      Polymer('polymer-google-jsapi', {
+        ready: function() {
+          switch (state) {
+            case '':
+              instances.push(this);
+              load();
+              state = 'pending';
+              break;
+            case 'pending':
+              instances.push(this);
+              break;
+            case 'ready':
+              this.provide();
+              break;
+          }
+        },
+        provide: function() {
+          this.asyncMethod('notify');
+        },
+        notify: function() {
+          this.fire('polymer-google-jsapi-loaded');
+        },
+        get google() {
+          return api;
+        }
+      });
+    })();
+  </script>
+</polymer-element>

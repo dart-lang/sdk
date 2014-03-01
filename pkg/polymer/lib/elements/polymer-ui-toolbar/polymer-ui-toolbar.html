@@ -1,0 +1,70 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+
+<!--
+/**
+ * @module Polymer UI Elements
+ */
+/**
+ * polymer-ui-toolbar is a horizontal bar containing elements that can perform actions.
+ *
+ * Example:
+ *
+ *     <polymer-ui-toolbar>
+ *       <polymer-ui-icon-button src="menu.png" on-click="{{menuAction}}"></polymer-ui-icon-button>
+ *       <div flex>Title</div>
+ *       <polymer-ui-icon-button src="more.png" on-click="{{moreAction}}"></polymer-ui-icon-button>
+ *     </polymer-ui-toolbar>
+ *
+ * polymer-ui-toolbar can adopt to smaller screen size.  If the attribute "responsive" is set
+ * and the screen size is less than the responsiveWidth (default to 800px), the toolbar will
+ * be moved to the bottom of the page.
+ *
+ * Example:
+ *
+ *     <polymer-ui-toolbar>
+ *       <polymer-ui-icon-button icon="menu"></polymer-ui-icon-button>
+ *       <div flex>Title</div>
+ *       <polymer-ui-toolbar responsive>
+ *         <polymer-ui-icon-button icon="add"></polymer-ui-icon-button>
+ *         <polymer-ui-icon-button icon="trash"></polymer-ui-icon-button>
+ *         <polymer-ui-icon-button icon="search"></polymer-ui-icon-button>
+ *       </polymer-ui-toolbar>
+ *     </polymer-ui-toolbar>
+ *
+ * @class polymer-ui-toolbar
+ */
+/**
+ * Max-width when element becomes responsive. 
+ *
+ * @attribute responsiveWidth
+ * @type string
+ * @default '800px'
+ */
+-->
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer-ui-theme-aware/polymer-ui-theme-aware.html">
+<link rel="import" href="../polymer-media-query/polymer-media-query.html">
+<link rel="import" href="../polymer-flex-layout/polymer-flex-layout.html">
+
+<polymer-element name="polymer-ui-toolbar" extends="polymer-ui-theme-aware" attributes="responsiveWidth">
+  <template>
+    <link rel="stylesheet" href="polymer-ui-toolbar.css">
+    <polymer-flex-layout align="center"></polymer-flex-layout>
+    <polymer-media-query query="max-width: {{responsiveWidth}}" queryMatches="{{queryMatches}}"></polymer-media-query>
+    <content></content>
+  </template>
+  <script>
+    Polymer('polymer-ui-toolbar', {
+      responsiveWidth: '800px',
+      queryMatches: false,
+      defaultTheme: 'polymer-ui-light-theme',
+      queryMatchesChanged: function() {
+        this.classList.toggle('narrow-layout', this.queryMatches);
+      }
+    });
+  </script>
+</polymer-element>

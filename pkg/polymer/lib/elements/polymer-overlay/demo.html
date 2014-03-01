@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>polymer-overlay</title>
+		<link rel="import" href="polymer-overlay.html">
+		<script src="../platform/platform.js"></script>
+		<style>
+			.dialog {
+				box-sizing: border-box;
+				-moz-box-sizing: border-box;
+				font-family: Arial, Helvetica, sans-serif;
+				font-size: 13px;
+				-webkit-user-select: none;
+				-moz-user-select: none;
+				overflow: hidden;
+				background: white;
+				padding:30px 42px;
+				outline: 1px solid rgba(0,0,0,0.2);
+				box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+			}
+
+			#dialog, #dialog2 {
+				top: 72px;
+				left: 50%;
+				width: 512px;
+				margin-left: -256px;
+			}
+
+			#confirmation {
+				position: absolute;
+				left: 50%;
+				top: 100px;
+				text-align: center;
+				width: 150px;
+				margin-left: -75px;
+			}
+		</style>
+	</head>
+	<body unresolved>
+		<polymer-element name="x-dialog" attributes="opened autoCloseDisabled">
+			<template>
+				<style>
+					:host {
+						box-sizing: border-box;
+						-moz-box-sizing: border-box;
+						font-family: Arial, Helvetica, sans-serif;
+						font-size: 13px;
+						-webkit-user-select: none;
+						-moz-user-select: none;
+						overflow: hidden;
+						background: white;
+						padding:30px 42px;
+						outline: 1px solid rgba(0,0,0,0.2);
+						box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+					}
+				</style>
+				<polymer-overlay id="overlay" opened="{{opened}}" autoCloseDisabled="{{autoCloseDisabled}}"></polymer-overlay>
+				<content></content>
+			</template>
+			<script>
+				Polymer('x-dialog', {
+					ready: function() {
+						this.$.overlay.target = this;
+					},
+					toggle: function() {
+						this.$.overlay.toggle();
+					}
+				});
+			</script>
+		</polymer-element>
+		<button overlay="#dialog">Toggle Dialog</button>
+		( open styling: 
+		<select onchange="changeOpening(event)">
+			<option>polymer-overlay-scale-slideup</option>
+			<option>polymer-overlay-shake</option>
+			<option>polymer-overlay-fade</option>
+			<option>none</option>
+		</select>,
+		<label>modal: <input type="checkbox" onchange="modalChange(event)"></label>
+		<label>scrim: <input type="checkbox" onchange="scrimChange(event)"></label>
+		)
+		<br>
+		<x-dialog id="dialog" class="dialog polymer-overlay-scale-slideup">
+			<h2>Dialog</h2>
+			<div>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed fringilla sapien sed enim sollicitudin laoreet. Suspendisse suscipit, metus ac volutpat sodales, libero magna semper lacus, molestie fringilla massa orci ut arcu. Nullam sodales urna sit amet odio vehicula mattis.</div><br><br>
+			<div>Ut aliquam vulputate congue. Vestibulum pretium pretium nulla quis sollicitudin. Praesent lacinia congue erat nec mattis. Fusce commodo lacus est. Duis turpis eros, ultrices sed aliquet non, blandit egestas velit. Integer a augue nec lorem tristique hendrerit. Curabitur imperdiet risus id enim bibendum vestibulum. Integer id magna at arcu faucibus fermentum vel a augue. Sed fringilla venenatis dolor, in blandit magna molestie luctus. Vestibulum dignissim posuere ultrices. Aenean urna nisl, tincidunt vitae iaculis ut, pharetra nec eros.</div><br><br>
+			<div>
+				<input placeholder="say something..." autofocus oninput="somethingCheck()"></input><br>
+				I agree with this wholeheartedly.
+				<x-dialog id="confirmation" class="dialog">
+					Thank you.
+				</x-dialog>
+			</div><br><br>
+			<button overlay-toggle>OK</button>
+		</x-dialog>
+
+		<br><br>
+
+		<button overlay="#dialog2">Toggle Dialog 2</button>
+
+		<x-dialog id="dialog2" class="dialog polymer-overlay-shake" autoCloseDisabled="true">
+			<div>
+				<h2>Dialog 2</h2>
+					I'm dizzy.
+			</div>
+			<br><br>
+			<button overlay-toggle>OK</button>
+		</x-dialog>
+		<script>
+			$ = document.querySelector.bind(document);
+
+			somethingCheck = function() {
+				$('#confirmation').opened = (event.target.value == 'something');
+			}
+			
+			changeOpening = function(e) {
+				var s = e.target.selectedOptions[0];
+				if (s) {
+					dialog.className = dialog.className.replace(/polymer-[^\s]*/, '')
+					dialog.classList.add(s.textContent);
+				}
+			}
+			
+			modalChange = function(e) {
+				dialog.autoCloseDisabled = e.target.checked;
+			}
+			
+			scrimChange = function(e) {
+				dialog.scrim = e.target.checked;
+			}
+			
+			var overlayButtons = document.querySelectorAll('button[overlay]');
+			Array.prototype.forEach.call(overlayButtons, function(b) {
+				b.addEventListener('tap', function(e) {
+					document.querySelector(e.target.getAttribute('overlay')).toggle();
+				})
+			});
+		</script>
+	</body>
+</html>

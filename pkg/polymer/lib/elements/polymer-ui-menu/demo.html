@@ -1,0 +1,66 @@
+
+<!doctype html>
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>polymer-ui-menu</title>
+    <script src="../platform/platform.js"></script>
+    <link rel="import" href="polymer-ui-menu.html">
+    <link rel="import" href="../polymer-ui-menu-item/polymer-ui-menu-item.html">
+    <link rel="import" href="../polymer-ui-submenu-item/polymer-ui-submenu-item.html">
+    <link rel="stylesheet" href="../polymer-ui-base/base.css">
+    <style>
+      body > polymer-ui-menu {
+        width: 300px;
+      }
+    </style>
+  </head>
+  <body class="polymer-ui-body-text" unresolved>
+    <h2>polymer-ui-light-theme</h2>
+    <polymer-ui-menu selected="0" theme="polymer-ui-light-theme">
+      <polymer-ui-menu-item icon="settings" label="Settings"></polymer-ui-menu-item>
+      <polymer-ui-menu-item icon="dialog" label="Dialog"></polymer-ui-menu-item>
+      <polymer-ui-menu-item icon="search" label="Search"></polymer-ui-menu-item>
+    </polymer-ui-menu>
+    <h2>polymer-ui-dark-theme</h2>
+    <polymer-ui-menu selected="0" theme="polymer-ui-dark-theme">
+      <polymer-ui-menu-item icon="settings" label="Settings"></polymer-ui-menu-item>
+      <polymer-ui-menu-item icon="dialog" label="Dialog"></polymer-ui-menu-item>
+      <polymer-ui-menu-item icon="search" label="Search"></polymer-ui-menu-item>
+    </polymer-ui-menu>
+    <h2>no icons</h2>
+    <polymer-ui-menu selected="0" theme="polymer-ui-dark-theme">
+      <polymer-ui-menu-item label="Settings"></polymer-ui-menu-item>
+      <polymer-ui-menu-item label="Dialog"></polymer-ui-menu-item>
+      <polymer-ui-menu-item label="Search"></polymer-ui-menu-item>
+    </polymer-ui-menu>
+    <h2>sub-menu</h2>
+    <polymer-ui-menu selected="0" theme="polymer-ui-dark-theme">
+      <polymer-ui-submenu-item icon="settings" label="Topics">
+        <polymer-ui-menu-item label="Topics 1"></polymer-ui-menu-item>
+        <polymer-ui-menu-item label="Topics 2"></polymer-ui-menu-item>
+      </polymer-ui-submenu-item>
+      <polymer-ui-submenu-item icon="settings" label="Favorites">
+        <polymer-ui-menu-item label="Favorites 1"></polymer-ui-menu-item>
+        <polymer-ui-menu-item label="Favorites 2"></polymer-ui-menu-item>
+        <polymer-ui-menu-item label="Favorites 3"></polymer-ui-menu-item>
+      </polymer-ui-submenu-item>
+    </polymer-ui-menu>
+    <h2>links (via href)</h2>
+    <polymer-ui-menu selected="0" theme="polymer-ui-light-theme">
+      <polymer-ui-menu-item icon="settings" label="Settings" href="#settings"></polymer-ui-menu-item>
+      <polymer-ui-menu-item icon="dialog" label="Dialog" href="#dialog"></polymer-ui-menu-item>
+      <polymer-ui-menu-item icon="search" label="Search" href="#search"></polymer-ui-menu-item>
+    </polymer-ui-menu>
+    <h2>links (via &lt;a&gt;)</h2>
+    <polymer-ui-menu selected="0" theme="polymer-ui-light-theme">
+      <polymer-ui-menu-item icon="settings" label="Settings"><a href="#settings" target="_self"></a></polymer-ui-menu-item>
+      <polymer-ui-menu-item icon="dialog" label="Dialog"><a href="#dialog" target="_self"></a></polymer-ui-menu-item>
+      <polymer-ui-menu-item icon="search" label="Search"><a href="#search" target="_self"></a></polymer-ui-menu-item>
+    </polymer-ui-menu>
+  </body>
+</html>

@@ -1,0 +1,92 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!--
+/**
+ * @module Polymer UI Elements
+ */
+/**
+ * polymer-ui-splitter provides a spilt bar and dragging on the split bar
+ * will resize the sibling element.  Use the property "direction" to indicate
+ * which sibling to be resized and the orientation.
+ *
+ * Example:
+ *
+ *     <div class="flexbox">
+ *       <div>left</div>
+ *       <polymer-ui-splitter direction="left"></polymer-ui-splitter>
+ *       <div flex>right</div>
+ *     </div>
+ *
+ * For horizontal splitter set direction to "up" or "down".
+ *
+ * Example:
+ *
+ *     <div class="flexbox column">
+ *       <div>top</div>
+ *       <polymer-ui-splitter direction="up"></polymer-ui-splitter>
+ *       <div flex>bottom</div>
+ *     </div>
+ * 
+ * @class polymer-ui-splitter
+ */
+-->
+<link rel="import" href="../polymer/polymer.html">
+
+<polymer-element name="polymer-ui-splitter" attributes="direction locked"
+    on-trackstart="{{trackStart}}" on-track="{{track}}" on-trackend="{{trackEnd}}">
+  <template>
+    <link rel="stylesheet" href="polymer-ui-splitter.css">
+  </template>
+  <script>
+    Polymer('polymer-ui-splitter', {
+      /**
+       * Possible values are "left", "right", "up" and "down".
+       *
+       * @attribute direction
+       * @type string
+       * @default 'left'
+       */
+      direction: 'left',
+      /**
+       * Locks the split bar so it can't be dragged.
+       *
+       * @attribute locked
+       * @type boolean
+       * @default false
+       */
+      locked: false,
+      ready: function() {
+        this.directionChanged();
+      },
+      directionChanged: function() {
+        this.isNext = this.direction === 'right' || this.direction === 'down';
+        this.horizontal = this.direction === 'up' || this.direction === 'down';
+        this.update();
+      },
+      update: function() {
+        this.target = this.isNext ? this.nextElementSibling : this.previousElementSibling;
+        this.dimension = this.horizontal ? 'height' : 'width';
+        this.classList.toggle('horizontal', this.horizontal);
+      },
+      trackStart: function(e) {
+        this.update();
+        this.classList.add('active');
+        this.size = parseInt(getComputedStyle(this.target)[this.dimension]);
+      },
+      track: function(e) {
+        if (this.locked) {
+          return;
+        }
+        var d = e[this.horizontal ? 'dy' : 'dx'];
+        this.target.style[this.dimension] = 
+            this.size + (this.isNext ? -d : d) + 'px';
+      },
+      trackEnd: function() {
+        this.classList.remove('active');
+      }
+    });
+  </script>
+</polymer-element>

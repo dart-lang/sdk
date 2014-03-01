@@ -1,0 +1,34 @@
+<!doctype html>
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html class="polymer-ui-full-bleed">
+  <head>
+    <title>polymer-ui-pages</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <!-- load toolkit -->
+    <script src="../platform/platform.js"></script>
+    <!-- import elements-->
+    <link rel="import" href="polymer-ui-pages.html">
+    <!-- -->
+    <link rel="stylesheet" href="../polymer-ui-base/base.css">
+  </head>
+  <body class="polymer-ui-body-text polymer-ui-full-bleed" unresolved>
+    <polymer-ui-pages selected="0">
+      <span>One</span>
+      <span>Two</span>
+      <span>Three</span>
+      <span>Four</span>
+      <span>Five</span>
+    </polymer-ui-pages>
+    <script>
+      document.body.onclick = function(e) {
+        var p = document.querySelector('polymer-ui-pages');
+        p.selected = (p.selected + 1) % 5;
+      }
+    </script>
+  </body>
+</html>

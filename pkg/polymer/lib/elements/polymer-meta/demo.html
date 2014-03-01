@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>polymer-meta</title>
+  <script src="../platform/platform.js"></script>
+  <link rel="import" href="polymer-meta.html">
+</head>
+<body>
+  <polymer-meta id="x-foo" label="foo"></polymer-meta>
+  <polymer-meta id="x-bar" label="bar"></polymer-meta>
+  <polymer-meta id="x-zot" label="zot">
+    <template>
+      <div>[zot's metadata]</div>
+    </template>
+  </polymer-meta>
+  
+  <template repeat="{{metadata}}">
+    <div>{{label}}</div>
+  </template>
+  
+  <hr>
+  
+  <script>
+    document.addEventListener('polymer-ready', function() {
+      var meta = document.createElement('polymer-meta');
+      document.querySelector('template[repeat]').model = {
+        metadata: meta.list
+      };
+      
+      var archetype = meta.byId('x-zot').archetype;
+      document.body.appendChild(archetype.createInstance().querySelector('*'));
+    });
+  </script>
+</body>
+</html>

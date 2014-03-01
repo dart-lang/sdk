@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+  <head>
+    <title>polymer-ui-icon</title>
+    <script src="../platform/platform.js"></script>
+    <link rel="import" href="polymer-ui-icon.html">
+  </head>
+  <body unresolved>
+    <div>
+      <template repeat="{{}}">
+        <polymer-ui-icon icon="{{}}"></polymer-ui-icon>
+      </template>
+    </div>
+    <div theme="polymer-ui-light-theme">
+      <template repeat="{{}}">
+        <polymer-ui-icon icon="{{}}"></polymer-ui-icon>
+      </template>
+    </div>
+    <div theme="polymer-ui-dark-theme" style="background-color: #333;">
+      <template repeat="{{}}">
+        <polymer-ui-icon icon="{{}}"></polymer-ui-icon>
+      </template>
+    </div>
+    <br />
+    <div theme="polymer-ui-light-theme">
+      <template repeat="{{}}">
+        <span style="display: inline-block; width: 164px; border: 1px dotted whitesmoke;">
+          <polymer-ui-icon icon="{{}}"></polymer-ui-icon> <span style="vertical-align: middle; font: bold 1em sans-serif;">{{}}</span>
+        </span>
+      </template>
+    </div>
+    <polymer-ui-icon id="meta"></polymer-ui-icon>
+    <script>
+      addEventListener('polymer-ready', function() {
+        var icons = Object.keys(document.querySelector('#meta').getIconset().iconMap);
+        var plates = document.querySelectorAll('template');
+        for (var i = 0, p; p=plates[i]; i++) {
+          p.model = icons;
+        }
+      });
+    </script>
+  </body>
+</html>

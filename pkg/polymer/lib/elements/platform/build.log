@@ -1,0 +1,48 @@
+BUILD LOG
+---------
+Build Time: 2014-02-14T15:57:20
+
+NODEJS INFORMATION
+==================
+nodejs: v0.10.25
+chai: 1.9.0
+grunt: 0.4.2
+grunt-audit: 0.0.2
+grunt-concat-sourcemap: 0.4.1
+grunt-contrib-concat: 0.3.0
+grunt-contrib-uglify: 0.3.2
+grunt-contrib-yuidoc: 0.5.0
+grunt-karma: 0.6.2
+karma: 0.10.9
+karma-chrome-launcher: 0.1.2
+karma-coffee-preprocessor: 0.1.2
+karma-crbot-reporter: 0.0.4
+karma-firefox-launcher: 0.1.3
+karma-html2js-preprocessor: 0.1.0
+karma-ie-launcher: 0.1.1
+karma-jasmine: 0.1.5
+karma-mocha: 0.1.1
+karma-phantomjs-launcher: 0.1.2
+karma-requirejs: 0.2.1
+karma-safari-launcher: 0.1.1
+karma-script-launcher: 0.1.0
+mocha: 1.17.1
+requirejs: 2.1.10
+
+REPO REVISIONS
+==============
+CustomElements: 18efac1ed0fa054536a9efae2ddea678ddb986b1
+HTMLImports: 69486ed9670afe6da872ed673e8a8d0448db16a8
+NodeBind: eb5ee7941f712cbee755da24ab7553e2d90fb99d
+PointerEvents: 1d551ce7af420577f150f5c922fc54b97f04c84d
+PointerGestures: 0cded24896294ebecdfdad47583468f714a0a34e
+ShadowDOM: 308a7c2e67032f746b5e52f4e27320ffe3a57ecd
+TemplateBinding: 279934127f6777bdfb9f752e98eb0da172fbca1b
+WeakMap: a0947a9a0f58f5733f464755c3b86de624b00a5d
+observe-js: 3ba9aeec73f7864d519fb13c6f38cb10923cdfd9
+platform: 6460c3d51b30b50d311eb1d7b055f29affa26f74
+polymer-expressions: 470cced7cf167bd164f0b924ceb088dd7a8240b9
+
+BUILD HASHES
+============
+build/platform.js: d0831d90d53d03c34a5382fdace5432599c97850

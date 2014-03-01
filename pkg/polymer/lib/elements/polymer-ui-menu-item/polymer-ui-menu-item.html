@@ -1,0 +1,92 @@
+<!--
+Copyright 2013 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!--
+/**
+ * @module Polymer UI Elements
+ */
+/**
+ * polymer-ui-menu-item is styled to look like a menu item.  It should be used
+ * in conjunction with polymer-ui-menu or polymer-ui-sibebar-menu.
+ *
+ * Example:
+ *
+ *     <polymer-ui-menu-item icon="settings" label="Settings"></polymer-ui-menu-item>
+ *
+ * @class polymer-ui-menu-item
+ */
+/**
+ * The URL of an image for the icon.
+ *
+ * @attribute src
+ * @type string
+ * @default ''
+ */
+/**
+ * Specifies the icon from the Polymer icon set.
+ *
+ * @attribute icon
+ * @type string
+ * @default ''
+ */
+/**
+ * Specifies the label for the menu item.
+ *
+ * @attribute label
+ * @type string
+ * @default ''
+ */
+/**
+ * Specifies the URL of the link it goes to when tapped on.
+ *
+ * Example:
+ *
+ *     <polymer-ui-menu-item icon="favorite" label="Favorite" href="http://www.polymer-project.org/"></polymer-ui-menu-item>
+ *
+ * If you want more control on the link, e.g. specify the target for where to
+ * open the linked document, you can put &lt;a> directly inside the menu-item.
+ *
+ * Example:
+ *
+ *     <polymer-ui-menu-item icon="favorite" label="Favorite">
+ *       <a href="http://www.polymer-project.org/" target="_self"></a>
+ *     </polymer-ui-menu-item>
+ *
+ * @attribute href
+ * @type string
+ * @default ''
+ */
+-->
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer-ui-icon/polymer-ui-icon.html">
+<link rel="import" href="../polymer-ui-theme-aware/polymer-ui-theme-aware.html">
+
+<polymer-element name="polymer-ui-menu-item" extends="polymer-ui-theme-aware" attributes="src label icon item href">
+  <template>
+    <link rel="stylesheet" href="polymer-ui-menu-item.css">
+    <polymer-ui-icon src="{{src}}" icon="{{icon}}" showing?="{{icon || src}}"></polymer-ui-icon>
+    <span id="label">{{label}}<content></content></span>
+    <a id="link" href="{{href}}" hidden?="{{!href}}"></a>
+  </template>
+  <script>
+    Polymer('polymer-ui-menu-item', {
+      label: '',
+      // calc item's offset middle pos instead of using offsetTop/Height 
+      // directly which requires to wait for submenu's collapsing transition to 
+      // complete first before it can return the correct pos.
+      getOffsetMiddle: function() {
+        var p = this.parentNode;
+        if (p) {
+          var i = Array.prototype.indexOf.call(p.items, this);
+          var h = this.getItemHeight();
+          return i * h + h/2 + p.items[0].offsetTop;
+        }
+      },
+      getItemHeight: function() {
+        return this.offsetHeight;
+      }
+    });
+  </script>
+</polymer-element>

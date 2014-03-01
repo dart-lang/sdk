@@ -1,0 +1,64 @@
+/*
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+*/
+
+:host {
+  /* technical */
+  display: block;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  /* border/shadow */
+	border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+	/* size */
+  height: 60px;
+  font-size: 21px;
+	font-family: 'Helvetica Neue Medium', 'HelveticaNeue-Medium', Helvetica, sans-serif;
+	position: relative;
+}
+
+:host(.polymer-ui-light-theme:host) {
+  background: #f2f2f2 -webkit-linear-gradient(top, rgba(197,197,197,0), rgba(197,197,197,0.15));
+  background: #f2f2f2 -moz-linear-gradient(top, rgba(197,197,197,0), rgba(197,197,197,0.15));
+  background: #f2f2f2 -ms-linear-gradient(top, rgba(197,197,197,0), rgba(197,197,197,0.15));
+  color: #333333;
+}
+
+:host(.polymer-ui-dark-theme:host) {
+  background: #444444 none;
+  color: #f3f3f3;
+}
+  
+:host(.narrow-layout[responsive]:host) {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  border: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.28);
+}
+
+/* TODO(sorvell): use of !important due to inability to 
+  naturally win over an :host style */
+/*@polyfill :host > polymer-ui-icon-button */
+::content > polymer-ui-icon-button {
+  margin: 0px 8px 0 8px !important;
+}
+
+/*@polyfill :host > polymer-ui-menu-button */
+::content > polymer-ui-menu-button {
+  margin: 0px 8px 0 8px !important;
+}
+
+/*@polyfill :host > polymer-ui-toolbar */
+::content > polymer-ui-toolbar {
+  margin: 0;
+}
+
+/*@polyfill :host > polymer-ui-toolbar:not(.narrow-layout) */
+::content > polymer-ui-toolbar:not(.narrow-layout) {
+  border: 0;
+  background: transparent none;
+}

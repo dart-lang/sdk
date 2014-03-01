@@ -1,0 +1,35 @@
+/*
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+*/
+
+:host {
+  display: inline-block;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
+
+#star {
+  display: inline-block;
+  vertical-align: middle;
+  width: 24px;
+  height: 24px;
+  margin: 0 5px;
+  background-size: 100% 100%;
+  background-image: url('assets/ic_star_rate_darkalt.png');
+  cursor: pointer;
+}
+
+#star.full {
+  background-image: url('assets/ic_star_rate_darkreg.png');
+}
+
+:host(.polymer-ui-dark-theme:host) #star {
+  background-image: url('assets/ic_star_rate_lightalt.png');
+}
+
+:host(.polymer-ui-dark-theme:host) #star.full {
+  background-image: url('assets/ic_star_rate_lightreg.png');
+}

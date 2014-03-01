@@ -1,0 +1,8 @@
+{
+  "name": "polymer-ui-sidebar-header",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master",
+    "polymer-ui-toolbar": "Polymer/polymer-ui-toolbar#master"
+  }
+}

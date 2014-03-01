@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>polymer-ui-dropup</title>
+  <link rel="import" href="polymer-ui-dropup.html">
+  <link rel="import" href="../polymer-ui-icon-button/polymer-ui-icon-button.html" rel="import">
+  <link rel="import" href="../polymer-ui-menu-item/polymer-ui-menu-item.html" rel="import">
+  <link rel="import" href="../polymer-ui-toolbar/polymer-ui-toolbar.html" rel="import">
+  <script src="../platform/platform.js"></script>
+  <link rel="stylesheet" href="../polymer-ui-base/base.css">
+  <style>
+    body {
+      background-color: #ccc;
+    }
+  </style>
+</head>
+<body class="polymer-ui-body-text polymer-ui-full-bleed polymer-ui-light-bg">
+  <polymer-ui-toolbar>
+    <polymer-ui-icon-button icon="back"></polymer-ui-icon-button>
+    <div flex></div>
+    <polymer-ui-icon-button id="search" icon="search"></polymer-ui-icon-button>
+    <polymer-ui-icon-button icon="dots"></polymer-ui-icon-button>
+  </polymer-ui-toolbar>
+  <polymer-ui-dropup id="dropup" header="Move to...">
+    <polymer-ui-menu-item icon="trash">Trash</polymer-ui-menu-item>
+    <polymer-ui-menu-item icon="marker">Spam</polymer-ui-menu-item>
+    <polymer-ui-menu-item icon="up">Updates</polymer-ui-menu-item>
+    <polymer-ui-menu-item icon="tag">Promos</polymer-ui-menu-item>
+  </polymer-ui-dropup>
+  <script>
+    document.addEventListener('polymer-ready', function() {
+      document.querySelector('#search').addEventListener('tap', function() {
+        document.querySelector('#dropup').toggle();
+      });
+    });
+  </script>
+</body>
+</html>

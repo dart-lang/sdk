@@ -1,0 +1,40 @@
+/*
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+*/
+
+:host {
+  display: inline-block;
+}
+
+.label {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.label > a {
+  text-decoration: none;
+  color: #aaa;
+}
+
+.label:last-of-type > a {
+  color: black;
+}
+
+a[disabled] {
+  pointer-events: none;
+}
+
+polymer-ui-icon {
+  -moz-transform: rotate(270deg);
+  -webkit-transform: rotate(270deg);
+  transform: rotate(270deg);
+}
+
+polymer-ui-icon:last-of-type {
+  display: none !important;
+}

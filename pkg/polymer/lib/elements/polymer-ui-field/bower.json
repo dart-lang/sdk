@@ -1,0 +1,9 @@
+{
+  "name": "polymer-ui-field",
+  "private": true,
+  "dependencies": {
+    "polymer-ui-icon": "Polymer/polymer-ui-icon#master",
+    "polymer": "Polymer/polymer#master",
+    "polymer-flex-layout": "Polymer/polymer-flex-layout#master"
+  }
+}

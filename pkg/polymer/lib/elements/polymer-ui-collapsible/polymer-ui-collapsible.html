@@ -1,0 +1,78 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!--
+/**
+ * @module Polymer UI Elements
+ */
+/**
+ * polymer-ui-collapsible has a header and a body and the body appears or
+ * disappears based on "active" property.  Tapping on the header will toggle
+ * the active state.  User needs to put the class "polymer-ui-collapsible-header"
+ * on the element to indicate it represents a header.
+ *
+ * Example:
+ *
+ *     <polymer-ui-collapsible>
+ *       <div class="polymer-ui-collapsible-header">Title</div>
+ *       <div>
+ *         some content...
+ *       </div>
+ *     </polymer-ui-collapsible>
+ *
+ * @class polymer-ui-collapsible
+ */
+-->
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer-collapse/polymer-collapse.html">
+
+<polymer-element name="polymer-ui-collapsible" attributes="active notap">
+  <template>
+    <link rel="stylesheet" href="polymer-ui-collapsible.css">
+    <div on-tap="{{headerTap}}">
+      <content select=".polymer-ui-collapsible-header"></content>
+    </div>
+    <div id="collapsibleBody" on-tap="{{bodyTap}}">
+      <content></content>
+    </div>
+    <polymer-collapse targetId="collapsibleBody" closed="{{!active}}"></polymer-collapse>
+  </template>
+  <script>
+    Polymer('polymer-ui-collapsible', {
+      /**
+       * If true, tapping on the header will not toggle the active state.
+       *
+       * @attribute notap
+       * @type boolean
+       * @default false
+       */
+      notap: false,
+      /**
+       * If true, the body is expanded.
+       *
+       * @attribute active
+       * @type boolean
+       * @default false
+       */
+      active: false,
+      /** 
+       * Toggle the active state of the collapsible.
+       *
+       * @method toggle
+       */
+      toggle: function() {
+        this.active = !this.active;
+      },
+      headerTap: function() {
+        if (!this.notap) {
+          this.toggle();
+        }
+      },
+      bodyTap: function(e) {
+        e.notap = true;
+      }
+    });
+  </script>
+</polymer-element>

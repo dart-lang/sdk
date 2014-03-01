@@ -1,0 +1,9 @@
+{
+  "name": "polymer-overlay",
+  "private": true,
+  "dependencies": {
+    "polymer-animation": "Polymer/polymer-animation#master",
+    "polymer": "Polymer/polymer#master",
+    "polymer-key-helper": "Polymer/polymer-key-helper#master"
+  }
+}

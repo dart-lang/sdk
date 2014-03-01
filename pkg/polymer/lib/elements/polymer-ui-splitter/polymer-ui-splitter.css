@@ -1,0 +1,25 @@
+/*
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+*/
+
+:host {
+  display: block;
+  width: 10px;
+  background: #efefef url(handle.png) no-repeat center;
+  box-shadow: inset 0 0 2px 1px #ccc;
+  opacity: 0.9;
+  cursor: col-resize;
+}
+  
+:host(.horizontal:host) {
+  width: auto;
+  height: 10px;
+  cursor: row-resize;
+  background-image: url(handle_horiz.png);
+}
+  
+:host(:hover:host, .active:host) {
+  background-color: #ddd;
+}

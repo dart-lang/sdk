@@ -1,0 +1,16 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<link rel="import" href="../polymer/polymer.html">
+<polymer-element name="polymer-view-source-link" target="_blank" extends="a">
+  <script>
+    Polymer('polymer-view-source-link', {
+      ready: function() {
+        var href = this.getAttribute('href') || window.location;
+        this.setAttribute('href', 'view-source:' + href); 
+      }
+    });
+  </script>
+</polymer-element>

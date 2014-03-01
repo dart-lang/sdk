@@ -1,0 +1,21 @@
+/*
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+*/
+
+:host {
+  padding: 0 !important;
+  box-shadow: inset -8px 0px 8px -4px rgba(0, 0, 0, 0.4);
+}
+  
+:host(.polymer-ui-light-theme:host) {
+  box-shadow: inset -8px 0px 8px -4px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar-menu {
+  position: relative;
+  padding: 0 10px;
+  margin: 10px 0;
+  overflow: auto;
+}

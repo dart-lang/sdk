@@ -1,0 +1,41 @@
+﻿<!doctype html>
+<html>
+<head>
+  <title></title>
+  <script src="../platform/platform.js"></script>
+  <link rel="import" href="polymer-signals.html">
+</head>
+<body>
+
+<polymer-element name="my-element">
+  <template>
+    Hello
+  </template>
+  <script>
+    Polymer('my-element', {
+      ready: function() {
+        this.asyncFire('polymer-signal', {name: "foo", data: "Foo!"});
+      }
+    });
+  </script>
+</polymer-element>
+
+<polymer-element name="my-app">
+  <template>
+    <polymer-signals on-polymer-signal-foo="{{fooSignal}}"></polymer-signals>
+    <content></cotnent>
+  </template>
+  <script>
+    Polymer('my-app', {
+      fooSignal: function(e, detail, sender) {
+        this.innerHTML += '<br>[my-app] got a [' + detail + '] signal<br>';
+      }
+    });
+  </script>
+</polymer-element>
+
+<my-element></my-element>
+<my-app></my-app>
+
+</body>
+</html>

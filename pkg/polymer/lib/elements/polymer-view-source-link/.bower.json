@@ -1,0 +1,17 @@
+{
+  "name": "polymer-view-source-link",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master"
+  },
+  "homepage": "https://github.com/Polymer/polymer-view-source-link",
+  "_release": "9cf0fc0852",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "9cf0fc0852b68b5ade24016dc9b4689ca18bb51b"
+  },
+  "_source": "git://github.com/Polymer/polymer-view-source-link.git",
+  "_target": "master",
+  "_originalSource": "Polymer/polymer-view-source-link"
+}

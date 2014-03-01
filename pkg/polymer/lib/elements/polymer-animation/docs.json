@@ -1,0 +1,356 @@
+{
+    "project": {
+        "name": "Docs",
+        "description": "Docs"
+    },
+    "files": {
+        "..\\..\\polymer-animation\\polymer-animation-group.html": {
+            "name": "..\\..\\polymer-animation\\polymer-animation-group.html",
+            "modules": {
+                "Animation": 1
+            },
+            "classes": {
+                "polymer-animation-group": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        },
+        "..\\..\\polymer-animation\\polymer-animation-keyframe.html": {
+            "name": "..\\..\\polymer-animation\\polymer-animation-keyframe.html",
+            "modules": {},
+            "classes": {
+                "polymer-animation-keyframe": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        },
+        "..\\..\\polymer-animation\\polymer-animation-prop.html": {
+            "name": "..\\..\\polymer-animation\\polymer-animation-prop.html",
+            "modules": {},
+            "classes": {
+                "polymer-animation-prop": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        },
+        "..\\..\\polymer-animation\\polymer-animation.html": {
+            "name": "..\\..\\polymer-animation\\polymer-animation.html",
+            "modules": {},
+            "classes": {
+                "polymer-animation": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        }
+    },
+    "modules": {
+        "Animation": {
+            "name": "Animation",
+            "submodules": {},
+            "classes": {
+                "polymer-animation-group": 1,
+                "polymer-animation-keyframe": 1,
+                "polymer-animation-prop": 1,
+                "polymer-animation": 1
+            },
+            "fors": {},
+            "namespaces": {},
+            "tag": "module",
+            "file": "..\\..\\polymer-animation\\polymer-animation.html",
+            "line": 33,
+            "itemtype": "main",
+            "example": [
+                " toolkitchen/labs/animation2/grid-fade.html",
+                " toolkitchen/labs/animation2/group.html"
+            ]
+        }
+    },
+    "classes": {
+        "polymer-animation-group": {
+            "name": "polymer-animation-group",
+            "shortname": "polymer-animation-group",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "Animation",
+            "namespace": "",
+            "file": "..\\..\\polymer-animation\\polymer-animation-group.html",
+            "line": 14,
+            "description": "Component for a group of animations."
+        },
+        "polymer-animation-keyframe": {
+            "name": "polymer-animation-keyframe",
+            "shortname": "polymer-animation-keyframe",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "Animation",
+            "namespace": "",
+            "file": "..\\..\\polymer-animation\\polymer-animation-keyframe.html",
+            "line": 5,
+            "description": "Defines a keyframe in an animation. Its children should be\n`<polymer-animation-prop>` elements specifying the css\nproperty value at the keyframe."
+        },
+        "polymer-animation-prop": {
+            "name": "polymer-animation-prop",
+            "shortname": "polymer-animation-prop",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "Animation",
+            "namespace": "",
+            "file": "..\\..\\polymer-animation\\polymer-animation-prop.html",
+            "line": 5,
+            "description": "A CSS property and value to use in a `<polymer-animation-keyframe>`."
+        },
+        "polymer-animation": {
+            "name": "polymer-animation",
+            "shortname": "polymer-animation",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "Animation",
+            "namespace": "",
+            "file": "..\\..\\polymer-animation\\polymer-animation.html",
+            "line": 33,
+            "description": "Component for a single animation.\n\nA animation component to fade out an element:\n\n    <polymer-animation id=\"fadeout\">\n      <polymer-animation-keyframe offset=\"0\">\n        <polymer-animation-prop name=\"opacity\" value=\"0\">\n        </polymer-animation-keyframe>\n      </polymer-animation-keyframe>\n      <polymer-animation-keyframe offset=\"1\">\n        <polymer-animation-prop name=\"opacity\" value=\"1\">\n        <polymer-animation-prop>\n      </polymer-animation-keyframe>\n    </polymer-animation>"
+        }
+    },
+    "classitems": [
+        {
+            "file": "..\\..\\polymer-animation\\polymer-animation-group.html",
+            "line": 20,
+            "description": "If specified the target will be assigned to all child animations.",
+            "itemtype": "property",
+            "name": "target",
+            "type": "HTMLElement|Node",
+            "default": "null",
+            "class": "polymer-animation-group",
+            "module": "Animation"
+        },
+        {
+            "file": "..\\..\\polymer-animation\\polymer-animation-group.html",
+            "line": 27,
+            "description": "If specified and not \"auto\" the duration will apply to the group\nand propagate to any child animations that is not a group and does\nnot specify a duration.",
+            "itemtype": "property",
+            "name": "duration",
+            "type": "number",
+            "default": "\"auto\"",
+            "class": "polymer-animation-group",
+            "module": "Animation"
+        },
+        {
+            "file": "..\\..\\polymer-animation\\polymer-animation-group.html",
+            "line": 36,
+            "description": "Group type. 'par' for parallel and 'seq' for sequence.",
+            "itemtype": "property",
+            "name": "type",
+            "type": "String",
+            "default": "'par'",
+            "class": "polymer-animation-group",
+            "module": "Animation"
+        },
+        {
+            "file": "..\\..\\polymer-animation\\polymer-animation-keyframe.html",
+            "line": 12,
+            "description": "From 0 to 1.",
+            "itemtype": "property",
+            "name": "offset",
+            "type": "Number",
+            "class": "polymer-animation-keyframe",
+            "module": "Animation"
+        },
+        {
+            "file": "..\\..\\polymer-animation\\polymer-animation-prop.html",
+            "line": 10,
+            "description": "CSS property name.",
+            "itemtype": "property",
+            "name": "name",
+            "type": "String",
+            "required": 1,
+            "class": "polymer-animation-prop",
+            "module": "Animation"
+        },
+        {
+            "file": "..\\..\\polymer-animation\\polymer-animation-prop.html",
+            "line": 16,
+            "description": "CSS property value.",
+            "itemtype": "property",
+            "name": "value",
+            "required": 1,
+            "class": "polymer-animation-prop",
+            "module": "Animation"
+        },
+        {
+            "file": "..\\..\\polymer-animation\\polymer-animation.html",
+            "line": 50,
+            "description": "Fired when the animation starts",
+            "itemtype": "event",
+            "name": "polymer-animation-change",
+            "class": "polymer-animation",
+            "module": "Animation"
+        },
+        {
+            "file": "..\\..\\polymer-animation\\polymer-animation.html",
+            "line": 62,
+            "description": "One or more nodes to animate.",
+            "itemtype": "property",
+            "name": "target",
+            "type": "HTMLElement|Node|Array<HTMLElement|Node>",
+            "class": "polymer-animation",
+            "module": "Animation"
+        },
+        {
+            "file": "..\\..\\polymer-animation\\polymer-animation.html",
+            "line": 68,
+            "description": "Selector for the node being animated.",
+            "itemtype": "property",
+            "name": "targetSelector",
+            "type": "String",
+            "class": "polymer-animation",
+            "module": "Animation"
+        },
+        {
+            "file": "..\\..\\polymer-animation\\polymer-animation.html",
+            "line": 75,
+            "description": "Animation keyframes specified as an array of dictionaries of\n&lt;css properties&gt;:&lt;array of values&gt; pairs. For example,",
+            "itemtype": "property",
+            "name": "keyframes",
+            "type": "Object",
+            "class": "polymer-animation",
+            "module": "Animation"
+        },
+        {
+            "file": "..\\..\\polymer-animation\\polymer-animation.html",
+            "line": 82,
+            "description": "A custom animation function. Either provide this or keyframes.",
+            "itemtype": "property",
+            "name": "sample",
+            "type": "Function",
+            "class": "polymer-animation",
+            "module": "Animation"
+        },
+        {
+            "file": "..\\..\\polymer-animation\\polymer-animation.html",
+            "line": 89,
+            "description": "The composition behavior. \"replace\", \"add\" or \"merge\".",
+            "itemtype": "property",
+            "name": "composite",
+            "type": "\"replace\"|\"add\"|\"merge\"",
+            "default": "\"replace\"",
+            "class": "polymer-animation",
+            "module": "Animation"
+        },
+        {
+            "file": "..\\..\\polymer-animation\\polymer-animation.html",
+            "line": 97,
+            "description": "Animation duration in milliseconds, 'infinity' or 'auto'. 'auto'\nmeans use the animation's intrinsic duration.",
+            "itemtype": "property",
+            "name": "duration",
+            "type": "Number|\"Infinity\"|\"auto\"",
+            "default": "\"auto\"",
+            "class": "polymer-animation",
+            "module": "Animation"
+        },
+        {
+            "file": "..\\..\\polymer-animation\\polymer-animation.html",
+            "line": 105,
+            "description": "\"none\", \"forwards\", \"backwards\", \"both\" or \"auto\". When set to\n\"auto\", the fillMode is \"none\" for a polymer-animation and \"both\"\nfor a polymer-animation-group.",
+            "itemtype": "property",
+            "name": "fillMode",
+            "type": "\"none\"|\"forwards\"|\"backwards\"|\"both\"|\"auto\"",
+            "default": "\"auto\"",
+            "class": "polymer-animation",
+            "module": "Animation"
+        },
+        {
+            "file": "..\\..\\polymer-animation\\polymer-animation.html",
+            "line": 114,
+            "description": "A transition timing function.",
+            "itemtype": "property",
+            "name": "easing",
+            "type": "\"linear\"|\"ease\"|\"ease-in\"|\"ease-out\"|\"ease-in-out\"|\n    \"step-start\"|\"step-middle\"|\"step-end\"",
+            "default": "\"linear\"",
+            "class": "polymer-animation",
+            "module": "Animation"
+        },
+        {
+            "file": "..\\..\\polymer-animation\\polymer-animation.html",
+            "line": 122,
+            "description": "Number of iterations into the timed item in which to begin\nthe animation. e.g. 0.5 will cause the animation to begin\nhalfway through the first iteration.",
+            "itemtype": "property",
+            "name": "iterationStart",
+            "type": "Number",
+            "default": "0",
+            "class": "polymer-animation",
+            "module": "Animation"
+        },
+        {
+            "file": "..\\..\\polymer-animation\\polymer-animation.html",
+            "line": 131,
+            "itemtype": "property",
+            "name": "iterationCount",
+            "type": "Number|'Infinity'",
+            "default": "1",
+            "class": "polymer-animation",
+            "module": "Animation"
+        },
+        {
+            "file": "..\\..\\polymer-animation\\polymer-animation.html",
+            "line": 137,
+            "description": "Delay in milliseconds.",
+            "itemtype": "property",
+            "name": "delay",
+            "type": "Number",
+            "default": "0",
+            "class": "polymer-animation",
+            "module": "Animation"
+        },
+        {
+            "file": "..\\..\\polymer-animation\\polymer-animation.html",
+            "line": 144,
+            "itemtype": "property",
+            "name": "direction",
+            "type": "\"normal\"|\"reverse\"|\"alternate\"|\"alternate-reverse\"",
+            "default": "\"normal\"",
+            "class": "polymer-animation",
+            "module": "Animation"
+        },
+        {
+            "file": "..\\..\\polymer-animation\\polymer-animation.html",
+            "line": 150,
+            "itemtype": "property",
+            "name": "autoplay",
+            "type": "Boolean",
+            "default": "false",
+            "class": "polymer-animation",
+            "module": "Animation"
+        },
+        {
+            "file": "..\\..\\polymer-animation\\polymer-animation.html",
+            "line": 173,
+            "description": "Plays the animation.",
+            "itemtype": "method",
+            "name": "play",
+            "class": "polymer-animation",
+            "module": "Animation"
+        },
+        {
+            "file": "..\\..\\polymer-animation\\polymer-animation.html",
+            "line": 184,
+            "description": "Stops the animation.",
+            "itemtype": "method",
+            "name": "cancel",
+            "class": "polymer-animation",
+            "module": "Animation"
+        }
+    ],
+    "warnings": []
+}

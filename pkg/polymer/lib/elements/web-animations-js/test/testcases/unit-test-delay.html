@@ -1,0 +1,66 @@
+<!--
+Copyright 2013 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE html><meta charset="UTF-8">
+<div id="anim"></div>
+
+<script src="../bootstrap.js"></script>
+<script>
+"use strict";
+
+var anim1 = new Animation(document.getElementById("anim"), {left: "100px"},
+    {iterations: 3.0, duration: 1.0});
+var anim2 = new Animation(document.getElementById("anim"), {left: "100px"},
+    {duration: 2.0});
+var parGroup = new ParGroup([anim1, anim2]);
+
+function expectDuration(anim, duration, error) {
+  test(function() {assert_equals(anim.activeDuration, duration)}, error);
+}
+
+function expectEndTime(anim, endTime, error) {
+  test(function() {assert_equals(anim.endTime, endTime)}, error);
+}
+
+expectDuration(anim1, 3.0, "Animation 1 duration should match specified value");
+expectDuration(anim2, 2.0, "Animation 2 duration should match specified value");
+expectDuration(parGroup, 3.0, 
+    "ParGroup duration should be max of childrens' end times");
+anim1.specified.delay = 2.0;
+expectDuration(anim1, 3.0, "Animation 1 duration should not include delay");
+expectEndTime(anim1, 5.0, "Animation 1 end time should include delay");
+expectDuration(parGroup, 5.0, 
+    "ParGroup duration should still be max of childrens' end times");
+anim2.specified.endDelay = 4.0;
+expectDuration(anim2, 2.0, "Animation 2 duration should not include endDelay");
+expectEndTime(anim2, 6.0, "Animation 2 end time should include endDelay");
+expectDuration(parGroup, 6.0, 
+    "ParGroup duration should STILL be max of childrens' end times");
+
+var seqGroup = new SeqGroup([anim1, anim2]);
+expectDuration(seqGroup, 11.0, 
+    "SeqGroup duration should be sum of childrens' total durations");
+expectEndTime(anim2, 11.0, "Animation 2 end time should include Animation 1");
+anim1.specified.delay = 4.0;
+expectEndTime(anim2, 13.0,
+    "Animation 2 end time should be updated by changes to animation 1 delay");
+anim1.specified.endDelay = 3.0;
+expectDuration(anim1, 3.0, "Animation 1 duration should not include endDelay");
+expectEndTime(anim1, 10.0, "Animation 1 end time should include endDelay");
+expectEndTime(anim2, 16.0, "Animation 2 end time should include Animation 1 endDelay");
+expectDuration(seqGroup, 16.0, 
+    "SeqGroup duration should still be sum of childrens' total durations");
+</script>

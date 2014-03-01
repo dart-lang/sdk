@@ -1,0 +1,151 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!--
+/**
+ * @module Polymer Elements
+ */
+/**
+ * polymer-ui-menu-button is a polymer-ui-icon-button with a drop down menu
+ * that allows the user to select an option. The drop down menu is styled with
+ * an arrow pointing to the button, and can be positioned to the top or the
+ * bottom of the button with the valign property. The valign property aligns
+ * the menu to the left or right edge of the button.
+ *
+ * Example:
+ *
+ *     <polymer-ui-menu-button selected="0">
+ *       <polymer-ui-menu-item icon="settings" label="Settings"></polymer-ui-menu-item>
+ *       <polymer-ui-menu-item icon="dialog" label="Dialog"></polymer-ui-menu-item>
+ *       <polymer-ui-menu-item icon="search" label="Search"></polymer-ui-menu-item>
+ *     </polymer-ui-menu-button>
+ *
+ * @class polymer-ui-menu-button
+ */
+-->
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer-anchor-point/polymer-anchor-point.html">
+<link rel="import" href="../polymer-media-query/polymer-media-query.html">
+<link rel="import" href="../polymer-overlay/polymer-overlay.html">
+<link rel="import" href="../polymer-ui-icon-button/polymer-ui-icon-button.html">
+<link rel="import" href="../polymer-ui-menu/polymer-ui-menu.html">
+<link rel="import" href="../polymer-ui-arrow/polymer-ui-arrow.html">
+
+<polymer-element name="polymer-ui-menu-button" attributes="src icon opened responsive halign valign selected selectedItem selectedClass valueattr multi parallax">
+  <template>
+    <link rel="stylesheet" href="polymer-ui-menu-button.css">
+    <polymer-ui-icon-button id="button" on-tap="{{toggle}}" src="{{src}}" icon="{{icon}}" active="{{opened}}" anchor-point="{{valign}}"></polymer-ui-icon-button>
+    <div id="overlay" halign="{{halign}}" valign="{{valign}}">
+      <div id="overlayBackdrop" pseudo="x-backdrop" overlay-toggle></div>
+      <div id="overlayMenu">
+        <polymer-ui-menu id="menu" selected="{{selected}}" selectedItem="{{selectedItem}}" selectedClass="{{selectedClass}}" valueattr="{{valueattr}}" multi="{{multi}}" on-polymer-select="{{closeAction}}">
+          <content select="*"></content>
+        </polymer-ui-menu>
+      </div>
+      <polymer-ui-arrow id="arrow" size="9" direction="{{valign == 'top' ? 'down' : 'up'}}" anchor-point="center center"></polymer-ui-arrow>
+    </div>
+    <polymer-media-query query="{{mediaQuery}}" on-polymer-mediachange="{{mediaChangeAction}}"></polymer-media-query>
+    <polymer-anchor-point id="arrowPositionHelper" target="{{$.arrow}}" anchor="{{$.button}}"></polymer-anchor-point>
+    <polymer-overlay target="{{$.overlay}}" opened="{{opened}}"></polymer-overlay>
+  </template>
+  <script>
+    Polymer('polymer-ui-menu-button', {
+      /**
+       * The icon to display.
+       * @attribute icon
+       * @type string
+       */
+      icon: 'dots',
+      src: '',
+      /**
+       * The index of the selected menu item.
+       * @attribute selected
+       * @type number
+       */
+      selected: '',
+      /**
+       * Set to true to open the menu.
+       * @attribute opened
+       * @type boolean
+       */
+      opened: false,
+      /**
+       * Horizontally align the overlay with the button. Accepted values are
+       * ["left", "center", "right"].
+       * @attribute halign
+       * @type string
+       */
+      halign: 'center',
+      /**
+       * Display the overlay on top or below the button. Accepted values are
+       * ["top", "bottom"].
+       * @attribute valign
+       * @type string
+       */
+      valign: 'bottom',
+      multi: false,
+      parallax: false,
+      mediaQuery: 'max-width: 800px',
+      ready: function() {
+        this.boundParallaxAction = this.parallaxAction.bind(this);
+      },
+      openedChanged: function() {
+        this.async(function() {
+          this.$.arrowPositionHelper.apply();
+          this.tilt = null;
+          if (this.parallax) {
+            window.addEventListener('deviceorientation',
+                this.boundParallaxAction, false);
+          } else {
+            window.removeEventListener('deviceorientation',
+                this.boundParallaxAction, false);
+          }
+        });
+      },
+      parallaxAction: function(e) {
+        var tiltLR = Math.round(e.gamma);
+        var tiltTB = Math.round(e.beta);
+        if (!this.tilt) {
+          this.tilt = {
+            lr: tiltLR,
+            tb: tiltTB
+          };
+        } else {
+          var transX = ((tiltLR - this.tilt.lr) % 90) / 90 * 8;
+          var transY = ((tiltTB - this.tilt.tb) % 90) / 90 * 13;
+          this.$.overlayMenu.style['-webkit-transform'] = 'translate3d(' +
+              transX + 'px,' + transY + 'px,0)';
+          this.$.arrow.style['-webkit-transform'] = 'translate3d(' +
+              transX + 'px,' + transY + 'px,0)';
+        }
+      },
+      mediaChangeAction: function(e) {
+        if (e.detail.matches) {
+          this.classList.add('fullwidth');
+        } else {
+          this.classList.remove('fullwidth');
+        }
+      },
+      closeAction: function() {
+        this.opened = false;
+      },
+      /**
+       * Toggle the opened state of the dropdown.
+       * @method toggle
+       */
+      toggle: function() {
+        this.opened = !this.opened;
+      },
+      /**
+       * The selected menu item.
+       * @property selection
+       * @type Node
+       */
+      get selection() {
+        return this.$.menu.selection;
+      }
+    });
+  </script>
+</polymer-element>

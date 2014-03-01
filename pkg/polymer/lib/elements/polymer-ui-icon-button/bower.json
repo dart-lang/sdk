@@ -1,0 +1,8 @@
+{
+  "name": "polymer-ui-icon-button",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master",
+    "polymer-ui-icon": "Polymer/polymer-ui-icon#master"
+  }
+}

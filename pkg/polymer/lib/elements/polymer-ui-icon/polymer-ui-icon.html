@@ -1,0 +1,114 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+
+<!--
+/**
+* Polymer UI Elements
+*
+* @module Polymer UI Elements
+*/  
+/**
+ * polymer-ui-icon is a 24x24 glyph expressed as a background-image.
+ *
+ * Example:
+ *
+ *     <polymer-ui-icon src="star.png"></polymer-ui-icon>
+ *
+ * Optionally can use other size like 32x32 by setting the attribute "size" to "32":
+ *
+ *     <polymer-ui-icon src="big_star.png" size="32"></polymer-ui-icon>
+ *
+ * Polymer includes an icon set.  The property "icon" can be used
+ * to specify which icon to use.
+ *
+ * Example:
+ *
+ *     <polymer-ui-icon icon="menu"></polymer-ui-icon>
+ *
+ * See <a href="polymer-ui-iconset.html">polymer-ui-iconset</a> on how to use
+ * your own icon set.
+ *
+ * @class polymer-ui-icon
+ */
+-->
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer-ui-theme-aware/polymer-ui-theme-aware.html">
+<link rel="import" href="../polymer-ui-iconset/polymer-ui-iconset.html">
+<link rel="import" href="polymer-ui-icons.html">
+
+<polymer-element name="polymer-ui-icon" extends="polymer-ui-theme-aware" attributes="src size index icon">
+  <template>
+    <link rel="stylesheet" href="polymer-ui-icon.css">
+    <polymer-ui-iconset id="meta"></polymer-ui-iconset>
+    <content></content>
+  </template>
+  <script>
+    Polymer('polymer-ui-icon', {
+      /**
+       * The URL of an image for the icon.
+       *
+       * @attribute src
+       * @type string
+       * @default ''
+       */
+      src: '',
+      /**
+       * Specifies the size of the icon.
+       *
+       * @attribute size
+       * @type string
+       * @default 24
+       */
+      size: 24,
+      /**
+       * Specifies the icon from the icon set.
+       *
+       * @attribute icon
+       * @type string
+       * @default ''
+       */
+      icon: '',
+      defaultIconset: 'polymer-ui-icons',
+      observe: {
+        icon: 'updateIcon',
+        activeTheme: 'updateIcon'
+      },
+      ready: function() {
+        this.sizeChanged();
+      },
+      sizeChanged: function() {
+        this.style.width = this.style.height = this.size + 'px';
+      },
+      srcChanged: function() {
+        this.style.backgroundImage = 'url(' + this.src + ')';
+        this.style.backgroundPosition = 'center';
+        this.style.backgroundSize = this.size + 'px ' + this.size + 'px';
+      },
+      getIconset: function(name) {
+        return this.$.meta.byId(name || this.defaultIconset);
+      },
+      updateIcon: function() {
+        if (!this.icon) {
+          return;
+        }
+        var a = this.icon.split(':');
+        var icon = a.pop();
+        var n = a.pop();
+        var s = this.getIconset(n);
+        if (s) {
+          var o = s.getOffset(icon, this.activeTheme);
+          if (o) {
+            var r = this.size / s.iconsize;
+            this.style.backgroundImage = 'url(' + s.src + ')';
+            this.style.backgroundPosition = 
+                (-o.offsetx * r + 'px') + ' ' + (-o.offsety * r + 'px');
+            this.style.backgroundSize = r === 1 ? 'auto' : s.width * r + 'px';
+          }
+        }
+      }
+    });
+  </script>
+</polymer-element>

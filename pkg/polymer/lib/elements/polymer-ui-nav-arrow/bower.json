@@ -1,0 +1,8 @@
+{
+  "name": "polymer-ui-nav-arrow",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master",
+    "polymer-ui-arrow": "Polymer/polymer-ui-arrow#master"
+  }
+}

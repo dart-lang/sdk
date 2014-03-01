@@ -1,0 +1,77 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!--
+/**
+ * @module Polymer UI Elements
+ */
+/**
+ * polymer-ui-nav-arrow is a polymer-ui-arrow that can be positioned to the 
+ * right of the target node.  This element is used in 
+ * <a href="polymer-ui-sidebar-menu.html">polymer-ui-sidebar-menu</a>.
+ *
+ * Example:
+ *
+ *     <polymer-selector selectedItem="{{item}}">
+ *       <div>Item 1</div>
+ *       <div>Item 2</div>
+ *       <div>Item 3</div>
+ *       <div>Item 4</div>
+ *       <div>Item 5</div>
+ *     </polymer-selector>
+ *     <polymer-ui-nav-arrow target="{{item}}"></polymer-ui-nav-arrow>
+ *
+ * @class polymer-ui-nav-arrow
+ * @extends polymer-ui-arrow
+ */
+/**
+ * The target element.
+ *
+ * @attribute target
+ * @type object
+ * @default null
+ */
+-->
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer-ui-arrow/polymer-ui-arrow.html">
+
+<polymer-element name="polymer-ui-nav-arrow" extends="polymer-ui-arrow" attributes="target">
+  <template>
+    <link rel="stylesheet" href="polymer-ui-nav-arrow.css">
+    <shadow></shadow>
+  </template>
+  <script>
+    Polymer('polymer-ui-nav-arrow', {
+      direction: 'left',
+      size: 9,
+      borderColor: '#000',
+      show: false,
+      enteredView: function() {
+        this.showChanged();
+      },
+      showChanged: function() {
+        this.classList.toggle('hidden', !this.show);
+      },
+      targetChanged: function() {
+        this.show = !!this.target;
+        if (this.target) {
+          this.asyncMethod('move');
+        }
+      },
+      translateY: function(y) {
+        var s = this.style;
+        s.webkitTransform = s.mozTransform = s.msTransform = s.transform = 
+          'translate3d(0,' + y + 'px,0)';
+      },
+      move: function() {
+        var t = this.target;
+        // if the target has getOffsetMiddle(), use that instead
+        var y = t.getOffsetMiddle ? t.getOffsetMiddle() : 
+            (t.offsetTop + t.offsetHeight/2);
+        this.translateY(y);
+      }
+    });
+  </script>
+</polymer-element>

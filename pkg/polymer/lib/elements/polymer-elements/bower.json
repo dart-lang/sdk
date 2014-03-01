@@ -1,0 +1,34 @@
+{
+  "name": "polymer-elements",
+  "authors": [
+    "The Polymer Authors"
+  ],
+  "dependencies": {
+    "polymer-ajax": "Polymer/polymer-ajax#master",
+    "polymer-anchor-point": "Polymer/polymer-anchor-point#master",
+    "polymer-animation": "Polymer/polymer-animation#master",
+    "polymer-collapse": "Polymer/polymer-collapse#master",
+    "polymer-cookie": "Polymer/polymer-cookie#master",
+    "polymer-file": "Polymer/polymer-file#master",
+    "polymer-flex-layout": "Polymer/polymer-flex-layout#master",
+    "polymer-google-jsapi": "Polymer/polymer-google-jsapi#master",
+    "polymer-grid-layout": "Polymer/polymer-grid-layout#master",
+    "polymer-jsonp": "Polymer/polymer-jsonp#master",
+    "polymer-key-helper": "Polymer/polymer-key-helper#master",
+    "polymer-layout": "Polymer/polymer-layout#master",
+    "polymer-localstorage": "Polymer/polymer-localstorage#master",
+    "polymer-media-query": "Polymer/polymer-media-query#master",
+    "polymer-meta": "Polymer/polymer-meta#master",
+    "polymer-mock-data": "Polymer/polymer-mock-data#master",
+    "polymer-overlay": "Polymer/polymer-overlay#master",
+    "polymer-page": "Polymer/polymer-page#master",
+    "polymer-scrub": "Polymer/polymer-scrub#master",
+    "polymer-selection": "Polymer/polymer-selection#master",
+    "polymer-selector": "Polymer/polymer-selector#master",
+    "polymer-shared-lib": "Polymer/polymer-shared-lib#master",
+    "polymer-signals": "Polymer/polymer-signals#master",
+    "polymer-view-source-link": "Polymer/polymer-view-source-link#master"
+  },
+  "license": "BSD",
+  "private": true
+}

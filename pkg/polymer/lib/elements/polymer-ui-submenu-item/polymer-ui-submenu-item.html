@@ -1,0 +1,85 @@
+<!--
+Copyright 2013 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!--
+/**
+ * @module Polymer UI Elements
+ */
+/**
+ * polymer-ui-submenu-item is a menu-item that can contains other menu-items.
+ * It should be used in conjunction with polymer-ui-menu or 
+ * polymer-ui-sibebar-menu.
+ *
+ * Example:
+ *
+ *     <polymer-ui-menu selected="0">
+ *       <polymer-ui-submenu-item icon="settings" label="Topics">
+ *         <polymer-ui-menu-item label="Topics 1"></polymer-ui-menu-item>
+ *         <polymer-ui-menu-item label="Topics 2"></polymer-ui-menu-item>
+ *       </polymer-ui-submenu-item>
+ *       <polymer-ui-submenu-item icon="settings" label="Favorites">
+ *         <polymer-ui-menu-item label="Favorites 1"></polymer-ui-menu-item>
+ *         <polymer-ui-menu-item label="Favorites 2"></polymer-ui-menu-item>
+ *         <polymer-ui-menu-item label="Favorites 3"></polymer-ui-menu-item>
+ *       </polymer-ui-submenu-item>
+ *     </polymer-ui-menu>
+ *
+ * @class polymer-ui-submenu-item
+ * @extends polymer-ui-menu-item
+ */
+-->
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer-ui-theme-aware/polymer-ui-theme-aware.html">
+<link rel="import" href="../polymer-ui-menu-item/polymer-ui-menu-item.html">
+<link rel="import" href="../polymer-ui-menu/polymer-ui-menu.html">
+<link rel="import" href="../polymer-collapse/polymer-collapse.html">
+
+<polymer-element name="polymer-ui-submenu-item" extends="polymer-ui-menu-item" attributes="active selected selectedItem">
+  <template>
+    <link rel="stylesheet" href="polymer-ui-submenu-item.css">
+    <polymer-ui-menu-item id="item" src="{{src}}" label="{{label}}" icon="{{icon}}" active?="{{active}}" on-tap="{{activate}}">
+      <content select=".item-content"></content>
+    </polymer-ui-menu-item>
+    <polymer-ui-menu id="menu" selected="{{selected}}" selectedItem="{{selectedItem}}">
+      <content></content>
+    </polymer-ui-menu>
+    <polymer-collapse targetId="menu" closed="{{collapsed}}"></polymer-collapse>
+  </template>
+  <script>
+    Polymer('polymer-ui-submenu-item', {
+      active: false,
+      collapsed: true,
+      get items() {
+        return this.$.menu.items;
+      },
+      hasItems: function() {
+        return !!this.items.length;
+      },
+      unselectAllItems: function() {
+        this.$.menu.selected = null;
+        this.$.menu.clearSelection();
+      },
+      activeChanged: function() {
+        if (this.hasItems()) {
+          this.collapsed = !this.active;
+        }
+        if (!this.active) {
+          this.unselectAllItems();
+        }
+        this.$.item.classList.toggle('no-active-bg', this.hasItems());
+      },
+      activate: function() {
+        if (this.hasItems() && this.active) {
+          this.collapsed = !this.collapsed;
+          this.unselectAllItems();
+          this.fire("polymer-select", {isSelected: true, item: this});
+        }
+      },
+      getItemHeight: function() {
+        return this.$ && this.$.item && this.$.item.offsetHeight;
+      }
+    });
+  </script>
+</polymer-element>

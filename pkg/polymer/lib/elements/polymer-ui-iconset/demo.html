@@ -1,0 +1,60 @@
+
+<!doctype html>
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>polymer-ui-iconset</title>
+    <script src="../platform/platform.js"></script>
+    <link rel="import" href="polymer-ui-iconset.html">
+    <link rel="import" href="../polymer-ui-icon/polymer-ui-icon.html">
+    <link rel="import" href="../polymer-ui-icon-button/polymer-ui-icon-button.html">
+    <link rel="import" href="../polymer-ui-toolbar/polymer-ui-toolbar.html">
+    <link rel="import" href="../polymer-ui-menu-item/polymer-ui-menu-item.html">
+    <link rel="import" href="../polymer-ui-menu/polymer-ui-menu.html">
+    <link rel="stylesheet" href="../polymer-ui-base-css/base.css">
+    <style>
+      polymer-ui-menu {
+        width: 300px;
+      }
+    </style>
+  </head>
+  <body class="polymer-ui-body-text" theme="polymer-ui-light-theme" unresolved>
+    <!-- using polymer icon set -->
+    <polymer-ui-toolbar>
+      <polymer-ui-icon-button icon="menu"></polymer-ui-icon-button>
+      <div flex>polymer icon set</div>
+      <polymer-ui-icon-button icon="trash"></polymer-ui-icon-button>
+    </polymer-ui-toolbar>
+    <br><br>
+    <polymer-ui-menu selected="0">
+      <polymer-ui-menu-item icon="add" label="Add"></polymer-ui-menu-item>
+      <polymer-ui-menu-item icon="trash" label="Trash"></polymer-ui-menu-item>
+      <polymer-ui-menu-item icon="settings" label="Settings"></polymer-ui-menu-item>
+    </polymer-ui-menu>
+    <br><br>
+    
+    <!-- register user-defined icon set -->
+    <polymer-ui-iconset id="my-icons" src="my-icons.png" width="96" iconsize="24"
+        icons="location place starta stopb bus car train walk">
+    </polymer-ui-iconset>
+    
+    <!-- use prefix (e.g. my-icons:location) to use user-defined icon set -->
+    <polymer-ui-toolbar>
+      <polymer-ui-icon-button icon="my-icons:location"></polymer-ui-icon-button>
+      <div flex>user-defined icon set</div>
+      <polymer-ui-icon-button icon="my-icons:bus"></polymer-ui-icon-button>
+      <polymer-ui-icon-button icon="my-icons:place"></polymer-ui-icon-button>
+      <polymer-ui-icon-button icon="trash"></polymer-ui-icon-button>
+    </polymer-ui-toolbar>
+    <br><br>
+    <polymer-ui-menu selected="0">
+      <polymer-ui-menu-item icon="my-icons:starta" label="Start"></polymer-ui-menu-item>
+      <polymer-ui-menu-item icon="my-icons:stopb" label="Stop"></polymer-ui-menu-item>
+      <polymer-ui-menu-item icon="settings" label="Settings"></polymer-ui-menu-item>
+    </polymer-ui-menu>
+  </body>
+</html>

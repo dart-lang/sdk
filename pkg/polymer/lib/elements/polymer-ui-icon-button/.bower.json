@@ -1,0 +1,18 @@
+{
+  "name": "polymer-ui-icon-button",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master",
+    "polymer-ui-icon": "Polymer/polymer-ui-icon#master"
+  },
+  "homepage": "https://github.com/Polymer/polymer-ui-icon-button",
+  "_release": "ea87d1e9cc",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "ea87d1e9cc774a6310633e6b3863169eb9d010cc"
+  },
+  "_source": "git://github.com/Polymer/polymer-ui-icon-button.git",
+  "_target": "master",
+  "_originalSource": "Polymer/polymer-ui-icon-button"
+}

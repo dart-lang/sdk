@@ -1,0 +1,17 @@
+{
+  "name": "polymer-ui-card",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master"
+  },
+  "homepage": "https://github.com/Polymer/polymer-ui-card",
+  "_release": "4d7848c6f3",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "4d7848c6f363f9683b36734373521065b62561e9"
+  },
+  "_source": "git://github.com/Polymer/polymer-ui-card.git",
+  "_target": "master",
+  "_originalSource": "Polymer/polymer-ui-card"
+}

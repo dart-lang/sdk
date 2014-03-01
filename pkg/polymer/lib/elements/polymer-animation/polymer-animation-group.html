@@ -1,0 +1,117 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="polymer-animation.html">
+
+<polymer-element name="polymer-animation-group" extends="polymer-animation" attributes="type">
+  <script>
+    (function() {
+      var ANIMATION_GROUPS = {
+        'par': ParGroup,
+        'seq': SeqGroup
+      };
+      /**
+       * @module Animation
+       */
+      /**
+       * Component for a group of animations.
+       *
+       * @class polymer-animation-group
+       */
+      Polymer('polymer-animation-group', {
+        /**
+         * If specified the target will be assigned to all child animations.
+         * @property target
+         * @type HTMLElement|Node
+         * @default null
+         */
+        targetSelector: '',
+        /**
+         * If specified and not "auto" the duration will apply to the group
+         * and propagate to any child animations that is not a group and does
+         * not specify a duration.
+         * @property duration
+         * @type number
+         * @default "auto"
+         */
+        duration: 'auto',
+        /**
+         * Group type. 'par' for parallel and 'seq' for sequence.
+         * @property type
+         * @type String
+         * @default 'par'
+         */
+        type: 'par',
+        typeChanged: function() {
+          this.apply();
+        },
+        targetChanged: function() {
+          // Only propagate target to children animations if it's defined.
+          if (this.target) {
+            this.doOnChildren(function(c) {
+              c.target = this.target;
+            }.bind(this));
+          }
+        },
+        durationChanged: function() {
+          if (this.duration && this.duration !== 'auto') {
+            this.doOnChildren(function(c) {
+              // Propagate to children that is not a group and has no
+              // duration specified.
+              if (!c.type && (!c.duration || c.duration === 'auto')) {
+                c.duration = this.duration;
+              }
+            }.bind(this));
+          }
+        },
+        doOnChildren: function(inFn) {
+          var children = this.children;
+          if (!children.length) {
+            children = this.webkitShadowRoot ? this.webkitShadowRoot.childNodes : [];
+          }
+          Array.prototype.forEach.call(children, function(c) {
+            // TODO <template> in the way
+            c.apply && inFn(c);
+          }, this);
+        },
+        makeAnimation: function() {
+          return new ANIMATION_GROUPS[this.type](this.childAnimations, this.timingProps);
+        },
+        hasTarget: function() {
+          var ht = this.target !== null;
+          if (!ht) {
+            this.doOnChildren(function(c) {
+              ht = ht || c.hasTarget();
+            }.bind(this));
+          }
+          return ht;
+        },
+        apply: function() {
+          // Propagate target and duration to child animations first.
+          this.durationChanged();
+          this.targetChanged();
+          this.doOnChildren(function(c) {
+            c.apply();
+          });
+          return this.super();
+        },
+        get childAnimationElements() {
+          var list = [];
+          this.doOnChildren(function(c) {
+            if (c.makeAnimation) {
+              list.push(c);
+            }
+          });
+          return list;
+        },
+        get childAnimations() {
+          var list = [];
+          this.doOnChildren(function(c) {
+            if (c.animation) {
+              list.push(c.animation);
+            }
+          });
+          return list;
+        }
+      });
+    })();
+  </script>
+</polymer-element>

@@ -1,0 +1,23 @@
+﻿<!DOCTYPE html>
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script src="../platform/platform.js"></script>
+    <link rel="import" href="polymer-shared-lib.html">
+  </head>
+  <body>
+    <polymer-shared-lib id="share" url="https://apis.google.com/js/client.js?onload=%%callback%%"></polymer-shared-lib>
+    <script>
+      share.addEventListener('polymer-shared-lib-loaded', function() {
+        console.log('lib loaded');
+        console.dir(event.detail);
+      });
+    </script>
+  </body>
+</html>

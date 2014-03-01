@@ -1,0 +1,26 @@
+/*
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+*/
+
+:host {
+  position: relative;
+}
+
+/*@polyfill :host > * */
+::content > * {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  visibility: hidden;
+  z-index: -1000;
+}
+
+/*@polyfill :host > *.polymer-selected */
+::content > *.polymer-selected {
+  visibility: visible;
+  z-index: auto;
+}

@@ -1,0 +1,38 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer-overlay/polymer-overlay.html">
+
+<polymer-element name="polymer-ui-overlay" attributes="active modal backdrop transitions">
+  <template>
+    <style>
+      #backdrop {
+        background: rgba(0, 0, 0, 0.25);
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        z-index: -1;
+        visibility: hidden;
+      }
+      :host(.polymer-overlay.opened:not(.animating)) #backdrop {
+        visibility: visible;
+      }
+    </style>
+    <polymer-overlay id="overlay" opened="{{active}}" autoCloseDisabled="{{modal}}" transitions="{{transitions}}"></polymer-overlay>
+    <div id="backdrop" hidden?="{{!backdrop}}" on-click="{{toggle: !modal}}"></div>
+    <content></content>
+  </template>
+  <script>
+    Polymer('polymer-ui-overlay', {
+      active: false,
+      modal: false,
+      backdrop: false,
+      ready: function() {
+        this.$.overlay.target = this;
+      },
+      toggle: function() {
+        this.active = !this.active;
+      }
+    });
+  </script>
+</polymer-element>

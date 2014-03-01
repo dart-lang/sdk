@@ -1,0 +1,10 @@
+{
+  "name": "polymer-ui-sidebar",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master",
+    "polymer-ui-theme-aware": "Polymer/polymer-ui-theme-aware#master",
+    "polymer-flex-layout": "Polymer/polymer-flex-layout#master",
+    "polymer-ui-sidebar-header": "Polymer/polymer-ui-sidebar-header#master"
+  }
+}

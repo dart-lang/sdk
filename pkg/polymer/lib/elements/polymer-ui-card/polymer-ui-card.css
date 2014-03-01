@@ -1,0 +1,23 @@
+/*
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+*/
+
+:host {
+  background-color: #fff;
+  border-radius: 2px;
+  box-shadow: rgba(0, 0, 0, 0.098) 0px 2px 4px, rgba(0, 0, 0, 0.098) 0px 0px 3px;
+  /* transition */
+  -webkit-transition: all 0.30s ease-out;
+  transition: all 0.30s ease-out;
+}
+
+:host(.dark-shadow:host) {
+  box-shadow: rgba(0, 0, 0, 0.14902) 0px 2px 4px, rgba(0, 0, 0, 0.14902) 0px 0px 3px;
+}
+
+:host(.dragging:host) {
+  -webkit-transition: none;
+  transition: none;
+}

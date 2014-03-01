@@ -1,0 +1,39 @@
+<link href="../polymer/polymer.html" rel="import">
+<link href="../polymer-animation/polymer-translate.html" rel="import">
+<link href="../polymer-overlay/polymer-overlay.html" rel="import">
+<link href="../polymer-ui-menu/polymer-ui-menu.html" rel="import">
+<polymer-element name="polymer-ui-dropdown" extends="polymer-ui-menu" on-polymer-select="{{toggle}}">
+  <template>
+    <style>
+      :host {
+        display: block;
+        position: relative !important;
+        top: 0;
+        left: 0;
+        right: 0;
+        background-color: white;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+      }
+      /* @polyfill polymer-ui-menu > *  */
+      content::content > * {
+        background-color: white;
+        margin: 0.4em;
+      }
+    </style>
+    <polymer-overlay id="dropdownOverlay" transitions="{{transitions}}"></polymer-overlay>
+    <polymer-translate id="dropdownTransition" fromY="-100%" easing="ease-out" duration="0.1"></polymer-translate>
+    <shadow></shadow>
+  </template>
+  <script>
+    Polymer('polymer-ui-dropdown', {
+      ready: function() {
+        this.super();
+        this.transitions = [this.$.dropdownTransition, null];
+        this.$.dropdownOverlay.target = this;
+      },
+      toggle: function() {
+        this.$.dropdownOverlay.toggle();
+      }
+    });
+  </script>
+</polymer-element>

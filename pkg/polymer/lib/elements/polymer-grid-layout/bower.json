@@ -1,0 +1,7 @@
+{
+  "name": "polymer-grid-layout",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master"
+  }
+}

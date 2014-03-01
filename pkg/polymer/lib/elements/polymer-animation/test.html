@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="../../polymer/polymer.js"></script>
+  <link rel="import" href="polymer-animation-group.html">
+</head>
+<body>
+  <polymer-element name="transition-hslide-scale-out" extends="polymer-animation-group" noscript>
+    <template>
+      <polymer-animation id="scale-out" duration="0.5">
+        <polymer-animation-keyframe>
+          <polymer-animation-prop name="transform" value="scale(1)"></polymer-animation-prop>
+        </polymer-animation-keyframe>
+        <polymer-animation-keyframe>
+          <polymer-animation-prop name="transform" value="scale(0.8)"></polymer-animation-prop>
+        </polymer-animation-keyframe>
+      </polymer-animation>
+      <polymer-animation id="hslide-in" duration="0.5">
+        <polymer-animation-keyframe>
+          <polymer-animation-prop name="transform" value="translateX(100%)"></polymer-animation-prop>
+        </polymer-animation-keyframe>
+        <polymer-animation-keyframe>
+          <polymer-animation-prop name="transform" value="translateX(0)"></polymer-animation-prop>
+        </polymer-animation-keyframe>
+      </polymer-animation>
+    </template>
+  </polymer-element>
+  
+  <transition-hslide-scale-out></transition-hslide-scale-out>
+  <div>Hi!</div>
+  
+  <script>
+    document.addEventListener('polymer-ready', function() {
+      var a = document.querySelector('transition-hslide-scale-out');
+      a.target = document.querySelector('div');
+      setTimeout(function() {
+        a.play();
+      }, 50);
+    });
+  </script>
+</body>
+</html>

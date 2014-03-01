@@ -1,0 +1,44 @@
+﻿<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<link rel="import" href="../polymer/polymer.html">
+
+<polymer-element name="polymer-mock-data" attributes="count items">
+  <script>
+    Polymer('polymer-mock-data', {
+      count: 3000,
+      items: null,
+      ready: function() {
+        this.generateRecords();
+      },
+      countChanged: function() {
+        if (!this.items || this.items.length !== this.count) {
+          this.generateRecords();
+        }
+      },
+      generateRecords: function() {
+        this.items = [];
+        for (var i=0; i<this.count; i++) {
+          this.items.push(this.fakeRecord());
+        }
+      },
+      fakeRecord: function() {
+        var fields = [];
+        for (var j=0, c=Math.floor(Math.random()*4)+2; j<c; j++) {
+          for(var k=0, s=''; k<8; k++) { s += String.fromCharCode([Math.floor(Math.random()*26) + 65 + (k > 0 ? 32 : 0)]) };
+          fields.push({
+            icon: ['twitter', 'gplus', 'filter', 'contact'][Math.floor(Math.random()*4)],
+            label: String.fromCharCode(j%26 + 65) + Math.floor((Math.random() + 1) * 1000),
+            value: s
+          });
+        }
+        return {
+          name: String.fromCharCode(Math.floor(Math.random()*26) + 65) + Math.floor((Math.random() + 1) * 1000),
+          fields: fields
+        };
+      }
+    });
+  </script>
+</polymer-element>

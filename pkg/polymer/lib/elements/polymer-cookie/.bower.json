@@ -1,0 +1,17 @@
+{
+  "name": "polymer-cookie",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master"
+  },
+  "homepage": "https://github.com/Polymer/polymer-cookie",
+  "_release": "cf78e8e822",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "cf78e8e8221bfd232dffdadc7a4251f632692c8a"
+  },
+  "_source": "git://github.com/Polymer/polymer-cookie.git",
+  "_target": "master",
+  "_originalSource": "Polymer/polymer-cookie"
+}

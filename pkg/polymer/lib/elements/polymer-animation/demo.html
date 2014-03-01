@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Polymer Animation Components</title>
+    <link rel="import" href="polymer-animation.html">
+    <link rel="import" href="polymer-animation-group.html">
+    <link rel="import" href="polymer-blink.html">
+    <link rel="import" href="polymer-bounce.html">
+    <link rel="import" href="polymer-fadein.html">
+    <link rel="import" href="polymer-fadeout.html">
+    <link rel="import" href="polymer-flip.html">
+    <link rel="import" href="polymer-shake.html">
+    <script src="../platform/platform.js"></script>
+    <style>
+      body {
+        text-align: center;
+        font-family: Helvetica, sans-serif;
+      }
+      div#target {
+        display: inline-block;
+        background-color: dimgrey;
+        border-radius: 5px;
+        padding: 5px 10px;
+        margin: 50px;
+        font-size: 30px;
+        color: white;
+      }
+      div.animations > * {
+        display: inline-block;
+        background-color: darkgrey;
+        border-radius: 5px;
+        padding: 5px 10px;
+        margin: 5px;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="target">animated!</div>
+    <div class="animations">
+			<polymer-animation duration="1">
+				raw
+        <polymer-animation-keyframe>
+          <polymer-animation-prop name="opacity" value="1">
+          </polymer-animation-prop>
+				</polymer-animation-keyframe>
+        <polymer-animation-keyframe>
+          <polymer-animation-prop name="opacity" value="0.3">
+          </polymer-animation-prop>
+				</polymer-animation-keyframe>
+        <polymer-animation-keyframe>
+          <polymer-animation-prop name="opacity" value="1">
+          </polymer-animation-prop>
+				</polymer-animation-keyframe>
+			</polymer-animation>
+			<polymer-animation-group type="seq">
+				raw group
+				<polymer-animation duration="0.3">
+          <polymer-animation-keyframe>
+            <polymer-animation-prop name="opacity" value="1">
+            </polymer-animation-prop>
+          </polymer-animation-keyframe>
+          <polymer-animation-keyframe>
+            <polymer-animation-prop name="opacity" value="0.3">
+            </polymer-animation-prop>
+          </polymer-animation-keyframe>
+          <polymer-animation-keyframe>
+            <polymer-animation-prop name="opacity" value="1">
+            </polymer-animation-prop>
+          </polymer-animation-keyframe>
+				</polymer-animation>
+				<polymer-animation duration="0.3">
+          <polymer-animation-keyframe>
+            <polymer-animation-prop name="transform" value="scale(1)">
+            </polymer-animation-prop>
+          </polymer-animation-keyframe>
+          <polymer-animation-keyframe>
+            <polymer-animation-prop name="transform" value="scale(1.2)">
+            </polymer-animation-prop>
+          </polymer-animation-keyframe>
+          <polymer-animation-keyframe>
+            <polymer-animation-prop name="transform" value="scale(1)">
+            </polymer-animation-prop>
+          </polymer-animation-keyframe>
+				</polymer-animation>
+			</polymer-animation-group>
+      <polymer-animation id="sample-animation" duration="0.5">sample</polymer-animation>
+      <polymer-bounce duration="1">bounce</polymer-bounce>
+      <polymer-shake>shake</polymer-shake>
+      <!--<polymer-shake duration="Infinity">shake forever</polymer-shake>//-->
+      <polymer-flip>flip X</polymer-flip>
+      <polymer-flip axis="y">flip Y</polymer-flip>
+      <polymer-blink>blink</polymer-blink>
+      <polymer-fadein>fade in</polymer-fadein>
+      <polymer-fadeout>fade out (with event)</polymer-fadeout>
+    </div>
+    <script>
+      var sampleAnimationFn = function(timeFraction, currentIteration, animationTarget, underlyingValue) {
+        if (timeFraction < 1) {
+          animationTarget.textContent = timeFraction;
+        } else {
+          animationTarget.textContent = 'animated!';
+        }
+      };
+
+      document.addEventListener('polymer-ready', function() {
+        document.querySelector('.animations').addEventListener('click',
+					function(e) {
+            var animation = e.target;
+            if (animation.id === 'sample-animation') {
+              animation.sample = sampleAnimationFn;
+            }
+						animation.target = target;
+						animation.play();
+					});
+					document.querySelector('polymer-fadeout').addEventListener(
+						'complete', function(e) {
+							alert('complete!');
+						});
+      });
+    </script>
+  </body>
+</html>

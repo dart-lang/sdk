@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, user-scalable=no">
+	<link href="polymer-ui-menu-button.html" rel="import">
+	<link href="../polymer-ui-menu-item/polymer-ui-menu-item.html" rel="import">
+	<link href="../polymer-ui-toolbar/polymer-ui-toolbar.html" rel="import">
+	<link href="../polymer-flex-layout/polymer-flex-layout.html">
+	<script src="../platform/platform.js"></script>
+	<link rel="stylesheet" href="../polymer-ui-base/base.css">
+	<style>
+		body {
+			margin: 0;
+		}
+	</style>
+</head>
+<body class="polymer-ui-body-text polymer-ui-light-bg">
+	<polymer-flex-layout vertical></polymer-flex-layout>
+	<polymer-ui-toolbar>
+		<polymer-ui-menu-button selected="0" parallax="true">
+			<polymer-ui-menu-item icon="settings" label="Settings"></polymer-ui-menu-item>
+			<polymer-ui-menu-item icon="dialog" label="Dialog"></polymer-ui-menu-item>
+			<polymer-ui-menu-item icon="search" label="Search"></polymer-ui-menu-item>
+		</polymer-ui-menu-button>
+	</polymer-ui-toolbar>
+	<div flex></div>
+</body>
+</html>

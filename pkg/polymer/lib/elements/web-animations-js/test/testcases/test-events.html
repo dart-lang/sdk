@@ -1,0 +1,201 @@
+<!--
+Copyright 2013 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE html><meta charset="UTF-8">
+<style>
+div.anim {
+  position: relative;
+  left: 0px;
+  width: 100px;
+  height: 100px;
+  background-color: green;
+}
+</style>
+<div class='anim'></div>
+<script src="../bootstrap.js"></script>
+<script>
+"use strict";
+var target = document.querySelector('.anim');
+
+function testTiming(animation, expectedEvents, testName) {
+  var eventList = [];
+
+  function registerAnimationEvents(a) {
+    a.onstart = function(e) { eventList.push(e); }
+    a.oniteration = function(e) { eventList.push(e); }
+    a.onend = function(e) { eventList.push(e); }
+    if (a.children) {
+      [].forEach.call(a.children, registerAnimationEvents);
+    }
+  }
+
+  registerAnimationEvents(animation);
+  var player = document.timeline.play(animation);
+
+  timing_test(function() {
+    at(15, function() { assertEventsMatch(animation, eventList, expectedEvents); }, testName);
+  }, testName);
+}
+
+for (var i = 0; i < 13; i += 3) {
+  at(i, function() { });
+}
+
+function assertEventsMatch(anim, events, expectations) {
+  if (!expectations) {
+    return;
+  }
+  for (var i = 0; i < expectations.length; i++) {
+    expectations[i].target = expectations[i].target(anim);
+    for (var key in expectations[i]) {
+      if (typeof expectations[i][key] == "number") {
+        assert_approx_equals(events[i][key], expectations[i][key], 1e-6, i + ': ' + key);
+      } else {
+        assert_equals(events[i][key], expectations[i][key], i + ': ' + key);
+      }
+    }
+  }
+}
+
+function EventExpectation(type, local, global, iteration, targetFun) {
+  this.type = type;
+  this.localTime = local;
+  this.timelineTime = global;
+  this.iterationIndex = iteration;
+  this.target = targetFun;
+};
+
+function me(anim) { return anim; };
+function child() {
+  var args = arguments;
+  return function(anim) {
+    for (var i = 0; i < args.length; i++) {
+      anim = anim.children[args[i]];
+    }
+    return anim;
+  };
+};
+
+function event(type, local, global, iteration, targetFun) {
+  targetFun = targetFun || me;
+  return new EventExpectation(type, local, global, iteration, targetFun);
+}
+
+function iterList(localStart, globalStart, iterStart, delta, count, targetFun) {
+  var expectations = [];
+  targetFun = targetFun || me;
+  for (var i = 0; i < count; i++) {
+    expectations.push(new EventExpectation('iteration', localStart, 
+      globalStart, iterStart, targetFun));
+    localStart += delta;
+    globalStart += delta;
+    iterStart ++;
+  }
+  return expectations;
+}
+
+function simple(timing) {
+  return new Animation(target, {left: '100px'}, timing);
+}
+
+testTiming(simple(10),
+  [event('start', 0, 0, 0), event('end', 10, 10, 0)],
+  "simple animation");
+testTiming(simple({duration: 2, iterations: 5}),
+  [event('start', 0, 0, 0)].concat(iterList(2, 2, 1, 2, 4))
+                        .concat([event('end', 10, 10, 4)]),
+  "simple iterations");
+testTiming(simple({duration: 4, iterationStart: 0.5,
+                   iterations: 2.5}),
+  [event('start', 0, 0, 0)].concat(iterList(2, 2, 1, 4, 2))
+                        .concat([event('end', 10, 10, 2)]),
+  "offset iterations (coincident ends)");
+testTiming(simple({duration: 4, iterationStart: 0.3,
+                   iterations: 2.5}),
+  [event('start', 0, 0, 0)].concat(iterList(2.8, 2.8, 1, 4, 2))
+                        .concat([event('end', 10, 10, 2)]),
+  "offset iterations (one complete iteration)");
+testTiming(simple({duration: 4, iterationStart: 0.75,
+                   iterations: 2.5}),
+  [event('start', 0, 0, 0)].concat(iterList(1, 1, 1, 4, 3))
+                        .concat([event('end', 10, 10, 3)]),
+  "offset iterations (two complete iterations)");
+testTiming(simple({duration: 5, delay: 5}),
+  [event('start', 5, 5, 0), event('end', 10, 10, 0)],
+  "delayed start");
+
+testTiming(new ParGroup([simple(10)]),
+  [event('start', 0, 0, 0), event('start', 0, 0, 0, child(0)),
+   event('end', 10, 10, 0, child(0)), event('end', 10, 10, 0)],
+   "simple par group");
+
+testTiming(new ParGroup([simple(10), simple(10)]),
+  [event('start', 0, 0, 0), event('start', 0, 0, 0, child(0)),
+   event('start', 0, 0, 0, child(1)), event('end', 10, 10, 0, child(0)),
+   event('end', 10, 10, 0, child(1)), event('end', 10, 10, 0)],
+   "par group with multiple children");
+testTiming(new SeqGroup([simple(5), simple(5)]),
+  [event('start', 0, 0, 0), event('start', 0, 0, 0, child(0)),
+   event('end', 5, 5, 0, child(0)), event('start', 0, 5, 0, child(1)),
+   event('end', 5, 10, 0, child(1)), event('end', 10, 10, 0)],
+   "seq group with multiple children");
+
+testTiming(new ParGroup([simple(5)], {duration: 5, 
+                                       iterations: 2}),
+  [event('start', 0, 0, 0), event('start', 0, 0, 0, child(0)),
+   event('end', 5, 5, 0, child(0)), event('iteration', 5, 5, 1),
+   event('start', 0, 5, 0, child(0)), event('end', 5, 10, 0, child(0)),
+   event('end', 10, 10, 1)],
+   "par group with multiple iterations");
+
+// child at (0.5, 2.5, 4.5)
+// parent at ((-3), 2, 7)
+// result: child iterations at 1.5 | 2.5 4.5 6.5 | 7.5 9.5
+testTiming(new ParGroup([simple({duration: 2, iterationStart: 0.75,
+                                 iterations: 2.5})],
+                        {iterationStart: 0.6, iterations: 2}),
+  [event('start', 0, 0, 0), event('iteration', 4.5, 1.5, 3, child(0)), 
+   event('end', 5, 2, 3, child(0)), event('iteration', 2, 2, 1),
+   event('start', 0, 2, 0, child(0))].
+    concat(iterList(0.5, 2.5, 1, 2, 3, child(0))).
+    concat([event('end', 5, 7, 3, child(0)), event('iteration', 7, 7, 2),
+   event('start', 0, 7, 0, child(0))]).
+    concat(iterList(0.5, 7.5, 1, 2, 2, child(0))).
+    concat([event('end', 10, 10, 2)]),
+   "nested offset iterations");
+
+testTiming(simple({duration: 10, playbackRate: 2}),
+  [event('start', 0, 0, 0), event('end', 5, 5, 0)],
+  "simple animation with non-unit playbackRate");
+
+testTiming(new ParGroup([simple({duration: 10, playbackRate: 4})], 
+           {playbackRate: 0.5}),
+  [event('start', 0, 0, 0), event('start', 0, 0, 0, child(0)),
+   event('end', 2.5, 5, 0, child(0)), event('end', 5, 5, 0)],
+   "nested non-unit playbackRates");
+
+testTiming(new ParGroup([simple({iterations: 2, duration: 2.5, 
+                                 playbackRate: 4})],
+           {playbackRate: 0.5, iterations: 2}),
+  [event('start', 0, 0, 0), event('start', 0, 0, 0, child(0)),
+   event('iteration', 0.625, 1.25, 1, child(0)), 
+   event('end', 1.25, 2.5, 1, child(0)), event('iteration', 2.5, 2.5, 1), 
+   event('start', 0, 2.5, 0, child(0)),
+   event('iteration', 0.625, 3.75, 1, child(0)),
+   event('end', 1.25, 5, 1, child(0)), event('end', 5, 5, 1)],
+   "nested non-unit playbackRates with iterations");
+
+</script>

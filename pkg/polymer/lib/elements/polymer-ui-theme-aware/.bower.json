@@ -1,0 +1,17 @@
+{
+  "name": "polymer-ui-theme-aware",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master"
+  },
+  "homepage": "https://github.com/Polymer/polymer-ui-theme-aware",
+  "_release": "593e3e6644",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "593e3e6644c41334482f076eac176c8a58b61c18"
+  },
+  "_source": "git://github.com/Polymer/polymer-ui-theme-aware.git",
+  "_target": "master",
+  "_originalSource": "Polymer/polymer-ui-theme-aware"
+}

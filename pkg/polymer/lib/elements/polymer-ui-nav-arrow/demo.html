@@ -1,0 +1,64 @@
+
+<!doctype html>
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>polymer-ui-nav-arrow</title>
+    <script src="../platform/platform.js"></script>
+    <link rel="import" href="polymer-ui-nav-arrow.html">
+    <link rel="import" href="../polymer-selector/polymer-selector.html">
+    <link rel="stylesheet" href="../polymer-ui-base/base.css">
+    <style>
+      .container {
+        position: relative;
+        width: 300px;
+      }
+      
+      polymer-selector {
+        display: block;
+        border: 1px solid #ccc;
+        border-bottom: none;
+        background: #666;
+        color: white;
+      }
+      
+      polymer-selector > * {
+        height: 40px;
+        line-height: 40px;
+        padding: 0 20px;
+        border-bottom: 1px solid #ccc;
+      }
+      
+      polymer-selector > *.polymer-selected {
+        background: #333;
+      }
+    </style>
+  </head>
+  <body class="polymer-ui-body-text" unresolved>
+    <div class="container">
+      <polymer-selector>
+        <div>Item 1</div>
+        <div>Item 2</div>
+        <div>Item 3</div>
+        <div>Item 4</div>
+        <div>Item 5</div>
+      </polymer-selector>
+      <polymer-ui-nav-arrow></polymer-ui-nav-arrow>
+    </div>
+    
+    <script>
+      document.addEventListener('polymer-ready', function() {
+        var selector = document.querySelector('polymer-selector');
+        selector.addEventListener('polymer-select', function(e) {
+          if (e.detail.isSelected) {
+            document.querySelector('polymer-ui-nav-arrow').target = e.detail.item;
+          }
+        });
+      })
+    </script>
+  </body>
+</html>

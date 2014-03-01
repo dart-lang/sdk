@@ -1,0 +1,7 @@
+{
+  "name": "polymer-ui-theme-aware",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master"
+  }
+}

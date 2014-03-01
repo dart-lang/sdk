@@ -1,0 +1,47 @@
+language: python
+
+env:
+  global:
+    - secure: "bM0peKHrlwFKXxrajgJb/qP+au1JnrUHtqGrwSe1pGV4vdK24P0/JWwa02wBgysqLkWyhOZSdPARP+AQwuyeo2uTBZsNArkNBob+3kBZJMIMa8UY2xuPM7km+XmQLur9X9Z9iR89hC/5hUbv0z2C57O2BzsRCTSK2dNs4K/dc5A=" # alancutter/web-animations-js
+    - secure: "GySwb9k2LVdRXwj6Ben8kt9qJ9q682TNHUVd/b2R7PR723o08jMGNoQldLAHTmTuLD77g8yb6JQGZRW9TTB1Rz/gqNHRWV3Uwj98HZ+RAUhgb4M+sEDcoEi5GXSZBzAX5bK3Eqa2WOLxWSno7yOBIxpFfJEixFo8l3R/EpXcOYQ=" # dstockwell/web-animations-js
+    - secure: "CavzDoVPfR5zYYudQJdRMxrfyMuXzwDv6lGuhti4TFW4MbK4u+cXFnuryhADVGBZacISs/TtIGJ9fzbvYvqEDovDBUNaXvpr6bL7Qxg2T74Q+EE/f+LLgkhz4jtKEFqxLuz+vQDapzfBAIE+nZpQMIr1FX32yewNqleFsSW1oXs=" # mithro/web-animations-js
+    - secure: "OWULN5n4QlXak8aAyH8YjSndZI736zlYJTLNpPpM2m2RDZGPwfNr27as5VBWkmXRcfOgtfD5bUvmbZMP4n0zpphz4Y4rFHZ0Qj/ftzJmA9NrKSOfVmubXWIq9GdaeGlzop+Zpo0uvrl1/U1ro4aNojZZQ+wW1LKysziaGGhukHU=" # web-animations/web-animations-js
+
+  matrix:
+    - MODE='check'
+    - BROWSER=Android-Chrome ARGS=''
+    - BROWSER=Chrome-stable ARGS='-x -b Chrome -u'
+    - BROWSER=Chrome-beta ARGS='-x -b Chrome -u'
+    - BROWSER=Chrome-unstable ARGS='-x -b Chrome -u'
+    - BROWSER=Chrome-unstable ARGS='-x -b Chrome -u --flag=--enable-experimental-web-platform-features'
+    - BROWSER=Firefox-stable ARGS='-x -b Firefox -u'
+    - BROWSER=Firefox-beta ARGS='-x -b Firefox -u'
+    - BROWSER=Firefox-aurora ARGS='-x -b Firefox -u'
+    - BROWSER=Remote ARGS='--verbose -b Remote --sauce --remote-caps=INTERNETEXPLORER --remote-caps=version=10 --remote-caps=platform="Windows 8"'
+    - BROWSER=Remote ARGS='--verbose -b Remote --sauce --remote-caps=SAFARI --remote-caps=version=6 --remote-caps=platform="OS X 10.8"'
+    - BROWSER=Remote ARGS='--verbose -b Remote --sauce --remote-caps=IPHONE --remote-caps=version=6 --remote-caps=platform="OS X 10.8"'
+    - BROWSER=Remote ARGS='--verbose -b Remote --sauce --remote-caps=ANDROID --remote-caps=version=4.0 --remote-caps=platform=Linux'
+
+matrix:
+# Disabled until travis-ci/travis-ci#1696 is fixed.
+#  fast_finish: true
+  allow_failures:
+    - env: BROWSER=Remote ARGS='--verbose -b Remote --sauce --remote-caps=INTERNETEXPLORER --remote-caps=version=10 --remote-caps=platform="Windows 8"'
+    - env: BROWSER=Remote ARGS='--verbose -b Remote --sauce --remote-caps=SAFARI --remote-caps=version=6 --remote-caps=platform="OS X 10.8"'
+    - env: BROWSER=Remote ARGS='--verbose -b Remote --sauce --remote-caps=IPHONE --remote-caps=version=6 --remote-caps=platform="OS X 10.8"'
+    - env: BROWSER=Remote ARGS='--verbose -b Remote --sauce --remote-caps=ANDROID --remote-caps=version=4.0 --remote-caps=platform=Linux'
+
+notifications:
+  irc: "irc.freenode.org#webanimations"
+  skip_join: true
+  template:
+    - "%{repository}#%{build_number} %{branch}: %{message}"
+
+install:
+  - ./.travis-setup.sh
+
+script:
+  - ./.travis-run.sh
+
+after_failure:
+  - for file in *.log; do echo $file; echo "======================"; cat $file; done || true

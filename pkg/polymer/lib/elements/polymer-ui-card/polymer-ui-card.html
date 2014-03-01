@@ -1,0 +1,129 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+
+<!--
+/**
+ * @module Polymer UI Elements
+ */
+/**
+ * polymer-ui-card <b>(WIP)</b>
+ *
+ * Example:
+ *
+ *     <polymer-ui-card>
+ *       ...
+ *     </polymer-ui-card>
+ *
+ * @class polymer-ui-card
+ */
+/**
+ * Fired when the card is swiped away.
+ *
+ * @event polymer-card-swipe-away
+ */
+-->
+<link rel="import" href="../polymer/polymer.html">
+
+<polymer-element name="polymer-ui-card" attributes="swipeable noCurve"
+    on-trackstart="{{trackStart}}" on-track="{{track}}" on-trackend="{{trackEnd}}" on-flick="{{flick}}">
+  <template>
+    <link rel="stylesheet" href="polymer-ui-card.css">
+    <content></content>
+  </template>
+  <script>
+    Polymer('polymer-ui-card', {
+      /**
+       * If true, the card can be swiped.
+       *
+       * @attribute swipeable
+       * @type boolean
+       * @default false
+       */
+      swipeable: false,
+      noCurve: false,
+      offsetRatio: 0.2,
+      widthRatio: 3,
+      ready: function() {
+        this.setAttribute('touch-action', 'pan-y');
+        this.transitionEndListener = this.transitionEnd.bind(this);
+      },
+      leftView: function() {
+        this.removeListeners();
+      },
+      addListeners: function() {
+        this.addEventListener('webkitTransitionEnd', 
+            this.transitionEndListener);
+        this.addEventListener('transitionend', this.transitionEndListener);
+      },
+      removeListeners: function() {
+        this.removeEventListener('webkitTransitionEnd', 
+            this.transitionEndListener);
+        this.removeEventListener('transitionend', this.transitionEndListener);
+      },
+      swipeableChanged: function() {
+        if (this.swipeable) {
+          this.addListeners();
+        } else {
+          this.removeListeners();
+        }
+      },
+      animate: function(x) {
+        var s = this.style;
+        var d = x > 0 ? 1 : -1;
+        var w = this.w * this.widthRatio;
+        var x1 = Math.max(0, Math.abs(x) - this.w * this.offsetRatio);
+        var r = Math.max(0, (w - x1) / w);
+        var y = w - Math.sqrt(w * w - x1 * x1);
+        var deg = (1 - r) * d * 90;
+        s.opacity = r;
+        var translate = 'translate3d(' + x + 'px,' + 
+            (this.noCurve ? 0 : y) + 'px,0)';
+        var rotate = 'rotate(' + deg + 'deg)';
+        s.webkitTransform = s.mozTransform = s.msTransform = s.transform = 
+            translate + (this.noCurve ? '' : ' ' + rotate);
+      },
+      trackStart: function(e) {
+        if (this.swipeable) {
+          e.preventTap();
+          this.w = this.offsetWidth;
+          this.classList.add('dragging');
+        }
+      },
+      track: function(e) {
+        if (this.swipeable) {
+          this.animate(e.dx);
+        }
+      },
+      trackEnd: function(e) {
+        if (this.swipeable) {
+          this.swipeEnd(Math.abs(e.dx) > this.w / 2 && e.dx * e.xDirection > 0, 
+              e.dx > 0);
+        }
+      },
+      flick: function(e) {
+        if (this.swipeable && !this.away) {
+          var v = e.xVelocity;
+          this.swipeEnd(Math.abs(v) > 2, v > 0);
+        }
+      },
+      swipeEnd: function(away, dir) {
+        this.classList.remove('dragging');
+        this.away = away;
+        if (away) {
+          var w = this.w * this.widthRatio;
+          this.animate(dir ? w : -w);
+        } else {
+          this.animate(0);
+        }
+      },
+      transitionEnd: function() {
+        if (this.away) {
+          this.fire('polymer-card-swipe-away');
+        }
+      }
+    });
+  </script>
+</polymer-element>

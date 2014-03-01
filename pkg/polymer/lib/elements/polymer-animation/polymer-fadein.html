@@ -1,0 +1,17 @@
+<link rel="import" href="polymer-animation.html">
+<polymer-element name="polymer-fadein" extends="polymer-animation" duration="0.5">
+  <template>
+    <polymer-animation-keyframe>
+      <polymer-animation-prop name="opacity" value="0">
+      </polymer-animation-prop>
+    </polymer-animation-keyframe>
+    <polymer-animation-keyframe>
+      <polymer-animation-prop name="opacity" value="1">
+      </polymer-animation-prop>
+    </polymer-animation-keyframe>
+    <content></content>
+  </template>
+  <script>
+    Polymer('polymer-fadein');
+  </script>
+</polymer-element>

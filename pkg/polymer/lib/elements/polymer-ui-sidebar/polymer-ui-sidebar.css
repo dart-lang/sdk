@@ -1,0 +1,28 @@
+/*
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+*/
+
+:host {
+  box-shadow: inset -8px 0px 8px -4px rgba(0, 0, 0, 0.4);
+}
+  
+:host(.polymer-ui-light-theme:host) {
+  box-shadow: inset -8px 0px 8px -4px rgba(0, 0, 0, 0.15);
+  color: #333333;
+}
+
+:host(.polymer-ui-dark-theme:host) {
+  background: -webkit-linear-gradient(-60deg, #3d3d3d, #353535);
+  background: -moz-linear-gradient(-60deg, #3d3d3d, #353535);
+  background: -ms-linear-gradient(-60deg, #3d3d3d, #353535);
+  color: #ededed;
+}
+
+/*@polyfill :host :not(polymer-ui-submenu-item) > polymer-ui-menu */
+::content polymer-ui-menu {
+  background: none !important;
+  padding: 0 10px;
+  margin: 10px 0;
+}

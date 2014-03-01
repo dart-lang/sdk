@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Polymer UI Field</title>
+    <script src="../platform/platform.js"></script>
+    <link rel="import" href="polymer-ui-field.html" />
+    <link rel="import" href="../polymer-ui-icon/polymer-ui-icon.html" />
+    <link rel="import" href="../polymer-ui-icon-button/polymer-ui-icon-button.html" />
+    <link rel="import" href="../polymer-ui-menu-button/polymer-ui-menu-button.html" />
+    <style>
+      html {
+        font-family: 'Helvetica Neue', 'Roboto', 'Arial', sans-serif;
+        font-size: 14px;
+      }
+      
+      polymer-ui-field {
+        border: 1px solid #ddd;
+        margin: 10px;
+        height: 40px;
+      }
+    </style>
+  </head>
+  <body theme="polymer-ui-light-theme" unresolved>
+		<polymer-ui-field>
+			<polymer-ui-icon icon="contact"></polymer-ui-icon>
+			<input placeholder="hi!" flex>
+    </polymer-ui-field>
+    <polymer-ui-field>
+      <polymer-ui-icon icon="search"></polymer-ui-icon>
+      <input placeholder="Search" flex>
+      <polymer-ui-icon icon="dialog"></polymer-ui-icon>
+    </polymer-ui-field>
+		<polymer-ui-field>
+		  <polymer-ui-icon icon="plus"></polymer-ui-icon>
+			<label>I'm a label!</label>
+			<input placeholder="I have a label" flex>
+    </polymer-ui-field>
+		<polymer-ui-field>
+			<input placeholder="I have no icon" flex>
+    </polymer-ui-field>
+  </body>
+</html>

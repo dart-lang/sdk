@@ -1,0 +1,23 @@
+/*
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+*/
+
+:host {
+  display: block;
+}
+
+polymer-ui-toolbar {
+  /* override :host styles on polymer-ui-toolbar */
+  padding: 0 12px !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+.sidebar-title {
+  font-size: 21px;
+  font-weight: bold;
+  opacity: 0.8;
+  text-shadow: -1px -1px rgba(0, 0, 0, 0.2);
+}

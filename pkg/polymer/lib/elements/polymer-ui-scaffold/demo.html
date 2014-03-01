@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+  <head>
+    <title>polymer-ui-scaffold</title>
+    <script src="../platform/platform.js"></script>
+    <link rel="import" href="polymer-ui-scaffold.html">
+    <link rel="import" href="../polymer-ui-icon-button/polymer-ui-icon-button.html">
+    <link rel="import" href="../polymer-ui-menu-item/polymer-ui-menu-item.html">
+    <link rel="import" href="../polymer-ui-menu-button/polymer-ui-menu-button.html">
+    <link rel="import" href="../polymer-ui-sidebar-menu/polymer-ui-sidebar-menu.html">
+    <style>
+      body {
+        font-family: Neue Helvetica, Roboto, Arial;
+      }
+      [main] {
+        padding: 8px;
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        border: 3px solid magenta;
+      }
+      [navigation] {
+        width: 256px;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body unresolved>
+    <h2>scaffold</h2>
+    <polymer-ui-scaffold theme="polymer-ui-dark-theme" style="display: block; position: relative; height: 400px;">
+
+      <div tool flex>Title</div>
+      <polymer-ui-icon-button tool icon="briefcase"></polymer-ui-icon-button>
+      <polymer-ui-icon-button tool icon="marker"></polymer-ui-icon-button>
+      <polymer-ui-icon-button tool icon="account"></polymer-ui-icon-button>
+      <polymer-ui-menu-button tool icon="dots" Xtheme="polymer-ui-light-theme" halign="right">
+        <polymer-ui-menu-item>Item</polymer-ui-menu-item>
+        <polymer-ui-menu-item>Item</polymer-ui-menu-item>
+      </polymer-ui-menu-button>
+
+      <div main>
+        Content.
+      </div>
+
+      <polymer-ui-sidebar-menu navigation label="Navigimation" offscreen="basement">
+        <polymer-ui-menu-item>Item</polymer-ui-menu-item>
+        <polymer-ui-menu-item>Item</polymer-ui-menu-item>
+      </polymer-ui-sidebar-menu>
+
+    </polymer-ui-scaffold>
+
+    <h2>scaffold2 (same content)</h2>
+    <polymer-ui-scaffold2 theme="polymer-ui-dark-theme" style="display: block; position: relative; height: 400px;">
+
+      <div tool flex>Title</div>
+      <polymer-ui-icon-button tool icon="briefcase"></polymer-ui-icon-button>
+      <polymer-ui-icon-button tool icon="marker"></polymer-ui-icon-button>
+      <polymer-ui-icon-button tool icon="account"></polymer-ui-icon-button>
+      <polymer-ui-menu-button tool icon="dots" Xtheme="polymer-ui-light-theme" halign="right">
+        <polymer-ui-menu-item>Item</polymer-ui-menu-item>
+        <polymer-ui-menu-item>Item</polymer-ui-menu-item>
+      </polymer-ui-menu-button>
+
+      <div main>
+        Content.
+      </div>
+
+      <polymer-ui-sidebar-menu navigation label="Navigimation" offscreen="basement">
+        <polymer-ui-menu-item>Item</polymer-ui-menu-item>
+        <polymer-ui-menu-item>Item</polymer-ui-menu-item>
+      </polymer-ui-sidebar-menu>
+
+    </polymer-ui-scaffold2>
+    
+    <h2>scaffold3 (same content)</h2>
+    <polymer-ui-scaffold3 theme="polymer-ui-dark-theme" style="display: block; position: relative; height: 400px;">
+
+      <div tool flex>Title</div>
+      <polymer-ui-icon-button tool icon="briefcase"></polymer-ui-icon-button>
+      <polymer-ui-icon-button tool icon="marker"></polymer-ui-icon-button>
+      <polymer-ui-icon-button tool icon="account"></polymer-ui-icon-button>
+      <polymer-ui-menu-button tool icon="dots" Xtheme="polymer-ui-light-theme" halign="right">
+        <polymer-ui-menu-item>Item</polymer-ui-menu-item>
+        <polymer-ui-menu-item>Item</polymer-ui-menu-item>
+      </polymer-ui-menu-button>
+
+      <div main>
+        Content.
+      </div>
+
+      <polymer-ui-sidebar-menu navigation label="Navigimation" offscreen="basement">
+        <polymer-ui-menu-item>Item</polymer-ui-menu-item>
+        <polymer-ui-menu-item>Item</polymer-ui-menu-item>
+      </polymer-ui-sidebar-menu>
+
+    </polymer-ui-scaffold3>
+  </body>
+</html>

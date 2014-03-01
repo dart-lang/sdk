@@ -1,0 +1,48 @@
+<!doctype html>
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>Cards</title>
+    <script src="../platform/platform.js"></script>
+    <link rel="import" href="polymer-ui-card.html">
+    <style>
+      #cards {
+        margin: 0 auto;
+        background: #eee;
+        overflow: auto;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+      }
+      
+      polymer-ui-card {
+        display: block;
+        height: 200px;
+        width: 240px;
+        margin: 20px auto;
+        padding: 30px;
+      }
+    </style>
+  </head>
+  <body unresolved>
+    <div id="cards">
+      <polymer-ui-card swipeable>Swipe Me!</polymer-ui-card>
+      <polymer-ui-card swipeable>Swipe Me!</polymer-ui-card>
+      <polymer-ui-card></polymer-ui-card>
+      <polymer-ui-card swipeable>Swipe Me!</polymer-ui-card>
+      <polymer-ui-card></polymer-ui-card>
+    </div>
+    
+    <script>
+      document.addEventListener('polymer-ready', function() {
+        document.querySelector('#cards').addEventListener(
+          'polymer-card-swipe-away', function(e) {
+            e.target.parentNode.removeChild(e.target);
+          });
+      })
+    </script>
+  </body>
+</html>

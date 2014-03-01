@@ -1,0 +1,8 @@
+{
+  "name": "polymer-selector",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master",
+    "polymer-selection": "Polymer/polymer-selection#master"
+  }
+}

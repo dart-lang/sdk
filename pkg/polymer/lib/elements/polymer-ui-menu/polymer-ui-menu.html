@@ -1,0 +1,91 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!--
+/**
+ * @module Polymer UI Elements
+ */
+/**
+ * polymer-ui-menu is a polymer-selector with theme propagation.  It styles to look like 
+ * a menu and should be used in conjunction with polymer-ui-menu-item.
+ *
+ * Example:
+ * 
+ *     <polymer-ui-menu selected="0">
+ *       <polymer-ui-menu-item icon="settings" label="Settings"></polymer-ui-menu-item>
+ *       <polymer-ui-menu-item icon="dialog" label="Dialog"></polymer-ui-menu-item>
+ *       <polymer-ui-menu-item icon="search" label="Search"></polymer-ui-menu-item>
+ *     </polymer-ui-menu>
+ *
+ * The "selectedItem" property returns the currently selected item.
+ *
+ * Example:
+ *
+ *     <polymer-ui-menu selected="0" selectedItem="{{item}}">
+ *       <polymer-ui-menu-item icon="settings" label="Settings"></polymer-ui-menu-item>
+ *       <polymer-ui-menu-item icon="dialog" label="Dialog"></polymer-ui-menu-item>
+ *       <polymer-ui-menu-item icon="search" label="Search"></polymer-ui-menu-item>
+ *     </polymer-ui-menu>
+ *
+ *     <div>selected label: {{item.label}}</div>
+ *
+ * The event "polymer-select" can also be used to listen for selection change.
+ *
+ * Example:
+ *
+ *     <polymer-ui-menu selected="0" on-polymer-select="{{selectAction}}">
+ *       <polymer-ui-menu-item icon="settings" label="Settings"></polymer-ui-menu-item>
+ *       <polymer-ui-menu-item icon="dialog" label="Dialog"></polymer-ui-menu-item>
+ *       <polymer-ui-menu-item icon="search" label="Search"></polymer-ui-menu-item>
+ *     </polymer-ui-menu>
+ *
+ *     ...
+ *
+ *     selectAction: function(e, detail) {
+ *       if (detail.isSelected) {
+ *         var selectedItem = detail.item;
+ *         ...
+ *       }
+ *     }
+ *
+ * @class polymer-ui-menu
+ * @extends polymer-selector
+ */
+-->
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer-selector/polymer-selector.html">
+<link rel="import" href="../polymer-ui-theme-aware/polymer-ui-theme-aware.html">
+
+<polymer-element name="polymer-ui-menu" extends="polymer-selector" attributes="theme" on-polymer-select="{{selectionChange}}">
+  <template>
+    <link rel="stylesheet" href="polymer-ui-menu.css">
+    <shadow></shadow>
+  </template>
+  <script>
+    Polymer('polymer-ui-menu', {
+      activeTheme: '',
+      validateTheme: PolymerUI.validateTheme,
+      enteredView: function() {
+        this.validateTheme();
+      },
+      themeChanged: function() {
+        this.activeTheme = this.theme;
+      },
+      activeThemeChanged: function(old) {
+        this.classList.switch(old, this.activeTheme);
+      },
+      selectionChange: function(e, detail) {
+        if (detail.isSelected) {
+          var i = detail.item;
+          // find nested selected item
+          while (i.selectedItem) {
+            i = i.selectedItem;
+          }
+          this.selectedItem = i;
+        }
+      }
+    });
+  </script>
+</polymer-element>

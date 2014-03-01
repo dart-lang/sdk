@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>polymer-overlay</title>
+    <script src="../platform/platform.js"></script>
+    <link rel="import" href="../polymer-animation/polymer-animation.html">
+    <link rel="import" href="../polymer-animation/polymer-animation-group.html">
+    <link rel="import" href="../polymer-animation/polymer-fadein.html">
+    <link rel="import" href="../polymer-animation/polymer-fadeout.html">
+    <link rel="import" href="../polymer-flex-layout/polymer-flex-layout.html">
+    <link rel="import" href="polymer-ui-overlay.html">
+    <link rel="import" href="../polymer-ui-toolbar/polymer-ui-toolbar.html">
+    <link rel="stylesheet" href="../polymer-ui-base/base.css">
+  </head>
+  <body class="polymer-ui-body-text polymer-ui-full-bleed polymer-ui-light-bg" unresolved>
+    <polymer-element name="polymer-animation-slide" extends="polymer-animation" attributes="origin slideType">
+      <script>
+        Polymer('polymer-animation-slide', {
+          easing: 'ease-in',
+          fillMode: 'none',
+          origin: 'left',
+          slideType: 'slide-in',
+          get animationEffect() {
+            var rect = this.target.getBoundingClientRect();
+            var tranform;
+            if (this.origin === 'top') {
+              transform = 'translate3d(0,-' + (rect.top + rect.height) + 'px,0)';
+            } else if (this.origin === 'left') {
+              transform = 'translate3d(-' + (rect.left + rect.width) + 'px,0,0)';
+            } else if (this.origin === 'bottom') {
+              transform = 'translate3d(0,' + (window.innerHeight + rect.height) + 'px,0)';
+            } else if (this.origin === 'right') {
+              transform = 'translate3d(' + (window.innerWidth + rect.width) + 'px,0,0)';
+            }
+            var props;
+            if (this.slideType === 'slide-in') {
+              props = [{
+                'visibility': 'visible',
+                'position': 'fixed',
+                'transform': transform
+              }, {
+                'visibility': 'visible',
+                'position': 'fixed',
+                'transform': 'translate3d(0,0,0)'
+              }];
+            } else {
+              props = [{
+                'visibility': 'visible',
+                'position': 'fixed',
+                'transform': 'translate3d(0,0,0)'
+              }, {
+                'visibility': 'visible',
+                'position': 'fixed',
+                'transform': transform
+              }];
+            }
+            return props;
+          }
+        });
+      </script>
+    </polymer-element>
+    <polymer-element name="polymer-animation-slide-up" extends="polymer-animation-slide" origin="top" slideType="slide-out" noscript>
+    </polymer-element>
+    <polymer-element name="polymer-animation-expand" extends="polymer-animation" attributes="src">
+      <script>
+        Polymer('polymer-animation-expand', {
+          duration: 0.3,
+          easing: 'ease-in',
+          fillMode: 'none',
+          src: null,
+          get animationEffect() {
+            if (!this.src) {
+              this.src = this.target.toggleSrc;
+            }
+            this.target.style['-webkit-transform-origin'] = 'top left';
+            var srect = this.src.getBoundingClientRect();
+            var trect = this.target.getBoundingClientRect();
+            var transform = 'translate3d(' + (srect.left - trect.left) + 'px,' + (srect.top - trect.top) + 'px,0) scale3d(' + (srect.width / trect.width) + ',' + (srect.height / trect.height) + ',1)';
+            console.log('srect', srect, 'trect', trect);
+            console.log('transform', transform);
+            var props = [{
+              'visibility': 'visible',
+              'position': 'fixed',
+              'transform': transform
+            }, {
+              'visibility': 'visible',
+              'position': 'fixed',
+              'transform': 'translate3d(0,0,0) scale3d(1,1,1)'
+            }];
+            return props;
+          }
+        });
+      </script>
+    </polymer-element>
+    <polymer-element name="polymer-ui-overlay-demo">
+      <template>
+        <style>
+          :host {
+            display: block;
+          }
+          .ontop {
+            position: fixed;
+            width: 100%;
+            z-index: 100;
+            top: 450px;
+            background-color: black;
+            color: white;
+            padding: 10px;
+          }
+          polymer-ui-toolbar {
+            padding: 10px;
+          }
+          polymer-ui-toolbar label {
+            font-size: 12px;
+          }
+          polymer-ui-toolbar .spacer {
+            display: inline-block;
+            width: 5px;
+          }
+          polymer-ui-overlay > div {
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 13px;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            overflow: hidden;
+            background: white;
+            padding:30px 42px;
+            outline: 1px solid rgba(0,0,0,0.2);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+          }
+          #overlayDemo {
+            width: 512px;
+          }
+          #overlayDemo.hpositioned {
+            left: 20px;
+          }
+          #overlayDemo.vpositioned {
+            top: 100px;
+          }
+          #innerOverlay {
+            position: absolute;
+            left: 50%;
+            top: 100px;
+            text-align: center;
+            width: 150px;
+            margin-left: -75px;
+          }
+        </style>
+        <div class="ontop">z-index: 100</div>
+        <polymer-flex-layout vertical></polymer-flex-layout>
+        <polymer-ui-toolbar>
+          <button on-tap="{{toggleAction}}">Toggle</button>
+          <span class="spacer"></span>
+          <label>
+            center:
+            <select value="{{center}}">
+              <option>both</option>
+              <option>horiz</option>
+              <option>vert</option>
+              <option>none</option>
+            </select>
+          </label>
+          <span class="spacer"></span>
+          <label>modal: <input type="checkbox" checked?="{{modal}}"></label>
+          <span class="spacer"></span>
+          <label>backdrop: <input type="checkbox" checked="{{backdrop}}"></label>
+          <span class="spacer"></span>
+          <label>z-index: <input value="{{zindex}}" size="4"></label>
+          <span class="spacer"></span>
+          <label>
+            opening:
+            <select value="{{openingAnimationName}}">
+              <option>none</option>
+              <option value="polymer-fadein">fade-in</option>
+              <option value="polymer-animation-slide">slide-in</option>
+              <option value="polymer-animation-expand">expand</option>
+            </select>
+          </label>
+          <span class="spacer"></span>
+          <label>
+            closing:
+            <select value="{{closingAnimationName}}">
+              <option>none</option>
+              <option value="polymer-fadeout">fade-out</option>
+              <option value="polymer-animation-slide-up">slide-up</option>
+            </select>
+          </label>
+        </polymer-ui-toolbar>
+        <div flex>
+        <polymer-ui-overlay id="overlayDemo" backdrop?="{{backdrop}}" transitions="{{transitions}}">
+          <div>
+            <h2>Dialog</h2>
+            <div>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed fringilla sapien sed enim sollicitudin laoreet. Suspendisse suscipit, metus ac volutpat sodales, libero magna semper lacus, molestie fringilla massa orci ut arcu. Nullam sodales urna sit amet odio vehicula mattis.</div><br><br>
+            <div>Ut aliquam vulputate congue. Vestibulum pretium pretium nulla quis sollicitudin. Praesent lacinia congue erat nec mattis. Fusce commodo lacus est. Duis turpis eros, ultrices sed aliquet non, blandit egestas velit. Integer a augue nec lorem tristique hendrerit. Curabitur imperdiet risus id enim bibendum vestibulum. Integer id magna at arcu faucibus fermentum vel a augue. Sed fringilla venenatis dolor, in blandit magna molestie luctus. Vestibulum dignissim posuere ultrices. Aenean urna nisl, tincidunt vitae iaculis ut, pharetra nec eros.</div><br><br>
+            <div>
+              <input placeholder="say something..." autofocus value="{{something}}"><br>
+              I agree with this wholeheartedly.
+              <polymer-ui-overlay id="innerOverlay" class="dialog">
+                <div>
+                  Thank you.
+                </div>
+              </polymer-ui-overlay>
+            </div><br><br>
+            <button overlay-toggle>OK</button>
+          </div>
+        </polymer-ui-overlay>
+      </div>
+    </template>
+    <script>
+      Polymer('polymer-ui-overlay-demo', {
+        center: 'both',
+        openingAnimationName: 'polymer-animation-expand',
+        closingAnimationName: 'polymer-animation-slide-up',
+        observe: {
+          openingAnimationName: 'applyTransition',
+          closingAnimationName: 'applyTransition'
+        },
+        ready: function() {
+          this.applyTransition();
+        },
+        centerChanged: function() {
+          if (this.center === 'none') {
+            this.$.overlayDemo.classList.add('hpositioned');
+            this.$.overlayDemo.classList.add('vpositioned');
+          } else if (this.center === 'horiz') {
+            this.$.overlayDemo.classList.remove('hpositioned');
+            this.$.overlayDemo.classList.add('vpositioned');
+          } else if (this.center === 'vert') {
+            this.$.overlayDemo.classList.add('hpositioned');
+            this.$.overlayDemo.classList.remove('vpositioned');
+          } else {
+            this.$.overlayDemo.classList.remove('hpositioned');
+            this.$.overlayDemo.classList.remove('vpositioned');
+          }
+        },
+        applyTransition: function() {
+          this.transitions = [
+            this.openingAnimationName === 'none' ? null : this.openingAnimationName,
+            this.closingAnimationName === 'none' ? null : this.closingAnimationName
+          ];
+        },
+        somethingChanged: function() {
+          if (this.something === 'something') {
+            this.$.innerOverlay.toggle();
+          }
+        },
+        toggleAction: function(e, details, sender) {
+          this.$.overlayDemo.toggleSrc = sender;
+          this.$.overlayDemo.toggle();
+        }
+      });
+    </script>
+  </polymer-element>
+  <polymer-ui-overlay-demo></polymer-ui-overlay-demo>
+</body>
+</html>

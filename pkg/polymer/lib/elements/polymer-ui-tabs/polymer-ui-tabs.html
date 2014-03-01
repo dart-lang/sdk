@@ -1,0 +1,38 @@
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!--
+/**
+ * @module Polymer UI Elements
+ */
+-->
+<!--
+/**
+ * polymer-ui-tabs is a polymer-selector styled to look like a tab menu.
+ *
+ * Example:
+ *
+ *     <polymer-ui-tabs selected="0">
+ *       <span>One</span>
+ *       <span>Two</span>
+ *       <span>Three</span>
+ *       <span>Four</span>
+ *     </polymer-ui-tabs>
+ *
+ * @class polymer-ui-tabs
+ * @extends polymer-selector
+ */
+-->
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer-selector/polymer-selector.html">
+<link rel="import" href="../polymer-flex-layout/polymer-flex-layout.html">
+
+<polymer-element name="polymer-ui-tabs" extends="polymer-selector" noscript>
+  <template>
+    <link rel="stylesheet" href="polymer-ui-tabs.css">
+    <polymer-flex-layout></polymer-flex-layout>
+    <shadow></shadow>
+  </template>
+</polymer-element>

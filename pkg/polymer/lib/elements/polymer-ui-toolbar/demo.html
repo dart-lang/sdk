@@ -1,0 +1,88 @@
+
+<!doctype html>
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>polymer-ui-toolbar</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <!-- load toolkit -->
+    <script src="../platform/platform.js"></script>
+    <!-- import elements-->
+    <link rel="import" href="polymer-ui-toolbar.html">
+    <link rel="import" href="../polymer-ui-icon-button/polymer-ui-icon-button.html">
+    <!-- -->
+    <link rel="stylesheet" href="../polymer-ui-base/base.css">
+    <style>
+      /* toolbar custom theme (would work even if toolbar is inside n-levels of Shadow DOM) */
+      body ^^ polymer-ui-toolbar.my-custom-theme {
+        background-color: #5599FF;
+        color: #BBD6FF;
+        font-size: 28px;
+      }
+      body ^^ polymer-ui-toolbar polymer-ui-icon-button.my-custom-theme:hover {
+        background-color: #77ABFA;
+      }
+      body ^^ polymer-ui-toolbar polymer-ui-icon-button.my-custom-theme:hover ^ polymer-ui-icon {
+        transition: -webkit-transform 0.33s;
+        transition: transform 0.33s;
+        -webkit-transform: rotate(180deg);
+        transform: rotate(180deg);
+      }
+    </style>
+  </head>
+  <body class="polymer-ui-body-text" unresolved>
+    <polymer-ui-toolbar>
+      <polymer-ui-icon-button icon="menu"></polymer-ui-icon-button>
+      <div flex>Toolbar: default theme</div>
+      <polymer-ui-icon-button icon="refresh"></polymer-ui-icon-button>
+      <polymer-ui-icon-button icon="add"></polymer-ui-icon-button>
+    </polymer-ui-toolbar>
+    <br>
+    <polymer-ui-toolbar theme="polymer-ui-light-theme">
+      <polymer-ui-icon-button icon="menu"></polymer-ui-icon-button>
+      <div flex>Toolbar: polymer-ui-light-theme</div>
+      <polymer-ui-icon-button icon="refresh"></polymer-ui-icon-button>
+      <polymer-ui-icon-button icon="add"></polymer-ui-icon-button>
+    </polymer-ui-toolbar>
+    <br>
+    <polymer-ui-toolbar theme="polymer-ui-dark-theme">
+      <polymer-ui-icon-button icon="menu"></polymer-ui-icon-button>
+      <div flex>Toolbar: polymer-ui-dark-theme</div>
+      <polymer-ui-icon-button icon="refresh"></polymer-ui-icon-button>
+      <polymer-ui-icon-button icon="add"></polymer-ui-icon-button>
+    </polymer-ui-toolbar>
+    <br>
+    <polymer-ui-toolbar theme="polymer-ui-dark-theme">
+      <polymer-ui-icon-button icon="menu"></polymer-ui-icon-button>
+      <div flex>Toolbar: responsive</div>
+      <polymer-ui-toolbar responsive>
+        <polymer-ui-icon-button icon="trash"></polymer-ui-icon-button>
+        <polymer-ui-icon-button icon="search"></polymer-ui-icon-button>
+        <polymer-ui-icon-button icon="add"></polymer-ui-icon-button>
+      </polymer-ui-toolbar>
+    </polymer-ui-toolbar>
+    <br>
+    <div theme="polymer-ui-dark-theme">
+      <div>
+        <polymer-ui-toolbar>
+          <polymer-ui-icon-button icon="menu"></polymer-ui-icon-button>
+          <div flex>Toolbar: container theme</div>
+          <polymer-ui-icon-button icon="refresh"></polymer-ui-icon-button>
+          <polymer-ui-icon-button icon="add"></polymer-ui-icon-button>
+        </polymer-ui-toolbar>
+      </div>
+    </div>
+    <br>
+    <polymer-ui-toolbar theme="my-custom-theme">
+      <polymer-ui-icon-button icon="menu"></polymer-ui-icon-button>
+      <div flex>Toolbar: custom theme</div>
+      <polymer-ui-icon-button icon="refresh"></polymer-ui-icon-button>
+      <polymer-ui-icon-button icon="add"></polymer-ui-icon-button>
+    </polymer-ui-toolbar>
+  </body>
+</html>

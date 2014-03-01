@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+<head>
+	<title>Scrubbing</title>
+	<link href="../polymer-animation/polymer-animation.html" rel="import">
+	<link href="polymer-scrub.html" rel="import">
+	<script src="../platform/platform.js"></script>
+</head>
+<body>
+	<polymer-element name="scrub-demo" attributes="scale scrubType snapPoints">
+		<template>
+			<style>
+				.container {
+					position: relative;
+					height: 100px;
+					width: 900px;
+					background: whitesmoke;
+					border: 1px solid gray;
+				}
+				.circle {
+					position: absolute;
+					box-sizing: border-box;
+					border-radius: 50px;
+					left: 0;
+					top: 0;
+					height: 100px;
+					width: 100px;
+					line-height: 100px;
+					text-align: center;
+					background: lightblue;
+					border: 1px solid gray;
+				}
+			</style>
+			<label>scale: <input id="scale" value="{{scale}}"></label>
+			<label>scrubType: <input id="scrubType" value="{{scrubType}}"></label>
+			<label>snapThreshold: <input id="snapThreshold" value="{{snapThreshold}}"></label>
+			<br><br>
+			<div id="c" class="container container2">
+				<div id="c2" class="circle">&perp;</div>
+			</div>
+			<polymer-animation id="anim" target="{{$.c2}}" duration="3" fillMode="both">
+				<polymer-animation-keyframe>
+					<polymer-animation-prop name="transform" value="translate(0px, 0px) rotate(0deg)"></polymer-animation-prop>
+					<polymer-animation-prop name="opacity" value="1"></polymer-animation-prop>
+				</polymer-animation-keyframe>
+				<polymer-animation-keyframe>
+					<polymer-animation-prop name="transform" value="translate(200px, 0px) rotate(360deg)"></polymer-animation-prop>
+					<polymer-animation-prop name="opacity" value="1"></polymer-animation-prop>
+				</polymer-animation-keyframe>
+				<polymer-animation-keyframe>
+					<polymer-animation-prop name="transform" value="translate(400px, 0px) rotate(720deg)"></polymer-animation-prop>
+					<polymer-animation-prop name="opacity" value="0.5"></polymer-animation-prop>
+				</polymer-animation-keyframe>
+				<polymer-animation-keyframe>
+					<polymer-animation-prop name="transform" value="translate(600px, 0px) rotate(1080deg)"></polymer-animation-prop>
+					<polymer-animation-prop name="opacity" value="1"></polymer-animation-prop>
+				</polymer-animation-keyframe>
+				<polymer-animation-keyframe>
+					<polymer-animation-prop name="transform" value="translate(800px, 0px) rotate(1440deg)"></polymer-animation-prop>
+					<polymer-animation-prop name="opacity" value="1"></polymer-animation-prop>
+				</polymer-animation-keyframe>
+			</polymer-animation>
+			<polymer-scrub target="{{$.c}}" animation="{{$.anim.animation}}" scale="{{scale}}" scrubType="{{scrubType}}" snapPoints="{{snapPoints}}" snapThreshold="{{snapThreshold}}"></polymer-scrub>
+		</template>
+		<script>
+			Polymer('scrub-demo', {
+				snapPoints: [0, 0.5, 1]
+			});
+		</script>
+	</polymer-element>
+	<scrub-demo></scrub-demo>
+</body>
+</html>

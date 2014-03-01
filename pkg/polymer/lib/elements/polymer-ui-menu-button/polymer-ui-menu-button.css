@@ -1,0 +1,56 @@
+/*
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+*/
+
+:host {
+  position: relative;
+  display: inline-block;
+}
+
+:host(.fullwidth:host) {
+  position: static;
+}
+
+#overlay {
+  position: absolute;
+  left: 0;
+  top: 42px;
+}
+
+#overlay[halign=right] {
+  left: auto;
+  right: 10px;
+}
+
+#overlay[valign=top] {
+  top: auto;
+  bottom: 48px;
+}
+
+#overlayMenu {
+  display: inline-block;
+  position: relative;
+  top: -1px;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  margin: 7px 0 0 7px;
+}
+
+@media screen and (max-width: 800px) {
+  #overlay,
+  #overlay[align=right] {
+    left: 0;
+    width: 100%;
+    -webkit-transform: none;
+    transform: none;
+  }  
+}
+
+#arrow {
+  height: 18px;
+}

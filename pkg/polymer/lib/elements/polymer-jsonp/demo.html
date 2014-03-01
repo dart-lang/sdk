@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>polymer-jsonp</title>
+  <script src="../platform/platform.js"></script>
+  <link rel="import" href="polymer-jsonp.html">
+</head>
+<body>
+  <polymer-jsonp auto url="https://clients1.google.com/finance/info?q=GOOG&client=ig&callback="></polymer-jsonp>
+  
+  <template bind="{{stockquote}}">
+    <div>quote: {{l}}</div>
+  </template>
+  
+  <script>
+    document.addEventListener('polymer-ready', function() {
+      var jsonp = document.querySelector("polymer-jsonp");
+      jsonp.addEventListener("polymer-response", 
+        function(e) {
+          document.querySelector('template').model = {
+            stockquote: e.detail.response[0]
+          };
+        }
+      );
+    });
+  </script>
+</body>
+</html>

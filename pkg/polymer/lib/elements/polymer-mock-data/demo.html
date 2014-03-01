@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>polymer-mock-data</title>
+  <script src="../platform/platform.js"></script>
+  <link rel="import" href="polymer-mock-data.html">
+</head>
+<body style="font-family: 'Courier New'">
+  <mock-data-dump></mock-data-dump>
+  <polymer-element name="mock-data-dump" noscript>
+    <template>
+      <polymer-mock-data items="{{items}}"></polymer-mock-data>
+      <template repeat="{{items}}"><span>{{name}}</span> </template>
+    </template>
+  </polymer-element>
+</body>
+</html>

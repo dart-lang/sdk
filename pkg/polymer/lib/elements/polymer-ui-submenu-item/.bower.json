@@ -1,0 +1,21 @@
+{
+  "name": "polymer-ui-submenu-item",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master",
+    "polymer-ui-theme-aware": "Polymer/polymer-ui-theme-aware#master",
+    "polymer-ui-menu-item": "Polymer/polymer-ui-menu-item#master",
+    "polymer-ui-menu": "Polymer/polymer-ui-menu#master",
+    "polymer-collapse": "Polymer/polymer-collapse#master"
+  },
+  "homepage": "https://github.com/Polymer/polymer-ui-submenu-item",
+  "_release": "c270ccdab1",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "c270ccdab127467401570a184fbcf90c1bf600e6"
+  },
+  "_source": "git://github.com/Polymer/polymer-ui-submenu-item.git",
+  "_target": "master",
+  "_originalSource": "Polymer/polymer-ui-submenu-item"
+}

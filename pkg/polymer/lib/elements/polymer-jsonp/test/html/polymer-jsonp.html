@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+<head>
+  <title>polymer-jsonp</title>
+  <script src="../../../platform/platform.js"></script>
+  <script src="../../../tools/test/htmltest.js"></script>
+  <script src="../../../tools/test/chai/chai.js"></script>
+  <link rel="import" href="../../polymer-jsonp.html">
+</head>
+<body>
+
+  <polymer-jsonp url="https://clients1.google.com/finance/info?q=GOOG&client=ig&callback="></polymer-jsonp>
+  
+  <script>
+    var assert = chai.assert;
+    document.addEventListener('polymer-ready', function() {
+      var jsonp = document.querySelector('polymer-jsonp');
+      jsonp.addEventListener("polymer-response", function(event) {
+        assert.isDefined(event.detail.response[0]);
+        done();
+      });
+      jsonp.go();
+    });
+  </script>
+</body>
+</html>
