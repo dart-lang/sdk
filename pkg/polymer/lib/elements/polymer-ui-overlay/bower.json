@@ -1,8 +1,0 @@
-{
-  "name": "polymer-ui-overlay",
-  "private": true,
-  "dependencies": {
-    "polymer": "Polymer/polymer#master",
-    "polymer-overlay": "Polymer/polymer-overlay#master"
-  }
-}

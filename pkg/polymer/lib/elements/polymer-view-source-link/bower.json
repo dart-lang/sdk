@@ -1,7 +1,0 @@
-{
-  "name": "polymer-view-source-link",
-  "private": true,
-  "dependencies": {
-    "polymer": "Polymer/polymer#master"
-  }
-}

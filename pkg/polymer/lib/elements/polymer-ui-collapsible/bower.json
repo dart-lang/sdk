@@ -1,8 +1,0 @@
-{
-  "name": "polymer-ui-collapsible",
-  "private": true,
-  "dependencies": {
-    "polymer": "Polymer/polymer#master",
-    "polymer-collapse": "Polymer/polymer-collapse#master"
-  }
-}

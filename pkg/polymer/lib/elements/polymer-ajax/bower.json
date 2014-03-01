@@ -1,7 +1,0 @@
-{
-  "name": "polymer-ajax",
-  "private": true,
-  "dependencies": {
-    "polymer": "Polymer/polymer#master"
-  }
-}

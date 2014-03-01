@@ -1,7 +1,0 @@
-{
-  "name": "polymer-anchor-point",
-  "private": true,
-  "dependencies": {
-    "polymer": "Polymer/polymer#master"
-  }
-}

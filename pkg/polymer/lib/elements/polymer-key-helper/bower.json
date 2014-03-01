@@ -1,7 +1,0 @@
-{
-  "name": "polymer-key-helper",
-  "private": true,
-  "dependencies": {
-    "polymer": "Polymer/polymer#master"
-  }
-}

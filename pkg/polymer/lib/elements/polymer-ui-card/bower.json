@@ -1,7 +1,0 @@
-{
-  "name": "polymer-ui-card",
-  "private": true,
-  "dependencies": {
-    "polymer": "Polymer/polymer#master"
-  }
-}

@@ -1,9 +1,0 @@
-{
-  "name": "polymer-ui-breadcrumbs",
-  "private": true,
-  "dependencies": {
-    "polymer": "Polymer/polymer#master",
-    "polymer-ui-icon": "Polymer/polymer-ui-icon#master",
-    "polymer-selector": "Polymer/polymer-selector#master"
-  }
-}
