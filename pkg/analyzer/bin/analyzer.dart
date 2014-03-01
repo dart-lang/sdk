@@ -33,12 +33,14 @@ void main(args) {
 
     if (options.perf) {
       int totalTime = JavaSystem.currentTimeMillis() - startTime;
+      int ioTime = PerformanceStatistics.io.result;
       int scanTime = PerformanceStatistics.scan.result;
       int parseTime = PerformanceStatistics.parse.result;
       int resolveTime = PerformanceStatistics.resolve.result;
       int errorsTime = PerformanceStatistics.errors.result;
       int hintsTime = PerformanceStatistics.hints.result;
       int angularTime = PerformanceStatistics.angular.result;
+      print("io:$ioTime");
       print("scan:$scanTime");
       print("parse:$parseTime");
       print("resolve:$resolveTime");
@@ -46,7 +48,7 @@ void main(args) {
       print("hints:$hintsTime");
       print("angular:$angularTime");
       print("other:${totalTime
-        - (scanTime + parseTime + resolveTime + errorsTime + hintsTime
+        - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime
            + angularTime)}");
       print("total:$totalTime");
       print("");

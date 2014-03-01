@@ -10,7 +10,8 @@ library engine.source.io;
 import 'source.dart';
 import 'java_core.dart';
 import 'java_io.dart';
-import 'engine.dart' show AnalysisContext, AnalysisEngine, TimestampedData;
+import 'engine.dart';
+import 'utilities_general.dart';
 export 'source.dart';
 
 /**
@@ -101,10 +102,22 @@ class FileBasedSource implements Source {
 
   bool exists() => _file.isFile();
 
-  TimestampedData<String> get contents => contentsFromFile;
+  TimestampedData<String> get contents {
+    TimeCounter_TimeCounterHandle handle = PerformanceStatistics.io.start();
+    try {
+      return contentsFromFile;
+    } finally {
+      handle.stop();
+    }
+  }
 
   void getContentsToReceiver(Source_ContentReceiver receiver) {
-    getContentsFromFileToReceiver(receiver);
+    TimeCounter_TimeCounterHandle handle = PerformanceStatistics.io.start();
+    try {
+      getContentsFromFileToReceiver(receiver);
+    } finally {
+      handle.stop();
+    }
   }
 
   String get encoding {

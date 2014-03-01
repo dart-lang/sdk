@@ -8601,6 +8601,11 @@ class PerformanceStatistics {
   static TimeCounter angular = new TimeCounter();
 
   /**
+   * The [TimeCounter] for time spent in reading files.
+   */
+  static TimeCounter io = new TimeCounter();
+
+  /**
    * The [TimeCounter] for time spent in scanning.
    */
   static TimeCounter scan = new TimeCounter();
