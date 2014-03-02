@@ -45,6 +45,39 @@ returnDyn6() {
   return a;
 }
 
+returnDyn7b(x) => x;
+
+returnDyn7() {
+  var a = "foo";
+  if (a.length == 3) a = 52;
+  if ((a is int) || (a is String && true)) returnDyn7b(a);
+  return a;
+}
+
+returnDyn8(x) => x;
+
+test8() {
+  var a = "foo";
+  if (a.length == 3) a = 52;
+  if ((false && a is! String) || returnDyn8(a)) return a;
+}
+
+returnDyn9(x) => x;
+
+test9() {
+  var a = "foo";
+  if (a.length == 3) a = 52;
+  if (!(a is bool && a is bool)) returnDyn9(a);
+}
+
+returnString(x) => x;
+
+test10() {
+  var a = "foo";
+  if (a.length == 3) a = 52;
+  if (!(a is num) && a is String) returnString(a);
+}
+
 main() {
   returnDyn1();
   returnDyn2();
@@ -52,6 +85,10 @@ main() {
   returnDyn4();
   returnDyn5();
   returnDyn6();
+  returnDyn7();
+  test8();
+  test9();
+  test10();
 }
 """;
 
@@ -77,5 +114,10 @@ void main() {
     checkReturn('returnDyn4', compiler.typesTask.dynamicType.nonNullable());
     checkReturn('returnDyn5', compiler.typesTask.dynamicType.nonNullable());
     checkReturn('returnDyn6', compiler.typesTask.dynamicType.nonNullable());
+    checkReturn('returnDyn7', subclassOfInterceptor);
+    checkReturn('returnDyn7b', subclassOfInterceptor);
+    checkReturn('returnDyn8', subclassOfInterceptor);
+    checkReturn('returnDyn9', subclassOfInterceptor);
+    checkReturn('returnString', compiler.typesTask.stringType);
   }));
 }
