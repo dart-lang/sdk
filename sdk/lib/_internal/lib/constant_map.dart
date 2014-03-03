@@ -111,8 +111,7 @@ class GeneralConstantMap<K, V> extends ConstantMap<K, V> {
   // have not been defined when constants are created.
   Map<K, V> _getMap() {
     if (JS('bool', r'!this.$map')) {
-      Map backingMap =
-          new LinkedHashMap<K, V>(equals: identical, hashCode: objectHashCode);
+      Map backingMap = new LinkedHashMap<K, V>();
       JS('', r'this.$map = #', fillLiteralMap(_jsData, backingMap));
     }
     return JS('Map', r'this.$map');
