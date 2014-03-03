@@ -95,7 +95,7 @@ class Symbol implements core.Symbol {
    * The empty symbol is handled before this regexp is used, and is not
    * accepted.
    */
-  static final RegExp symbolPatternPattern = new RegExp(
+  static final RegExp symbolPattern = new RegExp(
       '^(?:$operatorRE\$|$identifierRE(?:=?\$|[.](?!\$)))+?\$');
 
   external const Symbol(String name);
@@ -108,7 +108,7 @@ class Symbol implements core.Symbol {
 
   // This is called by dart2js.
   Symbol.validated(String name)
-      : this._name = validate(name);
+      : this._name = validatePublicSymbol(name);
 
   bool operator ==(other) => other is Symbol && _name == other._name;
 
@@ -122,7 +122,7 @@ class Symbol implements core.Symbol {
   /// Platform-private accessor which cannot be called from user libraries.
   static String getName(Symbol symbol) => symbol._name;
 
-  static String validate(String name) {
+  static String validatePublicSymbol(String name) {
     if (name.isEmpty || publicSymbolPattern.hasMatch(name)) return name;
     if (name.startsWith('_')) {
       // There may be other private parts in a qualified name than the first
@@ -134,15 +134,12 @@ class Symbol implements core.Symbol {
         '"$name" is not a valid (qualified) symbol name');
   }
 
-  static String validatePrivate(String name) {
-    if (name.isEmpty || symbolPattern.hasMatch(name)) return name;
-    if (name.startsWith('_')) {
-      // There may be other private parts in a qualified name than the first
-      // one, but this is a common case that deserves a specific error
-      // message.
-      throw new ArgumentError('"$name" is a private identifier');
-    }
-    throw new ArgumentError(
-        '"$name" is not a valid (qualified) symbol name');
+  /**
+   * Checks whether name is a valid symbol name.
+   *
+   * This test allows both private and non-private symbols.
+   */
+  static bool isValidSymbol(String name) {
+    return (name.isEmpty || symbolPattern.hasMatch(name));
   }
 }

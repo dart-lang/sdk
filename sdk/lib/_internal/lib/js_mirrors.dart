@@ -2798,7 +2798,7 @@ class UnmodifiableMapView<K, V> implements Map<K, V> {
   void clear() => _throw();
 }
 
-Symbol getSymbol(String name, LibararyMirror library) {
+Symbol getSymbol(String name, LibraryMirror library) {
   if (_isPublicSymbol(name)) {
     return new _symbol_dev.Symbol.validated(name);
   }
@@ -2806,7 +2806,7 @@ Symbol getSymbol(String name, LibararyMirror library) {
     throw new ArgumentError(
         "Library required for private symbol name: $name");
   }
-  if (!_symbol_dev.Symbol.validatePrivate(name)) {
+  if (!_symbol_dev.Symbol.isValidSymbol(name)) {
     throw new ArgumentError("Not a valid symbol name: $name");
   }
   throw new UnimplementedError(
