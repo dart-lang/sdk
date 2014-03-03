@@ -93,12 +93,11 @@ class Chart {
   /// with the current sort settings.
   void refreshOptionsSortInfo() {
     var props = _chart.callMethod('getSortInfo');
-    print(options);
-    if (props != null) {
+    if ((props != null) && (props['column'] != -1)) {
+      // Preserve current sort settings.
       options['sortColumn'] = props['column'];
       options['sortAscending'] = props['ascending'];
     }
-    print(options);
   }
 
   /// Draw this chart using [table] and the current [options].

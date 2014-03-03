@@ -17,43 +17,76 @@ class JSONStream;
 class ObjectPointerVisitor;
 class RawClass;
 
+template<typename T>
+class AllocStats {
+ public:
+  T new_count;
+  T new_size;
+  T old_count;
+  T old_size;
+
+  void ResetNew() {
+    new_count = 0;
+    new_size = 0;
+  }
+
+  void AddNew(T size) {
+    new_count++;
+    new_size += size;
+  }
+
+  void ResetOld() {
+    old_count = 0;
+    old_size = 0;
+  }
+
+  void AddOld(T size) {
+    old_count++;
+    old_size += size;
+  }
+
+  void Reset() {
+    new_count = 0;
+    new_size = 0;
+    old_count = 0;
+    old_size = 0;
+  }
+};
 
 class ClassHeapStats {
  public:
-  // Total allocated before GC.
-  intptr_t allocated_before_gc_old_space;
-  intptr_t allocated_before_gc_new_space;
-  intptr_t allocated_size_before_gc_old_space;
-  intptr_t allocated_size_before_gc_new_space;
-
+  // Snapshot before GC.
+  AllocStats<intptr_t> pre_gc;
   // Live after GC.
-  intptr_t live_after_gc_old_space;
-  intptr_t live_after_gc_new_space;
-  intptr_t live_size_after_gc_old_space;
-  intptr_t live_size_after_gc_new_space;
-
-  // Allocated since GC.
-  intptr_t allocated_since_gc_new_space;
-  intptr_t allocated_since_gc_old_space;
-  intptr_t allocated_size_since_gc_new_space;
-  intptr_t allocated_size_since_gc_old_space;
+  AllocStats<intptr_t> post_gc;
+  // Allocations since the last GC.
+  AllocStats<intptr_t> recent;
+  // Accumulated (across GC) allocations .
+  AllocStats<int64_t> accumulated;
+  // Snapshot of recent at the time of the last reset.
+  AllocStats<intptr_t> last_reset;
 
   static intptr_t allocated_since_gc_new_space_offset() {
-    return OFFSET_OF(ClassHeapStats, allocated_since_gc_new_space);
+    return OFFSET_OF(ClassHeapStats, recent) +
+           OFFSET_OF(AllocStats<intptr_t>, new_count);
   }
   static intptr_t allocated_since_gc_old_space_offset() {
-    return OFFSET_OF(ClassHeapStats, allocated_since_gc_old_space);
+    return OFFSET_OF(ClassHeapStats, recent) +
+           OFFSET_OF(AllocStats<intptr_t>, old_count);
   }
   static intptr_t allocated_size_since_gc_new_space_offset() {
-    return OFFSET_OF(ClassHeapStats, allocated_size_since_gc_new_space);
+    return OFFSET_OF(ClassHeapStats, recent) +
+           OFFSET_OF(AllocStats<intptr_t>, new_size);
   }
   static intptr_t allocated_size_since_gc_old_space_offset() {
-    return OFFSET_OF(ClassHeapStats, allocated_size_since_gc_old_space);
+    return OFFSET_OF(ClassHeapStats, recent) +
+           OFFSET_OF(AllocStats<intptr_t>, old_size);
   }
 
   void Initialize();
   void ResetAtNewGC();
   void ResetAtOldGC();
+  void ResetAccumulator();
   void UpdateSize(intptr_t instance_size);
   void PrintTOJSONArray(const Class& cls, JSONArray* array);
 };
@@ -113,6 +146,7 @@ class ClassTable {
 
 
   void AllocationProfilePrintToJSONStream(JSONStream* stream);
+  void ResetAllocationAccumulators();
 
  private:
   friend class MarkingVisitor;

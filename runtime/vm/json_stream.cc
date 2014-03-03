@@ -182,6 +182,12 @@ void JSONStream::PrintValue(intptr_t i) {
 }
 
 
+void JSONStream::PrintValue64(int64_t i) {
+  PrintCommaIfNeeded();
+  buffer_.Printf("%" Pd64 "", i);
+}
+
+
 void JSONStream::PrintValue(double d) {
   PrintCommaIfNeeded();
   buffer_.Printf("%f", d);
@@ -236,6 +242,12 @@ void JSONStream::PrintPropertyBool(const char* name, bool b) {
 void JSONStream::PrintProperty(const char* name, intptr_t i) {
   PrintPropertyName(name);
   PrintValue(i);
+}
+
+
+void JSONStream::PrintProperty64(const char* name, int64_t i) {
+  PrintPropertyName(name);
+  PrintValue64(i);
 }
 
 

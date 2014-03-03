@@ -1117,6 +1117,21 @@ static bool HandleCoverage(Isolate* isolate, JSONStream* js) {
 
 
 static bool HandleAllocationProfile(Isolate* isolate, JSONStream* js) {
+  if (js->num_arguments() == 2) {
+    const char* sub_command = js->GetArgument(1);
+    if (!strcmp(sub_command, "reset")) {
+      isolate->class_table()->ResetAllocationAccumulators();
+      isolate->class_table()->AllocationProfilePrintToJSONStream(js);
+      return true;
+    } else {
+      PrintError(js, "Unrecognized subcommand '%s'", sub_command);
+      return true;
+    }
+  }
+  if (js->num_arguments() != 1) {
+    PrintError(js, "Command too long");
+    return true;
+  }
   isolate->class_table()->AllocationProfilePrintToJSONStream(js);
   return true;
 }

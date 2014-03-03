@@ -19,50 +19,72 @@ class HeapProfileElement extends ObservatoryElement {
   static const LIVE_AFTER_GC_SIZE = 3;
   static const ALLOCATED_SINCE_GC = 4;
   static const ALLOCATED_SINCE_GC_SIZE = 5;
+  static const ACCUMULATED = 6;
+  static const ACCUMULATED_SIZE = 7;
 
+  // Pie chart of new space usage.
   var _newPieDataTable;
   var _newPieChart;
 
+  // Pie chart of old space usage.
   var _oldPieDataTable;
   var _oldPieChart;
 
-  var _tableDataTable;
-  var _tableChart;
+  // The combined chart has old and new space merged.
+  var _combinedDataTable;
+  var _combinedChart;
+
+  // The full chart has separate columns for new and old space.
+  var _fullDataTable;
+  var _fullChart;
 
   @published Map profile;
 
   HeapProfileElement.created() : super.created() {
-    _tableDataTable = new DataTable();
-    _tableDataTable.addColumn('string', 'Class');
-    _tableDataTable.addColumn('number', 'Current (new)');
-    _tableDataTable.addColumn('number', 'Allocated Since GC (new)');
-    _tableDataTable.addColumn('number', 'Total before GC (new)');
-    _tableDataTable.addColumn('number', 'Survivors (new)');
-    _tableDataTable.addColumn('number', 'Current (old)');
-    _tableDataTable.addColumn('number', 'Allocated Since GC (old)');
-    _tableDataTable.addColumn('number', 'Total before GC (old)');
-    _tableDataTable.addColumn('number', 'Survivors (old)');
+    _fullDataTable = new DataTable();
+    _fullDataTable.addColumn('string', 'Class');
+    _fullDataTable.addColumn('number', 'Current (new)');
+    _fullDataTable.addColumn('number', 'Allocated Since GC (new)');
+    _fullDataTable.addColumn('number', 'Total before GC (new)');
+    _fullDataTable.addColumn('number', 'Survivors (new)');
+    _fullDataTable.addColumn('number', 'Current (old)');
+    _fullDataTable.addColumn('number', 'Allocated Since GC (old)');
+    _fullDataTable.addColumn('number', 'Total before GC (old)');
+    _fullDataTable.addColumn('number', 'Survivors (old)');
     _newPieDataTable = new DataTable();
     _newPieDataTable.addColumn('string', 'Type');
     _newPieDataTable.addColumn('number', 'Size');
     _oldPieDataTable = new DataTable();
     _oldPieDataTable.addColumn('string', 'Type');
     _oldPieDataTable.addColumn('number', 'Size');
+    _combinedDataTable = new DataTable();
+    _combinedDataTable.addColumn('string', 'Class');
+    _combinedDataTable.addColumn('number', 'Accumulator');
+    _combinedDataTable.addColumn('number', 'Accumulator Instances');
+    _combinedDataTable.addColumn('number', 'Current');
+    _combinedDataTable.addColumn('number', 'Allocated Since GC');
+    _combinedDataTable.addColumn('number', 'Total before GC');
+    _combinedDataTable.addColumn('number', 'Survivors after GC');
   }
 
   void enteredView() {
     super.enteredView();
-    _tableChart = new Chart('Table',
+    _fullChart = new Chart('Table',
         shadowRoot.querySelector('#table'));
-    _tableChart.options['allowHtml'] = true;
-    _tableChart.options['sortColumn'] = 1;
-    _tableChart.options['sortAscending'] = false;
+    _fullChart.options['allowHtml'] = true;
+    _fullChart.options['sortColumn'] = 1;
+    _fullChart.options['sortAscending'] = false;
     _newPieChart = new Chart('PieChart',
         shadowRoot.querySelector('#newPieChart'));
     _newPieChart.options['title'] = 'New Space';
     _oldPieChart = new Chart('PieChart',
         shadowRoot.querySelector('#oldPieChart'));
     _oldPieChart.options['title'] = 'Old Space';
+    _combinedChart = new Chart('Table',
+        shadowRoot.querySelector('#simpleTable'));
+    _combinedChart.options['allowHtml'] = true;
+    _combinedChart.options['sortColumn'] = 1;
+    _combinedChart.options['sortAscending'] = false;
     _draw();
   }
 
@@ -73,21 +95,38 @@ class HeapProfileElement extends ObservatoryElement {
         (profile['members'].length == 0)) {
       return;
     }
-    assert(_tableDataTable != null);
-    _tableDataTable.clearRows();
+    assert(_fullDataTable != null);
+    assert(_combinedDataTable != null);
+    _fullDataTable.clearRows();
+    _combinedDataTable.clearRows();
     for (Map cls in profile['members']) {
+      if (_classHasNoAllocations(cls)) {
+        // If a class has no allocations, don't display it.
+        continue;
+      }
+      var vm_name = cls['class']['name'];
       var url =
           app.locationManager.currentIsolateRelativeLink(cls['class']['id']);
-      _tableDataTable.addRow(
-          ['<a href="$url">${_columnValue(cls, 0)}</a>',
-           _columnValue(cls, 1),
-           _columnValue(cls, 2),
-           _columnValue(cls, 3),
-           _columnValue(cls, 4),
-           _columnValue(cls, 5),
-           _columnValue(cls, 6),
-           _columnValue(cls, 7),
-           _columnValue(cls, 8)]);
+      _fullDataTable.addRow([
+          '<a title="$vm_name" href="$url">'
+          '${_fullTableColumnValue(cls, 0)}</a>',
+          _fullTableColumnValue(cls, 1),
+          _fullTableColumnValue(cls, 2),
+          _fullTableColumnValue(cls, 3),
+          _fullTableColumnValue(cls, 4),
+          _fullTableColumnValue(cls, 5),
+          _fullTableColumnValue(cls, 6),
+          _fullTableColumnValue(cls, 7),
+          _fullTableColumnValue(cls, 8)]);
+      _combinedDataTable.addRow([
+           '<a title="$vm_name" href="$url">'
+           '${_combinedTableColumnValue(cls, 0)}</a>',
+           _combinedTableColumnValue(cls, 1),
+           _combinedTableColumnValue(cls, 2),
+           _combinedTableColumnValue(cls, 3),
+           _combinedTableColumnValue(cls, 4),
+           _combinedTableColumnValue(cls, 5),
+           _combinedTableColumnValue(cls, 6)]);
     }
     _newPieDataTable.clearRows();
     var heap = profile['heaps']['new'];
@@ -101,15 +140,34 @@ class HeapProfileElement extends ObservatoryElement {
   }
 
   void _draw() {
-    if (_tableChart == null) {
+    if ((_fullChart == null) || (_combinedChart == null)) {
       return;
     }
-    _tableChart.draw(_tableDataTable);
+    _combinedChart.refreshOptionsSortInfo();
+    _combinedChart.draw(_combinedDataTable);
+    _fullChart.refreshOptionsSortInfo();
+    _fullChart.draw(_fullDataTable);
     _newPieChart.draw(_newPieDataTable);
     _oldPieChart.draw(_oldPieDataTable);
   }
 
-  dynamic _columnValue(Map v, int index) {
+  bool _classHasNoAllocations(Map v) {
+    var newSpace = v['new'];
+    var oldSpace = v['old'];
+    for (var allocation in newSpace) {
+      if (allocation != 0) {
+        return false;
+      }
+    }
+    for (var allocation in oldSpace) {
+      if (allocation != 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  dynamic _fullTableColumnValue(Map v, int index) {
     assert(index >= 0);
     assert(index < 9);
     switch (index) {
@@ -132,7 +190,36 @@ class HeapProfileElement extends ObservatoryElement {
       case 8:
         return v['old'][LIVE_AFTER_GC_SIZE];
     }
-    return null;
+    throw new FallThroughError();
+  }
+
+  dynamic _combinedTableColumnValue(Map v, int index) {
+    assert(index >= 0);
+    assert(index < 7);
+    switch (index) {
+      case 0:
+        return v['class']['user_name'];
+      case 1:
+        return v['new'][ACCUMULATED_SIZE] +
+               v['old'][ACCUMULATED_SIZE];
+      case 2:
+        return v['new'][ACCUMULATED] +
+               v['old'][ACCUMULATED];
+      case 3:
+        return v['new'][LIVE_AFTER_GC_SIZE] +
+               v['new'][ALLOCATED_SINCE_GC_SIZE] +
+               v['old'][LIVE_AFTER_GC_SIZE] +
+               v['old'][ALLOCATED_SINCE_GC_SIZE];
+      case 4:
+        return v['new'][ALLOCATED_SINCE_GC_SIZE] +
+               v['old'][ALLOCATED_SINCE_GC_SIZE];
+      case 5:
+        return v['new'][ALLOCATED_BEFORE_GC_SIZE] +
+               v['old'][ALLOCATED_BEFORE_GC_SIZE];
+      case 6:
+        return v['new'][LIVE_AFTER_GC_SIZE] + v['old'][LIVE_AFTER_GC_SIZE];
+    }
+    throw new FallThroughError();
   }
 
   void refreshData(Event e, var detail, Node target) {
@@ -143,6 +230,22 @@ class HeapProfileElement extends ObservatoryElement {
       return;
     }
     var request = '/$isolateId/allocationprofile';
+    app.requestManager.requestMap(request).then((Map response) {
+      assert(response['type'] == 'AllocationProfile');
+      profile = response;
+    }).catchError((e, st) {
+      Logger.root.info('$e $st');
+    });
+  }
+
+  void resetAccumulator(Event e, var detail, Node target) {
+    var isolateId = app.locationManager.currentIsolateId();
+    var isolate = app.isolateManager.getIsolate(isolateId);
+    if (isolate == null) {
+      Logger.root.info('No isolate found.');
+      return;
+    }
+    var request = '/$isolateId/allocationprofile/reset';
     app.requestManager.requestMap(request).then((Map response) {
       assert(response['type'] == 'AllocationProfile');
       profile = response;

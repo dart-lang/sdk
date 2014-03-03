@@ -609,6 +609,7 @@
 <template>
   <div>
   <button type="button" on-click="{{refreshData}}">Refresh</button>
+  <button type="button" on-click="{{resetAccumulator}}">Reset Accumulator</button>
   </div>
   <div class="row">
     <div id="newPieChart" class="col-md-4" style="height: 400px">
@@ -638,19 +639,28 @@
         <tbody>
           <tr>
             <td>Collections</td>
-            <td>{{ formattedCollections(true) }}</td>
+            <td>{{ formattedCollections(false) }}</td>
           </tr>
           <tr>
             <td>Average Collection Time</td>
-            <td>{{ formattedAverage(true) }}</td>
+            <td>{{ formattedAverage(false) }}</td>
           </tr>
           <tr>
             <td>Cumulative Collection Time</td>
-            <td>{{ formattedTotalCollectionTime(true) }}</td>
+            <td>{{ formattedTotalCollectionTime(false) }}</td>
           </tr>
         </tbody>
       </table>
     </div>
+  </div>
+  <div class="row">
+  <p class="col-md-2">Aggregate heap table</p>
+  </div>
+  <div class="row">
+    <div id="simpleTable" class="col-md-12" style="height: 800px"></div>
+  </div>
+  <div class="row">
+  <p class="col-md-2">Individual heap table</p>
   </div>
   <div class="row">
     <div id="table" class="col-md-12" style="height: 800px"></div>
