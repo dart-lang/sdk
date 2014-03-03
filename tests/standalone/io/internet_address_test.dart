@@ -12,12 +12,15 @@ void testDefaultAddresses() {
   Expect.equals(InternetAddressType.IP_V4, loopback4.type);
   Expect.equals("127.0.0.1", loopback4.host);
   Expect.equals("127.0.0.1", loopback4.address);
+  Expect.listEquals([127, 0, 0, 1], loopback4.rawAddress);
 
   var loopback6 = InternetAddress.LOOPBACK_IP_V6;
   Expect.isNotNull(loopback6);
   Expect.equals(InternetAddressType.IP_V6, loopback6.type);
   Expect.equals("::1", loopback6.host);
   Expect.equals("::1", loopback6.address);
+  Expect.listEquals([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    loopback6.rawAddress);
 
   var any4 = InternetAddress.ANY_IP_V4;
   Expect.isNotNull(any4);
@@ -118,14 +121,17 @@ void testReverseLookup() {
   InternetAddress.lookup('localhost').then((addrs) {
     addrs.first.reverse().then((addr) {
       Expect.isNotNull(addr.host);
+      Expect.isNotNull(addr.rawAddress);
     });
   });
 
   InternetAddress.lookup('127.0.0.1').then((addrs) {
     Expect.equals('127.0.0.1', addrs.first.host);
+    Expect.listEquals([127, 0, 0, 1], addrs.first.rawAddress);
     addrs.first.reverse().then((addr) {
       Expect.isNotNull(addr.host);
       Expect.notEquals('127.0.0.1', addr.host);
+      Expect.listEquals([127, 0, 0, 1], addr.rawAddress);
     });
   });
 }

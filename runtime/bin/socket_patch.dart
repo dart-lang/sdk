@@ -84,6 +84,8 @@ class _InternetAddress implements InternetAddress {
 
   String get host => _host != null ? _host : address;
 
+  List<int> get rawAddress => new Uint8List.fromList(_in_addr);
+
   bool get isLoopback {
     switch (type) {
       case InternetAddressType.IP_V4:

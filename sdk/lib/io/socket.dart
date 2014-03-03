@@ -90,6 +90,13 @@ abstract class InternetAddress {
   String get host;
 
   /**
+   * Get the raw address of this [InternetAddress]. The result is either a
+   * 4 or 16 byte long list. The returned list is a copy, making it possible
+   * to change the list without modifying the [InternetAddress].
+   */
+  List<int> get rawAddress;
+
+  /**
    * Returns true if the [InternetAddress] is a loopback address.
    */
   bool get isLoopback;
