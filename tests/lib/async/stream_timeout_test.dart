@@ -7,7 +7,7 @@ import "package:unittest/unittest.dart";
 
 main() {
   const ms5 = const Duration(milliseconds: 5);
-  const halfSec = const Duration(milliseconds: 500);
+  const twoSecs = const Duration(seconds: 2);
 
   test("stream timeout", () {
     StreamController c = new StreamController();
@@ -34,7 +34,7 @@ main() {
 
   test("stream no timeout", () {
     StreamController c = new StreamController();
-    Stream tos = c.stream.timeout(halfSec);
+    Stream tos = c.stream.timeout(twoSecs);
     int ctr = 0;
     tos.listen((v) {
                  expect(v, 42);
@@ -50,7 +50,7 @@ main() {
 
   test("stream timeout after events", () {
     StreamController c = new StreamController();
-    Stream tos = c.stream.timeout(halfSec);
+    Stream tos = c.stream.timeout(twoSecs);
     expect(tos.isBroadcast, false);
     int ctr = 0;
     tos.listen((v) {
@@ -97,7 +97,7 @@ main() {
   test("events prevent timeout", () {
     Stopwatch sw = new Stopwatch();
     StreamController c = new StreamController();
-    Stream tos = c.stream.timeout(halfSec, onTimeout: (_) {
+    Stream tos = c.stream.timeout(twoSecs, onTimeout: (_) {
       int elapsed = sw.elapsedMilliseconds;
       if (elapsed > 250) {
         // This should not happen, but it does occasionally.
@@ -108,7 +108,8 @@ main() {
       fail("Timeout not prevented by events");
       throw "ERROR";
     });
-    tos.listen((v) { expect(v, 42);}, onDone: expectAsync0((){}));
+    // Start the periodic timer before we start listening to the stream.
+    // This should reduce the flakiness of the test.
     int ctr = 200;  // send this many events at 5ms intervals. Then close.
     new Timer.periodic(ms5, (timer) {
       sw.reset();
@@ -119,12 +120,14 @@ main() {
       }
     });
     sw.start();
+
+    tos.listen((v) { expect(v, 42);}, onDone: expectAsync0((){}));
   });
 
   test("errors prevent timeout", () {
     Stopwatch sw = new Stopwatch();
     StreamController c = new StreamController();
-    Stream tos = c.stream.timeout(halfSec, onTimeout: (_) {
+    Stream tos = c.stream.timeout(twoSecs, onTimeout: (_) {
       int elapsed = sw.elapsedMilliseconds;
       if (elapsed > 250) {
         // This should not happen, but it does occasionally.
@@ -134,11 +137,9 @@ main() {
       }
       fail("Timeout not prevented by errors");
     });
-    tos.listen((_) {},
-      onError: (e, s) {
-        expect(e, "ERROR");
-      },
-      onDone: expectAsync0((){}));
+
+    // Start the periodic timer before we start listening to the stream.
+    // This should reduce the flakiness of the test.
     int ctr = 200;  // send this many error events at 5ms intervals. Then close.
     new Timer.periodic(ms5, (timer) {
       sw.reset();
@@ -149,11 +150,17 @@ main() {
       }
     });
     sw.start();
+
+    tos.listen((_) {},
+      onError: (e, s) {
+        expect(e, "ERROR");
+      },
+      onDone: expectAsync0((){}));
   });
 
   test("closing prevents timeout", () {
     StreamController c = new StreamController();
-    Stream tos = c.stream.timeout(halfSec, onTimeout: (_) {
+    Stream tos = c.stream.timeout(twoSecs, onTimeout: (_) {
       fail("Timeout not prevented by close");
     });
     tos.listen((_) {}, onDone: expectAsync0((){}));
@@ -167,7 +174,7 @@ main() {
     });
     var subscription = tos.listen((_) {}, onDone: expectAsync0((){}));
     subscription.pause();
-    new Timer(halfSec, () {
+    new Timer(twoSecs, () {
       c.close();
       subscription.resume();
     });
