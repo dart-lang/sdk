@@ -205,7 +205,7 @@ String _resolveScriptUri(String scriptName) {
   return _entryPointScript.toString();
 }
 
-const _DART_EXT 'dart-ext:';
+const _DART_EXT = 'dart-ext:';
 
 String _resolveUri(String base, String userString) {
   _logResolution('# Resolving: $userString from $base');
