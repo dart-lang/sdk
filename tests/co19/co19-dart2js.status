@@ -260,6 +260,7 @@ LibTest/math/cos_A01_t01: Fail # co19 issue 44
 [ $compiler == dart2js ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A13_t01: RuntimeError # compiler cancelled: cannot resolve type T
 Language/07_Classes/3_Setters_A04_t03: RuntimeError # http://dartbug.com/5023
+Language/12_Expressions/07_Maps_A11_t01: CompileTimeError # Maybe ok. Issue 17207
 
 [ $compiler == dart2js && $jscl ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: RuntimeError # IllegalJSRegExpException: '\c(' 'SyntaxError: Invalid regular expression: /\c(/: Unterminated group'
@@ -638,7 +639,6 @@ Language/07_Classes/6_Constructors/2_Factories_A10_t02: fail # co19-roll r587: P
 Language/07_Classes/6_Constructors/2_Factories_A10_t03: fail # co19-roll r587: Please triage this failure
 Language/10_Generics/09_Generics_A01_t17: fail # co19-roll r587: Please triage this failure
 Language/12_Expressions/06_Symbols_A01_t02: CompileTimeError # co19-roll r623: Please triage this failure
-Language/12_Expressions/07_Maps_A13_t01: MissingCompileTimeError # co19-roll r607: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t15: CompileTimeError # co19-roll r651: Please triage this failure
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t17: MissingCompileTimeError # co19-roll r651: Please triage this failure
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t18: MissingCompileTimeError # co19-roll r651: Please triage this failure

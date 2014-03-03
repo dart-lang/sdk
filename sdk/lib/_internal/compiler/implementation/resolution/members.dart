@@ -3098,10 +3098,31 @@ class ResolverVisitor extends MappingVisitor<Element> {
     return null;
   }
 
+  void checkConstMapKeysDontOverrideEquals(Spannable spannable,
+                                           MapConstant map) {
+    for (Constant key in map.keys.entries) {
+      if (!key.isObject()) continue;
+      ObjectConstant objectConstant = key;
+      DartType keyType = objectConstant.type;
+      ClassElement cls = keyType.element;
+      if (cls == compiler.stringClass) continue;
+      Element equals = cls.lookupMember('==');
+      if (equals.getEnclosingClass() != compiler.objectClass) {
+        compiler.reportError(spannable,
+                             MessageKind.CONST_MAP_KEY_OVERRIDES_EQUALS,
+                             {'type': keyType});
+      }
+    }
+  }
+
   void analyzeConstant(Node node, {bool isConst: true}) {
     addDeferredAction(enclosingElement, () {
       Constant constant = compiler.constantHandler.compileNodeWithDefinitions(
           node, mapping, isConst: isConst);
+
+      if (isConst && constant != null && constant.isMap()) {
+        checkConstMapKeysDontOverrideEquals(node, constant);
+      }
 
       // The type constant that is an argument to JS_INTERCEPTOR_CONSTANT names
       // a class that will be instantiated outside the program by attaching a

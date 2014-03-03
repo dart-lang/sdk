@@ -556,8 +556,9 @@ main() => new C<String>();
   static const MessageKind CONSTRUCTOR_IS_NOT_CONST = const MessageKind(
       "Constructor is not a 'const' constructor.");
 
-  static const MessageKind KEY_NOT_A_STRING_LITERAL = const MessageKind(
-      "Map-literal key not a string literal.");
+  static const MessageKind CONST_MAP_KEY_OVERRIDES_EQUALS =
+      const MessageKind(
+          "Const-map key type '#{type}' overrides 'operator =='.");
 
   static const MessageKind NO_SUCH_LIBRARY_MEMBER = const MessageKind(
       "'#{libraryName}' has no member named '#{memberName}'.");
