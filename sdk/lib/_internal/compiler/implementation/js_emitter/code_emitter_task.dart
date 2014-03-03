@@ -1253,7 +1253,6 @@ mainBuffer.add(r'''
           ..write('["${library.getLibraryName()}",$_')
           ..write('"${uri}",$_')
           ..write(metadata == null ? "" : jsAst.prettyPrint(metadata, compiler))
-          ..write(isDeferred ? '[]' : '')
           ..write(',$_')
           ..write(namer.globalObjectFor(library))
           ..write(',$_')
