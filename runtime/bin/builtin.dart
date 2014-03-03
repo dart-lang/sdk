@@ -205,39 +205,25 @@ String _resolveScriptUri(String scriptName) {
   return _entryPointScript.toString();
 }
 
+const _DART_EXT 'dart-ext:';
 
 String _resolveUri(String base, String userString) {
-  var baseUri = Uri.parse(base);
   _logResolution('# Resolving: $userString from $base');
-
-  var uri = Uri.parse(userString);
-  var resolved;
-  if ('dart-ext' == uri.scheme) {
-    // Relative URIs with scheme dart-ext should be resolved as if with no
-    // scheme.
-    resolved = baseUri.resolve(uri.path);
-    if (resolved.scheme == 'package') {
-      // If we are resolving relative to a package URI we go directly to the
-      // file path and keep the dart-ext scheme. Otherwise, we will lose the
-      // package URI path part.
-      var path = _filePathFromPackageUri(resolved);
-      if (path.startsWith('http:')) {
-        throw "Native extensions not supported in "
-            "packages loaded over http: %path";
-      }
-      resolved = new Uri.file(path);
-    }
-    resolved = new Uri(scheme: 'dart-ext', path: resolved.path);
+  var baseUri = Uri.parse(base);
+  if (userString.startsWith(_DART_EXT)) {
+    var uri = userString.substring(_DART_EXT.length);
+    return '$_DART_EXT${baseUri.resolve(uri)}';
   } else {
-    resolved = baseUri.resolve(userString);
+    return '${baseUri.resolve(userString)}';
   }
-  _logResolution('# Resolved to: $resolved');
-  return resolved.toString();
 }
 
 
 // Returns either a file path or a URI starting with http:, as a String.
 String _filePathFromUri(String userUri) {
+  if (userUri.startsWith(_DART_EXT)) {
+    userUri = userUri.substring(_DART_EXT.length);
+  }
   var uri = Uri.parse(userUri);
   _logResolution('# Getting file path from: $uri');
 
@@ -247,20 +233,13 @@ String _filePathFromUri(String userUri) {
     case 'file':
       return uri.toFilePath();
       break;
-    case 'dart-ext':
-      // Relative file URIs don't start with file:///.
-      var scheme = (uri.path.startsWith('/') ? 'file' : '');
-      return new Uri(scheme: scheme,
-                     host: uri.host,
-                     path: uri.path).toFilePath();
-      break;
     case 'package':
       return _filePathFromPackageUri(uri);
       break;
     case 'http':
       return uri.toString();
     default:
-      // Only handling file, dart-ext, http, and package URIs
+      // Only handling file, http, and package URIs
       // in standalone binary.
       _logResolution('# Unknown scheme (${uri.scheme}) in $uri.');
       throw 'Not a known scheme: $uri';
@@ -270,7 +249,7 @@ String _filePathFromUri(String userUri) {
 
 String _filePathFromPackageUri(Uri uri) {
   if (!uri.host.isEmpty) {
-    var path = (uri.path != '') ? '${uri.host}${uri.path}' : uri.host;
+    var path = '${uri.host}${uri.path}';
     var right = 'package:$path';
     var wrong = 'package://$path';
 

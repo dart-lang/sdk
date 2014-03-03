@@ -475,7 +475,6 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
 
   bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_string);
   bool is_io_library = DartUtils::IsDartIOLibURL(library_url_string);
-  bool is_dart_extension_url = DartUtils::IsDartExtensionSchemeURL(url_string);
 
   // Handle URI canonicalization requests.
   if (tag == Dart_kCanonicalizeUrl) {
@@ -528,18 +527,19 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
   if (Dart_IsError(file_path)) {
     return file_path;
   }
-  Dart_StringToCString(file_path, &url_string);
-  if (is_dart_extension_url) {
+  const char* final_path = NULL;
+  Dart_StringToCString(file_path, &final_path);
+  if (DartUtils::IsDartExtensionSchemeURL(url_string)) {
     if (tag != Dart_kImportTag) {
       return NewError("Dart extensions must use import: '%s'", url_string);
     }
-    return Extensions::LoadExtension(url_string, library);
+    return Extensions::LoadExtension(final_path, library);
   }
   result = DartUtils::LoadSource(NULL,
                                  library,
                                  url,
                                  tag,
-                                 url_string);
+                                 final_path);
   return result;
 }
 

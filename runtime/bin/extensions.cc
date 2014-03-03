@@ -18,6 +18,10 @@ namespace bin {
 
 Dart_Handle Extensions::LoadExtension(const char* extension_path,
                                       Dart_Handle parent_library) {
+  if (strncmp(extension_path, "http://", 7) == 0) {
+    return Dart_NewApiError("Cannot load native extensions over http:");
+  }
+
   char* library_path = strdup(extension_path);
 
   if (library_path == NULL) {
