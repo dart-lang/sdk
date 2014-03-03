@@ -958,18 +958,6 @@ class Namer implements ClosureNamer {
     return '${operatorAsPrefix()}${getNameForRti(element)}';
   }
 
-  String signatureLocation(FunctionType type) {
-    ClassElement classElement = Types.getClassContext(type);
-    return (classElement != null)
-        ? '${isolateAccess(classElement)}'
-        : currentIsolate;
-  }
-
-  String signatureName(FunctionType type) {
-    String signature = '${operatorSignature()}_${getFunctionTypeName(type)}';
-    return '${signatureLocation(type)}.$signature';
-  }
-
   String safeName(String name) => _safeName(name, jsReserved);
   String safeVariableName(String name) => _safeName(name, jsVariableReserved);
 

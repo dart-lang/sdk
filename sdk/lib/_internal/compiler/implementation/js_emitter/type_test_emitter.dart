@@ -304,27 +304,6 @@ class TypeTestEmitter extends CodeEmitterHelper {
         }
       };
     }
-
-    void addSignature(FunctionType type) {
-      jsAst.Expression encoding = rti.getTypeEncoding(type);
-      buffer.add('${namer.signatureName(type)}$_=${_}');
-      buffer.write(jsAst.prettyPrint(encoding, compiler));
-      buffer.add('$N');
-    }
-    if (outputUnit == compiler.deferredLoadTask.mainOutputUnit) {
-      // TODO(sigurdm): These should also be possibly deferred.
-      // They should be handled similarly to constants.
-      // They have 3 dependencies:
-      // 1. The libraries containing the check.
-      // 2. The typedef defining it.
-      // 3. The types involved in the typedef.
-      // TODO(sigurdm): Actually these seems to never be used. Remove them.
-      checkedNonGenericFunctionTypes.forEach(addSignature);
-      checkedGenericFunctionTypes.forEach((_, Set<FunctionType> functionTypes) {
-        functionTypes.forEach(addSignature);
-      });
-    }
-
   }
 
   /**
