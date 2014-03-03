@@ -29,6 +29,7 @@ deferred_duplicate_prefix3_test/01: Fail
 
 [ $compiler == dartanalyzer ]
 const_map2_test/00: MissingCompileTimeError # Issue 17209
+switch_case_test/none: CompileTimeError # Issue 17209
 
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627

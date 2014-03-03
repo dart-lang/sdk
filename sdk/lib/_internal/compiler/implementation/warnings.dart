@@ -540,6 +540,9 @@ main() => new C<String>();
   static const MessageKind SWITCH_CASE_TYPES_NOT_EQUAL_CASE = const MessageKind(
       "'case' expression of type '#{type}'.");
 
+  static const MessageKind SWITCH_CASE_FORBIDDEN = const MessageKind(
+      "'case' expression may not be of type '#{type}'.");
+
   static const MessageKind SWITCH_CASE_VALUE_OVERRIDES_EQUALS =
       const MessageKind(
           "'case' expression type '#{type}' overrides 'operator =='.");
