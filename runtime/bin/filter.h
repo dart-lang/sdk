@@ -54,10 +54,10 @@ class ZLibDeflateFilter : public Filter {
  public:
   ZLibDeflateFilter(bool gzip, int32_t level, int32_t window_bits,
                     int32_t mem_level, int32_t strategy,
-                    uint8_t* dictionary, bool raw)
+                    uint8_t* dictionary, intptr_t dictionary_length, bool raw)
       : gzip_(gzip), level_(level), window_bits_(window_bits),
         mem_level_(mem_level), strategy_(strategy), dictionary_(dictionary),
-        raw_(raw), current_buffer_(NULL)
+        dictionary_length_(dictionary_length), raw_(raw), current_buffer_(NULL)
     {}
   virtual ~ZLibDeflateFilter();
 
@@ -73,6 +73,7 @@ class ZLibDeflateFilter : public Filter {
   const int32_t mem_level_;
   const int32_t strategy_;
   uint8_t* dictionary_;
+  const intptr_t dictionary_length_;
   const bool raw_;
   uint8_t* current_buffer_;
   z_stream stream_;
@@ -82,9 +83,10 @@ class ZLibDeflateFilter : public Filter {
 
 class ZLibInflateFilter : public Filter {
  public:
-  ZLibInflateFilter(int32_t window_bits, uint8_t* dictionary, bool raw)
-      : window_bits_(window_bits), dictionary_(dictionary), raw_(raw),
-        current_buffer_(NULL)
+  ZLibInflateFilter(int32_t window_bits, uint8_t* dictionary,
+                    intptr_t dictionary_length, bool raw)
+      : window_bits_(window_bits), dictionary_(dictionary),
+        dictionary_length_(dictionary_length), raw_(raw), current_buffer_(NULL)
     {}
   virtual ~ZLibInflateFilter();
 
@@ -96,6 +98,7 @@ class ZLibInflateFilter : public Filter {
  private:
   const int32_t window_bits_;
   uint8_t* dictionary_;
+  const intptr_t dictionary_length_;
   const bool raw_;
   uint8_t* current_buffer_;
   z_stream stream_;

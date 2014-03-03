@@ -72,8 +72,13 @@ void FUNCTION_NAME(Filter_CreateZLibInflate)(Dart_NativeArguments args) {
   int64_t window_bits = DartUtils::GetIntegerValue(window_bits_obj);
   Dart_Handle dict_obj = Dart_GetNativeArgument(args, 2);
   uint8_t* dictionary = NULL;
+  intptr_t dictionary_length = 0;
   if (!Dart_IsNull(dict_obj)) {
     dictionary = copyDictionary(dict_obj);
+    if (dictionary != NULL) {
+      dictionary_length = 0;
+      Dart_ListLength(dict_obj, &dictionary_length);
+    }
   }
   Dart_Handle raw_obj = Dart_GetNativeArgument(args, 3);
   bool raw;
@@ -82,7 +87,7 @@ void FUNCTION_NAME(Filter_CreateZLibInflate)(Dart_NativeArguments args) {
         "Failed to get 'raw' parameter"));
   }
   Filter* filter = new ZLibInflateFilter(static_cast<int32_t>(window_bits),
-                                         dictionary, raw);
+                                         dictionary, dictionary_length, raw);
   if (!filter->Init()) {
     delete filter;
     Dart_ThrowException(DartUtils::NewInternalError(
@@ -110,8 +115,13 @@ void FUNCTION_NAME(Filter_CreateZLibDeflate)(Dart_NativeArguments args) {
   int64_t strategy = DartUtils::GetIntegerValue(strategy_obj);
   Dart_Handle dict_obj = Dart_GetNativeArgument(args, 6);
   uint8_t* dictionary = NULL;
+  intptr_t dictionary_length = 0;
   if (!Dart_IsNull(dict_obj)) {
     dictionary = copyDictionary(dict_obj);
+    if (dictionary != NULL) {
+      dictionary_length = 0;
+      Dart_ListLength(dict_obj, &dictionary_length);
+    }
   }
   Dart_Handle raw_obj = Dart_GetNativeArgument(args, 7);
   bool raw = DartUtils::GetBooleanValue(raw_obj);
@@ -119,7 +129,7 @@ void FUNCTION_NAME(Filter_CreateZLibDeflate)(Dart_NativeArguments args) {
                                          static_cast<int32_t>(window_bits),
                                          static_cast<int32_t>(mem_level),
                                          static_cast<int32_t>(strategy),
-                                         dictionary, raw);
+                                         dictionary, dictionary_length, raw);
   if (!filter->Init()) {
     delete filter;
     Dart_ThrowException(DartUtils::NewInternalError(
@@ -261,7 +271,7 @@ bool ZLibDeflateFilter::Init() {
     return false;
   }
   if (dictionary_ != NULL && !gzip_ && !raw_) {
-    result = deflateSetDictionary(&stream_, dictionary_, sizeof(dictionary_));
+    result = deflateSetDictionary(&stream_, dictionary_, dictionary_length_);
     delete[] dictionary_;
     dictionary_ = NULL;
     if (result != Z_OK) {
@@ -352,7 +362,8 @@ intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
   stream_.avail_out = length;
   stream_.next_out = buffer;
   bool error = false;
-  switch (inflate(&stream_,
+  int v;
+  switch (v = inflate(&stream_,
                   end ? Z_FINISH : flush ? Z_SYNC_FLUSH : Z_NO_FLUSH)) {
     case Z_STREAM_END:
     case Z_BUF_ERROR:
@@ -369,7 +380,7 @@ intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
         error = true;
       } else {
         int result = inflateSetDictionary(&stream_, dictionary_,
-                                          sizeof(dictionary_));
+                                          dictionary_length_);
         delete[] dictionary_;
         dictionary_ = NULL;
         error = result != Z_OK;

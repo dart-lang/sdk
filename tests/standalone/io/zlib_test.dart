@@ -90,7 +90,6 @@ void testZLibDeflateRaw() {
         return buffer;
       })
       .then((data) {
-        print(data);
         Expect.listEquals([99, 96, 100, 98, 102, 97, 101, 99, 231, 224, 4, 0],
             data);
         asyncEnd();
