@@ -7610,7 +7610,10 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
             type.IsMalformedOrMalbounded()) {
           // Note that a type error is thrown even if the tested value is null
           // in a type test or in a type cast.
-          return ThrowTypeError(type_pos, type);
+          // TODO(hausner): We drop the left operand. We need to
+          // evaluate it in case there are side effects.
+          left_operand = ThrowTypeError(type_pos, type);
+          break;  // Type checks and casts can't be chained.
         }
       }
       if (Token::IsRelationalOperator(op_kind)

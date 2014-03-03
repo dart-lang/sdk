@@ -5,6 +5,7 @@
 [ $compiler == dartanalyzer ]
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
+is_malformed_type_test/*: Fail # don't know how to tell analyzer to expect static warning
 
 # Test issue 12694 (was analyzer issue), (1) when "abstract" is import prefix using it as type is warning; (2) currently analyzer resolves prefix as field (don't ask)
 built_in_identifier_prefix_test: CompileTimeError # Issue 12694
