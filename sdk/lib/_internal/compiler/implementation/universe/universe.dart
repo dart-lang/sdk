@@ -31,6 +31,8 @@ class Universe {
    */
   final Set<FunctionElement> staticFunctionsNeedingGetter =
       new Set<FunctionElement>();
+  final Set<FunctionElement> methodsNeedingSuperGetter =
+      new Set<FunctionElement>();
   final Map<String, Set<Selector>> invokedNames =
       new Map<String, Set<Selector>>();
   final Map<String, Set<Selector>> invokedGetters =

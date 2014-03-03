@@ -1637,7 +1637,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // bound closure for a method.
         TypeMask receiverType = new TypeMask.nonNullExact(superClass);
         selector = new TypedSelector(receiverType, selector);
+        // TODO(floitsch): we know the target. We shouldn't register a
+        // dynamic getter.
         world.registerDynamicGetter(selector);
+        world.registerGetterForSuperMethod(node.element);
         methodName = backend.namer.invocationName(selector);
       } else {
         methodName = backend.namer.getNameOfInstanceMember(superMethod);
