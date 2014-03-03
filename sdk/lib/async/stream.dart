@@ -289,7 +289,7 @@ abstract class Stream<T> {
   Stream asyncMap(convert(T event)) {
     StreamController controller;
     StreamSubscription subscription;
-    controller = new StreamController(sync: true,
+    controller = new StreamController(
       onListen: () {
         var add = controller.add;
         var addError = controller.addError;
@@ -316,7 +316,8 @@ abstract class Stream<T> {
       },
       onPause: () { subscription.pause(); },
       onResume: () { subscription.resume(); },
-      onCancel: () { subscription.cancel(); }
+      onCancel: () { subscription.cancel(); },
+      sync: true
     );
     return controller.stream;
   }
@@ -335,7 +336,7 @@ abstract class Stream<T> {
   Stream asyncExpand(Stream convert(T event)) {
     StreamController controller;
     StreamSubscription subscription;
-    controller = new StreamController(sync: true,
+    controller = new StreamController(
       onListen: () {
         subscription = this.listen(
             (T event) {
@@ -358,7 +359,8 @@ abstract class Stream<T> {
       },
       onPause: () { subscription.pause(); },
       onResume: () { subscription.resume(); },
-      onCancel: () { subscription.cancel(); }
+      onCancel: () { subscription.cancel(); },
+      sync: true
     );
     return controller.stream;
   }
