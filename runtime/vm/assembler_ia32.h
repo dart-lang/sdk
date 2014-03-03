@@ -772,6 +772,10 @@ class Assembler : public ValueObject {
                                      Register size_reg,
                                      Register temp_reg,
                                      Heap::Space space = Heap::kNew);
+  void UpdateAllocationStatsWithSize(intptr_t cid,
+                                     intptr_t instance_size,
+                                     Register temp_reg,
+                                     Heap::Space space = Heap::kNew);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
