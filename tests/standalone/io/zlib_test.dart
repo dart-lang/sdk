@@ -32,8 +32,8 @@ void testZLibDeflateEmptyGzip() {
         return buffer;
       })
       .then((data) {
-        Expect.listEquals([31, 139, 8, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0,
-                          0, 0, 0], data);
+        Expect.isTrue(data.length > 0);
+        Expect.listEquals([], new ZLibDecoder().convert(data));
         asyncEnd();
       });
   controller.close();
