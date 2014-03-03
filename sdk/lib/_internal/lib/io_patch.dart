@@ -340,10 +340,14 @@ patch class _WindowsCodePageEncoder {
 }
 
 patch class _Filter {
-  patch static _Filter newZLibDeflateFilter(bool gzip, int level) {
+  patch static _Filter newZLibDeflateFilter(bool gzip, int level,
+                                            int windowBits, int memLevel,
+                                            int strategy,
+                                            List<int> dictionary, bool raw) {
     throw new UnsupportedError("newZLibDeflateFilter");
   }
-  patch static _Filter newZLibInflateFilter() {
+  patch static _Filter newZLibInflateFilter(int windowBits,
+                                            List<int> dictionary, bool raw) {
     throw new UnsupportedError("newZLibInflateFilter");
   }
 }

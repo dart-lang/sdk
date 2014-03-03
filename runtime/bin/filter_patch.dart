@@ -13,22 +13,33 @@ class _FilterImpl extends NativeFieldWrapperClass1 implements _Filter {
 }
 
 class _ZLibInflateFilter extends _FilterImpl {
-  _ZLibInflateFilter() {
-    _init();
+  _ZLibInflateFilter(int windowBits, List<int> dictionary, bool raw) {
+    _init(windowBits, dictionary, raw);
   }
-  void _init() native "Filter_CreateZLibInflate";
+  void _init(int windowBits, List<int> dictionary, bool raw)
+      native "Filter_CreateZLibInflate";
 }
 
 class _ZLibDeflateFilter extends _FilterImpl {
-  _ZLibDeflateFilter(bool gzip, int level) {
-    _init(gzip, level);
+  _ZLibDeflateFilter(bool gzip, int level, int windowBits, int memLevel,
+                     int strategy, List<int> dictionary, bool raw) {
+    _init(gzip, level, windowBits, memLevel, strategy, dictionary, raw);
   }
-  void _init(bool gzip, int level) native "Filter_CreateZLibDeflate";
+  void _init(bool gzip, int level, int windowBits, int memLevel,
+             int strategy, List<int> dictionary, bool raw)
+      native "Filter_CreateZLibDeflate";
 }
 
 patch class _Filter {
-  /* patch */ static _Filter newZLibDeflateFilter(bool gzip, int level)
-      => new _ZLibDeflateFilter(gzip, level);
-  /* patch */ static _Filter newZLibInflateFilter() => new _ZLibInflateFilter();
+  /* patch */ static _Filter newZLibDeflateFilter(bool gzip, int level,
+                                                  int windowBits, int memLevel,
+                                                  int strategy,
+                                                  List<int> dictionary,
+                                                  bool raw) =>
+      new _ZLibDeflateFilter(gzip, level, windowBits, memLevel, strategy,
+                             dictionary, raw);
+  /* patch */ static _Filter newZLibInflateFilter(int windowBits,
+                                                  List<int> dictionary,
+                                                  bool raw) =>
+      new _ZLibInflateFilter(windowBits, dictionary, raw);
 }
-

@@ -421,7 +421,7 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
  * Allocates a weak persistent handle for an object.
  *
  * This handle has the lifetime of the current isolate unless it is
- * explicitly deallocated by calling Dart_DeletePersistentHandle.
+ * explicitly deallocated by calling Dart_DeleteWeakPersistentHandle.
  *
  * If the object becomes unreachable the callback is invoked with the weak
  * persistent handle and the peer as arguments. This gives the native code the
@@ -461,7 +461,7 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
  * weak persistent handles strongly reference their referents.
  *
  * This handle has the lifetime of the current isolate unless it is
- * explicitly deallocated by calling Dart_DeletePersistentHandle.
+ * explicitly deallocated by calling Dart_DeleteWeakPersistentHandle.
  *
  * Requires there to be a current isolate.
  *

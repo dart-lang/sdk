@@ -28,8 +28,8 @@ namespace bin {
   V(FileSystemWatcher_ReadEvents, 2)                                           \
   V(FileSystemWatcher_UnwatchPath, 2)                                          \
   V(FileSystemWatcher_WatchPath, 4)                                            \
-  V(Filter_CreateZLibDeflate, 3)                                               \
-  V(Filter_CreateZLibInflate, 1)                                               \
+  V(Filter_CreateZLibDeflate, 8)                                               \
+  V(Filter_CreateZLibInflate, 4)                                               \
   V(Filter_End, 1)                                                             \
   V(Filter_Process, 4)                                                         \
   V(Filter_Processed, 3)                                                       \

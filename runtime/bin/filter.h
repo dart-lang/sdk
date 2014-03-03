@@ -21,14 +21,12 @@ class Filter {
   virtual bool Init() = 0;
 
   /**
-   * On a succesfull call to Process, Process will take ownership of data. On
+   * On a successful call to Process, Process will take ownership of data. On
    * successive calls to either Processed or ~Filter, data will be freed with
    * a delete[] call.
    */
   virtual bool Process(uint8_t* data, intptr_t length) = 0;
-  virtual intptr_t Processed(uint8_t* buffer,
-                             intptr_t length,
-                             bool finish,
+  virtual intptr_t Processed(uint8_t* buffer, intptr_t length, bool finish,
                              bool end) = 0;
 
   static Dart_Handle SetFilterPointerNativeField(Dart_Handle filter,
@@ -54,20 +52,28 @@ class Filter {
 
 class ZLibDeflateFilter : public Filter {
  public:
-  ZLibDeflateFilter(bool gzip = false, int32_t level = 6)
-    : gzip_(gzip), level_(level), current_buffer_(NULL) {}
+  ZLibDeflateFilter(bool gzip, int32_t level, int32_t window_bits,
+                    int32_t mem_level, int32_t strategy,
+                    uint8_t* dictionary, bool raw)
+      : gzip_(gzip), level_(level), window_bits_(window_bits),
+        mem_level_(mem_level), strategy_(strategy), dictionary_(dictionary),
+        raw_(raw), current_buffer_(NULL)
+    {}
   virtual ~ZLibDeflateFilter();
 
   virtual bool Init();
   virtual bool Process(uint8_t* data, intptr_t length);
-  virtual intptr_t Processed(uint8_t* buffer,
-                             intptr_t length,
-                             bool finish,
+  virtual intptr_t Processed(uint8_t* buffer, intptr_t length, bool finish,
                              bool end);
 
  private:
   const bool gzip_;
   const int32_t level_;
+  const int32_t window_bits_;
+  const int32_t mem_level_;
+  const int32_t strategy_;
+  uint8_t* dictionary_;
+  const bool raw_;
   uint8_t* current_buffer_;
   z_stream stream_;
 
@@ -76,17 +82,21 @@ class ZLibDeflateFilter : public Filter {
 
 class ZLibInflateFilter : public Filter {
  public:
-  ZLibInflateFilter() : current_buffer_(NULL) {}
+  ZLibInflateFilter(int32_t window_bits, uint8_t* dictionary, bool raw)
+      : window_bits_(window_bits), dictionary_(dictionary), raw_(raw),
+        current_buffer_(NULL)
+    {}
   virtual ~ZLibInflateFilter();
 
   virtual bool Init();
   virtual bool Process(uint8_t* data, intptr_t length);
-  virtual intptr_t Processed(uint8_t* buffer,
-                             intptr_t length,
-                             bool finish,
+  virtual intptr_t Processed(uint8_t* buffer, intptr_t length, bool finish,
                              bool end);
 
  private:
+  const int32_t window_bits_;
+  uint8_t* dictionary_;
+  const bool raw_;
   uint8_t* current_buffer_;
   z_stream stream_;
 
