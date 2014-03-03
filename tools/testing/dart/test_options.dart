@@ -7,6 +7,8 @@ library test_options_parser;
 import "dart:io";
 import "drt_updater.dart";
 import "test_suite.dart";
+import "compiler_configuration.dart" show CompilerConfiguration;
+import "runtime_configuration.dart" show RuntimeConfiguration;
 
 List<String> defaultTestSelectors =
     const ['samples', 'standalone', 'corelib', 'co19', 'language',
@@ -727,45 +729,14 @@ Note: currently only implemented for dart2js.''',
 
     // Adjust default timeout based on mode, compiler, and sometimes runtime.
     if (configuration['timeout'] == -1) {
-      var timeout = 60;
-      switch (configuration['compiler']) {
-        case 'dartanalyzer':
-        case 'dart2analyzer':
-          timeout *= 4;
-          break;
-        case 'dart2js':
-          // TODO(ahe): Restore the timeout of 30 seconds when dart2js
-          // compile-time performance has improved.
-          timeout = 60;
-          if (configuration['mode'] == 'debug') {
-            timeout *= 8;
-          }
-          if (configuration['host_checked']) {
-            timeout *= 16;
-          }
-          if (configuration['checked']) {
-            timeout *= 2;
-          }
-          break;
-        default:
-          if (configuration['arch'] == 'simarm') {
-            timeout *= 4;
-          } else if (configuration['arch'] == 'arm') {
-            timeout *= 4;
-          } else if (configuration['arch'] == 'simmips') {
-            timeout *= 4;
-          } else if (configuration['arch'] == 'mips') {
-            timeout *= 4;
-          }
-          if (configuration['mode'] == 'debug') {
-            timeout *= 2;
-          }
-          if (const ['drt'].contains(configuration['runtime'])) {
-            timeout *= 4; // Allow additional time for browser testing to run.
-          }
-          break;
-      }
-      configuration['timeout'] = timeout;
+      int compilerMulitiplier =
+          new CompilerConfiguration(configuration).computeTimeoutMultiplier();
+      int runtimeMultiplier =
+          new RuntimeConfiguration(configuration).computeTimeoutMultiplier(
+              isDebug: configuration['mode'] == 'debug',
+              isChecked: configuration['checked'],
+              arch: configuration['arch']);
+      configuration['timeout'] = 60 * compilerMulitiplier * runtimeMultiplier;
     }
 
     return [configuration];
