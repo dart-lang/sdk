@@ -3559,6 +3559,35 @@ static Definition* OriginalDefinition(Definition* defn) {
 }
 
 
+// Returns true if checking against this type is a direct class id comparison.
+static bool TypeCheckAsClassEquality(const AbstractType& type) {
+  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
+  // Requires CHA.
+  if (!FLAG_use_cha) return false;
+  if (!type.IsInstantiated()) return false;
+  const Class& type_class = Class::Handle(type.type_class());
+  // Signature classes have different type checking rules.
+  if (type_class.IsSignatureClass()) return false;
+  // Could be an interface check?
+  if (type_class.is_implemented()) return false;
+  const intptr_t type_cid = type_class.id();
+  if (CHA::HasSubclasses(type_cid)) return false;
+  const intptr_t num_type_args = type_class.NumTypeArguments();
+  if (num_type_args > 0) {
+    // Only raw types can be directly compared, thus disregarding type
+    // arguments.
+    const intptr_t num_type_params = type_class.NumTypeParameters();
+    const intptr_t from_index = num_type_args - num_type_params;
+    const TypeArguments& type_arguments =
+        TypeArguments::Handle(type.arguments());
+    const bool is_raw_type = type_arguments.IsNull() ||
+        type_arguments.IsRaw(from_index, num_type_params);
+    return is_raw_type;
+  }
+  return true;
+}
+
+
 // TODO(srdjan): Use ICData to check if always true or false.
 void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
@@ -3590,6 +3619,27 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
       return;
     }
   }
+
+  if (TypeCheckAsClassEquality(type)) {
+    LoadClassIdInstr* left_cid = new LoadClassIdInstr(new Value(left));
+    InsertBefore(call,
+                 left_cid,
+                 NULL,
+                 Definition::kValue);
+    const intptr_t type_cid = Class::Handle(type.type_class()).id();
+    ConstantInstr* cid =
+        flow_graph()->GetConstant(Smi::Handle(Smi::New(type_cid)));
+
+    StrictCompareInstr* check_cid =
+        new StrictCompareInstr(call->token_pos(),
+                               negate ? Token::kNE_STRICT : Token::kEQ_STRICT,
+                               new Value(left_cid),
+                               new Value(cid),
+                               false);  // No number check.
+    ReplaceCall(call, check_cid);
+    return;
+  }
+
   InstanceOfInstr* instance_of =
       new InstanceOfInstr(call->token_pos(),
                           new Value(left),
