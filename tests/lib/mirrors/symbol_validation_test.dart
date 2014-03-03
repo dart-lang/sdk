@@ -11,7 +11,6 @@ validSymbol(String string) {
   Expect.equals(string,
                 MirrorSystem.getName(new Symbol(string)),
                 'Valid symbol "$string" should be invertable');
-  return;  /// 01: ok
   Expect.equals(string,
                 MirrorSystem.getName(MirrorSystem.getSymbol(string)),
                 'Valid symbol "$string" should be invertable');
@@ -21,10 +20,17 @@ invalidSymbol(String string) {
   Expect.throws(() => new Symbol(string),
                 (e) => e is ArgumentError,
                 'Invalid symbol "$string" should be rejected');
-  return;  /// 01: continued
   Expect.throws(() => MirrorSystem.getSymbol(string),
-               (e) => e is ArgumentError,
+                (e) => e is ArgumentError,
                 'Invalid symbol "$string" should be rejected');
+}
+
+validPrivateSymbol(String string) {
+  ClosureMirror closure = reflect(main);
+  LibraryMirror library = closure.function.owner;
+  Expect.equals(string,
+                MirrorSystem.getName(MirrorSystem.getSymbol(string, library)),
+                'Valid private symbol "$string" should be invertable');
 }
 
 main() {
@@ -43,7 +49,7 @@ main() {
   var simpleSymbols = [
     'foo', 'bar_', 'baz.quz', 'fisk1', 'hest2fisk', 'a.b.c.d.e',
     r'$', r'foo$', r'bar$bar', r'$.$', r'x6$_', r'$6_', r'x.$$6_',
-    'x_', 'x_.x_',
+    'x_', 'x_.x_', 'unary', 'x.unary'
   ];
   simpleSymbols.expand((s) => [s, "s="]).forEach(validSymbol);
 
@@ -122,4 +128,10 @@ main() {
   builtInIdentifiers.expand((w) => [w, "$w=", "x.$w" , "$w.x", "x.$w.x",
                                     "$w=", "x.$w="])
                     .forEach(validSymbol);
+
+  var privateSymbols = [
+    '_', '_x', 'x._y', 'x._', 'x.y._', 'x._.y', '_true'
+  ];
+  privateSymbols.forEach(invalidSymbol);
+  privateSymbols.forEach(validPrivateSymbol);   /// 01: ok
 }

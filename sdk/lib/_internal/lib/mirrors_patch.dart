@@ -10,7 +10,7 @@ patch class MirrorSystem {
   patch static String getName(Symbol symbol) => js.getName(symbol);
 
   patch static Symbol getSymbol(String name, [LibraryMirror library]) {
-    throw new UnimplementedError("MirrorSystem.getSymbol not implemented");
+    return js.getSymbol(name, library);
   }
 }
 

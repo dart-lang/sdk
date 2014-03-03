@@ -2797,3 +2797,31 @@ class UnmodifiableMapView<K, V> implements Map<K, V> {
 
   void clear() => _throw();
 }
+
+Symbol getSymbol(String name, LibararyMirror library) {
+  if (_isPublicSymbol(name)) {
+    return new _symbol_dev.Symbol.validated(name);
+  }
+  if (library == null) {
+    throw new ArgumentError(
+        "Library required for private symbol name: $name");
+  }
+  if (!_symbol_dev.Symbol.validatePrivate(name)) {
+    throw new ArgumentError("Not a valid symbol name: $name");
+  }
+  throw new UnimplementedError(
+      "MirrorSystem.getSymbol not implemented for private names");
+}
+
+bool _isPublicSymbol(String name) {
+  // A symbol is public if it doesn't start with '_' and it doesn't
+  // have a part (following a '.') that starts with '_'.
+  const int UNDERSCORE = 0x5f;
+  if (name.isEmpty) return true;
+  int index = -1;
+  do {
+    if (name.codeUnitAt(index + 1) == UNDERSCORE) return false;
+    index = name.indexOf('.', index + 1);
+  } while (index >= 0 && index + 1 < name.length);
+  return true;
+}
