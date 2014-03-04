@@ -83,8 +83,6 @@ abstract class SdkLibrary {
 /**
  * Instances of the class `SdkLibrary` represent the information known about a single library
  * within the SDK.
- *
- * @coverage dart.engine.sdk
  */
 class SdkLibraryImpl implements SdkLibrary {
   /**
@@ -195,7 +193,7 @@ class SdkLibraryImpl implements SdkLibrary {
   }
 }
 
-class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
+class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
   /**
    * The prefix added to the name of a library to form the URI used in code to reference the
    * library.
@@ -311,8 +309,6 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
 /**
  * Instances of the class `LibraryMap` map Dart library URI's to the [SdkLibraryImpl
  ].
- *
- * @coverage dart.engine.sdk
  */
 class LibraryMap {
   /**
@@ -362,8 +358,6 @@ class LibraryMap {
 
 /**
  * Instances of the class `DartSdk` represent a Dart SDK installed in a specified location.
- *
- * @coverage dart.engine.sdk
  */
 abstract class DartSdk {
   /**

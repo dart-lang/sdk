@@ -21,8 +21,6 @@ import 'utilities_collection.dart' show TokenMap;
 /**
  * Instances of the class `CommentAndMetadata` implement a simple data-holder for a method
  * that needs to return multiple values.
- *
- * @coverage dart.engine.parser
  */
 class CommentAndMetadata {
   /**
@@ -47,8 +45,6 @@ class CommentAndMetadata {
 /**
  * Instances of the class `FinalConstVarOrType` implement a simple data-holder for a method
  * that needs to return multiple values.
- *
- * @coverage dart.engine.parser
  */
 class FinalConstVarOrType {
   /**
@@ -73,8 +69,6 @@ class FinalConstVarOrType {
 /**
  * Instances of the class `Modifiers` implement a simple data-holder for a method that needs
  * to return multiple values.
- *
- * @coverage dart.engine.parser
  */
 class Modifiers {
   /**
@@ -152,7 +146,7 @@ class Modifiers {
  * the methods will throw an [IncrementalParseException] if the node could not be parsed for
  * some reason.
  */
-class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
+class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   /**
    * The parser used to parse the replacement for the node.
    */
@@ -161,7 +155,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
   /**
    * The node that is to be replaced.
    */
-  ASTNode _oldNode;
+  AstNode _oldNode;
 
   /**
    * Initialize a newly created dispatcher to parse a single node that will replace the given node.
@@ -169,19 +163,19 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
    * @param parser the parser used to parse the replacement for the node
    * @param oldNode the node that is to be replaced
    */
-  IncrementalParseDispatcher(Parser parser, ASTNode oldNode) {
+  IncrementalParseDispatcher(Parser parser, AstNode oldNode) {
     this._parser = parser;
     this._oldNode = oldNode;
   }
 
-  ASTNode visitAdjacentStrings(AdjacentStrings node) {
+  AstNode visitAdjacentStrings(AdjacentStrings node) {
     if (node.strings.contains(_oldNode)) {
       return _parser.parseStringLiteral();
     }
     return notAChild(node);
   }
 
-  ASTNode visitAnnotation(Annotation node) {
+  AstNode visitAnnotation(Annotation node) {
     if (identical(_oldNode, node.name)) {
       throw new InsufficientContextException();
     } else if (identical(_oldNode, node.constructorName)) {
@@ -192,21 +186,21 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
+  AstNode visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
     if (identical(_oldNode, node.identifier)) {
       return _parser.parseSimpleIdentifier();
     }
     return notAChild(node);
   }
 
-  ASTNode visitArgumentList(ArgumentList node) {
+  AstNode visitArgumentList(ArgumentList node) {
     if (node.arguments.contains(_oldNode)) {
       return _parser.parseArgument();
     }
     return notAChild(node);
   }
 
-  ASTNode visitAsExpression(AsExpression node) {
+  AstNode visitAsExpression(AsExpression node) {
     if (identical(_oldNode, node.expression)) {
       return _parser.parseBitwiseOrExpression();
     } else if (identical(_oldNode, node.type)) {
@@ -215,14 +209,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitAssertStatement(AssertStatement node) {
+  AstNode visitAssertStatement(AssertStatement node) {
     if (identical(_oldNode, node.condition)) {
       return _parser.parseExpression2();
     }
     return notAChild(node);
   }
 
-  ASTNode visitAssignmentExpression(AssignmentExpression node) {
+  AstNode visitAssignmentExpression(AssignmentExpression node) {
     if (identical(_oldNode, node.leftHandSide)) {
       // TODO(brianwilkerson) If the assignment is part of a cascade section, then we don't have a
       // single parse method that will work. Otherwise, we can parse a conditional expression, but
@@ -238,7 +232,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitBinaryExpression(BinaryExpression node) {
+  AstNode visitBinaryExpression(BinaryExpression node) {
     if (identical(_oldNode, node.leftOperand)) {
       throw new InsufficientContextException();
     } else if (identical(_oldNode, node.rightOperand)) {
@@ -247,30 +241,30 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitBlock(Block node) {
+  AstNode visitBlock(Block node) {
     if (node.statements.contains(_oldNode)) {
       return _parser.parseStatement2();
     }
     return notAChild(node);
   }
 
-  ASTNode visitBlockFunctionBody(BlockFunctionBody node) {
+  AstNode visitBlockFunctionBody(BlockFunctionBody node) {
     if (identical(_oldNode, node.block)) {
       return _parser.parseBlock();
     }
     return notAChild(node);
   }
 
-  ASTNode visitBooleanLiteral(BooleanLiteral node) => notAChild(node);
+  AstNode visitBooleanLiteral(BooleanLiteral node) => notAChild(node);
 
-  ASTNode visitBreakStatement(BreakStatement node) {
+  AstNode visitBreakStatement(BreakStatement node) {
     if (identical(_oldNode, node.label)) {
       return _parser.parseSimpleIdentifier();
     }
     return notAChild(node);
   }
 
-  ASTNode visitCascadeExpression(CascadeExpression node) {
+  AstNode visitCascadeExpression(CascadeExpression node) {
     if (identical(_oldNode, node.target)) {
       return _parser.parseConditionalExpression();
     } else if (node.cascadeSections.contains(_oldNode)) {
@@ -279,7 +273,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitCatchClause(CatchClause node) {
+  AstNode visitCatchClause(CatchClause node) {
     if (identical(_oldNode, node.exceptionType)) {
       return _parser.parseTypeName();
     } else if (identical(_oldNode, node.exceptionParameter)) {
@@ -292,7 +286,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitClassDeclaration(ClassDeclaration node) {
+  AstNode visitClassDeclaration(ClassDeclaration node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
     } else if (node.metadata.contains(_oldNode)) {
@@ -317,7 +311,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitClassTypeAlias(ClassTypeAlias node) {
+  AstNode visitClassTypeAlias(ClassTypeAlias node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
     } else if (node.metadata.contains(_oldNode)) {
@@ -336,22 +330,22 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitComment(Comment node) {
+  AstNode visitComment(Comment node) {
     throw new InsufficientContextException();
   }
 
-  ASTNode visitCommentReference(CommentReference node) {
+  AstNode visitCommentReference(CommentReference node) {
     if (identical(_oldNode, node.identifier)) {
       return _parser.parsePrefixedIdentifier();
     }
     return notAChild(node);
   }
 
-  ASTNode visitCompilationUnit(CompilationUnit node) {
+  AstNode visitCompilationUnit(CompilationUnit node) {
     throw new InsufficientContextException();
   }
 
-  ASTNode visitConditionalExpression(ConditionalExpression node) {
+  AstNode visitConditionalExpression(ConditionalExpression node) {
     if (identical(_oldNode, node.condition)) {
       return _parser.parseLogicalOrExpression();
     } else if (identical(_oldNode, node.thenExpression)) {
@@ -362,7 +356,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitConstructorDeclaration(ConstructorDeclaration node) {
+  AstNode visitConstructorDeclaration(ConstructorDeclaration node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
     } else if (node.metadata.contains(_oldNode)) {
@@ -383,7 +377,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+  AstNode visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     if (identical(_oldNode, node.fieldName)) {
       return _parser.parseSimpleIdentifier();
     } else if (identical(_oldNode, node.expression)) {
@@ -392,7 +386,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitConstructorName(ConstructorName node) {
+  AstNode visitConstructorName(ConstructorName node) {
     if (identical(_oldNode, node.type)) {
       return _parser.parseTypeName();
     } else if (identical(_oldNode, node.name)) {
@@ -401,14 +395,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitContinueStatement(ContinueStatement node) {
+  AstNode visitContinueStatement(ContinueStatement node) {
     if (identical(_oldNode, node.label)) {
       return _parser.parseSimpleIdentifier();
     }
     return notAChild(node);
   }
 
-  ASTNode visitDeclaredIdentifier(DeclaredIdentifier node) {
+  AstNode visitDeclaredIdentifier(DeclaredIdentifier node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
     } else if (node.metadata.contains(_oldNode)) {
@@ -421,7 +415,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitDefaultFormalParameter(DefaultFormalParameter node) {
+  AstNode visitDefaultFormalParameter(DefaultFormalParameter node) {
     if (identical(_oldNode, node.parameter)) {
       return _parser.parseNormalFormalParameter();
     } else if (identical(_oldNode, node.defaultValue)) {
@@ -430,7 +424,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitDoStatement(DoStatement node) {
+  AstNode visitDoStatement(DoStatement node) {
     if (identical(_oldNode, node.body)) {
       return _parser.parseStatement2();
     } else if (identical(_oldNode, node.condition)) {
@@ -439,13 +433,13 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitDoubleLiteral(DoubleLiteral node) => notAChild(node);
+  AstNode visitDoubleLiteral(DoubleLiteral node) => notAChild(node);
 
-  ASTNode visitEmptyFunctionBody(EmptyFunctionBody node) => notAChild(node);
+  AstNode visitEmptyFunctionBody(EmptyFunctionBody node) => notAChild(node);
 
-  ASTNode visitEmptyStatement(EmptyStatement node) => notAChild(node);
+  AstNode visitEmptyStatement(EmptyStatement node) => notAChild(node);
 
-  ASTNode visitExportDirective(ExportDirective node) {
+  AstNode visitExportDirective(ExportDirective node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
     } else if (node.metadata.contains(_oldNode)) {
@@ -458,28 +452,28 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitExpressionFunctionBody(ExpressionFunctionBody node) {
+  AstNode visitExpressionFunctionBody(ExpressionFunctionBody node) {
     if (identical(_oldNode, node.expression)) {
       return _parser.parseExpression2();
     }
     return notAChild(node);
   }
 
-  ASTNode visitExpressionStatement(ExpressionStatement node) {
+  AstNode visitExpressionStatement(ExpressionStatement node) {
     if (identical(_oldNode, node.expression)) {
       return _parser.parseExpression2();
     }
     return notAChild(node);
   }
 
-  ASTNode visitExtendsClause(ExtendsClause node) {
+  AstNode visitExtendsClause(ExtendsClause node) {
     if (identical(_oldNode, node.superclass)) {
       return _parser.parseTypeName();
     }
     return notAChild(node);
   }
 
-  ASTNode visitFieldDeclaration(FieldDeclaration node) {
+  AstNode visitFieldDeclaration(FieldDeclaration node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
     } else if (node.metadata.contains(_oldNode)) {
@@ -490,7 +484,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitFieldFormalParameter(FieldFormalParameter node) {
+  AstNode visitFieldFormalParameter(FieldFormalParameter node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
     } else if (node.metadata.contains(_oldNode)) {
@@ -505,7 +499,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitForEachStatement(ForEachStatement node) {
+  AstNode visitForEachStatement(ForEachStatement node) {
     if (identical(_oldNode, node.loopVariable)) {
       throw new InsufficientContextException();
     } else if (identical(_oldNode, node.identifier)) {
@@ -516,12 +510,12 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitFormalParameterList(FormalParameterList node) {
+  AstNode visitFormalParameterList(FormalParameterList node) {
     // We don't know which kind of parameter to parse.
     throw new InsufficientContextException();
   }
 
-  ASTNode visitForStatement(ForStatement node) {
+  AstNode visitForStatement(ForStatement node) {
     if (identical(_oldNode, node.variables)) {
       throw new InsufficientContextException();
     } else if (identical(_oldNode, node.initialization)) {
@@ -536,7 +530,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitFunctionDeclaration(FunctionDeclaration node) {
+  AstNode visitFunctionDeclaration(FunctionDeclaration node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
     } else if (node.metadata.contains(_oldNode)) {
@@ -551,14 +545,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+  AstNode visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     if (identical(_oldNode, node.functionDeclaration)) {
       throw new InsufficientContextException();
     }
     return notAChild(node);
   }
 
-  ASTNode visitFunctionExpression(FunctionExpression node) {
+  AstNode visitFunctionExpression(FunctionExpression node) {
     if (identical(_oldNode, node.parameters)) {
       return _parser.parseFormalParameterList();
     } else if (identical(_oldNode, node.body)) {
@@ -567,7 +561,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+  AstNode visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     if (identical(_oldNode, node.function)) {
       throw new InsufficientContextException();
     } else if (identical(_oldNode, node.argumentList)) {
@@ -576,7 +570,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitFunctionTypeAlias(FunctionTypeAlias node) {
+  AstNode visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
     } else if (node.metadata.contains(_oldNode)) {
@@ -593,7 +587,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+  AstNode visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
     } else if (node.metadata.contains(_oldNode)) {
@@ -608,14 +602,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitHideCombinator(HideCombinator node) {
+  AstNode visitHideCombinator(HideCombinator node) {
     if (node.hiddenNames.contains(_oldNode)) {
       return _parser.parseSimpleIdentifier();
     }
     return notAChild(node);
   }
 
-  ASTNode visitIfStatement(IfStatement node) {
+  AstNode visitIfStatement(IfStatement node) {
     if (identical(_oldNode, node.condition)) {
       return _parser.parseExpression2();
     } else if (identical(_oldNode, node.thenStatement)) {
@@ -626,14 +620,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitImplementsClause(ImplementsClause node) {
+  AstNode visitImplementsClause(ImplementsClause node) {
     if (node.interfaces.contains(node)) {
       return _parser.parseTypeName();
     }
     return notAChild(node);
   }
 
-  ASTNode visitImportDirective(ImportDirective node) {
+  AstNode visitImportDirective(ImportDirective node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
     } else if (node.metadata.contains(_oldNode)) {
@@ -648,7 +642,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitIndexExpression(IndexExpression node) {
+  AstNode visitIndexExpression(IndexExpression node) {
     if (identical(_oldNode, node.target)) {
       throw new InsufficientContextException();
     } else if (identical(_oldNode, node.index)) {
@@ -657,7 +651,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitInstanceCreationExpression(InstanceCreationExpression node) {
+  AstNode visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (identical(_oldNode, node.constructorName)) {
       return _parser.parseConstructorName();
     } else if (identical(_oldNode, node.argumentList)) {
@@ -666,9 +660,9 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitIntegerLiteral(IntegerLiteral node) => notAChild(node);
+  AstNode visitIntegerLiteral(IntegerLiteral node) => notAChild(node);
 
-  ASTNode visitInterpolationExpression(InterpolationExpression node) {
+  AstNode visitInterpolationExpression(InterpolationExpression node) {
     if (identical(_oldNode, node.expression)) {
       if (node.leftBracket == null) {
         throw new InsufficientContextException();
@@ -678,11 +672,11 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitInterpolationString(InterpolationString node) {
+  AstNode visitInterpolationString(InterpolationString node) {
     throw new InsufficientContextException();
   }
 
-  ASTNode visitIsExpression(IsExpression node) {
+  AstNode visitIsExpression(IsExpression node) {
     if (identical(_oldNode, node.expression)) {
       return _parser.parseBitwiseOrExpression();
     } else if (identical(_oldNode, node.type)) {
@@ -691,14 +685,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitLabel(Label node) {
+  AstNode visitLabel(Label node) {
     if (identical(_oldNode, node.label)) {
       return _parser.parseSimpleIdentifier();
     }
     return notAChild(node);
   }
 
-  ASTNode visitLabeledStatement(LabeledStatement node) {
+  AstNode visitLabeledStatement(LabeledStatement node) {
     if (node.labels.contains(_oldNode)) {
       return _parser.parseLabel();
     } else if (identical(_oldNode, node.statement)) {
@@ -707,7 +701,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitLibraryDirective(LibraryDirective node) {
+  AstNode visitLibraryDirective(LibraryDirective node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
     } else if (node.metadata.contains(_oldNode)) {
@@ -718,14 +712,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitLibraryIdentifier(LibraryIdentifier node) {
+  AstNode visitLibraryIdentifier(LibraryIdentifier node) {
     if (node.components.contains(_oldNode)) {
       return _parser.parseSimpleIdentifier();
     }
     return notAChild(node);
   }
 
-  ASTNode visitListLiteral(ListLiteral node) {
+  AstNode visitListLiteral(ListLiteral node) {
     if (identical(_oldNode, node.typeArguments)) {
       return _parser.parseTypeArgumentList();
     } else if (node.elements.contains(_oldNode)) {
@@ -734,7 +728,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitMapLiteral(MapLiteral node) {
+  AstNode visitMapLiteral(MapLiteral node) {
     if (identical(_oldNode, node.typeArguments)) {
       return _parser.parseTypeArgumentList();
     } else if (node.entries.contains(_oldNode)) {
@@ -743,7 +737,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitMapLiteralEntry(MapLiteralEntry node) {
+  AstNode visitMapLiteralEntry(MapLiteralEntry node) {
     if (identical(_oldNode, node.key)) {
       return _parser.parseExpression2();
     } else if (identical(_oldNode, node.value)) {
@@ -752,7 +746,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitMethodDeclaration(MethodDeclaration node) {
+  AstNode visitMethodDeclaration(MethodDeclaration node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
     } else if (node.metadata.contains(_oldNode)) {
@@ -771,7 +765,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitMethodInvocation(MethodInvocation node) {
+  AstNode visitMethodInvocation(MethodInvocation node) {
     if (identical(_oldNode, node.target)) {
       throw new IncrementalParseException();
     } else if (identical(_oldNode, node.methodName)) {
@@ -782,7 +776,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitNamedExpression(NamedExpression node) {
+  AstNode visitNamedExpression(NamedExpression node) {
     if (identical(_oldNode, node.name)) {
       return _parser.parseLabel();
     } else if (identical(_oldNode, node.expression)) {
@@ -791,30 +785,30 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitNativeClause(NativeClause node) {
+  AstNode visitNativeClause(NativeClause node) {
     if (identical(_oldNode, node.name)) {
       return _parser.parseStringLiteral();
     }
     return notAChild(node);
   }
 
-  ASTNode visitNativeFunctionBody(NativeFunctionBody node) {
+  AstNode visitNativeFunctionBody(NativeFunctionBody node) {
     if (identical(_oldNode, node.stringLiteral)) {
       return _parser.parseStringLiteral();
     }
     return notAChild(node);
   }
 
-  ASTNode visitNullLiteral(NullLiteral node) => notAChild(node);
+  AstNode visitNullLiteral(NullLiteral node) => notAChild(node);
 
-  ASTNode visitParenthesizedExpression(ParenthesizedExpression node) {
+  AstNode visitParenthesizedExpression(ParenthesizedExpression node) {
     if (identical(_oldNode, node.expression)) {
       return _parser.parseExpression2();
     }
     return notAChild(node);
   }
 
-  ASTNode visitPartDirective(PartDirective node) {
+  AstNode visitPartDirective(PartDirective node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
     } else if (node.metadata.contains(_oldNode)) {
@@ -825,7 +819,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitPartOfDirective(PartOfDirective node) {
+  AstNode visitPartOfDirective(PartOfDirective node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
     } else if (node.metadata.contains(_oldNode)) {
@@ -836,14 +830,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitPostfixExpression(PostfixExpression node) {
+  AstNode visitPostfixExpression(PostfixExpression node) {
     if (identical(_oldNode, node.operand)) {
       throw new InsufficientContextException();
     }
     return notAChild(node);
   }
 
-  ASTNode visitPrefixedIdentifier(PrefixedIdentifier node) {
+  AstNode visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (identical(_oldNode, node.prefix)) {
       return _parser.parseSimpleIdentifier();
     } else if (identical(_oldNode, node.identifier)) {
@@ -852,14 +846,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitPrefixExpression(PrefixExpression node) {
+  AstNode visitPrefixExpression(PrefixExpression node) {
     if (identical(_oldNode, node.operand)) {
       throw new InsufficientContextException();
     }
     return notAChild(node);
   }
 
-  ASTNode visitPropertyAccess(PropertyAccess node) {
+  AstNode visitPropertyAccess(PropertyAccess node) {
     if (identical(_oldNode, node.target)) {
       throw new InsufficientContextException();
     } else if (identical(_oldNode, node.propertyName)) {
@@ -868,7 +862,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+  AstNode visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     if (identical(_oldNode, node.constructorName)) {
       return _parser.parseSimpleIdentifier();
     } else if (identical(_oldNode, node.argumentList)) {
@@ -877,25 +871,25 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitRethrowExpression(RethrowExpression node) => notAChild(node);
+  AstNode visitRethrowExpression(RethrowExpression node) => notAChild(node);
 
-  ASTNode visitReturnStatement(ReturnStatement node) {
+  AstNode visitReturnStatement(ReturnStatement node) {
     if (identical(_oldNode, node.expression)) {
       return _parser.parseExpression2();
     }
     return notAChild(node);
   }
 
-  ASTNode visitScriptTag(ScriptTag node) => notAChild(node);
+  AstNode visitScriptTag(ScriptTag node) => notAChild(node);
 
-  ASTNode visitShowCombinator(ShowCombinator node) {
+  AstNode visitShowCombinator(ShowCombinator node) {
     if (node.shownNames.contains(_oldNode)) {
       return _parser.parseSimpleIdentifier();
     }
     return notAChild(node);
   }
 
-  ASTNode visitSimpleFormalParameter(SimpleFormalParameter node) {
+  AstNode visitSimpleFormalParameter(SimpleFormalParameter node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
     } else if (node.metadata.contains(_oldNode)) {
@@ -908,18 +902,18 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitSimpleIdentifier(SimpleIdentifier node) => notAChild(node);
+  AstNode visitSimpleIdentifier(SimpleIdentifier node) => notAChild(node);
 
-  ASTNode visitSimpleStringLiteral(SimpleStringLiteral node) => notAChild(node);
+  AstNode visitSimpleStringLiteral(SimpleStringLiteral node) => notAChild(node);
 
-  ASTNode visitStringInterpolation(StringInterpolation node) {
+  AstNode visitStringInterpolation(StringInterpolation node) {
     if (node.elements.contains(_oldNode)) {
       throw new InsufficientContextException();
     }
     return notAChild(node);
   }
 
-  ASTNode visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+  AstNode visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     if (identical(_oldNode, node.constructorName)) {
       return _parser.parseSimpleIdentifier();
     } else if (identical(_oldNode, node.argumentList)) {
@@ -928,9 +922,9 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitSuperExpression(SuperExpression node) => notAChild(node);
+  AstNode visitSuperExpression(SuperExpression node) => notAChild(node);
 
-  ASTNode visitSwitchCase(SwitchCase node) {
+  AstNode visitSwitchCase(SwitchCase node) {
     if (node.labels.contains(_oldNode)) {
       return _parser.parseLabel();
     } else if (identical(_oldNode, node.expression)) {
@@ -941,7 +935,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitSwitchDefault(SwitchDefault node) {
+  AstNode visitSwitchDefault(SwitchDefault node) {
     if (node.labels.contains(_oldNode)) {
       return _parser.parseLabel();
     } else if (node.statements.contains(_oldNode)) {
@@ -950,7 +944,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitSwitchStatement(SwitchStatement node) {
+  AstNode visitSwitchStatement(SwitchStatement node) {
     if (identical(_oldNode, node.expression)) {
       return _parser.parseExpression2();
     } else if (node.members.contains(_oldNode)) {
@@ -959,11 +953,11 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitSymbolLiteral(SymbolLiteral node) => notAChild(node);
+  AstNode visitSymbolLiteral(SymbolLiteral node) => notAChild(node);
 
-  ASTNode visitThisExpression(ThisExpression node) => notAChild(node);
+  AstNode visitThisExpression(ThisExpression node) => notAChild(node);
 
-  ASTNode visitThrowExpression(ThrowExpression node) {
+  AstNode visitThrowExpression(ThrowExpression node) {
     if (identical(_oldNode, node.expression)) {
       if (isCascadeAllowed2(node)) {
         return _parser.parseExpression2();
@@ -973,7 +967,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  AstNode visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
     } else if (node.metadata.contains(_oldNode)) {
@@ -984,7 +978,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitTryStatement(TryStatement node) {
+  AstNode visitTryStatement(TryStatement node) {
     if (identical(_oldNode, node.body)) {
       return _parser.parseBlock();
     } else if (node.catchClauses.contains(_oldNode)) {
@@ -995,14 +989,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitTypeArgumentList(TypeArgumentList node) {
+  AstNode visitTypeArgumentList(TypeArgumentList node) {
     if (node.arguments.contains(_oldNode)) {
       return _parser.parseTypeName();
     }
     return notAChild(node);
   }
 
-  ASTNode visitTypeName(TypeName node) {
+  AstNode visitTypeName(TypeName node) {
     if (identical(_oldNode, node.name)) {
       return _parser.parsePrefixedIdentifier();
     } else if (identical(_oldNode, node.typeArguments)) {
@@ -1011,7 +1005,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitTypeParameter(TypeParameter node) {
+  AstNode visitTypeParameter(TypeParameter node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
     } else if (node.metadata.contains(_oldNode)) {
@@ -1024,14 +1018,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitTypeParameterList(TypeParameterList node) {
+  AstNode visitTypeParameterList(TypeParameterList node) {
     if (node.typeParameters.contains(node)) {
       return _parser.parseTypeParameter();
     }
     return notAChild(node);
   }
 
-  ASTNode visitVariableDeclaration(VariableDeclaration node) {
+  AstNode visitVariableDeclaration(VariableDeclaration node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
     } else if (node.metadata.contains(_oldNode)) {
@@ -1044,7 +1038,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitVariableDeclarationList(VariableDeclarationList node) {
+  AstNode visitVariableDeclarationList(VariableDeclarationList node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
     } else if (node.metadata.contains(_oldNode)) {
@@ -1055,14 +1049,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+  AstNode visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     if (identical(_oldNode, node.variables)) {
       throw new InsufficientContextException();
     }
     return notAChild(node);
   }
 
-  ASTNode visitWhileStatement(WhileStatement node) {
+  AstNode visitWhileStatement(WhileStatement node) {
     if (identical(_oldNode, node.condition)) {
       return _parser.parseExpression2();
     } else if (identical(_oldNode, node.body)) {
@@ -1071,7 +1065,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     return notAChild(node);
   }
 
-  ASTNode visitWithClause(WithClause node) {
+  AstNode visitWithClause(WithClause node) {
     if (node.mixinTypes.contains(node)) {
       return _parser.parseTypeName();
     }
@@ -1107,7 +1101,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
    *
    * @param visitedNode the visited node that should have been the parent of the node to be replaced
    */
-  ASTNode notAChild(ASTNode visitedNode) {
+  AstNode notAChild(AstNode visitedNode) {
     throw new IncrementalParseException.con1("Internal error: the visited node (a ${visitedNode.runtimeType.toString()}) was not the parent of the node to be replaced (a ${_oldNode.runtimeType.toString()})");
   }
 }
@@ -1160,7 +1154,7 @@ class IncrementalParser {
   /**
    * The node in the AST structure that contains the revised content.
    */
-  ASTNode _updatedNode;
+  AstNode _updatedNode;
 
   /**
    * Initialize a newly created incremental parser to parse a portion of the content of the given
@@ -1182,7 +1176,7 @@ class IncrementalParser {
    *
    * @return the updated node
    */
-  ASTNode get updatedNode => _updatedNode;
+  AstNode get updatedNode => _updatedNode;
 
   /**
    * Given a range of tokens that were re-scanned, re-parse the minimum number of tokens to produce
@@ -1196,9 +1190,9 @@ class IncrementalParser {
    * @param originalStart the offset in the original source of the first character that was modified
    * @param originalEnd the offset in the original source of the last character that was modified
    */
-  ASTNode reparse(ASTNode originalStructure, Token leftToken, Token rightToken, int originalStart, int originalEnd) {
-    ASTNode oldNode = null;
-    ASTNode newNode = null;
+  AstNode reparse(AstNode originalStructure, Token leftToken, Token rightToken, int originalStart, int originalEnd) {
+    AstNode oldNode = null;
+    AstNode newNode = null;
     //
     // Find the first token that needs to be re-parsed.
     //
@@ -1229,7 +1223,7 @@ class IncrementalParser {
     Parser parser = new Parser(_source, _errorListener);
     parser.currentToken = parseToken;
     while (newNode == null) {
-      ASTNode parent = oldNode.parent;
+      AstNode parent = oldNode.parent;
       if (parent == null) {
         parseToken = findFirstToken(parseToken);
         parser.currentToken = parseToken;
@@ -1269,8 +1263,8 @@ class IncrementalParser {
       return newNode;
     }
     ResolutionCopier.copyResolutionData(oldNode, newNode);
-    IncrementalASTCloner cloner = new IncrementalASTCloner(oldNode, newNode, _tokenMap);
-    return originalStructure.accept(cloner) as ASTNode;
+    IncrementalAstCloner cloner = new IncrementalAstCloner(oldNode, newNode, _tokenMap);
+    return originalStructure.accept(cloner) as AstNode;
   }
 
   /**
@@ -1330,8 +1324,6 @@ class InsufficientContextException extends IncrementalParseException {
 
 /**
  * Instances of the class `Parser` are used to parse tokens into an AST structure.
- *
- * @coverage dart.engine.parser
  */
 class Parser {
   /**
@@ -6353,7 +6345,7 @@ class Parser {
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError12(ParserErrorCode errorCode, ASTNode node, List<Object> arguments) {
+  void reportError12(ParserErrorCode errorCode, AstNode node, List<Object> arguments) {
     reportError(new AnalysisError.con2(_source, node.offset, node.length, errorCode, arguments));
   }
 
@@ -7239,8 +7231,6 @@ class Parser_SyntheticKeywordToken extends KeywordToken {
  * parser. The convention for this class is for the name of the error code to indicate the problem
  * that caused the error to be generated and for the error message to explain what is wrong and,
  * when appropriate, how the problem can be corrected.
- *
- * @coverage dart.engine.parser
  */
 class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
   static final ParserErrorCode ABSTRACT_CLASS_MEMBER = new ParserErrorCode.con3('ABSTRACT_CLASS_MEMBER', 0, "Members of classes cannot be declared to be 'abstract'");
@@ -7702,14 +7692,14 @@ class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
  * structure to another as long as the structures of the corresponding children of a pair of nodes
  * are the same.
  */
-class ResolutionCopier implements ASTVisitor<bool> {
+class ResolutionCopier implements AstVisitor<bool> {
   /**
    * Copy resolution data from one node to another.
    *
    * @param fromNode the node from which resolution information will be copied
    * @param toNode the node to which resolution information will be copied
    */
-  static void copyResolutionData(ASTNode fromNode, ASTNode toNode) {
+  static void copyResolutionData(AstNode fromNode, AstNode toNode) {
     ResolutionCopier copier = new ResolutionCopier();
     copier.isEqual(fromNode, toNode);
   }
@@ -7718,7 +7708,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
    * The AST node with which the node being visited is to be compared. This is only valid at the
    * beginning of each visit method (until [isEqual] is invoked).
    */
-  ASTNode _toNode;
+  AstNode _toNode;
 
   bool visitAdjacentStrings(AdjacentStrings node) {
     AdjacentStrings toNode = this._toNode as AdjacentStrings;
@@ -8471,7 +8461,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
    * @param toNode the node to which resolution information will be copied
    * @return `true` if the given AST nodes have the same structure
    */
-  bool isEqual(ASTNode fromNode, ASTNode toNode) {
+  bool isEqual(AstNode fromNode, AstNode toNode) {
     if (fromNode == null) {
       return toNode == null;
     } else if (toNode == null) {
@@ -8570,7 +8560,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
  * Instances of the class {link ToFormattedSourceVisitor} write a source representation of a visited
  * AST node (and all of it's children) to a writer.
  */
-class ToFormattedSourceVisitor implements ASTVisitor<Object> {
+class ToFormattedSourceVisitor implements AstVisitor<Object> {
   static String COMMENTS_KEY = "List of comments before statement";
 
   /**
@@ -9499,7 +9489,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
    *
    * @param node the node to be visited
    */
-  void visit(ASTNode node) {
+  void visit(AstNode node) {
     if (node != null) {
       node.accept(this);
     }
@@ -9511,7 +9501,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
    * @param suffix the suffix to be printed if there is a node to visit
    * @param node the node to be visited
    */
-  void visit6(ASTNode node, String suffix) {
+  void visit6(AstNode node, String suffix) {
     if (node != null) {
       node.accept(this);
       _writer.print(suffix);
@@ -9525,7 +9515,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
    * @param prefix the prefix to be printed if there is a node to visit
    * @param node the node to be visited
    */
-  void visit7(String prefix, ASTNode node) {
+  void visit7(String prefix, AstNode node) {
     if (node != null) {
       _writer.print(prefix);
       node.accept(this);
@@ -9551,7 +9541,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
    * @param nodes the nodes to be printed
    * @param separator the separator to be printed between adjacent nodes
    */
-  void visitList(NodeList<ASTNode> nodes) {
+  void visitList(NodeList<AstNode> nodes) {
     visitList5(nodes, "");
   }
 
@@ -9561,7 +9551,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
    * @param nodes the nodes to be printed
    * @param separator the separator to be printed between adjacent nodes
    */
-  void visitList5(NodeList<ASTNode> nodes, String separator) {
+  void visitList5(NodeList<AstNode> nodes, String separator) {
     visitList8("", nodes, separator, "");
   }
 
@@ -9572,7 +9562,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
    * @param separator the separator to be printed between adjacent nodes
    * @param suffix the suffix to be printed if the list is not empty
    */
-  void visitList6(NodeList<ASTNode> nodes, String separator, String suffix) {
+  void visitList6(NodeList<AstNode> nodes, String separator, String suffix) {
     visitList8("", nodes, separator, suffix);
   }
 
@@ -9583,7 +9573,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
    * @param nodes the nodes to be printed
    * @param separator the separator to be printed between adjacent nodes
    */
-  void visitList7(String prefix, NodeList<ASTNode> nodes, String separator) {
+  void visitList7(String prefix, NodeList<AstNode> nodes, String separator) {
     visitList8(prefix, nodes, separator, "");
   }
 
@@ -9595,7 +9585,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
    * @param separator the separator to be printed between adjacent nodes
    * @param suffix the suffix to be printed if the list is not empty
    */
-  void visitList8(String prefix, NodeList<ASTNode> nodes, String separator, String suffix) {
+  void visitList8(String prefix, NodeList<AstNode> nodes, String separator, String suffix) {
     if (nodes != null) {
       int size = nodes.length;
       if (size != 0) {
@@ -9613,7 +9603,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
               indent();
             }
           }
-          ASTNode node = nodes[i];
+          AstNode node = nodes[i];
           if (node is Statement) {
             printLeadingComments(node);
           }

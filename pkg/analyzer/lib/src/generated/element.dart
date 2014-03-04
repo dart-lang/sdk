@@ -22,8 +22,6 @@ import 'utilities_dart.dart';
 
 /**
  * The interface `ClassElement` defines the behavior of elements that represent a class.
- *
- * @coverage dart.engine.element
  */
 abstract class ClassElement implements Element {
   /**
@@ -253,13 +251,11 @@ abstract class ClassElement implements Element {
    * behavior of this method is defined by the Dart Language Specification in section 12.15.1:
    * <blockquote>The result of looking up getter (respectively setter) <i>m</i> in class <i>C</i>
    * with respect to library <i>L</i> is:
-   *
    * * If <i>C</i> declares an instance getter (respectively setter) named <i>m</i> that is
    * accessible to <i>L</i>, then that getter (respectively setter) is the result of the lookup.
    * Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result of the lookup is the result
    * of looking up getter (respectively setter) <i>m</i> in <i>S</i> with respect to <i>L</i>.
    * Otherwise, we say that the lookup has failed.
-   *
    * </blockquote>
    *
    * @param getterName the name of the getter being looked up
@@ -275,12 +271,10 @@ abstract class ClassElement implements Element {
    * behavior of this method is defined by the Dart Language Specification in section 12.15.1:
    * <blockquote> The result of looking up method <i>m</i> in class <i>C</i> with respect to library
    * <i>L</i> is:
-   *
    * * If <i>C</i> declares an instance method named <i>m</i> that is accessible to <i>L</i>, then
    * that method is the result of the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then
    * the result of the lookup is the result of looking up method <i>m</i> in <i>S</i> with respect
    * to <i>L</i>. Otherwise, we say that the lookup has failed.
-   *
    * </blockquote>
    *
    * @param methodName the name of the method being looked up
@@ -296,13 +290,11 @@ abstract class ClassElement implements Element {
    * behavior of this method is defined by the Dart Language Specification in section 12.16:
    * <blockquote> The result of looking up getter (respectively setter) <i>m</i> in class <i>C</i>
    * with respect to library <i>L</i> is:
-   *
    * * If <i>C</i> declares an instance getter (respectively setter) named <i>m</i> that is
    * accessible to <i>L</i>, then that getter (respectively setter) is the result of the lookup.
    * Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result of the lookup is the result
    * of looking up getter (respectively setter) <i>m</i> in <i>S</i> with respect to <i>L</i>.
    * Otherwise, we say that the lookup has failed.
-   *
    * </blockquote>
    *
    * @param setterName the name of the setter being looked up
@@ -337,8 +329,6 @@ abstract class ClassMemberElement implements Element {
 /**
  * The interface `CompilationUnitElement` defines the behavior of elements representing a
  * compilation unit.
- *
- * @coverage dart.engine.element
  */
 abstract class CompilationUnitElement implements Element, UriReferencedElement {
   /**
@@ -416,8 +406,6 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
 /**
  * The interface `ConstructorElement` defines the behavior of elements representing a
  * constructor or a factory method defined within a type.
- *
- * @coverage dart.engine.element
  */
 abstract class ConstructorElement implements ClassMemberElement, ExecutableElement {
   /**
@@ -472,18 +460,14 @@ abstract class ConstructorElement implements ClassMemberElement, ExecutableEleme
  * are created for the convenience of various kinds of analysis but that do not have any
  * corresponding declaration within the source code. Such elements are marked as being
  * <i>synthetic</i>. Examples of synthetic elements include
- *
  * * default constructors in classes that do not define any explicit constructors,
  * * getters and setters that are induced by explicit field declarations,
  * * fields that are induced by explicit declarations of getters and setters, and
  * * functions representing the initialization expression for a variable.
  *
- *
  * Second, there are elements in the element model that do not have a name. These correspond to
  * unnamed functions and exist in order to more accurately represent the semantic structure of the
  * program.
- *
- * @coverage dart.engine.element
  */
 abstract class Element {
   /**
@@ -602,15 +586,15 @@ abstract class Element {
   int get nameOffset;
 
   /**
-   * Return the resolved [ASTNode] node that declares this [Element].
+   * Return the resolved [AstNode] node that declares this [Element].
    *
    * This method is expensive, because resolved AST might be evicted from cache, so parsing and
    * resolving will be performed.
    *
-   * @return the resolved [ASTNode], maybe `null` if [Element] is synthetic or
+   * @return the resolved [AstNode], maybe `null` if [Element] is synthetic or
    *         isn't contained in a compilation unit, such as a [LibraryElement].
    */
-  ASTNode get node;
+  AstNode get node;
 
   /**
    * Return the source that contains this element, or `null` if this element is not contained
@@ -693,8 +677,6 @@ abstract class Element {
 /**
  * The interface `ElementAnnotation` defines the behavior of objects representing a single
  * annotation associated with an element.
- *
- * @coverage dart.engine.element
  */
 abstract class ElementAnnotation {
   /**
@@ -733,8 +715,6 @@ abstract class ElementAnnotation {
 
 /**
  * The enumeration `ElementKind` defines the various kinds of elements in the element model.
- *
- * @coverage dart.engine.element
  */
 class ElementKind extends Enum<ElementKind> {
   static final ElementKind ANGULAR_FILTER = new ElementKind('ANGULAR_FILTER', 0, "Angular filter");
@@ -868,8 +848,6 @@ class ElementKind extends Enum<ElementKind> {
 /**
  * The interface `ElementLocation` defines the behavior of objects that represent the location
  * of an element within the element model.
- *
- * @coverage dart.engine.element
  */
 abstract class ElementLocation {
   /**
@@ -884,8 +862,6 @@ abstract class ElementLocation {
 /**
  * The interface `ElementVisitor` defines the behavior of objects that can be used to visit an
  * element structure.
- *
- * @coverage dart.engine.element
  */
 abstract class ElementVisitor<R> {
   R visitAngularComponentElement(AngularComponentElement element);
@@ -952,8 +928,6 @@ abstract class ElementVisitor<R> {
 /**
  * The interface `EmbeddedHtmlScriptElement` defines the behavior of elements representing a
  * script tag in an HTML file having content that defines a Dart library.
- *
- * @coverage dart.engine.element
  */
 abstract class EmbeddedHtmlScriptElement implements HtmlScriptElement {
   /**
@@ -967,8 +941,6 @@ abstract class EmbeddedHtmlScriptElement implements HtmlScriptElement {
 /**
  * The interface `ExecutableElement` defines the behavior of elements representing an
  * executable object, including functions, methods, constructors, getters, and setters.
- *
- * @coverage dart.engine.element
  */
 abstract class ExecutableElement implements Element {
   /**
@@ -1034,8 +1006,6 @@ abstract class ExecutableElement implements Element {
 /**
  * The interface `ExportElement` defines the behavior of objects representing information
  * about a single export directive within a library.
- *
- * @coverage dart.engine.element
  */
 abstract class ExportElement implements Element, UriReferencedElement {
   /**
@@ -1063,8 +1033,6 @@ abstract class ExportElement implements Element, UriReferencedElement {
  * The interface `ExternalHtmlScriptElement` defines the behavior of elements representing a
  * script tag in an HTML file having a `source` attribute that references a Dart library
  * source file.
- *
- * @coverage dart.engine.element
  */
 abstract class ExternalHtmlScriptElement implements HtmlScriptElement {
   /**
@@ -1079,8 +1047,6 @@ abstract class ExternalHtmlScriptElement implements HtmlScriptElement {
 /**
  * The interface `FieldElement` defines the behavior of elements representing a field defined
  * within a type.
- *
- * @coverage dart.engine.element
  */
 abstract class FieldElement implements ClassMemberElement, PropertyInducingElement {
 }
@@ -1101,8 +1067,6 @@ abstract class FieldFormalParameterElement implements ParameterElement {
 
 /**
  * The interface `FunctionElement` defines the behavior of elements representing a function.
- *
- * @coverage dart.engine.element
  */
 abstract class FunctionElement implements ExecutableElement, LocalElement {
   /**
@@ -1120,8 +1084,6 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
 /**
  * The interface `FunctionTypeAliasElement` defines the behavior of elements representing a
  * function type alias (`typedef`).
- *
- * @coverage dart.engine.element
  */
 abstract class FunctionTypeAliasElement implements Element {
   /**
@@ -1174,8 +1136,6 @@ abstract class FunctionTypeAliasElement implements Element {
 /**
  * The interface `HideElementCombinator` defines the behavior of combinators that cause some
  * of the names in a namespace to be hidden when being imported.
- *
- * @coverage dart.engine.element
  */
 abstract class HideElementCombinator implements NamespaceCombinator {
   /**
@@ -1189,8 +1149,6 @@ abstract class HideElementCombinator implements NamespaceCombinator {
 
 /**
  * The interface `HtmlElement` defines the behavior of elements representing an HTML file.
- *
- * @coverage dart.engine.element
  */
 abstract class HtmlElement implements Element {
   /**
@@ -1215,7 +1173,6 @@ abstract class HtmlElement implements Element {
  *
  * @see EmbeddedHtmlScriptElement
  * @see ExternalHtmlScriptElement
- * @coverage dart.engine.element
  */
 abstract class HtmlScriptElement implements Element {
 }
@@ -1223,8 +1180,6 @@ abstract class HtmlScriptElement implements Element {
 /**
  * The interface `ImportElement` defines the behavior of objects representing information
  * about a single import directive within a library.
- *
- * @coverage dart.engine.element
  */
 abstract class ImportElement implements Element, UriReferencedElement {
   /**
@@ -1276,8 +1231,6 @@ abstract class ImportElement implements Element, UriReferencedElement {
 /**
  * The interface `LabelElement` defines the behavior of elements representing a label
  * associated with a statement.
- *
- * @coverage dart.engine.element
  */
 abstract class LabelElement implements Element {
   /**
@@ -1290,8 +1243,6 @@ abstract class LabelElement implements Element {
 
 /**
  * The interface `LibraryElement` defines the behavior of elements representing a library.
- *
- * @coverage dart.engine.element
  */
 abstract class LibraryElement implements Element {
   /**
@@ -1429,15 +1380,12 @@ abstract class LibraryElement implements Element {
 /**
  * The interface `LocalElement` defines the behavior of elements that can be (but are not
  * required to be) defined within a method or function (an [ExecutableElement]).
- *
- * @coverage dart.engine.element
  */
 abstract class LocalElement implements Element {
   /**
    * Return a source range that covers the approximate portion of the source in which the name of
    * this element is visible, or `null` if there is no single range of characters within which
    * the element name is visible.
-   *
    * * For a local variable, this includes everything from the end of the variable's initializer
    * to the end of the block that encloses the variable declaration.
    * * For a parameter, this includes the body of the method or function that declares the
@@ -1447,7 +1395,6 @@ abstract class LocalElement implements Element {
    * * For top-level functions, `null` will be returned because they are potentially visible
    * in multiple sources.
    *
-   *
    * @return the range of characters in which the name of this element is visible
    */
   SourceRange get visibleRange;
@@ -1456,8 +1403,6 @@ abstract class LocalElement implements Element {
 /**
  * The interface `LocalVariableElement` defines the behavior common to elements that represent
  * a local variable.
- *
- * @coverage dart.engine.element
  */
 abstract class LocalVariableElement implements LocalElement, VariableElement {
   /**
@@ -1471,8 +1416,6 @@ abstract class LocalVariableElement implements LocalElement, VariableElement {
 /**
  * The interface `MethodElement` defines the behavior of elements that represent a method
  * defined within a type.
- *
- * @coverage dart.engine.element
  */
 abstract class MethodElement implements ClassMemberElement, ExecutableElement {
   /**
@@ -1500,8 +1443,6 @@ abstract class MethodElement implements ClassMemberElement, ExecutableElement {
  * is not allowed by the language, so objects implementing this interface always represent an error.
  * As a result, most of the normal operations on elements do not make sense and will return useless
  * results.
- *
- * @coverage dart.engine.element
  */
 abstract class MultiplyDefinedElement implements Element {
   /**
@@ -1524,8 +1465,6 @@ abstract class MultiplyDefinedElement implements Element {
  * The interface [MultiplyInheritedExecutableElement] defines all of the behavior of an
  * [ExecutableElement], with the additional information of an array of
  * [ExecutableElement]s from which this element was composed.
- *
- * @coverage dart.engine.element
  */
 abstract class MultiplyInheritedExecutableElement implements ExecutableElement {
   /**
@@ -1540,8 +1479,6 @@ abstract class MultiplyInheritedExecutableElement implements ExecutableElement {
 /**
  * The interface `NamespaceCombinator` defines the behavior common to objects that control how
  * namespaces are combined.
- *
- * @coverage dart.engine.element
  */
 abstract class NamespaceCombinator {
   /**
@@ -1553,8 +1490,6 @@ abstract class NamespaceCombinator {
 /**
  * The interface `ParameterElement` defines the behavior of elements representing a parameter
  * defined within an executable element.
- *
- * @coverage dart.engine.element
  */
 abstract class ParameterElement implements LocalElement, VariableElement {
   /**
@@ -1591,8 +1526,6 @@ abstract class ParameterElement implements LocalElement, VariableElement {
 /**
  * The interface `PrefixElement` defines the behavior common to elements that represent a
  * prefix used to import one or more libraries into another library.
- *
- * @coverage dart.engine.element
  */
 abstract class PrefixElement implements Element {
   /**
@@ -1615,7 +1548,6 @@ abstract class PrefixElement implements Element {
  * getter or a setter. Note that explicitly defined property accessors implicitly define a synthetic
  * field. Symmetrically, synthetic accessors are implicitly created for explicitly defined fields.
  * The following rules apply:
- *
  * * Every explicit field is represented by a non-synthetic [FieldElement].
  * * Every explicit field induces a getter and possibly a setter, both of which are represented by
  * synthetic [PropertyAccessorElement]s.
@@ -1623,9 +1555,6 @@ abstract class PrefixElement implements Element {
  * [PropertyAccessorElement].
  * * Every explicit getter or setter (or pair thereof if they have the same name) induces a field
  * that is represented by a synthetic [FieldElement].
- *
- *
- * @coverage dart.engine.element
  */
 abstract class PropertyAccessorElement implements ExecutableElement {
   /**
@@ -1683,7 +1612,6 @@ abstract class PropertyAccessorElement implements ExecutableElement {
  * variables implicitly define a synthetic getter and that non-`final` explicitly defined
  * variables implicitly define a synthetic setter. Symmetrically, synthetic fields are implicitly
  * created for explicitly defined getters and setters. The following rules apply:
- *
  * * Every explicit variable is represented by a non-synthetic [PropertyInducingElement].
  * * Every explicit variable induces a getter and possibly a setter, both of which are represented
  * by synthetic [PropertyAccessorElement]s.
@@ -1691,9 +1619,6 @@ abstract class PropertyAccessorElement implements ExecutableElement {
  * [PropertyAccessorElement].
  * * Every explicit getter or setter (or pair thereof if they have the same name) induces a
  * variable that is represented by a synthetic [PropertyInducingElement].
- *
- *
- * @coverage dart.engine.element
  */
 abstract class PropertyInducingElement implements VariableElement {
   /**
@@ -1727,8 +1652,6 @@ abstract class PropertyInducingElement implements VariableElement {
 /**
  * The interface `ShowElementCombinator` defines the behavior of combinators that cause some
  * of the names in a namespace to be visible (and the rest hidden) when being imported.
- *
- * @coverage dart.engine.element
  */
 abstract class ShowElementCombinator implements NamespaceCombinator {
   /**
@@ -1758,8 +1681,6 @@ abstract class ShowElementCombinator implements NamespaceCombinator {
  * The interface `ToolkitObjectElement` defines the behavior of elements that represent a
  * toolkit specific object, such as Angular controller or component. These elements are not based on
  * the Dart syntax, but on some semantic agreement, such as a special annotation.
- *
- * @coverage dart.engine.element
  */
 abstract class ToolkitObjectElement implements Element {
   /**
@@ -1771,8 +1692,6 @@ abstract class ToolkitObjectElement implements Element {
 /**
  * The interface `TopLevelVariableElement` defines the behavior of elements representing a
  * top-level variable.
- *
- * @coverage dart.engine.element
  */
 abstract class TopLevelVariableElement implements PropertyInducingElement {
 }
@@ -1780,8 +1699,6 @@ abstract class TopLevelVariableElement implements PropertyInducingElement {
 /**
  * The interface `TypeParameterElement` defines the behavior of elements representing a type
  * parameter.
- *
- * @coverage dart.engine.element
  */
 abstract class TypeParameterElement implements Element {
   /**
@@ -1805,8 +1722,6 @@ abstract class TypeParameterElement implements Element {
  * names that are undefined. This situation is not allowed by the language, so objects implementing
  * this interface always represent an error. As a result, most of the normal operations on elements
  * do not make sense and will return useless results.
- *
- * @coverage dart.engine.element
  */
 abstract class UndefinedElement implements Element {
 }
@@ -1814,8 +1729,6 @@ abstract class UndefinedElement implements Element {
 /**
  * The interface `UriReferencedElement` defines the behavior of objects included into a
  * library using some URI.
- *
- * @coverage dart.engine.element
  */
 abstract class UriReferencedElement implements Element {
   /**
@@ -1830,8 +1743,6 @@ abstract class UriReferencedElement implements Element {
 /**
  * The interface `VariableElement` defines the behavior common to elements that represent a
  * variable.
- *
- * @coverage dart.engine.element
  */
 abstract class VariableElement implements Element {
   /**
@@ -1882,8 +1793,6 @@ abstract class VariableElement implements Element {
 /**
  * The interface `AngularControllerElement` defines the Angular component described by
  * <code>NgComponent</code> annotation.
- *
- * @coverage dart.engine.element
  */
 abstract class AngularComponentElement implements AngularHasSelectorElement, AngularHasTemplateElement {
   /**
@@ -1913,8 +1822,6 @@ abstract class AngularComponentElement implements AngularHasSelectorElement, Ang
 /**
  * The interface `AngularControllerElement` defines the Angular controller described by
  * <code>NgController</code> annotation.
- *
- * @coverage dart.engine.element
  */
 abstract class AngularControllerElement implements AngularHasSelectorElement {
 }
@@ -1922,8 +1829,6 @@ abstract class AngularControllerElement implements AngularHasSelectorElement {
 /**
  * The interface `AngularDirectiveElement` defines the Angular controller described by
  * <code>NgDirective</code> annotation.
- *
- * @coverage dart.engine.element
  */
 abstract class AngularDirectiveElement implements AngularHasSelectorElement {
   /**
@@ -1940,8 +1845,6 @@ abstract class AngularDirectiveElement implements AngularHasSelectorElement {
 /**
  * The interface `AngularElement` defines the behavior of objects representing information
  * about an Angular specific element.
- *
- * @coverage dart.engine.element
  */
 abstract class AngularElement implements ToolkitObjectElement {
   /**
@@ -1960,8 +1863,6 @@ abstract class AngularElement implements ToolkitObjectElement {
 /**
  * The interface `AngularFilterElement` defines the Angular filter described by
  * <code>NgFilter</code> annotation.
- *
- * @coverage dart.engine.element
  */
 abstract class AngularFilterElement implements AngularElement {
 }
@@ -1981,8 +1882,6 @@ abstract class AngularHasClassSelectorElement implements AngularSelectorElement 
 /**
  * The interface `AngularElement` defines the behavior of objects representing information
  * about an Angular element which is applied conditionally using some [AngularSelectorElement].
- *
- * @coverage dart.engine.element
  */
 abstract class AngularHasSelectorElement implements AngularElement {
   /**
@@ -1996,8 +1895,6 @@ abstract class AngularHasSelectorElement implements AngularElement {
 /**
  * The interface `AngularHasTemplateElement` defines common behavior for
  * [AngularElement] that have template URI / [Source].
- *
- * @coverage dart.engine.element
  */
 abstract class AngularHasTemplateElement implements AngularElement {
   /**
@@ -2021,8 +1918,6 @@ abstract class AngularHasTemplateElement implements AngularElement {
 /**
  * The interface `AngularPropertyElement` defines a single property in
  * [AngularComponentElement].
- *
- * @coverage dart.engine.element
  */
 abstract class AngularPropertyElement implements AngularElement {
   /**
@@ -2055,8 +1950,6 @@ abstract class AngularPropertyElement implements AngularElement {
 
 /**
  * The enumeration `AngularPropertyKind` defines the different kinds of property bindings.
- *
- * @coverage dart.engine.element
  */
 class AngularPropertyKind extends Enum<AngularPropertyKind> {
   /**
@@ -2116,8 +2009,6 @@ class AngularPropertyKind_TWO_WAY extends AngularPropertyKind {
 /**
  * The interface `AngularScopeVariableElement` defines the Angular <code>Scope</code>
  * property. They are created for every <code>scope['property'] = value;</code> code snippet.
- *
- * @coverage dart.engine.element
  */
 abstract class AngularScopePropertyElement implements AngularElement {
   /**
@@ -2158,8 +2049,6 @@ abstract class AngularTagSelectorElement implements AngularSelectorElement {
 /**
  * The interface `AngularViewElement` defines the Angular view defined using invocation like
  * <code>view('views/create.html')</code>.
- *
- * @coverage dart.engine.element
  */
 abstract class AngularViewElement implements AngularHasTemplateElement {
   /**
@@ -2222,8 +2111,6 @@ abstract class AngularViewElement implements AngularHasTemplateElement {
  * explicitly invoke the more general visit method. Failure to do so will cause the visit methods
  * for superclasses of the element to not be invoked and will cause the children of the visited node
  * to not be visited.
- *
- * @coverage dart.engine.element
  */
 class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   R visitAngularComponentElement(AngularComponentElement element) => visitAngularHasSelectorElement(element);
@@ -2326,8 +2213,6 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
  * Subclasses that override a visit method must either invoke the overridden visit method or must
  * explicitly ask the visited element to visit its children. Failure to do so will cause the
  * children of the visited element to not be visited.
- *
- * @coverage dart.engine.element
  */
 class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   R visitAngularComponentElement(AngularComponentElement element) {
@@ -2486,8 +2371,6 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
  * nothing when visiting an element. It is intended to be a superclass for classes that use the
  * visitor pattern primarily as a dispatch mechanism (and hence don't need to recursively visit a
  * whole structure) and that only need to visit a small number of element types.
- *
- * @coverage dart.engine.element
  */
 class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R visitAngularComponentElement(AngularComponentElement element) => null;
@@ -2582,8 +2465,6 @@ class AuxiliaryElements {
 
 /**
  * Instances of the class `ClassElementImpl` implement a `ClassElement`.
- *
- * @coverage dart.engine.element
  */
 class ClassElementImpl extends ElementImpl implements ClassElement {
   /**
@@ -3095,8 +2976,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
 /**
  * Instances of the class `CompilationUnitElementImpl` implement a
  * [CompilationUnitElement].
- *
- * @coverage dart.engine.element
  */
 class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitElement {
   /**
@@ -3369,8 +3248,6 @@ class ConstFieldElementImpl extends FieldElementImpl {
 /**
  * Instances of the class `ConstLocalVariableElementImpl` implement a
  * `LocalVariableElement` for a local 'const' variable that has an initializer.
- *
- * @coverage dart.engine.element
  */
 class ConstLocalVariableElementImpl extends LocalVariableElementImpl {
   /**
@@ -3418,8 +3295,6 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl {
 
 /**
  * Instances of the class `ConstructorElementImpl` implement a `ConstructorElement`.
- *
- * @coverage dart.engine.element
  */
 class ConstructorElementImpl extends ExecutableElementImpl implements ConstructorElement {
   /**
@@ -3510,8 +3385,6 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
 /**
  * Instances of the class `DefaultFieldFormalParameterElementImpl` implement a
  * `FieldFormalParameterElementImpl` for parameters that have an initializer.
- *
- * @coverage dart.engine.element
  */
 class DefaultFieldFormalParameterElementImpl extends FieldFormalParameterElementImpl {
   /**
@@ -3536,8 +3409,6 @@ class DefaultFieldFormalParameterElementImpl extends FieldFormalParameterElement
 /**
  * Instances of the class `DefaultParameterElementImpl` implement a `ParameterElement`
  * for parameters that have an initializer.
- *
- * @coverage dart.engine.element
  */
 class DefaultParameterElementImpl extends ParameterElementImpl {
   /**
@@ -3562,8 +3433,6 @@ class DefaultParameterElementImpl extends ParameterElementImpl {
 /**
  * Instances of the class `DynamicElementImpl` represent the synthetic element representing
  * the declaration of the type `dynamic`.
- *
- * @coverage dart.engine.element
  */
 class DynamicElementImpl extends ElementImpl {
   /**
@@ -3594,8 +3463,6 @@ class DynamicElementImpl extends ElementImpl {
 
 /**
  * Instances of the class `ElementAnnotationImpl` implement an [ElementAnnotation].
- *
- * @coverage dart.engine.element
  */
 class ElementAnnotationImpl implements ElementAnnotation {
   /**
@@ -3684,8 +3551,6 @@ class ElementAnnotationImpl implements ElementAnnotation {
 /**
  * The abstract class `ElementImpl` implements the behavior common to objects that implement
  * an [Element].
- *
- * @coverage dart.engine.element
  */
 abstract class ElementImpl implements Element {
   /**
@@ -3790,7 +3655,7 @@ abstract class ElementImpl implements Element {
 
   String get name => _name;
 
-  ASTNode get node => getNode2(ASTNode);
+  AstNode get node => getNode2(AstNode);
 
   Source get source {
     if (_enclosingElement == null) {
@@ -3898,15 +3763,15 @@ abstract class ElementImpl implements Element {
   String get identifier => name;
 
   /**
-   * Return the resolved [ASTNode] of the given type enclosing [getNameOffset].
+   * Return the resolved [AstNode] of the given type enclosing [getNameOffset].
    */
-  ASTNode getNode2(Type clazz) {
+  AstNode getNode2(Type clazz) {
     CompilationUnit unit = this.unit;
     if (unit == null) {
       return null;
     }
     int offset = nameOffset;
-    ASTNode node = new NodeLocator.con1(offset).searchWithin(unit);
+    AstNode node = new NodeLocator.con1(offset).searchWithin(unit);
     if (node == null) {
       return null;
     }
@@ -3970,8 +3835,6 @@ abstract class ElementImpl implements Element {
 
 /**
  * Instances of the class `ElementLocationImpl` implement an [ElementLocation].
- *
- * @coverage dart.engine.element
  */
 class ElementLocationImpl implements ElementLocation {
   /**
@@ -4218,8 +4081,6 @@ class ElementPair {
 /**
  * Instances of the class `EmbeddedHtmlScriptElementImpl` implement an
  * [EmbeddedHtmlScriptElement].
- *
- * @coverage dart.engine.element
  */
 class EmbeddedHtmlScriptElementImpl extends HtmlScriptElementImpl implements EmbeddedHtmlScriptElement {
   /**
@@ -4258,8 +4119,6 @@ class EmbeddedHtmlScriptElementImpl extends HtmlScriptElementImpl implements Emb
 /**
  * The abstract class `ExecutableElementImpl` implements the behavior common to
  * `ExecutableElement`s.
- *
- * @coverage dart.engine.element
  */
 abstract class ExecutableElementImpl extends ElementImpl implements ExecutableElement {
   /**
@@ -4446,8 +4305,6 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
 
 /**
  * Instances of the class `ExportElementImpl` implement an [ExportElement].
- *
- * @coverage dart.engine.element
  */
 class ExportElementImpl extends ElementImpl implements ExportElement {
   /**
@@ -4486,8 +4343,6 @@ class ExportElementImpl extends ElementImpl implements ExportElement {
 /**
  * Instances of the class `ExternalHtmlScriptElementImpl` implement an
  * [ExternalHtmlScriptElement].
- *
- * @coverage dart.engine.element
  */
 class ExternalHtmlScriptElementImpl extends HtmlScriptElementImpl implements ExternalHtmlScriptElement {
   /**
@@ -4509,8 +4364,6 @@ class ExternalHtmlScriptElementImpl extends HtmlScriptElementImpl implements Ext
 
 /**
  * Instances of the class `FieldElementImpl` implement a `FieldElement`.
- *
- * @coverage dart.engine.element
  */
 class FieldElementImpl extends PropertyInducingElementImpl implements FieldElement {
   /**
@@ -4554,8 +4407,6 @@ class FieldElementImpl extends PropertyInducingElementImpl implements FieldEleme
  * Instances of the class `FieldFormalParameterElementImpl` extend
  * [ParameterElementImpl] to provide the additional information of the [FieldElement]
  * associated with the parameter.
- *
- * @coverage dart.engine.element
  */
 class FieldFormalParameterElementImpl extends ParameterElementImpl implements FieldFormalParameterElement {
   /**
@@ -4577,8 +4428,6 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl implements Fi
 
 /**
  * Instances of the class `FunctionElementImpl` implement a `FunctionElement`.
- *
- * @coverage dart.engine.element
  */
 class FunctionElementImpl extends ExecutableElementImpl implements FunctionElement {
   /**
@@ -4655,8 +4504,6 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
 /**
  * Instances of the class `FunctionTypeAliasElementImpl` implement a
  * `FunctionTypeAliasElement`.
- *
- * @coverage dart.engine.element
  */
 class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAliasElement {
   /**
@@ -4804,8 +4651,6 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
 /**
  * Instances of the class `HideElementCombinatorImpl` implement a
  * [HideElementCombinator].
- *
- * @coverage dart.engine.element
  */
 class HideElementCombinatorImpl implements HideElementCombinator {
   /**
@@ -4830,8 +4675,6 @@ class HideElementCombinatorImpl implements HideElementCombinator {
 
 /**
  * Instances of the class `HtmlElementImpl` implement an [HtmlElement].
- *
- * @coverage dart.engine.element
  */
 class HtmlElementImpl extends ElementImpl implements HtmlElement {
   /**
@@ -4917,8 +4760,6 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
 
 /**
  * Instances of the class `HtmlScriptElementImpl` implement an [HtmlScriptElement].
- *
- * @coverage dart.engine.element
  */
 abstract class HtmlScriptElementImpl extends ElementImpl implements HtmlScriptElement {
   /**
@@ -4936,8 +4777,6 @@ abstract class HtmlScriptElementImpl extends ElementImpl implements HtmlScriptEl
 
 /**
  * Instances of the class `ImportElementImpl` implement an [ImportElement].
- *
- * @coverage dart.engine.element
  */
 class ImportElementImpl extends ElementImpl implements ImportElement {
   /**
@@ -5000,8 +4839,6 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
 
 /**
  * Instances of the class `LabelElementImpl` implement a `LabelElement`.
- *
- * @coverage dart.engine.element
  */
 class LabelElementImpl extends ElementImpl implements LabelElement {
   /**
@@ -5057,8 +4894,6 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
 
 /**
  * Instances of the class `LibraryElementImpl` implement a `LibraryElement`.
- *
- * @coverage dart.engine.element
  */
 class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /**
@@ -5404,8 +5239,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
 /**
  * Instances of the class `LocalVariableElementImpl` implement a `LocalVariableElement`.
- *
- * @coverage dart.engine.element
  */
 class LocalVariableElementImpl extends VariableElementImpl implements LocalVariableElement {
   /**
@@ -5515,8 +5348,6 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
 
 /**
  * Instances of the class `MethodElementImpl` implement a `MethodElement`.
- *
- * @coverage dart.engine.element
  */
 class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   /**
@@ -5600,8 +5431,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 /**
  * The enumeration `Modifier` defines constants for all of the modifiers defined by the Dart
  * language and for a few additional flags that are useful.
- *
- * @coverage dart.engine.element
  */
 class Modifier extends Enum<Modifier> {
   /**
@@ -5678,8 +5507,6 @@ class Modifier extends Enum<Modifier> {
 /**
  * Instances of the class `MultiplyDefinedElementImpl` represent a collection of elements that
  * have the same name within the same scope.
- *
- * @coverage dart.engine.element
  */
 class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   /**
@@ -5780,7 +5607,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   int get nameOffset => -1;
 
-  ASTNode get node => null;
+  AstNode get node => null;
 
   Source get source => null;
 
@@ -5835,8 +5662,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
  * The interface [MultiplyInheritedMethodElementImpl] defines all of the behavior of an
  * [MethodElementImpl], with the additional information of an array of
  * [ExecutableElement]s from which this element was composed.
- *
- * @coverage dart.engine.element
  */
 class MultiplyInheritedMethodElementImpl extends MethodElementImpl implements MultiplyInheritedExecutableElement {
   /**
@@ -5859,8 +5684,6 @@ class MultiplyInheritedMethodElementImpl extends MethodElementImpl implements Mu
  * The interface [MultiplyInheritedPropertyAccessorElementImpl] defines all of the behavior of
  * an [PropertyAccessorElementImpl], with the additional information of an array of
  * [ExecutableElement]s from which this element was composed.
- *
- * @coverage dart.engine.element
  */
 class MultiplyInheritedPropertyAccessorElementImpl extends PropertyAccessorElementImpl implements MultiplyInheritedExecutableElement {
   /**
@@ -5881,8 +5704,6 @@ class MultiplyInheritedPropertyAccessorElementImpl extends PropertyAccessorEleme
 
 /**
  * Instances of the class `ParameterElementImpl` implement a `ParameterElement`.
- *
- * @coverage dart.engine.element
  */
 class ParameterElementImpl extends VariableElementImpl implements ParameterElement {
   /**
@@ -6065,8 +5886,6 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
 
 /**
  * Instances of the class `PrefixElementImpl` implement a `PrefixElement`.
- *
- * @coverage dart.engine.element
  */
 class PrefixElementImpl extends ElementImpl implements PrefixElement {
   /**
@@ -6117,8 +5936,6 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
 /**
  * Instances of the class `PropertyAccessorElementImpl` implement a
  * `PropertyAccessorElement`.
- *
- * @coverage dart.engine.element
  */
 class PropertyAccessorElementImpl extends ExecutableElementImpl implements PropertyAccessorElement {
   /**
@@ -6181,7 +5998,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
     return super.name;
   }
 
-  ASTNode get node {
+  AstNode get node {
     if (isSynthetic) {
       return null;
     }
@@ -6250,8 +6067,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
 /**
  * Instances of the class `PropertyInducingElementImpl` implement a
  * `PropertyInducingElement`.
- *
- * @coverage dart.engine.element
  */
 abstract class PropertyInducingElementImpl extends VariableElementImpl implements PropertyInducingElement {
   /**
@@ -6290,8 +6105,6 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl implement
 /**
  * Instances of the class `ShowElementCombinatorImpl` implement a
  * [ShowElementCombinator].
- *
- * @coverage dart.engine.element
  */
 class ShowElementCombinatorImpl implements ShowElementCombinator {
   /**
@@ -6326,8 +6139,6 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
 
 /**
  * Instances of the class `ToolkitObjectElementImpl` implement a `ToolkitObjectElement`.
- *
- * @coverage dart.engine.element
  */
 abstract class ToolkitObjectElementImpl extends ElementImpl implements ToolkitObjectElement {
   /**
@@ -6343,8 +6154,6 @@ abstract class ToolkitObjectElementImpl extends ElementImpl implements ToolkitOb
 /**
  * Instances of the class `TopLevelVariableElementImpl` implement a
  * `TopLevelVariableElement`.
- *
- * @coverage dart.engine.element
  */
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl implements TopLevelVariableElement {
   /**
@@ -6375,8 +6184,6 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl implements
 
 /**
  * Instances of the class `TypeParameterElementImpl` implement a [TypeParameterElement].
- *
- * @coverage dart.engine.element
  */
 class TypeParameterElementImpl extends ElementImpl implements TypeParameterElement {
   /**
@@ -6417,8 +6224,6 @@ class TypeParameterElementImpl extends ElementImpl implements TypeParameterEleme
 
 /**
  * Instances of the class `VariableElementImpl` implement a `VariableElement`.
- *
- * @coverage dart.engine.element
  */
 abstract class VariableElementImpl extends ElementImpl implements VariableElement {
   /**
@@ -6564,8 +6369,6 @@ class AngularApplication {
 
 /**
  * Implementation of `AngularComponentElement`.
- *
- * @coverage dart.engine.element
  */
 class AngularComponentElementImpl extends AngularHasSelectorElementImpl implements AngularComponentElement {
   /**
@@ -6662,8 +6465,6 @@ class AngularComponentElementImpl extends AngularHasSelectorElementImpl implemen
 
 /**
  * Implementation of `AngularControllerElement`.
- *
- * @coverage dart.engine.element
  */
 class AngularControllerElementImpl extends AngularHasSelectorElementImpl implements AngularControllerElement {
   /**
@@ -6682,8 +6483,6 @@ class AngularControllerElementImpl extends AngularHasSelectorElementImpl impleme
 
 /**
  * Implementation of `AngularDirectiveElement`.
- *
- * @coverage dart.engine.element
  */
 class AngularDirectiveElementImpl extends AngularHasSelectorElementImpl implements AngularDirectiveElement {
   /**
@@ -6740,8 +6539,6 @@ class AngularDirectiveElementImpl extends AngularHasSelectorElementImpl implemen
 
 /**
  * Implementation of `AngularElement`.
- *
- * @coverage dart.engine.element
  */
 abstract class AngularElementImpl extends ToolkitObjectElementImpl implements AngularElement {
   /**
@@ -6770,8 +6567,6 @@ abstract class AngularElementImpl extends ToolkitObjectElementImpl implements An
 
 /**
  * Implementation of `AngularFilterElement`.
- *
- * @coverage dart.engine.element
  */
 class AngularFilterElementImpl extends AngularElementImpl implements AngularFilterElement {
   /**
@@ -6818,8 +6613,6 @@ class AngularHasClassSelectorElementImpl extends AngularSelectorElementImpl impl
 
 /**
  * Implementation of `AngularSelectorElement`.
- *
- * @coverage dart.engine.element
  */
 abstract class AngularHasSelectorElementImpl extends AngularElementImpl implements AngularHasSelectorElement {
   /**
@@ -6856,8 +6649,6 @@ abstract class AngularHasSelectorElementImpl extends AngularElementImpl implemen
 
 /**
  * Implementation of `AngularPropertyElement`.
- *
- * @coverage dart.engine.element
  */
 class AngularPropertyElementImpl extends AngularElementImpl implements AngularPropertyElement {
   /**
@@ -6888,8 +6679,6 @@ class AngularPropertyElementImpl extends AngularElementImpl implements AngularPr
 
 /**
  * Implementation of `AngularScopePropertyElement`.
- *
- * @coverage dart.engine.element
  */
 class AngularScopePropertyElementImpl extends AngularElementImpl implements AngularScopePropertyElement {
   /**
@@ -6913,8 +6702,6 @@ class AngularScopePropertyElementImpl extends AngularElementImpl implements Angu
 
 /**
  * Implementation of `AngularFilterElement`.
- *
- * @coverage dart.engine.element
  */
 abstract class AngularSelectorElementImpl extends AngularElementImpl implements AngularSelectorElement {
   /**
@@ -6947,8 +6734,6 @@ class AngularTagSelectorElementImpl extends AngularSelectorElementImpl implement
 
 /**
  * Implementation of `AngularViewElement`.
- *
- * @coverage dart.engine.element
  */
 class AngularViewElementImpl extends AngularElementImpl implements AngularViewElement {
   /**
@@ -7293,7 +7078,7 @@ abstract class Member implements Element {
 
   int get nameOffset => _baseElement.nameOffset;
 
-  ASTNode get node => _baseElement.node;
+  AstNode get node => _baseElement.node;
 
   Source get source => _baseElement.source;
 
@@ -7712,8 +7497,6 @@ abstract class VariableMember extends Member implements VariableElement {
 
 /**
  * The unique instance of the class `BottomTypeImpl` implements the type `bottom`.
- *
- * @coverage dart.engine.type
  */
 class BottomTypeImpl extends TypeImpl {
   /**
@@ -7752,8 +7535,6 @@ class BottomTypeImpl extends TypeImpl {
 
 /**
  * The unique instance of the class `DynamicTypeImpl` implements the type `dynamic`.
- *
- * @coverage dart.engine.type
  */
 class DynamicTypeImpl extends TypeImpl {
   /**
@@ -7810,8 +7591,6 @@ class DynamicTypeImpl extends TypeImpl {
 /**
  * Instances of the class `FunctionTypeImpl` defines the behavior common to objects
  * representing the type of a function, method, constructor, getter, or setter.
- *
- * @coverage dart.engine.type
  */
 class FunctionTypeImpl extends TypeImpl implements FunctionType {
   /**
@@ -8367,8 +8146,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
  * Instances of the class `InterfaceTypeImpl` defines the behavior common to objects
  * representing the type introduced by either a class or an interface, or a reference to such a
  * type.
- *
- * @coverage dart.engine.type
  */
 class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   /**
@@ -9095,8 +8872,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 /**
  * The abstract class `TypeImpl` implements the behavior common to objects representing the
  * declared type of elements in the element model.
- *
- * @coverage dart.engine.type
  */
 abstract class TypeImpl implements Type2 {
   static bool equalArrays(List<Type2> typeArgs1, List<Type2> typeArgs2, Set<ElementPair> visitedElementPairs) {
@@ -9305,8 +9080,6 @@ class TypeImpl_TypePair {
 /**
  * Instances of the class `TypeParameterTypeImpl` defines the behavior of objects representing
  * the type introduced by a type parameter.
- *
- * @coverage dart.engine.type
  */
 class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   /**
@@ -9421,8 +9194,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
 /**
  * The unique instance of the class `VoidTypeImpl` implements the type `void`.
- *
- * @coverage dart.engine.type
  */
 class VoidTypeImpl extends TypeImpl implements VoidType {
   /**
@@ -9469,8 +9240,6 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
  * * The types of functions with named parameters. These have the general form <i>(T<sub>1</sub>,
  * &hellip;, T<sub>n</sub>, {T<sub>x1</sub> x1, &hellip;, T<sub>xk</sub> xk}) &rarr; T</i>.
  * </ol>
- *
- * @coverage dart.engine.type
  */
 abstract class FunctionType implements ParameterizedType {
   /**
@@ -9522,46 +9291,34 @@ abstract class FunctionType implements ParameterizedType {
    * A function type <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>) &rarr; T</i> is a subtype of the
    * function type <i>(S<sub>1</sub>, &hellip;, S<sub>n</sub>) &rarr; S</i>, if all of the following
    * conditions are met:
-   *
    * * Either
-   *
    * * <i>S</i> is void, or
    * * <i>T &hArr; S</i>.
    *
-   *
    * * For all <i>i</i>, 1 <= <i>i</i> <= <i>n</i>, <i>T<sub>i</sub> &hArr; S<sub>i</sub></i>.
-   *
    * A function type <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, [T<sub>n+1</sub>, &hellip;,
    * T<sub>n+k</sub>]) &rarr; T</i> is a subtype of the function type <i>(S<sub>1</sub>, &hellip;,
    * S<sub>n</sub>, [S<sub>n+1</sub>, &hellip;, S<sub>n+m</sub>]) &rarr; S</i>, if all of the
    * following conditions are met:
-   *
    * * Either
-   *
    * * <i>S</i> is void, or
    * * <i>T &hArr; S</i>.
    *
-   *
    * * <i>k</i> >= <i>m</i> and for all <i>i</i>, 1 <= <i>i</i> <= <i>n+m</i>, <i>T<sub>i</sub>
    * &hArr; S<sub>i</sub></i>.
-   *
    * A function type <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, {T<sub>x1</sub> x1, &hellip;,
    * T<sub>xk</sub> xk}) &rarr; T</i> is a subtype of the function type <i>(S<sub>1</sub>, &hellip;,
    * S<sub>n</sub>, {S<sub>y1</sub> y1, &hellip;, S<sub>ym</sub> ym}) &rarr; S</i>, if all of the
    * following conditions are met:
-   *
    * * Either
-   *
    * * <i>S</i> is void,
    * * or <i>T &hArr; S</i>.
-   *
    *
    * * For all <i>i</i>, 1 <= <i>i</i> <= <i>n</i>, <i>T<sub>i</sub> &hArr; S<sub>i</sub></i>.
    * * <i>k</i> >= <i>m</i> and <i>y<sub>i</sub></i> in <i>{x<sub>1</sub>, &hellip;,
    * x<sub>k</sub>}</i>, 1 <= <i>i</i> <= <i>m</i>.
    * * For all <i>y<sub>i</sub></i> in <i>{y<sub>1</sub>, &hellip;, y<sub>m</sub>}</i>,
    * <i>y<sub>i</sub> = x<sub>j</sub> => Tj &hArr; Si</i>.
-   *
    * In addition, the following subtype rules apply:
    *
    * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, []) &rarr; T <: (T<sub>1</sub>, &hellip;,
@@ -9598,8 +9355,6 @@ abstract class FunctionType implements ParameterizedType {
 /**
  * The interface `InterfaceType` defines the behavior common to objects representing the type
  * introduced by either a class or an interface, or a reference to such a type.
- *
- * @coverage dart.engine.type
  */
 abstract class InterfaceType implements ParameterizedType {
   /**
@@ -9696,13 +9451,11 @@ abstract class InterfaceType implements ParameterizedType {
    * Return `true` if this type is a direct supertype of the given type. The implicit
    * interface of class <i>I</i> is a direct supertype of the implicit interface of class <i>J</i>
    * iff:
-   *
    * * <i>I</i> is Object, and <i>J</i> has no extends clause.
    * * <i>I</i> is listed in the extends clause of <i>J</i>.
    * * <i>I</i> is listed in the implements clause of <i>J</i>.
    * * <i>I</i> is listed in the with clause of <i>J</i>.
    * * <i>J</i> is a mixin application of the mixin of <i>I</i>.
-   *
    *
    * @param type the type being compared with this type
    * @return `true` if this type is a direct supertype of the given type
@@ -9713,7 +9466,6 @@ abstract class InterfaceType implements ParameterizedType {
    * Return `true` if this type is more specific than the given type. An interface type
    * <i>T</i> is more specific than an interface type <i>S</i>, written <i>T &laquo; S</i>, if one
    * of the following conditions is met:
-   *
    * * Reflexivity: <i>T</i> is <i>S</i>.
    * * <i>T</i> is bottom.
    * * <i>S</i> is dynamic.
@@ -9723,7 +9475,6 @@ abstract class InterfaceType implements ParameterizedType {
    * and S</i> is of the form <i>I&lt;S<sub>1</sub>, &hellip;, S<sub>n</sub>&gt;</i> and
    * <i>T<sub>i</sub> &laquo; S<sub>i</sub></i>, <i>1 <= i <= n</i>.
    * * Transitivity: <i>T &laquo; U</i> and <i>U &laquo; S</i>.
-   *
    *
    * @param type the type being compared with this type
    * @return `true` if this type is more specific than the given type
@@ -9763,13 +9514,11 @@ abstract class InterfaceType implements ParameterizedType {
    * behavior of this method is defined by the Dart Language Specification in section 12.15.1:
    * <blockquote>The result of looking up getter (respectively setter) <i>m</i> in class <i>C</i>
    * with respect to library <i>L</i> is:
-   *
    * * If <i>C</i> declares an instance getter (respectively setter) named <i>m</i> that is
    * accessible to <i>L</i>, then that getter (respectively setter) is the result of the lookup.
    * Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result of the lookup is the result
    * of looking up getter (respectively setter) <i>m</i> in <i>S</i> with respect to <i>L</i>.
    * Otherwise, we say that the lookup has failed.
-   *
    * </blockquote>
    *
    * @param getterName the name of the getter being looked up
@@ -9785,13 +9534,11 @@ abstract class InterfaceType implements ParameterizedType {
    * fails. The behavior of this method is defined by the Dart Language Specification in section
    * 12.15.1: <blockquote>The result of looking up getter (respectively setter) <i>m</i> in class
    * <i>C</i> with respect to library <i>L</i> is:
-   *
    * * If <i>C</i> declares an instance getter (respectively setter) named <i>m</i> that is
    * accessible to <i>L</i>, then that getter (respectively setter) is the result of the lookup.
    * Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result of the lookup is the result
    * of looking up getter (respectively setter) <i>m</i> in <i>S</i> with respect to <i>L</i>.
    * Otherwise, we say that the lookup has failed.
-   *
    * </blockquote>
    *
    * @param getterName the name of the getter being looked up
@@ -9807,12 +9554,10 @@ abstract class InterfaceType implements ParameterizedType {
    * behavior of this method is defined by the Dart Language Specification in section 12.15.1:
    * <blockquote> The result of looking up method <i>m</i> in class <i>C</i> with respect to library
    * <i>L</i> is:
-   *
    * * If <i>C</i> declares an instance method named <i>m</i> that is accessible to <i>L</i>, then
    * that method is the result of the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then
    * the result of the lookup is the result of looking up method <i>m</i> in <i>S</i> with respect
    * to <i>L</i>. Otherwise, we say that the lookup has failed.
-   *
    * </blockquote>
    *
    * @param methodName the name of the method being looked up
@@ -9828,12 +9573,10 @@ abstract class InterfaceType implements ParameterizedType {
    * fails. The behavior of this method is defined by the Dart Language Specification in section
    * 12.15.1: <blockquote> The result of looking up method <i>m</i> in class <i>C</i> with respect
    * to library <i>L</i> is:
-   *
    * * If <i>C</i> declares an instance method named <i>m</i> that is accessible to <i>L</i>, then
    * that method is the result of the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then
    * the result of the lookup is the result of looking up method <i>m</i> in <i>S</i> with respect
    * to <i>L</i>. Otherwise, we say that the lookup has failed.
-   *
    * </blockquote>
    *
    * @param methodName the name of the method being looked up
@@ -9849,13 +9592,11 @@ abstract class InterfaceType implements ParameterizedType {
    * behavior of this method is defined by the Dart Language Specification in section 12.16:
    * <blockquote> The result of looking up getter (respectively setter) <i>m</i> in class <i>C</i>
    * with respect to library <i>L</i> is:
-   *
    * * If <i>C</i> declares an instance getter (respectively setter) named <i>m</i> that is
    * accessible to <i>L</i>, then that getter (respectively setter) is the result of the lookup.
    * Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result of the lookup is the result
    * of looking up getter (respectively setter) <i>m</i> in <i>S</i> with respect to <i>L</i>.
    * Otherwise, we say that the lookup has failed.
-   *
    * </blockquote>
    *
    * @param setterName the name of the setter being looked up
@@ -9871,13 +9612,11 @@ abstract class InterfaceType implements ParameterizedType {
    * fails. The behavior of this method is defined by the Dart Language Specification in section
    * 12.16: <blockquote> The result of looking up getter (respectively setter) <i>m</i> in class
    * <i>C</i> with respect to library <i>L</i> is:
-   *
    * * If <i>C</i> declares an instance getter (respectively setter) named <i>m</i> that is
    * accessible to <i>L</i>, then that getter (respectively setter) is the result of the lookup.
    * Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result of the lookup is the result
    * of looking up getter (respectively setter) <i>m</i> in <i>S</i> with respect to <i>L</i>.
    * Otherwise, we say that the lookup has failed.
-   *
    * </blockquote>
    *
    * @param setterName the name of the setter being looked up
@@ -9902,8 +9641,6 @@ abstract class InterfaceType implements ParameterizedType {
 /**
  * The interface `ParameterizedType` defines the behavior common to objects representing a
  * type with type parameters, such as a class or function type alias.
- *
- * @coverage dart.engine.type
  */
 abstract class ParameterizedType implements Type2 {
   /**
@@ -9928,8 +9665,6 @@ abstract class ParameterizedType implements Type2 {
 /**
  * The interface `Type` defines the behavior of objects representing the declared type of
  * elements in the element model.
- *
- * @coverage dart.engine.type
  */
 abstract class Type2 {
   /**
@@ -10057,8 +9792,6 @@ abstract class Type2 {
 /**
  * The interface `TypeParameterType` defines the behavior of objects representing the type
  * introduced by a type parameter.
- *
- * @coverage dart.engine.type
  */
 abstract class TypeParameterType implements Type2 {
   TypeParameterElement get element;
@@ -10067,8 +9800,6 @@ abstract class TypeParameterType implements Type2 {
 /**
  * The interface `VoidType` defines the behavior of the unique object representing the type
  * `void`.
- *
- * @coverage dart.engine.type
  */
 abstract class VoidType implements Type2 {
   VoidType substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes);

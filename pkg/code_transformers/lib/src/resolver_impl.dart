@@ -357,7 +357,7 @@ class _AssetBasedSource extends Source {
   }
 
   /// For logging errors.
-  Span _getSpan(ASTNode node) => _sourceFile.span(node.offset, node.end);
+  Span _getSpan(AstNode node) => _sourceFile.span(node.offset, node.end);
   /// For logging errors.
   SourceFile get _sourceFile {
     var uri = getSourceUri(_resolver.entryPoint);

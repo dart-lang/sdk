@@ -147,7 +147,7 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
       new TokenStreamComparator(lineInfo, t1, t2, transforms: allowTransforms).
           verifyEquals();
 
-  ASTNode parse(CodeKind kind, Token start) {
+  AstNode parse(CodeKind kind, Token start) {
 
     var parser = new Parser(null, this);
 
@@ -343,7 +343,7 @@ bool isSEMICOLON(Token token) =>
 
 
 /// An AST visitor that drives formatting heuristics.
-class SourceVisitor implements ASTVisitor {
+class SourceVisitor implements AstVisitor {
 
   static final OPEN_CURLY = syntheticToken(TokenType.OPEN_CURLY_BRACKET, '{');
   static final CLOSE_CURLY = syntheticToken(TokenType.CLOSE_CURLY_BRACKET, '}');
@@ -1391,7 +1391,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   /// Safely visit the given [node].
-  visit(ASTNode node) {
+  visit(AstNode node) {
     if (node != null) {
       node.accept(this);
     }
@@ -1408,7 +1408,7 @@ class SourceVisitor implements ASTVisitor {
 
   /// Visit a list of [nodes] if not null, optionally separated and/or preceded
   /// and followed by the given functions.
-  visitNodes(NodeList<ASTNode> nodes, {precededBy(): null,
+  visitNodes(NodeList<AstNode> nodes, {precededBy(): null,
       separatedBy() : null, followedBy(): null}) {
     if (nodes != null) {
       var size = nodes.length;
@@ -1430,7 +1430,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   /// Visit a comma-separated list of [nodes] if not null.
-  visitCommaSeparatedNodes(NodeList<ASTNode> nodes, {followedBy(): null}) {
+  visitCommaSeparatedNodes(NodeList<AstNode> nodes, {followedBy(): null}) {
     //TODO(pquitslund): handle this more neatly
     if (followedBy == null) {
       followedBy = space;
@@ -1455,7 +1455,7 @@ class SourceVisitor implements ASTVisitor {
 
   /// Visit a [node], and if not null, optionally preceded or followed by the
   /// specified functions.
-  visitNode(ASTNode node, {precededBy(): null, followedBy(): null}) {
+  visitNode(AstNode node, {precededBy(): null, followedBy(): null}) {
     if (node != null) {
       if (precededBy != null) {
         precededBy();
@@ -1693,15 +1693,15 @@ class SourceVisitor implements ASTVisitor {
       countNewlinesBetween(last, current) > 0 ? 0 : current.offset - last.end;
 
   /// Count the blanks between these two nodes.
-  int countBlankLinesBetween(ASTNode lastNode, ASTNode currentNode) =>
+  int countBlankLinesBetween(AstNode lastNode, AstNode currentNode) =>
       countNewlinesBetween(lastNode.endToken, currentNode.beginToken);
 
   /// Count newlines preceeding this [node].
-  int countPrecedingNewlines(ASTNode node) =>
+  int countPrecedingNewlines(AstNode node) =>
       countNewlinesBetween(node.beginToken.previous, node.beginToken);
 
   /// Count newlines succeeding this [node].
-  int countSucceedingNewlines(ASTNode node) => node == null ? 0 :
+  int countSucceedingNewlines(AstNode node) => node == null ? 0 :
       countNewlinesBetween(node.endToken, node.endToken.next);
 
   /// Count the blanks between these two tokens.

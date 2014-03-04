@@ -25,8 +25,6 @@ import 'html.dart' as ht;
 /**
  * The unique instance of the class `AnalysisEngine` serves as the entry point for the
  * functionality provided by the analysis engine.
- *
- * @coverage dart.engine
  */
 class AnalysisEngine {
   /**
@@ -739,8 +737,6 @@ abstract class AnalysisErrorInfo {
 /**
  * Instances of the class `AnalysisException` represent an exception that occurred during the
  * analysis of one or more sources.
- *
- * @coverage dart.engine
  */
 class AnalysisException extends JavaException {
   /**
@@ -884,8 +880,6 @@ class AnalysisResult {
 /**
  * The interface `ChangeNotice` defines the behavior of objects that represent a change to the
  * analysis results associated with a given source.
- *
- * @coverage dart.engine
  */
 abstract class ChangeNotice implements AnalysisErrorInfo {
   /**
@@ -915,8 +909,6 @@ abstract class ChangeNotice implements AnalysisErrorInfo {
 /**
  * Instances of the class `ChangeSet` indicate what sources have been added, changed, or
  * removed.
- *
- * @coverage dart.engine
  */
 class ChangeSet {
   /**
@@ -1284,9 +1276,7 @@ class CacheState extends Enum<CacheState> {
    * exception occurred, making it pointless to attempt.
    *
    * Valid Transitions:
-   *
    * * [INVALID] if a source was modified that might cause the data to be computable
-   *
    */
   static final CacheState ERROR = new CacheState('ERROR', 0);
 
@@ -1295,10 +1285,8 @@ class CacheState extends Enum<CacheState> {
    * usage. If the data is recomputed, results do not need to be reported.
    *
    * Valid Transitions:
-   *
    * * [IN_PROCESS] if the data is being recomputed
    * * [INVALID] if a source was modified that causes the data to need to be recomputed
-   *
    */
   static final CacheState FLUSHED = new CacheState('FLUSHED', 1);
 
@@ -1306,10 +1294,8 @@ class CacheState extends Enum<CacheState> {
    * The data might or might not be in the cache but is in the process of being recomputed.
    *
    * Valid Transitions:
-   *
    * * [ERROR] if an exception occurred while trying to compute the data
    * * [VALID] if the data was successfully computed and stored in the cache
-   *
    */
   static final CacheState IN_PROCESS = new CacheState('IN_PROCESS', 2);
 
@@ -1317,9 +1303,7 @@ class CacheState extends Enum<CacheState> {
    * The data is not in the cache and needs to be recomputed so that results can be reported.
    *
    * Valid Transitions:
-   *
    * * [IN_PROCESS] if an attempt is being made to recompute the data
-   *
    */
   static final CacheState INVALID = new CacheState('INVALID', 3);
 
@@ -1327,10 +1311,8 @@ class CacheState extends Enum<CacheState> {
    * The data is in the cache and up-to-date.
    *
    * Valid Transitions:
-   *
    * * [FLUSHED] if the data is removed in order to manage memory usage
    * * [INVALID] if a source was modified in such a way as to invalidate the previous data
-   *
    */
   static final CacheState VALID = new CacheState('VALID', 4);
 
@@ -1342,8 +1324,6 @@ class CacheState extends Enum<CacheState> {
 /**
  * The interface `DartEntry` defines the behavior of objects that maintain the information
  * cached by an analysis context about an individual Dart file.
- *
- * @coverage dart.engine
  */
 abstract class DartEntry implements SourceEntry {
   /**
@@ -1509,8 +1489,6 @@ abstract class DartEntry implements SourceEntry {
 
 /**
  * Instances of the class `DartEntryImpl` implement a [DartEntry].
- *
- * @coverage dart.engine
  */
 class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   /**
@@ -1761,7 +1739,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   CompilationUnit get resolvableCompilationUnit {
     if (identical(_parsedUnitState, CacheState.VALID)) {
       if (_parsedUnitAccessed) {
-        return _parsedUnit.accept(new ASTCloner()) as CompilationUnit;
+        return _parsedUnit.accept(new AstCloner()) as CompilationUnit;
       }
       CompilationUnit unit = _parsedUnit;
       _parsedUnitState = CacheState.FLUSHED;
@@ -1772,7 +1750,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     DartEntryImpl_ResolutionState state = _resolutionState;
     while (state != null) {
       if (identical(state._resolvedUnitState, CacheState.VALID)) {
-        return state._resolvedUnit.accept(new ASTCloner()) as CompilationUnit;
+        return state._resolvedUnit.accept(new AstCloner()) as CompilationUnit;
       }
       state = state._nextState;
     }
@@ -2706,8 +2684,6 @@ class DataDescriptor<E> {
 /**
  * The interface `HtmlEntry` defines the behavior of objects that maintain the information
  * cached by an analysis context about an individual HTML file.
- *
- * @coverage dart.engine
  */
 abstract class HtmlEntry implements SourceEntry {
   /**
@@ -2788,8 +2764,6 @@ abstract class HtmlEntry implements SourceEntry {
 
 /**
  * Instances of the class `HtmlEntryImpl` implement an [HtmlEntry].
- *
- * @coverage dart.engine
  */
 class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   /**
@@ -3244,8 +3218,6 @@ class RetentionPriority extends Enum<RetentionPriority> {
  *
  * Source entries should be treated as if they were immutable unless a writable copy of the entry
  * has been obtained and has not yet been made visible to other threads.
- *
- * @coverage dart.engine
  */
 abstract class SourceEntry {
   /**
@@ -3305,8 +3277,6 @@ abstract class SourceEntry {
 /**
  * Instances of the abstract class `SourceEntryImpl` implement the behavior common to all
  * [SourceEntry].
- *
- * @coverage dart.engine
  */
 abstract class SourceEntryImpl implements SourceEntry {
   /**
@@ -3572,8 +3542,6 @@ class AnalysisContentStatisticsImpl_CacheRowImpl implements AnalysisContentStati
 
 /**
  * Instances of the class `AnalysisContextImpl` implement an [AnalysisContext].
- *
- * @coverage dart.engine
  */
 class AnalysisContextImpl implements InternalAnalysisContext {
   /**
@@ -3624,12 +3592,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * The object used to synchronize access to all of the caches. The rules related to the use of
    * this lock object are
-   *
    * * no analysis work is done while holding the lock, and
    * * no analysis results can be recorded unless we have obtained the lock and validated that the
    * results are for the same version (modification time) of the source as our current cache
    * content.
-   *
    */
   Object _cacheLock = new Object();
 
@@ -3738,7 +3704,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return null;
     }
     NodeLocator locator = new NodeLocator.con1(element.nameOffset);
-    ASTNode nameNode = locator.searchWithin(unit);
+    AstNode nameNode = locator.searchWithin(unit);
     while (nameNode != null) {
       if (nameNode is AnnotatedNode) {
         Comment comment = (nameNode as AnnotatedNode).documentationComment;
@@ -7314,8 +7280,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 /**
  * Instances of the class `ChangeNoticeImpl` represent a change to the analysis results
  * associated with a given source.
- *
- * @coverage dart.engine
  */
 class ChangeNoticeImpl implements ChangeNotice {
   /**
@@ -7384,8 +7348,6 @@ class ChangeNoticeImpl implements ChangeNotice {
  * Instances of the class `DelegatingAnalysisContextImpl` extend [AnalysisContextImpl
  ] to delegate sources to the appropriate analysis context. For instance, if the
  * source is in a system library then the analysis context from the [DartSdk] is used.
- *
- * @coverage dart.engine
  */
 class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
   /**
@@ -7777,7 +7739,7 @@ class IncrementalAnalysisCache {
    */
   static IncrementalAnalysisCache verifyStructure(IncrementalAnalysisCache cache, Source source, CompilationUnit unit) {
     if (cache != null && unit != null && cache.source == source) {
-      if (!ASTComparator.equals4(cache.resolvedUnit, unit)) {
+      if (!AstComparator.equals4(cache.resolvedUnit, unit)) {
         return null;
       }
     }
@@ -7847,8 +7809,6 @@ class IncrementalAnalysisCache {
  * Instances of the class `InstrumentedAnalysisContextImpl` implement an
  * [AnalysisContext] by recording instrumentation data and delegating to
  * another analysis context to do the non-instrumentation work.
- *
- * @coverage dart.engine
  */
 class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
   /**
@@ -8635,8 +8595,6 @@ class PerformanceStatistics {
  * Instances of the class `RecordingErrorListener` implement an error listener that will
  * record the errors that are reported to it in a way that is appropriate for caching those errors
  * within an analysis context.
- *
- * @coverage dart.engine
  */
 class RecordingErrorListener implements AnalysisErrorListener {
   /**
@@ -8704,7 +8662,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
  * Instances of the class `ResolutionEraser` remove any resolution information from an AST
  * structure when used to visit that structure.
  */
-class ResolutionEraser extends GeneralizingASTVisitor<Object> {
+class ResolutionEraser extends GeneralizingAstVisitor<Object> {
   Object visitAssignmentExpression(AssignmentExpression node) {
     node.staticElement = null;
     node.propagatedElement = null;
@@ -8976,8 +8934,6 @@ class WorkManager {
 
 /**
  * An [Expression] with optional [AngularFilterNode]s.
- *
- * @coverage dart.engine.ast
  */
 class AngularExpression {
   /**
@@ -9039,8 +8995,6 @@ class AngularExpression {
 
 /**
  * Angular filter argument.
- *
- * @coverage dart.engine.ast
  */
 class AngularFilterArgument {
   /**
@@ -9063,8 +9017,6 @@ class AngularFilterArgument {
 
 /**
  * Angular filter node.
- *
- * @coverage dart.engine.ast
  */
 class AngularFilterNode {
   /**
@@ -9495,9 +9447,9 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
   }
 
   /**
-   * Reports given [ErrorCode] at the given [ASTNode].
+   * Reports given [ErrorCode] at the given [AstNode].
    */
-  void reportError(ASTNode node, ErrorCode errorCode, List<Object> arguments) {
+  void reportError(AstNode node, ErrorCode errorCode, List<Object> arguments) {
     reportError7(node.offset, node.length, errorCode, arguments);
   }
 
@@ -9523,9 +9475,9 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
   }
 
   /**
-   * Resolves given [ASTNode] using [resolver].
+   * Resolves given [AstNode] using [resolver].
    */
-  void resolveNode(ASTNode node) {
+  void resolveNode(AstNode node) {
     node.accept(_resolver);
   }
 
@@ -9910,11 +9862,11 @@ abstract class AngularXmlExpression extends ht.XmlExpression {
   }
 
   /**
-   * If the given [ASTNode] has an [Element] at the given offset, then returns
+   * If the given [AstNode] has an [Element] at the given offset, then returns
    * [Reference] with this [Element].
    */
-  ht.XmlExpression_Reference getReference2(ASTNode root, int offset) {
-    ASTNode node = new NodeLocator.con1(offset).searchWithin(root);
+  ht.XmlExpression_Reference getReference2(AstNode root, int offset) {
+    AstNode node = new NodeLocator.con1(offset).searchWithin(root);
     if (node != null) {
       Element element = ElementLocator.locate(node);
       return new ht.XmlExpression_Reference(element, node.offset, node.length);
@@ -11677,8 +11629,6 @@ class ScanDartTask extends AnalysisTask {
  * information about errors within the analysis engine. Implementations usually write this
  * information to a file, but can also record the information for later use (such as during testing)
  * or even ignore the information.
- *
- * @coverage dart.engine.utilities
  */
 abstract class Logger {
   static final Logger NULL = new Logger_NullLogger();

@@ -37,8 +37,6 @@ import 'java_core.dart';
  * arguments and records the time at which the method is called so that the time to complete the
  * save operation can be calculated. The `log` method tells the builder that all of the data
  * has been collected and that the resulting information should be logged.
- *
- * @coverage dart.engine.utilities
  */
 class Instrumentation {
   /**
@@ -140,8 +138,6 @@ class InstrumentationLogger_Instrumentation_NULL_LOGGER implements Instrumentati
  * about an operation that has occurred and record that data through an instrumentation logger.
  *
  * For an example of using objects that implement this interface, see [Instrumentation].
- *
- * @coverage dart.engine.utilities
  */
 abstract class InstrumentationBuilder {
   /**
@@ -272,8 +268,6 @@ abstract class InstrumentationBuilder {
  * The instrumentation recording level representing (1) recording [EVERYTHING] recording of
  * all instrumentation data, (2) recording only [METRICS] information, or (3) recording
  * turned [OFF] in which case nothing is recorded.
- *
- * @coverage dart.engine.utilities
  */
 class InstrumentationLevel extends Enum<InstrumentationLevel> {
   /** Recording all instrumented information */
@@ -308,8 +302,6 @@ class InstrumentationLevel extends Enum<InstrumentationLevel> {
  * instrumentation data.
  *
  * For an example of using objects that implement this interface, see [Instrumentation].
- *
- * @coverage dart.engine.utilities
  */
 abstract class InstrumentationLogger {
   /**

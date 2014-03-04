@@ -17,8 +17,6 @@ export 'source.dart';
 /**
  * Instances of interface `LocalSourcePredicate` are used to determine if the given
  * [Source] is "local" in some sense, so can be updated.
- *
- * @coverage dart.engine.source
  */
 abstract class LocalSourcePredicate {
   /**
@@ -60,8 +58,6 @@ class LocalSourcePredicate_NOT_SDK implements LocalSourcePredicate {
 
 /**
  * Instances of the class `FileBasedSource` implement a source that represents a file.
- *
- * @coverage dart.engine.source
  */
 class FileBasedSource implements Source {
   /**
@@ -197,8 +193,6 @@ class FileBasedSource implements Source {
  * For the purposes of sharing analysis, the path to each package under the "packages" directory
  * should be canonicalized, but to preserve relative links within a package, the remainder of the
  * path from the package directory to the leaf should not.
- *
- * @coverage dart.engine.source
  */
 class PackageUriResolver extends UriResolver {
   /**
@@ -346,8 +340,6 @@ class PackageUriResolver extends UriResolver {
 /**
  * Instances of the class [DirectoryBasedSourceContainer] represent a source container that
  * contains all sources within a given directory.
- *
- * @coverage dart.engine.source
  */
 class DirectoryBasedSourceContainer implements SourceContainer {
   /**
@@ -407,8 +399,6 @@ class DirectoryBasedSourceContainer implements SourceContainer {
 
 /**
  * Instances of the class `FileUriResolver` resolve `file` URI's.
- *
- * @coverage dart.engine.source
  */
 class FileUriResolver extends UriResolver {
   /**

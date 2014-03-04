@@ -13,8 +13,6 @@ import 'java_core.dart';
  * The enumeration `ParameterKind` defines the different kinds of parameters. There are two
  * basic kinds of parameters: required and optional. Optional parameters are further divided into
  * two kinds: positional optional and named optional.
- *
- * @coverage dart.engine.utilities
  */
 class ParameterKind extends Enum<ParameterKind> {
   static final ParameterKind REQUIRED = new ParameterKind('REQUIRED', 0, false);

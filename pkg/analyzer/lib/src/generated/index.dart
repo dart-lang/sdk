@@ -21,8 +21,6 @@ import 'html.dart' as ht;
 /**
  * Instances of the [RemoveSourceOperation] implement an operation that removes from the index
  * any data based on the content of a specified source.
- *
- * @coverage dart.engine.index
  */
 class RemoveSourceOperation implements IndexOperation {
   /**
@@ -68,8 +66,6 @@ class RemoveSourceOperation implements IndexOperation {
 /**
  * The interface [IndexOperation] defines the behavior of objects used to perform operations
  * on an index.
- *
- * @coverage dart.engine.index
  */
 abstract class IndexOperation {
   /**
@@ -97,8 +93,6 @@ abstract class IndexOperation {
 
 /**
  * [IndexStore] which keeps full index in memory.
- *
- * @coverage dart.engine.index
  */
 class MemoryIndexStoreImpl implements MemoryIndexStore {
   static Object _WEAK_SET_VALUE = new Object();
@@ -606,8 +600,6 @@ class MemoryIndexStoreImpl_Source2 {
 /**
  * Instances of the [IndexUnitOperation] implement an operation that adds data to the index
  * based on the resolved [CompilationUnit].
- *
- * @coverage dart.engine.index
  */
 class IndexUnitOperation implements IndexOperation {
   /**
@@ -720,8 +712,6 @@ abstract class ExpressionVisitor extends ht.RecursiveXmlVisitor<Object> {
 /**
  * Relationship between an element and a location. Relationships are identified by a globally unique
  * identifier.
- *
- * @coverage dart.engine.index
  */
 class Relationship {
   /**
@@ -777,8 +767,6 @@ class Relationship {
 
 /**
  * Implementation of [Index].
- *
- * @coverage dart.engine.index
  */
 class IndexImpl implements Index {
   IndexStore _store;
@@ -846,8 +834,6 @@ class IndexImpl implements Index {
 /**
  * Instances of the [RemoveSourcesOperation] implement an operation that removes from the
  * index any data based on the content of source belonging to a [SourceContainer].
- *
- * @coverage dart.engine.index
  */
 class RemoveSourcesOperation implements IndexOperation {
   /**
@@ -893,8 +879,6 @@ class RemoveSourcesOperation implements IndexOperation {
 /**
  * The interface `UniverseElement` defines element to use when we want to request "defines"
  * relations without specifying exact library.
- *
- * @coverage dart.engine.index
  */
 abstract class UniverseElement implements Element {
   static final UniverseElement INSTANCE = UniverseElementImpl.INSTANCE;
@@ -903,8 +887,6 @@ abstract class UniverseElement implements Element {
 /**
  * Instances of the [OperationProcessor] process the operations on a single
  * [OperationQueue]. Each processor can be run one time on a single thread.
- *
- * @coverage dart.engine.index
  */
 class OperationProcessor {
   /**
@@ -1079,8 +1061,6 @@ class ProcessorState extends Enum<ProcessorState> {
 
 /**
  * Constants used when populating and accessing the index.
- *
- * @coverage dart.engine.index
  */
 abstract class IndexConstants {
   /**
@@ -1226,8 +1206,6 @@ abstract class IndexConstants {
 
 /**
  * Visits resolved [HtmlUnit] and adds relationships into [IndexStore].
- *
- * @coverage dart.engine.index
  */
 class AngularHtmlIndexContributor extends ExpressionVisitor {
   /**
@@ -1334,8 +1312,6 @@ class IndexContributor_AngularHtmlIndexContributor extends IndexContributor {
  * the expectation that operations are performed in the order in which they are requested.
  * Modification operations are executed before any read operation. There is no guarantee about the
  * order in which the callbacks for read operations will be invoked.
- *
- * @coverage dart.engine.index
  */
 abstract class Index {
   /**
@@ -1421,8 +1397,6 @@ abstract class Index {
 
 /**
  * Container of information computed by the index - relationships between elements.
- *
- * @coverage dart.engine.index
  */
 abstract class IndexStore {
   /**
@@ -1529,8 +1503,6 @@ abstract class IndexStore {
 
 /**
  * Implementation of [UniverseElement].
- *
- * @coverage dart.engine.index
  */
 class UniverseElementImpl extends ElementImpl implements UniverseElement {
   static UniverseElementImpl INSTANCE = new UniverseElementImpl();
@@ -1544,10 +1516,8 @@ class UniverseElementImpl extends ElementImpl implements UniverseElement {
 
 /**
  * Visits resolved AST and adds relationships into [IndexStore].
- *
- * @coverage dart.engine.index
  */
-class IndexContributor extends GeneralizingASTVisitor<Object> {
+class IndexContributor extends GeneralizingAstVisitor<Object> {
   /**
    * @return the [Location] representing location of the [Element].
    */
@@ -1576,7 +1546,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
   static IndexContributor_ImportElementInfo getImportElementInfo(SimpleIdentifier prefixNode) {
     IndexContributor_ImportElementInfo info = new IndexContributor_ImportElementInfo();
     // prepare environment
-    ASTNode parent = prefixNode.parent;
+    AstNode parent = prefixNode.parent;
     CompilationUnit unit = prefixNode.getAncestor(CompilationUnit);
     LibraryElement libraryElement = unit.element.library;
     // prepare used element
@@ -1732,9 +1702,9 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
       return location;
     }
     // should be LHS of assignment
-    ASTNode parent;
+    AstNode parent;
     {
-      ASTNode node = identifier;
+      AstNode node = identifier;
       parent = node.parent;
       // new T().field = x;
       if (parent is PropertyAccess) {
@@ -1767,7 +1737,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
    * @return `true` if given "node" is part of an import [Combinator].
    */
   static bool isIdentifierInImportCombinator(SimpleIdentifier node) {
-    ASTNode parent = node.parent;
+    AstNode parent = node.parent;
     return parent is Combinator;
   }
 
@@ -1775,7 +1745,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
    * @return `true` if given "node" is part of [PrefixedIdentifier] "prefix.node".
    */
   static bool isIdentifierInPrefixedIdentifier(SimpleIdentifier node) {
-    ASTNode parent = node.parent;
+    AstNode parent = node.parent;
     return parent is PrefixedIdentifier && identical(parent.identifier, node);
   }
 
@@ -1784,7 +1754,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
    *         method invocation.
    */
   static bool isQualified(SimpleIdentifier node) {
-    ASTNode parent = node.parent;
+    AstNode parent = node.parent;
     if (parent is PrefixedIdentifier) {
       return identical(parent.identifier, node);
     }
@@ -2221,9 +2191,9 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
   }
 
   /**
-   * @return the [Location] representing location of the [ASTNode].
+   * @return the [Location] representing location of the [AstNode].
    */
-  Location createLocation3(ASTNode node) => createLocation4(node.offset, node.length);
+  Location createLocation3(AstNode node) => createLocation4(node.offset, node.length);
 
   /**
    * @param offset the offset of the location within [Source]
@@ -2253,7 +2223,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
    *         not be indexed again.
    */
   bool isAlreadyHandledName(SimpleIdentifier node) {
-    ASTNode parent = node.parent;
+    AstNode parent = node.parent;
     if (parent is MethodInvocation) {
       Element element = node.staticElement;
       if (element is MethodElement || element is FunctionElement) {
@@ -2382,8 +2352,6 @@ class IndexContributor_ImportElementInfo {
 
 /**
  * Factory for [Index] and [IndexStore].
- *
- * @coverage dart.engine.index
  */
 class IndexFactory {
   /**
@@ -2404,8 +2372,6 @@ class IndexFactory {
 /**
  * Instances of the [OperationQueue] represent a queue of operations against the index that
  * are waiting to be performed.
- *
- * @coverage dart.engine.index
  */
 class OperationQueue {
   /**
@@ -2547,8 +2513,6 @@ class OperationQueue {
 /**
  * Special [Element] which is used to index references to the name without specifying concrete
  * kind of this name - field, method or something else.
- *
- * @coverage dart.engine.index
  */
 class NameElementImpl extends ElementImpl {
   NameElementImpl(String name) : super.con2("name:${name}", -1);
@@ -2561,10 +2525,8 @@ class NameElementImpl extends ElementImpl {
 /**
  * Visits resolved [CompilationUnit] and adds Angular specific relationships into
  * [IndexStore].
- *
- * @coverage dart.engine.index
  */
-class AngularDartIndexContributor extends GeneralizingASTVisitor<Object> {
+class AngularDartIndexContributor extends GeneralizingAstVisitor<Object> {
   IndexStore _store;
 
   AngularDartIndexContributor(IndexStore store) {
@@ -2634,8 +2596,6 @@ class AngularDartIndexContributor extends GeneralizingASTVisitor<Object> {
 /**
  * Instances of the [RemoveContextOperation] implement an operation that removes from the
  * index any data based on the specified [AnalysisContext].
- *
- * @coverage dart.engine.index
  */
 class RemoveContextOperation implements IndexOperation {
   /**
@@ -2674,8 +2634,6 @@ class RemoveContextOperation implements IndexOperation {
 /**
  * Instances of the [IndexHtmlUnitOperation] implement an operation that adds data to the
  * index based on the resolved [HtmlUnit].
- *
- * @coverage dart.engine.index
  */
 class IndexHtmlUnitOperation implements IndexOperation {
   /**
@@ -2748,8 +2706,6 @@ class IndexHtmlUnitOperation implements IndexOperation {
  * Instances of the class <code>Location</code> represent a location related to an element. The
  * location is expressed as an offset and length, but the offset is relative to the resource
  * containing the element rather than the start of the element within that resource.
- *
- * @coverage dart.engine.index
  */
 class Location {
   /**
@@ -2799,8 +2755,6 @@ class Location {
 /**
  * [IndexStore] which keeps all information in memory, but can write it to stream and read
  * later.
- *
- * @coverage dart.engine.index
  */
 abstract class MemoryIndexStore implements IndexStore {
 }
@@ -2808,8 +2762,6 @@ abstract class MemoryIndexStore implements IndexStore {
 /**
  * Instances of the [GetRelationshipsOperation] implement an operation used to access the
  * locations that have a specified relationship with a specified element.
- *
- * @coverage dart.engine.index
  */
 class GetRelationshipsOperation implements IndexOperation {
   IndexStore _indexStore;
@@ -2859,8 +2811,6 @@ class LocationWithData<D> extends Location {
 /**
  * The interface <code>RelationshipCallback</code> defines the behavior of objects that are invoked
  * with the results of a query about a given relationship.
- *
- * @coverage dart.engine.index
  */
 abstract class RelationshipCallback {
   /**

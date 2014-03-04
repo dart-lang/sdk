@@ -21,8 +21,6 @@ import 'engine.dart' show AnalysisEngine, AngularHtmlUnitResolver, ExpressionVis
 /**
  * Instances of the class `Token` represent a token that was scanned from the input. Each
  * token knows which token follows it, acting as the head of a linked list of tokens.
- *
- * @coverage dart.engine.html
  */
 class Token {
   /**
@@ -156,7 +154,7 @@ class RawXmlExpression extends XmlExpression {
   int get offset => expression.offset;
 
   XmlExpression_Reference getReference(int offset) {
-    ASTNode node = new NodeLocator.con1(offset).searchWithin(expression);
+    AstNode node = new NodeLocator.con1(offset).searchWithin(expression);
     if (node != null) {
       Element element = ElementLocator.locate(node);
       return new XmlExpression_Reference(element, node.offset, node.length);
@@ -174,8 +172,6 @@ class RawXmlExpression extends XmlExpression {
  * Subclasses that override a visit method must either invoke the overridden visit method or must
  * explicitly ask the visited node to visit its children. Failure to do so will cause the children
  * of the visited node to not be visited.
- *
- * @coverage dart.engine.html
  */
 class RecursiveXmlVisitor<R> implements XmlVisitor<R> {
   R visitHtmlScriptTagNode(HtmlScriptTagNode node) {
@@ -289,12 +285,12 @@ class HtmlUnitUtils {
   }
 
   /**
-   * Returns the [Expression] that is part of the given root [ASTNode] and encloses the
+   * Returns the [Expression] that is part of the given root [AstNode] and encloses the
    * given offset.
    */
-  static Expression getExpressionAt(ASTNode root, int offset) {
+  static Expression getExpressionAt(AstNode root, int offset) {
     if (root.offset <= offset && offset < root.end) {
-      ASTNode dartNode = new NodeLocator.con1(offset).searchWithin(root);
+      AstNode dartNode = new NodeLocator.con1(offset).searchWithin(root);
       if (dartNode is Expression) {
         return dartNode;
       }
@@ -415,8 +411,6 @@ class HtmlScriptTagNode extends XmlTagNode {
 
 /**
  * The abstract class `XmlNode` defines behavior common to all XML/HTML nodes.
- *
- * @coverage dart.engine.html
  */
 abstract class XmlNode {
   /**
@@ -634,8 +628,6 @@ class SimpleXmlVisitor<R> implements XmlVisitor<R> {
 /**
  * The abstract class `AbstractScanner` implements a scanner for HTML code. Subclasses are
  * required to implement the interface used to access the characters being scanned.
- *
- * @coverage dart.engine.html
  */
 abstract class AbstractScanner {
   static List<String> _NO_PASS_THROUGH_ELEMENTS = <String> [];
@@ -955,8 +947,6 @@ abstract class AbstractScanner {
 /**
  * Instances of the class `StringScanner` implement a scanner that reads from a string. The
  * scanning logic is in the superclass.
- *
- * @coverage dart.engine.html
  */
 class StringScanner extends AbstractScanner {
   /**
@@ -1013,8 +1003,6 @@ class StringScanner extends AbstractScanner {
 /**
  * Instances of the class `ToSourceVisitor` write a source representation of a visited XML
  * node (and all of it's children) to a writer.
- *
- * @coverage dart.engine.html
  */
 class ToSourceVisitor implements XmlVisitor<Object> {
   /**
@@ -1093,8 +1081,6 @@ class ToSourceVisitor implements XmlVisitor<Object> {
 /**
  * The enumeration `TokenType` defines the types of tokens that can be returned by the
  * scanner.
- *
- * @coverage dart.engine.html
  */
 class TokenType extends Enum<TokenType> {
   /**
@@ -1155,8 +1141,6 @@ class TokenType_EOF extends TokenType {
 
 /**
  * Instances of `XmlAttributeNode` represent name/value pairs owned by an [XmlTagNode].
- *
- * @coverage dart.engine.html
  */
 class XmlAttributeNode extends XmlNode {
   Token _name;
@@ -1246,8 +1230,6 @@ class XmlAttributeNode extends XmlNode {
 /**
  * The interface `XmlVisitor` defines the behavior of objects that can be used to visit an
  * [XmlNode] structure.
- *
- * @coverage dart.engine.html
  */
 abstract class XmlVisitor<R> {
   R visitHtmlScriptTagNode(HtmlScriptTagNode node);
@@ -1321,8 +1303,6 @@ class XmlExpression_Reference {
 /**
  * Instances of the class `XmlParser` are used to parse tokens into a AST structure comprised
  * of [XmlNode]s.
- *
- * @coverage dart.engine.html
  */
 class XmlParser {
   /**
@@ -1581,8 +1561,6 @@ class XmlParser {
 /**
  * Instances of `XmlTagNode` represent XML or HTML elements such as `` and
  * `<body foo="bar"> ... </body>`.
- *
- * @coverage dart.engine.html
  */
 class XmlTagNode extends XmlNode {
   /**
@@ -1624,14 +1602,12 @@ class XmlTagNode extends XmlNode {
 
   /**
    * The token (not `null`) after the content, which may be
-   *
    * * (1) [TokenType#LT_SLASH] for nodes with open and close tags, or
    * * (2) the [TokenType#LT] nodeStart of the next sibling node if this node is self
    * closing or the attributeEnd is [TokenType#SLASH_GT], or
    * * (3) [TokenType#EOF] if the node does not have a closing tag and is the last node in
    * the stream [TokenType#LT_SLASH] token after the content, or `null` if there is no
    * content and the attributes ended with [TokenType#SLASH_GT].
-   *
    */
   final Token contentEnd;
 
@@ -1664,14 +1640,12 @@ class XmlTagNode extends XmlNode {
    * @param tagNodes child tag nodes of the receiver or [NO_TAG_NODES] (not `null`,
    *          contains no `null`s)
    * @param contentEnd the token (not `null`) after the content, which may be
-   *
    *          * (1) [TokenType#LT_SLASH] for nodes with open and close tags, or
    *          * (2) the [TokenType#LT] nodeStart of the next sibling node if this node is
    *          self closing or the attributeEnd is [TokenType#SLASH_GT], or
    *          * (3) [TokenType#EOF] if the node does not have a closing tag and is the last
    *          node in the stream [TokenType#LT_SLASH] token after the content, or `null`
    *          if there is no content and the attributes ended with [TokenType#SLASH_GT].
-   *
    * @param closingTag the closing [TokenType#TAG] after the child elements or `null` if
    *          there is no content and the attributes ended with [TokenType#SLASH_GT]
    * @param nodeEnd the ending [TokenType#GT] or [TokenType#SLASH_GT] token (not
@@ -1816,8 +1790,6 @@ class XmlTagNode extends XmlNode {
 /**
  * Instances of the class `HtmlParser` are used to parse tokens into a AST structure comprised
  * of [XmlNode]s.
- *
- * @coverage dart.engine.html
  */
 class HtmlParser extends XmlParser {
   /**
@@ -1944,8 +1916,6 @@ class HtmlParser extends XmlParser {
 
 /**
  * Instances of the class `HtmlUnit` represent the contents of an HTML file.
- *
- * @coverage dart.engine.html
  */
 class HtmlUnit extends XmlNode {
   /**

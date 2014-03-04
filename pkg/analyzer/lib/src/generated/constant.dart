@@ -22,7 +22,6 @@ import 'utilities_dart.dart' show ParameterKind;
  * Instances of the class `ConstantEvaluator` evaluate constant expressions to produce their
  * compile-time value. According to the Dart Language Specification: <blockquote> A constant
  * expression is one of the following:
- *
  * * A literal number.
  * * A literal boolean.
  * * A literal string where any interpolated expression is a compile-time constant that evaluates
@@ -60,7 +59,6 @@ import 'utilities_dart.dart' show ParameterKind;
  * * An expression of the form <i>e<sub>1</sub> ? e<sub>2</sub> : e<sub>3</sub></i> where
  * <i>e<sub>1</sub></i>, <i>e<sub>2</sub></i> and <i>e<sub>3</sub></i> are constant expressions, and
  * <i>e<sub>1</sub></i> evaluates to a boolean value.
- *
  * </blockquote>
  */
 class ConstantEvaluator {
@@ -92,7 +90,7 @@ class ConstantEvaluator {
     }
     List<AnalysisError> errors = new List<AnalysisError>();
     for (ErrorResult_ErrorData data in (result as ErrorResult).errorData) {
-      ASTNode node = data.node;
+      AstNode node = data.node;
       errors.add(new AnalysisError.con2(_source, node.offset, node.length, data.errorCode, []));
     }
     return EvaluationResult.forErrors(new List.from(errors));
@@ -247,7 +245,7 @@ class EvaluationResult {
  * the compilation units being resolved and build a table mapping constant variable elements to the
  * declarations of those variables.
  */
-class ConstantFinder extends RecursiveASTVisitor<Object> {
+class ConstantFinder extends RecursiveAstVisitor<Object> {
   /**
    * A table mapping constant variable elements to the declarations of those variables.
    */
@@ -371,7 +369,7 @@ class ConstantValueComputer {
     if (result is ErrorResult) {
       List<AnalysisError> errors = new List<AnalysisError>();
       for (ErrorResult_ErrorData data in result.errorData) {
-        ASTNode node = data.node;
+        AstNode node = data.node;
         Source source = variable.getAncestor(CompilationUnitElement).source;
         errors.add(new AnalysisError.con2(source, node.offset, node.length, data.errorCode, []));
       }
@@ -394,7 +392,6 @@ class ConstantValueComputer {
  * Instances of the class `ConstantVisitor` evaluate constant expressions to produce their
  * compile-time value. According to the Dart Language Specification: <blockquote> A constant
  * expression is one of the following:
- *
  * * A literal number.
  * * A literal boolean.
  * * A literal string where any interpolated expression is a compile-time constant that evaluates
@@ -432,10 +429,9 @@ class ConstantValueComputer {
  * * An expression of the form <i>e<sub>1</sub> ? e<sub>2</sub> : e<sub>3</sub></i> where
  * <i>e<sub>1</sub></i>, <i>e<sub>2</sub></i> and <i>e<sub>3</sub></i> are constant expressions, and
  * <i>e<sub>1</sub></i> evaluates to a boolean value.
- *
  * </blockquote>
  */
-class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
+class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
   /**
    * The type provider used to access the known types.
    */
@@ -693,7 +689,7 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
 
   EvaluationResultImpl visitNamedExpression(NamedExpression node) => node.expression.accept(this);
 
-  EvaluationResultImpl visitNode(ASTNode node) => error(node, null);
+  EvaluationResultImpl visitNode(AstNode node) => error(node, null);
 
   EvaluationResultImpl visitNullLiteral(NullLiteral node) => new ValidResult(null2);
 
@@ -770,7 +766,7 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
    * @param code the error code indicating the nature of the error
    * @return a result object representing an error associated with the given node
    */
-  ErrorResult error(ASTNode node, ErrorCode code) => new ErrorResult.con1(node, code == null ? CompileTimeErrorCode.INVALID_CONSTANT : code);
+  ErrorResult error(AstNode node, ErrorCode code) => new ErrorResult.con1(node, code == null ? CompileTimeErrorCode.INVALID_CONSTANT : code);
 
   /**
    * Return the constant value of the static constant represented by the given element.
@@ -779,7 +775,7 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
    * @param element the element whose value is to be returned
    * @return the constant value of the static constant
    */
-  EvaluationResultImpl getConstantValue(ASTNode node, Element element) {
+  EvaluationResultImpl getConstantValue(AstNode node, Element element) {
     if (element is PropertyAccessorElement) {
       element = (element as PropertyAccessorElement).variable;
     }
@@ -1048,7 +1044,7 @@ class ErrorResult extends EvaluationResultImpl {
    * @param node the node against which the error should be reported
    * @param errorCode the error code for the error to be generated
    */
-  ErrorResult.con1(ASTNode node, ErrorCode errorCode) {
+  ErrorResult.con1(AstNode node, ErrorCode errorCode) {
     _errors.add(new ErrorResult_ErrorData(node, errorCode));
   }
 
@@ -1066,7 +1062,7 @@ class ErrorResult extends EvaluationResultImpl {
 
   EvaluationResultImpl add(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.addToError(node, this);
 
-  EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider, ASTNode node) => this;
+  EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider, AstNode node) => this;
 
   EvaluationResultImpl bitAnd(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitAndError(node, this);
 
@@ -1110,7 +1106,7 @@ class ErrorResult extends EvaluationResultImpl {
 
   EvaluationResultImpl notEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.notEqualError(node, this);
 
-  EvaluationResultImpl performToString(TypeProvider typeProvider, ASTNode node) => this;
+  EvaluationResultImpl performToString(TypeProvider typeProvider, AstNode node) => this;
 
   EvaluationResultImpl remainder(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.remainderError(node, this);
 
@@ -1203,7 +1199,7 @@ class ErrorResult_ErrorData {
   /**
    * The node against which the error should be reported.
    */
-  final ASTNode node;
+  final AstNode node;
 
   /**
    * The error code for the error to be generated.
@@ -1234,7 +1230,7 @@ abstract class EvaluationResultImpl {
    * @param node the node against which errors should be reported
    * @return the result of applying boolean conversion to the given value
    */
-  EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider, ASTNode node);
+  EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider, AstNode node);
 
   EvaluationResultImpl bitAnd(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
 
@@ -1274,7 +1270,7 @@ abstract class EvaluationResultImpl {
 
   EvaluationResultImpl notEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
 
-  EvaluationResultImpl performToString(TypeProvider typeProvider, ASTNode node);
+  EvaluationResultImpl performToString(TypeProvider typeProvider, AstNode node);
 
   EvaluationResultImpl remainder(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
 
@@ -1369,7 +1365,7 @@ abstract class EvaluationResultImpl {
  * Instances of the class `ReferenceFinder` add reference information for a given variable to
  * the bi-directional mapping used to order the evaluation of constants.
  */
-class ReferenceFinder extends RecursiveASTVisitor<Object> {
+class ReferenceFinder extends RecursiveAstVisitor<Object> {
   /**
    * The element representing the variable whose initializer will be visited.
    */
@@ -1434,7 +1430,7 @@ class ValidResult extends EvaluationResultImpl {
    * @param node the node against which errors should be reported
    * @return the result of applying boolean conversion to the given value
    */
-  EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider, ASTNode node) {
+  EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider, AstNode node) {
     try {
       return valueOf(value.convertToBool(typeProvider));
     } on EvaluationException catch (exception) {
@@ -1546,7 +1542,7 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl notEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.notEqualValid(typeProvider, node, this);
 
-  EvaluationResultImpl performToString(TypeProvider typeProvider, ASTNode node) {
+  EvaluationResultImpl performToString(TypeProvider typeProvider, AstNode node) {
     try {
       return valueOf(value.performToString(typeProvider));
     } on EvaluationException catch (exception) {
@@ -1776,7 +1772,7 @@ class ValidResult extends EvaluationResultImpl {
    * @param code the error code indicating the nature of the error
    * @return a result object representing an error associated with the given node
    */
-  ErrorResult error(ASTNode node, ErrorCode code) => new ErrorResult.con1(node, code);
+  ErrorResult error(AstNode node, ErrorCode code) => new ErrorResult.con1(node, code);
 
   /**
    * Return a result object representing the given value.

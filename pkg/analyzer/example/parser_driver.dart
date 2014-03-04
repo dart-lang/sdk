@@ -50,8 +50,8 @@ class _ErrorCollector extends AnalysisErrorListener {
   onError(error) => errors.add(error);
 }
 
-class _ASTVisitor extends GeneralizingASTVisitor {
-  visitNode(ASTNode node) {
+class _ASTVisitor extends GeneralizingAstVisitor {
+  visitNode(AstNode node) {
     print('${node.runtimeType} : <"${node.toString()}">');
     return super.visitNode(node);
   }

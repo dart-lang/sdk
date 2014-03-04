@@ -19,7 +19,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:unittest/unittest.dart' as _ut;
 import 'test_support.dart';
 import 'scanner_test.dart' show TokenFactory;
-import 'ast_test.dart' show ASTFactory;
+import 'ast_test.dart' show AstFactory;
 import 'element_test.dart' show ElementFactory;
 
 /**
@@ -3004,9 +3004,9 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseMapLiteral_empty() {
     Token token = TokenFactory.token(Keyword.CONST);
-    TypeArgumentList typeArguments = ASTFactory.typeArgumentList([
-        ASTFactory.typeName4("String", []),
-        ASTFactory.typeName4("int", [])]);
+    TypeArgumentList typeArguments = AstFactory.typeArgumentList([
+        AstFactory.typeName4("String", []),
+        AstFactory.typeName4("int", [])]);
     MapLiteral literal = ParserTestCase.parse("parseMapLiteral", <Object> [token, typeArguments], "{}");
     JUnitTestCase.assertEquals(token, literal.constKeyword);
     JUnitTestCase.assertEquals(typeArguments, literal.typeArguments);
@@ -7275,78 +7275,6 @@ class ComplexParserTest extends ParserTestCase {
   }
 }
 
-/**
- * Instances of the class `ASTValidator` are used to validate the correct construction of an
- * AST structure.
- */
-class ASTValidator extends UnifyingASTVisitor<Object> {
-  /**
-   * A list containing the errors found while traversing the AST structure.
-   */
-  List<String> _errors = new List<String>();
-
-  /**
-   * Assert that no errors were found while traversing any of the AST structures that have been
-   * visited.
-   */
-  void assertValid() {
-    if (!_errors.isEmpty) {
-      JavaStringBuilder builder = new JavaStringBuilder();
-      builder.append("Invalid AST structure:");
-      for (String message in _errors) {
-        builder.append("\r\n   ");
-        builder.append(message);
-      }
-      JUnitTestCase.fail(builder.toString());
-    }
-  }
-
-  Object visitNode(ASTNode node) {
-    validate(node);
-    return super.visitNode(node);
-  }
-
-  /**
-   * Validate that the given AST node is correctly constructed.
-   *
-   * @param node the AST node being validated
-   */
-  void validate(ASTNode node) {
-    ASTNode parent = node.parent;
-    if (node is CompilationUnit) {
-      if (parent != null) {
-        _errors.add("Compilation units should not have a parent");
-      }
-    } else {
-      if (parent == null) {
-        _errors.add("No parent for ${node.runtimeType.toString()}");
-      }
-    }
-    if (node.beginToken == null) {
-      _errors.add("No begin token for ${node.runtimeType.toString()}");
-    }
-    if (node.endToken == null) {
-      _errors.add("No end token for ${node.runtimeType.toString()}");
-    }
-    int nodeStart = node.offset;
-    int nodeLength = node.length;
-    if (nodeStart < 0 || nodeLength < 0) {
-      _errors.add("No source info for ${node.runtimeType.toString()}");
-    }
-    if (parent != null) {
-      int nodeEnd = nodeStart + nodeLength;
-      int parentStart = parent.offset;
-      int parentEnd = parentStart + parent.length;
-      if (nodeStart < parentStart) {
-        _errors.add("Invalid source start (${nodeStart}) for ${node.runtimeType.toString()} inside ${parent.runtimeType.toString()} (${parentStart})");
-      }
-      if (nodeEnd > parentEnd) {
-        _errors.add("Invalid source end (${nodeEnd}) for ${node.runtimeType.toString()} inside ${parent.runtimeType.toString()} (${parentStart})");
-      }
-    }
-  }
-}
-
 class ParserTestCase extends EngineTestCase {
   /**
    * An empty array of objects used as arguments to zero-argument methods.
@@ -7609,44 +7537,116 @@ class ParserTestCase extends EngineTestCase {
   }
 }
 
+/**
+ * Instances of the class `AstValidator` are used to validate the correct construction of an
+ * AST structure.
+ */
+class AstValidator extends UnifyingAstVisitor<Object> {
+  /**
+   * A list containing the errors found while traversing the AST structure.
+   */
+  List<String> _errors = new List<String>();
+
+  /**
+   * Assert that no errors were found while traversing any of the AST structures that have been
+   * visited.
+   */
+  void assertValid() {
+    if (!_errors.isEmpty) {
+      JavaStringBuilder builder = new JavaStringBuilder();
+      builder.append("Invalid AST structure:");
+      for (String message in _errors) {
+        builder.append("\r\n   ");
+        builder.append(message);
+      }
+      JUnitTestCase.fail(builder.toString());
+    }
+  }
+
+  Object visitNode(AstNode node) {
+    validate(node);
+    return super.visitNode(node);
+  }
+
+  /**
+   * Validate that the given AST node is correctly constructed.
+   *
+   * @param node the AST node being validated
+   */
+  void validate(AstNode node) {
+    AstNode parent = node.parent;
+    if (node is CompilationUnit) {
+      if (parent != null) {
+        _errors.add("Compilation units should not have a parent");
+      }
+    } else {
+      if (parent == null) {
+        _errors.add("No parent for ${node.runtimeType.toString()}");
+      }
+    }
+    if (node.beginToken == null) {
+      _errors.add("No begin token for ${node.runtimeType.toString()}");
+    }
+    if (node.endToken == null) {
+      _errors.add("No end token for ${node.runtimeType.toString()}");
+    }
+    int nodeStart = node.offset;
+    int nodeLength = node.length;
+    if (nodeStart < 0 || nodeLength < 0) {
+      _errors.add("No source info for ${node.runtimeType.toString()}");
+    }
+    if (parent != null) {
+      int nodeEnd = nodeStart + nodeLength;
+      int parentStart = parent.offset;
+      int parentEnd = parentStart + parent.length;
+      if (nodeStart < parentStart) {
+        _errors.add("Invalid source start (${nodeStart}) for ${node.runtimeType.toString()} inside ${parent.runtimeType.toString()} (${parentStart})");
+      }
+      if (nodeEnd > parentEnd) {
+        _errors.add("Invalid source end (${nodeEnd}) for ${node.runtimeType.toString()} inside ${parent.runtimeType.toString()} (${parentStart})");
+      }
+    }
+  }
+}
+
 class ResolutionCopierTest extends EngineTestCase {
   void test_visitAnnotation() {
     String annotationName = "proxy";
-    Annotation fromNode = ASTFactory.annotation(ASTFactory.identifier3(annotationName));
+    Annotation fromNode = AstFactory.annotation(AstFactory.identifier3(annotationName));
     Element element = ElementFactory.topLevelVariableElement2(annotationName);
     fromNode.element = element;
-    Annotation toNode = ASTFactory.annotation(ASTFactory.identifier3(annotationName));
+    Annotation toNode = AstFactory.annotation(AstFactory.identifier3(annotationName));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(element, toNode.element);
   }
 
   void test_visitArgumentDefinitionTest() {
     String identifier = "p";
-    ArgumentDefinitionTest fromNode = ASTFactory.argumentDefinitionTest(identifier);
+    ArgumentDefinitionTest fromNode = AstFactory.argumentDefinitionTest(identifier);
     Type2 propagatedType = ElementFactory.classElement2("A", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("B", []).type;
     fromNode.staticType = staticType;
-    ArgumentDefinitionTest toNode = ASTFactory.argumentDefinitionTest(identifier);
+    ArgumentDefinitionTest toNode = AstFactory.argumentDefinitionTest(identifier);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitAsExpression() {
-    AsExpression fromNode = ASTFactory.asExpression(ASTFactory.identifier3("x"), ASTFactory.typeName4("A", []));
+    AsExpression fromNode = AstFactory.asExpression(AstFactory.identifier3("x"), AstFactory.typeName4("A", []));
     Type2 propagatedType = ElementFactory.classElement2("A", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("B", []).type;
     fromNode.staticType = staticType;
-    AsExpression toNode = ASTFactory.asExpression(ASTFactory.identifier3("x"), ASTFactory.typeName4("A", []));
+    AsExpression toNode = AstFactory.asExpression(AstFactory.identifier3("x"), AstFactory.typeName4("A", []));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitAssignmentExpression() {
-    AssignmentExpression fromNode = ASTFactory.assignmentExpression(ASTFactory.identifier3("a"), TokenType.PLUS_EQ, ASTFactory.identifier3("b"));
+    AssignmentExpression fromNode = AstFactory.assignmentExpression(AstFactory.identifier3("a"), TokenType.PLUS_EQ, AstFactory.identifier3("b"));
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     MethodElement propagatedElement = ElementFactory.methodElement("+", propagatedType, []);
     fromNode.propagatedElement = propagatedElement;
@@ -7655,7 +7655,7 @@ class ResolutionCopierTest extends EngineTestCase {
     MethodElement staticElement = ElementFactory.methodElement("+", staticType, []);
     fromNode.staticElement = staticElement;
     fromNode.staticType = staticType;
-    AssignmentExpression toNode = ASTFactory.assignmentExpression(ASTFactory.identifier3("a"), TokenType.PLUS_EQ, ASTFactory.identifier3("b"));
+    AssignmentExpression toNode = AstFactory.assignmentExpression(AstFactory.identifier3("a"), TokenType.PLUS_EQ, AstFactory.identifier3("b"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
@@ -7664,7 +7664,7 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitBinaryExpression() {
-    BinaryExpression fromNode = ASTFactory.binaryExpression(ASTFactory.identifier3("a"), TokenType.PLUS, ASTFactory.identifier3("b"));
+    BinaryExpression fromNode = AstFactory.binaryExpression(AstFactory.identifier3("a"), TokenType.PLUS, AstFactory.identifier3("b"));
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     MethodElement propagatedElement = ElementFactory.methodElement("+", propagatedType, []);
     fromNode.propagatedElement = propagatedElement;
@@ -7673,7 +7673,7 @@ class ResolutionCopierTest extends EngineTestCase {
     MethodElement staticElement = ElementFactory.methodElement("+", staticType, []);
     fromNode.staticElement = staticElement;
     fromNode.staticType = staticType;
-    BinaryExpression toNode = ASTFactory.binaryExpression(ASTFactory.identifier3("a"), TokenType.PLUS, ASTFactory.identifier3("b"));
+    BinaryExpression toNode = AstFactory.binaryExpression(AstFactory.identifier3("a"), TokenType.PLUS, AstFactory.identifier3("b"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
@@ -7682,45 +7682,45 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitBooleanLiteral() {
-    BooleanLiteral fromNode = ASTFactory.booleanLiteral(true);
+    BooleanLiteral fromNode = AstFactory.booleanLiteral(true);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    BooleanLiteral toNode = ASTFactory.booleanLiteral(true);
+    BooleanLiteral toNode = AstFactory.booleanLiteral(true);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitCascadeExpression() {
-    CascadeExpression fromNode = ASTFactory.cascadeExpression(ASTFactory.identifier3("a"), [ASTFactory.identifier3("b")]);
+    CascadeExpression fromNode = AstFactory.cascadeExpression(AstFactory.identifier3("a"), [AstFactory.identifier3("b")]);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    CascadeExpression toNode = ASTFactory.cascadeExpression(ASTFactory.identifier3("a"), [ASTFactory.identifier3("b")]);
+    CascadeExpression toNode = AstFactory.cascadeExpression(AstFactory.identifier3("a"), [AstFactory.identifier3("b")]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitCompilationUnit() {
-    CompilationUnit fromNode = ASTFactory.compilationUnit();
+    CompilationUnit fromNode = AstFactory.compilationUnit();
     CompilationUnitElement element = new CompilationUnitElementImpl("test.dart");
     fromNode.element = element;
-    CompilationUnit toNode = ASTFactory.compilationUnit();
+    CompilationUnit toNode = AstFactory.compilationUnit();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(element, toNode.element);
   }
 
   void test_visitConditionalExpression() {
-    ConditionalExpression fromNode = ASTFactory.conditionalExpression(ASTFactory.identifier3("c"), ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    ConditionalExpression fromNode = AstFactory.conditionalExpression(AstFactory.identifier3("c"), AstFactory.identifier3("a"), AstFactory.identifier3("b"));
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    ConditionalExpression toNode = ASTFactory.conditionalExpression(ASTFactory.identifier3("c"), ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    ConditionalExpression toNode = AstFactory.conditionalExpression(AstFactory.identifier3("c"), AstFactory.identifier3("a"), AstFactory.identifier3("b"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
@@ -7729,53 +7729,53 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitConstructorDeclaration() {
     String className = "A";
     String constructorName = "c";
-    ConstructorDeclaration fromNode = ASTFactory.constructorDeclaration(ASTFactory.identifier3(className), constructorName, ASTFactory.formalParameterList([]), null);
+    ConstructorDeclaration fromNode = AstFactory.constructorDeclaration(AstFactory.identifier3(className), constructorName, AstFactory.formalParameterList([]), null);
     ConstructorElement element = ElementFactory.constructorElement2(ElementFactory.classElement2(className, []), constructorName, []);
     fromNode.element = element;
-    ConstructorDeclaration toNode = ASTFactory.constructorDeclaration(ASTFactory.identifier3(className), constructorName, ASTFactory.formalParameterList([]), null);
+    ConstructorDeclaration toNode = AstFactory.constructorDeclaration(AstFactory.identifier3(className), constructorName, AstFactory.formalParameterList([]), null);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(element, toNode.element);
   }
 
   void test_visitConstructorName() {
-    ConstructorName fromNode = ASTFactory.constructorName(ASTFactory.typeName4("A", []), "c");
+    ConstructorName fromNode = AstFactory.constructorName(AstFactory.typeName4("A", []), "c");
     ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("A", []), "c", []);
     fromNode.staticElement = staticElement;
-    ConstructorName toNode = ASTFactory.constructorName(ASTFactory.typeName4("A", []), "c");
+    ConstructorName toNode = AstFactory.constructorName(AstFactory.typeName4("A", []), "c");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(staticElement, toNode.staticElement);
   }
 
   void test_visitDoubleLiteral() {
-    DoubleLiteral fromNode = ASTFactory.doubleLiteral(1.0);
+    DoubleLiteral fromNode = AstFactory.doubleLiteral(1.0);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    DoubleLiteral toNode = ASTFactory.doubleLiteral(1.0);
+    DoubleLiteral toNode = AstFactory.doubleLiteral(1.0);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitExportDirective() {
-    ExportDirective fromNode = ASTFactory.exportDirective2("dart:uri", []);
+    ExportDirective fromNode = AstFactory.exportDirective2("dart:uri", []);
     ExportElement element = new ExportElementImpl();
     fromNode.element = element;
-    ExportDirective toNode = ASTFactory.exportDirective2("dart:uri", []);
+    ExportDirective toNode = AstFactory.exportDirective2("dart:uri", []);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(element, toNode.element);
   }
 
   void test_visitFunctionExpression() {
-    FunctionExpression fromNode = ASTFactory.functionExpression2(ASTFactory.formalParameterList([]), ASTFactory.emptyFunctionBody());
+    FunctionExpression fromNode = AstFactory.functionExpression2(AstFactory.formalParameterList([]), AstFactory.emptyFunctionBody());
     MethodElement element = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
     fromNode.element = element;
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    FunctionExpression toNode = ASTFactory.functionExpression2(ASTFactory.formalParameterList([]), ASTFactory.emptyFunctionBody());
+    FunctionExpression toNode = AstFactory.functionExpression2(AstFactory.formalParameterList([]), AstFactory.emptyFunctionBody());
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(element, toNode.element);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
@@ -7783,7 +7783,7 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitFunctionExpressionInvocation() {
-    FunctionExpressionInvocation fromNode = ASTFactory.functionExpressionInvocation(ASTFactory.identifier3("f"), []);
+    FunctionExpressionInvocation fromNode = AstFactory.functionExpressionInvocation(AstFactory.identifier3("f"), []);
     MethodElement propagatedElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
     fromNode.propagatedElement = propagatedElement;
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
@@ -7792,7 +7792,7 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticElement = staticElement;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    FunctionExpressionInvocation toNode = ASTFactory.functionExpressionInvocation(ASTFactory.identifier3("f"), []);
+    FunctionExpressionInvocation toNode = AstFactory.functionExpressionInvocation(AstFactory.identifier3("f"), []);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
@@ -7801,16 +7801,16 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitImportDirective() {
-    ImportDirective fromNode = ASTFactory.importDirective2("dart:uri", null, []);
+    ImportDirective fromNode = AstFactory.importDirective2("dart:uri", null, []);
     ImportElement element = new ImportElementImpl(0);
     fromNode.element = element;
-    ImportDirective toNode = ASTFactory.importDirective2("dart:uri", null, []);
+    ImportDirective toNode = AstFactory.importDirective2("dart:uri", null, []);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(element, toNode.element);
   }
 
   void test_visitIndexExpression() {
-    IndexExpression fromNode = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.integer(0));
+    IndexExpression fromNode = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.integer(0));
     MethodElement propagatedElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
     MethodElement staticElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
     AuxiliaryElements auxiliaryElements = new AuxiliaryElements(staticElement, propagatedElement);
@@ -7821,7 +7821,7 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticElement = staticElement;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    IndexExpression toNode = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.integer(0));
+    IndexExpression toNode = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.integer(0));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(auxiliaryElements, toNode.auxiliaryElements);
     JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
@@ -7831,14 +7831,14 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitInstanceCreationExpression() {
-    InstanceCreationExpression fromNode = ASTFactory.instanceCreationExpression2(Keyword.NEW, ASTFactory.typeName4("C", []), []);
+    InstanceCreationExpression fromNode = AstFactory.instanceCreationExpression2(Keyword.NEW, AstFactory.typeName4("C", []), []);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("C", []), null, []);
     fromNode.staticElement = staticElement;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    InstanceCreationExpression toNode = ASTFactory.instanceCreationExpression2(Keyword.NEW, ASTFactory.typeName4("C", []), []);
+    InstanceCreationExpression toNode = AstFactory.instanceCreationExpression2(Keyword.NEW, AstFactory.typeName4("C", []), []);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticElement, toNode.staticElement);
@@ -7846,134 +7846,134 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitIntegerLiteral() {
-    IntegerLiteral fromNode = ASTFactory.integer(2);
+    IntegerLiteral fromNode = AstFactory.integer(2);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    IntegerLiteral toNode = ASTFactory.integer(2);
+    IntegerLiteral toNode = AstFactory.integer(2);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitIsExpression() {
-    IsExpression fromNode = ASTFactory.isExpression(ASTFactory.identifier3("x"), false, ASTFactory.typeName4("A", []));
+    IsExpression fromNode = AstFactory.isExpression(AstFactory.identifier3("x"), false, AstFactory.typeName4("A", []));
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    IsExpression toNode = ASTFactory.isExpression(ASTFactory.identifier3("x"), false, ASTFactory.typeName4("A", []));
+    IsExpression toNode = AstFactory.isExpression(AstFactory.identifier3("x"), false, AstFactory.typeName4("A", []));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitLibraryIdentifier() {
-    LibraryIdentifier fromNode = ASTFactory.libraryIdentifier([ASTFactory.identifier3("lib")]);
+    LibraryIdentifier fromNode = AstFactory.libraryIdentifier([AstFactory.identifier3("lib")]);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    LibraryIdentifier toNode = ASTFactory.libraryIdentifier([ASTFactory.identifier3("lib")]);
+    LibraryIdentifier toNode = AstFactory.libraryIdentifier([AstFactory.identifier3("lib")]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitListLiteral() {
-    ListLiteral fromNode = ASTFactory.listLiteral([]);
+    ListLiteral fromNode = AstFactory.listLiteral([]);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    ListLiteral toNode = ASTFactory.listLiteral([]);
+    ListLiteral toNode = AstFactory.listLiteral([]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitMapLiteral() {
-    MapLiteral fromNode = ASTFactory.mapLiteral2([]);
+    MapLiteral fromNode = AstFactory.mapLiteral2([]);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    MapLiteral toNode = ASTFactory.mapLiteral2([]);
+    MapLiteral toNode = AstFactory.mapLiteral2([]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitMethodInvocation() {
-    MethodInvocation fromNode = ASTFactory.methodInvocation2("m", []);
+    MethodInvocation fromNode = AstFactory.methodInvocation2("m", []);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    MethodInvocation toNode = ASTFactory.methodInvocation2("m", []);
+    MethodInvocation toNode = AstFactory.methodInvocation2("m", []);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitNamedExpression() {
-    NamedExpression fromNode = ASTFactory.namedExpression2("n", ASTFactory.integer(0));
+    NamedExpression fromNode = AstFactory.namedExpression2("n", AstFactory.integer(0));
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    NamedExpression toNode = ASTFactory.namedExpression2("n", ASTFactory.integer(0));
+    NamedExpression toNode = AstFactory.namedExpression2("n", AstFactory.integer(0));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitNullLiteral() {
-    NullLiteral fromNode = ASTFactory.nullLiteral();
+    NullLiteral fromNode = AstFactory.nullLiteral();
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    NullLiteral toNode = ASTFactory.nullLiteral();
+    NullLiteral toNode = AstFactory.nullLiteral();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitParenthesizedExpression() {
-    ParenthesizedExpression fromNode = ASTFactory.parenthesizedExpression(ASTFactory.integer(0));
+    ParenthesizedExpression fromNode = AstFactory.parenthesizedExpression(AstFactory.integer(0));
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    ParenthesizedExpression toNode = ASTFactory.parenthesizedExpression(ASTFactory.integer(0));
+    ParenthesizedExpression toNode = AstFactory.parenthesizedExpression(AstFactory.integer(0));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitPartDirective() {
-    PartDirective fromNode = ASTFactory.partDirective2("part.dart");
-    LibraryElement element = new LibraryElementImpl(null, ASTFactory.libraryIdentifier2(["lib"]));
+    PartDirective fromNode = AstFactory.partDirective2("part.dart");
+    LibraryElement element = new LibraryElementImpl(null, AstFactory.libraryIdentifier2(["lib"]));
     fromNode.element = element;
-    PartDirective toNode = ASTFactory.partDirective2("part.dart");
+    PartDirective toNode = AstFactory.partDirective2("part.dart");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(element, toNode.element);
   }
 
   void test_visitPartOfDirective() {
-    PartOfDirective fromNode = ASTFactory.partOfDirective(ASTFactory.libraryIdentifier2(["lib"]));
-    LibraryElement element = new LibraryElementImpl(null, ASTFactory.libraryIdentifier2(["lib"]));
+    PartOfDirective fromNode = AstFactory.partOfDirective(AstFactory.libraryIdentifier2(["lib"]));
+    LibraryElement element = new LibraryElementImpl(null, AstFactory.libraryIdentifier2(["lib"]));
     fromNode.element = element;
-    PartOfDirective toNode = ASTFactory.partOfDirective(ASTFactory.libraryIdentifier2(["lib"]));
+    PartOfDirective toNode = AstFactory.partOfDirective(AstFactory.libraryIdentifier2(["lib"]));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(element, toNode.element);
   }
 
   void test_visitPostfixExpression() {
     String variableName = "x";
-    PostfixExpression fromNode = ASTFactory.postfixExpression(ASTFactory.identifier3(variableName), TokenType.PLUS_PLUS);
+    PostfixExpression fromNode = AstFactory.postfixExpression(AstFactory.identifier3(variableName), TokenType.PLUS_PLUS);
     MethodElement propagatedElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C", []).type, []);
     fromNode.propagatedElement = propagatedElement;
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
@@ -7982,7 +7982,7 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticElement = staticElement;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    PostfixExpression toNode = ASTFactory.postfixExpression(ASTFactory.identifier3(variableName), TokenType.PLUS_PLUS);
+    PostfixExpression toNode = AstFactory.postfixExpression(AstFactory.identifier3(variableName), TokenType.PLUS_PLUS);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
@@ -7991,19 +7991,19 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitPrefixedIdentifier() {
-    PrefixedIdentifier fromNode = ASTFactory.identifier5("p", "f");
+    PrefixedIdentifier fromNode = AstFactory.identifier5("p", "f");
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    PrefixedIdentifier toNode = ASTFactory.identifier5("p", "f");
+    PrefixedIdentifier toNode = AstFactory.identifier5("p", "f");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitPrefixExpression() {
-    PrefixExpression fromNode = ASTFactory.prefixExpression(TokenType.PLUS_PLUS, ASTFactory.identifier3("x"));
+    PrefixExpression fromNode = AstFactory.prefixExpression(TokenType.PLUS_PLUS, AstFactory.identifier3("x"));
     MethodElement propagatedElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C", []).type, []);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedElement = propagatedElement;
@@ -8012,7 +8012,7 @@ class ResolutionCopierTest extends EngineTestCase {
     MethodElement staticElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C", []).type, []);
     fromNode.staticElement = staticElement;
     fromNode.staticType = staticType;
-    PrefixExpression toNode = ASTFactory.prefixExpression(TokenType.PLUS_PLUS, ASTFactory.identifier3("x"));
+    PrefixExpression toNode = AstFactory.prefixExpression(TokenType.PLUS_PLUS, AstFactory.identifier3("x"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
@@ -8021,40 +8021,40 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitPropertyAccess() {
-    PropertyAccess fromNode = ASTFactory.propertyAccess2(ASTFactory.identifier3("x"), "y");
+    PropertyAccess fromNode = AstFactory.propertyAccess2(AstFactory.identifier3("x"), "y");
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    PropertyAccess toNode = ASTFactory.propertyAccess2(ASTFactory.identifier3("x"), "y");
+    PropertyAccess toNode = AstFactory.propertyAccess2(AstFactory.identifier3("x"), "y");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitRedirectingConstructorInvocation() {
-    RedirectingConstructorInvocation fromNode = ASTFactory.redirectingConstructorInvocation([]);
+    RedirectingConstructorInvocation fromNode = AstFactory.redirectingConstructorInvocation([]);
     ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("C", []), null, []);
     fromNode.staticElement = staticElement;
-    RedirectingConstructorInvocation toNode = ASTFactory.redirectingConstructorInvocation([]);
+    RedirectingConstructorInvocation toNode = AstFactory.redirectingConstructorInvocation([]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(staticElement, toNode.staticElement);
   }
 
   void test_visitRethrowExpression() {
-    RethrowExpression fromNode = ASTFactory.rethrowExpression();
+    RethrowExpression fromNode = AstFactory.rethrowExpression();
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    RethrowExpression toNode = ASTFactory.rethrowExpression();
+    RethrowExpression toNode = AstFactory.rethrowExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitSimpleIdentifier() {
-    SimpleIdentifier fromNode = ASTFactory.identifier3("x");
+    SimpleIdentifier fromNode = AstFactory.identifier3("x");
     MethodElement propagatedElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
     MethodElement staticElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
     AuxiliaryElements auxiliaryElements = new AuxiliaryElements(staticElement, propagatedElement);
@@ -8065,7 +8065,7 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticElement = staticElement;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    SimpleIdentifier toNode = ASTFactory.identifier3("x");
+    SimpleIdentifier toNode = AstFactory.identifier3("x");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(auxiliaryElements, toNode.auxiliaryElements);
     JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
@@ -8075,91 +8075,91 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitSimpleStringLiteral() {
-    SimpleStringLiteral fromNode = ASTFactory.string2("abc");
+    SimpleStringLiteral fromNode = AstFactory.string2("abc");
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    SimpleStringLiteral toNode = ASTFactory.string2("abc");
+    SimpleStringLiteral toNode = AstFactory.string2("abc");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitStringInterpolation() {
-    StringInterpolation fromNode = ASTFactory.string([ASTFactory.interpolationString("a", "'a'")]);
+    StringInterpolation fromNode = AstFactory.string([AstFactory.interpolationString("a", "'a'")]);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    StringInterpolation toNode = ASTFactory.string([ASTFactory.interpolationString("a", "'a'")]);
+    StringInterpolation toNode = AstFactory.string([AstFactory.interpolationString("a", "'a'")]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitSuperConstructorInvocation() {
-    SuperConstructorInvocation fromNode = ASTFactory.superConstructorInvocation([]);
+    SuperConstructorInvocation fromNode = AstFactory.superConstructorInvocation([]);
     ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("C", []), null, []);
     fromNode.staticElement = staticElement;
-    SuperConstructorInvocation toNode = ASTFactory.superConstructorInvocation([]);
+    SuperConstructorInvocation toNode = AstFactory.superConstructorInvocation([]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(staticElement, toNode.staticElement);
   }
 
   void test_visitSuperExpression() {
-    SuperExpression fromNode = ASTFactory.superExpression();
+    SuperExpression fromNode = AstFactory.superExpression();
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    SuperExpression toNode = ASTFactory.superExpression();
+    SuperExpression toNode = AstFactory.superExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitSymbolLiteral() {
-    SymbolLiteral fromNode = ASTFactory.symbolLiteral(["s"]);
+    SymbolLiteral fromNode = AstFactory.symbolLiteral(["s"]);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    SymbolLiteral toNode = ASTFactory.symbolLiteral(["s"]);
+    SymbolLiteral toNode = AstFactory.symbolLiteral(["s"]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitThisExpression() {
-    ThisExpression fromNode = ASTFactory.thisExpression();
+    ThisExpression fromNode = AstFactory.thisExpression();
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    ThisExpression toNode = ASTFactory.thisExpression();
+    ThisExpression toNode = AstFactory.thisExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitThrowExpression() {
-    ThrowExpression fromNode = ASTFactory.throwExpression();
+    ThrowExpression fromNode = AstFactory.throwExpression();
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    ThrowExpression toNode = ASTFactory.throwExpression();
+    ThrowExpression toNode = AstFactory.throwExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitTypeName() {
-    TypeName fromNode = ASTFactory.typeName4("C", []);
+    TypeName fromNode = AstFactory.typeName4("C", []);
     Type2 type = ElementFactory.classElement2("C", []).type;
     fromNode.type = type;
-    TypeName toNode = ASTFactory.typeName4("C", []);
+    TypeName toNode = AstFactory.typeName4("C", []);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(type, toNode.type);
   }
@@ -9523,7 +9523,7 @@ class IncrementalParserTest extends EngineTestCase {
     // Validate that the results of the incremental parse are the same as the full parse of the
     // modified source.
     //
-    JUnitTestCase.assertTrue(ASTComparator.equals4(modifiedUnit, incrementalUnit));
+    JUnitTestCase.assertTrue(AstComparator.equals4(modifiedUnit, incrementalUnit));
   }
 
   static dartSuite() {

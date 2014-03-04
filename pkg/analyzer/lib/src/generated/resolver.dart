@@ -27,8 +27,6 @@ import 'constant.dart';
 /**
  * Instances of the class `AngularCompilationUnitBuilder` build an Angular specific element
  * model for a single compilation unit.
- *
- * @coverage dart.engine.resolver
  */
 class AngularCompilationUnitBuilder {
   static String _NG_COMPONENT = "NgComponent";
@@ -59,7 +57,7 @@ class AngularCompilationUnitBuilder {
 
   static String _NG_TWO_WAY = "NgTwoWay";
 
-  static Element getElement(ASTNode node, int offset) {
+  static Element getElement(AstNode node, int offset) {
     // maybe node is not SimpleStringLiteral
     if (node is! SimpleStringLiteral) {
       return null;
@@ -197,7 +195,7 @@ class AngularCompilationUnitBuilder {
    * Checks if the name range of the given [Element] is completely covered by the given
    * [SimpleStringLiteral].
    */
-  static bool isNameCoveredByLiteral(Element element, ASTNode node) {
+  static bool isNameCoveredByLiteral(Element element, AstNode node) {
     if (element != null) {
       String name = element.name;
       if (name != null) {
@@ -623,7 +621,7 @@ class AngularCompilationUnitBuilder {
 
   List<AngularScopePropertyElement> parseScopeProperties() {
     List<AngularScopePropertyElement> properties = [];
-    _classDeclaration.accept(new RecursiveASTVisitor_AngularCompilationUnitBuilder_parseScopeProperties(properties));
+    _classDeclaration.accept(new RecursiveAstVisitor_AngularCompilationUnitBuilder_parseScopeProperties(properties));
     return new List.from(properties);
   }
 
@@ -633,14 +631,14 @@ class AngularCompilationUnitBuilder {
    */
   void parseViews() {
     List<AngularViewElement> views = [];
-    _unit.accept(new RecursiveASTVisitor_AngularCompilationUnitBuilder_parseViews(views));
+    _unit.accept(new RecursiveAstVisitor_AngularCompilationUnitBuilder_parseViews(views));
     if (!views.isEmpty) {
       List<AngularViewElement> viewArray = new List.from(views);
       (_unit.element as CompilationUnitElementImpl).angularViews = viewArray;
     }
   }
 
-  void reportError(ASTNode node, ErrorCode errorCode, List<Object> arguments) {
+  void reportError(AstNode node, ErrorCode errorCode, List<Object> arguments) {
     int offset = node.offset;
     int length = node.length;
     reportError2(offset, length, errorCode, arguments);
@@ -660,10 +658,10 @@ class AngularCompilationUnitBuilder {
   }
 }
 
-class RecursiveASTVisitor_AngularCompilationUnitBuilder_parseScopeProperties extends RecursiveASTVisitor<Object> {
+class RecursiveAstVisitor_AngularCompilationUnitBuilder_parseScopeProperties extends RecursiveAstVisitor<Object> {
   List<AngularScopePropertyElement> properties;
 
-  RecursiveASTVisitor_AngularCompilationUnitBuilder_parseScopeProperties(this.properties) : super();
+  RecursiveAstVisitor_AngularCompilationUnitBuilder_parseScopeProperties(this.properties) : super();
 
   Object visitAssignmentExpression(AssignmentExpression node) {
     addProperty(node);
@@ -731,10 +729,10 @@ class RecursiveASTVisitor_AngularCompilationUnitBuilder_parseScopeProperties ext
   }
 }
 
-class RecursiveASTVisitor_AngularCompilationUnitBuilder_parseViews extends RecursiveASTVisitor<Object> {
+class RecursiveAstVisitor_AngularCompilationUnitBuilder_parseViews extends RecursiveAstVisitor<Object> {
   List<AngularViewElement> views;
 
-  RecursiveASTVisitor_AngularCompilationUnitBuilder_parseViews(this.views) : super();
+  RecursiveAstVisitor_AngularCompilationUnitBuilder_parseViews(this.views) : super();
 
   Object visitMethodInvocation(MethodInvocation node) {
     addView(node);
@@ -787,8 +785,6 @@ class RecursiveASTVisitor_AngularCompilationUnitBuilder_parseViews extends Recur
 /**
  * Instances of the class `CompilationUnitBuilder` build an element model for a single
  * compilation unit.
- *
- * @coverage dart.engine.resolver
  */
 class CompilationUnitBuilder {
   /**
@@ -826,10 +822,8 @@ class CompilationUnitBuilder {
 /**
  * Instances of the class `ElementBuilder` traverse an AST structure and build the element
  * model representing the AST structure.
- *
- * @coverage dart.engine.resolver
  */
-class ElementBuilder extends RecursiveASTVisitor<Object> {
+class ElementBuilder extends RecursiveAstVisitor<Object> {
   /**
    * The element holder associated with the element that is currently being built.
    */
@@ -911,7 +905,7 @@ class ElementBuilder extends RecursiveASTVisitor<Object> {
     _currentHolder = holder;
     try {
       List<ClassMember> nonFields = new List<ClassMember>();
-      node.visitChildren(new UnifyingASTVisitor_ElementBuilder_visitClassDeclaration(this, nonFields));
+      node.visitChildren(new UnifyingAstVisitor_ElementBuilder_visitClassDeclaration(this, nonFields));
       buildFieldMap(holder.fieldsWithoutFlushing);
       int count = nonFields.length;
       for (int i = 0; i < count; i++) {
@@ -1525,7 +1519,7 @@ class ElementBuilder extends RecursiveASTVisitor<Object> {
    * @return the body of the function that contains the given parameter
    */
   FunctionBody getFunctionBody(FormalParameter node) {
-    ASTNode parent = node.parent;
+    AstNode parent = node.parent;
     while (parent != null) {
       if (parent is ConstructorDeclaration) {
         return (parent as ConstructorDeclaration).body;
@@ -1564,7 +1558,7 @@ class ElementBuilder extends RecursiveASTVisitor<Object> {
    * @param holder the holder that will gather elements that are built while visiting the children
    * @param node the node to be visited
    */
-  void visit(ElementHolder holder, ASTNode node) {
+  void visit(ElementHolder holder, AstNode node) {
     if (node != null) {
       ElementHolder previousHolder = _currentHolder;
       _currentHolder = holder;
@@ -1582,7 +1576,7 @@ class ElementBuilder extends RecursiveASTVisitor<Object> {
    * @param holder the holder that will gather elements that are built while visiting the children
    * @param node the node whose children are to be visited
    */
-  void visitChildren(ElementHolder holder, ASTNode node) {
+  void visitChildren(ElementHolder holder, AstNode node) {
     if (node != null) {
       ElementHolder previousHolder = _currentHolder;
       _currentHolder = holder;
@@ -1595,12 +1589,12 @@ class ElementBuilder extends RecursiveASTVisitor<Object> {
   }
 }
 
-class UnifyingASTVisitor_ElementBuilder_visitClassDeclaration extends UnifyingASTVisitor<Object> {
+class UnifyingAstVisitor_ElementBuilder_visitClassDeclaration extends UnifyingAstVisitor<Object> {
   final ElementBuilder ElementBuilder_this;
 
   List<ClassMember> nonFields;
 
-  UnifyingASTVisitor_ElementBuilder_visitClassDeclaration(this.ElementBuilder_this, this.nonFields) : super();
+  UnifyingAstVisitor_ElementBuilder_visitClassDeclaration(this.ElementBuilder_this, this.nonFields) : super();
 
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     nonFields.add(node);
@@ -1612,14 +1606,12 @@ class UnifyingASTVisitor_ElementBuilder_visitClassDeclaration extends UnifyingAS
     return null;
   }
 
-  Object visitNode(ASTNode node) => node.accept(ElementBuilder_this);
+  Object visitNode(AstNode node) => node.accept(ElementBuilder_this);
 }
 
 /**
  * Instances of the class `ElementHolder` hold on to elements created while traversing an AST
  * structure so that they can be accessed when creating their enclosing element.
- *
- * @coverage dart.engine.resolver
  */
 class ElementHolder {
   List<PropertyAccessorElement> _accessors;
@@ -2205,10 +2197,8 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
 /**
  * Instances of the class `BestPracticesVerifier` traverse an AST structure looking for
  * violations of Dart best practices.
- *
- * @coverage dart.engine.resolver
  */
-class BestPracticesVerifier extends RecursiveASTVisitor<Object> {
+class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   static String _GETTER = "getter";
 
   static String _HASHCODE_GETTER_NAME = "hashCode";
@@ -2426,7 +2416,7 @@ class BestPracticesVerifier extends RecursiveASTVisitor<Object> {
    * @return `true` if and only if a hint code is generated on the passed node
    * @see HintCode#DEPRECATED_MEMBER_USE
    */
-  bool checkForDeprecatedMemberUse(Element element, ASTNode node) {
+  bool checkForDeprecatedMemberUse(Element element, AstNode node) {
     if (element != null && element.isDeprecated) {
       String displayName = element.displayName;
       if (element is ConstructorElement) {
@@ -2462,7 +2452,7 @@ class BestPracticesVerifier extends RecursiveASTVisitor<Object> {
     if (identifier.inDeclarationContext()) {
       return false;
     }
-    ASTNode parent = identifier.parent;
+    AstNode parent = identifier.parent;
     if ((parent is ConstructorName && identical(identifier, parent.name)) || (parent is SuperConstructorInvocation && identical(identifier, parent.constructorName)) || parent is HideCombinator) {
       return false;
     }
@@ -2679,10 +2669,8 @@ class BestPracticesVerifier extends RecursiveASTVisitor<Object> {
 /**
  * Instances of the class `Dart2JSVerifier` traverse an AST structure looking for hints for
  * code that will be compiled to JS, such as [HintCode#IS_DOUBLE].
- *
- * @coverage dart.engine.resolver
  */
-class Dart2JSVerifier extends RecursiveASTVisitor<Object> {
+class Dart2JSVerifier extends RecursiveAstVisitor<Object> {
   /**
    * The error reporter by which errors will be reported.
    */
@@ -2750,10 +2738,8 @@ class Dart2JSVerifier extends RecursiveASTVisitor<Object> {
 /**
  * Instances of the class `DeadCodeVerifier` traverse an AST structure looking for cases of
  * [HintCode#DEAD_CODE].
- *
- * @coverage dart.engine.resolver
  */
-class DeadCodeVerifier extends RecursiveASTVisitor<Object> {
+class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   /**
    * The error reporter by which errors will be reported.
    */
@@ -3012,7 +2998,7 @@ class DeadCodeVerifier extends RecursiveASTVisitor<Object> {
    *
    * @param node the node to be visited
    */
-  void safelyVisit(ASTNode node) {
+  void safelyVisit(AstNode node) {
     if (node != null) {
       node.accept(this);
     }
@@ -3024,7 +3010,7 @@ class DeadCodeVerifier extends RecursiveASTVisitor<Object> {
  * to terminate by executing a `return` statement, `throw` expression, `rethrow`
  * expression, or simple infinite loop such as `while(true)`.
  */
-class ExitDetector extends GeneralizingASTVisitor<bool> {
+class ExitDetector extends GeneralizingAstVisitor<bool> {
   /**
    * Set to `true` when a `break` is encountered, and reset to `false` when a
    * `do`, `while`, `for` or `switch` block is entered.
@@ -3386,7 +3372,6 @@ class ExitDetector extends GeneralizingASTVisitor<bool> {
  * generate hints over the set of sources.
  *
  * @see HintCode
- * @coverage dart.engine.resolver
  */
 class HintGenerator {
   List<CompilationUnit> _compilationUnits;
@@ -3462,10 +3447,8 @@ class HintGenerator {
  *
  * While this class does not yet have support for an "Organize Imports" action, this logic built up
  * in this class could be used for such an action in the future.
- *
- * @coverage dart.engine.resolver
  */
-class ImportsVerifier extends RecursiveASTVisitor<Object> {
+class ImportsVerifier extends RecursiveAstVisitor<Object> {
   /**
    * This is set to `true` if the current compilation unit which is being visited is the
    * defining compilation unit for the library, its value can be set with
@@ -3798,7 +3781,7 @@ class ImportsVerifier extends RecursiveASTVisitor<Object> {
  * Instances of the class `OverrideVerifier` visit all of the declarations in a compilation
  * unit to verify that if they have an override annotation it is being used correctly.
  */
-class OverrideVerifier extends RecursiveASTVisitor<Object> {
+class OverrideVerifier extends RecursiveAstVisitor<Object> {
   /**
    * The inheritance manager used to find overridden methods.
    */
@@ -3869,7 +3852,7 @@ class OverrideVerifier extends RecursiveASTVisitor<Object> {
  * Instances of the class `PubVerifier` traverse an AST structure looking for deviations from
  * pub best practices.
  */
-class PubVerifier extends RecursiveASTVisitor<Object> {
+class PubVerifier extends RecursiveAstVisitor<Object> {
   static String _PUBSPEC_YAML = "pubspec.yaml";
 
   /**
@@ -3996,7 +3979,7 @@ class PubVerifier extends RecursiveASTVisitor<Object> {
    * @param node the node (not `null`)
    * @return the source or `null` if it could not be determined
    */
-  Source getSource(ASTNode node) {
+  Source getSource(AstNode node) {
     Source source = null;
     CompilationUnit unit = node.getAncestor(CompilationUnit);
     if (unit != null) {
@@ -4092,7 +4075,7 @@ class ToDoFinder {
  * Instances of the class `DeclarationMatcher` determine whether the element model defined by
  * a given AST structure matches an existing element model.
  */
-class DeclarationMatcher extends RecursiveASTVisitor<Object> {
+class DeclarationMatcher extends RecursiveAstVisitor<Object> {
   /**
    * The compilation unit containing the AST nodes being visited.
    */
@@ -4144,7 +4127,7 @@ class DeclarationMatcher extends RecursiveASTVisitor<Object> {
    * @return `true` if the AST structure defines the same elements as those in the given
    *         element model
    */
-  bool matches(ASTNode node, Element element) {
+  bool matches(AstNode node, Element element) {
     captureEnclosingElements(element);
     gatherElements(element);
     try {
@@ -4706,7 +4689,7 @@ class GeneralizingElementVisitor_DeclarationMatcher_gatherElements extends Gener
  * Instances of the class `DeclarationResolver` are used to resolve declarations in an AST
  * structure to already built elements.
  */
-class DeclarationResolver extends RecursiveASTVisitor<Object> {
+class DeclarationResolver extends RecursiveAstVisitor<Object> {
   /**
    * The compilation unit containing the AST nodes being visited.
    */
@@ -5187,7 +5170,7 @@ class DeclarationResolver extends RecursiveASTVisitor<Object> {
       writer.println("Invalid state found in the Analysis Engine:");
       writer.println("DeclarationResolver.getElementForParameter() is visiting a parameter that does not appear to be in a method or function.");
       writer.println("Ancestors:");
-      ASTNode parent = node.parent;
+      AstNode parent = node.parent;
       while (parent != null) {
         writer.println(parent.runtimeType.toString());
         writer.println("---------");
@@ -5220,7 +5203,6 @@ class DeclarationResolver extends RecursiveASTVisitor<Object> {
  * <ol>
  * * Every [SimpleIdentifier] should be resolved to the element to which it refers.
  * Specifically:
- *
  * * An identifier within the declaration of that name should resolve to the element being
  * declared.
  * * An identifier denoting a prefix should resolve to the element representing the import that
@@ -5235,7 +5217,6 @@ class DeclarationResolver extends RecursiveASTVisitor<Object> {
  * element representing the method or function (a [ExecutableElement]).
  * * An identifier denoting a label should resolve to the element representing the label (a
  * [LabelElement]).
- *
  * The identifiers within directives are exceptions to this rule and are covered below.
  * * Every node containing a token representing an operator that can be overridden (
  * [BinaryExpression], [PrefixExpression], [PostfixExpression]) should resolve to
@@ -5264,10 +5245,8 @@ class DeclarationResolver extends RecursiveASTVisitor<Object> {
  * anything. This includes such things as references to undeclared variables (which is an error) and
  * names in hide and show combinators that are not defined in the imported library (which is not an
  * error).
- *
- * @coverage dart.engine.resolver
  */
-class ElementResolver extends SimpleASTVisitor<Object> {
+class ElementResolver extends SimpleAstVisitor<Object> {
   /**
    * Checks if the given expression is the reference to the type, if it is then the
    * [ClassElement] is returned, otherwise `null` is returned.
@@ -5292,7 +5271,7 @@ class ElementResolver extends SimpleASTVisitor<Object> {
    * @return `true` if the given identifier is the return type of a constructor declaration.
    */
   static bool isConstructorReturnType(SimpleIdentifier identifier) {
-    ASTNode parent = identifier.parent;
+    AstNode parent = identifier.parent;
     if (parent is ConstructorDeclaration) {
       return identical(parent.returnType, identifier);
     }
@@ -5306,7 +5285,7 @@ class ElementResolver extends SimpleASTVisitor<Object> {
    *         declaration.
    */
   static bool isFactoryConstructorReturnType(SimpleIdentifier node) {
-    ASTNode parent = node.parent;
+    AstNode parent = node.parent;
     if (parent is ConstructorDeclaration) {
       ConstructorDeclaration constructor = parent;
       return identical(constructor.returnType, node) && constructor.factoryKeyword != null;
@@ -5321,7 +5300,7 @@ class ElementResolver extends SimpleASTVisitor<Object> {
    * @return `true` if the 'super' expression is in a valid context
    */
   static bool isSuperInValidContext(SuperExpression node) {
-    for (ASTNode n = node; n != null; n = n.parent) {
+    for (AstNode n = node; n != null; n = n.parent) {
       if (n is CompilationUnit) {
         return false;
       }
@@ -6493,16 +6472,14 @@ class ElementResolver extends SimpleASTVisitor<Object> {
 
   /**
    * Return `true` if the given node can validly be resolved to a prefix:
-   *
    * * it is the prefix in an import directive, or
    * * it is the prefix in a prefixed identifier.
-   *
    *
    * @param node the node being tested
    * @return `true` if the given node is the prefix in an import directive
    */
   bool isValidAsPrefix(SimpleIdentifier node) {
-    ASTNode parent = node.parent;
+    AstNode parent = node.parent;
     if (parent is ImportDirective) {
       return identical(parent.prefix, node);
     } else if (parent is PrefixedIdentifier) {
@@ -6671,7 +6648,7 @@ class ElementResolver extends SimpleASTVisitor<Object> {
    * @param labelNode the node representing the label being looked up
    * @return the element corresponding to the given label node in the current scope
    */
-  LabelElementImpl lookupLabel(ASTNode parentNode, SimpleIdentifier labelNode) {
+  LabelElementImpl lookupLabel(AstNode parentNode, SimpleIdentifier labelNode) {
     LabelScope labelScope = _resolver.labelScope;
     LabelElementImpl labelElement = null;
     if (labelNode == null) {
@@ -7523,7 +7500,7 @@ class ElementResolver_SyntheticIdentifier extends Identifier {
    */
   ElementResolver_SyntheticIdentifier(this.name);
 
-  accept(ASTVisitor visitor) => null;
+  accept(AstVisitor visitor) => null;
 
   sc.Token get beginToken => null;
 
@@ -7537,7 +7514,7 @@ class ElementResolver_SyntheticIdentifier extends Identifier {
 
   Element get staticElement => null;
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
   }
 }
 
@@ -7590,8 +7567,8 @@ class IncrementalResolver {
    * @param node the root of the AST structure to be resolved
    * @throws AnalysisException if the node could not be resolved
    */
-  void resolve(ASTNode node) {
-    ASTNode rootNode = findResolutionRoot(node);
+  void resolve(AstNode node) {
+    AstNode rootNode = findResolutionRoot(node);
     Scope scope = ScopeBuilder.scopeFor(rootNode, _errorListener);
     if (elementModelChanged(rootNode.parent)) {
       throw new AnalysisException.con1("Cannot resolve node: element model changed");
@@ -7609,7 +7586,7 @@ class IncrementalResolver {
    * @param node the node being tested
    * @return `true` if the given node can be resolved independently of any other nodes
    */
-  bool canBeResolved(ASTNode node) => node is ClassDeclaration || node is ClassTypeAlias || node is CompilationUnit || node is ConstructorDeclaration || node is FunctionDeclaration || node is FunctionTypeAlias || node is MethodDeclaration;
+  bool canBeResolved(AstNode node) => node is ClassDeclaration || node is ClassTypeAlias || node is CompilationUnit || node is ConstructorDeclaration || node is FunctionDeclaration || node is FunctionTypeAlias || node is MethodDeclaration;
 
   /**
    * Return `true` if the portion of the element model defined by the given node has changed.
@@ -7618,7 +7595,7 @@ class IncrementalResolver {
    * @return `true` if the element model defined by the given node has changed
    * @throws AnalysisException if the correctness of the element model cannot be determined
    */
-  bool elementModelChanged(ASTNode node) {
+  bool elementModelChanged(AstNode node) {
     Element element = getElement(node);
     if (element == null) {
       throw new AnalysisException.con1("Cannot resolve node: a ${node.runtimeType.toString()} does not define an element");
@@ -7635,9 +7612,9 @@ class IncrementalResolver {
    * @return the smallest AST node that can be resolved independently of any other nodes
    * @throws AnalysisException if there is no such node
    */
-  ASTNode findResolutionRoot(ASTNode node) {
-    ASTNode result = node;
-    ASTNode parent = result.parent;
+  AstNode findResolutionRoot(AstNode node) {
+    AstNode result = node;
+    AstNode parent = result.parent;
     while (parent != null && !canBeResolved(parent)) {
       result = parent;
       parent = result.parent;
@@ -7655,7 +7632,7 @@ class IncrementalResolver {
    * @param node the node defining the element to be returned
    * @return the element defined by the given node
    */
-  Element getElement(ASTNode node) {
+  Element getElement(AstNode node) {
     if (node is Declaration) {
       return node.element;
     } else if (node is CompilationUnit) {
@@ -7664,7 +7641,7 @@ class IncrementalResolver {
     return null;
   }
 
-  void resolveReferences(ASTNode node, Scope scope) {
+  void resolveReferences(AstNode node, Scope scope) {
     ResolverVisitor visitor = new ResolverVisitor.con3(_definingLibrary, _source, _typeProvider, scope, _errorListener);
     node.accept(visitor);
     for (ProxyConditionalAnalysisError conditionalCode in visitor.proxyConditionalAnalysisErrors) {
@@ -7674,12 +7651,12 @@ class IncrementalResolver {
     }
   }
 
-  void resolveTypes(ASTNode node, Scope scope) {
+  void resolveTypes(AstNode node, Scope scope) {
     TypeResolverVisitor visitor = new TypeResolverVisitor.con3(_definingLibrary, _source, _typeProvider, scope, _errorListener);
     node.accept(visitor);
   }
 
-  void resolveVariables(ASTNode node, Scope scope) {
+  void resolveVariables(AstNode node, Scope scope) {
     VariableResolverVisitor visitor = new VariableResolverVisitor.con2(_definingLibrary, _source, _typeProvider, scope, _errorListener);
     node.accept(visitor);
   }
@@ -7688,8 +7665,6 @@ class IncrementalResolver {
 /**
  * Instances of the class `InheritanceManager` manage the knowledge of where class members
  * (methods, getters & setters) are inherited from.
- *
- * @coverage dart.engine.resolver
  */
 class InheritanceManager {
   /**
@@ -8487,8 +8462,6 @@ class InheritanceManager {
  * Instances of the class `Library` represent the data about a single library during the
  * resolution of some (possibly different) library. They are not intended to be used except during
  * the resolution process.
- *
- * @coverage dart.engine.resolver
  */
 class Library {
   /**
@@ -8794,8 +8767,6 @@ class Library {
 
 /**
  * Instances of the class `LibraryElementBuilder` build an element model for a single library.
- *
- * @coverage dart.engine.resolver
  */
 class LibraryElementBuilder {
   /**
@@ -8995,8 +8966,6 @@ class LibraryElementBuilder {
 /**
  * Instances of the class `LibraryResolver` are used to resolve one or more mutually dependent
  * libraries within a single context.
- *
- * @coverage dart.engine.resolver
  */
 class LibraryResolver {
   /**
@@ -9933,8 +9902,6 @@ class ProxyConditionalAnalysisError {
 /**
  * Instances of the class `ResolverVisitor` are used to resolve the nodes within a single
  * compilation unit.
- *
- * @coverage dart.engine.resolver
  */
 class ResolverVisitor extends ScopedVisitor {
   /**
@@ -10454,7 +10421,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
-  Object visitNode(ASTNode node) {
+  Object visitNode(AstNode node) {
     node.visitChildren(this);
     node.accept(_elementResolver);
     node.accept(_typeAnalyzer);
@@ -10702,7 +10669,7 @@ class ResolverVisitor extends ScopedVisitor {
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportErrorProxyConditionalAnalysisError(Element enclosingElement, ErrorCode errorCode, ASTNode node, List<Object> arguments) {
+  void reportErrorProxyConditionalAnalysisError(Element enclosingElement, ErrorCode errorCode, AstNode node, List<Object> arguments) {
     _proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(enclosingElement, new AnalysisError.con2(source, node.offset, node.length, errorCode, arguments)));
   }
 
@@ -10791,7 +10758,7 @@ class ResolverVisitor extends ScopedVisitor {
    * If the variable <i>v</i> is accessed by a closure in <i>s<sub>1</sub></i> then the variable
    * <i>v</i> is not potentially mutated anywhere in the scope of <i>v</i>.
    */
-  void clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(ASTNode target) {
+  void clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(AstNode target) {
     for (Element element in _promoteManager.promotedElements) {
       if ((element as VariableElementImpl).isPotentiallyMutatedInScope) {
         if (isVariableAccessedInClosure(element, target)) {
@@ -10807,7 +10774,7 @@ class ResolverVisitor extends ScopedVisitor {
    *
    * <i>v</i> is not potentially mutated in <i>s<sub>1</sub></i> or within a closure.
    */
-  void clearTypePromotionsIfPotentiallyMutatedIn(ASTNode target) {
+  void clearTypePromotionsIfPotentiallyMutatedIn(AstNode target) {
     for (Element element in _promoteManager.promotedElements) {
       if (isVariablePotentiallyMutatedIn(element, target)) {
         _promoteManager.setType(element, null);
@@ -10957,30 +10924,30 @@ class ResolverVisitor extends ScopedVisitor {
 
   /**
    * Return `true` if the given variable is accessed within a closure in the given
-   * [ASTNode] and also mutated somewhere in variable scope. This information is only
+   * [AstNode] and also mutated somewhere in variable scope. This information is only
    * available for local variables (including parameters).
    *
    * @param variable the variable to check
-   * @param target the [ASTNode] to check within
+   * @param target the [AstNode] to check within
    * @return `true` if this variable is potentially mutated somewhere in the given ASTNode
    */
-  bool isVariableAccessedInClosure(Element variable, ASTNode target) {
+  bool isVariableAccessedInClosure(Element variable, AstNode target) {
     List<bool> result = [false];
-    target.accept(new RecursiveASTVisitor_ResolverVisitor_isVariableAccessedInClosure(result, variable));
+    target.accept(new RecursiveAstVisitor_ResolverVisitor_isVariableAccessedInClosure(result, variable));
     return result[0];
   }
 
   /**
    * Return `true` if the given variable is potentially mutated somewhere in the given
-   * [ASTNode]. This information is only available for local variables (including parameters).
+   * [AstNode]. This information is only available for local variables (including parameters).
    *
    * @param variable the variable to check
-   * @param target the [ASTNode] to check within
+   * @param target the [AstNode] to check within
    * @return `true` if this variable is potentially mutated somewhere in the given ASTNode
    */
-  bool isVariablePotentiallyMutatedIn(Element variable, ASTNode target) {
+  bool isVariablePotentiallyMutatedIn(Element variable, AstNode target) {
     List<bool> result = [false];
-    target.accept(new RecursiveASTVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn(result, variable));
+    target.accept(new RecursiveAstVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn(result, variable));
     return result[0];
   }
 
@@ -11143,12 +11110,12 @@ class ResolverVisitor extends ScopedVisitor {
   set enclosingClass_J2DAccessor(__v) => _enclosingClass = __v;
 }
 
-class RecursiveASTVisitor_ResolverVisitor_isVariableAccessedInClosure extends RecursiveASTVisitor<Object> {
+class RecursiveAstVisitor_ResolverVisitor_isVariableAccessedInClosure extends RecursiveAstVisitor<Object> {
   List<bool> result;
 
   Element variable;
 
-  RecursiveASTVisitor_ResolverVisitor_isVariableAccessedInClosure(this.result, this.variable) : super();
+  RecursiveAstVisitor_ResolverVisitor_isVariableAccessedInClosure(this.result, this.variable) : super();
 
   bool _inClosure = false;
 
@@ -11173,12 +11140,12 @@ class RecursiveASTVisitor_ResolverVisitor_isVariableAccessedInClosure extends Re
   }
 }
 
-class RecursiveASTVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn extends RecursiveASTVisitor<Object> {
+class RecursiveAstVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn extends RecursiveAstVisitor<Object> {
   List<bool> result;
 
   Element variable;
 
-  RecursiveASTVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn(this.result, this.variable) : super();
+  RecursiveAstVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn(this.result, this.variable) : super();
 
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     if (result[0]) {
@@ -11196,10 +11163,8 @@ class RecursiveASTVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn extends
 /**
  * The abstract class `ScopedVisitor` maintains name and label scopes as an AST structure is
  * being visited.
- *
- * @coverage dart.engine.resolver
  */
-abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
+abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   /**
    * The element for the library containing the compilation unit being visited.
    */
@@ -11602,7 +11567,7 @@ abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError9(ErrorCode errorCode, ASTNode node, List<Object> arguments) {
+  void reportError9(ErrorCode errorCode, AstNode node, List<Object> arguments) {
     _errorListener.onError(new AnalysisError.con2(source, node.offset, node.length, errorCode, arguments));
   }
 
@@ -11634,7 +11599,7 @@ abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
    *
    * @param node the node to be visited
    */
-  void safelyVisit(ASTNode node) {
+  void safelyVisit(AstNode node) {
     if (node != null) {
       node.accept(this);
     }
@@ -11748,10 +11713,8 @@ abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
  * * Every element that refers to types should be fully populated.
  * * Every node representing an expression should be resolved to the Type of the expression.
  * </ol>
- *
- * @coverage dart.engine.resolver
  */
-class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
+class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   /**
    * Create a table mapping HTML tag names to the names of the classes (in 'dart:html') that
    * implement those tags.
@@ -12726,7 +12689,6 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
    * The Dart Language Specification, 12.13: <blockquote> Property extraction allows for a member of
    * an object to be concisely extracted from the object. If <i>o</i> is an object, and if <i>m</i>
    * is the name of a method member of <i>o</i>, then
-   *
    * * <i>o.m</i> is defined to be equivalent to: <i>(r<sub>1</sub>, &hellip;, r<sub>n</sub>,
    * {p<sub>1</sub> : d<sub>1</sub>, &hellip;, p<sub>k</sub> : d<sub>k</sub>}){return
    * o.m(r<sub>1</sub>, &hellip;, r<sub>n</sub>, p<sub>1</sub>: p<sub>1</sub>, &hellip;,
@@ -12739,7 +12701,6 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
    * <i>r<sub>1</sub>, &hellip;, r<sub>n</sub></i>, and optional positional parameters
    * <i>p<sub>1</sub> &hellip; p<sub>k</sub></i> with defaults <i>d<sub>1</sub>, &hellip;,
    * d<sub>k</sub></i>.
-   *
    * Otherwise, if <i>m</i> is the name of a getter member of <i>o</i> (declared implicitly or
    * explicitly) then <i>o.m</i> evaluates to the result of invoking the getter. </blockquote>
    *
@@ -12810,7 +12771,6 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
    * Let <i>d</i> be the innermost declaration in the enclosing lexical scope whose name is
    * <i>id</i>. If no such declaration exists in the lexical scope, let <i>d</i> be the declaration
    * of the inherited member named <i>id</i> if it exists.
-   *
    * * If <i>d</i> is a class or type alias <i>T</i>, the value of <i>e</i> is the unique instance
    * of class `Type` reifying <i>T</i>.
    * * If <i>d</i> is a type parameter <i>T</i>, then the value of <i>e</i> is the value of the
@@ -12818,7 +12778,6 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
    * that created the current binding of this. We are assured that this is well defined, because if
    * we were in a static member the reference to <i>T</i> would be a compile-time error.
    * * If <i>d</i> is a library variable then:
-   *
    * * If <i>d</i> is of one of the forms <i>var v = e<sub>i</sub>;</i>, <i>T v =
    * e<sub>i</sub>;</i>, <i>final v = e<sub>i</sub>;</i>, <i>final T v = e<sub>i</sub>;</i>, and no
    * value has yet been stored into <i>v</i> then the initializer expression <i>e<sub>i</sub></i> is
@@ -12829,7 +12788,6 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
    * * If <i>d</i> is of one of the forms <i>const v = e;</i> or <i>const T v = e;</i> the result
    * of the getter is the value of the compile time constant <i>e</i>. Otherwise
    * * <i>e</i> evaluates to the current binding of <i>id</i>.
-   *
    * * If <i>d</i> is a local variable or formal parameter then <i>e</i> evaluates to the current
    * binding of <i>id</i>.
    * * If <i>d</i> is a static method, top level function or local function then <i>e</i>
@@ -12842,7 +12800,6 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
    * method, getter, or setter) or variable initializer, evaluation of e causes a NoSuchMethodError
    * to be thrown.
    * * Otherwise <i>e</i> is equivalent to the property extraction <i>this.id</i>.
-   *
    * </blockquote>
    */
   Object visitSimpleIdentifier(SimpleIdentifier node) {
@@ -13001,7 +12958,7 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
     }
     if (body is BlockFunctionBody) {
       List<Type2> result = [null];
-      body.accept(new GeneralizingASTVisitor_StaticTypeAnalyzer_computePropagatedReturnType2(result));
+      body.accept(new GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnType2(result));
       return result[0];
     }
     return null;
@@ -13296,7 +13253,7 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
    * @return `true` if the given node is not a type literal
    */
   bool isNotTypeLiteral(Identifier node) {
-    ASTNode parent = node.parent;
+    AstNode parent = node.parent;
     return parent is TypeName || (parent is PrefixedIdentifier && (parent.parent is TypeName || identical(parent.prefix, node))) || (parent is PropertyAccess && identical(parent.target, node)) || (parent is MethodInvocation && identical(node, parent.target));
   }
 
@@ -13391,10 +13348,10 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
   set thisType_J2DAccessor(__v) => _thisType = __v;
 }
 
-class GeneralizingASTVisitor_StaticTypeAnalyzer_computePropagatedReturnType2 extends GeneralizingASTVisitor<Object> {
+class GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnType2 extends GeneralizingAstVisitor<Object> {
   List<Type2> result;
 
-  GeneralizingASTVisitor_StaticTypeAnalyzer_computePropagatedReturnType2(this.result) : super();
+  GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnType2(this.result) : super();
 
   Object visitExpression(Expression node) => null;
 
@@ -13896,8 +13853,6 @@ class TypePromotionManager_TypePromoteScope {
 /**
  * The interface `TypeProvider` defines the behavior of objects that provide access to types
  * defined by the language.
- *
- * @coverage dart.engine.resolver
  */
 abstract class TypeProvider {
   /**
@@ -14016,8 +13971,6 @@ abstract class TypeProvider {
 /**
  * Instances of the class `TypeProviderImpl` provide access to types defined by the language
  * by looking for those types in the element model for the core library.
- *
- * @coverage dart.engine.resolver
  */
 class TypeProviderImpl implements TypeProvider {
   /**
@@ -14189,8 +14142,6 @@ class TypeProviderImpl implements TypeProvider {
  * the elements in the element model. This includes the types of superclasses, mixins, interfaces,
  * fields, methods, parameters, and local variables. As a side-effect, this also finishes building
  * the type hierarchy.
- *
- * @coverage dart.engine.resolver
  */
 class TypeResolverVisitor extends ScopedVisitor {
   /**
@@ -14205,7 +14156,7 @@ class TypeResolverVisitor extends ScopedVisitor {
    * @return `true` if given [TypeName] is used as a type annotation.
    */
   static bool isTypeAnnotation(TypeName node) {
-    ASTNode parent = node.parent;
+    AstNode parent = node.parent;
     if (parent is VariableDeclarationList) {
       return identical(parent.type, node);
     }
@@ -14516,7 +14467,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       // If not, the look to see whether we might have created the wrong AST structure for a
       // constructor name. If so, fix the AST structure and then proceed.
       //
-      ASTNode parent = node.parent;
+      AstNode parent = node.parent;
       if (typeName is PrefixedIdentifier && parent is ConstructorName && argumentList == null) {
         ConstructorName name = parent;
         if (name.name == null) {
@@ -14638,7 +14589,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       } else if (isTypeNameInTypeArgumentList(node)) {
         reportError9(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, typeName, [typeName.name]);
       } else {
-        ASTNode parent = typeName.parent;
+        AstNode parent = typeName.parent;
         while (parent is TypeName) {
           parent = parent.parent;
         }
@@ -14766,7 +14717,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     // parameters can be correctly resolved.
     //
     List<ClassMember> nonFields = new List<ClassMember>();
-    node.visitChildren(new UnifyingASTVisitor_TypeResolverVisitor_visitClassDeclarationInScope(this, nonFields));
+    node.visitChildren(new UnifyingAstVisitor_TypeResolverVisitor_visitClassDeclarationInScope(this, nonFields));
     int count = nonFields.length;
     for (int i = 0; i < count; i++) {
       nonFields[i].accept(this);
@@ -14906,7 +14857,7 @@ class TypeResolverVisitor extends ScopedVisitor {
    *         were provided
    */
   ErrorCode getInvalidTypeParametersErrorCode(TypeName node) {
-    ASTNode parent = node.parent;
+    AstNode parent = node.parent;
     if (parent is ConstructorName) {
       parent = parent.parent;
       if (parent is InstanceCreationExpression) {
@@ -14928,7 +14879,7 @@ class TypeResolverVisitor extends ScopedVisitor {
    *         redirected constructor, or `null` otherwise
    */
   RedirectingConstructorKind getRedirectingConstructorKind(TypeName typeName) {
-    ASTNode parent = typeName.parent;
+    AstNode parent = typeName.parent;
     if (parent is ConstructorName) {
       ConstructorName constructorName = parent as ConstructorName;
       parent = constructorName.parent;
@@ -15015,7 +14966,7 @@ class TypeResolverVisitor extends ScopedVisitor {
    * @return `true` if the given type name is used as the type in an as expression
    */
   bool isTypeNameInAsExpression(TypeName typeName) {
-    ASTNode parent = typeName.parent;
+    AstNode parent = typeName.parent;
     if (parent is AsExpression) {
       AsExpression asExpression = parent;
       return identical(asExpression.type, typeName);
@@ -15030,7 +14981,7 @@ class TypeResolverVisitor extends ScopedVisitor {
    * @return `true` if the given type name is used as the exception type in a catch clause
    */
   bool isTypeNameInCatchClause(TypeName typeName) {
-    ASTNode parent = typeName.parent;
+    AstNode parent = typeName.parent;
     if (parent is CatchClause) {
       CatchClause catchClause = parent;
       return identical(catchClause.exceptionType, typeName);
@@ -15046,7 +14997,7 @@ class TypeResolverVisitor extends ScopedVisitor {
    *         expression
    */
   bool isTypeNameInInstanceCreationExpression(TypeName typeName) {
-    ASTNode parent = typeName.parent;
+    AstNode parent = typeName.parent;
     if (parent is ConstructorName && parent.parent is InstanceCreationExpression) {
       ConstructorName constructorName = parent;
       return constructorName != null && identical(constructorName.type, typeName);
@@ -15061,7 +15012,7 @@ class TypeResolverVisitor extends ScopedVisitor {
    * @return `true` if the given type name is used as the type in an is expression
    */
   bool isTypeNameInIsExpression(TypeName typeName) {
-    ASTNode parent = typeName.parent;
+    AstNode parent = typeName.parent;
     if (parent is IsExpression) {
       IsExpression isExpression = parent;
       return identical(isExpression.type, typeName);
@@ -15247,12 +15198,12 @@ class RedirectingConstructorKind extends Enum<RedirectingConstructorKind> {
   RedirectingConstructorKind(String name, int ordinal) : super(name, ordinal);
 }
 
-class UnifyingASTVisitor_TypeResolverVisitor_visitClassDeclarationInScope extends UnifyingASTVisitor<Object> {
+class UnifyingAstVisitor_TypeResolverVisitor_visitClassDeclarationInScope extends UnifyingAstVisitor<Object> {
   final TypeResolverVisitor TypeResolverVisitor_this;
 
   List<ClassMember> nonFields;
 
-  UnifyingASTVisitor_TypeResolverVisitor_visitClassDeclarationInScope(this.TypeResolverVisitor_this, this.nonFields) : super();
+  UnifyingAstVisitor_TypeResolverVisitor_visitClassDeclarationInScope(this.TypeResolverVisitor_this, this.nonFields) : super();
 
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     nonFields.add(node);
@@ -15264,14 +15215,12 @@ class UnifyingASTVisitor_TypeResolverVisitor_visitClassDeclarationInScope extend
     return null;
   }
 
-  Object visitNode(ASTNode node) => node.accept(TypeResolverVisitor_this);
+  Object visitNode(AstNode node) => node.accept(TypeResolverVisitor_this);
 }
 
 /**
  * Instances of the class `VariableResolverVisitor` are used to resolve
  * [SimpleIdentifier]s to local variables and formal parameters.
- *
- * @coverage dart.engine.resolver
  */
 class VariableResolverVisitor extends ScopedVisitor {
   /**
@@ -15331,7 +15280,7 @@ class VariableResolverVisitor extends ScopedVisitor {
       return null;
     }
     // Ignore if qualified.
-    ASTNode parent = node.parent;
+    AstNode parent = node.parent;
     if (parent is PrefixedIdentifier && identical(parent.identifier, node)) {
       return null;
     }
@@ -15380,8 +15329,6 @@ class VariableResolverVisitor extends ScopedVisitor {
 
 /**
  * Instances of the class `ClassScope` implement the scope defined by a class.
- *
- * @coverage dart.engine.resolver
  */
 class ClassScope extends EnclosedScope {
   /**
@@ -15436,8 +15383,6 @@ class ClassScope extends EnclosedScope {
 /**
  * Instances of the class `EnclosedScope` implement a scope that is lexically enclosed in
  * another scope.
- *
- * @coverage dart.engine.resolver
  */
 class EnclosedScope extends Scope {
   /**
@@ -15503,8 +15448,6 @@ class EnclosedScope extends Scope {
 
 /**
  * Instances of the class `FunctionScope` implement the scope defined by a function.
- *
- * @coverage dart.engine.resolver
  */
 class FunctionScope extends EnclosedScope {
   ExecutableElement _functionElement;
@@ -15547,8 +15490,6 @@ class FunctionScope extends EnclosedScope {
 /**
  * Instances of the class `FunctionTypeScope` implement the scope defined by a function type
  * alias.
- *
- * @coverage dart.engine.resolver
  */
 class FunctionTypeScope extends EnclosedScope {
   FunctionTypeAliasElement _typeElement;
@@ -15596,8 +15537,6 @@ class FunctionTypeScope extends EnclosedScope {
 
 /**
  * Instances of the class `LabelScope` represent a scope in which a single label is defined.
- *
- * @coverage dart.engine.resolver
  */
 class LabelScope {
   /**
@@ -15680,8 +15619,6 @@ class LabelScope {
 /**
  * Instances of the class `LibraryImportScope` represent the scope containing all of the names
  * available from imported libraries.
- *
- * @coverage dart.engine.resolver
  */
 class LibraryImportScope extends Scope {
   /**
@@ -15834,8 +15771,6 @@ class LibraryImportScope extends Scope {
 /**
  * Instances of the class `LibraryScope` implement a scope containing all of the names defined
  * in a given library.
- *
- * @coverage dart.engine.resolver
  */
 class LibraryScope extends EnclosedScope {
   /**
@@ -15905,8 +15840,6 @@ class LibraryScope extends EnclosedScope {
 /**
  * Instances of the class `Namespace` implement a mapping of identifiers to the elements
  * represented by those identifiers. Namespaces are the building blocks for scopes.
- *
- * @coverage dart.engine.resolver
  */
 class Namespace {
   /**
@@ -15950,8 +15883,6 @@ class Namespace {
 /**
  * Instances of the class `NamespaceBuilder` are used to build a `Namespace`. Namespace
  * builders are thread-safe and re-usable.
- *
- * @coverage dart.engine.resolver
  */
 class NamespaceBuilder {
   /**
@@ -16186,8 +16117,6 @@ class NamespaceBuilder {
 /**
  * The abstract class `Scope` defines the behavior common to name scopes used by the resolver
  * to determine which names are visible at any given point in the code.
- *
- * @coverage dart.engine.resolver
  */
 abstract class Scope {
   /**
@@ -16315,7 +16244,7 @@ abstract class Scope {
    * @param identifier the identifier whose source is to be returned
    * @return the source that contains the given identifier
    */
-  Source getSource(ASTNode node) {
+  Source getSource(AstNode node) {
     CompilationUnit unit = node.getAncestor(CompilationUnit);
     if (unit != null) {
       CompilationUnitElement unitElement = unit.element;
@@ -16387,14 +16316,14 @@ class ScopeBuilder {
    * @throws AnalysisException if the AST structure has not been resolved or is not part of a
    *           [CompilationUnit]
    */
-  static Scope scopeFor(ASTNode node, AnalysisErrorListener errorListener) {
+  static Scope scopeFor(AstNode node, AnalysisErrorListener errorListener) {
     if (node == null) {
       throw new AnalysisException.con1("Cannot create scope: node is null");
     } else if (node is CompilationUnit) {
       ScopeBuilder builder = new ScopeBuilder(errorListener);
       return builder.scopeForAstNode(node);
     }
-    ASTNode parent = node.parent;
+    AstNode parent = node.parent;
     if (parent == null) {
       throw new AnalysisException.con1("Cannot create scope: node is not part of a CompilationUnit");
     }
@@ -16428,11 +16357,11 @@ class ScopeBuilder {
    * @throws AnalysisException if the AST structure has not been resolved or is not part of a
    *           [CompilationUnit]
    */
-  Scope scopeForAstNode(ASTNode node) {
+  Scope scopeForAstNode(AstNode node) {
     if (node is CompilationUnit) {
       return scopeForCompilationUnit(node);
     }
-    ASTNode parent = node.parent;
+    AstNode parent = node.parent;
     if (parent == null) {
       throw new AnalysisException.con1("Cannot create scope: node is not part of a CompilationUnit");
     }
@@ -16476,10 +16405,8 @@ class ScopeBuilder {
  * Instances of the class `ConstantVerifier` traverse an AST structure looking for additional
  * errors and warnings not covered by the parser and resolver. In particular, it looks for errors
  * and warnings related to constant expressions.
- *
- * @coverage dart.engine.resolver
  */
-class ConstantVerifier extends RecursiveASTVisitor<Object> {
+class ConstantVerifier extends RecursiveAstVisitor<Object> {
   /**
    * The error reporter by which errors will be reported.
    */
@@ -16831,10 +16758,8 @@ class ConstantVisitor_ConstantVerifier_validateInitializerExpression extends Con
 /**
  * Instances of the class `ErrorVerifier` traverse an AST structure looking for additional
  * errors and warnings not covered by the parser and resolver.
- *
- * @coverage dart.engine.resolver
  */
-class ErrorVerifier extends RecursiveASTVisitor<Object> {
+class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /**
    * The error reporter by which errors will be reported.
    */
@@ -17763,7 +17688,7 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
    * @see StaticWarningCode#INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE
    * @see StaticWarningCode#INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES
    */
-  bool checkForAllInvalidOverrideErrorCodes(ExecutableElement executableElement, ExecutableElement overriddenExecutable, List<ParameterElement> parameters, List<ASTNode> parameterLocations, SimpleIdentifier errorNameTarget) {
+  bool checkForAllInvalidOverrideErrorCodes(ExecutableElement executableElement, ExecutableElement overriddenExecutable, List<ParameterElement> parameters, List<AstNode> parameterLocations, SimpleIdentifier errorNameTarget) {
     bool isGetter = false;
     bool isSetter = false;
     if (executableElement is PropertyAccessorElement) {
@@ -17916,7 +17841,7 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
       if (!overriddenNamedPTEntry.getValue().isAssignableTo(overridingType)) {
         // lookup the parameter for the error to select
         ParameterElement parameterToSelect = null;
-        ASTNode parameterLocationToSelect = null;
+        AstNode parameterLocationToSelect = null;
         for (int i = 0; i < parameters.length; i++) {
           ParameterElement parameter = parameters[i];
           if (identical(parameter.parameterKind, ParameterKind.NAMED) && overriddenNamedPTEntry.getKey() == parameter.name) {
@@ -17941,7 +17866,7 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
     // parameter elements from the method we are overriding.
     //
     bool foundError = false;
-    List<ASTNode> formalParameters = new List<ASTNode>();
+    List<AstNode> formalParameters = new List<AstNode>();
     List<ParameterElementImpl> parameterElts = new List<ParameterElementImpl>();
     List<ParameterElementImpl> overriddenParameterElts = new List<ParameterElementImpl>();
     List<ParameterElement> overriddenPEs = overriddenExecutable.parameters;
@@ -18030,7 +17955,7 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
    * @param errorNameTarget the node to report problems on
    * @return `true` if and only if an error code is generated on the passed node
    */
-  bool checkForAllInvalidOverrideErrorCodes2(ExecutableElement executableElement, List<ParameterElement> parameters, List<ASTNode> parameterLocations, SimpleIdentifier errorNameTarget) {
+  bool checkForAllInvalidOverrideErrorCodes2(ExecutableElement executableElement, List<ParameterElement> parameters, List<AstNode> parameterLocations, SimpleIdentifier errorNameTarget) {
     //
     // Compute the overridden executable from the InheritanceManager
     //
@@ -18077,10 +18002,10 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
       PropertyAccessorElement setter = element.setter;
       SimpleIdentifier fieldName = field.name;
       if (getter != null) {
-        hasProblems = javaBooleanOr(hasProblems, checkForAllInvalidOverrideErrorCodes2(getter, ParameterElementImpl.EMPTY_ARRAY, ASTNode.EMPTY_ARRAY, fieldName));
+        hasProblems = javaBooleanOr(hasProblems, checkForAllInvalidOverrideErrorCodes2(getter, ParameterElementImpl.EMPTY_ARRAY, AstNode.EMPTY_ARRAY, fieldName));
       }
       if (setter != null) {
-        hasProblems = javaBooleanOr(hasProblems, checkForAllInvalidOverrideErrorCodes2(setter, setter.parameters, <ASTNode> [fieldName], fieldName));
+        hasProblems = javaBooleanOr(hasProblems, checkForAllInvalidOverrideErrorCodes2(setter, setter.parameters, <AstNode> [fieldName], fieldName));
       }
     }
     return hasProblems;
@@ -18107,7 +18032,7 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
     }
     FormalParameterList formalParameterList = node.parameters;
     NodeList<FormalParameter> parameterList = formalParameterList != null ? formalParameterList.parameters : null;
-    List<ASTNode> parameters = parameterList != null ? new List.from(parameterList) : null;
+    List<AstNode> parameters = parameterList != null ? new List.from(parameterList) : null;
     return checkForAllInvalidOverrideErrorCodes2(executableElement, executableElement.parameters, parameters, methodName);
   }
 
@@ -18468,7 +18393,7 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
     NodeList<Statement> statements = node.statements;
     if (statements.isEmpty) {
       // fall-through without statements at all
-      ASTNode parent = node.parent;
+      AstNode parent = node.parent;
       if (parent is SwitchStatement) {
         SwitchStatement switchStatement = parent;
         NodeList<SwitchMember> members = switchStatement.members;
@@ -19364,7 +19289,7 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
         // if the violating type happens to be 'num', we need to rule out the case where the
         // enclosing class is 'int' or 'double'
         if (superType == _typeProvider.numType) {
-          ASTNode grandParent = typeName.parent.parent;
+          AstNode grandParent = typeName.parent.parent;
           // Note: this is a corner case that won't happen often, so adding a field currentClass
           // (see currentFunction) to ErrorVerifier isn't worth if for this case, but if the field
           // currentClass is added, then this message should become a todo to not lookup the
@@ -19562,7 +19487,7 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
       return false;
     }
     // comment
-    ASTNode parent = node.parent;
+    AstNode parent = node.parent;
     if (parent is CommentReference) {
       return false;
     }
@@ -20476,11 +20401,9 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
 
   /**
    * This verifies the passed map literal either:
-   *
    * * has `const modifier`
    * * has explicit type arguments
    * * is not start of the statement
-   *
    *
    * @param node the map literal to evaluate
    * @return `true` if and only if an error code is generated on the passed node
@@ -21497,10 +21420,10 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
   }
 
   /**
-   * @return `true` if the given [ASTNode] is the part of constant constructor
+   * @return `true` if the given [AstNode] is the part of constant constructor
    *         invocation.
    */
-  bool isInConstConstructorInvocation(ASTNode node) {
+  bool isInConstConstructorInvocation(AstNode node) {
     InstanceCreationExpression creation = node.getAncestor(InstanceCreationExpression);
     if (creation == null) {
       return false;
@@ -21563,7 +21486,7 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
    * @return `true` if the given 'this' expression is in the valid context
    */
   bool isThisInValidContext(ThisExpression node) {
-    for (ASTNode n = node; n != null; n = n.parent) {
+    for (AstNode n = node; n != null; n = n.parent) {
       if (n is CompilationUnit) {
         return false;
       }
@@ -21594,7 +21517,7 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
     if (node.inDeclarationContext()) {
       return true;
     }
-    ASTNode parent = node.parent;
+    AstNode parent = node.parent;
     if (parent is ConstructorName || parent is MethodInvocation || parent is PropertyAccess || parent is SuperConstructorInvocation) {
       return true;
     }
@@ -21715,8 +21638,6 @@ class GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference extends G
  * resolver. The convention for this class is for the name of the error code to indicate the problem
  * that caused the error to be generated and for the error message to explain what is wrong and,
  * when appropriate, how the problem can be corrected.
- *
- * @coverage dart.engine.resolver
  */
 class ResolverErrorCode extends Enum<ResolverErrorCode> implements ErrorCode {
   static final ResolverErrorCode BREAK_LABEL_ON_SWITCH_MEMBER = new ResolverErrorCode.con1('BREAK_LABEL_ON_SWITCH_MEMBER', 0, ErrorType.COMPILE_TIME_ERROR, "Break label resolves to case or default statement");

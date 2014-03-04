@@ -18,8 +18,6 @@ import 'utilities_collection.dart' show TokenMap;
 /**
  * Instances of the abstract class `KeywordState` represent a state in a state machine used to
  * scan keywords.
- *
- * @coverage dart.engine.parser
  */
 class KeywordState {
   /**
@@ -140,8 +138,6 @@ class KeywordState {
 /**
  * The enumeration `ScannerErrorCode` defines the error codes used for errors detected by the
  * scanner.
- *
- * @coverage dart.engine.parser
  */
 class ScannerErrorCode extends Enum<ScannerErrorCode> implements ErrorCode {
   static final ScannerErrorCode ILLEGAL_CHARACTER = new ScannerErrorCode.con1('ILLEGAL_CHARACTER', 0, "Illegal character %x");
@@ -233,8 +229,6 @@ class SubSequenceReader extends CharSequenceReader {
 /**
  * Instances of the class `TokenWithComment` represent a string token that is preceded by
  * comments.
- *
- * @coverage dart.engine.parser
  */
 class StringTokenWithComment extends StringToken {
   /**
@@ -270,8 +264,6 @@ class StringTokenWithComment extends StringToken {
 
 /**
  * The enumeration `Keyword` defines the keywords in the Dart programming language.
- *
- * @coverage dart.engine.parser
  */
 class Keyword extends Enum<Keyword> {
   static final Keyword ASSERT = new Keyword.con1('ASSERT', 0, "assert");
@@ -541,8 +533,6 @@ class CharSequenceReader implements CharacterReader {
 
 /**
  * Synthetic `StringToken` represent a token whose value is independent of it's type.
- *
- * @coverage dart.engine.parser
  */
 class SyntheticStringToken extends StringToken {
   /**
@@ -560,8 +550,6 @@ class SyntheticStringToken extends StringToken {
 /**
  * Instances of the class `IncrementalScanner` implement a scanner that scans a subset of a
  * string and inserts the resulting tokens into the middle of an existing token stream.
- *
- * @coverage dart.engine.parser
  */
 class IncrementalScanner extends Scanner {
   /**
@@ -787,8 +775,6 @@ class IncrementalScanner extends Scanner {
  * should be scanned as a single left-shift operator or as two left angle brackets. This scanner
  * does not have any context, so it always resolves such conflicts by scanning the longest possible
  * token.
- *
- * @coverage dart.engine.parser
  */
 class Scanner {
   /**
@@ -1861,8 +1847,6 @@ class Scanner {
 /**
  * Instances of the class `StringToken` represent a token whose value is independent of it's
  * type.
- *
- * @coverage dart.engine.parser
  */
 class StringToken extends Token {
   /**
@@ -1891,8 +1875,6 @@ class StringToken extends Token {
 /**
  * Instances of the class `TokenWithComment` represent a normal token that is preceded by
  * comments.
- *
- * @coverage dart.engine.parser
  */
 class TokenWithComment extends Token {
   /**
@@ -1920,8 +1902,6 @@ class TokenWithComment extends Token {
 /**
  * Instances of the class `Token` represent a token that was scanned from the input. Each
  * token knows which token follows it, acting as the head of a linked list of tokens.
- *
- * @coverage dart.engine.parser
  */
 class Token {
   /**
@@ -2139,8 +2119,6 @@ abstract class CharacterReader {
 /**
  * Instances of the class `BeginTokenWithComment` represent a begin token that is preceded by
  * comments.
- *
- * @coverage dart.engine.parser
  */
 class BeginTokenWithComment extends BeginToken {
   /**
@@ -2176,8 +2154,6 @@ class BeginTokenWithComment extends BeginToken {
 
 /**
  * Instances of the class `KeywordToken` represent a keyword in the language.
- *
- * @coverage dart.engine.parser
  */
 class KeywordToken extends Token {
   /**
@@ -2203,8 +2179,6 @@ class KeywordToken extends Token {
 /**
  * Instances of the class `BeginToken` represent the opening half of a grouping pair of
  * tokens. This is used for curly brackets ('{'), parentheses ('('), and square brackets ('[').
- *
- * @coverage dart.engine.parser
  */
 class BeginToken extends Token {
   /**
@@ -2227,8 +2201,6 @@ class BeginToken extends Token {
 
 /**
  * The enumeration `TokenClass` represents classes (or groups) of tokens with a similar use.
- *
- * @coverage dart.engine.parser
  */
 class TokenClass extends Enum<TokenClass> {
   /**
@@ -2353,8 +2325,6 @@ class TokenClass extends Enum<TokenClass> {
 /**
  * Instances of the class `KeywordTokenWithComment` implement a keyword token that is preceded
  * by comments.
- *
- * @coverage dart.engine.parser
  */
 class KeywordTokenWithComment extends KeywordToken {
   /**
@@ -2391,8 +2361,6 @@ class KeywordTokenWithComment extends KeywordToken {
 /**
  * The enumeration `TokenType` defines the types of tokens that can be returned by the
  * scanner.
- *
- * @coverage dart.engine.parser
  */
 class TokenType extends Enum<TokenType> {
   /**

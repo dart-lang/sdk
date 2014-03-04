@@ -10,14 +10,12 @@ library engine.error;
 import 'java_core.dart';
 import 'source.dart';
 import 'scanner.dart' show Token;
-import 'ast.dart' show ASTNode;
+import 'ast.dart' show AstNode;
 import 'element.dart' show Element;
 
 /**
  * Instances of the enumeration `ErrorSeverity` represent the severity of an [ErrorCode]
  * .
- *
- * @coverage dart.engine.error
  */
 class ErrorSeverity extends Enum<ErrorSeverity> {
   /**
@@ -225,8 +223,6 @@ class AngularCode extends Enum<AngularCode> implements ErrorCode {
 /**
  * Instances of the class `ErrorReporter` wrap an error listener with utility methods used to
  * create the errors being reported.
- *
- * @coverage dart.engine.error
  */
 class ErrorReporter {
   /**
@@ -268,7 +264,7 @@ class ErrorReporter {
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  AnalysisErrorWithProperties newErrorWithProperties(ErrorCode errorCode, ASTNode node, List<Object> arguments) => new AnalysisErrorWithProperties.con2(_source, node.offset, node.length, errorCode, arguments);
+  AnalysisErrorWithProperties newErrorWithProperties(ErrorCode errorCode, AstNode node, List<Object> arguments) => new AnalysisErrorWithProperties.con2(_source, node.offset, node.length, errorCode, arguments);
 
   /**
    * Report a passed error.
@@ -286,7 +282,7 @@ class ErrorReporter {
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError3(ErrorCode errorCode, ASTNode node, List<Object> arguments) {
+  void reportError3(ErrorCode errorCode, AstNode node, List<Object> arguments) {
     reportError5(errorCode, node.offset, node.length, arguments);
   }
 
@@ -340,7 +336,6 @@ class ErrorReporter {
  * some Dart code.
  *
  * @see AnalysisErrorListener
- * @coverage dart.engine.error
  */
 class AnalysisError {
   /**
@@ -844,8 +839,6 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
  * Generally, we want to provide messages that consist of three sentences: 1. what is wrong, 2. why
  * is it wrong, and 3. how do I fix it. However, we combine the first two in the result of
  * [getMessage] and the last in the result of [getCorrection].
- *
- * @coverage dart.engine.error
  */
 abstract class ErrorCode {
   /**
@@ -882,8 +875,6 @@ abstract class ErrorCode {
 
 /**
  * Instances of the enumeration `ErrorType` represent the type of an [ErrorCode].
- *
- * @coverage dart.engine.error
  */
 class ErrorType extends Enum<ErrorType> {
   /**
@@ -961,8 +952,6 @@ class ErrorType extends Enum<ErrorType> {
  * errors. The convention for this class is for the name of the error code to indicate the problem
  * that caused the error to be generated and for the error message to explain what is wrong and,
  * when appropriate, how the problem can be corrected.
- *
- * @coverage dart.engine.error
  */
 class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCode {
   /**
@@ -1627,10 +1616,8 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
   /**
    * 12.6 Lists: A run-time list literal &lt;<i>E</i>&gt; [<i>e<sub>1</sub></i> ...
    * <i>e<sub>n</sub></i>] is evaluated as follows:
-   *
    * * The operator []= is invoked on <i>a</i> with first argument <i>i</i> and second argument
    * <i>o<sub>i+1</sub></i><i>, 1 &lt;= i &lt;= n</i>
-   *
    *
    * 12.14.2 Binding Actuals to Formals: Let <i>T<sub>i</sub></i> be the static type of
    * <i>a<sub>i</sub></i>, let <i>S<sub>i</sub></i> be the type of <i>p<sub>i</sub>, 1 &lt;= i &lt;=
@@ -1643,10 +1630,8 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
   /**
    * 12.7 Map: A run-time map literal &lt;<i>K</i>, <i>V</i>&gt; [<i>k<sub>1</sub></i> :
    * <i>e<sub>1</sub></i> ... <i>k<sub>n</sub></i> : <i>e<sub>n</sub></i>] is evaluated as follows:
-   *
    * * The operator []= is invoked on <i>m</i> with first argument <i>k<sub>i</sub></i> and second
    * argument <i>e<sub>i</sub></i><i>, 1 &lt;= i &lt;= n</i>
-   *
    *
    * 12.14.2 Binding Actuals to Formals: Let <i>T<sub>i</sub></i> be the static type of
    * <i>a<sub>i</sub></i>, let <i>S<sub>i</sub></i> be the type of <i>p<sub>i</sub>, 1 &lt;= i &lt;=
@@ -1659,10 +1644,8 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
   /**
    * 12.7 Map: A run-time map literal &lt;<i>K</i>, <i>V</i>&gt; [<i>k<sub>1</sub></i> :
    * <i>e<sub>1</sub></i> ... <i>k<sub>n</sub></i> : <i>e<sub>n</sub></i>] is evaluated as follows:
-   *
    * * The operator []= is invoked on <i>m</i> with first argument <i>k<sub>i</sub></i> and second
    * argument <i>e<sub>i</sub></i><i>, 1 &lt;= i &lt;= n</i>
-   *
    *
    * 12.14.2 Binding Actuals to Formals: Let <i>T<sub>i</sub></i> be the static type of
    * <i>a<sub>i</sub></i>, let <i>S<sub>i</sub></i> be the type of <i>p<sub>i</sub>, 1 &lt;= i &lt;=
@@ -2382,8 +2365,6 @@ class PubSuggestionCode extends Enum<PubSuggestionCode> implements ErrorCode {
  * convention for this class is for the name of the error code to indicate the problem that caused
  * the error to be generated and for the error message to explain what is wrong and, when
  * appropriate, how the problem can be corrected.
- *
- * @coverage dart.engine.error
  */
 class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
   /**
@@ -2469,10 +2450,8 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * 14.1 Imports: If a name <i>N</i> is referenced by a library <i>L</i> and <i>N</i> would be
    * introduced into the top level scope of <i>L</i> by an import from a library whose URI begins
    * with <i>dart:</i> and an import from a library whose URI does not begin with <i>dart:</i>:
-   *
    * * The import from <i>dart:</i> is implicitly extended by a hide N clause.
    * * A static warning is issued.
-   *
    *
    * @param ambiguousName the ambiguous name
    * @param sdkLibraryName the name of the dart: library that the element is found
@@ -2594,10 +2573,8 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * 7.6.1 Generative Constructors: Each final instance variable <i>f</i> declared in the
    * immediately enclosing class must have an initializer in <i>k</i>'s initializer list unless it
    * has already been initialized by one of the following means:
-   *
    * * Initialization at the declaration of <i>f</i>.
    * * Initialization by means of an initializing formal of <i>k</i>.
-   *
    * or a static warning occurs.
    *
    * @param name the name of the uninitialized final variable
@@ -2759,10 +2736,8 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
   /**
    * 12.6 Lists: A run-time list literal &lt;<i>E</i>&gt; [<i>e<sub>1</sub></i> ...
    * <i>e<sub>n</sub></i>] is evaluated as follows:
-   *
    * * The operator []= is invoked on <i>a</i> with first argument <i>i</i> and second argument
    * <i>o<sub>i+1</sub></i><i>, 1 &lt;= i &lt;= n</i>
-   *
    *
    * 12.14.2 Binding Actuals to Formals: Let <i>T<sub>i</sub></i> be the static type of
    * <i>a<sub>i</sub></i>, let <i>S<sub>i</sub></i> be the type of <i>p<sub>i</sub>, 1 &lt;= i &lt;=
@@ -2775,10 +2750,8 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
   /**
    * 12.7 Map: A run-time map literal &lt;<i>K</i>, <i>V</i>&gt; [<i>k<sub>1</sub></i> :
    * <i>e<sub>1</sub></i> ... <i>k<sub>n</sub></i> : <i>e<sub>n</sub></i>] is evaluated as follows:
-   *
    * * The operator []= is invoked on <i>m</i> with first argument <i>k<sub>i</sub></i> and second
    * argument <i>e<sub>i</sub></i><i>, 1 &lt;= i &lt;= n</i>
-   *
    *
    * 12.14.2 Binding Actuals to Formals: Let <i>T<sub>i</sub></i> be the static type of
    * <i>a<sub>i</sub></i>, let <i>S<sub>i</sub></i> be the type of <i>p<sub>i</sub>, 1 &lt;= i &lt;=
@@ -2791,10 +2764,8 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
   /**
    * 12.7 Map: A run-time map literal &lt;<i>K</i>, <i>V</i>&gt; [<i>k<sub>1</sub></i> :
    * <i>e<sub>1</sub></i> ... <i>k<sub>n</sub></i> : <i>e<sub>n</sub></i>] is evaluated as follows:
-   *
    * * The operator []= is invoked on <i>m</i> with first argument <i>k<sub>i</sub></i> and second
    * argument <i>e<sub>i</sub></i><i>, 1 &lt;= i &lt;= n</i>
-   *
    *
    * 12.14.2 Binding Actuals to Formals: Let <i>T<sub>i</sub></i> be the static type of
    * <i>a<sub>i</sub></i>, let <i>S<sub>i</sub></i> be the type of <i>p<sub>i</sub>, 1 &lt;= i &lt;=
@@ -2988,7 +2959,6 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * <i>prefix.id</i>) does not denote a type. * <i>T</i> denotes a type parameter in the
    * enclosing lexical scope, but occurs in the signature or body of a static member. *
    * <i>T</i> is a parameterized type of the form <i>G&lt;S<sub>1</sub>, .., S<sub>n</sub>&gt;</i>,
-   * and <i>G</i> is malformed.
    *
    * Any use of a malformed type gives rise to a static warning.
    *
@@ -3270,8 +3240,6 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
 /**
  * The interface `AnalysisErrorListener` defines the behavior of objects that listen for
  * [AnalysisError] being produced by the analysis engine.
- *
- * @coverage dart.engine.error
  */
 abstract class AnalysisErrorListener {
   /**
@@ -3297,8 +3265,6 @@ class AnalysisErrorListener_NULL_LISTENER implements AnalysisErrorListener {
  * The convention for this class is for the name of the error code to indicate the problem that
  * caused the error to be generated and for the error message to explain what is wrong and, when
  * appropriate, how the problem can be corrected.
- *
- * @coverage dart.engine.error
  */
 class HtmlWarningCode extends Enum<HtmlWarningCode> implements ErrorCode {
   /**
@@ -3359,8 +3325,6 @@ class HtmlWarningCode extends Enum<HtmlWarningCode> implements ErrorCode {
  * warnings. The convention for this class is for the name of the error code to indicate the problem
  * that caused the error to be generated and for the error message to explain what is wrong and,
  * when appropriate, how the problem can be corrected.
- *
- * @coverage dart.engine.error
  */
 class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements ErrorCode {
   /**

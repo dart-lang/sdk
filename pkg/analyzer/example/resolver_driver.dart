@@ -40,8 +40,8 @@ main(List<String> args) {
   resolvedUnit.accept(visitor);
 }
 
-class _ASTVisitor extends GeneralizingASTVisitor {
-  visitNode(ASTNode node) {
+class _ASTVisitor extends GeneralizingAstVisitor {
+  visitNode(AstNode node) {
     String text = '${node.runtimeType} : <"${node.toString()}">';
     if (node is SimpleIdentifier) {
       Element element = node.staticElement;

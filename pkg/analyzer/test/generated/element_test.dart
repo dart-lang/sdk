@@ -17,7 +17,7 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext, AnalysisContextImpl;
 import 'package:unittest/unittest.dart' as _ut;
 import 'test_support.dart';
-import 'ast_test.dart' show ASTFactory;
+import 'ast_test.dart' show AstFactory;
 import 'resolver_test.dart' show TestTypeProvider, AnalysisContextHelper;
 
 class ElementLocationImplTest extends EngineTestCase {
@@ -232,7 +232,7 @@ class MultiplyDefinedElementImplTest extends EngineTestCase {
 
 class LibraryElementImplTest extends EngineTestCase {
   void test_creation() {
-    JUnitTestCase.assertNotNull(new LibraryElementImpl(createAnalysisContext(), ASTFactory.libraryIdentifier2(["l"])));
+    JUnitTestCase.assertNotNull(new LibraryElementImpl(createAnalysisContext(), AstFactory.libraryIdentifier2(["l"])));
   }
 
   void test_getImportedLibraries() {
@@ -241,8 +241,8 @@ class LibraryElementImplTest extends EngineTestCase {
     LibraryElementImpl library2 = ElementFactory.library(context, "l2");
     LibraryElementImpl library3 = ElementFactory.library(context, "l3");
     LibraryElementImpl library4 = ElementFactory.library(context, "l4");
-    PrefixElement prefixA = new PrefixElementImpl(ASTFactory.identifier3("a"));
-    PrefixElement prefixB = new PrefixElementImpl(ASTFactory.identifier3("b"));
+    PrefixElement prefixA = new PrefixElementImpl(AstFactory.identifier3("a"));
+    PrefixElement prefixB = new PrefixElementImpl(AstFactory.identifier3("b"));
     List<ImportElementImpl> imports = [
         ElementFactory.importFor(library2, null, []),
         ElementFactory.importFor(library2, prefixB, []),
@@ -258,8 +258,8 @@ class LibraryElementImplTest extends EngineTestCase {
   void test_getPrefixes() {
     AnalysisContext context = createAnalysisContext();
     LibraryElementImpl library = ElementFactory.library(context, "l1");
-    PrefixElement prefixA = new PrefixElementImpl(ASTFactory.identifier3("a"));
-    PrefixElement prefixB = new PrefixElementImpl(ASTFactory.identifier3("b"));
+    PrefixElement prefixA = new PrefixElementImpl(AstFactory.identifier3("a"));
+    PrefixElement prefixB = new PrefixElementImpl(AstFactory.identifier3("b"));
     List<ImportElementImpl> imports = [
         ElementFactory.importFor(ElementFactory.library(context, "l2"), null, []),
         ElementFactory.importFor(ElementFactory.library(context, "l3"), null, []),
@@ -359,7 +359,7 @@ class LibraryElementImplTest extends EngineTestCase {
 
   void test_setImports() {
     AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library = new LibraryElementImpl(context, ASTFactory.libraryIdentifier2(["l1"]));
+    LibraryElementImpl library = new LibraryElementImpl(context, AstFactory.libraryIdentifier2(["l1"]));
     List<ImportElementImpl> expectedImports = [
         ElementFactory.importFor(ElementFactory.library(context, "l2"), null, []),
         ElementFactory.importFor(ElementFactory.library(context, "l3"), null, [])];
@@ -427,31 +427,31 @@ class LibraryElementImplTest extends EngineTestCase {
 
 class TypeParameterTypeImplTest extends EngineTestCase {
   void test_creation() {
-    JUnitTestCase.assertNotNull(new TypeParameterTypeImpl(new TypeParameterElementImpl(ASTFactory.identifier3("E"))));
+    JUnitTestCase.assertNotNull(new TypeParameterTypeImpl(new TypeParameterElementImpl(AstFactory.identifier3("E"))));
   }
 
   void test_getElement() {
-    TypeParameterElementImpl element = new TypeParameterElementImpl(ASTFactory.identifier3("E"));
+    TypeParameterElementImpl element = new TypeParameterElementImpl(AstFactory.identifier3("E"));
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
     JUnitTestCase.assertEquals(element, type.element);
   }
 
   void test_isMoreSpecificThan_typeArguments_bottom() {
-    TypeParameterElementImpl element = new TypeParameterElementImpl(ASTFactory.identifier3("E"));
+    TypeParameterElementImpl element = new TypeParameterElementImpl(AstFactory.identifier3("E"));
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
     // E << bottom
     JUnitTestCase.assertTrue(type.isMoreSpecificThan(BottomTypeImpl.instance));
   }
 
   void test_isMoreSpecificThan_typeArguments_dynamic() {
-    TypeParameterElementImpl element = new TypeParameterElementImpl(ASTFactory.identifier3("E"));
+    TypeParameterElementImpl element = new TypeParameterElementImpl(AstFactory.identifier3("E"));
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
     // E << dynamic
     JUnitTestCase.assertTrue(type.isMoreSpecificThan(DynamicTypeImpl.instance));
   }
 
   void test_isMoreSpecificThan_typeArguments_object() {
-    TypeParameterElementImpl element = new TypeParameterElementImpl(ASTFactory.identifier3("E"));
+    TypeParameterElementImpl element = new TypeParameterElementImpl(AstFactory.identifier3("E"));
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
     // E << Object
     JUnitTestCase.assertTrue(type.isMoreSpecificThan(ElementFactory.object.type));
@@ -459,9 +459,9 @@ class TypeParameterTypeImplTest extends EngineTestCase {
 
   void test_isMoreSpecificThan_typeArguments_resursive() {
     ClassElementImpl classS = ElementFactory.classElement2("A", []);
-    TypeParameterElementImpl typeParameterU = new TypeParameterElementImpl(ASTFactory.identifier3("U"));
+    TypeParameterElementImpl typeParameterU = new TypeParameterElementImpl(AstFactory.identifier3("U"));
     TypeParameterTypeImpl typeParameterTypeU = new TypeParameterTypeImpl(typeParameterU);
-    TypeParameterElementImpl typeParameterT = new TypeParameterElementImpl(ASTFactory.identifier3("T"));
+    TypeParameterElementImpl typeParameterT = new TypeParameterElementImpl(AstFactory.identifier3("T"));
     TypeParameterTypeImpl typeParameterTypeT = new TypeParameterTypeImpl(typeParameterT);
     typeParameterT.bound = typeParameterTypeU;
     typeParameterU.bound = typeParameterTypeU;
@@ -471,7 +471,7 @@ class TypeParameterTypeImplTest extends EngineTestCase {
   }
 
   void test_isMoreSpecificThan_typeArguments_self() {
-    TypeParameterElementImpl element = new TypeParameterElementImpl(ASTFactory.identifier3("E"));
+    TypeParameterElementImpl element = new TypeParameterElementImpl(AstFactory.identifier3("E"));
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
     // E << E
     JUnitTestCase.assertTrue(type.isMoreSpecificThan(type));
@@ -485,7 +485,7 @@ class TypeParameterTypeImplTest extends EngineTestCase {
     ClassElement classB = ElementFactory.classElement("B", classA.type, []);
     InterfaceType typeA = classA.type;
     InterfaceType typeB = classB.type;
-    TypeParameterElementImpl typeParameterT = new TypeParameterElementImpl(ASTFactory.identifier3("T"));
+    TypeParameterElementImpl typeParameterT = new TypeParameterElementImpl(AstFactory.identifier3("T"));
     typeParameterT.bound = typeB;
     TypeParameterTypeImpl typeParameterTypeT = new TypeParameterTypeImpl(typeParameterT);
     // <T extends B>
@@ -495,10 +495,10 @@ class TypeParameterTypeImplTest extends EngineTestCase {
 
   void test_isMoreSpecificThan_typeArguments_transitivity_typeParameters() {
     ClassElementImpl classS = ElementFactory.classElement2("A", []);
-    TypeParameterElementImpl typeParameterU = new TypeParameterElementImpl(ASTFactory.identifier3("U"));
+    TypeParameterElementImpl typeParameterU = new TypeParameterElementImpl(AstFactory.identifier3("U"));
     typeParameterU.bound = classS.type;
     TypeParameterTypeImpl typeParameterTypeU = new TypeParameterTypeImpl(typeParameterU);
-    TypeParameterElementImpl typeParameterT = new TypeParameterElementImpl(ASTFactory.identifier3("T"));
+    TypeParameterElementImpl typeParameterT = new TypeParameterElementImpl(AstFactory.identifier3("T"));
     typeParameterT.bound = typeParameterTypeU;
     TypeParameterTypeImpl typeParameterTypeT = new TypeParameterTypeImpl(typeParameterT);
     // <T extends U> and <U extends S>
@@ -508,7 +508,7 @@ class TypeParameterTypeImplTest extends EngineTestCase {
 
   void test_isMoreSpecificThan_typeArguments_upperBound() {
     ClassElementImpl classS = ElementFactory.classElement2("A", []);
-    TypeParameterElementImpl typeParameterT = new TypeParameterElementImpl(ASTFactory.identifier3("T"));
+    TypeParameterElementImpl typeParameterT = new TypeParameterElementImpl(AstFactory.identifier3("T"));
     typeParameterT.bound = classS.type;
     TypeParameterTypeImpl typeParameterTypeT = new TypeParameterTypeImpl(typeParameterT);
     // <T extends S>
@@ -517,17 +517,17 @@ class TypeParameterTypeImplTest extends EngineTestCase {
   }
 
   void test_substitute_equal() {
-    TypeParameterElementImpl element = new TypeParameterElementImpl(ASTFactory.identifier3("E"));
+    TypeParameterElementImpl element = new TypeParameterElementImpl(AstFactory.identifier3("E"));
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
-    InterfaceTypeImpl argument = new InterfaceTypeImpl.con1(new ClassElementImpl(ASTFactory.identifier3("A")));
+    InterfaceTypeImpl argument = new InterfaceTypeImpl.con1(new ClassElementImpl(AstFactory.identifier3("A")));
     TypeParameterTypeImpl parameter = new TypeParameterTypeImpl(element);
     JUnitTestCase.assertSame(argument, type.substitute2(<Type2> [argument], <Type2> [parameter]));
   }
 
   void test_substitute_notEqual() {
-    TypeParameterTypeImpl type = new TypeParameterTypeImpl(new TypeParameterElementImpl(ASTFactory.identifier3("E")));
-    InterfaceTypeImpl argument = new InterfaceTypeImpl.con1(new ClassElementImpl(ASTFactory.identifier3("A")));
-    TypeParameterTypeImpl parameter = new TypeParameterTypeImpl(new TypeParameterElementImpl(ASTFactory.identifier3("F")));
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(new TypeParameterElementImpl(AstFactory.identifier3("E")));
+    InterfaceTypeImpl argument = new InterfaceTypeImpl.con1(new ClassElementImpl(AstFactory.identifier3("A")));
+    TypeParameterTypeImpl parameter = new TypeParameterTypeImpl(new TypeParameterElementImpl(AstFactory.identifier3("F")));
     JUnitTestCase.assertSame(type, type.substitute2(<Type2> [argument], <Type2> [parameter]));
   }
 
@@ -957,7 +957,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
 
   void test_getLeastUpperBound_functionType() {
     Type2 interfaceType = ElementFactory.classElement2("A", []).type;
-    FunctionTypeImpl functionType = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier3("f")));
+    FunctionTypeImpl functionType = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(AstFactory.identifier3("f")));
     JUnitTestCase.assertNull(interfaceType.getLeastUpperBound(functionType));
   }
 
@@ -1934,7 +1934,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
 
   void test_substitute_equal() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    TypeParameterElementImpl parameterElement = new TypeParameterElementImpl(ASTFactory.identifier3("E"));
+    TypeParameterElementImpl parameterElement = new TypeParameterElementImpl(AstFactory.identifier3("E"));
     InterfaceTypeImpl type = new InterfaceTypeImpl.con1(classA);
     TypeParameterTypeImpl parameter = new TypeParameterTypeImpl(parameterElement);
     type.typeArguments = <Type2> [parameter];
@@ -1959,12 +1959,12 @@ class InterfaceTypeImplTest extends EngineTestCase {
 
   void test_substitute_notEqual() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    TypeParameterElementImpl parameterElement = new TypeParameterElementImpl(ASTFactory.identifier3("E"));
+    TypeParameterElementImpl parameterElement = new TypeParameterElementImpl(AstFactory.identifier3("E"));
     InterfaceTypeImpl type = new InterfaceTypeImpl.con1(classA);
     TypeParameterTypeImpl parameter = new TypeParameterTypeImpl(parameterElement);
     type.typeArguments = <Type2> [parameter];
     InterfaceType argumentType = ElementFactory.classElement2("B", []).type;
-    TypeParameterTypeImpl parameterType = new TypeParameterTypeImpl(new TypeParameterElementImpl(ASTFactory.identifier3("F")));
+    TypeParameterTypeImpl parameterType = new TypeParameterTypeImpl(new TypeParameterElementImpl(AstFactory.identifier3("F")));
     InterfaceType result = type.substitute2(<Type2> [argumentType], <Type2> [parameterType]);
     JUnitTestCase.assertEquals(classA, result.element);
     List<Type2> resultArguments = result.typeArguments;
@@ -2464,7 +2464,7 @@ class ElementFactory {
   static ClassElementImpl _objectElement;
 
   static ClassElementImpl classElement(String typeName, InterfaceType superclassType, List<String> parameterNames) {
-    ClassElementImpl element = new ClassElementImpl(ASTFactory.identifier3(typeName));
+    ClassElementImpl element = new ClassElementImpl(AstFactory.identifier3(typeName));
     element.supertype = superclassType;
     InterfaceTypeImpl type = new InterfaceTypeImpl.con1(element);
     element.type = type;
@@ -2473,7 +2473,7 @@ class ElementFactory {
       List<TypeParameterElementImpl> typeParameters = new List<TypeParameterElementImpl>(count);
       List<TypeParameterTypeImpl> typeParameterTypes = new List<TypeParameterTypeImpl>(count);
       for (int i = 0; i < count; i++) {
-        TypeParameterElementImpl typeParameter = new TypeParameterElementImpl(ASTFactory.identifier3(parameterNames[i]));
+        TypeParameterElementImpl typeParameter = new TypeParameterElementImpl(AstFactory.identifier3(parameterNames[i]));
         typeParameters[i] = typeParameter;
         typeParameterTypes[i] = new TypeParameterTypeImpl(typeParameter);
         typeParameter.type = typeParameterTypes[i];
@@ -2495,12 +2495,12 @@ class ElementFactory {
 
   static ConstructorElementImpl constructorElement(ClassElement definingClass, String name, bool isConst, List<Type2> argumentTypes) {
     Type2 type = definingClass.type;
-    ConstructorElementImpl constructor = new ConstructorElementImpl.con1(name == null ? null : ASTFactory.identifier3(name));
+    ConstructorElementImpl constructor = new ConstructorElementImpl.con1(name == null ? null : AstFactory.identifier3(name));
     constructor.const2 = isConst;
     int count = argumentTypes.length;
     List<ParameterElement> parameters = new List<ParameterElement>(count);
     for (int i = 0; i < count; i++) {
-      ParameterElementImpl parameter = new ParameterElementImpl.con1(ASTFactory.identifier3("a${i}"));
+      ParameterElementImpl parameter = new ParameterElementImpl.con1(AstFactory.identifier3("a${i}"));
       parameter.type = argumentTypes[i];
       parameter.parameterKind = ParameterKind.REQUIRED;
       parameters[i] = parameter;
@@ -2522,7 +2522,7 @@ class ElementFactory {
   }
 
   static FieldElementImpl fieldElement(String name, bool isStatic, bool isFinal, bool isConst, Type2 type) {
-    FieldElementImpl field = new FieldElementImpl.con1(ASTFactory.identifier3(name));
+    FieldElementImpl field = new FieldElementImpl.con1(AstFactory.identifier3(name));
     field.const3 = isConst;
     field.final2 = isFinal;
     field.static = isStatic;
@@ -2558,7 +2558,7 @@ class ElementFactory {
 
   static FunctionElementImpl functionElement3(String functionName, ClassElement returnElement, List<ClassElement> normalParameters, List<ClassElement> optionalParameters) {
     // We don't create parameter elements because we don't have parameter names
-    FunctionElementImpl functionElement = new FunctionElementImpl.con1(ASTFactory.identifier3(functionName));
+    FunctionElementImpl functionElement = new FunctionElementImpl.con1(AstFactory.identifier3(functionName));
     FunctionTypeImpl functionType = new FunctionTypeImpl.con1(functionElement);
     functionElement.type = functionType;
     // return type
@@ -2573,7 +2573,7 @@ class ElementFactory {
     int totalCount = normalCount + optionalCount;
     List<ParameterElement> parameters = new List<ParameterElement>(totalCount);
     for (int i = 0; i < totalCount; i++) {
-      ParameterElementImpl parameter = new ParameterElementImpl.con1(ASTFactory.identifier3("a${i}"));
+      ParameterElementImpl parameter = new ParameterElementImpl.con1(AstFactory.identifier3("a${i}"));
       if (i < normalCount) {
         parameter.type = normalParameters[i].type;
         parameter.parameterKind = ParameterKind.REQUIRED;
@@ -2589,7 +2589,7 @@ class ElementFactory {
   }
 
   static FunctionElementImpl functionElement4(String functionName, ClassElement returnElement, List<ClassElement> normalParameters, List<String> names, List<ClassElement> namedParameters) {
-    FunctionElementImpl functionElement = new FunctionElementImpl.con1(ASTFactory.identifier3(functionName));
+    FunctionElementImpl functionElement = new FunctionElementImpl.con1(AstFactory.identifier3(functionName));
     FunctionTypeImpl functionType = new FunctionTypeImpl.con1(functionElement);
     functionElement.type = functionType;
     // parameters
@@ -2603,12 +2603,12 @@ class ElementFactory {
     List<ParameterElement> parameters = new List<ParameterElement>(totalCount);
     for (int i = 0; i < totalCount; i++) {
       if (i < normalCount) {
-        ParameterElementImpl parameter = new ParameterElementImpl.con1(ASTFactory.identifier3("a${i}"));
+        ParameterElementImpl parameter = new ParameterElementImpl.con1(AstFactory.identifier3("a${i}"));
         parameter.type = normalParameters[i].type;
         parameter.parameterKind = ParameterKind.REQUIRED;
         parameters[i] = parameter;
       } else {
-        ParameterElementImpl parameter = new ParameterElementImpl.con1(ASTFactory.identifier3(names[i - normalCount]));
+        ParameterElementImpl parameter = new ParameterElementImpl.con1(AstFactory.identifier3(names[i - normalCount]));
         parameter.type = namedParameters[i - normalCount].type;
         parameter.parameterKind = ParameterKind.NAMED;
         parameters[i] = parameter;
@@ -2638,7 +2638,7 @@ class ElementFactory {
   }
 
   static PropertyAccessorElementImpl getterElement(String name, bool isStatic, Type2 type) {
-    FieldElementImpl field = new FieldElementImpl.con1(ASTFactory.identifier3(name));
+    FieldElementImpl field = new FieldElementImpl.con1(AstFactory.identifier3(name));
     field.static = isStatic;
     field.synthetic = true;
     field.type = type;
@@ -2671,21 +2671,21 @@ class ElementFactory {
   static LibraryElementImpl library(AnalysisContext context, String libraryName) {
     String fileName = "/${libraryName}.dart";
     CompilationUnitElementImpl unit = compilationUnit(fileName);
-    LibraryElementImpl library = new LibraryElementImpl(context, ASTFactory.libraryIdentifier2([libraryName]));
+    LibraryElementImpl library = new LibraryElementImpl(context, AstFactory.libraryIdentifier2([libraryName]));
     library.definingCompilationUnit = unit;
     return library;
   }
 
   static LocalVariableElementImpl localVariableElement(Identifier name) => new LocalVariableElementImpl(name);
 
-  static LocalVariableElementImpl localVariableElement2(String name) => new LocalVariableElementImpl(ASTFactory.identifier3(name));
+  static LocalVariableElementImpl localVariableElement2(String name) => new LocalVariableElementImpl(AstFactory.identifier3(name));
 
   static MethodElementImpl methodElement(String methodName, Type2 returnType, List<Type2> argumentTypes) {
-    MethodElementImpl method = new MethodElementImpl.con1(ASTFactory.identifier3(methodName));
+    MethodElementImpl method = new MethodElementImpl.con1(AstFactory.identifier3(methodName));
     int count = argumentTypes.length;
     List<ParameterElement> parameters = new List<ParameterElement>(count);
     for (int i = 0; i < count; i++) {
-      ParameterElementImpl parameter = new ParameterElementImpl.con1(ASTFactory.identifier3("a${i}"));
+      ParameterElementImpl parameter = new ParameterElementImpl.con1(AstFactory.identifier3("a${i}"));
       parameter.type = argumentTypes[i];
       parameter.parameterKind = ParameterKind.REQUIRED;
       parameters[i] = parameter;
@@ -2698,48 +2698,48 @@ class ElementFactory {
   }
 
   static ParameterElementImpl namedParameter(String name) {
-    ParameterElementImpl parameter = new ParameterElementImpl.con1(ASTFactory.identifier3(name));
+    ParameterElementImpl parameter = new ParameterElementImpl.con1(AstFactory.identifier3(name));
     parameter.parameterKind = ParameterKind.NAMED;
     return parameter;
   }
 
   static ParameterElementImpl namedParameter2(String name, Type2 type) {
-    ParameterElementImpl parameter = new ParameterElementImpl.con1(ASTFactory.identifier3(name));
+    ParameterElementImpl parameter = new ParameterElementImpl.con1(AstFactory.identifier3(name));
     parameter.parameterKind = ParameterKind.NAMED;
     parameter.type = type;
     return parameter;
   }
 
   static ParameterElementImpl positionalParameter(String name) {
-    ParameterElementImpl parameter = new ParameterElementImpl.con1(ASTFactory.identifier3(name));
+    ParameterElementImpl parameter = new ParameterElementImpl.con1(AstFactory.identifier3(name));
     parameter.parameterKind = ParameterKind.POSITIONAL;
     return parameter;
   }
 
   static ParameterElementImpl positionalParameter2(String name, Type2 type) {
-    ParameterElementImpl parameter = new ParameterElementImpl.con1(ASTFactory.identifier3(name));
+    ParameterElementImpl parameter = new ParameterElementImpl.con1(AstFactory.identifier3(name));
     parameter.parameterKind = ParameterKind.POSITIONAL;
     parameter.type = type;
     return parameter;
   }
 
-  static PrefixElementImpl prefix(String name) => new PrefixElementImpl(ASTFactory.identifier3(name));
+  static PrefixElementImpl prefix(String name) => new PrefixElementImpl(AstFactory.identifier3(name));
 
   static ParameterElementImpl requiredParameter(String name) {
-    ParameterElementImpl parameter = new ParameterElementImpl.con1(ASTFactory.identifier3(name));
+    ParameterElementImpl parameter = new ParameterElementImpl.con1(AstFactory.identifier3(name));
     parameter.parameterKind = ParameterKind.REQUIRED;
     return parameter;
   }
 
   static ParameterElementImpl requiredParameter2(String name, Type2 type) {
-    ParameterElementImpl parameter = new ParameterElementImpl.con1(ASTFactory.identifier3(name));
+    ParameterElementImpl parameter = new ParameterElementImpl.con1(AstFactory.identifier3(name));
     parameter.parameterKind = ParameterKind.REQUIRED;
     parameter.type = type;
     return parameter;
   }
 
   static PropertyAccessorElementImpl setterElement(String name, bool isStatic, Type2 type) {
-    FieldElementImpl field = new FieldElementImpl.con1(ASTFactory.identifier3(name));
+    FieldElementImpl field = new FieldElementImpl.con1(AstFactory.identifier3(name));
     field.static = isStatic;
     field.synthetic = true;
     field.type = type;
@@ -3358,30 +3358,30 @@ class ElementImplTest extends EngineTestCase {
 
 class FunctionTypeImplTest extends EngineTestCase {
   void test_creation() {
-    JUnitTestCase.assertNotNull(new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier3("f"))));
+    JUnitTestCase.assertNotNull(new FunctionTypeImpl.con1(new FunctionElementImpl.con1(AstFactory.identifier3("f"))));
   }
 
   void test_getElement() {
-    FunctionElementImpl typeElement = new FunctionElementImpl.con1(ASTFactory.identifier3("f"));
+    FunctionElementImpl typeElement = new FunctionElementImpl.con1(AstFactory.identifier3("f"));
     FunctionTypeImpl type = new FunctionTypeImpl.con1(typeElement);
     JUnitTestCase.assertEquals(typeElement, type.element);
   }
 
   void test_getNamedParameterTypes() {
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier3("f")));
+    FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(AstFactory.identifier3("f")));
     Map<String, Type2> types = type.namedParameterTypes;
     EngineTestCase.assertSize2(0, types);
   }
 
   void test_getNormalParameterTypes() {
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier3("f")));
+    FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(AstFactory.identifier3("f")));
     List<Type2> types = type.normalParameterTypes;
     EngineTestCase.assertLength(0, types);
   }
 
   void test_getReturnType() {
     Type2 expectedReturnType = VoidTypeImpl.instance;
-    FunctionElementImpl functionElement = new FunctionElementImpl.con1(ASTFactory.identifier3("f"));
+    FunctionElementImpl functionElement = new FunctionElementImpl.con1(AstFactory.identifier3("f"));
     functionElement.returnType = expectedReturnType;
     FunctionTypeImpl type = new FunctionTypeImpl.con1(functionElement);
     Type2 returnType = type.returnType;
@@ -3389,13 +3389,13 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 
   void test_getTypeArguments() {
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier3("f")));
+    FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(AstFactory.identifier3("f")));
     List<Type2> types = type.typeArguments;
     EngineTestCase.assertLength(0, types);
   }
 
   void test_hashCode_element() {
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier3("f")));
+    FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(AstFactory.identifier3("f")));
     type.hashCode;
   }
 
@@ -3686,20 +3686,20 @@ class FunctionTypeImplTest extends EngineTestCase {
     TestTypeProvider provider = new TestTypeProvider();
     InterfaceType boolType = provider.boolType;
     InterfaceType stringType = provider.stringType;
-    TypeParameterElementImpl parameterB = new TypeParameterElementImpl(ASTFactory.identifier3("B"));
+    TypeParameterElementImpl parameterB = new TypeParameterElementImpl(AstFactory.identifier3("B"));
     parameterB.bound = boolType;
     TypeParameterTypeImpl typeB = new TypeParameterTypeImpl(parameterB);
-    TypeParameterElementImpl parameterS = new TypeParameterElementImpl(ASTFactory.identifier3("S"));
+    TypeParameterElementImpl parameterS = new TypeParameterElementImpl(AstFactory.identifier3("S"));
     parameterS.bound = stringType;
     TypeParameterTypeImpl typeS = new TypeParameterTypeImpl(parameterS);
-    FunctionElementImpl functionAliasElement = new FunctionElementImpl.con1(ASTFactory.identifier3("func"));
+    FunctionElementImpl functionAliasElement = new FunctionElementImpl.con1(AstFactory.identifier3("func"));
     functionAliasElement.parameters = <ParameterElement> [
         ElementFactory.requiredParameter2("a", typeB),
         ElementFactory.positionalParameter2("b", typeS)];
     functionAliasElement.returnType = stringType;
     FunctionTypeImpl functionAliasType = new FunctionTypeImpl.con1(functionAliasElement);
     functionAliasElement.type = functionAliasType;
-    FunctionElementImpl functionElement = new FunctionElementImpl.con1(ASTFactory.identifier3("f"));
+    FunctionElementImpl functionElement = new FunctionElementImpl.con1(AstFactory.identifier3("f"));
     functionElement.parameters = <ParameterElement> [
         ElementFactory.requiredParameter2("c", boolType),
         ElementFactory.positionalParameter2("d", stringType)];
@@ -3731,7 +3731,7 @@ class FunctionTypeImplTest extends EngineTestCase {
 
   void test_setTypeArguments() {
     ClassElementImpl enclosingClass = ElementFactory.classElement2("C", ["E"]);
-    MethodElementImpl methodElement = new MethodElementImpl.con1(ASTFactory.identifier3("m"));
+    MethodElementImpl methodElement = new MethodElementImpl.con1(AstFactory.identifier3("m"));
     enclosingClass.methods = <MethodElement> [methodElement];
     FunctionTypeImpl type = new FunctionTypeImpl.con1(methodElement);
     Type2 expectedType = enclosingClass.typeParameters[0].type;
@@ -3744,7 +3744,7 @@ class FunctionTypeImplTest extends EngineTestCase {
   void test_substitute2_equal() {
     ClassElementImpl definingClass = ElementFactory.classElement2("C", ["E"]);
     TypeParameterType parameterType = definingClass.typeParameters[0].type;
-    MethodElementImpl functionElement = new MethodElementImpl.con1(ASTFactory.identifier3("m"));
+    MethodElementImpl functionElement = new MethodElementImpl.con1(AstFactory.identifier3("m"));
     String namedParameterName = "c";
     functionElement.parameters = <ParameterElement> [
         ElementFactory.requiredParameter2("a", parameterType),
@@ -3754,7 +3754,7 @@ class FunctionTypeImplTest extends EngineTestCase {
     definingClass.methods = <MethodElement> [functionElement];
     FunctionTypeImpl functionType = new FunctionTypeImpl.con1(functionElement);
     functionType.typeArguments = <Type2> [parameterType];
-    InterfaceTypeImpl argumentType = new InterfaceTypeImpl.con1(new ClassElementImpl(ASTFactory.identifier3("D")));
+    InterfaceTypeImpl argumentType = new InterfaceTypeImpl.con1(new ClassElementImpl(AstFactory.identifier3("D")));
     FunctionType result = functionType.substitute2(<Type2> [argumentType], <Type2> [parameterType]);
     JUnitTestCase.assertEquals(argumentType, result.returnType);
     List<Type2> normalParameters = result.normalParameterTypes;
@@ -3769,11 +3769,11 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 
   void test_substitute2_notEqual() {
-    Type2 returnType = new InterfaceTypeImpl.con1(new ClassElementImpl(ASTFactory.identifier3("R")));
-    Type2 normalParameterType = new InterfaceTypeImpl.con1(new ClassElementImpl(ASTFactory.identifier3("A")));
-    Type2 optionalParameterType = new InterfaceTypeImpl.con1(new ClassElementImpl(ASTFactory.identifier3("B")));
-    Type2 namedParameterType = new InterfaceTypeImpl.con1(new ClassElementImpl(ASTFactory.identifier3("C")));
-    FunctionElementImpl functionElement = new FunctionElementImpl.con1(ASTFactory.identifier3("f"));
+    Type2 returnType = new InterfaceTypeImpl.con1(new ClassElementImpl(AstFactory.identifier3("R")));
+    Type2 normalParameterType = new InterfaceTypeImpl.con1(new ClassElementImpl(AstFactory.identifier3("A")));
+    Type2 optionalParameterType = new InterfaceTypeImpl.con1(new ClassElementImpl(AstFactory.identifier3("B")));
+    Type2 namedParameterType = new InterfaceTypeImpl.con1(new ClassElementImpl(AstFactory.identifier3("C")));
+    FunctionElementImpl functionElement = new FunctionElementImpl.con1(AstFactory.identifier3("f"));
     String namedParameterName = "c";
     functionElement.parameters = <ParameterElement> [
         ElementFactory.requiredParameter2("a", normalParameterType),
@@ -3781,8 +3781,8 @@ class FunctionTypeImplTest extends EngineTestCase {
         ElementFactory.namedParameter2(namedParameterName, namedParameterType)];
     functionElement.returnType = returnType;
     FunctionTypeImpl functionType = new FunctionTypeImpl.con1(functionElement);
-    InterfaceTypeImpl argumentType = new InterfaceTypeImpl.con1(new ClassElementImpl(ASTFactory.identifier3("D")));
-    TypeParameterTypeImpl parameterType = new TypeParameterTypeImpl(new TypeParameterElementImpl(ASTFactory.identifier3("E")));
+    InterfaceTypeImpl argumentType = new InterfaceTypeImpl.con1(new ClassElementImpl(AstFactory.identifier3("D")));
+    TypeParameterTypeImpl parameterType = new TypeParameterTypeImpl(new TypeParameterElementImpl(AstFactory.identifier3("E")));
     FunctionType result = functionType.substitute2(<Type2> [argumentType], <Type2> [parameterType]);
     JUnitTestCase.assertEquals(returnType, result.returnType);
     List<Type2> normalParameters = result.normalParameterTypes;

@@ -14,8 +14,6 @@ import 'engine.dart' show AnalysisContext, TimestampedData;
 /**
  * Instances of interface `LocalSourcePredicate` are used to determine if the given
  * [Source] is "local" in some sense, so can be updated.
- *
- * @coverage dart.engine.source
  */
 abstract class LocalSourcePredicate {
   /**
@@ -58,8 +56,6 @@ class LocalSourcePredicate_NOT_SDK implements LocalSourcePredicate {
 /**
  * Instances of the class `SourceFactory` resolve possibly relative URI's against an existing
  * [Source].
- *
- * @coverage dart.engine.source
  */
 class SourceFactory {
   /**
@@ -235,8 +231,6 @@ class SourceFactory {
  * The abstract class `UriResolver` defines the behavior of objects that are used to resolve
  * URI's for a source factory. Subclasses of this class are expected to resolve a single scheme of
  * absolute URI.
- *
- * @coverage dart.engine.source
  */
 abstract class UriResolver {
   /**
@@ -273,8 +267,6 @@ abstract class UriResolver {
 /**
  * The interface `Source` defines the behavior of objects representing source code that can be
  * compiled.
- *
- * @coverage dart.engine.source
  */
 abstract class Source {
   /**
@@ -428,8 +420,6 @@ abstract class Source_ContentReceiver {
 /**
  * The enumeration `SourceKind` defines the different kinds of sources that are known to the
  * analysis engine.
- *
- * @coverage dart.engine.source
  */
 class SourceKind extends Enum<SourceKind> {
   /**
@@ -463,8 +453,6 @@ class SourceKind extends Enum<SourceKind> {
 /**
  * The enumeration `UriKind` defines the different kinds of URI's that are known to the
  * analysis engine. These are used to keep track of the kind of URI associated with a given source.
- *
- * @coverage dart.engine.source
  */
 class UriKind extends Enum<UriKind> {
   /**
@@ -527,8 +515,6 @@ class UriKind extends Enum<UriKind> {
 
 /**
  * A source range defines an [Element]'s source coordinates relative to its [Source].
- *
- * @coverage dart.engine.utilities
  */
 class SourceRange {
   /**
@@ -654,8 +640,6 @@ class SourceRange {
  * sources for the purposes of accessing composite dependency information. For example, the Eclipse
  * client uses source containers to represent Eclipse projects, which allows it to easily compute
  * project-level dependencies.
- *
- * @coverage dart.engine.source
  */
 abstract class SourceContainer {
   /**
@@ -669,8 +653,6 @@ abstract class SourceContainer {
 
 /**
  * Instances of the class `DartUriResolver` resolve `dart` URI's.
- *
- * @coverage dart.engine.source
  */
 class DartUriResolver extends UriResolver {
   /**
@@ -726,8 +708,6 @@ class DartUriResolver extends UriResolver {
 /**
  * Instances of the class `LineInfo` encapsulate information about line and column information
  * within a source file.
- *
- * @coverage dart.engine.utilities
  */
 class LineInfo {
   /**
@@ -795,8 +775,6 @@ class LineInfo_Location {
 /**
  * Instances of class `ContentCache` hold content used to override the default content of a
  * [Source].
- *
- * @coverage dart.engine.source
  */
 class ContentCache {
   /**

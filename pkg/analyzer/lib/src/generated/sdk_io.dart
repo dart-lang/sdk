@@ -21,8 +21,6 @@ import 'engine.dart';
 /**
  * Instances of the class `DirectoryBasedDartSdk` represent a Dart SDK installed in a
  * specified directory.
- *
- * @coverage dart.engine.sdk
  */
 class DirectoryBasedDartSdk implements DartSdk {
   /**
@@ -436,8 +434,6 @@ class DirectoryBasedDartSdk implements DartSdk {
  *     platforms: 0),
  * };
  * </pre>
- *
- * @coverage dart.engine.sdk
  */
 class SdkLibrariesReader {
   /**

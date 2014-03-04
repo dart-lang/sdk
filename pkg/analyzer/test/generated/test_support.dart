@@ -12,7 +12,7 @@ import 'package:analyzer/src/generated/java_junit.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/scanner.dart';
-import 'package:analyzer/src/generated/ast.dart' show ASTNode, NodeLocator;
+import 'package:analyzer/src/generated/ast.dart' show AstNode, NodeLocator;
 import 'package:analyzer/src/generated/element.dart' show InterfaceType, MethodElement, PropertyAccessorElement;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:unittest/unittest.dart' as _ut;
@@ -722,14 +722,14 @@ class EngineTestCase extends JUnitTestCase {
   }
 
   /**
-   * @return the [ASTNode] with requested type at offset of the "prefix".
+   * @return the [AstNode] with requested type at offset of the "prefix".
    */
-  static ASTNode findNode(ASTNode root, String code, String prefix, Type clazz) {
+  static AstNode findNode(AstNode root, String code, String prefix, Type clazz) {
     int offset = code.indexOf(prefix);
     if (offset == -1) {
       throw new IllegalArgumentException("Not found '${prefix}'.");
     }
-    ASTNode node = new NodeLocator.con1(offset).searchWithin(root);
+    AstNode node = new NodeLocator.con1(offset).searchWithin(root);
     return node.getAncestor(clazz);
   }
 

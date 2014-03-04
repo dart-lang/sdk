@@ -18,21 +18,969 @@ import 'utilities_collection.dart' show TokenMap;
 import 'element.dart';
 
 /**
- * The abstract class `ASTNode` defines the behavior common to all nodes in the AST structure
- * for a Dart program.
+ * Instances of the class `AdjacentStrings` represents two or more string literals that are
+ * implicitly concatenated because of being adjacent (separated only by whitespace).
  *
- * @coverage dart.engine.ast
+ * While the grammar only allows adjacent strings when all of the strings are of the same kind
+ * (single line or multi-line), this class doesn't enforce that restriction.
+ *
+ * <pre>
+ * adjacentStrings ::=
+ *     [StringLiteral] [StringLiteral]+
+ * </pre>
  */
-abstract class ASTNode {
+class AdjacentStrings extends StringLiteral {
+  /**
+   * The strings that are implicitly concatenated.
+   */
+  NodeList<StringLiteral> _strings;
+
+  /**
+   * Initialize a newly created list of adjacent strings.
+   *
+   * @param strings the strings that are implicitly concatenated
+   */
+  AdjacentStrings(List<StringLiteral> strings) {
+    this._strings = new NodeList<StringLiteral>(this);
+    this._strings.addAll(strings);
+  }
+
+  accept(AstVisitor visitor) => visitor.visitAdjacentStrings(this);
+
+  Token get beginToken => _strings.beginToken;
+
+  Token get endToken => _strings.endToken;
+
+  /**
+   * Return the strings that are implicitly concatenated.
+   *
+   * @return the strings that are implicitly concatenated
+   */
+  NodeList<StringLiteral> get strings => _strings;
+
+  void visitChildren(AstVisitor visitor) {
+    _strings.accept(visitor);
+  }
+
+  void appendStringValue(JavaStringBuilder builder) {
+    for (StringLiteral stringLiteral in strings) {
+      stringLiteral.appendStringValue(builder);
+    }
+  }
+}
+
+/**
+ * The abstract class `AnnotatedNode` defines the behavior of nodes that can be annotated with
+ * both a comment and metadata.
+ */
+abstract class AnnotatedNode extends AstNode {
+  /**
+   * The documentation comment associated with this node, or `null` if this node does not have
+   * a documentation comment associated with it.
+   */
+  Comment _comment;
+
+  /**
+   * The annotations associated with this node.
+   */
+  NodeList<Annotation> _metadata;
+
+  /**
+   * Initialize a newly created node.
+   *
+   * @param comment the documentation comment associated with this node
+   * @param metadata the annotations associated with this node
+   */
+  AnnotatedNode(Comment comment, List<Annotation> metadata) {
+    this._metadata = new NodeList<Annotation>(this);
+    this._comment = becomeParentOf(comment);
+    this._metadata.addAll(metadata);
+  }
+
+  Token get beginToken {
+    if (_comment == null) {
+      if (_metadata.isEmpty) {
+        return firstTokenAfterCommentAndMetadata;
+      } else {
+        return _metadata.beginToken;
+      }
+    } else if (_metadata.isEmpty) {
+      return _comment.beginToken;
+    }
+    Token commentToken = _comment.beginToken;
+    Token metadataToken = _metadata.beginToken;
+    if (commentToken.offset < metadataToken.offset) {
+      return commentToken;
+    }
+    return metadataToken;
+  }
+
+  /**
+   * Return the documentation comment associated with this node, or `null` if this node does
+   * not have a documentation comment associated with it.
+   *
+   * @return the documentation comment associated with this node
+   */
+  Comment get documentationComment => _comment;
+
+  /**
+   * Return the annotations associated with this node.
+   *
+   * @return the annotations associated with this node
+   */
+  NodeList<Annotation> get metadata => _metadata;
+
+  /**
+   * Set the documentation comment associated with this node to the given comment.
+   *
+   * @param comment the documentation comment to be associated with this node
+   */
+  void set documentationComment(Comment comment) {
+    this._comment = becomeParentOf(comment);
+  }
+
+  /**
+   * Set the metadata associated with this node to the given metadata.
+   *
+   * @param metadata the metadata to be associated with this node
+   */
+  void set metadata(List<Annotation> metadata) {
+    this._metadata.clear();
+    this._metadata.addAll(metadata);
+  }
+
+  void visitChildren(AstVisitor visitor) {
+    if (commentIsBeforeAnnotations()) {
+      safelyVisitChild(_comment, visitor);
+      _metadata.accept(visitor);
+    } else {
+      for (AstNode child in sortedCommentAndAnnotations) {
+        child.accept(visitor);
+      }
+    }
+  }
+
+  /**
+   * Return the first token following the comment and metadata.
+   *
+   * @return the first token following the comment and metadata
+   */
+  Token get firstTokenAfterCommentAndMetadata;
+
+  /**
+   * Return `true` if the comment is lexically before any annotations.
+   *
+   * @return `true` if the comment is lexically before any annotations
+   */
+  bool commentIsBeforeAnnotations() {
+    if (_comment == null || _metadata.isEmpty) {
+      return true;
+    }
+    Annotation firstAnnotation = _metadata[0];
+    return _comment.offset < firstAnnotation.offset;
+  }
+
+  /**
+   * Return an array containing the comment and annotations associated with this node, sorted in
+   * lexical order.
+   *
+   * @return the comment and annotations associated with this node in the order in which they
+   *         appeared in the original source
+   */
+  List<AstNode> get sortedCommentAndAnnotations {
+    List<AstNode> childList = new List<AstNode>();
+    childList.add(_comment);
+    childList.addAll(_metadata);
+    List<AstNode> children = new List.from(childList);
+    children.sort(AstNode.LEXICAL_ORDER);
+    return children;
+  }
+}
+
+/**
+ * Instances of the class `Annotation` represent an annotation that can be associated with an
+ * AST node.
+ *
+ * <pre>
+ * metadata ::=
+ *     annotation*
+ *
+ * annotation ::=
+ *     '@' [Identifier] ('.' [SimpleIdentifier])? [ArgumentList]?
+ * </pre>
+ */
+class Annotation extends AstNode {
+  /**
+   * The at sign that introduced the annotation.
+   */
+  Token atSign;
+
+  /**
+   * The name of the class defining the constructor that is being invoked or the name of the field
+   * that is being referenced.
+   */
+  Identifier _name;
+
+  /**
+   * The period before the constructor name, or `null` if this annotation is not the
+   * invocation of a named constructor.
+   */
+  Token period;
+
+  /**
+   * The name of the constructor being invoked, or `null` if this annotation is not the
+   * invocation of a named constructor.
+   */
+  SimpleIdentifier _constructorName;
+
+  /**
+   * The arguments to the constructor being invoked, or `null` if this annotation is not the
+   * invocation of a constructor.
+   */
+  ArgumentList _arguments;
+
+  /**
+   * The element associated with this annotation, or `null` if the AST structure has not been
+   * resolved or if this annotation could not be resolved.
+   */
+  Element _element;
+
+  /**
+   * Initialize a newly created annotation.
+   *
+   * @param atSign the at sign that introduced the annotation
+   * @param name the name of the class defining the constructor that is being invoked or the name of
+   *          the field that is being referenced
+   * @param period the period before the constructor name, or `null` if this annotation is not
+   *          the invocation of a named constructor
+   * @param constructorName the name of the constructor being invoked, or `null` if this
+   *          annotation is not the invocation of a named constructor
+   * @param arguments the arguments to the constructor being invoked, or `null` if this
+   *          annotation is not the invocation of a constructor
+   */
+  Annotation(this.atSign, Identifier name, this.period, SimpleIdentifier constructorName, ArgumentList arguments) {
+    this._name = becomeParentOf(name);
+    this._constructorName = becomeParentOf(constructorName);
+    this._arguments = becomeParentOf(arguments);
+  }
+
+  accept(AstVisitor visitor) => visitor.visitAnnotation(this);
+
+  /**
+   * Return the arguments to the constructor being invoked, or `null` if this annotation is
+   * not the invocation of a constructor.
+   *
+   * @return the arguments to the constructor being invoked
+   */
+  ArgumentList get arguments => _arguments;
+
+  Token get beginToken => atSign;
+
+  /**
+   * Return the name of the constructor being invoked, or `null` if this annotation is not the
+   * invocation of a named constructor.
+   *
+   * @return the name of the constructor being invoked
+   */
+  SimpleIdentifier get constructorName => _constructorName;
+
+  /**
+   * Return the element associated with this annotation, or `null` if the AST structure has
+   * not been resolved or if this annotation could not be resolved.
+   *
+   * @return the element associated with this annotation
+   */
+  Element get element {
+    if (_element != null) {
+      return _element;
+    }
+    if (_name != null) {
+      return _name.staticElement;
+    }
+    return null;
+  }
+
+  Token get endToken {
+    if (_arguments != null) {
+      return _arguments.endToken;
+    } else if (_constructorName != null) {
+      return _constructorName.endToken;
+    }
+    return _name.endToken;
+  }
+
+  /**
+   * Return the name of the class defining the constructor that is being invoked or the name of the
+   * field that is being referenced.
+   *
+   * @return the name of the constructor being invoked or the name of the field being referenced
+   */
+  Identifier get name => _name;
+
+  /**
+   * Set the arguments to the constructor being invoked to the given arguments.
+   *
+   * @param arguments the arguments to the constructor being invoked
+   */
+  void set arguments(ArgumentList arguments) {
+    this._arguments = becomeParentOf(arguments);
+  }
+
+  /**
+   * Set the name of the constructor being invoked to the given name.
+   *
+   * @param constructorName the name of the constructor being invoked
+   */
+  void set constructorName(SimpleIdentifier constructorName) {
+    this._constructorName = becomeParentOf(constructorName);
+  }
+
+  /**
+   * Set the element associated with this annotation based.
+   *
+   * @param element the element to be associated with this identifier
+   */
+  void set element(Element element) {
+    this._element = element;
+  }
+
+  /**
+   * Set the name of the class defining the constructor that is being invoked or the name of the
+   * field that is being referenced to the given name.
+   *
+   * @param name the name of the constructor being invoked or the name of the field being referenced
+   */
+  void set name(Identifier name) {
+    this._name = becomeParentOf(name);
+  }
+
+  void visitChildren(AstVisitor visitor) {
+    safelyVisitChild(_name, visitor);
+    safelyVisitChild(_constructorName, visitor);
+    safelyVisitChild(_arguments, visitor);
+  }
+}
+
+/**
+ * Instances of the class `ArgumentDefinitionTest` represent an argument definition test.
+ *
+ * <pre>
+ * argumentDefinitionTest ::=
+ *     '?' [SimpleIdentifier]
+ * </pre>
+ */
+class ArgumentDefinitionTest extends Expression {
+  /**
+   * The token representing the question mark.
+   */
+  Token question;
+
+  /**
+   * The identifier representing the argument being tested.
+   */
+  SimpleIdentifier _identifier;
+
+  /**
+   * Initialize a newly created argument definition test.
+   *
+   * @param question the token representing the question mark
+   * @param identifier the identifier representing the argument being tested
+   */
+  ArgumentDefinitionTest(this.question, SimpleIdentifier identifier) {
+    this._identifier = becomeParentOf(identifier);
+  }
+
+  accept(AstVisitor visitor) => visitor.visitArgumentDefinitionTest(this);
+
+  Token get beginToken => question;
+
+  Token get endToken => _identifier.endToken;
+
+  /**
+   * Return the identifier representing the argument being tested.
+   *
+   * @return the identifier representing the argument being tested
+   */
+  SimpleIdentifier get identifier => _identifier;
+
+  int get precedence => 15;
+
+  /**
+   * Set the identifier representing the argument being tested to the given identifier.
+   *
+   * @param identifier the identifier representing the argument being tested
+   */
+  void set identifier(SimpleIdentifier identifier) {
+    this._identifier = becomeParentOf(identifier);
+  }
+
+  void visitChildren(AstVisitor visitor) {
+    safelyVisitChild(_identifier, visitor);
+  }
+}
+
+/**
+ * Instances of the class `ArgumentList` represent a list of arguments in the invocation of a
+ * executable element: a function, method, or constructor.
+ *
+ * <pre>
+ * argumentList ::=
+ *     '(' arguments? ')'
+ *
+ * arguments ::=
+ *     [NamedExpression] (',' [NamedExpression])*
+ *   | [Expression] (',' [NamedExpression])*
+ * </pre>
+ */
+class ArgumentList extends AstNode {
+  /**
+   * The left parenthesis.
+   */
+  Token _leftParenthesis;
+
+  /**
+   * The expressions producing the values of the arguments.
+   */
+  NodeList<Expression> _arguments;
+
+  /**
+   * The right parenthesis.
+   */
+  Token _rightParenthesis;
+
+  /**
+   * An array containing the elements representing the parameters corresponding to each of the
+   * arguments in this list, or `null` if the AST has not been resolved or if the function or
+   * method being invoked could not be determined based on static type information. The array must
+   * be the same length as the number of arguments, but can contain `null` entries if a given
+   * argument does not correspond to a formal parameter.
+   */
+  List<ParameterElement> _correspondingStaticParameters;
+
+  /**
+   * An array containing the elements representing the parameters corresponding to each of the
+   * arguments in this list, or `null` if the AST has not been resolved or if the function or
+   * method being invoked could not be determined based on propagated type information. The array
+   * must be the same length as the number of arguments, but can contain `null` entries if a
+   * given argument does not correspond to a formal parameter.
+   */
+  List<ParameterElement> _correspondingPropagatedParameters;
+
+  /**
+   * Initialize a newly created list of arguments.
+   *
+   * @param leftParenthesis the left parenthesis
+   * @param arguments the expressions producing the values of the arguments
+   * @param rightParenthesis the right parenthesis
+   */
+  ArgumentList(Token leftParenthesis, List<Expression> arguments, Token rightParenthesis) {
+    this._arguments = new NodeList<Expression>(this);
+    this._leftParenthesis = leftParenthesis;
+    this._arguments.addAll(arguments);
+    this._rightParenthesis = rightParenthesis;
+  }
+
+  accept(AstVisitor visitor) => visitor.visitArgumentList(this);
+
+  /**
+   * Return the expressions producing the values of the arguments. Although the language requires
+   * that positional arguments appear before named arguments, this class allows them to be
+   * intermixed.
+   *
+   * @return the expressions producing the values of the arguments
+   */
+  NodeList<Expression> get arguments => _arguments;
+
+  Token get beginToken => _leftParenthesis;
+
+  Token get endToken => _rightParenthesis;
+
+  /**
+   * Return the left parenthesis.
+   *
+   * @return the left parenthesis
+   */
+  Token get leftParenthesis => _leftParenthesis;
+
+  /**
+   * Return the right parenthesis.
+   *
+   * @return the right parenthesis
+   */
+  Token get rightParenthesis => _rightParenthesis;
+
+  /**
+   * Set the parameter elements corresponding to each of the arguments in this list to the given
+   * array of parameters. The array of parameters must be the same length as the number of
+   * arguments, but can contain `null` entries if a given argument does not correspond to a
+   * formal parameter.
+   *
+   * @param parameters the parameter elements corresponding to the arguments
+   */
+  void set correspondingPropagatedParameters(List<ParameterElement> parameters) {
+    if (parameters.length != _arguments.length) {
+      throw new IllegalArgumentException("Expected ${_arguments.length} parameters, not ${parameters.length}");
+    }
+    _correspondingPropagatedParameters = parameters;
+  }
+
+  /**
+   * Set the parameter elements corresponding to each of the arguments in this list to the given
+   * array of parameters. The array of parameters must be the same length as the number of
+   * arguments, but can contain `null` entries if a given argument does not correspond to a
+   * formal parameter.
+   *
+   * @param parameters the parameter elements corresponding to the arguments
+   */
+  void set correspondingStaticParameters(List<ParameterElement> parameters) {
+    if (parameters.length != _arguments.length) {
+      throw new IllegalArgumentException("Expected ${_arguments.length} parameters, not ${parameters.length}");
+    }
+    _correspondingStaticParameters = parameters;
+  }
+
+  /**
+   * Set the left parenthesis to the given token.
+   *
+   * @param parenthesis the left parenthesis
+   */
+  void set leftParenthesis(Token parenthesis) {
+    _leftParenthesis = parenthesis;
+  }
+
+  /**
+   * Set the right parenthesis to the given token.
+   *
+   * @param parenthesis the right parenthesis
+   */
+  void set rightParenthesis(Token parenthesis) {
+    _rightParenthesis = parenthesis;
+  }
+
+  void visitChildren(AstVisitor visitor) {
+    _arguments.accept(visitor);
+  }
+
+  /**
+   * If the given expression is a child of this list, and the AST structure has been resolved, and
+   * the function being invoked is known based on propagated type information, and the expression
+   * corresponds to one of the parameters of the function being invoked, then return the parameter
+   * element representing the parameter to which the value of the given expression will be bound.
+   * Otherwise, return `null`.
+   *
+   * This method is only intended to be used by [Expression#getPropagatedParameterElement].
+   *
+   * @param expression the expression corresponding to the parameter to be returned
+   * @return the parameter element representing the parameter to which the value of the expression
+   *         will be bound
+   */
+  ParameterElement getPropagatedParameterElementFor(Expression expression) {
+    if (_correspondingPropagatedParameters == null) {
+      // Either the AST structure has not been resolved or the invocation of which this list is a
+      // part could not be resolved.
+      return null;
+    }
+    int index = _arguments.indexOf(expression);
+    if (index < 0) {
+      // The expression isn't a child of this node.
+      return null;
+    }
+    return _correspondingPropagatedParameters[index];
+  }
+
+  /**
+   * If the given expression is a child of this list, and the AST structure has been resolved, and
+   * the function being invoked is known based on static type information, and the expression
+   * corresponds to one of the parameters of the function being invoked, then return the parameter
+   * element representing the parameter to which the value of the given expression will be bound.
+   * Otherwise, return `null`.
+   *
+   * This method is only intended to be used by [Expression#getStaticParameterElement].
+   *
+   * @param expression the expression corresponding to the parameter to be returned
+   * @return the parameter element representing the parameter to which the value of the expression
+   *         will be bound
+   */
+  ParameterElement getStaticParameterElementFor(Expression expression) {
+    if (_correspondingStaticParameters == null) {
+      // Either the AST structure has not been resolved or the invocation of which this list is a
+      // part could not be resolved.
+      return null;
+    }
+    int index = _arguments.indexOf(expression);
+    if (index < 0) {
+      // The expression isn't a child of this node.
+      return null;
+    }
+    return _correspondingStaticParameters[index];
+  }
+}
+
+/**
+ * Instances of the class `AsExpression` represent an 'as' expression.
+ *
+ * <pre>
+ * asExpression ::=
+ *     [Expression] 'as' [TypeName]
+ * </pre>
+ */
+class AsExpression extends Expression {
+  /**
+   * The expression used to compute the value being cast.
+   */
+  Expression _expression;
+
+  /**
+   * The as operator.
+   */
+  Token asOperator;
+
+  /**
+   * The name of the type being cast to.
+   */
+  TypeName _type;
+
+  /**
+   * Initialize a newly created as expression.
+   *
+   * @param expression the expression used to compute the value being cast
+   * @param isOperator the is operator
+   * @param type the name of the type being cast to
+   */
+  AsExpression(Expression expression, Token isOperator, TypeName type) {
+    this._expression = becomeParentOf(expression);
+    this.asOperator = isOperator;
+    this._type = becomeParentOf(type);
+  }
+
+  accept(AstVisitor visitor) => visitor.visitAsExpression(this);
+
+  Token get beginToken => _expression.beginToken;
+
+  Token get endToken => _type.endToken;
+
+  /**
+   * Return the expression used to compute the value being cast.
+   *
+   * @return the expression used to compute the value being cast
+   */
+  Expression get expression => _expression;
+
+  int get precedence => 7;
+
+  /**
+   * Return the name of the type being cast to.
+   *
+   * @return the name of the type being cast to
+   */
+  TypeName get type => _type;
+
+  /**
+   * Set the expression used to compute the value being cast to the given expression.
+   *
+   * @param expression the expression used to compute the value being cast
+   */
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
+  }
+
+  /**
+   * Set the name of the type being cast to to the given name.
+   *
+   * @param name the name of the type being cast to
+   */
+  void set type(TypeName name) {
+    this._type = becomeParentOf(name);
+  }
+
+  void visitChildren(AstVisitor visitor) {
+    safelyVisitChild(_expression, visitor);
+    safelyVisitChild(_type, visitor);
+  }
+}
+
+/**
+ * Instances of the class `AssertStatement` represent an assert statement.
+ *
+ * <pre>
+ * assertStatement ::=
+ *     'assert' '(' [Expression] ')' ';'
+ * </pre>
+ */
+class AssertStatement extends Statement {
+  /**
+   * The token representing the 'assert' keyword.
+   */
+  Token keyword;
+
+  /**
+   * The left parenthesis.
+   */
+  Token leftParenthesis;
+
+  /**
+   * The condition that is being asserted to be `true`.
+   */
+  Expression _condition;
+
+  /**
+   * The right parenthesis.
+   */
+  Token rightParenthesis;
+
+  /**
+   * The semicolon terminating the statement.
+   */
+  Token semicolon;
+
+  /**
+   * Initialize a newly created assert statement.
+   *
+   * @param keyword the token representing the 'assert' keyword
+   * @param leftParenthesis the left parenthesis
+   * @param condition the condition that is being asserted to be `true`
+   * @param rightParenthesis the right parenthesis
+   * @param semicolon the semicolon terminating the statement
+   */
+  AssertStatement(this.keyword, this.leftParenthesis, Expression condition, this.rightParenthesis, this.semicolon) {
+    this._condition = becomeParentOf(condition);
+  }
+
+  accept(AstVisitor visitor) => visitor.visitAssertStatement(this);
+
+  Token get beginToken => keyword;
+
+  /**
+   * Return the condition that is being asserted to be `true`.
+   *
+   * @return the condition that is being asserted to be `true`
+   */
+  Expression get condition => _condition;
+
+  Token get endToken => semicolon;
+
+  /**
+   * Set the condition that is being asserted to be `true` to the given expression.
+   *
+   * @param the condition that is being asserted to be `true`
+   */
+  void set condition(Expression condition) {
+    this._condition = becomeParentOf(condition);
+  }
+
+  void visitChildren(AstVisitor visitor) {
+    safelyVisitChild(_condition, visitor);
+  }
+}
+
+/**
+ * Instances of the class `AssignmentExpression` represent an assignment expression.
+ *
+ * <pre>
+ * assignmentExpression ::=
+ *     [Expression] [Token] [Expression]
+ * </pre>
+ */
+class AssignmentExpression extends Expression {
+  /**
+   * The expression used to compute the left hand side.
+   */
+  Expression _leftHandSide;
+
+  /**
+   * The assignment operator being applied.
+   */
+  Token operator;
+
+  /**
+   * The expression used to compute the right hand side.
+   */
+  Expression _rightHandSide;
+
+  /**
+   * The element associated with the operator based on the static type of the left-hand-side, or
+   * `null` if the AST structure has not been resolved, if the operator is not a compound
+   * operator, or if the operator could not be resolved.
+   */
+  MethodElement _staticElement;
+
+  /**
+   * The element associated with the operator based on the propagated type of the left-hand-side, or
+   * `null` if the AST structure has not been resolved, if the operator is not a compound
+   * operator, or if the operator could not be resolved.
+   */
+  MethodElement _propagatedElement;
+
+  /**
+   * Initialize a newly created assignment expression.
+   *
+   * @param leftHandSide the expression used to compute the left hand side
+   * @param operator the assignment operator being applied
+   * @param rightHandSide the expression used to compute the right hand side
+   */
+  AssignmentExpression(Expression leftHandSide, this.operator, Expression rightHandSide) {
+    this._leftHandSide = becomeParentOf(leftHandSide);
+    this._rightHandSide = becomeParentOf(rightHandSide);
+  }
+
+  accept(AstVisitor visitor) => visitor.visitAssignmentExpression(this);
+
+  Token get beginToken => _leftHandSide.beginToken;
+
+  /**
+   * Return the best element available for this operator. If resolution was able to find a better
+   * element based on type propagation, that element will be returned. Otherwise, the element found
+   * using the result of static analysis will be returned. If resolution has not been performed,
+   * then `null` will be returned.
+   *
+   * @return the best element available for this operator
+   */
+  MethodElement get bestElement {
+    MethodElement element = propagatedElement;
+    if (element == null) {
+      element = staticElement;
+    }
+    return element;
+  }
+
+  Token get endToken => _rightHandSide.endToken;
+
+  /**
+   * Set the expression used to compute the left hand side to the given expression.
+   *
+   * @return the expression used to compute the left hand side
+   */
+  Expression get leftHandSide => _leftHandSide;
+
+  int get precedence => 1;
+
+  /**
+   * Return the element associated with the operator based on the propagated type of the
+   * left-hand-side, or `null` if the AST structure has not been resolved, if the operator is
+   * not a compound operator, or if the operator could not be resolved. One example of the latter
+   * case is an operator that is not defined for the type of the left-hand operand.
+   *
+   * @return the element associated with the operator
+   */
+  MethodElement get propagatedElement => _propagatedElement;
+
+  /**
+   * Return the expression used to compute the right hand side.
+   *
+   * @return the expression used to compute the right hand side
+   */
+  Expression get rightHandSide => _rightHandSide;
+
+  /**
+   * Return the element associated with the operator based on the static type of the left-hand-side,
+   * or `null` if the AST structure has not been resolved, if the operator is not a compound
+   * operator, or if the operator could not be resolved. One example of the latter case is an
+   * operator that is not defined for the type of the left-hand operand.
+   *
+   * @return the element associated with the operator
+   */
+  MethodElement get staticElement => _staticElement;
+
+  /**
+   * Return the expression used to compute the left hand side.
+   *
+   * @param expression the expression used to compute the left hand side
+   */
+  void set leftHandSide(Expression expression) {
+    _leftHandSide = becomeParentOf(expression);
+  }
+
+  /**
+   * Set the element associated with the operator based on the propagated type of the left-hand-side
+   * to the given element.
+   *
+   * @param element the element to be associated with the operator
+   */
+  void set propagatedElement(MethodElement element) {
+    _propagatedElement = element;
+  }
+
+  /**
+   * Set the expression used to compute the left hand side to the given expression.
+   *
+   * @param expression the expression used to compute the left hand side
+   */
+  void set rightHandSide(Expression expression) {
+    _rightHandSide = becomeParentOf(expression);
+  }
+
+  /**
+   * Set the element associated with the operator based on the static type of the left-hand-side to
+   * the given element.
+   *
+   * @param element the static element to be associated with the operator
+   */
+  void set staticElement(MethodElement element) {
+    _staticElement = element;
+  }
+
+  void visitChildren(AstVisitor visitor) {
+    safelyVisitChild(_leftHandSide, visitor);
+    safelyVisitChild(_rightHandSide, visitor);
+  }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is known based on
+   * propagated type information, then return the parameter element representing the parameter to
+   * which the value of the right operand will be bound. Otherwise, return `null`.
+   *
+   * This method is only intended to be used by [Expression#getPropagatedParameterElement].
+   *
+   * @return the parameter element representing the parameter to which the value of the right
+   *         operand will be bound
+   */
+  ParameterElement get propagatedParameterElementForRightHandSide {
+    if (_propagatedElement == null) {
+      return null;
+    }
+    List<ParameterElement> parameters = _propagatedElement.parameters;
+    if (parameters.length < 1) {
+      return null;
+    }
+    return parameters[0];
+  }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is known based on static
+   * type information, then return the parameter element representing the parameter to which the
+   * value of the right operand will be bound. Otherwise, return `null`.
+   *
+   * This method is only intended to be used by [Expression#getStaticParameterElement].
+   *
+   * @return the parameter element representing the parameter to which the value of the right
+   *         operand will be bound
+   */
+  ParameterElement get staticParameterElementForRightHandSide {
+    if (_staticElement == null) {
+      return null;
+    }
+    List<ParameterElement> parameters = _staticElement.parameters;
+    if (parameters.length < 1) {
+      return null;
+    }
+    return parameters[0];
+  }
+}
+
+/**
+ * The abstract class `AstNode` defines the behavior common to all nodes in the AST structure
+ * for a Dart program.
+ */
+abstract class AstNode {
   /**
    * An empty array of ast nodes.
    */
-  static List<ASTNode> EMPTY_ARRAY = new List<ASTNode>(0);
+  static List<AstNode> EMPTY_ARRAY = new List<AstNode>(0);
 
   /**
    * The parent of the node, or `null` if the node is the root of an AST structure.
    */
-  ASTNode _parent;
+  AstNode _parent;
 
   /**
    * A table mapping the names of properties to their values, or `null` if this node does not
@@ -46,7 +994,7 @@ abstract class ASTNode {
    * offset of the second node, zero (0) if the nodes have the same offset, and a positive value if
    * if the offset of the first node is greater than the offset of the second node.
    */
-  static Comparator<ASTNode> LEXICAL_ORDER = (ASTNode first, ASTNode second) => second.offset - first.offset;
+  static Comparator<AstNode> LEXICAL_ORDER = (AstNode first, AstNode second) => second.offset - first.offset;
 
   /**
    * Use the given visitor to visit this node.
@@ -54,7 +1002,7 @@ abstract class ASTNode {
    * @param visitor the visitor that will visit this node
    * @return the value returned by the visitor as a result of visiting this node
    */
-  accept(ASTVisitor visitor);
+  accept(AstVisitor visitor);
 
   /**
    * Return the node of the given class that most immediately encloses this node, or `null` if
@@ -63,8 +1011,8 @@ abstract class ASTNode {
    * @param nodeClass the class of the node to be returned
    * @return the node of the given type that encloses this node
    */
-  ASTNode getAncestor(Type enclosingClass) {
-    ASTNode node = this;
+  AstNode getAncestor(Type enclosingClass) {
+    AstNode node = this;
     while (node != null && !isInstanceOf(node, enclosingClass)) {
       node = node.parent;
     }
@@ -132,7 +1080,7 @@ abstract class ASTNode {
    *
    * @return the parent of this node, or `null` if none
    */
-  ASTNode get parent => _parent;
+  AstNode get parent => _parent;
 
   /**
    * Return the value of the property with the given name, or `null` if this node does not
@@ -153,9 +1101,9 @@ abstract class ASTNode {
    *
    * @return the node at the root of this node's AST structure
    */
-  ASTNode get root {
-    ASTNode root = this;
-    ASTNode parent = this.parent;
+  AstNode get root {
+    AstNode root = this;
+    AstNode parent = this.parent;
     while (parent != null) {
       root = parent;
       parent = root.parent;
@@ -215,7 +1163,7 @@ abstract class ASTNode {
    *
    * @param visitor the visitor that will be used to visit the children of this node
    */
-  void visitChildren(ASTVisitor visitor);
+  void visitChildren(AstVisitor visitor);
 
   /**
    * Make this node the parent of the given child node.
@@ -223,9 +1171,9 @@ abstract class ASTNode {
    * @param child the node that will become a child of this node
    * @return the node that was made a child of this node
    */
-  ASTNode becomeParentOf(ASTNode child) {
+  AstNode becomeParentOf(AstNode child) {
     if (child != null) {
-      ASTNode node = child;
+      AstNode node = child;
       node.parent = this;
     }
     return child;
@@ -237,7 +1185,7 @@ abstract class ASTNode {
    * @param child the child to be visited
    * @param visitor the visitor that will be used to visit the child
    */
-  void safelyVisitChild(ASTNode child, ASTVisitor visitor) {
+  void safelyVisitChild(AstNode child, AstVisitor visitor) {
     if (child != null) {
       child.accept(visitor);
     }
@@ -248,22 +1196,16 @@ abstract class ASTNode {
    *
    * @param newParent the node that is to be made the parent of this node
    */
-  void set parent(ASTNode newParent) {
+  void set parent(AstNode newParent) {
     _parent = newParent;
   }
-
-  static int _hashCodeGenerator = 0;
-
-  final int hashCode = ++_hashCodeGenerator;
 }
 
 /**
- * The interface `ASTVisitor` defines the behavior of objects that can be used to visit an AST
+ * The interface `AstVisitor` defines the behavior of objects that can be used to visit an AST
  * structure.
- *
- * @coverage dart.engine.ast
  */
-abstract class ASTVisitor<R> {
+abstract class AstVisitor<R> {
   R visitAdjacentStrings(AdjacentStrings node);
 
   R visitAnnotation(Annotation node);
@@ -472,980 +1414,12 @@ abstract class ASTVisitor<R> {
 }
 
 /**
- * Instances of the class `AdjacentStrings` represents two or more string literals that are
- * implicitly concatenated because of being adjacent (separated only by whitespace).
- *
- * While the grammar only allows adjacent strings when all of the strings are of the same kind
- * (single line or multi-line), this class doesn't enforce that restriction.
- *
- * <pre>
- * adjacentStrings ::=
- *     [StringLiteral] [StringLiteral]+
- * </pre>
- *
- * @coverage dart.engine.ast
- */
-class AdjacentStrings extends StringLiteral {
-  /**
-   * The strings that are implicitly concatenated.
-   */
-  NodeList<StringLiteral> _strings;
-
-  /**
-   * Initialize a newly created list of adjacent strings.
-   *
-   * @param strings the strings that are implicitly concatenated
-   */
-  AdjacentStrings(List<StringLiteral> strings) {
-    this._strings = new NodeList<StringLiteral>(this);
-    this._strings.addAll(strings);
-  }
-
-  accept(ASTVisitor visitor) => visitor.visitAdjacentStrings(this);
-
-  Token get beginToken => _strings.beginToken;
-
-  Token get endToken => _strings.endToken;
-
-  /**
-   * Return the strings that are implicitly concatenated.
-   *
-   * @return the strings that are implicitly concatenated
-   */
-  NodeList<StringLiteral> get strings => _strings;
-
-  void visitChildren(ASTVisitor visitor) {
-    _strings.accept(visitor);
-  }
-
-  void appendStringValue(JavaStringBuilder builder) {
-    for (StringLiteral stringLiteral in strings) {
-      stringLiteral.appendStringValue(builder);
-    }
-  }
-}
-
-/**
- * The abstract class `AnnotatedNode` defines the behavior of nodes that can be annotated with
- * both a comment and metadata.
- *
- * @coverage dart.engine.ast
- */
-abstract class AnnotatedNode extends ASTNode {
-  /**
-   * The documentation comment associated with this node, or `null` if this node does not have
-   * a documentation comment associated with it.
-   */
-  Comment _comment;
-
-  /**
-   * The annotations associated with this node.
-   */
-  NodeList<Annotation> _metadata;
-
-  /**
-   * Initialize a newly created node.
-   *
-   * @param comment the documentation comment associated with this node
-   * @param metadata the annotations associated with this node
-   */
-  AnnotatedNode(Comment comment, List<Annotation> metadata) {
-    this._metadata = new NodeList<Annotation>(this);
-    this._comment = becomeParentOf(comment);
-    this._metadata.addAll(metadata);
-  }
-
-  Token get beginToken {
-    if (_comment == null) {
-      if (_metadata.isEmpty) {
-        return firstTokenAfterCommentAndMetadata;
-      } else {
-        return _metadata.beginToken;
-      }
-    } else if (_metadata.isEmpty) {
-      return _comment.beginToken;
-    }
-    Token commentToken = _comment.beginToken;
-    Token metadataToken = _metadata.beginToken;
-    if (commentToken.offset < metadataToken.offset) {
-      return commentToken;
-    }
-    return metadataToken;
-  }
-
-  /**
-   * Return the documentation comment associated with this node, or `null` if this node does
-   * not have a documentation comment associated with it.
-   *
-   * @return the documentation comment associated with this node
-   */
-  Comment get documentationComment => _comment;
-
-  /**
-   * Return the annotations associated with this node.
-   *
-   * @return the annotations associated with this node
-   */
-  NodeList<Annotation> get metadata => _metadata;
-
-  /**
-   * Set the documentation comment associated with this node to the given comment.
-   *
-   * @param comment the documentation comment to be associated with this node
-   */
-  void set documentationComment(Comment comment) {
-    this._comment = becomeParentOf(comment);
-  }
-
-  /**
-   * Set the metadata associated with this node to the given metadata.
-   *
-   * @param metadata the metadata to be associated with this node
-   */
-  void set metadata(List<Annotation> metadata) {
-    this._metadata.clear();
-    this._metadata.addAll(metadata);
-  }
-
-  void visitChildren(ASTVisitor visitor) {
-    if (commentIsBeforeAnnotations()) {
-      safelyVisitChild(_comment, visitor);
-      _metadata.accept(visitor);
-    } else {
-      for (ASTNode child in sortedCommentAndAnnotations) {
-        child.accept(visitor);
-      }
-    }
-  }
-
-  /**
-   * Return the first token following the comment and metadata.
-   *
-   * @return the first token following the comment and metadata
-   */
-  Token get firstTokenAfterCommentAndMetadata;
-
-  /**
-   * Return `true` if the comment is lexically before any annotations.
-   *
-   * @return `true` if the comment is lexically before any annotations
-   */
-  bool commentIsBeforeAnnotations() {
-    if (_comment == null || _metadata.isEmpty) {
-      return true;
-    }
-    Annotation firstAnnotation = _metadata[0];
-    return _comment.offset < firstAnnotation.offset;
-  }
-
-  /**
-   * Return an array containing the comment and annotations associated with this node, sorted in
-   * lexical order.
-   *
-   * @return the comment and annotations associated with this node in the order in which they
-   *         appeared in the original source
-   */
-  List<ASTNode> get sortedCommentAndAnnotations {
-    List<ASTNode> childList = new List<ASTNode>();
-    childList.add(_comment);
-    childList.addAll(_metadata);
-    List<ASTNode> children = new List.from(childList);
-    children.sort(ASTNode.LEXICAL_ORDER);
-    return children;
-  }
-}
-
-/**
- * Instances of the class `Annotation` represent an annotation that can be associated with an
- * AST node.
- *
- * <pre>
- * metadata ::=
- *     annotation*
- *
- * annotation ::=
- *     '@' [Identifier] ('.' [SimpleIdentifier])? [ArgumentList]?
- * </pre>
- *
- * @coverage dart.engine.ast
- */
-class Annotation extends ASTNode {
-  /**
-   * The at sign that introduced the annotation.
-   */
-  Token atSign;
-
-  /**
-   * The name of the class defining the constructor that is being invoked or the name of the field
-   * that is being referenced.
-   */
-  Identifier _name;
-
-  /**
-   * The period before the constructor name, or `null` if this annotation is not the
-   * invocation of a named constructor.
-   */
-  Token period;
-
-  /**
-   * The name of the constructor being invoked, or `null` if this annotation is not the
-   * invocation of a named constructor.
-   */
-  SimpleIdentifier _constructorName;
-
-  /**
-   * The arguments to the constructor being invoked, or `null` if this annotation is not the
-   * invocation of a constructor.
-   */
-  ArgumentList _arguments;
-
-  /**
-   * The element associated with this annotation, or `null` if the AST structure has not been
-   * resolved or if this annotation could not be resolved.
-   */
-  Element _element;
-
-  /**
-   * Initialize a newly created annotation.
-   *
-   * @param atSign the at sign that introduced the annotation
-   * @param name the name of the class defining the constructor that is being invoked or the name of
-   *          the field that is being referenced
-   * @param period the period before the constructor name, or `null` if this annotation is not
-   *          the invocation of a named constructor
-   * @param constructorName the name of the constructor being invoked, or `null` if this
-   *          annotation is not the invocation of a named constructor
-   * @param arguments the arguments to the constructor being invoked, or `null` if this
-   *          annotation is not the invocation of a constructor
-   */
-  Annotation(this.atSign, Identifier name, this.period, SimpleIdentifier constructorName, ArgumentList arguments) {
-    this._name = becomeParentOf(name);
-    this._constructorName = becomeParentOf(constructorName);
-    this._arguments = becomeParentOf(arguments);
-  }
-
-  accept(ASTVisitor visitor) => visitor.visitAnnotation(this);
-
-  /**
-   * Return the arguments to the constructor being invoked, or `null` if this annotation is
-   * not the invocation of a constructor.
-   *
-   * @return the arguments to the constructor being invoked
-   */
-  ArgumentList get arguments => _arguments;
-
-  Token get beginToken => atSign;
-
-  /**
-   * Return the name of the constructor being invoked, or `null` if this annotation is not the
-   * invocation of a named constructor.
-   *
-   * @return the name of the constructor being invoked
-   */
-  SimpleIdentifier get constructorName => _constructorName;
-
-  /**
-   * Return the element associated with this annotation, or `null` if the AST structure has
-   * not been resolved or if this annotation could not be resolved.
-   *
-   * @return the element associated with this annotation
-   */
-  Element get element {
-    if (_element != null) {
-      return _element;
-    }
-    if (_name != null) {
-      return _name.staticElement;
-    }
-    return null;
-  }
-
-  Token get endToken {
-    if (_arguments != null) {
-      return _arguments.endToken;
-    } else if (_constructorName != null) {
-      return _constructorName.endToken;
-    }
-    return _name.endToken;
-  }
-
-  /**
-   * Return the name of the class defining the constructor that is being invoked or the name of the
-   * field that is being referenced.
-   *
-   * @return the name of the constructor being invoked or the name of the field being referenced
-   */
-  Identifier get name => _name;
-
-  /**
-   * Set the arguments to the constructor being invoked to the given arguments.
-   *
-   * @param arguments the arguments to the constructor being invoked
-   */
-  void set arguments(ArgumentList arguments) {
-    this._arguments = becomeParentOf(arguments);
-  }
-
-  /**
-   * Set the name of the constructor being invoked to the given name.
-   *
-   * @param constructorName the name of the constructor being invoked
-   */
-  void set constructorName(SimpleIdentifier constructorName) {
-    this._constructorName = becomeParentOf(constructorName);
-  }
-
-  /**
-   * Set the element associated with this annotation based.
-   *
-   * @param element the element to be associated with this identifier
-   */
-  void set element(Element element) {
-    this._element = element;
-  }
-
-  /**
-   * Set the name of the class defining the constructor that is being invoked or the name of the
-   * field that is being referenced to the given name.
-   *
-   * @param name the name of the constructor being invoked or the name of the field being referenced
-   */
-  void set name(Identifier name) {
-    this._name = becomeParentOf(name);
-  }
-
-  void visitChildren(ASTVisitor visitor) {
-    safelyVisitChild(_name, visitor);
-    safelyVisitChild(_constructorName, visitor);
-    safelyVisitChild(_arguments, visitor);
-  }
-}
-
-/**
- * Instances of the class `ArgumentDefinitionTest` represent an argument definition test.
- *
- * <pre>
- * argumentDefinitionTest ::=
- *     '?' [SimpleIdentifier]
- * </pre>
- *
- * @coverage dart.engine.ast
- */
-class ArgumentDefinitionTest extends Expression {
-  /**
-   * The token representing the question mark.
-   */
-  Token question;
-
-  /**
-   * The identifier representing the argument being tested.
-   */
-  SimpleIdentifier _identifier;
-
-  /**
-   * Initialize a newly created argument definition test.
-   *
-   * @param question the token representing the question mark
-   * @param identifier the identifier representing the argument being tested
-   */
-  ArgumentDefinitionTest(this.question, SimpleIdentifier identifier) {
-    this._identifier = becomeParentOf(identifier);
-  }
-
-  accept(ASTVisitor visitor) => visitor.visitArgumentDefinitionTest(this);
-
-  Token get beginToken => question;
-
-  Token get endToken => _identifier.endToken;
-
-  /**
-   * Return the identifier representing the argument being tested.
-   *
-   * @return the identifier representing the argument being tested
-   */
-  SimpleIdentifier get identifier => _identifier;
-
-  int get precedence => 15;
-
-  /**
-   * Set the identifier representing the argument being tested to the given identifier.
-   *
-   * @param identifier the identifier representing the argument being tested
-   */
-  void set identifier(SimpleIdentifier identifier) {
-    this._identifier = becomeParentOf(identifier);
-  }
-
-  void visitChildren(ASTVisitor visitor) {
-    safelyVisitChild(_identifier, visitor);
-  }
-}
-
-/**
- * Instances of the class `ArgumentList` represent a list of arguments in the invocation of a
- * executable element: a function, method, or constructor.
- *
- * <pre>
- * argumentList ::=
- *     '(' arguments? ')'
- *
- * arguments ::=
- *     [NamedExpression] (',' [NamedExpression])*
- *   | [Expression] (',' [NamedExpression])*
- * </pre>
- *
- * @coverage dart.engine.ast
- */
-class ArgumentList extends ASTNode {
-  /**
-   * The left parenthesis.
-   */
-  Token _leftParenthesis;
-
-  /**
-   * The expressions producing the values of the arguments.
-   */
-  NodeList<Expression> _arguments;
-
-  /**
-   * The right parenthesis.
-   */
-  Token _rightParenthesis;
-
-  /**
-   * An array containing the elements representing the parameters corresponding to each of the
-   * arguments in this list, or `null` if the AST has not been resolved or if the function or
-   * method being invoked could not be determined based on static type information. The array must
-   * be the same length as the number of arguments, but can contain `null` entries if a given
-   * argument does not correspond to a formal parameter.
-   */
-  List<ParameterElement> _correspondingStaticParameters;
-
-  /**
-   * An array containing the elements representing the parameters corresponding to each of the
-   * arguments in this list, or `null` if the AST has not been resolved or if the function or
-   * method being invoked could not be determined based on propagated type information. The array
-   * must be the same length as the number of arguments, but can contain `null` entries if a
-   * given argument does not correspond to a formal parameter.
-   */
-  List<ParameterElement> _correspondingPropagatedParameters;
-
-  /**
-   * Initialize a newly created list of arguments.
-   *
-   * @param leftParenthesis the left parenthesis
-   * @param arguments the expressions producing the values of the arguments
-   * @param rightParenthesis the right parenthesis
-   */
-  ArgumentList(Token leftParenthesis, List<Expression> arguments, Token rightParenthesis) {
-    this._arguments = new NodeList<Expression>(this);
-    this._leftParenthesis = leftParenthesis;
-    this._arguments.addAll(arguments);
-    this._rightParenthesis = rightParenthesis;
-  }
-
-  accept(ASTVisitor visitor) => visitor.visitArgumentList(this);
-
-  /**
-   * Return the expressions producing the values of the arguments. Although the language requires
-   * that positional arguments appear before named arguments, this class allows them to be
-   * intermixed.
-   *
-   * @return the expressions producing the values of the arguments
-   */
-  NodeList<Expression> get arguments => _arguments;
-
-  Token get beginToken => _leftParenthesis;
-
-  Token get endToken => _rightParenthesis;
-
-  /**
-   * Return the left parenthesis.
-   *
-   * @return the left parenthesis
-   */
-  Token get leftParenthesis => _leftParenthesis;
-
-  /**
-   * Return the right parenthesis.
-   *
-   * @return the right parenthesis
-   */
-  Token get rightParenthesis => _rightParenthesis;
-
-  /**
-   * Set the parameter elements corresponding to each of the arguments in this list to the given
-   * array of parameters. The array of parameters must be the same length as the number of
-   * arguments, but can contain `null` entries if a given argument does not correspond to a
-   * formal parameter.
-   *
-   * @param parameters the parameter elements corresponding to the arguments
-   */
-  void set correspondingPropagatedParameters(List<ParameterElement> parameters) {
-    if (parameters.length != _arguments.length) {
-      throw new IllegalArgumentException("Expected ${_arguments.length} parameters, not ${parameters.length}");
-    }
-    _correspondingPropagatedParameters = parameters;
-  }
-
-  /**
-   * Set the parameter elements corresponding to each of the arguments in this list to the given
-   * array of parameters. The array of parameters must be the same length as the number of
-   * arguments, but can contain `null` entries if a given argument does not correspond to a
-   * formal parameter.
-   *
-   * @param parameters the parameter elements corresponding to the arguments
-   */
-  void set correspondingStaticParameters(List<ParameterElement> parameters) {
-    if (parameters.length != _arguments.length) {
-      throw new IllegalArgumentException("Expected ${_arguments.length} parameters, not ${parameters.length}");
-    }
-    _correspondingStaticParameters = parameters;
-  }
-
-  /**
-   * Set the left parenthesis to the given token.
-   *
-   * @param parenthesis the left parenthesis
-   */
-  void set leftParenthesis(Token parenthesis) {
-    _leftParenthesis = parenthesis;
-  }
-
-  /**
-   * Set the right parenthesis to the given token.
-   *
-   * @param parenthesis the right parenthesis
-   */
-  void set rightParenthesis(Token parenthesis) {
-    _rightParenthesis = parenthesis;
-  }
-
-  void visitChildren(ASTVisitor visitor) {
-    _arguments.accept(visitor);
-  }
-
-  /**
-   * If the given expression is a child of this list, and the AST structure has been resolved, and
-   * the function being invoked is known based on propagated type information, and the expression
-   * corresponds to one of the parameters of the function being invoked, then return the parameter
-   * element representing the parameter to which the value of the given expression will be bound.
-   * Otherwise, return `null`.
-   *
-   * This method is only intended to be used by [Expression#getPropagatedParameterElement].
-   *
-   * @param expression the expression corresponding to the parameter to be returned
-   * @return the parameter element representing the parameter to which the value of the expression
-   *         will be bound
-   */
-  ParameterElement getPropagatedParameterElementFor(Expression expression) {
-    if (_correspondingPropagatedParameters == null) {
-      // Either the AST structure has not been resolved or the invocation of which this list is a
-      // part could not be resolved.
-      return null;
-    }
-    int index = _arguments.indexOf(expression);
-    if (index < 0) {
-      // The expression isn't a child of this node.
-      return null;
-    }
-    return _correspondingPropagatedParameters[index];
-  }
-
-  /**
-   * If the given expression is a child of this list, and the AST structure has been resolved, and
-   * the function being invoked is known based on static type information, and the expression
-   * corresponds to one of the parameters of the function being invoked, then return the parameter
-   * element representing the parameter to which the value of the given expression will be bound.
-   * Otherwise, return `null`.
-   *
-   * This method is only intended to be used by [Expression#getStaticParameterElement].
-   *
-   * @param expression the expression corresponding to the parameter to be returned
-   * @return the parameter element representing the parameter to which the value of the expression
-   *         will be bound
-   */
-  ParameterElement getStaticParameterElementFor(Expression expression) {
-    if (_correspondingStaticParameters == null) {
-      // Either the AST structure has not been resolved or the invocation of which this list is a
-      // part could not be resolved.
-      return null;
-    }
-    int index = _arguments.indexOf(expression);
-    if (index < 0) {
-      // The expression isn't a child of this node.
-      return null;
-    }
-    return _correspondingStaticParameters[index];
-  }
-}
-
-/**
- * Instances of the class `AsExpression` represent an 'as' expression.
- *
- * <pre>
- * asExpression ::=
- *     [Expression] 'as' [TypeName]
- * </pre>
- *
- * @coverage dart.engine.ast
- */
-class AsExpression extends Expression {
-  /**
-   * The expression used to compute the value being cast.
-   */
-  Expression _expression;
-
-  /**
-   * The as operator.
-   */
-  Token asOperator;
-
-  /**
-   * The name of the type being cast to.
-   */
-  TypeName _type;
-
-  /**
-   * Initialize a newly created as expression.
-   *
-   * @param expression the expression used to compute the value being cast
-   * @param isOperator the is operator
-   * @param type the name of the type being cast to
-   */
-  AsExpression(Expression expression, Token isOperator, TypeName type) {
-    this._expression = becomeParentOf(expression);
-    this.asOperator = isOperator;
-    this._type = becomeParentOf(type);
-  }
-
-  accept(ASTVisitor visitor) => visitor.visitAsExpression(this);
-
-  Token get beginToken => _expression.beginToken;
-
-  Token get endToken => _type.endToken;
-
-  /**
-   * Return the expression used to compute the value being cast.
-   *
-   * @return the expression used to compute the value being cast
-   */
-  Expression get expression => _expression;
-
-  int get precedence => 7;
-
-  /**
-   * Return the name of the type being cast to.
-   *
-   * @return the name of the type being cast to
-   */
-  TypeName get type => _type;
-
-  /**
-   * Set the expression used to compute the value being cast to the given expression.
-   *
-   * @param expression the expression used to compute the value being cast
-   */
-  void set expression(Expression expression) {
-    this._expression = becomeParentOf(expression);
-  }
-
-  /**
-   * Set the name of the type being cast to to the given name.
-   *
-   * @param name the name of the type being cast to
-   */
-  void set type(TypeName name) {
-    this._type = becomeParentOf(name);
-  }
-
-  void visitChildren(ASTVisitor visitor) {
-    safelyVisitChild(_expression, visitor);
-    safelyVisitChild(_type, visitor);
-  }
-}
-
-/**
- * Instances of the class `AssertStatement` represent an assert statement.
- *
- * <pre>
- * assertStatement ::=
- *     'assert' '(' [Expression] ')' ';'
- * </pre>
- *
- * @coverage dart.engine.ast
- */
-class AssertStatement extends Statement {
-  /**
-   * The token representing the 'assert' keyword.
-   */
-  Token keyword;
-
-  /**
-   * The left parenthesis.
-   */
-  Token leftParenthesis;
-
-  /**
-   * The condition that is being asserted to be `true`.
-   */
-  Expression _condition;
-
-  /**
-   * The right parenthesis.
-   */
-  Token rightParenthesis;
-
-  /**
-   * The semicolon terminating the statement.
-   */
-  Token semicolon;
-
-  /**
-   * Initialize a newly created assert statement.
-   *
-   * @param keyword the token representing the 'assert' keyword
-   * @param leftParenthesis the left parenthesis
-   * @param condition the condition that is being asserted to be `true`
-   * @param rightParenthesis the right parenthesis
-   * @param semicolon the semicolon terminating the statement
-   */
-  AssertStatement(this.keyword, this.leftParenthesis, Expression condition, this.rightParenthesis, this.semicolon) {
-    this._condition = becomeParentOf(condition);
-  }
-
-  accept(ASTVisitor visitor) => visitor.visitAssertStatement(this);
-
-  Token get beginToken => keyword;
-
-  /**
-   * Return the condition that is being asserted to be `true`.
-   *
-   * @return the condition that is being asserted to be `true`
-   */
-  Expression get condition => _condition;
-
-  Token get endToken => semicolon;
-
-  /**
-   * Set the condition that is being asserted to be `true` to the given expression.
-   *
-   * @param the condition that is being asserted to be `true`
-   */
-  void set condition(Expression condition) {
-    this._condition = becomeParentOf(condition);
-  }
-
-  void visitChildren(ASTVisitor visitor) {
-    safelyVisitChild(_condition, visitor);
-  }
-}
-
-/**
- * Instances of the class `AssignmentExpression` represent an assignment expression.
- *
- * <pre>
- * assignmentExpression ::=
- *     [Expression] [Token] [Expression]
- * </pre>
- *
- * @coverage dart.engine.ast
- */
-class AssignmentExpression extends Expression {
-  /**
-   * The expression used to compute the left hand side.
-   */
-  Expression _leftHandSide;
-
-  /**
-   * The assignment operator being applied.
-   */
-  Token operator;
-
-  /**
-   * The expression used to compute the right hand side.
-   */
-  Expression _rightHandSide;
-
-  /**
-   * The element associated with the operator based on the static type of the left-hand-side, or
-   * `null` if the AST structure has not been resolved, if the operator is not a compound
-   * operator, or if the operator could not be resolved.
-   */
-  MethodElement _staticElement;
-
-  /**
-   * The element associated with the operator based on the propagated type of the left-hand-side, or
-   * `null` if the AST structure has not been resolved, if the operator is not a compound
-   * operator, or if the operator could not be resolved.
-   */
-  MethodElement _propagatedElement;
-
-  /**
-   * Initialize a newly created assignment expression.
-   *
-   * @param leftHandSide the expression used to compute the left hand side
-   * @param operator the assignment operator being applied
-   * @param rightHandSide the expression used to compute the right hand side
-   */
-  AssignmentExpression(Expression leftHandSide, this.operator, Expression rightHandSide) {
-    this._leftHandSide = becomeParentOf(leftHandSide);
-    this._rightHandSide = becomeParentOf(rightHandSide);
-  }
-
-  accept(ASTVisitor visitor) => visitor.visitAssignmentExpression(this);
-
-  Token get beginToken => _leftHandSide.beginToken;
-
-  /**
-   * Return the best element available for this operator. If resolution was able to find a better
-   * element based on type propagation, that element will be returned. Otherwise, the element found
-   * using the result of static analysis will be returned. If resolution has not been performed,
-   * then `null` will be returned.
-   *
-   * @return the best element available for this operator
-   */
-  MethodElement get bestElement {
-    MethodElement element = propagatedElement;
-    if (element == null) {
-      element = staticElement;
-    }
-    return element;
-  }
-
-  Token get endToken => _rightHandSide.endToken;
-
-  /**
-   * Set the expression used to compute the left hand side to the given expression.
-   *
-   * @return the expression used to compute the left hand side
-   */
-  Expression get leftHandSide => _leftHandSide;
-
-  int get precedence => 1;
-
-  /**
-   * Return the element associated with the operator based on the propagated type of the
-   * left-hand-side, or `null` if the AST structure has not been resolved, if the operator is
-   * not a compound operator, or if the operator could not be resolved. One example of the latter
-   * case is an operator that is not defined for the type of the left-hand operand.
-   *
-   * @return the element associated with the operator
-   */
-  MethodElement get propagatedElement => _propagatedElement;
-
-  /**
-   * Return the expression used to compute the right hand side.
-   *
-   * @return the expression used to compute the right hand side
-   */
-  Expression get rightHandSide => _rightHandSide;
-
-  /**
-   * Return the element associated with the operator based on the static type of the left-hand-side,
-   * or `null` if the AST structure has not been resolved, if the operator is not a compound
-   * operator, or if the operator could not be resolved. One example of the latter case is an
-   * operator that is not defined for the type of the left-hand operand.
-   *
-   * @return the element associated with the operator
-   */
-  MethodElement get staticElement => _staticElement;
-
-  /**
-   * Return the expression used to compute the left hand side.
-   *
-   * @param expression the expression used to compute the left hand side
-   */
-  void set leftHandSide(Expression expression) {
-    _leftHandSide = becomeParentOf(expression);
-  }
-
-  /**
-   * Set the element associated with the operator based on the propagated type of the left-hand-side
-   * to the given element.
-   *
-   * @param element the element to be associated with the operator
-   */
-  void set propagatedElement(MethodElement element) {
-    _propagatedElement = element;
-  }
-
-  /**
-   * Set the expression used to compute the left hand side to the given expression.
-   *
-   * @param expression the expression used to compute the left hand side
-   */
-  void set rightHandSide(Expression expression) {
-    _rightHandSide = becomeParentOf(expression);
-  }
-
-  /**
-   * Set the element associated with the operator based on the static type of the left-hand-side to
-   * the given element.
-   *
-   * @param element the static element to be associated with the operator
-   */
-  void set staticElement(MethodElement element) {
-    _staticElement = element;
-  }
-
-  void visitChildren(ASTVisitor visitor) {
-    safelyVisitChild(_leftHandSide, visitor);
-    safelyVisitChild(_rightHandSide, visitor);
-  }
-
-  /**
-   * If the AST structure has been resolved, and the function being invoked is known based on
-   * propagated type information, then return the parameter element representing the parameter to
-   * which the value of the right operand will be bound. Otherwise, return `null`.
-   *
-   * This method is only intended to be used by [Expression#getPropagatedParameterElement].
-   *
-   * @return the parameter element representing the parameter to which the value of the right
-   *         operand will be bound
-   */
-  ParameterElement get propagatedParameterElementForRightHandSide {
-    if (_propagatedElement == null) {
-      return null;
-    }
-    List<ParameterElement> parameters = _propagatedElement.parameters;
-    if (parameters.length < 1) {
-      return null;
-    }
-    return parameters[0];
-  }
-
-  /**
-   * If the AST structure has been resolved, and the function being invoked is known based on static
-   * type information, then return the parameter element representing the parameter to which the
-   * value of the right operand will be bound. Otherwise, return `null`.
-   *
-   * This method is only intended to be used by [Expression#getStaticParameterElement].
-   *
-   * @return the parameter element representing the parameter to which the value of the right
-   *         operand will be bound
-   */
-  ParameterElement get staticParameterElementForRightHandSide {
-    if (_staticElement == null) {
-      return null;
-    }
-    List<ParameterElement> parameters = _staticElement.parameters;
-    if (parameters.length < 1) {
-      return null;
-    }
-    return parameters[0];
-  }
-}
-
-/**
  * Instances of the class `BinaryExpression` represent a binary (infix) expression.
  *
  * <pre>
  * binaryExpression ::=
  *     [Expression] [Token] [Expression]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class BinaryExpression extends Expression {
   /**
@@ -1489,7 +1463,7 @@ class BinaryExpression extends Expression {
     this._rightOperand = becomeParentOf(rightOperand);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitBinaryExpression(this);
+  accept(AstVisitor visitor) => visitor.visitBinaryExpression(this);
 
   Token get beginToken => _leftOperand.beginToken;
 
@@ -1585,7 +1559,7 @@ class BinaryExpression extends Expression {
     _staticElement = element;
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_leftOperand, visitor);
     safelyVisitChild(_rightOperand, visitor);
   }
@@ -1640,8 +1614,6 @@ class BinaryExpression extends Expression {
  * block ::=
  *     '{' statement* '}'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class Block extends Statement {
   /**
@@ -1671,7 +1643,7 @@ class Block extends Statement {
     this._statements.addAll(statements);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitBlock(this);
+  accept(AstVisitor visitor) => visitor.visitBlock(this);
 
   Token get beginToken => leftBracket;
 
@@ -1684,7 +1656,7 @@ class Block extends Statement {
    */
   NodeList<Statement> get statements => _statements;
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     _statements.accept(visitor);
   }
 }
@@ -1697,8 +1669,6 @@ class Block extends Statement {
  * blockFunctionBody ::=
  *     [Block]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class BlockFunctionBody extends FunctionBody {
   /**
@@ -1715,7 +1685,7 @@ class BlockFunctionBody extends FunctionBody {
     this._block = becomeParentOf(block);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitBlockFunctionBody(this);
+  accept(AstVisitor visitor) => visitor.visitBlockFunctionBody(this);
 
   Token get beginToken => _block.beginToken;
 
@@ -1737,7 +1707,7 @@ class BlockFunctionBody extends FunctionBody {
     this._block = becomeParentOf(block);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_block, visitor);
   }
 }
@@ -1749,8 +1719,6 @@ class BlockFunctionBody extends FunctionBody {
  * booleanLiteral ::=
  *     'false' | 'true'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class BooleanLiteral extends Literal {
   /**
@@ -1771,7 +1739,7 @@ class BooleanLiteral extends Literal {
    */
   BooleanLiteral(this.literal, this.value);
 
-  accept(ASTVisitor visitor) => visitor.visitBooleanLiteral(this);
+  accept(AstVisitor visitor) => visitor.visitBooleanLiteral(this);
 
   Token get beginToken => literal;
 
@@ -1779,7 +1747,7 @@ class BooleanLiteral extends Literal {
 
   bool get isSynthetic => literal.isSynthetic;
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
   }
 }
 
@@ -1790,8 +1758,6 @@ class BooleanLiteral extends Literal {
  * breakStatement ::=
  *     'break' [SimpleIdentifier]? ';'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class BreakStatement extends Statement {
   /**
@@ -1820,7 +1786,7 @@ class BreakStatement extends Statement {
     this._label = becomeParentOf(label);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitBreakStatement(this);
+  accept(AstVisitor visitor) => visitor.visitBreakStatement(this);
 
   Token get beginToken => keyword;
 
@@ -1842,7 +1808,7 @@ class BreakStatement extends Statement {
     _label = becomeParentOf(identifier);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_label, visitor);
   }
 }
@@ -1864,8 +1830,6 @@ class BreakStatement extends Statement {
  *     '[ ' expression '] '
  *   | identifier
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class CascadeExpression extends Expression {
   /**
@@ -1890,7 +1854,7 @@ class CascadeExpression extends Expression {
     this._cascadeSections.addAll(cascadeSections);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitCascadeExpression(this);
+  accept(AstVisitor visitor) => visitor.visitCascadeExpression(this);
 
   Token get beginToken => _target.beginToken;
 
@@ -1921,7 +1885,7 @@ class CascadeExpression extends Expression {
     this._target = becomeParentOf(target);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_target, visitor);
     _cascadeSections.accept(visitor);
   }
@@ -1938,10 +1902,8 @@ class CascadeExpression extends Expression {
  * catchPart ::=
  *     'catch' '(' [SimpleIdentifier] (',' [SimpleIdentifier])? ')'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-class CatchClause extends ASTNode {
+class CatchClause extends AstNode {
   /**
    * The token representing the 'on' keyword, or `null` if there is no 'on' keyword.
    */
@@ -2012,7 +1974,7 @@ class CatchClause extends ASTNode {
     this._body = becomeParentOf(body);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitCatchClause(this);
+  accept(AstVisitor visitor) => visitor.visitCatchClause(this);
 
   Token get beginToken {
     if (onKeyword != null) {
@@ -2106,7 +2068,7 @@ class CatchClause extends ASTNode {
     _stackTraceParameter = becomeParentOf(parameter);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(exceptionType, visitor);
     safelyVisitChild(_exceptionParameter, visitor);
     safelyVisitChild(_stackTraceParameter, visitor);
@@ -2124,8 +2086,6 @@ class CatchClause extends ASTNode {
  *     [ImplementsClause]?
  *     '{' [ClassMember]* '}'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class ClassDeclaration extends CompilationUnitMember {
   /**
@@ -2211,7 +2171,7 @@ class ClassDeclaration extends CompilationUnitMember {
     this._members.addAll(members);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitClassDeclaration(this);
+  accept(AstVisitor visitor) => visitor.visitClassDeclaration(this);
 
   /**
    * Return the constructor declared in the class with the given name.
@@ -2353,7 +2313,7 @@ class ClassDeclaration extends CompilationUnitMember {
     this._withClause = becomeParentOf(withClause);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_name, visitor);
     safelyVisitChild(typeParameters, visitor);
@@ -2375,8 +2335,6 @@ class ClassDeclaration extends CompilationUnitMember {
 /**
  * The abstract class `ClassMember` defines the behavior common to nodes that declare a name
  * within the scope of a class.
- *
- * @coverage dart.engine.ast
  */
 abstract class ClassMember extends Declaration {
   /**
@@ -2398,8 +2356,6 @@ abstract class ClassMember extends Declaration {
  * mixinApplication ::=
  *     [TypeName] [WithClause] [ImplementsClause]? ';'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class ClassTypeAlias extends TypeAlias {
   /**
@@ -2462,7 +2418,7 @@ class ClassTypeAlias extends TypeAlias {
     this._implementsClause = becomeParentOf(implementsClause);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitClassTypeAlias(this);
+  accept(AstVisitor visitor) => visitor.visitClassTypeAlias(this);
 
   ClassElement get element => _name != null ? (_name.staticElement as ClassElement) : null;
 
@@ -2547,7 +2503,7 @@ class ClassTypeAlias extends TypeAlias {
     this._withClause = becomeParentOf(withClause);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_typeParameters, visitor);
@@ -2566,10 +2522,8 @@ class ClassTypeAlias extends TypeAlias {
  *     [HideCombinator]
  *   | [ShowCombinator]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-abstract class Combinator extends ASTNode {
+abstract class Combinator extends AstNode {
   /**
    * The keyword specifying what kind of processing is to be done on the imported names.
    */
@@ -2605,10 +2559,8 @@ abstract class Combinator extends ASTNode {
  *     '/ **' (CHARACTER | [CommentReference])* '&#42;/'
  *   | ('///' (CHARACTER - EOL)* EOL)+
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-class Comment extends ASTNode {
+class Comment extends AstNode {
   /**
    * Create a block comment.
    *
@@ -2671,7 +2623,7 @@ class Comment extends ASTNode {
     this._references.addAll(references);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitComment(this);
+  accept(AstVisitor visitor) => visitor.visitComment(this);
 
   Token get beginToken => tokens[0];
 
@@ -2705,7 +2657,7 @@ class Comment extends ASTNode {
    */
   bool get isEndOfLine => identical(_type, CommentType.END_OF_LINE);
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     _references.accept(visitor);
   }
 }
@@ -2743,10 +2695,8 @@ class CommentType extends Enum<CommentType> {
  * commentReference ::=
  *     '[' 'new'? [Identifier] ']'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-class CommentReference extends ASTNode {
+class CommentReference extends AstNode {
   /**
    * The token representing the 'new' keyword, or `null` if there was no 'new' keyword.
    */
@@ -2767,7 +2717,7 @@ class CommentReference extends ASTNode {
     this._identifier = becomeParentOf(identifier);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitCommentReference(this);
+  accept(AstVisitor visitor) => visitor.visitCommentReference(this);
 
   Token get beginToken => _identifier.beginToken;
 
@@ -2789,7 +2739,7 @@ class CommentReference extends ASTNode {
     identifier = becomeParentOf(identifier);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_identifier, visitor);
   }
 }
@@ -2817,10 +2767,8 @@ class CommentReference extends ASTNode {
  * declarations ::=
  *     [CompilationUnitMember]*
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-class CompilationUnit extends ASTNode {
+class CompilationUnit extends AstNode {
   /**
    * The first token in the token stream that was parsed to form this compilation unit.
    */
@@ -2876,7 +2824,7 @@ class CompilationUnit extends ASTNode {
     this._declarations.addAll(declarations);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitCompilationUnit(this);
+  accept(AstVisitor visitor) => visitor.visitCompilationUnit(this);
 
   /**
    * Return the declarations contained in this compilation unit.
@@ -2919,13 +2867,13 @@ class CompilationUnit extends ASTNode {
     this._scriptTag = becomeParentOf(scriptTag);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_scriptTag, visitor);
     if (directivesAreBeforeDeclarations()) {
       _directives.accept(visitor);
       _declarations.accept(visitor);
     } else {
-      for (ASTNode child in sortedDirectivesAndDeclarations) {
+      for (AstNode child in sortedDirectivesAndDeclarations) {
         child.accept(visitor);
       }
     }
@@ -2952,12 +2900,12 @@ class CompilationUnit extends ASTNode {
    * @return the directives and declarations in this compilation unit in the order in which they
    *         appeared in the original source
    */
-  List<ASTNode> get sortedDirectivesAndDeclarations {
-    List<ASTNode> childList = new List<ASTNode>();
+  List<AstNode> get sortedDirectivesAndDeclarations {
+    List<AstNode> childList = new List<AstNode>();
     childList.addAll(_directives);
     childList.addAll(_declarations);
-    List<ASTNode> children = new List.from(childList);
-    children.sort(ASTNode.LEXICAL_ORDER);
+    List<AstNode> children = new List.from(childList);
+    children.sort(AstNode.LEXICAL_ORDER);
     return children;
   }
 }
@@ -2975,8 +2923,6 @@ class CompilationUnit extends ASTNode {
  *   | [VariableDeclaration]
  *   | [VariableDeclaration]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 abstract class CompilationUnitMember extends Declaration {
   /**
@@ -2995,8 +2941,6 @@ abstract class CompilationUnitMember extends Declaration {
  * conditionalExpression ::=
  *     [Expression] '?' [Expression] ':' [Expression]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class ConditionalExpression extends Expression {
   /**
@@ -3041,7 +2985,7 @@ class ConditionalExpression extends Expression {
     this._elseExpression = becomeParentOf(elseExpression);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitConditionalExpression(this);
+  accept(AstVisitor visitor) => visitor.visitConditionalExpression(this);
 
   Token get beginToken => _condition.beginToken;
 
@@ -3100,7 +3044,7 @@ class ConditionalExpression extends Expression {
     _thenExpression = becomeParentOf(expression);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_condition, visitor);
     safelyVisitChild(_thenExpression, visitor);
     safelyVisitChild(_elseExpression, visitor);
@@ -3129,8 +3073,6 @@ class ConditionalExpression extends Expression {
  * initializerList ::=
  *     ':' [ConstructorInitializer] (',' [ConstructorInitializer])*
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class ConstructorDeclaration extends ClassMember {
   /**
@@ -3228,7 +3170,7 @@ class ConstructorDeclaration extends ClassMember {
     this._body = becomeParentOf(body);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitConstructorDeclaration(this);
+  accept(AstVisitor visitor) => visitor.visitConstructorDeclaration(this);
 
   /**
    * Return the body of the constructor, or `null` if the constructor does not have a body.
@@ -3332,7 +3274,7 @@ class ConstructorDeclaration extends ClassMember {
     _returnType = becomeParentOf(typeName);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_returnType, visitor);
     safelyVisitChild(_name, visitor);
@@ -3377,8 +3319,6 @@ class ConstructorDeclaration extends ClassMember {
  * fieldInitializer ::=
  *     ('this' '.')? [SimpleIdentifier] '=' [Expression]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class ConstructorFieldInitializer extends ConstructorInitializer {
   /**
@@ -3422,7 +3362,7 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
     this._expression = becomeParentOf(expression);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitConstructorFieldInitializer(this);
+  accept(AstVisitor visitor) => visitor.visitConstructorFieldInitializer(this);
 
   Token get beginToken {
     if (keyword != null) {
@@ -3466,7 +3406,7 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
     _fieldName = becomeParentOf(identifier);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_fieldName, visitor);
     safelyVisitChild(_expression, visitor);
   }
@@ -3481,10 +3421,8 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
  *     [SuperConstructorInvocation]
  *   | [ConstructorFieldInitializer]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-abstract class ConstructorInitializer extends ASTNode {
+abstract class ConstructorInitializer extends AstNode {
 }
 
 /**
@@ -3494,10 +3432,8 @@ abstract class ConstructorInitializer extends ASTNode {
  * constructorName:
  *     type ('.' identifier)?
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-class ConstructorName extends ASTNode {
+class ConstructorName extends AstNode {
   /**
    * The name of the type defining the constructor.
    */
@@ -3534,7 +3470,7 @@ class ConstructorName extends ASTNode {
     this._name = becomeParentOf(name);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitConstructorName(this);
+  accept(AstVisitor visitor) => visitor.visitConstructorName(this);
 
   Token get beginToken => _type.beginToken;
 
@@ -3597,7 +3533,7 @@ class ConstructorName extends ASTNode {
     this._type = becomeParentOf(type);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_type, visitor);
     safelyVisitChild(_name, visitor);
   }
@@ -3610,8 +3546,6 @@ class ConstructorName extends ASTNode {
  * continueStatement ::=
  *     'continue' [SimpleIdentifier]? ';'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class ContinueStatement extends Statement {
   /**
@@ -3640,7 +3574,7 @@ class ContinueStatement extends Statement {
     this._label = becomeParentOf(label);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitContinueStatement(this);
+  accept(AstVisitor visitor) => visitor.visitContinueStatement(this);
 
   Token get beginToken => keyword;
 
@@ -3662,7 +3596,7 @@ class ContinueStatement extends Statement {
     _label = becomeParentOf(identifier);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_label, visitor);
   }
 }
@@ -3670,8 +3604,6 @@ class ContinueStatement extends Statement {
 /**
  * The abstract class `Declaration` defines the behavior common to nodes that represent the
  * declaration of a name. Each declared name is visible within a name scope.
- *
- * @coverage dart.engine.ast
  */
 abstract class Declaration extends AnnotatedNode {
   /**
@@ -3699,8 +3631,6 @@ abstract class Declaration extends AnnotatedNode {
  * declaredIdentifier ::=
  *     ([Annotation] finalConstVarOrType [SimpleIdentifier]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class DeclaredIdentifier extends Declaration {
   /**
@@ -3734,7 +3664,7 @@ class DeclaredIdentifier extends Declaration {
     this._identifier = becomeParentOf(identifier);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitDeclaredIdentifier(this);
+  accept(AstVisitor visitor) => visitor.visitDeclaredIdentifier(this);
 
   LocalVariableElement get element {
     SimpleIdentifier identifier = this.identifier;
@@ -3786,7 +3716,7 @@ class DeclaredIdentifier extends Declaration {
     _type = becomeParentOf(typeName);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_type, visitor);
     safelyVisitChild(_identifier, visitor);
@@ -3814,8 +3744,6 @@ class DeclaredIdentifier extends Declaration {
  * defaultNamedParameter ::=
  *     [NormalFormalParameter] (':' [Expression])?
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class DefaultFormalParameter extends FormalParameter {
   /**
@@ -3853,7 +3781,7 @@ class DefaultFormalParameter extends FormalParameter {
     this._defaultValue = becomeParentOf(defaultValue);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitDefaultFormalParameter(this);
+  accept(AstVisitor visitor) => visitor.visitDefaultFormalParameter(this);
 
   Token get beginToken => _parameter.beginToken;
 
@@ -3903,7 +3831,7 @@ class DefaultFormalParameter extends FormalParameter {
     _parameter = becomeParentOf(formalParameter);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_parameter, visitor);
     safelyVisitChild(_defaultValue, visitor);
   }
@@ -3921,8 +3849,6 @@ class DefaultFormalParameter extends FormalParameter {
  *   | [PartDirective]
  *   | [PartOfDirective]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 abstract class Directive extends AnnotatedNode {
   /**
@@ -3973,8 +3899,6 @@ abstract class Directive extends AnnotatedNode {
  * doStatement ::=
  *     'do' [Statement] 'while' '(' [Expression] ')' ';'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class DoStatement extends Statement {
   /**
@@ -4030,7 +3954,7 @@ class DoStatement extends Statement {
     this._rightParenthesis = rightParenthesis;
   }
 
-  accept(ASTVisitor visitor) => visitor.visitDoStatement(this);
+  accept(AstVisitor visitor) => visitor.visitDoStatement(this);
 
   Token get beginToken => doKeyword;
 
@@ -4100,7 +4024,7 @@ class DoStatement extends Statement {
     _rightParenthesis = parenthesis;
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_body, visitor);
     safelyVisitChild(_condition, visitor);
   }
@@ -4117,8 +4041,6 @@ class DoStatement extends Statement {
  * exponent ::=
  *     ('e' | 'E') ('+' | '-')? decimalDigit+
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class DoubleLiteral extends Literal {
   /**
@@ -4139,13 +4061,13 @@ class DoubleLiteral extends Literal {
    */
   DoubleLiteral(this.literal, this.value);
 
-  accept(ASTVisitor visitor) => visitor.visitDoubleLiteral(this);
+  accept(AstVisitor visitor) => visitor.visitDoubleLiteral(this);
 
   Token get beginToken => literal;
 
   Token get endToken => literal;
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
   }
 }
 
@@ -4157,8 +4079,6 @@ class DoubleLiteral extends Literal {
  * emptyFunctionBody ::=
  *     ';'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class EmptyFunctionBody extends FunctionBody {
   /**
@@ -4173,13 +4093,13 @@ class EmptyFunctionBody extends FunctionBody {
    */
   EmptyFunctionBody(this.semicolon);
 
-  accept(ASTVisitor visitor) => visitor.visitEmptyFunctionBody(this);
+  accept(AstVisitor visitor) => visitor.visitEmptyFunctionBody(this);
 
   Token get beginToken => semicolon;
 
   Token get endToken => semicolon;
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
   }
 }
 
@@ -4190,8 +4110,6 @@ class EmptyFunctionBody extends FunctionBody {
  * emptyStatement ::=
  *     ';'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class EmptyStatement extends Statement {
   /**
@@ -4206,23 +4124,21 @@ class EmptyStatement extends Statement {
    */
   EmptyStatement(this.semicolon);
 
-  accept(ASTVisitor visitor) => visitor.visitEmptyStatement(this);
+  accept(AstVisitor visitor) => visitor.visitEmptyStatement(this);
 
   Token get beginToken => semicolon;
 
   Token get endToken => semicolon;
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
   }
 }
 
 /**
  * Ephemeral identifiers are created as needed to mimic the presence of an empty identifier.
- *
- * @coverage dart.engine.ast
  */
 class EphemeralIdentifier extends SimpleIdentifier {
-  EphemeralIdentifier(ASTNode parent, int location) : super(new StringToken(TokenType.IDENTIFIER, "", location)) {
+  EphemeralIdentifier(AstNode parent, int location) : super(new StringToken(TokenType.IDENTIFIER, "", location)) {
     parent.becomeParentOf(this);
   }
 }
@@ -4234,8 +4150,6 @@ class EphemeralIdentifier extends SimpleIdentifier {
  * exportDirective ::=
  *     [Annotation] 'export' [StringLiteral] [Combinator]* ';'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class ExportDirective extends NamespaceDirective {
   /**
@@ -4250,7 +4164,7 @@ class ExportDirective extends NamespaceDirective {
    */
   ExportDirective(Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, List<Combinator> combinators, Token semicolon) : super(comment, metadata, keyword, libraryUri, combinators, semicolon);
 
-  accept(ASTVisitor visitor) => visitor.visitExportDirective(this);
+  accept(AstVisitor visitor) => visitor.visitExportDirective(this);
 
   LibraryElement get uriElement {
     Element element = this.element;
@@ -4260,7 +4174,7 @@ class ExportDirective extends NamespaceDirective {
     return null;
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     combinators.accept(visitor);
   }
@@ -4276,10 +4190,8 @@ class ExportDirective extends NamespaceDirective {
  *   | [ConditionalExpression] cascadeSection*
  *   | [ThrowExpression]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-abstract class Expression extends ASTNode {
+abstract class Expression extends AstNode {
   /**
    * An empty array of expressions.
    */
@@ -4353,7 +4265,7 @@ abstract class Expression extends ASTNode {
    *         will be bound
    */
   ParameterElement get propagatedParameterElement {
-    ASTNode parent = this.parent;
+    AstNode parent = this.parent;
     if (parent is ArgumentList) {
       return parent.getPropagatedParameterElementFor(this);
     } else if (parent is IndexExpression) {
@@ -4390,7 +4302,7 @@ abstract class Expression extends ASTNode {
    *         will be bound
    */
   ParameterElement get staticParameterElement {
-    ASTNode parent = this.parent;
+    AstNode parent = this.parent;
     if (parent is ArgumentList) {
       return parent.getStaticParameterElementFor(this);
     } else if (parent is IndexExpression) {
@@ -4433,8 +4345,6 @@ abstract class Expression extends ASTNode {
  * expressionFunctionBody ::=
  *     '=>' [Expression] ';'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class ExpressionFunctionBody extends FunctionBody {
   /**
@@ -4464,7 +4374,7 @@ class ExpressionFunctionBody extends FunctionBody {
     this._expression = becomeParentOf(expression);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitExpressionFunctionBody(this);
+  accept(AstVisitor visitor) => visitor.visitExpressionFunctionBody(this);
 
   Token get beginToken => functionDefinition;
 
@@ -4491,7 +4401,7 @@ class ExpressionFunctionBody extends FunctionBody {
     this._expression = becomeParentOf(expression);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
@@ -4503,8 +4413,6 @@ class ExpressionFunctionBody extends FunctionBody {
  * expressionStatement ::=
  *     [Expression]? ';'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class ExpressionStatement extends Statement {
   /**
@@ -4528,7 +4436,7 @@ class ExpressionStatement extends Statement {
     this._expression = becomeParentOf(expression);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitExpressionStatement(this);
+  accept(AstVisitor visitor) => visitor.visitExpressionStatement(this);
 
   Token get beginToken => _expression.beginToken;
 
@@ -4557,7 +4465,7 @@ class ExpressionStatement extends Statement {
     this._expression = becomeParentOf(expression);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
@@ -4570,10 +4478,8 @@ class ExpressionStatement extends Statement {
  * extendsClause ::=
  *     'extends' [TypeName]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-class ExtendsClause extends ASTNode {
+class ExtendsClause extends AstNode {
   /**
    * The token representing the 'extends' keyword.
    */
@@ -4594,7 +4500,7 @@ class ExtendsClause extends ASTNode {
     this._superclass = becomeParentOf(superclass);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitExtendsClause(this);
+  accept(AstVisitor visitor) => visitor.visitExtendsClause(this);
 
   Token get beginToken => keyword;
 
@@ -4616,7 +4522,7 @@ class ExtendsClause extends ASTNode {
     _superclass = becomeParentOf(name);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_superclass, visitor);
   }
 }
@@ -4629,8 +4535,6 @@ class ExtendsClause extends ASTNode {
  * fieldDeclaration ::=
  *     'static'? [VariableDeclarationList] ';'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class FieldDeclaration extends ClassMember {
   /**
@@ -4661,7 +4565,7 @@ class FieldDeclaration extends ClassMember {
     this._fieldList = becomeParentOf(fieldList);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitFieldDeclaration(this);
+  accept(AstVisitor visitor) => visitor.visitFieldDeclaration(this);
 
   Element get element => null;
 
@@ -4690,7 +4594,7 @@ class FieldDeclaration extends ClassMember {
     fieldList = becomeParentOf(fieldList);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_fieldList, visitor);
   }
@@ -4710,8 +4614,6 @@ class FieldDeclaration extends ClassMember {
  * fieldFormalParameter ::=
  *     ('final' [TypeName] | 'const' [TypeName] | 'var' | [TypeName])? 'this' '.' [SimpleIdentifier] [FormalParameterList]?
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class FieldFormalParameter extends NormalFormalParameter {
   /**
@@ -4760,7 +4662,7 @@ class FieldFormalParameter extends NormalFormalParameter {
     this._parameters = becomeParentOf(parameters);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitFieldFormalParameter(this);
+  accept(AstVisitor visitor) => visitor.visitFieldFormalParameter(this);
 
   Token get beginToken {
     if (keyword != null) {
@@ -4812,7 +4714,7 @@ class FieldFormalParameter extends NormalFormalParameter {
     _type = becomeParentOf(typeName);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_type, visitor);
     safelyVisitChild(identifier, visitor);
@@ -4828,8 +4730,6 @@ class FieldFormalParameter extends NormalFormalParameter {
  *     'for' '(' [DeclaredIdentifier] 'in' [Expression] ')' [Block]
  *   | 'for' '(' [SimpleIdentifier] 'in' [Expression] ')' [Block]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class ForEachStatement extends Statement {
   /**
@@ -4905,7 +4805,7 @@ class ForEachStatement extends Statement {
     this._body = becomeParentOf(body);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitForEachStatement(this);
+  accept(AstVisitor visitor) => visitor.visitForEachStatement(this);
 
   Token get beginToken => forKeyword;
 
@@ -4976,7 +4876,7 @@ class ForEachStatement extends Statement {
     _loopVariable = becomeParentOf(variable);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_loopVariable, visitor);
     safelyVisitChild(_identifier, visitor);
     safelyVisitChild(_iterator, visitor);
@@ -4998,8 +4898,6 @@ class ForEachStatement extends Statement {
  *     [DefaultFormalParameter]
  *   | [Expression]?
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class ForStatement extends Statement {
   /**
@@ -5080,7 +4978,7 @@ class ForStatement extends Statement {
     this._body = becomeParentOf(body);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitForStatement(this);
+  accept(AstVisitor visitor) => visitor.visitForStatement(this);
 
   Token get beginToken => forKeyword;
 
@@ -5158,7 +5056,7 @@ class ForStatement extends Statement {
     variableList = becomeParentOf(variableList);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_variableList, visitor);
     safelyVisitChild(_initialization, visitor);
     safelyVisitChild(_condition, visitor);
@@ -5177,10 +5075,8 @@ class ForStatement extends Statement {
  *   | [DefaultFormalParameter]
  *   | [DefaultFormalParameter]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-abstract class FormalParameter extends ASTNode {
+abstract class FormalParameter extends AstNode {
   /**
    * Return the element representing this parameter, or `null` if this parameter has not been
    * resolved.
@@ -5254,10 +5150,8 @@ abstract class FormalParameter extends ASTNode {
  * namedFormalParameters ::=
  *     '{' [DefaultFormalParameter] (',' [DefaultFormalParameter])* '}'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-class FormalParameterList extends ASTNode {
+class FormalParameterList extends AstNode {
   /**
    * The left parenthesis.
    */
@@ -5303,7 +5197,7 @@ class FormalParameterList extends ASTNode {
     this._rightParenthesis = rightParenthesis;
   }
 
-  accept(ASTVisitor visitor) => visitor.visitFormalParameterList(this);
+  accept(AstVisitor visitor) => visitor.visitFormalParameterList(this);
 
   Token get beginToken => _leftParenthesis;
 
@@ -5401,7 +5295,7 @@ class FormalParameterList extends ASTNode {
     _rightParenthesis = parenthesis;
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     _parameters.accept(visitor);
   }
 }
@@ -5416,10 +5310,8 @@ class FormalParameterList extends ASTNode {
  *   | [EmptyFunctionBody]
  *   | [ExpressionFunctionBody]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-abstract class FunctionBody extends ASTNode {
+abstract class FunctionBody extends AstNode {
 }
 
 /**
@@ -5433,8 +5325,6 @@ abstract class FunctionBody extends ASTNode {
  * functionSignature ::=
  *     [Type]? ('get' | 'set')? [SimpleIdentifier] [FormalParameterList]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class FunctionDeclaration extends CompilationUnitMember {
   /**
@@ -5481,7 +5371,7 @@ class FunctionDeclaration extends CompilationUnitMember {
     this._functionExpression = becomeParentOf(functionExpression);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitFunctionDeclaration(this);
+  accept(AstVisitor visitor) => visitor.visitFunctionDeclaration(this);
 
   ExecutableElement get element => _name != null ? (_name.staticElement as ExecutableElement) : null;
 
@@ -5549,7 +5439,7 @@ class FunctionDeclaration extends CompilationUnitMember {
     _returnType = becomeParentOf(name);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_returnType, visitor);
     safelyVisitChild(_name, visitor);
@@ -5574,8 +5464,6 @@ class FunctionDeclaration extends CompilationUnitMember {
 /**
  * Instances of the class `FunctionDeclarationStatement` wrap a [FunctionDeclaration
  ] as a statement.
- *
- * @coverage dart.engine.ast
  */
 class FunctionDeclarationStatement extends Statement {
   /**
@@ -5592,7 +5480,7 @@ class FunctionDeclarationStatement extends Statement {
     this._functionDeclaration = becomeParentOf(functionDeclaration);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitFunctionDeclarationStatement(this);
+  accept(AstVisitor visitor) => visitor.visitFunctionDeclarationStatement(this);
 
   Token get beginToken => _functionDeclaration.beginToken;
 
@@ -5614,7 +5502,7 @@ class FunctionDeclarationStatement extends Statement {
     this._functionDeclaration = becomeParentOf(functionDeclaration);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_functionDeclaration, visitor);
   }
 }
@@ -5626,8 +5514,6 @@ class FunctionDeclarationStatement extends Statement {
  * functionExpression ::=
  *     [FormalParameterList] [FunctionBody]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class FunctionExpression extends Expression {
   /**
@@ -5657,7 +5543,7 @@ class FunctionExpression extends Expression {
     this._body = becomeParentOf(body);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitFunctionExpression(this);
+  accept(AstVisitor visitor) => visitor.visitFunctionExpression(this);
 
   Token get beginToken {
     if (_parameters != null) {
@@ -5715,7 +5601,7 @@ class FunctionExpression extends Expression {
     this._parameters = becomeParentOf(parameters);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_parameters, visitor);
     safelyVisitChild(_body, visitor);
   }
@@ -5732,8 +5618,6 @@ class FunctionExpression extends Expression {
  * functionExpressionInvoction ::=
  *     [Expression] [ArgumentList]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class FunctionExpressionInvocation extends Expression {
   /**
@@ -5769,7 +5653,7 @@ class FunctionExpressionInvocation extends Expression {
     this._argumentList = becomeParentOf(argumentList);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitFunctionExpressionInvocation(this);
+  accept(AstVisitor visitor) => visitor.visitFunctionExpressionInvocation(this);
 
   /**
    * Return the list of arguments to the method.
@@ -5845,7 +5729,7 @@ class FunctionExpressionInvocation extends Expression {
     _propagatedElement = element;
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_function, visitor);
     safelyVisitChild(_argumentList, visitor);
   }
@@ -5861,8 +5745,6 @@ class FunctionExpressionInvocation extends Expression {
  * functionPrefix ::=
  *     [TypeName]? [SimpleIdentifier]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class FunctionTypeAlias extends TypeAlias {
   /**
@@ -5906,7 +5788,7 @@ class FunctionTypeAlias extends TypeAlias {
     this._parameters = becomeParentOf(parameters);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitFunctionTypeAlias(this);
+  accept(AstVisitor visitor) => visitor.visitFunctionTypeAlias(this);
 
   FunctionTypeAliasElement get element => _name != null ? (_name.staticElement as FunctionTypeAliasElement) : null;
 
@@ -5976,7 +5858,7 @@ class FunctionTypeAlias extends TypeAlias {
     this._typeParameters = becomeParentOf(typeParameters);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_returnType, visitor);
     safelyVisitChild(_name, visitor);
@@ -5993,8 +5875,6 @@ class FunctionTypeAlias extends TypeAlias {
  * functionSignature ::=
  *     [TypeName]? [SimpleIdentifier] [FormalParameterList]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class FunctionTypedFormalParameter extends NormalFormalParameter {
   /**
@@ -6022,7 +5902,7 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
     this._parameters = becomeParentOf(parameters);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitFunctionTypedFormalParameter(this);
+  accept(AstVisitor visitor) => visitor.visitFunctionTypedFormalParameter(this);
 
   Token get beginToken {
     if (_returnType != null) {
@@ -6070,7 +5950,7 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
     this._returnType = becomeParentOf(returnType);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_returnType, visitor);
     safelyVisitChild(identifier, visitor);
@@ -6086,8 +5966,6 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
  * hideCombinator ::=
  *     'hide' [SimpleIdentifier] (',' [SimpleIdentifier])*
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class HideCombinator extends Combinator {
   /**
@@ -6106,7 +5984,7 @@ class HideCombinator extends Combinator {
     this._hiddenNames.addAll(hiddenNames);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitHideCombinator(this);
+  accept(AstVisitor visitor) => visitor.visitHideCombinator(this);
 
   Token get endToken => _hiddenNames.endToken;
 
@@ -6117,7 +5995,7 @@ class HideCombinator extends Combinator {
    */
   NodeList<SimpleIdentifier> get hiddenNames => _hiddenNames;
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     _hiddenNames.accept(visitor);
   }
 }
@@ -6131,8 +6009,6 @@ class HideCombinator extends Combinator {
  *     [SimpleIdentifier]
  *   | [PrefixedIdentifier]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 abstract class Identifier extends Expression {
   /**
@@ -6191,8 +6067,6 @@ abstract class Identifier extends Expression {
  * ifStatement ::=
  *     'if' '(' [Expression] ')' [Statement] ('else' [Statement])?
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class IfStatement extends Statement {
   /**
@@ -6248,7 +6122,7 @@ class IfStatement extends Statement {
     this._elseStatement = becomeParentOf(elseStatement);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitIfStatement(this);
+  accept(AstVisitor visitor) => visitor.visitIfStatement(this);
 
   Token get beginToken => ifKeyword;
 
@@ -6311,7 +6185,7 @@ class IfStatement extends Statement {
     _thenStatement = becomeParentOf(statement);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_condition, visitor);
     safelyVisitChild(_thenStatement, visitor);
     safelyVisitChild(_elseStatement, visitor);
@@ -6326,10 +6200,8 @@ class IfStatement extends Statement {
  * implementsClause ::=
  *     'implements' [TypeName] (',' [TypeName])*
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-class ImplementsClause extends ASTNode {
+class ImplementsClause extends AstNode {
   /**
    * The token representing the 'implements' keyword.
    */
@@ -6351,7 +6223,7 @@ class ImplementsClause extends ASTNode {
     this._interfaces.addAll(interfaces);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitImplementsClause(this);
+  accept(AstVisitor visitor) => visitor.visitImplementsClause(this);
 
   Token get beginToken => keyword;
 
@@ -6364,7 +6236,7 @@ class ImplementsClause extends ASTNode {
    */
   NodeList<TypeName> get interfaces => _interfaces;
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     _interfaces.accept(visitor);
   }
 }
@@ -6376,8 +6248,6 @@ class ImplementsClause extends ASTNode {
  * importDirective ::=
  *     [Annotation] 'import' [StringLiteral] ('as' identifier)? [Combinator]* ';'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class ImportDirective extends NamespaceDirective {
   static Comparator<ImportDirective> COMPARATOR = (ImportDirective import1, ImportDirective import2) {
@@ -6498,7 +6368,7 @@ class ImportDirective extends NamespaceDirective {
     this._prefix = becomeParentOf(prefix);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitImportDirective(this);
+  accept(AstVisitor visitor) => visitor.visitImportDirective(this);
 
   ImportElement get element => super.element as ImportElement;
 
@@ -6527,7 +6397,7 @@ class ImportDirective extends NamespaceDirective {
     this._prefix = becomeParentOf(prefix);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_prefix, visitor);
     combinators.accept(visitor);
@@ -6541,8 +6411,6 @@ class ImportDirective extends NamespaceDirective {
  * indexExpression ::=
  *     [Expression] '[' [Expression] ']'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class IndexExpression extends Expression {
   /**
@@ -6622,7 +6490,7 @@ class IndexExpression extends Expression {
     this._rightBracket = rightBracket;
   }
 
-  accept(ASTVisitor visitor) => visitor.visitIndexExpression(this);
+  accept(AstVisitor visitor) => visitor.visitIndexExpression(this);
 
   Token get beginToken {
     if (_target != null) {
@@ -6686,7 +6554,7 @@ class IndexExpression extends Expression {
    */
   Expression get realTarget {
     if (isCascaded) {
-      ASTNode ancestor = parent;
+      AstNode ancestor = parent;
       while (ancestor is! CascadeExpression) {
         if (ancestor == null) {
           return _target;
@@ -6734,7 +6602,7 @@ class IndexExpression extends Expression {
    * @return `true` if this expression is in a context where the operator '[]' will be invoked
    */
   bool inGetterContext() {
-    ASTNode parent = this.parent;
+    AstNode parent = this.parent;
     if (parent is AssignmentExpression) {
       AssignmentExpression assignment = parent;
       if (identical(assignment.leftHandSide, this) && identical(assignment.operator.type, TokenType.EQ)) {
@@ -6755,7 +6623,7 @@ class IndexExpression extends Expression {
    *         invoked
    */
   bool inSetterContext() {
-    ASTNode parent = this.parent;
+    AstNode parent = this.parent;
     if (parent is PrefixExpression) {
       return parent.operator.type.isIncrementOperator;
     } else if (parent is PostfixExpression) {
@@ -6833,7 +6701,7 @@ class IndexExpression extends Expression {
     _target = becomeParentOf(expression);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_target, visitor);
     safelyVisitChild(_index, visitor);
   }
@@ -6889,8 +6757,6 @@ class IndexExpression extends Expression {
  * newExpression ::=
  *     ('new' | 'const') [TypeName] ('.' [SimpleIdentifier])? [ArgumentList]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class InstanceCreationExpression extends Expression {
   /**
@@ -6926,7 +6792,7 @@ class InstanceCreationExpression extends Expression {
     this._argumentList = becomeParentOf(argumentList);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitInstanceCreationExpression(this);
+  accept(AstVisitor visitor) => visitor.visitInstanceCreationExpression(this);
 
   /**
    * Return the list of arguments to the constructor.
@@ -6957,7 +6823,7 @@ class InstanceCreationExpression extends Expression {
     this._argumentList = becomeParentOf(argumentList);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(constructorName, visitor);
     safelyVisitChild(_argumentList, visitor);
   }
@@ -6978,8 +6844,6 @@ class InstanceCreationExpression extends Expression {
  *     '0x' hexidecimalDigit+
  *   | '0X' hexidecimalDigit+
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class IntegerLiteral extends Literal {
   /**
@@ -7000,13 +6864,13 @@ class IntegerLiteral extends Literal {
    */
   IntegerLiteral(this.literal, this.value);
 
-  accept(ASTVisitor visitor) => visitor.visitIntegerLiteral(this);
+  accept(AstVisitor visitor) => visitor.visitIntegerLiteral(this);
 
   Token get beginToken => literal;
 
   Token get endToken => literal;
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
   }
 }
 
@@ -7019,10 +6883,8 @@ class IntegerLiteral extends Literal {
  *     [InterpolationExpression]
  *   | [InterpolationString]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-abstract class InterpolationElement extends ASTNode {
+abstract class InterpolationElement extends AstNode {
 }
 
 /**
@@ -7034,8 +6896,6 @@ abstract class InterpolationElement extends ASTNode {
  *     '$' [SimpleIdentifier]
  *   | '$' '{' [Expression] '}'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class InterpolationExpression extends InterpolationElement {
   /**
@@ -7065,7 +6925,7 @@ class InterpolationExpression extends InterpolationElement {
     this._expression = becomeParentOf(expression);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitInterpolationExpression(this);
+  accept(AstVisitor visitor) => visitor.visitInterpolationExpression(this);
 
   Token get beginToken => leftBracket;
 
@@ -7093,7 +6953,7 @@ class InterpolationExpression extends InterpolationElement {
     this._expression = becomeParentOf(expression);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
@@ -7106,8 +6966,6 @@ class InterpolationExpression extends InterpolationElement {
  * interpolationString ::=
  *     characters
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class InterpolationString extends InterpolationElement {
   /**
@@ -7131,7 +6989,7 @@ class InterpolationString extends InterpolationElement {
     this._value = value;
   }
 
-  accept(ASTVisitor visitor) => visitor.visitInterpolationString(this);
+  accept(AstVisitor visitor) => visitor.visitInterpolationString(this);
 
   Token get beginToken => _contents;
 
@@ -7169,7 +7027,7 @@ class InterpolationString extends InterpolationElement {
     _value = string;
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
   }
 }
 
@@ -7180,8 +7038,6 @@ class InterpolationString extends InterpolationElement {
  * isExpression ::=
  *     [Expression] 'is' '!'? [TypeName]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class IsExpression extends Expression {
   /**
@@ -7217,7 +7073,7 @@ class IsExpression extends Expression {
     this._type = becomeParentOf(type);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitIsExpression(this);
+  accept(AstVisitor visitor) => visitor.visitIsExpression(this);
 
   Token get beginToken => _expression.beginToken;
 
@@ -7258,7 +7114,7 @@ class IsExpression extends Expression {
     this._type = becomeParentOf(name);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_expression, visitor);
     safelyVisitChild(_type, visitor);
   }
@@ -7271,10 +7127,8 @@ class IsExpression extends Expression {
  * label ::=
  *     [SimpleIdentifier] ':'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-class Label extends ASTNode {
+class Label extends AstNode {
   /**
    * The label being associated with the statement.
    */
@@ -7295,7 +7149,7 @@ class Label extends ASTNode {
     this._label = becomeParentOf(label);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitLabel(this);
+  accept(AstVisitor visitor) => visitor.visitLabel(this);
 
   Token get beginToken => _label.beginToken;
 
@@ -7317,7 +7171,7 @@ class Label extends ASTNode {
     this._label = becomeParentOf(label);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_label, visitor);
   }
 }
@@ -7330,8 +7184,6 @@ class Label extends ASTNode {
  * labeledStatement ::=
  *    [Label]+ [Statement]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class LabeledStatement extends Statement {
   /**
@@ -7356,7 +7208,7 @@ class LabeledStatement extends Statement {
     this._statement = becomeParentOf(statement);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitLabeledStatement(this);
+  accept(AstVisitor visitor) => visitor.visitLabeledStatement(this);
 
   Token get beginToken {
     if (!_labels.isEmpty) {
@@ -7390,7 +7242,7 @@ class LabeledStatement extends Statement {
     this._statement = becomeParentOf(statement);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     _labels.accept(visitor);
     safelyVisitChild(_statement, visitor);
   }
@@ -7403,8 +7255,6 @@ class LabeledStatement extends Statement {
  * libraryDirective ::=
  *     [Annotation] 'library' [Identifier] ';'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class LibraryDirective extends Directive {
   /**
@@ -7435,7 +7285,7 @@ class LibraryDirective extends Directive {
     this._name = becomeParentOf(name);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitLibraryDirective(this);
+  accept(AstVisitor visitor) => visitor.visitLibraryDirective(this);
 
   Token get endToken => semicolon;
 
@@ -7457,7 +7307,7 @@ class LibraryDirective extends Directive {
     this._name = becomeParentOf(name);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_name, visitor);
   }
@@ -7472,8 +7322,6 @@ class LibraryDirective extends Directive {
  * libraryIdentifier ::=
  *     [SimpleIdentifier] ('.' [SimpleIdentifier])*
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class LibraryIdentifier extends Identifier {
   /**
@@ -7491,7 +7339,7 @@ class LibraryIdentifier extends Identifier {
     this._components.addAll(components);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitLibraryIdentifier(this);
+  accept(AstVisitor visitor) => visitor.visitLibraryIdentifier(this);
 
   Token get beginToken => _components.beginToken;
 
@@ -7526,7 +7374,7 @@ class LibraryIdentifier extends Identifier {
 
   Element get staticElement => null;
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     _components.accept(visitor);
   }
 }
@@ -7538,8 +7386,6 @@ class LibraryIdentifier extends Identifier {
  * listLiteral ::=
  *     'const'? ('<' [TypeName] '>')? '[' ([Expression] ','?)? ']'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class ListLiteral extends TypedLiteral {
   /**
@@ -7574,7 +7420,7 @@ class ListLiteral extends TypedLiteral {
     this._rightBracket = rightBracket;
   }
 
-  accept(ASTVisitor visitor) => visitor.visitListLiteral(this);
+  accept(AstVisitor visitor) => visitor.visitListLiteral(this);
 
   Token get beginToken {
     Token token = constKeyword;
@@ -7629,7 +7475,7 @@ class ListLiteral extends TypedLiteral {
     _rightBracket = bracket;
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _elements.accept(visitor);
   }
@@ -7649,8 +7495,6 @@ class ListLiteral extends TypedLiteral {
  *   | [NullLiteral]
  *   | [StringLiteral]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 abstract class Literal extends Expression {
   int get precedence => 16;
@@ -7663,8 +7507,6 @@ abstract class Literal extends Expression {
  * mapLiteral ::=
  *     'const'? ('<' [TypeName] (',' [TypeName])* '>')? '{' ([MapLiteralEntry] (',' [MapLiteralEntry])* ','?)? '}'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class MapLiteral extends TypedLiteral {
   /**
@@ -7699,7 +7541,7 @@ class MapLiteral extends TypedLiteral {
     this._rightBracket = rightBracket;
   }
 
-  accept(ASTVisitor visitor) => visitor.visitMapLiteral(this);
+  accept(AstVisitor visitor) => visitor.visitMapLiteral(this);
 
   Token get beginToken {
     Token token = constKeyword;
@@ -7754,7 +7596,7 @@ class MapLiteral extends TypedLiteral {
     _rightBracket = bracket;
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _entries.accept(visitor);
   }
@@ -7768,10 +7610,8 @@ class MapLiteral extends TypedLiteral {
  * mapLiteralEntry ::=
  *     [Expression] ':' [Expression]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-class MapLiteralEntry extends ASTNode {
+class MapLiteralEntry extends AstNode {
   /**
    * The expression computing the key with which the value will be associated.
    */
@@ -7799,7 +7639,7 @@ class MapLiteralEntry extends ASTNode {
     this._value = becomeParentOf(value);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitMapLiteralEntry(this);
+  accept(AstVisitor visitor) => visitor.visitMapLiteralEntry(this);
 
   Token get beginToken => _key.beginToken;
 
@@ -7839,7 +7679,7 @@ class MapLiteralEntry extends ASTNode {
     _value = becomeParentOf(expression);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_key, visitor);
     safelyVisitChild(_value, visitor);
   }
@@ -7860,8 +7700,6 @@ class MapLiteralEntry extends ASTNode {
  *     [SimpleIdentifier]
  *   | 'operator' [SimpleIdentifier]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class MethodDeclaration extends ClassMember {
   /**
@@ -7929,7 +7767,7 @@ class MethodDeclaration extends ClassMember {
     this._body = becomeParentOf(body);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitMethodDeclaration(this);
+  accept(AstVisitor visitor) => visitor.visitMethodDeclaration(this);
 
   /**
    * Return the body of the method.
@@ -8043,7 +7881,7 @@ class MethodDeclaration extends ClassMember {
     _returnType = becomeParentOf(typeName);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_returnType, visitor);
     safelyVisitChild(_name, visitor);
@@ -8076,8 +7914,6 @@ class MethodDeclaration extends ClassMember {
  * methodInvoction ::=
  *     ([Expression] '.')? [SimpleIdentifier] [ArgumentList]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class MethodInvocation extends Expression {
   /**
@@ -8116,7 +7952,7 @@ class MethodInvocation extends Expression {
     this._argumentList = becomeParentOf(argumentList);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitMethodInvocation(this);
+  accept(AstVisitor visitor) => visitor.visitMethodInvocation(this);
 
   /**
    * Return the list of arguments to the method.
@@ -8156,7 +7992,7 @@ class MethodInvocation extends Expression {
    */
   Expression get realTarget {
     if (isCascaded) {
-      ASTNode ancestor = parent;
+      AstNode ancestor = parent;
       while (ancestor is! CascadeExpression) {
         if (ancestor == null) {
           return _target;
@@ -8214,7 +8050,7 @@ class MethodInvocation extends Expression {
     _target = becomeParentOf(expression);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_target, visitor);
     safelyVisitChild(_methodName, visitor);
     safelyVisitChild(_argumentList, visitor);
@@ -8229,8 +8065,6 @@ class MethodInvocation extends Expression {
  * namedExpression ::=
  *     [Label] [Expression]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class NamedExpression extends Expression {
   /**
@@ -8254,7 +8088,7 @@ class NamedExpression extends Expression {
     this._expression = becomeParentOf(expression);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitNamedExpression(this);
+  accept(AstVisitor visitor) => visitor.visitNamedExpression(this);
 
   Token get beginToken => _name.beginToken;
 
@@ -8309,7 +8143,7 @@ class NamedExpression extends Expression {
     _name = becomeParentOf(identifier);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_expression, visitor);
   }
@@ -8324,8 +8158,6 @@ class NamedExpression extends Expression {
  *     [ExportDirective]
  *   | [ImportDirective]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 abstract class NamespaceDirective extends UriBasedDirective {
   /**
@@ -8380,10 +8212,8 @@ abstract class NamespaceDirective extends UriBasedDirective {
  * nativeClause ::=
  *     'native' [StringLiteral]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-class NativeClause extends ASTNode {
+class NativeClause extends AstNode {
   /**
    * The token representing the 'native' keyword.
    */
@@ -8402,13 +8232,13 @@ class NativeClause extends ASTNode {
    */
   NativeClause(this.keyword, this.name);
 
-  accept(ASTVisitor visitor) => visitor.visitNativeClause(this);
+  accept(AstVisitor visitor) => visitor.visitNativeClause(this);
 
   Token get beginToken => keyword;
 
   Token get endToken => name.endToken;
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(name, visitor);
   }
 }
@@ -8421,8 +8251,6 @@ class NativeClause extends ASTNode {
  * nativeFunctionBody ::=
  *     'native' [SimpleStringLiteral] ';'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class NativeFunctionBody extends FunctionBody {
   /**
@@ -8452,7 +8280,7 @@ class NativeFunctionBody extends FunctionBody {
     this._stringLiteral = becomeParentOf(stringLiteral);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitNativeFunctionBody(this);
+  accept(AstVisitor visitor) => visitor.visitNativeFunctionBody(this);
 
   Token get beginToken => nativeToken;
 
@@ -8465,7 +8293,7 @@ class NativeFunctionBody extends FunctionBody {
    */
   StringLiteral get stringLiteral => _stringLiteral;
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_stringLiteral, visitor);
   }
 }
@@ -8480,8 +8308,6 @@ class NativeFunctionBody extends FunctionBody {
  *   | [FieldFormalParameter]
  *   | [SimpleFormalParameter]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 abstract class NormalFormalParameter extends FormalParameter {
   /**
@@ -8525,7 +8351,7 @@ abstract class NormalFormalParameter extends FormalParameter {
   SimpleIdentifier get identifier => _identifier;
 
   ParameterKind get kind {
-    ASTNode parent = this.parent;
+    AstNode parent = this.parent;
     if (parent is DefaultFormalParameter) {
       return parent.kind;
     }
@@ -8557,7 +8383,7 @@ abstract class NormalFormalParameter extends FormalParameter {
     this._identifier = becomeParentOf(identifier);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     //
     // Note that subclasses are responsible for visiting the identifier because they often need to
     // visit other nodes before visiting the identifier.
@@ -8566,7 +8392,7 @@ abstract class NormalFormalParameter extends FormalParameter {
       safelyVisitChild(_comment, visitor);
       _metadata.accept(visitor);
     } else {
-      for (ASTNode child in sortedCommentAndAnnotations) {
+      for (AstNode child in sortedCommentAndAnnotations) {
         child.accept(visitor);
       }
     }
@@ -8592,12 +8418,12 @@ abstract class NormalFormalParameter extends FormalParameter {
    * @return the comment and annotations associated with this parameter in the order in which they
    *         appeared in the original source
    */
-  List<ASTNode> get sortedCommentAndAnnotations {
-    List<ASTNode> childList = new List<ASTNode>();
+  List<AstNode> get sortedCommentAndAnnotations {
+    List<AstNode> childList = new List<AstNode>();
     childList.add(_comment);
     childList.addAll(_metadata);
-    List<ASTNode> children = new List.from(childList);
-    children.sort(ASTNode.LEXICAL_ORDER);
+    List<AstNode> children = new List.from(childList);
+    children.sort(AstNode.LEXICAL_ORDER);
     return children;
   }
 }
@@ -8609,8 +8435,6 @@ abstract class NormalFormalParameter extends FormalParameter {
  * nullLiteral ::=
  *     'null'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class NullLiteral extends Literal {
   /**
@@ -8627,13 +8451,13 @@ class NullLiteral extends Literal {
     this.literal = token;
   }
 
-  accept(ASTVisitor visitor) => visitor.visitNullLiteral(this);
+  accept(AstVisitor visitor) => visitor.visitNullLiteral(this);
 
   Token get beginToken => literal;
 
   Token get endToken => literal;
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
   }
 }
 
@@ -8644,8 +8468,6 @@ class NullLiteral extends Literal {
  * parenthesizedExpression ::=
  *     '(' [Expression] ')'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class ParenthesizedExpression extends Expression {
   /**
@@ -8676,7 +8498,7 @@ class ParenthesizedExpression extends Expression {
     this._rightParenthesis = rightParenthesis;
   }
 
-  accept(ASTVisitor visitor) => visitor.visitParenthesizedExpression(this);
+  accept(AstVisitor visitor) => visitor.visitParenthesizedExpression(this);
 
   Token get beginToken => _leftParenthesis;
 
@@ -8732,7 +8554,7 @@ class ParenthesizedExpression extends Expression {
     _rightParenthesis = parenthesis;
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
@@ -8744,8 +8566,6 @@ class ParenthesizedExpression extends Expression {
  * partDirective ::=
  *     [Annotation] 'part' [StringLiteral] ';'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class PartDirective extends UriBasedDirective {
   /**
@@ -8769,7 +8589,7 @@ class PartDirective extends UriBasedDirective {
    */
   PartDirective(Comment comment, List<Annotation> metadata, this.partToken, StringLiteral partUri, this.semicolon) : super(comment, metadata, partUri);
 
-  accept(ASTVisitor visitor) => visitor.visitPartDirective(this);
+  accept(AstVisitor visitor) => visitor.visitPartDirective(this);
 
   Token get endToken => semicolon;
 
@@ -8787,8 +8607,6 @@ class PartDirective extends UriBasedDirective {
  * partOfDirective ::=
  *     [Annotation] 'part' 'of' [Identifier] ';'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class PartOfDirective extends Directive {
   /**
@@ -8825,7 +8643,7 @@ class PartOfDirective extends Directive {
     this._libraryName = becomeParentOf(libraryName);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitPartOfDirective(this);
+  accept(AstVisitor visitor) => visitor.visitPartOfDirective(this);
 
   Token get endToken => semicolon;
 
@@ -8847,7 +8665,7 @@ class PartOfDirective extends Directive {
     this._libraryName = becomeParentOf(libraryName);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_libraryName, visitor);
   }
@@ -8862,8 +8680,6 @@ class PartOfDirective extends Directive {
  * postfixExpression ::=
  *     [Expression] [Token]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class PostfixExpression extends Expression {
   /**
@@ -8900,7 +8716,7 @@ class PostfixExpression extends Expression {
     this._operand = becomeParentOf(operand);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitPostfixExpression(this);
+  accept(AstVisitor visitor) => visitor.visitPostfixExpression(this);
 
   Token get beginToken => _operand.beginToken;
 
@@ -8980,7 +8796,7 @@ class PostfixExpression extends Expression {
     _staticElement = element;
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_operand, visitor);
   }
 
@@ -9034,8 +8850,6 @@ class PostfixExpression extends Expression {
  * prefixExpression ::=
  *     [Token] [Expression]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class PrefixExpression extends Expression {
   /**
@@ -9072,7 +8886,7 @@ class PrefixExpression extends Expression {
     this._operand = becomeParentOf(operand);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitPrefixExpression(this);
+  accept(AstVisitor visitor) => visitor.visitPrefixExpression(this);
 
   Token get beginToken => operator;
 
@@ -9152,7 +8966,7 @@ class PrefixExpression extends Expression {
     _staticElement = element;
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_operand, visitor);
   }
 
@@ -9208,8 +9022,6 @@ class PrefixExpression extends Expression {
  * prefixedIdentifier ::=
  *     [SimpleIdentifier] '.' [SimpleIdentifier]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class PrefixedIdentifier extends Identifier {
   /**
@@ -9239,7 +9051,7 @@ class PrefixedIdentifier extends Identifier {
     this._identifier = becomeParentOf(identifier);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitPrefixedIdentifier(this);
+  accept(AstVisitor visitor) => visitor.visitPrefixedIdentifier(this);
 
   Token get beginToken => _prefix.beginToken;
 
@@ -9303,7 +9115,7 @@ class PrefixedIdentifier extends Identifier {
     _prefix = becomeParentOf(identifier);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_prefix, visitor);
     safelyVisitChild(_identifier, visitor);
   }
@@ -9320,8 +9132,6 @@ class PrefixedIdentifier extends Identifier {
  * propertyAccess ::=
  *     [Expression] '.' [SimpleIdentifier]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class PropertyAccess extends Expression {
   /**
@@ -9351,7 +9161,7 @@ class PropertyAccess extends Expression {
     this._propertyName = becomeParentOf(propertyName);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitPropertyAccess(this);
+  accept(AstVisitor visitor) => visitor.visitPropertyAccess(this);
 
   Token get beginToken {
     if (_target != null) {
@@ -9382,7 +9192,7 @@ class PropertyAccess extends Expression {
    */
   Expression get realTarget {
     if (isCascaded) {
-      ASTNode ancestor = parent;
+      AstNode ancestor = parent;
       while (ancestor is! CascadeExpression) {
         if (ancestor == null) {
           return _target;
@@ -9433,7 +9243,7 @@ class PropertyAccess extends Expression {
     _target = becomeParentOf(expression);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_target, visitor);
     safelyVisitChild(_propertyName, visitor);
   }
@@ -9447,8 +9257,6 @@ class PropertyAccess extends Expression {
  * redirectingConstructorInvocation ::=
  *     'this' ('.' identifier)? arguments
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class RedirectingConstructorInvocation extends ConstructorInitializer {
   /**
@@ -9493,7 +9301,7 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
     this._argumentList = becomeParentOf(argumentList);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitRedirectingConstructorInvocation(this);
+  accept(AstVisitor visitor) => visitor.visitRedirectingConstructorInvocation(this);
 
   /**
    * Return the list of arguments to the constructor.
@@ -9532,7 +9340,7 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
     _constructorName = becomeParentOf(identifier);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_constructorName, visitor);
     safelyVisitChild(_argumentList, visitor);
   }
@@ -9545,8 +9353,6 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
  * rethrowExpression ::=
  *     'rethrow'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class RethrowExpression extends Expression {
   /**
@@ -9561,7 +9367,7 @@ class RethrowExpression extends Expression {
    */
   RethrowExpression(this.keyword);
 
-  accept(ASTVisitor visitor) => visitor.visitRethrowExpression(this);
+  accept(AstVisitor visitor) => visitor.visitRethrowExpression(this);
 
   Token get beginToken => keyword;
 
@@ -9569,7 +9375,7 @@ class RethrowExpression extends Expression {
 
   int get precedence => 0;
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
   }
 }
 
@@ -9580,8 +9386,6 @@ class RethrowExpression extends Expression {
  * returnStatement ::=
  *     'return' [Expression]? ';'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class ReturnStatement extends Statement {
   /**
@@ -9611,7 +9415,7 @@ class ReturnStatement extends Statement {
     this._expression = becomeParentOf(expression);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitReturnStatement(this);
+  accept(AstVisitor visitor) => visitor.visitReturnStatement(this);
 
   Token get beginToken => keyword;
 
@@ -9634,7 +9438,7 @@ class ReturnStatement extends Statement {
     this._expression = becomeParentOf(expression);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
@@ -9647,10 +9451,8 @@ class ReturnStatement extends Statement {
  * scriptTag ::=
  *     '#!' (~NEWLINE)* NEWLINE
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-class ScriptTag extends ASTNode {
+class ScriptTag extends AstNode {
   /**
    * The token representing this script tag.
    */
@@ -9663,13 +9465,13 @@ class ScriptTag extends ASTNode {
    */
   ScriptTag(this.scriptTag);
 
-  accept(ASTVisitor visitor) => visitor.visitScriptTag(this);
+  accept(AstVisitor visitor) => visitor.visitScriptTag(this);
 
   Token get beginToken => scriptTag;
 
   Token get endToken => scriptTag;
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
   }
 }
 
@@ -9681,8 +9483,6 @@ class ScriptTag extends ASTNode {
  * showCombinator ::=
  *     'show' [SimpleIdentifier] (',' [SimpleIdentifier])*
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class ShowCombinator extends Combinator {
   /**
@@ -9701,7 +9501,7 @@ class ShowCombinator extends Combinator {
     this._shownNames.addAll(shownNames);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitShowCombinator(this);
+  accept(AstVisitor visitor) => visitor.visitShowCombinator(this);
 
   Token get endToken => _shownNames.endToken;
 
@@ -9712,7 +9512,7 @@ class ShowCombinator extends Combinator {
    */
   NodeList<SimpleIdentifier> get shownNames => _shownNames;
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     _shownNames.accept(visitor);
   }
 }
@@ -9724,8 +9524,6 @@ class ShowCombinator extends Combinator {
  * simpleFormalParameter ::=
  *     ('final' [TypeName] | 'var' | [TypeName])? [SimpleIdentifier]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class SimpleFormalParameter extends NormalFormalParameter {
   /**
@@ -9753,7 +9551,7 @@ class SimpleFormalParameter extends NormalFormalParameter {
     this._type = becomeParentOf(type);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitSimpleFormalParameter(this);
+  accept(AstVisitor visitor) => visitor.visitSimpleFormalParameter(this);
 
   Token get beginToken {
     if (keyword != null) {
@@ -9787,7 +9585,7 @@ class SimpleFormalParameter extends NormalFormalParameter {
     _type = becomeParentOf(typeName);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_type, visitor);
     safelyVisitChild(identifier, visitor);
@@ -9805,8 +9603,6 @@ class SimpleFormalParameter extends NormalFormalParameter {
  *
  * internalCharacter ::= '_' | '$' | letter | digit
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class SimpleIdentifier extends Identifier {
   /**
@@ -9841,7 +9637,7 @@ class SimpleIdentifier extends Identifier {
    */
   SimpleIdentifier(this.token);
 
-  accept(ASTVisitor visitor) => visitor.visitSimpleIdentifier(this);
+  accept(AstVisitor visitor) => visitor.visitSimpleIdentifier(this);
 
   Token get beginToken => token;
 
@@ -9868,7 +9664,7 @@ class SimpleIdentifier extends Identifier {
    * @return `true` if this identifier is the name being declared in a declaration
    */
   bool inDeclarationContext() {
-    ASTNode parent = this.parent;
+    AstNode parent = this.parent;
     if (parent is CatchClause) {
       CatchClause clause = parent;
       return identical(this, clause.exceptionParameter) || identical(this, clause.stackTraceParameter);
@@ -9908,8 +9704,8 @@ class SimpleIdentifier extends Identifier {
    * @return `true` if this expression is in a context where a getter will be invoked
    */
   bool inGetterContext() {
-    ASTNode parent = this.parent;
-    ASTNode target = this;
+    AstNode parent = this.parent;
+    AstNode target = this;
     // skip prefix
     if (parent is PrefixedIdentifier) {
       PrefixedIdentifier prefixed = parent as PrefixedIdentifier;
@@ -9950,8 +9746,8 @@ class SimpleIdentifier extends Identifier {
    * @return `true` if this expression is in a context where a setter will be invoked
    */
   bool inSetterContext() {
-    ASTNode parent = this.parent;
-    ASTNode target = this;
+    AstNode parent = this.parent;
+    AstNode target = this;
     // skip prefix
     if (parent is PrefixedIdentifier) {
       PrefixedIdentifier prefixed = parent as PrefixedIdentifier;
@@ -10002,7 +9798,7 @@ class SimpleIdentifier extends Identifier {
     _staticElement = validateElement2(element);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
   }
 
   /**
@@ -10012,7 +9808,7 @@ class SimpleIdentifier extends Identifier {
    * @param element the element to be associated with this identifier
    * @return the element to be associated with this identifier
    */
-  Element validateElement(ASTNode parent, Type expectedClass, Element element) {
+  Element validateElement(AstNode parent, Type expectedClass, Element element) {
     if (!isInstanceOf(element, expectedClass)) {
       AnalysisEngine.instance.logger.logInformation3("Internal error: attempting to set the name of a ${parent.runtimeType.toString()} to a ${element.runtimeType.toString()}", new JavaException());
       return null;
@@ -10031,7 +9827,7 @@ class SimpleIdentifier extends Identifier {
     if (element == null) {
       return null;
     }
-    ASTNode parent = this.parent;
+    AstNode parent = this.parent;
     if (parent is ClassDeclaration && identical(parent.name, this)) {
       return validateElement(parent, ClassElement, element);
     } else if (parent is ClassTypeAlias && identical(parent.name, this)) {
@@ -10079,8 +9875,6 @@ class SimpleIdentifier extends Identifier {
  *     "'" characters "'"
  *     '"' characters '"'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class SimpleStringLiteral extends StringLiteral {
   /**
@@ -10108,7 +9902,7 @@ class SimpleStringLiteral extends StringLiteral {
     this._value = StringUtilities.intern(value);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitSimpleStringLiteral(this);
+  accept(AstVisitor visitor) => visitor.visitSimpleStringLiteral(this);
 
   Token get beginToken => literal;
 
@@ -10186,7 +9980,7 @@ class SimpleStringLiteral extends StringLiteral {
     _value = StringUtilities.intern(_value);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
   }
 
   void appendStringValue(JavaStringBuilder builder) {
@@ -10215,10 +10009,8 @@ class SimpleStringLiteral extends StringLiteral {
  *   | [ExpressionStatement]
  *   | [FunctionDeclarationStatement]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-abstract class Statement extends ASTNode {
+abstract class Statement extends AstNode {
 }
 
 /**
@@ -10229,8 +10021,6 @@ abstract class Statement extends ASTNode {
  *     ''' [InterpolationElement]* '''
  *   | '"' [InterpolationElement]* '"'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class StringInterpolation extends StringLiteral {
   /**
@@ -10248,7 +10038,7 @@ class StringInterpolation extends StringLiteral {
     this._elements.addAll(elements);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitStringInterpolation(this);
+  accept(AstVisitor visitor) => visitor.visitStringInterpolation(this);
 
   Token get beginToken => _elements.beginToken;
 
@@ -10261,7 +10051,7 @@ class StringInterpolation extends StringLiteral {
 
   Token get endToken => _elements.endToken;
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     _elements.accept(visitor);
   }
 
@@ -10279,8 +10069,6 @@ class StringInterpolation extends StringLiteral {
  *   | [AdjacentStrings]
  *   | [StringInterpolation]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 abstract class StringLiteral extends Literal {
   /**
@@ -10317,8 +10105,6 @@ abstract class StringLiteral extends Literal {
  * superInvocation ::=
  *     'super' ('.' [SimpleIdentifier])? [ArgumentList]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class SuperConstructorInvocation extends ConstructorInitializer {
   /**
@@ -10363,7 +10149,7 @@ class SuperConstructorInvocation extends ConstructorInitializer {
     this._argumentList = becomeParentOf(argumentList);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitSuperConstructorInvocation(this);
+  accept(AstVisitor visitor) => visitor.visitSuperConstructorInvocation(this);
 
   /**
    * Return the list of arguments to the constructor.
@@ -10402,7 +10188,7 @@ class SuperConstructorInvocation extends ConstructorInitializer {
     _constructorName = becomeParentOf(identifier);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_constructorName, visitor);
     safelyVisitChild(_argumentList, visitor);
   }
@@ -10415,8 +10201,6 @@ class SuperConstructorInvocation extends ConstructorInitializer {
  * superExpression ::=
  *     'super'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class SuperExpression extends Expression {
   /**
@@ -10431,7 +10215,7 @@ class SuperExpression extends Expression {
    */
   SuperExpression(this.keyword);
 
-  accept(ASTVisitor visitor) => visitor.visitSuperExpression(this);
+  accept(AstVisitor visitor) => visitor.visitSuperExpression(this);
 
   Token get beginToken => keyword;
 
@@ -10439,7 +10223,7 @@ class SuperExpression extends Expression {
 
   int get precedence => 16;
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
   }
 }
 
@@ -10450,8 +10234,6 @@ class SuperExpression extends Expression {
  * switchCase ::=
  *     [SimpleIdentifier]* 'case' [Expression] ':' [Statement]*
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class SwitchCase extends SwitchMember {
   /**
@@ -10472,7 +10254,7 @@ class SwitchCase extends SwitchMember {
     this._expression = becomeParentOf(expression);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitSwitchCase(this);
+  accept(AstVisitor visitor) => visitor.visitSwitchCase(this);
 
   /**
    * Return the expression controlling whether the statements will be executed.
@@ -10490,7 +10272,7 @@ class SwitchCase extends SwitchMember {
     this._expression = becomeParentOf(expression);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
     safelyVisitChild(_expression, visitor);
     statements.accept(visitor);
@@ -10504,8 +10286,6 @@ class SwitchCase extends SwitchMember {
  * switchDefault ::=
  *     [SimpleIdentifier]* 'default' ':' [Statement]*
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class SwitchDefault extends SwitchMember {
   /**
@@ -10518,9 +10298,9 @@ class SwitchDefault extends SwitchMember {
    */
   SwitchDefault(List<Label> labels, Token keyword, Token colon, List<Statement> statements) : super(labels, keyword, colon, statements);
 
-  accept(ASTVisitor visitor) => visitor.visitSwitchDefault(this);
+  accept(AstVisitor visitor) => visitor.visitSwitchDefault(this);
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
     statements.accept(visitor);
   }
@@ -10535,10 +10315,8 @@ class SwitchDefault extends SwitchMember {
  *     switchCase
  *   | switchDefault
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-abstract class SwitchMember extends ASTNode {
+abstract class SwitchMember extends AstNode {
   /**
    * The labels associated with the switch member.
    */
@@ -10610,8 +10388,6 @@ abstract class SwitchMember extends ASTNode {
  * switchStatement ::=
  *     'switch' '(' [Expression] ')' '{' [SwitchCase]* [SwitchDefault]? '}'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class SwitchStatement extends Statement {
   /**
@@ -10666,7 +10442,7 @@ class SwitchStatement extends Statement {
     this._members.addAll(members);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitSwitchStatement(this);
+  accept(AstVisitor visitor) => visitor.visitSwitchStatement(this);
 
   Token get beginToken => keyword;
 
@@ -10696,7 +10472,7 @@ class SwitchStatement extends Statement {
     this._expression = becomeParentOf(expression);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_expression, visitor);
     _members.accept(visitor);
   }
@@ -10709,8 +10485,6 @@ class SwitchStatement extends Statement {
  * symbolLiteral ::=
  *     '#' (operator | (identifier ('.' identifier)*))
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class SymbolLiteral extends Literal {
   /**
@@ -10731,13 +10505,13 @@ class SymbolLiteral extends Literal {
    */
   SymbolLiteral(this.poundSign, this.components);
 
-  accept(ASTVisitor visitor) => visitor.visitSymbolLiteral(this);
+  accept(AstVisitor visitor) => visitor.visitSymbolLiteral(this);
 
   Token get beginToken => poundSign;
 
   Token get endToken => components[components.length - 1];
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
   }
 }
 
@@ -10748,8 +10522,6 @@ class SymbolLiteral extends Literal {
  * thisExpression ::=
  *     'this'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class ThisExpression extends Expression {
   /**
@@ -10764,7 +10536,7 @@ class ThisExpression extends Expression {
    */
   ThisExpression(this.keyword);
 
-  accept(ASTVisitor visitor) => visitor.visitThisExpression(this);
+  accept(AstVisitor visitor) => visitor.visitThisExpression(this);
 
   Token get beginToken => keyword;
 
@@ -10772,7 +10544,7 @@ class ThisExpression extends Expression {
 
   int get precedence => 16;
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
   }
 }
 
@@ -10783,8 +10555,6 @@ class ThisExpression extends Expression {
  * throwExpression ::=
  *     'throw' [Expression]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class ThrowExpression extends Expression {
   /**
@@ -10807,7 +10577,7 @@ class ThrowExpression extends Expression {
     this._expression = becomeParentOf(expression);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitThrowExpression(this);
+  accept(AstVisitor visitor) => visitor.visitThrowExpression(this);
 
   Token get beginToken => keyword;
 
@@ -10836,7 +10606,7 @@ class ThrowExpression extends Expression {
     this._expression = becomeParentOf(expression);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
@@ -10850,8 +10620,6 @@ class ThrowExpression extends Expression {
  *     ('final' | 'const') type? staticFinalDeclarationList ';'
  *   | variableDeclaration ';'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class TopLevelVariableDeclaration extends CompilationUnitMember {
   /**
@@ -10876,7 +10644,7 @@ class TopLevelVariableDeclaration extends CompilationUnitMember {
     this._variableList = becomeParentOf(variableList);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitTopLevelVariableDeclaration(this);
+  accept(AstVisitor visitor) => visitor.visitTopLevelVariableDeclaration(this);
 
   Element get element => null;
 
@@ -10898,7 +10666,7 @@ class TopLevelVariableDeclaration extends CompilationUnitMember {
     variableList = becomeParentOf(variableList);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_variableList, visitor);
   }
@@ -10916,8 +10684,6 @@ class TopLevelVariableDeclaration extends CompilationUnitMember {
  * finallyClause ::=
  *     'finally' [Block]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class TryStatement extends Statement {
   /**
@@ -10963,7 +10729,7 @@ class TryStatement extends Statement {
     this._finallyBlock = becomeParentOf(finallyBlock);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitTryStatement(this);
+  accept(AstVisitor visitor) => visitor.visitTryStatement(this);
 
   Token get beginToken => tryKeyword;
 
@@ -11018,7 +10784,7 @@ class TryStatement extends Statement {
     _finallyBlock = becomeParentOf(block);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_body, visitor);
     _catchClauses.accept(visitor);
     safelyVisitChild(_finallyBlock, visitor);
@@ -11036,8 +10802,6 @@ class TryStatement extends Statement {
  *     classTypeAlias
  *   | functionTypeAlias
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 abstract class TypeAlias extends CompilationUnitMember {
   /**
@@ -11072,10 +10836,8 @@ abstract class TypeAlias extends CompilationUnitMember {
  * typeArguments ::=
  *     '<' typeName (',' typeName)* '>'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-class TypeArgumentList extends ASTNode {
+class TypeArgumentList extends AstNode {
   /**
    * The left bracket.
    */
@@ -11103,7 +10865,7 @@ class TypeArgumentList extends ASTNode {
     this._arguments.addAll(arguments);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitTypeArgumentList(this);
+  accept(AstVisitor visitor) => visitor.visitTypeArgumentList(this);
 
   /**
    * Return the type arguments associated with the type.
@@ -11116,7 +10878,7 @@ class TypeArgumentList extends ASTNode {
 
   Token get endToken => rightBracket;
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     _arguments.accept(visitor);
   }
 }
@@ -11129,10 +10891,8 @@ class TypeArgumentList extends ASTNode {
  * typeName ::=
  *     [Identifier] typeArguments?
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-class TypeName extends ASTNode {
+class TypeName extends AstNode {
   /**
    * The name of the type.
    */
@@ -11160,7 +10920,7 @@ class TypeName extends ASTNode {
     this._typeArguments = becomeParentOf(typeArguments);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitTypeName(this);
+  accept(AstVisitor visitor) => visitor.visitTypeName(this);
 
   Token get beginToken => _name.beginToken;
 
@@ -11206,7 +10966,7 @@ class TypeName extends ASTNode {
     this._typeArguments = becomeParentOf(typeArguments);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_typeArguments, visitor);
   }
@@ -11219,8 +10979,6 @@ class TypeName extends ASTNode {
  * typeParameter ::=
  *     [SimpleIdentifier] ('extends' [TypeName])?
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class TypeParameter extends Declaration {
   /**
@@ -11254,7 +11012,7 @@ class TypeParameter extends Declaration {
     this._bound = becomeParentOf(bound);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitTypeParameter(this);
+  accept(AstVisitor visitor) => visitor.visitTypeParameter(this);
 
   /**
    * Return the name of the upper bound for legal arguments, or `null` if there was no
@@ -11298,7 +11056,7 @@ class TypeParameter extends Declaration {
     _name = becomeParentOf(identifier);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_bound, visitor);
@@ -11314,10 +11072,8 @@ class TypeParameter extends Declaration {
  * typeParameterList ::=
  *     '<' [TypeParameter] (',' [TypeParameter])* '>'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-class TypeParameterList extends ASTNode {
+class TypeParameterList extends AstNode {
   /**
    * The left angle bracket.
    */
@@ -11345,7 +11101,7 @@ class TypeParameterList extends ASTNode {
     this._typeParameters.addAll(typeParameters);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitTypeParameterList(this);
+  accept(AstVisitor visitor) => visitor.visitTypeParameterList(this);
 
   Token get beginToken => leftBracket;
 
@@ -11358,7 +11114,7 @@ class TypeParameterList extends ASTNode {
    */
   NodeList<TypeParameter> get typeParameters => _typeParameters;
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     _typeParameters.accept(visitor);
   }
 }
@@ -11372,8 +11128,6 @@ class TypeParameterList extends ASTNode {
  *     [ListLiteral]
  *   | [MapLiteral]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 abstract class TypedLiteral extends Literal {
   /**
@@ -11398,7 +11152,7 @@ abstract class TypedLiteral extends Literal {
     this.typeArguments = becomeParentOf(typeArguments);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(typeArguments, visitor);
   }
 }
@@ -11413,8 +11167,6 @@ abstract class TypedLiteral extends Literal {
  *   | [ImportDirective]
  *   | [PartDirective]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 abstract class UriBasedDirective extends Directive {
   /**
@@ -11458,7 +11210,7 @@ abstract class UriBasedDirective extends Directive {
     this._uri = becomeParentOf(uri);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_uri, visitor);
   }
@@ -11473,8 +11225,6 @@ abstract class UriBasedDirective extends Directive {
  * variableDeclaration ::=
  *     [SimpleIdentifier] ('=' [Expression])?
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class VariableDeclaration extends Declaration {
   /**
@@ -11508,7 +11258,7 @@ class VariableDeclaration extends Declaration {
     this._initializer = becomeParentOf(initializer);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitVariableDeclaration(this);
+  accept(AstVisitor visitor) => visitor.visitVariableDeclaration(this);
 
   /**
    * This overridden implementation of getDocumentationComment() looks in the grandparent node for
@@ -11518,7 +11268,7 @@ class VariableDeclaration extends Declaration {
     Comment comment = super.documentationComment;
     if (comment == null) {
       if (parent != null && parent.parent != null) {
-        ASTNode node = parent.parent;
+        AstNode node = parent.parent;
         if (node is AnnotatedNode) {
           return node.documentationComment;
         }
@@ -11557,7 +11307,7 @@ class VariableDeclaration extends Declaration {
    * @return `true` if this variable was declared with the 'const' modifier
    */
   bool get isConst {
-    ASTNode parent = this.parent;
+    AstNode parent = this.parent;
     return parent is VariableDeclarationList && parent.isConst;
   }
 
@@ -11569,7 +11319,7 @@ class VariableDeclaration extends Declaration {
    * @return `true` if this variable was declared with the 'final' modifier
    */
   bool get isFinal {
-    ASTNode parent = this.parent;
+    AstNode parent = this.parent;
     return parent is VariableDeclarationList && parent.isFinal;
   }
 
@@ -11591,7 +11341,7 @@ class VariableDeclaration extends Declaration {
     this._name = becomeParentOf(name);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_initializer, visitor);
@@ -11614,8 +11364,6 @@ class VariableDeclaration extends Declaration {
  *   | 'var'
  *   | [TypeName]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class VariableDeclarationList extends AnnotatedNode {
   /**
@@ -11649,7 +11397,7 @@ class VariableDeclarationList extends AnnotatedNode {
     this._variables.addAll(variables);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitVariableDeclarationList(this);
+  accept(AstVisitor visitor) => visitor.visitVariableDeclarationList(this);
 
   Token get endToken => _variables.endToken;
 
@@ -11692,7 +11440,7 @@ class VariableDeclarationList extends AnnotatedNode {
     _type = becomeParentOf(typeName);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_type, visitor);
     _variables.accept(visitor);
   }
@@ -11715,8 +11463,6 @@ class VariableDeclarationList extends AnnotatedNode {
  * variableDeclarationStatement ::=
  *     [VariableDeclarationList] ';'
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class VariableDeclarationStatement extends Statement {
   /**
@@ -11739,7 +11485,7 @@ class VariableDeclarationStatement extends Statement {
     this._variableList = becomeParentOf(variableList);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitVariableDeclarationStatement(this);
+  accept(AstVisitor visitor) => visitor.visitVariableDeclarationStatement(this);
 
   Token get beginToken => _variableList.beginToken;
 
@@ -11761,7 +11507,7 @@ class VariableDeclarationStatement extends Statement {
     this._variableList = becomeParentOf(variableList);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_variableList, visitor);
   }
 }
@@ -11773,8 +11519,6 @@ class VariableDeclarationStatement extends Statement {
  * whileStatement ::=
  *     'while' '(' [Expression] ')' [Statement]
  * </pre>
- *
- * @coverage dart.engine.ast
  */
 class WhileStatement extends Statement {
   /**
@@ -11816,7 +11560,7 @@ class WhileStatement extends Statement {
     this._body = becomeParentOf(body);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitWhileStatement(this);
+  accept(AstVisitor visitor) => visitor.visitWhileStatement(this);
 
   Token get beginToken => keyword;
 
@@ -11855,7 +11599,7 @@ class WhileStatement extends Statement {
     _condition = becomeParentOf(expression);
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_condition, visitor);
     safelyVisitChild(_body, visitor);
   }
@@ -11868,10 +11612,8 @@ class WhileStatement extends Statement {
  * withClause ::=
  *     'with' [TypeName] (',' [TypeName])*
  * </pre>
- *
- * @coverage dart.engine.ast
  */
-class WithClause extends ASTNode {
+class WithClause extends AstNode {
   /**
    * The token representing the 'with' keyword.
    */
@@ -11894,7 +11636,7 @@ class WithClause extends ASTNode {
     this._mixinTypes.addAll(mixinTypes);
   }
 
-  accept(ASTVisitor visitor) => visitor.visitWithClause(this);
+  accept(AstVisitor visitor) => visitor.visitWithClause(this);
 
   Token get beginToken => _withKeyword;
 
@@ -11923,16 +11665,16 @@ class WithClause extends ASTNode {
     this._withKeyword = withKeyword;
   }
 
-  void visitChildren(ASTVisitor visitor) {
+  void visitChildren(AstVisitor visitor) {
     _mixinTypes.accept(visitor);
   }
 }
 
 /**
  * Instances of the class `BreadthFirstVisitor` implement an AST visitor that will recursively
- * visit all of the nodes in an AST structure, similar to [GeneralizingASTVisitor]. This
+ * visit all of the nodes in an AST structure, similar to [GeneralizingAstVisitor]. This
  * visitor uses a breadth-first ordering rather than the depth-first ordering of
- * [GeneralizingASTVisitor].
+ * [GeneralizingAstVisitor].
  *
  * Subclasses that override a visit method must either invoke the overridden visit method or
  * explicitly invoke the more general visit method. Failure to do so will cause the visit methods
@@ -11942,51 +11684,49 @@ class WithClause extends ASTNode {
  * In addition, subclasses should <b>not</b> explicitly visit the children of a node, but should
  * ensure that the method [visitNode] is used to visit the children (either directly
  * or indirectly). Failure to do will break the order in which nodes are visited.
- *
- * @coverage dart.engine.ast
  */
-class BreadthFirstVisitor<R> extends GeneralizingASTVisitor<R> {
+class BreadthFirstVisitor<R> extends GeneralizingAstVisitor<R> {
   /**
    * A queue holding the nodes that have not yet been visited in the order in which they ought to be
    * visited.
    */
-  Queue<ASTNode> _queue = new Queue<ASTNode>();
+  Queue<AstNode> _queue = new Queue<AstNode>();
 
   /**
    * A visitor, used to visit the children of the current node, that will add the nodes it visits to
    * the [queue].
    */
-  GeneralizingASTVisitor<Object> _childVisitor;
+  GeneralizingAstVisitor<Object> _childVisitor;
 
   /**
    * Visit all nodes in the tree starting at the given `root` node, in breadth-first order.
    *
    * @param root the root of the AST structure to be visited
    */
-  void visitAllNodes(ASTNode root) {
+  void visitAllNodes(AstNode root) {
     _queue.add(root);
     while (!_queue.isEmpty) {
-      ASTNode next = _queue.removeFirst();
+      AstNode next = _queue.removeFirst();
       next.accept(this);
     }
   }
 
-  R visitNode(ASTNode node) {
+  R visitNode(AstNode node) {
     node.visitChildren(_childVisitor);
     return null;
   }
 
   BreadthFirstVisitor() {
-    this._childVisitor = new GeneralizingASTVisitor_BreadthFirstVisitor(this);
+    this._childVisitor = new GeneralizingAstVisitor_BreadthFirstVisitor(this);
   }
 }
 
-class GeneralizingASTVisitor_BreadthFirstVisitor extends GeneralizingASTVisitor<Object> {
+class GeneralizingAstVisitor_BreadthFirstVisitor extends GeneralizingAstVisitor<Object> {
   final BreadthFirstVisitor BreadthFirstVisitor_this;
 
-  GeneralizingASTVisitor_BreadthFirstVisitor(this.BreadthFirstVisitor_this) : super();
+  GeneralizingAstVisitor_BreadthFirstVisitor(this.BreadthFirstVisitor_this) : super();
 
-  Object visitNode(ASTNode node) {
+  Object visitNode(AstNode node) {
     BreadthFirstVisitor_this._queue.add(node);
     return null;
   }
@@ -11996,7 +11736,6 @@ class GeneralizingASTVisitor_BreadthFirstVisitor extends GeneralizingASTVisitor<
  * Instances of the class `ConstantEvaluator` evaluate constant expressions to produce their
  * compile-time value. According to the Dart Language Specification: <blockquote> A constant
  * expression is one of the following:
- *
  * * A literal number.
  * * A literal boolean.
  * * A literal string where any interpolated expression is a compile-time constant that evaluates
@@ -12022,7 +11761,6 @@ class GeneralizingASTVisitor_BreadthFirstVisitor extends GeneralizingASTVisitor<
  * `e1 * e2`, `e1 / e2`, `e1 ~/ e2`, `e1 > e2`, `e1 < e2`,
  * `e1 >= e2`, `e1 <= e2` or `e1 % e2`, where `e`, `e1` and `e2`
  * are constant expressions that evaluate to a numeric value or to `null`.
- *
  * </blockquote> The values returned by instances of this class are therefore `null` and
  * instances of the classes `Boolean`, `BigInteger`, `Double`, `String`, and
  * `DartObject`.
@@ -12030,10 +11768,8 @@ class GeneralizingASTVisitor_BreadthFirstVisitor extends GeneralizingASTVisitor<
  * In addition, this class defines several values that can be returned to indicate various
  * conditions encountered during evaluation. These are documented with the static field that define
  * those values.
- *
- * @coverage dart.engine.ast
  */
-class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
+class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   /**
    * The value returned for expressions (or non-expression nodes) that are not compile-time constant
    * expressions.
@@ -12248,7 +11984,7 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
 
   Object visitMethodInvocation(MethodInvocation node) => visitNode(node);
 
-  Object visitNode(ASTNode node) => NOT_A_CONSTANT;
+  Object visitNode(AstNode node) => NOT_A_CONSTANT;
 
   Object visitNullLiteral(NullLiteral node) => null;
 
@@ -12336,30 +12072,28 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
 
 /**
  * Instances of the class `ElementLocator` locate the [Element]
- * associated with a given [ASTNode].
- *
- * @coverage dart.engine.ast
+ * associated with a given [AstNode].
  */
 class ElementLocator {
   /**
-   * Locate the [Element] associated with the given [ASTNode].
+   * Locate the [Element] associated with the given [AstNode].
    *
    * @param node the node (not `null`)
    * @return the associated element, or `null` if none is found
    */
-  static Element locate(ASTNode node) {
+  static Element locate(AstNode node) {
     ElementLocator_ElementMapper mapper = new ElementLocator_ElementMapper();
     return node.accept(mapper);
   }
 
   /**
-   * Locate the [Element] associated with the given [ASTNode] and offset.
+   * Locate the [Element] associated with the given [AstNode] and offset.
    *
    * @param node the node (not `null`)
    * @param offset the offset relative to source
    * @return the associated element, or `null` if none is found
    */
-  static Element locate2(ASTNode node, int offset) {
+  static Element locate2(AstNode node, int offset) {
     // try to get Element from node
     {
       Element nodeElement = locate(node);
@@ -12382,7 +12116,7 @@ class ElementLocator {
 /**
  * Visitor that maps nodes to elements.
  */
-class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
+class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
   Element visitAssignmentExpression(AssignmentExpression node) => node.bestElement;
 
   Element visitBinaryExpression(BinaryExpression node) => node.bestElement;
@@ -12396,10 +12130,10 @@ class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
   Element visitFunctionDeclaration(FunctionDeclaration node) => node.element;
 
   Element visitIdentifier(Identifier node) {
-    ASTNode parent = node.parent;
+    AstNode parent = node.parent;
     // Type name in InstanceCreationExpression
     {
-      ASTNode typeNameCandidate = parent;
+      AstNode typeNameCandidate = parent;
       // new prefix.node[.constructorName]()
       if (typeNameCandidate is PrefixedIdentifier) {
         PrefixedIdentifier prefixedIdentifier = typeNameCandidate as PrefixedIdentifier;
@@ -12432,7 +12166,7 @@ class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
       }
     }
     if (parent is LibraryIdentifier) {
-      ASTNode grandParent = parent.parent;
+      AstNode grandParent = parent.parent;
       if (grandParent is PartOfDirective) {
         Element element = grandParent.element;
         if (element is LibraryElement) {
@@ -12466,7 +12200,7 @@ class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
   Element visitPrefixExpression(PrefixExpression node) => node.bestElement;
 
   Element visitStringLiteral(StringLiteral node) {
-    ASTNode parent = node.parent;
+    AstNode parent = node.parent;
     if (parent is UriBasedDirective) {
       return parent.uriElement;
     }
@@ -12477,9 +12211,9 @@ class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
 }
 
 /**
- * Instances of the class `GeneralizingASTVisitor` implement an AST visitor that will
+ * Instances of the class `GeneralizingAstVisitor` implement an AST visitor that will
  * recursively visit all of the nodes in an AST structure (like instances of the class
- * [RecursiveASTVisitor]). In addition, when a node of a specific type is visited not only
+ * [RecursiveAstVisitor]). In addition, when a node of a specific type is visited not only
  * will the visit method for that specific type of node be invoked, but additional methods for the
  * superclasses of that node will also be invoked. For example, using an instance of this class to
  * visit a [Block] will cause the method [visitBlock] to be invoked but will
@@ -12491,10 +12225,8 @@ class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
  * explicitly invoke the more general visit method. Failure to do so will cause the visit methods
  * for superclasses of the node to not be invoked and will cause the children of the visited node to
  * not be visited.
- *
- * @coverage dart.engine.ast
  */
-class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
+class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitAdjacentStrings(AdjacentStrings node) => visitStringLiteral(node);
 
   R visitAnnotatedNode(AnnotatedNode node) => visitNode(node);
@@ -12657,7 +12389,7 @@ class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
 
   R visitNativeFunctionBody(NativeFunctionBody node) => visitFunctionBody(node);
 
-  R visitNode(ASTNode node) {
+  R visitNode(AstNode node) {
     node.visitChildren(this);
     return null;
   }
@@ -12750,14 +12482,12 @@ class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
 }
 
 /**
- * Instances of the class `NodeLocator` locate the [ASTNode] associated with a
+ * Instances of the class `NodeLocator` locate the [AstNode] associated with a
  * source range, given the AST structure built from the source. More specifically, they will return
- * the [ASTNode] with the shortest length whose source range completely encompasses
+ * the [AstNode] with the shortest length whose source range completely encompasses
  * the specified range.
- *
- * @coverage dart.engine.ast
  */
-class NodeLocator extends UnifyingASTVisitor<Object> {
+class NodeLocator extends UnifyingAstVisitor<Object> {
   /**
    * The start offset of the range used to identify the node.
    */
@@ -12772,10 +12502,10 @@ class NodeLocator extends UnifyingASTVisitor<Object> {
    * The element that was found that corresponds to the given source range, or `null` if there
    * is no such element.
    */
-  ASTNode _foundNode;
+  AstNode _foundNode;
 
   /**
-   * Initialize a newly created locator to locate one or more [ASTNode] by locating
+   * Initialize a newly created locator to locate one or more [AstNode] by locating
    * the node within an AST structure that corresponds to the given offset in the source.
    *
    * @param offset the offset used to identify the node
@@ -12783,7 +12513,7 @@ class NodeLocator extends UnifyingASTVisitor<Object> {
   NodeLocator.con1(int offset) : this.con2(offset, offset);
 
   /**
-   * Initialize a newly created locator to locate one or more [ASTNode] by locating
+   * Initialize a newly created locator to locate one or more [AstNode] by locating
    * the node within an AST structure that corresponds to the given range of characters in the
    * source.
    *
@@ -12801,7 +12531,7 @@ class NodeLocator extends UnifyingASTVisitor<Object> {
    *
    * @return the node that was found
    */
-  ASTNode get foundNode => _foundNode;
+  AstNode get foundNode => _foundNode;
 
   /**
    * Search within the given AST node for an identifier representing a [DartElement] in the specified source range. Return the element that was found, or `null` if
@@ -12810,7 +12540,7 @@ class NodeLocator extends UnifyingASTVisitor<Object> {
    * @param node the AST node within which to search
    * @return the element that was found
    */
-  ASTNode searchWithin(ASTNode node) {
+  AstNode searchWithin(AstNode node) {
     if (node == null) {
       return null;
     }
@@ -12824,7 +12554,7 @@ class NodeLocator extends UnifyingASTVisitor<Object> {
     return _foundNode;
   }
 
-  Object visitNode(ASTNode node) {
+  Object visitNode(AstNode node) {
     int start = node.offset;
     int end = start + node.length;
     if (end < _startOffset) {
@@ -12858,17 +12588,15 @@ class NodeLocator_NodeFoundException extends RuntimeException {
 }
 
 /**
- * Instances of the class `RecursiveASTVisitor` implement an AST visitor that will recursively
+ * Instances of the class `RecursiveAstVisitor` implement an AST visitor that will recursively
  * visit all of the nodes in an AST structure. For example, using an instance of this class to visit
  * a [Block] will also cause all of the statements in the block to be visited.
  *
  * Subclasses that override a visit method must either invoke the overridden visit method or must
  * explicitly ask the visited node to visit its children. Failure to do so will cause the children
  * of the visited node to not be visited.
- *
- * @coverage dart.engine.ast
  */
-class RecursiveASTVisitor<R> implements ASTVisitor<R> {
+class RecursiveAstVisitor<R> implements AstVisitor<R> {
   R visitAdjacentStrings(AdjacentStrings node) {
     node.visitChildren(this);
     return null;
@@ -13386,14 +13114,12 @@ class RecursiveASTVisitor<R> implements ASTVisitor<R> {
 }
 
 /**
- * Instances of the class `SimpleASTVisitor` implement an AST visitor that will do nothing
+ * Instances of the class `SimpleAstVisitor` implement an AST visitor that will do nothing
  * when visiting an AST node. It is intended to be a superclass for classes that use the visitor
  * pattern primarily as a dispatch mechanism (and hence don't need to recursively visit a whole
  * structure) and that only need to visit a small number of node types.
- *
- * @coverage dart.engine.ast
  */
-class SimpleASTVisitor<R> implements ASTVisitor<R> {
+class SimpleAstVisitor<R> implements AstVisitor<R> {
   R visitAdjacentStrings(AdjacentStrings node) => null;
 
   R visitAnnotation(Annotation node) => null;
@@ -13604,10 +13330,8 @@ class SimpleASTVisitor<R> implements ASTVisitor<R> {
 /**
  * Instances of the class `ToSourceVisitor` write a source representation of a visited AST
  * node (and all of it's children) to a writer.
- *
- * @coverage dart.engine.ast
  */
-class ToSourceVisitor implements ASTVisitor<Object> {
+class ToSourceVisitor implements AstVisitor<Object> {
   /**
    * The writer to which the source is to be written.
    */
@@ -14436,7 +14160,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
    *
    * @param node the node to be visited
    */
-  void visit(ASTNode node) {
+  void visit(AstNode node) {
     if (node != null) {
       node.accept(this);
     }
@@ -14448,7 +14172,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
    * @param suffix the suffix to be printed if there is a node to visit
    * @param node the node to be visited
    */
-  void visit2(ASTNode node, String suffix) {
+  void visit2(AstNode node, String suffix) {
     if (node != null) {
       node.accept(this);
       _writer.print(suffix);
@@ -14461,7 +14185,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
    * @param prefix the prefix to be printed if there is a node to visit
    * @param node the node to be visited
    */
-  void visit3(String prefix, ASTNode node) {
+  void visit3(String prefix, AstNode node) {
     if (node != null) {
       _writer.print(prefix);
       node.accept(this);
@@ -14500,7 +14224,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
    * @param nodes the nodes to be printed
    * @param separator the separator to be printed between adjacent nodes
    */
-  void visitList(NodeList<ASTNode> nodes) {
+  void visitList(NodeList<AstNode> nodes) {
     visitList2(nodes, "");
   }
 
@@ -14510,7 +14234,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
    * @param nodes the nodes to be printed
    * @param separator the separator to be printed between adjacent nodes
    */
-  void visitList2(NodeList<ASTNode> nodes, String separator) {
+  void visitList2(NodeList<AstNode> nodes, String separator) {
     if (nodes != null) {
       int size = nodes.length;
       for (int i = 0; i < size; i++) {
@@ -14529,7 +14253,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
    * @param separator the separator to be printed between adjacent nodes
    * @param suffix the suffix to be printed if the list is not empty
    */
-  void visitList3(NodeList<ASTNode> nodes, String separator, String suffix) {
+  void visitList3(NodeList<AstNode> nodes, String separator, String suffix) {
     if (nodes != null) {
       int size = nodes.length;
       if (size > 0) {
@@ -14551,7 +14275,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
    * @param nodes the nodes to be printed
    * @param separator the separator to be printed between adjacent nodes
    */
-  void visitList4(String prefix, NodeList<ASTNode> nodes, String separator) {
+  void visitList4(String prefix, NodeList<AstNode> nodes, String separator) {
     if (nodes != null) {
       int size = nodes.length;
       if (size > 0) {
@@ -14568,18 +14292,16 @@ class ToSourceVisitor implements ASTVisitor<Object> {
 }
 
 /**
- * Instances of the class `UnifyingASTVisitor` implement an AST visitor that will recursively
+ * Instances of the class `UnifyingAstVisitor` implement an AST visitor that will recursively
  * visit all of the nodes in an AST structure (like instances of the class
- * [RecursiveASTVisitor]). In addition, every node will also be visited by using a single
+ * [RecursiveAstVisitor]). In addition, every node will also be visited by using a single
  * unified [visitNode] method.
  *
  * Subclasses that override a visit method must either invoke the overridden visit method or
  * explicitly invoke the more general [visitNode] method. Failure to do so will
  * cause the children of the visited node to not be visited.
- *
- * @coverage dart.engine.ast
  */
-class UnifyingASTVisitor<R> implements ASTVisitor<R> {
+class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R visitAdjacentStrings(AdjacentStrings node) => visitNode(node);
 
   R visitAnnotation(Annotation node) => visitNode(node);
@@ -14714,7 +14436,7 @@ class UnifyingASTVisitor<R> implements ASTVisitor<R> {
 
   R visitNativeFunctionBody(NativeFunctionBody node) => visitNode(node);
 
-  R visitNode(ASTNode node) {
+  R visitNode(AstNode node) {
     node.visitChildren(this);
     return null;
   }
@@ -14793,11 +14515,11 @@ class UnifyingASTVisitor<R> implements ASTVisitor<R> {
 }
 
 /**
- * Instances of the class `ASTCloner` implement an object that will clone any AST structure
+ * Instances of the class `AstCloner` implement an object that will clone any AST structure
  * that it visits. The cloner will only clone the structure, it will not preserve any resolution
  * results or properties associated with the nodes.
  */
-class ASTCloner implements ASTVisitor<ASTNode> {
+class AstCloner implements AstVisitor<AstNode> {
   AdjacentStrings visitAdjacentStrings(AdjacentStrings node) => new AdjacentStrings(clone3(node.strings));
 
   Annotation visitAnnotation(Annotation node) => new Annotation(node.atSign, clone2(node.name), node.period, clone2(node.constructorName), clone2(node.arguments));
@@ -14808,7 +14530,7 @@ class ASTCloner implements ASTVisitor<ASTNode> {
 
   AsExpression visitAsExpression(AsExpression node) => new AsExpression(clone2(node.expression), node.asOperator, clone2(node.type));
 
-  ASTNode visitAssertStatement(AssertStatement node) => new AssertStatement(node.keyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, node.semicolon);
+  AstNode visitAssertStatement(AssertStatement node) => new AssertStatement(node.keyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, node.semicolon);
 
   AssignmentExpression visitAssignmentExpression(AssignmentExpression node) => new AssignmentExpression(clone2(node.leftHandSide), node.operator, clone2(node.rightHandSide));
 
@@ -14956,7 +14678,7 @@ class ASTCloner implements ASTVisitor<ASTNode> {
 
   NamedExpression visitNamedExpression(NamedExpression node) => new NamedExpression(clone2(node.name), clone2(node.expression));
 
-  ASTNode visitNativeClause(NativeClause node) => new NativeClause(node.keyword, clone2(node.name));
+  AstNode visitNativeClause(NativeClause node) => new NativeClause(node.keyword, clone2(node.name));
 
   NativeFunctionBody visitNativeFunctionBody(NativeFunctionBody node) => new NativeFunctionBody(node.nativeToken, clone2(node.stringLiteral), node.semicolon);
 
@@ -15004,7 +14726,7 @@ class ASTCloner implements ASTVisitor<ASTNode> {
 
   SwitchStatement visitSwitchStatement(SwitchStatement node) => new SwitchStatement(node.keyword, node.leftParenthesis, clone2(node.expression), node.rightParenthesis, node.leftBracket, clone3(node.members), node.rightBracket);
 
-  ASTNode visitSymbolLiteral(SymbolLiteral node) => new SymbolLiteral(node.poundSign, node.components);
+  AstNode visitSymbolLiteral(SymbolLiteral node) => new SymbolLiteral(node.poundSign, node.components);
 
   ThisExpression visitThisExpression(ThisExpression node) => new ThisExpression(node.keyword);
 
@@ -15032,28 +14754,28 @@ class ASTCloner implements ASTVisitor<ASTNode> {
 
   WithClause visitWithClause(WithClause node) => new WithClause(node.withKeyword, clone3(node.mixinTypes));
 
-  ASTNode clone2(ASTNode node) {
+  AstNode clone2(AstNode node) {
     if (node == null) {
       return null;
     }
-    return node.accept(this) as ASTNode;
+    return node.accept(this) as AstNode;
   }
 
   List clone3(NodeList nodes) {
     int count = nodes.length;
     List clonedNodes = new List();
     for (int i = 0; i < count; i++) {
-      clonedNodes.add((nodes[i]).accept(this) as ASTNode);
+      clonedNodes.add((nodes[i]).accept(this) as AstNode);
     }
     return clonedNodes;
   }
 }
 
 /**
- * Instances of the class `ASTComparator` compare the structure of two ASTNodes to see whether
+ * Instances of the class `AstComparator` compare the structure of two ASTNodes to see whether
  * they are equal.
  */
-class ASTComparator implements ASTVisitor<bool> {
+class AstComparator implements AstVisitor<bool> {
   /**
    * Return `true` if the two AST nodes are equal.
    *
@@ -15062,7 +14784,7 @@ class ASTComparator implements ASTVisitor<bool> {
    * @return `true` if the two AST nodes are equal
    */
   static bool equals4(CompilationUnit first, CompilationUnit second) {
-    ASTComparator comparator = new ASTComparator();
+    AstComparator comparator = new AstComparator();
     return comparator.isEqual(first, second);
   }
 
@@ -15070,7 +14792,7 @@ class ASTComparator implements ASTVisitor<bool> {
    * The AST node with which the node being visited is to be compared. This is only valid at the
    * beginning of each visit method (until [isEqual] is invoked).
    */
-  ASTNode _other;
+  AstNode _other;
 
   bool visitAdjacentStrings(AdjacentStrings node) {
     AdjacentStrings other = this._other as AdjacentStrings;
@@ -15594,7 +15316,7 @@ class ASTComparator implements ASTVisitor<bool> {
    * @param second the second node being compared
    * @return `true` if the given AST nodes have the same structure
    */
-  bool isEqual(ASTNode first, ASTNode second) {
+  bool isEqual(AstNode first, AstNode second) {
     if (first == null) {
       return second == null;
     } else if (second == null) {
@@ -15673,21 +15395,21 @@ class ASTComparator implements ASTVisitor<bool> {
 }
 
 /**
- * Instances of the class `IncrementalASTCloner` implement an object that will clone any AST
+ * Instances of the class `IncrementalAstCloner` implement an object that will clone any AST
  * structure that it visits. The cloner will clone the structure, replacing the specified ASTNode
  * with a new ASTNode, mapping the old token stream to a new token stream, and preserving resolution
  * results.
  */
-class IncrementalASTCloner implements ASTVisitor<ASTNode> {
+class IncrementalAstCloner implements AstVisitor<AstNode> {
   /**
    * The node to be replaced during the cloning process.
    */
-  ASTNode _oldNode;
+  AstNode _oldNode;
 
   /**
    * The replacement node used during the cloning process.
    */
-  ASTNode _newNode;
+  AstNode _newNode;
 
   /**
    * A mapping of old tokens to new tokens used during the cloning process.
@@ -15702,7 +15424,7 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
    * @param newNode the replacement node
    * @param tokenMap a mapping of old tokens to new tokens (not `null`)
    */
-  IncrementalASTCloner(ASTNode oldNode, ASTNode newNode, TokenMap tokenMap) {
+  IncrementalAstCloner(AstNode oldNode, AstNode newNode, TokenMap tokenMap) {
     this._oldNode = oldNode;
     this._newNode = newNode;
     this._tokenMap = tokenMap;
@@ -15732,7 +15454,7 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     return copy;
   }
 
-  ASTNode visitAssertStatement(AssertStatement node) => new AssertStatement(map(node.keyword), map(node.leftParenthesis), clone4(node.condition), map(node.rightParenthesis), map(node.semicolon));
+  AstNode visitAssertStatement(AssertStatement node) => new AssertStatement(map(node.keyword), map(node.leftParenthesis), clone4(node.condition), map(node.rightParenthesis), map(node.semicolon));
 
   AssignmentExpression visitAssignmentExpression(AssignmentExpression node) {
     AssignmentExpression copy = new AssignmentExpression(clone4(node.leftHandSide), map(node.operator), clone4(node.rightHandSide));
@@ -15988,7 +15710,7 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     return copy;
   }
 
-  ASTNode visitNativeClause(NativeClause node) => new NativeClause(map(node.keyword), clone4(node.name));
+  AstNode visitNativeClause(NativeClause node) => new NativeClause(map(node.keyword), clone4(node.name));
 
   NativeFunctionBody visitNativeFunctionBody(NativeFunctionBody node) => new NativeFunctionBody(map(node.nativeToken), clone4(node.stringLiteral), map(node.semicolon));
 
@@ -16122,7 +15844,7 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
 
   SwitchStatement visitSwitchStatement(SwitchStatement node) => new SwitchStatement(map(node.keyword), map(node.leftParenthesis), clone4(node.expression), map(node.rightParenthesis), map(node.leftBracket), clone5(node.members), map(node.rightBracket));
 
-  ASTNode visitSymbolLiteral(SymbolLiteral node) {
+  AstNode visitSymbolLiteral(SymbolLiteral node) {
     SymbolLiteral copy = new SymbolLiteral(map(node.poundSign), map2(node.components));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
@@ -16169,19 +15891,19 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
 
   WithClause visitWithClause(WithClause node) => new WithClause(map(node.withKeyword), clone5(node.mixinTypes));
 
-  ASTNode clone4(ASTNode node) {
+  AstNode clone4(AstNode node) {
     if (node == null) {
       return null;
     }
     if (identical(node, _oldNode)) {
       return _newNode;
     }
-    return node.accept(this) as ASTNode;
+    return node.accept(this) as AstNode;
   }
 
   List clone5(NodeList nodes) {
     List clonedNodes = new List();
-    for (ASTNode node in nodes) {
+    for (AstNode node in nodes) {
       clonedNodes.add(clone4(node));
     }
     return clonedNodes;
@@ -16210,13 +15932,11 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
  *
  * Completion test code coverage is 95%. The two basic blocks that are not executed cannot be
  * executed. They are included for future reference.
- *
- * @coverage com.google.dart.engine.services.completion
  */
-class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
+class ScopedNameFinder extends GeneralizingAstVisitor<Object> {
   Declaration _declarationNode;
 
-  ASTNode _immediateChild;
+  AstNode _immediateChild;
 
   Map<String, SimpleIdentifier> _locals = new Map<String, SimpleIdentifier>();
 
@@ -16302,9 +16022,9 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
     return null;
   }
 
-  Object visitNode(ASTNode node) {
+  Object visitNode(AstNode node) {
     _immediateChild = node;
-    ASTNode parent = node.parent;
+    AstNode parent = node.parent;
     if (parent != null) {
       parent.accept(this);
     }
@@ -16365,7 +16085,7 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
     }
   }
 
-  bool isInRange(ASTNode node) {
+  bool isInRange(AstNode node) {
     if (_position < 0) {
       // if source position is not set then all nodes are in range
       return true;
@@ -16376,7 +16096,7 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
 /**
  * Instances of the class {@code NodeList} represent a list of AST nodes that have a common parent.
  */
-class NodeList<E extends ASTNode> extends Object with ListMixin<E> {
+class NodeList<E extends AstNode> extends Object with ListMixin<E> {
   /**
    * Create an empty list with the given owner. This is a convenience method that allows the
    * compiler to determine the correct value of the type argument [E] without needing to
@@ -16385,12 +16105,12 @@ class NodeList<E extends ASTNode> extends Object with ListMixin<E> {
    * @param owner the node that is the parent of each of the elements in the list
    * @return the list that was created
    */
-  static NodeList create(ASTNode owner) => new NodeList(owner);
+  static NodeList create(AstNode owner) => new NodeList(owner);
 
   /**
    * The node that is the parent of each of the elements in the list.
    */
-  ASTNode owner;
+  AstNode owner;
 
   /**
    * The elements contained in the list.
@@ -16409,7 +16129,7 @@ class NodeList<E extends ASTNode> extends Object with ListMixin<E> {
    *
    * @param visitor the visitor to be used to visit the elements of this list
    */
-  accept(ASTVisitor visitor) {
+  accept(AstVisitor visitor) {
     var length = _elements.length;
     for (var i = 0; i < length; i++) {
       _elements[i].accept(visitor);
@@ -16477,7 +16197,7 @@ class NodeList<E extends ASTNode> extends Object with ListMixin<E> {
     E removedNode = _elements[index] as E;
     int length = _elements.length;
     if (length == 1) {
-      _elements = ASTNode.EMPTY_ARRAY;
+      _elements = AstNode.EMPTY_ARRAY;
       return removedNode;
     }
     _elements.removeAt(index);
