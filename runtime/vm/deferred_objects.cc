@@ -116,12 +116,22 @@ void DeferredObject::Materialize() {
 
   const Instance& obj = Instance::ZoneHandle(Instance::New(cls));
 
+  Smi& offset = Smi::Handle();
   Field& field = Field::Handle();
   Object& value = Object::Handle();
+  const Array& offset_map = Array::Handle(cls.OffsetToFieldMap());
+
   for (intptr_t i = 0; i < field_count_; i++) {
-    field ^= GetField(i);
+    offset ^= GetFieldOffset(i);
+    field ^= offset_map.At(offset.Value() / kWordSize);
     value = GetValue(i);
-    obj.SetField(field, value);
+    if (!field.IsNull()) {
+      obj.SetField(field, value);
+    } else {
+      ASSERT(cls.IsSignatureClass() ||
+             (offset.Value() == cls.type_arguments_field_offset()));
+      obj.SetFieldAtOffset(offset.Value(), value);
+    }
 
     if (FLAG_trace_deoptimization_verbose) {
       OS::PrintErr("    %s <- %s\n",

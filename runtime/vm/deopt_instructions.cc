@@ -1377,8 +1377,9 @@ intptr_t DeoptInfoBuilder::EmitMaterializationArguments(intptr_t dest_index) {
     AddConstant(mat->cls(), dest_index++);
     for (intptr_t i = 0; i < mat->InputCount(); i++) {
       if (!mat->InputAt(i)->BindsToConstantNull()) {
-        // Emit field-value pair.
-        AddConstant(mat->FieldAt(i), dest_index++);
+        // Emit offset-value pair.
+        AddConstant(Smi::Handle(Smi::New(mat->FieldOffsetAt(i))),
+                    dest_index++);
         AddCopy(mat->InputAt(i), mat->LocationAt(i), dest_index++);
       }
     }

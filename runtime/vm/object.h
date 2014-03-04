@@ -4060,6 +4060,7 @@ class Instance : public Object {
   friend class SnapshotWriter;
   friend class StubCode;
   friend class TypedDataView;
+  friend class DeferredObject;
 };
 
 
