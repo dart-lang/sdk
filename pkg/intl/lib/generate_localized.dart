@@ -68,11 +68,20 @@ abstract class TranslatedMessage {
    */
   final String id;
 
-  /** Our translated version of [originalMessage]. */
+  /** Our translated version of all the [originalMessages]. */
   final Message translated;
 
-  /** The original message that we are a translation of. */
-  MainMessage originalMessage;
+  /**
+   * The original messages that we are a translation of. There can
+   *  be more than one original message for the same translation.
+   */
+  List<MainMessage> originalMessages;
+
+  /**
+   * For backward compatibility, we still have the originalMessage API.
+   */
+  MainMessage get originalMessage => originalMessages.first;
+  set originalMessage(MainMessage m) => originalMessages = [m];
 
   TranslatedMessage(this.id, this.translated);
 
@@ -99,21 +108,26 @@ void generateIndividualMessageFile(String locale,
   // Exclude messages with no translation and translations with no matching
   // original message (e.g. if we're using some messages from a larger catalog)
   var usableTranslations =  translations.where(
-      (each) => each.originalMessage != null && each.message != null).toList();
+      (each) => each.originalMessages != null && each.message != null).toList();
   for (var each in usableTranslations) {
-      each.originalMessage.addTranslation(locale, each.message);
+    for (var original in each.originalMessages) {
+      original.addTranslation(locale, each.message);
+    }
   }
   usableTranslations.sort((a, b) =>
-      a.originalMessage.name.compareTo(b.originalMessage.name));
+      a.originalMessages.first.name.compareTo(b.originalMessages.first.name));
   for (var translation in usableTranslations) {
-    result
-        ..write("  ")
-        ..write(translation.originalMessage.toCodeForLocale(locale))
-        ..write("\n\n");
+    for (var original in translation.originalMessages) {
+      result
+          ..write("  ")
+          ..write(original.toCodeForLocale(locale))
+          ..write("\n\n");
+    }
   }
   result.write("\n  final messages = const {\n");
   var entries = usableTranslations
-      .map((translation) => translation.originalMessage.name)
+      .expand((translation) => translation.originalMessages)
+      .map((original) => original.name)
       .map((name) => "    \"$name\" : $name");
   result
       ..write(entries.join(",\n"))

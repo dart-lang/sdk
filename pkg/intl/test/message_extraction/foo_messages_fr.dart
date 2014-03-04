@@ -16,6 +16,8 @@ class MessageLookup extends MessageLookupByLibrary {
   get localeName => 'fr';
   static alwaysTranslated() => "Cette chaîne est toujours traduit";
 
+  static differentNameSameContents() => "Bonjour tout le monde";
+
   static escapable() => "Escapes: \n\r\f\b\t\v.";
 
   static leadingQuotes() => "\"Soi-disant\"";
@@ -52,6 +54,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static plurals(num) => "${Intl.plural(num, zero: 'Est-ce que nulle est pluriel?', one: 'C\'est singulier', other: 'C\'est pluriel ($num).')}";
 
+  static sameContentsDifferentName() => "Bonjour tout le monde";
+
   static rentAsVerb() => "louer";
 
   static rentToBePaid() => "loyer";
@@ -67,6 +71,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   final messages = const {
     "alwaysTranslated" : alwaysTranslated,
+    "differentNameSameContents" : differentNameSameContents,
     "escapable" : escapable,
     "leadingQuotes" : leadingQuotes,
     "message1" : message1,
@@ -85,6 +90,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "outerSelect" : outerSelect,
     "pluralThatFailsParsing" : pluralThatFailsParsing,
     "plurals" : plurals,
+    "sameContentsDifferentName" : sameContentsDifferentName,
     "rentAsVerb" : rentAsVerb,
     "rentToBePaid" : rentToBePaid,
     "staticMessage" : staticMessage,
