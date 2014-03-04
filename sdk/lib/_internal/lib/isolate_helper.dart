@@ -32,7 +32,6 @@ _callInIsolate(_IsolateContext isolate, Function function) {
   return result;
 }
 
-/// Marks entering a javascript async operation to keep the worker alive.
 /// Marks entering a JavaScript async operation to keep the worker alive.
 ///
 /// To be called by library code before starting an async operation controlled
@@ -277,6 +276,9 @@ class _IsolateContext implements IsolateContext {
   List<_IsolateEvent> delayedEvents = [];
   Set<Capability> pauseTokens = new Set();
 
+  // Container with the "on exit" handler send-ports.
+  var doneHandlers;
+
   _IsolateContext() {
     this.registerWeak(controlPort._id, controlPort);
   }
@@ -300,6 +302,21 @@ class _IsolateContext implements IsolateContext {
       isPaused = false;
     }
     _updateGlobalState();
+  }
+
+  void addDoneListener(SendPort responsePort) {
+    if (doneHandlers == null) {
+      doneHandlers = [];
+    }
+    // If necessary, we can switch doneHandlers to a Set if it gets larger.
+    // That is not expected to happen in practice.
+    if (doneHandlers.contains(responsePort)) return;
+    doneHandlers.add(responsePort);
+  }
+
+  void removeDoneListener(SendPort responsePort) {
+    if (doneHandlers == null) return;
+    doneHandlers.remove(responsePort);
   }
 
   /**
@@ -331,8 +348,14 @@ class _IsolateContext implements IsolateContext {
       case "resume":
         removePause(message[1]);
         break;
+      case 'add-ondone':
+        addDoneListener(message[1]);
+        break;
+      case 'remove-ondone':
+        removeDoneListener(message[1]);
+        break;
       default:
-        print("UNKOWN MESSAGE: $message");
+        print("UNKNOWN MESSAGE: $message");
     }
   }
 
@@ -362,11 +385,22 @@ class _IsolateContext implements IsolateContext {
     _addRegistration(portId, port);
   }
 
-  _updateGlobalState() {
+  void _updateGlobalState() {
     if (ports.length - weakPorts.length > 0 || isPaused) {
       _globalState.isolates[id] = this; // indicate this isolate is active
     } else {
-      _globalState.isolates.remove(id); // indicate this isolate is not active
+      _shutdown();
+    }
+  }
+
+  void _shutdown() {
+    _globalState.isolates.remove(id); // indicate this isolate is not active
+    // Send "done" event to all listeners. This must be done after deactivating
+    // the current isolate, or it may get events if listening to itself.
+    if (doneHandlers != null) {
+      for (SendPort port in doneHandlers) {
+        port.send(null);
+      }
     }
   }
 
@@ -520,7 +554,7 @@ class IsolateNatives {
   static final Expando<int> workerIds = new Expando<int>();
 
   /**
-   * The src url for the script tag that loaded this code. Used to create
+   * The src url for the script tag that loaded this Used to create
    * JavaScript workers.
    */
   static String computeThisScript() {
