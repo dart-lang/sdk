@@ -485,10 +485,6 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
   DeclarationMirror get owner => null;
 
   // TODO(ahe): Implement this.
-  Map<Symbol, MethodMirror> get topLevelMembers
-      => throw new UnimplementedError();
-
-  // TODO(ahe): Implement this.
   Function operator [](Symbol name)
       => throw new UnimplementedError();
 }

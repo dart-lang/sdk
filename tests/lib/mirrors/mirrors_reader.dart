@@ -191,7 +191,6 @@ class MirrorsReader extends MirrorsVisitor {
   visitLibraryMirror(LibraryMirror mirror) {
     super.visitLibraryMirror(mirror);
     visit(mirror, 'declarations', () => mirror.declarations);
-    visit(mirror, 'topLevelMembers', () => mirror.topLevelMembers);
     visit(mirror, 'uri', () => mirror.uri);
   }
 

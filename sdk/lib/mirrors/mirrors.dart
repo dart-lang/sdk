@@ -573,18 +573,6 @@ abstract class LibraryMirror implements DeclarationMirror, ObjectMirror {
   Map<Symbol, DeclarationMirror> get declarations;
 
   /**
-   * Returns a map of the top-level methods, getters and setters of the library.
-   *
-   * The intent is to capture those members that constitute the API of a
-   * library. Hence fields are not included, but the getters and setters
-   * implicitly introduced by fields are included. Synthetic getters for the
-   * types exported by the library are also included.
-   *
-   * The map is keyed by the simple names of the members.
-   */
-  Map<Symbol, MethodMirror> get topLevelMembers;
-
-  /**
    * Returns [:true:] if this mirror is equal to [other].
    * Otherwise returns [:false:].
    *

@@ -1229,33 +1229,6 @@ class _LocalLibraryMirror extends _LocalObjectMirror implements LibraryMirror {
         new _UnmodifiableMapView<Symbol, DeclarationMirror>(_members);
   }
 
-
-  var _cachedTopLevelMembers;
-  Map<Symbol, MethodMirror> get topLevelMembers {
-    if (_cachedTopLevelMembers == null) {
-      var result = new Map<Symbol, MethodMirror>();
-      declarations.values.forEach((decl) {
-        if (decl is MethodMirror) {
-          result[decl.simpleName] = decl;
-        }
-        if (decl is VariableMirror) {
-          var getterName = decl.simpleName;
-          result[getterName] =
-              new _SyntheticAccessor(this, getterName, true, true, true, decl);
-          if (!decl.isFinal) {
-            var setterName = _asSetter(decl.simpleName, this);
-            result[setterName] = new _SyntheticAccessor(
-                this, setterName, false, true, true, decl);
-          }
-        }
-      });
-      _cachedTopLevelMembers =
-          new _UnmodifiableMapView<Symbol, MethodMirror>(result);
-    }
-    return _cachedTopLevelMembers;
-  }
-
-
   Map<Symbol, Mirror> _cachedMembers;
   Map<Symbol, Mirror> get _members {
     if (_cachedMembers == null) {
