@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test that the '--hide-package-warnings' option works as intended.
+// Test that the '--show-package-warnings' option works as intended.
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
@@ -22,7 +22,7 @@ const SOURCE = const {
 import 'package:pkg_error1/pkg_error1.dart';
 import 'package:pkg_error2/pkg_error2.dart';
 import 'package:pkg_noerror/pkg_noerror.dart';
-import 'error.dart';               
+import 'error.dart';
 """,
 
   'error.dart': ERROR_CODE,
@@ -43,13 +43,13 @@ import 'package:pkg_error2/pkg_error2.dart';
 """};
 
 void test(List<Uri> entryPoints,
-          {bool hidePackageWarnings: false,
+          {bool showPackageWarnings: false,
            int warnings: 0,
            int hints: 0,
            int infos: 0}) {
   var options = ['--analyze-only', '--analyze-all'];
-  if (hidePackageWarnings) {
-    options.add('--hide-package-warnings');
+  if (showPackageWarnings) {
+    options.add('--show-package-warnings');
   }
   var collector = new DiagnosticCollector();
   var compiler = compilerFor(SOURCE,
@@ -64,7 +64,7 @@ void test(List<Uri> entryPoints,
   }
   asyncTest(() => compiler.run(mainUri).then((_) {
     print('==================================================================');
-    print('test: $entryPoints hidePackageWarnings=$hidePackageWarnings');
+    print('test: $entryPoints showPackageWarnings=$showPackageWarnings');
     Expect.equals(0, collector.errors.length,
                   'Unexpected errors: ${collector.errors}');
     Expect.equals(warnings, collector.warnings.length,
@@ -79,26 +79,27 @@ void test(List<Uri> entryPoints,
 
 void main() {
   test([Uri.parse('memory:main.dart')],
-       hidePackageWarnings: false,
+       showPackageWarnings: true,
        // From error.dart, package:pkg_error1 and package:pkg_error2:
        warnings: 3, hints: 3, infos: 3);
   test([Uri.parse('memory:main.dart')],
-       hidePackageWarnings: true,
+       showPackageWarnings: false,
        // From error.dart only:
-       warnings: 1, hints: 1, infos: 1);
+       warnings: 1, hints: 1 + 2 /* from summary */, infos: 1);
   test([Uri.parse('package:pkg_error1/pkg_error1.dart')],
-       hidePackageWarnings: false,
+       showPackageWarnings: true,
        // From package:pkg_error1 and package:pkg_error2:
        warnings: 2, hints: 2, infos: 2);
   test([Uri.parse('package:pkg_error1/pkg_error1.dart')],
-       hidePackageWarnings: true,
+       showPackageWarnings: false,
        // From package:pkg_error1/pkg_error1.dart only:
-       warnings: 1, hints: 1, infos: 1);
+       warnings: 1, hints: 1 + 1 /* from summary */, infos: 1);
   test([Uri.parse('package:pkg_noerror/pkg_noerror.dart')],
-       hidePackageWarnings: false,
+       showPackageWarnings: true,
        // From package:pkg_error1 and package:pkg_error2:
        warnings: 2, hints: 2, infos: 2);
   test([Uri.parse('package:pkg_noerror/pkg_noerror.dart')],
-       hidePackageWarnings: true);
+       showPackageWarnings: false,
+       hints: 2 /* from summary */);
 }
 

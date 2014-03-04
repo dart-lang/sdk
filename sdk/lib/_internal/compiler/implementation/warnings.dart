@@ -1751,6 +1751,15 @@ Please include the following information:
       "known type '#{knownType}' of '#{variableName}'.",
       howToFix: "Try replacing '#{shownType}' with '#{shownTypeSuggestion}'.");
 
+  static const MessageKind HIDDEN_WARNINGS_HINTS = const MessageKind(
+      "#{warnings} warning(s) and #{hints} hint(s) suppressed in #{uri}.");
+
+  static const MessageKind HIDDEN_WARNINGS = const MessageKind(
+      "#{warnings} warning(s) suppressed in #{uri}.");
+
+  static const MessageKind HIDDEN_HINTS = const MessageKind(
+      "#{hints} hint(s) suppressed in #{uri}.");
+
   //////////////////////////////////////////////////////////////////////////////
   // Patch errors start.
   //////////////////////////////////////////////////////////////////////////////

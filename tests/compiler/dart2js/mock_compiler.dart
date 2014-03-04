@@ -273,7 +273,8 @@ class MockCompiler extends Compiler {
               analyzeAllFlag: analyzeAll,
               analyzeOnly: analyzeOnly,
               emitJavaScript: emitJavaScript,
-              preserveComments: preserveComments) {
+              preserveComments: preserveComments,
+              showPackageWarnings: true) {
     clearMessages();
     coreLibrary = createLibrary("core", coreSource);
 

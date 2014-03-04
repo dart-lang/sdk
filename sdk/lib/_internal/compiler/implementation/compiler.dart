@@ -393,12 +393,16 @@ abstract class Compiler implements DiagnosticListener {
   /// Emit terse diagnostics without howToFix.
   final bool terseDiagnostics;
 
-  /// If `true`, warnings and hints not from user code are not reported.
-  final bool hidePackageWarnings;
+  /// If `true`, warnings and hints not from user code are reported.
+  final bool showPackageWarnings;
 
   /// `true` if the last diagnostic was filtered, in which case the
   /// accompanying info message should be filtered as well.
   bool lastDiagnosticWasFiltered = false;
+
+  /// Map containing information about the warnings and hints that have been
+  /// suppressed for each library.
+  Map<Uri, SuppressionInfo> suppressedWarnings = <Uri, SuppressionInfo>{};
 
   final api.CompilerOutputProvider outputProvider;
 
@@ -622,7 +626,7 @@ abstract class Compiler implements DiagnosticListener {
             this.buildId: UNDETERMINED_BUILD_ID,
             this.terseDiagnostics: false,
             this.dumpInfo: false,
-            this.hidePackageWarnings: false,
+            this.showPackageWarnings: false,
             outputProvider,
             List<String> strips: const []})
       : this.analyzeOnly = analyzeOnly || analyzeSignaturesOnly,
@@ -1094,6 +1098,22 @@ abstract class Compiler implements DiagnosticListener {
     enqueuer.resolution.logSummary(log);
 
     if (compilationFailed) return;
+    if (!showPackageWarnings) {
+      suppressedWarnings.forEach((Uri uri, SuppressionInfo info) {
+        MessageKind kind = MessageKind.HIDDEN_WARNINGS_HINTS;
+        if (info.warnings == 0) {
+          kind = MessageKind.HIDDEN_HINTS;
+        } else if (info.hints == 0) {
+          kind = MessageKind.HIDDEN_WARNINGS;
+        }
+        reportDiagnostic(null,
+            kind.message({'warnings': info.warnings,
+                          'hints': info.hints,
+                          'uri': uri},
+                         terseDiagnostics),
+            api.Diagnostic.HINT);
+      });
+    }
     if (analyzeOnly) {
       if (!analyzeAll) {
         // No point in reporting unused code when [analyzeAll] is true: all
@@ -1386,11 +1406,20 @@ abstract class Compiler implements DiagnosticListener {
                                 MessageKind messageKind,
                                 Map arguments,
                                 api.Diagnostic kind) {
-    if (hidePackageWarnings) {
+    if (!showPackageWarnings) {
       switch (kind) {
       case api.Diagnostic.WARNING:
       case api.Diagnostic.HINT:
-        if (!inUserCode(elementFromSpannable(node))) {
+        Element element = elementFromSpannable(node);
+        if (!inUserCode(element)) {
+          Uri uri = getCanonicalUri(element);
+          SuppressionInfo info =
+              suppressedWarnings.putIfAbsent(uri, () => new SuppressionInfo());
+          if (kind == api.Diagnostic.WARNING) {
+            info.warnings++;
+          } else {
+            info.hints++;
+          }
           lastDiagnosticWasFiltered = true;
           return;
         }
@@ -1590,8 +1619,6 @@ abstract class Compiler implements DiagnosticListener {
   /// 'file:///foo.dart' then every library whose canonical URI scheme is
   /// 'file' is in user code.
   bool inUserCode(Element element) {
-    if (element == null) return false;
-    Uri libraryUri = element.getLibrary().canonicalUri;
     List<Uri> entrypoints = <Uri>[];
     if (mainApp != null) {
       entrypoints.add(mainApp.canonicalUri);
@@ -1599,6 +1626,12 @@ abstract class Compiler implements DiagnosticListener {
     if (librariesToAnalyzeWhenRun != null) {
       entrypoints.addAll(librariesToAnalyzeWhenRun);
     }
+    if (entrypoints.isEmpty) {
+      // Assume in user code since [mainApp] has not been set yet.
+      return true;
+    }
+    if (element == null) return false;
+    Uri libraryUri = element.getLibrary().canonicalUri;
     if (libraryUri.scheme == 'package') {
       for (Uri uri in entrypoints) {
         if (uri.scheme != 'package') continue;
@@ -1620,6 +1653,24 @@ abstract class Compiler implements DiagnosticListener {
       }
     }
     return false;
+  }
+
+  /// Return a canonical URI for the source of [element].
+  ///
+  /// For a package library with canonical URI 'package:foo/bar/baz.dart' the
+  /// return URI is 'package:foo'. For non-package libraries the returned URI is
+  /// the canonical URI of the library itself.
+  Uri getCanonicalUri(Element element) {
+    if (element == null) return null;
+    Uri libraryUri = element.getLibrary().canonicalUri;
+    if (libraryUri.scheme == 'package') {
+      int slashPos = libraryUri.path.indexOf('/');
+      if (slashPos != -1) {
+        String packageName = libraryUri.path.substring(0, slashPos);
+        return new Uri(scheme: 'package', path: packageName);
+      }
+    }
+    return libraryUri;
   }
 
 }
@@ -1759,4 +1810,10 @@ class NullSink implements EventSink<String> {
   static NullSink outputProvider(String name, String extension) {
     return new NullSink('$name.$extension');
   }
+}
+
+/// Information about suppressed warnings and hints for a given library.
+class SuppressionInfo {
+  int warnings = 0;
+  int hints = 0;
 }
