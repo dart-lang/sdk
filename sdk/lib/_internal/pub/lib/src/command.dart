@@ -178,6 +178,7 @@ abstract class PubCommand {
     // Leaf commands should override this and non-leaf commands should never
     // call it.
     assert(false);
+    return null;
   }
 
   /// Displays usage information for this command.

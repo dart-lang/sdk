@@ -11,8 +11,6 @@ import 'dart:io';
 import 'io.dart';
 import 'log.dart' as log;
 
-import 'package:stack_trace/stack_trace.dart';
-
 /// Tests whether or not the git command-line app is available for use.
 Future<bool> get isInstalled {
   if (_isGitInstalledCache != null) {

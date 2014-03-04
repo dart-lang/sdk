@@ -10,7 +10,6 @@ import 'package:path/path.dart' as path;
 import 'barback.dart';
 import 'io.dart';
 import 'package.dart';
-import 'source.dart';
 import 'source_registry.dart';
 import 'utils.dart';
 import 'version.dart';

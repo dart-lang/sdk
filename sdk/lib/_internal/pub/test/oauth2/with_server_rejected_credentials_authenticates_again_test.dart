@@ -4,7 +4,6 @@
 
 import 'dart:convert';
 
-import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
 
 import '../descriptor.dart' as d;

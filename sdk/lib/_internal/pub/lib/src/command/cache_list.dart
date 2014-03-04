@@ -29,5 +29,6 @@ class CacheListCommand extends PubCommand {
     // TODO(keertip): Add support for non-JSON format and check for --format
     // flag.
     log.message(JSON.encode({'packages': packagesObj}));
+    return null;
   }
 }

@@ -292,6 +292,8 @@ abstract class Source {
     if (shouldCache) {
       throw new UnimplementedError("Source $name must implement this.");
     }
+    throw new UnsupportedError("Cannot call getCachedPackages() on an "
+        "uncached source.");
   }
 
   /// Returns the source's name.
