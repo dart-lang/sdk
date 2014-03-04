@@ -63,9 +63,7 @@ void testNoBody(int totalConnections, bool explicitContentLength) {
             response.drain();
           })
           .catchError((e, trace) {
-            String msg = "Unexpected error $e";
-            if (trace != null) msg += "\nStackTrace: $trace";
-            Expect.fail(msg);
+            // It's also okay to fail, as headers may not be written.
          });
     }
   });
@@ -142,6 +140,9 @@ void testBody(int totalConnections, bool useHeader) {
                 onError: (error, trace) {
                   // Undefined what server response sends.
                 });
+          })
+          .catchError((error) {
+            // It's also okay to fail, as headers may not be written.
           });
     }
   });

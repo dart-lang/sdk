@@ -50,7 +50,6 @@ void testHttp10NoKeepAlive() {
                 count++;
                 socket.destroy();
                 String s = new String.fromCharCodes(response).toLowerCase();
-                Expect.isTrue(s.indexOf("\r\ncontent-length: 1\r\n") > 0);
                 Expect.equals(-1, s.indexOf("keep-alive"));
                 if (count < 10) {
                   makeRequest();
