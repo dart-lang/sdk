@@ -272,14 +272,14 @@ class InfoDumpVisitor extends ElementVisitor<InfoNode> {
 
   InfoNode visitFieldElement(FieldElement element) {
     CodeBuffer emittedCode = compiler.backend.codeOf(element);
-    int size = 0;
-    DartType type = element.computeType(compiler);
     TypeMask inferredType = compiler.typesTask
         .getGuaranteedTypeOfElement(element);
     // If a field has an empty inferred type it is never used.
     if ((inferredType == null || inferredType.isEmpty) && emittedCode == null) {
       return null;
     }
+    int size = 0;
+    DartType type = element.computeType(compiler);
     List<InfoNode> contents = new List<InfoNode>();
     if (emittedCode != null) {
       contents.add(new CodeInfoNode(
