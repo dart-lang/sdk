@@ -57,7 +57,7 @@ class VerifyWeakPointersVisitor : public HandleVisitor {
       : visitor_(visitor) {
   }
 
-  virtual void VisitHandle(uword addr);
+  virtual void VisitHandle(uword addr, bool is_prologue_weak);
 
  private:
   ObjectPointerVisitor* visitor_;

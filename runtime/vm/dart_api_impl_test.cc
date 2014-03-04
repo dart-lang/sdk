@@ -1842,22 +1842,22 @@ UNIT_TEST_CASE(PersistentHandles) {
     HANDLESCOPE(isolate);
     for (int i = 0; i < 500; i++) {
       String& str = String::Handle();
-      str ^= Api::UnwrapAsPersistentHandle(handles[i])->raw();
+      str ^= PersistentHandle::Cast(handles[i])->raw();
       EXPECT(str.Equals(kTestString1));
     }
     for (int i = 500; i < 1000; i++) {
       String& str = String::Handle();
-      str ^= Api::UnwrapAsPersistentHandle(handles[i])->raw();
+      str ^= PersistentHandle::Cast(handles[i])->raw();
       EXPECT(str.Equals(kTestString2));
     }
     for (int i = 1000; i < 1500; i++) {
       String& str = String::Handle();
-      str ^= Api::UnwrapAsPersistentHandle(handles[i])->raw();
+      str ^= PersistentHandle::Cast(handles[i])->raw();
       EXPECT(str.Equals(kTestString1));
     }
     for (int i = 1500; i < 2000; i++) {
       String& str = String::Handle();
-      str ^= Api::UnwrapAsPersistentHandle(handles[i])->raw();
+      str ^= PersistentHandle::Cast(handles[i])->raw();
       EXPECT(str.Equals(kTestString2));
     }
   }
@@ -1914,13 +1914,13 @@ UNIT_TEST_CASE(AssignToPersistentHandle) {
   Dart_Handle ref1 = Api::NewHandle(isolate, String::New(kTestString1));
   Dart_PersistentHandle obj = Dart_NewPersistentHandle(ref1);
   EXPECT(state->IsValidPersistentHandle(obj));
-  str ^= Api::UnwrapAsPersistentHandle(obj)->raw();
+  str ^= PersistentHandle::Cast(obj)->raw();
   EXPECT(str.Equals(kTestString1));
 
   // Now create another local handle and assign it to the persistent handle.
   Dart_Handle ref2 = Api::NewHandle(isolate, String::New(kTestString2));
   Dart_SetPersistentHandle(obj, ref2);
-  str ^= Api::UnwrapAsPersistentHandle(obj)->raw();
+  str ^= PersistentHandle::Cast(obj)->raw();
   EXPECT(str.Equals(kTestString2));
 
   // Now assign Null to the persistent handle and check.
