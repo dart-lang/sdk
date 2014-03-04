@@ -65,19 +65,17 @@ void main() {
 const Map MEMORY_SOURCE_FILES = const {"main.dart": """
 import "dart:async";
 
-@def import 'lib.dart' as lib show f, A, instance;
+@def import 'lib.dart' as lib show f, A;
 
 const def = const DeferredLibrary("deferred");
 
 void main() {
   def.load().then((_) {
-    print(lib.f(lib.instance));
+    print(lib.f(new lib.A<lib.A>()));
   });
 }
 """, "lib.dart": """
 class A<T> {}
-
-A<A> instance = new A<A>();
 
 bool f (Object o) {
   return o is A<A>;

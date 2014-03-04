@@ -4,8 +4,8 @@
 
 import "dart:async";
 
-import "deferred_prefix_constraints_lib2.dart" as lib;
-@lazy import "deferred_prefix_constraints_lib.dart" as lib; /// 01: compile-time error
+import "deferred_constraints_lib2.dart" as lib;
+@lazy import "deferred_constraints_lib.dart" as lib; /// 01: compile-time error
 
 const lazy = const DeferredLibrary('lib');
 

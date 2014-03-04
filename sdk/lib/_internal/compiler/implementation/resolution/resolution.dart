@@ -33,7 +33,6 @@ import '../util/util.dart';
 import 'secret_tree_element.dart' show getTreeElement, setTreeElement;
 import '../ordered_typeset.dart' show OrderedTypeSet, OrderedTypeSetBuilder;
 import 'class_members.dart' show MembersCreator;
-import '../dart_backend/dart_backend.dart' show DartBackend;
 
 part 'members.dart';
 part 'scope.dart';

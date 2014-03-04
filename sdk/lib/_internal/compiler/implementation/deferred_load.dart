@@ -13,9 +13,6 @@ import 'dart2jslib.dart' show
     StringConstant,
     invariant;
 
-import 'dart_backend/dart_backend.dart' show
-    DartBackend;
-
 import 'elements/elements.dart' show
     Element,
     ClassElement,
@@ -25,7 +22,6 @@ import 'elements/elements.dart' show
     LibraryElement,
     MetadataAnnotation,
     ScopeContainerElement,
-    PrefixElement,
     ClosureContainer;
 
 import 'util/util.dart' show
@@ -190,31 +186,17 @@ class DeferredLoadTask extends CompilerTask {
 
   /// Answers whether the [import] has a [DeferredLibrary] annotation.
   bool _isImportDeferred(Import import) {
-    return _allDeferredImports.containsKey(import);
-  }
-
-  /// Checks whether the [import] has a [DeferredLibrary] annotation and stores
-  /// the information in [_allDeferredImports] and on the corresponding
-  /// prefixElement.
-  void _markIfDeferred(Import import, LibraryElement library) {
-    Link<MetadataAnnotation> metadataList = import.metadata;
-    if (metadataList == null) return;
-    for (MetadataAnnotation metadata in metadataList) {
+    Link<MetadataAnnotation> metadatalist = import.metadata;
+    if (metadatalist == null) return false;
+    for (MetadataAnnotation metadata in metadatalist) {
       metadata.ensureResolved(compiler);
       Element element = metadata.value.computeType(compiler).element;
-      if (element == deferredLibraryClass) {
-        _allDeferredImports[import] = library.getLibraryFromTag(import);
-        // On encountering a deferred library without a prefix we report an
-        // error, but continue the compilation to possibly give more
-        // information. Therefore it is neccessary to check if there is a prefix
-        // here.
-        Element maybePrefix = library.find(import.prefix.toString());
-        if (maybePrefix != null && maybePrefix.isPrefix()) {
-          PrefixElement prefix = maybePrefix;
-          prefix.markAsDeferred();
-        }
+      if (metadata.value.computeType(compiler).element
+          == deferredLibraryClass) {
+        return true;
       }
     }
+    return false;
   }
 
   /// Answers whether [element] is explicitly deferred when referred to from
@@ -670,7 +652,7 @@ class DeferredLoadTask extends CompilerTask {
     // import "lib.dart" as a;
     // import "lib2.dart" as a;
     // We must be able to signal error for case 1, 2, 3, but accept case 4.
-
+    
     // The prefixes that have been used by any imports in this library.
     Setlet<String> usedPrefixes = new Setlet<String>();
     // The last deferred import we saw with a given prefix (if any).
@@ -684,7 +666,6 @@ class DeferredLoadTask extends CompilerTask {
         for (LibraryTag tag in library.tags) {
           if (tag is! Import) continue;
           Import import = tag;
-          _markIfDeferred(import, library);
           String prefix = (import.prefix != null)
               ? import.prefix.toString()
               : null;
@@ -699,6 +680,7 @@ class DeferredLoadTask extends CompilerTask {
               prefixDeferredImport[prefix] = import;
             }
             splitProgram = true;
+            _allDeferredImports[tag] = library.getLibraryFromTag(tag);
             lastDeferred = import.metadata.first;
             if (library == compiler.mainApp) {
               deferredUsedFromMain = true;
@@ -717,13 +699,6 @@ class DeferredLoadTask extends CompilerTask {
           }
         }
       });
-    }
-    if (splitProgram && compiler.backend is DartBackend) {
-      // TODO(sigurdm): Implement deferred loading for dart2dart.
-      splitProgram = false;
-      compiler.reportInfo(
-          lastDeferred,
-          MessageKind.DEFERRED_LIBRARY_DART_2_DART);
     }
     if (splitProgram && !deferredUsedFromMain) {
       compiler.reportInfo(

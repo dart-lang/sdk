@@ -9,9 +9,4 @@ import "dart:async";
 
 const lazy = const DeferredLibrary('lib');
 
-void main() {
-  lazy.load().then((_) { /// 01: continued
-    C c = new C();       /// 01: continued
-    print(c);            /// 01: continued
-  });                    /// 01: continued
-}
+void main() {}

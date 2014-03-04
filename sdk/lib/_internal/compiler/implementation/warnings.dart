@@ -1160,11 +1160,6 @@ main() => A.A = 1;
             "Try adding a '@DeferredLibrary(...)' annotation in the main "
             "library");
 
-  static const MessageKind DEFERRED_LIBRARY_DART_2_DART =
-      const MessageKind(
-          "Deferred loading is not supported by the dart backend yet. "
-          "Will not split the output.");
-
   static const MessageKind DEFERRED_LIBRARY_WITHOUT_PREFIX =
       const MessageKind(
           "This import is deferred but there is no prefix keyword.",
@@ -1176,13 +1171,6 @@ main() => A.A = 1;
           "The prefix of this deferred import is not unique.",
           howToFix:
             "Try changing the import prefix.");
-
-  static const MessageKind DEFERRED_TYPE_ANNOTATION =
-      const MessageKind(
-          "The type #{node} is deferred. "
-          "Deferred types are not valid as type annotations.",
-          howToFix:
-            "Try using a non-deferred abstract class as an interface.");
 
   static const MessageKind ILLEGAL_STATIC = const MessageKind(
       "Modifier static is only allowed on functions declared in "
