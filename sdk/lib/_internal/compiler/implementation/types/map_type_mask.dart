@@ -1,12 +1,14 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 part of types;
 
-/// A [MapTypeMask] is a [TypeMask] for a specific allocation
-/// site of a map (currently only internal Map class) that will get specialized
-/// once the [TypeGraphInferrer] phase finds a key and/or value type for it.
+/**
+ * A [MapTypeMask] is a [TypeMask] for a specific allocation
+ * site of a map (currently only internal Map class) that will get specialized
+ * once the [TypeGraphInferrer] phase finds a key and/or value type for it.
+ */
 class MapTypeMask extends ForwardingTypeMask {
   final TypeMask forwardTo;
 
@@ -54,9 +56,9 @@ class MapTypeMask extends ForwardingTypeMask {
 
   bool equalsDisregardNull(other) {
     if (other is! MapTypeMask) return false;
-    return allocationNode == other.allocationNode
-        && keyType == other.keyType
-        && valueType == other.valueType;
+    return allocationNode == other.allocationNode &&
+        keyType == other.keyType &&
+        valueType == other.valueType;
   }
 
   TypeMask intersection(TypeMask other, Compiler compiler) {
@@ -74,11 +76,11 @@ class MapTypeMask extends ForwardingTypeMask {
       return other.isNullable ? other : this;
     } else if (other.isEmpty) {
       return other.isNullable ? this.nullable() : this;
-    } else if (other.isMap
-               && keyType != null
-               && other.keyType != null
-               && valueType != null
-               && other.valueType != null) {
+    } else if (other.isMap &&
+               keyType != null &&
+               other.keyType != null &&
+               valueType != null &&
+               other.valueType != null) {
       TypeMask newKeyType =
           keyType.union(other.keyType, compiler);
       TypeMask newValueType =
@@ -86,19 +88,21 @@ class MapTypeMask extends ForwardingTypeMask {
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, compiler);
       return new MapTypeMask(
           newForwardTo, null, null, newKeyType, newValueType);
+    } else if (other.isDictionary) {
+      TypeMask newKeyType =
+          keyType.union(compiler.typesTask.stringType, compiler);
+      TypeMask newValueType =
+          other.typeMap.values.fold(keyType, (p,n) => p.union(n, compiler));
+      TypeMask newForwardTo = forwardTo.union(other.forwardTo, compiler);
+      MapTypeMask newMapTypeMask = new MapTypeMask(
+          newForwardTo, null, null, newKeyType, newValueType);
+      return newMapTypeMask;
     } else {
       return forwardTo.union(other, compiler);
     }
   }
 
-  bool operator==(other) {
-    if (other is! MapTypeMask) return false;
-    return allocationNode == other.allocationNode
-        && isNullable == other.isNullable
-        && keyType == other.keyType
-        && valueType == other.valueType
-        && forwardTo == other.forwardTo;
-  }
+  bool operator==(other) => super == other;
 
   int get hashCode {
     return computeHashCode(

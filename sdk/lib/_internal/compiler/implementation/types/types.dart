@@ -13,11 +13,13 @@ import '../universe/universe.dart';
 import '../inferrer/concrete_types_inferrer.dart' show ConcreteTypesInferrer;
 
 part 'container_type_mask.dart';
-part 'map_type_mask.dart';
+part 'dictionary_type_mask.dart';
 part 'flat_type_mask.dart';
 part 'forwarding_type_mask.dart';
+part 'map_type_mask.dart';
 part 'type_mask.dart';
 part 'union_type_mask.dart';
+part 'value_type_mask.dart';
 
 /**
  * Common super class for our type inferrers.

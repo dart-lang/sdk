@@ -86,8 +86,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   // Work list of maps to analyze after analyzing the users of a
   // [TypeInformation]. We know the [tracedType] has been stored in these
   // maps and we must check how it escapes from these maps.
-  final List<MapTypeInformation> mapsToAnalyze =
-      <MapTypeInformation>[];
+  final List<MapTypeInformation> mapsToAnalyze = <MapTypeInformation>[];
 
   final Setlet<TypeInformation> flowsInto = new Setlet<TypeInformation>();
 
@@ -162,6 +161,8 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   }
   void visitConcreteTypeInformation(ConcreteTypeInformation info) {}
 
+  void visitStringLiteralTypeInformation(StringLiteralTypeInformation info) {}
+
   void visitClosureTypeInformation(ClosureTypeInformation info) {}
 
   void visitClosureCallSiteTypeInformation(
@@ -186,7 +187,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
           if (returnsListElementTypeSet.contains(user.selector)) {
             addNewEscapeInformation(user);
           } else if (!doesNotEscapeListSet.contains(user.selector.name)) {
-            bailout('Escape from a list');
+            bailout('Escape from a list via [${user.selector.name}]');
           }
         });
       });
@@ -205,7 +206,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
           if (user.selector.isIndex()) {
             addNewEscapeInformation(user);
           } else if (!doesNotEscapeMapSet.contains(user.selector.name)) {
-            bailout('Escape from a map');
+            bailout('Escape from a map via [${user.selector.name}]');
           }
         });
       });
@@ -236,6 +237,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       DynamicCallSiteTypeInformation info) {
     if (isAddedToContainer(info)) {
       ContainerTypeMask mask = info.receiver.type;
+
       if (mask.allocationNode != null) {
         ListTypeInformation list =
             inferrer.types.allocatedLists[mask.allocationNode];

@@ -14,7 +14,7 @@ import '../ir/ir_nodes.dart' as ir show Node;
 import '../util/util.dart' show Link, Spannable, Setlet;
 import '../types/types.dart'
     show TypesInferrer, FlatTypeMask, TypeMask, ContainerTypeMask,
-         ElementTypeMask, TypeSystem, MinimalInferrerEngine;
+         ElementTypeMask, ValueTypeMask, TypeSystem, MinimalInferrerEngine;
 import 'inferrer_visitor.dart';
 
 // BUG(8802): There's a bug in the analyzer that makes the re-export
@@ -92,6 +92,8 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   TypeMask get typeType => compiler.typesTask.typeType;
   bool isNull(TypeMask mask) => mask.isEmpty && mask.isNullable;
 
+  TypeMask stringLiteralType(ast.DartString value) => stringType;
+
   TypeMask nonNullSubtype(ClassElement type)
       => new TypeMask.nonNullSubtype(type.declaration);
   TypeMask nonNullSubclass(ClassElement type)
@@ -108,7 +110,7 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   }
 
   TypeMask allocateMap(TypeMask type, ast.Node node, Element element,
-                       [TypeMask keys, TypeMask values]) {
+                       [List<TypeMask> keys, List<TypeMask> values]) {
     return type;
   }
 
@@ -646,32 +648,20 @@ class SimpleTypeInferrerVisitor<T>
   T visitLiteralMap(ast.LiteralMap node) {
     return inferrer.concreteTypes.putIfAbsent(node, () {
       ast.NodeList entries = node.entries;
-      T keyType;
-      T valueType;
-      if (entries.isEmpty) {
-        keyType = types.nonNullEmpty();
-        valueType = types.nonNullEmpty();
-      } else {
-        for (ast.LiteralMapEntry entry in entries) {
-          T key = visit(entry.key);
-          keyType = keyType == null
-              ? types.allocatePhi(null, null, key)
-              : types.addPhiInput(null, keyType, key);
+      List<T> keyTypes = [];
+      List<T> valueTypes = [];
 
-          T value = visit(entry.value);
-          valueType = valueType == null
-              ? types.allocatePhi(null, null, value)
-              : types.addPhiInput(null, valueType, value);
-        }
-        keyType = types.simplifyPhi(null, null, keyType);
-        valueType = types.simplifyPhi(null, null, valueType);
+      for (ast.LiteralMapEntry entry in entries) {
+        keyTypes.add(visit(entry.key));
+        valueTypes.add(visit(entry.value));
       }
+
       T type = node.isConst() ? types.constMapType : types.mapType;
       return types.allocateMap(type,
                                node,
                                outermostElement,
-                               keyType,
-                               valueType);
+                               keyTypes,
+                               valueTypes);
     });
   }
 

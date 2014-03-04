@@ -412,6 +412,12 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
     return _stringType;
   }
 
+  @override
+  ConcreteType stringLiteralType(_) {
+    inferrer.augmentSeenClasses(compiler.backend.stringImplementation);
+    return _stringType;
+  }
+
   /**
    * Returns the [TypeMask] representation of [baseType].
    */
@@ -591,8 +597,8 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
   ConcreteType allocateMap(ConcreteType type,
                            Node node,
                            Element element,
-                           [ConcreteType keyType,
-                            ConcreteType valueType]) {
+                           [List<ConcreteType> keyTypes,
+                            List<ConcreteType> valueTypes]) {
     // TODO(polux): treat maps the same way we treat lists
     return type;
   }
@@ -903,7 +909,19 @@ class DynamicTypeMask implements TypeMask {
     throw new UnsupportedError("");
   }
 
+  bool get isMap {
+    throw new UnsupportedError("");
+  }
+
+  bool get isDictionary {
+    throw new UnsupportedError("");
+  }
+
   bool get isForwarding {
+    throw new UnsupportedError("");
+  }
+
+  bool get isValue {
     throw new UnsupportedError("");
   }
 
@@ -972,10 +990,6 @@ class DynamicTypeMask implements TypeMask {
   }
 
   bool containsMask(TypeMask other, Compiler compiler) {
-    throw new UnsupportedError("");
-  }
-
-  bool get isMap {
     throw new UnsupportedError("");
   }
 }

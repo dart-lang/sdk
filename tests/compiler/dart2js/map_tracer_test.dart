@@ -22,7 +22,7 @@ String anotherKey = 'anotherKey';
 String presetKey = 'presetKey';
 
 class A {
-  var field;
+  final field;
   var nonFinalField;
 
   A(this.field);
@@ -215,21 +215,21 @@ void doTest(String allocation, [String keyElement,
             String valueElement]) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(generateTest(allocation), uri,
-      expectedErrors: 0, expectedWarnings: 0);
+      expectedErrors: 0, expectedWarnings: 1);
   asyncTest(() => compiler.runCompiler(uri).then((_) {
     var keyType, valueType;
     var typesTask = compiler.typesTask;
     var typesInferrer = typesTask.typesInferrer;
     var emptyType = new TypeMask.nonNullEmpty();
-    var aKeyType
-      = typesInferrer.getTypeOfElement(findElement(compiler, 'aKey'));
+    var aKeyType =
+        typesInferrer.getTypeOfElement(findElement(compiler, 'aKey'));
     if (keyElement != null) {
-      keyType
-        = typesInferrer.getTypeOfElement(findElement(compiler, keyElement));
+      keyType =
+          typesInferrer.getTypeOfElement(findElement(compiler, keyElement));
     }
     if (valueElement != null) {
-      valueType
-        = typesInferrer.getTypeOfElement(findElement(compiler, valueElement));
+      valueType =
+          typesInferrer.getTypeOfElement(findElement(compiler, valueElement));
     }
     if (keyType == null) keyType = emptyType;
     if (valueType == null) valueType = emptyType;
@@ -242,7 +242,8 @@ void doTest(String allocation, [String keyElement,
     }
 
     K(TypeMask other) => simplify(keyType.union(other, compiler), compiler);
-    V(TypeMask other) => simplify(valueType.union(other, compiler), compiler);
+    V(TypeMask other) =>
+        simplify(valueType.union(other, compiler), compiler).nullable();
 
     checkType('mapInField', K(aKeyType), V(typesTask.numType));
     checkType('mapPassedToMethod', K(aKeyType), V(typesTask.numType));

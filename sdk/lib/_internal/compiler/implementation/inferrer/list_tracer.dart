@@ -200,8 +200,8 @@ class ListTracerVisitor extends TracerVisitor {
         callsGrowableMethod = true;
         assignments.add(inferrer.types.nullType);
       }
-    } else if (selector.isCall()
-               && !info.targets.every((element) => element.isFunction())) {
+    } else if (selector.isCall() &&
+               !info.targets.every((element) => element.isFunction())) {
       bailout('Passed to a closure');
       return;
     }

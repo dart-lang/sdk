@@ -49,7 +49,6 @@ class ContainerTypeMask extends ForwardingTypeMask {
   }
 
   bool get isContainer => true;
-  bool get isMap => false;
   bool get isExact => true;
 
   bool equalsDisregardNull(other) {
@@ -88,14 +87,7 @@ class ContainerTypeMask extends ForwardingTypeMask {
     }
   }
 
-  bool operator==(other) {
-    if (other is! ContainerTypeMask) return false;
-    return allocationNode == other.allocationNode
-        && isNullable == other.isNullable
-        && elementType == other.elementType
-        && length == other.length
-        && forwardTo == other.forwardTo;
-  }
+  bool operator==(other) => super == other;
 
   int get hashCode {
     return computeHashCode(
