@@ -733,6 +733,9 @@ abstract class LibraryElement extends Element implements ScopeContainerElement {
 abstract class PrefixElement extends Element {
   void addImport(Element element, Import import, DiagnosticListener listener);
   Element lookupLocalMember(String memberName);
+  /// Is true if this prefix belongs to a deferred import.
+  bool get isDeferred;
+  void markAsDeferred();
 }
 
 abstract class TypedefElement extends Element

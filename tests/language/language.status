@@ -12,6 +12,31 @@ built_in_identifier_prefix_test: Fail # Issue 6970
 is_malformed_type_test/95: Fail # Issue 17253
 is_malformed_type_test/94: Fail # Issue 17253
 
+[ ($compiler == none || $compiler == dart2dart) && $unchecked ]
+# The vm and dart2dart does not support deferred loading.
+deferred_constraints_test/as_operation: MissingRuntimeError
+deferred_constraints_test/is_check: MissingRuntimeError
+deferred_constraints_test/as_operation: Fail
+deferred_constraints_test/type_annotation1: MissingRuntimeError
+
+[ ($compiler == dart2js && $csp)]
+deferred_constraints_test/new: Fail
+deferred_constraints_test/new_generic1: Fail
+deferred_constraints_test/new_generic3: Fail
+deferred_constraints_test/type_annotation_generic1: Fail
+deferred_constraints_test/type_annotation2: Fail
+deferred_constraints_test/type_annotation_generic4: Fail
+
+[ ($compiler == none || $compiler == dart2dart)  && $checked ]
+# The vm and dart2dart does not support deferred loading.
+deferred_constraints_test/as_operation: Pass, MissingRuntimeError
+deferred_constraints_test/is_check: Pass, MissingRuntimeError
+deferred_constraints_test/type_annotation1: Fail
+deferred_constraints_test/type_annotation2: Fail
+deferred_constraints_test/as_operation: Fail
+deferred_constraints_test/type_annotation_generic1: Fail
+deferred_constraints_test/type_annotation_generic4: Fail
+
 # These bugs refer currently ongoing language discussions.
 constructor_initializer_test/none: Fail # Issue 12633
 constructor5_test: Fail # Issue 6422

@@ -1666,34 +1666,52 @@ class TypeResolver {
 
   TypeResolver(this.compiler);
 
-  Element resolveTypeName(Scope scope,
-                          Identifier prefixName,
-                          Identifier typeName) {
+  /// Tries to resolve the type name as an element.
+  Element resolveTypeName(Identifier prefixName,
+                          Identifier typeName,
+                          Scope scope,
+                          {bool deferredIsMalformed: true}) {
+    Element element;
+    bool deferredTypeAnnotation = false;
     if (prefixName != null) {
-      Element element =
+      Element prefixElement =
           lookupInScope(compiler, prefixName, scope, prefixName.source);
-      if (element != null && element.isPrefix()) {
+      if (prefixElement != null && prefixElement.isPrefix()) {
         // The receiver is a prefix. Lookup in the imported members.
-        PrefixElement prefix = element;
-        return prefix.lookupLocalMember(typeName.source);
+        PrefixElement prefix = prefixElement;
+        element = prefix.lookupLocalMember(typeName.source);
+        // TODO(17260, sigurdm): The test for DartBackend is there because
+        // dart2dart outputs malformed types with prefix.
+        if (element != null &&
+            prefix.isDeferred &&
+            deferredIsMalformed &&
+            compiler.backend is! DartBackend) {
+          element = new ErroneousElementX(MessageKind.DEFERRED_TYPE_ANNOTATION,
+                                          {'node': typeName},
+                                          element.name,
+                                          element);
+        }
+      } else {
+        // The caller of this method will create the ErroneousElement for
+        // the MalformedType.
+        element = null;
       }
-      // The caller of this method will create the ErroneousElement for
-      // the MalformedType.
-      return null;
     } else {
       String stringValue = typeName.source;
       if (identical(stringValue, 'void')) {
-        return compiler.types.voidType.element;
+        element = compiler.types.voidType.element;
       } else if (identical(stringValue, 'dynamic')) {
-        return compiler.dynamicClass;
+        element = compiler.dynamicClass;
       } else {
-        return lookupInScope(compiler, typeName, scope, typeName.source);
+        element = lookupInScope(compiler, typeName, scope, typeName.source);
       }
     }
+    return element;
   }
 
   DartType resolveTypeAnnotation(MappingVisitor visitor, TypeAnnotation node,
-                                 {bool malformedIsError: false}) {
+                                 {bool malformedIsError: false,
+                                  bool deferredIsMalformed: true}) {
     Identifier typeName;
     Identifier prefixName;
     Send send = node.typeName.asSend();
@@ -1705,20 +1723,24 @@ class TypeResolver {
       typeName = node.typeName.asIdentifier();
     }
 
-    Element element = resolveTypeName(visitor.scope, prefixName, typeName);
+    Element element = resolveTypeName(prefixName, typeName, visitor.scope,
+                                      deferredIsMalformed: deferredIsMalformed);
 
     DartType reportFailureAndCreateType(MessageKind messageKind,
                                         Map messageArguments,
-                                        {DartType userProvidedBadType}) {
+                                        {DartType userProvidedBadType,
+                                         Element erroneousElement}) {
       if (malformedIsError) {
         visitor.error(node, messageKind, messageArguments);
       } else {
         compiler.backend.registerThrowRuntimeError(visitor.mapping);
         visitor.warning(node, messageKind, messageArguments);
       }
-      Element erroneousElement = new ErroneousElementX(
-          messageKind, messageArguments, typeName.source,
-          visitor.enclosingElement);
+      if (erroneousElement == null) {
+         erroneousElement = new ErroneousElementX(
+            messageKind, messageArguments, typeName.source,
+            visitor.enclosingElement);
+      }
       LinkBuilder<DartType> arguments = new LinkBuilder<DartType>();
       resolveTypeArguments(visitor, node, null, arguments);
       return new MalformedType(erroneousElement,
@@ -1738,6 +1760,7 @@ class TypeResolver {
       return type;
     }
 
+    // Try to construct the type from the element.
     DartType type;
     if (element == null) {
       type = reportFailureAndCreateType(
@@ -1750,6 +1773,11 @@ class TypeResolver {
     } else if (!element.impliesType()) {
       type = reportFailureAndCreateType(
           MessageKind.NOT_A_TYPE, {'node': node.typeName});
+    } else if (element.isErroneous()) {
+      ErroneousElement erroneousElement = element;
+      type = reportFailureAndCreateType(
+          erroneousElement.messageKind, erroneousElement.messageArguments,
+          erroneousElement: erroneousElement);
     } else {
       bool addTypeVariableBoundsCheck = false;
       if (identical(element, compiler.types.voidType.element) ||
@@ -3181,9 +3209,11 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   DartType resolveTypeAnnotation(TypeAnnotation node,
-                                 {bool malformedIsError: false}) {
+                                 {bool malformedIsError: false,
+                                  bool deferredIsMalformed: true}) {
     DartType type = typeResolver.resolveTypeAnnotation(
-        this, node, malformedIsError: malformedIsError);
+        this, node, malformedIsError: malformedIsError,
+        deferredIsMalformed: deferredIsMalformed);
     if (type == null) return null;
     if (inCheckContext) {
       compiler.enqueuer.resolution.registerIsCheck(type, mapping);
@@ -4567,8 +4597,11 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
 
   Element visitTypeAnnotation(TypeAnnotation node) {
     assert(invariant(node, type == null));
+    // This is not really resolving a type-annotation, but the name of the
+    // constructor. Therefore we allow deferred types.
     type = resolver.resolveTypeAnnotation(node,
-                                          malformedIsError: inConstContext);
+                                          malformedIsError: inConstContext,
+                                          deferredIsMalformed: false);
     compiler.backend.registerRequiredType(type, resolver.enclosingElement);
     return type.element;
   }
