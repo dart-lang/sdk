@@ -615,6 +615,19 @@ abstract class LibraryMirror implements DeclarationMirror, ObjectMirror {
  */
 abstract class TypeMirror implements DeclarationMirror {
   /**
+   * Returns true if this mirror reflects dynamic, a non-generic class or
+   * typedef, or an instantiated generic class or typedef in the current
+   * isolate. Otherwise, returns false.
+   */
+  bool get hasReflectedType;
+
+  /**
+   * If [:hasReflectedType:] returns true, returns the corresponding [Type].
+   * Otherwise, an [UnsupportedError] is thrown.
+   */
+  Type get reflectedType;
+
+  /**
    * An immutable list with mirrors for all type variables for this type.
    *
    * If this type is a generic declaration or an invocation of a generic
@@ -682,18 +695,6 @@ abstract class TypeMirror implements DeclarationMirror {
  * A [ClassMirror] reflects a Dart language class.
  */
 abstract class ClassMirror implements TypeMirror, ObjectMirror {
-  /**
-   * Returns true if this mirror reflects a non-generic class or an instantiated
-   * generic class in the current isolate. Otherwise, returns false.
-   */
-  bool get hasReflectedType;
-
-  /**
-   * If [:hasReflectedType:] returns true, returns the corresponding [Type].
-   * Otherwise, an [UnsupportedError] is thrown.
-   */
-  Type get reflectedType;
-
   /**
    * A mirror on the superclass on the reflectee.
    *

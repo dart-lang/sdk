@@ -2367,6 +2367,10 @@ class JsTypedefMirror extends JsDeclarationMirror implements TypedefMirror {
 
   String get _prettyName => 'TypedefMirror';
 
+  bool get hasReflectedType => throw new UnimplementedError();
+
+  Type get reflectedType => throw new UnimplementedError();
+
   // TODO(ahe): Implement this method.
   List<TypeVariableMirror> get typeVariables => throw new UnimplementedError();
 

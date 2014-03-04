@@ -1054,7 +1054,9 @@ class _LocalTypeVariableMirror extends _LocalDeclarationMirror
   }
 
   bool get hasReflectedType => false;
-  Type get reflectedType => throw new UnsupportedError();
+  Type get reflectedType {
+    throw new UnsupportedError('Type variables have no reflected type');
+  }
   Type get _reflectedType => _reflectee;
 
   List<TypeVariableMirror> get typeVariables => emptyList;
@@ -1129,6 +1131,15 @@ class _LocalTypedefMirror extends _LocalDeclarationMirror
       _referent._instantiator = _reflectedType;
     }
     return _referent;
+  }
+
+  bool get hasReflectedType => !_isGenericDeclaration;
+  Type get reflectedType {
+    if (!hasReflectedType) {
+      throw new UnsupportedError(
+          "Declarations of generics have no reflected type");
+    }
+    return _reflectedType;
   }
 
   bool get isOriginalDeclaration => !_isGeneric || _isGenericDeclaration;
@@ -1537,6 +1548,12 @@ class _SpecialTypeMirror extends _LocalMirror
   DeclarationMirror get owner => null;
 
   List<InstanceMirror> get metadata => emptyList;
+
+  bool get hasReflectedType => simpleName == #dynamic;
+  Type get reflectedType {
+    if (simpleName == #dynamic) return dynamic;
+    throw new UnsupportedError("void has no reflected type");
+  }
 
   List<TypeVariableMirror> get typeVariables => emptyList;
   List<TypeMirror> get typeArguments => emptyList;

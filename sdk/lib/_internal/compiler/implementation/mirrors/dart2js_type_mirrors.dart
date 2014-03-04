@@ -33,6 +33,10 @@ abstract class Dart2JsTypeMirror
     return mirrorSystem._getLibrary(_type.element.getLibrary());
   }
 
+  bool get hasReflectedType => throw new UnimplementedError();
+
+  Type get reflectedType => throw new UnimplementedError();
+
   bool get isOriginalDeclaration => true;
 
   TypeMirror get originalDeclaration => this;
