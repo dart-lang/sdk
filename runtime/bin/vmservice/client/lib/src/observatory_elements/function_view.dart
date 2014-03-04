@@ -4,6 +4,7 @@
 
 library function_view_element;
 
+import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
 import 'observatory_element.dart';
 
@@ -11,4 +12,13 @@ import 'observatory_element.dart';
 class FunctionViewElement extends ObservatoryElement {
   @published Map function;
   FunctionViewElement.created() : super.created();
+
+  void refresh(var done) {
+    var url = app.locationManager.currentIsolateRelativeLink(function['id']);
+    app.requestManager.requestMap(url).then((map) {
+        function = map;
+    }).catchError((e, trace) {
+        Logger.root.severe('Error while refreshing field-view: $e\n$trace');
+    }).whenComplete(done);
+  }
 }

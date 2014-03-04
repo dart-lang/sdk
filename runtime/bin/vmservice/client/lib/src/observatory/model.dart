@@ -302,6 +302,7 @@ class ScriptLine extends Observable {
 class Script extends Observable {
   @observable String kind = null;
   @observable Map scriptRef = toObservable({});
+  @published String shortName;
   @observable Map libraryRef = toObservable({});
   @observable final List<ScriptLine> lines =
       toObservable(new List<ScriptLine>());
@@ -313,6 +314,7 @@ class Script extends Observable {
       'name': map['name'],
       'user_name': map['user_name']
     });
+    shortName = map['name'].substring(map['name'].lastIndexOf('/') + 1);
     libraryRef = toObservable(map['library']);
     kind = map['kind'];
     _processSource(map['source']);

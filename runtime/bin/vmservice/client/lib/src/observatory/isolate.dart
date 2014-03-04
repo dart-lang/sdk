@@ -15,6 +15,7 @@ class Isolate extends Observable {
   @observable final List<Code> codes = new List<Code>();
   @observable String id;
   @observable String name;
+  @observable String vmName;
   @observable Map entry;
   @observable String rootLib;
   @observable final Map<String, double> timers =
@@ -25,20 +26,20 @@ class Isolate extends Observable {
 
   @observable Map topFrame = null;
   @observable String fileAndLine = null;
-
-  Isolate.fromId(this.id) : name = '' {}
-
+  
+  Isolate.fromId(this.id) : name = 'isolate' {}
+  
   Isolate.fromMap(Map map)
       : id = map['id'], name = map['name'] {
   }
 
-  void refresh() {
-    var request = '/$id/';
-    _application.requestManager.requestMap(request).then((map) {
-        update(map);
-      }).catchError((e, trace) {
-          Logger.root.severe('Error while updating isolate summary: $e\n$trace');
-      });
+  Future refresh() {
+     var request = '/$id/';
+     return _application.requestManager.requestMap(request).then((map) {
+         update(map);
+       }).catchError((e, trace) {
+           Logger.root.severe('Error while updating isolate summary: $e\n$trace');
+       });
   }
 
   void update(Map map) {
@@ -46,17 +47,20 @@ class Isolate extends Observable {
       Logger.root.severe('Unexpected message type in Isolate.update: ${map["type"]}');
       return;
     }
-    if (map['name'] == null ||
-        map['rootLib'] == null ||
+    if (map['rootLib'] == null ||
         map['timers'] == null ||
         map['heap'] == null) {
       Logger.root.severe("Malformed 'Isolate' response: $map");
       return;
     }
-    name = map['name'];
     rootLib = map['rootLib']['id'];
+    vmName = map['name'];
     if (map['entry'] != null) {
       entry = map['entry'];
+      name = entry['name'];
+    } else {
+      // fred
+      name = 'root isolate';
     }
     if (map['topFrame'] != null) {
       topFrame = map['topFrame'];

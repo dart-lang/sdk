@@ -4,6 +4,7 @@
 
 library class_view_element;
 
+import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
 import 'observatory_element.dart';
 
@@ -11,4 +12,13 @@ import 'observatory_element.dart';
 class ClassViewElement extends ObservatoryElement {
   @published Map cls;
   ClassViewElement.created() : super.created();
+
+  void refresh(var done) {
+    var url = app.locationManager.currentIsolateRelativeLink(cls['id']);
+    app.requestManager.requestMap(url).then((map) {
+        cls = map;
+    }).catchError((e, trace) {
+        Logger.root.severe('Error while refreshing class-view: $e\n$trace');
+    }).whenComplete(done);
+  }
 }

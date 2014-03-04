@@ -4,6 +4,7 @@
 
 library library_view_element;
 
+import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
 import 'observatory_element.dart';
 
@@ -12,4 +13,13 @@ class LibraryViewElement extends ObservatoryElement {
   @published Map library = toObservable({});
 
   LibraryViewElement.created() : super.created();
+
+  void refresh(var done) {
+    var url = app.locationManager.currentIsolateRelativeLink(library['id']);
+    app.requestManager.requestMap(url).then((map) {
+        library = map;
+    }).catchError((e, trace) {
+          Logger.root.severe('Error while refreshing library-view: $e\n$trace');
+    }).whenComplete(done);
+  }
 }

@@ -222,7 +222,7 @@ class HeapProfileElement extends ObservatoryElement {
     throw new FallThroughError();
   }
 
-  void refreshData(Event e, var detail, Node target) {
+  void refresh(var done) {
     var isolateId = app.locationManager.currentIsolateId();
     var isolate = app.isolateManager.getIsolate(isolateId);
     if (isolate == null) {
@@ -235,7 +235,7 @@ class HeapProfileElement extends ObservatoryElement {
       profile = response;
     }).catchError((e, st) {
       Logger.root.info('$e $st');
-    });
+    }).whenComplete(done);
   }
 
   void resetAccumulator(Event e, var detail, Node target) {

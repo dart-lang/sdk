@@ -65,7 +65,7 @@ class LocationManager extends Observable {
     return prefix.substring(2);
   }
 
-  Isolate currentIsolate() {
+  @observable Isolate currentIsolate() {
     var id = currentIsolateId();
     if (id == '') {
       return null;

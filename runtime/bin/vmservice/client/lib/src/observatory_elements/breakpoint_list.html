@@ -1,8 +1,17 @@
 <head>
+  <link rel="import" href="nav_bar.html">
   <link rel="import" href="observatory_element.html">
 </head>
 <polymer-element name="breakpoint-list" extends="observatory-element">
   <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
+      </isolate-nav-menu>
+      <nav-menu link="." anchor="breakpoints" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
     <template if="{{ msg['breakpoints'].isEmpty }}">
       <div class="panel panel-warning">
         <div class="panel-body">No breakpoints</div>

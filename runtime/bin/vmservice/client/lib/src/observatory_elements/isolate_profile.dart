@@ -90,7 +90,7 @@ class IsolateProfileElement extends ObservatoryElement {
     _refresh(isolate);
   }
 
-  void refreshData(Event e, var detail, Node target) {
+  void refresh(var done) {
     var isolateId = app.locationManager.currentIsolateId();
     var isolate = app.isolateManager.getIsolate(isolateId);
     if (isolate == null) {
@@ -107,7 +107,7 @@ class IsolateProfileElement extends ObservatoryElement {
       _endRequest();
     }).catchError((e) {
       _endRequest();
-    });
+    }).whenComplete(done);
   }
 
   void _loadProfileData(Isolate isolate, int totalSamples, Map response) {

@@ -1,9 +1,25 @@
 <head>
   <link rel="import" href="class_ref.html">
+  <link rel="import" href="nav_bar.html">
   <link rel="import" href="observatory_element.html">
 </head>
 <polymer-element name="field-view" extends="observatory-element">
   <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
+      </isolate-nav-menu>
+      <template if="{{ field['owner']['type'] == '@Class' }}">
+        <!-- TODO(turnidge): Add library nav menu here. -->
+        <class-nav-menu app="{{ app }}" cls="{{ field['owner'] }}"></class-nav-menu>
+      </template>
+      <template if="{{ field['owner']['type'] == '@Library' }}">
+        <library-nav-menu app="{{ app }}" library="{{ field['owner'] }}"></library-nav-menu>
+      </template>
+      <nav-menu link="." anchor="{{ field['user_name'] }}" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
   <div class="row">
     <div class="col-md-8 col-md-offset-2">
       <div class="panel panel-warning">

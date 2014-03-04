@@ -1,13 +1,19 @@
 <head>
   <link rel="import" href="class_ref.html">
+  <link rel="import" href="nav_bar.html">
   <link rel="import" href="observatory_element.html">
 </head>
 <polymer-element name="heap-profile" extends="observatory-element">
 <template>
-  <div>
-  <button type="button" on-click="{{refreshData}}">Refresh</button>
+  <nav-bar>
+    <top-nav-menu></top-nav-menu>
+    <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
+    </isolate-nav-menu>
+    <nav-menu link="." anchor="heap profile" last="{{ true }}"></nav-menu>
+    <nav-refresh callback="{{ refresh }}"></nav-refresh>
+  </nav-bar>
+
   <button type="button" on-click="{{resetAccumulator}}">Reset Accumulator</button>
-  </div>
   <div class="row">
     <div id="newPieChart" class="col-md-4" style="height: 400px">
     </div>

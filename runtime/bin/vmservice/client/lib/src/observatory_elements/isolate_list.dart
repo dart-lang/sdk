@@ -4,6 +4,7 @@
 
 library isolate_list_element;
 
+import 'dart:async';
 import 'dart:html';
 import 'package:polymer/polymer.dart';
 import 'observatory_element.dart';
@@ -13,9 +14,11 @@ import 'observatory_element.dart';
 class IsolateListElement extends ObservatoryElement {
   IsolateListElement.created() : super.created();
   
-  void refresh(Event e, var detail, Node target) {
+  void refresh(var done) {
+    var futures = [];
     app.isolateManager.isolates.forEach((id, isolate) {
-      isolate.refresh();
+       futures.add(isolate.refresh());
     });
+    Future.wait(futures).then((_) => done());
   }
 }

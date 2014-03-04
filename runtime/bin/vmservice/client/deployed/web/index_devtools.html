@@ -12,8 +12,200 @@
 </head>
 <body><polymer-element name="observatory-element">
   
-</polymer-element><polymer-element name="breakpoint-list" extends="observatory-element">
+</polymer-element>
+<polymer-element name="nav-bar" extends="observatory-element">
   <template>
+    <style>
+      nav ul {
+        display: inline-table;
+        position: relative;
+        list-style: none;
+        padding-left: 0;
+        margin-left: 0;
+        width: 100%;
+        z-index: 10;
+        font: 400 16px 'Montserrat', sans-serif;
+        color: white;
+        background-color: #0489c3;
+      }
+      nav ul:after {
+        content: ""; clear: both; display: block;
+      }
+    </style>
+    <nav>
+      <ul>
+        <content></content>
+      </ul>
+    </nav>
+  </template>
+</polymer-element>
+
+<polymer-element name="nav-menu" extends="observatory-element">
+  <template>
+    <style>
+      .menu, .spacer {
+        float: left;
+      }
+      .menu a, .spacer {
+        display: block;
+        padding: 12px 8px;
+        color: White;
+        text-decoration: none;
+      }
+      .menu:hover {
+        background: #455;
+      }
+      .menu ul {
+        display: none;
+        position: absolute;
+        top: 100%;
+        list-style: none;
+        padding: 0;
+        margin-left: 0;
+        width: auto;
+        z-index: 10;
+        font: 400 16px 'Montserrat', sans-serif;
+        color: white;
+        background: #567;
+      }
+      .menu ul:after {
+        content: ""; clear: both; display: block;
+      }
+      .menu:hover > ul {
+        display: block;
+      }
+    </style>
+
+    <li class="menu"><a href="{{ link }}">{{ anchor }}</a>
+      <ul><content></content></ul>
+    </li>
+    <template if="{{ !last }}">
+      <li class="spacer">&gt;</li>
+    </template>
+
+  </template>
+</polymer-element>
+
+<polymer-element name="nav-menu-item" extends="observatory-element">
+  <template>
+    <style>
+      li {
+        float: none;
+        border-top: 1px solid #677;
+        border-bottom: 1px solid #556; position: relative;
+      }
+      li:hover {
+        background: #455;
+      }
+      li ul {
+        display: none;
+        position: absolute;
+        top:0;
+        left: 100%;
+        list-style: none;
+        padding: 0;
+        margin-left: 0;
+        width: auto;
+        z-index: 10;
+        font: 400 16px 'Montserrat', sans-serif;
+        color: white;
+        background: #567;
+      }
+      li ul:after {
+        content: ""; clear: both; display: block;
+      }
+      li:hover > ul {
+        display: block;
+      }
+      li a {
+        display: block;
+        padding: 12px 12px;
+        color: white;
+        text-decoration: none;
+      }
+    </style>
+    <li><a href="{{ link }}">{{ anchor }}</a>
+      <ul><content></content></ul>
+    </li>
+  </template>
+</polymer-element>
+
+<polymer-element name="nav-refresh" extends="observatory-element">
+  <template>
+    <style>
+      .active {
+        color: #aaa;
+      }
+      .idle {
+        color: #000;
+      }
+      li {
+        float: right;
+        margin: 0;
+      }
+      li button {
+        margin: 3px;
+        padding: 8px;
+      }
+    </style>
+    <li>
+      <template if="{{ active }}">
+        <button class="active" on-click="{{ buttonClick }}">Refresh</button>
+      </template>
+      <template if="{{ !active }}">
+        <button class="idle" on-click="{{ buttonClick }}">Refresh</button>
+      </template>
+    </li>
+  </template>
+</polymer-element>
+
+<polymer-element name="top-nav-menu">
+  <template>
+    <nav-menu link="#" anchor="Observatory" last="{{ last }}">
+      <content></content>
+    </nav-menu>
+  </template>
+</polymer-element>
+
+<polymer-element name="isolate-nav-menu" extends="observatory-element">
+  <template>
+    <nav-menu link="#" anchor="{{ isolate.name }}" last="{{ last }}">
+      <nav-menu-item link="{{ app.locationManager.currentIsolateRelativeLink('stacktrace') }}" anchor="stack trace"></nav-menu-item>
+      <nav-menu-item link="{{ app.locationManager.currentIsolateRelativeLink('profile') }}" anchor="cpu profile"></nav-menu-item>
+      <nav-menu-item link="{{ app.locationManager.currentIsolateRelativeLink('allocationprofile') }}" anchor="heap profile"></nav-menu-item>
+      <nav-menu-item link="{{ app.locationManager.currentIsolateRelativeLink('debug/breakpoints') }}" anchor="breakpoints"></nav-menu-item>
+      <content></content>
+    </nav-menu>
+  </template>
+</polymer-element>
+
+<polymer-element name="library-nav-menu" extends="observatory-element">
+  <template>
+    <nav-menu link="{{ app.locationManager.currentIsolateRelativeLink(library['id']) }}" anchor="{{ library['name'] }}" last="{{ last }}">
+      <content></content>
+    </nav-menu>
+  </template>
+</polymer-element>
+
+<polymer-element name="class-nav-menu" extends="observatory-element">
+  <template>
+    <nav-menu link="{{ app.locationManager.currentIsolateRelativeLink(cls['id']) }}" anchor="{{ cls['user_name'] }}" last="{{ last }}">
+      <content></content>
+    </nav-menu>
+  </template>
+</polymer-element>
+
+
+<polymer-element name="breakpoint-list" extends="observatory-element">
+  <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
+      </isolate-nav-menu>
+      <nav-menu link="." anchor="breakpoints" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
     <template if="{{ msg['breakpoints'].isEmpty }}">
       <div class="panel panel-warning">
         <div class="panel-body">No breakpoints</div>
@@ -30,7 +222,8 @@
     </template>
   </template>
   
-</polymer-element><polymer-element name="service-ref" extends="observatory-element">
+</polymer-element>
+<polymer-element name="service-ref" extends="observatory-element">
   
 </polymer-element><polymer-element name="class-ref" extends="service-ref">
 <template>
@@ -148,6 +341,15 @@
 
 </polymer-element><polymer-element name="class-view" extends="observatory-element">
   <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
+      </isolate-nav-menu>
+      <library-nav-menu app="{{ app }}" library="{{ cls['library'] }}"></library-nav-menu>
+      <class-nav-menu app="{{ app }}" cls="{{ cls }}" last="{{ true }}"></class-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
     <div class="row">
     <div class="col-md-8 col-md-offset-2">
       <div class="panel panel-warning">
@@ -236,6 +438,14 @@
   
 </polymer-element><polymer-element name="code-view" extends="observatory-element">
   <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
+      </isolate-nav-menu>
+      <nav-menu link="." anchor="{{ code.functionRef['user_name'] }}" last="{{ true }}"></nav-menu>
+      <!-- TODO(turnidge): Implement code refresh -->
+    </nav-bar>
+
   <div class="row">
     <div class="col-md-8 col-md-offset-2">
       <div class="{{ cssPanelClass }}">
@@ -258,7 +468,8 @@
   </div>
   </template>
   
-</polymer-element><polymer-element name="collapsible-content" extends="observatory-element">
+</polymer-element>
+<polymer-element name="collapsible-content" extends="observatory-element">
   <template>
     <div class="well row">
       <a on-click="toggleDisplay" class="btn muted unselectable">
@@ -272,6 +483,21 @@
   
 </polymer-element><polymer-element name="field-view" extends="observatory-element">
   <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
+      </isolate-nav-menu>
+      <template if="{{ field['owner']['type'] == '@Class' }}">
+        <!-- TODO(turnidge): Add library nav menu here. -->
+        <class-nav-menu app="{{ app }}" cls="{{ field['owner'] }}"></class-nav-menu>
+      </template>
+      <template if="{{ field['owner']['type'] == '@Library' }}">
+        <library-nav-menu app="{{ app }}" library="{{ field['owner'] }}"></library-nav-menu>
+      </template>
+      <nav-menu link="." anchor="{{ field['user_name'] }}" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
   <div class="row">
     <div class="col-md-8 col-md-offset-2">
       <div class="panel panel-warning">
@@ -308,8 +534,24 @@
   </div>
   </template>
   
-</polymer-element><polymer-element name="function-view" extends="observatory-element">
+</polymer-element>
+<polymer-element name="function-view" extends="observatory-element">
   <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
+      </isolate-nav-menu>
+      <template if="{{ function['owner']['type'] == '@Class' }}">
+        <!-- TODO(turnidge): Add library nav menu here. -->
+        <class-nav-menu app="{{ app }}" cls="{{ function['owner'] }}"></class-nav-menu>
+      </template>
+      <template if="{{ function['owner']['type'] == '@Library' }}">
+        <library-nav-menu app="{{ app }}" library="{{ function['owner'] }}"></library-nav-menu>
+      </template>
+      <nav-menu link="." anchor="{{ function['user_name'] }}" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
   <div class="row">
     <div class="col-md-8 col-md-offset-2">
       <div class="panel panel-warning">
@@ -356,7 +598,8 @@
   </div>
   </template>
   
-</polymer-element><polymer-element name="script-ref" extends="service-ref">
+</polymer-element>
+<polymer-element name="script-ref" extends="service-ref">
 <template>
   <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
 </template>
@@ -369,7 +612,7 @@
         <img src="img/isolate_icon.png" class="img-polaroid">
       </div>
 
-      <div class="col-md-1">{{ isolate.name }}</div>
+      <div class="col-md-1">{{ isolate.vmName }}</div>
 
       <!-- TODO(turnidge): Use function-ref when it can take isolate param -->
       <div class="col-md-4">
@@ -377,12 +620,11 @@
         <div class="row">
           <template if="{{ isolate.entry['id'] != null }}">
             <a href="{{ app.locationManager.relativeLink(isolate.id, isolate.entry['id']) }}">
-              {{ isolate.entry['name'] }}
+              {{ isolate.name }}
             </a>
           </template>
           <template if="{{ isolate.entry['id'] == null }}">
-            <!-- fred -->
-            root isolate
+            {{ isolate.name }}
           </template>
         </div>
 
@@ -456,7 +698,11 @@
 </polymer-element>
 <polymer-element name="isolate-list" extends="observatory-element">
   <template>
-      <button type="button" on-click="{{refresh}}">Refresh</button>
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <!-- TODO(turnidge): Why doesn't "this.refresh" work? -->
+      <nav-refresh callback="{{ refresh } }}"></nav-refresh>
+    </nav-bar>
       <ul class="list-group">
       <template repeat="{{ isolate in app.isolateManager.isolates.values }}">
       	<li class="list-group-item">
@@ -470,6 +716,16 @@
 </polymer-element>
 <polymer-element name="instance-view" extends="observatory-element">
   <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
+      </isolate-nav-menu>
+      <!-- TODO(turnidge): Add library nav menu here. -->
+      <class-nav-menu app="{{ app }}" cls="{{ instance['class'] }}"></class-nav-menu>
+      <nav-menu link="." anchor="instance" last="{{ true }}"></nav-menu>
+      <!-- TODO(turnidge): Add nav refresh here. -->
+    </nav-bar>
+
     <div class="row">
     <div class="col-md-8 col-md-offset-2">
       <div class="panel panel-warning">
@@ -538,7 +794,14 @@
 </polymer-element>
 <polymer-element name="library-view" extends="observatory-element">
   <template>
-  <div class="alert alert-success">Library {{ library['name'] }}</div>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
+      </isolate-nav-menu>
+      <library-nav-menu app="{{ app }}" library="{{ library }}" last="{{ true }}"></library-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
   <div class="alert alert-info">Scripts</div>
   <table class="table table-hover">
     <tbody>
@@ -606,10 +869,15 @@
 </polymer-element>
 <polymer-element name="heap-profile" extends="observatory-element">
 <template>
-  <div>
-  <button type="button" on-click="{{refreshData}}">Refresh</button>
+  <nav-bar>
+    <top-nav-menu></top-nav-menu>
+    <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
+    </isolate-nav-menu>
+    <nav-menu link="." anchor="heap profile" last="{{ true }}"></nav-menu>
+    <nav-refresh callback="{{ refresh }}"></nav-refresh>
+  </nav-bar>
+
   <button type="button" on-click="{{resetAccumulator}}">Reset Accumulator</button>
-  </div>
   <div class="row">
     <div id="newPieChart" class="col-md-4" style="height: 400px">
     </div>
@@ -669,6 +937,14 @@
 </polymer-element>
 <polymer-element name="script-view" extends="observatory-element">
 <template>
+  <nav-bar>
+    <top-nav-menu></top-nav-menu>
+    <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
+    </isolate-nav-menu>
+    <library-nav-menu app="{{ app }}" library="{{ script.libraryRef }}"></library-nav-menu>
+    <nav-menu link="." anchor="{{ script.shortName }}" last="{{ true }}"></nav-menu>
+  </nav-bar>
+
   <div class="row">
     <div class="col-md-8 col-md-offset-2">
       <div class="panel-heading">
@@ -691,7 +967,8 @@
   </div>
 </template>
 
-</polymer-element><polymer-element name="stack-frame" extends="observatory-element">
+</polymer-element>
+<polymer-element name="stack-frame" extends="observatory-element">
   <template>
     <style>
       .memberList {
@@ -737,7 +1014,14 @@
 </polymer-element>
 <polymer-element name="stack-trace" extends="observatory-element">
   <template>
-    <button type="button" on-click="{{refresh}}">Refresh</button>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
+      </isolate-nav-menu>
+      <nav-menu link="." anchor="stack trace" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
     <template if="{{ trace['members'].isEmpty }}">
       <div class="col-md-1"></div>
       <div class="col-md-11">
@@ -825,34 +1109,17 @@
   </template>
   
 </polymer-element>
-<polymer-element name="navigation-bar-isolate" extends="observatory-element">
-    <template>
-      <ul class="nav navbar-nav">
-        <li><a href="{{ currentIsolateLink('') }}"> {{currentIsolateName()}}</a></li>
-        <template repeat="{{link in links}}">
-          <li><a href="{{ currentIsolateLink(link) }}">{{ link }}</a></li>
-        </template>
-      </ul>
-    </template>
-  
-</polymer-element><polymer-element name="navigation-bar" extends="observatory-element">
+<polymer-element name="isolate-profile" extends="observatory-element">
   <template>
-    <nav class="navbar navbar-default" role="navigation">
-      <div class="navbar-header">
-        <a class="navbar-brand" href="#/isolates">Observatory</a>
-      </div>
-      <template if="{{ app.locationManager.hasCurrentIsolate }}">
-        <div class="collapse navbar-collapse navbar-ex1-collapse">
-          <navigation-bar-isolate app="{{ app }}"></navigation-bar-isolate>
-        </div>
-      </template>
-    </nav>
-  </template>
-  
-</polymer-element><polymer-element name="isolate-profile" extends="observatory-element">
-  <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
+      </isolate-nav-menu>
+      <nav-menu link="." anchor="cpu profile" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
     <div>
-      <button type="button" on-click="{{refreshData}}">Refresh profile data</button>
       <span>Top</span>
       <select selectedindex="{{methodCountSelected}}" value="{{methodCounts[methodCountSelected]}}">
         <option template="" repeat="{{count in methodCounts}}">{{count}}</option>
@@ -891,7 +1158,6 @@
   
 </polymer-element><polymer-element name="observatory-application" extends="observatory-element">
   <template>
-    <navigation-bar app="{{ app }}"></navigation-bar>
     <template if="{{ app.locationManager.profile }}">
       <isolate-profile app="{{ app }}"></isolate-profile>
     </template>
@@ -901,6 +1167,8 @@
   </template>
   
 </polymer-element>
+
+
   <observatory-application devtools="true"></observatory-application>
 
 </body></html>

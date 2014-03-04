@@ -10,7 +10,7 @@
         <img src="img/isolate_icon.png" class="img-polaroid">
       </div>
 
-      <div class="col-md-1">{{ isolate.name }}</div>
+      <div class="col-md-1">{{ isolate.vmName }}</div>
 
       <!-- TODO(turnidge): Use function-ref when it can take isolate param -->
       <div class="col-md-4">
@@ -18,12 +18,11 @@
         <div class="row">
           <template if="{{ isolate.entry['id'] != null }}">
             <a href="{{ app.locationManager.relativeLink(isolate.id, isolate.entry['id']) }}">
-              {{ isolate.entry['name'] }}
+              {{ isolate.name }}
             </a>
           </template>
           <template if="{{ isolate.entry['id'] == null }}">
-            <!-- fred -->
-            root isolate
+            {{ isolate.name }}
           </template>
         </div>
 
