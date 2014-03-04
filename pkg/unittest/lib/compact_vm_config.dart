@@ -56,7 +56,7 @@ class CompactVMConfiguration extends VMConfiguration {
     } else {
       _fail++;
       _progressLine(_start, _pass, _fail, test.description);
-      print('');
+      stdout.write('\n');
       if (test.message != '') {
         print(indent(test.message));
       }
@@ -71,7 +71,7 @@ class CompactVMConfiguration extends VMConfiguration {
     _pass--;
     _fail++;
     _progressLine(_start, _pass, _fail, test.description);
-    print('');
+    stdout.write('\n');
     if (test.message != '') {
       print(indent(test.message));
     }
@@ -97,11 +97,11 @@ class CompactVMConfiguration extends VMConfiguration {
       print('\nNo tests ran.');
     } else if (failed == 0 && errors == 0 && uncaughtError == null) {
       _progressLine(_start, _pass, _fail, 'All tests passed!', _NONE);
-      print('');
+      stdout.write('\n');
       success = true;
     } else {
       _progressLine(_start, _pass, _fail, 'Some tests failed.', _RED);
-      print('');
+      stdout.write('\n');
       if (uncaughtError != null) {
         print('Top-level uncaught error: $uncaughtError');
       }
