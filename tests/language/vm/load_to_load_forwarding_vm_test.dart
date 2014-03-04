@@ -169,6 +169,27 @@ testPhiForwarding4() {
                      0.1, 0.0, -0.1], result);
 }
 
+
+class C {
+  C(this.box, this.parent);
+  final box;
+  final C parent;
+}
+
+testPhiForwarding5(C c) {
+  var s = 0;
+  var tmp = c;
+  var a = c.parent;
+  if (a.box + tmp.box != 1) throw "failed";
+  do {
+    s += tmp.box + a.box;
+    tmp = a;
+    a = a.parent;
+  } while (a != null);
+  return s;
+}
+
+
 class U {
   var x, y;
   U() : x = 0, y = 0;
@@ -260,6 +281,8 @@ main() {
 
   final obj = new X(new X(new X(null)));
 
+  final cs = new C(0, new C(1, new C(2, null))); 
+
   for (var i = 0; i < 20; i++) {
     Expect.listEquals([0x02010000, 0x03020100], foo(new A(0, 0)));
     Expect.listEquals([0x02010000, 0x03020100], bar(new A(0, 0), false));
@@ -270,6 +293,7 @@ main() {
     testPhiForwarding2(obj);
     testPhiForwarding3();
     testPhiForwarding4();
+    Expect.equals(4, testPhiForwarding5(cs));
     testEqualPhisElimination();
   }
 
