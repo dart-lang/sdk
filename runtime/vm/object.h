@@ -1483,6 +1483,7 @@ class Function : public Object {
 
   // Sets function's code and code's function.
   void SetCode(const Code& value) const;
+  void  ClearCode() const;
 
   // Disables optimized code and switches to unoptimized code.
   void SwitchToUnoptimizedCode() const;

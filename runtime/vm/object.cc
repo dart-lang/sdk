@@ -4536,6 +4536,12 @@ void Function::SetCode(const Code& value) const {
 }
 
 
+void Function::ClearCode() const {
+  StorePointer(&raw_ptr()->code_, Code::null());
+  StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
+}
+
+
 void Function::SwitchToUnoptimizedCode() const {
   ASSERT(HasOptimizedCode());
 
