@@ -732,7 +732,9 @@ Definition* EffectGraphVisitor::BuildStoreLocal(const LocalVariable& local,
 
 
 Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
-  if (local.is_captured()) {
+  if (local.IsConst()) {
+    return new ConstantInstr(*local.ConstValue());
+  } else if (local.is_captured()) {
     intptr_t delta =
         owner()->context_level() - local.owner()->context_level();
     ASSERT(delta >= 0);

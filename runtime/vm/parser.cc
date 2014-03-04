@@ -9015,11 +9015,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   }
   if (local != NULL) {
     if (node != NULL) {
-      if (local->IsConst()) {
-        *node = new LiteralNode(ident_pos, *local->ConstValue());
-      } else {
-        *node = new LoadLocalNode(ident_pos, local);
-      }
+      *node = new LoadLocalNode(ident_pos, local);
     }
     return true;
   }
