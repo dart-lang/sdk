@@ -250,6 +250,7 @@ class MirrorsReader extends MirrorsVisitor {
   visitTypeVariableMirror(TypeVariableMirror mirror) {
     super.visitTypeVariableMirror(mirror);
     visit(mirror, 'upperBound', () => mirror.upperBound);
+    visit(mirror, 'isStatic', () => mirror.isStatic);
   }
 
   visitVariableMirror(VariableMirror mirror) {

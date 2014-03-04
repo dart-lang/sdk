@@ -873,6 +873,14 @@ abstract class TypeVariableMirror extends TypeMirror {
   TypeMirror get upperBound;
 
   /**
+   * Is the reflectee static?
+   *
+   * For the purposes of the mirrors library, type variables are considered
+   * non-static.
+   */
+  bool get isStatic;
+
+  /**
    * Returns [:true:] if this mirror is equal to [other].
    * Otherwise returns [:false:].
    *

@@ -220,6 +220,7 @@ class JsTypeVariableMirror extends JsTypeMirror implements TypeVariableMirror {
   String get _prettyName => 'TypeVariableMirror';
 
   bool get isTopLevel => false;
+  bool get isStatic => false;
 
   TypeMirror get upperBound {
     if (_cachedUpperBound != null) return _cachedUpperBound;

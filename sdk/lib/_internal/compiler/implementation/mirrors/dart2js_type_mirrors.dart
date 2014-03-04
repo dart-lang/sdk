@@ -326,6 +326,8 @@ class Dart2JsTypeVariableMirror extends Dart2JsTypeMirror
     return _owner;
   }
 
+  bool get isStatic => false;
+
   TypeMirror get upperBound => owner._getTypeMirror(_type.element.bound);
 
   bool operator ==(var other) {
