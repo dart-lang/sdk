@@ -508,7 +508,7 @@ abstract class Element {
    * @param elementClass the class of the element to be returned
    * @return the element that encloses this element
    */
-  Element getAncestor(Type elementClass);
+  Element getAncestor(Predicate<Element> predicate);
 
   /**
    * Return the analysis context in which this element is defined.
@@ -2618,7 +2618,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return null;
   }
 
-  ClassDeclaration get node => getNode2(ClassDeclaration);
+  ClassDeclaration get node => getNode2((node) => node is ClassDeclaration);
 
   PropertyAccessorElement getSetter(String setterName) {
     // TODO (jwren) revisit- should we append '=' here or require clients to include it?
@@ -2684,7 +2684,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
 
   bool get isAbstract => hasModifier(Modifier.ABSTRACT);
 
-  bool get isOrInheritsProxy => isOrInheritsProxy2(this, new Set<ClassElement>());
+  bool get isOrInheritsProxy => safeIsOrInheritsProxy(this, new Set<ClassElement>());
 
   bool get isProxy {
     for (ElementAnnotation annotation in metadata) {
@@ -2947,25 +2947,25 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     }
   }
 
-  bool isOrInheritsProxy2(ClassElement classElt, Set<ClassElement> visitedClassElts) {
+  bool safeIsOrInheritsProxy(ClassElement classElt, Set<ClassElement> visitedClassElts) {
     if (visitedClassElts.contains(classElt)) {
       return false;
     }
     visitedClassElts.add(classElt);
     if (classElt.isProxy) {
       return true;
-    } else if (classElt.supertype != null && isOrInheritsProxy2(classElt.supertype.element, visitedClassElts)) {
+    } else if (classElt.supertype != null && safeIsOrInheritsProxy(classElt.supertype.element, visitedClassElts)) {
       return true;
     }
     List<InterfaceType> supertypes = classElt.interfaces;
     for (int i = 0; i < supertypes.length; i++) {
-      if (isOrInheritsProxy2(supertypes[i].element, visitedClassElts)) {
+      if (safeIsOrInheritsProxy(supertypes[i].element, visitedClassElts)) {
         return true;
       }
     }
     supertypes = classElt.mixins;
     for (int i = 0; i < supertypes.length; i++) {
-      if (isOrInheritsProxy2(supertypes[i].element, visitedClassElts)) {
+      if (safeIsOrInheritsProxy(supertypes[i].element, visitedClassElts)) {
         return true;
       }
     }
@@ -3329,7 +3329,7 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
 
   ElementKind get kind => ElementKind.CONSTRUCTOR;
 
-  ConstructorDeclaration get node => getNode2(ConstructorDeclaration);
+  ConstructorDeclaration get node => getNode2((node) => node is ConstructorDeclaration);
 
   bool get isConst => hasModifier(Modifier.CONST);
 
@@ -3621,9 +3621,9 @@ abstract class ElementImpl implements Element {
     return object.runtimeType == runtimeType && (object as Element).location == location;
   }
 
-  Element getAncestor(Type elementClass) {
+  Element getAncestor(Predicate<Element> predicate) {
     Element ancestor = _enclosingElement;
-    while (ancestor != null && !isInstanceOf(ancestor, elementClass)) {
+    while (ancestor != null && !predicate(ancestor)) {
       ancestor = ancestor.enclosingElement;
     }
     return ancestor;
@@ -3649,13 +3649,13 @@ abstract class ElementImpl implements Element {
 
   Element get enclosingElement => _enclosingElement;
 
-  LibraryElement get library => getAncestor(LibraryElement);
+  LibraryElement get library => getAncestor((element) => element is LibraryElement);
 
   ElementLocation get location => new ElementLocationImpl.con1(this);
 
   String get name => _name;
 
-  AstNode get node => getNode2(AstNode);
+  AstNode get node => getNode2((node) => node is AstNode);
 
   Source get source {
     if (_enclosingElement == null) {
@@ -3765,7 +3765,7 @@ abstract class ElementImpl implements Element {
   /**
    * Return the resolved [AstNode] of the given type enclosing [getNameOffset].
    */
-  AstNode getNode2(Type clazz) {
+  AstNode getNode2(Predicate<AstNode> predicate) {
     CompilationUnit unit = this.unit;
     if (unit == null) {
       return null;
@@ -3775,7 +3775,7 @@ abstract class ElementImpl implements Element {
     if (node == null) {
       return null;
     }
-    return node.getAncestor(clazz);
+    return node.getAncestor(predicate);
   }
 
   /**
@@ -4466,7 +4466,7 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
 
   ElementKind get kind => ElementKind.FUNCTION;
 
-  FunctionDeclaration get node => getNode2(FunctionDeclaration);
+  FunctionDeclaration get node => getNode2((node) => node is FunctionDeclaration);
 
   SourceRange get visibleRange {
     if (_visibleRangeLength < 0) {
@@ -4558,7 +4558,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
 
   ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
 
-  FunctionTypeAlias get node => getNode2(FunctionTypeAlias);
+  FunctionTypeAlias get node => getNode2((node) => node is FunctionTypeAlias);
 
   List<ParameterElement> get parameters => _parameters;
 
@@ -5244,12 +5244,12 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
   /**
    * Is `true` if this variable is potentially mutated somewhere in its scope.
    */
-  bool _isPotentiallyMutatedInScope2 = false;
+  bool _potentiallyMutatedInScope = false;
 
   /**
    * Is `true` if this variable is potentially mutated somewhere in closure.
    */
-  bool _isPotentiallyMutatedInClosure2 = false;
+  bool _potentiallyMutatedInClosure = false;
 
   /**
    * The offset to the beginning of the visible range for this element.
@@ -5279,7 +5279,7 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
 
   List<ToolkitObjectElement> get toolkitObjects {
-    CompilationUnitElementImpl unit = getAncestor(CompilationUnitElementImpl);
+    CompilationUnitElementImpl unit = getAncestor((element) => element is CompilationUnitElementImpl);
     if (unit == null) {
       return ToolkitObjectElement.EMPTY_ARRAY;
     }
@@ -5293,22 +5293,22 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
     return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
   }
 
-  bool get isPotentiallyMutatedInClosure => _isPotentiallyMutatedInClosure2;
+  bool get isPotentiallyMutatedInClosure => _potentiallyMutatedInClosure;
 
-  bool get isPotentiallyMutatedInScope => _isPotentiallyMutatedInScope2;
+  bool get isPotentiallyMutatedInScope => _potentiallyMutatedInScope;
 
   /**
    * Specifies that this variable is potentially mutated somewhere in closure.
    */
   void markPotentiallyMutatedInClosure() {
-    _isPotentiallyMutatedInClosure2 = true;
+    _potentiallyMutatedInClosure = true;
   }
 
   /**
    * Specifies that this variable is potentially mutated somewhere in its scope.
    */
   void markPotentiallyMutatedInScope() {
-    _isPotentiallyMutatedInScope2 = true;
+    _potentiallyMutatedInScope = true;
   }
 
   /**
@@ -5317,7 +5317,7 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
    * @param toolkitObjects the toolkit objects attached to this variable
    */
   void set toolkitObjects(List<ToolkitObjectElement> toolkitObjects) {
-    CompilationUnitElementImpl unit = getAncestor(CompilationUnitElementImpl);
+    CompilationUnitElementImpl unit = getAncestor((element) => element is CompilationUnitElementImpl);
     if (unit == null) {
       return;
     }
@@ -5387,7 +5387,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
     return super.name;
   }
 
-  MethodDeclaration get node => getNode2(MethodDeclaration);
+  MethodDeclaration get node => getNode2((node) => node is MethodDeclaration);
 
   bool get isAbstract => hasModifier(Modifier.ABSTRACT);
 
@@ -5589,7 +5589,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   String computeDocumentationComment() => null;
 
-  Element getAncestor(Type elementClass) => null;
+  Element getAncestor(Predicate<Element> predicate) => null;
 
   String get displayName => _name;
 
@@ -5709,12 +5709,12 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
   /**
    * Is `true` if this variable is potentially mutated somewhere in its scope.
    */
-  bool _isPotentiallyMutatedInScope3 = false;
+  bool _potentiallyMutatedInScope = false;
 
   /**
    * Is `true` if this variable is potentially mutated somewhere in closure.
    */
-  bool _isPotentiallyMutatedInClosure3 = false;
+  bool _potentiallyMutatedInClosure = false;
 
   /**
    * An array containing all of the parameters defined by this parameter element. There will only be
@@ -5792,22 +5792,22 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
 
   bool get isInitializingFormal => false;
 
-  bool get isPotentiallyMutatedInClosure => _isPotentiallyMutatedInClosure3;
+  bool get isPotentiallyMutatedInClosure => _potentiallyMutatedInClosure;
 
-  bool get isPotentiallyMutatedInScope => _isPotentiallyMutatedInScope3;
+  bool get isPotentiallyMutatedInScope => _potentiallyMutatedInScope;
 
   /**
    * Specifies that this variable is potentially mutated somewhere in closure.
    */
   void markPotentiallyMutatedInClosure() {
-    _isPotentiallyMutatedInClosure3 = true;
+    _potentiallyMutatedInClosure = true;
   }
 
   /**
    * Specifies that this variable is potentially mutated somewhere in its scope.
    */
   void markPotentiallyMutatedInScope() {
-    _isPotentiallyMutatedInScope3 = true;
+    _potentiallyMutatedInScope = true;
   }
 
   /**
@@ -6003,10 +6003,10 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
       return null;
     }
     if (enclosingElement is ClassElement) {
-      return getNode2(MethodDeclaration);
+      return getNode2((node) => node is MethodDeclaration);
     }
     if (enclosingElement is CompilationUnitElement) {
-      return getNode2(FunctionDeclaration);
+      return getNode2((node) => node is FunctionDeclaration);
     }
     return null;
   }
@@ -6269,7 +6269,7 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
 
   FunctionElement get initializer => _initializer;
 
-  VariableDeclaration get node => getNode2(VariableDeclaration);
+  VariableDeclaration get node => getNode2((node) => node is VariableDeclaration);
 
   bool get isConst => hasModifier(Modifier.CONST);
 
@@ -7053,7 +7053,7 @@ abstract class Member implements Element {
 
   String computeDocumentationComment() => _baseElement.computeDocumentationComment();
 
-  Element getAncestor(Type elementClass) => baseElement.getAncestor(elementClass);
+  Element getAncestor(Predicate<Element> predicate) => baseElement.getAncestor(predicate);
 
   /**
    * Return the element on which the parameterized element was created.
@@ -7287,8 +7287,8 @@ class ParameterMember extends VariableMember implements ParameterElement {
 
   accept(ElementVisitor visitor) => visitor.visitParameterElement(this);
 
-  Element getAncestor(Type elementClass) {
-    Element element = baseElement.getAncestor(elementClass);
+  Element getAncestor(Predicate<Element> predicate) {
+    Element element = baseElement.getAncestor(predicate);
     ParameterizedType definingType = this.definingType;
     if (definingType is InterfaceType) {
       InterfaceType definingInterfaceType = definingType;
@@ -7787,7 +7787,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (element is FunctionTypeAliasElement) {
       return element.typeParameters;
     }
-    ClassElement definingClass = element.getAncestor(ClassElement);
+    ClassElement definingClass = element.getAncestor((element) => element is ClassElement);
     if (definingClass != null) {
       return definingClass.typeParameters;
     }

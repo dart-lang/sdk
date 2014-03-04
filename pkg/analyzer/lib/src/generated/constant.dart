@@ -370,7 +370,7 @@ class ConstantValueComputer {
       List<AnalysisError> errors = new List<AnalysisError>();
       for (ErrorResult_ErrorData data in result.errorData) {
         AstNode node = data.node;
-        Source source = variable.getAncestor(CompilationUnitElement).source;
+        Source source = variable.getAncestor((element) => element is CompilationUnitElement).source;
         errors.add(new AnalysisError.con2(source, node.offset, node.length, data.errorCode, []));
       }
     }
@@ -521,7 +521,7 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     }
   }
 
-  EvaluationResultImpl visitBooleanLiteral(BooleanLiteral node) => valid2(_typeProvider.boolType, BoolState.from(node.value));
+  EvaluationResultImpl visitBooleanLiteral(BooleanLiteral node) => valid(_typeProvider.boolType, BoolState.from(node.value));
 
   EvaluationResultImpl visitConditionalExpression(ConditionalExpression node) {
     Expression condition = node.condition;
@@ -549,10 +549,10 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     }
     InterfaceType thenType = (thenResult as ValidResult).value.type;
     InterfaceType elseType = (elseResult as ValidResult).value.type;
-    return valid(thenType.getLeastUpperBound(elseType) as InterfaceType);
+    return validWithUnknownValue(thenType.getLeastUpperBound(elseType) as InterfaceType);
   }
 
-  EvaluationResultImpl visitDoubleLiteral(DoubleLiteral node) => valid2(_typeProvider.doubleType, new DoubleState(node.value));
+  EvaluationResultImpl visitDoubleLiteral(DoubleLiteral node) => valid(_typeProvider.doubleType, new DoubleState(node.value));
 
   EvaluationResultImpl visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (!node.isConst) {
@@ -582,7 +582,7 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
         if (className == "Symbol" && argumentCount == 1) {
           String argumentValue = argumentValues[0].stringValue;
           if (argumentValue != null) {
-            return valid2(definingClass, new SymbolState(argumentValue));
+            return valid(definingClass, new SymbolState(argumentValue));
           }
         }
       }
@@ -606,13 +606,13 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
       // TODO(brianwilkerson) This doesn't handle fields initialized in an initializer. We should be
       // able to handle fields initialized by the superclass' constructor fairly easily, but other
       // initializers will be harder.
-      return valid2(definingClass, new GenericState(fieldMap));
+      return valid(definingClass, new GenericState(fieldMap));
     }
     // TODO(brianwilkerson) Figure out which error to report.
     return error(node, null);
   }
 
-  EvaluationResultImpl visitIntegerLiteral(IntegerLiteral node) => valid2(_typeProvider.intType, new IntState(node.value));
+  EvaluationResultImpl visitIntegerLiteral(IntegerLiteral node) => valid(_typeProvider.intType, new IntState(node.value));
 
   EvaluationResultImpl visitInterpolationExpression(InterpolationExpression node) {
     EvaluationResultImpl result = node.expression.accept(this);
@@ -622,7 +622,7 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     return result.performToString(_typeProvider, node);
   }
 
-  EvaluationResultImpl visitInterpolationString(InterpolationString node) => valid2(_typeProvider.stringType, new StringState(node.value));
+  EvaluationResultImpl visitInterpolationString(InterpolationString node) => valid(_typeProvider.stringType, new StringState(node.value));
 
   EvaluationResultImpl visitListLiteral(ListLiteral node) {
     if (node.constKeyword == null) {
@@ -640,7 +640,7 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     if (result != null) {
       return result;
     }
-    return valid2(_typeProvider.listType, new ListState(new List.from(elements)));
+    return valid(_typeProvider.listType, new ListState(new List.from(elements)));
   }
 
   EvaluationResultImpl visitMapLiteral(MapLiteral node) {
@@ -661,7 +661,7 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     if (result != null) {
       return result;
     }
-    return valid2(_typeProvider.mapType, new MapState(map));
+    return valid(_typeProvider.mapType, new MapState(map));
   }
 
   EvaluationResultImpl visitMethodInvocation(MethodInvocation node) {
@@ -733,7 +733,7 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
 
   EvaluationResultImpl visitSimpleIdentifier(SimpleIdentifier node) => getConstantValue(node, node.staticElement);
 
-  EvaluationResultImpl visitSimpleStringLiteral(SimpleStringLiteral node) => valid2(_typeProvider.stringType, new StringState(node.value));
+  EvaluationResultImpl visitSimpleStringLiteral(SimpleStringLiteral node) => valid(_typeProvider.stringType, new StringState(node.value));
 
   EvaluationResultImpl visitStringInterpolation(StringInterpolation node) {
     EvaluationResultImpl result = null;
@@ -756,7 +756,7 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
       }
       builder.append(components[i].lexeme);
     }
-    return valid2(_typeProvider.symbolType, new SymbolState(builder.toString()));
+    return valid(_typeProvider.symbolType, new SymbolState(builder.toString()));
   }
 
   /**
@@ -788,10 +788,10 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     } else if (element is ExecutableElement) {
       ExecutableElement function = element;
       if (function.isStatic) {
-        return valid2(_typeProvider.functionType, new FunctionState(function));
+        return valid(_typeProvider.functionType, new FunctionState(function));
       }
     } else if (element is ClassElement || element is FunctionTypeAliasElement) {
-      return valid2(_typeProvider.typeType, new TypeState(element));
+      return valid(_typeProvider.typeType, new TypeState(element));
     }
     // TODO(brianwilkerson) Figure out which error to report.
     return error(node, null);
@@ -829,23 +829,23 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     return leftResult;
   }
 
-  ValidResult valid(InterfaceType type) {
+  ValidResult valid(InterfaceType type, InstanceState state) => new ValidResult(new DartObjectImpl(type, state));
+
+  ValidResult validWithUnknownValue(InterfaceType type) {
     if (type.element.library.isDartCore) {
       String typeName = type.name;
       if (typeName == "bool") {
-        return valid2(type, BoolState.UNKNOWN_VALUE);
+        return valid(type, BoolState.UNKNOWN_VALUE);
       } else if (typeName == "double") {
-        return valid2(type, DoubleState.UNKNOWN_VALUE);
+        return valid(type, DoubleState.UNKNOWN_VALUE);
       } else if (typeName == "int") {
-        return valid2(type, IntState.UNKNOWN_VALUE);
+        return valid(type, IntState.UNKNOWN_VALUE);
       } else if (typeName == "String") {
-        return valid2(type, StringState.UNKNOWN_VALUE);
+        return valid(type, StringState.UNKNOWN_VALUE);
       }
     }
-    return valid2(type, GenericState.UNKNOWN_VALUE);
+    return valid(type, GenericState.UNKNOWN_VALUE);
   }
-
-  ValidResult valid2(InterfaceType type, InstanceState state) => new ValidResult(new DartObjectImpl(type, state));
 
   /**
    * Return the value of the given expression, or a representation of 'null' if the expression

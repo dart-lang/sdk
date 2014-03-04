@@ -250,7 +250,7 @@ class _CustomTagInitializer implements _Initializer {
       "() => Polymer.register('$tagName', $prefix.$typeName)";
 }
 
-_getSpan(SourceFile file, ASTNode node) => file.span(node.offset, node.end);
+_getSpan(SourceFile file, AstNode node) => file.span(node.offset, node.end);
 
 const MAIN_HEADER = """
 library app_bootstrap;

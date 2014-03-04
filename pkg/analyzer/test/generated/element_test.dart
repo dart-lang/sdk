@@ -186,11 +186,11 @@ class MultiplyDefinedElementImplTest extends EngineTestCase {
     Element firstElement = ElementFactory.localVariableElement2("xx");
     Element secondElement = ElementFactory.localVariableElement2("yy");
     Element result = MultiplyDefinedElementImpl.fromElements(null, firstElement, secondElement);
-    EngineTestCase.assertInstanceOf(MultiplyDefinedElement, result);
+    EngineTestCase.assertInstanceOf((obj) => obj is MultiplyDefinedElement, MultiplyDefinedElement, result);
     List<Element> elements = (result as MultiplyDefinedElement).conflictingElements;
     EngineTestCase.assertLength(2, elements);
     for (int i = 0; i < elements.length; i++) {
-      EngineTestCase.assertInstanceOf(LocalVariableElement, elements[i]);
+      EngineTestCase.assertInstanceOf((obj) => obj is LocalVariableElement, LocalVariableElement, elements[i]);
     }
   }
 
@@ -199,11 +199,11 @@ class MultiplyDefinedElementImplTest extends EngineTestCase {
     Element secondElement = ElementFactory.localVariableElement2("yy");
     Element thirdElement = ElementFactory.localVariableElement2("zz");
     Element result = MultiplyDefinedElementImpl.fromElements(null, MultiplyDefinedElementImpl.fromElements(null, firstElement, secondElement), thirdElement);
-    EngineTestCase.assertInstanceOf(MultiplyDefinedElement, result);
+    EngineTestCase.assertInstanceOf((obj) => obj is MultiplyDefinedElement, MultiplyDefinedElement, result);
     List<Element> elements = (result as MultiplyDefinedElement).conflictingElements;
     EngineTestCase.assertLength(3, elements);
     for (int i = 0; i < elements.length; i++) {
-      EngineTestCase.assertInstanceOf(LocalVariableElement, elements[i]);
+      EngineTestCase.assertInstanceOf((obj) => obj is LocalVariableElement, LocalVariableElement, elements[i]);
     }
   }
 

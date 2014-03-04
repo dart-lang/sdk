@@ -1011,9 +1011,9 @@ abstract class AstNode {
    * @param nodeClass the class of the node to be returned
    * @return the node of the given type that encloses this node
    */
-  AstNode getAncestor(Type enclosingClass) {
+  AstNode getAncestor(Predicate<AstNode> predicate) {
     AstNode node = this;
-    while (node != null && !isInstanceOf(node, enclosingClass)) {
+    while (node != null && !predicate(node)) {
       node = node.parent;
     }
     return node;
@@ -9785,7 +9785,7 @@ class SimpleIdentifier extends Identifier {
    * @param element the element to be associated with this identifier
    */
   void set propagatedElement(Element element) {
-    _propagatedElement = validateElement2(element);
+    _propagatedElement = validateElement(element);
   }
 
   /**
@@ -9795,21 +9795,23 @@ class SimpleIdentifier extends Identifier {
    * @param element the element to be associated with this identifier
    */
   void set staticElement(Element element) {
-    _staticElement = validateElement2(element);
+    _staticElement = validateElement(element);
   }
 
   void visitChildren(AstVisitor visitor) {
   }
 
   /**
-   * Return the given element if it is an appropriate element based on the parent of this
-   * identifier, or `null` if it is not appropriate.
+   * Return the given element if it is valid, or report the problem and return `null` if it is
+   * not appropriate.
    *
+   * @param parent the parent of the element, used for reporting when there is a problem
+   * @param isValid `true` if the element is appropriate
    * @param element the element to be associated with this identifier
    * @return the element to be associated with this identifier
    */
-  Element validateElement(AstNode parent, Type expectedClass, Element element) {
-    if (!isInstanceOf(element, expectedClass)) {
+  Element returnOrReportElement(AstNode parent, bool isValid, Element element) {
+    if (!isValid) {
       AnalysisEngine.instance.logger.logInformation3("Internal error: attempting to set the name of a ${parent.runtimeType.toString()} to a ${element.runtimeType.toString()}", new JavaException());
       return null;
     }
@@ -9823,29 +9825,29 @@ class SimpleIdentifier extends Identifier {
    * @param element the element to be associated with this identifier
    * @return the element to be associated with this identifier
    */
-  Element validateElement2(Element element) {
+  Element validateElement(Element element) {
     if (element == null) {
       return null;
     }
     AstNode parent = this.parent;
     if (parent is ClassDeclaration && identical(parent.name, this)) {
-      return validateElement(parent, ClassElement, element);
+      return returnOrReportElement(parent, element is ClassElement, element);
     } else if (parent is ClassTypeAlias && identical(parent.name, this)) {
-      return validateElement(parent, ClassElement, element);
+      return returnOrReportElement(parent, element is ClassElement, element);
     } else if (parent is DeclaredIdentifier && identical(parent.identifier, this)) {
-      return validateElement(parent, LocalVariableElement, element);
+      return returnOrReportElement(parent, element is LocalVariableElement, element);
     } else if (parent is FormalParameter && identical(parent.identifier, this)) {
-      return validateElement(parent, ParameterElement, element);
+      return returnOrReportElement(parent, element is ParameterElement, element);
     } else if (parent is FunctionDeclaration && identical(parent.name, this)) {
-      return validateElement(parent, ExecutableElement, element);
+      return returnOrReportElement(parent, element is ExecutableElement, element);
     } else if (parent is FunctionTypeAlias && identical(parent.name, this)) {
-      return validateElement(parent, FunctionTypeAliasElement, element);
+      return returnOrReportElement(parent, element is FunctionTypeAliasElement, element);
     } else if (parent is MethodDeclaration && identical(parent.name, this)) {
-      return validateElement(parent, ExecutableElement, element);
+      return returnOrReportElement(parent, element is ExecutableElement, element);
     } else if (parent is TypeParameter && identical(parent.name, this)) {
-      return validateElement(parent, TypeParameterElement, element);
+      return returnOrReportElement(parent, element is TypeParameterElement, element);
     } else if (parent is VariableDeclaration && identical(parent.name, this)) {
-      return validateElement(parent, VariableElement, element);
+      return returnOrReportElement(parent, element is VariableElement, element);
     }
     return element;
   }
@@ -13348,72 +13350,72 @@ class ToSourceVisitor implements AstVisitor<Object> {
   }
 
   Object visitAdjacentStrings(AdjacentStrings node) {
-    visitList2(node.strings, " ");
+    visitNodeListWithSeparator(node.strings, " ");
     return null;
   }
 
   Object visitAnnotation(Annotation node) {
     _writer.print('@');
-    visit(node.name);
-    visit3(".", node.constructorName);
-    visit(node.arguments);
+    visitNode(node.name);
+    visitNodeWithPrefix(".", node.constructorName);
+    visitNode(node.arguments);
     return null;
   }
 
   Object visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
     _writer.print('?');
-    visit(node.identifier);
+    visitNode(node.identifier);
     return null;
   }
 
   Object visitArgumentList(ArgumentList node) {
     _writer.print('(');
-    visitList2(node.arguments, ", ");
+    visitNodeListWithSeparator(node.arguments, ", ");
     _writer.print(')');
     return null;
   }
 
   Object visitAsExpression(AsExpression node) {
-    visit(node.expression);
+    visitNode(node.expression);
     _writer.print(" as ");
-    visit(node.type);
+    visitNode(node.type);
     return null;
   }
 
   Object visitAssertStatement(AssertStatement node) {
     _writer.print("assert (");
-    visit(node.condition);
+    visitNode(node.condition);
     _writer.print(");");
     return null;
   }
 
   Object visitAssignmentExpression(AssignmentExpression node) {
-    visit(node.leftHandSide);
+    visitNode(node.leftHandSide);
     _writer.print(' ');
     _writer.print(node.operator.lexeme);
     _writer.print(' ');
-    visit(node.rightHandSide);
+    visitNode(node.rightHandSide);
     return null;
   }
 
   Object visitBinaryExpression(BinaryExpression node) {
-    visit(node.leftOperand);
+    visitNode(node.leftOperand);
     _writer.print(' ');
     _writer.print(node.operator.lexeme);
     _writer.print(' ');
-    visit(node.rightOperand);
+    visitNode(node.rightOperand);
     return null;
   }
 
   Object visitBlock(Block node) {
     _writer.print('{');
-    visitList2(node.statements, " ");
+    visitNodeListWithSeparator(node.statements, " ");
     _writer.print('}');
     return null;
   }
 
   Object visitBlockFunctionBody(BlockFunctionBody node) {
-    visit(node.block);
+    visitNode(node.block);
     return null;
   }
 
@@ -13424,44 +13426,44 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   Object visitBreakStatement(BreakStatement node) {
     _writer.print("break");
-    visit3(" ", node.label);
+    visitNodeWithPrefix(" ", node.label);
     _writer.print(";");
     return null;
   }
 
   Object visitCascadeExpression(CascadeExpression node) {
-    visit(node.target);
-    visitList(node.cascadeSections);
+    visitNode(node.target);
+    visitNodeList(node.cascadeSections);
     return null;
   }
 
   Object visitCatchClause(CatchClause node) {
-    visit3("on ", node.exceptionType);
+    visitNodeWithPrefix("on ", node.exceptionType);
     if (node.catchKeyword != null) {
       if (node.exceptionType != null) {
         _writer.print(' ');
       }
       _writer.print("catch (");
-      visit(node.exceptionParameter);
-      visit3(", ", node.stackTraceParameter);
+      visitNode(node.exceptionParameter);
+      visitNodeWithPrefix(", ", node.stackTraceParameter);
       _writer.print(") ");
     } else {
       _writer.print(" ");
     }
-    visit(node.body);
+    visitNode(node.body);
     return null;
   }
 
   Object visitClassDeclaration(ClassDeclaration node) {
-    visit5(node.abstractKeyword, " ");
+    visitTokenWithSuffix(node.abstractKeyword, " ");
     _writer.print("class ");
-    visit(node.name);
-    visit(node.typeParameters);
-    visit3(" ", node.extendsClause);
-    visit3(" ", node.withClause);
-    visit3(" ", node.implementsClause);
+    visitNode(node.name);
+    visitNode(node.typeParameters);
+    visitNodeWithPrefix(" ", node.extendsClause);
+    visitNodeWithPrefix(" ", node.withClause);
+    visitNodeWithPrefix(" ", node.implementsClause);
     _writer.print(" {");
-    visitList2(node.members, " ");
+    visitNodeListWithSeparator(node.members, " ");
     _writer.print("}");
     return null;
   }
@@ -13471,12 +13473,12 @@ class ToSourceVisitor implements AstVisitor<Object> {
       _writer.print("abstract ");
     }
     _writer.print("class ");
-    visit(node.name);
-    visit(node.typeParameters);
+    visitNode(node.name);
+    visitNode(node.typeParameters);
     _writer.print(" = ");
-    visit(node.superclass);
-    visit3(" ", node.withClause);
-    visit3(" ", node.implementsClause);
+    visitNode(node.superclass);
+    visitNodeWithPrefix(" ", node.withClause);
+    visitNodeWithPrefix(" ", node.implementsClause);
     _writer.print(";");
     return null;
   }
@@ -13488,79 +13490,79 @@ class ToSourceVisitor implements AstVisitor<Object> {
   Object visitCompilationUnit(CompilationUnit node) {
     ScriptTag scriptTag = node.scriptTag;
     NodeList<Directive> directives = node.directives;
-    visit(scriptTag);
+    visitNode(scriptTag);
     String prefix = scriptTag == null ? "" : " ";
-    visitList4(prefix, directives, " ");
+    visitNodeListWithSeparatorAndPrefix(prefix, directives, " ");
     prefix = scriptTag == null && directives.isEmpty ? "" : " ";
-    visitList4(prefix, node.declarations, " ");
+    visitNodeListWithSeparatorAndPrefix(prefix, node.declarations, " ");
     return null;
   }
 
   Object visitConditionalExpression(ConditionalExpression node) {
-    visit(node.condition);
+    visitNode(node.condition);
     _writer.print(" ? ");
-    visit(node.thenExpression);
+    visitNode(node.thenExpression);
     _writer.print(" : ");
-    visit(node.elseExpression);
+    visitNode(node.elseExpression);
     return null;
   }
 
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
-    visit5(node.externalKeyword, " ");
-    visit5(node.constKeyword, " ");
-    visit5(node.factoryKeyword, " ");
-    visit(node.returnType);
-    visit3(".", node.name);
-    visit(node.parameters);
-    visitList4(" : ", node.initializers, ", ");
-    visit3(" = ", node.redirectedConstructor);
-    visit4(" ", node.body);
+    visitTokenWithSuffix(node.externalKeyword, " ");
+    visitTokenWithSuffix(node.constKeyword, " ");
+    visitTokenWithSuffix(node.factoryKeyword, " ");
+    visitNode(node.returnType);
+    visitNodeWithPrefix(".", node.name);
+    visitNode(node.parameters);
+    visitNodeListWithSeparatorAndPrefix(" : ", node.initializers, ", ");
+    visitNodeWithPrefix(" = ", node.redirectedConstructor);
+    visitFunctionWithPrefix(" ", node.body);
     return null;
   }
 
   Object visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    visit5(node.keyword, ".");
-    visit(node.fieldName);
+    visitTokenWithSuffix(node.keyword, ".");
+    visitNode(node.fieldName);
     _writer.print(" = ");
-    visit(node.expression);
+    visitNode(node.expression);
     return null;
   }
 
   Object visitConstructorName(ConstructorName node) {
-    visit(node.type);
-    visit3(".", node.name);
+    visitNode(node.type);
+    visitNodeWithPrefix(".", node.name);
     return null;
   }
 
   Object visitContinueStatement(ContinueStatement node) {
     _writer.print("continue");
-    visit3(" ", node.label);
+    visitNodeWithPrefix(" ", node.label);
     _writer.print(";");
     return null;
   }
 
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
-    visit5(node.keyword, " ");
-    visit2(node.type, " ");
-    visit(node.identifier);
+    visitTokenWithSuffix(node.keyword, " ");
+    visitNodeWithSuffix(node.type, " ");
+    visitNode(node.identifier);
     return null;
   }
 
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
-    visit(node.parameter);
+    visitNode(node.parameter);
     if (node.separator != null) {
       _writer.print(" ");
       _writer.print(node.separator.lexeme);
-      visit3(" ", node.defaultValue);
+      visitNodeWithPrefix(" ", node.defaultValue);
     }
     return null;
   }
 
   Object visitDoStatement(DoStatement node) {
     _writer.print("do ");
-    visit(node.body);
+    visitNode(node.body);
     _writer.print(" while (");
-    visit(node.condition);
+    visitNode(node.condition);
     _writer.print(");");
     return null;
   }
@@ -13582,15 +13584,15 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   Object visitExportDirective(ExportDirective node) {
     _writer.print("export ");
-    visit(node.uri);
-    visitList4(" ", node.combinators, " ");
+    visitNode(node.uri);
+    visitNodeListWithSeparatorAndPrefix(" ", node.combinators, " ");
     _writer.print(';');
     return null;
   }
 
   Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
     _writer.print("=> ");
-    visit(node.expression);
+    visitNode(node.expression);
     if (node.semicolon != null) {
       _writer.print(';');
     }
@@ -13598,30 +13600,30 @@ class ToSourceVisitor implements AstVisitor<Object> {
   }
 
   Object visitExpressionStatement(ExpressionStatement node) {
-    visit(node.expression);
+    visitNode(node.expression);
     _writer.print(';');
     return null;
   }
 
   Object visitExtendsClause(ExtendsClause node) {
     _writer.print("extends ");
-    visit(node.superclass);
+    visitNode(node.superclass);
     return null;
   }
 
   Object visitFieldDeclaration(FieldDeclaration node) {
-    visit5(node.staticKeyword, " ");
-    visit(node.fields);
+    visitTokenWithSuffix(node.staticKeyword, " ");
+    visitNode(node.fields);
     _writer.print(";");
     return null;
   }
 
   Object visitFieldFormalParameter(FieldFormalParameter node) {
-    visit5(node.keyword, " ");
-    visit2(node.type, " ");
+    visitTokenWithSuffix(node.keyword, " ");
+    visitNodeWithSuffix(node.type, " ");
     _writer.print("this.");
-    visit(node.identifier);
-    visit(node.parameters);
+    visitNode(node.identifier);
+    visitNode(node.parameters);
     return null;
   }
 
@@ -13629,14 +13631,14 @@ class ToSourceVisitor implements AstVisitor<Object> {
     DeclaredIdentifier loopVariable = node.loopVariable;
     _writer.print("for (");
     if (loopVariable == null) {
-      visit(node.identifier);
+      visitNode(node.identifier);
     } else {
-      visit(loopVariable);
+      visitNode(loopVariable);
     }
     _writer.print(" in ");
-    visit(node.iterator);
+    visitNode(node.iterator);
     _writer.print(") ");
-    visit(node.body);
+    visitNode(node.body);
     return null;
   }
 
@@ -13672,89 +13674,89 @@ class ToSourceVisitor implements AstVisitor<Object> {
     Expression initialization = node.initialization;
     _writer.print("for (");
     if (initialization != null) {
-      visit(initialization);
+      visitNode(initialization);
     } else {
-      visit(node.variables);
+      visitNode(node.variables);
     }
     _writer.print(";");
-    visit3(" ", node.condition);
+    visitNodeWithPrefix(" ", node.condition);
     _writer.print(";");
-    visitList4(" ", node.updaters, ", ");
+    visitNodeListWithSeparatorAndPrefix(" ", node.updaters, ", ");
     _writer.print(") ");
-    visit(node.body);
+    visitNode(node.body);
     return null;
   }
 
   Object visitFunctionDeclaration(FunctionDeclaration node) {
-    visit2(node.returnType, " ");
-    visit5(node.propertyKeyword, " ");
-    visit(node.name);
-    visit(node.functionExpression);
+    visitNodeWithSuffix(node.returnType, " ");
+    visitTokenWithSuffix(node.propertyKeyword, " ");
+    visitNode(node.name);
+    visitNode(node.functionExpression);
     return null;
   }
 
   Object visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    visit(node.functionDeclaration);
+    visitNode(node.functionDeclaration);
     _writer.print(';');
     return null;
   }
 
   Object visitFunctionExpression(FunctionExpression node) {
-    visit(node.parameters);
+    visitNode(node.parameters);
     _writer.print(' ');
-    visit(node.body);
+    visitNode(node.body);
     return null;
   }
 
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    visit(node.function);
-    visit(node.argumentList);
+    visitNode(node.function);
+    visitNode(node.argumentList);
     return null;
   }
 
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
     _writer.print("typedef ");
-    visit2(node.returnType, " ");
-    visit(node.name);
-    visit(node.typeParameters);
-    visit(node.parameters);
+    visitNodeWithSuffix(node.returnType, " ");
+    visitNode(node.name);
+    visitNode(node.typeParameters);
+    visitNode(node.parameters);
     _writer.print(";");
     return null;
   }
 
   Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    visit2(node.returnType, " ");
-    visit(node.identifier);
-    visit(node.parameters);
+    visitNodeWithSuffix(node.returnType, " ");
+    visitNode(node.identifier);
+    visitNode(node.parameters);
     return null;
   }
 
   Object visitHideCombinator(HideCombinator node) {
     _writer.print("hide ");
-    visitList2(node.hiddenNames, ", ");
+    visitNodeListWithSeparator(node.hiddenNames, ", ");
     return null;
   }
 
   Object visitIfStatement(IfStatement node) {
     _writer.print("if (");
-    visit(node.condition);
+    visitNode(node.condition);
     _writer.print(") ");
-    visit(node.thenStatement);
-    visit3(" else ", node.elseStatement);
+    visitNode(node.thenStatement);
+    visitNodeWithPrefix(" else ", node.elseStatement);
     return null;
   }
 
   Object visitImplementsClause(ImplementsClause node) {
     _writer.print("implements ");
-    visitList2(node.interfaces, ", ");
+    visitNodeListWithSeparator(node.interfaces, ", ");
     return null;
   }
 
   Object visitImportDirective(ImportDirective node) {
     _writer.print("import ");
-    visit(node.uri);
-    visit3(" as ", node.prefix);
-    visitList4(" ", node.combinators, " ");
+    visitNode(node.uri);
+    visitNodeWithPrefix(" as ", node.prefix);
+    visitNodeListWithSeparatorAndPrefix(" ", node.combinators, " ");
     _writer.print(';');
     return null;
   }
@@ -13763,18 +13765,18 @@ class ToSourceVisitor implements AstVisitor<Object> {
     if (node.isCascaded) {
       _writer.print("..");
     } else {
-      visit(node.target);
+      visitNode(node.target);
     }
     _writer.print('[');
-    visit(node.index);
+    visitNode(node.index);
     _writer.print(']');
     return null;
   }
 
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
-    visit5(node.keyword, " ");
-    visit(node.constructorName);
-    visit(node.argumentList);
+    visitTokenWithSuffix(node.keyword, " ");
+    visitNode(node.constructorName);
+    visitNode(node.argumentList);
     return null;
   }
 
@@ -13786,11 +13788,11 @@ class ToSourceVisitor implements AstVisitor<Object> {
   Object visitInterpolationExpression(InterpolationExpression node) {
     if (node.rightBracket != null) {
       _writer.print("\${");
-      visit(node.expression);
+      visitNode(node.expression);
       _writer.print("}");
     } else {
       _writer.print("\$");
-      visit(node.expression);
+      visitNode(node.expression);
     }
     return null;
   }
@@ -13801,31 +13803,31 @@ class ToSourceVisitor implements AstVisitor<Object> {
   }
 
   Object visitIsExpression(IsExpression node) {
-    visit(node.expression);
+    visitNode(node.expression);
     if (node.notOperator == null) {
       _writer.print(" is ");
     } else {
       _writer.print(" is! ");
     }
-    visit(node.type);
+    visitNode(node.type);
     return null;
   }
 
   Object visitLabel(Label node) {
-    visit(node.label);
+    visitNode(node.label);
     _writer.print(":");
     return null;
   }
 
   Object visitLabeledStatement(LabeledStatement node) {
-    visitList3(node.labels, " ", " ");
-    visit(node.statement);
+    visitNodeListWithSeparatorAndSuffix(node.labels, " ", " ");
+    visitNode(node.statement);
     return null;
   }
 
   Object visitLibraryDirective(LibraryDirective node) {
     _writer.print("library ");
-    visit(node.name);
+    visitNode(node.name);
     _writer.print(';');
     return null;
   }
@@ -13840,9 +13842,9 @@ class ToSourceVisitor implements AstVisitor<Object> {
       _writer.print(node.constKeyword.lexeme);
       _writer.print(' ');
     }
-    visit2(node.typeArguments, " ");
+    visitNodeWithSuffix(node.typeArguments, " ");
     _writer.print("[");
-    visitList2(node.elements, ", ");
+    visitNodeListWithSeparator(node.elements, ", ");
     _writer.print("]");
     return null;
   }
@@ -13852,31 +13854,31 @@ class ToSourceVisitor implements AstVisitor<Object> {
       _writer.print(node.constKeyword.lexeme);
       _writer.print(' ');
     }
-    visit2(node.typeArguments, " ");
+    visitNodeWithSuffix(node.typeArguments, " ");
     _writer.print("{");
-    visitList2(node.entries, ", ");
+    visitNodeListWithSeparator(node.entries, ", ");
     _writer.print("}");
     return null;
   }
 
   Object visitMapLiteralEntry(MapLiteralEntry node) {
-    visit(node.key);
+    visitNode(node.key);
     _writer.print(" : ");
-    visit(node.value);
+    visitNode(node.value);
     return null;
   }
 
   Object visitMethodDeclaration(MethodDeclaration node) {
-    visit5(node.externalKeyword, " ");
-    visit5(node.modifierKeyword, " ");
-    visit2(node.returnType, " ");
-    visit5(node.propertyKeyword, " ");
-    visit5(node.operatorKeyword, " ");
-    visit(node.name);
+    visitTokenWithSuffix(node.externalKeyword, " ");
+    visitTokenWithSuffix(node.modifierKeyword, " ");
+    visitNodeWithSuffix(node.returnType, " ");
+    visitTokenWithSuffix(node.propertyKeyword, " ");
+    visitTokenWithSuffix(node.operatorKeyword, " ");
+    visitNode(node.name);
     if (!node.isGetter) {
-      visit(node.parameters);
+      visitNode(node.parameters);
     }
-    visit4(" ", node.body);
+    visitFunctionWithPrefix(" ", node.body);
     return null;
   }
 
@@ -13884,28 +13886,28 @@ class ToSourceVisitor implements AstVisitor<Object> {
     if (node.isCascaded) {
       _writer.print("..");
     } else {
-      visit2(node.target, ".");
+      visitNodeWithSuffix(node.target, ".");
     }
-    visit(node.methodName);
-    visit(node.argumentList);
+    visitNode(node.methodName);
+    visitNode(node.argumentList);
     return null;
   }
 
   Object visitNamedExpression(NamedExpression node) {
-    visit(node.name);
-    visit3(" ", node.expression);
+    visitNode(node.name);
+    visitNodeWithPrefix(" ", node.expression);
     return null;
   }
 
   Object visitNativeClause(NativeClause node) {
     _writer.print("native ");
-    visit(node.name);
+    visitNode(node.name);
     return null;
   }
 
   Object visitNativeFunctionBody(NativeFunctionBody node) {
     _writer.print("native ");
-    visit(node.stringLiteral);
+    visitNode(node.stringLiteral);
     _writer.print(';');
     return null;
   }
@@ -13917,41 +13919,41 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   Object visitParenthesizedExpression(ParenthesizedExpression node) {
     _writer.print('(');
-    visit(node.expression);
+    visitNode(node.expression);
     _writer.print(')');
     return null;
   }
 
   Object visitPartDirective(PartDirective node) {
     _writer.print("part ");
-    visit(node.uri);
+    visitNode(node.uri);
     _writer.print(';');
     return null;
   }
 
   Object visitPartOfDirective(PartOfDirective node) {
     _writer.print("part of ");
-    visit(node.libraryName);
+    visitNode(node.libraryName);
     _writer.print(';');
     return null;
   }
 
   Object visitPostfixExpression(PostfixExpression node) {
-    visit(node.operand);
+    visitNode(node.operand);
     _writer.print(node.operator.lexeme);
     return null;
   }
 
   Object visitPrefixedIdentifier(PrefixedIdentifier node) {
-    visit(node.prefix);
+    visitNode(node.prefix);
     _writer.print('.');
-    visit(node.identifier);
+    visitNode(node.identifier);
     return null;
   }
 
   Object visitPrefixExpression(PrefixExpression node) {
     _writer.print(node.operator.lexeme);
-    visit(node.operand);
+    visitNode(node.operand);
     return null;
   }
 
@@ -13959,17 +13961,17 @@ class ToSourceVisitor implements AstVisitor<Object> {
     if (node.isCascaded) {
       _writer.print("..");
     } else {
-      visit(node.target);
+      visitNode(node.target);
       _writer.print('.');
     }
-    visit(node.propertyName);
+    visitNode(node.propertyName);
     return null;
   }
 
   Object visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     _writer.print("this");
-    visit3(".", node.constructorName);
-    visit(node.argumentList);
+    visitNodeWithPrefix(".", node.constructorName);
+    visitNode(node.argumentList);
     return null;
   }
 
@@ -13997,14 +13999,14 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   Object visitShowCombinator(ShowCombinator node) {
     _writer.print("show ");
-    visitList2(node.shownNames, ", ");
+    visitNodeListWithSeparator(node.shownNames, ", ");
     return null;
   }
 
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
-    visit5(node.keyword, " ");
-    visit2(node.type, " ");
-    visit(node.identifier);
+    visitTokenWithSuffix(node.keyword, " ");
+    visitNodeWithSuffix(node.type, " ");
+    visitNode(node.identifier);
     return null;
   }
 
@@ -14019,14 +14021,14 @@ class ToSourceVisitor implements AstVisitor<Object> {
   }
 
   Object visitStringInterpolation(StringInterpolation node) {
-    visitList(node.elements);
+    visitNodeList(node.elements);
     return null;
   }
 
   Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _writer.print("super");
-    visit3(".", node.constructorName);
-    visit(node.argumentList);
+    visitNodeWithPrefix(".", node.constructorName);
+    visitNode(node.argumentList);
     return null;
   }
 
@@ -14036,26 +14038,26 @@ class ToSourceVisitor implements AstVisitor<Object> {
   }
 
   Object visitSwitchCase(SwitchCase node) {
-    visitList3(node.labels, " ", " ");
+    visitNodeListWithSeparatorAndSuffix(node.labels, " ", " ");
     _writer.print("case ");
-    visit(node.expression);
+    visitNode(node.expression);
     _writer.print(": ");
-    visitList2(node.statements, " ");
+    visitNodeListWithSeparator(node.statements, " ");
     return null;
   }
 
   Object visitSwitchDefault(SwitchDefault node) {
-    visitList3(node.labels, " ", " ");
+    visitNodeListWithSeparatorAndSuffix(node.labels, " ", " ");
     _writer.print("default: ");
-    visitList2(node.statements, " ");
+    visitNodeListWithSeparator(node.statements, " ");
     return null;
   }
 
   Object visitSwitchStatement(SwitchStatement node) {
     _writer.print("switch (");
-    visit(node.expression);
+    visitNode(node.expression);
     _writer.print(") {");
-    visitList2(node.members, " ");
+    visitNodeListWithSeparator(node.members, " ");
     _writer.print("}");
     return null;
   }
@@ -14079,117 +14081,80 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   Object visitThrowExpression(ThrowExpression node) {
     _writer.print("throw ");
-    visit(node.expression);
+    visitNode(node.expression);
     return null;
   }
 
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    visit2(node.variables, ";");
+    visitNodeWithSuffix(node.variables, ";");
     return null;
   }
 
   Object visitTryStatement(TryStatement node) {
     _writer.print("try ");
-    visit(node.body);
-    visitList4(" ", node.catchClauses, " ");
-    visit3(" finally ", node.finallyBlock);
+    visitNode(node.body);
+    visitNodeListWithSeparatorAndPrefix(" ", node.catchClauses, " ");
+    visitNodeWithPrefix(" finally ", node.finallyBlock);
     return null;
   }
 
   Object visitTypeArgumentList(TypeArgumentList node) {
     _writer.print('<');
-    visitList2(node.arguments, ", ");
+    visitNodeListWithSeparator(node.arguments, ", ");
     _writer.print('>');
     return null;
   }
 
   Object visitTypeName(TypeName node) {
-    visit(node.name);
-    visit(node.typeArguments);
+    visitNode(node.name);
+    visitNode(node.typeArguments);
     return null;
   }
 
   Object visitTypeParameter(TypeParameter node) {
-    visit(node.name);
-    visit3(" extends ", node.bound);
+    visitNode(node.name);
+    visitNodeWithPrefix(" extends ", node.bound);
     return null;
   }
 
   Object visitTypeParameterList(TypeParameterList node) {
     _writer.print('<');
-    visitList2(node.typeParameters, ", ");
+    visitNodeListWithSeparator(node.typeParameters, ", ");
     _writer.print('>');
     return null;
   }
 
   Object visitVariableDeclaration(VariableDeclaration node) {
-    visit(node.name);
-    visit3(" = ", node.initializer);
+    visitNode(node.name);
+    visitNodeWithPrefix(" = ", node.initializer);
     return null;
   }
 
   Object visitVariableDeclarationList(VariableDeclarationList node) {
-    visit5(node.keyword, " ");
-    visit2(node.type, " ");
-    visitList2(node.variables, ", ");
+    visitTokenWithSuffix(node.keyword, " ");
+    visitNodeWithSuffix(node.type, " ");
+    visitNodeListWithSeparator(node.variables, ", ");
     return null;
   }
 
   Object visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    visit(node.variables);
+    visitNode(node.variables);
     _writer.print(";");
     return null;
   }
 
   Object visitWhileStatement(WhileStatement node) {
     _writer.print("while (");
-    visit(node.condition);
+    visitNode(node.condition);
     _writer.print(") ");
-    visit(node.body);
+    visitNode(node.body);
     return null;
   }
 
   Object visitWithClause(WithClause node) {
     _writer.print("with ");
-    visitList2(node.mixinTypes, ", ");
+    visitNodeListWithSeparator(node.mixinTypes, ", ");
     return null;
-  }
-
-  /**
-   * Safely visit the given node.
-   *
-   * @param node the node to be visited
-   */
-  void visit(AstNode node) {
-    if (node != null) {
-      node.accept(this);
-    }
-  }
-
-  /**
-   * Safely visit the given node, printing the suffix after the node if it is non-`null`.
-   *
-   * @param suffix the suffix to be printed if there is a node to visit
-   * @param node the node to be visited
-   */
-  void visit2(AstNode node, String suffix) {
-    if (node != null) {
-      node.accept(this);
-      _writer.print(suffix);
-    }
-  }
-
-  /**
-   * Safely visit the given node, printing the prefix before the node if it is non-`null`.
-   *
-   * @param prefix the prefix to be printed if there is a node to visit
-   * @param node the node to be visited
-   */
-  void visit3(String prefix, AstNode node) {
-    if (node != null) {
-      _writer.print(prefix);
-      node.accept(this);
-    }
   }
 
   /**
@@ -14198,23 +14163,21 @@ class ToSourceVisitor implements AstVisitor<Object> {
    * @param prefix the prefix to be printed if there is a node to visit
    * @param body the function body to be visited
    */
-  void visit4(String prefix, FunctionBody body) {
+  void visitFunctionWithPrefix(String prefix, FunctionBody body) {
     if (body is! EmptyFunctionBody) {
       _writer.print(prefix);
     }
-    visit(body);
+    visitNode(body);
   }
 
   /**
-   * Safely visit the given node, printing the suffix after the node if it is non-`null`.
+   * Safely visit the given node.
    *
-   * @param suffix the suffix to be printed if there is a node to visit
    * @param node the node to be visited
    */
-  void visit5(Token token, String suffix) {
-    if (token != null) {
-      _writer.print(token.lexeme);
-      _writer.print(suffix);
+  void visitNode(AstNode node) {
+    if (node != null) {
+      node.accept(this);
     }
   }
 
@@ -14224,8 +14187,8 @@ class ToSourceVisitor implements AstVisitor<Object> {
    * @param nodes the nodes to be printed
    * @param separator the separator to be printed between adjacent nodes
    */
-  void visitList(NodeList<AstNode> nodes) {
-    visitList2(nodes, "");
+  void visitNodeList(NodeList<AstNode> nodes) {
+    visitNodeListWithSeparator(nodes, "");
   }
 
   /**
@@ -14234,7 +14197,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
    * @param nodes the nodes to be printed
    * @param separator the separator to be printed between adjacent nodes
    */
-  void visitList2(NodeList<AstNode> nodes, String separator) {
+  void visitNodeListWithSeparator(NodeList<AstNode> nodes, String separator) {
     if (nodes != null) {
       int size = nodes.length;
       for (int i = 0; i < size; i++) {
@@ -14249,11 +14212,33 @@ class ToSourceVisitor implements AstVisitor<Object> {
   /**
    * Print a list of nodes, separated by the given separator.
    *
+   * @param prefix the prefix to be printed if the list is not empty
+   * @param nodes the nodes to be printed
+   * @param separator the separator to be printed between adjacent nodes
+   */
+  void visitNodeListWithSeparatorAndPrefix(String prefix, NodeList<AstNode> nodes, String separator) {
+    if (nodes != null) {
+      int size = nodes.length;
+      if (size > 0) {
+        _writer.print(prefix);
+        for (int i = 0; i < size; i++) {
+          if (i > 0) {
+            _writer.print(separator);
+          }
+          nodes[i].accept(this);
+        }
+      }
+    }
+  }
+
+  /**
+   * Print a list of nodes, separated by the given separator.
+   *
    * @param nodes the nodes to be printed
    * @param separator the separator to be printed between adjacent nodes
    * @param suffix the suffix to be printed if the list is not empty
    */
-  void visitList3(NodeList<AstNode> nodes, String separator, String suffix) {
+  void visitNodeListWithSeparatorAndSuffix(NodeList<AstNode> nodes, String separator, String suffix) {
     if (nodes != null) {
       int size = nodes.length;
       if (size > 0) {
@@ -14269,24 +14254,41 @@ class ToSourceVisitor implements AstVisitor<Object> {
   }
 
   /**
-   * Print a list of nodes, separated by the given separator.
+   * Safely visit the given node, printing the prefix before the node if it is non-`null`.
    *
-   * @param prefix the prefix to be printed if the list is not empty
-   * @param nodes the nodes to be printed
-   * @param separator the separator to be printed between adjacent nodes
+   * @param prefix the prefix to be printed if there is a node to visit
+   * @param node the node to be visited
    */
-  void visitList4(String prefix, NodeList<AstNode> nodes, String separator) {
-    if (nodes != null) {
-      int size = nodes.length;
-      if (size > 0) {
-        _writer.print(prefix);
-        for (int i = 0; i < size; i++) {
-          if (i > 0) {
-            _writer.print(separator);
-          }
-          nodes[i].accept(this);
-        }
-      }
+  void visitNodeWithPrefix(String prefix, AstNode node) {
+    if (node != null) {
+      _writer.print(prefix);
+      node.accept(this);
+    }
+  }
+
+  /**
+   * Safely visit the given node, printing the suffix after the node if it is non-`null`.
+   *
+   * @param suffix the suffix to be printed if there is a node to visit
+   * @param node the node to be visited
+   */
+  void visitNodeWithSuffix(AstNode node, String suffix) {
+    if (node != null) {
+      node.accept(this);
+      _writer.print(suffix);
+    }
+  }
+
+  /**
+   * Safely visit the given node, printing the suffix after the node if it is non-`null`.
+   *
+   * @param suffix the suffix to be printed if there is a node to visit
+   * @param node the node to be visited
+   */
+  void visitTokenWithSuffix(Token token, String suffix) {
+    if (token != null) {
+      _writer.print(token.lexeme);
+      _writer.print(suffix);
     }
   }
 }
@@ -14520,74 +14522,74 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
  * results or properties associated with the nodes.
  */
 class AstCloner implements AstVisitor<AstNode> {
-  AdjacentStrings visitAdjacentStrings(AdjacentStrings node) => new AdjacentStrings(clone3(node.strings));
+  AdjacentStrings visitAdjacentStrings(AdjacentStrings node) => new AdjacentStrings(cloneNodeList(node.strings));
 
-  Annotation visitAnnotation(Annotation node) => new Annotation(node.atSign, clone2(node.name), node.period, clone2(node.constructorName), clone2(node.arguments));
+  Annotation visitAnnotation(Annotation node) => new Annotation(node.atSign, cloneNode(node.name), node.period, cloneNode(node.constructorName), cloneNode(node.arguments));
 
-  ArgumentDefinitionTest visitArgumentDefinitionTest(ArgumentDefinitionTest node) => new ArgumentDefinitionTest(node.question, clone2(node.identifier));
+  ArgumentDefinitionTest visitArgumentDefinitionTest(ArgumentDefinitionTest node) => new ArgumentDefinitionTest(node.question, cloneNode(node.identifier));
 
-  ArgumentList visitArgumentList(ArgumentList node) => new ArgumentList(node.leftParenthesis, clone3(node.arguments), node.rightParenthesis);
+  ArgumentList visitArgumentList(ArgumentList node) => new ArgumentList(node.leftParenthesis, cloneNodeList(node.arguments), node.rightParenthesis);
 
-  AsExpression visitAsExpression(AsExpression node) => new AsExpression(clone2(node.expression), node.asOperator, clone2(node.type));
+  AsExpression visitAsExpression(AsExpression node) => new AsExpression(cloneNode(node.expression), node.asOperator, cloneNode(node.type));
 
-  AstNode visitAssertStatement(AssertStatement node) => new AssertStatement(node.keyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, node.semicolon);
+  AstNode visitAssertStatement(AssertStatement node) => new AssertStatement(node.keyword, node.leftParenthesis, cloneNode(node.condition), node.rightParenthesis, node.semicolon);
 
-  AssignmentExpression visitAssignmentExpression(AssignmentExpression node) => new AssignmentExpression(clone2(node.leftHandSide), node.operator, clone2(node.rightHandSide));
+  AssignmentExpression visitAssignmentExpression(AssignmentExpression node) => new AssignmentExpression(cloneNode(node.leftHandSide), node.operator, cloneNode(node.rightHandSide));
 
-  BinaryExpression visitBinaryExpression(BinaryExpression node) => new BinaryExpression(clone2(node.leftOperand), node.operator, clone2(node.rightOperand));
+  BinaryExpression visitBinaryExpression(BinaryExpression node) => new BinaryExpression(cloneNode(node.leftOperand), node.operator, cloneNode(node.rightOperand));
 
-  Block visitBlock(Block node) => new Block(node.leftBracket, clone3(node.statements), node.rightBracket);
+  Block visitBlock(Block node) => new Block(node.leftBracket, cloneNodeList(node.statements), node.rightBracket);
 
-  BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) => new BlockFunctionBody(clone2(node.block));
+  BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) => new BlockFunctionBody(cloneNode(node.block));
 
   BooleanLiteral visitBooleanLiteral(BooleanLiteral node) => new BooleanLiteral(node.literal, node.value);
 
-  BreakStatement visitBreakStatement(BreakStatement node) => new BreakStatement(node.keyword, clone2(node.label), node.semicolon);
+  BreakStatement visitBreakStatement(BreakStatement node) => new BreakStatement(node.keyword, cloneNode(node.label), node.semicolon);
 
-  CascadeExpression visitCascadeExpression(CascadeExpression node) => new CascadeExpression(clone2(node.target), clone3(node.cascadeSections));
+  CascadeExpression visitCascadeExpression(CascadeExpression node) => new CascadeExpression(cloneNode(node.target), cloneNodeList(node.cascadeSections));
 
-  CatchClause visitCatchClause(CatchClause node) => new CatchClause(node.onKeyword, clone2(node.exceptionType), node.catchKeyword, node.leftParenthesis, clone2(node.exceptionParameter), node.comma, clone2(node.stackTraceParameter), node.rightParenthesis, clone2(node.body));
+  CatchClause visitCatchClause(CatchClause node) => new CatchClause(node.onKeyword, cloneNode(node.exceptionType), node.catchKeyword, node.leftParenthesis, cloneNode(node.exceptionParameter), node.comma, cloneNode(node.stackTraceParameter), node.rightParenthesis, cloneNode(node.body));
 
   ClassDeclaration visitClassDeclaration(ClassDeclaration node) {
-    ClassDeclaration copy = new ClassDeclaration(clone2(node.documentationComment), clone3(node.metadata), node.abstractKeyword, node.classKeyword, clone2(node.name), clone2(node.typeParameters), clone2(node.extendsClause), clone2(node.withClause), clone2(node.implementsClause), node.leftBracket, clone3(node.members), node.rightBracket);
-    copy.nativeClause = clone2(node.nativeClause);
+    ClassDeclaration copy = new ClassDeclaration(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.abstractKeyword, node.classKeyword, cloneNode(node.name), cloneNode(node.typeParameters), cloneNode(node.extendsClause), cloneNode(node.withClause), cloneNode(node.implementsClause), node.leftBracket, cloneNodeList(node.members), node.rightBracket);
+    copy.nativeClause = cloneNode(node.nativeClause);
     return copy;
   }
 
-  ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) => new ClassTypeAlias(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.name), clone2(node.typeParameters), node.equals, node.abstractKeyword, clone2(node.superclass), clone2(node.withClause), clone2(node.implementsClause), node.semicolon);
+  ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) => new ClassTypeAlias(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.keyword, cloneNode(node.name), cloneNode(node.typeParameters), node.equals, node.abstractKeyword, cloneNode(node.superclass), cloneNode(node.withClause), cloneNode(node.implementsClause), node.semicolon);
 
   Comment visitComment(Comment node) {
     if (node.isDocumentation) {
-      return Comment.createDocumentationComment2(node.tokens, clone3(node.references));
+      return Comment.createDocumentationComment2(node.tokens, cloneNodeList(node.references));
     } else if (node.isBlock) {
       return Comment.createBlockComment(node.tokens);
     }
     return Comment.createEndOfLineComment(node.tokens);
   }
 
-  CommentReference visitCommentReference(CommentReference node) => new CommentReference(node.newKeyword, clone2(node.identifier));
+  CommentReference visitCommentReference(CommentReference node) => new CommentReference(node.newKeyword, cloneNode(node.identifier));
 
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
-    CompilationUnit clone = new CompilationUnit(node.beginToken, clone2(node.scriptTag), clone3(node.directives), clone3(node.declarations), node.endToken);
+    CompilationUnit clone = new CompilationUnit(node.beginToken, cloneNode(node.scriptTag), cloneNodeList(node.directives), cloneNodeList(node.declarations), node.endToken);
     clone.lineInfo = node.lineInfo;
     return clone;
   }
 
-  ConditionalExpression visitConditionalExpression(ConditionalExpression node) => new ConditionalExpression(clone2(node.condition), node.question, clone2(node.thenExpression), node.colon, clone2(node.elseExpression));
+  ConditionalExpression visitConditionalExpression(ConditionalExpression node) => new ConditionalExpression(cloneNode(node.condition), node.question, cloneNode(node.thenExpression), node.colon, cloneNode(node.elseExpression));
 
-  ConstructorDeclaration visitConstructorDeclaration(ConstructorDeclaration node) => new ConstructorDeclaration(clone2(node.documentationComment), clone3(node.metadata), node.externalKeyword, node.constKeyword, node.factoryKeyword, clone2(node.returnType), node.period, clone2(node.name), clone2(node.parameters), node.separator, clone3(node.initializers), clone2(node.redirectedConstructor), clone2(node.body));
+  ConstructorDeclaration visitConstructorDeclaration(ConstructorDeclaration node) => new ConstructorDeclaration(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.externalKeyword, node.constKeyword, node.factoryKeyword, cloneNode(node.returnType), node.period, cloneNode(node.name), cloneNode(node.parameters), node.separator, cloneNodeList(node.initializers), cloneNode(node.redirectedConstructor), cloneNode(node.body));
 
-  ConstructorFieldInitializer visitConstructorFieldInitializer(ConstructorFieldInitializer node) => new ConstructorFieldInitializer(node.keyword, node.period, clone2(node.fieldName), node.equals, clone2(node.expression));
+  ConstructorFieldInitializer visitConstructorFieldInitializer(ConstructorFieldInitializer node) => new ConstructorFieldInitializer(node.keyword, node.period, cloneNode(node.fieldName), node.equals, cloneNode(node.expression));
 
-  ConstructorName visitConstructorName(ConstructorName node) => new ConstructorName(clone2(node.type), node.period, clone2(node.name));
+  ConstructorName visitConstructorName(ConstructorName node) => new ConstructorName(cloneNode(node.type), node.period, cloneNode(node.name));
 
-  ContinueStatement visitContinueStatement(ContinueStatement node) => new ContinueStatement(node.keyword, clone2(node.label), node.semicolon);
+  ContinueStatement visitContinueStatement(ContinueStatement node) => new ContinueStatement(node.keyword, cloneNode(node.label), node.semicolon);
 
-  DeclaredIdentifier visitDeclaredIdentifier(DeclaredIdentifier node) => new DeclaredIdentifier(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.type), clone2(node.identifier));
+  DeclaredIdentifier visitDeclaredIdentifier(DeclaredIdentifier node) => new DeclaredIdentifier(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.keyword, cloneNode(node.type), cloneNode(node.identifier));
 
-  DefaultFormalParameter visitDefaultFormalParameter(DefaultFormalParameter node) => new DefaultFormalParameter(clone2(node.parameter), node.kind, node.separator, clone2(node.defaultValue));
+  DefaultFormalParameter visitDefaultFormalParameter(DefaultFormalParameter node) => new DefaultFormalParameter(cloneNode(node.parameter), node.kind, node.separator, cloneNode(node.defaultValue));
 
-  DoStatement visitDoStatement(DoStatement node) => new DoStatement(node.doKeyword, clone2(node.body), node.whileKeyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, node.semicolon);
+  DoStatement visitDoStatement(DoStatement node) => new DoStatement(node.doKeyword, cloneNode(node.body), node.whileKeyword, node.leftParenthesis, cloneNode(node.condition), node.rightParenthesis, node.semicolon);
 
   DoubleLiteral visitDoubleLiteral(DoubleLiteral node) => new DoubleLiteral(node.literal, node.value);
 
@@ -14595,173 +14597,173 @@ class AstCloner implements AstVisitor<AstNode> {
 
   EmptyStatement visitEmptyStatement(EmptyStatement node) => new EmptyStatement(node.semicolon);
 
-  ExportDirective visitExportDirective(ExportDirective node) => new ExportDirective(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.uri), clone3(node.combinators), node.semicolon);
+  ExportDirective visitExportDirective(ExportDirective node) => new ExportDirective(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.keyword, cloneNode(node.uri), cloneNodeList(node.combinators), node.semicolon);
 
-  ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) => new ExpressionFunctionBody(node.functionDefinition, clone2(node.expression), node.semicolon);
+  ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) => new ExpressionFunctionBody(node.functionDefinition, cloneNode(node.expression), node.semicolon);
 
-  ExpressionStatement visitExpressionStatement(ExpressionStatement node) => new ExpressionStatement(clone2(node.expression), node.semicolon);
+  ExpressionStatement visitExpressionStatement(ExpressionStatement node) => new ExpressionStatement(cloneNode(node.expression), node.semicolon);
 
-  ExtendsClause visitExtendsClause(ExtendsClause node) => new ExtendsClause(node.keyword, clone2(node.superclass));
+  ExtendsClause visitExtendsClause(ExtendsClause node) => new ExtendsClause(node.keyword, cloneNode(node.superclass));
 
-  FieldDeclaration visitFieldDeclaration(FieldDeclaration node) => new FieldDeclaration(clone2(node.documentationComment), clone3(node.metadata), node.staticKeyword, clone2(node.fields), node.semicolon);
+  FieldDeclaration visitFieldDeclaration(FieldDeclaration node) => new FieldDeclaration(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.staticKeyword, cloneNode(node.fields), node.semicolon);
 
-  FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) => new FieldFormalParameter(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.type), node.thisToken, node.period, clone2(node.identifier), clone2(node.parameters));
+  FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) => new FieldFormalParameter(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.keyword, cloneNode(node.type), node.thisToken, node.period, cloneNode(node.identifier), cloneNode(node.parameters));
 
   ForEachStatement visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (loopVariable == null) {
-      return new ForEachStatement.con2(node.forKeyword, node.leftParenthesis, clone2(node.identifier), node.inKeyword, clone2(node.iterator), node.rightParenthesis, clone2(node.body));
+      return new ForEachStatement.con2(node.forKeyword, node.leftParenthesis, cloneNode(node.identifier), node.inKeyword, cloneNode(node.iterator), node.rightParenthesis, cloneNode(node.body));
     }
-    return new ForEachStatement.con1(node.forKeyword, node.leftParenthesis, clone2(loopVariable), node.inKeyword, clone2(node.iterator), node.rightParenthesis, clone2(node.body));
+    return new ForEachStatement.con1(node.forKeyword, node.leftParenthesis, cloneNode(loopVariable), node.inKeyword, cloneNode(node.iterator), node.rightParenthesis, cloneNode(node.body));
   }
 
-  FormalParameterList visitFormalParameterList(FormalParameterList node) => new FormalParameterList(node.leftParenthesis, clone3(node.parameters), node.leftDelimiter, node.rightDelimiter, node.rightParenthesis);
+  FormalParameterList visitFormalParameterList(FormalParameterList node) => new FormalParameterList(node.leftParenthesis, cloneNodeList(node.parameters), node.leftDelimiter, node.rightDelimiter, node.rightParenthesis);
 
-  ForStatement visitForStatement(ForStatement node) => new ForStatement(node.forKeyword, node.leftParenthesis, clone2(node.variables), clone2(node.initialization), node.leftSeparator, clone2(node.condition), node.rightSeparator, clone3(node.updaters), node.rightParenthesis, clone2(node.body));
+  ForStatement visitForStatement(ForStatement node) => new ForStatement(node.forKeyword, node.leftParenthesis, cloneNode(node.variables), cloneNode(node.initialization), node.leftSeparator, cloneNode(node.condition), node.rightSeparator, cloneNodeList(node.updaters), node.rightParenthesis, cloneNode(node.body));
 
-  FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) => new FunctionDeclaration(clone2(node.documentationComment), clone3(node.metadata), node.externalKeyword, clone2(node.returnType), node.propertyKeyword, clone2(node.name), clone2(node.functionExpression));
+  FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) => new FunctionDeclaration(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.externalKeyword, cloneNode(node.returnType), node.propertyKeyword, cloneNode(node.name), cloneNode(node.functionExpression));
 
-  FunctionDeclarationStatement visitFunctionDeclarationStatement(FunctionDeclarationStatement node) => new FunctionDeclarationStatement(clone2(node.functionDeclaration));
+  FunctionDeclarationStatement visitFunctionDeclarationStatement(FunctionDeclarationStatement node) => new FunctionDeclarationStatement(cloneNode(node.functionDeclaration));
 
-  FunctionExpression visitFunctionExpression(FunctionExpression node) => new FunctionExpression(clone2(node.parameters), clone2(node.body));
+  FunctionExpression visitFunctionExpression(FunctionExpression node) => new FunctionExpression(cloneNode(node.parameters), cloneNode(node.body));
 
-  FunctionExpressionInvocation visitFunctionExpressionInvocation(FunctionExpressionInvocation node) => new FunctionExpressionInvocation(clone2(node.function), clone2(node.argumentList));
+  FunctionExpressionInvocation visitFunctionExpressionInvocation(FunctionExpressionInvocation node) => new FunctionExpressionInvocation(cloneNode(node.function), cloneNode(node.argumentList));
 
-  FunctionTypeAlias visitFunctionTypeAlias(FunctionTypeAlias node) => new FunctionTypeAlias(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.returnType), clone2(node.name), clone2(node.typeParameters), clone2(node.parameters), node.semicolon);
+  FunctionTypeAlias visitFunctionTypeAlias(FunctionTypeAlias node) => new FunctionTypeAlias(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.keyword, cloneNode(node.returnType), cloneNode(node.name), cloneNode(node.typeParameters), cloneNode(node.parameters), node.semicolon);
 
-  FunctionTypedFormalParameter visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) => new FunctionTypedFormalParameter(clone2(node.documentationComment), clone3(node.metadata), clone2(node.returnType), clone2(node.identifier), clone2(node.parameters));
+  FunctionTypedFormalParameter visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) => new FunctionTypedFormalParameter(cloneNode(node.documentationComment), cloneNodeList(node.metadata), cloneNode(node.returnType), cloneNode(node.identifier), cloneNode(node.parameters));
 
-  HideCombinator visitHideCombinator(HideCombinator node) => new HideCombinator(node.keyword, clone3(node.hiddenNames));
+  HideCombinator visitHideCombinator(HideCombinator node) => new HideCombinator(node.keyword, cloneNodeList(node.hiddenNames));
 
-  IfStatement visitIfStatement(IfStatement node) => new IfStatement(node.ifKeyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, clone2(node.thenStatement), node.elseKeyword, clone2(node.elseStatement));
+  IfStatement visitIfStatement(IfStatement node) => new IfStatement(node.ifKeyword, node.leftParenthesis, cloneNode(node.condition), node.rightParenthesis, cloneNode(node.thenStatement), node.elseKeyword, cloneNode(node.elseStatement));
 
-  ImplementsClause visitImplementsClause(ImplementsClause node) => new ImplementsClause(node.keyword, clone3(node.interfaces));
+  ImplementsClause visitImplementsClause(ImplementsClause node) => new ImplementsClause(node.keyword, cloneNodeList(node.interfaces));
 
-  ImportDirective visitImportDirective(ImportDirective node) => new ImportDirective(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.uri), node.asToken, clone2(node.prefix), clone3(node.combinators), node.semicolon);
+  ImportDirective visitImportDirective(ImportDirective node) => new ImportDirective(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.keyword, cloneNode(node.uri), node.asToken, cloneNode(node.prefix), cloneNodeList(node.combinators), node.semicolon);
 
   IndexExpression visitIndexExpression(IndexExpression node) {
     Token period = node.period;
     if (period == null) {
-      return new IndexExpression.forTarget(clone2(node.target), node.leftBracket, clone2(node.index), node.rightBracket);
+      return new IndexExpression.forTarget(cloneNode(node.target), node.leftBracket, cloneNode(node.index), node.rightBracket);
     } else {
-      return new IndexExpression.forCascade(period, node.leftBracket, clone2(node.index), node.rightBracket);
+      return new IndexExpression.forCascade(period, node.leftBracket, cloneNode(node.index), node.rightBracket);
     }
   }
 
-  InstanceCreationExpression visitInstanceCreationExpression(InstanceCreationExpression node) => new InstanceCreationExpression(node.keyword, clone2(node.constructorName), clone2(node.argumentList));
+  InstanceCreationExpression visitInstanceCreationExpression(InstanceCreationExpression node) => new InstanceCreationExpression(node.keyword, cloneNode(node.constructorName), cloneNode(node.argumentList));
 
   IntegerLiteral visitIntegerLiteral(IntegerLiteral node) => new IntegerLiteral(node.literal, node.value);
 
-  InterpolationExpression visitInterpolationExpression(InterpolationExpression node) => new InterpolationExpression(node.leftBracket, clone2(node.expression), node.rightBracket);
+  InterpolationExpression visitInterpolationExpression(InterpolationExpression node) => new InterpolationExpression(node.leftBracket, cloneNode(node.expression), node.rightBracket);
 
   InterpolationString visitInterpolationString(InterpolationString node) => new InterpolationString(node.contents, node.value);
 
-  IsExpression visitIsExpression(IsExpression node) => new IsExpression(clone2(node.expression), node.isOperator, node.notOperator, clone2(node.type));
+  IsExpression visitIsExpression(IsExpression node) => new IsExpression(cloneNode(node.expression), node.isOperator, node.notOperator, cloneNode(node.type));
 
-  Label visitLabel(Label node) => new Label(clone2(node.label), node.colon);
+  Label visitLabel(Label node) => new Label(cloneNode(node.label), node.colon);
 
-  LabeledStatement visitLabeledStatement(LabeledStatement node) => new LabeledStatement(clone3(node.labels), clone2(node.statement));
+  LabeledStatement visitLabeledStatement(LabeledStatement node) => new LabeledStatement(cloneNodeList(node.labels), cloneNode(node.statement));
 
-  LibraryDirective visitLibraryDirective(LibraryDirective node) => new LibraryDirective(clone2(node.documentationComment), clone3(node.metadata), node.libraryToken, clone2(node.name), node.semicolon);
+  LibraryDirective visitLibraryDirective(LibraryDirective node) => new LibraryDirective(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.libraryToken, cloneNode(node.name), node.semicolon);
 
-  LibraryIdentifier visitLibraryIdentifier(LibraryIdentifier node) => new LibraryIdentifier(clone3(node.components));
+  LibraryIdentifier visitLibraryIdentifier(LibraryIdentifier node) => new LibraryIdentifier(cloneNodeList(node.components));
 
-  ListLiteral visitListLiteral(ListLiteral node) => new ListLiteral(node.constKeyword, clone2(node.typeArguments), node.leftBracket, clone3(node.elements), node.rightBracket);
+  ListLiteral visitListLiteral(ListLiteral node) => new ListLiteral(node.constKeyword, cloneNode(node.typeArguments), node.leftBracket, cloneNodeList(node.elements), node.rightBracket);
 
-  MapLiteral visitMapLiteral(MapLiteral node) => new MapLiteral(node.constKeyword, clone2(node.typeArguments), node.leftBracket, clone3(node.entries), node.rightBracket);
+  MapLiteral visitMapLiteral(MapLiteral node) => new MapLiteral(node.constKeyword, cloneNode(node.typeArguments), node.leftBracket, cloneNodeList(node.entries), node.rightBracket);
 
-  MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) => new MapLiteralEntry(clone2(node.key), node.separator, clone2(node.value));
+  MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) => new MapLiteralEntry(cloneNode(node.key), node.separator, cloneNode(node.value));
 
-  MethodDeclaration visitMethodDeclaration(MethodDeclaration node) => new MethodDeclaration(clone2(node.documentationComment), clone3(node.metadata), node.externalKeyword, node.modifierKeyword, clone2(node.returnType), node.propertyKeyword, node.operatorKeyword, clone2(node.name), clone2(node.parameters), clone2(node.body));
+  MethodDeclaration visitMethodDeclaration(MethodDeclaration node) => new MethodDeclaration(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.externalKeyword, node.modifierKeyword, cloneNode(node.returnType), node.propertyKeyword, node.operatorKeyword, cloneNode(node.name), cloneNode(node.parameters), cloneNode(node.body));
 
-  MethodInvocation visitMethodInvocation(MethodInvocation node) => new MethodInvocation(clone2(node.target), node.period, clone2(node.methodName), clone2(node.argumentList));
+  MethodInvocation visitMethodInvocation(MethodInvocation node) => new MethodInvocation(cloneNode(node.target), node.period, cloneNode(node.methodName), cloneNode(node.argumentList));
 
-  NamedExpression visitNamedExpression(NamedExpression node) => new NamedExpression(clone2(node.name), clone2(node.expression));
+  NamedExpression visitNamedExpression(NamedExpression node) => new NamedExpression(cloneNode(node.name), cloneNode(node.expression));
 
-  AstNode visitNativeClause(NativeClause node) => new NativeClause(node.keyword, clone2(node.name));
+  AstNode visitNativeClause(NativeClause node) => new NativeClause(node.keyword, cloneNode(node.name));
 
-  NativeFunctionBody visitNativeFunctionBody(NativeFunctionBody node) => new NativeFunctionBody(node.nativeToken, clone2(node.stringLiteral), node.semicolon);
+  NativeFunctionBody visitNativeFunctionBody(NativeFunctionBody node) => new NativeFunctionBody(node.nativeToken, cloneNode(node.stringLiteral), node.semicolon);
 
   NullLiteral visitNullLiteral(NullLiteral node) => new NullLiteral(node.literal);
 
-  ParenthesizedExpression visitParenthesizedExpression(ParenthesizedExpression node) => new ParenthesizedExpression(node.leftParenthesis, clone2(node.expression), node.rightParenthesis);
+  ParenthesizedExpression visitParenthesizedExpression(ParenthesizedExpression node) => new ParenthesizedExpression(node.leftParenthesis, cloneNode(node.expression), node.rightParenthesis);
 
-  PartDirective visitPartDirective(PartDirective node) => new PartDirective(clone2(node.documentationComment), clone3(node.metadata), node.partToken, clone2(node.uri), node.semicolon);
+  PartDirective visitPartDirective(PartDirective node) => new PartDirective(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.partToken, cloneNode(node.uri), node.semicolon);
 
-  PartOfDirective visitPartOfDirective(PartOfDirective node) => new PartOfDirective(clone2(node.documentationComment), clone3(node.metadata), node.partToken, node.ofToken, clone2(node.libraryName), node.semicolon);
+  PartOfDirective visitPartOfDirective(PartOfDirective node) => new PartOfDirective(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.partToken, node.ofToken, cloneNode(node.libraryName), node.semicolon);
 
-  PostfixExpression visitPostfixExpression(PostfixExpression node) => new PostfixExpression(clone2(node.operand), node.operator);
+  PostfixExpression visitPostfixExpression(PostfixExpression node) => new PostfixExpression(cloneNode(node.operand), node.operator);
 
-  PrefixedIdentifier visitPrefixedIdentifier(PrefixedIdentifier node) => new PrefixedIdentifier(clone2(node.prefix), node.period, clone2(node.identifier));
+  PrefixedIdentifier visitPrefixedIdentifier(PrefixedIdentifier node) => new PrefixedIdentifier(cloneNode(node.prefix), node.period, cloneNode(node.identifier));
 
-  PrefixExpression visitPrefixExpression(PrefixExpression node) => new PrefixExpression(node.operator, clone2(node.operand));
+  PrefixExpression visitPrefixExpression(PrefixExpression node) => new PrefixExpression(node.operator, cloneNode(node.operand));
 
-  PropertyAccess visitPropertyAccess(PropertyAccess node) => new PropertyAccess(clone2(node.target), node.operator, clone2(node.propertyName));
+  PropertyAccess visitPropertyAccess(PropertyAccess node) => new PropertyAccess(cloneNode(node.target), node.operator, cloneNode(node.propertyName));
 
-  RedirectingConstructorInvocation visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) => new RedirectingConstructorInvocation(node.keyword, node.period, clone2(node.constructorName), clone2(node.argumentList));
+  RedirectingConstructorInvocation visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) => new RedirectingConstructorInvocation(node.keyword, node.period, cloneNode(node.constructorName), cloneNode(node.argumentList));
 
   RethrowExpression visitRethrowExpression(RethrowExpression node) => new RethrowExpression(node.keyword);
 
-  ReturnStatement visitReturnStatement(ReturnStatement node) => new ReturnStatement(node.keyword, clone2(node.expression), node.semicolon);
+  ReturnStatement visitReturnStatement(ReturnStatement node) => new ReturnStatement(node.keyword, cloneNode(node.expression), node.semicolon);
 
   ScriptTag visitScriptTag(ScriptTag node) => new ScriptTag(node.scriptTag);
 
-  ShowCombinator visitShowCombinator(ShowCombinator node) => new ShowCombinator(node.keyword, clone3(node.shownNames));
+  ShowCombinator visitShowCombinator(ShowCombinator node) => new ShowCombinator(node.keyword, cloneNodeList(node.shownNames));
 
-  SimpleFormalParameter visitSimpleFormalParameter(SimpleFormalParameter node) => new SimpleFormalParameter(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.type), clone2(node.identifier));
+  SimpleFormalParameter visitSimpleFormalParameter(SimpleFormalParameter node) => new SimpleFormalParameter(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.keyword, cloneNode(node.type), cloneNode(node.identifier));
 
   SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) => new SimpleIdentifier(node.token);
 
   SimpleStringLiteral visitSimpleStringLiteral(SimpleStringLiteral node) => new SimpleStringLiteral(node.literal, node.value);
 
-  StringInterpolation visitStringInterpolation(StringInterpolation node) => new StringInterpolation(clone3(node.elements));
+  StringInterpolation visitStringInterpolation(StringInterpolation node) => new StringInterpolation(cloneNodeList(node.elements));
 
-  SuperConstructorInvocation visitSuperConstructorInvocation(SuperConstructorInvocation node) => new SuperConstructorInvocation(node.keyword, node.period, clone2(node.constructorName), clone2(node.argumentList));
+  SuperConstructorInvocation visitSuperConstructorInvocation(SuperConstructorInvocation node) => new SuperConstructorInvocation(node.keyword, node.period, cloneNode(node.constructorName), cloneNode(node.argumentList));
 
   SuperExpression visitSuperExpression(SuperExpression node) => new SuperExpression(node.keyword);
 
-  SwitchCase visitSwitchCase(SwitchCase node) => new SwitchCase(clone3(node.labels), node.keyword, clone2(node.expression), node.colon, clone3(node.statements));
+  SwitchCase visitSwitchCase(SwitchCase node) => new SwitchCase(cloneNodeList(node.labels), node.keyword, cloneNode(node.expression), node.colon, cloneNodeList(node.statements));
 
-  SwitchDefault visitSwitchDefault(SwitchDefault node) => new SwitchDefault(clone3(node.labels), node.keyword, node.colon, clone3(node.statements));
+  SwitchDefault visitSwitchDefault(SwitchDefault node) => new SwitchDefault(cloneNodeList(node.labels), node.keyword, node.colon, cloneNodeList(node.statements));
 
-  SwitchStatement visitSwitchStatement(SwitchStatement node) => new SwitchStatement(node.keyword, node.leftParenthesis, clone2(node.expression), node.rightParenthesis, node.leftBracket, clone3(node.members), node.rightBracket);
+  SwitchStatement visitSwitchStatement(SwitchStatement node) => new SwitchStatement(node.keyword, node.leftParenthesis, cloneNode(node.expression), node.rightParenthesis, node.leftBracket, cloneNodeList(node.members), node.rightBracket);
 
   AstNode visitSymbolLiteral(SymbolLiteral node) => new SymbolLiteral(node.poundSign, node.components);
 
   ThisExpression visitThisExpression(ThisExpression node) => new ThisExpression(node.keyword);
 
-  ThrowExpression visitThrowExpression(ThrowExpression node) => new ThrowExpression(node.keyword, clone2(node.expression));
+  ThrowExpression visitThrowExpression(ThrowExpression node) => new ThrowExpression(node.keyword, cloneNode(node.expression));
 
-  TopLevelVariableDeclaration visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => new TopLevelVariableDeclaration(clone2(node.documentationComment), clone3(node.metadata), clone2(node.variables), node.semicolon);
+  TopLevelVariableDeclaration visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => new TopLevelVariableDeclaration(cloneNode(node.documentationComment), cloneNodeList(node.metadata), cloneNode(node.variables), node.semicolon);
 
-  TryStatement visitTryStatement(TryStatement node) => new TryStatement(node.tryKeyword, clone2(node.body), clone3(node.catchClauses), node.finallyKeyword, clone2(node.finallyBlock));
+  TryStatement visitTryStatement(TryStatement node) => new TryStatement(node.tryKeyword, cloneNode(node.body), cloneNodeList(node.catchClauses), node.finallyKeyword, cloneNode(node.finallyBlock));
 
-  TypeArgumentList visitTypeArgumentList(TypeArgumentList node) => new TypeArgumentList(node.leftBracket, clone3(node.arguments), node.rightBracket);
+  TypeArgumentList visitTypeArgumentList(TypeArgumentList node) => new TypeArgumentList(node.leftBracket, cloneNodeList(node.arguments), node.rightBracket);
 
-  TypeName visitTypeName(TypeName node) => new TypeName(clone2(node.name), clone2(node.typeArguments));
+  TypeName visitTypeName(TypeName node) => new TypeName(cloneNode(node.name), cloneNode(node.typeArguments));
 
-  TypeParameter visitTypeParameter(TypeParameter node) => new TypeParameter(clone2(node.documentationComment), clone3(node.metadata), clone2(node.name), node.keyword, clone2(node.bound));
+  TypeParameter visitTypeParameter(TypeParameter node) => new TypeParameter(cloneNode(node.documentationComment), cloneNodeList(node.metadata), cloneNode(node.name), node.keyword, cloneNode(node.bound));
 
-  TypeParameterList visitTypeParameterList(TypeParameterList node) => new TypeParameterList(node.leftBracket, clone3(node.typeParameters), node.rightBracket);
+  TypeParameterList visitTypeParameterList(TypeParameterList node) => new TypeParameterList(node.leftBracket, cloneNodeList(node.typeParameters), node.rightBracket);
 
-  VariableDeclaration visitVariableDeclaration(VariableDeclaration node) => new VariableDeclaration(null, clone3(node.metadata), clone2(node.name), node.equals, clone2(node.initializer));
+  VariableDeclaration visitVariableDeclaration(VariableDeclaration node) => new VariableDeclaration(null, cloneNodeList(node.metadata), cloneNode(node.name), node.equals, cloneNode(node.initializer));
 
-  VariableDeclarationList visitVariableDeclarationList(VariableDeclarationList node) => new VariableDeclarationList(null, clone3(node.metadata), node.keyword, clone2(node.type), clone3(node.variables));
+  VariableDeclarationList visitVariableDeclarationList(VariableDeclarationList node) => new VariableDeclarationList(null, cloneNodeList(node.metadata), node.keyword, cloneNode(node.type), cloneNodeList(node.variables));
 
-  VariableDeclarationStatement visitVariableDeclarationStatement(VariableDeclarationStatement node) => new VariableDeclarationStatement(clone2(node.variables), node.semicolon);
+  VariableDeclarationStatement visitVariableDeclarationStatement(VariableDeclarationStatement node) => new VariableDeclarationStatement(cloneNode(node.variables), node.semicolon);
 
-  WhileStatement visitWhileStatement(WhileStatement node) => new WhileStatement(node.keyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, clone2(node.body));
+  WhileStatement visitWhileStatement(WhileStatement node) => new WhileStatement(node.keyword, node.leftParenthesis, cloneNode(node.condition), node.rightParenthesis, cloneNode(node.body));
 
-  WithClause visitWithClause(WithClause node) => new WithClause(node.withKeyword, clone3(node.mixinTypes));
+  WithClause visitWithClause(WithClause node) => new WithClause(node.withKeyword, cloneNodeList(node.mixinTypes));
 
-  AstNode clone2(AstNode node) {
+  AstNode cloneNode(AstNode node) {
     if (node == null) {
       return null;
     }
     return node.accept(this) as AstNode;
   }
 
-  List clone3(NodeList nodes) {
+  List cloneNodeList(NodeList nodes) {
     int count = nodes.length;
     List clonedNodes = new List();
     for (int i = 0; i < count; i++) {
@@ -14785,528 +14787,555 @@ class AstComparator implements AstVisitor<bool> {
    */
   static bool equals4(CompilationUnit first, CompilationUnit second) {
     AstComparator comparator = new AstComparator();
-    return comparator.isEqual(first, second);
+    return comparator.isEqualNodes(first, second);
   }
 
   /**
    * The AST node with which the node being visited is to be compared. This is only valid at the
-   * beginning of each visit method (until [isEqual] is invoked).
+   * beginning of each visit method (until [isEqualNodes] is invoked).
    */
   AstNode _other;
 
   bool visitAdjacentStrings(AdjacentStrings node) {
     AdjacentStrings other = this._other as AdjacentStrings;
-    return isEqual5(node.strings, other.strings);
+    return isEqualNodeLists(node.strings, other.strings);
   }
 
   bool visitAnnotation(Annotation node) {
     Annotation other = this._other as Annotation;
-    return isEqual6(node.atSign, other.atSign) && isEqual(node.name, other.name) && isEqual6(node.period, other.period) && isEqual(node.constructorName, other.constructorName) && isEqual(node.arguments, other.arguments);
+    return isEqualTokens(node.atSign, other.atSign) && isEqualNodes(node.name, other.name) && isEqualTokens(node.period, other.period) && isEqualNodes(node.constructorName, other.constructorName) && isEqualNodes(node.arguments, other.arguments);
   }
 
   bool visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
     ArgumentDefinitionTest other = this._other as ArgumentDefinitionTest;
-    return isEqual6(node.question, other.question) && isEqual(node.identifier, other.identifier);
+    return isEqualTokens(node.question, other.question) && isEqualNodes(node.identifier, other.identifier);
   }
 
   bool visitArgumentList(ArgumentList node) {
     ArgumentList other = this._other as ArgumentList;
-    return isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual5(node.arguments, other.arguments) && isEqual6(node.rightParenthesis, other.rightParenthesis);
+    return isEqualTokens(node.leftParenthesis, other.leftParenthesis) && isEqualNodeLists(node.arguments, other.arguments) && isEqualTokens(node.rightParenthesis, other.rightParenthesis);
   }
 
   bool visitAsExpression(AsExpression node) {
     AsExpression other = this._other as AsExpression;
-    return isEqual(node.expression, other.expression) && isEqual6(node.asOperator, other.asOperator) && isEqual(node.type, other.type);
+    return isEqualNodes(node.expression, other.expression) && isEqualTokens(node.asOperator, other.asOperator) && isEqualNodes(node.type, other.type);
   }
 
   bool visitAssertStatement(AssertStatement node) {
     AssertStatement other = this._other as AssertStatement;
-    return isEqual6(node.keyword, other.keyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.condition, other.condition) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual6(node.semicolon, other.semicolon);
+    return isEqualTokens(node.keyword, other.keyword) && isEqualTokens(node.leftParenthesis, other.leftParenthesis) && isEqualNodes(node.condition, other.condition) && isEqualTokens(node.rightParenthesis, other.rightParenthesis) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   bool visitAssignmentExpression(AssignmentExpression node) {
     AssignmentExpression other = this._other as AssignmentExpression;
-    return isEqual(node.leftHandSide, other.leftHandSide) && isEqual6(node.operator, other.operator) && isEqual(node.rightHandSide, other.rightHandSide);
+    return isEqualNodes(node.leftHandSide, other.leftHandSide) && isEqualTokens(node.operator, other.operator) && isEqualNodes(node.rightHandSide, other.rightHandSide);
   }
 
   bool visitBinaryExpression(BinaryExpression node) {
     BinaryExpression other = this._other as BinaryExpression;
-    return isEqual(node.leftOperand, other.leftOperand) && isEqual6(node.operator, other.operator) && isEqual(node.rightOperand, other.rightOperand);
+    return isEqualNodes(node.leftOperand, other.leftOperand) && isEqualTokens(node.operator, other.operator) && isEqualNodes(node.rightOperand, other.rightOperand);
   }
 
   bool visitBlock(Block node) {
     Block other = this._other as Block;
-    return isEqual6(node.leftBracket, other.leftBracket) && isEqual5(node.statements, other.statements) && isEqual6(node.rightBracket, other.rightBracket);
+    return isEqualTokens(node.leftBracket, other.leftBracket) && isEqualNodeLists(node.statements, other.statements) && isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   bool visitBlockFunctionBody(BlockFunctionBody node) {
     BlockFunctionBody other = this._other as BlockFunctionBody;
-    return isEqual(node.block, other.block);
+    return isEqualNodes(node.block, other.block);
   }
 
   bool visitBooleanLiteral(BooleanLiteral node) {
     BooleanLiteral other = this._other as BooleanLiteral;
-    return isEqual6(node.literal, other.literal) && identical(node.value, other.value);
+    return isEqualTokens(node.literal, other.literal) && identical(node.value, other.value);
   }
 
   bool visitBreakStatement(BreakStatement node) {
     BreakStatement other = this._other as BreakStatement;
-    return isEqual6(node.keyword, other.keyword) && isEqual(node.label, other.label) && isEqual6(node.semicolon, other.semicolon);
+    return isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.label, other.label) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   bool visitCascadeExpression(CascadeExpression node) {
     CascadeExpression other = this._other as CascadeExpression;
-    return isEqual(node.target, other.target) && isEqual5(node.cascadeSections, other.cascadeSections);
+    return isEqualNodes(node.target, other.target) && isEqualNodeLists(node.cascadeSections, other.cascadeSections);
   }
 
   bool visitCatchClause(CatchClause node) {
     CatchClause other = this._other as CatchClause;
-    return isEqual6(node.onKeyword, other.onKeyword) && isEqual(node.exceptionType, other.exceptionType) && isEqual6(node.catchKeyword, other.catchKeyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.exceptionParameter, other.exceptionParameter) && isEqual6(node.comma, other.comma) && isEqual(node.stackTraceParameter, other.stackTraceParameter) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual(node.body, other.body);
+    return isEqualTokens(node.onKeyword, other.onKeyword) && isEqualNodes(node.exceptionType, other.exceptionType) && isEqualTokens(node.catchKeyword, other.catchKeyword) && isEqualTokens(node.leftParenthesis, other.leftParenthesis) && isEqualNodes(node.exceptionParameter, other.exceptionParameter) && isEqualTokens(node.comma, other.comma) && isEqualNodes(node.stackTraceParameter, other.stackTraceParameter) && isEqualTokens(node.rightParenthesis, other.rightParenthesis) && isEqualNodes(node.body, other.body);
   }
 
   bool visitClassDeclaration(ClassDeclaration node) {
     ClassDeclaration other = this._other as ClassDeclaration;
-    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.abstractKeyword, other.abstractKeyword) && isEqual6(node.classKeyword, other.classKeyword) && isEqual(node.name, other.name) && isEqual(node.typeParameters, other.typeParameters) && isEqual(node.extendsClause, other.extendsClause) && isEqual(node.withClause, other.withClause) && isEqual(node.implementsClause, other.implementsClause) && isEqual6(node.leftBracket, other.leftBracket) && isEqual5(node.members, other.members) && isEqual6(node.rightBracket, other.rightBracket);
+    return isEqualNodes(node.documentationComment, other.documentationComment) && isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.abstractKeyword, other.abstractKeyword) && isEqualTokens(node.classKeyword, other.classKeyword) && isEqualNodes(node.name, other.name) && isEqualNodes(node.typeParameters, other.typeParameters) && isEqualNodes(node.extendsClause, other.extendsClause) && isEqualNodes(node.withClause, other.withClause) && isEqualNodes(node.implementsClause, other.implementsClause) && isEqualTokens(node.leftBracket, other.leftBracket) && isEqualNodeLists(node.members, other.members) && isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   bool visitClassTypeAlias(ClassTypeAlias node) {
     ClassTypeAlias other = this._other as ClassTypeAlias;
-    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.name, other.name) && isEqual(node.typeParameters, other.typeParameters) && isEqual6(node.equals, other.equals) && isEqual6(node.abstractKeyword, other.abstractKeyword) && isEqual(node.superclass, other.superclass) && isEqual(node.withClause, other.withClause) && isEqual(node.implementsClause, other.implementsClause) && isEqual6(node.semicolon, other.semicolon);
+    return isEqualNodes(node.documentationComment, other.documentationComment) && isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.name, other.name) && isEqualNodes(node.typeParameters, other.typeParameters) && isEqualTokens(node.equals, other.equals) && isEqualTokens(node.abstractKeyword, other.abstractKeyword) && isEqualNodes(node.superclass, other.superclass) && isEqualNodes(node.withClause, other.withClause) && isEqualNodes(node.implementsClause, other.implementsClause) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   bool visitComment(Comment node) {
     Comment other = this._other as Comment;
-    return isEqual5(node.references, other.references);
+    return isEqualNodeLists(node.references, other.references);
   }
 
   bool visitCommentReference(CommentReference node) {
     CommentReference other = this._other as CommentReference;
-    return isEqual6(node.newKeyword, other.newKeyword) && isEqual(node.identifier, other.identifier);
+    return isEqualTokens(node.newKeyword, other.newKeyword) && isEqualNodes(node.identifier, other.identifier);
   }
 
   bool visitCompilationUnit(CompilationUnit node) {
     CompilationUnit other = this._other as CompilationUnit;
-    return isEqual6(node.beginToken, other.beginToken) && isEqual(node.scriptTag, other.scriptTag) && isEqual5(node.directives, other.directives) && isEqual5(node.declarations, other.declarations) && isEqual6(node.endToken, other.endToken);
+    return isEqualTokens(node.beginToken, other.beginToken) && isEqualNodes(node.scriptTag, other.scriptTag) && isEqualNodeLists(node.directives, other.directives) && isEqualNodeLists(node.declarations, other.declarations) && isEqualTokens(node.endToken, other.endToken);
   }
 
   bool visitConditionalExpression(ConditionalExpression node) {
     ConditionalExpression other = this._other as ConditionalExpression;
-    return isEqual(node.condition, other.condition) && isEqual6(node.question, other.question) && isEqual(node.thenExpression, other.thenExpression) && isEqual6(node.colon, other.colon) && isEqual(node.elseExpression, other.elseExpression);
+    return isEqualNodes(node.condition, other.condition) && isEqualTokens(node.question, other.question) && isEqualNodes(node.thenExpression, other.thenExpression) && isEqualTokens(node.colon, other.colon) && isEqualNodes(node.elseExpression, other.elseExpression);
   }
 
   bool visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorDeclaration other = this._other as ConstructorDeclaration;
-    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.externalKeyword, other.externalKeyword) && isEqual6(node.constKeyword, other.constKeyword) && isEqual6(node.factoryKeyword, other.factoryKeyword) && isEqual(node.returnType, other.returnType) && isEqual6(node.period, other.period) && isEqual(node.name, other.name) && isEqual(node.parameters, other.parameters) && isEqual6(node.separator, other.separator) && isEqual5(node.initializers, other.initializers) && isEqual(node.redirectedConstructor, other.redirectedConstructor) && isEqual(node.body, other.body);
+    return isEqualNodes(node.documentationComment, other.documentationComment) && isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.externalKeyword, other.externalKeyword) && isEqualTokens(node.constKeyword, other.constKeyword) && isEqualTokens(node.factoryKeyword, other.factoryKeyword) && isEqualNodes(node.returnType, other.returnType) && isEqualTokens(node.period, other.period) && isEqualNodes(node.name, other.name) && isEqualNodes(node.parameters, other.parameters) && isEqualTokens(node.separator, other.separator) && isEqualNodeLists(node.initializers, other.initializers) && isEqualNodes(node.redirectedConstructor, other.redirectedConstructor) && isEqualNodes(node.body, other.body);
   }
 
   bool visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     ConstructorFieldInitializer other = this._other as ConstructorFieldInitializer;
-    return isEqual6(node.keyword, other.keyword) && isEqual6(node.period, other.period) && isEqual(node.fieldName, other.fieldName) && isEqual6(node.equals, other.equals) && isEqual(node.expression, other.expression);
+    return isEqualTokens(node.keyword, other.keyword) && isEqualTokens(node.period, other.period) && isEqualNodes(node.fieldName, other.fieldName) && isEqualTokens(node.equals, other.equals) && isEqualNodes(node.expression, other.expression);
   }
 
   bool visitConstructorName(ConstructorName node) {
     ConstructorName other = this._other as ConstructorName;
-    return isEqual(node.type, other.type) && isEqual6(node.period, other.period) && isEqual(node.name, other.name);
+    return isEqualNodes(node.type, other.type) && isEqualTokens(node.period, other.period) && isEqualNodes(node.name, other.name);
   }
 
   bool visitContinueStatement(ContinueStatement node) {
     ContinueStatement other = this._other as ContinueStatement;
-    return isEqual6(node.keyword, other.keyword) && isEqual(node.label, other.label) && isEqual6(node.semicolon, other.semicolon);
+    return isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.label, other.label) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   bool visitDeclaredIdentifier(DeclaredIdentifier node) {
     DeclaredIdentifier other = this._other as DeclaredIdentifier;
-    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.type, other.type) && isEqual(node.identifier, other.identifier);
+    return isEqualNodes(node.documentationComment, other.documentationComment) && isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.type, other.type) && isEqualNodes(node.identifier, other.identifier);
   }
 
   bool visitDefaultFormalParameter(DefaultFormalParameter node) {
     DefaultFormalParameter other = this._other as DefaultFormalParameter;
-    return isEqual(node.parameter, other.parameter) && identical(node.kind, other.kind) && isEqual6(node.separator, other.separator) && isEqual(node.defaultValue, other.defaultValue);
+    return isEqualNodes(node.parameter, other.parameter) && identical(node.kind, other.kind) && isEqualTokens(node.separator, other.separator) && isEqualNodes(node.defaultValue, other.defaultValue);
   }
 
   bool visitDoStatement(DoStatement node) {
     DoStatement other = this._other as DoStatement;
-    return isEqual6(node.doKeyword, other.doKeyword) && isEqual(node.body, other.body) && isEqual6(node.whileKeyword, other.whileKeyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.condition, other.condition) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual6(node.semicolon, other.semicolon);
+    return isEqualTokens(node.doKeyword, other.doKeyword) && isEqualNodes(node.body, other.body) && isEqualTokens(node.whileKeyword, other.whileKeyword) && isEqualTokens(node.leftParenthesis, other.leftParenthesis) && isEqualNodes(node.condition, other.condition) && isEqualTokens(node.rightParenthesis, other.rightParenthesis) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   bool visitDoubleLiteral(DoubleLiteral node) {
     DoubleLiteral other = this._other as DoubleLiteral;
-    return isEqual6(node.literal, other.literal) && node.value == other.value;
+    return isEqualTokens(node.literal, other.literal) && node.value == other.value;
   }
 
   bool visitEmptyFunctionBody(EmptyFunctionBody node) {
     EmptyFunctionBody other = this._other as EmptyFunctionBody;
-    return isEqual6(node.semicolon, other.semicolon);
+    return isEqualTokens(node.semicolon, other.semicolon);
   }
 
   bool visitEmptyStatement(EmptyStatement node) {
     EmptyStatement other = this._other as EmptyStatement;
-    return isEqual6(node.semicolon, other.semicolon);
+    return isEqualTokens(node.semicolon, other.semicolon);
   }
 
   bool visitExportDirective(ExportDirective node) {
     ExportDirective other = this._other as ExportDirective;
-    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.uri, other.uri) && isEqual5(node.combinators, other.combinators) && isEqual6(node.semicolon, other.semicolon);
+    return isEqualNodes(node.documentationComment, other.documentationComment) && isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.uri, other.uri) && isEqualNodeLists(node.combinators, other.combinators) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   bool visitExpressionFunctionBody(ExpressionFunctionBody node) {
     ExpressionFunctionBody other = this._other as ExpressionFunctionBody;
-    return isEqual6(node.functionDefinition, other.functionDefinition) && isEqual(node.expression, other.expression) && isEqual6(node.semicolon, other.semicolon);
+    return isEqualTokens(node.functionDefinition, other.functionDefinition) && isEqualNodes(node.expression, other.expression) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   bool visitExpressionStatement(ExpressionStatement node) {
     ExpressionStatement other = this._other as ExpressionStatement;
-    return isEqual(node.expression, other.expression) && isEqual6(node.semicolon, other.semicolon);
+    return isEqualNodes(node.expression, other.expression) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   bool visitExtendsClause(ExtendsClause node) {
     ExtendsClause other = this._other as ExtendsClause;
-    return isEqual6(node.keyword, other.keyword) && isEqual(node.superclass, other.superclass);
+    return isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.superclass, other.superclass);
   }
 
   bool visitFieldDeclaration(FieldDeclaration node) {
     FieldDeclaration other = this._other as FieldDeclaration;
-    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.staticKeyword, other.staticKeyword) && isEqual(node.fields, other.fields) && isEqual6(node.semicolon, other.semicolon);
+    return isEqualNodes(node.documentationComment, other.documentationComment) && isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.staticKeyword, other.staticKeyword) && isEqualNodes(node.fields, other.fields) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   bool visitFieldFormalParameter(FieldFormalParameter node) {
     FieldFormalParameter other = this._other as FieldFormalParameter;
-    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.type, other.type) && isEqual6(node.thisToken, other.thisToken) && isEqual6(node.period, other.period) && isEqual(node.identifier, other.identifier);
+    return isEqualNodes(node.documentationComment, other.documentationComment) && isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.type, other.type) && isEqualTokens(node.thisToken, other.thisToken) && isEqualTokens(node.period, other.period) && isEqualNodes(node.identifier, other.identifier);
   }
 
   bool visitForEachStatement(ForEachStatement node) {
     ForEachStatement other = this._other as ForEachStatement;
-    return isEqual6(node.forKeyword, other.forKeyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.loopVariable, other.loopVariable) && isEqual6(node.inKeyword, other.inKeyword) && isEqual(node.iterator, other.iterator) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual(node.body, other.body);
+    return isEqualTokens(node.forKeyword, other.forKeyword) && isEqualTokens(node.leftParenthesis, other.leftParenthesis) && isEqualNodes(node.loopVariable, other.loopVariable) && isEqualTokens(node.inKeyword, other.inKeyword) && isEqualNodes(node.iterator, other.iterator) && isEqualTokens(node.rightParenthesis, other.rightParenthesis) && isEqualNodes(node.body, other.body);
   }
 
   bool visitFormalParameterList(FormalParameterList node) {
     FormalParameterList other = this._other as FormalParameterList;
-    return isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual5(node.parameters, other.parameters) && isEqual6(node.leftDelimiter, other.leftDelimiter) && isEqual6(node.rightDelimiter, other.rightDelimiter) && isEqual6(node.rightParenthesis, other.rightParenthesis);
+    return isEqualTokens(node.leftParenthesis, other.leftParenthesis) && isEqualNodeLists(node.parameters, other.parameters) && isEqualTokens(node.leftDelimiter, other.leftDelimiter) && isEqualTokens(node.rightDelimiter, other.rightDelimiter) && isEqualTokens(node.rightParenthesis, other.rightParenthesis);
   }
 
   bool visitForStatement(ForStatement node) {
     ForStatement other = this._other as ForStatement;
-    return isEqual6(node.forKeyword, other.forKeyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.variables, other.variables) && isEqual(node.initialization, other.initialization) && isEqual6(node.leftSeparator, other.leftSeparator) && isEqual(node.condition, other.condition) && isEqual6(node.rightSeparator, other.rightSeparator) && isEqual5(node.updaters, other.updaters) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual(node.body, other.body);
+    return isEqualTokens(node.forKeyword, other.forKeyword) && isEqualTokens(node.leftParenthesis, other.leftParenthesis) && isEqualNodes(node.variables, other.variables) && isEqualNodes(node.initialization, other.initialization) && isEqualTokens(node.leftSeparator, other.leftSeparator) && isEqualNodes(node.condition, other.condition) && isEqualTokens(node.rightSeparator, other.rightSeparator) && isEqualNodeLists(node.updaters, other.updaters) && isEqualTokens(node.rightParenthesis, other.rightParenthesis) && isEqualNodes(node.body, other.body);
   }
 
   bool visitFunctionDeclaration(FunctionDeclaration node) {
     FunctionDeclaration other = this._other as FunctionDeclaration;
-    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.externalKeyword, other.externalKeyword) && isEqual(node.returnType, other.returnType) && isEqual6(node.propertyKeyword, other.propertyKeyword) && isEqual(node.name, other.name) && isEqual(node.functionExpression, other.functionExpression);
+    return isEqualNodes(node.documentationComment, other.documentationComment) && isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.externalKeyword, other.externalKeyword) && isEqualNodes(node.returnType, other.returnType) && isEqualTokens(node.propertyKeyword, other.propertyKeyword) && isEqualNodes(node.name, other.name) && isEqualNodes(node.functionExpression, other.functionExpression);
   }
 
   bool visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     FunctionDeclarationStatement other = this._other as FunctionDeclarationStatement;
-    return isEqual(node.functionDeclaration, other.functionDeclaration);
+    return isEqualNodes(node.functionDeclaration, other.functionDeclaration);
   }
 
   bool visitFunctionExpression(FunctionExpression node) {
     FunctionExpression other = this._other as FunctionExpression;
-    return isEqual(node.parameters, other.parameters) && isEqual(node.body, other.body);
+    return isEqualNodes(node.parameters, other.parameters) && isEqualNodes(node.body, other.body);
   }
 
   bool visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     FunctionExpressionInvocation other = this._other as FunctionExpressionInvocation;
-    return isEqual(node.function, other.function) && isEqual(node.argumentList, other.argumentList);
+    return isEqualNodes(node.function, other.function) && isEqualNodes(node.argumentList, other.argumentList);
   }
 
   bool visitFunctionTypeAlias(FunctionTypeAlias node) {
     FunctionTypeAlias other = this._other as FunctionTypeAlias;
-    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.returnType, other.returnType) && isEqual(node.name, other.name) && isEqual(node.typeParameters, other.typeParameters) && isEqual(node.parameters, other.parameters) && isEqual6(node.semicolon, other.semicolon);
+    return isEqualNodes(node.documentationComment, other.documentationComment) && isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.returnType, other.returnType) && isEqualNodes(node.name, other.name) && isEqualNodes(node.typeParameters, other.typeParameters) && isEqualNodes(node.parameters, other.parameters) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   bool visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     FunctionTypedFormalParameter other = this._other as FunctionTypedFormalParameter;
-    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual(node.returnType, other.returnType) && isEqual(node.identifier, other.identifier) && isEqual(node.parameters, other.parameters);
+    return isEqualNodes(node.documentationComment, other.documentationComment) && isEqualNodeLists(node.metadata, other.metadata) && isEqualNodes(node.returnType, other.returnType) && isEqualNodes(node.identifier, other.identifier) && isEqualNodes(node.parameters, other.parameters);
   }
 
   bool visitHideCombinator(HideCombinator node) {
     HideCombinator other = this._other as HideCombinator;
-    return isEqual6(node.keyword, other.keyword) && isEqual5(node.hiddenNames, other.hiddenNames);
+    return isEqualTokens(node.keyword, other.keyword) && isEqualNodeLists(node.hiddenNames, other.hiddenNames);
   }
 
   bool visitIfStatement(IfStatement node) {
     IfStatement other = this._other as IfStatement;
-    return isEqual6(node.ifKeyword, other.ifKeyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.condition, other.condition) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual(node.thenStatement, other.thenStatement) && isEqual6(node.elseKeyword, other.elseKeyword) && isEqual(node.elseStatement, other.elseStatement);
+    return isEqualTokens(node.ifKeyword, other.ifKeyword) && isEqualTokens(node.leftParenthesis, other.leftParenthesis) && isEqualNodes(node.condition, other.condition) && isEqualTokens(node.rightParenthesis, other.rightParenthesis) && isEqualNodes(node.thenStatement, other.thenStatement) && isEqualTokens(node.elseKeyword, other.elseKeyword) && isEqualNodes(node.elseStatement, other.elseStatement);
   }
 
   bool visitImplementsClause(ImplementsClause node) {
     ImplementsClause other = this._other as ImplementsClause;
-    return isEqual6(node.keyword, other.keyword) && isEqual5(node.interfaces, other.interfaces);
+    return isEqualTokens(node.keyword, other.keyword) && isEqualNodeLists(node.interfaces, other.interfaces);
   }
 
   bool visitImportDirective(ImportDirective node) {
     ImportDirective other = this._other as ImportDirective;
-    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.uri, other.uri) && isEqual6(node.asToken, other.asToken) && isEqual(node.prefix, other.prefix) && isEqual5(node.combinators, other.combinators) && isEqual6(node.semicolon, other.semicolon);
+    return isEqualNodes(node.documentationComment, other.documentationComment) && isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.uri, other.uri) && isEqualTokens(node.asToken, other.asToken) && isEqualNodes(node.prefix, other.prefix) && isEqualNodeLists(node.combinators, other.combinators) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   bool visitIndexExpression(IndexExpression node) {
     IndexExpression other = this._other as IndexExpression;
-    return isEqual(node.target, other.target) && isEqual6(node.leftBracket, other.leftBracket) && isEqual(node.index, other.index) && isEqual6(node.rightBracket, other.rightBracket);
+    return isEqualNodes(node.target, other.target) && isEqualTokens(node.leftBracket, other.leftBracket) && isEqualNodes(node.index, other.index) && isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   bool visitInstanceCreationExpression(InstanceCreationExpression node) {
     InstanceCreationExpression other = this._other as InstanceCreationExpression;
-    return isEqual6(node.keyword, other.keyword) && isEqual(node.constructorName, other.constructorName) && isEqual(node.argumentList, other.argumentList);
+    return isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.constructorName, other.constructorName) && isEqualNodes(node.argumentList, other.argumentList);
   }
 
   bool visitIntegerLiteral(IntegerLiteral node) {
     IntegerLiteral other = this._other as IntegerLiteral;
-    return isEqual6(node.literal, other.literal) && (node.value == other.value);
+    return isEqualTokens(node.literal, other.literal) && (node.value == other.value);
   }
 
   bool visitInterpolationExpression(InterpolationExpression node) {
     InterpolationExpression other = this._other as InterpolationExpression;
-    return isEqual6(node.leftBracket, other.leftBracket) && isEqual(node.expression, other.expression) && isEqual6(node.rightBracket, other.rightBracket);
+    return isEqualTokens(node.leftBracket, other.leftBracket) && isEqualNodes(node.expression, other.expression) && isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   bool visitInterpolationString(InterpolationString node) {
     InterpolationString other = this._other as InterpolationString;
-    return isEqual6(node.contents, other.contents) && node.value == other.value;
+    return isEqualTokens(node.contents, other.contents) && node.value == other.value;
   }
 
   bool visitIsExpression(IsExpression node) {
     IsExpression other = this._other as IsExpression;
-    return isEqual(node.expression, other.expression) && isEqual6(node.isOperator, other.isOperator) && isEqual6(node.notOperator, other.notOperator) && isEqual(node.type, other.type);
+    return isEqualNodes(node.expression, other.expression) && isEqualTokens(node.isOperator, other.isOperator) && isEqualTokens(node.notOperator, other.notOperator) && isEqualNodes(node.type, other.type);
   }
 
   bool visitLabel(Label node) {
     Label other = this._other as Label;
-    return isEqual(node.label, other.label) && isEqual6(node.colon, other.colon);
+    return isEqualNodes(node.label, other.label) && isEqualTokens(node.colon, other.colon);
   }
 
   bool visitLabeledStatement(LabeledStatement node) {
     LabeledStatement other = this._other as LabeledStatement;
-    return isEqual5(node.labels, other.labels) && isEqual(node.statement, other.statement);
+    return isEqualNodeLists(node.labels, other.labels) && isEqualNodes(node.statement, other.statement);
   }
 
   bool visitLibraryDirective(LibraryDirective node) {
     LibraryDirective other = this._other as LibraryDirective;
-    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.libraryToken, other.libraryToken) && isEqual(node.name, other.name) && isEqual6(node.semicolon, other.semicolon);
+    return isEqualNodes(node.documentationComment, other.documentationComment) && isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.libraryToken, other.libraryToken) && isEqualNodes(node.name, other.name) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   bool visitLibraryIdentifier(LibraryIdentifier node) {
     LibraryIdentifier other = this._other as LibraryIdentifier;
-    return isEqual5(node.components, other.components);
+    return isEqualNodeLists(node.components, other.components);
   }
 
   bool visitListLiteral(ListLiteral node) {
     ListLiteral other = this._other as ListLiteral;
-    return isEqual6(node.constKeyword, other.constKeyword) && isEqual(node.typeArguments, other.typeArguments) && isEqual6(node.leftBracket, other.leftBracket) && isEqual5(node.elements, other.elements) && isEqual6(node.rightBracket, other.rightBracket);
+    return isEqualTokens(node.constKeyword, other.constKeyword) && isEqualNodes(node.typeArguments, other.typeArguments) && isEqualTokens(node.leftBracket, other.leftBracket) && isEqualNodeLists(node.elements, other.elements) && isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   bool visitMapLiteral(MapLiteral node) {
     MapLiteral other = this._other as MapLiteral;
-    return isEqual6(node.constKeyword, other.constKeyword) && isEqual(node.typeArguments, other.typeArguments) && isEqual6(node.leftBracket, other.leftBracket) && isEqual5(node.entries, other.entries) && isEqual6(node.rightBracket, other.rightBracket);
+    return isEqualTokens(node.constKeyword, other.constKeyword) && isEqualNodes(node.typeArguments, other.typeArguments) && isEqualTokens(node.leftBracket, other.leftBracket) && isEqualNodeLists(node.entries, other.entries) && isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   bool visitMapLiteralEntry(MapLiteralEntry node) {
     MapLiteralEntry other = this._other as MapLiteralEntry;
-    return isEqual(node.key, other.key) && isEqual6(node.separator, other.separator) && isEqual(node.value, other.value);
+    return isEqualNodes(node.key, other.key) && isEqualTokens(node.separator, other.separator) && isEqualNodes(node.value, other.value);
   }
 
   bool visitMethodDeclaration(MethodDeclaration node) {
     MethodDeclaration other = this._other as MethodDeclaration;
-    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.externalKeyword, other.externalKeyword) && isEqual6(node.modifierKeyword, other.modifierKeyword) && isEqual(node.returnType, other.returnType) && isEqual6(node.propertyKeyword, other.propertyKeyword) && isEqual6(node.propertyKeyword, other.propertyKeyword) && isEqual(node.name, other.name) && isEqual(node.parameters, other.parameters) && isEqual(node.body, other.body);
+    return isEqualNodes(node.documentationComment, other.documentationComment) && isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.externalKeyword, other.externalKeyword) && isEqualTokens(node.modifierKeyword, other.modifierKeyword) && isEqualNodes(node.returnType, other.returnType) && isEqualTokens(node.propertyKeyword, other.propertyKeyword) && isEqualTokens(node.propertyKeyword, other.propertyKeyword) && isEqualNodes(node.name, other.name) && isEqualNodes(node.parameters, other.parameters) && isEqualNodes(node.body, other.body);
   }
 
   bool visitMethodInvocation(MethodInvocation node) {
     MethodInvocation other = this._other as MethodInvocation;
-    return isEqual(node.target, other.target) && isEqual6(node.period, other.period) && isEqual(node.methodName, other.methodName) && isEqual(node.argumentList, other.argumentList);
+    return isEqualNodes(node.target, other.target) && isEqualTokens(node.period, other.period) && isEqualNodes(node.methodName, other.methodName) && isEqualNodes(node.argumentList, other.argumentList);
   }
 
   bool visitNamedExpression(NamedExpression node) {
     NamedExpression other = this._other as NamedExpression;
-    return isEqual(node.name, other.name) && isEqual(node.expression, other.expression);
+    return isEqualNodes(node.name, other.name) && isEqualNodes(node.expression, other.expression);
   }
 
   bool visitNativeClause(NativeClause node) {
     NativeClause other = this._other as NativeClause;
-    return isEqual6(node.keyword, other.keyword) && isEqual(node.name, other.name);
+    return isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.name, other.name);
   }
 
   bool visitNativeFunctionBody(NativeFunctionBody node) {
     NativeFunctionBody other = this._other as NativeFunctionBody;
-    return isEqual6(node.nativeToken, other.nativeToken) && isEqual(node.stringLiteral, other.stringLiteral) && isEqual6(node.semicolon, other.semicolon);
+    return isEqualTokens(node.nativeToken, other.nativeToken) && isEqualNodes(node.stringLiteral, other.stringLiteral) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   bool visitNullLiteral(NullLiteral node) {
     NullLiteral other = this._other as NullLiteral;
-    return isEqual6(node.literal, other.literal);
+    return isEqualTokens(node.literal, other.literal);
   }
 
   bool visitParenthesizedExpression(ParenthesizedExpression node) {
     ParenthesizedExpression other = this._other as ParenthesizedExpression;
-    return isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.expression, other.expression) && isEqual6(node.rightParenthesis, other.rightParenthesis);
+    return isEqualTokens(node.leftParenthesis, other.leftParenthesis) && isEqualNodes(node.expression, other.expression) && isEqualTokens(node.rightParenthesis, other.rightParenthesis);
   }
 
   bool visitPartDirective(PartDirective node) {
     PartDirective other = this._other as PartDirective;
-    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.partToken, other.partToken) && isEqual(node.uri, other.uri) && isEqual6(node.semicolon, other.semicolon);
+    return isEqualNodes(node.documentationComment, other.documentationComment) && isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.partToken, other.partToken) && isEqualNodes(node.uri, other.uri) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   bool visitPartOfDirective(PartOfDirective node) {
     PartOfDirective other = this._other as PartOfDirective;
-    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.partToken, other.partToken) && isEqual6(node.ofToken, other.ofToken) && isEqual(node.libraryName, other.libraryName) && isEqual6(node.semicolon, other.semicolon);
+    return isEqualNodes(node.documentationComment, other.documentationComment) && isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.partToken, other.partToken) && isEqualTokens(node.ofToken, other.ofToken) && isEqualNodes(node.libraryName, other.libraryName) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   bool visitPostfixExpression(PostfixExpression node) {
     PostfixExpression other = this._other as PostfixExpression;
-    return isEqual(node.operand, other.operand) && isEqual6(node.operator, other.operator);
+    return isEqualNodes(node.operand, other.operand) && isEqualTokens(node.operator, other.operator);
   }
 
   bool visitPrefixedIdentifier(PrefixedIdentifier node) {
     PrefixedIdentifier other = this._other as PrefixedIdentifier;
-    return isEqual(node.prefix, other.prefix) && isEqual6(node.period, other.period) && isEqual(node.identifier, other.identifier);
+    return isEqualNodes(node.prefix, other.prefix) && isEqualTokens(node.period, other.period) && isEqualNodes(node.identifier, other.identifier);
   }
 
   bool visitPrefixExpression(PrefixExpression node) {
     PrefixExpression other = this._other as PrefixExpression;
-    return isEqual6(node.operator, other.operator) && isEqual(node.operand, other.operand);
+    return isEqualTokens(node.operator, other.operator) && isEqualNodes(node.operand, other.operand);
   }
 
   bool visitPropertyAccess(PropertyAccess node) {
     PropertyAccess other = this._other as PropertyAccess;
-    return isEqual(node.target, other.target) && isEqual6(node.operator, other.operator) && isEqual(node.propertyName, other.propertyName);
+    return isEqualNodes(node.target, other.target) && isEqualTokens(node.operator, other.operator) && isEqualNodes(node.propertyName, other.propertyName);
   }
 
   bool visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     RedirectingConstructorInvocation other = this._other as RedirectingConstructorInvocation;
-    return isEqual6(node.keyword, other.keyword) && isEqual6(node.period, other.period) && isEqual(node.constructorName, other.constructorName) && isEqual(node.argumentList, other.argumentList);
+    return isEqualTokens(node.keyword, other.keyword) && isEqualTokens(node.period, other.period) && isEqualNodes(node.constructorName, other.constructorName) && isEqualNodes(node.argumentList, other.argumentList);
   }
 
   bool visitRethrowExpression(RethrowExpression node) {
     RethrowExpression other = this._other as RethrowExpression;
-    return isEqual6(node.keyword, other.keyword);
+    return isEqualTokens(node.keyword, other.keyword);
   }
 
   bool visitReturnStatement(ReturnStatement node) {
     ReturnStatement other = this._other as ReturnStatement;
-    return isEqual6(node.keyword, other.keyword) && isEqual(node.expression, other.expression) && isEqual6(node.semicolon, other.semicolon);
+    return isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.expression, other.expression) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   bool visitScriptTag(ScriptTag node) {
     ScriptTag other = this._other as ScriptTag;
-    return isEqual6(node.scriptTag, other.scriptTag);
+    return isEqualTokens(node.scriptTag, other.scriptTag);
   }
 
   bool visitShowCombinator(ShowCombinator node) {
     ShowCombinator other = this._other as ShowCombinator;
-    return isEqual6(node.keyword, other.keyword) && isEqual5(node.shownNames, other.shownNames);
+    return isEqualTokens(node.keyword, other.keyword) && isEqualNodeLists(node.shownNames, other.shownNames);
   }
 
   bool visitSimpleFormalParameter(SimpleFormalParameter node) {
     SimpleFormalParameter other = this._other as SimpleFormalParameter;
-    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.type, other.type) && isEqual(node.identifier, other.identifier);
+    return isEqualNodes(node.documentationComment, other.documentationComment) && isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.type, other.type) && isEqualNodes(node.identifier, other.identifier);
   }
 
   bool visitSimpleIdentifier(SimpleIdentifier node) {
     SimpleIdentifier other = this._other as SimpleIdentifier;
-    return isEqual6(node.token, other.token);
+    return isEqualTokens(node.token, other.token);
   }
 
   bool visitSimpleStringLiteral(SimpleStringLiteral node) {
     SimpleStringLiteral other = this._other as SimpleStringLiteral;
-    return isEqual6(node.literal, other.literal) && (node.value == other.value);
+    return isEqualTokens(node.literal, other.literal) && (node.value == other.value);
   }
 
   bool visitStringInterpolation(StringInterpolation node) {
     StringInterpolation other = this._other as StringInterpolation;
-    return isEqual5(node.elements, other.elements);
+    return isEqualNodeLists(node.elements, other.elements);
   }
 
   bool visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     SuperConstructorInvocation other = this._other as SuperConstructorInvocation;
-    return isEqual6(node.keyword, other.keyword) && isEqual6(node.period, other.period) && isEqual(node.constructorName, other.constructorName) && isEqual(node.argumentList, other.argumentList);
+    return isEqualTokens(node.keyword, other.keyword) && isEqualTokens(node.period, other.period) && isEqualNodes(node.constructorName, other.constructorName) && isEqualNodes(node.argumentList, other.argumentList);
   }
 
   bool visitSuperExpression(SuperExpression node) {
     SuperExpression other = this._other as SuperExpression;
-    return isEqual6(node.keyword, other.keyword);
+    return isEqualTokens(node.keyword, other.keyword);
   }
 
   bool visitSwitchCase(SwitchCase node) {
     SwitchCase other = this._other as SwitchCase;
-    return isEqual5(node.labels, other.labels) && isEqual6(node.keyword, other.keyword) && isEqual(node.expression, other.expression) && isEqual6(node.colon, other.colon) && isEqual5(node.statements, other.statements);
+    return isEqualNodeLists(node.labels, other.labels) && isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.expression, other.expression) && isEqualTokens(node.colon, other.colon) && isEqualNodeLists(node.statements, other.statements);
   }
 
   bool visitSwitchDefault(SwitchDefault node) {
     SwitchDefault other = this._other as SwitchDefault;
-    return isEqual5(node.labels, other.labels) && isEqual6(node.keyword, other.keyword) && isEqual6(node.colon, other.colon) && isEqual5(node.statements, other.statements);
+    return isEqualNodeLists(node.labels, other.labels) && isEqualTokens(node.keyword, other.keyword) && isEqualTokens(node.colon, other.colon) && isEqualNodeLists(node.statements, other.statements);
   }
 
   bool visitSwitchStatement(SwitchStatement node) {
     SwitchStatement other = this._other as SwitchStatement;
-    return isEqual6(node.keyword, other.keyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.expression, other.expression) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual6(node.leftBracket, other.leftBracket) && isEqual5(node.members, other.members) && isEqual6(node.rightBracket, other.rightBracket);
+    return isEqualTokens(node.keyword, other.keyword) && isEqualTokens(node.leftParenthesis, other.leftParenthesis) && isEqualNodes(node.expression, other.expression) && isEqualTokens(node.rightParenthesis, other.rightParenthesis) && isEqualTokens(node.leftBracket, other.leftBracket) && isEqualNodeLists(node.members, other.members) && isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   bool visitSymbolLiteral(SymbolLiteral node) {
     SymbolLiteral other = this._other as SymbolLiteral;
-    return isEqual6(node.poundSign, other.poundSign) && isEqual7(node.components, other.components);
+    return isEqualTokens(node.poundSign, other.poundSign) && isEqualTokenLists(node.components, other.components);
   }
 
   bool visitThisExpression(ThisExpression node) {
     ThisExpression other = this._other as ThisExpression;
-    return isEqual6(node.keyword, other.keyword);
+    return isEqualTokens(node.keyword, other.keyword);
   }
 
   bool visitThrowExpression(ThrowExpression node) {
     ThrowExpression other = this._other as ThrowExpression;
-    return isEqual6(node.keyword, other.keyword) && isEqual(node.expression, other.expression);
+    return isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.expression, other.expression);
   }
 
   bool visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     TopLevelVariableDeclaration other = this._other as TopLevelVariableDeclaration;
-    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual(node.variables, other.variables) && isEqual6(node.semicolon, other.semicolon);
+    return isEqualNodes(node.documentationComment, other.documentationComment) && isEqualNodeLists(node.metadata, other.metadata) && isEqualNodes(node.variables, other.variables) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   bool visitTryStatement(TryStatement node) {
     TryStatement other = this._other as TryStatement;
-    return isEqual6(node.tryKeyword, other.tryKeyword) && isEqual(node.body, other.body) && isEqual5(node.catchClauses, other.catchClauses) && isEqual6(node.finallyKeyword, other.finallyKeyword) && isEqual(node.finallyBlock, other.finallyBlock);
+    return isEqualTokens(node.tryKeyword, other.tryKeyword) && isEqualNodes(node.body, other.body) && isEqualNodeLists(node.catchClauses, other.catchClauses) && isEqualTokens(node.finallyKeyword, other.finallyKeyword) && isEqualNodes(node.finallyBlock, other.finallyBlock);
   }
 
   bool visitTypeArgumentList(TypeArgumentList node) {
     TypeArgumentList other = this._other as TypeArgumentList;
-    return isEqual6(node.leftBracket, other.leftBracket) && isEqual5(node.arguments, other.arguments) && isEqual6(node.rightBracket, other.rightBracket);
+    return isEqualTokens(node.leftBracket, other.leftBracket) && isEqualNodeLists(node.arguments, other.arguments) && isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   bool visitTypeName(TypeName node) {
     TypeName other = this._other as TypeName;
-    return isEqual(node.name, other.name) && isEqual(node.typeArguments, other.typeArguments);
+    return isEqualNodes(node.name, other.name) && isEqualNodes(node.typeArguments, other.typeArguments);
   }
 
   bool visitTypeParameter(TypeParameter node) {
     TypeParameter other = this._other as TypeParameter;
-    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual(node.name, other.name) && isEqual6(node.keyword, other.keyword) && isEqual(node.bound, other.bound);
+    return isEqualNodes(node.documentationComment, other.documentationComment) && isEqualNodeLists(node.metadata, other.metadata) && isEqualNodes(node.name, other.name) && isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.bound, other.bound);
   }
 
   bool visitTypeParameterList(TypeParameterList node) {
     TypeParameterList other = this._other as TypeParameterList;
-    return isEqual6(node.leftBracket, other.leftBracket) && isEqual5(node.typeParameters, other.typeParameters) && isEqual6(node.rightBracket, other.rightBracket);
+    return isEqualTokens(node.leftBracket, other.leftBracket) && isEqualNodeLists(node.typeParameters, other.typeParameters) && isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   bool visitVariableDeclaration(VariableDeclaration node) {
     VariableDeclaration other = this._other as VariableDeclaration;
-    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual(node.name, other.name) && isEqual6(node.equals, other.equals) && isEqual(node.initializer, other.initializer);
+    return isEqualNodes(node.documentationComment, other.documentationComment) && isEqualNodeLists(node.metadata, other.metadata) && isEqualNodes(node.name, other.name) && isEqualTokens(node.equals, other.equals) && isEqualNodes(node.initializer, other.initializer);
   }
 
   bool visitVariableDeclarationList(VariableDeclarationList node) {
     VariableDeclarationList other = this._other as VariableDeclarationList;
-    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.type, other.type) && isEqual5(node.variables, other.variables);
+    return isEqualNodes(node.documentationComment, other.documentationComment) && isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.type, other.type) && isEqualNodeLists(node.variables, other.variables);
   }
 
   bool visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     VariableDeclarationStatement other = this._other as VariableDeclarationStatement;
-    return isEqual(node.variables, other.variables) && isEqual6(node.semicolon, other.semicolon);
+    return isEqualNodes(node.variables, other.variables) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   bool visitWhileStatement(WhileStatement node) {
     WhileStatement other = this._other as WhileStatement;
-    return isEqual6(node.keyword, other.keyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.condition, other.condition) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual(node.body, other.body);
+    return isEqualTokens(node.keyword, other.keyword) && isEqualTokens(node.leftParenthesis, other.leftParenthesis) && isEqualNodes(node.condition, other.condition) && isEqualTokens(node.rightParenthesis, other.rightParenthesis) && isEqualNodes(node.body, other.body);
   }
 
   bool visitWithClause(WithClause node) {
     WithClause other = this._other as WithClause;
-    return isEqual6(node.withKeyword, other.withKeyword) && isEqual5(node.mixinTypes, other.mixinTypes);
+    return isEqualTokens(node.withKeyword, other.withKeyword) && isEqualNodeLists(node.mixinTypes, other.mixinTypes);
+  }
+
+  /**
+   * Return `true` if the given lists of AST nodes have the same size and corresponding
+   * elements are equal.
+   *
+   * @param first the first node being compared
+   * @param second the second node being compared
+   * @return `true` if the given AST nodes have the same size and corresponding elements are
+   *         equal
+   */
+  bool isEqualNodeLists(NodeList first, NodeList second) {
+    if (first == null) {
+      return second == null;
+    } else if (second == null) {
+      return false;
+    }
+    int size = first.length;
+    if (second.length != size) {
+      return false;
+    }
+    for (int i = 0; i < size; i++) {
+      if (!isEqualNodes(first[i], second[i])) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -15316,7 +15345,7 @@ class AstComparator implements AstVisitor<bool> {
    * @param second the second node being compared
    * @return `true` if the given AST nodes have the same structure
    */
-  bool isEqual(AstNode first, AstNode second) {
+  bool isEqualNodes(AstNode first, AstNode second) {
     if (first == null) {
       return second == null;
     } else if (second == null) {
@@ -15329,26 +15358,21 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   /**
-   * Return `true` if the given lists of AST nodes have the same size and corresponding
+   * Return `true` if the given arrays of tokens have the same length and corresponding
    * elements are equal.
    *
    * @param first the first node being compared
    * @param second the second node being compared
-   * @return `true` if the given AST nodes have the same size and corresponding elements are
-   *         equal
+   * @return `true` if the given arrays of tokens have the same length and corresponding
+   *         elements are equal
    */
-  bool isEqual5(NodeList first, NodeList second) {
-    if (first == null) {
-      return second == null;
-    } else if (second == null) {
+  bool isEqualTokenLists(List<Token> first, List<Token> second) {
+    int length = first.length;
+    if (second.length != length) {
       return false;
     }
-    int size = first.length;
-    if (second.length != size) {
-      return false;
-    }
-    for (int i = 0; i < size; i++) {
-      if (!isEqual(first[i], second[i])) {
+    for (int i = 0; i < length; i++) {
+      if (isEqualTokens(first[i], second[i])) {
         return false;
       }
     }
@@ -15362,35 +15386,13 @@ class AstComparator implements AstVisitor<bool> {
    * @param second the second node being compared
    * @return `true` if the given tokens have the same structure
    */
-  bool isEqual6(Token first, Token second) {
+  bool isEqualTokens(Token first, Token second) {
     if (first == null) {
       return second == null;
     } else if (second == null) {
       return false;
     }
     return first.offset == second.offset && first.length == second.length && first.lexeme == second.lexeme;
-  }
-
-  /**
-   * Return `true` if the given arrays of tokens have the same length and corresponding
-   * elements are equal.
-   *
-   * @param first the first node being compared
-   * @param second the second node being compared
-   * @return `true` if the given arrays of tokens have the same length and corresponding
-   *         elements are equal
-   */
-  bool isEqual7(List<Token> first, List<Token> second) {
-    int length = first.length;
-    if (second.length != length) {
-      return false;
-    }
-    for (int i = 0; i < length; i++) {
-      if (isEqual6(first[i], second[i])) {
-        return false;
-      }
-    }
-    return true;
   }
 }
 
@@ -15430,34 +15432,34 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
     this._tokenMap = tokenMap;
   }
 
-  AdjacentStrings visitAdjacentStrings(AdjacentStrings node) => new AdjacentStrings(clone5(node.strings));
+  AdjacentStrings visitAdjacentStrings(AdjacentStrings node) => new AdjacentStrings(cloneNodeList(node.strings));
 
   Annotation visitAnnotation(Annotation node) {
-    Annotation copy = new Annotation(map(node.atSign), clone4(node.name), map(node.period), clone4(node.constructorName), clone4(node.arguments));
+    Annotation copy = new Annotation(mapToken(node.atSign), cloneNode(node.name), mapToken(node.period), cloneNode(node.constructorName), cloneNode(node.arguments));
     copy.element = node.element;
     return copy;
   }
 
   ArgumentDefinitionTest visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
-    ArgumentDefinitionTest copy = new ArgumentDefinitionTest(map(node.question), clone4(node.identifier));
+    ArgumentDefinitionTest copy = new ArgumentDefinitionTest(mapToken(node.question), cloneNode(node.identifier));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  ArgumentList visitArgumentList(ArgumentList node) => new ArgumentList(map(node.leftParenthesis), clone5(node.arguments), map(node.rightParenthesis));
+  ArgumentList visitArgumentList(ArgumentList node) => new ArgumentList(mapToken(node.leftParenthesis), cloneNodeList(node.arguments), mapToken(node.rightParenthesis));
 
   AsExpression visitAsExpression(AsExpression node) {
-    AsExpression copy = new AsExpression(clone4(node.expression), map(node.asOperator), clone4(node.type));
+    AsExpression copy = new AsExpression(cloneNode(node.expression), mapToken(node.asOperator), cloneNode(node.type));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  AstNode visitAssertStatement(AssertStatement node) => new AssertStatement(map(node.keyword), map(node.leftParenthesis), clone4(node.condition), map(node.rightParenthesis), map(node.semicolon));
+  AstNode visitAssertStatement(AssertStatement node) => new AssertStatement(mapToken(node.keyword), mapToken(node.leftParenthesis), cloneNode(node.condition), mapToken(node.rightParenthesis), mapToken(node.semicolon));
 
   AssignmentExpression visitAssignmentExpression(AssignmentExpression node) {
-    AssignmentExpression copy = new AssignmentExpression(clone4(node.leftHandSide), map(node.operator), clone4(node.rightHandSide));
+    AssignmentExpression copy = new AssignmentExpression(cloneNode(node.leftHandSide), mapToken(node.operator), cloneNode(node.rightHandSide));
     copy.propagatedElement = node.propagatedElement;
     copy.propagatedType = node.propagatedType;
     copy.staticElement = node.staticElement;
@@ -15466,7 +15468,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   BinaryExpression visitBinaryExpression(BinaryExpression node) {
-    BinaryExpression copy = new BinaryExpression(clone4(node.leftOperand), map(node.operator), clone4(node.rightOperand));
+    BinaryExpression copy = new BinaryExpression(cloneNode(node.leftOperand), mapToken(node.operator), cloneNode(node.rightOperand));
     copy.propagatedElement = node.propagatedElement;
     copy.propagatedType = node.propagatedType;
     copy.staticElement = node.staticElement;
@@ -15474,128 +15476,128 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
     return copy;
   }
 
-  Block visitBlock(Block node) => new Block(map(node.leftBracket), clone5(node.statements), map(node.rightBracket));
+  Block visitBlock(Block node) => new Block(mapToken(node.leftBracket), cloneNodeList(node.statements), mapToken(node.rightBracket));
 
-  BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) => new BlockFunctionBody(clone4(node.block));
+  BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) => new BlockFunctionBody(cloneNode(node.block));
 
   BooleanLiteral visitBooleanLiteral(BooleanLiteral node) {
-    BooleanLiteral copy = new BooleanLiteral(map(node.literal), node.value);
+    BooleanLiteral copy = new BooleanLiteral(mapToken(node.literal), node.value);
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  BreakStatement visitBreakStatement(BreakStatement node) => new BreakStatement(map(node.keyword), clone4(node.label), map(node.semicolon));
+  BreakStatement visitBreakStatement(BreakStatement node) => new BreakStatement(mapToken(node.keyword), cloneNode(node.label), mapToken(node.semicolon));
 
   CascadeExpression visitCascadeExpression(CascadeExpression node) {
-    CascadeExpression copy = new CascadeExpression(clone4(node.target), clone5(node.cascadeSections));
+    CascadeExpression copy = new CascadeExpression(cloneNode(node.target), cloneNodeList(node.cascadeSections));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  CatchClause visitCatchClause(CatchClause node) => new CatchClause(map(node.onKeyword), clone4(node.exceptionType), map(node.catchKeyword), map(node.leftParenthesis), clone4(node.exceptionParameter), map(node.comma), clone4(node.stackTraceParameter), map(node.rightParenthesis), clone4(node.body));
+  CatchClause visitCatchClause(CatchClause node) => new CatchClause(mapToken(node.onKeyword), cloneNode(node.exceptionType), mapToken(node.catchKeyword), mapToken(node.leftParenthesis), cloneNode(node.exceptionParameter), mapToken(node.comma), cloneNode(node.stackTraceParameter), mapToken(node.rightParenthesis), cloneNode(node.body));
 
   ClassDeclaration visitClassDeclaration(ClassDeclaration node) {
-    ClassDeclaration copy = new ClassDeclaration(clone4(node.documentationComment), clone5(node.metadata), map(node.abstractKeyword), map(node.classKeyword), clone4(node.name), clone4(node.typeParameters), clone4(node.extendsClause), clone4(node.withClause), clone4(node.implementsClause), map(node.leftBracket), clone5(node.members), map(node.rightBracket));
-    copy.nativeClause = clone4(node.nativeClause);
+    ClassDeclaration copy = new ClassDeclaration(cloneNode(node.documentationComment), cloneNodeList(node.metadata), mapToken(node.abstractKeyword), mapToken(node.classKeyword), cloneNode(node.name), cloneNode(node.typeParameters), cloneNode(node.extendsClause), cloneNode(node.withClause), cloneNode(node.implementsClause), mapToken(node.leftBracket), cloneNodeList(node.members), mapToken(node.rightBracket));
+    copy.nativeClause = cloneNode(node.nativeClause);
     return copy;
   }
 
-  ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) => new ClassTypeAlias(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.name), clone4(node.typeParameters), map(node.equals), map(node.abstractKeyword), clone4(node.superclass), clone4(node.withClause), clone4(node.implementsClause), map(node.semicolon));
+  ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) => new ClassTypeAlias(cloneNode(node.documentationComment), cloneNodeList(node.metadata), mapToken(node.keyword), cloneNode(node.name), cloneNode(node.typeParameters), mapToken(node.equals), mapToken(node.abstractKeyword), cloneNode(node.superclass), cloneNode(node.withClause), cloneNode(node.implementsClause), mapToken(node.semicolon));
 
   Comment visitComment(Comment node) {
     if (node.isDocumentation) {
-      return Comment.createDocumentationComment2(map2(node.tokens), clone5(node.references));
+      return Comment.createDocumentationComment2(mapTokens(node.tokens), cloneNodeList(node.references));
     } else if (node.isBlock) {
-      return Comment.createBlockComment(map2(node.tokens));
+      return Comment.createBlockComment(mapTokens(node.tokens));
     }
-    return Comment.createEndOfLineComment(map2(node.tokens));
+    return Comment.createEndOfLineComment(mapTokens(node.tokens));
   }
 
-  CommentReference visitCommentReference(CommentReference node) => new CommentReference(map(node.newKeyword), clone4(node.identifier));
+  CommentReference visitCommentReference(CommentReference node) => new CommentReference(mapToken(node.newKeyword), cloneNode(node.identifier));
 
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
-    CompilationUnit copy = new CompilationUnit(map(node.beginToken), clone4(node.scriptTag), clone5(node.directives), clone5(node.declarations), map(node.endToken));
+    CompilationUnit copy = new CompilationUnit(mapToken(node.beginToken), cloneNode(node.scriptTag), cloneNodeList(node.directives), cloneNodeList(node.declarations), mapToken(node.endToken));
     copy.lineInfo = node.lineInfo;
     copy.element = node.element;
     return copy;
   }
 
   ConditionalExpression visitConditionalExpression(ConditionalExpression node) {
-    ConditionalExpression copy = new ConditionalExpression(clone4(node.condition), map(node.question), clone4(node.thenExpression), map(node.colon), clone4(node.elseExpression));
+    ConditionalExpression copy = new ConditionalExpression(cloneNode(node.condition), mapToken(node.question), cloneNode(node.thenExpression), mapToken(node.colon), cloneNode(node.elseExpression));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   ConstructorDeclaration visitConstructorDeclaration(ConstructorDeclaration node) {
-    ConstructorDeclaration copy = new ConstructorDeclaration(clone4(node.documentationComment), clone5(node.metadata), map(node.externalKeyword), map(node.constKeyword), map(node.factoryKeyword), clone4(node.returnType), map(node.period), clone4(node.name), clone4(node.parameters), map(node.separator), clone5(node.initializers), clone4(node.redirectedConstructor), clone4(node.body));
+    ConstructorDeclaration copy = new ConstructorDeclaration(cloneNode(node.documentationComment), cloneNodeList(node.metadata), mapToken(node.externalKeyword), mapToken(node.constKeyword), mapToken(node.factoryKeyword), cloneNode(node.returnType), mapToken(node.period), cloneNode(node.name), cloneNode(node.parameters), mapToken(node.separator), cloneNodeList(node.initializers), cloneNode(node.redirectedConstructor), cloneNode(node.body));
     copy.element = node.element;
     return copy;
   }
 
-  ConstructorFieldInitializer visitConstructorFieldInitializer(ConstructorFieldInitializer node) => new ConstructorFieldInitializer(map(node.keyword), map(node.period), clone4(node.fieldName), map(node.equals), clone4(node.expression));
+  ConstructorFieldInitializer visitConstructorFieldInitializer(ConstructorFieldInitializer node) => new ConstructorFieldInitializer(mapToken(node.keyword), mapToken(node.period), cloneNode(node.fieldName), mapToken(node.equals), cloneNode(node.expression));
 
   ConstructorName visitConstructorName(ConstructorName node) {
-    ConstructorName copy = new ConstructorName(clone4(node.type), map(node.period), clone4(node.name));
+    ConstructorName copy = new ConstructorName(cloneNode(node.type), mapToken(node.period), cloneNode(node.name));
     copy.staticElement = node.staticElement;
     return copy;
   }
 
-  ContinueStatement visitContinueStatement(ContinueStatement node) => new ContinueStatement(map(node.keyword), clone4(node.label), map(node.semicolon));
+  ContinueStatement visitContinueStatement(ContinueStatement node) => new ContinueStatement(mapToken(node.keyword), cloneNode(node.label), mapToken(node.semicolon));
 
-  DeclaredIdentifier visitDeclaredIdentifier(DeclaredIdentifier node) => new DeclaredIdentifier(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.type), clone4(node.identifier));
+  DeclaredIdentifier visitDeclaredIdentifier(DeclaredIdentifier node) => new DeclaredIdentifier(cloneNode(node.documentationComment), cloneNodeList(node.metadata), mapToken(node.keyword), cloneNode(node.type), cloneNode(node.identifier));
 
-  DefaultFormalParameter visitDefaultFormalParameter(DefaultFormalParameter node) => new DefaultFormalParameter(clone4(node.parameter), node.kind, map(node.separator), clone4(node.defaultValue));
+  DefaultFormalParameter visitDefaultFormalParameter(DefaultFormalParameter node) => new DefaultFormalParameter(cloneNode(node.parameter), node.kind, mapToken(node.separator), cloneNode(node.defaultValue));
 
-  DoStatement visitDoStatement(DoStatement node) => new DoStatement(map(node.doKeyword), clone4(node.body), map(node.whileKeyword), map(node.leftParenthesis), clone4(node.condition), map(node.rightParenthesis), map(node.semicolon));
+  DoStatement visitDoStatement(DoStatement node) => new DoStatement(mapToken(node.doKeyword), cloneNode(node.body), mapToken(node.whileKeyword), mapToken(node.leftParenthesis), cloneNode(node.condition), mapToken(node.rightParenthesis), mapToken(node.semicolon));
 
   DoubleLiteral visitDoubleLiteral(DoubleLiteral node) {
-    DoubleLiteral copy = new DoubleLiteral(map(node.literal), node.value);
+    DoubleLiteral copy = new DoubleLiteral(mapToken(node.literal), node.value);
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  EmptyFunctionBody visitEmptyFunctionBody(EmptyFunctionBody node) => new EmptyFunctionBody(map(node.semicolon));
+  EmptyFunctionBody visitEmptyFunctionBody(EmptyFunctionBody node) => new EmptyFunctionBody(mapToken(node.semicolon));
 
-  EmptyStatement visitEmptyStatement(EmptyStatement node) => new EmptyStatement(map(node.semicolon));
+  EmptyStatement visitEmptyStatement(EmptyStatement node) => new EmptyStatement(mapToken(node.semicolon));
 
   ExportDirective visitExportDirective(ExportDirective node) {
-    ExportDirective copy = new ExportDirective(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.uri), clone5(node.combinators), map(node.semicolon));
+    ExportDirective copy = new ExportDirective(cloneNode(node.documentationComment), cloneNodeList(node.metadata), mapToken(node.keyword), cloneNode(node.uri), cloneNodeList(node.combinators), mapToken(node.semicolon));
     copy.element = node.element;
     return copy;
   }
 
-  ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) => new ExpressionFunctionBody(map(node.functionDefinition), clone4(node.expression), map(node.semicolon));
+  ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) => new ExpressionFunctionBody(mapToken(node.functionDefinition), cloneNode(node.expression), mapToken(node.semicolon));
 
-  ExpressionStatement visitExpressionStatement(ExpressionStatement node) => new ExpressionStatement(clone4(node.expression), map(node.semicolon));
+  ExpressionStatement visitExpressionStatement(ExpressionStatement node) => new ExpressionStatement(cloneNode(node.expression), mapToken(node.semicolon));
 
-  ExtendsClause visitExtendsClause(ExtendsClause node) => new ExtendsClause(map(node.keyword), clone4(node.superclass));
+  ExtendsClause visitExtendsClause(ExtendsClause node) => new ExtendsClause(mapToken(node.keyword), cloneNode(node.superclass));
 
-  FieldDeclaration visitFieldDeclaration(FieldDeclaration node) => new FieldDeclaration(clone4(node.documentationComment), clone5(node.metadata), map(node.staticKeyword), clone4(node.fields), map(node.semicolon));
+  FieldDeclaration visitFieldDeclaration(FieldDeclaration node) => new FieldDeclaration(cloneNode(node.documentationComment), cloneNodeList(node.metadata), mapToken(node.staticKeyword), cloneNode(node.fields), mapToken(node.semicolon));
 
-  FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) => new FieldFormalParameter(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.type), map(node.thisToken), map(node.period), clone4(node.identifier), clone4(node.parameters));
+  FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) => new FieldFormalParameter(cloneNode(node.documentationComment), cloneNodeList(node.metadata), mapToken(node.keyword), cloneNode(node.type), mapToken(node.thisToken), mapToken(node.period), cloneNode(node.identifier), cloneNode(node.parameters));
 
   ForEachStatement visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (loopVariable == null) {
-      return new ForEachStatement.con2(map(node.forKeyword), map(node.leftParenthesis), clone4(node.identifier), map(node.inKeyword), clone4(node.iterator), map(node.rightParenthesis), clone4(node.body));
+      return new ForEachStatement.con2(mapToken(node.forKeyword), mapToken(node.leftParenthesis), cloneNode(node.identifier), mapToken(node.inKeyword), cloneNode(node.iterator), mapToken(node.rightParenthesis), cloneNode(node.body));
     }
-    return new ForEachStatement.con1(map(node.forKeyword), map(node.leftParenthesis), clone4(loopVariable), map(node.inKeyword), clone4(node.iterator), map(node.rightParenthesis), clone4(node.body));
+    return new ForEachStatement.con1(mapToken(node.forKeyword), mapToken(node.leftParenthesis), cloneNode(loopVariable), mapToken(node.inKeyword), cloneNode(node.iterator), mapToken(node.rightParenthesis), cloneNode(node.body));
   }
 
-  FormalParameterList visitFormalParameterList(FormalParameterList node) => new FormalParameterList(map(node.leftParenthesis), clone5(node.parameters), map(node.leftDelimiter), map(node.rightDelimiter), map(node.rightParenthesis));
+  FormalParameterList visitFormalParameterList(FormalParameterList node) => new FormalParameterList(mapToken(node.leftParenthesis), cloneNodeList(node.parameters), mapToken(node.leftDelimiter), mapToken(node.rightDelimiter), mapToken(node.rightParenthesis));
 
-  ForStatement visitForStatement(ForStatement node) => new ForStatement(map(node.forKeyword), map(node.leftParenthesis), clone4(node.variables), clone4(node.initialization), map(node.leftSeparator), clone4(node.condition), map(node.rightSeparator), clone5(node.updaters), map(node.rightParenthesis), clone4(node.body));
+  ForStatement visitForStatement(ForStatement node) => new ForStatement(mapToken(node.forKeyword), mapToken(node.leftParenthesis), cloneNode(node.variables), cloneNode(node.initialization), mapToken(node.leftSeparator), cloneNode(node.condition), mapToken(node.rightSeparator), cloneNodeList(node.updaters), mapToken(node.rightParenthesis), cloneNode(node.body));
 
-  FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) => new FunctionDeclaration(clone4(node.documentationComment), clone5(node.metadata), map(node.externalKeyword), clone4(node.returnType), map(node.propertyKeyword), clone4(node.name), clone4(node.functionExpression));
+  FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) => new FunctionDeclaration(cloneNode(node.documentationComment), cloneNodeList(node.metadata), mapToken(node.externalKeyword), cloneNode(node.returnType), mapToken(node.propertyKeyword), cloneNode(node.name), cloneNode(node.functionExpression));
 
-  FunctionDeclarationStatement visitFunctionDeclarationStatement(FunctionDeclarationStatement node) => new FunctionDeclarationStatement(clone4(node.functionDeclaration));
+  FunctionDeclarationStatement visitFunctionDeclarationStatement(FunctionDeclarationStatement node) => new FunctionDeclarationStatement(cloneNode(node.functionDeclaration));
 
   FunctionExpression visitFunctionExpression(FunctionExpression node) {
-    FunctionExpression copy = new FunctionExpression(clone4(node.parameters), clone4(node.body));
+    FunctionExpression copy = new FunctionExpression(cloneNode(node.parameters), cloneNode(node.body));
     copy.element = node.element;
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
@@ -15603,7 +15605,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   FunctionExpressionInvocation visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    FunctionExpressionInvocation copy = new FunctionExpressionInvocation(clone4(node.function), clone4(node.argumentList));
+    FunctionExpressionInvocation copy = new FunctionExpressionInvocation(cloneNode(node.function), cloneNode(node.argumentList));
     copy.propagatedElement = node.propagatedElement;
     copy.propagatedType = node.propagatedType;
     copy.staticElement = node.staticElement;
@@ -15611,25 +15613,25 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
     return copy;
   }
 
-  FunctionTypeAlias visitFunctionTypeAlias(FunctionTypeAlias node) => new FunctionTypeAlias(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.returnType), clone4(node.name), clone4(node.typeParameters), clone4(node.parameters), map(node.semicolon));
+  FunctionTypeAlias visitFunctionTypeAlias(FunctionTypeAlias node) => new FunctionTypeAlias(cloneNode(node.documentationComment), cloneNodeList(node.metadata), mapToken(node.keyword), cloneNode(node.returnType), cloneNode(node.name), cloneNode(node.typeParameters), cloneNode(node.parameters), mapToken(node.semicolon));
 
-  FunctionTypedFormalParameter visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) => new FunctionTypedFormalParameter(clone4(node.documentationComment), clone5(node.metadata), clone4(node.returnType), clone4(node.identifier), clone4(node.parameters));
+  FunctionTypedFormalParameter visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) => new FunctionTypedFormalParameter(cloneNode(node.documentationComment), cloneNodeList(node.metadata), cloneNode(node.returnType), cloneNode(node.identifier), cloneNode(node.parameters));
 
-  HideCombinator visitHideCombinator(HideCombinator node) => new HideCombinator(map(node.keyword), clone5(node.hiddenNames));
+  HideCombinator visitHideCombinator(HideCombinator node) => new HideCombinator(mapToken(node.keyword), cloneNodeList(node.hiddenNames));
 
-  IfStatement visitIfStatement(IfStatement node) => new IfStatement(map(node.ifKeyword), map(node.leftParenthesis), clone4(node.condition), map(node.rightParenthesis), clone4(node.thenStatement), map(node.elseKeyword), clone4(node.elseStatement));
+  IfStatement visitIfStatement(IfStatement node) => new IfStatement(mapToken(node.ifKeyword), mapToken(node.leftParenthesis), cloneNode(node.condition), mapToken(node.rightParenthesis), cloneNode(node.thenStatement), mapToken(node.elseKeyword), cloneNode(node.elseStatement));
 
-  ImplementsClause visitImplementsClause(ImplementsClause node) => new ImplementsClause(map(node.keyword), clone5(node.interfaces));
+  ImplementsClause visitImplementsClause(ImplementsClause node) => new ImplementsClause(mapToken(node.keyword), cloneNodeList(node.interfaces));
 
-  ImportDirective visitImportDirective(ImportDirective node) => new ImportDirective(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.uri), map(node.asToken), clone4(node.prefix), clone5(node.combinators), map(node.semicolon));
+  ImportDirective visitImportDirective(ImportDirective node) => new ImportDirective(cloneNode(node.documentationComment), cloneNodeList(node.metadata), mapToken(node.keyword), cloneNode(node.uri), mapToken(node.asToken), cloneNode(node.prefix), cloneNodeList(node.combinators), mapToken(node.semicolon));
 
   IndexExpression visitIndexExpression(IndexExpression node) {
-    Token period = map(node.period);
+    Token period = mapToken(node.period);
     IndexExpression copy;
     if (period == null) {
-      copy = new IndexExpression.forTarget(clone4(node.target), map(node.leftBracket), clone4(node.index), map(node.rightBracket));
+      copy = new IndexExpression.forTarget(cloneNode(node.target), mapToken(node.leftBracket), cloneNode(node.index), mapToken(node.rightBracket));
     } else {
-      copy = new IndexExpression.forCascade(period, map(node.leftBracket), clone4(node.index), map(node.rightBracket));
+      copy = new IndexExpression.forCascade(period, mapToken(node.leftBracket), cloneNode(node.index), mapToken(node.rightBracket));
     }
     copy.auxiliaryElements = node.auxiliaryElements;
     copy.propagatedElement = node.propagatedElement;
@@ -15640,7 +15642,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   InstanceCreationExpression visitInstanceCreationExpression(InstanceCreationExpression node) {
-    InstanceCreationExpression copy = new InstanceCreationExpression(map(node.keyword), clone4(node.constructorName), clone4(node.argumentList));
+    InstanceCreationExpression copy = new InstanceCreationExpression(mapToken(node.keyword), cloneNode(node.constructorName), cloneNode(node.argumentList));
     copy.propagatedType = node.propagatedType;
     copy.staticElement = node.staticElement;
     copy.staticType = node.staticType;
@@ -15648,100 +15650,100 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   IntegerLiteral visitIntegerLiteral(IntegerLiteral node) {
-    IntegerLiteral copy = new IntegerLiteral(map(node.literal), node.value);
+    IntegerLiteral copy = new IntegerLiteral(mapToken(node.literal), node.value);
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  InterpolationExpression visitInterpolationExpression(InterpolationExpression node) => new InterpolationExpression(map(node.leftBracket), clone4(node.expression), map(node.rightBracket));
+  InterpolationExpression visitInterpolationExpression(InterpolationExpression node) => new InterpolationExpression(mapToken(node.leftBracket), cloneNode(node.expression), mapToken(node.rightBracket));
 
-  InterpolationString visitInterpolationString(InterpolationString node) => new InterpolationString(map(node.contents), node.value);
+  InterpolationString visitInterpolationString(InterpolationString node) => new InterpolationString(mapToken(node.contents), node.value);
 
   IsExpression visitIsExpression(IsExpression node) {
-    IsExpression copy = new IsExpression(clone4(node.expression), map(node.isOperator), map(node.notOperator), clone4(node.type));
+    IsExpression copy = new IsExpression(cloneNode(node.expression), mapToken(node.isOperator), mapToken(node.notOperator), cloneNode(node.type));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  Label visitLabel(Label node) => new Label(clone4(node.label), map(node.colon));
+  Label visitLabel(Label node) => new Label(cloneNode(node.label), mapToken(node.colon));
 
-  LabeledStatement visitLabeledStatement(LabeledStatement node) => new LabeledStatement(clone5(node.labels), clone4(node.statement));
+  LabeledStatement visitLabeledStatement(LabeledStatement node) => new LabeledStatement(cloneNodeList(node.labels), cloneNode(node.statement));
 
-  LibraryDirective visitLibraryDirective(LibraryDirective node) => new LibraryDirective(clone4(node.documentationComment), clone5(node.metadata), map(node.libraryToken), clone4(node.name), map(node.semicolon));
+  LibraryDirective visitLibraryDirective(LibraryDirective node) => new LibraryDirective(cloneNode(node.documentationComment), cloneNodeList(node.metadata), mapToken(node.libraryToken), cloneNode(node.name), mapToken(node.semicolon));
 
   LibraryIdentifier visitLibraryIdentifier(LibraryIdentifier node) {
-    LibraryIdentifier copy = new LibraryIdentifier(clone5(node.components));
+    LibraryIdentifier copy = new LibraryIdentifier(cloneNodeList(node.components));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   ListLiteral visitListLiteral(ListLiteral node) {
-    ListLiteral copy = new ListLiteral(map(node.constKeyword), clone4(node.typeArguments), map(node.leftBracket), clone5(node.elements), map(node.rightBracket));
+    ListLiteral copy = new ListLiteral(mapToken(node.constKeyword), cloneNode(node.typeArguments), mapToken(node.leftBracket), cloneNodeList(node.elements), mapToken(node.rightBracket));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   MapLiteral visitMapLiteral(MapLiteral node) {
-    MapLiteral copy = new MapLiteral(map(node.constKeyword), clone4(node.typeArguments), map(node.leftBracket), clone5(node.entries), map(node.rightBracket));
+    MapLiteral copy = new MapLiteral(mapToken(node.constKeyword), cloneNode(node.typeArguments), mapToken(node.leftBracket), cloneNodeList(node.entries), mapToken(node.rightBracket));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) => new MapLiteralEntry(clone4(node.key), map(node.separator), clone4(node.value));
+  MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) => new MapLiteralEntry(cloneNode(node.key), mapToken(node.separator), cloneNode(node.value));
 
-  MethodDeclaration visitMethodDeclaration(MethodDeclaration node) => new MethodDeclaration(clone4(node.documentationComment), clone5(node.metadata), map(node.externalKeyword), map(node.modifierKeyword), clone4(node.returnType), map(node.propertyKeyword), map(node.operatorKeyword), clone4(node.name), clone4(node.parameters), clone4(node.body));
+  MethodDeclaration visitMethodDeclaration(MethodDeclaration node) => new MethodDeclaration(cloneNode(node.documentationComment), cloneNodeList(node.metadata), mapToken(node.externalKeyword), mapToken(node.modifierKeyword), cloneNode(node.returnType), mapToken(node.propertyKeyword), mapToken(node.operatorKeyword), cloneNode(node.name), cloneNode(node.parameters), cloneNode(node.body));
 
   MethodInvocation visitMethodInvocation(MethodInvocation node) {
-    MethodInvocation copy = new MethodInvocation(clone4(node.target), map(node.period), clone4(node.methodName), clone4(node.argumentList));
+    MethodInvocation copy = new MethodInvocation(cloneNode(node.target), mapToken(node.period), cloneNode(node.methodName), cloneNode(node.argumentList));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   NamedExpression visitNamedExpression(NamedExpression node) {
-    NamedExpression copy = new NamedExpression(clone4(node.name), clone4(node.expression));
+    NamedExpression copy = new NamedExpression(cloneNode(node.name), cloneNode(node.expression));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  AstNode visitNativeClause(NativeClause node) => new NativeClause(map(node.keyword), clone4(node.name));
+  AstNode visitNativeClause(NativeClause node) => new NativeClause(mapToken(node.keyword), cloneNode(node.name));
 
-  NativeFunctionBody visitNativeFunctionBody(NativeFunctionBody node) => new NativeFunctionBody(map(node.nativeToken), clone4(node.stringLiteral), map(node.semicolon));
+  NativeFunctionBody visitNativeFunctionBody(NativeFunctionBody node) => new NativeFunctionBody(mapToken(node.nativeToken), cloneNode(node.stringLiteral), mapToken(node.semicolon));
 
   NullLiteral visitNullLiteral(NullLiteral node) {
-    NullLiteral copy = new NullLiteral(map(node.literal));
+    NullLiteral copy = new NullLiteral(mapToken(node.literal));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   ParenthesizedExpression visitParenthesizedExpression(ParenthesizedExpression node) {
-    ParenthesizedExpression copy = new ParenthesizedExpression(map(node.leftParenthesis), clone4(node.expression), map(node.rightParenthesis));
+    ParenthesizedExpression copy = new ParenthesizedExpression(mapToken(node.leftParenthesis), cloneNode(node.expression), mapToken(node.rightParenthesis));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   PartDirective visitPartDirective(PartDirective node) {
-    PartDirective copy = new PartDirective(clone4(node.documentationComment), clone5(node.metadata), map(node.partToken), clone4(node.uri), map(node.semicolon));
+    PartDirective copy = new PartDirective(cloneNode(node.documentationComment), cloneNodeList(node.metadata), mapToken(node.partToken), cloneNode(node.uri), mapToken(node.semicolon));
     copy.element = node.element;
     return copy;
   }
 
   PartOfDirective visitPartOfDirective(PartOfDirective node) {
-    PartOfDirective copy = new PartOfDirective(clone4(node.documentationComment), clone5(node.metadata), map(node.partToken), map(node.ofToken), clone4(node.libraryName), map(node.semicolon));
+    PartOfDirective copy = new PartOfDirective(cloneNode(node.documentationComment), cloneNodeList(node.metadata), mapToken(node.partToken), mapToken(node.ofToken), cloneNode(node.libraryName), mapToken(node.semicolon));
     copy.element = node.element;
     return copy;
   }
 
   PostfixExpression visitPostfixExpression(PostfixExpression node) {
-    PostfixExpression copy = new PostfixExpression(clone4(node.operand), map(node.operator));
+    PostfixExpression copy = new PostfixExpression(cloneNode(node.operand), mapToken(node.operator));
     copy.propagatedElement = node.propagatedElement;
     copy.propagatedType = node.propagatedType;
     copy.staticElement = node.staticElement;
@@ -15750,14 +15752,14 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   PrefixedIdentifier visitPrefixedIdentifier(PrefixedIdentifier node) {
-    PrefixedIdentifier copy = new PrefixedIdentifier(clone4(node.prefix), map(node.period), clone4(node.identifier));
+    PrefixedIdentifier copy = new PrefixedIdentifier(cloneNode(node.prefix), mapToken(node.period), cloneNode(node.identifier));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   PrefixExpression visitPrefixExpression(PrefixExpression node) {
-    PrefixExpression copy = new PrefixExpression(map(node.operator), clone4(node.operand));
+    PrefixExpression copy = new PrefixExpression(mapToken(node.operator), cloneNode(node.operand));
     copy.propagatedElement = node.propagatedElement;
     copy.propagatedType = node.propagatedType;
     copy.staticElement = node.staticElement;
@@ -15766,35 +15768,35 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   PropertyAccess visitPropertyAccess(PropertyAccess node) {
-    PropertyAccess copy = new PropertyAccess(clone4(node.target), map(node.operator), clone4(node.propertyName));
+    PropertyAccess copy = new PropertyAccess(cloneNode(node.target), mapToken(node.operator), cloneNode(node.propertyName));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   RedirectingConstructorInvocation visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
-    RedirectingConstructorInvocation copy = new RedirectingConstructorInvocation(map(node.keyword), map(node.period), clone4(node.constructorName), clone4(node.argumentList));
+    RedirectingConstructorInvocation copy = new RedirectingConstructorInvocation(mapToken(node.keyword), mapToken(node.period), cloneNode(node.constructorName), cloneNode(node.argumentList));
     copy.staticElement = node.staticElement;
     return copy;
   }
 
   RethrowExpression visitRethrowExpression(RethrowExpression node) {
-    RethrowExpression copy = new RethrowExpression(map(node.keyword));
+    RethrowExpression copy = new RethrowExpression(mapToken(node.keyword));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  ReturnStatement visitReturnStatement(ReturnStatement node) => new ReturnStatement(map(node.keyword), clone4(node.expression), map(node.semicolon));
+  ReturnStatement visitReturnStatement(ReturnStatement node) => new ReturnStatement(mapToken(node.keyword), cloneNode(node.expression), mapToken(node.semicolon));
 
-  ScriptTag visitScriptTag(ScriptTag node) => new ScriptTag(map(node.scriptTag));
+  ScriptTag visitScriptTag(ScriptTag node) => new ScriptTag(mapToken(node.scriptTag));
 
-  ShowCombinator visitShowCombinator(ShowCombinator node) => new ShowCombinator(map(node.keyword), clone5(node.shownNames));
+  ShowCombinator visitShowCombinator(ShowCombinator node) => new ShowCombinator(mapToken(node.keyword), cloneNodeList(node.shownNames));
 
-  SimpleFormalParameter visitSimpleFormalParameter(SimpleFormalParameter node) => new SimpleFormalParameter(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.type), clone4(node.identifier));
+  SimpleFormalParameter visitSimpleFormalParameter(SimpleFormalParameter node) => new SimpleFormalParameter(cloneNode(node.documentationComment), cloneNodeList(node.metadata), mapToken(node.keyword), cloneNode(node.type), cloneNode(node.identifier));
 
   SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) {
-    Token mappedToken = map(node.token);
+    Token mappedToken = mapToken(node.token);
     if (mappedToken == null) {
       // This only happens for SimpleIdentifiers created by the parser as part of scanning
       // documentation comments (the tokens for those identifiers are not in the original token
@@ -15812,86 +15814,86 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   SimpleStringLiteral visitSimpleStringLiteral(SimpleStringLiteral node) {
-    SimpleStringLiteral copy = new SimpleStringLiteral(map(node.literal), node.value);
+    SimpleStringLiteral copy = new SimpleStringLiteral(mapToken(node.literal), node.value);
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   StringInterpolation visitStringInterpolation(StringInterpolation node) {
-    StringInterpolation copy = new StringInterpolation(clone5(node.elements));
+    StringInterpolation copy = new StringInterpolation(cloneNodeList(node.elements));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   SuperConstructorInvocation visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    SuperConstructorInvocation copy = new SuperConstructorInvocation(map(node.keyword), map(node.period), clone4(node.constructorName), clone4(node.argumentList));
+    SuperConstructorInvocation copy = new SuperConstructorInvocation(mapToken(node.keyword), mapToken(node.period), cloneNode(node.constructorName), cloneNode(node.argumentList));
     copy.staticElement = node.staticElement;
     return copy;
   }
 
   SuperExpression visitSuperExpression(SuperExpression node) {
-    SuperExpression copy = new SuperExpression(map(node.keyword));
+    SuperExpression copy = new SuperExpression(mapToken(node.keyword));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  SwitchCase visitSwitchCase(SwitchCase node) => new SwitchCase(clone5(node.labels), map(node.keyword), clone4(node.expression), map(node.colon), clone5(node.statements));
+  SwitchCase visitSwitchCase(SwitchCase node) => new SwitchCase(cloneNodeList(node.labels), mapToken(node.keyword), cloneNode(node.expression), mapToken(node.colon), cloneNodeList(node.statements));
 
-  SwitchDefault visitSwitchDefault(SwitchDefault node) => new SwitchDefault(clone5(node.labels), map(node.keyword), map(node.colon), clone5(node.statements));
+  SwitchDefault visitSwitchDefault(SwitchDefault node) => new SwitchDefault(cloneNodeList(node.labels), mapToken(node.keyword), mapToken(node.colon), cloneNodeList(node.statements));
 
-  SwitchStatement visitSwitchStatement(SwitchStatement node) => new SwitchStatement(map(node.keyword), map(node.leftParenthesis), clone4(node.expression), map(node.rightParenthesis), map(node.leftBracket), clone5(node.members), map(node.rightBracket));
+  SwitchStatement visitSwitchStatement(SwitchStatement node) => new SwitchStatement(mapToken(node.keyword), mapToken(node.leftParenthesis), cloneNode(node.expression), mapToken(node.rightParenthesis), mapToken(node.leftBracket), cloneNodeList(node.members), mapToken(node.rightBracket));
 
   AstNode visitSymbolLiteral(SymbolLiteral node) {
-    SymbolLiteral copy = new SymbolLiteral(map(node.poundSign), map2(node.components));
+    SymbolLiteral copy = new SymbolLiteral(mapToken(node.poundSign), mapTokens(node.components));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   ThisExpression visitThisExpression(ThisExpression node) {
-    ThisExpression copy = new ThisExpression(map(node.keyword));
+    ThisExpression copy = new ThisExpression(mapToken(node.keyword));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   ThrowExpression visitThrowExpression(ThrowExpression node) {
-    ThrowExpression copy = new ThrowExpression(map(node.keyword), clone4(node.expression));
+    ThrowExpression copy = new ThrowExpression(mapToken(node.keyword), cloneNode(node.expression));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  TopLevelVariableDeclaration visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => new TopLevelVariableDeclaration(clone4(node.documentationComment), clone5(node.metadata), clone4(node.variables), map(node.semicolon));
+  TopLevelVariableDeclaration visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => new TopLevelVariableDeclaration(cloneNode(node.documentationComment), cloneNodeList(node.metadata), cloneNode(node.variables), mapToken(node.semicolon));
 
-  TryStatement visitTryStatement(TryStatement node) => new TryStatement(map(node.tryKeyword), clone4(node.body), clone5(node.catchClauses), map(node.finallyKeyword), clone4(node.finallyBlock));
+  TryStatement visitTryStatement(TryStatement node) => new TryStatement(mapToken(node.tryKeyword), cloneNode(node.body), cloneNodeList(node.catchClauses), mapToken(node.finallyKeyword), cloneNode(node.finallyBlock));
 
-  TypeArgumentList visitTypeArgumentList(TypeArgumentList node) => new TypeArgumentList(map(node.leftBracket), clone5(node.arguments), map(node.rightBracket));
+  TypeArgumentList visitTypeArgumentList(TypeArgumentList node) => new TypeArgumentList(mapToken(node.leftBracket), cloneNodeList(node.arguments), mapToken(node.rightBracket));
 
   TypeName visitTypeName(TypeName node) {
-    TypeName copy = new TypeName(clone4(node.name), clone4(node.typeArguments));
+    TypeName copy = new TypeName(cloneNode(node.name), cloneNode(node.typeArguments));
     copy.type = node.type;
     return copy;
   }
 
-  TypeParameter visitTypeParameter(TypeParameter node) => new TypeParameter(clone4(node.documentationComment), clone5(node.metadata), clone4(node.name), map(node.keyword), clone4(node.bound));
+  TypeParameter visitTypeParameter(TypeParameter node) => new TypeParameter(cloneNode(node.documentationComment), cloneNodeList(node.metadata), cloneNode(node.name), mapToken(node.keyword), cloneNode(node.bound));
 
-  TypeParameterList visitTypeParameterList(TypeParameterList node) => new TypeParameterList(map(node.leftBracket), clone5(node.typeParameters), map(node.rightBracket));
+  TypeParameterList visitTypeParameterList(TypeParameterList node) => new TypeParameterList(mapToken(node.leftBracket), cloneNodeList(node.typeParameters), mapToken(node.rightBracket));
 
-  VariableDeclaration visitVariableDeclaration(VariableDeclaration node) => new VariableDeclaration(null, clone5(node.metadata), clone4(node.name), map(node.equals), clone4(node.initializer));
+  VariableDeclaration visitVariableDeclaration(VariableDeclaration node) => new VariableDeclaration(null, cloneNodeList(node.metadata), cloneNode(node.name), mapToken(node.equals), cloneNode(node.initializer));
 
-  VariableDeclarationList visitVariableDeclarationList(VariableDeclarationList node) => new VariableDeclarationList(null, clone5(node.metadata), map(node.keyword), clone4(node.type), clone5(node.variables));
+  VariableDeclarationList visitVariableDeclarationList(VariableDeclarationList node) => new VariableDeclarationList(null, cloneNodeList(node.metadata), mapToken(node.keyword), cloneNode(node.type), cloneNodeList(node.variables));
 
-  VariableDeclarationStatement visitVariableDeclarationStatement(VariableDeclarationStatement node) => new VariableDeclarationStatement(clone4(node.variables), map(node.semicolon));
+  VariableDeclarationStatement visitVariableDeclarationStatement(VariableDeclarationStatement node) => new VariableDeclarationStatement(cloneNode(node.variables), mapToken(node.semicolon));
 
-  WhileStatement visitWhileStatement(WhileStatement node) => new WhileStatement(map(node.keyword), map(node.leftParenthesis), clone4(node.condition), map(node.rightParenthesis), clone4(node.body));
+  WhileStatement visitWhileStatement(WhileStatement node) => new WhileStatement(mapToken(node.keyword), mapToken(node.leftParenthesis), cloneNode(node.condition), mapToken(node.rightParenthesis), cloneNode(node.body));
 
-  WithClause visitWithClause(WithClause node) => new WithClause(map(node.withKeyword), clone5(node.mixinTypes));
+  WithClause visitWithClause(WithClause node) => new WithClause(mapToken(node.withKeyword), cloneNodeList(node.mixinTypes));
 
-  AstNode clone4(AstNode node) {
+  AstNode cloneNode(AstNode node) {
     if (node == null) {
       return null;
     }
@@ -15901,25 +15903,25 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
     return node.accept(this) as AstNode;
   }
 
-  List clone5(NodeList nodes) {
+  List cloneNodeList(NodeList nodes) {
     List clonedNodes = new List();
     for (AstNode node in nodes) {
-      clonedNodes.add(clone4(node));
+      clonedNodes.add(cloneNode(node));
     }
     return clonedNodes;
   }
 
-  Token map(Token oldToken) {
+  Token mapToken(Token oldToken) {
     if (oldToken == null) {
       return null;
     }
     return _tokenMap.get(oldToken);
   }
 
-  List<Token> map2(List<Token> oldTokens) {
+  List<Token> mapTokens(List<Token> oldTokens) {
     List<Token> newTokens = new List<Token>(oldTokens.length);
     for (int index = 0; index < newTokens.length; index++) {
-      newTokens[index] = map(oldTokens[index]);
+      newTokens[index] = mapToken(oldTokens[index]);
     }
     return newTokens;
   }

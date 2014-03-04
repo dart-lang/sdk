@@ -9,6 +9,7 @@ library engine.test_support;
 
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_junit.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -617,8 +618,8 @@ class EngineTestCase extends JUnitTestCase {
    * @return the object that was being tested
    * @throws Exception if the object is not an instance of the expected class
    */
-  static Object assertInstanceOf(Type expectedClass, Object object) {
-    if (!isInstanceOf(object, expectedClass)) {
+  static Object assertInstanceOf(Predicate<Object> predicate, Type expectedClass, Object object) {
+    if (!predicate(object)) {
       JUnitTestCase.fail("Expected instance of ${expectedClass.toString()}, found ${(object == null ? "null" : object.runtimeType.toString())}");
     }
     return object;
@@ -651,10 +652,10 @@ class EngineTestCase extends JUnitTestCase {
   static void assertMatches(Token expectedToken, Token actualToken) {
     JUnitTestCase.assertEquals(expectedToken.type, actualToken.type);
     if (expectedToken is KeywordToken) {
-      assertInstanceOf(KeywordToken, actualToken);
+      assertInstanceOf((obj) => obj is KeywordToken, KeywordToken, actualToken);
       JUnitTestCase.assertEquals(expectedToken.keyword, (actualToken as KeywordToken).keyword);
     } else if (expectedToken is StringToken) {
-      assertInstanceOf(StringToken, actualToken);
+      assertInstanceOf((obj) => obj is StringToken, StringToken, actualToken);
       JUnitTestCase.assertEquals(expectedToken.lexeme, (actualToken as StringToken).lexeme);
     }
   }
@@ -724,13 +725,13 @@ class EngineTestCase extends JUnitTestCase {
   /**
    * @return the [AstNode] with requested type at offset of the "prefix".
    */
-  static AstNode findNode(AstNode root, String code, String prefix, Type clazz) {
+  static AstNode findNode(AstNode root, String code, String prefix, Predicate<AstNode> predicate) {
     int offset = code.indexOf(prefix);
     if (offset == -1) {
       throw new IllegalArgumentException("Not found '${prefix}'.");
     }
     AstNode node = new NodeLocator.con1(offset).searchWithin(root);
-    return node.getAncestor(clazz);
+    return node.getAncestor(predicate);
   }
 
   static void assertContains2(List<Object> array, List<bool> found, Object element) {

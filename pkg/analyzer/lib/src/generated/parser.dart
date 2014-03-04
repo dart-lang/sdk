@@ -224,7 +224,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
       // return parser.parseConditionalExpression();
       throw new InsufficientContextException();
     } else if (identical(_oldNode, node.rightHandSide)) {
-      if (isCascadeAllowed(node)) {
+      if (isCascadeAllowedInAssignment(node)) {
         return _parser.parseExpression2();
       }
       return _parser.parseExpressionWithoutCascade();
@@ -959,7 +959,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
 
   AstNode visitThrowExpression(ThrowExpression node) {
     if (identical(_oldNode, node.expression)) {
-      if (isCascadeAllowed2(node)) {
+      if (isCascadeAllowedInThrow(node)) {
         return _parser.parseExpression2();
       }
       return _parser.parseExpressionWithoutCascade();
@@ -1079,7 +1079,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
    * @param node the assignment expression being tested
    * @return `true` if the right-hand side can be a cascade expression
    */
-  bool isCascadeAllowed(AssignmentExpression node) {
+  bool isCascadeAllowedInAssignment(AssignmentExpression node) {
     // TODO(brianwilkerson) Implement this method.
     throw new InsufficientContextException();
   }
@@ -1090,7 +1090,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
    * @param node the throw expression being tested
    * @return `true` if the expression can be a cascade expression
    */
-  bool isCascadeAllowed2(ThrowExpression node) {
+  bool isCascadeAllowedInThrow(ThrowExpression node) {
     // TODO(brianwilkerson) Implement this method.
     throw new InsufficientContextException();
   }
@@ -1444,7 +1444,7 @@ class Parser {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("dart.engine.Parser.parseStatements");
     try {
       _currentToken = token;
-      return parseStatements2();
+      return parseStatementList();
     } finally {
       instrumentation.log();
     }
@@ -1470,16 +1470,16 @@ class Parser {
    * @return the annotation that was parsed
    */
   Annotation parseAnnotation() {
-    Token atSign = expect2(TokenType.AT);
+    Token atSign = expect(TokenType.AT);
     Identifier name = parsePrefixedIdentifier();
     Token period = null;
     SimpleIdentifier constructorName = null;
-    if (matches5(TokenType.PERIOD)) {
+    if (matches(TokenType.PERIOD)) {
       period = andAdvance;
       constructorName = parseSimpleIdentifier();
     }
     ArgumentList arguments = null;
-    if (matches5(TokenType.OPEN_PAREN)) {
+    if (matches(TokenType.OPEN_PAREN)) {
       arguments = parseArgumentList();
     }
     return new Annotation(atSign, name, period, constructorName, arguments);
@@ -1504,7 +1504,7 @@ class Parser {
     // Both namedArgument and expression can start with an identifier, but only namedArgument can
     // have an identifier followed by a colon.
     //
-    if (matchesIdentifier() && matches4(peek(), TokenType.COLON)) {
+    if (matchesIdentifier() && tokenMatches(peek(), TokenType.COLON)) {
       return new NamedExpression(parseLabel(), parseExpression2());
     } else {
       return parseExpression2();
@@ -1526,9 +1526,9 @@ class Parser {
    * @return the argument list that was parsed
    */
   ArgumentList parseArgumentList() {
-    Token leftParenthesis = expect2(TokenType.OPEN_PAREN);
+    Token leftParenthesis = expect(TokenType.OPEN_PAREN);
     List<Expression> arguments = new List<Expression>();
-    if (matches5(TokenType.CLOSE_PAREN)) {
+    if (matches(TokenType.CLOSE_PAREN)) {
       return new ArgumentList(leftParenthesis, arguments, andAdvance);
     }
     //
@@ -1545,7 +1545,7 @@ class Parser {
       if (foundNamedArgument) {
         if (!generatedError && argument is! NamedExpression) {
           // Report the error, once, but allow the arguments to be in any order in the AST.
-          reportError13(ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, []);
+          reportErrorForCurrentToken(ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, []);
           generatedError = true;
         }
       } else if (argument is NamedExpression) {
@@ -1555,7 +1555,7 @@ class Parser {
     // TODO(brianwilkerson) Recovery: Look at the left parenthesis to see whether there is a
     // matching right parenthesis. If there is, then we're more likely missing a comma and should
     // go back to parsing arguments.
-    Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
+    Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
     return new ArgumentList(leftParenthesis, arguments, rightParenthesis);
   }
 
@@ -1572,12 +1572,12 @@ class Parser {
    */
   Expression parseBitwiseOrExpression() {
     Expression expression;
-    if (matches(Keyword.SUPER) && matches4(peek(), TokenType.BAR)) {
+    if (matchesKeyword(Keyword.SUPER) && tokenMatches(peek(), TokenType.BAR)) {
       expression = new SuperExpression(andAdvance);
     } else {
       expression = parseBitwiseXorExpression();
     }
-    while (matches5(TokenType.BAR)) {
+    while (matches(TokenType.BAR)) {
       Token operator = andAdvance;
       expression = new BinaryExpression(expression, operator, parseBitwiseXorExpression());
     }
@@ -1595,22 +1595,22 @@ class Parser {
    * @return the block that was parsed
    */
   Block parseBlock() {
-    Token leftBracket = expect2(TokenType.OPEN_CURLY_BRACKET);
+    Token leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
     List<Statement> statements = new List<Statement>();
     Token statementStart = _currentToken;
-    while (!matches5(TokenType.EOF) && !matches5(TokenType.CLOSE_CURLY_BRACKET)) {
+    while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET)) {
       Statement statement = parseStatement2();
       if (statement != null) {
         statements.add(statement);
       }
       if (identical(_currentToken, statementStart)) {
         // Ensure that we are making progress and report an error if we're not.
-        reportError14(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+        reportErrorForToken(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
       }
       statementStart = _currentToken;
     }
-    Token rightBracket = expect2(TokenType.CLOSE_CURLY_BRACKET);
+    Token rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
     return new Block(leftBracket, statements, rightBracket);
   }
 
@@ -1630,15 +1630,15 @@ class Parser {
   ClassMember parseClassMember(String className) {
     CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
     Modifiers modifiers = parseModifiers();
-    if (matches(Keyword.VOID)) {
+    if (matchesKeyword(Keyword.VOID)) {
       TypeName returnType = parseReturnType();
-      if (matches(Keyword.GET) && matchesIdentifier2(peek())) {
+      if (matchesKeyword(Keyword.GET) && tokenMatchesIdentifier(peek())) {
         validateModifiersForGetterOrSetterOrMethod(modifiers);
         return parseGetter(commentAndMetadata, modifiers.externalKeyword, modifiers.staticKeyword, returnType);
-      } else if (matches(Keyword.SET) && matchesIdentifier2(peek())) {
+      } else if (matchesKeyword(Keyword.SET) && tokenMatchesIdentifier(peek())) {
         validateModifiersForGetterOrSetterOrMethod(modifiers);
         return parseSetter(commentAndMetadata, modifiers.externalKeyword, modifiers.staticKeyword, returnType);
-      } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
+      } else if (matchesKeyword(Keyword.OPERATOR) && isOperator(peek())) {
         validateModifiersForOperator(modifiers);
         return parseOperator(commentAndMetadata, modifiers.externalKeyword, returnType);
       } else if (matchesIdentifier() && matchesAny(peek(), [
@@ -1646,7 +1646,7 @@ class Parser {
           TokenType.OPEN_CURLY_BRACKET,
           TokenType.FUNCTION])) {
         validateModifiersForGetterOrSetterOrMethod(modifiers);
-        return parseMethodDeclaration(commentAndMetadata, modifiers.externalKeyword, modifiers.staticKeyword, returnType);
+        return parseMethodDeclarationAfterReturnType(commentAndMetadata, modifiers.externalKeyword, modifiers.staticKeyword, returnType);
       } else {
         //
         // We have found an error of some kind. Try to recover.
@@ -1656,7 +1656,7 @@ class Parser {
             //
             // We appear to have a variable declaration with a type of "void".
             //
-            reportError12(ParserErrorCode.VOID_VARIABLE, returnType, []);
+            reportErrorForNode(ParserErrorCode.VOID_VARIABLE, returnType, []);
             return parseInitializedIdentifierList(commentAndMetadata, modifiers.staticKeyword, validateModifiersForField(modifiers), returnType);
           }
         }
@@ -1667,16 +1667,16 @@ class Parser {
           validateModifiersForOperator(modifiers);
           return parseOperator(commentAndMetadata, modifiers.externalKeyword, returnType);
         }
-        reportError14(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
+        reportErrorForToken(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
         return null;
       }
-    } else if (matches(Keyword.GET) && matchesIdentifier2(peek())) {
+    } else if (matchesKeyword(Keyword.GET) && tokenMatchesIdentifier(peek())) {
       validateModifiersForGetterOrSetterOrMethod(modifiers);
       return parseGetter(commentAndMetadata, modifiers.externalKeyword, modifiers.staticKeyword, null);
-    } else if (matches(Keyword.SET) && matchesIdentifier2(peek())) {
+    } else if (matchesKeyword(Keyword.SET) && tokenMatchesIdentifier(peek())) {
       validateModifiersForGetterOrSetterOrMethod(modifiers);
       return parseSetter(commentAndMetadata, modifiers.externalKeyword, modifiers.staticKeyword, null);
-    } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
+    } else if (matchesKeyword(Keyword.OPERATOR) && isOperator(peek())) {
       validateModifiersForOperator(modifiers);
       return parseOperator(commentAndMetadata, modifiers.externalKeyword, null);
     } else if (!matchesIdentifier()) {
@@ -1687,45 +1687,45 @@ class Parser {
         validateModifiersForOperator(modifiers);
         return parseOperator(commentAndMetadata, modifiers.externalKeyword, null);
       }
-      reportError14(ParserErrorCode.EXPECTED_CLASS_MEMBER, _currentToken, []);
+      reportErrorForToken(ParserErrorCode.EXPECTED_CLASS_MEMBER, _currentToken, []);
       if (commentAndMetadata.comment != null || !commentAndMetadata.metadata.isEmpty) {
         //
         // We appear to have found an incomplete declaration at the end of the class. At this point
         // it consists of a metadata, which we don't want to loose, so we'll treat it as a method
         // declaration with a missing name, parameters and empty body.
         //
-        return new MethodDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, null, null, null, null, null, createSyntheticIdentifier(), new FormalParameterList(null, new List<FormalParameter>(), null, null, null), new EmptyFunctionBody(createSyntheticToken2(TokenType.SEMICOLON)));
+        return new MethodDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, null, null, null, null, null, createSyntheticIdentifier(), new FormalParameterList(null, new List<FormalParameter>(), null, null, null), new EmptyFunctionBody(createSyntheticToken(TokenType.SEMICOLON)));
       }
       return null;
-    } else if (matches4(peek(), TokenType.PERIOD) && matchesIdentifier2(peek2(2)) && matches4(peek2(3), TokenType.OPEN_PAREN)) {
+    } else if (tokenMatches(peek(), TokenType.PERIOD) && tokenMatchesIdentifier(peek2(2)) && tokenMatches(peek2(3), TokenType.OPEN_PAREN)) {
       return parseConstructor(commentAndMetadata, modifiers.externalKeyword, validateModifiersForConstructor(modifiers), modifiers.factoryKeyword, parseSimpleIdentifier(), andAdvance, parseSimpleIdentifier(), parseFormalParameterList());
-    } else if (matches4(peek(), TokenType.OPEN_PAREN)) {
+    } else if (tokenMatches(peek(), TokenType.OPEN_PAREN)) {
       SimpleIdentifier methodName = parseSimpleIdentifier();
       FormalParameterList parameters = parseFormalParameterList();
-      if (matches5(TokenType.COLON) || modifiers.factoryKeyword != null || methodName.name == className) {
+      if (matches(TokenType.COLON) || modifiers.factoryKeyword != null || methodName.name == className) {
         return parseConstructor(commentAndMetadata, modifiers.externalKeyword, validateModifiersForConstructor(modifiers), modifiers.factoryKeyword, methodName, null, null, parameters);
       }
       validateModifiersForGetterOrSetterOrMethod(modifiers);
       validateFormalParameterList(parameters);
-      return parseMethodDeclaration2(commentAndMetadata, modifiers.externalKeyword, modifiers.staticKeyword, null, methodName, parameters);
+      return parseMethodDeclarationAfterParameters(commentAndMetadata, modifiers.externalKeyword, modifiers.staticKeyword, null, methodName, parameters);
     } else if (matchesAny(peek(), [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
       if (modifiers.constKeyword == null && modifiers.finalKeyword == null && modifiers.varKeyword == null) {
-        reportError13(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, []);
+        reportErrorForCurrentToken(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, []);
       }
       return parseInitializedIdentifierList(commentAndMetadata, modifiers.staticKeyword, validateModifiersForField(modifiers), null);
     }
     TypeName type = parseTypeName();
-    if (matches(Keyword.GET) && matchesIdentifier2(peek())) {
+    if (matchesKeyword(Keyword.GET) && tokenMatchesIdentifier(peek())) {
       validateModifiersForGetterOrSetterOrMethod(modifiers);
       return parseGetter(commentAndMetadata, modifiers.externalKeyword, modifiers.staticKeyword, type);
-    } else if (matches(Keyword.SET) && matchesIdentifier2(peek())) {
+    } else if (matchesKeyword(Keyword.SET) && tokenMatchesIdentifier(peek())) {
       validateModifiersForGetterOrSetterOrMethod(modifiers);
       return parseSetter(commentAndMetadata, modifiers.externalKeyword, modifiers.staticKeyword, type);
-    } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
+    } else if (matchesKeyword(Keyword.OPERATOR) && isOperator(peek())) {
       validateModifiersForOperator(modifiers);
       return parseOperator(commentAndMetadata, modifiers.externalKeyword, type);
     } else if (!matchesIdentifier()) {
-      if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
+      if (matches(TokenType.CLOSE_CURLY_BRACKET)) {
         //
         // We appear to have found an incomplete declaration at the end of the class. At this point
         // it consists of a type name, so we'll treat it as a field declaration with a missing
@@ -1745,23 +1745,23 @@ class Parser {
       // At this point it consists of a type name, so we'll treat it as a field declaration
       // with a missing field name and semicolon.
       //
-      reportError14(ParserErrorCode.EXPECTED_CLASS_MEMBER, _currentToken, []);
+      reportErrorForToken(ParserErrorCode.EXPECTED_CLASS_MEMBER, _currentToken, []);
       try {
         lockErrorListener();
         return parseInitializedIdentifierList(commentAndMetadata, modifiers.staticKeyword, validateModifiersForField(modifiers), type);
       } finally {
         unlockErrorListener();
       }
-    } else if (matches4(peek(), TokenType.OPEN_PAREN)) {
+    } else if (tokenMatches(peek(), TokenType.OPEN_PAREN)) {
       SimpleIdentifier methodName = parseSimpleIdentifier();
       FormalParameterList parameters = parseFormalParameterList();
       if (methodName.name == className) {
-        reportError12(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, type, []);
+        reportErrorForNode(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, type, []);
         return parseConstructor(commentAndMetadata, modifiers.externalKeyword, validateModifiersForConstructor(modifiers), modifiers.factoryKeyword, methodName, null, null, parameters);
       }
       validateModifiersForGetterOrSetterOrMethod(modifiers);
       validateFormalParameterList(parameters);
-      return parseMethodDeclaration2(commentAndMetadata, modifiers.externalKeyword, modifiers.staticKeyword, type, methodName, parameters);
+      return parseMethodDeclarationAfterParameters(commentAndMetadata, modifiers.externalKeyword, modifiers.staticKeyword, type, methodName, parameters);
     }
     return parseInitializedIdentifierList(commentAndMetadata, modifiers.staticKeyword, validateModifiersForField(modifiers), type);
   }
@@ -1791,7 +1791,7 @@ class Parser {
   CompilationUnit parseCompilationUnit2() {
     Token firstToken = _currentToken;
     ScriptTag scriptTag = null;
-    if (matches5(TokenType.SCRIPT_TAG)) {
+    if (matches(TokenType.SCRIPT_TAG)) {
       scriptTag = new ScriptTag(andAdvance);
     }
     //
@@ -1805,20 +1805,20 @@ class Parser {
     List<Directive> directives = new List<Directive>();
     List<CompilationUnitMember> declarations = new List<CompilationUnitMember>();
     Token memberStart = _currentToken;
-    while (!matches5(TokenType.EOF)) {
+    while (!matches(TokenType.EOF)) {
       CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
-      if ((matches(Keyword.IMPORT) || matches(Keyword.EXPORT) || matches(Keyword.LIBRARY) || matches(Keyword.PART)) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT) && !matches4(peek(), TokenType.OPEN_PAREN)) {
+      if ((matchesKeyword(Keyword.IMPORT) || matchesKeyword(Keyword.EXPORT) || matchesKeyword(Keyword.LIBRARY) || matchesKeyword(Keyword.PART)) && !tokenMatches(peek(), TokenType.PERIOD) && !tokenMatches(peek(), TokenType.LT) && !tokenMatches(peek(), TokenType.OPEN_PAREN)) {
         Directive directive = parseDirective(commentAndMetadata);
         if (declarations.length > 0 && !directiveFoundAfterDeclaration) {
-          reportError13(ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, []);
+          reportErrorForCurrentToken(ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, []);
           directiveFoundAfterDeclaration = true;
         }
         if (directive is LibraryDirective) {
           if (libraryDirectiveFound) {
-            reportError13(ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES, []);
+            reportErrorForCurrentToken(ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES, []);
           } else {
             if (directives.length > 0) {
-              reportError14(ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, directive.libraryToken, []);
+              reportErrorForToken(ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, directive.libraryToken, []);
             }
             libraryDirectiveFound = true;
           }
@@ -1826,29 +1826,29 @@ class Parser {
           partDirectiveFound = true;
         } else if (partDirectiveFound) {
           if (directive is ExportDirective) {
-            reportError14(ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, directive.keyword, []);
+            reportErrorForToken(ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, directive.keyword, []);
           } else if (directive is ImportDirective) {
-            reportError14(ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, directive.keyword, []);
+            reportErrorForToken(ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, directive.keyword, []);
           }
         }
         if (directive is PartOfDirective) {
           if (partOfDirectiveFound) {
-            reportError13(ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES, []);
+            reportErrorForCurrentToken(ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES, []);
           } else {
             int directiveCount = directives.length;
             for (int i = 0; i < directiveCount; i++) {
-              reportError14(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, directives[i].keyword, []);
+              reportErrorForToken(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, directives[i].keyword, []);
             }
             partOfDirectiveFound = true;
           }
         } else {
           if (partOfDirectiveFound) {
-            reportError14(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, directive.keyword, []);
+            reportErrorForToken(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, directive.keyword, []);
           }
         }
         directives.add(directive);
-      } else if (matches5(TokenType.SEMICOLON)) {
-        reportError14(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+      } else if (matches(TokenType.SEMICOLON)) {
+        reportErrorForToken(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
       } else {
         CompilationUnitMember member = parseCompilationUnitMember(commentAndMetadata);
@@ -1857,9 +1857,9 @@ class Parser {
         }
       }
       if (identical(_currentToken, memberStart)) {
-        reportError14(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+        reportErrorForToken(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
-        while (!matches5(TokenType.EOF) && !couldBeStartOfCompilationUnitMember()) {
+        while (!matches(TokenType.EOF) && !couldBeStartOfCompilationUnitMember()) {
           advance();
         }
       }
@@ -1880,12 +1880,12 @@ class Parser {
    */
   Expression parseConditionalExpression() {
     Expression condition = parseLogicalOrExpression();
-    if (!matches5(TokenType.QUESTION)) {
+    if (!matches(TokenType.QUESTION)) {
       return condition;
     }
     Token question = andAdvance;
     Expression thenExpression = parseExpressionWithoutCascade();
-    Token colon = expect2(TokenType.COLON);
+    Token colon = expect(TokenType.COLON);
     Expression elseExpression = parseExpressionWithoutCascade();
     return new ConditionalExpression(condition, question, thenExpression, colon, elseExpression);
   }
@@ -1904,7 +1904,7 @@ class Parser {
     TypeName type = parseTypeName();
     Token period = null;
     SimpleIdentifier name = null;
-    if (matches5(TokenType.PERIOD)) {
+    if (matches(TokenType.PERIOD)) {
       period = andAdvance;
       name = parseSimpleIdentifier();
     }
@@ -1924,9 +1924,9 @@ class Parser {
    * @return the expression that was parsed
    */
   Expression parseExpression2() {
-    if (matches(Keyword.THROW)) {
+    if (matchesKeyword(Keyword.THROW)) {
       return parseThrowExpression();
-    } else if (matches(Keyword.RETHROW)) {
+    } else if (matchesKeyword(Keyword.RETHROW)) {
       return parseRethrowExpression();
     }
     //
@@ -1967,9 +1967,9 @@ class Parser {
    * @return the expression that was parsed
    */
   Expression parseExpressionWithoutCascade() {
-    if (matches(Keyword.THROW)) {
+    if (matchesKeyword(Keyword.THROW)) {
       return parseThrowExpressionWithoutCascade();
-    } else if (matches(Keyword.RETHROW)) {
+    } else if (matchesKeyword(Keyword.RETHROW)) {
       return parseRethrowExpression();
     }
     //
@@ -1997,7 +1997,7 @@ class Parser {
    * @return the class extends clause that was parsed
    */
   ExtendsClause parseExtendsClause() {
-    Token keyword = expect(Keyword.EXTENDS);
+    Token keyword = expectKeyword(Keyword.EXTENDS);
     TypeName superclass = parseTypeName();
     return new ExtendsClause(keyword, superclass);
   }
@@ -2028,8 +2028,8 @@ class Parser {
    * @return the formal parameters that were parsed
    */
   FormalParameterList parseFormalParameterList() {
-    Token leftParenthesis = expect2(TokenType.OPEN_PAREN);
-    if (matches5(TokenType.CLOSE_PAREN)) {
+    Token leftParenthesis = expect(TokenType.OPEN_PAREN);
+    if (matches(TokenType.CLOSE_PAREN)) {
       return new FormalParameterList(leftParenthesis, null, null, null, andAdvance);
     }
     //
@@ -2059,9 +2059,9 @@ class Parser {
       } else if (!optional(TokenType.COMMA)) {
         // TODO(brianwilkerson) The token is wrong, we need to recover from this case.
         if (getEndToken(leftParenthesis) != null) {
-          reportError13(ParserErrorCode.EXPECTED_TOKEN, [TokenType.COMMA.lexeme]);
+          reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TOKEN, [TokenType.COMMA.lexeme]);
         } else {
-          reportError14(ParserErrorCode.MISSING_CLOSING_PARENTHESIS, _currentToken.previous, []);
+          reportErrorForToken(ParserErrorCode.MISSING_CLOSING_PARENTHESIS, _currentToken.previous, []);
           break;
         }
       }
@@ -2069,27 +2069,27 @@ class Parser {
       //
       // Handle the beginning of parameter groups.
       //
-      if (matches5(TokenType.OPEN_SQUARE_BRACKET)) {
+      if (matches(TokenType.OPEN_SQUARE_BRACKET)) {
         wasOptionalParameter = true;
         if (leftSquareBracket != null && !reportedMuliplePositionalGroups) {
-          reportError13(ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS, []);
+          reportErrorForCurrentToken(ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS, []);
           reportedMuliplePositionalGroups = true;
         }
         if (leftCurlyBracket != null && !reportedMixedGroups) {
-          reportError13(ParserErrorCode.MIXED_PARAMETER_GROUPS, []);
+          reportErrorForCurrentToken(ParserErrorCode.MIXED_PARAMETER_GROUPS, []);
           reportedMixedGroups = true;
         }
         leftSquareBracket = andAdvance;
         currentParameters = positionalParameters;
         kind = ParameterKind.POSITIONAL;
-      } else if (matches5(TokenType.OPEN_CURLY_BRACKET)) {
+      } else if (matches(TokenType.OPEN_CURLY_BRACKET)) {
         wasOptionalParameter = true;
         if (leftCurlyBracket != null && !reportedMulipleNamedGroups) {
-          reportError13(ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS, []);
+          reportErrorForCurrentToken(ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS, []);
           reportedMulipleNamedGroups = true;
         }
         if (leftSquareBracket != null && !reportedMixedGroups) {
-          reportError13(ParserErrorCode.MIXED_PARAMETER_GROUPS, []);
+          reportErrorForCurrentToken(ParserErrorCode.MIXED_PARAMETER_GROUPS, []);
           reportedMixedGroups = true;
         }
         leftCurlyBracket = andAdvance;
@@ -2103,49 +2103,49 @@ class Parser {
       parameters.add(parameter);
       currentParameters.add(parameter);
       if (identical(kind, ParameterKind.REQUIRED) && wasOptionalParameter) {
-        reportError12(ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS, parameter, []);
+        reportErrorForNode(ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS, parameter, []);
       }
       //
       // Handle the end of parameter groups.
       //
       // TODO(brianwilkerson) Improve the detection and reporting of missing and mismatched delimiters.
-      if (matches5(TokenType.CLOSE_SQUARE_BRACKET)) {
+      if (matches(TokenType.CLOSE_SQUARE_BRACKET)) {
         rightSquareBracket = andAdvance;
         currentParameters = normalParameters;
         if (leftSquareBracket == null) {
           if (leftCurlyBracket != null) {
-            reportError13(ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, ["}"]);
+            reportErrorForCurrentToken(ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, ["}"]);
             rightCurlyBracket = rightSquareBracket;
             rightSquareBracket = null;
           } else {
-            reportError13(ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, ["["]);
+            reportErrorForCurrentToken(ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, ["["]);
           }
         }
         kind = ParameterKind.REQUIRED;
-      } else if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
+      } else if (matches(TokenType.CLOSE_CURLY_BRACKET)) {
         rightCurlyBracket = andAdvance;
         currentParameters = normalParameters;
         if (leftCurlyBracket == null) {
           if (leftSquareBracket != null) {
-            reportError13(ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, ["]"]);
+            reportErrorForCurrentToken(ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, ["]"]);
             rightSquareBracket = rightCurlyBracket;
             rightCurlyBracket = null;
           } else {
-            reportError13(ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, ["{"]);
+            reportErrorForCurrentToken(ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, ["{"]);
           }
         }
         kind = ParameterKind.REQUIRED;
       }
-    } while (!matches5(TokenType.CLOSE_PAREN) && initialToken != _currentToken);
-    Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
+    } while (!matches(TokenType.CLOSE_PAREN) && initialToken != _currentToken);
+    Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
     //
     // Check that the groups were closed correctly.
     //
     if (leftSquareBracket != null && rightSquareBracket == null) {
-      reportError13(ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, ["]"]);
+      reportErrorForCurrentToken(ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, ["]"]);
     }
     if (leftCurlyBracket != null && rightCurlyBracket == null) {
-      reportError13(ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, ["}"]);
+      reportErrorForCurrentToken(ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, ["}"]);
     }
     //
     // Build the parameter list.
@@ -2187,7 +2187,7 @@ class Parser {
    * @return the implements clause that was parsed
    */
   ImplementsClause parseImplementsClause() {
-    Token keyword = expect(Keyword.IMPLEMENTS);
+    Token keyword = expectKeyword(Keyword.IMPLEMENTS);
     List<TypeName> interfaces = new List<TypeName>();
     interfaces.add(parseTypeName());
     while (optional(TokenType.COMMA)) {
@@ -2208,7 +2208,7 @@ class Parser {
    */
   Label parseLabel() {
     SimpleIdentifier label = parseSimpleIdentifier();
-    Token colon = expect2(TokenType.COLON);
+    Token colon = expect(TokenType.COLON);
     return new Label(label, colon);
   }
 
@@ -2225,7 +2225,7 @@ class Parser {
   LibraryIdentifier parseLibraryIdentifier() {
     List<SimpleIdentifier> components = new List<SimpleIdentifier>();
     components.add(parseSimpleIdentifier());
-    while (matches5(TokenType.PERIOD)) {
+    while (matches(TokenType.PERIOD)) {
       advance();
       components.add(parseSimpleIdentifier());
     }
@@ -2244,7 +2244,7 @@ class Parser {
    */
   Expression parseLogicalOrExpression() {
     Expression expression = parseLogicalAndExpression();
-    while (matches5(TokenType.BAR_BAR)) {
+    while (matches(TokenType.BAR_BAR)) {
       Token operator = andAdvance;
       expression = new BinaryExpression(expression, operator, parseLogicalAndExpression());
     }
@@ -2263,7 +2263,7 @@ class Parser {
    */
   MapLiteralEntry parseMapLiteralEntry() {
     Expression key = parseExpression2();
-    Token separator = expect2(TokenType.COLON);
+    Token separator = expect(TokenType.COLON);
     Expression value = parseExpression2();
     return new MapLiteralEntry(key, separator, value);
   }
@@ -2295,16 +2295,16 @@ class Parser {
     FinalConstVarOrType holder = parseFinalConstVarOrType(true);
     Token thisKeyword = null;
     Token period = null;
-    if (matches(Keyword.THIS)) {
+    if (matchesKeyword(Keyword.THIS)) {
       thisKeyword = andAdvance;
-      period = expect2(TokenType.PERIOD);
+      period = expect(TokenType.PERIOD);
     }
     SimpleIdentifier identifier = parseSimpleIdentifier();
-    if (matches5(TokenType.OPEN_PAREN)) {
+    if (matches(TokenType.OPEN_PAREN)) {
       FormalParameterList parameters = parseFormalParameterList();
       if (thisKeyword == null) {
         if (holder.keyword != null) {
-          reportError14(ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, holder.keyword, []);
+          reportErrorForToken(ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, holder.keyword, []);
         }
         return new FunctionTypedFormalParameter(commentAndMetadata.comment, commentAndMetadata.metadata, holder.type, identifier, parameters);
       } else {
@@ -2313,10 +2313,10 @@ class Parser {
     }
     TypeName type = holder.type;
     if (type != null) {
-      if (matches3(type.name.beginToken, Keyword.VOID)) {
-        reportError14(ParserErrorCode.VOID_PARAMETER, type.name.beginToken, []);
-      } else if (holder.keyword != null && matches3(holder.keyword, Keyword.VAR)) {
-        reportError14(ParserErrorCode.VAR_AND_TYPE, holder.keyword, []);
+      if (tokenMatchesKeyword(type.name.beginToken, Keyword.VOID)) {
+        reportErrorForToken(ParserErrorCode.VOID_PARAMETER, type.name.beginToken, []);
+      } else if (holder.keyword != null && tokenMatchesKeyword(holder.keyword, Keyword.VAR)) {
+        reportErrorForToken(ParserErrorCode.VAR_AND_TYPE, holder.keyword, []);
       }
     }
     if (thisKeyword != null) {
@@ -2337,7 +2337,7 @@ class Parser {
    */
   Identifier parsePrefixedIdentifier() {
     SimpleIdentifier qualifier = parseSimpleIdentifier();
-    if (!matches5(TokenType.PERIOD)) {
+    if (!matches(TokenType.PERIOD)) {
       return qualifier;
     }
     Token period = andAdvance;
@@ -2357,7 +2357,7 @@ class Parser {
    * @return the return type that was parsed
    */
   TypeName parseReturnType() {
-    if (matches(Keyword.VOID)) {
+    if (matchesKeyword(Keyword.VOID)) {
       return new TypeName(new SimpleIdentifier(andAdvance), null);
     } else {
       return parseTypeName();
@@ -2378,7 +2378,7 @@ class Parser {
     if (matchesIdentifier()) {
       return new SimpleIdentifier(andAdvance);
     }
-    reportError13(ParserErrorCode.MISSING_IDENTIFIER, []);
+    reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER, []);
     return createSyntheticIdentifier();
   }
 
@@ -2394,7 +2394,7 @@ class Parser {
    */
   Statement parseStatement2() {
     List<Label> labels = new List<Label>();
-    while (matchesIdentifier() && matches4(peek(), TokenType.COLON)) {
+    while (matchesIdentifier() && tokenMatches(peek(), TokenType.COLON)) {
       labels.add(parseLabel());
     }
     Statement statement = parseNonLabeledStatement();
@@ -2417,16 +2417,16 @@ class Parser {
    */
   StringLiteral parseStringLiteral() {
     List<StringLiteral> strings = new List<StringLiteral>();
-    while (matches5(TokenType.STRING)) {
+    while (matches(TokenType.STRING)) {
       Token string = andAdvance;
-      if (matches5(TokenType.STRING_INTERPOLATION_EXPRESSION) || matches5(TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
+      if (matches(TokenType.STRING_INTERPOLATION_EXPRESSION) || matches(TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
         strings.add(parseStringInterpolation(string));
       } else {
         strings.add(new SimpleStringLiteral(string, computeStringValue(string.lexeme, true, true)));
       }
     }
     if (strings.length < 1) {
-      reportError13(ParserErrorCode.EXPECTED_STRING_LITERAL, []);
+      reportErrorForCurrentToken(ParserErrorCode.EXPECTED_STRING_LITERAL, []);
       return createSyntheticStringLiteral();
     } else if (strings.length == 1) {
       return strings[0];
@@ -2449,13 +2449,13 @@ class Parser {
    * @return the type argument list that was parsed
    */
   TypeArgumentList parseTypeArgumentList() {
-    Token leftBracket = expect2(TokenType.LT);
+    Token leftBracket = expect(TokenType.LT);
     List<TypeName> arguments = new List<TypeName>();
     arguments.add(parseTypeName());
     while (optional(TokenType.COMMA)) {
       arguments.add(parseTypeName());
     }
-    Token rightBracket = expect2(TokenType.GT);
+    Token rightBracket = expect(TokenType.GT);
     return new TypeArgumentList(leftBracket, arguments, rightBracket);
   }
 
@@ -2471,17 +2471,17 @@ class Parser {
    */
   TypeName parseTypeName() {
     Identifier typeName;
-    if (matches(Keyword.VAR)) {
-      reportError13(ParserErrorCode.VAR_AS_TYPE_NAME, []);
+    if (matchesKeyword(Keyword.VAR)) {
+      reportErrorForCurrentToken(ParserErrorCode.VAR_AS_TYPE_NAME, []);
       typeName = new SimpleIdentifier(andAdvance);
     } else if (matchesIdentifier()) {
       typeName = parsePrefixedIdentifier();
     } else {
       typeName = createSyntheticIdentifier();
-      reportError13(ParserErrorCode.EXPECTED_TYPE_NAME, []);
+      reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TYPE_NAME, []);
     }
     TypeArgumentList typeArguments = null;
-    if (matches5(TokenType.LT)) {
+    if (matches(TokenType.LT)) {
       typeArguments = parseTypeArgumentList();
     }
     return new TypeName(typeName, typeArguments);
@@ -2500,7 +2500,7 @@ class Parser {
   TypeParameter parseTypeParameter() {
     CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
     SimpleIdentifier name = parseSimpleIdentifier();
-    if (matches(Keyword.EXTENDS)) {
+    if (matchesKeyword(Keyword.EXTENDS)) {
       Token keyword = andAdvance;
       TypeName bound = parseTypeName();
       return new TypeParameter(commentAndMetadata.comment, commentAndMetadata.metadata, name, keyword, bound);
@@ -2519,13 +2519,13 @@ class Parser {
    * @return the list of type parameters that were parsed
    */
   TypeParameterList parseTypeParameterList() {
-    Token leftBracket = expect2(TokenType.LT);
+    Token leftBracket = expect(TokenType.LT);
     List<TypeParameter> typeParameters = new List<TypeParameter>();
     typeParameters.add(parseTypeParameter());
     while (optional(TokenType.COMMA)) {
       typeParameters.add(parseTypeParameter());
     }
-    Token rightBracket = expect2(TokenType.GT);
+    Token rightBracket = expect(TokenType.GT);
     return new TypeParameterList(leftBracket, typeParameters, rightBracket);
   }
 
@@ -2540,7 +2540,7 @@ class Parser {
    * @return the with clause that was parsed
    */
   WithClause parseWithClause() {
-    Token with2 = expect(Keyword.WITH);
+    Token with2 = expectKeyword(Keyword.WITH);
     List<TypeName> types = new List<TypeName>();
     types.add(parseTypeName());
     while (optional(TokenType.COMMA)) {
@@ -2573,7 +2573,7 @@ class Parser {
    */
   void appendScalarValue(JavaStringBuilder builder, String escapeSequence, int scalarValue, int startIndex, int endIndex) {
     if (scalarValue < 0 || scalarValue > Character.MAX_CODE_POINT || (scalarValue >= 0xD800 && scalarValue <= 0xDFFF)) {
-      reportError13(ParserErrorCode.INVALID_CODE_POINT, [escapeSequence]);
+      reportErrorForCurrentToken(ParserErrorCode.INVALID_CODE_POINT, [escapeSequence]);
       return;
     }
     if (scalarValue < Character.MAX_VALUE) {
@@ -2647,20 +2647,20 @@ class Parser {
    * @return `true` if the current token could be the start of a compilation unit member
    */
   bool couldBeStartOfCompilationUnitMember() {
-    if ((matches(Keyword.IMPORT) || matches(Keyword.EXPORT) || matches(Keyword.LIBRARY) || matches(Keyword.PART)) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
+    if ((matchesKeyword(Keyword.IMPORT) || matchesKeyword(Keyword.EXPORT) || matchesKeyword(Keyword.LIBRARY) || matchesKeyword(Keyword.PART)) && !tokenMatches(peek(), TokenType.PERIOD) && !tokenMatches(peek(), TokenType.LT)) {
       // This looks like the start of a directive
       return true;
-    } else if (matches(Keyword.CLASS)) {
+    } else if (matchesKeyword(Keyword.CLASS)) {
       // This looks like the start of a class definition
       return true;
-    } else if (matches(Keyword.TYPEDEF) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
+    } else if (matchesKeyword(Keyword.TYPEDEF) && !tokenMatches(peek(), TokenType.PERIOD) && !tokenMatches(peek(), TokenType.LT)) {
       // This looks like the start of a typedef
       return true;
-    } else if (matches(Keyword.VOID) || ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier2(peek())) || (matches(Keyword.OPERATOR) && isOperator(peek()))) {
+    } else if (matchesKeyword(Keyword.VOID) || ((matchesKeyword(Keyword.GET) || matchesKeyword(Keyword.SET)) && tokenMatchesIdentifier(peek())) || (matchesKeyword(Keyword.OPERATOR) && isOperator(peek()))) {
       // This looks like the start of a function
       return true;
     } else if (matchesIdentifier()) {
-      if (matches4(peek(), TokenType.OPEN_PAREN)) {
+      if (tokenMatches(peek(), TokenType.OPEN_PAREN)) {
         // This looks like the start of a function
         return true;
       }
@@ -2668,7 +2668,7 @@ class Parser {
       if (token == null) {
         return false;
       }
-      if (matches(Keyword.GET) || matches(Keyword.SET) || (matches(Keyword.OPERATOR) && isOperator(peek())) || matchesIdentifier()) {
+      if (matchesKeyword(Keyword.GET) || matchesKeyword(Keyword.SET) || (matchesKeyword(Keyword.OPERATOR) && isOperator(peek())) || matchesIdentifier()) {
         return true;
       }
     }
@@ -2689,31 +2689,31 @@ class Parser {
       // In the code completion behavior will depend on a cursor position - before or on "is".
       syntheticToken = injectToken(new SyntheticStringToken(TokenType.IDENTIFIER, _currentToken.lexeme, _currentToken.offset));
     } else {
-      syntheticToken = createSyntheticToken2(TokenType.IDENTIFIER);
+      syntheticToken = createSyntheticToken(TokenType.IDENTIFIER);
     }
     return new SimpleIdentifier(syntheticToken);
   }
-
-  /**
-   * Create a synthetic string literal.
-   *
-   * @return the synthetic string literal that was created
-   */
-  SimpleStringLiteral createSyntheticStringLiteral() => new SimpleStringLiteral(createSyntheticToken2(TokenType.STRING), "");
 
   /**
    * Create a synthetic token representing the given keyword.
    *
    * @return the synthetic token that was created
    */
-  Token createSyntheticToken(Keyword keyword) => injectToken(new Parser_SyntheticKeywordToken(keyword, _currentToken.offset));
+  Token createSyntheticKeyword(Keyword keyword) => injectToken(new Parser_SyntheticKeywordToken(keyword, _currentToken.offset));
+
+  /**
+   * Create a synthetic string literal.
+   *
+   * @return the synthetic string literal that was created
+   */
+  SimpleStringLiteral createSyntheticStringLiteral() => new SimpleStringLiteral(createSyntheticToken(TokenType.STRING), "");
 
   /**
    * Create a synthetic token with the given type.
    *
    * @return the synthetic token that was created
    */
-  Token createSyntheticToken2(TokenType type) => injectToken(new StringToken(type, "", _currentToken.offset));
+  Token createSyntheticToken(TokenType type) => injectToken(new StringToken(type, "", _currentToken.offset));
 
   /**
    * Check that the given expression is assignable and report an error if it isn't.
@@ -2733,25 +2733,8 @@ class Parser {
    */
   void ensureAssignable(Expression expression) {
     if (expression != null && !expression.isAssignable) {
-      reportError13(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, []);
+      reportErrorForCurrentToken(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, []);
     }
-  }
-
-  /**
-   * If the current token is a keyword matching the given string, return it after advancing to the
-   * next token. Otherwise report an error and return the current token without advancing.
-   *
-   * @param keyword the keyword that is expected
-   * @return the token that matched the given type
-   */
-  Token expect(Keyword keyword) {
-    if (matches(keyword)) {
-      return andAdvance;
-    }
-    // Remove uses of this method in favor of matches?
-    // Pass in the error code to use to report the error?
-    reportError13(ParserErrorCode.EXPECTED_TOKEN, [keyword.syntax]);
-    return _currentToken;
   }
 
   /**
@@ -2761,17 +2744,34 @@ class Parser {
    * @param type the type of token that is expected
    * @return the token that matched the given type
    */
-  Token expect2(TokenType type) {
-    if (matches5(type)) {
+  Token expect(TokenType type) {
+    if (matches(type)) {
       return andAdvance;
     }
     // Remove uses of this method in favor of matches?
     // Pass in the error code to use to report the error?
     if (identical(type, TokenType.SEMICOLON)) {
-      reportError14(ParserErrorCode.EXPECTED_TOKEN, _currentToken.previous, [type.lexeme]);
+      reportErrorForToken(ParserErrorCode.EXPECTED_TOKEN, _currentToken.previous, [type.lexeme]);
     } else {
-      reportError13(ParserErrorCode.EXPECTED_TOKEN, [type.lexeme]);
+      reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TOKEN, [type.lexeme]);
     }
+    return _currentToken;
+  }
+
+  /**
+   * If the current token is a keyword matching the given string, return it after advancing to the
+   * next token. Otherwise report an error and return the current token without advancing.
+   *
+   * @param keyword the keyword that is expected
+   * @return the token that matched the given type
+   */
+  Token expectKeyword(Keyword keyword) {
+    if (matchesKeyword(keyword)) {
+      return andAdvance;
+    }
+    // Remove uses of this method in favor of matches?
+    // Pass in the error code to use to report the error?
+    reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TOKEN, [keyword.syntax]);
     return _currentToken;
   }
 
@@ -2782,11 +2782,11 @@ class Parser {
    * TODO(scheglov) consider pushing this into [expect]
    */
   Token expectSemicolon() {
-    if (matches5(TokenType.SEMICOLON)) {
+    if (matches(TokenType.SEMICOLON)) {
       return andAdvance;
     } else {
-      reportError14(ParserErrorCode.EXPECTED_TOKEN, _currentToken.previous, [";"]);
-      return createSyntheticToken2(TokenType.SEMICOLON);
+      reportErrorForToken(ParserErrorCode.EXPECTED_TOKEN, _currentToken.previous, [";"]);
+      return createSyntheticToken(TokenType.SEMICOLON);
     }
   }
 
@@ -2901,7 +2901,7 @@ class Parser {
     if (next == null) {
       return false;
     }
-    return matchesIdentifier2(next);
+    return tokenMatchesIdentifier(next);
   }
 
   /**
@@ -2923,7 +2923,7 @@ class Parser {
    * @return `true` if the current token appears to be the beginning of a function declaration
    */
   bool isFunctionDeclaration() {
-    if (matches(Keyword.VOID)) {
+    if (matchesKeyword(Keyword.VOID)) {
       return true;
     }
     Token afterReturnType = skipTypeName(_currentToken);
@@ -2945,12 +2945,12 @@ class Parser {
     }
     // It's possible that we have found a getter. While this isn't valid at this point we test for
     // it in order to recover better.
-    if (matches(Keyword.GET)) {
+    if (matchesKeyword(Keyword.GET)) {
       Token afterName = skipSimpleIdentifier(_currentToken.next);
       if (afterName == null) {
         return false;
       }
-      return matches4(afterName, TokenType.FUNCTION) || matches4(afterName, TokenType.OPEN_CURLY_BRACKET);
+      return tokenMatches(afterName, TokenType.FUNCTION) || tokenMatches(afterName, TokenType.OPEN_CURLY_BRACKET);
     }
     return false;
   }
@@ -3006,11 +3006,11 @@ class Parser {
    *         declaration
    */
   bool isInitializedVariableDeclaration() {
-    if (matches(Keyword.FINAL) || matches(Keyword.VAR)) {
+    if (matchesKeyword(Keyword.FINAL) || matchesKeyword(Keyword.VAR)) {
       // An expression cannot start with a keyword other than 'const', 'rethrow', or 'throw'.
       return true;
     }
-    if (matches(Keyword.CONST)) {
+    if (matchesKeyword(Keyword.CONST)) {
       // Look to see whether we might be at the start of a list or map literal, otherwise this
       // should be the start of a variable declaration.
       return !matchesAny(peek(), [
@@ -3030,7 +3030,7 @@ class Parser {
       return false;
     }
     TokenType type = token.type;
-    return identical(type, TokenType.EQ) || identical(type, TokenType.COMMA) || identical(type, TokenType.SEMICOLON) || matches3(token, Keyword.IN);
+    return identical(type, TokenType.EQ) || identical(type, TokenType.COMMA) || identical(type, TokenType.SEMICOLON) || tokenMatchesKeyword(token, Keyword.IN);
   }
 
   /**
@@ -3086,7 +3086,7 @@ class Parser {
       token = token.next;
     }
     // Formal parameter list is expect now.
-    return matches4(token, TokenType.OPEN_PAREN);
+    return tokenMatches(token, TokenType.OPEN_PAREN);
   }
 
   /**
@@ -3096,7 +3096,7 @@ class Parser {
    */
   bool isSwitchMember() {
     Token token = _currentToken;
-    while (matches4(token, TokenType.IDENTIFIER) && matches4(token.next, TokenType.COLON)) {
+    while (tokenMatches(token, TokenType.IDENTIFIER) && tokenMatches(token.next, TokenType.COLON)) {
       token = token.next.next;
     }
     if (identical(token.type, TokenType.KEYWORD)) {
@@ -3117,9 +3117,9 @@ class Parser {
     Token token = skipReturnType(startToken);
     if (token == null) {
       return false;
-    } else if (matchesIdentifier2(token)) {
+    } else if (tokenMatchesIdentifier(token)) {
       return true;
-    } else if (matches3(token, Keyword.THIS) && matches4(token.next, TokenType.PERIOD) && matchesIdentifier2(token.next.next)) {
+    } else if (tokenMatchesKeyword(token, Keyword.THIS) && tokenMatches(token.next, TokenType.PERIOD) && tokenMatchesIdentifier(token.next.next)) {
       return true;
     }
     return false;
@@ -3158,40 +3158,6 @@ class Parser {
   }
 
   /**
-   * Return `true` if the current token matches the given keyword.
-   *
-   * @param keyword the keyword that can optionally appear in the current location
-   * @return `true` if the current token matches the given keyword
-   */
-  bool matches(Keyword keyword) => matches3(_currentToken, keyword);
-
-  /**
-   * Return `true` if the current token matches the given identifier.
-   *
-   * @param identifier the identifier that can optionally appear in the current location
-   * @return `true` if the current token matches the given identifier
-   */
-  bool matches2(String identifier) => identical(_currentToken.type, TokenType.IDENTIFIER) && _currentToken.lexeme == identifier;
-
-  /**
-   * Return `true` if the given token matches the given keyword.
-   *
-   * @param token the token being tested
-   * @param keyword the keyword that is being tested for
-   * @return `true` if the given token matches the given keyword
-   */
-  bool matches3(Token token, Keyword keyword) => identical(token.type, TokenType.KEYWORD) && identical((token as KeywordToken).keyword, keyword);
-
-  /**
-   * Return `true` if the given token has the given type.
-   *
-   * @param token the token being tested
-   * @param type the type of token that is being tested for
-   * @return `true` if the given token has the given type
-   */
-  bool matches4(Token token, TokenType type) => identical(token.type, type);
-
-  /**
    * Return `true` if the current token has the given type. Note that this method, unlike
    * other variants, will modify the token stream if possible to match a wider range of tokens. In
    * particular, if we are attempting to match a '>' and the next token is either a '>>' or '>>>',
@@ -3200,7 +3166,7 @@ class Parser {
    * @param type the type of token that can optionally appear in the current location
    * @return `true` if the current token has the given type
    */
-  bool matches5(TokenType type) {
+  bool matches(TokenType type) {
     TokenType currentType = _currentToken.type;
     if (currentType != type) {
       if (identical(type, TokenType.GT)) {
@@ -3263,15 +3229,23 @@ class Parser {
    *
    * @return `true` if the current token is a valid identifier
    */
-  bool matchesIdentifier() => matchesIdentifier2(_currentToken);
+  bool matchesIdentifier() => tokenMatchesIdentifier(_currentToken);
 
   /**
-   * Return `true` if the given token is a valid identifier. Valid identifiers include
-   * built-in identifiers (pseudo-keywords).
+   * Return `true` if the current token matches the given keyword.
    *
-   * @return `true` if the given token is a valid identifier
+   * @param keyword the keyword that can optionally appear in the current location
+   * @return `true` if the current token matches the given keyword
    */
-  bool matchesIdentifier2(Token token) => matches4(token, TokenType.IDENTIFIER) || (matches4(token, TokenType.KEYWORD) && (token as KeywordToken).keyword.isPseudoKeyword);
+  bool matchesKeyword(Keyword keyword) => tokenMatchesKeyword(_currentToken, keyword);
+
+  /**
+   * Return `true` if the current token matches the given identifier.
+   *
+   * @param identifier the identifier that can optionally appear in the current location
+   * @return `true` if the current token matches the given identifier
+   */
+  bool matchesString(String identifier) => identical(_currentToken.type, TokenType.IDENTIFIER) && _currentToken.lexeme == identifier;
 
   /**
    * If the current token has the given type, then advance to the next token and return `true`
@@ -3281,7 +3255,7 @@ class Parser {
    * @return `true` if the current token has the given type
    */
   bool optional(TokenType type) {
-    if (matches5(type)) {
+    if (matches(type)) {
       advance();
       return true;
     }
@@ -3301,7 +3275,7 @@ class Parser {
    */
   Expression parseAdditiveExpression() {
     Expression expression;
-    if (matches(Keyword.SUPER) && _currentToken.next.type.isAdditiveOperator) {
+    if (matchesKeyword(Keyword.SUPER) && _currentToken.next.type.isAdditiveOperator) {
       expression = new SuperExpression(andAdvance);
     } else {
       expression = parseMultiplicativeExpression();
@@ -3324,9 +3298,9 @@ class Parser {
    * @return the argument definition test that was parsed
    */
   ArgumentDefinitionTest parseArgumentDefinitionTest() {
-    Token question = expect2(TokenType.QUESTION);
+    Token question = expect(TokenType.QUESTION);
     SimpleIdentifier identifier = parseSimpleIdentifier();
-    reportError14(ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST, question, []);
+    reportErrorForToken(ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST, question, []);
     return new ArgumentDefinitionTest(question, identifier);
   }
 
@@ -3341,20 +3315,20 @@ class Parser {
    * @return the assert statement
    */
   AssertStatement parseAssertStatement() {
-    Token keyword = expect(Keyword.ASSERT);
-    Token leftParen = expect2(TokenType.OPEN_PAREN);
+    Token keyword = expectKeyword(Keyword.ASSERT);
+    Token leftParen = expect(TokenType.OPEN_PAREN);
     Expression expression = parseExpression2();
     if (expression is AssignmentExpression) {
-      reportError12(ParserErrorCode.ASSERT_DOES_NOT_TAKE_ASSIGNMENT, expression, []);
+      reportErrorForNode(ParserErrorCode.ASSERT_DOES_NOT_TAKE_ASSIGNMENT, expression, []);
     } else if (expression is CascadeExpression) {
-      reportError12(ParserErrorCode.ASSERT_DOES_NOT_TAKE_CASCADE, expression, []);
+      reportErrorForNode(ParserErrorCode.ASSERT_DOES_NOT_TAKE_CASCADE, expression, []);
     } else if (expression is ThrowExpression) {
-      reportError12(ParserErrorCode.ASSERT_DOES_NOT_TAKE_THROW, expression, []);
+      reportErrorForNode(ParserErrorCode.ASSERT_DOES_NOT_TAKE_THROW, expression, []);
     } else if (expression is RethrowExpression) {
-      reportError12(ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW, expression, []);
+      reportErrorForNode(ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW, expression, []);
     }
-    Token rightParen = expect2(TokenType.CLOSE_PAREN);
-    Token semicolon = expect2(TokenType.SEMICOLON);
+    Token rightParen = expect(TokenType.CLOSE_PAREN);
+    Token semicolon = expect(TokenType.SEMICOLON);
     return new AssertStatement(keyword, leftParen, expression, rightParen, semicolon);
   }
 
@@ -3373,7 +3347,7 @@ class Parser {
    * @return the assignable expression that was parsed
    */
   Expression parseAssignableExpression(bool primaryAllowed) {
-    if (matches(Keyword.SUPER)) {
+    if (matchesKeyword(Keyword.SUPER)) {
       return parseAssignableSelector(new SuperExpression(andAdvance), false);
     }
     //
@@ -3384,7 +3358,7 @@ class Parser {
     Expression expression = parsePrimaryExpression();
     bool isOptional = primaryAllowed || expression is SimpleIdentifier;
     while (true) {
-      while (matches5(TokenType.OPEN_PAREN)) {
+      while (matches(TokenType.OPEN_PAREN)) {
         ArgumentList argumentList = parseArgumentList();
         if (expression is SimpleIdentifier) {
           expression = new MethodInvocation(null, null, expression as SimpleIdentifier, argumentList);
@@ -3428,18 +3402,18 @@ class Parser {
    * @return the assignable selector that was parsed
    */
   Expression parseAssignableSelector(Expression prefix, bool optional) {
-    if (matches5(TokenType.OPEN_SQUARE_BRACKET)) {
+    if (matches(TokenType.OPEN_SQUARE_BRACKET)) {
       Token leftBracket = andAdvance;
       Expression index = parseExpression2();
-      Token rightBracket = expect2(TokenType.CLOSE_SQUARE_BRACKET);
+      Token rightBracket = expect(TokenType.CLOSE_SQUARE_BRACKET);
       return new IndexExpression.forTarget(prefix, leftBracket, index, rightBracket);
-    } else if (matches5(TokenType.PERIOD)) {
+    } else if (matches(TokenType.PERIOD)) {
       Token period = andAdvance;
       return new PropertyAccess(prefix, period, parseSimpleIdentifier());
     } else {
       if (!optional) {
         // Report the missing selector.
-        reportError13(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, []);
+        reportErrorForCurrentToken(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, []);
       }
       return prefix;
     }
@@ -3458,12 +3432,12 @@ class Parser {
    */
   Expression parseBitwiseAndExpression() {
     Expression expression;
-    if (matches(Keyword.SUPER) && matches4(peek(), TokenType.AMPERSAND)) {
+    if (matchesKeyword(Keyword.SUPER) && tokenMatches(peek(), TokenType.AMPERSAND)) {
       expression = new SuperExpression(andAdvance);
     } else {
       expression = parseShiftExpression();
     }
-    while (matches5(TokenType.AMPERSAND)) {
+    while (matches(TokenType.AMPERSAND)) {
       Token operator = andAdvance;
       expression = new BinaryExpression(expression, operator, parseShiftExpression());
     }
@@ -3483,12 +3457,12 @@ class Parser {
    */
   Expression parseBitwiseXorExpression() {
     Expression expression;
-    if (matches(Keyword.SUPER) && matches4(peek(), TokenType.CARET)) {
+    if (matchesKeyword(Keyword.SUPER) && tokenMatches(peek(), TokenType.CARET)) {
       expression = new SuperExpression(andAdvance);
     } else {
       expression = parseBitwiseAndExpression();
     }
-    while (matches5(TokenType.CARET)) {
+    while (matches(TokenType.CARET)) {
       Token operator = andAdvance;
       expression = new BinaryExpression(expression, operator, parseBitwiseAndExpression());
     }
@@ -3506,15 +3480,15 @@ class Parser {
    * @return the break statement that was parsed
    */
   Statement parseBreakStatement() {
-    Token breakKeyword = expect(Keyword.BREAK);
+    Token breakKeyword = expectKeyword(Keyword.BREAK);
     SimpleIdentifier label = null;
     if (matchesIdentifier()) {
       label = parseSimpleIdentifier();
     }
     if (!_inLoop && !_inSwitch && label == null) {
-      reportError14(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, breakKeyword, []);
+      reportErrorForToken(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, breakKeyword, []);
     }
-    Token semicolon = expect2(TokenType.SEMICOLON);
+    Token semicolon = expect(TokenType.SEMICOLON);
     return new BreakStatement(breakKeyword, label, semicolon);
   }
 
@@ -3536,7 +3510,7 @@ class Parser {
    * @return the expression representing the cascaded method invocation
    */
   Expression parseCascadeSection() {
-    Token period = expect2(TokenType.PERIOD_PERIOD);
+    Token period = expect(TokenType.PERIOD_PERIOD);
     Expression expression = null;
     SimpleIdentifier functionName = null;
     if (matchesIdentifier()) {
@@ -3544,11 +3518,11 @@ class Parser {
     } else if (identical(_currentToken.type, TokenType.OPEN_SQUARE_BRACKET)) {
       Token leftBracket = andAdvance;
       Expression index = parseExpression2();
-      Token rightBracket = expect2(TokenType.CLOSE_SQUARE_BRACKET);
+      Token rightBracket = expect(TokenType.CLOSE_SQUARE_BRACKET);
       expression = new IndexExpression.forCascade(period, leftBracket, index, rightBracket);
       period = null;
     } else {
-      reportError14(ParserErrorCode.MISSING_IDENTIFIER, _currentToken, [_currentToken.lexeme]);
+      reportErrorForToken(ParserErrorCode.MISSING_IDENTIFIER, _currentToken, [_currentToken.lexeme]);
       functionName = createSyntheticIdentifier();
     }
     if (identical(_currentToken.type, TokenType.OPEN_PAREN)) {
@@ -3608,22 +3582,22 @@ class Parser {
    * @return the class declaration that was parsed
    */
   CompilationUnitMember parseClassDeclaration(CommentAndMetadata commentAndMetadata, Token abstractKeyword) {
-    Token keyword = expect(Keyword.CLASS);
+    Token keyword = expectKeyword(Keyword.CLASS);
     if (matchesIdentifier()) {
       Token next = peek();
-      if (matches4(next, TokenType.LT)) {
+      if (tokenMatches(next, TokenType.LT)) {
         next = skipTypeParameterList(next);
-        if (next != null && matches4(next, TokenType.EQ)) {
+        if (next != null && tokenMatches(next, TokenType.EQ)) {
           return parseClassTypeAlias(commentAndMetadata, abstractKeyword, keyword);
         }
-      } else if (matches4(next, TokenType.EQ)) {
+      } else if (tokenMatches(next, TokenType.EQ)) {
         return parseClassTypeAlias(commentAndMetadata, abstractKeyword, keyword);
       }
     }
     SimpleIdentifier name = parseSimpleIdentifier();
     String className = name.name;
     TypeParameterList typeParameters = null;
-    if (matches5(TokenType.LT)) {
+    if (matches(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
     }
     //
@@ -3635,33 +3609,33 @@ class Parser {
     ImplementsClause implementsClause = null;
     bool foundClause = true;
     while (foundClause) {
-      if (matches(Keyword.EXTENDS)) {
+      if (matchesKeyword(Keyword.EXTENDS)) {
         if (extendsClause == null) {
           extendsClause = parseExtendsClause();
           if (withClause != null) {
-            reportError14(ParserErrorCode.WITH_BEFORE_EXTENDS, withClause.withKeyword, []);
+            reportErrorForToken(ParserErrorCode.WITH_BEFORE_EXTENDS, withClause.withKeyword, []);
           } else if (implementsClause != null) {
-            reportError14(ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS, implementsClause.keyword, []);
+            reportErrorForToken(ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS, implementsClause.keyword, []);
           }
         } else {
-          reportError14(ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES, extendsClause.keyword, []);
+          reportErrorForToken(ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES, extendsClause.keyword, []);
           parseExtendsClause();
         }
-      } else if (matches(Keyword.WITH)) {
+      } else if (matchesKeyword(Keyword.WITH)) {
         if (withClause == null) {
           withClause = parseWithClause();
           if (implementsClause != null) {
-            reportError14(ParserErrorCode.IMPLEMENTS_BEFORE_WITH, implementsClause.keyword, []);
+            reportErrorForToken(ParserErrorCode.IMPLEMENTS_BEFORE_WITH, implementsClause.keyword, []);
           }
         } else {
-          reportError14(ParserErrorCode.MULTIPLE_WITH_CLAUSES, withClause.withKeyword, []);
+          reportErrorForToken(ParserErrorCode.MULTIPLE_WITH_CLAUSES, withClause.withKeyword, []);
           parseWithClause();
         }
-      } else if (matches(Keyword.IMPLEMENTS)) {
+      } else if (matchesKeyword(Keyword.IMPLEMENTS)) {
         if (implementsClause == null) {
           implementsClause = parseImplementsClause();
         } else {
-          reportError14(ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES, implementsClause.keyword, []);
+          reportErrorForToken(ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES, implementsClause.keyword, []);
           parseImplementsClause();
         }
       } else {
@@ -3669,13 +3643,13 @@ class Parser {
       }
     }
     if (withClause != null && extendsClause == null) {
-      reportError14(ParserErrorCode.WITH_WITHOUT_EXTENDS, withClause.withKeyword, []);
+      reportErrorForToken(ParserErrorCode.WITH_WITHOUT_EXTENDS, withClause.withKeyword, []);
     }
     //
     // Look for and skip over the extra-lingual 'native' specification.
     //
     NativeClause nativeClause = null;
-    if (matches2(_NATIVE) && matches4(peek(), TokenType.STRING)) {
+    if (matchesString(_NATIVE) && tokenMatches(peek(), TokenType.STRING)) {
       nativeClause = parseNativeClause();
     }
     //
@@ -3684,14 +3658,14 @@ class Parser {
     Token leftBracket = null;
     List<ClassMember> members = null;
     Token rightBracket = null;
-    if (matches5(TokenType.OPEN_CURLY_BRACKET)) {
-      leftBracket = expect2(TokenType.OPEN_CURLY_BRACKET);
+    if (matches(TokenType.OPEN_CURLY_BRACKET)) {
+      leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
       members = parseClassMembers(className, getEndToken(leftBracket));
-      rightBracket = expect2(TokenType.CLOSE_CURLY_BRACKET);
+      rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
     } else {
-      leftBracket = createSyntheticToken2(TokenType.OPEN_CURLY_BRACKET);
-      rightBracket = createSyntheticToken2(TokenType.CLOSE_CURLY_BRACKET);
-      reportError13(ParserErrorCode.MISSING_CLASS_BODY, []);
+      leftBracket = createSyntheticToken(TokenType.OPEN_CURLY_BRACKET);
+      rightBracket = createSyntheticToken(TokenType.CLOSE_CURLY_BRACKET);
+      reportErrorForCurrentToken(ParserErrorCode.MISSING_CLASS_BODY, []);
     }
     ClassDeclaration classDeclaration = new ClassDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, abstractKeyword, keyword, name, typeParameters, extendsClause, withClause, implementsClause, leftBracket, members, rightBracket);
     classDeclaration.nativeClause = nativeClause;
@@ -3714,9 +3688,9 @@ class Parser {
   List<ClassMember> parseClassMembers(String className, Token closingBracket) {
     List<ClassMember> members = new List<ClassMember>();
     Token memberStart = _currentToken;
-    while (!matches5(TokenType.EOF) && !matches5(TokenType.CLOSE_CURLY_BRACKET) && (closingBracket != null || (!matches(Keyword.CLASS) && !matches(Keyword.TYPEDEF)))) {
-      if (matches5(TokenType.SEMICOLON)) {
-        reportError14(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+    while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET) && (closingBracket != null || (!matchesKeyword(Keyword.CLASS) && !matchesKeyword(Keyword.TYPEDEF)))) {
+      if (matches(TokenType.SEMICOLON)) {
+        reportErrorForToken(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
       } else {
         ClassMember member = parseClassMember(className);
@@ -3725,7 +3699,7 @@ class Parser {
         }
       }
       if (identical(_currentToken, memberStart)) {
-        reportError14(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+        reportErrorForToken(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
       }
       memberStart = _currentToken;
@@ -3752,35 +3726,35 @@ class Parser {
   ClassTypeAlias parseClassTypeAlias(CommentAndMetadata commentAndMetadata, Token abstractKeyword, Token classKeyword) {
     SimpleIdentifier className = parseSimpleIdentifier();
     TypeParameterList typeParameters = null;
-    if (matches5(TokenType.LT)) {
+    if (matches(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
     }
-    Token equals = expect2(TokenType.EQ);
-    if (matches(Keyword.ABSTRACT)) {
+    Token equals = expect(TokenType.EQ);
+    if (matchesKeyword(Keyword.ABSTRACT)) {
       abstractKeyword = andAdvance;
     }
     TypeName superclass = parseTypeName();
     WithClause withClause = null;
-    if (matches(Keyword.WITH)) {
+    if (matchesKeyword(Keyword.WITH)) {
       withClause = parseWithClause();
     }
     ImplementsClause implementsClause = null;
-    if (matches(Keyword.IMPLEMENTS)) {
+    if (matchesKeyword(Keyword.IMPLEMENTS)) {
       implementsClause = parseImplementsClause();
     }
     Token semicolon;
-    if (matches5(TokenType.SEMICOLON)) {
+    if (matches(TokenType.SEMICOLON)) {
       semicolon = andAdvance;
     } else {
-      if (matches5(TokenType.OPEN_CURLY_BRACKET)) {
-        reportError13(ParserErrorCode.EXPECTED_TOKEN, [TokenType.SEMICOLON.lexeme]);
+      if (matches(TokenType.OPEN_CURLY_BRACKET)) {
+        reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TOKEN, [TokenType.SEMICOLON.lexeme]);
         Token leftBracket = andAdvance;
         parseClassMembers(className.name, getEndToken(leftBracket));
-        expect2(TokenType.CLOSE_CURLY_BRACKET);
+        expect(TokenType.CLOSE_CURLY_BRACKET);
       } else {
-        reportError14(ParserErrorCode.EXPECTED_TOKEN, _currentToken.previous, [TokenType.SEMICOLON.lexeme]);
+        reportErrorForToken(ParserErrorCode.EXPECTED_TOKEN, _currentToken.previous, [TokenType.SEMICOLON.lexeme]);
       }
-      semicolon = createSyntheticToken2(TokenType.SEMICOLON);
+      semicolon = createSyntheticToken(TokenType.SEMICOLON);
     }
     return new ClassTypeAlias(commentAndMetadata.comment, commentAndMetadata.metadata, classKeyword, className, typeParameters, equals, abstractKeyword, superclass, withClause, implementsClause, semicolon);
   }
@@ -3798,8 +3772,8 @@ class Parser {
    */
   List<Combinator> parseCombinators() {
     List<Combinator> combinators = new List<Combinator>();
-    while (matches2(_SHOW) || matches2(_HIDE)) {
-      Token keyword = expect2(TokenType.IDENTIFIER);
+    while (matchesString(_SHOW) || matchesString(_HIDE)) {
+      Token keyword = expect(TokenType.IDENTIFIER);
       if (keyword.lexeme == _SHOW) {
         List<SimpleIdentifier> shownNames = parseIdentifierList();
         combinators.add(new ShowCombinator(keyword, shownNames));
@@ -3826,7 +3800,7 @@ class Parser {
   CommentAndMetadata parseCommentAndMetadata() {
     Comment comment = parseDocumentationComment();
     List<Annotation> metadata = new List<Annotation>();
-    while (matches5(TokenType.AT)) {
+    while (matches(TokenType.AT)) {
       metadata.add(parseAnnotation());
       Comment optionalComment = parseDocumentationComment();
       if (optionalComment != null) {
@@ -3864,16 +3838,16 @@ class Parser {
         return null;
       }
       Token newKeyword = null;
-      if (matches3(firstToken, Keyword.NEW)) {
+      if (tokenMatchesKeyword(firstToken, Keyword.NEW)) {
         newKeyword = firstToken;
         firstToken = firstToken.next;
       }
-      if (matchesIdentifier2(firstToken)) {
+      if (tokenMatchesIdentifier(firstToken)) {
         Token secondToken = firstToken.next;
         Token thirdToken = secondToken.next;
         Token nextToken;
         Identifier identifier;
-        if (matches4(secondToken, TokenType.PERIOD) && matchesIdentifier2(thirdToken)) {
+        if (tokenMatches(secondToken, TokenType.PERIOD) && tokenMatchesIdentifier(thirdToken)) {
           identifier = new PrefixedIdentifier(new SimpleIdentifier(firstToken), secondToken, new SimpleIdentifier(thirdToken));
           nextToken = thirdToken.next;
         } else {
@@ -3884,7 +3858,7 @@ class Parser {
           return null;
         }
         return new CommentReference(newKeyword, identifier);
-      } else if (matches3(firstToken, Keyword.THIS) || matches3(firstToken, Keyword.NULL) || matches3(firstToken, Keyword.TRUE) || matches3(firstToken, Keyword.FALSE)) {
+      } else if (tokenMatchesKeyword(firstToken, Keyword.THIS) || tokenMatchesKeyword(firstToken, Keyword.NULL) || tokenMatchesKeyword(firstToken, Keyword.TRUE) || tokenMatchesKeyword(firstToken, Keyword.FALSE)) {
         // TODO(brianwilkerson) If we want to support this we will need to extend the definition
         // of CommentReference to take an expression rather than an identifier. For now we just
         // ignore it to reduce the number of errors produced, but that's probably not a valid
@@ -3979,19 +3953,19 @@ class Parser {
    */
   CompilationUnitMember parseCompilationUnitMember(CommentAndMetadata commentAndMetadata) {
     Modifiers modifiers = parseModifiers();
-    if (matches(Keyword.CLASS)) {
+    if (matchesKeyword(Keyword.CLASS)) {
       return parseClassDeclaration(commentAndMetadata, validateModifiersForClass(modifiers));
-    } else if (matches(Keyword.TYPEDEF) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT) && !matches4(peek(), TokenType.OPEN_PAREN)) {
+    } else if (matchesKeyword(Keyword.TYPEDEF) && !tokenMatches(peek(), TokenType.PERIOD) && !tokenMatches(peek(), TokenType.LT) && !tokenMatches(peek(), TokenType.OPEN_PAREN)) {
       validateModifiersForTypedef(modifiers);
       return parseTypeAlias(commentAndMetadata);
     }
-    if (matches(Keyword.VOID)) {
+    if (matchesKeyword(Keyword.VOID)) {
       TypeName returnType = parseReturnType();
-      if ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier2(peek())) {
+      if ((matchesKeyword(Keyword.GET) || matchesKeyword(Keyword.SET)) && tokenMatchesIdentifier(peek())) {
         validateModifiersForTopLevelFunction(modifiers);
         return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, returnType);
-      } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
-        reportError14(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
+      } else if (matchesKeyword(Keyword.OPERATOR) && isOperator(peek())) {
+        reportErrorForToken(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
         return convertToFunctionDeclaration(parseOperator(commentAndMetadata, modifiers.externalKeyword, returnType));
       } else if (matchesIdentifier() && matchesAny(peek(), [
           TokenType.OPEN_PAREN,
@@ -4008,48 +3982,48 @@ class Parser {
             //
             // We appear to have a variable declaration with a type of "void".
             //
-            reportError12(ParserErrorCode.VOID_VARIABLE, returnType, []);
-            return new TopLevelVariableDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(null, validateModifiersForTopLevelVariable(modifiers), null), expect2(TokenType.SEMICOLON));
+            reportErrorForNode(ParserErrorCode.VOID_VARIABLE, returnType, []);
+            return new TopLevelVariableDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationListAfterType(null, validateModifiersForTopLevelVariable(modifiers), null), expect(TokenType.SEMICOLON));
           }
         }
-        reportError14(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
+        reportErrorForToken(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
         return null;
       }
-    } else if ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier2(peek())) {
+    } else if ((matchesKeyword(Keyword.GET) || matchesKeyword(Keyword.SET)) && tokenMatchesIdentifier(peek())) {
       validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, null);
-    } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
-      reportError14(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
+    } else if (matchesKeyword(Keyword.OPERATOR) && isOperator(peek())) {
+      reportErrorForToken(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
       return convertToFunctionDeclaration(parseOperator(commentAndMetadata, modifiers.externalKeyword, null));
     } else if (!matchesIdentifier()) {
-      reportError14(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
+      reportErrorForToken(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
       return null;
-    } else if (matches4(peek(), TokenType.OPEN_PAREN)) {
+    } else if (tokenMatches(peek(), TokenType.OPEN_PAREN)) {
       validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, null);
     } else if (matchesAny(peek(), [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
       if (modifiers.constKeyword == null && modifiers.finalKeyword == null && modifiers.varKeyword == null) {
-        reportError13(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, []);
+        reportErrorForCurrentToken(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, []);
       }
-      return new TopLevelVariableDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(null, validateModifiersForTopLevelVariable(modifiers), null), expect2(TokenType.SEMICOLON));
+      return new TopLevelVariableDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationListAfterType(null, validateModifiersForTopLevelVariable(modifiers), null), expect(TokenType.SEMICOLON));
     }
     TypeName returnType = parseReturnType();
-    if ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier2(peek())) {
+    if ((matchesKeyword(Keyword.GET) || matchesKeyword(Keyword.SET)) && tokenMatchesIdentifier(peek())) {
       validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, returnType);
-    } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
-      reportError14(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
+    } else if (matchesKeyword(Keyword.OPERATOR) && isOperator(peek())) {
+      reportErrorForToken(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
       return convertToFunctionDeclaration(parseOperator(commentAndMetadata, modifiers.externalKeyword, returnType));
-    } else if (matches5(TokenType.AT)) {
-      return new TopLevelVariableDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(null, validateModifiersForTopLevelVariable(modifiers), returnType), expect2(TokenType.SEMICOLON));
+    } else if (matches(TokenType.AT)) {
+      return new TopLevelVariableDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationListAfterType(null, validateModifiersForTopLevelVariable(modifiers), returnType), expect(TokenType.SEMICOLON));
     } else if (!matchesIdentifier()) {
       // TODO(brianwilkerson) Generalize this error. We could also be parsing a top-level variable at this point.
-      reportError14(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
+      reportErrorForToken(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
       Token semicolon;
-      if (matches5(TokenType.SEMICOLON)) {
+      if (matches(TokenType.SEMICOLON)) {
         semicolon = andAdvance;
       } else {
-        semicolon = createSyntheticToken2(TokenType.SEMICOLON);
+        semicolon = createSyntheticToken(TokenType.SEMICOLON);
       }
       List<VariableDeclaration> variables = new List<VariableDeclaration>();
       variables.add(new VariableDeclaration(null, null, createSyntheticIdentifier(), null, null));
@@ -4062,7 +4036,7 @@ class Parser {
       validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, returnType);
     }
-    return new TopLevelVariableDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(null, validateModifiersForTopLevelVariable(modifiers), returnType), expect2(TokenType.SEMICOLON));
+    return new TopLevelVariableDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationListAfterType(null, validateModifiersForTopLevelVariable(modifiers), returnType), expect(TokenType.SEMICOLON));
   }
 
   /**
@@ -4078,12 +4052,12 @@ class Parser {
    * @return the const expression that was parsed
    */
   Expression parseConstExpression() {
-    Token keyword = expect(Keyword.CONST);
-    if (matches5(TokenType.OPEN_SQUARE_BRACKET) || matches5(TokenType.INDEX)) {
+    Token keyword = expectKeyword(Keyword.CONST);
+    if (matches(TokenType.OPEN_SQUARE_BRACKET) || matches(TokenType.INDEX)) {
       return parseListLiteral(keyword, null);
-    } else if (matches5(TokenType.OPEN_CURLY_BRACKET)) {
+    } else if (matches(TokenType.OPEN_CURLY_BRACKET)) {
       return parseMapLiteral(keyword, null);
-    } else if (matches5(TokenType.LT)) {
+    } else if (matches(TokenType.LT)) {
       return parseListOrMapLiteral(keyword);
     }
     return parseInstanceCreationExpression(keyword);
@@ -4093,21 +4067,21 @@ class Parser {
     bool bodyAllowed = externalKeyword == null;
     Token separator = null;
     List<ConstructorInitializer> initializers = null;
-    if (matches5(TokenType.COLON)) {
+    if (matches(TokenType.COLON)) {
       separator = andAdvance;
       initializers = new List<ConstructorInitializer>();
       do {
-        if (matches(Keyword.THIS)) {
-          if (matches4(peek(), TokenType.OPEN_PAREN)) {
+        if (matchesKeyword(Keyword.THIS)) {
+          if (tokenMatches(peek(), TokenType.OPEN_PAREN)) {
             bodyAllowed = false;
             initializers.add(parseRedirectingConstructorInvocation());
-          } else if (matches4(peek(), TokenType.PERIOD) && matches4(peek2(3), TokenType.OPEN_PAREN)) {
+          } else if (tokenMatches(peek(), TokenType.PERIOD) && tokenMatches(peek2(3), TokenType.OPEN_PAREN)) {
             bodyAllowed = false;
             initializers.add(parseRedirectingConstructorInvocation());
           } else {
             initializers.add(parseConstructorFieldInitializer());
           }
-        } else if (matches(Keyword.SUPER)) {
+        } else if (matchesKeyword(Keyword.SUPER)) {
           initializers.add(parseSuperConstructorInvocation());
         } else {
           initializers.add(parseConstructorFieldInitializer());
@@ -4116,26 +4090,26 @@ class Parser {
     }
     ConstructorName redirectedConstructor = null;
     FunctionBody body;
-    if (matches5(TokenType.EQ)) {
+    if (matches(TokenType.EQ)) {
       separator = andAdvance;
       redirectedConstructor = parseConstructorName();
-      body = new EmptyFunctionBody(expect2(TokenType.SEMICOLON));
+      body = new EmptyFunctionBody(expect(TokenType.SEMICOLON));
       if (factoryKeyword == null) {
-        reportError12(ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR, redirectedConstructor, []);
+        reportErrorForNode(ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR, redirectedConstructor, []);
       }
     } else {
       body = parseFunctionBody(true, ParserErrorCode.MISSING_FUNCTION_BODY, false);
       if (constKeyword != null && factoryKeyword != null && externalKeyword == null) {
-        reportError14(ParserErrorCode.CONST_FACTORY, factoryKeyword, []);
+        reportErrorForToken(ParserErrorCode.CONST_FACTORY, factoryKeyword, []);
       } else if (body is EmptyFunctionBody) {
         if (factoryKeyword != null && externalKeyword == null) {
-          reportError14(ParserErrorCode.FACTORY_WITHOUT_BODY, factoryKeyword, []);
+          reportErrorForToken(ParserErrorCode.FACTORY_WITHOUT_BODY, factoryKeyword, []);
         }
       } else {
         if (constKeyword != null) {
-          reportError12(ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, body, []);
+          reportErrorForNode(ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, body, []);
         } else if (!bodyAllowed) {
-          reportError12(ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, body, []);
+          reportErrorForNode(ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, body, []);
         }
       }
     }
@@ -4155,12 +4129,12 @@ class Parser {
   ConstructorFieldInitializer parseConstructorFieldInitializer() {
     Token keyword = null;
     Token period = null;
-    if (matches(Keyword.THIS)) {
+    if (matchesKeyword(Keyword.THIS)) {
       keyword = andAdvance;
-      period = expect2(TokenType.PERIOD);
+      period = expect(TokenType.PERIOD);
     }
     SimpleIdentifier fieldName = parseSimpleIdentifier();
-    Token equals = expect2(TokenType.EQ);
+    Token equals = expect(TokenType.EQ);
     Expression expression = parseConditionalExpression();
     TokenType tokenType = _currentToken.type;
     if (identical(tokenType, TokenType.PERIOD_PERIOD)) {
@@ -4188,18 +4162,18 @@ class Parser {
    * @return the continue statement that was parsed
    */
   Statement parseContinueStatement() {
-    Token continueKeyword = expect(Keyword.CONTINUE);
+    Token continueKeyword = expectKeyword(Keyword.CONTINUE);
     if (!_inLoop && !_inSwitch) {
-      reportError14(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, continueKeyword, []);
+      reportErrorForToken(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, continueKeyword, []);
     }
     SimpleIdentifier label = null;
     if (matchesIdentifier()) {
       label = parseSimpleIdentifier();
     }
     if (_inSwitch && !_inLoop && label == null) {
-      reportError14(ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE, continueKeyword, []);
+      reportErrorForToken(ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE, continueKeyword, []);
     }
-    Token semicolon = expect2(TokenType.SEMICOLON);
+    Token semicolon = expect(TokenType.SEMICOLON);
     return new ContinueStatement(continueKeyword, label, semicolon);
   }
 
@@ -4218,13 +4192,13 @@ class Parser {
    * @return the directive that was parsed
    */
   Directive parseDirective(CommentAndMetadata commentAndMetadata) {
-    if (matches(Keyword.IMPORT)) {
+    if (matchesKeyword(Keyword.IMPORT)) {
       return parseImportDirective(commentAndMetadata);
-    } else if (matches(Keyword.EXPORT)) {
+    } else if (matchesKeyword(Keyword.EXPORT)) {
       return parseExportDirective(commentAndMetadata);
-    } else if (matches(Keyword.LIBRARY)) {
+    } else if (matchesKeyword(Keyword.LIBRARY)) {
       return parseLibraryDirective(commentAndMetadata);
-    } else if (matches(Keyword.PART)) {
+    } else if (matchesKeyword(Keyword.PART)) {
       return parsePartDirective(commentAndMetadata);
     } else {
       // Internal error: this method should not have been invoked if the current token was something
@@ -4285,13 +4259,13 @@ class Parser {
     bool wasInLoop = _inLoop;
     _inLoop = true;
     try {
-      Token doKeyword = expect(Keyword.DO);
+      Token doKeyword = expectKeyword(Keyword.DO);
       Statement body = parseStatement2();
-      Token whileKeyword = expect(Keyword.WHILE);
-      Token leftParenthesis = expect2(TokenType.OPEN_PAREN);
+      Token whileKeyword = expectKeyword(Keyword.WHILE);
+      Token leftParenthesis = expect(TokenType.OPEN_PAREN);
       Expression condition = parseExpression2();
-      Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
-      Token semicolon = expect2(TokenType.SEMICOLON);
+      Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
+      Token semicolon = expect(TokenType.SEMICOLON);
       return new DoStatement(doKeyword, body, whileKeyword, leftParenthesis, condition, rightParenthesis, semicolon);
     } finally {
       _inLoop = wasInLoop;
@@ -4323,7 +4297,7 @@ class Parser {
    */
   Expression parseEqualityExpression() {
     Expression expression;
-    if (matches(Keyword.SUPER) && _currentToken.next.type.isEqualityOperator) {
+    if (matchesKeyword(Keyword.SUPER) && _currentToken.next.type.isEqualityOperator) {
       expression = new SuperExpression(andAdvance);
     } else {
       expression = parseRelationalExpression();
@@ -4332,7 +4306,7 @@ class Parser {
     while (_currentToken.type.isEqualityOperator) {
       Token operator = andAdvance;
       if (leftEqualityExpression) {
-        reportError12(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, expression, []);
+        reportErrorForNode(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, expression, []);
       }
       expression = new BinaryExpression(expression, operator, parseRelationalExpression());
       leftEqualityExpression = true;
@@ -4352,7 +4326,7 @@ class Parser {
    * @return the export directive that was parsed
    */
   ExportDirective parseExportDirective(CommentAndMetadata commentAndMetadata) {
-    Token exportKeyword = expect(Keyword.EXPORT);
+    Token exportKeyword = expectKeyword(Keyword.EXPORT);
     StringLiteral libraryUri = parseStringLiteral();
     List<Combinator> combinators = parseCombinators();
     Token semicolon = expectSemicolon();
@@ -4395,18 +4369,18 @@ class Parser {
   FinalConstVarOrType parseFinalConstVarOrType(bool optional) {
     Token keyword = null;
     TypeName type = null;
-    if (matches(Keyword.FINAL) || matches(Keyword.CONST)) {
+    if (matchesKeyword(Keyword.FINAL) || matchesKeyword(Keyword.CONST)) {
       keyword = andAdvance;
       if (isTypedIdentifier(_currentToken)) {
         type = parseTypeName();
       }
-    } else if (matches(Keyword.VAR)) {
+    } else if (matchesKeyword(Keyword.VAR)) {
       keyword = andAdvance;
     } else {
       if (isTypedIdentifier(_currentToken)) {
         type = parseReturnType();
       } else if (!optional) {
-        reportError13(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, []);
+        reportErrorForCurrentToken(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, []);
       }
     }
     return new FinalConstVarOrType(keyword, type);
@@ -4430,22 +4404,22 @@ class Parser {
    */
   FormalParameter parseFormalParameter(ParameterKind kind) {
     NormalFormalParameter parameter = parseNormalFormalParameter();
-    if (matches5(TokenType.EQ)) {
+    if (matches(TokenType.EQ)) {
       Token seperator = andAdvance;
       Expression defaultValue = parseExpression2();
       if (identical(kind, ParameterKind.NAMED)) {
-        reportError14(ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER, seperator, []);
+        reportErrorForToken(ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER, seperator, []);
       } else if (identical(kind, ParameterKind.REQUIRED)) {
-        reportError12(ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, parameter, []);
+        reportErrorForNode(ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, parameter, []);
       }
       return new DefaultFormalParameter(parameter, kind, seperator, defaultValue);
-    } else if (matches5(TokenType.COLON)) {
+    } else if (matches(TokenType.COLON)) {
       Token seperator = andAdvance;
       Expression defaultValue = parseExpression2();
       if (identical(kind, ParameterKind.POSITIONAL)) {
-        reportError14(ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER, seperator, []);
+        reportErrorForToken(ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER, seperator, []);
       } else if (identical(kind, ParameterKind.REQUIRED)) {
-        reportError12(ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, parameter, []);
+        reportErrorForNode(ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, parameter, []);
       }
       return new DefaultFormalParameter(parameter, kind, seperator, defaultValue);
     } else if (kind != ParameterKind.REQUIRED) {
@@ -4477,36 +4451,36 @@ class Parser {
     bool wasInLoop = _inLoop;
     _inLoop = true;
     try {
-      Token forKeyword = expect(Keyword.FOR);
-      Token leftParenthesis = expect2(TokenType.OPEN_PAREN);
+      Token forKeyword = expectKeyword(Keyword.FOR);
+      Token leftParenthesis = expect(TokenType.OPEN_PAREN);
       VariableDeclarationList variableList = null;
       Expression initialization = null;
-      if (!matches5(TokenType.SEMICOLON)) {
+      if (!matches(TokenType.SEMICOLON)) {
         CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
-        if (matchesIdentifier() && matches3(peek(), Keyword.IN)) {
+        if (matchesIdentifier() && tokenMatchesKeyword(peek(), Keyword.IN)) {
           List<VariableDeclaration> variables = new List<VariableDeclaration>();
           SimpleIdentifier variableName = parseSimpleIdentifier();
           variables.add(new VariableDeclaration(null, null, variableName, null, null));
           variableList = new VariableDeclarationList(commentAndMetadata.comment, commentAndMetadata.metadata, null, null, variables);
         } else if (isInitializedVariableDeclaration()) {
-          variableList = parseVariableDeclarationList(commentAndMetadata);
+          variableList = parseVariableDeclarationListAfterMetadata(commentAndMetadata);
         } else {
           initialization = parseExpression2();
         }
-        if (matches(Keyword.IN)) {
+        if (matchesKeyword(Keyword.IN)) {
           DeclaredIdentifier loopVariable = null;
           SimpleIdentifier identifier = null;
           if (variableList == null) {
             // We found: <expression> 'in'
-            reportError13(ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH, []);
+            reportErrorForCurrentToken(ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH, []);
           } else {
             NodeList<VariableDeclaration> variables = variableList.variables;
             if (variables.length > 1) {
-              reportError13(ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH, [variables.length.toString()]);
+              reportErrorForCurrentToken(ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH, [variables.length.toString()]);
             }
             VariableDeclaration variable = variables[0];
             if (variable.initializer != null) {
-              reportError13(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, []);
+              reportErrorForCurrentToken(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, []);
             }
             Token keyword = variableList.keyword;
             TypeName type = variableList.type;
@@ -4518,9 +4492,9 @@ class Parser {
               identifier = variable.name;
             }
           }
-          Token inKeyword = expect(Keyword.IN);
+          Token inKeyword = expectKeyword(Keyword.IN);
           Expression iterator = parseExpression2();
-          Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
+          Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
           Statement body = parseStatement2();
           if (loopVariable == null) {
             return new ForEachStatement.con2(forKeyword, leftParenthesis, identifier, inKeyword, iterator, rightParenthesis, body);
@@ -4528,17 +4502,17 @@ class Parser {
           return new ForEachStatement.con1(forKeyword, leftParenthesis, loopVariable, inKeyword, iterator, rightParenthesis, body);
         }
       }
-      Token leftSeparator = expect2(TokenType.SEMICOLON);
+      Token leftSeparator = expect(TokenType.SEMICOLON);
       Expression condition = null;
-      if (!matches5(TokenType.SEMICOLON)) {
+      if (!matches(TokenType.SEMICOLON)) {
         condition = parseExpression2();
       }
-      Token rightSeparator = expect2(TokenType.SEMICOLON);
+      Token rightSeparator = expect(TokenType.SEMICOLON);
       List<Expression> updaters = null;
-      if (!matches5(TokenType.CLOSE_PAREN)) {
+      if (!matches(TokenType.CLOSE_PAREN)) {
         updaters = parseExpressionList();
       }
-      Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
+      Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
       Statement body = parseStatement2();
       return new ForStatement(forKeyword, leftParenthesis, variableList, initialization, leftSeparator, condition, rightSeparator, updaters, rightParenthesis, body);
     } finally {
@@ -4571,39 +4545,39 @@ class Parser {
     _inLoop = false;
     _inSwitch = false;
     try {
-      if (matches5(TokenType.SEMICOLON)) {
+      if (matches(TokenType.SEMICOLON)) {
         if (!mayBeEmpty) {
-          reportError13(emptyErrorCode, []);
+          reportErrorForCurrentToken(emptyErrorCode, []);
         }
         return new EmptyFunctionBody(andAdvance);
-      } else if (matches5(TokenType.FUNCTION)) {
+      } else if (matches(TokenType.FUNCTION)) {
         Token functionDefinition = andAdvance;
         Expression expression = parseExpression2();
         Token semicolon = null;
         if (!inExpression) {
-          semicolon = expect2(TokenType.SEMICOLON);
+          semicolon = expect(TokenType.SEMICOLON);
         }
         if (!_parseFunctionBodies) {
-          return new EmptyFunctionBody(createSyntheticToken2(TokenType.SEMICOLON));
+          return new EmptyFunctionBody(createSyntheticToken(TokenType.SEMICOLON));
         }
         return new ExpressionFunctionBody(functionDefinition, expression, semicolon);
-      } else if (matches5(TokenType.OPEN_CURLY_BRACKET)) {
+      } else if (matches(TokenType.OPEN_CURLY_BRACKET)) {
         if (!_parseFunctionBodies) {
           skipBlock();
-          return new EmptyFunctionBody(createSyntheticToken2(TokenType.SEMICOLON));
+          return new EmptyFunctionBody(createSyntheticToken(TokenType.SEMICOLON));
         }
         return new BlockFunctionBody(parseBlock());
-      } else if (matches2(_NATIVE)) {
+      } else if (matchesString(_NATIVE)) {
         Token nativeToken = andAdvance;
         StringLiteral stringLiteral = null;
-        if (matches5(TokenType.STRING)) {
+        if (matches(TokenType.STRING)) {
           stringLiteral = parseStringLiteral();
         }
-        return new NativeFunctionBody(nativeToken, stringLiteral, expect2(TokenType.SEMICOLON));
+        return new NativeFunctionBody(nativeToken, stringLiteral, expect(TokenType.SEMICOLON));
       } else {
         // Invalid function body
-        reportError13(emptyErrorCode, []);
-        return new EmptyFunctionBody(createSyntheticToken2(TokenType.SEMICOLON));
+        reportErrorForCurrentToken(emptyErrorCode, []);
+        return new EmptyFunctionBody(createSyntheticToken(TokenType.SEMICOLON));
       }
     } finally {
       _inLoop = wasInLoop;
@@ -4630,30 +4604,30 @@ class Parser {
   FunctionDeclaration parseFunctionDeclaration(CommentAndMetadata commentAndMetadata, Token externalKeyword, TypeName returnType) {
     Token keyword = null;
     bool isGetter = false;
-    if (matches(Keyword.GET) && !matches4(peek(), TokenType.OPEN_PAREN)) {
+    if (matchesKeyword(Keyword.GET) && !tokenMatches(peek(), TokenType.OPEN_PAREN)) {
       keyword = andAdvance;
       isGetter = true;
-    } else if (matches(Keyword.SET) && !matches4(peek(), TokenType.OPEN_PAREN)) {
+    } else if (matchesKeyword(Keyword.SET) && !tokenMatches(peek(), TokenType.OPEN_PAREN)) {
       keyword = andAdvance;
     }
     SimpleIdentifier name = parseSimpleIdentifier();
     FormalParameterList parameters = null;
     if (!isGetter) {
-      if (matches5(TokenType.OPEN_PAREN)) {
+      if (matches(TokenType.OPEN_PAREN)) {
         parameters = parseFormalParameterList();
         validateFormalParameterList(parameters);
       } else {
-        reportError13(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, []);
+        reportErrorForCurrentToken(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, []);
       }
-    } else if (matches5(TokenType.OPEN_PAREN)) {
-      reportError13(ParserErrorCode.GETTER_WITH_PARAMETERS, []);
+    } else if (matches(TokenType.OPEN_PAREN)) {
+      reportErrorForCurrentToken(ParserErrorCode.GETTER_WITH_PARAMETERS, []);
       parseFormalParameterList();
     }
     FunctionBody body;
     if (externalKeyword == null) {
       body = parseFunctionBody(false, ParserErrorCode.MISSING_FUNCTION_BODY, false);
     } else {
-      body = new EmptyFunctionBody(expect2(TokenType.SEMICOLON));
+      body = new EmptyFunctionBody(expect(TokenType.SEMICOLON));
     }
     //    if (!isStatement && matches(TokenType.SEMICOLON)) {
     //      // TODO(brianwilkerson) Improve this error message.
@@ -4676,7 +4650,7 @@ class Parser {
   Statement parseFunctionDeclarationStatement() {
     Modifiers modifiers = parseModifiers();
     validateModifiersForFunctionDeclarationStatement(modifiers);
-    return parseFunctionDeclarationStatement2(parseCommentAndMetadata(), parseOptionalReturnType());
+    return parseFunctionDeclarationStatementAfterReturnType(parseCommentAndMetadata(), parseOptionalReturnType());
   }
 
   /**
@@ -4692,14 +4666,14 @@ class Parser {
    * @param returnType the return type, or `null` if there is no return type
    * @return the function declaration statement that was parsed
    */
-  Statement parseFunctionDeclarationStatement2(CommentAndMetadata commentAndMetadata, TypeName returnType) {
+  Statement parseFunctionDeclarationStatementAfterReturnType(CommentAndMetadata commentAndMetadata, TypeName returnType) {
     FunctionDeclaration declaration = parseFunctionDeclaration(commentAndMetadata, null, returnType);
     Token propertyKeyword = declaration.propertyKeyword;
     if (propertyKeyword != null) {
       if (identical((propertyKeyword as KeywordToken).keyword, Keyword.GET)) {
-        reportError14(ParserErrorCode.GETTER_IN_FUNCTION, propertyKeyword, []);
+        reportErrorForToken(ParserErrorCode.GETTER_IN_FUNCTION, propertyKeyword, []);
       } else {
-        reportError14(ParserErrorCode.SETTER_IN_FUNCTION, propertyKeyword, []);
+        reportErrorForToken(ParserErrorCode.SETTER_IN_FUNCTION, propertyKeyword, []);
       }
     }
     return new FunctionDeclarationStatement(declaration);
@@ -4727,24 +4701,24 @@ class Parser {
     }
     SimpleIdentifier name = parseSimpleIdentifier();
     TypeParameterList typeParameters = null;
-    if (matches5(TokenType.LT)) {
+    if (matches(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
     }
-    if (matches5(TokenType.SEMICOLON) || matches5(TokenType.EOF)) {
-      reportError13(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, []);
-      FormalParameterList parameters = new FormalParameterList(createSyntheticToken2(TokenType.OPEN_PAREN), null, null, null, createSyntheticToken2(TokenType.CLOSE_PAREN));
-      Token semicolon = expect2(TokenType.SEMICOLON);
+    if (matches(TokenType.SEMICOLON) || matches(TokenType.EOF)) {
+      reportErrorForCurrentToken(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, []);
+      FormalParameterList parameters = new FormalParameterList(createSyntheticToken(TokenType.OPEN_PAREN), null, null, null, createSyntheticToken(TokenType.CLOSE_PAREN));
+      Token semicolon = expect(TokenType.SEMICOLON);
       return new FunctionTypeAlias(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, returnType, name, typeParameters, parameters, semicolon);
-    } else if (!matches5(TokenType.OPEN_PAREN)) {
-      reportError13(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, []);
+    } else if (!matches(TokenType.OPEN_PAREN)) {
+      reportErrorForCurrentToken(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, []);
       // TODO(brianwilkerson) Recover from this error. At the very least we should skip to the start
       // of the next valid compilation unit member, allowing for the possibility of finding the
       // typedef parameters before that point.
-      return new FunctionTypeAlias(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, returnType, name, typeParameters, new FormalParameterList(createSyntheticToken2(TokenType.OPEN_PAREN), null, null, null, createSyntheticToken2(TokenType.CLOSE_PAREN)), createSyntheticToken2(TokenType.SEMICOLON));
+      return new FunctionTypeAlias(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, returnType, name, typeParameters, new FormalParameterList(createSyntheticToken(TokenType.OPEN_PAREN), null, null, null, createSyntheticToken(TokenType.CLOSE_PAREN)), createSyntheticToken(TokenType.SEMICOLON));
     }
     FormalParameterList parameters = parseFormalParameterList();
     validateFormalParameterList(parameters);
-    Token semicolon = expect2(TokenType.SEMICOLON);
+    Token semicolon = expect(TokenType.SEMICOLON);
     return new FunctionTypeAlias(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, returnType, name, typeParameters, parameters, semicolon);
   }
 
@@ -4768,16 +4742,16 @@ class Parser {
    * @return the getter that was parsed
    */
   MethodDeclaration parseGetter(CommentAndMetadata commentAndMetadata, Token externalKeyword, Token staticKeyword, TypeName returnType) {
-    Token propertyKeyword = expect(Keyword.GET);
+    Token propertyKeyword = expectKeyword(Keyword.GET);
     SimpleIdentifier name = parseSimpleIdentifier();
-    if (matches5(TokenType.OPEN_PAREN) && matches4(peek(), TokenType.CLOSE_PAREN)) {
-      reportError13(ParserErrorCode.GETTER_WITH_PARAMETERS, []);
+    if (matches(TokenType.OPEN_PAREN) && tokenMatches(peek(), TokenType.CLOSE_PAREN)) {
+      reportErrorForCurrentToken(ParserErrorCode.GETTER_WITH_PARAMETERS, []);
       advance();
       advance();
     }
     FunctionBody body = parseFunctionBody(externalKeyword != null || staticKeyword == null, ParserErrorCode.STATIC_GETTER_WITHOUT_BODY, false);
     if (externalKeyword != null && body is! EmptyFunctionBody) {
-      reportError13(ParserErrorCode.EXTERNAL_GETTER_WITH_BODY, []);
+      reportErrorForCurrentToken(ParserErrorCode.EXTERNAL_GETTER_WITH_BODY, []);
     }
     return new MethodDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, staticKeyword, returnType, propertyKeyword, null, name, null, body);
   }
@@ -4795,7 +4769,7 @@ class Parser {
   List<SimpleIdentifier> parseIdentifierList() {
     List<SimpleIdentifier> identifiers = new List<SimpleIdentifier>();
     identifiers.add(parseSimpleIdentifier());
-    while (matches5(TokenType.COMMA)) {
+    while (matches(TokenType.COMMA)) {
       advance();
       identifiers.add(parseSimpleIdentifier());
     }
@@ -4813,14 +4787,14 @@ class Parser {
    * @return the if statement that was parsed
    */
   Statement parseIfStatement() {
-    Token ifKeyword = expect(Keyword.IF);
-    Token leftParenthesis = expect2(TokenType.OPEN_PAREN);
+    Token ifKeyword = expectKeyword(Keyword.IF);
+    Token leftParenthesis = expect(TokenType.OPEN_PAREN);
     Expression condition = parseExpression2();
-    Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
+    Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
     Statement thenStatement = parseStatement2();
     Token elseKeyword = null;
     Statement elseStatement = null;
-    if (matches(Keyword.ELSE)) {
+    if (matchesKeyword(Keyword.ELSE)) {
       elseKeyword = andAdvance;
       elseStatement = parseStatement2();
     }
@@ -4839,11 +4813,11 @@ class Parser {
    * @return the import directive that was parsed
    */
   ImportDirective parseImportDirective(CommentAndMetadata commentAndMetadata) {
-    Token importKeyword = expect(Keyword.IMPORT);
+    Token importKeyword = expectKeyword(Keyword.IMPORT);
     StringLiteral libraryUri = parseStringLiteral();
     Token asToken = null;
     SimpleIdentifier prefix = null;
-    if (matches(Keyword.AS)) {
+    if (matchesKeyword(Keyword.AS)) {
       asToken = andAdvance;
       prefix = parseSimpleIdentifier();
     }
@@ -4876,8 +4850,8 @@ class Parser {
    * @return the getter that was parsed
    */
   FieldDeclaration parseInitializedIdentifierList(CommentAndMetadata commentAndMetadata, Token staticKeyword, Token keyword, TypeName type) {
-    VariableDeclarationList fieldList = parseVariableDeclarationList2(null, keyword, type);
-    return new FieldDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, staticKeyword, fieldList, expect2(TokenType.SEMICOLON));
+    VariableDeclarationList fieldList = parseVariableDeclarationListAfterType(null, keyword, type);
+    return new FieldDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, staticKeyword, fieldList, expect(TokenType.SEMICOLON));
   }
 
   /**
@@ -4909,9 +4883,9 @@ class Parser {
    * @return the library directive that was parsed
    */
   LibraryDirective parseLibraryDirective(CommentAndMetadata commentAndMetadata) {
-    Token keyword = expect(Keyword.LIBRARY);
+    Token keyword = expectKeyword(Keyword.LIBRARY);
     LibraryIdentifier libraryName = parseLibraryName(ParserErrorCode.MISSING_NAME_IN_LIBRARY_DIRECTIVE, keyword);
-    Token semicolon = expect2(TokenType.SEMICOLON);
+    Token semicolon = expect(TokenType.SEMICOLON);
     return new LibraryDirective(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, libraryName, semicolon);
   }
 
@@ -4931,13 +4905,13 @@ class Parser {
   LibraryIdentifier parseLibraryName(ParserErrorCode missingNameError, Token missingNameToken) {
     if (matchesIdentifier()) {
       return parseLibraryIdentifier();
-    } else if (matches5(TokenType.STRING)) {
+    } else if (matches(TokenType.STRING)) {
       // TODO(brianwilkerson) Recovery: This should be extended to handle arbitrary tokens until we
       // can find a token that can start a compilation unit member.
       StringLiteral string = parseStringLiteral();
-      reportError12(ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME, string, []);
+      reportErrorForNode(ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME, string, []);
     } else {
-      reportError14(missingNameError, missingNameToken, []);
+      reportErrorForToken(missingNameError, missingNameToken, []);
     }
     List<SimpleIdentifier> components = new List<SimpleIdentifier>();
     components.add(createSyntheticIdentifier());
@@ -4960,7 +4934,7 @@ class Parser {
    */
   ListLiteral parseListLiteral(Token modifier, TypeArgumentList typeArguments) {
     // may be empty list literal
-    if (matches5(TokenType.INDEX)) {
+    if (matches(TokenType.INDEX)) {
       BeginToken leftBracket = new BeginToken(TokenType.OPEN_SQUARE_BRACKET, _currentToken.offset);
       Token rightBracket = new Token(TokenType.CLOSE_SQUARE_BRACKET, _currentToken.offset + 1);
       leftBracket.endToken = rightBracket;
@@ -4971,19 +4945,19 @@ class Parser {
       return new ListLiteral(modifier, typeArguments, leftBracket, null, rightBracket);
     }
     // open
-    Token leftBracket = expect2(TokenType.OPEN_SQUARE_BRACKET);
-    if (matches5(TokenType.CLOSE_SQUARE_BRACKET)) {
+    Token leftBracket = expect(TokenType.OPEN_SQUARE_BRACKET);
+    if (matches(TokenType.CLOSE_SQUARE_BRACKET)) {
       return new ListLiteral(modifier, typeArguments, leftBracket, null, andAdvance);
     }
     List<Expression> elements = new List<Expression>();
     elements.add(parseExpression2());
     while (optional(TokenType.COMMA)) {
-      if (matches5(TokenType.CLOSE_SQUARE_BRACKET)) {
+      if (matches(TokenType.CLOSE_SQUARE_BRACKET)) {
         return new ListLiteral(modifier, typeArguments, leftBracket, elements, andAdvance);
       }
       elements.add(parseExpression2());
     }
-    Token rightBracket = expect2(TokenType.CLOSE_SQUARE_BRACKET);
+    Token rightBracket = expect(TokenType.CLOSE_SQUARE_BRACKET);
     return new ListLiteral(modifier, typeArguments, leftBracket, elements, rightBracket);
   }
 
@@ -5002,16 +4976,16 @@ class Parser {
    */
   TypedLiteral parseListOrMapLiteral(Token modifier) {
     TypeArgumentList typeArguments = null;
-    if (matches5(TokenType.LT)) {
+    if (matches(TokenType.LT)) {
       typeArguments = parseTypeArgumentList();
     }
-    if (matches5(TokenType.OPEN_CURLY_BRACKET)) {
+    if (matches(TokenType.OPEN_CURLY_BRACKET)) {
       return parseMapLiteral(modifier, typeArguments);
-    } else if (matches5(TokenType.OPEN_SQUARE_BRACKET) || matches5(TokenType.INDEX)) {
+    } else if (matches(TokenType.OPEN_SQUARE_BRACKET) || matches(TokenType.INDEX)) {
       return parseListLiteral(modifier, typeArguments);
     }
-    reportError13(ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL, []);
-    return new ListLiteral(modifier, typeArguments, createSyntheticToken2(TokenType.OPEN_SQUARE_BRACKET), null, createSyntheticToken2(TokenType.CLOSE_SQUARE_BRACKET));
+    reportErrorForCurrentToken(ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL, []);
+    return new ListLiteral(modifier, typeArguments, createSyntheticToken(TokenType.OPEN_SQUARE_BRACKET), null, createSyntheticToken(TokenType.CLOSE_SQUARE_BRACKET));
   }
 
   /**
@@ -5026,7 +5000,7 @@ class Parser {
    */
   Expression parseLogicalAndExpression() {
     Expression expression = parseEqualityExpression();
-    while (matches5(TokenType.AMPERSAND_AMPERSAND)) {
+    while (matches(TokenType.AMPERSAND_AMPERSAND)) {
       Token operator = andAdvance;
       expression = new BinaryExpression(expression, operator, parseEqualityExpression());
     }
@@ -5048,43 +5022,20 @@ class Parser {
    * @return the map literal that was parsed
    */
   MapLiteral parseMapLiteral(Token modifier, TypeArgumentList typeArguments) {
-    Token leftBracket = expect2(TokenType.OPEN_CURLY_BRACKET);
+    Token leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
     List<MapLiteralEntry> entries = new List<MapLiteralEntry>();
-    if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
+    if (matches(TokenType.CLOSE_CURLY_BRACKET)) {
       return new MapLiteral(modifier, typeArguments, leftBracket, entries, andAdvance);
     }
     entries.add(parseMapLiteralEntry());
     while (optional(TokenType.COMMA)) {
-      if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
+      if (matches(TokenType.CLOSE_CURLY_BRACKET)) {
         return new MapLiteral(modifier, typeArguments, leftBracket, entries, andAdvance);
       }
       entries.add(parseMapLiteralEntry());
     }
-    Token rightBracket = expect2(TokenType.CLOSE_CURLY_BRACKET);
+    Token rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
     return new MapLiteral(modifier, typeArguments, leftBracket, entries, rightBracket);
-  }
-
-  /**
-   * Parse a method declaration.
-   *
-   * <pre>
-   * functionDeclaration ::=
-   *     'external'? 'static'? functionSignature functionBody
-   *   | 'external'? functionSignature ';'
-   * </pre>
-   *
-   * @param commentAndMetadata the documentation comment and metadata to be associated with the
-   *          declaration
-   * @param externalKeyword the 'external' token
-   * @param staticKeyword the static keyword, or `null` if the getter is not static
-   * @param returnType the return type of the method
-   * @return the method declaration that was parsed
-   */
-  MethodDeclaration parseMethodDeclaration(CommentAndMetadata commentAndMetadata, Token externalKeyword, Token staticKeyword, TypeName returnType) {
-    SimpleIdentifier methodName = parseSimpleIdentifier();
-    FormalParameterList parameters = parseFormalParameterList();
-    validateFormalParameterList(parameters);
-    return parseMethodDeclaration2(commentAndMetadata, externalKeyword, staticKeyword, returnType, methodName, parameters);
   }
 
   /**
@@ -5105,18 +5056,41 @@ class Parser {
    * @param parameters the parameters to the method
    * @return the method declaration that was parsed
    */
-  MethodDeclaration parseMethodDeclaration2(CommentAndMetadata commentAndMetadata, Token externalKeyword, Token staticKeyword, TypeName returnType, SimpleIdentifier name, FormalParameterList parameters) {
+  MethodDeclaration parseMethodDeclarationAfterParameters(CommentAndMetadata commentAndMetadata, Token externalKeyword, Token staticKeyword, TypeName returnType, SimpleIdentifier name, FormalParameterList parameters) {
     FunctionBody body = parseFunctionBody(externalKeyword != null || staticKeyword == null, ParserErrorCode.MISSING_FUNCTION_BODY, false);
     if (externalKeyword != null) {
       if (body is! EmptyFunctionBody) {
-        reportError12(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, body, []);
+        reportErrorForNode(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, body, []);
       }
     } else if (staticKeyword != null) {
       if (body is EmptyFunctionBody) {
-        reportError12(ParserErrorCode.ABSTRACT_STATIC_METHOD, body, []);
+        reportErrorForNode(ParserErrorCode.ABSTRACT_STATIC_METHOD, body, []);
       }
     }
     return new MethodDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, staticKeyword, returnType, null, null, name, parameters, body);
+  }
+
+  /**
+   * Parse a method declaration.
+   *
+   * <pre>
+   * functionDeclaration ::=
+   *     'external'? 'static'? functionSignature functionBody
+   *   | 'external'? functionSignature ';'
+   * </pre>
+   *
+   * @param commentAndMetadata the documentation comment and metadata to be associated with the
+   *          declaration
+   * @param externalKeyword the 'external' token
+   * @param staticKeyword the static keyword, or `null` if the getter is not static
+   * @param returnType the return type of the method
+   * @return the method declaration that was parsed
+   */
+  MethodDeclaration parseMethodDeclarationAfterReturnType(CommentAndMetadata commentAndMetadata, Token externalKeyword, Token staticKeyword, TypeName returnType) {
+    SimpleIdentifier methodName = parseSimpleIdentifier();
+    FormalParameterList parameters = parseFormalParameterList();
+    validateFormalParameterList(parameters);
+    return parseMethodDeclarationAfterParameters(commentAndMetadata, externalKeyword, staticKeyword, returnType, methodName, parameters);
   }
 
   /**
@@ -5136,54 +5110,54 @@ class Parser {
     Modifiers modifiers = new Modifiers();
     bool progress = true;
     while (progress) {
-      if (matches4(peek(), TokenType.PERIOD) || matches4(peek(), TokenType.LT) || matches4(peek(), TokenType.OPEN_PAREN)) {
+      if (tokenMatches(peek(), TokenType.PERIOD) || tokenMatches(peek(), TokenType.LT) || tokenMatches(peek(), TokenType.OPEN_PAREN)) {
         return modifiers;
       }
-      if (matches(Keyword.ABSTRACT)) {
+      if (matchesKeyword(Keyword.ABSTRACT)) {
         if (modifiers.abstractKeyword != null) {
-          reportError13(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportErrorForCurrentToken(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.abstractKeyword = andAdvance;
         }
-      } else if (matches(Keyword.CONST)) {
+      } else if (matchesKeyword(Keyword.CONST)) {
         if (modifiers.constKeyword != null) {
-          reportError13(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportErrorForCurrentToken(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.constKeyword = andAdvance;
         }
-      } else if (matches(Keyword.EXTERNAL) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
+      } else if (matchesKeyword(Keyword.EXTERNAL) && !tokenMatches(peek(), TokenType.PERIOD) && !tokenMatches(peek(), TokenType.LT)) {
         if (modifiers.externalKeyword != null) {
-          reportError13(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportErrorForCurrentToken(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.externalKeyword = andAdvance;
         }
-      } else if (matches(Keyword.FACTORY) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
+      } else if (matchesKeyword(Keyword.FACTORY) && !tokenMatches(peek(), TokenType.PERIOD) && !tokenMatches(peek(), TokenType.LT)) {
         if (modifiers.factoryKeyword != null) {
-          reportError13(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportErrorForCurrentToken(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.factoryKeyword = andAdvance;
         }
-      } else if (matches(Keyword.FINAL)) {
+      } else if (matchesKeyword(Keyword.FINAL)) {
         if (modifiers.finalKeyword != null) {
-          reportError13(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportErrorForCurrentToken(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.finalKeyword = andAdvance;
         }
-      } else if (matches(Keyword.STATIC) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
+      } else if (matchesKeyword(Keyword.STATIC) && !tokenMatches(peek(), TokenType.PERIOD) && !tokenMatches(peek(), TokenType.LT)) {
         if (modifiers.staticKeyword != null) {
-          reportError13(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportErrorForCurrentToken(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.staticKeyword = andAdvance;
         }
-      } else if (matches(Keyword.VAR)) {
+      } else if (matchesKeyword(Keyword.VAR)) {
         if (modifiers.varKeyword != null) {
-          reportError13(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportErrorForCurrentToken(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.varKeyword = andAdvance;
@@ -5208,7 +5182,7 @@ class Parser {
    */
   Expression parseMultiplicativeExpression() {
     Expression expression;
-    if (matches(Keyword.SUPER) && _currentToken.next.type.isMultiplicativeOperator) {
+    if (matchesKeyword(Keyword.SUPER) && _currentToken.next.type.isMultiplicativeOperator) {
       expression = new SuperExpression(andAdvance);
     } else {
       expression = parseUnaryExpression();
@@ -5246,7 +5220,7 @@ class Parser {
    *
    * @return the new expression that was parsed
    */
-  InstanceCreationExpression parseNewExpression() => parseInstanceCreationExpression(expect(Keyword.NEW));
+  InstanceCreationExpression parseNewExpression() => parseInstanceCreationExpression(expectKeyword(Keyword.NEW));
 
   /**
    * Parse a non-labeled statement.
@@ -5274,15 +5248,15 @@ class Parser {
   Statement parseNonLabeledStatement() {
     // TODO(brianwilkerson) Pass the comment and metadata on where appropriate.
     CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
-    if (matches5(TokenType.OPEN_CURLY_BRACKET)) {
-      if (matches4(peek(), TokenType.STRING)) {
+    if (matches(TokenType.OPEN_CURLY_BRACKET)) {
+      if (tokenMatches(peek(), TokenType.STRING)) {
         Token afterString = skipStringLiteral(_currentToken.next);
         if (afterString != null && identical(afterString.type, TokenType.COLON)) {
-          return new ExpressionStatement(parseExpression2(), expect2(TokenType.SEMICOLON));
+          return new ExpressionStatement(parseExpression2(), expect(TokenType.SEMICOLON));
         }
       }
       return parseBlock();
-    } else if (matches5(TokenType.KEYWORD) && !(_currentToken as KeywordToken).keyword.isPseudoKeyword) {
+    } else if (matches(TokenType.KEYWORD) && !(_currentToken as KeywordToken).keyword.isPseudoKeyword) {
       Keyword keyword = (_currentToken as KeywordToken).keyword;
       // TODO(jwren) compute some metrics to figure out a better order for this if-then sequence to optimize performance
       if (identical(keyword, Keyword.ASSERT)) {
@@ -5298,26 +5272,26 @@ class Parser {
       } else if (identical(keyword, Keyword.IF)) {
         return parseIfStatement();
       } else if (identical(keyword, Keyword.RETHROW)) {
-        return new ExpressionStatement(parseRethrowExpression(), expect2(TokenType.SEMICOLON));
+        return new ExpressionStatement(parseRethrowExpression(), expect(TokenType.SEMICOLON));
       } else if (identical(keyword, Keyword.RETURN)) {
         return parseReturnStatement();
       } else if (identical(keyword, Keyword.SWITCH)) {
         return parseSwitchStatement();
       } else if (identical(keyword, Keyword.THROW)) {
-        return new ExpressionStatement(parseThrowExpression(), expect2(TokenType.SEMICOLON));
+        return new ExpressionStatement(parseThrowExpression(), expect(TokenType.SEMICOLON));
       } else if (identical(keyword, Keyword.TRY)) {
         return parseTryStatement();
       } else if (identical(keyword, Keyword.WHILE)) {
         return parseWhileStatement();
       } else if (identical(keyword, Keyword.VAR) || identical(keyword, Keyword.FINAL)) {
-        return parseVariableDeclarationStatement(commentAndMetadata);
+        return parseVariableDeclarationStatementAfterMetadata(commentAndMetadata);
       } else if (identical(keyword, Keyword.VOID)) {
         TypeName returnType = parseReturnType();
         if (matchesIdentifier() && matchesAny(peek(), [
             TokenType.OPEN_PAREN,
             TokenType.OPEN_CURLY_BRACKET,
             TokenType.FUNCTION])) {
-          return parseFunctionDeclarationStatement2(commentAndMetadata, returnType);
+          return parseFunctionDeclarationStatementAfterReturnType(commentAndMetadata, returnType);
         } else {
           //
           // We have found an error of some kind. Try to recover.
@@ -5327,19 +5301,19 @@ class Parser {
               //
               // We appear to have a variable declaration with a type of "void".
               //
-              reportError12(ParserErrorCode.VOID_VARIABLE, returnType, []);
-              return parseVariableDeclarationStatement(commentAndMetadata);
+              reportErrorForNode(ParserErrorCode.VOID_VARIABLE, returnType, []);
+              return parseVariableDeclarationStatementAfterMetadata(commentAndMetadata);
             }
-          } else if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
+          } else if (matches(TokenType.CLOSE_CURLY_BRACKET)) {
             //
             // We appear to have found an incomplete statement at the end of a block. Parse it as a
             // variable declaration.
             //
-            return parseVariableDeclarationStatement2(commentAndMetadata, null, returnType);
+            return parseVariableDeclarationStatementAfterType(commentAndMetadata, null, returnType);
           }
-          reportError13(ParserErrorCode.MISSING_STATEMENT, []);
+          reportErrorForCurrentToken(ParserErrorCode.MISSING_STATEMENT, []);
           // TODO(brianwilkerson) Recover from this error.
-          return new EmptyStatement(createSyntheticToken2(TokenType.SEMICOLON));
+          return new EmptyStatement(createSyntheticToken(TokenType.SEMICOLON));
         }
       } else if (identical(keyword, Keyword.CONST)) {
         if (matchesAny(peek(), [
@@ -5347,36 +5321,36 @@ class Parser {
             TokenType.OPEN_CURLY_BRACKET,
             TokenType.OPEN_SQUARE_BRACKET,
             TokenType.INDEX])) {
-          return new ExpressionStatement(parseExpression2(), expect2(TokenType.SEMICOLON));
-        } else if (matches4(peek(), TokenType.IDENTIFIER)) {
+          return new ExpressionStatement(parseExpression2(), expect(TokenType.SEMICOLON));
+        } else if (tokenMatches(peek(), TokenType.IDENTIFIER)) {
           Token afterType = skipTypeName(peek());
           if (afterType != null) {
-            if (matches4(afterType, TokenType.OPEN_PAREN) || (matches4(afterType, TokenType.PERIOD) && matches4(afterType.next, TokenType.IDENTIFIER) && matches4(afterType.next.next, TokenType.OPEN_PAREN))) {
-              return new ExpressionStatement(parseExpression2(), expect2(TokenType.SEMICOLON));
+            if (tokenMatches(afterType, TokenType.OPEN_PAREN) || (tokenMatches(afterType, TokenType.PERIOD) && tokenMatches(afterType.next, TokenType.IDENTIFIER) && tokenMatches(afterType.next.next, TokenType.OPEN_PAREN))) {
+              return new ExpressionStatement(parseExpression2(), expect(TokenType.SEMICOLON));
             }
           }
         }
-        return parseVariableDeclarationStatement(commentAndMetadata);
+        return parseVariableDeclarationStatementAfterMetadata(commentAndMetadata);
       } else if (identical(keyword, Keyword.NEW) || identical(keyword, Keyword.TRUE) || identical(keyword, Keyword.FALSE) || identical(keyword, Keyword.NULL) || identical(keyword, Keyword.SUPER) || identical(keyword, Keyword.THIS)) {
-        return new ExpressionStatement(parseExpression2(), expect2(TokenType.SEMICOLON));
+        return new ExpressionStatement(parseExpression2(), expect(TokenType.SEMICOLON));
       } else {
         //
         // We have found an error of some kind. Try to recover.
         //
-        reportError13(ParserErrorCode.MISSING_STATEMENT, []);
-        return new EmptyStatement(createSyntheticToken2(TokenType.SEMICOLON));
+        reportErrorForCurrentToken(ParserErrorCode.MISSING_STATEMENT, []);
+        return new EmptyStatement(createSyntheticToken(TokenType.SEMICOLON));
       }
-    } else if (matches5(TokenType.SEMICOLON)) {
+    } else if (matches(TokenType.SEMICOLON)) {
       return parseEmptyStatement();
     } else if (isInitializedVariableDeclaration()) {
-      return parseVariableDeclarationStatement(commentAndMetadata);
+      return parseVariableDeclarationStatementAfterMetadata(commentAndMetadata);
     } else if (isFunctionDeclaration()) {
       return parseFunctionDeclarationStatement();
-    } else if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
-      reportError13(ParserErrorCode.MISSING_STATEMENT, []);
-      return new EmptyStatement(createSyntheticToken2(TokenType.SEMICOLON));
+    } else if (matches(TokenType.CLOSE_CURLY_BRACKET)) {
+      reportErrorForCurrentToken(ParserErrorCode.MISSING_STATEMENT, []);
+      return new EmptyStatement(createSyntheticToken(TokenType.SEMICOLON));
     } else {
-      return new ExpressionStatement(parseExpression2(), expect2(TokenType.SEMICOLON));
+      return new ExpressionStatement(parseExpression2(), expect(TokenType.SEMICOLON));
     }
   }
 
@@ -5400,20 +5374,20 @@ class Parser {
    */
   MethodDeclaration parseOperator(CommentAndMetadata commentAndMetadata, Token externalKeyword, TypeName returnType) {
     Token operatorKeyword;
-    if (matches(Keyword.OPERATOR)) {
+    if (matchesKeyword(Keyword.OPERATOR)) {
       operatorKeyword = andAdvance;
     } else {
-      reportError14(ParserErrorCode.MISSING_KEYWORD_OPERATOR, _currentToken, []);
-      operatorKeyword = createSyntheticToken(Keyword.OPERATOR);
+      reportErrorForToken(ParserErrorCode.MISSING_KEYWORD_OPERATOR, _currentToken, []);
+      operatorKeyword = createSyntheticKeyword(Keyword.OPERATOR);
     }
     if (!_currentToken.isUserDefinableOperator) {
-      reportError13(ParserErrorCode.NON_USER_DEFINABLE_OPERATOR, [_currentToken.lexeme]);
+      reportErrorForCurrentToken(ParserErrorCode.NON_USER_DEFINABLE_OPERATOR, [_currentToken.lexeme]);
     }
     SimpleIdentifier name = new SimpleIdentifier(andAdvance);
-    if (matches5(TokenType.EQ)) {
+    if (matches(TokenType.EQ)) {
       Token previous = _currentToken.previous;
-      if ((matches4(previous, TokenType.EQ_EQ) || matches4(previous, TokenType.BANG_EQ)) && _currentToken.offset == previous.offset + 2) {
-        reportError13(ParserErrorCode.INVALID_OPERATOR, ["${previous.lexeme}${_currentToken.lexeme}"]);
+      if ((tokenMatches(previous, TokenType.EQ_EQ) || tokenMatches(previous, TokenType.BANG_EQ)) && _currentToken.offset == previous.offset + 2) {
+        reportErrorForCurrentToken(ParserErrorCode.INVALID_OPERATOR, ["${previous.lexeme}${_currentToken.lexeme}"]);
         advance();
       }
     }
@@ -5421,7 +5395,7 @@ class Parser {
     validateFormalParameterList(parameters);
     FunctionBody body = parseFunctionBody(true, ParserErrorCode.MISSING_FUNCTION_BODY, false);
     if (externalKeyword != null && body is! EmptyFunctionBody) {
-      reportError13(ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY, []);
+      reportErrorForCurrentToken(ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY, []);
     }
     return new MethodDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, null, returnType, null, operatorKeyword, name, parameters, body);
   }
@@ -5432,11 +5406,11 @@ class Parser {
    * @return the return type that was parsed
    */
   TypeName parseOptionalReturnType() {
-    if (matches(Keyword.VOID)) {
+    if (matchesKeyword(Keyword.VOID)) {
       return parseReturnType();
-    } else if (matchesIdentifier() && !matches(Keyword.GET) && !matches(Keyword.SET) && !matches(Keyword.OPERATOR) && (matchesIdentifier2(peek()) || matches4(peek(), TokenType.LT))) {
+    } else if (matchesIdentifier() && !matchesKeyword(Keyword.GET) && !matchesKeyword(Keyword.SET) && !matchesKeyword(Keyword.OPERATOR) && (tokenMatchesIdentifier(peek()) || tokenMatches(peek(), TokenType.LT))) {
       return parseReturnType();
-    } else if (matchesIdentifier() && matches4(peek(), TokenType.PERIOD) && matchesIdentifier2(peek2(2)) && (matchesIdentifier2(peek2(3)) || matches4(peek2(3), TokenType.LT))) {
+    } else if (matchesIdentifier() && tokenMatches(peek(), TokenType.PERIOD) && tokenMatchesIdentifier(peek2(2)) && (tokenMatchesIdentifier(peek2(3)) || tokenMatches(peek2(3), TokenType.LT))) {
       return parseReturnType();
     }
     return null;
@@ -5457,15 +5431,15 @@ class Parser {
    * @return the part or part-of directive that was parsed
    */
   Directive parsePartDirective(CommentAndMetadata commentAndMetadata) {
-    Token partKeyword = expect(Keyword.PART);
-    if (matches2(_OF)) {
+    Token partKeyword = expectKeyword(Keyword.PART);
+    if (matchesString(_OF)) {
       Token ofKeyword = andAdvance;
       LibraryIdentifier libraryName = parseLibraryName(ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE, ofKeyword);
-      Token semicolon = expect2(TokenType.SEMICOLON);
+      Token semicolon = expect(TokenType.SEMICOLON);
       return new PartOfDirective(commentAndMetadata.comment, commentAndMetadata.metadata, partKeyword, ofKeyword, libraryName, semicolon);
     }
     StringLiteral partUri = parseStringLiteral();
-    Token semicolon = expect2(TokenType.SEMICOLON);
+    Token semicolon = expect(TokenType.SEMICOLON);
     return new PartDirective(commentAndMetadata.comment, commentAndMetadata.metadata, partKeyword, partUri, semicolon);
   }
 
@@ -5486,9 +5460,9 @@ class Parser {
    */
   Expression parsePostfixExpression() {
     Expression operand = parseAssignableExpression(true);
-    if (matches5(TokenType.OPEN_SQUARE_BRACKET) || matches5(TokenType.PERIOD) || matches5(TokenType.OPEN_PAREN)) {
+    if (matches(TokenType.OPEN_SQUARE_BRACKET) || matches(TokenType.PERIOD) || matches(TokenType.OPEN_PAREN)) {
       do {
-        if (matches5(TokenType.OPEN_PAREN)) {
+        if (matches(TokenType.OPEN_PAREN)) {
           ArgumentList argumentList = parseArgumentList();
           if (operand is PropertyAccess) {
             PropertyAccess access = operand as PropertyAccess;
@@ -5499,7 +5473,7 @@ class Parser {
         } else {
           operand = parseAssignableSelector(operand, true);
         }
-      } while (matches5(TokenType.OPEN_SQUARE_BRACKET) || matches5(TokenType.PERIOD) || matches5(TokenType.OPEN_PAREN));
+      } while (matches(TokenType.OPEN_SQUARE_BRACKET) || matches(TokenType.PERIOD) || matches(TokenType.OPEN_PAREN));
       return operand;
     }
     if (!_currentToken.type.isIncrementOperator) {
@@ -5538,17 +5512,17 @@ class Parser {
    * @return the primary expression that was parsed
    */
   Expression parsePrimaryExpression() {
-    if (matches(Keyword.THIS)) {
+    if (matchesKeyword(Keyword.THIS)) {
       return new ThisExpression(andAdvance);
-    } else if (matches(Keyword.SUPER)) {
+    } else if (matchesKeyword(Keyword.SUPER)) {
       return parseAssignableSelector(new SuperExpression(andAdvance), false);
-    } else if (matches(Keyword.NULL)) {
+    } else if (matchesKeyword(Keyword.NULL)) {
       return new NullLiteral(andAdvance);
-    } else if (matches(Keyword.FALSE)) {
+    } else if (matchesKeyword(Keyword.FALSE)) {
       return new BooleanLiteral(andAdvance, false);
-    } else if (matches(Keyword.TRUE)) {
+    } else if (matchesKeyword(Keyword.TRUE)) {
       return new BooleanLiteral(andAdvance, true);
-    } else if (matches5(TokenType.DOUBLE)) {
+    } else if (matches(TokenType.DOUBLE)) {
       Token token = andAdvance;
       double value = 0.0;
       try {
@@ -5556,7 +5530,7 @@ class Parser {
       } on FormatException catch (exception) {
       }
       return new DoubleLiteral(token, value);
-    } else if (matches5(TokenType.HEXADECIMAL)) {
+    } else if (matches(TokenType.HEXADECIMAL)) {
       Token token = andAdvance;
       int value = null;
       try {
@@ -5564,7 +5538,7 @@ class Parser {
       } on FormatException catch (exception) {
       }
       return new IntegerLiteral(token, value);
-    } else if (matches5(TokenType.INT)) {
+    } else if (matches(TokenType.INT)) {
       Token token = andAdvance;
       int value = null;
       try {
@@ -5572,11 +5546,11 @@ class Parser {
       } on FormatException catch (exception) {
       }
       return new IntegerLiteral(token, value);
-    } else if (matches5(TokenType.STRING)) {
+    } else if (matches(TokenType.STRING)) {
       return parseStringLiteral();
-    } else if (matches5(TokenType.OPEN_CURLY_BRACKET)) {
+    } else if (matches(TokenType.OPEN_CURLY_BRACKET)) {
       return parseMapLiteral(null, null);
-    } else if (matches5(TokenType.OPEN_SQUARE_BRACKET) || matches5(TokenType.INDEX)) {
+    } else if (matches(TokenType.OPEN_SQUARE_BRACKET) || matches(TokenType.INDEX)) {
       return parseListLiteral(null, null);
     } else if (matchesIdentifier()) {
       // TODO(brianwilkerson) The code below was an attempt to recover from an error case, but it
@@ -5590,34 +5564,34 @@ class Parser {
       //        return parseFunctionExpression();
       //      }
       return parsePrefixedIdentifier();
-    } else if (matches(Keyword.NEW)) {
+    } else if (matchesKeyword(Keyword.NEW)) {
       return parseNewExpression();
-    } else if (matches(Keyword.CONST)) {
+    } else if (matchesKeyword(Keyword.CONST)) {
       return parseConstExpression();
-    } else if (matches5(TokenType.OPEN_PAREN)) {
+    } else if (matches(TokenType.OPEN_PAREN)) {
       if (isFunctionExpression(_currentToken)) {
         return parseFunctionExpression();
       }
       Token leftParenthesis = andAdvance;
       Expression expression = parseExpression2();
-      Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
+      Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
       return new ParenthesizedExpression(leftParenthesis, expression, rightParenthesis);
-    } else if (matches5(TokenType.LT)) {
+    } else if (matches(TokenType.LT)) {
       return parseListOrMapLiteral(null);
-    } else if (matches5(TokenType.QUESTION)) {
+    } else if (matches(TokenType.QUESTION)) {
       return parseArgumentDefinitionTest();
-    } else if (matches(Keyword.VOID)) {
+    } else if (matchesKeyword(Keyword.VOID)) {
       //
       // Recover from having a return type of "void" where a return type is not expected.
       //
       // TODO(brianwilkerson) Improve this error message.
-      reportError13(ParserErrorCode.UNEXPECTED_TOKEN, [_currentToken.lexeme]);
+      reportErrorForCurrentToken(ParserErrorCode.UNEXPECTED_TOKEN, [_currentToken.lexeme]);
       advance();
       return parsePrimaryExpression();
-    } else if (matches5(TokenType.HASH)) {
+    } else if (matches(TokenType.HASH)) {
       return parseSymbolLiteral();
     } else {
-      reportError13(ParserErrorCode.MISSING_IDENTIFIER, []);
+      reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER, []);
       return createSyntheticIdentifier();
     }
   }
@@ -5633,10 +5607,10 @@ class Parser {
    * @return the redirecting constructor invocation that was parsed
    */
   RedirectingConstructorInvocation parseRedirectingConstructorInvocation() {
-    Token keyword = expect(Keyword.THIS);
+    Token keyword = expectKeyword(Keyword.THIS);
     Token period = null;
     SimpleIdentifier constructorName = null;
-    if (matches5(TokenType.PERIOD)) {
+    if (matches(TokenType.PERIOD)) {
       period = andAdvance;
       constructorName = parseSimpleIdentifier();
     }
@@ -5656,20 +5630,20 @@ class Parser {
    * @return the relational expression that was parsed
    */
   Expression parseRelationalExpression() {
-    if (matches(Keyword.SUPER) && _currentToken.next.type.isRelationalOperator) {
+    if (matchesKeyword(Keyword.SUPER) && _currentToken.next.type.isRelationalOperator) {
       Expression expression = new SuperExpression(andAdvance);
       Token operator = andAdvance;
       expression = new BinaryExpression(expression, operator, parseBitwiseOrExpression());
       return expression;
     }
     Expression expression = parseBitwiseOrExpression();
-    if (matches(Keyword.AS)) {
+    if (matchesKeyword(Keyword.AS)) {
       Token asOperator = andAdvance;
       expression = new AsExpression(expression, asOperator, parseTypeName());
-    } else if (matches(Keyword.IS)) {
+    } else if (matchesKeyword(Keyword.IS)) {
       Token isOperator = andAdvance;
       Token notOperator = null;
-      if (matches5(TokenType.BANG)) {
+      if (matches(TokenType.BANG)) {
         notOperator = andAdvance;
       }
       expression = new IsExpression(expression, isOperator, notOperator, parseTypeName());
@@ -5690,7 +5664,7 @@ class Parser {
    *
    * @return the rethrow expression that was parsed
    */
-  Expression parseRethrowExpression() => new RethrowExpression(expect(Keyword.RETHROW));
+  Expression parseRethrowExpression() => new RethrowExpression(expectKeyword(Keyword.RETHROW));
 
   /**
    * Parse a return statement.
@@ -5703,12 +5677,12 @@ class Parser {
    * @return the return statement that was parsed
    */
   Statement parseReturnStatement() {
-    Token returnKeyword = expect(Keyword.RETURN);
-    if (matches5(TokenType.SEMICOLON)) {
+    Token returnKeyword = expectKeyword(Keyword.RETURN);
+    if (matches(TokenType.SEMICOLON)) {
       return new ReturnStatement(returnKeyword, null, andAdvance);
     }
     Expression expression = parseExpression2();
-    Token semicolon = expect2(TokenType.SEMICOLON);
+    Token semicolon = expect(TokenType.SEMICOLON);
     return new ReturnStatement(returnKeyword, expression, semicolon);
   }
 
@@ -5732,13 +5706,13 @@ class Parser {
    * @return the setter that was parsed
    */
   MethodDeclaration parseSetter(CommentAndMetadata commentAndMetadata, Token externalKeyword, Token staticKeyword, TypeName returnType) {
-    Token propertyKeyword = expect(Keyword.SET);
+    Token propertyKeyword = expectKeyword(Keyword.SET);
     SimpleIdentifier name = parseSimpleIdentifier();
     FormalParameterList parameters = parseFormalParameterList();
     validateFormalParameterList(parameters);
     FunctionBody body = parseFunctionBody(externalKeyword != null || staticKeyword == null, ParserErrorCode.STATIC_SETTER_WITHOUT_BODY, false);
     if (externalKeyword != null && body is! EmptyFunctionBody) {
-      reportError13(ParserErrorCode.EXTERNAL_SETTER_WITH_BODY, []);
+      reportErrorForCurrentToken(ParserErrorCode.EXTERNAL_SETTER_WITH_BODY, []);
     }
     return new MethodDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, staticKeyword, returnType, propertyKeyword, null, name, parameters, body);
   }
@@ -5756,7 +5730,7 @@ class Parser {
    */
   Expression parseShiftExpression() {
     Expression expression;
-    if (matches(Keyword.SUPER) && _currentToken.next.type.isShiftOperator) {
+    if (matchesKeyword(Keyword.SUPER) && _currentToken.next.type.isShiftOperator) {
       expression = new SuperExpression(andAdvance);
     } else {
       expression = parseAdditiveExpression();
@@ -5778,13 +5752,13 @@ class Parser {
    *
    * @return the statements that were parsed
    */
-  List<Statement> parseStatements2() {
+  List<Statement> parseStatementList() {
     List<Statement> statements = new List<Statement>();
     Token statementStart = _currentToken;
-    while (!matches5(TokenType.EOF) && !matches5(TokenType.CLOSE_CURLY_BRACKET) && !isSwitchMember()) {
+    while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET) && !isSwitchMember()) {
       statements.add(parseStatement2());
       if (identical(_currentToken, statementStart)) {
-        reportError14(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+        reportErrorForToken(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
       }
       statementStart = _currentToken;
@@ -5799,27 +5773,27 @@ class Parser {
    */
   StringInterpolation parseStringInterpolation(Token string) {
     List<InterpolationElement> elements = new List<InterpolationElement>();
-    bool hasMore = matches5(TokenType.STRING_INTERPOLATION_EXPRESSION) || matches5(TokenType.STRING_INTERPOLATION_IDENTIFIER);
+    bool hasMore = matches(TokenType.STRING_INTERPOLATION_EXPRESSION) || matches(TokenType.STRING_INTERPOLATION_IDENTIFIER);
     elements.add(new InterpolationString(string, computeStringValue(string.lexeme, true, !hasMore)));
     while (hasMore) {
-      if (matches5(TokenType.STRING_INTERPOLATION_EXPRESSION)) {
+      if (matches(TokenType.STRING_INTERPOLATION_EXPRESSION)) {
         Token openToken = andAdvance;
         Expression expression = parseExpression2();
-        Token rightBracket = expect2(TokenType.CLOSE_CURLY_BRACKET);
+        Token rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
         elements.add(new InterpolationExpression(openToken, expression, rightBracket));
       } else {
         Token openToken = andAdvance;
         Expression expression = null;
-        if (matches(Keyword.THIS)) {
+        if (matchesKeyword(Keyword.THIS)) {
           expression = new ThisExpression(andAdvance);
         } else {
           expression = parseSimpleIdentifier();
         }
         elements.add(new InterpolationExpression(openToken, expression, null));
       }
-      if (matches5(TokenType.STRING)) {
+      if (matches(TokenType.STRING)) {
         string = andAdvance;
-        hasMore = matches5(TokenType.STRING_INTERPOLATION_EXPRESSION) || matches5(TokenType.STRING_INTERPOLATION_IDENTIFIER);
+        hasMore = matches(TokenType.STRING_INTERPOLATION_EXPRESSION) || matches(TokenType.STRING_INTERPOLATION_IDENTIFIER);
         elements.add(new InterpolationString(string, computeStringValue(string.lexeme, false, !hasMore)));
       }
     }
@@ -5837,10 +5811,10 @@ class Parser {
    * @return the super constructor invocation that was parsed
    */
   SuperConstructorInvocation parseSuperConstructorInvocation() {
-    Token keyword = expect(Keyword.SUPER);
+    Token keyword = expectKeyword(Keyword.SUPER);
     Token period = null;
     SimpleIdentifier constructorName = null;
-    if (matches5(TokenType.PERIOD)) {
+    if (matches(TokenType.PERIOD)) {
       period = andAdvance;
       constructorName = parseSimpleIdentifier();
     }
@@ -5869,51 +5843,51 @@ class Parser {
     _inSwitch = true;
     try {
       Set<String> definedLabels = new Set<String>();
-      Token keyword = expect(Keyword.SWITCH);
-      Token leftParenthesis = expect2(TokenType.OPEN_PAREN);
+      Token keyword = expectKeyword(Keyword.SWITCH);
+      Token leftParenthesis = expect(TokenType.OPEN_PAREN);
       Expression expression = parseExpression2();
-      Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
-      Token leftBracket = expect2(TokenType.OPEN_CURLY_BRACKET);
+      Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
+      Token leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
       Token defaultKeyword = null;
       List<SwitchMember> members = new List<SwitchMember>();
-      while (!matches5(TokenType.EOF) && !matches5(TokenType.CLOSE_CURLY_BRACKET)) {
+      while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET)) {
         List<Label> labels = new List<Label>();
-        while (matchesIdentifier() && matches4(peek(), TokenType.COLON)) {
+        while (matchesIdentifier() && tokenMatches(peek(), TokenType.COLON)) {
           SimpleIdentifier identifier = parseSimpleIdentifier();
           String label = identifier.token.lexeme;
           if (definedLabels.contains(label)) {
-            reportError14(ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT, identifier.token, [label]);
+            reportErrorForToken(ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT, identifier.token, [label]);
           } else {
             definedLabels.add(label);
           }
-          Token colon = expect2(TokenType.COLON);
+          Token colon = expect(TokenType.COLON);
           labels.add(new Label(identifier, colon));
         }
-        if (matches(Keyword.CASE)) {
+        if (matchesKeyword(Keyword.CASE)) {
           Token caseKeyword = andAdvance;
           Expression caseExpression = parseExpression2();
-          Token colon = expect2(TokenType.COLON);
-          members.add(new SwitchCase(labels, caseKeyword, caseExpression, colon, parseStatements2()));
+          Token colon = expect(TokenType.COLON);
+          members.add(new SwitchCase(labels, caseKeyword, caseExpression, colon, parseStatementList()));
           if (defaultKeyword != null) {
-            reportError14(ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, caseKeyword, []);
+            reportErrorForToken(ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, caseKeyword, []);
           }
-        } else if (matches(Keyword.DEFAULT)) {
+        } else if (matchesKeyword(Keyword.DEFAULT)) {
           if (defaultKeyword != null) {
-            reportError14(ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES, peek(), []);
+            reportErrorForToken(ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES, peek(), []);
           }
           defaultKeyword = andAdvance;
-          Token colon = expect2(TokenType.COLON);
-          members.add(new SwitchDefault(labels, defaultKeyword, colon, parseStatements2()));
+          Token colon = expect(TokenType.COLON);
+          members.add(new SwitchDefault(labels, defaultKeyword, colon, parseStatementList()));
         } else {
           // We need to advance, otherwise we could end up in an infinite loop, but this could be a
           // lot smarter about recovering from the error.
-          reportError13(ParserErrorCode.EXPECTED_CASE_OR_DEFAULT, []);
-          while (!matches5(TokenType.EOF) && !matches5(TokenType.CLOSE_CURLY_BRACKET) && !matches(Keyword.CASE) && !matches(Keyword.DEFAULT)) {
+          reportErrorForCurrentToken(ParserErrorCode.EXPECTED_CASE_OR_DEFAULT, []);
+          while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET) && !matchesKeyword(Keyword.CASE) && !matchesKeyword(Keyword.DEFAULT)) {
             advance();
           }
         }
       }
-      Token rightBracket = expect2(TokenType.CLOSE_CURLY_BRACKET);
+      Token rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
       return new SwitchStatement(keyword, leftParenthesis, expression, rightParenthesis, leftBracket, members, rightBracket);
     } finally {
       _inSwitch = wasInSwitch;
@@ -5935,21 +5909,21 @@ class Parser {
     List<Token> components = new List<Token>();
     if (matchesIdentifier()) {
       components.add(andAdvance);
-      while (matches5(TokenType.PERIOD)) {
+      while (matches(TokenType.PERIOD)) {
         advance();
         if (matchesIdentifier()) {
           components.add(andAdvance);
         } else {
-          reportError13(ParserErrorCode.MISSING_IDENTIFIER, []);
-          components.add(createSyntheticToken2(TokenType.IDENTIFIER));
+          reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER, []);
+          components.add(createSyntheticToken(TokenType.IDENTIFIER));
           break;
         }
       }
     } else if (_currentToken.isOperator) {
       components.add(andAdvance);
     } else {
-      reportError13(ParserErrorCode.MISSING_IDENTIFIER, []);
-      components.add(createSyntheticToken2(TokenType.IDENTIFIER));
+      reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER, []);
+      components.add(createSyntheticToken(TokenType.IDENTIFIER));
     }
     return new SymbolLiteral(poundSign, new List.from(components));
   }
@@ -5965,9 +5939,9 @@ class Parser {
    * @return the throw expression that was parsed
    */
   Expression parseThrowExpression() {
-    Token keyword = expect(Keyword.THROW);
-    if (matches5(TokenType.SEMICOLON) || matches5(TokenType.CLOSE_PAREN)) {
-      reportError14(ParserErrorCode.MISSING_EXPRESSION_IN_THROW, _currentToken, []);
+    Token keyword = expectKeyword(Keyword.THROW);
+    if (matches(TokenType.SEMICOLON) || matches(TokenType.CLOSE_PAREN)) {
+      reportErrorForToken(ParserErrorCode.MISSING_EXPRESSION_IN_THROW, _currentToken, []);
       return new ThrowExpression(keyword, createSyntheticIdentifier());
     }
     Expression expression = parseExpression2();
@@ -5985,9 +5959,9 @@ class Parser {
    * @return the throw expression that was parsed
    */
   Expression parseThrowExpressionWithoutCascade() {
-    Token keyword = expect(Keyword.THROW);
-    if (matches5(TokenType.SEMICOLON) || matches5(TokenType.CLOSE_PAREN)) {
-      reportError14(ParserErrorCode.MISSING_EXPRESSION_IN_THROW, _currentToken, []);
+    Token keyword = expectKeyword(Keyword.THROW);
+    if (matches(TokenType.SEMICOLON) || matches(TokenType.CLOSE_PAREN)) {
+      reportErrorForToken(ParserErrorCode.MISSING_EXPRESSION_IN_THROW, _currentToken, []);
       return new ThrowExpression(keyword, createSyntheticIdentifier());
     }
     Expression expression = parseExpressionWithoutCascade();
@@ -6015,14 +5989,14 @@ class Parser {
    * @return the try statement that was parsed
    */
   Statement parseTryStatement() {
-    Token tryKeyword = expect(Keyword.TRY);
+    Token tryKeyword = expectKeyword(Keyword.TRY);
     Block body = parseBlock();
     List<CatchClause> catchClauses = new List<CatchClause>();
     Block finallyClause = null;
-    while (matches2(_ON) || matches(Keyword.CATCH)) {
+    while (matchesString(_ON) || matchesKeyword(Keyword.CATCH)) {
       Token onKeyword = null;
       TypeName exceptionType = null;
-      if (matches2(_ON)) {
+      if (matchesString(_ON)) {
         onKeyword = andAdvance;
         exceptionType = parseTypeName();
       }
@@ -6032,26 +6006,26 @@ class Parser {
       Token comma = null;
       SimpleIdentifier stackTraceParameter = null;
       Token rightParenthesis = null;
-      if (matches(Keyword.CATCH)) {
+      if (matchesKeyword(Keyword.CATCH)) {
         catchKeyword = andAdvance;
-        leftParenthesis = expect2(TokenType.OPEN_PAREN);
+        leftParenthesis = expect(TokenType.OPEN_PAREN);
         exceptionParameter = parseSimpleIdentifier();
-        if (matches5(TokenType.COMMA)) {
+        if (matches(TokenType.COMMA)) {
           comma = andAdvance;
           stackTraceParameter = parseSimpleIdentifier();
         }
-        rightParenthesis = expect2(TokenType.CLOSE_PAREN);
+        rightParenthesis = expect(TokenType.CLOSE_PAREN);
       }
       Block catchBody = parseBlock();
       catchClauses.add(new CatchClause(onKeyword, exceptionType, catchKeyword, leftParenthesis, exceptionParameter, comma, stackTraceParameter, rightParenthesis, catchBody));
     }
     Token finallyKeyword = null;
-    if (matches(Keyword.FINALLY)) {
+    if (matchesKeyword(Keyword.FINALLY)) {
       finallyKeyword = andAdvance;
       finallyClause = parseBlock();
     } else {
       if (catchClauses.isEmpty) {
-        reportError13(ParserErrorCode.MISSING_CATCH_OR_FINALLY, []);
+        reportErrorForCurrentToken(ParserErrorCode.MISSING_CATCH_OR_FINALLY, []);
       }
     }
     return new TryStatement(tryKeyword, body, catchClauses, finallyKeyword, finallyClause);
@@ -6085,19 +6059,19 @@ class Parser {
    * @return the type alias that was parsed
    */
   TypeAlias parseTypeAlias(CommentAndMetadata commentAndMetadata) {
-    Token keyword = expect(Keyword.TYPEDEF);
+    Token keyword = expectKeyword(Keyword.TYPEDEF);
     if (matchesIdentifier()) {
       Token next = peek();
-      if (matches4(next, TokenType.LT)) {
+      if (tokenMatches(next, TokenType.LT)) {
         next = skipTypeParameterList(next);
-        if (next != null && matches4(next, TokenType.EQ)) {
+        if (next != null && tokenMatches(next, TokenType.EQ)) {
           TypeAlias typeAlias = parseClassTypeAlias(commentAndMetadata, null, keyword);
-          reportError14(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword, []);
+          reportErrorForToken(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword, []);
           return typeAlias;
         }
-      } else if (matches4(next, TokenType.EQ)) {
+      } else if (tokenMatches(next, TokenType.EQ)) {
         TypeAlias typeAlias = parseClassTypeAlias(commentAndMetadata, null, keyword);
-        reportError14(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword, []);
+        reportErrorForToken(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword, []);
         return typeAlias;
       }
     }
@@ -6119,10 +6093,10 @@ class Parser {
    * @return the unary expression that was parsed
    */
   Expression parseUnaryExpression() {
-    if (matches5(TokenType.MINUS) || matches5(TokenType.BANG) || matches5(TokenType.TILDE)) {
+    if (matches(TokenType.MINUS) || matches(TokenType.BANG) || matches(TokenType.TILDE)) {
       Token operator = andAdvance;
-      if (matches(Keyword.SUPER)) {
-        if (matches4(peek(), TokenType.OPEN_SQUARE_BRACKET) || matches4(peek(), TokenType.PERIOD)) {
+      if (matchesKeyword(Keyword.SUPER)) {
+        if (tokenMatches(peek(), TokenType.OPEN_SQUARE_BRACKET) || tokenMatches(peek(), TokenType.PERIOD)) {
           //     "prefixOperator unaryExpression"
           // --> "prefixOperator postfixExpression"
           // --> "prefixOperator primary                    selector*"
@@ -6134,8 +6108,8 @@ class Parser {
       return new PrefixExpression(operator, parseUnaryExpression());
     } else if (_currentToken.type.isIncrementOperator) {
       Token operator = andAdvance;
-      if (matches(Keyword.SUPER)) {
-        if (matches4(peek(), TokenType.OPEN_SQUARE_BRACKET) || matches4(peek(), TokenType.PERIOD)) {
+      if (matchesKeyword(Keyword.SUPER)) {
+        if (tokenMatches(peek(), TokenType.OPEN_SQUARE_BRACKET) || tokenMatches(peek(), TokenType.PERIOD)) {
           // --> "prefixOperator 'super' assignableSelector selector*"
           return new PrefixExpression(operator, parseUnaryExpression());
         }
@@ -6154,13 +6128,13 @@ class Parser {
           return new PrefixExpression(firstOperator, new PrefixExpression(secondOperator, new SuperExpression(andAdvance)));
         } else {
           // Invalid operator before 'super'
-          reportError13(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, [operator.lexeme]);
+          reportErrorForCurrentToken(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, [operator.lexeme]);
           return new PrefixExpression(operator, new SuperExpression(andAdvance));
         }
       }
       return new PrefixExpression(operator, parseAssignableExpression(false));
-    } else if (matches5(TokenType.PLUS)) {
-      reportError13(ParserErrorCode.MISSING_IDENTIFIER, []);
+    } else if (matches(TokenType.PLUS)) {
+      reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER, []);
       return createSyntheticIdentifier();
     }
     return parsePostfixExpression();
@@ -6181,7 +6155,7 @@ class Parser {
     SimpleIdentifier name = parseSimpleIdentifier();
     Token equals = null;
     Expression initializer = null;
-    if (matches5(TokenType.EQ)) {
+    if (matches(TokenType.EQ)) {
       equals = andAdvance;
       initializer = parseExpression2();
     }
@@ -6199,9 +6173,9 @@ class Parser {
    * @param commentAndMetadata the metadata to be associated with the variable declaration list
    * @return the variable declaration list that was parsed
    */
-  VariableDeclarationList parseVariableDeclarationList(CommentAndMetadata commentAndMetadata) {
+  VariableDeclarationList parseVariableDeclarationListAfterMetadata(CommentAndMetadata commentAndMetadata) {
     FinalConstVarOrType holder = parseFinalConstVarOrType(false);
-    return parseVariableDeclarationList2(commentAndMetadata, holder.keyword, holder.type);
+    return parseVariableDeclarationListAfterType(commentAndMetadata, holder.keyword, holder.type);
   }
 
   /**
@@ -6219,13 +6193,13 @@ class Parser {
    * @param type the type of the variables in the list
    * @return the variable declaration list that was parsed
    */
-  VariableDeclarationList parseVariableDeclarationList2(CommentAndMetadata commentAndMetadata, Token keyword, TypeName type) {
-    if (type != null && keyword != null && matches3(keyword, Keyword.VAR)) {
-      reportError14(ParserErrorCode.VAR_AND_TYPE, keyword, []);
+  VariableDeclarationList parseVariableDeclarationListAfterType(CommentAndMetadata commentAndMetadata, Token keyword, TypeName type) {
+    if (type != null && keyword != null && tokenMatchesKeyword(keyword, Keyword.VAR)) {
+      reportErrorForToken(ParserErrorCode.VAR_AND_TYPE, keyword, []);
     }
     List<VariableDeclaration> variables = new List<VariableDeclaration>();
     variables.add(parseVariableDeclaration());
-    while (matches5(TokenType.COMMA)) {
+    while (matches(TokenType.COMMA)) {
       advance();
       variables.add(parseVariableDeclaration());
     }
@@ -6244,16 +6218,16 @@ class Parser {
    *          statement, or `null` if there is no attempt at parsing the comment and metadata
    * @return the variable declaration statement that was parsed
    */
-  VariableDeclarationStatement parseVariableDeclarationStatement(CommentAndMetadata commentAndMetadata) {
+  VariableDeclarationStatement parseVariableDeclarationStatementAfterMetadata(CommentAndMetadata commentAndMetadata) {
     //    Token startToken = currentToken;
-    VariableDeclarationList variableList = parseVariableDeclarationList(commentAndMetadata);
+    VariableDeclarationList variableList = parseVariableDeclarationListAfterMetadata(commentAndMetadata);
     //    if (!matches(TokenType.SEMICOLON)) {
     //      if (matches(startToken, Keyword.VAR) && isTypedIdentifier(startToken.getNext())) {
     //        // TODO(brianwilkerson) This appears to be of the form "var type variable". We should do
     //        // a better job of recovering in this case.
     //      }
     //    }
-    Token semicolon = expect2(TokenType.SEMICOLON);
+    Token semicolon = expect(TokenType.SEMICOLON);
     return new VariableDeclarationStatement(variableList, semicolon);
   }
 
@@ -6272,9 +6246,9 @@ class Parser {
    * @param type the type of the variables in the list
    * @return the variable declaration statement that was parsed
    */
-  VariableDeclarationStatement parseVariableDeclarationStatement2(CommentAndMetadata commentAndMetadata, Token keyword, TypeName type) {
-    VariableDeclarationList variableList = parseVariableDeclarationList2(commentAndMetadata, keyword, type);
-    Token semicolon = expect2(TokenType.SEMICOLON);
+  VariableDeclarationStatement parseVariableDeclarationStatementAfterType(CommentAndMetadata commentAndMetadata, Token keyword, TypeName type) {
+    VariableDeclarationList variableList = parseVariableDeclarationListAfterType(commentAndMetadata, keyword, type);
+    Token semicolon = expect(TokenType.SEMICOLON);
     return new VariableDeclarationStatement(variableList, semicolon);
   }
 
@@ -6292,10 +6266,10 @@ class Parser {
     bool wasInLoop = _inLoop;
     _inLoop = true;
     try {
-      Token keyword = expect(Keyword.WHILE);
-      Token leftParenthesis = expect2(TokenType.OPEN_PAREN);
+      Token keyword = expectKeyword(Keyword.WHILE);
+      Token leftParenthesis = expect(TokenType.OPEN_PAREN);
       Expression condition = parseExpression2();
-      Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
+      Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
       Statement body = parseStatement2();
       return new WhileStatement(keyword, leftParenthesis, condition, rightParenthesis, body);
     } finally {
@@ -6342,21 +6316,21 @@ class Parser {
    * Report an error with the given error code and arguments.
    *
    * @param errorCode the error code of the error to be reported
-   * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError12(ParserErrorCode errorCode, AstNode node, List<Object> arguments) {
-    reportError(new AnalysisError.con2(_source, node.offset, node.length, errorCode, arguments));
+  void reportErrorForCurrentToken(ParserErrorCode errorCode, List<Object> arguments) {
+    reportErrorForToken(errorCode, _currentToken, arguments);
   }
 
   /**
    * Report an error with the given error code and arguments.
    *
    * @param errorCode the error code of the error to be reported
+   * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError13(ParserErrorCode errorCode, List<Object> arguments) {
-    reportError14(errorCode, _currentToken, arguments);
+  void reportErrorForNode(ParserErrorCode errorCode, AstNode node, List<Object> arguments) {
+    reportError(new AnalysisError.con2(_source, node.offset, node.length, errorCode, arguments));
   }
 
   /**
@@ -6366,7 +6340,7 @@ class Parser {
    * @param token the token specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError14(ParserErrorCode errorCode, Token token, List<Object> arguments) {
+  void reportErrorForToken(ParserErrorCode errorCode, Token token, List<Object> arguments) {
     reportError(new AnalysisError.con2(_source, token.offset, token.length, errorCode, arguments));
   }
 
@@ -6395,22 +6369,22 @@ class Parser {
    * @return the token following the type that was parsed
    */
   Token skipFinalConstVarOrType(Token startToken) {
-    if (matches3(startToken, Keyword.FINAL) || matches3(startToken, Keyword.CONST)) {
+    if (tokenMatchesKeyword(startToken, Keyword.FINAL) || tokenMatchesKeyword(startToken, Keyword.CONST)) {
       Token next = startToken.next;
-      if (matchesIdentifier2(next)) {
+      if (tokenMatchesIdentifier(next)) {
         Token next2 = next.next;
         // "Type parameter" or "Type<" or "prefix.Type"
-        if (matchesIdentifier2(next2) || matches4(next2, TokenType.LT) || matches4(next2, TokenType.PERIOD)) {
+        if (tokenMatchesIdentifier(next2) || tokenMatches(next2, TokenType.LT) || tokenMatches(next2, TokenType.PERIOD)) {
           return skipTypeName(next);
         }
         // "parameter"
         return next;
       }
-    } else if (matches3(startToken, Keyword.VAR)) {
+    } else if (tokenMatchesKeyword(startToken, Keyword.VAR)) {
       return startToken.next;
-    } else if (matchesIdentifier2(startToken)) {
+    } else if (tokenMatchesIdentifier(startToken)) {
       Token next = startToken.next;
-      if (matchesIdentifier2(next) || matches4(next, TokenType.LT) || matches3(next, Keyword.THIS) || (matches4(next, TokenType.PERIOD) && matchesIdentifier2(next.next) && (matchesIdentifier2(next.next.next) || matches4(next.next.next, TokenType.LT) || matches3(next.next.next, Keyword.THIS)))) {
+      if (tokenMatchesIdentifier(next) || tokenMatches(next, TokenType.LT) || tokenMatchesKeyword(next, Keyword.THIS) || (tokenMatches(next, TokenType.PERIOD) && tokenMatchesIdentifier(next.next) && (tokenMatchesIdentifier(next.next.next) || tokenMatches(next.next.next, TokenType.LT) || tokenMatchesKeyword(next.next.next, Keyword.THIS)))) {
         return skipReturnType(startToken);
       }
     }
@@ -6455,11 +6429,11 @@ class Parser {
    * @return the token following the formal parameter list that was parsed
    */
   Token skipFormalParameterList(Token startToken) {
-    if (!matches4(startToken, TokenType.OPEN_PAREN)) {
+    if (!tokenMatches(startToken, TokenType.OPEN_PAREN)) {
       return null;
     }
     Token next = startToken.next;
-    if (matches4(next, TokenType.CLOSE_PAREN)) {
+    if (tokenMatches(next, TokenType.CLOSE_PAREN)) {
       return next.next;
     }
     //
@@ -6469,13 +6443,13 @@ class Parser {
     if (matchesAny(next, [
         TokenType.AT,
         TokenType.OPEN_SQUARE_BRACKET,
-        TokenType.OPEN_CURLY_BRACKET]) || matches3(next, Keyword.VOID) || (matchesIdentifier2(next) && (matchesAny(next.next, [TokenType.COMMA, TokenType.CLOSE_PAREN])))) {
+        TokenType.OPEN_CURLY_BRACKET]) || tokenMatchesKeyword(next, Keyword.VOID) || (tokenMatchesIdentifier(next) && (matchesAny(next.next, [TokenType.COMMA, TokenType.CLOSE_PAREN])))) {
       return skipPastMatchingToken(startToken);
     }
     //
     // Look to see whether the first parameter is a function typed parameter without a return type.
     //
-    if (matchesIdentifier2(next) && matches4(next.next, TokenType.OPEN_PAREN)) {
+    if (tokenMatchesIdentifier(next) && tokenMatches(next.next, TokenType.OPEN_PAREN)) {
       Token afterParameters = skipFormalParameterList(next.next);
       if (afterParameters != null && (matchesAny(afterParameters, [TokenType.COMMA, TokenType.CLOSE_PAREN]))) {
         return skipPastMatchingToken(startToken);
@@ -6533,7 +6507,7 @@ class Parser {
     Token token = skipSimpleIdentifier(startToken);
     if (token == null) {
       return null;
-    } else if (!matches4(token, TokenType.PERIOD)) {
+    } else if (!tokenMatches(token, TokenType.PERIOD)) {
       return token;
     }
     return skipSimpleIdentifier(token.next);
@@ -6556,7 +6530,7 @@ class Parser {
    * @return the token following the return type that was parsed
    */
   Token skipReturnType(Token startToken) {
-    if (matches3(startToken, Keyword.VOID)) {
+    if (tokenMatchesKeyword(startToken, Keyword.VOID)) {
       return startToken.next;
     } else {
       return skipTypeName(startToken);
@@ -6580,7 +6554,7 @@ class Parser {
    * @return the token following the simple identifier that was parsed
    */
   Token skipSimpleIdentifier(Token startToken) {
-    if (matches4(startToken, TokenType.IDENTIFIER) || (matches4(startToken, TokenType.KEYWORD) && (startToken as KeywordToken).keyword.isPseudoKeyword)) {
+    if (tokenMatches(startToken, TokenType.IDENTIFIER) || (tokenMatches(startToken, TokenType.KEYWORD) && (startToken as KeywordToken).keyword.isPseudoKeyword)) {
       return startToken.next;
     }
     return null;
@@ -6663,7 +6637,7 @@ class Parser {
    */
   Token skipStringLiteral(Token startToken) {
     Token token = startToken;
-    while (token != null && matches4(token, TokenType.STRING)) {
+    while (token != null && tokenMatches(token, TokenType.STRING)) {
       token = token.next;
       TokenType type = token.type;
       if (identical(type, TokenType.STRING_INTERPOLATION_EXPRESSION) || identical(type, TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
@@ -6696,14 +6670,14 @@ class Parser {
    */
   Token skipTypeArgumentList(Token startToken) {
     Token token = startToken;
-    if (!matches4(token, TokenType.LT)) {
+    if (!tokenMatches(token, TokenType.LT)) {
       return null;
     }
     token = skipTypeName(token.next);
     if (token == null) {
       return null;
     }
-    while (matches4(token, TokenType.COMMA)) {
+    while (tokenMatches(token, TokenType.COMMA)) {
       token = skipTypeName(token.next);
       if (token == null) {
         return null;
@@ -6739,7 +6713,7 @@ class Parser {
     if (token == null) {
       return null;
     }
-    if (matches4(token, TokenType.LT)) {
+    if (tokenMatches(token, TokenType.LT)) {
       token = skipTypeArgumentList(token);
     }
     return token;
@@ -6762,7 +6736,7 @@ class Parser {
    * @return the token following the type parameter list that was parsed
    */
   Token skipTypeParameterList(Token startToken) {
-    if (!matches4(startToken, TokenType.LT)) {
+    if (!tokenMatches(startToken, TokenType.LT)) {
       return null;
     }
     //
@@ -6772,22 +6746,22 @@ class Parser {
     int depth = 1;
     Token next = startToken.next;
     while (depth > 0) {
-      if (matches4(next, TokenType.EOF)) {
+      if (tokenMatches(next, TokenType.EOF)) {
         return null;
-      } else if (matches4(next, TokenType.LT)) {
+      } else if (tokenMatches(next, TokenType.LT)) {
         depth++;
-      } else if (matches4(next, TokenType.GT)) {
+      } else if (tokenMatches(next, TokenType.GT)) {
         depth--;
-      } else if (matches4(next, TokenType.GT_EQ)) {
+      } else if (tokenMatches(next, TokenType.GT_EQ)) {
         if (depth == 1) {
           Token fakeEquals = new Token(TokenType.EQ, next.offset + 2);
           fakeEquals.setNextWithoutSettingPrevious(next.next);
           return fakeEquals;
         }
         depth--;
-      } else if (matches4(next, TokenType.GT_GT)) {
+      } else if (tokenMatches(next, TokenType.GT_GT)) {
         depth -= 2;
-      } else if (matches4(next, TokenType.GT_GT_EQ)) {
+      } else if (tokenMatches(next, TokenType.GT_GT_EQ)) {
         if (depth < 2) {
           return null;
         } else if (depth == 2) {
@@ -6801,6 +6775,32 @@ class Parser {
     }
     return next;
   }
+
+  /**
+   * Return `true` if the given token has the given type.
+   *
+   * @param token the token being tested
+   * @param type the type of token that is being tested for
+   * @return `true` if the given token has the given type
+   */
+  bool tokenMatches(Token token, TokenType type) => identical(token.type, type);
+
+  /**
+   * Return `true` if the given token is a valid identifier. Valid identifiers include
+   * built-in identifiers (pseudo-keywords).
+   *
+   * @return `true` if the given token is a valid identifier
+   */
+  bool tokenMatchesIdentifier(Token token) => tokenMatches(token, TokenType.IDENTIFIER) || (tokenMatches(token, TokenType.KEYWORD) && (token as KeywordToken).keyword.isPseudoKeyword);
+
+  /**
+   * Return `true` if the given token matches the given keyword.
+   *
+   * @param token the token being tested
+   * @param keyword the keyword that is being tested for
+   * @return `true` if the given token matches the given keyword
+   */
+  bool tokenMatchesKeyword(Token token, Keyword keyword) => identical(token.type, TokenType.KEYWORD) && identical((token as KeywordToken).keyword, keyword);
 
   /**
    * Translate the characters at the given index in the given string, appending the translated
@@ -6847,14 +6847,14 @@ class Parser {
     } else if (currentChar == 0x78) {
       if (currentIndex + 2 >= length) {
         // Illegal escape sequence: not enough hex digits
-        reportError13(ParserErrorCode.INVALID_HEX_ESCAPE, []);
+        reportErrorForCurrentToken(ParserErrorCode.INVALID_HEX_ESCAPE, []);
         return length;
       }
       int firstDigit = lexeme.codeUnitAt(currentIndex + 1);
       int secondDigit = lexeme.codeUnitAt(currentIndex + 2);
       if (!isHexDigit(firstDigit) || !isHexDigit(secondDigit)) {
         // Illegal escape sequence: invalid hex digit
-        reportError13(ParserErrorCode.INVALID_HEX_ESCAPE, []);
+        reportErrorForCurrentToken(ParserErrorCode.INVALID_HEX_ESCAPE, []);
       } else {
         builder.appendChar(((Character.digit(firstDigit, 16) << 4) + Character.digit(secondDigit, 16)));
       }
@@ -6863,7 +6863,7 @@ class Parser {
       currentIndex++;
       if (currentIndex >= length) {
         // Illegal escape sequence: not enough hex digits
-        reportError13(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+        reportErrorForCurrentToken(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
         return length;
       }
       currentChar = lexeme.codeUnitAt(currentIndex);
@@ -6871,7 +6871,7 @@ class Parser {
         currentIndex++;
         if (currentIndex >= length) {
           // Illegal escape sequence: incomplete escape
-          reportError13(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+          reportErrorForCurrentToken(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
           return length;
         }
         currentChar = lexeme.codeUnitAt(currentIndex);
@@ -6880,7 +6880,7 @@ class Parser {
         while (currentChar != 0x7D) {
           if (!isHexDigit(currentChar)) {
             // Illegal escape sequence: invalid hex digit
-            reportError13(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+            reportErrorForCurrentToken(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
             currentIndex++;
             while (currentIndex < length && lexeme.codeUnitAt(currentIndex) != 0x7D) {
               currentIndex++;
@@ -6892,21 +6892,21 @@ class Parser {
           currentIndex++;
           if (currentIndex >= length) {
             // Illegal escape sequence: incomplete escape
-            reportError13(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+            reportErrorForCurrentToken(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
             return length;
           }
           currentChar = lexeme.codeUnitAt(currentIndex);
         }
         if (digitCount < 1 || digitCount > 6) {
           // Illegal escape sequence: not enough or too many hex digits
-          reportError13(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+          reportErrorForCurrentToken(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
         }
         appendScalarValue(builder, lexeme.substring(index, currentIndex + 1), value, index, currentIndex);
         return currentIndex + 1;
       } else {
         if (currentIndex + 3 >= length) {
           // Illegal escape sequence: not enough hex digits
-          reportError13(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+          reportErrorForCurrentToken(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
           return length;
         }
         int firstDigit = currentChar;
@@ -6915,7 +6915,7 @@ class Parser {
         int fourthDigit = lexeme.codeUnitAt(currentIndex + 3);
         if (!isHexDigit(firstDigit) || !isHexDigit(secondDigit) || !isHexDigit(thirdDigit) || !isHexDigit(fourthDigit)) {
           // Illegal escape sequence: invalid hex digits
-          reportError13(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+          reportErrorForCurrentToken(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
         } else {
           appendScalarValue(builder, lexeme.substring(index, currentIndex + 1), (((((Character.digit(firstDigit, 16) << 4) + Character.digit(secondDigit, 16)) << 4) + Character.digit(thirdDigit, 16)) << 4) + Character.digit(fourthDigit, 16), index, currentIndex + 3);
         }
@@ -6946,7 +6946,7 @@ class Parser {
   void validateFormalParameterList(FormalParameterList parameterList) {
     for (FormalParameter parameter in parameterList.parameters) {
       if (parameter is FieldFormalParameter) {
-        reportError12(ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, parameter.identifier, []);
+        reportErrorForNode(ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, parameter.identifier, []);
       }
     }
   }
@@ -6960,16 +6960,16 @@ class Parser {
   Token validateModifiersForClass(Modifiers modifiers) {
     validateModifiersForTopLevelDeclaration(modifiers);
     if (modifiers.constKeyword != null) {
-      reportError14(ParserErrorCode.CONST_CLASS, modifiers.constKeyword, []);
+      reportErrorForToken(ParserErrorCode.CONST_CLASS, modifiers.constKeyword, []);
     }
     if (modifiers.externalKeyword != null) {
-      reportError14(ParserErrorCode.EXTERNAL_CLASS, modifiers.externalKeyword, []);
+      reportErrorForToken(ParserErrorCode.EXTERNAL_CLASS, modifiers.externalKeyword, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError14(ParserErrorCode.FINAL_CLASS, modifiers.finalKeyword, []);
+      reportErrorForToken(ParserErrorCode.FINAL_CLASS, modifiers.finalKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError14(ParserErrorCode.VAR_CLASS, modifiers.varKeyword, []);
+      reportErrorForToken(ParserErrorCode.VAR_CLASS, modifiers.varKeyword, []);
     }
     return modifiers.abstractKeyword;
   }
@@ -6983,25 +6983,25 @@ class Parser {
    */
   Token validateModifiersForConstructor(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null) {
-      reportError14(ParserErrorCode.ABSTRACT_CLASS_MEMBER, modifiers.abstractKeyword, []);
+      reportErrorForToken(ParserErrorCode.ABSTRACT_CLASS_MEMBER, modifiers.abstractKeyword, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError14(ParserErrorCode.FINAL_CONSTRUCTOR, modifiers.finalKeyword, []);
+      reportErrorForToken(ParserErrorCode.FINAL_CONSTRUCTOR, modifiers.finalKeyword, []);
     }
     if (modifiers.staticKeyword != null) {
-      reportError14(ParserErrorCode.STATIC_CONSTRUCTOR, modifiers.staticKeyword, []);
+      reportErrorForToken(ParserErrorCode.STATIC_CONSTRUCTOR, modifiers.staticKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError14(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, modifiers.varKeyword, []);
+      reportErrorForToken(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, modifiers.varKeyword, []);
     }
     Token externalKeyword = modifiers.externalKeyword;
     Token constKeyword = modifiers.constKeyword;
     Token factoryKeyword = modifiers.factoryKeyword;
     if (externalKeyword != null && constKeyword != null && constKeyword.offset < externalKeyword.offset) {
-      reportError14(ParserErrorCode.EXTERNAL_AFTER_CONST, externalKeyword, []);
+      reportErrorForToken(ParserErrorCode.EXTERNAL_AFTER_CONST, externalKeyword, []);
     }
     if (externalKeyword != null && factoryKeyword != null && factoryKeyword.offset < externalKeyword.offset) {
-      reportError14(ParserErrorCode.EXTERNAL_AFTER_FACTORY, externalKeyword, []);
+      reportErrorForToken(ParserErrorCode.EXTERNAL_AFTER_FACTORY, externalKeyword, []);
     }
     return constKeyword;
   }
@@ -7015,13 +7015,13 @@ class Parser {
    */
   Token validateModifiersForField(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null) {
-      reportError13(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
+      reportErrorForCurrentToken(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
     }
     if (modifiers.externalKeyword != null) {
-      reportError14(ParserErrorCode.EXTERNAL_FIELD, modifiers.externalKeyword, []);
+      reportErrorForToken(ParserErrorCode.EXTERNAL_FIELD, modifiers.externalKeyword, []);
     }
     if (modifiers.factoryKeyword != null) {
-      reportError14(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
+      reportErrorForToken(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
     }
     Token staticKeyword = modifiers.staticKeyword;
     Token constKeyword = modifiers.constKeyword;
@@ -7029,23 +7029,23 @@ class Parser {
     Token varKeyword = modifiers.varKeyword;
     if (constKeyword != null) {
       if (finalKeyword != null) {
-        reportError14(ParserErrorCode.CONST_AND_FINAL, finalKeyword, []);
+        reportErrorForToken(ParserErrorCode.CONST_AND_FINAL, finalKeyword, []);
       }
       if (varKeyword != null) {
-        reportError14(ParserErrorCode.CONST_AND_VAR, varKeyword, []);
+        reportErrorForToken(ParserErrorCode.CONST_AND_VAR, varKeyword, []);
       }
       if (staticKeyword != null && constKeyword.offset < staticKeyword.offset) {
-        reportError14(ParserErrorCode.STATIC_AFTER_CONST, staticKeyword, []);
+        reportErrorForToken(ParserErrorCode.STATIC_AFTER_CONST, staticKeyword, []);
       }
     } else if (finalKeyword != null) {
       if (varKeyword != null) {
-        reportError14(ParserErrorCode.FINAL_AND_VAR, varKeyword, []);
+        reportErrorForToken(ParserErrorCode.FINAL_AND_VAR, varKeyword, []);
       }
       if (staticKeyword != null && finalKeyword.offset < staticKeyword.offset) {
-        reportError14(ParserErrorCode.STATIC_AFTER_FINAL, staticKeyword, []);
+        reportErrorForToken(ParserErrorCode.STATIC_AFTER_FINAL, staticKeyword, []);
       }
     } else if (varKeyword != null && staticKeyword != null && varKeyword.offset < staticKeyword.offset) {
-      reportError14(ParserErrorCode.STATIC_AFTER_VAR, staticKeyword, []);
+      reportErrorForToken(ParserErrorCode.STATIC_AFTER_VAR, staticKeyword, []);
     }
     return lexicallyFirst([constKeyword, finalKeyword, varKeyword]);
   }
@@ -7057,7 +7057,7 @@ class Parser {
    */
   void validateModifiersForFunctionDeclarationStatement(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null || modifiers.constKeyword != null || modifiers.externalKeyword != null || modifiers.factoryKeyword != null || modifiers.finalKeyword != null || modifiers.staticKeyword != null || modifiers.varKeyword != null) {
-      reportError13(ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, []);
+      reportErrorForCurrentToken(ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, []);
     }
   }
 
@@ -7068,24 +7068,24 @@ class Parser {
    */
   void validateModifiersForGetterOrSetterOrMethod(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null) {
-      reportError13(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
+      reportErrorForCurrentToken(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
     }
     if (modifiers.constKeyword != null) {
-      reportError14(ParserErrorCode.CONST_METHOD, modifiers.constKeyword, []);
+      reportErrorForToken(ParserErrorCode.CONST_METHOD, modifiers.constKeyword, []);
     }
     if (modifiers.factoryKeyword != null) {
-      reportError14(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
+      reportErrorForToken(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError14(ParserErrorCode.FINAL_METHOD, modifiers.finalKeyword, []);
+      reportErrorForToken(ParserErrorCode.FINAL_METHOD, modifiers.finalKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError14(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
+      reportErrorForToken(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
     }
     Token externalKeyword = modifiers.externalKeyword;
     Token staticKeyword = modifiers.staticKeyword;
     if (externalKeyword != null && staticKeyword != null && staticKeyword.offset < externalKeyword.offset) {
-      reportError14(ParserErrorCode.EXTERNAL_AFTER_STATIC, externalKeyword, []);
+      reportErrorForToken(ParserErrorCode.EXTERNAL_AFTER_STATIC, externalKeyword, []);
     }
   }
 
@@ -7096,22 +7096,22 @@ class Parser {
    */
   void validateModifiersForOperator(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null) {
-      reportError13(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
+      reportErrorForCurrentToken(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
     }
     if (modifiers.constKeyword != null) {
-      reportError14(ParserErrorCode.CONST_METHOD, modifiers.constKeyword, []);
+      reportErrorForToken(ParserErrorCode.CONST_METHOD, modifiers.constKeyword, []);
     }
     if (modifiers.factoryKeyword != null) {
-      reportError14(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
+      reportErrorForToken(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError14(ParserErrorCode.FINAL_METHOD, modifiers.finalKeyword, []);
+      reportErrorForToken(ParserErrorCode.FINAL_METHOD, modifiers.finalKeyword, []);
     }
     if (modifiers.staticKeyword != null) {
-      reportError14(ParserErrorCode.STATIC_OPERATOR, modifiers.staticKeyword, []);
+      reportErrorForToken(ParserErrorCode.STATIC_OPERATOR, modifiers.staticKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError14(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
+      reportErrorForToken(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
     }
   }
 
@@ -7122,10 +7122,10 @@ class Parser {
    */
   void validateModifiersForTopLevelDeclaration(Modifiers modifiers) {
     if (modifiers.factoryKeyword != null) {
-      reportError14(ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION, modifiers.factoryKeyword, []);
+      reportErrorForToken(ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION, modifiers.factoryKeyword, []);
     }
     if (modifiers.staticKeyword != null) {
-      reportError14(ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION, modifiers.staticKeyword, []);
+      reportErrorForToken(ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION, modifiers.staticKeyword, []);
     }
   }
 
@@ -7137,16 +7137,16 @@ class Parser {
   void validateModifiersForTopLevelFunction(Modifiers modifiers) {
     validateModifiersForTopLevelDeclaration(modifiers);
     if (modifiers.abstractKeyword != null) {
-      reportError13(ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION, []);
+      reportErrorForCurrentToken(ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION, []);
     }
     if (modifiers.constKeyword != null) {
-      reportError14(ParserErrorCode.CONST_CLASS, modifiers.constKeyword, []);
+      reportErrorForToken(ParserErrorCode.CONST_CLASS, modifiers.constKeyword, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError14(ParserErrorCode.FINAL_CLASS, modifiers.finalKeyword, []);
+      reportErrorForToken(ParserErrorCode.FINAL_CLASS, modifiers.finalKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError14(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
+      reportErrorForToken(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
     }
   }
 
@@ -7160,24 +7160,24 @@ class Parser {
   Token validateModifiersForTopLevelVariable(Modifiers modifiers) {
     validateModifiersForTopLevelDeclaration(modifiers);
     if (modifiers.abstractKeyword != null) {
-      reportError13(ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE, []);
+      reportErrorForCurrentToken(ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE, []);
     }
     if (modifiers.externalKeyword != null) {
-      reportError14(ParserErrorCode.EXTERNAL_FIELD, modifiers.externalKeyword, []);
+      reportErrorForToken(ParserErrorCode.EXTERNAL_FIELD, modifiers.externalKeyword, []);
     }
     Token constKeyword = modifiers.constKeyword;
     Token finalKeyword = modifiers.finalKeyword;
     Token varKeyword = modifiers.varKeyword;
     if (constKeyword != null) {
       if (finalKeyword != null) {
-        reportError14(ParserErrorCode.CONST_AND_FINAL, finalKeyword, []);
+        reportErrorForToken(ParserErrorCode.CONST_AND_FINAL, finalKeyword, []);
       }
       if (varKeyword != null) {
-        reportError14(ParserErrorCode.CONST_AND_VAR, varKeyword, []);
+        reportErrorForToken(ParserErrorCode.CONST_AND_VAR, varKeyword, []);
       }
     } else if (finalKeyword != null) {
       if (varKeyword != null) {
-        reportError14(ParserErrorCode.FINAL_AND_VAR, varKeyword, []);
+        reportErrorForToken(ParserErrorCode.FINAL_AND_VAR, varKeyword, []);
       }
     }
     return lexicallyFirst([constKeyword, finalKeyword, varKeyword]);
@@ -7192,19 +7192,19 @@ class Parser {
   void validateModifiersForTypedef(Modifiers modifiers) {
     validateModifiersForTopLevelDeclaration(modifiers);
     if (modifiers.abstractKeyword != null) {
-      reportError14(ParserErrorCode.ABSTRACT_TYPEDEF, modifiers.abstractKeyword, []);
+      reportErrorForToken(ParserErrorCode.ABSTRACT_TYPEDEF, modifiers.abstractKeyword, []);
     }
     if (modifiers.constKeyword != null) {
-      reportError14(ParserErrorCode.CONST_TYPEDEF, modifiers.constKeyword, []);
+      reportErrorForToken(ParserErrorCode.CONST_TYPEDEF, modifiers.constKeyword, []);
     }
     if (modifiers.externalKeyword != null) {
-      reportError14(ParserErrorCode.EXTERNAL_TYPEDEF, modifiers.externalKeyword, []);
+      reportErrorForToken(ParserErrorCode.EXTERNAL_TYPEDEF, modifiers.externalKeyword, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError14(ParserErrorCode.FINAL_TYPEDEF, modifiers.finalKeyword, []);
+      reportErrorForToken(ParserErrorCode.FINAL_TYPEDEF, modifiers.finalKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError14(ParserErrorCode.VAR_TYPEDEF, modifiers.varKeyword, []);
+      reportErrorForToken(ParserErrorCode.VAR_TYPEDEF, modifiers.varKeyword, []);
     }
   }
 }
@@ -7701,23 +7701,23 @@ class ResolutionCopier implements AstVisitor<bool> {
    */
   static void copyResolutionData(AstNode fromNode, AstNode toNode) {
     ResolutionCopier copier = new ResolutionCopier();
-    copier.isEqual(fromNode, toNode);
+    copier.isEqualNodes(fromNode, toNode);
   }
 
   /**
    * The AST node with which the node being visited is to be compared. This is only valid at the
-   * beginning of each visit method (until [isEqual] is invoked).
+   * beginning of each visit method (until [isEqualNodes] is invoked).
    */
   AstNode _toNode;
 
   bool visitAdjacentStrings(AdjacentStrings node) {
     AdjacentStrings toNode = this._toNode as AdjacentStrings;
-    return isEqual2(node.strings, toNode.strings);
+    return isEqualNodeLists(node.strings, toNode.strings);
   }
 
   bool visitAnnotation(Annotation node) {
     Annotation toNode = this._toNode as Annotation;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.atSign, toNode.atSign), isEqual(node.name, toNode.name)), isEqual3(node.period, toNode.period)), isEqual(node.constructorName, toNode.constructorName)), isEqual(node.arguments, toNode.arguments))) {
+    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.atSign, toNode.atSign), isEqualNodes(node.name, toNode.name)), isEqualTokens(node.period, toNode.period)), isEqualNodes(node.constructorName, toNode.constructorName)), isEqualNodes(node.arguments, toNode.arguments))) {
       toNode.element = node.element;
       return true;
     }
@@ -7726,7 +7726,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
     ArgumentDefinitionTest toNode = this._toNode as ArgumentDefinitionTest;
-    if (javaBooleanAnd(isEqual3(node.question, toNode.question), isEqual(node.identifier, toNode.identifier))) {
+    if (javaBooleanAnd(isEqualTokens(node.question, toNode.question), isEqualNodes(node.identifier, toNode.identifier))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -7736,12 +7736,12 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitArgumentList(ArgumentList node) {
     ArgumentList toNode = this._toNode as ArgumentList;
-    return javaBooleanAnd(javaBooleanAnd(isEqual3(node.leftParenthesis, toNode.leftParenthesis), isEqual2(node.arguments, toNode.arguments)), isEqual3(node.rightParenthesis, toNode.rightParenthesis));
+    return javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.leftParenthesis, toNode.leftParenthesis), isEqualNodeLists(node.arguments, toNode.arguments)), isEqualTokens(node.rightParenthesis, toNode.rightParenthesis));
   }
 
   bool visitAsExpression(AsExpression node) {
     AsExpression toNode = this._toNode as AsExpression;
-    if (javaBooleanAnd(javaBooleanAnd(isEqual(node.expression, toNode.expression), isEqual3(node.asOperator, toNode.asOperator)), isEqual(node.type, toNode.type))) {
+    if (javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.expression, toNode.expression), isEqualTokens(node.asOperator, toNode.asOperator)), isEqualNodes(node.type, toNode.type))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -7751,12 +7751,12 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitAssertStatement(AssertStatement node) {
     AssertStatement toNode = this._toNode as AssertStatement;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual3(node.leftParenthesis, toNode.leftParenthesis)), isEqual(node.condition, toNode.condition)), isEqual3(node.rightParenthesis, toNode.rightParenthesis)), isEqual3(node.semicolon, toNode.semicolon));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.keyword, toNode.keyword), isEqualTokens(node.leftParenthesis, toNode.leftParenthesis)), isEqualNodes(node.condition, toNode.condition)), isEqualTokens(node.rightParenthesis, toNode.rightParenthesis)), isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   bool visitAssignmentExpression(AssignmentExpression node) {
     AssignmentExpression toNode = this._toNode as AssignmentExpression;
-    if (javaBooleanAnd(javaBooleanAnd(isEqual(node.leftHandSide, toNode.leftHandSide), isEqual3(node.operator, toNode.operator)), isEqual(node.rightHandSide, toNode.rightHandSide))) {
+    if (javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.leftHandSide, toNode.leftHandSide), isEqualTokens(node.operator, toNode.operator)), isEqualNodes(node.rightHandSide, toNode.rightHandSide))) {
       toNode.propagatedElement = node.propagatedElement;
       toNode.propagatedType = node.propagatedType;
       toNode.staticElement = node.staticElement;
@@ -7768,7 +7768,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitBinaryExpression(BinaryExpression node) {
     BinaryExpression toNode = this._toNode as BinaryExpression;
-    if (javaBooleanAnd(javaBooleanAnd(isEqual(node.leftOperand, toNode.leftOperand), isEqual3(node.operator, toNode.operator)), isEqual(node.rightOperand, toNode.rightOperand))) {
+    if (javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.leftOperand, toNode.leftOperand), isEqualTokens(node.operator, toNode.operator)), isEqualNodes(node.rightOperand, toNode.rightOperand))) {
       toNode.propagatedElement = node.propagatedElement;
       toNode.propagatedType = node.propagatedType;
       toNode.staticElement = node.staticElement;
@@ -7780,17 +7780,17 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitBlock(Block node) {
     Block toNode = this._toNode as Block;
-    return javaBooleanAnd(javaBooleanAnd(isEqual3(node.leftBracket, toNode.leftBracket), isEqual2(node.statements, toNode.statements)), isEqual3(node.rightBracket, toNode.rightBracket));
+    return javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.leftBracket, toNode.leftBracket), isEqualNodeLists(node.statements, toNode.statements)), isEqualTokens(node.rightBracket, toNode.rightBracket));
   }
 
   bool visitBlockFunctionBody(BlockFunctionBody node) {
     BlockFunctionBody toNode = this._toNode as BlockFunctionBody;
-    return isEqual(node.block, toNode.block);
+    return isEqualNodes(node.block, toNode.block);
   }
 
   bool visitBooleanLiteral(BooleanLiteral node) {
     BooleanLiteral toNode = this._toNode as BooleanLiteral;
-    if (javaBooleanAnd(isEqual3(node.literal, toNode.literal), identical(node.value, toNode.value))) {
+    if (javaBooleanAnd(isEqualTokens(node.literal, toNode.literal), identical(node.value, toNode.value))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -7800,12 +7800,12 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitBreakStatement(BreakStatement node) {
     BreakStatement toNode = this._toNode as BreakStatement;
-    return javaBooleanAnd(javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual(node.label, toNode.label)), isEqual3(node.semicolon, toNode.semicolon));
+    return javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.keyword, toNode.keyword), isEqualNodes(node.label, toNode.label)), isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   bool visitCascadeExpression(CascadeExpression node) {
     CascadeExpression toNode = this._toNode as CascadeExpression;
-    if (javaBooleanAnd(isEqual(node.target, toNode.target), isEqual2(node.cascadeSections, toNode.cascadeSections))) {
+    if (javaBooleanAnd(isEqualNodes(node.target, toNode.target), isEqualNodeLists(node.cascadeSections, toNode.cascadeSections))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -7815,32 +7815,32 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitCatchClause(CatchClause node) {
     CatchClause toNode = this._toNode as CatchClause;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.onKeyword, toNode.onKeyword), isEqual(node.exceptionType, toNode.exceptionType)), isEqual3(node.catchKeyword, toNode.catchKeyword)), isEqual3(node.leftParenthesis, toNode.leftParenthesis)), isEqual(node.exceptionParameter, toNode.exceptionParameter)), isEqual3(node.comma, toNode.comma)), isEqual(node.stackTraceParameter, toNode.stackTraceParameter)), isEqual3(node.rightParenthesis, toNode.rightParenthesis)), isEqual(node.body, toNode.body));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.onKeyword, toNode.onKeyword), isEqualNodes(node.exceptionType, toNode.exceptionType)), isEqualTokens(node.catchKeyword, toNode.catchKeyword)), isEqualTokens(node.leftParenthesis, toNode.leftParenthesis)), isEqualNodes(node.exceptionParameter, toNode.exceptionParameter)), isEqualTokens(node.comma, toNode.comma)), isEqualNodes(node.stackTraceParameter, toNode.stackTraceParameter)), isEqualTokens(node.rightParenthesis, toNode.rightParenthesis)), isEqualNodes(node.body, toNode.body));
   }
 
   bool visitClassDeclaration(ClassDeclaration node) {
     ClassDeclaration toNode = this._toNode as ClassDeclaration;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.abstractKeyword, toNode.abstractKeyword)), isEqual3(node.classKeyword, toNode.classKeyword)), isEqual(node.name, toNode.name)), isEqual(node.typeParameters, toNode.typeParameters)), isEqual(node.extendsClause, toNode.extendsClause)), isEqual(node.withClause, toNode.withClause)), isEqual(node.implementsClause, toNode.implementsClause)), isEqual3(node.leftBracket, toNode.leftBracket)), isEqual2(node.members, toNode.members)), isEqual3(node.rightBracket, toNode.rightBracket));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.documentationComment, toNode.documentationComment), isEqualNodeLists(node.metadata, toNode.metadata)), isEqualTokens(node.abstractKeyword, toNode.abstractKeyword)), isEqualTokens(node.classKeyword, toNode.classKeyword)), isEqualNodes(node.name, toNode.name)), isEqualNodes(node.typeParameters, toNode.typeParameters)), isEqualNodes(node.extendsClause, toNode.extendsClause)), isEqualNodes(node.withClause, toNode.withClause)), isEqualNodes(node.implementsClause, toNode.implementsClause)), isEqualTokens(node.leftBracket, toNode.leftBracket)), isEqualNodeLists(node.members, toNode.members)), isEqualTokens(node.rightBracket, toNode.rightBracket));
   }
 
   bool visitClassTypeAlias(ClassTypeAlias node) {
     ClassTypeAlias toNode = this._toNode as ClassTypeAlias;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.keyword, toNode.keyword)), isEqual(node.name, toNode.name)), isEqual(node.typeParameters, toNode.typeParameters)), isEqual3(node.equals, toNode.equals)), isEqual3(node.abstractKeyword, toNode.abstractKeyword)), isEqual(node.superclass, toNode.superclass)), isEqual(node.withClause, toNode.withClause)), isEqual(node.implementsClause, toNode.implementsClause)), isEqual3(node.semicolon, toNode.semicolon));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.documentationComment, toNode.documentationComment), isEqualNodeLists(node.metadata, toNode.metadata)), isEqualTokens(node.keyword, toNode.keyword)), isEqualNodes(node.name, toNode.name)), isEqualNodes(node.typeParameters, toNode.typeParameters)), isEqualTokens(node.equals, toNode.equals)), isEqualTokens(node.abstractKeyword, toNode.abstractKeyword)), isEqualNodes(node.superclass, toNode.superclass)), isEqualNodes(node.withClause, toNode.withClause)), isEqualNodes(node.implementsClause, toNode.implementsClause)), isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   bool visitComment(Comment node) {
     Comment toNode = this._toNode as Comment;
-    return isEqual2(node.references, toNode.references);
+    return isEqualNodeLists(node.references, toNode.references);
   }
 
   bool visitCommentReference(CommentReference node) {
     CommentReference toNode = this._toNode as CommentReference;
-    return javaBooleanAnd(isEqual3(node.newKeyword, toNode.newKeyword), isEqual(node.identifier, toNode.identifier));
+    return javaBooleanAnd(isEqualTokens(node.newKeyword, toNode.newKeyword), isEqualNodes(node.identifier, toNode.identifier));
   }
 
   bool visitCompilationUnit(CompilationUnit node) {
     CompilationUnit toNode = this._toNode as CompilationUnit;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.beginToken, toNode.beginToken), isEqual(node.scriptTag, toNode.scriptTag)), isEqual2(node.directives, toNode.directives)), isEqual2(node.declarations, toNode.declarations)), isEqual3(node.endToken, toNode.endToken))) {
+    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.beginToken, toNode.beginToken), isEqualNodes(node.scriptTag, toNode.scriptTag)), isEqualNodeLists(node.directives, toNode.directives)), isEqualNodeLists(node.declarations, toNode.declarations)), isEqualTokens(node.endToken, toNode.endToken))) {
       toNode.element = node.element;
       return true;
     }
@@ -7849,7 +7849,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitConditionalExpression(ConditionalExpression node) {
     ConditionalExpression toNode = this._toNode as ConditionalExpression;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.condition, toNode.condition), isEqual3(node.question, toNode.question)), isEqual(node.thenExpression, toNode.thenExpression)), isEqual3(node.colon, toNode.colon)), isEqual(node.elseExpression, toNode.elseExpression))) {
+    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.condition, toNode.condition), isEqualTokens(node.question, toNode.question)), isEqualNodes(node.thenExpression, toNode.thenExpression)), isEqualTokens(node.colon, toNode.colon)), isEqualNodes(node.elseExpression, toNode.elseExpression))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -7859,7 +7859,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorDeclaration toNode = this._toNode as ConstructorDeclaration;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.externalKeyword, toNode.externalKeyword)), isEqual3(node.constKeyword, toNode.constKeyword)), isEqual3(node.factoryKeyword, toNode.factoryKeyword)), isEqual(node.returnType, toNode.returnType)), isEqual3(node.period, toNode.period)), isEqual(node.name, toNode.name)), isEqual(node.parameters, toNode.parameters)), isEqual3(node.separator, toNode.separator)), isEqual2(node.initializers, toNode.initializers)), isEqual(node.redirectedConstructor, toNode.redirectedConstructor)), isEqual(node.body, toNode.body))) {
+    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.documentationComment, toNode.documentationComment), isEqualNodeLists(node.metadata, toNode.metadata)), isEqualTokens(node.externalKeyword, toNode.externalKeyword)), isEqualTokens(node.constKeyword, toNode.constKeyword)), isEqualTokens(node.factoryKeyword, toNode.factoryKeyword)), isEqualNodes(node.returnType, toNode.returnType)), isEqualTokens(node.period, toNode.period)), isEqualNodes(node.name, toNode.name)), isEqualNodes(node.parameters, toNode.parameters)), isEqualTokens(node.separator, toNode.separator)), isEqualNodeLists(node.initializers, toNode.initializers)), isEqualNodes(node.redirectedConstructor, toNode.redirectedConstructor)), isEqualNodes(node.body, toNode.body))) {
       toNode.element = node.element;
       return true;
     }
@@ -7868,12 +7868,12 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     ConstructorFieldInitializer toNode = this._toNode as ConstructorFieldInitializer;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual3(node.period, toNode.period)), isEqual(node.fieldName, toNode.fieldName)), isEqual3(node.equals, toNode.equals)), isEqual(node.expression, toNode.expression));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.keyword, toNode.keyword), isEqualTokens(node.period, toNode.period)), isEqualNodes(node.fieldName, toNode.fieldName)), isEqualTokens(node.equals, toNode.equals)), isEqualNodes(node.expression, toNode.expression));
   }
 
   bool visitConstructorName(ConstructorName node) {
     ConstructorName toNode = this._toNode as ConstructorName;
-    if (javaBooleanAnd(javaBooleanAnd(isEqual(node.type, toNode.type), isEqual3(node.period, toNode.period)), isEqual(node.name, toNode.name))) {
+    if (javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.type, toNode.type), isEqualTokens(node.period, toNode.period)), isEqualNodes(node.name, toNode.name))) {
       toNode.staticElement = node.staticElement;
       return true;
     }
@@ -7882,27 +7882,27 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitContinueStatement(ContinueStatement node) {
     ContinueStatement toNode = this._toNode as ContinueStatement;
-    return javaBooleanAnd(javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual(node.label, toNode.label)), isEqual3(node.semicolon, toNode.semicolon));
+    return javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.keyword, toNode.keyword), isEqualNodes(node.label, toNode.label)), isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   bool visitDeclaredIdentifier(DeclaredIdentifier node) {
     DeclaredIdentifier toNode = this._toNode as DeclaredIdentifier;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.keyword, toNode.keyword)), isEqual(node.type, toNode.type)), isEqual(node.identifier, toNode.identifier));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.documentationComment, toNode.documentationComment), isEqualNodeLists(node.metadata, toNode.metadata)), isEqualTokens(node.keyword, toNode.keyword)), isEqualNodes(node.type, toNode.type)), isEqualNodes(node.identifier, toNode.identifier));
   }
 
   bool visitDefaultFormalParameter(DefaultFormalParameter node) {
     DefaultFormalParameter toNode = this._toNode as DefaultFormalParameter;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.parameter, toNode.parameter), identical(node.kind, toNode.kind)), isEqual3(node.separator, toNode.separator)), isEqual(node.defaultValue, toNode.defaultValue));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.parameter, toNode.parameter), identical(node.kind, toNode.kind)), isEqualTokens(node.separator, toNode.separator)), isEqualNodes(node.defaultValue, toNode.defaultValue));
   }
 
   bool visitDoStatement(DoStatement node) {
     DoStatement toNode = this._toNode as DoStatement;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.doKeyword, toNode.doKeyword), isEqual(node.body, toNode.body)), isEqual3(node.whileKeyword, toNode.whileKeyword)), isEqual3(node.leftParenthesis, toNode.leftParenthesis)), isEqual(node.condition, toNode.condition)), isEqual3(node.rightParenthesis, toNode.rightParenthesis)), isEqual3(node.semicolon, toNode.semicolon));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.doKeyword, toNode.doKeyword), isEqualNodes(node.body, toNode.body)), isEqualTokens(node.whileKeyword, toNode.whileKeyword)), isEqualTokens(node.leftParenthesis, toNode.leftParenthesis)), isEqualNodes(node.condition, toNode.condition)), isEqualTokens(node.rightParenthesis, toNode.rightParenthesis)), isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   bool visitDoubleLiteral(DoubleLiteral node) {
     DoubleLiteral toNode = this._toNode as DoubleLiteral;
-    if (javaBooleanAnd(isEqual3(node.literal, toNode.literal), node.value == toNode.value)) {
+    if (javaBooleanAnd(isEqualTokens(node.literal, toNode.literal), node.value == toNode.value)) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -7912,17 +7912,17 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitEmptyFunctionBody(EmptyFunctionBody node) {
     EmptyFunctionBody toNode = this._toNode as EmptyFunctionBody;
-    return isEqual3(node.semicolon, toNode.semicolon);
+    return isEqualTokens(node.semicolon, toNode.semicolon);
   }
 
   bool visitEmptyStatement(EmptyStatement node) {
     EmptyStatement toNode = this._toNode as EmptyStatement;
-    return isEqual3(node.semicolon, toNode.semicolon);
+    return isEqualTokens(node.semicolon, toNode.semicolon);
   }
 
   bool visitExportDirective(ExportDirective node) {
     ExportDirective toNode = this._toNode as ExportDirective;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.keyword, toNode.keyword)), isEqual(node.uri, toNode.uri)), isEqual2(node.combinators, toNode.combinators)), isEqual3(node.semicolon, toNode.semicolon))) {
+    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.documentationComment, toNode.documentationComment), isEqualNodeLists(node.metadata, toNode.metadata)), isEqualTokens(node.keyword, toNode.keyword)), isEqualNodes(node.uri, toNode.uri)), isEqualNodeLists(node.combinators, toNode.combinators)), isEqualTokens(node.semicolon, toNode.semicolon))) {
       toNode.element = node.element;
       return true;
     }
@@ -7931,57 +7931,57 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitExpressionFunctionBody(ExpressionFunctionBody node) {
     ExpressionFunctionBody toNode = this._toNode as ExpressionFunctionBody;
-    return javaBooleanAnd(javaBooleanAnd(isEqual3(node.functionDefinition, toNode.functionDefinition), isEqual(node.expression, toNode.expression)), isEqual3(node.semicolon, toNode.semicolon));
+    return javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.functionDefinition, toNode.functionDefinition), isEqualNodes(node.expression, toNode.expression)), isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   bool visitExpressionStatement(ExpressionStatement node) {
     ExpressionStatement toNode = this._toNode as ExpressionStatement;
-    return javaBooleanAnd(isEqual(node.expression, toNode.expression), isEqual3(node.semicolon, toNode.semicolon));
+    return javaBooleanAnd(isEqualNodes(node.expression, toNode.expression), isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   bool visitExtendsClause(ExtendsClause node) {
     ExtendsClause toNode = this._toNode as ExtendsClause;
-    return javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual(node.superclass, toNode.superclass));
+    return javaBooleanAnd(isEqualTokens(node.keyword, toNode.keyword), isEqualNodes(node.superclass, toNode.superclass));
   }
 
   bool visitFieldDeclaration(FieldDeclaration node) {
     FieldDeclaration toNode = this._toNode as FieldDeclaration;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.staticKeyword, toNode.staticKeyword)), isEqual(node.fields, toNode.fields)), isEqual3(node.semicolon, toNode.semicolon));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.documentationComment, toNode.documentationComment), isEqualNodeLists(node.metadata, toNode.metadata)), isEqualTokens(node.staticKeyword, toNode.staticKeyword)), isEqualNodes(node.fields, toNode.fields)), isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   bool visitFieldFormalParameter(FieldFormalParameter node) {
     FieldFormalParameter toNode = this._toNode as FieldFormalParameter;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.keyword, toNode.keyword)), isEqual(node.type, toNode.type)), isEqual3(node.thisToken, toNode.thisToken)), isEqual3(node.period, toNode.period)), isEqual(node.identifier, toNode.identifier));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.documentationComment, toNode.documentationComment), isEqualNodeLists(node.metadata, toNode.metadata)), isEqualTokens(node.keyword, toNode.keyword)), isEqualNodes(node.type, toNode.type)), isEqualTokens(node.thisToken, toNode.thisToken)), isEqualTokens(node.period, toNode.period)), isEqualNodes(node.identifier, toNode.identifier));
   }
 
   bool visitForEachStatement(ForEachStatement node) {
     ForEachStatement toNode = this._toNode as ForEachStatement;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.forKeyword, toNode.forKeyword), isEqual3(node.leftParenthesis, toNode.leftParenthesis)), isEqual(node.loopVariable, toNode.loopVariable)), isEqual3(node.inKeyword, toNode.inKeyword)), isEqual(node.iterator, toNode.iterator)), isEqual3(node.rightParenthesis, toNode.rightParenthesis)), isEqual(node.body, toNode.body));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.forKeyword, toNode.forKeyword), isEqualTokens(node.leftParenthesis, toNode.leftParenthesis)), isEqualNodes(node.loopVariable, toNode.loopVariable)), isEqualTokens(node.inKeyword, toNode.inKeyword)), isEqualNodes(node.iterator, toNode.iterator)), isEqualTokens(node.rightParenthesis, toNode.rightParenthesis)), isEqualNodes(node.body, toNode.body));
   }
 
   bool visitFormalParameterList(FormalParameterList node) {
     FormalParameterList toNode = this._toNode as FormalParameterList;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.leftParenthesis, toNode.leftParenthesis), isEqual2(node.parameters, toNode.parameters)), isEqual3(node.leftDelimiter, toNode.leftDelimiter)), isEqual3(node.rightDelimiter, toNode.rightDelimiter)), isEqual3(node.rightParenthesis, toNode.rightParenthesis));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.leftParenthesis, toNode.leftParenthesis), isEqualNodeLists(node.parameters, toNode.parameters)), isEqualTokens(node.leftDelimiter, toNode.leftDelimiter)), isEqualTokens(node.rightDelimiter, toNode.rightDelimiter)), isEqualTokens(node.rightParenthesis, toNode.rightParenthesis));
   }
 
   bool visitForStatement(ForStatement node) {
     ForStatement toNode = this._toNode as ForStatement;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.forKeyword, toNode.forKeyword), isEqual3(node.leftParenthesis, toNode.leftParenthesis)), isEqual(node.variables, toNode.variables)), isEqual(node.initialization, toNode.initialization)), isEqual3(node.leftSeparator, toNode.leftSeparator)), isEqual(node.condition, toNode.condition)), isEqual3(node.rightSeparator, toNode.rightSeparator)), isEqual2(node.updaters, toNode.updaters)), isEqual3(node.rightParenthesis, toNode.rightParenthesis)), isEqual(node.body, toNode.body));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.forKeyword, toNode.forKeyword), isEqualTokens(node.leftParenthesis, toNode.leftParenthesis)), isEqualNodes(node.variables, toNode.variables)), isEqualNodes(node.initialization, toNode.initialization)), isEqualTokens(node.leftSeparator, toNode.leftSeparator)), isEqualNodes(node.condition, toNode.condition)), isEqualTokens(node.rightSeparator, toNode.rightSeparator)), isEqualNodeLists(node.updaters, toNode.updaters)), isEqualTokens(node.rightParenthesis, toNode.rightParenthesis)), isEqualNodes(node.body, toNode.body));
   }
 
   bool visitFunctionDeclaration(FunctionDeclaration node) {
     FunctionDeclaration toNode = this._toNode as FunctionDeclaration;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.externalKeyword, toNode.externalKeyword)), isEqual(node.returnType, toNode.returnType)), isEqual3(node.propertyKeyword, toNode.propertyKeyword)), isEqual(node.name, toNode.name)), isEqual(node.functionExpression, toNode.functionExpression));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.documentationComment, toNode.documentationComment), isEqualNodeLists(node.metadata, toNode.metadata)), isEqualTokens(node.externalKeyword, toNode.externalKeyword)), isEqualNodes(node.returnType, toNode.returnType)), isEqualTokens(node.propertyKeyword, toNode.propertyKeyword)), isEqualNodes(node.name, toNode.name)), isEqualNodes(node.functionExpression, toNode.functionExpression));
   }
 
   bool visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     FunctionDeclarationStatement toNode = this._toNode as FunctionDeclarationStatement;
-    return isEqual(node.functionDeclaration, toNode.functionDeclaration);
+    return isEqualNodes(node.functionDeclaration, toNode.functionDeclaration);
   }
 
   bool visitFunctionExpression(FunctionExpression node) {
     FunctionExpression toNode = this._toNode as FunctionExpression;
-    if (javaBooleanAnd(isEqual(node.parameters, toNode.parameters), isEqual(node.body, toNode.body))) {
+    if (javaBooleanAnd(isEqualNodes(node.parameters, toNode.parameters), isEqualNodes(node.body, toNode.body))) {
       toNode.element = node.element;
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
@@ -7992,7 +7992,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     FunctionExpressionInvocation toNode = this._toNode as FunctionExpressionInvocation;
-    if (javaBooleanAnd(isEqual(node.function, toNode.function), isEqual(node.argumentList, toNode.argumentList))) {
+    if (javaBooleanAnd(isEqualNodes(node.function, toNode.function), isEqualNodes(node.argumentList, toNode.argumentList))) {
       toNode.propagatedElement = node.propagatedElement;
       toNode.propagatedType = node.propagatedType;
       toNode.staticElement = node.staticElement;
@@ -8004,32 +8004,32 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitFunctionTypeAlias(FunctionTypeAlias node) {
     FunctionTypeAlias toNode = this._toNode as FunctionTypeAlias;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.keyword, toNode.keyword)), isEqual(node.returnType, toNode.returnType)), isEqual(node.name, toNode.name)), isEqual(node.typeParameters, toNode.typeParameters)), isEqual(node.parameters, toNode.parameters)), isEqual3(node.semicolon, toNode.semicolon));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.documentationComment, toNode.documentationComment), isEqualNodeLists(node.metadata, toNode.metadata)), isEqualTokens(node.keyword, toNode.keyword)), isEqualNodes(node.returnType, toNode.returnType)), isEqualNodes(node.name, toNode.name)), isEqualNodes(node.typeParameters, toNode.typeParameters)), isEqualNodes(node.parameters, toNode.parameters)), isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   bool visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     FunctionTypedFormalParameter toNode = this._toNode as FunctionTypedFormalParameter;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual(node.returnType, toNode.returnType)), isEqual(node.identifier, toNode.identifier)), isEqual(node.parameters, toNode.parameters));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.documentationComment, toNode.documentationComment), isEqualNodeLists(node.metadata, toNode.metadata)), isEqualNodes(node.returnType, toNode.returnType)), isEqualNodes(node.identifier, toNode.identifier)), isEqualNodes(node.parameters, toNode.parameters));
   }
 
   bool visitHideCombinator(HideCombinator node) {
     HideCombinator toNode = this._toNode as HideCombinator;
-    return javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual2(node.hiddenNames, toNode.hiddenNames));
+    return javaBooleanAnd(isEqualTokens(node.keyword, toNode.keyword), isEqualNodeLists(node.hiddenNames, toNode.hiddenNames));
   }
 
   bool visitIfStatement(IfStatement node) {
     IfStatement toNode = this._toNode as IfStatement;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.ifKeyword, toNode.ifKeyword), isEqual3(node.leftParenthesis, toNode.leftParenthesis)), isEqual(node.condition, toNode.condition)), isEqual3(node.rightParenthesis, toNode.rightParenthesis)), isEqual(node.thenStatement, toNode.thenStatement)), isEqual3(node.elseKeyword, toNode.elseKeyword)), isEqual(node.elseStatement, toNode.elseStatement));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.ifKeyword, toNode.ifKeyword), isEqualTokens(node.leftParenthesis, toNode.leftParenthesis)), isEqualNodes(node.condition, toNode.condition)), isEqualTokens(node.rightParenthesis, toNode.rightParenthesis)), isEqualNodes(node.thenStatement, toNode.thenStatement)), isEqualTokens(node.elseKeyword, toNode.elseKeyword)), isEqualNodes(node.elseStatement, toNode.elseStatement));
   }
 
   bool visitImplementsClause(ImplementsClause node) {
     ImplementsClause toNode = this._toNode as ImplementsClause;
-    return javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual2(node.interfaces, toNode.interfaces));
+    return javaBooleanAnd(isEqualTokens(node.keyword, toNode.keyword), isEqualNodeLists(node.interfaces, toNode.interfaces));
   }
 
   bool visitImportDirective(ImportDirective node) {
     ImportDirective toNode = this._toNode as ImportDirective;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.keyword, toNode.keyword)), isEqual(node.uri, toNode.uri)), isEqual3(node.asToken, toNode.asToken)), isEqual(node.prefix, toNode.prefix)), isEqual2(node.combinators, toNode.combinators)), isEqual3(node.semicolon, toNode.semicolon))) {
+    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.documentationComment, toNode.documentationComment), isEqualNodeLists(node.metadata, toNode.metadata)), isEqualTokens(node.keyword, toNode.keyword)), isEqualNodes(node.uri, toNode.uri)), isEqualTokens(node.asToken, toNode.asToken)), isEqualNodes(node.prefix, toNode.prefix)), isEqualNodeLists(node.combinators, toNode.combinators)), isEqualTokens(node.semicolon, toNode.semicolon))) {
       toNode.element = node.element;
       return true;
     }
@@ -8038,7 +8038,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitIndexExpression(IndexExpression node) {
     IndexExpression toNode = this._toNode as IndexExpression;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.target, toNode.target), isEqual3(node.leftBracket, toNode.leftBracket)), isEqual(node.index, toNode.index)), isEqual3(node.rightBracket, toNode.rightBracket))) {
+    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.target, toNode.target), isEqualTokens(node.leftBracket, toNode.leftBracket)), isEqualNodes(node.index, toNode.index)), isEqualTokens(node.rightBracket, toNode.rightBracket))) {
       toNode.auxiliaryElements = node.auxiliaryElements;
       toNode.propagatedElement = node.propagatedElement;
       toNode.propagatedType = node.propagatedType;
@@ -8051,7 +8051,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitInstanceCreationExpression(InstanceCreationExpression node) {
     InstanceCreationExpression toNode = this._toNode as InstanceCreationExpression;
-    if (javaBooleanAnd(javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual(node.constructorName, toNode.constructorName)), isEqual(node.argumentList, toNode.argumentList))) {
+    if (javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.keyword, toNode.keyword), isEqualNodes(node.constructorName, toNode.constructorName)), isEqualNodes(node.argumentList, toNode.argumentList))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticElement = node.staticElement;
       toNode.staticType = node.staticType;
@@ -8062,7 +8062,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitIntegerLiteral(IntegerLiteral node) {
     IntegerLiteral toNode = this._toNode as IntegerLiteral;
-    if (javaBooleanAnd(isEqual3(node.literal, toNode.literal), identical(node.value, toNode.value))) {
+    if (javaBooleanAnd(isEqualTokens(node.literal, toNode.literal), identical(node.value, toNode.value))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8072,17 +8072,17 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitInterpolationExpression(InterpolationExpression node) {
     InterpolationExpression toNode = this._toNode as InterpolationExpression;
-    return javaBooleanAnd(javaBooleanAnd(isEqual3(node.leftBracket, toNode.leftBracket), isEqual(node.expression, toNode.expression)), isEqual3(node.rightBracket, toNode.rightBracket));
+    return javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.leftBracket, toNode.leftBracket), isEqualNodes(node.expression, toNode.expression)), isEqualTokens(node.rightBracket, toNode.rightBracket));
   }
 
   bool visitInterpolationString(InterpolationString node) {
     InterpolationString toNode = this._toNode as InterpolationString;
-    return javaBooleanAnd(isEqual3(node.contents, toNode.contents), node.value == toNode.value);
+    return javaBooleanAnd(isEqualTokens(node.contents, toNode.contents), node.value == toNode.value);
   }
 
   bool visitIsExpression(IsExpression node) {
     IsExpression toNode = this._toNode as IsExpression;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.expression, toNode.expression), isEqual3(node.isOperator, toNode.isOperator)), isEqual3(node.notOperator, toNode.notOperator)), isEqual(node.type, toNode.type))) {
+    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.expression, toNode.expression), isEqualTokens(node.isOperator, toNode.isOperator)), isEqualTokens(node.notOperator, toNode.notOperator)), isEqualNodes(node.type, toNode.type))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8092,22 +8092,22 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitLabel(Label node) {
     Label toNode = this._toNode as Label;
-    return javaBooleanAnd(isEqual(node.label, toNode.label), isEqual3(node.colon, toNode.colon));
+    return javaBooleanAnd(isEqualNodes(node.label, toNode.label), isEqualTokens(node.colon, toNode.colon));
   }
 
   bool visitLabeledStatement(LabeledStatement node) {
     LabeledStatement toNode = this._toNode as LabeledStatement;
-    return javaBooleanAnd(isEqual2(node.labels, toNode.labels), isEqual(node.statement, toNode.statement));
+    return javaBooleanAnd(isEqualNodeLists(node.labels, toNode.labels), isEqualNodes(node.statement, toNode.statement));
   }
 
   bool visitLibraryDirective(LibraryDirective node) {
     LibraryDirective toNode = this._toNode as LibraryDirective;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.libraryToken, toNode.libraryToken)), isEqual(node.name, toNode.name)), isEqual3(node.semicolon, toNode.semicolon));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.documentationComment, toNode.documentationComment), isEqualNodeLists(node.metadata, toNode.metadata)), isEqualTokens(node.libraryToken, toNode.libraryToken)), isEqualNodes(node.name, toNode.name)), isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   bool visitLibraryIdentifier(LibraryIdentifier node) {
     LibraryIdentifier toNode = this._toNode as LibraryIdentifier;
-    if (isEqual2(node.components, toNode.components)) {
+    if (isEqualNodeLists(node.components, toNode.components)) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8117,7 +8117,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitListLiteral(ListLiteral node) {
     ListLiteral toNode = this._toNode as ListLiteral;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.constKeyword, toNode.constKeyword), isEqual(node.typeArguments, toNode.typeArguments)), isEqual3(node.leftBracket, toNode.leftBracket)), isEqual2(node.elements, toNode.elements)), isEqual3(node.rightBracket, toNode.rightBracket))) {
+    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.constKeyword, toNode.constKeyword), isEqualNodes(node.typeArguments, toNode.typeArguments)), isEqualTokens(node.leftBracket, toNode.leftBracket)), isEqualNodeLists(node.elements, toNode.elements)), isEqualTokens(node.rightBracket, toNode.rightBracket))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8127,7 +8127,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitMapLiteral(MapLiteral node) {
     MapLiteral toNode = this._toNode as MapLiteral;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.constKeyword, toNode.constKeyword), isEqual(node.typeArguments, toNode.typeArguments)), isEqual3(node.leftBracket, toNode.leftBracket)), isEqual2(node.entries, toNode.entries)), isEqual3(node.rightBracket, toNode.rightBracket))) {
+    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.constKeyword, toNode.constKeyword), isEqualNodes(node.typeArguments, toNode.typeArguments)), isEqualTokens(node.leftBracket, toNode.leftBracket)), isEqualNodeLists(node.entries, toNode.entries)), isEqualTokens(node.rightBracket, toNode.rightBracket))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8137,17 +8137,17 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitMapLiteralEntry(MapLiteralEntry node) {
     MapLiteralEntry toNode = this._toNode as MapLiteralEntry;
-    return javaBooleanAnd(javaBooleanAnd(isEqual(node.key, toNode.key), isEqual3(node.separator, toNode.separator)), isEqual(node.value, toNode.value));
+    return javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.key, toNode.key), isEqualTokens(node.separator, toNode.separator)), isEqualNodes(node.value, toNode.value));
   }
 
   bool visitMethodDeclaration(MethodDeclaration node) {
     MethodDeclaration toNode = this._toNode as MethodDeclaration;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.externalKeyword, toNode.externalKeyword)), isEqual3(node.modifierKeyword, toNode.modifierKeyword)), isEqual(node.returnType, toNode.returnType)), isEqual3(node.propertyKeyword, toNode.propertyKeyword)), isEqual3(node.propertyKeyword, toNode.propertyKeyword)), isEqual(node.name, toNode.name)), isEqual(node.parameters, toNode.parameters)), isEqual(node.body, toNode.body));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.documentationComment, toNode.documentationComment), isEqualNodeLists(node.metadata, toNode.metadata)), isEqualTokens(node.externalKeyword, toNode.externalKeyword)), isEqualTokens(node.modifierKeyword, toNode.modifierKeyword)), isEqualNodes(node.returnType, toNode.returnType)), isEqualTokens(node.propertyKeyword, toNode.propertyKeyword)), isEqualTokens(node.propertyKeyword, toNode.propertyKeyword)), isEqualNodes(node.name, toNode.name)), isEqualNodes(node.parameters, toNode.parameters)), isEqualNodes(node.body, toNode.body));
   }
 
   bool visitMethodInvocation(MethodInvocation node) {
     MethodInvocation toNode = this._toNode as MethodInvocation;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.target, toNode.target), isEqual3(node.period, toNode.period)), isEqual(node.methodName, toNode.methodName)), isEqual(node.argumentList, toNode.argumentList))) {
+    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.target, toNode.target), isEqualTokens(node.period, toNode.period)), isEqualNodes(node.methodName, toNode.methodName)), isEqualNodes(node.argumentList, toNode.argumentList))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8157,7 +8157,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitNamedExpression(NamedExpression node) {
     NamedExpression toNode = this._toNode as NamedExpression;
-    if (javaBooleanAnd(isEqual(node.name, toNode.name), isEqual(node.expression, toNode.expression))) {
+    if (javaBooleanAnd(isEqualNodes(node.name, toNode.name), isEqualNodes(node.expression, toNode.expression))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8167,17 +8167,17 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitNativeClause(NativeClause node) {
     NativeClause toNode = this._toNode as NativeClause;
-    return javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual(node.name, toNode.name));
+    return javaBooleanAnd(isEqualTokens(node.keyword, toNode.keyword), isEqualNodes(node.name, toNode.name));
   }
 
   bool visitNativeFunctionBody(NativeFunctionBody node) {
     NativeFunctionBody toNode = this._toNode as NativeFunctionBody;
-    return javaBooleanAnd(javaBooleanAnd(isEqual3(node.nativeToken, toNode.nativeToken), isEqual(node.stringLiteral, toNode.stringLiteral)), isEqual3(node.semicolon, toNode.semicolon));
+    return javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.nativeToken, toNode.nativeToken), isEqualNodes(node.stringLiteral, toNode.stringLiteral)), isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   bool visitNullLiteral(NullLiteral node) {
     NullLiteral toNode = this._toNode as NullLiteral;
-    if (isEqual3(node.literal, toNode.literal)) {
+    if (isEqualTokens(node.literal, toNode.literal)) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8187,7 +8187,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitParenthesizedExpression(ParenthesizedExpression node) {
     ParenthesizedExpression toNode = this._toNode as ParenthesizedExpression;
-    if (javaBooleanAnd(javaBooleanAnd(isEqual3(node.leftParenthesis, toNode.leftParenthesis), isEqual(node.expression, toNode.expression)), isEqual3(node.rightParenthesis, toNode.rightParenthesis))) {
+    if (javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.leftParenthesis, toNode.leftParenthesis), isEqualNodes(node.expression, toNode.expression)), isEqualTokens(node.rightParenthesis, toNode.rightParenthesis))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8197,7 +8197,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitPartDirective(PartDirective node) {
     PartDirective toNode = this._toNode as PartDirective;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.partToken, toNode.partToken)), isEqual(node.uri, toNode.uri)), isEqual3(node.semicolon, toNode.semicolon))) {
+    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.documentationComment, toNode.documentationComment), isEqualNodeLists(node.metadata, toNode.metadata)), isEqualTokens(node.partToken, toNode.partToken)), isEqualNodes(node.uri, toNode.uri)), isEqualTokens(node.semicolon, toNode.semicolon))) {
       toNode.element = node.element;
       return true;
     }
@@ -8206,7 +8206,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitPartOfDirective(PartOfDirective node) {
     PartOfDirective toNode = this._toNode as PartOfDirective;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.partToken, toNode.partToken)), isEqual3(node.ofToken, toNode.ofToken)), isEqual(node.libraryName, toNode.libraryName)), isEqual3(node.semicolon, toNode.semicolon))) {
+    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.documentationComment, toNode.documentationComment), isEqualNodeLists(node.metadata, toNode.metadata)), isEqualTokens(node.partToken, toNode.partToken)), isEqualTokens(node.ofToken, toNode.ofToken)), isEqualNodes(node.libraryName, toNode.libraryName)), isEqualTokens(node.semicolon, toNode.semicolon))) {
       toNode.element = node.element;
       return true;
     }
@@ -8215,7 +8215,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitPostfixExpression(PostfixExpression node) {
     PostfixExpression toNode = this._toNode as PostfixExpression;
-    if (javaBooleanAnd(isEqual(node.operand, toNode.operand), isEqual3(node.operator, toNode.operator))) {
+    if (javaBooleanAnd(isEqualNodes(node.operand, toNode.operand), isEqualTokens(node.operator, toNode.operator))) {
       toNode.propagatedElement = node.propagatedElement;
       toNode.propagatedType = node.propagatedType;
       toNode.staticElement = node.staticElement;
@@ -8227,7 +8227,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitPrefixedIdentifier(PrefixedIdentifier node) {
     PrefixedIdentifier toNode = this._toNode as PrefixedIdentifier;
-    if (javaBooleanAnd(javaBooleanAnd(isEqual(node.prefix, toNode.prefix), isEqual3(node.period, toNode.period)), isEqual(node.identifier, toNode.identifier))) {
+    if (javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.prefix, toNode.prefix), isEqualTokens(node.period, toNode.period)), isEqualNodes(node.identifier, toNode.identifier))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8237,7 +8237,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitPrefixExpression(PrefixExpression node) {
     PrefixExpression toNode = this._toNode as PrefixExpression;
-    if (javaBooleanAnd(isEqual3(node.operator, toNode.operator), isEqual(node.operand, toNode.operand))) {
+    if (javaBooleanAnd(isEqualTokens(node.operator, toNode.operator), isEqualNodes(node.operand, toNode.operand))) {
       toNode.propagatedElement = node.propagatedElement;
       toNode.propagatedType = node.propagatedType;
       toNode.staticElement = node.staticElement;
@@ -8249,7 +8249,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitPropertyAccess(PropertyAccess node) {
     PropertyAccess toNode = this._toNode as PropertyAccess;
-    if (javaBooleanAnd(javaBooleanAnd(isEqual(node.target, toNode.target), isEqual3(node.operator, toNode.operator)), isEqual(node.propertyName, toNode.propertyName))) {
+    if (javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.target, toNode.target), isEqualTokens(node.operator, toNode.operator)), isEqualNodes(node.propertyName, toNode.propertyName))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8259,7 +8259,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     RedirectingConstructorInvocation toNode = this._toNode as RedirectingConstructorInvocation;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual3(node.period, toNode.period)), isEqual(node.constructorName, toNode.constructorName)), isEqual(node.argumentList, toNode.argumentList))) {
+    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.keyword, toNode.keyword), isEqualTokens(node.period, toNode.period)), isEqualNodes(node.constructorName, toNode.constructorName)), isEqualNodes(node.argumentList, toNode.argumentList))) {
       toNode.staticElement = node.staticElement;
       return true;
     }
@@ -8268,7 +8268,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitRethrowExpression(RethrowExpression node) {
     RethrowExpression toNode = this._toNode as RethrowExpression;
-    if (isEqual3(node.keyword, toNode.keyword)) {
+    if (isEqualTokens(node.keyword, toNode.keyword)) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8278,27 +8278,27 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitReturnStatement(ReturnStatement node) {
     ReturnStatement toNode = this._toNode as ReturnStatement;
-    return javaBooleanAnd(javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual(node.expression, toNode.expression)), isEqual3(node.semicolon, toNode.semicolon));
+    return javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.keyword, toNode.keyword), isEqualNodes(node.expression, toNode.expression)), isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   bool visitScriptTag(ScriptTag node) {
     ScriptTag toNode = this._toNode as ScriptTag;
-    return isEqual3(node.scriptTag, toNode.scriptTag);
+    return isEqualTokens(node.scriptTag, toNode.scriptTag);
   }
 
   bool visitShowCombinator(ShowCombinator node) {
     ShowCombinator toNode = this._toNode as ShowCombinator;
-    return javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual2(node.shownNames, toNode.shownNames));
+    return javaBooleanAnd(isEqualTokens(node.keyword, toNode.keyword), isEqualNodeLists(node.shownNames, toNode.shownNames));
   }
 
   bool visitSimpleFormalParameter(SimpleFormalParameter node) {
     SimpleFormalParameter toNode = this._toNode as SimpleFormalParameter;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.keyword, toNode.keyword)), isEqual(node.type, toNode.type)), isEqual(node.identifier, toNode.identifier));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.documentationComment, toNode.documentationComment), isEqualNodeLists(node.metadata, toNode.metadata)), isEqualTokens(node.keyword, toNode.keyword)), isEqualNodes(node.type, toNode.type)), isEqualNodes(node.identifier, toNode.identifier));
   }
 
   bool visitSimpleIdentifier(SimpleIdentifier node) {
     SimpleIdentifier toNode = this._toNode as SimpleIdentifier;
-    if (isEqual3(node.token, toNode.token)) {
+    if (isEqualTokens(node.token, toNode.token)) {
       toNode.staticElement = node.staticElement;
       toNode.staticType = node.staticType;
       toNode.propagatedElement = node.propagatedElement;
@@ -8311,7 +8311,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitSimpleStringLiteral(SimpleStringLiteral node) {
     SimpleStringLiteral toNode = this._toNode as SimpleStringLiteral;
-    if (javaBooleanAnd(isEqual3(node.literal, toNode.literal), identical(node.value, toNode.value))) {
+    if (javaBooleanAnd(isEqualTokens(node.literal, toNode.literal), identical(node.value, toNode.value))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8321,7 +8321,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitStringInterpolation(StringInterpolation node) {
     StringInterpolation toNode = this._toNode as StringInterpolation;
-    if (isEqual2(node.elements, toNode.elements)) {
+    if (isEqualNodeLists(node.elements, toNode.elements)) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8331,7 +8331,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     SuperConstructorInvocation toNode = this._toNode as SuperConstructorInvocation;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual3(node.period, toNode.period)), isEqual(node.constructorName, toNode.constructorName)), isEqual(node.argumentList, toNode.argumentList))) {
+    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.keyword, toNode.keyword), isEqualTokens(node.period, toNode.period)), isEqualNodes(node.constructorName, toNode.constructorName)), isEqualNodes(node.argumentList, toNode.argumentList))) {
       toNode.staticElement = node.staticElement;
       return true;
     }
@@ -8340,7 +8340,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitSuperExpression(SuperExpression node) {
     SuperExpression toNode = this._toNode as SuperExpression;
-    if (isEqual3(node.keyword, toNode.keyword)) {
+    if (isEqualTokens(node.keyword, toNode.keyword)) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8350,22 +8350,22 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitSwitchCase(SwitchCase node) {
     SwitchCase toNode = this._toNode as SwitchCase;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual2(node.labels, toNode.labels), isEqual3(node.keyword, toNode.keyword)), isEqual(node.expression, toNode.expression)), isEqual3(node.colon, toNode.colon)), isEqual2(node.statements, toNode.statements));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodeLists(node.labels, toNode.labels), isEqualTokens(node.keyword, toNode.keyword)), isEqualNodes(node.expression, toNode.expression)), isEqualTokens(node.colon, toNode.colon)), isEqualNodeLists(node.statements, toNode.statements));
   }
 
   bool visitSwitchDefault(SwitchDefault node) {
     SwitchDefault toNode = this._toNode as SwitchDefault;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual2(node.labels, toNode.labels), isEqual3(node.keyword, toNode.keyword)), isEqual3(node.colon, toNode.colon)), isEqual2(node.statements, toNode.statements));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodeLists(node.labels, toNode.labels), isEqualTokens(node.keyword, toNode.keyword)), isEqualTokens(node.colon, toNode.colon)), isEqualNodeLists(node.statements, toNode.statements));
   }
 
   bool visitSwitchStatement(SwitchStatement node) {
     SwitchStatement toNode = this._toNode as SwitchStatement;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual3(node.leftParenthesis, toNode.leftParenthesis)), isEqual(node.expression, toNode.expression)), isEqual3(node.rightParenthesis, toNode.rightParenthesis)), isEqual3(node.leftBracket, toNode.leftBracket)), isEqual2(node.members, toNode.members)), isEqual3(node.rightBracket, toNode.rightBracket));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.keyword, toNode.keyword), isEqualTokens(node.leftParenthesis, toNode.leftParenthesis)), isEqualNodes(node.expression, toNode.expression)), isEqualTokens(node.rightParenthesis, toNode.rightParenthesis)), isEqualTokens(node.leftBracket, toNode.leftBracket)), isEqualNodeLists(node.members, toNode.members)), isEqualTokens(node.rightBracket, toNode.rightBracket));
   }
 
   bool visitSymbolLiteral(SymbolLiteral node) {
     SymbolLiteral toNode = this._toNode as SymbolLiteral;
-    if (javaBooleanAnd(isEqual3(node.poundSign, toNode.poundSign), isEqual4(node.components, toNode.components))) {
+    if (javaBooleanAnd(isEqualTokens(node.poundSign, toNode.poundSign), isEqualTokenLists(node.components, toNode.components))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8375,7 +8375,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitThisExpression(ThisExpression node) {
     ThisExpression toNode = this._toNode as ThisExpression;
-    if (isEqual3(node.keyword, toNode.keyword)) {
+    if (isEqualTokens(node.keyword, toNode.keyword)) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8385,7 +8385,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitThrowExpression(ThrowExpression node) {
     ThrowExpression toNode = this._toNode as ThrowExpression;
-    if (javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual(node.expression, toNode.expression))) {
+    if (javaBooleanAnd(isEqualTokens(node.keyword, toNode.keyword), isEqualNodes(node.expression, toNode.expression))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8395,22 +8395,22 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     TopLevelVariableDeclaration toNode = this._toNode as TopLevelVariableDeclaration;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual(node.variables, toNode.variables)), isEqual3(node.semicolon, toNode.semicolon));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.documentationComment, toNode.documentationComment), isEqualNodeLists(node.metadata, toNode.metadata)), isEqualNodes(node.variables, toNode.variables)), isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   bool visitTryStatement(TryStatement node) {
     TryStatement toNode = this._toNode as TryStatement;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.tryKeyword, toNode.tryKeyword), isEqual(node.body, toNode.body)), isEqual2(node.catchClauses, toNode.catchClauses)), isEqual3(node.finallyKeyword, toNode.finallyKeyword)), isEqual(node.finallyBlock, toNode.finallyBlock));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.tryKeyword, toNode.tryKeyword), isEqualNodes(node.body, toNode.body)), isEqualNodeLists(node.catchClauses, toNode.catchClauses)), isEqualTokens(node.finallyKeyword, toNode.finallyKeyword)), isEqualNodes(node.finallyBlock, toNode.finallyBlock));
   }
 
   bool visitTypeArgumentList(TypeArgumentList node) {
     TypeArgumentList toNode = this._toNode as TypeArgumentList;
-    return javaBooleanAnd(javaBooleanAnd(isEqual3(node.leftBracket, toNode.leftBracket), isEqual2(node.arguments, toNode.arguments)), isEqual3(node.rightBracket, toNode.rightBracket));
+    return javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.leftBracket, toNode.leftBracket), isEqualNodeLists(node.arguments, toNode.arguments)), isEqualTokens(node.rightBracket, toNode.rightBracket));
   }
 
   bool visitTypeName(TypeName node) {
     TypeName toNode = this._toNode as TypeName;
-    if (javaBooleanAnd(isEqual(node.name, toNode.name), isEqual(node.typeArguments, toNode.typeArguments))) {
+    if (javaBooleanAnd(isEqualNodes(node.name, toNode.name), isEqualNodes(node.typeArguments, toNode.typeArguments))) {
       toNode.type = node.type;
       return true;
     }
@@ -8419,37 +8419,65 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   bool visitTypeParameter(TypeParameter node) {
     TypeParameter toNode = this._toNode as TypeParameter;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual(node.name, toNode.name)), isEqual3(node.keyword, toNode.keyword)), isEqual(node.bound, toNode.bound));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.documentationComment, toNode.documentationComment), isEqualNodeLists(node.metadata, toNode.metadata)), isEqualNodes(node.name, toNode.name)), isEqualTokens(node.keyword, toNode.keyword)), isEqualNodes(node.bound, toNode.bound));
   }
 
   bool visitTypeParameterList(TypeParameterList node) {
     TypeParameterList toNode = this._toNode as TypeParameterList;
-    return javaBooleanAnd(javaBooleanAnd(isEqual3(node.leftBracket, toNode.leftBracket), isEqual2(node.typeParameters, toNode.typeParameters)), isEqual3(node.rightBracket, toNode.rightBracket));
+    return javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.leftBracket, toNode.leftBracket), isEqualNodeLists(node.typeParameters, toNode.typeParameters)), isEqualTokens(node.rightBracket, toNode.rightBracket));
   }
 
   bool visitVariableDeclaration(VariableDeclaration node) {
     VariableDeclaration toNode = this._toNode as VariableDeclaration;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual(node.name, toNode.name)), isEqual3(node.equals, toNode.equals)), isEqual(node.initializer, toNode.initializer));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.documentationComment, toNode.documentationComment), isEqualNodeLists(node.metadata, toNode.metadata)), isEqualNodes(node.name, toNode.name)), isEqualTokens(node.equals, toNode.equals)), isEqualNodes(node.initializer, toNode.initializer));
   }
 
   bool visitVariableDeclarationList(VariableDeclarationList node) {
     VariableDeclarationList toNode = this._toNode as VariableDeclarationList;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.keyword, toNode.keyword)), isEqual(node.type, toNode.type)), isEqual2(node.variables, toNode.variables));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualNodes(node.documentationComment, toNode.documentationComment), isEqualNodeLists(node.metadata, toNode.metadata)), isEqualTokens(node.keyword, toNode.keyword)), isEqualNodes(node.type, toNode.type)), isEqualNodeLists(node.variables, toNode.variables));
   }
 
   bool visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     VariableDeclarationStatement toNode = this._toNode as VariableDeclarationStatement;
-    return javaBooleanAnd(isEqual(node.variables, toNode.variables), isEqual3(node.semicolon, toNode.semicolon));
+    return javaBooleanAnd(isEqualNodes(node.variables, toNode.variables), isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   bool visitWhileStatement(WhileStatement node) {
     WhileStatement toNode = this._toNode as WhileStatement;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual3(node.leftParenthesis, toNode.leftParenthesis)), isEqual(node.condition, toNode.condition)), isEqual3(node.rightParenthesis, toNode.rightParenthesis)), isEqual(node.body, toNode.body));
+    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqualTokens(node.keyword, toNode.keyword), isEqualTokens(node.leftParenthesis, toNode.leftParenthesis)), isEqualNodes(node.condition, toNode.condition)), isEqualTokens(node.rightParenthesis, toNode.rightParenthesis)), isEqualNodes(node.body, toNode.body));
   }
 
   bool visitWithClause(WithClause node) {
     WithClause toNode = this._toNode as WithClause;
-    return javaBooleanAnd(isEqual3(node.withKeyword, toNode.withKeyword), isEqual2(node.mixinTypes, toNode.mixinTypes));
+    return javaBooleanAnd(isEqualTokens(node.withKeyword, toNode.withKeyword), isEqualNodeLists(node.mixinTypes, toNode.mixinTypes));
+  }
+
+  /**
+   * Return `true` if the given lists of AST nodes have the same size and corresponding
+   * elements are equal.
+   *
+   * @param first the first node being compared
+   * @param second the second node being compared
+   * @return `true` if the given AST nodes have the same size and corresponding elements are
+   *         equal
+   */
+  bool isEqualNodeLists(NodeList first, NodeList second) {
+    if (first == null) {
+      return second == null;
+    } else if (second == null) {
+      return false;
+    }
+    int size = first.length;
+    if (second.length != size) {
+      return false;
+    }
+    bool equal = true;
+    for (int i = 0; i < size; i++) {
+      if (!isEqualNodes(first[i], second[i])) {
+        equal = false;
+      }
+    }
+    return equal;
   }
 
   /**
@@ -8461,7 +8489,7 @@ class ResolutionCopier implements AstVisitor<bool> {
    * @param toNode the node to which resolution information will be copied
    * @return `true` if the given AST nodes have the same structure
    */
-  bool isEqual(AstNode fromNode, AstNode toNode) {
+  bool isEqualNodes(AstNode fromNode, AstNode toNode) {
     if (fromNode == null) {
       return toNode == null;
     } else if (toNode == null) {
@@ -8490,31 +8518,25 @@ class ResolutionCopier implements AstVisitor<bool> {
   }
 
   /**
-   * Return `true` if the given lists of AST nodes have the same size and corresponding
+   * Return `true` if the given arrays of tokens have the same length and corresponding
    * elements are equal.
    *
    * @param first the first node being compared
    * @param second the second node being compared
-   * @return `true` if the given AST nodes have the same size and corresponding elements are
-   *         equal
+   * @return `true` if the given arrays of tokens have the same length and corresponding
+   *         elements are equal
    */
-  bool isEqual2(NodeList first, NodeList second) {
-    if (first == null) {
-      return second == null;
-    } else if (second == null) {
+  bool isEqualTokenLists(List<Token> first, List<Token> second) {
+    int length = first.length;
+    if (second.length != length) {
       return false;
     }
-    int size = first.length;
-    if (second.length != size) {
-      return false;
-    }
-    bool equal = true;
-    for (int i = 0; i < size; i++) {
-      if (!isEqual(first[i], second[i])) {
-        equal = false;
+    for (int i = 0; i < length; i++) {
+      if (!isEqualTokens(first[i], second[i])) {
+        return false;
       }
     }
-    return equal;
+    return true;
   }
 
   /**
@@ -8524,35 +8546,13 @@ class ResolutionCopier implements AstVisitor<bool> {
    * @param second the second node being compared
    * @return `true` if the given tokens have the same structure
    */
-  bool isEqual3(Token first, Token second) {
+  bool isEqualTokens(Token first, Token second) {
     if (first == null) {
       return second == null;
     } else if (second == null) {
       return false;
     }
     return first.lexeme == second.lexeme;
-  }
-
-  /**
-   * Return `true` if the given arrays of tokens have the same length and corresponding
-   * elements are equal.
-   *
-   * @param first the first node being compared
-   * @param second the second node being compared
-   * @return `true` if the given arrays of tokens have the same length and corresponding
-   *         elements are equal
-   */
-  bool isEqual4(List<Token> first, List<Token> second) {
-    int length = first.length;
-    if (second.length != length) {
-      return false;
-    }
-    for (int i = 0; i < length; i++) {
-      if (!isEqual3(first[i], second[i])) {
-        return false;
-      }
-    }
-    return true;
   }
 }
 
@@ -8583,60 +8583,60 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
   }
 
   Object visitAdjacentStrings(AdjacentStrings node) {
-    visitList5(node.strings, " ");
+    visitNodeListWithSeparator(node.strings, " ");
     return null;
   }
 
   Object visitAnnotation(Annotation node) {
     _writer.print('@');
-    visit(node.name);
-    visit7(".", node.constructorName);
-    visit(node.arguments);
+    visitNode(node.name);
+    visitNodeWithPrefix(".", node.constructorName);
+    visitNode(node.arguments);
     return null;
   }
 
   Object visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
     _writer.print('?');
-    visit(node.identifier);
+    visitNode(node.identifier);
     return null;
   }
 
   Object visitArgumentList(ArgumentList node) {
     _writer.print('(');
-    visitList5(node.arguments, ", ");
+    visitNodeListWithSeparator(node.arguments, ", ");
     _writer.print(')');
     return null;
   }
 
   Object visitAsExpression(AsExpression node) {
-    visit(node.expression);
+    visitNode(node.expression);
     _writer.print(" as ");
-    visit(node.type);
+    visitNode(node.type);
     return null;
   }
 
   Object visitAssertStatement(AssertStatement node) {
     _writer.print("assert(");
-    visit(node.condition);
+    visitNode(node.condition);
     _writer.print(");");
     return null;
   }
 
   Object visitAssignmentExpression(AssignmentExpression node) {
-    visit(node.leftHandSide);
+    visitNode(node.leftHandSide);
     _writer.print(' ');
     _writer.print(node.operator.lexeme);
     _writer.print(' ');
-    visit(node.rightHandSide);
+    visitNode(node.rightHandSide);
     return null;
   }
 
   Object visitBinaryExpression(BinaryExpression node) {
-    visit(node.leftOperand);
+    visitNode(node.leftOperand);
     _writer.print(' ');
     _writer.print(node.operator.lexeme);
     _writer.print(' ');
-    visit(node.rightOperand);
+    visitNode(node.rightOperand);
     return null;
   }
 
@@ -8644,7 +8644,7 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
     _writer.print('{');
     {
       indentInc();
-      visitList7("\n", node.statements, "\n");
+      visitNodeListWithSeparatorAndPrefix("\n", node.statements, "\n");
       indentDec();
     }
     nl2();
@@ -8653,7 +8653,7 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
   }
 
   Object visitBlockFunctionBody(BlockFunctionBody node) {
-    visit(node.block);
+    visitNode(node.block);
     return null;
   }
 
@@ -8664,47 +8664,47 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
 
   Object visitBreakStatement(BreakStatement node) {
     _writer.print("break");
-    visit7(" ", node.label);
+    visitNodeWithPrefix(" ", node.label);
     _writer.print(";");
     return null;
   }
 
   Object visitCascadeExpression(CascadeExpression node) {
-    visit(node.target);
-    visitList(node.cascadeSections);
+    visitNode(node.target);
+    visitNodeList(node.cascadeSections);
     return null;
   }
 
   Object visitCatchClause(CatchClause node) {
-    visit7("on ", node.exceptionType);
+    visitNodeWithPrefix("on ", node.exceptionType);
     if (node.catchKeyword != null) {
       if (node.exceptionType != null) {
         _writer.print(' ');
       }
       _writer.print("catch (");
-      visit(node.exceptionParameter);
-      visit7(", ", node.stackTraceParameter);
+      visitNode(node.exceptionParameter);
+      visitNodeWithPrefix(", ", node.stackTraceParameter);
       _writer.print(") ");
     } else {
       _writer.print(" ");
     }
-    visit(node.body);
+    visitNode(node.body);
     return null;
   }
 
   Object visitClassDeclaration(ClassDeclaration node) {
-    visit(node.documentationComment);
-    visit8(node.abstractKeyword, " ");
+    visitNode(node.documentationComment);
+    visitTokenWithSuffix(node.abstractKeyword, " ");
     _writer.print("class ");
-    visit(node.name);
-    visit(node.typeParameters);
-    visit7(" ", node.extendsClause);
-    visit7(" ", node.withClause);
-    visit7(" ", node.implementsClause);
+    visitNode(node.name);
+    visitNode(node.typeParameters);
+    visitNodeWithPrefix(" ", node.extendsClause);
+    visitNodeWithPrefix(" ", node.withClause);
+    visitNodeWithPrefix(" ", node.implementsClause);
     _writer.print(" {");
     {
       indentInc();
-      visitList7("\n", node.members, "\n\n");
+      visitNodeListWithSeparatorAndPrefix("\n", node.members, "\n\n");
       indentDec();
     }
     nl2();
@@ -8714,15 +8714,15 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
 
   Object visitClassTypeAlias(ClassTypeAlias node) {
     _writer.print("typedef ");
-    visit(node.name);
-    visit(node.typeParameters);
+    visitNode(node.name);
+    visitNode(node.typeParameters);
     _writer.print(" = ");
     if (node.abstractKeyword != null) {
       _writer.print("abstract ");
     }
-    visit(node.superclass);
-    visit7(" ", node.withClause);
-    visit7(" ", node.implementsClause);
+    visitNode(node.superclass);
+    visitNodeWithPrefix(" ", node.withClause);
+    visitNodeWithPrefix(" ", node.implementsClause);
     _writer.print(";");
     return null;
   }
@@ -8753,86 +8753,86 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
   Object visitCompilationUnit(CompilationUnit node) {
     ScriptTag scriptTag = node.scriptTag;
     NodeList<Directive> directives = node.directives;
-    visit(scriptTag);
+    visitNode(scriptTag);
     // directives
     String prefix = scriptTag == null ? "" : " ";
-    visitList7(prefix, directives, "\n");
+    visitNodeListWithSeparatorAndPrefix(prefix, directives, "\n");
     nl();
     // declarations
     prefix = scriptTag == null && directives.isEmpty ? "" : "\n";
-    visitList7(prefix, node.declarations, "\n\n");
+    visitNodeListWithSeparatorAndPrefix(prefix, node.declarations, "\n\n");
     return null;
   }
 
   Object visitConditionalExpression(ConditionalExpression node) {
-    visit(node.condition);
+    visitNode(node.condition);
     _writer.print(" ? ");
-    visit(node.thenExpression);
+    visitNode(node.thenExpression);
     _writer.print(" : ");
-    visit(node.elseExpression);
+    visitNode(node.elseExpression);
     return null;
   }
 
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
-    visit(node.documentationComment);
-    visit8(node.externalKeyword, " ");
-    visit8(node.constKeyword, " ");
-    visit8(node.factoryKeyword, " ");
-    visit(node.returnType);
-    visit7(".", node.name);
-    visit(node.parameters);
-    visitList7(" : ", node.initializers, ", ");
-    visit7(" = ", node.redirectedConstructor);
+    visitNode(node.documentationComment);
+    visitTokenWithSuffix(node.externalKeyword, " ");
+    visitTokenWithSuffix(node.constKeyword, " ");
+    visitTokenWithSuffix(node.factoryKeyword, " ");
+    visitNode(node.returnType);
+    visitNodeWithPrefix(".", node.name);
+    visitNode(node.parameters);
+    visitNodeListWithSeparatorAndPrefix(" : ", node.initializers, ", ");
+    visitNodeWithPrefix(" = ", node.redirectedConstructor);
     if (node.body is! EmptyFunctionBody) {
       _writer.print(' ');
     }
-    visit(node.body);
+    visitNode(node.body);
     return null;
   }
 
   Object visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    visit8(node.keyword, ".");
-    visit(node.fieldName);
+    visitTokenWithSuffix(node.keyword, ".");
+    visitNode(node.fieldName);
     _writer.print(" = ");
-    visit(node.expression);
+    visitNode(node.expression);
     return null;
   }
 
   Object visitConstructorName(ConstructorName node) {
-    visit(node.type);
-    visit7(".", node.name);
+    visitNode(node.type);
+    visitNodeWithPrefix(".", node.name);
     return null;
   }
 
   Object visitContinueStatement(ContinueStatement node) {
     _writer.print("continue");
-    visit7(" ", node.label);
+    visitNodeWithPrefix(" ", node.label);
     _writer.print(";");
     return null;
   }
 
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
-    visit8(node.keyword, " ");
-    visit6(node.type, " ");
-    visit(node.identifier);
+    visitTokenWithSuffix(node.keyword, " ");
+    visitNodeWithSuffix(node.type, " ");
+    visitNode(node.identifier);
     return null;
   }
 
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
-    visit(node.parameter);
+    visitNode(node.parameter);
     if (node.separator != null) {
       _writer.print(" ");
       _writer.print(node.separator.lexeme);
-      visit7(" ", node.defaultValue);
+      visitNodeWithPrefix(" ", node.defaultValue);
     }
     return null;
   }
 
   Object visitDoStatement(DoStatement node) {
     _writer.print("do ");
-    visit(node.body);
+    visitNode(node.body);
     _writer.print(" while (");
-    visit(node.condition);
+    visitNode(node.condition);
     _writer.print(");");
     return null;
   }
@@ -8854,15 +8854,15 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
 
   Object visitExportDirective(ExportDirective node) {
     _writer.print("export ");
-    visit(node.uri);
-    visitList7(" ", node.combinators, " ");
+    visitNode(node.uri);
+    visitNodeListWithSeparatorAndPrefix(" ", node.combinators, " ");
     _writer.print(';');
     return null;
   }
 
   Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
     _writer.print("=> ");
-    visit(node.expression);
+    visitNode(node.expression);
     if (node.semicolon != null) {
       _writer.print(';');
     }
@@ -8870,31 +8870,31 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
   }
 
   Object visitExpressionStatement(ExpressionStatement node) {
-    visit(node.expression);
+    visitNode(node.expression);
     _writer.print(';');
     return null;
   }
 
   Object visitExtendsClause(ExtendsClause node) {
     _writer.print("extends ");
-    visit(node.superclass);
+    visitNode(node.superclass);
     return null;
   }
 
   Object visitFieldDeclaration(FieldDeclaration node) {
-    visit(node.documentationComment);
-    visit8(node.staticKeyword, " ");
-    visit(node.fields);
+    visitNode(node.documentationComment);
+    visitTokenWithSuffix(node.staticKeyword, " ");
+    visitNode(node.fields);
     _writer.print(";");
     return null;
   }
 
   Object visitFieldFormalParameter(FieldFormalParameter node) {
-    visit8(node.keyword, " ");
-    visit6(node.type, " ");
+    visitTokenWithSuffix(node.keyword, " ");
+    visitNodeWithSuffix(node.type, " ");
     _writer.print("this.");
-    visit(node.identifier);
-    visit(node.parameters);
+    visitNode(node.identifier);
+    visitNode(node.parameters);
     return null;
   }
 
@@ -8902,14 +8902,14 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
     DeclaredIdentifier loopVariable = node.loopVariable;
     _writer.print("for (");
     if (loopVariable == null) {
-      visit(node.identifier);
+      visitNode(node.identifier);
     } else {
-      visit(loopVariable);
+      visitNode(loopVariable);
     }
     _writer.print(" in ");
-    visit(node.iterator);
+    visitNode(node.iterator);
     _writer.print(") ");
-    visit(node.body);
+    visitNode(node.body);
     return null;
   }
 
@@ -8945,89 +8945,89 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
     Expression initialization = node.initialization;
     _writer.print("for (");
     if (initialization != null) {
-      visit(initialization);
+      visitNode(initialization);
     } else {
-      visit(node.variables);
+      visitNode(node.variables);
     }
     _writer.print(";");
-    visit7(" ", node.condition);
+    visitNodeWithPrefix(" ", node.condition);
     _writer.print(";");
-    visitList7(" ", node.updaters, ", ");
+    visitNodeListWithSeparatorAndPrefix(" ", node.updaters, ", ");
     _writer.print(") ");
-    visit(node.body);
+    visitNode(node.body);
     return null;
   }
 
   Object visitFunctionDeclaration(FunctionDeclaration node) {
-    visit6(node.returnType, " ");
-    visit8(node.propertyKeyword, " ");
-    visit(node.name);
-    visit(node.functionExpression);
+    visitNodeWithSuffix(node.returnType, " ");
+    visitTokenWithSuffix(node.propertyKeyword, " ");
+    visitNode(node.name);
+    visitNode(node.functionExpression);
     return null;
   }
 
   Object visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    visit(node.functionDeclaration);
+    visitNode(node.functionDeclaration);
     _writer.print(';');
     return null;
   }
 
   Object visitFunctionExpression(FunctionExpression node) {
-    visit(node.parameters);
+    visitNode(node.parameters);
     _writer.print(' ');
-    visit(node.body);
+    visitNode(node.body);
     return null;
   }
 
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    visit(node.function);
-    visit(node.argumentList);
+    visitNode(node.function);
+    visitNode(node.argumentList);
     return null;
   }
 
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
     _writer.print("typedef ");
-    visit6(node.returnType, " ");
-    visit(node.name);
-    visit(node.typeParameters);
-    visit(node.parameters);
+    visitNodeWithSuffix(node.returnType, " ");
+    visitNode(node.name);
+    visitNode(node.typeParameters);
+    visitNode(node.parameters);
     _writer.print(";");
     return null;
   }
 
   Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    visit6(node.returnType, " ");
-    visit(node.identifier);
-    visit(node.parameters);
+    visitNodeWithSuffix(node.returnType, " ");
+    visitNode(node.identifier);
+    visitNode(node.parameters);
     return null;
   }
 
   Object visitHideCombinator(HideCombinator node) {
     _writer.print("hide ");
-    visitList5(node.hiddenNames, ", ");
+    visitNodeListWithSeparator(node.hiddenNames, ", ");
     return null;
   }
 
   Object visitIfStatement(IfStatement node) {
     _writer.print("if (");
-    visit(node.condition);
+    visitNode(node.condition);
     _writer.print(") ");
-    visit(node.thenStatement);
-    visit7(" else ", node.elseStatement);
+    visitNode(node.thenStatement);
+    visitNodeWithPrefix(" else ", node.elseStatement);
     return null;
   }
 
   Object visitImplementsClause(ImplementsClause node) {
     _writer.print("implements ");
-    visitList5(node.interfaces, ", ");
+    visitNodeListWithSeparator(node.interfaces, ", ");
     return null;
   }
 
   Object visitImportDirective(ImportDirective node) {
     _writer.print("import ");
-    visit(node.uri);
-    visit7(" as ", node.prefix);
-    visitList7(" ", node.combinators, " ");
+    visitNode(node.uri);
+    visitNodeWithPrefix(" as ", node.prefix);
+    visitNodeListWithSeparatorAndPrefix(" ", node.combinators, " ");
     _writer.print(';');
     return null;
   }
@@ -9036,18 +9036,18 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
     if (node.isCascaded) {
       _writer.print("..");
     } else {
-      visit(node.target);
+      visitNode(node.target);
     }
     _writer.print('[');
-    visit(node.index);
+    visitNode(node.index);
     _writer.print(']');
     return null;
   }
 
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
-    visit8(node.keyword, " ");
-    visit(node.constructorName);
-    visit(node.argumentList);
+    visitTokenWithSuffix(node.keyword, " ");
+    visitNode(node.constructorName);
+    visitNode(node.argumentList);
     return null;
   }
 
@@ -9059,11 +9059,11 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
   Object visitInterpolationExpression(InterpolationExpression node) {
     if (node.rightBracket != null) {
       _writer.print("\${");
-      visit(node.expression);
+      visitNode(node.expression);
       _writer.print("}");
     } else {
       _writer.print("\$");
-      visit(node.expression);
+      visitNode(node.expression);
     }
     return null;
   }
@@ -9074,31 +9074,31 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
   }
 
   Object visitIsExpression(IsExpression node) {
-    visit(node.expression);
+    visitNode(node.expression);
     if (node.notOperator == null) {
       _writer.print(" is ");
     } else {
       _writer.print(" is! ");
     }
-    visit(node.type);
+    visitNode(node.type);
     return null;
   }
 
   Object visitLabel(Label node) {
-    visit(node.label);
+    visitNode(node.label);
     _writer.print(":");
     return null;
   }
 
   Object visitLabeledStatement(LabeledStatement node) {
-    visitList6(node.labels, " ", " ");
-    visit(node.statement);
+    visitNodeListWithSeparatorAndSuffix(node.labels, " ", " ");
+    visitNode(node.statement);
     return null;
   }
 
   Object visitLibraryDirective(LibraryDirective node) {
     _writer.print("library ");
-    visit(node.name);
+    visitNode(node.name);
     _writer.print(';');
     nl();
     return null;
@@ -9114,17 +9114,17 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
       _writer.print(node.constKeyword.lexeme);
       _writer.print(' ');
     }
-    visit6(node.typeArguments, " ");
+    visitNodeWithSuffix(node.typeArguments, " ");
     _writer.print("[");
     {
       NodeList<Expression> elements = node.elements;
       if (elements.length < 2 || elements.toString().length < 60) {
-        visitList5(elements, ", ");
+        visitNodeListWithSeparator(elements, ", ");
       } else {
         String elementIndent = "${_indentString}    ";
         _writer.print("\n");
         _writer.print(elementIndent);
-        visitList5(elements, ",\n${elementIndent}");
+        visitNodeListWithSeparator(elements, ",\n${elementIndent}");
       }
     }
     _writer.print("]");
@@ -9136,35 +9136,35 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
       _writer.print(node.constKeyword.lexeme);
       _writer.print(' ');
     }
-    visit6(node.typeArguments, " ");
+    visitNodeWithSuffix(node.typeArguments, " ");
     _writer.print("{");
-    visitList5(node.entries, ", ");
+    visitNodeListWithSeparator(node.entries, ", ");
     _writer.print("}");
     return null;
   }
 
   Object visitMapLiteralEntry(MapLiteralEntry node) {
-    visit(node.key);
+    visitNode(node.key);
     _writer.print(" : ");
-    visit(node.value);
+    visitNode(node.value);
     return null;
   }
 
   Object visitMethodDeclaration(MethodDeclaration node) {
-    visit(node.documentationComment);
-    visit8(node.externalKeyword, " ");
-    visit8(node.modifierKeyword, " ");
-    visit6(node.returnType, " ");
-    visit8(node.propertyKeyword, " ");
-    visit8(node.operatorKeyword, " ");
-    visit(node.name);
+    visitNode(node.documentationComment);
+    visitTokenWithSuffix(node.externalKeyword, " ");
+    visitTokenWithSuffix(node.modifierKeyword, " ");
+    visitNodeWithSuffix(node.returnType, " ");
+    visitTokenWithSuffix(node.propertyKeyword, " ");
+    visitTokenWithSuffix(node.operatorKeyword, " ");
+    visitNode(node.name);
     if (!node.isGetter) {
-      visit(node.parameters);
+      visitNode(node.parameters);
     }
     if (node.body is! EmptyFunctionBody) {
       _writer.print(' ');
     }
-    visit(node.body);
+    visitNode(node.body);
     return null;
   }
 
@@ -9172,28 +9172,28 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
     if (node.isCascaded) {
       _writer.print("..");
     } else {
-      visit6(node.target, ".");
+      visitNodeWithSuffix(node.target, ".");
     }
-    visit(node.methodName);
-    visit(node.argumentList);
+    visitNode(node.methodName);
+    visitNode(node.argumentList);
     return null;
   }
 
   Object visitNamedExpression(NamedExpression node) {
-    visit(node.name);
-    visit7(" ", node.expression);
+    visitNode(node.name);
+    visitNodeWithPrefix(" ", node.expression);
     return null;
   }
 
   Object visitNativeClause(NativeClause node) {
     _writer.print("native ");
-    visit(node.name);
+    visitNode(node.name);
     return null;
   }
 
   Object visitNativeFunctionBody(NativeFunctionBody node) {
     _writer.print("native ");
-    visit(node.stringLiteral);
+    visitNode(node.stringLiteral);
     _writer.print(';');
     return null;
   }
@@ -9205,41 +9205,41 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
 
   Object visitParenthesizedExpression(ParenthesizedExpression node) {
     _writer.print('(');
-    visit(node.expression);
+    visitNode(node.expression);
     _writer.print(')');
     return null;
   }
 
   Object visitPartDirective(PartDirective node) {
     _writer.print("part ");
-    visit(node.uri);
+    visitNode(node.uri);
     _writer.print(';');
     return null;
   }
 
   Object visitPartOfDirective(PartOfDirective node) {
     _writer.print("part of ");
-    visit(node.libraryName);
+    visitNode(node.libraryName);
     _writer.print(';');
     return null;
   }
 
   Object visitPostfixExpression(PostfixExpression node) {
-    visit(node.operand);
+    visitNode(node.operand);
     _writer.print(node.operator.lexeme);
     return null;
   }
 
   Object visitPrefixedIdentifier(PrefixedIdentifier node) {
-    visit(node.prefix);
+    visitNode(node.prefix);
     _writer.print('.');
-    visit(node.identifier);
+    visitNode(node.identifier);
     return null;
   }
 
   Object visitPrefixExpression(PrefixExpression node) {
     _writer.print(node.operator.lexeme);
-    visit(node.operand);
+    visitNode(node.operand);
     return null;
   }
 
@@ -9247,16 +9247,16 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
     if (node.isCascaded) {
       _writer.print("..");
     } else {
-      visit6(node.target, ".");
+      visitNodeWithSuffix(node.target, ".");
     }
-    visit(node.propertyName);
+    visitNode(node.propertyName);
     return null;
   }
 
   Object visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     _writer.print("this");
-    visit7(".", node.constructorName);
-    visit(node.argumentList);
+    visitNodeWithPrefix(".", node.constructorName);
+    visitNode(node.argumentList);
     return null;
   }
 
@@ -9284,14 +9284,14 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
 
   Object visitShowCombinator(ShowCombinator node) {
     _writer.print("show ");
-    visitList5(node.shownNames, ", ");
+    visitNodeListWithSeparator(node.shownNames, ", ");
     return null;
   }
 
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
-    visit8(node.keyword, " ");
-    visit6(node.type, " ");
-    visit(node.identifier);
+    visitTokenWithSuffix(node.keyword, " ");
+    visitNodeWithSuffix(node.type, " ");
+    visitNode(node.identifier);
     return null;
   }
 
@@ -9306,14 +9306,14 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
   }
 
   Object visitStringInterpolation(StringInterpolation node) {
-    visitList(node.elements);
+    visitNodeList(node.elements);
     return null;
   }
 
   Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _writer.print("super");
-    visit7(".", node.constructorName);
-    visit(node.argumentList);
+    visitNodeWithPrefix(".", node.constructorName);
+    visitNode(node.argumentList);
     return null;
   }
 
@@ -9323,24 +9323,24 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
   }
 
   Object visitSwitchCase(SwitchCase node) {
-    visitList6(node.labels, " ", " ");
+    visitNodeListWithSeparatorAndSuffix(node.labels, " ", " ");
     _writer.print("case ");
-    visit(node.expression);
+    visitNode(node.expression);
     _writer.print(": ");
     {
       indentInc();
-      visitList5(node.statements, "\n");
+      visitNodeListWithSeparator(node.statements, "\n");
       indentDec();
     }
     return null;
   }
 
   Object visitSwitchDefault(SwitchDefault node) {
-    visitList6(node.labels, " ", " ");
+    visitNodeListWithSeparatorAndSuffix(node.labels, " ", " ");
     _writer.print("default: ");
     {
       indentInc();
-      visitList5(node.statements, "\n");
+      visitNodeListWithSeparator(node.statements, "\n");
       indentDec();
     }
     return null;
@@ -9348,11 +9348,11 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
 
   Object visitSwitchStatement(SwitchStatement node) {
     _writer.print("switch (");
-    visit(node.expression);
+    visitNode(node.expression);
     _writer.print(") {");
     {
       indentInc();
-      visitList5(node.members, "\n");
+      visitNodeListWithSeparator(node.members, "\n");
       indentDec();
     }
     nl2();
@@ -9362,7 +9362,7 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
 
   Object visitSymbolLiteral(SymbolLiteral node) {
     _writer.print("#");
-    visitList9(node.components, ".");
+    visitTokenListWithSeparator(node.components, ".");
     return null;
   }
 
@@ -9373,79 +9373,79 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
 
   Object visitThrowExpression(ThrowExpression node) {
     _writer.print("throw ");
-    visit(node.expression);
+    visitNode(node.expression);
     return null;
   }
 
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    visit6(node.variables, ";");
+    visitNodeWithSuffix(node.variables, ";");
     return null;
   }
 
   Object visitTryStatement(TryStatement node) {
     _writer.print("try ");
-    visit(node.body);
-    visitList7(" ", node.catchClauses, " ");
-    visit7(" finally ", node.finallyBlock);
+    visitNode(node.body);
+    visitNodeListWithSeparatorAndPrefix(" ", node.catchClauses, " ");
+    visitNodeWithPrefix(" finally ", node.finallyBlock);
     return null;
   }
 
   Object visitTypeArgumentList(TypeArgumentList node) {
     _writer.print('<');
-    visitList5(node.arguments, ", ");
+    visitNodeListWithSeparator(node.arguments, ", ");
     _writer.print('>');
     return null;
   }
 
   Object visitTypeName(TypeName node) {
-    visit(node.name);
-    visit(node.typeArguments);
+    visitNode(node.name);
+    visitNode(node.typeArguments);
     return null;
   }
 
   Object visitTypeParameter(TypeParameter node) {
-    visit(node.name);
-    visit7(" extends ", node.bound);
+    visitNode(node.name);
+    visitNodeWithPrefix(" extends ", node.bound);
     return null;
   }
 
   Object visitTypeParameterList(TypeParameterList node) {
     _writer.print('<');
-    visitList5(node.typeParameters, ", ");
+    visitNodeListWithSeparator(node.typeParameters, ", ");
     _writer.print('>');
     return null;
   }
 
   Object visitVariableDeclaration(VariableDeclaration node) {
-    visit(node.name);
-    visit7(" = ", node.initializer);
+    visitNode(node.name);
+    visitNodeWithPrefix(" = ", node.initializer);
     return null;
   }
 
   Object visitVariableDeclarationList(VariableDeclarationList node) {
-    visit8(node.keyword, " ");
-    visit6(node.type, " ");
-    visitList5(node.variables, ", ");
+    visitTokenWithSuffix(node.keyword, " ");
+    visitNodeWithSuffix(node.type, " ");
+    visitNodeListWithSeparator(node.variables, ", ");
     return null;
   }
 
   Object visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    visit(node.variables);
+    visitNode(node.variables);
     _writer.print(";");
     return null;
   }
 
   Object visitWhileStatement(WhileStatement node) {
     _writer.print("while (");
-    visit(node.condition);
+    visitNode(node.condition);
     _writer.print(") ");
-    visit(node.body);
+    visitNode(node.body);
     return null;
   }
 
   Object visitWithClause(WithClause node) {
     _writer.print("with ");
-    visitList5(node.mixinTypes, ", ");
+    visitNodeListWithSeparator(node.mixinTypes, ", ");
     return null;
   }
 
@@ -9489,49 +9489,9 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
    *
    * @param node the node to be visited
    */
-  void visit(AstNode node) {
+  void visitNode(AstNode node) {
     if (node != null) {
       node.accept(this);
-    }
-  }
-
-  /**
-   * Safely visit the given node, printing the suffix after the node if it is non-<code>null</code>.
-   *
-   * @param suffix the suffix to be printed if there is a node to visit
-   * @param node the node to be visited
-   */
-  void visit6(AstNode node, String suffix) {
-    if (node != null) {
-      node.accept(this);
-      _writer.print(suffix);
-    }
-  }
-
-  /**
-   * Safely visit the given node, printing the prefix before the node if it is non-<code>null</code>
-   * .
-   *
-   * @param prefix the prefix to be printed if there is a node to visit
-   * @param node the node to be visited
-   */
-  void visit7(String prefix, AstNode node) {
-    if (node != null) {
-      _writer.print(prefix);
-      node.accept(this);
-    }
-  }
-
-  /**
-   * Safely visit the given node, printing the suffix after the node if it is non-<code>null</code>.
-   *
-   * @param suffix the suffix to be printed if there is a node to visit
-   * @param node the node to be visited
-   */
-  void visit8(Token token, String suffix) {
-    if (token != null) {
-      _writer.print(token.lexeme);
-      _writer.print(suffix);
     }
   }
 
@@ -9541,8 +9501,8 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
    * @param nodes the nodes to be printed
    * @param separator the separator to be printed between adjacent nodes
    */
-  void visitList(NodeList<AstNode> nodes) {
-    visitList5(nodes, "");
+  void visitNodeList(NodeList<AstNode> nodes) {
+    visitNodeListWithSeparator(nodes, "");
   }
 
   /**
@@ -9551,19 +9511,8 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
    * @param nodes the nodes to be printed
    * @param separator the separator to be printed between adjacent nodes
    */
-  void visitList5(NodeList<AstNode> nodes, String separator) {
-    visitList8("", nodes, separator, "");
-  }
-
-  /**
-   * Print a list of nodes, separated by the given separator.
-   *
-   * @param nodes the nodes to be printed
-   * @param separator the separator to be printed between adjacent nodes
-   * @param suffix the suffix to be printed if the list is not empty
-   */
-  void visitList6(NodeList<AstNode> nodes, String separator, String suffix) {
-    visitList8("", nodes, separator, suffix);
+  void visitNodeListWithSeparator(NodeList<AstNode> nodes, String separator) {
+    visitNodeListWithSeparatorPrefixAndSuffix("", nodes, separator, "");
   }
 
   /**
@@ -9573,8 +9522,19 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
    * @param nodes the nodes to be printed
    * @param separator the separator to be printed between adjacent nodes
    */
-  void visitList7(String prefix, NodeList<AstNode> nodes, String separator) {
-    visitList8(prefix, nodes, separator, "");
+  void visitNodeListWithSeparatorAndPrefix(String prefix, NodeList<AstNode> nodes, String separator) {
+    visitNodeListWithSeparatorPrefixAndSuffix(prefix, nodes, separator, "");
+  }
+
+  /**
+   * Print a list of nodes, separated by the given separator.
+   *
+   * @param nodes the nodes to be printed
+   * @param separator the separator to be printed between adjacent nodes
+   * @param suffix the suffix to be printed if the list is not empty
+   */
+  void visitNodeListWithSeparatorAndSuffix(NodeList<AstNode> nodes, String separator, String suffix) {
+    visitNodeListWithSeparatorPrefixAndSuffix("", nodes, separator, suffix);
   }
 
   /**
@@ -9585,7 +9545,7 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
    * @param separator the separator to be printed between adjacent nodes
    * @param suffix the suffix to be printed if the list is not empty
    */
-  void visitList8(String prefix, NodeList<AstNode> nodes, String separator, String suffix) {
+  void visitNodeListWithSeparatorPrefixAndSuffix(String prefix, NodeList<AstNode> nodes, String separator, String suffix) {
     if (nodes != null) {
       int size = nodes.length;
       if (size != 0) {
@@ -9616,12 +9576,39 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
   }
 
   /**
+   * Safely visit the given node, printing the prefix before the node if it is non-<code>null</code>
+   * .
+   *
+   * @param prefix the prefix to be printed if there is a node to visit
+   * @param node the node to be visited
+   */
+  void visitNodeWithPrefix(String prefix, AstNode node) {
+    if (node != null) {
+      _writer.print(prefix);
+      node.accept(this);
+    }
+  }
+
+  /**
+   * Safely visit the given node, printing the suffix after the node if it is non-<code>null</code>.
+   *
+   * @param suffix the suffix to be printed if there is a node to visit
+   * @param node the node to be visited
+   */
+  void visitNodeWithSuffix(AstNode node, String suffix) {
+    if (node != null) {
+      node.accept(this);
+      _writer.print(suffix);
+    }
+  }
+
+  /**
    * Print a list of tokens, separated by the given separator.
    *
    * @param tokens the tokens to be printed
    * @param separator the separator to be printed between adjacent tokens
    */
-  void visitList9(List<Token> tokens, String separator) {
+  void visitTokenListWithSeparator(List<Token> tokens, String separator) {
     int size = tokens.length;
     for (int i = 0; i < size; i++) {
       if ("\n" == separator) {
@@ -9631,6 +9618,19 @@ class ToFormattedSourceVisitor implements AstVisitor<Object> {
         _writer.print(separator);
       }
       _writer.print(tokens[i].lexeme);
+    }
+  }
+
+  /**
+   * Safely visit the given node, printing the suffix after the node if it is non-<code>null</code>.
+   *
+   * @param suffix the suffix to be printed if there is a node to visit
+   * @param node the node to be visited
+   */
+  void visitTokenWithSuffix(Token token, String suffix) {
+    if (token != null) {
+      _writer.print(token.lexeme);
+      _writer.print(suffix);
     }
   }
 }

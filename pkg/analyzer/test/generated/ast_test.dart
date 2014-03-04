@@ -8,7 +8,9 @@
 library engine.ast_test;
 
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_junit.dart';
+import 'package:analyzer/src/generated/java_engine.dart' show Predicate;
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -21,7 +23,7 @@ import 'scanner_test.dart' show TokenFactory;
 class NodeLocatorTest extends ParserTestCase {
   void test_range() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("library myLib;", []);
-    assertLocate2(unit, 4, 10, LibraryDirective);
+    assertLocate(unit, 4, 10, (node) => node is LibraryDirective, LibraryDirective);
   }
 
   void test_searchWithin_null() {
@@ -31,7 +33,7 @@ class NodeLocatorTest extends ParserTestCase {
 
   void test_searchWithin_offset() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("library myLib;", []);
-    assertLocate(unit, 10, SimpleIdentifier);
+    assertLocate(unit, 10, 10, (node) => node is SimpleIdentifier, SimpleIdentifier);
   }
 
   void test_searchWithin_offsetAfterNode() {
@@ -48,18 +50,14 @@ class NodeLocatorTest extends ParserTestCase {
     JUnitTestCase.assertNull(node);
   }
 
-  void assertLocate(CompilationUnit unit, int offset, Type expectedClass) {
-    assertLocate2(unit, offset, offset, expectedClass);
-  }
-
-  void assertLocate2(CompilationUnit unit, int start, int end, Type expectedClass) {
+  void assertLocate(CompilationUnit unit, int start, int end, Predicate<AstNode> predicate, Type expectedClass) {
     NodeLocator locator = new NodeLocator.con2(start, end);
     AstNode node = locator.searchWithin(unit);
     JUnitTestCase.assertNotNull(node);
     JUnitTestCase.assertSame(node, locator.foundNode);
     JUnitTestCase.assertTrueMsg("Node starts after range", node.offset <= start);
     JUnitTestCase.assertTrueMsg("Node ends before range", node.offset + node.length > end);
-    EngineTestCase.assertInstanceOf(expectedClass, node);
+    EngineTestCase.assertInstanceOf(predicate, expectedClass, node);
   }
 
   static dartSuite() {
@@ -1085,11 +1083,11 @@ class BreadthFirstVisitorTest extends ParserTestCase {
     BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_BreadthFirstVisitorTest_testIt(nodes);
     visitor.visitAllNodes(unit);
     EngineTestCase.assertSize(59, nodes);
-    EngineTestCase.assertInstanceOf(CompilationUnit, nodes[0]);
-    EngineTestCase.assertInstanceOf(ClassDeclaration, nodes[2]);
-    EngineTestCase.assertInstanceOf(FunctionDeclaration, nodes[3]);
-    EngineTestCase.assertInstanceOf(FunctionDeclarationStatement, nodes[27]);
-    EngineTestCase.assertInstanceOf(IntegerLiteral, nodes[58]);
+    EngineTestCase.assertInstanceOf((obj) => obj is CompilationUnit, CompilationUnit, nodes[0]);
+    EngineTestCase.assertInstanceOf((obj) => obj is ClassDeclaration, ClassDeclaration, nodes[2]);
+    EngineTestCase.assertInstanceOf((obj) => obj is FunctionDeclaration, FunctionDeclaration, nodes[3]);
+    EngineTestCase.assertInstanceOf((obj) => obj is FunctionDeclarationStatement, FunctionDeclarationStatement, nodes[27]);
+    EngineTestCase.assertInstanceOf((obj) => obj is IntegerLiteral, IntegerLiteral, nodes[58]);
   }
 
   static dartSuite() {
@@ -1457,31 +1455,31 @@ class ConstantEvaluatorTest extends ParserTestCase {
 
   void test_binary_bitAnd() {
     Object value = getConstantValue("74 & 42");
-    EngineTestCase.assertInstanceOf(int, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
     JUnitTestCase.assertEquals(74 & 42, value as int);
   }
 
   void test_binary_bitOr() {
     Object value = getConstantValue("74 | 42");
-    EngineTestCase.assertInstanceOf(int, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
     JUnitTestCase.assertEquals(74 | 42, value as int);
   }
 
   void test_binary_bitXor() {
     Object value = getConstantValue("74 ^ 42");
-    EngineTestCase.assertInstanceOf(int, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
     JUnitTestCase.assertEquals(74 ^ 42, value as int);
   }
 
   void test_binary_divide_double() {
     Object value = getConstantValue("3.2 / 2.3");
-    EngineTestCase.assertInstanceOf(double, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is double, double, value);
     JUnitTestCase.assertEquals(3.2 / 2.3, value as double);
   }
 
   void test_binary_divide_integer() {
     Object value = getConstantValue("3 / 2");
-    EngineTestCase.assertInstanceOf(int, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
     JUnitTestCase.assertEquals(1, value as int);
   }
 
@@ -1522,7 +1520,7 @@ class ConstantEvaluatorTest extends ParserTestCase {
 
   void test_binary_leftShift() {
     Object value = getConstantValue("16 << 2");
-    EngineTestCase.assertInstanceOf(int, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
     JUnitTestCase.assertEquals(64, value as int);
   }
 
@@ -1548,13 +1546,13 @@ class ConstantEvaluatorTest extends ParserTestCase {
 
   void test_binary_minus_double() {
     Object value = getConstantValue("3.2 - 2.3");
-    EngineTestCase.assertInstanceOf(double, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is double, double, value);
     JUnitTestCase.assertEquals(3.2 - 2.3, value as double);
   }
 
   void test_binary_minus_integer() {
     Object value = getConstantValue("3 - 2");
-    EngineTestCase.assertInstanceOf(int, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
     JUnitTestCase.assertEquals(1, value as int);
   }
 
@@ -1585,55 +1583,55 @@ class ConstantEvaluatorTest extends ParserTestCase {
 
   void test_binary_plus_double() {
     Object value = getConstantValue("2.3 + 3.2");
-    EngineTestCase.assertInstanceOf(double, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is double, double, value);
     JUnitTestCase.assertEquals(2.3 + 3.2, value as double);
   }
 
   void test_binary_plus_integer() {
     Object value = getConstantValue("2 + 3");
-    EngineTestCase.assertInstanceOf(int, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
     JUnitTestCase.assertEquals(5, value as int);
   }
 
   void test_binary_remainder_double() {
     Object value = getConstantValue("3.2 % 2.3");
-    EngineTestCase.assertInstanceOf(double, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is double, double, value);
     JUnitTestCase.assertEquals(3.2 % 2.3, value as double);
   }
 
   void test_binary_remainder_integer() {
     Object value = getConstantValue("8 % 3");
-    EngineTestCase.assertInstanceOf(int, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
     JUnitTestCase.assertEquals(2, value as int);
   }
 
   void test_binary_rightShift() {
     Object value = getConstantValue("64 >> 2");
-    EngineTestCase.assertInstanceOf(int, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
     JUnitTestCase.assertEquals(16, value as int);
   }
 
   void test_binary_times_double() {
     Object value = getConstantValue("2.3 * 3.2");
-    EngineTestCase.assertInstanceOf(double, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is double, double, value);
     JUnitTestCase.assertEquals(2.3 * 3.2, value as double);
   }
 
   void test_binary_times_integer() {
     Object value = getConstantValue("2 * 3");
-    EngineTestCase.assertInstanceOf(int, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
     JUnitTestCase.assertEquals(6, value as int);
   }
 
   void test_binary_truncatingDivide_double() {
     Object value = getConstantValue("3.2 ~/ 2.3");
-    EngineTestCase.assertInstanceOf(int, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
     JUnitTestCase.assertEquals(1, value as int);
   }
 
   void test_binary_truncatingDivide_integer() {
     Object value = getConstantValue("10 ~/ 3");
-    EngineTestCase.assertInstanceOf(int, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
     JUnitTestCase.assertEquals(3, value as int);
   }
 
@@ -1649,7 +1647,7 @@ class ConstantEvaluatorTest extends ParserTestCase {
 
   void test_literal_list() {
     Object value = getConstantValue("['a', 'b', 'c']");
-    EngineTestCase.assertInstanceOf(List, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is List, List, value);
     List list = value as List;
     JUnitTestCase.assertEquals(3, list.length);
     JUnitTestCase.assertEquals("a", list[0]);
@@ -1659,7 +1657,7 @@ class ConstantEvaluatorTest extends ParserTestCase {
 
   void test_literal_map() {
     Object value = getConstantValue("{'a' : 'm', 'b' : 'n', 'c' : 'o'}");
-    EngineTestCase.assertInstanceOf(Map, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is Map, Map, value);
     Map map = value as Map;
     JUnitTestCase.assertEquals(3, map.length);
     JUnitTestCase.assertEquals("m", map["a"]);
@@ -1674,13 +1672,13 @@ class ConstantEvaluatorTest extends ParserTestCase {
 
   void test_literal_number_double() {
     Object value = getConstantValue("3.45");
-    EngineTestCase.assertInstanceOf(double, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is double, double, value);
     JUnitTestCase.assertEquals(3.45, value as double);
   }
 
   void test_literal_number_integer() {
     Object value = getConstantValue("42");
-    EngineTestCase.assertInstanceOf(int, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
     JUnitTestCase.assertEquals(42, value as int);
   }
 
@@ -1711,7 +1709,7 @@ class ConstantEvaluatorTest extends ParserTestCase {
 
   void test_unary_bitNot() {
     Object value = getConstantValue("~42");
-    EngineTestCase.assertInstanceOf(int, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
     JUnitTestCase.assertEquals(~42, value as int);
   }
 
@@ -1722,13 +1720,13 @@ class ConstantEvaluatorTest extends ParserTestCase {
 
   void test_unary_negated_double() {
     Object value = getConstantValue("-42.3");
-    EngineTestCase.assertInstanceOf(double, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is double, double, value);
     JUnitTestCase.assertEquals(-42.3, value as double);
   }
 
   void test_unary_negated_integer() {
     Object value = getConstantValue("-42");
-    EngineTestCase.assertInstanceOf(int, value);
+    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
     JUnitTestCase.assertEquals(-42, value as int);
   }
 

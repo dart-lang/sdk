@@ -123,7 +123,7 @@ class _ErrorCollector extends AnalysisErrorListener {
   onError(error) => errors.add(error);
 }
 
-_getSpan(SourceFile file, ASTNode node) => file.span(node.offset, node.end);
+_getSpan(SourceFile file, AstNode node) => file.span(node.offset, node.end);
 
 /// True if the node has the `@observable` or `@published` annotation.
 // TODO(jmesserly): it is not good to be hard coding Polymer support here.
@@ -282,7 +282,7 @@ SimpleIdentifier _getSimpleIdentifier(Identifier id) =>
 bool _hasKeyword(Token token, Keyword keyword) =>
     token is KeywordToken && token.keyword == keyword;
 
-String _getOriginalCode(TextEditTransaction code, ASTNode node) =>
+String _getOriginalCode(TextEditTransaction code, AstNode node) =>
     code.original.substring(node.offset, node.end);
 
 void _fixConstructor(ConstructorDeclaration ctor, TextEditTransaction code,

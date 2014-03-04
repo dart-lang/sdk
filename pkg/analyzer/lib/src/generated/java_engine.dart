@@ -2,6 +2,11 @@ library java.engine;
 
 import 'java_core.dart';
 
+/**
+ * A predicate is a one-argument function that returns a boolean value.
+ */
+typedef bool Predicate<E>(E argument);
+
 class StringUtilities {
   static const String EMPTY = '';
   static const List<String> EMPTY_ARRAY = const <String>[];

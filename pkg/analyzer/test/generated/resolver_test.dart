@@ -9,6 +9,8 @@ library engine.resolver_test;
 
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_junit.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -18,7 +20,6 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:unittest/unittest.dart' as _ut;
@@ -120,12 +121,12 @@ class TypePropagationTest extends ResolverTestCase {
     InterfaceType stringType = typeProvider.stringType;
     // in the declaration
     {
-      SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "e in", SimpleIdentifier);
+      SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "e in", (node) => node is SimpleIdentifier);
       JUnitTestCase.assertSame(stringType, identifier.propagatedType);
     }
     // in the loop body
     {
-      SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "e;", SimpleIdentifier);
+      SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "e;", (node) => node is SimpleIdentifier);
       JUnitTestCase.assertSame(stringType, identifier.propagatedType);
     }
   }
@@ -148,16 +149,16 @@ class TypePropagationTest extends ResolverTestCase {
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // k
     Type2 intType = typeProvider.intType;
-    FormalParameter kParameter = EngineTestCase.findNode(unit, code, "k, ", SimpleFormalParameter);
+    FormalParameter kParameter = EngineTestCase.findNode(unit, code, "k, ", (node) => node is SimpleFormalParameter);
     JUnitTestCase.assertSame(intType, kParameter.identifier.propagatedType);
-    SimpleIdentifier kIdentifier = EngineTestCase.findNode(unit, code, "k;", SimpleIdentifier);
+    SimpleIdentifier kIdentifier = EngineTestCase.findNode(unit, code, "k;", (node) => node is SimpleIdentifier);
     JUnitTestCase.assertSame(intType, kIdentifier.propagatedType);
     JUnitTestCase.assertSame(typeProvider.dynamicType, kIdentifier.staticType);
     // v
     Type2 stringType = typeProvider.stringType;
-    FormalParameter vParameter = EngineTestCase.findNode(unit, code, "v)", SimpleFormalParameter);
+    FormalParameter vParameter = EngineTestCase.findNode(unit, code, "v)", (node) => node is SimpleFormalParameter);
     JUnitTestCase.assertSame(stringType, vParameter.identifier.propagatedType);
-    SimpleIdentifier vIdentifier = EngineTestCase.findNode(unit, code, "v;", SimpleIdentifier);
+    SimpleIdentifier vIdentifier = EngineTestCase.findNode(unit, code, "v;", (node) => node is SimpleIdentifier);
     JUnitTestCase.assertSame(stringType, vIdentifier.propagatedType);
     JUnitTestCase.assertSame(typeProvider.dynamicType, vIdentifier.staticType);
   }
@@ -178,11 +179,11 @@ class TypePropagationTest extends ResolverTestCase {
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // k
     Type2 intType = typeProvider.intType;
-    FormalParameter kParameter = EngineTestCase.findNode(unit, code, "k, ", SimpleFormalParameter);
+    FormalParameter kParameter = EngineTestCase.findNode(unit, code, "k, ", (node) => node is SimpleFormalParameter);
     JUnitTestCase.assertSame(intType, kParameter.identifier.propagatedType);
     // v
     Type2 stringType = typeProvider.stringType;
-    FormalParameter vParameter = EngineTestCase.findNode(unit, code, "v)", SimpleFormalParameter);
+    FormalParameter vParameter = EngineTestCase.findNode(unit, code, "v)", (node) => node is SimpleFormalParameter);
     JUnitTestCase.assertSame(stringType, vParameter.identifier.propagatedType);
   }
 
@@ -201,10 +202,10 @@ class TypePropagationTest extends ResolverTestCase {
     // v
     Type2 dynamicType = typeProvider.dynamicType;
     Type2 stringType = typeProvider.stringType;
-    FormalParameter vParameter = EngineTestCase.findNode(unit, code, "v)", FormalParameter);
+    FormalParameter vParameter = EngineTestCase.findNode(unit, code, "v)", (node) => node is FormalParameter);
     JUnitTestCase.assertSame(stringType, vParameter.identifier.propagatedType);
     JUnitTestCase.assertSame(dynamicType, vParameter.identifier.staticType);
-    SimpleIdentifier vIdentifier = EngineTestCase.findNode(unit, code, "v;", SimpleIdentifier);
+    SimpleIdentifier vIdentifier = EngineTestCase.findNode(unit, code, "v;", (node) => node is SimpleIdentifier);
     JUnitTestCase.assertSame(stringType, vIdentifier.propagatedType);
     JUnitTestCase.assertSame(dynamicType, vIdentifier.staticType);
   }
@@ -226,10 +227,10 @@ class TypePropagationTest extends ResolverTestCase {
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // v
     Type2 intType = typeProvider.intType;
-    FormalParameter vParameter = EngineTestCase.findNode(unit, code, "v)", SimpleFormalParameter);
+    FormalParameter vParameter = EngineTestCase.findNode(unit, code, "v)", (node) => node is SimpleFormalParameter);
     JUnitTestCase.assertSame(null, vParameter.identifier.propagatedType);
     JUnitTestCase.assertSame(intType, vParameter.identifier.staticType);
-    SimpleIdentifier vIdentifier = EngineTestCase.findNode(unit, code, "v;", SimpleIdentifier);
+    SimpleIdentifier vIdentifier = EngineTestCase.findNode(unit, code, "v;", (node) => node is SimpleIdentifier);
     JUnitTestCase.assertSame(intType, vIdentifier.staticType);
     JUnitTestCase.assertSame(null, vIdentifier.propagatedType);
   }
@@ -251,10 +252,10 @@ class TypePropagationTest extends ResolverTestCase {
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // v
     Type2 stringType = typeProvider.stringType;
-    FormalParameter vParameter = EngineTestCase.findNode(unit, code, "v)", SimpleFormalParameter);
+    FormalParameter vParameter = EngineTestCase.findNode(unit, code, "v)", (node) => node is SimpleFormalParameter);
     JUnitTestCase.assertSame(stringType, vParameter.identifier.propagatedType);
     JUnitTestCase.assertSame(typeProvider.objectType, vParameter.identifier.staticType);
-    SimpleIdentifier vIdentifier = EngineTestCase.findNode(unit, code, "v;", SimpleIdentifier);
+    SimpleIdentifier vIdentifier = EngineTestCase.findNode(unit, code, "v;", (node) => node is SimpleIdentifier);
     JUnitTestCase.assertSame(stringType, vIdentifier.propagatedType);
   }
 
@@ -275,13 +276,13 @@ class TypePropagationTest extends ResolverTestCase {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // p1
-    FormalParameter p1 = EngineTestCase.findNode(unit, code, "p1) {", SimpleFormalParameter);
+    FormalParameter p1 = EngineTestCase.findNode(unit, code, "p1) {", (node) => node is SimpleFormalParameter);
     JUnitTestCase.assertSame(typeProvider.intType, p1.identifier.propagatedType);
     // p2
-    FormalParameter p2 = EngineTestCase.findNode(unit, code, "p2) {", SimpleFormalParameter);
+    FormalParameter p2 = EngineTestCase.findNode(unit, code, "p2) {", (node) => node is SimpleFormalParameter);
     JUnitTestCase.assertSame(typeProvider.doubleType, p2.identifier.propagatedType);
     // p3
-    FormalParameter p3 = EngineTestCase.findNode(unit, code, "p3) {", SimpleFormalParameter);
+    FormalParameter p3 = EngineTestCase.findNode(unit, code, "p3) {", (node) => node is SimpleFormalParameter);
     JUnitTestCase.assertSame(typeProvider.stringType, p3.identifier.propagatedType);
   }
 
@@ -787,7 +788,7 @@ class TypePropagationTest extends ResolverTestCase {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     //
-    SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "v = ", SimpleIdentifier);
+    SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "v = ", (node) => node is SimpleIdentifier);
     JUnitTestCase.assertSame(expectedStaticType, identifier.staticType);
     JUnitTestCase.assertSame(expectedPropagatedType, identifier.propagatedType);
   }
@@ -1238,8 +1239,8 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
     CompilationUnit unit = analysisContext.parseCompilationUnit(source);
     {
-      SimpleIdentifier ref = EngineTestCase.findNode(unit, code, "p]", SimpleIdentifier);
-      EngineTestCase.assertInstanceOf(ParameterElement, ref.staticElement);
+      SimpleIdentifier ref = EngineTestCase.findNode(unit, code, "p]", (node) => node is SimpleIdentifier);
+      EngineTestCase.assertInstanceOf((obj) => obj is ParameterElement, ParameterElement, ref.staticElement);
     }
   }
 
@@ -1250,8 +1251,8 @@ class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = analysisContext.parseCompilationUnit(source);
-    SimpleIdentifier ref = EngineTestCase.findNode(unit, code, "p]", SimpleIdentifier);
-    EngineTestCase.assertInstanceOf(ParameterElement, ref.staticElement);
+    SimpleIdentifier ref = EngineTestCase.findNode(unit, code, "p]", (node) => node is SimpleIdentifier);
+    EngineTestCase.assertInstanceOf((obj) => obj is ParameterElement, ParameterElement, ref.staticElement);
   }
 
   void test_commentReference_beforeFunction_expressionBody() {
@@ -1261,8 +1262,8 @@ class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = analysisContext.parseCompilationUnit(source);
-    SimpleIdentifier ref = EngineTestCase.findNode(unit, code, "p]", SimpleIdentifier);
-    EngineTestCase.assertInstanceOf(ParameterElement, ref.staticElement);
+    SimpleIdentifier ref = EngineTestCase.findNode(unit, code, "p]", (node) => node is SimpleIdentifier);
+    EngineTestCase.assertInstanceOf((obj) => obj is ParameterElement, ParameterElement, ref.staticElement);
   }
 
   void test_commentReference_beforeMethod() {
@@ -1279,12 +1280,12 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
     CompilationUnit unit = analysisContext.parseCompilationUnit(source);
     {
-      SimpleIdentifier ref = EngineTestCase.findNode(unit, code, "p1]", SimpleIdentifier);
-      EngineTestCase.assertInstanceOf(ParameterElement, ref.staticElement);
+      SimpleIdentifier ref = EngineTestCase.findNode(unit, code, "p1]", (node) => node is SimpleIdentifier);
+      EngineTestCase.assertInstanceOf((obj) => obj is ParameterElement, ParameterElement, ref.staticElement);
     }
     {
-      SimpleIdentifier ref = EngineTestCase.findNode(unit, code, "p2]", SimpleIdentifier);
-      EngineTestCase.assertInstanceOf(ParameterElement, ref.staticElement);
+      SimpleIdentifier ref = EngineTestCase.findNode(unit, code, "p2]", (node) => node is SimpleIdentifier);
+      EngineTestCase.assertInstanceOf((obj) => obj is ParameterElement, ParameterElement, ref.staticElement);
     }
   }
 
@@ -1295,8 +1296,8 @@ class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = analysisContext.parseCompilationUnit(source);
-    SimpleIdentifier ref = EngineTestCase.findNode(unit, code, "foo]", SimpleIdentifier);
-    EngineTestCase.assertInstanceOf(MethodElement, ref.staticElement);
+    SimpleIdentifier ref = EngineTestCase.findNode(unit, code, "foo]", (node) => node is SimpleIdentifier);
+    EngineTestCase.assertInstanceOf((obj) => obj is MethodElement, MethodElement, ref.staticElement);
   }
 
   void test_concreteClassWithAbstractMember() {
@@ -9070,7 +9071,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
     FormalParameter node = AstFactory.fieldFormalParameter2(null, intTypeName, outerParameterName, AstFactory.formalParameterList([parameter]));
     node.identifier.staticElement = ElementFactory.requiredParameter(outerParameterName);
     Type2 parameterType = resolve6(node, [intType.element]);
-    EngineTestCase.assertInstanceOf(FunctionType, parameterType);
+    EngineTestCase.assertInstanceOf((obj) => obj is FunctionType, FunctionType, parameterType);
     FunctionType functionType = parameterType as FunctionType;
     JUnitTestCase.assertSame(intType, functionType.returnType);
     EngineTestCase.assertLength(1, functionType.parameters);
@@ -16065,7 +16066,7 @@ class ElementResolverTest extends EngineTestCase {
     AstFactory.assignmentExpression(node, TokenType.EQ, AstFactory.integer(0));
     resolveInClass(node, classA);
     Element element = node.staticElement;
-    EngineTestCase.assertInstanceOf(PropertyAccessorElement, element);
+    EngineTestCase.assertInstanceOf((obj) => obj is PropertyAccessorElement, PropertyAccessorElement, element);
     JUnitTestCase.assertTrue((element as PropertyAccessorElement).isSetter);
     _listener.assertNoErrors();
   }
@@ -18410,6 +18411,36 @@ class StaticWarningCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_nonAbstractClassInheritsAbstractMemberOne_mixinInherits_getter() {
+    // 15001
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class A { get g1; get g2; }",
+        "abstract class B implements A { get g1 => 1; }",
+        "class C extends Object with B {}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
+  }
+
+  void test_nonAbstractClassInheritsAbstractMemberOne_mixinInherits_method() {
+    // 15001
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class A { m1(); m2(); }",
+        "abstract class B implements A { m1() => 1; }",
+        "class C extends Object with B {}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
+  }
+
+  void test_nonAbstractClassInheritsAbstractMemberOne_mixinInherits_setter() {
+    // 15001
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class A { set s1(v); set s2(v); }",
+        "abstract class B implements A { set s1(v) {} }",
+        "class C extends Object with B {}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
+  }
+
   void test_nonAbstractClassInheritsAbstractMemberOne_setter_and_implicitSetter() {
     // test from language/override_inheritance_abstract_test_14.dart
     Source source = addSource(EngineTestCase.createSource([
@@ -19521,6 +19552,18 @@ class StaticWarningCodeTest extends ResolverTestCase {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_method_optionalParamCount);
       });
+      _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_mixinInherits_getter', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_mixinInherits_getter);
+      });
+      _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_mixinInherits_method', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_mixinInherits_method);
+      });
+      _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_mixinInherits_setter', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_mixinInherits_setter);
+      });
       _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_setter_and_implicitSetter', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_setter_and_implicitSetter);
@@ -20334,7 +20377,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
       errorListener.assertNoErrors();
       Element element = scope.lookup(AstFactory.identifier3(typeNameB), importingLibrary);
       errorListener.assertErrors2([StaticWarningCode.AMBIGUOUS_IMPORT]);
-      EngineTestCase.assertInstanceOf(MultiplyDefinedElement, element);
+      EngineTestCase.assertInstanceOf((obj) => obj is MultiplyDefinedElement, MultiplyDefinedElement, element);
       List<Element> conflictingElements = (element as MultiplyDefinedElement).conflictingElements;
       EngineTestCase.assertLength(2, conflictingElements);
       if (identical(conflictingElements[0], typeB1)) {
@@ -20352,7 +20395,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
       AstFactory.methodDeclaration(null, AstFactory.typeName3(identifier, []), null, null, AstFactory.identifier3("foo"), null);
       Element element = scope.lookup(identifier, importingLibrary);
       errorListener.assertErrors2([StaticWarningCode.AMBIGUOUS_IMPORT]);
-      EngineTestCase.assertInstanceOf(MultiplyDefinedElement, element);
+      EngineTestCase.assertInstanceOf((obj) => obj is MultiplyDefinedElement, MultiplyDefinedElement, element);
     }
   }
 
@@ -20594,17 +20637,17 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     if (operandType == null || operandType.isDynamic) {
       return null;
     }
-    return checkResolved2(node, node.staticElement, MethodElement);
+    return checkResolved(node, node.staticElement, (node) => node is MethodElement);
   }
 
   Object visitCommentReference(CommentReference node) => null;
 
   Object visitCompilationUnit(CompilationUnit node) {
     node.visitChildren(this);
-    return checkResolved2(node, node.element, CompilationUnitElement);
+    return checkResolved(node, node.element, (node) => node is CompilationUnitElement);
   }
 
-  Object visitExportDirective(ExportDirective node) => checkResolved2(node, node.element, ExportElement);
+  Object visitExportDirective(ExportDirective node) => checkResolved(node, node.element, (node) => node is ExportElement);
 
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     node.visitChildren(this);
@@ -20623,12 +20666,12 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
 
   Object visitImportDirective(ImportDirective node) {
     // Not sure how to test the combinators given that it isn't an error if the names are not defined.
-    checkResolved2(node, node.element, ImportElement);
+    checkResolved(node, node.element, (node) => node is ImportElement);
     SimpleIdentifier prefix = node.prefix;
     if (prefix == null) {
       return null;
     }
-    return checkResolved2(prefix, prefix.staticElement, PrefixElement);
+    return checkResolved(prefix, prefix.staticElement, (node) => node is PrefixElement);
   }
 
   Object visitIndexExpression(IndexExpression node) {
@@ -20637,16 +20680,16 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     if (targetType == null || targetType.isDynamic) {
       return null;
     }
-    return checkResolved2(node, node.staticElement, MethodElement);
+    return checkResolved(node, node.staticElement, (node) => node is MethodElement);
   }
 
-  Object visitLibraryDirective(LibraryDirective node) => checkResolved2(node, node.element, LibraryElement);
+  Object visitLibraryDirective(LibraryDirective node) => checkResolved(node, node.element, (node) => node is LibraryElement);
 
   Object visitNamedExpression(NamedExpression node) => node.expression.accept(this);
 
-  Object visitPartDirective(PartDirective node) => checkResolved2(node, node.element, CompilationUnitElement);
+  Object visitPartDirective(PartDirective node) => checkResolved(node, node.element, (node) => node is CompilationUnitElement);
 
-  Object visitPartOfDirective(PartOfDirective node) => checkResolved2(node, node.element, LibraryElement);
+  Object visitPartOfDirective(PartOfDirective node) => checkResolved(node, node.element, (node) => node is LibraryElement);
 
   Object visitPostfixExpression(PostfixExpression node) {
     node.visitChildren(this);
@@ -20657,7 +20700,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     if (operandType == null || operandType.isDynamic) {
       return null;
     }
-    return checkResolved2(node, node.staticElement, MethodElement);
+    return checkResolved(node, node.staticElement, (node) => node is MethodElement);
   }
 
   Object visitPrefixedIdentifier(PrefixedIdentifier node) {
@@ -20667,7 +20710,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     if (prefixType == null || prefixType.isDynamic) {
       return null;
     }
-    return checkResolved(node, node.staticElement);
+    return checkResolved(node, node.staticElement, null);
   }
 
   Object visitPrefixExpression(PrefixExpression node) {
@@ -20679,7 +20722,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     if (operandType == null || operandType.isDynamic) {
       return null;
     }
-    return checkResolved2(node, node.staticElement, MethodElement);
+    return checkResolved(node, node.staticElement, (node) => node is MethodElement);
   }
 
   Object visitPropertyAccess(PropertyAccess node) {
@@ -20707,18 +20750,16 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
         }
       }
     }
-    return checkResolved(node, node.staticElement);
+    return checkResolved(node, node.staticElement, null);
   }
 
-  Object checkResolved(AstNode node, Element element) => checkResolved2(node, element, null);
-
-  Object checkResolved2(AstNode node, Element element, Type expectedClass) {
+  Object checkResolved(AstNode node, Element element, Predicate<Element> predicate) {
     if (element == null) {
       if (_knownExceptions == null || !_knownExceptions.contains(node)) {
         _unresolvedNodes.add(node);
       }
-    } else if (expectedClass != null) {
-      if (!isInstanceOf(element, expectedClass)) {
+    } else if (predicate != null) {
+      if (!predicate(element)) {
         _wrongTypedNodes.add(node);
       }
     }
@@ -21673,7 +21714,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
    * @param actualType the type being tested
    */
   void assertFunctionType(Type2 expectedReturnType, List<Type2> expectedNormalTypes, List<Type2> expectedOptionalTypes, Map<String, Type2> expectedNamedTypes, Type2 actualType) {
-    EngineTestCase.assertInstanceOf(FunctionType, actualType);
+    EngineTestCase.assertInstanceOf((obj) => obj is FunctionType, FunctionType, actualType);
     FunctionType functionType = actualType as FunctionType;
     List<Type2> normalTypes = functionType.normalParameterTypes;
     if (expectedNormalTypes == null) {
@@ -21721,7 +21762,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   void assertType2(Type2 expectedType, Type2 actualType) {
     if (expectedType is InterfaceTypeImpl) {
-      EngineTestCase.assertInstanceOf(InterfaceTypeImpl, actualType);
+      EngineTestCase.assertInstanceOf((obj) => obj is InterfaceTypeImpl, InterfaceTypeImpl, actualType);
       assertType(expectedType, actualType as InterfaceTypeImpl);
     }
   }
@@ -24509,67 +24550,67 @@ class ScopeBuilderTest extends EngineTestCase {
   void test_scopeFor_ClassDeclaration() {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scope scope = ScopeBuilder.scopeFor(createResolvedClassDeclaration(), listener);
-    EngineTestCase.assertInstanceOf(LibraryScope, scope);
+    EngineTestCase.assertInstanceOf((obj) => obj is LibraryScope, LibraryScope, scope);
   }
 
   void test_scopeFor_ClassTypeAlias() {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scope scope = ScopeBuilder.scopeFor(createResolvedClassTypeAlias(), listener);
-    EngineTestCase.assertInstanceOf(LibraryScope, scope);
+    EngineTestCase.assertInstanceOf((obj) => obj is LibraryScope, LibraryScope, scope);
   }
 
   void test_scopeFor_CompilationUnit() {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scope scope = ScopeBuilder.scopeFor(createResolvedCompilationUnit(), listener);
-    EngineTestCase.assertInstanceOf(LibraryScope, scope);
+    EngineTestCase.assertInstanceOf((obj) => obj is LibraryScope, LibraryScope, scope);
   }
 
   void test_scopeFor_ConstructorDeclaration() {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scope scope = ScopeBuilder.scopeFor(createResolvedConstructorDeclaration(), listener);
-    EngineTestCase.assertInstanceOf(ClassScope, scope);
+    EngineTestCase.assertInstanceOf((obj) => obj is ClassScope, ClassScope, scope);
   }
 
   void test_scopeFor_ConstructorDeclaration_parameters() {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scope scope = ScopeBuilder.scopeFor(createResolvedConstructorDeclaration().parameters, listener);
-    EngineTestCase.assertInstanceOf(FunctionScope, scope);
+    EngineTestCase.assertInstanceOf((obj) => obj is FunctionScope, FunctionScope, scope);
   }
 
   void test_scopeFor_FunctionDeclaration() {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scope scope = ScopeBuilder.scopeFor(createResolvedFunctionDeclaration(), listener);
-    EngineTestCase.assertInstanceOf(LibraryScope, scope);
+    EngineTestCase.assertInstanceOf((obj) => obj is LibraryScope, LibraryScope, scope);
   }
 
   void test_scopeFor_FunctionDeclaration_parameters() {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scope scope = ScopeBuilder.scopeFor(createResolvedFunctionDeclaration().functionExpression.parameters, listener);
-    EngineTestCase.assertInstanceOf(FunctionScope, scope);
+    EngineTestCase.assertInstanceOf((obj) => obj is FunctionScope, FunctionScope, scope);
   }
 
   void test_scopeFor_FunctionTypeAlias() {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scope scope = ScopeBuilder.scopeFor(createResolvedFunctionTypeAlias(), listener);
-    EngineTestCase.assertInstanceOf(LibraryScope, scope);
+    EngineTestCase.assertInstanceOf((obj) => obj is LibraryScope, LibraryScope, scope);
   }
 
   void test_scopeFor_FunctionTypeAlias_parameters() {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scope scope = ScopeBuilder.scopeFor(createResolvedFunctionTypeAlias().parameters, listener);
-    EngineTestCase.assertInstanceOf(FunctionTypeScope, scope);
+    EngineTestCase.assertInstanceOf((obj) => obj is FunctionTypeScope, FunctionTypeScope, scope);
   }
 
   void test_scopeFor_MethodDeclaration() {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scope scope = ScopeBuilder.scopeFor(createResolvedMethodDeclaration(), listener);
-    EngineTestCase.assertInstanceOf(ClassScope, scope);
+    EngineTestCase.assertInstanceOf((obj) => obj is ClassScope, ClassScope, scope);
   }
 
   void test_scopeFor_MethodDeclaration_body() {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scope scope = ScopeBuilder.scopeFor(createResolvedMethodDeclaration().body, listener);
-    EngineTestCase.assertInstanceOf(FunctionScope, scope);
+    EngineTestCase.assertInstanceOf((obj) => obj is FunctionScope, FunctionScope, scope);
   }
 
   void test_scopeFor_notInCompilationUnit() {

@@ -7,7 +7,7 @@ description: >
   browsers.
 homepage: https://www.dartlang.org/polymer-dart/
 dependencies:
-  analyzer: ">=0.12.2 <0.13.0"
+  analyzer: "0.13.0-dev.3"
   args: ">=0.10.0 <0.11.0"
   barback: ">=0.9.0 <0.13.0"
   browser: ">=0.10.0 <0.11.0"

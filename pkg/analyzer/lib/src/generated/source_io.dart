@@ -10,8 +10,8 @@ library engine.source.io;
 import 'source.dart';
 import 'java_core.dart';
 import 'java_io.dart';
-import 'engine.dart';
 import 'utilities_general.dart';
+import 'engine.dart';
 export 'source.dart';
 
 /**

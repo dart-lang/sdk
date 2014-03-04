@@ -310,7 +310,7 @@ bool isEOF(Token token) => tokenIs(token, TokenType.EOF);
 
 /// Test for token type.
 bool tokenIs(Token token, TokenType type) =>
-    token != null && tokenTester.matches4(token, type);
+    token != null && tokenTester.matchesAny(token, [type]);
 
 /// Test if this token is a GT token.
 bool isGT(Token token) => tokenIs(token, TokenType.GT);

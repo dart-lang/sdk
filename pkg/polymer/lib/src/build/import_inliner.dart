@@ -388,4 +388,4 @@ const _urlAttributes = const [
                 //    video
 ];
 
-_getSpan(SourceFile file, ASTNode node) => file.span(node.offset, node.end);
+_getSpan(SourceFile file, AstNode node) => file.span(node.offset, node.end);

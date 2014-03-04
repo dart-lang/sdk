@@ -51,8 +51,6 @@ void main(args) {
         - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime
            + angularTime)}");
       print("total:$totalTime");
-      print("");
-      print("Time spent in instanceof = ${instanceOfTimer.elapsedMilliseconds}");
     }
     exitCode = result.ordinal;
   }
