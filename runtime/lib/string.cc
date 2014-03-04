@@ -19,7 +19,6 @@ DEFINE_NATIVE_ENTRY(String_fromEnvironment, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(1));
   GET_NATIVE_ARGUMENT(String, default_value, arguments->NativeArgAt(2));
   // Call the embedder to supply us with the environment.
-  Dart_EnterScope();
   Dart_EnvironmentCallback callback = isolate->environment_callback();
   if (callback != NULL) {
     Dart_Handle result = callback(Api::NewHandle(isolate, name.raw()));
@@ -38,7 +37,6 @@ DEFINE_NATIVE_ENTRY(String_fromEnvironment, 3) {
           String::Handle(String::New("Illegal environment value")));
     }
   }
-  Dart_ExitScope();
   return default_value.raw();
 }
 
