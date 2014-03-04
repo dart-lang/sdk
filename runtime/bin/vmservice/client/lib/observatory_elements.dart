@@ -7,6 +7,7 @@ export 'package:observatory/src/observatory_elements/class_view.dart';
 export 'package:observatory/src/observatory_elements/code_ref.dart';
 export 'package:observatory/src/observatory_elements/code_view.dart';
 export 'package:observatory/src/observatory_elements/collapsible_content.dart';
+export 'package:observatory/src/observatory_elements/curly_block.dart';
 export 'package:observatory/src/observatory_elements/error_view.dart';
 export 'package:observatory/src/observatory_elements/field_ref.dart';
 export 'package:observatory/src/observatory_elements/field_view.dart';

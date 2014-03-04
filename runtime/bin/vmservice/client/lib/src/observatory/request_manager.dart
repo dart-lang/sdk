@@ -232,14 +232,14 @@ abstract class RequestManager extends Observable {
   /// future which contains the reply from the VM service.
   Future<String> request(String requestString);
 
-  Future<Map> requestMap(String requestString) {
+  Future<ObservableMap> requestMap(String requestString) {
     if (requestString.startsWith('#')) {
       requestString = requestString.substring(1);
     }
     return request(requestString).then((response) {
       try {
         var m = JSON.decode(response);
-        return m;
+        return toObservable(m);
       } catch (e) { }
       return null;
     });

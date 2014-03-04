@@ -12,8 +12,6 @@ import 'service_ref.dart';
 class InstanceRefElement extends ServiceRefElement {
   InstanceRefElement.created() : super.created();
 
-  @published bool expanded = false;
-
   String get name {
     if (ref == null) {
       return super.name;
@@ -21,20 +19,27 @@ class InstanceRefElement extends ServiceRefElement {
     return ref['preview'];
   }
 
-  void toggleExpand(var a, var b, var c) {
-    if (expanded) {
-      ref['fields'] = null;
-      ref['elements'] = null;
-      expanded = false;
-    } else {
+  // TODO(turnidge): This is here to workaround vm/dart2js differences.
+  dynamic expander() {
+    return expandEvent;
+  }
+
+  void expandEvent(bool expand, var done) {
+    print("Calling expandEvent");
+    if (expand) {
       app.requestManager.requestMap(url).then((map) {
+          print("Result is : $map");
           ref['fields'] = map['fields'];
           ref['elements'] = map['elements'];
           ref['length'] = map['length'];
-          expanded = true;
+          print("ref is $ref");
       }).catchError((e, trace) {
           Logger.root.severe('Error while expanding instance-ref: $e\n$trace');
-      });
+      }).whenComplete(done);
+    } else {
+      ref['fields'] = null;
+      ref['elements'] = null;
+      done();
     }
   }
 }

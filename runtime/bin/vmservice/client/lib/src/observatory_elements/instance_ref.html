@@ -1,18 +1,14 @@
 <head>
+  <link rel="import" href="curly_block.html">
   <link rel="import" href="observatory_element.html">
   <link rel="import" href="service_ref.html">
 </head>
 <polymer-element name="instance-ref" extends="service-ref">
   <template>
     <style>
-      .memberList {
-          margin-left: 3em;
-          border-spacing: 0;
-          border-collapse: collapse;
-      }
       .member {
-          vertical-align: top;
-          padding: 0 1em;
+        vertical-align: top;
+        padding: 0 0 0 1em;
       }
     </style>
     <div>
@@ -37,27 +33,23 @@
       </template>
 
       <template if="{{ isInstanceRef(ref['type']) }}">
-        <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em></a> {
-        <a on-click="{{ toggleExpand }}">...</a>
-        <template if="{{ expanded }}">
-          <table class="memberList">
+        <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em></a>
+        <curly-block callback="{{ expander() }}">
+          <table>
             <tr template repeat="{{ field in ref['fields'] }}">
-
               <td class="member">{{ field['decl']['user_name'] }}</td>
               <td class="member">
                 <instance-ref app="{{ app }}" ref="{{ field['value'] }}"></instance-ref>
               </td>
             </tr>
           </table>
-        </template>
-        }
+        </curly-block>
       </template>
 
       <template if="{{ isListRef(ref['type']) }}">
-        <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em> ({{ ref['length']}})</a> {
-        <a on-click="{{ toggleExpand }}">...</a>
-        <template if="{{ expanded }}">
-          <table class="memberList">
+        <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em> ({{ ref['length']}})</a>
+        <curly-block callback="{{ expander() }}">
+          <table>
             <tr template repeat="{{ element in ref['elements'] }}">
               <td class="member">[{{ element['index']}}]</td>
               <td class="member">
@@ -65,8 +57,7 @@
               </td>
             </tr>
           </table>
-        </template>
-        }
+        </curly-block>
       </template>
 
     </div>

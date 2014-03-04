@@ -135,6 +135,7 @@
     <style>
       .active {
         color: #aaa;
+        cursor: wait;
       }
       .idle {
         color: #000;
@@ -263,17 +264,52 @@
   <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
 </template>
 
-</polymer-element><polymer-element name="instance-ref" extends="service-ref">
+</polymer-element><polymer-element name="curly-block">
   <template>
     <style>
-      .memberList {
-          margin-left: 3em;
-          border-spacing: 0;
-          border-collapse: collapse;
+      .idle {
+        display: inline-block;
+        color: #0489c3;
+        cursor: pointer;
       }
+      .busy {
+        display: inline-block;
+        color: white;
+        cursor: wait;
+      }
+    </style>
+    <template if="{{ expanded }}">
+      <template if="{{ busy }}">
+        {<div class="busy">&nbsp;&nbsp;⊟&nbsp;&nbsp;</div>
+        <br>
+        <content></content>
+        }
+      </template>
+      <template if="{{ !busy }}">
+        {<a on-click="{{ toggleExpand }}"><div class="idle">&nbsp;&nbsp;⊟&nbsp;&nbsp;</div></a>
+        <br>
+        <content></content>
+        }
+      </template>
+    </template>
+
+    <template if="{{ !expanded }}">
+      <template if="{{ busy }}">
+        {<div class="busy">&nbsp;&nbsp;⊞&nbsp;&nbsp;</div>}
+      </template>
+      <template if="{{ !busy }}">
+        {<a on-click="{{ toggleExpand }}"><div class="idle">&nbsp;&nbsp;⊞&nbsp;&nbsp;</div></a>}
+      </template>
+    </template>
+  </template>
+  
+</polymer-element>
+<polymer-element name="instance-ref" extends="service-ref">
+  <template>
+    <style>
       .member {
-          vertical-align: top;
-          padding: 0 1em;
+        vertical-align: top;
+        padding: 0 0 0 1em;
       }
     </style>
     <div>
@@ -298,27 +334,23 @@
       </template>
 
       <template if="{{ isInstanceRef(ref['type']) }}">
-        <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em></a> {
-        <a on-click="{{ toggleExpand }}">...</a>
-        <template if="{{ expanded }}">
-          <table class="memberList">
+        <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em></a>
+        <curly-block callback="{{ expander() }}">
+          <table>
             <tbody><tr template="" repeat="{{ field in ref['fields'] }}">
-
               <td class="member">{{ field['decl']['user_name'] }}</td>
               <td class="member">
                 <instance-ref app="{{ app }}" ref="{{ field['value'] }}"></instance-ref>
               </td>
             </tr>
           </tbody></table>
-        </template>
-        }
+        </curly-block>
       </template>
 
       <template if="{{ isListRef(ref['type']) }}">
-        <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em> ({{ ref['length']}})</a> {
-        <a on-click="{{ toggleExpand }}">...</a>
-        <template if="{{ expanded }}">
-          <table class="memberList">
+        <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em> ({{ ref['length']}})</a>
+        <curly-block callback="{{ expander() }}">
+          <table>
             <tbody><tr template="" repeat="{{ element in ref['elements'] }}">
               <td class="member">[{{ element['index']}}]</td>
               <td class="member">
@@ -326,8 +358,7 @@
               </td>
             </tr>
           </tbody></table>
-        </template>
-        }
+        </curly-block>
       </template>
 
     </div>
@@ -971,14 +1002,9 @@
 <polymer-element name="stack-frame" extends="observatory-element">
   <template>
     <style>
-      .memberList {
-          margin-left: 3em;
-          border-spacing: 0;
-          border-collapse: collapse;
-      }
       .member {
-          vertical-align: top;
-          padding: 0 1em;
+        vertical-align: top;
+        padding: 0 0 0 1em;
       }
     </style>
     <div class="row">
@@ -989,11 +1015,9 @@
       <div class="col-md-9">
         <function-ref app="{{ app }}" ref="{{ frame['function'] }}"></function-ref>
         ( <script-ref app="{{ app }}" ref="{{ frame['script'] }}" line="{{ frame['line'] }}">
-        </script-ref> ) {
-        <a on-click="{{ toggleExpand }}">...</a>
-
-        <template if="{{ expanded }}">
-          <table class="memberList">
+        </script-ref> )
+        <curly-block>
+          <table>
             <tbody><tr template="" repeat="{{ v in frame['vars'] }}">
               <td class="member">{{ v['name']}}</td>
               <td class="member">
@@ -1001,8 +1025,7 @@
               </td>
             </tr>
           </tbody></table>
-        </template>
-        }
+        </curly-block>
 
       </div>
       <div class="col-md-1"></div>
