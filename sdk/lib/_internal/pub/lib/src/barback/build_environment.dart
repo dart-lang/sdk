@@ -58,11 +58,9 @@ class BuildEnvironment {
       var barback = new Barback(new PubPackageProvider(graph));
       barback.log.listen(_log);
 
-      return _startServers(hostname, basePort, mode, graph, barback,
-          rootDirectories).then((servers) {
-        var environment = new BuildEnvironment._(graph, servers, mode,
-            watcherType, rootDirectories);
-
+      var environment = new BuildEnvironment._(graph, barback, mode,
+          watcherType, rootDirectories);
+      return environment._startServers(hostname, basePort).then((_) {
         // If the entrypoint package manually configures the dart2js
         // transformer, don't include it in the built-in transformer list.
         //
@@ -85,16 +83,13 @@ class BuildEnvironment {
   }
 
   /// Start the [BarbackServer]s that will serve [rootDirectories].
-  static Future<List<BarbackServer>> _startServers(String hostname,
-      int basePort, BarbackMode mode, PackageGraph graph, Barback barback,
-      Iterable<String> rootDirectories) {
+  Future<List<BarbackServer>> _startServers(String hostname, int basePort) {
     _bind(port, rootDirectory) {
       if (basePort == 0) port = 0;
-      return BarbackServer.bind(hostname, port, barback,
-          graph.entrypoint.root.name, rootDirectory);
+      return BarbackServer.bind(this, hostname, port, rootDirectory);
     }
 
-    var rootDirectoryList = rootDirectories.toList();
+    var rootDirectoryList = _rootDirectories.toList();
 
     // For consistency, "web/" should always have the first available port and
     // "test/" should always have the second. Other directories are assigned
@@ -113,14 +108,16 @@ class BuildEnvironment {
       i += 1;
     }
 
-    return Future.wait(serverFutures);
+    return Future.wait(serverFutures).then((boundServers) {
+      servers.addAll(boundServers);
+    });
   }
 
   /// The servers serving this environment's assets.
-  final List<BarbackServer> servers;
+  final servers = <BarbackServer>[];
 
   /// The [Barback] instance used to process assets in this environment.
-  Barback get barback => servers.first.barback;
+  final Barback barback;
 
   /// The root package being built.
   Package get rootPackage => graph.entrypoint.root;
@@ -142,7 +139,7 @@ class BuildEnvironment {
   /// exposed.
   final Set<String> _rootDirectories;
 
-  BuildEnvironment._(this.graph, this.servers, this.mode, this._watcherType,
+  BuildEnvironment._(this.graph, this.barback, this.mode, this._watcherType,
       Iterable<String> rootDirectories)
       : _rootDirectories = rootDirectories.toSet();
 

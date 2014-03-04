@@ -5,7 +5,6 @@
 library pub.barback.server;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:barback/barback.dart';
@@ -16,25 +15,25 @@ import 'package:stack_trace/stack_trace.dart';
 import '../barback.dart';
 import '../log.dart' as log;
 import '../utils.dart';
+import 'build_environment.dart';
+import 'web_socket_api.dart';
 
 /// Callback for determining if an asset with [id] should be served or not.
 typedef bool AllowAsset(AssetId id);
 
 /// A server that serves assets transformed by barback.
 class BarbackServer {
+  /// The [BuildEnvironment] being served.
+  final BuildEnvironment _environment;
+
   /// The underlying HTTP server.
   final HttpServer _server;
 
-  /// The name of the root package, from whose [rootDirectory] assets will be
-  /// served.
-  final String _rootPackage;
+  /// All currently open [WebSocket] connections.
+  final _webSockets = new Set<WebSocket>();
 
-  /// The directory in [_rootPackage] which will serve as the root of this
-  /// server.
+  /// The directory in the root which will serve as the root of this server.
   final String rootDirectory;
-
-  /// The barback instance from which this serves assets.
-  final Barback barback;
 
   /// The server's port.
   final int port;
@@ -62,17 +61,16 @@ class BarbackServer {
 
   /// Creates a new server and binds it to [port] of [host].
   ///
-  /// This server will serve assets from [barback], and use [rootPackage] as
-  /// the root package.
-  static Future<BarbackServer> bind(String host, int port,
-      Barback barback, String rootPackage, String rootDirectory) {
+  /// This server will serve assets from [barback], and use [rootDirectory] as
+  /// the root directory.
+  static Future<BarbackServer> bind(BuildEnvironment environment,
+      String host, int port, String rootDirectory) {
     return Chain.track(HttpServer.bind(host, port)).then((server) {
-      return new BarbackServer._(server, barback, rootPackage, rootDirectory);
+      return new BarbackServer._(environment, server, rootDirectory);
     });
   }
 
-  BarbackServer._(HttpServer server, this.barback, this._rootPackage,
-      this.rootDirectory)
+  BarbackServer._(this._environment, HttpServer server, this.rootDirectory)
       : _server = server,
         port = server.port,
         address = server.address {
@@ -84,8 +82,26 @@ class BarbackServer {
 
   /// Closes this server.
   Future close() {
-    _server.close();
-    _resultsController.close();
+    var futures = [_server.close(), _resultsController.close()];
+    futures.addAll(_webSockets);
+    return Future.wait(futures);
+  }
+
+  /// Converts a [url] served by this server into an [AssetId] that can be
+  /// requested from barback.
+  AssetId urlToId(Uri url) {
+    // See if it's a URL to a public directory in a dependency.
+    var id = specialUrlToId(url);
+    if (id != null) return id;
+
+    // Otherwise, it's a path in current package's [rootDirectory].
+    var parts = path.url.split(url.path);
+
+    // Strip the leading "/" from the URL.
+    if (parts.isNotEmpty && parts.first == "/") parts = parts.skip(1);
+
+    var relativePath = path.url.join(rootDirectory, path.url.joinAll(parts));
+    return new AssetId(_environment.rootPackage.name, relativePath);
   }
 
   /// Handles an HTTP request.
@@ -102,7 +118,7 @@ class BarbackServer {
 
     var id;
     try {
-      id = _urlToId(request.uri);
+      id = urlToId(request.uri);
     } on FormatException catch (ex) {
       // If we got here, we had a path like "/packages" which is a special
       // directory, but not a valid path since it lacks a following package name.
@@ -117,11 +133,12 @@ class BarbackServer {
     }
 
     _logRequest(request, "Loading $id");
-    barback.getAssetById(id)
+    _environment.barback.getAssetById(id)
         .then((asset) => _serveAsset(request, asset))
         .catchError((error, trace) {
       if (error is! AssetNotFoundException) throw error;
-      return barback.getAssetById(id.addExtension("/index.html")).then((asset) {
+      return _environment.barback.getAssetById(id.addExtension("/index.html"))
+          .then((asset) {
         if (request.uri.path.endsWith('/')) return _serveAsset(request, asset);
 
         // We only want to serve index.html if the URL explicitly ends in a
@@ -198,88 +215,13 @@ class BarbackServer {
   /// Creates a web socket for [request] which should be an upgrade request.
   void _handleWebSocket(HttpRequest request) {
     Chain.track(WebSocketTransformer.upgrade(request)).then((socket) {
-      socket.listen((data) {
-        var command;
-        try {
-          command = JSON.decode(data);
-        } on FormatException catch (ex) {
-          _webSocketError(socket, '"$data" is not valid JSON: ${ex.message}');
-          return;
-        }
+      _webSockets.add(socket);
+      var api = new WebSocketApi(socket, _environment);
 
-        if (command is! Map) {
-          _webSocketError(socket, "Command must be a JSON map. Got: $data.");
-          return;
-        }
-
-        if (!command.containsKey("command")) {
-          _webSocketError(socket, "Missing command name. Got: $data.");
-          return;
-        }
-
-        switch (command["command"]) {
-          case "urlToAsset":
-            var urlPath = command["path"];
-            if (urlPath is! String) {
-              _webSocketError(socket, '"path" must be a string. Got: '
-                  '${JSON.encode(urlPath)}.');
-              return;
-            }
-
-            var url = new Uri(path: urlPath);
-            var id = _urlToId(url);
-            socket.add(JSON.encode({
-              "package": id.package,
-              "path": id.path
-            }));
-            break;
-
-          case "assetToUrl":
-            var packageName = command["package"];
-            if (packageName is! String) {
-              _webSocketError(socket, '"package" must be a string. Got: '
-                  '${JSON.encode(packageName)}.');
-              return;
-            }
-
-            var packagePath = command["path"];
-            if (packagePath is! String) {
-              _webSocketError(socket, '"path" must be a string. Got: '
-                  '${JSON.encode(packagePath)}.');
-              return;
-            }
-
-            var id = new AssetId(packageName, packagePath);
-            try {
-              var urlPath = idtoUrlPath(_rootPackage, id);
-              socket.add(JSON.encode({"path": urlPath}));
-            } on FormatException catch (ex) {
-              _webSocketError(socket, ex.message);
-            }
-            break;
-
-          default:
-            _webSocketError(socket, 'Unknown command "${command["command"]}".');
-            break;
-        }
-      }, onError: _resultsController.addError, cancelOnError: true);
+      return api.listen().whenComplete(() {
+        _webSockets.remove(api);
+      });
     }).catchError(_resultsController.addError);
-  }
-
-  /// Converts a [url] served by pub serve into an [AssetId] that can be
-  /// requested from barback.
-  AssetId _urlToId(Uri url) {
-    var id = specialUrlToId(url);
-    if (id != null) return id;
-
-    // Otherwise, it's a path in current package's [rootDirectory].
-    var parts = path.url.split(url.path);
-
-    // Strip the leading "/" from the URL.
-    if (parts.isNotEmpty && parts.first == "/") parts = parts.skip(1);
-
-    var relativePath = path.url.join(rootDirectory, path.url.joinAll(parts));
-    return new AssetId(_rootPackage, relativePath);
   }
 
   /// Responds to [request] with a 405 response and closes it.
@@ -311,10 +253,6 @@ class BarbackServer {
   /// Log [message] at [log.Level.FINE] with metadata about [request].
   void _logRequest(HttpRequest request, String message) =>
     log.fine("BarbackServer ${request.method} ${request.uri}\n$message");
-
-  void _webSocketError(WebSocket socket, String message) {
-    socket.add(JSON.encode({"error": message}));
-  }
 }
 
 /// The result of the server handling a URL.

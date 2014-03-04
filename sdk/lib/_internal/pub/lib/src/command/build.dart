@@ -10,7 +10,6 @@ import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 
 import '../barback/build_environment.dart';
-import '../barback.dart' as barback;
 import '../command.dart';
 import '../exit_codes.dart' as exit_codes;
 import '../io.dart';
@@ -177,34 +176,67 @@ class BuildCommand extends PubCommand {
       return new Future.value();
     }
 
-    // Figure out the output directory for the asset, which is the same as the
-    // path pub serve would use to serve it.
-    var relativeUrl = barback.idtoUrlPath(entrypoint.root.name, asset.id,
-        useWebAsRoot: false);
-
-    // Remove the leading "/".
-    relativeUrl = relativeUrl.substring(1);
+    var destPath = _idtoPath(asset.id);
 
     // If the asset is from a public directory, copy it into all of the
     // top-level build directories.
-    if (relativeUrl.startsWith("assets/") ||
-        relativeUrl.startsWith("packages/")) {
+    if (destPath.startsWith("assets/") || destPath.startsWith("packages/")) {
       builtFiles += buildDirectories.length;
       return Future.wait(buildDirectories.map(
           (buildDir) => _writeOutputFile(asset,
-              path.url.join(buildDir, relativeUrl))));
+              path.url.join(buildDir, destPath))));
     }
 
     builtFiles++;
-    return _writeOutputFile(asset, relativeUrl);
+    return _writeOutputFile(asset, destPath);
   }
 
-  /// Writes the contents of [asset] to [relativeUrl] within the build
-  /// directory.
-  Future _writeOutputFile(Asset asset, String relativeUrl) {
-    var relativePath = path.fromUri(new Uri(path: relativeUrl));
-    var destPath = path.join(target, relativePath);
+  /// Converts [id] to a relative path in the output directory for that asset.
+  ///
+  /// This corresponds to the URL that could be used to request that asset from
+  /// pub serve.
+  ///
+  /// Examples (where entrypoint is "myapp"):
+  ///
+  ///     myapp|web/index.html   -> web/index.html
+  ///     myapp|lib/lib.dart     -> packages/myapp/lib.dart
+  ///     foo|lib/foo.dart       -> packages/foo/foo.dart
+  ///     foo|asset/foo.png      -> assets/foo/foo.png
+  ///     myapp|test/main.dart   -> test/main.dart
+  ///     foo|test/main.dart     -> ERROR
+  ///
+  /// Throws a [FormatException] if [id] is not a valid public asset.
+  String _idtoPath(AssetId id) {
+    var parts = path.url.split(id.path);
 
+    if (parts.length < 2) {
+      throw new FormatException(
+          "Can not build assets from top-level directory.");
+    }
+
+    // Map "asset" and "lib" to their shared directories.
+    var dir = parts[0];
+    var rest = parts.skip(1);
+
+    if (dir == "asset") {
+      return path.join("assets", id.package, path.joinAll(rest));
+    }
+
+    if (dir == "lib") {
+      return path.join("packages", id.package, path.joinAll(rest));
+    }
+
+    // Shouldn't be trying to access non-public directories of other packages.
+    assert(id.package == entrypoint.root.name);
+
+    // Allow any path in the entrypoint package.
+    return path.joinAll(parts);
+  }
+
+  /// Writes the contents of [asset] to [relativePath] within the build
+  /// directory.
+  Future _writeOutputFile(Asset asset, String relativePath) {
+    var destPath = path.join(target, relativePath);
     ensureDir(path.dirname(destPath));
     return createFileFromStream(asset.read(), destPath);
   }
