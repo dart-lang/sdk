@@ -440,6 +440,18 @@ Dart_Handle DartUtils::FilePathFromUri(Dart_Handle script_uri,
 }
 
 
+Dart_Handle DartUtils::ExtensionPathFromUri(Dart_Handle extension_uri,
+                                            Dart_Handle builtin_lib) {
+  const int kNumArgs = 1;
+  Dart_Handle dart_args[kNumArgs];
+  dart_args[0] = extension_uri;
+  return Dart_Invoke(builtin_lib,
+                     NewString("_extensionPathFromUri"),
+                     kNumArgs,
+                     dart_args);
+}
+
+
 Dart_Handle DartUtils::ResolveUri(Dart_Handle library_url,
                                   Dart_Handle url,
                                   Dart_Handle builtin_lib) {
@@ -519,28 +531,44 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
     }
   }
 
-  // Handle 'import' or 'part' requests for all other URIs.
-  // Get the file path out of the url.
   Dart_Handle builtin_lib =
       Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-  Dart_Handle file_path = FilePathFromUri(url, builtin_lib);
-  if (Dart_IsError(file_path)) {
-    return file_path;
-  }
-  const char* final_path = NULL;
-  Dart_StringToCString(file_path, &final_path);
   if (DartUtils::IsDartExtensionSchemeURL(url_string)) {
+    // Load a native code shared library to use in a native extension
     if (tag != Dart_kImportTag) {
       return NewError("Dart extensions must use import: '%s'", url_string);
     }
-    return Extensions::LoadExtension(final_path, library);
+    Dart_Handle path_parts = DartUtils::ExtensionPathFromUri(url, builtin_lib);
+    if (Dart_IsError(path_parts)) {
+      return path_parts;
+    }
+    const char* extension_directory = NULL;
+    Dart_StringToCString(Dart_ListGetAt(path_parts, 0), &extension_directory);
+    const char* extension_filename = NULL;
+    Dart_StringToCString(Dart_ListGetAt(path_parts, 1), &extension_filename);
+    const char* extension_name = NULL;
+    Dart_StringToCString(Dart_ListGetAt(path_parts, 2), &extension_name);
+
+    return Extensions::LoadExtension(extension_directory,
+                                     extension_filename,
+                                     extension_name,
+                                     library);
+  } else {
+    // Handle 'import' or 'part' requests for all other URIs.
+    // Get the file path out of the url.
+    Dart_Handle file_path = DartUtils::FilePathFromUri(url, builtin_lib);
+    if (Dart_IsError(file_path)) {
+      return file_path;
+    }
+    const char* final_path = NULL;
+    Dart_StringToCString(file_path, &final_path);
+    result = DartUtils::LoadSource(NULL,
+                                   library,
+                                   url,
+                                   tag,
+                                   final_path);
+    return result;
   }
-  result = DartUtils::LoadSource(NULL,
-                                 library,
-                                 url,
-                                 tag,
-                                 final_path);
-  return result;
 }
 
 

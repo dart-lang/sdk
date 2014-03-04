@@ -12,15 +12,8 @@
 namespace dart {
 namespace bin {
 
-void* Extensions::LoadExtensionLibrary(const char* library_path,
-                                       const char* extension_name) {
-  const char* strings[] = { library_path, "/", extension_name, ".dll", NULL };
-  char* library_file = Concatenate(strings);
-  wchar_t* unicode_library_file = StringUtils::Utf8ToWide(library_file);
-  void* lib_handle = LoadLibraryW(unicode_library_file);
-  free(unicode_library_file);
-  free(library_file);
-  return lib_handle;
+void* Extensions::LoadExtensionLibrary(const char* library_file) {
+  return LoadLibraryW(StringUtils::Utf8ToWide(library_file));
 }
 
 void* Extensions::ResolveSymbol(void* lib_handle, const char* symbol) {

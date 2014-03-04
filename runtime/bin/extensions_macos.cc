@@ -12,14 +12,8 @@
 namespace dart {
 namespace bin {
 
-void* Extensions::LoadExtensionLibrary(const char* library_path,
-                                       const char* extension_name) {
-  const char* strings[] = { library_path, "/lib",
-                             extension_name, ".dylib", NULL };
-  char* library_file = Concatenate(strings);
-  void* lib_handle = dlopen(library_file, RTLD_LAZY);
-  free(library_file);
-  return lib_handle;
+void* Extensions::LoadExtensionLibrary(const char* library_file) {
+  return dlopen(library_file, RTLD_LAZY);
 }
 
 void* Extensions::ResolveSymbol(void* lib_handle, const char* symbol) {

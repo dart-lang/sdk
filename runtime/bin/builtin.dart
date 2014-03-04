@@ -221,9 +221,6 @@ String _resolveUri(String base, String userString) {
 
 // Returns either a file path or a URI starting with http:, as a String.
 String _filePathFromUri(String userUri) {
-  if (userUri.startsWith(_DART_EXT)) {
-    userUri = userUri.substring(_DART_EXT.length);
-  }
   var uri = Uri.parse(userUri);
   _logResolution('# Getting file path from: $uri');
 
@@ -261,4 +258,51 @@ String _filePathFromPackageUri(Uri uri) {
                     _entryPointScript.resolve('packages/') :
                     _packageRoot;
   return _filePathFromUri(packageRoot.resolve(uri.path).toString());
+}
+
+
+// Returns the directory part, the filename part, and the name
+// of a native extension URL as a list [directory, filename, name].
+// The directory part is either a file system path or an HTTP(S) URL.
+// The filename part is the extension name, with the platform-dependent
+// prefixes and extensions added.
+String _extensionPathFromUri(String userUri) {
+  if (!userUri.startsWith(_DART_EXT)) {
+    throw 'Unexpected internal error: Extension URI $userUri missing dart-ext:';
+  }
+  userUri = userUri.substring(_DART_EXT.length);
+
+  if (userUri.contains('\\')) {
+    throw 'Unexpected internal error: Extension URI $userUri contains \\';
+  }
+
+  String filename;
+  String name;
+  String path;  // Will end in '/'.
+  int index = userUri.lastIndexOf('/');
+  if (index == -1) {
+    name = userUri;
+    path = './';
+  } else if (index == userUri.length - 1) {
+    throw 'Extension name missing in $extensionUri';
+  } else {
+    name = userUri.substring(index + 1);
+    path = userUri.substring(0, index + 1);
+  }
+
+  path = _filePathFromUri(path);
+
+  if (Platform.isLinux || Platform.isAndroid) {
+    filename = 'lib$name.so';
+  } else if (Platform.isMacOS) {
+    filename = 'lib$name.dylib';
+  } else if (Platform.isWindows) {
+    filename = '$name.dll';
+  } else {
+    _logResolution(
+        'Native extensions not supported on ${Platform.operatingSystem}');
+    throw 'Native extensions not supported on ${Platform.operatingSystem}';
+  }
+
+  return [path, filename, name];
 }
