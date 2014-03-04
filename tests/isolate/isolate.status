@@ -13,7 +13,7 @@ compile_time_error_test/01: Skip # Issue 12587
 capability_test: Fail   # Not implemented yet
 pause_test: Fail        # Not implemented yet
 start_paused_test: Fail # Not implemented yet
-ondone-test: Skip       # Not implemented yet, hangs.
+ondone_test: Skip       # Not implemented yet, hangs.
 
 [ $compiler == dart2js && $jscl ]
 browser/*: SkipByDesign  # Browser specific tests
