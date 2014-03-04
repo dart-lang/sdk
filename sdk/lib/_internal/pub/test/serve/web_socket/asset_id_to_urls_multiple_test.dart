@@ -4,7 +4,9 @@
 
 library pub_tests;
 
+import 'package:path/path.dart' as path;
 import 'package:scheduled_test/scheduled_test.dart';
+
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 import '../utils.dart';
@@ -26,7 +28,7 @@ main() {
       ])
     ]).create();
 
-    pubServe(args: ["web", "web/sub", "test"]);
+    pubServe(args: ["web", path.join("web", "sub"), "test"]);
 
     schedule(() {
       expectWebSocketCall({
@@ -44,7 +46,7 @@ main() {
       }, replyEquals: {
         "urls": [
           getServerUrl("web", "sub/bar.html"),
-          getServerUrl("web/sub", "bar.html")
+          getServerUrl(path.join("web", "sub"), "bar.html")
         ]
       });
     });

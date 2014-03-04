@@ -250,10 +250,10 @@ class WebSocketApi {
     // Find all of the servers whose root directories contain the asset and
     // generate appropriate URLs for each.
     var urls = _environment.servers
-        .where((server) => path.url.isWithin(server.rootDirectory, assetPath))
+        .where((server) => path.url.isWithin(server.rootAssetPath, assetPath))
         .map((server) =>
             "http://${server.address.host}:${server.port}/" +
-            path.url.relative(assetPath, from: server.rootDirectory))
+            path.url.relative(assetPath, from: server.rootAssetPath))
         .toList();
 
     if (urls.isEmpty) {

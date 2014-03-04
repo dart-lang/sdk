@@ -180,11 +180,11 @@ class BuildCommand extends PubCommand {
 
     // If the asset is from a public directory, copy it into all of the
     // top-level build directories.
-    if (destPath.startsWith("assets/") || destPath.startsWith("packages/")) {
+    if (path.isWithin("assets", destPath) ||
+        path.isWithin("packages", destPath)) {
       builtFiles += buildDirectories.length;
-      return Future.wait(buildDirectories.map(
-          (buildDir) => _writeOutputFile(asset,
-              path.url.join(buildDir, destPath))));
+      return Future.wait(buildDirectories.map((buildDir) =>
+          _writeOutputFile(asset, path.join(buildDir, destPath))));
     }
 
     builtFiles++;

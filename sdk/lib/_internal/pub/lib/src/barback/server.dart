@@ -32,8 +32,12 @@ class BarbackServer {
   /// All currently open [WebSocket] connections.
   final _webSockets = new Set<WebSocket>();
 
-  /// The directory in the root which will serve as the root of this server.
+  /// The directory in the root which will serve as the root of this server as
+  /// a native platform path.
   final String rootDirectory;
+
+  /// The root directory as an asset-style ("/") path.
+  String get rootAssetPath => path.url.joinAll(path.split(rootDirectory));
 
   /// The server's port.
   final int port;
