@@ -452,6 +452,11 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
     super.add(data);
   }
 
+  void write(Object obj) {
+    if (!_headersWritten) _encoding = encoding;
+    super.write(obj);
+  }
+
   Future _writeHeaders({bool drainRequest: true,
                         bool setOutgoing: true}) {
     // TODO(ajohnsen): Avoid excessive futures in this method.
@@ -467,6 +472,7 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
       return this;
     }
     if (_headersWritten) return new Future.value(this);
+    _encoding = encoding;
     _headersWritten = true;
     Future drainFuture;
     bool isServerSide = this is _HttpResponse;

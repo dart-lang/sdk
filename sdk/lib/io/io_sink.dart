@@ -229,7 +229,7 @@ class _IOSinkImpl extends _StreamSinkImpl<List<int>> implements IOSink {
       }
     }
     if (string.isEmpty) return;
-    add(encoding.encode(string));
+    add(_encoding.encode(string));
   }
 
   void writeAll(Iterable objects, [String separator = ""]) {
