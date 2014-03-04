@@ -2020,14 +2020,16 @@ void Class::set_type_parameters(const TypeArguments& value) const {
 }
 
 
-intptr_t Class::NumTypeParameters() const {
+intptr_t Class::NumTypeParameters(Isolate* isolate) const {
   if (IsMixinApplication() && !is_mixin_type_applied()) {
     ClassFinalizer::ApplyMixinType(*this);
   }
   if (type_parameters() == TypeArguments::null()) {
     return 0;
   }
-  const TypeArguments& type_params = TypeArguments::Handle(type_parameters());
+  ReusableHandleScope reused_handles(isolate);
+  TypeArguments& type_params = reused_handles.TypeArgumentsHandle();
+  type_params = type_parameters();
   return type_params.Length();
 }
 
@@ -12837,17 +12839,18 @@ bool Type::IsEquivalent(const Instance& other,
   if (arguments() == other_type.arguments()) {
     return true;
   }
-  const Class& cls = Class::Handle(type_class());
-  const intptr_t num_type_params = cls.NumTypeParameters();
+  Isolate* isolate = Isolate::Current();
+  const Class& cls = Class::Handle(isolate, type_class());
+  const intptr_t num_type_params = cls.NumTypeParameters(isolate);
   if (num_type_params == 0) {
     // Shortcut unnecessary handle allocation below.
     return true;
   }
   const intptr_t num_type_args = cls.NumTypeArguments();
   const intptr_t from_index = num_type_args - num_type_params;
-  const TypeArguments& type_args = TypeArguments::Handle(arguments());
+  const TypeArguments& type_args = TypeArguments::Handle(isolate, arguments());
   const TypeArguments& other_type_args = TypeArguments::Handle(
-      other_type.arguments());
+      isolate, other_type.arguments());
   if (type_args.IsNull()) {
     return other_type_args.IsRaw(from_index, num_type_params);
   }
@@ -12856,8 +12859,8 @@ bool Type::IsEquivalent(const Instance& other,
   }
   ASSERT(type_args.Length() >= (from_index + num_type_params));
   ASSERT(other_type_args.Length() >= (from_index + num_type_params));
-  AbstractType& type_arg = AbstractType::Handle();
-  AbstractType& other_type_arg = AbstractType::Handle();
+  AbstractType& type_arg = AbstractType::Handle(isolate);
+  AbstractType& other_type_arg = AbstractType::Handle(isolate);
   for (intptr_t i = 0; i < num_type_params; i++) {
     type_arg = type_args.TypeAt(from_index + i);
     other_type_arg = other_type_args.TypeAt(from_index + i);
@@ -16323,12 +16326,18 @@ RawArray* Array::Grow(const Array& source,
 RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
   ASSERT(!growable_array.IsNull());
   intptr_t used_len = growable_array.Length();
-  if (used_len == 0) {
+  // Get the type arguments and prepare to copy them.
+  const TypeArguments& type_arguments =
+      TypeArguments::Handle(growable_array.GetTypeArguments());
+  if ((used_len == 0) && (type_arguments.IsNull())) {
+    // This is a raw List (as in no type arguments), so we can return the
+    // simple empty array.
     return Object::empty_array().raw();
   }
   intptr_t capacity_len = growable_array.Capacity();
   Isolate* isolate = Isolate::Current();
   const Array& array = Array::Handle(isolate, growable_array.data());
+  array.SetTypeArguments(type_arguments);
   intptr_t capacity_size = Array::InstanceSize(capacity_len);
   intptr_t used_size = Array::InstanceSize(used_len);
   NoGCScope no_gc;

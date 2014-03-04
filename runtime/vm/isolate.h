@@ -72,7 +72,6 @@ class ObjectIdRing;
   V(Function)                                                                  \
   V(Field)                                                                     \
   V(Class)                                                                     \
-  V(AbstractType)                                                              \
   V(TypeParameter)                                                             \
   V(TypeArguments)                                                             \
 

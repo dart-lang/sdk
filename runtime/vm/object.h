@@ -742,7 +742,10 @@ class Class : public Object {
       return raw_ptr()->type_parameters_;
   }
   void set_type_parameters(const TypeArguments& value) const;
-  intptr_t NumTypeParameters() const;
+  intptr_t NumTypeParameters(Isolate* isolate) const;
+  intptr_t NumTypeParameters() const {
+    return NumTypeParameters(Isolate::Current());
+  }
   static intptr_t type_parameters_offset() {
     return OFFSET_OF(RawClass, type_parameters_);
   }
