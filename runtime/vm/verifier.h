@@ -54,7 +54,8 @@ class VerifyPointersVisitor : public ObjectPointerVisitor {
 class VerifyWeakPointersVisitor : public HandleVisitor {
  public:
   explicit VerifyWeakPointersVisitor(VerifyPointersVisitor* visitor)
-      : visitor_(visitor) {
+      :  HandleVisitor(Isolate::Current()),
+         visitor_(visitor) {
   }
 
   virtual void VisitHandle(uword addr, bool is_prologue_weak);

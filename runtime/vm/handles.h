@@ -64,10 +64,17 @@ DECLARE_DEBUG_FLAG(bool, trace_handles);
 
 class HandleVisitor {
  public:
+  explicit HandleVisitor(Isolate* isolate) : isolate_(isolate) {}
+  virtual ~HandleVisitor() {}
+
+  Isolate* isolate() const { return isolate_; }
+
   virtual void VisitHandle(uword addr, bool is_prologue_weak) = 0;
 
-  virtual ~HandleVisitor() {
-  }
+ private:
+  Isolate* isolate_;
+
+  DISALLOW_IMPLICIT_CONSTRUCTORS(HandleVisitor);
 };
 
 

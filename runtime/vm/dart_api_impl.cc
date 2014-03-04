@@ -674,9 +674,11 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
 
 
 DART_EXPORT void Dart_DeleteWeakPersistentHandle(
+    Dart_Isolate current_isolate,
     Dart_WeakPersistentHandle object) {
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = reinterpret_cast<Isolate*>(current_isolate);
   CHECK_ISOLATE(isolate);
+  ASSERT(isolate == Isolate::Current());
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   if (FinalizablePersistentHandle::IsPrologueWeakPersistentHandle(object)) {

@@ -298,7 +298,7 @@ bool IsUnreachable(const RawObject* raw_obj) {
 
 class MarkingWeakVisitor : public HandleVisitor {
  public:
-  MarkingWeakVisitor() {
+  MarkingWeakVisitor() : HandleVisitor(Isolate::Current()) {
   }
 
   void VisitHandle(uword addr, bool is_prologue_weak) {
@@ -306,7 +306,9 @@ class MarkingWeakVisitor : public HandleVisitor {
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
     RawObject* raw_obj = handle->raw();
     if (IsUnreachable(raw_obj)) {
-      FinalizablePersistentHandle::Finalize(handle, is_prologue_weak);
+      FinalizablePersistentHandle::Finalize(isolate(),
+                                            handle,
+                                            is_prologue_weak);
     }
   }
 

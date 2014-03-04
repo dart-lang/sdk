@@ -1696,9 +1696,10 @@ TEST_CASE(ExternalUint8ClampedArrayAccess) {
 }
 
 
-static void ExternalTypedDataFinalizer(Dart_WeakPersistentHandle handle,
-                                               void* peer) {
-  Dart_DeleteWeakPersistentHandle(handle);
+static void ExternalTypedDataFinalizer(Dart_Isolate isolate,
+                                       Dart_WeakPersistentHandle handle,
+                                       void* peer) {
+  Dart_DeleteWeakPersistentHandle(isolate, handle);
   *static_cast<int*>(peer) = 42;
 }
 
@@ -2051,8 +2052,9 @@ TEST_CASE(WeakPersistentHandle) {
     Dart_ExitScope();
   }
 
-  Dart_DeleteWeakPersistentHandle(weak_new_ref);
-  Dart_DeleteWeakPersistentHandle(weak_old_ref);
+  Dart_Isolate isolate = reinterpret_cast<Dart_Isolate>(Isolate::Current());
+  Dart_DeleteWeakPersistentHandle(isolate, weak_new_ref);
+  Dart_DeleteWeakPersistentHandle(isolate, weak_old_ref);
 
   // Garbage collect one last time to revisit deleted handles.
   Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
@@ -2060,8 +2062,9 @@ TEST_CASE(WeakPersistentHandle) {
 }
 
 
-static void WeakPersistentHandlePeerFinalizer(
-    Dart_WeakPersistentHandle handle, void* peer) {
+static void WeakPersistentHandlePeerFinalizer(Dart_Isolate isolate,
+                                              Dart_WeakPersistentHandle handle,
+                                              void* peer) {
   *static_cast<int*>(peer) = 42;
 }
 
@@ -2083,7 +2086,8 @@ TEST_CASE(WeakPersistentHandleCallback) {
   EXPECT(peer == 0);
   GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
   EXPECT(peer == 42);
-  Dart_DeleteWeakPersistentHandle(weak_ref);
+  Dart_Isolate isolate = reinterpret_cast<Dart_Isolate>(Isolate::Current());
+  Dart_DeleteWeakPersistentHandle(isolate, weak_ref);
 }
 
 
@@ -2100,7 +2104,8 @@ TEST_CASE(WeakPersistentHandleNoCallback) {
   }
   // A finalizer is not invoked on a deleted handle.  Therefore, the
   // peer value should not change after the referent is collected.
-  Dart_DeleteWeakPersistentHandle(weak_ref);
+  Dart_Isolate isolate = reinterpret_cast<Dart_Isolate>(Isolate::Current());
+  Dart_DeleteWeakPersistentHandle(isolate, weak_ref);
   EXPECT(peer == 0);
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
   EXPECT(peer == 0);

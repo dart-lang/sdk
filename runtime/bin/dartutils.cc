@@ -1081,7 +1081,9 @@ Dart_CObject* CObject::NewIOBuffer(int64_t length) {
 void CObject::FreeIOBufferData(Dart_CObject* cobject) {
   ASSERT(cobject->type == Dart_CObject_kExternalTypedData);
   cobject->value.as_external_typed_data.callback(
-      NULL, cobject->value.as_external_typed_data.peer);
+      NULL,
+      NULL,
+      cobject->value.as_external_typed_data.peer);
   cobject->value.as_external_typed_data.data = NULL;
 }
 

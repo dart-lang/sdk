@@ -725,13 +725,13 @@ void Isolate::PrintInvokedFunctions() {
 
 class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
  public:
-  FinalizeWeakPersistentHandlesVisitor() {
+  FinalizeWeakPersistentHandlesVisitor() : HandleVisitor(Isolate::Current()) {
   }
 
   void VisitHandle(uword addr, bool is_prologue_weak) {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
-    FinalizablePersistentHandle::Finalize(handle, is_prologue_weak);
+    FinalizablePersistentHandle::Finalize(isolate(), handle, is_prologue_weak);
   }
 
  private:

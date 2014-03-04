@@ -217,7 +217,8 @@ class FinalizablePersistentHandle {
     return (addr & kWeakPersistentTagMask) == kPrologueWeakPersistentTag;
   }
   static FinalizablePersistentHandle* Cast(Dart_WeakPersistentHandle handle);
-  static void Finalize(FinalizablePersistentHandle* handle,
+  static void Finalize(Isolate* isolate,
+                       FinalizablePersistentHandle* handle,
                        bool is_prologue_weak) {
     Dart_WeakPersistentHandleFinalizer callback = handle->callback();
     if (callback != NULL) {
@@ -226,7 +227,7 @@ class FinalizablePersistentHandle {
       Dart_WeakPersistentHandle object = is_prologue_weak ?
           handle->apiPrologueHandle() :
           handle->apiHandle();
-      (*callback)(object, peer);
+      (*callback)(reinterpret_cast<Dart_Isolate>(isolate), object, peer);
     } else {
       handle->Clear();
     }
