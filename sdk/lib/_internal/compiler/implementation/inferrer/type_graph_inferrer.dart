@@ -18,7 +18,6 @@ import 'inferrer_visitor.dart' show TypeSystem, ArgumentsTypes;
 import '../native_handler.dart' as native;
 import '../util/util.dart' show Spannable, Setlet;
 import 'simple_types_inferrer.dart';
-import 'ir_type_inferrer.dart';
 import '../dart2jslib.dart' show invariant, Constant, FunctionConstant;
 
 part 'type_graph_nodes.dart';
@@ -626,12 +625,8 @@ class TypeGraphInferrerEngine
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);
 
-    var visitor;
-    if (compiler.irBuilder.hasIr(element)) {
-      visitor = new IrTypeInferrerVisitor(compiler, element, this);
-    } else {
-      visitor = new SimpleTypeInferrerVisitor(element, compiler, this);
-    }
+    SimpleTypeInferrerVisitor visitor =
+        new SimpleTypeInferrerVisitor(element, compiler, this);
     TypeInformation type;
     compiler.withCurrentElement(element, () {
       type = visitor.run();

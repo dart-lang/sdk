@@ -6,7 +6,6 @@ library dart2js.ir_builder;
 
 import 'ir_nodes.dart' as ir;
 import '../elements/elements.dart';
-import '../elements/modelx.dart' show FunctionElementX;
 import '../dart2jslib.dart';
 import '../source_file.dart';
 import '../tree/tree.dart' as ast;
@@ -21,8 +20,8 @@ import 'ir_pickler.dart' show Unpickler, IrConstantPool;
  *
  * The functionality of the IrNodes is added gradually, therefore elements might
  * have an IR or not, depending on the language features that are used. For
- * elements that do have an IR, the tree [ast.Node]s and the [Token]s are not used
- * in the rest of the compilation. This is ensured by setting the element's
+ * elements that do have an IR, the tree [ast.Node]s and the [Token]s are not
+ * used in the rest of the compilation. This is ensured by setting the element's
  * cached tree to [:null:] and also breaking the token stream to crash future
  * attempts to parse.
  *
@@ -80,7 +79,6 @@ class IrBuilderTask extends CompilerTask {
               return true;
             });
             nodes[element] = irNode;
-            unlinkTreeAndToken(element);
           }
         }
         ensureIr(element);
@@ -168,15 +166,6 @@ class IrBuilderTask extends CompilerTask {
           element,
           MessageKind.GENERIC,
           {'text': "Error: cannot build IR for $element."});
-    }
-  }
-
-  void unlinkTreeAndToken(element) {
-    // Ensure the function signature has been computed (requires the AST).
-    assert(element is !FunctionElementX || element.functionSignature != null);
-    if (inCheckedMode) {
-      element.beginToken.next = null;
-      element.cachedNode = null;
     }
   }
 

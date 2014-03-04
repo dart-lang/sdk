@@ -96,7 +96,7 @@ class InvokeStatic extends Expression {
 
 /**
  * This class is only used during SSA generation, its instances never appear in
- * the representation of a function. See [SsaFromAstInliner.enterInlinedMethod].
+ * the representation of a function.
  */
 class InlinedInvocationDummy extends Expression {
   InlinedInvocationDummy() : super(0);

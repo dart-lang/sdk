@@ -56,14 +56,9 @@ class TypeTestEmitter extends CodeEmitterHelper {
     void generateFunctionTypeSignature(Element method, FunctionType type) {
       assert(method.isImplementation);
       jsAst.Expression thisAccess = new jsAst.This();
-      ClosureClassMap closureData;
-      // TODO(lry): Once the IR can express methods containing closures, find
-      // a way to get the [:thisName:]. The solution to this problem depends on
-      // how closures are represented in the IR, which is not yet decided.
-      if (!compiler.irBuilder.hasIr(method)) {
-        Node node = method.parseNode(compiler);
-        closureData = compiler.closureToClassMapper.closureMappingCache[node];
-      }
+      Node node = method.parseNode(compiler);
+      ClosureClassMap closureData =
+          compiler.closureToClassMapper.closureMappingCache[node];
       if (closureData != null) {
         Element thisElement =
             closureData.freeVariableMapping[closureData.thisElement];

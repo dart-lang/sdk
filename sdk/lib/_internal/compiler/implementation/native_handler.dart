@@ -1047,7 +1047,7 @@ String checkForNativeClass(ElementListener listener) {
 
 final RegExp nativeRedirectionRegExp = new RegExp(r'^[a-zA-Z][a-zA-Z_$0-9]*$');
 
-void handleSsaNative(SsaFromAstBuilder builder, Expression nativeBody) {
+void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   Compiler compiler = builder.compiler;
   FunctionElement element = builder.work.element;
   NativeEmitter nativeEmitter = builder.nativeEmitter;
