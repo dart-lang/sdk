@@ -479,7 +479,7 @@ class _LocalClosureMirror extends _LocalInstanceMirror
   delegate(Invocation invocation) {
     if (invocation.isMethod && (invocation.memberName == #call)) {
       return this.apply(invocation.positionalArguments,
-                        invocation.namedArguments);
+                        invocation.namedArguments).reflectee;
     }
     return super.delegate(invocation);
   }

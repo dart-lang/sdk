@@ -16,8 +16,8 @@ class Proxy {
 
 testClosure() {
   var proxy = new Proxy(() => 42);
-  Expect.equals(reflect(42), proxy());
-  Expect.equals(reflect(42), proxy.call());
+  Expect.equals(42, proxy());
+  Expect.equals(42, proxy.call());
 }
 
 class FakeFunction {
@@ -26,16 +26,16 @@ class FakeFunction {
 
 testFakeFunction() {
   var proxy = new Proxy(new FakeFunction());
-  Expect.equals(reflect(43), proxy());
-  Expect.equals(reflect(43), proxy.call());
+  Expect.equals(43, proxy());
+  Expect.equals(43, proxy.call());
 }
 
 topLevelFunction() => 44;
 
 testTopLevelTearOff() {
   var proxy = new Proxy(topLevelFunction);
-  Expect.equals(reflect(44), proxy());
-  Expect.equals(reflect(44), proxy.call());
+  Expect.equals(44, proxy());
+  Expect.equals(44, proxy.call());
 }
 
 class C {
@@ -44,8 +44,8 @@ class C {
 
 testInstanceTearOff() {
   var proxy = new Proxy(new C().method);
-  Expect.equals(reflect(45), proxy());
-  Expect.equals(reflect(45), proxy.call());
+  Expect.equals(45, proxy());
+  Expect.equals(45, proxy.call());
 }
 
 main() {
