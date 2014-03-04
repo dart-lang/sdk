@@ -475,6 +475,15 @@ class _LocalClosureMirror extends _LocalInstanceMirror
     return _function;
   }
 
+  // TODO(12602): Remove this special case.
+  delegate(Invocation invocation) {
+    if (invocation.isMethod && (invocation.memberName == #call)) {
+      return this.apply(invocation.positionalArguments,
+                        invocation.namedArguments);
+    }
+    return super.delegate(invocation);
+  }
+
   InstanceMirror apply(List<Object> positionalArguments,
                        [Map<Symbol, Object> namedArguments]) {
     // TODO(12602): When closures get an ordinary call method, this can be
