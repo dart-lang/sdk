@@ -265,8 +265,10 @@ class Response {
    */
   factory Response.fromJson(Map<String, Object> json) {
     try {
-      // TODO process result
-      String id = json[Response.ID];
+      var id = json[Response.ID];
+      if (id is! String) {
+        return null;
+      }
       var error = json[Response.ERROR];
       var result = json[Response.RESULT];
       Response response;

@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/protocol.dart';
@@ -117,22 +118,26 @@ class AnalysisManager {
    */
   Future<bool> stop() {
     if (process == null) {
-      return new Future.value(false);
+      return channel.close().then((_) => false);
     }
-    var request = new Request('0', ServerDomainHandler.SHUTDOWN_METHOD);
-    channel.sendRequest(request);
-    return process.exitCode
-        .timeout(new Duration(seconds: 10))
-        .catchError((error) {
-          process.kill();
-          throw 'Expected server to shutdown';
+    return channel
+        .sendRequest(new Request('0', ServerDomainHandler.SHUTDOWN_METHOD))
+        .timeout(new Duration(seconds: 2), onTimeout: () {
+          print('Expected shutdown response');
         })
-        .then((result) {
-          if (result != 0) {
+        .then((Response response) {
+          channel.close();
+          return process.exitCode;
+        })
+        .timeout(new Duration(seconds: 2), onTimeout: () {
+          print('Expected server to shutdown');
+          process.kill();
+        })
+        .then((int result) {
+          if (result != null && result != 0) {
             exitCode = result;
           }
           return true;
         });
   }
-
 }
