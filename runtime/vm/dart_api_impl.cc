@@ -80,6 +80,18 @@ static RawInstance* GetListInstance(Isolate* isolate, const Object& obj) {
 }
 
 
+Heap::Space SpaceForExternal(Isolate* isolate, intptr_t size) {
+  Heap* heap = isolate->heap();
+  // If 'size' would be a significant fraction of new space, then use old.
+  static const int kExtNewRatio = 16;
+  if (size > (heap->CapacityInWords(Heap::kNew) * kWordSize) / kExtNewRatio) {
+    return Heap::kOld;
+  } else {
+    return Heap::kNew;
+  }
+}
+
+
 Dart_Handle Api::InitNewHandle(Isolate* isolate, RawObject* raw) {
   LocalHandles* local_handles = Api::TopScope(isolate)->local_handles();
   ASSERT(local_handles != NULL);
@@ -1799,7 +1811,11 @@ DART_EXPORT Dart_Handle Dart_NewExternalLatin1String(
   CHECK_LENGTH(length, String::kMaxElements);
   CHECK_CALLBACK_STATE(isolate);
   return Api::NewHandle(isolate,
-                        String::NewExternal(latin1_array, length, peer, cback));
+                        String::NewExternal(latin1_array,
+                                            length,
+                                            peer,
+                                            cback,
+                                            SpaceForExternal(isolate, length)));
 }
 
 
@@ -1814,8 +1830,13 @@ DART_EXPORT Dart_Handle Dart_NewExternalUTF16String(const uint16_t* utf16_array,
   }
   CHECK_LENGTH(length, String::kMaxElements);
   CHECK_CALLBACK_STATE(isolate);
+  intptr_t bytes = length * sizeof(*utf16_array);
   return Api::NewHandle(isolate,
-                        String::NewExternal(utf16_array, length, peer, cback));
+                        String::NewExternal(utf16_array,
+                                            length,
+                                            peer,
+                                            cback,
+                                            SpaceForExternal(isolate, bytes)));
 }
 
 
@@ -2661,9 +2682,13 @@ static Dart_Handle NewTypedData(Isolate* isolate,
 static Dart_Handle NewExternalTypedData(
     Isolate* isolate, intptr_t cid, void* data, intptr_t length) {
   CHECK_LENGTH(length, ExternalTypedData::MaxElements(cid));
+  intptr_t bytes = length * ExternalTypedData::ElementSizeInBytes(cid);
   const ExternalTypedData& result = ExternalTypedData::Handle(
       isolate,
-      ExternalTypedData::New(cid, reinterpret_cast<uint8_t*>(data), length));
+      ExternalTypedData::New(cid,
+                             reinterpret_cast<uint8_t*>(data),
+                             length,
+                             SpaceForExternal(isolate, bytes)));
   return Api::NewHandle(isolate, result.raw());
 }
 

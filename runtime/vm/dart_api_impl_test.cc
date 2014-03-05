@@ -1022,6 +1022,87 @@ TEST_CASE(ExternalStringCallback) {
 }
 
 
+TEST_CASE(ExternalStringPretenure) {
+  Isolate* isolate = Isolate::Current();
+  {
+    Dart_EnterScope();
+    static const uint8_t big_data8[16*MB] = {0, };
+    Dart_Handle big8 = Dart_NewExternalLatin1String(
+        big_data8,
+        ARRAY_SIZE(big_data8),
+        NULL,
+        NULL);
+    EXPECT_VALID(big8);
+    static const uint16_t big_data16[16*MB/2] = {0, };
+    Dart_Handle big16 = Dart_NewExternalUTF16String(
+        big_data16,
+        ARRAY_SIZE(big_data16),
+        NULL,
+        NULL);
+    static const uint8_t small_data8[] = {'f', 'o', 'o'};
+    Dart_Handle small8 = Dart_NewExternalLatin1String(
+        small_data8,
+        ARRAY_SIZE(small_data8),
+        NULL,
+        NULL);
+    EXPECT_VALID(small8);
+    static const uint16_t small_data16[] = {'b', 'a', 'r'};
+    Dart_Handle small16 = Dart_NewExternalUTF16String(
+        small_data16,
+        ARRAY_SIZE(small_data16),
+        NULL,
+        NULL);
+    EXPECT_VALID(small16);
+    {
+      DARTSCOPE(isolate);
+      String& handle = String::Handle();
+      handle ^= Api::UnwrapHandle(big8);
+      EXPECT(handle.IsOld());
+      handle ^= Api::UnwrapHandle(big16);
+      EXPECT(handle.IsOld());
+      handle ^= Api::UnwrapHandle(small8);
+      EXPECT(handle.IsNew());
+      handle ^= Api::UnwrapHandle(small16);
+      EXPECT(handle.IsNew());
+    }
+    Dart_ExitScope();
+  }
+}
+
+
+TEST_CASE(ExternalTypedDataPretenure) {
+  Isolate* isolate = Isolate::Current();
+  {
+    Dart_EnterScope();
+    static const int kBigLength = 16*MB/8;
+    int64_t* big_data = new int64_t[kBigLength]();
+    Dart_Handle big = Dart_NewExternalTypedData(
+        Dart_TypedData_kInt64,
+        big_data,
+        kBigLength);
+    EXPECT_VALID(big);
+    static const int kSmallLength = 16*KB/8;
+    int64_t* small_data = new int64_t[kSmallLength]();
+    Dart_Handle small = Dart_NewExternalTypedData(
+        Dart_TypedData_kInt64,
+        small_data,
+        kSmallLength);
+    EXPECT_VALID(small);
+    {
+      DARTSCOPE(isolate);
+      ExternalTypedData& handle = ExternalTypedData::Handle();
+      handle ^= Api::UnwrapHandle(big);
+      EXPECT(handle.IsOld());
+      handle ^= Api::UnwrapHandle(small);
+      EXPECT(handle.IsNew());
+    }
+    Dart_ExitScope();
+    delete[] big_data;
+    delete[] small_data;
+  }
+}
+
+
 TEST_CASE(ListAccess) {
   const char* kScriptChars =
       "List testMain() {"
