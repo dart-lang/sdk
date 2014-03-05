@@ -25,7 +25,7 @@ export 'src/generated/utilities_dart.dart';
 CompilationUnit parseDartFile(String path) {
   String contents = new File(path).readAsStringSync();
   var errorCollector = new _ErrorCollector();
-  var sourceFactory = new SourceFactory.con2([new FileUriResolver()]);
+  var sourceFactory = new SourceFactory([new FileUriResolver()]);
 
   var absolutePath = pathos.absolute(path);
   var source = sourceFactory.forUri(pathos.toUri(absolutePath).toString());

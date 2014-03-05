@@ -28,7 +28,7 @@ import 'package:serialization/serialization.dart';
  * Keeps track of all the messages we have processed so far, keyed by message
  * name.
  */
-Map<String, MainMessage> messages;
+Map<String, List<MainMessage>> messages;
 
 main(List<String> args) {
   var targetDir;
@@ -56,7 +56,8 @@ main(List<String> args) {
 
   messages = new Map();
   for (var eachMap in allMessages) {
-    eachMap.forEach((key, value) => messages[key] = value);
+    eachMap.forEach((key, value) =>
+        messages.putIfAbsent(key, () => []).add(value));
   }
   for (var arg in jsonFiles) {
     var file = new File(arg);
@@ -106,16 +107,16 @@ void generateLocaleFile(File file, String targetDir) {
 
 /**
  * A TranslatedMessage that just uses the name as the id and knows how to look
- * up its original message in our [messages].
+ * up its original messages in our [messages].
  */
 class BasicTranslatedMessage extends TranslatedMessage {
   BasicTranslatedMessage(String name, translated) :
       super(name, translated);
 
-  MainMessage get originalMessage =>
-      (super.originalMessage == null) ? _findOriginal() : super.originalMessage;
+  List<MainMessage> get originalMessages => (super.originalMessages == null) ?
+      _findOriginals() : super.originalMessages;
 
   // We know that our [id] is the name of the message, which is used as the
   //key in [messages].
-  MainMessage _findOriginal() => originalMessage = messages[id];
+  List<MainMessage> _findOriginals() => originalMessages = messages[id];
 }

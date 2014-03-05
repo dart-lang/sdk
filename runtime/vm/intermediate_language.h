@@ -4073,8 +4073,8 @@ class MaterializeObjectInstr : public Definition {
   }
 
   const Class& cls() const { return cls_; }
-  const Field& FieldAt(intptr_t i) const {
-    return *fields_[i];
+  intptr_t FieldOffsetAt(intptr_t i) const {
+    return fields_[i]->Offset();
   }
   const Location& LocationAt(intptr_t i) {
     return locations_[i];

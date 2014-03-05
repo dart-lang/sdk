@@ -150,7 +150,7 @@ RawCode* StackFrame::LookupDartCode() const {
   // that the code is called while a GC is in progress, that is ok.
   NoGCScope no_gc;
   RawCode* code = GetCodeObject();
-  ASSERT(code == Code::null() || code->ptr()->function_ != Function::null());
+  ASSERT(code == Code::null() || code->ptr()->owner_ != Function::null());
   return code;
 }
 

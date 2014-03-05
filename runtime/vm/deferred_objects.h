@@ -164,7 +164,7 @@ class DeferredObject {
   };
 
   enum {
-    kFieldIndex = 0,
+    kOffsetIndex = 0,
     kValueIndex,
     kFieldEntrySize,
   };
@@ -178,8 +178,8 @@ class DeferredObject {
     return args_[kClassIndex];
   }
 
-  RawObject* GetField(intptr_t index) const {
-    return args_[kFieldsStartIndex + kFieldEntrySize * index + kFieldIndex];
+  RawObject* GetFieldOffset(intptr_t index) const {
+    return args_[kFieldsStartIndex + kFieldEntrySize * index + kOffsetIndex];
   }
 
   RawObject* GetValue(intptr_t index) const {

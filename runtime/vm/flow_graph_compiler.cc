@@ -1237,35 +1237,6 @@ intptr_t FlowGraphCompiler::DataOffsetFor(intptr_t cid) {
 }
 
 
-// Returns true if checking against this type is a direct class id comparison.
-bool FlowGraphCompiler::TypeCheckAsClassEquality(const AbstractType& type) {
-  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
-  // Requires CHA, which can be applied in optimized code only,
-  if (!FLAG_use_cha || !is_optimizing()) return false;
-  if (!type.IsInstantiated()) return false;
-  const Class& type_class = Class::Handle(type.type_class());
-  // Signature classes have different type checking rules.
-  if (type_class.IsSignatureClass()) return false;
-  // Could be an interface check?
-  if (type_class.is_implemented()) return false;
-  const intptr_t type_cid = type_class.id();
-  if (CHA::HasSubclasses(type_cid)) return false;
-  const intptr_t num_type_args = type_class.NumTypeArguments();
-  if (num_type_args > 0) {
-    // Only raw types can be directly compared, thus disregarding type
-    // arguments.
-    const intptr_t num_type_params = type_class.NumTypeParameters();
-    const intptr_t from_index = num_type_args - num_type_params;
-    const TypeArguments& type_arguments =
-        TypeArguments::Handle(type.arguments());
-    const bool is_raw_type = type_arguments.IsNull() ||
-        type_arguments.IsRaw(from_index, num_type_params);
-    return is_raw_type;
-  }
-  return true;
-}
-
-
 static int HighestCountFirst(const CidTarget* a, const CidTarget* b) {
   // Negative if 'a' should sort before 'b'.
   return b->count - a->count;

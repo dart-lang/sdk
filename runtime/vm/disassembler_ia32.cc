@@ -485,7 +485,6 @@ static const char* ObjectToCStringNoGC(const Object& obj) {
 
 
 void X86Decoder::PrintAddress(uword addr) {
-  NoGCScope no_gc;
   char addr_buffer[32];
   OS::SNPrint(addr_buffer, sizeof(addr_buffer), "%#" Px "", addr);
   Print(addr_buffer);
@@ -494,6 +493,7 @@ void X86Decoder::PrintAddress(uword addr) {
       reinterpret_cast<RawObject*>(addr)->IsOldObject() &&
       !Isolate::Current()->heap()->CodeContains(addr) &&
       Disassembler::CanFindOldObject(addr)) {
+    NoGCScope no_gc;
     const Object& obj = Object::Handle(reinterpret_cast<RawObject*>(addr));
     if (obj.IsArray()) {
       const Array& arr = Array::Cast(obj);
@@ -526,15 +526,11 @@ void X86Decoder::PrintAddress(uword addr) {
       // Print only if jumping to entry point.
       const Code& code = Code::Handle(Code::LookupCode(addr));
       if (!code.IsNull() && (code.EntryPoint() == addr)) {
-        const Function& function = Function::Handle(code.function());
-        if (function.IsNull()) {
-          Print(" [ stub ]");
-        } else {
-          const char* name_of_function = function.ToFullyQualifiedCString();
-          Print(" [");
-          Print(name_of_function);
-          Print("]");
-        }
+        const String& name = String::Handle(code.UserName());
+        const char* name_c = name.ToCString();
+        Print(" [");
+        Print(name_c);
+        Print("]");
       }
     }
   }

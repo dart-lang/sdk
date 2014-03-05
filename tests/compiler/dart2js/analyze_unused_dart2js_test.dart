@@ -10,10 +10,12 @@ import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 
 import 'analyze_helper.dart';
 
-const String SIMPLIFY_NEVER_CALLED = "The method 'simplify' is never called";
+const Map<String, List<String>> WHITE_LIST = const {
+  "ir_builder.dart": const ["The method 'getIr' is never called."],
+};
 
 void main() {
   var uri = currentDirectory.resolve(
       'sdk/lib/_internal/compiler/implementation/use_unused_api.dart');
-  asyncTest(() => analyze([uri], {}, analyzeAll: false));
+  asyncTest(() => analyze([uri], WHITE_LIST, analyzeAll: false));
 }

@@ -193,10 +193,6 @@ class PhaseInput {
     }).whenComplete(() {
       _adjustTransformersFuture = null;
     });
-
-    // Don't top-level errors coming from the input processing. Any errors will
-    // eventually be piped through [process]'s returned Future.
-    _adjustTransformersFuture.catchError((_) {});
   }
 
   // Remove any old transforms that used to have [asset] as a primary asset but

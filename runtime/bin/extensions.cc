@@ -16,30 +16,19 @@
 namespace dart {
 namespace bin {
 
-Dart_Handle Extensions::LoadExtension(const char* extension_path,
+Dart_Handle Extensions::LoadExtension(const char* extension_directory,
+                                      const char* extension_file,
+                                      const char* extension_name,
                                       Dart_Handle parent_library) {
-  char* library_path = strdup(extension_path);
-
-  if (library_path == NULL) {
-    return Dart_NewApiError("Out of memory in LoadExtension");
+  if (strncmp(extension_directory, "http://", 7) == 0 ||
+      strncmp(extension_directory, "https://", 8) == 0) {
+    return Dart_NewApiError("Cannot load native extensions over http:");
   }
-
-  // Extract the directory and the extension name from the path.
-  char* last_path_separator = strrchr(library_path, '/');
-  if (last_path_separator == NULL) {
-    last_path_separator = strrchr(library_path, '\\');
-  }
-  if (last_path_separator == NULL) {
-    free(library_path);
-    return Dart_NewApiError("Cannot find extension library directory");
-  }
-  char* extension_name = last_path_separator + 1;
-
-  *last_path_separator = '\0';  // Terminate library_path at last separator.
-
-  void* library_handle = LoadExtensionLibrary(library_path, extension_name);
+  const char* library_strings[] = { extension_directory, extension_file, NULL };
+  char* library_file = Concatenate(library_strings);
+  void* library_handle = LoadExtensionLibrary(library_file);
+  free(library_file);
   if (library_handle == NULL) {
-    free(library_path);
     return Dart_NewApiError("Cannot find extension library");
   }
 
@@ -49,7 +38,6 @@ Dart_Handle Extensions::LoadExtension(const char* extension_path,
   InitFunctionType fn = reinterpret_cast<InitFunctionType>(
       ResolveSymbol(library_handle, init_function_name));
   free(init_function_name);
-  free(library_path);
 
   if (fn == NULL) {
     return Dart_NewApiError("Cannot find initialization function in extension");

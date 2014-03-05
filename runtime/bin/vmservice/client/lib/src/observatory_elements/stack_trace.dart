@@ -5,9 +5,9 @@
 library stack_trace_element;
 
 import 'dart:html';
-import 'observatory_element.dart';
 import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
+import 'observatory_element.dart';
 
 @CustomTag('stack-trace')
 class StackTraceElement extends ObservatoryElement {
@@ -15,12 +15,12 @@ class StackTraceElement extends ObservatoryElement {
 
   StackTraceElement.created() : super.created();
 
-  void refresh(Event e, var detail, Node target) {
+  void refresh(var done) {
     var url = app.locationManager.currentIsolateRelativeLink('stacktrace');
     app.requestManager.requestMap(url).then((map) {
         trace = map;
     }).catchError((e, trace) {
         Logger.root.severe('Error while reloading stack trace: $e\n$trace');
-    });
+    }).whenComplete(done);
   }
 }

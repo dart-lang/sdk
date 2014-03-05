@@ -21,8 +21,6 @@ import 'html.dart' as ht;
 /**
  * Instances of the [RemoveSourceOperation] implement an operation that removes from the index
  * any data based on the content of a specified source.
- *
- * @coverage dart.engine.index
  */
 class RemoveSourceOperation implements IndexOperation {
   /**
@@ -55,9 +53,7 @@ class RemoveSourceOperation implements IndexOperation {
   bool get isQuery => false;
 
   void performOperation() {
-    {
-      _indexStore.removeSource(_context, source);
-    }
+    _indexStore.removeSource(_context, source);
   }
 
   bool removeWhenSourceRemoved(Source source) => false;
@@ -68,8 +64,6 @@ class RemoveSourceOperation implements IndexOperation {
 /**
  * The interface [IndexOperation] defines the behavior of objects used to perform operations
  * on an index.
- *
- * @coverage dart.engine.index
  */
 abstract class IndexOperation {
   /**
@@ -97,8 +91,6 @@ abstract class IndexOperation {
 
 /**
  * [IndexStore] which keeps full index in memory.
- *
- * @coverage dart.engine.index
  */
 class MemoryIndexStoreImpl implements MemoryIndexStore {
   static Object _WEAK_SET_VALUE = new Object();
@@ -606,8 +598,6 @@ class MemoryIndexStoreImpl_Source2 {
 /**
  * Instances of the [IndexUnitOperation] implement an operation that adds data to the index
  * based on the resolved [CompilationUnit].
- *
- * @coverage dart.engine.index
  */
 class IndexUnitOperation implements IndexOperation {
   /**
@@ -657,17 +647,15 @@ class IndexUnitOperation implements IndexOperation {
   bool get isQuery => false;
 
   void performOperation() {
-    {
-      try {
-        bool mayIndex = _indexStore.aboutToIndex(_context, _unitElement);
-        if (!mayIndex) {
-          return;
-        }
-        unit.accept(new IndexContributor(_indexStore));
-        unit.accept(new AngularDartIndexContributor(_indexStore));
-      } catch (exception) {
-        AnalysisEngine.instance.logger.logError2("Could not index ${unit.element.location}", exception);
+    try {
+      bool mayIndex = _indexStore.aboutToIndex(_context, _unitElement);
+      if (!mayIndex) {
+        return;
       }
+      unit.accept(new IndexContributor(_indexStore));
+      unit.accept(new AngularDartIndexContributor(_indexStore));
+    } catch (exception) {
+      AnalysisEngine.instance.logger.logError2("Could not index ${unit.element.location}", exception);
     }
   }
 
@@ -720,8 +708,6 @@ abstract class ExpressionVisitor extends ht.RecursiveXmlVisitor<Object> {
 /**
  * Relationship between an element and a location. Relationships are identified by a globally unique
  * identifier.
- *
- * @coverage dart.engine.index
  */
 class Relationship {
   /**
@@ -741,14 +727,12 @@ class Relationship {
    * @return the relationship with the given unique identifier
    */
   static Relationship getRelationship(String uniqueId) {
-    {
-      Relationship relationship = _RelationshipMap[uniqueId];
-      if (relationship == null) {
-        relationship = new Relationship(uniqueId);
-        _RelationshipMap[uniqueId] = relationship;
-      }
-      return relationship;
+    Relationship relationship = _RelationshipMap[uniqueId];
+    if (relationship == null) {
+      relationship = new Relationship(uniqueId);
+      _RelationshipMap[uniqueId] = relationship;
     }
+    return relationship;
   }
 
   /**
@@ -777,8 +761,6 @@ class Relationship {
 
 /**
  * Implementation of [Index].
- *
- * @coverage dart.engine.index
  */
 class IndexImpl implements Index {
   IndexStore _store;
@@ -846,8 +828,6 @@ class IndexImpl implements Index {
 /**
  * Instances of the [RemoveSourcesOperation] implement an operation that removes from the
  * index any data based on the content of source belonging to a [SourceContainer].
- *
- * @coverage dart.engine.index
  */
 class RemoveSourcesOperation implements IndexOperation {
   /**
@@ -880,9 +860,7 @@ class RemoveSourcesOperation implements IndexOperation {
   bool get isQuery => false;
 
   void performOperation() {
-    {
-      _indexStore.removeSources(_context, container);
-    }
+    _indexStore.removeSources(_context, container);
   }
 
   bool removeWhenSourceRemoved(Source source) => false;
@@ -893,8 +871,6 @@ class RemoveSourcesOperation implements IndexOperation {
 /**
  * The interface `UniverseElement` defines element to use when we want to request "defines"
  * relations without specifying exact library.
- *
- * @coverage dart.engine.index
  */
 abstract class UniverseElement implements Element {
   static final UniverseElement INSTANCE = UniverseElementImpl.INSTANCE;
@@ -903,8 +879,6 @@ abstract class UniverseElement implements Element {
 /**
  * Instances of the [OperationProcessor] process the operations on a single
  * [OperationQueue]. Each processor can be run one time on a single thread.
- *
- * @coverage dart.engine.index
  */
 class OperationProcessor {
   /**
@@ -939,14 +913,12 @@ class OperationProcessor {
    * the processor has been interrupted.
    */
   void run() {
-    {
-      // This processor is, or was, already running on a different thread.
-      if (_state != ProcessorState.READY) {
-        throw new IllegalStateException("Operation processors can only be run one time");
-      }
-      // OK, run.
-      _state = ProcessorState.RUNNING;
+    // This processor is, or was, already running on a different thread.
+    if (_state != ProcessorState.READY) {
+      throw new IllegalStateException("Operation processors can only be run one time");
     }
+    // OK, run.
+    _state = ProcessorState.RUNNING;
     try {
       while (isRunning) {
         // wait for operation
@@ -964,9 +936,7 @@ class OperationProcessor {
         }
       }
     } finally {
-      {
-        _state = ProcessorState.STOPPED;
-      }
+      _state = ProcessorState.STOPPED;
     }
   }
 
@@ -981,21 +951,17 @@ class OperationProcessor {
    *         started.
    */
   List<Source> stop(bool wait) {
-    {
-      if (identical(_state, ProcessorState.READY)) {
-        _state = ProcessorState.STOPPED;
-        return unanalyzedSources;
-      } else if (identical(_state, ProcessorState.STOPPED)) {
-        return unanalyzedSources;
-      } else if (identical(_state, ProcessorState.RUNNING)) {
-        _state = ProcessorState.STOP_REQESTED;
-      }
+    if (identical(_state, ProcessorState.READY)) {
+      _state = ProcessorState.STOPPED;
+      return unanalyzedSources;
+    } else if (identical(_state, ProcessorState.STOPPED)) {
+      return unanalyzedSources;
+    } else if (identical(_state, ProcessorState.RUNNING)) {
+      _state = ProcessorState.STOP_REQESTED;
     }
     while (wait) {
-      {
-        if (identical(_state, ProcessorState.STOPPED)) {
-          return unanalyzedSources;
-        }
+      if (identical(_state, ProcessorState.STOPPED)) {
+        return unanalyzedSources;
       }
       waitOneMs();
     }
@@ -1034,11 +1000,7 @@ class OperationProcessor {
    *
    * @return `true` if this processor is running
    */
-  bool get isRunning {
-    {
-      return identical(_state, ProcessorState.RUNNING);
-    }
-  }
+  bool get isRunning => identical(_state, ProcessorState.RUNNING);
 
   void threadYield() {
   }
@@ -1079,8 +1041,6 @@ class ProcessorState extends Enum<ProcessorState> {
 
 /**
  * Constants used when populating and accessing the index.
- *
- * @coverage dart.engine.index
  */
 abstract class IndexConstants {
   /**
@@ -1212,12 +1172,20 @@ abstract class IndexConstants {
    * location (the right operand). This is used for methods.
    */
   static final Relationship IS_INVOKED_BY_UNQUALIFIED = Relationship.getRelationship("is-invoked-by-unqualified");
+
+  /**
+   * Reference to some [AngularElement].
+   */
+  static final Relationship ANGULAR_REFERENCE = Relationship.getRelationship("angular-reference");
+
+  /**
+   * Reference to some closing tag of an XML element.
+   */
+  static final Relationship ANGULAR_CLOSING_TAG_REFERENCE = Relationship.getRelationship("angular-closing-tag-reference");
 }
 
 /**
  * Visits resolved [HtmlUnit] and adds relationships into [IndexStore].
- *
- * @coverage dart.engine.index
  */
 class AngularHtmlIndexContributor extends ExpressionVisitor {
   /**
@@ -1248,7 +1216,7 @@ class AngularHtmlIndexContributor extends ExpressionVisitor {
       SimpleIdentifier identifier = expression;
       Element element = identifier.bestElement;
       if (element is AngularElement) {
-        _store.recordRelationship(element, IndexConstants.IS_REFERENCED_BY, createLocation(identifier));
+        _store.recordRelationship(element, IndexConstants.ANGULAR_REFERENCE, createLocationForIdentifier(identifier));
         return;
       }
     }
@@ -1267,8 +1235,8 @@ class AngularHtmlIndexContributor extends ExpressionVisitor {
     Element element = node.element;
     if (element != null) {
       ht.Token nameToken = node.nameToken;
-      Location location = createLocation2(nameToken);
-      _store.recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
+      Location location = createLocationForToken(nameToken);
+      _store.recordRelationship(element, IndexConstants.ANGULAR_REFERENCE, location);
     }
     return super.visitXmlAttributeNode(node);
   }
@@ -1276,16 +1244,25 @@ class AngularHtmlIndexContributor extends ExpressionVisitor {
   Object visitXmlTagNode(ht.XmlTagNode node) {
     Element element = node.element;
     if (element != null) {
-      ht.Token tagToken = node.tagToken;
-      Location location = createLocation2(tagToken);
-      _store.recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
+      // tag
+      {
+        ht.Token tagToken = node.tagToken;
+        Location location = createLocationForToken(tagToken);
+        _store.recordRelationship(element, IndexConstants.ANGULAR_REFERENCE, location);
+      }
+      // maybe add closing tag range
+      ht.Token closingTag = node.closingTag;
+      if (closingTag != null) {
+        Location location = createLocationForToken(closingTag);
+        _store.recordRelationship(element, IndexConstants.ANGULAR_CLOSING_TAG_REFERENCE, location);
+      }
     }
     return super.visitXmlTagNode(node);
   }
 
-  Location createLocation(SimpleIdentifier identifier) => new Location(_htmlUnitElement, identifier.offset, identifier.length);
+  Location createLocationForIdentifier(SimpleIdentifier identifier) => new Location(_htmlUnitElement, identifier.offset, identifier.length);
 
-  Location createLocation2(ht.Token token) => new Location(_htmlUnitElement, token.offset, token.length);
+  Location createLocationForToken(ht.Token token) => new Location(_htmlUnitElement, token.offset, token.length);
 }
 
 class IndexContributor_AngularHtmlIndexContributor extends IndexContributor {
@@ -1299,7 +1276,7 @@ class IndexContributor_AngularHtmlIndexContributor extends IndexContributor {
     AngularElement angularElement = AngularHtmlUnitResolver.getAngularElement(element);
     if (angularElement != null) {
       element = angularElement;
-      relationship = IndexConstants.IS_REFERENCED_BY;
+      relationship = IndexConstants.ANGULAR_REFERENCE;
     }
     super.recordRelationship(element, relationship, location);
   }
@@ -1315,8 +1292,6 @@ class IndexContributor_AngularHtmlIndexContributor extends IndexContributor {
  * the expectation that operations are performed in the order in which they are requested.
  * Modification operations are executed before any read operation. There is no guarantee about the
  * order in which the callbacks for read operations will be invoked.
- *
- * @coverage dart.engine.index
  */
 abstract class Index {
   /**
@@ -1402,8 +1377,6 @@ abstract class Index {
 
 /**
  * Container of information computed by the index - relationships between elements.
- *
- * @coverage dart.engine.index
  */
 abstract class IndexStore {
   /**
@@ -1510,8 +1483,6 @@ abstract class IndexStore {
 
 /**
  * Implementation of [UniverseElement].
- *
- * @coverage dart.engine.index
  */
 class UniverseElementImpl extends ElementImpl implements UniverseElement {
   static UniverseElementImpl INSTANCE = new UniverseElementImpl();
@@ -1525,10 +1496,8 @@ class UniverseElementImpl extends ElementImpl implements UniverseElement {
 
 /**
  * Visits resolved AST and adds relationships into [IndexStore].
- *
- * @coverage dart.engine.index
  */
-class IndexContributor extends GeneralizingASTVisitor<Object> {
+class IndexContributor extends GeneralizingAstVisitor<Object> {
   /**
    * @return the [Location] representing location of the [Element].
    */
@@ -1557,20 +1526,24 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
   static IndexContributor_ImportElementInfo getImportElementInfo(SimpleIdentifier prefixNode) {
     IndexContributor_ImportElementInfo info = new IndexContributor_ImportElementInfo();
     // prepare environment
-    ASTNode parent = prefixNode.parent;
-    CompilationUnit unit = prefixNode.getAncestor(CompilationUnit);
+    AstNode parent = prefixNode.parent;
+    CompilationUnit unit = prefixNode.getAncestor((node) => node is CompilationUnit);
     LibraryElement libraryElement = unit.element.library;
     // prepare used element
     Element usedElement = null;
     if (parent is PrefixedIdentifier) {
       PrefixedIdentifier prefixed = parent;
-      usedElement = prefixed.staticElement;
-      info._periodEnd = prefixed.period.end;
+      if (identical(prefixed.prefix, prefixNode)) {
+        usedElement = prefixed.staticElement;
+        info._periodEnd = prefixed.period.end;
+      }
     }
     if (parent is MethodInvocation) {
       MethodInvocation invocation = parent;
-      usedElement = invocation.methodName.staticElement;
-      info._periodEnd = invocation.period.end;
+      if (identical(invocation.target, prefixNode)) {
+        usedElement = invocation.methodName.staticElement;
+        info._periodEnd = invocation.period.end;
+      }
     }
     // we need used Element
     if (usedElement == null) {
@@ -1709,9 +1682,9 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
       return location;
     }
     // should be LHS of assignment
-    ASTNode parent;
+    AstNode parent;
     {
-      ASTNode node = identifier;
+      AstNode node = identifier;
       parent = node.parent;
       // new T().field = x;
       if (parent is PropertyAccess) {
@@ -1741,10 +1714,18 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
   }
 
   /**
+   * @return `true` if given "node" is part of an import [Combinator].
+   */
+  static bool isIdentifierInImportCombinator(SimpleIdentifier node) {
+    AstNode parent = node.parent;
+    return parent is Combinator;
+  }
+
+  /**
    * @return `true` if given "node" is part of [PrefixedIdentifier] "prefix.node".
    */
   static bool isIdentifierInPrefixedIdentifier(SimpleIdentifier node) {
-    ASTNode parent = node.parent;
+    AstNode parent = node.parent;
     return parent is PrefixedIdentifier && identical(parent.identifier, node);
   }
 
@@ -1753,7 +1734,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
    *         method invocation.
    */
   static bool isQualified(SimpleIdentifier node) {
-    ASTNode parent = node.parent;
+    AstNode parent = node.parent;
     if (parent is PrefixedIdentifier) {
       return identical(parent.identifier, node);
     }
@@ -1826,7 +1807,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
           InterfaceType superType = element.supertype;
           if (superType != null) {
             ClassElement objectElement = superType.element;
-            recordRelationship(objectElement, IndexConstants.IS_EXTENDED_BY, createLocation4(node.name.offset, 0));
+            recordRelationship(objectElement, IndexConstants.IS_EXTENDED_BY, createLocationFromOffset(node.name.offset, 0));
           }
         }
       }
@@ -1905,10 +1886,10 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
       if (node.name != null) {
         int start = node.period.offset;
         int end = node.name.end;
-        location = createLocation4(start, end - start);
+        location = createLocationFromOffset(start, end - start);
       } else {
         int start = node.returnType.end;
-        location = createLocation4(start, 0);
+        location = createLocationFromOffset(start, 0);
       }
       recordRelationship(element, IndexConstants.IS_DEFINED_BY, location);
     }
@@ -1923,15 +1904,21 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
 
   Object visitConstructorName(ConstructorName node) {
     ConstructorElement element = node.staticElement;
+    // in 'class B = A;' actually A constructors are invoked
+    if (element != null && element.isSynthetic && element.redirectedConstructor != null) {
+      element = element.redirectedConstructor;
+    }
+    // prepare location
     Location location;
     if (node.name != null) {
       int start = node.period.offset;
       int end = node.name.end;
-      location = createLocation4(start, end - start);
+      location = createLocationFromOffset(start, end - start);
     } else {
       int start = node.type.end;
-      location = createLocation4(start, 0);
+      location = createLocationFromOffset(start, 0);
     }
+    // record relationship
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitConstructorName(node);
   }
@@ -1985,7 +1972,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
     MethodElement element = node.bestElement;
     if (element is MethodElement) {
       Token operator = node.leftBracket;
-      Location location = createLocation5(operator);
+      Location location = createLocationFromToken(operator);
       recordRelationship(element, IndexConstants.IS_INVOKED_BY_QUALIFIED, location);
     }
     return super.visitIndexExpression(node);
@@ -2005,7 +1992,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
     SimpleIdentifier name = node.methodName;
     Element element = name.bestElement;
     if (element is MethodElement) {
-      Location location = createLocation3(name);
+      Location location = createLocationFromNode(name);
       Relationship relationship;
       if (node.target != null) {
         relationship = IndexConstants.IS_INVOKED_BY_QUALIFIED;
@@ -2015,7 +2002,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
       recordRelationship(element, relationship, location);
     }
     if (element is FunctionElement) {
-      Location location = createLocation3(name);
+      Location location = createLocationFromNode(name);
       recordRelationship(element, IndexConstants.IS_INVOKED_BY, location);
     }
     recordImportElementReferenceWithoutPrefix(name);
@@ -2024,13 +2011,13 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
 
   Object visitPartDirective(PartDirective node) {
     Element element = node.element;
-    Location location = createLocation3(node.uri);
+    Location location = createLocationFromNode(node.uri);
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitPartDirective(node);
   }
 
   Object visitPartOfDirective(PartOfDirective node) {
-    Location location = createLocation3(node.libraryName);
+    Location location = createLocationFromNode(node.libraryName);
     recordRelationship(node.element, IndexConstants.IS_REFERENCED_BY, location);
     return null;
   }
@@ -2047,7 +2034,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
 
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     Element nameElement = new NameElementImpl(node.name);
-    Location location = createLocation3(node);
+    Location location = createLocationFromNode(node);
     // name in declaration
     if (node.inDeclarationContext()) {
       recordRelationship(nameElement, IndexConstants.IS_DEFINED_BY, location);
@@ -2103,10 +2090,10 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
     if (node.constructorName != null) {
       int start = node.period.offset;
       int end = node.constructorName.end;
-      location = createLocation4(start, end - start);
+      location = createLocationFromOffset(start, end - start);
     } else {
       int start = node.keyword.end;
-      location = createLocation4(start, 0);
+      location = createLocationFromOffset(start, 0);
     }
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitSuperConstructorInvocation(node);
@@ -2136,7 +2123,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
     // record declaration
     {
       SimpleIdentifier name = node.name;
-      Location location = createLocation3(name);
+      Location location = createLocationFromNode(name);
       location = getLocationWithExpressionType(location, node.initializer);
       recordRelationship(element, IndexConstants.IS_DEFINED_BY, location);
     }
@@ -2184,9 +2171,9 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
   }
 
   /**
-   * @return the [Location] representing location of the [ASTNode].
+   * @return the [Location] representing location of the [AstNode].
    */
-  Location createLocation3(ASTNode node) => createLocation4(node.offset, node.length);
+  Location createLocationFromNode(AstNode node) => createLocationFromOffset(node.offset, node.length);
 
   /**
    * @param offset the offset of the location within [Source]
@@ -2194,7 +2181,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
    * @return the [Location] representing the given offset and length within the inner-most
    *         [Element].
    */
-  Location createLocation4(int offset, int length) {
+  Location createLocationFromOffset(int offset, int length) {
     Element element = peekElement();
     return new Location(element, offset, length);
   }
@@ -2202,7 +2189,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
   /**
    * @return the [Location] representing location of the [Token].
    */
-  Location createLocation5(Token token) => createLocation4(token.offset, token.length);
+  Location createLocationFromToken(Token token) => createLocationFromOffset(token.offset, token.length);
 
   /**
    * Exit the current scope.
@@ -2216,7 +2203,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
    *         not be indexed again.
    */
   bool isAlreadyHandledName(SimpleIdentifier node) {
-    ASTNode parent = node.parent;
+    AstNode parent = node.parent;
     if (parent is MethodInvocation) {
       Element element = node.staticElement;
       if (element is MethodElement || element is FunctionElement) {
@@ -2240,13 +2227,16 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
    * top-level element and not qualified with import prefix.
    */
   void recordImportElementReferenceWithoutPrefix(SimpleIdentifier node) {
+    if (isIdentifierInImportCombinator(node)) {
+      return;
+    }
     if (isIdentifierInPrefixedIdentifier(node)) {
       return;
     }
     Element element = node.staticElement;
     ImportElement importElement = getImportElement2(_libraryElement, null, element, _importElementsMap);
     if (importElement != null) {
-      Location location = createLocation4(node.offset, 0);
+      Location location = createLocationFromOffset(node.offset, 0);
       recordRelationship(importElement, IndexConstants.IS_REFERENCED_BY, location);
     }
   }
@@ -2260,7 +2250,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
     if (info != null) {
       int offset = prefixNode.offset;
       int length = info._periodEnd - offset;
-      Location location = createLocation4(offset, length);
+      Location location = createLocationFromOffset(offset, length);
       recordRelationship(info._element, IndexConstants.IS_REFERENCED_BY, location);
     }
   }
@@ -2271,7 +2261,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
    */
   void recordLibraryReference(UriBasedDirective node, LibraryElement library) {
     if (library != null) {
-      Location location = createLocation3(node.uri);
+      Location location = createLocationFromNode(node.uri);
       recordRelationship(library.definingCompilationUnit, IndexConstants.IS_REFERENCED_BY, location);
     }
   }
@@ -2281,7 +2271,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
    */
   void recordOperatorReference(Token operator, Element element) {
     // prepare location
-    Location location = createLocation5(operator);
+    Location location = createLocationFromToken(operator);
     // record name reference
     {
       String name = operator.lexeme;
@@ -2324,7 +2314,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
       Identifier superName = superNode.name;
       if (superName != null) {
         Element superElement = superName.staticElement;
-        recordRelationship(superElement, relationship, createLocation3(superNode));
+        recordRelationship(superElement, relationship, createLocationFromNode(superNode));
       }
     }
   }
@@ -2342,8 +2332,6 @@ class IndexContributor_ImportElementInfo {
 
 /**
  * Factory for [Index] and [IndexStore].
- *
- * @coverage dart.engine.index
  */
 class IndexFactory {
   /**
@@ -2364,8 +2352,6 @@ class IndexFactory {
 /**
  * Instances of the [OperationQueue] represent a queue of operations against the index that
  * are waiting to be performed.
- *
- * @coverage dart.engine.index
  */
 class OperationQueue {
   /**
@@ -2407,21 +2393,19 @@ class OperationQueue {
    *           while it was waiting for an operation to be added to the queue
    */
   IndexOperation dequeue(int timeout) {
-    {
-      if (_nonQueryOperations.isEmpty && (!_processQueries || _queryOperations.isEmpty)) {
-        if (timeout <= 0) {
-          return null;
-        }
-        waitForOperationAvailable(timeout);
+    if (_nonQueryOperations.isEmpty && (!_processQueries || _queryOperations.isEmpty)) {
+      if (timeout <= 0) {
+        return null;
       }
-      if (!_nonQueryOperations.isEmpty) {
-        return _nonQueryOperations.removeFirst();
-      }
-      if (_processQueries && !_queryOperations.isEmpty) {
-        return _queryOperations.removeFirst();
-      }
-      return null;
+      waitForOperationAvailable(timeout);
     }
+    if (!_nonQueryOperations.isEmpty) {
+      return _nonQueryOperations.removeFirst();
+    }
+    if (_processQueries && !_queryOperations.isEmpty) {
+      return _queryOperations.removeFirst();
+    }
+    return null;
   }
 
   /**
@@ -2430,19 +2414,17 @@ class OperationQueue {
    * @param operation the operation to be added to the queue
    */
   void enqueue(IndexOperation operation) {
-    {
-      if (operation is RemoveSourceOperation) {
-        Source source = operation.source;
-        removeForSource(source, _nonQueryOperations);
-        removeForSource(source, _queryOperations);
-      }
-      if (operation.isQuery) {
-        _queryOperations.add(operation);
-      } else {
-        _nonQueryOperations.add(operation);
-      }
-      notifyOperationAvailable();
+    if (operation is RemoveSourceOperation) {
+      Source source = operation.source;
+      removeForSource(source, _nonQueryOperations);
+      removeForSource(source, _queryOperations);
     }
+    if (operation.isQuery) {
+      _queryOperations.add(operation);
+    } else {
+      _nonQueryOperations.add(operation);
+    }
+    notifyOperationAvailable();
   }
 
   /**
@@ -2453,10 +2435,8 @@ class OperationQueue {
    */
   List<IndexOperation> get operations {
     List<IndexOperation> operations = [];
-    {
-      operations.addAll(_nonQueryOperations);
-      operations.addAll(_queryOperations);
-    }
+    operations.addAll(_nonQueryOperations);
+    operations.addAll(_queryOperations);
     return operations;
   }
 
@@ -2469,12 +2449,10 @@ class OperationQueue {
    *          with a value of `true`.
    */
   void set processQueries(bool processQueries) {
-    {
-      if (this._processQueries != processQueries) {
-        this._processQueries = processQueries;
-        if (processQueries && !_queryOperations.isEmpty) {
-          notifyOperationAvailable();
-        }
+    if (this._processQueries != processQueries) {
+      this._processQueries = processQueries;
+      if (processQueries && !_queryOperations.isEmpty) {
+        notifyOperationAvailable();
       }
     }
   }
@@ -2484,11 +2462,7 @@ class OperationQueue {
    *
    * @return the number of operations on the queue
    */
-  int size() {
-    {
-      return _nonQueryOperations.length + _queryOperations.length;
-    }
-  }
+  int size() => _nonQueryOperations.length + _queryOperations.length;
 
   void notifyOperationAvailable() {
   }
@@ -2507,8 +2481,6 @@ class OperationQueue {
 /**
  * Special [Element] which is used to index references to the name without specifying concrete
  * kind of this name - field, method or something else.
- *
- * @coverage dart.engine.index
  */
 class NameElementImpl extends ElementImpl {
   NameElementImpl(String name) : super.con2("name:${name}", -1);
@@ -2521,10 +2493,8 @@ class NameElementImpl extends ElementImpl {
 /**
  * Visits resolved [CompilationUnit] and adds Angular specific relationships into
  * [IndexStore].
- *
- * @coverage dart.engine.index
  */
-class AngularDartIndexContributor extends GeneralizingASTVisitor<Object> {
+class AngularDartIndexContributor extends GeneralizingAstVisitor<Object> {
   IndexStore _store;
 
   AngularDartIndexContributor(IndexStore store) {
@@ -2559,11 +2529,17 @@ class AngularDartIndexContributor extends GeneralizingASTVisitor<Object> {
     indexProperties(directive.properties);
   }
 
+  /**
+   * Index [FieldElement] references from [AngularPropertyElement]s.
+   */
   void indexProperties(List<AngularPropertyElement> properties) {
     for (AngularPropertyElement property in properties) {
       FieldElement field = property.field;
       if (field != null) {
         int offset = property.fieldNameOffset;
+        if (offset == -1) {
+          continue;
+        }
         int length = field.name.length;
         Location location = new Location(property, offset, length);
         // getter reference
@@ -2588,8 +2564,6 @@ class AngularDartIndexContributor extends GeneralizingASTVisitor<Object> {
 /**
  * Instances of the [RemoveContextOperation] implement an operation that removes from the
  * index any data based on the specified [AnalysisContext].
- *
- * @coverage dart.engine.index
  */
 class RemoveContextOperation implements IndexOperation {
   /**
@@ -2615,9 +2589,7 @@ class RemoveContextOperation implements IndexOperation {
   bool get isQuery => false;
 
   void performOperation() {
-    {
-      _indexStore.removeContext(context);
-    }
+    _indexStore.removeContext(context);
   }
 
   bool removeWhenSourceRemoved(Source source) => false;
@@ -2628,8 +2600,6 @@ class RemoveContextOperation implements IndexOperation {
 /**
  * Instances of the [IndexHtmlUnitOperation] implement an operation that adds data to the
  * index based on the resolved [HtmlUnit].
- *
- * @coverage dart.engine.index
  */
 class IndexHtmlUnitOperation implements IndexOperation {
   /**
@@ -2679,17 +2649,15 @@ class IndexHtmlUnitOperation implements IndexOperation {
   bool get isQuery => false;
 
   void performOperation() {
-    {
-      try {
-        bool mayIndex = _indexStore.aboutToIndex2(_context, _htmlElement);
-        if (!mayIndex) {
-          return;
-        }
-        AngularHtmlIndexContributor contributor = new AngularHtmlIndexContributor(_indexStore);
-        unit.accept(contributor);
-      } catch (exception) {
-        AnalysisEngine.instance.logger.logError2("Could not index ${unit.element.location}", exception);
+    try {
+      bool mayIndex = _indexStore.aboutToIndex2(_context, _htmlElement);
+      if (!mayIndex) {
+        return;
       }
+      AngularHtmlIndexContributor contributor = new AngularHtmlIndexContributor(_indexStore);
+      unit.accept(contributor);
+    } catch (exception) {
+      AnalysisEngine.instance.logger.logError2("Could not index ${unit.element.location}", exception);
     }
   }
 
@@ -2702,8 +2670,6 @@ class IndexHtmlUnitOperation implements IndexOperation {
  * Instances of the class <code>Location</code> represent a location related to an element. The
  * location is expressed as an offset and length, but the offset is relative to the resource
  * containing the element rather than the start of the element within that resource.
- *
- * @coverage dart.engine.index
  */
 class Location {
   /**
@@ -2753,8 +2719,6 @@ class Location {
 /**
  * [IndexStore] which keeps all information in memory, but can write it to stream and read
  * later.
- *
- * @coverage dart.engine.index
  */
 abstract class MemoryIndexStore implements IndexStore {
 }
@@ -2762,8 +2726,6 @@ abstract class MemoryIndexStore implements IndexStore {
 /**
  * Instances of the [GetRelationshipsOperation] implement an operation used to access the
  * locations that have a specified relationship with a specified element.
- *
- * @coverage dart.engine.index
  */
 class GetRelationshipsOperation implements IndexOperation {
   IndexStore _indexStore;
@@ -2786,9 +2748,7 @@ class GetRelationshipsOperation implements IndexOperation {
 
   void performOperation() {
     List<Location> locations;
-    {
-      locations = _indexStore.getRelationships(element, relationship);
-    }
+    locations = _indexStore.getRelationships(element, relationship);
     callback.hasRelationships(element, relationship, locations);
   }
 
@@ -2813,8 +2773,6 @@ class LocationWithData<D> extends Location {
 /**
  * The interface <code>RelationshipCallback</code> defines the behavior of objects that are invoked
  * with the results of a query about a given relationship.
- *
- * @coverage dart.engine.index
  */
 abstract class RelationshipCallback {
   /**

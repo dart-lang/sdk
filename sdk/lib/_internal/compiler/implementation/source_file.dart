@@ -118,10 +118,14 @@ abstract class SourceFile {
     var line = getLine(start);
     var column = getColumn(line, start);
 
-    var buf = new StringBuffer(
-        '${filename}:${line + 1}:${column + 1}: $message');
-    if (includeText) {
-      buf.write('\n');
+    var buf = new StringBuffer('${filename}:');
+    if (start != end || start != 0) {
+      // Line/column info is relevant.
+      buf.write('${line + 1}:${column + 1}:');
+    }
+    buf.write('\n$message\n');
+
+    if (start != end && includeText) {
       String textLine;
       // +1 for 0-indexing, +1 again to avoid the last line of the file
       if ((line + 2) < lineStarts.length) {

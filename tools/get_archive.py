@@ -43,22 +43,14 @@ DARTIUM_LATEST_PATTERN = (
 DARTIUM_PERMANENT_PATTERN = ('gs://dartium-archive/dartium-%(osname)s-%(bot)s/'
                              'dartium-%(osname)s-%(bot)s-%(num1)s.%(num2)s.zip')
 
-CHROMEDRIVER_DIR = os.path.join('tools', 'testing', 'dartium-chromedriver')
-CHROMEDRIVER_VERSION = os.path.join(CHROMEDRIVER_DIR, 'LAST_VERSION')
-CHROMEDRIVER_LATEST_PATTERN = (
-    'gs://dartium-archive/latest/chromedriver-%(osname)s-%(bot)s-*.zip')
-CHROMEDRIVER_PERMANENT_PATTERN = ('gs://dartium-archive/chromedriver-%(osname)s'
-                                  '-%(bot)s/chromedriver-%(osname)s-%(bot)s-%(num1)s.'
-                                  '%(num2)s.zip')
-
 SDK_DIR = os.path.join(utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32'),
     'dart-sdk')
 SDK_VERSION = os.path.join(SDK_DIR, 'LAST_VERSION')
-SDK_LATEST_PATTERN = 'gs://dart-editor-archive-continuous/latest/VERSION'
+SDK_LATEST_PATTERN = 'gs://dart-archive/channels/dev/raw/latest/VERSION'
 # TODO(efortuna): Once the x64 VM also is optimized, select the version
 # based on whether we are running on a 32-bit or 64-bit system.
-SDK_PERMANENT = ('gs://dart-editor-archive-continuous/%(version_num)s/' +
-    'dartsdk-%(osname)s-32.zip')
+SDK_PERMANENT = ('gs://dart-archive/channels/dev/raw/%(version_num)s/sdk/' +
+    'dartsdk-%(osname)s-ia32-release.zip')
 
 # Dictionary storing the earliest revision of each download we have stored.
 LAST_VALID = {'dartium': 4285, 'chromedriver': 7823, 'sdk': 9761, 'drt': 5342}
@@ -348,10 +340,6 @@ def main():
     GetDartiumRevision('Dartium', bot, DARTIUM_DIR, DARTIUM_VERSION,
                          DARTIUM_LATEST_PATTERN, DARTIUM_PERMANENT_PATTERN,
                          args.revision)
-  elif positional[0] == 'chromedriver':
-    GetDartiumRevision('chromedriver', bot, CHROMEDRIVER_DIR, CHROMEDRIVER_VERSION,
-                         CHROMEDRIVER_LATEST_PATTERN,
-                         CHROMEDRIVER_PERMANENT_PATTERN, args.revision)
   elif positional[0] == 'sdk':
     GetSdkRevision('sdk', SDK_DIR, SDK_VERSION, SDK_LATEST_PATTERN,
         SDK_PERMANENT, args.revision)

@@ -16,7 +16,9 @@ class Extensions {
  public:
   // TODO(whesse): Make extension load from a relative path relative to
   // the library it is in.  Currently loads from current working directory.
-  static Dart_Handle LoadExtension(const char* extension_url,
+  static Dart_Handle LoadExtension(const char* extension_directory,
+                                   const char* extension_filename,
+                                   const char* extension_name,
                                    Dart_Handle parent_library);
 
  private:
@@ -24,8 +26,7 @@ class Extensions {
   static char* Concatenate(const char** strings);
 
   // Platform-specific implementations.
-  static void* LoadExtensionLibrary(const char* library_path,
-                                    const char* extension_name);
+  static void* LoadExtensionLibrary(const char* library_file);
   static void* ResolveSymbol(void* lib_handle, const char* symbol);
 
   DISALLOW_ALLOCATION();

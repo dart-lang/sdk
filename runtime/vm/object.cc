@@ -419,8 +419,10 @@ static type SpecialCharacter(type value) {
 }
 
 
-static void DeleteWeakPersistentHandle(Dart_WeakPersistentHandle handle) {
-  ApiState* state = Isolate::Current()->api_state();
+static void DeleteWeakPersistentHandle(Dart_Isolate current_isolate,
+                                       Dart_WeakPersistentHandle handle) {
+  Isolate* isolate = reinterpret_cast<Isolate*>(current_isolate);
+  ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   FinalizablePersistentHandle* weak_ref =
       reinterpret_cast<FinalizablePersistentHandle*>(handle);
@@ -2018,14 +2020,16 @@ void Class::set_type_parameters(const TypeArguments& value) const {
 }
 
 
-intptr_t Class::NumTypeParameters() const {
+intptr_t Class::NumTypeParameters(Isolate* isolate) const {
   if (IsMixinApplication() && !is_mixin_type_applied()) {
     ClassFinalizer::ApplyMixinType(*this);
   }
   if (type_parameters() == TypeArguments::null()) {
     return 0;
   }
-  const TypeArguments& type_params = TypeArguments::Handle(type_parameters());
+  ReusableHandleScope reused_handles(isolate);
+  TypeArguments& type_params = reused_handles.TypeArgumentsHandle();
+  type_params = type_parameters();
   return type_params.Length();
 }
 
@@ -4528,7 +4532,13 @@ void Function::SetCode(const Code& value) const {
   StorePointer(&raw_ptr()->code_, value.raw());
   ASSERT(Function::Handle(value.function()).IsNull() ||
     (value.function() == this->raw()));
-  value.set_function(*this);
+  value.set_owner(*this);
+}
+
+
+void Function::ClearCode() const {
+  StorePointer(&raw_ptr()->code_, Code::null());
+  StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
 }
 
 
@@ -6655,10 +6665,12 @@ void TokenStream::SetStream(const ExternalTypedData& value) const {
 }
 
 
-void TokenStream::DataFinalizer(Dart_WeakPersistentHandle handle, void *peer) {
+void TokenStream::DataFinalizer(Dart_Isolate isolate,
+                                Dart_WeakPersistentHandle handle,
+                                void *peer) {
   ASSERT(peer != NULL);
   ::free(peer);
-  DeleteWeakPersistentHandle(handle);
+  DeleteWeakPersistentHandle(isolate, handle);
 }
 
 
@@ -10258,8 +10270,8 @@ bool Code::FindRawCodeVisitor::FindObject(RawObject* obj) const {
 }
 
 
-RawCode* Code::LookupCode(uword pc) {
-  Isolate* isolate = Isolate::Current();
+RawCode* Code::LookupCodeInIsolate(Isolate* isolate, uword pc) {
+  ASSERT((isolate == Isolate::Current()) || (isolate == Dart::vm_isolate()));
   NoGCScope no_gc;
   FindRawCodeVisitor visitor(pc);
   RawInstructions* instr;
@@ -10271,6 +10283,16 @@ RawCode* Code::LookupCode(uword pc) {
     return instr->ptr()->code_;
   }
   return Code::null();
+}
+
+
+RawCode* Code::LookupCode(uword pc) {
+  return LookupCodeInIsolate(Isolate::Current(), pc);
+}
+
+
+RawCode* Code::LookupCodeInVmIsolate(uword pc) {
+  return LookupCodeInIsolate(Dart::vm_isolate(), pc);
 }
 
 
@@ -10322,31 +10344,68 @@ const char* Code::ToCString() const {
 }
 
 
+RawString* Code::Name() const {
+  const Object& obj = Object::Handle(owner());
+  if (obj.IsNull()) {
+    // Regular stub.
+    const char* name = StubCode::NameOfStub(EntryPoint());
+    ASSERT(name != NULL);
+    return String::New(name);
+  } else if (obj.IsClass()) {
+    // Allocation stub.
+    const Class& cls = Class::Cast(obj);
+    String& cls_name = String::Handle(cls.Name());
+    ASSERT(!cls_name.IsNull());
+    return String::Concat(Symbols::AllocationStubFor(), cls_name);
+  } else {
+    ASSERT(obj.IsFunction());
+    // Dart function.
+    return Function::Cast(obj).name();
+  }
+}
+
+
+RawString* Code::UserName() const {
+  const Object& obj = Object::Handle(owner());
+  if (obj.IsNull()) {
+    // Regular stub.
+    const char* name = StubCode::NameOfStub(EntryPoint());
+    ASSERT(name != NULL);
+    return String::New(name);
+  } else if (obj.IsClass()) {
+    // Allocation stub.
+    const Class& cls = Class::Cast(obj);
+    String& cls_name = String::Handle(cls.Name());
+    ASSERT(!cls_name.IsNull());
+    return String::Concat(Symbols::AllocationStubFor(), cls_name);
+  } else {
+    ASSERT(obj.IsFunction());
+    // Dart function.
+    return Function::Cast(obj).QualifiedUserVisibleName();
+  }
+}
+
+
 void Code::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "code/%" Px "", EntryPoint());
   jsobj.AddPropertyF("start", "%" Px "", EntryPoint());
   jsobj.AddPropertyF("end", "%" Px "", EntryPoint() + Size());
-  Function& func = Function::Handle();
-  func ^= function();
-  ASSERT(!func.IsNull());
-  String& name = String::Handle();
-  ASSERT(!func.IsNull());
-  name ^= func.name();
-  const char* internal_function_name = name.ToCString();
-  jsobj.AddPropertyF("name", "%s%s", is_optimized() ? "*" : "",
-                                     internal_function_name);
-  name ^= func.QualifiedUserVisibleName();
-  const char* function_name = name.ToCString();
-  jsobj.AddPropertyF("user_name", "%s%s", is_optimized() ? "*" : "",
-                                          function_name);
+  jsobj.AddProperty("is_optimized", is_optimized());
+  jsobj.AddProperty("is_alive", is_alive());
+  const String& name = String::Handle(Name());
+  const String& user_name = String::Handle(UserName());
+  const char* name_prefix = is_optimized() ? "*" : "";
+  jsobj.AddPropertyF("name", "%s%s", name_prefix, name.ToCString());
+  jsobj.AddPropertyF("user_name", "%s%s", name_prefix, user_name.ToCString());
+  const Object& obj = Object::Handle(owner());
+  if (obj.IsFunction()) {
+    jsobj.AddProperty("function", obj);
+  }
   if (ref) {
     return;
   }
-  jsobj.AddProperty("is_optimized", is_optimized());
-  jsobj.AddProperty("is_alive", is_alive());
-  jsobj.AddProperty("function", Object::Handle(function()));
   JSONArray jsarr(&jsobj, "disassembly");
   if (is_alive()) {
     // Only disassemble alive code objects.
@@ -12786,17 +12845,18 @@ bool Type::IsEquivalent(const Instance& other,
   if (arguments() == other_type.arguments()) {
     return true;
   }
-  const Class& cls = Class::Handle(type_class());
-  const intptr_t num_type_params = cls.NumTypeParameters();
+  Isolate* isolate = Isolate::Current();
+  const Class& cls = Class::Handle(isolate, type_class());
+  const intptr_t num_type_params = cls.NumTypeParameters(isolate);
   if (num_type_params == 0) {
     // Shortcut unnecessary handle allocation below.
     return true;
   }
   const intptr_t num_type_args = cls.NumTypeArguments();
   const intptr_t from_index = num_type_args - num_type_params;
-  const TypeArguments& type_args = TypeArguments::Handle(arguments());
+  const TypeArguments& type_args = TypeArguments::Handle(isolate, arguments());
   const TypeArguments& other_type_args = TypeArguments::Handle(
-      other_type.arguments());
+      isolate, other_type.arguments());
   if (type_args.IsNull()) {
     return other_type_args.IsRaw(from_index, num_type_params);
   }
@@ -12805,8 +12865,8 @@ bool Type::IsEquivalent(const Instance& other,
   }
   ASSERT(type_args.Length() >= (from_index + num_type_params));
   ASSERT(other_type_args.Length() >= (from_index + num_type_params));
-  AbstractType& type_arg = AbstractType::Handle();
-  AbstractType& other_type_arg = AbstractType::Handle();
+  AbstractType& type_arg = AbstractType::Handle(isolate);
+  AbstractType& other_type_arg = AbstractType::Handle(isolate);
   for (intptr_t i = 0; i < num_type_params; i++) {
     type_arg = type_args.TypeAt(from_index + i);
     other_type_arg = other_type_args.TypeAt(from_index + i);
@@ -15847,9 +15907,11 @@ void OneByteString::SetPeer(const String& str,
 }
 
 
-void OneByteString::Finalize(Dart_WeakPersistentHandle handle, void* peer) {
+void OneByteString::Finalize(Dart_Isolate isolate,
+                             Dart_WeakPersistentHandle handle,
+                             void* peer) {
   delete reinterpret_cast<ExternalStringData<uint8_t>*>(peer);
-  DeleteWeakPersistentHandle(handle);
+  DeleteWeakPersistentHandle(isolate, handle);
 }
 
 
@@ -16021,9 +16083,11 @@ void TwoByteString::SetPeer(const String& str,
 }
 
 
-void TwoByteString::Finalize(Dart_WeakPersistentHandle handle, void* peer) {
+void TwoByteString::Finalize(Dart_Isolate isolate,
+                             Dart_WeakPersistentHandle handle,
+                             void* peer) {
   delete reinterpret_cast<ExternalStringData<uint16_t>*>(peer);
-  DeleteWeakPersistentHandle(handle);
+  DeleteWeakPersistentHandle(isolate, handle);
 }
 
 
@@ -16058,10 +16122,11 @@ RawExternalOneByteString* ExternalOneByteString::New(
 }
 
 
-void ExternalOneByteString::Finalize(Dart_WeakPersistentHandle handle,
+void ExternalOneByteString::Finalize(Dart_Isolate isolate,
+                                     Dart_WeakPersistentHandle handle,
                                      void* peer) {
   delete reinterpret_cast<ExternalStringData<uint8_t>*>(peer);
-  DeleteWeakPersistentHandle(handle);
+  DeleteWeakPersistentHandle(isolate, handle);
 }
 
 
@@ -16096,10 +16161,11 @@ RawExternalTwoByteString* ExternalTwoByteString::New(
 }
 
 
-void ExternalTwoByteString::Finalize(Dart_WeakPersistentHandle handle,
+void ExternalTwoByteString::Finalize(Dart_Isolate isolate,
+                                     Dart_WeakPersistentHandle handle,
                                      void* peer) {
   delete reinterpret_cast<ExternalStringData<uint16_t>*>(peer);
-  DeleteWeakPersistentHandle(handle);
+  DeleteWeakPersistentHandle(isolate, handle);
 }
 
 
@@ -16266,12 +16332,18 @@ RawArray* Array::Grow(const Array& source,
 RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
   ASSERT(!growable_array.IsNull());
   intptr_t used_len = growable_array.Length();
-  if (used_len == 0) {
+  // Get the type arguments and prepare to copy them.
+  const TypeArguments& type_arguments =
+      TypeArguments::Handle(growable_array.GetTypeArguments());
+  if ((used_len == 0) && (type_arguments.IsNull())) {
+    // This is a raw List (as in no type arguments), so we can return the
+    // simple empty array.
     return Object::empty_array().raw();
   }
   intptr_t capacity_len = growable_array.Capacity();
   Isolate* isolate = Isolate::Current();
   const Array& array = Array::Handle(isolate, growable_array.data());
+  array.SetTypeArguments(type_arguments);
   intptr_t capacity_size = Array::InstanceSize(capacity_len);
   intptr_t used_size = Array::InstanceSize(used_len);
   NoGCScope no_gc;

@@ -60,15 +60,12 @@ class TableTree extends Observable {
   void toggle(int rowIndex) {
     assert(rowIndex >= 0);
     assert(rowIndex < rows.length);
-    print(rowIndex);
-    print(rows.length);
     var row = rows[rowIndex];
     if (row.toggle()) {
       _expand(row);
     } else {
       _collapse(row);
     }
-    print('e');
   }
 
   int _index(TableTreeRow row) => rows.indexOf(row);

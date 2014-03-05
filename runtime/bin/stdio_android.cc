@@ -67,12 +67,13 @@ void Stdin::SetLineMode(bool enabled) {
 bool Stdout::GetTerminalSize(int size[2]) {
   struct winsize w;
   if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
-        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) != 0)) {
-    return false;
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) &&
+      (w.ws_col != 0 || w.ws_row != 0)) {
+    size[0] = w.ws_col;
+    size[1] = w.ws_row;
+    return true;
   }
-  size[0] = w.ws_col;
-  size[1] = w.ws_row;
-  return true;
+  return false;
 }
 
 }  // namespace bin

@@ -194,7 +194,9 @@ class UnionTypeMask implements TypeMask {
   bool get isUnion => true;
   bool get isContainer => false;
   bool get isMap => false;
+  bool get isDictionary => false;
   bool get isForwarding => false;
+  bool get isValue => false;
 
   bool isInMask(TypeMask other, Compiler compiler) {
     return disjointMasks.every((mask) => mask.isInMask(other, compiler));

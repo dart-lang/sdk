@@ -218,6 +218,14 @@ class DoubleConstant extends NumConstant {
   }
 
   ti.TypeMask computeMask(Compiler compiler) {
+    // We have to distinguish -0.0 from 0, but for all practical purposes
+    // -0.0 is an integer.
+    // TODO(17235): this kind of special casing should only happen in the
+    // backend.
+    if (isMinusZero() && compiler.backend.constantSystem.isInt(this)) {
+      return compiler.typesTask.uint31Type;
+    }
+    assert(!compiler.backend.constantSystem.isInt(this));
     return compiler.typesTask.doubleType;
   }
 

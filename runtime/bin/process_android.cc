@@ -151,7 +151,7 @@ class ExitCodeHandler {
     running_ = false;
 
     // Fork to wake up waitpid.
-    if (TEMP_FAILURE_RETRY(fork()) == 0) {
+    if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(fork()) == 0) {
       exit(0);
     }
 
@@ -350,7 +350,7 @@ int Process::Start(const char* path,
     program_environment[environment_length] = NULL;
   }
 
-  pid = TEMP_FAILURE_RETRY(fork());
+  pid = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(fork());
   if (pid < 0) {
     SetChildOsErrorMessage(os_error_message);
     delete[] program_arguments;

@@ -1,6 +1,10 @@
 # Changelog - unittest
 
-##0.10.0-dev
+##0.10.1-dev
+
+* `equals` now allows a nested matcher as an expected list element or map value when doing deep matching.
+
+##0.10.0
 
 * Each test is run in a separate `Zone`. This ensures that any exceptions that
 occur is async operations are reported back to the source test case.

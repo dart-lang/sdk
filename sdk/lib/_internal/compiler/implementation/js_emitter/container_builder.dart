@@ -15,6 +15,9 @@ class ContainerBuilder extends CodeEmitterHelper {
   /// instance methods.
   final Map<String, Element> methodClosures = <String, Element>{};
 
+  bool needsSuperGetter(FunctionElement element) =>
+    compiler.codegenWorld.methodsNeedingSuperGetter.contains(element);
+
   /**
    * Generate stubs to handle invocation of methods with optional
    * arguments.
@@ -119,8 +122,21 @@ class ContainerBuilder extends CodeEmitterHelper {
           parametersBuffer, argumentsBuffer,
           indexOfLastOptionalArgumentInParameters);
     } else if (member.isInstanceMember()) {
-      body = [js.return_(
-          js('this')[namer.getNameOfInstanceMember(member)](argumentsBuffer))];
+      if (needsSuperGetter(member)) {
+        ClassElement superClass = member.getEnclosingClass();
+        String methodName = namer.getNameOfInstanceMember(member);
+        // When redirecting, we must ensure that we don't end up in a subclass.
+        // We thus can't just invoke `this.foo$1.call(filledInArguments)`.
+        // Instead we need to call the statically resolved target.
+        //   `<class>.prototype.bar$1.call(this, argument0, ...)`.
+        body = [js.return_(
+            backend.namer.elementAccess(superClass)['prototype'][methodName]
+            ["call"](["this"]..addAll(argumentsBuffer)))];
+      } else {
+        body = [js.return_(
+            js('this')
+            [namer.getNameOfInstanceMember(member)](argumentsBuffer))];
+      }
     } else {
       body = [js.return_(namer.elementAccess(member)(argumentsBuffer))];
     }
@@ -166,6 +182,13 @@ class ContainerBuilder extends CodeEmitterHelper {
     // (3) foo$3$d(a, b, d) => foo$4$c$d(a, b, null, d);
     // (4) No stub generated, call is direct.
     // (5) No stub generated, call is direct.
+    //
+    // We need to pay attention if this stub is for a function that has been
+    // invoked from a subclass. Then we cannot just redirect, since that
+    // would invoke the methods of the subclass. We have to compile to:
+    // (1) foo$2(a, b) => MyClass.foo$4$c$d.call(this, a, b, null, null)
+    // (2) foo$3$c(a, b, c) => MyClass.foo$4$c$d(this, a, b, c, null);
+    // (3) foo$3$d(a, b, d) => MyClass.foo$4$c$d(this, a, b, null, d);
 
     Set<Selector> selectors = member.isInstanceMember()
         ? compiler.codegenWorld.invokedNames[member.name]
@@ -342,6 +365,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       } else {
         // Careful with operators.
         canTearOff = compiler.codegenWorld.hasInvokedGetter(member, compiler);
+        assert(!needsSuperGetter(member) || canTearOff);
         tearOffName = namer.getterName(member);
       }
     } else {

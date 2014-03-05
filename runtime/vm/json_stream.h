@@ -72,6 +72,7 @@ class JSONStream : ValueObject {
 
   void PrintValueBool(bool b);
   void PrintValue(intptr_t i);
+  void PrintValue64(int64_t i);
   void PrintValue(double d);
   void PrintValue(const char* s);
   void PrintfValue(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
@@ -80,6 +81,7 @@ class JSONStream : ValueObject {
 
   void PrintPropertyBool(const char* name, bool b);
   void PrintProperty(const char* name, intptr_t i);
+  void PrintProperty64(const char* name, int64_t i);
   void PrintProperty(const char* name, double d);
   void PrintProperty(const char* name, const char* s);
   void PrintfProperty(const char* name, const char* format, ...)
@@ -128,6 +130,9 @@ class JSONObject : public ValueObject {
   void AddProperty(const char* name, intptr_t i) const {
     stream_->PrintProperty(name, i);
   }
+  void AddProperty64(const char* name, int64_t i) const {
+    stream_->PrintProperty64(name, i);
+  }
   void AddProperty(const char* name, double d) const {
     stream_->PrintProperty(name, d);
   }
@@ -167,6 +172,7 @@ class JSONArray : public ValueObject {
 
   void AddValue(bool b) const { stream_->PrintValueBool(b); }
   void AddValue(intptr_t i) const { stream_->PrintValue(i); }
+  void AddValue64(int64_t i) const { stream_->PrintValue64(i); }
   void AddValue(double d) const { stream_->PrintValue(d); }
   void AddValue(const char* s) const { stream_->PrintValue(s); }
   void AddValue(const Object& obj, bool ref = true) const {

@@ -151,14 +151,14 @@ class FormattingDiagnosticHandler {
       color = (x) => x;
     }
     if (uri == null) {
-      assert(fatal);
-      print(color(message));
+      print('${color(message)}');
     } else {
       SourceFile file = provider.sourceFiles[uri.toString()];
-      if (file == null) {
+      if (file != null) {
+        print(file.getLocationMessage(color(message), begin, end, true, color));
+      } else {
         throw '$uri: file is null';
       }
-      print(file.getLocationMessage(color(message), begin, end, true, color));
     }
     if (fatal && throwOnError) {
       isAborting = true;

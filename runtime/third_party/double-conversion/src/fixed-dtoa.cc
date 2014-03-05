@@ -28,7 +28,7 @@
 #include <math.h>
 
 #include "fixed-dtoa.h"
-#include "double.h"
+#include "ieee.h"
 
 namespace double_conversion {
 
@@ -133,7 +133,7 @@ static void FillDigits32(uint32_t number, Vector<char> buffer, int* length) {
   while (number != 0) {
     int digit = number % 10;
     number /= 10;
-    buffer[(*length) + number_length] = '0' + digit;
+    buffer[(*length) + number_length] = static_cast<char>('0' + digit);
     number_length++;
   }
   // Exchange the digits.
@@ -150,7 +150,7 @@ static void FillDigits32(uint32_t number, Vector<char> buffer, int* length) {
 }
 
 
-static void FillDigits64FixedLength(uint64_t number, int requested_length,
+static void FillDigits64FixedLength(uint64_t number,
                                     Vector<char> buffer, int* length) {
   const uint32_t kTen7 = 10000000;
   // For efficiency cut the number into 3 uint32_t parts, and print those.
@@ -253,7 +253,8 @@ static void FillFractionals(uint64_t fractionals, int exponent,
       fractionals *= 5;
       point--;
       int digit = static_cast<int>(fractionals >> point);
-      buffer[*length] = '0' + digit;
+      ASSERT(digit <= 9);
+      buffer[*length] = static_cast<char>('0' + digit);
       (*length)++;
       fractionals -= static_cast<uint64_t>(digit) << point;
     }
@@ -274,7 +275,8 @@ static void FillFractionals(uint64_t fractionals, int exponent,
       fractionals128.Multiply(5);
       point--;
       int digit = fractionals128.DivModPowerOf2(point);
-      buffer[*length] = '0' + digit;
+      ASSERT(digit <= 9);
+      buffer[*length] = static_cast<char>('0' + digit);
       (*length)++;
     }
     if (fractionals128.BitAt(point - 1) == 1) {
@@ -358,7 +360,7 @@ bool FastFixedDtoa(double v,
       remainder = (dividend % divisor) << exponent;
     }
     FillDigits32(quotient, buffer, length);
-    FillDigits64FixedLength(remainder, divisor_power, buffer, length);
+    FillDigits64FixedLength(remainder, buffer, length);
     *decimal_point = *length;
   } else if (exponent >= 0) {
     // 0 <= exponent <= 11

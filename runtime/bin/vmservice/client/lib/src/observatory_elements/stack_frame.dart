@@ -10,11 +10,5 @@ import 'package:polymer/polymer.dart';
 @CustomTag('stack-frame')
 class StackFrameElement extends ObservatoryElement {
   @published Map frame = toObservable({});
-  @published bool expanded = false;
-
   StackFrameElement.created() : super.created();
-
-  void toggleExpand(var a, var b, var c) {
-    expanded = !expanded;
-  }
 }

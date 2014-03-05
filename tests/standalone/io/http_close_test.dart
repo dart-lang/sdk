@@ -11,6 +11,7 @@ import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 import "dart:typed_data";
+import "dart:math";
 
 
 void testClientAndServerCloseNoListen(int connections) {
@@ -70,6 +71,11 @@ void testClientCloseServerListen(int connections) {
 
 
 void testClientCloseSendingResponse(int connections) {
+  var buffer = new Uint8List(64 * 1024);
+  var rand = new Random();
+  for (int i = 0; i < buffer.length; i++) {
+    buffer[i] = rand.nextInt(256);
+  }
   HttpServer.bind("127.0.0.1", 0).then((server) {
     int closed = 0;
     void check() {
@@ -83,8 +89,8 @@ void testClientCloseSendingResponse(int connections) {
       }
     }
     server.listen((request) {
-      var timer = new Timer.periodic(const Duration(milliseconds: 20), (_) {
-        request.response.add(new Uint8List(16 * 1024));
+      var timer = new Timer.periodic(const Duration(milliseconds: 50), (_) {
+        request.response.add(buffer);
       });
       request.response.done
           .catchError((_) {})
@@ -101,7 +107,7 @@ void testClientCloseSendingResponse(int connections) {
             // Ensure we don't accept the response until we have send the entire
             // request.
             var subscription = response.listen((_) {});
-            new Timer(const Duration(milliseconds: 200), () {
+            new Timer(const Duration(milliseconds: 20), () {
               subscription.cancel();
               check();
             });
@@ -115,9 +121,10 @@ void testClientCloseWhileSendingRequest(int connections) {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     int errors = 0;
     server.listen((request) {
-      request.listen((_) {}, onError: (e) { errors++; });
+      request.listen((_) {});
     });
     var client = new HttpClient();
+    int closed = 0;
     for (int i = 0; i < connections; i++) {
       client.post("127.0.0.1", server.port, "/")
           .then((request) {
@@ -125,14 +132,13 @@ void testClientCloseWhileSendingRequest(int connections) {
             request.write("0123456789");
             return request.close();
           })
-          .catchError((_) {});
+          .catchError((_) {
+            closed++;
+            if (closed == connections) {
+              server.close();
+            }
+          });
     }
-    new Timer.periodic(const Duration(milliseconds: 100), (t) {
-      if (errors == connections && server.connectionsInfo().total == 0) {
-        t.cancel();
-        server.close();
-      }
-    });
   });
 }
 

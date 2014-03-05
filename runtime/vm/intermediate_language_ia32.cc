@@ -24,6 +24,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
+DECLARE_FLAG(bool, use_slow_path);
 
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register EAX.
@@ -2255,6 +2256,16 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
 
 
 LocationSummary* AllocateContextInstr::MakeLocationSummary(bool opt) const {
+  if (opt) {
+    const intptr_t kNumInputs = 0;
+    const intptr_t kNumTemps = 2;
+    LocationSummary* locs = new LocationSummary(
+        kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+    locs->set_temp(0, Location::RegisterLocation(ECX));
+    locs->set_temp(1, Location::RegisterLocation(EBX));
+    locs->set_out(Location::RegisterLocation(EAX));
+    return locs;
+  }
   const intptr_t kNumInputs = 0;
   const intptr_t kNumTemps = 1;
   LocationSummary* locs =
@@ -2265,7 +2276,108 @@ LocationSummary* AllocateContextInstr::MakeLocationSummary(bool opt) const {
 }
 
 
+class AllocateContextSlowPath : public SlowPathCode {
+ public:
+  explicit AllocateContextSlowPath(AllocateContextInstr* instruction)
+      : instruction_(instruction) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    __ Comment("AllocateContextSlowPath");
+    __ Bind(entry_label());
+
+    LocationSummary* locs = instruction_->locs();
+    locs->live_registers()->Remove(locs->out());
+
+    compiler->SaveLiveRegisters(locs);
+
+    __ movl(EDX, Immediate(instruction_->num_context_variables()));
+    const ExternalLabel label("alloc_context",
+                              StubCode::AllocateContextEntryPoint());
+    compiler->GenerateCall(instruction_->token_pos(),
+                           &label,
+                           PcDescriptors::kOther,
+                           locs);
+    ASSERT(instruction_->locs()->out().reg() == EAX);
+    compiler->RestoreLiveRegisters(instruction_->locs());
+    __ jmp(exit_label());
+  }
+
+ private:
+  AllocateContextInstr* instruction_;
+};
+
+
+
 void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (compiler->is_optimizing()) {
+    Register temp0 = locs()->temp(0).reg();
+    Register temp1 = locs()->temp(1).reg();
+    Register result = locs()->out().reg();
+    // Try allocate the object.
+    AllocateContextSlowPath* slow_path = new AllocateContextSlowPath(this);
+    compiler->AddSlowPathCode(slow_path);
+    intptr_t instance_size = Context::InstanceSize(num_context_variables());
+    __ movl(temp1, Immediate(instance_size));
+    Isolate* isolate = Isolate::Current();
+    Heap* heap = isolate->heap();
+    __ movl(result, Address::Absolute(heap->TopAddress()));
+    __ addl(temp1, result);
+    // Check if the allocation fits into the remaining space.
+    // EAX: potential new object.
+    // EBX: potential next object start.
+    __ cmpl(temp1, Address::Absolute(heap->EndAddress()));
+    if (FLAG_use_slow_path) {
+      __ jmp(slow_path->entry_label());
+    } else {
+      __ j(ABOVE_EQUAL, slow_path->entry_label());
+    }
+
+    // Successfully allocated the object, now update top to point to
+    // next object start and initialize the object.
+    // EAX: new object.
+    // EBX: next object start.
+    // EDX: number of context variables.
+    __ movl(Address::Absolute(heap->TopAddress()), temp1);
+    __ addl(result, Immediate(kHeapObjectTag));
+    __ UpdateAllocationStatsWithSize(kContextCid, instance_size, kNoRegister);
+
+    // Calculate the size tag and write tags.
+    intptr_t size_tag = (instance_size > RawObject::SizeTag::kMaxSizeTag)
+        ? 0 : instance_size << (RawObject::kSizeTagBit - kObjectAlignmentLog2);
+
+    intptr_t tags = size_tag | RawObject::ClassIdTag::encode(kContextCid);
+    __ movl(FieldAddress(result, Context::tags_offset()), Immediate(tags));
+
+    // Setup up number of context variables field.
+    // EAX: new object.
+    __ movl(FieldAddress(result, Context::num_variables_offset()),
+            Immediate(num_context_variables()));
+
+    // Setup isolate field.
+    __ movl(FieldAddress(result, Context::isolate_offset()),
+            Immediate(reinterpret_cast<int32_t>(isolate)));
+
+    // Setup the parent field.
+    const Immediate& raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ movl(FieldAddress(result, Context::parent_offset()), raw_null);
+
+    // Initialize the context variables.
+    // EAX: new object.
+    if (num_context_variables() > 0) {
+      Label loop;
+      __ leal(temp1, FieldAddress(result, Context::variable_offset(0)));
+      __ movl(temp0, Immediate(num_context_variables()));
+      __ Bind(&loop);
+      __ decl(temp0);
+      __ movl(Address(temp1, temp0, TIMES_4, 0), raw_null);
+      __ j(NOT_ZERO, &loop, Assembler::kNearJump);
+    }
+    // EAX: new object.
+    __ Bind(slow_path->exit_label());
+    return;
+  }
+
   ASSERT(locs()->temp(0).reg() == EDX);
   ASSERT(locs()->out().reg() == EAX);
 

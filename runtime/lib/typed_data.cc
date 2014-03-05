@@ -43,8 +43,10 @@ static void LengthCheck(intptr_t len, intptr_t max) {
 }
 
 
-  static void PeerFinalizer(Dart_WeakPersistentHandle handle, void* peer) {
-  Dart_DeleteWeakPersistentHandle(handle);
+static void PeerFinalizer(Dart_Isolate isolate,
+                          Dart_WeakPersistentHandle handle,
+                          void* peer) {
+  Dart_DeleteWeakPersistentHandle(isolate, handle);
   OS::AlignedFree(peer);
 }
 

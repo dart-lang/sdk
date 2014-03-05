@@ -864,7 +864,7 @@ class _PairMatcher extends Matcher {
   }
 
   Description describe(Description description) {
-    description.addAll("(", ", ", ")", [_firstMatcher, _lastMatcher]);
+    return description.addAll("(", ", ", ")", [_firstMatcher, _lastMatcher]);
   }
 }
 

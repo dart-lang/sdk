@@ -444,8 +444,10 @@ class _Generator {
 
     // Outputs all the qualified names documented with their type.
     // This will help generate search results.
-    _writeToFile(filteredEntities.map((e) =>
-        '${e.qualifiedName} ${e.typeName}').join('\n') + '\n',
+    var sortedEntities = filteredEntities.map((e) =>
+        '${e.qualifiedName} ${e.typeName}').toList()..sort();
+
+    _writeToFile(sortedEntities.join('\n') + '\n',
         'index.txt', append: append);
     var index = new Map.fromIterables(
         filteredEntities.map((e) => e.qualifiedName),

@@ -1,12 +1,23 @@
 <head>
   <link rel="import" href="class_ref.html">
-  <link rel="import" href="observatory_element.html">
   <link rel="import" href="error_view.html">
   <link rel="import" href="field_ref.html">
   <link rel="import" href="instance_ref.html">
+  <link rel="import" href="nav_bar.html">
+  <link rel="import" href="observatory_element.html">
 </head>
 <polymer-element name="instance-view" extends="observatory-element">
   <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
+      </isolate-nav-menu>
+      <!-- TODO(turnidge): Add library nav menu here. -->
+      <class-nav-menu app="{{ app }}" cls="{{ instance['class'] }}"></class-nav-menu>
+      <nav-menu link="." anchor="instance" last="{{ true }}"></nav-menu>
+      <!-- TODO(turnidge): Add nav refresh here. -->
+    </nav-bar>
+
     <div class="row">
     <div class="col-md-8 col-md-offset-2">
       <div class="panel panel-warning">

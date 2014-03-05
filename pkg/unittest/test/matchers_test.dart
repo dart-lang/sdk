@@ -401,6 +401,15 @@ void main() {
           "Actual: [1, 2]");
     });
 
+    test('equals with matcher element', () {
+      var d = ['foo', 'bar'];
+      shouldPass(d, equals(['foo', startsWith('ba')]));
+      shouldFail(d, equals(['foo', endsWith('ba')]),
+          "Expected: ['foo', <a string ending with 'ba'>] "
+          "Actual: ['foo', 'bar'] "
+          "Which: does not match a string ending with 'ba' at location [1]");
+    });
+
     test('isIn', () {
       var d = [1, 2];
       shouldPass(1, isIn(d));
@@ -591,6 +600,17 @@ void main() {
           "Expected: {'foo': 'bar'} "
           "Actual: {'bar': 'foo', 'barrista': 'caffeine'} "
           "Which: has different length and is missing map key 'foo'");
+    });
+
+    test('equals with matcher value', () {
+      var a = new Map();
+      a['foo'] = 'bar';
+      shouldPass(a, equals({'foo': startsWith('ba')}));
+      shouldFail(a, equals({'foo': endsWith('ba')}),
+          "Expected: {'foo': <a string ending with 'ba'>} "
+          "Actual: {'foo': 'bar'} "
+          "Which: does not match a string ending with 'ba' "
+              "at location ['foo']");
     });
 
     test('contains', () {

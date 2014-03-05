@@ -205,34 +205,17 @@ String _resolveScriptUri(String scriptName) {
   return _entryPointScript.toString();
 }
 
+const _DART_EXT = 'dart-ext:';
 
 String _resolveUri(String base, String userString) {
-  var baseUri = Uri.parse(base);
   _logResolution('# Resolving: $userString from $base');
-
-  var uri = Uri.parse(userString);
-  var resolved;
-  if ('dart-ext' == uri.scheme) {
-    // Relative URIs with scheme dart-ext should be resolved as if with no
-    // scheme.
-    resolved = baseUri.resolve(uri.path);
-    if (resolved.scheme == 'package') {
-      // If we are resolving relative to a package URI we go directly to the
-      // file path and keep the dart-ext scheme. Otherwise, we will lose the
-      // package URI path part.
-      var path = _filePathFromPackageUri(resolved);
-      if (path.startsWith('http:')) {
-        throw "Native extensions not supported in "
-            "packages loaded over http: %path";
-      }
-      resolved = new Uri.file(path);
-    }
-    resolved = new Uri(scheme: 'dart-ext', path: resolved.path);
+  var baseUri = Uri.parse(base);
+  if (userString.startsWith(_DART_EXT)) {
+    var uri = userString.substring(_DART_EXT.length);
+    return '$_DART_EXT${baseUri.resolve(uri)}';
   } else {
-    resolved = baseUri.resolve(userString);
+    return '${baseUri.resolve(userString)}';
   }
-  _logResolution('# Resolved to: $resolved');
-  return resolved.toString();
 }
 
 
@@ -247,20 +230,13 @@ String _filePathFromUri(String userUri) {
     case 'file':
       return uri.toFilePath();
       break;
-    case 'dart-ext':
-      // Relative file URIs don't start with file:///.
-      var scheme = (uri.path.startsWith('/') ? 'file' : '');
-      return new Uri(scheme: scheme,
-                     host: uri.host,
-                     path: uri.path).toFilePath();
-      break;
     case 'package':
       return _filePathFromPackageUri(uri);
       break;
     case 'http':
       return uri.toString();
     default:
-      // Only handling file, dart-ext, http, and package URIs
+      // Only handling file, http, and package URIs
       // in standalone binary.
       _logResolution('# Unknown scheme (${uri.scheme}) in $uri.');
       throw 'Not a known scheme: $uri';
@@ -270,7 +246,7 @@ String _filePathFromUri(String userUri) {
 
 String _filePathFromPackageUri(Uri uri) {
   if (!uri.host.isEmpty) {
-    var path = (uri.path != '') ? '${uri.host}${uri.path}' : uri.host;
+    var path = '${uri.host}${uri.path}';
     var right = 'package:$path';
     var wrong = 'package://$path';
 
@@ -282,4 +258,51 @@ String _filePathFromPackageUri(Uri uri) {
                     _entryPointScript.resolve('packages/') :
                     _packageRoot;
   return _filePathFromUri(packageRoot.resolve(uri.path).toString());
+}
+
+
+// Returns the directory part, the filename part, and the name
+// of a native extension URL as a list [directory, filename, name].
+// The directory part is either a file system path or an HTTP(S) URL.
+// The filename part is the extension name, with the platform-dependent
+// prefixes and extensions added.
+_extensionPathFromUri(String userUri) {
+  if (!userUri.startsWith(_DART_EXT)) {
+    throw 'Unexpected internal error: Extension URI $userUri missing dart-ext:';
+  }
+  userUri = userUri.substring(_DART_EXT.length);
+
+  if (userUri.contains('\\')) {
+    throw 'Unexpected internal error: Extension URI $userUri contains \\';
+  }
+
+  String filename;
+  String name;
+  String path;  // Will end in '/'.
+  int index = userUri.lastIndexOf('/');
+  if (index == -1) {
+    name = userUri;
+    path = './';
+  } else if (index == userUri.length - 1) {
+    throw 'Extension name missing in $extensionUri';
+  } else {
+    name = userUri.substring(index + 1);
+    path = userUri.substring(0, index + 1);
+  }
+
+  path = _filePathFromUri(path);
+
+  if (Platform.isLinux || Platform.isAndroid) {
+    filename = 'lib$name.so';
+  } else if (Platform.isMacOS) {
+    filename = 'lib$name.dylib';
+  } else if (Platform.isWindows) {
+    filename = '$name.dll';
+  } else {
+    _logResolution(
+        'Native extensions not supported on ${Platform.operatingSystem}');
+    throw 'Native extensions not supported on ${Platform.operatingSystem}';
+  }
+
+  return [path, filename, name];
 }

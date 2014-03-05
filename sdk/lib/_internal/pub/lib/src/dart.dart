@@ -70,7 +70,7 @@ Future compile(String entrypoint, CompilerProvider provider, {
     if (analyzeAll) options.add('--analyze-all');
     if (suppressWarnings) options.add('--suppress-warnings');
     if (suppressHints) options.add('--suppress-hints');
-    if (suppressPackageWarnings) options.add('--hide-package-warnings');
+    if (!suppressPackageWarnings) options.add('--show-package-warnings');
     if (terse) options.add('--terse');
     if (toDart) options.add('--output-type=dart');
 

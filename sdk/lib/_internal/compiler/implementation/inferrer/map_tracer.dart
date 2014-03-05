@@ -6,6 +6,13 @@ part of type_graph_inferrer;
 
 Set<String> okMapSelectorsSet = new Set.from(
     const <String>[
+      // From Object.
+      "==",
+      "hashCode",
+      "toString",
+      "noSuchMethod",
+      "runtimeType",
+      // From Map
       "[]",
       "isEmpty",
       "isNotEmpty",
@@ -19,8 +26,14 @@ Set<String> okMapSelectorsSet = new Set.from(
       "remove"]);
 
 class MapTracerVisitor extends TracerVisitor {
+  // These lists are used to keep track of newly discovered assignments to
+  // the map. Note that elements at corresponding indices are expected to
+  // belong to the same assignment operation.
   List<TypeInformation> keyAssignments = <TypeInformation>[];
   List<TypeInformation> valueAssignments = <TypeInformation>[];
+  // This list is used to keep track of assignments of entire maps to
+  // this map.
+  List<MapTypeInformation> mapAssignments = <MapTypeInformation>[];
 
   MapTracerVisitor(tracedType, inferrer) : super(tracedType, inferrer);
 
@@ -37,7 +50,7 @@ class MapTracerVisitor extends TracerVisitor {
       map.flowsInto.addAll(flowsInto);
       return true;
     }
-    keyAssignments = valueAssignments = null;
+    keyAssignments = valueAssignments = mapAssignments = null;
     return false;
   }
 
@@ -66,8 +79,7 @@ class MapTracerVisitor extends TracerVisitor {
             // the map.
             TypeInformation map = info.arguments.positional[0];
             if (map is MapTypeInformation) {
-              keyAssignments.add(map.keyType);
-              valueAssignments.add(map.valueType);
+              mapAssignments.add(map);
             } else {
               // If we could select a component from a [TypeInformation],
               // like the keytype or valuetype in this case, we could
@@ -91,19 +103,19 @@ class MapTracerVisitor extends TracerVisitor {
             // of a [ListTypeInformation], so I have nowhere to propagate
             // that information.
             // TODO(herhut): add support for Map.keys and Map.values.
-            bailout('Map used in a not-ok selector');
+            bailout('Map used in a not-ok selector [$selectorName]');
             return;
           }
         } else if (selector.isIndexSet()) {
           keyAssignments.add(info.arguments.positional[0]);
           valueAssignments.add(info.arguments.positional[1]);
         } else if (!selector.isIndex()) {
-          bailout('Map used in a not-ok selector');
+          bailout('Map used in a not-ok selector [$selectorName]');
           return;
         }
       }
-    } else if (selector.isCall()
-               && !info.targets.every((element) => element.isFunction())) {
+    } else if (selector.isCall() &&
+               !info.targets.every((element) => element.isFunction())) {
       bailout('Passed to a closure');
       return;
     }

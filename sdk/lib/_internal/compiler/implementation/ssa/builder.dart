@@ -35,8 +35,8 @@ class SsaBuilderTask extends CompilerTask {
       Element element = work.element.implementation;
       return compiler.withCurrentElement(element, () {
         HInstruction.idCounter = 0;
-        SsaFromAstBuilder builder =
-            new SsaFromAstBuilder(backend, work, emitter.nativeEmitter);
+        SsaBuilder builder =
+            new SsaBuilder(backend, work, emitter.nativeEmitter);
         HGraph graph;
         ElementKind kind = element.kind;
         if (kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
@@ -91,7 +91,7 @@ class SsaBuilderTask extends CompilerTask {
     });
   }
 
-  HGraph compileConstructor(SsaFromAstBuilder builder, CodegenWorkItem work) {
+  HGraph compileConstructor(SsaBuilder builder, CodegenWorkItem work) {
     return builder.buildFactory(work.element);
   }
 }
@@ -114,7 +114,7 @@ class LocalsHandler {
    */
   Map<Element, HInstruction> directLocals;
   Map<Element, Element> redirectionMapping;
-  SsaFromAstMixin builder;
+  SsaBuilder builder;
   ClosureClassMap closureData;
 
   LocalsHandler(this.builder)
@@ -672,7 +672,7 @@ class JumpHandlerEntry {
 
 
 abstract class JumpHandler {
-  factory JumpHandler(SsaFromAstMixin builder, TargetElement target) {
+  factory JumpHandler(SsaBuilder builder, TargetElement target) {
     return new TargetJumpHandler(builder, target);
   }
   void generateBreak([LabelElement label]);
@@ -718,11 +718,11 @@ class NullJumpHandler implements JumpHandler {
 // Continues in loops are implemented as breaks of the body.
 // Continues in switches is currently not handled.
 class TargetJumpHandler implements JumpHandler {
-  final SsaFromAstMixin builder;
+  final SsaBuilder builder;
   final TargetElement target;
   final List<JumpHandlerEntry> jumps;
 
-  TargetJumpHandler(SsaFromAstMixin builder, this.target)
+  TargetJumpHandler(SsaBuilder builder, this.target)
       : this.builder = builder,
         jumps = <JumpHandlerEntry>[] {
     assert(builder.jumpTargets[target] == null);
@@ -804,7 +804,7 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
   /// switch case loop.
   final Map<TargetElement, int> targetIndexMap = new Map<TargetElement, int>();
 
-  SwitchCaseJumpHandler(SsaFromAstMixin builder,
+  SwitchCaseJumpHandler(SsaBuilder builder,
                         TargetElement target,
                         ast.SwitchStatement node)
       : super(builder, target) {
@@ -882,82 +882,39 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
 }
 
 /**
- * This mixin implements functionality that is shared between [SsaFromIrBuilder]
- * and [SsaFromAstBuilder].
- *
- * The type parameter [N] represents the node type from which the SSA form is
- * built, either [ir.Node] or [ast.Node].
- *
- * The following diagram shows the mixin structure of the AST and IR builders
- * and inliners, which is explained in the text below.
- *
- *                                 SsaBuilderMixin
- *                     ___________/   |     |     \_________
- *                    /               |     |               \
- *     SsaBuilderDelegate            /       \            SsaBuilderFields
- *       |     |                    /         \                  /     |
- *       |     |        SsaFromAstMixin      SsaFromIrMixin     /      |
- *       |      \    _____/    |       _____________|____\_____/       |
- *       |       \__/__________|______/______       |     \______      |
- *       |         /           |     /       \      |            \     |
- * SsaFromAstInliner   SsaFromAstBuilder    SsaFromIrInliner   SsaFromIrBuilder
- *
- * The entry point to building an SSA graph is either an [SsaFromAstBuilder] or
- * an [SsaFromIrBuilder]. These builder classes hold the [HGraph] data structure
- * (inherited from [SsaBuilderFields]) into which blocks and instructions are
- * inserted. The visitor methods for IR / AST nodes are defined in the
- * [SsaFromIrMixin] / [SsaFromAstMixin] mixins.
- *
- * When inlining a function invocation of the same kind (SSA function in SSA
- * builder, for example), the state of the builder pushed on the [inliningStack]
- * and the same builder instance continues visiting the inlined function's body.
- *
- * When inlining a function of the other kind, the builder state is also pushed
- * on the inlining stack, and an inliner instance is created.
- *
- * We consider inlining an IR function into an AST builder, which creates an
- * [SsaFromIrInliner]. The IR inliner implements an IR visitor (defined in the
- * [SsaFromIrMixin]) and inserts SSA instructions into the [HGraph] of the
- * AST builder by delegation (inherited from the [SsaBuilderDelegate] mixin).
- * When encountering the [:return:] instruction (inlining is only performed if
- * there is exactly one), the IR inliner updates the [returnElement] field of
- * the AST builder.
- *
- * In the opposite case (inlining an AST function into an IR builder), the AST
- * inliner updates the [emitted] map of the IR builder with the return value.
- *
- * Finally, inlining can be nested. For example, we might start with an AST
- * builder and inline an invocation of an IR function. The IR inliner will
- * then again inline invocations of functions that are in either IR or AST.
- *
- * Note that [SsaBuilderMixin] does not define any fields because the inliner
- * subclasses are implemented using delegation ([SsaBuilderDelegate]). The
- * builder subclasses implement most of the properties as fields by extending
- * [SsaBuilderFields].
+ * This class builds SSA nodes for functions represented in AST.
  */
-abstract class SsaBuilderMixin<N> {
-  Compiler get compiler;
+class SsaBuilder extends ResolvedVisitor {
+  final Compiler compiler;
+  final JavaScriptBackend backend;
+  final ConstantSystem constantSystem;
+  final CodegenWorkItem work;
+  final RuntimeTypes rti;
 
-  JavaScriptBackend get backend;
+  /* This field is used by the native handler. */
+  final NativeEmitter nativeEmitter;
 
-  HGraph get graph;
+  final HGraph graph = new HGraph();
 
   /**
    * The current block to add instructions to. Might be null, if we are
    * visiting dead code, but see [isReachable].
    */
-  HBasicBlock get current;
+  HBasicBlock _current;
 
-  void set current(HBasicBlock block);
+  HBasicBlock get current => _current;
+
+  void set current(c) {
+    isReachable = c != null;
+    _current = c;
+  }
 
   /**
    * The most recently opened block. Has the same value as [current] while
    * the block is open, but unlike [current], it isn't cleared when the
    * current block is closed.
    */
-  HBasicBlock get lastOpenedBlock;
-
-  void set lastOpenedBlock(HBasicBlock block);
+  HBasicBlock lastOpenedBlock;
 
   /**
    * Indicates whether the current block is dead (because it has a throw or a
@@ -966,33 +923,58 @@ abstract class SsaBuilderMixin<N> {
    * abort on statement boundaries, not in the middle of expressions. See
    * isAborted.
    */
-  bool get isReachable;
-
-  void set isReachable(bool value);
+  bool isReachable = true;
 
   /**
    * True if we are visiting the expression of a throw statement.
    */
-  bool get inThrowExpression;
-
-  void set inThrowExpression(bool value);
+  bool inThrowExpression = false;
 
   /**
    * The loop nesting is consulted when inlining a function invocation in
    * [tryInlineMethod]. The inlining heuristics take this information into
    * account.
    */
-  int get loopNesting;
-
-  void set loopNesting(int value);
-
-  List<InliningState> get inliningStack;
+  int loopNesting = 0;
 
   /**
    * This stack contains declaration elements of the functions being built
    * or inlined by this builder.
    */
-  List<Element> get sourceElementStack;
+  final List<Element> sourceElementStack = <Element>[];
+
+  LocalsHandler localsHandler;
+
+  HInstruction rethrowableException;
+
+  HParameterValue lastAddedParameter;
+
+  Map<Element, HInstruction> parameters = <Element, HInstruction>{};
+
+  Map<TargetElement, JumpHandler> jumpTargets = <TargetElement, JumpHandler>{};
+
+  /**
+   * Variables stored in the current activation. These variables are
+   * being updated in try/catch blocks, and should be
+   * accessed indirectly through [HLocalGet] and [HLocalSet].
+   */
+  Map<Element, HLocalValue> activationVariables = <Element, HLocalValue>{};
+
+  // We build the Ssa graph by simulating a stack machine.
+  List<HInstruction> stack = <HInstruction>[];
+
+  SsaBuilder(JavaScriptBackend backend,
+                    CodegenWorkItem work,
+                    this.nativeEmitter)
+    : this.backend = backend,
+      this.compiler = backend.compiler,
+      this.constantSystem = backend.constantSystem,
+      this.work = work,
+      this.rti = backend.rti,
+      super(work.resolutionTree, backend.compiler) {
+    localsHandler = new LocalsHandler(this);
+    sourceElementStack.add(work.element);
+  }
 
   Element get sourceElement => sourceElementStack.last;
 
@@ -1048,11 +1030,9 @@ abstract class SsaBuilderMixin<N> {
     current.add(instruction);
   }
 
-  void addWithPosition(HInstruction instruction, N node) {
+  void addWithPosition(HInstruction instruction, ast.Node node) {
     add(attachPosition(instruction, node));
   }
-
-  HInstruction attachPosition(HInstruction instruction, N node);
 
   SourceFile currentSourceFile() {
     Element element = sourceElement;
@@ -1082,7 +1062,7 @@ abstract class SsaBuilderMixin<N> {
       FunctionElement function,
       Selector selector,
       List<HInstruction> providedArguments,
-      N currentNode) {
+      ast.Node currentNode) {
     assert(invariant(function, function.isImplementation));
     assert(providedArguments != null);
 
@@ -1172,29 +1152,18 @@ abstract class SsaBuilderMixin<N> {
   }
 
   /**
-   * Prepares the state of the builder for inlining an invocaiton of [function].
-   */
-  void enterInlinedMethod(FunctionElement function,
-                          N currentNode,
-                          List<HInstruction> compiledArguments);
-
-  void leaveInlinedMethod();
-
-  /**
    * Try to inline [element] within the currect context of the builder. The
    * insertion point is the state of the builder.
    */
   bool tryInlineMethod(Element element,
                        Selector selector,
                        List<HInstruction> providedArguments,
-                       N currentNode) {
+                       ast.Node currentNode) {
     backend.registerStaticUse(element, compiler.enqueuer.codegen);
 
     // Ensure that [element] is an implementation element.
     element = element.implementation;
     FunctionElement function = element;
-    bool hasIr = compiler.irBuilder.hasIr(function);
-
     bool insideLoop = loopNesting > 0 || graph.calledInLoop;
 
     // Bail out early if the inlining decision is in the cache and we can't
@@ -1286,15 +1255,9 @@ abstract class SsaBuilderMixin<N> {
         useMaxInliningNodes = false;
       }
       bool canInline;
-      if (hasIr) {
-        ir.Function irFunction = compiler.irBuilder.getIr(function);
-        canInline = IrInlineWeeder.canBeInlined(
-            irFunction, maxInliningNodes, useMaxInliningNodes);
-      } else {
-        ast.FunctionExpression functionNode = function.parseNode(compiler);
-        canInline = InlineWeeder.canBeInlined(
-            functionNode, maxInliningNodes, useMaxInliningNodes);
-      }
+      ast.FunctionExpression functionNode = function.parseNode(compiler);
+      canInline = InlineWeeder.canBeInlined(
+          functionNode, maxInliningNodes, useMaxInliningNodes);
       if (canInline) {
         backend.inlineCache.markAsInlinable(element, insideLoop: insideLoop);
       } else {
@@ -1336,10 +1299,6 @@ abstract class SsaBuilderMixin<N> {
     return false;
   }
 
-  void emitReturn(HInstruction value, N node);
-
-  void doInline(FunctionElement function);
-
   inlinedFrom(Element element, f()) {
     assert(element is FunctionElement || element is VariableElement);
     return compiler.withCurrentElement(element, () {
@@ -1358,127 +1317,6 @@ abstract class SsaBuilderMixin<N> {
         message: 'No constant computed for $parameter'));
     return graph.addConstant(constant, compiler);
   }
-
-  /**
-   * In checked mode, generate type tests for the parameters of the inlined
-   * function.
-   */
-  void potentiallyCheckInlinedParameterTypes(FunctionElement function);
-
-  /**
-   * Some dynamic invocations are known to not use default arguments.
-   */
-  bool providedArgumentsKnownToBeComplete(N currentNode);
-}
-
-/**
- * This class defines the abstract properties of [SsaBuilderMixin] as fields.
- * It is mixed into [SsaFromAstBuilder] and [SsaFromIrBuilder].
- */
-abstract class SsaBuilderFields<N> implements SsaBuilderMixin<N> {
-  final HGraph graph = new HGraph();
-
-  HBasicBlock _current;
-
-  HBasicBlock get current => _current;
-
-  void set current(c) {
-    isReachable = c != null;
-    _current = c;
-  }
-
-  HBasicBlock lastOpenedBlock;
-
-  bool isReachable = true;
-
-  bool inThrowExpression = false;
-
-  int loopNesting = 0;
-
-  final List<Element> sourceElementStack = <Element>[];
-}
-
-/**
- * This class defines the abstract properties of [SsaBuilderMixin] by
- * delegation to the [builder], which is either an [SsaFromAstBuilder] or an
- * [SsaFromIrBuilder].
- * It is mixed into [SsaFromAstInliner] and [SsaFromIrInliner].
- */
-abstract class SsaBuilderDelegate<N, M> implements SsaBuilderMixin<N> {
-  SsaBuilderFields<M> get builder;
-
-  Compiler get compiler => builder.compiler;
-
-  JavaScriptBackend get backend => builder.backend;
-
-  Element get sourceElement => builder.sourceElementStack.last;
-
-  HGraph get graph => builder.graph;
-
-  HBasicBlock get current => builder.current;
-
-  void set current(HBasicBlock block) {
-    builder.current = block;
-  }
-
-  HBasicBlock get lastOpenedBlock => builder.lastOpenedBlock;
-
-  void set lastOpenedBlock(HBasicBlock block) {
-    builder.lastOpenedBlock = block;
-  }
-
-  bool get isReachable => builder.isReachable;
-
-  void set isReachable(bool value) {
-    builder.isReachable = value;
-  }
-
-  bool get inThrowExpression => builder.inThrowExpression;
-
-  void set inThrowExpression(bool value) {
-    builder.inThrowExpression = value;
-  }
-
-  int get loopNesting => builder.loopNesting;
-
-  void set loopNesting(int value) {
-    builder.loopNesting = value;
-  }
-
-  List<InliningState> get inliningStack => builder.inliningStack;
-
-  List<Element> get sourceElementStack => builder.sourceElementStack;
-}
-
-/**
- * This class is a tree visitor which builds SSA nodes. It is mixed into
- * [SsaFromAstBuilder] and [SsaFromAstInliner].
- */
-abstract class SsaFromAstMixin
-    implements ResolvedVisitor, SsaBuilderMixin<ast.Node> {
-  CodegenWorkItem get work;
-  ConstantSystem get constantSystem;
-  RuntimeTypes get rti;
-
-  LocalsHandler localsHandler;
-
-  HInstruction rethrowableException;
-
-  HParameterValue lastAddedParameter;
-
-  Map<Element, HInstruction> parameters = <Element, HInstruction>{};
-
-  Map<TargetElement, JumpHandler> jumpTargets = <TargetElement, JumpHandler>{};
-
-  /**
-   * Variables stored in the current activation. These variables are
-   * being updated in try/catch blocks, and should be
-   * accessed indirectly through [HLocalGet] and [HLocalSet].
-   */
-  Map<Element, HLocalValue> activationVariables = <Element, HLocalValue>{};
-
-  // We build the Ssa graph by simulating a stack machine.
-  List<HInstruction> stack = <HInstruction>[];
 
   Element get currentNonClosureClass {
     ClassElement cls = sourceElement.getEnclosingClass();
@@ -1690,80 +1528,60 @@ abstract class SsaFromAstMixin
    */
   void setupStateForInlining(FunctionElement function,
                              List<HInstruction> compiledArguments) {
-    bool hasIr = compiler.irBuilder.hasIr(function);
     localsHandler = new LocalsHandler(this);
-    if (hasIr) {
-      // If the inlined function is in IR, the inliner will not use the locals
-      // handler of this class. However, it will use the [returnElement].
-      // When creating the [returnElement] (see below), the invocation of
-      // [updateLocal] requires [closureData] to be non-null.
-      localsHandler.closureData =
-          new ClosureClassMap(null, null, null, new ThisElement(function));
-    } else {
-      localsHandler.closureData =
-          compiler.closureToClassMapper.computeClosureToClassMapping(
-              function, function.parseNode(compiler), elements);
-    }
+    localsHandler.closureData =
+        compiler.closureToClassMapper.computeClosureToClassMapping(
+            function, function.parseNode(compiler), elements);
     // TODO(kasperl): Bad smell. We shouldn't be constructing elements here.
     returnElement = new VariableElementX.synthetic("result",
         ElementKind.VARIABLE, function);
     localsHandler.updateLocal(returnElement,
         graph.addConstantNull(compiler));
 
-    // If the inlined function is in IR, the [SsaFromIrInliner] will use the
-    // the [returnElement]. The remaining state of this AST builder is not used
-    // and does need to be set up.
-    if (!hasIr) {
-      inTryStatement = false; // TODO(lry): why? Document.
+    inTryStatement = false; // TODO(lry): why? Document.
 
-      int argumentIndex = 0;
-      if (function.isInstanceMember()) {
-        localsHandler.updateLocal(localsHandler.closureData.thisElement,
-            compiledArguments[argumentIndex++]);
-      }
-
-      FunctionSignature signature = function.computeSignature(compiler);
-      signature.orderedForEachParameter((Element parameter) {
-        HInstruction argument = compiledArguments[argumentIndex++];
-        localsHandler.updateLocal(parameter, argument);
-      });
-
-      ClassElement enclosing = function.getEnclosingClass();
-      if ((function.isConstructor() || function.isGenerativeConstructorBody())
-          && backend.classNeedsRti(enclosing)) {
-        enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
-          HInstruction argument = compiledArguments[argumentIndex++];
-          localsHandler.updateLocal(typeVariable.element, argument);
-        });
-      }
-      assert(argumentIndex == compiledArguments.length);
-
-      elements = compiler.enqueuer.resolution.getCachedElements(function);
-      assert(elements != null);
-      returnType = signature.returnType;
-      stack = <HInstruction>[];
+    int argumentIndex = 0;
+    if (function.isInstanceMember()) {
+      localsHandler.updateLocal(localsHandler.closureData.thisElement,
+          compiledArguments[argumentIndex++]);
     }
+
+    FunctionSignature signature = function.computeSignature(compiler);
+    signature.orderedForEachParameter((Element parameter) {
+      HInstruction argument = compiledArguments[argumentIndex++];
+      localsHandler.updateLocal(parameter, argument);
+    });
+
+    ClassElement enclosing = function.getEnclosingClass();
+    if ((function.isConstructor() || function.isGenerativeConstructorBody())
+        && backend.classNeedsRti(enclosing)) {
+      enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
+        HInstruction argument = compiledArguments[argumentIndex++];
+        localsHandler.updateLocal(typeVariable.element, argument);
+      });
+    }
+    assert(argumentIndex == compiledArguments.length);
+
+    elements = compiler.enqueuer.resolution.getCachedElements(function);
+    assert(elements != null);
+    returnType = signature.returnType;
+    stack = <HInstruction>[];
   }
 
   void restoreState(AstInliningState state) {
     localsHandler = state.oldLocalsHandler;
     returnElement = state.oldReturnElement;
-    if (state.irInliner == null) {
-      // These fields only need to be restored if the function that was inlined
-      // is in AST form, see [setupStateForInlining] above.
-      inTryStatement = state.inTryStatement;
-      elements = state.oldElements;
-      returnType = state.oldReturnType;
-      assert(stack.isEmpty);
-      stack = state.oldStack;
-    }
+    inTryStatement = state.inTryStatement;
+    elements = state.oldElements;
+    returnType = state.oldReturnType;
+    assert(stack.isEmpty);
+    stack = state.oldStack;
   }
 
   /**
    * Run this builder on the body of the [function] to be inlined.
    */
   void visitInlinedFunction(FunctionElement function) {
-    assert(!compiler.irBuilder.hasIr(function));
     potentiallyCheckInlinedParameterTypes(function);
     if (function.isGenerativeConstructor()) {
       buildFactory(function);
@@ -1796,6 +1614,10 @@ abstract class SsaFromAstMixin
     return currentNode.asForIn() != null;
   }
 
+  /**
+   * In checked mode, generate type tests for the parameters of the inlined
+   * function.
+   */
   void potentiallyCheckInlinedParameterTypes(FunctionElement function) {
     FunctionSignature signature = function.computeSignature(compiler);
     signature.orderedForEachParameter((Element parameter) {
@@ -5732,55 +5554,17 @@ abstract class SsaFromAstMixin
   visitTypeVariable(ast.TypeVariable node) {
     compiler.internalError('SsaFromAstMixin.visitTypeVariable');
   }
-}
-
-/**
- * This class builds SSA nodes for functions represented in AST.
- */
-class SsaFromAstBuilder extends ResolvedVisitor with
-    SsaBuilderMixin<ast.Node>,
-    SsaFromAstMixin,
-    SsaBuilderFields<ast.Node> {
-  final Compiler compiler;
-  final JavaScriptBackend backend;
-  final ConstantSystem constantSystem;
-  final CodegenWorkItem work;
-  final RuntimeTypes rti;
-
-  /* This field is used by the native handler. */
-  final NativeEmitter nativeEmitter;
-
-  SsaFromAstBuilder(JavaScriptBackend backend,
-                    CodegenWorkItem work,
-                    this.nativeEmitter)
-    : this.backend = backend,
-      this.compiler = backend.compiler,
-      this.constantSystem = backend.constantSystem,
-      this.work = work,
-      this.rti = backend.rti,
-      super(work.resolutionTree, backend.compiler) {
-    localsHandler = new LocalsHandler(this);
-    sourceElementStack.add(work.element);
-  }
 
   /**
    * This method is invoked before inlining the body of [function] into this
-   * [SsaFromAstBuilder]. The inlined function can be either in AST or IR.
-   *
-   * The method is also invoked from the [SsaFromIrInliner], that is, if we
-   * are currently inlining an IR function and encounter a function invocation
-   * that should be inlined.
+   * [SsaBuilder].
    */
   void enterInlinedMethod(FunctionElement function,
                           ast.Node _,
                           List<HInstruction> compiledArguments) {
-    SsaFromIrInliner irInliner;
-    if (compiler.irBuilder.hasIr(function)) {
-      irInliner = new SsaFromIrInliner(this, function, compiledArguments);
-    }
     AstInliningState state = new AstInliningState(
         function, returnElement, returnType, elements, stack, localsHandler,
-        inTryStatement, irInliner);
+        inTryStatement);
     inliningStack.add(state);
 
     // Setting up the state of the (AST) builder is performed even when the
@@ -5797,12 +5581,7 @@ class SsaFromAstBuilder extends ResolvedVisitor with
   }
 
   void doInline(FunctionElement function) {
-    if (compiler.irBuilder.hasIr(function)) {
-      AstInliningState state = inliningStack.last;
-      state.irInliner.visitInlinedFunction(function);
-    } else {
-      visitInlinedFunction(function);
-    }
+    visitInlinedFunction(function);
   }
 
   void emitReturn(HInstruction value, ast.Node node) {
@@ -5815,72 +5594,6 @@ class SsaFromAstBuilder extends ResolvedVisitor with
 }
 
 /**
- * This class inlines an AST function into an [SsaFromIrBuilder].
- */
-class SsaFromAstInliner extends ResolvedVisitor with
-    SsaBuilderMixin<ast.Node>,
-    SsaFromAstMixin,
-    SsaBuilderDelegate<ast.Node, ir.Node> {
-  final SsaFromIrBuilder builder;
-
-  SsaFromAstInliner.internal(SsaFromIrBuilder builder)
-    : this.builder = builder,
-      super(builder.work.resolutionTree, builder.compiler);
-
-  factory SsaFromAstInliner(SsaFromIrBuilder builder,
-                            FunctionElement function,
-                            List<HInstruction> compiledArguments) {
-    SsaFromAstInliner result = new SsaFromAstInliner.internal(builder);
-    result.setupStateForInlining(function, compiledArguments);
-    return result;
-  }
-
-  ConstantSystem get constantSystem => builder.backend.constantSystem;
-  RuntimeTypes get rti => builder.backend.rti;
-  CodegenWorkItem get work => builder.work;
-
-  void emitReturn(HInstruction value, ast.Node node) {
-    IrInliningState state = inliningStack.last;
-    builder.emitted[state.invokeNode] = value;
-  }
-
-  void enterInlinedMethod(FunctionElement function,
-                          ast.Node currentNode,
-                          List<HInstruction> compiledArguments) {
-    // At this point we are inside the [SsaFromAstInliner] (inlining an AST
-    // function into an IR builder), and we encounter a function invocation that
-    // should be inlined.
-    // When inlining into an IR builder (which is what we are doing here), the
-    // returned value is stored in the builder's [emitted] map using the
-    // function invocation's IrNode as key.
-    // Since we are currently inlining an AST function, the invocation node is
-    // an AST node. A synthetic [IrInlinedInvocationDummy] is added to the
-    // [emitted] map to hold the result of the inlined function.
-    ir.Node invokeNode = new ir.InlinedInvocationDummy();
-    builder.enterInlinedMethod(function, invokeNode, compiledArguments);
-  }
-
-  void leaveInlinedMethod() {
-    IrInliningState state = inliningStack.last;
-    assert(state.invokeNode is ir.InlinedInvocationDummy);
-    HInstruction result = builder.emitted.remove(state.invokeNode);
-    if (result == null) {
-      // When the inlined function is in AST form, it might not have an explicit
-      // [:return:] statement, and the result value might be undefined.
-      assert(!compiler.irBuilder.hasIr(state.function));
-      result = graph.addConstantNull(compiler);
-    }
-    assert(result != null);
-    stack.add(result);
-    builder.leaveInlinedMethod();
-  }
-
-  void doInline(FunctionElement function) {
-    builder.doInline(function);
-  }
-}
-
-/**
  * Visitor that handles generation of string literals (LiteralString,
  * StringInterpolation), and otherwise delegates to the given visitor for
  * non-literal subexpressions.
@@ -5888,7 +5601,7 @@ class SsaFromAstInliner extends ResolvedVisitor with
  * expressions as well.
  */
 class StringBuilderVisitor extends ast.Visitor {
-  final SsaFromAstMixin builder;
+  final SsaBuilder builder;
   final ast.Node diagnosticNode;
 
   /**
@@ -6063,7 +5776,6 @@ class AstInliningState extends InliningState {
   final List<HInstruction> oldStack;
   final LocalsHandler oldLocalsHandler;
   final bool inTryStatement;
-  final SsaFromIrInliner irInliner;
 
   AstInliningState(FunctionElement function,
                    this.oldReturnElement,
@@ -6071,16 +5783,7 @@ class AstInliningState extends InliningState {
                    this.oldElements,
                    this.oldStack,
                    this.oldLocalsHandler,
-                   this.inTryStatement,
-                   this.irInliner): super(function);
-}
-
-class IrInliningState extends InliningState {
-  final ir.Node invokeNode;
-  final SsaFromAstInliner astInliner;
-
-  IrInliningState(FunctionElement function, this.invokeNode, this.astInliner)
-    : super(function);
+                   this.inTryStatement): super(function);
 }
 
 class SsaBranch {
@@ -6094,7 +5797,7 @@ class SsaBranch {
 }
 
 class SsaBranchBuilder {
-  final SsaFromAstMixin builder;
+  final SsaBuilder builder;
   final ast.Node diagnosticNode;
 
   SsaBranchBuilder(this.builder, [this.diagnosticNode]);
@@ -6322,18 +6025,18 @@ class SsaBranchBuilder {
   }
 }
 
-class TypeBuilder implements DartTypeVisitor<dynamic, SsaFromAstMixin> {
+class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
   void visitType(DartType type, _) {
     throw 'Internal error $type';
   }
 
-  void visitVoidType(VoidType type, SsaFromAstMixin builder) {
+  void visitVoidType(VoidType type, SsaBuilder builder) {
     ClassElement cls = builder.compiler.findHelper('VoidRuntimeType');
     builder.push(new HVoidType(type, new TypeMask.exact(cls)));
   }
 
   void visitTypeVariableType(TypeVariableType type,
-                             SsaFromAstMixin builder) {
+                             SsaBuilder builder) {
     ClassElement cls = builder.compiler.findHelper('RuntimeType');
     TypeMask instructionType = new TypeMask.subclass(cls);
     if (!builder.sourceElement.enclosingElement.isClosure() &&
@@ -6347,7 +6050,7 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaFromAstMixin> {
     }
   }
 
-  void visitFunctionType(FunctionType type, SsaFromAstMixin builder) {
+  void visitFunctionType(FunctionType type, SsaBuilder builder) {
     type.returnType.accept(this, builder);
     HInstruction returnType = builder.pop();
     List<HInstruction> inputs = <HInstruction>[returnType];
@@ -6376,19 +6079,19 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaFromAstMixin> {
     builder.push(new HFunctionType(inputs, type, new TypeMask.exact(cls)));
   }
 
-  void visitMalformedType(MalformedType type, SsaFromAstMixin builder) {
+  void visitMalformedType(MalformedType type, SsaBuilder builder) {
     visitDynamicType(builder.compiler.types.dynamicType, builder);
   }
 
-  void visitStatementType(StatementType type, SsaFromAstMixin builder) {
+  void visitStatementType(StatementType type, SsaBuilder builder) {
     throw 'not implemented visitStatementType($type)';
   }
 
-  void visitGenericType(GenericType type, SsaFromAstMixin builder) {
+  void visitGenericType(GenericType type, SsaBuilder builder) {
     throw 'not implemented visitGenericType($type)';
   }
 
-  void visitInterfaceType(InterfaceType type, SsaFromAstMixin builder) {
+  void visitInterfaceType(InterfaceType type, SsaBuilder builder) {
     List<HInstruction> inputs = <HInstruction>[];
     for (DartType typeArgument in type.typeArguments) {
       typeArgument.accept(this, builder);
@@ -6403,13 +6106,13 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaFromAstMixin> {
     builder.push(new HInterfaceType(inputs, type, new TypeMask.exact(cls)));
   }
 
-  void visitTypedefType(TypedefType type, SsaFromAstMixin builder) {
+  void visitTypedefType(TypedefType type, SsaBuilder builder) {
     DartType unaliased = type.unalias(builder.compiler);
     if (unaliased is TypedefType) throw 'unable to unalias $type';
     unaliased.accept(this, builder);
   }
 
-  void visitDynamicType(DynamicType type, SsaFromAstMixin builder) {
+  void visitDynamicType(DynamicType type, SsaBuilder builder) {
     ClassElement cls = builder.compiler.findHelper('DynamicRuntimeType');
     builder.push(new HDynamicType(type, new TypeMask.exact(cls)));
   }

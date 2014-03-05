@@ -49,7 +49,9 @@ class FlatTypeMask implements TypeMask {
   bool get isUnion => false;
   bool get isContainer => false;
   bool get isMap => false;
+  bool get isDictionary => false;
   bool get isForwarding => false;
+  bool get isValue => false;
 
   // TODO(kasperl): Get rid of these. They should not be a visible
   // part of the implementation because they make it hard to add

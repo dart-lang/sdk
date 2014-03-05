@@ -19,7 +19,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:unittest/unittest.dart' as _ut;
 import 'test_support.dart';
 import 'scanner_test.dart' show TokenFactory;
-import 'ast_test.dart' show ASTFactory;
+import 'ast_test.dart' show AstFactory;
 import 'element_test.dart' show ElementFactory;
 
 /**
@@ -34,7 +34,7 @@ class SimpleParserTest extends ParserTestCase {
     // This fails because we are returning null from the method and asserting that the return value
     // is not null.
     CommentReference reference = ParserTestCase.parse("parseCommentReference", <Object> ["this", 5], "");
-    SimpleIdentifier identifier = EngineTestCase.assertInstanceOf(SimpleIdentifier, reference.identifier);
+    SimpleIdentifier identifier = EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, reference.identifier);
     JUnitTestCase.assertNotNull(identifier.token);
     JUnitTestCase.assertEquals("a", identifier.name);
     JUnitTestCase.assertEquals(5, identifier.offset);
@@ -296,7 +296,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAdditiveExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parse5("parseAdditiveExpression", "x + y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseAdditiveExpression", "x + y", []);
     JUnitTestCase.assertNotNull(expression.leftOperand);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.PLUS, expression.operator.type);
@@ -304,15 +304,15 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAdditiveExpression_super() {
-    BinaryExpression expression = ParserTestCase.parse5("parseAdditiveExpression", "super + y", []);
-    EngineTestCase.assertInstanceOf(SuperExpression, expression.leftOperand);
+    BinaryExpression expression = ParserTestCase.parse4("parseAdditiveExpression", "super + y", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression, SuperExpression, expression.leftOperand);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.PLUS, expression.operator.type);
     JUnitTestCase.assertNotNull(expression.rightOperand);
   }
 
   void test_parseAnnotation_n1() {
-    Annotation annotation = ParserTestCase.parse5("parseAnnotation", "@A", []);
+    Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A", []);
     JUnitTestCase.assertNotNull(annotation.atSign);
     JUnitTestCase.assertNotNull(annotation.name);
     JUnitTestCase.assertNull(annotation.period);
@@ -321,7 +321,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAnnotation_n1_a() {
-    Annotation annotation = ParserTestCase.parse5("parseAnnotation", "@A(x,y)", []);
+    Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A(x,y)", []);
     JUnitTestCase.assertNotNull(annotation.atSign);
     JUnitTestCase.assertNotNull(annotation.name);
     JUnitTestCase.assertNull(annotation.period);
@@ -330,7 +330,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAnnotation_n2() {
-    Annotation annotation = ParserTestCase.parse5("parseAnnotation", "@A.B", []);
+    Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A.B", []);
     JUnitTestCase.assertNotNull(annotation.atSign);
     JUnitTestCase.assertNotNull(annotation.name);
     JUnitTestCase.assertNull(annotation.period);
@@ -339,7 +339,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAnnotation_n2_a() {
-    Annotation annotation = ParserTestCase.parse5("parseAnnotation", "@A.B(x,y)", []);
+    Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A.B(x,y)", []);
     JUnitTestCase.assertNotNull(annotation.atSign);
     JUnitTestCase.assertNotNull(annotation.name);
     JUnitTestCase.assertNull(annotation.period);
@@ -348,7 +348,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAnnotation_n3() {
-    Annotation annotation = ParserTestCase.parse5("parseAnnotation", "@A.B.C", []);
+    Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A.B.C", []);
     JUnitTestCase.assertNotNull(annotation.atSign);
     JUnitTestCase.assertNotNull(annotation.name);
     JUnitTestCase.assertNotNull(annotation.period);
@@ -357,7 +357,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAnnotation_n3_a() {
-    Annotation annotation = ParserTestCase.parse5("parseAnnotation", "@A.B.C(x,y)", []);
+    Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A.B.C(x,y)", []);
     JUnitTestCase.assertNotNull(annotation.atSign);
     JUnitTestCase.assertNotNull(annotation.name);
     JUnitTestCase.assertNotNull(annotation.period);
@@ -366,7 +366,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseArgument_named() {
-    NamedExpression expression = ParserTestCase.parse5("parseArgument", "n: x", []);
+    NamedExpression expression = ParserTestCase.parse4("parseArgument", "n: x", []);
     Label name = expression.name;
     JUnitTestCase.assertNotNull(name);
     JUnitTestCase.assertNotNull(name.label);
@@ -376,42 +376,42 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseArgument_unnamed() {
     String lexeme = "x";
-    SimpleIdentifier identifier = ParserTestCase.parse5("parseArgument", lexeme, []);
+    SimpleIdentifier identifier = ParserTestCase.parse4("parseArgument", lexeme, []);
     JUnitTestCase.assertEquals(lexeme, identifier.name);
   }
 
   void test_parseArgumentDefinitionTest() {
-    ArgumentDefinitionTest test = ParserTestCase.parse5("parseArgumentDefinitionTest", "?x", [ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST]);
+    ArgumentDefinitionTest test = ParserTestCase.parse4("parseArgumentDefinitionTest", "?x", [ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST]);
     JUnitTestCase.assertNotNull(test.question);
     JUnitTestCase.assertNotNull(test.identifier);
   }
 
   void test_parseArgumentList_empty() {
-    ArgumentList argumentList = ParserTestCase.parse5("parseArgumentList", "()", []);
+    ArgumentList argumentList = ParserTestCase.parse4("parseArgumentList", "()", []);
     NodeList<Expression> arguments = argumentList.arguments;
     EngineTestCase.assertSize(0, arguments);
   }
 
   void test_parseArgumentList_mixed() {
-    ArgumentList argumentList = ParserTestCase.parse5("parseArgumentList", "(w, x, y: y, z: z)", []);
+    ArgumentList argumentList = ParserTestCase.parse4("parseArgumentList", "(w, x, y: y, z: z)", []);
     NodeList<Expression> arguments = argumentList.arguments;
     EngineTestCase.assertSize(4, arguments);
   }
 
   void test_parseArgumentList_noNamed() {
-    ArgumentList argumentList = ParserTestCase.parse5("parseArgumentList", "(x, y, z)", []);
+    ArgumentList argumentList = ParserTestCase.parse4("parseArgumentList", "(x, y, z)", []);
     NodeList<Expression> arguments = argumentList.arguments;
     EngineTestCase.assertSize(3, arguments);
   }
 
   void test_parseArgumentList_onlyNamed() {
-    ArgumentList argumentList = ParserTestCase.parse5("parseArgumentList", "(x: x, y: y)", []);
+    ArgumentList argumentList = ParserTestCase.parse4("parseArgumentList", "(x: x, y: y)", []);
     NodeList<Expression> arguments = argumentList.arguments;
     EngineTestCase.assertSize(2, arguments);
   }
 
   void test_parseAssertStatement() {
-    AssertStatement statement = ParserTestCase.parse5("parseAssertStatement", "assert (x);", []);
+    AssertStatement statement = ParserTestCase.parse4("parseAssertStatement", "assert (x);", []);
     JUnitTestCase.assertNotNull(statement.keyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNotNull(statement.condition);
@@ -478,14 +478,14 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseAssignableExpression_super_dot() {
     PropertyAccess propertyAccess = ParserTestCase.parse("parseAssignableExpression", <Object> [false], "super.y");
-    EngineTestCase.assertInstanceOf(SuperExpression, propertyAccess.target);
+    EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression, SuperExpression, propertyAccess.target);
     JUnitTestCase.assertNotNull(propertyAccess.operator);
     JUnitTestCase.assertNotNull(propertyAccess.propertyName);
   }
 
   void test_parseAssignableExpression_super_index() {
     IndexExpression expression = ParserTestCase.parse("parseAssignableExpression", <Object> [false], "super[y]");
-    EngineTestCase.assertInstanceOf(SuperExpression, expression.target);
+    EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression, SuperExpression, expression.target);
     JUnitTestCase.assertNotNull(expression.leftBracket);
     JUnitTestCase.assertNotNull(expression.index);
     JUnitTestCase.assertNotNull(expression.rightBracket);
@@ -510,7 +510,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseBitwiseAndExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parse5("parseBitwiseAndExpression", "x & y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseBitwiseAndExpression", "x & y", []);
     JUnitTestCase.assertNotNull(expression.leftOperand);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.AMPERSAND, expression.operator.type);
@@ -518,15 +518,15 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseBitwiseAndExpression_super() {
-    BinaryExpression expression = ParserTestCase.parse5("parseBitwiseAndExpression", "super & y", []);
-    EngineTestCase.assertInstanceOf(SuperExpression, expression.leftOperand);
+    BinaryExpression expression = ParserTestCase.parse4("parseBitwiseAndExpression", "super & y", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression, SuperExpression, expression.leftOperand);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.AMPERSAND, expression.operator.type);
     JUnitTestCase.assertNotNull(expression.rightOperand);
   }
 
   void test_parseBitwiseOrExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parse5("parseBitwiseOrExpression", "x | y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseBitwiseOrExpression", "x | y", []);
     JUnitTestCase.assertNotNull(expression.leftOperand);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.BAR, expression.operator.type);
@@ -534,15 +534,15 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseBitwiseOrExpression_super() {
-    BinaryExpression expression = ParserTestCase.parse5("parseBitwiseOrExpression", "super | y", []);
-    EngineTestCase.assertInstanceOf(SuperExpression, expression.leftOperand);
+    BinaryExpression expression = ParserTestCase.parse4("parseBitwiseOrExpression", "super | y", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression, SuperExpression, expression.leftOperand);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.BAR, expression.operator.type);
     JUnitTestCase.assertNotNull(expression.rightOperand);
   }
 
   void test_parseBitwiseXorExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parse5("parseBitwiseXorExpression", "x ^ y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseBitwiseXorExpression", "x ^ y", []);
     JUnitTestCase.assertNotNull(expression.leftOperand);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.CARET, expression.operator.type);
@@ -550,43 +550,43 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseBitwiseXorExpression_super() {
-    BinaryExpression expression = ParserTestCase.parse5("parseBitwiseXorExpression", "super ^ y", []);
-    EngineTestCase.assertInstanceOf(SuperExpression, expression.leftOperand);
+    BinaryExpression expression = ParserTestCase.parse4("parseBitwiseXorExpression", "super ^ y", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression, SuperExpression, expression.leftOperand);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.CARET, expression.operator.type);
     JUnitTestCase.assertNotNull(expression.rightOperand);
   }
 
   void test_parseBlock_empty() {
-    Block block = ParserTestCase.parse5("parseBlock", "{}", []);
+    Block block = ParserTestCase.parse4("parseBlock", "{}", []);
     JUnitTestCase.assertNotNull(block.leftBracket);
     EngineTestCase.assertSize(0, block.statements);
     JUnitTestCase.assertNotNull(block.rightBracket);
   }
 
   void test_parseBlock_nonEmpty() {
-    Block block = ParserTestCase.parse5("parseBlock", "{;}", []);
+    Block block = ParserTestCase.parse4("parseBlock", "{;}", []);
     JUnitTestCase.assertNotNull(block.leftBracket);
     EngineTestCase.assertSize(1, block.statements);
     JUnitTestCase.assertNotNull(block.rightBracket);
   }
 
   void test_parseBreakStatement_label() {
-    BreakStatement statement = ParserTestCase.parse5("parseBreakStatement", "break foo;", []);
+    BreakStatement statement = ParserTestCase.parse4("parseBreakStatement", "break foo;", []);
     JUnitTestCase.assertNotNull(statement.keyword);
     JUnitTestCase.assertNotNull(statement.label);
     JUnitTestCase.assertNotNull(statement.semicolon);
   }
 
   void test_parseBreakStatement_noLabel() {
-    BreakStatement statement = ParserTestCase.parse5("parseBreakStatement", "break;", [ParserErrorCode.BREAK_OUTSIDE_OF_LOOP]);
+    BreakStatement statement = ParserTestCase.parse4("parseBreakStatement", "break;", [ParserErrorCode.BREAK_OUTSIDE_OF_LOOP]);
     JUnitTestCase.assertNotNull(statement.keyword);
     JUnitTestCase.assertNull(statement.label);
     JUnitTestCase.assertNotNull(statement.semicolon);
   }
 
   void test_parseCascadeSection_i() {
-    IndexExpression section = ParserTestCase.parse5("parseCascadeSection", "..[i]", []);
+    IndexExpression section = ParserTestCase.parse4("parseCascadeSection", "..[i]", []);
     JUnitTestCase.assertNull(section.target);
     JUnitTestCase.assertNotNull(section.leftBracket);
     JUnitTestCase.assertNotNull(section.index);
@@ -594,14 +594,14 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCascadeSection_ia() {
-    FunctionExpressionInvocation section = ParserTestCase.parse5("parseCascadeSection", "..[i](b)", []);
-    EngineTestCase.assertInstanceOf(IndexExpression, section.function);
+    FunctionExpressionInvocation section = ParserTestCase.parse4("parseCascadeSection", "..[i](b)", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is IndexExpression, IndexExpression, section.function);
     JUnitTestCase.assertNotNull(section.argumentList);
   }
 
   void test_parseCascadeSection_ii() {
-    MethodInvocation section = ParserTestCase.parse5("parseCascadeSection", "..a(b).c(d)", []);
-    EngineTestCase.assertInstanceOf(MethodInvocation, section.target);
+    MethodInvocation section = ParserTestCase.parse4("parseCascadeSection", "..a(b).c(d)", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is MethodInvocation, MethodInvocation, section.target);
     JUnitTestCase.assertNotNull(section.period);
     JUnitTestCase.assertNotNull(section.methodName);
     JUnitTestCase.assertNotNull(section.argumentList);
@@ -609,14 +609,14 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCascadeSection_p() {
-    PropertyAccess section = ParserTestCase.parse5("parseCascadeSection", "..a", []);
+    PropertyAccess section = ParserTestCase.parse4("parseCascadeSection", "..a", []);
     JUnitTestCase.assertNull(section.target);
     JUnitTestCase.assertNotNull(section.operator);
     JUnitTestCase.assertNotNull(section.propertyName);
   }
 
   void test_parseCascadeSection_p_assign() {
-    AssignmentExpression section = ParserTestCase.parse5("parseCascadeSection", "..a = 3", []);
+    AssignmentExpression section = ParserTestCase.parse4("parseCascadeSection", "..a = 3", []);
     JUnitTestCase.assertNotNull(section.leftHandSide);
     JUnitTestCase.assertNotNull(section.operator);
     Expression rhs = section.rightHandSide;
@@ -624,22 +624,22 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCascadeSection_p_assign_withCascade() {
-    AssignmentExpression section = ParserTestCase.parse5("parseCascadeSection", "..a = 3..m()", []);
+    AssignmentExpression section = ParserTestCase.parse4("parseCascadeSection", "..a = 3..m()", []);
     JUnitTestCase.assertNotNull(section.leftHandSide);
     JUnitTestCase.assertNotNull(section.operator);
     Expression rhs = section.rightHandSide;
-    EngineTestCase.assertInstanceOf(IntegerLiteral, rhs);
+    EngineTestCase.assertInstanceOf((obj) => obj is IntegerLiteral, IntegerLiteral, rhs);
   }
 
   void test_parseCascadeSection_p_builtIn() {
-    PropertyAccess section = ParserTestCase.parse5("parseCascadeSection", "..as", []);
+    PropertyAccess section = ParserTestCase.parse4("parseCascadeSection", "..as", []);
     JUnitTestCase.assertNull(section.target);
     JUnitTestCase.assertNotNull(section.operator);
     JUnitTestCase.assertNotNull(section.propertyName);
   }
 
   void test_parseCascadeSection_pa() {
-    MethodInvocation section = ParserTestCase.parse5("parseCascadeSection", "..a(b)", []);
+    MethodInvocation section = ParserTestCase.parse4("parseCascadeSection", "..a(b)", []);
     JUnitTestCase.assertNull(section.target);
     JUnitTestCase.assertNotNull(section.period);
     JUnitTestCase.assertNotNull(section.methodName);
@@ -648,21 +648,21 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCascadeSection_paa() {
-    FunctionExpressionInvocation section = ParserTestCase.parse5("parseCascadeSection", "..a(b)(c)", []);
-    EngineTestCase.assertInstanceOf(MethodInvocation, section.function);
+    FunctionExpressionInvocation section = ParserTestCase.parse4("parseCascadeSection", "..a(b)(c)", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is MethodInvocation, MethodInvocation, section.function);
     JUnitTestCase.assertNotNull(section.argumentList);
     EngineTestCase.assertSize(1, section.argumentList.arguments);
   }
 
   void test_parseCascadeSection_paapaa() {
-    FunctionExpressionInvocation section = ParserTestCase.parse5("parseCascadeSection", "..a(b)(c).d(e)(f)", []);
-    EngineTestCase.assertInstanceOf(MethodInvocation, section.function);
+    FunctionExpressionInvocation section = ParserTestCase.parse4("parseCascadeSection", "..a(b)(c).d(e)(f)", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is MethodInvocation, MethodInvocation, section.function);
     JUnitTestCase.assertNotNull(section.argumentList);
     EngineTestCase.assertSize(1, section.argumentList.arguments);
   }
 
   void test_parseCascadeSection_pap() {
-    PropertyAccess section = ParserTestCase.parse5("parseCascadeSection", "..a(b).c", []);
+    PropertyAccess section = ParserTestCase.parse4("parseCascadeSection", "..a(b).c", []);
     JUnitTestCase.assertNotNull(section.target);
     JUnitTestCase.assertNotNull(section.operator);
     JUnitTestCase.assertNotNull(section.propertyName);
@@ -1204,7 +1204,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCombinators_h() {
-    List<Combinator> combinators = ParserTestCase.parse5("parseCombinators", "hide a;", []);
+    List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "hide a;", []);
     EngineTestCase.assertSize(1, combinators);
     HideCombinator combinator = combinators[0] as HideCombinator;
     JUnitTestCase.assertNotNull(combinator);
@@ -1213,7 +1213,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCombinators_hs() {
-    List<Combinator> combinators = ParserTestCase.parse5("parseCombinators", "hide a show b;", []);
+    List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "hide a show b;", []);
     EngineTestCase.assertSize(2, combinators);
     HideCombinator hideCombinator = combinators[0] as HideCombinator;
     JUnitTestCase.assertNotNull(hideCombinator);
@@ -1226,12 +1226,12 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCombinators_hshs() {
-    List<Combinator> combinators = ParserTestCase.parse5("parseCombinators", "hide a show b hide c show d;", []);
+    List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "hide a show b hide c show d;", []);
     EngineTestCase.assertSize(4, combinators);
   }
 
   void test_parseCombinators_s() {
-    List<Combinator> combinators = ParserTestCase.parse5("parseCombinators", "show a;", []);
+    List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "show a;", []);
     EngineTestCase.assertSize(1, combinators);
     ShowCombinator combinator = combinators[0] as ShowCombinator;
     JUnitTestCase.assertNotNull(combinator);
@@ -1240,68 +1240,68 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCommentAndMetadata_c() {
-    CommentAndMetadata commentAndMetadata = ParserTestCase.parse5("parseCommentAndMetadata", "/** 1 */ void", []);
+    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ void", []);
     JUnitTestCase.assertNotNull(commentAndMetadata.comment);
     EngineTestCase.assertSize(0, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_cmc() {
-    CommentAndMetadata commentAndMetadata = ParserTestCase.parse5("parseCommentAndMetadata", "/** 1 */ @A /** 2 */ void", []);
+    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ @A /** 2 */ void", []);
     JUnitTestCase.assertNotNull(commentAndMetadata.comment);
     EngineTestCase.assertSize(1, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_cmcm() {
-    CommentAndMetadata commentAndMetadata = ParserTestCase.parse5("parseCommentAndMetadata", "/** 1 */ @A /** 2 */ @B void", []);
+    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ @A /** 2 */ @B void", []);
     JUnitTestCase.assertNotNull(commentAndMetadata.comment);
     EngineTestCase.assertSize(2, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_cmm() {
-    CommentAndMetadata commentAndMetadata = ParserTestCase.parse5("parseCommentAndMetadata", "/** 1 */ @A @B void", []);
+    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ @A @B void", []);
     JUnitTestCase.assertNotNull(commentAndMetadata.comment);
     EngineTestCase.assertSize(2, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_m() {
-    CommentAndMetadata commentAndMetadata = ParserTestCase.parse5("parseCommentAndMetadata", "@A void", []);
+    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A void", []);
     JUnitTestCase.assertNull(commentAndMetadata.comment);
     EngineTestCase.assertSize(1, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_mcm() {
-    CommentAndMetadata commentAndMetadata = ParserTestCase.parse5("parseCommentAndMetadata", "@A /** 1 */ @B void", []);
+    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A /** 1 */ @B void", []);
     JUnitTestCase.assertNotNull(commentAndMetadata.comment);
     EngineTestCase.assertSize(2, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_mcmc() {
-    CommentAndMetadata commentAndMetadata = ParserTestCase.parse5("parseCommentAndMetadata", "@A /** 1 */ @B /** 2 */ void", []);
+    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A /** 1 */ @B /** 2 */ void", []);
     JUnitTestCase.assertNotNull(commentAndMetadata.comment);
     EngineTestCase.assertSize(2, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_mm() {
-    CommentAndMetadata commentAndMetadata = ParserTestCase.parse5("parseCommentAndMetadata", "@A @B(x) void", []);
+    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A @B(x) void", []);
     JUnitTestCase.assertNull(commentAndMetadata.comment);
     EngineTestCase.assertSize(2, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_none() {
-    CommentAndMetadata commentAndMetadata = ParserTestCase.parse5("parseCommentAndMetadata", "void", []);
+    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "void", []);
     JUnitTestCase.assertNull(commentAndMetadata.comment);
     EngineTestCase.assertSize(0, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_singleLine() {
-    CommentAndMetadata commentAndMetadata = ParserTestCase.parse5("parseCommentAndMetadata", EngineTestCase.createSource(["/// 1", "/// 2", "void"]), []);
+    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", EngineTestCase.createSource(["/// 1", "/// 2", "void"]), []);
     JUnitTestCase.assertNotNull(commentAndMetadata.comment);
     EngineTestCase.assertSize(0, commentAndMetadata.metadata);
   }
 
   void test_parseCommentReference_new_prefixed() {
     CommentReference reference = ParserTestCase.parse("parseCommentReference", <Object> ["new a.b", 7], "");
-    PrefixedIdentifier prefixedIdentifier = EngineTestCase.assertInstanceOf(PrefixedIdentifier, reference.identifier);
+    PrefixedIdentifier prefixedIdentifier = EngineTestCase.assertInstanceOf((obj) => obj is PrefixedIdentifier, PrefixedIdentifier, reference.identifier);
     SimpleIdentifier prefix = prefixedIdentifier.prefix;
     JUnitTestCase.assertNotNull(prefix.token);
     JUnitTestCase.assertEquals("a", prefix.name);
@@ -1315,7 +1315,7 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseCommentReference_new_simple() {
     CommentReference reference = ParserTestCase.parse("parseCommentReference", <Object> ["new a", 5], "");
-    SimpleIdentifier identifier = EngineTestCase.assertInstanceOf(SimpleIdentifier, reference.identifier);
+    SimpleIdentifier identifier = EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, reference.identifier);
     JUnitTestCase.assertNotNull(identifier.token);
     JUnitTestCase.assertEquals("a", identifier.name);
     JUnitTestCase.assertEquals(9, identifier.offset);
@@ -1323,7 +1323,7 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseCommentReference_prefixed() {
     CommentReference reference = ParserTestCase.parse("parseCommentReference", <Object> ["a.b", 7], "");
-    PrefixedIdentifier prefixedIdentifier = EngineTestCase.assertInstanceOf(PrefixedIdentifier, reference.identifier);
+    PrefixedIdentifier prefixedIdentifier = EngineTestCase.assertInstanceOf((obj) => obj is PrefixedIdentifier, PrefixedIdentifier, reference.identifier);
     SimpleIdentifier prefix = prefixedIdentifier.prefix;
     JUnitTestCase.assertNotNull(prefix.token);
     JUnitTestCase.assertEquals("a", prefix.name);
@@ -1337,9 +1337,19 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseCommentReference_simple() {
     CommentReference reference = ParserTestCase.parse("parseCommentReference", <Object> ["a", 5], "");
-    SimpleIdentifier identifier = EngineTestCase.assertInstanceOf(SimpleIdentifier, reference.identifier);
+    SimpleIdentifier identifier = EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, reference.identifier);
     JUnitTestCase.assertNotNull(identifier.token);
     JUnitTestCase.assertEquals("a", identifier.name);
+    JUnitTestCase.assertEquals(5, identifier.offset);
+  }
+
+  void test_parseCommentReference_synthetic() {
+    CommentReference reference = ParserTestCase.parse("parseCommentReference", <Object> ["", 5], "");
+    SimpleIdentifier identifier = EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, reference.identifier);
+    JUnitTestCase.assertNotNull(identifier);
+    JUnitTestCase.assertTrue(identifier.isSynthetic);
+    JUnitTestCase.assertNotNull(identifier.token);
+    JUnitTestCase.assertEquals("", identifier.name);
     JUnitTestCase.assertEquals(5, identifier.offset);
   }
 
@@ -1355,6 +1365,28 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(reference);
     JUnitTestCase.assertNotNull(reference.identifier);
     JUnitTestCase.assertEquals(20, reference.offset);
+  }
+
+  void test_parseCommentReferences_notClosed_noIdentifier() {
+    List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/** [ some text", 5)];
+    List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
+    EngineTestCase.assertSize(1, references);
+    CommentReference reference = references[0];
+    JUnitTestCase.assertNotNull(reference);
+    JUnitTestCase.assertNotNull(reference.identifier);
+    JUnitTestCase.assertTrue(reference.identifier.isSynthetic);
+    JUnitTestCase.assertEquals("", reference.identifier.name);
+  }
+
+  void test_parseCommentReferences_notClosed_withIdentifier() {
+    List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/** [namePrefix some text", 5)];
+    List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
+    EngineTestCase.assertSize(1, references);
+    CommentReference reference = references[0];
+    JUnitTestCase.assertNotNull(reference);
+    JUnitTestCase.assertNotNull(reference.identifier);
+    JUnitTestCase.assertFalse(reference.identifier.isSynthetic);
+    JUnitTestCase.assertEquals("namePrefix", reference.identifier.name);
   }
 
   void test_parseCommentReferences_singleLine() {
@@ -1428,74 +1460,74 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
-    CompilationUnit unit = ParserTestCase.parse5("parseCompilationUnit", "abstract<dynamic> _abstract = new abstract.A();", []);
+    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "abstract<dynamic> _abstract = new abstract.A();", []);
     JUnitTestCase.assertNull(unit.scriptTag);
     EngineTestCase.assertSize(0, unit.directives);
     EngineTestCase.assertSize(1, unit.declarations);
   }
 
   void test_parseCompilationUnit_builtIn_asFunctionName() {
-    ParserTestCase.parse5("parseCompilationUnit", "abstract(x) => 0;", []);
-    ParserTestCase.parse5("parseCompilationUnit", "as(x) => 0;", []);
-    ParserTestCase.parse5("parseCompilationUnit", "dynamic(x) => 0;", []);
-    ParserTestCase.parse5("parseCompilationUnit", "export(x) => 0;", []);
-    ParserTestCase.parse5("parseCompilationUnit", "external(x) => 0;", []);
-    ParserTestCase.parse5("parseCompilationUnit", "factory(x) => 0;", []);
-    ParserTestCase.parse5("parseCompilationUnit", "get(x) => 0;", []);
-    ParserTestCase.parse5("parseCompilationUnit", "implements(x) => 0;", []);
-    ParserTestCase.parse5("parseCompilationUnit", "import(x) => 0;", []);
-    ParserTestCase.parse5("parseCompilationUnit", "library(x) => 0;", []);
-    ParserTestCase.parse5("parseCompilationUnit", "operator(x) => 0;", []);
-    ParserTestCase.parse5("parseCompilationUnit", "part(x) => 0;", []);
-    ParserTestCase.parse5("parseCompilationUnit", "set(x) => 0;", []);
-    ParserTestCase.parse5("parseCompilationUnit", "static(x) => 0;", []);
-    ParserTestCase.parse5("parseCompilationUnit", "typedef(x) => 0;", []);
+    ParserTestCase.parse4("parseCompilationUnit", "abstract(x) => 0;", []);
+    ParserTestCase.parse4("parseCompilationUnit", "as(x) => 0;", []);
+    ParserTestCase.parse4("parseCompilationUnit", "dynamic(x) => 0;", []);
+    ParserTestCase.parse4("parseCompilationUnit", "export(x) => 0;", []);
+    ParserTestCase.parse4("parseCompilationUnit", "external(x) => 0;", []);
+    ParserTestCase.parse4("parseCompilationUnit", "factory(x) => 0;", []);
+    ParserTestCase.parse4("parseCompilationUnit", "get(x) => 0;", []);
+    ParserTestCase.parse4("parseCompilationUnit", "implements(x) => 0;", []);
+    ParserTestCase.parse4("parseCompilationUnit", "import(x) => 0;", []);
+    ParserTestCase.parse4("parseCompilationUnit", "library(x) => 0;", []);
+    ParserTestCase.parse4("parseCompilationUnit", "operator(x) => 0;", []);
+    ParserTestCase.parse4("parseCompilationUnit", "part(x) => 0;", []);
+    ParserTestCase.parse4("parseCompilationUnit", "set(x) => 0;", []);
+    ParserTestCase.parse4("parseCompilationUnit", "static(x) => 0;", []);
+    ParserTestCase.parse4("parseCompilationUnit", "typedef(x) => 0;", []);
   }
 
   void test_parseCompilationUnit_directives_multiple() {
-    CompilationUnit unit = ParserTestCase.parse5("parseCompilationUnit", "library l;\npart 'a.dart';", []);
+    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "library l;\npart 'a.dart';", []);
     JUnitTestCase.assertNull(unit.scriptTag);
     EngineTestCase.assertSize(2, unit.directives);
     EngineTestCase.assertSize(0, unit.declarations);
   }
 
   void test_parseCompilationUnit_directives_single() {
-    CompilationUnit unit = ParserTestCase.parse5("parseCompilationUnit", "library l;", []);
+    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "library l;", []);
     JUnitTestCase.assertNull(unit.scriptTag);
     EngineTestCase.assertSize(1, unit.directives);
     EngineTestCase.assertSize(0, unit.declarations);
   }
 
   void test_parseCompilationUnit_empty() {
-    CompilationUnit unit = ParserTestCase.parse5("parseCompilationUnit", "", []);
+    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "", []);
     JUnitTestCase.assertNull(unit.scriptTag);
     EngineTestCase.assertSize(0, unit.directives);
     EngineTestCase.assertSize(0, unit.declarations);
   }
 
   void test_parseCompilationUnit_exportAsPrefix() {
-    CompilationUnit unit = ParserTestCase.parse5("parseCompilationUnit", "export.A _export = new export.A();", []);
+    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "export.A _export = new export.A();", []);
     JUnitTestCase.assertNull(unit.scriptTag);
     EngineTestCase.assertSize(0, unit.directives);
     EngineTestCase.assertSize(1, unit.declarations);
   }
 
   void test_parseCompilationUnit_exportAsPrefix_parameterized() {
-    CompilationUnit unit = ParserTestCase.parse5("parseCompilationUnit", "export<dynamic> _export = new export.A();", []);
+    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "export<dynamic> _export = new export.A();", []);
     JUnitTestCase.assertNull(unit.scriptTag);
     EngineTestCase.assertSize(0, unit.directives);
     EngineTestCase.assertSize(1, unit.declarations);
   }
 
   void test_parseCompilationUnit_operatorAsPrefix_parameterized() {
-    CompilationUnit unit = ParserTestCase.parse5("parseCompilationUnit", "operator<dynamic> _operator = new operator.A();", []);
+    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "operator<dynamic> _operator = new operator.A();", []);
     JUnitTestCase.assertNull(unit.scriptTag);
     EngineTestCase.assertSize(0, unit.directives);
     EngineTestCase.assertSize(1, unit.declarations);
   }
 
   void test_parseCompilationUnit_script() {
-    CompilationUnit unit = ParserTestCase.parse5("parseCompilationUnit", "#! /bin/dart", []);
+    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "#! /bin/dart", []);
     JUnitTestCase.assertNotNull(unit.scriptTag);
     EngineTestCase.assertSize(0, unit.directives);
     EngineTestCase.assertSize(0, unit.declarations);
@@ -1503,20 +1535,20 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseCompilationUnit_skipFunctionBody_withInterpolation() {
     ParserTestCase._parseFunctionBodies = false;
-    CompilationUnit unit = ParserTestCase.parse5("parseCompilationUnit", "f() { '\${n}'; }", []);
+    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "f() { '\${n}'; }", []);
     JUnitTestCase.assertNull(unit.scriptTag);
     EngineTestCase.assertSize(1, unit.declarations);
   }
 
   void test_parseCompilationUnit_topLevelDeclaration() {
-    CompilationUnit unit = ParserTestCase.parse5("parseCompilationUnit", "class A {}", []);
+    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "class A {}", []);
     JUnitTestCase.assertNull(unit.scriptTag);
     EngineTestCase.assertSize(0, unit.directives);
     EngineTestCase.assertSize(1, unit.declarations);
   }
 
   void test_parseCompilationUnit_typedefAsPrefix() {
-    CompilationUnit unit = ParserTestCase.parse5("parseCompilationUnit", "typedef.A _typedef = new typedef.A();", []);
+    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "typedef.A _typedef = new typedef.A();", []);
     JUnitTestCase.assertNull(unit.scriptTag);
     EngineTestCase.assertSize(0, unit.directives);
     EngineTestCase.assertSize(1, unit.declarations);
@@ -1713,7 +1745,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseConditionalExpression() {
-    ConditionalExpression expression = ParserTestCase.parse5("parseConditionalExpression", "x ? y : z", []);
+    ConditionalExpression expression = ParserTestCase.parse4("parseConditionalExpression", "x ? y : z", []);
     JUnitTestCase.assertNotNull(expression.condition);
     JUnitTestCase.assertNotNull(expression.question);
     JUnitTestCase.assertNotNull(expression.thenExpression);
@@ -1722,7 +1754,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseConstExpression_instanceCreation() {
-    InstanceCreationExpression expression = ParserTestCase.parse5("parseConstExpression", "const A()", []);
+    InstanceCreationExpression expression = ParserTestCase.parse4("parseConstExpression", "const A()", []);
     JUnitTestCase.assertNotNull(expression.keyword);
     ConstructorName name = expression.constructorName;
     JUnitTestCase.assertNotNull(name);
@@ -1733,7 +1765,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseConstExpression_listLiteral_typed() {
-    ListLiteral literal = ParserTestCase.parse5("parseConstExpression", "const <A> []", []);
+    ListLiteral literal = ParserTestCase.parse4("parseConstExpression", "const <A> []", []);
     JUnitTestCase.assertNotNull(literal.constKeyword);
     JUnitTestCase.assertNotNull(literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
@@ -1742,7 +1774,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseConstExpression_listLiteral_untyped() {
-    ListLiteral literal = ParserTestCase.parse5("parseConstExpression", "const []", []);
+    ListLiteral literal = ParserTestCase.parse4("parseConstExpression", "const []", []);
     JUnitTestCase.assertNotNull(literal.constKeyword);
     JUnitTestCase.assertNull(literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
@@ -1751,7 +1783,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseConstExpression_mapLiteral_typed() {
-    MapLiteral literal = ParserTestCase.parse5("parseConstExpression", "const <A, B> {}", []);
+    MapLiteral literal = ParserTestCase.parse4("parseConstExpression", "const <A, B> {}", []);
     JUnitTestCase.assertNotNull(literal.leftBracket);
     EngineTestCase.assertSize(0, literal.entries);
     JUnitTestCase.assertNotNull(literal.rightBracket);
@@ -1759,7 +1791,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseConstExpression_mapLiteral_untyped() {
-    MapLiteral literal = ParserTestCase.parse5("parseConstExpression", "const {}", []);
+    MapLiteral literal = ParserTestCase.parse4("parseConstExpression", "const {}", []);
     JUnitTestCase.assertNotNull(literal.leftBracket);
     EngineTestCase.assertSize(0, literal.entries);
     JUnitTestCase.assertNotNull(literal.rightBracket);
@@ -1770,7 +1802,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseConstructorFieldInitializer_qualified() {
-    ConstructorFieldInitializer invocation = ParserTestCase.parse5("parseConstructorFieldInitializer", "this.a = b", []);
+    ConstructorFieldInitializer invocation = ParserTestCase.parse4("parseConstructorFieldInitializer", "this.a = b", []);
     JUnitTestCase.assertNotNull(invocation.equals);
     JUnitTestCase.assertNotNull(invocation.expression);
     JUnitTestCase.assertNotNull(invocation.fieldName);
@@ -1779,7 +1811,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseConstructorFieldInitializer_unqualified() {
-    ConstructorFieldInitializer invocation = ParserTestCase.parse5("parseConstructorFieldInitializer", "a = b", []);
+    ConstructorFieldInitializer invocation = ParserTestCase.parse4("parseConstructorFieldInitializer", "a = b", []);
     JUnitTestCase.assertNotNull(invocation.equals);
     JUnitTestCase.assertNotNull(invocation.expression);
     JUnitTestCase.assertNotNull(invocation.fieldName);
@@ -1788,42 +1820,42 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseConstructorName_named_noPrefix() {
-    ConstructorName name = ParserTestCase.parse5("parseConstructorName", "A.n;", []);
+    ConstructorName name = ParserTestCase.parse4("parseConstructorName", "A.n;", []);
     JUnitTestCase.assertNotNull(name.type);
     JUnitTestCase.assertNull(name.period);
     JUnitTestCase.assertNull(name.name);
   }
 
   void test_parseConstructorName_named_prefixed() {
-    ConstructorName name = ParserTestCase.parse5("parseConstructorName", "p.A.n;", []);
+    ConstructorName name = ParserTestCase.parse4("parseConstructorName", "p.A.n;", []);
     JUnitTestCase.assertNotNull(name.type);
     JUnitTestCase.assertNotNull(name.period);
     JUnitTestCase.assertNotNull(name.name);
   }
 
   void test_parseConstructorName_unnamed_noPrefix() {
-    ConstructorName name = ParserTestCase.parse5("parseConstructorName", "A;", []);
+    ConstructorName name = ParserTestCase.parse4("parseConstructorName", "A;", []);
     JUnitTestCase.assertNotNull(name.type);
     JUnitTestCase.assertNull(name.period);
     JUnitTestCase.assertNull(name.name);
   }
 
   void test_parseConstructorName_unnamed_prefixed() {
-    ConstructorName name = ParserTestCase.parse5("parseConstructorName", "p.A;", []);
+    ConstructorName name = ParserTestCase.parse4("parseConstructorName", "p.A;", []);
     JUnitTestCase.assertNotNull(name.type);
     JUnitTestCase.assertNull(name.period);
     JUnitTestCase.assertNull(name.name);
   }
 
   void test_parseContinueStatement_label() {
-    ContinueStatement statement = ParserTestCase.parse5("parseContinueStatement", "continue foo;", [ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP]);
+    ContinueStatement statement = ParserTestCase.parse4("parseContinueStatement", "continue foo;", [ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP]);
     JUnitTestCase.assertNotNull(statement.keyword);
     JUnitTestCase.assertNotNull(statement.label);
     JUnitTestCase.assertNotNull(statement.semicolon);
   }
 
   void test_parseContinueStatement_noLabel() {
-    ContinueStatement statement = ParserTestCase.parse5("parseContinueStatement", "continue;", [ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP]);
+    ContinueStatement statement = ParserTestCase.parse4("parseContinueStatement", "continue;", [ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP]);
     JUnitTestCase.assertNotNull(statement.keyword);
     JUnitTestCase.assertNull(statement.label);
     JUnitTestCase.assertNotNull(statement.semicolon);
@@ -1870,14 +1902,14 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseDocumentationComment_block() {
-    Comment comment = ParserTestCase.parse5("parseDocumentationComment", "/** */ class", []);
+    Comment comment = ParserTestCase.parse4("parseDocumentationComment", "/** */ class", []);
     JUnitTestCase.assertFalse(comment.isBlock);
     JUnitTestCase.assertTrue(comment.isDocumentation);
     JUnitTestCase.assertFalse(comment.isEndOfLine);
   }
 
   void test_parseDocumentationComment_block_withReference() {
-    Comment comment = ParserTestCase.parse5("parseDocumentationComment", "/** [a] */ class", []);
+    Comment comment = ParserTestCase.parse4("parseDocumentationComment", "/** [a] */ class", []);
     JUnitTestCase.assertFalse(comment.isBlock);
     JUnitTestCase.assertTrue(comment.isDocumentation);
     JUnitTestCase.assertFalse(comment.isEndOfLine);
@@ -1889,14 +1921,14 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseDocumentationComment_endOfLine() {
-    Comment comment = ParserTestCase.parse5("parseDocumentationComment", "/// \n/// \n class", []);
+    Comment comment = ParserTestCase.parse4("parseDocumentationComment", "/// \n/// \n class", []);
     JUnitTestCase.assertFalse(comment.isBlock);
     JUnitTestCase.assertTrue(comment.isDocumentation);
     JUnitTestCase.assertFalse(comment.isEndOfLine);
   }
 
   void test_parseDoStatement() {
-    DoStatement statement = ParserTestCase.parse5("parseDoStatement", "do {} while (x);", []);
+    DoStatement statement = ParserTestCase.parse4("parseDoStatement", "do {} while (x);", []);
     JUnitTestCase.assertNotNull(statement.doKeyword);
     JUnitTestCase.assertNotNull(statement.body);
     JUnitTestCase.assertNotNull(statement.whileKeyword);
@@ -1907,12 +1939,12 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseEmptyStatement() {
-    EmptyStatement statement = ParserTestCase.parse5("parseEmptyStatement", ";", []);
+    EmptyStatement statement = ParserTestCase.parse4("parseEmptyStatement", ";", []);
     JUnitTestCase.assertNotNull(statement.semicolon);
   }
 
   void test_parseEqualityExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parse5("parseEqualityExpression", "x == y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseEqualityExpression", "x == y", []);
     JUnitTestCase.assertNotNull(expression.leftOperand);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.EQ_EQ, expression.operator.type);
@@ -1920,8 +1952,8 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseEqualityExpression_super() {
-    BinaryExpression expression = ParserTestCase.parse5("parseEqualityExpression", "super == y", []);
-    EngineTestCase.assertInstanceOf(SuperExpression, expression.leftOperand);
+    BinaryExpression expression = ParserTestCase.parse4("parseEqualityExpression", "super == y", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression, SuperExpression, expression.leftOperand);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.EQ_EQ, expression.operator.type);
     JUnitTestCase.assertNotNull(expression.rightOperand);
@@ -1969,7 +2001,7 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseExpression_assign() {
     // TODO(brianwilkerson) Implement more tests for this method.
-    AssignmentExpression expression = ParserTestCase.parse5("parseExpression", "x = y", []);
+    AssignmentExpression expression = ParserTestCase.parse4("parseExpression", "x = y", []);
     JUnitTestCase.assertNotNull(expression.leftHandSide);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.EQ, expression.operator.type);
@@ -1977,7 +2009,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseExpression_comparison() {
-    BinaryExpression expression = ParserTestCase.parse5("parseExpression", "--a.b == c", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseExpression", "--a.b == c", []);
     JUnitTestCase.assertNotNull(expression.leftOperand);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.EQ_EQ, expression.operator.type);
@@ -1985,8 +2017,8 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseExpression_invokeFunctionExpression() {
-    FunctionExpressionInvocation invocation = ParserTestCase.parse5("parseExpression", "(a) {return a + a;} (3)", []);
-    EngineTestCase.assertInstanceOf(FunctionExpression, invocation.function);
+    FunctionExpressionInvocation invocation = ParserTestCase.parse4("parseExpression", "(a) {return a + a;} (3)", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is FunctionExpression, FunctionExpression, invocation.function);
     FunctionExpression expression = invocation.function as FunctionExpression;
     JUnitTestCase.assertNotNull(expression.parameters);
     JUnitTestCase.assertNotNull(expression.body);
@@ -1996,25 +2028,25 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseExpression_superMethodInvocation() {
-    MethodInvocation invocation = ParserTestCase.parse5("parseExpression", "super.m()", []);
+    MethodInvocation invocation = ParserTestCase.parse4("parseExpression", "super.m()", []);
     JUnitTestCase.assertNotNull(invocation.target);
     JUnitTestCase.assertNotNull(invocation.methodName);
     JUnitTestCase.assertNotNull(invocation.argumentList);
   }
 
   void test_parseExpressionList_multiple() {
-    List<Expression> result = ParserTestCase.parse5("parseExpressionList", "1, 2, 3", []);
+    List<Expression> result = ParserTestCase.parse4("parseExpressionList", "1, 2, 3", []);
     EngineTestCase.assertSize(3, result);
   }
 
   void test_parseExpressionList_single() {
-    List<Expression> result = ParserTestCase.parse5("parseExpressionList", "1", []);
+    List<Expression> result = ParserTestCase.parse4("parseExpressionList", "1", []);
     EngineTestCase.assertSize(1, result);
   }
 
   void test_parseExpressionWithoutCascade_assign() {
     // TODO(brianwilkerson) Implement more tests for this method.
-    AssignmentExpression expression = ParserTestCase.parse5("parseExpressionWithoutCascade", "x = y", []);
+    AssignmentExpression expression = ParserTestCase.parse4("parseExpressionWithoutCascade", "x = y", []);
     JUnitTestCase.assertNotNull(expression.leftHandSide);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.EQ, expression.operator.type);
@@ -2022,7 +2054,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseExpressionWithoutCascade_comparison() {
-    BinaryExpression expression = ParserTestCase.parse5("parseExpressionWithoutCascade", "--a.b == c", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseExpressionWithoutCascade", "--a.b == c", []);
     JUnitTestCase.assertNotNull(expression.leftOperand);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.EQ_EQ, expression.operator.type);
@@ -2030,17 +2062,17 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseExpressionWithoutCascade_superMethodInvocation() {
-    MethodInvocation invocation = ParserTestCase.parse5("parseExpressionWithoutCascade", "super.m()", []);
+    MethodInvocation invocation = ParserTestCase.parse4("parseExpressionWithoutCascade", "super.m()", []);
     JUnitTestCase.assertNotNull(invocation.target);
     JUnitTestCase.assertNotNull(invocation.methodName);
     JUnitTestCase.assertNotNull(invocation.argumentList);
   }
 
   void test_parseExtendsClause() {
-    ExtendsClause clause = ParserTestCase.parse5("parseExtendsClause", "extends B", []);
+    ExtendsClause clause = ParserTestCase.parse4("parseExtendsClause", "extends B", []);
     JUnitTestCase.assertNotNull(clause.keyword);
     JUnitTestCase.assertNotNull(clause.superclass);
-    EngineTestCase.assertInstanceOf(TypeName, clause.superclass);
+    EngineTestCase.assertInstanceOf((obj) => obj is TypeName, TypeName, clause.superclass);
   }
 
   void test_parseFinalConstVarOrType_const_noType() {
@@ -2227,7 +2259,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseFormalParameterList_empty() {
-    FormalParameterList parameterList = ParserTestCase.parse5("parseFormalParameterList", "()", []);
+    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "()", []);
     JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
     JUnitTestCase.assertNull(parameterList.leftDelimiter);
     EngineTestCase.assertSize(0, parameterList.parameters);
@@ -2236,7 +2268,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseFormalParameterList_named_multiple() {
-    FormalParameterList parameterList = ParserTestCase.parse5("parseFormalParameterList", "({A a : 1, B b, C c : 3})", []);
+    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "({A a : 1, B b, C c : 3})", []);
     JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
     JUnitTestCase.assertNotNull(parameterList.leftDelimiter);
     EngineTestCase.assertSize(3, parameterList.parameters);
@@ -2245,7 +2277,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseFormalParameterList_named_single() {
-    FormalParameterList parameterList = ParserTestCase.parse5("parseFormalParameterList", "({A a})", []);
+    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "({A a})", []);
     JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
     JUnitTestCase.assertNotNull(parameterList.leftDelimiter);
     EngineTestCase.assertSize(1, parameterList.parameters);
@@ -2254,7 +2286,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseFormalParameterList_normal_multiple() {
-    FormalParameterList parameterList = ParserTestCase.parse5("parseFormalParameterList", "(A a, B b, C c)", []);
+    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a, B b, C c)", []);
     JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
     JUnitTestCase.assertNull(parameterList.leftDelimiter);
     EngineTestCase.assertSize(3, parameterList.parameters);
@@ -2263,7 +2295,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseFormalParameterList_normal_named() {
-    FormalParameterList parameterList = ParserTestCase.parse5("parseFormalParameterList", "(A a, {B b})", []);
+    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a, {B b})", []);
     JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
     JUnitTestCase.assertNotNull(parameterList.leftDelimiter);
     EngineTestCase.assertSize(2, parameterList.parameters);
@@ -2272,7 +2304,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseFormalParameterList_normal_positional() {
-    FormalParameterList parameterList = ParserTestCase.parse5("parseFormalParameterList", "(A a, [B b])", []);
+    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a, [B b])", []);
     JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
     JUnitTestCase.assertNotNull(parameterList.leftDelimiter);
     EngineTestCase.assertSize(2, parameterList.parameters);
@@ -2281,7 +2313,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseFormalParameterList_normal_single() {
-    FormalParameterList parameterList = ParserTestCase.parse5("parseFormalParameterList", "(A a)", []);
+    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a)", []);
     JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
     JUnitTestCase.assertNull(parameterList.leftDelimiter);
     EngineTestCase.assertSize(1, parameterList.parameters);
@@ -2290,7 +2322,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseFormalParameterList_positional_multiple() {
-    FormalParameterList parameterList = ParserTestCase.parse5("parseFormalParameterList", "([A a = null, B b, C c = null])", []);
+    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "([A a = null, B b, C c = null])", []);
     JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
     JUnitTestCase.assertNotNull(parameterList.leftDelimiter);
     EngineTestCase.assertSize(3, parameterList.parameters);
@@ -2299,7 +2331,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseFormalParameterList_positional_single() {
-    FormalParameterList parameterList = ParserTestCase.parse5("parseFormalParameterList", "([A a = null])", []);
+    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "([A a = null])", []);
     JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
     JUnitTestCase.assertNotNull(parameterList.leftDelimiter);
     EngineTestCase.assertSize(1, parameterList.parameters);
@@ -2308,7 +2340,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseForStatement_each_identifier() {
-    ForEachStatement statement = ParserTestCase.parse5("parseForStatement", "for (element in list) {}", []);
+    ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "for (element in list) {}", []);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNull(statement.loopVariable);
@@ -2320,7 +2352,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseForStatement_each_noType_metadata() {
-    ForEachStatement statement = ParserTestCase.parse5("parseForStatement", "for (@A var element in list) {}", []);
+    ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "for (@A var element in list) {}", []);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNotNull(statement.loopVariable);
@@ -2333,7 +2365,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseForStatement_each_type() {
-    ForEachStatement statement = ParserTestCase.parse5("parseForStatement", "for (A element in list) {}", []);
+    ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "for (A element in list) {}", []);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNotNull(statement.loopVariable);
@@ -2345,7 +2377,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseForStatement_each_var() {
-    ForEachStatement statement = ParserTestCase.parse5("parseForStatement", "for (var element in list) {}", []);
+    ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "for (var element in list) {}", []);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNotNull(statement.loopVariable);
@@ -2357,7 +2389,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseForStatement_loop_c() {
-    ForStatement statement = ParserTestCase.parse5("parseForStatement", "for (; i < count;) {}", []);
+    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (; i < count;) {}", []);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNull(statement.variables);
@@ -2371,7 +2403,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseForStatement_loop_cu() {
-    ForStatement statement = ParserTestCase.parse5("parseForStatement", "for (; i < count; i++) {}", []);
+    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (; i < count; i++) {}", []);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNull(statement.variables);
@@ -2385,7 +2417,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseForStatement_loop_ecu() {
-    ForStatement statement = ParserTestCase.parse5("parseForStatement", "for (i--; i < count; i++) {}", []);
+    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (i--; i < count; i++) {}", []);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNull(statement.variables);
@@ -2399,7 +2431,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseForStatement_loop_i() {
-    ForStatement statement = ParserTestCase.parse5("parseForStatement", "for (var i = 0;;) {}", []);
+    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (var i = 0;;) {}", []);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     VariableDeclarationList variables = statement.variables;
@@ -2416,7 +2448,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseForStatement_loop_i_withMetadata() {
-    ForStatement statement = ParserTestCase.parse5("parseForStatement", "for (@A var i = 0;;) {}", []);
+    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (@A var i = 0;;) {}", []);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     VariableDeclarationList variables = statement.variables;
@@ -2433,7 +2465,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseForStatement_loop_ic() {
-    ForStatement statement = ParserTestCase.parse5("parseForStatement", "for (var i = 0; i < count;) {}", []);
+    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (var i = 0; i < count;) {}", []);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     VariableDeclarationList variables = statement.variables;
@@ -2449,7 +2481,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseForStatement_loop_icu() {
-    ForStatement statement = ParserTestCase.parse5("parseForStatement", "for (var i = 0; i < count; i++) {}", []);
+    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (var i = 0; i < count; i++) {}", []);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     VariableDeclarationList variables = statement.variables;
@@ -2465,7 +2497,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseForStatement_loop_iicuu() {
-    ForStatement statement = ParserTestCase.parse5("parseForStatement", "for (int i = 0, j = count; i < j; i++, j--) {}", []);
+    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (int i = 0, j = count; i < j; i++, j--) {}", []);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     VariableDeclarationList variables = statement.variables;
@@ -2481,7 +2513,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseForStatement_loop_iu() {
-    ForStatement statement = ParserTestCase.parse5("parseForStatement", "for (var i = 0;; i++) {}", []);
+    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (var i = 0;; i++) {}", []);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     VariableDeclarationList variables = statement.variables;
@@ -2497,7 +2529,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseForStatement_loop_u() {
-    ForStatement statement = ParserTestCase.parse5("parseForStatement", "for (;; i++) {}", []);
+    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (;; i++) {}", []);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNull(statement.variables);
@@ -2537,19 +2569,19 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseFunctionBody_skip_block() {
     ParserTestCase._parseFunctionBodies = false;
     FunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "{}");
-    EngineTestCase.assertInstanceOf(EmptyFunctionBody, functionBody);
+    EngineTestCase.assertInstanceOf((obj) => obj is EmptyFunctionBody, EmptyFunctionBody, functionBody);
   }
 
   void test_parseFunctionBody_skip_blocks() {
     ParserTestCase._parseFunctionBodies = false;
     FunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "{ {} }");
-    EngineTestCase.assertInstanceOf(EmptyFunctionBody, functionBody);
+    EngineTestCase.assertInstanceOf((obj) => obj is EmptyFunctionBody, EmptyFunctionBody, functionBody);
   }
 
   void test_parseFunctionBody_skip_expression() {
     ParserTestCase._parseFunctionBodies = false;
     FunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "=> y;");
-    EngineTestCase.assertInstanceOf(EmptyFunctionBody, functionBody);
+    EngineTestCase.assertInstanceOf((obj) => obj is EmptyFunctionBody, EmptyFunctionBody, functionBody);
   }
 
   void test_parseFunctionDeclaration_function() {
@@ -2595,19 +2627,19 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseFunctionDeclarationStatement() {
-    FunctionDeclarationStatement statement = ParserTestCase.parse5("parseFunctionDeclarationStatement", "void f(int p) => p * 2;", []);
+    FunctionDeclarationStatement statement = ParserTestCase.parse4("parseFunctionDeclarationStatement", "void f(int p) => p * 2;", []);
     JUnitTestCase.assertNotNull(statement.functionDeclaration);
   }
 
   void test_parseFunctionExpression_body_inExpression() {
-    FunctionExpression expression = ParserTestCase.parse5("parseFunctionExpression", "(int i) => i++", []);
+    FunctionExpression expression = ParserTestCase.parse4("parseFunctionExpression", "(int i) => i++", []);
     JUnitTestCase.assertNotNull(expression.body);
     JUnitTestCase.assertNotNull(expression.parameters);
     JUnitTestCase.assertNull((expression.body as ExpressionFunctionBody).semicolon);
   }
 
   void test_parseFunctionExpression_minimal() {
-    FunctionExpression expression = ParserTestCase.parse5("parseFunctionExpression", "() {}", []);
+    FunctionExpression expression = ParserTestCase.parse4("parseFunctionExpression", "() {}", []);
     JUnitTestCase.assertNotNull(expression.body);
     JUnitTestCase.assertNotNull(expression.parameters);
   }
@@ -2648,17 +2680,17 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseIdentifierList_multiple() {
-    List<SimpleIdentifier> list = ParserTestCase.parse5("parseIdentifierList", "a, b, c", []);
+    List<SimpleIdentifier> list = ParserTestCase.parse4("parseIdentifierList", "a, b, c", []);
     EngineTestCase.assertSize(3, list);
   }
 
   void test_parseIdentifierList_single() {
-    List<SimpleIdentifier> list = ParserTestCase.parse5("parseIdentifierList", "a", []);
+    List<SimpleIdentifier> list = ParserTestCase.parse4("parseIdentifierList", "a", []);
     EngineTestCase.assertSize(1, list);
   }
 
   void test_parseIfStatement_else_block() {
-    IfStatement statement = ParserTestCase.parse5("parseIfStatement", "if (x) {} else {}", []);
+    IfStatement statement = ParserTestCase.parse4("parseIfStatement", "if (x) {} else {}", []);
     JUnitTestCase.assertNotNull(statement.ifKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNotNull(statement.condition);
@@ -2669,7 +2701,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseIfStatement_else_statement() {
-    IfStatement statement = ParserTestCase.parse5("parseIfStatement", "if (x) f(x); else f(y);", []);
+    IfStatement statement = ParserTestCase.parse4("parseIfStatement", "if (x) f(x); else f(y);", []);
     JUnitTestCase.assertNotNull(statement.ifKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNotNull(statement.condition);
@@ -2680,7 +2712,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseIfStatement_noElse_block() {
-    IfStatement statement = ParserTestCase.parse5("parseIfStatement", "if (x) {}", []);
+    IfStatement statement = ParserTestCase.parse4("parseIfStatement", "if (x) {}", []);
     JUnitTestCase.assertNotNull(statement.ifKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNotNull(statement.condition);
@@ -2691,7 +2723,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseIfStatement_noElse_statement() {
-    IfStatement statement = ParserTestCase.parse5("parseIfStatement", "if (x) f(x);", []);
+    IfStatement statement = ParserTestCase.parse4("parseIfStatement", "if (x) f(x);", []);
     JUnitTestCase.assertNotNull(statement.ifKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNotNull(statement.condition);
@@ -2702,13 +2734,13 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseImplementsClause_multiple() {
-    ImplementsClause clause = ParserTestCase.parse5("parseImplementsClause", "implements A, B, C", []);
+    ImplementsClause clause = ParserTestCase.parse4("parseImplementsClause", "implements A, B, C", []);
     EngineTestCase.assertSize(3, clause.interfaces);
     JUnitTestCase.assertNotNull(clause.keyword);
   }
 
   void test_parseImplementsClause_single() {
-    ImplementsClause clause = ParserTestCase.parse5("parseImplementsClause", "implements A", []);
+    ImplementsClause clause = ParserTestCase.parse4("parseImplementsClause", "implements A", []);
     EngineTestCase.assertSize(1, clause.interfaces);
     JUnitTestCase.assertNotNull(clause.keyword);
   }
@@ -2868,13 +2900,13 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseLibraryIdentifier_multiple() {
     String name = "a.b.c";
-    LibraryIdentifier identifier = ParserTestCase.parse5("parseLibraryIdentifier", name, []);
+    LibraryIdentifier identifier = ParserTestCase.parse4("parseLibraryIdentifier", name, []);
     JUnitTestCase.assertEquals(name, identifier.name);
   }
 
   void test_parseLibraryIdentifier_single() {
     String name = "a";
-    LibraryIdentifier identifier = ParserTestCase.parse5("parseLibraryIdentifier", name, []);
+    LibraryIdentifier identifier = ParserTestCase.parse4("parseLibraryIdentifier", name, []);
     JUnitTestCase.assertEquals(name, identifier.name);
   }
 
@@ -2955,7 +2987,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseLogicalAndExpression() {
-    BinaryExpression expression = ParserTestCase.parse5("parseLogicalAndExpression", "x && y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseLogicalAndExpression", "x && y", []);
     JUnitTestCase.assertNotNull(expression.leftOperand);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.AMPERSAND_AMPERSAND, expression.operator.type);
@@ -2963,7 +2995,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseLogicalOrExpression() {
-    BinaryExpression expression = ParserTestCase.parse5("parseLogicalOrExpression", "x || y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseLogicalOrExpression", "x || y", []);
     JUnitTestCase.assertNotNull(expression.leftOperand);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.BAR_BAR, expression.operator.type);
@@ -2972,9 +3004,9 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseMapLiteral_empty() {
     Token token = TokenFactory.token(Keyword.CONST);
-    TypeArgumentList typeArguments = ASTFactory.typeArgumentList([
-        ASTFactory.typeName4("String", []),
-        ASTFactory.typeName4("int", [])]);
+    TypeArgumentList typeArguments = AstFactory.typeArgumentList([
+        AstFactory.typeName4("String", []),
+        AstFactory.typeName4("int", [])]);
     MapLiteral literal = ParserTestCase.parse("parseMapLiteral", <Object> [token, typeArguments], "{}");
     JUnitTestCase.assertEquals(token, literal.constKeyword);
     JUnitTestCase.assertEquals(typeArguments, literal.typeArguments);
@@ -2998,63 +3030,63 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseMapLiteralEntry_complex() {
-    MapLiteralEntry entry = ParserTestCase.parse5("parseMapLiteralEntry", "2 + 2 : y", []);
+    MapLiteralEntry entry = ParserTestCase.parse4("parseMapLiteralEntry", "2 + 2 : y", []);
     JUnitTestCase.assertNotNull(entry.key);
     JUnitTestCase.assertNotNull(entry.separator);
     JUnitTestCase.assertNotNull(entry.value);
   }
 
   void test_parseMapLiteralEntry_int() {
-    MapLiteralEntry entry = ParserTestCase.parse5("parseMapLiteralEntry", "0 : y", []);
+    MapLiteralEntry entry = ParserTestCase.parse4("parseMapLiteralEntry", "0 : y", []);
     JUnitTestCase.assertNotNull(entry.key);
     JUnitTestCase.assertNotNull(entry.separator);
     JUnitTestCase.assertNotNull(entry.value);
   }
 
   void test_parseMapLiteralEntry_string() {
-    MapLiteralEntry entry = ParserTestCase.parse5("parseMapLiteralEntry", "'x' : y", []);
+    MapLiteralEntry entry = ParserTestCase.parse4("parseMapLiteralEntry", "'x' : y", []);
     JUnitTestCase.assertNotNull(entry.key);
     JUnitTestCase.assertNotNull(entry.separator);
     JUnitTestCase.assertNotNull(entry.value);
   }
 
   void test_parseModifiers_abstract() {
-    Modifiers modifiers = ParserTestCase.parse5("parseModifiers", "abstract A", []);
+    Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "abstract A", []);
     JUnitTestCase.assertNotNull(modifiers.abstractKeyword);
   }
 
   void test_parseModifiers_const() {
-    Modifiers modifiers = ParserTestCase.parse5("parseModifiers", "const A", []);
+    Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "const A", []);
     JUnitTestCase.assertNotNull(modifiers.constKeyword);
   }
 
   void test_parseModifiers_external() {
-    Modifiers modifiers = ParserTestCase.parse5("parseModifiers", "external A", []);
+    Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "external A", []);
     JUnitTestCase.assertNotNull(modifiers.externalKeyword);
   }
 
   void test_parseModifiers_factory() {
-    Modifiers modifiers = ParserTestCase.parse5("parseModifiers", "factory A", []);
+    Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "factory A", []);
     JUnitTestCase.assertNotNull(modifiers.factoryKeyword);
   }
 
   void test_parseModifiers_final() {
-    Modifiers modifiers = ParserTestCase.parse5("parseModifiers", "final A", []);
+    Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "final A", []);
     JUnitTestCase.assertNotNull(modifiers.finalKeyword);
   }
 
   void test_parseModifiers_static() {
-    Modifiers modifiers = ParserTestCase.parse5("parseModifiers", "static A", []);
+    Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "static A", []);
     JUnitTestCase.assertNotNull(modifiers.staticKeyword);
   }
 
   void test_parseModifiers_var() {
-    Modifiers modifiers = ParserTestCase.parse5("parseModifiers", "var A", []);
+    Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "var A", []);
     JUnitTestCase.assertNotNull(modifiers.varKeyword);
   }
 
   void test_parseMultiplicativeExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parse5("parseMultiplicativeExpression", "x * y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseMultiplicativeExpression", "x * y", []);
     JUnitTestCase.assertNotNull(expression.leftOperand);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.STAR, expression.operator.type);
@@ -3062,15 +3094,15 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseMultiplicativeExpression_super() {
-    BinaryExpression expression = ParserTestCase.parse5("parseMultiplicativeExpression", "super * y", []);
-    EngineTestCase.assertInstanceOf(SuperExpression, expression.leftOperand);
+    BinaryExpression expression = ParserTestCase.parse4("parseMultiplicativeExpression", "super * y", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression, SuperExpression, expression.leftOperand);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.STAR, expression.operator.type);
     JUnitTestCase.assertNotNull(expression.rightOperand);
   }
 
   void test_parseNewExpression() {
-    InstanceCreationExpression expression = ParserTestCase.parse5("parseNewExpression", "new A()", []);
+    InstanceCreationExpression expression = ParserTestCase.parse4("parseNewExpression", "new A()", []);
     JUnitTestCase.assertNotNull(expression.keyword);
     ConstructorName name = expression.constructorName;
     JUnitTestCase.assertNotNull(name);
@@ -3081,68 +3113,68 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseNonLabeledStatement_const_list_empty() {
-    ExpressionStatement statement = ParserTestCase.parse5("parseNonLabeledStatement", "const [];", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const [];", []);
     JUnitTestCase.assertNotNull(statement.expression);
   }
 
   void test_parseNonLabeledStatement_const_list_nonEmpty() {
-    ExpressionStatement statement = ParserTestCase.parse5("parseNonLabeledStatement", "const [1, 2];", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const [1, 2];", []);
     JUnitTestCase.assertNotNull(statement.expression);
   }
 
   void test_parseNonLabeledStatement_const_map_empty() {
-    ExpressionStatement statement = ParserTestCase.parse5("parseNonLabeledStatement", "const {};", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const {};", []);
     JUnitTestCase.assertNotNull(statement.expression);
   }
 
   void test_parseNonLabeledStatement_const_map_nonEmpty() {
     // TODO(brianwilkerson) Implement more tests for this method.
-    ExpressionStatement statement = ParserTestCase.parse5("parseNonLabeledStatement", "const {'a' : 1};", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const {'a' : 1};", []);
     JUnitTestCase.assertNotNull(statement.expression);
   }
 
   void test_parseNonLabeledStatement_const_object() {
-    ExpressionStatement statement = ParserTestCase.parse5("parseNonLabeledStatement", "const A();", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const A();", []);
     JUnitTestCase.assertNotNull(statement.expression);
   }
 
   void test_parseNonLabeledStatement_const_object_named_typeParameters() {
-    ExpressionStatement statement = ParserTestCase.parse5("parseNonLabeledStatement", "const A<B>.c();", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const A<B>.c();", []);
     JUnitTestCase.assertNotNull(statement.expression);
   }
 
   void test_parseNonLabeledStatement_constructorInvocation() {
-    ExpressionStatement statement = ParserTestCase.parse5("parseNonLabeledStatement", "new C().m();", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "new C().m();", []);
     JUnitTestCase.assertNotNull(statement.expression);
   }
 
   void test_parseNonLabeledStatement_false() {
-    ExpressionStatement statement = ParserTestCase.parse5("parseNonLabeledStatement", "false;", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "false;", []);
     JUnitTestCase.assertNotNull(statement.expression);
   }
 
   void test_parseNonLabeledStatement_functionDeclaration() {
-    ParserTestCase.parse5("parseNonLabeledStatement", "f() {};", []);
+    ParserTestCase.parse4("parseNonLabeledStatement", "f() {};", []);
   }
 
   void test_parseNonLabeledStatement_functionDeclaration_arguments() {
-    ParserTestCase.parse5("parseNonLabeledStatement", "f(void g()) {};", []);
+    ParserTestCase.parse4("parseNonLabeledStatement", "f(void g()) {};", []);
   }
 
   void test_parseNonLabeledStatement_functionExpressionIndex() {
-    ParserTestCase.parse5("parseNonLabeledStatement", "() {}[0] = null;", []);
+    ParserTestCase.parse4("parseNonLabeledStatement", "() {}[0] = null;", []);
   }
 
   void test_parseNonLabeledStatement_functionInvocation() {
-    ExpressionStatement statement = ParserTestCase.parse5("parseNonLabeledStatement", "f();", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "f();", []);
     JUnitTestCase.assertNotNull(statement.expression);
   }
 
   void test_parseNonLabeledStatement_invokeFunctionExpression() {
-    ExpressionStatement statement = ParserTestCase.parse5("parseNonLabeledStatement", "(a) {return a + a;} (3);", []);
-    EngineTestCase.assertInstanceOf(FunctionExpressionInvocation, statement.expression);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "(a) {return a + a;} (3);", []);
+    EngineTestCase.assertInstanceOf((obj) => obj is FunctionExpressionInvocation, FunctionExpressionInvocation, statement.expression);
     FunctionExpressionInvocation invocation = statement.expression as FunctionExpressionInvocation;
-    EngineTestCase.assertInstanceOf(FunctionExpression, invocation.function);
+    EngineTestCase.assertInstanceOf((obj) => obj is FunctionExpression, FunctionExpression, invocation.function);
     FunctionExpression expression = invocation.function as FunctionExpression;
     JUnitTestCase.assertNotNull(expression.parameters);
     JUnitTestCase.assertNotNull(expression.body);
@@ -3152,27 +3184,27 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseNonLabeledStatement_null() {
-    ExpressionStatement statement = ParserTestCase.parse5("parseNonLabeledStatement", "null;", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "null;", []);
     JUnitTestCase.assertNotNull(statement.expression);
   }
 
   void test_parseNonLabeledStatement_startingWithBuiltInIdentifier() {
-    ExpressionStatement statement = ParserTestCase.parse5("parseNonLabeledStatement", "library.getName();", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "library.getName();", []);
     JUnitTestCase.assertNotNull(statement.expression);
   }
 
   void test_parseNonLabeledStatement_true() {
-    ExpressionStatement statement = ParserTestCase.parse5("parseNonLabeledStatement", "true;", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "true;", []);
     JUnitTestCase.assertNotNull(statement.expression);
   }
 
   void test_parseNonLabeledStatement_typeCast() {
-    ExpressionStatement statement = ParserTestCase.parse5("parseNonLabeledStatement", "double.NAN as num;", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "double.NAN as num;", []);
     JUnitTestCase.assertNotNull(statement.expression);
   }
 
   void test_parseNormalFormalParameter_field_const_noType() {
-    FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "const this.a)", []);
+    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "const this.a)", []);
     JUnitTestCase.assertNotNull(parameter.keyword);
     JUnitTestCase.assertNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
@@ -3180,7 +3212,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseNormalFormalParameter_field_const_type() {
-    FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "const A this.a)", []);
+    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "const A this.a)", []);
     JUnitTestCase.assertNotNull(parameter.keyword);
     JUnitTestCase.assertNotNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
@@ -3188,7 +3220,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseNormalFormalParameter_field_final_noType() {
-    FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "final this.a)", []);
+    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "final this.a)", []);
     JUnitTestCase.assertNotNull(parameter.keyword);
     JUnitTestCase.assertNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
@@ -3196,7 +3228,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseNormalFormalParameter_field_final_type() {
-    FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "final A this.a)", []);
+    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "final A this.a)", []);
     JUnitTestCase.assertNotNull(parameter.keyword);
     JUnitTestCase.assertNotNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
@@ -3204,7 +3236,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseNormalFormalParameter_field_function_nested() {
-    FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "this.a(B b))", []);
+    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "this.a(B b))", []);
     JUnitTestCase.assertNull(parameter.keyword);
     JUnitTestCase.assertNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
@@ -3214,7 +3246,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseNormalFormalParameter_field_function_noNested() {
-    FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "this.a())", []);
+    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "this.a())", []);
     JUnitTestCase.assertNull(parameter.keyword);
     JUnitTestCase.assertNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
@@ -3224,7 +3256,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseNormalFormalParameter_field_noType() {
-    FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "this.a)", []);
+    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "this.a)", []);
     JUnitTestCase.assertNull(parameter.keyword);
     JUnitTestCase.assertNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
@@ -3232,7 +3264,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseNormalFormalParameter_field_type() {
-    FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "A this.a)", []);
+    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "A this.a)", []);
     JUnitTestCase.assertNull(parameter.keyword);
     JUnitTestCase.assertNotNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
@@ -3240,7 +3272,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseNormalFormalParameter_field_var() {
-    FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "var this.a)", []);
+    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "var this.a)", []);
     JUnitTestCase.assertNotNull(parameter.keyword);
     JUnitTestCase.assertNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
@@ -3248,63 +3280,63 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseNormalFormalParameter_function_noType() {
-    FunctionTypedFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "a())", []);
+    FunctionTypedFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "a())", []);
     JUnitTestCase.assertNull(parameter.returnType);
     JUnitTestCase.assertNotNull(parameter.identifier);
     JUnitTestCase.assertNotNull(parameter.parameters);
   }
 
   void test_parseNormalFormalParameter_function_type() {
-    FunctionTypedFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "A a())", []);
+    FunctionTypedFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "A a())", []);
     JUnitTestCase.assertNotNull(parameter.returnType);
     JUnitTestCase.assertNotNull(parameter.identifier);
     JUnitTestCase.assertNotNull(parameter.parameters);
   }
 
   void test_parseNormalFormalParameter_function_void() {
-    FunctionTypedFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "void a())", []);
+    FunctionTypedFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "void a())", []);
     JUnitTestCase.assertNotNull(parameter.returnType);
     JUnitTestCase.assertNotNull(parameter.identifier);
     JUnitTestCase.assertNotNull(parameter.parameters);
   }
 
   void test_parseNormalFormalParameter_simple_const_noType() {
-    SimpleFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "const a)", []);
+    SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "const a)", []);
     JUnitTestCase.assertNotNull(parameter.keyword);
     JUnitTestCase.assertNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
   }
 
   void test_parseNormalFormalParameter_simple_const_type() {
-    SimpleFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "const A a)", []);
+    SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "const A a)", []);
     JUnitTestCase.assertNotNull(parameter.keyword);
     JUnitTestCase.assertNotNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
   }
 
   void test_parseNormalFormalParameter_simple_final_noType() {
-    SimpleFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "final a)", []);
+    SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "final a)", []);
     JUnitTestCase.assertNotNull(parameter.keyword);
     JUnitTestCase.assertNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
   }
 
   void test_parseNormalFormalParameter_simple_final_type() {
-    SimpleFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "final A a)", []);
+    SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "final A a)", []);
     JUnitTestCase.assertNotNull(parameter.keyword);
     JUnitTestCase.assertNotNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
   }
 
   void test_parseNormalFormalParameter_simple_noType() {
-    SimpleFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "a)", []);
+    SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "a)", []);
     JUnitTestCase.assertNull(parameter.keyword);
     JUnitTestCase.assertNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
   }
 
   void test_parseNormalFormalParameter_simple_type() {
-    SimpleFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "A a)", []);
+    SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "A a)", []);
     JUnitTestCase.assertNull(parameter.keyword);
     JUnitTestCase.assertNotNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
@@ -3344,167 +3376,167 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parsePostfixExpression_decrement() {
-    PostfixExpression expression = ParserTestCase.parse5("parsePostfixExpression", "i--", []);
+    PostfixExpression expression = ParserTestCase.parse4("parsePostfixExpression", "i--", []);
     JUnitTestCase.assertNotNull(expression.operand);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.MINUS_MINUS, expression.operator.type);
   }
 
   void test_parsePostfixExpression_increment() {
-    PostfixExpression expression = ParserTestCase.parse5("parsePostfixExpression", "i++", []);
+    PostfixExpression expression = ParserTestCase.parse4("parsePostfixExpression", "i++", []);
     JUnitTestCase.assertNotNull(expression.operand);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.PLUS_PLUS, expression.operator.type);
   }
 
   void test_parsePostfixExpression_none_indexExpression() {
-    IndexExpression expression = ParserTestCase.parse5("parsePostfixExpression", "a[0]", []);
+    IndexExpression expression = ParserTestCase.parse4("parsePostfixExpression", "a[0]", []);
     JUnitTestCase.assertNotNull(expression.target);
     JUnitTestCase.assertNotNull(expression.index);
   }
 
   void test_parsePostfixExpression_none_methodInvocation() {
-    MethodInvocation expression = ParserTestCase.parse5("parsePostfixExpression", "a.m()", []);
+    MethodInvocation expression = ParserTestCase.parse4("parsePostfixExpression", "a.m()", []);
     JUnitTestCase.assertNotNull(expression.target);
     JUnitTestCase.assertNotNull(expression.methodName);
     JUnitTestCase.assertNotNull(expression.argumentList);
   }
 
   void test_parsePostfixExpression_none_propertyAccess() {
-    PrefixedIdentifier expression = ParserTestCase.parse5("parsePostfixExpression", "a.b", []);
+    PrefixedIdentifier expression = ParserTestCase.parse4("parsePostfixExpression", "a.b", []);
     JUnitTestCase.assertNotNull(expression.prefix);
     JUnitTestCase.assertNotNull(expression.identifier);
   }
 
   void test_parsePrefixedIdentifier_noPrefix() {
     String lexeme = "bar";
-    SimpleIdentifier identifier = ParserTestCase.parse5("parsePrefixedIdentifier", lexeme, []);
+    SimpleIdentifier identifier = ParserTestCase.parse4("parsePrefixedIdentifier", lexeme, []);
     JUnitTestCase.assertNotNull(identifier.token);
     JUnitTestCase.assertEquals(lexeme, identifier.name);
   }
 
   void test_parsePrefixedIdentifier_prefix() {
     String lexeme = "foo.bar";
-    PrefixedIdentifier identifier = ParserTestCase.parse5("parsePrefixedIdentifier", lexeme, []);
+    PrefixedIdentifier identifier = ParserTestCase.parse4("parsePrefixedIdentifier", lexeme, []);
     JUnitTestCase.assertEquals("foo", identifier.prefix.name);
     JUnitTestCase.assertNotNull(identifier.period);
     JUnitTestCase.assertEquals("bar", identifier.identifier.name);
   }
 
   void test_parsePrimaryExpression_const() {
-    InstanceCreationExpression expression = ParserTestCase.parse5("parsePrimaryExpression", "const A()", []);
+    InstanceCreationExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "const A()", []);
     JUnitTestCase.assertNotNull(expression);
   }
 
   void test_parsePrimaryExpression_double() {
     String doubleLiteral = "3.2e4";
-    DoubleLiteral literal = ParserTestCase.parse5("parsePrimaryExpression", doubleLiteral, []);
+    DoubleLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", doubleLiteral, []);
     JUnitTestCase.assertNotNull(literal.literal);
     JUnitTestCase.assertEquals(double.parse(doubleLiteral), literal.value);
   }
 
   void test_parsePrimaryExpression_false() {
-    BooleanLiteral literal = ParserTestCase.parse5("parsePrimaryExpression", "false", []);
+    BooleanLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "false", []);
     JUnitTestCase.assertNotNull(literal.literal);
     JUnitTestCase.assertFalse(literal.value);
   }
 
   void test_parsePrimaryExpression_function_arguments() {
-    FunctionExpression expression = ParserTestCase.parse5("parsePrimaryExpression", "(int i) => i + 1", []);
+    FunctionExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "(int i) => i + 1", []);
     JUnitTestCase.assertNotNull(expression.parameters);
     JUnitTestCase.assertNotNull(expression.body);
   }
 
   void test_parsePrimaryExpression_function_noArguments() {
-    FunctionExpression expression = ParserTestCase.parse5("parsePrimaryExpression", "() => 42", []);
+    FunctionExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "() => 42", []);
     JUnitTestCase.assertNotNull(expression.parameters);
     JUnitTestCase.assertNotNull(expression.body);
   }
 
   void test_parsePrimaryExpression_hex() {
     String hexLiteral = "3F";
-    IntegerLiteral literal = ParserTestCase.parse5("parsePrimaryExpression", "0x${hexLiteral}", []);
+    IntegerLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "0x${hexLiteral}", []);
     JUnitTestCase.assertNotNull(literal.literal);
     JUnitTestCase.assertEquals(int.parse(hexLiteral, radix: 16), literal.value);
   }
 
   void test_parsePrimaryExpression_identifier() {
-    SimpleIdentifier identifier = ParserTestCase.parse5("parsePrimaryExpression", "a", []);
+    SimpleIdentifier identifier = ParserTestCase.parse4("parsePrimaryExpression", "a", []);
     JUnitTestCase.assertNotNull(identifier);
   }
 
   void test_parsePrimaryExpression_int() {
     String intLiteral = "472";
-    IntegerLiteral literal = ParserTestCase.parse5("parsePrimaryExpression", intLiteral, []);
+    IntegerLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", intLiteral, []);
     JUnitTestCase.assertNotNull(literal.literal);
     JUnitTestCase.assertEquals(int.parse(intLiteral), literal.value);
   }
 
   void test_parsePrimaryExpression_listLiteral() {
-    ListLiteral literal = ParserTestCase.parse5("parsePrimaryExpression", "[ ]", []);
+    ListLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "[ ]", []);
     JUnitTestCase.assertNotNull(literal);
   }
 
   void test_parsePrimaryExpression_listLiteral_index() {
-    ListLiteral literal = ParserTestCase.parse5("parsePrimaryExpression", "[]", []);
+    ListLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "[]", []);
     JUnitTestCase.assertNotNull(literal);
   }
 
   void test_parsePrimaryExpression_listLiteral_typed() {
-    ListLiteral literal = ParserTestCase.parse5("parsePrimaryExpression", "<A>[ ]", []);
+    ListLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "<A>[ ]", []);
     JUnitTestCase.assertNotNull(literal.typeArguments);
     EngineTestCase.assertSize(1, literal.typeArguments.arguments);
   }
 
   void test_parsePrimaryExpression_mapLiteral() {
-    MapLiteral literal = ParserTestCase.parse5("parsePrimaryExpression", "{}", []);
+    MapLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "{}", []);
     JUnitTestCase.assertNotNull(literal);
   }
 
   void test_parsePrimaryExpression_mapLiteral_typed() {
-    MapLiteral literal = ParserTestCase.parse5("parsePrimaryExpression", "<A, B>{}", []);
+    MapLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "<A, B>{}", []);
     JUnitTestCase.assertNotNull(literal.typeArguments);
     EngineTestCase.assertSize(2, literal.typeArguments.arguments);
   }
 
   void test_parsePrimaryExpression_new() {
-    InstanceCreationExpression expression = ParserTestCase.parse5("parsePrimaryExpression", "new A()", []);
+    InstanceCreationExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "new A()", []);
     JUnitTestCase.assertNotNull(expression);
   }
 
   void test_parsePrimaryExpression_null() {
-    NullLiteral literal = ParserTestCase.parse5("parsePrimaryExpression", "null", []);
+    NullLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "null", []);
     JUnitTestCase.assertNotNull(literal.literal);
   }
 
   void test_parsePrimaryExpression_parenthesized() {
-    ParenthesizedExpression expression = ParserTestCase.parse5("parsePrimaryExpression", "(x)", []);
+    ParenthesizedExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "(x)", []);
     JUnitTestCase.assertNotNull(expression);
   }
 
   void test_parsePrimaryExpression_string() {
-    SimpleStringLiteral literal = ParserTestCase.parse5("parsePrimaryExpression", "\"string\"", []);
+    SimpleStringLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "\"string\"", []);
     JUnitTestCase.assertFalse(literal.isMultiline);
     JUnitTestCase.assertFalse(literal.isRaw);
     JUnitTestCase.assertEquals("string", literal.value);
   }
 
   void test_parsePrimaryExpression_string_multiline() {
-    SimpleStringLiteral literal = ParserTestCase.parse5("parsePrimaryExpression", "'''string'''", []);
+    SimpleStringLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "'''string'''", []);
     JUnitTestCase.assertTrue(literal.isMultiline);
     JUnitTestCase.assertFalse(literal.isRaw);
     JUnitTestCase.assertEquals("string", literal.value);
   }
 
   void test_parsePrimaryExpression_string_raw() {
-    SimpleStringLiteral literal = ParserTestCase.parse5("parsePrimaryExpression", "r'string'", []);
+    SimpleStringLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "r'string'", []);
     JUnitTestCase.assertFalse(literal.isMultiline);
     JUnitTestCase.assertTrue(literal.isRaw);
     JUnitTestCase.assertEquals("string", literal.value);
   }
 
   void test_parsePrimaryExpression_super() {
-    PropertyAccess propertyAccess = ParserTestCase.parse5("parsePrimaryExpression", "super.x", []);
+    PropertyAccess propertyAccess = ParserTestCase.parse4("parsePrimaryExpression", "super.x", []);
     JUnitTestCase.assertTrue(propertyAccess.target is SuperExpression);
     JUnitTestCase.assertNotNull(propertyAccess.operator);
     JUnitTestCase.assertEquals(TokenType.PERIOD, propertyAccess.operator.type);
@@ -3512,12 +3544,12 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parsePrimaryExpression_this() {
-    ThisExpression expression = ParserTestCase.parse5("parsePrimaryExpression", "this", []);
+    ThisExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "this", []);
     JUnitTestCase.assertNotNull(expression.keyword);
   }
 
   void test_parsePrimaryExpression_true() {
-    BooleanLiteral literal = ParserTestCase.parse5("parsePrimaryExpression", "true", []);
+    BooleanLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "true", []);
     JUnitTestCase.assertNotNull(literal.literal);
     JUnitTestCase.assertTrue(literal.value);
   }
@@ -3527,7 +3559,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseRedirectingConstructorInvocation_named() {
-    RedirectingConstructorInvocation invocation = ParserTestCase.parse5("parseRedirectingConstructorInvocation", "this.a()", []);
+    RedirectingConstructorInvocation invocation = ParserTestCase.parse4("parseRedirectingConstructorInvocation", "this.a()", []);
     JUnitTestCase.assertNotNull(invocation.argumentList);
     JUnitTestCase.assertNotNull(invocation.constructorName);
     JUnitTestCase.assertNotNull(invocation.keyword);
@@ -3535,7 +3567,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseRedirectingConstructorInvocation_unnamed() {
-    RedirectingConstructorInvocation invocation = ParserTestCase.parse5("parseRedirectingConstructorInvocation", "this()", []);
+    RedirectingConstructorInvocation invocation = ParserTestCase.parse4("parseRedirectingConstructorInvocation", "this()", []);
     JUnitTestCase.assertNotNull(invocation.argumentList);
     JUnitTestCase.assertNull(invocation.constructorName);
     JUnitTestCase.assertNotNull(invocation.keyword);
@@ -3543,14 +3575,14 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseRelationalExpression_as() {
-    AsExpression expression = ParserTestCase.parse5("parseRelationalExpression", "x as Y", []);
+    AsExpression expression = ParserTestCase.parse4("parseRelationalExpression", "x as Y", []);
     JUnitTestCase.assertNotNull(expression.expression);
     JUnitTestCase.assertNotNull(expression.asOperator);
     JUnitTestCase.assertNotNull(expression.type);
   }
 
   void test_parseRelationalExpression_is() {
-    IsExpression expression = ParserTestCase.parse5("parseRelationalExpression", "x is y", []);
+    IsExpression expression = ParserTestCase.parse4("parseRelationalExpression", "x is y", []);
     JUnitTestCase.assertNotNull(expression.expression);
     JUnitTestCase.assertNotNull(expression.isOperator);
     JUnitTestCase.assertNull(expression.notOperator);
@@ -3558,7 +3590,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseRelationalExpression_isNot() {
-    IsExpression expression = ParserTestCase.parse5("parseRelationalExpression", "x is! y", []);
+    IsExpression expression = ParserTestCase.parse4("parseRelationalExpression", "x is! y", []);
     JUnitTestCase.assertNotNull(expression.expression);
     JUnitTestCase.assertNotNull(expression.isOperator);
     JUnitTestCase.assertNotNull(expression.notOperator);
@@ -3566,7 +3598,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseRelationalExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parse5("parseRelationalExpression", "x < y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseRelationalExpression", "x < y", []);
     JUnitTestCase.assertNotNull(expression.leftOperand);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.LT, expression.operator.type);
@@ -3574,7 +3606,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseRelationalExpression_super() {
-    BinaryExpression expression = ParserTestCase.parse5("parseRelationalExpression", "super < y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseRelationalExpression", "super < y", []);
     JUnitTestCase.assertNotNull(expression.leftOperand);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.LT, expression.operator.type);
@@ -3582,32 +3614,32 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseRethrowExpression() {
-    RethrowExpression expression = ParserTestCase.parse5("parseRethrowExpression", "rethrow;", []);
+    RethrowExpression expression = ParserTestCase.parse4("parseRethrowExpression", "rethrow;", []);
     JUnitTestCase.assertNotNull(expression.keyword);
   }
 
   void test_parseReturnStatement_noValue() {
-    ReturnStatement statement = ParserTestCase.parse5("parseReturnStatement", "return;", []);
+    ReturnStatement statement = ParserTestCase.parse4("parseReturnStatement", "return;", []);
     JUnitTestCase.assertNotNull(statement.keyword);
     JUnitTestCase.assertNull(statement.expression);
     JUnitTestCase.assertNotNull(statement.semicolon);
   }
 
   void test_parseReturnStatement_value() {
-    ReturnStatement statement = ParserTestCase.parse5("parseReturnStatement", "return x;", []);
+    ReturnStatement statement = ParserTestCase.parse4("parseReturnStatement", "return x;", []);
     JUnitTestCase.assertNotNull(statement.keyword);
     JUnitTestCase.assertNotNull(statement.expression);
     JUnitTestCase.assertNotNull(statement.semicolon);
   }
 
   void test_parseReturnType_nonVoid() {
-    TypeName typeName = ParserTestCase.parse5("parseReturnType", "A<B>", []);
+    TypeName typeName = ParserTestCase.parse4("parseReturnType", "A<B>", []);
     JUnitTestCase.assertNotNull(typeName.name);
     JUnitTestCase.assertNotNull(typeName.typeArguments);
   }
 
   void test_parseReturnType_void() {
-    TypeName typeName = ParserTestCase.parse5("parseReturnType", "void", []);
+    TypeName typeName = ParserTestCase.parse4("parseReturnType", "void", []);
     JUnitTestCase.assertNotNull(typeName.name);
     JUnitTestCase.assertNull(typeName.typeArguments);
   }
@@ -3648,7 +3680,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseShiftExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parse5("parseShiftExpression", "x << y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseShiftExpression", "x << y", []);
     JUnitTestCase.assertNotNull(expression.leftOperand);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.LT_LT, expression.operator.type);
@@ -3656,7 +3688,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseShiftExpression_super() {
-    BinaryExpression expression = ParserTestCase.parse5("parseShiftExpression", "super << y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseShiftExpression", "super << y", []);
     JUnitTestCase.assertNotNull(expression.leftOperand);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.LT_LT, expression.operator.type);
@@ -3665,14 +3697,14 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseSimpleIdentifier_builtInIdentifier() {
     String lexeme = "as";
-    SimpleIdentifier identifier = ParserTestCase.parse5("parseSimpleIdentifier", lexeme, []);
+    SimpleIdentifier identifier = ParserTestCase.parse4("parseSimpleIdentifier", lexeme, []);
     JUnitTestCase.assertNotNull(identifier.token);
     JUnitTestCase.assertEquals(lexeme, identifier.name);
   }
 
   void test_parseSimpleIdentifier_normalIdentifier() {
     String lexeme = "foo";
-    SimpleIdentifier identifier = ParserTestCase.parse5("parseSimpleIdentifier", lexeme, []);
+    SimpleIdentifier identifier = ParserTestCase.parse4("parseSimpleIdentifier", lexeme, []);
     JUnitTestCase.assertNotNull(identifier.token);
     JUnitTestCase.assertEquals(lexeme, identifier.name);
   }
@@ -3682,22 +3714,22 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseStatement_functionDeclaration() {
     // TODO(brianwilkerson) Implement more tests for this method.
-    FunctionDeclarationStatement statement = ParserTestCase.parse5("parseStatement", "int f(a, b) {};", []);
+    FunctionDeclarationStatement statement = ParserTestCase.parse4("parseStatement", "int f(a, b) {};", []);
     JUnitTestCase.assertNotNull(statement.functionDeclaration);
   }
 
   void test_parseStatement_mulipleLabels() {
-    LabeledStatement statement = ParserTestCase.parse5("parseStatement", "l: m: return x;", []);
+    LabeledStatement statement = ParserTestCase.parse4("parseStatement", "l: m: return x;", []);
     EngineTestCase.assertSize(2, statement.labels);
     JUnitTestCase.assertNotNull(statement.statement);
   }
 
   void test_parseStatement_noLabels() {
-    ParserTestCase.parse5("parseStatement", "return x;", []);
+    ParserTestCase.parse4("parseStatement", "return x;", []);
   }
 
   void test_parseStatement_singleLabel() {
-    LabeledStatement statement = ParserTestCase.parse5("parseStatement", "l: return x;", []);
+    LabeledStatement statement = ParserTestCase.parse4("parseStatement", "l: return x;", []);
     EngineTestCase.assertSize(1, statement.labels);
     JUnitTestCase.assertNotNull(statement.statement);
   }
@@ -3713,7 +3745,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseStringLiteral_adjacent() {
-    AdjacentStrings literal = ParserTestCase.parse5("parseStringLiteral", "'a' 'b'", []);
+    AdjacentStrings literal = ParserTestCase.parse4("parseStringLiteral", "'a' 'b'", []);
     NodeList<StringLiteral> strings = literal.strings;
     EngineTestCase.assertSize(2, strings);
     StringLiteral firstString = strings[0];
@@ -3723,7 +3755,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseStringLiteral_interpolated() {
-    StringInterpolation literal = ParserTestCase.parse5("parseStringLiteral", "'a \${b} c \$this d'", []);
+    StringInterpolation literal = ParserTestCase.parse4("parseStringLiteral", "'a \${b} c \$this d'", []);
     NodeList<InterpolationElement> elements = literal.elements;
     EngineTestCase.assertSize(5, elements);
     JUnitTestCase.assertTrue(elements[0] is InterpolationString);
@@ -3734,13 +3766,13 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseStringLiteral_single() {
-    SimpleStringLiteral literal = ParserTestCase.parse5("parseStringLiteral", "'a'", []);
+    SimpleStringLiteral literal = ParserTestCase.parse4("parseStringLiteral", "'a'", []);
     JUnitTestCase.assertNotNull(literal.literal);
     JUnitTestCase.assertEquals("a", literal.value);
   }
 
   void test_parseSuperConstructorInvocation_named() {
-    SuperConstructorInvocation invocation = ParserTestCase.parse5("parseSuperConstructorInvocation", "super.a()", []);
+    SuperConstructorInvocation invocation = ParserTestCase.parse4("parseSuperConstructorInvocation", "super.a()", []);
     JUnitTestCase.assertNotNull(invocation.argumentList);
     JUnitTestCase.assertNotNull(invocation.constructorName);
     JUnitTestCase.assertNotNull(invocation.keyword);
@@ -3748,7 +3780,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseSuperConstructorInvocation_unnamed() {
-    SuperConstructorInvocation invocation = ParserTestCase.parse5("parseSuperConstructorInvocation", "super()", []);
+    SuperConstructorInvocation invocation = ParserTestCase.parse4("parseSuperConstructorInvocation", "super()", []);
     JUnitTestCase.assertNotNull(invocation.argumentList);
     JUnitTestCase.assertNull(invocation.constructorName);
     JUnitTestCase.assertNotNull(invocation.keyword);
@@ -3756,7 +3788,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseSwitchStatement_case() {
-    SwitchStatement statement = ParserTestCase.parse5("parseSwitchStatement", "switch (a) {case 1: return 'I';}", []);
+    SwitchStatement statement = ParserTestCase.parse4("parseSwitchStatement", "switch (a) {case 1: return 'I';}", []);
     JUnitTestCase.assertNotNull(statement.keyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNotNull(statement.expression);
@@ -3767,7 +3799,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseSwitchStatement_empty() {
-    SwitchStatement statement = ParserTestCase.parse5("parseSwitchStatement", "switch (a) {}", []);
+    SwitchStatement statement = ParserTestCase.parse4("parseSwitchStatement", "switch (a) {}", []);
     JUnitTestCase.assertNotNull(statement.keyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNotNull(statement.expression);
@@ -3778,7 +3810,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseSwitchStatement_labeledCase() {
-    SwitchStatement statement = ParserTestCase.parse5("parseSwitchStatement", "switch (a) {l1: l2: l3: case(1):}", []);
+    SwitchStatement statement = ParserTestCase.parse4("parseSwitchStatement", "switch (a) {l1: l2: l3: case(1):}", []);
     JUnitTestCase.assertNotNull(statement.keyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNotNull(statement.expression);
@@ -3790,7 +3822,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseSwitchStatement_labeledStatementInCase() {
-    SwitchStatement statement = ParserTestCase.parse5("parseSwitchStatement", "switch (a) {case 0: f(); l1: g(); break;}", []);
+    SwitchStatement statement = ParserTestCase.parse4("parseSwitchStatement", "switch (a) {case 0: f(); l1: g(); break;}", []);
     JUnitTestCase.assertNotNull(statement.keyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNotNull(statement.expression);
@@ -3802,7 +3834,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseSymbolLiteral_builtInIdentifier() {
-    SymbolLiteral literal = ParserTestCase.parse5("parseSymbolLiteral", "#dynamic.static.abstract", []);
+    SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#dynamic.static.abstract", []);
     JUnitTestCase.assertNotNull(literal.poundSign);
     List<Token> components = literal.components;
     EngineTestCase.assertLength(3, components);
@@ -3812,7 +3844,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseSymbolLiteral_multiple() {
-    SymbolLiteral literal = ParserTestCase.parse5("parseSymbolLiteral", "#a.b.c", []);
+    SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#a.b.c", []);
     JUnitTestCase.assertNotNull(literal.poundSign);
     List<Token> components = literal.components;
     EngineTestCase.assertLength(3, components);
@@ -3822,7 +3854,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseSymbolLiteral_operator() {
-    SymbolLiteral literal = ParserTestCase.parse5("parseSymbolLiteral", "#==", []);
+    SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#==", []);
     JUnitTestCase.assertNotNull(literal.poundSign);
     List<Token> components = literal.components;
     EngineTestCase.assertLength(1, components);
@@ -3830,7 +3862,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseSymbolLiteral_single() {
-    SymbolLiteral literal = ParserTestCase.parse5("parseSymbolLiteral", "#a", []);
+    SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#a", []);
     JUnitTestCase.assertNotNull(literal.poundSign);
     List<Token> components = literal.components;
     EngineTestCase.assertLength(1, components);
@@ -3838,19 +3870,19 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseThrowExpression() {
-    ThrowExpression expression = ParserTestCase.parse5("parseThrowExpression", "throw x;", []);
+    ThrowExpression expression = ParserTestCase.parse4("parseThrowExpression", "throw x;", []);
     JUnitTestCase.assertNotNull(expression.keyword);
     JUnitTestCase.assertNotNull(expression.expression);
   }
 
   void test_parseThrowExpressionWithoutCascade() {
-    ThrowExpression expression = ParserTestCase.parse5("parseThrowExpressionWithoutCascade", "throw x;", []);
+    ThrowExpression expression = ParserTestCase.parse4("parseThrowExpressionWithoutCascade", "throw x;", []);
     JUnitTestCase.assertNotNull(expression.keyword);
     JUnitTestCase.assertNotNull(expression.expression);
   }
 
   void test_parseTryStatement_catch() {
-    TryStatement statement = ParserTestCase.parse5("parseTryStatement", "try {} catch (e) {}", []);
+    TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} catch (e) {}", []);
     JUnitTestCase.assertNotNull(statement.tryKeyword);
     JUnitTestCase.assertNotNull(statement.body);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
@@ -3868,7 +3900,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseTryStatement_catch_finally() {
-    TryStatement statement = ParserTestCase.parse5("parseTryStatement", "try {} catch (e, s) {} finally {}", []);
+    TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} catch (e, s) {} finally {}", []);
     JUnitTestCase.assertNotNull(statement.tryKeyword);
     JUnitTestCase.assertNotNull(statement.body);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
@@ -3886,7 +3918,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseTryStatement_finally() {
-    TryStatement statement = ParserTestCase.parse5("parseTryStatement", "try {} finally {}", []);
+    TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} finally {}", []);
     JUnitTestCase.assertNotNull(statement.tryKeyword);
     JUnitTestCase.assertNotNull(statement.body);
     EngineTestCase.assertSize(0, statement.catchClauses);
@@ -3895,7 +3927,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseTryStatement_multiple() {
-    TryStatement statement = ParserTestCase.parse5("parseTryStatement", "try {} on NPE catch (e) {} on Error {} catch (e) {}", []);
+    TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} on NPE catch (e) {} on Error {} catch (e) {}", []);
     JUnitTestCase.assertNotNull(statement.tryKeyword);
     JUnitTestCase.assertNotNull(statement.body);
     EngineTestCase.assertSize(3, statement.catchClauses);
@@ -3904,7 +3936,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseTryStatement_on() {
-    TryStatement statement = ParserTestCase.parse5("parseTryStatement", "try {} on Error {}", []);
+    TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} on Error {}", []);
     JUnitTestCase.assertNotNull(statement.tryKeyword);
     JUnitTestCase.assertNotNull(statement.body);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
@@ -3922,7 +3954,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseTryStatement_on_catch() {
-    TryStatement statement = ParserTestCase.parse5("parseTryStatement", "try {} on Error catch (e, s) {}", []);
+    TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} on Error catch (e, s) {}", []);
     JUnitTestCase.assertNotNull(statement.tryKeyword);
     JUnitTestCase.assertNotNull(statement.body);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
@@ -3940,7 +3972,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseTryStatement_on_catch_finally() {
-    TryStatement statement = ParserTestCase.parse5("parseTryStatement", "try {} on Error catch (e, s) {} finally {}", []);
+    TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} on Error catch (e, s) {} finally {}", []);
     JUnitTestCase.assertNotNull(statement.tryKeyword);
     JUnitTestCase.assertNotNull(statement.body);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
@@ -4018,14 +4050,14 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseTypeArgumentList_multiple() {
-    TypeArgumentList argumentList = ParserTestCase.parse5("parseTypeArgumentList", "<int, int, int>", []);
+    TypeArgumentList argumentList = ParserTestCase.parse4("parseTypeArgumentList", "<int, int, int>", []);
     JUnitTestCase.assertNotNull(argumentList.leftBracket);
     EngineTestCase.assertSize(3, argumentList.arguments);
     JUnitTestCase.assertNotNull(argumentList.rightBracket);
   }
 
   void test_parseTypeArgumentList_nested() {
-    TypeArgumentList argumentList = ParserTestCase.parse5("parseTypeArgumentList", "<A<B>>", []);
+    TypeArgumentList argumentList = ParserTestCase.parse4("parseTypeArgumentList", "<A<B>>", []);
     JUnitTestCase.assertNotNull(argumentList.leftBracket);
     EngineTestCase.assertSize(1, argumentList.arguments);
     TypeName argument = argumentList.arguments[0];
@@ -4037,75 +4069,75 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseTypeArgumentList_single() {
-    TypeArgumentList argumentList = ParserTestCase.parse5("parseTypeArgumentList", "<int>", []);
+    TypeArgumentList argumentList = ParserTestCase.parse4("parseTypeArgumentList", "<int>", []);
     JUnitTestCase.assertNotNull(argumentList.leftBracket);
     EngineTestCase.assertSize(1, argumentList.arguments);
     JUnitTestCase.assertNotNull(argumentList.rightBracket);
   }
 
   void test_parseTypeName_parameterized() {
-    TypeName typeName = ParserTestCase.parse5("parseTypeName", "List<int>", []);
+    TypeName typeName = ParserTestCase.parse4("parseTypeName", "List<int>", []);
     JUnitTestCase.assertNotNull(typeName.name);
     JUnitTestCase.assertNotNull(typeName.typeArguments);
   }
 
   void test_parseTypeName_simple() {
-    TypeName typeName = ParserTestCase.parse5("parseTypeName", "int", []);
+    TypeName typeName = ParserTestCase.parse4("parseTypeName", "int", []);
     JUnitTestCase.assertNotNull(typeName.name);
     JUnitTestCase.assertNull(typeName.typeArguments);
   }
 
   void test_parseTypeParameter_bounded() {
-    TypeParameter parameter = ParserTestCase.parse5("parseTypeParameter", "A extends B", []);
+    TypeParameter parameter = ParserTestCase.parse4("parseTypeParameter", "A extends B", []);
     JUnitTestCase.assertNotNull(parameter.bound);
     JUnitTestCase.assertNotNull(parameter.keyword);
     JUnitTestCase.assertNotNull(parameter.name);
   }
 
   void test_parseTypeParameter_simple() {
-    TypeParameter parameter = ParserTestCase.parse5("parseTypeParameter", "A", []);
+    TypeParameter parameter = ParserTestCase.parse4("parseTypeParameter", "A", []);
     JUnitTestCase.assertNull(parameter.bound);
     JUnitTestCase.assertNull(parameter.keyword);
     JUnitTestCase.assertNotNull(parameter.name);
   }
 
   void test_parseTypeParameterList_multiple() {
-    TypeParameterList parameterList = ParserTestCase.parse5("parseTypeParameterList", "<A, B extends C, D>", []);
+    TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A, B extends C, D>", []);
     JUnitTestCase.assertNotNull(parameterList.leftBracket);
     JUnitTestCase.assertNotNull(parameterList.rightBracket);
     EngineTestCase.assertSize(3, parameterList.typeParameters);
   }
 
   void test_parseTypeParameterList_parameterizedWithTrailingEquals() {
-    TypeParameterList parameterList = ParserTestCase.parse5("parseTypeParameterList", "<A extends B<E>>=", []);
+    TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A extends B<E>>=", []);
     JUnitTestCase.assertNotNull(parameterList.leftBracket);
     JUnitTestCase.assertNotNull(parameterList.rightBracket);
     EngineTestCase.assertSize(1, parameterList.typeParameters);
   }
 
   void test_parseTypeParameterList_single() {
-    TypeParameterList parameterList = ParserTestCase.parse5("parseTypeParameterList", "<A>", []);
+    TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A>", []);
     JUnitTestCase.assertNotNull(parameterList.leftBracket);
     JUnitTestCase.assertNotNull(parameterList.rightBracket);
     EngineTestCase.assertSize(1, parameterList.typeParameters);
   }
 
   void test_parseTypeParameterList_withTrailingEquals() {
-    TypeParameterList parameterList = ParserTestCase.parse5("parseTypeParameterList", "<A>=", []);
+    TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A>=", []);
     JUnitTestCase.assertNotNull(parameterList.leftBracket);
     JUnitTestCase.assertNotNull(parameterList.rightBracket);
     EngineTestCase.assertSize(1, parameterList.typeParameters);
   }
 
   void test_parseUnaryExpression_decrement_normal() {
-    PrefixExpression expression = ParserTestCase.parse5("parseUnaryExpression", "--x", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "--x", []);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.MINUS_MINUS, expression.operator.type);
     JUnitTestCase.assertNotNull(expression.operand);
   }
 
   void test_parseUnaryExpression_decrement_super() {
-    PrefixExpression expression = ParserTestCase.parse5("parseUnaryExpression", "--super", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "--super", []);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.MINUS, expression.operator.type);
     Expression innerExpression = expression.operand;
@@ -4118,7 +4150,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseUnaryExpression_decrement_super_propertyAccess() {
-    PrefixExpression expression = ParserTestCase.parse5("parseUnaryExpression", "--super.x", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "--super.x", []);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.MINUS_MINUS, expression.operator.type);
     JUnitTestCase.assertNotNull(expression.operand);
@@ -4128,14 +4160,14 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseUnaryExpression_increment_normal() {
-    PrefixExpression expression = ParserTestCase.parse5("parseUnaryExpression", "++x", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "++x", []);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.PLUS_PLUS, expression.operator.type);
     JUnitTestCase.assertNotNull(expression.operand);
   }
 
   void test_parseUnaryExpression_increment_super_index() {
-    PrefixExpression expression = ParserTestCase.parse5("parseUnaryExpression", "++super[0]", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "++super[0]", []);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.PLUS_PLUS, expression.operator.type);
     JUnitTestCase.assertNotNull(expression.operand);
@@ -4145,7 +4177,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseUnaryExpression_increment_super_propertyAccess() {
-    PrefixExpression expression = ParserTestCase.parse5("parseUnaryExpression", "++super.x", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "++super.x", []);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.PLUS_PLUS, expression.operator.type);
     JUnitTestCase.assertNotNull(expression.operand);
@@ -4155,143 +4187,143 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseUnaryExpression_minus_normal() {
-    PrefixExpression expression = ParserTestCase.parse5("parseUnaryExpression", "-x", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "-x", []);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.MINUS, expression.operator.type);
     JUnitTestCase.assertNotNull(expression.operand);
   }
 
   void test_parseUnaryExpression_minus_super() {
-    PrefixExpression expression = ParserTestCase.parse5("parseUnaryExpression", "-super", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "-super", []);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.MINUS, expression.operator.type);
     JUnitTestCase.assertNotNull(expression.operand);
   }
 
   void test_parseUnaryExpression_not_normal() {
-    PrefixExpression expression = ParserTestCase.parse5("parseUnaryExpression", "!x", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "!x", []);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.BANG, expression.operator.type);
     JUnitTestCase.assertNotNull(expression.operand);
   }
 
   void test_parseUnaryExpression_not_super() {
-    PrefixExpression expression = ParserTestCase.parse5("parseUnaryExpression", "!super", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "!super", []);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.BANG, expression.operator.type);
     JUnitTestCase.assertNotNull(expression.operand);
   }
 
   void test_parseUnaryExpression_tilda_normal() {
-    PrefixExpression expression = ParserTestCase.parse5("parseUnaryExpression", "~x", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "~x", []);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.TILDE, expression.operator.type);
     JUnitTestCase.assertNotNull(expression.operand);
   }
 
   void test_parseUnaryExpression_tilda_super() {
-    PrefixExpression expression = ParserTestCase.parse5("parseUnaryExpression", "~super", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "~super", []);
     JUnitTestCase.assertNotNull(expression.operator);
     JUnitTestCase.assertEquals(TokenType.TILDE, expression.operator.type);
     JUnitTestCase.assertNotNull(expression.operand);
   }
 
   void test_parseVariableDeclaration_equals() {
-    VariableDeclaration declaration = ParserTestCase.parse5("parseVariableDeclaration", "a = b", []);
+    VariableDeclaration declaration = ParserTestCase.parse4("parseVariableDeclaration", "a = b", []);
     JUnitTestCase.assertNotNull(declaration.name);
     JUnitTestCase.assertNotNull(declaration.equals);
     JUnitTestCase.assertNotNull(declaration.initializer);
   }
 
   void test_parseVariableDeclaration_noEquals() {
-    VariableDeclaration declaration = ParserTestCase.parse5("parseVariableDeclaration", "a", []);
+    VariableDeclaration declaration = ParserTestCase.parse4("parseVariableDeclaration", "a", []);
     JUnitTestCase.assertNotNull(declaration.name);
     JUnitTestCase.assertNull(declaration.equals);
     JUnitTestCase.assertNull(declaration.initializer);
   }
 
-  void test_parseVariableDeclarationList_const_noType() {
-    VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationList", <Object> [emptyCommentAndMetadata()], "const a");
+  void test_parseVariableDeclarationListAfterMetadata_const_noType() {
+    VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "const a");
     JUnitTestCase.assertNotNull(declarationList.keyword);
     JUnitTestCase.assertNull(declarationList.type);
     EngineTestCase.assertSize(1, declarationList.variables);
   }
 
-  void test_parseVariableDeclarationList_const_type() {
-    VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationList", <Object> [emptyCommentAndMetadata()], "const A a");
+  void test_parseVariableDeclarationListAfterMetadata_const_type() {
+    VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "const A a");
     JUnitTestCase.assertNotNull(declarationList.keyword);
     JUnitTestCase.assertNotNull(declarationList.type);
     EngineTestCase.assertSize(1, declarationList.variables);
   }
 
-  void test_parseVariableDeclarationList_final_noType() {
-    VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationList", <Object> [emptyCommentAndMetadata()], "final a");
+  void test_parseVariableDeclarationListAfterMetadata_final_noType() {
+    VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "final a");
     JUnitTestCase.assertNotNull(declarationList.keyword);
     JUnitTestCase.assertNull(declarationList.type);
     EngineTestCase.assertSize(1, declarationList.variables);
   }
 
-  void test_parseVariableDeclarationList_final_type() {
-    VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationList", <Object> [emptyCommentAndMetadata()], "final A a");
+  void test_parseVariableDeclarationListAfterMetadata_final_type() {
+    VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "final A a");
     JUnitTestCase.assertNotNull(declarationList.keyword);
     JUnitTestCase.assertNotNull(declarationList.type);
     EngineTestCase.assertSize(1, declarationList.variables);
   }
 
-  void test_parseVariableDeclarationList_type_multiple() {
-    VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationList", <Object> [emptyCommentAndMetadata()], "A a, b, c");
+  void test_parseVariableDeclarationListAfterMetadata_type_multiple() {
+    VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "A a, b, c");
     JUnitTestCase.assertNull(declarationList.keyword);
     JUnitTestCase.assertNotNull(declarationList.type);
     EngineTestCase.assertSize(3, declarationList.variables);
   }
 
-  void test_parseVariableDeclarationList_type_single() {
-    VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationList", <Object> [emptyCommentAndMetadata()], "A a");
+  void test_parseVariableDeclarationListAfterMetadata_type_single() {
+    VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "A a");
     JUnitTestCase.assertNull(declarationList.keyword);
     JUnitTestCase.assertNotNull(declarationList.type);
     EngineTestCase.assertSize(1, declarationList.variables);
   }
 
-  void test_parseVariableDeclarationList_var_multiple() {
-    VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationList", <Object> [emptyCommentAndMetadata()], "var a, b, c");
+  void test_parseVariableDeclarationListAfterMetadata_var_multiple() {
+    VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "var a, b, c");
     JUnitTestCase.assertNotNull(declarationList.keyword);
     JUnitTestCase.assertNull(declarationList.type);
     EngineTestCase.assertSize(3, declarationList.variables);
   }
 
-  void test_parseVariableDeclarationList_var_single() {
-    VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationList", <Object> [emptyCommentAndMetadata()], "var a");
+  void test_parseVariableDeclarationListAfterMetadata_var_single() {
+    VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "var a");
     JUnitTestCase.assertNotNull(declarationList.keyword);
     JUnitTestCase.assertNull(declarationList.type);
     EngineTestCase.assertSize(1, declarationList.variables);
   }
 
-  void test_parseVariableDeclarationList2_type() {
+  void test_parseVariableDeclarationListAfterType_type() {
     TypeName type = new TypeName(new SimpleIdentifier(null), null);
-    VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationList", <Object> [emptyCommentAndMetadata(), null, type], "a");
+    VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterType", <Object> [emptyCommentAndMetadata(), null, type], "a");
     JUnitTestCase.assertNull(declarationList.keyword);
     JUnitTestCase.assertEquals(type, declarationList.type);
     EngineTestCase.assertSize(1, declarationList.variables);
   }
 
-  void test_parseVariableDeclarationList2_var() {
+  void test_parseVariableDeclarationListAfterType_var() {
     Token keyword = TokenFactory.token(Keyword.VAR);
-    VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationList", <Object> [emptyCommentAndMetadata(), keyword, null], "a, b, c");
+    VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterType", <Object> [emptyCommentAndMetadata(), keyword, null], "a, b, c");
     JUnitTestCase.assertEquals(keyword, declarationList.keyword);
     JUnitTestCase.assertNull(declarationList.type);
     EngineTestCase.assertSize(3, declarationList.variables);
   }
 
-  void test_parseVariableDeclarationStatement_multiple() {
-    VariableDeclarationStatement statement = ParserTestCase.parse("parseVariableDeclarationStatement", <Object> [emptyCommentAndMetadata()], "var x, y, z;");
+  void test_parseVariableDeclarationStatementAfterMetadata_multiple() {
+    VariableDeclarationStatement statement = ParserTestCase.parse("parseVariableDeclarationStatementAfterMetadata", <Object> [emptyCommentAndMetadata()], "var x, y, z;");
     JUnitTestCase.assertNotNull(statement.semicolon);
     VariableDeclarationList variableList = statement.variables;
     JUnitTestCase.assertNotNull(variableList);
     EngineTestCase.assertSize(3, variableList.variables);
   }
 
-  void test_parseVariableDeclarationStatement_single() {
-    VariableDeclarationStatement statement = ParserTestCase.parse("parseVariableDeclarationStatement", <Object> [emptyCommentAndMetadata()], "var x;");
+  void test_parseVariableDeclarationStatementAfterMetadata_single() {
+    VariableDeclarationStatement statement = ParserTestCase.parse("parseVariableDeclarationStatementAfterMetadata", <Object> [emptyCommentAndMetadata()], "var x;");
     JUnitTestCase.assertNotNull(statement.semicolon);
     VariableDeclarationList variableList = statement.variables;
     JUnitTestCase.assertNotNull(variableList);
@@ -4299,7 +4331,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseWhileStatement() {
-    WhileStatement statement = ParserTestCase.parse5("parseWhileStatement", "while (x) {}", []);
+    WhileStatement statement = ParserTestCase.parse4("parseWhileStatement", "while (x) {}", []);
     JUnitTestCase.assertNotNull(statement.keyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNotNull(statement.condition);
@@ -4308,13 +4340,13 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseWithClause_multiple() {
-    WithClause clause = ParserTestCase.parse5("parseWithClause", "with A, B, C", []);
+    WithClause clause = ParserTestCase.parse4("parseWithClause", "with A, B, C", []);
     JUnitTestCase.assertNotNull(clause.withKeyword);
     EngineTestCase.assertSize(3, clause.mixinTypes);
   }
 
   void test_parseWithClause_single() {
-    WithClause clause = ParserTestCase.parse5("parseWithClause", "with M", []);
+    WithClause clause = ParserTestCase.parse4("parseWithClause", "with M", []);
     JUnitTestCase.assertNotNull(clause.withKeyword);
     EngineTestCase.assertSize(1, clause.mixinTypes);
   }
@@ -5235,9 +5267,21 @@ class SimpleParserTest extends ParserTestCase {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseCommentReference_simple);
       });
+      _ut.test('test_parseCommentReference_synthetic', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseCommentReference_synthetic);
+      });
       _ut.test('test_parseCommentReferences_multiLine', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseCommentReferences_multiLine);
+      });
+      _ut.test('test_parseCommentReferences_notClosed_noIdentifier', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseCommentReferences_notClosed_noIdentifier);
+      });
+      _ut.test('test_parseCommentReferences_notClosed_withIdentifier', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseCommentReferences_notClosed_withIdentifier);
       });
       _ut.test('test_parseCommentReferences_singleLine', () {
         final __test = new SimpleParserTest();
@@ -6583,53 +6627,53 @@ class SimpleParserTest extends ParserTestCase {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseUnaryExpression_tilda_super);
       });
-      _ut.test('test_parseVariableDeclarationList2_type', () {
+      _ut.test('test_parseVariableDeclarationListAfterMetadata_const_noType', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseVariableDeclarationList2_type);
+        runJUnitTest(__test, __test.test_parseVariableDeclarationListAfterMetadata_const_noType);
       });
-      _ut.test('test_parseVariableDeclarationList2_var', () {
+      _ut.test('test_parseVariableDeclarationListAfterMetadata_const_type', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseVariableDeclarationList2_var);
+        runJUnitTest(__test, __test.test_parseVariableDeclarationListAfterMetadata_const_type);
       });
-      _ut.test('test_parseVariableDeclarationList_const_noType', () {
+      _ut.test('test_parseVariableDeclarationListAfterMetadata_final_noType', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseVariableDeclarationList_const_noType);
+        runJUnitTest(__test, __test.test_parseVariableDeclarationListAfterMetadata_final_noType);
       });
-      _ut.test('test_parseVariableDeclarationList_const_type', () {
+      _ut.test('test_parseVariableDeclarationListAfterMetadata_final_type', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseVariableDeclarationList_const_type);
+        runJUnitTest(__test, __test.test_parseVariableDeclarationListAfterMetadata_final_type);
       });
-      _ut.test('test_parseVariableDeclarationList_final_noType', () {
+      _ut.test('test_parseVariableDeclarationListAfterMetadata_type_multiple', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseVariableDeclarationList_final_noType);
+        runJUnitTest(__test, __test.test_parseVariableDeclarationListAfterMetadata_type_multiple);
       });
-      _ut.test('test_parseVariableDeclarationList_final_type', () {
+      _ut.test('test_parseVariableDeclarationListAfterMetadata_type_single', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseVariableDeclarationList_final_type);
+        runJUnitTest(__test, __test.test_parseVariableDeclarationListAfterMetadata_type_single);
       });
-      _ut.test('test_parseVariableDeclarationList_type_multiple', () {
+      _ut.test('test_parseVariableDeclarationListAfterMetadata_var_multiple', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseVariableDeclarationList_type_multiple);
+        runJUnitTest(__test, __test.test_parseVariableDeclarationListAfterMetadata_var_multiple);
       });
-      _ut.test('test_parseVariableDeclarationList_type_single', () {
+      _ut.test('test_parseVariableDeclarationListAfterMetadata_var_single', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseVariableDeclarationList_type_single);
+        runJUnitTest(__test, __test.test_parseVariableDeclarationListAfterMetadata_var_single);
       });
-      _ut.test('test_parseVariableDeclarationList_var_multiple', () {
+      _ut.test('test_parseVariableDeclarationListAfterType_type', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseVariableDeclarationList_var_multiple);
+        runJUnitTest(__test, __test.test_parseVariableDeclarationListAfterType_type);
       });
-      _ut.test('test_parseVariableDeclarationList_var_single', () {
+      _ut.test('test_parseVariableDeclarationListAfterType_var', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseVariableDeclarationList_var_single);
+        runJUnitTest(__test, __test.test_parseVariableDeclarationListAfterType_var);
       });
-      _ut.test('test_parseVariableDeclarationStatement_multiple', () {
+      _ut.test('test_parseVariableDeclarationStatementAfterMetadata_multiple', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseVariableDeclarationStatement_multiple);
+        runJUnitTest(__test, __test.test_parseVariableDeclarationStatementAfterMetadata_multiple);
       });
-      _ut.test('test_parseVariableDeclarationStatement_single', () {
+      _ut.test('test_parseVariableDeclarationStatementAfterMetadata_single', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseVariableDeclarationStatement_single);
+        runJUnitTest(__test, __test.test_parseVariableDeclarationStatementAfterMetadata_single);
       });
       _ut.test('test_parseVariableDeclaration_equals', () {
         final __test = new SimpleParserTest();
@@ -6762,33 +6806,33 @@ class NonErrorParserTest extends ParserTestCase {
 class ComplexParserTest extends ParserTestCase {
   void test_additiveExpression_normal() {
     BinaryExpression expression = ParserTestCase.parseExpression("x + y - z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_additiveExpression_noSpaces() {
     BinaryExpression expression = ParserTestCase.parseExpression("i+1", []);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftOperand);
-    EngineTestCase.assertInstanceOf(IntegerLiteral, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is IntegerLiteral, IntegerLiteral, expression.rightOperand);
   }
 
   void test_additiveExpression_precedence_multiplicative_left() {
     BinaryExpression expression = ParserTestCase.parseExpression("x * y + z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_additiveExpression_precedence_multiplicative_left_withSuper() {
     BinaryExpression expression = ParserTestCase.parseExpression("super * y - z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_additiveExpression_precedence_multiplicative_right() {
     BinaryExpression expression = ParserTestCase.parseExpression("x + y * z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
   }
 
   void test_additiveExpression_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super + y - z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_assignableExpression_arguments_normal_chain() {
@@ -6797,7 +6841,7 @@ class ComplexParserTest extends ParserTestCase {
     //
     // a(b)(c).d(e)
     //
-    MethodInvocation invocation2 = EngineTestCase.assertInstanceOf(MethodInvocation, propertyAccess1.target);
+    MethodInvocation invocation2 = EngineTestCase.assertInstanceOf((obj) => obj is MethodInvocation, MethodInvocation, propertyAccess1.target);
     JUnitTestCase.assertEquals("d", invocation2.methodName.name);
     ArgumentList argumentList2 = invocation2.argumentList;
     JUnitTestCase.assertNotNull(argumentList2);
@@ -6805,14 +6849,14 @@ class ComplexParserTest extends ParserTestCase {
     //
     // a(b)(c)
     //
-    FunctionExpressionInvocation invocation3 = EngineTestCase.assertInstanceOf(FunctionExpressionInvocation, invocation2.target);
+    FunctionExpressionInvocation invocation3 = EngineTestCase.assertInstanceOf((obj) => obj is FunctionExpressionInvocation, FunctionExpressionInvocation, invocation2.target);
     ArgumentList argumentList3 = invocation3.argumentList;
     JUnitTestCase.assertNotNull(argumentList3);
     EngineTestCase.assertSize(1, argumentList3.arguments);
     //
     // a(b)
     //
-    MethodInvocation invocation4 = EngineTestCase.assertInstanceOf(MethodInvocation, invocation3.function);
+    MethodInvocation invocation4 = EngineTestCase.assertInstanceOf((obj) => obj is MethodInvocation, MethodInvocation, invocation3.function);
     JUnitTestCase.assertEquals("a", invocation4.methodName.name);
     ArgumentList argumentList4 = invocation4.argumentList;
     JUnitTestCase.assertNotNull(argumentList4);
@@ -6821,95 +6865,95 @@ class ComplexParserTest extends ParserTestCase {
 
   void test_assignmentExpression_compound() {
     AssignmentExpression expression = ParserTestCase.parseExpression("x = y = 0", []);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftHandSide);
-    EngineTestCase.assertInstanceOf(AssignmentExpression, expression.rightHandSide);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftHandSide);
+    EngineTestCase.assertInstanceOf((obj) => obj is AssignmentExpression, AssignmentExpression, expression.rightHandSide);
   }
 
   void test_assignmentExpression_indexExpression() {
     AssignmentExpression expression = ParserTestCase.parseExpression("x[1] = 0", []);
-    EngineTestCase.assertInstanceOf(IndexExpression, expression.leftHandSide);
-    EngineTestCase.assertInstanceOf(IntegerLiteral, expression.rightHandSide);
+    EngineTestCase.assertInstanceOf((obj) => obj is IndexExpression, IndexExpression, expression.leftHandSide);
+    EngineTestCase.assertInstanceOf((obj) => obj is IntegerLiteral, IntegerLiteral, expression.rightHandSide);
   }
 
   void test_assignmentExpression_prefixedIdentifier() {
     AssignmentExpression expression = ParserTestCase.parseExpression("x.y = 0", []);
-    EngineTestCase.assertInstanceOf(PrefixedIdentifier, expression.leftHandSide);
-    EngineTestCase.assertInstanceOf(IntegerLiteral, expression.rightHandSide);
+    EngineTestCase.assertInstanceOf((obj) => obj is PrefixedIdentifier, PrefixedIdentifier, expression.leftHandSide);
+    EngineTestCase.assertInstanceOf((obj) => obj is IntegerLiteral, IntegerLiteral, expression.rightHandSide);
   }
 
   void test_assignmentExpression_propertyAccess() {
     AssignmentExpression expression = ParserTestCase.parseExpression("super.y = 0", []);
-    EngineTestCase.assertInstanceOf(PropertyAccess, expression.leftHandSide);
-    EngineTestCase.assertInstanceOf(IntegerLiteral, expression.rightHandSide);
+    EngineTestCase.assertInstanceOf((obj) => obj is PropertyAccess, PropertyAccess, expression.leftHandSide);
+    EngineTestCase.assertInstanceOf((obj) => obj is IntegerLiteral, IntegerLiteral, expression.rightHandSide);
   }
 
   void test_bitwiseAndExpression_normal() {
     BinaryExpression expression = ParserTestCase.parseExpression("x & y & z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_bitwiseAndExpression_precedence_equality_left() {
     BinaryExpression expression = ParserTestCase.parseExpression("x == y && z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_bitwiseAndExpression_precedence_equality_right() {
     BinaryExpression expression = ParserTestCase.parseExpression("x && y == z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
   }
 
   void test_bitwiseAndExpression_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super & y & z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_bitwiseOrExpression_normal() {
     BinaryExpression expression = ParserTestCase.parseExpression("x | y | z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_bitwiseOrExpression_precedence_xor_left() {
     BinaryExpression expression = ParserTestCase.parseExpression("x ^ y | z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_bitwiseOrExpression_precedence_xor_right() {
     BinaryExpression expression = ParserTestCase.parseExpression("x | y ^ z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
   }
 
   void test_bitwiseOrExpression_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super | y | z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_bitwiseXorExpression_normal() {
     BinaryExpression expression = ParserTestCase.parseExpression("x ^ y ^ z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_bitwiseXorExpression_precedence_and_left() {
     BinaryExpression expression = ParserTestCase.parseExpression("x & y ^ z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_bitwiseXorExpression_precedence_and_right() {
     BinaryExpression expression = ParserTestCase.parseExpression("x ^ y & z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
   }
 
   void test_bitwiseXorExpression_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super ^ y ^ z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_cascade_withAssignment() {
     CascadeExpression cascade = ParserTestCase.parseExpression("new Map()..[3] = 4 ..[0] = 11;", []);
     Expression target = cascade.target;
     for (Expression section in cascade.cascadeSections) {
-      EngineTestCase.assertInstanceOf(AssignmentExpression, section);
+      EngineTestCase.assertInstanceOf((obj) => obj is AssignmentExpression, AssignmentExpression, section);
       Expression lhs = (section as AssignmentExpression).leftHandSide;
-      EngineTestCase.assertInstanceOf(IndexExpression, lhs);
+      EngineTestCase.assertInstanceOf((obj) => obj is IndexExpression, IndexExpression, lhs);
       IndexExpression index = lhs as IndexExpression;
       JUnitTestCase.assertTrue(index.isCascaded);
       JUnitTestCase.assertSame(target, index.realTarget);
@@ -6918,7 +6962,7 @@ class ComplexParserTest extends ParserTestCase {
 
   void test_conditionalExpression_precedence_logicalOrExpression() {
     ConditionalExpression expression = ParserTestCase.parseExpression("a | b ? y : z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.condition);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.condition);
   }
 
   void test_constructor_initializer_withParenthesizedExpression() {
@@ -6934,103 +6978,103 @@ class ComplexParserTest extends ParserTestCase {
 
   void test_equalityExpression_normal() {
     BinaryExpression expression = ParserTestCase.parseExpression("x == y != z", [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_equalityExpression_precedence_relational_left() {
     BinaryExpression expression = ParserTestCase.parseExpression("x is y == z", []);
-    EngineTestCase.assertInstanceOf(IsExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is IsExpression, IsExpression, expression.leftOperand);
   }
 
   void test_equalityExpression_precedence_relational_right() {
     BinaryExpression expression = ParserTestCase.parseExpression("x == y is z", []);
-    EngineTestCase.assertInstanceOf(IsExpression, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is IsExpression, IsExpression, expression.rightOperand);
   }
 
   void test_equalityExpression_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super == y != z", [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_logicalAndExpression() {
     BinaryExpression expression = ParserTestCase.parseExpression("x && y && z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_logicalAndExpression_precedence_bitwiseOr_left() {
     BinaryExpression expression = ParserTestCase.parseExpression("x | y < z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_logicalAndExpression_precedence_bitwiseOr_right() {
     BinaryExpression expression = ParserTestCase.parseExpression("x < y | z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
   }
 
   void test_logicalOrExpression() {
     BinaryExpression expression = ParserTestCase.parseExpression("x || y || z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_logicalOrExpression_precedence_logicalAnd_left() {
     BinaryExpression expression = ParserTestCase.parseExpression("x && y || z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_logicalOrExpression_precedence_logicalAnd_right() {
     BinaryExpression expression = ParserTestCase.parseExpression("x || y && z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
   }
 
   void test_multipleLabels_statement() {
     LabeledStatement statement = ParserTestCase.parseStatement("a: b: c: return x;", []);
     EngineTestCase.assertSize(3, statement.labels);
-    EngineTestCase.assertInstanceOf(ReturnStatement, statement.statement);
+    EngineTestCase.assertInstanceOf((obj) => obj is ReturnStatement, ReturnStatement, statement.statement);
   }
 
   void test_multiplicativeExpression_normal() {
     BinaryExpression expression = ParserTestCase.parseExpression("x * y / z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_multiplicativeExpression_precedence_unary_left() {
     BinaryExpression expression = ParserTestCase.parseExpression("-x * y", []);
-    EngineTestCase.assertInstanceOf(PrefixExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is PrefixExpression, PrefixExpression, expression.leftOperand);
   }
 
   void test_multiplicativeExpression_precedence_unary_right() {
     BinaryExpression expression = ParserTestCase.parseExpression("x * -y", []);
-    EngineTestCase.assertInstanceOf(PrefixExpression, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is PrefixExpression, PrefixExpression, expression.rightOperand);
   }
 
   void test_multiplicativeExpression_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super * y / z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_relationalExpression_precedence_shift_right() {
     IsExpression expression = ParserTestCase.parseExpression("x << y is z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.expression);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.expression);
   }
 
   void test_shiftExpression_normal() {
     BinaryExpression expression = ParserTestCase.parseExpression("x >> 4 << 3", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_shiftExpression_precedence_additive_left() {
     BinaryExpression expression = ParserTestCase.parseExpression("x + y << z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_shiftExpression_precedence_additive_right() {
     BinaryExpression expression = ParserTestCase.parseExpression("x << y + z", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
   }
 
   void test_shiftExpression_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super >> 4 << 3", []);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_topLevelVariable_withMetadata() {
@@ -7231,78 +7275,6 @@ class ComplexParserTest extends ParserTestCase {
   }
 }
 
-/**
- * Instances of the class `ASTValidator` are used to validate the correct construction of an
- * AST structure.
- */
-class ASTValidator extends UnifyingASTVisitor<Object> {
-  /**
-   * A list containing the errors found while traversing the AST structure.
-   */
-  List<String> _errors = new List<String>();
-
-  /**
-   * Assert that no errors were found while traversing any of the AST structures that have been
-   * visited.
-   */
-  void assertValid() {
-    if (!_errors.isEmpty) {
-      JavaStringBuilder builder = new JavaStringBuilder();
-      builder.append("Invalid AST structure:");
-      for (String message in _errors) {
-        builder.append("\r\n   ");
-        builder.append(message);
-      }
-      JUnitTestCase.fail(builder.toString());
-    }
-  }
-
-  Object visitNode(ASTNode node) {
-    validate(node);
-    return super.visitNode(node);
-  }
-
-  /**
-   * Validate that the given AST node is correctly constructed.
-   *
-   * @param node the AST node being validated
-   */
-  void validate(ASTNode node) {
-    ASTNode parent = node.parent;
-    if (node is CompilationUnit) {
-      if (parent != null) {
-        _errors.add("Compilation units should not have a parent");
-      }
-    } else {
-      if (parent == null) {
-        _errors.add("No parent for ${node.runtimeType.toString()}");
-      }
-    }
-    if (node.beginToken == null) {
-      _errors.add("No begin token for ${node.runtimeType.toString()}");
-    }
-    if (node.endToken == null) {
-      _errors.add("No end token for ${node.runtimeType.toString()}");
-    }
-    int nodeStart = node.offset;
-    int nodeLength = node.length;
-    if (nodeStart < 0 || nodeLength < 0) {
-      _errors.add("No source info for ${node.runtimeType.toString()}");
-    }
-    if (parent != null) {
-      int nodeEnd = nodeStart + nodeLength;
-      int parentStart = parent.offset;
-      int parentEnd = parentStart + parent.length;
-      if (nodeStart < parentStart) {
-        _errors.add("Invalid source start (${nodeStart}) for ${node.runtimeType.toString()} inside ${parent.runtimeType.toString()} (${parentStart})");
-      }
-      if (nodeEnd > parentEnd) {
-        _errors.add("Invalid source end (${nodeEnd}) for ${node.runtimeType.toString()} inside ${parent.runtimeType.toString()} (${parentStart})");
-      }
-    }
-  }
-}
-
 class ParserTestCase extends EngineTestCase {
   /**
    * An empty array of objects used as arguments to zero-argument methods.
@@ -7328,7 +7300,7 @@ class ParserTestCase extends EngineTestCase {
    * @throws Exception if the method could not be invoked or throws an exception
    * @throws AssertionFailedError if the result is `null` or if any errors are produced
    */
-  static Object parse(String methodName, List<Object> objects, String source) => parse3(methodName, objects, source, new List<AnalysisError>(0));
+  static Object parse(String methodName, List<Object> objects, String source) => parse2(methodName, objects, source, new List<AnalysisError>(0));
 
   /**
    * Invoke a parse method in [Parser]. The method is assumed to have the given number and
@@ -7346,7 +7318,7 @@ class ParserTestCase extends EngineTestCase {
    * @throws AssertionFailedError if the result is `null` or the errors produced while
    *           scanning and parsing the source do not match the expected errors
    */
-  static Object parse3(String methodName, List<Object> objects, String source, List<AnalysisError> errors) {
+  static Object parse2(String methodName, List<Object> objects, String source, List<AnalysisError> errors) {
     GatheringErrorListener listener = new GatheringErrorListener();
     Object result = invokeParserMethod(methodName, objects, source, listener);
     listener.assertErrors(errors);
@@ -7369,7 +7341,7 @@ class ParserTestCase extends EngineTestCase {
    * @throws AssertionFailedError if the result is `null` or the errors produced while
    *           scanning and parsing the source do not match the expected errors
    */
-  static Object parse4(String methodName, List<Object> objects, String source, List<ErrorCode> errorCodes) {
+  static Object parse3(String methodName, List<Object> objects, String source, List<ErrorCode> errorCodes) {
     GatheringErrorListener listener = new GatheringErrorListener();
     Object result = invokeParserMethod(methodName, objects, source, listener);
     listener.assertErrors2(errorCodes);
@@ -7390,7 +7362,7 @@ class ParserTestCase extends EngineTestCase {
    * @throws AssertionFailedError if the result is `null` or the errors produced while
    *           scanning and parsing the source do not match the expected errors
    */
-  static Object parse5(String methodName, String source, List<ErrorCode> errorCodes) => parse4(methodName, _EMPTY_ARGUMENTS, source, errorCodes);
+  static Object parse4(String methodName, String source, List<ErrorCode> errorCodes) => parse3(methodName, _EMPTY_ARGUMENTS, source, errorCodes);
 
   /**
    * Parse the given source as a compilation unit.
@@ -7565,44 +7537,116 @@ class ParserTestCase extends EngineTestCase {
   }
 }
 
+/**
+ * Instances of the class `AstValidator` are used to validate the correct construction of an
+ * AST structure.
+ */
+class AstValidator extends UnifyingAstVisitor<Object> {
+  /**
+   * A list containing the errors found while traversing the AST structure.
+   */
+  List<String> _errors = new List<String>();
+
+  /**
+   * Assert that no errors were found while traversing any of the AST structures that have been
+   * visited.
+   */
+  void assertValid() {
+    if (!_errors.isEmpty) {
+      JavaStringBuilder builder = new JavaStringBuilder();
+      builder.append("Invalid AST structure:");
+      for (String message in _errors) {
+        builder.append("\r\n   ");
+        builder.append(message);
+      }
+      JUnitTestCase.fail(builder.toString());
+    }
+  }
+
+  Object visitNode(AstNode node) {
+    validate(node);
+    return super.visitNode(node);
+  }
+
+  /**
+   * Validate that the given AST node is correctly constructed.
+   *
+   * @param node the AST node being validated
+   */
+  void validate(AstNode node) {
+    AstNode parent = node.parent;
+    if (node is CompilationUnit) {
+      if (parent != null) {
+        _errors.add("Compilation units should not have a parent");
+      }
+    } else {
+      if (parent == null) {
+        _errors.add("No parent for ${node.runtimeType.toString()}");
+      }
+    }
+    if (node.beginToken == null) {
+      _errors.add("No begin token for ${node.runtimeType.toString()}");
+    }
+    if (node.endToken == null) {
+      _errors.add("No end token for ${node.runtimeType.toString()}");
+    }
+    int nodeStart = node.offset;
+    int nodeLength = node.length;
+    if (nodeStart < 0 || nodeLength < 0) {
+      _errors.add("No source info for ${node.runtimeType.toString()}");
+    }
+    if (parent != null) {
+      int nodeEnd = nodeStart + nodeLength;
+      int parentStart = parent.offset;
+      int parentEnd = parentStart + parent.length;
+      if (nodeStart < parentStart) {
+        _errors.add("Invalid source start (${nodeStart}) for ${node.runtimeType.toString()} inside ${parent.runtimeType.toString()} (${parentStart})");
+      }
+      if (nodeEnd > parentEnd) {
+        _errors.add("Invalid source end (${nodeEnd}) for ${node.runtimeType.toString()} inside ${parent.runtimeType.toString()} (${parentStart})");
+      }
+    }
+  }
+}
+
 class ResolutionCopierTest extends EngineTestCase {
   void test_visitAnnotation() {
     String annotationName = "proxy";
-    Annotation fromNode = ASTFactory.annotation(ASTFactory.identifier3(annotationName));
+    Annotation fromNode = AstFactory.annotation(AstFactory.identifier3(annotationName));
     Element element = ElementFactory.topLevelVariableElement2(annotationName);
     fromNode.element = element;
-    Annotation toNode = ASTFactory.annotation(ASTFactory.identifier3(annotationName));
+    Annotation toNode = AstFactory.annotation(AstFactory.identifier3(annotationName));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(element, toNode.element);
   }
 
   void test_visitArgumentDefinitionTest() {
     String identifier = "p";
-    ArgumentDefinitionTest fromNode = ASTFactory.argumentDefinitionTest(identifier);
+    ArgumentDefinitionTest fromNode = AstFactory.argumentDefinitionTest(identifier);
     Type2 propagatedType = ElementFactory.classElement2("A", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("B", []).type;
     fromNode.staticType = staticType;
-    ArgumentDefinitionTest toNode = ASTFactory.argumentDefinitionTest(identifier);
+    ArgumentDefinitionTest toNode = AstFactory.argumentDefinitionTest(identifier);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitAsExpression() {
-    AsExpression fromNode = ASTFactory.asExpression(ASTFactory.identifier3("x"), ASTFactory.typeName4("A", []));
+    AsExpression fromNode = AstFactory.asExpression(AstFactory.identifier3("x"), AstFactory.typeName4("A", []));
     Type2 propagatedType = ElementFactory.classElement2("A", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("B", []).type;
     fromNode.staticType = staticType;
-    AsExpression toNode = ASTFactory.asExpression(ASTFactory.identifier3("x"), ASTFactory.typeName4("A", []));
+    AsExpression toNode = AstFactory.asExpression(AstFactory.identifier3("x"), AstFactory.typeName4("A", []));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitAssignmentExpression() {
-    AssignmentExpression fromNode = ASTFactory.assignmentExpression(ASTFactory.identifier3("a"), TokenType.PLUS_EQ, ASTFactory.identifier3("b"));
+    AssignmentExpression fromNode = AstFactory.assignmentExpression(AstFactory.identifier3("a"), TokenType.PLUS_EQ, AstFactory.identifier3("b"));
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     MethodElement propagatedElement = ElementFactory.methodElement("+", propagatedType, []);
     fromNode.propagatedElement = propagatedElement;
@@ -7611,7 +7655,7 @@ class ResolutionCopierTest extends EngineTestCase {
     MethodElement staticElement = ElementFactory.methodElement("+", staticType, []);
     fromNode.staticElement = staticElement;
     fromNode.staticType = staticType;
-    AssignmentExpression toNode = ASTFactory.assignmentExpression(ASTFactory.identifier3("a"), TokenType.PLUS_EQ, ASTFactory.identifier3("b"));
+    AssignmentExpression toNode = AstFactory.assignmentExpression(AstFactory.identifier3("a"), TokenType.PLUS_EQ, AstFactory.identifier3("b"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
@@ -7620,7 +7664,7 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitBinaryExpression() {
-    BinaryExpression fromNode = ASTFactory.binaryExpression(ASTFactory.identifier3("a"), TokenType.PLUS, ASTFactory.identifier3("b"));
+    BinaryExpression fromNode = AstFactory.binaryExpression(AstFactory.identifier3("a"), TokenType.PLUS, AstFactory.identifier3("b"));
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     MethodElement propagatedElement = ElementFactory.methodElement("+", propagatedType, []);
     fromNode.propagatedElement = propagatedElement;
@@ -7629,7 +7673,7 @@ class ResolutionCopierTest extends EngineTestCase {
     MethodElement staticElement = ElementFactory.methodElement("+", staticType, []);
     fromNode.staticElement = staticElement;
     fromNode.staticType = staticType;
-    BinaryExpression toNode = ASTFactory.binaryExpression(ASTFactory.identifier3("a"), TokenType.PLUS, ASTFactory.identifier3("b"));
+    BinaryExpression toNode = AstFactory.binaryExpression(AstFactory.identifier3("a"), TokenType.PLUS, AstFactory.identifier3("b"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
@@ -7638,45 +7682,45 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitBooleanLiteral() {
-    BooleanLiteral fromNode = ASTFactory.booleanLiteral(true);
+    BooleanLiteral fromNode = AstFactory.booleanLiteral(true);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    BooleanLiteral toNode = ASTFactory.booleanLiteral(true);
+    BooleanLiteral toNode = AstFactory.booleanLiteral(true);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitCascadeExpression() {
-    CascadeExpression fromNode = ASTFactory.cascadeExpression(ASTFactory.identifier3("a"), [ASTFactory.identifier3("b")]);
+    CascadeExpression fromNode = AstFactory.cascadeExpression(AstFactory.identifier3("a"), [AstFactory.identifier3("b")]);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    CascadeExpression toNode = ASTFactory.cascadeExpression(ASTFactory.identifier3("a"), [ASTFactory.identifier3("b")]);
+    CascadeExpression toNode = AstFactory.cascadeExpression(AstFactory.identifier3("a"), [AstFactory.identifier3("b")]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitCompilationUnit() {
-    CompilationUnit fromNode = ASTFactory.compilationUnit();
+    CompilationUnit fromNode = AstFactory.compilationUnit();
     CompilationUnitElement element = new CompilationUnitElementImpl("test.dart");
     fromNode.element = element;
-    CompilationUnit toNode = ASTFactory.compilationUnit();
+    CompilationUnit toNode = AstFactory.compilationUnit();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(element, toNode.element);
   }
 
   void test_visitConditionalExpression() {
-    ConditionalExpression fromNode = ASTFactory.conditionalExpression(ASTFactory.identifier3("c"), ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    ConditionalExpression fromNode = AstFactory.conditionalExpression(AstFactory.identifier3("c"), AstFactory.identifier3("a"), AstFactory.identifier3("b"));
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    ConditionalExpression toNode = ASTFactory.conditionalExpression(ASTFactory.identifier3("c"), ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    ConditionalExpression toNode = AstFactory.conditionalExpression(AstFactory.identifier3("c"), AstFactory.identifier3("a"), AstFactory.identifier3("b"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
@@ -7685,53 +7729,53 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitConstructorDeclaration() {
     String className = "A";
     String constructorName = "c";
-    ConstructorDeclaration fromNode = ASTFactory.constructorDeclaration(ASTFactory.identifier3(className), constructorName, ASTFactory.formalParameterList([]), null);
+    ConstructorDeclaration fromNode = AstFactory.constructorDeclaration(AstFactory.identifier3(className), constructorName, AstFactory.formalParameterList([]), null);
     ConstructorElement element = ElementFactory.constructorElement2(ElementFactory.classElement2(className, []), constructorName, []);
     fromNode.element = element;
-    ConstructorDeclaration toNode = ASTFactory.constructorDeclaration(ASTFactory.identifier3(className), constructorName, ASTFactory.formalParameterList([]), null);
+    ConstructorDeclaration toNode = AstFactory.constructorDeclaration(AstFactory.identifier3(className), constructorName, AstFactory.formalParameterList([]), null);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(element, toNode.element);
   }
 
   void test_visitConstructorName() {
-    ConstructorName fromNode = ASTFactory.constructorName(ASTFactory.typeName4("A", []), "c");
+    ConstructorName fromNode = AstFactory.constructorName(AstFactory.typeName4("A", []), "c");
     ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("A", []), "c", []);
     fromNode.staticElement = staticElement;
-    ConstructorName toNode = ASTFactory.constructorName(ASTFactory.typeName4("A", []), "c");
+    ConstructorName toNode = AstFactory.constructorName(AstFactory.typeName4("A", []), "c");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(staticElement, toNode.staticElement);
   }
 
   void test_visitDoubleLiteral() {
-    DoubleLiteral fromNode = ASTFactory.doubleLiteral(1.0);
+    DoubleLiteral fromNode = AstFactory.doubleLiteral(1.0);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    DoubleLiteral toNode = ASTFactory.doubleLiteral(1.0);
+    DoubleLiteral toNode = AstFactory.doubleLiteral(1.0);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitExportDirective() {
-    ExportDirective fromNode = ASTFactory.exportDirective2("dart:uri", []);
+    ExportDirective fromNode = AstFactory.exportDirective2("dart:uri", []);
     ExportElement element = new ExportElementImpl();
     fromNode.element = element;
-    ExportDirective toNode = ASTFactory.exportDirective2("dart:uri", []);
+    ExportDirective toNode = AstFactory.exportDirective2("dart:uri", []);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(element, toNode.element);
   }
 
   void test_visitFunctionExpression() {
-    FunctionExpression fromNode = ASTFactory.functionExpression2(ASTFactory.formalParameterList([]), ASTFactory.emptyFunctionBody());
+    FunctionExpression fromNode = AstFactory.functionExpression2(AstFactory.formalParameterList([]), AstFactory.emptyFunctionBody());
     MethodElement element = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
     fromNode.element = element;
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    FunctionExpression toNode = ASTFactory.functionExpression2(ASTFactory.formalParameterList([]), ASTFactory.emptyFunctionBody());
+    FunctionExpression toNode = AstFactory.functionExpression2(AstFactory.formalParameterList([]), AstFactory.emptyFunctionBody());
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(element, toNode.element);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
@@ -7739,7 +7783,7 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitFunctionExpressionInvocation() {
-    FunctionExpressionInvocation fromNode = ASTFactory.functionExpressionInvocation(ASTFactory.identifier3("f"), []);
+    FunctionExpressionInvocation fromNode = AstFactory.functionExpressionInvocation(AstFactory.identifier3("f"), []);
     MethodElement propagatedElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
     fromNode.propagatedElement = propagatedElement;
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
@@ -7748,7 +7792,7 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticElement = staticElement;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    FunctionExpressionInvocation toNode = ASTFactory.functionExpressionInvocation(ASTFactory.identifier3("f"), []);
+    FunctionExpressionInvocation toNode = AstFactory.functionExpressionInvocation(AstFactory.identifier3("f"), []);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
@@ -7757,16 +7801,16 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitImportDirective() {
-    ImportDirective fromNode = ASTFactory.importDirective2("dart:uri", null, []);
+    ImportDirective fromNode = AstFactory.importDirective2("dart:uri", null, []);
     ImportElement element = new ImportElementImpl(0);
     fromNode.element = element;
-    ImportDirective toNode = ASTFactory.importDirective2("dart:uri", null, []);
+    ImportDirective toNode = AstFactory.importDirective2("dart:uri", null, []);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(element, toNode.element);
   }
 
   void test_visitIndexExpression() {
-    IndexExpression fromNode = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.integer(0));
+    IndexExpression fromNode = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.integer(0));
     MethodElement propagatedElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
     MethodElement staticElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
     AuxiliaryElements auxiliaryElements = new AuxiliaryElements(staticElement, propagatedElement);
@@ -7777,7 +7821,7 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticElement = staticElement;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    IndexExpression toNode = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.integer(0));
+    IndexExpression toNode = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.integer(0));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(auxiliaryElements, toNode.auxiliaryElements);
     JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
@@ -7787,14 +7831,14 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitInstanceCreationExpression() {
-    InstanceCreationExpression fromNode = ASTFactory.instanceCreationExpression2(Keyword.NEW, ASTFactory.typeName4("C", []), []);
+    InstanceCreationExpression fromNode = AstFactory.instanceCreationExpression2(Keyword.NEW, AstFactory.typeName4("C", []), []);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("C", []), null, []);
     fromNode.staticElement = staticElement;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    InstanceCreationExpression toNode = ASTFactory.instanceCreationExpression2(Keyword.NEW, ASTFactory.typeName4("C", []), []);
+    InstanceCreationExpression toNode = AstFactory.instanceCreationExpression2(Keyword.NEW, AstFactory.typeName4("C", []), []);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticElement, toNode.staticElement);
@@ -7802,134 +7846,134 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitIntegerLiteral() {
-    IntegerLiteral fromNode = ASTFactory.integer(2);
+    IntegerLiteral fromNode = AstFactory.integer(2);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    IntegerLiteral toNode = ASTFactory.integer(2);
+    IntegerLiteral toNode = AstFactory.integer(2);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitIsExpression() {
-    IsExpression fromNode = ASTFactory.isExpression(ASTFactory.identifier3("x"), false, ASTFactory.typeName4("A", []));
+    IsExpression fromNode = AstFactory.isExpression(AstFactory.identifier3("x"), false, AstFactory.typeName4("A", []));
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    IsExpression toNode = ASTFactory.isExpression(ASTFactory.identifier3("x"), false, ASTFactory.typeName4("A", []));
+    IsExpression toNode = AstFactory.isExpression(AstFactory.identifier3("x"), false, AstFactory.typeName4("A", []));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitLibraryIdentifier() {
-    LibraryIdentifier fromNode = ASTFactory.libraryIdentifier([ASTFactory.identifier3("lib")]);
+    LibraryIdentifier fromNode = AstFactory.libraryIdentifier([AstFactory.identifier3("lib")]);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    LibraryIdentifier toNode = ASTFactory.libraryIdentifier([ASTFactory.identifier3("lib")]);
+    LibraryIdentifier toNode = AstFactory.libraryIdentifier([AstFactory.identifier3("lib")]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitListLiteral() {
-    ListLiteral fromNode = ASTFactory.listLiteral([]);
+    ListLiteral fromNode = AstFactory.listLiteral([]);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    ListLiteral toNode = ASTFactory.listLiteral([]);
+    ListLiteral toNode = AstFactory.listLiteral([]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitMapLiteral() {
-    MapLiteral fromNode = ASTFactory.mapLiteral2([]);
+    MapLiteral fromNode = AstFactory.mapLiteral2([]);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    MapLiteral toNode = ASTFactory.mapLiteral2([]);
+    MapLiteral toNode = AstFactory.mapLiteral2([]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitMethodInvocation() {
-    MethodInvocation fromNode = ASTFactory.methodInvocation2("m", []);
+    MethodInvocation fromNode = AstFactory.methodInvocation2("m", []);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    MethodInvocation toNode = ASTFactory.methodInvocation2("m", []);
+    MethodInvocation toNode = AstFactory.methodInvocation2("m", []);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitNamedExpression() {
-    NamedExpression fromNode = ASTFactory.namedExpression2("n", ASTFactory.integer(0));
+    NamedExpression fromNode = AstFactory.namedExpression2("n", AstFactory.integer(0));
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    NamedExpression toNode = ASTFactory.namedExpression2("n", ASTFactory.integer(0));
+    NamedExpression toNode = AstFactory.namedExpression2("n", AstFactory.integer(0));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitNullLiteral() {
-    NullLiteral fromNode = ASTFactory.nullLiteral();
+    NullLiteral fromNode = AstFactory.nullLiteral();
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    NullLiteral toNode = ASTFactory.nullLiteral();
+    NullLiteral toNode = AstFactory.nullLiteral();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitParenthesizedExpression() {
-    ParenthesizedExpression fromNode = ASTFactory.parenthesizedExpression(ASTFactory.integer(0));
+    ParenthesizedExpression fromNode = AstFactory.parenthesizedExpression(AstFactory.integer(0));
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    ParenthesizedExpression toNode = ASTFactory.parenthesizedExpression(ASTFactory.integer(0));
+    ParenthesizedExpression toNode = AstFactory.parenthesizedExpression(AstFactory.integer(0));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitPartDirective() {
-    PartDirective fromNode = ASTFactory.partDirective2("part.dart");
-    LibraryElement element = new LibraryElementImpl(null, ASTFactory.libraryIdentifier2(["lib"]));
+    PartDirective fromNode = AstFactory.partDirective2("part.dart");
+    LibraryElement element = new LibraryElementImpl(null, AstFactory.libraryIdentifier2(["lib"]));
     fromNode.element = element;
-    PartDirective toNode = ASTFactory.partDirective2("part.dart");
+    PartDirective toNode = AstFactory.partDirective2("part.dart");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(element, toNode.element);
   }
 
   void test_visitPartOfDirective() {
-    PartOfDirective fromNode = ASTFactory.partOfDirective(ASTFactory.libraryIdentifier2(["lib"]));
-    LibraryElement element = new LibraryElementImpl(null, ASTFactory.libraryIdentifier2(["lib"]));
+    PartOfDirective fromNode = AstFactory.partOfDirective(AstFactory.libraryIdentifier2(["lib"]));
+    LibraryElement element = new LibraryElementImpl(null, AstFactory.libraryIdentifier2(["lib"]));
     fromNode.element = element;
-    PartOfDirective toNode = ASTFactory.partOfDirective(ASTFactory.libraryIdentifier2(["lib"]));
+    PartOfDirective toNode = AstFactory.partOfDirective(AstFactory.libraryIdentifier2(["lib"]));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(element, toNode.element);
   }
 
   void test_visitPostfixExpression() {
     String variableName = "x";
-    PostfixExpression fromNode = ASTFactory.postfixExpression(ASTFactory.identifier3(variableName), TokenType.PLUS_PLUS);
+    PostfixExpression fromNode = AstFactory.postfixExpression(AstFactory.identifier3(variableName), TokenType.PLUS_PLUS);
     MethodElement propagatedElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C", []).type, []);
     fromNode.propagatedElement = propagatedElement;
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
@@ -7938,7 +7982,7 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticElement = staticElement;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    PostfixExpression toNode = ASTFactory.postfixExpression(ASTFactory.identifier3(variableName), TokenType.PLUS_PLUS);
+    PostfixExpression toNode = AstFactory.postfixExpression(AstFactory.identifier3(variableName), TokenType.PLUS_PLUS);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
@@ -7947,19 +7991,19 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitPrefixedIdentifier() {
-    PrefixedIdentifier fromNode = ASTFactory.identifier5("p", "f");
+    PrefixedIdentifier fromNode = AstFactory.identifier5("p", "f");
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    PrefixedIdentifier toNode = ASTFactory.identifier5("p", "f");
+    PrefixedIdentifier toNode = AstFactory.identifier5("p", "f");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitPrefixExpression() {
-    PrefixExpression fromNode = ASTFactory.prefixExpression(TokenType.PLUS_PLUS, ASTFactory.identifier3("x"));
+    PrefixExpression fromNode = AstFactory.prefixExpression(TokenType.PLUS_PLUS, AstFactory.identifier3("x"));
     MethodElement propagatedElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C", []).type, []);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedElement = propagatedElement;
@@ -7968,7 +8012,7 @@ class ResolutionCopierTest extends EngineTestCase {
     MethodElement staticElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C", []).type, []);
     fromNode.staticElement = staticElement;
     fromNode.staticType = staticType;
-    PrefixExpression toNode = ASTFactory.prefixExpression(TokenType.PLUS_PLUS, ASTFactory.identifier3("x"));
+    PrefixExpression toNode = AstFactory.prefixExpression(TokenType.PLUS_PLUS, AstFactory.identifier3("x"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
@@ -7977,40 +8021,40 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitPropertyAccess() {
-    PropertyAccess fromNode = ASTFactory.propertyAccess2(ASTFactory.identifier3("x"), "y");
+    PropertyAccess fromNode = AstFactory.propertyAccess2(AstFactory.identifier3("x"), "y");
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    PropertyAccess toNode = ASTFactory.propertyAccess2(ASTFactory.identifier3("x"), "y");
+    PropertyAccess toNode = AstFactory.propertyAccess2(AstFactory.identifier3("x"), "y");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitRedirectingConstructorInvocation() {
-    RedirectingConstructorInvocation fromNode = ASTFactory.redirectingConstructorInvocation([]);
+    RedirectingConstructorInvocation fromNode = AstFactory.redirectingConstructorInvocation([]);
     ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("C", []), null, []);
     fromNode.staticElement = staticElement;
-    RedirectingConstructorInvocation toNode = ASTFactory.redirectingConstructorInvocation([]);
+    RedirectingConstructorInvocation toNode = AstFactory.redirectingConstructorInvocation([]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(staticElement, toNode.staticElement);
   }
 
   void test_visitRethrowExpression() {
-    RethrowExpression fromNode = ASTFactory.rethrowExpression();
+    RethrowExpression fromNode = AstFactory.rethrowExpression();
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    RethrowExpression toNode = ASTFactory.rethrowExpression();
+    RethrowExpression toNode = AstFactory.rethrowExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitSimpleIdentifier() {
-    SimpleIdentifier fromNode = ASTFactory.identifier3("x");
+    SimpleIdentifier fromNode = AstFactory.identifier3("x");
     MethodElement propagatedElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
     MethodElement staticElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
     AuxiliaryElements auxiliaryElements = new AuxiliaryElements(staticElement, propagatedElement);
@@ -8021,7 +8065,7 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticElement = staticElement;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    SimpleIdentifier toNode = ASTFactory.identifier3("x");
+    SimpleIdentifier toNode = AstFactory.identifier3("x");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(auxiliaryElements, toNode.auxiliaryElements);
     JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
@@ -8031,91 +8075,91 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitSimpleStringLiteral() {
-    SimpleStringLiteral fromNode = ASTFactory.string2("abc");
+    SimpleStringLiteral fromNode = AstFactory.string2("abc");
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    SimpleStringLiteral toNode = ASTFactory.string2("abc");
+    SimpleStringLiteral toNode = AstFactory.string2("abc");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitStringInterpolation() {
-    StringInterpolation fromNode = ASTFactory.string([ASTFactory.interpolationString("a", "'a'")]);
+    StringInterpolation fromNode = AstFactory.string([AstFactory.interpolationString("a", "'a'")]);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    StringInterpolation toNode = ASTFactory.string([ASTFactory.interpolationString("a", "'a'")]);
+    StringInterpolation toNode = AstFactory.string([AstFactory.interpolationString("a", "'a'")]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitSuperConstructorInvocation() {
-    SuperConstructorInvocation fromNode = ASTFactory.superConstructorInvocation([]);
+    SuperConstructorInvocation fromNode = AstFactory.superConstructorInvocation([]);
     ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("C", []), null, []);
     fromNode.staticElement = staticElement;
-    SuperConstructorInvocation toNode = ASTFactory.superConstructorInvocation([]);
+    SuperConstructorInvocation toNode = AstFactory.superConstructorInvocation([]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(staticElement, toNode.staticElement);
   }
 
   void test_visitSuperExpression() {
-    SuperExpression fromNode = ASTFactory.superExpression();
+    SuperExpression fromNode = AstFactory.superExpression();
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    SuperExpression toNode = ASTFactory.superExpression();
+    SuperExpression toNode = AstFactory.superExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitSymbolLiteral() {
-    SymbolLiteral fromNode = ASTFactory.symbolLiteral(["s"]);
+    SymbolLiteral fromNode = AstFactory.symbolLiteral(["s"]);
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    SymbolLiteral toNode = ASTFactory.symbolLiteral(["s"]);
+    SymbolLiteral toNode = AstFactory.symbolLiteral(["s"]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitThisExpression() {
-    ThisExpression fromNode = ASTFactory.thisExpression();
+    ThisExpression fromNode = AstFactory.thisExpression();
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    ThisExpression toNode = ASTFactory.thisExpression();
+    ThisExpression toNode = AstFactory.thisExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitThrowExpression() {
-    ThrowExpression fromNode = ASTFactory.throwExpression();
+    ThrowExpression fromNode = AstFactory.throwExpression();
     Type2 propagatedType = ElementFactory.classElement2("C", []).type;
     fromNode.propagatedType = propagatedType;
     Type2 staticType = ElementFactory.classElement2("C", []).type;
     fromNode.staticType = staticType;
-    ThrowExpression toNode = ASTFactory.throwExpression();
+    ThrowExpression toNode = AstFactory.throwExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
     JUnitTestCase.assertSame(staticType, toNode.staticType);
   }
 
   void test_visitTypeName() {
-    TypeName fromNode = ASTFactory.typeName4("C", []);
+    TypeName fromNode = AstFactory.typeName4("C", []);
     Type2 type = ElementFactory.classElement2("C", []).type;
     fromNode.type = type;
-    TypeName toNode = ASTFactory.typeName4("C", []);
+    TypeName toNode = AstFactory.typeName4("C", []);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     JUnitTestCase.assertSame(type, toNode.type);
   }
@@ -8321,7 +8365,7 @@ class RecoveryParserTest extends ParserTestCase {
 
   void test_additiveExpression_missing_LHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("+ y", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
     JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
   }
 
@@ -8329,21 +8373,21 @@ class RecoveryParserTest extends ParserTestCase {
     BinaryExpression expression = ParserTestCase.parseExpression("+", [
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
     JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
   void test_additiveExpression_missing_RHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("x +", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
   void test_additiveExpression_missing_RHS_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super +", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
@@ -8352,7 +8396,7 @@ class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_additiveExpression_precedence_multiplicative_right() {
@@ -8360,52 +8404,52 @@ class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
   }
 
   void test_additiveExpression_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super + +", [
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_assignmentExpression_missing_compound1() {
     AssignmentExpression expression = ParserTestCase.parseExpression("= y = 0", [ParserErrorCode.MISSING_IDENTIFIER]);
     Expression syntheticExpression = expression.leftHandSide;
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, syntheticExpression);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, syntheticExpression);
     JUnitTestCase.assertTrue(syntheticExpression.isSynthetic);
   }
 
   void test_assignmentExpression_missing_compound2() {
     AssignmentExpression expression = ParserTestCase.parseExpression("x = = 0", [ParserErrorCode.MISSING_IDENTIFIER]);
     Expression syntheticExpression = (expression.rightHandSide as AssignmentExpression).leftHandSide;
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, syntheticExpression);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, syntheticExpression);
     JUnitTestCase.assertTrue(syntheticExpression.isSynthetic);
   }
 
   void test_assignmentExpression_missing_compound3() {
     AssignmentExpression expression = ParserTestCase.parseExpression("x = y =", [ParserErrorCode.MISSING_IDENTIFIER]);
     Expression syntheticExpression = (expression.rightHandSide as AssignmentExpression).rightHandSide;
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, syntheticExpression);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, syntheticExpression);
     JUnitTestCase.assertTrue(syntheticExpression.isSynthetic);
   }
 
   void test_assignmentExpression_missing_LHS() {
     AssignmentExpression expression = ParserTestCase.parseExpression("= 0", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftHandSide);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftHandSide);
     JUnitTestCase.assertTrue(expression.leftHandSide.isSynthetic);
   }
 
   void test_assignmentExpression_missing_RHS() {
     AssignmentExpression expression = ParserTestCase.parseExpression("x =", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftHandSide);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftHandSide);
     JUnitTestCase.assertTrue(expression.rightHandSide.isSynthetic);
   }
 
   void test_bitwiseAndExpression_missing_LHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("& y", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
     JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
   }
 
@@ -8413,21 +8457,21 @@ class RecoveryParserTest extends ParserTestCase {
     BinaryExpression expression = ParserTestCase.parseExpression("&", [
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
     JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
   void test_bitwiseAndExpression_missing_RHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("x &", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
   void test_bitwiseAndExpression_missing_RHS_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super &", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
@@ -8436,7 +8480,7 @@ class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_bitwiseAndExpression_precedence_equality_right() {
@@ -8444,19 +8488,19 @@ class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
   }
 
   void test_bitwiseAndExpression_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super &  &", [
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_bitwiseOrExpression_missing_LHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("| y", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
     JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
   }
 
@@ -8464,21 +8508,21 @@ class RecoveryParserTest extends ParserTestCase {
     BinaryExpression expression = ParserTestCase.parseExpression("|", [
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
     JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
   void test_bitwiseOrExpression_missing_RHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("x |", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
   void test_bitwiseOrExpression_missing_RHS_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super |", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
@@ -8487,7 +8531,7 @@ class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_bitwiseOrExpression_precedence_xor_right() {
@@ -8495,19 +8539,19 @@ class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
   }
 
   void test_bitwiseOrExpression_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super |  |", [
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_bitwiseXorExpression_missing_LHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("^ y", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
     JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
   }
 
@@ -8515,21 +8559,21 @@ class RecoveryParserTest extends ParserTestCase {
     BinaryExpression expression = ParserTestCase.parseExpression("^", [
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
     JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
   void test_bitwiseXorExpression_missing_RHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("x ^", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
   void test_bitwiseXorExpression_missing_RHS_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super ^", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
@@ -8538,7 +8582,7 @@ class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_bitwiseXorExpression_precedence_and_right() {
@@ -8546,14 +8590,14 @@ class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
   }
 
   void test_bitwiseXorExpression_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super ^  ^", [
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_classTypeAlias_withBody() {
@@ -8561,20 +8605,20 @@ class RecoveryParserTest extends ParserTestCase {
   }
 
   void test_conditionalExpression_missingElse() {
-    ConditionalExpression expression = ParserTestCase.parse5("parseConditionalExpression", "x ? y :", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.elseExpression);
+    ConditionalExpression expression = ParserTestCase.parse4("parseConditionalExpression", "x ? y :", [ParserErrorCode.MISSING_IDENTIFIER]);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.elseExpression);
     JUnitTestCase.assertTrue(expression.elseExpression.isSynthetic);
   }
 
   void test_conditionalExpression_missingThen() {
-    ConditionalExpression expression = ParserTestCase.parse5("parseConditionalExpression", "x ? : z", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.thenExpression);
+    ConditionalExpression expression = ParserTestCase.parse4("parseConditionalExpression", "x ? : z", [ParserErrorCode.MISSING_IDENTIFIER]);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.thenExpression);
     JUnitTestCase.assertTrue(expression.thenExpression.isSynthetic);
   }
 
   void test_equalityExpression_missing_LHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("== y", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
     JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
   }
 
@@ -8582,21 +8626,21 @@ class RecoveryParserTest extends ParserTestCase {
     BinaryExpression expression = ParserTestCase.parseExpression("==", [
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
     JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
   void test_equalityExpression_missing_RHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("x ==", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
   void test_equalityExpression_missing_RHS_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super ==", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
@@ -8605,7 +8649,7 @@ class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.EXPECTED_TYPE_NAME,
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(IsExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is IsExpression, IsExpression, expression.leftOperand);
   }
 
   void test_equalityExpression_precedence_relational_right() {
@@ -8613,7 +8657,7 @@ class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.EXPECTED_TYPE_NAME,
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(IsExpression, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is IsExpression, IsExpression, expression.rightOperand);
   }
 
   void test_equalityExpression_super() {
@@ -8621,30 +8665,30 @@ class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_expressionList_multiple_end() {
-    List<Expression> result = ParserTestCase.parse5("parseExpressionList", ", 2, 3, 4", [ParserErrorCode.MISSING_IDENTIFIER]);
+    List<Expression> result = ParserTestCase.parse4("parseExpressionList", ", 2, 3, 4", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertSize(4, result);
     Expression syntheticExpression = result[0];
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, syntheticExpression);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, syntheticExpression);
     JUnitTestCase.assertTrue(syntheticExpression.isSynthetic);
   }
 
   void test_expressionList_multiple_middle() {
-    List<Expression> result = ParserTestCase.parse5("parseExpressionList", "1, 2, , 4", [ParserErrorCode.MISSING_IDENTIFIER]);
+    List<Expression> result = ParserTestCase.parse4("parseExpressionList", "1, 2, , 4", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertSize(4, result);
     Expression syntheticExpression = result[2];
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, syntheticExpression);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, syntheticExpression);
     JUnitTestCase.assertTrue(syntheticExpression.isSynthetic);
   }
 
   void test_expressionList_multiple_start() {
-    List<Expression> result = ParserTestCase.parse5("parseExpressionList", "1, 2, 3,", [ParserErrorCode.MISSING_IDENTIFIER]);
+    List<Expression> result = ParserTestCase.parse4("parseExpressionList", "1, 2, 3,", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertSize(4, result);
     Expression syntheticExpression = result[3];
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, syntheticExpression);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, syntheticExpression);
     JUnitTestCase.assertTrue(syntheticExpression.isSynthetic);
   }
 
@@ -8653,7 +8697,7 @@ class RecoveryParserTest extends ParserTestCase {
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     EngineTestCase.assertSize(1, declarations);
     CompilationUnitMember member = declarations[0];
-    EngineTestCase.assertInstanceOf(TopLevelVariableDeclaration, member);
+    EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableDeclaration, TopLevelVariableDeclaration, member);
     NodeList<VariableDeclaration> variables = (member as TopLevelVariableDeclaration).variables.variables;
     EngineTestCase.assertSize(1, variables);
     SimpleIdentifier name = variables[0].name;
@@ -8676,12 +8720,12 @@ class RecoveryParserTest extends ParserTestCase {
     TypeName type = expression.type;
     JUnitTestCase.assertNotNull(type);
     JUnitTestCase.assertTrue(type.name.isSynthetic);
-    EngineTestCase.assertInstanceOf(EmptyStatement, ifStatement.thenStatement);
+    EngineTestCase.assertInstanceOf((obj) => obj is EmptyStatement, EmptyStatement, ifStatement.thenStatement);
   }
 
   void test_logicalAndExpression_missing_LHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("&& y", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
     JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
   }
 
@@ -8689,15 +8733,15 @@ class RecoveryParserTest extends ParserTestCase {
     BinaryExpression expression = ParserTestCase.parseExpression("&&", [
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
     JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
   void test_logicalAndExpression_missing_RHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("x &&", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
@@ -8706,7 +8750,7 @@ class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_logicalAndExpression_precedence_bitwiseOr_right() {
@@ -8714,12 +8758,12 @@ class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
   }
 
   void test_logicalOrExpression_missing_LHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("|| y", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
     JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
   }
 
@@ -8727,15 +8771,15 @@ class RecoveryParserTest extends ParserTestCase {
     BinaryExpression expression = ParserTestCase.parseExpression("||", [
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
     JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
   void test_logicalOrExpression_missing_RHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("x ||", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
@@ -8744,7 +8788,7 @@ class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_logicalOrExpression_precedence_logicalAnd_right() {
@@ -8752,12 +8796,20 @@ class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
+  }
+
+  void test_missingIdentifier_afterAnnotation() {
+    MethodDeclaration method = ParserTestCase.parse3("parseClassMember", <Object> ["C"], "@override }", [ParserErrorCode.EXPECTED_CLASS_MEMBER]);
+    JUnitTestCase.assertNull(method.documentationComment);
+    NodeList<Annotation> metadata = method.metadata;
+    EngineTestCase.assertSize(1, metadata);
+    JUnitTestCase.assertEquals("override", metadata[0].name.name);
   }
 
   void test_multiplicativeExpression_missing_LHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("* y", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
     JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
   }
 
@@ -8765,32 +8817,32 @@ class RecoveryParserTest extends ParserTestCase {
     BinaryExpression expression = ParserTestCase.parseExpression("*", [
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
     JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
   void test_multiplicativeExpression_missing_RHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("x *", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
   void test_multiplicativeExpression_missing_RHS_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super *", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
   void test_multiplicativeExpression_precedence_unary_left() {
     BinaryExpression expression = ParserTestCase.parseExpression("-x *", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(PrefixExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is PrefixExpression, PrefixExpression, expression.leftOperand);
   }
 
   void test_multiplicativeExpression_precedence_unary_right() {
     BinaryExpression expression = ParserTestCase.parseExpression("* -y", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(PrefixExpression, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is PrefixExpression, PrefixExpression, expression.rightOperand);
   }
 
   void test_multiplicativeExpression_super() {
@@ -8798,19 +8850,19 @@ class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_prefixExpression_missing_operand_minus() {
     PrefixExpression expression = ParserTestCase.parseExpression("-", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.operand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.operand);
     JUnitTestCase.assertTrue(expression.operand.isSynthetic);
     JUnitTestCase.assertEquals(TokenType.MINUS, expression.operator.type);
   }
 
   void test_relationalExpression_missing_LHS() {
     IsExpression expression = ParserTestCase.parseExpression("is y", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.expression);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.expression);
     JUnitTestCase.assertTrue(expression.expression.isSynthetic);
   }
 
@@ -8818,15 +8870,15 @@ class RecoveryParserTest extends ParserTestCase {
     IsExpression expression = ParserTestCase.parseExpression("is", [
         ParserErrorCode.EXPECTED_TYPE_NAME,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.expression);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.expression);
     JUnitTestCase.assertTrue(expression.expression.isSynthetic);
-    EngineTestCase.assertInstanceOf(TypeName, expression.type);
+    EngineTestCase.assertInstanceOf((obj) => obj is TypeName, TypeName, expression.type);
     JUnitTestCase.assertTrue(expression.type.isSynthetic);
   }
 
   void test_relationalExpression_missing_RHS() {
     IsExpression expression = ParserTestCase.parseExpression("x is", [ParserErrorCode.EXPECTED_TYPE_NAME]);
-    EngineTestCase.assertInstanceOf(TypeName, expression.type);
+    EngineTestCase.assertInstanceOf((obj) => obj is TypeName, TypeName, expression.type);
     JUnitTestCase.assertTrue(expression.type.isSynthetic);
   }
 
@@ -8835,12 +8887,12 @@ class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.EXPECTED_TYPE_NAME,
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.expression);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.expression);
   }
 
   void test_shiftExpression_missing_LHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("<< y", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
     JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
   }
 
@@ -8848,21 +8900,21 @@ class RecoveryParserTest extends ParserTestCase {
     BinaryExpression expression = ParserTestCase.parseExpression("<<", [
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
     JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
   void test_shiftExpression_missing_RHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("x <<", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
   void test_shiftExpression_missing_RHS_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super <<", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
 
@@ -8871,7 +8923,7 @@ class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_shiftExpression_precedence_unary_right() {
@@ -8879,14 +8931,14 @@ class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.rightOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
   }
 
   void test_shiftExpression_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super << <<", [
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_typedef_eof() {
@@ -8896,7 +8948,7 @@ class RecoveryParserTest extends ParserTestCase {
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     EngineTestCase.assertSize(1, declarations);
     CompilationUnitMember member = declarations[0];
-    EngineTestCase.assertInstanceOf(FunctionTypeAlias, member);
+    EngineTestCase.assertInstanceOf((obj) => obj is FunctionTypeAlias, FunctionTypeAlias, member);
   }
 
   static dartSuite() {
@@ -9133,6 +9185,10 @@ class RecoveryParserTest extends ParserTestCase {
         final __test = new RecoveryParserTest();
         runJUnitTest(__test, __test.test_logicalOrExpression_precedence_logicalAnd_right);
       });
+      _ut.test('test_missingIdentifier_afterAnnotation', () {
+        final __test = new RecoveryParserTest();
+        runJUnitTest(__test, __test.test_missingIdentifier_afterAnnotation);
+      });
       _ut.test('test_multiplicativeExpression_missing_LHS', () {
         final __test = new RecoveryParserTest();
         runJUnitTest(__test, __test.test_multiplicativeExpression_missing_LHS);
@@ -9282,6 +9338,12 @@ class IncrementalParserTest extends EngineTestCase {
     // "class A {}"
     // "class A {} class B {}"
     assertParse("class A {}", "", " class B {}", "");
+  }
+
+  void test_insert_insideClassBody() {
+    // "class C {C(); }"
+    // "class C { C(); }"
+    assertParse("class C {", "", " ", "C(); }");
   }
 
   void test_insert_insideIdentifier() {
@@ -9461,7 +9523,7 @@ class IncrementalParserTest extends EngineTestCase {
     // Validate that the results of the incremental parse are the same as the full parse of the
     // modified source.
     //
-    JUnitTestCase.assertTrue(ASTComparator.equals4(modifiedUnit, incrementalUnit));
+    JUnitTestCase.assertTrue(AstComparator.equals4(modifiedUnit, incrementalUnit));
   }
 
   static dartSuite() {
@@ -9509,6 +9571,10 @@ class IncrementalParserTest extends EngineTestCase {
       _ut.test('test_insert_end', () {
         final __test = new IncrementalParserTest();
         runJUnitTest(__test, __test.test_insert_end);
+      });
+      _ut.test('test_insert_insideClassBody', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_insideClassBody);
       });
       _ut.test('test_insert_insideIdentifier', () {
         final __test = new IncrementalParserTest();
@@ -9608,7 +9674,7 @@ class ErrorParserTest extends ParserTestCase {
     // literal in this case, but isSynthetic() isn't overridden for ListLiteral. The problem is that
     // the synthetic list literals that are being created are not always zero length (because they
     // could have type parameters), which violates the contract of isSynthetic().
-    TypedLiteral literal = ParserTestCase.parse4("parseListOrMapLiteral", <Object> [null], "1", [ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL]);
+    TypedLiteral literal = ParserTestCase.parse3("parseListOrMapLiteral", <Object> [null], "1", [ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL]);
     JUnitTestCase.assertTrue(literal.isSynthetic);
   }
 
@@ -9620,26 +9686,26 @@ class ErrorParserTest extends ParserTestCase {
 
   void fail_invalidCommentReference__new_nonIdentifier() {
     // This test fails because the method parseCommentReference returns null.
-    ParserTestCase.parse4("parseCommentReference", <Object> ["new 42", 0], "", [ParserErrorCode.INVALID_COMMENT_REFERENCE]);
+    ParserTestCase.parse3("parseCommentReference", <Object> ["new 42", 0], "", [ParserErrorCode.INVALID_COMMENT_REFERENCE]);
   }
 
   void fail_invalidCommentReference__new_tooMuch() {
-    ParserTestCase.parse4("parseCommentReference", <Object> ["new a.b.c.d", 0], "", [ParserErrorCode.INVALID_COMMENT_REFERENCE]);
+    ParserTestCase.parse3("parseCommentReference", <Object> ["new a.b.c.d", 0], "", [ParserErrorCode.INVALID_COMMENT_REFERENCE]);
   }
 
   void fail_invalidCommentReference__nonNew_nonIdentifier() {
     // This test fails because the method parseCommentReference returns null.
-    ParserTestCase.parse4("parseCommentReference", <Object> ["42", 0], "", [ParserErrorCode.INVALID_COMMENT_REFERENCE]);
+    ParserTestCase.parse3("parseCommentReference", <Object> ["42", 0], "", [ParserErrorCode.INVALID_COMMENT_REFERENCE]);
   }
 
   void fail_invalidCommentReference__nonNew_tooMuch() {
-    ParserTestCase.parse4("parseCommentReference", <Object> ["a.b.c.d", 0], "", [ParserErrorCode.INVALID_COMMENT_REFERENCE]);
+    ParserTestCase.parse3("parseCommentReference", <Object> ["a.b.c.d", 0], "", [ParserErrorCode.INVALID_COMMENT_REFERENCE]);
   }
 
   void fail_missingClosingParenthesis() {
     // It is possible that it is not possible to generate this error (that it's being reported in
     // code that cannot actually be reached), but that hasn't been proven yet.
-    ParserTestCase.parse5("parseFormalParameterList", "(int a, int b ;", [ParserErrorCode.MISSING_CLOSING_PARENTHESIS]);
+    ParserTestCase.parse4("parseFormalParameterList", "(int a, int b ;", [ParserErrorCode.MISSING_CLOSING_PARENTHESIS]);
   }
 
   void fail_missingFunctionParameters_local_nonVoid_block() {
@@ -9655,8 +9721,8 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void fail_namedFunctionExpression() {
-    Expression expression = ParserTestCase.parse5("parsePrimaryExpression", "f() {}", [ParserErrorCode.NAMED_FUNCTION_EXPRESSION]);
-    EngineTestCase.assertInstanceOf(FunctionExpression, expression);
+    Expression expression = ParserTestCase.parse4("parsePrimaryExpression", "f() {}", [ParserErrorCode.NAMED_FUNCTION_EXPRESSION]);
+    EngineTestCase.assertInstanceOf((obj) => obj is FunctionExpression, FunctionExpression, expression);
   }
 
   void fail_unexpectedToken_invalidPostfixExpression() {
@@ -9673,27 +9739,27 @@ class ErrorParserTest extends ParserTestCase {
   void fail_varAndType_parameter() {
     // This is currently reporting EXPECTED_TOKEN for a missing semicolon, but this would be a
     // better error message.
-    ParserTestCase.parse5("parseFormalParameterList", "(var int x)", [ParserErrorCode.VAR_AND_TYPE]);
+    ParserTestCase.parse4("parseFormalParameterList", "(var int x)", [ParserErrorCode.VAR_AND_TYPE]);
   }
 
   void test_abstractClassMember_constructor() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "abstract C.c();", [ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "abstract C.c();", [ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
   }
 
   void test_abstractClassMember_field() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "abstract C f;", [ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "abstract C f;", [ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
   }
 
   void test_abstractClassMember_getter() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "abstract get m;", [ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "abstract get m;", [ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
   }
 
   void test_abstractClassMember_method() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "abstract m();", [ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "abstract m();", [ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
   }
 
   void test_abstractClassMember_setter() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "abstract set m(v);", [ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "abstract set m(v);", [ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
   }
 
   void test_abstractTopLevelFunction_function() {
@@ -9717,39 +9783,39 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_assertDoesNotTakeAssignment() {
-    ParserTestCase.parse5("parseAssertStatement", "assert(b = true);", [ParserErrorCode.ASSERT_DOES_NOT_TAKE_ASSIGNMENT]);
+    ParserTestCase.parse4("parseAssertStatement", "assert(b = true);", [ParserErrorCode.ASSERT_DOES_NOT_TAKE_ASSIGNMENT]);
   }
 
   void test_assertDoesNotTakeCascades() {
-    ParserTestCase.parse5("parseAssertStatement", "assert(new A()..m());", [ParserErrorCode.ASSERT_DOES_NOT_TAKE_CASCADE]);
+    ParserTestCase.parse4("parseAssertStatement", "assert(new A()..m());", [ParserErrorCode.ASSERT_DOES_NOT_TAKE_CASCADE]);
   }
 
   void test_assertDoesNotTakeRethrow() {
-    ParserTestCase.parse5("parseAssertStatement", "assert(rethrow);", [ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW]);
+    ParserTestCase.parse4("parseAssertStatement", "assert(rethrow);", [ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW]);
   }
 
   void test_assertDoesNotTakeThrow() {
-    ParserTestCase.parse5("parseAssertStatement", "assert(throw x);", [ParserErrorCode.ASSERT_DOES_NOT_TAKE_THROW]);
+    ParserTestCase.parse4("parseAssertStatement", "assert(throw x);", [ParserErrorCode.ASSERT_DOES_NOT_TAKE_THROW]);
   }
 
   void test_breakOutsideOfLoop_breakInDoStatement() {
-    ParserTestCase.parse5("parseDoStatement", "do {break;} while (x);", []);
+    ParserTestCase.parse4("parseDoStatement", "do {break;} while (x);", []);
   }
 
   void test_breakOutsideOfLoop_breakInForStatement() {
-    ParserTestCase.parse5("parseForStatement", "for (; x;) {break;}", []);
+    ParserTestCase.parse4("parseForStatement", "for (; x;) {break;}", []);
   }
 
   void test_breakOutsideOfLoop_breakInIfStatement() {
-    ParserTestCase.parse5("parseIfStatement", "if (x) {break;}", [ParserErrorCode.BREAK_OUTSIDE_OF_LOOP]);
+    ParserTestCase.parse4("parseIfStatement", "if (x) {break;}", [ParserErrorCode.BREAK_OUTSIDE_OF_LOOP]);
   }
 
   void test_breakOutsideOfLoop_breakInSwitchStatement() {
-    ParserTestCase.parse5("parseSwitchStatement", "switch (x) {case 1: break;}", []);
+    ParserTestCase.parse4("parseSwitchStatement", "switch (x) {case 1: break;}", []);
   }
 
   void test_breakOutsideOfLoop_breakInWhileStatement() {
-    ParserTestCase.parse5("parseWhileStatement", "while (x) {break;}", []);
+    ParserTestCase.parse4("parseWhileStatement", "while (x) {break;}", []);
   }
 
   void test_breakOutsideOfLoop_functionExpression_inALoop() {
@@ -9761,11 +9827,11 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_constAndFinal() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "const final int x;", [ParserErrorCode.CONST_AND_FINAL]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "const final int x;", [ParserErrorCode.CONST_AND_FINAL]);
   }
 
   void test_constAndVar() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "const var x;", [ParserErrorCode.CONST_AND_VAR]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "const var x;", [ParserErrorCode.CONST_AND_VAR]);
   }
 
   void test_constClass() {
@@ -9773,23 +9839,23 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_constConstructorWithBody() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "const C() {}", [ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "const C() {}", [ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY]);
   }
 
   void test_constFactory() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "const factory C() {}", [ParserErrorCode.CONST_FACTORY]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "const factory C() {}", [ParserErrorCode.CONST_FACTORY]);
   }
 
   void test_constMethod() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "const int m() {}", [ParserErrorCode.CONST_METHOD]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "const int m() {}", [ParserErrorCode.CONST_METHOD]);
   }
 
   void test_constructorWithReturnType() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "C C() {}", [ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "C C() {}", [ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE]);
   }
 
   void test_constructorWithReturnType_var() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "var C() {}", [ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "var C() {}", [ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE]);
   }
 
   void test_constTypedef() {
@@ -9797,23 +9863,23 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_continueOutsideOfLoop_continueInDoStatement() {
-    ParserTestCase.parse5("parseDoStatement", "do {continue;} while (x);", []);
+    ParserTestCase.parse4("parseDoStatement", "do {continue;} while (x);", []);
   }
 
   void test_continueOutsideOfLoop_continueInForStatement() {
-    ParserTestCase.parse5("parseForStatement", "for (; x;) {continue;}", []);
+    ParserTestCase.parse4("parseForStatement", "for (; x;) {continue;}", []);
   }
 
   void test_continueOutsideOfLoop_continueInIfStatement() {
-    ParserTestCase.parse5("parseIfStatement", "if (x) {continue;}", [ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP]);
+    ParserTestCase.parse4("parseIfStatement", "if (x) {continue;}", [ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP]);
   }
 
   void test_continueOutsideOfLoop_continueInSwitchStatement() {
-    ParserTestCase.parse5("parseSwitchStatement", "switch (x) {case 1: continue a;}", []);
+    ParserTestCase.parse4("parseSwitchStatement", "switch (x) {case 1: continue a;}", []);
   }
 
   void test_continueOutsideOfLoop_continueInWhileStatement() {
-    ParserTestCase.parse5("parseWhileStatement", "while (x) {continue;}", []);
+    ParserTestCase.parse4("parseWhileStatement", "while (x) {continue;}", []);
   }
 
   void test_continueOutsideOfLoop_functionExpression_inALoop() {
@@ -9825,15 +9891,15 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_continueWithoutLabelInCase_error() {
-    ParserTestCase.parse5("parseSwitchStatement", "switch (x) {case 1: continue;}", [ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE]);
+    ParserTestCase.parse4("parseSwitchStatement", "switch (x) {case 1: continue;}", [ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE]);
   }
 
   void test_continueWithoutLabelInCase_noError() {
-    ParserTestCase.parse5("parseSwitchStatement", "switch (x) {case 1: continue a;}", []);
+    ParserTestCase.parse4("parseSwitchStatement", "switch (x) {case 1: continue a;}", []);
   }
 
   void test_continueWithoutLabelInCase_noError_switchInLoop() {
-    ParserTestCase.parse5("parseWhileStatement", "while (a) { switch (b) {default: continue;}}", []);
+    ParserTestCase.parse4("parseWhileStatement", "while (a) { switch (b) {default: continue;}}", []);
   }
 
   void test_deprecatedClassTypeAlias() {
@@ -9855,31 +9921,31 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_duplicatedModifier_const() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "const const m;", [ParserErrorCode.DUPLICATED_MODIFIER]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "const const m;", [ParserErrorCode.DUPLICATED_MODIFIER]);
   }
 
   void test_duplicatedModifier_external() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "external external f();", [ParserErrorCode.DUPLICATED_MODIFIER]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "external external f();", [ParserErrorCode.DUPLICATED_MODIFIER]);
   }
 
   void test_duplicatedModifier_factory() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "factory factory C() {}", [ParserErrorCode.DUPLICATED_MODIFIER]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "factory factory C() {}", [ParserErrorCode.DUPLICATED_MODIFIER]);
   }
 
   void test_duplicatedModifier_final() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "final final m;", [ParserErrorCode.DUPLICATED_MODIFIER]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "final final m;", [ParserErrorCode.DUPLICATED_MODIFIER]);
   }
 
   void test_duplicatedModifier_static() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "static static var m;", [ParserErrorCode.DUPLICATED_MODIFIER]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "static static var m;", [ParserErrorCode.DUPLICATED_MODIFIER]);
   }
 
   void test_duplicatedModifier_var() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "var var m;", [ParserErrorCode.DUPLICATED_MODIFIER]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "var var m;", [ParserErrorCode.DUPLICATED_MODIFIER]);
   }
 
   void test_duplicateLabelInSwitchStatement() {
-    ParserTestCase.parse5("parseSwitchStatement", "switch (e) {l1: case 0: break; l1: case 1: break;}", [ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT]);
+    ParserTestCase.parse4("parseSwitchStatement", "switch (e) {l1: case 0: break; l1: case 1: break;}", [ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT]);
   }
 
   void test_equalityCannotBeEqualityOperand_eq_eq() {
@@ -9895,44 +9961,44 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_expectedCaseOrDefault() {
-    ParserTestCase.parse5("parseSwitchStatement", "switch (e) {break;}", [ParserErrorCode.EXPECTED_CASE_OR_DEFAULT]);
+    ParserTestCase.parse4("parseSwitchStatement", "switch (e) {break;}", [ParserErrorCode.EXPECTED_CASE_OR_DEFAULT]);
   }
 
   void test_expectedClassMember_inClass_afterType() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "heart 2 heart", [ParserErrorCode.EXPECTED_CLASS_MEMBER]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "heart 2 heart", [ParserErrorCode.EXPECTED_CLASS_MEMBER]);
   }
 
   void test_expectedClassMember_inClass_beforeType() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "4 score", [ParserErrorCode.EXPECTED_CLASS_MEMBER]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "4 score", [ParserErrorCode.EXPECTED_CLASS_MEMBER]);
   }
 
   void test_expectedExecutable_inClass_afterVoid() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "void 2 void", [ParserErrorCode.EXPECTED_EXECUTABLE]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "void 2 void", [ParserErrorCode.EXPECTED_EXECUTABLE]);
   }
 
   void test_expectedExecutable_topLevel_afterType() {
-    ParserTestCase.parse4("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "heart 2 heart", [ParserErrorCode.EXPECTED_EXECUTABLE]);
+    ParserTestCase.parse3("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "heart 2 heart", [ParserErrorCode.EXPECTED_EXECUTABLE]);
   }
 
   void test_expectedExecutable_topLevel_afterVoid() {
-    ParserTestCase.parse4("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "void 2 void", [ParserErrorCode.EXPECTED_EXECUTABLE]);
+    ParserTestCase.parse3("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "void 2 void", [ParserErrorCode.EXPECTED_EXECUTABLE]);
   }
 
   void test_expectedExecutable_topLevel_beforeType() {
-    ParserTestCase.parse4("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "4 score", [ParserErrorCode.EXPECTED_EXECUTABLE]);
+    ParserTestCase.parse3("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "4 score", [ParserErrorCode.EXPECTED_EXECUTABLE]);
   }
 
   void test_expectedInterpolationIdentifier() {
-    ParserTestCase.parse5("parseStringLiteral", "'\$x\$'", [ParserErrorCode.MISSING_IDENTIFIER]);
+    ParserTestCase.parse4("parseStringLiteral", "'\$x\$'", [ParserErrorCode.MISSING_IDENTIFIER]);
   }
 
   void test_expectedStringLiteral() {
-    StringLiteral expression = ParserTestCase.parse5("parseStringLiteral", "1", [ParserErrorCode.EXPECTED_STRING_LITERAL]);
+    StringLiteral expression = ParserTestCase.parse4("parseStringLiteral", "1", [ParserErrorCode.EXPECTED_STRING_LITERAL]);
     JUnitTestCase.assertTrue(expression.isSynthetic);
   }
 
   void test_expectedToken_commaMissingInArgumentList() {
-    ParserTestCase.parse5("parseArgumentList", "(x, y z)", [ParserErrorCode.EXPECTED_TOKEN]);
+    ParserTestCase.parse4("parseArgumentList", "(x, y z)", [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_expectedToken_parseStatement_afterVoid() {
@@ -9943,11 +10009,27 @@ class ErrorParserTest extends ParserTestCase {
 
   void test_expectedToken_semicolonAfterClass() {
     Token token = TokenFactory.token(Keyword.CLASS);
-    ParserTestCase.parse4("parseClassTypeAlias", <Object> [emptyCommentAndMetadata(), null, token], "A = B", [ParserErrorCode.EXPECTED_TOKEN]);
+    ParserTestCase.parse3("parseClassTypeAlias", <Object> [emptyCommentAndMetadata(), null, token], "A = B", [ParserErrorCode.EXPECTED_TOKEN]);
+  }
+
+  void test_expectedToken_semicolonMissingAfterExport() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit("export '' class A {}", [ParserErrorCode.EXPECTED_TOKEN]);
+    ExportDirective directive = unit.directives[0] as ExportDirective;
+    Token semicolon = directive.semicolon;
+    JUnitTestCase.assertNotNull(semicolon);
+    JUnitTestCase.assertTrue(semicolon.isSynthetic);
   }
 
   void test_expectedToken_semicolonMissingAfterExpression() {
     ParserTestCase.parseStatement("x", [ParserErrorCode.EXPECTED_TOKEN]);
+  }
+
+  void test_expectedToken_semicolonMissingAfterImport() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit("import '' class A {}", [ParserErrorCode.EXPECTED_TOKEN]);
+    ImportDirective directive = unit.directives[0] as ImportDirective;
+    Token semicolon = directive.semicolon;
+    JUnitTestCase.assertNotNull(semicolon);
+    JUnitTestCase.assertTrue(semicolon.isSynthetic);
   }
 
   void test_expectedToken_whileMissingInDoStatement() {
@@ -9963,15 +10045,15 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_externalAfterConst() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "const external C();", [ParserErrorCode.EXTERNAL_AFTER_CONST]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "const external C();", [ParserErrorCode.EXTERNAL_AFTER_CONST]);
   }
 
   void test_externalAfterFactory() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "factory external C();", [ParserErrorCode.EXTERNAL_AFTER_FACTORY]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "factory external C();", [ParserErrorCode.EXTERNAL_AFTER_FACTORY]);
   }
 
   void test_externalAfterStatic() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "static external int m();", [ParserErrorCode.EXTERNAL_AFTER_STATIC]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "static external int m();", [ParserErrorCode.EXTERNAL_AFTER_STATIC]);
   }
 
   void test_externalClass() {
@@ -9979,47 +10061,47 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_externalConstructorWithBody_factory() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "external factory C() {}", [ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "external factory C() {}", [ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY]);
   }
 
   void test_externalConstructorWithBody_named() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "external C.c() {}", [ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "external C.c() {}", [ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY]);
   }
 
   void test_externalField_const() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "external const A f;", [ParserErrorCode.EXTERNAL_FIELD]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "external const A f;", [ParserErrorCode.EXTERNAL_FIELD]);
   }
 
   void test_externalField_final() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "external final A f;", [ParserErrorCode.EXTERNAL_FIELD]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "external final A f;", [ParserErrorCode.EXTERNAL_FIELD]);
   }
 
   void test_externalField_static() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "external static A f;", [ParserErrorCode.EXTERNAL_FIELD]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "external static A f;", [ParserErrorCode.EXTERNAL_FIELD]);
   }
 
   void test_externalField_typed() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "external A f;", [ParserErrorCode.EXTERNAL_FIELD]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "external A f;", [ParserErrorCode.EXTERNAL_FIELD]);
   }
 
   void test_externalField_untyped() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "external var f;", [ParserErrorCode.EXTERNAL_FIELD]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "external var f;", [ParserErrorCode.EXTERNAL_FIELD]);
   }
 
   void test_externalGetterWithBody() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "external int get x {}", [ParserErrorCode.EXTERNAL_GETTER_WITH_BODY]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "external int get x {}", [ParserErrorCode.EXTERNAL_GETTER_WITH_BODY]);
   }
 
   void test_externalMethodWithBody() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "external m() {}", [ParserErrorCode.EXTERNAL_METHOD_WITH_BODY]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "external m() {}", [ParserErrorCode.EXTERNAL_METHOD_WITH_BODY]);
   }
 
   void test_externalOperatorWithBody() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "external operator +(int value) {}", [ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "external operator +(int value) {}", [ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY]);
   }
 
   void test_externalSetterWithBody() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "external set x(int value) {}", [ParserErrorCode.EXTERNAL_SETTER_WITH_BODY]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "external set x(int value) {}", [ParserErrorCode.EXTERNAL_SETTER_WITH_BODY]);
   }
 
   void test_externalTypedef() {
@@ -10035,15 +10117,15 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_factoryWithoutBody() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "factory C();", [ParserErrorCode.FACTORY_WITHOUT_BODY]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "factory C();", [ParserErrorCode.FACTORY_WITHOUT_BODY]);
   }
 
   void test_fieldInitializerOutsideConstructor() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "void m(this.x);", [ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "void m(this.x);", [ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR]);
   }
 
   void test_finalAndVar() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "final var x;", [ParserErrorCode.FINAL_AND_VAR]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "final var x;", [ParserErrorCode.FINAL_AND_VAR]);
   }
 
   void test_finalClass() {
@@ -10051,11 +10133,11 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_finalConstructor() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "final C() {}", [ParserErrorCode.FINAL_CONSTRUCTOR]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "final C() {}", [ParserErrorCode.FINAL_CONSTRUCTOR]);
   }
 
   void test_finalMethod() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "final int m() {}", [ParserErrorCode.FINAL_METHOD]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "final int m() {}", [ParserErrorCode.FINAL_METHOD]);
   }
 
   void test_finalTypedef() {
@@ -10083,7 +10165,23 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_getterWithParameters() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "int get x() {}", [ParserErrorCode.GETTER_WITH_PARAMETERS]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "int get x() {}", [ParserErrorCode.GETTER_WITH_PARAMETERS]);
+  }
+
+  void test_illegalAssignmentToNonAssignable_postfix_minusMinus_literal() {
+    ParserTestCase.parseExpression("0--", [ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE]);
+  }
+
+  void test_illegalAssignmentToNonAssignable_postfix_plusPlus_literal() {
+    ParserTestCase.parseExpression("0++", [ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE]);
+  }
+
+  void test_illegalAssignmentToNonAssignable_postfix_plusPlus_parethesized() {
+    ParserTestCase.parseExpression("(x)++", [ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE]);
+  }
+
+  void test_illegalAssignmentToNonAssignable_primarySelectorPostfix() {
+    ParserTestCase.parseExpression("x(y)(z)++", [ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE]);
   }
 
   void test_illegalAssignmentToNonAssignable_superAssigned() {
@@ -10108,55 +10206,55 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_initializedVariableInForEach() {
-    ParserTestCase.parse5("parseForStatement", "for (int a = 0 in foo) {}", [ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH]);
+    ParserTestCase.parse4("parseForStatement", "for (int a = 0 in foo) {}", [ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH]);
   }
 
   void test_invalidCodePoint() {
-    ParserTestCase.parse5("parseStringLiteral", "'\\uD900'", [ParserErrorCode.INVALID_CODE_POINT]);
+    ParserTestCase.parse4("parseStringLiteral", "'\\uD900'", [ParserErrorCode.INVALID_CODE_POINT]);
   }
 
   void test_invalidHexEscape_invalidDigit() {
-    ParserTestCase.parse5("parseStringLiteral", "'\\x0 a'", [ParserErrorCode.INVALID_HEX_ESCAPE]);
+    ParserTestCase.parse4("parseStringLiteral", "'\\x0 a'", [ParserErrorCode.INVALID_HEX_ESCAPE]);
   }
 
   void test_invalidHexEscape_tooFewDigits() {
-    ParserTestCase.parse5("parseStringLiteral", "'\\x0'", [ParserErrorCode.INVALID_HEX_ESCAPE]);
+    ParserTestCase.parse4("parseStringLiteral", "'\\x0'", [ParserErrorCode.INVALID_HEX_ESCAPE]);
   }
 
   void test_invalidInterpolationIdentifier_startWithDigit() {
-    ParserTestCase.parse5("parseStringLiteral", "'\$1'", [ParserErrorCode.MISSING_IDENTIFIER]);
+    ParserTestCase.parse4("parseStringLiteral", "'\$1'", [ParserErrorCode.MISSING_IDENTIFIER]);
   }
 
   void test_invalidOperator() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "void operator ===(x) {}", [ParserErrorCode.INVALID_OPERATOR]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "void operator ===(x) {}", [ParserErrorCode.INVALID_OPERATOR]);
   }
 
   void test_invalidOperatorForSuper() {
-    ParserTestCase.parse5("parseUnaryExpression", "++super", [ParserErrorCode.INVALID_OPERATOR_FOR_SUPER]);
+    ParserTestCase.parse4("parseUnaryExpression", "++super", [ParserErrorCode.INVALID_OPERATOR_FOR_SUPER]);
   }
 
   void test_invalidUnicodeEscape_incomplete_noDigits() {
-    ParserTestCase.parse5("parseStringLiteral", "'\\u{'", [ParserErrorCode.INVALID_UNICODE_ESCAPE]);
+    ParserTestCase.parse4("parseStringLiteral", "'\\u{'", [ParserErrorCode.INVALID_UNICODE_ESCAPE]);
   }
 
   void test_invalidUnicodeEscape_incomplete_someDigits() {
-    ParserTestCase.parse5("parseStringLiteral", "'\\u{0A'", [ParserErrorCode.INVALID_UNICODE_ESCAPE]);
+    ParserTestCase.parse4("parseStringLiteral", "'\\u{0A'", [ParserErrorCode.INVALID_UNICODE_ESCAPE]);
   }
 
   void test_invalidUnicodeEscape_invalidDigit() {
-    ParserTestCase.parse5("parseStringLiteral", "'\\u0 a'", [ParserErrorCode.INVALID_UNICODE_ESCAPE]);
+    ParserTestCase.parse4("parseStringLiteral", "'\\u0 a'", [ParserErrorCode.INVALID_UNICODE_ESCAPE]);
   }
 
   void test_invalidUnicodeEscape_tooFewDigits_fixed() {
-    ParserTestCase.parse5("parseStringLiteral", "'\\u04'", [ParserErrorCode.INVALID_UNICODE_ESCAPE]);
+    ParserTestCase.parse4("parseStringLiteral", "'\\u04'", [ParserErrorCode.INVALID_UNICODE_ESCAPE]);
   }
 
   void test_invalidUnicodeEscape_tooFewDigits_variable() {
-    ParserTestCase.parse5("parseStringLiteral", "'\\u{}'", [ParserErrorCode.INVALID_UNICODE_ESCAPE]);
+    ParserTestCase.parse4("parseStringLiteral", "'\\u{}'", [ParserErrorCode.INVALID_UNICODE_ESCAPE]);
   }
 
   void test_invalidUnicodeEscape_tooManyDigits_variable() {
-    ParserTestCase.parse5("parseStringLiteral", "'\\u{12345678}'", [
+    ParserTestCase.parse4("parseStringLiteral", "'\\u{12345678}'", [
         ParserErrorCode.INVALID_UNICODE_ESCAPE,
         ParserErrorCode.INVALID_CODE_POINT]);
   }
@@ -10190,14 +10288,6 @@ class ErrorParserTest extends ParserTestCase {
     ParserTestCase.parseExpression("x.y = y;", []);
   }
 
-  void test_missingAssignableSelector_postfix_minusMinus_literal() {
-    ParserTestCase.parseExpression("0--", [ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR]);
-  }
-
-  void test_missingAssignableSelector_postfix_plusPlus_literal() {
-    ParserTestCase.parseExpression("0++", [ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR]);
-  }
-
   void test_missingAssignableSelector_prefix_minusMinus_literal() {
     ParserTestCase.parseExpression("--0", [ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR]);
   }
@@ -10206,16 +10296,12 @@ class ErrorParserTest extends ParserTestCase {
     ParserTestCase.parseExpression("++0", [ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR]);
   }
 
-  void test_missingAssignableSelector_primarySelectorPostfix() {
-    ParserTestCase.parseExpression("x(y)(z)++", [ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR]);
-  }
-
   void test_missingAssignableSelector_selector() {
     ParserTestCase.parseExpression("x(y)(z).a++", []);
   }
 
   void test_missingAssignableSelector_superPrimaryExpression() {
-    SuperExpression expression = ParserTestCase.parse5("parsePrimaryExpression", "super", [ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR]);
+    SuperExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "super", [ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR]);
     JUnitTestCase.assertNotNull(expression.keyword);
   }
 
@@ -10224,7 +10310,7 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_missingCatchOrFinally() {
-    TryStatement statement = ParserTestCase.parse5("parseTryStatement", "try {}", [ParserErrorCode.MISSING_CATCH_OR_FINALLY]);
+    TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {}", [ParserErrorCode.MISSING_CATCH_OR_FINALLY]);
     JUnitTestCase.assertNotNull(statement);
   }
 
@@ -10237,23 +10323,23 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_missingConstFinalVarOrType_topLevel() {
-    ParserTestCase.parse4("parseFinalConstVarOrType", <Object> [false], "a;", [ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE]);
+    ParserTestCase.parse3("parseFinalConstVarOrType", <Object> [false], "a;", [ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE]);
   }
 
   void test_missingExpressionInThrow_withCascade() {
-    ParserTestCase.parse5("parseThrowExpression", "throw;", [ParserErrorCode.MISSING_EXPRESSION_IN_THROW]);
+    ParserTestCase.parse4("parseThrowExpression", "throw;", [ParserErrorCode.MISSING_EXPRESSION_IN_THROW]);
   }
 
   void test_missingExpressionInThrow_withoutCascade() {
-    ParserTestCase.parse5("parseThrowExpressionWithoutCascade", "throw;", [ParserErrorCode.MISSING_EXPRESSION_IN_THROW]);
+    ParserTestCase.parse4("parseThrowExpressionWithoutCascade", "throw;", [ParserErrorCode.MISSING_EXPRESSION_IN_THROW]);
   }
 
   void test_missingFunctionBody_emptyNotAllowed() {
-    ParserTestCase.parse4("parseFunctionBody", <Object> [false, ParserErrorCode.MISSING_FUNCTION_BODY, false], ";", [ParserErrorCode.MISSING_FUNCTION_BODY]);
+    ParserTestCase.parse3("parseFunctionBody", <Object> [false, ParserErrorCode.MISSING_FUNCTION_BODY, false], ";", [ParserErrorCode.MISSING_FUNCTION_BODY]);
   }
 
   void test_missingFunctionBody_invalid() {
-    ParserTestCase.parse4("parseFunctionBody", <Object> [false, ParserErrorCode.MISSING_FUNCTION_BODY, false], "return 0;", [ParserErrorCode.MISSING_FUNCTION_BODY]);
+    ParserTestCase.parse3("parseFunctionBody", <Object> [false, ParserErrorCode.MISSING_FUNCTION_BODY, false], "return 0;", [ParserErrorCode.MISSING_FUNCTION_BODY]);
   }
 
   void test_missingFunctionParameters_local_void_block() {
@@ -10281,46 +10367,46 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_missingIdentifier_afterOperator() {
-    ParserTestCase.parse5("parseMultiplicativeExpression", "1 *", [ParserErrorCode.MISSING_IDENTIFIER]);
+    ParserTestCase.parse4("parseMultiplicativeExpression", "1 *", [ParserErrorCode.MISSING_IDENTIFIER]);
   }
 
   void test_missingIdentifier_beforeClosingCurly() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "int}", [
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "int}", [
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_missingIdentifier_functionDeclaration_returnTypeWithoutName() {
-    ParserTestCase.parse5("parseFunctionDeclarationStatement", "A<T> () {}", [ParserErrorCode.MISSING_IDENTIFIER]);
+    ParserTestCase.parse4("parseFunctionDeclarationStatement", "A<T> () {}", [ParserErrorCode.MISSING_IDENTIFIER]);
   }
 
   void test_missingIdentifier_inSymbol_afterPeriod() {
-    ParserTestCase.parse5("parseSymbolLiteral", "#a.", [ParserErrorCode.MISSING_IDENTIFIER]);
+    ParserTestCase.parse4("parseSymbolLiteral", "#a.", [ParserErrorCode.MISSING_IDENTIFIER]);
   }
 
   void test_missingIdentifier_inSymbol_first() {
-    ParserTestCase.parse5("parseSymbolLiteral", "#", [ParserErrorCode.MISSING_IDENTIFIER]);
+    ParserTestCase.parse4("parseSymbolLiteral", "#", [ParserErrorCode.MISSING_IDENTIFIER]);
   }
 
   void test_missingIdentifier_number() {
-    SimpleIdentifier expression = ParserTestCase.parse5("parseSimpleIdentifier", "1", [ParserErrorCode.MISSING_IDENTIFIER]);
+    SimpleIdentifier expression = ParserTestCase.parse4("parseSimpleIdentifier", "1", [ParserErrorCode.MISSING_IDENTIFIER]);
     JUnitTestCase.assertTrue(expression.isSynthetic);
   }
 
   void test_missingKeywordOperator() {
-    ParserTestCase.parse4("parseOperator", <Object> [emptyCommentAndMetadata(), null, null], "+(x) {}", [ParserErrorCode.MISSING_KEYWORD_OPERATOR]);
+    ParserTestCase.parse3("parseOperator", <Object> [emptyCommentAndMetadata(), null, null], "+(x) {}", [ParserErrorCode.MISSING_KEYWORD_OPERATOR]);
   }
 
   void test_missingKeywordOperator_parseClassMember() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "+() {}", [ParserErrorCode.MISSING_KEYWORD_OPERATOR]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "+() {}", [ParserErrorCode.MISSING_KEYWORD_OPERATOR]);
   }
 
   void test_missingKeywordOperator_parseClassMember_afterTypeName() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "int +() {}", [ParserErrorCode.MISSING_KEYWORD_OPERATOR]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "int +() {}", [ParserErrorCode.MISSING_KEYWORD_OPERATOR]);
   }
 
   void test_missingKeywordOperator_parseClassMember_afterVoid() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "void +() {}", [ParserErrorCode.MISSING_KEYWORD_OPERATOR]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "void +() {}", [ParserErrorCode.MISSING_KEYWORD_OPERATOR]);
   }
 
   void test_missingNameInLibraryDirective() {
@@ -10342,11 +10428,11 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_missingTerminatorForParameterGroup_named() {
-    ParserTestCase.parse5("parseFormalParameterList", "(a, {b: 0)", [ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP]);
+    ParserTestCase.parse4("parseFormalParameterList", "(a, {b: 0)", [ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP]);
   }
 
   void test_missingTerminatorForParameterGroup_optional() {
-    ParserTestCase.parse5("parseFormalParameterList", "(a, [b = 0)", [ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP]);
+    ParserTestCase.parse4("parseFormalParameterList", "(a, [b = 0)", [ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP]);
   }
 
   void test_missingTypedefParameters_nonVoid() {
@@ -10362,15 +10448,15 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_missingVariableInForEach() {
-    ParserTestCase.parse5("parseForStatement", "for (a < b in foo) {}", [ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH]);
+    ParserTestCase.parse4("parseForStatement", "for (a < b in foo) {}", [ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH]);
   }
 
   void test_mixedParameterGroups_namedPositional() {
-    ParserTestCase.parse5("parseFormalParameterList", "(a, {b}, [c])", [ParserErrorCode.MIXED_PARAMETER_GROUPS]);
+    ParserTestCase.parse4("parseFormalParameterList", "(a, {b}, [c])", [ParserErrorCode.MIXED_PARAMETER_GROUPS]);
   }
 
   void test_mixedParameterGroups_positionalNamed() {
-    ParserTestCase.parse5("parseFormalParameterList", "(a, [b], {c})", [ParserErrorCode.MIXED_PARAMETER_GROUPS]);
+    ParserTestCase.parse4("parseFormalParameterList", "(a, [b], {c})", [ParserErrorCode.MIXED_PARAMETER_GROUPS]);
   }
 
   void test_multipleExtendsClauses() {
@@ -10386,7 +10472,7 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_multipleNamedParameterGroups() {
-    ParserTestCase.parse5("parseFormalParameterList", "(a, {b}, {c})", [ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS]);
+    ParserTestCase.parse4("parseFormalParameterList", "(a, {b}, {c})", [ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS]);
   }
 
   void test_multiplePartOfDirectives() {
@@ -10394,11 +10480,11 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_multiplePositionalParameterGroups() {
-    ParserTestCase.parse5("parseFormalParameterList", "(a, [b], [c])", [ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS]);
+    ParserTestCase.parse4("parseFormalParameterList", "(a, [b], [c])", [ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS]);
   }
 
   void test_multipleVariablesInForEach() {
-    ParserTestCase.parse5("parseForStatement", "for (int a, b in foo) {}", [ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH]);
+    ParserTestCase.parse4("parseForStatement", "for (int a, b in foo) {}", [ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH]);
   }
 
   void test_multipleWithClauses() {
@@ -10406,15 +10492,15 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_namedParameterOutsideGroup() {
-    ParserTestCase.parse5("parseFormalParameterList", "(a, b : 0)", [ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP]);
+    ParserTestCase.parse4("parseFormalParameterList", "(a, b : 0)", [ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP]);
   }
 
   void test_nonConstructorFactory_field() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "factory int x;", [ParserErrorCode.NON_CONSTRUCTOR_FACTORY]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "factory int x;", [ParserErrorCode.NON_CONSTRUCTOR_FACTORY]);
   }
 
   void test_nonConstructorFactory_method() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "factory int m() {}", [ParserErrorCode.NON_CONSTRUCTOR_FACTORY]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "factory int m() {}", [ParserErrorCode.NON_CONSTRUCTOR_FACTORY]);
   }
 
   void test_nonIdentifierLibraryName_library() {
@@ -10436,7 +10522,7 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_nonUserDefinableOperator() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "operator +=(int x) => x + 1;", [ParserErrorCode.NON_USER_DEFINABLE_OPERATOR]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "operator +=(int x) => x + 1;", [ParserErrorCode.NON_USER_DEFINABLE_OPERATOR]);
   }
 
   void test_optionalAfterNormalParameters_named() {
@@ -10448,22 +10534,22 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_parseCascadeSection_missingIdentifier() {
-    MethodInvocation methodInvocation = ParserTestCase.parse5("parseCascadeSection", "..()", [ParserErrorCode.MISSING_IDENTIFIER]);
+    MethodInvocation methodInvocation = ParserTestCase.parse4("parseCascadeSection", "..()", [ParserErrorCode.MISSING_IDENTIFIER]);
     JUnitTestCase.assertNull(methodInvocation.target);
     JUnitTestCase.assertEquals("", methodInvocation.methodName.name);
     EngineTestCase.assertSize(0, methodInvocation.argumentList.arguments);
   }
 
   void test_positionalAfterNamedArgument() {
-    ParserTestCase.parse5("parseArgumentList", "(x: 1, 2)", [ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT]);
+    ParserTestCase.parse4("parseArgumentList", "(x: 1, 2)", [ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT]);
   }
 
   void test_positionalParameterOutsideGroup() {
-    ParserTestCase.parse5("parseFormalParameterList", "(a, b = 0)", [ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP]);
+    ParserTestCase.parse4("parseFormalParameterList", "(a, b = 0)", [ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP]);
   }
 
   void test_redirectionInNonFactoryConstructor() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "C() = D;", [ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "C() = D;", [ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR]);
   }
 
   void test_setterInFunction_block() {
@@ -10475,35 +10561,35 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_staticAfterConst() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "final static int f;", [ParserErrorCode.STATIC_AFTER_FINAL]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "final static int f;", [ParserErrorCode.STATIC_AFTER_FINAL]);
   }
 
   void test_staticAfterFinal() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "const static int f;", [ParserErrorCode.STATIC_AFTER_CONST]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "const static int f;", [ParserErrorCode.STATIC_AFTER_CONST]);
   }
 
   void test_staticAfterVar() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "var static f;", [ParserErrorCode.STATIC_AFTER_VAR]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "var static f;", [ParserErrorCode.STATIC_AFTER_VAR]);
   }
 
   void test_staticConstructor() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "static C.m() {}", [ParserErrorCode.STATIC_CONSTRUCTOR]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "static C.m() {}", [ParserErrorCode.STATIC_CONSTRUCTOR]);
   }
 
   void test_staticGetterWithoutBody() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "static get m;", [ParserErrorCode.STATIC_GETTER_WITHOUT_BODY]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "static get m;", [ParserErrorCode.STATIC_GETTER_WITHOUT_BODY]);
   }
 
   void test_staticOperator_noReturnType() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "static operator +(int x) => x + 1;", [ParserErrorCode.STATIC_OPERATOR]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "static operator +(int x) => x + 1;", [ParserErrorCode.STATIC_OPERATOR]);
   }
 
   void test_staticOperator_returnType() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "static int operator +(int x) => x + 1;", [ParserErrorCode.STATIC_OPERATOR]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "static int operator +(int x) => x + 1;", [ParserErrorCode.STATIC_OPERATOR]);
   }
 
   void test_staticSetterWithoutBody() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "static set m(x);", [ParserErrorCode.STATIC_SETTER_WITHOUT_BODY]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "static set m(x);", [ParserErrorCode.STATIC_SETTER_WITHOUT_BODY]);
   }
 
   void test_staticTopLevelDeclaration_class() {
@@ -10523,47 +10609,47 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_switchHasCaseAfterDefaultCase() {
-    ParserTestCase.parse5("parseSwitchStatement", "switch (a) {default: return 0; case 1: return 1;}", [ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE]);
+    ParserTestCase.parse4("parseSwitchStatement", "switch (a) {default: return 0; case 1: return 1;}", [ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE]);
   }
 
   void test_switchHasCaseAfterDefaultCase_repeated() {
-    ParserTestCase.parse5("parseSwitchStatement", "switch (a) {default: return 0; case 1: return 1; case 2: return 2;}", [
+    ParserTestCase.parse4("parseSwitchStatement", "switch (a) {default: return 0; case 1: return 1; case 2: return 2;}", [
         ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE,
         ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE]);
   }
 
   void test_switchHasMultipleDefaultCases() {
-    ParserTestCase.parse5("parseSwitchStatement", "switch (a) {default: return 0; default: return 1;}", [ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES]);
+    ParserTestCase.parse4("parseSwitchStatement", "switch (a) {default: return 0; default: return 1;}", [ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES]);
   }
 
   void test_switchHasMultipleDefaultCases_repeated() {
-    ParserTestCase.parse5("parseSwitchStatement", "switch (a) {default: return 0; default: return 1; default: return 2;}", [
+    ParserTestCase.parse4("parseSwitchStatement", "switch (a) {default: return 0; default: return 1; default: return 2;}", [
         ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES,
         ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES]);
   }
 
   void test_topLevelOperator_withoutType() {
-    ParserTestCase.parse4("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "operator +(bool x, bool y) => x | y;", [ParserErrorCode.TOP_LEVEL_OPERATOR]);
+    ParserTestCase.parse3("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "operator +(bool x, bool y) => x | y;", [ParserErrorCode.TOP_LEVEL_OPERATOR]);
   }
 
   void test_topLevelOperator_withType() {
-    ParserTestCase.parse4("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "bool operator +(bool x, bool y) => x | y;", [ParserErrorCode.TOP_LEVEL_OPERATOR]);
+    ParserTestCase.parse3("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "bool operator +(bool x, bool y) => x | y;", [ParserErrorCode.TOP_LEVEL_OPERATOR]);
   }
 
   void test_topLevelOperator_withVoid() {
-    ParserTestCase.parse4("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "void operator +(bool x, bool y) => x | y;", [ParserErrorCode.TOP_LEVEL_OPERATOR]);
+    ParserTestCase.parse3("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "void operator +(bool x, bool y) => x | y;", [ParserErrorCode.TOP_LEVEL_OPERATOR]);
   }
 
   void test_unexpectedTerminatorForParameterGroup_named() {
-    ParserTestCase.parse5("parseFormalParameterList", "(a, b})", [ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP]);
+    ParserTestCase.parse4("parseFormalParameterList", "(a, b})", [ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP]);
   }
 
   void test_unexpectedTerminatorForParameterGroup_optional() {
-    ParserTestCase.parse5("parseFormalParameterList", "(a, b])", [ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP]);
+    ParserTestCase.parse4("parseFormalParameterList", "(a, b])", [ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP]);
   }
 
   void test_unexpectedToken_semicolonBetweenClassMembers() {
-    ParserTestCase.parse4("parseClassDeclaration", <Object> [emptyCommentAndMetadata(), null], "class C { int x; ; int y;}", [ParserErrorCode.UNEXPECTED_TOKEN]);
+    ParserTestCase.parse3("parseClassDeclaration", <Object> [emptyCommentAndMetadata(), null], "class C { int x; ; int y;}", [ParserErrorCode.UNEXPECTED_TOKEN]);
   }
 
   void test_unexpectedToken_semicolonBetweenCompilationUnitMembers() {
@@ -10571,8 +10657,8 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_useOfUnaryPlusOperator() {
-    SimpleIdentifier expression = ParserTestCase.parse5("parseUnaryExpression", "+x", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertInstanceOf(SimpleIdentifier, expression);
+    SimpleIdentifier expression = ParserTestCase.parse4("parseUnaryExpression", "+x", [ParserErrorCode.MISSING_IDENTIFIER]);
+    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression);
     JUnitTestCase.assertTrue(expression.isSynthetic);
   }
 
@@ -10593,7 +10679,7 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_varReturnType() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "var m() {}", [ParserErrorCode.VAR_RETURN_TYPE]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "var m() {}", [ParserErrorCode.VAR_RETURN_TYPE]);
   }
 
   void test_varTypedef() {
@@ -10601,15 +10687,15 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_voidParameter() {
-    ParserTestCase.parse5("parseNormalFormalParameter", "void a)", [ParserErrorCode.VOID_PARAMETER]);
+    ParserTestCase.parse4("parseNormalFormalParameter", "void a)", [ParserErrorCode.VOID_PARAMETER]);
   }
 
   void test_voidVariable_parseClassMember_initializer() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "void x = 0;", [ParserErrorCode.VOID_VARIABLE]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "void x = 0;", [ParserErrorCode.VOID_VARIABLE]);
   }
 
   void test_voidVariable_parseClassMember_noInitializer() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "void x;", [ParserErrorCode.VOID_VARIABLE]);
+    ParserTestCase.parse3("parseClassMember", <Object> ["C"], "void x;", [ParserErrorCode.VOID_VARIABLE]);
   }
 
   void test_voidVariable_parseCompilationUnit_initializer() {
@@ -10621,11 +10707,11 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_voidVariable_parseCompilationUnitMember_initializer() {
-    ParserTestCase.parse4("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "void a = 0;", [ParserErrorCode.VOID_VARIABLE]);
+    ParserTestCase.parse3("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "void a = 0;", [ParserErrorCode.VOID_VARIABLE]);
   }
 
   void test_voidVariable_parseCompilationUnitMember_noInitializer() {
-    ParserTestCase.parse4("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "void a;", [ParserErrorCode.VOID_VARIABLE]);
+    ParserTestCase.parse3("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "void a;", [ParserErrorCode.VOID_VARIABLE]);
   }
 
   void test_voidVariable_statement_initializer() {
@@ -10645,23 +10731,23 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_withWithoutExtends() {
-    ParserTestCase.parse4("parseClassDeclaration", <Object> [emptyCommentAndMetadata(), null], "class A with B, C {}", [ParserErrorCode.WITH_WITHOUT_EXTENDS]);
+    ParserTestCase.parse3("parseClassDeclaration", <Object> [emptyCommentAndMetadata(), null], "class A with B, C {}", [ParserErrorCode.WITH_WITHOUT_EXTENDS]);
   }
 
   void test_wrongSeparatorForNamedParameter() {
-    ParserTestCase.parse5("parseFormalParameterList", "(a, {b = 0})", [ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER]);
+    ParserTestCase.parse4("parseFormalParameterList", "(a, {b = 0})", [ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER]);
   }
 
   void test_wrongSeparatorForPositionalParameter() {
-    ParserTestCase.parse5("parseFormalParameterList", "(a, [b : 0])", [ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER]);
+    ParserTestCase.parse4("parseFormalParameterList", "(a, [b : 0])", [ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER]);
   }
 
   void test_wrongTerminatorForParameterGroup_named() {
-    ParserTestCase.parse5("parseFormalParameterList", "(a, {b, c])", [ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP]);
+    ParserTestCase.parse4("parseFormalParameterList", "(a, {b, c])", [ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP]);
   }
 
   void test_wrongTerminatorForParameterGroup_optional() {
-    ParserTestCase.parse5("parseFormalParameterList", "(a, [b, c})", [ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP]);
+    ParserTestCase.parse4("parseFormalParameterList", "(a, [b, c})", [ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP]);
   }
 
   static dartSuite() {
@@ -10930,9 +11016,17 @@ class ErrorParserTest extends ParserTestCase {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_expectedToken_semicolonAfterClass);
       });
+      _ut.test('test_expectedToken_semicolonMissingAfterExport', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_expectedToken_semicolonMissingAfterExport);
+      });
       _ut.test('test_expectedToken_semicolonMissingAfterExpression', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_expectedToken_semicolonMissingAfterExpression);
+      });
+      _ut.test('test_expectedToken_semicolonMissingAfterImport', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_expectedToken_semicolonMissingAfterImport);
       });
       _ut.test('test_expectedToken_whileMissingInDoStatement', () {
         final __test = new ErrorParserTest();
@@ -11070,6 +11164,22 @@ class ErrorParserTest extends ParserTestCase {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_getterWithParameters);
       });
+      _ut.test('test_illegalAssignmentToNonAssignable_postfix_minusMinus_literal', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_illegalAssignmentToNonAssignable_postfix_minusMinus_literal);
+      });
+      _ut.test('test_illegalAssignmentToNonAssignable_postfix_plusPlus_literal', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_illegalAssignmentToNonAssignable_postfix_plusPlus_literal);
+      });
+      _ut.test('test_illegalAssignmentToNonAssignable_postfix_plusPlus_parethesized', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_illegalAssignmentToNonAssignable_postfix_plusPlus_parethesized);
+      });
+      _ut.test('test_illegalAssignmentToNonAssignable_primarySelectorPostfix', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_illegalAssignmentToNonAssignable_primarySelectorPostfix);
+      });
       _ut.test('test_illegalAssignmentToNonAssignable_superAssigned', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_illegalAssignmentToNonAssignable_superAssigned);
@@ -11166,14 +11276,6 @@ class ErrorParserTest extends ParserTestCase {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_missingAssignableSelector_identifiersAssigned);
       });
-      _ut.test('test_missingAssignableSelector_postfix_minusMinus_literal', () {
-        final __test = new ErrorParserTest();
-        runJUnitTest(__test, __test.test_missingAssignableSelector_postfix_minusMinus_literal);
-      });
-      _ut.test('test_missingAssignableSelector_postfix_plusPlus_literal', () {
-        final __test = new ErrorParserTest();
-        runJUnitTest(__test, __test.test_missingAssignableSelector_postfix_plusPlus_literal);
-      });
       _ut.test('test_missingAssignableSelector_prefix_minusMinus_literal', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_missingAssignableSelector_prefix_minusMinus_literal);
@@ -11181,10 +11283,6 @@ class ErrorParserTest extends ParserTestCase {
       _ut.test('test_missingAssignableSelector_prefix_plusPlus_literal', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_missingAssignableSelector_prefix_plusPlus_literal);
-      });
-      _ut.test('test_missingAssignableSelector_primarySelectorPostfix', () {
-        final __test = new ErrorParserTest();
-        runJUnitTest(__test, __test.test_missingAssignableSelector_primarySelectorPostfix);
       });
       _ut.test('test_missingAssignableSelector_selector', () {
         final __test = new ErrorParserTest();
@@ -11672,10 +11770,13 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'convertToFunctionDeclaration_1': new MethodTrampoline(1, (Parser target, arg0) => target.convertToFunctionDeclaration(arg0)),
   'couldBeStartOfCompilationUnitMember_0': new MethodTrampoline(0, (Parser target) => target.couldBeStartOfCompilationUnitMember()),
   'createSyntheticIdentifier_0': new MethodTrampoline(0, (Parser target) => target.createSyntheticIdentifier()),
+  'createSyntheticKeyword_1': new MethodTrampoline(1, (Parser target, arg0) => target.createSyntheticKeyword(arg0)),
   'createSyntheticStringLiteral_0': new MethodTrampoline(0, (Parser target) => target.createSyntheticStringLiteral()),
   'createSyntheticToken_1': new MethodTrampoline(1, (Parser target, arg0) => target.createSyntheticToken(arg0)),
   'ensureAssignable_1': new MethodTrampoline(1, (Parser target, arg0) => target.ensureAssignable(arg0)),
   'expect_1': new MethodTrampoline(1, (Parser target, arg0) => target.expect(arg0)),
+  'expectKeyword_1': new MethodTrampoline(1, (Parser target, arg0) => target.expectKeyword(arg0)),
+  'expectSemicolon_0': new MethodTrampoline(0, (Parser target) => target.expectSemicolon()),
   'findRange_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.findRange(arg0, arg1)),
   'getCodeBlockRanges_1': new MethodTrampoline(1, (Parser target, arg0) => target.getCodeBlockRanges(arg0)),
   'getEndToken_1': new MethodTrampoline(1, (Parser target, arg0) => target.getEndToken(arg0)),
@@ -11692,10 +11793,10 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'lexicallyFirst_1': new MethodTrampoline(1, (Parser target, arg0) => target.lexicallyFirst(arg0)),
   'lockErrorListener_0': new MethodTrampoline(0, (Parser target) => target.lockErrorListener()),
   'matches_1': new MethodTrampoline(1, (Parser target, arg0) => target.matches(arg0)),
-  'matches_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.matches3(arg0, arg1)),
   'matchesAny_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.matchesAny(arg0, arg1)),
   'matchesIdentifier_0': new MethodTrampoline(0, (Parser target) => target.matchesIdentifier()),
-  'matchesIdentifier_1': new MethodTrampoline(1, (Parser target, arg0) => target.matchesIdentifier2(arg0)),
+  'matchesKeyword_1': new MethodTrampoline(1, (Parser target, arg0) => target.matchesKeyword(arg0)),
+  'matchesString_1': new MethodTrampoline(1, (Parser target, arg0) => target.matchesString(arg0)),
   'optional_1': new MethodTrampoline(1, (Parser target, arg0) => target.optional(arg0)),
   'parseAdditiveExpression_0': new MethodTrampoline(0, (Parser target) => target.parseAdditiveExpression()),
   'parseArgumentDefinitionTest_0': new MethodTrampoline(0, (Parser target) => target.parseArgumentDefinitionTest()),
@@ -11731,7 +11832,7 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'parseFunctionBody_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.parseFunctionBody(arg0, arg1, arg2)),
   'parseFunctionDeclaration_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.parseFunctionDeclaration(arg0, arg1, arg2)),
   'parseFunctionDeclarationStatement_0': new MethodTrampoline(0, (Parser target) => target.parseFunctionDeclarationStatement()),
-  'parseFunctionDeclarationStatement_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseFunctionDeclarationStatement2(arg0, arg1)),
+  'parseFunctionDeclarationStatementAfterReturnType_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseFunctionDeclarationStatementAfterReturnType(arg0, arg1)),
   'parseFunctionTypeAlias_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseFunctionTypeAlias(arg0, arg1)),
   'parseGetter_4': new MethodTrampoline(4, (Parser target, arg0, arg1, arg2, arg3) => target.parseGetter(arg0, arg1, arg2, arg3)),
   'parseIdentifierList_0': new MethodTrampoline(0, (Parser target) => target.parseIdentifierList()),
@@ -11745,8 +11846,8 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'parseListOrMapLiteral_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseListOrMapLiteral(arg0)),
   'parseLogicalAndExpression_0': new MethodTrampoline(0, (Parser target) => target.parseLogicalAndExpression()),
   'parseMapLiteral_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseMapLiteral(arg0, arg1)),
-  'parseMethodDeclaration_4': new MethodTrampoline(4, (Parser target, arg0, arg1, arg2, arg3) => target.parseMethodDeclaration(arg0, arg1, arg2, arg3)),
-  'parseMethodDeclaration_6': new MethodTrampoline(6, (Parser target, arg0, arg1, arg2, arg3, arg4, arg5) => target.parseMethodDeclaration2(arg0, arg1, arg2, arg3, arg4, arg5)),
+  'parseMethodDeclarationAfterParameters_6': new MethodTrampoline(6, (Parser target, arg0, arg1, arg2, arg3, arg4, arg5) => target.parseMethodDeclarationAfterParameters(arg0, arg1, arg2, arg3, arg4, arg5)),
+  'parseMethodDeclarationAfterReturnType_4': new MethodTrampoline(4, (Parser target, arg0, arg1, arg2, arg3) => target.parseMethodDeclarationAfterReturnType(arg0, arg1, arg2, arg3)),
   'parseModifiers_0': new MethodTrampoline(0, (Parser target) => target.parseModifiers()),
   'parseMultiplicativeExpression_0': new MethodTrampoline(0, (Parser target) => target.parseMultiplicativeExpression()),
   'parseNativeClause_0': new MethodTrampoline(0, (Parser target) => target.parseNativeClause()),
@@ -11763,7 +11864,7 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'parseReturnStatement_0': new MethodTrampoline(0, (Parser target) => target.parseReturnStatement()),
   'parseSetter_4': new MethodTrampoline(4, (Parser target, arg0, arg1, arg2, arg3) => target.parseSetter(arg0, arg1, arg2, arg3)),
   'parseShiftExpression_0': new MethodTrampoline(0, (Parser target) => target.parseShiftExpression()),
-  'parseStatements_0': new MethodTrampoline(0, (Parser target) => target.parseStatements2()),
+  'parseStatementList_0': new MethodTrampoline(0, (Parser target) => target.parseStatementList()),
   'parseStringInterpolation_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseStringInterpolation(arg0)),
   'parseSuperConstructorInvocation_0': new MethodTrampoline(0, (Parser target) => target.parseSuperConstructorInvocation()),
   'parseSwitchStatement_0': new MethodTrampoline(0, (Parser target) => target.parseSwitchStatement()),
@@ -11774,16 +11875,17 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'parseTypeAlias_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseTypeAlias(arg0)),
   'parseUnaryExpression_0': new MethodTrampoline(0, (Parser target) => target.parseUnaryExpression()),
   'parseVariableDeclaration_0': new MethodTrampoline(0, (Parser target) => target.parseVariableDeclaration()),
-  'parseVariableDeclarationList_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseVariableDeclarationList(arg0)),
-  'parseVariableDeclarationList_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.parseVariableDeclarationList2(arg0, arg1, arg2)),
-  'parseVariableDeclarationStatement_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseVariableDeclarationStatement(arg0)),
-  'parseVariableDeclarationStatement_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.parseVariableDeclarationStatement2(arg0, arg1, arg2)),
+  'parseVariableDeclarationListAfterMetadata_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseVariableDeclarationListAfterMetadata(arg0)),
+  'parseVariableDeclarationListAfterType_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.parseVariableDeclarationListAfterType(arg0, arg1, arg2)),
+  'parseVariableDeclarationStatementAfterMetadata_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseVariableDeclarationStatementAfterMetadata(arg0)),
+  'parseVariableDeclarationStatementAfterType_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.parseVariableDeclarationStatementAfterType(arg0, arg1, arg2)),
   'parseWhileStatement_0': new MethodTrampoline(0, (Parser target) => target.parseWhileStatement()),
   'peek_0': new MethodTrampoline(0, (Parser target) => target.peek()),
   'peek_1': new MethodTrampoline(1, (Parser target, arg0) => target.peek2(arg0)),
   'reportError_1': new MethodTrampoline(1, (Parser target, arg0) => target.reportError(arg0)),
-  'reportError_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.reportError12(arg0, arg1, arg2)),
-  'reportError_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.reportError13(arg0, arg1)),
+  'reportErrorForCurrentToken_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.reportErrorForCurrentToken(arg0, arg1)),
+  'reportErrorForNode_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.reportErrorForNode(arg0, arg1, arg2)),
+  'reportErrorForToken_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.reportErrorForToken(arg0, arg1, arg2)),
   'skipBlock_0': new MethodTrampoline(0, (Parser target) => target.skipBlock()),
   'skipFinalConstVarOrType_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipFinalConstVarOrType(arg0)),
   'skipFormalParameterList_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipFormalParameterList(arg0)),
@@ -11796,6 +11898,9 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'skipTypeArgumentList_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipTypeArgumentList(arg0)),
   'skipTypeName_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipTypeName(arg0)),
   'skipTypeParameterList_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipTypeParameterList(arg0)),
+  'tokenMatches_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.tokenMatches(arg0, arg1)),
+  'tokenMatchesIdentifier_1': new MethodTrampoline(1, (Parser target, arg0) => target.tokenMatchesIdentifier(arg0)),
+  'tokenMatchesKeyword_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.tokenMatchesKeyword(arg0, arg1)),
   'translateCharacter_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.translateCharacter(arg0, arg1, arg2)),
   'unlockErrorListener_0': new MethodTrampoline(0, (Parser target) => target.unlockErrorListener()),
   'validateFormalParameterList_1': new MethodTrampoline(1, (Parser target, arg0) => target.validateFormalParameterList(arg0)),

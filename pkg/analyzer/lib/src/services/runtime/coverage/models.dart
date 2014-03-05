@@ -8,7 +8,7 @@ library runtime.coverage.model;
 import 'dart:collection' show SplayTreeMap;
 
 import 'package:analyzer/src/generated/source.dart' show Source, SourceRange;
-import 'package:analyzer/src/generated/ast.dart' show ASTNode;
+import 'package:analyzer/src/generated/ast.dart' show AstNode;
 
 import 'utils.dart';
 
@@ -36,7 +36,7 @@ class AppInfo {
     currentNode = nodeStack.removeLast();
   }
 
-  int addNode(ASTNode node) {
+  int addNode(AstNode node) {
     return currentNode.addNode(node);
   }
 
@@ -66,7 +66,7 @@ class NodeInfo {
     }
   }
 
-  int addNode(ASTNode node) {
+  int addNode(AstNode node) {
     var id = appInfo.nextId++;
     var range = new SourceRange(node.offset, node.length);
     idToRange[id] = range;

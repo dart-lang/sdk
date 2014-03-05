@@ -732,7 +732,9 @@ Definition* EffectGraphVisitor::BuildStoreLocal(const LocalVariable& local,
 
 
 Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
-  if (local.is_captured()) {
+  if (local.IsConst()) {
+    return new ConstantInstr(*local.ConstValue());
+  } else if (local.is_captured()) {
     intptr_t delta =
         owner()->context_level() - local.owner()->context_level();
     ASSERT(delta >= 0);
@@ -3489,6 +3491,22 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     }
   }
 
+  // This check may be deleted if the generated code is leaf.
+  // Native functions don't need a stack check at entry.
+  const Function& function = owner()->parsed_function()->function();
+  if ((node == owner()->parsed_function()->node_sequence()) &&
+      !function.is_native()) {
+    // Always allocate CheckOverflowInstr so that deopt-ids match regardless
+    // if we inline or not.
+    CheckStackOverflowInstr* check =
+        new CheckStackOverflowInstr(function.token_pos(), 0);
+    // If we are inlining don't actually attach the stack check. We must still
+    // create the stack check in order to allocate a deopt id.
+    if (!owner()->IsInlining()) {
+      AddInstruction(check);
+    }
+  }
+
   if (FLAG_enable_type_checks &&
       (node == owner()->parsed_function()->node_sequence())) {
     const Function& function = owner()->parsed_function()->function();
@@ -3864,23 +3882,11 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   if (FLAG_print_scopes) {
     AstPrinter::PrintFunctionScope(*parsed_function());
   }
-  const Function& function = parsed_function()->function();
   TargetEntryInstr* normal_entry =
       new TargetEntryInstr(AllocateBlockId(),
                            CatchClauseNode::kInvalidTryIndex);
   graph_entry_ = new GraphEntryInstr(parsed_function(), normal_entry, osr_id_);
   EffectGraphVisitor for_effect(this);
-  // This check may be deleted if the generated code is leaf.
-  // Native functions don't need a stack check at entry.
-  if (!function.is_native()) {
-    CheckStackOverflowInstr* check =
-        new CheckStackOverflowInstr(function.token_pos(), 0);
-    // If we are inlining don't actually attach the stack check. We must still
-    // create the stack check in order to allocate a deopt id.
-    if (!IsInlining()) {
-      for_effect.AddInstruction(check);
-    }
-  }
   parsed_function()->node_sequence()->Visit(&for_effect);
   AppendFragment(normal_entry, for_effect);
   // Check that the graph is properly terminated.

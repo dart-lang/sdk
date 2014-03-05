@@ -185,6 +185,9 @@ class DartUtils {
   static Dart_Handle FilePathFromUri(Dart_Handle script_uri,
                                      Dart_Handle builtin_lib);
 
+  static Dart_Handle ExtensionPathFromUri(Dart_Handle extension_uri,
+                                          Dart_Handle builtin_lib);
+
   static Dart_Handle ResolveUri(Dart_Handle library_url,
                                 Dart_Handle url,
                                 Dart_Handle builtin_lib);

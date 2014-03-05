@@ -870,6 +870,7 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
       if (!error.IsNull()) {
         return error.raw();
       }
+      func.ClearCode();
     }
   }
   // Inner functions get added to the closures array. As part of compilation
@@ -885,6 +886,7 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
         if (!error.IsNull()) {
           return error.raw();
         }
+        func.ClearCode();
       }
     }
   }

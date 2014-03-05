@@ -27,8 +27,7 @@ DART_REPO_LOC = abspath(os.path.join(dirname(abspath(__file__)), '..', '..',
                                              'dart_checkout_for_perf_testing',
                                              'dart'))
 # How far back in time we want to test.
-EARLIEST_REVISION = 6285
-FIRST_CHROMEDRIVER = 7823
+EARLIEST_REVISION = 33076
 sys.path.append(TOOLS_PATH)
 sys.path.append(os.path.join(TOP_LEVEL_DIR, 'internal', 'tests'))
 import post_results
@@ -627,115 +626,6 @@ class BrowserTester(Tester):
     return browsers
 
 
-class CommonBrowserTest(RuntimePerformanceTest):
-  """Runs this basic performance tests (Benchpress, some V8 benchmarks) in the
-  browser."""
-
-  def __init__(self, test_runner):
-    """Args:
-      test_runner: Reference to the object that notifies us when to run."""
-    super(CommonBrowserTest, self).__init__(
-        self.Name(), BrowserTester.GetBrowsers(False),
-        'browser', ['js', 'dart2js'],
-        self.GetStandaloneBenchmarks(), test_runner,
-        self.CommonBrowserTester(self),
-        self.CommonBrowserFileProcessor(self))
-
-  @staticmethod
-  def Name():
-    return 'browser-perf'
-
-  @staticmethod
-  def GetStandaloneBenchmarks():
-    return ['Mandelbrot', 'DeltaBlue', 'Richards', 'NBody', 'BinaryTrees',
-    'Fannkuch', 'Meteor', 'BubbleSort', 'Fibonacci', 'Loop', 'Permute',
-    'Queens', 'QuickSort', 'Recurse', 'Sieve', 'Sum', 'Tak', 'Takl', 'Towers',
-    'TreeSort']
-
-  class CommonBrowserTester(BrowserTester):
-    def RunTests(self):
-      """Run a performance test in the browser."""
-      os.chdir(DART_REPO_LOC)
-      self.test.test_runner.RunCmd([
-          'python', os.path.join('internal', 'browserBenchmarks',
-          'make_web_benchmarks.py')])
-
-      for browser in self.test.platform_list:
-        for version in self.test.versions:
-          if not self.test.IsValidCombination(browser, version):
-            continue
-          self.test.trace_file = os.path.join(TOP_LEVEL_DIR,
-              'tools', 'testing', 'perf_testing', self.test.result_folder_name,
-              'perf-%s-%s-%s' % (self.test.cur_time, browser, version))
-          self.AddSvnRevisionToTrace(self.test.trace_file, browser)
-          file_path = os.path.join(
-              os.getcwd(), 'internal', 'browserBenchmarks', 'V8vDart',
-              'V8vDart_page_%s.html' % version)
-          self.test.test_runner.RunCmd(
-              ['python', os.path.join('tools', 'testing', 'run_selenium.py'),
-              '--out', '"file:///%s"' % file_path, '--browser', browser,
-              '--timeout', '600', '--mode', 'perf'], self.test.trace_file,
-              append=True)
-
-  class CommonBrowserFileProcessor(Processor):
-
-    def ProcessFile(self, afile, should_post_file):
-      """Comb through the html to find the performance results.
-      Returns: True if we successfully posted our data to storage and/or we can
-          delete the trace file."""
-      os.chdir(os.path.join(TOP_LEVEL_DIR, 'tools',
-                            'testing', 'perf_testing'))
-      parts = afile.split('-')
-      browser = parts[2]
-      version = parts[3]
-      f = self.OpenTraceFile(afile, should_post_file)
-      lines = f.readlines()
-      line = ''
-      i = 0
-      revision_num = 0
-      while '<div id="results">' not in line and i < len(lines):
-        if 'Revision' in line:
-          revision_num = int(line.split()[1].strip('"'))
-        line = lines[i]
-        i += 1
-
-      if i >= len(lines) or revision_num == 0:
-        # Then this run did not complete. Ignore this tracefile.
-        return True
-
-      line = lines[i]
-      i += 1
-      results = []
-      if line.find('<br>') > -1:
-        results = line.split('<br>')
-      else:
-        results = line.split('<br />')
-      if results == []:
-        return True
-      upload_success = True
-      for result in results:
-        name_and_score = result.split(':')
-        if len(name_and_score) < 2:
-          break
-        name = name_and_score[0].strip()
-        score = name_and_score[1].strip()
-        if version == 'js' or version == 'v8':
-          version = 'js'
-        bench_dict = self.test.values_dict[browser][version]
-        bench_dict[name] += [float(score)]
-        self.test.revision_dict[browser][version][name] += [revision_num]
-        if not self.test.test_runner.no_upload and should_post_file:
-          upload_success = upload_success and self.ReportResults(
-              name, score, browser, version, revision_num,
-              self.GetScoreType(name))
-        else:
-          upload_success = False
-
-      f.close()
-      self.CalculateGeometricMean(browser, version, revision_num)
-      return upload_success
-
-
 class DromaeoTester(Tester):
   DROMAEO_BENCHMARKS = {
       'attr': ('attributes', [
@@ -823,79 +713,6 @@ class DromaeoTest(RuntimePerformanceTest):
     return 'dromaeo'
 
   class DromaeoPerfTester(DromaeoTester):
-    def MoveChromeDriverIfNeeded(self, browser):
-      """Move the appropriate version of ChromeDriver onto the path.
-      TODO(efortuna): This is a total hack because the latest version of Chrome
-      (Dartium builds) requires a different version of ChromeDriver, that is
-      incompatible with the release or beta Chrome and vice versa. Remove these
-      shenanigans once we're back to both versions of Chrome using the same
-      version of ChromeDriver. IMPORTANT NOTE: This assumes your chromedriver is
-      in the default location (inside depot_tools).
-
-      Returns: True if we were successfully able to download a new version of
-      chromedriver and/or move the correct chromedriver into position.
-      """
-      current_dir = os.getcwd()
-      self.test.test_runner.GetArchive('chromedriver')
-      path = os.environ['PATH'].split(os.pathsep)
-      orig_chromedriver_path = os.path.join(DART_REPO_LOC, 'tools', 'testing',
-                                            'orig-chromedriver')
-      dartium_chromedriver_path = os.path.join(DART_REPO_LOC, 'tools',
-                                               'testing',
-                                               'dartium-chromedriver')
-      extension = ''
-      if platform.system() == 'Windows':
-        extension = '.exe'
-
-      def MoveChromedriver(depot_tools, copy_to_depot_tools_dir=True,
-                            from_path=None):
-        if from_path:
-          from_dir = from_path + extension
-        else:
-          from_dir =  os.path.join(orig_chromedriver_path,
-                                   'chromedriver' + extension)
-        to_dir = os.path.join(depot_tools, 'chromedriver' + extension)
-        if not copy_to_depot_tools_dir:
-          tmp = to_dir
-          to_dir = from_dir
-          from_dir = tmp
-        print >> sys.stderr, from_dir
-        print >> sys.stderr, to_dir
-        if not os.path.exists(os.path.dirname(to_dir)):
-          os.makedirs(os.path.dirname(to_dir))
-        if not os.path.exists(os.path.dirname(from_dir)):
-          os.makedirs(os.path.dirname(from_dir))
-        shutil.copyfile(from_dir, to_dir)
-
-      for loc in path:
-        if 'depot_tools' in loc:
-          if browser == 'chrome':
-            if os.path.exists(orig_chromedriver_path):
-              MoveChromedriver(loc)
-          elif browser == 'dartium':
-            if (int(self.test.test_runner.current_revision_num) <
-                FIRST_CHROMEDRIVER):
-              # If we don't have a stashed different chromedriver just use
-              # the regular chromedriver.
-              if not os.path.exists(os.path.dirname(orig_chromedriver_path)):
-                os.makedirs(os.path.dirname(orig_chromedriver_path))
-              self.test.test_runner.RunCmd([os.path.join(
-                  TOP_LEVEL_DIR, 'tools', 'testing', 'webdriver_test_setup.py'),
-                  '-f', '-p', '-s'])
-            elif not os.path.exists(dartium_chromedriver_path):
-              success, _, _ = self.test.test_runner.GetArchive('chromedriver')
-              if not success:
-                return False
-            # Move original chromedriver for storage.
-            if not os.path.exists(orig_chromedriver_path):
-              MoveChromedriver(loc, copy_to_depot_tools_dir=False)
-            if self.test.test_runner.current_revision_num >= FIRST_CHROMEDRIVER:
-              # Copy Dartium chromedriver into depot_tools
-              MoveChromedriver(loc, from_path=os.path.join(
-                                dartium_chromedriver_path, 'chromedriver'))
-      os.chdir(current_dir)
-      return True
-
     def RunTests(self):
       """Run dromaeo in the browser."""
       success, _, _ = self.test.test_runner.GetArchive('dartium')
@@ -907,21 +724,14 @@ class DromaeoTest(RuntimePerformanceTest):
       dromaeo_path = os.path.join('samples', 'third_party', 'dromaeo')
       current_path = os.getcwd()
       os.chdir(dromaeo_path)
-      if os.path.exists('generate_dart2js_tests.py'):
-        stdout, _ = self.test.test_runner.RunCmd(
-            ['python', 'generate_dart2js_tests.py'])
-      else:
-        stdout, _ = self.test.test_runner.RunCmd(
-            ['python', 'generate_frog_tests.py'])
+      stdout, _ = self.test.test_runner.RunCmd(
+          ['python', 'generate_perf_and_dart2js_tests.py'])
       os.chdir(current_path)
       if 'Error: Compilation failed' in stdout:
         return
       versions = DromaeoTester.GetDromaeoVersions()
 
       for browser in BrowserTester.GetBrowsers():
-        success = self.MoveChromeDriverIfNeeded(browser)
-        if not success:
-          return
         for version_name in versions:
           if not self.test.IsValidCombination(browser, version_name):
             continue
@@ -931,21 +741,33 @@ class DromaeoTest(RuntimePerformanceTest):
               'tools', 'testing', 'perf_testing', self.test.result_folder_name,
               'dromaeo-%s-%s-%s' % (self.test.cur_time, browser, version_name))
           self.AddSvnRevisionToTrace(self.test.trace_file, browser)
-          file_path = os.path.join(os.getcwd(), dromaeo_path,
-              'index%s.html?%s' % (
-              '' if version_name == 'dart_html' else '-js', version))
+          url_path = '/'.join(['/root_dart', dromaeo_path, 'index%s.html?%s'% (
+              '-dart' if version_name == 'dart_html' else '-js',
+              version)])
+
+          # TODO(efortuna): Make this a separate function. We should do this
+          # once per cycle.
+          os.chdir(os.path.join(DART_REPO_LOC, 'tools', 'testing', 'dart',
+              'browser_perf_testing'))
+          self.test.test_runner.RunCmd([os.path.join(DART_REPO_LOC,
+              utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32'),
+              'dart-sdk', 'bin', 'pub'), 'install'])
+          os.chdir(current_path)
+
           self.test.test_runner.RunCmd(
-              ['python', os.path.join('tools', 'testing', 'run_selenium.py'),
-               '--out', '"file:///%s"' % file_path, '--browser', browser,
-               '--timeout', '900', '--mode', 'dromaeo'], self.test.trace_file,
+              [os.path.join(utils.GetBuildRoot(
+               utils.GuessOS(), 'release', 'ia32'), 'dart-sdk', 'bin', 'dart'),
+               '--package-root=%s' % os.path.join(DART_REPO_LOC, 'tools',
+               'testing', 'dart', 'browser_perf_testing', 'packages'),
+               os.path.join('tools', 'testing', 'dart', 'browser_perf_testing',
+               'lib', 'browser_perf_testing.dart'),
+               '--browser', browser, '--termination_test_file',
+               '/root_dart/samples/third_party/dromaeo/dromaeo_end_condition.'
+               'js', '--test_path', url_path], self.test.trace_file,
                append=True)
-      # Put default Chromedriver back in.
-      self.MoveChromeDriverIfNeeded('chrome')
 
     @staticmethod
     def GetDromaeoUrlQuery(browser, version):
-      if browser == 'dartium':
-        version = version.replace('frog', 'dart')
       version = version.replace('_','AND')
       tags = DromaeoTester.GetValidDromaeoTags()
       return 'OR'.join([ '%sAND%s' % (version, tag) for tag in tags])
@@ -1002,7 +824,7 @@ class DromaeoTest(RuntimePerformanceTest):
 class TestBuilder(object):
   """Construct the desired test object."""
   available_suites = dict((suite.Name(), suite) for suite in [
-      CommonBrowserTest, DromaeoTest])
+      DromaeoTest])
 
   @staticmethod
   def MakeTest(test_name, test_runner):

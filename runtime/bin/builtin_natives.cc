@@ -113,7 +113,9 @@ void FUNCTION_NAME(Logger_PrintString)(Dart_NativeArguments args) {
     // interrupt.
     fprintf(stdout, "%s\n", Dart_GetError(result));
   } else {
-    fprintf(stdout, "%.*s\n", static_cast<int>(length), chars);
+    // Uses fwrite to support printing NUL bytes.
+    fwrite(chars, 1, length, stdout);
+    fputs("\n", stdout);
   }
   fflush(stdout);
 }

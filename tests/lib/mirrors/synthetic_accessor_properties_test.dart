@@ -67,39 +67,4 @@ main() {
 
   mm = cm.staticMembers[const Symbol('finalStaticField=')];
   Expect.isNull(mm);
-
-
-  mm = lm.topLevelMembers[#topLevelField];
-  expect('Method(s(topLevelField) in s(test.synthetic_accessor_properties),'
-         ' top-level, synthetic, static, getter)', mm);
-  Expect.equals(reflectClass(String), mm.returnType);
-  Expect.listEquals([], mm.parameters);
-
-  mm = lm.topLevelMembers[const Symbol('topLevelField=')];
-  expect('Method(s(topLevelField=) in s(test.synthetic_accessor_properties),'
-         ' top-level, synthetic, static, setter)', mm);
-  Expect.equals(reflectClass(String), mm.returnType);
-  pm = mm.parameters.single;
-  expect('Parameter(s(topLevelField) in s(topLevelField=), final,'
-         ' type = Class(s(String) in s(dart.core), top-level))', pm);
-
-  mm = lm.topLevelMembers[#finalTopLevelField];
-  expect('Method(s(finalTopLevelField) in s(test.synthetic_accessor_properties)'
-         ', top-level, synthetic, static, getter)', mm);
-  Expect.equals(reflectClass(double), mm.returnType);
-  Expect.listEquals([], mm.parameters);
-
-  mm = lm.topLevelMembers[const Symbol('finalTopLevelField=')];
-  Expect.isNull(mm);
-
-  return;  /// 01: ok
-
-  mm = lm.topLevelMembers[#C];
-  expect('Method(s(C) in s(test.synthetic_accessor_properties),'
-         ' top-level, synthetic, static, getter)', mm);
-  Expect.equals(reflectClass(Type), mm.returnType);
-  Expect.listEquals([], mm.parameters);
-
-  mm = lm.topLevelMembers[const Symbol('C=')];
-  Expect.isNull(mm);
 }

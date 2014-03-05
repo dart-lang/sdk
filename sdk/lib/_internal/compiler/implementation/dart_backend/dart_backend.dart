@@ -24,4 +24,3 @@ part 'backend.dart';
 part 'emitter.dart';
 part 'renamer.dart';
 part 'placeholder_collector.dart';
-part 'utils.dart';

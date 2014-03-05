@@ -487,6 +487,10 @@ abstract class Enqueuer {
     registerInvokedSetter(selector);
   }
 
+  void registerGetterForSuperMethod(Element element) {
+    universe.methodsNeedingSuperGetter.add(element);
+  }
+
   void registerFieldGetter(Element element) {
     universe.fieldGetters.add(element);
   }

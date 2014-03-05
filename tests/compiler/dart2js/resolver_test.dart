@@ -72,6 +72,7 @@ main() {
   testInitializers();
   testThis();
   testSuperCalls();
+  testSwitch();
   testTypeVariables();
   testToString();
   testIndexedOperator();
@@ -201,6 +202,25 @@ testSuperCalls() {
   FunctionElement called = mapping[superCall];
   Expect.isNotNull(called);
   Expect.equals(fooA, called);
+}
+
+testSwitch() {
+  MockCompiler compiler = new MockCompiler();
+  compiler.parseScript("class Foo { foo() {"
+      "switch (null) { case '': break; case 2: break; } } }");
+  compiler.resolveStatement("Foo foo;");
+  ClassElement fooElement = compiler.mainApp.find("Foo");
+  FunctionElement funElement = fooElement.lookupLocalMember("foo");
+  compiler.processQueue(compiler.enqueuer.resolution, funElement);
+  Expect.equals(0, compiler.warnings.length);
+  Expect.equals(1, compiler.errors.length);
+  Expect.equals(MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL,
+                compiler.errors[0].message.kind);
+  Expect.equals(2, compiler.infos.length);
+  Expect.equals(MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
+                compiler.infos[0].message.kind);
+  Expect.equals(MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
+                compiler.infos[1].message.kind);
 }
 
 testThis() {

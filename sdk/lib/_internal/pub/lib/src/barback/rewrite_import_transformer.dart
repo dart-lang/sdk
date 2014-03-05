@@ -40,7 +40,7 @@ class RewriteImportTransformer extends Transformer {
 }
 
 /// A simple visitor that collects import and export nodes.
-class _DirectiveCollector extends GeneralizingASTVisitor {
+class _DirectiveCollector extends GeneralizingAstVisitor {
   final directives = <UriBasedDirective>[];
 
   visitUriBasedDirective(UriBasedDirective node) => directives.add(node);

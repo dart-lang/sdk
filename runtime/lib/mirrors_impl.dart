@@ -475,6 +475,15 @@ class _LocalClosureMirror extends _LocalInstanceMirror
     return _function;
   }
 
+  // TODO(12602): Remove this special case.
+  delegate(Invocation invocation) {
+    if (invocation.isMethod && (invocation.memberName == #call)) {
+      return this.apply(invocation.positionalArguments,
+                        invocation.namedArguments).reflectee;
+    }
+    return super.delegate(invocation);
+  }
+
   InstanceMirror apply(List<Object> positionalArguments,
                        [Map<Symbol, Object> namedArguments]) {
     // TODO(12602): When closures get an ordinary call method, this can be
@@ -1054,7 +1063,9 @@ class _LocalTypeVariableMirror extends _LocalDeclarationMirror
   }
 
   bool get hasReflectedType => false;
-  Type get reflectedType => throw new UnsupportedError();
+  Type get reflectedType {
+    throw new UnsupportedError('Type variables have no reflected type');
+  }
   Type get _reflectedType => _reflectee;
 
   List<TypeVariableMirror> get typeVariables => emptyList;
@@ -1129,6 +1140,15 @@ class _LocalTypedefMirror extends _LocalDeclarationMirror
       _referent._instantiator = _reflectedType;
     }
     return _referent;
+  }
+
+  bool get hasReflectedType => !_isGenericDeclaration;
+  Type get reflectedType {
+    if (!hasReflectedType) {
+      throw new UnsupportedError(
+          "Declarations of generics have no reflected type");
+    }
+    return _reflectedType;
   }
 
   bool get isOriginalDeclaration => !_isGeneric || _isGenericDeclaration;
@@ -1228,33 +1248,6 @@ class _LocalLibraryMirror extends _LocalObjectMirror implements LibraryMirror {
     return _declarations =
         new _UnmodifiableMapView<Symbol, DeclarationMirror>(_members);
   }
-
-
-  var _cachedTopLevelMembers;
-  Map<Symbol, MethodMirror> get topLevelMembers {
-    if (_cachedTopLevelMembers == null) {
-      var result = new Map<Symbol, MethodMirror>();
-      declarations.values.forEach((decl) {
-        if (decl is MethodMirror) {
-          result[decl.simpleName] = decl;
-        }
-        if (decl is VariableMirror) {
-          var getterName = decl.simpleName;
-          result[getterName] =
-              new _SyntheticAccessor(this, getterName, true, true, true, decl);
-          if (!decl.isFinal) {
-            var setterName = _asSetter(decl.simpleName, this);
-            result[setterName] = new _SyntheticAccessor(
-                this, setterName, false, true, true, decl);
-          }
-        }
-      });
-      _cachedTopLevelMembers =
-          new _UnmodifiableMapView<Symbol, MethodMirror>(result);
-    }
-    return _cachedTopLevelMembers;
-  }
-
 
   Map<Symbol, Mirror> _cachedMembers;
   Map<Symbol, Mirror> get _members {
@@ -1564,6 +1557,12 @@ class _SpecialTypeMirror extends _LocalMirror
   DeclarationMirror get owner => null;
 
   List<InstanceMirror> get metadata => emptyList;
+
+  bool get hasReflectedType => simpleName == #dynamic;
+  Type get reflectedType {
+    if (simpleName == #dynamic) return dynamic;
+    throw new UnsupportedError("void has no reflected type");
+  }
 
   List<TypeVariableMirror> get typeVariables => emptyList;
   List<TypeMirror> get typeArguments => emptyList;

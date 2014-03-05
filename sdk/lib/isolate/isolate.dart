@@ -36,6 +36,9 @@ class Isolate {
    * to the control port.
    */
   final SendPort controlPort;
+  /**
+   * Capability granting the ability to pause the isolate.
+   */
   final Capability pauseCapability;
 
   Isolate._fromControlPort(this.controlPort, [this.pauseCapability]);
@@ -87,24 +90,27 @@ class Isolate {
   /**
    * Requests the isolate to pause.
    *
+   * WARNING: This method is experimental and not handled on every platform yet.
+   *
    * The isolate should stop handling events by pausing its event queue.
    * The request will eventually make the isolate stop doing anything.
-   * It will be handled before any other messages sent to the isolate from
-   * the current isolate, but no other guarantees are provided.
+   * It will be handled before any other messages that are later sent to the
+   * isolate from the current isolate, but no other guarantees are provided.
+   *
+   * The event loop may be paused before previously sent, but not yet exeuted,
+   * messages have been reached.
    *
    * If [resumeCapability] is provided, it is used to identity the pause,
    * and must be used again to end the pause using [resume].
-   * Otherwise a new capability is created and returned.
+   * Otherwise a new resume capability is created and returned.
    *
-   * If an isolate is paused more than once using the same capabilty,
+   * If an isolate is paused more than once using the same capability,
    * only one resume with that capability is needed to end the pause.
    *
    * If an isolate is paused using more than one capability,
    * they must all be individully ended before the isolate resumes.
    *
    * Returns the capability that must be used to resume end the pause.
-   *
-   * WARNING: This method is not handled on any platform yet.
    */
   Capability pause([Capability resumeCapability]) {
     if (resumeCapability == null) resumeCapability = new Capability();
@@ -119,18 +125,61 @@ class Isolate {
   /**
    * Resumes a paused isolate.
    *
+   * WARNING: This method is experimental and not handled on every platform yet.
+   *
    * Sends a message to an isolate requesting that it ends a pause
    * that was requested using the [resumeCapability].
    *
+   * When all active pause requests have been cancelled, the isolate
+   * will continue handling normal messages.
+   *
    * The capability must be one returned by a call to [pause] on this
    * isolate, otherwise the resume call does nothing.
-   *
-   * WARNING: This method is not handled on any platform yet.
    */
   void resume(Capability resumeCapability) {
     var message = new List(2)
         ..[0] = "resume"
         ..[1] = resumeCapability;
+    controlPort.send(message);
+  }
+
+  /**
+   * Asks the isolate to send a message on [responsePort] when it terminates.
+   *
+   * WARNING: This method is experimental and not handled on every platform yet.
+   *
+   * The isolate will send a `null` message on [responsePort] as the last
+   * thing before it terminates. It will run no further code after the message
+   * has been sent.
+   *
+   * If the isolate is already dead, no message will be sent.
+   * TODO(lrn): Can we do better? Can the system recognize this message and
+   * send a reply if the receiving isolate is dead?
+   */
+  void addOnExitListener(SendPort responsePort) {
+    // TODO(lrn): Can we have an internal method that checks if the receiving
+    // isolate of a SendPort is still alive?
+    var message = new List(2)
+        ..[0] = "add-ondone"
+        ..[1] = responsePort;
+    controlPort.send(message);
+  }
+
+  /**
+   * Stop listening on exit messages from the isolate.
+   *
+   * WARNING: This method is experimental and not handled on every platform yet.
+   *
+   * If a call has previously been made to [addOnExitListener] with the same
+   * send-port, this will unregister the port, and it will no longer receive
+   * a message when the isolate terminates.
+   * A response may still be sent until this operation is fully processed by
+   * the isolate.
+   */
+  void removeOnExitListener(SendPort responsePort) {
+    var message = new List(2)
+        ..[0] = "remove-ondone"
+        ..[1] = responsePort;
     controlPort.send(message);
   }
 }

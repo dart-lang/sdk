@@ -5,6 +5,6 @@
 /// Tools for working with resolved ASTs from Barback transformers.
 library code_transformers.resolver;
 
-export 'src/resolver_transformer.dart';
+export 'src/resolvers.dart';
 export 'src/resolver.dart';
 export 'src/dart_sdk.dart';

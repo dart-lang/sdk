@@ -38,13 +38,15 @@ class ServiceRefElement extends ObservatoryElement {
 
   String get name {
     if (ref == null) {
-      return '';
+      return 'NULL REF';
     }
     String name_key = internal ? 'name' : 'user_name';
     if (ref[name_key] != null) {
       return ref[name_key];
     } else if (ref['name'] != null) {
       return ref['name'];
+    } else if (ref['user_name'] != null) {
+      return ref['user_name'];
     }
     return '';
   }

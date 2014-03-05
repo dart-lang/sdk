@@ -6,7 +6,7 @@ library test_utils;
 
 import 'package:unittest/unittest.dart';
 
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext, AnalysisContextImpl;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -162,7 +162,7 @@ class _TestSource implements Source {
 
   AnalysisContext get context => _unsupported();
 
-  void getContents(Source_ContentReceiver receiver) => _unsupported();
+  void getContentsToReceiver(Source_ContentReceiver receiver) => _unsupported();
 
   String get fullName => _unsupported();
 
@@ -182,6 +182,7 @@ class _TestSource implements Source {
 
   Source resolveRelative(Uri uri) => _unsupported();
 
+  TimestampedData<String> get contents => _unsupported();
 }
 
 

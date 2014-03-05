@@ -8,10 +8,7 @@ import 'dart:async';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_io.dart';
-import 'package:analyzer/src/generated/parser.dart' show Parser;
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:analyzer/src/generated/source.dart';
@@ -46,6 +43,12 @@ class ResolverImpl implements Resolver {
   /// The currently resolved library, or null if unresolved.
   LibraryElement _entryLibrary;
 
+  /// Future indicating when this resolver is done in the current phase.
+  Future _lastPhaseComplete = new Future.value();
+
+  /// Completer for wrapping up the current phase.
+  Completer _currentPhaseComplete;
+
   /// Handler for all Dart SDK (dart:) sources.
   DirectoryBasedDartSdk _dartSdk;
 
@@ -66,26 +69,43 @@ class ResolverImpl implements Resolver {
     _dartSdk = new _DirectoryBasedDartSdkProxy(new JavaFile(sdkDir));
     _dartSdk.context.analysisOptions = options;
 
-    _context.sourceFactory = new SourceFactory.con2([
+    _context.sourceFactory = new SourceFactory([
         new DartUriResolverProxy(_dartSdk),
         new _AssetUriResolver(this)]);
   }
 
   LibraryElement get entryLibrary => _entryLibrary;
 
+  Future<Resolver> resolve(Transform transform) {
+    // Can only have one resolve in progress at a time, so chain the current
+    // resolution to be after the last one.
+    var phaseComplete = new Completer();
+    var future = _lastPhaseComplete.then((_) {
+      _currentPhaseComplete = phaseComplete;
 
-  /// Update the status of all the sources referenced by the entryPoint and
-  /// update the resolved library.
-  ///
-  /// This will be invoked automatically by [ResolverTransformer]. Only one
-  /// transformer may update this at a time.
-  Future updateSources(Transform transform) {
+      return _performResolve(transform);
+    }).then((_) => this);
+    // Advance the lastPhaseComplete to be done when this phase is all done.
+    _lastPhaseComplete = phaseComplete.future;
+    return future;
+  }
+
+  void release() {
+    if (_currentPhaseComplete == null) {
+      throw new StateError('Releasing without current lock.');
+    }
+    _currentPhaseComplete.complete(null);
+    _currentPhaseComplete = null;
+
+    // Clear out the entry lib since it should not be referenced after release.
+    _entryLibrary = null;
+  }
+
+  Future _performResolve(Transform transform) {
     if (_currentTransform != null) {
       throw new StateError('Cannot be accessed by concurrent transforms');
     }
     _currentTransform = transform;
-    // Clear this out and update once all asset changes have been processed.
-    _entryLibrary = null;
 
     // Basic approach is to start at the first file, update it's contents
     // and see if it changed, then walk all files accessed by it.
@@ -221,7 +241,7 @@ class ResolverImpl implements Resolver {
     var sourceFile = _getSourceFile(element);
     if (sourceFile == null) return null;
 
-    return new TextEditTransaction(source.contents, sourceFile);
+    return new TextEditTransaction(source.rawContents, sourceFile);
   }
 
   /// Gets the SourceFile for the source of the element.
@@ -231,7 +251,7 @@ class ResolverImpl implements Resolver {
 
     var importUri = _getSourceUri(element, from: entryPoint);
     var spanPath = importUri != null ? importUri.toString() : assetId.path;
-    return new SourceFile.text(spanPath, sources[assetId].contents);
+    return new SourceFile.text(spanPath, sources[assetId].rawContents);
   }
 }
 
@@ -283,7 +303,11 @@ class _AssetBasedSource extends Source {
   }
 
   /// Contents of the file.
-  String get contents => _contents;
+  TimestampedData<String> get contents =>
+      new TimestampedData<String>(modificationStamp, _contents);
+
+  /// Contents of the file.
+  String get rawContents => _contents;
 
   /// Logger for the current transform.
   ///
@@ -300,8 +324,8 @@ class _AssetBasedSource extends Source {
 
   int get hashCode => assetId.hashCode;
 
-  void getContents(Source_ContentReceiver receiver) {
-    receiver.accept(contents, modificationStamp);
+  void getContentsToReceiver(Source_ContentReceiver receiver) {
+    receiver.accept(rawContents, modificationStamp);
   }
 
   String get encoding =>
@@ -333,13 +357,13 @@ class _AssetBasedSource extends Source {
   }
 
   /// For logging errors.
-  Span _getSpan(ASTNode node) => _sourceFile.span(node.offset, node.end);
+  Span _getSpan(AstNode node) => _sourceFile.span(node.offset, node.end);
   /// For logging errors.
   SourceFile get _sourceFile {
     var uri = getSourceUri(_resolver.entryPoint);
     var path = uri != null ? uri.toString() : assetId.path;
 
-    return new SourceFile.text(path, contents);
+    return new SourceFile.text(path, rawContents);
   }
 
   /// Gets a URI which would be appropriate for importing this file.
@@ -364,7 +388,7 @@ class _AssetUriResolver implements UriResolver {
   final ResolverImpl _resolver;
   _AssetUriResolver(this._resolver);
 
-  Source resolveAbsolute(ContentCache contentCache, Uri uri) {
+  Source resolveAbsolute(Uri uri) {
     var assetId = _resolve(null, uri.toString(), logger, null);
     var source = _resolver.sources[assetId];
     /// All resolved assets should be available by this point.
@@ -374,7 +398,7 @@ class _AssetUriResolver implements UriResolver {
     return source;
   }
 
-  Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri) =>
+  Source fromEncoding(UriKind kind, Uri uri) =>
       throw new UnsupportedError('fromEncoding is not supported');
 
   Uri restoreAbsolute(Source source) =>
@@ -403,12 +427,12 @@ class DartUriResolverProxy implements DartUriResolver {
   DartUriResolverProxy(DirectoryBasedDartSdk sdk) :
       _proxy = new DartUriResolver(sdk);
 
-  Source resolveAbsolute(ContentCache contentCache, Uri uri) =>
-    _DartSourceProxy.wrap(_proxy.resolveAbsolute(contentCache, uri), uri);
+  Source resolveAbsolute(Uri uri) =>
+    _DartSourceProxy.wrap(_proxy.resolveAbsolute(uri), uri);
 
   DartSdk get dartSdk => _proxy.dartSdk;
 
-  Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri) =>
+  Source fromEncoding(UriKind kind, Uri uri) =>
       throw new UnsupportedError('fromEncoding is not supported');
 
   Uri restoreAbsolute(Source source) =>
@@ -448,9 +472,11 @@ class _DartSourceProxy implements Source {
 
   int get hashCode => _proxy.hashCode;
 
-  void getContents(Source_ContentReceiver receiver) {
-    _proxy.getContents(receiver);
+  void getContentsToReceiver(Source_ContentReceiver receiver) {
+    _proxy.getContentsToReceiver(receiver);
   }
+
+  TimestampedData<String> get contents => _proxy.contents;
 
   String get encoding => _proxy.encoding;
 
@@ -470,6 +496,13 @@ AssetId _resolve(AssetId source, String url, TransformLogger logger,
     Span span) {
   if (url == null || url == '') return null;
   var uri = Uri.parse(url);
+
+  // Workaround for dartbug.com/17156- pub transforms package: imports from
+  // files of the transformers package to have absolute /packages/ URIs.
+  if (uri.scheme == '' && path.isAbsolute(url)
+      && uri.pathSegments[0] == 'packages') {
+    uri = Uri.parse('package:${uri.pathSegments.skip(1).join(path.separator)}');
+  }
 
   if (uri.scheme == 'package') {
     var segments = new List.from(uri.pathSegments);

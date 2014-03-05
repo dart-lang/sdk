@@ -20,6 +20,9 @@ abstract class ForwardingTypeMask implements TypeMask {
 
   bool get isUnion => false;
   bool get isContainer => false;
+  bool get isMap => false;
+  bool get isDictionary => false;
+  bool get isValue => false;
   bool get isForwarding => true;
 
   bool isInMask(TypeMask other, Compiler compiler) {
@@ -98,4 +101,12 @@ abstract class ForwardingTypeMask implements TypeMask {
   }
 
   bool equalsDisregardNull(other);
+
+  bool operator==(other) {
+    return equalsDisregardNull(other) &&
+        isNullable == other.isNullable &&
+        forwardTo == other.forwardTo;
+  }
+
+  int get hashCode => throw "Subclass should implement hashCode getter";
 }

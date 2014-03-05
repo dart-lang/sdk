@@ -64,10 +64,17 @@ DECLARE_DEBUG_FLAG(bool, trace_handles);
 
 class HandleVisitor {
  public:
-  virtual void VisitHandle(uword addr) = 0;
+  explicit HandleVisitor(Isolate* isolate) : isolate_(isolate) {}
+  virtual ~HandleVisitor() {}
 
-  virtual ~HandleVisitor() {
-  }
+  Isolate* isolate() const { return isolate_; }
+
+  virtual void VisitHandle(uword addr, bool is_prologue_weak) = 0;
+
+ private:
+  Isolate* isolate_;
+
+  DISALLOW_IMPLICIT_CONSTRUCTORS(HandleVisitor);
 };
 
 
@@ -97,7 +104,7 @@ class Handles {
   void VisitUnvisitedScopedHandles(ObjectPointerVisitor* visitor);
 
   // Visit all of the various handles.
-  void Visit(HandleVisitor* visitor);
+  void Visit(HandleVisitor* visitor, bool is_prologue_weak);
 
   // Reset the handles so that we can reuse.
   void Reset();
@@ -172,7 +179,7 @@ class Handles {
     void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
     // Visit all of the handles in the handle block.
-    void Visit(HandleVisitor* visitor);
+    void Visit(HandleVisitor* visitor, bool is_prologue_weak);
 
 #if defined(DEBUG)
     // Zaps the free handle area to an uninitialized value.

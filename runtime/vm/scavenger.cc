@@ -271,15 +271,19 @@ class ScavengerVisitor : public ObjectPointerVisitor {
 
 class ScavengerWeakVisitor : public HandleVisitor {
  public:
-  explicit ScavengerWeakVisitor(Scavenger* scavenger) : scavenger_(scavenger) {
+  explicit ScavengerWeakVisitor(Scavenger* scavenger)
+      :  HandleVisitor(Isolate::Current()),
+         scavenger_(scavenger) {
   }
 
-  void VisitHandle(uword addr) {
+  void VisitHandle(uword addr, bool is_prologue_weak) {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
     RawObject** p = handle->raw_addr();
     if (scavenger_->IsUnreachable(p)) {
-      FinalizablePersistentHandle::Finalize(handle);
+      FinalizablePersistentHandle::Finalize(isolate(),
+                                            handle,
+                                            is_prologue_weak);
     }
   }
 

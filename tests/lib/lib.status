@@ -17,7 +17,8 @@ mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
 
 [ $csp ]
 mirrors/delegate_test: RuntimeError # Issue 13864
-async/deferred/deferred_in_isolate_test: RuntimeError #  Issue 16898
+async/deferred/deferred_in_isolate_test: RuntimeError # Issue 16898
+mirrors/deferred_mirrors_metadata_test: Fail # Issue 16898
 
 [ $compiler == dart2js && $checked && $runtime == drt && $nocsp ]
 async/stream_transform_test: RuntimeError # Issue 16719
@@ -35,6 +36,7 @@ mirrors/class_declarations_test/none: RuntimeError # Issue 13440
 mirrors/constructor_kinds_test: RuntimeError # Issue 13799
 mirrors/constructor_private_name_test: CompileTimeError # Issue 13597
 mirrors/delegate_call_through_getter_test: RuntimeError # Issue 15138
+mirrors/delegate_function_invocation_test: RuntimeError # Issue 6490
 mirrors/equality_test/02: RuntimeError # Issue 12785
 mirrors/fake_function_with_call_test: RuntimeError # Issue 11612
 mirrors/fake_function_without_call_test: RuntimeError # Issue 11612
@@ -84,17 +86,19 @@ mirrors/private_symbol_test: CompileTimeError # Issue 13597
 mirrors/proxy_type_test: RuntimeError # Issue 13842
 mirrors/redirecting_factory_test/none: RuntimeError # Issue 6490
 mirrors/redirecting_factory_test/02: RuntimeError # Issue 6490
+mirrors/reflected_type_function_type_test: RuntimeError # Issue 12607
+mirrors/reflected_type_special_types_test: RuntimeError # Issue 12607
+mirrors/reflected_type_typedefs_test: RuntimeError # Issue 12607
+mirrors/reflected_type_typevars_test: RuntimeError # Issue 12607
 mirrors/relation_assignable_test: RuntimeError # Issue 6490
 mirrors/relation_subtype_test: RuntimeError # Issue 6490
-mirrors/relation_subclass_test: RuntimeError # Issue 6490
 mirrors/repeated_private_anon_mixin_app_test: RuntimeError # Issue 14670
-mirrors/symbol_validation_test/none: RuntimeError # Issue 13597
+mirrors/symbol_validation_test/01: RuntimeError # Issue 13597
 mirrors/static_members_test: RuntimeError # Issue 14633, Issue 12164
-mirrors/synthetic_accessor_properties_test: RuntimeError # Issue 14633
-mirrors/toplevel_members_test: RuntimeError # Issue 14633, Issue 12164
 mirrors/typedef_test/none: RuntimeError # http://dartbug.com/6490
 mirrors/typedef_metadata_test: RuntimeError # Issue 12785
 mirrors/typevariable_mirror_metadata_test: CompileTimeError # Issue 10905
+mirrors/type_variable_is_static_test: RuntimeError # Issue 6335
 mirrors/type_variable_owner_test/01: RuntimeError # Issue 12785
 mirrors/variable_is_const_test/none: RuntimeError # Issue 14671
 mirrors/variable_is_const_test/01: MissingCompileTimeError # Issue 5519
@@ -209,6 +213,7 @@ typed_data/*: Fail # Issue 11971
 convert/chunked_conversion_utf88_test: Pass, Slow, Timeout  # Issue 12029
 convert/streamed_conversion_json_utf8_decode_test: Pass, Timeout # Issue 12029
 async/deferred/*: Pass, Fail, Timeout # http://dartbug.com/12635
+mirrors/deferred*: Pass, Fail # http://dartbug.com/12635
 convert/streamed_conversion_utf8_decode_test: Pass, Timeout # http://dartbug.com/12768
 convert/utf85_test: Skip # Issue 12029.
 convert/json_util_test: Fail # Issue 16109
@@ -237,8 +242,6 @@ mirrors/typedef_test/01: Fail, OK # Incorrect dart2js behavior.
 
 mirrors/generic_local_function_test: RuntimeError # Issue 14913
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
-mirrors/synthetic_accessor_properties_test/none: RuntimeError # Issue 14632
-mirrors/toplevel_members_test/01: RuntimeError # Issue 14632
 
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
 

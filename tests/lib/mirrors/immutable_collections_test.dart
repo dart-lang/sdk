@@ -69,11 +69,9 @@ checkDeclaration(DeclarationMirror dm) {
 
 checkLibrary(LibraryMirror lm) {
   checkMap(lm.declarations, 'LibraryMirror.declarations');
-  checkMap(lm.topLevelMembers, 'LibraryMirror.topLevelMembers');
   checkList(lm.metadata, 'LibraryMirror.metadata');
 
   lm.declarations.values.forEach(checkDeclaration);
-  lm.topLevelMembers.values.forEach(checkDeclaration);
 }
 
 main() {

@@ -742,7 +742,10 @@ class Class : public Object {
       return raw_ptr()->type_parameters_;
   }
   void set_type_parameters(const TypeArguments& value) const;
-  intptr_t NumTypeParameters() const;
+  intptr_t NumTypeParameters(Isolate* isolate) const;
+  intptr_t NumTypeParameters() const {
+    return NumTypeParameters(Isolate::Current());
+  }
   static intptr_t type_parameters_offset() {
     return OFFSET_OF(RawClass, type_parameters_);
   }
@@ -1480,6 +1483,7 @@ class Function : public Object {
 
   // Sets function's code and code's function.
   void SetCode(const Code& value) const;
+  void  ClearCode() const;
 
   // Disables optimized code and switches to unoptimized code.
   void SwitchToUnoptimizedCode() const;
@@ -2345,7 +2349,9 @@ class TokenStream : public Object {
   void SetPrivateKey(const String& value) const;
 
   static RawTokenStream* New();
-  static void DataFinalizer(Dart_WeakPersistentHandle handle, void *peer);
+  static void DataFinalizer(Dart_Isolate isolate,
+                            Dart_WeakPersistentHandle handle,
+                            void *peer);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TokenStream, Object);
   friend class Class;
@@ -3276,11 +3282,22 @@ class Code : public Object {
   }
 
   RawFunction* function() const {
-    return raw_ptr()->function_;
+    return reinterpret_cast<RawFunction*>(raw_ptr()->owner_);
   }
-  void set_function(const Function& function) const {
+
+  RawObject* owner() const {
+    return raw_ptr()->owner_;
+  }
+
+  void set_owner(const Function& function) const {
     ASSERT(function.IsOld());
-    StorePointer(&raw_ptr()->function_, function.raw());
+    StorePointer(&raw_ptr()->owner_,
+                 reinterpret_cast<RawObject*>(function.raw()));
+  }
+
+  void set_owner(const Class& cls) {
+    ASSERT(cls.IsOld());
+    StorePointer(&raw_ptr()->owner_, reinterpret_cast<RawObject*>(cls.raw()));
   }
 
   // We would have a VisitPointers function here to traverse all the
@@ -3305,6 +3322,7 @@ class Code : public Object {
                                Assembler* assembler,
                                bool optimized = false);
   static RawCode* LookupCode(uword pc);
+  static RawCode* LookupCodeInVmIsolate(uword pc);
 
   int32_t GetPointerOffsetAt(int index) const {
     return *PointerOffsetAddrAt(index);
@@ -3330,6 +3348,9 @@ class Code : public Object {
 
   // Returns an array indexed by deopt id, containing the extracted ICData.
   RawArray* ExtractTypeFeedbackArray() const;
+
+  RawString* Name() const;
+  RawString* UserName() const;
 
  private:
   void set_state_bits(intptr_t bits) const;
@@ -3383,6 +3404,7 @@ class Code : public Object {
   }
 
   intptr_t BinarySearchInSCallTable(uword pc) const;
+  static RawCode* LookupCodeInIsolate(Isolate* isolate, uword pc);
 
   // New is a private method as RawInstruction and RawCode objects should
   // only be created using the Code::FinalizeCode method. This method creates
@@ -4044,6 +4066,7 @@ class Instance : public Object {
   friend class SnapshotWriter;
   friend class StubCode;
   friend class TypedDataView;
+  friend class DeferredObject;
 };
 
 
@@ -4937,6 +4960,7 @@ class String : public Instance {
           ch_(0),
           index_(-1),
           end_(str.Length()) {
+      ASSERT(!str_.IsNull());
     }
 
     CodePointIterator(const String& str, intptr_t start, intptr_t length)
@@ -5270,7 +5294,9 @@ class OneByteString : public AllStatic {
                       void* peer,
                       Dart_PeerFinalizer cback);
 
-  static void Finalize(Dart_WeakPersistentHandle handle, void* peer);
+  static void Finalize(Dart_Isolate isolate,
+                       Dart_WeakPersistentHandle handle,
+                       void* peer);
 
   static const ClassId kClassId = kOneByteStringCid;
 
@@ -5361,7 +5387,9 @@ class TwoByteString : public AllStatic {
                       void* peer,
                       Dart_PeerFinalizer cback);
 
-  static void Finalize(Dart_WeakPersistentHandle handle, void* peer);
+  static void Finalize(Dart_Isolate isolate,
+                       Dart_WeakPersistentHandle handle,
+                       void* peer);
 
   static RawTwoByteString* null() {
     return reinterpret_cast<RawTwoByteString*>(Object::null());
@@ -5454,7 +5482,9 @@ class ExternalOneByteString : public AllStatic {
     raw_ptr(str)->external_data_ = data;
   }
 
-  static void Finalize(Dart_WeakPersistentHandle handle, void* peer);
+  static void Finalize(Dart_Isolate isolate,
+                       Dart_WeakPersistentHandle handle,
+                       void* peer);
 
   static RawExternalOneByteString* ReadFrom(SnapshotReader* reader,
                                             intptr_t object_id,
@@ -5525,7 +5555,9 @@ class ExternalTwoByteString : public AllStatic {
     raw_ptr(str)->external_data_ = data;
   }
 
-  static void Finalize(Dart_WeakPersistentHandle handle, void* peer);
+  static void Finalize(Dart_Isolate isolate,
+                       Dart_WeakPersistentHandle handle,
+                       void* peer);
 
   static RawExternalTwoByteString* ReadFrom(SnapshotReader* reader,
                                             intptr_t object_id,

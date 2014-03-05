@@ -7,6 +7,8 @@ library test_options_parser;
 import "dart:io";
 import "drt_updater.dart";
 import "test_suite.dart";
+import "compiler_configuration.dart" show CompilerConfiguration;
+import "runtime_configuration.dart" show RuntimeConfiguration;
 
 List<String> defaultTestSelectors =
     const ['samples', 'standalone', 'corelib', 'co19', 'language',
@@ -25,7 +27,7 @@ class _TestOptionSpecification {
                            this.keys,
                            this.values,
                            this.defaultValue,
-                           [type = 'string']) : this.type = type;
+                           {this.type : 'string'});
   String name;
   String description;
   List<String> keys;
@@ -118,35 +120,35 @@ class TestOptionsParser {
               ['--checked'],
               [],
               false,
-              'bool'),
+              type: 'bool'),
           new _TestOptionSpecification(
               'host_checked',
               'Run compiler in checked mode',
               ['--host-checked'],
               [],
               false,
-              'bool'),
+              type: 'bool'),
           new _TestOptionSpecification(
               'minified',
               'Enable minification in the compiler',
               ['--minified'],
               [],
               false,
-              'bool'),
+              type: 'bool'),
           new _TestOptionSpecification(
               'csp',
               'Run tests under Content Security Policy restrictions',
               ['--csp'],
               [],
               false,
-              'bool'),
+              type: 'bool'),
           new _TestOptionSpecification(
               'timeout',
               'Timeout in seconds',
               ['-t', '--timeout'],
               [],
               -1,
-              'int'),
+              type: 'int'),
           new _TestOptionSpecification(
               'progress',
               'Progress indication mode',
@@ -160,7 +162,7 @@ class TestOptionsParser {
               ['--failure-summary'],
               [],
               false,
-              'bool'),
+              type: 'bool'),
           new _TestOptionSpecification(
               'step_name',
               'Step name for use by -pbuildbot',
@@ -173,56 +175,56 @@ class TestOptionsParser {
               ['--report'],
               [],
               false,
-              'bool'),
+              type: 'bool'),
           new _TestOptionSpecification(
               'tasks',
               'The number of parallel tasks to run',
               ['-j', '--tasks'],
               [],
               Platform.numberOfProcessors,
-              'int'),
+              type: 'int'),
           new _TestOptionSpecification(
               'shards',
               'The number of instances that the tests will be sharded over',
               ['--shards'],
               [],
               1,
-              'int'),
+              type: 'int'),
           new _TestOptionSpecification(
               'shard',
               'The index of this instance when running in sharded mode',
               ['--shard'],
               [],
               1,
-              'int'),
+              type: 'int'),
           new _TestOptionSpecification(
               'help',
               'Print list of options',
               ['-h', '--help'],
               [],
               false,
-              'bool'),
+              type: 'bool'),
           new _TestOptionSpecification(
               'verbose',
               'Verbose output',
               ['-v', '--verbose'],
               [],
               false,
-              'bool'),
+              type: 'bool'),
           new _TestOptionSpecification(
               'list',
               'List tests only, do not run them',
               ['--list'],
               [],
               false,
-              'bool'),
+              type: 'bool'),
           new _TestOptionSpecification(
               'time',
               'Print timing information after running tests',
               ['--time'],
               [],
               false,
-              'bool'),
+              type: 'bool'),
           new _TestOptionSpecification(
               'dart',
               'Path to dart executable',
@@ -270,7 +272,7 @@ Note: currently only implemented for dart2js.''',
               ['--use-sdk'],
               [],
               false,
-              'bool'),
+              type: 'bool'),
           new _TestOptionSpecification(
               'use_public_packages',
               'For tests using packages: Use pub.dartlang.org packages '
@@ -278,16 +280,16 @@ Note: currently only implemented for dart2js.''',
               ['--use-public-packages'],
               [],
               false,
-              'bool'),
-            new _TestOptionSpecification(
-                'use_repository_packages',
-                'For tests using packages: Use pub.dartlang.org packages '
-                'but use overrides for the packages available in the '
-                'repository.',
-                ['--use-repository-packages'],
-                [],
-                false,
-            'bool'),
+              type: 'bool'),
+          new _TestOptionSpecification(
+              'use_repository_packages',
+              'For tests using packages: Use pub.dartlang.org packages '
+              'but use overrides for the packages available in the '
+              'repository.',
+              ['--use-repository-packages'],
+              [],
+              false,
+              type: 'bool'),
           new _TestOptionSpecification(
               'build_directory',
               'The name of the build directory, where products are placed.',
@@ -300,23 +302,21 @@ Note: currently only implemented for dart2js.''',
               ['-n', '--nobatch'],
               [],
               false,
-              'bool'),
+              type: 'bool'),
           new _TestOptionSpecification(
               'append_logs',
               'Do not delete old logs but rather append to them.',
               ['--append_logs'],
               [],
               false,
-              'bool'
-              ),
+              type: 'bool'),
           new _TestOptionSpecification(
               'write_debug_log',
               'Don\'t write debug messages to stdout but rather to a logfile.',
               ['--write-debug-log'],
               [],
               false,
-              'bool'
-              ),
+              type: 'bool'),
           new _TestOptionSpecification(
               'write_test_outcome_log',
               'Write the outcome of all tests executed to a '
@@ -324,16 +324,14 @@ Note: currently only implemented for dart2js.''',
               ['--write-test-outcome-log'],
               [],
               false,
-              'bool'
-          ),
+              type: 'bool'),
           new _TestOptionSpecification(
               'clear_safari_cache',
               'Clear the safari cache (i.e., delete it).',
               ['--clear_safari_cache'],
               [],
               false,
-              'bool'
-              ),
+              type: 'bool'),
           new _TestOptionSpecification(
               'copy_coredumps',
               'If we see a crash that we did not expect, copy the core dumps. '
@@ -341,8 +339,7 @@ Note: currently only implemented for dart2js.''',
               ['--copy-coredumps'],
               [],
               false,
-              'bool'
-              ),
+              type: 'bool'),
           new _TestOptionSpecification(
               'local_ip',
               'IP address the http servers should listen on.'
@@ -356,28 +353,28 @@ Note: currently only implemented for dart2js.''',
               ['--test_server_port'],
               [],
               0,
-              'int'),
+              type: 'int'),
           new _TestOptionSpecification(
               'test_server_cross_origin_port',
               'Port for test http server cross origin.',
               ['--test_server_cross_origin_port'],
               [],
               0,
-              'int'),
+              type: 'int'),
           new _TestOptionSpecification(
               'test_driver_port',
               'Port for http test driver server.',
               ['--test_driver_port'],
               [],
               0,
-              'int'),
+              type: 'int'),
           new _TestOptionSpecification(
               'test_driver_error_port',
               'Port for http test driver server errors.',
               ['--test_driver_error_port'],
               [],
               0,
-              'int'),
+              type: 'int'),
           new _TestOptionSpecification(
               'record_to_file',
               'Records all the commands that need to be executed and writes it '
@@ -727,45 +724,14 @@ Note: currently only implemented for dart2js.''',
 
     // Adjust default timeout based on mode, compiler, and sometimes runtime.
     if (configuration['timeout'] == -1) {
-      var timeout = 60;
-      switch (configuration['compiler']) {
-        case 'dartanalyzer':
-        case 'dart2analyzer':
-          timeout *= 4;
-          break;
-        case 'dart2js':
-          // TODO(ahe): Restore the timeout of 30 seconds when dart2js
-          // compile-time performance has improved.
-          timeout = 60;
-          if (configuration['mode'] == 'debug') {
-            timeout *= 8;
-          }
-          if (configuration['host_checked']) {
-            timeout *= 16;
-          }
-          if (configuration['checked']) {
-            timeout *= 2;
-          }
-          break;
-        default:
-          if (configuration['arch'] == 'simarm') {
-            timeout *= 4;
-          } else if (configuration['arch'] == 'arm') {
-            timeout *= 4;
-          } else if (configuration['arch'] == 'simmips') {
-            timeout *= 4;
-          } else if (configuration['arch'] == 'mips') {
-            timeout *= 4;
-          }
-          if (configuration['mode'] == 'debug') {
-            timeout *= 2;
-          }
-          if (const ['drt'].contains(configuration['runtime'])) {
-            timeout *= 4; // Allow additional time for browser testing to run.
-          }
-          break;
-      }
-      configuration['timeout'] = timeout;
+      int compilerMulitiplier =
+          new CompilerConfiguration(configuration).computeTimeoutMultiplier();
+      int runtimeMultiplier =
+          new RuntimeConfiguration(configuration).computeTimeoutMultiplier(
+              isDebug: configuration['mode'] == 'debug',
+              isChecked: configuration['checked'],
+              arch: configuration['arch']);
+      configuration['timeout'] = 60 * compilerMulitiplier * runtimeMultiplier;
     }
 
     return [configuration];

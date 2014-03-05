@@ -29,7 +29,10 @@ class IsolateManager extends Observable {
     if (isolate == null) {
       isolate = new Isolate.fromId(id);
       isolates[id] = isolate;
-      return isolate;
+    }
+    if (isolate.vmName == null) {
+      // First time we are using this isolate.
+      isolate.refresh();
     }
     return isolate;
   }

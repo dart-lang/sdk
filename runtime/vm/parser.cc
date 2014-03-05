@@ -7608,9 +7608,15 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
         if (((op_kind == Token::kIS) || (op_kind == Token::kISNOT) ||
              (op_kind == Token::kAS)) &&
             type.IsMalformedOrMalbounded()) {
-          // Note that a type error is thrown even if the tested value is null
-          // in a type test or in a type cast.
-          return ThrowTypeError(type_pos, type);
+          // Note that a type error is thrown in a type test or in
+          // a type cast even if the tested value is null.
+          // We need to evaluate the left operand for potential
+          // side effects.
+          LetNode* let = new LetNode(left_operand->token_pos());
+          let->AddNode(left_operand);
+          let->AddNode(ThrowTypeError(type_pos, type));
+          left_operand = let;
+          break;  // Type checks and casts can't be chained.
         }
       }
       if (Token::IsRelationalOperator(op_kind)
@@ -9012,11 +9018,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   }
   if (local != NULL) {
     if (node != NULL) {
-      if (local->IsConst()) {
-        *node = new LiteralNode(ident_pos, *local->ConstValue());
-      } else {
-        *node = new LoadLocalNode(ident_pos, local);
-      }
+      *node = new LoadLocalNode(ident_pos, local);
     }
     return true;
   }

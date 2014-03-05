@@ -110,6 +110,14 @@ nestedOuter(number, gen) => Intl.plural(number,
     name: 'nestedOuter',
     args: [number, gen]);
 
+sameContentsDifferentName() => Intl.message("Hello World",
+    name: "sameContentsDifferentName",
+    desc: "One of two messages with the same contents, but different names");
+
+differentNameSameContents() => Intl.message("Hello World",
+    name: "differentNameSameContents",
+    desc: "One of two messages with the same contents, but different names");
+
 /// Distinguish two messages with identical text using the meaning parameter.
 rentToBePaid() => Intl.message("rent", name: "rentToBePaid",
     meaning: 'Money for rent', desc: "Money to be paid for rent");
@@ -200,6 +208,8 @@ printStuff(Intl locale) {
     printOut(nestedSelect("CDN", 2));
     printOut(pluralThatFailsParsing(1));
     printOut(pluralThatFailsParsing(2));
+    printOut(differentNameSameContents());
+    printOut(sameContentsDifferentName());
     printOut(rentAsVerb());
     printOut(rentToBePaid());
   });

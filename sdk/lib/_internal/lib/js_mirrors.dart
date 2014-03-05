@@ -220,6 +220,7 @@ class JsTypeVariableMirror extends JsTypeMirror implements TypeVariableMirror {
   String get _prettyName => 'TypeVariableMirror';
 
   bool get isTopLevel => false;
+  bool get isStatic => false;
 
   TypeMirror get upperBound {
     if (_cachedUpperBound != null) return _cachedUpperBound;
@@ -483,10 +484,6 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
 
   // TODO(ahe): Test this getter.
   DeclarationMirror get owner => null;
-
-  // TODO(ahe): Implement this.
-  Map<Symbol, MethodMirror> get topLevelMembers
-      => throw new UnimplementedError();
 
   // TODO(ahe): Implement this.
   Function operator [](Symbol name)
@@ -796,8 +793,12 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
 
   bool get isAbstract => throw new UnimplementedError();
 
-  bool isSubclassOf(ClassMirror other) => throw new UnimplementedError();
+  bool isSubclassOf(ClassMirror other) {
+    superclass.isSubclassOf(other) || mixin.isSubclassOf(other);
+  }
+
   bool isSubtypeOf(TypeMirror other) => throw new UnimplementedError();
+
   bool isAssignableTo(TypeMirror other) => throw new UnimplementedError();
 }
 
@@ -1148,6 +1149,15 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
         super(originalDeclaration.simpleName);
 
   String get _prettyName => 'ClassMirror';
+
+  String toString() {
+    String result = '$_prettyName on ${n(simpleName)}';
+    if (typeArguments != null) {
+      result = "$result<${typeArguments.join(', ')}>";
+    }
+    return result;
+  }
+
   String get _mangledName {
     for (TypeMirror typeArgument in typeArguments) {
       if (typeArgument != JsMirrorSystem._dynamicType) {
@@ -1394,6 +1404,7 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
   Function operator [](Symbol name) => throw new UnimplementedError();
 
   bool isSubtypeOf(TypeMirror other) => throw new UnimplementedError();
+
   bool isAssignableTo(TypeMirror other) => throw new UnimplementedError();
 }
 
@@ -1906,7 +1917,21 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
 
   bool get isAbstract => throw new UnimplementedError();
 
-  bool isSubclassOf(ClassMirror other) => throw new UnimplementedError();
+  bool isSubclassOf(ClassMirror other) {
+    if (other is! ClassMirror) {
+      throw new ArgumentError(other);
+    }
+    if (other is JsFunctionTypeMirror) {
+      return false;
+    } if (other is JsClassMirror &&
+          JS('bool', '# == #', other._jsConstructor, _jsConstructor)) {
+      return true;
+    } else if (superclass == null) {
+      return false;
+    } else {
+      return superclass.isSubclassOf(other);
+    }
+  }
 }
 
 class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
@@ -2342,6 +2367,10 @@ class JsTypedefMirror extends JsDeclarationMirror implements TypedefMirror {
 
   String get _prettyName => 'TypedefMirror';
 
+  bool get hasReflectedType => throw new UnimplementedError();
+
+  Type get reflectedType => throw new UnimplementedError();
+
   // TODO(ahe): Implement this method.
   List<TypeVariableMirror> get typeVariables => throw new UnimplementedError();
 
@@ -2503,8 +2532,10 @@ class JsFunctionTypeMirror extends BrokenClassMirror
     return _cachedToString = "$s'";
   }
 
-  bool isSubclassOf(ClassMirror other) => throw new UnimplementedError();
+  bool isSubclassOf(ClassMirror other) => false;
+
   bool isSubtypeOf(TypeMirror other) => throw new UnimplementedError();
+
   bool isAssignableTo(TypeMirror other) => throw new UnimplementedError();
 
   // TODO(ahe): Implement this method.
@@ -2766,4 +2797,32 @@ class UnmodifiableMapView<K, V> implements Map<K, V> {
   V remove(K key) { _throw(); }
 
   void clear() => _throw();
+}
+
+Symbol getSymbol(String name, LibraryMirror library) {
+  if (_isPublicSymbol(name)) {
+    return new _symbol_dev.Symbol.validated(name);
+  }
+  if (library == null) {
+    throw new ArgumentError(
+        "Library required for private symbol name: $name");
+  }
+  if (!_symbol_dev.Symbol.isValidSymbol(name)) {
+    throw new ArgumentError("Not a valid symbol name: $name");
+  }
+  throw new UnimplementedError(
+      "MirrorSystem.getSymbol not implemented for private names");
+}
+
+bool _isPublicSymbol(String name) {
+  // A symbol is public if it doesn't start with '_' and it doesn't
+  // have a part (following a '.') that starts with '_'.
+  const int UNDERSCORE = 0x5f;
+  if (name.isEmpty) return true;
+  int index = -1;
+  do {
+    if (name.codeUnitAt(index + 1) == UNDERSCORE) return false;
+    index = name.indexOf('.', index + 1);
+  } while (index >= 0 && index + 1 < name.length);
+  return true;
 }

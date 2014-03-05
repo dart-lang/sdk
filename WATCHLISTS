@@ -10,10 +10,14 @@
     'runtime': {
       'filepath': 'runtime/',
     },
+    'tools': {
+      'filepath': 'tools/',
+    },
   },
 
   'WATCHLISTS': {
     'runtime': ['vm-dev@dartlang.org'],
+    'tools': ['ricow@google.com'],
   },
 }
 

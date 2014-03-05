@@ -39,7 +39,7 @@ void VerifyPointersVisitor::VisitPointers(RawObject** first, RawObject** last) {
 }
 
 
-void VerifyWeakPointersVisitor::VisitHandle(uword addr) {
+void VerifyWeakPointersVisitor::VisitHandle(uword addr, bool is_prologue_weak) {
   FinalizablePersistentHandle* handle =
       reinterpret_cast<FinalizablePersistentHandle*>(addr);
   RawObject* raw_obj = handle->raw();

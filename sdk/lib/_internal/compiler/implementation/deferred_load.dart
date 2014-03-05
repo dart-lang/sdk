@@ -271,7 +271,10 @@ class DeferredLoadTask extends CompilerTask {
       Set<Constant> constants) {
     element = element.implementation;
     for (MetadataAnnotation metadata in element.metadata) {
-      if (metadata.value != null) constants.add(metadata.value);
+      if (metadata.value != null) {
+        constants.add(metadata.value);
+        elements.add(metadata.value.computeType(compiler).element);
+      }
     }
     if (element.isClass()) {
       // If we see a class, add everything its instance members refer
@@ -379,6 +382,23 @@ class DeferredLoadTask extends CompilerTask {
       LibraryElement deferredLibrary = _allDeferredImports[deferredImport];
       for (LibraryElement library in
           _nonDeferredReachableLibraries(deferredLibrary)) {
+        // TODO(sigurdm): The metadata should go to the right output unit.
+        // For now they all go to the main output unit.
+        for (MetadataAnnotation metadata in library.metadata) {
+          if (metadata.value != null) {
+            _mapDependencies(metadata.value.computeType(compiler).element,
+                _fakeMainImport);
+          }
+        }
+        for (LibraryTag tag in library.tags) {
+          for (MetadataAnnotation metadata in tag.metadata) {
+            if (metadata.value != null) {
+              _mapDependencies(metadata.value.computeType(compiler).element,
+                  _fakeMainImport);
+            }
+          }
+        }
+
         if (mirrorTask.librariesWithUsage.contains(library)) {
 
           Map<LibraryElement, List<MirrorUsage>> mirrorsResult =

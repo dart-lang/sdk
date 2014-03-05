@@ -35,6 +35,8 @@ abstract class TypeSystem<T> {
   T get stringType;
   T get typeType;
 
+  T stringLiteralType(DartString value);
+
   T nonNullSubtype(ClassElement type);
   T nonNullSubclass(ClassElement type);
   T nonNullExact(ClassElement type);
@@ -47,7 +49,8 @@ abstract class TypeSystem<T> {
                  Element enclosing,
                  [T elementType, int length]);
 
-  T allocateMap(T type, Node node, Element element, [T keyType, T valueType]);
+  T allocateMap(T type, Node node, Element element, [List<T> keyType,
+                                                     List<T> valueType]);
 
   T allocateClosure(Node node, Element element);
 
@@ -680,7 +683,7 @@ abstract class InferrerVisitor
   }
 
   T visitLiteralString(LiteralString node) {
-    return types.stringType;
+    return types.stringLiteralType(node.dartString);
   }
 
   T visitStringInterpolation(StringInterpolation node) {

@@ -101,13 +101,16 @@ class TestingServers {
 
   List _serverList = [];
   Path _buildDirectory = null;
+  Path _dartDirectory = null;
   final bool useContentSecurityPolicy;
   final String runtime;
 
   TestingServers(Path buildDirectory,
                  this.useContentSecurityPolicy,
-                 [String this.runtime = 'none']) {
+                 [String this.runtime = 'none', String dartDirectory]) {
     _buildDirectory = TestUtils.absolutePath(buildDirectory);
+    _dartDirectory = dartDirectory == null ? TestUtils.dartDir()
+        : new Path(dartDirectory);
   }
 
   int get port => _serverList[0].port;
@@ -238,7 +241,7 @@ class TestingServers {
         relativePath = new Path(
             pathSegments.skip(1).join('/'));
       } else if (pathSegments[0] == PREFIX_DARTDIR) {
-        basePath = TestUtils.dartDir();
+        basePath = _dartDirectory;
         relativePath = new Path(
             pathSegments.skip(1).join('/'));
       }

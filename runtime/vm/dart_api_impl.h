@@ -129,19 +129,6 @@ class Api : AllStatic {
   static const Instance& UnwrapInstanceHandle(
       const ReusableObjectHandleScope& reused, Dart_Handle object);
 
-  // Validates and converts the passed in handle as a persistent handle.
-  static PersistentHandle* UnwrapAsPersistentHandle(
-      Dart_PersistentHandle object);
-
-  // Validates and converts the passed in handle as a weak persistent handle.
-  static FinalizablePersistentHandle* UnwrapAsWeakPersistentHandle(
-      Dart_WeakPersistentHandle object);
-
-  // Validates and converts the passed in handle as a prologue weak
-  // persistent handle.
-  static FinalizablePersistentHandle* UnwrapAsPrologueWeakPersistentHandle(
-      Dart_WeakPersistentHandle object);
-
   // Returns an Error handle if isolate is in an inconsistent state.
   // Returns a Success handle when no error condition exists.
   static Dart_Handle CheckIsolateState(Isolate *isolate);

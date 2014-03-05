@@ -56,14 +56,9 @@ class TypeTestEmitter extends CodeEmitterHelper {
     void generateFunctionTypeSignature(Element method, FunctionType type) {
       assert(method.isImplementation);
       jsAst.Expression thisAccess = new jsAst.This();
-      ClosureClassMap closureData;
-      // TODO(lry): Once the IR can express methods containing closures, find
-      // a way to get the [:thisName:]. The solution to this problem depends on
-      // how closures are represented in the IR, which is not yet decided.
-      if (!compiler.irBuilder.hasIr(method)) {
-        Node node = method.parseNode(compiler);
-        closureData = compiler.closureToClassMapper.closureMappingCache[node];
-      }
+      Node node = method.parseNode(compiler);
+      ClosureClassMap closureData =
+          compiler.closureToClassMapper.closureMappingCache[node];
       if (closureData != null) {
         Element thisElement =
             closureData.freeVariableMapping[closureData.thisElement];
@@ -304,27 +299,6 @@ class TypeTestEmitter extends CodeEmitterHelper {
         }
       };
     }
-
-    void addSignature(FunctionType type) {
-      jsAst.Expression encoding = rti.getTypeEncoding(type);
-      buffer.add('${namer.signatureName(type)}$_=${_}');
-      buffer.write(jsAst.prettyPrint(encoding, compiler));
-      buffer.add('$N');
-    }
-    if (outputUnit == compiler.deferredLoadTask.mainOutputUnit) {
-      // TODO(sigurdm): These should also be possibly deferred.
-      // They should be handled similarly to constants.
-      // They have 3 dependencies:
-      // 1. The libraries containing the check.
-      // 2. The typedef defining it.
-      // 3. The types involved in the typedef.
-      // TODO(sigurdm): Actually these seems to never be used. Remove them.
-      checkedNonGenericFunctionTypes.forEach(addSignature);
-      checkedGenericFunctionTypes.forEach((_, Set<FunctionType> functionTypes) {
-        functionTypes.forEach(addSignature);
-      });
-    }
-
   }
 
   /**

@@ -26,8 +26,8 @@ main(List<String> args) {
   DartSdk sdk = DirectoryBasedDartSdk.defaultSdk;
 
   AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
-  context.sourceFactory = new SourceFactory.con2([new DartUriResolver(sdk), new FileUriResolver()]);
-  Source source = new FileBasedSource.con1(context.sourceFactory.contentCache, new JavaFile(args[1]));
+  context.sourceFactory = new SourceFactory([new DartUriResolver(sdk), new FileUriResolver()]);
+  Source source = new FileBasedSource.con1(new JavaFile(args[1]));
   //
   ChangeSet changeSet = new ChangeSet();
   changeSet.added(source);
@@ -40,8 +40,8 @@ main(List<String> args) {
   resolvedUnit.accept(visitor);
 }
 
-class _ASTVisitor extends GeneralizingASTVisitor {
-  visitNode(ASTNode node) {
+class _ASTVisitor extends GeneralizingAstVisitor {
+  visitNode(AstNode node) {
     String text = '${node.runtimeType} : <"${node.toString()}">';
     if (node is SimpleIdentifier) {
       Element element = node.staticElement;

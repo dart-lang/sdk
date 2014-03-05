@@ -7,7 +7,6 @@ library pub.command.upgrade;
 import 'dart:async';
 
 import '../command.dart';
-import '../entrypoint.dart';
 import '../log.dart' as log;
 
 /// Handles the `upgrade` pub command.

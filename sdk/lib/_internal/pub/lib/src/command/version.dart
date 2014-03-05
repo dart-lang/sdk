@@ -18,5 +18,6 @@ class VersionCommand extends PubCommand {
 
   Future onRun() {
     log.message("Pub ${sdk.version}");
+    return null;
   }
 }

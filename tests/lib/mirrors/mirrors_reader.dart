@@ -191,7 +191,6 @@ class MirrorsReader extends MirrorsVisitor {
   visitLibraryMirror(LibraryMirror mirror) {
     super.visitLibraryMirror(mirror);
     visit(mirror, 'declarations', () => mirror.declarations);
-    visit(mirror, 'topLevelMembers', () => mirror.topLevelMembers);
     visit(mirror, 'uri', () => mirror.uri);
   }
 
@@ -251,6 +250,7 @@ class MirrorsReader extends MirrorsVisitor {
   visitTypeVariableMirror(TypeVariableMirror mirror) {
     super.visitTypeVariableMirror(mirror);
     visit(mirror, 'upperBound', () => mirror.upperBound);
+    visit(mirror, 'isStatic', () => mirror.isStatic);
   }
 
   visitVariableMirror(VariableMirror mirror) {

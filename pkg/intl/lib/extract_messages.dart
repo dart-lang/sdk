@@ -73,7 +73,7 @@ CompilationUnit _root;
  */
 String _origin;
 
-String _reportErrorLocation(ASTNode node) {
+String _reportErrorLocation(AstNode node) {
   var result = new StringBuffer();
   if (_origin != null) result.write("    from $_origin");
   var info = _root.lineInfo;
@@ -90,7 +90,7 @@ String _reportErrorLocation(ASTNode node) {
  * IntlMessage objects. We have to find both the enclosing function, and
  * the Intl.message invocation.
  */
-class MessageFindingVisitor extends GeneralizingASTVisitor {
+class MessageFindingVisitor extends GeneralizingAstVisitor {
 
   MessageFindingVisitor();
 
@@ -293,12 +293,12 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
  * simple variable substitutions or else Intl.plural/gender calls,
  * and keep track of the pieces of text so that other parts
  * of the program can deal with the simple string sections and the generated
- * parts separately. Note that this is a SimpleASTVisitor, so it only
+ * parts separately. Note that this is a SimpleAstVisitor, so it only
  * traverses one level of children rather than automatically recursing. If we
  * find a plural or gender, which requires recursion, we do it with a separate
  * special-purpose visitor.
  */
-class InterpolationVisitor extends SimpleASTVisitor {
+class InterpolationVisitor extends SimpleAstVisitor {
   final Message message;
 
   InterpolationVisitor(this.message);
@@ -360,10 +360,10 @@ class InterpolationVisitor extends SimpleASTVisitor {
 
 /**
  * A visitor to extract information from Intl.plural/gender sends. Note that
- * this is a SimpleASTVisitor, so it doesn't automatically recurse. So this
+ * this is a SimpleAstVisitor, so it doesn't automatically recurse. So this
  * needs to be called where we expect a plural or gender immediately below.
  */
-class PluralAndGenderVisitor extends SimpleASTVisitor {
+class PluralAndGenderVisitor extends SimpleAstVisitor {
   /**
    * A plural or gender always exists in the context of a parent message,
    * which could in turn also be a plural or gender.

@@ -1140,10 +1140,6 @@ class Uri {
       throw new UnsupportedError(
           "Cannot extract a file path from a $scheme URI");
     }
-    if (scheme != "" && scheme != "file") {
-      throw new UnsupportedError(
-          "Cannot extract a file path from a $scheme URI");
-    }
     if (query != "") {
       throw new UnsupportedError(
           "Cannot extract a file path from a URI with a query component");

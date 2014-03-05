@@ -16,7 +16,7 @@ class A {
   final intField;
   final stringField;
   A() : intField = 42, stringField = 'foo';
-  A.bar() : intField = 54, stringField = 42;
+  A.bar() : intField = 'bar', stringField = 42;
 }
 
 main() {
@@ -33,10 +33,10 @@ void main() {
     checkFieldTypeInClass(String className, String fieldName, type) {
       var cls = findElement(compiler, className);
       var element = cls.lookupLocalMember(fieldName);
-      Expect.equals(type, typesInferrer.getTypeOfElement(element));
+      Expect.isTrue(typesInferrer.getTypeOfElement(element).containsOnly(type));
     }
 
-    checkFieldTypeInClass('A', 'intField', compiler.typesTask.uint31Type);
-    checkFieldTypeInClass('A', 'stringField', compiler.typesTask.stringType);
+    checkFieldTypeInClass('A', 'intField', compiler.backend.uint31Implementation);
+    checkFieldTypeInClass('A', 'stringField', compiler.backend.stringImplementation);
   }));
 }

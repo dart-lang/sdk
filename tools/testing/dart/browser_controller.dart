@@ -760,19 +760,27 @@ class BrowserTestRunner {
 
   BrowserTestingServer testingServer;
 
+  /**
+   * The TestRunner takes the testingServer in as a constructor parameter in
+   * case we wish to have a testing server with different behavior (such as the
+   * case for performance testing.
+   */
   BrowserTestRunner(this.globalConfiguration,
                     this.localIp,
                     this.browserName,
                     this.maxNumBrowsers,
-                    {bool this.checkedMode: false});
+                    {bool this.checkedMode: false,
+                    BrowserTestingServer this.testingServer});
 
   Future<bool> start() {
     // If [browserName] doesn't support opening new windows, we use new iframes
     // instead.
     bool useIframe =
         !Browser.BROWSERS_WITH_WINDOW_SUPPORT.contains(browserName);
-    testingServer = new BrowserTestingServer(
-        globalConfiguration, localIp, useIframe);
+    if (testingServer == null) {
+      testingServer = new BrowserTestingServer(
+          globalConfiguration, localIp, useIframe);
+    }
     return testingServer.start().then((_) {
       testingServer.testDoneCallBack = handleResults;
       testingServer.testStatusUpdateCallBack = handleStatusUpdate;
@@ -1159,7 +1167,7 @@ class BrowserTestingServer {
             print("Textresponse $textResponse");
             throw "Error returning content to browser: $error";
           }
-      });
+        });
       }
       void errorHandler(e) {
         if (!underTermination) print("Error occured in httpserver: $e");

@@ -1,4 +1,4 @@
-// Copyright 2010 the V8 project authors. All rights reserved.
+// Copyright 2012 the V8 project authors. All rights reserved.
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -29,7 +29,7 @@
 
 #include "cached-powers.h"
 #include "diy-fp.h"
-#include "double.h"
+#include "ieee.h"
 
 namespace double_conversion {
 
@@ -241,17 +241,14 @@ static void BiggestPowerTen(uint32_t number,
                             int number_bits,
                             uint32_t* power,
                             int* exponent_plus_one) {
-  ASSERT(number < (static_cast<uint32_t>(1) << (number_bits + 1)));
+  ASSERT(number < (1u << (number_bits + 1)));
   // 1233/4096 is approximately 1/lg(10).
   int exponent_plus_one_guess = ((number_bits + 1) * 1233 >> 12);
   // We increment to skip over the first entry in the kPowersOf10 table.
   // Note: kPowersOf10[i] == 10^(i-1).
   exponent_plus_one_guess++;
   // We don't have any guarantees that 2^number_bits <= number.
-  // TODO(floitsch): can we change the 'while' into an 'if'? We definitely see
-  // number < (2^number_bits - 1), but I haven't encountered
-  // number < (2^number_bits - 2) yet.
-  while (number < kSmallPowersOfTen[exponent_plus_one_guess]) {
+  if (number < kSmallPowersOfTen[exponent_plus_one_guess]) {
     exponent_plus_one_guess--;
   }
   *power = kSmallPowersOfTen[exponent_plus_one_guess];
@@ -350,7 +347,8 @@ static bool DigitGen(DiyFp low,
   // that is smaller than integrals.
   while (*kappa > 0) {
     int digit = integrals / divisor;
-    buffer[*length] = '0' + digit;
+    ASSERT(digit <= 9);
+    buffer[*length] = static_cast<char>('0' + digit);
     (*length)++;
     integrals %= divisor;
     (*kappa)--;
@@ -379,13 +377,14 @@ static bool DigitGen(DiyFp low,
   ASSERT(one.e() >= -60);
   ASSERT(fractionals < one.f());
   ASSERT(UINT64_2PART_C(0xFFFFFFFF, FFFFFFFF) / 10 >= one.f());
-  while (true) {
+  for (;;) {
     fractionals *= 10;
     unit *= 10;
     unsafe_interval.set_f(unsafe_interval.f() * 10);
     // Integer division by one.
     int digit = static_cast<int>(fractionals >> -one.e());
-    buffer[*length] = '0' + digit;
+    ASSERT(digit <= 9);
+    buffer[*length] = static_cast<char>('0' + digit);
     (*length)++;
     fractionals &= one.f() - 1;  // Modulo by one.
     (*kappa)--;
@@ -459,7 +458,8 @@ static bool DigitGenCounted(DiyFp w,
   // that is smaller than 'integrals'.
   while (*kappa > 0) {
     int digit = integrals / divisor;
-    buffer[*length] = '0' + digit;
+    ASSERT(digit <= 9);
+    buffer[*length] = static_cast<char>('0' + digit);
     (*length)++;
     requested_digits--;
     integrals %= divisor;
@@ -492,7 +492,8 @@ static bool DigitGenCounted(DiyFp w,
     w_error *= 10;
     // Integer division by one.
     int digit = static_cast<int>(fractionals >> -one.e());
-    buffer[*length] = '0' + digit;
+    ASSERT(digit <= 9);
+    buffer[*length] = static_cast<char>('0' + digit);
     (*length)++;
     requested_digits--;
     fractionals &= one.f() - 1;  // Modulo by one.
@@ -516,6 +517,7 @@ static bool DigitGenCounted(DiyFp w,
 // digits might correctly yield 'v' when read again, the closest will be
 // computed.
 static bool Grisu3(double v,
+                   FastDtoaMode mode,
                    Vector<char> buffer,
                    int* length,
                    int* decimal_exponent) {
@@ -525,7 +527,13 @@ static bool Grisu3(double v,
   // boundary_minus and boundary_plus will round to v when convert to a double.
   // Grisu3 will never output representations that lie exactly on a boundary.
   DiyFp boundary_minus, boundary_plus;
-  Double(v).NormalizedBoundaries(&boundary_minus, &boundary_plus);
+  if (mode == FAST_DTOA_SHORTEST) {
+    Double(v).NormalizedBoundaries(&boundary_minus, &boundary_plus);
+  } else {
+    ASSERT(mode == FAST_DTOA_SHORTEST_SINGLE);
+    float single_v = static_cast<float>(v);
+    Single(single_v).NormalizedBoundaries(&boundary_minus, &boundary_plus);
+  }
   ASSERT(boundary_plus.e() == w.e());
   DiyFp ten_mk;  // Cached power of ten: 10^-k
   int mk;        // -k
@@ -637,7 +645,8 @@ bool FastDtoa(double v,
   int decimal_exponent = 0;
   switch (mode) {
     case FAST_DTOA_SHORTEST:
-      result = Grisu3(v, buffer, length, &decimal_exponent);
+    case FAST_DTOA_SHORTEST_SINGLE:
+      result = Grisu3(v, mode, buffer, length, &decimal_exponent);
       break;
     case FAST_DTOA_PRECISION:
       result = Grisu3Counted(v, requested_digits,

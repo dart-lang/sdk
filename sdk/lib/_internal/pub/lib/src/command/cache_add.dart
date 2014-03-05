@@ -7,8 +7,6 @@ library pub.command.cache_add;
 import 'dart:async';
 
 import '../command.dart';
-import '../exit_codes.dart' as exit_codes;
-import '../io.dart';
 import '../log.dart' as log;
 import '../package.dart';
 import '../utils.dart';

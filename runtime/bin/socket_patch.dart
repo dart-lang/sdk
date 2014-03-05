@@ -84,6 +84,8 @@ class _InternetAddress implements InternetAddress {
 
   String get host => _host != null ? _host : address;
 
+  List<int> get rawAddress => new Uint8List.fromList(_in_addr);
+
   bool get isLoopback {
     switch (type) {
       case InternetAddressType.IP_V4:
@@ -1179,7 +1181,13 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>> {
             assert(buffer == null);
             buffer = data;
             offset = 0;
-            write();
+            try {
+              write();
+            } catch (e) {
+              stop();
+              socket._consumerDone();
+              done(e);
+            }
           },
           onError: (error, [stackTrace]) {
             socket._consumerDone();
@@ -1199,28 +1207,22 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>> {
   }
 
   void write() {
-    try {
-      if (subscription == null) return;
-      assert(buffer != null);
-      // Write as much as possible.
-      offset += socket._write(buffer, offset, buffer.length - offset);
-      if (offset < buffer.length) {
-        if (!paused) {
-          paused = true;
-          subscription.pause();
-        }
-        socket._enableWriteEvent();
-      } else {
-        buffer = null;
-        if (paused) {
-          paused = false;
-          subscription.resume();
-        }
+    if (subscription == null) return;
+    assert(buffer != null);
+    // Write as much as possible.
+    offset += socket._write(buffer, offset, buffer.length - offset);
+    if (offset < buffer.length) {
+      if (!paused) {
+        paused = true;
+        subscription.pause();
       }
-    } catch (e) {
-      stop();
-      socket._consumerDone();
-      done(e);
+      socket._enableWriteEvent();
+    } else {
+      buffer = null;
+      if (paused) {
+        paused = false;
+        subscription.resume();
+      }
     }
   }
 

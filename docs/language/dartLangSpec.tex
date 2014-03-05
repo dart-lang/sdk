@@ -3372,21 +3372,24 @@ An assignment changes the value associated with a mutable variable or property.
 Evaluation of an assignment $a$ of the form $v$ \code{=} $e$ proceeds as follows:
 
 
-If there is neither a local variable declaration with name $v$ nor a setter declaration with name $v=$ in the lexical scope enclosing $a$, then:
-\begin{itemize}
- \item If  $a$ occurs inside a top level or static function (be it function, method, getter,  or setter) or variable initializer, evaluation of $a$ causes $e$ to be evaluated, after which a \code{NoSuchMethodError} is thrown. 
- \item Otherwise, the assignment is equivalent to the assignment \code{ \THIS{}.$v$ = $e$}. 
- \end{itemize}
+%If there is neither a local variable declaration with name $v$ nor a setter declaration with name $v=$ in the lexical scope enclosing $a$, then:
+%\begin{itemize}
+% \item If  $a$ occurs inside a top level or static function (be it function, method, getter,  or setter) or variable initializer, evaluation of $a$ causes $e$ to be evaluated, after which a \code{NoSuchMethodError} is thrown. 
+% \item Otherwise, the assignment is equivalent to the assignment \code{ \THIS{}.$v$ = $e$}. 
+% \end{itemize}
  
- Otherwise,  let $d$ be the innermost declaration whose name is $v$, if it exists.
+%Otherwise,  
 
-If $d$ is the declaration of a local variable, the expression $e$ is evaluated to an object $o$. Then, the variable $v$ is bound to $o$. 
-% unless $v$ is \FINAL{}, in which case a \code{NoSuchMethodError} is thrown (even if there is a noSuchMethod). 
-The value of the assignment expression is $o$.  
+Let $d$ be the innermost declaration whose name is $v$ or $v=$, if it exists.
 
-If $d$ is the declaration of a library variable, the expression $e$ is evaluated to an object $o$. Then the setter $v=$ is invoked with its formal parameter bound to $o$. The value of the assignment expression is $o$.  
+If $d$ is the declaration of a local variable, the expression $e$ is evaluated to an object $o$. Then, the variable $v$ is bound to $o$ unless $v$ is \FINAL{} or \CONST{}, in which case a dynamic error occurs.
+If no error occurs, the value of the assignment expression is $o$.  
 
-Otherwise, if $d$ is the declaration of a static variable in class $C$, then the assignment is equivalent to the assignment \code{$C.v$ = $e$}.
+If $d$ is the declaration of a library variable, top level getter or top level setter, the expression $e$ is evaluated to an object $o$. Then the setter $v=$ is invoked with its formal parameter bound to $o$. The value of the assignment expression is $o$.  
+
+Otherwise, if $d$ is the declaration of a static variable, static getter or static setter in class $C$, then the assignment is equivalent to the assignment \code{$C.v$ = $e$}.
+
+Otherwise, If  $a$ occurs inside a top level or static function (be it function, method, getter,  or setter) or variable initializer, evaluation of $a$ causes $e$ to be evaluated, after which a \code{NoSuchMethodError} is thrown. 
 
 Otherwise, the assignment is equivalent to the assignment \code{ \THIS{}.$v$ = $e$}. 
 
@@ -3927,7 +3930,8 @@ Built-in identifiers are identifiers that are used as keywords in Dart, but are 
 
 Evaluation of an identifier expression $e$ of the form $id$ proceeds as follows:
 
-Let $d$ be the innermost declaration in the enclosing lexical scope whose name is $id$.  If no such declaration exists in the lexical scope, let $d$ be the declaration of the inherited member named $id$ if it exists. 
+
+Let $d$ be the innermost declaration in the enclosing lexical scope whose name is $id$ or $id=$.  If no such declaration exists in the lexical scope, let $d$ be the declaration of the inherited member named $id$ if it exists. 
 %If no such member exists, let $d$ be the declaration of the static member name $id$ declared in a superclass of the current class, if it exists.
 
 \begin{itemize}
@@ -3945,8 +3949,8 @@ Let $d$ be the innermost declaration in the enclosing lexical scope whose name i
 \item If $d$ is a local variable or formal parameter then $e$ evaluates to the current binding of $id$. 
 %\item If $d$ is a library variable, local variable, or formal parameter, then $e$ evaluates to the current binding of $id$. \commentary{This case also applies if d is a library or local function declaration, as these are equivalent to function-valued variable declarations.}
 \item If $d$ is a static method, top-level function or local function then $e$ evaluates to the function defined by $d$.
-\item If $d$ is the declaration of a static variable or static getter declared in class $C$, then $e$ is equivalent to the getter invocation (\ref{getterInvocation}) $C.id$. 
-\item If $d$ is the declaration of a library variable or top-level getter, then $e$ is equivalent to the getter invocation $id$. 
+\item If $d$ is the declaration of a static variable, static getter or static setter declared in class $C$, then $e$ is equivalent to the getter invocation (\ref{getterInvocation}) $C.id$. 
+\item If $d$ is the declaration of a library variable, top-level getter or top-level setter, then $e$ is equivalent to the getter invocation $id$. 
 \item Otherwise, if $e$ occurs inside a top level or static function (be it function, method, getter,  or setter) or variable initializer, evaluation of $e$ causes a\code{NoSuchMethod} to be thrown.
 \item Otherwise, $e$ is equivalent to the property extraction (\ref{propertyExtraction}) \THIS{}.$id$.
 % This implies that referring to an undefined static getter by simple name is an error, whereas doing so by qualified name is only a warning. Same with assignments.  Revise?
@@ -3958,12 +3962,18 @@ The static type of $e$ is determined as follows:
 \item If $d$ is a class, type alias or type parameter the static type of $e$ is \code{Type}.
 \item If $d$ is a local variable or formal parameter the static type of $e$ is the type of the variable $id$, unless $id$ is known to have some type $T$, in which case the static type of $e$ is $T$, provided that $T$ is more specific than any other type $S$ such that $v$ is known to have type $S$. 
 \item If $d$ is a static method, top-level function or local function the static type of $e$ the function type defined by $d$.
-\item If $d$ is the declaration of a static variable or static getter declared in class $C$, the static type of $e$ the static type of the getter invocation (\ref{getterInvocation}) $C.id$. 
+\item If $d$ is the declaration of a static variable or static getter declared in class $C$, the static type of $e$ the static type of the getter invocation (\ref{getterInvocation}) $C.id$.
 \item If $d$ is the declaration of a library variable or top-level getter, the static type of $e$  is the static type of the getter invocation $id$. 
 \item Otherwise, if $e$ occurs inside a top level or static function (be it function, method, getter,  or setter) or variable initializer, the static type of $e$ is \DYNAMIC{}.
 \item Otherwise, the static type of $e$ is the type of the property extraction (\ref{propertyExtraction}) \THIS{}.$id$.
 \end{itemize}
 
+ \commentary{Note that if one declares a setter, we bind to the corresponding getter even if it does not exist.}
+ 
+ \rationale{
+ This prevents situations where one uses uncorrelated setters and getters. The intent is to prevent errors when a  getter in a surrounding scope is used accidentally.
+ }
+ 
 It is a static warning if an identifier expression $id$ occurs inside a top level or static function (be it function, method, getter, or setter) or variable initializer and there is no declaration $d$ with name $id$ in the lexical scope enclosing the expression.
 
 \subsection{ Type Test}
@@ -4833,7 +4843,7 @@ It is a dynamic type error if $o$ is not of type \code{bool} or of type \code{Fu
 
 A Dart program consists of one or more libraries, and may be built out of one or more {\em compilation units}. A compilation unit may be a library or a part (\ref{parts}). 
 
-A library consists of (a possibly empty) set of imports, a set of exports,  and a set of top-level declarations. A top-level declaration is either a class (\ref{classes}), a type alias declaration (\ref{typedef}), a function (\ref{functions}) or a variable declaration (\ref{variables}). The members of a library $L$ are those top level declarations given within a $L$.
+A library consists of (a possibly empty) set of imports, a set of exports,  and a set of top-level declarations. A top-level declaration is either a class (\ref{classes}), a type alias declaration (\ref{typedef}), a function (\ref{functions}) or a variable declaration (\ref{variables}). The members of a library $L$ are those top level declarations given within $L$.
 
  \begin{grammar}
 {\bf topLevelDefinition:}classDefinition;

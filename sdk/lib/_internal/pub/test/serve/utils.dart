@@ -9,11 +9,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:path/path.dart' as p;
 import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
+import '../../lib/src/utils.dart';
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
@@ -23,6 +23,10 @@ ScheduledProcess _pubServer;
 /// The ephemeral ports assigned to the running servers, associated with the
 /// directories they're serving.
 final _ports = new Map<String, int>();
+
+/// A completer that completes when the server has been started and the served
+/// ports are known.
+Completer _portsCompleter;
 
 /// The web socket connection to the running pub process, or `null` if no
 /// connection has been made.
@@ -129,8 +133,10 @@ ScheduledProcess startPubServe({Iterable<String> args,
 ScheduledProcess pubServe({bool shouldGetFirst: false, bool createWebDir: true,
     Iterable<String> args}) {
   _pubServer = startPubServe(args: args, createWebDir: createWebDir);
+  _portsCompleter = new Completer();
 
   currentSchedule.onComplete.schedule(() {
+    _portsCompleter = null;
     _ports.clear();
 
     if (_webSocket != null) {
@@ -147,7 +153,10 @@ ScheduledProcess pubServe({bool shouldGetFirst: false, bool createWebDir: true,
   // The server should emit one or more ports.
   _pubServer.stdout.expect(
       consumeWhile(predicate(_parsePort, 'emits server url')));
-  schedule(() => expect(_ports, isNot(isEmpty)));
+  schedule(() {
+    expect(_ports, isNot(isEmpty));
+    _portsCompleter.complete();
+  });
 
   return _pubServer;
 }
@@ -177,7 +186,7 @@ void endPubServe() {
 /// [headers] may be either a [Matcher] or a map to match an exact headers map.
 void requestShouldSucceed(String urlPath, expectation, {String root, headers}) {
   schedule(() {
-    return http.get("${_serverUrl(root)}/$urlPath").then((response) {
+    return http.get(_getServerUrlSync(root, urlPath)).then((response) {
       if (expectation != null) expect(response.body, expectation);
       if (headers != null) expect(response.headers, headers);
     });
@@ -190,7 +199,7 @@ void requestShouldSucceed(String urlPath, expectation, {String root, headers}) {
 /// [root] indicates which server should be accessed, and defaults to "web".
 void requestShould404(String urlPath, {String root}) {
   schedule(() {
-    return http.get("${_serverUrl(root)}/$urlPath").then((response) {
+    return http.get(_getServerUrlSync(root, urlPath)).then((response) {
       expect(response.statusCode, equals(404));
     });
   }, "request $urlPath");
@@ -205,7 +214,7 @@ void requestShould404(String urlPath, {String root}) {
 void requestShouldRedirect(String urlPath, redirectTarget, {String root}) {
   schedule(() {
     var request = new http.Request("GET",
-        Uri.parse("${_serverUrl(root)}/$urlPath"));
+        Uri.parse(_getServerUrlSync(root, urlPath)));
     request.followRedirects = false;
     return request.send().then((response) {
       expect(response.statusCode ~/ 100, equals(3));
@@ -221,7 +230,7 @@ void requestShouldRedirect(String urlPath, redirectTarget, {String root}) {
 /// [root] indicates which server should be accessed, and defaults to "web".
 void postShould405(String urlPath, {String root}) {
   schedule(() {
-    return http.post("${_serverUrl(root)}/$urlPath").then((response) {
+    return http.post(_getServerUrlSync(root, urlPath)).then((response) {
       expect(response.statusCode, equals(405));
     });
   }, "request $urlPath");
@@ -256,24 +265,60 @@ Future _ensureWebSocket() {
 }
 
 /// Sends [request] (an arbitrary JSON object) to the running pub serve's web
-/// socket connection, waits for a reply, then verifies that the reply matches
-/// [expectation].
+/// socket connection, waits for a reply, then verifies that the reply is
+/// either equal to [replyEquals] or matches [replyMatches].
+///
+/// Only one of [replyEquals] or [replyMatches] may be provided.
+///
+/// [request] and [replyMatches] may contain futures, in which case this will
+/// wait until they've completed before matching.
 ///
 /// If [encodeRequest] is `false`, then [request] will be sent as-is over the
 /// socket. It omitted, request is JSON encoded to a string first.
-void webSocketShouldReply(request, expectation, {bool encodeRequest: true}) {
+void expectWebSocketCall(request, {Map replyEquals, replyMatches,
+    bool encodeRequest: true}) {
+  assert((replyEquals == null) != (replyMatches == null));
+
   schedule(() => _ensureWebSocket().then((_) {
-    if (encodeRequest) request = JSON.encode(request);
-    _webSocket.add(request);
-    return _webSocketBroadcastStream.first.then((value) {
-      expect(JSON.decode(value), expectation);
+    var matcherFuture;
+    if (replyMatches != null) {
+      matcherFuture = new Future.value(replyMatches);
+    } else {
+      matcherFuture = awaitObject(replyEquals).then((reply) => equals(reply));
+    }
+
+    return matcherFuture.then((matcher) {
+      return awaitObject(request).then((completeRequest) {
+        if (encodeRequest) completeRequest = JSON.encode(completeRequest);
+        _webSocket.add(completeRequest);
+
+        return _webSocketBroadcastStream.first.then((value) {
+          expect(JSON.decode(value), matcher);
+        });
+      });
     });
-  }), "send $request to web socket and expect reply that $expectation");
+  }), "send $request to web socket and expect reply $replyEquals");
 }
 
-/// Returns the URL for the server serving from [root].
-String _serverUrl([String root]) {
+/// Returns a [Future] that completes to a URL string for the server serving
+/// [path] from [root].
+///
+/// If [root] is omitted, defaults to "web". If [path] is omitted, no path is
+/// included. The Future will complete once the server is up and running and
+/// the bound ports are known.
+Future<String> getServerUrl([String root, String path]) =>
+    _portsCompleter.future.then((_) => _getServerUrlSync(root, path));
+
+/// Returns a URL string for the server serving [path] from [root].
+///
+/// If [root] is omitted, defaults to "web". If [path] is omitted, no path is
+/// included. Unlike [getServerUrl], this should only be called after the ports
+/// are known.
+String _getServerUrlSync([String root, String path]) {
   if (root == null) root = 'web';
   expect(_ports, contains(root));
-  return "http://127.0.0.1:${_ports[root]}";
+  var url = "http://127.0.0.1:${_ports[root]}";
+  if (path != null) url = "$url/$path";
+  return url;
 }
+

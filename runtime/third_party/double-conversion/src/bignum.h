@@ -69,6 +69,10 @@ class Bignum {
 
   bool ToHexString(char* buffer, int buffer_size) const;
 
+  // Returns
+  //  -1 if a < b,
+  //   0 if a == b, and
+  //  +1 if a > b.
   static int Compare(const Bignum& a, const Bignum& b);
   static bool Equal(const Bignum& a, const Bignum& b) {
     return Compare(a, b) == 0;

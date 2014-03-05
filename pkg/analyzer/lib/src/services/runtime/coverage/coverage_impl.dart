@@ -254,7 +254,7 @@ class CoverageServer extends RewriteServer {
 
 
 /// The visitor that inserts `touch` method invocations.
-class InsertTouchInvocationsVisitor extends GeneralizingASTVisitor {
+class InsertTouchInvocationsVisitor extends GeneralizingAstVisitor {
   final AppInfo appInfo;
   final CodeInjector injector;
 

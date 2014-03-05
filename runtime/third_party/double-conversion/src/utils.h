@@ -56,10 +56,16 @@
 // disabled.)
 // On Linux,x86 89255e-22 != Div_double(89255.0/1e22)
 #if defined(_M_X64) || defined(__x86_64__) || \
-    defined(__ARMEL__) || \
-    defined(_MIPS_ARCH_MIPS32)
+    defined(__ARMEL__) || defined(__avr32__) || \
+    defined(__hppa__) || defined(__ia64__) || \
+    defined(__mips__) || \
+    defined(__powerpc__) || defined(__ppc__) || defined(__ppc64__) || \
+    defined(__sparc__) || defined(__sparc) || defined(__s390__) || \
+    defined(__SH4__) || defined(__alpha__) || \
+    defined(_MIPS_ARCH_MIPS32R2) || \
+    defined(__AARCH64EL__)
 #define DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS 1
-#elif defined(_M_IX86) || defined(__i386__)
+#elif defined(_M_IX86) || defined(__i386__) || defined(__i386)
 #if defined(_WIN32)
 // Windows uses a 64bit wide floating point stack.
 #define DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS 1
@@ -70,6 +76,11 @@
 #error Target architecture was not detected as supported by Double-Conversion.
 #endif
 
+#if defined(__GNUC__)
+#define DOUBLE_CONVERSION_UNUSED __attribute__((unused))
+#else
+#define DOUBLE_CONVERSION_UNUSED
+#endif
 
 #if defined(_WIN32) && !defined(__MINGW32__)
 
@@ -295,7 +306,8 @@ template <class Dest, class Source>
 inline Dest BitCast(const Source& source) {
   // Compile time assertion: sizeof(Dest) == sizeof(Source)
   // A compile error here means your Dest and Source have different sizes.
-  typedef char VerifySizesAreEqual[sizeof(Dest) == sizeof(Source) ? 1 : -1];
+  DOUBLE_CONVERSION_UNUSED
+      typedef char VerifySizesAreEqual[sizeof(Dest) == sizeof(Source) ? 1 : -1];
 
   Dest dest;
   memmove(&dest, &source, sizeof(dest));

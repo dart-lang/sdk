@@ -72,6 +72,20 @@ typedef unsigned __int64 uint64_t;
  */
 
 /**
+ * An isolate is the unit of concurrency in Dart. Each isolate has
+ * its own memory and thread of control. No state is shared between
+ * isolates. Instead, isolates communicate by message passing.
+ *
+ * Each thread keeps track of its current isolate, which is the
+ * isolate which is ready to execute on the current thread. The
+ * current isolate may be NULL, in which case no isolate is ready to
+ * execute. Most of the Dart apis require there to be a current
+ * isolate in order to function without error. The current isolate is
+ * set by any call to Dart_CreateIsolate or Dart_EnterIsolate.
+ */
+typedef struct _Dart_Isolate* Dart_Isolate;
+
+/**
  * An object reference managed by the Dart VM garbage collector.
  *
  * Because the garbage collector may move objects, it is unsafe to
@@ -195,6 +209,7 @@ typedef Dart_Handle Dart_PersistentHandle;
 typedef struct _Dart_WeakPersistentHandle* Dart_WeakPersistentHandle;
 
 typedef void (*Dart_WeakPersistentHandleFinalizer)(
+    Dart_Isolate isolate,
     Dart_WeakPersistentHandle handle,
     void* peer);
 typedef void (*Dart_PeerFinalizer)(void* peer);
@@ -421,7 +436,7 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
  * Allocates a weak persistent handle for an object.
  *
  * This handle has the lifetime of the current isolate unless it is
- * explicitly deallocated by calling Dart_DeletePersistentHandle.
+ * explicitly deallocated by calling Dart_DeleteWeakPersistentHandle.
  *
  * If the object becomes unreachable the callback is invoked with the weak
  * persistent handle and the peer as arguments. This gives the native code the
@@ -446,6 +461,7 @@ DART_EXPORT Dart_WeakPersistentHandle Dart_NewWeakPersistentHandle(
     Dart_WeakPersistentHandleFinalizer callback);
 
 DART_EXPORT void Dart_DeleteWeakPersistentHandle(
+    Dart_Isolate isolate,
     Dart_WeakPersistentHandle object);
 
 /**
@@ -461,7 +477,7 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
  * weak persistent handles strongly reference their referents.
  *
  * This handle has the lifetime of the current isolate unless it is
- * explicitly deallocated by calling Dart_DeletePersistentHandle.
+ * explicitly deallocated by calling Dart_DeleteWeakPersistentHandle.
  *
  * Requires there to be a current isolate.
  *
@@ -598,20 +614,6 @@ DART_EXPORT Dart_Handle Dart_RemoveGcEpilogueCallback(
  * \return The version string for the embedded Dart VM.
  */
 DART_EXPORT const char* Dart_VersionString();
-
-/**
- * An isolate is the unit of concurrency in Dart. Each isolate has
- * its own memory and thread of control. No state is shared between
- * isolates. Instead, isolates communicate by message passing.
- *
- * Each thread keeps track of its current isolate, which is the
- * isolate which is ready to execute on the current thread. The
- * current isolate may be NULL, in which case no isolate is ready to
- * execute. Most of the Dart apis require there to be a current
- * isolate in order to function without error. The current isolate is
- * set by any call to Dart_CreateIsolate or Dart_EnterIsolate.
- */
-typedef struct _Dart_Isolate* Dart_Isolate;
 
 /**
  * An isolate creation and initialization callback function.

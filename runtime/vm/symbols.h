@@ -308,6 +308,7 @@ class ObjectPointerVisitor;
   V(OptimizedOut, "<optimized out>")                                           \
   V(NotInitialized, "<not initialized>")                                       \
   V(ClassId, "get:_classId")                                                   \
+  V(AllocationStubFor, "Allocation stub for ")                                 \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

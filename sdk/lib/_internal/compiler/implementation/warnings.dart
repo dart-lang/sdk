@@ -540,6 +540,9 @@ main() => new C<String>();
   static const MessageKind SWITCH_CASE_TYPES_NOT_EQUAL_CASE = const MessageKind(
       "'case' expression of type '#{type}'.");
 
+  static const MessageKind SWITCH_CASE_FORBIDDEN = const MessageKind(
+      "'case' expression may not be of type '#{type}'.");
+
   static const MessageKind SWITCH_CASE_VALUE_OVERRIDES_EQUALS =
       const MessageKind(
           "'case' expression type '#{type}' overrides 'operator =='.");
@@ -556,8 +559,9 @@ main() => new C<String>();
   static const MessageKind CONSTRUCTOR_IS_NOT_CONST = const MessageKind(
       "Constructor is not a 'const' constructor.");
 
-  static const MessageKind KEY_NOT_A_STRING_LITERAL = const MessageKind(
-      "Map-literal key not a string literal.");
+  static const MessageKind CONST_MAP_KEY_OVERRIDES_EQUALS =
+      const MessageKind(
+          "Const-map key type '#{type}' overrides 'operator =='.");
 
   static const MessageKind NO_SUCH_LIBRARY_MEMBER = const MessageKind(
       "'#{libraryName}' has no member named '#{memberName}'.");
@@ -1746,6 +1750,15 @@ Please include the following information:
       "'#{shownType}' because '#{shownType}' is not more specific than the "
       "known type '#{knownType}' of '#{variableName}'.",
       howToFix: "Try replacing '#{shownType}' with '#{shownTypeSuggestion}'.");
+
+  static const MessageKind HIDDEN_WARNINGS_HINTS = const MessageKind(
+      "#{warnings} warning(s) and #{hints} hint(s) suppressed in #{uri}.");
+
+  static const MessageKind HIDDEN_WARNINGS = const MessageKind(
+      "#{warnings} warning(s) suppressed in #{uri}.");
+
+  static const MessageKind HIDDEN_HINTS = const MessageKind(
+      "#{hints} hint(s) suppressed in #{uri}.");
 
   //////////////////////////////////////////////////////////////////////////////
   // Patch errors start.

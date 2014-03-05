@@ -42,6 +42,10 @@ string_from_environment3_test/02: Fail
 string_from_environment3_test/03: Fail
 string_from_environment3_test/04: Fail
 
+[ $compiler == dartanalyzer ]
+string_from_environment_test: Crash # http://dartbug.com/17234
+int_from_environment2_test: Crash # http://dartbug.com/17234
+
 [ $compiler == none ]
 unicode_test: Fail        # Bug 6706
 compare_to2_test: Fail    # Bug 4018

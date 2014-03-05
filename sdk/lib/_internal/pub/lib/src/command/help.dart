@@ -50,5 +50,6 @@ class HelpCommand extends PubCommand {
     }
 
     command.printUsage();
+    return null;
   }
 }

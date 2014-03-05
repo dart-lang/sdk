@@ -169,6 +169,7 @@ void main() {
   testGetServerClose();
   testGetServerCloseNoKeepAlive();
   testGetServerForceClose();
-  testGetDataServerForceClose();
+  // TODO(14953): This test can only run, when buffering is disabled.
+  // testGetDataServerForceClose();
   testPostEmptyRequest();
 }

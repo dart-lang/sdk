@@ -4,12 +4,20 @@
   <link rel="import" href="function_ref.html">
   <link rel="import" href="instance_ref.html">
   <link rel="import" href="library_ref.html">
+  <link rel="import" href="nav_bar.html">
   <link rel="import" href="observatory_element.html">
   <link rel="import" href="script_ref.html">
 </head>
 <polymer-element name="library-view" extends="observatory-element">
   <template>
-  <div class="alert alert-success">Library {{ library['name'] }}</div>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
+      </isolate-nav-menu>
+      <library-nav-menu app="{{ app }}" library="{{ library }}" last="{{ true }}"></library-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
   <div class="alert alert-info">Scripts</div>
   <table class="table table-hover">
     <tbody>

@@ -203,7 +203,7 @@ class Version implements Comparable<Version>, VersionConstraint {
   }
 
   /// Gets the next patch version number that follows this one.
-  ///
+  ///bed8b33fda6ec81c3ba52274d189bc0661ed12bf
   /// If this version is a pre-release, then it just strips the pre-release
   /// suffix. Otherwise, it increments the patch version.
   Version get nextPatch {
@@ -363,6 +363,7 @@ abstract class VersionConstraint {
         case '>':
           return new VersionRange(min: version, includeMin: false);
       }
+      throw "Unreachable.";
     }
 
     while (true) {

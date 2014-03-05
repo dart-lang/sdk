@@ -151,7 +151,13 @@ class PersistentHandle {
   void set_raw(const LocalHandle& ref) { raw_ = ref.raw(); }
   void set_raw(const Object& object) { raw_ = object.raw(); }
   RawObject** raw_addr() { return &raw_; }
+  Dart_PersistentHandle apiHandle() {
+    return reinterpret_cast<Dart_PersistentHandle>(this);
+  }
+
   static intptr_t raw_offset() { return OFFSET_OF(PersistentHandle, raw_); }
+
+  static PersistentHandle* Cast(Dart_PersistentHandle handle);
 
  private:
   friend class PersistentHandles;
@@ -197,19 +203,44 @@ class FinalizablePersistentHandle {
   void set_callback(Dart_WeakPersistentHandleFinalizer callback) {
     callback_ = callback;
   }
+  Dart_WeakPersistentHandle apiPrologueHandle() {
+    uword addr = reinterpret_cast<uword>(this);
+    return reinterpret_cast<Dart_WeakPersistentHandle>(
+        addr | kPrologueWeakPersistentTag);
+  }
+  Dart_WeakPersistentHandle apiHandle() {
+    return reinterpret_cast<Dart_WeakPersistentHandle>(this);
+  }
 
-  static void Finalize(FinalizablePersistentHandle* handle) {
+  static bool IsPrologueWeakPersistentHandle(Dart_WeakPersistentHandle handle) {
+    uword addr = reinterpret_cast<uword>(handle);
+    return (addr & kWeakPersistentTagMask) == kPrologueWeakPersistentTag;
+  }
+  static FinalizablePersistentHandle* Cast(Dart_WeakPersistentHandle handle);
+  static void Finalize(Isolate* isolate,
+                       FinalizablePersistentHandle* handle,
+                       bool is_prologue_weak) {
     Dart_WeakPersistentHandleFinalizer callback = handle->callback();
     if (callback != NULL) {
       void* peer = handle->peer();
       handle->Clear();
-      (*callback)(reinterpret_cast<Dart_WeakPersistentHandle>(handle), peer);
+      Dart_WeakPersistentHandle object = is_prologue_weak ?
+          handle->apiPrologueHandle() :
+          handle->apiHandle();
+      (*callback)(reinterpret_cast<Dart_Isolate>(isolate), object, peer);
     } else {
       handle->Clear();
     }
   }
 
  private:
+  enum {
+    kWeakPersistentTag = 0,
+    kPrologueWeakPersistentTag = 1,
+    kWeakPersistentTagSize = 1,
+    kWeakPersistentTagMask = 1,
+  };
+
   friend class FinalizablePersistentHandles;
 
   FinalizablePersistentHandle() : raw_(NULL), peer_(NULL), callback_(NULL) { }
@@ -403,7 +434,7 @@ class FinalizablePersistentHandles
       : Handles<kFinalizablePersistentHandleSizeInWords,
                 kFinalizablePersistentHandlesPerChunk,
                 kOffsetOfRawPtrInFinalizablePersistentHandle>(),
-                                   free_list_(NULL) { }
+        free_list_(NULL) { }
   ~FinalizablePersistentHandles() {
     free_list_ = NULL;
   }
@@ -413,10 +444,11 @@ class FinalizablePersistentHandles
   void set_free_list(FinalizablePersistentHandle* value) { free_list_ = value; }
 
   // Visit all handles stored in the various handle blocks.
-  void VisitHandles(HandleVisitor* visitor) {
+  void VisitHandles(HandleVisitor* visitor, bool is_prologue_weak) {
     Handles<kFinalizablePersistentHandleSizeInWords,
             kFinalizablePersistentHandlesPerChunk,
-            kOffsetOfRawPtrInFinalizablePersistentHandle>::Visit(visitor);
+            kOffsetOfRawPtrInFinalizablePersistentHandle>::Visit(
+                visitor, is_prologue_weak);
   }
 
   // Visit all object pointers stored in the various handles.
@@ -479,16 +511,18 @@ class WeakReferenceSet {
   RawObject** get_key(intptr_t i) {
     ASSERT(i >= 0);
     ASSERT(i < num_keys_);
-    return (reinterpret_cast<FinalizablePersistentHandle*>(keys_[i]))->
-        raw_addr();
+    FinalizablePersistentHandle* ref =
+        FinalizablePersistentHandle::Cast(keys_[i]);
+    return ref->raw_addr();
   }
 
   intptr_t num_values() const { return num_values_; }
   RawObject** get_value(intptr_t i) {
     ASSERT(i >= 0);
     ASSERT(i < num_values_);
-    return (reinterpret_cast<FinalizablePersistentHandle*>(values_[i]))->
-        raw_addr();
+    FinalizablePersistentHandle* ref =
+        FinalizablePersistentHandle::Cast(values_[i]);
+    return ref->raw_addr();
   }
 
   static WeakReferenceSet* Pop(WeakReferenceSet** queue) {
@@ -652,9 +686,9 @@ class ApiState {
 
   void VisitWeakHandles(HandleVisitor* visitor,
                         bool visit_prologue_weak_handles) {
-    weak_persistent_handles().VisitHandles(visitor);
+    weak_persistent_handles().VisitHandles(visitor, false);
     if (visit_prologue_weak_handles) {
-      prologue_weak_persistent_handles().VisitHandles(visitor);
+      prologue_weak_persistent_handles().VisitHandles(visitor, true);
     }
   }
 

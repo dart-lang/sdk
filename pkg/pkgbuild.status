@@ -12,11 +12,12 @@ pkg/docgen: Pass, Slow
 [ $use_repository_packages ]
 pkg/analyzer: PubGetError
 pkg/args: PubGetError
+pkg/browser: PubGetError
 
 [ $use_public_packages ]
 pkg/template_binding: Pass, PubGetError # Issue 16026
-pkg/polymer: PubGetError # Issue 16026
-pkg/polymer_expressions: PubGetError # Issue 16026
+pkg/polymer: Pass, PubGetError # Issue 16026
+pkg/polymer_expressions: Pass, PubGetError # Issue 16026
 pkg/observe: Pass, PubGetError # Issue 16026
 
 [ $builder_tag == russian ]

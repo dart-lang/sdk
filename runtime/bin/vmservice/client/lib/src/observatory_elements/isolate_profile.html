@@ -1,11 +1,19 @@
 <head>
   <link rel="import" href="code_ref.html">
+  <link rel="import" href="nav_bar.html">
   <link rel="import" href="observatory_element.html">
 </head>
 <polymer-element name="isolate-profile" extends="observatory-element">
   <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
+      </isolate-nav-menu>
+      <nav-menu link="." anchor="cpu profile" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
     <div>
-      <button type="button" on-click="{{refreshData}}">Refresh profile data</button>
       <span>Top</span>
       <select selectedIndex="{{methodCountSelected}}" value="{{methodCounts[methodCountSelected]}}">
         <option template repeat="{{count in methodCounts}}">{{count}}</option>

@@ -1,12 +1,19 @@
 <head>
   <link rel="import" href="class_ref.html">
+  <link rel="import" href="nav_bar.html">
   <link rel="import" href="observatory_element.html">
 </head>
 <polymer-element name="heap-profile" extends="observatory-element">
 <template>
-  <div>
-  <button type="button" on-click="{{refreshData}}">Refresh</button>
-  </div>
+  <nav-bar>
+    <top-nav-menu></top-nav-menu>
+    <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
+    </isolate-nav-menu>
+    <nav-menu link="." anchor="heap profile" last="{{ true }}"></nav-menu>
+    <nav-refresh callback="{{ refresh }}"></nav-refresh>
+  </nav-bar>
+
+  <button type="button" on-click="{{resetAccumulator}}">Reset Accumulator</button>
   <div class="row">
     <div id="newPieChart" class="col-md-4" style="height: 400px">
     </div>
@@ -35,19 +42,28 @@
         <tbody>
           <tr>
             <td>Collections</td>
-            <td>{{ formattedCollections(true) }}</td>
+            <td>{{ formattedCollections(false) }}</td>
           </tr>
           <tr>
             <td>Average Collection Time</td>
-            <td>{{ formattedAverage(true) }}</td>
+            <td>{{ formattedAverage(false) }}</td>
           </tr>
           <tr>
             <td>Cumulative Collection Time</td>
-            <td>{{ formattedTotalCollectionTime(true) }}</td>
+            <td>{{ formattedTotalCollectionTime(false) }}</td>
           </tr>
         </tbody>
       </table>
     </div>
+  </div>
+  <div class="row">
+  <p class="col-md-2">Aggregate heap table</p>
+  </div>
+  <div class="row">
+    <div id="simpleTable" class="col-md-12" style="height: 800px"></div>
+  </div>
+  <div class="row">
+  <p class="col-md-2">Individual heap table</p>
   </div>
   <div class="row">
     <div id="table" class="col-md-12" style="height: 800px"></div>

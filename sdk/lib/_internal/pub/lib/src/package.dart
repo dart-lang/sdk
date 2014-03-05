@@ -90,10 +90,6 @@ class Package {
   Package.inMemory(this.pubspec)
     : dir = null;
 
-  /// Constructs a package. This should not be called directly. Instead, acquire
-  /// packages from [load()].
-  Package._(this.dir, this.pubspec);
-
   /// Returns a debug string for the package.
   String toString() => '$name $version ($dir)';
 }

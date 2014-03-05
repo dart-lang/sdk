@@ -56,9 +56,9 @@ class ClassHeapStatsTestHelper {
   }
 
   static void DumpClassHeapStats(ClassHeapStats* stats) {
-    printf("%" Pd " ", stats->allocated_since_gc_new_space);
-    printf("%" Pd " ", stats->live_after_gc_new_space);
-    printf("%" Pd " ", stats->allocated_before_gc_new_space);
+    printf("%" Pd " ", stats->recent.new_count);
+    printf("%" Pd " ", stats->post_gc.new_count);
+    printf("%" Pd " ", stats->pre_gc.new_count);
     printf("\n");
   }
 };
@@ -101,64 +101,64 @@ TEST_CASE(ClassHeapStats) {
       ClassHeapStatsTestHelper::GetHeapStatsForCid(class_table,
                                                    cid);
   // Verify preconditions:
-  EXPECT_EQ(0, class_stats->allocated_before_gc_old_space);
-  EXPECT_EQ(0, class_stats->live_after_gc_old_space);
-  EXPECT_EQ(0, class_stats->allocated_since_gc_old_space);
-  EXPECT_EQ(0, class_stats->allocated_before_gc_new_space);
-  EXPECT_EQ(0, class_stats->live_after_gc_new_space);
+  EXPECT_EQ(0, class_stats->pre_gc.old_count);
+  EXPECT_EQ(0, class_stats->post_gc.old_count);
+  EXPECT_EQ(0, class_stats->recent.old_count);
+  EXPECT_EQ(0, class_stats->pre_gc.new_count);
+  EXPECT_EQ(0, class_stats->post_gc.new_count);
   // Class allocated twice since GC from new space.
-  EXPECT_EQ(2, class_stats->allocated_since_gc_new_space);
+  EXPECT_EQ(2, class_stats->recent.new_count);
   // Perform GC.
   heap->CollectGarbage(Heap::kNew);
   // Verify postconditions:
-  EXPECT_EQ(0, class_stats->allocated_before_gc_old_space);
-  EXPECT_EQ(0, class_stats->live_after_gc_old_space);
-  EXPECT_EQ(0, class_stats->allocated_since_gc_old_space);
+  EXPECT_EQ(0, class_stats->pre_gc.old_count);
+  EXPECT_EQ(0, class_stats->post_gc.old_count);
+  EXPECT_EQ(0, class_stats->recent.old_count);
   // Total allocations before GC.
-  EXPECT_EQ(2, class_stats->allocated_before_gc_new_space);
+  EXPECT_EQ(2, class_stats->pre_gc.new_count);
   // Only one survived.
-  EXPECT_EQ(1, class_stats->live_after_gc_new_space);
-  EXPECT_EQ(0, class_stats->allocated_since_gc_new_space);
+  EXPECT_EQ(1, class_stats->post_gc.new_count);
+  EXPECT_EQ(0, class_stats->recent.new_count);
   // Perform GC. The following is heavily dependent on the behaviour
   // of the GC: Retained instance of A will be promoted.
   heap->CollectGarbage(Heap::kNew);
   // Verify postconditions:
-  EXPECT_EQ(0, class_stats->allocated_before_gc_old_space);
-  EXPECT_EQ(0, class_stats->live_after_gc_old_space);
+  EXPECT_EQ(0, class_stats->pre_gc.old_count);
+  EXPECT_EQ(0, class_stats->post_gc.old_count);
   // Promotion counted as an allocation from old space.
-  EXPECT_EQ(1, class_stats->allocated_since_gc_old_space);
+  EXPECT_EQ(1, class_stats->recent.old_count);
   // There was one instance allocated before GC.
-  EXPECT_EQ(1, class_stats->allocated_before_gc_new_space);
+  EXPECT_EQ(1, class_stats->pre_gc.new_count);
   // There are no instances allocated in new space after GC.
-  EXPECT_EQ(0, class_stats->live_after_gc_new_space);
+  EXPECT_EQ(0, class_stats->post_gc.new_count);
   // No new allocations.
-  EXPECT_EQ(0, class_stats->allocated_since_gc_new_space);
+  EXPECT_EQ(0, class_stats->recent.new_count);
   // Perform a GC on new space.
   heap->CollectGarbage(Heap::kNew);
   // There were no instances allocated before GC.
-  EXPECT_EQ(0, class_stats->allocated_before_gc_new_space);
+  EXPECT_EQ(0, class_stats->pre_gc.new_count);
   // There are no instances allocated in new space after GC.
-  EXPECT_EQ(0, class_stats->live_after_gc_new_space);
+  EXPECT_EQ(0, class_stats->post_gc.new_count);
   // No new allocations.
-  EXPECT_EQ(0, class_stats->allocated_since_gc_new_space);
+  EXPECT_EQ(0, class_stats->recent.new_count);
   heap->CollectGarbage(Heap::kOld);
   // Verify postconditions:
-  EXPECT_EQ(1, class_stats->allocated_before_gc_old_space);
-  EXPECT_EQ(1, class_stats->live_after_gc_old_space);
-  EXPECT_EQ(0, class_stats->allocated_since_gc_old_space);
+  EXPECT_EQ(1, class_stats->pre_gc.old_count);
+  EXPECT_EQ(1, class_stats->post_gc.old_count);
+  EXPECT_EQ(0, class_stats->recent.old_count);
   // Exit scope, freeing instance.
   Dart_ExitScope();
   // Perform GC.
   heap->CollectGarbage(Heap::kOld);
   // Verify postconditions:
-  EXPECT_EQ(1, class_stats->allocated_before_gc_old_space);
-  EXPECT_EQ(0, class_stats->live_after_gc_old_space);
-  EXPECT_EQ(0, class_stats->allocated_since_gc_old_space);
+  EXPECT_EQ(1, class_stats->pre_gc.old_count);
+  EXPECT_EQ(0, class_stats->post_gc.old_count);
+  EXPECT_EQ(0, class_stats->recent.old_count);
   // Perform GC.
   heap->CollectGarbage(Heap::kOld);
-  EXPECT_EQ(0, class_stats->allocated_before_gc_old_space);
-  EXPECT_EQ(0, class_stats->live_after_gc_old_space);
-  EXPECT_EQ(0, class_stats->allocated_since_gc_old_space);
+  EXPECT_EQ(0, class_stats->pre_gc.old_count);
+  EXPECT_EQ(0, class_stats->post_gc.old_count);
+  EXPECT_EQ(0, class_stats->recent.old_count);
 }
 
 }  // namespace dart.

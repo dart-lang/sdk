@@ -9,12 +9,13 @@ library engine.test_support;
 
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_junit.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/scanner.dart';
-import 'package:analyzer/src/generated/ast.dart' show ASTNode, NodeLocator;
+import 'package:analyzer/src/generated/ast.dart' show AstNode, NodeLocator;
 import 'package:analyzer/src/generated/element.dart' show InterfaceType, MethodElement, PropertyAccessorElement;
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext, AnalysisContextImpl, RecordingErrorListener;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:unittest/unittest.dart' as _ut;
 
 /**
@@ -617,8 +618,8 @@ class EngineTestCase extends JUnitTestCase {
    * @return the object that was being tested
    * @throws Exception if the object is not an instance of the expected class
    */
-  static Object assertInstanceOf(Type expectedClass, Object object) {
-    if (!isInstanceOf(object, expectedClass)) {
+  static Object assertInstanceOf(Predicate<Object> predicate, Type expectedClass, Object object) {
+    if (!predicate(object)) {
       JUnitTestCase.fail("Expected instance of ${expectedClass.toString()}, found ${(object == null ? "null" : object.runtimeType.toString())}");
     }
     return object;
@@ -651,10 +652,10 @@ class EngineTestCase extends JUnitTestCase {
   static void assertMatches(Token expectedToken, Token actualToken) {
     JUnitTestCase.assertEquals(expectedToken.type, actualToken.type);
     if (expectedToken is KeywordToken) {
-      assertInstanceOf(KeywordToken, actualToken);
+      assertInstanceOf((obj) => obj is KeywordToken, KeywordToken, actualToken);
       JUnitTestCase.assertEquals(expectedToken.keyword, (actualToken as KeywordToken).keyword);
     } else if (expectedToken is StringToken) {
-      assertInstanceOf(StringToken, actualToken);
+      assertInstanceOf((obj) => obj is StringToken, StringToken, actualToken);
       JUnitTestCase.assertEquals(expectedToken.lexeme, (actualToken as StringToken).lexeme);
     }
   }
@@ -722,15 +723,15 @@ class EngineTestCase extends JUnitTestCase {
   }
 
   /**
-   * @return the [ASTNode] with requested type at offset of the "prefix".
+   * @return the [AstNode] with requested type at offset of the "prefix".
    */
-  static ASTNode findNode(ASTNode root, String code, String prefix, Type clazz) {
+  static AstNode findNode(AstNode root, String code, String prefix, Predicate<AstNode> predicate) {
     int offset = code.indexOf(prefix);
     if (offset == -1) {
       throw new IllegalArgumentException("Not found '${prefix}'.");
     }
-    ASTNode node = new NodeLocator.con1(offset).searchWithin(root);
-    return node.getAncestor(clazz);
+    AstNode node = new NodeLocator.con1(offset).searchWithin(root);
+    return node.getAncestor(predicate);
   }
 
   static void assertContains2(List<Object> array, List<bool> found, Object element) {
@@ -781,7 +782,7 @@ class EngineTestCase extends JUnitTestCase {
 
   AnalysisContextImpl createAnalysisContext() {
     AnalysisContextImpl context = new AnalysisContextImpl();
-    context.sourceFactory = new SourceFactory.con2([]);
+    context.sourceFactory = new SourceFactory([]);
     return context;
   }
 
@@ -836,7 +837,7 @@ class TestSource implements Source {
   AnalysisContext get context {
     throw new UnsupportedOperationException();
   }
-  void getContents(Source_ContentReceiver receiver) {
+  void getContentsToReceiver(Source_ContentReceiver receiver) {
     throw new UnsupportedOperationException();
   }
   String get fullName {
@@ -862,6 +863,9 @@ class TestSource implements Source {
     throw new UnsupportedOperationException();
   }
   UriKind get uriKind {
+    throw new UnsupportedOperationException();
+  }
+  TimestampedData<String> get contents {
     throw new UnsupportedOperationException();
   }
 }

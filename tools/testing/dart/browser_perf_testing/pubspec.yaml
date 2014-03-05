@@ -1,0 +1,10 @@
+name: browser_perf_testing
+version: 0.0.1
+author: Dart Team <misc@dartlang.org>
+description: Framework for running performance benchmarks in the browser with our testing framework. 
+homepage: http://www.dartlang.org
+dependencies:
+  path: any
+  args: any
+dev_dependencies:
+environment:

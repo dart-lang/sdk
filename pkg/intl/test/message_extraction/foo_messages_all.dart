@@ -11,14 +11,14 @@ import 'package:intl/message_lookup_by_library.dart';
 import 'package:intl/src/intl_helpers.dart';
 import 'package:intl/intl.dart';
 
-import 'foo_messages_fr.dart' as messages_fr;
 import 'foo_messages_de_DE.dart' as messages_de_DE;
+import 'foo_messages_fr.dart' as messages_fr;
 
 
 MessageLookupByLibrary _findExact(localeName) {
   switch (localeName) {
-    case 'fr' : return messages_fr.messages;
     case 'de_DE' : return messages_de_DE.messages;
+    case 'fr' : return messages_fr.messages;
     default: return null;
   }
 }

@@ -1,11 +1,11 @@
 name: custom_element
-version: 0.10.0-dev
+version: 0.10.0
 author: "Polymer.dart Team <web-ui-dev@dartlang.org>"
 homepage: http://www.dartlang.org/
 description: >
   *Deprecated* newer version is in web_components package. This is for backwards
-  compat with polymer.dart 0.4.x (web_ui package)
+  compatibility with polymer.dart 0.4.x (web_ui package).
 dev_dependencies:
-  unittest: ">=0.9.0 <0.10.0"
+  unittest: ">=0.10.0 <0.11.0"
 environment:
-  sdk: ">=1.2.0-dev.4.0 <2.0.0"
+  sdk: ">=1.2.0 <2.0.0"

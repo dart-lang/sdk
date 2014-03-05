@@ -1696,9 +1696,10 @@ TEST_CASE(ExternalUint8ClampedArrayAccess) {
 }
 
 
-static void ExternalTypedDataFinalizer(Dart_WeakPersistentHandle handle,
-                                               void* peer) {
-  Dart_DeleteWeakPersistentHandle(handle);
+static void ExternalTypedDataFinalizer(Dart_Isolate isolate,
+                                       Dart_WeakPersistentHandle handle,
+                                       void* peer) {
+  Dart_DeleteWeakPersistentHandle(isolate, handle);
   *static_cast<int*>(peer) = 42;
 }
 
@@ -1842,22 +1843,22 @@ UNIT_TEST_CASE(PersistentHandles) {
     HANDLESCOPE(isolate);
     for (int i = 0; i < 500; i++) {
       String& str = String::Handle();
-      str ^= Api::UnwrapAsPersistentHandle(handles[i])->raw();
+      str ^= PersistentHandle::Cast(handles[i])->raw();
       EXPECT(str.Equals(kTestString1));
     }
     for (int i = 500; i < 1000; i++) {
       String& str = String::Handle();
-      str ^= Api::UnwrapAsPersistentHandle(handles[i])->raw();
+      str ^= PersistentHandle::Cast(handles[i])->raw();
       EXPECT(str.Equals(kTestString2));
     }
     for (int i = 1000; i < 1500; i++) {
       String& str = String::Handle();
-      str ^= Api::UnwrapAsPersistentHandle(handles[i])->raw();
+      str ^= PersistentHandle::Cast(handles[i])->raw();
       EXPECT(str.Equals(kTestString1));
     }
     for (int i = 1500; i < 2000; i++) {
       String& str = String::Handle();
-      str ^= Api::UnwrapAsPersistentHandle(handles[i])->raw();
+      str ^= PersistentHandle::Cast(handles[i])->raw();
       EXPECT(str.Equals(kTestString2));
     }
   }
@@ -1914,13 +1915,13 @@ UNIT_TEST_CASE(AssignToPersistentHandle) {
   Dart_Handle ref1 = Api::NewHandle(isolate, String::New(kTestString1));
   Dart_PersistentHandle obj = Dart_NewPersistentHandle(ref1);
   EXPECT(state->IsValidPersistentHandle(obj));
-  str ^= Api::UnwrapAsPersistentHandle(obj)->raw();
+  str ^= PersistentHandle::Cast(obj)->raw();
   EXPECT(str.Equals(kTestString1));
 
   // Now create another local handle and assign it to the persistent handle.
   Dart_Handle ref2 = Api::NewHandle(isolate, String::New(kTestString2));
   Dart_SetPersistentHandle(obj, ref2);
-  str ^= Api::UnwrapAsPersistentHandle(obj)->raw();
+  str ^= PersistentHandle::Cast(obj)->raw();
   EXPECT(str.Equals(kTestString2));
 
   // Now assign Null to the persistent handle and check.
@@ -2051,8 +2052,9 @@ TEST_CASE(WeakPersistentHandle) {
     Dart_ExitScope();
   }
 
-  Dart_DeleteWeakPersistentHandle(weak_new_ref);
-  Dart_DeleteWeakPersistentHandle(weak_old_ref);
+  Dart_Isolate isolate = reinterpret_cast<Dart_Isolate>(Isolate::Current());
+  Dart_DeleteWeakPersistentHandle(isolate, weak_new_ref);
+  Dart_DeleteWeakPersistentHandle(isolate, weak_old_ref);
 
   // Garbage collect one last time to revisit deleted handles.
   Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
@@ -2060,8 +2062,9 @@ TEST_CASE(WeakPersistentHandle) {
 }
 
 
-static void WeakPersistentHandlePeerFinalizer(
-    Dart_WeakPersistentHandle handle, void* peer) {
+static void WeakPersistentHandlePeerFinalizer(Dart_Isolate isolate,
+                                              Dart_WeakPersistentHandle handle,
+                                              void* peer) {
   *static_cast<int*>(peer) = 42;
 }
 
@@ -2083,7 +2086,8 @@ TEST_CASE(WeakPersistentHandleCallback) {
   EXPECT(peer == 0);
   GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
   EXPECT(peer == 42);
-  Dart_DeleteWeakPersistentHandle(weak_ref);
+  Dart_Isolate isolate = reinterpret_cast<Dart_Isolate>(Isolate::Current());
+  Dart_DeleteWeakPersistentHandle(isolate, weak_ref);
 }
 
 
@@ -2100,7 +2104,8 @@ TEST_CASE(WeakPersistentHandleNoCallback) {
   }
   // A finalizer is not invoked on a deleted handle.  Therefore, the
   // peer value should not change after the referent is collected.
-  Dart_DeleteWeakPersistentHandle(weak_ref);
+  Dart_Isolate isolate = reinterpret_cast<Dart_Isolate>(Isolate::Current());
+  Dart_DeleteWeakPersistentHandle(isolate, weak_ref);
   EXPECT(peer == 0);
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
   EXPECT(peer == 0);

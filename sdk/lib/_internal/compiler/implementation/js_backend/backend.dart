@@ -55,7 +55,6 @@ class FunctionInlineCache {
 
 class JavaScriptBackend extends Backend {
   SsaBuilderTask builder;
-  SsaFromIrBuilderTask fromIrBuilder;
   SsaOptimizerTask optimizer;
   SsaCodeGeneratorTask generator;
   CodeEmitterTask emitter;
@@ -298,7 +297,6 @@ class JavaScriptBackend extends Backend {
         super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM) {
     emitter = new CodeEmitterTask(compiler, namer, generateSourceMap);
     builder = new SsaBuilderTask(this);
-    fromIrBuilder = new SsaFromIrBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
     generator = new SsaCodeGeneratorTask(this);
     typeVariableHandler = new TypeVariableHandler(this);
@@ -1162,9 +1160,7 @@ class JavaScriptBackend extends Backend {
         compiler.enqueuer.codegen.registerStaticUse(getCyclicThrowHelper());
       }
     }
-    HGraph graph = compiler.irBuilder.hasIr(element)
-        ? fromIrBuilder.build(work)
-        : builder.build(work);
+    HGraph graph = builder.build(work);
     optimizer.optimize(work, graph);
     jsAst.Expression code = generator.generateCode(work, graph);
     generatedCode[element] = code;

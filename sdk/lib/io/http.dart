@@ -771,7 +771,7 @@ abstract class Cookie {
  */
 abstract class HttpRequest implements Stream<List<int>> {
   /**
-   * The content length of the request body (read-only).
+   * The content length of the request body.
    *
    * If the size of the request body is not known in advance,
    * this value is -1.
@@ -779,12 +779,12 @@ abstract class HttpRequest implements Stream<List<int>> {
   int get contentLength;
 
   /**
-   * The method, such as 'GET' or 'POST', for the request (read-only).
+   * The method, such as 'GET' or 'POST', for the request.
    */
   String get method;
 
   /**
-   * The URI for the request (read-only).
+   * The URI for the request.
    *
    * This provides access to the
    * path, query string, and fragment identifier for the request.
@@ -792,7 +792,7 @@ abstract class HttpRequest implements Stream<List<int>> {
   Uri get uri;
 
   /**
-   * The requested URI for the request (read-only).
+   * The requested URI for the request.
    *
    * The returend URI is reconstructed by using http-header fields, to access
    * otherwise lost information, e.g. host and scheme.
@@ -806,22 +806,22 @@ abstract class HttpRequest implements Stream<List<int>> {
   Uri get requestedUri;
 
   /**
-   * The request headers (read-only).
+   * The request headers.
    */
   HttpHeaders get headers;
 
   /**
-   * The cookies in the request, from the Cookie headers (read-only).
+   * The cookies in the request, from the Cookie headers.
    */
   List<Cookie> get cookies;
 
   /**
-   * The persistent connection state signaled by the client (read-only).
+   * The persistent connection state signaled by the client.
    */
   bool get persistentConnection;
 
   /**
-   * The client certificate of the client making the request (read-only).
+   * The client certificate of the client making the request.
    *
    * This value is null if the connection is not a secure TLS or SSL connection,
    * or if the server does not request a client certificate, or if the client
@@ -830,7 +830,7 @@ abstract class HttpRequest implements Stream<List<int>> {
   X509Certificate get certificate;
 
   /**
-   * The session for the given request (read-only).
+   * The session for the given request.
    *
    * If the session is
    * being initialized by this call, [:isNew:] is true for the returned
@@ -841,12 +841,12 @@ abstract class HttpRequest implements Stream<List<int>> {
 
   /**
    * The HTTP protocol version used in the request,
-   * either "1.0" or "1.1" (read-only).
+   * either "1.0" or "1.1".
    */
   String get protocolVersion;
 
   /**
-   * Information about the client connection (read-only).
+   * Information about the client connection.
    *
    * Returns [:null:] if the socket is not available.
    */
@@ -854,7 +854,7 @@ abstract class HttpRequest implements Stream<List<int>> {
 
   /**
    * The [HttpResponse] object, used for sending back the response to the
-   * client (read-only).
+   * client.
    *
    * If the [contentLength] of the body isn't 0, and the body isn't being read,
    * any write calls on the [HttpResponse] automatically drain the request

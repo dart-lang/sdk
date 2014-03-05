@@ -49,18 +49,19 @@ void Handles<kHandleSizeInWords,
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 void Handles<kHandleSizeInWords,
              kHandlesPerChunk,
-             kOffsetOfRawPtr>::Visit(HandleVisitor* visitor) {
+             kOffsetOfRawPtr>::Visit(HandleVisitor* visitor,
+                                     bool is_prologue_weak) {
   // Visit all zone handles.
   HandlesBlock* block = zone_blocks_;
   while (block != NULL) {
-    block->Visit(visitor);
+    block->Visit(visitor, is_prologue_weak);
     block = block->next_block();
   }
 
   // Visit all scoped handles.
   block = &first_scoped_block_;
   do {
-    block->Visit(visitor);
+    block->Visit(visitor, is_prologue_weak);
     block = block->next_block();
   } while (block != NULL);
 }
@@ -341,10 +342,11 @@ void Handles<kHandleSizeInWords,
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 void Handles<kHandleSizeInWords,
              kHandlesPerChunk,
-             kOffsetOfRawPtr>::HandlesBlock::Visit(HandleVisitor* visitor) {
+             kOffsetOfRawPtr>::HandlesBlock::Visit(HandleVisitor* visitor,
+                                                   bool is_prologue_weak) {
   ASSERT(visitor != NULL);
   for (intptr_t i = 0; i < next_handle_slot_; i += kHandleSizeInWords) {
-    visitor->VisitHandle(reinterpret_cast<uword>(&data_[i]));
+    visitor->VisitHandle(reinterpret_cast<uword>(&data_[i]), is_prologue_weak);
   }
 }
 

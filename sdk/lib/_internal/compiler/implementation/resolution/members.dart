@@ -3098,10 +3098,31 @@ class ResolverVisitor extends MappingVisitor<Element> {
     return null;
   }
 
+  void checkConstMapKeysDontOverrideEquals(Spannable spannable,
+                                           MapConstant map) {
+    for (Constant key in map.keys.entries) {
+      if (!key.isObject()) continue;
+      ObjectConstant objectConstant = key;
+      DartType keyType = objectConstant.type;
+      ClassElement cls = keyType.element;
+      if (cls == compiler.stringClass) continue;
+      Element equals = cls.lookupMember('==');
+      if (equals.getEnclosingClass() != compiler.objectClass) {
+        compiler.reportError(spannable,
+                             MessageKind.CONST_MAP_KEY_OVERRIDES_EQUALS,
+                             {'type': keyType});
+      }
+    }
+  }
+
   void analyzeConstant(Node node, {bool isConst: true}) {
     addDeferredAction(enclosingElement, () {
       Constant constant = compiler.constantHandler.compileNodeWithDefinitions(
           node, mapping, isConst: isConst);
+
+      if (isConst && constant != null && constant.isMap()) {
+        checkConstMapKeysDontOverrideEquals(node, constant);
+      }
 
       // The type constant that is an argument to JS_INTERCEPTOR_CONSTANT names
       // a class that will be instantiated outside the program by attaching a
@@ -3444,6 +3465,91 @@ class ResolverVisitor extends MappingVisitor<Element> {
     visit(node.expression);
   }
 
+  DartType typeOfConstant(Constant constant) {
+    if (constant.isInt()) return compiler.intClass.rawType;
+    if (constant.isBool()) return compiler.boolClass.rawType;
+    if (constant.isDouble()) return compiler.doubleClass.rawType;
+    if (constant.isString()) return compiler.stringClass.rawType;
+    if (constant.isNull()) return compiler.nullClass.rawType;
+    if (constant.isFunction()) return compiler.functionClass.rawType;
+    assert(constant.isObject());
+    ObjectConstant objectConstant = constant;
+    return objectConstant.type;
+  }
+
+  bool overridesEquals(DartType type) {
+    ClassElement cls = type.element;
+    Element equals = cls.lookupMember('==');
+    return equals.getEnclosingClass() != compiler.objectClass;
+  }
+
+  void checkCaseExpressions(SwitchStatement node) {
+    TargetElement breakElement = getOrCreateTargetElement(node);
+    Map<String, LabelElement> continueLabels = <String, LabelElement>{};
+
+    Link<Node> cases = node.cases.nodes;
+    SwitchCase switchCase = cases.head;
+    CaseMatch firstCase = null;
+    DartType firstCaseType = null;
+    bool hasReportedProblem = false;
+
+    for (Link<Node> cases = node.cases.nodes;
+         !cases.isEmpty;
+         cases = cases.tail) {
+      SwitchCase switchCase = cases.head;
+
+      for (Node labelOrCase in switchCase.labelsAndCases) {
+        CaseMatch caseMatch = labelOrCase.asCaseMatch();
+        if (caseMatch == null) continue;
+
+        // Analyze the constant.
+        Constant constant = mapping.getConstant(caseMatch.expression);
+        assert(invariant(node, constant != null,
+            message: 'No constant computed for $node'));
+
+        DartType caseType = typeOfConstant(constant);
+
+        if (firstCaseType == null) {
+          firstCase = caseMatch;
+          firstCaseType = caseType;
+
+          // We only report the bad type on the first class element. All others
+          // get a "type differs" error.
+          if (caseType.element == compiler.doubleClass) {
+            compiler.reportError(node,
+                                 MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
+                                 {'type': "double"});
+          } else if (caseType.element == compiler.functionClass) {
+            compiler.reportError(node, MessageKind.SWITCH_CASE_FORBIDDEN,
+                                 {'type': "Function"});
+          } else if (constant.isObject() && overridesEquals(caseType)) {
+            compiler.reportError(firstCase.expression,
+                MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
+                {'type': caseType});
+          }
+        } else {
+          if (caseType != firstCaseType) {
+            if (!hasReportedProblem) {
+              compiler.reportError(
+                  node,
+                  MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL,
+                  {'type': firstCaseType});
+              compiler.reportInfo(
+                  firstCase.expression,
+                  MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
+                  {'type': firstCaseType});
+              hasReportedProblem = true;
+            }
+            compiler.reportInfo(
+                caseMatch.expression,
+                MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
+                {'type': caseType});
+          }
+        }
+      }
+    }
+  }
+
   visitSwitchStatement(SwitchStatement node) {
     node.expression.accept(this);
 
@@ -3494,6 +3600,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
         error(switchCase, MessageKind.INVALID_CASE_DEFAULT);
       }
     }
+
+    addDeferredAction(enclosingElement, () {
+      checkCaseExpressions(node);
+    });
 
     statementScope.enterSwitch(breakElement, continueLabels);
     node.cases.accept(this);
