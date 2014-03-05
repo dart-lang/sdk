@@ -238,7 +238,7 @@ patch class Isolate {
       readyPort.handler = (readyMessage) {
         assert(readyMessage == 'started');
         readyPort.close();
-        completer.complete(new Isolate._fromControlPort(controlPort));
+        completer.complete(new Isolate(controlPort));
       };
       return completer.future;
     } catch (e, st) {
@@ -258,7 +258,7 @@ patch class Isolate {
       readyPort.handler = (readyMessage) {
         assert(readyMessage == 'started');
         readyPort.close();
-        completer.complete(new Isolate._fromControlPort(controlPort));
+        completer.complete(new Isolate(controlPort));
       };
       return completer.future;
     } catch (e, st) {
