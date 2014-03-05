@@ -5418,6 +5418,8 @@ class AliasedSet : public ZoneAllocated {
         if (instr->IsPushArgument() ||
             (instr->IsStoreInstanceField()
              && (use->use_index() != StoreInstanceFieldInstr::kInstancePos)) ||
+            (instr->IsStoreIndexed()
+             && (use->use_index() == StoreIndexedInstr::kValuePos)) ||
             instr->IsStoreStaticField() ||
             instr->IsPhi() ||
             instr->IsAssertAssignable() ||

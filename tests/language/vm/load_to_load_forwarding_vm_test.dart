@@ -268,6 +268,23 @@ testIndexedAliasedStore2(a, b, i) {
 }
 var indices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
+class Z {
+  var x = 42;
+}
+
+var global_array = new List<Z>(1);
+
+side_effect() {
+  global_array[0].x++;
+}
+
+testAliasingStoreIndexed(array) {
+  var z = new Z();
+  array[0] = z;
+  side_effect();
+  return z.x;
+}
+
 main() {
   final fixed = new List(10);
   final growable = [];
@@ -331,5 +348,10 @@ main() {
   }
   for (var i = 0; i < 20; i++) {
     Expect.equals(4, testIndexedAliasedStore2(array, array, indices[1]));
+  }
+
+  var test_array = new List(1);
+  for (var i = 0; i < 20; i++) {
+    Expect.equals(43, testAliasingStoreIndexed(global_array));
   }
 }
