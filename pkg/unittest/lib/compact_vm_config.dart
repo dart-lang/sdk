@@ -56,13 +56,13 @@ class CompactVMConfiguration extends VMConfiguration {
     } else {
       _fail++;
       _progressLine(_start, _pass, _fail, test.description);
-      stdout.write('\n');
+      _print();
       if (test.message != '') {
-        print(indent(test.message));
+        _print(indent(test.message));
       }
 
       if (test.stackTrace != null) {
-        print(indent(test.stackTrace.toString()));
+        _print(indent(test.stackTrace.toString()));
       }
     }
   }
@@ -71,13 +71,13 @@ class CompactVMConfiguration extends VMConfiguration {
     _pass--;
     _fail++;
     _progressLine(_start, _pass, _fail, test.description);
-    stdout.write('\n');
+    _print();
     if (test.message != '') {
-      print(indent(test.message));
+      _print(indent(test.message));
     }
 
     if (test.stackTrace != null) {
-      print(indent(test.stackTrace.toString()));
+      _print(indent(test.stackTrace.toString()));
     }
   }
 
@@ -94,18 +94,18 @@ class CompactVMConfiguration extends VMConfiguration {
       String uncaughtError) {
     var success = false;
     if (passed == 0 && failed == 0 && errors == 0 && uncaughtError == null) {
-      print('\nNo tests ran.');
+      _print('\nNo tests ran.');
     } else if (failed == 0 && errors == 0 && uncaughtError == null) {
       _progressLine(_start, _pass, _fail, 'All tests passed!', _NONE);
-      stdout.write('\n');
+      _print();
       success = true;
     } else {
       _progressLine(_start, _pass, _fail, 'Some tests failed.', _RED);
-      stdout.write('\n');
+      _print();
       if (uncaughtError != null) {
-        print('Top-level uncaught error: $uncaughtError');
+        _print('Top-level uncaught error: $uncaughtError');
       }
-      print('$passed PASSED, $failed FAILED, $errors ERRORS');
+      _print('$passed PASSED, $failed FAILED, $errors ERRORS');
     }
   }
 
@@ -200,6 +200,9 @@ class CompactVMConfiguration extends VMConfiguration {
     return '...$res';
   }
 }
+
+// TODO(sigmund): delete when dartbug.com/17269 is fixed (use `print` instead).
+_print([value = '']) => stdout.write('$value\n');
 
 void useCompactVMConfiguration() {
   // If the test is running on the Dart buildbots, we don't want to use this
