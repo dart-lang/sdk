@@ -113,7 +113,7 @@ class RequestTest {
 
   static void fromJson() {
     Request original = new Request('one', 'aMethod');
-    String json = new JsonEncoder(null).convert(original.toJson());
+    String json = JSON.encode(original.toJson());
     Request request = new Request.fromString(json);
     expect(request.id, equals('one'));
     expect(request.method, equals('aMethod'));
@@ -140,7 +140,7 @@ class RequestTest {
   static void fromJson_withParams() {
     Request original = new Request('one', 'aMethod');
     original.setParameter('foo', 'bar');
-    String json = new JsonEncoder(null).convert(original.toJson());
+    String json = JSON.encode(original.toJson());
     Request request = new Request.fromString(json);
     expect(request.id, equals('one'));
     expect(request.method, equals('aMethod'));

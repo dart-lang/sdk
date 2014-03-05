@@ -376,6 +376,11 @@ class RequestError {
    */
   static const int CODE_INTERNAL_ERROR = -32603;
 
+  /**
+   * An error code indicating a problem using the specified Dart SDK.
+   */
+  static const int CODE_SDK_ERROR = -32603;
+
   /*
    * In addition, codes -32000 to -32099 indicate a server error. They are
    * reserved for implementation-defined server-errors.

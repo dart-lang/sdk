@@ -126,8 +126,7 @@ class AnalysisManager {
           print('Expected shutdown response');
         })
         .then((Response response) {
-          channel.close();
-          return process.exitCode;
+          return channel.close().then((_) => process.exitCode);
         })
         .timeout(new Duration(seconds: 2), onTimeout: () {
           print('Expected server to shutdown');

@@ -5,17 +5,12 @@
 library mocks;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 /**
  * A mock [WebSocket] for testing.
  */
 class MockSocket<T> implements WebSocket {
-
-  final JsonEncoder jsonEncoder = const JsonEncoder(null);
-
-  final JsonDecoder jsonDecoder = const JsonDecoder(null);
 
   StreamController controller = new StreamController();
   MockSocket twin;
