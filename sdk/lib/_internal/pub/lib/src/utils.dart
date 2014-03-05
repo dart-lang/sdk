@@ -10,6 +10,7 @@ import "dart:collection";
 import "dart:convert";
 import 'dart:io';
 import 'dart:isolate';
+@MirrorsUsed(targets: 'pub.io')
 import 'dart:mirrors';
 
 import "package:analyzer/analyzer.dart";
@@ -698,8 +699,11 @@ Future awaitObject(object) {
   });
 }
 
-/// Returns the path to the library named [libraryName]. The library name must
-/// be globally unique, or the wrong library path may be returned.
+/// Returns the path to the library named [libraryName].
+///
+/// The library name must be globally unique, or the wrong library path may be
+/// returned. Any libraries accessed must be added to the [MirrorsUsed]
+/// declaration in the import above.
 String libraryPath(String libraryName) {
   var lib = currentMirrorSystem().findLibrary(new Symbol(libraryName));
   return path.fromUri(lib.uri);
