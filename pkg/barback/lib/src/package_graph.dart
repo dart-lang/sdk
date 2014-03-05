@@ -71,53 +71,24 @@ class PackageGraph {
   /// Creates a new [PackageGraph] that will transform assets in all packages
   /// made available by [provider].
   PackageGraph(this.provider) {
-    for (var package in provider.packages) {
-      var cascade = new AssetCascade(this, package);
-      // The initial result for each cascade is "success" since the cascade
-      // doesn't start building until some source in that graph is updated.
-      _cascadeResults[package] = new BuildResult.success();
-      _cascades[package] = cascade;
-      cascade.onDirty.listen((_) {
-        _cascadeResults[package] = null;
-      });
+    _inErrorZone(() {
+      for (var package in provider.packages) {
+        var cascade = new AssetCascade(this, package);
+        // The initial result for each cascade is "success" since the cascade
+        // doesn't start building until some source in that graph is updated.
+        _cascadeResults[package] = new BuildResult.success();
+        _cascades[package] = cascade;
+        cascade.onDirty.listen((_) {
+          _cascadeResults[package] = null;
+        });
 
-      cascade.onLog.listen((entry) {
-        if (_logController.hasListener) {
-          _logController.add(entry);
-        } else if (entry.level != LogLevel.FINE) {
-          // No listeners, so just print entry.
-          var buffer = new StringBuffer();
-          buffer.write("[${entry.level} ${entry.transform}] ");
+        cascade.onLog.listen(_onLog);
+        _handleResults(cascade);
+      }
 
-          if (entry.span != null) {
-            buffer.write(entry.span.getLocationMessage(entry.message));
-          } else {
-            buffer.write(entry.message);
-          }
-
-          print(buffer);
-        }
-      });
-
-      cascade.results.listen((result) {
-        _cascadeResults[cascade.package] = result;
-        // If any cascade hasn't yet finished, the overall build isn't finished
-        // either.
-        if (_cascadeResults.values.any((result) => result == null)) return;
-
-        // Include all build errors for all cascades. If no cascades have
-        // errors, the result will automatically be considered a success.
-        _resultsController.add(
-            new BuildResult.aggregate(_cascadeResults.values));
-      }, onError: (error, stackTrace) {
-        _lastUnexpectedError = error;
-        _lastUnexpectedErrorTrace = stackTrace;
-        _resultsController.addError(error, stackTrace);
-      });
-    }
-
-    _errors = mergeStreams(_cascades.values.map((cascade) => cascade.errors),
-        broadcast: true);
+      _errors = mergeStreams(_cascades.values.map((cascade) => cascade.errors),
+          broadcast: true);
+    });
   }
 
   /// Gets the asset node identified by [id].
@@ -128,9 +99,11 @@ class PackageGraph {
   ///
   /// If the asset cannot be found, returns null.
   Future<AssetNode> getAssetNode(AssetId id) {
-    var cascade = _cascades[id.package];
-    if (cascade != null) return cascade.getAssetNode(id);
-    return new Future.value(null);
+    return _inErrorZone(() {
+      var cascade = _cascades[id.package];
+      if (cascade != null) return cascade.getAssetNode(id);
+      return new Future.value(null);
+    });
   }
 
   /// Gets all output assets.
@@ -143,7 +116,7 @@ class PackageGraph {
   /// concrete outputs, and those outputs will be returned.
   Future<AssetSet> getAllAssets() {
     for (var cascade in _cascades.values) {
-      cascade.forceAllTransforms();
+      _inErrorZone(() => cascade.forceAllTransforms());
     }
 
     if (_cascadeResults.values.contains(null)) {
@@ -180,7 +153,7 @@ class PackageGraph {
     groupBy(sources, (id) => id.package).forEach((package, ids) {
       var cascade = _cascades[package];
       if (cascade == null) throw new ArgumentError("Unknown package $package.");
-      cascade.updateSources(ids);
+      _inErrorZone(() => cascade.updateSources(ids));
     });
   }
 
@@ -189,12 +162,67 @@ class PackageGraph {
     groupBy(sources, (id) => id.package).forEach((package, ids) {
       var cascade = _cascades[package];
       if (cascade == null) throw new ArgumentError("Unknown package $package.");
-      cascade.removeSources(ids);
+      _inErrorZone(() => cascade.removeSources(ids));
     });
   }
 
   void updateTransformers(String package,
       Iterable<Iterable<Transformer>> transformers) {
-    _cascades[package].updateTransformers(transformers);
+    _inErrorZone(() => _cascades[package].updateTransformers(transformers));
+  }
+
+  /// A handler for a log entry from an [AssetCascade].
+  void _onLog(LogEntry entry) {
+    if (_logController.hasListener) {
+      _logController.add(entry);
+    } else if (entry.level != LogLevel.FINE) {
+      // No listeners, so just print entry.
+      var buffer = new StringBuffer();
+      buffer.write("[${entry.level} ${entry.transform}] ");
+
+      if (entry.span != null) {
+        buffer.write(entry.span.getLocationMessage(entry.message));
+      } else {
+        buffer.write(entry.message);
+      }
+
+      print(buffer);
+    }
+  }
+
+  /// Listens to and handles the build results from [cascade].
+  void _handleResults(AssetCascade cascade) {
+    cascade.results.listen((result) {
+      _cascadeResults[cascade.package] = result;
+      // If any cascade hasn't yet finished, the overall build isn't finished
+      // either.
+      if (_cascadeResults.values.any((result) => result == null)) return;
+
+      // Include all build errors for all cascades. If no cascades have
+      // errors, the result will automatically be considered a success.
+      _resultsController.add(new BuildResult.aggregate(_cascadeResults.values));
+    });
+  }
+
+  /// Run [body] in an error-handling [Zone] and pipe any unexpected errors to
+  /// the error channel of [results].
+  ///
+  /// [body] can return a value or a [Future] that will be piped to the returned
+  /// [Future]. If it throws a [BarbackException], that exception will be piped
+  /// to the returned [Future] as well. Any other exceptions will be piped to
+  /// [results].
+  Future _inErrorZone(body()) {
+    var completer = new Completer.sync();
+    runZoned(() {
+      syncFuture(body).then(completer.complete).catchError((error, stackTrace) {
+        if (error is! BarbackException) throw error;
+        completer.completeError(error, stackTrace);
+      });
+    }, onError: (error, stackTrace) {
+      _lastUnexpectedError = error;
+      _lastUnexpectedErrorTrace = stackTrace;
+      _resultsController.addError(error, stackTrace);
+    });
+    return completer.future;
   }
 }
