@@ -56,7 +56,6 @@ void testHEAD(int totalConnections) {
       client.open("HEAD", "127.0.0.1", server.port, "/testChunked$len")
         .then((request) => request.close())
         .then((HttpClientResponse response) {
-            print(response.headers);
           Expect.equals(-1, response.contentLength);
           response.listen(
             (_) => Expect.fail("Data from HEAD request"),
