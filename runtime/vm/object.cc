@@ -6401,9 +6401,15 @@ void Field::PrintToJSONStream(JSONStream* stream, bool ref) const {
   }
 
   jsobj.AddProperty("owner", cls);
+
+  // TODO(turnidge): Once the vmservice supports returning types,
+  // return the type here instead of the class.
   AbstractType& declared_type = AbstractType::Handle(type());
-  cls = declared_type.type_class();
-  jsobj.AddProperty("declared_type", cls);
+  if (declared_type.HasResolvedTypeClass()) {
+    cls = declared_type.type_class();
+    jsobj.AddProperty("declared_type", cls);
+  }
+
   jsobj.AddProperty("static", is_static());
   jsobj.AddProperty("final", is_final());
   jsobj.AddProperty("const", is_const());
