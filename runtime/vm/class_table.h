@@ -115,7 +115,11 @@ class ClassTable {
 
   void Register(const Class& cls);
 
+  void RegisterAt(intptr_t index, const Class& cls);
+
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
+
+  void Validate();
 
   void Print();
 

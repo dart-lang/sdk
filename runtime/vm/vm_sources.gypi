@@ -192,8 +192,6 @@
     'hash_map_test.cc',
     'heap.cc',
     'heap.h',
-    'heap_histogram.cc',
-    'heap_histogram.h',
     'heap_test.cc',
     'il_printer.cc',
     'il_printer.h',

@@ -60,7 +60,6 @@ class StackZone;
 class StubCode;
 class TypeArguments;
 class TypeParameter;
-class ObjectHistogram;
 class ObjectIdRing;
 
 
@@ -104,6 +103,8 @@ class Isolate : public BaseIsolate {
 
   // Register a newly introduced class.
   void RegisterClass(const Class& cls);
+  void RegisterClassAt(intptr_t index, const Class& cls);
+  void ValidateClassTable();
 
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor,
@@ -123,8 +124,6 @@ class Isolate : public BaseIsolate {
   static intptr_t class_table_offset() {
     return OFFSET_OF(Isolate, class_table_);
   }
-
-  ObjectHistogram* object_histogram() { return object_histogram_; }
 
   bool cha_used() const { return cha_used_; }
   void set_cha_used(bool value) { cha_used_ = value; }
@@ -489,7 +488,6 @@ class Isolate : public BaseIsolate {
   // Status support.
   char* stacktrace_;
   intptr_t stack_frame_index_;
-  ObjectHistogram* object_histogram_;
 
   bool cha_used_;
 

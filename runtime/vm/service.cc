@@ -12,7 +12,6 @@
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
-#include "vm/heap_histogram.h"
 #include "vm/isolate.h"
 #include "vm/message.h"
 #include "vm/native_entry.h"
@@ -619,19 +618,6 @@ static bool HandleStackTrace(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleObjectHistogram(Isolate* isolate, JSONStream* js) {
-  ObjectHistogram* histogram = Isolate::Current()->object_histogram();
-  if (histogram == NULL) {
-    JSONObject jsobj(js);
-    jsobj.AddProperty("type", "Error");
-    jsobj.AddProperty("text", "Run with --print_object_histogram");
-    return true;
-  }
-  histogram->PrintToJSONStream(js);
-  return true;
-}
-
-
 static bool HandleIsolateEcho(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "message");
@@ -1154,7 +1140,6 @@ static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "cpu", HandleCpu },
   { "debug", HandleDebug },
   { "libraries", HandleLibraries },
-  { "objecthistogram", HandleObjectHistogram},
   { "objects", HandleObjects },
   { "profile", HandleProfile },
   { "unpin", HandleUnpin },

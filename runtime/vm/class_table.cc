@@ -96,9 +96,60 @@ void ClassTable::Register(const Class& cls) {
 }
 
 
+void ClassTable::RegisterAt(intptr_t index, const Class& cls) {
+  ASSERT(index != kIllegalCid);
+  ASSERT(index >= kNumPredefinedCids);
+  if (index >= capacity_) {
+    // Grow the capacity of the class table.
+    intptr_t new_capacity = index + capacity_increment_;
+    if (new_capacity < capacity_) {
+      FATAL1("Fatal error in ClassTable::Register: invalid index %" Pd "\n",
+             index);
+    }
+    RawClass** new_table = reinterpret_cast<RawClass**>(
+        realloc(table_, new_capacity * sizeof(RawClass*)));  // NOLINT
+    ClassHeapStats* new_stats_table = reinterpret_cast<ClassHeapStats*>(
+        realloc(class_heap_stats_table_,
+                new_capacity * sizeof(ClassHeapStats)));  // NOLINT
+    for (intptr_t i = capacity_; i < new_capacity; i++) {
+      new_table[i] = NULL;
+      new_stats_table[i].Initialize();
+    }
+    capacity_ = new_capacity;
+    table_ = new_table;
+    class_heap_stats_table_ = new_stats_table;
+    ASSERT(capacity_increment_ >= 1);
+  }
+  ASSERT(table_[index] == 0);
+  cls.set_id(index);
+  table_[index] = cls.raw();
+  if (index >= top_) {
+    top_ = index + 1;
+  }
+}
+
+
 void ClassTable::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
   visitor->VisitPointers(reinterpret_cast<RawObject**>(&table_[0]), top_);
+}
+
+
+void ClassTable::Validate() {
+  Class& cls = Class::Handle();
+  for (intptr_t i = kNumPredefinedCids; i < top_; i++) {
+    // Some of the class table entries maybe NULL as we create some
+    // top level classes but do not add them to the list of anonymous
+    // classes in a library if there are no top level fields or functions.
+    // Since there are no references to these top level classes they are
+    // not written into a full snapshot and will not be recreated when
+    // we read back the full snapshot. These class slots end up with NULL
+    // entries.
+    if (HasValidClassAt(i)) {
+      cls = At(i);
+      ASSERT(cls.IsClass());
+    }
+  }
 }
 
 
