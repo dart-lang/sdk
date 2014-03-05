@@ -411,6 +411,7 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
   // requests and in error handling.
   bool _ignoreBody = false;
   bool _headersWritten = false;
+  bool _encodingSet = false;
 
   final Uri _uri;
   final _HttpOutgoing _outgoing;
@@ -438,6 +439,9 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
   }
 
   Encoding get encoding {
+    if (_encodingSet && _headersWritten) {
+      return _encoding;
+    }
     var charset;
     if (headers.contentType != null && headers.contentType.charset != null) {
       charset = headers.contentType.charset;
@@ -453,7 +457,10 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
   }
 
   void write(Object obj) {
-    if (!_headersWritten) _encoding = encoding;
+    if (!_encodingSet) {
+      _encoding = encoding;
+      _encodingSet = true;
+    }
     super.write(obj);
   }
 
@@ -472,7 +479,6 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
       return this;
     }
     if (_headersWritten) return new Future.value(this);
-    _encoding = encoding;
     _headersWritten = true;
     Future drainFuture;
     bool isServerSide = this is _HttpResponse;
