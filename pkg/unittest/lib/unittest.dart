@@ -325,22 +325,8 @@ void solo_test(String spec, TestFunction body) {
  * bound.
  */
 Function expectAsync(Function callback,
-                     {int count: 1, int max: 0, String id}) {
-  var minArgs = _minArgs(callback);
-
-  switch(minArgs) {
-    case 0:
-      return new _SpreadArgsHelper(callback, count, max, null, id).invoke0;
-    case 1:
-      return new _SpreadArgsHelper(callback, count, max, null, id).invoke1;
-    case 2:
-      return new _SpreadArgsHelper(callback, count, max, null, id).invoke2;
-    default:
-      // _minArgs throws an argument exception if the arg count is > 2.
-      // this is just for paranoia
-      throw new StateError('Should never get here');
-  }
-}
+    {int count: 1, int max: 0, String id}) =>
+  new _SpreadArgsHelper(callback, count, max, id);
 
 /**
  * *Deprecated*
@@ -382,22 +368,8 @@ Function expectAsync2(Function callback,
  * identify the callback in error messages (for example if it is called
  * after the test case is complete).
  */
-Function expectAsyncUntil(Function callback, Function isDone, {String id}) {
-  var minArgs = _minArgs(callback);
-
-  switch(minArgs) {
-    case 0:
-      return new _SpreadArgsHelper(callback, 0, -1, isDone, id).invoke0;
-    case 1:
-      return new _SpreadArgsHelper(callback, 0, -1, isDone, id).invoke1;
-    case 2:
-      return new _SpreadArgsHelper(callback, 0, -1, isDone, id).invoke2;
-    default:
-      // _minArgs throws an argument exception if the arg count is > 2.
-      // this is just for paranoia
-      throw new StateError('Should never get here');
-  }
-}
+Function expectAsyncUntil(Function callback, bool isDone(), {String id}) =>
+    new _SpreadArgsHelper(callback, 0, -1, id, isDone: isDone);
 
 /**
  * *Deprecated*
@@ -769,19 +741,4 @@ Trace _getTrace(stack) {
   return new Trace(trace.frames.takeWhile((frame) {
     return frame.package != 'unittest' || frame.member != 'TestCase._runTest';
   })).terse.foldFrames((frame) => frame.package == 'unittest' || frame.isCore);
-}
-
-typedef _Func0();
-typedef _Func1(a);
-typedef _Func2(a, b);
-
-/**
- * Throws an [ArgumentError] if the callback has more than 2 required arguments.
- */
-int _minArgs(Function callback) {
-  if (callback is _Func0) return 0;
-  if (callback is _Func1) return 1;
-  if (callback is _Func2) return 2;
-  throw new ArgumentError(
-      'The callback argument has more than 2 required arguments.');
 }

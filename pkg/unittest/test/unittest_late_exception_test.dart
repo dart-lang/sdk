@@ -14,11 +14,11 @@ var testName = 'late exception test';
 var testFunction = (_) {
   var f;
   test('testOne', () {
-    f = expectAsync0(() {});
+    f = expectAsync(() {});
     _defer(f);
   });
   test('testTwo', () {
-    _defer(expectAsync0(() { f(); }));
+    _defer(expectAsync(() { f(); }));
   });
 };
 
