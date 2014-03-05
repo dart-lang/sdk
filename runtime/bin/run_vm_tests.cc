@@ -18,9 +18,7 @@ namespace dart {
 // Only run tests that match the filter string. The default does not match any
 // tests.
 static const char* const kNone = "No Test or Benchmarks";
-static const char* const kAll = "All";
 static const char* const kList = "List all Tests and Benchmarks";
-static const char* const kAllTests = "All Tests";
 static const char* const kAllBenchmarks = "All Benchmarks";
 static const char* run_filter = kNone;
 
@@ -35,9 +33,7 @@ void TestCase::Run() {
 
 
 void TestCaseBase::RunTest() {
-  if ((run_filter == kAll) ||
-      (run_filter == kAllTests) ||
-      (strcmp(run_filter, this->name()) == 0)) {
+  if (strcmp(run_filter, this->name()) == 0) {
     this->Run();
     run_matches++;
   } else if (run_filter == kList) {
@@ -48,8 +44,7 @@ void TestCaseBase::RunTest() {
 
 
 void Benchmark::RunBenchmark() {
-  if ((run_filter == kAll) ||
-      (run_filter == kAllBenchmarks) ||
+  if ((run_filter == kAllBenchmarks) ||
       (strcmp(run_filter, this->name()) == 0)) {
     this->Run();
     OS::Print("%s(RunTime): %" Pd "\n", this->name(), this->score());
@@ -63,7 +58,7 @@ void Benchmark::RunBenchmark() {
 
 static void PrintUsage() {
   fprintf(stderr, "run_vm_tests [--list | --benchmarks | "
-                  "--tests | --all | <test name> | <benchmark name>]\n");
+                  "<test name> | <benchmark name>]\n");
   fprintf(stderr, "run_vm_tests [vm-flags ...] <test name>\n");
   fprintf(stderr, "run_vm_tests [vm-flags ...] <benchmark name>\n");
 }
@@ -85,10 +80,6 @@ static int Main(int argc, const char** argv) {
       TestCaseBase::RunAll();
       Benchmark::RunAll(argv[0]);
       return 0;
-    } else if (strcmp(argv[1], "--all") == 0) {
-      run_filter = kAll;
-    } else if (strcmp(argv[1], "--tests") == 0) {
-      run_filter = kAllTests;
     } else if (strcmp(argv[1], "--benchmarks") == 0) {
       run_filter = kAllBenchmarks;
     } else {
