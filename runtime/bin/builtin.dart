@@ -266,7 +266,7 @@ String _filePathFromPackageUri(Uri uri) {
 // The directory part is either a file system path or an HTTP(S) URL.
 // The filename part is the extension name, with the platform-dependent
 // prefixes and extensions added.
-String _extensionPathFromUri(String userUri) {
+_extensionPathFromUri(String userUri) {
   if (!userUri.startsWith(_DART_EXT)) {
     throw 'Unexpected internal error: Extension URI $userUri missing dart-ext:';
   }
