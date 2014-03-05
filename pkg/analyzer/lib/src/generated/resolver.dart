@@ -8008,7 +8008,7 @@ class InheritanceManager {
           //
           // Include the members from the superclass in the resultMap.
           //
-          recordMapWithClassMembers(resultMap, supertype);
+          recordMapWithClassMembers(resultMap, supertype, false);
         } finally {
           visitedClasses.remove(superclassElt);
         }
@@ -8037,7 +8037,7 @@ class InheritanceManager {
             //
             // Include the members from the superclass in the resultMap.
             //
-            recordMapWithClassMembersFromMixin(map, mixins[i]);
+            recordMapWithClassMembers(map, mixins[i], false);
             //
             // Add the members from map into result map.
             //
@@ -8168,7 +8168,7 @@ class InheritanceManager {
           //
           // Add any members from the super type into the map as well.
           //
-          recordMapWithClassMembers(map, supertype);
+          recordMapWithClassMembers(map, supertype, true);
           lookupMaps.add(map);
         } finally {
           visitedInterfaces.remove(superclassElement);
@@ -8205,7 +8205,7 @@ class InheritanceManager {
             //
             // Add any members from the mixin type into the map as well.
             //
-            recordMapWithClassMembers(map, mixinType);
+            recordMapWithClassMembers(map, mixinType, true);
             lookupMaps.add(map);
           } finally {
             visitedInterfaces.remove(mixinElement);
@@ -8242,7 +8242,7 @@ class InheritanceManager {
             //
             // And add any members from the interface into the map as well.
             //
-            recordMapWithClassMembers(map, interfaceType);
+            recordMapWithClassMembers(map, interfaceType, true);
             lookupMaps.add(map);
           } finally {
             visitedInterfaces.remove(interfaceElement);
@@ -8455,50 +8455,19 @@ class InheritanceManager {
    * @param map some non-`null` map to put the methods and accessors from the passed
    *          [ClassElement] into
    * @param type the type that will be recorded into the passed map
+   * @param doIncludeAbstract `true` if abstract members will be put into the map
    */
-  void recordMapWithClassMembers(MemberMap map, InterfaceType type) {
+  void recordMapWithClassMembers(MemberMap map, InterfaceType type, bool doIncludeAbstract) {
     List<MethodElement> methods = type.methods;
     for (MethodElement method in methods) {
-      if (method.isAccessibleIn(_library) && !method.isStatic) {
+      if (method.isAccessibleIn(_library) && !method.isStatic && (doIncludeAbstract || !method.isAbstract)) {
         map.put(method.name, method);
       }
     }
     List<PropertyAccessorElement> accessors = type.accessors;
     for (PropertyAccessorElement accessor in accessors) {
-      if (accessor.isAccessibleIn(_library) && !accessor.isStatic) {
+      if (accessor.isAccessibleIn(_library) && !accessor.isStatic && (doIncludeAbstract || !accessor.isAbstract)) {
         map.put(accessor.name, accessor);
-      }
-    }
-  }
-
-  /**
-   * Similar to [recordMapWithClassMembers], but only puts values
-   * into the map if the additional executable doesn't replace a concrete member with an abstract
-   * member, ex: NonErrorResolverTest.test_nonAbstractClassInheritsAbstractMemberOne_mixin_*()
-   *
-   * @param map some non-`null` map to put the methods and accessors from the passed
-   *          [ClassElement] into
-   * @param type the type that will be recorded into the passed map
-   */
-  void recordMapWithClassMembersFromMixin(MemberMap map, InterfaceType type) {
-    List<MethodElement> methods = type.methods;
-    for (MethodElement method in methods) {
-      if (method.isAccessibleIn(_library) && !method.isStatic) {
-        String methodName = method.name;
-        ExecutableElement elementInMap = map.get(methodName);
-        if (elementInMap == null || (elementInMap != null && !method.isAbstract)) {
-          map.put(methodName, method);
-        }
-      }
-    }
-    List<PropertyAccessorElement> accessors = type.accessors;
-    for (PropertyAccessorElement accessor in accessors) {
-      if (accessor.isAccessibleIn(_library) && !accessor.isStatic) {
-        String accessorName = accessor.name;
-        ExecutableElement elementInMap = map.get(accessorName);
-        if (elementInMap == null || (elementInMap != null && !accessor.isAbstract)) {
-          map.put(accessorName, accessor);
-        }
       }
     }
   }

@@ -116,7 +116,6 @@ Language/13_Statements/06_For/1_For_Loop_A01_t07: MissingStaticWarning
 Language/13_Statements/06_For/1_For_Loop_A01_t08: MissingStaticWarning
 Language/13_Statements/09_Switch_A10_t03: MissingStaticWarning
 Language/13_Statements/15_Assert_A04_t04: MissingStaticWarning
-LibTest/collection/IterableMixin/IterableMixin_class_A01_t01: MissingStaticWarning
 
 Language/05_Variables/05_Variables_A05_t04: MissingCompileTimeError # co19-roll r651: Please triage this failure
 Language/05_Variables/05_Variables_A05_t05: MissingCompileTimeError # co19-roll r651: Please triage this failure

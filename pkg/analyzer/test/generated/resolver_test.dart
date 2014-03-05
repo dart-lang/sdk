@@ -2957,6 +2957,48 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_getter() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  int get g => 0;",
+        "}",
+        "abstract class B extends A {",
+        "  int get g;",
+        "}",
+        "class C extends B {}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_method() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  m(p) {}",
+        "}",
+        "abstract class B extends A {",
+        "  m(p);",
+        "}",
+        "class C extends B {}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_setter() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  set s(v) {}",
+        "}",
+        "abstract class B extends A {",
+        "  set s(v);",
+        "}",
+        "class C extends B {}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_nonAbstractClassInheritsAbstractMemberOne_mixin_getter() {
     // 17034
     Source source = addSource(EngineTestCase.createSource([
@@ -5264,6 +5306,18 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_newWithUndefinedConstructorDefault', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_newWithUndefinedConstructorDefault);
+      });
+      _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_getter', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_getter);
+      });
+      _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_method', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_method);
+      });
+      _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_setter', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_setter);
       });
       _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_mixin_getter', () {
         final __test = new NonErrorResolverTest();
@@ -18304,36 +18358,8 @@ class StaticWarningCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_abstractOverridesConcrete_accessor() {
-    Source source = addSource(EngineTestCase.createSource([
-        "class A {",
-        "  int get g => 0;",
-        "}",
-        "abstract class B extends A {",
-        "  int get g;",
-        "}",
-        "class C extends B {}"]));
-    resolve(source);
-    assertErrors(source, [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
-    verify([source]);
-  }
-
-  void test_nonAbstractClassInheritsAbstractMemberOne_abstractOverridesConcrete_method() {
-    Source source = addSource(EngineTestCase.createSource([
-        "class A {",
-        "  m(p) {}",
-        "}",
-        "abstract class B extends A {",
-        "  m(p);",
-        "}",
-        "class C extends B {}"]));
-    resolve(source);
-    assertErrors(source, [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
-    verify([source]);
-  }
-
   void test_nonAbstractClassInheritsAbstractMemberOne_ensureCorrectFunctionSubtypeIsUsedInImplementation() {
-    // bug 15028
+    // 15028
     Source source = addSource(EngineTestCase.createSource([
         "class C {",
         "  foo(int x) => x;",
@@ -19519,14 +19545,6 @@ class StaticWarningCodeTest extends ResolverTestCase {
       _ut.test('test_nonAbstractClassInheritsAbstractMemberFour', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberFour);
-      });
-      _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_abstractOverridesConcrete_accessor', () {
-        final __test = new StaticWarningCodeTest();
-        runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_abstractOverridesConcrete_accessor);
-      });
-      _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_abstractOverridesConcrete_method', () {
-        final __test = new StaticWarningCodeTest();
-        runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_abstractOverridesConcrete_method);
       });
       _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_ensureCorrectFunctionSubtypeIsUsedInImplementation', () {
         final __test = new StaticWarningCodeTest();

@@ -5,6 +5,7 @@
 [ $compiler == dart2analyzer ]
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
+is_malformed_type_test/*: Fail # don't know how to tell analyzer to expect static warning
 
 # Test issue 12694 (was analyzer issue), (1) when "abstract" is import prefix using it as type is warning; (2) currently analyzer resolves prefix as field (don't ask)
 built_in_identifier_prefix_test: CompileTimeError # Issue 12694
@@ -20,7 +21,12 @@ call_type_literal_test/01: fail
 override_field_test/03: fail
 method_override7_test/03: Fail # Issue 11496
 
+#unicode_bom_test: Fail # Issue 16314
+
 type_check_const_function_typedef2_test/00: MissingCompileTimeError, Ok # Compile-time error in checked mode, because of constants.
+
+const_map2_test/00: MissingCompileTimeError # Issue 17209
+switch_case_test/none: CompileTimeError # Issue 17209
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.

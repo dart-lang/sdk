@@ -206,12 +206,10 @@ class DirectoryBasedDartSdk implements DartSdk {
    * @return the file containing the Dartium executable
    */
   JavaFile get dartiumExecutable {
-    {
-      if (_dartiumExecutable == null) {
-        JavaFile file = new JavaFile.relative(dartiumWorkingDirectory, dartiumBinaryName);
-        if (file.exists()) {
-          _dartiumExecutable = file;
-        }
+    if (_dartiumExecutable == null) {
+      JavaFile file = new JavaFile.relative(dartiumWorkingDirectory, dartiumBinaryName);
+      if (file.exists()) {
+        _dartiumExecutable = file;
       }
     }
     return _dartiumExecutable;
@@ -289,17 +287,15 @@ class DirectoryBasedDartSdk implements DartSdk {
    * @return the revision number of this SDK
    */
   String get sdkVersion {
-    {
-      if (_sdkVersion == null) {
-        _sdkVersion = DartSdk.DEFAULT_VERSION;
-        JavaFile revisionFile = new JavaFile.relative(_sdkDirectory, _REVISION_FILE_NAME);
-        try {
-          String revision = revisionFile.readAsStringSync();
-          if (revision != null) {
-            _sdkVersion = revision;
-          }
-        } on JavaIOException catch (exception) {
+    if (_sdkVersion == null) {
+      _sdkVersion = DartSdk.DEFAULT_VERSION;
+      JavaFile revisionFile = new JavaFile.relative(_sdkDirectory, _REVISION_FILE_NAME);
+      try {
+        String revision = revisionFile.readAsStringSync();
+        if (revision != null) {
+          _sdkVersion = revision;
         }
+      } on JavaIOException catch (exception) {
       }
     }
     return _sdkVersion;
@@ -318,12 +314,10 @@ class DirectoryBasedDartSdk implements DartSdk {
    * @return the file containing the VM executable
    */
   JavaFile get vmExecutable {
-    {
-      if (_vmExecutable == null) {
-        JavaFile file = new JavaFile.relative(new JavaFile.relative(_sdkDirectory, _BIN_DIRECTORY_NAME), vmBinaryName);
-        if (file.exists()) {
-          _vmExecutable = file;
-        }
+    if (_vmExecutable == null) {
+      JavaFile file = new JavaFile.relative(new JavaFile.relative(_sdkDirectory, _BIN_DIRECTORY_NAME), vmBinaryName);
+      if (file.exists()) {
+        _vmExecutable = file;
       }
     }
     return _vmExecutable;

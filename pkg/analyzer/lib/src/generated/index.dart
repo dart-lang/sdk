@@ -53,9 +53,7 @@ class RemoveSourceOperation implements IndexOperation {
   bool get isQuery => false;
 
   void performOperation() {
-    {
-      _indexStore.removeSource(_context, source);
-    }
+    _indexStore.removeSource(_context, source);
   }
 
   bool removeWhenSourceRemoved(Source source) => false;
@@ -649,17 +647,15 @@ class IndexUnitOperation implements IndexOperation {
   bool get isQuery => false;
 
   void performOperation() {
-    {
-      try {
-        bool mayIndex = _indexStore.aboutToIndex(_context, _unitElement);
-        if (!mayIndex) {
-          return;
-        }
-        unit.accept(new IndexContributor(_indexStore));
-        unit.accept(new AngularDartIndexContributor(_indexStore));
-      } catch (exception) {
-        AnalysisEngine.instance.logger.logError2("Could not index ${unit.element.location}", exception);
+    try {
+      bool mayIndex = _indexStore.aboutToIndex(_context, _unitElement);
+      if (!mayIndex) {
+        return;
       }
+      unit.accept(new IndexContributor(_indexStore));
+      unit.accept(new AngularDartIndexContributor(_indexStore));
+    } catch (exception) {
+      AnalysisEngine.instance.logger.logError2("Could not index ${unit.element.location}", exception);
     }
   }
 
@@ -731,14 +727,12 @@ class Relationship {
    * @return the relationship with the given unique identifier
    */
   static Relationship getRelationship(String uniqueId) {
-    {
-      Relationship relationship = _RelationshipMap[uniqueId];
-      if (relationship == null) {
-        relationship = new Relationship(uniqueId);
-        _RelationshipMap[uniqueId] = relationship;
-      }
-      return relationship;
+    Relationship relationship = _RelationshipMap[uniqueId];
+    if (relationship == null) {
+      relationship = new Relationship(uniqueId);
+      _RelationshipMap[uniqueId] = relationship;
     }
+    return relationship;
   }
 
   /**
@@ -866,9 +860,7 @@ class RemoveSourcesOperation implements IndexOperation {
   bool get isQuery => false;
 
   void performOperation() {
-    {
-      _indexStore.removeSources(_context, container);
-    }
+    _indexStore.removeSources(_context, container);
   }
 
   bool removeWhenSourceRemoved(Source source) => false;
@@ -921,14 +913,12 @@ class OperationProcessor {
    * the processor has been interrupted.
    */
   void run() {
-    {
-      // This processor is, or was, already running on a different thread.
-      if (_state != ProcessorState.READY) {
-        throw new IllegalStateException("Operation processors can only be run one time");
-      }
-      // OK, run.
-      _state = ProcessorState.RUNNING;
+    // This processor is, or was, already running on a different thread.
+    if (_state != ProcessorState.READY) {
+      throw new IllegalStateException("Operation processors can only be run one time");
     }
+    // OK, run.
+    _state = ProcessorState.RUNNING;
     try {
       while (isRunning) {
         // wait for operation
@@ -946,9 +936,7 @@ class OperationProcessor {
         }
       }
     } finally {
-      {
-        _state = ProcessorState.STOPPED;
-      }
+      _state = ProcessorState.STOPPED;
     }
   }
 
@@ -963,21 +951,17 @@ class OperationProcessor {
    *         started.
    */
   List<Source> stop(bool wait) {
-    {
-      if (identical(_state, ProcessorState.READY)) {
-        _state = ProcessorState.STOPPED;
-        return unanalyzedSources;
-      } else if (identical(_state, ProcessorState.STOPPED)) {
-        return unanalyzedSources;
-      } else if (identical(_state, ProcessorState.RUNNING)) {
-        _state = ProcessorState.STOP_REQESTED;
-      }
+    if (identical(_state, ProcessorState.READY)) {
+      _state = ProcessorState.STOPPED;
+      return unanalyzedSources;
+    } else if (identical(_state, ProcessorState.STOPPED)) {
+      return unanalyzedSources;
+    } else if (identical(_state, ProcessorState.RUNNING)) {
+      _state = ProcessorState.STOP_REQESTED;
     }
     while (wait) {
-      {
-        if (identical(_state, ProcessorState.STOPPED)) {
-          return unanalyzedSources;
-        }
+      if (identical(_state, ProcessorState.STOPPED)) {
+        return unanalyzedSources;
       }
       waitOneMs();
     }
@@ -1016,11 +1000,7 @@ class OperationProcessor {
    *
    * @return `true` if this processor is running
    */
-  bool get isRunning {
-    {
-      return identical(_state, ProcessorState.RUNNING);
-    }
-  }
+  bool get isRunning => identical(_state, ProcessorState.RUNNING);
 
   void threadYield() {
   }
@@ -2413,21 +2393,19 @@ class OperationQueue {
    *           while it was waiting for an operation to be added to the queue
    */
   IndexOperation dequeue(int timeout) {
-    {
-      if (_nonQueryOperations.isEmpty && (!_processQueries || _queryOperations.isEmpty)) {
-        if (timeout <= 0) {
-          return null;
-        }
-        waitForOperationAvailable(timeout);
+    if (_nonQueryOperations.isEmpty && (!_processQueries || _queryOperations.isEmpty)) {
+      if (timeout <= 0) {
+        return null;
       }
-      if (!_nonQueryOperations.isEmpty) {
-        return _nonQueryOperations.removeFirst();
-      }
-      if (_processQueries && !_queryOperations.isEmpty) {
-        return _queryOperations.removeFirst();
-      }
-      return null;
+      waitForOperationAvailable(timeout);
     }
+    if (!_nonQueryOperations.isEmpty) {
+      return _nonQueryOperations.removeFirst();
+    }
+    if (_processQueries && !_queryOperations.isEmpty) {
+      return _queryOperations.removeFirst();
+    }
+    return null;
   }
 
   /**
@@ -2436,19 +2414,17 @@ class OperationQueue {
    * @param operation the operation to be added to the queue
    */
   void enqueue(IndexOperation operation) {
-    {
-      if (operation is RemoveSourceOperation) {
-        Source source = operation.source;
-        removeForSource(source, _nonQueryOperations);
-        removeForSource(source, _queryOperations);
-      }
-      if (operation.isQuery) {
-        _queryOperations.add(operation);
-      } else {
-        _nonQueryOperations.add(operation);
-      }
-      notifyOperationAvailable();
+    if (operation is RemoveSourceOperation) {
+      Source source = operation.source;
+      removeForSource(source, _nonQueryOperations);
+      removeForSource(source, _queryOperations);
     }
+    if (operation.isQuery) {
+      _queryOperations.add(operation);
+    } else {
+      _nonQueryOperations.add(operation);
+    }
+    notifyOperationAvailable();
   }
 
   /**
@@ -2459,10 +2435,8 @@ class OperationQueue {
    */
   List<IndexOperation> get operations {
     List<IndexOperation> operations = [];
-    {
-      operations.addAll(_nonQueryOperations);
-      operations.addAll(_queryOperations);
-    }
+    operations.addAll(_nonQueryOperations);
+    operations.addAll(_queryOperations);
     return operations;
   }
 
@@ -2475,12 +2449,10 @@ class OperationQueue {
    *          with a value of `true`.
    */
   void set processQueries(bool processQueries) {
-    {
-      if (this._processQueries != processQueries) {
-        this._processQueries = processQueries;
-        if (processQueries && !_queryOperations.isEmpty) {
-          notifyOperationAvailable();
-        }
+    if (this._processQueries != processQueries) {
+      this._processQueries = processQueries;
+      if (processQueries && !_queryOperations.isEmpty) {
+        notifyOperationAvailable();
       }
     }
   }
@@ -2490,11 +2462,7 @@ class OperationQueue {
    *
    * @return the number of operations on the queue
    */
-  int size() {
-    {
-      return _nonQueryOperations.length + _queryOperations.length;
-    }
-  }
+  int size() => _nonQueryOperations.length + _queryOperations.length;
 
   void notifyOperationAvailable() {
   }
@@ -2621,9 +2589,7 @@ class RemoveContextOperation implements IndexOperation {
   bool get isQuery => false;
 
   void performOperation() {
-    {
-      _indexStore.removeContext(context);
-    }
+    _indexStore.removeContext(context);
   }
 
   bool removeWhenSourceRemoved(Source source) => false;
@@ -2683,17 +2649,15 @@ class IndexHtmlUnitOperation implements IndexOperation {
   bool get isQuery => false;
 
   void performOperation() {
-    {
-      try {
-        bool mayIndex = _indexStore.aboutToIndex2(_context, _htmlElement);
-        if (!mayIndex) {
-          return;
-        }
-        AngularHtmlIndexContributor contributor = new AngularHtmlIndexContributor(_indexStore);
-        unit.accept(contributor);
-      } catch (exception) {
-        AnalysisEngine.instance.logger.logError2("Could not index ${unit.element.location}", exception);
+    try {
+      bool mayIndex = _indexStore.aboutToIndex2(_context, _htmlElement);
+      if (!mayIndex) {
+        return;
       }
+      AngularHtmlIndexContributor contributor = new AngularHtmlIndexContributor(_indexStore);
+      unit.accept(contributor);
+    } catch (exception) {
+      AnalysisEngine.instance.logger.logError2("Could not index ${unit.element.location}", exception);
     }
   }
 
@@ -2784,9 +2748,7 @@ class GetRelationshipsOperation implements IndexOperation {
 
   void performOperation() {
     List<Location> locations;
-    {
-      locations = _indexStore.getRelationships(element, relationship);
-    }
+    locations = _indexStore.getRelationships(element, relationship);
     callback.hasRelationships(element, relationship, locations);
   }
 
