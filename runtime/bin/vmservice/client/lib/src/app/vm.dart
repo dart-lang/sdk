@@ -93,8 +93,10 @@ class HttpVM extends VM {
 class DartiumVM extends VM {
   final Map _outstandingRequests = new Map();
   int _requestSerial = 0;
-  PostMessageRequestManager() {
+
+  DartiumVM() {
     window.onMessage.listen(_messageHandler);
+    print('Connected to DartiumVM');
   }
 
   void _messageHandler(msg) {
@@ -115,7 +117,7 @@ class DartiumVM extends VM {
     Map message = {};
     message['id'] = idString;
     message['method'] = 'observatoryQuery';
-    message['query'] = path;
+    message['query'] = '/$path';
     _requestSerial++;
     var completer = new Completer();
     _outstandingRequests[idString] = completer;
