@@ -16,7 +16,9 @@ patch class Isolate {
                                      { bool paused: false }) {
     try {
       return IsolateNatives.spawnFunction(entryPoint, message, paused)
-          .then((msg) => new Isolate._fromControlPort(msg[1], msg[2]));
+          .then((msg) => new Isolate(msg[1],
+                                     pauseCapability: msg[2],
+                                     terminateCapability: msg[3]));
     } catch (e, st) {
       return new Future<Isolate>.error(e, st);
     }
@@ -35,7 +37,9 @@ patch class Isolate {
         throw new ArgumentError("Args must be a list of Strings $args");
       }
       return IsolateNatives.spawnUri(uri, args, message, paused)
-          .then((msg) => new Isolate._fromControlPort(msg[1], msg[2]));
+          .then((msg) => new Isolate(msg[1],
+                                     pauseCapability: msg[2],
+                                     terminateCapability: msg[3]));
     } catch (e, st) {
       return new Future<Isolate>.error(e, st);
     }

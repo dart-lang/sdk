@@ -40,8 +40,30 @@ class Isolate {
    * Capability granting the ability to pause the isolate.
    */
   final Capability pauseCapability;
+  /**
+   * Capability granting the ability to terminate the isolate.
+   */
+  final Capability terminateCapability;
 
-  Isolate._fromControlPort(this.controlPort, [this.pauseCapability]);
+  /**
+   * Create a new [Isolate] object with a restricted set of capabilities.
+   *
+   * The port should be a control port for an isolate, as taken from
+   * another `Isolate` object.
+   *
+   * The capabilities should be the subset of the capabilities that are
+   * available to the original isolate.
+   * Capabilities of an isolate are locked to that isolate, and have no effect
+   * anywhere else, so the capabilities should come from the same isolate as
+   * the control port.
+   *
+   * If all the available capabilities are included,
+   * there is no reason to create a new object,
+   * since the behavior is defined entirely
+   * by the control port and capabilities.
+   */
+  Isolate(this.controlPort, {this.pauseCapability,
+                             this.terminateCapability});
 
   /**
    * Creates and spawns an isolate that shares the same code as the current
@@ -180,6 +202,25 @@ class Isolate {
     var message = new List(2)
         ..[0] = "remove-ondone"
         ..[1] = responsePort;
+    controlPort.send(message);
+  }
+
+  /**
+   * Set whether uncaught errors will terminate the isolate.
+   *
+   * WARNING: This method is experimental and not handled on every platform yet.
+   *
+   * If errors are fatal, any uncaught error will terminate the isolate
+   * event loop and shut down the isolate.
+   *
+   * This call requires the [terminateCapability] for the isolate.
+   * If the capability is not correct, no change is made.
+   */
+  void setErrorsFatal(bool errorsAreFatal) {
+    var message = new List(3)
+        ..[0] = "set-errors-fatal"
+        ..[1] = terminateCapability
+        ..[2] = errorsAreFatal;
     controlPort.send(message);
   }
 }

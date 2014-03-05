@@ -269,6 +269,7 @@ class _IsolateContext implements IsolateContext {
   final RawReceivePortImpl controlPort = new RawReceivePortImpl._controlPort();
 
   final Capability pauseCapability = new Capability();
+  final Capability terminateCapability = new Capability();  // License to kill.
 
   // TODO(lrn): Store these in single "PauseState" object, so they don't take
   // up as much room when not pausing.
@@ -278,6 +279,12 @@ class _IsolateContext implements IsolateContext {
 
   // Container with the "on exit" handler send-ports.
   var doneHandlers;
+
+  /** Whether errors are considered fatal. */
+  // This doesn't do anything yet. We need to be able to catch uncaught errors
+  // (oxymoronically) in order to take lethal action. This is waiting for the
+  // same change as the uncaught error listeners.
+  bool errorsAreFatal = false;
 
   _IsolateContext() {
     this.registerWeak(controlPort._id, controlPort);
@@ -319,6 +326,11 @@ class _IsolateContext implements IsolateContext {
     doneHandlers.remove(responsePort);
   }
 
+  void setErrorsFatal(Capability authentification, bool errorsAreFatal) {
+    if (terminateCapability != authentification) return;
+    this.errorsAreFatal = errorsAreFatal;
+  }
+
   /**
    * Run [code] in the context of the isolate represented by [this].
    */
@@ -353,6 +365,9 @@ class _IsolateContext implements IsolateContext {
         break;
       case 'remove-ondone':
         removeDoneListener(message[1]);
+        break;
+      case 'set-errors-fatal':
+        setErrorsFatal(message[1], message[2]);
         break;
       default:
         print("UNKNOWN MESSAGE: $message");
@@ -822,7 +837,8 @@ class IsolateNatives {
     // The isolate's port does not keep the isolate open.
     replyTo.send([_SPAWNED_SIGNAL,
                   context.controlPort.sendPort,
-                  context.pauseCapability]);
+                  context.pauseCapability,
+                  context.terminateCapability]);
 
     void runStartFunction() {
       if (!isSpawnUri) {
