@@ -813,10 +813,11 @@ RawAbstractType* ClassFinalizer::FinalizeType(
   // At this point, we can only have a parameterized_type.
   const Type& parameterized_type = Type::Cast(type);
 
+  Isolate* isolate = Isolate::Current();
   // This type is the root type of the type graph if no pending types queue is
   // allocated yet.
   const bool is_root_type = (pending_types == NULL);
-  GrowableObjectArray& types = GrowableObjectArray::Handle();
+  GrowableObjectArray& types = GrowableObjectArray::Handle(isolate);
   if (is_root_type) {
     types = GrowableObjectArray::New();
     pending_types = &types;
@@ -827,7 +828,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(
   // the type itself, a precondition to calling FinalizeType).
   // Also, the interfaces of the type class must be resolved and the type
   // parameters of the type class must be finalized.
-  Class& type_class = Class::Handle(parameterized_type.type_class());
+  Class& type_class = Class::Handle(isolate, parameterized_type.type_class());
   if (!type_class.is_type_finalized()) {
     FinalizeTypeParameters(type_class, pending_types);
     ResolveUpperBounds(type_class);
@@ -843,13 +844,14 @@ RawAbstractType* ClassFinalizer::FinalizeType(
   // Specifying no type arguments indicates a raw type, which is not an error.
   // However, type parameter bounds are checked below, even for a raw type.
   TypeArguments& arguments =
-      TypeArguments::Handle(parameterized_type.arguments());
+      TypeArguments::Handle(isolate, parameterized_type.arguments());
   if (!arguments.IsNull() && (arguments.Length() != num_type_parameters)) {
     // Wrong number of type arguments. The type is mapped to the raw type.
     if (FLAG_error_on_bad_type) {
-      const Script& script = Script::Handle(cls.script());
-      const String& type_class_name = String::Handle(type_class.Name());
-      ReportError(Error::Handle(),  // No previous error.
+      const Script& script = Script::Handle(isolate, cls.script());
+      const String& type_class_name =
+          String::Handle(isolate, type_class.Name());
+      ReportError(Error::Handle(isolate),  // No previous error.
                   script, parameterized_type.token_pos(),
                   "wrong number of type arguments for class '%s'",
                   type_class_name.ToCString());
@@ -863,8 +865,8 @@ RawAbstractType* ClassFinalizer::FinalizeType(
   // The full type argument vector consists of the type arguments of the
   // super types of type_class, which are initialized from the parsed
   // type arguments, followed by the parsed type arguments.
-  TypeArguments& full_arguments = TypeArguments::Handle();
-  Error& bound_error = Error::Handle();
+  TypeArguments& full_arguments = TypeArguments::Handle(isolate);
+  Error& bound_error = Error::Handle(isolate);
   if (num_type_arguments > 0) {
     // If no type arguments were parsed and if the super types do not prepend
     // type arguments to the vector, we can leave the vector as null.
@@ -873,7 +875,8 @@ RawAbstractType* ClassFinalizer::FinalizeType(
       // Copy the parsed type arguments at the correct offset in the full type
       // argument vector.
       const intptr_t offset = num_type_arguments - num_type_parameters;
-      AbstractType& type_arg = AbstractType::Handle(Type::DynamicType());
+      AbstractType& type_arg =
+          AbstractType::Handle(isolate, Type::DynamicType());
       // Leave the temporary type arguments at indices [0..offset[ as null.
       for (intptr_t i = 0; i < num_type_parameters; i++) {
         // If no type parameters were provided, a raw type is desired, so we
@@ -915,10 +918,10 @@ RawAbstractType* ClassFinalizer::FinalizeType(
       // signature function may either be an alias or the enclosing class of a
       // local function, in which case the super type of the enclosing class is
       // also considered when filling up the argument vector.
-      Class& owner_class = Class::Handle();
+      Class& owner_class = Class::Handle(isolate);
       if (type_class.IsSignatureClass()) {
         const Function& signature_fun =
-            Function::Handle(type_class.signature_function());
+            Function::Handle(isolate, type_class.signature_function());
         ASSERT(!signature_fun.is_static());
         owner_class = signature_fun.Owner();
       } else {
@@ -954,7 +957,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(
   // If we are done finalizing a graph of mutually recursive types, check their
   // bounds.
   if (is_root_type) {
-    Type& type = Type::Handle();
+    Type& type = Type::Handle(isolate);
     for (intptr_t i = 0; i < types.Length(); i++) {
       type ^= types.At(i);
       CheckTypeBounds(cls, type);
@@ -974,7 +977,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(
 
   if (FLAG_trace_type_finalization) {
     OS::Print("Done finalizing type '%s' with %" Pd " type args: %s\n",
-              String::Handle(parameterized_type.Name()).ToCString(),
+              String::Handle(isolate, parameterized_type.Name()).ToCString(),
               parameterized_type.arguments() == TypeArguments::null() ?
                   0 : num_type_arguments,
               parameterized_type.ToCString());

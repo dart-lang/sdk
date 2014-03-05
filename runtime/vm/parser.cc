@@ -380,7 +380,7 @@ Token::Kind Parser::LookaheadToken(int num_tokens) {
 
 
 String* Parser::CurrentLiteral() const {
-  String& result = String::ZoneHandle();
+  String& result = String::ZoneHandle(isolate_, String::null());
   result = tokens_iterator_.CurrentLiteral();
   return &result;
 }

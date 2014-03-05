@@ -3266,7 +3266,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                                  Error* bound_error) {
   // Use the thsi object as if it was the receiver of this method, but instead
   // of recursing reset it to the super class and loop.
-  Class& thsi = Class::Handle(cls.raw());
+  Isolate* isolate = Isolate::Current();
+  Class& thsi = Class::Handle(isolate, cls.raw());
   while (true) {
     ASSERT(!thsi.IsVoidClass());
     // Check for DynamicType.
@@ -3323,13 +3324,15 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     }
     const bool other_is_function_class = other.IsFunctionClass();
     if (other.IsSignatureClass() || other_is_function_class) {
-      const Function& other_fun = Function::Handle(other.signature_function());
+      const Function& other_fun = Function::Handle(isolate,
+                                                   other.signature_function());
       if (thsi.IsSignatureClass()) {
         if (other_is_function_class) {
           return true;
         }
         // Check for two function types.
-        const Function& fun = Function::Handle(thsi.signature_function());
+        const Function& fun =
+            Function::Handle(isolate, thsi.signature_function());
         return fun.TypeTest(test_kind,
                             type_arguments,
                             other_fun,
@@ -3338,10 +3341,11 @@ bool Class::TypeTestNonRecursive(const Class& cls,
       }
       // Check if type S has a call() method of function type T.
       Function& function =
-      Function::Handle(thsi.LookupDynamicFunction(Symbols::Call()));
+          Function::Handle(isolate,
+                           thsi.LookupDynamicFunction(Symbols::Call()));
       if (function.IsNull()) {
         // Walk up the super_class chain.
-        Class& cls = Class::Handle(thsi.SuperClass());
+        Class& cls = Class::Handle(isolate, thsi.SuperClass());
         while (!cls.IsNull() && function.IsNull()) {
           function = cls.LookupDynamicFunction(Symbols::Call());
           cls = cls.SuperClass();
@@ -3360,11 +3364,11 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     }
     // Check for 'direct super type' specified in the implements clause
     // and check for transitivity at the same time.
-    Array& interfaces = Array::Handle(thsi.interfaces());
-    AbstractType& interface = AbstractType::Handle();
-    Class& interface_class = Class::Handle();
-    TypeArguments& interface_args = TypeArguments::Handle();
-    Error& error = Error::Handle();
+    Array& interfaces = Array::Handle(isolate, thsi.interfaces());
+    AbstractType& interface = AbstractType::Handle(isolate);
+    Class& interface_class = Class::Handle(isolate);
+    TypeArguments& interface_args = TypeArguments::Handle(isolate);
+    Error& error = Error::Handle(isolate);
     for (intptr_t i = 0; i < interfaces.Length(); i++) {
       interface ^= interfaces.At(i);
       if (!interface.IsFinalized()) {
@@ -16245,20 +16249,19 @@ RawArray* Array::New(intptr_t len, Heap::Space space) {
 
 
 RawArray* Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
-  if (len < 0 || len > Array::kMaxElements) {
+  if ((len < 0) || (len > Array::kMaxElements)) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in Array::New: invalid len %" Pd "\n", len);
   }
-  Array& result = Array::Handle();
   {
-    RawObject* raw = Object::Allocate(class_id,
-                                      Array::InstanceSize(len),
-                                      space);
+    RawArray* raw = reinterpret_cast<RawArray*>(
+        Object::Allocate(class_id,
+                         Array::InstanceSize(len),
+                         space));
     NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
+    raw->ptr()->length_ = Smi::New(len);
+    return raw;
   }
-  return result.raw();
 }
 
 
