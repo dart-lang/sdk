@@ -1,15 +1,9 @@
 part of unittest;
 
-const _PLACE_HOLDER = const _ArgPlaceHolder();
-
-class _ArgPlaceHolder {
-  const _ArgPlaceHolder();
-}
-
 /** Simulates spread arguments using named arguments. */
 // TODO(sigmund): remove this class and simply use a closure with named
 // arguments (if still applicable).
-class _SpreadArgsHelper implements Function {
+class _SpreadArgsHelper {
   final Function callback;
   final int minExpectedCalls;
   final int maxExpectedCalls;
@@ -20,7 +14,7 @@ class _SpreadArgsHelper implements Function {
   bool complete;
 
   _SpreadArgsHelper(Function callback, int minExpected, int maxExpected,
-      String id, {bool isDone()})
+      Function isDone, String id)
       : this.callback = callback,
         minExpectedCalls = minExpected,
         maxExpectedCalls = (maxExpected == 0 && minExpected > 0)
@@ -96,16 +90,31 @@ class _SpreadArgsHelper implements Function {
     }
   }
 
-  call([a0 = _PLACE_HOLDER, a1 = _PLACE_HOLDER, a2 = _PLACE_HOLDER,
-      a3 = _PLACE_HOLDER, a4 = _PLACE_HOLDER, a5 = _PLACE_HOLDER]) {
-
-    var args = [a0, a1, a2, a3, a4, a5];
-    args.removeWhere((a) => a == _PLACE_HOLDER);
-
+  invoke0() {
     return _guardAsync(
         () {
           if (shouldCallBack()) {
-            return Function.apply(callback, args);
+            return callback();
+          }
+        },
+        after, testCase);
+  }
+
+  invoke1(arg1) {
+    return _guardAsync(
+        () {
+          if (shouldCallBack()) {
+            return callback(arg1);
+          }
+        },
+        after, testCase);
+  }
+
+  invoke2(arg1, arg2) {
+    return _guardAsync(
+        () {
+          if (shouldCallBack()) {
+            return callback(arg1, arg2);
           }
         },
         after, testCase);

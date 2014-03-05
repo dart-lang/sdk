@@ -21,8 +21,8 @@ var testFunction = (_) {
   // I had a situation where either worked fine on their own, and
   // error/fail worked, but fail/error would time out.
   test("error1", () {
-    var callback = expectAsync(() {});
-    var excesscallback = expectAsync(() {});
+    var callback = expectAsync0((){});
+    var excesscallback = expectAsync0((){});
     return _defer(() {
       excesscallback();
       excesscallback();
@@ -36,8 +36,8 @@ var testFunction = (_) {
     });
   });
   test("error2", () {
-    var callback = expectAsync(() {});
-    var excesscallback = expectAsync(() {});
+    var callback = expectAsync0((){});
+    var excesscallback = expectAsync0((){});
     return _defer(() {
       excesscallback();
       excesscallback();

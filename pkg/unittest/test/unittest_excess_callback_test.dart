@@ -13,9 +13,9 @@ var testName = 'excess callback test';
 
 var testFunction = (TestConfiguration testConfig) {
   test(testName, () {
-    var _callback0 = expectAsync(() => ++testConfig.count);
-    var _callback1 = expectAsync(() => ++testConfig.count);
-    var _callback2 = expectAsync(() {
+    var _callback0 = expectAsync0(() => ++testConfig.count);
+    var _callback1 = expectAsync0(() => ++testConfig.count);
+    var _callback2 = expectAsync0(() {
       _callback1();
       _callback1();
       _callback0();

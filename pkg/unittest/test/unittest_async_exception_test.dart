@@ -13,8 +13,8 @@ var testName = 'async exception test';
 
 var testFunction = (_) {
   test(testName, () {
-    expectAsync(() {});
-    _defer(() { throw "error!"; });
+    expectAsync0(() {});
+    _defer(() => guardAsync(() { throw "error!"; }));
   });
 };
 

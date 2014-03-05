@@ -16,7 +16,7 @@ String buildStatusString(int passed, int failed, int errors,
                          String message: ''}) {
   var totalTests = 0;
   var testDetails = new StringBuffer();
-  if (results == null) {
+  if(results == null) {
     // no op
     assert(message == '');
   } else if (results is String) {
@@ -44,7 +44,7 @@ class TestConfiguration extends Configuration {
   final SendPort _port;
   String _result;
 
-  TestConfiguration(this._port): super.blank();
+  TestConfiguration(this._port) : super.blank();
 
   void onSummary(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
@@ -88,6 +88,6 @@ main() {
   var replyPort = new ReceivePort();
   Isolate.spawn(runTestInIsolate, replyPort.sendPort);
   replyPort.first.then((String msg) {
-    expect(msg.trim(), expected);
+    expect(msg.trim(), equals(expected));
   });
 }

@@ -13,7 +13,7 @@ var testName = 'correct callback test';
 
 var testFunction = (TestConfiguration testConfig) {
   test(testName,
-      () =>_defer(expectAsync((){ ++testConfig.count;})));
+      () =>_defer(expectAsync0((){ ++testConfig.count;})));
 };
 
 var expected = buildStatusString(1, 0, 0, testName, count: 1);
