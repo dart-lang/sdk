@@ -73,14 +73,19 @@ class Request {
       if (result is! Map) {
         return null;
       }
-      String id = result[Request.ID];
-      String method = result[Request.METHOD];
+      var id = result[Request.ID];
+      var method = result[Request.METHOD];
+      if (id is! String || method is! String) {
+        return null;
+      }
       var params = result[Request.PARAMS];
       Request request = new Request(id, method);
       if (params is Map) {
         params.forEach((String key, Object value) {
           request.setParameter(key, value);
         });
+      } else if (params != null) {
+        return null;
       }
       return request;
     } catch (exception) {
