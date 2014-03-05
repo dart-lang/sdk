@@ -1,0 +1,99 @@
+<head>
+  <link rel="import" href="function_ref.html">
+  <link rel="import" href="observatory_element.html">
+  <link rel="import" href="script_ref.html">
+</head>
+<polymer-element name="isolate-summary" extends="isolate-element">
+  <template>
+    <div class="row">
+      <div class="col-md-1">
+        <img src="img/isolate_icon.png" class="img-polaroid">
+      </div>
+
+      <div class="col-md-1">{{ isolate.vmName }}</div>
+
+      <!-- TODO(turnidge): Use function-ref when it can take isolate param -->
+      <div class="col-md-4">
+
+        <div class="row">
+          <template if="{{ isolate.entry['id'] != null }}">
+            <a href="{{ isolate.hashLink(isolate.entry['id']) }}">
+              {{ isolate.name }}
+            </a>
+          </template>
+          <template if="{{ isolate.entry['id'] == null }}">
+            {{ isolate.name }}
+          </template>
+        </div>
+
+        <div class="row">
+          <small>
+            (<a href="{{ isolate.hashLink(isolate.rootLib) }}">library</a>)
+            (<a href="{{ isolate.hashLink('debug/breakpoints') }}">breakpoints</a>)
+            (<a href="{{ isolate.hashLink('profile') }}">profile</a>)
+          </small>
+        </div>
+      </div>
+
+      <div class="col-md-2">
+        <div class="row">
+          <div class="col-md-3">{{ isolate.timers['total'] | formatTime }}</div>
+          <div class="col-md-1"></div>
+          <div class="col-md-3"><p class="text-muted">total</p></div>
+        </div>
+        <div class="row">
+          <div class="col-md-3">{{ isolate.timers['dart'] | formatTime }}</div>
+          <div class="col-md-1"></div>
+          <div class="col-md-3"><p class="text-muted">dart</p></div>
+        </div>
+        <div class="row">
+          <div class="col-md-3">{{ isolate.timers['compile'] | formatTime }}</div>
+          <div class="col-md-1"></div>
+          <div class="col-md-3"><p class="text-muted">compile</p></div>
+        </div>
+        <div class="row">
+          <div class="col-md-3">{{ isolate.timers['gc'] | formatTime }}</div>
+          <div class="col-md-1"></div>
+          <div class="col-md-3"><p class="text-muted">gc</p></div>
+        </div>
+        <div class="row">
+          <div class="col-md-3">{{ isolate.timers['init'] | formatTime }}</div>
+          <div class="col-md-1"></div>
+          <div class="col-md-3"><p class="text-muted">init</p></div>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <a href="{{ isolate.hashLink('allocationprofile') }}">
+          {{ isolate.newHeapUsed | formatSize }}/{{ isolate.oldHeapUsed | formatSize }}
+        </a>
+      </div>
+      <div class="col-md-2">
+        <template if="{{ isolate.topFrame == null }}">
+          idle
+        </template>
+        <template if="{{ isolate.topFrame != null }}">
+          run
+        </template>
+        ( <a href="{{ isolate.hashLink('stacktrace') }}">stack trace</a> )
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-3">
+      </div>
+      <div class="col-md-6">
+        <template if="{{ isolate.topFrame != null }}">
+          <function-ref isolate="{{ isolate }}"
+                        ref="{{ isolate.topFrame['function'] }}"></function-ref>
+          (<script-ref isolate="{{ isolate }}"
+                       ref="{{ isolate.topFrame['script'] }}"
+                       line="{{ isolate.topFrame['line'] }}"></script-ref>)
+          <br>
+          <pre>{{ isolate.topFrame['line'] }} &nbsp; {{ isolate.topFrame['lineString'] }}</pre>
+        </template>
+      </div>
+      <div class="col-md-3">
+      </div>
+    </div>
+  </template>
+  <script type="application/dart" src="isolate_summary.dart"></script>
+</polymer-element>

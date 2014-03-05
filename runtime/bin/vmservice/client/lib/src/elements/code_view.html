@@ -1,0 +1,38 @@
+<head>
+  <link rel="import" href="disassembly_entry.html">
+  <link rel="import" href="function_ref.html">
+  <link rel="import" href="isolate_element.html">
+  <link rel="import" href="nav_bar.html">
+</head>
+<polymer-element name="code-view" extends="isolate-element">
+  <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+      <nav-menu link="." anchor="{{ code.functionRef['user_name'] }}" last="{{ true }}"></nav-menu>
+      <!-- TODO(turnidge): Implement code refresh -->
+    </nav-bar>
+
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="{{ cssPanelClass }}">
+        <div class="panel-heading">
+          <function-ref isolate="{{ isolate }}" ref="{{ code.functionRef }}"></function-ref>
+        </div>
+        <div class="panel-body">
+          <div class="row">
+              <div class="col-md-2"><strong>Samples</strong></div>
+              <div class="col-md-2"><strong>Address</strong></div>
+              <div><strong>Instruction</strong></div>
+          </div>
+          <template repeat="{{ instruction in code.instructions }}">
+            <disassembly-entry instruction="{{ instruction }}">
+            </disassembly-entry>
+          </template>
+        </div>
+      </div>
+    </div>
+  </div>
+  </template>
+  <script type="application/dart" src="code_view.dart"></script>
+</polymer-element>

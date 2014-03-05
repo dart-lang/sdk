@@ -1,0 +1,55 @@
+<head>
+  <link rel="import" href="class_ref.html">
+  <link rel="import" href="error_view.html">
+  <link rel="import" href="field_ref.html">
+  <link rel="import" href="instance_ref.html">
+  <link rel="import" href="isolate_element.html">
+  <link rel="import" href="nav_bar.html">
+</head>
+<polymer-element name="instance-view" extends="isolate-element">
+  <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+      <!-- TODO(turnidge): Add library nav menu here. -->
+      <class-nav-menu isolate="{{ isolate }}" cls="{{ instance['class'] }}"></class-nav-menu>
+      <nav-menu link="." anchor="instance" last="{{ true }}"></nav-menu>
+      <!-- TODO(turnidge): Add nav refresh here. -->
+    </nav-bar>
+
+    <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-warning">
+        <div class="panel-heading">
+         Instance of
+         <class-ref isolate="{{ isolate }}" ref="{{ instance['class'] }}"></class-ref>
+        </div>
+        <div class="panel-body">
+          <template if="{{ instance['error'] == null }}">
+            <table class="table table-hover">
+              <tbody>
+                <tr>
+                  <td>Preview</td><td>{{ instance['preview'] }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <blockquote><strong>Fields</strong></blockquote>
+            <table class="table table-hover">
+             <tbody>
+                <tr template repeat="{{ field in instance['fields'] }}">
+                  <td><field-ref isolate="{{ isolate }}" ref="{{ field['decl'] }}"></field-ref></td>
+                  <td><instance-ref isolate="{{ isolate }}" ref="{{ field['value'] }}"></instance-ref></td>
+                </tr>
+              </tbody>
+            </table>
+          </template>
+          <template if="{{ instance['error'] != null }}">
+            <error-view error_obj="{{ instance['error'] }}"></error-view>
+          </template>
+        </div>
+      </div>
+    </div>
+    </div>
+  </template>
+  <script type="application/dart" src="instance_view.dart"></script>
+</polymer-element>

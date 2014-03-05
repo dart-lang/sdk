@@ -14,6 +14,9 @@
 <body><polymer-element name="observatory-element">
   
 </polymer-element>
+<polymer-element name="isolate-element" extends="observatory-element">
+  
+</polymer-element>
 <polymer-element name="nav-bar" extends="observatory-element">
   <template>
     <style>
@@ -169,41 +172,40 @@
   </template>
 </polymer-element>
 
-<polymer-element name="isolate-nav-menu" extends="observatory-element">
+<polymer-element name="isolate-nav-menu" extends="isolate-element">
   <template>
     <nav-menu link="#" anchor="{{ isolate.name }}" last="{{ last }}">
-      <nav-menu-item link="{{ app.locationManager.currentIsolateRelativeLink('stacktrace') }}" anchor="stack trace"></nav-menu-item>
-      <nav-menu-item link="{{ app.locationManager.currentIsolateRelativeLink('profile') }}" anchor="cpu profile"></nav-menu-item>
-      <nav-menu-item link="{{ app.locationManager.currentIsolateRelativeLink('allocationprofile') }}" anchor="heap profile"></nav-menu-item>
-      <nav-menu-item link="{{ app.locationManager.currentIsolateRelativeLink('debug/breakpoints') }}" anchor="breakpoints"></nav-menu-item>
+      <nav-menu-item link="{{ isolate.hashLink('stacktrace') }}" anchor="stack trace"></nav-menu-item>
+      <nav-menu-item link="{{ isolate.hashLink('profile') }}" anchor="cpu profile"></nav-menu-item>
+      <nav-menu-item link="{{ isolate.hashLink('allocationprofile') }}" anchor="heap profile"></nav-menu-item>
+      <nav-menu-item link="{{ isolate.hashLink('debug/breakpoints') }}" anchor="breakpoints"></nav-menu-item>
       <content></content>
     </nav-menu>
   </template>
 </polymer-element>
 
-<polymer-element name="library-nav-menu" extends="observatory-element">
+<polymer-element name="library-nav-menu" extends="isolate-element">
   <template>
-    <nav-menu link="{{ app.locationManager.currentIsolateRelativeLink(library['id']) }}" anchor="{{ library['name'] }}" last="{{ last }}">
+    <nav-menu link="{{ isolate.hashLink(library['id']) }}" anchor="{{ library['name'] }}" last="{{ last }}">
       <content></content>
     </nav-menu>
   </template>
 </polymer-element>
 
-<polymer-element name="class-nav-menu" extends="observatory-element">
+<polymer-element name="class-nav-menu" extends="isolate-element">
   <template>
-    <nav-menu link="{{ app.locationManager.currentIsolateRelativeLink(cls['id']) }}" anchor="{{ cls['user_name'] }}" last="{{ last }}">
+    <nav-menu link="{{ isolate.hashLink(cls['id']) }}" anchor="{{ cls['user_name'] }}" last="{{ last }}">
       <content></content>
     </nav-menu>
   </template>
 </polymer-element>
 
 
-<polymer-element name="breakpoint-list" extends="observatory-element">
+<polymer-element name="breakpoint-list" extends="isolate-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
-      </isolate-nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
       <nav-menu link="." anchor="breakpoints" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
@@ -225,7 +227,7 @@
   </template>
   
 </polymer-element>
-<polymer-element name="service-ref" extends="observatory-element">
+<polymer-element name="service-ref" extends="isolate-element">
   
 </polymer-element><polymer-element name="class-ref" extends="service-ref">
 <template>
@@ -341,7 +343,7 @@
             <tbody><tr template="" repeat="{{ field in ref['fields'] }}">
               <td class="member">{{ field['decl']['user_name'] }}</td>
               <td class="member">
-                <instance-ref app="{{ app }}" ref="{{ field['value'] }}"></instance-ref>
+                <instance-ref isolate="{{ isolate }}" ref="{{ field['value'] }}"></instance-ref>
               </td>
             </tr>
           </tbody></table>
@@ -355,7 +357,7 @@
             <tbody><tr template="" repeat="{{ element in ref['elements'] }}">
               <td class="member">[{{ element['index']}}]</td>
               <td class="member">
-                <instance-ref app="{{ app }}" ref="{{ element['value'] }}"></instance-ref>
+                <instance-ref isolate="{{ isolate }}" ref="{{ element['value'] }}"></instance-ref>
               </td>
             </tr>
           </tbody></table>
@@ -371,14 +373,13 @@
   <a href="{{ url }}">{{ name }}</a>
 </template>
 
-</polymer-element><polymer-element name="class-view" extends="observatory-element">
+</polymer-element><polymer-element name="class-view" extends="isolate-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
-      </isolate-nav-menu>
-      <library-nav-menu app="{{ app }}" library="{{ cls['library'] }}"></library-nav-menu>
-      <class-nav-menu app="{{ app }}" cls="{{ cls }}" last="{{ true }}"></class-nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+      <library-nav-menu isolate="{{ isolate }}" library="{{ cls['library'] }}"></library-nav-menu>
+      <class-nav-menu isolate="{{ isolate }}" cls="{{ cls }}" last="{{ true }}"></class-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
@@ -468,12 +469,11 @@
   </div>
   </template>
   
-</polymer-element><polymer-element name="code-view" extends="observatory-element">
+</polymer-element><polymer-element name="code-view" extends="isolate-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
-      </isolate-nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
       <nav-menu link="." anchor="{{ code.functionRef['user_name'] }}" last="{{ true }}"></nav-menu>
       <!-- TODO(turnidge): Implement code refresh -->
     </nav-bar>
@@ -482,7 +482,7 @@
     <div class="col-md-8 col-md-offset-2">
       <div class="{{ cssPanelClass }}">
         <div class="panel-heading">
-          <function-ref app="{{ app }}" ref="{{ code.functionRef }}"></function-ref>
+          <function-ref isolate="{{ isolate }}" ref="{{ code.functionRef }}"></function-ref>
         </div>
         <div class="panel-body">
           <div class="row">
@@ -513,18 +513,17 @@
     </div>
   </template>
   
-</polymer-element><polymer-element name="field-view" extends="observatory-element">
+</polymer-element><polymer-element name="field-view" extends="isolate-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
-      </isolate-nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
       <template if="{{ field['owner']['type'] == '@Class' }}">
         <!-- TODO(turnidge): Add library nav menu here. -->
-        <class-nav-menu app="{{ app }}" cls="{{ field['owner'] }}"></class-nav-menu>
+        <class-nav-menu isolate="{{ isolate }}" cls="{{ field['owner'] }}"></class-nav-menu>
       </template>
       <template if="{{ field['owner']['type'] == '@Library' }}">
-        <library-nav-menu app="{{ app }}" library="{{ field['owner'] }}"></library-nav-menu>
+        <library-nav-menu isolate="{{ isolate }}" library="{{ field['owner'] }}"></library-nav-menu>
       </template>
       <nav-menu link="." anchor="{{ field['user_name'] }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
@@ -538,7 +537,7 @@
           <template if="{{ field['final'] }}">final</template>
           <template if="{{ field['const'] }}">const</template>
           {{ field['user_name'] }} ({{ field['name'] }})
-          <class-ref app="{{ app }}" ref="{{ field['class'] }}"></class-ref>
+          <class-ref isolate="{{ isolate }}" ref="{{ field['class'] }}"></class-ref>
         </div>
         <div class="panel-body">
         <template if="{{ field['guard_class'] == 'dynamic'}}">
@@ -557,7 +556,7 @@
             </div>
           </template>
           <blockquote>
-            <class-ref app="{{ app }}" ref="{{ field['guard_class'] }}"></class-ref>
+            <class-ref isolate="{{ isolate }}" ref="{{ field['guard_class'] }}"></class-ref>
           </blockquote>
         </template>
         </div>
@@ -567,18 +566,17 @@
   </template>
   
 </polymer-element>
-<polymer-element name="function-view" extends="observatory-element">
+<polymer-element name="function-view" extends="isolate-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
-      </isolate-nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
       <template if="{{ function['owner']['type'] == '@Class' }}">
         <!-- TODO(turnidge): Add library nav menu here. -->
-        <class-nav-menu app="{{ app }}" cls="{{ function['owner'] }}"></class-nav-menu>
+        <class-nav-menu isolate="{{ isolate }}" cls="{{ function['owner'] }}"></class-nav-menu>
       </template>
       <template if="{{ function['owner']['type'] == '@Library' }}">
-        <library-nav-menu app="{{ app }}" library="{{ function['owner'] }}"></library-nav-menu>
+        <library-nav-menu isolate="{{ isolate }}" library="{{ function['owner'] }}"></library-nav-menu>
       </template>
       <nav-menu link="." anchor="{{ function['user_name'] }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
@@ -589,12 +587,12 @@
       <div class="panel panel-warning">
         <div class="panel-heading">
           {{ function['user_name'] }} ({{ function['name'] }})
-          <class-ref app="{{ app }}" ref="{{ function['class'] }}"></class-ref>
+          <class-ref isolate="{{ isolate }}" ref="{{ function['class'] }}"></class-ref>
         </div>
         <div class="panel-body">
           <div>
-          <code-ref app="{{ app }}" ref="{{ function['code'] }}"></code-ref>
-          <code-ref app="{{ app }}" ref="{{ function['unoptimized_code'] }}"></code-ref>
+          <code-ref isolate="{{ isolate }}" ref="{{ function['code'] }}"></code-ref>
+          <code-ref isolate="{{ isolate }}" ref="{{ function['unoptimized_code'] }}"></code-ref>
           </div>
           <table class="table table-hover">
             <tbody>
@@ -637,11 +635,11 @@
 </template>
 
 </polymer-element>
-<polymer-element name="isolate-summary" extends="observatory-element">
+<polymer-element name="isolate-summary" extends="isolate-element">
   <template>
     <div class="row">
       <div class="col-md-1">
-        <img src="img/isolate_icon.png" class="img-polaroid">
+        <img src="packages/observatory/src/elements/img/isolate_icon.png" class="img-polaroid">
       </div>
 
       <div class="col-md-1">{{ isolate.vmName }}</div>
@@ -651,7 +649,7 @@
 
         <div class="row">
           <template if="{{ isolate.entry['id'] != null }}">
-            <a href="{{ app.locationManager.relativeLink(isolate.id, isolate.entry['id']) }}">
+            <a href="{{ isolate.hashLink(isolate.entry['id']) }}">
               {{ isolate.name }}
             </a>
           </template>
@@ -662,9 +660,9 @@
 
         <div class="row">
           <small>
-            (<a href="{{ app.locationManager.relativeLink(isolate.id, isolate.rootLib) }}">library</a>)
-            (<a href="{{ app.locationManager.relativeLink(isolate.id, 'debug/breakpoints') }}">breakpoints</a>)
-            (<a href="{{ app.locationManager.relativeLink(isolate.id, 'profile') }}">profile</a>)
+            (<a href="{{ isolate.hashLink(isolate.rootLib) }}">library</a>)
+            (<a href="{{ isolate.hashLink('debug/breakpoints') }}">breakpoints</a>)
+            (<a href="{{ isolate.hashLink('profile') }}">profile</a>)
           </small>
         </div>
       </div>
@@ -697,7 +695,7 @@
         </div>
       </div>
       <div class="col-md-2">
-        <a href="{{ app.locationManager.relativeLink(isolate.id, 'allocationprofile') }}">
+        <a href="{{ isolate.hashLink('allocationprofile') }}">
           {{ isolate.newHeapUsed | formatSize }}/{{ isolate.oldHeapUsed | formatSize }}
         </a>
       </div>
@@ -708,7 +706,7 @@
         <template if="{{ isolate.topFrame != null }}">
           run
         </template>
-        ( <a href="{{ app.locationManager.relativeLink(isolate.id, 'stacktrace') }}">stack trace</a> )
+        ( <a href="{{ isolate.hashLink('stacktrace') }}">stack trace</a> )
       </div>
     </div>
     <div class="row">
@@ -716,8 +714,8 @@
       </div>
       <div class="col-md-6">
         <template if="{{ isolate.topFrame != null }}">
-          <function-ref app="{{ app }}" isolate="{{ isolate }}" ref="{{ isolate.topFrame['function'] }}"></function-ref>
-          (<script-ref app="{{ app }}" isolate="{{ isolate }}" ref="{{ isolate.topFrame['script'] }}" line="{{ isolate.topFrame['line'] }}"></script-ref>)
+          <function-ref isolate="{{ isolate }}" ref="{{ isolate.topFrame['function'] }}"></function-ref>
+          (<script-ref isolate="{{ isolate }}" ref="{{ isolate.topFrame['script'] }}" line="{{ isolate.topFrame['line'] }}"></script-ref>)
           <br>
           <pre>{{ isolate.topFrame['line'] }} &nbsp; {{ isolate.topFrame['lineString'] }}</pre>
         </template>
@@ -728,7 +726,10 @@
   </template>
   
 </polymer-element>
-<polymer-element name="isolate-list" extends="observatory-element">
+<polymer-element name="vm-element" extends="observatory-element">
+  
+</polymer-element>
+<polymer-element name="isolate-list" extends="vm-element">
   <template>
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
@@ -736,24 +737,22 @@
       <nav-refresh callback="{{ refresh } }}"></nav-refresh>
     </nav-bar>
       <ul class="list-group">
-      <template repeat="{{ isolate in app.isolateManager.isolates.values }}">
+      <template repeat="{{ isolate in vm.isolates.values }}">
       	<li class="list-group-item">
-        <isolate-summary app="{{ app }}" isolate="{{ isolate }}"></isolate-summary>
+        <isolate-summary isolate="{{ isolate }}"></isolate-summary>
         </li>
       </template>
       </ul>
-      (<a href="{{ app.locationManager.absoluteLink('cpu') }}">cpu</a>)
   </template>
   
 </polymer-element>
-<polymer-element name="instance-view" extends="observatory-element">
+<polymer-element name="instance-view" extends="isolate-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
-      </isolate-nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
       <!-- TODO(turnidge): Add library nav menu here. -->
-      <class-nav-menu app="{{ app }}" cls="{{ instance['class'] }}"></class-nav-menu>
+      <class-nav-menu isolate="{{ isolate }}" cls="{{ instance['class'] }}"></class-nav-menu>
       <nav-menu link="." anchor="instance" last="{{ true }}"></nav-menu>
       <!-- TODO(turnidge): Add nav refresh here. -->
     </nav-bar>
@@ -763,7 +762,7 @@
       <div class="panel panel-warning">
         <div class="panel-heading">
          Instance of
-         <class-ref app="{{ app }}" ref="{{ instance['class'] }}"></class-ref>
+         <class-ref isolate="{{ isolate }}" ref="{{ instance['class'] }}"></class-ref>
         </div>
         <div class="panel-body">
           <template if="{{ instance['error'] == null }}">
@@ -778,8 +777,8 @@
             <table class="table table-hover">
              <tbody>
                 <tr template="" repeat="{{ field in instance['fields'] }}">
-                  <td><field-ref app="{{ app }}" ref="{{ field['decl'] }}"></field-ref></td>
-                  <td><instance-ref app="{{ app }}" ref="{{ field['value'] }}"></instance-ref></td>
+                  <td><field-ref isolate="{{ isolate }}" ref="{{ field['decl'] }}"></field-ref></td>
+                  <td><instance-ref isolate="{{ isolate }}" ref="{{ field['value'] }}"></instance-ref></td>
                 </tr>
               </tbody>
             </table>
@@ -824,13 +823,12 @@
   </template>
   
 </polymer-element>
-<polymer-element name="library-view" extends="observatory-element">
+<polymer-element name="library-view" extends="isolate-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
-      </isolate-nav-menu>
-      <library-nav-menu app="{{ app }}" library="{{ library }}" last="{{ true }}"></library-nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+      <library-nav-menu isolate="{{ isolate }}" library="{{ library }}" last="{{ true }}"></library-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
@@ -842,7 +840,7 @@
           {{ script['kind'] }}
         </td>
         <td>
-          <script-ref app="{{ app }}" ref="{{ script }}"></script-ref>
+          <script-ref isolate="{{ isolate }}" ref="{{ script }}"></script-ref>
         </td>
       </tr>
     </tbody>
@@ -852,7 +850,7 @@
     <tbody>
       <tr template="" repeat="{{ lib in library['libraries'] }}">
         <td>
-          <library-ref app="{{ app }}" ref="{{ lib }}"></library-ref>
+          <library-ref isolate="{{ isolate }}" ref="{{ lib }}"></library-ref>
         </td>
       </tr>
     </tbody>
@@ -861,8 +859,8 @@
   <table class="table table-hover">
     <tbody>
       <tr template="" repeat="{{ variable in library['variables'] }}">
-        <td><field-ref app="{{ app }}" ref="{{ variable }}"></field-ref></td>
-        <td><instance-ref app="{{ app }}" ref="{{ variable['value'] }}"></instance-ref></td>
+        <td><field-ref isolate="{{ isolate }}" ref="{{ variable }}"></field-ref></td>
+        <td><instance-ref isolate="{{ isolate }}" ref="{{ variable['value'] }}"></instance-ref></td>
       </tr>
     </tbody>
   </table>
@@ -871,7 +869,7 @@
     <tbody>
       <tr template="" repeat="{{ func in library['functions'] }}">
         <td>
-          <function-ref app="{{ app }}" ref="{{ func }}"></function-ref>
+          <function-ref isolate="{{ isolate }}" ref="{{ func }}"></function-ref>
         </td>
       </tr>
     </tbody>
@@ -887,10 +885,10 @@
     <tbody>
       <tr template="" repeat="{{ cls in library['classes'] }}">
         <td>
-          <class-ref app="{{ app }}" ref="{{ cls }}"></class-ref>
+          <class-ref isolate="{{ isolate }}" ref="{{ cls }}"></class-ref>
         </td>
         <td>
-          <class-ref app="{{ app }}" ref="{{ cls }}" internal=""></class-ref>
+          <class-ref isolate="{{ isolate }}" ref="{{ cls }}" internal=""></class-ref>
         </td>
       </tr>
     </tbody>
@@ -899,12 +897,11 @@
   </template>
   
 </polymer-element>
-<polymer-element name="heap-profile" extends="observatory-element">
+<polymer-element name="heap-profile" extends="isolate-element">
 <template>
   <nav-bar>
     <top-nav-menu></top-nav-menu>
-    <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
-    </isolate-nav-menu>
+    <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
     <nav-menu link="." anchor="heap profile" last="{{ true }}"></nav-menu>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>
   </nav-bar>
@@ -967,13 +964,52 @@
 </template>
 
 </polymer-element>
-<polymer-element name="script-view" extends="observatory-element">
+<polymer-element name="isolate-profile" extends="isolate-element">
+  <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+      <nav-menu link="." anchor="cpu profile" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div>
+      <span>Top</span>
+      <select selectedindex="{{methodCountSelected}}" value="{{methodCounts[methodCountSelected]}}">
+        <option template="" repeat="{{count in methodCounts}}">{{count}}</option>
+      </select>
+      <span>exclusive methods</span>
+    </div>
+    <table id="tableTree" class="table table-hover">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Exclusive</th>
+          <th>Caller</th>
+          <th>Inclusive</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr template="" repeat="{{row in tree.rows }}" style="{{}}">
+          <td on-click="{{toggleExpanded}}" class="{{ coloring(row) }}" style="{{ padding(row) }}">
+            <code-ref isolate="{{ isolate }}" ref="{{ row.code.codeRef }}"></code-ref>
+          </td>
+          <td class="{{ coloring(row) }}">{{row.columns[0]}}</td>
+          <td class="{{ coloring(row) }}">{{row.columns[1]}}</td>
+          <td class="{{ coloring(row) }}">{{row.columns[2]}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </template>
+  
+</polymer-element>
+<polymer-element name="script-view" extends="isolate-element">
 <template>
   <nav-bar>
     <top-nav-menu></top-nav-menu>
-    <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
+    <isolate-nav-menu isolate="{{ isolate }}">
     </isolate-nav-menu>
-    <library-nav-menu app="{{ app }}" library="{{ script.libraryRef }}"></library-nav-menu>
+    <library-nav-menu isolate="{{ isolate }}" library="{{ script.libraryRef }}"></library-nav-menu>
     <nav-menu link="." anchor="{{ script.shortName }}" last="{{ true }}"></nav-menu>
   </nav-bar>
 
@@ -1000,7 +1036,7 @@
 </template>
 
 </polymer-element>
-<polymer-element name="stack-frame" extends="observatory-element">
+<polymer-element name="stack-frame" extends="isolate-element">
   <template>
     <style>
       .member {
@@ -1014,15 +1050,15 @@
         #{{ frame['depth'] }}
       </div>
       <div class="col-md-9">
-        <function-ref app="{{ app }}" ref="{{ frame['function'] }}"></function-ref>
-        ( <script-ref app="{{ app }}" ref="{{ frame['script'] }}" line="{{ frame['line'] }}">
+        <function-ref isolate="{{ isolate }}" ref="{{ frame['function'] }}"></function-ref>
+        ( <script-ref isolate="{{ isolate }}" ref="{{ frame['script'] }}" line="{{ frame['line'] }}">
         </script-ref> )
         <curly-block>
           <table>
             <tbody><tr template="" repeat="{{ v in frame['vars'] }}">
               <td class="member">{{ v['name']}}</td>
               <td class="member">
-                <instance-ref app="{{ app }}" ref="{{ v['value'] }}"></instance-ref>
+                <instance-ref isolate="{{ isolate }}" ref="{{ v['value'] }}"></instance-ref>
               </td>
             </tr>
           </tbody></table>
@@ -1036,12 +1072,11 @@
   </template>
   
 </polymer-element>
-<polymer-element name="stack-trace" extends="observatory-element">
+<polymer-element name="stack-trace" extends="isolate-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
-      </isolate-nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
       <nav-menu link="." anchor="stack trace" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
@@ -1056,7 +1091,7 @@
       <ul class="list-group">
         <template repeat="{{ frame in trace['members'] }}">
           <li class="list-group-item">
-            <stack-frame app="{{ app }}" frame="{{ frame }}"></stack-frame>
+            <stack-frame isolate="{{ isolate }}" frame="{{ frame }}"></stack-frame>
           </li>
         </template>
       </ul>
@@ -1072,122 +1107,75 @@
   <template>
   	<!-- If the message type is an IsolateList -->
     <template if="{{ messageType == 'IsolateList' }}">
-      <isolate-list app="{{ app }}"></isolate-list>
+      <isolate-list vm="{{ app.vm }}"></isolate-list>
     </template>
     <!-- If the message type is a StackTrace -->
     <template if="{{ messageType == 'StackTrace' }}">
-      <stack-trace app="{{ app }}" trace="{{ message }}"></stack-trace>
+      <stack-trace isolate="{{ app.isolate }}" trace="{{ message }}"></stack-trace>
     </template>
     <template if="{{ messageType == 'BreakpointList' }}">
-      <breakpoint-list app="{{ app }}" msg="{{ message }}"></breakpoint-list>
+      <breakpoint-list isolate="{{ app.isolate }}" msg="{{ message }}"></breakpoint-list>
     </template>
     <template if="{{ messageType == 'Error' }}">
-      <error-view app="{{ app }}" error="{{ message }}"></error-view>
+      <error-view isolate="{{ app.isolate }}" error="{{ message }}"></error-view>
     </template>
     <template if="{{ messageType == 'Library' }}">
-      <library-view app="{{ app }}" library="{{ message }}"></library-view>
+      <library-view isolate="{{ app.isolate }}" library="{{ message }}"></library-view>
     </template>
     <template if="{{ messageType == 'Class' }}">
-      <class-view app="{{ app }}" cls="{{ message }}"></class-view>
+      <class-view isolate="{{ app.isolate }}" cls="{{ message }}"></class-view>
     </template>
     <template if="{{ messageType == 'Field' }}">
-      <field-view app="{{ app }}" field="{{ message }}"></field-view>
+      <field-view isolate="{{ app.isolate }}" field="{{ message }}"></field-view>
     </template>
     <template if="{{ messageType == 'Closure' }}">
-      <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
+      <instance-view isolate="{{ app.isolate }}" instance="{{ message }}"></instance-view>
     </template>
     <template if="{{ messageType == 'Instance' }}">
-      <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
+      <instance-view isolate="{{ app.isolate }}" instance="{{ message }}"></instance-view>
     </template>
     <template if="{{ messageType == 'Array' }}">
-      <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
+      <instance-view isolate="{{ app.isolate }}" instance="{{ message }}"></instance-view>
     </template>
     <template if="{{ messageType == 'GrowableObjectArray' }}">
-      <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
+      <instance-view isolate="{{ app.isolate }}" instance="{{ message }}"></instance-view>
     </template>
     <template if="{{ messageType == 'String' }}">
-      <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
+      <instance-view isolate="{{ app.isolate }}" instance="{{ message }}"></instance-view>
     </template>
     <template if="{{ messageType == 'Bool' }}">
-      <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
+      <instance-view isolate="{{ app.isolate }}" instance="{{ message }}"></instance-view>
     </template>
     <template if="{{ messageType == 'Smi' }}">
-      <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
+      <instance-view isolate="{{ app.isolate }}" instance="{{ message }}"></instance-view>
     </template>
     <template if="{{ messageType == 'Function' }}">
-      <function-view app="{{ app }}" function="{{ message }}"></function-view>
+      <function-view isolate="{{ app.isolate }}" function="{{ message }}"></function-view>
     </template>
     <template if="{{ messageType == 'Code' }}">
-      <code-view app="{{ app }}" code="{{ message['code'] }}"></code-view>
+      <code-view isolate="{{ app.isolate }}" code="{{ message['code'] }}"></code-view>
     </template>
     <template if="{{ messageType == 'Script' }}">
-      <script-view app="{{ app }}" script="{{ message['script'] }}"></script-view>
+      <script-view isolate="{{ app.isolate }}" script="{{ message['script'] }}"></script-view>
     </template>
     <template if="{{ messageType == 'AllocationProfile' }}">
-      <heap-profile app="{{ app }}" profile="{{ message }}"></heap-profile>
+      <heap-profile isolate="{{ app.isolate }}" profile="{{ message }}"></heap-profile>
     </template>
-    <template if="{{ messageType == 'CPU' }}">
-      <json-view json="{{ message }}"></json-view>
+    <template if="{{ messageType == 'Profile' }}">
+      <isolate-profile isolate="{{ app.isolate }}" profile="{{ message }}"></isolate-profile>
     </template>
     <!-- Add new views and message types in the future here. -->
   </template>
   
 </polymer-element>
-<polymer-element name="isolate-profile" extends="observatory-element">
-  <template>
-    <nav-bar>
-      <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu app="{{ app }}" isolate="{{ app.locationManager.currentIsolate() }}">
-      </isolate-nav-menu>
-      <nav-menu link="." anchor="cpu profile" last="{{ true }}"></nav-menu>
-      <nav-refresh callback="{{ refresh }}"></nav-refresh>
-    </nav-bar>
-
-    <div>
-      <span>Top</span>
-      <select selectedindex="{{methodCountSelected}}" value="{{methodCounts[methodCountSelected]}}">
-        <option template="" repeat="{{count in methodCounts}}">{{count}}</option>
-      </select>
-      <span>exclusive methods</span>
-    </div>
-    <table id="tableTree" class="table table-hover">
-      <thead>
-        <tr>
-          <th>Method</th>
-          <th>Exclusive</th>
-          <th>Caller</th>
-          <th>Inclusive</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr template="" repeat="{{row in tree.rows }}" style="{{}}">
-          <td on-click="{{toggleExpanded}}" class="{{ coloring(row) }}" style="{{ padding(row) }}">
-            <code-ref app="{{ app }}" ref="{{ row.code.codeRef }}"></code-ref>
-          </td>
-          <td class="{{ coloring(row) }}">{{row.columns[0]}}</td>
-          <td class="{{ coloring(row) }}">{{row.columns[1]}}</td>
-          <td class="{{ coloring(row) }}">{{row.columns[2]}}</td>
-        </tr>
-      </tbody>
-    </table>
-  </template>
-  
-</polymer-element>
 <polymer-element name="response-viewer" extends="observatory-element">
   <template>
-    <template repeat="{{ message in app.requestManager.responses }}">
-      <message-viewer app="{{ app }}" message="{{ message }}"></message-viewer>
-    </template>
+    <message-viewer app="{{ app }}" message="{{ app.response }}"></message-viewer>
   </template>
   
 </polymer-element><polymer-element name="observatory-application" extends="observatory-element">
   <template>
-    <template if="{{ app.locationManager.profile }}">
-      <isolate-profile app="{{ app }}"></isolate-profile>
-    </template>
-    <template if="{{ app.locationManager.profile == false }}">
-      <response-viewer app="{{ app }}"></response-viewer>
-    </template>
+    <response-viewer app="{{ app }}"></response-viewer>
   </template>
   
 </polymer-element>

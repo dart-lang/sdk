@@ -1,0 +1,66 @@
+<head>
+  <link rel="import" href="curly_block.html">
+  <link rel="import" href="observatory_element.html">
+  <link rel="import" href="service_ref.html">
+</head>
+<polymer-element name="instance-ref" extends="service-ref">
+  <template>
+    <style>
+      .member {
+        vertical-align: top;
+        padding: 0 0 0 1em;
+      }
+    </style>
+    <div>
+      <template if="{{ isUnexpectedRef(ref['type']) }}">
+        unexpected reference type &lt;{{ ref['type'] }}&gt;
+      </template>
+
+      <template if="{{ isNullRef(ref['type']) }}">
+        {{ name }}
+      </template>
+
+      <template if="{{ (isStringRef(ref['type']) ||
+                        isBoolRef(ref['type']) ||
+                        isIntRef(ref['type'])) }}">
+        <a href="{{ url }}">{{ name }}</a>
+      </template>
+
+      <template if="{{ isClosureRef(ref['type']) }}">
+        <a href="{{ url }}">
+          {{ ref['closureFunc']['user_name'] }}
+        </a>
+      </template>
+
+      <template if="{{ isInstanceRef(ref['type']) }}">
+        <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em></a>
+        <curly-block callback="{{ expander() }}">
+          <table>
+            <tr template repeat="{{ field in ref['fields'] }}">
+              <td class="member">{{ field['decl']['user_name'] }}</td>
+              <td class="member">
+                <instance-ref isolate="{{ isolate }}" ref="{{ field['value'] }}"></instance-ref>
+              </td>
+            </tr>
+          </table>
+        </curly-block>
+      </template>
+
+      <template if="{{ isListRef(ref['type']) }}">
+        <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em> ({{ ref['length']}})</a>
+        <curly-block callback="{{ expander() }}">
+          <table>
+            <tr template repeat="{{ element in ref['elements'] }}">
+              <td class="member">[{{ element['index']}}]</td>
+              <td class="member">
+                <instance-ref isolate="{{ isolate }}" ref="{{ element['value'] }}"></instance-ref>
+              </td>
+            </tr>
+          </table>
+        </curly-block>
+      </template>
+
+    </div>
+  </template>
+  <script type="application/dart" src="instance_ref.dart"></script>
+</polymer-element>

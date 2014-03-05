@@ -1,0 +1,46 @@
+<head>
+  <link rel="import" href="code_ref.html">
+  <link rel="import" href="nav_bar.html">
+  <link rel="import" href="observatory_element.html">
+</head>
+<polymer-element name="isolate-profile" extends="isolate-element">
+  <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+      <nav-menu link="." anchor="cpu profile" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div>
+      <span>Top</span>
+      <select selectedIndex="{{methodCountSelected}}" value="{{methodCounts[methodCountSelected]}}">
+        <option template repeat="{{count in methodCounts}}">{{count}}</option>
+      </select>
+      <span>exclusive methods</span>
+    </div>
+    <table id="tableTree" class="table table-hover">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Exclusive</th>
+          <th>Caller</th>
+          <th>Inclusive</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr template repeat="{{row in tree.rows }}" style="{{}}">
+          <td on-click="{{toggleExpanded}}"
+              class="{{ coloring(row) }}"
+              style="{{ padding(row) }}">
+            <code-ref isolate="{{ isolate }}" ref="{{ row.code.codeRef }}"></code-ref>
+          </td>
+          <td class="{{ coloring(row) }}">{{row.columns[0]}}</td>
+          <td class="{{ coloring(row) }}">{{row.columns[1]}}</td>
+          <td class="{{ coloring(row) }}">{{row.columns[2]}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </template>
+  <script type="application/dart" src="isolate_profile.dart"></script>
+</polymer-element>

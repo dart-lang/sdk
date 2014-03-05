@@ -1,0 +1,58 @@
+<head>
+  <link rel="import" href="class_ref.html">
+  <link rel="import" href="nav_bar.html">
+  <link rel="import" href="observatory_element.html">
+</head>
+<polymer-element name="field-view" extends="isolate-element">
+  <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+      <template if="{{ field['owner']['type'] == '@Class' }}">
+        <!-- TODO(turnidge): Add library nav menu here. -->
+        <class-nav-menu isolate="{{ isolate }}" cls="{{ field['owner'] }}"></class-nav-menu>
+      </template>
+      <template if="{{ field['owner']['type'] == '@Library' }}">
+        <library-nav-menu isolate="{{ isolate }}" library="{{ field['owner'] }}"></library-nav-menu>
+      </template>
+      <nav-menu link="." anchor="{{ field['user_name'] }}" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-warning">
+        <div class="panel-heading">
+          <template if="{{ field['static'] }}">static</template>
+          <template if="{{ field['final'] }}">final</template>
+          <template if="{{ field['const'] }}">const</template>
+          {{ field['user_name'] }} ({{ field['name'] }})
+          <class-ref isolate="{{ isolate }}" ref="{{ field['class'] }}"></class-ref>
+        </div>
+        <div class="panel-body">
+        <template if="{{ field['guard_class'] == 'dynamic'}}">
+          <div class="alert alert-danger">
+            Field has been assigned multiple types. If a field is only ever
+            assigned a single type, performance may improve.
+          </div>
+        </template>
+        <template if="{{ (field['guard_class'] != 'dynamic') && (field['guard_class'] != 'unknown') }}">
+          <div class="alert alert-success">Field has monomorphic type</div>
+          <template if="{{ (field['guard_class'] != 'dynamic') &&
+                        field['guard_nullable'] }}">
+            <div class="alert alert-info">
+              Field has been assigned null. If a field is never assigned null,
+              performance may improve.
+            </div>
+          </template>
+          <blockquote>
+            <class-ref isolate="{{ isolate }}" ref="{{ field['guard_class'] }}"></class-ref>
+          </blockquote>
+        </template>
+        </div>
+      </div>
+    </div>
+  </div>
+  </template>
+  <script type="application/dart" src="field_view.dart"></script>
+</polymer-element>

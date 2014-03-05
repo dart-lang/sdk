@@ -1,0 +1,85 @@
+<head>
+  <link rel="import" href="breakpoint_list.html">
+  <link rel="import" href="class_view.html">
+  <link rel="import" href="code_view.html">
+  <link rel="import" href="error_view.html">
+  <link rel="import" href="field_view.html">
+  <link rel="import" href="function_view.html">
+  <link rel="import" href="heap_profile.html">
+  <link rel="import" href="instance_view.html">
+  <link rel="import" href="isolate_list.html">
+  <link rel="import" href="isolate_profile.html">
+  <link rel="import" href="library_view.html">
+  <link rel="import" href="observatory_element.html">
+  <link rel="import" href="script_view.html">
+  <link rel="import" href="stack_trace.html">
+</head>
+<polymer-element name="message-viewer" extends="observatory-element">
+  <!--
+    This is a big switch statement which instantiates the custom element
+    designated to display the message type.
+  -->
+  <template>
+  	<!-- If the message type is an IsolateList -->
+    <template if="{{ messageType == 'IsolateList' }}">
+      <isolate-list vm="{{ app.vm }}"></isolate-list>
+    </template>
+    <!-- If the message type is a StackTrace -->
+    <template if="{{ messageType == 'StackTrace' }}">
+      <stack-trace isolate="{{ app.isolate }}" trace="{{ message }}"></stack-trace>
+    </template>
+    <template if="{{ messageType == 'BreakpointList' }}">
+      <breakpoint-list isolate="{{ app.isolate }}" msg="{{ message }}"></breakpoint-list>
+    </template>
+    <template if="{{ messageType == 'Error' }}">
+      <error-view isolate="{{ app.isolate }}" error="{{ message }}"></error-view>
+    </template>
+    <template if="{{ messageType == 'Library' }}">
+      <library-view isolate="{{ app.isolate }}" library="{{ message }}"></library-view>
+    </template>
+    <template if="{{ messageType == 'Class' }}">
+      <class-view isolate="{{ app.isolate }}" cls="{{ message }}"></class-view>
+    </template>
+    <template if="{{ messageType == 'Field' }}">
+      <field-view isolate="{{ app.isolate }}" field="{{ message }}"></field-view>
+    </template>
+    <template if="{{ messageType == 'Closure' }}">
+      <instance-view isolate="{{ app.isolate }}" instance="{{ message }}"></instance-view>
+    </template>
+    <template if="{{ messageType == 'Instance' }}">
+      <instance-view isolate="{{ app.isolate }}" instance="{{ message }}"></instance-view>
+    </template>
+    <template if="{{ messageType == 'Array' }}">
+      <instance-view isolate="{{ app.isolate }}" instance="{{ message }}"></instance-view>
+    </template>
+    <template if="{{ messageType == 'GrowableObjectArray' }}">
+      <instance-view isolate="{{ app.isolate }}" instance="{{ message }}"></instance-view>
+    </template>
+    <template if="{{ messageType == 'String' }}">
+      <instance-view isolate="{{ app.isolate }}" instance="{{ message }}"></instance-view>
+    </template>
+    <template if="{{ messageType == 'Bool' }}">
+      <instance-view isolate="{{ app.isolate }}" instance="{{ message }}"></instance-view>
+    </template>
+    <template if="{{ messageType == 'Smi' }}">
+      <instance-view isolate="{{ app.isolate }}" instance="{{ message }}"></instance-view>
+    </template>
+    <template if="{{ messageType == 'Function' }}">
+      <function-view isolate="{{ app.isolate }}" function="{{ message }}"></function-view>
+    </template>
+    <template if="{{ messageType == 'Code' }}">
+      <code-view isolate="{{ app.isolate }}" code="{{ message['code'] }}"></code-view>
+    </template>
+    <template if="{{ messageType == 'Script' }}">
+      <script-view isolate="{{ app.isolate }}" script="{{ message['script'] }}"></script-view>
+    </template>
+    <template if="{{ messageType == 'AllocationProfile' }}">
+      <heap-profile isolate="{{ app.isolate }}" profile="{{ message }}"></heap-profile>
+    </template>
+    <template if="{{ messageType == 'Profile' }}">
+      <isolate-profile isolate="{{ app.isolate }}" profile="{{ message }}"></isolate-profile>
+    </template>
+    <!-- Add new views and message types in the future here. -->
+  </template>
+  <script type="application/dart" src="message_viewer.dart"></script>
+</polymer-element>

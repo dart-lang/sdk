@@ -1,0 +1,195 @@
+<head>
+  <link rel="import" href="observatory_element.html">
+  <link rel="import" href="isolate_element.html">
+</head>
+
+<polymer-element name="nav-bar" extends="observatory-element">
+  <template>
+    <style>
+      nav ul {
+        display: inline-table;
+        position: relative;
+        list-style: none;
+        padding-left: 0;
+        margin-left: 0;
+        width: 100%;
+        z-index: 10;
+        font: 400 16px 'Montserrat', sans-serif;
+        color: white;
+        background-color: #0489c3;
+      }
+      nav ul:after {
+        content: ""; clear: both; display: block;
+      }
+    </style>
+    <nav>
+      <ul>
+        <content></content>
+      </ul>
+    </nav>
+  </template>
+</polymer-element>
+
+<polymer-element name="nav-menu" extends="observatory-element">
+  <template>
+    <style>
+      .menu, .spacer {
+        float: left;
+      }
+      .menu a, .spacer {
+        display: block;
+        padding: 12px 8px;
+        color: White;
+        text-decoration: none;
+      }
+      .menu:hover {
+        background: #455;
+      }
+      .menu ul {
+        display: none;
+        position: absolute;
+        top: 100%;
+        list-style: none;
+        padding: 0;
+        margin-left: 0;
+        width: auto;
+        z-index: 10;
+        font: 400 16px 'Montserrat', sans-serif;
+        color: white;
+        background: #567;
+      }
+      .menu ul:after {
+        content: ""; clear: both; display: block;
+      }
+      .menu:hover > ul {
+        display: block;
+      }
+    </style>
+
+    <li class="menu"><a href="{{ link }}">{{ anchor }}</a>
+      <ul><content></content></ul>
+    </li>
+    <template if="{{ !last }}">
+      <li class="spacer">&gt;</li>
+    </template>
+
+  </template>
+</polymer-element>
+
+<polymer-element name="nav-menu-item" extends="observatory-element">
+  <template>
+    <style>
+      li {
+        float: none;
+        border-top: 1px solid #677;
+        border-bottom: 1px solid #556; position: relative;
+      }
+      li:hover {
+        background: #455;
+      }
+      li ul {
+        display: none;
+        position: absolute;
+        top:0;
+        left: 100%;
+        list-style: none;
+        padding: 0;
+        margin-left: 0;
+        width: auto;
+        z-index: 10;
+        font: 400 16px 'Montserrat', sans-serif;
+        color: white;
+        background: #567;
+      }
+      li ul:after {
+        content: ""; clear: both; display: block;
+      }
+      li:hover > ul {
+        display: block;
+      }
+      li a {
+        display: block;
+        padding: 12px 12px;
+        color: white;
+        text-decoration: none;
+      }
+    </style>
+    <li><a href="{{ link }}">{{ anchor }}</a>
+      <ul><content></content></ul>
+    </li>
+  </template>
+</polymer-element>
+
+<polymer-element name="nav-refresh" extends="observatory-element">
+  <template>
+    <style>
+      .active {
+        color: #aaa;
+        cursor: wait;
+      }
+      .idle {
+        color: #000;
+      }
+      li {
+        float: right;
+        margin: 0;
+      }
+      li button {
+        margin: 3px;
+        padding: 8px;
+      }
+    </style>
+    <li>
+      <template if="{{ active }}">
+        <button class="active" on-click="{{ buttonClick }}">Refresh</button>
+      </template>
+      <template if="{{ !active }}">
+        <button class="idle" on-click="{{ buttonClick }}">Refresh</button>
+      </template>
+    </li>
+  </template>
+</polymer-element>
+
+<polymer-element name="top-nav-menu">
+  <template>
+    <nav-menu link="#" anchor="Observatory" last="{{ last }}">
+      <content></content>
+    </nav-menu>
+  </template>
+</polymer-element>
+
+<polymer-element name="isolate-nav-menu" extends="isolate-element">
+  <template>
+    <nav-menu link="#" anchor="{{ isolate.name }}" last="{{ last }}">
+      <nav-menu-item link="{{ isolate.hashLink('stacktrace') }}"
+                     anchor="stack trace"></nav-menu-item>
+      <nav-menu-item link="{{ isolate.hashLink('profile') }}"
+                     anchor="cpu profile"></nav-menu-item>
+      <nav-menu-item link="{{ isolate.hashLink('allocationprofile') }}"
+                     anchor="heap profile"></nav-menu-item>
+      <nav-menu-item link="{{ isolate.hashLink('debug/breakpoints') }}"
+                     anchor="breakpoints"></nav-menu-item>
+      <content></content>
+    </nav-menu>
+  </template>
+</polymer-element>
+
+<polymer-element name="library-nav-menu" extends="isolate-element">
+  <template>
+    <nav-menu link="{{ isolate.hashLink(library['id']) }}"
+              anchor="{{ library['name'] }}" last="{{ last }}">
+      <content></content>
+    </nav-menu>
+  </template>
+</polymer-element>
+
+<polymer-element name="class-nav-menu" extends="isolate-element">
+  <template>
+    <nav-menu link="{{ isolate.hashLink(cls['id']) }}"
+              anchor="{{ cls['user_name'] }}" last="{{ last }}">
+      <content></content>
+    </nav-menu>
+  </template>
+</polymer-element>
+
+<script type="application/dart" src="nav_bar.dart"></script>

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:logging/logging.dart';
-import 'package:observatory/observatory.dart';
+import 'package:observatory/app.dart';
 import 'package:polymer/polymer.dart';
 
 main() {

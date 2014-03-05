@@ -1,0 +1,37 @@
+<head>
+  <link rel="import" href="nav_bar.html">
+  <link rel="import" href="isolate_element.html">
+</head>
+<polymer-element name="script-view" extends="isolate-element">
+<template>
+  <nav-bar>
+    <top-nav-menu></top-nav-menu>
+    <isolate-nav-menu isolate="{{ isolate }}">
+    </isolate-nav-menu>
+    <library-nav-menu isolate="{{ isolate }}" library="{{ script.libraryRef }}"></library-nav-menu>
+    <nav-menu link="." anchor="{{ script.shortName }}" last="{{ true }}"></nav-menu>
+  </nav-bar>
+
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel-heading">
+      <button on-click="{{refreshCoverage}}">Refresh Coverage</button>
+      {{ script.scriptRef['user_name'] }}
+      {{ script.coveredPercentageFormatted() }}
+      </div>
+      <div class="panel-body">
+        <table style="width:100%">
+          <tbody>
+          <tr template repeat="{{ line in script.linesForDisplay }}">
+            <td style="{{ hitsStyle(line) }}">  </td>
+            <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{line.line}}</td>
+            <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: pre;">{{line.text}}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</template>
+<script type="application/dart" src="script_view.dart"></script>
+</polymer-element>

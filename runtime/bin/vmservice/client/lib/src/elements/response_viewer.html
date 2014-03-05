@@ -1,0 +1,10 @@
+<head>
+  <link rel="import" href="observatory_element.html">
+  <link rel="import" href="message_viewer.html">
+</head>
+<polymer-element name="response-viewer" extends="observatory-element">
+  <template>
+    <message-viewer app="{{ app }}" message="{{ app.response }}"></message-viewer>
+  </template>
+  <script type="application/dart" src="response_viewer.dart"></script>
+</polymer-element>
