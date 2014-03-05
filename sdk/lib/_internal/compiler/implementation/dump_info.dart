@@ -279,7 +279,7 @@ class InfoDumpVisitor extends ElementVisitor<InfoNode> {
       return null;
     }
     int size = 0;
-    DartType type = element.computeType(compiler);
+    DartType type = element.variables.type;
     List<InfoNode> contents = new List<InfoNode>();
     if (emittedCode != null) {
       contents.add(new CodeInfoNode(
