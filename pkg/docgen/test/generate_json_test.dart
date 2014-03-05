@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:scheduled_test/descriptor.dart' as d;
 import 'package:scheduled_test/scheduled_test.dart';
+import 'package:unittest/matcher.dart';
 
 import 'util.dart';
 import '../lib/docgen.dart' as dg;
@@ -48,6 +49,41 @@ void main() {
         d.matcherFile('testLib2-foo.json', _isJsonMap)
     ]).validate();
 
+  });
+
+  test('typedef gen', () {
+    schedule(() {
+      var codeDir = getMultiLibraryCodePath();
+      expect(FileSystemEntity.isDirectorySync(codeDir), isTrue);
+      return dg.docgen(['$codeDir/'], out: p.join(d.defaultRoot, 'docs'));
+    });
+
+    schedule(() {
+      var dartCoreJson = new File(p.join(d.defaultRoot, 'docs', 'testLib-bar.json'))
+        .readAsStringSync();
+
+      var dartCore = JSON.decode(dartCoreJson) as Map<String, dynamic>;
+
+      var classes = dartCore['classes'] as Map<String, dynamic>;
+
+      expect(classes, hasLength(3));
+
+      expect(classes['class'], isList);
+      expect(classes['error'], isList);
+
+      var typeDefs = classes['typedef'] as Map<String, dynamic>;
+      var comparator = typeDefs['AnATransformer'] as Map<String, dynamic>;
+
+      var expectedPreview = '<p>A trivial use of <code>A</code> to eliminate '
+          'import warnings.</p>';
+
+      expect(comparator['preview'], expectedPreview);
+
+      var expectedComment = expectedPreview +
+          '\n<p>And to test typedef preview.</p>';
+
+      expect(comparator['comment'], expectedComment);
+    });
   });
 }
 

@@ -750,6 +750,36 @@ class _Viewer {
     }
   }
 
+  /// Move the generated json/yaml docs directory to the dartdoc-viewer
+  /// directory, to run as a webpage.
+  static void _moveDirectoryAndServe() {
+    var processResult = Process.runSync(_Generator._pubScript, ['upgrade'],
+        runInShell: true, workingDirectory: path.join(_dartdocViewerDir.path,
+        'client'));
+    print('process output: ${processResult.stdout}');
+    print('process stderr: ${processResult.stderr}');
+
+    var dir = new Directory(_Generator._outputDirectory == null? 'docs' :
+        _Generator._outputDirectory);
+    var webDocsDir = new Directory(path.join(_dartdocViewerDir.path, 'client',
+        'web', 'docs'));
+    if (dir.existsSync()) {
+      // Move the docs folder to dartdoc-viewer/client/web/docs
+      dir.renameSync(webDocsDir.path);
+    }
+
+    if (webDocsDir.existsSync()) {
+      // Compile the code to JavaScript so we can run on any browser.
+      print('Compile app to JavaScript for viewing.');
+      var processResult = Process.runSync(_Generator._dartBinary,
+          ['deploy.dart'], workingDirectory : path.join(_dartdocViewerDir.path,
+          'client'), runInShell: true);
+      print('process output: ${processResult.stdout}');
+      print('process stderr: ${processResult.stderr}');
+      _runServer();
+    }
+  }
+
   static void _compile() {
     if (_webDocsDir.existsSync()) {
       // Compile the code to JavaScript so we can run on any browser.
@@ -989,13 +1019,19 @@ abstract class Indexable extends MirrorBased {
   /// Creates a [Map] with this [Indexable]'s name and a preview comment.
   Map get previewMap {
     var finalMap = { 'name' : name, 'qualifiedName' : qualifiedName };
+    var preview = _preview;
+    if(preview != null) finalMap['preview'] = preview;
+    return finalMap;
+  }
+
+  String get _preview {
     if (comment != '') {
       var index = comment.indexOf('</p>');
-      finalMap['preview'] = index > 0 ?
+      return index > 0 ?
           '${comment.substring(0, index)}</p>' :
           '<p><i>Comment preview not available</i></p>';
     }
-    return finalMap;
+    return null;
   }
 
   /// Accessor to obtain the raw comment text for a given item, _without_ any
@@ -1918,15 +1954,24 @@ class Typedef extends OwnedIndexable {
     annotations = MirrorBased._createAnnotations(mirror, owningLibrary);
   }
 
-  Map toMap() => {
-    'name': name,
-    'qualifiedName': qualifiedName,
-    'comment': comment,
-    'return': returnType,
-    'parameters': recurseMap(parameters),
-    'annotations': annotations.map((a) => a.toMap()).toList(),
-    'generics': recurseMap(generics)
-  };
+  Map toMap() {
+    var map = {
+      'name': name,
+      'qualifiedName': qualifiedName,
+      'comment': comment,
+      'return': returnType,
+      'parameters': recurseMap(parameters),
+      'annotations': annotations.map((a) => a.toMap()).toList(),
+      'generics': recurseMap(generics)
+    };
+
+    // Typedef is displayed on the library page as a class, so a preview is
+    // added manually
+    var preview = _preview;
+    if(preview != null) map['preview'] = preview;
+
+    return map;
+  }
 
   markdown.Node fixReference(String name) => null;
 
