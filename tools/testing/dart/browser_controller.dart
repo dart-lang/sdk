@@ -1419,7 +1419,8 @@ class BrowserTestingServer {
 
         var parsedData = parseResult(msg);
         if (parsedData) {
-          // Only if the JSON was valid, we'll post it back.
+          // Only if the JSON message contains all required parameters,
+          // will we handle it and post it back to the test controller.
           if ('message' in parsedData &&
               'is_first_message' in parsedData &&
               'is_status_update' in parsedData &&
@@ -1434,9 +1435,7 @@ class BrowserTestingServer {
                       "isFirstMessage/isStatusUpdate/isDone were all false");
               }
             }
-            if (message) {
-              reportMessage(message, isFirstMessage, isStatusUpdate);
-            }
+            reportMessage(message, isFirstMessage, isStatusUpdate);
           }
         }
       }
