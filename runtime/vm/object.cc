@@ -8947,45 +8947,6 @@ void LibraryPrefix::PrintToJSONStream(JSONStream* stream, bool ref) const {
 }
 
 
-void Namespace::set_metadata_field(const Field& value) const {
-  StorePointer(&raw_ptr()->metadata_field_, value.raw());
-}
-
-
-void Namespace::AddMetadata(intptr_t token_pos, const Class& owner_class) {
-  ASSERT(Field::Handle(metadata_field()).IsNull());
-  Field& field = Field::Handle(Field::New(Symbols::TopLevel(),
-                                          true,   // is_static
-                                          false,  // is_final
-                                          false,  // is_const
-                                          owner_class,
-                                          token_pos));
-  field.set_type(Type::Handle(Type::DynamicType()));
-  field.set_value(Array::empty_array());
-  set_metadata_field(field);
-}
-
-
-RawObject* Namespace::GetMetadata() const {
-  Field& field = Field::Handle(metadata_field());
-  if (field.IsNull()) {
-    // There is no metadata for this object.
-    return Object::empty_array().raw();
-  }
-  Object& metadata = Object::Handle();
-  metadata = field.value();
-  if (field.value() == Object::empty_array().raw()) {
-    metadata = Parser::ParseMetadata(Class::Handle(field.owner()),
-                                     field.token_pos());
-    if (metadata.IsArray()) {
-      ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());
-      field.set_value(Array::Cast(metadata));
-    }
-  }
-  return metadata.raw();
-}
-
-
 const char* Namespace::ToCString() const {
   const char* kFormat = "Namespace for library '%s'";
   const Library& lib = Library::Handle(library());

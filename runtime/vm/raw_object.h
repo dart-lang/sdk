@@ -803,10 +803,8 @@ class RawNamespace : public RawObject {
   RawLibrary* library_;          // library with name dictionary.
   RawArray* show_names_;         // list of names that are exported.
   RawArray* hide_names_;         // blacklist of names that are not exported.
-  RawField* metadata_field_;     // remembers the token pos of metadata if any,
-                                 // and the metadata values if computed.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->metadata_field_);
+    return reinterpret_cast<RawObject**>(&ptr()->hide_names_);
   }
 };
 

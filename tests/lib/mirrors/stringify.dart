@@ -114,39 +114,6 @@ stringifyMethod(MethodMirror method) {
   return 'Method($buffer)';
 }
 
-stringifyDependencies(LibraryMirror l) {
-  n(s) => s is Symbol ? MirrorSystem.getName(s) : s;
-  compareDep(a, b) =>
-      n(a.targetLibrary.simpleName).compareTo(n(b.targetLibrary.simpleName));
-  compareCom(a, b) => n(a.identifier).compareTo(n(b.identifier));
-  compareFirst(a, b) => a[0].compareTo(b[0]);
-  sortBy(c, p) => new List.from(c)..sort(p);
-
-  var buffer = new StringBuffer();
-  sortBy(l.libraryDependencies, compareDep).forEach((dep) {
-    if (dep.isImport) buffer.write('import ');
-    if (dep.isExport) buffer.write('export ');
-    buffer.write(n(dep.targetLibrary.simpleName));
-    if (dep.prefix != null) buffer.write(' as ${n(dep.prefix)}');
-    buffer.write('\n');
-
-    List flattenedCombinators = new List();
-    dep.combinators.forEach((com) {
-      com.identifiers.forEach((ident) {
-        flattenedCombinators.add([n(ident), com.isShow, com.isHide]);
-      });
-    });
-    sortBy(flattenedCombinators, compareFirst).forEach((triple) {
-      buffer.write(' ');
-      if (triple[1]) buffer.write('show ');
-      if (triple[2]) buffer.write('hide ');
-      buffer.write(triple[0]);
-      buffer.write('\n');
-    });
-  });
-  return buffer.toString();
-}
-
 stringify(value) {
   if (value is Map) return stringifyMap(value);
   if (value is Iterable) return stringifyIterable(value);

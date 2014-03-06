@@ -17,13 +17,6 @@ simple_inferrer_global_field_closure_test: Fail # Issue 16507
 
 logical_expression_test: Fail # Issue 17027
 
-mirrors/library_exports_hidden_test: Fail
-mirrors/library_exports_shown_test: Fail
-mirrors/library_imports_hidden_test: Fail
-mirrors/library_imports_prefixed_test: Fail
-mirrors/library_imports_prefixed_show_hide_test: Fail
-mirrors/library_imports_shown_test: Fail
-
 [ $mode == debug ]
 mirror_final_field_inferrer2_test: Crash, Pass, Slow # dartbug.com/15581
 

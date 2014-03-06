@@ -1290,17 +1290,6 @@ class _LocalLibraryMirror extends _LocalObjectMirror implements LibraryMirror {
     return new _InvocationTrampoline(this, selector);
   }
 
-  var _cachedLibraryDependencies;
-  get libraryDependencies {
-    if (_cachedLibraryDependencies == null) {
-      _cachedLibraryDependencies = _libraryDependencies(_reflectee);
-    }
-    return _cachedLibraryDependencies;
-  }
-
-  _libraryDependencies(reflectee)
-      native 'LibraryMirror_libraryDependencies';
-
   _invoke(reflectee, memberName, arguments, argumentNames)
       native 'LibraryMirror_invoke';
 
@@ -1312,37 +1301,6 @@ class _LocalLibraryMirror extends _LocalObjectMirror implements LibraryMirror {
 
   _computeMembers(reflectee)
       native "LibraryMirror_members";
-}
-
-class _LocalLibraryDependencyMirror
-    extends _LocalMirror implements LibraryDependencyMirror {
-  final LibraryMirror sourceLibrary;
-  final LibraryMirror targetLibrary;
-  final List<CombinatorMirror> combinators;
-  final Symbol prefix;
-  final bool isImport;
-  final List<InstanceMirror> metadata;
-
-  _LocalLibraryDependencyMirror(this.sourceLibrary,
-                                this.targetLibrary,
-                                this.combinators,
-                                prefixString,
-                                this.isImport,
-                                unwrappedMetadata)
-      : prefix = _s(prefixString),
-        metadata = new UnmodifiableListView(unwrappedMetadata.map(reflect));
-
-  bool get isExport => !isImport;
-}
-
-class _LocalCombinatorMirror extends _LocalMirror implements CombinatorMirror {
-  final List<Symbol> identifiers;
-  final bool isShow;
-
-  _LocalCombinatorMirror(identifierString, this.isShow)
-      : this.identifiers = [_s(identifierString)];
-
-  bool get isHide => !isShow;
 }
 
 class _LocalMethodMirror extends _LocalDeclarationMirror

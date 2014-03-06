@@ -296,8 +296,6 @@ class ObjectPointerVisitor;
   V(_LocalClassMirror, "_LocalClassMirror")                                    \
   V(_LocalFunctionTypeMirror, "_LocalFunctionTypeMirror")                      \
   V(_LocalLibraryMirror, "_LocalLibraryMirror")                                \
-  V(_LocalLibraryDependencyMirror, "_LocalLibraryDependencyMirror")            \
-  V(_LocalCombinatorMirror, "_LocalCombinatorMirror")                          \
   V(_LocalMethodMirror, "_LocalMethodMirror")                                  \
   V(_LocalVariableMirror, "_LocalVariableMirror")                              \
   V(_LocalParameterMirror, "_LocalParameterMirror")                            \

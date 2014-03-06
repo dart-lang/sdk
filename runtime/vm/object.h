@@ -2553,8 +2553,6 @@ class Library : public Object {
   RawArray* anonymous_classes() const { return raw_ptr()->anonymous_classes_; }
 
   // Library imports.
-  RawArray* imports() const { return raw_ptr()->imports_; }
-  RawArray* exports() const { return raw_ptr()->exports_; }
   void AddImport(const Namespace& ns) const;
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   RawNamespace* ImportAt(intptr_t index) const;
@@ -2646,6 +2644,8 @@ class Library : public Object {
   void set_num_imports(intptr_t value) const {
     raw_ptr()->num_imports_ = value;
   }
+  RawArray* imports() const { return raw_ptr()->imports_; }
+  RawArray* exports() const { return raw_ptr()->exports_; }
   bool HasExports() const;
   RawArray* loaded_scripts() const { return raw_ptr()->loaded_scripts_; }
   RawGrowableObjectArray* metadata() const { return raw_ptr()->metadata_; }
@@ -2729,9 +2729,6 @@ class Namespace : public Object {
   RawArray* show_names() const { return raw_ptr()->show_names_; }
   RawArray* hide_names() const { return raw_ptr()->hide_names_; }
 
-  void AddMetadata(intptr_t token_pos, const Class& owner_class);
-  RawObject* GetMetadata() const;
-
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawNamespace));
   }
@@ -2745,9 +2742,6 @@ class Namespace : public Object {
 
  private:
   static RawNamespace* New();
-
-  RawField* metadata_field() const { return raw_ptr()->metadata_field_; }
-  void set_metadata_field(const Field& value) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Namespace, Object);
   friend class Class;
