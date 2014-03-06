@@ -13,7 +13,7 @@ export 'package:observe/src/dirty_check.dart' show dirtyCheckZone;
 /// A small method to help readability. Used to cause the next "then" in a chain
 /// to happen in the next microtask:
 ///
-///     future.then(newMicrotask).then(...)
+///     future.then(endOfMicrotask).then(...)
 endOfMicrotask(_) => new Future.value();
 
 /// A small method to help readability. Used to cause the next "then" in a chain

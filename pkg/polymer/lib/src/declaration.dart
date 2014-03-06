@@ -4,45 +4,22 @@
 
 part of polymer;
 
-/// **Warning**: this class is experiental and subject to change.
+/// *Warning* this class is experimental and subject to change.
 ///
-/// The implementation for the `polymer-element` element.
-///
-/// Normally you do not need to use this class directly, see [PolymerElement].
-class PolymerDeclaration extends HtmlElement {
-  static const _TAG = 'polymer-element';
+/// The data associated with a polymer-element declaration, if it is backed
+/// by a Dart class instead of a JavaScript prototype.
+class PolymerDeclaration {
+  /// The polymer-element for this declaration.
+  final HtmlElement element;
 
-  factory PolymerDeclaration() => new Element.tag(_TAG);
-  // Fully ported from revision:
-  // https://github.com/Polymer/polymer/blob/b7200854b2441a22ce89f6563963f36c50f5150d
-  //
-  //   src/declaration/attributes.js
-  //   src/declaration/events.js
-  //   src/declaration/polymer-element.js
-  //   src/declaration/properties.js
-  //   src/declaration/prototype.js (note: most code not needed in Dart)
-  //   src/declaration/styles.js
-  //
-  // Not yet ported:
-  //   src/declaration/path.js - blocked on HTMLImports.getDocumentUrl
+  /// The Dart type corresponding to this custom element declaration.
+  final Type type;
 
-  Type _type;
-  Type get type => _type;
+  /// If we extend another custom element, this points to the super declaration.
+  final PolymerDeclaration superDeclaration;
 
-  // TODO(jmesserly): this is a cache, because it's tricky in Dart to get from
-  // Type -> Supertype.
-  Type _supertype;
-  Type get supertype => _supertype;
-
-  // TODO(jmesserly): this is also a cache, since we can't store .element on
-  // each level of the __proto__ like JS does.
-  PolymerDeclaration _super;
-  PolymerDeclaration get superDeclaration => _super;
-
-  String _extendsName;
-
-  String _name;
-  String get name => _name;
+  /// The name of the custom element.
+  final String name;
 
   /// Map of publish properties. Can be a field or a property getter, but if
   /// this map contains a getter, is because it also has a corresponding setter.
@@ -70,7 +47,7 @@ class PolymerDeclaration extends HtmlElement {
   List<Element> get styles => _styles;
 
   DocumentFragment get templateContent {
-    final template = this.querySelector('template');
+    final template = element.querySelector('template');
     return template != null ? templateBind(template).content : null;
   }
 
@@ -82,86 +59,24 @@ class PolymerDeclaration extends HtmlElement {
   // per element (why does the js implementation stores 1 per template node?)
   Expando<Set<String>> _templateDelegates;
 
-  PolymerDeclaration.created() : super.created() {
-    // fetch the element name
-    _name = attributes['name'];
-    // fetch our extendee name
-    _extendsName = attributes['extends'];
-    // install element definition, if ready
-    registerWhenReady();
-  }
+  String get extendee => superDeclaration != null ?
+      superDeclaration.name : null;
 
-  void registerWhenReady() {
-    // if we have no prototype, wait
-    if (waitingForType(name)) {
-      return;
-    }
-    if (waitingForExtendee(_extendsName)) {
-      //console.warn(name + ': waitingForExtendee:' + extendee);
-      return;
-    }
-    // TODO(sjmiles): HTMLImports polyfill awareness:
-    // elements in the main document are likely to parse
-    // in advance of elements in imports because the
-    // polyfill parser is simulated
-    // therefore, wait for imports loaded before
-    // finalizing elements in the main document
-    // TODO(jmesserly): Polymer.dart waits for HTMLImportsLoaded, so I've
-    // removed "whenImportsLoaded" for now. Restore the workaround if needed.
-    _register(_extendsName);
-  }
+  // Dart note: since polymer-element is handled in JS now, we have a simplified
+  // flow for registering. We don't need to wait for the supertype or the code
+  // to be noticed.
+  PolymerDeclaration(this.element, this.name, this.type, this.superDeclaration);
 
-  void _register(extendee) {
-    //console.group('registering', name);
-    register(name, extendee);
-    //console.groupEnd();
-    // subclasses may now register themselves
-    _notifySuper(name);
-  }
-
-  bool waitingForType(String name) {
-    if (_getRegisteredType(name) != null) return false;
-
-    // then wait for a prototype
-    _waitType[name] = this;
-    // if explicitly marked as 'noscript'
-    if (attributes.containsKey('noscript')) {
-      // TODO(sorvell): CustomElements polyfill awareness:
-      // noscript elements should upgrade in logical order
-      // script injection ensures this under native custom elements;
-      // under imports + ce polyfills, scripts run before upgrades.
-      // dependencies should be ready at upgrade time so register
-      // prototype at this time.
-      // TODO(jmesserly): I'm not sure how to port this; since script
-      // injection doesn't work for Dart, we'll just call Polymer.register
-      // here and hope for the best.
-      Polymer.register(name);
-    }
-    return true;
-  }
-
-  bool waitingForExtendee(String extendee) {
-    // if extending a custom element...
-    if (extendee != null && extendee.indexOf('-') >= 0) {
-      // wait for the extendee to be _registered first
-      if (!_isRegistered(extendee)) {
-        _waitSuper.putIfAbsent(extendee, () => []).add(this);
-        return true;
-      }
-    }
-    return false;
-  }
-
-  void register(String name, String extendee) {
+  void register() {
     // build prototype combining extendee, Polymer base, and named api
-    buildType(name, extendee);
+    buildType();
 
     // back reference declaration element
     // TODO(sjmiles): replace `element` with `elementElement` or `declaration`
     _declarations[name] = this;
 
     // more declarative features
-    desugar(name, extendee);
+    desugar();
     // register our custom element
     registerType(name);
 
@@ -175,16 +90,9 @@ class PolymerDeclaration extends HtmlElement {
   ///
   /// *Note*: unlike the JavaScript version, we do not have to metaprogram the
   /// prototype, which simplifies this method.
-  void buildType(String name, String extendee) {
-    // get our custom type
-    _type = _getRegisteredType(name);
-
-    // get basal prototype
-    _supertype = _getRegisteredType(extendee);
-    if (_supertype != null) _super = _getDeclaration(extendee);
-
+  void buildType() {
     // transcribe `attributes` declarations onto own prototype's `publish`
-    publishAttributes(_super);
+    publishAttributes(superDeclaration);
 
     publishProperties();
 
@@ -202,7 +110,7 @@ class PolymerDeclaration extends HtmlElement {
   }
 
   /// Implement various declarative features.
-  void desugar(name, extendee) {
+  void desugar() {
     // compile list of attributes to copy to instances
     accumulateInstanceAttributes();
     // parse on-* delegates declared on `this` element
@@ -249,7 +157,7 @@ class PolymerDeclaration extends HtmlElement {
     var baseTag;
     var decl = this;
     while (decl != null) {
-      baseTag = decl.attributes['extends'];
+      baseTag = decl.element.attributes['extends'];
       decl = decl.superDeclaration;
     }
     document.register(name, type, extendsTag: baseTag);
@@ -264,10 +172,10 @@ class PolymerDeclaration extends HtmlElement {
       _publish = new Map.from(superDecl._publish);
     }
 
-    _publish = _getPublishedProperties(_type, _publish);
+    _publish = _getPublishedProperties(type, _publish);
 
     // merge names from 'attributes' attribute
-    var attrs = attributes['attributes'];
+    var attrs = element.attributes['attributes'];
     if (attrs != null) {
       // names='a b c' or names='a,b,c'
       // record each name for publishing
@@ -284,7 +192,7 @@ class PolymerDeclaration extends HtmlElement {
           continue;
         }
 
-        var decl = smoke.getDeclaration(_type, property);
+        var decl = smoke.getDeclaration(type, property);
         if (decl == null || decl.isMethod || decl.isFinal) {
           window.console.warn('property for attribute $attr of polymer-element '
               'name=$name not found.');
@@ -303,10 +211,12 @@ class PolymerDeclaration extends HtmlElement {
   void accumulateInstanceAttributes() {
     // inherit instance attributes
     _instanceAttributes = new Map<String, Object>();
-    if (_super != null) _instanceAttributes.addAll(_super._instanceAttributes);
+    if (superDeclaration != null) {
+      _instanceAttributes.addAll(superDeclaration._instanceAttributes);
+    }
 
     // merge attributes from element
-    attributes.forEach((name, value) {
+    element.attributes.forEach((name, value) {
       if (isInstanceAttribute(name)) {
         _instanceAttributes[name] = value;
       }
@@ -328,7 +238,7 @@ class PolymerDeclaration extends HtmlElement {
   }
 
   void addAttributeDelegates(Map<String, String> delegates) {
-    attributes.forEach((name, value) {
+    element.attributes.forEach((name, value) {
       if (_hasEventPrefix(name)) {
         var start = value.indexOf('{{');
         var end = value.lastIndexOf('}}');
@@ -388,7 +298,7 @@ class PolymerDeclaration extends HtmlElement {
   }
 
   List<Element> findNodes(String selector, [bool matcher(Element e)]) {
-    var nodes = this.querySelectorAll(selector).toList();
+    var nodes = element.querySelectorAll(selector).toList();
     var content = templateContent;
     if (content != null) {
       nodes = nodes..addAll(content.querySelectorAll(selector));
@@ -443,7 +353,7 @@ class PolymerDeclaration extends HtmlElement {
     var options = const smoke.QueryOptions(includeFields: false,
         includeProperties: false, includeMethods: true, includeInherited: true,
         includeUpTo: HtmlElement);
-    for (var decl in smoke.query(_type, options)) {
+    for (var decl in smoke.query(type, options)) {
       String name = smoke.symbolToName(decl.name);
       if (name.endsWith(_OBSERVE_SUFFIX) && name != 'attributeChanged') {
         // TODO(jmesserly): now that we have a better system, should we
@@ -461,7 +371,7 @@ class PolymerDeclaration extends HtmlElement {
     var options = const smoke.QueryOptions(includeFields: false,
         includeProperties: false, includeMethods: true, includeInherited: true,
         includeUpTo: HtmlElement, withAnnotations: const [ObserveProperty]);
-    for (var decl in smoke.query(_type, options)) {
+    for (var decl in smoke.query(type, options)) {
       for (var meta in decl.annotations) {
         if (meta is! ObserveProperty) continue;
         if (_observe == null) _observe = new HashMap();
@@ -490,26 +400,6 @@ class PolymerDeclaration extends HtmlElement {
 final Map _typesByName = new Map<String, Type>();
 
 Type _getRegisteredType(String name) => _typesByName[name];
-
-/// elements waiting for prototype, by name
-final Map _waitType = new Map<String, PolymerDeclaration>();
-
-void _notifyType(String name) {
-  var waiting = _waitType.remove(name);
-  if (waiting != null) waiting.registerWhenReady();
-}
-
-/// elements waiting for super, by name
-final Map _waitSuper = new Map<String, List<PolymerDeclaration>>();
-
-void _notifySuper(String name) {
-  var waiting = _waitSuper.remove(name);
-  if (waiting != null) {
-    for (var w in waiting) {
-      w.registerWhenReady();
-    }
-  }
-}
 
 /// track document.register'ed tag names and their declarations
 final Map _declarations = new Map<String, PolymerDeclaration>();
@@ -549,8 +439,7 @@ void _shimShadowDomStyling(DocumentFragment template, String name,
   shadowCss.callMethod('shimStyling', [template, name, extendee]);
 }
 
-final bool _hasShadowDomPolyfill = js.context != null &&
-    js.context.hasProperty('ShadowDOMPolyfill');
+final bool _hasShadowDomPolyfill = js.context.hasProperty('ShadowDOMPolyfill');
 
 const _STYLE_SELECTOR = 'style';
 const _SHEET_SELECTOR = '[rel=stylesheet]';

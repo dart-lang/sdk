@@ -53,17 +53,6 @@ class ObserveProperty {
 /// If this class is used as a mixin,
 /// you must call `polymerCreated()` from the body of your constructor.
 abstract class Polymer implements Element, Observable, NodeBindExtension {
-  // Fully ported from revision:
-  // https://github.com/Polymer/polymer/blob/37eea00e13b9f86ab21c85a955585e8e4237e3d2
-  //
-  //   src/boot.js (static APIs on "Polymer" object)
-  //   src/instance/attributes.js
-  //   src/instance/base.js
-  //   src/instance/events.js
-  //   src/instance/mdv.js
-  //   src/instance/properties.js
-  //   src/instance/style.js
-  //   src/instance/utils.js
 
   // TODO(jmesserly): should this really be public?
   /// Regular expression that matches data-bindings.
@@ -83,8 +72,11 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     if (type == null) type = PolymerElement;
 
     _typesByName[name] = type;
-    // notify the registrar waiting for 'name', if any
-    _notifyType(name);
+
+    // Dart note: here we notify JS of the element registration. We don't pass
+    // the Dart type because we will handle that in PolymerDeclaration.
+    // See _hookJsPolymerDeclaration for how this is done.
+    (js.context['Polymer'] as JsFunction).apply([name]);
   }
 
   /// The one syntax to rule them all.
@@ -200,7 +192,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   void parseDeclarations(PolymerDeclaration declaration) {
     if (declaration != null) {
       parseDeclarations(declaration.superDeclaration);
-      parseDeclaration(declaration);
+      parseDeclaration(declaration.element);
     }
   }
 
@@ -210,7 +202,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
 
     var root = null;
     if (template != null) {
-      if (_declaration.attributes.containsKey('lightdom')) {
+      if (_declaration.element.attributes.containsKey('lightdom')) {
         lightFromTemplate(template);
       } else {
         root = shadowFromTemplate(template);
@@ -867,7 +859,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   }
 
   Node findStyleController() {
-    if (js.context != null && js.context['ShadowDOMPolyfill'] != null) {
+    if (js.context.hasProperty('ShadowDOMPolyfill')) {
       return document.querySelector('head'); // get wrapped <head>.
     } else {
       // find the shadow root that contains this element
@@ -900,28 +892,6 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     }
 
     scope.append(clone);
-  }
-
-  /// Prevents flash of unstyled content
-  /// This is the list of selectors for veiled elements
-  static List<Element> veiledElements = ['body'];
-
-  /// Apply unveil class.
-  static void unveilElements() {
-    window.requestAnimationFrame((_) {
-      var nodes = document.querySelectorAll('.$_VEILED_CLASS');
-      for (var node in nodes) {
-        (node.classes)..add(_UNVEIL_CLASS)..remove(_VEILED_CLASS);
-      }
-      // NOTE: depends on transition end event to remove 'unveil' class.
-      if (nodes.isNotEmpty) {
-        window.onTransitionEnd.first.then((_) {
-          for (var node in nodes) {
-            node.classes.remove(_UNVEIL_CLASS);
-          }
-        });
-      }
-    });
   }
 }
 

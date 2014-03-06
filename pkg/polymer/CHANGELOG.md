@@ -6,9 +6,12 @@ impact polymer: custom_element, html_import, observe, shadow_dom,
 and template_binding.
 
 #### Pub version 0.10.0-dev
+  * Interop with polymer-js elements now works.
   * Polymer polyfills are now consolidated in package:web_components, which is
-    identical to platform.js from http://polymer-project.org. This enables
-    interop with elements built in polymer.js.
+    identical to platform.js from http://polymer-project.org.
+  * Breaking change: "noscript" polymer-elements are created by polymer.js, and
+    therefore cannot be extended (subtyped) in Dart. They can still be used
+    by Dart elements or applications, however.
   * New feature: `@ObserveProperty('foo bar.baz') myMethod() {...}` will cause
     myMethod to be called when "foo" or "bar.baz" changes.
   * Updated for 0.10.0-dev package:observe and package:template_binding changes.

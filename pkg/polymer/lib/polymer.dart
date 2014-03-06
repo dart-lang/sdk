@@ -37,10 +37,17 @@
 /// Tips for converting your apps from Web UI to Polymer.dart.
 library polymer;
 
+// Last ported from:
+// https://github.com/Polymer/polymer-dev/tree/37eea00e13b9f86ab21c85a955585e8e4237e3d2
+// TODO(jmesserly): we need to do a redundancy check. Some code like the FOUC
+// protection seems out of date, as if left over from the older
+// b7200854b2441a22ce89f6563963f36c50f5150d baseline.
+
 import 'dart:async';
-import 'dart:collection' show HashMap, HashSet;
+import 'dart:collection' show HashMap, HashSet, LinkedHashMap;
 import 'dart:html';
-import 'dart:js' as js;
+import 'dart:js' as js show context;
+import 'dart:js' hide context;
 
 @MirrorsUsed(metaTargets:
     const [Reflectable, ObservableProperty, PublishedProperty, CustomTag,
@@ -65,7 +72,6 @@ import 'deserialize.dart' as deserialize;
 export 'package:observe/observe.dart';
 export 'package:observe/html.dart';
 
-part 'src/boot.dart';
 part 'src/declaration.dart';
 part 'src/instance.dart';
 part 'src/job.dart';

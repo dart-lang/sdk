@@ -46,20 +46,12 @@ Zone initPolymer() {
 Zone initPolymerOptimized() {
   // TODO(sigmund): refactor this so we can replace it by codegen.
   smoke.useMirrors();
-  // TODO(jmesserly): there is some code in src/declaration/polymer-element.js,
-  // git version 37eea00e13b9f86ab21c85a955585e8e4237e3d2, right before
-  // it registers polymer-element, which uses Platform.deliverDeclarations to
-  // coordinate with HTML Imports. I don't think we need it so skipping.
-  document.register(PolymerDeclaration._TAG, PolymerDeclaration);
+  _hookJsPolymer();
 
   for (var initializer in _initializers) {
     initializer();
   }
 
-  // Run this after user code so they can add to Polymer.veiledElements
-  _preventFlashOfUnstyledContent();
-
-  customElementsReady.then((_) => Polymer._ready.complete());
   return Zone.current;
 }
 
@@ -188,15 +180,14 @@ void _loadLibrary(String uriString, List<Function> initializers) {
     _addInitMethod(lib, f, initializers);
   }
 
-  for (var c in lib.declarations.values.where((d) => d is ClassMirror)) {
-    // Search for @CustomTag on classes
-    for (var m in c.metadata) {
-      var meta = m.reflectee;
-      if (meta is CustomTag) {
-        initializers.add(() => Polymer.register(meta.tagName, c.reflectedType));
-      }
-    }
 
+  // Dart note: we don't get back @CustomTags in a reliable order from mirrors,
+  // at least on Dart VM. So we need to sort them so base classes are registered
+  // first, which ensures that document.register will work correctly for a
+  // set of types within in the same library.
+  var customTags = new LinkedHashMap<Type, Function>();
+  for (var c in lib.declarations.values.where((d) => d is ClassMirror)) {
+    _loadCustomTags(lib, c, customTags);
     // TODO(sigmund): check also static methods marked with @initMethod.
     // This is blocked on two bugs:
     //  - dartbug.com/12133 (static methods are incorrectly listed as top-level
@@ -204,6 +195,38 @@ void _loadLibrary(String uriString, List<Function> initializers) {
     //  - dartbug.com/12134 (sometimes "method.metadata" throws an exception,
     //    we could wrap and hide those exceptions, but it's not ideal).
   }
+
+  initializers.addAll(customTags.values);
+}
+
+void _loadCustomTags(LibraryMirror lib, ClassMirror cls,
+    LinkedHashMap registerFns) {
+  if (cls == null || cls.reflectedType == HtmlElement) return;
+
+  // Register superclass first.
+  _loadCustomTags(lib, cls.superclass, registerFns);
+
+  if (cls.owner != lib) {
+    // Don't register classes from different libraries.
+    // TODO(jmesserly): @CustomTag does not currently respect re-export, because
+    // LibraryMirror.declarations doesn't include these.
+    return;
+  }
+
+  var meta = _getCustomTagMetadata(cls);
+  if (meta == null) return;
+
+  registerFns.putIfAbsent(cls.reflectedType, () =>
+      () => Polymer.register(meta.tagName, cls.reflectedType));
+}
+
+/// Search for @CustomTag on a classemirror
+CustomTag _getCustomTagMetadata(ClassMirror c) {
+  for (var m in c.metadata) {
+    var meta = m.reflectee;
+    if (meta is CustomTag) return meta;
+  }
+  return null;
 }
 
 void _addInitMethod(ObjectMirror obj, MethodMirror method,
@@ -231,4 +254,60 @@ void _addInitMethod(ObjectMirror obj, MethodMirror method,
 
 class _InitMethodAnnotation {
   const _InitMethodAnnotation();
+}
+
+/// To ensure Dart can interoperate with polymer-element registered by
+/// polymer.js, we need to be able to execute Dart code if we are registering
+/// a Dart class for that element. We trigger Dart logic by patching
+/// polymer-element's register function and:
+///
+/// * if it has a Dart class, run PolymerDeclaration's register.
+/// * otherwise it is a JS prototype, run polymer-element's normal register.
+void _hookJsPolymer() {
+  var polymerJs = js.context['Polymer'];
+  if (polymerJs == null) {
+    throw new StateError('polymer.js must be loaded before polymer.dart, please'
+        ' add <link rel="import" href="packages/polymer/polymer.html"> to your'
+        ' <head> before any Dart scripts. Alternatively you can get a different'
+        ' version of polymer.js by following the instructions at'
+        ' http://www.polymer-project.org; if you do that be sure to include'
+        ' the platform polyfills.');
+  }
+
+  // TODO(jmesserly): dart:js appears to not callback in the correct zone:
+  // https://code.google.com/p/dart/issues/detail?id=17301
+  var zone = Zone.current;
+
+  polymerJs.callMethod('whenPolymerReady',
+      [zone.bindCallback(() => Polymer._ready.complete())]);
+
+  var jsPolymer = new JsObject.fromBrowserObject(
+      document.createElement('polymer-element'));
+
+  var proto = js.context['Object'].callMethod('getPrototypeOf', [jsPolymer]);
+  if (proto is Node) {
+    proto = new JsObject.fromBrowserObject(proto);
+  }
+
+  JsFunction originalRegister = proto['register'];
+  if (originalRegister == null) {
+    throw new StateError('polymer.js must expose "register" function on '
+        'polymer-element to enable polymer.dart to interoperate.');
+  }
+
+  registerDart(jsElem, String name, String extendee) {
+    // By the time we get here, we'll know for sure if it is a Dart object
+    // or not, because polymer-element will wait for us to notify that
+    // the @CustomTag was found.
+    final type = _getRegisteredType(name);
+    if (type != null) {
+      final extendsDecl = _getDeclaration(extendee);
+      return zone.run(() =>
+          new PolymerDeclaration(jsElem, name, type, extendsDecl).register());
+    }
+    // It's a JavaScript polymer element, fall back to the original register.
+    return originalRegister.apply([name, extendee], thisArg: jsElem);
+  }
+
+  proto['register'] = new JsFunction.withThis(registerDart);
 }

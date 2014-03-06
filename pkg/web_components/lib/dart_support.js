@@ -6,6 +6,12 @@
   var ShadowDOMPolyfill = window.ShadowDOMPolyfill;
   if (!ShadowDOMPolyfill) return;
 
+  if (navigator.userAgent.indexOf('(Dart)') !== -1) {
+    console.error("ShadowDOMPolyfill polyfill was loaded in Dartium. This " +
+        "will not work. This indicates that Dartium's Chrome version is " +
+        "not compatible with this version of web_components.");
+  }
+
   var needsConstructorFix = window.constructor === window.Window;
 
   // TODO(jmesserly): we need to wrap document somehow (a dart:html hook?)
@@ -30,7 +36,7 @@
       if (obj instanceof HTMLTemplateElement) return 'HTMLTemplateElement';
 
       var unwrapped = unwrapIfNeeded(obj);
-      if (needsConstructorFix || obj !== unwrapped) {
+      if (unwrapped && (needsConstructorFix || obj !== unwrapped)) {
         // Fix up class names for Firefox, or if using the minified polyfill.
         // dart2js prefers .constructor.name, but there are all kinds of cases
         // where this will give the wrong answer.
