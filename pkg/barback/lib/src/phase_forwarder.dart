@@ -53,9 +53,8 @@ class PhaseForwarder {
   ///
   /// Whenever this stream emits an event, the value will be identical to
   /// [output].
-  Stream<AssetNode> get onForwarding => _onForwardingController.stream;
-  final _onForwardingController =
-      new StreamController<AssetNode>.broadcast(sync: true);
+  Stream<AssetNode> get onAsset => _onAssetController.stream;
+  final _onAssetController = new StreamController<AssetNode>(sync: true);
 
   PhaseForwarder(this._numChannels);
 
@@ -86,7 +85,7 @@ class PhaseForwarder {
       _outputController.setRemoved();
       _outputController = null;
     }
-    _onForwardingController.close();
+    _onAssetController.close();
   }
 
   /// Adjusts [output] to ensure that it accurately reflects the current state
@@ -112,7 +111,7 @@ class PhaseForwarder {
           (asset) => asset.state.isDirty,
           orElse: () => _intermediateAssets.first);
       _outputController = new AssetNodeController.from(finalAsset);
-      _onForwardingController.add(output);
+      _onAssetController.add(output);
       return;
     }
 

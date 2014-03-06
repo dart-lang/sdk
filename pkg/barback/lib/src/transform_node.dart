@@ -42,10 +42,19 @@ class TransformNode {
   /// The subscription to [primary]'s [AssetNode.onStateChange] stream.
   StreamSubscription _primarySubscription;
 
-  /// True if an input has been modified since the last time this transform
-  /// began running.
-  bool get isDirty => _isDirty;
-  var _isDirty = true;
+  // TODO(nweiz): Remove this and move isPrimary computation into TransformNode.
+  /// Whether the parent [PhaseInput] is currently computing whether its input
+  /// is primary for [this].
+  bool _pendingIsPrimary = false;
+
+  /// Whether [this] is dirty and still has more processing to do.
+  bool get isDirty => _pendingIsPrimary || _isApplying;
+
+  /// Whether any input has become dirty since [_apply] last started running.
+  var _hasBecomeDirty = false;
+
+  /// Whether [_apply] is currently running.
+  var _isApplying = false;
 
   /// Whether [transformer] is lazy and this transform has yet to be forced.
   bool _isLazy;
@@ -56,14 +65,19 @@ class TransformNode {
   /// The controllers for the asset nodes emitted by this node.
   var _outputControllers = new Map<AssetId, AssetNodeController>();
 
-  /// A stream that emits an event whenever this transform becomes dirty and
-  /// needs to be re-run.
+  /// A stream that emits an event whenever [this] is no longer dirty.
   ///
-  /// This may emit events when the transform was already dirty or while
-  /// processing transforms. Events are emitted synchronously to ensure that the
-  /// dirty state is thoroughly propagated as soon as any assets are changed.
-  Stream get onDirty => _onDirtyController.stream;
-  final _onDirtyController = new StreamController.broadcast(sync: true);
+  /// This is synchronous in order to guarantee that it will emit an event as
+  /// soon as [isDirty] flips from `true` to `false`.
+  Stream get onDone => _onDoneController.stream;
+  final _onDoneController = new StreamController.broadcast(sync: true);
+
+  /// A stream that emits any new assets emitted by [this].
+  ///
+  /// Assets are emitted synchronously to ensure that any changes are thoroughly
+  /// propagated as soon as they occur.
+  Stream<AssetNode> get onAsset => _onAssetController.stream;
+  final _onAssetController = new StreamController<AssetNode>(sync: true);
 
   /// A stream that emits an event whenever this transform logs an entry.
   ///
@@ -81,9 +95,12 @@ class TransformNode {
       if (state.isRemoved) {
         remove();
       } else {
+        if (state.isDirty) _pendingIsPrimary = true;
         _dirty();
       }
     });
+
+    _apply();
   }
 
   /// The [TransformInfo] describing this node.
@@ -99,8 +116,9 @@ class TransformNode {
   /// from the primary input, but it's possible for a transform to no longer be
   /// valid even if its primary input still exists.
   void remove() {
-    _isDirty = true;
-    _onDirtyController.close();
+    _hasBecomeDirty = false;
+    _onAssetController.close();
+    _onDoneController.close();
     _primarySubscription.cancel();
     for (var subscription in _inputSubscriptions.values) {
       subscription.cancel();
@@ -120,23 +138,30 @@ class TransformNode {
     _dirty();
   }
 
+  // TODO(nweiz): remove this and move isPrimary computation into TransformNode.
+  /// Mark that the parent [PhaseInput] has determined that its input is indeed
+  /// primary for [this].
+  void markPrimary() {
+    if (!_pendingIsPrimary) return;
+    _pendingIsPrimary = false;
+    if (!_isApplying) _apply();
+  }
+
   /// Marks this transform as dirty.
   ///
   /// This causes all of the transform's outputs to be marked as dirty as well.
   void _dirty() {
-    _isDirty = true;
     for (var controller in _outputControllers.values) {
       controller.setDirty();
     }
-    _onDirtyController.add(null);
+
+    _hasBecomeDirty = true;
+    if (!_isApplying && !_pendingIsPrimary) _apply();
   }
 
   /// Applies this transform.
-  ///
-  /// Returns a set of asset nodes representing the outputs from this transform
-  /// that weren't emitted last time it was run.
-  Future<Set<AssetNode>> apply() {
-    assert(!_onDirtyController.isClosed);
+  void _apply() {
+    assert(!_onAssetController.isClosed);
 
     // Clear all the old input subscriptions. If an input is re-used, we'll
     // re-subscribe.
@@ -145,9 +170,10 @@ class TransformNode {
     }
     _inputSubscriptions.clear();
 
-    _isDirty = false;
+    _isApplying = true;
+    primary.whenAvailable((_) {
+      _hasBecomeDirty = false;
 
-    return syncFuture(() {
       // TODO(nweiz): If [transformer] is a [DeclaringTransformer] but not a
       // [LazyTransformer], we can get some mileage out of doing a declarative
       // first so we know how to hook up the assets.
@@ -156,7 +182,7 @@ class TransformNode {
     }).catchError((error, stackTrace) {
       // If the transform became dirty while processing, ignore any errors from
       // it.
-      if (_isDirty) return new Set();
+      if (_hasBecomeDirty || _onAssetController.isClosed) return;
 
       if (error is! MissingInputException) {
         error = new TransformerException(info, error, stackTrace);
@@ -166,7 +192,23 @@ class TransformNode {
       // is so a broken transformer doesn't take down the whole graph.
       phase.cascade.reportError(error);
 
-      return new Set();
+      // Remove all the previously-emitted assets.
+      for (var controller in _outputControllers.values) {
+        controller.setRemoved();
+      }
+      _outputControllers.clear();
+    }).then((_) {
+      if (_onAssetController.isClosed) return;
+
+      _isApplying = false;
+      if (_hasBecomeDirty) {
+        // Re-apply the transform if it became dirty while applying.
+        if (!_pendingIsPrimary) _apply();
+      } else {
+        assert(!isDirty);
+        // Otherwise, notify the parent nodes that it's no longer dirty.
+        _onDoneController.add(null);
+      }
     });
   }
 
@@ -199,12 +241,12 @@ class TransformNode {
 
   /// Applies the transform so that it produces concrete (as opposed to lazy)
   /// outputs.
-  Future<Set<AssetNode>> _applyImmediate() {
+  Future _applyImmediate() {
     var newOutputs = new AssetSet();
     var transform = new Transform(this, newOutputs, _log);
 
     return syncFuture(() => transformer.apply(transform)).then((_) {
-      if (_isDirty) return new Set();
+      if (_hasBecomeDirty || _onAssetController.isClosed) return;
 
       // Any ids that are for a different package are invalid.
       var invalidIds = newOutputs
@@ -223,7 +265,6 @@ class TransformNode {
         _outputControllers.remove(id).setRemoved();
       }
 
-      var brandNewOutputs = new Set<AssetNode>();
       // Store any new outputs or new contents for existing outputs.
       for (var asset in newOutputs) {
         var controller = _outputControllers[asset.id];
@@ -232,24 +273,22 @@ class TransformNode {
         } else {
           var controller = new AssetNodeController.available(asset, this);
           _outputControllers[asset.id] = controller;
-          brandNewOutputs.add(controller.node);
+          _onAssetController.add(controller.node);
         }
       }
-
-      return brandNewOutputs;
     });
   }
 
   /// Applies the transform in declarative mode so that it produces lazy
   /// outputs.
-  Future<Set<AssetNode>> _declareLazy() {
+  Future _declareLazy() {
     var newIds = new Set();
     var transform = new DeclaringTransform(this, newIds, _log);
 
     return syncFuture(() {
       return (transformer as LazyTransformer).declareOutputs(transform);
     }).then((_) {
-      if (_isDirty) return new Set();
+      if (_hasBecomeDirty || _onAssetController.isClosed) return;
 
       var invalidIds =
           newIds.where((id) => id.package != phase.cascade.package).toSet();
@@ -265,7 +304,6 @@ class TransformNode {
         _outputControllers.remove(id).setRemoved();
       }
 
-      var brandNewOutputs = new Set<AssetNode>();
       for (var id in newIds) {
         var controller = _outputControllers[id];
         if (controller != null) {
@@ -273,11 +311,9 @@ class TransformNode {
         } else {
           var controller = new AssetNodeController.lazy(id, force, this);
           _outputControllers[id] = controller;
-          brandNewOutputs.add(controller.node);
+          _onAssetController.add(controller.node);
         }
       }
-
-      return brandNewOutputs;
     });
   }
 

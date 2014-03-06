@@ -5,6 +5,7 @@
 library barback.package_graph;
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'asset_cascade.dart';
 import 'asset_id.dart';
@@ -28,12 +29,6 @@ class PackageGraph {
   /// The [AssetCascade] for each package.
   final _cascades = <String, AssetCascade>{};
 
-  /// The current [BuildResult] for each package's [AssetCascade].
-  ///
-  /// The result for a given package will be `null` if that [AssetCascade] is
-  /// actively building.
-  final _cascadeResults = <String, BuildResult>{};
-
   /// A stream that emits a [BuildResult] each time the build is completed,
   /// whether or not it succeeded.
   ///
@@ -43,7 +38,8 @@ class PackageGraph {
   /// If an unexpected error in barback itself occurs, it will be emitted
   /// through this stream's error channel.
   Stream<BuildResult> get results => _resultsController.stream;
-  final _resultsController = new StreamController<BuildResult>.broadcast();
+  final _resultsController =
+      new StreamController<BuildResult>.broadcast(sync: true);
 
   /// A stream that emits any errors from the graph or the transformers.
   ///
@@ -58,6 +54,23 @@ class PackageGraph {
   /// The stream of [LogEntry] objects used to report transformer log entries.
   Stream<LogEntry> get log => _logController.stream;
   final _logController = new StreamController<LogEntry>.broadcast(sync: true);
+
+  /// Whether [this] is dirty and still has more processing to do.
+  bool get _isDirty => _cascades.values.any((cascade) => cascade.isDirty);
+
+  /// Whether a [BuildResult] is scheduled to be emitted on [results] (see
+  /// [_tryScheduleResult]).
+  bool _resultScheduled = false;
+
+  /// The most recent [BuildResult] emitted on [results].
+  BuildResult _lastResult;
+
+  // TODO(nweiz): This can have bogus errors if an error is created and resolved
+  // in the space of one build.
+  /// The errors that have occurred since the current build started.
+  ///
+  /// This will be empty if no build is occurring.
+  final _accumulatedErrors = new Queue<BarbackException>();
 
   /// The most recent error emitted from a cascade's result stream.
   ///
@@ -74,20 +87,14 @@ class PackageGraph {
     _inErrorZone(() {
       for (var package in provider.packages) {
         var cascade = new AssetCascade(this, package);
-        // The initial result for each cascade is "success" since the cascade
-        // doesn't start building until some source in that graph is updated.
-        _cascadeResults[package] = new BuildResult.success();
         _cascades[package] = cascade;
-        cascade.onDirty.listen((_) {
-          _cascadeResults[package] = null;
-        });
-
         cascade.onLog.listen(_onLog);
-        _handleResults(cascade);
+        cascade.onDone.listen((_) => _tryScheduleResult());
       }
 
       _errors = mergeStreams(_cascades.values.map((cascade) => cascade.errors),
           broadcast: true);
+      _errors.listen(_accumulatedErrors.add);
     });
   }
 
@@ -119,7 +126,7 @@ class PackageGraph {
       _inErrorZone(() => cascade.forceAllTransforms());
     }
 
-    if (_cascadeResults.values.contains(null)) {
+    if (_isDirty) {
       // A build is still ongoing, so wait for it to complete and try again.
       return results.first.then((_) => getAllAssets());
     }
@@ -131,10 +138,9 @@ class PackageGraph {
       return new Future.error(error, _lastUnexpectedErrorTrace);
     }
 
-    // If the build completed with an error, complete the future with it.
-    var result = new BuildResult.aggregate(_cascadeResults.values);
-    if (!result.succeeded) {
-      return new Future.error(BarbackException.aggregate(result.errors));
+    // If the last build completed with an error, complete the future with it.
+    if (!_lastResult.succeeded) {
+      return new Future.error(BarbackException.aggregate(_lastResult.errors));
     }
 
     // Otherwise, return all of the final output assets.
@@ -155,6 +161,10 @@ class PackageGraph {
       if (cascade == null) throw new ArgumentError("Unknown package $package.");
       _inErrorZone(() => cascade.updateSources(ids));
     });
+
+    // It's possible for adding sources not to cause any processing. The user
+    // still expects there to be a build, though, so we emit one immediately.
+    _tryScheduleResult();
   }
 
   /// Removes [removed] from the graph's known set of source assets.
@@ -164,15 +174,30 @@ class PackageGraph {
       if (cascade == null) throw new ArgumentError("Unknown package $package.");
       _inErrorZone(() => cascade.removeSources(ids));
     });
+
+    // It's possible for removing sources not to cause any processing. The user
+    // still expects there to be a build, though, so we emit one immediately.
+    _tryScheduleResult();
   }
 
   void updateTransformers(String package,
       Iterable<Iterable<Transformer>> transformers) {
     _inErrorZone(() => _cascades[package].updateTransformers(transformers));
+
+    // It's possible for updating transformers not to cause any processing. The
+    // user still expects there to be a build, though, so we emit one
+    // immediately.
+    _tryScheduleResult();
   }
 
   /// A handler for a log entry from an [AssetCascade].
   void _onLog(LogEntry entry) {
+    if (entry.level == LogLevel.ERROR) {
+      // TODO(nweiz): keep track of stack chain.
+      _accumulatedErrors.add(
+          new TransformerException(entry.transform, entry.message, null));
+    }
+
     if (_logController.hasListener) {
       _logController.add(entry);
     } else if (entry.level != LogLevel.FINE) {
@@ -190,17 +215,24 @@ class PackageGraph {
     }
   }
 
-  /// Listens to and handles the build results from [cascade].
-  void _handleResults(AssetCascade cascade) {
-    cascade.results.listen((result) {
-      _cascadeResults[cascade.package] = result;
-      // If any cascade hasn't yet finished, the overall build isn't finished
-      // either.
-      if (_cascadeResults.values.any((result) => result == null)) return;
+  /// If [this] is done processing, schedule a [BuildResult] to be emitted on
+  /// [results].
+  ///
+  /// This schedules the result (as opposed to just emitting one directly on
+  /// [BuildResult]) to ensure that calling multiple functions synchronously
+  /// produces only a single [BuildResult].
+  void _tryScheduleResult() {
+    if (_isDirty) return;
+    if (_resultScheduled) return;
 
-      // Include all build errors for all cascades. If no cascades have
-      // errors, the result will automatically be considered a success.
-      _resultsController.add(new BuildResult.aggregate(_cascadeResults.values));
+    _resultScheduled = true;
+    newFuture(() {
+      _resultScheduled = false;
+      if (_isDirty) return;
+
+      _lastResult = new BuildResult(_accumulatedErrors);
+      _accumulatedErrors.clear();
+      _resultsController.add(_lastResult);
     });
   }
 

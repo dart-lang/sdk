@@ -268,7 +268,10 @@ main() {
     rewrite2.resumeApply();
     schedule(pumpEventQueue);
     rewrite3.resumeApply();
-    buildShouldFail([isAssetCollisionException("app|foo.out")]);
+    buildShouldFail([
+      isAssetCollisionException("app|foo.out"),
+      isAssetCollisionException("app|foo.out")
+    ]);
 
     // Then update rewrite3 in a separate build. rewrite2 should still be the
     // next version of foo.out in line.

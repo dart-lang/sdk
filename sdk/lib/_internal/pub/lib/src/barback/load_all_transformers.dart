@@ -120,7 +120,14 @@ Future loadAllTransformers(BuildEnvironment environment) {
       var transformers = environment.getBuiltInTransformers(package);
       if (transformers != null) phases.add(transformers);
 
-      environment.barback.updateTransformers(package.name, phases);
+      // TODO(nweiz): remove the [newFuture] here when issue 17305 is fixed. If
+      // no transformer in [phases] applies to a source input,
+      // [updateTransformers] may cause a [BuildResult] to be scheduled for
+      // immediate emission. Issue 17305 means that the caller will be unable to
+      // receive this result unless we delay the update to after this function
+      // returns.
+      newFuture(() =>
+          environment.barback.updateTransformers(package.name, phases));
     }
   });
 }

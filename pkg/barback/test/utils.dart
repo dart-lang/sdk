@@ -98,7 +98,7 @@ void initGraph([assets,
   _nextBuildResult = 0;
   _nextLog = 0;
 
-  transformers.forEach(_barback.updateTransformers);
+  schedule(() => transformers.forEach(_barback.updateTransformers));
 
   // There should be one successful build after adding all the transformers but
   // before adding any sources.

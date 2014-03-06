@@ -96,35 +96,13 @@ class AssetNode {
   Future whenRemoved(callback()) =>
     _waitForState((state) => state.isRemoved, (_) => callback());
 
-  /// Runs [callback] repeatedly until the node's asset has maintained the same
-  /// value for the duration.
+  /// Returns a [Future] that completes when [state] changes from its current
+  /// value to any other value.
   ///
-  /// This will run [callback] as soon as the asset is available (synchronously
-  /// if it's available immediately). If the [state] changes at all while
-  /// waiting for the Future returned by [callback] to complete, it will be
-  /// re-run as soon as it completes and the asset is available again. This will
-  /// continue until [state] doesn't change at all.
-  ///
-  /// If this asset is removed, this will throw an [AssetNotFoundException] as
-  /// soon as [callback]'s Future is finished running.
-  Future tryUntilStable(Future callback(Asset asset)) {
-    return whenAvailable((asset) {
-      var modifiedDuringCallback = false;
-      var subscription;
-      subscription = onStateChange.listen((_) {
-        modifiedDuringCallback = true;
-        subscription.cancel();
-      });
-
-      return callback(asset).then((result) {
-        subscription.cancel();
-
-        // If the asset was modified at all while running the callback, the
-        // result was invalid and we should try again.
-        if (modifiedDuringCallback) return tryUntilStable(callback);
-        return result;
-      });
-    });
+  /// The returned [Future] will contain the new state.
+  Future<AssetState> whenStateChanges() {
+    var startState = state;
+    return _waitForState((state) => state != startState, (state) => state);
   }
 
   /// Calls [callback] as soon as the node is in a state that matches [test].

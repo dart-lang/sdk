@@ -7,12 +7,10 @@ library barback.phase_output;
 import 'dart:async';
 import 'dart:collection';
 
-import 'asset_cascade.dart';
 import 'asset_forwarder.dart';
 import 'asset_node.dart';
 import 'errors.dart';
 import 'phase.dart';
-import 'utils.dart';
 
 /// A class that handles a single output of a phase.
 ///
@@ -38,7 +36,7 @@ class PhaseOutput {
   /// A stream that emits an [AssetNode] each time this output starts forwarding
   /// a new asset.
   Stream<AssetNode> get onAsset => _onAssetController.stream;
-  final _onAssetController = new StreamController<AssetNode>();
+  final _onAssetController = new StreamController<AssetNode>(sync: true);
 
   /// The assets for this output.
   ///
@@ -105,10 +103,8 @@ class PhaseOutput {
       // If there's still a collision, report it. This lets the user know if
       // they've successfully resolved the collision or not.
       if (_assets.length > 1) {
-        // Pump the event queue to ensure that the removal of the input triggers
-        // a new build to which we can attach the error.
         // TODO(nweiz): report this through the output asset.
-        newFuture(() => _phase.cascade.reportError(collisionException));
+        _phase.cascade.reportError(collisionException);
       }
     });
   }
