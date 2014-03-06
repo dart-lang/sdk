@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'asset_forwarder.dart';
 import 'asset_node.dart';
+import 'asset_node_set.dart';
 import 'errors.dart';
 import 'log.dart';
 import 'phase.dart';
@@ -43,12 +44,13 @@ class PhaseInput {
   /// The asset node for this input.
   AssetNode get input => _inputForwarder.node;
 
-  /// The controller that's used for the output node if [input] isn't consumed
-  /// by any transformers.
+  /// The controller that's used for the output node if [input] isn't
+  /// overwritten by any transformers.
   ///
   /// This needs an intervening controller to ensure that the output can be
-  /// marked dirty when determining whether transforms apply, and removed if
-  /// they do. It's null if the asset is not being passed through.
+  /// marked dirty when determining whether transforms will overwrite it, and be
+  /// marked removed if they do. It's null if the asset is not being passed
+  /// through.
   AssetNodeController _passThroughController;
 
   /// A stream that emits an event whenever [this] is no longer dirty.
@@ -62,18 +64,16 @@ class PhaseInput {
   ///
   /// Assets are emitted synchronously to ensure that any changes are thoroughly
   /// propagated as soon as they occur.
-  Stream<AssetNode> get onAsset => _onAssetPool.stream;
-  final _onAssetPool = new StreamPool<AssetNode>();
-
-  /// A controller for emitting assets.
-  ///
-  /// This will be added to [_onAssetPool]. It's used to emit pass-through
-  /// assets.
+  Stream<AssetNode> get onAsset => _onAssetController.stream;
   final _onAssetController = new StreamController<AssetNode>(sync: true);
 
   /// Whether [this] is dirty and still has more processing to do.
   bool get isDirty => _isAdjustingTransformers ||
       _transforms.any((transform) => transform.isDirty);
+
+  /// The set of assets emitted by the transformers for this input that have the
+  /// same id as [input].
+  final _overwritingOutputs = new AssetNodeSet();
 
   /// Whether [this] has been rmeoved.
   bool get _isRemoved => _onAssetController.isClosed;
@@ -94,8 +94,6 @@ class PhaseInput {
       this._location)
       : _transformers = transformers.toSet(),
         _inputForwarder = new AssetForwarder(input) {
-    _onAssetPool.add(_onAssetController.stream);
-
     input.onStateChange.listen((state) {
       if (state.isRemoved) {
         remove();
@@ -113,7 +111,6 @@ class PhaseInput {
   void remove() {
     _onDoneController.close();
     _hasBecomeDirty = false;
-    _onAssetPool.close();
     _onAssetController.close();
     _onLogPool.close();
     _inputForwarder.close();
@@ -127,7 +124,7 @@ class PhaseInput {
   /// necessary.
   void _dirty() {
     // If there's a pass-through for this input, mark it dirty until we figure
-    // out whether we need to add any transforms for it.
+    // out if a transformer will emit an asset with that id.
     if (_passThroughController != null) _passThroughController.setDirty();
     _hasBecomeDirty = true;
     if (!_isAdjustingTransformers) _adjustTransformers();
@@ -182,9 +179,6 @@ class PhaseInput {
         if (_hasBecomeDirty || _isRemoved) return null;
         return _addFreshTransforms(oldTransformers);
       });
-    }).then((_) {
-      if (_hasBecomeDirty || _isRemoved) return null;
-      _adjustPassThrough();
     }).catchError((error, stackTrace) {
       if (error is! AssetNotFoundException || error.id != input.id) throw error;
 
@@ -198,6 +192,7 @@ class PhaseInput {
       if (_hasBecomeDirty) {
         _adjustTransformers();
       } else if (!isDirty) {
+        _adjustPassThrough();
         _onDoneController.add(null);
       }
     });
@@ -246,33 +241,60 @@ class PhaseInput {
         var transform = new TransformNode(
             _phase, transformer, input, _location);
         _transforms.add(transform);
-        _onAssetPool.add(transform.onAsset);
-        _onLogPool.add(transform.onLog);
-        transform.onDone.listen((_) {
-          if (!isDirty) _onDoneController.add(null);
+
+        transform.onStateChange.listen((_) {
+          if (isDirty) {
+            if (_passThroughController == null) return;
+            _passThroughController.setDirty();
+          } else {
+            _adjustPassThrough();
+            _onDoneController.add(null);
+          }
+        });
+
+        transform.onAsset.listen((asset) {
+          if (asset.id == input.id) {
+            _overwritingOutputs.add(asset);
+            asset.whenRemoved(_adjustPassThrough);
+            _adjustPassThrough();
+          }
+
+          _onAssetController.add(asset);
         }, onDone: () => _transforms.remove(transform));
+
+        _onLogPool.add(transform.onLog);
       });
     }));
   }
 
   /// Adjust whether [input] is passed through the phase unmodified, based on
-  /// whether it's consumed by other transforms in this phase.
+  /// whether it's overwritten by other transforms in this phase.
   ///
   /// If [input] was already passed-through, this will update the passed-through
   /// value.
   void _adjustPassThrough() {
-    assert(input.state.isAvailable);
+    // If [input] is removed, [_adjustPassThrough] can still be called due to
+    // [TransformNode]s marking their outputs as removed.
+    if (!input.state.isAvailable) return;
 
-    if (_transforms.isEmpty) {
+    // If there's an output with the same id as the primary input, that
+    // overwrites the input so it doesn't get passed through. Otherwise,
+    // create a pass-through controller if none exists, or set the existing
+    // one available.
+    if (_overwritingOutputs.isNotEmpty) {
       if (_passThroughController != null) {
-        _passThroughController.setAvailable(input.asset);
-      } else {
-        _passThroughController = new AssetNodeController.from(input);
-        _onAssetController.add(_passThroughController.node);
+        _passThroughController.setRemoved();
+        _passThroughController = null;
       }
-    } else if (_passThroughController != null) {
-      _passThroughController.setRemoved();
-      _passThroughController = null;
+    } else if (isDirty) {
+      // If the input is dirty, we're still figuring out whether a transform
+      // will overwrite the input. As such, we shouldn't pass through the asset
+      // yet.
+    } else if (_passThroughController == null) {
+      _passThroughController = new AssetNodeController.from(input);
+      _onAssetController.add(_passThroughController.node);
+    } else if (_passThroughController.node.state.isDirty) {
+      _passThroughController.setAvailable(input.asset);
     }
   }
 

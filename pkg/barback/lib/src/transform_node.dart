@@ -65,12 +65,16 @@ class TransformNode {
   /// The controllers for the asset nodes emitted by this node.
   var _outputControllers = new Map<AssetId, AssetNodeController>();
 
-  /// A stream that emits an event whenever [this] is no longer dirty.
+  // TODO(nweiz): It's weird that this is different than the [onDone] stream the
+  // other nodes emit. See if we can make that more consistent.
+  /// A stream that emits an event whenever [onDirty] changes its value.
   ///
   /// This is synchronous in order to guarantee that it will emit an event as
-  /// soon as [isDirty] flips from `true` to `false`.
-  Stream get onDone => _onDoneController.stream;
-  final _onDoneController = new StreamController.broadcast(sync: true);
+  /// soon as [isDirty] changes. It's possible for this to emit multiple events
+  /// while [isDirty] is `true`. However, it will only emit a single event each
+  /// time [isDirty] becomes `false`.
+  Stream get onStateChange => _onStateChangeController.stream;
+  final _onStateChangeController = new StreamController.broadcast(sync: true);
 
   /// A stream that emits any new assets emitted by [this].
   ///
@@ -118,7 +122,7 @@ class TransformNode {
   void remove() {
     _hasBecomeDirty = false;
     _onAssetController.close();
-    _onDoneController.close();
+    _onStateChangeController.close();
     _primarySubscription.cancel();
     for (var subscription in _inputSubscriptions.values) {
       subscription.cancel();
@@ -156,6 +160,7 @@ class TransformNode {
     }
 
     _hasBecomeDirty = true;
+    _onStateChangeController.add(null);
     if (!_isApplying && !_pendingIsPrimary) _apply();
   }
 
@@ -171,6 +176,7 @@ class TransformNode {
     _inputSubscriptions.clear();
 
     _isApplying = true;
+    _onStateChangeController.add(null);
     primary.whenAvailable((_) {
       _hasBecomeDirty = false;
 
@@ -207,7 +213,7 @@ class TransformNode {
       } else {
         assert(!isDirty);
         // Otherwise, notify the parent nodes that it's no longer dirty.
-        _onDoneController.add(null);
+        _onStateChangeController.add(null);
       }
     });
   }
