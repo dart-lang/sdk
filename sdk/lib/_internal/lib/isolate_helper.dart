@@ -331,6 +331,18 @@ class _IsolateContext implements IsolateContext {
     this.errorsAreFatal = errorsAreFatal;
   }
 
+  void handlePing(SendPort responsePort, int pingType) {
+    if (pingType == Isolate.PING_EVENT) {
+      _globalState.topEventLoop.enqueue(this, () {
+        responsePort.send(null);
+      }, "ping");
+    } else {
+      // There is no difference between PING_ALIVE and PING_CONTROL
+      // since we don't handle it before the control event queue.
+      responsePort.send(null);
+    }
+  }
+
   /**
    * Run [code] in the context of the isolate represented by [this].
    */
@@ -368,6 +380,9 @@ class _IsolateContext implements IsolateContext {
         break;
       case 'set-errors-fatal':
         setErrorsFatal(message[1], message[2]);
+        break;
+      case "ping":
+        handlePing(message[1], message[2]);
         break;
       default:
         print("UNKNOWN MESSAGE: $message");
