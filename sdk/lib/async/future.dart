@@ -86,6 +86,8 @@ part of dart.async;
  */
 // TODO(floitsch): document chaining.
 abstract class Future<T> {
+  // The `_nullFuture` is a completed Future with the value `null`.
+  static final _Future _nullFuture = new Future.value(null);
 
   /**
    * Creates a future containing the result of calling [computation]

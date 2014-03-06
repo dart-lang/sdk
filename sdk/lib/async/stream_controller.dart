@@ -381,8 +381,7 @@ abstract class _StreamController<T> implements StreamController<T>,
 
   Future _ensureDoneFuture() {
     if (_doneFuture == null) {
-      _doneFuture = new _Future();
-      if (_isCanceled) _doneFuture._complete(null);
+      _doneFuture = _isCanceled ? Future._nullFuture : new _Future();
     }
     return _doneFuture;
   }
@@ -416,17 +415,17 @@ abstract class _StreamController<T> implements StreamController<T>,
    */
   Future close() {
     if (isClosed) {
-      assert(_doneFuture != null);  // Was set when close was first called.
+      _ensureDoneFuture();
       return _doneFuture;
     }
     if (!_mayAddEvent) throw _badEventState();
     _state |= _STATE_CLOSED;
-    _ensureDoneFuture();
     if (hasListener) {
       _sendDone();
     } else if (_isInitialState) {
       _ensurePendingEvents().add(const _DelayedDone());
     }
+    _ensureDoneFuture();
     return _doneFuture;
   }
 
@@ -492,11 +491,13 @@ abstract class _StreamController<T> implements StreamController<T>,
     _varData = null;
     _state =
         (_state & ~(_STATE_SUBSCRIBED | _STATE_ADDSTREAM)) | _STATE_CANCELED;
+
     void complete() {
       if (_doneFuture != null && _doneFuture._mayComplete) {
         _doneFuture._asyncComplete(null);
       }
     }
+
     Future future = _runGuarded(_onCancel);
     if (future != null) {
       future = future.whenComplete(complete);
