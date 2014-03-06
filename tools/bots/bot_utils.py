@@ -82,13 +82,16 @@ class GCSNamer(object):
          /{index.html,features/,plugins/,artifacts.jar,content.jar}
   """
   def __init__(self, channel=Channel.BLEEDING_EDGE,
-      release_type=ReleaseType.RAW):
+      release_type=ReleaseType.RAW, internal=False):
     assert channel in Channel.ALL_CHANNELS
     assert release_type in ReleaseType.ALL_TYPES
 
     self.channel = channel
     self.release_type = release_type
-    self.bucket = 'gs://dart-archive'
+    if internal:
+      self.bucket = 'gs://dart-archive-internal'
+    else:
+      self.bucket = 'gs://dart-archive'
 
   # Functions for quering complete gs:// filepaths
 
@@ -116,10 +119,17 @@ class GCSNamer(object):
     return '/'.join([self.apidocs_directory(revision),
       self.apidocs_zipfilename()])
 
+  def dartium_android_apk_filepath(self, revision, name, arch, mode):
+    return '/'.join([self.dartium_android_directory(revision),
+      self.dartium_android_apk_filename(name, arch, mode)])
+
   # Functions for querying gs:// directories
 
   def dartium_directory(self, revision):
     return self._variant_directory('dartium', revision)
+
+  def dartium_android_directory(self, revision):
+    return self._variant_directory('dartium_android', revision)
 
   def sdk_directory(self, revision):
     return self._variant_directory('sdk', revision)
@@ -141,6 +151,9 @@ class GCSNamer(object):
         self.release_type, revision, name)
 
   # Functions for quering filenames
+
+  def dartium_android_apk_filename(self, name, arch, mode):
+    return '%s-%s-%s.apk' % (name, arch, mode)
 
   def apidocs_zipfilename(self):
     return 'dart-api-docs.zip'
@@ -247,6 +260,14 @@ class GSUtil(object):
     if recursive:
       args += ['-R']
     args += [local_path, remote_path]
+    self.execute(args)
+
+  def setGroupReadACL(self, remote_path, group):
+    args = ['acl', 'ch', '-g', '%s:R' % group, remote_path]
+    self.execute(args)
+
+  def setContentType(self, remote_path, content_type):
+    args = ['setmeta', '-h', 'Content-Type:%s' % content_type, remote_path]
     self.execute(args)
 
   def remove(self, remote_path, recursive=False):
