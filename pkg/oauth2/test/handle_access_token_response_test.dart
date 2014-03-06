@@ -38,8 +38,7 @@ void main() {
     });
 
     test('with an unexpected code causes a FormatException', () {
-      expect(() => handleError(statusCode: 500),
-          throwsFormatException);
+      expect(() => handleError(statusCode: 500), throwsFormatException);
     });
 
     test('with no content-type causes a FormatException', () {
@@ -60,13 +59,11 @@ void main() {
     });
 
     test('with invalid JSON causes a FormatException', () {
-      expect(() => handleError(body: 'not json'),
-          throwsFormatException);
+      expect(() => handleError(body: 'not json'), throwsFormatException);
     });
 
     test('with a non-string error causes a FormatException', () {
-      expect(() => handleError(body: '{"error": 12}'),
-          throwsFormatException);
+      expect(() => handleError(body: '{"error": 12}'), throwsFormatException);
     });
 
     test('with a non-string error_description causes a FormatException', () {
