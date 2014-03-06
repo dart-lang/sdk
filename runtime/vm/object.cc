@@ -10964,10 +10964,12 @@ intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
 
 
 RawFunction* ICData::GetTargetAt(intptr_t index) const {
-  const Array& data = Array::Handle(ic_data());
   const intptr_t data_pos = index * TestEntryLength() + num_args_tested();
-  ASSERT(Object::Handle(data.At(data_pos)).IsFunction());
-  return reinterpret_cast<RawFunction*>(data.At(data_pos));
+  ASSERT(Object::Handle(Array::Handle(ic_data()).At(data_pos)).IsFunction());
+
+  NoGCScope no_gc;
+  RawArray* raw_data = ic_data();
+  return reinterpret_cast<RawFunction*>(raw_data->ptr()->data()[data_pos]);
 }
 
 
@@ -11305,8 +11307,9 @@ void SubtypeTestCache::set_cache(const Array& value) const {
 
 
 intptr_t SubtypeTestCache::NumberOfChecks() const {
+  NoGCScope no_gc;
   // Do not count the sentinel;
-  return (Array::Handle(cache()).Length() / kTestEntryLength) - 1;
+  return (Smi::Value(cache()->ptr()->length_) / kTestEntryLength) - 1;
 }
 
 
