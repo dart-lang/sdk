@@ -13,7 +13,7 @@ class NullCollectionTest extends VmServiceRequestHelper {
       super('http://127.0.0.1:$port/$id/objects/50');
 
   onRequestCompleted(Map reply) {
-    Expect.equals('null', reply['type']);
+    Expect.equals('Null', reply['type']);
   }
 }
 

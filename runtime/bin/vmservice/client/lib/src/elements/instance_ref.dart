@@ -19,6 +19,25 @@ class InstanceRefElement extends ServiceRefElement {
     return ref['preview'];
   }
 
+  String get hoverText {
+    if (ref != null) {
+      if (ref['type'] == '@Null') {
+        if (ref['id'] == 'objects/optimized-out') {
+          return 'This object is no longer needed and has been removed by the optimizing compiler.';
+        } else if (ref['id'] == 'objects/collected') {
+          return 'This object has been reclaimed by the garbage collector.';
+        } else if (ref['id'] == 'objects/expired') {
+          return 'The handle to this object has expired.  Consider refreshing the page.';
+        } else if (ref['id'] == 'objects/not-initialized') {
+          return 'This object will be initialized once it is accessed by the program.';
+        } else if (ref['id'] == 'objects/being-initialized') {
+          return 'This object is currently being initialized.';
+        }
+      }
+    }
+    return '';
+  }
+
   // TODO(turnidge): This is here to workaround vm/dart2js differences.
   dynamic expander() {
     return expandEvent;
@@ -28,6 +47,17 @@ class InstanceRefElement extends ServiceRefElement {
     print("Calling expandEvent");
     if (expand) {
       isolate.getMap(objectId).then((map) {
+          if (map['type'] == 'Null') {
+            // The object is no longer available.  For example, the
+            // object id may have expired or the object may have been
+            // collected by the gc.
+            map['type'] = '@Null';
+            ref = map;
+          } else {
+            ref['fields'] = map['fields'];
+            ref['elements'] = map['elements'];
+            ref['length'] = map['length'];
+          }
         ref['fields'] = map['fields'];
         ref['elements'] = map['elements'];
         ref['length'] = map['length'];

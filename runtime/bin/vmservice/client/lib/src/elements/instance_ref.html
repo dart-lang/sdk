@@ -17,7 +17,7 @@
       </template>
 
       <template if="{{ isNullRef(ref['type']) }}">
-        {{ name }}
+        <div title="{{ hoverText }}">{{ name }}</div>
       </template>
 
       <template if="{{ (isStringRef(ref['type']) ||

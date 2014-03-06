@@ -857,6 +857,16 @@ static bool HandleLibraries(Isolate* isolate, JSONStream* js) {
 }
 
 
+static void PrintPseudoNull(JSONStream* js,
+                            const char* id,
+                            const char* preview) {
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "Null");
+  jsobj.AddProperty("id", id);
+  jsobj.AddProperty("preview", preview);
+}
+
+
 static bool HandleObjects(Isolate* isolate, JSONStream* js) {
   REQUIRE_COLLECTION_ID("objects");
   ASSERT(js->num_arguments() >= 2);
@@ -864,11 +874,28 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
 
   // TODO(turnidge): Handle <optimized out> the same way as other
   // special nulls.
-  if (strcmp(arg, "null") == 0 ||
-      strcmp(arg, "not-initialized") == 0 ||
-      strcmp(arg, "being-initialized") == 0 ||
-      strcmp(arg, "optimized-out") == 0) {
+  if (strcmp(arg, "null") == 0) {
     Object::null_object().PrintToJSONStream(js, false);
+    return true;
+
+  } else if (strcmp(arg, "not-initialized") == 0) {
+    Object::sentinel().PrintToJSONStream(js, false);
+    return true;
+
+  } else if (strcmp(arg, "being-initialized") == 0) {
+    Object::transition_sentinel().PrintToJSONStream(js, false);
+    return true;
+
+  } else if (strcmp(arg, "optimized-out") == 0) {
+    Symbols::OptimizedOut().PrintToJSONStream(js, false);
+    return true;
+
+  } else if (strcmp(arg, "collected") == 0) {
+    PrintPseudoNull(js, "objects/collected", "<collected>");
+    return true;
+
+  } else if (strcmp(arg, "expired") == 0) {
+    PrintPseudoNull(js, "objects/expired", "<expired>");
     return true;
 
   } else if (strcmp(arg, "int") == 0) {
@@ -917,6 +944,15 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
     return true;
   }
   Object& obj = Object::Handle(ring->GetObjectForId(id));
+  if (obj.IsNull()) {
+    // The object has been collected by the gc.
+    PrintPseudoNull(js, "objects/collected", "<collected>");
+    return true;
+  } else if (obj.raw() == Object::sentinel().raw()) {
+    // The object id has expired.
+    PrintPseudoNull(js, "objects/expired", "<expired>");
+    return true;
+  }
   obj.PrintToJSONStream(js, false);
   return true;
 }
