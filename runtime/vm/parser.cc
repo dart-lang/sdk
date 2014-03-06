@@ -4855,20 +4855,6 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
 }
 
 
-class DartApiScope : public StackResource {
- public:
-  explicit DartApiScope(Isolate* isolate) : StackResource(isolate) {
-    Dart_EnterScope();
-  }
-  ~DartApiScope() {
-    Dart_ExitScope();
-  }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(DartApiScope);
-};
-
-
 RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
                                          intptr_t token_pos,
                                          const String& url) {
@@ -4885,7 +4871,7 @@ RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
   // Block class finalization attempts when calling into the library
   // tag handler.
   isolate()->BlockClassFinalization();
-  DartApiScope api_scope(isolate());
+  Api::Scope api_scope(isolate());
   Dart_Handle result = handler(tag,
                                Api::NewHandle(isolate(), library_.raw()),
                                Api::NewHandle(isolate(), url.raw()));
