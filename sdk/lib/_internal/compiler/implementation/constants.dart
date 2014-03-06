@@ -40,7 +40,6 @@ abstract class Constant {
   /** Returns true if the constant is a list, a map or a constructed object. */
   bool isObject() => false;
   bool isType() => false;
-  bool isSentinel() => false;
   bool isInterceptor() => false;
   bool isDummy() => false;
 

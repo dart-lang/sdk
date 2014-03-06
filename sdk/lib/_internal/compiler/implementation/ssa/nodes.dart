@@ -1175,7 +1175,6 @@ abstract class HInstruction implements Spannable {
   bool isConstantMap() => false;
   bool isConstantFalse() => false;
   bool isConstantTrue() => false;
-  bool isConstantSentinel() => false;
 
   bool isInterceptor(Compiler compiler) => false;
 
@@ -1930,7 +1929,6 @@ class HConstant extends HInstruction {
   bool isConstantMap() => constant.isMap();
   bool isConstantFalse() => constant.isFalse();
   bool isConstantTrue() => constant.isTrue();
-  bool isConstantSentinel() => constant.isSentinel();
 
   bool isInterceptor(Compiler compiler) => constant.isInterceptor();
 
