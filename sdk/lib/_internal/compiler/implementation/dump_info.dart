@@ -52,10 +52,11 @@ var h2 = tag('h2');
 var esc = const HtmlEscape().convert;
 
 String sizeDescription(int size, ProgramInfo programInfo) {
-  return size == null
-      ? ''
-      : span('${size} bytes '
-        '(${size * 100 ~/ programInfo.size}%)', cls: "size");
+  if (size == null) {
+    return '';
+  }
+  return span(span(size.toString(), cls: 'value') +
+      ' bytes (${size * 100 ~/ programInfo.size}%)', cls: 'size');
 }
 
 /// An [InfoNode] holds information about a part the program.
@@ -64,7 +65,8 @@ abstract class InfoNode {
 
   int get size;
 
-  void emitHtml(ProgramInfo programInfo, StringSink buffer);
+  void emitHtml(ProgramInfo programInfo, StringSink buffer,
+      [String indentation = '']);
 }
 
 /// An [ElementNode] holds information about an [Element]
@@ -103,7 +105,8 @@ class ElementInfoNode implements InfoNode {
       this.contents,
       this.extra: ""});
 
-  void emitHtml(ProgramInfo programInfo, StringSink buffer) {
+  void emitHtml(ProgramInfo programInfo, StringSink buffer,
+      [String indentation = '']) {
     String kindString = span(esc(kind), cls: 'kind');
     String modifiersString = span(esc(modifiers), cls: "modifiers");
 
@@ -121,17 +124,23 @@ class ElementInfoNode implements InfoNode {
         extraString].join(' ');
 
     if (contents != null) {
+      buffer.write(indentation);
+      buffer.write('<div class="container">\n');
+      buffer.write('$indentation  ');
+      buffer.write(div('+$describe', cls: "details"));
       buffer.write('\n');
-      buffer.write(div("+$describe", cls: "container"));
-      buffer.write('\n');
-      buffer.write('<div class="contained">');
+      buffer.write('$indentation  <div class="contents">');
       if (contents.isEmpty) {
-        buffer.writeln("No members");
+        buffer.write('No members</div>');
+      } else {
+        buffer.write('\n');
+        for (InfoNode subElementDescription in contents) {
+          subElementDescription.emitHtml(programInfo, buffer,
+              indentation + '    ');
+        }
+        buffer.write("\n$indentation  </div>");
       }
-      for (InfoNode subElementDescription in contents) {
-        subElementDescription.emitHtml(programInfo, buffer);
-      }
-      buffer.write("</div>");
+      buffer.write("\n$indentation</div>\n");
     } else {
       buffer.writeln(div('$describe', cls: "element"));
     }
@@ -151,12 +160,14 @@ class CodeInfoNode implements InfoNode {
 
   CodeInfoNode({this.description: "", this.generatedCode});
 
-  void emitHtml(ProgramInfo programInfo, StringBuffer buffer) {
-    buffer.write('\n');
+  void emitHtml(ProgramInfo programInfo, StringBuffer buffer,
+      [String indentation = '']) {
+    buffer.write(indentation);
     buffer.write(div(description + ' ' +
                      sizeDescription(generatedCode.length, programInfo),
                      cls: 'kind') +
         code(esc(generatedCode)));
+    buffer.write('\n');
   }
 }
 
@@ -177,13 +188,15 @@ class InferredInfoNode implements InfoNode {
 
   InferredInfoNode({this.name: "", this.description, this.type});
 
-  void emitHtml(ProgramInfo programInfo, StringSink buffer) {
-    buffer.write('\n');
+  void emitHtml(ProgramInfo programInfo, StringBuffer buffer,
+      [String indentation = '']) {
+    buffer.write(indentation);
     buffer.write(
         div('${span("Inferred " + description, cls: "kind")} '
             '${span(esc(name), cls: "name")} '
             '${span(esc(type), cls: "type")} ',
             cls: "attr"));
+    buffer.write('\n');
   }
 }
 
@@ -463,20 +476,23 @@ class DumpInfoTask extends CompilerTask {
   <head>
     <title>Dart2JS compilation information</title>
        <style>
-         code {margin-left: 20px; display: block; white-space: pre; }
-         div.container, div.contained, div.element, div.attr {
-           margin-top:0px;
-           margin-bottom: 0px;
-         }
-         div.container, div.element, div.attr {
-           white-space: pre;
-         }
-         div.contained {margin-left: 20px;}
-         div {/*border: 1px solid;*/}
-         span.kind {}
-         span.modifiers {font-weight:bold;}
-         span.name {font-weight:bold; font-family: monospace;}
-         span.type {font-family: monospace; color:blue;}
+        code {margin-left: 20px; display: block; white-space: pre; }
+        div.container, div.contained, div.element, div.attr {
+          margin-top:0px;
+          margin-bottom: 0px;
+        }
+        div.container, div.element, div.attr {
+          white-space: nowrap;
+        }
+        .contents {
+          margin-left: 20px;
+        }
+        div.contained {margin-left: 20px;}
+        div {/*border: 1px solid;*/}
+        span.kind {}
+        span.modifiers {font-weight:bold;}
+        span.name {font-weight:bold; font-family: monospace;}
+        span.type {font-family: monospace; color:blue;}
        </style>
      </head>
      <body>
@@ -490,10 +506,13 @@ class DumpInfoTask extends CompilerTask {
       buffer.writeln(h2('Dart2js version: ${info.dart2jsVersion}'));
     }
 
+    buffer.writeln('<a href="#" class="sort_by_size">Sort by size</a>\n');
+
+    buffer.writeln('<div class="contents">');
     info.libraries.forEach((InfoNode node) {
       node.emitHtml(info, buffer);
     });
-
+    buffer.writeln('</div>');
 
     // TODO (sigurdm): This script should be written in dart
     buffer.writeln(r"""
@@ -506,10 +525,72 @@ class DumpInfoTask extends CompilerTask {
       var containers = document.getElementsByClassName('container');
       for (var i = 0; i < containers.length; i++) {
         var container = containers[i];
-        container.addEventListener('click',
-          toggler(container.nextElementSibling), false);
-       container.nextElementSibling.hidden = true;
-      };
+        container.querySelector('.details').addEventListener('click',
+          toggler(container.querySelector('.contents')), false);
+        container.querySelector('.contents').hidden = true;
+      }
+
+      function sortBySize() {
+        var toSort = document.querySelectorAll('.contents');
+        for (var i = 0; i < toSort.length; ++i) {
+          sortNodes(toSort[i], function(a, b) {
+            if (a[1] !== b[1]) {
+              return a[1] > b[1] ? -1 : 1;
+            }
+            return a[2] === b[2] ? 0 : a[2] > b[2] ? 1 : -1;
+          });
+        }
+      }
+
+      function findSize(node) {
+        var size = 0;
+        var details = node.querySelector('.details');
+        if (details) {
+          var sizeElement = details.querySelector('.size');
+          if (sizeElement) {
+            size = parseInt(sizeElement.textContent);
+          } else {
+            // For classes, sum up the contents for sorting purposes.
+            var kind = details.querySelector('.kind');
+            if (kind && kind.textContent === 'class') {
+              var contents = node.querySelector('.contents');
+              if (contents) {
+                var child = contents.firstElementChild;
+                while (child) {
+                  size += findSize(child);
+                  child = child.nextElementSibling;
+                }
+              }
+            }
+          }
+        }
+        return size;
+      }
+
+      function findName(node) {
+        var name = '';
+        var nameNode = node.querySelector('.name');
+        if (nameNode) {
+          return nameNode.textContent;
+        }
+        return node.textContent;
+      }
+      function sortNodes(node, fn) {
+        var items = [];
+        var child = node.firstElementChild;
+        while (child) {
+          items.push([child, findSize(child), findName(child)]);
+          child = child.nextElementSibling;
+        }
+        items.sort(fn);
+        for (var i = 0; i < items.length; ++i) {
+          node.appendChild(items[i][0]);
+        }
+      }
+      document.querySelector('.sort_by_size').addEventListener('click',
+          function() {
+            sortBySize();
+          }, false);
     </script>
   </body>
 </html>""");
