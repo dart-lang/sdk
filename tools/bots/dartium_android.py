@@ -82,7 +82,8 @@ def main():
     print "No build products directory given."
     sys.exit(1)
 
-  UploadAPKs(options)
+  # Reenable once we have new gsutil working
+  # UploadAPKs(options)
   sys.exit(0)
 
 if __name__ == '__main__':
