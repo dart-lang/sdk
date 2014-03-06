@@ -16,7 +16,8 @@ import 'test_runner.dart' show
     CompilationCommand;
 
 import 'test_suite.dart' show
-    TestInformation;
+    TestInformation,
+    TestUtils;
 
 /// Grouping of a command with its expected result.
 class CommandArtifact {
@@ -124,6 +125,7 @@ abstract class CompilerConfiguration {
 
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
+      String buildDir,
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
@@ -148,6 +150,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
 
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
+      String buildDir,
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
@@ -176,7 +179,7 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
           isHostChecked: isHostChecked, useSdk: useSdk);
 
   String computeCompilerPath(String buildDir) {
-    var prefix = 'sdk/bin/';
+    var prefix = 'sdk/bin';
     String suffix = executableScriptSuffix;
     if (isHostChecked) {
       // The script dart2js_developer is not included in the
@@ -262,6 +265,23 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
         isCsp ? cspOutput : normalOutput,
         'application/javascript');
   }
+
+  List<String> computeRuntimeArguments(
+      RuntimeConfiguration runtimeConfiguration,
+      String buildDir,
+      TestInformation info,
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> originalArguments,
+      CommandArtifact artifact) {
+    Uri sdk = useSdk ?
+        nativeDirectoryToUri(buildDir).resolve('dart-sdk/') :
+        nativeDirectoryToUri(TestUtils.dartDir().toNativePath())
+                                                .resolve('sdk/');
+    Uri preambleDir = sdk.resolve('lib/_internal/lib/preambles/');
+    return runtimeConfiguration.dart2jsPreambles(preambleDir)
+        ..add(artifact.filename);
+  }
 }
 
 /// Configuration for dart2dart compiler.
@@ -298,6 +318,7 @@ class Dart2dartCompilerConfiguration extends Dart2xCompilerConfiguration {
 
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
+      String buildDir,
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
@@ -352,6 +373,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
 
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
+      String buildDir,
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
