@@ -14,6 +14,8 @@ capability_test: Fail   # Not implemented yet
 pause_test: Fail        # Not implemented yet
 start_paused_test: Fail # Not implemented yet
 ondone_test: Skip       # Not implemented yet, hangs.
+ping_test: Fail         # Not implemented yet
+ping_pause_test: Fail   # Not implemented yet
 
 [ $compiler == dart2js && $jscl ]
 browser/*: SkipByDesign  # Browser specific tests
