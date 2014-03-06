@@ -172,7 +172,6 @@ class Range;
   V(_Float64x2Array, []=, Float64x2ArraySetIndexed, 2105580462)                \
 
 
-
 // A list of core function that should always be inlined.
 #define INLINE_WHITE_LIST(V)                                                   \
   V(_List, get:length, ObjectArrayLength, 215183186)                           \
@@ -183,6 +182,27 @@ class Range;
   V(ListIterator, moveNext, ListIteratorMoveNext, 2062984847)                  \
   V(_GrowableList, get:iterator, GrowableArrayIterator, 1155241039)            \
   V(_GrowableList, forEach, GrowableArrayForEach, 195359970)                   \
+  V(_List, [], ObjectArrayGetIndexed, 675155875)                               \
+  V(_List, []=, ObjectArraySetIndexed, 1228569706)                             \
+  V(_ImmutableList, [], ImmutableArrayGetIndexed, 1768793932)                  \
+  V(_GrowableList, [], GrowableArrayGetIndexed, 1282104248)                    \
+  V(_GrowableList, []=, GrowableArraySetIndexed, 807019110)                    \
+  V(_Float32Array, [], Float32ArrayGetIndexed, 1461569776)                     \
+  V(_Float32Array, []=, Float32ArraySetIndexed, 1318757370)                    \
+  V(_Float64Array, [], Float64ArrayGetIndexed, 1107401598)                     \
+  V(_Float64Array, []=, Float64ArraySetIndexed, 377873481)                     \
+  V(_Int8Array, [], Int8ArrayGetIndexed, 436208801)                            \
+  V(_Int8Array, []=, Int8ArraySetIndexed, 1257450859)                          \
+  V(_Uint8Array, [], Uint8ArrayGetIndexed, 738731818)                          \
+  V(_Uint8Array, []=, Uint8ArraySetIndexed, 1414236073)                        \
+  V(_Uint8ClampedArray, [], Uint8ClampedArrayGetIndexed, 1529176866)           \
+  V(_Uint8ClampedArray, []=, Uint8ClampedArraySetIndexed, 1902969517)          \
+  V(_Uint16Array, [], Uint16ArrayGetIndexed, 1050460407)                       \
+  V(_Uint16Array, []=, Uint16ArraySetIndexed, 1895506641)                      \
+  V(_Int16Array, [], Int16ArrayGetIndexed, 1428082706)                         \
+  V(_Int16Array, []=, Int16ArraySetIndexed, 266849900)                         \
+  V(_Int32Array, [], Int32ArrayGetIndexed, 1023604903)                         \
+  V(_Int32Array, []=, Int32ArraySetIndexed, 599753059)                         \
   V(_Uint8ArrayView, [], Uint8ArrayViewGetIndexed, 250795553)                  \
   V(_Uint8ArrayView, []=, Uint8ArrayViewSetIndexed, 533993880)                 \
   V(_Int8ArrayView, [], Int8ArrayViewGetIndexed, 530738523)                    \
