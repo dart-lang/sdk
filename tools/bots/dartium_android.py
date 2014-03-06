@@ -44,10 +44,8 @@ def UploadAPKs(options):
   with bot.BuildStep('Upload apk'):
     revision = utils.GetSVNRevision()
     namer = bot_utils.GCSNamer(internal=True)
-    # The version of gsutil we have on the bots is not new enough to support
-    # the acl set commands.
-    bot_utils.GSUtil.USE_DART_REPO_VERSION = True
     gsutil = bot_utils.GSUtil()
+
 
     # Archive dartuim
     local = os.path.join(options.build_products_dir, APK_LOCATION)
