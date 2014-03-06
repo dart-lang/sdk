@@ -230,7 +230,7 @@ class HtmlUnitUtils {
    * Returns the [Element] of the [Expression] in the given [HtmlUnit], enclosing
    * the given offset.
    */
-  static Element getElement2(HtmlUnit htmlUnit, int offset) {
+  static Element getElementAtOffset(HtmlUnit htmlUnit, int offset) {
     Expression expression = getExpression(htmlUnit, offset);
     return getElement(expression);
   }
@@ -524,12 +524,26 @@ abstract class XmlNode {
   void visitChildren(XmlVisitor visitor);
 
   /**
+   * Make this node the parent of the given child node.
+   *
+   * @param child the node that will become a child of this node
+   * @return the node that was made a child of this node
+   */
+  XmlNode becomeParentOf(XmlNode child) {
+    if (child != null) {
+      XmlNode node = child;
+      node.parent = this;
+    }
+    return child;
+  }
+
+  /**
    * Make this node the parent of the given child nodes.
    *
    * @param children the nodes that will become the children of this node
    * @return the nodes that were made children of this node
    */
-  List becomeParentOf(List children) {
+  List becomeParentOfAll(List children) {
     if (children != null) {
       for (JavaIterator iter = new JavaIterator(children); iter.hasNext;) {
         XmlNode node = iter.next();
@@ -539,20 +553,6 @@ abstract class XmlNode {
       return new List.from(children);
     }
     return children;
-  }
-
-  /**
-   * Make this node the parent of the given child node.
-   *
-   * @param child the node that will become a child of this node
-   * @return the node that was made a child of this node
-   */
-  XmlNode becomeParentOf2(XmlNode child) {
-    if (child != null) {
-      XmlNode node = child;
-      node.parent = this;
-    }
-    return child;
   }
 
   /**
@@ -749,9 +749,9 @@ abstract class AbstractScanner {
     return token;
   }
 
-  Token emit2(TokenType type, int start) => emit(new Token.con1(type, start));
+  Token emitWithOffset(TokenType type, int start) => emit(new Token.con1(type, start));
 
-  Token emit3(TokenType type, int start, int count) => emit(new Token.con2(type, start, getString(start, count)));
+  Token emitWithOffsetAndLength(TokenType type, int start, int count) => emit(new Token.con2(type, start, getString(start, count)));
 
   Token firstToken() => _tokens.next;
 
@@ -796,7 +796,7 @@ abstract class AbstractScanner {
               }
               c = recordStartOfLineAndAdvance(c);
             }
-            emit3(TokenType.COMMENT, start, -1);
+            emitWithOffsetAndLength(TokenType.COMMENT, start, -1);
             // Capture <!--> and <!---> as tokens but report an error
             if (_tail.length < 7) {
             }
@@ -809,7 +809,7 @@ abstract class AbstractScanner {
               }
               c = recordStartOfLineAndAdvance(c);
             }
-            emit3(TokenType.DECLARATION, start, -1);
+            emitWithOffsetAndLength(TokenType.DECLARATION, start, -1);
             if (!StringUtilities.endsWithChar(_tail.lexeme, 0x3E)) {
             }
           }
@@ -826,16 +826,16 @@ abstract class AbstractScanner {
               c = recordStartOfLineAndAdvance(c);
             }
           }
-          emit3(TokenType.DIRECTIVE, start, -1);
+          emitWithOffsetAndLength(TokenType.DIRECTIVE, start, -1);
           if (_tail.length < 4) {
           }
         } else if (c == 0x2F) {
-          emit2(TokenType.LT_SLASH, start);
+          emitWithOffset(TokenType.LT_SLASH, start);
           inBrackets = true;
           c = advance();
         } else {
           inBrackets = true;
-          emit2(TokenType.LT, start);
+          emitWithOffset(TokenType.LT, start);
           // ignore whitespace in braces
           while (Character.isWhitespace(c)) {
             c = recordStartOfLineAndAdvance(c);
@@ -847,7 +847,7 @@ abstract class AbstractScanner {
             while (Character.isLetterOrDigit(c) || c == 0x2D || c == 0x5F) {
               c = advance();
             }
-            emit3(TokenType.TAG, tagStart, -1);
+            emitWithOffsetAndLength(TokenType.TAG, tagStart, -1);
             // check tag against passThrough elements
             String tag = _tail.lexeme;
             for (String str in _passThroughElements) {
@@ -859,7 +859,7 @@ abstract class AbstractScanner {
           }
         }
       } else if (c == 0x3E) {
-        emit2(TokenType.GT, start);
+        emitWithOffset(TokenType.GT, start);
         inBrackets = false;
         c = advance();
         // if passThrough != null, read until we match it
@@ -888,18 +888,18 @@ abstract class AbstractScanner {
           }
           if (start + 1 < offset) {
             if (endFound) {
-              emit3(TokenType.TEXT, start + 1, -len);
-              emit2(TokenType.LT_SLASH, offset - len + 1);
-              emit3(TokenType.TAG, offset - len + 3, -1);
+              emitWithOffsetAndLength(TokenType.TEXT, start + 1, -len);
+              emitWithOffset(TokenType.LT_SLASH, offset - len + 1);
+              emitWithOffsetAndLength(TokenType.TAG, offset - len + 3, -1);
             } else {
-              emit3(TokenType.TEXT, start + 1, -1);
+              emitWithOffsetAndLength(TokenType.TEXT, start + 1, -1);
             }
           }
           endPassThrough = null;
         }
       } else if (c == 0x2F && peek() == 0x3E) {
         advance();
-        emit2(TokenType.SLASH_GT, start);
+        emitWithOffset(TokenType.SLASH_GT, start);
         inBrackets = false;
         c = advance();
       } else if (!inBrackets) {
@@ -907,7 +907,7 @@ abstract class AbstractScanner {
         while (c != 0x3C && c >= 0) {
           c = recordStartOfLineAndAdvance(c);
         }
-        emit3(TokenType.TEXT, start, -1);
+        emitWithOffsetAndLength(TokenType.TEXT, start, -1);
       } else if (c == 0x22 || c == 0x27) {
         // read a string
         int endQuote = c;
@@ -919,10 +919,10 @@ abstract class AbstractScanner {
           }
           c = recordStartOfLineAndAdvance(c);
         }
-        emit3(TokenType.STRING, start, -1);
+        emitWithOffsetAndLength(TokenType.STRING, start, -1);
       } else if (c == 0x3D) {
         // a non-char token
-        emit2(TokenType.EQ, start);
+        emitWithOffset(TokenType.EQ, start);
         c = advance();
       } else if (Character.isWhitespace(c)) {
         // ignore whitespace in braces
@@ -934,10 +934,10 @@ abstract class AbstractScanner {
         while (Character.isLetterOrDigit(c) || c == 0x2D || c == 0x5F) {
           c = advance();
         }
-        emit3(TokenType.TAG, start, -1);
+        emitWithOffsetAndLength(TokenType.TAG, start, -1);
       } else {
         // a non-char token
-        emit3(TokenType.TEXT, start, 0);
+        emitWithOffsetAndLength(TokenType.TEXT, start, 0);
         c = advance();
       }
     }
@@ -1777,13 +1777,13 @@ class XmlTagNode extends XmlNode {
   }
 
   /**
-   * Same as [becomeParentOf], but returns given "ifEmpty" if "children" is empty
+   * Same as [becomeParentOfAll], but returns given "ifEmpty" if "children" is empty
    */
   List becomeParentOfEmpty(List children, List ifEmpty) {
     if (children != null && children.isEmpty) {
       return ifEmpty;
     }
-    return becomeParentOf(children);
+    return becomeParentOfAll(children);
   }
 }
 
@@ -1943,7 +1943,7 @@ class HtmlUnit extends XmlNode {
    *          [TokenType.EOF]
    */
   HtmlUnit(this.beginToken, List<XmlTagNode> tagNodes, this.endToken) {
-    this._tagNodes = becomeParentOf(tagNodes);
+    this._tagNodes = becomeParentOfAll(tagNodes);
   }
 
   accept(XmlVisitor visitor) => visitor.visitHtmlUnit(this);

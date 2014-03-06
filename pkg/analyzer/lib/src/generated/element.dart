@@ -192,7 +192,7 @@ abstract class ClassElement implements Element {
    *
    * @return `true` if this class or its superclass declares a non-final instance field
    */
-  bool hasNonFinalField();
+  bool get hasNonFinalField;
 
   /**
    * Return `true` if this class has reference to super (so, for example, cannot be used as a
@@ -200,7 +200,7 @@ abstract class ClassElement implements Element {
    *
    * @return `true` if this class has reference to super
    */
-  bool hasReferenceToSuper();
+  bool get hasReferenceToSuper;
 
   /**
    * Return `true` if this class is abstract. A class is abstract if it has an explicit
@@ -1336,7 +1336,7 @@ abstract class LibraryElement implements Element {
    * Return `true` if the defining compilation unit of this library contains at least one
    * import directive whose URI uses the "dart-ext" scheme.
    */
-  bool hasExtUri();
+  bool get hasExtUri;
 
   /**
    * Return `true` if this library is created for Angular analysis. If this library has not
@@ -1374,7 +1374,7 @@ abstract class LibraryElement implements Element {
    * @param timeStamp the time stamp to compare against
    * @return `true` if this library is up to date with respect to the given time stamp
    */
-  bool isUpToDate2(int timeStamp);
+  bool isUpToDate(int timeStamp);
 }
 
 /**
@@ -2618,7 +2618,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return null;
   }
 
-  ClassDeclaration get node => getNode2((node) => node is ClassDeclaration);
+  ClassDeclaration get node => getNodeMatching((node) => node is ClassDeclaration);
 
   PropertyAccessorElement getSetter(String setterName) {
     // TODO (jwren) revisit- should we append '=' here or require clients to include it?
@@ -2648,7 +2648,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return null;
   }
 
-  bool hasNonFinalField() {
+  bool get hasNonFinalField {
     List<ClassElement> classesToVisit = new List<ClassElement>();
     Set<ClassElement> visitedClasses = new Set<ClassElement>();
     classesToVisit.add(this);
@@ -2680,7 +2680,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return false;
   }
 
-  bool hasReferenceToSuper() => hasModifier(Modifier.REFERENCES_SUPER);
+  bool get hasReferenceToSuper => hasModifier(Modifier.REFERENCES_SUPER);
 
   bool get isAbstract => hasModifier(Modifier.ABSTRACT);
 
@@ -2830,7 +2830,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
    *
    * @param isReferencedSuper `true` references 'super'
    */
-  void set hasReferenceToSuper2(bool isReferencedSuper) {
+  void set hasReferenceToSuper(bool isReferencedSuper) {
     setModifier(Modifier.REFERENCES_SUPER, isReferencedSuper);
   }
 
@@ -3329,7 +3329,7 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
 
   ElementKind get kind => ElementKind.CONSTRUCTOR;
 
-  ConstructorDeclaration get node => getNode2((node) => node is ConstructorDeclaration);
+  ConstructorDeclaration get node => getNodeMatching((node) => node is ConstructorDeclaration);
 
   bool get isConst => hasModifier(Modifier.CONST);
 
@@ -3655,7 +3655,7 @@ abstract class ElementImpl implements Element {
 
   String get name => _name;
 
-  AstNode get node => getNode2((node) => node is AstNode);
+  AstNode get node => getNodeMatching((node) => node is AstNode);
 
   Source get source {
     if (_enclosingElement == null) {
@@ -3765,7 +3765,7 @@ abstract class ElementImpl implements Element {
   /**
    * Return the resolved [AstNode] of the given type enclosing [getNameOffset].
    */
-  AstNode getNode2(Predicate<AstNode> predicate) {
+  AstNode getNodeMatching(Predicate<AstNode> predicate) {
     CompilationUnit unit = this.unit;
     if (unit == null) {
       return null;
@@ -3784,7 +3784,7 @@ abstract class ElementImpl implements Element {
    * @param modifier the modifier being tested for
    * @return `true` if this element has the given modifier associated with it
    */
-  bool hasModifier(Modifier modifier) => BooleanArray.get(_modifiers, modifier);
+  bool hasModifier(Modifier modifier) => BooleanArray.getEnum(_modifiers, modifier);
 
   /**
    * If the given child is not `null`, use the given visitor to visit it.
@@ -3829,7 +3829,7 @@ abstract class ElementImpl implements Element {
    * @param value `true` if the modifier is to be associated with this element
    */
   void setModifier(Modifier modifier, bool value) {
-    _modifiers = BooleanArray.set(_modifiers, modifier, value);
+    _modifiers = BooleanArray.setEnum(_modifiers, modifier, value);
   }
 }
 
@@ -4466,7 +4466,7 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
 
   ElementKind get kind => ElementKind.FUNCTION;
 
-  FunctionDeclaration get node => getNode2((node) => node is FunctionDeclaration);
+  FunctionDeclaration get node => getNodeMatching((node) => node is FunctionDeclaration);
 
   SourceRange get visibleRange {
     if (_visibleRangeLength < 0) {
@@ -4558,7 +4558,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
 
   ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
 
-  FunctionTypeAlias get node => getNode2((node) => node is FunctionTypeAlias);
+  FunctionTypeAlias get node => getNodeMatching((node) => node is FunctionTypeAlias);
 
   List<ParameterElement> get parameters => _parameters;
 
@@ -4908,7 +4908,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * @param timeStamp the time stamp to check against
    * @param visitedLibraries the set of visited libraries
    */
-  static bool isUpToDate(LibraryElement library, int timeStamp, Set<LibraryElement> visitedLibraries) {
+  static bool safeIsUpToDate(LibraryElement library, int timeStamp, Set<LibraryElement> visitedLibraries) {
     if (!visitedLibraries.contains(library)) {
       visitedLibraries.add(library);
       AnalysisContext context = library.context;
@@ -4924,13 +4924,13 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       }
       // Check the imported libraries.
       for (LibraryElement importedLibrary in library.importedLibraries) {
-        if (!isUpToDate(importedLibrary, timeStamp, visitedLibraries)) {
+        if (!safeIsUpToDate(importedLibrary, timeStamp, visitedLibraries)) {
           return false;
         }
       }
       // Check the exported libraries.
       for (LibraryElement exportedLibrary in library.exportedLibraries) {
-        if (!isUpToDate(exportedLibrary, timeStamp, visitedLibraries)) {
+        if (!safeIsUpToDate(exportedLibrary, timeStamp, visitedLibraries)) {
           return false;
         }
       }
@@ -5087,7 +5087,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return new List.from(visibleLibraries);
   }
 
-  bool hasExtUri() => hasModifier(Modifier.HAS_EXT_URI);
+  bool get hasExtUri => hasModifier(Modifier.HAS_EXT_URI);
 
   int get hashCode => _definingCompilationUnit.hashCode;
 
@@ -5099,9 +5099,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   bool get isInSdk => StringUtilities.startsWith5(name, 0, 0x64, 0x61, 0x72, 0x74, 0x2E);
 
-  bool isUpToDate2(int timeStamp) {
+  bool isUpToDate(int timeStamp) {
     Set<LibraryElement> visitedLibraries = new Set();
-    return isUpToDate(this, timeStamp, visitedLibraries);
+    return safeIsUpToDate(this, timeStamp, visitedLibraries);
   }
 
   /**
@@ -5138,7 +5138,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    *
    * @param hasExtUri `true` if this library has an import of a "dart-ext" URI
    */
-  void set hasExtUri2(bool hasExtUri) {
+  void set hasExtUri(bool hasExtUri) {
     setModifier(Modifier.HAS_EXT_URI, hasExtUri);
   }
 
@@ -5387,7 +5387,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
     return super.name;
   }
 
-  MethodDeclaration get node => getNode2((node) => node is MethodDeclaration);
+  MethodDeclaration get node => getNodeMatching((node) => node is MethodDeclaration);
 
   bool get isAbstract => hasModifier(Modifier.ABSTRACT);
 
@@ -6003,10 +6003,10 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
       return null;
     }
     if (enclosingElement is ClassElement) {
-      return getNode2((node) => node is MethodDeclaration);
+      return getNodeMatching((node) => node is MethodDeclaration);
     }
     if (enclosingElement is CompilationUnitElement) {
-      return getNode2((node) => node is FunctionDeclaration);
+      return getNodeMatching((node) => node is FunctionDeclaration);
     }
     return null;
   }
@@ -6269,7 +6269,7 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
 
   FunctionElement get initializer => _initializer;
 
-  VariableDeclaration get node => getNode2((node) => node is VariableDeclaration);
+  VariableDeclaration get node => getNodeMatching((node) => node is VariableDeclaration);
 
   bool get isConst => hasModifier(Modifier.CONST);
 

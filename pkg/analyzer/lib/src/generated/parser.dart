@@ -1697,7 +1697,7 @@ class Parser {
         return new MethodDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, null, null, null, null, null, createSyntheticIdentifier(), new FormalParameterList(null, new List<FormalParameter>(), null, null, null), new EmptyFunctionBody(createSyntheticToken(TokenType.SEMICOLON)));
       }
       return null;
-    } else if (tokenMatches(peek(), TokenType.PERIOD) && tokenMatchesIdentifier(peek2(2)) && tokenMatches(peek2(3), TokenType.OPEN_PAREN)) {
+    } else if (tokenMatches(peek(), TokenType.PERIOD) && tokenMatchesIdentifier(peekAt(2)) && tokenMatches(peekAt(3), TokenType.OPEN_PAREN)) {
       return parseConstructor(commentAndMetadata, modifiers.externalKeyword, validateModifiersForConstructor(modifiers), modifiers.factoryKeyword, parseSimpleIdentifier(), andAdvance, parseSimpleIdentifier(), parseFormalParameterList());
     } else if (tokenMatches(peek(), TokenType.OPEN_PAREN)) {
       SimpleIdentifier methodName = parseSimpleIdentifier();
@@ -2896,7 +2896,7 @@ class Parser {
    * @return `true` if we can successfully parse the rest of a type alias if we first parse a
    *         return type.
    */
-  bool hasReturnTypeInTypeAlias() {
+  bool get hasReturnTypeInTypeAlias {
     Token next = skipReturnType(_currentToken);
     if (next == null) {
       return false;
@@ -4075,7 +4075,7 @@ class Parser {
           if (tokenMatches(peek(), TokenType.OPEN_PAREN)) {
             bodyAllowed = false;
             initializers.add(parseRedirectingConstructorInvocation());
-          } else if (tokenMatches(peek(), TokenType.PERIOD) && tokenMatches(peek2(3), TokenType.OPEN_PAREN)) {
+          } else if (tokenMatches(peek(), TokenType.PERIOD) && tokenMatches(peekAt(3), TokenType.OPEN_PAREN)) {
             bodyAllowed = false;
             initializers.add(parseRedirectingConstructorInvocation());
           } else {
@@ -4242,7 +4242,7 @@ class Parser {
     }
     List<Token> tokens = new List.from(commentTokens);
     List<CommentReference> references = parseCommentReferences(tokens);
-    return Comment.createDocumentationComment2(tokens, references);
+    return Comment.createDocumentationCommentWithReferences(tokens, references);
   }
 
   /**
@@ -4696,7 +4696,7 @@ class Parser {
    */
   FunctionTypeAlias parseFunctionTypeAlias(CommentAndMetadata commentAndMetadata, Token keyword) {
     TypeName returnType = null;
-    if (hasReturnTypeInTypeAlias()) {
+    if (hasReturnTypeInTypeAlias) {
       returnType = parseReturnType();
     }
     SimpleIdentifier name = parseSimpleIdentifier();
@@ -5410,7 +5410,7 @@ class Parser {
       return parseReturnType();
     } else if (matchesIdentifier() && !matchesKeyword(Keyword.GET) && !matchesKeyword(Keyword.SET) && !matchesKeyword(Keyword.OPERATOR) && (tokenMatchesIdentifier(peek()) || tokenMatches(peek(), TokenType.LT))) {
       return parseReturnType();
-    } else if (matchesIdentifier() && tokenMatches(peek(), TokenType.PERIOD) && tokenMatchesIdentifier(peek2(2)) && (tokenMatchesIdentifier(peek2(3)) || tokenMatches(peek2(3), TokenType.LT))) {
+    } else if (matchesIdentifier() && tokenMatches(peek(), TokenType.PERIOD) && tokenMatchesIdentifier(peekAt(2)) && (tokenMatchesIdentifier(peekAt(3)) || tokenMatches(peekAt(3), TokenType.LT))) {
       return parseReturnType();
     }
     return null;
@@ -6279,7 +6279,7 @@ class Parser {
 
   /**
    * Return the token that is immediately after the current token. This is equivalent to
-   * [peek].
+   * [peekAt].
    *
    * @return the token that is immediately after the current token
    */
@@ -6292,7 +6292,7 @@ class Parser {
    *          `1` is the next token, etc.
    * @return the token that is the given distance after the current token
    */
-  Token peek2(int distance) {
+  Token peekAt(int distance) {
     Token token = _currentToken;
     for (int i = 0; i < distance; i++) {
       token = token.next;

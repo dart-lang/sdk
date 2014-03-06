@@ -282,8 +282,8 @@ class ErrorReporter {
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError2(ErrorCode errorCode, AstNode node, List<Object> arguments) {
-    reportError4(errorCode, node.offset, node.length, arguments);
+  void reportErrorForNode(ErrorCode errorCode, AstNode node, List<Object> arguments) {
+    reportErrorForOffset(errorCode, node.offset, node.length, arguments);
   }
 
   /**
@@ -293,8 +293,8 @@ class ErrorReporter {
    * @param element the element which name should be used as the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError3(ErrorCode errorCode, Element element, List<Object> arguments) {
-    reportError4(errorCode, element.nameOffset, element.displayName.length, arguments);
+  void reportErrorForElement(ErrorCode errorCode, Element element, List<Object> arguments) {
+    reportErrorForOffset(errorCode, element.nameOffset, element.displayName.length, arguments);
   }
 
   /**
@@ -305,7 +305,7 @@ class ErrorReporter {
    * @param length the length of the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError4(ErrorCode errorCode, int offset, int length, List<Object> arguments) {
+  void reportErrorForOffset(ErrorCode errorCode, int offset, int length, List<Object> arguments) {
     _errorListener.onError(new AnalysisError.con2(_source, offset, length, errorCode, arguments));
   }
 
@@ -316,8 +316,8 @@ class ErrorReporter {
    * @param token the token specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError5(ErrorCode errorCode, Token token, List<Object> arguments) {
-    reportError4(errorCode, token.offset, token.length, arguments);
+  void reportErrorForToken(ErrorCode errorCode, Token token, List<Object> arguments) {
+    reportErrorForOffset(errorCode, token.offset, token.length, arguments);
   }
 
   /**
@@ -2472,7 +2472,13 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * 7.1 Instance Methods: It is a static warning if a class <i>C</i> declares an instance method
    * named <i>n</i> and has a setter named <i>n=</i>.
    */
-  static final StaticWarningCode CONFLICTING_INSTANCE_METHOD_SETTER = new StaticWarningCode.con1('CONFLICTING_INSTANCE_METHOD_SETTER', 10, "Class '%s' declares instance method %s and has a setter with the same name from '%s'");
+  static final StaticWarningCode CONFLICTING_INSTANCE_METHOD_SETTER = new StaticWarningCode.con1('CONFLICTING_INSTANCE_METHOD_SETTER', 10, "Class '%s' declares instance method '%s', but also has a setter with the same name from '%s'");
+
+  /**
+   * 7.1 Instance Methods: It is a static warning if a class <i>C</i> declares an instance method
+   * named <i>n</i> and has a setter named <i>n=</i>.
+   */
+  static final StaticWarningCode CONFLICTING_INSTANCE_METHOD_SETTER2 = new StaticWarningCode.con1('CONFLICTING_INSTANCE_METHOD_SETTER2', 11, "Class '%s' declares the setter '%s', but also has an instance method in the same class");
 
   /**
    * 7.3 Setters: It is a static warning if a class <i>C</i> declares an instance setter named
@@ -2481,31 +2487,31 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    *
    * @param superName the name of the super class declaring a static member
    */
-  static final StaticWarningCode CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER = new StaticWarningCode.con1('CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER', 11, "Superclass '%s' declares static member with the same name");
+  static final StaticWarningCode CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER = new StaticWarningCode.con1('CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER', 12, "Superclass '%s' declares static member with the same name");
 
   /**
    * 7.2 Getters: It is a static warning if a class declares a static getter named <i>v</i> and also
    * has a non-static setter named <i>v=</i>.
    */
-  static final StaticWarningCode CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER = new StaticWarningCode.con1('CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER', 12, "Class '%s' declares non-static setter with the same name");
+  static final StaticWarningCode CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER = new StaticWarningCode.con1('CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER', 13, "Class '%s' declares non-static setter with the same name");
 
   /**
    * 7.3 Setters: It is a static warning if a class declares a static setter named <i>v=</i> and
    * also has a non-static member named <i>v</i>.
    */
-  static final StaticWarningCode CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER = new StaticWarningCode.con1('CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER', 13, "Class '%s' declares non-static member with the same name");
+  static final StaticWarningCode CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER = new StaticWarningCode.con1('CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER', 14, "Class '%s' declares non-static member with the same name");
 
   /**
    * 12.11.2 Const: Given an instance creation expression of the form <i>const q(a<sub>1</sub>,
    * &hellip; a<sub>n</sub>)</i> it is a static warning if <i>q</i> is the constructor of an
    * abstract class but <i>q</i> is not a factory constructor.
    */
-  static final StaticWarningCode CONST_WITH_ABSTRACT_CLASS = new StaticWarningCode.con1('CONST_WITH_ABSTRACT_CLASS', 14, "Abstract classes cannot be created with a 'const' expression");
+  static final StaticWarningCode CONST_WITH_ABSTRACT_CLASS = new StaticWarningCode.con1('CONST_WITH_ABSTRACT_CLASS', 15, "Abstract classes cannot be created with a 'const' expression");
 
   /**
    * 12.7 Maps: It is a static warning if the values of any two keys in a map literal are equal.
    */
-  static final StaticWarningCode EQUAL_KEYS_IN_MAP = new StaticWarningCode.con1('EQUAL_KEYS_IN_MAP', 15, "Keys in a map cannot be equal");
+  static final StaticWarningCode EQUAL_KEYS_IN_MAP = new StaticWarningCode.con1('EQUAL_KEYS_IN_MAP', 16, "Keys in a map cannot be equal");
 
   /**
    * 14.2 Exports: It is a static warning to export two different libraries with the same name.
@@ -2514,7 +2520,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param uri2 the uri pointing to a second library
    * @param name the shared name of the exported libraries
    */
-  static final StaticWarningCode EXPORT_DUPLICATED_LIBRARY_NAME = new StaticWarningCode.con1('EXPORT_DUPLICATED_LIBRARY_NAME', 16, "The exported libraries '%s' and '%s' should not have the same name '%s'");
+  static final StaticWarningCode EXPORT_DUPLICATED_LIBRARY_NAME = new StaticWarningCode.con1('EXPORT_DUPLICATED_LIBRARY_NAME', 17, "The exported libraries '%s' and '%s' should not have the same name '%s'");
 
   /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt; h</i> or if <i>m &gt;
@@ -2524,13 +2530,13 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param argumentCount the actual number of positional arguments given
    * @see #NOT_ENOUGH_REQUIRED_ARGUMENTS
    */
-  static final StaticWarningCode EXTRA_POSITIONAL_ARGUMENTS = new StaticWarningCode.con1('EXTRA_POSITIONAL_ARGUMENTS', 17, "%d positional arguments expected, but %d found");
+  static final StaticWarningCode EXTRA_POSITIONAL_ARGUMENTS = new StaticWarningCode.con1('EXTRA_POSITIONAL_ARGUMENTS', 18, "%d positional arguments expected, but %d found");
 
   /**
    * 5. Variables: It is a static warning if a final instance variable that has been initialized at
    * its point of declaration is also initialized in a constructor.
    */
-  static final StaticWarningCode FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION = new StaticWarningCode.con1('FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION', 18, "Values cannot be set in the constructor if they are final, and have already been set");
+  static final StaticWarningCode FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION = new StaticWarningCode.con1('FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION', 19, "Values cannot be set in the constructor if they are final, and have already been set");
 
   /**
    * 5. Variables: It is a static warning if a final instance variable that has been initialized at
@@ -2538,7 +2544,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    *
    * @param name the name of the field in question
    */
-  static final StaticWarningCode FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR = new StaticWarningCode.con1('FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR', 19, "'%s' is final and was given a value when it was declared, so it cannot be set to a new value");
+  static final StaticWarningCode FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR = new StaticWarningCode.con1('FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR', 20, "'%s' is final and was given a value when it was declared, so it cannot be set to a new value");
 
   /**
    * 7.6.1 Generative Constructors: Execution of an initializer of the form <b>this</b>.<i>v</i> =
@@ -2555,7 +2561,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param initializerType the name of the type of the initializer expression
    * @param fieldType the name of the type of the field
    */
-  static final StaticWarningCode FIELD_INITIALIZER_NOT_ASSIGNABLE = new StaticWarningCode.con1('FIELD_INITIALIZER_NOT_ASSIGNABLE', 20, "The initializer type '%s' cannot be assigned to the field type '%s'");
+  static final StaticWarningCode FIELD_INITIALIZER_NOT_ASSIGNABLE = new StaticWarningCode.con1('FIELD_INITIALIZER_NOT_ASSIGNABLE', 21, "The initializer type '%s' cannot be assigned to the field type '%s'");
 
   /**
    * 7.6.1 Generative Constructors: An initializing formal has the form <i>this.id</i>. It is a
@@ -2564,7 +2570,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param parameterType the name of the type of the field formal parameter
    * @param fieldType the name of the type of the field
    */
-  static final StaticWarningCode FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE = new StaticWarningCode.con1('FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE', 21, "The parameter type '%s' is incompatable with the field type '%s'");
+  static final StaticWarningCode FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE = new StaticWarningCode.con1('FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE', 22, "The parameter type '%s' is incompatable with the field type '%s'");
 
   /**
    * 5 Variables: It is a static warning if a library, static or local variable <i>v</i> is final
@@ -2579,13 +2585,13 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    *
    * @param name the name of the uninitialized final variable
    */
-  static final StaticWarningCode FINAL_NOT_INITIALIZED = new StaticWarningCode.con1('FINAL_NOT_INITIALIZED', 22, "The final variable '%s' must be initialized");
+  static final StaticWarningCode FINAL_NOT_INITIALIZED = new StaticWarningCode.con1('FINAL_NOT_INITIALIZED', 23, "The final variable '%s' must be initialized");
 
   /**
    * 15.5 Function Types: It is a static warning if a concrete class implements Function and does
    * not have a concrete method named call().
    */
-  static final StaticWarningCode FUNCTION_WITHOUT_CALL = new StaticWarningCode.con1('FUNCTION_WITHOUT_CALL', 23, "Concrete classes that implement Function must implement the method call()");
+  static final StaticWarningCode FUNCTION_WITHOUT_CALL = new StaticWarningCode.con1('FUNCTION_WITHOUT_CALL', 24, "Concrete classes that implement Function must implement the method call()");
 
   /**
    * 14.1 Imports: It is a static warning to import two different libraries with the same name.
@@ -2594,7 +2600,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param uri2 the uri pointing to a second library
    * @param name the shared name of the imported libraries
    */
-  static final StaticWarningCode IMPORT_DUPLICATED_LIBRARY_NAME = new StaticWarningCode.con1('IMPORT_DUPLICATED_LIBRARY_NAME', 24, "The imported libraries '%s' and '%s' should not have the same name '%s'");
+  static final StaticWarningCode IMPORT_DUPLICATED_LIBRARY_NAME = new StaticWarningCode.con1('IMPORT_DUPLICATED_LIBRARY_NAME', 25, "The imported libraries '%s' and '%s' should not have the same name '%s'");
 
   /**
    * 8.1.1 Inheritance and Overriding: However, if there are multiple members <i>m<sub>1</sub>,
@@ -2606,7 +2612,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * not all of the <i>m<sub>i</sub></i> are setters, none of the <i>m<sub>i</sub></i> are
    * inherited, and a static warning is issued.
    */
-  static final StaticWarningCode INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD = new StaticWarningCode.con1('INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD', 25, "'%s' is inherited as a getter and also a method");
+  static final StaticWarningCode INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD = new StaticWarningCode.con1('INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD', 26, "'%s' is inherited as a getter and also a method");
 
   /**
    * 7.1 Instance Methods: It is a static warning if a class <i>C</i> declares an instance method
@@ -2616,7 +2622,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param memberName the name of the member with the name conflict
    * @param superclassName the name of the enclosing class that has the static member
    */
-  static final StaticWarningCode INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC = new StaticWarningCode.con1('INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC', 26, "'%s' collides with a static member in the superclass '%s'");
+  static final StaticWarningCode INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC = new StaticWarningCode.con1('INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC', 27, "'%s' collides with a static member in the superclass '%s'");
 
   /**
    * 7.2 Getters: It is a static warning if a getter <i>m1</i> overrides a getter <i>m2</i> and the
@@ -2628,7 +2634,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param className the name of the class where the overridden getter is declared
    * @see #INVALID_METHOD_OVERRIDE_RETURN_TYPE
    */
-  static final StaticWarningCode INVALID_GETTER_OVERRIDE_RETURN_TYPE = new StaticWarningCode.con1('INVALID_GETTER_OVERRIDE_RETURN_TYPE', 27, "The return type '%s' is not assignable to '%s' as required by the getter it is overriding from '%s'");
+  static final StaticWarningCode INVALID_GETTER_OVERRIDE_RETURN_TYPE = new StaticWarningCode.con1('INVALID_GETTER_OVERRIDE_RETURN_TYPE', 28, "The return type '%s' is not assignable to '%s' as required by the getter it is overriding from '%s'");
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
@@ -2639,7 +2645,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    *          actualParamTypeName
    * @param className the name of the class where the overridden method is declared
    */
-  static final StaticWarningCode INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE = new StaticWarningCode.con1('INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE', 28, "The parameter type '%s' is not assignable to '%s' as required by the method it is overriding from '%s'");
+  static final StaticWarningCode INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE = new StaticWarningCode.con1('INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE', 29, "The parameter type '%s' is not assignable to '%s' as required by the method it is overriding from '%s'");
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
@@ -2651,7 +2657,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param className the name of the class where the overridden method is declared
    * @see #INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE
    */
-  static final StaticWarningCode INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE = new StaticWarningCode.con1('INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE', 29, "The parameter type '%s' is not assignable to '%s' as required by the method it is overriding from '%s'");
+  static final StaticWarningCode INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE = new StaticWarningCode.con1('INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE', 30, "The parameter type '%s' is not assignable to '%s' as required by the method it is overriding from '%s'");
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
@@ -2662,7 +2668,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    *          actualParamTypeName
    * @param className the name of the class where the overridden method is declared
    */
-  static final StaticWarningCode INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE = new StaticWarningCode.con1('INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE', 30, "The parameter type '%s' is not assignable to '%s' as required by the method it is overriding from '%s'");
+  static final StaticWarningCode INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE = new StaticWarningCode.con1('INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE', 31, "The parameter type '%s' is not assignable to '%s' as required by the method it is overriding from '%s'");
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
@@ -2674,7 +2680,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param className the name of the class where the overridden method is declared
    * @see #INVALID_GETTER_OVERRIDE_RETURN_TYPE
    */
-  static final StaticWarningCode INVALID_METHOD_OVERRIDE_RETURN_TYPE = new StaticWarningCode.con1('INVALID_METHOD_OVERRIDE_RETURN_TYPE', 31, "The return type '%s' is not assignable to '%s' as required by the method it is overriding from '%s'");
+  static final StaticWarningCode INVALID_METHOD_OVERRIDE_RETURN_TYPE = new StaticWarningCode.con1('INVALID_METHOD_OVERRIDE_RETURN_TYPE', 32, "The return type '%s' is not assignable to '%s' as required by the method it is overriding from '%s'");
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
@@ -2682,7 +2688,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * a formal parameter <i>p</i> and the signature of <i>m1</i> specifies a different default value
    * for <i>p</i>.
    */
-  static final StaticWarningCode INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED = new StaticWarningCode.con1('INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED', 32, "Parameters cannot override default values, this method overrides '%s.%s' where '%s' has a different value");
+  static final StaticWarningCode INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED = new StaticWarningCode.con1('INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED', 33, "Parameters cannot override default values, this method overrides '%s.%s' where '%s' has a different value");
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
@@ -2690,7 +2696,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * a formal parameter <i>p</i> and the signature of <i>m1</i> specifies a different default value
    * for <i>p</i>.
    */
-  static final StaticWarningCode INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL = new StaticWarningCode.con1('INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL', 33, "Parameters cannot override default values, this method overrides '%s.%s' where this positional parameter has a different value");
+  static final StaticWarningCode INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL = new StaticWarningCode.con1('INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL', 34, "Parameters cannot override default values, this method overrides '%s.%s' where this positional parameter has a different value");
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
@@ -2700,7 +2706,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param paramCount the number of named parameters in the overridden member
    * @param className the name of the class from the overridden method
    */
-  static final StaticWarningCode INVALID_OVERRIDE_NAMED = new StaticWarningCode.con1('INVALID_OVERRIDE_NAMED', 34, "Missing the named parameter '%s' to match the overridden method from '%s'");
+  static final StaticWarningCode INVALID_OVERRIDE_NAMED = new StaticWarningCode.con1('INVALID_OVERRIDE_NAMED', 35, "Missing the named parameter '%s' to match the overridden method from '%s'");
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
@@ -2709,7 +2715,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param paramCount the number of positional parameters in the overridden member
    * @param className the name of the class from the overridden method
    */
-  static final StaticWarningCode INVALID_OVERRIDE_POSITIONAL = new StaticWarningCode.con1('INVALID_OVERRIDE_POSITIONAL', 35, "Must have at least %d parameters to match the overridden method from '%s'");
+  static final StaticWarningCode INVALID_OVERRIDE_POSITIONAL = new StaticWarningCode.con1('INVALID_OVERRIDE_POSITIONAL', 36, "Must have at least %d parameters to match the overridden method from '%s'");
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
@@ -2719,7 +2725,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param paramCount the number of required parameters in the overridden member
    * @param className the name of the class from the overridden method
    */
-  static final StaticWarningCode INVALID_OVERRIDE_REQUIRED = new StaticWarningCode.con1('INVALID_OVERRIDE_REQUIRED', 36, "Must have %d required parameters or less to match the overridden method from '%s'");
+  static final StaticWarningCode INVALID_OVERRIDE_REQUIRED = new StaticWarningCode.con1('INVALID_OVERRIDE_REQUIRED', 37, "Must have %d required parameters or less to match the overridden method from '%s'");
 
   /**
    * 7.3 Setters: It is a static warning if a setter <i>m1</i> overrides a setter <i>m2</i> and the
@@ -2731,7 +2737,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param className the name of the class where the overridden setter is declared
    * @see #INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE
    */
-  static final StaticWarningCode INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE = new StaticWarningCode.con1('INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE', 37, "The parameter type '%s' is not assignable to '%s' as required by the setter it is overriding from '%s'");
+  static final StaticWarningCode INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE = new StaticWarningCode.con1('INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE', 38, "The parameter type '%s' is not assignable to '%s' as required by the setter it is overriding from '%s'");
 
   /**
    * 12.6 Lists: A run-time list literal &lt;<i>E</i>&gt; [<i>e<sub>1</sub></i> ...
@@ -2745,7 +2751,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * It is a static warning if <i>T<sub>j</sub></i> may not be assigned to <i>S<sub>j</sub>, 1 &lt;=
    * j &lt;= m</i>.
    */
-  static final StaticWarningCode LIST_ELEMENT_TYPE_NOT_ASSIGNABLE = new StaticWarningCode.con1('LIST_ELEMENT_TYPE_NOT_ASSIGNABLE', 38, "The element type '%s' cannot be assigned to the list type '%s'");
+  static final StaticWarningCode LIST_ELEMENT_TYPE_NOT_ASSIGNABLE = new StaticWarningCode.con1('LIST_ELEMENT_TYPE_NOT_ASSIGNABLE', 39, "The element type '%s' cannot be assigned to the list type '%s'");
 
   /**
    * 12.7 Map: A run-time map literal &lt;<i>K</i>, <i>V</i>&gt; [<i>k<sub>1</sub></i> :
@@ -2759,7 +2765,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * It is a static warning if <i>T<sub>j</sub></i> may not be assigned to <i>S<sub>j</sub>, 1 &lt;=
    * j &lt;= m</i>.
    */
-  static final StaticWarningCode MAP_KEY_TYPE_NOT_ASSIGNABLE = new StaticWarningCode.con1('MAP_KEY_TYPE_NOT_ASSIGNABLE', 39, "The element type '%s' cannot be assigned to the map key type '%s'");
+  static final StaticWarningCode MAP_KEY_TYPE_NOT_ASSIGNABLE = new StaticWarningCode.con1('MAP_KEY_TYPE_NOT_ASSIGNABLE', 40, "The element type '%s' cannot be assigned to the map key type '%s'");
 
   /**
    * 12.7 Map: A run-time map literal &lt;<i>K</i>, <i>V</i>&gt; [<i>k<sub>1</sub></i> :
@@ -2773,33 +2779,33 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * It is a static warning if <i>T<sub>j</sub></i> may not be assigned to <i>S<sub>j</sub>, 1 &lt;=
    * j &lt;= m</i>.
    */
-  static final StaticWarningCode MAP_VALUE_TYPE_NOT_ASSIGNABLE = new StaticWarningCode.con1('MAP_VALUE_TYPE_NOT_ASSIGNABLE', 40, "The element type '%s' cannot be assigned to the map value type '%s'");
+  static final StaticWarningCode MAP_VALUE_TYPE_NOT_ASSIGNABLE = new StaticWarningCode.con1('MAP_VALUE_TYPE_NOT_ASSIGNABLE', 41, "The element type '%s' cannot be assigned to the map value type '%s'");
 
   /**
    * 7.3 Setters: It is a static warning if a class has a setter named <i>v=</i> with argument type
    * <i>T</i> and a getter named <i>v</i> with return type <i>S</i>, and <i>T</i> may not be
    * assigned to <i>S</i>.
    */
-  static final StaticWarningCode MISMATCHED_GETTER_AND_SETTER_TYPES = new StaticWarningCode.con1('MISMATCHED_GETTER_AND_SETTER_TYPES', 41, "The parameter type for setter '%s' is '%s' which is not assignable to its getter (of type '%s')");
+  static final StaticWarningCode MISMATCHED_GETTER_AND_SETTER_TYPES = new StaticWarningCode.con1('MISMATCHED_GETTER_AND_SETTER_TYPES', 42, "The parameter type for setter '%s' is '%s' which is not assignable to its getter (of type '%s')");
 
   /**
    * 7.3 Setters: It is a static warning if a class has a setter named <i>v=</i> with argument type
    * <i>T</i> and a getter named <i>v</i> with return type <i>S</i>, and <i>T</i> may not be
    * assigned to <i>S</i>.
    */
-  static final StaticWarningCode MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE = new StaticWarningCode.con1('MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE', 42, "The parameter type for setter '%s' is '%s' which is not assignable to its getter (of type '%s'), from superclass '%s'");
+  static final StaticWarningCode MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE = new StaticWarningCode.con1('MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE', 43, "The parameter type for setter '%s' is '%s' which is not assignable to its getter (of type '%s'), from superclass '%s'");
 
   /**
    * 13.12 Return: It is a static warning if a function contains both one or more return statements
    * of the form <i>return;</i> and one or more return statements of the form <i>return e;</i>.
    */
-  static final StaticWarningCode MIXED_RETURN_TYPES = new StaticWarningCode.con1('MIXED_RETURN_TYPES', 43, "Methods and functions cannot use return both with and without values");
+  static final StaticWarningCode MIXED_RETURN_TYPES = new StaticWarningCode.con1('MIXED_RETURN_TYPES', 44, "Methods and functions cannot use return both with and without values");
 
   /**
    * 12.11.1 New: It is a static warning if <i>q</i> is a constructor of an abstract class and
    * <i>q</i> is not a factory constructor.
    */
-  static final StaticWarningCode NEW_WITH_ABSTRACT_CLASS = new StaticWarningCode.con1('NEW_WITH_ABSTRACT_CLASS', 44, "Abstract classes cannot be created with a 'new' expression");
+  static final StaticWarningCode NEW_WITH_ABSTRACT_CLASS = new StaticWarningCode.con1('NEW_WITH_ABSTRACT_CLASS', 45, "Abstract classes cannot be created with a 'new' expression");
 
   /**
    * 15.8 Parameterized Types: Any use of a malbounded type gives rise to a static warning.
@@ -2810,7 +2816,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @see CompileTimeErrorCode#CONST_WITH_INVALID_TYPE_PARAMETERS
    * @see StaticTypeWarningCode#WRONG_NUMBER_OF_TYPE_ARGUMENTS
    */
-  static final StaticWarningCode NEW_WITH_INVALID_TYPE_PARAMETERS = new StaticWarningCode.con1('NEW_WITH_INVALID_TYPE_PARAMETERS', 45, "The type '%s' is declared with %d type parameters, but %d type arguments were given");
+  static final StaticWarningCode NEW_WITH_INVALID_TYPE_PARAMETERS = new StaticWarningCode.con1('NEW_WITH_INVALID_TYPE_PARAMETERS', 46, "The type '%s' is declared with %d type parameters, but %d type arguments were given");
 
   /**
    * 12.11.1 New: It is a static warning if <i>T</i> is not a class accessible in the current scope,
@@ -2818,7 +2824,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    *
    * @param name the name of the non-type element
    */
-  static final StaticWarningCode NEW_WITH_NON_TYPE = new StaticWarningCode.con1('NEW_WITH_NON_TYPE', 46, "The name '%s' is not a class");
+  static final StaticWarningCode NEW_WITH_NON_TYPE = new StaticWarningCode.con1('NEW_WITH_NON_TYPE', 47, "The name '%s' is not a class");
 
   /**
    * 12.11.1 New: If <i>T</i> is a class or parameterized type accessible in the current scope then:
@@ -2829,7 +2835,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * a<sub>n+1</sub>, &hellip; x<sub>n+k</sub>: a<sub>n+kM/sub>)</i> it is a static warning if the
    * type <i>T</i> does not declare a constructor with the same name as the declaration of <i>T</i>.
    */
-  static final StaticWarningCode NEW_WITH_UNDEFINED_CONSTRUCTOR = new StaticWarningCode.con1('NEW_WITH_UNDEFINED_CONSTRUCTOR', 47, "The class '%s' does not have a constructor '%s'");
+  static final StaticWarningCode NEW_WITH_UNDEFINED_CONSTRUCTOR = new StaticWarningCode.con1('NEW_WITH_UNDEFINED_CONSTRUCTOR', 48, "The class '%s' does not have a constructor '%s'");
 
   /**
    * 12.11.1 New: If <i>T</i> is a class or parameterized type accessible in the current scope then:
@@ -2840,7 +2846,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * a<sub>n+1</sub>, &hellip; x<sub>n+k</sub>: a<sub>n+kM/sub>)</i> it is a static warning if the
    * type <i>T</i> does not declare a constructor with the same name as the declaration of <i>T</i>.
    */
-  static final StaticWarningCode NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT = new StaticWarningCode.con1('NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT', 48, "The class '%s' does not have a default constructor");
+  static final StaticWarningCode NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT = new StaticWarningCode.con1('NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT', 49, "The class '%s' does not have a default constructor");
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -2860,7 +2866,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param memberName the name of the fourth member
    * @param additionalCount the number of additional missing members that aren't listed
    */
-  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS = new StaticWarningCode.con1('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS', 49, "Missing concrete implementation of '%s', '%s', '%s', '%s' and %d more");
+  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS = new StaticWarningCode.con1('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS', 50, "Missing concrete implementation of '%s', '%s', '%s', '%s' and %d more");
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -2879,7 +2885,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param memberName the name of the third member
    * @param memberName the name of the fourth member
    */
-  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR = new StaticWarningCode.con1('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR', 50, "Missing concrete implementation of '%s', '%s', '%s' and '%s'");
+  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR = new StaticWarningCode.con1('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR', 51, "Missing concrete implementation of '%s', '%s', '%s' and '%s'");
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -2895,7 +2901,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    *
    * @param memberName the name of the member
    */
-  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE = new StaticWarningCode.con1('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE', 51, "Missing concrete implementation of '%s'");
+  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE = new StaticWarningCode.con1('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE', 52, "Missing concrete implementation of '%s'");
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -2913,7 +2919,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param memberName the name of the second member
    * @param memberName the name of the third member
    */
-  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE = new StaticWarningCode.con1('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE', 52, "Missing concrete implementation of '%s', '%s' and '%s'");
+  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE = new StaticWarningCode.con1('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE', 53, "Missing concrete implementation of '%s', '%s' and '%s'");
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -2930,7 +2936,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param memberName the name of the first member
    * @param memberName the name of the second member
    */
-  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO = new StaticWarningCode.con1('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO', 53, "Missing concrete implementation of '%s' and '%s'");
+  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO = new StaticWarningCode.con1('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO', 54, "Missing concrete implementation of '%s' and '%s'");
 
   /**
    * 13.11 Try: An on-catch clause of the form <i>on T catch (p<sub>1</sub>, p<sub>2</sub>) s</i> or
@@ -2940,18 +2946,18 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    *
    * @param name the name of the non-type element
    */
-  static final StaticWarningCode NON_TYPE_IN_CATCH_CLAUSE = new StaticWarningCode.con1('NON_TYPE_IN_CATCH_CLAUSE', 54, "The name '%s' is not a type and cannot be used in an on-catch clause");
+  static final StaticWarningCode NON_TYPE_IN_CATCH_CLAUSE = new StaticWarningCode.con1('NON_TYPE_IN_CATCH_CLAUSE', 55, "The name '%s' is not a type and cannot be used in an on-catch clause");
 
   /**
    * 7.1.1 Operators: It is a static warning if the return type of the user-declared operator []= is
    * explicitly declared and not void.
    */
-  static final StaticWarningCode NON_VOID_RETURN_FOR_OPERATOR = new StaticWarningCode.con1('NON_VOID_RETURN_FOR_OPERATOR', 55, "The return type of the operator []= must be 'void'");
+  static final StaticWarningCode NON_VOID_RETURN_FOR_OPERATOR = new StaticWarningCode.con1('NON_VOID_RETURN_FOR_OPERATOR', 56, "The return type of the operator []= must be 'void'");
 
   /**
    * 7.3 Setters: It is a static warning if a setter declares a return type other than void.
    */
-  static final StaticWarningCode NON_VOID_RETURN_FOR_SETTER = new StaticWarningCode.con1('NON_VOID_RETURN_FOR_SETTER', 56, "The return type of the setter must be 'void'");
+  static final StaticWarningCode NON_VOID_RETURN_FOR_SETTER = new StaticWarningCode.con1('NON_VOID_RETURN_FOR_SETTER', 57, "The return type of the setter must be 'void'");
 
   /**
    * 15.1 Static Types: A type <i>T</i> is malformed iff: * <i>T</i> has the form <i>id</i> or the
@@ -2964,7 +2970,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    *
    * @param nonTypeName the name that is not a type
    */
-  static final StaticWarningCode NOT_A_TYPE = new StaticWarningCode.con1('NOT_A_TYPE', 57, "%s is not a type");
+  static final StaticWarningCode NOT_A_TYPE = new StaticWarningCode.con1('NOT_A_TYPE', 58, "%s is not a type");
 
   /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt; h</i> or if <i>m &gt;
@@ -2974,7 +2980,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param argumentCount the actual number of positional arguments given
    * @see #EXTRA_POSITIONAL_ARGUMENTS
    */
-  static final StaticWarningCode NOT_ENOUGH_REQUIRED_ARGUMENTS = new StaticWarningCode.con1('NOT_ENOUGH_REQUIRED_ARGUMENTS', 58, "%d required argument(s) expected, but %d found");
+  static final StaticWarningCode NOT_ENOUGH_REQUIRED_ARGUMENTS = new StaticWarningCode.con1('NOT_ENOUGH_REQUIRED_ARGUMENTS', 59, "%d required argument(s) expected, but %d found");
 
   /**
    * 14.3 Parts: It is a static warning if the referenced part declaration <i>p</i> names a library
@@ -2983,7 +2989,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param expectedLibraryName the name of expected library name
    * @param actualLibraryName the non-matching actual library name from the "part of" declaration
    */
-  static final StaticWarningCode PART_OF_DIFFERENT_LIBRARY = new StaticWarningCode.con1('PART_OF_DIFFERENT_LIBRARY', 59, "Expected this library to be part of '%s', not '%s'");
+  static final StaticWarningCode PART_OF_DIFFERENT_LIBRARY = new StaticWarningCode.con1('PART_OF_DIFFERENT_LIBRARY', 60, "Expected this library to be part of '%s', not '%s'");
 
   /**
    * 7.6.2 Factories: It is a static warning if the function type of <i>k'</i> is not a subtype of
@@ -2992,7 +2998,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param redirectedName the name of the redirected constructor
    * @param redirectingName the name of the redirecting constructor
    */
-  static final StaticWarningCode REDIRECT_TO_INVALID_FUNCTION_TYPE = new StaticWarningCode.con1('REDIRECT_TO_INVALID_FUNCTION_TYPE', 60, "The redirected constructor '%s' has incompatible parameters with '%s'");
+  static final StaticWarningCode REDIRECT_TO_INVALID_FUNCTION_TYPE = new StaticWarningCode.con1('REDIRECT_TO_INVALID_FUNCTION_TYPE', 61, "The redirected constructor '%s' has incompatible parameters with '%s'");
 
   /**
    * 7.6.2 Factories: It is a static warning if the function type of <i>k'</i> is not a subtype of
@@ -3001,21 +3007,21 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param redirectedName the name of the redirected constructor return type
    * @param redirectingName the name of the redirecting constructor return type
    */
-  static final StaticWarningCode REDIRECT_TO_INVALID_RETURN_TYPE = new StaticWarningCode.con1('REDIRECT_TO_INVALID_RETURN_TYPE', 61, "The return type '%s' of the redirected constructor is not assignable to '%s'");
+  static final StaticWarningCode REDIRECT_TO_INVALID_RETURN_TYPE = new StaticWarningCode.con1('REDIRECT_TO_INVALID_RETURN_TYPE', 62, "The return type '%s' of the redirected constructor is not assignable to '%s'");
 
   /**
    * 7.6.2 Factories: It is a static warning if type does not denote a class accessible in the
    * current scope; if type does denote such a class <i>C</i> it is a static warning if the
    * referenced constructor (be it <i>type</i> or <i>type.id</i>) is not a constructor of <i>C</i>.
    */
-  static final StaticWarningCode REDIRECT_TO_MISSING_CONSTRUCTOR = new StaticWarningCode.con1('REDIRECT_TO_MISSING_CONSTRUCTOR', 62, "The constructor '%s' could not be found in '%s'");
+  static final StaticWarningCode REDIRECT_TO_MISSING_CONSTRUCTOR = new StaticWarningCode.con1('REDIRECT_TO_MISSING_CONSTRUCTOR', 63, "The constructor '%s' could not be found in '%s'");
 
   /**
    * 7.6.2 Factories: It is a static warning if type does not denote a class accessible in the
    * current scope; if type does denote such a class <i>C</i> it is a static warning if the
    * referenced constructor (be it <i>type</i> or <i>type.id</i>) is not a constructor of <i>C</i>.
    */
-  static final StaticWarningCode REDIRECT_TO_NON_CLASS = new StaticWarningCode.con1('REDIRECT_TO_NON_CLASS', 63, "The name '%s' is not a type and cannot be used in a redirected constructor");
+  static final StaticWarningCode REDIRECT_TO_NON_CLASS = new StaticWarningCode.con1('REDIRECT_TO_NON_CLASS', 64, "The name '%s' is not a type and cannot be used in a redirected constructor");
 
   /**
    * 13.11 Return: Let <i>f</i> be the function immediately enclosing a return statement of the form
@@ -3025,7 +3031,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * * The return type of <i>f</i> may not be assigned to void.
    * </ol>
    */
-  static final StaticWarningCode RETURN_WITHOUT_VALUE = new StaticWarningCode.con1('RETURN_WITHOUT_VALUE', 64, "Missing return value after 'return'");
+  static final StaticWarningCode RETURN_WITHOUT_VALUE = new StaticWarningCode.con1('RETURN_WITHOUT_VALUE', 65, "Missing return value after 'return'");
 
   /**
    * 12.16.3 Static Invocation: It is a static warning if <i>C</i> does not declare a static method
@@ -3033,19 +3039,19 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    *
    * @param memberName the name of the instance member
    */
-  static final StaticWarningCode STATIC_ACCESS_TO_INSTANCE_MEMBER = new StaticWarningCode.con1('STATIC_ACCESS_TO_INSTANCE_MEMBER', 65, "Instance member '%s' cannot be accessed using static access");
+  static final StaticWarningCode STATIC_ACCESS_TO_INSTANCE_MEMBER = new StaticWarningCode.con1('STATIC_ACCESS_TO_INSTANCE_MEMBER', 66, "Instance member '%s' cannot be accessed using static access");
 
   /**
    * 13.9 Switch: It is a static warning if the type of <i>e</i> may not be assigned to the type of
    * <i>e<sub>k</sub></i>.
    */
-  static final StaticWarningCode SWITCH_EXPRESSION_NOT_ASSIGNABLE = new StaticWarningCode.con1('SWITCH_EXPRESSION_NOT_ASSIGNABLE', 66, "Type '%s' of the switch expression is not assignable to the type '%s' of case expressions");
+  static final StaticWarningCode SWITCH_EXPRESSION_NOT_ASSIGNABLE = new StaticWarningCode.con1('SWITCH_EXPRESSION_NOT_ASSIGNABLE', 67, "Type '%s' of the switch expression is not assignable to the type '%s' of case expressions");
 
   /**
    * 12.31 Type Test: It is a static warning if <i>T</i> does not denote a type available in the
    * current lexical scope.
    */
-  static final StaticWarningCode TYPE_TEST_NON_TYPE = new StaticWarningCode.con1('TYPE_TEST_NON_TYPE', 67, "The name '%s' is not a type and cannot be used in an 'is' expression");
+  static final StaticWarningCode TYPE_TEST_NON_TYPE = new StaticWarningCode.con1('TYPE_TEST_NON_TYPE', 68, "The name '%s' is not a type and cannot be used in an 'is' expression");
 
   /**
    * 10 Generics: However, a type parameter is considered to be a malformed type when referenced by
@@ -3054,7 +3060,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * 15.1 Static Types: Any use of a malformed type gives rise to a static warning. A malformed type
    * is then interpreted as dynamic by the static type checker and the runtime.
    */
-  static final StaticWarningCode TYPE_PARAMETER_REFERENCED_BY_STATIC = new StaticWarningCode.con1('TYPE_PARAMETER_REFERENCED_BY_STATIC', 68, "Static members cannot reference type parameters");
+  static final StaticWarningCode TYPE_PARAMETER_REFERENCED_BY_STATIC = new StaticWarningCode.con1('TYPE_PARAMETER_REFERENCED_BY_STATIC', 69, "Static members cannot reference type parameters");
 
   /**
    * 12.16.3 Static Invocation: A static method invocation <i>i</i> has the form
@@ -3064,12 +3070,12 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    *
    * @param undefinedClassName the name of the undefined class
    */
-  static final StaticWarningCode UNDEFINED_CLASS = new StaticWarningCode.con1('UNDEFINED_CLASS', 69, "Undefined class '%s'");
+  static final StaticWarningCode UNDEFINED_CLASS = new StaticWarningCode.con1('UNDEFINED_CLASS', 70, "Undefined class '%s'");
 
   /**
    * Same as [UNDEFINED_CLASS], but to catch using "boolean" instead of "bool".
    */
-  static final StaticWarningCode UNDEFINED_CLASS_BOOLEAN = new StaticWarningCode.con1('UNDEFINED_CLASS_BOOLEAN', 70, "Undefined class 'boolean'; did you mean 'bool'?");
+  static final StaticWarningCode UNDEFINED_CLASS_BOOLEAN = new StaticWarningCode.con1('UNDEFINED_CLASS_BOOLEAN', 71, "Undefined class 'boolean'; did you mean 'bool'?");
 
   /**
    * 12.17 Getter Invocation: It is a static warning if there is no class <i>C</i> in the enclosing
@@ -3079,7 +3085,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param getterName the name of the getter
    * @param enclosingType the name of the enclosing type where the getter is being looked for
    */
-  static final StaticWarningCode UNDEFINED_GETTER = new StaticWarningCode.con1('UNDEFINED_GETTER', 71, "There is no such getter '%s' in '%s'");
+  static final StaticWarningCode UNDEFINED_GETTER = new StaticWarningCode.con1('UNDEFINED_GETTER', 72, "There is no such getter '%s' in '%s'");
 
   /**
    * 12.30 Identifier Reference: It is as static warning if an identifier expression of the form
@@ -3089,7 +3095,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    *
    * @param name the name of the identifier
    */
-  static final StaticWarningCode UNDEFINED_IDENTIFIER = new StaticWarningCode.con1('UNDEFINED_IDENTIFIER', 72, "Undefined name '%s'");
+  static final StaticWarningCode UNDEFINED_IDENTIFIER = new StaticWarningCode.con1('UNDEFINED_IDENTIFIER', 73, "Undefined name '%s'");
 
   /**
    * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>, <i>1<=i<=l</i>,
@@ -3098,7 +3104,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    *
    * @param name the name of the requested named parameter
    */
-  static final StaticWarningCode UNDEFINED_NAMED_PARAMETER = new StaticWarningCode.con1('UNDEFINED_NAMED_PARAMETER', 73, "The named parameter '%s' is not defined");
+  static final StaticWarningCode UNDEFINED_NAMED_PARAMETER = new StaticWarningCode.con1('UNDEFINED_NAMED_PARAMETER', 74, "The named parameter '%s' is not defined");
 
   /**
    * 12.18 Assignment: It is as static warning if an assignment of the form <i>v = e</i> occurs
@@ -3113,7 +3119,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param setterName the name of the getter
    * @param enclosingType the name of the enclosing type where the setter is being looked for
    */
-  static final StaticWarningCode UNDEFINED_SETTER = new StaticWarningCode.con1('UNDEFINED_SETTER', 74, "There is no such setter '%s' in '%s'");
+  static final StaticWarningCode UNDEFINED_SETTER = new StaticWarningCode.con1('UNDEFINED_SETTER', 75, "There is no such setter '%s' in '%s'");
 
   /**
    * 12.16.3 Static Invocation: It is a static warning if <i>C</i> does not declare a static method
@@ -3122,7 +3128,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param methodName the name of the method
    * @param enclosingType the name of the enclosing type where the method is being looked for
    */
-  static final StaticWarningCode UNDEFINED_STATIC_METHOD_OR_GETTER = new StaticWarningCode.con1('UNDEFINED_STATIC_METHOD_OR_GETTER', 75, "There is no such static method, getter or setter '%s' in '%s'");
+  static final StaticWarningCode UNDEFINED_STATIC_METHOD_OR_GETTER = new StaticWarningCode.con1('UNDEFINED_STATIC_METHOD_OR_GETTER', 76, "There is no such static method, getter or setter '%s' in '%s'");
 
   static final List<StaticWarningCode> values = [
       AMBIGUOUS_IMPORT,
@@ -3136,6 +3142,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
       CONFLICTING_DART_IMPORT,
       CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER,
       CONFLICTING_INSTANCE_METHOD_SETTER,
+      CONFLICTING_INSTANCE_METHOD_SETTER2,
       CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER,
       CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER,
       CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER,

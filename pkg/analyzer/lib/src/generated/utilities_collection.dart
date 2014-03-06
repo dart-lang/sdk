@@ -23,7 +23,10 @@ class BooleanArray {
    * @return the value of the element at the given index
    * @throws IndexOutOfBoundsException if the index is not between zero (0) and 31, inclusive
    */
-  static bool get(int array, Enum index) => get2(array, index.ordinal);
+  static bool get(int array, int index) {
+    checkIndex(index);
+    return (array & (1 << index)) > 0;
+  }
 
   /**
    * Return the value of the element at the given index.
@@ -33,10 +36,7 @@ class BooleanArray {
    * @return the value of the element at the given index
    * @throws IndexOutOfBoundsException if the index is not between zero (0) and 31, inclusive
    */
-  static bool get2(int array, int index) {
-    checkIndex(index);
-    return (array & (1 << index)) > 0;
-  }
+  static bool getEnum(int array, Enum index) => get(array, index.ordinal);
 
   /**
    * Set the value of the element at the given index to the given value.
@@ -47,18 +47,7 @@ class BooleanArray {
    * @return the updated value of the array
    * @throws IndexOutOfBoundsException if the index is not between zero (0) and 31, inclusive
    */
-  static int set(int array, Enum index, bool value) => set2(array, index.ordinal, value);
-
-  /**
-   * Set the value of the element at the given index to the given value.
-   *
-   * @param array the array being modified
-   * @param index the index of the element being set
-   * @param value the value to be assigned to the element
-   * @return the updated value of the array
-   * @throws IndexOutOfBoundsException if the index is not between zero (0) and 31, inclusive
-   */
-  static int set2(int array, int index, bool value) {
+  static int set(int array, int index, bool value) {
     checkIndex(index);
     if (value) {
       return array | (1 << index);
@@ -66,6 +55,17 @@ class BooleanArray {
       return array & ~(1 << index);
     }
   }
+
+  /**
+   * Set the value of the element at the given index to the given value.
+   *
+   * @param array the array being modified
+   * @param index the index of the element being set
+   * @param value the value to be assigned to the element
+   * @return the updated value of the array
+   * @throws IndexOutOfBoundsException if the index is not between zero (0) and 31, inclusive
+   */
+  static int setEnum(int array, Enum index, bool value) => set(array, index.ordinal, value);
 
   /**
    * Throw an exception if the index is not within the bounds allowed for an integer-encoded array

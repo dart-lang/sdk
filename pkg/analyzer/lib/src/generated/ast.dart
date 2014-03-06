@@ -2584,7 +2584,7 @@ class Comment extends AstNode {
    * @param references the references embedded within the documentation comment
    * @return the documentation comment that was created
    */
-  static Comment createDocumentationComment2(List<Token> tokens, List<CommentReference> references) => new Comment(tokens, CommentType.DOCUMENTATION, references);
+  static Comment createDocumentationCommentWithReferences(List<Token> tokens, List<CommentReference> references) => new Comment(tokens, CommentType.DOCUMENTATION, references);
 
   /**
    * Create an end-of-line comment.
@@ -4166,10 +4166,12 @@ class ExportDirective extends NamespaceDirective {
 
   accept(AstVisitor visitor) => visitor.visitExportDirective(this);
 
+  ExportElement get element => super.element as ExportElement;
+
   LibraryElement get uriElement {
-    Element element = this.element;
-    if (element is ExportElement) {
-      return element.exportedLibrary;
+    ExportElement exportElement = element;
+    if (exportElement != null) {
+      return exportElement.exportedLibrary;
     }
     return null;
   }
@@ -12095,7 +12097,7 @@ class ElementLocator {
    * @param offset the offset relative to source
    * @return the associated element, or `null` if none is found
    */
-  static Element locate2(AstNode node, int offset) {
+  static Element locateWithOffset(AstNode node, int offset) {
     // try to get Element from node
     {
       Element nodeElement = locate(node);
@@ -14560,7 +14562,7 @@ class AstCloner implements AstVisitor<AstNode> {
 
   Comment visitComment(Comment node) {
     if (node.isDocumentation) {
-      return Comment.createDocumentationComment2(node.tokens, cloneNodeList(node.references));
+      return Comment.createDocumentationCommentWithReferences(node.tokens, cloneNodeList(node.references));
     } else if (node.isBlock) {
       return Comment.createBlockComment(node.tokens);
     }
@@ -14785,7 +14787,7 @@ class AstComparator implements AstVisitor<bool> {
    * @param second the second node being compared
    * @return `true` if the two AST nodes are equal
    */
-  static bool equals4(CompilationUnit first, CompilationUnit second) {
+  static bool equalUnits(CompilationUnit first, CompilationUnit second) {
     AstComparator comparator = new AstComparator();
     return comparator.isEqualNodes(first, second);
   }
@@ -15508,7 +15510,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   Comment visitComment(Comment node) {
     if (node.isDocumentation) {
-      return Comment.createDocumentationComment2(mapTokens(node.tokens), cloneNodeList(node.references));
+      return Comment.createDocumentationCommentWithReferences(mapTokens(node.tokens), cloneNodeList(node.references));
     } else if (node.isBlock) {
       return Comment.createBlockComment(mapTokens(node.tokens));
     }

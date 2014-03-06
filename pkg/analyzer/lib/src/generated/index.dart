@@ -168,7 +168,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
 
   int _locationCount = 0;
 
-  bool aboutToIndex(AnalysisContext context, CompilationUnitElement unitElement) {
+  bool aboutToIndexDart(AnalysisContext context, CompilationUnitElement unitElement) {
     context = unwrapContext(context);
     // may be already removed in other thread
     if (isRemovedContext(context)) {
@@ -232,7 +232,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     return true;
   }
 
-  bool aboutToIndex2(AnalysisContext context, HtmlElement htmlElement) {
+  bool aboutToIndexHtml(AnalysisContext context, HtmlElement htmlElement) {
     context = unwrapContext(context);
     // may be already removed in other thread
     if (isRemovedContext(context)) {
@@ -279,7 +279,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     return count;
   }
 
-  int internalGetLocationCount2(AnalysisContext context) {
+  int internalGetLocationCountForContext(AnalysisContext context) {
     context = unwrapContext(context);
     int count = 0;
     for (Set<Location> locations in _keyToLocations.values) {
@@ -648,7 +648,7 @@ class IndexUnitOperation implements IndexOperation {
 
   void performOperation() {
     try {
-      bool mayIndex = _indexStore.aboutToIndex(_context, _unitElement);
+      bool mayIndex = _indexStore.aboutToIndexDart(_context, _unitElement);
       if (!mayIndex) {
         return;
       }
@@ -1391,7 +1391,7 @@ abstract class IndexStore {
    * @return `true` the given [AnalysisContext] is active, or `false` if it was
    *         removed before, so no any unit may be indexed with it
    */
-  bool aboutToIndex(AnalysisContext context, CompilationUnitElement unitElement);
+  bool aboutToIndexDart(AnalysisContext context, CompilationUnitElement unitElement);
 
   /**
    * Notifies the index store that we are going to index the given [HtmlElement].
@@ -1401,7 +1401,7 @@ abstract class IndexStore {
    * @return `true` the given [AnalysisContext] is active, or `false` if it was
    *         removed before, so no any unit may be indexed with it
    */
-  bool aboutToIndex2(AnalysisContext context, HtmlElement htmlElement);
+  bool aboutToIndexHtml(AnalysisContext context, HtmlElement htmlElement);
 
   /**
    * Return the locations of the elements that have the given relationship with the given element.
@@ -1552,82 +1552,11 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     // find ImportElement
     String prefix = prefixNode.name;
     Map<ImportElement, Set<Element>> importElementsMap = {};
-    info._element = getImportElement2(libraryElement, prefix, usedElement, importElementsMap);
+    info._element = internalGetImportElement(libraryElement, prefix, usedElement, importElementsMap);
     if (info._element == null) {
       return null;
     }
     return info;
-  }
-
-  /**
-   * @return the [ImportElement] that declares given [PrefixElement] and imports library
-   *         with given "usedElement".
-   */
-  static ImportElement getImportElement2(LibraryElement libraryElement, String prefix, Element usedElement, Map<ImportElement, Set<Element>> importElementsMap) {
-    // validate Element
-    if (usedElement == null) {
-      return null;
-    }
-    if (usedElement.enclosingElement is! CompilationUnitElement) {
-      return null;
-    }
-    LibraryElement usedLibrary = usedElement.library;
-    // find ImportElement that imports used library with used prefix
-    List<ImportElement> candidates = null;
-    for (ImportElement importElement in libraryElement.imports) {
-      // required library
-      if (importElement.importedLibrary != usedLibrary) {
-        continue;
-      }
-      // required prefix
-      PrefixElement prefixElement = importElement.prefix;
-      if (prefix == null) {
-        if (prefixElement != null) {
-          continue;
-        }
-      } else {
-        if (prefixElement == null) {
-          continue;
-        }
-        if (prefix != prefixElement.name) {
-          continue;
-        }
-      }
-      // no combinators => only possible candidate
-      if (importElement.combinators.length == 0) {
-        return importElement;
-      }
-      // OK, we have candidate
-      if (candidates == null) {
-        candidates = [];
-      }
-      candidates.add(importElement);
-    }
-    // no candidates, probably element is defined in this library
-    if (candidates == null) {
-      return null;
-    }
-    // one candidate
-    if (candidates.length == 1) {
-      return candidates[0];
-    }
-    // ensure that each ImportElement has set of elements
-    for (ImportElement importElement in candidates) {
-      if (importElementsMap.containsKey(importElement)) {
-        continue;
-      }
-      Namespace namespace = new NamespaceBuilder().createImportNamespace(importElement);
-      Set<Element> elements = new Set();
-      importElementsMap[importElement] = elements;
-    }
-    // use import namespace to choose correct one
-    for (MapEntry<ImportElement, Set<Element>> entry in getMapEntrySet(importElementsMap)) {
-      if (entry.getValue().contains(usedElement)) {
-        return entry.getKey();
-      }
-    }
-    // not found
-    return null;
   }
 
   /**
@@ -1711,6 +1640,77 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     }
     // done
     return location;
+  }
+
+  /**
+   * @return the [ImportElement] that declares given [PrefixElement] and imports library
+   *         with given "usedElement".
+   */
+  static ImportElement internalGetImportElement(LibraryElement libraryElement, String prefix, Element usedElement, Map<ImportElement, Set<Element>> importElementsMap) {
+    // validate Element
+    if (usedElement == null) {
+      return null;
+    }
+    if (usedElement.enclosingElement is! CompilationUnitElement) {
+      return null;
+    }
+    LibraryElement usedLibrary = usedElement.library;
+    // find ImportElement that imports used library with used prefix
+    List<ImportElement> candidates = null;
+    for (ImportElement importElement in libraryElement.imports) {
+      // required library
+      if (importElement.importedLibrary != usedLibrary) {
+        continue;
+      }
+      // required prefix
+      PrefixElement prefixElement = importElement.prefix;
+      if (prefix == null) {
+        if (prefixElement != null) {
+          continue;
+        }
+      } else {
+        if (prefixElement == null) {
+          continue;
+        }
+        if (prefix != prefixElement.name) {
+          continue;
+        }
+      }
+      // no combinators => only possible candidate
+      if (importElement.combinators.length == 0) {
+        return importElement;
+      }
+      // OK, we have candidate
+      if (candidates == null) {
+        candidates = [];
+      }
+      candidates.add(importElement);
+    }
+    // no candidates, probably element is defined in this library
+    if (candidates == null) {
+      return null;
+    }
+    // one candidate
+    if (candidates.length == 1) {
+      return candidates[0];
+    }
+    // ensure that each ImportElement has set of elements
+    for (ImportElement importElement in candidates) {
+      if (importElementsMap.containsKey(importElement)) {
+        continue;
+      }
+      Namespace namespace = new NamespaceBuilder().createImportNamespaceForDirective(importElement);
+      Set<Element> elements = new Set();
+      importElementsMap[importElement] = elements;
+    }
+    // use import namespace to choose correct one
+    for (MapEntry<ImportElement, Set<Element>> entry in getMapEntrySet(importElementsMap)) {
+      if (entry.getValue().contains(usedElement)) {
+        return entry.getKey();
+      }
+    }
+    // not found
+    return null;
   }
 
   /**
@@ -1924,7 +1924,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
   }
 
   Object visitExportDirective(ExportDirective node) {
-    ExportElement element = node.element as ExportElement;
+    ExportElement element = node.element;
     if (element != null) {
       LibraryElement expLibrary = element.exportedLibrary;
       recordLibraryReference(node, expLibrary);
@@ -2234,7 +2234,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
       return;
     }
     Element element = node.staticElement;
-    ImportElement importElement = getImportElement2(_libraryElement, null, element, _importElementsMap);
+    ImportElement importElement = internalGetImportElement(_libraryElement, null, element, _importElementsMap);
     if (importElement != null) {
       Location location = createLocationFromOffset(node.offset, 0);
       recordRelationship(importElement, IndexConstants.IS_REFERENCED_BY, location);
@@ -2650,7 +2650,7 @@ class IndexHtmlUnitOperation implements IndexOperation {
 
   void performOperation() {
     try {
-      bool mayIndex = _indexStore.aboutToIndex2(_context, _htmlElement);
+      bool mayIndex = _indexStore.aboutToIndexHtml(_context, _htmlElement);
       if (!mayIndex) {
         return;
       }

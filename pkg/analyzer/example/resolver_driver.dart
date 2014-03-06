@@ -30,7 +30,7 @@ main(List<String> args) {
   Source source = new FileBasedSource.con1(new JavaFile(args[1]));
   //
   ChangeSet changeSet = new ChangeSet();
-  changeSet.added(source);
+  changeSet.addedSource(source);
   context.applyChanges(changeSet);
   LibraryElement libElement = context.computeLibraryElement(source);
   print("libElement: $libElement");

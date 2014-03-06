@@ -128,7 +128,7 @@ class ResolverImpl implements Resolver {
             .forEach(processAsset);
 
       }, onError: (e) {
-        _context.applyChanges(new ChangeSet()..removed(sources[assetId]));
+        _context.applyChanges(new ChangeSet()..removedSource(sources[assetId]));
         sources.remove(assetId);
       }));
     }
@@ -140,7 +140,7 @@ class ResolverImpl implements Resolver {
       var changeSet = new ChangeSet();
       var unreachableAssets = new Set.from(sources.keys).difference(visited);
       for (var unreachable in unreachableAssets) {
-        changeSet.removed(sources[unreachable]);
+        changeSet.removedSource(sources[unreachable]);
         sources.remove(unreachable);
       }
 
@@ -287,9 +287,9 @@ class _AssetBasedSource extends Source {
     _dependentAssets = null;
 
     if (added) {
-      _resolver._context.applyChanges(new ChangeSet()..added(this));
+      _resolver._context.applyChanges(new ChangeSet()..addedSource(this));
     } else {
-      _resolver._context.applyChanges(new ChangeSet()..changed(this));
+      _resolver._context.applyChanges(new ChangeSet()..changedSource(this));
     }
 
     var compilationUnit = _resolver._context.parseCompilationUnit(this);

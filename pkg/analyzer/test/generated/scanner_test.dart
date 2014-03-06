@@ -228,13 +228,13 @@ class TokenTypeTest extends EngineTestCase {
  * The class `TokenFactory` defines utility methods that can be used to create tokens.
  */
 class TokenFactory {
-  static Token token(Keyword keyword) => new KeywordToken(keyword, 0);
+  static Token tokenFromKeyword(Keyword keyword) => new KeywordToken(keyword, 0);
 
-  static Token token2(String lexeme) => new StringToken(TokenType.STRING, lexeme, 0);
+  static Token tokenFromString(String lexeme) => new StringToken(TokenType.STRING, lexeme, 0);
 
-  static Token token3(TokenType type) => new Token(type, 0);
+  static Token tokenFromType(TokenType type) => new Token(type, 0);
 
-  static Token token4(TokenType type, String lexeme) => new StringToken(type, lexeme, 0);
+  static Token tokenFromTypeAndString(TokenType type, String lexeme) => new StringToken(type, lexeme, 0);
 }
 
 /**
@@ -1048,7 +1048,7 @@ class ScannerTest extends JUnitTestCase {
 
   void test_unclosedPairInInterpolation() {
     GatheringErrorListener listener = new GatheringErrorListener();
-    scan2("'\${(}'", listener);
+    scanWithListener("'\${(}'", listener);
   }
 
   void assertComment(TokenType commentType, String source) {
@@ -1087,7 +1087,7 @@ class ScannerTest extends JUnitTestCase {
    */
   void assertError(ScannerErrorCode expectedError, int expectedOffset, String source) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    scan2(source, listener);
+    scanWithListener(source, listener);
     listener.assertErrors([new AnalysisError.con2(null, expectedOffset, 1, expectedError, [source.codeUnitAt(expectedOffset)])]);
   }
 
@@ -1121,7 +1121,7 @@ class ScannerTest extends JUnitTestCase {
 
   void assertLineInfo(String source, List<ScannerTest_ExpectedLocation> expectedLocations) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    scan2(source, listener);
+    scanWithListener(source, listener);
     listener.assertNoErrors();
     LineInfo info = listener.getLineInfo(new TestSource());
     JUnitTestCase.assertNotNull(info);
@@ -1205,12 +1205,12 @@ class ScannerTest extends JUnitTestCase {
 
   Token scan(String source) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    Token token = scan2(source, listener);
+    Token token = scanWithListener(source, listener);
     listener.assertNoErrors();
     return token;
   }
 
-  Token scan2(String source, GatheringErrorListener listener) {
+  Token scanWithListener(String source, GatheringErrorListener listener) {
     Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     Token result = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
@@ -1917,7 +1917,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "s + b;")
     scan("", "ab", "", "s + b;");
     assertTokens(-1, 1, ["s", "+", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_delete_identifier_end() {
@@ -1925,7 +1925,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "a + b;")
     scan("a", "bs", "", " + b;");
     assertTokens(-1, 1, ["a", "+", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_delete_identifier_middle() {
@@ -1933,7 +1933,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "as + b;")
     scan("a", "b", "", "s + b;");
     assertTokens(-1, 1, ["as", "+", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_delete_mergeTokens() {
@@ -1941,7 +1941,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "ac;")
     scan("a", " + b + ", "", "c;");
     assertTokens(-1, 1, ["ac", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_insert_afterIdentifier1() {
@@ -1950,7 +1950,7 @@ class IncrementalScannerTest extends EngineTestCase {
     scan("a", "", "bs", " + b;");
     assertTokens(-1, 1, ["abs", "+", "b", ";"]);
     assertReplaced(1, "+");
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_insert_afterIdentifier2() {
@@ -1958,7 +1958,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "a + by;"
     scan("a + b", "", "y", ";");
     assertTokens(1, 3, ["a", "+", "by", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_insert_beforeIdentifier() {
@@ -1966,7 +1966,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "a + xb;")
     scan("a + ", "", "x", "b;");
     assertTokens(1, 3, ["a", "+", "xb", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_insert_beforeIdentifier_firstToken() {
@@ -1974,7 +1974,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "xa + b;"
     scan("", "", "x", "a + b;");
     assertTokens(-1, 1, ["xa", "+", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_insert_convertOneFunctionToTwo() {
@@ -1982,7 +1982,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "f() => 0; g() {}"
     scan("f()", "", " => 0; g()", " {}");
     assertTokens(2, 9, ["f", "(", ")", "=>", "0", ";", "g", "(", ")", "{", "}"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_insert_end() {
@@ -1990,7 +1990,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "class A {} class B {}"
     scan("class A {}", "", " class B {}", "");
     assertTokens(3, 8, ["class", "A", "{", "}", "class", "B", "{", "}"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_insert_insideIdentifier() {
@@ -1998,7 +1998,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "cow.b;"
     scan("co", "", "w.", "b;");
     assertTokens(-1, 3, ["cow", ".", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_insert_newIdentifier1() {
@@ -2006,7 +2006,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "a; b c;"
     scan("a; ", "", "b", " c;");
     assertTokens(1, 3, ["a", ";", "b", "c", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_insert_newIdentifier2() {
@@ -2015,7 +2015,7 @@ class IncrementalScannerTest extends EngineTestCase {
     scan("a;", "", "b", "  c;");
     assertTokens(1, 3, ["a", ";", "b", "c", ";"]);
     assertReplaced(1, ";");
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_insert_period() {
@@ -2030,7 +2030,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "a. b;"
     scan("a", "", ".", " b;");
     assertTokens(0, 2, ["a", ".", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_insert_period_betweenIdentifiers2() {
@@ -2045,7 +2045,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "a . b;"
     scan("a ", "", ".", " b;");
     assertTokens(0, 2, ["a", ".", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_insert_period_insideExistingIdentifier() {
@@ -2053,7 +2053,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "a.b;"
     scan("a", "", ".", "b;");
     assertTokens(-1, 3, ["a", ".", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_insert_periodAndIdentifier() {
@@ -2068,7 +2068,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // " a + b;"
     scan("", "", " ", "a + b;");
     assertTokens(0, 1, ["a", "+", "b", ";"]);
-    JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_insert_whitespace_betweenTokens() {
@@ -2076,7 +2076,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "a  + b;"
     scan("a ", "", " ", "+ b;");
     assertTokens(1, 2, ["a", "+", "b", ";"]);
-    JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_insert_whitespace_end_afterToken() {
@@ -2084,7 +2084,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "a + b; "
     scan("a + b;", "", " ", "");
     assertTokens(3, 4, ["a", "+", "b", ";"]);
-    JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_insert_whitespace_end_afterWhitespace() {
@@ -2092,7 +2092,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "a + b;  "
     scan("a + b; ", "", " ", "");
     assertTokens(3, 4, ["a", "+", "b", ";"]);
-    JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_insert_whitespace_withMultipleComments() {
@@ -2100,7 +2100,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "//comment", "//comment2", "a  + b;"
     scan(EngineTestCase.createSource(["//comment", "//comment2", "a"]), "", " ", " + b;");
     assertTokens(1, 2, ["a", "+", "b", ";"]);
-    JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_replace_identifier_beginning() {
@@ -2108,7 +2108,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "fell + b;")
     scan("", "b", "f", "ell + b;");
     assertTokens(-1, 1, ["fell", "+", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_replace_identifier_end() {
@@ -2116,7 +2116,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "belt + b;")
     scan("bel", "l", "t", " + b;");
     assertTokens(-1, 1, ["belt", "+", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_replace_identifier_middle() {
@@ -2124,7 +2124,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "frost + b;")
     scan("f", "ir", "ro", "st + b;");
     assertTokens(-1, 1, ["frost", "+", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_replace_multiple_partialFirstAndLast() {
@@ -2132,7 +2132,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "ab * ab;")
     scan("a", "a + b", "b * a", "b;");
     assertTokens(-1, 3, ["ab", "*", "ab", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_replace_operator_oneForMany() {
@@ -2140,7 +2140,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "a * c - b;")
     scan("a ", "+", "* c -", " b;");
     assertTokens(0, 4, ["a", "*", "c", "-", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_replace_operator_oneForOne() {
@@ -2148,7 +2148,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "a * b;")
     scan("a ", "+", "*", " b;");
     assertTokens(0, 2, ["a", "*", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   void test_tokenMap() {
@@ -2164,7 +2164,7 @@ class IncrementalScannerTest extends EngineTestCase {
       JUnitTestCase.assertEquals(oldToken.lexeme, newToken.lexeme);
       oldToken = oldToken.next;
     }
-    JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange());
+    JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange);
   }
 
   /**
