@@ -92,31 +92,36 @@ abstract class StreamController<T> implements StreamSink<T> {
   /**
    * A controller where [stream] can be listened to more than once.
    *
-   * The [Stream] returned by [stream] is a broadcast stream. It can be listened
-   * to more than once.
+   * The [Stream] returned by [stream] is a broadcast stream.
+   * It can be listened to more than once.
    *
    * The controller distributes any events to all currently subscribed
-   * listeners.
-   * It is not allowed to call [add], [addError], or [close] before a previous
-   * call has returned.
+   * listeners at the time when [add], [addError] or [close] is called.
+   * It is not allowed to call `add`, `addError`, or `close` before a previous
+   * call has returned. The controller does not have any internal queue of
+   * events, and if there are no listeners at the time the event is added,
+   * it will just be dropped, or, if it is an error, be reported as uncaught.
    *
-   * If [sync] is true, events may be passed directly to the stream's listener
-   * during an [add], [addError] or [close] call. If [sync] is false, the event
-   * will be passed to the listener at a later time, after the code creating
-   * the event has returned.
+   * Each listener subscription is handled independently,
+   * and if one pauses, only the pausing listener is affected.
+   * A paused listener will buffer events internally until unpaused or canceled.
    *
-   * Each listener is handled independently, and if they pause, only the pausing
-   * listener is affected. A paused listener will buffer events internally until
-   * unpaused or canceled.
+   * If [sync] is true, events may be fired directly by the stream's
+   * subscriptions during an [add], [addError] or [close] call.
+   * If [sync] is false, the event will be fired at a later time,
+   * after the code adding the event has completed.
    *
-   * If [sync] is false, no guarantees are given with regard to when
+   * When [sync] is false, no guarantees are given with regard to when
    * multiple listeners get the events, except that each listener will get
-   * all events in the correct order. If two events are sent on an async
-   * controller with two listeners, one of the listeners may get both events
+   * all events in the correct order. Each subscription handles the events
+   * individually.
+   * If two events are sent on an async controller with two listeners,
+   * one of the listeners may get both events
    * before the other listener gets any.
-   * A listener must be subscribed both when the event is initiated (that is,
-   * when [add] is called) and when the event is later delivered, in order to
-   * get the event.
+   * A listener must be subscribed both when the event is initiated
+   * (that is, when [add] is called)
+   * and when the event is later delivered,
+   * in order to receive the event.
    *
    * The [onListen] callback is called when the first listener is subscribed,
    * and the [onCancel] is called when there are no longer any active listeners.
