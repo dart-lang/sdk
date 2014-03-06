@@ -44,17 +44,30 @@ library polymer;
 // b7200854b2441a22ce89f6563963f36c50f5150d baseline.
 
 import 'dart:async';
-import 'dart:collection' show HashMap, HashSet, LinkedHashMap;
+import 'dart:collection' show HashMap, HashSet;
 import 'dart:html';
 import 'dart:js' as js show context;
 import 'dart:js' hide context;
 
+// *** Important Note ***
+// This import is automatically replaced when calling pub build by the
+// mirrors_remover transformer. The transformer will remove any dependencies on
+// dart:mirrors in deployed polymer apps. This and the import to
+// mirror_loader.dart below should be updated in sync with changed in
+// lib/src/build/mirrors_remover.dart.
+//
+// Technically, if we have codegen for expressions we shouldn't need any
+// @MirrorsUsed (since this is for development only), but our test bots don't
+// run pub-build yet. Until then, polymer might be tested with mirror_loader
+// instead of the static_loader, however the actual code there is practically
+// dead ([initializers] will be set programatically with generated code
+// anyways), but the @MirrorsUsed helps reduce the load on our bots.
 @MirrorsUsed(metaTargets:
     const [Reflectable, ObservableProperty, PublishedProperty, CustomTag,
-        _InitMethodAnnotation],
-    targets: const [PublishedProperty],
-    override: const ['smoke.mirrors', 'polymer'])
-import 'dart:mirrors';
+        ObserveProperty],
+    targets: const [PublishedProperty, ObserveProperty],
+    override: const ['smoke.mirrors'])
+import 'dart:mirrors' show MirrorsUsed;    // ** see important note above
 
 import 'package:logging/logging.dart' show Logger, Level;
 import 'package:observe/observe.dart';
@@ -68,6 +81,7 @@ import 'package:template_binding/template_binding.dart';
 import 'package:web_components/polyfill.dart' show customElementsReady;
 
 import 'deserialize.dart' as deserialize;
+import 'src/mirror_loader.dart' as loader; // ** see important note above
 
 export 'package:observe/observe.dart';
 export 'package:observe/html.dart';

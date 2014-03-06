@@ -651,7 +651,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     // TODO(sorvell): need to review, can do with ObserverTransform
     var v = bindable.value;
     if (v == null) {
-      bindable.value = reflect(this).getField(name).reflectee;
+      bindable.value = smoke.read(this, name);
     }
 
     // TODO(jmesserly): this will create another subscription.

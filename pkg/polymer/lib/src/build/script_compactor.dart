@@ -8,6 +8,7 @@ library polymer.src.build.script_compactor;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:html5lib/dom.dart' show Document, Element;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
@@ -26,7 +27,7 @@ import 'common.dart';
 /// Internally, this transformer will convert each script tag into an import
 /// statement to a library, and then uses `initPolymer` (see polymer.dart)  to
 /// process `@initMethod` and `@CustomTag` annotations in those libraries.
-class ScriptCompactor extends Transformer with PolymerTransformer {
+class ScriptCompactor extends Transformer {
   final TransformOptions options;
 
   ScriptCompactor(this.options);
@@ -35,95 +36,134 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
   Future<bool> isPrimary(Asset input) =>
       new Future.value(options.isHtmlEntryPoint(input.id));
 
-  Future apply(Transform transform) {
-    var id = transform.primaryInput.id;
-    var secondaryId = id.addExtension('.scriptUrls');
-    var logger = transform.logger;
-    return readPrimaryAsHtml(transform).then((document) {
-      return transform.readInputAsString(secondaryId).then((libraryIds) {
-        var libraries = (JSON.decode(libraryIds) as Iterable).map(
-          (data) => new AssetId.deserialize(data)).toList();
-        var mainLibraryId;
-        var mainScriptTag;
-        bool changed = false;
+  Future apply(Transform transform) =>
+      new _ScriptCompactor(transform, options).apply();
+}
 
-        for (var tag in document.querySelectorAll('script')) {
-          var src = tag.attributes['src'];
-          if (src == 'packages/polymer/boot.js') {
-            tag.remove();
-            continue;
-          }
-          if (tag.attributes['type'] != 'application/dart') continue;
-          if (src == null) {
-            logger.warning('unexpected script without a src url. The '
-              'ScriptCompactor transformer should run after running the '
-              'InlineCodeExtractor', span: tag.sourceSpan);
-            continue;
-          }
-          if (mainLibraryId != null) {
-            logger.warning('unexpected script. Only one Dart script tag '
-              'per document is allowed.', span: tag.sourceSpan);
-            tag.remove();
-            continue;
-          }
-          mainLibraryId = resolve(id, src, logger, tag.sourceSpan);
-          mainScriptTag = tag;
-        }
+/// Helper class mainly use to flatten the async code.
+class _ScriptCompactor extends PolymerTransformer {
+  final TransformOptions options;
+  final Transform transform;
+  final TransformLogger logger;
+  final AssetId docId;
+  final AssetId bootstrapId;
 
-        if (mainScriptTag == null) {
-          // We didn't find any main library, nothing to do.
-          transform.addOutput(transform.primaryInput);
-          return null;
-        }
+  Document document;
+  List<AssetId> entryLibraries;
+  AssetId mainLibraryId;
+  Element mainScriptTag;
+  final Map<AssetId, List<_Initializer>> initializers = {};
 
-        // Emit the bootstrap .dart file
-        var bootstrapId = id.addExtension('_bootstrap.dart');
-        mainScriptTag.attributes['src'] =
-            path.url.basename(bootstrapId.path);
+  _ScriptCompactor(Transform transform, this.options)
+      : transform = transform,
+        logger = transform.logger,
+        docId = transform.primaryInput.id,
+        bootstrapId = transform.primaryInput.id.addExtension('_bootstrap.dart');
 
-        libraries.add(mainLibraryId);
-        var urls = libraries.map((id) => assetUrlFor(id, bootstrapId, logger))
-            .where((url) => url != null).toList();
-        var buffer = new StringBuffer()..writeln(MAIN_HEADER);
-        int i = 0;
-        for (; i < urls.length; i++) {
-          buffer.writeln("import '${urls[i]}' as i$i;");
-        }
+  Future apply() =>
+      _loadDocument()
+      .then(_loadEntryLibraries)
+      .then(_processHtml)
+      .then(_emitNewEntrypoint);
 
-        buffer..write('\n')
-            ..writeln('void main() {')
-            ..writeln('  configureForDeployment([');
+  /// Loads the primary input as an html document.
+  Future _loadDocument() =>
+      readPrimaryAsHtml(transform).then((doc) { document = doc; });
 
-        // Inject @CustomTag and @initMethod initializations for each library
-        // that is sourced in a script tag.
-        i = 0;
-        return Future.forEach(libraries, (lib) {
-          return _initializersOf(lib, transform, logger).then((initializers) {
-            for (var init in initializers) {
-              var code = init.asCode('i$i');
-              buffer.write("      $code,\n");
-            }
-            i++;
-          });
-        }).then((_) {
-          buffer..writeln('    ]);')
-              ..writeln('  i${urls.length - 1}.main();')
-              ..writeln('}');
-
-          transform.addOutput(new Asset.fromString(
-                bootstrapId, buffer.toString()));
-          transform.addOutput(new Asset.fromString(id, document.outerHtml));
-        });
+  /// Populates [entryLibraries] as a list containing the asset ids of each
+  /// library loaded on a script tag. The actual work of computing this is done
+  /// in an earlier phase and emited in the `entrypoint.scriptUrls` asset.
+  Future _loadEntryLibraries(_) =>
+      transform.readInputAsString(docId.addExtension('.scriptUrls'))
+          .then((libraryIds) {
+        entryLibraries = (JSON.decode(libraryIds) as Iterable)
+            .map((data) => new AssetId.deserialize(data)).toList();
       });
+
+  /// Removes unnecessary script tags, and identifies the main entry point Dart
+  /// script tag (if any).
+  void _processHtml(_) {
+    for (var tag in document.querySelectorAll('script')) {
+      var src = tag.attributes['src'];
+      if (src == 'packages/polymer/boot.js') {
+        tag.remove();
+        continue;
+      }
+      if (tag.attributes['type'] != 'application/dart') continue;
+      if (src == null) {
+        logger.warning('unexpected script without a src url. The '
+          'ScriptCompactor transformer should run after running the '
+          'InlineCodeExtractor', span: tag.sourceSpan);
+        continue;
+      }
+      if (mainLibraryId != null) {
+        logger.warning('unexpected script. Only one Dart script tag '
+          'per document is allowed.', span: tag.sourceSpan);
+        tag.remove();
+        continue;
+      }
+      mainLibraryId = resolve(docId, src, logger, tag.sourceSpan);
+      mainScriptTag = tag;
+    }
+  }
+
+  /// Emits the main HTML and Dart bootstrap code for the application. If there
+  /// were not Dart entry point files, then this simply emits the original HTML.
+  Future _emitNewEntrypoint(_) {
+    if (mainScriptTag == null) {
+      // We didn't find any main library, nothing to do.
+      transform.addOutput(transform.primaryInput);
+      return null;
+    }
+
+    // Emit the bootstrap .dart file
+    mainScriptTag.attributes['src'] = path.url.basename(bootstrapId.path);
+    entryLibraries.add(mainLibraryId);
+    return _computeInitializers().then(_createBootstrapCode).then((code) {
+      transform.addOutput(new Asset.fromString(bootstrapId, code));
+      transform.addOutput(new Asset.fromString(docId, document.outerHtml));
     });
   }
+
+  /// Emits the actual bootstrap code.
+  String _createBootstrapCode(_) {
+    StringBuffer code = new StringBuffer()..writeln(MAIN_HEADER);
+    for (int i = 0; i < entryLibraries.length; i++) {
+      var url = assetUrlFor(entryLibraries[i], bootstrapId, logger);
+      if (url != null) code.writeln("import '$url' as i$i;");
+    }
+
+    code..write('\n')
+        ..writeln('void main() {')
+        ..writeln('  configureForDeployment([');
+
+    // Inject @CustomTag and @initMethod initializations for each library
+    // that is sourced in a script tag.
+    for (int i = 0; i < entryLibraries.length; i++) {
+      for (var init in initializers[entryLibraries[i]]) {
+        var initCode = init.asCode('i$i');
+        code.write("      $initCode,\n");
+      }
+    }
+    code..writeln('    ]);')
+        ..writeln('  i${entryLibraries.length - 1}.main();')
+        ..writeln('}');
+    return code.toString();
+  }
+
+  /// Computes initializers needed for each library in [entryLibraries]. Results
+  /// are available afterwards in [initializers].
+  Future _computeInitializers() => Future.forEach(entryLibraries, (lib) {
+      return _initializersOf(lib).then((res) {
+        initializers[lib] = res;
+      });
+    });
 
   /// Computes the initializers of [dartLibrary]. That is, a closure that calls
   /// Polymer.register for each @CustomTag, and any public top-level methods
   /// labeled with @initMethod.
-  Future<List<_Initializer>> _initializersOf(
-      AssetId dartLibrary, Transform transform, TransformLogger logger) {
-    var initializers = [];
+  Future<List<_Initializer>> _initializersOf(AssetId dartLibrary) {
+    var result = [];
     return transform.readInputAsString(dartLibrary).then((code) {
       var file = new SourceFile.text(_simpleUriForSource(dartLibrary), code);
       var unit = parseCompilationUnit(code);
@@ -133,8 +173,7 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
         if (directive is PartDirective) {
           var targetId = resolve(dartLibrary, directive.uri.stringValue,
               logger, _getSpan(file, directive));
-          return _initializersOf(targetId, transform, logger)
-              .then(initializers.addAll);
+          return _initializersOf(targetId).then(result.addAll);
         }
 
         // Similarly, include anything from exports except what's filtered by
@@ -142,20 +181,20 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
         if (directive is ExportDirective) {
           var targetId = resolve(dartLibrary, directive.uri.stringValue,
               logger, _getSpan(file, directive));
-          return _initializersOf(targetId, transform, logger)
-              .then((r) => _processExportDirective(directive, r, initializers));
+          return _initializersOf(targetId).then(
+            (r) => _processExportDirective(directive, r, result));
         }
       }).then((_) {
         // Scan the code for classes and top-level functions.
         for (var node in unit.declarations) {
           if (node is ClassDeclaration) {
-            _processClassDeclaration(node, initializers, file, logger);
+            _processClassDeclaration(node, result, file, logger);
           } else if (node is FunctionDeclaration &&
               node.metadata.any(_isInitMethodAnnotation)) {
-            _processFunctionDeclaration(node, initializers, file, logger);
+            _processFunctionDeclaration(node, result, file, logger);
           }
         }
-        return initializers;
+        return result;
       });
     });
   }
@@ -165,11 +204,11 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
       ? 'package:${source.package}/${source.path.substring(4)}' : source.path;
 
   /// Filter [exportedInitializers] according to [directive]'s show/hide
-  /// combinators and add the result to [initializers].
+  /// combinators and add the result to [result].
   // TODO(sigmund): call the analyzer's resolver instead?
   static _processExportDirective(ExportDirective directive,
       List<_Initializer> exportedInitializers,
-      List<_Initializer> initializers) {
+      List<_Initializer> result) {
     for (var combinator in directive.combinators) {
       if (combinator is ShowCombinator) {
         var show = combinator.shownNames.map((n) => n.name).toSet();
@@ -179,13 +218,13 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
         exportedInitializers.removeWhere((e) => hide.contains(e.symbolName));
       }
     }
-    initializers.addAll(exportedInitializers);
+    result.addAll(exportedInitializers);
   }
 
   /// Add an initializer to register [node] as a polymer element if it contains
   /// an appropriate [CustomTag] annotation.
   static _processClassDeclaration(ClassDeclaration node,
-      List<_Initializer> initializers, SourceFile file,
+      List<_Initializer> result, SourceFile file,
       TransformLogger logger) {
     for (var meta in node.metadata) {
       if (!_isCustomTagAnnotation(meta)) continue;
@@ -203,13 +242,13 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
           'classes: $tagName', span: _getSpan(file, node.name));
         continue;
       }
-      initializers.add(new _CustomTagInitializer(tagName, typeName));
+      result.add(new _CustomTagInitializer(tagName, typeName));
     }
   }
 
   /// Add a method initializer for [function].
   static _processFunctionDeclaration(FunctionDeclaration function,
-      List<_Initializer> initializers, SourceFile file,
+      List<_Initializer> result, SourceFile file,
       TransformLogger logger) {
     var name = function.name.name;
     if (name.startsWith('_')) {
@@ -217,7 +256,7 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
         'functions: $name', span: _getSpan(file, function.name));
       return;
     }
-    initializers.add(new _InitMethodInitializer(name));
+    result.add(new _InitMethodInitializer(name));
   }
 }
 
@@ -256,4 +295,5 @@ const MAIN_HEADER = """
 library app_bootstrap;
 
 import 'package:polymer/polymer.dart';
+import 'package:smoke/static.dart' as smoke;
 """;
