@@ -376,6 +376,111 @@ static RawInstance* CreateLibraryMirror(const Library& lib) {
 }
 
 
+static RawInstance* CreateCombinatorMirror(const Object& identifiers,
+                                           bool is_show) {
+  const Array& args = Array::Handle(Array::New(2));
+  args.SetAt(0, identifiers);
+  args.SetAt(1, Bool::Get(is_show));
+  return CreateMirror(Symbols::_LocalCombinatorMirror(), args);
+}
+
+
+static RawInstance* CreateLibraryDependencyMirror(const Instance& importer,
+                                                  const Namespace& ns,
+                                                  const String& prefix,
+                                                  bool is_import) {
+  const Library& importee = Library::Handle(ns.library());
+  const Instance& importee_mirror =
+      Instance::Handle(CreateLibraryMirror(importee));
+
+  const Array& show_names = Array::Handle(ns.show_names());
+  const Array& hide_names = Array::Handle(ns.hide_names());
+  intptr_t n = show_names.IsNull() ? 0 : show_names.Length();
+  intptr_t m = hide_names.IsNull() ? 0 : hide_names.Length();
+  const Array& combinators = Array::Handle(Array::New(n + m));
+  Object& t = Object::Handle();
+  intptr_t i = 0;
+  for (intptr_t j = 0; j < n; j++) {
+    t = show_names.At(j);
+    t = CreateCombinatorMirror(t, true);
+    combinators.SetAt(i++, t);
+  }
+  for (intptr_t j = 0; j < m; j++) {
+    t = hide_names.At(j);
+    t = CreateCombinatorMirror(t, false);
+    combinators.SetAt(i++, t);
+  }
+
+  Object& metadata = Object::Handle(ns.GetMetadata());
+  if (metadata.IsError()) {
+    ThrowInvokeError(Error::Cast(metadata));
+    UNREACHABLE();
+  }
+
+  const Array& args = Array::Handle(Array::New(6));
+  args.SetAt(0, importer);
+  args.SetAt(1, importee_mirror);
+  args.SetAt(2, combinators);
+  args.SetAt(3, prefix);
+  args.SetAt(4, Bool::Get(is_import));
+  args.SetAt(5, metadata);
+  // is_deferred?
+  return CreateMirror(Symbols::_LocalLibraryDependencyMirror(), args);
+}
+
+
+DEFINE_NATIVE_ENTRY(LibraryMirror_libraryDependencies, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, lib_mirror, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
+  const Library& lib = Library::Handle(ref.GetLibraryReferent());
+
+  Array& ports = Array::Handle();
+  Namespace& ns = Namespace::Handle();
+  Instance& dep = Instance::Handle();
+  String& prefix = String::Handle();
+  GrowableObjectArray& deps =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+
+  // Unprefixed imports.
+  ports = lib.imports();
+  for (intptr_t i = 0; i < ports.Length(); i++) {
+    ns ^= ports.At(i);
+    if (!ns.IsNull()) {
+      dep = CreateLibraryDependencyMirror(lib_mirror, ns, prefix, true);
+      deps.Add(dep);
+    }
+  }
+
+  // Exports.
+  ports = lib.exports();
+  for (intptr_t i = 0; i < ports.Length(); i++) {
+    ns ^= ports.At(i);
+    dep = CreateLibraryDependencyMirror(lib_mirror, ns, prefix, false);
+    deps.Add(dep);
+  }
+
+  // Prefixed imports.
+  DictionaryIterator entries(lib);
+  Object& entry = Object::Handle();
+  while (entries.HasNext()) {
+    entry = entries.GetNext();
+    if (entry.IsLibraryPrefix()) {
+      const LibraryPrefix& lib_prefix = LibraryPrefix::Cast(entry);
+      prefix = lib_prefix.name();
+      ports = lib_prefix.imports();
+      for (intptr_t i = 0; i < ports.Length(); i++) {
+        ns ^= ports.At(i);
+        if (!ns.IsNull()) {
+          dep = CreateLibraryDependencyMirror(lib_mirror, ns, prefix, true);
+          deps.Add(dep);
+        }
+      }
+    }
+  }
+
+  return deps.raw();
+}
+
 static RawInstance* CreateTypeMirror(const AbstractType& type) {
   if (type.IsTypeRef()) {
     AbstractType& ref_type = AbstractType::Handle(TypeRef::Cast(type).type());
