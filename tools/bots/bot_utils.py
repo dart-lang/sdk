@@ -210,11 +210,12 @@ def run(command, env=None, shell=False, throw_on_error=True):
 class GSUtil(object):
   GSUTIL_IS_SHELL_SCRIPT = False
   GSUTIL_PATH = None
+  USE_DART_REPO_VERSION = False
 
   def _layzCalculateGSUtilPath(self):
     if not GSUtil.GSUTIL_PATH:
       buildbot_gsutil = utils.GetBuildbotGSUtilPath()
-      if os.path.isfile(buildbot_gsutil):
+      if os.path.isfile(buildbot_gsutil) and not GSUtil.USE_DART_REPO_VERSION:
         GSUtil.GSUTIL_IS_SHELL_SCRIPT = True
         GSUtil.GSUTIL_PATH = buildbot_gsutil
       else:
