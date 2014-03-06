@@ -810,6 +810,61 @@ static Dart_Handle GenerateScriptSource() {
 }
 
 
+static const char* ServiceRequestError(const char* message) {
+  TextBuffer buffer(128);
+  buffer.Printf("{\"type\":\"Error\",\"text\":\"%s\"}", message);
+  return buffer.Steal();
+}
+
+
+static const char* ServiceRequestError(Dart_Handle error) {
+  TextBuffer buffer(128);
+  buffer.Printf("{\"type\":\"Error\",\"text\":\"Internal error %s\"}",
+                Dart_GetError(error));
+  return buffer.Steal();
+}
+
+
+class DartScope {
+ public:
+  DartScope() { Dart_EnterScope(); }
+  ~DartScope() { Dart_ExitScope(); }
+};
+
+
+static const char* ServiceRequestHandler(
+    const char* name,
+    const char** arguments,
+    intptr_t num_arguments,
+    const char** option_keys,
+    const char** option_values,
+    intptr_t num_options,
+    void* user_data) {
+  DartScope scope;
+  const char* kSockets = "sockets";
+  if (num_arguments == 2 &&
+      strncmp(arguments[1], kSockets, strlen(kSockets)) == 0) {
+    Dart_Handle dart_io_str = Dart_NewStringFromCString("dart:io");
+    if (Dart_IsError(dart_io_str)) return ServiceRequestError(dart_io_str);
+    Dart_Handle io_lib = Dart_LookupLibrary(dart_io_str);
+    if (Dart_IsError(io_lib)) return ServiceRequestError(io_lib);
+    Dart_Handle handler_function_name =
+        Dart_NewStringFromCString("_socketsStats");
+    if (Dart_IsError(handler_function_name)) {
+      return ServiceRequestError(handler_function_name);
+    }
+    Dart_Handle result = Dart_Invoke(io_lib, handler_function_name, 0, NULL);
+    if (Dart_IsError(result)) return ServiceRequestError(result);
+    const char *json;
+    result = Dart_StringToCString(result, &json);
+    if (Dart_IsError(result)) return ServiceRequestError(result);
+    return strdup(json);
+  } else {
+    return ServiceRequestError("Unrecognized path");
+  }
+}
+
+
 void main(int argc, char** argv) {
   char* script_name;
   CommandLineOptions vm_options(argc);
@@ -894,6 +949,8 @@ void main(int argc, char** argv) {
       Log::PrintErr("Could not start VM Service isolate %s\n",
                     VmService::GetErrorMessage());
     }
+    Dart_RegisterIsolateServiceRequestCallback(
+        "io", &ServiceRequestHandler, NULL);
   }
 
   // Call CreateIsolateAndSetup which creates an isolate and loads up
