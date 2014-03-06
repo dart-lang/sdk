@@ -12,7 +12,7 @@ interface AudioContext {
 interface WaveShaperNode {
   // TODO(ager): Auto-generate this custom method when the info about retaining
   // typed arrays is in the IDL.
-  [CustomSetter] attribute Float32Array curve;
+  [Custom=Setter] attribute Float32Array curve;
 };
 
 [Supplemental]
@@ -328,20 +328,20 @@ interface JavaScriptCallFrame {};
 
 [Supplemental]
 interface Location {
-  [CustomSetter] attribute DOMString href;
+  [Custom=Setter] attribute DOMString href;
 
   [Custom] void assign(optional DOMString url);
   [Custom] void replace([Default=Undefined] optional DOMString url);
   [Custom] void reload();
 
   // URI decomposition attributes
-  [CustomSetter] attribute DOMString protocol;
-  [CustomSetter] attribute DOMString host;
-  [CustomSetter] attribute DOMString hostname;
-  [CustomSetter] attribute DOMString port;
-  [CustomSetter] attribute DOMString pathname;
-  [CustomSetter] attribute DOMString search;
-  [CustomSetter] attribute DOMString hash;
+  [Custom=Setter] attribute DOMString protocol;
+  [Custom=Setter] attribute DOMString host;
+  [Custom=Setter] attribute DOMString hostname;
+  [Custom=Setter] attribute DOMString port;
+  [Custom=Setter] attribute DOMString pathname;
+  [Custom=Setter] attribute DOMString search;
+  [Custom=Setter] attribute DOMString hash;
 };
 
 // TODO(jacobr): reenable these new Blink features.
