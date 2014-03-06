@@ -198,6 +198,7 @@ class CodeRegion : public ZoneAllocated {
       end_(end),
       inclusive_ticks_(0),
       exclusive_ticks_(0),
+      inclusive_tick_serial_(0),
       name_(NULL),
       address_table_(new ZoneGrowableArray<AddressEntry>()),
       callers_table_(new ZoneGrowableArray<CallEntry>()),
@@ -311,6 +312,8 @@ class CodeRegion : public ZoneAllocated {
     }
     AddressEntry entry;
     entry.pc = pc;
+    entry.exclusive_ticks = 0;
+    entry.inclusive_ticks = 0;
     entry.tick(exclusive);
     if (i < length) {
       // Insert at i.
@@ -699,9 +702,18 @@ class CodeRegionTableBuilder : public SampleVisitor {
                          ProfilerCodeRegionTable* code_region_table)
       : SampleVisitor(isolate), code_region_table_(code_region_table) {
     frames_ = 0;
+    min_time_ = kMaxInt64;
+    max_time_ = 0;
   }
 
   void VisitSample(Sample* sample) {
+    int64_t timestamp = sample->timestamp();
+    if (timestamp > max_time_) {
+      max_time_ = timestamp;
+    }
+    if (timestamp < min_time_) {
+      min_time_ = timestamp;
+    }
     // Give the bottom frame an exclusive tick.
     code_region_table_->AddTick(sample->At(0), true, -1);
     // Give all frames (including the bottom) an inclusive tick.
@@ -715,9 +727,15 @@ class CodeRegionTableBuilder : public SampleVisitor {
   }
 
   intptr_t frames() const { return frames_; }
+  intptr_t  TimeDeltaMicros() const {
+    return static_cast<intptr_t>(max_time_ - min_time_);
+  }
+  int64_t  max_time() const { return max_time_; }
 
  private:
   intptr_t frames_;
+  int64_t min_time_;
+  int64_t max_time_;
   ProfilerCodeRegionTable* code_region_table_;
 };
 
@@ -807,6 +825,7 @@ void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream,
         JSONObject obj(stream);
         obj.AddProperty("type", "Profile");
         obj.AddProperty("samples", samples);
+        obj.AddProperty("time_delta_micros", builder.TimeDeltaMicros());
         JSONArray codes(&obj, "codes");
         for (intptr_t i = 0; i < code_region_table.Length(); i++) {
           CodeRegion* region = code_region_table.At(i);

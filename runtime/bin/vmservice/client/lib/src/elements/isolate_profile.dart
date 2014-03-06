@@ -63,6 +63,8 @@ class IsolateProfileElement extends IsolateElement {
   final _id = '#tableTree';
   TableTree tree;
   @published Map profile;
+  @observable String sampleCount = '';
+  @observable String refreshTime = '';
 
   void profileChanged(oldValue) {
     if (profile == null) {
@@ -95,6 +97,9 @@ class IsolateProfileElement extends IsolateElement {
   }
 
   void _loadProfileData(Isolate isolate, int totalSamples, Map response) {
+    sampleCount = totalSamples.toString();
+    var now = new DateTime.now();
+    refreshTime = now.toString();
     isolate.profile = new Profile.fromMap(isolate, response);
     _refresh(isolate);
   }

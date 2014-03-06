@@ -971,13 +971,19 @@
       <nav-menu link="." anchor="cpu profile" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
-
-    <div>
-      <span>Top</span>
-      <select selectedindex="{{methodCountSelected}}" value="{{methodCounts[methodCountSelected]}}">
-        <option template="" repeat="{{count in methodCounts}}">{{count}}</option>
-      </select>
-      <span>exclusive methods</span>
+    <div class="row">
+      <div class="col-md-12">
+        <span>Top</span>
+        <select selectedindex="{{methodCountSelected}}" value="{{methodCounts[methodCountSelected]}}">
+          <option template="" repeat="{{count in methodCounts}}">{{count}}</option>
+        </select>
+        <span>exclusive methods</span>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <p>Refreshed at {{ refreshTime }} with {{ sampleCount }} samples.</p>
+      </div>
     </div>
     <table id="tableTree" class="table table-hover">
       <thead>

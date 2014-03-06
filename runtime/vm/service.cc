@@ -1092,7 +1092,10 @@ static bool HandleCode(Isolate* isolate, JSONStream* js) {
 
 
 static bool HandleProfile(Isolate* isolate, JSONStream* js) {
-  Profiler::PrintToJSONStream(isolate, js, true);
+  // A full profile includes disassembly of all Dart code objects.
+  // TODO(johnmccutchan): Add sub command to trigger full code dump.
+  bool full_profile = false;
+  Profiler::PrintToJSONStream(isolate, js, full_profile);
   return true;
 }
 
