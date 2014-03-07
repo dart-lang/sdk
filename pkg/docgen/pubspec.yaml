@@ -8,10 +8,7 @@ environment:
 dependencies:
   args: '>=0.9.0 <0.11.0'
   logging: '>=0.9.0 <0.10.0'
-  markdown:
-    git:
-      ref: emilysEdits
-      url: https://github.com/efortuna/dart-markdown
+  markdown: '0.5.1'
   path: '>=0.9.0 <2.0.0'
   yaml: '>=0.9.0 <0.10.0'
 dev_dependencies:
