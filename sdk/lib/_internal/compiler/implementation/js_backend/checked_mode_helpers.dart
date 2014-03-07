@@ -73,7 +73,7 @@ class MalformedCheckedModeHelper extends CheckedModeHelper {
                                    HTypeConversion node,
                                    List<jsAst.Expression> arguments) {
     ErroneousElement element = node.typeExpression.element;
-    arguments.add(js.string(element.message));
+    arguments.add(js.escapedString(element.message));
   }
 }
 

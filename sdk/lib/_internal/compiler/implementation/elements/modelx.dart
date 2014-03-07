@@ -1016,6 +1016,8 @@ class PrefixElementX extends ElementX implements PrefixElement {
 
   final ImportScope importScope = new ImportScope();
 
+  bool isDeferred = false;
+
   PrefixElementX(String prefix, Element enclosing, this.firstPosition)
       : super(prefix, ElementKind.PREFIX, enclosing);
 
@@ -1030,6 +1032,10 @@ class PrefixElementX extends ElementX implements PrefixElement {
   }
 
   accept(ElementVisitor visitor) => visitor.visitPrefixElement(this);
+
+  void markAsDeferred() {
+    isDeferred = true;
+  }
 }
 
 class TypedefElementX extends ElementX implements TypedefElement {

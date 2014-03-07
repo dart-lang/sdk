@@ -20,6 +20,24 @@ closure_in_initializer_test: Fail # Issue 6422
 duplicate_export_negative_test: Fail # Issue 6134
 mixin_forwarding_constructor2_test: Fail # Issue 13641
 
+[ ($compiler == none || $compiler == dart2dart) && $unchecked ]
+# The vm and dart2dart does not support deferred loading.
+deferred_constraints_test/is_check: Fail
+deferred_constraints_test/as_operation: Fail
+deferred_constraints_test/catch_check: Fail
+deferred_constraints_test/type_annotation1: Fail
+
+[ ($compiler == none || $compiler == dart2dart)  && $checked ]
+# The vm and dart2dart does not support deferred loading.
+deferred_constraints_test/as_operation: Fail
+deferred_constraints_test/is_check: Fail
+deferred_constraints_test/catch_check: Fail
+deferred_constraints_test/type_annotation1: Fail
+deferred_constraints_test/type_annotation2: Fail
+deferred_constraints_test/as_operation: Fail
+deferred_constraints_test/type_annotation_generic1: Fail
+deferred_constraints_test/type_annotation_generic4: Fail
+
 [ $compiler == none || $compiler == dartanalyzer || $compiler == dart2analyzer ]
 # The vm and analyzer do not support deferred loading.
 deferred_no_prefix_test/01: Fail
