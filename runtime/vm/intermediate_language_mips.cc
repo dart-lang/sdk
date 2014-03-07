@@ -3195,6 +3195,17 @@ void Float32x4ToInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* Simd64x2ShuffleInstr::MakeLocationSummary(bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Simd64x2ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+    UNIMPLEMENTED();
+}
+
+
 LocationSummary* Float64x2ZeroInstr::MakeLocationSummary(bool opt) const {
   UNIMPLEMENTED();
   return NULL;
