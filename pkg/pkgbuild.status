@@ -15,11 +15,6 @@ pkg/args: PubGetError
 pkg/browser: PubGetError
 
 [ $use_public_packages ]
-pkg/template_binding: Pass, PubGetError # Issue 16026
-pkg/polymer: Pass, PubGetError # Issue 16026
-pkg/polymer_expressions: Pass, PubGetError # Issue 16026
-pkg/observe: Pass, PubGetError # Issue 16026
-samples/third_party/todomvc: Pass, PubGetError # 16026, need to publish polymer
 
 [ $builder_tag == russian ]
 samples/third_party/pop-pop-win: Fail # Issue 16356
