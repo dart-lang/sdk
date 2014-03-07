@@ -59,8 +59,8 @@ main() {
   setUp(() => Polymer.onReady);
 
   test('published properties', () {
-    published(tag) => (querySelector('polymer-element[name=$tag]')
-        as PolymerDeclaration).publishedProperties;
+    published(tag) => (new Element.tag(tag) as PolymerElement)
+        .declaration.publishedProperties;
 
     expect(published('x-foo'), ['Foo', 'baz']);
     expect(published('x-bar'), ['Foo', 'baz', 'Bar']);

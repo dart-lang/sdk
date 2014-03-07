@@ -26,44 +26,47 @@ class GroupRunner {
   /// The phases defined by this group.
   final _phases = new List<Phase>();
 
-  /// A stream that emits an event whenever this group becomes dirty and needs
-  /// to be run.
-  ///
-  /// This may emit events when the group was already dirty or while processing
-  /// transforms. Events are emitted synchronously to ensure that the dirty
-  /// state is thoroughly propagated as soon as any assets are changed.
-  Stream get onDirty => _onDirtyPool.stream;
-  final _onDirtyPool = new StreamPool.broadcast();
-
-  /// Whether this group is dirty and needs to be run.
+  /// Whether [this] is dirty and still has more processing to do.
   bool get isDirty => _phases.any((phase) => phase.isDirty);
+
+  /// A stream that emits an event whenever [this] is no longer dirty.
+  ///
+  /// This is synchronous in order to guarantee that it will emit an event as
+  /// soon as [isDirty] flips from `true` to `false`.
+  Stream get onDone => _onDoneController.stream;
+  final _onDoneController = new StreamController.broadcast(sync: true);
+
+  /// A stream that emits any new assets emitted by [this].
+  ///
+  /// Assets are emitted synchronously to ensure that any changes are thoroughly
+  /// propagated as soon as they occur.
+  Stream<AssetNode> get onAsset => _onAssetPool.stream;
+  final _onAssetPool = new StreamPool<AssetNode>();
 
   /// A stream that emits an event whenever any transforms in this group logs
   /// an entry.
   Stream<LogEntry> get onLog => _onLogPool.stream;
   final _onLogPool = new StreamPool<LogEntry>.broadcast();
 
-  // TODO(nweiz): move to a more push-based way of propagating outputs and get
-  // rid of this. Once that's done, see if we can unify GroupRunner and
-  // AssetCascade.
-  /// The set of outputs that has been returned by [process].
-  ///
-  /// [process] is expected to only return new outputs, so this is used to
-  /// ensure that it does so.
-  final _alreadyEmittedOutputs = new Set<AssetNode>();
-
   GroupRunner(AssetCascade cascade, this._group, this._location) {
-    var lastPhase = new Phase(cascade, _group.phases.first, _location);
-    _phases.add(lastPhase);
+    _addPhase(new Phase(cascade, _location), _group.phases.first);
     for (var phase in _group.phases.skip(1)) {
-      lastPhase = lastPhase.addPhase(phase);
-      _phases.add(lastPhase);
+      _addPhase(_phases.last.addPhase(), phase);
     }
+  }
 
-    for (var phase in _phases) {
-      _onDirtyPool.add(phase.onDirty);
-      _onLogPool.add(phase.onLog);
-    }
+  /// Add a phase with [contents] to [this]'s list of phases.
+  ///
+  /// [contents] should be an inner [Iterable] from a [TransformGroup.phases]
+  /// value.
+  void _addPhase(Phase phase, Iterable contents) {
+    _phases.add(phase);
+    _onAssetPool.add(phase.onAsset);
+    _onLogPool.add(phase.onLog);
+    phase.onDone.listen((_) {
+      if (!isDirty) _onDoneController.add(null);
+    });
+    phase.updateTransformers(contents);
   }
 
   /// Force all [LazyTransformer]s' transforms in this group to begin producing
@@ -82,28 +85,6 @@ class GroupRunner {
   /// Removes this group and all sub-phases within it.
   void remove() {
     _phases.first.remove();
-  }
-
-  /// Processes this group.
-  ///
-  /// Returns a future that completes with any new outputs produced by the
-  /// group.
-  Future<Set<AssetNode>> process() {
-    // Process the first phase that needs to do work.
-    for (var phase in _phases) {
-      var future = phase.process();
-      if (future != null) return future.then((_) => process());
-    }
-
-    // If we get here, all phases are done processing.
-    var newOutputs = _phases.last.availableOutputs
-        .difference(_alreadyEmittedOutputs);
-    for (var output in newOutputs) {
-      output.whenRemoved(() => _alreadyEmittedOutputs.remove(output));
-    }
-    _alreadyEmittedOutputs.addAll(newOutputs);
-
-    return new Future.value(newOutputs);
   }
 
   String toString() => "group in phase $_location for $_group";

@@ -13,12 +13,15 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, code_comments, false,
+DEFINE_FLAG(bool, code_comments, true,
             "Include comments into code and disassembly");
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
 DEFINE_FLAG(bool, use_far_branches, false,
             "Enable far branches for ARM and MIPS");
 #endif
+
+DECLARE_FLAG(bool, disassemble);
+DECLARE_FLAG(bool, disassemble_optimized);
 
 static uword NewContents(intptr_t capacity) {
   Zone* zone = Isolate::Current()->current_zone();
@@ -207,7 +210,7 @@ void Assembler::Unreachable(const char* message) {
 
 
 void Assembler::Comment(const char* format, ...) {
-  if (FLAG_code_comments) {
+  if (FLAG_code_comments && (FLAG_disassemble || FLAG_disassemble_optimized)) {
     char buffer[1024];
 
     va_list args;

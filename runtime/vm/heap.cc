@@ -7,7 +7,6 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/flags.h"
-#include "vm/heap_histogram.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_set.h"
@@ -182,19 +181,11 @@ void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
       old_space_->MarkSweep(invoke_api_callbacks);
       RecordAfterGC();
       PrintStats();
-      UpdateObjectHistogram();
       break;
     }
     default:
       UNREACHABLE();
   }
-}
-
-
-void Heap::UpdateObjectHistogram() {
-  Isolate* isolate = Isolate::Current();
-  if (isolate->object_histogram() == NULL) return;
-  isolate->object_histogram()->Collect();
 }
 
 
@@ -231,7 +222,6 @@ void Heap::CollectAllGarbage() {
   old_space_->MarkSweep(kInvokeApiCallbacks);
   RecordAfterGC();
   PrintStats();
-  UpdateObjectHistogram();
 }
 
 

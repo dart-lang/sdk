@@ -12,71 +12,77 @@ import 'ir_pickler.dart' show Pickler, IrConstantPool;
 import '../universe/universe.dart' show Selector, SelectorKind;
 import '../util/util.dart' show Spannable;
 
-/**
- * A pair of source offset and an identifier name. Identifier names are used in
- * the Javascript backend to generate source maps.
- */
-class PositionWithIdentifierName {
-  final int offset;
-  final String sourceName;
-  PositionWithIdentifierName(this.offset, this.sourceName);
-}
-
-abstract class Node implements Spannable {
+abstract class Node {
   static int hashCount = 0;
   final int hashCode = hashCount = (hashCount + 1) & 0x3fffffff;
 
-  final /* int | PositionWithIdentifierName */ position;
-
-  const Node(this.position);
-
-  int get offset => (position is int) ? position : position.offset;
-
-  String get sourceName => (position is int) ? null : position.sourceName;
-
-  List<int> pickle(IrConstantPool constantPool) {
-    return new Pickler(constantPool).pickle(this);
-  }
-
-  accept(NodesVisitor visitor);
+  accept(Visitor visitor);
 }
 
 abstract class Expression extends Node {
-  Expression(position) : super(position);
+  Expression plug(Expression expr) => throw 'impossible';
 }
 
-class Function extends Expression {
-  final List<Node> statements;
-
-  final int endOffset;
-  final int namePosition;
-
-  Function(position, this.endOffset, this.namePosition, this.statements)
-    : super(position);
-
-  accept(NodesVisitor visitor) => visitor.visitFunction(this);
+// Trivial is the base class of things that variables can refer to: primitives,
+// continuations, function and continuation parameters, etc.
+abstract class Trivial extends Node {
+  // The head of a linked-list of occurrences, in no particular order.
+  Variable firstUse = null;
 }
 
-class Return extends Node {
-  final Expression value;
-
-  Return(position, this.value) : super(position);
-
-  accept(NodesVisitor visitor) => visitor.visitReturn(this);
+// Operands to invocations and primitives are always variables.  They point to
+// their definition and are linked into a list of occurrences.
+class Variable {
+  Trivial definition;
+  Variable nextUse = null;
+  
+  Variable(this.definition) {
+    nextUse = definition.firstUse;
+    definition.firstUse = this;
+  }
 }
 
-class Constant extends Expression {
-  final dart2js.Constant value;
-
-  Constant(position, this.value) : super(position);
-
-  accept(NodesVisitor visitor) => visitor.visitConstant(this);
+// Binding a value (primitive or constant): 'let val x = V in E'.  The bound
+// value is in scope in the body.
+// During one-pass construction a LetVal with an empty body is used to
+// represent one-level context 'let val x = V in []'.
+class LetVal extends Expression {
+  final Trivial value;
+  Expression body = null;
+  
+  LetVal(this.value);
+  
+  Expression plug(Expression expr) {
+    assert(body == null);
+    return body = expr;
+  }
+  
+  accept(Visitor visitor) => visitor.visitLetVal(this);
 }
 
+
+// Binding a continuation: 'let cont k(v) = E in E'.  The bound continuation is
+// in scope in the body and the continuation parameter is in scope in the
+// continuation body.
+// During one-pass construction a LetCont with an empty continuation body is
+// used to represent the one-level context 'let cont k(v) = [] in E'.
+class LetCont extends Expression {
+  final Continuation continuation;
+  final Expression body;
+  
+  LetCont(this.continuation, this.body);
+  
+  Expression plug(Expression expr) {
+    assert(continuation.body == null);
+    return continuation.body = expr;
+  }
+  
+  accept(Visitor visitor) => visitor.visitLetCont(this);
+}
+
+// Invoke a static function in tail position.
 class InvokeStatic extends Expression {
   final FunctionElement target;
-
-  final List<Expression> arguments;
 
   /**
    * The selector encodes how the function is invoked: number of positional
@@ -85,37 +91,94 @@ class InvokeStatic extends Expression {
    */
   final Selector selector;
 
-  InvokeStatic(position, this.target, this.selector, this.arguments)
-    : super(position) {
+  final Variable continuation;
+  final List<Variable> arguments;
+  
+  InvokeStatic(this.target, this.selector, Continuation cont,
+               List<Trivial> args)
+      : continuation = new Variable(cont),
+        arguments = args.map((t) => new Variable(t)).toList(growable: false) {
     assert(selector.kind == SelectorKind.CALL);
     assert(selector.name == target.name);
   }
 
-  accept(NodesVisitor visitor) => visitor.visitInvokeStatic(this);
+  accept(Visitor visitor) => visitor.visitInvokeStatic(this);
 }
 
-/**
- * This class is only used during SSA generation, its instances never appear in
- * the representation of a function.
- */
-class InlinedInvocationDummy extends Expression {
-  InlinedInvocationDummy() : super(0);
-  accept(NodesVisitor visitor) => throw "IrInlinedInvocationDummy.accept";
+// Invoke a continuation in tail position.
+class InvokeContinuation extends Expression {
+  final Variable continuation;
+  final Variable argument;
+  
+  InvokeContinuation(Continuation cont, Trivial arg)
+      : continuation = new Variable(cont),
+        argument = new Variable(arg);
+  
+  accept(Visitor visitor) => visitor.visitInvokeContinuation(this);
 }
 
+// Constants are values, they are always bound by 'let val'.
+class Constant extends Trivial {
+  final dart2js.Constant value;
+  
+  Constant(this.value);
+  
+  accept(Visitor visitor) => visitor.visitConstant(this);
+}
 
-abstract class NodesVisitor<T> {
-  T visit(Node node) => node.accept(this);
+// Function and continuation parameters are trivial.
+class Parameter extends Trivial {
+  Parameter();
+  
+  accept(Visitor visitor) => visitor.visitParameter(this);
+}
 
-  void visitAll(List<Node> nodes) {
-    for (Node n in nodes) visit(n);
+// Continuations are trivial.  They are normally bound by 'let cont'.  A
+// continuation with no parameter (or body) is used to represent a function's
+// return continuation.
+class Continuation extends Trivial {
+  final Parameter parameter;
+  Expression body = null;
+  
+  Continuation(this.parameter);
+  
+  Continuation.retrn() : parameter = null;
+  
+  accept(Visitor visitor) => visitor.visitContinuation(this);
+}
+
+// A function definition, consisting of parameters and a body.  The parameters
+// include a distinguished continuation parameter.
+class Function extends Expression {
+  final int endOffset;
+  final int namePosition;
+  
+  final Continuation returnContinuation;
+  final Expression body;
+
+  Function(this.endOffset, this.namePosition, this.returnContinuation,
+           this.body);
+
+  List<int> pickle(IrConstantPool constantPool) {
+    return new Pickler(constantPool).pickle(this);
   }
 
-  T visitNode(Node node);
+  accept(Visitor visitor) => visitor.visitFunction(this);
+}
 
+abstract class Visitor<T> {
+  T visitNode(Node node) => node.accept(this);
+  
+  T visitFunction(Function node) => visitNode(node);
   T visitExpression(Expression node) => visitNode(node);
-  T visitFunction(Function node) => visitExpression(node);
-  T visitReturn(Return node) => visitNode(node);
-  T visitConstant(Constant node) => visitExpression(node);
-  T visitInvokeStatic(InvokeStatic node) => visitExpression(node);
+  T visitTrivial(Trivial node) => visitNode(node);
+  
+  T visitLetVal(LetVal expr) => visitExpression(expr);
+  T visitLetCont(LetCont expr) => visitExpression(expr);
+  T visitInvokeStatic(InvokeStatic expr) => visitExpression(expr);
+  T visitInvokeContinuation(InvokeContinuation expr) => visitExpression(expr);
+  
+  T visitConstant(Constant triv) => visitTrivial(triv);
+  T visitParameter(Parameter triv) => visitTrivial(triv);
+  T visitContinuation(Continuation triv) => visitTrivial(triv);
 }

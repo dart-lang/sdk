@@ -43,19 +43,17 @@ void main() {
     var credentials = new oauth2.Credentials(
         'access token', null, tokenEndpoint);
     expect(credentials.canRefresh, false);
-    credentials.refresh('identifier', 'secret', httpClient: httpClient)
-        .catchError(expectAsync1((error) {
-          expect(error is StateError, isTrue);
-        }));
+
+    expect(credentials.refresh('identifier', 'secret', httpClient: httpClient),
+        throwsStateError);
   });
 
   test("can't refresh without a token endpoint", () {
     var credentials = new oauth2.Credentials('access token', 'refresh token');
     expect(credentials.canRefresh, false);
-    credentials.refresh('identifier', 'secret', httpClient: httpClient)
-        .catchError(expectAsync1((error) {
-          expect(error is StateError, isTrue);
-        }));
+
+    expect(credentials.refresh('identifier', 'secret', httpClient: httpClient),
+        throwsStateError);
   });
 
   test("can refresh with a refresh token and a token endpoint", () {

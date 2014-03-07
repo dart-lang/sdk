@@ -579,7 +579,12 @@ class DartiumBackend(HtmlDartGenerator):
     type_info = self._TypeInfo(attr.type.id)
     dart_declaration = '%s get %s' % (
         self.SecureOutputType(attr.type.id, False, read_only), html_name)
-    is_custom = 'Custom' in attr.ext_attrs or 'CustomGetter' in attr.ext_attrs
+    is_custom = ('Custom' in attr.ext_attrs and
+                 (attr.ext_attrs['Custom'] == None or
+                  attr.ext_attrs['Custom'] == 'Getter'))
+    # This seems to have been replaced with Custom=Getter (see above), but
+    # check to be sure we don't see the old syntax
+    assert(not ('CustomGetter' in attr.ext_attrs))
     native_suffix = 'Getter'
     auto_scope_setup = self._GenerateAutoSetupScope(attr.id, native_suffix)
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
@@ -623,7 +628,13 @@ class DartiumBackend(HtmlDartGenerator):
   def _AddSetter(self, attr, html_name):
     type_info = self._TypeInfo(attr.type.id)
     dart_declaration = 'void set %s(%s value)' % (html_name, self._DartType(attr.type.id))
-    is_custom = set(['Custom', 'CustomSetter', 'V8CustomSetter']) & set(attr.ext_attrs)
+    is_custom = ('Custom' in attr.ext_attrs and
+                 (attr.ext_attrs['Custom'] == None or
+                  attr.ext_attrs['Custom'] == 'Setter'))
+    # This seems to have been replaced with Custom=Setter (see above), but
+    # check to be sure we don't see the old syntax
+    assert(not ('CustomSetter' in attr.ext_attrs))
+    assert(not ('V8CustomSetter' in attr.ext_attrs))
     native_suffix = 'Setter'
     auto_scope_setup = self._GenerateAutoSetupScope(attr.id, native_suffix)
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 2,

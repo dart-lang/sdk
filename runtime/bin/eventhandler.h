@@ -7,6 +7,7 @@
 
 #include "bin/builtin.h"
 #include "bin/isolate_data.h"
+#include "bin/socket.h"
 
 namespace dart {
 namespace bin {

@@ -2283,7 +2283,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
       Field::ZoneHandle(
           Field::New(Symbols::ClosureFunctionField(),
           false,  // !static
-          false,  // !final
+          true,  // final
           false,  // !const
           alloc->cls(),
           0));  // No token position.
@@ -2292,7 +2292,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
       Field::ZoneHandle(Field::New(
           Symbols::ClosureContextField(),
           false,  // !static
-          false,  // !final
+          true,  // final
           false,  // !const
           alloc->cls(),
           0));  // No token position.

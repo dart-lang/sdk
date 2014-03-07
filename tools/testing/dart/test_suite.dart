@@ -994,6 +994,7 @@ class StandardTestSuite extends TestSuite {
     List<String> runtimeArguments =
         compilerConfiguration.computeRuntimeArguments(
             runtimeConfiguration,
+            buildDir,
             info,
             vmOptions, sharedOptions, args,
             compilationArtifact);

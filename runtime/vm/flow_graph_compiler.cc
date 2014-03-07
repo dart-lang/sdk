@@ -24,6 +24,8 @@
 namespace dart {
 
 DECLARE_FLAG(bool, code_comments);
+DECLARE_FLAG(bool, disassemble);
+DECLARE_FLAG(bool, disassemble_optimized);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, propagate_ic_data);
@@ -264,7 +266,10 @@ void FlowGraphCompiler::VisitBlocks() {
     // Compile all successors until an exit, branch, or a block entry.
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* instr = it.Current();
-      if (FLAG_code_comments) EmitComment(instr);
+      if (FLAG_code_comments &&
+          (FLAG_disassemble || FLAG_disassemble_optimized)) {
+        EmitComment(instr);
+      }
       if (instr->IsParallelMove()) {
         parallel_move_resolver_.EmitNativeCode(instr->AsParallelMove());
       } else {

@@ -34,28 +34,29 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, disassemble, false, "Disassemble dart code.");
-DEFINE_FLAG(bool, disassemble_optimized, false, "Disassemble optimized code.");
-DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
-DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
-DEFINE_FLAG(bool, constant_propagation, true,
-    "Do conditional constant propagation/unreachable code elimination.");
-DEFINE_FLAG(bool, common_subexpression_elimination, true,
-    "Do common subexpression elimination.");
-DEFINE_FLAG(bool, loop_invariant_code_motion, true,
-    "Do loop invariant code motion.");
 DEFINE_FLAG(bool, allocation_sinking, true,
     "Attempt to sink temporary allocations to side exits");
+DEFINE_FLAG(bool, common_subexpression_elimination, true,
+    "Do common subexpression elimination.");
+DEFINE_FLAG(bool, constant_propagation, true,
+    "Do conditional constant propagation/unreachable code elimination.");
 DEFINE_FLAG(int, deoptimization_counter_threshold, 16,
     "How many times we allow deoptimization before we disallow optimization.");
+DEFINE_FLAG(bool, disassemble, false, "Disassemble dart code.");
+DEFINE_FLAG(bool, disassemble_optimized, false, "Disassemble optimized code.");
+DEFINE_FLAG(bool, loop_invariant_code_motion, true,
+    "Do loop invariant code motion.");
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
 DEFINE_FLAG(bool, print_flow_graph_optimized, false,
-            "Print the IR flow graph when optimizing.");
+    "Print the IR flow graph when optimizing.");
 DEFINE_FLAG(bool, range_analysis, true, "Enable range analysis");
 DEFINE_FLAG(bool, reorder_basic_blocks, true, "Enable basic-block reordering.");
+DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
+DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
 DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
 DEFINE_FLAG(bool, verify_compiler, false,
     "Enable compiler verification assertions");
+
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 
 // Compile a function. Should call only if the function has not been compiled.

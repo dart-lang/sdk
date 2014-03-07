@@ -4,7 +4,6 @@
 
 import 'package:polymer/builder.dart';
 import 'dart:io';
-import 'dart:async';
 
 main() {
   lint()

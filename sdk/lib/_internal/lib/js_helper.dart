@@ -2381,9 +2381,11 @@ class JSName {
  * use the compiler's convention to do is-checks on regular objects.
  */
 boolConversionCheck(value) {
+  if (value is bool) return value;
+  // One of the following checks will always fail.
   boolTypeCheck(value);
   assert(value != null);
-  return value;
+  return false;
 }
 
 stringTypeCheck(value) {
@@ -2674,13 +2676,16 @@ class FallThroughErrorImplementation extends FallThroughError {
  * Helper function for implementing asserts. The compiler treats this specially.
  */
 void assertHelper(condition) {
-  if (condition is Function) condition = condition();
+  // Do a bool check first because it is common and faster than 'is Function'.
   if (condition is !bool) {
-    throw new TypeErrorImplementation(condition, 'bool');
+    if (condition is Function) condition = condition();
+    if (condition is !bool) {
+      throw new TypeErrorImplementation(condition, 'bool');
+    }
   }
   // Compare to true to avoid boolean conversion check in checked
   // mode.
-  if (!identical(condition, true)) throw new AssertionError();
+  if (true != condition) throw new AssertionError();
 }
 
 /**

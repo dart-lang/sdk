@@ -16,7 +16,6 @@
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
 #include "vm/heap.h"
-#include "vm/heap_histogram.h"
 #include "vm/message_handler.h"
 #include "vm/object_id_ring.h"
 #include "vm/object_store.h"
@@ -47,7 +46,16 @@ DEFINE_FLAG(bool, pin_isolates, false,
 
 void Isolate::RegisterClass(const Class& cls) {
   class_table()->Register(cls);
-  if (object_histogram() != NULL) object_histogram()->RegisterClass(cls);
+}
+
+
+void Isolate::RegisterClassAt(intptr_t index, const Class& cls) {
+  class_table()->RegisterAt(index, cls);
+}
+
+
+void Isolate::ValidateClassTable() {
+  class_table()->Validate();
 }
 
 
@@ -314,7 +322,6 @@ Isolate::Isolate()
       deopt_context_(NULL),
       stacktrace_(NULL),
       stack_frame_index_(-1),
-      object_histogram_(NULL),
       cha_used_(false),
       object_id_ring_(NULL),
       profiler_data_(NULL),
@@ -322,9 +329,6 @@ Isolate::Isolate()
       next_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       reusable_handles_() {
-  if (FLAG_print_object_histogram && (Dart::vm_isolate() != NULL)) {
-    object_histogram_ = new ObjectHistogram(this);
-  }
 }
 #undef REUSABLE_HANDLE_INITIALIZERS
 
@@ -344,7 +348,6 @@ Isolate::~Isolate() {
   delete message_handler_;
   message_handler_ = NULL;  // Fail fast if we send messages to a dead isolate.
   ASSERT(deopt_context_ == NULL);  // No deopt in progress when isolate deleted.
-  delete object_histogram_;
   delete spawn_state_;
 }
 
@@ -749,11 +752,6 @@ void Isolate::Shutdown() {
   {
     StackZone stack_zone(this);
     HandleScope handle_scope(this);
-
-    if (FLAG_print_object_histogram) {
-      heap()->CollectAllGarbage();
-      object_histogram()->Print();
-    }
 
     // Clean up debugger resources.
     debugger()->Shutdown();

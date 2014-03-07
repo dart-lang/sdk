@@ -409,8 +409,6 @@ class _HttpClientResponse
 abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
   // Used to mark when the body should be written. This is used for HEAD
   // requests and in error handling.
-  bool _ignoreBody = false;
-  bool _headersWritten = false;
   bool _encodingSet = false;
 
   final Uri _uri;
@@ -420,11 +418,11 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
 
   _HttpOutboundMessage(this._uri,
                        String protocolVersion,
-                       this._outgoing)
-      : super(new _HttpOutboundConsumer(), null),
-        headers = new _HttpHeaders(protocolVersion) {
+                       _HttpOutgoing outgoing)
+      : super(outgoing, null),
+        headers = new _HttpHeaders(protocolVersion),
+        _outgoing = outgoing {
     _outgoing.outbound = this;
-    (_target as _HttpOutboundConsumer).outbound = this;
     _encodingMutable = false;
   }
 
@@ -439,7 +437,7 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
   }
 
   Encoding get encoding {
-    if (_encodingSet && _headersWritten) {
+    if (_encodingSet && _outgoing.headersWritten) {
       return _encoding;
     }
     var charset;
@@ -464,112 +462,7 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
     super.write(obj);
   }
 
-  Future _writeHeaders({bool drainRequest: true,
-                        bool setOutgoing: true}) {
-    // TODO(ajohnsen): Avoid excessive futures in this method.
-    write() {
-      try {
-        _writeHeader();
-      } catch (_) {
-        // Headers too large.
-        throw new HttpException(
-            "Headers size exceeded the of '$_OUTGOING_BUFFER_SIZE'"
-            " bytes");
-      }
-      return this;
-    }
-    if (_headersWritten) return new Future.value(this);
-    _headersWritten = true;
-    Future drainFuture;
-    bool isServerSide = this is _HttpResponse;
-    bool gzip = false;
-    if (isServerSide) {
-      var response = this;
-      if (headers.chunkedTransferEncoding) {
-        List acceptEncodings =
-            response._httpRequest.headers[HttpHeaders.ACCEPT_ENCODING];
-        List contentEncoding = headers[HttpHeaders.CONTENT_ENCODING];
-        if (acceptEncodings != null &&
-            acceptEncodings
-                .expand((list) => list.split(","))
-                .any((encoding) => encoding.trim().toLowerCase() == "gzip") &&
-            contentEncoding == null) {
-          headers.set(HttpHeaders.CONTENT_ENCODING, "gzip");
-          gzip = true;
-        }
-      }
-      if (drainRequest && !response._httpRequest._incoming.hasSubscriber) {
-        drainFuture = response._httpRequest.drain().catchError((_) {});
-      }
-    } else {
-      drainRequest = false;
-    }
-    if (_ignoreBody) {
-      return new Future.sync(write).then((_) => _outgoing.close());
-    }
-    if (setOutgoing) {
-      int contentLength = headers.contentLength;
-      if (headers.chunkedTransferEncoding) {
-        _outgoing.chunked = true;
-        if (gzip) _outgoing.gzip = true;
-      } else if (contentLength >= 0) {
-        _outgoing.contentLength = contentLength;
-      }
-    }
-    if (drainFuture != null) {
-      return drainFuture.then((_) => write());
-    }
-    return new Future.sync(write);
-  }
-
-  Future _addStream(Stream<List<int>> stream) {
-    // TODO(ajohnsen): Merge into _HttpOutgoing.
-    if (_ignoreBody) {
-      stream.drain().catchError((_) {});
-      return _writeHeaders();
-    }
-    if (_headersWritten) {
-      return _outgoing.addStream(stream);
-    } else {
-      var completer = new Completer.sync();
-      var future = _outgoing.addStream(stream, completer.future);
-      _writeHeaders().then(completer.complete);
-      return future;
-    }
-  }
-
-  Future _close() {
-    // TODO(ajohnsen): Merge into _HttpOutgoing.
-    if (!_headersWritten) {
-      if (!_ignoreBody && headers.contentLength == -1) {
-        // If no body was written, _ignoreBody is false (it's not a HEAD
-        // request) and the content-length is unspecified, set contentLength to
-        // 0.
-        headers.chunkedTransferEncoding = false;
-        headers.contentLength = 0;
-      } else if (!_ignoreBody && headers.contentLength > 0) {
-        return _outgoing.addStream(
-            new Stream.fromFuture(new Future.error(new HttpException(
-                "No content even though contentLength was specified to be "
-                "greater than 0: ${headers.contentLength}.",
-                uri: _uri))));
-      }
-    }
-    return _writeHeaders().whenComplete(_outgoing.close);
-  }
-
   void _writeHeader();
-}
-
-
-class _HttpOutboundConsumer implements StreamConsumer {
-  // TODO(ajohnsen): Once _addStream and _close is merged into _HttpOutgoing,
-  // this class can be removed.
-  _HttpOutboundMessage outbound;
-  _HttpOutboundConsumer();
-
-  Future addStream(var stream) => outbound._addStream(stream);
-  Future close() => outbound._close();
 }
 
 
@@ -597,29 +490,30 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
 
   int get statusCode => _statusCode;
   void set statusCode(int statusCode) {
-    if (_headersWritten) throw new StateError("Header already sent");
+    if (_outgoing.headersWritten) throw new StateError("Header already sent");
     _statusCode = statusCode;
   }
 
   String get reasonPhrase => _findReasonPhrase(statusCode);
   void set reasonPhrase(String reasonPhrase) {
-    if (_headersWritten) throw new StateError("Header already sent");
+    if (_outgoing.headersWritten) throw new StateError("Header already sent");
     _reasonPhrase = reasonPhrase;
   }
 
   Future redirect(Uri location, {int status: HttpStatus.MOVED_TEMPORARILY}) {
-    if (_headersWritten) throw new StateError("Header already sent");
+    if (_outgoing.headersWritten) throw new StateError("Header already sent");
     statusCode = status;
     headers.set("location", location.toString());
     return close();
   }
 
   Future<Socket> detachSocket() {
-    if (_headersWritten) throw new StateError("Headers already sent");
+    if (_outgoing.headersWritten) throw new StateError("Headers already sent");
     deadline = null;  // Be sure to stop any deadline.
     var future = _httpRequest._httpConnection.detachSocket();
-    _writeHeaders(drainRequest: false,
-                  setOutgoing: false).then((_) => close());
+    var headersFuture = _outgoing.writeHeaders(drainRequest: false,
+                                               setOutgoing: false);
+    assert(headersFuture == null);
     // Close connection so the socket is 'free'.
     close();
     done.catchError((_) {
@@ -816,13 +710,13 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
 
   int get maxRedirects => _maxRedirects;
   void set maxRedirects(int maxRedirects) {
-    if (_headersWritten) throw new StateError("Request already sent");
+    if (_outgoing.headersWritten) throw new StateError("Request already sent");
     _maxRedirects = maxRedirects;
   }
 
   bool get followRedirects => _followRedirects;
   void set followRedirects(bool followRedirects) {
-    if (_headersWritten) throw new StateError("Request already sent");
+    if (_outgoing.headersWritten) throw new StateError("Request already sent");
     _followRedirects = followRedirects;
   }
 
@@ -961,8 +855,7 @@ class _HttpGZipSink extends ByteConversionSink {
 //
 // Most notable is the GZip compression, that uses a double-buffering system,
 // one before gzip (_gzipBuffer) and one after (_buffer).
-class _HttpOutgoing
-    implements StreamConsumer<List<int>> {
+class _HttpOutgoing implements StreamConsumer<List<int>> {
   static const List<int> _footerAndChunk0Length =
       const [_CharCode.CR, _CharCode.LF, 0x30, _CharCode.CR, _CharCode.LF,
              _CharCode.CR, _CharCode.LF];
@@ -972,6 +865,9 @@ class _HttpOutgoing
 
   final Completer _doneCompleter = new Completer();
   final Socket socket;
+
+  bool ignoreBody = false;
+  bool headersWritten = false;
 
   Uint8List _buffer;
   int _length = 0;
@@ -996,23 +892,84 @@ class _HttpOutgoing
 
   _HttpOutboundMessage outbound;
 
-  bool _ignoreError(error)
-    => (error is SocketException || error is TlsException) &&
-       outbound is HttpResponse;
-
   _HttpOutgoing(this.socket);
 
-  Future addStream(Stream<List<int>> stream, [Future pauseFuture]) {
+  // Returns either a future or 'null', if it was able to write headers
+  // immediately.
+  Future writeHeaders({bool drainRequest: true, bool setOutgoing: true}) {
+    Future write() {
+      try {
+        outbound._writeHeader();
+      } catch (_) {
+        // Headers too large.
+        return new Future.error(new HttpException(
+            "Headers size exceeded the of '$_OUTGOING_BUFFER_SIZE'"
+            " bytes"));
+      }
+    }
+    if (headersWritten) return null;
+    headersWritten = true;
+    Future drainFuture;
+    bool isServerSide = outbound is _HttpResponse;
+    bool gzip = false;
+    if (isServerSide) {
+      var response = outbound;
+      if (outbound.headers.chunkedTransferEncoding) {
+        List acceptEncodings =
+            response._httpRequest.headers[HttpHeaders.ACCEPT_ENCODING];
+        List contentEncoding = outbound.headers[HttpHeaders.CONTENT_ENCODING];
+        if (acceptEncodings != null &&
+            acceptEncodings
+                .expand((list) => list.split(","))
+                .any((encoding) => encoding.trim().toLowerCase() == "gzip") &&
+            contentEncoding == null) {
+          outbound.headers.set(HttpHeaders.CONTENT_ENCODING, "gzip");
+          gzip = true;
+        }
+      }
+      if (drainRequest && !response._httpRequest._incoming.hasSubscriber) {
+        drainFuture = response._httpRequest.drain().catchError((_) {});
+      }
+    } else {
+      drainRequest = false;
+    }
+    if (ignoreBody) {
+      return write();
+    }
+    if (setOutgoing) {
+      int contentLength = outbound.headers.contentLength;
+      if (outbound.headers.chunkedTransferEncoding) {
+        chunked = true;
+        if (gzip) this.gzip = true;
+      } else if (contentLength >= 0) {
+        this.contentLength = contentLength;
+      }
+    }
+    if (drainFuture != null) {
+      return drainFuture.then((_) => write());
+    }
+    return write();
+  }
+
+
+  Future addStream(Stream<List<int>> stream) {
     if (_socketError) {
       stream.listen(null).cancel();
       return new Future.value(outbound);
     }
+    if (ignoreBody) {
+      stream.drain().catchError((_) {});
+      var future = writeHeaders();
+      if (future != null) {
+        return future.then((_) => close());
+      }
+      return close();
+    }
     var sub;
-    var controller;
     // Use new stream so we are able to pause (see below listen). The
     // alternative is to use stream.extand, but that won't give us a way of
     // pausing.
-    controller = new StreamController(
+    var controller = new StreamController(
         onPause: () => sub.pause(),
         onResume: () => sub.resume(),
         sync: true);
@@ -1050,13 +1007,15 @@ class _HttpOutgoing
         onError: controller.addError,
         onDone: controller.close,
         cancelOnError: true);
-
-    // While incoming is being drained, the pauseFuture is non-null. Pause
-    // output until it's drained.
-    if (pauseFuture != null) {
-      sub.pause(pauseFuture);
+    // Write headers now that we are listening to the stream.
+    if (!headersWritten) {
+      var future = writeHeaders();
+      if (future != null) {
+        // While incoming is being drained, the pauseFuture is non-null. Pause
+        // output until it's drained.
+        sub.pause(future);
+      }
     }
-
     return socket.addStream(controller.stream)
         .then((_) {
           return outbound;
@@ -1076,56 +1035,82 @@ class _HttpOutgoing
   Future close() {
     // If we are already closed, return that future.
     if (_closeFuture != null) return _closeFuture;
-    // If we earlier saw an error, return immidiate. The notification to
+    // If we earlier saw an error, return immediate. The notification to
     // _Http*Connection is already done.
     if (_socketError) return new Future.value(outbound);
+    if (!headersWritten && !ignoreBody) {
+      if (outbound.headers.contentLength == -1) {
+        // If no body was written, ignoreBody is false (it's not a HEAD
+        // request) and the content-length is unspecified, set contentLength to
+        // 0.
+        outbound.headers.chunkedTransferEncoding = false;
+        outbound.headers.contentLength = 0;
+      } else if (outbound.headers.contentLength > 0) {
+        var error = new HttpException(
+              "No content even though contentLength was specified to be "
+              "greater than 0: ${outbound.headers.contentLength}.",
+              uri: outbound._uri);
+        _doneCompleter.completeError(error);
+        return _closeFuture = new Future.error(error);
+      }
+    }
     // If contentLength was specified, validate it.
     if (contentLength != null) {
       if (_bytesWritten < contentLength) {
         var error = new HttpException(
             "Content size below specified contentLength. "
             " $_bytesWritten bytes written but expected "
-            "$contentLength.");
+            "$contentLength.",
+            uri: outbound._uri);
         _doneCompleter.completeError(error);
         return _closeFuture = new Future.error(error);
       }
     }
-    // In case of chunked encoding (and gzip), handle remaining gzip data and
-    // append the 'footer' for chunked encoding.
-    if (chunked) {
-      if (_gzip) {
-        _gzipAdd = socket.add;
-        if (_gzipBufferLength > 0) {
-          _gzipSink.add(new Uint8List.view(
-              _gzipBuffer.buffer, 0, _gzipBufferLength));
+
+    Future finalize() {
+      // In case of chunked encoding (and gzip), handle remaining gzip data and
+      // append the 'footer' for chunked encoding.
+      if (chunked) {
+        if (_gzip) {
+          _gzipAdd = socket.add;
+          if (_gzipBufferLength > 0) {
+            _gzipSink.add(new Uint8List.view(
+                _gzipBuffer.buffer, 0, _gzipBufferLength));
+          }
+          _gzipBuffer = null;
+          _gzipSink.close();
+          _gzipAdd = null;
         }
-        _gzipBuffer = null;
-        _gzipSink.close();
-        _gzipAdd = null;
+        _addChunk(_chunkHeader(0), socket.add);
       }
-      _addChunk(_chunkHeader(0), socket.add);
-    }
-    // Add any remaining data in the buffer.
-    if (_length > 0) {
-      socket.add(new Uint8List.view(_buffer.buffer, 0, _length));
-    }
-    // Clear references, for better GC.
-    _buffer = null;
-    // And finally flush it. As we support keep-alive, never close it from here.
-    // Once the socket is flushed, we'll be able to reuse it (signaled by the
-    // 'done' future).
-    return _closeFuture = socket.flush()
-      .then((_) {
-        _doneCompleter.complete(socket);
-        return outbound;
-      }, onError: (error) {
-        _doneCompleter.completeError(error);
-        if (_ignoreError(error)) {
+      // Add any remaining data in the buffer.
+      if (_length > 0) {
+        socket.add(new Uint8List.view(_buffer.buffer, 0, _length));
+      }
+      // Clear references, for better GC.
+      _buffer = null;
+      // And finally flush it. As we support keep-alive, never close it from
+      // here. Once the socket is flushed, we'll be able to reuse it (signaled
+      // by the 'done' future).
+      return socket.flush()
+        .then((_) {
+          _doneCompleter.complete(socket);
           return outbound;
-        } else {
-          throw error;
-        }
-      });
+        }, onError: (error) {
+          _doneCompleter.completeError(error);
+          if (_ignoreError(error)) {
+            return outbound;
+          } else {
+            throw error;
+          }
+        });
+    }
+
+    var future = writeHeaders();
+    if (future != null) {
+      return _closeFuture = future.whenComplete(finalize);
+    }
+    return _closeFuture = finalize();
   }
 
   Future get done => _doneCompleter.future;
@@ -1153,6 +1138,10 @@ class _HttpOutgoing
               }));
     }
   }
+
+  bool _ignoreError(error)
+    => (error is SocketException || error is TlsException) &&
+       outbound is HttpResponse;
 
   void _addGZipChunk(chunk, void add(List<int> data)) {
     if (chunk.length > _gzipBuffer.length - _gzipBufferLength) {
@@ -1934,7 +1923,7 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection> {
               }, onError: (_) {
                 destroy();
               });
-          response._ignoreBody = request.method == "HEAD";
+          outgoing.ignoreBody = request.method == "HEAD";
           response._httpRequest = request;
           _httpServer._handleRequest(request);
         },

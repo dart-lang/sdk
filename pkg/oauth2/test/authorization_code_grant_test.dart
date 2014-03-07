@@ -29,12 +29,6 @@ void createGrant() {
       httpClient: client);
 }
 
-void expectFutureThrows(future, predicate) {
-  future.catchError(expectAsync1((error) {
-    expect(predicate(error), isTrue);
-  }));
-}
-
 void main() {
   group('.getAuthorizationUrl', () {
     setUp(createGrant);
@@ -96,46 +90,41 @@ void main() {
     setUp(createGrant);
 
     test("can't be called before .getAuthorizationUrl", () {
-      expectFutureThrows(grant.handleAuthorizationResponse({}),
-                         (e) => e is StateError);
+      expect(grant.handleAuthorizationResponse({}), throwsStateError);
     });
 
     test("can't be called twice", () {
       grant.getAuthorizationUrl(redirectUrl);
-      expectFutureThrows(
-          grant.handleAuthorizationResponse({'code': 'auth code'}),
-          (e) => e is FormatException);
-      expectFutureThrows(
-          grant.handleAuthorizationResponse({'code': 'auth code'}),
-          (e) => e is StateError);
+      expect(grant.handleAuthorizationResponse({'code': 'auth code'}),
+          throwsFormatException);
+      expect(grant.handleAuthorizationResponse({'code': 'auth code'}),
+          throwsStateError);
     });
 
     test('must have a state parameter if the authorization URL did', () {
       grant.getAuthorizationUrl(redirectUrl, state: 'state');
-      expectFutureThrows(
-          grant.handleAuthorizationResponse({'code': 'auth code'}),
-          (e) => e is FormatException);
+      expect(grant.handleAuthorizationResponse({'code': 'auth code'}),
+          throwsFormatException);
     });
 
     test('must have the same state parameter the authorization URL did', () {
       grant.getAuthorizationUrl(redirectUrl, state: 'state');
-      expectFutureThrows(grant.handleAuthorizationResponse({
+      expect(grant.handleAuthorizationResponse({
         'code': 'auth code',
         'state': 'other state'
-      }), (e) => e is FormatException);
+      }), throwsFormatException);
     });
 
     test('must have a code parameter', () {
       grant.getAuthorizationUrl(redirectUrl);
-      expectFutureThrows(grant.handleAuthorizationResponse({}),
-                         (e) => e is FormatException);
+      expect(grant.handleAuthorizationResponse({}), throwsFormatException);
     });
 
     test('with an error parameter throws an AuthorizationException', () {
       grant.getAuthorizationUrl(redirectUrl);
-      expectFutureThrows(
+      expect(
           grant.handleAuthorizationResponse({'error': 'invalid_request'}),
-          (e) => e is oauth2.AuthorizationException);
+          throwsA((e) => e is oauth2.AuthorizationException));
     });
 
     test('sends an authorization code request', () {
@@ -157,10 +146,9 @@ void main() {
         }), 200, headers: {'content-type': 'application/json'}));
       });
 
-      grant.handleAuthorizationResponse({'code': 'auth code'})
-          .then(expectAsync1((client) {
-            expect(client.credentials.accessToken, equals('access token'));
-          }));
+      expect(grant.handleAuthorizationResponse({'code': 'auth code'})
+            .then((client) => client.credentials.accessToken),
+          completion(equals('access token')));
     });
   });
 
@@ -168,18 +156,13 @@ void main() {
     setUp(createGrant);
 
     test("can't be called before .getAuthorizationUrl", () {
-      expectFutureThrows(
-          grant.handleAuthorizationCode('auth code'),
-          (e) => e is StateError);
+      expect(grant.handleAuthorizationCode('auth code'), throwsStateError);
     });
 
     test("can't be called twice", () {
       grant.getAuthorizationUrl(redirectUrl);
-      expectFutureThrows(
-          grant.handleAuthorizationCode('auth code'),
-          (e) => e is FormatException);
-      expectFutureThrows(grant.handleAuthorizationCode('auth code'),
-                         (e) => e is StateError);
+      expect(grant.handleAuthorizationCode('auth code'), throwsFormatException);
+      expect(grant.handleAuthorizationCode('auth code'), throwsStateError);
     });
 
     test('sends an authorization code request', () {

@@ -50,11 +50,13 @@ main() {
   initPolymer();
   useHtmlConfiguration();
 
-  setUp(() => Polymer.onReady);
+  setUp(() => Polymer.onReady.then((_) {
+    Polymer.register('x-noscript', XZot);
+  }));
 
   test('published properties', () {
-    published(tag) => (querySelector('polymer-element[name=$tag]')
-        as PolymerDeclaration).publishedProperties;
+    published(tag) => (new Element.tag(tag) as PolymerElement)
+        .declaration.publishedProperties;
 
     expect(published('x-zot'), ['Foo', 'Bar', 'zot', 'm']);
     expect(published('x-squid'), ['Foo', 'Bar', 'zot', 'm', 'baz', 'squid']);

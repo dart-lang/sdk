@@ -1790,9 +1790,7 @@ DART_EXPORT Dart_Handle Dart_NewTypedData(Dart_TypedData_Type type,
  * \param peer An external pointer to associate with this array.
  *
  * \return The TypedData object if no error occurs. Otherwise returns
- *   an error handle. The TypedData object is returned in a
- *   WeakPersistentHandle which needs to be deleted in the specified callback
- *   using Dart_DeletePersistentHandle.
+ *   an error handle.
  */
 DART_EXPORT Dart_Handle Dart_NewExternalTypedData(Dart_TypedData_Type type,
                                                   void* data,

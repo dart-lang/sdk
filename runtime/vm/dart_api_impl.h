@@ -109,6 +109,20 @@ const char* CanonicalFunction(const char* func);
 
 class Api : AllStatic {
  public:
+  // Create on the stack to provide a new throw-safe api scope.
+  class Scope : public StackResource {
+   public:
+    explicit Scope(Isolate* isolate) : StackResource(isolate) {
+      Dart_EnterScope();
+    }
+    ~Scope() {
+      Dart_ExitScope();
+    }
+
+   private:
+    DISALLOW_COPY_AND_ASSIGN(Scope);
+  };
+
   // Creates a new local handle.
   static Dart_Handle NewHandle(Isolate* isolate, RawObject* raw);
 

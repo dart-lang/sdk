@@ -33,7 +33,8 @@ int32_t ObjectIdRing::GetIdForObject(RawObject* object) {
 RawObject* ObjectIdRing::GetObjectForId(int32_t id) {
   int32_t index = IndexOfId(id);
   if (index == kInvalidId) {
-    return Object::null();
+    // Return sentinel to allow caller to distinguish expired ids.
+    return Object::sentinel().raw();
   }
   ASSERT(index >= 0);
   ASSERT(index < capacity_);

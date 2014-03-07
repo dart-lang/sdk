@@ -188,10 +188,6 @@ SocketAddress* Socket::GetRemotePeer(intptr_t fd, intptr_t* port) {
           getpeername(fd,
                       &raw.addr,
                       &size))) {
-    const int kBufferSize = 1024;
-    char error_buf[kBufferSize];
-    Log::PrintErr("Error getpeername: %s\n",
-                  strerror_r(errno, error_buf, kBufferSize));
     return NULL;
   }
   *port = SocketAddress::GetAddrPort(&raw);

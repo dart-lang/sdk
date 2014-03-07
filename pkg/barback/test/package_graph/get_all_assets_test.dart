@@ -18,24 +18,24 @@ main() {
     buildShouldSucceed();
   });
 
-  test("includes transformed outputs, but not consumed ones", () {
+  test("includes transformed outputs", () {
     initGraph(["app|a.txt", "app|foo.blub"], {"app": [
       [new RewriteTransformer("blub", "blab")]
     ]});
     updateSources(["app|a.txt", "app|foo.blub"]);
-    expectAllAssets(["app|a.txt", "app|foo.blab"]);
+    expectAllAssets(["app|a.txt", "app|foo.blub", "app|foo.blab"]);
     buildShouldSucceed();
   });
 
-  test("includes non-primary inputs to transformers", () {
-    var transformer = new ManyToOneTransformer("txt");
-    initGraph({
-      "app|a.txt": "a.inc",
-      "app|a.inc": "a"
-    }, {"app": [[transformer]]});
-
-    updateSources(["app|a.txt", "app|a.inc"]);
-    expectAllAssets(["app|a.inc", "app|a.out"]);
+  test("includes overwritten outputs", () {
+    initGraph(["app|a.txt", "app|foo.blub"], {"app": [
+      [new RewriteTransformer("blub", "blub")]
+    ]});
+    updateSources(["app|a.txt", "app|foo.blub"]);
+    expectAllAssets({
+      "app|a.txt": "a",
+      "app|foo.blub": "foo.blub"
+    });
     buildShouldSucceed();
   });
 

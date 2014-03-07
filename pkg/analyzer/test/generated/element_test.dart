@@ -352,9 +352,9 @@ class LibraryElementImplTest extends EngineTestCase {
     LibraryElement library = ElementFactory.library(context, "foo");
     context.setContents(library.definingCompilationUnit.source, "sdfsdff");
     // Assert that we are not up to date if the target has an old time stamp.
-    JUnitTestCase.assertFalse(library.isUpToDate2(0));
+    JUnitTestCase.assertFalse(library.isUpToDate(0));
     // Assert that we are up to date with a target modification time in the future.
-    JUnitTestCase.assertTrue(library.isUpToDate2(JavaSystem.currentTimeMillis() + 1000));
+    JUnitTestCase.assertTrue(library.isUpToDate(JavaSystem.currentTimeMillis() + 1000));
   }
 
   void test_setImports() {
@@ -714,13 +714,13 @@ class InterfaceTypeImplTest extends EngineTestCase {
     classE.interfaces = <InterfaceType> [classB.type, classD.type];
     // D
     Set<InterfaceType> superinterfacesOfD = InterfaceTypeImpl.computeSuperinterfaceSet(classD.type);
-    EngineTestCase.assertSize3(3, superinterfacesOfD);
+    EngineTestCase.assertSizeOfSet(3, superinterfacesOfD);
     JUnitTestCase.assertTrue(superinterfacesOfD.contains(ElementFactory.object.type));
     JUnitTestCase.assertTrue(superinterfacesOfD.contains(classA.type));
     JUnitTestCase.assertTrue(superinterfacesOfD.contains(classC.type));
     // E
     Set<InterfaceType> superinterfacesOfE = InterfaceTypeImpl.computeSuperinterfaceSet(classE.type);
-    EngineTestCase.assertSize3(5, superinterfacesOfE);
+    EngineTestCase.assertSizeOfSet(5, superinterfacesOfE);
     JUnitTestCase.assertTrue(superinterfacesOfE.contains(ElementFactory.object.type));
     JUnitTestCase.assertTrue(superinterfacesOfE.contains(classA.type));
     JUnitTestCase.assertTrue(superinterfacesOfE.contains(classB.type));
@@ -737,13 +737,13 @@ class InterfaceTypeImplTest extends EngineTestCase {
     classE.interfaces = <InterfaceType> [classD.type];
     // D
     Set<InterfaceType> superinterfacesOfD = InterfaceTypeImpl.computeSuperinterfaceSet(classD.type);
-    EngineTestCase.assertSize3(3, superinterfacesOfD);
+    EngineTestCase.assertSizeOfSet(3, superinterfacesOfD);
     JUnitTestCase.assertTrue(superinterfacesOfD.contains(ElementFactory.object.type));
     JUnitTestCase.assertTrue(superinterfacesOfD.contains(classA.type));
     JUnitTestCase.assertTrue(superinterfacesOfD.contains(classC.type));
     // E
     Set<InterfaceType> superinterfacesOfE = InterfaceTypeImpl.computeSuperinterfaceSet(classE.type);
-    EngineTestCase.assertSize3(5, superinterfacesOfE);
+    EngineTestCase.assertSizeOfSet(5, superinterfacesOfE);
     JUnitTestCase.assertTrue(superinterfacesOfE.contains(ElementFactory.object.type));
     JUnitTestCase.assertTrue(superinterfacesOfE.contains(classA.type));
     JUnitTestCase.assertTrue(superinterfacesOfE.contains(classB.type));
@@ -756,7 +756,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
     classA.supertype = classB.type;
     Set<InterfaceType> superinterfacesOfB = InterfaceTypeImpl.computeSuperinterfaceSet(classB.type);
-    EngineTestCase.assertSize3(2, superinterfacesOfB);
+    EngineTestCase.assertSizeOfSet(2, superinterfacesOfB);
   }
 
   void test_computeSuperinterfaceSet_singleInterfacePath() {
@@ -767,16 +767,16 @@ class InterfaceTypeImplTest extends EngineTestCase {
     classC.interfaces = <InterfaceType> [classB.type];
     // A
     Set<InterfaceType> superinterfacesOfA = InterfaceTypeImpl.computeSuperinterfaceSet(classA.type);
-    EngineTestCase.assertSize3(1, superinterfacesOfA);
+    EngineTestCase.assertSizeOfSet(1, superinterfacesOfA);
     JUnitTestCase.assertTrue(superinterfacesOfA.contains(ElementFactory.object.type));
     // B
     Set<InterfaceType> superinterfacesOfB = InterfaceTypeImpl.computeSuperinterfaceSet(classB.type);
-    EngineTestCase.assertSize3(2, superinterfacesOfB);
+    EngineTestCase.assertSizeOfSet(2, superinterfacesOfB);
     JUnitTestCase.assertTrue(superinterfacesOfB.contains(ElementFactory.object.type));
     JUnitTestCase.assertTrue(superinterfacesOfB.contains(classA.type));
     // C
     Set<InterfaceType> superinterfacesOfC = InterfaceTypeImpl.computeSuperinterfaceSet(classC.type);
-    EngineTestCase.assertSize3(3, superinterfacesOfC);
+    EngineTestCase.assertSizeOfSet(3, superinterfacesOfC);
     JUnitTestCase.assertTrue(superinterfacesOfC.contains(ElementFactory.object.type));
     JUnitTestCase.assertTrue(superinterfacesOfC.contains(classA.type));
     JUnitTestCase.assertTrue(superinterfacesOfC.contains(classB.type));
@@ -795,16 +795,16 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classC = ElementFactory.classElement("C", classB.type, []);
     // A
     Set<InterfaceType> superinterfacesOfA = InterfaceTypeImpl.computeSuperinterfaceSet(classA.type);
-    EngineTestCase.assertSize3(1, superinterfacesOfA);
+    EngineTestCase.assertSizeOfSet(1, superinterfacesOfA);
     JUnitTestCase.assertTrue(superinterfacesOfA.contains(ElementFactory.object.type));
     // B
     Set<InterfaceType> superinterfacesOfB = InterfaceTypeImpl.computeSuperinterfaceSet(classB.type);
-    EngineTestCase.assertSize3(2, superinterfacesOfB);
+    EngineTestCase.assertSizeOfSet(2, superinterfacesOfB);
     JUnitTestCase.assertTrue(superinterfacesOfB.contains(ElementFactory.object.type));
     JUnitTestCase.assertTrue(superinterfacesOfB.contains(classA.type));
     // C
     Set<InterfaceType> superinterfacesOfC = InterfaceTypeImpl.computeSuperinterfaceSet(classC.type);
-    EngineTestCase.assertSize3(3, superinterfacesOfC);
+    EngineTestCase.assertSizeOfSet(3, superinterfacesOfC);
     JUnitTestCase.assertTrue(superinterfacesOfC.contains(ElementFactory.object.type));
     JUnitTestCase.assertTrue(superinterfacesOfC.contains(classA.type));
     JUnitTestCase.assertTrue(superinterfacesOfC.contains(classB.type));
@@ -2918,33 +2918,33 @@ class ClassElementImplTest extends EngineTestCase {
   void test_hasNonFinalField_false_const() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     classA.fields = <FieldElement> [ElementFactory.fieldElement("f", false, false, true, classA.type)];
-    JUnitTestCase.assertFalse(classA.hasNonFinalField());
+    JUnitTestCase.assertFalse(classA.hasNonFinalField);
   }
 
   void test_hasNonFinalField_false_final() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     classA.fields = <FieldElement> [ElementFactory.fieldElement("f", false, true, false, classA.type)];
-    JUnitTestCase.assertFalse(classA.hasNonFinalField());
+    JUnitTestCase.assertFalse(classA.hasNonFinalField);
   }
 
   void test_hasNonFinalField_false_recursive() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
     classA.supertype = classB.type;
-    JUnitTestCase.assertFalse(classA.hasNonFinalField());
+    JUnitTestCase.assertFalse(classA.hasNonFinalField);
   }
 
   void test_hasNonFinalField_true_immediate() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     classA.fields = <FieldElement> [ElementFactory.fieldElement("f", false, false, false, classA.type)];
-    JUnitTestCase.assertTrue(classA.hasNonFinalField());
+    JUnitTestCase.assertTrue(classA.hasNonFinalField);
   }
 
   void test_hasNonFinalField_true_inherited() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
     classA.fields = <FieldElement> [ElementFactory.fieldElement("f", false, false, false, classA.type)];
-    JUnitTestCase.assertTrue(classB.hasNonFinalField());
+    JUnitTestCase.assertTrue(classB.hasNonFinalField);
   }
 
   void test_lookUpGetter_declared() {
@@ -3370,7 +3370,7 @@ class FunctionTypeImplTest extends EngineTestCase {
   void test_getNamedParameterTypes() {
     FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(AstFactory.identifier3("f")));
     Map<String, Type2> types = type.namedParameterTypes;
-    EngineTestCase.assertSize2(0, types);
+    EngineTestCase.assertSizeOfMap(0, types);
   }
 
   void test_getNormalParameterTypes() {
@@ -3764,7 +3764,7 @@ class FunctionTypeImplTest extends EngineTestCase {
     EngineTestCase.assertLength(1, optionalParameters);
     JUnitTestCase.assertEquals(argumentType, optionalParameters[0]);
     Map<String, Type2> namedParameters = result.namedParameterTypes;
-    EngineTestCase.assertSize2(1, namedParameters);
+    EngineTestCase.assertSizeOfMap(1, namedParameters);
     JUnitTestCase.assertEquals(argumentType, namedParameters[namedParameterName]);
   }
 
@@ -3792,7 +3792,7 @@ class FunctionTypeImplTest extends EngineTestCase {
     EngineTestCase.assertLength(1, optionalParameters);
     JUnitTestCase.assertEquals(optionalParameterType, optionalParameters[0]);
     Map<String, Type2> namedParameters = result.namedParameterTypes;
-    EngineTestCase.assertSize2(1, namedParameters);
+    EngineTestCase.assertSizeOfMap(1, namedParameters);
     JUnitTestCase.assertEquals(namedParameterType, namedParameters[namedParameterName]);
   }
 

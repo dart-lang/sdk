@@ -278,7 +278,6 @@ class Heap {
   void RecordBeforeGC(Space space, GCReason reason);
   void RecordAfterGC();
   void PrintStats();
-  void UpdateObjectHistogram();
   void UpdateClassHeapStatsBeforeGC(Heap::Space space);
 
   // The different spaces used for allocation.

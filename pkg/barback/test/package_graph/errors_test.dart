@@ -114,15 +114,6 @@ main() {
     buildShouldFail([isTransformerException(equals(BadTransformer.ERROR))]);
   });
 
-  test("doesn't yield a source if a transform fails on it", () {
-    initGraph(["app|foo.txt"], {"app": [
-      [new BadTransformer(["app|foo.txt"])]
-    ]});
-
-    updateSources(["app|foo.txt"]);
-    expectNoAsset("app|foo.txt");
-  });
-
   test("catches errors even if nothing is waiting for process results", () {
     initGraph(["app|foo.txt"], {"app": [[new BadTransformer([])]]});
 
@@ -268,7 +259,10 @@ main() {
     rewrite2.resumeApply();
     schedule(pumpEventQueue);
     rewrite3.resumeApply();
-    buildShouldFail([isAssetCollisionException("app|foo.out")]);
+    buildShouldFail([
+      isAssetCollisionException("app|foo.out"),
+      isAssetCollisionException("app|foo.out")
+    ]);
 
     // Then update rewrite3 in a separate build. rewrite2 should still be the
     // next version of foo.out in line.

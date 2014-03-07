@@ -21,6 +21,7 @@ DEFINE_NATIVE_ENTRY(Bool_fromEnvironment, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(1));
   GET_NATIVE_ARGUMENT(Bool, default_value, arguments->NativeArgAt(2));
   // Call the embedder to supply us with the environment.
+  Api::Scope api_scope(isolate);
   Dart_EnvironmentCallback callback = isolate->environment_callback();
   if (callback != NULL) {
     Dart_Handle result = callback(Api::NewHandle(isolate, name.raw()));

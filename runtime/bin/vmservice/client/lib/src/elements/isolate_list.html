@@ -1,0 +1,22 @@
+<head>
+  <link rel="import" href="isolate_summary.html">
+  <link rel="import" href="nav_bar.html">
+  <link rel="import" href="vm_element.html">
+</head>
+<polymer-element name="isolate-list" extends="vm-element">
+  <template>
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <!-- TODO(turnidge): Why doesn't "this.refresh" work? -->
+      <nav-refresh callback="{{ refresh } }}"></nav-refresh>
+    </nav-bar>
+      <ul class="list-group">
+      <template repeat="{{ isolate in vm.isolates.values }}">
+      	<li class="list-group-item">
+        <isolate-summary isolate="{{ isolate }}"></isolate-summary>
+        </li>
+      </template>
+      </ul>
+  </template>
+  <script type="application/dart" src="isolate_list.dart"></script>
+</polymer-element>

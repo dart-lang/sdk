@@ -447,7 +447,6 @@ class RawObject {
   friend class ClassStatsVisitor;
   friend class MarkingVisitor;
   friend class Object;
-  friend class ObjectHistogram;
   friend class RawExternalTypedData;
   friend class RawInstructions;
   friend class RawInstance;
@@ -1384,6 +1383,8 @@ class RawArray : public RawInstance {
   friend class SnapshotReader;
   friend class GrowableObjectArray;
   friend class Object;
+  friend class ICData;  // For high performance access.
+  friend class SubtypeTestCache;  // For high performance access.
 };
 
 

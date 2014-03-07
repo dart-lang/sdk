@@ -5,6 +5,7 @@
 library pub.barback.build_environment;
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
@@ -16,7 +17,6 @@ import '../io.dart';
 import '../log.dart' as log;
 import '../package.dart';
 import '../package_graph.dart';
-import '../utils.dart';
 import 'dart_forwarding_transformer.dart';
 import 'dart2js_transformer.dart';
 import 'load_all_transformers.dart';
@@ -55,12 +55,14 @@ class BuildEnvironment {
       Iterable<String> rootDirectories,
       {bool useDart2JS: true}) {
     return entrypoint.loadPackageGraph().then((graph) {
+      log.fine("Loaded package graph.");
       var barback = new Barback(new PubPackageProvider(graph));
       barback.log.listen(_log);
 
       var environment = new BuildEnvironment._(graph, barback, mode,
           watcherType, rootDirectories);
       return environment._startServers(hostname, basePort).then((_) {
+        log.fine("Started servers.");
         // If the entrypoint package manually configures the dart2js
         // transformer, don't include it in the built-in transformer list.
         //
@@ -168,6 +170,7 @@ class BuildEnvironment {
   /// loaded.
   Future _load(Barback barback) {
     return _provideSources(barback).then((_) {
+      log.fine("Provided sources.");
       var completer = new Completer();
 
       // If any errors get emitted either by barback or by the primary server,
@@ -194,6 +197,7 @@ class BuildEnvironment {
       ];
 
       loadAllTransformers(this).then((_) {
+        log.fine("Loaded transformers.");
         if (!completer.isCompleted) completer.complete();
       }).catchError((error, stackTrace) {
         if (!completer.isCompleted) {
@@ -217,16 +221,13 @@ class BuildEnvironment {
       return _watchSources(barback);
     }
 
-    return syncFuture(() {
-      _loadSources(barback);
-    });
+    return _loadSources(barback);
   }
 
   /// Provides all of the source assets in the environment to barback.
-  void _loadSources(Barback barback) {
-    for (var package in graph.packages.values) {
-      barback.updateSources(_listAssets(graph.entrypoint, package));
-    }
+  Future _loadSources(Barback barback) {
+    return Future.wait(graph.packages.values.map(
+        (package) => _updateSources(graph.entrypoint, package)));
   }
 
   /// Adds all of the source assets in this environment to barback and then
@@ -242,8 +243,7 @@ class BuildEnvironment {
       var packageId = graph.lockFile.packages[package.name];
       if (packageId != null &&
           graph.entrypoint.cache.sources[packageId.source].shouldCache) {
-        barback.updateSources(_listAssets(graph.entrypoint, package));
-        return new Future.value();
+        return _updateSources(graph.entrypoint, package);
       }
 
       // Watch the visible package directories for changes.
@@ -282,29 +282,39 @@ class BuildEnvironment {
           }
         });
         return watcher.ready;
-      })).then((_) {
-        barback.updateSources(_listAssets(graph.entrypoint, package));
-      });
+      })).then((_) => _updateSources(graph.entrypoint, package));
     }));
   }
 
-  /// Lists all of the visible files in [package].
+  /// Lists all of the visible files in [package] and updates them in barback.
   ///
   /// This is the recursive contents of the "asset" and "lib" directories (if
   /// present). If [package] is the entrypoint package, it also includes the
-  /// contents of "web".
-  List<AssetId> _listAssets(Entrypoint entrypoint, Package package) {
-    var files = <AssetId>[];
-
-    for (var dirPath in _getPublicDirectories(entrypoint, package)) {
+  /// build directories.
+  ///
+  /// For large packages, listing the contents is a performance bottleneck, so
+  /// this is optimized for our needs in here instead of using the more general
+  /// but slower [listDir].
+  Future _updateSources(Entrypoint entrypoint, Package package) {
+    return Future.wait(_getPublicDirectories(entrypoint, package)
+        .map((dirPath) {
       var dir = path.join(package.dir, dirPath);
-      if (!dirExists(dir)) continue;
-      for (var entry in listDir(dir, recursive: true)) {
-        // Ignore "packages" symlinks if there.
-        if (path.split(entry).contains("packages")) continue;
+      if (!dirExists(dir)) return new Future.value();
 
-        // Skip directories.
-        if (!fileExists(entry)) continue;
+      return new Directory(dir).list(recursive: true, followLinks: true)
+          .expand((entry) {
+        // Skip directories and (broken) symlinks.
+        if (entry is Directory) return [];
+        if (entry is Link) return [];
+
+        var relative = path.normalize(
+            path.relative(entry.path, from: package.dir));
+
+        // Ignore hidden files or files in "packages" and hidden directories.
+        if (path.split(relative).any((part) =>
+            part.startsWith(".") || part == "packages")) {
+          return [];
+        }
 
         // Skip files that were (most likely) compiled from nearby ".dart"
         // files. These are created by the Editor's "Run as JavaScript"
@@ -315,17 +325,13 @@ class BuildEnvironment {
         // TODO(rnystrom): Remove these when the Editor no longer generates
         // .js files and users have had enough time that they no longer have
         // these files laying around. See #15859.
-        if (entry.endsWith(".dart.js")) continue;
-        if (entry.endsWith(".dart.js.map")) continue;
-        if (entry.endsWith(".dart.precompiled.js")) continue;
+        if (relative.endsWith(".dart.js")) return [];
+        if (relative.endsWith(".dart.js.map")) return [];
+        if (relative.endsWith(".dart.precompiled.js")) return [];
 
-        var id = new AssetId(package.name,
-            path.relative(entry, from: package.dir));
-        files.add(id);
-      }
-    }
-
-    return files;
+        return [new AssetId(package.name, relative)];
+      }).toList().then(barback.updateSources);
+    }));
   }
 
   /// Gets the names of the top-level directories in [package] whose contents

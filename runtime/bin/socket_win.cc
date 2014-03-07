@@ -116,7 +116,6 @@ SocketAddress* Socket::GetRemotePeer(intptr_t fd, intptr_t* port) {
   if (getpeername(socket_handle->socket(),
                   &raw.addr,
                   &size)) {
-    Log::PrintErr("Error getpeername: %d\n", WSAGetLastError());
     return NULL;
   }
   *port = SocketAddress::GetAddrPort(&raw);

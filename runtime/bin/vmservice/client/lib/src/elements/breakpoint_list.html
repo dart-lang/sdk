@@ -1,0 +1,30 @@
+<head>
+  <link rel="import" href="nav_bar.html">
+  <link rel="import" href="isolate_element.html">
+</head>
+<polymer-element name="breakpoint-list" extends="isolate-element">
+  <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+      <nav-menu link="." anchor="breakpoints" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <template if="{{ msg['breakpoints'].isEmpty }}">
+      <div class="panel panel-warning">
+        <div class="panel-body">No breakpoints</div>
+      </div>
+    </template>
+    <template if="{{ msg['breakpoints'].isNotEmpty }}">
+      <ul class="list-group">
+      <template repeat="{{ bpt in msg['breakpoints'] }}">
+        <li class="list-group-item">
+          {{ bpt }}
+        </li>
+      </template>
+      </ul>
+    </template>
+  </template>
+  <script type="application/dart" src="breakpoint_list.dart"></script>
+</polymer-element>

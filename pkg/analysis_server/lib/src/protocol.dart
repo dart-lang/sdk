@@ -73,14 +73,19 @@ class Request {
       if (result is! Map) {
         return null;
       }
-      String id = result[Request.ID];
-      String method = result[Request.METHOD];
+      var id = result[Request.ID];
+      var method = result[Request.METHOD];
+      if (id is! String || method is! String) {
+        return null;
+      }
       var params = result[Request.PARAMS];
       Request request = new Request(id, method);
       if (params is Map) {
         params.forEach((String key, Object value) {
           request.setParameter(key, value);
         });
+      } else if (params != null) {
+        return null;
       }
       return request;
     } catch (exception) {
@@ -265,8 +270,10 @@ class Response {
    */
   factory Response.fromJson(Map<String, Object> json) {
     try {
-      // TODO process result
-      String id = json[Response.ID];
+      var id = json[Response.ID];
+      if (id is! String) {
+        return null;
+      }
       var error = json[Response.ERROR];
       var result = json[Response.RESULT];
       Response response;
@@ -368,6 +375,11 @@ class RequestError {
    * An error code indicating an internal error.
    */
   static const int CODE_INTERNAL_ERROR = -32603;
+
+  /**
+   * An error code indicating a problem using the specified Dart SDK.
+   */
+  static const int CODE_SDK_ERROR = -32603;
 
   /*
    * In addition, codes -32000 to -32099 indicate a server error. They are

@@ -48,7 +48,7 @@ perl -pi -e 's/<script src="packages.*"><\/script>//g' \
 # The polymer compilation step munges <img> src urls and adds a packages/
 # prefix to the url. Because of how we deploy we must undo this and remove
 # the prefix. Without this, images will show up as broken links.
-perl -pi -e 's/packages\/observatory\/src\/observatory_elements\///g' \
+perl -pi -e 's/packages\/observatory\/src\/elements\///g' \
     $DEPLOYED/index.html
-perl -pi -e 's/packages\/observatory\/src\/observatory_elements\///g' \
+perl -pi -e 's/packages\/observatory\/src\/elements\///g' \
     $DEPLOYED/index_devtools.html

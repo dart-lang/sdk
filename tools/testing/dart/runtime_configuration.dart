@@ -76,6 +76,8 @@ class RuntimeConfiguration {
     // TODO(ahe): Make this method abstract.
     throw "Unimplemented runtime '$runtimeType'";
   }
+
+  List<String> dart2jsPreambles(Uri preambleDir) => [];
 }
 
 /// The 'none' runtime configuration.
@@ -124,6 +126,10 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
         commandBuilder.getJSCommandlineCommand(
             moniker, suite.d8FileName, arguments, environmentOverrides)];
   }
+
+  List<String> dart2jsPreambles(Uri preambleDir) {
+    return [preambleDir.resolve('d8.js').toFilePath()];
+  }
 }
 
 /// Firefox/SpiderMonkey-based development shell (jsshell).
@@ -141,6 +147,10 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
     return <Command>[
         commandBuilder.getJSCommandlineCommand(
             moniker, suite.jsShellFileName, arguments, environmentOverrides)];
+  }
+
+  List<String> dart2jsPreambles(Uri preambleDir) {
+    return ['-f', preambleDir.resolve('jsshell.js').toFilePath(), '-f'];
   }
 }
 

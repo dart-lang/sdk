@@ -1419,22 +1419,24 @@ class BrowserTestingServer {
 
         var parsedData = parseResult(msg);
         if (parsedData) {
-          // Only if the JSON was valid, we'll post it back.
-          var message = parsedData['message'];
-          var isFirstMessage = parsedData['is_first_message'];
-          var isStatusUpdate = parsedData['is_status_update'];
-          var isDone = parsedData['is_done'];
-          if (!isFirstMessage && !isStatusUpdate) {
-            if (!isDone) {
-              alert("Bug in test_controller.js: " +
-                    "isFirstMessage/isStatusUpdate/isDone were all false");
+          // Only if the JSON message contains all required parameters,
+          // will we handle it and post it back to the test controller.
+          if ('message' in parsedData &&
+              'is_first_message' in parsedData &&
+              'is_status_update' in parsedData &&
+              'is_done' in parsedData) {
+            var message = parsedData['message'];
+            var isFirstMessage = parsedData['is_first_message'];
+            var isStatusUpdate = parsedData['is_status_update'];
+            var isDone = parsedData['is_done'];
+            if (!isFirstMessage && !isStatusUpdate) {
+              if (!isDone) {
+                alert("Bug in test_controller.js: " +
+                      "isFirstMessage/isStatusUpdate/isDone were all false");
+              }
             }
-          }
-          if (message) {
             reportMessage(message, isFirstMessage, isStatusUpdate);
           }
-        } else {
-          reportMessage(msg, msg == 'STARTING', false);
         }
       }
 

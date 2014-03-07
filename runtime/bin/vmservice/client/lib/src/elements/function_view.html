@@ -1,0 +1,69 @@
+<head>
+  <link rel="import" href="class_ref.html">
+  <link rel="import" href="code_ref.html">
+  <link rel="import" href="isolate_element.html">
+  <link rel="import" href="nav_bar.html">
+</head>
+<polymer-element name="function-view" extends="isolate-element">
+  <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+      <template if="{{ function['owner']['type'] == '@Class' }}">
+        <!-- TODO(turnidge): Add library nav menu here. -->
+        <class-nav-menu isolate="{{ isolate }}" cls="{{ function['owner'] }}"></class-nav-menu>
+      </template>
+      <template if="{{ function['owner']['type'] == '@Library' }}">
+        <library-nav-menu isolate="{{ isolate }}" library="{{ function['owner'] }}"></library-nav-menu>
+      </template>
+      <nav-menu link="." anchor="{{ function['user_name'] }}" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-warning">
+        <div class="panel-heading">
+          {{ function['user_name'] }} ({{ function['name'] }})
+          <class-ref isolate="{{ isolate }}" ref="{{ function['class'] }}"></class-ref>
+        </div>
+        <div class="panel-body">
+          <div>
+          <code-ref isolate="{{ isolate }}" ref="{{ function['code'] }}"></code-ref>
+          <code-ref isolate="{{ isolate }}" ref="{{ function['unoptimized_code'] }}"></code-ref>
+          </div>
+          <table class="table table-hover">
+            <tbody>
+              <tr>
+                <td>static</td><td>{{ function['is_static'] }}</td>
+              </tr>
+              <tr>
+                <td>Const</td><td>{{ function['is_const'] }}</td>
+              </tr>
+              <tr>
+                <td>Optimizable</td><td>{{ function['is_optimizable'] }}</td>
+              </tr>
+              <tr>
+                <td>Inlinable</td><td>{{ function['is_inlinable'] }}</td>
+              </tr>
+              <tr>
+                <td>Kind</td><td>{{ function['kind'] }}</td>
+              </tr>
+              <tr>
+                <td>Usage Count</td><td>{{ function['usage_counter'] }}</td>
+              </tr>
+              <tr>
+                <td>Optimized Call Site Count</td><td>{{ function['optimized_call_site_count'] }}</td>
+              </tr>
+              <tr>
+                <td>Deoptimizations</td><td>{{ function['deoptimizations'] }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  </template>
+  <script type="application/dart" src="function_view.dart"></script>
+</polymer-element>

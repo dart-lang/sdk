@@ -191,7 +191,7 @@ class DirectoryBasedDartSdk implements DartSdk {
     List<String> uris = this.uris;
     ChangeSet changeSet = new ChangeSet();
     for (String uri in uris) {
-      changeSet.added(_analysisContext.sourceFactory.forUri(uri));
+      changeSet.addedSource(_analysisContext.sourceFactory.forUri(uri));
     }
     _analysisContext.applyChanges(changeSet);
   }
@@ -328,7 +328,7 @@ class DirectoryBasedDartSdk implements DartSdk {
    *
    * @return `true` if this installation of the SDK has documentation
    */
-  bool hasDocumentation() => docDirectory.exists();
+  bool get hasDocumentation => docDirectory.exists();
 
   /**
    * Return `true` if the Dartium binary is available.
@@ -389,7 +389,7 @@ class DirectoryBasedDartSdk implements DartSdk {
     JavaFile librariesFile = new JavaFile.relative(new JavaFile.relative(libraryDirectory, _INTERNAL_DIR), _LIBRARIES_FILE);
     try {
       String contents = librariesFile.readAsStringSync();
-      _libraryMap = new SdkLibrariesReader(useDart2jsPaths).readFrom(librariesFile, contents);
+      _libraryMap = new SdkLibrariesReader(useDart2jsPaths).readFromFile(librariesFile, contents);
     } on JavaException catch (exception) {
       AnalysisEngine.instance.logger.logError2("Could not initialize the library map from ${librariesFile.getAbsolutePath()}", exception);
       _libraryMap = new LibraryMap();
@@ -452,7 +452,7 @@ class SdkLibrariesReader {
    * @param libraryFileContents the contents from the library file
    * @return the library map read from the given source
    */
-  LibraryMap readFrom(JavaFile file, String libraryFileContents) => readFrom2(new FileBasedSource.con2(file, UriKind.FILE_URI), libraryFileContents);
+  LibraryMap readFromFile(JavaFile file, String libraryFileContents) => readFromSource(new FileBasedSource.con2(file, UriKind.FILE_URI), libraryFileContents);
 
   /**
    * Return the library map read from the given source.
@@ -461,7 +461,7 @@ class SdkLibrariesReader {
    * @param libraryFileContents the contents from the library file
    * @return the library map read from the given source
    */
-  LibraryMap readFrom2(Source source, String libraryFileContents) {
+  LibraryMap readFromSource(Source source, String libraryFileContents) {
     BooleanErrorListener errorListener = new BooleanErrorListener();
     Scanner scanner = new Scanner(source, new CharSequenceReader(libraryFileContents), errorListener);
     Parser parser = new Parser(source, errorListener);

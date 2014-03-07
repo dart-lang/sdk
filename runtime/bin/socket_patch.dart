@@ -207,6 +207,131 @@ class _NetworkInterface implements NetworkInterface {
 }
 
 
+class _Rate {
+  final int buckets;
+  final data;
+  int lastValue = 0;
+  int nextBucket = 0;
+
+  _Rate(int buckets) : buckets = buckets, data = new List.filled(buckets, 0);
+
+  void update(int value) {
+    data[nextBucket] = value - lastValue;
+    lastValue = value;
+    nextBucket = (nextBucket + 1) % buckets;
+  }
+
+  int get rate {
+    int sum = data.fold(0, (prev, element) => prev + element);
+    return sum ~/ buckets;
+  }
+}
+
+// Statics information for the observatory.
+class _SocketStat {
+  _Rate readRate = new _Rate(5);
+  _Rate writeRate = new _Rate(5);
+
+  void update(_NativeSocket socket) {
+    readRate.update(socket.totalRead);
+    writeRate.update(socket.totalWritten);
+  }
+}
+
+class _SocketsObservatory {
+  static int socketCount = 0;
+  static Map sockets = new Map<_NativeSocket, _SocketStat>();
+  static Timer timer;
+
+  static add(_NativeSocket socket) {
+    if (socketCount == 0) startTimer();
+    sockets[socket] = new _SocketStat();
+    socketCount++;
+  }
+
+  static remove(_NativeSocket socket) {
+    _SocketStat stats = sockets.remove(socket);
+    assert(stats != null);
+    socketCount--;
+    if (socketCount == 0) stopTimer();
+  }
+
+  static update(_) {
+    sockets.forEach((socket, stat) {
+      stat.update(socket);
+    });
+  }
+
+  static startTimer() {
+    if (timer != null) return;
+    // TODO(sgjesse): Enable the rate timer.
+    // timer = new Timer.periodic(new Duration(seconds: 1), update);
+  }
+
+  static stopTimer() {
+    if (timer == null) return;
+    timer.cancel();
+    timer = null;
+  }
+
+  static String generateResponse() {
+    var response = new Map();
+    response['type'] = 'SocketList';
+    var members = new List();
+    response['members'] = members;
+    sockets.forEach((socket, stat) {
+      var kind =
+          socket.isListening ? "LISTENING" :
+          socket.isPipe ? "PIPE" :
+          socket.isInternal ? "INTERNAL" : "NORMAL";
+      var protocol =
+          socket.isTcp ? "tcp" :
+          socket.isUdp ? "udp" : "";
+      var localAddress;
+      var localPort;
+      var remoteAddress;
+      var remotePort;
+      try {
+        localAddress = socket.address.address;
+      } catch (e) {
+        localAddress = "n/a";
+      }
+      try {
+        localPort = socket.port;
+      } catch (e) {
+        localPort = "n/a";
+      }
+      try {
+        remoteAddress = socket.remoteAddress.address;
+      } catch (e) {
+        remoteAddress = "n/a";
+      }
+      try {
+        remotePort = socket.remotePort;
+      } catch (e) {
+        remotePort = "n/a";
+      }
+      members.add({'type': 'Socket', 'kind': kind, 'protocol': protocol,
+                   'localAddress': localAddress, 'localPort': localPort,
+                   'remoteAddress': remoteAddress, 'remotePort': remotePort,
+                   'totalRead': socket.totalRead,
+                   'totalWritten': socket.totalWritten,
+                   'readPerSec': stat.readRate.rate,
+                   'writePerSec': stat.writeRate.rate});
+    });
+    return JSON.encode(response);;
+  }
+
+  static String toJSON() {
+    try {
+      return generateResponse();
+    } catch (e, s) {
+      return '{"type":"Error","text":"$e","stacktrace":"$s"}';
+    }
+  }
+}
+
+
 // The _NativeSocket class encapsulates an OS socket.
 class _NativeSocket extends NativeFieldWrapperClass1 {
   // Bit flags used when communicating between the eventhandler and
@@ -240,6 +365,18 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   static const int TYPE_NORMAL_SOCKET = 0;
   static const int TYPE_LISTENING_SOCKET = 1 << LISTENING_SOCKET;
   static const int TYPE_PIPE = 1 << PIPE_SOCKET;
+  static const int TYPE_TYPE_MASK = TYPE_LISTENING_SOCKET | PIPE_SOCKET;
+
+  // Protocol flags.
+  static const int TCP_SOCKET = 18;
+  static const int UDP_SOCKET = 19;
+  static const int INTERNAL_SOCKET = 20;
+  static const int TYPE_TCP_SOCKET = 1 << TCP_SOCKET;
+  static const int TYPE_UDP_SOCKET = 1 << UDP_SOCKET;
+  static const int TYPE_INTERNAL_SOCKET = 1 << INTERNAL_SOCKET;
+  static const int TYPE_PROTOCOL_MASK =
+      TYPE_TCP_SOCKET | TYPE_UDP_SOCKET | TYPE_INTERNAL_SOCKET;
+
 
   // Native port messages.
   static const HOST_NAME_LOOKUP = 0;
@@ -278,6 +415,10 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   bool sendWriteEvents = false;
   bool writeEventIssued = false;
   bool writeAvailable = false;
+
+  // Statistics.
+  int totalRead = 0;
+  int totalWritten = 0;
 
   static Future<List<InternetAddress>> lookup(
       String host, {InternetAddressType type: InternetAddressType.ANY}) {
@@ -433,18 +574,26 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
         });
   }
 
-  _NativeSocket.datagram(this.address) : typeFlags = TYPE_NORMAL_SOCKET;
+  _NativeSocket.datagram(this.address)
+    : typeFlags = TYPE_NORMAL_SOCKET | TYPE_UDP_SOCKET;
 
-  _NativeSocket.normal() : typeFlags = TYPE_NORMAL_SOCKET;
+  _NativeSocket.normal() : typeFlags = TYPE_NORMAL_SOCKET | TYPE_TCP_SOCKET;
 
-  _NativeSocket.listen() : typeFlags = TYPE_LISTENING_SOCKET;
+  _NativeSocket.listen() : typeFlags = TYPE_LISTENING_SOCKET | TYPE_TCP_SOCKET;
 
   _NativeSocket.pipe() : typeFlags = TYPE_PIPE;
 
-  _NativeSocket.watch(int id) : typeFlags = TYPE_NORMAL_SOCKET {
+  _NativeSocket.watch(int id)
+      : typeFlags = TYPE_NORMAL_SOCKET | TYPE_INTERNAL_SOCKET {
     isClosedWrite = true;
     nativeSetSocketId(id);
   }
+
+  bool get isListening => (typeFlags & TYPE_LISTENING_SOCKET) != 0;
+  bool get isPipe => (typeFlags & TYPE_PIPE) != 0;
+  bool get isInternal => (typeFlags & TYPE_INTERNAL_SOCKET) != 0;
+  bool get isTcp => (typeFlags & TYPE_TCP_SOCKET) != 0;
+  bool get isUdp => (typeFlags & TYPE_UDP_SOCKET) != 0;
 
   List<int> read(int len) {
     if (len != null && len <= 0) {
@@ -458,7 +607,10 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
       reportError(result, "Read failed");
       return null;
     }
-    if (result != null) available -= result.length;
+    if (result != null) {
+      available -= result.length;
+      totalRead += result.length;
+    }
     return result;
   }
 
@@ -516,6 +668,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     }
     // Negate the result, as stated above.
     if (result < 0) result = -result;
+    totalWritten += result;
     return result;
   }
 
@@ -542,12 +695,15 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     if (nativeAccept(socket) != true) return null;
     socket.localPort = localPort;
     socket.address = address;
+    totalRead += 1;
     return socket;
   }
 
   int get port {
     if (localPort != 0) return localPort;
-    return localPort = nativeGetPort();
+    var result = nativeGetPort();
+    if (result is OSError) throw result;
+    return localPort = result;
   }
 
   int get remotePort {
@@ -613,7 +769,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
         if ((i == CLOSED_EVENT || i == READ_EVENT) && isClosedRead) continue;
         if (isClosing && i != DESTROYED_EVENT) continue;
         if (i == CLOSED_EVENT &&
-            typeFlags != TYPE_LISTENING_SOCKET &&
+            !isListening  &&
             !isClosing &&
             !isClosed) {
           isClosedRead = true;
@@ -627,8 +783,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
           continue;
         }
 
-        if (i == READ_EVENT &&
-            typeFlags != TYPE_LISTENING_SOCKET) {
+        if (i == READ_EVENT && !isListening) {
           var avail = nativeAvailable();
           if (avail is int) {
             available = avail;
@@ -678,7 +833,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     if (read) issueReadEvent();
     if (write) issueWriteEvent();
     if (eventPort == null) {
-      int flags = typeFlags;
+      int flags = typeFlags & TYPE_TYPE_MASK;
       if (!isClosedRead) flags |= 1 << READ_EVENT;
       if (!isClosedWrite) flags |= 1 << WRITE_EVENT;
       sendToEventHandler(flags);
@@ -742,6 +897,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   void connectToEventHandler() {
     if (eventPort == null) {
       eventPort = new RawReceivePort(multiplex);
+      _SocketsObservatory.add(this);
     }
   }
 
@@ -749,6 +905,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     assert(eventPort != null);
     eventPort.close();
     eventPort = null;
+    _SocketsObservatory.remove(this);
   }
 
   // Check whether this is an error response from a native port call.
@@ -1598,3 +1755,5 @@ Datagram _makeDatagram(List<int> data,
       new _InternetAddress(address, null, in_addr),
       port);
 }
+
+String _socketsStats() => _SocketsObservatory.toJSON();

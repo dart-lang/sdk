@@ -1,0 +1,43 @@
+<head>
+  <link rel="import" href="curly_block.html">
+  <link rel="import" href="function_ref.html">
+  <link rel="import" href="instance_ref.html">
+  <link rel="import" href="isolate_element.html">
+  <link rel="import" href="script_ref.html">
+</head>
+<polymer-element name="stack-frame" extends="isolate-element">
+  <template>
+    <style>
+      .member {
+        vertical-align: top;
+        padding: 0 0 0 1em;
+      }
+    </style>
+    <div class="row">
+      <div class="col-md-1"></div>
+      <div class="col-md-1">
+        #{{ frame['depth'] }}
+      </div>
+      <div class="col-md-9">
+        <function-ref isolate="{{ isolate }}" ref="{{ frame['function'] }}"></function-ref>
+        ( <script-ref isolate="{{ isolate }}" ref="{{ frame['script'] }}" line="{{ frame['line'] }}">
+        </script-ref> )
+        <curly-block>
+          <table>
+            <tr template repeat="{{ v in frame['vars'] }}">
+              <td class="member">{{ v['name']}}</td>
+              <td class="member">
+                <instance-ref isolate="{{ isolate }}" ref="{{ v['value'] }}"></instance-ref>
+              </td>
+            </tr>
+          </table>
+        </curly-block>
+
+      </div>
+      <div class="col-md-1"></div>
+    </div>
+
+
+  </template>
+  <script type="application/dart" src="stack_frame.dart"></script>
+</polymer-element>

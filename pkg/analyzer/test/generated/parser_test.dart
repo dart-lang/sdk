@@ -389,25 +389,25 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseArgumentList_empty() {
     ArgumentList argumentList = ParserTestCase.parse4("parseArgumentList", "()", []);
     NodeList<Expression> arguments = argumentList.arguments;
-    EngineTestCase.assertSize(0, arguments);
+    EngineTestCase.assertSizeOfList(0, arguments);
   }
 
   void test_parseArgumentList_mixed() {
     ArgumentList argumentList = ParserTestCase.parse4("parseArgumentList", "(w, x, y: y, z: z)", []);
     NodeList<Expression> arguments = argumentList.arguments;
-    EngineTestCase.assertSize(4, arguments);
+    EngineTestCase.assertSizeOfList(4, arguments);
   }
 
   void test_parseArgumentList_noNamed() {
     ArgumentList argumentList = ParserTestCase.parse4("parseArgumentList", "(x, y, z)", []);
     NodeList<Expression> arguments = argumentList.arguments;
-    EngineTestCase.assertSize(3, arguments);
+    EngineTestCase.assertSizeOfList(3, arguments);
   }
 
   void test_parseArgumentList_onlyNamed() {
     ArgumentList argumentList = ParserTestCase.parse4("parseArgumentList", "(x: x, y: y)", []);
     NodeList<Expression> arguments = argumentList.arguments;
-    EngineTestCase.assertSize(2, arguments);
+    EngineTestCase.assertSizeOfList(2, arguments);
   }
 
   void test_parseAssertStatement() {
@@ -425,7 +425,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(invocation.function);
     ArgumentList argumentList = invocation.argumentList;
     JUnitTestCase.assertNotNull(argumentList);
-    EngineTestCase.assertSize(1, argumentList.arguments);
+    EngineTestCase.assertSizeOfList(1, argumentList.arguments);
     JUnitTestCase.assertNotNull(propertyAccess.operator);
     JUnitTestCase.assertNotNull(propertyAccess.propertyName);
   }
@@ -456,7 +456,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertEquals("x", invocation.methodName.name);
     ArgumentList argumentList = invocation.argumentList;
     JUnitTestCase.assertNotNull(argumentList);
-    EngineTestCase.assertSize(1, argumentList.arguments);
+    EngineTestCase.assertSizeOfList(1, argumentList.arguments);
     JUnitTestCase.assertNotNull(propertyAccess.operator);
     JUnitTestCase.assertNotNull(propertyAccess.propertyName);
   }
@@ -560,14 +560,14 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseBlock_empty() {
     Block block = ParserTestCase.parse4("parseBlock", "{}", []);
     JUnitTestCase.assertNotNull(block.leftBracket);
-    EngineTestCase.assertSize(0, block.statements);
+    EngineTestCase.assertSizeOfList(0, block.statements);
     JUnitTestCase.assertNotNull(block.rightBracket);
   }
 
   void test_parseBlock_nonEmpty() {
     Block block = ParserTestCase.parse4("parseBlock", "{;}", []);
     JUnitTestCase.assertNotNull(block.leftBracket);
-    EngineTestCase.assertSize(1, block.statements);
+    EngineTestCase.assertSizeOfList(1, block.statements);
     JUnitTestCase.assertNotNull(block.rightBracket);
   }
 
@@ -605,7 +605,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(section.period);
     JUnitTestCase.assertNotNull(section.methodName);
     JUnitTestCase.assertNotNull(section.argumentList);
-    EngineTestCase.assertSize(1, section.argumentList.arguments);
+    EngineTestCase.assertSizeOfList(1, section.argumentList.arguments);
   }
 
   void test_parseCascadeSection_p() {
@@ -644,21 +644,21 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(section.period);
     JUnitTestCase.assertNotNull(section.methodName);
     JUnitTestCase.assertNotNull(section.argumentList);
-    EngineTestCase.assertSize(1, section.argumentList.arguments);
+    EngineTestCase.assertSizeOfList(1, section.argumentList.arguments);
   }
 
   void test_parseCascadeSection_paa() {
     FunctionExpressionInvocation section = ParserTestCase.parse4("parseCascadeSection", "..a(b)(c)", []);
     EngineTestCase.assertInstanceOf((obj) => obj is MethodInvocation, MethodInvocation, section.function);
     JUnitTestCase.assertNotNull(section.argumentList);
-    EngineTestCase.assertSize(1, section.argumentList.arguments);
+    EngineTestCase.assertSizeOfList(1, section.argumentList.arguments);
   }
 
   void test_parseCascadeSection_paapaa() {
     FunctionExpressionInvocation section = ParserTestCase.parse4("parseCascadeSection", "..a(b)(c).d(e)(f)", []);
     EngineTestCase.assertInstanceOf((obj) => obj is MethodInvocation, MethodInvocation, section.function);
     JUnitTestCase.assertNotNull(section.argumentList);
-    EngineTestCase.assertSize(1, section.argumentList.arguments);
+    EngineTestCase.assertSizeOfList(1, section.argumentList.arguments);
   }
 
   void test_parseCascadeSection_pap() {
@@ -671,7 +671,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseClassDeclaration_abstract() {
     ClassDeclaration declaration = ParserTestCase.parse("parseClassDeclaration", <Object> [
         emptyCommentAndMetadata(),
-        TokenFactory.token(Keyword.ABSTRACT)], "class A {}");
+        TokenFactory.tokenFromKeyword(Keyword.ABSTRACT)], "class A {}");
     JUnitTestCase.assertNull(declaration.documentationComment);
     JUnitTestCase.assertNotNull(declaration.abstractKeyword);
     JUnitTestCase.assertNull(declaration.extendsClause);
@@ -679,7 +679,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(declaration.classKeyword);
     JUnitTestCase.assertNotNull(declaration.leftBracket);
     JUnitTestCase.assertNotNull(declaration.name);
-    EngineTestCase.assertSize(0, declaration.members);
+    EngineTestCase.assertSizeOfList(0, declaration.members);
     JUnitTestCase.assertNotNull(declaration.rightBracket);
     JUnitTestCase.assertNull(declaration.typeParameters);
   }
@@ -693,7 +693,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(declaration.classKeyword);
     JUnitTestCase.assertNotNull(declaration.leftBracket);
     JUnitTestCase.assertNotNull(declaration.name);
-    EngineTestCase.assertSize(0, declaration.members);
+    EngineTestCase.assertSizeOfList(0, declaration.members);
     JUnitTestCase.assertNotNull(declaration.rightBracket);
     JUnitTestCase.assertNull(declaration.typeParameters);
   }
@@ -707,7 +707,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(declaration.classKeyword);
     JUnitTestCase.assertNotNull(declaration.leftBracket);
     JUnitTestCase.assertNotNull(declaration.name);
-    EngineTestCase.assertSize(0, declaration.members);
+    EngineTestCase.assertSizeOfList(0, declaration.members);
     JUnitTestCase.assertNotNull(declaration.rightBracket);
     JUnitTestCase.assertNull(declaration.typeParameters);
   }
@@ -721,7 +721,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(declaration.classKeyword);
     JUnitTestCase.assertNotNull(declaration.leftBracket);
     JUnitTestCase.assertNotNull(declaration.name);
-    EngineTestCase.assertSize(0, declaration.members);
+    EngineTestCase.assertSizeOfList(0, declaration.members);
     JUnitTestCase.assertNotNull(declaration.rightBracket);
     JUnitTestCase.assertNull(declaration.typeParameters);
   }
@@ -737,7 +737,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(declaration.withClause);
     JUnitTestCase.assertNull(declaration.implementsClause);
     JUnitTestCase.assertNotNull(declaration.leftBracket);
-    EngineTestCase.assertSize(0, declaration.members);
+    EngineTestCase.assertSizeOfList(0, declaration.members);
     JUnitTestCase.assertNotNull(declaration.rightBracket);
   }
 
@@ -752,7 +752,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(declaration.withClause);
     JUnitTestCase.assertNotNull(declaration.implementsClause);
     JUnitTestCase.assertNotNull(declaration.leftBracket);
-    EngineTestCase.assertSize(0, declaration.members);
+    EngineTestCase.assertSizeOfList(0, declaration.members);
     JUnitTestCase.assertNotNull(declaration.rightBracket);
   }
 
@@ -765,7 +765,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(declaration.classKeyword);
     JUnitTestCase.assertNotNull(declaration.leftBracket);
     JUnitTestCase.assertNotNull(declaration.name);
-    EngineTestCase.assertSize(0, declaration.members);
+    EngineTestCase.assertSizeOfList(0, declaration.members);
     JUnitTestCase.assertNotNull(declaration.rightBracket);
     JUnitTestCase.assertNull(declaration.typeParameters);
   }
@@ -789,7 +789,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(declaration.classKeyword);
     JUnitTestCase.assertNotNull(declaration.leftBracket);
     JUnitTestCase.assertNotNull(declaration.name);
-    EngineTestCase.assertSize(1, declaration.members);
+    EngineTestCase.assertSizeOfList(1, declaration.members);
     JUnitTestCase.assertNotNull(declaration.rightBracket);
     JUnitTestCase.assertNull(declaration.typeParameters);
   }
@@ -827,10 +827,10 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(declaration.classKeyword);
     JUnitTestCase.assertNotNull(declaration.leftBracket);
     JUnitTestCase.assertNotNull(declaration.name);
-    EngineTestCase.assertSize(0, declaration.members);
+    EngineTestCase.assertSizeOfList(0, declaration.members);
     JUnitTestCase.assertNotNull(declaration.rightBracket);
     JUnitTestCase.assertNotNull(declaration.typeParameters);
-    EngineTestCase.assertSize(1, declaration.typeParameters.typeParameters);
+    EngineTestCase.assertSizeOfList(1, declaration.typeParameters.typeParameters);
   }
 
   void test_parseClassMember_constructor_withInitializers() {
@@ -845,18 +845,18 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(constructor.parameters);
     JUnitTestCase.assertNull(constructor.period);
     JUnitTestCase.assertNotNull(constructor.returnType);
-    EngineTestCase.assertSize(1, constructor.initializers);
+    EngineTestCase.assertSizeOfList(1, constructor.initializers);
   }
 
   void test_parseClassMember_field_instance_prefixedType() {
     FieldDeclaration field = ParserTestCase.parse("parseClassMember", <Object> ["C"], "p.A f;");
     JUnitTestCase.assertNull(field.documentationComment);
-    EngineTestCase.assertSize(0, field.metadata);
+    EngineTestCase.assertSizeOfList(0, field.metadata);
     JUnitTestCase.assertNull(field.staticKeyword);
     VariableDeclarationList list = field.fields;
     JUnitTestCase.assertNotNull(list);
     NodeList<VariableDeclaration> variables = list.variables;
-    EngineTestCase.assertSize(1, variables);
+    EngineTestCase.assertSizeOfList(1, variables);
     VariableDeclaration variable = variables[0];
     JUnitTestCase.assertNotNull(variable.name);
   }
@@ -864,12 +864,12 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseClassMember_field_namedGet() {
     FieldDeclaration field = ParserTestCase.parse("parseClassMember", <Object> ["C"], "var get;");
     JUnitTestCase.assertNull(field.documentationComment);
-    EngineTestCase.assertSize(0, field.metadata);
+    EngineTestCase.assertSizeOfList(0, field.metadata);
     JUnitTestCase.assertNull(field.staticKeyword);
     VariableDeclarationList list = field.fields;
     JUnitTestCase.assertNotNull(list);
     NodeList<VariableDeclaration> variables = list.variables;
-    EngineTestCase.assertSize(1, variables);
+    EngineTestCase.assertSizeOfList(1, variables);
     VariableDeclaration variable = variables[0];
     JUnitTestCase.assertNotNull(variable.name);
   }
@@ -877,12 +877,12 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseClassMember_field_namedOperator() {
     FieldDeclaration field = ParserTestCase.parse("parseClassMember", <Object> ["C"], "var operator;");
     JUnitTestCase.assertNull(field.documentationComment);
-    EngineTestCase.assertSize(0, field.metadata);
+    EngineTestCase.assertSizeOfList(0, field.metadata);
     JUnitTestCase.assertNull(field.staticKeyword);
     VariableDeclarationList list = field.fields;
     JUnitTestCase.assertNotNull(list);
     NodeList<VariableDeclaration> variables = list.variables;
-    EngineTestCase.assertSize(1, variables);
+    EngineTestCase.assertSizeOfList(1, variables);
     VariableDeclaration variable = variables[0];
     JUnitTestCase.assertNotNull(variable.name);
   }
@@ -890,12 +890,12 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseClassMember_field_namedOperator_withAssignment() {
     FieldDeclaration field = ParserTestCase.parse("parseClassMember", <Object> ["C"], "var operator = (5);");
     JUnitTestCase.assertNull(field.documentationComment);
-    EngineTestCase.assertSize(0, field.metadata);
+    EngineTestCase.assertSizeOfList(0, field.metadata);
     JUnitTestCase.assertNull(field.staticKeyword);
     VariableDeclarationList list = field.fields;
     JUnitTestCase.assertNotNull(list);
     NodeList<VariableDeclaration> variables = list.variables;
-    EngineTestCase.assertSize(1, variables);
+    EngineTestCase.assertSizeOfList(1, variables);
     VariableDeclaration variable = variables[0];
     JUnitTestCase.assertNotNull(variable.name);
     JUnitTestCase.assertNotNull(variable.initializer);
@@ -904,12 +904,12 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseClassMember_field_namedSet() {
     FieldDeclaration field = ParserTestCase.parse("parseClassMember", <Object> ["C"], "var set;");
     JUnitTestCase.assertNull(field.documentationComment);
-    EngineTestCase.assertSize(0, field.metadata);
+    EngineTestCase.assertSizeOfList(0, field.metadata);
     JUnitTestCase.assertNull(field.staticKeyword);
     VariableDeclarationList list = field.fields;
     JUnitTestCase.assertNotNull(list);
     NodeList<VariableDeclaration> variables = list.variables;
-    EngineTestCase.assertSize(1, variables);
+    EngineTestCase.assertSizeOfList(1, variables);
     VariableDeclaration variable = variables[0];
     JUnitTestCase.assertNotNull(variable.name);
   }
@@ -1118,7 +1118,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNull(constructor.name);
     JUnitTestCase.assertNotNull(constructor.parameters);
     JUnitTestCase.assertNotNull(constructor.separator);
-    EngineTestCase.assertSize(0, constructor.initializers);
+    EngineTestCase.assertSizeOfList(0, constructor.initializers);
     JUnitTestCase.assertNotNull(constructor.redirectedConstructor);
     JUnitTestCase.assertNotNull(constructor.body);
   }
@@ -1133,13 +1133,13 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNull(constructor.name);
     JUnitTestCase.assertNotNull(constructor.parameters);
     JUnitTestCase.assertNotNull(constructor.separator);
-    EngineTestCase.assertSize(0, constructor.initializers);
+    EngineTestCase.assertSizeOfList(0, constructor.initializers);
     JUnitTestCase.assertNotNull(constructor.redirectedConstructor);
     JUnitTestCase.assertNotNull(constructor.body);
   }
 
   void test_parseClassTypeAlias() {
-    Token token = TokenFactory.token(Keyword.CLASS);
+    Token token = TokenFactory.tokenFromKeyword(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = ParserTestCase.parse("parseClassTypeAlias", <Object> [emptyCommentAndMetadata(), null, token], "A = B;");
     JUnitTestCase.assertNotNull(classTypeAlias.keyword);
     JUnitTestCase.assertEquals("A", classTypeAlias.name.name);
@@ -1152,7 +1152,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseClassTypeAlias_abstract() {
-    Token token = TokenFactory.token(Keyword.CLASS);
+    Token token = TokenFactory.tokenFromKeyword(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = ParserTestCase.parse("parseClassTypeAlias", <Object> [emptyCommentAndMetadata(), null, token], "A = abstract B;");
     JUnitTestCase.assertNotNull(classTypeAlias.keyword);
     JUnitTestCase.assertEquals("A", classTypeAlias.name.name);
@@ -1165,7 +1165,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseClassTypeAlias_implements() {
-    Token token = TokenFactory.token(Keyword.CLASS);
+    Token token = TokenFactory.tokenFromKeyword(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = ParserTestCase.parse("parseClassTypeAlias", <Object> [emptyCommentAndMetadata(), null, token], "A = B implements C;");
     JUnitTestCase.assertNotNull(classTypeAlias.keyword);
     JUnitTestCase.assertEquals("A", classTypeAlias.name.name);
@@ -1178,7 +1178,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseClassTypeAlias_with() {
-    Token token = TokenFactory.token(Keyword.CLASS);
+    Token token = TokenFactory.tokenFromKeyword(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = ParserTestCase.parse("parseClassTypeAlias", <Object> [emptyCommentAndMetadata(), null, token], "A = B with C;");
     JUnitTestCase.assertNotNull(classTypeAlias.keyword);
     JUnitTestCase.assertEquals("A", classTypeAlias.name.name);
@@ -1191,7 +1191,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseClassTypeAlias_with_implements() {
-    Token token = TokenFactory.token(Keyword.CLASS);
+    Token token = TokenFactory.tokenFromKeyword(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = ParserTestCase.parse("parseClassTypeAlias", <Object> [emptyCommentAndMetadata(), null, token], "A = B with C implements D;");
     JUnitTestCase.assertNotNull(classTypeAlias.keyword);
     JUnitTestCase.assertEquals("A", classTypeAlias.name.name);
@@ -1205,98 +1205,98 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseCombinators_h() {
     List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "hide a;", []);
-    EngineTestCase.assertSize(1, combinators);
+    EngineTestCase.assertSizeOfList(1, combinators);
     HideCombinator combinator = combinators[0] as HideCombinator;
     JUnitTestCase.assertNotNull(combinator);
     JUnitTestCase.assertNotNull(combinator.keyword);
-    EngineTestCase.assertSize(1, combinator.hiddenNames);
+    EngineTestCase.assertSizeOfList(1, combinator.hiddenNames);
   }
 
   void test_parseCombinators_hs() {
     List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "hide a show b;", []);
-    EngineTestCase.assertSize(2, combinators);
+    EngineTestCase.assertSizeOfList(2, combinators);
     HideCombinator hideCombinator = combinators[0] as HideCombinator;
     JUnitTestCase.assertNotNull(hideCombinator);
     JUnitTestCase.assertNotNull(hideCombinator.keyword);
-    EngineTestCase.assertSize(1, hideCombinator.hiddenNames);
+    EngineTestCase.assertSizeOfList(1, hideCombinator.hiddenNames);
     ShowCombinator showCombinator = combinators[1] as ShowCombinator;
     JUnitTestCase.assertNotNull(showCombinator);
     JUnitTestCase.assertNotNull(showCombinator.keyword);
-    EngineTestCase.assertSize(1, showCombinator.shownNames);
+    EngineTestCase.assertSizeOfList(1, showCombinator.shownNames);
   }
 
   void test_parseCombinators_hshs() {
     List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "hide a show b hide c show d;", []);
-    EngineTestCase.assertSize(4, combinators);
+    EngineTestCase.assertSizeOfList(4, combinators);
   }
 
   void test_parseCombinators_s() {
     List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "show a;", []);
-    EngineTestCase.assertSize(1, combinators);
+    EngineTestCase.assertSizeOfList(1, combinators);
     ShowCombinator combinator = combinators[0] as ShowCombinator;
     JUnitTestCase.assertNotNull(combinator);
     JUnitTestCase.assertNotNull(combinator.keyword);
-    EngineTestCase.assertSize(1, combinator.shownNames);
+    EngineTestCase.assertSizeOfList(1, combinator.shownNames);
   }
 
   void test_parseCommentAndMetadata_c() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ void", []);
     JUnitTestCase.assertNotNull(commentAndMetadata.comment);
-    EngineTestCase.assertSize(0, commentAndMetadata.metadata);
+    EngineTestCase.assertSizeOfList(0, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_cmc() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ @A /** 2 */ void", []);
     JUnitTestCase.assertNotNull(commentAndMetadata.comment);
-    EngineTestCase.assertSize(1, commentAndMetadata.metadata);
+    EngineTestCase.assertSizeOfList(1, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_cmcm() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ @A /** 2 */ @B void", []);
     JUnitTestCase.assertNotNull(commentAndMetadata.comment);
-    EngineTestCase.assertSize(2, commentAndMetadata.metadata);
+    EngineTestCase.assertSizeOfList(2, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_cmm() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ @A @B void", []);
     JUnitTestCase.assertNotNull(commentAndMetadata.comment);
-    EngineTestCase.assertSize(2, commentAndMetadata.metadata);
+    EngineTestCase.assertSizeOfList(2, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_m() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A void", []);
     JUnitTestCase.assertNull(commentAndMetadata.comment);
-    EngineTestCase.assertSize(1, commentAndMetadata.metadata);
+    EngineTestCase.assertSizeOfList(1, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_mcm() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A /** 1 */ @B void", []);
     JUnitTestCase.assertNotNull(commentAndMetadata.comment);
-    EngineTestCase.assertSize(2, commentAndMetadata.metadata);
+    EngineTestCase.assertSizeOfList(2, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_mcmc() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A /** 1 */ @B /** 2 */ void", []);
     JUnitTestCase.assertNotNull(commentAndMetadata.comment);
-    EngineTestCase.assertSize(2, commentAndMetadata.metadata);
+    EngineTestCase.assertSizeOfList(2, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_mm() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A @B(x) void", []);
     JUnitTestCase.assertNull(commentAndMetadata.comment);
-    EngineTestCase.assertSize(2, commentAndMetadata.metadata);
+    EngineTestCase.assertSizeOfList(2, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_none() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "void", []);
     JUnitTestCase.assertNull(commentAndMetadata.comment);
-    EngineTestCase.assertSize(0, commentAndMetadata.metadata);
+    EngineTestCase.assertSizeOfList(0, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_singleLine() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", EngineTestCase.createSource(["/// 1", "/// 2", "void"]), []);
     JUnitTestCase.assertNotNull(commentAndMetadata.comment);
-    EngineTestCase.assertSize(0, commentAndMetadata.metadata);
+    EngineTestCase.assertSizeOfList(0, commentAndMetadata.metadata);
   }
 
   void test_parseCommentReference_new_prefixed() {
@@ -1356,7 +1356,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseCommentReferences_multiLine() {
     List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/** xxx [a] yyy [b] zzz */", 3)];
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
-    EngineTestCase.assertSize(2, references);
+    EngineTestCase.assertSizeOfList(2, references);
     CommentReference reference = references[0];
     JUnitTestCase.assertNotNull(reference);
     JUnitTestCase.assertNotNull(reference.identifier);
@@ -1370,7 +1370,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseCommentReferences_notClosed_noIdentifier() {
     List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/** [ some text", 5)];
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
-    EngineTestCase.assertSize(1, references);
+    EngineTestCase.assertSizeOfList(1, references);
     CommentReference reference = references[0];
     JUnitTestCase.assertNotNull(reference);
     JUnitTestCase.assertNotNull(reference.identifier);
@@ -1381,7 +1381,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseCommentReferences_notClosed_withIdentifier() {
     List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/** [namePrefix some text", 5)];
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
-    EngineTestCase.assertSize(1, references);
+    EngineTestCase.assertSizeOfList(1, references);
     CommentReference reference = references[0];
     JUnitTestCase.assertNotNull(reference);
     JUnitTestCase.assertNotNull(reference.identifier);
@@ -1394,7 +1394,7 @@ class SimpleParserTest extends ParserTestCase {
         new StringToken(TokenType.SINGLE_LINE_COMMENT, "/// xxx [a] yyy [b] zzz", 3),
         new StringToken(TokenType.SINGLE_LINE_COMMENT, "/// x [c]", 28)];
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
-    EngineTestCase.assertSize(3, references);
+    EngineTestCase.assertSizeOfList(3, references);
     CommentReference reference = references[0];
     JUnitTestCase.assertNotNull(reference);
     JUnitTestCase.assertNotNull(reference.identifier);
@@ -1412,7 +1412,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseCommentReferences_skipCodeBlock_bracketed() {
     List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/** [:xxx [a] yyy:] [b] zzz */", 3)];
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
-    EngineTestCase.assertSize(1, references);
+    EngineTestCase.assertSizeOfList(1, references);
     CommentReference reference = references[0];
     JUnitTestCase.assertNotNull(reference);
     JUnitTestCase.assertNotNull(reference.identifier);
@@ -1422,7 +1422,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseCommentReferences_skipCodeBlock_spaces() {
     List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/**\n *     a[i]\n * xxx [i] zzz\n */", 3)];
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
-    EngineTestCase.assertSize(1, references);
+    EngineTestCase.assertSizeOfList(1, references);
     CommentReference reference = references[0];
     JUnitTestCase.assertNotNull(reference);
     JUnitTestCase.assertNotNull(reference.identifier);
@@ -1432,7 +1432,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseCommentReferences_skipLinkDefinition() {
     List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/** [a]: http://www.google.com (Google) [b] zzz */", 3)];
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
-    EngineTestCase.assertSize(1, references);
+    EngineTestCase.assertSizeOfList(1, references);
     CommentReference reference = references[0];
     JUnitTestCase.assertNotNull(reference);
     JUnitTestCase.assertNotNull(reference.identifier);
@@ -1442,7 +1442,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseCommentReferences_skipLinked() {
     List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/** [a](http://www.google.com) [b] zzz */", 3)];
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
-    EngineTestCase.assertSize(1, references);
+    EngineTestCase.assertSizeOfList(1, references);
     CommentReference reference = references[0];
     JUnitTestCase.assertNotNull(reference);
     JUnitTestCase.assertNotNull(reference.identifier);
@@ -1452,7 +1452,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseCommentReferences_skipReferenceLink() {
     List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/** [a][c] [b] zzz */", 3)];
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
-    EngineTestCase.assertSize(1, references);
+    EngineTestCase.assertSizeOfList(1, references);
     CommentReference reference = references[0];
     JUnitTestCase.assertNotNull(reference);
     JUnitTestCase.assertNotNull(reference.identifier);
@@ -1462,8 +1462,8 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "abstract<dynamic> _abstract = new abstract.A();", []);
     JUnitTestCase.assertNull(unit.scriptTag);
-    EngineTestCase.assertSize(0, unit.directives);
-    EngineTestCase.assertSize(1, unit.declarations);
+    EngineTestCase.assertSizeOfList(0, unit.directives);
+    EngineTestCase.assertSizeOfList(1, unit.declarations);
   }
 
   void test_parseCompilationUnit_builtIn_asFunctionName() {
@@ -1487,71 +1487,71 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseCompilationUnit_directives_multiple() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "library l;\npart 'a.dart';", []);
     JUnitTestCase.assertNull(unit.scriptTag);
-    EngineTestCase.assertSize(2, unit.directives);
-    EngineTestCase.assertSize(0, unit.declarations);
+    EngineTestCase.assertSizeOfList(2, unit.directives);
+    EngineTestCase.assertSizeOfList(0, unit.declarations);
   }
 
   void test_parseCompilationUnit_directives_single() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "library l;", []);
     JUnitTestCase.assertNull(unit.scriptTag);
-    EngineTestCase.assertSize(1, unit.directives);
-    EngineTestCase.assertSize(0, unit.declarations);
+    EngineTestCase.assertSizeOfList(1, unit.directives);
+    EngineTestCase.assertSizeOfList(0, unit.declarations);
   }
 
   void test_parseCompilationUnit_empty() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "", []);
     JUnitTestCase.assertNull(unit.scriptTag);
-    EngineTestCase.assertSize(0, unit.directives);
-    EngineTestCase.assertSize(0, unit.declarations);
+    EngineTestCase.assertSizeOfList(0, unit.directives);
+    EngineTestCase.assertSizeOfList(0, unit.declarations);
   }
 
   void test_parseCompilationUnit_exportAsPrefix() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "export.A _export = new export.A();", []);
     JUnitTestCase.assertNull(unit.scriptTag);
-    EngineTestCase.assertSize(0, unit.directives);
-    EngineTestCase.assertSize(1, unit.declarations);
+    EngineTestCase.assertSizeOfList(0, unit.directives);
+    EngineTestCase.assertSizeOfList(1, unit.declarations);
   }
 
   void test_parseCompilationUnit_exportAsPrefix_parameterized() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "export<dynamic> _export = new export.A();", []);
     JUnitTestCase.assertNull(unit.scriptTag);
-    EngineTestCase.assertSize(0, unit.directives);
-    EngineTestCase.assertSize(1, unit.declarations);
+    EngineTestCase.assertSizeOfList(0, unit.directives);
+    EngineTestCase.assertSizeOfList(1, unit.declarations);
   }
 
   void test_parseCompilationUnit_operatorAsPrefix_parameterized() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "operator<dynamic> _operator = new operator.A();", []);
     JUnitTestCase.assertNull(unit.scriptTag);
-    EngineTestCase.assertSize(0, unit.directives);
-    EngineTestCase.assertSize(1, unit.declarations);
+    EngineTestCase.assertSizeOfList(0, unit.directives);
+    EngineTestCase.assertSizeOfList(1, unit.declarations);
   }
 
   void test_parseCompilationUnit_script() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "#! /bin/dart", []);
     JUnitTestCase.assertNotNull(unit.scriptTag);
-    EngineTestCase.assertSize(0, unit.directives);
-    EngineTestCase.assertSize(0, unit.declarations);
+    EngineTestCase.assertSizeOfList(0, unit.directives);
+    EngineTestCase.assertSizeOfList(0, unit.declarations);
   }
 
   void test_parseCompilationUnit_skipFunctionBody_withInterpolation() {
     ParserTestCase._parseFunctionBodies = false;
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "f() { '\${n}'; }", []);
     JUnitTestCase.assertNull(unit.scriptTag);
-    EngineTestCase.assertSize(1, unit.declarations);
+    EngineTestCase.assertSizeOfList(1, unit.declarations);
   }
 
   void test_parseCompilationUnit_topLevelDeclaration() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "class A {}", []);
     JUnitTestCase.assertNull(unit.scriptTag);
-    EngineTestCase.assertSize(0, unit.directives);
-    EngineTestCase.assertSize(1, unit.declarations);
+    EngineTestCase.assertSizeOfList(0, unit.directives);
+    EngineTestCase.assertSizeOfList(1, unit.declarations);
   }
 
   void test_parseCompilationUnit_typedefAsPrefix() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "typedef.A _typedef = new typedef.A();", []);
     JUnitTestCase.assertNull(unit.scriptTag);
-    EngineTestCase.assertSize(0, unit.directives);
-    EngineTestCase.assertSize(1, unit.declarations);
+    EngineTestCase.assertSizeOfList(0, unit.directives);
+    EngineTestCase.assertSizeOfList(1, unit.declarations);
   }
 
   void test_parseCompilationUnitMember_abstractAsPrefix() {
@@ -1563,7 +1563,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_class() {
     ClassDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "class A {}");
     JUnitTestCase.assertEquals("A", declaration.name.name);
-    EngineTestCase.assertSize(0, declaration.members);
+    EngineTestCase.assertSizeOfList(0, declaration.members);
   }
 
   void test_parseCompilationUnitMember_classTypeAlias() {
@@ -1685,7 +1685,7 @@ class SimpleParserTest extends ParserTestCase {
     ClassTypeAlias typeAlias = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "class C<E> = S<E> with M<E> implements I<E>;");
     JUnitTestCase.assertNotNull(typeAlias.keyword);
     JUnitTestCase.assertEquals("C", typeAlias.name.name);
-    EngineTestCase.assertSize(1, typeAlias.typeParameters.typeParameters);
+    EngineTestCase.assertSizeOfList(1, typeAlias.typeParameters.typeParameters);
     JUnitTestCase.assertNotNull(typeAlias.equals);
     JUnitTestCase.assertNull(typeAlias.abstractKeyword);
     JUnitTestCase.assertEquals("S", typeAlias.superclass.name.name);
@@ -1723,7 +1723,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_typedef() {
     FunctionTypeAlias typeAlias = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "typedef F();");
     JUnitTestCase.assertEquals("F", typeAlias.name.name);
-    EngineTestCase.assertSize(0, typeAlias.parameters.parameters);
+    EngineTestCase.assertSizeOfList(0, typeAlias.parameters.parameters);
   }
 
   void test_parseCompilationUnitMember_variable() {
@@ -1769,7 +1769,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(literal.constKeyword);
     JUnitTestCase.assertNotNull(literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
-    EngineTestCase.assertSize(0, literal.elements);
+    EngineTestCase.assertSizeOfList(0, literal.elements);
     JUnitTestCase.assertNotNull(literal.rightBracket);
   }
 
@@ -1778,14 +1778,14 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(literal.constKeyword);
     JUnitTestCase.assertNull(literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
-    EngineTestCase.assertSize(0, literal.elements);
+    EngineTestCase.assertSizeOfList(0, literal.elements);
     JUnitTestCase.assertNotNull(literal.rightBracket);
   }
 
   void test_parseConstExpression_mapLiteral_typed() {
     MapLiteral literal = ParserTestCase.parse4("parseConstExpression", "const <A, B> {}", []);
     JUnitTestCase.assertNotNull(literal.leftBracket);
-    EngineTestCase.assertSize(0, literal.entries);
+    EngineTestCase.assertSizeOfList(0, literal.entries);
     JUnitTestCase.assertNotNull(literal.rightBracket);
     JUnitTestCase.assertNotNull(literal.typeArguments);
   }
@@ -1793,7 +1793,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseConstExpression_mapLiteral_untyped() {
     MapLiteral literal = ParserTestCase.parse4("parseConstExpression", "const {}", []);
     JUnitTestCase.assertNotNull(literal.leftBracket);
-    EngineTestCase.assertSize(0, literal.entries);
+    EngineTestCase.assertSizeOfList(0, literal.entries);
     JUnitTestCase.assertNotNull(literal.rightBracket);
     JUnitTestCase.assertNull(literal.typeArguments);
   }
@@ -1865,7 +1865,7 @@ class SimpleParserTest extends ParserTestCase {
     ExportDirective directive = ParserTestCase.parse("parseDirective", <Object> [emptyCommentAndMetadata()], "export 'lib/lib.dart';");
     JUnitTestCase.assertNotNull(directive.keyword);
     JUnitTestCase.assertNotNull(directive.uri);
-    EngineTestCase.assertSize(0, directive.combinators);
+    EngineTestCase.assertSizeOfList(0, directive.combinators);
     JUnitTestCase.assertNotNull(directive.semicolon);
   }
 
@@ -1875,7 +1875,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(directive.uri);
     JUnitTestCase.assertNull(directive.asToken);
     JUnitTestCase.assertNull(directive.prefix);
-    EngineTestCase.assertSize(0, directive.combinators);
+    EngineTestCase.assertSizeOfList(0, directive.combinators);
     JUnitTestCase.assertNotNull(directive.semicolon);
   }
 
@@ -1914,7 +1914,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertTrue(comment.isDocumentation);
     JUnitTestCase.assertFalse(comment.isEndOfLine);
     NodeList<CommentReference> references = comment.references;
-    EngineTestCase.assertSize(1, references);
+    EngineTestCase.assertSizeOfList(1, references);
     CommentReference reference = references[0];
     JUnitTestCase.assertNotNull(reference);
     JUnitTestCase.assertEquals(5, reference.offset);
@@ -1963,7 +1963,7 @@ class SimpleParserTest extends ParserTestCase {
     ExportDirective directive = ParserTestCase.parse("parseExportDirective", <Object> [emptyCommentAndMetadata()], "export 'lib/lib.dart' hide A, B;");
     JUnitTestCase.assertNotNull(directive.keyword);
     JUnitTestCase.assertNotNull(directive.uri);
-    EngineTestCase.assertSize(1, directive.combinators);
+    EngineTestCase.assertSizeOfList(1, directive.combinators);
     JUnitTestCase.assertNotNull(directive.semicolon);
   }
 
@@ -1971,7 +1971,7 @@ class SimpleParserTest extends ParserTestCase {
     ExportDirective directive = ParserTestCase.parse("parseExportDirective", <Object> [emptyCommentAndMetadata()], "export 'lib/lib.dart' hide A show B;");
     JUnitTestCase.assertNotNull(directive.keyword);
     JUnitTestCase.assertNotNull(directive.uri);
-    EngineTestCase.assertSize(2, directive.combinators);
+    EngineTestCase.assertSizeOfList(2, directive.combinators);
     JUnitTestCase.assertNotNull(directive.semicolon);
   }
 
@@ -1979,7 +1979,7 @@ class SimpleParserTest extends ParserTestCase {
     ExportDirective directive = ParserTestCase.parse("parseExportDirective", <Object> [emptyCommentAndMetadata()], "export 'lib/lib.dart';");
     JUnitTestCase.assertNotNull(directive.keyword);
     JUnitTestCase.assertNotNull(directive.uri);
-    EngineTestCase.assertSize(0, directive.combinators);
+    EngineTestCase.assertSizeOfList(0, directive.combinators);
     JUnitTestCase.assertNotNull(directive.semicolon);
   }
 
@@ -1987,7 +1987,7 @@ class SimpleParserTest extends ParserTestCase {
     ExportDirective directive = ParserTestCase.parse("parseExportDirective", <Object> [emptyCommentAndMetadata()], "export 'lib/lib.dart' show A, B;");
     JUnitTestCase.assertNotNull(directive.keyword);
     JUnitTestCase.assertNotNull(directive.uri);
-    EngineTestCase.assertSize(1, directive.combinators);
+    EngineTestCase.assertSizeOfList(1, directive.combinators);
     JUnitTestCase.assertNotNull(directive.semicolon);
   }
 
@@ -1995,7 +1995,7 @@ class SimpleParserTest extends ParserTestCase {
     ExportDirective directive = ParserTestCase.parse("parseExportDirective", <Object> [emptyCommentAndMetadata()], "export 'lib/lib.dart' show B hide A;");
     JUnitTestCase.assertNotNull(directive.keyword);
     JUnitTestCase.assertNotNull(directive.uri);
-    EngineTestCase.assertSize(2, directive.combinators);
+    EngineTestCase.assertSizeOfList(2, directive.combinators);
     JUnitTestCase.assertNotNull(directive.semicolon);
   }
 
@@ -2024,7 +2024,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(expression.body);
     ArgumentList list = invocation.argumentList;
     JUnitTestCase.assertNotNull(list);
-    EngineTestCase.assertSize(1, list.arguments);
+    EngineTestCase.assertSizeOfList(1, list.arguments);
   }
 
   void test_parseExpression_superMethodInvocation() {
@@ -2036,12 +2036,12 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseExpressionList_multiple() {
     List<Expression> result = ParserTestCase.parse4("parseExpressionList", "1, 2, 3", []);
-    EngineTestCase.assertSize(3, result);
+    EngineTestCase.assertSizeOfList(3, result);
   }
 
   void test_parseExpressionList_single() {
     List<Expression> result = ParserTestCase.parse4("parseExpressionList", "1", []);
-    EngineTestCase.assertSize(1, result);
+    EngineTestCase.assertSizeOfList(1, result);
   }
 
   void test_parseExpressionWithoutCascade_assign() {
@@ -2262,7 +2262,7 @@ class SimpleParserTest extends ParserTestCase {
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "()", []);
     JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
     JUnitTestCase.assertNull(parameterList.leftDelimiter);
-    EngineTestCase.assertSize(0, parameterList.parameters);
+    EngineTestCase.assertSizeOfList(0, parameterList.parameters);
     JUnitTestCase.assertNull(parameterList.rightDelimiter);
     JUnitTestCase.assertNotNull(parameterList.rightParenthesis);
   }
@@ -2271,7 +2271,7 @@ class SimpleParserTest extends ParserTestCase {
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "({A a : 1, B b, C c : 3})", []);
     JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
     JUnitTestCase.assertNotNull(parameterList.leftDelimiter);
-    EngineTestCase.assertSize(3, parameterList.parameters);
+    EngineTestCase.assertSizeOfList(3, parameterList.parameters);
     JUnitTestCase.assertNotNull(parameterList.rightDelimiter);
     JUnitTestCase.assertNotNull(parameterList.rightParenthesis);
   }
@@ -2280,7 +2280,7 @@ class SimpleParserTest extends ParserTestCase {
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "({A a})", []);
     JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
     JUnitTestCase.assertNotNull(parameterList.leftDelimiter);
-    EngineTestCase.assertSize(1, parameterList.parameters);
+    EngineTestCase.assertSizeOfList(1, parameterList.parameters);
     JUnitTestCase.assertNotNull(parameterList.rightDelimiter);
     JUnitTestCase.assertNotNull(parameterList.rightParenthesis);
   }
@@ -2289,7 +2289,7 @@ class SimpleParserTest extends ParserTestCase {
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a, B b, C c)", []);
     JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
     JUnitTestCase.assertNull(parameterList.leftDelimiter);
-    EngineTestCase.assertSize(3, parameterList.parameters);
+    EngineTestCase.assertSizeOfList(3, parameterList.parameters);
     JUnitTestCase.assertNull(parameterList.rightDelimiter);
     JUnitTestCase.assertNotNull(parameterList.rightParenthesis);
   }
@@ -2298,7 +2298,7 @@ class SimpleParserTest extends ParserTestCase {
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a, {B b})", []);
     JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
     JUnitTestCase.assertNotNull(parameterList.leftDelimiter);
-    EngineTestCase.assertSize(2, parameterList.parameters);
+    EngineTestCase.assertSizeOfList(2, parameterList.parameters);
     JUnitTestCase.assertNotNull(parameterList.rightDelimiter);
     JUnitTestCase.assertNotNull(parameterList.rightParenthesis);
   }
@@ -2307,7 +2307,7 @@ class SimpleParserTest extends ParserTestCase {
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a, [B b])", []);
     JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
     JUnitTestCase.assertNotNull(parameterList.leftDelimiter);
-    EngineTestCase.assertSize(2, parameterList.parameters);
+    EngineTestCase.assertSizeOfList(2, parameterList.parameters);
     JUnitTestCase.assertNotNull(parameterList.rightDelimiter);
     JUnitTestCase.assertNotNull(parameterList.rightParenthesis);
   }
@@ -2316,7 +2316,7 @@ class SimpleParserTest extends ParserTestCase {
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a)", []);
     JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
     JUnitTestCase.assertNull(parameterList.leftDelimiter);
-    EngineTestCase.assertSize(1, parameterList.parameters);
+    EngineTestCase.assertSizeOfList(1, parameterList.parameters);
     JUnitTestCase.assertNull(parameterList.rightDelimiter);
     JUnitTestCase.assertNotNull(parameterList.rightParenthesis);
   }
@@ -2325,7 +2325,7 @@ class SimpleParserTest extends ParserTestCase {
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "([A a = null, B b, C c = null])", []);
     JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
     JUnitTestCase.assertNotNull(parameterList.leftDelimiter);
-    EngineTestCase.assertSize(3, parameterList.parameters);
+    EngineTestCase.assertSizeOfList(3, parameterList.parameters);
     JUnitTestCase.assertNotNull(parameterList.rightDelimiter);
     JUnitTestCase.assertNotNull(parameterList.rightParenthesis);
   }
@@ -2334,7 +2334,7 @@ class SimpleParserTest extends ParserTestCase {
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "([A a = null])", []);
     JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
     JUnitTestCase.assertNotNull(parameterList.leftDelimiter);
-    EngineTestCase.assertSize(1, parameterList.parameters);
+    EngineTestCase.assertSizeOfList(1, parameterList.parameters);
     JUnitTestCase.assertNotNull(parameterList.rightDelimiter);
     JUnitTestCase.assertNotNull(parameterList.rightParenthesis);
   }
@@ -2356,7 +2356,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNotNull(statement.loopVariable);
-    EngineTestCase.assertSize(1, statement.loopVariable.metadata);
+    EngineTestCase.assertSizeOfList(1, statement.loopVariable.metadata);
     JUnitTestCase.assertNull(statement.identifier);
     JUnitTestCase.assertNotNull(statement.inKeyword);
     JUnitTestCase.assertNotNull(statement.iterator);
@@ -2397,7 +2397,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.leftSeparator);
     JUnitTestCase.assertNotNull(statement.condition);
     JUnitTestCase.assertNotNull(statement.rightSeparator);
-    EngineTestCase.assertSize(0, statement.updaters);
+    EngineTestCase.assertSizeOfList(0, statement.updaters);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
     JUnitTestCase.assertNotNull(statement.body);
   }
@@ -2411,7 +2411,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.leftSeparator);
     JUnitTestCase.assertNotNull(statement.condition);
     JUnitTestCase.assertNotNull(statement.rightSeparator);
-    EngineTestCase.assertSize(1, statement.updaters);
+    EngineTestCase.assertSizeOfList(1, statement.updaters);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
     JUnitTestCase.assertNotNull(statement.body);
   }
@@ -2425,7 +2425,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.leftSeparator);
     JUnitTestCase.assertNotNull(statement.condition);
     JUnitTestCase.assertNotNull(statement.rightSeparator);
-    EngineTestCase.assertSize(1, statement.updaters);
+    EngineTestCase.assertSizeOfList(1, statement.updaters);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
     JUnitTestCase.assertNotNull(statement.body);
   }
@@ -2436,13 +2436,13 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     VariableDeclarationList variables = statement.variables;
     JUnitTestCase.assertNotNull(variables);
-    EngineTestCase.assertSize(0, variables.metadata);
-    EngineTestCase.assertSize(1, variables.variables);
+    EngineTestCase.assertSizeOfList(0, variables.metadata);
+    EngineTestCase.assertSizeOfList(1, variables.variables);
     JUnitTestCase.assertNull(statement.initialization);
     JUnitTestCase.assertNotNull(statement.leftSeparator);
     JUnitTestCase.assertNull(statement.condition);
     JUnitTestCase.assertNotNull(statement.rightSeparator);
-    EngineTestCase.assertSize(0, statement.updaters);
+    EngineTestCase.assertSizeOfList(0, statement.updaters);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
     JUnitTestCase.assertNotNull(statement.body);
   }
@@ -2453,13 +2453,13 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     VariableDeclarationList variables = statement.variables;
     JUnitTestCase.assertNotNull(variables);
-    EngineTestCase.assertSize(1, variables.metadata);
-    EngineTestCase.assertSize(1, variables.variables);
+    EngineTestCase.assertSizeOfList(1, variables.metadata);
+    EngineTestCase.assertSizeOfList(1, variables.variables);
     JUnitTestCase.assertNull(statement.initialization);
     JUnitTestCase.assertNotNull(statement.leftSeparator);
     JUnitTestCase.assertNull(statement.condition);
     JUnitTestCase.assertNotNull(statement.rightSeparator);
-    EngineTestCase.assertSize(0, statement.updaters);
+    EngineTestCase.assertSizeOfList(0, statement.updaters);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
     JUnitTestCase.assertNotNull(statement.body);
   }
@@ -2470,12 +2470,12 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     VariableDeclarationList variables = statement.variables;
     JUnitTestCase.assertNotNull(variables);
-    EngineTestCase.assertSize(1, variables.variables);
+    EngineTestCase.assertSizeOfList(1, variables.variables);
     JUnitTestCase.assertNull(statement.initialization);
     JUnitTestCase.assertNotNull(statement.leftSeparator);
     JUnitTestCase.assertNotNull(statement.condition);
     JUnitTestCase.assertNotNull(statement.rightSeparator);
-    EngineTestCase.assertSize(0, statement.updaters);
+    EngineTestCase.assertSizeOfList(0, statement.updaters);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
     JUnitTestCase.assertNotNull(statement.body);
   }
@@ -2486,12 +2486,12 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     VariableDeclarationList variables = statement.variables;
     JUnitTestCase.assertNotNull(variables);
-    EngineTestCase.assertSize(1, variables.variables);
+    EngineTestCase.assertSizeOfList(1, variables.variables);
     JUnitTestCase.assertNull(statement.initialization);
     JUnitTestCase.assertNotNull(statement.leftSeparator);
     JUnitTestCase.assertNotNull(statement.condition);
     JUnitTestCase.assertNotNull(statement.rightSeparator);
-    EngineTestCase.assertSize(1, statement.updaters);
+    EngineTestCase.assertSizeOfList(1, statement.updaters);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
     JUnitTestCase.assertNotNull(statement.body);
   }
@@ -2502,12 +2502,12 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     VariableDeclarationList variables = statement.variables;
     JUnitTestCase.assertNotNull(variables);
-    EngineTestCase.assertSize(2, variables.variables);
+    EngineTestCase.assertSizeOfList(2, variables.variables);
     JUnitTestCase.assertNull(statement.initialization);
     JUnitTestCase.assertNotNull(statement.leftSeparator);
     JUnitTestCase.assertNotNull(statement.condition);
     JUnitTestCase.assertNotNull(statement.rightSeparator);
-    EngineTestCase.assertSize(2, statement.updaters);
+    EngineTestCase.assertSizeOfList(2, statement.updaters);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
     JUnitTestCase.assertNotNull(statement.body);
   }
@@ -2518,12 +2518,12 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     VariableDeclarationList variables = statement.variables;
     JUnitTestCase.assertNotNull(variables);
-    EngineTestCase.assertSize(1, variables.variables);
+    EngineTestCase.assertSizeOfList(1, variables.variables);
     JUnitTestCase.assertNull(statement.initialization);
     JUnitTestCase.assertNotNull(statement.leftSeparator);
     JUnitTestCase.assertNull(statement.condition);
     JUnitTestCase.assertNotNull(statement.rightSeparator);
-    EngineTestCase.assertSize(1, statement.updaters);
+    EngineTestCase.assertSizeOfList(1, statement.updaters);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
     JUnitTestCase.assertNotNull(statement.body);
   }
@@ -2537,7 +2537,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.leftSeparator);
     JUnitTestCase.assertNull(statement.condition);
     JUnitTestCase.assertNotNull(statement.rightSeparator);
-    EngineTestCase.assertSize(1, statement.updaters);
+    EngineTestCase.assertSizeOfList(1, statement.updaters);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
     JUnitTestCase.assertNotNull(statement.body);
   }
@@ -2661,7 +2661,7 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseGetter_static() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    Token staticKeyword = TokenFactory.token(Keyword.STATIC);
+    Token staticKeyword = TokenFactory.tokenFromKeyword(Keyword.STATIC);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     MethodDeclaration method = ParserTestCase.parse("parseGetter", <Object> [
         commentAndMetadata(comment, []),
@@ -2681,12 +2681,12 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseIdentifierList_multiple() {
     List<SimpleIdentifier> list = ParserTestCase.parse4("parseIdentifierList", "a, b, c", []);
-    EngineTestCase.assertSize(3, list);
+    EngineTestCase.assertSizeOfList(3, list);
   }
 
   void test_parseIdentifierList_single() {
     List<SimpleIdentifier> list = ParserTestCase.parse4("parseIdentifierList", "a", []);
-    EngineTestCase.assertSize(1, list);
+    EngineTestCase.assertSizeOfList(1, list);
   }
 
   void test_parseIfStatement_else_block() {
@@ -2735,13 +2735,13 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseImplementsClause_multiple() {
     ImplementsClause clause = ParserTestCase.parse4("parseImplementsClause", "implements A, B, C", []);
-    EngineTestCase.assertSize(3, clause.interfaces);
+    EngineTestCase.assertSizeOfList(3, clause.interfaces);
     JUnitTestCase.assertNotNull(clause.keyword);
   }
 
   void test_parseImplementsClause_single() {
     ImplementsClause clause = ParserTestCase.parse4("parseImplementsClause", "implements A", []);
-    EngineTestCase.assertSize(1, clause.interfaces);
+    EngineTestCase.assertSizeOfList(1, clause.interfaces);
     JUnitTestCase.assertNotNull(clause.keyword);
   }
 
@@ -2751,7 +2751,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(directive.uri);
     JUnitTestCase.assertNull(directive.asToken);
     JUnitTestCase.assertNull(directive.prefix);
-    EngineTestCase.assertSize(1, directive.combinators);
+    EngineTestCase.assertSizeOfList(1, directive.combinators);
     JUnitTestCase.assertNotNull(directive.semicolon);
   }
 
@@ -2761,7 +2761,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(directive.uri);
     JUnitTestCase.assertNull(directive.asToken);
     JUnitTestCase.assertNull(directive.prefix);
-    EngineTestCase.assertSize(0, directive.combinators);
+    EngineTestCase.assertSizeOfList(0, directive.combinators);
     JUnitTestCase.assertNotNull(directive.semicolon);
   }
 
@@ -2771,7 +2771,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(directive.uri);
     JUnitTestCase.assertNotNull(directive.asToken);
     JUnitTestCase.assertNotNull(directive.prefix);
-    EngineTestCase.assertSize(0, directive.combinators);
+    EngineTestCase.assertSizeOfList(0, directive.combinators);
     JUnitTestCase.assertNotNull(directive.semicolon);
   }
 
@@ -2781,7 +2781,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(directive.uri);
     JUnitTestCase.assertNotNull(directive.asToken);
     JUnitTestCase.assertNotNull(directive.prefix);
-    EngineTestCase.assertSize(2, directive.combinators);
+    EngineTestCase.assertSizeOfList(2, directive.combinators);
     JUnitTestCase.assertNotNull(directive.semicolon);
   }
 
@@ -2791,7 +2791,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(directive.uri);
     JUnitTestCase.assertNotNull(directive.asToken);
     JUnitTestCase.assertNotNull(directive.prefix);
-    EngineTestCase.assertSize(2, directive.combinators);
+    EngineTestCase.assertSizeOfList(2, directive.combinators);
     JUnitTestCase.assertNotNull(directive.semicolon);
   }
 
@@ -2801,13 +2801,13 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(directive.uri);
     JUnitTestCase.assertNull(directive.asToken);
     JUnitTestCase.assertNull(directive.prefix);
-    EngineTestCase.assertSize(1, directive.combinators);
+    EngineTestCase.assertSizeOfList(1, directive.combinators);
     JUnitTestCase.assertNotNull(directive.semicolon);
   }
 
   void test_parseInitializedIdentifierList_type() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    Token staticKeyword = TokenFactory.token(Keyword.STATIC);
+    Token staticKeyword = TokenFactory.tokenFromKeyword(Keyword.STATIC);
     TypeName type = new TypeName(new SimpleIdentifier(null), null);
     FieldDeclaration declaration = ParserTestCase.parse("parseInitializedIdentifierList", <Object> [
         commentAndMetadata(comment, []),
@@ -2819,15 +2819,15 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(fields);
     JUnitTestCase.assertNull(fields.keyword);
     JUnitTestCase.assertEquals(type, fields.type);
-    EngineTestCase.assertSize(3, fields.variables);
+    EngineTestCase.assertSizeOfList(3, fields.variables);
     JUnitTestCase.assertEquals(staticKeyword, declaration.staticKeyword);
     JUnitTestCase.assertNotNull(declaration.semicolon);
   }
 
   void test_parseInitializedIdentifierList_var() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    Token staticKeyword = TokenFactory.token(Keyword.STATIC);
-    Token varKeyword = TokenFactory.token(Keyword.VAR);
+    Token staticKeyword = TokenFactory.tokenFromKeyword(Keyword.STATIC);
+    Token varKeyword = TokenFactory.tokenFromKeyword(Keyword.VAR);
     FieldDeclaration declaration = ParserTestCase.parse("parseInitializedIdentifierList", <Object> [
         commentAndMetadata(comment, []),
         staticKeyword,
@@ -2838,13 +2838,13 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(fields);
     JUnitTestCase.assertEquals(varKeyword, fields.keyword);
     JUnitTestCase.assertNull(fields.type);
-    EngineTestCase.assertSize(3, fields.variables);
+    EngineTestCase.assertSizeOfList(3, fields.variables);
     JUnitTestCase.assertEquals(staticKeyword, declaration.staticKeyword);
     JUnitTestCase.assertNotNull(declaration.semicolon);
   }
 
   void test_parseInstanceCreationExpression_qualifiedType() {
-    Token token = TokenFactory.token(Keyword.NEW);
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression = ParserTestCase.parse("parseInstanceCreationExpression", <Object> [token], "A.B()");
     JUnitTestCase.assertEquals(token, expression.keyword);
     ConstructorName name = expression.constructorName;
@@ -2856,7 +2856,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseInstanceCreationExpression_qualifiedType_named() {
-    Token token = TokenFactory.token(Keyword.NEW);
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression = ParserTestCase.parse("parseInstanceCreationExpression", <Object> [token], "A.B.c()");
     JUnitTestCase.assertEquals(token, expression.keyword);
     ConstructorName name = expression.constructorName;
@@ -2868,7 +2868,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseInstanceCreationExpression_type() {
-    Token token = TokenFactory.token(Keyword.NEW);
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression = ParserTestCase.parse("parseInstanceCreationExpression", <Object> [token], "A()");
     JUnitTestCase.assertEquals(token, expression.keyword);
     ConstructorName name = expression.constructorName;
@@ -2880,7 +2880,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseInstanceCreationExpression_type_named() {
-    Token token = TokenFactory.token(Keyword.NEW);
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression = ParserTestCase.parse("parseInstanceCreationExpression", <Object> [token], "A<B>.c()");
     JUnitTestCase.assertEquals(token, expression.keyword);
     ConstructorName name = expression.constructorName;
@@ -2911,24 +2911,24 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseListLiteral_empty_oneToken() {
-    Token token = TokenFactory.token(Keyword.CONST);
+    Token token = TokenFactory.tokenFromKeyword(Keyword.CONST);
     TypeArgumentList typeArguments = null;
     ListLiteral literal = ParserTestCase.parse("parseListLiteral", <Object> [token, typeArguments], "[]");
     JUnitTestCase.assertEquals(token, literal.constKeyword);
     JUnitTestCase.assertEquals(typeArguments, literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
-    EngineTestCase.assertSize(0, literal.elements);
+    EngineTestCase.assertSizeOfList(0, literal.elements);
     JUnitTestCase.assertNotNull(literal.rightBracket);
   }
 
   void test_parseListLiteral_empty_twoTokens() {
-    Token token = TokenFactory.token(Keyword.CONST);
+    Token token = TokenFactory.tokenFromKeyword(Keyword.CONST);
     TypeArgumentList typeArguments = null;
     ListLiteral literal = ParserTestCase.parse("parseListLiteral", <Object> [token, typeArguments], "[ ]");
     JUnitTestCase.assertEquals(token, literal.constKeyword);
     JUnitTestCase.assertEquals(typeArguments, literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
-    EngineTestCase.assertSize(0, literal.elements);
+    EngineTestCase.assertSizeOfList(0, literal.elements);
     JUnitTestCase.assertNotNull(literal.rightBracket);
   }
 
@@ -2937,7 +2937,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNull(literal.constKeyword);
     JUnitTestCase.assertNull(literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
-    EngineTestCase.assertSize(3, literal.elements);
+    EngineTestCase.assertSizeOfList(3, literal.elements);
     JUnitTestCase.assertNotNull(literal.rightBracket);
   }
 
@@ -2946,7 +2946,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNull(literal.constKeyword);
     JUnitTestCase.assertNull(literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
-    EngineTestCase.assertSize(1, literal.elements);
+    EngineTestCase.assertSizeOfList(1, literal.elements);
     JUnitTestCase.assertNotNull(literal.rightBracket);
   }
 
@@ -2955,7 +2955,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNull(literal.constKeyword);
     JUnitTestCase.assertNull(literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
-    EngineTestCase.assertSize(1, literal.elements);
+    EngineTestCase.assertSizeOfList(1, literal.elements);
     JUnitTestCase.assertNotNull(literal.rightBracket);
   }
 
@@ -2964,7 +2964,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNull(literal.constKeyword);
     JUnitTestCase.assertNotNull(literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
-    EngineTestCase.assertSize(1, literal.elements);
+    EngineTestCase.assertSizeOfList(1, literal.elements);
     JUnitTestCase.assertNotNull(literal.rightBracket);
   }
 
@@ -2973,7 +2973,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNull(literal.constKeyword);
     JUnitTestCase.assertNull(literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
-    EngineTestCase.assertSize(1, literal.entries);
+    EngineTestCase.assertSizeOfList(1, literal.entries);
     JUnitTestCase.assertNotNull(literal.rightBracket);
   }
 
@@ -2982,7 +2982,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNull(literal.constKeyword);
     JUnitTestCase.assertNotNull(literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
-    EngineTestCase.assertSize(1, literal.entries);
+    EngineTestCase.assertSizeOfList(1, literal.entries);
     JUnitTestCase.assertNotNull(literal.rightBracket);
   }
 
@@ -3003,7 +3003,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseMapLiteral_empty() {
-    Token token = TokenFactory.token(Keyword.CONST);
+    Token token = TokenFactory.tokenFromKeyword(Keyword.CONST);
     TypeArgumentList typeArguments = AstFactory.typeArgumentList([
         AstFactory.typeName4("String", []),
         AstFactory.typeName4("int", [])]);
@@ -3011,21 +3011,21 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertEquals(token, literal.constKeyword);
     JUnitTestCase.assertEquals(typeArguments, literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
-    EngineTestCase.assertSize(0, literal.entries);
+    EngineTestCase.assertSizeOfList(0, literal.entries);
     JUnitTestCase.assertNotNull(literal.rightBracket);
   }
 
   void test_parseMapLiteral_multiple() {
     MapLiteral literal = ParserTestCase.parse("parseMapLiteral", <Object> [null, null], "{'a' : b, 'x' : y}");
     JUnitTestCase.assertNotNull(literal.leftBracket);
-    EngineTestCase.assertSize(2, literal.entries);
+    EngineTestCase.assertSizeOfList(2, literal.entries);
     JUnitTestCase.assertNotNull(literal.rightBracket);
   }
 
   void test_parseMapLiteral_single() {
     MapLiteral literal = ParserTestCase.parse("parseMapLiteral", <Object> [null, null], "{'x' : y}");
     JUnitTestCase.assertNotNull(literal.leftBracket);
-    EngineTestCase.assertSize(1, literal.entries);
+    EngineTestCase.assertSizeOfList(1, literal.entries);
     JUnitTestCase.assertNotNull(literal.rightBracket);
   }
 
@@ -3180,7 +3180,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(expression.body);
     ArgumentList list = invocation.argumentList;
     JUnitTestCase.assertNotNull(list);
-    EngineTestCase.assertSize(1, list.arguments);
+    EngineTestCase.assertSizeOfList(1, list.arguments);
   }
 
   void test_parseNonLabeledStatement_null() {
@@ -3242,7 +3242,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(parameter.identifier);
     FormalParameterList parameterList = parameter.parameters;
     JUnitTestCase.assertNotNull(parameterList);
-    EngineTestCase.assertSize(1, parameterList.parameters);
+    EngineTestCase.assertSizeOfList(1, parameterList.parameters);
   }
 
   void test_parseNormalFormalParameter_field_function_noNested() {
@@ -3252,7 +3252,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(parameter.identifier);
     FormalParameterList parameterList = parameter.parameters;
     JUnitTestCase.assertNotNull(parameterList);
-    EngineTestCase.assertSize(0, parameterList.parameters);
+    EngineTestCase.assertSizeOfList(0, parameterList.parameters);
   }
 
   void test_parseNormalFormalParameter_field_noType() {
@@ -3485,7 +3485,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parsePrimaryExpression_listLiteral_typed() {
     ListLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "<A>[ ]", []);
     JUnitTestCase.assertNotNull(literal.typeArguments);
-    EngineTestCase.assertSize(1, literal.typeArguments.arguments);
+    EngineTestCase.assertSizeOfList(1, literal.typeArguments.arguments);
   }
 
   void test_parsePrimaryExpression_mapLiteral() {
@@ -3496,7 +3496,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parsePrimaryExpression_mapLiteral_typed() {
     MapLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "<A, B>{}", []);
     JUnitTestCase.assertNotNull(literal.typeArguments);
-    EngineTestCase.assertSize(2, literal.typeArguments.arguments);
+    EngineTestCase.assertSizeOfList(2, literal.typeArguments.arguments);
   }
 
   void test_parsePrimaryExpression_new() {
@@ -3661,7 +3661,7 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseSetter_static() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    Token staticKeyword = TokenFactory.token(Keyword.STATIC);
+    Token staticKeyword = TokenFactory.tokenFromKeyword(Keyword.STATIC);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     MethodDeclaration method = ParserTestCase.parse("parseSetter", <Object> [
         commentAndMetadata(comment, []),
@@ -3720,7 +3720,7 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseStatement_mulipleLabels() {
     LabeledStatement statement = ParserTestCase.parse4("parseStatement", "l: m: return x;", []);
-    EngineTestCase.assertSize(2, statement.labels);
+    EngineTestCase.assertSizeOfList(2, statement.labels);
     JUnitTestCase.assertNotNull(statement.statement);
   }
 
@@ -3730,24 +3730,24 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseStatement_singleLabel() {
     LabeledStatement statement = ParserTestCase.parse4("parseStatement", "l: return x;", []);
-    EngineTestCase.assertSize(1, statement.labels);
+    EngineTestCase.assertSizeOfList(1, statement.labels);
     JUnitTestCase.assertNotNull(statement.statement);
   }
 
   void test_parseStatements_multiple() {
     List<Statement> statements = ParserTestCase.parseStatements("return; return;", 2, []);
-    EngineTestCase.assertSize(2, statements);
+    EngineTestCase.assertSizeOfList(2, statements);
   }
 
   void test_parseStatements_single() {
     List<Statement> statements = ParserTestCase.parseStatements("return;", 1, []);
-    EngineTestCase.assertSize(1, statements);
+    EngineTestCase.assertSizeOfList(1, statements);
   }
 
   void test_parseStringLiteral_adjacent() {
     AdjacentStrings literal = ParserTestCase.parse4("parseStringLiteral", "'a' 'b'", []);
     NodeList<StringLiteral> strings = literal.strings;
-    EngineTestCase.assertSize(2, strings);
+    EngineTestCase.assertSizeOfList(2, strings);
     StringLiteral firstString = strings[0];
     StringLiteral secondString = strings[1];
     JUnitTestCase.assertEquals("a", (firstString as SimpleStringLiteral).value);
@@ -3757,7 +3757,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseStringLiteral_interpolated() {
     StringInterpolation literal = ParserTestCase.parse4("parseStringLiteral", "'a \${b} c \$this d'", []);
     NodeList<InterpolationElement> elements = literal.elements;
-    EngineTestCase.assertSize(5, elements);
+    EngineTestCase.assertSizeOfList(5, elements);
     JUnitTestCase.assertTrue(elements[0] is InterpolationString);
     JUnitTestCase.assertTrue(elements[1] is InterpolationExpression);
     JUnitTestCase.assertTrue(elements[2] is InterpolationString);
@@ -3794,7 +3794,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.expression);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
     JUnitTestCase.assertNotNull(statement.leftBracket);
-    EngineTestCase.assertSize(1, statement.members);
+    EngineTestCase.assertSizeOfList(1, statement.members);
     JUnitTestCase.assertNotNull(statement.rightBracket);
   }
 
@@ -3805,7 +3805,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.expression);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
     JUnitTestCase.assertNotNull(statement.leftBracket);
-    EngineTestCase.assertSize(0, statement.members);
+    EngineTestCase.assertSizeOfList(0, statement.members);
     JUnitTestCase.assertNotNull(statement.rightBracket);
   }
 
@@ -3816,8 +3816,8 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.expression);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
     JUnitTestCase.assertNotNull(statement.leftBracket);
-    EngineTestCase.assertSize(1, statement.members);
-    EngineTestCase.assertSize(3, statement.members[0].labels);
+    EngineTestCase.assertSizeOfList(1, statement.members);
+    EngineTestCase.assertSizeOfList(3, statement.members[0].labels);
     JUnitTestCase.assertNotNull(statement.rightBracket);
   }
 
@@ -3828,8 +3828,8 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.expression);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
     JUnitTestCase.assertNotNull(statement.leftBracket);
-    EngineTestCase.assertSize(1, statement.members);
-    EngineTestCase.assertSize(3, statement.members[0].statements);
+    EngineTestCase.assertSizeOfList(1, statement.members);
+    EngineTestCase.assertSizeOfList(3, statement.members[0].statements);
     JUnitTestCase.assertNotNull(statement.rightBracket);
   }
 
@@ -3886,7 +3886,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.tryKeyword);
     JUnitTestCase.assertNotNull(statement.body);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
-    EngineTestCase.assertSize(1, catchClauses);
+    EngineTestCase.assertSizeOfList(1, catchClauses);
     CatchClause clause = catchClauses[0];
     JUnitTestCase.assertNull(clause.onKeyword);
     JUnitTestCase.assertNull(clause.exceptionType);
@@ -3904,7 +3904,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.tryKeyword);
     JUnitTestCase.assertNotNull(statement.body);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
-    EngineTestCase.assertSize(1, catchClauses);
+    EngineTestCase.assertSizeOfList(1, catchClauses);
     CatchClause clause = catchClauses[0];
     JUnitTestCase.assertNull(clause.onKeyword);
     JUnitTestCase.assertNull(clause.exceptionType);
@@ -3921,7 +3921,7 @@ class SimpleParserTest extends ParserTestCase {
     TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} finally {}", []);
     JUnitTestCase.assertNotNull(statement.tryKeyword);
     JUnitTestCase.assertNotNull(statement.body);
-    EngineTestCase.assertSize(0, statement.catchClauses);
+    EngineTestCase.assertSizeOfList(0, statement.catchClauses);
     JUnitTestCase.assertNotNull(statement.finallyKeyword);
     JUnitTestCase.assertNotNull(statement.finallyBlock);
   }
@@ -3930,7 +3930,7 @@ class SimpleParserTest extends ParserTestCase {
     TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} on NPE catch (e) {} on Error {} catch (e) {}", []);
     JUnitTestCase.assertNotNull(statement.tryKeyword);
     JUnitTestCase.assertNotNull(statement.body);
-    EngineTestCase.assertSize(3, statement.catchClauses);
+    EngineTestCase.assertSizeOfList(3, statement.catchClauses);
     JUnitTestCase.assertNull(statement.finallyKeyword);
     JUnitTestCase.assertNull(statement.finallyBlock);
   }
@@ -3940,7 +3940,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.tryKeyword);
     JUnitTestCase.assertNotNull(statement.body);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
-    EngineTestCase.assertSize(1, catchClauses);
+    EngineTestCase.assertSizeOfList(1, catchClauses);
     CatchClause clause = catchClauses[0];
     JUnitTestCase.assertNotNull(clause.onKeyword);
     JUnitTestCase.assertNotNull(clause.exceptionType);
@@ -3958,7 +3958,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.tryKeyword);
     JUnitTestCase.assertNotNull(statement.body);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
-    EngineTestCase.assertSize(1, catchClauses);
+    EngineTestCase.assertSizeOfList(1, catchClauses);
     CatchClause clause = catchClauses[0];
     JUnitTestCase.assertNotNull(clause.onKeyword);
     JUnitTestCase.assertNotNull(clause.exceptionType);
@@ -3976,7 +3976,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.tryKeyword);
     JUnitTestCase.assertNotNull(statement.body);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
-    EngineTestCase.assertSize(1, catchClauses);
+    EngineTestCase.assertSizeOfList(1, catchClauses);
     CatchClause clause = catchClauses[0];
     JUnitTestCase.assertNotNull(clause.onKeyword);
     JUnitTestCase.assertNotNull(clause.exceptionType);
@@ -4052,26 +4052,26 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseTypeArgumentList_multiple() {
     TypeArgumentList argumentList = ParserTestCase.parse4("parseTypeArgumentList", "<int, int, int>", []);
     JUnitTestCase.assertNotNull(argumentList.leftBracket);
-    EngineTestCase.assertSize(3, argumentList.arguments);
+    EngineTestCase.assertSizeOfList(3, argumentList.arguments);
     JUnitTestCase.assertNotNull(argumentList.rightBracket);
   }
 
   void test_parseTypeArgumentList_nested() {
     TypeArgumentList argumentList = ParserTestCase.parse4("parseTypeArgumentList", "<A<B>>", []);
     JUnitTestCase.assertNotNull(argumentList.leftBracket);
-    EngineTestCase.assertSize(1, argumentList.arguments);
+    EngineTestCase.assertSizeOfList(1, argumentList.arguments);
     TypeName argument = argumentList.arguments[0];
     JUnitTestCase.assertNotNull(argument);
     TypeArgumentList innerList = argument.typeArguments;
     JUnitTestCase.assertNotNull(innerList);
-    EngineTestCase.assertSize(1, innerList.arguments);
+    EngineTestCase.assertSizeOfList(1, innerList.arguments);
     JUnitTestCase.assertNotNull(argumentList.rightBracket);
   }
 
   void test_parseTypeArgumentList_single() {
     TypeArgumentList argumentList = ParserTestCase.parse4("parseTypeArgumentList", "<int>", []);
     JUnitTestCase.assertNotNull(argumentList.leftBracket);
-    EngineTestCase.assertSize(1, argumentList.arguments);
+    EngineTestCase.assertSizeOfList(1, argumentList.arguments);
     JUnitTestCase.assertNotNull(argumentList.rightBracket);
   }
 
@@ -4105,28 +4105,28 @@ class SimpleParserTest extends ParserTestCase {
     TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A, B extends C, D>", []);
     JUnitTestCase.assertNotNull(parameterList.leftBracket);
     JUnitTestCase.assertNotNull(parameterList.rightBracket);
-    EngineTestCase.assertSize(3, parameterList.typeParameters);
+    EngineTestCase.assertSizeOfList(3, parameterList.typeParameters);
   }
 
   void test_parseTypeParameterList_parameterizedWithTrailingEquals() {
     TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A extends B<E>>=", []);
     JUnitTestCase.assertNotNull(parameterList.leftBracket);
     JUnitTestCase.assertNotNull(parameterList.rightBracket);
-    EngineTestCase.assertSize(1, parameterList.typeParameters);
+    EngineTestCase.assertSizeOfList(1, parameterList.typeParameters);
   }
 
   void test_parseTypeParameterList_single() {
     TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A>", []);
     JUnitTestCase.assertNotNull(parameterList.leftBracket);
     JUnitTestCase.assertNotNull(parameterList.rightBracket);
-    EngineTestCase.assertSize(1, parameterList.typeParameters);
+    EngineTestCase.assertSizeOfList(1, parameterList.typeParameters);
   }
 
   void test_parseTypeParameterList_withTrailingEquals() {
     TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A>=", []);
     JUnitTestCase.assertNotNull(parameterList.leftBracket);
     JUnitTestCase.assertNotNull(parameterList.rightBracket);
-    EngineTestCase.assertSize(1, parameterList.typeParameters);
+    EngineTestCase.assertSizeOfList(1, parameterList.typeParameters);
   }
 
   void test_parseUnaryExpression_decrement_normal() {
@@ -4246,56 +4246,56 @@ class SimpleParserTest extends ParserTestCase {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "const a");
     JUnitTestCase.assertNotNull(declarationList.keyword);
     JUnitTestCase.assertNull(declarationList.type);
-    EngineTestCase.assertSize(1, declarationList.variables);
+    EngineTestCase.assertSizeOfList(1, declarationList.variables);
   }
 
   void test_parseVariableDeclarationListAfterMetadata_const_type() {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "const A a");
     JUnitTestCase.assertNotNull(declarationList.keyword);
     JUnitTestCase.assertNotNull(declarationList.type);
-    EngineTestCase.assertSize(1, declarationList.variables);
+    EngineTestCase.assertSizeOfList(1, declarationList.variables);
   }
 
   void test_parseVariableDeclarationListAfterMetadata_final_noType() {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "final a");
     JUnitTestCase.assertNotNull(declarationList.keyword);
     JUnitTestCase.assertNull(declarationList.type);
-    EngineTestCase.assertSize(1, declarationList.variables);
+    EngineTestCase.assertSizeOfList(1, declarationList.variables);
   }
 
   void test_parseVariableDeclarationListAfterMetadata_final_type() {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "final A a");
     JUnitTestCase.assertNotNull(declarationList.keyword);
     JUnitTestCase.assertNotNull(declarationList.type);
-    EngineTestCase.assertSize(1, declarationList.variables);
+    EngineTestCase.assertSizeOfList(1, declarationList.variables);
   }
 
   void test_parseVariableDeclarationListAfterMetadata_type_multiple() {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "A a, b, c");
     JUnitTestCase.assertNull(declarationList.keyword);
     JUnitTestCase.assertNotNull(declarationList.type);
-    EngineTestCase.assertSize(3, declarationList.variables);
+    EngineTestCase.assertSizeOfList(3, declarationList.variables);
   }
 
   void test_parseVariableDeclarationListAfterMetadata_type_single() {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "A a");
     JUnitTestCase.assertNull(declarationList.keyword);
     JUnitTestCase.assertNotNull(declarationList.type);
-    EngineTestCase.assertSize(1, declarationList.variables);
+    EngineTestCase.assertSizeOfList(1, declarationList.variables);
   }
 
   void test_parseVariableDeclarationListAfterMetadata_var_multiple() {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "var a, b, c");
     JUnitTestCase.assertNotNull(declarationList.keyword);
     JUnitTestCase.assertNull(declarationList.type);
-    EngineTestCase.assertSize(3, declarationList.variables);
+    EngineTestCase.assertSizeOfList(3, declarationList.variables);
   }
 
   void test_parseVariableDeclarationListAfterMetadata_var_single() {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "var a");
     JUnitTestCase.assertNotNull(declarationList.keyword);
     JUnitTestCase.assertNull(declarationList.type);
-    EngineTestCase.assertSize(1, declarationList.variables);
+    EngineTestCase.assertSizeOfList(1, declarationList.variables);
   }
 
   void test_parseVariableDeclarationListAfterType_type() {
@@ -4303,15 +4303,15 @@ class SimpleParserTest extends ParserTestCase {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterType", <Object> [emptyCommentAndMetadata(), null, type], "a");
     JUnitTestCase.assertNull(declarationList.keyword);
     JUnitTestCase.assertEquals(type, declarationList.type);
-    EngineTestCase.assertSize(1, declarationList.variables);
+    EngineTestCase.assertSizeOfList(1, declarationList.variables);
   }
 
   void test_parseVariableDeclarationListAfterType_var() {
-    Token keyword = TokenFactory.token(Keyword.VAR);
+    Token keyword = TokenFactory.tokenFromKeyword(Keyword.VAR);
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterType", <Object> [emptyCommentAndMetadata(), keyword, null], "a, b, c");
     JUnitTestCase.assertEquals(keyword, declarationList.keyword);
     JUnitTestCase.assertNull(declarationList.type);
-    EngineTestCase.assertSize(3, declarationList.variables);
+    EngineTestCase.assertSizeOfList(3, declarationList.variables);
   }
 
   void test_parseVariableDeclarationStatementAfterMetadata_multiple() {
@@ -4319,7 +4319,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.semicolon);
     VariableDeclarationList variableList = statement.variables;
     JUnitTestCase.assertNotNull(variableList);
-    EngineTestCase.assertSize(3, variableList.variables);
+    EngineTestCase.assertSizeOfList(3, variableList.variables);
   }
 
   void test_parseVariableDeclarationStatementAfterMetadata_single() {
@@ -4327,7 +4327,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.semicolon);
     VariableDeclarationList variableList = statement.variables;
     JUnitTestCase.assertNotNull(variableList);
-    EngineTestCase.assertSize(1, variableList.variables);
+    EngineTestCase.assertSizeOfList(1, variableList.variables);
   }
 
   void test_parseWhileStatement() {
@@ -4342,13 +4342,13 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseWithClause_multiple() {
     WithClause clause = ParserTestCase.parse4("parseWithClause", "with A, B, C", []);
     JUnitTestCase.assertNotNull(clause.withKeyword);
-    EngineTestCase.assertSize(3, clause.mixinTypes);
+    EngineTestCase.assertSizeOfList(3, clause.mixinTypes);
   }
 
   void test_parseWithClause_single() {
     WithClause clause = ParserTestCase.parse4("parseWithClause", "with M", []);
     JUnitTestCase.assertNotNull(clause.withKeyword);
-    EngineTestCase.assertSize(1, clause.mixinTypes);
+    EngineTestCase.assertSizeOfList(1, clause.mixinTypes);
   }
 
   void test_skipPrefixedIdentifier_invalid() {
@@ -6845,14 +6845,14 @@ class ComplexParserTest extends ParserTestCase {
     JUnitTestCase.assertEquals("d", invocation2.methodName.name);
     ArgumentList argumentList2 = invocation2.argumentList;
     JUnitTestCase.assertNotNull(argumentList2);
-    EngineTestCase.assertSize(1, argumentList2.arguments);
+    EngineTestCase.assertSizeOfList(1, argumentList2.arguments);
     //
     // a(b)(c)
     //
     FunctionExpressionInvocation invocation3 = EngineTestCase.assertInstanceOf((obj) => obj is FunctionExpressionInvocation, FunctionExpressionInvocation, invocation2.target);
     ArgumentList argumentList3 = invocation3.argumentList;
     JUnitTestCase.assertNotNull(argumentList3);
-    EngineTestCase.assertSize(1, argumentList3.arguments);
+    EngineTestCase.assertSizeOfList(1, argumentList3.arguments);
     //
     // a(b)
     //
@@ -6860,7 +6860,7 @@ class ComplexParserTest extends ParserTestCase {
     JUnitTestCase.assertEquals("a", invocation4.methodName.name);
     ArgumentList argumentList4 = invocation4.argumentList;
     JUnitTestCase.assertNotNull(argumentList4);
-    EngineTestCase.assertSize(1, argumentList4.arguments);
+    EngineTestCase.assertSizeOfList(1, argumentList4.arguments);
   }
 
   void test_assignmentExpression_compound() {
@@ -6973,7 +6973,7 @@ class ComplexParserTest extends ParserTestCase {
         "  }",
         "}"]), []);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
-    EngineTestCase.assertSize(1, declarations);
+    EngineTestCase.assertSizeOfList(1, declarations);
   }
 
   void test_equalityExpression_normal() {
@@ -7028,7 +7028,7 @@ class ComplexParserTest extends ParserTestCase {
 
   void test_multipleLabels_statement() {
     LabeledStatement statement = ParserTestCase.parseStatement("a: b: c: return x;", []);
-    EngineTestCase.assertSize(3, statement.labels);
+    EngineTestCase.assertSizeOfList(3, statement.labels);
     EngineTestCase.assertInstanceOf((obj) => obj is ReturnStatement, ReturnStatement, statement.statement);
   }
 
@@ -7344,7 +7344,7 @@ class ParserTestCase extends EngineTestCase {
   static Object parse3(String methodName, List<Object> objects, String source, List<ErrorCode> errorCodes) {
     GatheringErrorListener listener = new GatheringErrorListener();
     Object result = invokeParserMethod(methodName, objects, source, listener);
-    listener.assertErrors2(errorCodes);
+    listener.assertErrorsWithCodes(errorCodes);
     return result;
   }
 
@@ -7381,7 +7381,7 @@ class ParserTestCase extends EngineTestCase {
     Parser parser = new Parser(null, listener);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     JUnitTestCase.assertNotNull(unit);
-    listener.assertErrors2(errorCodes);
+    listener.assertErrorsWithCodes(errorCodes);
     return unit;
   }
 
@@ -7402,7 +7402,7 @@ class ParserTestCase extends EngineTestCase {
     Parser parser = new Parser(null, listener);
     Expression expression = parser.parseExpression(token);
     JUnitTestCase.assertNotNull(expression);
-    listener.assertErrors2(errorCodes);
+    listener.assertErrorsWithCodes(errorCodes);
     return expression;
   }
 
@@ -7423,7 +7423,7 @@ class ParserTestCase extends EngineTestCase {
     Parser parser = new Parser(null, listener);
     Statement statement = parser.parseStatement(token);
     JUnitTestCase.assertNotNull(statement);
-    listener.assertErrors2(errorCodes);
+    listener.assertErrorsWithCodes(errorCodes);
     return statement;
   }
 
@@ -7445,8 +7445,8 @@ class ParserTestCase extends EngineTestCase {
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
     List<Statement> statements = parser.parseStatements(token);
-    EngineTestCase.assertSize(expectedCount, statements);
-    listener.assertErrors2(errorCodes);
+    EngineTestCase.assertSizeOfList(expectedCount, statements);
+    listener.assertErrorsWithCodes(errorCodes);
     return statements;
   }
 
@@ -7482,7 +7482,7 @@ class ParserTestCase extends EngineTestCase {
     //
     // Partially test the results.
     //
-    if (!listener.hasErrors()) {
+    if (!listener.hasErrors) {
       JUnitTestCase.assertNotNull(result);
     }
     return result;
@@ -8670,7 +8670,7 @@ class RecoveryParserTest extends ParserTestCase {
 
   void test_expressionList_multiple_end() {
     List<Expression> result = ParserTestCase.parse4("parseExpressionList", ", 2, 3, 4", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertSize(4, result);
+    EngineTestCase.assertSizeOfList(4, result);
     Expression syntheticExpression = result[0];
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, syntheticExpression);
     JUnitTestCase.assertTrue(syntheticExpression.isSynthetic);
@@ -8678,7 +8678,7 @@ class RecoveryParserTest extends ParserTestCase {
 
   void test_expressionList_multiple_middle() {
     List<Expression> result = ParserTestCase.parse4("parseExpressionList", "1, 2, , 4", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertSize(4, result);
+    EngineTestCase.assertSizeOfList(4, result);
     Expression syntheticExpression = result[2];
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, syntheticExpression);
     JUnitTestCase.assertTrue(syntheticExpression.isSynthetic);
@@ -8686,7 +8686,7 @@ class RecoveryParserTest extends ParserTestCase {
 
   void test_expressionList_multiple_start() {
     List<Expression> result = ParserTestCase.parse4("parseExpressionList", "1, 2, 3,", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertSize(4, result);
+    EngineTestCase.assertSizeOfList(4, result);
     Expression syntheticExpression = result[3];
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, syntheticExpression);
     JUnitTestCase.assertTrue(syntheticExpression.isSynthetic);
@@ -8695,11 +8695,11 @@ class RecoveryParserTest extends ParserTestCase {
   void test_incomplete_topLevelVariable() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("String", [ParserErrorCode.EXPECTED_EXECUTABLE]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
-    EngineTestCase.assertSize(1, declarations);
+    EngineTestCase.assertSizeOfList(1, declarations);
     CompilationUnitMember member = declarations[0];
     EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableDeclaration, TopLevelVariableDeclaration, member);
     NodeList<VariableDeclaration> variables = (member as TopLevelVariableDeclaration).variables.variables;
-    EngineTestCase.assertSize(1, variables);
+    EngineTestCase.assertSizeOfList(1, variables);
     SimpleIdentifier name = variables[0].name;
     JUnitTestCase.assertTrue(name.isSynthetic);
   }
@@ -8803,7 +8803,7 @@ class RecoveryParserTest extends ParserTestCase {
     MethodDeclaration method = ParserTestCase.parse3("parseClassMember", <Object> ["C"], "@override }", [ParserErrorCode.EXPECTED_CLASS_MEMBER]);
     JUnitTestCase.assertNull(method.documentationComment);
     NodeList<Annotation> metadata = method.metadata;
-    EngineTestCase.assertSize(1, metadata);
+    EngineTestCase.assertSizeOfList(1, metadata);
     JUnitTestCase.assertEquals("override", metadata[0].name.name);
   }
 
@@ -8946,7 +8946,7 @@ class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.EXPECTED_TOKEN,
         ParserErrorCode.MISSING_TYPEDEF_PARAMETERS]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
-    EngineTestCase.assertSize(1, declarations);
+    EngineTestCase.assertSizeOfList(1, declarations);
     CompilationUnitMember member = declarations[0];
     EngineTestCase.assertInstanceOf((obj) => obj is FunctionTypeAlias, FunctionTypeAlias, member);
   }
@@ -9523,7 +9523,7 @@ class IncrementalParserTest extends EngineTestCase {
     // Validate that the results of the incremental parse are the same as the full parse of the
     // modified source.
     //
-    JUnitTestCase.assertTrue(AstComparator.equals4(modifiedUnit, incrementalUnit));
+    JUnitTestCase.assertTrue(AstComparator.equalUnits(modifiedUnit, incrementalUnit));
   }
 
   static dartSuite() {
@@ -10008,7 +10008,7 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_expectedToken_semicolonAfterClass() {
-    Token token = TokenFactory.token(Keyword.CLASS);
+    Token token = TokenFactory.tokenFromKeyword(Keyword.CLASS);
     ParserTestCase.parse3("parseClassTypeAlias", <Object> [emptyCommentAndMetadata(), null, token], "A = B", [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
@@ -10537,7 +10537,7 @@ class ErrorParserTest extends ParserTestCase {
     MethodInvocation methodInvocation = ParserTestCase.parse4("parseCascadeSection", "..()", [ParserErrorCode.MISSING_IDENTIFIER]);
     JUnitTestCase.assertNull(methodInvocation.target);
     JUnitTestCase.assertEquals("", methodInvocation.methodName.name);
-    EngineTestCase.assertSize(0, methodInvocation.argumentList.arguments);
+    EngineTestCase.assertSizeOfList(0, methodInvocation.argumentList.arguments);
   }
 
   void test_positionalAfterNamedArgument() {
@@ -11780,7 +11780,6 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'findRange_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.findRange(arg0, arg1)),
   'getCodeBlockRanges_1': new MethodTrampoline(1, (Parser target, arg0) => target.getCodeBlockRanges(arg0)),
   'getEndToken_1': new MethodTrampoline(1, (Parser target, arg0) => target.getEndToken(arg0)),
-  'hasReturnTypeInTypeAlias_0': new MethodTrampoline(0, (Parser target) => target.hasReturnTypeInTypeAlias()),
   'injectToken_1': new MethodTrampoline(1, (Parser target, arg0) => target.injectToken(arg0)),
   'isFunctionDeclaration_0': new MethodTrampoline(0, (Parser target) => target.isFunctionDeclaration()),
   'isFunctionExpression_1': new MethodTrampoline(1, (Parser target, arg0) => target.isFunctionExpression(arg0)),
@@ -11881,7 +11880,7 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'parseVariableDeclarationStatementAfterType_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.parseVariableDeclarationStatementAfterType(arg0, arg1, arg2)),
   'parseWhileStatement_0': new MethodTrampoline(0, (Parser target) => target.parseWhileStatement()),
   'peek_0': new MethodTrampoline(0, (Parser target) => target.peek()),
-  'peek_1': new MethodTrampoline(1, (Parser target, arg0) => target.peek2(arg0)),
+  'peekAt_1': new MethodTrampoline(1, (Parser target, arg0) => target.peekAt(arg0)),
   'reportError_1': new MethodTrampoline(1, (Parser target, arg0) => target.reportError(arg0)),
   'reportErrorForCurrentToken_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.reportErrorForCurrentToken(arg0, arg1)),
   'reportErrorForNode_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.reportErrorForNode(arg0, arg1, arg2)),

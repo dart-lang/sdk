@@ -1,0 +1,84 @@
+<head>
+  <link rel="import" href="class_ref.html">
+  <link rel="import" href="field_ref.html">
+  <link rel="import" href="function_ref.html">
+  <link rel="import" href="instance_ref.html">
+  <link rel="import" href="isolate_element.html">
+  <link rel="import" href="library_ref.html">
+  <link rel="import" href="nav_bar.html">
+  <link rel="import" href="script_ref.html">
+</head>
+<polymer-element name="library-view" extends="isolate-element">
+  <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+      <library-nav-menu isolate="{{ isolate }}" library="{{ library }}" last="{{ true }}"></library-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+  <div class="alert alert-info">Scripts</div>
+  <table class="table table-hover">
+    <tbody>
+      <tr template repeat="{{ script in library['scripts']}}">
+        <td>
+          {{ script['kind'] }}
+        </td>
+        <td>
+          <script-ref isolate="{{ isolate }}" ref="{{ script }}"></script-ref>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="alert alert-info">Imported Libraries</div>
+  <table class="table table-hover">
+    <tbody>
+      <tr template repeat="{{ lib in library['libraries'] }}">
+        <td>
+          <library-ref isolate="{{ isolate }}" ref="{{ lib }}"></library-ref>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="alert alert-info">Variables</div>
+  <table class="table table-hover">
+    <tbody>
+      <tr template repeat="{{ variable in library['variables'] }}">
+        <td><field-ref isolate="{{ isolate }}" ref="{{ variable }}"></field-ref></td>
+        <td><instance-ref isolate="{{ isolate }}" ref="{{ variable['value'] }}"></instance-ref></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="alert alert-info">Functions</div>
+  <table class="table table-hover">
+    <tbody>
+      <tr template repeat="{{ func in library['functions'] }}">
+        <td>
+          <function-ref isolate="{{ isolate }}" ref="{{ func }}"></function-ref>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="alert alert-info">Classes</div>
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Internal Name</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr template repeat="{{ cls in library['classes'] }}">
+        <td>
+          <class-ref isolate="{{ isolate }}" ref="{{ cls }}"></class-ref>
+        </td>
+        <td>
+          <class-ref isolate="{{ isolate }}" ref="{{ cls }}" internal></class-ref>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  </template>
+  <script type="application/dart" src="library_view.dart"></script>
+</polymer-element>

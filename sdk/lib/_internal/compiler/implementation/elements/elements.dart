@@ -183,7 +183,17 @@ abstract class Element implements Spannable {
   Link<MetadataAnnotation> get metadata;
 
   Node parseNode(DiagnosticListener listener);
-  DartType computeType(Compiler compiler);
+
+  /// Do not use [computeType] outside of the resolver; instead retrieve the
+  /// type from the corresponding field:
+  /// - `variables.type` for fields and variables.
+  /// - `type` for function elements.
+  /// - `thisType` or `rawType` for [TypeDeclarationElement]s (classes and
+  ///    typedefs), depending on the use case.
+  /// Trying to access a type that has not been computed in resolution is an
+  /// error and calling [computeType] covers that error.
+  /// This method will go away!
+  @deprecated DartType computeType(Compiler compiler);
 
   bool isFunction();
   bool isConstructor();

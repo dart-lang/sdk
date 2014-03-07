@@ -109,8 +109,16 @@ class ServerDomainHandler implements RequestHandler {
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     // TODO(brianwilkerson) Use the information from the request to set the
     // source factory in the context.
+    DirectoryBasedDartSdk sdk;
+    try {
+      sdk = new DirectoryBasedDartSdk(new JavaFile(sdkDirectory));
+    } on Exception catch (e) {
+      // TODO what error code should be returned here?
+      return new Response(request.id, new RequestError(
+          RequestError.CODE_SDK_ERROR, 'Failed to access sdk: $e'));
+    }
     context.sourceFactory = new SourceFactory.con2([
-      new DartUriResolver(new DirectoryBasedDartSdk(new JavaFile(sdkDirectory))),
+      new DartUriResolver(sdk),
       new FileUriResolver(),
       // new PackageUriResolver(),
     ]);

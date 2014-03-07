@@ -1,0 +1,20 @@
+<head>
+<link rel="import" href="class_ref.html">
+<link rel="import" href="isolate_element.html">
+<link rel="import" href="observatory_element.html">
+<link rel="import" href="service_ref.html">
+</head>
+<polymer-element name="field-ref" extends="service-ref">
+<template>
+<div>
+  <template if="{{ ref['final'] }}"> final </template>
+  <template if="{{ ref['const'] }}"> const </template>
+  <template if="{{ (ref['declared_type']['name'] == 'dynamic' && !ref['final'] && !ref['const']) }}">
+  var
+  </template>
+  <template if="{{ (ref['declared_type']['name'] != 'dynamic') }}">
+  <class-ref app="{{ app }}" ref="{{ ref['declared_type'] }}"></class-ref>
+  </template>
+  <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
+</div>
+</template> <script type="application/dart" src="field_ref.dart"></script> </polymer-element>

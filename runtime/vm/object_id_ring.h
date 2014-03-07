@@ -28,6 +28,8 @@ class ObjectIdRing {
   ~ObjectIdRing();
 
   int32_t GetIdForObject(RawObject* raw_obj);
+
+  // Returns Object::sentinel() when the id is not valid.
   RawObject* GetObjectForId(int32_t id);
 
   void VisitPointers(ObjectPointerVisitor* visitor);

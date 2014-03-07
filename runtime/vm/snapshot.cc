@@ -380,6 +380,11 @@ void SnapshotReader::ReadFullSnapshot() {
     }
   }
 
+  // Validate the class table.
+#if defined(DEBUG)
+  isolate->ValidateClassTable();
+#endif
+
   // Setup native resolver for bootstrap impl.
   Bootstrap::SetupNativeResolver();
 }
@@ -472,8 +477,8 @@ RawClass* SnapshotReader::NewClass(intptr_t class_id) {
   Instance fake;
   obj->ptr()->handle_vtable_ = fake.vtable();
   cls_ = obj;
-  cls_.set_id(kIllegalCid);
-  isolate()->RegisterClass(cls_);
+  cls_.set_id(class_id);
+  isolate()->RegisterClassAt(class_id, cls_);
   return cls_.raw();
 }
 
@@ -1120,6 +1125,12 @@ void FullSnapshotWriter::WriteFullSnapshot() {
   ObjectStore* object_store = isolate->object_store();
   ASSERT(object_store != NULL);
   ASSERT(ClassFinalizer::AllClassesFinalized());
+
+  // Ensure the class table is valid.
+#if defined(DEBUG)
+  isolate->ValidateClassTable();
+#endif
+
 
   // Setup for long jump in case there is an exception while writing
   // the snapshot.

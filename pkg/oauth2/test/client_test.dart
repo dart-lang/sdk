@@ -81,8 +81,7 @@ void main() {
       httpClient.expectRequest((request) {
         expect(request.method, equals('GET'));
         expect(request.url.toString(), equals(requestUri.toString()));
-        expect(request.headers['authorization'],
-            equals('Bearer access token'));
+        expect(request.headers['authorization'], equals('Bearer access token'));
 
         return new Future.value(new http.Response('good job', 200));
       });
@@ -130,8 +129,7 @@ void main() {
       httpClient.expectRequest((request) {
         expect(request.method, equals('GET'));
         expect(request.url.toString(), equals(requestUri.toString()));
-        expect(request.headers['authorization'],
-            equals('Bearer access token'));
+        expect(request.headers['authorization'], equals('Bearer access token'));
 
         var authenticate = 'Bearer error="invalid_token", error_description='
             '"Something is terribly wrong."';

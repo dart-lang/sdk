@@ -1,0 +1,89 @@
+<head>
+  <link rel="import" href="error_view.html">
+  <link rel="import" href="field_ref.html">
+  <link rel="import" href="function_ref.html">
+  <link rel="import" href="instance_ref.html">
+  <link rel="import" href="library_ref.html">
+  <link rel="import" href="nav_bar.html">
+  <link rel="import" href="isolate_element.html">
+</head>
+<polymer-element name="class-view" extends="isolate-element">
+  <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+      <library-nav-menu isolate="{{ isolate }}" library="{{ cls['library'] }}"></library-nav-menu>
+      <class-nav-menu isolate="{{ isolate }}" cls="{{ cls }}" last="{{ true }}"></class-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-warning">
+        <div class="panel-heading">
+          class <strong>{{ cls['user_name'] }}</strong>
+          <template if="{{ cls['super']['type'] != 'Null' }}">
+            extends
+            <class-ref app="{{ app }}" ref="{{ cls['super'] }}"></class-ref>
+          </template>
+          <library-ref app="{{ app }}" ref="{{ cls['library'] }}"></library-ref>
+        </div>
+        <div class="panel-body">
+          <table class="table table-hover">
+            <tbody>
+              <tr>
+                <td>Abstract</td><td>{{ cls['abstract'] }}</td>
+              </tr>
+              <tr>
+                <td>Const</td><td>{{ cls['const'] }}</td>
+              </tr>
+              <tr>
+                <td>Finalized</td><td>{{ cls['const'] }}</td>
+              </tr>
+              <tr>
+                <td>Implemented</td><td>{{ cls['implemented'] }}</td>
+              </tr>
+              <tr>
+                <td>Patch</td><td>{{ cls['patch'] }}</td>
+              </tr>
+              <tr>
+                <td>VM Name</td><td>{{ cls['name'] }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <template if="{{ cls['error'] == null }}">
+            <blockquote><strong>Fields</strong></blockquote>
+            <table class="table table-hover">
+             <tbody>
+                <tr template repeat="{{ field in cls['fields'] }}">
+                  <td><field-ref app="{{ app }}" ref="{{ field }}"></field-ref></td>
+                  <td><instance-ref app="{{ app }}" ref="{{ field['value'] }}"></instance-ref></td>
+                </tr>
+              </tbody>
+            </table>
+            <blockquote><strong>Functions</strong></blockquote>
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>User Name</th>
+                  <th>VM Name</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr template repeat="{{ function in cls['functions'] }}">
+                  <td><function-ref app="{{ app }}" ref="{{ function }}"></function-ref></td>
+                  <td><function-ref app="{{ app }}" ref="{{ function }}" internal></function-ref></td>
+                </tr>
+              </tbody>
+            </table>
+          </template>
+          <template if="{{ cls['error'] != null }}">
+            <error-view error_obj="{{ cls['error'] }}"></error-view>
+          </template>
+        </div>
+      </div>
+    </div>
+    </div>
+  </template>
+  <script type="application/dart" src="class_view.dart"></script>
+</polymer-element>

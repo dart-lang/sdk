@@ -25,7 +25,7 @@ main() {
     var transformer = new LazyRewriteTransformer("blub", "blab");
     initGraph(["app|foo.blub"], {"app": [[transformer]]});
     updateSources(["app|foo.blub"]);
-    expectAllAssets(["app|foo.blab"]);
+    expectAllAssets(["app|foo.blub", "app|foo.blab"]);
     buildShouldSucceed();
     expect(transformer.numRuns, completion(equals(1)));
   });

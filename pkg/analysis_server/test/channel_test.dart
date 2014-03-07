@@ -4,102 +4,154 @@
 
 library test.channel;
 
+import 'dart:async';
+
+import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/matcher.dart';
 import 'package:unittest/unittest.dart';
-import 'package:analysis_server/src/channel.dart';
+
 import 'mocks.dart';
 
 main() {
-  group('Channel', () {
-    test('invalidJsonToClient', ChannelTest.invalidJsonToClient);
-    test('invalidJsonToServer', ChannelTest.invalidJsonToServer);
-    test('notification', ChannelTest.notification);
-    test('request', ChannelTest.request);
-    test('response', ChannelTest.response);
+  group('WebSocketChannel', () {
+    setUp(WebSocketChannelTest.setUp);
+    test('close', WebSocketChannelTest.close);
+    test('invalidJsonToClient', WebSocketChannelTest.invalidJsonToClient);
+    test('invalidJsonToServer', WebSocketChannelTest.invalidJsonToServer);
+    test('notification', WebSocketChannelTest.notification);
+    test('notificationAndResponse', WebSocketChannelTest.notificationAndResponse);
+    test('request', WebSocketChannelTest.request);
+    test('requestResponse', WebSocketChannelTest.requestResponse);
+    test('response', WebSocketChannelTest.response);
   });
 }
 
-class ChannelTest {
+class WebSocketChannelTest {
+  static MockSocket socket;
+  static WebSocketClientChannel client;
+  static WebSocketServerChannel server;
 
-  static void invalidJsonToClient() {
-    InvalidJsonMockSocket mockSocket = new InvalidJsonMockSocket();
-    WebSocketClientChannel client = new WebSocketClientChannel(mockSocket);
-    var responsesReceived = new List();
-    var notificationsReceived = new List();
-    client.listen((Response response) => responsesReceived.add(response),
-        (Notification notification) => notificationsReceived.add(notification));
+  static List requestsReceived;
+  static List responsesReceived;
+  static List notificationsReceived;
 
-    mockSocket.addInvalid('"blat"');
-    mockSocket.addInvalid('{foo:bar}');
+  static void setUp() {
+    socket = new MockSocket.pair();
+    client = new WebSocketClientChannel(socket);
+    server = new WebSocketServerChannel(socket.twin);
 
-    expect(responsesReceived.length, equals(0));
-    expect(notificationsReceived.length, equals(0));
-    expect(mockSocket.responseCount, equals(0));
+    requestsReceived = [];
+    responsesReceived = [];
+    notificationsReceived = [];
+
+    // Allow multiple listeners on server side for testing.
+    socket.twin.allowMultipleListeners();
+
+    server.listen(requestsReceived.add);
+    client.responseStream.listen(responsesReceived.add);
+    client.notificationStream.listen(notificationsReceived.add);
   }
 
-  static void invalidJsonToServer() {
-    InvalidJsonMockSocket mockSocket = new InvalidJsonMockSocket();
-    WebSocketServerChannel server = new WebSocketServerChannel(mockSocket);
-    var received = new List();
-    server.listen((Request request) => received.add(request));
-
-    mockSocket.addInvalid('"blat"');
-    mockSocket.addInvalid('{foo:bar}');
-
-    expect(received.length, equals(0));
-    expect(mockSocket.responseCount, equals(2));
+  static Future close() {
+    var timeout = new Duration(seconds: 1);
+    var future = client.responseStream.drain().timeout(timeout);
+    client.close();
+    return future;
   }
 
-  static void notification() {
-    MockSocket mockSocket = new MockSocket();
-    WebSocketClientChannel client = new WebSocketClientChannel(mockSocket);
-    WebSocketServerChannel server = new WebSocketServerChannel(mockSocket);
-    var responsesReceived = new List();
-    var notificationsReceived = new List();
-    client.listen((Response response) => responsesReceived.add(response),
-        (Notification notification) => notificationsReceived.add(notification));
+  static Future invalidJsonToClient() {
+    socket.twin.add('{"foo":"bar"}');
+    server.sendResponse(new Response('myId'));
+    return client.responseStream
+        .first
+        .timeout(new Duration(seconds: 1))
+        .then((Response response) {
+          expect(response.id, equals('myId'));
+          expectMsgCount(responseCount: 1);
+        });
+  }
 
+  static Future invalidJsonToServer() {
+    socket.add('"blat"');
+    return client.responseStream
+        .first
+        .timeout(new Duration(seconds: 1))
+        .then((Response response) {
+          expect(response.id, equals(''));
+          expect(response.error, isNotNull);
+          expectMsgCount(responseCount: 1);
+        });
+  }
+
+  static Future notification() {
     server.sendNotification(new Notification('myEvent'));
+    return client.notificationStream
+        .first
+        .timeout(new Duration(seconds: 1))
+        .then((Notification notification) {
+          expect(notification.event, equals('myEvent'));
+          expectMsgCount(notificationCount: 1);
 
-    expect(responsesReceived.length, equals(0));
-    expect(notificationsReceived.length, equals(1));
-    expect(notificationsReceived.first.runtimeType, equals(Notification));
-    Notification actual = notificationsReceived.first;
-    expect(actual.event, equals('myEvent'));
+          expect(notificationsReceived.first, equals(notification));
+        });
+  }
+
+  static Future notificationAndResponse() {
+    server
+        ..sendNotification(new Notification('myEvent'))
+        ..sendResponse(new Response('myId'));
+    return Future
+        .wait([
+          client.notificationStream.first,
+          client.responseStream.first])
+        .timeout(new Duration(seconds: 1))
+        .then((_) => expectMsgCount(responseCount: 1, notificationCount: 1));
   }
 
   static void request() {
-    MockSocket mockSocket = new MockSocket();
-    WebSocketClientChannel client = new WebSocketClientChannel(mockSocket);
-    WebSocketServerChannel server = new WebSocketServerChannel(mockSocket);
-    var requestsReceived = new List();
-    server.listen((Request request) => requestsReceived.add(request));
-
-    client.sendRequest(new Request('myId', 'aMethod'));
-
-    expect(requestsReceived.length, equals(1));
-    expect(requestsReceived.first.runtimeType, equals(Request));
-    Request actual = requestsReceived.first;
-    expect(actual.id, equals('myId'));
-    expect(actual.method, equals('aMethod'));
+    client.sendRequest(new Request('myId', 'myMth'));
+    server.listen((Request request) {
+      expect(request.id, equals('myId'));
+      expect(request.method, equals('myMth'));
+      expectMsgCount(requestCount: 1);
+    });
   }
 
-  static void response() {
-    MockSocket mockSocket = new MockSocket();
-    WebSocketClientChannel client = new WebSocketClientChannel(mockSocket);
-    WebSocketServerChannel server = new WebSocketServerChannel(mockSocket);
-    var responsesReceived = new List();
-    var notificationsReceived = new List();
-    client.listen((Response response) => responsesReceived.add(response),
-        (Notification notification) => notificationsReceived.add(notification));
+  static Future requestResponse() {
+    // Simulate server sending a response by echoing the request.
+    server.listen((Request request) =>
+        server.sendResponse(new Response(request.id)));
+    return client.sendRequest(new Request('myId', 'myMth'))
+        .timeout(new Duration(seconds: 1))
+        .then((Response response) {
+          expect(response.id, equals('myId'));
+          expectMsgCount(requestCount: 1, responseCount: 1);
 
+          expect(requestsReceived.first is Request, isTrue);
+          Request request = requestsReceived.first;
+          expect(request.id, equals('myId'));
+          expect(request.method, equals('myMth'));
+          expect(responsesReceived.first, equals(response));
+        });
+  }
+
+  static Future response() {
     server.sendResponse(new Response('myId'));
+    return client.responseStream
+        .first
+        .timeout(new Duration(seconds: 1))
+        .then((Response response) {
+          expect(response.id, equals('myId'));
+          expectMsgCount(responseCount: 1);
+        });
+  }
 
-    expect(responsesReceived.length, equals(1));
-    expect(notificationsReceived.length, equals(0));
-    expect(responsesReceived.first.runtimeType, equals(Response));
-    Response actual = responsesReceived.first;
-    expect(actual.id, equals('myId'));
+  static void expectMsgCount({requestCount: 0,
+                              responseCount: 0,
+                              notificationCount: 0}) {
+    expect(requestsReceived, hasLength(requestCount));
+    expect(responsesReceived, hasLength(responseCount));
+    expect(notificationsReceived, hasLength(notificationCount));
   }
 }

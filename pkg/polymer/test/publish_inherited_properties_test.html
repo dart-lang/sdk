@@ -8,6 +8,7 @@ BSD-style license that can be found in the LICENSE file.
   <head>
   <!--polymer-test: this comment is needed for test_suite.dart-->
     <title>publish inherited properties</title>
+    <link rel="import" href="packages/polymer/polymer.html">
     <script src="/root_dart/tools/testing/dart/test_controller.js"></script>
   </head>
   <body>
@@ -18,7 +19,12 @@ BSD-style license that can be found in the LICENSE file.
     <polymer-element name="x-squid" extends="x-zot" attributes="squid">
     </polymer-element>
 
-    <polymer-element name="x-noscript" extends="x-zot" noscript>
+    <!--
+    Dart note: changed from 'noscript', since those are implemented by JS
+    we can't extend a 'noscript' element from Dart or have it extend a Dart
+    element.
+    -->
+    <polymer-element name="x-noscript" extends="x-zot">
     </polymer-element>
 
   <script type="application/dart" src="publish_inherited_properties_test.dart"></script>

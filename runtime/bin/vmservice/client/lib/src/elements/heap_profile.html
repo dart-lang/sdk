@@ -1,0 +1,72 @@
+<head>
+  <link rel="import" href="class_ref.html">
+  <link rel="import" href="isolate_element.html">
+  <link rel="import" href="nav_bar.html">
+</head>
+<polymer-element name="heap-profile" extends="isolate-element">
+<template>
+  <nav-bar>
+    <top-nav-menu></top-nav-menu>
+    <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+    <nav-menu link="." anchor="heap profile" last="{{ true }}"></nav-menu>
+    <nav-refresh callback="{{ refresh }}"></nav-refresh>
+  </nav-bar>
+
+  <button type="button" on-click="{{resetAccumulator}}">Reset Accumulator</button>
+  <div class="row">
+    <div id="newPieChart" class="col-md-4" style="height: 400px">
+    </div>
+    <div id="newStatus" class="col-md-2">
+      <table class="table">
+        <tbody>
+          <tr>
+            <td>Collections</td>
+            <td>{{ formattedCollections(true) }}</td>
+          </tr>
+          <tr>
+            <td>Average Collection Time</td>
+            <td>{{ formattedAverage(true) }}</td>
+          </tr>
+          <tr>
+            <td>Cumulative Collection Time</td>
+            <td>{{ formattedTotalCollectionTime(true) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="oldPieChart" class="col-md-4" style="height: 400px">
+    </div>
+    <div id="oldStatus" class="col-md-2">
+      <table class="table">
+        <tbody>
+          <tr>
+            <td>Collections</td>
+            <td>{{ formattedCollections(false) }}</td>
+          </tr>
+          <tr>
+            <td>Average Collection Time</td>
+            <td>{{ formattedAverage(false) }}</td>
+          </tr>
+          <tr>
+            <td>Cumulative Collection Time</td>
+            <td>{{ formattedTotalCollectionTime(false) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="row">
+  <p class="col-md-2">Aggregate heap table</p>
+  </div>
+  <div class="row">
+    <div id="simpleTable" class="col-md-12" style="height: 800px"></div>
+  </div>
+  <div class="row">
+  <p class="col-md-2">Individual heap table</p>
+  </div>
+  <div class="row">
+    <div id="table" class="col-md-12" style="height: 800px"></div>
+  </div>
+</template>
+<script type="application/dart" src="heap_profile.dart"></script>
+</polymer-element>

@@ -7,6 +7,7 @@ library barback.phase_forwarder;
 import 'dart:async';
 
 import 'asset_node.dart';
+import 'asset_node_set.dart';
 
 /// A class that takes care of forwarding assets within a phase.
 ///
@@ -40,7 +41,7 @@ class PhaseForwarder {
   int _numChannels;
 
   /// The intermediate forwarded assets.
-  final _intermediateAssets = new Set<AssetNode>();
+  final _intermediateAssets = new AssetNodeSet();
 
   /// The final forwarded asset.
   ///
@@ -53,9 +54,8 @@ class PhaseForwarder {
   ///
   /// Whenever this stream emits an event, the value will be identical to
   /// [output].
-  Stream<AssetNode> get onForwarding => _onForwardingController.stream;
-  final _onForwardingController =
-      new StreamController<AssetNode>.broadcast(sync: true);
+  Stream<AssetNode> get onAsset => _onAssetController.stream;
+  final _onAssetController = new StreamController<AssetNode>(sync: true);
 
   PhaseForwarder(this._numChannels);
 
@@ -69,11 +69,7 @@ class PhaseForwarder {
     }
 
     _intermediateAssets.add(asset);
-
-    asset.onStateChange.listen((state) {
-      if (state.isRemoved) _intermediateAssets.remove(asset);
-      _adjustOutput();
-    });
+    asset.onStateChange.listen((_) => _adjustOutput());
 
     _adjustOutput();
   }
@@ -86,7 +82,7 @@ class PhaseForwarder {
       _outputController.setRemoved();
       _outputController = null;
     }
-    _onForwardingController.close();
+    _onAssetController.close();
   }
 
   /// Adjusts [output] to ensure that it accurately reflects the current state
@@ -112,7 +108,7 @@ class PhaseForwarder {
           (asset) => asset.state.isDirty,
           orElse: () => _intermediateAssets.first);
       _outputController = new AssetNodeController.from(finalAsset);
-      _onForwardingController.add(output);
+      _onAssetController.add(output);
       return;
     }
 

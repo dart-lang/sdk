@@ -2657,8 +2657,6 @@ String singleIdentityComparison(HInstruction left,
                                 Compiler compiler) {
   // Returns the single identity comparison (== or ===) or null if a more
   // complex expression is required.
-  if ((left.isConstant() && left.isConstantSentinel()) ||
-      (right.isConstant() && right.isConstantSentinel())) return '===';
   if (left.canBeNull() && right.canBeNull()) {
     if (left.isConstantNull() || right.isConstantNull() ||
         (left.isPrimitive(compiler) &&

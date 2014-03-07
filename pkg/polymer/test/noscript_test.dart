@@ -30,16 +30,9 @@ main() => initPolymer().run(() {
   setUp(() => ready);
 
   test('template found with multiple noscript declarations', () {
-    expect(querySelector('x-a') is PolymerElement, isTrue);
     expect(querySelector('x-a').shadowRoot.nodes.first.text, 'a');
-
-    expect(querySelector('x-c') is PolymerElement, isTrue);
     expect(querySelector('x-c').shadowRoot.nodes.first.text, 'c');
-
-    expect(querySelector('x-b') is PolymerElement, isTrue);
     expect(querySelector('x-b').shadowRoot.nodes.first.text, 'b');
-
-    expect(querySelector('x-d') is PolymerElement, isTrue);
     expect(querySelector('x-d').shadowRoot.nodes.first.text, 'd');
   });
 });

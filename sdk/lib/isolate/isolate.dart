@@ -29,6 +29,13 @@ class IsolateSpawnException implements Exception {
 }
 
 class Isolate {
+  /** Argument to `ping`: Ask for immediate response. */
+  static const int PING_ALIVE = 0;
+  /** Argument to `ping`: Ask for response after control events. */
+  static const int PING_CONTROL = 1;
+  /** Argument to `ping`: Ask for response after normal events. */
+  static const int PING_EVENT = 2;
+
   /**
    * Control port used to send control messages to the isolate.
    *
@@ -40,8 +47,30 @@ class Isolate {
    * Capability granting the ability to pause the isolate.
    */
   final Capability pauseCapability;
+  /**
+   * Capability granting the ability to terminate the isolate.
+   */
+  final Capability terminateCapability;
 
-  Isolate._fromControlPort(this.controlPort, [this.pauseCapability]);
+  /**
+   * Create a new [Isolate] object with a restricted set of capabilities.
+   *
+   * The port should be a control port for an isolate, as taken from
+   * another `Isolate` object.
+   *
+   * The capabilities should be the subset of the capabilities that are
+   * available to the original isolate.
+   * Capabilities of an isolate are locked to that isolate, and have no effect
+   * anywhere else, so the capabilities should come from the same isolate as
+   * the control port.
+   *
+   * If all the available capabilities are included,
+   * there is no reason to create a new object,
+   * since the behavior is defined entirely
+   * by the control port and capabilities.
+   */
+  Isolate(this.controlPort, {this.pauseCapability,
+                             this.terminateCapability});
 
   /**
    * Creates and spawns an isolate that shares the same code as the current
@@ -180,6 +209,58 @@ class Isolate {
     var message = new List(2)
         ..[0] = "remove-ondone"
         ..[1] = responsePort;
+    controlPort.send(message);
+  }
+
+  /**
+   * Set whether uncaught errors will terminate the isolate.
+   *
+   * WARNING: This method is experimental and not handled on every platform yet.
+   *
+   * If errors are fatal, any uncaught error will terminate the isolate
+   * event loop and shut down the isolate.
+   *
+   * This call requires the [terminateCapability] for the isolate.
+   * If the capability is not correct, no change is made.
+   */
+  void setErrorsFatal(bool errorsAreFatal) {
+    var message = new List(3)
+        ..[0] = "set-errors-fatal"
+        ..[1] = terminateCapability
+        ..[2] = errorsAreFatal;
+    controlPort.send(message);
+  }
+
+  /**
+   * Request that the isolate send a response on the [responsePort].
+   *
+   * WARNING: This method is experimental and not handled on every platform yet.
+   *
+   * If the isolate is alive, it will eventually send a `null` response on
+   * the response port.
+   *
+   * The [pingType] must be one of [PING_ALIVE], [PING_CONTROL] or [PING_EVENT].
+   * The response is sent at different times depending on the ping type:
+   *
+   * * `PING_ALIVE`: The the isolate responds as soon as possible.
+   *     The response should happen no later than if sent with `PING_CONTROL`.
+   *     It may be sent earlier if the system has a way to do so.
+   * * `PING_CONTROL`: The response it not sent until all previously sent
+   *     control messages from the current isolate to the receiving isolate
+   *     have been processed. This can be used to wait for
+   *     previously sent control messages.
+   * * `PING_EVENT`: The response is not sent until all prevously sent
+   *     non-control messages from the current isolate to the receiving isolate
+   *     have been processed.
+   *     The ping effectively puts the resonse into the normal event queue after
+   *     previously sent messages.
+   *     This can be used to wait for a another event to be processed.
+   */
+  void ping(SendPort responsePort, [int pingType = PING_ALIVE]) {
+    var message = new List(3)
+        ..[0] = "ping"
+        ..[1] = responsePort
+        ..[2] = pingType;
     controlPort.send(message);
   }
 }

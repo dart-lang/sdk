@@ -155,7 +155,7 @@ abstract class DartObject {
    *
    * @return `true` if this object's value can be represented exactly
    */
-  bool hasExactValue();
+  bool get hasExactValue;
 
   /**
    * Return `true` if this object represents the value 'false'.
@@ -1853,7 +1853,7 @@ class BoolState extends InstanceState {
 
   String get typeName => "bool";
 
-  bool hasExactValue() => true;
+  bool get hasExactValue => true;
 
   int get hashCode => value == null ? 0 : (value ? 2 : 3);
 
@@ -2098,7 +2098,7 @@ class DartObjectImpl implements DartObject {
    */
   DartObjectImpl greaterThanOrEqual(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.boolType, _state.greaterThanOrEqual(rightOperand._state));
 
-  bool hasExactValue() => _state.hasExactValue();
+  bool get hasExactValue => _state.hasExactValue;
 
   int get hashCode => ObjectUtilities.combineHashCodes(type.hashCode, _state.hashCode);
 
@@ -2476,7 +2476,7 @@ class DoubleState extends NumState {
     throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  bool hasExactValue() => true;
+  bool get hasExactValue => true;
 
   int get hashCode => value == null ? 0 : value.hashCode;
 
@@ -3069,7 +3069,7 @@ abstract class InstanceState {
    *
    * @return `true` if this object's value can be represented exactly
    */
-  bool hasExactValue() => false;
+  bool get hasExactValue => false;
 
   /**
    * Return the result of invoking the '~/' operator on this object with the given argument.
@@ -3516,7 +3516,7 @@ class IntState extends NumState {
     throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  bool hasExactValue() => true;
+  bool get hasExactValue => true;
 
   int get hashCode => value == null ? 0 : value.hashCode;
 
@@ -3777,7 +3777,7 @@ class ListState extends InstanceState {
     List<Object> result = new List<Object>(count);
     for (int i = 0; i < count; i++) {
       DartObjectImpl element = _elements[i];
-      if (!element.hasExactValue()) {
+      if (!element.hasExactValue) {
         return null;
       }
       result[i] = element.value;
@@ -3785,10 +3785,10 @@ class ListState extends InstanceState {
     return result;
   }
 
-  bool hasExactValue() {
+  bool get hasExactValue {
     int count = _elements.length;
     for (int i = 0; i < count; i++) {
-      if (!_elements[i].hasExactValue()) {
+      if (!_elements[i].hasExactValue) {
         return false;
       }
     }
@@ -3863,7 +3863,7 @@ class MapState extends InstanceState {
     for (MapEntry<DartObjectImpl, DartObjectImpl> entry in getMapEntrySet(_entries)) {
       DartObjectImpl key = entry.getKey();
       DartObjectImpl value = entry.getValue();
-      if (!key.hasExactValue() || !value.hasExactValue()) {
+      if (!key.hasExactValue || !value.hasExactValue) {
         return null;
       }
       result[key.value] = value.value;
@@ -3871,9 +3871,9 @@ class MapState extends InstanceState {
     return result;
   }
 
-  bool hasExactValue() {
+  bool get hasExactValue {
     for (MapEntry<DartObjectImpl, DartObjectImpl> entry in getMapEntrySet(_entries)) {
-      if (!entry.getKey().hasExactValue() || !entry.getValue().hasExactValue()) {
+      if (!entry.getKey().hasExactValue || !entry.getValue().hasExactValue) {
         return false;
       }
     }
@@ -3916,7 +3916,7 @@ class NullState extends InstanceState {
 
   String get typeName => "Null";
 
-  bool hasExactValue() => true;
+  bool get hasExactValue => true;
 
   int get hashCode => 0;
 
@@ -4080,7 +4080,7 @@ class StringState extends InstanceState {
 
   String get typeName => "String";
 
-  bool hasExactValue() => true;
+  bool get hasExactValue => true;
 
   int get hashCode => value == null ? 0 : value.hashCode;
 
@@ -4134,7 +4134,7 @@ class SymbolState extends InstanceState {
 
   String get typeName => "Symbol";
 
-  bool hasExactValue() => true;
+  bool get hasExactValue => true;
 
   int get hashCode => value == null ? 0 : value.hashCode;
 

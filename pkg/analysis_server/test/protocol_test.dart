@@ -22,6 +22,9 @@ main() {
     test('getRequiredParameter_defined', RequestTest.getRequiredParameter_defined);
     test('getRequiredParameter_undefined', RequestTest.getRequiredParameter_undefined);
     test('fromJson', RequestTest.fromJson);
+    test('fromJson_invalidId', RequestTest.fromJson_invalidId);
+    test('fromJson_invalidMethod', RequestTest.fromJson_invalidMethod);
+    test('fromJson_invalidParams', RequestTest.fromJson_invalidParams);
     test('fromJson_withParams', RequestTest.fromJson_withParams);
     test('toJson', RequestTest.toJson);
     test('toJson_withParams', RequestTest.toJson_withParams);
@@ -110,16 +113,34 @@ class RequestTest {
 
   static void fromJson() {
     Request original = new Request('one', 'aMethod');
-    String json = new JsonEncoder(null).convert(original.toJson());
+    String json = JSON.encode(original.toJson());
     Request request = new Request.fromString(json);
     expect(request.id, equals('one'));
     expect(request.method, equals('aMethod'));
   }
 
+  static void fromJson_invalidId() {
+    String json = '{"id":{"one":"two"},"method":"aMethod","params":{"foo":"bar"}}';
+    Request request = new Request.fromString(json);
+    expect(request, isNull);
+  }
+
+  static void fromJson_invalidMethod() {
+    String json = '{"id":"one","method":{"boo":"aMethod"},"params":{"foo":"bar"}}';
+    Request request = new Request.fromString(json);
+    expect(request, isNull);
+  }
+
+  static void fromJson_invalidParams() {
+    String json = '{"id":"one","method":"aMethod","params":"foobar"}';
+    Request request = new Request.fromString(json);
+    expect(request, isNull);
+  }
+
   static void fromJson_withParams() {
     Request original = new Request('one', 'aMethod');
     original.setParameter('foo', 'bar');
-    String json = new JsonEncoder(null).convert(original.toJson());
+    String json = JSON.encode(original.toJson());
     Request request = new Request.fromString(json);
     expect(request.id, equals('one'));
     expect(request.method, equals('aMethod'));

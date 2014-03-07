@@ -623,7 +623,7 @@ class IncrementalScanner extends Scanner {
    *
    * @return `true` if there were any tokens changed as a result of the modification
    */
-  bool hasNonWhitespaceChange() => _hasNonWhitespaceChange2;
+  bool get hasNonWhitespaceChange => _hasNonWhitespaceChange2;
 
   /**
    * Given the stream of tokens scanned from the original source, the modified source (the result of
@@ -716,7 +716,7 @@ class IncrementalScanner extends Scanner {
     // the first new token.
     //
     Token newFirst = _leftToken.next;
-    while (newFirst != _rightToken && oldFirst != oldRightToken && newFirst.type != TokenType.EOF && equals3(oldFirst, newFirst)) {
+    while (newFirst != _rightToken && oldFirst != oldRightToken && newFirst.type != TokenType.EOF && equalTokens(oldFirst, newFirst)) {
       _tokenMap.put(oldFirst, newFirst);
       oldLeftToken = oldFirst;
       oldFirst = oldFirst.next;
@@ -724,7 +724,7 @@ class IncrementalScanner extends Scanner {
       newFirst = newFirst.next;
     }
     Token newLast = _rightToken.previous;
-    while (newLast != _leftToken && oldLast != oldLeftToken && newLast.type != TokenType.EOF && equals3(oldLast, newLast)) {
+    while (newLast != _leftToken && oldLast != oldLeftToken && newLast.type != TokenType.EOF && equalTokens(oldLast, newLast)) {
       _tokenMap.put(oldLast, newLast);
       oldRightToken = oldLast;
       oldLast = oldLast.previous;
@@ -764,7 +764,7 @@ class IncrementalScanner extends Scanner {
    * @param newToken the token from the new stream that is being compared
    * @return `true` if the two tokens are equal to each other
    */
-  bool equals3(Token oldToken, Token newToken) => identical(oldToken.type, newToken.type) && oldToken.length == newToken.length && oldToken.lexeme == newToken.lexeme;
+  bool equalTokens(Token oldToken, Token newToken) => identical(oldToken.type, newToken.type) && oldToken.length == newToken.length && oldToken.lexeme == newToken.lexeme;
 }
 
 /**
@@ -872,7 +872,7 @@ class Scanner {
    *
    * @return `true` if any unmatched groups were found during the parse
    */
-  bool hasUnmatchedGroups() => _hasUnmatchedGroups2;
+  bool get hasUnmatchedGroups => _hasUnmatchedGroups2;
 
   /**
    * Set whether documentation tokens should be scanned.
@@ -1007,7 +1007,7 @@ class Scanner {
       return tokenizeTilde(next);
     }
     if (next == 0x5C) {
-      appendToken2(TokenType.BACKSLASH);
+      appendTokenOfType(TokenType.BACKSLASH);
       return _reader.advance();
     }
     if (next == 0x23) {
@@ -1022,19 +1022,19 @@ class Scanner {
       return _reader.advance();
     }
     if (next == 0x2C) {
-      appendToken2(TokenType.COMMA);
+      appendTokenOfType(TokenType.COMMA);
       return _reader.advance();
     }
     if (next == 0x3A) {
-      appendToken2(TokenType.COLON);
+      appendTokenOfType(TokenType.COLON);
       return _reader.advance();
     }
     if (next == 0x3B) {
-      appendToken2(TokenType.SEMICOLON);
+      appendTokenOfType(TokenType.SEMICOLON);
       return _reader.advance();
     }
     if (next == 0x3F) {
-      appendToken2(TokenType.QUESTION);
+      appendTokenOfType(TokenType.QUESTION);
       return _reader.advance();
     }
     if (next == 0x5D) {
@@ -1042,7 +1042,7 @@ class Scanner {
       return _reader.advance();
     }
     if (next == 0x60) {
-      appendToken2(TokenType.BACKPING);
+      appendTokenOfType(TokenType.BACKPING);
       return _reader.advance();
     }
     if (next == 0x7B) {
@@ -1057,7 +1057,7 @@ class Scanner {
       return tokenizeSlashOrComment(next);
     }
     if (next == 0x40) {
-      appendToken2(TokenType.AT);
+      appendTokenOfType(TokenType.AT);
       return _reader.advance();
     }
     if (next == 0x22 || next == 0x27) {
@@ -1184,7 +1184,7 @@ class Scanner {
     }
   }
 
-  void appendStringToken2(TokenType type, String value, int offset) {
+  void appendStringTokenWithOffset(TokenType type, String value, int offset) {
     if (_firstComment == null) {
       _tail = _tail.setNext(new StringToken(type, value, _tokenStart + offset));
     } else {
@@ -1194,7 +1194,7 @@ class Scanner {
     }
   }
 
-  void appendToken2(TokenType type) {
+  void appendTokenOfType(TokenType type) {
     if (_firstComment == null) {
       _tail = _tail.setNext(new Token(type, _tokenStart));
     } else {
@@ -1204,7 +1204,7 @@ class Scanner {
     }
   }
 
-  void appendToken3(TokenType type, int offset) {
+  void appendTokenOfTypeWithOffset(TokenType type, int offset) {
     if (_firstComment == null) {
       _tail = _tail.setNext(new Token(type, offset));
     } else {
@@ -1254,21 +1254,21 @@ class Scanner {
   int select(int choice, TokenType yesType, TokenType noType) {
     int next = _reader.advance();
     if (next == choice) {
-      appendToken2(yesType);
+      appendTokenOfType(yesType);
       return _reader.advance();
     } else {
-      appendToken2(noType);
+      appendTokenOfType(noType);
       return next;
     }
   }
 
-  int select2(int choice, TokenType yesType, TokenType noType, int offset) {
+  int selectWithOffset(int choice, TokenType yesType, TokenType noType, int offset) {
     int next = _reader.advance();
     if (next == choice) {
-      appendToken3(yesType, offset);
+      appendTokenOfTypeWithOffset(yesType, offset);
       return _reader.advance();
     } else {
-      appendToken3(noType, offset);
+      appendTokenOfTypeWithOffset(noType, offset);
       return next;
     }
   }
@@ -1277,13 +1277,13 @@ class Scanner {
     // && &= &
     next = _reader.advance();
     if (next == 0x26) {
-      appendToken2(TokenType.AMPERSAND_AMPERSAND);
+      appendTokenOfType(TokenType.AMPERSAND_AMPERSAND);
       return _reader.advance();
     } else if (next == 0x3D) {
-      appendToken2(TokenType.AMPERSAND_EQ);
+      appendTokenOfType(TokenType.AMPERSAND_EQ);
       return _reader.advance();
     } else {
-      appendToken2(TokenType.AMPERSAND);
+      appendTokenOfType(TokenType.AMPERSAND);
       return next;
     }
   }
@@ -1292,13 +1292,13 @@ class Scanner {
     // | || |=
     next = _reader.advance();
     if (next == 0x7C) {
-      appendToken2(TokenType.BAR_BAR);
+      appendTokenOfType(TokenType.BAR_BAR);
       return _reader.advance();
     } else if (next == 0x3D) {
-      appendToken2(TokenType.BAR_EQ);
+      appendTokenOfType(TokenType.BAR_EQ);
       return _reader.advance();
     } else {
-      appendToken2(TokenType.BAR);
+      appendTokenOfType(TokenType.BAR);
       return next;
     }
   }
@@ -1313,7 +1313,7 @@ class Scanner {
     } else if (0x2E == next) {
       return select(0x2E, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD);
     } else {
-      appendToken2(TokenType.PERIOD);
+      appendTokenOfType(TokenType.PERIOD);
       return next;
     }
   }
@@ -1322,13 +1322,13 @@ class Scanner {
     // = == =>
     next = _reader.advance();
     if (next == 0x3D) {
-      appendToken2(TokenType.EQ_EQ);
+      appendTokenOfType(TokenType.EQ_EQ);
       return _reader.advance();
     } else if (next == 0x3E) {
-      appendToken2(TokenType.FUNCTION);
+      appendTokenOfType(TokenType.FUNCTION);
       return _reader.advance();
     }
-    appendToken2(TokenType.EQ);
+    appendTokenOfType(TokenType.EQ);
     return next;
   }
 
@@ -1336,10 +1336,10 @@ class Scanner {
     // ! !=
     next = _reader.advance();
     if (next == 0x3D) {
-      appendToken2(TokenType.BANG_EQ);
+      appendTokenOfType(TokenType.BANG_EQ);
       return _reader.advance();
     }
-    appendToken2(TokenType.BANG);
+    appendTokenOfType(TokenType.BANG);
     return next;
   }
 
@@ -1381,9 +1381,9 @@ class Scanner {
     if (!hasDigit) {
       appendStringToken(TokenType.INT, _reader.getString(start, -2));
       if (0x2E == next) {
-        return select2(0x2E, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD, _reader.offset - 1);
+        return selectWithOffset(0x2E, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD, _reader.offset - 1);
       }
-      appendToken3(TokenType.PERIOD, _reader.offset - 1);
+      appendTokenOfTypeWithOffset(TokenType.PERIOD, _reader.offset - 1);
       return bigSwitch(next);
     }
     appendStringToken(TokenType.DOUBLE, _reader.getString(start, next < 0 ? 0 : -1));
@@ -1394,19 +1394,19 @@ class Scanner {
     // > >= >> >>=
     next = _reader.advance();
     if (0x3D == next) {
-      appendToken2(TokenType.GT_EQ);
+      appendTokenOfType(TokenType.GT_EQ);
       return _reader.advance();
     } else if (0x3E == next) {
       next = _reader.advance();
       if (0x3D == next) {
-        appendToken2(TokenType.GT_GT_EQ);
+        appendTokenOfType(TokenType.GT_GT_EQ);
         return _reader.advance();
       } else {
-        appendToken2(TokenType.GT_GT);
+        appendTokenOfType(TokenType.GT_GT);
         return next;
       }
     } else {
-      appendToken2(TokenType.GT);
+      appendTokenOfType(TokenType.GT);
       return next;
     }
   }
@@ -1453,7 +1453,7 @@ class Scanner {
         BeginToken begin = findTokenMatchingClosingBraceInInterpolationExpression();
         if (begin == null) {
           beginToken();
-          appendToken2(TokenType.CLOSE_CURLY_BRACKET);
+          appendTokenOfType(TokenType.CLOSE_CURLY_BRACKET);
           next = _reader.advance();
           beginToken();
           return next;
@@ -1482,7 +1482,7 @@ class Scanner {
   }
 
   int tokenizeInterpolatedIdentifier(int next, int start) {
-    appendStringToken2(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 0);
+    appendStringTokenWithOffset(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 0);
     if ((0x41 <= next && next <= 0x5A) || (0x61 <= next && next <= 0x7A) || next == 0x5F) {
       beginToken();
       next = tokenizeKeywordOrIdentifier(next, false);
@@ -1515,12 +1515,12 @@ class Scanner {
     // < <= << <<=
     next = _reader.advance();
     if (0x3D == next) {
-      appendToken2(TokenType.LT_EQ);
+      appendTokenOfType(TokenType.LT_EQ);
       return _reader.advance();
     } else if (0x3C == next) {
       return select(0x3D, TokenType.LT_LT_EQ, TokenType.LT_LT);
     } else {
-      appendToken2(TokenType.LT);
+      appendTokenOfType(TokenType.LT);
       return next;
     }
   }
@@ -1529,13 +1529,13 @@ class Scanner {
     // - -- -=
     next = _reader.advance();
     if (next == 0x2D) {
-      appendToken2(TokenType.MINUS_MINUS);
+      appendTokenOfType(TokenType.MINUS_MINUS);
       return _reader.advance();
     } else if (next == 0x3D) {
-      appendToken2(TokenType.MINUS_EQ);
+      appendTokenOfType(TokenType.MINUS_EQ);
       return _reader.advance();
     } else {
-      appendToken2(TokenType.MINUS);
+      appendTokenOfType(TokenType.MINUS);
       return next;
     }
   }
@@ -1707,13 +1707,13 @@ class Scanner {
     // + ++ +=
     next = _reader.advance();
     if (0x2B == next) {
-      appendToken2(TokenType.PLUS_PLUS);
+      appendTokenOfType(TokenType.PLUS_PLUS);
       return _reader.advance();
     } else if (0x3D == next) {
-      appendToken2(TokenType.PLUS_EQ);
+      appendTokenOfType(TokenType.PLUS_EQ);
       return _reader.advance();
     } else {
-      appendToken2(TokenType.PLUS);
+      appendTokenOfType(TokenType.PLUS);
       return next;
     }
   }
@@ -1778,10 +1778,10 @@ class Scanner {
     } else if (0x2F == next) {
       return tokenizeSingleLineComment(next);
     } else if (0x3D == next) {
-      appendToken2(TokenType.SLASH_EQ);
+      appendTokenOfType(TokenType.SLASH_EQ);
       return _reader.advance();
     } else {
-      appendToken2(TokenType.SLASH);
+      appendTokenOfType(TokenType.SLASH);
       return next;
     }
   }
@@ -1828,7 +1828,7 @@ class Scanner {
         return next;
       }
     }
-    appendToken2(TokenType.HASH);
+    appendTokenOfType(TokenType.HASH);
     return _reader.advance();
   }
 
@@ -1838,7 +1838,7 @@ class Scanner {
     if (next == 0x2F) {
       return select(0x3D, TokenType.TILDE_SLASH_EQ, TokenType.TILDE_SLASH);
     } else {
-      appendToken2(TokenType.TILDE);
+      appendTokenOfType(TokenType.TILDE);
       return next;
     }
   }

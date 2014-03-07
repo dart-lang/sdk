@@ -1,0 +1,32 @@
+<head>
+  <link rel="import" href="nav_bar.html">
+  <link rel="import" href="isolate_element.html">
+  <link rel="import" href="stack_frame.html">
+</head>
+<polymer-element name="stack-trace" extends="isolate-element">
+  <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+      <nav-menu link="." anchor="stack trace" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <template if="{{ trace['members'].isEmpty }}">
+      <div class="col-md-1"></div>
+      <div class="col-md-11">
+        <em>No stack</em>
+      </div>
+    </template>
+    <template if="{{ trace['members'].isNotEmpty }}">
+      <ul class="list-group">
+        <template repeat="{{ frame in trace['members'] }}">
+          <li class="list-group-item">
+            <stack-frame isolate="{{ isolate }}" frame="{{ frame }}"></stack-frame>
+          </li>
+        </template>
+      </ul>
+    </template>
+  </template>
+  <script type="application/dart" src="stack_trace.dart"></script>
+</polymer-element>
