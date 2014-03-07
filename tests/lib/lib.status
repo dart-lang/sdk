@@ -67,6 +67,14 @@ mirrors/invoke_private_wrong_library_test: CompileTimeError # Issue 12164
 mirrors/invoke_subscript_test: RuntimeError # Issue 13002
 mirrors/invoke_throws_test: RuntimeError # Issue 11954
 mirrors/library_declarations_test/none: RuntimeError # Issue 13439, Issue 13733
+mirrors/library_exports_shown_test: RuntimeError # Issue 6490
+mirrors/library_exports_hidden_test: RuntimeError # Issue 6490
+mirrors/library_imports_metadata_test: RuntimeError # Issue 6490
+mirrors/library_imports_bad_metadata_test/none: RuntimeError # Issue 6490
+mirrors/library_imports_shown_test: RuntimeError # Issue 6490
+mirrors/library_imports_hidden_test: RuntimeError # Issue 6490
+mirrors/library_imports_prefixed_test: RuntimeError # Issue 6490
+mirrors/library_imports_prefixed_show_hide_test: RuntimeError # Issue 6490
 mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
 mirrors/metadata_allowed_values_test/01: MissingCompileTimeError # Issue 14548
 mirrors/metadata_allowed_values_test/05: MissingCompileTimeError # Issue 14548

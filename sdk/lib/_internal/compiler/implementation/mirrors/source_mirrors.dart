@@ -118,7 +118,8 @@ abstract class LibrarySourceMirror
 }
 
 /// A mirror on an import or export declaration.
-abstract class LibraryDependencyMirror extends Mirror {
+abstract class LibraryDependencySourceMirror
+    extends Mirror implements LibraryDependencyMirror {
   /// Is `true` if this dependency is an import.
   bool get isImport;
 
@@ -133,7 +134,7 @@ abstract class LibraryDependencyMirror extends Mirror {
   LibraryMirror get targetLibrary;
 
   /// Returns the prefix if this is a prefixed import and `null` otherwise.
-  String get prefix;
+  /*String*/ get prefix;
 
   /// Returns the list of show/hide combinators on the import/export
   /// declaration.
@@ -144,9 +145,10 @@ abstract class LibraryDependencyMirror extends Mirror {
 }
 
 /// A mirror on a show/hide combinator declared on a library dependency.
-abstract class CombinatorMirror extends Mirror {
+abstract class CombinatorSourceMirror
+    extends Mirror implements CombinatorMirror {
   /// The list of identifiers on the combinator.
-  List<String> get identifiers;
+  List/*<String>*/ get identifiers;
 
   /// Is `true` if this is a 'show' combinator.
   bool get isShow;

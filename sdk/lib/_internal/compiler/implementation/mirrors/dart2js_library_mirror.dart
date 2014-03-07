@@ -9,7 +9,7 @@ class Dart2JsLibraryMirror
     extends Dart2JsElementMirror
     with ObjectMirrorMixin, ContainerMixin
     implements LibrarySourceMirror {
-  List<LibraryDependencyMirror> _libraryDependencies;
+  List<LibraryDependencySourceMirror> _libraryDependencies;
 
   Dart2JsLibraryMirror(Dart2JsMirrorSystem system, LibraryElement library)
       : super(system, library);
@@ -83,7 +83,7 @@ class Dart2JsLibraryMirror
 
   void _ensureLibraryDependenciesAnalyzed() {
     if (_libraryDependencies == null) {
-      _libraryDependencies = <LibraryDependencyMirror>[];
+      _libraryDependencies = <LibraryDependencySourceMirror>[];
       for (LibraryTag node in _element.tags.reverse()) {
         LibraryDependency libraryDependency = node.asLibraryDependency();
         if (libraryDependency != null) {
@@ -105,7 +105,7 @@ class Dart2JsLibraryMirror
   }
 }
 
-class Dart2JsLibraryDependencyMirror implements LibraryDependencyMirror {
+class Dart2JsLibraryDependencyMirror implements LibraryDependencySourceMirror {
   final LibraryDependency _node;
   final Dart2JsLibraryMirror _sourceLibrary;
   final Dart2JsLibraryMirror _targetLibrary;
@@ -142,7 +142,7 @@ class Dart2JsLibraryDependencyMirror implements LibraryDependencyMirror {
 
   LibraryMirror get targetLibrary => _targetLibrary;
 
-  String get prefix {
+  /*String*/ get prefix {
     Import import = _node.asImport();
     if (import != null && import.prefix != null) {
       return import.prefix.source;
@@ -155,8 +155,8 @@ class Dart2JsLibraryDependencyMirror implements LibraryDependencyMirror {
   bool get isExport => _node.asExport() != null;
 }
 
-class Dart2JsCombinatorMirror implements CombinatorMirror {
-  final List<String> identifiers;
+class Dart2JsCombinatorMirror implements CombinatorSourceMirror {
+  final List/*<String>*/ identifiers;
   final bool isShow;
 
   Dart2JsCombinatorMirror(this.identifiers, {bool isShow: true})

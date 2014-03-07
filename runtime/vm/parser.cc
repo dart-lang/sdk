@@ -4926,7 +4926,7 @@ void Parser::ParseIdentList(GrowableObjectArray* names) {
 }
 
 
-void Parser::ParseLibraryImportExport() {
+void Parser::ParseLibraryImportExport(intptr_t metadata_pos) {
   bool is_import = (CurrentToken() == Token::kIMPORT);
   bool is_export = (CurrentToken() == Token::kEXPORT);
   ASSERT(is_import || is_export);
@@ -4989,8 +4989,13 @@ void Parser::ParseLibraryImportExport() {
       library.Register();
     }
   }
-  const Namespace& ns =
-    Namespace::Handle(Namespace::New(library, show_names, hide_names));
+
+  Namespace& ns =
+      Namespace::Handle(Namespace::New(library, show_names, hide_names));
+  if (metadata_pos >= 0) {
+    ns.AddMetadata(metadata_pos, current_class());
+  }
+
   if (is_import) {
     // Ensure that private dart:_ libraries are only imported into dart:
     // libraries.
@@ -5063,7 +5068,7 @@ void Parser::ParseLibraryDefinition() {
   }
   while ((CurrentToken() == Token::kIMPORT) ||
       (CurrentToken() == Token::kEXPORT)) {
-    ParseLibraryImportExport();
+    ParseLibraryImportExport(metadata_pos);
     rewind_pos = TokenPos();
     metadata_pos = SkipMetadata();
   }

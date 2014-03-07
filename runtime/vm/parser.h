@@ -346,7 +346,7 @@ class Parser : public ValueObject {
   void ParseIdentList(GrowableObjectArray* names);
   void ParseLibraryDefinition();
   void ParseLibraryName();
-  void ParseLibraryImportExport();
+  void ParseLibraryImportExport(intptr_t metadata_pos);
   void ParseLibraryPart();
   void ParsePartHeader();
   void ParseLibraryNameObsoleteSyntax();

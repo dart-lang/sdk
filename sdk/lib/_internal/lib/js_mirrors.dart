@@ -488,6 +488,9 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
   // TODO(ahe): Implement this.
   Function operator [](Symbol name)
       => throw new UnimplementedError();
+
+  List<LibraryDependencyMirror> get libraryDependencies
+      => throw new UnimplementedError();
 }
 
 String n(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
