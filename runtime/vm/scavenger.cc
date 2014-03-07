@@ -278,12 +278,13 @@ class ScavengerWeakVisitor : public HandleVisitor {
 
   void VisitHandle(uword addr, bool is_prologue_weak) {
     FinalizablePersistentHandle* handle =
-        reinterpret_cast<FinalizablePersistentHandle*>(addr);
+      reinterpret_cast<FinalizablePersistentHandle*>(addr);
     RawObject** p = handle->raw_addr();
+    Heap::Space before = handle->SpaceForExternal();
     if (scavenger_->IsUnreachable(p)) {
-      FinalizablePersistentHandle::Finalize(isolate(),
-                                            handle,
-                                            is_prologue_weak);
+      handle->UpdateUnreachable(isolate(), is_prologue_weak);
+    } else {
+      handle->UpdateRelocated(before, isolate());
     }
   }
 
@@ -324,7 +325,8 @@ Scavenger::Scavenger(Heap* heap,
       object_alignment_(object_alignment),
       scavenging_(false),
       gc_time_micros_(0),
-      collections_(0) {
+      collections_(0),
+      external_size_(0) {
   // Verify assumptions about the first word in objects which the scavenger is
   // going to use for forwarding pointers.
   ASSERT(Object::tags_offset() == 0);
@@ -686,6 +688,11 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
     OS::PrintErr(" done.\n");
   }
 
+  // During from/to flip and promoted stack use, move external allocation
+  // out of tospace temporarily.
+  intptr_t saved_external = external_size_;
+  FreeExternal(saved_external);
+
   // Setup the visitor and run a scavenge.
   ScavengerVisitor visitor(isolate, this);
   Prologue(isolate, invoke_api_callbacks);
@@ -694,6 +701,9 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   ProcessToSpace(&visitor);
   int64_t middle = OS::GetCurrentTimeMicros();
   IterateWeakReferences(isolate, &visitor);
+  // Done with promoted stack; restore external allocation.
+  ASSERT(!PromotedStackHasMore());
+  AllocateExternal(saved_external);
   ScavengerWeakVisitor weak_visitor(this);
   IterateWeakRoots(isolate, &weak_visitor, invoke_api_callbacks);
   visitor.Finalize();
@@ -733,5 +743,20 @@ void Scavenger::PrintToJSONObject(JSONObject* object) {
   space.AddProperty("time", RoundMicrosecondsToSeconds(gc_time_micros()));
 }
 
+
+void Scavenger::AllocateExternal(intptr_t size) {
+  ASSERT(size >= 0);
+  external_size_ += size;
+  intptr_t remaining = end_ - top_;
+  end_ -= Utils::Minimum(remaining, size);
+}
+
+
+void Scavenger::FreeExternal(intptr_t size) {
+  ASSERT(size >= 0);
+  external_size_ -= size;
+  ASSERT(external_size_ >= 0);
+  end_ = Utils::Minimum(to_->end(), end_ + size);
+}
 
 }  // namespace dart

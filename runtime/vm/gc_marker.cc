@@ -306,9 +306,7 @@ class MarkingWeakVisitor : public HandleVisitor {
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
     RawObject* raw_obj = handle->raw();
     if (IsUnreachable(raw_obj)) {
-      FinalizablePersistentHandle::Finalize(isolate(),
-                                            handle,
-                                            is_prologue_weak);
+      handle->UpdateUnreachable(isolate(), is_prologue_weak);
     }
   }
 

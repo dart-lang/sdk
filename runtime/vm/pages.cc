@@ -126,6 +126,7 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
       max_capacity_in_words_(max_capacity_in_words),
       capacity_in_words_(0),
       used_in_words_(0),
+      external_in_words_(0),
       sweeping_(false),
       page_space_controller_(FLAG_heap_growth_space_ratio,
                              FLAG_heap_growth_rate,
@@ -269,6 +270,18 @@ uword PageSpace::TryAllocate(intptr_t size,
   }
   ASSERT((result & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
   return result;
+}
+
+
+void PageSpace::AllocateExternal(intptr_t size) {
+  intptr_t size_in_words = size >> kWordSizeLog2;
+  external_in_words_ += size_in_words;
+}
+
+
+void PageSpace::FreeExternal(intptr_t size) {
+  intptr_t size_in_words = size >> kWordSizeLog2;
+  external_in_words_ -= size_in_words;
 }
 
 
@@ -473,6 +486,9 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     }
   }
 
+  // Save old value before GCMarker visits the weak persistent handles.
+  intptr_t external_before_in_words = external_in_words_;
+
   // Mark all reachable old-gen objects.
   bool collect_code = FLAG_collect_code && ShouldCollectCode();
   GCMarker marker(heap_);
@@ -546,10 +562,11 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
 
   int64_t end = OS::GetCurrentTimeMicros();
 
-  // Record signals for growth control.
-  page_space_controller_.EvaluateGarbageCollection(used_before_in_words,
-                                                   used_in_words,
-                                                   start, end);
+  // Record signals for growth control. Include size of external allocations.
+  page_space_controller_.EvaluateGarbageCollection(
+      used_before_in_words + external_before_in_words,
+      used_in_words + external_in_words_,
+      start, end);
 
   heap_->RecordTime(kMarkObjects, mid1 - start);
   heap_->RecordTime(kResetFreeLists, mid2 - mid1);

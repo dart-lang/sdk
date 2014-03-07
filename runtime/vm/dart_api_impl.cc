@@ -623,6 +623,7 @@ static Dart_WeakPersistentHandle AllocateFinalizableHandle(
     Dart_Handle object,
     bool is_prologue,
     void* peer,
+    intptr_t external_allocation_size,
     Dart_WeakPersistentHandleFinalizer callback) {
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
@@ -636,6 +637,7 @@ static Dart_WeakPersistentHandle AllocateFinalizableHandle(
   finalizable_ref->set_raw(ref);
   finalizable_ref->set_peer(peer);
   finalizable_ref->set_callback(callback);
+  finalizable_ref->SetExternalSize(external_allocation_size, isolate);
   if (is_prologue) {
     return finalizable_ref->apiPrologueHandle();
   } else {
@@ -647,6 +649,7 @@ static Dart_WeakPersistentHandle AllocateFinalizableHandle(
 DART_EXPORT Dart_WeakPersistentHandle Dart_NewWeakPersistentHandle(
     Dart_Handle object,
     void* peer,
+    intptr_t external_allocation_size,
     Dart_WeakPersistentHandleFinalizer callback) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
@@ -654,6 +657,7 @@ DART_EXPORT Dart_WeakPersistentHandle Dart_NewWeakPersistentHandle(
                                    object,
                                    false,
                                    peer,
+                                   external_allocation_size,
                                    callback);
 }
 
@@ -661,6 +665,7 @@ DART_EXPORT Dart_WeakPersistentHandle Dart_NewWeakPersistentHandle(
 DART_EXPORT Dart_WeakPersistentHandle Dart_NewPrologueWeakPersistentHandle(
     Dart_Handle object,
     void* peer,
+    intptr_t external_allocation_size,
     Dart_WeakPersistentHandleFinalizer callback) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
@@ -668,6 +673,7 @@ DART_EXPORT Dart_WeakPersistentHandle Dart_NewPrologueWeakPersistentHandle(
                                    object,
                                    true,
                                    peer,
+                                   external_allocation_size,
                                    callback);
 }
 
@@ -697,11 +703,13 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
     ASSERT(state->IsValidPrologueWeakPersistentHandle(object));
     FinalizablePersistentHandle* weak_ref =
         FinalizablePersistentHandle::Cast(object);
+    weak_ref->EnsureFreeExternal(isolate);
     state->prologue_weak_persistent_handles().FreeHandle(weak_ref);
   } else {
     ASSERT(!state->IsValidPrologueWeakPersistentHandle(object));
     FinalizablePersistentHandle* weak_ref =
         FinalizablePersistentHandle::Cast(object);
+    weak_ref->EnsureFreeExternal(isolate);
     state->weak_persistent_handles().FreeHandle(weak_ref);
   }
 }

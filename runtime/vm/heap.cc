@@ -90,6 +90,23 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   return addr;
 }
 
+void Heap::AllocateExternal(intptr_t size, Space space) {
+  if (space == kNew) {
+    new_space_->AllocateExternal(size);
+  } else {
+    ASSERT(space == kOld);
+    old_space_->AllocateExternal(size);
+  }
+}
+
+void Heap::FreeExternal(intptr_t size, Space space) {
+  if (space == kNew) {
+    new_space_->FreeExternal(size);
+  } else {
+    ASSERT(space == kOld);
+    old_space_->FreeExternal(size);
+  }
+}
 
 bool Heap::Contains(uword addr) const {
   return new_space_->Contains(addr) ||
@@ -324,6 +341,10 @@ intptr_t Heap::CapacityInWords(Space space) const {
                          old_space_->CapacityInWords();
 }
 
+intptr_t Heap::ExternalInWords(Space space) const {
+  return space == kNew ? new_space_->ExternalInWords() :
+                         old_space_->ExternalInWords();
+}
 
 int64_t Heap::GCTimeInMicros(Space space) const {
   if (space == kNew) {

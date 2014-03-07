@@ -8,6 +8,7 @@
 #include "include/dart_api.h"
 
 #include "platform/thread.h"
+#include "platform/utils.h"
 #include "vm/dart_api_impl.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
@@ -212,11 +213,63 @@ class FinalizablePersistentHandle {
     return reinterpret_cast<Dart_WeakPersistentHandle>(this);
   }
 
+  void SetExternalSize(intptr_t size, Isolate* isolate) {
+    ASSERT(size >= 0);
+    external_size_ = Utils::RoundUp(size, kObjectAlignment);
+    // TODO(koda): On repeated/large external allocations for existing objects,
+    // without any intervening normal allocation, GC will not trigger.
+    isolate->heap()->AllocateExternal(external_size_, SpaceForExternal());
+  }
+
+  // Called when the referent becomes unreachable.
+  void UpdateUnreachable(Isolate* isolate, bool is_prologue_weak) {
+    EnsureFreeExternal(isolate);
+    Finalize(isolate, this, is_prologue_weak);
+  }
+
+  // Called when the referent has moved, potentially between generations.
+  void UpdateRelocated(Heap::Space before, Isolate* isolate) {
+    isolate->heap()->FreeExternal(external_size_, before);
+    isolate->heap()->AllocateExternal(external_size_, SpaceForExternal());
+  }
+
+  // Idempotent. Called when the handle is explicitly deleted or the
+  // referent becomes unreachable.
+  void EnsureFreeExternal(Isolate* isolate) {
+    isolate->heap()->FreeExternal(external_size_, SpaceForExternal());
+    external_size_ = 0;
+  }
+
+  // Returns the space to charge for the external size.
+  Heap::Space SpaceForExternal() const {
+    // Non-heap and VM-heap objects count as old space here.
+    return (raw_->IsHeapObject() && raw_->IsNewObject()) ?
+           Heap::kNew : Heap::kOld;
+  }
+
   static bool IsPrologueWeakPersistentHandle(Dart_WeakPersistentHandle handle) {
     uword addr = reinterpret_cast<uword>(handle);
     return (addr & kWeakPersistentTagMask) == kPrologueWeakPersistentTag;
   }
   static FinalizablePersistentHandle* Cast(Dart_WeakPersistentHandle handle);
+
+ private:
+  enum {
+    kWeakPersistentTag = 0,
+    kPrologueWeakPersistentTag = 1,
+    kWeakPersistentTagSize = 1,
+    kWeakPersistentTagMask = 1,
+  };
+
+  friend class FinalizablePersistentHandles;
+
+  FinalizablePersistentHandle()
+      : raw_(NULL),
+        peer_(NULL),
+        external_size_(0),
+        callback_(NULL) { }
+  ~FinalizablePersistentHandle() { }
+
   static void Finalize(Isolate* isolate,
                        FinalizablePersistentHandle* handle,
                        bool is_prologue_weak) {
@@ -232,19 +285,6 @@ class FinalizablePersistentHandle {
       handle->Clear();
     }
   }
-
- private:
-  enum {
-    kWeakPersistentTag = 0,
-    kPrologueWeakPersistentTag = 1,
-    kWeakPersistentTagSize = 1,
-    kWeakPersistentTagMask = 1,
-  };
-
-  friend class FinalizablePersistentHandles;
-
-  FinalizablePersistentHandle() : raw_(NULL), peer_(NULL), callback_(NULL) { }
-  ~FinalizablePersistentHandle() { }
 
   // Overload the raw_ field as a next pointer when adding freed
   // handles to the free list.
@@ -263,11 +303,13 @@ class FinalizablePersistentHandle {
   void Clear() {
     raw_ = Object::null();
     peer_ = NULL;
+    external_size_ = 0;
     callback_ = NULL;
   }
 
   RawObject* raw_;
   void* peer_;
+  intptr_t external_size_;
   Dart_WeakPersistentHandleFinalizer callback_;
   DISALLOW_ALLOCATION();  // Allocated through AllocateHandle methods.
   DISALLOW_COPY_AND_ASSIGN(FinalizablePersistentHandle);
@@ -470,7 +512,7 @@ class FinalizablePersistentHandles
       handle = reinterpret_cast<FinalizablePersistentHandle*>(
           AllocateScopedHandle());
     }
-    handle->set_callback(NULL);
+    handle->Clear();
     return handle;
   }
 

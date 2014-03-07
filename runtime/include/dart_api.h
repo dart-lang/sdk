@@ -442,15 +442,18 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
  * persistent handle and the peer as arguments. This gives the native code the
  * ability to cleanup data associated with the object and to delete the weak
  * persistent handle. It is illegal to call into the VM from the callback,
- * except to delete the weak persistent handle.
+ * except to delete the weak persistent handle. If the handle is deleted before
+ * the object becomes unreachable, the callback is never invoked.
  *
  * Requires there to be a current isolate.
  *
  * \param object An object.
  * \param peer A pointer to a native object or NULL.  This value is
  *   provided to callback when it is invoked.
+ * \param external_allocation_size The number of externally allocated
+ *   bytes for peer. Used to inform the garbage collector.
  * \param callback A function pointer that will be invoked sometime
- *   after the object is garbage collected.
+ *   after the object is garbage collected, unless the handle has been deleted.
  *
  * \return Success if the weak persistent handle was
  *   created. Otherwise, returns an error.
@@ -458,6 +461,7 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
 DART_EXPORT Dart_WeakPersistentHandle Dart_NewWeakPersistentHandle(
     Dart_Handle object,
     void* peer,
+    intptr_t external_allocation_size,
     Dart_WeakPersistentHandleFinalizer callback);
 
 DART_EXPORT void Dart_DeleteWeakPersistentHandle(
@@ -484,8 +488,10 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
  * \param object An object.
  * \param peer A pointer to a native object or NULL.  This value is
  *   provided to callback when it is invoked.
+ * \param external_allocation_size The number of externally allocated
+ *   bytes for peer. Used to inform the garbage collector.
  * \param callback A function pointer that will be invoked sometime
- *   after the object is garbage collected.
+ *   after the object is garbage collected, unless the handle has been deleted.
  *
  * \return Success if the prologue weak persistent handle was created.
  *   Otherwise, returns an error.
@@ -493,6 +499,7 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
 DART_EXPORT Dart_WeakPersistentHandle Dart_NewPrologueWeakPersistentHandle(
     Dart_Handle object,
     void* peer,
+    intptr_t external_allocation_size,
     Dart_WeakPersistentHandleFinalizer callback);
 
 /**
@@ -863,8 +870,9 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
  * isolate. */
 
 /**
- * Shuts down the current isolate. After this call, the current
- * isolate is NULL.
+ * Shuts down the current isolate. After this call, the current isolate
+ * is NULL. Invokes the shutdown callback and any callbacks of remaining
+ * weak persistent handles.
  *
  * Requires there to be a current isolate.
  */

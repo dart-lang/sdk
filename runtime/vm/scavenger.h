@@ -74,6 +74,9 @@ class Scavenger {
     return (top_ - FirstObjectStart()) >> kWordSizeLog2;
   }
   intptr_t CapacityInWords() const { return space_->size() >> kWordSizeLog2; }
+  intptr_t ExternalInWords() const {
+    return external_size_ >> kWordSizeLog2;
+  }
 
   void VisitObjects(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
@@ -107,6 +110,9 @@ class Scavenger {
   }
 
   void PrintToJSONObject(JSONObject* object);
+
+  void AllocateExternal(intptr_t size);
+  void FreeExternal(intptr_t size);
 
  private:
   // Ids for time and data records in Heap::GCStats.
@@ -149,17 +155,23 @@ class Scavenger {
   // object sizes are always greater than sizeof(uword) and promoted objects do
   // not consume space in the to space they leave enough room for this stack.
   void PushToPromotedStack(uword addr) {
+    ASSERT(scavenging_);
+    ASSERT(external_size_ == 0);
     end_ -= sizeof(addr);
     ASSERT(end_ > top_);
     *reinterpret_cast<uword*>(end_) = addr;
   }
   uword PopFromPromotedStack() {
+    ASSERT(scavenging_);
+    ASSERT(external_size_ == 0);
     uword result = *reinterpret_cast<uword*>(end_);
     end_ += sizeof(result);
     ASSERT(end_ <= to_->end());
     return result;
   }
   bool PromotedStackHasMore() const {
+    ASSERT(scavenging_);
+    ASSERT(external_size_ == 0);
     return end_ < to_->end();
   }
 
@@ -193,6 +205,10 @@ class Scavenger {
 
   int64_t gc_time_micros_;
   intptr_t collections_;
+
+  // The total size of external data associated with objects in this scavenger.
+  // External allocations decrease end_. If promoted stack is in use, this is 0.
+  intptr_t external_size_;
 
   friend class ScavengerVisitor;
   friend class ScavengerWeakVisitor;
