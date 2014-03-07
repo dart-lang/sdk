@@ -29,7 +29,6 @@ abstract class ElementVisitor<R> {
   R visitVariableElement(VariableElement e) => visitElement(e);
   R visitFieldElement(FieldElement e) => visitVariableElement(e);
   R visitFieldParameterElement(FieldParameterElement e) => visitElement(e);
-  R visitVariableListElement(VariableListElement e) => visitElement(e);
   R visitAbstractFieldElement(AbstractFieldElement e) => visitElement(e);
   R visitFunctionElement(FunctionElement e) => visitElement(e);
   R visitConstructorBodyElement(ConstructorBodyElement e) => visitElement(e);

@@ -478,10 +478,9 @@ class Selector {
         builder.addLast(node);
       });
       if (signature.optionalParametersAreNamed) {
-        signature.forEachOptionalParameter((Element element) {
-          Node node = element.parseNode(compiler);
-          mapping[node] = element;
-          builder.addLast(new NamedArgument(null, null, node));
+        signature.forEachOptionalParameter((ParameterElement element) {
+          mapping[element.initializer] = element;
+          builder.addLast(new NamedArgument(null, null, element.initializer));
         });
       } else {
         signature.forEachOptionalParameter((Element element) {
@@ -493,7 +492,9 @@ class Selector {
       return builder.toLink();
     }
 
-    internalCompileArgument(Node node) => compileArgument(mapping[node]);
+    internalCompileArgument(Node node) {
+      return compileArgument(mapping[node]);
+    }
 
     Link<Node> nodes = computeCallNodesFromParameters();
 

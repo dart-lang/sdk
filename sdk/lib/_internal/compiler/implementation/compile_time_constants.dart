@@ -107,15 +107,14 @@ class ConstantHandler extends CompilerTask {
       }
       pendingVariables.add(element);
 
-      SendSet assignment = node.asSendSet();
+      Expression initializer = element.initializer;
       Constant value;
-      if (assignment == null) {
+      if (initializer == null) {
         // No initial value.
         value = new NullConstant();
       } else {
-        Node right = assignment.arguments.head;
-        value =
-            compileNodeWithDefinitions(right, definitions, isConst: isConst);
+        value = compileNodeWithDefinitions(
+            initializer, definitions, isConst: isConst);
         if (compiler.enableTypeAssertions &&
             value != null &&
             element.isField()) {

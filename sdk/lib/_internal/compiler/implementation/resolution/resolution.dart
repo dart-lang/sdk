@@ -16,7 +16,7 @@ import '../elements/modelx.dart'
          ErroneousElementX,
          VariableElementX,
          FieldParameterElementX,
-         VariableListElementX,
+         VariableList,
          FunctionSignatureX,
          LabelElementX,
          TargetElementX,

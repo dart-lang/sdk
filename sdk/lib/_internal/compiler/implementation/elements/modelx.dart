@@ -60,6 +60,10 @@ abstract class ElementX implements Element {
   void addMetadata(MetadataAnnotation annotation) {
     assert(annotation.annotatedElement == null);
     annotation.annotatedElement = this;
+    addMetadataInternal(annotation);
+  }
+
+  void addMetadataInternal(MetadataAnnotation annotation) {
     metadata = metadata.prepend(annotation);
   }
 
@@ -1123,64 +1127,116 @@ class TypedefElementX extends ElementX implements TypedefElement {
   accept(ElementVisitor visitor) => visitor.visitTypedefElement(this);
 }
 
-abstract class MetadataContainer extends Element {
-  Link<MetadataAnnotation> metadata;
+// This class holds common information for a list of variable or field
+// declarations. It contains the node, and the type. A [VariableElementX]
+// forwards its [computeType] and [parseNode] methods to this class.
+class VariableList {
+  VariableDefinitions definitions;
+  DartType type;
+  final Modifiers modifiers;
+  Link<MetadataAnnotation> metadata = const Link<MetadataAnnotation>();
+
+  VariableList(Modifiers this.modifiers);
+
+  VariableList.node(VariableDefinitions node, this.type)
+      : this.definitions = node,
+        this.modifiers = node.modifiers {
+    assert(modifiers != null);
+  }
+
+  VariableDefinitions parseNode(Element element, DiagnosticListener listener) {
+    return definitions;
+  }
+
+  DartType computeType(Element element, Compiler compiler) => type;
 }
 
-class VariableElementX extends ElementX implements VariableElement,
-    MetadataContainer {
-  final VariableListElement variables;
-  Expression cachedNode; // The send or the identifier in the variables list.
+class VariableElementX extends ElementX implements VariableElement {
+  final Token token;
+  final VariableList variables;
+  VariableDefinitions definitionsCache;
+  Expression initializerCache;
 
   Modifiers get modifiers => variables.modifiers;
 
   VariableElementX(String name,
-                   VariableListElement variables,
                    ElementKind kind,
-                   this.cachedNode)
+                   Element enclosingElement,
+                   VariableList variables,
+                   this.token)
     : this.variables = variables,
-      super(name, kind, variables.enclosingElement);
+      super(name, kind, enclosingElement);
 
   VariableElementX.synthetic(String name,
-      ElementKind kind,
-      Element enclosing) :
+                             ElementKind kind,
+                             Element enclosing)
+      : token = null,
         variables = null,
         super(name, kind, enclosing);
 
-  void addMetadata(MetadataAnnotation metadata) {
-    variables.addMetadata(metadata);
-  }
-
+  // TODO(johnniwinther): Ensure that the [TreeElements] for this variable hold
+  // the mappings for all its metadata.
   Link<MetadataAnnotation> get metadata => variables.metadata;
 
+  void addMetadataInternal(MetadataAnnotation annotation) {
+    variables.metadata = variables.metadata.prepend(annotation);
+  }
+
+  Expression get initializer {
+    assert(invariant(this, definitionsCache != null,
+        message: "Initializer has not been computed for $this."));
+    return initializerCache;
+  }
+
   Node parseNode(DiagnosticListener listener) {
-    if (cachedNode != null) return cachedNode;
-    VariableDefinitions definitions = variables.parseNode(listener);
+    if (definitionsCache != null) return definitionsCache;
+
+    VariableDefinitions definitions = variables.parseNode(this, listener);
+    Expression node;
+    int count = 0;
     for (Link<Node> link = definitions.definitions.nodes;
          !link.isEmpty; link = link.tail) {
       Expression initializedIdentifier = link.head;
       Identifier identifier = initializedIdentifier.asIdentifier();
       if (identifier == null) {
-        identifier = initializedIdentifier.asSendSet().selector.asIdentifier();
+        SendSet sendSet = initializedIdentifier.asSendSet();
+        identifier = sendSet.selector.asIdentifier();
+        if (identical(name, identifier.source)) {
+          node = initializedIdentifier;
+          initializerCache = sendSet.arguments.first;
+        }
+      } else if (identical(name, identifier.source)) {
+        node = initializedIdentifier;
       }
-      if (identical(name, identifier.source)) {
-        cachedNode = initializedIdentifier;
-        return cachedNode;
-      }
+      count++;
     }
-    listener.cancel('internal error: could not find $name', node: variables);
-    return null;
+    if (node == null) {
+      listener.cancel('internal error: could not find $name',
+                      node: definitions);
+    }
+    if (count == 1) {
+      definitionsCache = definitions;
+    } else {
+      // Create a [VariableDefinitions] node for the single definition of
+      // [node].
+      definitionsCache = new VariableDefinitions(definitions.type,
+          definitions.modifiers, new NodeList(
+              definitions.definitions.beginToken,
+              const Link<Node>().prepend(node),
+              definitions.definitions.endToken));
+    }
+    return definitionsCache;
   }
 
   DartType computeType(Compiler compiler) {
-    return variables.computeType(compiler);
+    return variables.computeType(this, compiler);
   }
 
-  bool isInstanceMember() => variables.isInstanceMember();
+  bool isInstanceMember() => isMember() && !modifiers.isStatic();
 
   // Note: cachedNode.getBeginToken() will not be correct in all
   // cases, for example, for function typed parameters.
-  Token position() => findMyName(variables.position());
+  Token position() => token;
 
   accept(ElementVisitor visitor) => visitor.visitVariableElement(this);
 }
@@ -1188,10 +1244,11 @@ class VariableElementX extends ElementX implements VariableElement,
 class FieldElementX extends VariableElementX implements FieldElement {
   List<FunctionElement> nestedClosures = new List<FunctionElement>();
 
-  FieldElementX(String name,
-                VariableListElement variables,
-                Expression cachedNode)
-    : super(name, variables, ElementKind.FIELD, cachedNode);
+  FieldElementX(Identifier name,
+                Element enclosingElement,
+                VariableList variables)
+    : super(name.source, ElementKind.FIELD, enclosingElement,
+            variables, name.token);
 
   accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
 }
@@ -1204,13 +1261,13 @@ class FieldParameterElementX extends ParameterElementX
     implements FieldParameterElement {
   VariableElement fieldElement;
 
-  FieldParameterElementX(String name,
-                         Element enclosingElement,
+  FieldParameterElementX(Element enclosingElement,
                          VariableDefinitions variables,
-                         Expression node,
+                         Identifier identifier,
+                         Expression initializer,
                          this.fieldElement)
-      : super(name, enclosingElement, ElementKind.FIELD_PARAMETER,
-          variables, node);
+      : super(ElementKind.FIELD_PARAMETER, enclosingElement,
+              variables, identifier, initializer);
 
   DartType computeType(Compiler compiler) {
     if (definitions.type == null) {
@@ -1222,69 +1279,16 @@ class FieldParameterElementX extends ParameterElementX
   accept(ElementVisitor visitor) => visitor.visitFieldParameterElement(this);
 }
 
-// This element represents a list of variable or field declaration.
-// It contains the node, and the type. A [VariableElement] always
-// references its [VariableListElement]. It forwards its
-// [computeType] and [parseNode] methods to this element.
-class VariableListElementX extends ElementX implements VariableListElement,
-    MetadataContainer {
-  VariableDefinitions cachedNode;
-  DartType type;
-  final Modifiers modifiers;
-
-  FunctionSignature get functionSignature => null;
-
-  VariableListElementX(ElementKind kind,
-                       Modifiers this.modifiers,
-                       Element enclosing)
-    : super(null, kind, enclosing);
-
-  VariableListElementX.node(VariableDefinitions node,
-                            ElementKind kind,
-                            Element enclosing)
-      : super(null, kind, enclosing),
-        this.cachedNode = node,
-        this.modifiers = node.modifiers {
-    assert(modifiers != null);
-  }
-
-  VariableDefinitions parseNode(DiagnosticListener listener) {
-    return cachedNode;
-  }
-
-  DartType computeType(Compiler compiler) {
-    if (type != null) return type;
-    compiler.withCurrentElement(this, () {
-      VariableDefinitions node = parseNode(compiler);
-      if (node.type != null) {
-        type = compiler.resolveTypeAnnotation(this, node.type);
-      } else {
-        type = compiler.types.dynamicType;
-      }
-    });
-    assert(type != null);
-    return type;
-  }
-
-  Token position() => cachedNode.getBeginToken();
-
-  bool isInstanceMember() {
-    return isMember() && !modifiers.isStatic();
-  }
-
-  accept(ElementVisitor visitor) => visitor.visitVariableListElement(this);
-}
-
 /// [Element] for a formal parameter.
 ///
 /// A [ParameterElementX] can be patched. A parameter of an external method is
 /// patched with the corresponding parameter of the patch method. This is done
 /// to ensure that default values on parameters are computed once (on the
 /// origin parameter) but can be found through both the origin and the patch.
-class ParameterElementX extends ElementX
-    implements VariableElement, VariableListElement, MetadataContainer {
-  VariableDefinitions definitions;
-  Expression cachedNode;
+class ParameterElementX extends ElementX implements ParameterElement {
+  final VariableDefinitions definitions;
+  final Identifier identifier;
+  final Expression initializer;
   DartType type;
 
   /**
@@ -1294,22 +1298,19 @@ class ParameterElementX extends ElementX
    */
   FunctionSignature functionSignature;
 
-  ParameterElementX(String name,
+  ParameterElementX(ElementKind elementKind,
                     Element enclosingElement,
-                    ElementKind elementKind,
-                    VariableDefinitions definitions,
-                    Expression node)
-      : this.definitions = definitions,
-        this.cachedNode = node,
-        super(name, elementKind, enclosingElement);
-
-  VariableListElement get variables => this;
+                    this.definitions,
+                    Identifier identifier,
+                    this.initializer)
+      : this.identifier = identifier,
+        super(identifier.source, elementKind, enclosingElement);
 
   Modifiers get modifiers => definitions.modifiers;
 
-  Token position() => cachedNode.getBeginToken();
+  Token position() => identifier.getBeginToken();
 
-  Node parseNode(DiagnosticListener listener) => cachedNode;
+  Node parseNode(DiagnosticListener listener) => definitions;
 
   DartType computeType(Compiler compiler) {
     assert(invariant(this, type != null,

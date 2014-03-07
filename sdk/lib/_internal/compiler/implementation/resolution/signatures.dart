@@ -7,7 +7,7 @@ part of resolution;
 /**
  * [SignatureResolver] resolves function signatures.
  */
-class SignatureResolver extends MappingVisitor<Element> {
+class SignatureResolver extends MappingVisitor<ParameterElementX> {
   final Element enclosingElement;
   final Scope scope;
   final MessageKind defaultValuesError;
@@ -27,7 +27,7 @@ class SignatureResolver extends MappingVisitor<Element> {
 
   bool get defaultValuesAllowed => defaultValuesError == null;
 
-  Element visitNodeList(NodeList node) {
+  visitNodeList(NodeList node) {
     // This must be a list of optional arguments.
     String value = node.beginToken.stringValue;
     if ((!identical(value, '[')) && (!identical(value, '{'))) {
@@ -38,10 +38,9 @@ class SignatureResolver extends MappingVisitor<Element> {
     LinkBuilder<Element> elements = analyzeNodes(node.nodes);
     optionalParameterCount = elements.length;
     optionalParameters = elements.toLink();
-    return null;
   }
 
-  Element visitVariableDefinitions(VariableDefinitions node) {
+  ParameterElementX visitVariableDefinitions(VariableDefinitions node) {
     Link<Node> definitions = node.definitions.nodes;
     if (definitions.isEmpty) {
       cancel(node, 'internal error: no parameter definition');
@@ -66,9 +65,9 @@ class SignatureResolver extends MappingVisitor<Element> {
       cancel(node, 'function type parameters not supported');
     }
     currentDefinitions = node;
-    Element element = definition.accept(this);
+    ParameterElementX element = definition.accept(this);
     if (currentDefinitions.metadata != null) {
-      compiler.resolver.resolveMetadata(element, node);
+      element.metadata = compiler.resolver.resolveMetadata(element, node);
     }
     currentDefinitions = null;
     return element;
@@ -108,7 +107,7 @@ class SignatureResolver extends MappingVisitor<Element> {
   }
 
   Element visitIdentifier(Identifier node) {
-    return createParameter(node, node);
+    return createParameter(node, null);
   }
 
   Identifier getParameterName(Send node) {
@@ -133,19 +132,20 @@ class SignatureResolver extends MappingVisitor<Element> {
   // The only valid [Send] can be in constructors and must be of the form
   // [:this.x:] (where [:x:] represents an instance field).
   FieldParameterElementX visitSend(Send node) {
-    return createFieldParameter(node);
+    return createFieldParameter(node, null);
   }
 
-  ParameterElementX createParameter(Node node, Identifier name) {
+  ParameterElementX createParameter(Identifier name, Expression initializer) {
     validateName(name);
     ParameterElementX parameter = new ParameterElementX(
-        name.source,
-        enclosingElement, ElementKind.PARAMETER, currentDefinitions, node);
+        ElementKind.PARAMETER, enclosingElement,
+        currentDefinitions, name, initializer);
     computeParameterType(parameter);
     return parameter;
   }
 
-  FieldParameterElementX createFieldParameter(Send node) {
+  FieldParameterElementX createFieldParameter(Send node,
+                                              Expression initializer) {
     FieldParameterElementX element;
     if (node.receiver.asIdentifier() == null ||
         !node.receiver.asIdentifier().isThis()) {
@@ -163,8 +163,8 @@ class SignatureResolver extends MappingVisitor<Element> {
       } else if (!fieldElement.isInstanceMember()) {
         error(node, MessageKind.NOT_INSTANCE_FIELD, {'fieldName': name});
       }
-      element = new FieldParameterElementX(name.source,
-          enclosingElement, currentDefinitions, node, fieldElement);
+      element = new FieldParameterElementX(enclosingElement,
+          currentDefinitions, name, initializer, fieldElement);
       computeParameterType(element);
     }
     return element;
@@ -174,10 +174,10 @@ class SignatureResolver extends MappingVisitor<Element> {
   Element visitSendSet(SendSet node) {
     ParameterElementX element;
     if (node.receiver != null) {
-      element = createFieldParameter(node);
+      element = createFieldParameter(node, node.arguments.first);
     } else if (node.selector.asIdentifier() != null ||
                node.selector.asFunctionExpression() != null) {
-      element = createParameter(node, getParameterName(node));
+      element = createParameter(getParameterName(node), node.arguments.first);
     }
     Node defaultValue = node.arguments.head;
     if (!defaultValuesAllowed) {
@@ -200,7 +200,7 @@ class SignatureResolver extends MappingVisitor<Element> {
       compiler.reportError(modifiers, MessageKind.VAR_FUNCTION_TYPE_PARAMETER);
     }
 
-    return createParameter(node, node.name);
+    return createParameter(node.name, null);
   }
 
   LinkBuilder<Element> analyzeNodes(Link<Node> link) {

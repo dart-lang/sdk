@@ -17,50 +17,6 @@ class ElementAst {
       : this.treeElements = new TreeElementMapping(null);
 }
 
-// TODO(ahe): This class should not subclass [TreeElementMapping], if
-// anything, it should implement TreeElements.
-class AggregatedTreeElements extends TreeElementMapping {
-  final List<TreeElements> treeElements;
-
-  AggregatedTreeElements() : treeElements = <TreeElements>[], super(null);
-
-  Element operator[](Node node) {
-    final result = super[node];
-    return result != null ? result : getFirstNotNullResult((e) => e[node]);
-  }
-
-  Selector getSelector(Send send) {
-    final result = super.getSelector(send);
-    return result != null ?
-        result : getFirstNotNullResult((e) => e.getSelector(send));
-  }
-
-  DartType getType(Node node) {
-    final result = super.getType(node);
-    return result != null ?
-        result : getFirstNotNullResult((e) => e.getType(node));
-  }
-
-  getFirstNotNullResult(f(TreeElements element)) {
-    for (final element in treeElements) {
-      final result = f(element);
-      if (result != null) return result;
-    }
-
-    return null;
-  }
-}
-
-class VariableListAst extends ElementAst {
-  VariableListAst(ast) : super(ast, new AggregatedTreeElements());
-
-  add(VariableElement element, TreeElements treeElements) {
-    AggregatedTreeElements e = this.treeElements;
-    e[element.cachedNode] = element;
-    e.treeElements.add(treeElements);
-  }
-}
-
 class DartBackend extends Backend {
   final List<CompilerTask> tasks;
   final bool forceStripTypes;
@@ -310,13 +266,6 @@ class DartBackend extends Backend {
     resolvedElements.forEach((element, treeElements) {
       if (!shouldOutput(element) || treeElements == null) return;
       var elementAst = new ElementAst(parse(element), treeElements);
-      if (element.isField()) {
-        final list = (element as VariableElement).variables;
-        elementAst = elementAsts.putIfAbsent(
-            list, () => new VariableListAst(parse(list)));
-        (elementAst as VariableListAst).add(element, treeElements);
-        element = list;
-      }
 
       if (element.isMember()) {
         ClassElement enclosingClass = element.getEnclosingClass();
@@ -556,12 +505,10 @@ class ReferencedElementCollector extends Visitor {
   final newClassElementCallback;
 
   ReferencedElementCollector(this.compiler,
-                             Element rootElement,
+                             this.rootElement,
                              this.treeElements,
                              this.newTypedefElementCallback,
-                             this.newClassElementCallback)
-      : this.rootElement =
-          rootElement is VariableElement ? rootElement.variables : rootElement;
+                             this.newClassElementCallback);
 
   visitNode(Node node) {
     node.visitChildren(this);

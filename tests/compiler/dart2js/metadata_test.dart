@@ -30,7 +30,8 @@ void checkAnnotation(String name, String declaration,
 
   compileAndCheck(source1, name, (compiler, element) {
     compiler.enqueuer.resolution.queueIsClosed = false;
-    Expect.equals(1, length(element.metadata));
+    Expect.equals(1, length(element.metadata),
+        'Unexpected metadata count on $element.');
     PartialMetadataAnnotation annotation = element.metadata.head;
     annotation.ensureResolved(compiler);
     Constant value = annotation.value;
@@ -136,6 +137,7 @@ void testTopLevelMethodMetadata() {
 
 void testTopLevelFieldMetadata() {
   checkAnnotation('foo', 'var foo;');
+  checkAnnotation('bar', 'var foo, bar;');
 }
 
 void testLibraryTags() {

@@ -766,26 +766,18 @@ abstract class TypedefElement extends Element
 }
 
 abstract class VariableElement extends Element {
-  VariableListElement get variables;
-
-  // TODO(kasperl): Try to get rid of this.
-  Expression get cachedNode;
+  Expression get initializer;
 }
 
 abstract class FieldElement extends VariableElement
     implements ClosureContainer {}
 
-abstract class FieldParameterElement extends VariableElement {
-  VariableElement get fieldElement;
+abstract class ParameterElement extends VariableElement {
+  FunctionSignature get functionSignature;
 }
 
-// TODO(johnniwinther): Remove this interface.
-abstract class VariableListElement extends Element {
-  DartType get type;
-  FunctionSignature get functionSignature;
-
-  // TODO(kasperl): Try to get rid of this.
-  void set type(DartType value);
+abstract class FieldParameterElement extends ParameterElement {
+  VariableElement get fieldElement;
 }
 
 /**

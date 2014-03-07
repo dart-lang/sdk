@@ -1589,11 +1589,11 @@ class ConcreteTypesInferrer
       return null;
     }
 
-    handleLeftoverOptionalParameter(Element parameter) {
-      Send send = parameter.parseNode(compiler).asSendSet();
-      result[parameter] = (send == null)
+    handleLeftoverOptionalParameter(ParameterElement parameter) {
+      Expression initializer = parameter.initializer;
+      result[parameter] = (initializer == null)
           ? nullConcreteType
-          : analyzeDefaultValue(function, send.arguments.head);
+          : analyzeDefaultValue(function, initializer);
     }
 
     final Iterator<ConcreteType> remainingPositionalArguments =
@@ -1770,11 +1770,11 @@ class ConcreteTypesInferrer
    * Analyze the initializer of a field and update [inferredFieldTypes]
    * accordingly. Invalidate the readers of the field if needed.
    */
-  ConcreteType analyzeFieldInitialization(Element field) {
+  ConcreteType analyzeFieldInitialization(VariableElement field) {
     Visitor visitor = new TypeInferrerVisitor(field, this, null, new Map());
-    Node tree = field.parseNode(compiler);
-    ConcreteType type = initializerDo(tree, (node) => node.accept(visitor));
-    if (type != null) {
+    ConcreteType type;
+    if (field.initializer != null) {
+      type = field.initializer.accept(visitor);
       inferredFieldTypes[field] = type;
       invalidateReaders(field);
     }

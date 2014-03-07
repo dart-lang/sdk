@@ -226,12 +226,12 @@ class PlaceholderCollector extends Visitor {
     Node elementNode = elementAst.ast;
     if (element is FunctionElement) {
       collectFunctionDeclarationPlaceholders(element, elementNode);
-    } else if (element is VariableListElement) {
+    } else if (element is VariableElement) {
       VariableDefinitions definitions = elementNode;
-      for (Node definition in definitions.definitions) {
-        final definitionElement = treeElements[definition];
-        // definitionElement == null if variable is actually unused.
-        if (definitionElement == null) continue;
+      Node definition = definitions.definitions.nodes.head;
+      final definitionElement = treeElements[elementNode];
+      // definitionElement == null if variable is actually unused.
+      if (definitionElement != null) {
         collectFieldDeclarationPlaceholders(definitionElement, definition);
       }
       makeVarDeclarationTypePlaceholder(definitions);
@@ -505,6 +505,10 @@ class PlaceholderCollector extends Visitor {
   }
 
   visitVariableDefinitions(VariableDefinitions node) {
+    Element definitionElement = treeElements[node];
+    if (definitionElement == backend.mirrorHelperSymbolsMap) {
+      backend.registerMirrorHelperElement(definitionElement, node);
+    }
     // Collect only local placeholders.
     for (Node definition in node.definitions.nodes) {
       Element definitionElement = treeElements[definition];
@@ -513,9 +517,6 @@ class PlaceholderCollector extends Visitor {
       // TODO(smok): Fix this when resolver correctly deals with
       // such cases.
       if (definitionElement == null) continue;
-      if (definitionElement == backend.mirrorHelperSymbolsMap) {
-        backend.registerMirrorHelperElement(definitionElement, node);
-      }
       Send send = definition.asSend();
       if (send != null) {
         // May get FunctionExpression here in definition.selector
