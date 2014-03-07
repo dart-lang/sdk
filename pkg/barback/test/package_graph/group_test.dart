@@ -366,6 +366,21 @@ main() {
     expect(rewrite2.numRuns, completion(equals(1)));
   });
 
+  test("doesn't run transforms in a removed group", () {
+    var rewrite1 = new RewriteTransformer("a", "b");
+    var rewrite2 = new RewriteTransformer("b", "c");
+    var group = new TransformerGroup([[rewrite1], [rewrite2]]);
+    initGraph(["app|foo.a"], {"app": [[group]]});
+
+    updateSources(["app|foo.a"]);
+    expectAsset("app|foo.c", "foo.b.c");
+    buildShouldSucceed();
+
+    updateTransformers("app", []);
+    expectNoAsset("app|foo.c");
+    buildShouldSucceed();
+  });
+
   test("doesn't pass through an input that's overwritten by an added group",
       () {
     var rewrite = new RewriteTransformer("x", "z");

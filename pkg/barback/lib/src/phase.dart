@@ -325,7 +325,7 @@ class Phase {
   ///
   /// This will remove all the phase's outputs and all following phases.
   void remove() {
-    _previous._next = null;
+    if (_previous != null) _previous._next = null;
     removeFollowing();
     for (var input in _inputs.values.toList()) {
       input.remove();
