@@ -28,6 +28,14 @@ class Unpickler {
   ByteData doubleData = new ByteData(8);
 
   ConstantSystem get constantSystem => compiler.backend.constantSystem;
+  
+  // A partially constructed expression is one that has a single 'hole' where
+  // there is an expression missing.  Just like the IR builder, the unpickler
+  // represents such an expression by its root and by the 'current' expression
+  // that immediately contains the hole.  If there is no hole (e.g., an
+  // expression in tail position has been seen), then current is null.
+  ir.Expression root;
+  ir.Expression current;
 
   ir.Function unpickle(List<int> data) {
     this.data = data;
@@ -35,6 +43,7 @@ class Unpickler {
     int numEntries = readInt();
     unpickled = new List<Object>(numEntries);
     index = 0;
+    root = current = null;
     return readFunctionNode();
   }
 
@@ -99,48 +108,58 @@ class Unpickler {
     return result;
   }
 
-  static ir.Expression addExpression(ir.Expression context,
-                                     ir.Expression expr) {
-    return (context == null) ? expr : context.plug(expr);
+  void addExpression(ir.Expression expr) {
+    if (root == null) {
+      root = current = expr;
+    } else {
+      current = current.plug(expr);
+    }
   }
 
-  // Read a single expression and plug it into an outer context.  If the read
-  // expression is not in tail position, return it.  Otherwise, return null.
-  ir.Expression readExpressionNode(ir.Expression context) {
+  // Read a single expression and plug it into the outer context.
+  ir.Expression readExpressionNode() {
     int tag = readByte();
     switch (tag) {
       case Pickles.NODE_CONSTANT:
         ir.Trivial constant = readConstantNode();
         unpickled[index++] = constant;
-        return addExpression(context, new ir.LetVal(constant));
+        addExpression(new ir.LetVal(constant));
+        break;
       case Pickles.NODE_LET_CONT:
         ir.Parameter parameter = new ir.Parameter();
         ir.Continuation continuation = new ir.Continuation(parameter);
         unpickled[index++] = continuation;
         ir.Expression body = readDelimitedExpressionNode();
         unpickled[index++] = parameter;
-        return addExpression(context, new ir.LetCont(continuation, body));
+        addExpression(new ir.LetCont(continuation, body));
+        break;
       case Pickles.NODE_INVOKE_STATIC:
-        addExpression(context, readInvokeStaticNode());
-        return null;
+        addExpression(readInvokeStaticNode());
+        current = null;
+        break;
       case Pickles.NODE_INVOKE_CONTINUATION:
-        addExpression(context, readInvokeContinuationNode());
-        return null;
+        addExpression(readInvokeContinuationNode());
+        current = null;
+        break;
       default:
         compiler.internalError("Unexpected expression entry tag: $tag");
-        return null;
+        break;
     }
   }
 
   // Iteratively read expressions until an expression in a tail position
-  // (e.g., an invocation) is found.
+  // (e.g., an invocation) is found.  Do not change the outer context.
   ir.Expression readDelimitedExpressionNode() {
-    ir.Expression root = readExpressionNode(null);
-    ir.Expression context = root;
-    while (context != null) {
-      context = readExpressionNode(context);
-    }
-    return root;
+    ir.Expression previous_root = root;
+    ir.Expression previous_current = current;
+    root = current = null;
+    do {
+      readExpressionNode();
+    } while (current != null);
+    ir.Expression result = root;
+    root = previous_root;
+    current = previous_current;
+    return result;
   }
 
   Object readBackReference() {
