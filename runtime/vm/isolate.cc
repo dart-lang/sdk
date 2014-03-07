@@ -734,7 +734,7 @@ class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
   void VisitHandle(uword addr, bool is_prologue_weak) {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
-    FinalizablePersistentHandle::Finalize(isolate(), handle, is_prologue_weak);
+    handle->UpdateUnreachable(isolate(), is_prologue_weak);
   }
 
  private:
