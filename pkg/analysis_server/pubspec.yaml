@@ -4,9 +4,9 @@ author: Dart Team <misc@dartlang.org>
 description: An HTTP server that performs analysis of Dart code via web sockets.
 homepage: http://www.dartlang.org
 environment:
-  sdk: ">=1.0.0 <2.0.0"
+  sdk: '>=1.0.0 <2.0.0'
 dependencies:
-  analyzer: any
+  analyzer: 0.13.0-dev.4
   args: any
   logging: any
 dev_dependencies:

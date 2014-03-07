@@ -137,7 +137,7 @@ class AnalysisServer {
       running = false;
     } else {
       new Future(performTask).catchError((exception, stackTrace) {
-        AnalysisEngine.instance.logger.logError3(exception);
+        AnalysisEngine.instance.logger.logError(exception);
       });
     }
   }
@@ -163,7 +163,7 @@ class AnalysisServer {
     if (!running) {
       running = true;
       new Future(performTask).catchError((exception, stackTrace) {
-        AnalysisEngine.instance.logger.logError3(exception);
+        AnalysisEngine.instance.logger.logError(exception);
       });
     }
   }
