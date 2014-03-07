@@ -181,7 +181,7 @@ docgen/test/single_library_test: Fail # TODO(kasperl): Please triage.
 intl/test/date_time_format_http_request_test: Fail # TODO(kasperl): Please triage.
 
 [ $browser ]
-analysis_server/test/channel_test: Skip # Uses dart:io.
+analysis_server/test/*: Skip # Uses dart:io.
 analyzer/test/generated/ast_test: Fail, OK # Uses dart:io.
 analyzer/test/generated/element_test: Fail, OK # Uses dart:io.
 analyzer/test/generated/parser_test: Fail, OK # Uses dart:io.
