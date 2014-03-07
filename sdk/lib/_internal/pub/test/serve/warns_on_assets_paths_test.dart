@@ -4,29 +4,24 @@
 
 library pub_tests;
 
-import 'package:path/path.dart' as path;
 import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
-import '../../lib/src/utils.dart';
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import 'utils.dart';
 
-getWarningRegExp(String assetsPath) {
-  // Escape backslashes since they are metacharacters in a regex.
-  assetsPath = quoteRegExp(assetsPath);
-  return new RegExp(
-      r'^Warning: Pub reserves paths containing "assets" for using assets from '
-      'packages\\. Please rename the path "$assetsPath"\\.\$');
-}
-
 main() {
   initConfig();
-
-  integration('warns user about assets dir in the root of "web"', () {
+  integration('warns user about top-level "assets" directories', () {
     d.dir(appPath, [
       d.appPubspec(),
+      d.dir('bin', [
+        d.dir('assets')
+      ]),
+      d.dir('test', [
+        d.dir('assets')
+      ]),
       d.dir('web', [
         d.file('index.html'),
         d.dir('assets')
@@ -36,80 +31,56 @@ main() {
     var pub = pubServe();
     waitForBuildSuccess();
 
-    var assetsPath = path.join('web', 'assets');
-    pub.stderr.expect(consumeThrough(matches(getWarningRegExp(assetsPath))));
+    pub.stderr.expect(emitsLines('''
+Warning: Pub reserves paths containing "assets" for using assets from packages.
+Please rename the directory "bin/assets".
+Please rename the directory "test/assets".
+Please rename the directory "web/assets".'''));
     endPubServe();
   });
 
-  integration('warns user about assets dir nested anywhere in "web"', () {
+  integration('warns user about top-level "assets" files', () {
+    d.dir(appPath, [
+      d.appPubspec(),
+      d.dir('bin', [
+        d.file('assets', '...')
+      ]),
+      d.dir('test', [
+        d.file('assets', '...')
+      ]),
+      d.dir('web', [
+        d.file('index.html'),
+        d.file('assets', '...')
+      ])
+    ]).create();
+
+    var pub = pubServe();
+    waitForBuildSuccess();
+    pub.stderr.expect(emitsLines('''
+Warning: Pub reserves paths containing "assets" for using assets from packages.
+Please rename the file "bin/assets".
+Please rename the file "test/assets".
+Please rename the file "web/assets".'''));
+    endPubServe();
+  });
+
+  integration('does not warn on "assets" in subdirectories', () {
     d.dir(appPath, [
       d.appPubspec(),
       d.dir('web', [
         d.file('index.html'),
         d.dir('foo', [
           d.dir('assets')
+        ]),
+        d.dir('bar', [
+          d.file('assets', '...')
         ])
       ])
     ]).create();
 
     var pub = pubServe();
     waitForBuildSuccess();
-
-    var assetsPath = path.join('web', 'foo', 'assets');
-    pub.stderr.expect(consumeThrough(matches(getWarningRegExp(assetsPath))));
     endPubServe();
-  });
-
-  integration('warns user about assets file in the root of "web"', () {
-    d.dir(appPath, [
-      d.appPubspec(),
-      d.dir('web', [
-        d.file('index.html'),
-        d.file('assets')
-      ])
-    ]).create();
-
-    var pub = pubServe();
-    waitForBuildSuccess();
-
-    var assetsPath = path.join('web', 'assets');
-    pub.stderr.expect(consumeThrough(matches(getWarningRegExp(assetsPath))));
-    endPubServe();
-  });
-
-  integration('warns user about assets file nested anywhere in "web"', () {
-    d.dir(appPath, [
-      d.appPubspec(),
-      d.dir('web', [
-        d.file('index.html'),
-        d.dir('foo', [
-          d.file('assets')
-        ])
-      ])
-    ]).create();
-
-    var pub = pubServe();
-    waitForBuildSuccess();
-
-    var assetsPath = path.join('web', 'foo', 'assets');
-    pub.stderr.expect(consumeThrough(matches(getWarningRegExp(assetsPath))));
-    endPubServe();
-  });
-
-  integration('does not warn if no assets dir or file anywhere in "web"', () {
-    d.dir(appPath, [
-      d.appPubspec(),
-      d.dir('web', [
-        d.file('index.html'),
-        d.dir('foo')
-      ])
-    ]).create();
-
-    var pub = pubServe();
-    waitForBuildSuccess();
-    endPubServe();
-
-    pub.stderr.expect(never(startsWith('Warning: Pub reserves paths containing '
-        '"assets"')));
+    pub.stderr.expect(never(contains("Warning")));
   });
 }

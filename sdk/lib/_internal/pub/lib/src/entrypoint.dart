@@ -248,20 +248,33 @@ class Entrypoint {
     });
   }
 
-  /// Warns users if they have directory or file named `assets` _anywhere_
-  /// inside `web` directory.
+  /// Warns users if they have directory or file named `assets` directly
+  /// inside a top-level directory.
   void _warnOnAssetsPaths() {
-    var webDir = path.join(root.dir, 'web');
-    if (!dirExists(webDir)) return;
+    var buffer = new StringBuffer();
 
-    listDir(webDir, recursive: true)
-      .where((p) => path.basename(p) == 'assets')
-      .forEach((p) {
-        var assetsPath = path.relative(p, from: root.dir);
-        log.warning(
+    warn(message) {
+      if (buffer.isEmpty) {
+        buffer.writeln(
             'Warning: Pub reserves paths containing "assets" for using assets '
-            'from packages. Please rename the path "$assetsPath".');
-      });
+            'from packages.');
+      }
+
+      buffer.writeln(message);
+    }
+
+    // Look inside all of the top-level directories.
+    for (var dir in listDir(root.dir)) {
+      var assetsPath = path.join(dir, "assets");
+      var relative = path.relative(assetsPath, from: root.dir);
+      if (dirExists(assetsPath)) {
+        warn('Please rename the directory "$relative".');
+      } else if (entryExists(assetsPath)) {
+        warn('Please rename the file "$relative".');
+      }
+    }
+
+    if (buffer.isNotEmpty) log.warning(buffer);
   }
 
   /// Loads the package graph for the application and all of its transitive
