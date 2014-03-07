@@ -30,6 +30,11 @@ class CompilerStats : AllStatic {
   static intptr_t make_accessor_name;
   static intptr_t make_field_name;
 
+  static intptr_t num_classes_compiled;
+  static intptr_t num_functions_compiled;
+  static intptr_t num_implicit_final_getters;
+  static intptr_t num_static_initializer_funcs;
+
   static intptr_t src_length;        // Total number of characters in source.
   static intptr_t code_allocated;    // Bytes allocated for generated code.
   static Timer parser_timer;         // Cumulative runtime of parser.

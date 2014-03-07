@@ -761,6 +761,7 @@ RawObject* Parser::ParseFunctionParameters(const Function& func) {
 
 void Parser::ParseFunction(ParsedFunction* parsed_function) {
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
+  CompilerStats::num_functions_compiled++;
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate->long_jump_base()->IsSafeToJump());
   ASSERT(parsed_function != NULL);
@@ -792,9 +793,11 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       break;
     case RawFunction::kImplicitStaticFinalGetter:
       node_sequence = parser.ParseStaticFinalGetter(func);
+      CompilerStats::num_implicit_final_getters++;
       break;
     case RawFunction::kStaticInitializer:
       node_sequence = parser.ParseStaticInitializer(func);
+      CompilerStats::num_static_initializer_funcs++;
       break;
     case RawFunction::kMethodExtractor:
       node_sequence = parser.ParseMethodExtractor(func);
@@ -3405,22 +3408,19 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     if (has_initializer) {
       ConsumeToken();
       init_value = Object::sentinel().raw();
-      // For static const fields and static final non-const fields, the
-      // initialization expression will be parsed through the
-      // kImplicitStaticFinalGetter method invocation/compilation.
+      // For static fields, the initialization expression will be parsed
+      // through the kImplicitStaticFinalGetter method invocation/compilation.
       // For instance fields, the expression is parsed when a constructor
       // is compiled.
-      // For static const fields and static final non-const fields with very
-      // simple initializer expressions (e.g. a literal number or string), we
-      // optimize away the kImplicitStaticFinalGetter and initialize the field
-      // here. However, the class finalizer will check the value type for
+      // For static fields with very simple initializer expressions
+      // (e.g. a literal number or string), we optimize away the
+      // kImplicitStaticFinalGetter and initialize the field here.
+      // However, the class finalizer will check the value type for
       // assignability once the declared field type can be resolved. If the
       // value is not assignable (assuming checked mode and disregarding actual
       // mode), the field value is reset and a kImplicitStaticFinalGetter is
       // created at finalization time.
-
-      if (field->has_static && (field->has_const || field->has_final) &&
-          (LookaheadToken(1) == Token::kSEMICOLON)) {
+      if (field->has_static && (LookaheadToken(1) == Token::kSEMICOLON)) {
         has_simple_literal = IsSimpleLiteral(*field->type, &init_value);
       }
       SkipExpr();
@@ -3966,6 +3966,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
 
 void Parser::ParseClassDefinition(const Class& cls) {
   TRACE_PARSER("ParseClassDefinition");
+  CompilerStats::num_classes_compiled++;
   set_current_class(cls);
   is_top_level_ = true;
   String& class_name = String::Handle(cls.Name());
@@ -4580,7 +4581,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
       ConsumeToken();
       Instance& field_value = Instance::Handle(Object::sentinel().raw());
       bool has_simple_literal = false;
-      if ((is_const || is_final) && (LookaheadToken(1) == Token::kSEMICOLON)) {
+      if (LookaheadToken(1) == Token::kSEMICOLON) {
         has_simple_literal = IsSimpleLiteral(type, &field_value);
       }
       SkipExpr();
@@ -5827,8 +5828,7 @@ bool Parser::IsSimpleLiteral(const AbstractType& type, Instance* value) {
   // resolved at class finalization time, and if the type of the literal is one
   // of int, double, String, or bool, then preset the field with the value and
   // perform the type check (in checked mode only) at finalization time.
-  if (type.IsTypeParameter() ||
-      (type.arguments() != TypeArguments::null())) {
+  if (type.IsTypeParameter() || (type.arguments() != TypeArguments::null())) {
     // Type parameters are always resolved eagerly by the parser and never
     // resolved later by the class finalizer. Therefore, we know here that if
     // 'type' is not a type parameter (an unresolved type will not get resolved

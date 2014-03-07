@@ -611,7 +611,7 @@ TEST_CASE(Service_Coverage) {
       "\"type\":\"@Script\",\"id\":\"scripts\\/dart%3Atest-lib\","
       "\"name\":\"dart:test-lib\",\"user_name\":\"dart:test-lib\","
       "\"kind\":\"script\"},\"hits\":"
-      "[3,0,3,1,5,1,5,1,5,1,6,1,6,1]}", handler.msg());
+      "[5,1,6,1]}", handler.msg());
 }
 
 

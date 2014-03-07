@@ -66,6 +66,12 @@ intptr_t CompilerStats::num_names_cached = 0;
 intptr_t CompilerStats::make_accessor_name = 0;
 intptr_t CompilerStats::make_field_name = 0;
 
+intptr_t CompilerStats::num_classes_compiled = 0;
+intptr_t CompilerStats::num_functions_compiled = 0;
+
+intptr_t CompilerStats::num_implicit_final_getters = 0;
+intptr_t CompilerStats::num_static_initializer_funcs = 0;
+
 void CompilerStats::Print() {
   if (!FLAG_compiler_stats) {
     return;
@@ -84,6 +90,11 @@ void CompilerStats::Print() {
   OS::Print("Token lookahead:    %" Pd " (%" Pd "%% of tokens checked)\n",
             num_tokens_lookahead,
             (100 * num_tokens_lookahead) / num_token_checks);
+
+  OS::Print("Classes parsed:     %" Pd "\n", num_classes_compiled);
+  OS::Print("Functions compiled: %" Pd "\n", num_functions_compiled);
+  OS::Print("  Impl getters:     %" Pd "\n", num_implicit_final_getters);
+  OS::Print("  Init funcs:       %" Pd "\n", num_static_initializer_funcs);
 
   OS::Print("Lib names cached:   %" Pd "\n", num_names_cached);
   OS::Print("Lib name cache hit: %" Pd "\n", num_lib_cache_hit);
