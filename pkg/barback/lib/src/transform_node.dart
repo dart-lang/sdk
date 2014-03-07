@@ -6,8 +6,6 @@ library barback.transform_node;
 
 import 'dart:async';
 
-import 'package:source_maps/span.dart';
-
 import 'asset.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
@@ -17,6 +15,7 @@ import 'errors.dart';
 import 'lazy_transformer.dart';
 import 'log.dart';
 import 'phase.dart';
+import 'stream_pool.dart';
 import 'transform.dart';
 import 'transformer.dart';
 import 'utils.dart';
@@ -88,8 +87,8 @@ class TransformNode {
   /// This is synchronous because error logs can cause the transform to fail, so
   /// we need to ensure that their processing isn't delayed until after the
   /// transform or build has finished.
-  Stream<LogEntry> get onLog => _onLogController.stream;
-  final _onLogController = new StreamController<LogEntry>.broadcast(sync: true);
+  Stream<LogEntry> get onLog => _onLogPool.stream;
+  final _onLogPool = new StreamPool<LogEntry>.broadcast();
 
   TransformNode(this.phase, Transformer transformer, this.primary,
       this._location)
@@ -239,12 +238,15 @@ class TransformNode {
   /// Applies the transform so that it produces concrete (as opposed to lazy)
   /// outputs.
   Future _applyImmediate() {
-    var newOutputs = new AssetSet();
-    var transform = new Transform(this, newOutputs, _log);
+    var transformController = new TransformController(this);
+    _onLogPool.add(transformController.onLog);
 
-    return syncFuture(() => transformer.apply(transform)).then((_) {
+    return syncFuture(() {
+      return transformer.apply(transformController.transform);
+    }).then((_) {
       if (_hasBecomeDirty || _onAssetController.isClosed) return;
 
+      var newOutputs = transformController.outputs;
       // Any ids that are for a different package are invalid.
       var invalidIds = newOutputs
           .map((asset) => asset.id)
@@ -279,14 +281,15 @@ class TransformNode {
   /// Applies the transform in declarative mode so that it produces lazy
   /// outputs.
   Future _declareLazy() {
-    var newIds = new Set();
-    var transform = new DeclaringTransform(this, newIds, _log);
+    var transformController = new DeclaringTransformController(this);
 
     return syncFuture(() {
-      return (transformer as LazyTransformer).declareOutputs(transform);
+      return (transformer as LazyTransformer)
+          .declareOutputs(transformController.transform);
     }).then((_) {
       if (_hasBecomeDirty || _onAssetController.isClosed) return;
 
+      var newIds = transformController.outputIds;
       var invalidIds =
           newIds.where((id) => id.package != phase.cascade.package).toSet();
       for (var id in invalidIds) {
@@ -312,13 +315,6 @@ class TransformNode {
         }
       }
     });
-  }
-
-  void _log(AssetId asset, LogLevel level, String message, Span span) {
-    // If the log isn't already associated with an asset, use the primary.
-    if (asset == null) asset = primary.id;
-    var entry = new LogEntry(info, asset, level, message, span);
-    _onLogController.add(entry);
   }
 
   String toString() =>

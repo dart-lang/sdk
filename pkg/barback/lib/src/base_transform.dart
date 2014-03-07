@@ -11,6 +11,7 @@ import 'asset.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
 import 'errors.dart';
+import 'log.dart';
 import 'transform_logger.dart';
 import 'transform_node.dart';
 import 'utils.dart';
@@ -22,10 +23,19 @@ import 'utils.dart';
 /// subclasses to provide a means of emitting outputs.
 abstract class BaseTransform {
   final TransformNode _node;
-  final TransformLogger _logger;
+
+  /// The controller for the stream of log entries emitted by the transformer.
+  ///
+  /// This is exposed via [BaseTransformController].
+  ///
+  /// This is synchronous because error logs can cause the transform to fail, so
+  /// we need to ensure that their processing isn't delayed until after the
+  /// transform or build has finished.
+  final _onLogController = new StreamController<LogEntry>.broadcast(sync: true);
 
   /// A logger so that the [Transformer] can report build details.
   TransformLogger get logger => _logger;
+  TransformLogger _logger;
 
   /// Gets the primary input asset.
   ///
@@ -50,8 +60,14 @@ abstract class BaseTransform {
     return _node.primary.asset;
   }
 
-  BaseTransform(this._node, LogFunction logFunction)
-    : _logger = new TransformLogger(logFunction);
+  BaseTransform(this._node) {
+    _logger = new TransformLogger((asset, level, message, span) {
+      // If the log isn't already associated with an asset, use the primary.
+      if (asset == null) asset = _node.primary.id;
+      var entry = new LogEntry(_node.info, asset, level, message, span);
+      _onLogController.add(entry);
+    });
+  }
 
   /// Gets the asset for an input [id].
   ///
@@ -78,4 +94,27 @@ abstract class BaseTransform {
   /// If the asset was created from a [String], this returns its UTF-8 encoding.
   Stream<List<int>> readInput(AssetId id) =>
       futureStream(getInput(id).then((input) => input.read()));
+}
+
+/// The base class for controllers of subclasses of [BaseTransform].
+///
+/// Controllers are used so that [TransformNode]s can get values from a
+/// [BaseTransform] without exposing getters in the public API.
+abstract class BaseTransformController {
+  /// The [BaseTransform] controlled by this controller.
+  final BaseTransform transform;
+
+  /// The stream of log entries emitted by the transformer during a run.
+  Stream<LogEntry> get onLog => transform._onLogController.stream;
+
+  BaseTransformController(this.transform);
+
+  /// Notifies the [BaseTransform] that the transformation has finished being
+  /// applied.
+  ///
+  /// This will close any streams and release any resources that were allocated
+  /// for the duration of the transformation.
+  void close() {
+    transform._onLogController.close();
+  }
 }
