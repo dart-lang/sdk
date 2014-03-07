@@ -260,39 +260,173 @@ class _Smi extends _IntegerImplementation implements int {
   int _shrFromInt(int other) native "Smi_shrFromInt";
   int _shlFromInt(int other) native "Smi_shlFromInt";
 
+  /**
+   * The digits of '00', '01', ... '99' as a single array.
+   *
+   * Get the digits of `n`, with `0 <= n < 100`, as
+   * `_digitTable[n * 2]` and `_digitTable[n * 2 + 1]`.
+   */
+  static const _digitTable = const [
+    0x30, 0x30, 0x30, 0x31, 0x30, 0x32, 0x30, 0x33,
+    0x30, 0x34, 0x30, 0x35, 0x30, 0x36, 0x30, 0x37,
+    0x30, 0x38, 0x30, 0x39, 0x31, 0x30, 0x31, 0x31,
+    0x31, 0x32, 0x31, 0x33, 0x31, 0x34, 0x31, 0x35,
+    0x31, 0x36, 0x31, 0x37, 0x31, 0x38, 0x31, 0x39,
+    0x32, 0x30, 0x32, 0x31, 0x32, 0x32, 0x32, 0x33,
+    0x32, 0x34, 0x32, 0x35, 0x32, 0x36, 0x32, 0x37,
+    0x32, 0x38, 0x32, 0x39, 0x33, 0x30, 0x33, 0x31,
+    0x33, 0x32, 0x33, 0x33, 0x33, 0x34, 0x33, 0x35,
+    0x33, 0x36, 0x33, 0x37, 0x33, 0x38, 0x33, 0x39,
+    0x34, 0x30, 0x34, 0x31, 0x34, 0x32, 0x34, 0x33,
+    0x34, 0x34, 0x34, 0x35, 0x34, 0x36, 0x34, 0x37,
+    0x34, 0x38, 0x34, 0x39, 0x35, 0x30, 0x35, 0x31,
+    0x35, 0x32, 0x35, 0x33, 0x35, 0x34, 0x35, 0x35,
+    0x35, 0x36, 0x35, 0x37, 0x35, 0x38, 0x35, 0x39,
+    0x36, 0x30, 0x36, 0x31, 0x36, 0x32, 0x36, 0x33,
+    0x36, 0x34, 0x36, 0x35, 0x36, 0x36, 0x36, 0x37,
+    0x36, 0x38, 0x36, 0x39, 0x37, 0x30, 0x37, 0x31,
+    0x37, 0x32, 0x37, 0x33, 0x37, 0x34, 0x37, 0x35,
+    0x37, 0x36, 0x37, 0x37, 0x37, 0x38, 0x37, 0x39,
+    0x38, 0x30, 0x38, 0x31, 0x38, 0x32, 0x38, 0x33,
+    0x38, 0x34, 0x38, 0x35, 0x38, 0x36, 0x38, 0x37,
+    0x38, 0x38, 0x38, 0x39, 0x39, 0x30, 0x39, 0x31,
+    0x39, 0x32, 0x39, 0x33, 0x39, 0x34, 0x39, 0x35,
+    0x39, 0x36, 0x39, 0x37, 0x39, 0x38, 0x39, 0x39
+  ];
+
+  // Powers of 10 above 1000000 are indistinguishable.
+  static const int _POW_10_7  = 10000000;
+  static const int _POW_10_8  = 100000000;
+  static const int _POW_10_9  = 1000000000;
+  static const int _POW_10_10 = 10000000000;
+
+  // Find the number of decimal digits in a positive smi.
+  static int _positiveBase10Length(var smi) {
+    // A positive smi has length <= 19 if 63-bit,  <=10 if 31-bit.
+    // Avoid comparing a 31-bit smi to a non-smi.
+    if (smi < 1000) return 3;
+    if (smi < 10000) return 4;
+    if (smi < _POW_10_7) {
+      if (smi < 100000) return 5;
+      if (smi < 1000000) return 6;
+      return 7;
+    }
+    if (smi < _POW_10_10) {
+      if (smi < _POW_10_8) return 8;
+      if (smi < _POW_10_9) return 9;
+      return 10;
+    }
+    smi = smi ~/ _POW_10_10;
+    if (smi < 10) return 11;
+    if (smi < 100) return 12;
+    return 10 + _positiveBase10Length(smi);
+  }
+
   String toString() {
-    if (this == 0) return "0";
-    var reversed = _toStringBuffer;
-    var negative = false;
-    var val = this;
-    int index = 0;
-
-    if (this < 0) {
-      negative = true;
-      // Handle the first digit as negative to avoid negating the minimum
-      // smi, for which the negation is not a smi.
-      int digit = -(val.remainder(10));
-      reversed[index++] = digit + 0x30;
-      val = -(val ~/ 10);
+    if (this < 0) return _negativeToString(this);
+    // Inspired by Andrei Alexandrescu: "Three Optimization Tips for C++"
+    // Avoid expensive remainder operation by doing it on more than
+    // one digit at a time.
+    const int DIGIT_ZERO = 0x30;
+    if (this < 10) {
+      return _OneByteString._allocate(1).._setAt(0, DIGIT_ZERO + this);
     }
-
-    while (val > 0) {
-      int digit = val % 10;
-      val = val ~/ 10;
-      reversed[index++] = (digit + 0x30);
+    if (this < 100) {
+      int digitIndex = 2 * this;
+      return _OneByteString._allocate(2)
+          .._setAt(0, _digitTable[digitIndex])
+          .._setAt(1, _digitTable[digitIndex + 1]);
     }
-    if (negative) reversed[index++] = 0x2D;  // '-'.
-
-    _OneByteString string = _OneByteString._allocate(index);
-    for (int i = 0, j = index; i < index; i++) {
-      string._setAt(i, reversed[--j]);
+    int length = _positiveBase10Length(this);
+    _OneByteString result = _OneByteString._allocate(length);
+    int index = length - 1;
+    var smi = this;
+    do {
+      // Two digits at a time.
+      var twoDigits = smi.remainder(100);
+      smi = smi ~/ 100;
+      int digitIndex = twoDigits * 2;
+      result._setAt(index, _digitTable[digitIndex + 1]);
+      result._setAt(index - 1, _digitTable[digitIndex]);
+      index -= 2;
+    } while (smi >= 100);
+    if (smi < 10) {
+      // Character code for '0'.
+      result._setAt(index, DIGIT_ZERO + smi);
+    } else {
+      // No remainder for this case.
+      int digitIndex = smi * 2;
+      result._setAt(index, _digitTable[digitIndex + 1]);
+      result._setAt(index - 1, _digitTable[digitIndex]);
     }
-    return string;
+    return result;
+  }
+
+  // Find the number of decimal digits in a negative smi.
+  static int _negativeBase10Length(var negSmi) {
+    // A negative smi has length <= 19 if 63-bit, <=10 if 31-bit.
+    // Avoid comparing a 31-bit smi to a non-smi.
+    if (negSmi > -1000) return 3;
+    if (negSmi > -10000) return 4;
+    if (negSmi > -_POW_10_7) {
+      if (negSmi > -100000) return 5;
+      if (negSmi > -1000000) return 6;
+      return 7;
+    }
+    if (negSmi > -_POW_10_10) {
+      if (negSmi > -_POW_10_8) return 8;
+      if (negSmi > -_POW_10_9) return 9;
+      return 10;
+    }
+    negSmi = negSmi ~/ _POW_10_10;
+    if (negSmi > -10) return 11;
+    if (negSmi > -100) return 12;
+    return 10 + _negativeBase10Length(negSmi);
+  }
+
+  // Convert a negative smi to a string.
+  // Doesn't negate the smi to avoid negating the most negative smi, which
+  // would become a non-smi.
+  static String _negativeToString(int negSmi) {
+    // Character code for '-'
+    const int MINUS_SIGN = 0x2d;
+    // Character code for '0'.
+    const int DIGIT_ZERO = 0x30;
+    if (negSmi > -10) {
+      return _OneByteString._allocate(2).._setAt(0, MINUS_SIGN)
+                                        .._setAt(1, DIGIT_ZERO - negSmi);
+    }
+    if (negSmi > -100) {
+      int digitIndex = 2 * -negSmi;
+      return _OneByteString._allocate(3)
+          .._setAt(0, MINUS_SIGN)
+          .._setAt(1, _digitTable[digitIndex])
+          .._setAt(2, _digitTable[digitIndex + 1]);
+    }
+    // Number of digits, not including minus.
+    int digitCount = _negativeBase10Length(negSmi);
+    _OneByteString result = _OneByteString._allocate(digitCount + 1);
+    result._setAt(0, MINUS_SIGN);  // '-'.
+    int index = digitCount;
+    do {
+      var twoDigits = negSmi.remainder(100);
+      negSmi = negSmi ~/ 100;
+      int digitIndex = -twoDigits * 2;
+      result._setAt(index, _digitTable[digitIndex + 1]);
+      result._setAt(index - 1, _digitTable[digitIndex]);
+      index -= 2;
+    } while (negSmi <= -100);
+    if (negSmi > -10) {
+      result._setAt(index, DIGIT_ZERO - negSmi);
+    } else {
+      // No remainder necessary for this case.
+      int digitIndex = -negSmi * 2;
+      result._setAt(index, _digitTable[digitIndex + 1]);
+      result._setAt(index - 1, _digitTable[digitIndex]);
+    }
+    return result;
   }
 }
-
-// Reusable buffer used by smi.toString.
-final List _toStringBuffer = new Uint8List(20);
 
 // Represents integers that cannot be represented by Smi but fit into 64bits.
 class _Mint extends _IntegerImplementation implements int {
