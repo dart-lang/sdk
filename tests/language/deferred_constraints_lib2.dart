@@ -3,3 +3,5 @@
 // BSD-style license that can be found in the LICENSE file.
 
 foo() => 42;
+
+class C {}
