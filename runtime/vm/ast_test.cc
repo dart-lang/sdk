@@ -14,7 +14,7 @@ namespace dart {
 
 TEST_CASE(Ast) {
   LocalVariable* v = new LocalVariable(Scanner::kNoSourcePos,
-                                       String::ZoneHandle(String::New("v")),
+                                       String::ZoneHandle(Symbols::New("v")),
                                        Type::ZoneHandle(Type::DynamicType()));
   AstNode* ll = new LoadLocalNode(Scanner::kNoSourcePos, v);
   EXPECT(ll->IsLoadLocalNode());
@@ -25,7 +25,7 @@ TEST_CASE(Ast) {
   EXPECT_EQ(1, v->index());
 
   LocalVariable* p = new LocalVariable(Scanner::kNoSourcePos,
-                                       String::ZoneHandle(String::New("p")),
+                                       String::ZoneHandle(Symbols::New("p")),
                                        Type::ZoneHandle(Type::DynamicType()));
   EXPECT(!p->HasIndex());
   p->set_index(-1);

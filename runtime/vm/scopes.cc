@@ -81,9 +81,10 @@ bool LocalScope::AddLabel(SourceLabel* label) {
 
 
 NameReference* LocalScope::FindReference(const String& name) const {
+  ASSERT(name.IsSymbol());
   intptr_t num_references = referenced_.length();
   for (intptr_t i = 0; i < num_references; i++) {
-    if (name.Equals(referenced_[i]->name())) {
+    if (name.raw() == referenced_[i]->name().raw()) {
       return referenced_[i];
     }
   }
@@ -300,7 +301,7 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
         desc.info.end_pos = var->owner()->end_token_pos();
         desc.info.index = var->index();
         vars->Add(desc);
-      } else if (var->name().Equals(Symbols::SavedEntryContextVar())) {
+      } else if (var->name().raw() == Symbols::SavedEntryContextVar().raw()) {
         // This is the local variable in which the function saves the
         // caller's chain of closure contexts (caller's CTX register).
         VarDesc desc;
@@ -311,7 +312,7 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
         desc.info.end_pos = 0;
         desc.info.index = var->index();
         vars->Add(desc);
-      } else if (var->name().Equals(Symbols::SavedCurrentContextVar())) {
+      } else if (var->name().raw() == Symbols::SavedCurrentContextVar().raw()) {
         // This is the local variable in which the function saves its
         // own context before calling a closure function.
         VarDesc desc;
@@ -334,9 +335,10 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
 
 
 SourceLabel* LocalScope::LocalLookupLabel(const String& name) const {
+  ASSERT(name.IsSymbol());
   for (intptr_t i = 0; i < labels_.length(); i++) {
     SourceLabel* label = labels_[i];
-    if (label->name().Equals(name)) {
+    if (label->name().raw() == name.raw()) {
       return label;
     }
   }

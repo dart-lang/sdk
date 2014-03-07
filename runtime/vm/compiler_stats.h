@@ -17,26 +17,26 @@ DECLARE_FLAG(bool, compiler_stats);
 
 class CompilerStats : AllStatic {
  public:
-  static intptr_t num_tokens_total;
-  static intptr_t num_literal_tokens_total;
-  static intptr_t num_ident_tokens_total;
-  static intptr_t num_tokens_consumed;
-  static intptr_t num_token_checks;
-  static intptr_t num_tokens_rewind;
-  static intptr_t num_tokens_lookahead;
+  static int64_t num_tokens_total;
+  static int64_t num_literal_tokens_total;
+  static int64_t num_ident_tokens_total;
+  static int64_t num_tokens_consumed;
+  static int64_t num_token_checks;
+  static int64_t num_tokens_rewind;
+  static int64_t num_tokens_lookahead;
 
-  static intptr_t num_lib_cache_hit;
-  static intptr_t num_names_cached;
-  static intptr_t make_accessor_name;
-  static intptr_t make_field_name;
+  static int64_t num_lib_cache_hit;
+  static int64_t num_names_cached;
+  static int64_t make_accessor_name;
+  static int64_t make_field_name;
 
-  static intptr_t num_classes_compiled;
-  static intptr_t num_functions_compiled;
-  static intptr_t num_implicit_final_getters;
-  static intptr_t num_static_initializer_funcs;
+  static int64_t num_classes_compiled;
+  static int64_t num_functions_compiled;
+  static int64_t num_implicit_final_getters;
+  static int64_t num_static_initializer_funcs;
 
-  static intptr_t src_length;        // Total number of characters in source.
-  static intptr_t code_allocated;    // Bytes allocated for generated code.
+  static int64_t src_length;        // Total number of characters in source.
+  static int64_t code_allocated;    // Bytes allocated for generated code.
   static Timer parser_timer;         // Cumulative runtime of parser.
   static Timer scanner_timer;        // Cumulative runtime of scanner.
   static Timer codegen_timer;        // Cumulative runtime of code generator.

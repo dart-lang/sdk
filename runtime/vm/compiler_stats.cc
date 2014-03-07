@@ -13,10 +13,10 @@ namespace dart {
 DEFINE_FLAG(bool, compiler_stats, false, "Compiler stat counters.");
 
 // Bytes allocated for generated code.
-intptr_t CompilerStats::code_allocated = 0;
+int64_t CompilerStats::code_allocated = 0;
 
 // Total number of characters in source.
-intptr_t CompilerStats::src_length = 0;
+int64_t CompilerStats::src_length = 0;
 
 // Cumulative runtime of parser.
 Timer CompilerStats::parser_timer(true, "parser timer");
@@ -53,55 +53,55 @@ Timer CompilerStats::graphcompiler_timer(true, "flow graph compiler timer");
 Timer CompilerStats::codefinalizer_timer(true, "code finalization timer");
 
 
-intptr_t CompilerStats::num_tokens_total = 0;
-intptr_t CompilerStats::num_literal_tokens_total = 0;
-intptr_t CompilerStats::num_ident_tokens_total = 0;
-intptr_t CompilerStats::num_tokens_consumed = 0;
-intptr_t CompilerStats::num_token_checks = 0;
-intptr_t CompilerStats::num_tokens_rewind = 0;
-intptr_t CompilerStats::num_tokens_lookahead = 0;
+int64_t CompilerStats::num_tokens_total = 0;
+int64_t CompilerStats::num_literal_tokens_total = 0;
+int64_t CompilerStats::num_ident_tokens_total = 0;
+int64_t CompilerStats::num_tokens_consumed = 0;
+int64_t CompilerStats::num_token_checks = 0;
+int64_t CompilerStats::num_tokens_rewind = 0;
+int64_t CompilerStats::num_tokens_lookahead = 0;
 
-intptr_t CompilerStats::num_lib_cache_hit = 0;
-intptr_t CompilerStats::num_names_cached = 0;
-intptr_t CompilerStats::make_accessor_name = 0;
-intptr_t CompilerStats::make_field_name = 0;
+int64_t CompilerStats::num_lib_cache_hit = 0;
+int64_t CompilerStats::num_names_cached = 0;
+int64_t CompilerStats::make_accessor_name = 0;
+int64_t CompilerStats::make_field_name = 0;
 
-intptr_t CompilerStats::num_classes_compiled = 0;
-intptr_t CompilerStats::num_functions_compiled = 0;
+int64_t CompilerStats::num_classes_compiled = 0;
+int64_t CompilerStats::num_functions_compiled = 0;
 
-intptr_t CompilerStats::num_implicit_final_getters = 0;
-intptr_t CompilerStats::num_static_initializer_funcs = 0;
+int64_t CompilerStats::num_implicit_final_getters = 0;
+int64_t CompilerStats::num_static_initializer_funcs = 0;
 
 void CompilerStats::Print() {
   if (!FLAG_compiler_stats) {
     return;
   }
   OS::Print("==== Compiler Stats ====\n");
-  OS::Print("Number of tokens:   %" Pd "\n", num_tokens_total);
-  OS::Print("  Literal tokens:   %" Pd "\n", num_literal_tokens_total);
-  OS::Print("  Ident tokens:     %" Pd "\n", num_ident_tokens_total);
-  OS::Print("Tokens consumed:    %" Pd " (%.2f times number of tokens)\n",
+  OS::Print("Number of tokens:   %" Pd64 "\n", num_tokens_total);
+  OS::Print("  Literal tokens:   %" Pd64 "\n", num_literal_tokens_total);
+  OS::Print("  Ident tokens:     %" Pd64 "\n", num_ident_tokens_total);
+  OS::Print("Tokens consumed:    %" Pd64 " (%.2f times number of tokens)\n",
             num_tokens_consumed,
             (1.0 * num_tokens_consumed) / num_tokens_total);
-  OS::Print("Tokens checked:     %" Pd "  (%.2f times tokens consumed)\n",
+  OS::Print("Tokens checked:     %" Pd64 "  (%.2f times tokens consumed)\n",
             num_token_checks, (1.0 * num_token_checks) / num_tokens_consumed);
-  OS::Print("Token rewind:       %" Pd " (%" Pd "%% of tokens checked)\n",
+  OS::Print("Token rewind:       %" Pd64 " (%" Pd64 "%% of tokens checked)\n",
             num_tokens_rewind, (100 * num_tokens_rewind) / num_token_checks);
-  OS::Print("Token lookahead:    %" Pd " (%" Pd "%% of tokens checked)\n",
+  OS::Print("Token lookahead:    %" Pd64 " (%" Pd64 "%% of tokens checked)\n",
             num_tokens_lookahead,
             (100 * num_tokens_lookahead) / num_token_checks);
 
-  OS::Print("Classes parsed:     %" Pd "\n", num_classes_compiled);
-  OS::Print("Functions compiled: %" Pd "\n", num_functions_compiled);
-  OS::Print("  Impl getters:     %" Pd "\n", num_implicit_final_getters);
-  OS::Print("  Init funcs:       %" Pd "\n", num_static_initializer_funcs);
+  OS::Print("Classes parsed:     %" Pd64 "\n", num_classes_compiled);
+  OS::Print("Functions compiled: %" Pd64 "\n", num_functions_compiled);
+  OS::Print("  Impl getters:     %" Pd64 "\n", num_implicit_final_getters);
+  OS::Print("  Init funcs:       %" Pd64 "\n", num_static_initializer_funcs);
 
-  OS::Print("Lib names cached:   %" Pd "\n", num_names_cached);
-  OS::Print("Lib name cache hit: %" Pd "\n", num_lib_cache_hit);
-  OS::Print("Accessor mangling:  %" Pd " field->acc  %" Pd " acc->field\n",
+  OS::Print("Lib names cached:   %" Pd64 "\n", num_names_cached);
+  OS::Print("Lib name cache hit: %" Pd64 "\n", num_lib_cache_hit);
+  OS::Print("Accessor mangling:  %" Pd64 " field->acc  %" Pd64 " acc->field\n",
             make_accessor_name, make_field_name);
 
-  OS::Print("Source length:      %" Pd " characters\n", src_length);
+  OS::Print("Source length:      %" Pd64 " characters\n", src_length);
   int64_t scan_usecs = scanner_timer.TotalElapsedTime();
   OS::Print("Scanner time:       %" Pd64 " msecs\n",
             scan_usecs / 1000);
@@ -147,11 +147,11 @@ void CompilerStats::Print() {
   OS::Print("  Code finalizer:   %" Pd64 " msecs\n",
             codefinalizer_usecs / 1000);
   OS::Print("Compilation speed:  %" Pd64 " tokens per msec\n",
-            1000 * num_tokens_total / (parse_usecs + codegen_usecs));
-  OS::Print("Code size:          %" Pd " KB\n",
+            (1000 * num_tokens_total) / (parse_usecs + codegen_usecs));
+  OS::Print("Code size:          %" Pd64 " KB\n",
             code_allocated / 1024);
-  OS::Print("Code density:       %" Pd " tokens per KB\n",
-            num_tokens_total * 1024 / code_allocated);
+  OS::Print("Code density:       %" Pd64 " tokens per KB\n",
+            (num_tokens_total * 1024) / code_allocated);
 }
 
 }  // namespace dart

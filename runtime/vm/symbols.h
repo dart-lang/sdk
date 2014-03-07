@@ -311,6 +311,7 @@ class ObjectPointerVisitor;
   V(NotInitialized, "<not initialized>")                                       \
   V(ClassId, "get:_classId")                                                   \
   V(AllocationStubFor, "Allocation stub for ")                                 \
+  V(TempParam, ":temp_param")                                                  \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

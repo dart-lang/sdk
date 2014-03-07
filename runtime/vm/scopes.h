@@ -35,6 +35,7 @@ class LocalVariable : public ZoneAllocated {
       index_(LocalVariable::kUninitializedIndex) {
     ASSERT(type.IsZoneHandle());
     ASSERT(type.IsFinalized());
+    ASSERT(name.IsSymbol());
   }
 
   intptr_t token_pos() const { return token_pos_; }
@@ -122,6 +123,7 @@ class NameReference : public ZoneAllocated {
   NameReference(intptr_t token_pos, const String& name)
     : token_pos_(token_pos),
       name_(name) {
+    ASSERT(name.IsSymbol());
   }
   const String& name() const { return name_; }
   intptr_t token_pos() const { return token_pos_; }
@@ -151,6 +153,7 @@ class SourceLabel : public ZoneAllocated {
       name_(name),
       owner_(NULL),
       kind_(kind) {
+    ASSERT(name.IsSymbol());
   }
 
   static SourceLabel* New(intptr_t token_pos, String* name, Kind kind) {

@@ -3469,8 +3469,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         ASSERT(parameter.owner() == scope);
         if (parameter.is_captured()) {
           // Create a temporary local describing the original position.
-          const String& temp_name = String::ZoneHandle(String::Concat(
-              parameter.name(), String::Handle(Symbols::New("-orig"))));
+          const String& temp_name = Symbols::TempParam();
           LocalVariable* temp_local = new LocalVariable(
               0,  // Token index.
               temp_name,

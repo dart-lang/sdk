@@ -16,7 +16,7 @@ TEST_CASE(AstPrinter) {
   const intptr_t kPos = Scanner::kNoSourcePos;
   LocalVariable* v =
       new LocalVariable(kPos,
-                        String::ZoneHandle(String::New("wurscht")),
+                        String::ZoneHandle(Symbols::New("wurscht")),
                         Type::ZoneHandle(Type::DynamicType()));
   v->set_index(5);
   LoadLocalNode* ll = new LoadLocalNode(kPos, v);
