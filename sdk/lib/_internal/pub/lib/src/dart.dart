@@ -11,6 +11,7 @@ import 'dart:isolate';
 import 'package:analyzer/analyzer.dart';
 import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
+
 import '../../../compiler/compiler.dart' as compiler;
 import '../../../compiler/implementation/filenames.dart'
     show appendSlash;
@@ -73,6 +74,11 @@ Future compile(String entrypoint, CompilerProvider provider, {
     if (!suppressPackageWarnings) options.add('--show-package-warnings');
     if (terse) options.add('--terse');
     if (toDart) options.add('--output-type=dart');
+
+    // Add the source map URLs.
+    var sourceUrl = path.toUri(entrypoint);
+    options.add("--out=$sourceUrl.js");
+    options.add("--source-map=$sourceUrl.js.map");
 
     if (environment == null) environment = {};
     if (commandLineOptions != null) options.addAll(commandLineOptions);
