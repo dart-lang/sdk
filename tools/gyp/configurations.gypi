@@ -95,42 +95,47 @@
       # Configurations
       'DebugIA32': {
         'inherit_from': [
-            'Dart_Base', 'Dart_ia32_Base', 'Dart_Debug',
-            'Dart_<(dart_target_os)_Base',
-            'Dart_<(dart_target_os)_ia32_Base',
-            'Dart_<(dart_target_os)_Debug',],
+          'Dart_Base', 'Dart_ia32_Base', 'Dart_Debug',
+          'Dart_<(dart_target_os)_Base',
+          'Dart_<(dart_target_os)_ia32_Base',
+          'Dart_<(dart_target_os)_Debug',
+        ],
       },
 
       'ReleaseIA32': {
         'inherit_from': [
-            'Dart_Base', 'Dart_ia32_Base', 'Dart_Release',
-            'Dart_<(dart_target_os)_Base',
-            'Dart_<(dart_target_os)_ia32_Base',
-            'Dart_<(dart_target_os)_Release',],
+          'Dart_Base', 'Dart_ia32_Base', 'Dart_Release',
+          'Dart_<(dart_target_os)_Base',
+          'Dart_<(dart_target_os)_ia32_Base',
+          'Dart_<(dart_target_os)_Release',
+        ],
       },
 
       'DebugX64': {
         'inherit_from': [
-            'Dart_Base', 'Dart_x64_Base', 'Dart_Debug',
-            'Dart_<(dart_target_os)_Base',
-            'Dart_<(dart_target_os)_x64_Base',
-            'Dart_<(dart_target_os)_Debug',],
+          'Dart_Base', 'Dart_x64_Base', 'Dart_Debug',
+          'Dart_<(dart_target_os)_Base',
+          'Dart_<(dart_target_os)_x64_Base',
+          'Dart_<(dart_target_os)_Debug',
+        ],
       },
 
       'ReleaseX64': {
         'inherit_from': [
-            'Dart_Base', 'Dart_x64_Base', 'Dart_Release',
-            'Dart_<(dart_target_os)_Base',
-            'Dart_<(dart_target_os)_x64_Base',
-            'Dart_<(dart_target_os)_Release',],
+          'Dart_Base', 'Dart_x64_Base', 'Dart_Release',
+          'Dart_<(dart_target_os)_Base',
+          'Dart_<(dart_target_os)_x64_Base',
+          'Dart_<(dart_target_os)_Release',
+        ],
       },
 
       'DebugSIMARM': {
         'inherit_from': [
-            'Dart_Base', 'Dart_simarm_Base', 'Dart_Debug',
-            'Dart_<(dart_target_os)_Base',
-            'Dart_<(dart_target_os)_simarm_Base',
-            'Dart_<(dart_target_os)_Debug',],
+          'Dart_Base', 'Dart_simarm_Base', 'Dart_Debug',
+          'Dart_<(dart_target_os)_Base',
+          'Dart_<(dart_target_os)_simarm_Base',
+          'Dart_<(dart_target_os)_Debug',
+        ],
         'defines': [
           'DEBUG',
         ],
@@ -138,18 +143,20 @@
 
       'ReleaseSIMARM': {
         'inherit_from': [
-            'Dart_Base', 'Dart_simarm_Base', 'Dart_Release',
-            'Dart_<(dart_target_os)_Base',
-            'Dart_<(dart_target_os)_simarm_Base',
-            'Dart_<(dart_target_os)_Release',],
+          'Dart_Base', 'Dart_simarm_Base', 'Dart_Release',
+          'Dart_<(dart_target_os)_Base',
+          'Dart_<(dart_target_os)_simarm_Base',
+          'Dart_<(dart_target_os)_Release',
+        ],
       },
 
       'DebugSIMMIPS': {
         'inherit_from': [
-            'Dart_Base', 'Dart_simmips_Base', 'Dart_Debug',
-            'Dart_<(dart_target_os)_Base',
-            'Dart_<(dart_target_os)_simmips_Base',
-            'Dart_<(dart_target_os)_Debug',],
+          'Dart_Base', 'Dart_simmips_Base', 'Dart_Debug',
+          'Dart_<(dart_target_os)_Base',
+          'Dart_<(dart_target_os)_simmips_Base',
+          'Dart_<(dart_target_os)_Debug',
+        ],
         'defines': [
           'DEBUG',
         ],
@@ -157,44 +164,67 @@
 
       'ReleaseSIMMIPS': {
         'inherit_from': [
-            'Dart_Base', 'Dart_simmips_Base', 'Dart_Release',
-            'Dart_<(dart_target_os)_Base',
-            'Dart_<(dart_target_os)_simmips_Base',
-            'Dart_<(dart_target_os)_Release',],
+          'Dart_Base', 'Dart_simmips_Base', 'Dart_Release',
+          'Dart_<(dart_target_os)_Base',
+          'Dart_<(dart_target_os)_simmips_Base',
+          'Dart_<(dart_target_os)_Release',
+        ],
       },
 
 
       # ARM and MIPS hardware configurations are only for Linux and Android.
       'DebugARM': {
         'inherit_from': [
-            'Dart_Base', 'Dart_arm_Base', 'Dart_Debug',
-            'Dart_Linux_Base',
-            'Dart_Linux_arm_Base',
-            'Dart_Linux_Debug',],
+          'Dart_Base', 'Dart_arm_Base', 'Dart_Debug',
+          'Dart_Linux_Base',
+          'Dart_Linux_arm_Base',
+          'Dart_Linux_Debug',
+        ],
       },
 
       'ReleaseARM': {
         'inherit_from': [
-            'Dart_Base', 'Dart_arm_Base', 'Dart_Release',
-            'Dart_Linux_Base',
-            'Dart_Linux_arm_Base',
-            'Dart_Linux_Release',],
+          'Dart_Base', 'Dart_arm_Base', 'Dart_Release',
+          'Dart_Linux_Base',
+          'Dart_Linux_arm_Base',
+          'Dart_Linux_Release',
+        ],
+      },
+
+      'DebugXMIPS': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_mips_Base', 'Dart_Debug',
+          'Dart_Linux_Base',
+          'Dart_Linux_xmips_Base',
+          'Dart_Linux_Debug',
+        ],
+      },
+
+      'ReleaseXMIPS': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_mips_Base', 'Dart_Release',
+          'Dart_Linux_Base',
+          'Dart_Linux_xmips_Base',
+          'Dart_Linux_Release',
+        ],
       },
 
       'DebugMIPS': {
         'inherit_from': [
-            'Dart_Base', 'Dart_mips_Base', 'Dart_Debug',
-            'Dart_Linux_Base',
-            'Dart_Linux_mips_Base',
-            'Dart_Linux_Debug',],
+          'Dart_Base', 'Dart_mips_Base', 'Dart_Debug',
+          'Dart_Linux_Base',
+          'Dart_Linux_mips_Base',
+          'Dart_Linux_Debug',
+        ],
       },
 
       'ReleaseMIPS': {
         'inherit_from': [
-            'Dart_Base', 'Dart_mips_Base', 'Dart_Release',
-            'Dart_Linux_Base',
-            'Dart_Linux_mips_Base',
-            'Dart_Linux_Release',],
+          'Dart_Base', 'Dart_mips_Base', 'Dart_Release',
+          'Dart_Linux_Base',
+          'Dart_Linux_mips_Base',
+          'Dart_Linux_Release',
+        ],
       },
 
       # Android configurations. The configuration names explicitly include
@@ -204,34 +234,38 @@
       # gyp, it will still be 'linux'.
       'DebugAndroidIA32': {
         'inherit_from': [
-            'Dart_Base', 'Dart_ia32_Base', 'Dart_Debug',
-            'Dart_Android_Base',
-            'Dart_Android_ia32_Base',
-            'Dart_Android_Debug',],
+          'Dart_Base', 'Dart_ia32_Base', 'Dart_Debug',
+          'Dart_Android_Base',
+          'Dart_Android_ia32_Base',
+          'Dart_Android_Debug',
+        ],
       },
 
       'ReleaseAndroidIA32': {
         'inherit_from': [
-            'Dart_Base', 'Dart_ia32_Base', 'Dart_Release',
-            'Dart_Android_Base',
-            'Dart_Android_ia32_Base',
-            'Dart_Android_Release',],
+          'Dart_Base', 'Dart_ia32_Base', 'Dart_Release',
+          'Dart_Android_Base',
+          'Dart_Android_ia32_Base',
+          'Dart_Android_Release',
+        ],
       },
 
       'DebugAndroidARM': {
         'inherit_from': [
-            'Dart_Base', 'Dart_arm_Base', 'Dart_Debug',
-            'Dart_Android_Base',
-            'Dart_Android_arm_Base',
-            'Dart_Android_Debug',],
+          'Dart_Base', 'Dart_arm_Base', 'Dart_Debug',
+          'Dart_Android_Base',
+          'Dart_Android_arm_Base',
+          'Dart_Android_Debug',
+        ],
       },
 
       'ReleaseAndroidARM': {
         'inherit_from': [
-            'Dart_Base', 'Dart_arm_Base', 'Dart_Release',
-            'Dart_Android_Base',
-            'Dart_Android_arm_Base',
-            'Dart_Android_Release',],
+          'Dart_Base', 'Dart_arm_Base', 'Dart_Release',
+          'Dart_Android_Base',
+          'Dart_Android_arm_Base',
+          'Dart_Android_Release',
+        ],
       },
 
       # These targets assume that target_arch is passed in explicitly

@@ -76,7 +76,8 @@
         'ldflags': [ '-m32', ],
       },
 
-      'Dart_Linux_mips_Base': {
+      # MIPS cross-build
+      'Dart_Linux_xmips_Base': {
         'abstract': 1,
         'target_conditions': [
           ['_toolset=="target"', {
@@ -90,6 +91,16 @@
             'cflags': [ '-O3', '-m32', '-msse2' ],
             'ldflags': [ '-m32' ],
         }]]
+      },
+
+      # MIPS native build
+      'Dart_Linux_mips_Base': {
+        'abstract': 1,
+        'cflags': [
+          '-march=mips32',
+          '-mhard-float',
+          '-fno-strict-overflow',
+        ],
       },
 
       'Dart_Linux_Debug': {
