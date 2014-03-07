@@ -47,7 +47,7 @@ class AnalyzerError implements Exception {
 
     // Print a less friendly string representation to ensure that
     // error.source.contents is not executed, as .contents it isn't async
-    builder.writeln("Error in ${error.source.fullName}: ${error.message}");
+    builder.write("Error in ${error.source.shortName}: ${error.message}");
 
 //    var content = error.source.contents.data;
 //    var beforeError = content.substring(0, error.offset);

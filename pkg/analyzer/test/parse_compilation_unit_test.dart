@@ -17,7 +17,7 @@ void main() {
           name: 'test.dart');
     }, throwsA(predicate((error) {
       return error is AnalyzerErrorGroup &&
-          error.toString().contains("line 1 of test.dart");
+          error.toString().contains("Error in test.dart: Expected to find ';'");
     })));
   });
 
@@ -26,7 +26,7 @@ void main() {
       parseCompilationUnit("void main() => print('Hello, world!')");
     }, throwsA(predicate((error) {
       return error is AnalyzerErrorGroup &&
-          error.toString().contains("line 1 of <unknown source>");
+          error.toString().contains("Error in <unknown source>: Expected to find ';'");
     })));
   });
 }

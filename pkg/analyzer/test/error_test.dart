@@ -15,48 +15,33 @@ void main() {
 
   test("an error on the first line", () {
     expect(errorsForFile('void foo;\n'),
-        equals('Error on line 1 of test.dart: ...\n'
-               'void foo;\n'
-               '^^^^\n'));
+        equals("Error in test.dart: Variables cannot have a type of 'void'\n"));
   });
 
   test("an error on the last line", () {
     expect(errorsForFile('\nvoid foo;'),
-        equals('Error on line 2 of test.dart: ...\n'
-               'void foo;\n'
-               '^^^^\n'));
+        equals("Error in test.dart: Variables cannot have a type of 'void'\n"));
   });
 
   test("an error in the middle", () {
     expect(errorsForFile('\nvoid foo;\n'),
-        equals('Error on line 2 of test.dart: ...\n'
-               'void foo;\n'
-               '^^^^\n'));
+        equals("Error in test.dart: Variables cannot have a type of 'void'\n"));
   });
 
   var veryLongString = new List.filled(107, ' ').join('');
 
   test("an error at the end of a very long line", () {
     expect(errorsForFile('$veryLongString     void foo;'),
-        equals('Error on line 1 of test.dart: ...\n'
-               '...$veryLongString void foo;\n'
-               '$veryLongString    ^^^^\n'));
+        equals("Error in test.dart: Variables cannot have a type of 'void'\n"));
   });
 
   test("an error at the beginning of a very long line", () {
     expect(errorsForFile('void foo;     $veryLongString'),
-        equals('Error on line 1 of test.dart: ...\n'
-               'void foo; $veryLongString...\n'
-               '^^^^\n'));
+        equals("Error in test.dart: Variables cannot have a type of 'void'\n"));
   });
 
   test("an error in the middle of a very long line", () {
     expect(errorsForFile('$veryLongString void foo;$veryLongString'),
-        equals('Error on line 1 of test.dart: ...\n'
-               '...                                                         '
-                   'void foo;                                                '
-                   '...\n'
-               '                                                            '
-                   '^^^^\n'));
+        equals("Error in test.dart: Variables cannot have a type of 'void'\n"));
   });
 }
