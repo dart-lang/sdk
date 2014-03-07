@@ -27,7 +27,11 @@ class GroupRunner {
   final _phases = new List<Phase>();
 
   /// Whether [this] is dirty and still has more processing to do.
-  bool get isDirty => _phases.any((phase) => phase.isDirty);
+  bool get isDirty {
+    // Just check the last phase, since it will check all the previous phases
+    // itself.
+    return _phases.last.isDirty;
+  }
 
   /// A stream that emits an event whenever [this] is no longer dirty.
   ///
