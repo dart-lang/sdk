@@ -15,6 +15,7 @@ pkg/args: PubGetError
 pkg/browser: PubGetError
 
 [ $use_public_packages ]
+samples/third_party/todomvc: Fail # Issue 17324
 
 [ $builder_tag == russian ]
 samples/third_party/pop-pop-win: Fail # Issue 16356
