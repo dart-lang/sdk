@@ -182,12 +182,10 @@ class BuildCommand extends PubCommand {
     // top-level build directories.
     if (path.isWithin("assets", destPath) ||
         path.isWithin("packages", destPath)) {
-      builtFiles += buildDirectories.length;
       return Future.wait(buildDirectories.map((buildDir) =>
           _writeOutputFile(asset, path.join(buildDir, destPath))));
     }
 
-    builtFiles++;
     return _writeOutputFile(asset, destPath);
   }
 
@@ -236,6 +234,7 @@ class BuildCommand extends PubCommand {
   /// Writes the contents of [asset] to [relativePath] within the build
   /// directory.
   Future _writeOutputFile(Asset asset, String relativePath) {
+    builtFiles++;
     var destPath = path.join(target, relativePath);
     ensureDir(path.dirname(destPath));
     return createFileFromStream(asset.read(), destPath);
