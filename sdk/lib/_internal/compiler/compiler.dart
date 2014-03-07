@@ -85,7 +85,7 @@ Future<String> compile(Uri script,
                        Uri packageRoot,
                        CompilerInputProvider inputProvider,
                        DiagnosticHandler handler,
-                       [List<String> options = const [], 
+                       [List<String> options = const [],
                         CompilerOutputProvider outputProvider,
                         Map<String, dynamic> environment = const {}]) {
   if (!libraryRoot.path.endsWith("/")) {
@@ -107,13 +107,6 @@ Future<String> compile(Uri script,
   return compiler.run(script).then((_) {
     String code = compiler.assembledCode;
     if (code != null && outputProvider != null) {
-      String outputType = 'js';
-      if (options.contains('--output-type=dart')) {
-        outputType = 'dart';
-      }
-      outputProvider('', outputType)
-          ..add(code)
-          ..close();
       code = ''; // Non-null signals success.
     }
     return code;

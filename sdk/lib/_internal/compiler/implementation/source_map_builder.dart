@@ -19,6 +19,7 @@ class SourceMapBuilder {
                                       'opqrstuvwxyz0123456789+/';
 
   final Uri uri;
+  final Uri fileUri;
 
   List<SourceMapEntry> entries;
 
@@ -35,7 +36,7 @@ class SourceMapBuilder {
   int previousSourceNameIndex;
   bool firstEntryInLine;
 
-  SourceMapBuilder(this.uri) {
+  SourceMapBuilder(this.uri, this.fileUri) {
     entries = new List<SourceMapEntry>();
 
     sourceUrlMap = new Map<String, int>();
@@ -76,6 +77,9 @@ class SourceMapBuilder {
     StringBuffer buffer = new StringBuffer();
     buffer.write('{\n');
     buffer.write('  "version": 3,\n');
+    if (uri != null && fileUri != null) {
+      buffer.write('  "file": "${relativize(uri, fileUri, false)}",\n');
+    }
     buffer.write('  "sourceRoot": "",\n');
     buffer.write('  "sources": ');
     if (uri != null) {

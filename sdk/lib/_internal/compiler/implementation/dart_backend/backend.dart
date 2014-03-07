@@ -449,7 +449,11 @@ class DartBackend extends Backend {
 
     final unparser = new EmitterUnparser(renames);
     emitCode(unparser, imports, topLevelNodes, memberNodes);
-    compiler.assembledCode = unparser.result;
+    String assembledCode = unparser.result;
+    compiler.outputProvider('', 'dart')
+        ..add(assembledCode)
+        ..close();
+    compiler.assembledCode = assembledCode;
 
     // Output verbose info about size ratio of resulting bundle to all
     // referenced non-platform sources.

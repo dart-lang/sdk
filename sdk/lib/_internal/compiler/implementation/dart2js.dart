@@ -321,10 +321,11 @@ Future compile(List<String> argv) {
     packageRoot = uri.resolve('./packages/');
   }
 
-  diagnosticHandler.info('package root is $packageRoot');
+  diagnosticHandler.info('Package root is $packageRoot');
 
   int totalCharactersWritten = 0;
 
+  options.add('--out=$out');
   options.add('--source-map=$sourceMapOut');
 
   List<String> allOutputFiles = new List<String>();
@@ -337,7 +338,7 @@ Future compile(List<String> argv) {
     writeString(Uri.parse('$out.deps'),
                 getDepsOutput(inputProvider.sourceFiles));
     diagnosticHandler.info(
-         'compiled ${inputProvider.dartCharactersRead} characters Dart '
+         'Compiled ${inputProvider.dartCharactersRead} characters Dart '
          '-> $totalCharactersWritten characters $outputLanguage '
          'in ${relativize(currentDirectory, out, isWindows)}');
     if (diagnosticHandler.verbose) {
@@ -410,21 +411,6 @@ Future compile(List<String> argv) {
     }
 
     onDone() {
-      if (sourceMapFileName != null) {
-        // Using # is the new proposed standard. @ caused problems in Internet
-        // Explorer due to "Conditional Compilation Statements" in JScript,
-        // see:
-        // http://msdn.microsoft.com/en-us/library/7kx09ct1(v=vs.80).aspx
-        // About source maps, see:
-        // https://docs.google.com/a/google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k/edit
-        // TODO(http://dartbug.com/11914): Remove @ line.
-        String sourceMapTag = '''
-
-//# sourceMappingURL=$sourceMapFileName
-//@ sourceMappingURL=$sourceMapFileName
-''';
-        writeStringSync(sourceMapTag);
-      }
       output.closeSync();
       if (isPrimaryOutput) {
         totalCharactersWritten += charactersWritten;

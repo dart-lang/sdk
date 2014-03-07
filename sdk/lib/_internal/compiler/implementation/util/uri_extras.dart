@@ -34,8 +34,9 @@ String relativize(Uri base, Uri uri, bool isWindows) {
       base.port == uri.port &&
       uri.query == "" && uri.fragment == "") {
     if (normalize(uri.path).startsWith(normalize(base.path))) {
-      return uri.path.substring(base.path.length);
+      return uri.path.substring(base.path.lastIndexOf('/') + 1);
     }
+
     List<String> uriParts = uri.path.split('/');
     List<String> baseParts = base.path.split('/');
     int common = 0;
@@ -48,7 +49,10 @@ String relativize(Uri base, Uri uri, bool isWindows) {
       // The first part will always be an empty string because the
       // paths are absolute. On Windows, we must also consider drive
       // letters or hostnames.
-      return uri.path;
+      if (baseParts.length > common + 1) {
+        // Avoid using '..' to go to the root, unless we are already there.
+        return uri.path;
+      }
     }
     StringBuffer sb = new StringBuffer();
     for (int i = common + 1; i < baseParts.length; i++) {

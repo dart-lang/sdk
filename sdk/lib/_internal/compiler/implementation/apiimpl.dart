@@ -57,7 +57,8 @@ class Compiler extends leg.Compiler {
                 hasOption(options, '--disable-type-inference'),
             preserveComments: hasOption(options, '--preserve-comments'),
             verbose: hasOption(options, '--verbose'),
-            sourceMapUri: extractSourceMapUri(options),
+            sourceMapUri: extractUriOption(options, '--source-map='),
+            outputUri: extractUriOption(options, '--out='),
             terseDiagnostics: hasOption(options, '--terse'),
             dumpInfo: hasOption(options, '--dump-info'),
             buildId: extractStringOption(
@@ -84,8 +85,8 @@ class Compiler extends leg.Compiler {
     return defaultValue;
   }
 
-  static Uri extractSourceMapUri(List<String> options) {
-    var option = extractStringOption(options, '--source-map=', null);
+  static Uri extractUriOption(List<String> options, String prefix) {
+    var option = extractStringOption(options, prefix, null);
     return (option == null) ? null : Uri.parse(option);
   }
 

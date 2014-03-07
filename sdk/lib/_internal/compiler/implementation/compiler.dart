@@ -394,6 +394,11 @@ abstract class Compiler implements DiagnosticListener {
    */
   final Uri sourceMapUri;
 
+  /**
+   * URI of the main output if the compiler is generating source maps.
+   */
+  final Uri outputUri;
+
   /// Emit terse diagnostics without howToFix.
   final bool terseDiagnostics;
 
@@ -627,6 +632,7 @@ abstract class Compiler implements DiagnosticListener {
             this.preserveComments: false,
             this.verbose: false,
             this.sourceMapUri: null,
+            this.outputUri: null,
             this.buildId: UNDETERMINED_BUILD_ID,
             this.terseDiagnostics: false,
             this.dumpInfo: false,
