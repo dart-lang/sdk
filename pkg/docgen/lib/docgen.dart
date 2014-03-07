@@ -723,7 +723,7 @@ class _Viewer {
     }
     else {
       var processResult = Process.runSync('git', ['clone', '-b', 'master',
-          'git://github.com/dart-lang/dartdoc-viewer.git'],
+          'https://github.com/dart-lang/dartdoc-viewer.git'],
           runInShell: true);
 
       if (processResult.exitCode == 0) {
