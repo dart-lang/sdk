@@ -256,11 +256,7 @@ void main() {
             <script>foo...</script>
             </polymer-element>
             </html>'''.replaceAll('            ', ''),
-      }, [
-        'warning: script tag in polymer element with no type will '
-        'be treated as JavaScript. Did you forget type="application/dart"?'
-        ' (lib/test.html 2 0)'
-      ]);
+      }, []);
 
     _testLinter('top-level, dart type & .dart url', {
         'a|lib/test.html': '''<html>
