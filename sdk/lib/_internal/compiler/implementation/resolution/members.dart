@@ -4641,6 +4641,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     String name = node.source;
     Element element = resolver.reportLookupErrorIfAny(
         lookupInScope(compiler, node, resolver.scope, name), node, name);
+    resolver.useElement(node, element);
     // TODO(johnniwinther): Change errors to warnings, cf. 11.11.1.
     if (element == null) {
       return failOrReturnErroneousElement(resolver.enclosingElement, node, name,

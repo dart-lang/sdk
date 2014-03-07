@@ -13,6 +13,10 @@ const lazy = const DeferredLibrary('lib');
 class F {}
 class G2<T> {}
 
+void f({a: const lib.Const()}) {} /// const_default_argument: compile-time error
+
+@lib.Const() class H {} /// const_annotation: compile-time error
+
 void main() {
   Expect.throws(() { /// type_annotation1: static type warning
     lib.C a = new lib.C(); /// type_annotation1: continued
@@ -44,6 +48,10 @@ void main() {
       try { throw instance; } on lib.Const {} /// catch_check: continued
     }, (e) => e is TypeError); /// catch_check: continued
     int i = lib.C.staticMethod(); /// static_method: ok
+    var c1 = const lib.Const(); /// const: compile-time error
+    f();  /// const_default_argument: continued
+    var constInstance = lib.constantInstance; /// const_instance: ok
+    var h = new H(); /// const_annotation: continued
   });
 }
 

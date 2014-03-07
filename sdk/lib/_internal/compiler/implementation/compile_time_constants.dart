@@ -628,6 +628,21 @@ class CompileTimeConstantEvaluator extends Visitor {
     if (Elements.isUnresolved(constructor)) {
       return signalNotCompileTimeConstant(node);
     }
+
+    // Deferred types can not be used in const instance creation expressions.
+    // Check if the constructor comes from a deferred library.
+    Send selectorSend = node.send.selector.asSend();
+    if (selectorSend != null) {
+      Identifier receiver = selectorSend.receiver.asIdentifier();
+      if (receiver != null) {
+        Element element = elements[receiver];
+        if (element.isPrefix() && (element as PrefixElement).isDeferred) {
+          return signalNotCompileTimeConstant(node,
+              message: MessageKind.DEFERRED_COMPILE_TIME_CONSTANT);
+        }
+      }
+    }
+
     // TODO(ahe): This is nasty: we must eagerly analyze the
     // constructor to ensure the redirectionTarget has been computed
     // correctly.  Find a way to avoid this.
@@ -739,16 +754,16 @@ class CompileTimeConstantEvaluator extends Visitor {
     return node.expression.accept(this);
   }
 
-  error(Node node) {
+  error(Node node, MessageKind message) {
     // TODO(floitsch): get the list of constants that are currently compiled
     // and present some kind of stack-trace.
-    compiler.reportFatalError(
-        node, MessageKind.NOT_A_COMPILE_TIME_CONSTANT);
+    compiler.reportFatalError(node, message);
   }
 
-  Constant signalNotCompileTimeConstant(Node node) {
+  Constant signalNotCompileTimeConstant(Node node,
+      {MessageKind message: MessageKind.NOT_A_COMPILE_TIME_CONSTANT}) {
     if (isEvaluatingConstant) {
-      error(node);
+      error(node, message);
     }
     // Else we don't need to do anything. The final handler is only
     // optimistically trying to compile constants. So it is normal that we
@@ -765,11 +780,10 @@ class TryCompileTimeConstantEvaluator extends CompileTimeConstantEvaluator {
                                   Compiler compiler)
       : super(handler, elements, compiler, isConst: true);
 
-  error(Node node) {
+  error(Node node, MessageKind message) {
     // Just fail without reporting it anywhere.
     throw new CompileTimeConstantError(
-        MessageKind.NOT_A_COMPILE_TIME_CONSTANT, const {},
-        compiler.terseDiagnostics);
+        message, const {}, compiler.terseDiagnostics);
   }
 }
 

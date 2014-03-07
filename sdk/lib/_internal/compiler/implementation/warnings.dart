@@ -553,6 +553,9 @@ main() => new C<String>();
   static const MessageKind NOT_A_COMPILE_TIME_CONSTANT = const MessageKind(
       "Not a compile-time constant.");
 
+  static const MessageKind DEFERRED_COMPILE_TIME_CONSTANT = const MessageKind(
+      "Deferred classes cannot be used to create compile-time constants.");
+
   static const MessageKind CYCLIC_COMPILE_TIME_CONSTANTS = const MessageKind(
       "Cycle in the compile-time constant computation.");
 
