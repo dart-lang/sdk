@@ -19,6 +19,8 @@ closure_in_initializer_test: Fail # Issue 6422
 # Regular bugs which should be fixed.
 duplicate_export_negative_test: Fail # Issue 6134
 mixin_forwarding_constructor2_test: Fail # Issue 13641
+
+# The vm does not support deferred loading.
 deferred_constraints_test/const: Fail
 deferred_constraints_test/const_annotation: Fail
 deferred_constraints_test/const_default_argument: Fail
