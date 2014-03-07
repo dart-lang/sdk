@@ -1648,6 +1648,19 @@ int X86Decoder::InstructionDecode(uword pc) {
             Print(",");
             PrintXmmRegister(rm);
             data += 2;
+          } else if (*data == 0xC6) {
+            int mod, regop, rm;
+            data++;
+            GetModRm(*data, &mod, &regop, &rm);
+            Print("shufpd ");
+            PrintXmmRegister(regop);
+            Print(",");
+            data += PrintRightXmmOperand(data);
+            int comparison = *data;
+            Print(" [");
+            PrintHex(comparison);
+            Print("]");
+            data++;
           } else {
               UNIMPLEMENTED();
           }

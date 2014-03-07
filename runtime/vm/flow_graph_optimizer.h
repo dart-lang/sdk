@@ -111,9 +111,13 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool TryInlineInstanceMethod(InstanceCallInstr* call);
   bool TryInlineFloat32x4Constructor(StaticCallInstr* call,
                                      MethodRecognizer::Kind recognized_kind);
+  bool TryInlineFloat64x2Constructor(StaticCallInstr* call,
+                                     MethodRecognizer::Kind recognized_kind);
   bool TryInlineInt32x4Constructor(StaticCallInstr* call,
                                     MethodRecognizer::Kind recognized_kind);
   bool TryInlineFloat32x4Method(InstanceCallInstr* call,
+                                MethodRecognizer::Kind recognized_kind);
+  bool TryInlineFloat64x2Method(InstanceCallInstr* call,
                                 MethodRecognizer::Kind recognized_kind);
   bool TryInlineInt32x4Method(InstanceCallInstr* call,
                                MethodRecognizer::Kind recognized_kind);
@@ -208,12 +212,16 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   bool InlineFloat32x4Getter(InstanceCallInstr* call,
                              MethodRecognizer::Kind getter);
+  bool InlineFloat64x2Getter(InstanceCallInstr* call,
+                             MethodRecognizer::Kind getter);
   bool InlineInt32x4Getter(InstanceCallInstr* call,
                             MethodRecognizer::Kind getter);
   bool InlineFloat32x4BinaryOp(InstanceCallInstr* call,
                                Token::Kind op_kind);
   bool InlineInt32x4BinaryOp(InstanceCallInstr* call,
                               Token::Kind op_kind);
+  bool InlineFloat64x2BinaryOp(InstanceCallInstr* call,
+                               Token::Kind op_kind);
   void InlineImplicitInstanceGetter(InstanceCallInstr* call);
 
   RawBool* InstanceOfAsBool(const ICData& ic_data,

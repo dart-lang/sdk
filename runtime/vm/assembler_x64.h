@@ -453,6 +453,7 @@ class Assembler : public ValueObject {
   void sqrtpd(XmmRegister dst);
   void cvtps2pd(XmmRegister dst, XmmRegister src);
   void cvtpd2ps(XmmRegister dst, XmmRegister src);
+  void shufpd(XmmRegister dst, XmmRegister src, const Immediate& mask);
 
   void comisd(XmmRegister a, XmmRegister b);
   void cvtsi2sd(XmmRegister a, Register b);

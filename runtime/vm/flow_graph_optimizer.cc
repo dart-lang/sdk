@@ -1943,6 +1943,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         operands_type = kFloat32x4Cid;
       } else if (HasOnlyTwoOf(ic_data, kInt32x4Cid)) {
         operands_type = kInt32x4Cid;
+      } else if (HasOnlyTwoOf(ic_data, kFloat64x2Cid)) {
+        operands_type = kFloat64x2Cid;
       } else {
         return false;
       }
@@ -2063,6 +2065,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     return InlineFloat32x4BinaryOp(call, op_kind);
   } else if (operands_type == kInt32x4Cid) {
     return InlineInt32x4BinaryOp(call, op_kind);
+  } else if (operands_type == kFloat64x2Cid) {
+    return InlineFloat64x2BinaryOp(call, op_kind);
   } else if (op_kind == Token::kMOD) {
     ASSERT(operands_type == kSmiCid);
     if (right->IsConstant()) {
@@ -2333,6 +2337,29 @@ bool FlowGraphOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
 }
 
 
+bool FlowGraphOptimizer::InlineFloat64x2Getter(InstanceCallInstr* call,
+                                               MethodRecognizer::Kind getter) {
+  AddCheckClass(call->ArgumentAt(0),
+                ICData::ZoneHandle(
+                    call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                call->deopt_id(),
+                call->env(),
+                call);
+  if ((getter == MethodRecognizer::kFloat64x2GetX) ||
+      (getter == MethodRecognizer::kFloat64x2GetY)) {
+    Simd64x2ShuffleInstr* instr = new Simd64x2ShuffleInstr(
+        getter,
+        new Value(call->ArgumentAt(0)),
+        0,
+        call->deopt_id());
+    ReplaceCall(call, instr);
+    return true;
+  }
+  UNREACHABLE();
+  return false;
+}
+
+
 bool FlowGraphOptimizer::InlineInt32x4Getter(InstanceCallInstr* call,
                                               MethodRecognizer::Kind getter) {
   if (!ShouldInlineSimd()) {
@@ -2467,6 +2494,37 @@ bool FlowGraphOptimizer::InlineInt32x4BinaryOp(InstanceCallInstr* call,
       new BinaryInt32x4OpInstr(op_kind, new Value(left), new Value(right),
                                 call->deopt_id());
   ReplaceCall(call, int32x4_bin_op);
+  return true;
+}
+
+
+bool FlowGraphOptimizer::InlineFloat64x2BinaryOp(InstanceCallInstr* call,
+                                                 Token::Kind op_kind) {
+  if (!ShouldInlineSimd()) {
+    return false;
+  }
+  ASSERT(call->ArgumentCount() == 2);
+  Definition* left = call->ArgumentAt(0);
+  Definition* right = call->ArgumentAt(1);
+  // Type check left.
+  AddCheckClass(left,
+                ICData::ZoneHandle(
+                    call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                call->deopt_id(),
+                call->env(),
+                call);
+  // Type check right.
+  AddCheckClass(right,
+                ICData::ZoneHandle(
+                    call->ic_data()->AsUnaryClassChecksForArgNr(1)),
+                call->deopt_id(),
+                call->env(),
+                call);
+  // Replace call.
+  BinaryFloat64x2OpInstr* float64x2_bin_op =
+      new BinaryFloat64x2OpInstr(op_kind, new Value(left), new Value(right),
+                                 call->deopt_id());
+  ReplaceCall(call, float64x2_bin_op);
   return true;
 }
 
@@ -2863,6 +2921,10 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     return TryInlineInt32x4Method(call, recognized_kind);
   }
 
+  if ((class_ids[0] == kFloat64x2Cid) && (ic_data.NumberOfChecks() == 1)) {
+    return TryInlineFloat64x2Method(call, recognized_kind);
+  }
+
   if (recognized_kind == MethodRecognizer::kIntegerLeftShiftWithMask32) {
     ASSERT(call->ArgumentCount() == 3);
     ASSERT(ic_data.num_args_tested() == 2);
@@ -2955,6 +3017,46 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Constructor(
   } else if (recognized_kind == MethodRecognizer::kFloat32x4FromInt32x4Bits) {
     Int32x4ToFloat32x4Instr* cast =
         new Int32x4ToFloat32x4Instr(new Value(call->ArgumentAt(1)),
+                                    call->deopt_id());
+    ReplaceCall(call, cast);
+    return true;
+  } else if (recognized_kind == MethodRecognizer::kFloat32x4FromFloat64x2) {
+    Float64x2ToFloat32x4Instr* cast =
+        new Float64x2ToFloat32x4Instr(new Value(call->ArgumentAt(1)),
+                                      call->deopt_id());
+    ReplaceCall(call, cast);
+    return true;
+  }
+  return false;
+}
+
+
+bool FlowGraphOptimizer::TryInlineFloat64x2Constructor(
+    StaticCallInstr* call,
+    MethodRecognizer::Kind recognized_kind) {
+  if (!ShouldInlineSimd()) {
+    return false;
+  }
+  if (recognized_kind == MethodRecognizer::kFloat64x2Zero) {
+    Float64x2ZeroInstr* zero = new Float64x2ZeroInstr(call->deopt_id());
+    ReplaceCall(call, zero);
+    return true;
+  } else if (recognized_kind == MethodRecognizer::kFloat64x2Splat) {
+    Float64x2SplatInstr* splat =
+        new Float64x2SplatInstr(new Value(call->ArgumentAt(1)),
+                                call->deopt_id());
+    ReplaceCall(call, splat);
+    return true;
+  } else if (recognized_kind == MethodRecognizer::kFloat64x2Constructor) {
+    Float64x2ConstructorInstr* con =
+        new Float64x2ConstructorInstr(new Value(call->ArgumentAt(1)),
+                                      new Value(call->ArgumentAt(2)),
+                                      call->deopt_id());
+    ReplaceCall(call, con);
+    return true;
+  } else if (recognized_kind == MethodRecognizer::kFloat64x2FromFloat32x4) {
+    Float32x4ToFloat64x2Instr* cast =
+        new Float32x4ToFloat64x2Instr(new Value(call->ArgumentAt(1)),
                                     call->deopt_id());
     ReplaceCall(call, cast);
     return true;
@@ -3138,6 +3240,25 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Method(
     case MethodRecognizer::kFloat32x4Shuffle: {
       return InlineFloat32x4Getter(call, recognized_kind);
     }
+    default:
+      return false;
+  }
+}
+
+
+bool FlowGraphOptimizer::TryInlineFloat64x2Method(
+    InstanceCallInstr* call,
+    MethodRecognizer::Kind recognized_kind) {
+  if (!ShouldInlineSimd()) {
+    return false;
+  }
+  ASSERT(call->HasICData());
+  switch (recognized_kind) {
+    case MethodRecognizer::kFloat64x2GetX:
+    case MethodRecognizer::kFloat64x2GetY:
+      ASSERT(call->ic_data()->HasReceiverClassId(kFloat64x2Cid));
+      ASSERT(call->ic_data()->HasOneTarget());
+      return InlineFloat64x2Getter(call, recognized_kind);
     default:
       return false;
   }
@@ -3818,8 +3939,14 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
     ReplaceCall(call, math_unary);
   } else if ((recognized_kind == MethodRecognizer::kFloat32x4Zero) ||
              (recognized_kind == MethodRecognizer::kFloat32x4Splat) ||
-             (recognized_kind == MethodRecognizer::kFloat32x4Constructor)) {
+             (recognized_kind == MethodRecognizer::kFloat32x4Constructor) ||
+             (recognized_kind == MethodRecognizer::kFloat32x4FromFloat64x2)) {
     TryInlineFloat32x4Constructor(call, recognized_kind);
+  } else if ((recognized_kind == MethodRecognizer::kFloat64x2Constructor) ||
+             (recognized_kind == MethodRecognizer::kFloat64x2Zero) ||
+             (recognized_kind == MethodRecognizer::kFloat64x2Splat) ||
+             (recognized_kind == MethodRecognizer::kFloat64x2FromFloat32x4)) {
+    TryInlineFloat64x2Constructor(call, recognized_kind);
   } else if (recognized_kind == MethodRecognizer::kInt32x4BoolConstructor) {
     TryInlineInt32x4Constructor(call, recognized_kind);
   } else if (recognized_kind == MethodRecognizer::kObjectConstructor) {
@@ -7731,6 +7858,46 @@ void ConstantPropagator::VisitInt32x4ToFloat32x4(
 
 
 void ConstantPropagator::VisitBinaryInt32x4Op(BinaryInt32x4OpInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitSimd64x2Shuffle(Simd64x2ShuffleInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitBinaryFloat64x2Op(BinaryFloat64x2OpInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloat32x4ToFloat64x2(
+    Float32x4ToFloat64x2Instr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloat64x2ToFloat32x4(
+    Float64x2ToFloat32x4Instr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloat64x2Zero(
+    Float64x2ZeroInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloat64x2Splat(
+    Float64x2SplatInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloat64x2Constructor(
+    Float64x2ConstructorInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
