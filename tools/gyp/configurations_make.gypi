@@ -55,7 +55,6 @@
         ['_toolset=="target"', {
           'cflags': [
             '-marm',
-            '-march=armv7-a',
             '-mfpu=vfp',
             '-Wno-psabi', # suppresses va_list warning
             '-fno-strict-overflow',

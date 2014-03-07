@@ -59,7 +59,7 @@ void CodePatcher::SetPoolOffsetAt(uword return_address, int32_t offset) {
 
 void CodePatcher::InsertCallAt(uword start, uword target) {
   // The inserted call should not overlap the lazy deopt jump code.
-  ASSERT(start + CallPattern::kFixedLengthInBytes <= target);
+  ASSERT(start + CallPattern::LengthInBytes() <= target);
   CallPattern::InsertAt(start, target);
 }
 

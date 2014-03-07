@@ -5,6 +5,7 @@
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_ARM.
 #if defined(TARGET_ARCH_ARM)
 
+#include "vm/assembler.h"
 #include "vm/constants_arm.h"
 #include "vm/cpu.h"
 #include "vm/instructions.h"
@@ -30,6 +31,16 @@ CallPattern::CallPattern(uword pc, const Code& code)
                                                  &reg,
                                                  &target_address_pool_index_);
   ASSERT(reg == LR);
+}
+
+
+int CallPattern::LengthInBytes() {
+  if (TargetCPUFeatures::arm_version() == ARMv6) {
+    return 5 * Instr::kInstrSize;
+  } else {
+    ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
+    return 3 * Instr::kInstrSize;
+  }
 }
 
 
@@ -69,17 +80,41 @@ uword InstructionPattern::DecodeLoadWordImmediate(uword end,
   uword start = end - Instr::kInstrSize;
   int32_t instr = Instr::At(start)->InstructionBits();
   intptr_t imm = 0;
-  if ((instr & 0xfff00000) == 0xe3400000) {  // movt reg, #imm_hi
-    imm |= (instr & 0xf0000) << 12;
-    imm |= (instr & 0xfff) << 16;
+  if (TargetCPUFeatures::arm_version() == ARMv6) {
+    ASSERT((instr & 0xfff00000) == 0xe3800000);  // orr rd, rd, byte0
+    imm |= (instr & 0x000000ff);
+
     start -= Instr::kInstrSize;
     instr = Instr::At(start)->InstructionBits();
+    ASSERT((instr & 0xfff00000) == 0xe3800c00);  // orr rd, rd, (byte1 rot 12)
+    imm |= (instr & 0x000000ff);
+
+    start -= Instr::kInstrSize;
+    instr = Instr::At(start)->InstructionBits();
+    ASSERT((instr & 0xfff00f00) == 0xe3800800);  // orr rd, rd, (byte2 rot 8)
+    imm |= (instr & 0x000000ff);
+
+    start -= Instr::kInstrSize;
+    instr = Instr::At(start)->InstructionBits();
+    ASSERT((instr & 0xffff0f00) == 0xe3a00400);  // mov rd, (byte3 rot 4)
+    imm |= (instr & 0x000000ff);
+
+    *reg = static_cast<Register>((instr & 0x0000f000) >> 12);
+    *value = imm;
+  } else {
+    ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
+    if ((instr & 0xfff00000) == 0xe3400000) {  // movt reg, #imm_hi
+      imm |= (instr & 0xf0000) << 12;
+      imm |= (instr & 0xfff) << 16;
+      start -= Instr::kInstrSize;
+      instr = Instr::At(start)->InstructionBits();
+    }
+    ASSERT((instr & 0xfff00000) == 0xe3000000);  // movw reg, #imm_lo
+    imm |= (instr & 0xf0000) >> 4;
+    imm |= instr & 0xfff;
+    *reg = static_cast<Register>((instr & 0xf000) >> 12);
+    *value = imm;
   }
-  ASSERT((instr & 0xfff00000) == 0xe3000000);  // movw reg, #imm_lo
-  imm |= (instr & 0xf0000) >> 4;
-  imm |= instr & 0xfff;
-  *reg = static_cast<Register>((instr & 0xf000) >> 12);
-  *value = imm;
   return start;
 }
 
@@ -168,49 +203,138 @@ void CallPattern::SetTargetAddress(uword target_address) const {
 
 
 void CallPattern::InsertAt(uword pc, uword target_address) {
-  uint16_t target_lo = target_address & 0xffff;
-  uint16_t target_hi = target_address >> 16;
-  uword movw_ip = 0xe300c000 | ((target_lo >> 12) << 16) | (target_lo & 0xfff);
-  uword movt_ip = 0xe340c000 | ((target_hi >> 12) << 16) | (target_hi & 0xfff);
-  uword blx_ip = 0xe12fff3c;
-  *reinterpret_cast<uword*>(pc + (0 * Instr::kInstrSize)) = movw_ip;
-  *reinterpret_cast<uword*>(pc + (1 * Instr::kInstrSize)) = movt_ip;
-  *reinterpret_cast<uword*>(pc + (2 * Instr::kInstrSize)) = blx_ip;
-  ASSERT(kFixedLengthInBytes == 3 * Instr::kInstrSize);
-  CPU::FlushICache(pc, kFixedLengthInBytes);
+  if (TargetCPUFeatures::arm_version() == ARMv6) {
+    const uint32_t byte0 = (target_address & 0x000000ff);
+    const uint32_t byte1 = (target_address & 0x0000ff00) >> 8;
+    const uint32_t byte2 = (target_address & 0x00ff0000) >> 16;
+    const uint32_t byte3 = (target_address & 0xff000000) >> 24;
+
+    const uword mov_ip = 0xe3a0c400 | byte3;  // mov ip, (byte3 rot 4)
+    const uword or1_ip = 0xe38cc800 | byte2;  // orr ip, ip, (byte2 rot 8)
+    const uword or2_ip = 0xe38ccc00 | byte1;  // orr ip, ip, (byte1 rot 12)
+    const uword or3_ip = 0xe38cc000 | byte0;  // orr ip, ip, byte0
+    const uword blx_ip = 0xe12fff3c;
+
+    *reinterpret_cast<uword*>(pc + (0 * Instr::kInstrSize)) = mov_ip;
+    *reinterpret_cast<uword*>(pc + (1 * Instr::kInstrSize)) = or1_ip;
+    *reinterpret_cast<uword*>(pc + (2 * Instr::kInstrSize)) = or2_ip;
+    *reinterpret_cast<uword*>(pc + (3 * Instr::kInstrSize)) = or3_ip;
+    *reinterpret_cast<uword*>(pc + (4 * Instr::kInstrSize)) = blx_ip;
+
+    ASSERT(LengthInBytes() == 5 * Instr::kInstrSize);
+    CPU::FlushICache(pc, LengthInBytes());
+  } else {
+    ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
+    const uint16_t target_lo = target_address & 0xffff;
+    const uint16_t target_hi = target_address >> 16;
+
+    const uword movw_ip =
+        0xe300c000 | ((target_lo >> 12) << 16) | (target_lo & 0xfff);
+    const uword movt_ip =
+        0xe340c000 | ((target_hi >> 12) << 16) | (target_hi & 0xfff);
+    const uword blx_ip = 0xe12fff3c;
+
+    *reinterpret_cast<uword*>(pc + (0 * Instr::kInstrSize)) = movw_ip;
+    *reinterpret_cast<uword*>(pc + (1 * Instr::kInstrSize)) = movt_ip;
+    *reinterpret_cast<uword*>(pc + (2 * Instr::kInstrSize)) = blx_ip;
+
+    ASSERT(LengthInBytes() == 3 * Instr::kInstrSize);
+    CPU::FlushICache(pc, LengthInBytes());
+  }
 }
 
 
 JumpPattern::JumpPattern(uword pc, const Code& code) : pc_(pc) { }
 
 
+int JumpPattern::pattern_length_in_bytes() {
+  if (TargetCPUFeatures::arm_version() == ARMv6) {
+    return 5 * Instr::kInstrSize;
+  } else {
+    ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
+    return 3 * Instr::kInstrSize;
+  }
+}
+
+
 bool JumpPattern::IsValid() const {
-  Instr* movw_ip = Instr::At(pc_ + (0 * Instr::kInstrSize));  // target_lo
-  Instr* movt_ip = Instr::At(pc_ + (1 * Instr::kInstrSize));  // target_hi
-  Instr* bx_ip = Instr::At(pc_ + (2 * Instr::kInstrSize));
-  return (movw_ip->InstructionBits() & 0xfff0f000) == 0xe300c000 &&
-         (movt_ip->InstructionBits() & 0xfff0f000) == 0xe340c000 &&
-         (bx_ip->InstructionBits() & 0xffffffff) == 0xe12fff1c;
+  if (TargetCPUFeatures::arm_version() == ARMv6) {
+    Instr* mov_ip = Instr::At(pc_ + (0 * Instr::kInstrSize));
+    Instr* or1_ip = Instr::At(pc_ + (1 * Instr::kInstrSize));
+    Instr* or2_ip = Instr::At(pc_ + (2 * Instr::kInstrSize));
+    Instr* or3_ip = Instr::At(pc_ + (3 * Instr::kInstrSize));
+    Instr* bx_ip = Instr::At(pc_ + (4 * Instr::kInstrSize));
+    return ((mov_ip->InstructionBits() & 0xffffff00) == 0xe3a0c400) &&
+           ((or1_ip->InstructionBits() & 0xffffff00) == 0xe38cc800) &&
+           ((or2_ip->InstructionBits() & 0xffffff00) == 0xe38ccc00) &&
+           ((or3_ip->InstructionBits() & 0xffffff00) == 0xe38cc000) &&
+           ((bx_ip->InstructionBits() & 0xffffffff) == 0xe12fff1c);
+  } else {
+    ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
+    Instr* movw_ip = Instr::At(pc_ + (0 * Instr::kInstrSize));  // target_lo
+    Instr* movt_ip = Instr::At(pc_ + (1 * Instr::kInstrSize));  // target_hi
+    Instr* bx_ip = Instr::At(pc_ + (2 * Instr::kInstrSize));
+    return (movw_ip->InstructionBits() & 0xfff0f000) == 0xe300c000 &&
+           (movt_ip->InstructionBits() & 0xfff0f000) == 0xe340c000 &&
+           (bx_ip->InstructionBits() & 0xffffffff) == 0xe12fff1c;
+  }
 }
 
 
 uword JumpPattern::TargetAddress() const {
-  Instr* movw_ip = Instr::At(pc_ + (0 * Instr::kInstrSize));  // target_lo
-  Instr* movt_ip = Instr::At(pc_ + (1 * Instr::kInstrSize));  // target_hi
-  uint16_t target_lo = movw_ip->MovwField();
-  uint16_t target_hi = movt_ip->MovwField();
-  return (target_hi << 16) | target_lo;
+  if (TargetCPUFeatures::arm_version() == ARMv6) {
+    Instr* mov_ip = Instr::At(pc_ + (0 * Instr::kInstrSize));
+    Instr* or1_ip = Instr::At(pc_ + (1 * Instr::kInstrSize));
+    Instr* or2_ip = Instr::At(pc_ + (2 * Instr::kInstrSize));
+    Instr* or3_ip = Instr::At(pc_ + (3 * Instr::kInstrSize));
+    uword imm = 0;
+    imm |= or3_ip->Immed8Field();
+    imm |= or2_ip->Immed8Field() << 8;
+    imm |= or1_ip->Immed8Field() << 16;
+    imm |= mov_ip->Immed8Field() << 24;
+    return imm;
+  } else {
+    ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
+    Instr* movw_ip = Instr::At(pc_ + (0 * Instr::kInstrSize));  // target_lo
+    Instr* movt_ip = Instr::At(pc_ + (1 * Instr::kInstrSize));  // target_hi
+    uint16_t target_lo = movw_ip->MovwField();
+    uint16_t target_hi = movt_ip->MovwField();
+    return (target_hi << 16) | target_lo;
+  }
 }
 
 
 void JumpPattern::SetTargetAddress(uword target_address) const {
-  uint16_t target_lo = target_address & 0xffff;
-  uint16_t target_hi = target_address >> 16;
-  uword movw_ip = 0xe300c000 | ((target_lo >> 12) << 16) | (target_lo & 0xfff);
-  uword movt_ip = 0xe340c000 | ((target_hi >> 12) << 16) | (target_hi & 0xfff);
-  *reinterpret_cast<uword*>(pc_ + (0 * Instr::kInstrSize)) = movw_ip;
-  *reinterpret_cast<uword*>(pc_ + (1 * Instr::kInstrSize)) = movt_ip;
-  CPU::FlushICache(pc_, 2 * Instr::kInstrSize);
+  if (TargetCPUFeatures::arm_version() == ARMv6) {
+    const uint32_t byte0 = (target_address & 0x000000ff);
+    const uint32_t byte1 = (target_address & 0x0000ff00) >> 8;
+    const uint32_t byte2 = (target_address & 0x00ff0000) >> 16;
+    const uint32_t byte3 = (target_address & 0xff000000) >> 24;
+
+    const uword mov_ip = 0xe3a0c400 | byte3;  // mov ip, (byte3 rot 4)
+    const uword or1_ip = 0xe38cc800 | byte2;  // orr ip, ip, (byte2 rot 8)
+    const uword or2_ip = 0xe38ccc00 | byte1;  // orr ip, ip, (byte1 rot 12)
+    const uword or3_ip = 0xe38cc000 | byte0;  // orr ip, ip, byte0
+
+    *reinterpret_cast<uword*>(pc_ + (0 * Instr::kInstrSize)) = mov_ip;
+    *reinterpret_cast<uword*>(pc_ + (1 * Instr::kInstrSize)) = or1_ip;
+    *reinterpret_cast<uword*>(pc_ + (2 * Instr::kInstrSize)) = or2_ip;
+    *reinterpret_cast<uword*>(pc_ + (3 * Instr::kInstrSize)) = or3_ip;
+    CPU::FlushICache(pc_, 4 * Instr::kInstrSize);
+  } else {
+    ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
+    const uint16_t target_lo = target_address & 0xffff;
+    const uint16_t target_hi = target_address >> 16;
+
+    const uword movw_ip =
+        0xe300c000 | ((target_lo >> 12) << 16) | (target_lo & 0xfff);
+    const uword movt_ip =
+        0xe340c000 | ((target_hi >> 12) << 16) | (target_hi & 0xfff);
+
+    *reinterpret_cast<uword*>(pc_ + (0 * Instr::kInstrSize)) = movw_ip;
+    *reinterpret_cast<uword*>(pc_ + (1 * Instr::kInstrSize)) = movt_ip;
+    CPU::FlushICache(pc_, 2 * Instr::kInstrSize);
+  }
 }
 
 }  // namespace dart

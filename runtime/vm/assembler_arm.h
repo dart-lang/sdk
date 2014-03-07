@@ -63,6 +63,7 @@ class Label : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(Label);
 };
 
+
 // Encodes Addressing Mode 1 - Data-processing operands.
 class ShifterOperand : public ValueObject {
  public:
@@ -590,6 +591,8 @@ class Assembler : public ValueObject {
                      DRegister tmpl, DRegister tmpr);
 
   // Load and Store. May clobber IP.
+  void LoadPatchableImmediate(Register rd, int32_t value, Condition cond = AL);
+  void LoadDecodableImmediate(Register rd, int32_t value, Condition cond = AL);
   void LoadImmediate(Register rd, int32_t value, Condition cond = AL);
   void LoadSImmediate(SRegister sd, float value, Condition cond = AL);
   void LoadDImmediate(DRegister dd, double value,
@@ -754,6 +757,9 @@ class Assembler : public ValueObject {
 
   int32_t AddObject(const Object& obj);
   int32_t AddExternalLabel(const ExternalLabel* label);
+
+  void BindARMv6(Label* label);
+  void BindARMv7(Label* label);
 
   class CodeComment : public ZoneAllocated {
    public:

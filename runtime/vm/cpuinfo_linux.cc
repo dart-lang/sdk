@@ -30,7 +30,7 @@ void CpuInfo::InitOnce() {
   CpuId::InitOnce();
 #elif defined(HOST_ARCH_ARM)
   fields_[kCpuInfoProcessor] = "Processor";
-  fields_[kCpuInfoModel] = "Hardware";
+  fields_[kCpuInfoModel] = "model name";
   fields_[kCpuInfoHardware] = "Hardware";
   fields_[kCpuInfoFeatures] = "Features";
   method_ = kCpuInfoSystem;
