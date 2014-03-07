@@ -470,4 +470,24 @@ main() {
     expectNoAsset("app|foo.out1");
     expectNoAsset("app|foo.out2");
   });
+
+  test("a transformer in a later phase gets a slow secondary input from an "
+      "earlier phase", () {
+    var rewrite = new RewriteTransformer("in", "in");
+    initGraph({
+      "app|foo.in": "foo",
+      "app|bar.txt": "foo.in"
+    }, {"app": [
+      [rewrite],
+      [new ManyToOneTransformer("txt")]
+    ]});
+
+    rewrite.pauseApply();
+    updateSources(["app|foo.in", "app|bar.txt"]);
+    expectAssetDoesNotComplete("app|bar.out");
+
+    rewrite.resumeApply();
+    expectAsset("app|bar.out", "foo.in");
+    buildShouldSucceed();
+  });
 }

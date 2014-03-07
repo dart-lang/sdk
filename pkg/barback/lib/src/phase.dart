@@ -9,6 +9,7 @@ import 'dart:async';
 import 'asset_cascade.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
+import 'errors.dart';
 import 'group_runner.dart';
 import 'log.dart';
 import 'multiset.dart';
@@ -96,16 +97,30 @@ class Phase {
   bool get isDirty => _inputs.values.any((input) => input.isDirty) ||
       _groups.values.any((group) => group.isDirty);
 
+  /// Whether [this] or any previous phase is dirty.
+  bool get _isTransitivelyDirty => isDirty ||
+      (_previous != null && _previous._isTransitivelyDirty);
+
   /// A stream that emits an event whenever any transforms in this phase logs
   /// an entry.
   Stream<LogEntry> get onLog => _onLogPool.stream;
   final _onLogPool = new StreamPool<LogEntry>.broadcast();
+
+  /// The previous phase in the cascade, or null if this is the first phase.
+  final Phase _previous;
 
   /// The phase after this one.
   ///
   /// Outputs from this phase will be passed to it.
   Phase get next => _next;
   Phase _next;
+
+  /// A map of asset ids to completers for [getInput] requests.
+  ///
+  /// If an asset node is requested before it's available, we put a completer in
+  /// this map to wait for the asset to be generated. If it's not generated, the
+  /// completer should complete to `null`.
+  final _pendingOutputRequests = new Map<AssetId, Completer<AssetNode>>();
 
   /// Returns all currently-available output assets for this phase.
   Set<AssetNode> get availableOutputs {
@@ -121,7 +136,24 @@ class Phase {
   Phase(AssetCascade cascade, String location)
       : this._(cascade, location, 0);
 
-  Phase._(this.cascade, this._location, this._index);
+  Phase._(this.cascade, this._location, this._index, [this._previous]) {
+    // TODO(nweiz): This does O(n^2) work whenever a phase emits an [onDone]
+    // event, since each phase after it has to check each phase before. Find a
+    // better way to do this.
+    for (var phase = this; phase != null; phase = phase._previous) {
+      phase.onDone.listen((_) {
+        if (_isTransitivelyDirty) return;
+
+        // All the previous phases have finished building. If anyone's still
+        // waiting for outputs, cut off the wait; we won't be generating them,
+        // at least until a source asset changes.
+        for (var completer in _pendingOutputRequests.values) {
+          completer.complete(null);
+        }
+        _pendingOutputRequests.clear();
+      });
+    }
+  }
 
   /// Adds a new asset as an input for this phase.
   ///
@@ -164,27 +196,67 @@ class Phase {
     }
   }
 
+  // TODO(nweiz): If the input is available when this is called, it's
+  // theoretically possible for it to become unavailable between the call and
+  // the return. If it does so, it won't trigger the rebuilding process. To
+  // avoid this, we should have this and the methods it calls take explicit
+  // callbacks, as in [AssetNode.whenAvailable].
   /// Gets the asset node for an input [id].
   ///
-  /// If an input with that ID cannot be found, returns null.
+  /// If [id] is for a generated or transformed asset, this will wait until it
+  /// has been created and return it. This means that the returned asset will
+  /// always be [AssetState.AVAILABLE].
+  /// 
+  /// If the input cannot be found, returns null.
   Future<AssetNode> getInput(AssetId id) {
-    return newFuture(() {
+    return syncFuture(() {
       if (id.package != cascade.package) return cascade.graph.getAssetNode(id);
-      if (_inputs.containsKey(id)) return _inputs[id].input;
-      return null;
+      if (_previous != null) return _previous.getOutput(id);
+      if (!_inputs.containsKey(id)) return null;
+
+      var input = _inputs[id].input;
+      return input.whenAvailable((_) => input).catchError((error) {
+        if (error is! AssetNotFoundException || error.id != id) throw error;
+        // Retry in case the input was replaced.
+        return getInput(id);
+      });
     });
   }
 
   /// Gets the asset node for an output [id].
   ///
-  /// If an output with that ID cannot be found, returns null.
+  /// If [id] is for a generated or transformed asset, this will wait until it
+  /// has been created and return it. This means that the returned asset will
+  /// always be [AssetState.AVAILABLE].
+  /// 
+  /// If the output cannot be found, returns null.
   Future<AssetNode> getOutput(AssetId id) {
-    return newFuture(() {
+    return syncFuture(() {
       if (id.package != cascade.package) return cascade.graph.getAssetNode(id);
-      if (!_outputs.containsKey(id)) return null;
-      var output = _outputs[id].output;
-      output.force();
-      return output;
+      if (_outputs.containsKey(id)) {
+        var output = _outputs[id].output;
+        // If the requested output is available, we can just return it.
+        if (output.state.isAvailable) return output;
+
+        // If the requested output exists but isn't yet available, wait to see
+        // if it becomes available. If it's removed before becoming available,
+        // try again, since it could be generated again.
+        output.force();
+        return output.whenAvailable((_) => output).catchError((error) {
+          if (error is! AssetNotFoundException) throw error;
+          return getOutput(id);
+        });
+      }
+
+      // If neither this phase nor the previous phases are dirty, the requested
+      // output won't be generated and we can safely return null.
+      if (!_isTransitivelyDirty) return null;
+
+      // Otherwise, store a completer for the asset node. If it's generated in
+      // the future, we'll complete this completer.
+      var completer = _pendingOutputRequests.putIfAbsent(id,
+          () => new Completer.sync());
+      return completer.future;
     });
   }
 
@@ -239,7 +311,7 @@ class Phase {
   /// This may only be called on a phase with no phase following it.
   Phase addPhase() {
     assert(_next == null);
-    _next = new Phase._(cascade, _location, _index + 1);
+    _next = new Phase._(cascade, _location, _index + 1, this);
     for (var output in _outputs.values.toList()) {
       // Remove [output]'s listeners because now they should get the asset from
       // [_next], rather than this phase. Any transforms consuming [output] will
@@ -253,6 +325,7 @@ class Phase {
   ///
   /// This will remove all the phase's outputs and all following phases.
   void remove() {
+    _previous._next = null;
     removeFollowing();
     for (var input in _inputs.values.toList()) {
       input.remove();
@@ -306,6 +379,28 @@ class Phase {
     } else {
       _onAssetController.add(asset);
     }
+    _providePendingAsset(asset);
+  }
+
+  /// Provide an asset to a pending [getOutput] call.
+  void _providePendingAsset(AssetNode asset) {
+    // If anyone's waiting for this asset, provide it to them.
+    var request = _pendingOutputRequests.remove(asset.id);
+    if (request == null) return;
+
+    if (asset.state.isAvailable) {
+      request.complete(asset);
+      return;
+    }
+
+    // A lazy asset may be emitted while still dirty. If so, we wait until it's
+    // either available or removed before trying again to access it.
+    assert(asset.state.isDirty);
+    asset.force();
+    asset.whenStateChanges().then((state) {
+      if (state.isRemoved) return getOutput(asset.id);
+      return asset;
+    }).then(request.complete).catchError(request.completeError);
   }
 
   String toString() => "phase $_location.$_index";

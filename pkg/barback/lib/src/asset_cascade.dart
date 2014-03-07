@@ -5,7 +5,6 @@
 library barback.asset_cascade;
 
 import 'dart:async';
-import 'dart:collection';
 
 import 'asset.dart';
 import 'asset_id.dart';
@@ -78,13 +77,6 @@ class AssetCascade {
   AssetSet get availableOutputs =>
     new AssetSet.from(_phases.last.availableOutputs.map((node) => node.asset));
 
-  /// A map of asset ids to completers for [getAssetNode] requests.
-  ///
-  /// If an asset node is requested before it's available, we put a completer in
-  /// this map to wait for the asset to be generated. If it's not generated, the
-  /// completer should complete to `null`.
-  final _pendingAssetRequests = new Map<AssetId, Completer<AssetNode>>();
-
   /// Creates a new [AssetCascade].
   ///
   /// It loads source assets within [package] using [provider].
@@ -102,6 +94,7 @@ class AssetCascade {
   Future<AssetNode> getAssetNode(AssetId id) {
     assert(id.package == package);
 
+    var oldLastPhase = _phases.last;
     // TODO(rnystrom): Waiting for the entire build to complete is unnecessary
     // in some cases. Should optimize:
     // * [id] may be generated before the compilation is finished. We should
@@ -110,30 +103,12 @@ class AssetCascade {
     // * If [id] has never been generated and all active transformers provide
     //   metadata about the file names of assets it can emit, we can prove that
     //   none of them can emit [id] and fail early.
-    return _phases.last.getOutput(id).then((node) {
-      if (node != null) {
-        // If the requested asset is available, we can just return it.
-        if (node.state.isAvailable) return node;
-
-        // If the requested asset exists but isn't yet available, wait to see if
-        // it becomes available. If it's removed before becoming available, try
-        // again, since it could be generated again.
-        node.force();
-        return node.whenAvailable((_) => node).catchError((error) {
-          if (error is! AssetNotFoundException) throw error;
-          return getAssetNode(id);
-        });
-      }
-
-      // If the cascade isn't dirty, the phase won't generate the requested
-      // asset in the future.
-      if (!isDirty) return null;
-
-      // If the cascade is dirty, store a completer for the asset node. If it's
-      // generated in the future, we'll complete this completer.
-      var completer = _pendingAssetRequests.putIfAbsent(id,
-          () => new Completer.sync());
-      return completer.future;
+    return oldLastPhase.getOutput(id).then((node) {
+      // The last phase may have changed if [updateSources] was called after
+      // requesting the output. In that case, we want the output from the new
+      // last phase.
+      if (_phases.last == oldLastPhase) return node;
+      return getAssetNode(id);
     });
   }
 
@@ -224,45 +199,11 @@ class AssetCascade {
   /// Add [phase] to the end of [_phases] and watch its streams.
   void _addPhase(Phase phase) {
     _onLogPool.add(phase.onLog);
-    phase.onAsset.listen(_providePendingAsset);
-
     phase.onDone.listen((_) {
-      if (isDirty) return;
-
-      // This cascade has finished building. If anyone's still waiting for
-      // assets, cut off the wait; we won't be generating them, at least until a
-      // source asset changes.
-      for (var completer in _pendingAssetRequests.values) {
-        completer.complete(null);
-      }
-      _pendingAssetRequests.clear();
-      _onDoneController.add(null);
+      if (!isDirty) _onDoneController.add(null);
     });
 
     _phases.add(phase);
-  }
-
-  /// Provide an asset to a pending [getAssetNode] call.
-  void _providePendingAsset(AssetNode asset) {
-    // If anyone's waiting for this asset, provide it to them.
-    var request = _pendingAssetRequests.remove(asset.id);
-    if (request == null) return;
-
-    if (asset.state.isAvailable) {
-      request.complete(asset);
-      return;
-    }
-
-    // A lazy asset may be emitted while still dirty. If so, we wait until
-    // it's either available or removed before trying again to access it. We
-    // retry the entire [getAsset] process because the state of the graph may
-    // have changed dramatically by the time it's available.
-    assert(asset.state.isDirty);
-    asset.force();
-    asset.whenStateChanges()
-        .then((_) => getAssetNode(asset.id))
-        .then(request.complete)
-        .catchError(request.completeError);
   }
 
   String toString() => "cascade for $package";

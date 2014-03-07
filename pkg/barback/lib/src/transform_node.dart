@@ -229,19 +229,10 @@ class TransformNode {
       // results stream.
       if (node == null) throw new MissingInputException(info, id);
 
-      // If the asset node is found, wait until its contents are actually
-      // available before we return them.
-      return node.whenAvailable((asset) {
-        _inputSubscriptions.putIfAbsent(node.id,
-            () => node.onStateChange.listen((_) => _dirty()));
+      _inputSubscriptions.putIfAbsent(node.id,
+          () => node.onStateChange.listen((_) => _dirty()));
 
-        return asset;
-      }).catchError((error) {
-        if (error is! AssetNotFoundException || error.id != id) throw error;
-        // If the node was removed before it could be loaded, treat it as though
-        // it never existed and throw a MissingInputException.
-        throw new MissingInputException(info, id);
-      });
+      return node.asset;
     });
   }
 
