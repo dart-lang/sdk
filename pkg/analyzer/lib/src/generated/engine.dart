@@ -294,6 +294,11 @@ abstract class AnalysisContext {
   LineInfo computeLineInfo(Source source);
 
   /**
+   * Notifies the context that the client is going to stop using this context.
+   */
+  void dispose();
+
+  /**
    * Return `true` if the given source exists.
    *
    * This method should be used rather than the method [Source#exists] because contexts can
@@ -347,19 +352,6 @@ abstract class AnalysisContext {
    * @throws Exception if the contents of the source could not be accessed
    */
   TimestampedData<String> getContents(Source source);
-
-  /**
-   * Get the contents of the given source and pass it to the given content receiver.
-   *
-   * This method should be used rather than the method
-   * [Source#getContentsToReceiver] because contexts can have local overrides
-   * of the content of a source that the source is not aware of.
-   *
-   * @param source the source whose content is to be returned
-   * @param receiver the content receiver to which the content of the source will be passed
-   * @throws Exception if the contents of the source could not be accessed
-   */
-  void getContentsToReceiver(Source source, Source_ContentReceiver receiver);
 
   /**
    * Return the element referenced by the given location, or `null` if the element is not
@@ -575,6 +567,13 @@ abstract class AnalysisContext {
    * @return `true` if the given source is known to be a library that can be run on a client
    */
   bool isClientLibrary(Source librarySource);
+
+  /**
+   * Returns `true` if this context was disposed using [dispose].
+   *
+   * @return `true` if this context was disposed
+   */
+  bool get isDisposed;
 
   /**
    * Return `true` if the given source is known to be the defining compilation unit of a
@@ -3642,6 +3641,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   AnalysisOptionsImpl _options = new AnalysisOptionsImpl();
 
   /**
+   * A flag indicating whether this context is disposed.
+   */
+  bool _disposed = false;
+
+  /**
    * A cache of content used to override the default content of a source.
    */
   ContentCache _contentCache = new ContentCache();
@@ -3908,6 +3912,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return new ResolvableCompilationUnit(dartCopy.modificationTime, unit);
   }
 
+  void dispose() {
+    _disposed = true;
+  }
+
   bool exists(Source source) {
     if (source == null) {
       return false;
@@ -3961,15 +3969,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return source.contents;
   }
 
-  void getContentsToReceiver(Source source, Source_ContentReceiver receiver) {
-    String contents = _contentCache.getContents(source);
-    if (contents != null) {
-      receiver.accept(contents, _contentCache.getModificationStamp(source));
-      return;
-    }
-    source.getContentsToReceiver(receiver);
-  }
-
   Element getElement(ElementLocation location) {
     // TODO(brianwilkerson) This should not be a "get" method.
     try {
@@ -3989,7 +3988,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   AnalysisErrorInfo getErrors(Source source) {
-    SourceEntry sourceEntry = _getReadableSourceEntry(source);
+    SourceEntry sourceEntry = _getReadableSourceEntryOrNull(source);
     if (sourceEntry is DartEntry) {
       DartEntry dartEntry = sourceEntry;
       return new AnalysisErrorInfoImpl(dartEntry.allErrors, dartEntry.getValue(SourceEntry.LINE_INFO));
@@ -4001,7 +4000,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   HtmlElement getHtmlElement(Source source) {
-    SourceEntry sourceEntry = _getReadableSourceEntry(source);
+    SourceEntry sourceEntry = _getReadableSourceEntryOrNull(source);
     if (sourceEntry is HtmlEntry) {
       return sourceEntry.getValue(HtmlEntry.ELEMENT);
     }
@@ -4039,7 +4038,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   List<Source> get htmlSources => _getSources(SourceKind.HTML);
 
   SourceKind getKindOf(Source source) {
-    SourceEntry sourceEntry = _getReadableSourceEntry(source);
+    SourceEntry sourceEntry = _getReadableSourceEntryOrNull(source);
     if (sourceEntry == null) {
       return SourceKind.UNKNOWN;
     }
@@ -4079,11 +4078,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   List<Source> getLibrariesContaining(Source source) {
-    DartEntry dartEntry = _getReadableDartEntry(source);
-    if (dartEntry == null) {
-      return Source.EMPTY_ARRAY;
+    SourceEntry sourceEntry = _getReadableSourceEntryOrNull(source);
+    if (sourceEntry is DartEntry) {
+      return sourceEntry.getValue(DartEntry.CONTAINING_LIBRARIES);
     }
-    return dartEntry.getValue(DartEntry.CONTAINING_LIBRARIES);
+    return Source.EMPTY_ARRAY;
   }
 
   List<Source> getLibrariesDependingOn(Source librarySource) {
@@ -4106,7 +4105,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   LibraryElement getLibraryElement(Source source) {
-    SourceEntry sourceEntry = _getReadableSourceEntry(source);
+    SourceEntry sourceEntry = _getReadableSourceEntryOrNull(source);
     if (sourceEntry is DartEntry) {
       return sourceEntry.getValue(DartEntry.ELEMENT);
     }
@@ -4116,7 +4115,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   List<Source> get librarySources => _getSources(SourceKind.LIBRARY);
 
   LineInfo getLineInfo(Source source) {
-    SourceEntry sourceEntry = _getReadableSourceEntry(source);
+    SourceEntry sourceEntry = _getReadableSourceEntryOrNull(source);
     if (sourceEntry != null) {
       return sourceEntry.getValue(SourceEntry.LINE_INFO);
     }
@@ -4209,7 +4208,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   CompilationUnit getResolvedCompilationUnit2(Source unitSource, Source librarySource) {
-    SourceEntry sourceEntry = _getReadableSourceEntry(unitSource);
+    SourceEntry sourceEntry = _getReadableSourceEntryOrNull(unitSource);
     if (sourceEntry is DartEntry) {
       return sourceEntry.getValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource);
     }
@@ -4217,7 +4216,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
-    SourceEntry sourceEntry = _getReadableSourceEntry(htmlSource);
+    SourceEntry sourceEntry = _getReadableSourceEntryOrNull(htmlSource);
     if (sourceEntry is HtmlEntry) {
       HtmlEntry htmlEntry = sourceEntry;
       return htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT);
@@ -4317,6 +4316,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     return false;
   }
+
+  bool get isDisposed => _disposed;
 
   bool isServerLibrary(Source librarySource) {
     SourceEntry sourceEntry = _getReadableSourceEntry(librarySource);
@@ -5762,8 +5763,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Return the cache entry associated with the given source, or `null` if there is no entry
-   * associated with the source.
+   * Return the cache entry associated with the given source, creating it if necessary.
    *
    * @param source the source for which a cache entry is being sought
    * @return the source cache entry associated with the given source
@@ -5775,6 +5775,15 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     return sourceEntry;
   }
+
+  /**
+   * Return the cache entry associated with the given source, or `null` if there is no entry
+   * associated with the source.
+   *
+   * @param source the source for which a cache entry is being sought
+   * @return the source cache entry associated with the given source
+   */
+  SourceEntry _getReadableSourceEntryOrNull(Source source) => _cache.get(source);
 
   /**
    * Return an array containing all of the sources known to this context that have the given kind.
@@ -8027,6 +8036,15 @@ class IncrementalAnalysisCache {
  */
 class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
   /**
+   * If the current thread is the UI thread, then note this in the specified instrumentation and
+   * append this information to the log.
+   *
+   * @param instrumentation the instrumentation, not `null`
+   */
+  static void _checkThread(InstrumentationBuilder instrumentation) {
+  }
+
+  /**
    * Record an exception that was thrown during analysis.
    *
    * @param instrumentation the instrumentation builder being used to record the exception
@@ -8068,6 +8086,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   void applyChanges(ChangeSet changeSet) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-applyChanges");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       _basis.applyChanges(changeSet);
@@ -8078,6 +8097,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   String computeDocumentationComment(Element element) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-computeDocumentationComment");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.computeDocumentationComment(element);
@@ -8088,6 +8108,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   List<AnalysisError> computeErrors(Source source) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-computeErrors");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       List<AnalysisError> errors = _basis.computeErrors(source);
@@ -8102,6 +8123,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   HtmlElement computeHtmlElement(Source source) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-computeHtmlElement");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.computeHtmlElement(source);
@@ -8117,6 +8139,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   SourceKind computeKindOf(Source source) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-computeKindOf");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.computeKindOf(source);
@@ -8127,6 +8150,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   LibraryElement computeLibraryElement(Source source) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-computeLibraryElement");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.computeLibraryElement(source);
@@ -8140,6 +8164,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   LineInfo computeLineInfo(Source source) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-computeLineInfo");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.computeLineInfo(source);
@@ -8153,8 +8178,20 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   ResolvableCompilationUnit computeResolvableCompilationUnit(Source source) => _basis.computeResolvableCompilationUnit(source);
 
+  void dispose() {
+    InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-dispose");
+    _checkThread(instrumentation);
+    try {
+      instrumentation.metric3("contextId", _contextId);
+      _basis.dispose();
+    } finally {
+      instrumentation.log();
+    }
+  }
+
   bool exists(Source source) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-exists");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.exists(source);
@@ -8165,6 +8202,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   AnalysisContext extractContext(SourceContainer container) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-extractContext");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       InstrumentedAnalysisContextImpl newContext = new InstrumentedAnalysisContextImpl();
@@ -8179,6 +8217,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   AnalysisOptions get analysisOptions {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getAnalysisOptions");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.analysisOptions;
@@ -8194,6 +8233,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   CompilationUnitElement getCompilationUnitElement(Source unitSource, Source librarySource) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getCompilationUnitElement");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.getCompilationUnitElement(unitSource, librarySource);
@@ -8204,12 +8244,9 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   TimestampedData<String> getContents(Source source) => _basis.getContents(source);
 
-  void getContentsToReceiver(Source source, Source_ContentReceiver receiver) {
-    _basis.getContentsToReceiver(source, receiver);
-  }
-
   Element getElement(ElementLocation location) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getElement");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.getElement(location);
@@ -8220,6 +8257,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   AnalysisErrorInfo getErrors(Source source) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getErrors");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       AnalysisErrorInfo ret = _basis.getErrors(source);
@@ -8234,6 +8272,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   HtmlElement getHtmlElement(Source source) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getHtmlElement");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.getHtmlElement(source);
@@ -8244,6 +8283,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   List<Source> getHtmlFilesReferencing(Source source) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getHtmlFilesReferencing");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       List<Source> ret = _basis.getHtmlFilesReferencing(source);
@@ -8258,6 +8298,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   List<Source> get htmlSources {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getHtmlSources");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       List<Source> ret = _basis.htmlSources;
@@ -8272,6 +8313,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   SourceKind getKindOf(Source source) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getKindOf");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.getKindOf(source);
@@ -8282,6 +8324,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   List<Source> get launchableClientLibrarySources {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getLaunchableClientLibrarySources");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       List<Source> ret = _basis.launchableClientLibrarySources;
@@ -8296,6 +8339,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   List<Source> get launchableServerLibrarySources {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getLaunchableServerLibrarySources");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       List<Source> ret = _basis.launchableServerLibrarySources;
@@ -8310,6 +8354,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   List<Source> getLibrariesContaining(Source source) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getLibrariesContaining");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       List<Source> ret = _basis.getLibrariesContaining(source);
@@ -8324,6 +8369,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   List<Source> getLibrariesDependingOn(Source librarySource) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getLibrariesDependingOn");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       List<Source> ret = _basis.getLibrariesDependingOn(librarySource);
@@ -8338,6 +8384,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   LibraryElement getLibraryElement(Source source) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getLibraryElement");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.getLibraryElement(source);
@@ -8348,6 +8395,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   List<Source> get librarySources {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getLibrarySources");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       List<Source> ret = _basis.librarySources;
@@ -8362,6 +8410,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   LineInfo getLineInfo(Source source) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getLineInfo");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.getLineInfo(source);
@@ -8372,6 +8421,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   int getModificationStamp(Source source) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getModificationStamp");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.getModificationStamp(source);
@@ -8386,6 +8436,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   List<Source> get refactoringUnsafeSources {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getRefactoringUnsafeSources");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.refactoringUnsafeSources;
@@ -8396,6 +8447,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   CompilationUnit getResolvedCompilationUnit(Source unitSource, LibraryElement library) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getResolvedCompilationUnit");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.getResolvedCompilationUnit(unitSource, library);
@@ -8406,6 +8458,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   CompilationUnit getResolvedCompilationUnit2(Source unitSource, Source librarySource) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getResolvedCompilationUnit");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.getResolvedCompilationUnit2(unitSource, librarySource);
@@ -8416,6 +8469,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getResolvedHtmlUnit");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.getResolvedHtmlUnit(htmlSource);
@@ -8426,6 +8480,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   SourceFactory get sourceFactory {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getSourceFactory");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.sourceFactory;
@@ -8442,6 +8497,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   bool isClientLibrary(Source librarySource) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-isClientLibrary");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.isClientLibrary(librarySource);
@@ -8450,8 +8506,20 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     }
   }
 
+  bool get isDisposed {
+    InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-isDisposed");
+    _checkThread(instrumentation);
+    try {
+      instrumentation.metric3("contextId", _contextId);
+      return _basis.isDisposed;
+    } finally {
+      instrumentation.log();
+    }
+  }
+
   bool isServerLibrary(Source librarySource) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-isServerLibrary");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.isServerLibrary(librarySource);
@@ -8462,6 +8530,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   void mergeContext(AnalysisContext context) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-mergeContext");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       if (context is InstrumentedAnalysisContextImpl) {
@@ -8475,6 +8544,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   CompilationUnit parseCompilationUnit(Source source) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-parseCompilationUnit");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.parseCompilationUnit(source);
@@ -8488,6 +8558,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   ht.HtmlUnit parseHtmlUnit(Source source) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-parseHtmlUnit");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.parseHtmlUnit(source);
@@ -8501,6 +8572,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   AnalysisResult performAnalysisTask() {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-performAnalysisTask");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       AnalysisResult result = _basis.performAnalysisTask();
@@ -8519,6 +8591,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   CompilationUnit resolveCompilationUnit(Source unitSource, LibraryElement library) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-resolveCompilationUnit");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.resolveCompilationUnit(unitSource, library);
@@ -8532,6 +8605,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   CompilationUnit resolveCompilationUnit2(Source unitSource, Source librarySource) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-resolveCompilationUnit");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.resolveCompilationUnit2(unitSource, librarySource);
@@ -8545,6 +8619,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   ht.HtmlUnit resolveHtmlUnit(Source htmlSource) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-resolveHtmlUnit");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.resolveHtmlUnit(htmlSource);
@@ -8558,6 +8633,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   void set analysisOptions(AnalysisOptions options) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-setAnalysisOptions");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       _basis.analysisOptions = options;
@@ -8568,6 +8644,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   void set analysisPriorityOrder(List<Source> sources) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-setAnalysisPriorityOrder");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       _basis.analysisPriorityOrder = sources;
@@ -8578,6 +8655,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   void setChangedContents(Source source, String contents, int offset, int oldLength, int newLength) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-setChangedContents");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       _basis.setChangedContents(source, contents, offset, oldLength, newLength);
@@ -8588,6 +8666,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   void setContents(Source source, String contents) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-setContents");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       _basis.setContents(source, contents);
@@ -8598,6 +8677,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   void set sourceFactory(SourceFactory factory) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-setSourceFactory");
+    _checkThread(instrumentation);
     try {
       instrumentation.metric3("contextId", _contextId);
       _basis.sourceFactory = factory;

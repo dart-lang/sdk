@@ -107,15 +107,6 @@ class FileBasedSource implements Source {
     }
   }
 
-  void getContentsToReceiver(Source_ContentReceiver receiver) {
-    TimeCounter_TimeCounterHandle handle = PerformanceStatistics.io.start();
-    try {
-      getContentsFromFileToReceiver(receiver);
-    } finally {
-      handle.stop();
-    }
-  }
-
   String get encoding {
     if (_encoding == null) {
       _encoding = "${_uriKind.encoding}${_file.toURI().toString()}";
@@ -164,17 +155,6 @@ class FileBasedSource implements Source {
    */
   TimestampedData<String> get contentsFromFile {
     return new TimestampedData<String>(_file.lastModified(), _file.readAsStringSync());
-  }
-
-  /**
-   * Get the contents of underlying file and pass it to the given receiver.
-   *
-   * @param receiver the content receiver to which the content of this source will be passed
-   * @throws Exception if the contents of this source could not be accessed
-   * @see #getContentsToReceiver(ContentReceiver)
-   */
-  void getContentsFromFileToReceiver(Source_ContentReceiver receiver) {
-    throw new UnsupportedOperationException();
   }
 
   /**

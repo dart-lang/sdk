@@ -93,8 +93,6 @@ abstract class IndexOperation {
  * [IndexStore] which keeps full index in memory.
  */
 class MemoryIndexStoreImpl implements MemoryIndexStore {
-  static Object _WEAK_SET_VALUE = new Object();
-
   /**
    * When logging is on, [AnalysisEngine] actually creates
    * [InstrumentedAnalysisContextImpl], which wraps [AnalysisContextImpl] used to create
@@ -121,12 +119,6 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     }
     return library.source;
   }
-
-  /**
-   * We add [AnalysisContext] to this weak set to ensure that we don't continue to add
-   * relationships after some context was removed using [removeContext].
-   */
-  Expando _removedContexts = new Expando();
 
   /**
    * This map is used to canonicalize equal keys.
@@ -170,8 +162,8 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
 
   bool aboutToIndexDart(AnalysisContext context, CompilationUnitElement unitElement) {
     context = unwrapContext(context);
-    // may be already removed in other thread
-    if (_isRemovedContext(context)) {
+    // may be already disposed in other thread
+    if (context.isDisposed) {
       return false;
     }
     // validate unit
@@ -234,8 +226,8 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
 
   bool aboutToIndexHtml(AnalysisContext context, HtmlElement htmlElement) {
     context = unwrapContext(context);
-    // may be already removed in other thread
-    if (_isRemovedContext(context)) {
+    // may be already disposed in other thread
+    if (context.isDisposed) {
       return false;
     }
     // remove locations
@@ -333,11 +325,11 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     if (elementSource == null && element is! NameElementImpl && element is! UniverseElementImpl) {
       return;
     }
-    // may be already removed in other thread
-    if (_isRemovedContext(elementContext)) {
+    // may be already disposed in other thread
+    if (elementContext != null && elementContext.isDisposed) {
       return;
     }
-    if (_isRemovedContext(locationContext)) {
+    if (locationContext.isDisposed) {
       return;
     }
     // record: key -> location(s)
@@ -396,8 +388,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     if (context == null) {
       return;
     }
-    // mark as removed
-    _markRemovedContext(context);
+    // remove sources
     removeSources(context, null);
     // remove context
     _contextToSourceToKeys.remove(context);
@@ -487,18 +478,6 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
       _canonicalKeys[key] = canonicalKey;
     }
     return canonicalKey;
-  }
-
-  /**
-   * Checks if given [AnalysisContext] is marked as removed.
-   */
-  bool _isRemovedContext(AnalysisContext context) => _removedContexts[context] != null;
-
-  /**
-   * Marks given [AnalysisContext] as removed.
-   */
-  void _markRemovedContext(AnalysisContext context) {
-    _removedContexts[context] = true;
   }
 
   void _recordUnitInLibrary(AnalysisContext context, Source library, Source unit) {
@@ -760,72 +739,6 @@ class Relationship {
 }
 
 /**
- * Implementation of [Index].
- */
-class IndexImpl implements Index {
-  IndexStore _store;
-
-  OperationQueue _queue;
-
-  OperationProcessor _processor;
-
-  IndexImpl(IndexStore store, OperationQueue queue, OperationProcessor processor) {
-    this._store = store;
-    this._queue = queue;
-    this._processor = processor;
-  }
-
-  void getRelationships(Element element, Relationship relationship, RelationshipCallback callback) {
-    _queue.enqueue(new GetRelationshipsOperation(_store, element, relationship, callback));
-  }
-
-  String get statistics => _store.statistics;
-
-  void indexHtmlUnit(AnalysisContext context, ht.HtmlUnit unit) {
-    if (unit == null) {
-      return;
-    }
-    if (unit.element == null) {
-      return;
-    }
-    if (unit.element.angularCompilationUnit == null) {
-      return;
-    }
-    _queue.enqueue(new IndexHtmlUnitOperation(_store, context, unit));
-  }
-
-  void indexUnit(AnalysisContext context, CompilationUnit unit) {
-    if (unit == null) {
-      return;
-    }
-    if (unit.element == null) {
-      return;
-    }
-    _queue.enqueue(new IndexUnitOperation(_store, context, unit));
-  }
-
-  void removeContext(AnalysisContext context) {
-    _queue.enqueue(new RemoveContextOperation(_store, context));
-  }
-
-  void removeSource(AnalysisContext context, Source source) {
-    _queue.enqueue(new RemoveSourceOperation(_store, context, source));
-  }
-
-  void removeSources(AnalysisContext context, SourceContainer container) {
-    _queue.enqueue(new RemoveSourcesOperation(_store, context, container));
-  }
-
-  void run() {
-    _processor.run();
-  }
-
-  void stop() {
-    _processor.stop(false);
-  }
-}
-
-/**
  * Instances of the [RemoveSourcesOperation] implement an operation that removes from the
  * index any data based on the content of source belonging to a [SourceContainer].
  */
@@ -874,139 +787,6 @@ class RemoveSourcesOperation implements IndexOperation {
  */
 abstract class UniverseElement implements Element {
   static final UniverseElement INSTANCE = UniverseElementImpl.INSTANCE;
-}
-
-/**
- * Instances of the [OperationProcessor] process the operations on a single
- * [OperationQueue]. Each processor can be run one time on a single thread.
- */
-class OperationProcessor {
-  /**
-   * The queue containing the operations to be processed.
-   */
-  OperationQueue _queue;
-
-  /**
-   * The current state of the processor.
-   */
-  ProcessorState _state = ProcessorState.READY;
-
-  /**
-   * The number of milliseconds for which the thread on which the processor is running will wait for
-   * an operation to become available if there are no operations ready to be processed.
-   */
-  static int _WAIT_DURATION = 100;
-
-  /**
-   * Initialize a newly created operation processor to process the operations on the given queue.
-   *
-   * @param queue the queue containing the operations to be processed
-   */
-  OperationProcessor(OperationQueue queue) {
-    this._queue = queue;
-  }
-
-  /**
-   * Start processing operations. If the processor is already running on a different thread, then
-   * this method will return immediately with no effect. Otherwise, this method will not return
-   * until after the processor has been stopped from a different thread or until the thread running
-   * the processor has been interrupted.
-   */
-  void run() {
-    // This processor is, or was, already running on a different thread.
-    if (_state != ProcessorState.READY) {
-      throw new IllegalStateException("Operation processors can only be run one time");
-    }
-    // OK, run.
-    _state = ProcessorState.RUNNING;
-    try {
-      while (isRunning) {
-        // wait for operation
-        IndexOperation operation = null;
-        {
-          operation = _queue.dequeue(_WAIT_DURATION);
-        }
-        // perform operation
-        if (operation != null) {
-          try {
-            operation.performOperation();
-          } catch (exception) {
-            AnalysisEngine.instance.logger.logError2("Exception in indexing operation: ${operation}", exception);
-          }
-        }
-      }
-    } finally {
-      _state = ProcessorState.STOPPED;
-    }
-  }
-
-  /**
-   * Stop processing operations after the current operation has completed. If the argument is
-   * `true` then this method will wait until the last operation has completed; otherwise this
-   * method might return before the last operation has completed.
-   *
-   * @param wait `true` if this method will wait until the last operation has completed before
-   *          returning
-   * @return the library files for the libraries that need to be analyzed when a new session is
-   *         started.
-   */
-  List<Source> stop(bool wait) {
-    if (identical(_state, ProcessorState.READY)) {
-      _state = ProcessorState.STOPPED;
-      return unanalyzedSources;
-    } else if (identical(_state, ProcessorState.STOPPED)) {
-      return unanalyzedSources;
-    } else if (identical(_state, ProcessorState.RUNNING)) {
-      _state = ProcessorState.STOP_REQESTED;
-    }
-    while (wait) {
-      if (identical(_state, ProcessorState.STOPPED)) {
-        return unanalyzedSources;
-      }
-      _waitOneMs();
-    }
-    return unanalyzedSources;
-  }
-
-  /**
-   * Waits until processors will switch from "ready" to "running" state.
-   *
-   * @return `true` if processor is now actually in "running" state, e.g. not in "stopped"
-   *         state.
-   */
-  bool waitForRunning() {
-    while (identical(_state, ProcessorState.READY)) {
-      _threadYield();
-    }
-    return identical(_state, ProcessorState.RUNNING);
-  }
-
-  /**
-   * @return the [Source]s that are not indexed yet.
-   */
-  List<Source> get unanalyzedSources {
-    Set<Source> sources = new Set();
-    for (IndexOperation operation in _queue.operations) {
-      if (operation is IndexUnitOperation) {
-        Source source = operation.source;
-        sources.add(source);
-      }
-    }
-    return new List.from(sources);
-  }
-
-  /**
-   * Return `true` if the current state is [ProcessorState#RUNNING].
-   *
-   * @return `true` if this processor is running
-   */
-  bool get isRunning => identical(_state, ProcessorState.RUNNING);
-
-  void _threadYield() {
-  }
-
-  void _waitOneMs() {
-  }
 }
 
 /**
@@ -2328,154 +2108,6 @@ class IndexContributor_ImportElementInfo {
   ImportElement _element;
 
   int _periodEnd = 0;
-}
-
-/**
- * Factory for [Index] and [IndexStore].
- */
-class IndexFactory {
-  /**
-   * @return the new instance of [Index] which uses given [IndexStore].
-   */
-  static Index newIndex(IndexStore store) {
-    OperationQueue queue = new OperationQueue();
-    OperationProcessor processor = new OperationProcessor(queue);
-    return new IndexImpl(store, queue, processor);
-  }
-
-  /**
-   * @return the new instance of [MemoryIndexStore].
-   */
-  static MemoryIndexStore newMemoryIndexStore() => new MemoryIndexStoreImpl();
-}
-
-/**
- * Instances of the [OperationQueue] represent a queue of operations against the index that
- * are waiting to be performed.
- */
-class OperationQueue {
-  /**
-   * The non-query operations that are waiting to be performed.
-   */
-  Queue<IndexOperation> _nonQueryOperations = new Queue();
-
-  /**
-   * The query operations that are waiting to be performed.
-   */
-  Queue<IndexOperation> _queryOperations = new Queue();
-
-  /**
-   * `true` if query operations should be returned by [dequeue] or {code false}
-   * if not.
-   */
-  bool _processQueries = true;
-
-  /**
-   * If this queue is not empty, then remove the next operation from the head of this queue and
-   * return it. If this queue is empty (see [setProcessQueries], then the behavior
-   * of this method depends on the value of the argument. If the argument is less than or equal to
-   * zero (<code>0</code>), then `null` will be returned immediately. If the argument is
-   * greater than zero, then this method will wait until at least one operation has been added to
-   * this queue or until the given amount of time has passed. If, at the end of that time, this
-   * queue is empty, then `null` will be returned. If this queue is not empty, then the first
-   * operation will be removed and returned.
-   *
-   * Note that `null` can be returned, even if a positive timeout is given.
-   *
-   * Note too that this method's timeout is not treated the same way as the timeout value used for
-   * [Object#wait]. In particular, it is not possible to cause this method to wait for
-   * an indefinite period of time.
-   *
-   * @param timeout the maximum number of milliseconds to wait for an operation to be available
-   *          before giving up and returning `null`
-   * @return the operation that was removed from the queue
-   * @throws InterruptedException if the thread on which this method is running was interrupted
-   *           while it was waiting for an operation to be added to the queue
-   */
-  IndexOperation dequeue(int timeout) {
-    if (_nonQueryOperations.isEmpty && (!_processQueries || _queryOperations.isEmpty)) {
-      if (timeout <= 0) {
-        return null;
-      }
-      _waitForOperationAvailable(timeout);
-    }
-    if (!_nonQueryOperations.isEmpty) {
-      return _nonQueryOperations.removeFirst();
-    }
-    if (_processQueries && !_queryOperations.isEmpty) {
-      return _queryOperations.removeFirst();
-    }
-    return null;
-  }
-
-  /**
-   * Add the given operation to the tail of this queue.
-   *
-   * @param operation the operation to be added to the queue
-   */
-  void enqueue(IndexOperation operation) {
-    if (operation is RemoveSourceOperation) {
-      Source source = operation.source;
-      _removeForSource(source, _nonQueryOperations);
-      _removeForSource(source, _queryOperations);
-    }
-    if (operation.isQuery) {
-      _queryOperations.add(operation);
-    } else {
-      _nonQueryOperations.add(operation);
-    }
-    _notifyOperationAvailable();
-  }
-
-  /**
-   * Return a list containing all of the operations that are currently on the queue. Modifying this
-   * list will not affect the state of the queue.
-   *
-   * @return all of the operations that are currently on the queue
-   */
-  List<IndexOperation> get operations {
-    List<IndexOperation> operations = [];
-    operations.addAll(_nonQueryOperations);
-    operations.addAll(_queryOperations);
-    return operations;
-  }
-
-  /**
-   * Set whether the receiver's [dequeue] method should return query operations.
-   *
-   * @param processQueries `true` if the receiver's [dequeue] method should
-   *          return query operations or `false` if query operations should be queued but not
-   *          returned by the receiver's [dequeue] method until this method is called
-   *          with a value of `true`.
-   */
-  void set processQueries(bool processQueries) {
-    if (this._processQueries != processQueries) {
-      this._processQueries = processQueries;
-      if (processQueries && !_queryOperations.isEmpty) {
-        _notifyOperationAvailable();
-      }
-    }
-  }
-
-  /**
-   * Return the number of operations on the queue.
-   *
-   * @return the number of operations on the queue
-   */
-  int size() => _nonQueryOperations.length + _queryOperations.length;
-
-  void _notifyOperationAvailable() {
-  }
-
-  /**
-   * Removes operations that should be removed when given [Source] is removed.
-   */
-  void _removeForSource(Source source, Queue<IndexOperation> operations) {
-    operations.removeWhere((_) => _.removeWhenSourceRemoved(source));
-  }
-
-  void _waitForOperationAvailable(int timeout) {
-  }
 }
 
 /**
