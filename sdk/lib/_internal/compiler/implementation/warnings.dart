@@ -1155,14 +1155,6 @@ main() => A.A = 1;
   static const MessageKind MISSING_FACTORY_KEYWORD = const MessageKind(
       "Did you forget a factory keyword here?");
 
-  static const MessageKind DEFERRED_LIBRARY_NOT_FROM_MAIN =
-      const MessageKind(
-          "DeferredLibrary used as an annotation here, "
-          "but not used in the main library. Will not split the output.",
-          howToFix:
-            "Try adding a '@DeferredLibrary(...)' annotation in the main "
-            "library");
-
   static const MessageKind DEFERRED_LIBRARY_DART_2_DART =
       const MessageKind(
           "Deferred loading is not supported by the dart backend yet. "

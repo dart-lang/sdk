@@ -653,7 +653,6 @@ class DeferredLoadTask extends CompilerTask {
 
   void ensureMetadataResolved(Compiler compiler) {
     _allDeferredImports[_fakeMainImport] = compiler.mainApp;
-    bool deferredUsedFromMain = false;
     var lastDeferred;
     // When detecting duplicate prefixes of deferred libraries there are 4
     // cases of duplicate prefixes:
@@ -700,9 +699,6 @@ class DeferredLoadTask extends CompilerTask {
             }
             splitProgram = true;
             lastDeferred = import.metadata.first;
-            if (library == compiler.mainApp) {
-              deferredUsedFromMain = true;
-            }
           }
           if (prefix != null) {
             if (previousDeferredImport != null ||
@@ -724,12 +720,6 @@ class DeferredLoadTask extends CompilerTask {
       compiler.reportInfo(
           lastDeferred,
           MessageKind.DEFERRED_LIBRARY_DART_2_DART);
-    }
-    if (splitProgram && !deferredUsedFromMain) {
-      compiler.reportInfo(
-          lastDeferred,
-          MessageKind.DEFERRED_LIBRARY_NOT_FROM_MAIN);
-      splitProgram = false;
     }
   }
 }
