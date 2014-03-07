@@ -264,7 +264,7 @@ class Entrypoint {
     }
 
     // Look inside all of the top-level directories.
-    for (var dir in listDir(root.dir)) {
+    for (var dir in ordered(listDir(root.dir))) {
       var assetsPath = path.join(dir, "assets");
       var relative = path.relative(assetsPath, from: root.dir);
       if (dirExists(assetsPath)) {
