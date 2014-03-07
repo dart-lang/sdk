@@ -7,6 +7,9 @@ library mocks;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analysis_server/src/channel.dart';
+import 'package:analysis_server/src/protocol.dart';
+
 /**
  * A mock [WebSocket] for testing.
  */
@@ -45,4 +48,21 @@ class MockSocket<T> implements WebSocket {
   Stream<T> where(bool test(T)) => stream.where(test);
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/**
+ * A mock [ServerCommunicationChannel] channel that does nothing.
+ */
+class MockServerChannel implements ServerCommunicationChannel {
+  @override
+  void listen(void onRequest(Request request), {void onError(), void onDone()}) {
+  }
+
+  @override
+  void sendNotification(Notification notification) {
+  }
+
+  @override
+  void sendResponse(Response response) {
+  }
 }

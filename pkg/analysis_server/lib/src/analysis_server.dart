@@ -162,8 +162,8 @@ class AnalysisServer {
   void run() {
     if (!running) {
       running = true;
-      Timer.run(() {
-        performTask();
+      new Future(performTask).catchError((exception, stackTrace) {
+        AnalysisEngine.instance.logger.logError3(exception);
       });
     }
   }
