@@ -88,10 +88,18 @@ void runPub(String cacheDir, ArgResults options, List<String> arguments) {
       captureStackChains: captureStackChains).catchError((error, Chain chain) {
     // This is basically the top-level exception handler so that we don't
     // spew a stack trace on our users.
-    var message;
-
-    log.error(getErrorMessage(error));
+    var message = getErrorMessage(error);
+    log.error(message);
     log.fine("Exception type: ${error.runtimeType}");
+
+    if (log.json.enabled) {
+      if (error is UsageException) {
+        // Don't print usage info in JSON output.
+        log.json.error(error.message);
+      } else {
+        log.json.error(error);
+      }
+    }
 
     if (options['trace'] || !isUserFacingException(error)) {
       log.error(chain.terse);
@@ -131,7 +139,7 @@ int chooseExitCode(exception) {
   if (exception is HttpException || exception is HttpException ||
       exception is SocketException || exception is PubHttpException) {
     return exit_codes.UNAVAILABLE;
-  } else if (exception is FormatException) {
+  } else if (exception is FormatException || exception is DataException) {
     return exit_codes.DATA;
   } else if (exception is UsageException) {
     return exit_codes.USAGE;

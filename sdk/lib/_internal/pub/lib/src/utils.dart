@@ -859,7 +859,20 @@ class ApplicationException implements Exception {
 
 /// A class for command usage exceptions.
 class UsageException extends ApplicationException {
-  UsageException(String message)
+  /// The command usage information.
+  final String usage;
+
+  UsageException(String message, this.usage)
+      : super(message);
+
+  String toString() => "$message\n\n$usage";
+}
+
+/// A class for errors in a command's input data.
+///
+/// This corresponds to the [exit_codes.DATA] exit code.
+class DataException extends ApplicationException {
+  DataException(String message)
       : super(message);
 }
 

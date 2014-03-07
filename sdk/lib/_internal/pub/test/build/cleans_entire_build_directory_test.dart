@@ -21,11 +21,11 @@ main() {
 
     // Make a build directory containing "example".
     schedulePub(args: ["build", "example"],
-        output: new RegExp(r"Built 1 file!"));
+        output: new RegExp(r'Built 1 file to "build".'));
 
     // Now build again with just "test". Should wipe out "example".
     schedulePub(args: ["build", "test"],
-        output: new RegExp(r"Built 1 file!"));
+        output: new RegExp(r'Built 1 file to "build".'));
 
     d.dir(appPath, [
       d.dir('build', [

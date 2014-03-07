@@ -5,7 +5,6 @@
 library pub.command.list_package_dirs;
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:path/path.dart' as path;
 
@@ -27,10 +26,10 @@ class ListPackageDirsCommand extends PubCommand {
   }
 
   Future onRun() {
+    log.json.enabled = true;
+
     if (!entrypoint.lockFileExists) {
-      log.error(JSON.encode(
-          'Package "myapp" has no lockfile. Please run "pub get" first.'));
-      return flushThenExit(exit_codes.NO_INPUT);
+      dataError('Package "myapp" has no lockfile. Please run "pub get" first.');
     }
 
     var output = {};
@@ -55,7 +54,7 @@ class ListPackageDirsCommand extends PubCommand {
     output["input_files"] = [entrypoint.lockFilePath];
 
     return Future.wait(futures).then((_) {
-      log.message(JSON.encode(output));
+      log.json.message(output);
     });
   }
 }

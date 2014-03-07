@@ -15,7 +15,31 @@ main() {
     ]).create();
 
     schedulePub(args: ["build", "example", "--all"],
-        error: 'Build directory names are not allowed if "--all" is passed.',
+        error: '''
+            Build directory names are not allowed if "--all" is passed.
+
+            Usage: pub build [options]
+            -h, --help      Print usage information for this command.
+                --format    How output should be displayed.
+                            [text (default), json]
+
+                --mode      Mode to run transformers in.
+                            (defaults to "release")
+
+                --all       Build all buildable directories.''',
         exitCode: exit_codes.USAGE);
   });
+
+  integration("does not allow directory names with --all with JSON output", () {
+    d.dir(appPath, [
+      d.appPubspec()
+    ]).create();
+
+    schedulePub(args: ["build", "example", "--all", "--format", "json"],
+        outputJson: {
+          "error": 'Build directory names are not allowed if "--all" is passed.'
+        },
+        exitCode: exit_codes.USAGE);
+  });
+
 }

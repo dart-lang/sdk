@@ -47,6 +47,7 @@ abstract class PubCommand {
     buffer.writeln();
     buffer.writeln('Global options:');
     buffer.writeln(pubArgParser.getUsage());
+    buffer.writeln();
     buffer.write(_listCommands(mainCommands));
     buffer.writeln();
     buffer.writeln(
@@ -59,7 +60,7 @@ abstract class PubCommand {
   /// [commands].
   static void usageErrorWithCommands(Map<String, PubCommand> commands,
                                 String message) {
-    throw new UsageException("$message\n${_listCommands(commands)}");
+    throw new UsageException(message, _listCommands(commands));
   }
 
   /// Writes [commands] in a nicely formatted list to [buffer].
@@ -81,7 +82,6 @@ abstract class PubCommand {
     var isSubcommand = commands != mainCommands;
 
     var buffer = new StringBuffer();
-    buffer.writeln();
     buffer.writeln('Available ${isSubcommand ? "sub" : ""}commands:');
     for (var name in names) {
       buffer.writeln('  ${padRight(name, length)}   '
@@ -190,10 +190,18 @@ abstract class PubCommand {
   }
 
   // TODO(rnystrom): Use this in other places handle usage failures.
-  /// Throw an [ApplicationException] for a usage error of this command with
+  /// Throw a [UsageException] for a usage error of this command with
   /// [message].
   void usageError(String message) {
-    throw new UsageException("$message\n\n${_getUsage()}");
+    throw new UsageException(message, _getUsage());
+  }
+
+  /// Throw a [DataException] with [message] to indicate that the command has
+  /// failed because of invalid input data.
+  ///
+  /// This will report the error and cause pub to exit with [exit_codes.DATA].
+  void dataError(String message) {
+    throw new DataException(message);
   }
 
   /// Generates a string of usage information for this command.
@@ -203,8 +211,8 @@ abstract class PubCommand {
 
     var commandUsage = commandParser.getUsage();
     if (!commandUsage.isEmpty) {
-      buffer.write('\n');
-      buffer.write(commandUsage);
+      buffer.writeln();
+      buffer.writeln(commandUsage);
     }
 
     if (subcommands.isNotEmpty) {

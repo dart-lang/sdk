@@ -23,7 +23,7 @@ main() {
     ]).create();
 
     schedulePub(args: ["build", "example"],
-        output: new RegExp(r"Built 2 files!"));
+        output: new RegExp(r'Built 2 files to "build".'));
 
     d.dir(appPath, [
       d.dir('build', [

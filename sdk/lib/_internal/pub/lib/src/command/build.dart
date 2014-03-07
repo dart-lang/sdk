@@ -33,10 +33,10 @@ class BuildCommand extends PubCommand {
 
   // TODO(nweiz): make this configurable.
   /// The path to the application's build output directory.
-  String get target => path.join(entrypoint.root.dir, 'build');
+  String get target => 'build';
 
   /// The build mode.
-  BarbackMode get mode => new BarbackMode(commandOptions['mode']);
+  BarbackMode get mode => new BarbackMode(commandOptions["mode"]);
 
   /// The number of files that have been built and written to disc so far.
   int builtFiles = 0;
@@ -45,18 +45,25 @@ class BuildCommand extends PubCommand {
   final buildDirectories = new Set<String>();
 
   BuildCommand() {
-    commandParser.addOption('mode', defaultsTo: BarbackMode.RELEASE.toString(),
-        help: 'Mode to run transformers in.');
+    commandParser.addOption("format",
+        help: "How output should be displayed.",
+        allowed: ["text", "json"], defaultsTo: "text");
 
-    commandParser.addFlag('all', help: "Build all buildable directories.",
+    commandParser.addOption("mode", defaultsTo: BarbackMode.RELEASE.toString(),
+        help: "Mode to run transformers in.");
+
+    commandParser.addFlag("all", help: "Build all buildable directories.",
         defaultsTo: false, negatable: false);
   }
 
   Future onRun() {
-    var exitCode = _parseBuildDirectories();
-    if (exitCode != exit_codes.SUCCESS) return flushThenExit(exitCode);
+    log.json.enabled = commandOptions["format"] == "json";
 
+    _parseBuildDirectories();
     cleanDir(target);
+
+    var errorsJson = [];
+    var logJson = [];
 
     // Since this server will only be hit by the transformer loader and isn't
     // user-facing, just use an IPv4 address to avoid a weird bug on the
@@ -69,7 +76,22 @@ class BuildCommand extends PubCommand {
       // by getAllAssets().
       environment.barback.errors.listen((error) {
         log.error(log.red("Build error:\n$error"));
+
+        if (log.json.enabled) {
+          // Wrap the error in a map in case we end up decorating it with more
+          // properties later.
+          errorsJson.add({
+            "error": error.toString()
+          });
+        }
       });
+
+      // If we're using JSON output, the regular server logging is disabled.
+      // Instead, we collect it here to include in the final JSON result.
+      if (log.json.enabled) {
+        environment.barback.log.listen(
+            (entry) => logJson.add(_logEntryToJson(entry)));
+      }
 
       return log.progress("Building ${entrypoint.root.name}",
           () => environment.barback.getAllAssets()).then((assets) {
@@ -80,7 +102,15 @@ class BuildCommand extends PubCommand {
 
         return Future.wait(assets.map(_writeAsset)).then((_) {
           builtFiles += _copyBrowserJsFiles(dart2JSEntrypoints);
-          log.message("Built $builtFiles ${pluralize('file', builtFiles)}!");
+          log.message('Built $builtFiles ${pluralize('file', builtFiles)} '
+              'to "$target".');
+
+          log.json.message({
+            "buildResult": "success",
+            "outputDirectory": target,
+            "numFiles": builtFiles,
+            "log": logJson
+          });
         });
       });
     }).catchError((error) {
@@ -89,6 +119,12 @@ class BuildCommand extends PubCommand {
       if (error is! BarbackException) throw error;
 
       log.error(log.red("Build failed."));
+      log.json.message({
+        "buildResult": "failure",
+        "errors": errorsJson,
+        "log": logJson
+      });
+
       return flushThenExit(exit_codes.DATA);
     });
   }
@@ -103,13 +139,12 @@ class BuildCommand extends PubCommand {
   ///
   /// Otherwise, all arguments should be the names of directories to include.
   ///
-  /// Returns the exit code of an error, or zero if it parsed correctly.
-  int _parseBuildDirectories() {
+  /// Throws an exception if the arguments are invalid.
+  void _parseBuildDirectories() {
     if (commandOptions["all"]) {
       if (commandOptions.rest.isNotEmpty) {
-        log.error(
+        usageError(
             'Build directory names are not allowed if "--all" is passed.');
-        return exit_codes.USAGE;
       }
 
       // Include every build directory that exists in the package.
@@ -119,13 +154,12 @@ class BuildCommand extends PubCommand {
       if (allowed.isEmpty) {
         var buildDirs = toSentence(ordered(_allowedBuildDirectories.map(
             (name) => '"$name"')));
-        log.error('There are no buildable directories.\n'
+        dataError('There are no buildable directories.\n'
                   'The supported directories are $buildDirs.');
-        return exit_codes.DATA;
       }
 
       buildDirectories.addAll(allowed);
-      return exit_codes.SUCCESS;
+      return;
     }
 
     buildDirectories.addAll(commandOptions.rest);
@@ -144,9 +178,8 @@ class BuildCommand extends PubCommand {
       var names = toSentence(ordered(disallowed).map((name) => '"$name"'));
       var allowed = toSentence(ordered(_allowedBuildDirectories.map(
           (name) => '"$name"')));
-      log.error('Unsupported build $dirs $names.\n'
-                'The allowed directories are $allowed.');
-      return exit_codes.USAGE;
+      usageError('Unsupported build $dirs $names.\n'
+                 'The allowed directories are $allowed.');
     }
 
     // Make sure all of the build directories exist.
@@ -154,15 +187,11 @@ class BuildCommand extends PubCommand {
         (dir) => !dirExists(path.join(entrypoint.root.dir, dir)));
 
     if (missing.length == 1) {
-      log.error('Directory "${missing.single}" does not exist.');
-      return exit_codes.DATA;
+      dataError('Directory "${missing.single}" does not exist.');
     } else if (missing.isNotEmpty) {
       var names = toSentence(ordered(missing).map((name) => '"$name"'));
-      log.error('Directories $names do not exist.');
-      return exit_codes.DATA;
+      dataError('Directories $names do not exist.');
     }
-
-    return exit_codes.SUCCESS;
   }
 
   /// Writes [asset] to the appropriate build directory.
@@ -277,7 +306,7 @@ class BuildCommand extends PubCommand {
   /// Ensures that the [name].js file is copied into [directory] in [target],
   /// under `packages/browser/`.
   void _addBrowserJs(String directory, String name) {
-    var jsPath = path.join(
+    var jsPath = path.join(entrypoint.root.dir,
         target, directory, 'packages', 'browser', '$name.js');
     ensureDir(path.dirname(jsPath));
 
@@ -285,5 +314,40 @@ class BuildCommand extends PubCommand {
     // level "packages" directory. Will need to copy from the browser
     // directory.
     copyFile(path.join(entrypoint.packagesDir, 'browser', '$name.js'), jsPath);
+  }
+
+  /// Converts [entry] to a JSON object for use with JSON-formatted output.
+  Map _logEntryToJson(LogEntry entry) {
+    var data = {
+      "level": entry.level.name,
+      "transformer": {
+        "name": entry.transform.transformer.toString(),
+        "primaryInput": {
+          "package": entry.transform.primaryId.package,
+          "path": entry.transform.primaryId.path
+        },
+      },
+      "assetId": {
+        "package": entry.assetId.package,
+        "path": entry.assetId.path
+      },
+      "message": entry.message
+    };
+
+    if (entry.span != null) {
+      data["span"] = {
+        "url": entry.span.sourceUrl,
+        "start": {
+          "line": entry.span.start.line,
+          "column": entry.span.start.column
+        },
+        "end": {
+          "line": entry.span.end.line,
+          "column": entry.span.end.column
+        },
+      };
+    }
+
+    return data;
   }
 }

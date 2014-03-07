@@ -381,8 +381,11 @@ void scheduleSymlink(String target, String symlink) {
 /// Schedules a call to the Pub command-line utility.
 ///
 /// Runs Pub with [args] and validates that its results match [output] (or
-/// [outputJson]), [error], and [exitCode]. If [outputJson] is given, validates
-/// that pub outputs stringified JSON matching that object.
+/// [outputJson]), [error], and [exitCode].
+///
+/// If [outputJson] is given, validates that pub outputs stringified JSON
+/// matching that object, which can be a literal JSON object or any other
+/// [Matcher].
 void schedulePub({List args, Pattern output, Pattern error, outputJson,
     Future<Uri> tokenEndpoint, int exitCode: exit_codes.SUCCESS}) {
   // Cannot pass both output and outputJson.
@@ -812,6 +815,8 @@ void _validateOutputString(List<String> failures, String pipe,
   }
 }
 
+/// Validates that [actualText] is a string of JSON that matches [expected],
+/// which may be a literal JSON object, or any other [Matcher].
 void _validateOutputJson(List<String> failures, String pipe,
                          expected, String actualText) {
   var actual;
@@ -824,8 +829,8 @@ void _validateOutputJson(List<String> failures, String pipe,
     failures.add(actualText);
   }
 
-  // Do a deep comparison of the JSON objects.
-  expect(actual, equals(expected));
+  // Match against the expectation.
+  expect(actual, expected);
 }
 
 /// A function that creates a [Validator] subclass.

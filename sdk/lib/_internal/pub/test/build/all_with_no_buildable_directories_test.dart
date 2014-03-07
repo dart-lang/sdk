@@ -18,4 +18,16 @@ main() {
                '"test" and "web".',
         exitCode: exit_codes.DATA);
   });
+
+  integration("build --all --format json with no buildable directories", () {
+    d.appDir().create();
+
+    schedulePub(args: ["build", "--all", "--format", "json"],
+        outputJson: {'error':
+          'There are no buildable directories.\n'
+          'The supported directories are "benchmark", "bin", "example", '
+          '"test" and "web".'
+        },
+        exitCode: exit_codes.DATA);
+  });
 }

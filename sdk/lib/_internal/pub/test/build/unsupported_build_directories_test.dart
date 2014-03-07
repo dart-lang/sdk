@@ -13,9 +13,33 @@ main() {
     d.appDir().create();
 
     schedulePub(args: ["build", "foo", "bar"],
-        error: 'Unsupported build directories "bar" and "foo".\n'
-               'The allowed directories are "benchmark", "bin", "example", '
-                   '"test" and "web".',
+        error: '''
+            Unsupported build directories "bar" and "foo".
+            The allowed directories are "benchmark", "bin", "example", "test" and "web".
+
+            Usage: pub build [options]
+            -h, --help      Print usage information for this command.
+                --format    How output should be displayed.
+                            [text (default), json]
+
+                --mode      Mode to run transformers in.
+                            (defaults to "release")
+
+                --all       Build all buildable directories.''',
+        exitCode: exit_codes.USAGE);
+  });
+
+  integration("fails if given directories are not buildable with json "
+      "output", () {
+    d.appDir().create();
+
+    schedulePub(args: ["build", "foo", "bar", "--format", "json"],
+        outputJson: {
+          "error":
+            'Unsupported build directories "bar" and "foo".\n'
+            'The allowed directories are "benchmark", "bin", "example", '
+                '"test" and "web".'
+        },
         exitCode: exit_codes.USAGE);
   });
 }

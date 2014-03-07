@@ -27,7 +27,7 @@ main() {
     ]).create();
 
     schedulePub(args: ["build"],
-        output: new RegExp(r"Built 6 files!"));
+        output: new RegExp(r'Built 6 files to "build".'));
 
     d.dir(appPath, [
       d.dir('build', [
