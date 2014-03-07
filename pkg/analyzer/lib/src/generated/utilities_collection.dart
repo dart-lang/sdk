@@ -24,7 +24,7 @@ class BooleanArray {
    * @throws IndexOutOfBoundsException if the index is not between zero (0) and 31, inclusive
    */
   static bool get(int array, int index) {
-    checkIndex(index);
+    _checkIndex(index);
     return (array & (1 << index)) > 0;
   }
 
@@ -48,7 +48,7 @@ class BooleanArray {
    * @throws IndexOutOfBoundsException if the index is not between zero (0) and 31, inclusive
    */
   static int set(int array, int index, bool value) {
-    checkIndex(index);
+    _checkIndex(index);
     if (value) {
       return array | (1 << index);
     } else {
@@ -73,7 +73,7 @@ class BooleanArray {
    *
    * @throws IndexOutOfBoundsException if the index is not between zero (0) and 31, inclusive
    */
-  static void checkIndex(int index) {
+  static void _checkIndex(int index) {
     if (index < 0 || index > 30) {
       throw new RangeError("Index not between 0 and 30: ${index}");
     }

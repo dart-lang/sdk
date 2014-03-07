@@ -41,83 +41,83 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_computeStringValue_emptyInterpolationPrefix() {
-    JUnitTestCase.assertEquals("", computeStringValue("'''", true, false));
+    JUnitTestCase.assertEquals("", _computeStringValue("'''", true, false));
   }
 
   void test_computeStringValue_escape_b() {
-    JUnitTestCase.assertEquals("\b", computeStringValue("'\\b'", true, true));
+    JUnitTestCase.assertEquals("\b", _computeStringValue("'\\b'", true, true));
   }
 
   void test_computeStringValue_escape_f() {
-    JUnitTestCase.assertEquals("\f", computeStringValue("'\\f'", true, true));
+    JUnitTestCase.assertEquals("\f", _computeStringValue("'\\f'", true, true));
   }
 
   void test_computeStringValue_escape_n() {
-    JUnitTestCase.assertEquals("\n", computeStringValue("'\\n'", true, true));
+    JUnitTestCase.assertEquals("\n", _computeStringValue("'\\n'", true, true));
   }
 
   void test_computeStringValue_escape_notSpecial() {
-    JUnitTestCase.assertEquals(":", computeStringValue("'\\:'", true, true));
+    JUnitTestCase.assertEquals(":", _computeStringValue("'\\:'", true, true));
   }
 
   void test_computeStringValue_escape_r() {
-    JUnitTestCase.assertEquals("\r", computeStringValue("'\\r'", true, true));
+    JUnitTestCase.assertEquals("\r", _computeStringValue("'\\r'", true, true));
   }
 
   void test_computeStringValue_escape_t() {
-    JUnitTestCase.assertEquals("\t", computeStringValue("'\\t'", true, true));
+    JUnitTestCase.assertEquals("\t", _computeStringValue("'\\t'", true, true));
   }
 
   void test_computeStringValue_escape_u_fixed() {
-    JUnitTestCase.assertEquals("\u4321", computeStringValue("'\\u4321'", true, true));
+    JUnitTestCase.assertEquals("\u4321", _computeStringValue("'\\u4321'", true, true));
   }
 
   void test_computeStringValue_escape_u_variable() {
-    JUnitTestCase.assertEquals("\u0123", computeStringValue("'\\u{123}'", true, true));
+    JUnitTestCase.assertEquals("\u0123", _computeStringValue("'\\u{123}'", true, true));
   }
 
   void test_computeStringValue_escape_v() {
-    JUnitTestCase.assertEquals("\u000B", computeStringValue("'\\v'", true, true));
+    JUnitTestCase.assertEquals("\u000B", _computeStringValue("'\\v'", true, true));
   }
 
   void test_computeStringValue_escape_x() {
-    JUnitTestCase.assertEquals("\u00FF", computeStringValue("'\\xFF'", true, true));
+    JUnitTestCase.assertEquals("\u00FF", _computeStringValue("'\\xFF'", true, true));
   }
 
   void test_computeStringValue_noEscape_single() {
-    JUnitTestCase.assertEquals("text", computeStringValue("'text'", true, true));
+    JUnitTestCase.assertEquals("text", _computeStringValue("'text'", true, true));
   }
 
   void test_computeStringValue_noEscape_triple() {
-    JUnitTestCase.assertEquals("text", computeStringValue("'''text'''", true, true));
+    JUnitTestCase.assertEquals("text", _computeStringValue("'''text'''", true, true));
   }
 
   void test_computeStringValue_raw_single() {
-    JUnitTestCase.assertEquals("text", computeStringValue("r'text'", true, true));
+    JUnitTestCase.assertEquals("text", _computeStringValue("r'text'", true, true));
   }
 
   void test_computeStringValue_raw_triple() {
-    JUnitTestCase.assertEquals("text", computeStringValue("r'''text'''", true, true));
+    JUnitTestCase.assertEquals("text", _computeStringValue("r'''text'''", true, true));
   }
 
   void test_computeStringValue_raw_withEscape() {
-    JUnitTestCase.assertEquals("two\\nlines", computeStringValue("r'two\\nlines'", true, true));
+    JUnitTestCase.assertEquals("two\\nlines", _computeStringValue("r'two\\nlines'", true, true));
   }
 
   void test_computeStringValue_triple_internalQuote_first_empty() {
-    JUnitTestCase.assertEquals("'", computeStringValue("''''", true, false));
+    JUnitTestCase.assertEquals("'", _computeStringValue("''''", true, false));
   }
 
   void test_computeStringValue_triple_internalQuote_first_nonEmpty() {
-    JUnitTestCase.assertEquals("'text", computeStringValue("''''text", true, false));
+    JUnitTestCase.assertEquals("'text", _computeStringValue("''''text", true, false));
   }
 
   void test_computeStringValue_triple_internalQuote_last_empty() {
-    JUnitTestCase.assertEquals("", computeStringValue("'''", false, true));
+    JUnitTestCase.assertEquals("", _computeStringValue("'''", false, true));
   }
 
   void test_computeStringValue_triple_internalQuote_last_nonEmpty() {
-    JUnitTestCase.assertEquals("text", computeStringValue("text'''", false, true));
+    JUnitTestCase.assertEquals("text", _computeStringValue("text'''", false, true));
   }
 
   void test_constFactory() {
@@ -125,174 +125,174 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_createSyntheticIdentifier() {
-    SimpleIdentifier identifier = createSyntheticIdentifier();
+    SimpleIdentifier identifier = _createSyntheticIdentifier();
     JUnitTestCase.assertTrue(identifier.isSynthetic);
   }
 
   void test_createSyntheticStringLiteral() {
-    SimpleStringLiteral literal = createSyntheticStringLiteral();
+    SimpleStringLiteral literal = _createSyntheticStringLiteral();
     JUnitTestCase.assertTrue(literal.isSynthetic);
   }
 
   void test_isFunctionDeclaration_nameButNoReturn_block() {
-    JUnitTestCase.assertTrue(isFunctionDeclaration("f() {}"));
+    JUnitTestCase.assertTrue(_isFunctionDeclaration("f() {}"));
   }
 
   void test_isFunctionDeclaration_nameButNoReturn_expression() {
-    JUnitTestCase.assertTrue(isFunctionDeclaration("f() => e"));
+    JUnitTestCase.assertTrue(_isFunctionDeclaration("f() => e"));
   }
 
   void test_isFunctionDeclaration_normalReturn_block() {
-    JUnitTestCase.assertTrue(isFunctionDeclaration("C f() {}"));
+    JUnitTestCase.assertTrue(_isFunctionDeclaration("C f() {}"));
   }
 
   void test_isFunctionDeclaration_normalReturn_expression() {
-    JUnitTestCase.assertTrue(isFunctionDeclaration("C f() => e"));
+    JUnitTestCase.assertTrue(_isFunctionDeclaration("C f() => e"));
   }
 
   void test_isFunctionDeclaration_voidReturn_block() {
-    JUnitTestCase.assertTrue(isFunctionDeclaration("void f() {}"));
+    JUnitTestCase.assertTrue(_isFunctionDeclaration("void f() {}"));
   }
 
   void test_isFunctionDeclaration_voidReturn_expression() {
-    JUnitTestCase.assertTrue(isFunctionDeclaration("void f() => e"));
+    JUnitTestCase.assertTrue(_isFunctionDeclaration("void f() => e"));
   }
 
   void test_isFunctionExpression_false_noBody() {
-    JUnitTestCase.assertFalse(isFunctionExpression("f();"));
+    JUnitTestCase.assertFalse(_isFunctionExpression("f();"));
   }
 
   void test_isFunctionExpression_false_notParameters() {
-    JUnitTestCase.assertFalse(isFunctionExpression("(a + b) {"));
+    JUnitTestCase.assertFalse(_isFunctionExpression("(a + b) {"));
   }
 
   void test_isFunctionExpression_noName_block() {
-    JUnitTestCase.assertTrue(isFunctionExpression("() {}"));
+    JUnitTestCase.assertTrue(_isFunctionExpression("() {}"));
   }
 
   void test_isFunctionExpression_noName_expression() {
-    JUnitTestCase.assertTrue(isFunctionExpression("() => e"));
+    JUnitTestCase.assertTrue(_isFunctionExpression("() => e"));
   }
 
   void test_isFunctionExpression_parameter_final() {
-    JUnitTestCase.assertTrue(isFunctionExpression("(final a) {}"));
-    JUnitTestCase.assertTrue(isFunctionExpression("(final a, b) {}"));
-    JUnitTestCase.assertTrue(isFunctionExpression("(final a, final b) {}"));
+    JUnitTestCase.assertTrue(_isFunctionExpression("(final a) {}"));
+    JUnitTestCase.assertTrue(_isFunctionExpression("(final a, b) {}"));
+    JUnitTestCase.assertTrue(_isFunctionExpression("(final a, final b) {}"));
   }
 
   void test_isFunctionExpression_parameter_final_typed() {
-    JUnitTestCase.assertTrue(isFunctionExpression("(final int a) {}"));
-    JUnitTestCase.assertTrue(isFunctionExpression("(final prefix.List a) {}"));
-    JUnitTestCase.assertTrue(isFunctionExpression("(final List<int> a) {}"));
-    JUnitTestCase.assertTrue(isFunctionExpression("(final prefix.List<int> a) {}"));
+    JUnitTestCase.assertTrue(_isFunctionExpression("(final int a) {}"));
+    JUnitTestCase.assertTrue(_isFunctionExpression("(final prefix.List a) {}"));
+    JUnitTestCase.assertTrue(_isFunctionExpression("(final List<int> a) {}"));
+    JUnitTestCase.assertTrue(_isFunctionExpression("(final prefix.List<int> a) {}"));
   }
 
   void test_isFunctionExpression_parameter_multiple() {
-    JUnitTestCase.assertTrue(isFunctionExpression("(a, b) {}"));
+    JUnitTestCase.assertTrue(_isFunctionExpression("(a, b) {}"));
   }
 
   void test_isFunctionExpression_parameter_named() {
-    JUnitTestCase.assertTrue(isFunctionExpression("({a}) {}"));
+    JUnitTestCase.assertTrue(_isFunctionExpression("({a}) {}"));
   }
 
   void test_isFunctionExpression_parameter_optional() {
-    JUnitTestCase.assertTrue(isFunctionExpression("([a]) {}"));
+    JUnitTestCase.assertTrue(_isFunctionExpression("([a]) {}"));
   }
 
   void test_isFunctionExpression_parameter_single() {
-    JUnitTestCase.assertTrue(isFunctionExpression("(a) {}"));
+    JUnitTestCase.assertTrue(_isFunctionExpression("(a) {}"));
   }
 
   void test_isFunctionExpression_parameter_typed() {
-    JUnitTestCase.assertTrue(isFunctionExpression("(int a, int b) {}"));
+    JUnitTestCase.assertTrue(_isFunctionExpression("(int a, int b) {}"));
   }
 
   void test_isInitializedVariableDeclaration_assignment() {
-    JUnitTestCase.assertFalse(isInitializedVariableDeclaration("a = null;"));
+    JUnitTestCase.assertFalse(_isInitializedVariableDeclaration("a = null;"));
   }
 
   void test_isInitializedVariableDeclaration_comparison() {
-    JUnitTestCase.assertFalse(isInitializedVariableDeclaration("a < 0;"));
+    JUnitTestCase.assertFalse(_isInitializedVariableDeclaration("a < 0;"));
   }
 
   void test_isInitializedVariableDeclaration_conditional() {
-    JUnitTestCase.assertFalse(isInitializedVariableDeclaration("a == null ? init() : update();"));
+    JUnitTestCase.assertFalse(_isInitializedVariableDeclaration("a == null ? init() : update();"));
   }
 
   void test_isInitializedVariableDeclaration_const_noType_initialized() {
-    JUnitTestCase.assertTrue(isInitializedVariableDeclaration("const a = 0;"));
+    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("const a = 0;"));
   }
 
   void test_isInitializedVariableDeclaration_const_noType_uninitialized() {
-    JUnitTestCase.assertTrue(isInitializedVariableDeclaration("const a;"));
+    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("const a;"));
   }
 
   void test_isInitializedVariableDeclaration_const_simpleType_uninitialized() {
-    JUnitTestCase.assertTrue(isInitializedVariableDeclaration("const A a;"));
+    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("const A a;"));
   }
 
   void test_isInitializedVariableDeclaration_final_noType_initialized() {
-    JUnitTestCase.assertTrue(isInitializedVariableDeclaration("final a = 0;"));
+    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("final a = 0;"));
   }
 
   void test_isInitializedVariableDeclaration_final_noType_uninitialized() {
-    JUnitTestCase.assertTrue(isInitializedVariableDeclaration("final a;"));
+    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("final a;"));
   }
 
   void test_isInitializedVariableDeclaration_final_simpleType_initialized() {
-    JUnitTestCase.assertTrue(isInitializedVariableDeclaration("final A a = 0;"));
+    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("final A a = 0;"));
   }
 
   void test_isInitializedVariableDeclaration_functionDeclaration_typed() {
-    JUnitTestCase.assertFalse(isInitializedVariableDeclaration("A f() {};"));
+    JUnitTestCase.assertFalse(_isInitializedVariableDeclaration("A f() {};"));
   }
 
   void test_isInitializedVariableDeclaration_functionDeclaration_untyped() {
-    JUnitTestCase.assertFalse(isInitializedVariableDeclaration("f() {};"));
+    JUnitTestCase.assertFalse(_isInitializedVariableDeclaration("f() {};"));
   }
 
   void test_isInitializedVariableDeclaration_noType_initialized() {
-    JUnitTestCase.assertTrue(isInitializedVariableDeclaration("var a = 0;"));
+    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("var a = 0;"));
   }
 
   void test_isInitializedVariableDeclaration_noType_uninitialized() {
-    JUnitTestCase.assertTrue(isInitializedVariableDeclaration("var a;"));
+    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("var a;"));
   }
 
   void test_isInitializedVariableDeclaration_parameterizedType_initialized() {
-    JUnitTestCase.assertTrue(isInitializedVariableDeclaration("List<int> a = null;"));
+    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("List<int> a = null;"));
   }
 
   void test_isInitializedVariableDeclaration_parameterizedType_uninitialized() {
-    JUnitTestCase.assertTrue(isInitializedVariableDeclaration("List<int> a;"));
+    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("List<int> a;"));
   }
 
   void test_isInitializedVariableDeclaration_simpleType_initialized() {
-    JUnitTestCase.assertTrue(isInitializedVariableDeclaration("A a = 0;"));
+    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("A a = 0;"));
   }
 
   void test_isInitializedVariableDeclaration_simpleType_uninitialized() {
-    JUnitTestCase.assertTrue(isInitializedVariableDeclaration("A a;"));
+    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("A a;"));
   }
 
   void test_isSwitchMember_case_labeled() {
-    JUnitTestCase.assertTrue(isSwitchMember("l1: l2: case"));
+    JUnitTestCase.assertTrue(_isSwitchMember("l1: l2: case"));
   }
 
   void test_isSwitchMember_case_unlabeled() {
-    JUnitTestCase.assertTrue(isSwitchMember("case"));
+    JUnitTestCase.assertTrue(_isSwitchMember("case"));
   }
 
   void test_isSwitchMember_default_labeled() {
-    JUnitTestCase.assertTrue(isSwitchMember("l1: l2: default"));
+    JUnitTestCase.assertTrue(_isSwitchMember("l1: l2: default"));
   }
 
   void test_isSwitchMember_default_unlabeled() {
-    JUnitTestCase.assertTrue(isSwitchMember("default"));
+    JUnitTestCase.assertTrue(_isSwitchMember("default"));
   }
 
   void test_isSwitchMember_false() {
-    JUnitTestCase.assertFalse(isSwitchMember("break;"));
+    JUnitTestCase.assertFalse(_isSwitchMember("break;"));
   }
 
   void test_parseAdditiveExpression_normal() {
@@ -1534,7 +1534,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCompilationUnit_skipFunctionBody_withInterpolation() {
-    ParserTestCase._parseFunctionBodies = false;
+    ParserTestCase.parseFunctionBodies = false;
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "f() { '\${n}'; }", []);
     JUnitTestCase.assertNull(unit.scriptTag);
     EngineTestCase.assertSizeOfList(1, unit.declarations);
@@ -2567,19 +2567,19 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseFunctionBody_skip_block() {
-    ParserTestCase._parseFunctionBodies = false;
+    ParserTestCase.parseFunctionBodies = false;
     FunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "{}");
     EngineTestCase.assertInstanceOf((obj) => obj is EmptyFunctionBody, EmptyFunctionBody, functionBody);
   }
 
   void test_parseFunctionBody_skip_blocks() {
-    ParserTestCase._parseFunctionBodies = false;
+    ParserTestCase.parseFunctionBodies = false;
     FunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "{ {} }");
     EngineTestCase.assertInstanceOf((obj) => obj is EmptyFunctionBody, EmptyFunctionBody, functionBody);
   }
 
   void test_parseFunctionBody_skip_expression() {
-    ParserTestCase._parseFunctionBodies = false;
+    ParserTestCase.parseFunctionBodies = false;
     FunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "=> y;");
     EngineTestCase.assertInstanceOf((obj) => obj is EmptyFunctionBody, EmptyFunctionBody, functionBody);
   }
@@ -4352,109 +4352,109 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_skipPrefixedIdentifier_invalid() {
-    Token following = skip("skipPrefixedIdentifier", "+");
+    Token following = _skip("skipPrefixedIdentifier", "+");
     JUnitTestCase.assertNull(following);
   }
 
   void test_skipPrefixedIdentifier_notPrefixed() {
-    Token following = skip("skipPrefixedIdentifier", "a +");
+    Token following = _skip("skipPrefixedIdentifier", "a +");
     JUnitTestCase.assertNotNull(following);
     JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
   }
 
   void test_skipPrefixedIdentifier_prefixed() {
-    Token following = skip("skipPrefixedIdentifier", "a.b +");
+    Token following = _skip("skipPrefixedIdentifier", "a.b +");
     JUnitTestCase.assertNotNull(following);
     JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
   }
 
   void test_skipReturnType_invalid() {
-    Token following = skip("skipReturnType", "+");
+    Token following = _skip("skipReturnType", "+");
     JUnitTestCase.assertNull(following);
   }
 
   void test_skipReturnType_type() {
-    Token following = skip("skipReturnType", "C +");
+    Token following = _skip("skipReturnType", "C +");
     JUnitTestCase.assertNotNull(following);
     JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
   }
 
   void test_skipReturnType_void() {
-    Token following = skip("skipReturnType", "void +");
+    Token following = _skip("skipReturnType", "void +");
     JUnitTestCase.assertNotNull(following);
     JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
   }
 
   void test_skipSimpleIdentifier_identifier() {
-    Token following = skip("skipSimpleIdentifier", "i +");
+    Token following = _skip("skipSimpleIdentifier", "i +");
     JUnitTestCase.assertNotNull(following);
     JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
   }
 
   void test_skipSimpleIdentifier_invalid() {
-    Token following = skip("skipSimpleIdentifier", "9 +");
+    Token following = _skip("skipSimpleIdentifier", "9 +");
     JUnitTestCase.assertNull(following);
   }
 
   void test_skipSimpleIdentifier_pseudoKeyword() {
-    Token following = skip("skipSimpleIdentifier", "as +");
+    Token following = _skip("skipSimpleIdentifier", "as +");
     JUnitTestCase.assertNotNull(following);
     JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
   }
 
   void test_skipStringLiteral_adjacent() {
-    Token following = skip("skipStringLiteral", "'a' 'b' +");
+    Token following = _skip("skipStringLiteral", "'a' 'b' +");
     JUnitTestCase.assertNotNull(following);
     JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
   }
 
   void test_skipStringLiteral_interpolated() {
-    Token following = skip("skipStringLiteral", "'a\${b}c' +");
+    Token following = _skip("skipStringLiteral", "'a\${b}c' +");
     JUnitTestCase.assertNotNull(following);
     JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
   }
 
   void test_skipStringLiteral_invalid() {
-    Token following = skip("skipStringLiteral", "a");
+    Token following = _skip("skipStringLiteral", "a");
     JUnitTestCase.assertNull(following);
   }
 
   void test_skipStringLiteral_single() {
-    Token following = skip("skipStringLiteral", "'a' +");
+    Token following = _skip("skipStringLiteral", "'a' +");
     JUnitTestCase.assertNotNull(following);
     JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
   }
 
   void test_skipTypeArgumentList_invalid() {
-    Token following = skip("skipTypeArgumentList", "+");
+    Token following = _skip("skipTypeArgumentList", "+");
     JUnitTestCase.assertNull(following);
   }
 
   void test_skipTypeArgumentList_multiple() {
-    Token following = skip("skipTypeArgumentList", "<E, F, G> +");
+    Token following = _skip("skipTypeArgumentList", "<E, F, G> +");
     JUnitTestCase.assertNotNull(following);
     JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
   }
 
   void test_skipTypeArgumentList_single() {
-    Token following = skip("skipTypeArgumentList", "<E> +");
+    Token following = _skip("skipTypeArgumentList", "<E> +");
     JUnitTestCase.assertNotNull(following);
     JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
   }
 
   void test_skipTypeName_invalid() {
-    Token following = skip("skipTypeName", "+");
+    Token following = _skip("skipTypeName", "+");
     JUnitTestCase.assertNull(following);
   }
 
   void test_skipTypeName_parameterized() {
-    Token following = skip("skipTypeName", "C<E<F<G>>> +");
+    Token following = _skip("skipTypeName", "C<E<F<G>>> +");
     JUnitTestCase.assertNotNull(following);
     JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
   }
 
   void test_skipTypeName_simple() {
-    Token following = skip("skipTypeName", "C +");
+    Token following = _skip("skipTypeName", "C +");
     JUnitTestCase.assertNotNull(following);
     JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
   }
@@ -4468,7 +4468,7 @@ class SimpleParserTest extends ParserTestCase {
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
    */
-  String computeStringValue(String lexeme, bool first, bool last) {
+  String _computeStringValue(String lexeme, bool first, bool last) {
     AnalysisErrorListener listener = new AnalysisErrorListener_SimpleParserTest_computeStringValue();
     Parser parser = new Parser(null, listener);
     return invokeParserMethodImpl(parser, "computeStringValue", <Object> [lexeme, first, last], null) as String;
@@ -4482,7 +4482,7 @@ class SimpleParserTest extends ParserTestCase {
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
    */
-  SimpleIdentifier createSyntheticIdentifier() {
+  SimpleIdentifier _createSyntheticIdentifier() {
     GatheringErrorListener listener = new GatheringErrorListener();
     return ParserTestCase.invokeParserMethod2("createSyntheticIdentifier", "", listener);
   }
@@ -4495,7 +4495,7 @@ class SimpleParserTest extends ParserTestCase {
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
    */
-  SimpleStringLiteral createSyntheticStringLiteral() {
+  SimpleStringLiteral _createSyntheticStringLiteral() {
     GatheringErrorListener listener = new GatheringErrorListener();
     return ParserTestCase.invokeParserMethod2("createSyntheticStringLiteral", "", listener);
   }
@@ -4508,7 +4508,7 @@ class SimpleParserTest extends ParserTestCase {
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
    */
-  bool isFunctionDeclaration(String source) {
+  bool _isFunctionDeclaration(String source) {
     GatheringErrorListener listener = new GatheringErrorListener();
     return ParserTestCase.invokeParserMethod2("isFunctionDeclaration", source, listener) as bool;
   }
@@ -4521,7 +4521,7 @@ class SimpleParserTest extends ParserTestCase {
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
    */
-  bool isFunctionExpression(String source) {
+  bool _isFunctionExpression(String source) {
     GatheringErrorListener listener = new GatheringErrorListener();
     //
     // Scan the source.
@@ -4543,7 +4543,7 @@ class SimpleParserTest extends ParserTestCase {
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
    */
-  bool isInitializedVariableDeclaration(String source) {
+  bool _isInitializedVariableDeclaration(String source) {
     GatheringErrorListener listener = new GatheringErrorListener();
     return ParserTestCase.invokeParserMethod2("isInitializedVariableDeclaration", source, listener) as bool;
   }
@@ -4556,7 +4556,7 @@ class SimpleParserTest extends ParserTestCase {
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
    */
-  bool isSwitchMember(String source) {
+  bool _isSwitchMember(String source) {
     GatheringErrorListener listener = new GatheringErrorListener();
     return ParserTestCase.invokeParserMethod2("isSwitchMember", source, listener) as bool;
   }
@@ -4571,7 +4571,7 @@ class SimpleParserTest extends ParserTestCase {
    * @throws Exception if the method could not be invoked or throws an exception
    * @throws AssertionFailedError if the result is `null`
    */
-  Token skip(String methodName, String source) {
+  Token _skip(String methodName, String source) {
     GatheringErrorListener listener = new GatheringErrorListener();
     //
     // Scan the source.
@@ -7284,7 +7284,7 @@ class ParserTestCase extends EngineTestCase {
   /**
    * A flag indicating whether parser is to parse function bodies.
    */
-  static bool _parseFunctionBodies = true;
+  static bool parseFunctionBodies = true;
 
   /**
    * Invoke a parse method in [Parser]. The method is assumed to have the given number and
@@ -7477,7 +7477,7 @@ class ParserTestCase extends EngineTestCase {
     // Parse the source.
     //
     Parser parser = new Parser(null, listener);
-    parser.parseFunctionBodies = _parseFunctionBodies;
+    parser.parseFunctionBodies = parseFunctionBodies;
     Object result = invokeParserMethodImpl(parser, methodName, objects, tokenStream);
     //
     // Partially test the results.
@@ -7528,7 +7528,7 @@ class ParserTestCase extends EngineTestCase {
 
   void setUp() {
     super.setUp();
-    _parseFunctionBodies = true;
+    parseFunctionBodies = true;
   }
 
   static dartSuite() {
@@ -7564,7 +7564,7 @@ class AstValidator extends UnifyingAstVisitor<Object> {
   }
 
   Object visitNode(AstNode node) {
-    validate(node);
+    _validate(node);
     return super.visitNode(node);
   }
 
@@ -7573,7 +7573,7 @@ class AstValidator extends UnifyingAstVisitor<Object> {
    *
    * @param node the AST node being validated
    */
-  void validate(AstNode node) {
+  void _validate(AstNode node) {
     AstNode parent = node.parent;
     if (node is CompilationUnit) {
       if (parent != null) {
@@ -9277,199 +9277,199 @@ class IncrementalParserTest extends EngineTestCase {
   void test_delete_everything() {
     // "f() => a + b;"
     // ""
-    assertParse("", "f() => a + b;", "", "");
+    _assertParse("", "f() => a + b;", "", "");
   }
 
   void test_delete_identifier_beginning() {
     // "f() => abs + b;"
     // "f() => s + b;"
-    assertParse("f() => ", "ab", "", "s + b;");
+    _assertParse("f() => ", "ab", "", "s + b;");
   }
 
   void test_delete_identifier_end() {
     // "f() => abs + b;"
     // "f() => a + b;"
-    assertParse("f() => a", "bs", "", " + b;");
+    _assertParse("f() => a", "bs", "", " + b;");
   }
 
   void test_delete_identifier_middle() {
     // "f() => abs + b;"
     // "f() => as + b;"
-    assertParse("f() => a", "b", "", "s + b;");
+    _assertParse("f() => a", "b", "", "s + b;");
   }
 
   void test_delete_mergeTokens() {
     // "f() => a + b + c;"
     // "f() => ac;"
-    assertParse("f() => a", " + b + ", "", "c;");
+    _assertParse("f() => a", " + b + ", "", "c;");
   }
 
   void test_insert_afterIdentifier1() {
     // "f() => a + b;"
     // "f() => abs + b;"
-    assertParse("f() => a", "", "bs", " + b;");
+    _assertParse("f() => a", "", "bs", " + b;");
   }
 
   void test_insert_afterIdentifier2() {
     // "f() => a + b;"
     // "f() => a + bar;"
-    assertParse("f() => a + b", "", "ar", ";");
+    _assertParse("f() => a + b", "", "ar", ";");
   }
 
   void test_insert_beforeIdentifier1() {
     // "f() => a + b;"
     // "f() => xa + b;"
-    assertParse("f() => ", "", "x", "a + b;");
+    _assertParse("f() => ", "", "x", "a + b;");
   }
 
   void test_insert_beforeIdentifier2() {
     // "f() => a + b;"
     // "f() => a + xb;"
-    assertParse("f() => a + ", "", "x", "b;");
+    _assertParse("f() => a + ", "", "x", "b;");
   }
 
   void test_insert_convertOneFunctionToTwo() {
     // "f() {}"
     // "f() => 0; g() {}"
-    assertParse("f()", "", " => 0; g()", " {}");
+    _assertParse("f()", "", " => 0; g()", " {}");
   }
 
   void test_insert_end() {
     // "class A {}"
     // "class A {} class B {}"
-    assertParse("class A {}", "", " class B {}", "");
+    _assertParse("class A {}", "", " class B {}", "");
   }
 
   void test_insert_insideClassBody() {
     // "class C {C(); }"
     // "class C { C(); }"
-    assertParse("class C {", "", " ", "C(); }");
+    _assertParse("class C {", "", " ", "C(); }");
   }
 
   void test_insert_insideIdentifier() {
     // "f() => cob;"
     // "f() => cow.b;"
-    assertParse("f() => co", "", "w.", "b;");
+    _assertParse("f() => co", "", "w.", "b;");
   }
 
   void test_insert_newIdentifier1() {
     // "f() => a; c;"
     // "f() => a; b c;"
-    assertParse("f() => a;", "", " b", " c;");
+    _assertParse("f() => a;", "", " b", " c;");
   }
 
   void test_insert_newIdentifier2() {
     // "f() => a;  c;"
     // "f() => a;b  c;"
-    assertParse("f() => a;", "", "b", "  c;");
+    _assertParse("f() => a;", "", "b", "  c;");
   }
 
   void test_insert_newIdentifier3() {
     // "/** A simple function. */ f() => a; c;"
     // "/** A simple function. */ f() => a; b c;"
-    assertParse("/** A simple function. */ f() => a;", "", " b", " c;");
+    _assertParse("/** A simple function. */ f() => a;", "", " b", " c;");
   }
 
   void test_insert_newIdentifier4() {
     // "/** An [A]. */ class A {} class B { m() { return 1; } }"
     // "/** An [A]. */ class A {} class B { m() { return 1 + 2; } }"
-    assertParse("/** An [A]. */ class A {} class B { m() { return 1", "", " + 2", "; } }");
+    _assertParse("/** An [A]. */ class A {} class B { m() { return 1", "", " + 2", "; } }");
   }
 
   void test_insert_period() {
     // "f() => a + b;"
     // "f() => a + b.;"
-    assertParse("f() => a + b", "", ".", ";");
+    _assertParse("f() => a + b", "", ".", ";");
   }
 
   void test_insert_period_betweenIdentifiers1() {
     // "f() => a b;"
     // "f() => a. b;"
-    assertParse("f() => a", "", ".", " b;");
+    _assertParse("f() => a", "", ".", " b;");
   }
 
   void test_insert_period_betweenIdentifiers2() {
     // "f() => a b;"
     // "f() => a .b;"
-    assertParse("f() => a ", "", ".", "b;");
+    _assertParse("f() => a ", "", ".", "b;");
   }
 
   void test_insert_period_betweenIdentifiers3() {
     // "f() => a  b;"
     // "f() => a . b;"
-    assertParse("f() => a ", "", ".", " b;");
+    _assertParse("f() => a ", "", ".", " b;");
   }
 
   void test_insert_period_insideExistingIdentifier() {
     // "f() => ab;"
     // "f() => a.b;"
-    assertParse("f() => a", "", ".", "b;");
+    _assertParse("f() => a", "", ".", "b;");
   }
 
   void test_insert_periodAndIdentifier() {
     // "f() => a + b;"
     // "f() => a + b.x;"
-    assertParse("f() => a + b", "", ".x", ";");
+    _assertParse("f() => a + b", "", ".x", ";");
   }
 
   void test_insert_simpleToComplexExression() {
     // "/** An [A]. */ class A {} class B { m() => 1; }"
     // "/** An [A]. */ class A {} class B { m() => 1 + 2; }"
-    assertParse("/** An [A]. */ class A {} class B { m() => 1", "", " + 2", "; }");
+    _assertParse("/** An [A]. */ class A {} class B { m() => 1", "", " + 2", "; }");
   }
 
   void test_insert_whitespace_end() {
     // "f() => a + b;"
     // "f() => a + b; "
-    assertParse("f() => a + b;", "", " ", "");
+    _assertParse("f() => a + b;", "", " ", "");
   }
 
   void test_insert_whitespace_end_multiple() {
     // "f() => a + b;"
     // "f() => a + b;  "
-    assertParse("f() => a + b;", "", "  ", "");
+    _assertParse("f() => a + b;", "", "  ", "");
   }
 
   void test_insert_whitespace_middle() {
     // "f() => a + b;"
     // "f() => a  + b;"
-    assertParse("f() => a", "", " ", " + b;");
+    _assertParse("f() => a", "", " ", " + b;");
   }
 
   void test_replace_identifier_beginning() {
     // "f() => bell + b;"
     // "f() => fell + b;"
-    assertParse("f() => ", "b", "f", "ell + b;");
+    _assertParse("f() => ", "b", "f", "ell + b;");
   }
 
   void test_replace_identifier_end() {
     // "f() => bell + b;"
     // "f() => belt + b;"
-    assertParse("f() => bel", "l", "t", " + b;");
+    _assertParse("f() => bel", "l", "t", " + b;");
   }
 
   void test_replace_identifier_middle() {
     // "f() => first + b;"
     // "f() => frost + b;"
-    assertParse("f() => f", "ir", "ro", "st + b;");
+    _assertParse("f() => f", "ir", "ro", "st + b;");
   }
 
   void test_replace_multiple_partialFirstAndLast() {
     // "f() => aa + bb;"
     // "f() => ab * ab;"
-    assertParse("f() => a", "a + b", "b * a", "b;");
+    _assertParse("f() => a", "a + b", "b * a", "b;");
   }
 
   void test_replace_operator_oneForMany() {
     // "f() => a + b;"
     // "f() => a * c - b;"
-    assertParse("f() => a ", "+", "* c -", " b;");
+    _assertParse("f() => a ", "+", "* c -", " b;");
   }
 
   void test_replace_operator_oneForOne() {
     // "f() => a + b;"
     // "f() => a * b;"
-    assertParse("f() => a ", "+", "*", " b;");
+    _assertParse("f() => a ", "+", "*", " b;");
   }
 
   /**
@@ -9481,7 +9481,7 @@ class IncrementalParserTest extends EngineTestCase {
    * @param added the text that was added to the modified contents
    * @param suffix the unchanged text after the edit region
    */
-  void assertParse(String prefix, String removed, String added, String suffix) {
+  void _assertParse(String prefix, String removed, String added, String suffix) {
     //
     // Compute the information needed to perform the test.
     //
@@ -11728,195 +11728,4 @@ main() {
   RecoveryParserTest.dartSuite();
   ResolutionCopierTest.dartSuite();
   SimpleParserTest.dartSuite();
-}
-Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
-  'parseCompilationUnit_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseCompilationUnit(arg0)),
-  'parseExpression_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseExpression(arg0)),
-  'parseStatement_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseStatement(arg0)),
-  'parseStatements_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseStatements(arg0)),
-  'parseAnnotation_0': new MethodTrampoline(0, (Parser target) => target.parseAnnotation()),
-  'parseArgument_0': new MethodTrampoline(0, (Parser target) => target.parseArgument()),
-  'parseArgumentList_0': new MethodTrampoline(0, (Parser target) => target.parseArgumentList()),
-  'parseBitwiseOrExpression_0': new MethodTrampoline(0, (Parser target) => target.parseBitwiseOrExpression()),
-  'parseBlock_0': new MethodTrampoline(0, (Parser target) => target.parseBlock()),
-  'parseClassMember_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseClassMember(arg0)),
-  'parseCompilationUnit_0': new MethodTrampoline(0, (Parser target) => target.parseCompilationUnit2()),
-  'parseConditionalExpression_0': new MethodTrampoline(0, (Parser target) => target.parseConditionalExpression()),
-  'parseConstructorName_0': new MethodTrampoline(0, (Parser target) => target.parseConstructorName()),
-  'parseExpression_0': new MethodTrampoline(0, (Parser target) => target.parseExpression2()),
-  'parseExpressionWithoutCascade_0': new MethodTrampoline(0, (Parser target) => target.parseExpressionWithoutCascade()),
-  'parseExtendsClause_0': new MethodTrampoline(0, (Parser target) => target.parseExtendsClause()),
-  'parseFormalParameterList_0': new MethodTrampoline(0, (Parser target) => target.parseFormalParameterList()),
-  'parseFunctionExpression_0': new MethodTrampoline(0, (Parser target) => target.parseFunctionExpression()),
-  'parseImplementsClause_0': new MethodTrampoline(0, (Parser target) => target.parseImplementsClause()),
-  'parseLabel_0': new MethodTrampoline(0, (Parser target) => target.parseLabel()),
-  'parseLibraryIdentifier_0': new MethodTrampoline(0, (Parser target) => target.parseLibraryIdentifier()),
-  'parseLogicalOrExpression_0': new MethodTrampoline(0, (Parser target) => target.parseLogicalOrExpression()),
-  'parseMapLiteralEntry_0': new MethodTrampoline(0, (Parser target) => target.parseMapLiteralEntry()),
-  'parseNormalFormalParameter_0': new MethodTrampoline(0, (Parser target) => target.parseNormalFormalParameter()),
-  'parsePrefixedIdentifier_0': new MethodTrampoline(0, (Parser target) => target.parsePrefixedIdentifier()),
-  'parseReturnType_0': new MethodTrampoline(0, (Parser target) => target.parseReturnType()),
-  'parseSimpleIdentifier_0': new MethodTrampoline(0, (Parser target) => target.parseSimpleIdentifier()),
-  'parseStatement_0': new MethodTrampoline(0, (Parser target) => target.parseStatement2()),
-  'parseStringLiteral_0': new MethodTrampoline(0, (Parser target) => target.parseStringLiteral()),
-  'parseTypeArgumentList_0': new MethodTrampoline(0, (Parser target) => target.parseTypeArgumentList()),
-  'parseTypeName_0': new MethodTrampoline(0, (Parser target) => target.parseTypeName()),
-  'parseTypeParameter_0': new MethodTrampoline(0, (Parser target) => target.parseTypeParameter()),
-  'parseTypeParameterList_0': new MethodTrampoline(0, (Parser target) => target.parseTypeParameterList()),
-  'parseWithClause_0': new MethodTrampoline(0, (Parser target) => target.parseWithClause()),
-  'advance_0': new MethodTrampoline(0, (Parser target) => target.advance()),
-  'appendScalarValue_5': new MethodTrampoline(5, (Parser target, arg0, arg1, arg2, arg3, arg4) => target.appendScalarValue(arg0, arg1, arg2, arg3, arg4)),
-  'computeStringValue_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.computeStringValue(arg0, arg1, arg2)),
-  'convertToFunctionDeclaration_1': new MethodTrampoline(1, (Parser target, arg0) => target.convertToFunctionDeclaration(arg0)),
-  'couldBeStartOfCompilationUnitMember_0': new MethodTrampoline(0, (Parser target) => target.couldBeStartOfCompilationUnitMember()),
-  'createSyntheticIdentifier_0': new MethodTrampoline(0, (Parser target) => target.createSyntheticIdentifier()),
-  'createSyntheticKeyword_1': new MethodTrampoline(1, (Parser target, arg0) => target.createSyntheticKeyword(arg0)),
-  'createSyntheticStringLiteral_0': new MethodTrampoline(0, (Parser target) => target.createSyntheticStringLiteral()),
-  'createSyntheticToken_1': new MethodTrampoline(1, (Parser target, arg0) => target.createSyntheticToken(arg0)),
-  'ensureAssignable_1': new MethodTrampoline(1, (Parser target, arg0) => target.ensureAssignable(arg0)),
-  'expect_1': new MethodTrampoline(1, (Parser target, arg0) => target.expect(arg0)),
-  'expectKeyword_1': new MethodTrampoline(1, (Parser target, arg0) => target.expectKeyword(arg0)),
-  'expectSemicolon_0': new MethodTrampoline(0, (Parser target) => target.expectSemicolon()),
-  'findRange_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.findRange(arg0, arg1)),
-  'getCodeBlockRanges_1': new MethodTrampoline(1, (Parser target, arg0) => target.getCodeBlockRanges(arg0)),
-  'getEndToken_1': new MethodTrampoline(1, (Parser target, arg0) => target.getEndToken(arg0)),
-  'injectToken_1': new MethodTrampoline(1, (Parser target, arg0) => target.injectToken(arg0)),
-  'isFunctionDeclaration_0': new MethodTrampoline(0, (Parser target) => target.isFunctionDeclaration()),
-  'isFunctionExpression_1': new MethodTrampoline(1, (Parser target, arg0) => target.isFunctionExpression(arg0)),
-  'isHexDigit_1': new MethodTrampoline(1, (Parser target, arg0) => target.isHexDigit(arg0)),
-  'isInitializedVariableDeclaration_0': new MethodTrampoline(0, (Parser target) => target.isInitializedVariableDeclaration()),
-  'isLinkText_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.isLinkText(arg0, arg1)),
-  'isOperator_1': new MethodTrampoline(1, (Parser target, arg0) => target.isOperator(arg0)),
-  'isSwitchMember_0': new MethodTrampoline(0, (Parser target) => target.isSwitchMember()),
-  'isTypedIdentifier_1': new MethodTrampoline(1, (Parser target, arg0) => target.isTypedIdentifier(arg0)),
-  'lexicallyFirst_1': new MethodTrampoline(1, (Parser target, arg0) => target.lexicallyFirst(arg0)),
-  'lockErrorListener_0': new MethodTrampoline(0, (Parser target) => target.lockErrorListener()),
-  'matches_1': new MethodTrampoline(1, (Parser target, arg0) => target.matches(arg0)),
-  'matchesAny_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.matchesAny(arg0, arg1)),
-  'matchesIdentifier_0': new MethodTrampoline(0, (Parser target) => target.matchesIdentifier()),
-  'matchesKeyword_1': new MethodTrampoline(1, (Parser target, arg0) => target.matchesKeyword(arg0)),
-  'matchesString_1': new MethodTrampoline(1, (Parser target, arg0) => target.matchesString(arg0)),
-  'optional_1': new MethodTrampoline(1, (Parser target, arg0) => target.optional(arg0)),
-  'parseAdditiveExpression_0': new MethodTrampoline(0, (Parser target) => target.parseAdditiveExpression()),
-  'parseArgumentDefinitionTest_0': new MethodTrampoline(0, (Parser target) => target.parseArgumentDefinitionTest()),
-  'parseAssertStatement_0': new MethodTrampoline(0, (Parser target) => target.parseAssertStatement()),
-  'parseAssignableExpression_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseAssignableExpression(arg0)),
-  'parseAssignableSelector_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseAssignableSelector(arg0, arg1)),
-  'parseBitwiseAndExpression_0': new MethodTrampoline(0, (Parser target) => target.parseBitwiseAndExpression()),
-  'parseBitwiseXorExpression_0': new MethodTrampoline(0, (Parser target) => target.parseBitwiseXorExpression()),
-  'parseBreakStatement_0': new MethodTrampoline(0, (Parser target) => target.parseBreakStatement()),
-  'parseCascadeSection_0': new MethodTrampoline(0, (Parser target) => target.parseCascadeSection()),
-  'parseClassDeclaration_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseClassDeclaration(arg0, arg1)),
-  'parseClassMembers_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseClassMembers(arg0, arg1)),
-  'parseClassTypeAlias_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.parseClassTypeAlias(arg0, arg1, arg2)),
-  'parseCombinators_0': new MethodTrampoline(0, (Parser target) => target.parseCombinators()),
-  'parseCommentAndMetadata_0': new MethodTrampoline(0, (Parser target) => target.parseCommentAndMetadata()),
-  'parseCommentReference_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseCommentReference(arg0, arg1)),
-  'parseCommentReferences_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseCommentReferences(arg0)),
-  'parseCompilationUnitMember_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseCompilationUnitMember(arg0)),
-  'parseConstExpression_0': new MethodTrampoline(0, (Parser target) => target.parseConstExpression()),
-  'parseConstructor_8': new MethodTrampoline(8, (Parser target, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) => target.parseConstructor(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7)),
-  'parseConstructorFieldInitializer_0': new MethodTrampoline(0, (Parser target) => target.parseConstructorFieldInitializer()),
-  'parseContinueStatement_0': new MethodTrampoline(0, (Parser target) => target.parseContinueStatement()),
-  'parseDirective_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseDirective(arg0)),
-  'parseDocumentationComment_0': new MethodTrampoline(0, (Parser target) => target.parseDocumentationComment()),
-  'parseDoStatement_0': new MethodTrampoline(0, (Parser target) => target.parseDoStatement()),
-  'parseEmptyStatement_0': new MethodTrampoline(0, (Parser target) => target.parseEmptyStatement()),
-  'parseEqualityExpression_0': new MethodTrampoline(0, (Parser target) => target.parseEqualityExpression()),
-  'parseExportDirective_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseExportDirective(arg0)),
-  'parseExpressionList_0': new MethodTrampoline(0, (Parser target) => target.parseExpressionList()),
-  'parseFinalConstVarOrType_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseFinalConstVarOrType(arg0)),
-  'parseFormalParameter_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseFormalParameter(arg0)),
-  'parseForStatement_0': new MethodTrampoline(0, (Parser target) => target.parseForStatement()),
-  'parseFunctionBody_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.parseFunctionBody(arg0, arg1, arg2)),
-  'parseFunctionDeclaration_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.parseFunctionDeclaration(arg0, arg1, arg2)),
-  'parseFunctionDeclarationStatement_0': new MethodTrampoline(0, (Parser target) => target.parseFunctionDeclarationStatement()),
-  'parseFunctionDeclarationStatementAfterReturnType_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseFunctionDeclarationStatementAfterReturnType(arg0, arg1)),
-  'parseFunctionTypeAlias_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseFunctionTypeAlias(arg0, arg1)),
-  'parseGetter_4': new MethodTrampoline(4, (Parser target, arg0, arg1, arg2, arg3) => target.parseGetter(arg0, arg1, arg2, arg3)),
-  'parseIdentifierList_0': new MethodTrampoline(0, (Parser target) => target.parseIdentifierList()),
-  'parseIfStatement_0': new MethodTrampoline(0, (Parser target) => target.parseIfStatement()),
-  'parseImportDirective_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseImportDirective(arg0)),
-  'parseInitializedIdentifierList_4': new MethodTrampoline(4, (Parser target, arg0, arg1, arg2, arg3) => target.parseInitializedIdentifierList(arg0, arg1, arg2, arg3)),
-  'parseInstanceCreationExpression_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseInstanceCreationExpression(arg0)),
-  'parseLibraryDirective_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseLibraryDirective(arg0)),
-  'parseLibraryName_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseLibraryName(arg0, arg1)),
-  'parseListLiteral_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseListLiteral(arg0, arg1)),
-  'parseListOrMapLiteral_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseListOrMapLiteral(arg0)),
-  'parseLogicalAndExpression_0': new MethodTrampoline(0, (Parser target) => target.parseLogicalAndExpression()),
-  'parseMapLiteral_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseMapLiteral(arg0, arg1)),
-  'parseMethodDeclarationAfterParameters_6': new MethodTrampoline(6, (Parser target, arg0, arg1, arg2, arg3, arg4, arg5) => target.parseMethodDeclarationAfterParameters(arg0, arg1, arg2, arg3, arg4, arg5)),
-  'parseMethodDeclarationAfterReturnType_4': new MethodTrampoline(4, (Parser target, arg0, arg1, arg2, arg3) => target.parseMethodDeclarationAfterReturnType(arg0, arg1, arg2, arg3)),
-  'parseModifiers_0': new MethodTrampoline(0, (Parser target) => target.parseModifiers()),
-  'parseMultiplicativeExpression_0': new MethodTrampoline(0, (Parser target) => target.parseMultiplicativeExpression()),
-  'parseNativeClause_0': new MethodTrampoline(0, (Parser target) => target.parseNativeClause()),
-  'parseNewExpression_0': new MethodTrampoline(0, (Parser target) => target.parseNewExpression()),
-  'parseNonLabeledStatement_0': new MethodTrampoline(0, (Parser target) => target.parseNonLabeledStatement()),
-  'parseOperator_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.parseOperator(arg0, arg1, arg2)),
-  'parseOptionalReturnType_0': new MethodTrampoline(0, (Parser target) => target.parseOptionalReturnType()),
-  'parsePartDirective_1': new MethodTrampoline(1, (Parser target, arg0) => target.parsePartDirective(arg0)),
-  'parsePostfixExpression_0': new MethodTrampoline(0, (Parser target) => target.parsePostfixExpression()),
-  'parsePrimaryExpression_0': new MethodTrampoline(0, (Parser target) => target.parsePrimaryExpression()),
-  'parseRedirectingConstructorInvocation_0': new MethodTrampoline(0, (Parser target) => target.parseRedirectingConstructorInvocation()),
-  'parseRelationalExpression_0': new MethodTrampoline(0, (Parser target) => target.parseRelationalExpression()),
-  'parseRethrowExpression_0': new MethodTrampoline(0, (Parser target) => target.parseRethrowExpression()),
-  'parseReturnStatement_0': new MethodTrampoline(0, (Parser target) => target.parseReturnStatement()),
-  'parseSetter_4': new MethodTrampoline(4, (Parser target, arg0, arg1, arg2, arg3) => target.parseSetter(arg0, arg1, arg2, arg3)),
-  'parseShiftExpression_0': new MethodTrampoline(0, (Parser target) => target.parseShiftExpression()),
-  'parseStatementList_0': new MethodTrampoline(0, (Parser target) => target.parseStatementList()),
-  'parseStringInterpolation_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseStringInterpolation(arg0)),
-  'parseSuperConstructorInvocation_0': new MethodTrampoline(0, (Parser target) => target.parseSuperConstructorInvocation()),
-  'parseSwitchStatement_0': new MethodTrampoline(0, (Parser target) => target.parseSwitchStatement()),
-  'parseSymbolLiteral_0': new MethodTrampoline(0, (Parser target) => target.parseSymbolLiteral()),
-  'parseThrowExpression_0': new MethodTrampoline(0, (Parser target) => target.parseThrowExpression()),
-  'parseThrowExpressionWithoutCascade_0': new MethodTrampoline(0, (Parser target) => target.parseThrowExpressionWithoutCascade()),
-  'parseTryStatement_0': new MethodTrampoline(0, (Parser target) => target.parseTryStatement()),
-  'parseTypeAlias_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseTypeAlias(arg0)),
-  'parseUnaryExpression_0': new MethodTrampoline(0, (Parser target) => target.parseUnaryExpression()),
-  'parseVariableDeclaration_0': new MethodTrampoline(0, (Parser target) => target.parseVariableDeclaration()),
-  'parseVariableDeclarationListAfterMetadata_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseVariableDeclarationListAfterMetadata(arg0)),
-  'parseVariableDeclarationListAfterType_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.parseVariableDeclarationListAfterType(arg0, arg1, arg2)),
-  'parseVariableDeclarationStatementAfterMetadata_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseVariableDeclarationStatementAfterMetadata(arg0)),
-  'parseVariableDeclarationStatementAfterType_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.parseVariableDeclarationStatementAfterType(arg0, arg1, arg2)),
-  'parseWhileStatement_0': new MethodTrampoline(0, (Parser target) => target.parseWhileStatement()),
-  'peek_0': new MethodTrampoline(0, (Parser target) => target.peek()),
-  'peekAt_1': new MethodTrampoline(1, (Parser target, arg0) => target.peekAt(arg0)),
-  'reportError_1': new MethodTrampoline(1, (Parser target, arg0) => target.reportError(arg0)),
-  'reportErrorForCurrentToken_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.reportErrorForCurrentToken(arg0, arg1)),
-  'reportErrorForNode_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.reportErrorForNode(arg0, arg1, arg2)),
-  'reportErrorForToken_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.reportErrorForToken(arg0, arg1, arg2)),
-  'skipBlock_0': new MethodTrampoline(0, (Parser target) => target.skipBlock()),
-  'skipFinalConstVarOrType_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipFinalConstVarOrType(arg0)),
-  'skipFormalParameterList_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipFormalParameterList(arg0)),
-  'skipPastMatchingToken_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipPastMatchingToken(arg0)),
-  'skipPrefixedIdentifier_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipPrefixedIdentifier(arg0)),
-  'skipReturnType_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipReturnType(arg0)),
-  'skipSimpleIdentifier_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipSimpleIdentifier(arg0)),
-  'skipStringInterpolation_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipStringInterpolation(arg0)),
-  'skipStringLiteral_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipStringLiteral(arg0)),
-  'skipTypeArgumentList_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipTypeArgumentList(arg0)),
-  'skipTypeName_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipTypeName(arg0)),
-  'skipTypeParameterList_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipTypeParameterList(arg0)),
-  'tokenMatches_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.tokenMatches(arg0, arg1)),
-  'tokenMatchesIdentifier_1': new MethodTrampoline(1, (Parser target, arg0) => target.tokenMatchesIdentifier(arg0)),
-  'tokenMatchesKeyword_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.tokenMatchesKeyword(arg0, arg1)),
-  'translateCharacter_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.translateCharacter(arg0, arg1, arg2)),
-  'unlockErrorListener_0': new MethodTrampoline(0, (Parser target) => target.unlockErrorListener()),
-  'validateFormalParameterList_1': new MethodTrampoline(1, (Parser target, arg0) => target.validateFormalParameterList(arg0)),
-  'validateModifiersForClass_1': new MethodTrampoline(1, (Parser target, arg0) => target.validateModifiersForClass(arg0)),
-  'validateModifiersForConstructor_1': new MethodTrampoline(1, (Parser target, arg0) => target.validateModifiersForConstructor(arg0)),
-  'validateModifiersForField_1': new MethodTrampoline(1, (Parser target, arg0) => target.validateModifiersForField(arg0)),
-  'validateModifiersForFunctionDeclarationStatement_1': new MethodTrampoline(1, (Parser target, arg0) => target.validateModifiersForFunctionDeclarationStatement(arg0)),
-  'validateModifiersForGetterOrSetterOrMethod_1': new MethodTrampoline(1, (Parser target, arg0) => target.validateModifiersForGetterOrSetterOrMethod(arg0)),
-  'validateModifiersForOperator_1': new MethodTrampoline(1, (Parser target, arg0) => target.validateModifiersForOperator(arg0)),
-  'validateModifiersForTopLevelDeclaration_1': new MethodTrampoline(1, (Parser target, arg0) => target.validateModifiersForTopLevelDeclaration(arg0)),
-  'validateModifiersForTopLevelFunction_1': new MethodTrampoline(1, (Parser target, arg0) => target.validateModifiersForTopLevelFunction(arg0)),
-  'validateModifiersForTopLevelVariable_1': new MethodTrampoline(1, (Parser target, arg0) => target.validateModifiersForTopLevelVariable(arg0)),
-  'validateModifiersForTypedef_1': new MethodTrampoline(1, (Parser target, arg0) => target.validateModifiersForTypedef(arg0)),};
-
-
-Object invokeParserMethodImpl(Parser parser, String methodName, List<Object> objects, Token tokenStream) {
-  parser.currentToken = tokenStream;
-  MethodTrampoline method = _methodTable_Parser['${methodName}_${objects.length}'];
-  return method.invoke(parser, objects);
 }

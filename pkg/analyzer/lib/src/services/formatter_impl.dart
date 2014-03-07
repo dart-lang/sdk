@@ -302,15 +302,12 @@ class TokenStreamComparator {
 
 }
 
-// Cached parser for testing token types.
-final tokenTester = new Parser(null,null);
+/// Test for token type.
+bool tokenIs(Token token, TokenType type) =>
+    token != null && token.type == type;
 
 /// Test if this token is an EOF token.
 bool isEOF(Token token) => tokenIs(token, TokenType.EOF);
-
-/// Test for token type.
-bool tokenIs(Token token, TokenType type) =>
-    token != null && tokenTester.matchesAny(token, [type]);
 
 /// Test if this token is a GT token.
 bool isGT(Token token) => tokenIs(token, TokenType.GT);

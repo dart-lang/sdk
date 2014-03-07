@@ -84,15 +84,15 @@ class GatheringErrorListener implements AnalysisErrorListener {
    */
   void assertErrors(List<AnalysisError> expectedErrors) {
     if (_errors.length != expectedErrors.length) {
-      fail(expectedErrors);
+      _fail(expectedErrors);
     }
     List<AnalysisError> remainingErrors = new List<AnalysisError>();
     for (AnalysisError error in expectedErrors) {
       remainingErrors.add(error);
     }
     for (AnalysisError error in _errors) {
-      if (!foundAndRemoved(remainingErrors, error)) {
-        fail(expectedErrors);
+      if (!_foundAndRemoved(remainingErrors, error)) {
+        _fail(expectedErrors);
       }
     }
   }
@@ -303,7 +303,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * @param secondError the second error being compared
    * @return `true` if the two errors are equivalent
    */
-  bool equalErrors(AnalysisError firstError, AnalysisError secondError) => identical(firstError.errorCode, secondError.errorCode) && firstError.offset == secondError.offset && firstError.length == secondError.length && equalSources(firstError.source, secondError.source);
+  bool _equalErrors(AnalysisError firstError, AnalysisError secondError) => identical(firstError.errorCode, secondError.errorCode) && firstError.offset == secondError.offset && firstError.length == secondError.length && _equalSources(firstError.source, secondError.source);
 
   /**
    * Return `true` if the two sources are equivalent.
@@ -312,7 +312,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * @param secondSource the second source being compared
    * @return `true` if the two sources are equivalent
    */
-  bool equalSources(Source firstSource, Source secondSource) {
+  bool _equalSources(Source firstSource, Source secondSource) {
     if (firstSource == null) {
       return secondSource == null;
     } else if (secondSource == null) {
@@ -329,7 +329,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * @param errorCodes the errors that should have been gathered
    * @throws AssertionFailedError with
    */
-  void fail(List<AnalysisError> expectedErrors) {
+  void _fail(List<AnalysisError> expectedErrors) {
     PrintStringWriter writer = new PrintStringWriter();
     writer.print("Expected ");
     writer.print(expectedErrors.length);
@@ -394,9 +394,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * @param targetError the error being searched for
    * @return `true` if the error is found and removed from the list
    */
-  bool foundAndRemoved(List<AnalysisError> errors, AnalysisError targetError) {
+  bool _foundAndRemoved(List<AnalysisError> errors, AnalysisError targetError) {
     for (AnalysisError error in errors) {
-      if (equalErrors(error, targetError)) {
+      if (_equalErrors(error, targetError)) {
         errors.remove(error);
         return true;
       }
@@ -465,7 +465,7 @@ class EngineTestCase extends JUnitTestCase {
     }
     List<bool> found = new List<bool>.filled(expectedSize, false);
     for (int i = 0; i < expectedSize; i++) {
-      privateAssertContains(array, found, expectedElements[i]);
+      _privateAssertContains(array, found, expectedElements[i]);
     }
   }
 
@@ -517,7 +517,7 @@ class EngineTestCase extends JUnitTestCase {
         JUnitTestCase.assertTrueMsg("Content not as expected: expected 'null' is: ${actual}", false);
       }
     }
-    int diffPos = getDiffPos(expected, actual);
+    int diffPos = _getDiffPos(expected, actual);
     if (diffPos != -1) {
       int diffAhead = Math.max(0, diffPos - _PRINT_RANGE);
       int diffAfter = Math.min(actual.length, diffPos + _PRINT_RANGE);
@@ -731,7 +731,7 @@ class EngineTestCase extends JUnitTestCase {
    * @param str2 the second String to compare
    * @return the offset at which the strings differ (or <code>-1</code> if they do not)
    */
-  static int getDiffPos(String str1, String str2) {
+  static int _getDiffPos(String str1, String str2) {
     int len1 = Math.min(str1.length, str2.length);
     int diffPos = -1;
     for (int i = 0; i < len1; i++) {
@@ -746,7 +746,7 @@ class EngineTestCase extends JUnitTestCase {
     return diffPos;
   }
 
-  static void privateAssertContains(List<Object> array, List<bool> found, Object element) {
+  static void _privateAssertContains(List<Object> array, List<bool> found, Object element) {
     if (element == null) {
       for (int i = 0; i < array.length; i++) {
         if (!found[i]) {
@@ -857,33 +857,5 @@ class TestSource implements Source {
   }
   TimestampedData<String> get contents {
     throw new UnsupportedOperationException();
-  }
-}
-
-/**
- * Wrapper around [Function] which should be called with "target" and "arguments".
- */
-class MethodTrampoline {
-  int parameterCount;
-  Function trampoline;
-  MethodTrampoline(this.parameterCount, this.trampoline);
-  Object invoke(target, List arguments) {
-    if (arguments.length != parameterCount) {
-      throw new IllegalArgumentException("${arguments.length} != $parameterCount");
-    }
-    switch (parameterCount) {
-      case 0:
-        return trampoline(target);
-      case 1:
-        return trampoline(target, arguments[0]);
-      case 2:
-        return trampoline(target, arguments[0], arguments[1]);
-      case 3:
-        return trampoline(target, arguments[0], arguments[1], arguments[2]);
-      case 4:
-        return trampoline(target, arguments[0], arguments[1], arguments[2], arguments[3]);
-      default:
-        throw new IllegalArgumentException("Not implemented for > 4 arguments");
-    }
   }
 }

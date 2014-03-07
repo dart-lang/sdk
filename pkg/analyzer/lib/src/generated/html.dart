@@ -288,7 +288,7 @@ class HtmlUnitUtils {
    * Returns the [Expression] that is part of the given root [AstNode] and encloses the
    * given offset.
    */
-  static Expression getExpressionAt(AstNode root, int offset) {
+  static Expression _getExpressionAt(AstNode root, int offset) {
     if (root.offset <= offset && offset < root.end) {
       AstNode dartNode = new NodeLocator.con1(offset).searchWithin(root);
       if (dartNode is Expression) {
@@ -333,7 +333,7 @@ class ExpressionVisitor_HtmlUnitUtils_getExpression extends ExpressionVisitor {
   ExpressionVisitor_HtmlUnitUtils_getExpression(this.offset, this.result) : super();
 
   void visitExpression(Expression expression) {
-    Expression at = HtmlUnitUtils.getExpressionAt(expression, offset);
+    Expression at = HtmlUnitUtils._getExpressionAt(expression, offset);
     if (at != null) {
       result[0] = at;
       throw new HtmlUnitUtils_FoundExpressionError();
@@ -558,7 +558,7 @@ abstract class XmlNode {
   /**
    * This method exists for debugging purposes only.
    */
-  void appendIdentifier(JavaStringBuilder builder, XmlNode node) {
+  void _appendIdentifier(JavaStringBuilder builder, XmlNode node) {
     if (node is XmlTagNode) {
       builder.append(node.tag);
     } else if (node is XmlAttributeNode) {
@@ -571,7 +571,7 @@ abstract class XmlNode {
   /**
    * This method exists for debugging purposes only.
    */
-  String buildRecursiveStructureMessage(XmlNode newParent) {
+  String _buildRecursiveStructureMessage(XmlNode newParent) {
     JavaStringBuilder builder = new JavaStringBuilder();
     builder.append("Attempt to create recursive structure: ");
     XmlNode current = newParent;
@@ -581,10 +581,10 @@ abstract class XmlNode {
       }
       if (identical(current, this)) {
         builder.appendChar(0x2A);
-        appendIdentifier(builder, current);
+        _appendIdentifier(builder, current);
         builder.appendChar(0x2A);
       } else {
-        appendIdentifier(builder, current);
+        _appendIdentifier(builder, current);
       }
       current = current.parent;
     }
@@ -600,7 +600,7 @@ abstract class XmlNode {
     XmlNode current = newParent;
     while (current != null) {
       if (identical(current, this)) {
-        AnalysisEngine.instance.logger.logError2("Circular structure while setting an XML node's parent", new IllegalArgumentException(buildRecursiveStructureMessage(newParent)));
+        AnalysisEngine.instance.logger.logError2("Circular structure while setting an XML node's parent", new IllegalArgumentException(_buildRecursiveStructureMessage(newParent)));
         return;
       }
       current = current.parent;
@@ -698,9 +698,9 @@ abstract class AbstractScanner {
    * @return the first token in the list of tokens that were produced
    */
   Token tokenize() {
-    scan();
-    appendEofToken();
-    return firstToken();
+    _scan();
+    _appendEofToken();
+    return _firstToken();
   }
 
   /**
@@ -736,26 +736,26 @@ abstract class AbstractScanner {
     _lineStarts.add(offset);
   }
 
-  void appendEofToken() {
+  void _appendEofToken() {
     Token eofToken = new Token.con1(TokenType.EOF, offset);
     // The EOF token points to itself so that there is always infinite look-ahead.
     eofToken.setNext(eofToken);
     _tail = _tail.setNext(eofToken);
   }
 
-  Token emit(Token token) {
+  Token _emit(Token token) {
     _tail.setNext(token);
     _tail = token;
     return token;
   }
 
-  Token emitWithOffset(TokenType type, int start) => emit(new Token.con1(type, start));
+  Token _emitWithOffset(TokenType type, int start) => _emit(new Token.con1(type, start));
 
-  Token emitWithOffsetAndLength(TokenType type, int start, int count) => emit(new Token.con2(type, start, getString(start, count)));
+  Token _emitWithOffsetAndLength(TokenType type, int start, int count) => _emit(new Token.con2(type, start, getString(start, count)));
 
-  Token firstToken() => _tokens.next;
+  Token _firstToken() => _tokens.next;
 
-  int recordStartOfLineAndAdvance(int c) {
+  int _recordStartOfLineAndAdvance(int c) {
     if (c == 0xD) {
       c = advance();
       if (c == 0xA) {
@@ -771,7 +771,7 @@ abstract class AbstractScanner {
     return c;
   }
 
-  void scan() {
+  void _scan() {
     bool inBrackets = false;
     String endPassThrough = null;
     int c = advance();
@@ -794,9 +794,9 @@ abstract class AbstractScanner {
               } else {
                 dashCount = 0;
               }
-              c = recordStartOfLineAndAdvance(c);
+              c = _recordStartOfLineAndAdvance(c);
             }
-            emitWithOffsetAndLength(TokenType.COMMENT, start, -1);
+            _emitWithOffsetAndLength(TokenType.COMMENT, start, -1);
             // Capture <!--> and <!---> as tokens but report an error
             if (_tail.length < 7) {
             }
@@ -807,9 +807,9 @@ abstract class AbstractScanner {
                 c = advance();
                 break;
               }
-              c = recordStartOfLineAndAdvance(c);
+              c = _recordStartOfLineAndAdvance(c);
             }
-            emitWithOffsetAndLength(TokenType.DECLARATION, start, -1);
+            _emitWithOffsetAndLength(TokenType.DECLARATION, start, -1);
             if (!StringUtilities.endsWithChar(_tail.lexeme, 0x3E)) {
             }
           }
@@ -823,22 +823,22 @@ abstract class AbstractScanner {
                 break;
               }
             } else {
-              c = recordStartOfLineAndAdvance(c);
+              c = _recordStartOfLineAndAdvance(c);
             }
           }
-          emitWithOffsetAndLength(TokenType.DIRECTIVE, start, -1);
+          _emitWithOffsetAndLength(TokenType.DIRECTIVE, start, -1);
           if (_tail.length < 4) {
           }
         } else if (c == 0x2F) {
-          emitWithOffset(TokenType.LT_SLASH, start);
+          _emitWithOffset(TokenType.LT_SLASH, start);
           inBrackets = true;
           c = advance();
         } else {
           inBrackets = true;
-          emitWithOffset(TokenType.LT, start);
+          _emitWithOffset(TokenType.LT, start);
           // ignore whitespace in braces
           while (Character.isWhitespace(c)) {
-            c = recordStartOfLineAndAdvance(c);
+            c = _recordStartOfLineAndAdvance(c);
           }
           // get tag
           if (Character.isLetterOrDigit(c)) {
@@ -847,7 +847,7 @@ abstract class AbstractScanner {
             while (Character.isLetterOrDigit(c) || c == 0x2D || c == 0x5F) {
               c = advance();
             }
-            emitWithOffsetAndLength(TokenType.TAG, tagStart, -1);
+            _emitWithOffsetAndLength(TokenType.TAG, tagStart, -1);
             // check tag against passThrough elements
             String tag = _tail.lexeme;
             for (String str in _passThroughElements) {
@@ -859,7 +859,7 @@ abstract class AbstractScanner {
           }
         }
       } else if (c == 0x3E) {
-        emitWithOffset(TokenType.GT, start);
+        _emitWithOffset(TokenType.GT, start);
         inBrackets = false;
         c = advance();
         // if passThrough != null, read until we match it
@@ -884,30 +884,30 @@ abstract class AbstractScanner {
               index = 0;
               nextC = firstC;
             }
-            c = recordStartOfLineAndAdvance(c);
+            c = _recordStartOfLineAndAdvance(c);
           }
           if (start + 1 < offset) {
             if (endFound) {
-              emitWithOffsetAndLength(TokenType.TEXT, start + 1, -len);
-              emitWithOffset(TokenType.LT_SLASH, offset - len + 1);
-              emitWithOffsetAndLength(TokenType.TAG, offset - len + 3, -1);
+              _emitWithOffsetAndLength(TokenType.TEXT, start + 1, -len);
+              _emitWithOffset(TokenType.LT_SLASH, offset - len + 1);
+              _emitWithOffsetAndLength(TokenType.TAG, offset - len + 3, -1);
             } else {
-              emitWithOffsetAndLength(TokenType.TEXT, start + 1, -1);
+              _emitWithOffsetAndLength(TokenType.TEXT, start + 1, -1);
             }
           }
           endPassThrough = null;
         }
       } else if (c == 0x2F && peek() == 0x3E) {
         advance();
-        emitWithOffset(TokenType.SLASH_GT, start);
+        _emitWithOffset(TokenType.SLASH_GT, start);
         inBrackets = false;
         c = advance();
       } else if (!inBrackets) {
-        c = recordStartOfLineAndAdvance(c);
+        c = _recordStartOfLineAndAdvance(c);
         while (c != 0x3C && c >= 0) {
-          c = recordStartOfLineAndAdvance(c);
+          c = _recordStartOfLineAndAdvance(c);
         }
-        emitWithOffsetAndLength(TokenType.TEXT, start, -1);
+        _emitWithOffsetAndLength(TokenType.TEXT, start, -1);
       } else if (c == 0x22 || c == 0x27) {
         // read a string
         int endQuote = c;
@@ -917,27 +917,27 @@ abstract class AbstractScanner {
             c = advance();
             break;
           }
-          c = recordStartOfLineAndAdvance(c);
+          c = _recordStartOfLineAndAdvance(c);
         }
-        emitWithOffsetAndLength(TokenType.STRING, start, -1);
+        _emitWithOffsetAndLength(TokenType.STRING, start, -1);
       } else if (c == 0x3D) {
         // a non-char token
-        emitWithOffset(TokenType.EQ, start);
+        _emitWithOffset(TokenType.EQ, start);
         c = advance();
       } else if (Character.isWhitespace(c)) {
         // ignore whitespace in braces
         do {
-          c = recordStartOfLineAndAdvance(c);
+          c = _recordStartOfLineAndAdvance(c);
         } while (Character.isWhitespace(c));
       } else if (Character.isLetterOrDigit(c)) {
         c = advance();
         while (Character.isLetterOrDigit(c) || c == 0x2D || c == 0x5F) {
           c = advance();
         }
-        emitWithOffsetAndLength(TokenType.TAG, start, -1);
+        _emitWithOffsetAndLength(TokenType.TAG, start, -1);
       } else {
         // a non-char token
-        emitWithOffsetAndLength(TokenType.TEXT, start, 0);
+        _emitWithOffsetAndLength(TokenType.TEXT, start, 0);
         c = advance();
       }
     }
@@ -1024,7 +1024,7 @@ class ToSourceVisitor implements XmlVisitor<Object> {
 
   Object visitHtmlUnit(HtmlUnit node) {
     for (XmlTagNode child in node.tagNodes) {
-      visit(child);
+      _visit(child);
     }
     return null;
   }
@@ -1052,12 +1052,12 @@ class ToSourceVisitor implements XmlVisitor<Object> {
     _writer.print(tagName);
     for (XmlAttributeNode attribute in node.attributes) {
       _writer.print(" ");
-      visit(attribute);
+      _visit(attribute);
     }
     _writer.print(node.attributeEnd.lexeme);
     if (node.closingTag != null) {
       for (XmlTagNode child in node.tagNodes) {
-        visit(child);
+        _visit(child);
       }
       _writer.print("</");
       _writer.print(tagName);
@@ -1071,7 +1071,7 @@ class ToSourceVisitor implements XmlVisitor<Object> {
    *
    * @param node the node to be visited
    */
-  void visit(XmlNode node) {
+  void _visit(XmlNode node) {
     if (node != null) {
       node.accept(this);
     }
@@ -1368,12 +1368,12 @@ class XmlParser {
     TokenType type = _currentToken.type;
     while (type != TokenType.EOF) {
       if (identical(type, TokenType.LT)) {
-        tagNodes.add(parseTagNode());
+        tagNodes.add(_parseTagNode());
       } else if (identical(type, TokenType.DECLARATION) || identical(type, TokenType.DIRECTIVE) || identical(type, TokenType.COMMENT)) {
         // ignored tokens
         _currentToken = _currentToken.next;
       } else {
-        reportUnexpectedToken();
+        _reportUnexpectedToken();
         _currentToken = _currentToken.next;
       }
       type = _currentToken.type;
@@ -1394,7 +1394,7 @@ class XmlParser {
    * @param type the type of token to be inserted (not `null`)
    * @return the synthetic token that was inserted (not `null`)
    */
-  Token insertSyntheticToken(TokenType type) {
+  Token _insertSyntheticToken(TokenType type) {
     Token token = new Token.con2(type, _currentToken.offset, "");
     _currentToken.previous.setNext(token);
     token.setNext(_currentToken);
@@ -1407,7 +1407,7 @@ class XmlParser {
    *
    * @return the attribute (not `null`)
    */
-  XmlAttributeNode parseAttribute() {
+  XmlAttributeNode _parseAttribute() {
     // Assume the current token is a tag
     Token name = _currentToken;
     _currentToken = _currentToken.next;
@@ -1417,8 +1417,8 @@ class XmlParser {
       equals = _currentToken;
       _currentToken = _currentToken.next;
     } else {
-      reportUnexpectedToken();
-      equals = insertSyntheticToken(TokenType.EQ);
+      _reportUnexpectedToken();
+      equals = _insertSyntheticToken(TokenType.EQ);
     }
     // String value
     Token value;
@@ -1426,8 +1426,8 @@ class XmlParser {
       value = _currentToken;
       _currentToken = _currentToken.next;
     } else {
-      reportUnexpectedToken();
-      value = insertSyntheticToken(TokenType.STRING);
+      _reportUnexpectedToken();
+      value = _insertSyntheticToken(TokenType.STRING);
     }
     return createAttributeNode(name, equals, value);
   }
@@ -1438,7 +1438,7 @@ class XmlParser {
    *
    * @return a collection of zero or more attributes (not `null`, contains no `null`s)
    */
-  List<XmlAttributeNode> parseAttributes() {
+  List<XmlAttributeNode> _parseAttributes() {
     TokenType type = _currentToken.type;
     if (identical(type, TokenType.GT) || identical(type, TokenType.SLASH_GT) || identical(type, TokenType.EOF)) {
       return XmlTagNode.NO_ATTRIBUTES;
@@ -1446,9 +1446,9 @@ class XmlParser {
     List<XmlAttributeNode> attributes = new List<XmlAttributeNode>();
     while (type != TokenType.GT && type != TokenType.SLASH_GT && type != TokenType.EOF) {
       if (identical(type, TokenType.TAG)) {
-        attributes.add(parseAttribute());
+        attributes.add(_parseAttribute());
       } else {
-        reportUnexpectedToken();
+        _reportUnexpectedToken();
         _currentToken = _currentToken.next;
       }
       type = _currentToken.type;
@@ -1462,7 +1462,7 @@ class XmlParser {
    *
    * @return a list of nodes (not `null`, contains no `null`s)
    */
-  List<XmlTagNode> parseChildTagNodes() {
+  List<XmlTagNode> _parseChildTagNodes() {
     TokenType type = _currentToken.type;
     if (identical(type, TokenType.LT_SLASH) || identical(type, TokenType.EOF)) {
       return XmlTagNode.NO_TAG_NODES;
@@ -1470,12 +1470,12 @@ class XmlParser {
     List<XmlTagNode> nodes = new List<XmlTagNode>();
     while (type != TokenType.LT_SLASH && type != TokenType.EOF) {
       if (identical(type, TokenType.LT)) {
-        nodes.add(parseTagNode());
+        nodes.add(_parseTagNode());
       } else if (identical(type, TokenType.COMMENT)) {
         // ignored token
         _currentToken = _currentToken.next;
       } else {
-        reportUnexpectedToken();
+        _reportUnexpectedToken();
         _currentToken = _currentToken.next;
       }
       type = _currentToken.type;
@@ -1489,7 +1489,7 @@ class XmlParser {
    *
    * @return the tag node or `null` if none found
    */
-  XmlTagNode parseTagNode() {
+  XmlTagNode _parseTagNode() {
     // Assume that the current node is a tag node start TokenType#LT
     Token nodeStart = _currentToken;
     _currentToken = _currentToken.next;
@@ -1499,26 +1499,26 @@ class XmlParser {
       tag = _currentToken;
       _currentToken = _currentToken.next;
     } else {
-      reportUnexpectedToken();
-      tag = insertSyntheticToken(TokenType.TAG);
+      _reportUnexpectedToken();
+      tag = _insertSyntheticToken(TokenType.TAG);
     }
     // Parse the attributes
-    List<XmlAttributeNode> attributes = parseAttributes();
+    List<XmlAttributeNode> attributes = _parseAttributes();
     // Token ending attribute list
     Token attributeEnd;
     if (identical(_currentToken.type, TokenType.GT) || identical(_currentToken.type, TokenType.SLASH_GT)) {
       attributeEnd = _currentToken;
       _currentToken = _currentToken.next;
     } else {
-      reportUnexpectedToken();
-      attributeEnd = insertSyntheticToken(TokenType.SLASH_GT);
+      _reportUnexpectedToken();
+      attributeEnd = _insertSyntheticToken(TokenType.SLASH_GT);
     }
     // If the node has no children, then return the node
     if (identical(attributeEnd.type, TokenType.SLASH_GT) || isSelfClosing(tag)) {
       return createTagNode(nodeStart, tag, attributes, attributeEnd, XmlTagNode.NO_TAG_NODES, _currentToken, null, attributeEnd);
     }
     // Parse the child tag nodes
-    List<XmlTagNode> tagNodes = parseChildTagNodes();
+    List<XmlTagNode> tagNodes = _parseChildTagNodes();
     // Token ending child tag nodes
     Token contentEnd;
     if (identical(_currentToken.type, TokenType.LT_SLASH)) {
@@ -1527,8 +1527,8 @@ class XmlParser {
     } else {
       // TODO (danrubel): handle self closing HTML elements by inserting synthetic tokens
       // but not reporting an error
-      reportUnexpectedToken();
-      contentEnd = insertSyntheticToken(TokenType.LT_SLASH);
+      _reportUnexpectedToken();
+      contentEnd = _insertSyntheticToken(TokenType.LT_SLASH);
     }
     // Closing tag
     Token closingTag;
@@ -1536,8 +1536,8 @@ class XmlParser {
       closingTag = _currentToken;
       _currentToken = _currentToken.next;
     } else {
-      reportUnexpectedToken();
-      closingTag = insertSyntheticToken(TokenType.TAG);
+      _reportUnexpectedToken();
+      closingTag = _insertSyntheticToken(TokenType.TAG);
     }
     // Token ending node
     Token nodeEnd;
@@ -1545,8 +1545,8 @@ class XmlParser {
       nodeEnd = _currentToken;
       _currentToken = _currentToken.next;
     } else {
-      reportUnexpectedToken();
-      nodeEnd = insertSyntheticToken(TokenType.GT);
+      _reportUnexpectedToken();
+      nodeEnd = _insertSyntheticToken(TokenType.GT);
     }
     return createTagNode(nodeStart, tag, attributes, attributeEnd, tagNodes, contentEnd, closingTag, nodeEnd);
   }
@@ -1554,7 +1554,7 @@ class XmlParser {
   /**
    * Report the current token as unexpected
    */
-  void reportUnexpectedToken() {
+  void _reportUnexpectedToken() {
   }
 }
 
@@ -1870,7 +1870,7 @@ class HtmlParser extends XmlParser {
   XmlAttributeNode createAttributeNode(Token name, Token equals, Token value) => new XmlAttributeNode(name, equals, value);
 
   XmlTagNode createTagNode(Token nodeStart, Token tag, List<XmlAttributeNode> attributes, Token attributeEnd, List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag, Token nodeEnd) {
-    if (isScriptNode(tag, attributes, tagNodes)) {
+    if (_isScriptNode(tag, attributes, tagNodes)) {
       HtmlScriptTagNode tagNode = new HtmlScriptTagNode(nodeStart, tag, attributes, attributeEnd, tagNodes, contentEnd, closingTag, nodeEnd);
       String contents = tagNode.content;
       int contentOffset = attributeEnd.end;
@@ -1895,7 +1895,7 @@ class HtmlParser extends XmlParser {
    * @param node the node to be tested (not `null`)
    * @return `true` if the node is a Dart script
    */
-  bool isScriptNode(Token tag, List<XmlAttributeNode> attributes, List<XmlTagNode> tagNodes) {
+  bool _isScriptNode(Token tag, List<XmlAttributeNode> attributes, List<XmlTagNode> tagNodes) {
     if (tagNodes.length != 0 || tag.lexeme != _SCRIPT) {
       return false;
     }

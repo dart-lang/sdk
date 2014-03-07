@@ -2536,7 +2536,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
 
   List<InterfaceType> get allSupertypes {
     List<InterfaceType> list = new List<InterfaceType>();
-    collectAllSupertypes(list);
+    _collectAllSupertypes(list);
     return new List.from(list);
   }
 
@@ -2684,7 +2684,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
 
   bool get isAbstract => hasModifier(Modifier.ABSTRACT);
 
-  bool get isOrInheritsProxy => safeIsOrInheritsProxy(this, new Set<ClassElement>());
+  bool get isOrInheritsProxy => _safeIsOrInheritsProxy(this, new Set<ClassElement>());
 
   bool get isProxy {
     for (ElementAnnotation annotation in metadata) {
@@ -2918,7 +2918,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     }
   }
 
-  void collectAllSupertypes(List<InterfaceType> supertypes) {
+  void _collectAllSupertypes(List<InterfaceType> supertypes) {
     List<InterfaceType> typesToVisit = new List<InterfaceType>();
     List<ClassElement> visitedClasses = new List<ClassElement>();
     typesToVisit.add(this.type);
@@ -2947,25 +2947,25 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     }
   }
 
-  bool safeIsOrInheritsProxy(ClassElement classElt, Set<ClassElement> visitedClassElts) {
+  bool _safeIsOrInheritsProxy(ClassElement classElt, Set<ClassElement> visitedClassElts) {
     if (visitedClassElts.contains(classElt)) {
       return false;
     }
     visitedClassElts.add(classElt);
     if (classElt.isProxy) {
       return true;
-    } else if (classElt.supertype != null && safeIsOrInheritsProxy(classElt.supertype.element, visitedClassElts)) {
+    } else if (classElt.supertype != null && _safeIsOrInheritsProxy(classElt.supertype.element, visitedClassElts)) {
       return true;
     }
     List<InterfaceType> supertypes = classElt.interfaces;
     for (int i = 0; i < supertypes.length; i++) {
-      if (safeIsOrInheritsProxy(supertypes[i].element, visitedClassElts)) {
+      if (_safeIsOrInheritsProxy(supertypes[i].element, visitedClassElts)) {
         return true;
       }
     }
     supertypes = classElt.mixins;
     for (int i = 0; i < supertypes.length; i++) {
-      if (safeIsOrInheritsProxy(supertypes[i].element, visitedClassElts)) {
+      if (_safeIsOrInheritsProxy(supertypes[i].element, visitedClassElts)) {
         return true;
       }
     }
@@ -3202,7 +3202,7 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
    * @param element the [Element] to get toolkit objects for
    * @return the associated toolkit objects, may be empty, but not `null`
    */
-  List<ToolkitObjectElement> getToolkitObjects(Element element) {
+  List<ToolkitObjectElement> _getToolkitObjects(Element element) {
     List<ToolkitObjectElement> objects = _toolkitObjects[element];
     if (objects != null) {
       return objects;
@@ -3216,7 +3216,7 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
    * @param element the [Element] to associate toolkit objects with
    * @param objects the toolkit objects to associate
    */
-  void setToolkitObjects(Element element, List<ToolkitObjectElement> objects) {
+  void _setToolkitObjects(Element element, List<ToolkitObjectElement> objects) {
     _toolkitObjects[element] = objects;
   }
 }
@@ -3868,7 +3868,7 @@ class ElementLocationImpl implements ElementLocation {
    * @param encoding the encoded form of a location
    */
   ElementLocationImpl.con2(String encoding) {
-    this._components = decode(encoding);
+    this._components = _decode(encoding);
   }
 
   bool operator ==(Object object) {
@@ -3889,10 +3889,10 @@ class ElementLocationImpl implements ElementLocation {
         return false;
       }
     }
-    if (length > 1 && !equalSourceComponents(_components[1], otherComponents[1])) {
+    if (length > 1 && !_equalSourceComponents(_components[1], otherComponents[1])) {
       return false;
     }
-    if (length > 0 && !equalSourceComponents(_components[0], otherComponents[0])) {
+    if (length > 0 && !_equalSourceComponents(_components[0], otherComponents[0])) {
       return false;
     }
     return true;
@@ -3912,7 +3912,7 @@ class ElementLocationImpl implements ElementLocation {
       if (i > 0) {
         builder.appendChar(_SEPARATOR_CHAR);
       }
-      encode(builder, _components[i]);
+      _encode(builder, _components[i]);
     }
     return builder.toString();
   }
@@ -3923,7 +3923,7 @@ class ElementLocationImpl implements ElementLocation {
       String component = _components[i];
       int componentHash;
       if (i <= 1) {
-        componentHash = hashSourceComponent(component);
+        componentHash = _hashSourceComponent(component);
       } else {
         componentHash = component.hashCode;
       }
@@ -3940,7 +3940,7 @@ class ElementLocationImpl implements ElementLocation {
    * @param encoding the encoded form of a location
    * @return the components that were encoded
    */
-  List<String> decode(String encoding) {
+  List<String> _decode(String encoding) {
     List<String> components = new List<String>();
     JavaStringBuilder builder = new JavaStringBuilder();
     int index = 0;
@@ -3973,7 +3973,7 @@ class ElementLocationImpl implements ElementLocation {
    * @param builder the builder to which the encoded component is to be appended
    * @param component the component to be appended to the builder
    */
-  void encode(JavaStringBuilder builder, String component) {
+  void _encode(JavaStringBuilder builder, String component) {
     int length = component.length;
     for (int i = 0; i < length; i++) {
       int currentChar = component.codeUnitAt(i);
@@ -3992,7 +3992,7 @@ class ElementLocationImpl implements ElementLocation {
    * @param right the right component being compared
    * @return `true` if the given components are equal when the source type's are ignored
    */
-  bool equalSourceComponents(String left, String right) {
+  bool _equalSourceComponents(String left, String right) {
     // TODO(brianwilkerson) This method can go away when sources no longer have a URI kind.
     if (left == null) {
       return right == null;
@@ -4015,7 +4015,7 @@ class ElementLocationImpl implements ElementLocation {
    * @param sourceComponent the component to compute a hash code
    * @return the hash code of the given encoded source component
    */
-  int hashSourceComponent(String sourceComponent) {
+  int _hashSourceComponent(String sourceComponent) {
     // TODO(brianwilkerson) This method can go away when sources no longer have a URI kind.
     if (sourceComponent.length <= 1) {
       return sourceComponent.hashCode;
@@ -4908,7 +4908,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * @param timeStamp the time stamp to check against
    * @param visitedLibraries the set of visited libraries
    */
-  static bool safeIsUpToDate(LibraryElement library, int timeStamp, Set<LibraryElement> visitedLibraries) {
+  static bool _safeIsUpToDate(LibraryElement library, int timeStamp, Set<LibraryElement> visitedLibraries) {
     if (!visitedLibraries.contains(library)) {
       visitedLibraries.add(library);
       AnalysisContext context = library.context;
@@ -4924,13 +4924,13 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       }
       // Check the imported libraries.
       for (LibraryElement importedLibrary in library.importedLibraries) {
-        if (!safeIsUpToDate(importedLibrary, timeStamp, visitedLibraries)) {
+        if (!_safeIsUpToDate(importedLibrary, timeStamp, visitedLibraries)) {
           return false;
         }
       }
       // Check the exported libraries.
       for (LibraryElement exportedLibrary in library.exportedLibraries) {
-        if (!safeIsUpToDate(exportedLibrary, timeStamp, visitedLibraries)) {
+        if (!_safeIsUpToDate(exportedLibrary, timeStamp, visitedLibraries)) {
           return false;
         }
       }
@@ -4972,7 +4972,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /**
    * Is `true` if this library is created for Angular analysis.
    */
-  bool _isAngularHtml2 = false;
+  bool _isAngularHtml = false;
 
   /**
    * Initialize a newly created library element to have the given name.
@@ -5083,7 +5083,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   List<LibraryElement> get visibleLibraries {
     Set<LibraryElement> visibleLibraries = new Set();
-    addVisibleLibraries(visibleLibraries, false);
+    _addVisibleLibraries(visibleLibraries, false);
     return new List.from(visibleLibraries);
   }
 
@@ -5091,7 +5091,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   int get hashCode => _definingCompilationUnit.hashCode;
 
-  bool get isAngularHtml => _isAngularHtml2;
+  bool get isAngularHtml => _isAngularHtml;
 
   bool get isBrowserApplication => entryPoint != null && isOrImportsBrowserLibrary;
 
@@ -5101,14 +5101,14 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   bool isUpToDate(int timeStamp) {
     Set<LibraryElement> visitedLibraries = new Set();
-    return safeIsUpToDate(this, timeStamp, visitedLibraries);
+    return _safeIsUpToDate(this, timeStamp, visitedLibraries);
   }
 
   /**
    * Specifies if this library is created for Angular analysis.
    */
   void set angularHtml(bool isAngularHtml) {
-    this._isAngularHtml2 = isAngularHtml;
+    this._isAngularHtml = isAngularHtml;
   }
 
   /**
@@ -5184,7 +5184,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /**
    * Recursively fills set of visible libraries for [getVisibleElementsLibraries].
    */
-  void addVisibleLibraries(Set<LibraryElement> visibleLibraries, bool includeExports) {
+  void _addVisibleLibraries(Set<LibraryElement> visibleLibraries, bool includeExports) {
     // maybe already processed
     if (!visibleLibraries.add(this)) {
       return;
@@ -5193,7 +5193,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     for (ImportElement importElement in _imports) {
       LibraryElement importedLibrary = importElement.importedLibrary;
       if (importedLibrary != null) {
-        (importedLibrary as LibraryElementImpl).addVisibleLibraries(visibleLibraries, true);
+        (importedLibrary as LibraryElementImpl)._addVisibleLibraries(visibleLibraries, true);
       }
     }
     // add exported libraries
@@ -5201,7 +5201,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       for (ExportElement exportElement in _exports) {
         LibraryElement exportedLibrary = exportElement.exportedLibrary;
         if (exportedLibrary != null) {
-          (exportedLibrary as LibraryElementImpl).addVisibleLibraries(visibleLibraries, true);
+          (exportedLibrary as LibraryElementImpl)._addVisibleLibraries(visibleLibraries, true);
         }
       }
     }
@@ -5283,7 +5283,7 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
     if (unit == null) {
       return ToolkitObjectElement.EMPTY_ARRAY;
     }
-    return unit.getToolkitObjects(this);
+    return unit._getToolkitObjects(this);
   }
 
   SourceRange get visibleRange {
@@ -5321,7 +5321,7 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
     if (unit == null) {
       return;
     }
-    unit.setToolkitObjects(this, toolkitObjects);
+    unit._setToolkitObjects(this, toolkitObjects);
   }
 
   /**
@@ -5517,7 +5517,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
    * @param secondElement the second element that conflicts
    */
   static Element fromElements(AnalysisContext context, Element firstElement, Element secondElement) {
-    List<Element> conflictingElements = computeConflictingElements(firstElement, secondElement);
+    List<Element> conflictingElements = _computeConflictingElements(firstElement, secondElement);
     int length = conflictingElements.length;
     if (length == 0) {
       return null;
@@ -5534,7 +5534,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
    * @param elements the list to which the element(s) are to be added
    * @param element the element(s) to be added
    */
-  static void add(Set<Element> elements, Element element) {
+  static void _add(Set<Element> elements, Element element) {
     if (element is MultiplyDefinedElementImpl) {
       for (Element conflictingElement in element.conflictingElements) {
         elements.add(conflictingElement);
@@ -5553,10 +5553,10 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
    * @param secondElement the second element to be included
    * @return an array containing all of the conflicting elements
    */
-  static List<Element> computeConflictingElements(Element firstElement, Element secondElement) {
+  static List<Element> _computeConflictingElements(Element firstElement, Element secondElement) {
     Set<Element> elements = new Set<Element>();
-    add(elements, firstElement);
-    add(elements, secondElement);
+    _add(elements, firstElement);
+    _add(elements, secondElement);
     return new List.from(elements);
   }
 
@@ -7604,7 +7604,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * @return `true` if all of the name/type pairs in the first map are equal to the
    *         corresponding name/type pairs in the second map
    */
-  static bool equals2(Map<String, Type2> firstTypes, Map<String, Type2> secondTypes, Set<ElementPair> visitedElementPairs) {
+  static bool _equals(Map<String, Type2> firstTypes, Map<String, Type2> secondTypes, Set<ElementPair> visitedElementPairs) {
     if (secondTypes.length != firstTypes.length) {
       return false;
     }
@@ -7845,7 +7845,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         return false;
       } else if (t.normalParameterTypes.length > 0) {
         for (int i = 0; i < tTypes.length; i++) {
-          if (!(tTypes[i] as TypeImpl).isMoreSpecificThan3(sTypes[i], withDynamic, visitedTypePairs)) {
+          if (!(tTypes[i] as TypeImpl).isMoreSpecificThan2(sTypes[i], withDynamic, visitedTypePairs)) {
             return false;
           }
         }
@@ -7865,7 +7865,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         if (typeT == null) {
           return false;
         }
-        if (!(typeT as TypeImpl).isMoreSpecificThan3(entryS.getValue(), withDynamic, visitedTypePairs)) {
+        if (!(typeT as TypeImpl).isMoreSpecificThan2(entryS.getValue(), withDynamic, visitedTypePairs)) {
           return false;
         }
       }
@@ -7884,7 +7884,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       if (tOpTypes.length == 0 && sOpTypes.length == 0) {
         // No positional arguments, don't copy contents to new array
         for (int i = 0; i < sTypes.length; i++) {
-          if (!(tTypes[i] as TypeImpl).isMoreSpecificThan3(sTypes[i], withDynamic, visitedTypePairs)) {
+          if (!(tTypes[i] as TypeImpl).isMoreSpecificThan2(sTypes[i], withDynamic, visitedTypePairs)) {
             return false;
           }
         }
@@ -7906,7 +7906,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
           sAllTypes[i] = sOpTypes[j];
         }
         for (int i = 0; i < sAllTypes.length; i++) {
-          if (!(tAllTypes[i] as TypeImpl).isMoreSpecificThan3(sAllTypes[i], withDynamic, visitedTypePairs)) {
+          if (!(tAllTypes[i] as TypeImpl).isMoreSpecificThan2(sAllTypes[i], withDynamic, visitedTypePairs)) {
             return false;
           }
         }
@@ -7914,10 +7914,10 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     Type2 tRetType = t.returnType;
     Type2 sRetType = s.returnType;
-    return sRetType.isVoid || (tRetType as TypeImpl).isMoreSpecificThan3(sRetType, withDynamic, visitedTypePairs);
+    return sRetType.isVoid || (tRetType as TypeImpl).isMoreSpecificThan2(sRetType, withDynamic, visitedTypePairs);
   }
 
-  bool isAssignableTo(Type2 type) => isSubtypeOf3(type, new Set<TypeImpl_TypePair>());
+  bool isAssignableTo(Type2 type) => isSubtypeOf2(type, new Set<TypeImpl_TypePair>());
 
   FunctionTypeImpl substitute3(List<Type2> argumentTypes) => substitute2(argumentTypes, typeArguments);
 
@@ -8019,7 +8019,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       return elementPair.firstElt == elementPair.secondElt;
     }
     // Compute the result
-    bool result = TypeImpl.equalArrays(normalParameterTypes, otherType.normalParameterTypes, visitedElementPairs) && TypeImpl.equalArrays(optionalParameterTypes, otherType.optionalParameterTypes, visitedElementPairs) && equals2(namedParameterTypes, otherType.namedParameterTypes, visitedElementPairs) && (returnType as TypeImpl).internalEquals(otherType.returnType, visitedElementPairs);
+    bool result = TypeImpl.equalArrays(normalParameterTypes, otherType.normalParameterTypes, visitedElementPairs) && TypeImpl.equalArrays(optionalParameterTypes, otherType.optionalParameterTypes, visitedElementPairs) && _equals(namedParameterTypes, otherType.namedParameterTypes, visitedElementPairs) && (returnType as TypeImpl).internalEquals(otherType.returnType, visitedElementPairs);
     // Remove the pair from our visited pairs list
     visitedElementPairs.remove(elementPair);
     // Return the result
@@ -8161,7 +8161,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @return the computed longest inheritance path to Object
    * @see InterfaceType#getLeastUpperBound(Type)
    */
-  static int computeLongestInheritancePathToObject(InterfaceType type) => computeLongestInheritancePathToObject2(type, 0, new Set<ClassElement>());
+  static int computeLongestInheritancePathToObject(InterfaceType type) => _computeLongestInheritancePathToObject(type, 0, new Set<ClassElement>());
 
   /**
    * Returns the set of all superinterfaces of the passed [Type].
@@ -8170,7 +8170,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @return the [Set] of superinterfaces of the passed [Type]
    * @see #getLeastUpperBound(Type)
    */
-  static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type) => computeSuperinterfaceSet2(type, new Set<InterfaceType>());
+  static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type) => _computeSuperinterfaceSet(type, new Set<InterfaceType>());
 
   /**
    * This method computes the longest inheritance path from some passed [Type] to Object. This
@@ -8185,7 +8185,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @see #computeLongestInheritancePathToObject(Type)
    * @see #getLeastUpperBound(Type)
    */
-  static int computeLongestInheritancePathToObject2(InterfaceType type, int depth, Set<ClassElement> visitedClasses) {
+  static int _computeLongestInheritancePathToObject(InterfaceType type, int depth, Set<ClassElement> visitedClasses) {
     ClassElement classElement = type.element;
     // Object case
     if (classElement.supertype == null || visitedClasses.contains(classElement)) {
@@ -8200,7 +8200,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         // loop through each of the superinterfaces recursively calling this method and keeping track
         // of the longest path to return
         for (InterfaceType superinterface in superinterfaces) {
-          pathLength = computeLongestInheritancePathToObject2(superinterface, depth + 1, visitedClasses);
+          pathLength = _computeLongestInheritancePathToObject(superinterface, depth + 1, visitedClasses);
           if (pathLength > longestPath) {
             longestPath = pathLength;
           }
@@ -8209,7 +8209,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       // finally, perform this same check on the super type
       // TODO(brianwilkerson) Does this also need to add in the number of mixin classes?
       InterfaceType supertype = classElement.supertype;
-      pathLength = computeLongestInheritancePathToObject2(supertype, depth + 1, visitedClasses);
+      pathLength = _computeLongestInheritancePathToObject(supertype, depth + 1, visitedClasses);
       if (pathLength > longestPath) {
         longestPath = pathLength;
       }
@@ -8229,20 +8229,20 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @see #computeSuperinterfaceSet(Type)
    * @see #getLeastUpperBound(Type)
    */
-  static Set<InterfaceType> computeSuperinterfaceSet2(InterfaceType type, Set<InterfaceType> set) {
+  static Set<InterfaceType> _computeSuperinterfaceSet(InterfaceType type, Set<InterfaceType> set) {
     Element element = type.element;
     if (element != null && element is ClassElement) {
       ClassElement classElement = element;
       List<InterfaceType> superinterfaces = classElement.interfaces;
       for (InterfaceType superinterface in superinterfaces) {
         if (set.add(superinterface)) {
-          computeSuperinterfaceSet2(superinterface, set);
+          _computeSuperinterfaceSet(superinterface, set);
         }
       }
       InterfaceType supertype = classElement.supertype;
       if (supertype != null) {
         if (set.add(supertype)) {
-          computeSuperinterfaceSet2(supertype, set);
+          _computeSuperinterfaceSet(supertype, set);
         }
       }
     }
@@ -8260,7 +8260,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @param second the second set of types to be intersected
    * @return the intersection of the given sets of types
    */
-  static List<InterfaceType> intersection(Set<InterfaceType> first, Set<InterfaceType> second) {
+  static List<InterfaceType> _intersection(Set<InterfaceType> first, Set<InterfaceType> second) {
     Map<ClassElement, InterfaceType> firstMap = new Map<ClassElement, InterfaceType>();
     for (InterfaceType firstType in first) {
       firstMap[firstType.element] = firstType;
@@ -8269,7 +8269,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     for (InterfaceType secondType in second) {
       InterfaceType firstType = firstMap[secondType.element];
       if (firstType != null) {
-        result.add(leastUpperBound(firstType, secondType));
+        result.add(_leastUpperBound(firstType, secondType));
       }
     }
     return new List.from(result);
@@ -8285,7 +8285,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @param secondType the second type
    * @return the "least upper bound" of the given types
    */
-  static InterfaceType leastUpperBound(InterfaceType firstType, InterfaceType secondType) {
+  static InterfaceType _leastUpperBound(InterfaceType firstType, InterfaceType secondType) {
     if (firstType == secondType) {
       return firstType;
     }
@@ -8416,7 +8416,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     si.add(i);
     sj.add(j);
     // compute intersection, reference as set 's'
-    List<InterfaceType> s = intersection(si, sj);
+    List<InterfaceType> s = _intersection(si, sj);
     // for each element in Set s, compute the largest inheritance path to Object
     List<int> depths = new List<int>.filled(s.length, 0);
     int maxDepth = 0;
@@ -8727,7 +8727,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     } else if (type is! InterfaceType) {
       return false;
     }
-    return isMoreSpecificThan2(type as InterfaceType, new Set<ClassElement>(), withDynamic, visitedTypePairs);
+    return _isMoreSpecificThan(type as InterfaceType, new Set<ClassElement>(), withDynamic, visitedTypePairs);
   }
 
   bool internalIsSubtypeOf(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) {
@@ -8750,10 +8750,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     } else if (this == type) {
       return true;
     }
-    return isSubtypeOf2(type as InterfaceType, new Set<ClassElement>(), visitedTypePairs);
+    return _isSubtypeOf(type as InterfaceType, new Set<ClassElement>(), visitedTypePairs);
   }
 
-  bool isMoreSpecificThan2(InterfaceType s, Set<ClassElement> visitedClasses, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+  bool _isMoreSpecificThan(InterfaceType s, Set<ClassElement> visitedClasses, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
     //
     // A type T is more specific than a type S, written T << S,  if one of the following conditions
     // is met:
@@ -8783,7 +8783,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return false;
       }
       for (int i = 0; i < tArguments.length; i++) {
-        if (!(tArguments[i] as TypeImpl).isMoreSpecificThan3(sArguments[i], withDynamic, visitedTypePairs)) {
+        if (!(tArguments[i] as TypeImpl).isMoreSpecificThan2(sArguments[i], withDynamic, visitedTypePairs)) {
           return false;
         }
       }
@@ -8801,23 +8801,23 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     // Iterate over all of the types U that are more specific than T because they are direct
     // supertypes of T and return true if any of them are more specific than S.
     InterfaceType supertype = superclass;
-    if (supertype != null && (supertype as InterfaceTypeImpl).isMoreSpecificThan2(s, visitedClasses, withDynamic, visitedTypePairs)) {
+    if (supertype != null && (supertype as InterfaceTypeImpl)._isMoreSpecificThan(s, visitedClasses, withDynamic, visitedTypePairs)) {
       return true;
     }
     for (InterfaceType interfaceType in interfaces) {
-      if ((interfaceType as InterfaceTypeImpl).isMoreSpecificThan2(s, visitedClasses, withDynamic, visitedTypePairs)) {
+      if ((interfaceType as InterfaceTypeImpl)._isMoreSpecificThan(s, visitedClasses, withDynamic, visitedTypePairs)) {
         return true;
       }
     }
     for (InterfaceType mixinType in mixins) {
-      if ((mixinType as InterfaceTypeImpl).isMoreSpecificThan2(s, visitedClasses, withDynamic, visitedTypePairs)) {
+      if ((mixinType as InterfaceTypeImpl)._isMoreSpecificThan(s, visitedClasses, withDynamic, visitedTypePairs)) {
         return true;
       }
     }
     return false;
   }
 
-  bool isSubtypeOf2(InterfaceType type, Set<ClassElement> visitedClasses, Set<TypeImpl_TypePair> visitedTypePairs) {
+  bool _isSubtypeOf(InterfaceType type, Set<ClassElement> visitedClasses, Set<TypeImpl_TypePair> visitedTypePairs) {
     InterfaceType typeT = this;
     InterfaceType typeS = type;
     ClassElement elementT = element;
@@ -8840,7 +8840,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       for (int i = 0; i < typeTArgs.length; i++) {
         // Recursively call isSubtypeOf the type arguments and return false if the T argument is not
         // a subtype of the S argument.
-        if (!(typeTArgs[i] as TypeImpl).isSubtypeOf3(typeSArgs[i], visitedTypePairs)) {
+        if (!(typeTArgs[i] as TypeImpl).isSubtypeOf2(typeSArgs[i], visitedTypePairs)) {
           return false;
         }
       }
@@ -8850,18 +8850,18 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     InterfaceType supertype = superclass;
     // The type is Object, return false.
-    if (supertype != null && (supertype as InterfaceTypeImpl).isSubtypeOf2(typeS, visitedClasses, visitedTypePairs)) {
+    if (supertype != null && (supertype as InterfaceTypeImpl)._isSubtypeOf(typeS, visitedClasses, visitedTypePairs)) {
       return true;
     }
     List<InterfaceType> interfaceTypes = interfaces;
     for (InterfaceType interfaceType in interfaceTypes) {
-      if ((interfaceType as InterfaceTypeImpl).isSubtypeOf2(typeS, visitedClasses, visitedTypePairs)) {
+      if ((interfaceType as InterfaceTypeImpl)._isSubtypeOf(typeS, visitedClasses, visitedTypePairs)) {
         return true;
       }
     }
     List<InterfaceType> mixinTypes = mixins;
     for (InterfaceType mixinType in mixinTypes) {
-      if ((mixinType as InterfaceTypeImpl).isSubtypeOf2(typeS, visitedClasses, visitedTypePairs)) {
+      if ((mixinType as InterfaceTypeImpl)._isSubtypeOf(typeS, visitedClasses, visitedTypePairs)) {
         return true;
       }
     }
@@ -8954,7 +8954,7 @@ abstract class TypeImpl implements Type2 {
    * @param visitedPairs the set of pairs of types used to prevent infinite loops
    * @return `true` if this type is assignable to the given type
    */
-  bool isAssignableTo2(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) => isSubtypeOf3(type, visitedTypePairs) || (type as TypeImpl).isSubtypeOf3(this, visitedTypePairs);
+  bool isAssignableTo2(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) => isSubtypeOf2(type, visitedTypePairs) || (type as TypeImpl).isSubtypeOf2(this, visitedTypePairs);
 
   bool get isBottom => false;
 
@@ -8962,7 +8962,7 @@ abstract class TypeImpl implements Type2 {
 
   bool get isDynamic => false;
 
-  bool isMoreSpecificThan(Type2 type) => isMoreSpecificThan3(type, false, new Set<TypeImpl_TypePair>());
+  bool isMoreSpecificThan(Type2 type) => isMoreSpecificThan2(type, false, new Set<TypeImpl_TypePair>());
 
   /**
    * Return `true` if this type is more specific than the given type.
@@ -8976,7 +8976,7 @@ abstract class TypeImpl implements Type2 {
    * @param visitedPairs the set of pairs of types used to prevent infinite loops
    * @return `true` if this type is more specific than the given type
    */
-  bool isMoreSpecificThan3(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+  bool isMoreSpecificThan2(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
     // If the visitedTypePairs already has the pair (this, type), return false
     TypeImpl_TypePair typePair = new TypeImpl_TypePair(this, type);
     if (!visitedTypePairs.add(typePair)) {
@@ -8989,7 +8989,7 @@ abstract class TypeImpl implements Type2 {
 
   bool get isObject => false;
 
-  bool isSubtypeOf(Type2 type) => isSubtypeOf3(type, new Set<TypeImpl_TypePair>());
+  bool isSubtypeOf(Type2 type) => isSubtypeOf2(type, new Set<TypeImpl_TypePair>());
 
   /**
    * Return `true` if this type is a subtype of the given type.
@@ -9002,7 +9002,7 @@ abstract class TypeImpl implements Type2 {
    * @param visitedPairs the set of pairs of types used to prevent infinite loops
    * @return `true` if this type is a subtype of the given type
    */
-  bool isSubtypeOf3(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) {
+  bool isSubtypeOf2(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) {
     // If the visitedTypePairs already has the pair (this, type), return false
     TypeImpl_TypePair typePair = new TypeImpl_TypePair(this, type);
     if (!visitedTypePairs.add(typePair)) {
@@ -9153,12 +9153,12 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     if (s.isDynamic) {
       return true;
     }
-    return isMoreSpecificThan4(s, new Set<Type2>(), withDynamic, visitedTypePairs);
+    return _isMoreSpecificThan(s, new Set<Type2>(), withDynamic, visitedTypePairs);
   }
 
-  bool internalIsSubtypeOf(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) => isMoreSpecificThan3(type, true, new Set<TypeImpl_TypePair>());
+  bool internalIsSubtypeOf(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) => isMoreSpecificThan2(type, true, new Set<TypeImpl_TypePair>());
 
-  bool isMoreSpecificThan4(Type2 s, Set<Type2> visitedTypes, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+  bool _isMoreSpecificThan(Type2 s, Set<Type2> visitedTypes, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
     // T is a type parameter and S is the upper bound of T.
     //
     Type2 bound = element.bound;
@@ -9185,10 +9185,10 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       }
       visitedTypes.add(bound);
       // Then check upper bound.
-      return boundTypeParameter.isMoreSpecificThan4(s, visitedTypes, withDynamic, visitedTypePairs);
+      return boundTypeParameter._isMoreSpecificThan(s, visitedTypes, withDynamic, visitedTypePairs);
     }
     // Check interface type.
-    return (bound as TypeImpl).isMoreSpecificThan3(s, withDynamic, visitedTypePairs);
+    return (bound as TypeImpl).isMoreSpecificThan2(s, withDynamic, visitedTypePairs);
   }
 }
 

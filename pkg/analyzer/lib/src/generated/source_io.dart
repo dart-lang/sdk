@@ -269,7 +269,7 @@ class PackageUriResolver extends UriResolver {
       JavaFile resolvedFile = new JavaFile.relative(packagesDirectory, path);
       if (resolvedFile.exists()) {
         JavaFile canonicalFile = getCanonicalFile(packagesDirectory, pkgName, relPath);
-        UriKind uriKind = isSelfReference(packagesDirectory, canonicalFile) ? UriKind.PACKAGE_SELF_URI : UriKind.PACKAGE_URI;
+        UriKind uriKind = _isSelfReference(packagesDirectory, canonicalFile) ? UriKind.PACKAGE_SELF_URI : UriKind.PACKAGE_URI;
         return new FileBasedSource.con2(canonicalFile, uriKind);
       }
     }
@@ -326,7 +326,7 @@ class PackageUriResolver extends UriResolver {
    * @return `true` if "file" was found in "packagesDir", and it is part of the "lib" folder
    *         of the application that contains in this "packagesDir".
    */
-  bool isSelfReference(JavaFile packagesDir, JavaFile file) {
+  bool _isSelfReference(JavaFile packagesDir, JavaFile file) {
     JavaFile rootDir = packagesDir.getParentFile();
     if (rootDir == null) {
       return false;
@@ -349,7 +349,7 @@ class DirectoryBasedSourceContainer implements SourceContainer {
    * @param path the path to which the file separator is to be added
    * @return a path that ends with the system file separator
    */
-  static String appendFileSeparator(String path) {
+  static String _appendFileSeparator(String path) {
     if (path == null || path.length <= 0 || path.codeUnitAt(path.length - 1) == JavaFile.separatorChar) {
       return path;
     }
@@ -378,7 +378,7 @@ class DirectoryBasedSourceContainer implements SourceContainer {
    * @param path the path (not `null` and not empty)
    */
   DirectoryBasedSourceContainer.con2(String path) {
-    this._path = appendFileSeparator(path);
+    this._path = _appendFileSeparator(path);
   }
 
   bool contains(Source source) => source.fullName.startsWith(_path);

@@ -184,8 +184,8 @@ class DirectoryBasedDartSdk implements DartSdk {
    */
   DirectoryBasedDartSdk.con1(JavaFile sdkDirectory, bool useDart2jsPaths) {
     this._sdkDirectory = sdkDirectory.getAbsoluteFile();
-    initializeSdk();
-    initializeLibraryMap(useDart2jsPaths);
+    _initializeSdk();
+    _initializeLibraryMap(useDart2jsPaths);
     _analysisContext = new AnalysisContextImpl();
     _analysisContext.sourceFactory = new SourceFactory([new DartUriResolver(this)]);
     List<String> uris = this.uris;
@@ -349,7 +349,7 @@ class DirectoryBasedDartSdk implements DartSdk {
    * Ensure that the dart VM is executable. If it is not, make it executable and log that it was
    * necessary for us to do so.
    */
-  void ensureVmIsExecutable() {
+  void _ensureVmIsExecutable() {
   }
 
   /**
@@ -385,7 +385,7 @@ class DirectoryBasedDartSdk implements DartSdk {
    *
    * @param useDart2jsPaths `true` if the dart2js path should be used when it is available
    */
-  void initializeLibraryMap(bool useDart2jsPaths) {
+  void _initializeLibraryMap(bool useDart2jsPaths) {
     JavaFile librariesFile = new JavaFile.relative(new JavaFile.relative(libraryDirectory, _INTERNAL_DIR), _LIBRARIES_FILE);
     try {
       String contents = librariesFile.readAsStringSync();
@@ -399,9 +399,9 @@ class DirectoryBasedDartSdk implements DartSdk {
   /**
    * Initialize the state of the SDK.
    */
-  void initializeSdk() {
+  void _initializeSdk() {
     if (!OSUtilities.isWindows()) {
-      ensureVmIsExecutable();
+      _ensureVmIsExecutable();
     }
   }
 }

@@ -28,7 +28,7 @@ class KeywordState {
   /**
    * The initial state in the state machine.
    */
-  static KeywordState KEYWORD_STATE = createKeywordStateTable();
+  static KeywordState KEYWORD_STATE = _createKeywordStateTable();
 
   /**
    * Create the next state in the state machine where we have already recognized the subset of
@@ -43,7 +43,7 @@ class KeywordState {
    * @param length the number of strings in the array that pass through the state being built
    * @return the state that was created
    */
-  static KeywordState computeKeywordStateTable(int start, List<String> strings, int offset, int length) {
+  static KeywordState _computeKeywordStateTable(int start, List<String> strings, int offset, int length) {
     List<KeywordState> result = new List<KeywordState>(26);
     assert(length != 0);
     int chunk = 0x0;
@@ -57,7 +57,7 @@ class KeywordState {
         int c = strings[i].codeUnitAt(start);
         if (chunk != c) {
           if (chunkStart != -1) {
-            result[chunk - 0x61] = computeKeywordStateTable(start + 1, strings, chunkStart, i - chunkStart);
+            result[chunk - 0x61] = _computeKeywordStateTable(start + 1, strings, chunkStart, i - chunkStart);
           }
           chunkStart = i;
           chunk = c;
@@ -66,7 +66,7 @@ class KeywordState {
     }
     if (chunkStart != -1) {
       assert(result[chunk - 0x61] == null);
-      result[chunk - 0x61] = computeKeywordStateTable(start + 1, strings, chunkStart, offset + length - chunkStart);
+      result[chunk - 0x61] = _computeKeywordStateTable(start + 1, strings, chunkStart, offset + length - chunkStart);
     } else {
       assert(length == 1);
       return new KeywordState(_EMPTY_TABLE, strings[offset]);
@@ -83,14 +83,14 @@ class KeywordState {
    *
    * @return the state that was created
    */
-  static KeywordState createKeywordStateTable() {
+  static KeywordState _createKeywordStateTable() {
     List<Keyword> values = Keyword.values;
     List<String> strings = new List<String>(values.length);
     for (int i = 0; i < values.length; i++) {
       strings[i] = values[i].syntax;
     }
     strings.sort();
-    return computeKeywordStateTable(0, strings, 0, strings.length);
+    return _computeKeywordStateTable(0, strings, 0, strings.length);
   }
 
   /**
@@ -103,7 +103,7 @@ class KeywordState {
    * The keyword that is recognized by this state, or `null` if this state is not a terminal
    * state.
    */
-  Keyword _keyword2;
+  Keyword _keyword;
 
   /**
    * Initialize a newly created state to have the given transitions and to recognize the keyword
@@ -114,7 +114,7 @@ class KeywordState {
    */
   KeywordState(List<KeywordState> table, String syntax) {
     this._table = table;
-    this._keyword2 = (syntax == null) ? null : Keyword.keywords[syntax];
+    this._keyword = (syntax == null) ? null : Keyword.keywords[syntax];
   }
 
   /**
@@ -123,7 +123,7 @@ class KeywordState {
    *
    * @return the keyword that was matched by reaching this state
    */
-  Keyword keyword() => _keyword2;
+  Keyword keyword() => _keyword;
 
   /**
    * Return the state that follows this state on a transition of the given character, or
@@ -421,19 +421,19 @@ class Keyword extends Enum<Keyword> {
    * A flag indicating whether the keyword is a pseudo-keyword. Pseudo keywords can be used as
    * identifiers.
    */
-  bool _isPseudoKeyword2 = false;
+  bool _isPseudoKeyword = false;
 
   /**
    * A table mapping the lexemes of keywords to the corresponding keyword.
    */
-  static Map<String, Keyword> keywords = createKeywordMap();
+  static Map<String, Keyword> keywords = _createKeywordMap();
 
   /**
    * Create a table mapping the lexemes of keywords to the corresponding keyword.
    *
    * @return the table that was created
    */
-  static Map<String, Keyword> createKeywordMap() {
+  static Map<String, Keyword> _createKeywordMap() {
     LinkedHashMap<String, Keyword> result = new LinkedHashMap<String, Keyword>();
     for (Keyword keyword in values) {
       result[keyword._syntax] = keyword;
@@ -458,7 +458,7 @@ class Keyword extends Enum<Keyword> {
    */
   Keyword.con2(String name, int ordinal, String syntax, bool isPseudoKeyword) : super(name, ordinal) {
     this._syntax = syntax;
-    this._isPseudoKeyword2 = isPseudoKeyword;
+    this._isPseudoKeyword = isPseudoKeyword;
   }
 
   /**
@@ -474,7 +474,7 @@ class Keyword extends Enum<Keyword> {
    *
    * @return `true` if this keyword is a pseudo-keyword
    */
-  bool get isPseudoKeyword => _isPseudoKeyword2;
+  bool get isPseudoKeyword => _isPseudoKeyword;
 }
 
 /**
@@ -579,7 +579,7 @@ class IncrementalScanner extends Scanner {
   /**
    * A flag indicating whether there were any tokens changed as a result of the modification.
    */
-  bool _hasNonWhitespaceChange2 = false;
+  bool _hasNonWhitespaceChange = false;
 
   /**
    * Initialize a newly created scanner.
@@ -623,7 +623,7 @@ class IncrementalScanner extends Scanner {
    *
    * @return `true` if there were any tokens changed as a result of the modification
    */
-  bool get hasNonWhitespaceChange => _hasNonWhitespaceChange2;
+  bool get hasNonWhitespaceChange => _hasNonWhitespaceChange;
 
   /**
    * Given the stream of tokens scanned from the original source, the modified source (the result of
@@ -644,7 +644,7 @@ class IncrementalScanner extends Scanner {
     // existing token might have been modified, so we need to rescan it.)
     //
     while (originalStream.type != TokenType.EOF && originalStream.end < index) {
-      originalStream = copyAndAdvance(originalStream, 0);
+      originalStream = _copyAndAdvance(originalStream, 0);
     }
     Token oldFirst = originalStream;
     Token oldLeftToken = originalStream.previous;
@@ -697,16 +697,16 @@ class IncrementalScanner extends Scanner {
     // Copy the remaining tokens in the original stream, but apply the delta to the token's offset.
     //
     if (identical(originalStream.type, TokenType.EOF)) {
-      copyAndAdvance(originalStream, delta);
+      _copyAndAdvance(originalStream, delta);
       _rightToken = tail;
       _rightToken.setNextWithoutSettingPrevious(_rightToken);
     } else {
-      originalStream = copyAndAdvance(originalStream, delta);
+      originalStream = _copyAndAdvance(originalStream, delta);
       _rightToken = tail;
       while (originalStream.type != TokenType.EOF) {
-        originalStream = copyAndAdvance(originalStream, delta);
+        originalStream = _copyAndAdvance(originalStream, delta);
       }
-      Token eof = copyAndAdvance(originalStream, delta);
+      Token eof = _copyAndAdvance(originalStream, delta);
       eof.setNextWithoutSettingPrevious(eof);
     }
     //
@@ -716,7 +716,7 @@ class IncrementalScanner extends Scanner {
     // the first new token.
     //
     Token newFirst = _leftToken.next;
-    while (newFirst != _rightToken && oldFirst != oldRightToken && newFirst.type != TokenType.EOF && equalTokens(oldFirst, newFirst)) {
+    while (newFirst != _rightToken && oldFirst != oldRightToken && newFirst.type != TokenType.EOF && _equalTokens(oldFirst, newFirst)) {
       _tokenMap.put(oldFirst, newFirst);
       oldLeftToken = oldFirst;
       oldFirst = oldFirst.next;
@@ -724,14 +724,14 @@ class IncrementalScanner extends Scanner {
       newFirst = newFirst.next;
     }
     Token newLast = _rightToken.previous;
-    while (newLast != _leftToken && oldLast != oldLeftToken && newLast.type != TokenType.EOF && equalTokens(oldLast, newLast)) {
+    while (newLast != _leftToken && oldLast != oldLeftToken && newLast.type != TokenType.EOF && _equalTokens(oldLast, newLast)) {
       _tokenMap.put(oldLast, newLast);
       oldRightToken = oldLast;
       oldLast = oldLast.previous;
       _rightToken = newLast;
       newLast = newLast.previous;
     }
-    _hasNonWhitespaceChange2 = _leftToken.next != _rightToken || oldLeftToken.next != oldRightToken;
+    _hasNonWhitespaceChange = _leftToken.next != _rightToken || oldLeftToken.next != oldRightToken;
     //
     // TODO(brianwilkerson) Begin tokens are not getting associated with the corresponding end
     //     tokens (because the end tokens have not been copied when we're copying the begin tokens).
@@ -741,7 +741,7 @@ class IncrementalScanner extends Scanner {
     return firstToken;
   }
 
-  Token copyAndAdvance(Token originalToken, int delta) {
+  Token _copyAndAdvance(Token originalToken, int delta) {
     Token copiedToken = originalToken.copy();
     _tokenMap.put(originalToken, copiedToken);
     copiedToken.applyDelta(delta);
@@ -764,7 +764,7 @@ class IncrementalScanner extends Scanner {
    * @param newToken the token from the new stream that is being compared
    * @return `true` if the two tokens are equal to each other
    */
-  bool equalTokens(Token oldToken, Token newToken) => identical(oldToken.type, newToken.type) && oldToken.length == newToken.length && oldToken.lexeme == newToken.lexeme;
+  bool _equalTokens(Token oldToken, Token newToken) => identical(oldToken.type, newToken.type) && oldToken.length == newToken.length && oldToken.lexeme == newToken.lexeme;
 }
 
 /**
@@ -841,7 +841,7 @@ class Scanner {
   /**
    * A flag indicating whether any unmatched groups were found during the parse.
    */
-  bool _hasUnmatchedGroups2 = false;
+  bool _hasUnmatchedGroups = false;
 
   /**
    * Initialize a newly created scanner.
@@ -872,7 +872,7 @@ class Scanner {
    *
    * @return `true` if any unmatched groups were found during the parse
    */
-  bool get hasUnmatchedGroups => _hasUnmatchedGroups2;
+  bool get hasUnmatchedGroups => _hasUnmatchedGroups;
 
   /**
    * Set whether documentation tokens should be scanned.
@@ -919,7 +919,7 @@ class Scanner {
         tokenCounter++;
         next = bigSwitch(next);
       }
-      appendEofToken();
+      _appendEofToken();
       instrumentation.metric2("tokensCount", tokenCounter);
       return firstToken;
     } finally {
@@ -939,7 +939,7 @@ class Scanner {
   }
 
   int bigSwitch(int next) {
-    beginToken();
+    _beginToken();
     if (next == 0xD) {
       next = _reader.advance();
       if (next == 0xA) {
@@ -958,124 +958,124 @@ class Scanner {
       int peek = _reader.peek();
       if (peek == 0x22 || peek == 0x27) {
         int start = _reader.offset;
-        return tokenizeString(_reader.advance(), start, true);
+        return _tokenizeString(_reader.advance(), start, true);
       }
     }
     if (0x61 <= next && next <= 0x7A) {
-      return tokenizeKeywordOrIdentifier(next, true);
+      return _tokenizeKeywordOrIdentifier(next, true);
     }
     if ((0x41 <= next && next <= 0x5A) || next == 0x5F || next == 0x24) {
-      return tokenizeIdentifier(next, _reader.offset, true);
+      return _tokenizeIdentifier(next, _reader.offset, true);
     }
     if (next == 0x3C) {
-      return tokenizeLessThan(next);
+      return _tokenizeLessThan(next);
     }
     if (next == 0x3E) {
-      return tokenizeGreaterThan(next);
+      return _tokenizeGreaterThan(next);
     }
     if (next == 0x3D) {
-      return tokenizeEquals(next);
+      return _tokenizeEquals(next);
     }
     if (next == 0x21) {
-      return tokenizeExclamation(next);
+      return _tokenizeExclamation(next);
     }
     if (next == 0x2B) {
-      return tokenizePlus(next);
+      return _tokenizePlus(next);
     }
     if (next == 0x2D) {
-      return tokenizeMinus(next);
+      return _tokenizeMinus(next);
     }
     if (next == 0x2A) {
-      return tokenizeMultiply(next);
+      return _tokenizeMultiply(next);
     }
     if (next == 0x25) {
-      return tokenizePercent(next);
+      return _tokenizePercent(next);
     }
     if (next == 0x26) {
-      return tokenizeAmpersand(next);
+      return _tokenizeAmpersand(next);
     }
     if (next == 0x7C) {
-      return tokenizeBar(next);
+      return _tokenizeBar(next);
     }
     if (next == 0x5E) {
-      return tokenizeCaret(next);
+      return _tokenizeCaret(next);
     }
     if (next == 0x5B) {
-      return tokenizeOpenSquareBracket(next);
+      return _tokenizeOpenSquareBracket(next);
     }
     if (next == 0x7E) {
-      return tokenizeTilde(next);
+      return _tokenizeTilde(next);
     }
     if (next == 0x5C) {
-      appendTokenOfType(TokenType.BACKSLASH);
+      _appendTokenOfType(TokenType.BACKSLASH);
       return _reader.advance();
     }
     if (next == 0x23) {
-      return tokenizeTag(next);
+      return _tokenizeTag(next);
     }
     if (next == 0x28) {
-      appendBeginToken(TokenType.OPEN_PAREN);
+      _appendBeginToken(TokenType.OPEN_PAREN);
       return _reader.advance();
     }
     if (next == 0x29) {
-      appendEndToken(TokenType.CLOSE_PAREN, TokenType.OPEN_PAREN);
+      _appendEndToken(TokenType.CLOSE_PAREN, TokenType.OPEN_PAREN);
       return _reader.advance();
     }
     if (next == 0x2C) {
-      appendTokenOfType(TokenType.COMMA);
+      _appendTokenOfType(TokenType.COMMA);
       return _reader.advance();
     }
     if (next == 0x3A) {
-      appendTokenOfType(TokenType.COLON);
+      _appendTokenOfType(TokenType.COLON);
       return _reader.advance();
     }
     if (next == 0x3B) {
-      appendTokenOfType(TokenType.SEMICOLON);
+      _appendTokenOfType(TokenType.SEMICOLON);
       return _reader.advance();
     }
     if (next == 0x3F) {
-      appendTokenOfType(TokenType.QUESTION);
+      _appendTokenOfType(TokenType.QUESTION);
       return _reader.advance();
     }
     if (next == 0x5D) {
-      appendEndToken(TokenType.CLOSE_SQUARE_BRACKET, TokenType.OPEN_SQUARE_BRACKET);
+      _appendEndToken(TokenType.CLOSE_SQUARE_BRACKET, TokenType.OPEN_SQUARE_BRACKET);
       return _reader.advance();
     }
     if (next == 0x60) {
-      appendTokenOfType(TokenType.BACKPING);
+      _appendTokenOfType(TokenType.BACKPING);
       return _reader.advance();
     }
     if (next == 0x7B) {
-      appendBeginToken(TokenType.OPEN_CURLY_BRACKET);
+      _appendBeginToken(TokenType.OPEN_CURLY_BRACKET);
       return _reader.advance();
     }
     if (next == 0x7D) {
-      appendEndToken(TokenType.CLOSE_CURLY_BRACKET, TokenType.OPEN_CURLY_BRACKET);
+      _appendEndToken(TokenType.CLOSE_CURLY_BRACKET, TokenType.OPEN_CURLY_BRACKET);
       return _reader.advance();
     }
     if (next == 0x2F) {
-      return tokenizeSlashOrComment(next);
+      return _tokenizeSlashOrComment(next);
     }
     if (next == 0x40) {
-      appendTokenOfType(TokenType.AT);
+      _appendTokenOfType(TokenType.AT);
       return _reader.advance();
     }
     if (next == 0x22 || next == 0x27) {
-      return tokenizeString(next, _reader.offset, false);
+      return _tokenizeString(next, _reader.offset, false);
     }
     if (next == 0x2E) {
-      return tokenizeDotOrNumber(next);
+      return _tokenizeDotOrNumber(next);
     }
     if (next == 0x30) {
-      return tokenizeHexOrNumber(next);
+      return _tokenizeHexOrNumber(next);
     }
     if (0x31 <= next && next <= 0x39) {
-      return tokenizeNumber(next);
+      return _tokenizeNumber(next);
     }
     if (next == -1) {
       return -1;
     }
-    reportError(ScannerErrorCode.ILLEGAL_CHARACTER, [next]);
+    _reportError(ScannerErrorCode.ILLEGAL_CHARACTER, [next]);
     return _reader.advance();
   }
 
@@ -1100,7 +1100,7 @@ class Scanner {
     _lineStarts.add(_reader.offset);
   }
 
-  void appendBeginToken(TokenType type) {
+  void _appendBeginToken(TokenType type) {
     BeginToken token;
     if (_firstComment == null) {
       token = new BeginToken(type, _tokenStart);
@@ -1114,7 +1114,7 @@ class Scanner {
     _stackEnd++;
   }
 
-  void appendCommentToken(TokenType type, String value) {
+  void _appendCommentToken(TokenType type, String value) {
     // Ignore comment tokens if client specified that it doesn't need them.
     if (!_preserveComments) {
       return;
@@ -1128,7 +1128,7 @@ class Scanner {
     }
   }
 
-  void appendEndToken(TokenType type, TokenType beginType) {
+  void _appendEndToken(TokenType type, TokenType beginType) {
     Token token;
     if (_firstComment == null) {
       token = new Token(type, _tokenStart);
@@ -1147,7 +1147,7 @@ class Scanner {
     }
   }
 
-  void appendEofToken() {
+  void _appendEofToken() {
     Token eofToken;
     if (_firstComment == null) {
       eofToken = new Token(TokenType.EOF, _reader.offset + 1);
@@ -1160,11 +1160,11 @@ class Scanner {
     eofToken.setNext(eofToken);
     _tail = _tail.setNext(eofToken);
     if (_stackEnd >= 0) {
-      _hasUnmatchedGroups2 = true;
+      _hasUnmatchedGroups = true;
     }
   }
 
-  void appendKeywordToken(Keyword keyword) {
+  void _appendKeywordToken(Keyword keyword) {
     if (_firstComment == null) {
       _tail = _tail.setNext(new KeywordToken(keyword, _tokenStart));
     } else {
@@ -1174,7 +1174,7 @@ class Scanner {
     }
   }
 
-  void appendStringToken(TokenType type, String value) {
+  void _appendStringToken(TokenType type, String value) {
     if (_firstComment == null) {
       _tail = _tail.setNext(new StringToken(type, value, _tokenStart));
     } else {
@@ -1184,7 +1184,7 @@ class Scanner {
     }
   }
 
-  void appendStringTokenWithOffset(TokenType type, String value, int offset) {
+  void _appendStringTokenWithOffset(TokenType type, String value, int offset) {
     if (_firstComment == null) {
       _tail = _tail.setNext(new StringToken(type, value, _tokenStart + offset));
     } else {
@@ -1194,7 +1194,7 @@ class Scanner {
     }
   }
 
-  void appendTokenOfType(TokenType type) {
+  void _appendTokenOfType(TokenType type) {
     if (_firstComment == null) {
       _tail = _tail.setNext(new Token(type, _tokenStart));
     } else {
@@ -1204,7 +1204,7 @@ class Scanner {
     }
   }
 
-  void appendTokenOfTypeWithOffset(TokenType type, int offset) {
+  void _appendTokenOfTypeWithOffset(TokenType type, int offset) {
     if (_firstComment == null) {
       _tail = _tail.setNext(new Token(type, offset));
     } else {
@@ -1214,7 +1214,7 @@ class Scanner {
     }
   }
 
-  void beginToken() {
+  void _beginToken() {
     _tokenStart = _reader.offset;
   }
 
@@ -1225,13 +1225,13 @@ class Scanner {
    *
    * @return the token to be paired with the closing brace
    */
-  BeginToken findTokenMatchingClosingBraceInInterpolationExpression() {
+  BeginToken _findTokenMatchingClosingBraceInInterpolationExpression() {
     while (_stackEnd >= 0) {
       BeginToken begin = _groupingStack[_stackEnd];
       if (identical(begin.type, TokenType.OPEN_CURLY_BRACKET) || identical(begin.type, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
         return begin;
       }
-      _hasUnmatchedGroups2 = true;
+      _hasUnmatchedGroups = true;
       _groupingStack.removeAt(_stackEnd--);
     }
     //
@@ -1247,103 +1247,103 @@ class Scanner {
    * @param errorCode the error code indicating the nature of the error
    * @param arguments any arguments needed to complete the error message
    */
-  void reportError(ScannerErrorCode errorCode, List<Object> arguments) {
+  void _reportError(ScannerErrorCode errorCode, List<Object> arguments) {
     _errorListener.onError(new AnalysisError.con2(source, _reader.offset, 1, errorCode, arguments));
   }
 
-  int select(int choice, TokenType yesType, TokenType noType) {
+  int _select(int choice, TokenType yesType, TokenType noType) {
     int next = _reader.advance();
     if (next == choice) {
-      appendTokenOfType(yesType);
+      _appendTokenOfType(yesType);
       return _reader.advance();
     } else {
-      appendTokenOfType(noType);
+      _appendTokenOfType(noType);
       return next;
     }
   }
 
-  int selectWithOffset(int choice, TokenType yesType, TokenType noType, int offset) {
+  int _selectWithOffset(int choice, TokenType yesType, TokenType noType, int offset) {
     int next = _reader.advance();
     if (next == choice) {
-      appendTokenOfTypeWithOffset(yesType, offset);
+      _appendTokenOfTypeWithOffset(yesType, offset);
       return _reader.advance();
     } else {
-      appendTokenOfTypeWithOffset(noType, offset);
+      _appendTokenOfTypeWithOffset(noType, offset);
       return next;
     }
   }
 
-  int tokenizeAmpersand(int next) {
+  int _tokenizeAmpersand(int next) {
     // && &= &
     next = _reader.advance();
     if (next == 0x26) {
-      appendTokenOfType(TokenType.AMPERSAND_AMPERSAND);
+      _appendTokenOfType(TokenType.AMPERSAND_AMPERSAND);
       return _reader.advance();
     } else if (next == 0x3D) {
-      appendTokenOfType(TokenType.AMPERSAND_EQ);
+      _appendTokenOfType(TokenType.AMPERSAND_EQ);
       return _reader.advance();
     } else {
-      appendTokenOfType(TokenType.AMPERSAND);
+      _appendTokenOfType(TokenType.AMPERSAND);
       return next;
     }
   }
 
-  int tokenizeBar(int next) {
+  int _tokenizeBar(int next) {
     // | || |=
     next = _reader.advance();
     if (next == 0x7C) {
-      appendTokenOfType(TokenType.BAR_BAR);
+      _appendTokenOfType(TokenType.BAR_BAR);
       return _reader.advance();
     } else if (next == 0x3D) {
-      appendTokenOfType(TokenType.BAR_EQ);
+      _appendTokenOfType(TokenType.BAR_EQ);
       return _reader.advance();
     } else {
-      appendTokenOfType(TokenType.BAR);
+      _appendTokenOfType(TokenType.BAR);
       return next;
     }
   }
 
-  int tokenizeCaret(int next) => select(0x3D, TokenType.CARET_EQ, TokenType.CARET);
+  int _tokenizeCaret(int next) => _select(0x3D, TokenType.CARET_EQ, TokenType.CARET);
 
-  int tokenizeDotOrNumber(int next) {
+  int _tokenizeDotOrNumber(int next) {
     int start = _reader.offset;
     next = _reader.advance();
     if (0x30 <= next && next <= 0x39) {
-      return tokenizeFractionPart(next, start);
+      return _tokenizeFractionPart(next, start);
     } else if (0x2E == next) {
-      return select(0x2E, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD);
+      return _select(0x2E, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD);
     } else {
-      appendTokenOfType(TokenType.PERIOD);
+      _appendTokenOfType(TokenType.PERIOD);
       return next;
     }
   }
 
-  int tokenizeEquals(int next) {
+  int _tokenizeEquals(int next) {
     // = == =>
     next = _reader.advance();
     if (next == 0x3D) {
-      appendTokenOfType(TokenType.EQ_EQ);
+      _appendTokenOfType(TokenType.EQ_EQ);
       return _reader.advance();
     } else if (next == 0x3E) {
-      appendTokenOfType(TokenType.FUNCTION);
+      _appendTokenOfType(TokenType.FUNCTION);
       return _reader.advance();
     }
-    appendTokenOfType(TokenType.EQ);
+    _appendTokenOfType(TokenType.EQ);
     return next;
   }
 
-  int tokenizeExclamation(int next) {
+  int _tokenizeExclamation(int next) {
     // ! !=
     next = _reader.advance();
     if (next == 0x3D) {
-      appendTokenOfType(TokenType.BANG_EQ);
+      _appendTokenOfType(TokenType.BANG_EQ);
       return _reader.advance();
     }
-    appendTokenOfType(TokenType.BANG);
+    _appendTokenOfType(TokenType.BANG);
     return next;
   }
 
-  int tokenizeExponent(int next) {
+  int _tokenizeExponent(int next) {
     if (next == 0x2B || next == 0x2D) {
       next = _reader.advance();
     }
@@ -1353,7 +1353,7 @@ class Scanner {
         hasDigits = true;
       } else {
         if (!hasDigits) {
-          reportError(ScannerErrorCode.MISSING_DIGIT, []);
+          _reportError(ScannerErrorCode.MISSING_DIGIT, []);
         }
         return next;
       }
@@ -1361,7 +1361,7 @@ class Scanner {
     }
   }
 
-  int tokenizeFractionPart(int next, int start) {
+  int _tokenizeFractionPart(int next, int start) {
     bool done = false;
     bool hasDigit = false;
     LOOP: while (!done) {
@@ -1369,7 +1369,7 @@ class Scanner {
         hasDigit = true;
       } else if (0x65 == next || 0x45 == next) {
         hasDigit = true;
-        next = tokenizeExponent(_reader.advance());
+        next = _tokenizeExponent(_reader.advance());
         done = true;
         continue LOOP;
       } else {
@@ -1379,39 +1379,39 @@ class Scanner {
       next = _reader.advance();
     }
     if (!hasDigit) {
-      appendStringToken(TokenType.INT, _reader.getString(start, -2));
+      _appendStringToken(TokenType.INT, _reader.getString(start, -2));
       if (0x2E == next) {
-        return selectWithOffset(0x2E, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD, _reader.offset - 1);
+        return _selectWithOffset(0x2E, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD, _reader.offset - 1);
       }
-      appendTokenOfTypeWithOffset(TokenType.PERIOD, _reader.offset - 1);
+      _appendTokenOfTypeWithOffset(TokenType.PERIOD, _reader.offset - 1);
       return bigSwitch(next);
     }
-    appendStringToken(TokenType.DOUBLE, _reader.getString(start, next < 0 ? 0 : -1));
+    _appendStringToken(TokenType.DOUBLE, _reader.getString(start, next < 0 ? 0 : -1));
     return next;
   }
 
-  int tokenizeGreaterThan(int next) {
+  int _tokenizeGreaterThan(int next) {
     // > >= >> >>=
     next = _reader.advance();
     if (0x3D == next) {
-      appendTokenOfType(TokenType.GT_EQ);
+      _appendTokenOfType(TokenType.GT_EQ);
       return _reader.advance();
     } else if (0x3E == next) {
       next = _reader.advance();
       if (0x3D == next) {
-        appendTokenOfType(TokenType.GT_GT_EQ);
+        _appendTokenOfType(TokenType.GT_GT_EQ);
         return _reader.advance();
       } else {
-        appendTokenOfType(TokenType.GT_GT);
+        _appendTokenOfType(TokenType.GT_GT);
         return next;
       }
     } else {
-      appendTokenOfType(TokenType.GT);
+      _appendTokenOfType(TokenType.GT);
       return next;
     }
   }
 
-  int tokenizeHex(int next) {
+  int _tokenizeHex(int next) {
     int start = _reader.offset - 1;
     bool hasDigits = false;
     while (true) {
@@ -1420,53 +1420,53 @@ class Scanner {
         hasDigits = true;
       } else {
         if (!hasDigits) {
-          reportError(ScannerErrorCode.MISSING_HEX_DIGIT, []);
+          _reportError(ScannerErrorCode.MISSING_HEX_DIGIT, []);
         }
-        appendStringToken(TokenType.HEXADECIMAL, _reader.getString(start, next < 0 ? 0 : -1));
+        _appendStringToken(TokenType.HEXADECIMAL, _reader.getString(start, next < 0 ? 0 : -1));
         return next;
       }
     }
   }
 
-  int tokenizeHexOrNumber(int next) {
+  int _tokenizeHexOrNumber(int next) {
     int x = _reader.peek();
     if (x == 0x78 || x == 0x58) {
       _reader.advance();
-      return tokenizeHex(x);
+      return _tokenizeHex(x);
     }
-    return tokenizeNumber(next);
+    return _tokenizeNumber(next);
   }
 
-  int tokenizeIdentifier(int next, int start, bool allowDollar) {
+  int _tokenizeIdentifier(int next, int start, bool allowDollar) {
     while ((0x61 <= next && next <= 0x7A) || (0x41 <= next && next <= 0x5A) || (0x30 <= next && next <= 0x39) || next == 0x5F || (next == 0x24 && allowDollar)) {
       next = _reader.advance();
     }
-    appendStringToken(TokenType.IDENTIFIER, _reader.getString(start, next < 0 ? 0 : -1));
+    _appendStringToken(TokenType.IDENTIFIER, _reader.getString(start, next < 0 ? 0 : -1));
     return next;
   }
 
-  int tokenizeInterpolatedExpression(int next, int start) {
-    appendBeginToken(TokenType.STRING_INTERPOLATION_EXPRESSION);
+  int _tokenizeInterpolatedExpression(int next, int start) {
+    _appendBeginToken(TokenType.STRING_INTERPOLATION_EXPRESSION);
     next = _reader.advance();
     while (next != -1) {
       if (next == 0x7D) {
-        BeginToken begin = findTokenMatchingClosingBraceInInterpolationExpression();
+        BeginToken begin = _findTokenMatchingClosingBraceInInterpolationExpression();
         if (begin == null) {
-          beginToken();
-          appendTokenOfType(TokenType.CLOSE_CURLY_BRACKET);
+          _beginToken();
+          _appendTokenOfType(TokenType.CLOSE_CURLY_BRACKET);
           next = _reader.advance();
-          beginToken();
+          _beginToken();
           return next;
         } else if (identical(begin.type, TokenType.OPEN_CURLY_BRACKET)) {
-          beginToken();
-          appendEndToken(TokenType.CLOSE_CURLY_BRACKET, TokenType.OPEN_CURLY_BRACKET);
+          _beginToken();
+          _appendEndToken(TokenType.CLOSE_CURLY_BRACKET, TokenType.OPEN_CURLY_BRACKET);
           next = _reader.advance();
-          beginToken();
+          _beginToken();
         } else if (identical(begin.type, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
-          beginToken();
-          appendEndToken(TokenType.CLOSE_CURLY_BRACKET, TokenType.STRING_INTERPOLATION_EXPRESSION);
+          _beginToken();
+          _appendEndToken(TokenType.CLOSE_CURLY_BRACKET, TokenType.STRING_INTERPOLATION_EXPRESSION);
           next = _reader.advance();
-          beginToken();
+          _beginToken();
           return next;
         }
       } else {
@@ -1477,21 +1477,21 @@ class Scanner {
       return next;
     }
     next = _reader.advance();
-    beginToken();
+    _beginToken();
     return next;
   }
 
-  int tokenizeInterpolatedIdentifier(int next, int start) {
-    appendStringTokenWithOffset(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 0);
+  int _tokenizeInterpolatedIdentifier(int next, int start) {
+    _appendStringTokenWithOffset(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 0);
     if ((0x41 <= next && next <= 0x5A) || (0x61 <= next && next <= 0x7A) || next == 0x5F) {
-      beginToken();
-      next = tokenizeKeywordOrIdentifier(next, false);
+      _beginToken();
+      next = _tokenizeKeywordOrIdentifier(next, false);
     }
-    beginToken();
+    _beginToken();
     return next;
   }
 
-  int tokenizeKeywordOrIdentifier(int next, bool allowDollar) {
+  int _tokenizeKeywordOrIdentifier(int next, bool allowDollar) {
     KeywordState state = KeywordState.KEYWORD_STATE;
     int start = _reader.offset;
     while (state != null && 0x61 <= next && next <= 0x7A) {
@@ -1499,61 +1499,61 @@ class Scanner {
       next = _reader.advance();
     }
     if (state == null || state.keyword() == null) {
-      return tokenizeIdentifier(next, start, allowDollar);
+      return _tokenizeIdentifier(next, start, allowDollar);
     }
     if ((0x41 <= next && next <= 0x5A) || (0x30 <= next && next <= 0x39) || next == 0x5F || next == 0x24) {
-      return tokenizeIdentifier(next, start, allowDollar);
+      return _tokenizeIdentifier(next, start, allowDollar);
     } else if (next < 128) {
-      appendKeywordToken(state.keyword());
+      _appendKeywordToken(state.keyword());
       return next;
     } else {
-      return tokenizeIdentifier(next, start, allowDollar);
+      return _tokenizeIdentifier(next, start, allowDollar);
     }
   }
 
-  int tokenizeLessThan(int next) {
+  int _tokenizeLessThan(int next) {
     // < <= << <<=
     next = _reader.advance();
     if (0x3D == next) {
-      appendTokenOfType(TokenType.LT_EQ);
+      _appendTokenOfType(TokenType.LT_EQ);
       return _reader.advance();
     } else if (0x3C == next) {
-      return select(0x3D, TokenType.LT_LT_EQ, TokenType.LT_LT);
+      return _select(0x3D, TokenType.LT_LT_EQ, TokenType.LT_LT);
     } else {
-      appendTokenOfType(TokenType.LT);
+      _appendTokenOfType(TokenType.LT);
       return next;
     }
   }
 
-  int tokenizeMinus(int next) {
+  int _tokenizeMinus(int next) {
     // - -- -=
     next = _reader.advance();
     if (next == 0x2D) {
-      appendTokenOfType(TokenType.MINUS_MINUS);
+      _appendTokenOfType(TokenType.MINUS_MINUS);
       return _reader.advance();
     } else if (next == 0x3D) {
-      appendTokenOfType(TokenType.MINUS_EQ);
+      _appendTokenOfType(TokenType.MINUS_EQ);
       return _reader.advance();
     } else {
-      appendTokenOfType(TokenType.MINUS);
+      _appendTokenOfType(TokenType.MINUS);
       return next;
     }
   }
 
-  int tokenizeMultiLineComment(int next) {
+  int _tokenizeMultiLineComment(int next) {
     int nesting = 1;
     next = _reader.advance();
     while (true) {
       if (-1 == next) {
-        reportError(ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT, []);
-        appendCommentToken(TokenType.MULTI_LINE_COMMENT, _reader.getString(_tokenStart, 0));
+        _reportError(ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT, []);
+        _appendCommentToken(TokenType.MULTI_LINE_COMMENT, _reader.getString(_tokenStart, 0));
         return next;
       } else if (0x2A == next) {
         next = _reader.advance();
         if (0x2F == next) {
           --nesting;
           if (0 == nesting) {
-            appendCommentToken(TokenType.MULTI_LINE_COMMENT, _reader.getString(_tokenStart, 0));
+            _appendCommentToken(TokenType.MULTI_LINE_COMMENT, _reader.getString(_tokenStart, 0));
             return _reader.advance();
           } else {
             next = _reader.advance();
@@ -1580,7 +1580,7 @@ class Scanner {
     }
   }
 
-  int tokenizeMultiLineRawString(int quoteChar, int start) {
+  int _tokenizeMultiLineRawString(int quoteChar, int start) {
     int next = _reader.advance();
     outer: while (next != -1) {
       while (next != quoteChar) {
@@ -1602,26 +1602,26 @@ class Scanner {
       if (next == quoteChar) {
         next = _reader.advance();
         if (next == quoteChar) {
-          appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+          _appendStringToken(TokenType.STRING, _reader.getString(start, 0));
           return _reader.advance();
         }
       }
     }
-    reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
-    appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+    _reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
+    _appendStringToken(TokenType.STRING, _reader.getString(start, 0));
     return _reader.advance();
   }
 
-  int tokenizeMultiLineString(int quoteChar, int start, bool raw) {
+  int _tokenizeMultiLineString(int quoteChar, int start, bool raw) {
     if (raw) {
-      return tokenizeMultiLineRawString(quoteChar, start);
+      return _tokenizeMultiLineRawString(quoteChar, start);
     }
     int next = _reader.advance();
     while (next != -1) {
       if (next == 0x24) {
-        appendStringToken(TokenType.STRING, _reader.getString(start, -1));
-        beginToken();
-        next = tokenizeStringInterpolation(start);
+        _appendStringToken(TokenType.STRING, _reader.getString(start, -1));
+        _beginToken();
+        next = _tokenizeStringInterpolation(start);
         start = _reader.offset;
         continue;
       }
@@ -1630,7 +1630,7 @@ class Scanner {
         if (next == quoteChar) {
           next = _reader.advance();
           if (next == quoteChar) {
-            appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+            _appendStringToken(TokenType.STRING, _reader.getString(start, 0));
             return _reader.advance();
           }
         }
@@ -1666,179 +1666,179 @@ class Scanner {
         next = _reader.advance();
       }
     }
-    reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
-    appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+    _reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
+    _appendStringToken(TokenType.STRING, _reader.getString(start, 0));
     return _reader.advance();
   }
 
-  int tokenizeMultiply(int next) => select(0x3D, TokenType.STAR_EQ, TokenType.STAR);
+  int _tokenizeMultiply(int next) => _select(0x3D, TokenType.STAR_EQ, TokenType.STAR);
 
-  int tokenizeNumber(int next) {
+  int _tokenizeNumber(int next) {
     int start = _reader.offset;
     while (true) {
       next = _reader.advance();
       if (0x30 <= next && next <= 0x39) {
         continue;
       } else if (next == 0x2E) {
-        return tokenizeFractionPart(_reader.advance(), start);
+        return _tokenizeFractionPart(_reader.advance(), start);
       } else if (next == 0x65 || next == 0x45) {
-        return tokenizeFractionPart(next, start);
+        return _tokenizeFractionPart(next, start);
       } else {
-        appendStringToken(TokenType.INT, _reader.getString(start, next < 0 ? 0 : -1));
+        _appendStringToken(TokenType.INT, _reader.getString(start, next < 0 ? 0 : -1));
         return next;
       }
     }
   }
 
-  int tokenizeOpenSquareBracket(int next) {
+  int _tokenizeOpenSquareBracket(int next) {
     // [ []  []=
     next = _reader.advance();
     if (next == 0x5D) {
-      return select(0x3D, TokenType.INDEX_EQ, TokenType.INDEX);
+      return _select(0x3D, TokenType.INDEX_EQ, TokenType.INDEX);
     } else {
-      appendBeginToken(TokenType.OPEN_SQUARE_BRACKET);
+      _appendBeginToken(TokenType.OPEN_SQUARE_BRACKET);
       return next;
     }
   }
 
-  int tokenizePercent(int next) => select(0x3D, TokenType.PERCENT_EQ, TokenType.PERCENT);
+  int _tokenizePercent(int next) => _select(0x3D, TokenType.PERCENT_EQ, TokenType.PERCENT);
 
-  int tokenizePlus(int next) {
+  int _tokenizePlus(int next) {
     // + ++ +=
     next = _reader.advance();
     if (0x2B == next) {
-      appendTokenOfType(TokenType.PLUS_PLUS);
+      _appendTokenOfType(TokenType.PLUS_PLUS);
       return _reader.advance();
     } else if (0x3D == next) {
-      appendTokenOfType(TokenType.PLUS_EQ);
+      _appendTokenOfType(TokenType.PLUS_EQ);
       return _reader.advance();
     } else {
-      appendTokenOfType(TokenType.PLUS);
+      _appendTokenOfType(TokenType.PLUS);
       return next;
     }
   }
 
-  int tokenizeSingleLineComment(int next) {
+  int _tokenizeSingleLineComment(int next) {
     while (true) {
       next = _reader.advance();
       if (-1 == next) {
-        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, _reader.getString(_tokenStart, 0));
+        _appendCommentToken(TokenType.SINGLE_LINE_COMMENT, _reader.getString(_tokenStart, 0));
         return next;
       } else if (0xA == next || 0xD == next) {
-        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, _reader.getString(_tokenStart, -1));
+        _appendCommentToken(TokenType.SINGLE_LINE_COMMENT, _reader.getString(_tokenStart, -1));
         return next;
       }
     }
   }
 
-  int tokenizeSingleLineRawString(int next, int quoteChar, int start) {
+  int _tokenizeSingleLineRawString(int next, int quoteChar, int start) {
     next = _reader.advance();
     while (next != -1) {
       if (next == quoteChar) {
-        appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+        _appendStringToken(TokenType.STRING, _reader.getString(start, 0));
         return _reader.advance();
       } else if (next == 0xD || next == 0xA) {
-        reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
-        appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+        _reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
+        _appendStringToken(TokenType.STRING, _reader.getString(start, 0));
         return _reader.advance();
       }
       next = _reader.advance();
     }
-    reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
-    appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+    _reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
+    _appendStringToken(TokenType.STRING, _reader.getString(start, 0));
     return _reader.advance();
   }
 
-  int tokenizeSingleLineString(int next, int quoteChar, int start) {
+  int _tokenizeSingleLineString(int next, int quoteChar, int start) {
     while (next != quoteChar) {
       if (next == 0x5C) {
         next = _reader.advance();
       } else if (next == 0x24) {
-        appendStringToken(TokenType.STRING, _reader.getString(start, -1));
-        beginToken();
-        next = tokenizeStringInterpolation(start);
+        _appendStringToken(TokenType.STRING, _reader.getString(start, -1));
+        _beginToken();
+        next = _tokenizeStringInterpolation(start);
         start = _reader.offset;
         continue;
       }
       if (next <= 0xD && (next == 0xA || next == 0xD || next == -1)) {
-        reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
-        appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+        _reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
+        _appendStringToken(TokenType.STRING, _reader.getString(start, 0));
         return _reader.advance();
       }
       next = _reader.advance();
     }
-    appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+    _appendStringToken(TokenType.STRING, _reader.getString(start, 0));
     return _reader.advance();
   }
 
-  int tokenizeSlashOrComment(int next) {
+  int _tokenizeSlashOrComment(int next) {
     next = _reader.advance();
     if (0x2A == next) {
-      return tokenizeMultiLineComment(next);
+      return _tokenizeMultiLineComment(next);
     } else if (0x2F == next) {
-      return tokenizeSingleLineComment(next);
+      return _tokenizeSingleLineComment(next);
     } else if (0x3D == next) {
-      appendTokenOfType(TokenType.SLASH_EQ);
+      _appendTokenOfType(TokenType.SLASH_EQ);
       return _reader.advance();
     } else {
-      appendTokenOfType(TokenType.SLASH);
+      _appendTokenOfType(TokenType.SLASH);
       return next;
     }
   }
 
-  int tokenizeString(int next, int start, bool raw) {
+  int _tokenizeString(int next, int start, bool raw) {
     int quoteChar = next;
     next = _reader.advance();
     if (quoteChar == next) {
       next = _reader.advance();
       if (quoteChar == next) {
         // Multiline string.
-        return tokenizeMultiLineString(quoteChar, start, raw);
+        return _tokenizeMultiLineString(quoteChar, start, raw);
       } else {
         // Empty string.
-        appendStringToken(TokenType.STRING, _reader.getString(start, -1));
+        _appendStringToken(TokenType.STRING, _reader.getString(start, -1));
         return next;
       }
     }
     if (raw) {
-      return tokenizeSingleLineRawString(next, quoteChar, start);
+      return _tokenizeSingleLineRawString(next, quoteChar, start);
     } else {
-      return tokenizeSingleLineString(next, quoteChar, start);
+      return _tokenizeSingleLineString(next, quoteChar, start);
     }
   }
 
-  int tokenizeStringInterpolation(int start) {
-    beginToken();
+  int _tokenizeStringInterpolation(int start) {
+    _beginToken();
     int next = _reader.advance();
     if (next == 0x7B) {
-      return tokenizeInterpolatedExpression(next, start);
+      return _tokenizeInterpolatedExpression(next, start);
     } else {
-      return tokenizeInterpolatedIdentifier(next, start);
+      return _tokenizeInterpolatedIdentifier(next, start);
     }
   }
 
-  int tokenizeTag(int next) {
+  int _tokenizeTag(int next) {
     // # or #!.*[\n\r]
     if (_reader.offset == 0) {
       if (_reader.peek() == 0x21) {
         do {
           next = _reader.advance();
         } while (next != 0xA && next != 0xD && next > 0);
-        appendStringToken(TokenType.SCRIPT_TAG, _reader.getString(_tokenStart, 0));
+        _appendStringToken(TokenType.SCRIPT_TAG, _reader.getString(_tokenStart, 0));
         return next;
       }
     }
-    appendTokenOfType(TokenType.HASH);
+    _appendTokenOfType(TokenType.HASH);
     return _reader.advance();
   }
 
-  int tokenizeTilde(int next) {
+  int _tokenizeTilde(int next) {
     // ~ ~/ ~/=
     next = _reader.advance();
     if (next == 0x2F) {
-      return select(0x3D, TokenType.TILDE_SLASH_EQ, TokenType.TILDE_SLASH);
+      return _select(0x3D, TokenType.TILDE_SLASH_EQ, TokenType.TILDE_SLASH);
     } else {
-      appendTokenOfType(TokenType.TILDE);
+      _appendTokenOfType(TokenType.TILDE);
       return next;
     }
   }
@@ -1852,7 +1852,7 @@ class StringToken extends Token {
   /**
    * The lexeme represented by this token.
    */
-  String _value2;
+  String _value;
 
   /**
    * Initialize a newly created token to represent a token of the given type with the given value.
@@ -1862,14 +1862,14 @@ class StringToken extends Token {
    * @param offset the offset from the beginning of the file to the first character in the token
    */
   StringToken(TokenType type, String value, int offset) : super(type, offset) {
-    this._value2 = StringUtilities.intern(value);
+    this._value = StringUtilities.intern(value);
   }
 
-  Token copy() => new StringToken(type, _value2, offset);
+  Token copy() => new StringToken(type, _value, offset);
 
-  String get lexeme => _value2;
+  String get lexeme => _value;
 
-  String value() => _value2;
+  String value() => _value;
 }
 
 /**
@@ -2002,6 +2002,21 @@ class Token {
    * @return `true` if this token represents an operator that can be defined by users
    */
   bool get isUserDefinableOperator => type.isUserDefinableOperator;
+
+  /**
+   * Return `true` if this token has any one of the given types.
+   *
+   * @param types the types of token that are being tested for
+   * @return `true` if this token has any of the given types
+   */
+  bool matchesAny(List<TokenType> types) {
+    for (TokenType type in types) {
+      if (identical(this.type, type)) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /**
    * Set the next token in the token stream to the given token. This has the side-effect of setting

@@ -326,7 +326,7 @@ class ConstantValueComputer {
     while (!_referenceGraph.isEmpty) {
       VariableElement element = _referenceGraph.removeSink();
       while (element != null) {
-        computeValueFor(element);
+        _computeValueFor(element);
         element = _referenceGraph.removeSink();
       }
       if (!_referenceGraph.isEmpty) {
@@ -341,7 +341,7 @@ class ConstantValueComputer {
           return;
         }
         for (VariableElement variable in variablesInCycle) {
-          generateCycleError(variablesInCycle, variable);
+          _generateCycleError(variablesInCycle, variable);
         }
         _referenceGraph.removeAllNodes(variablesInCycle);
       }
@@ -353,7 +353,7 @@ class ConstantValueComputer {
    *
    * @param variable the variable for which a value is to be computed
    */
-  void computeValueFor(VariableElement variable) {
+  void _computeValueFor(VariableElement variable) {
     VariableDeclaration declaration = _declarationMap[variable];
     if (declaration == null) {
       //
@@ -384,7 +384,7 @@ class ConstantValueComputer {
    * @param variablesInCycle the variables in the cycle that includes the given variable
    * @param variable the variable that is not a valid compile-time constant
    */
-  void generateCycleError(List<VariableElement> variablesInCycle, VariableElement variable) {
+  void _generateCycleError(List<VariableElement> variablesInCycle, VariableElement variable) {
   }
 }
 
@@ -470,7 +470,7 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     // 'null' is almost never good operand
     if (operatorType != TokenType.BANG_EQ && operatorType != TokenType.EQ_EQ) {
       if (leftResult is ValidResult && leftResult.isNull || rightResult is ValidResult && rightResult.isNull) {
-        return error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+        return _error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
       }
     }
     // evaluate operator
@@ -515,13 +515,13 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
         return leftResult.integerDivide(_typeProvider, node, rightResult);
       } else {
         // TODO(brianwilkerson) Figure out which error to report.
-        return error(node, null);
+        return _error(node, null);
       }
       break;
     }
   }
 
-  EvaluationResultImpl visitBooleanLiteral(BooleanLiteral node) => valid(_typeProvider.boolType, BoolState.from(node.value));
+  EvaluationResultImpl visitBooleanLiteral(BooleanLiteral node) => _valid(_typeProvider.boolType, BoolState.from(node.value));
 
   EvaluationResultImpl visitConditionalExpression(ConditionalExpression node) {
     Expression condition = node.condition;
@@ -529,11 +529,11 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     EvaluationResultImpl thenResult = node.thenExpression.accept(this);
     EvaluationResultImpl elseResult = node.elseExpression.accept(this);
     if (conditionResult is ErrorResult) {
-      return union(union(conditionResult as ErrorResult, thenResult), elseResult);
+      return _union(_union(conditionResult as ErrorResult, thenResult), elseResult);
     } else if (!(conditionResult as ValidResult).isBool) {
       return new ErrorResult.con1(condition, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
     } else if (thenResult is ErrorResult) {
-      return union(thenResult, elseResult);
+      return _union(thenResult, elseResult);
     } else if (elseResult is ErrorResult) {
       return elseResult;
     }
@@ -549,15 +549,15 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     }
     InterfaceType thenType = (thenResult as ValidResult).value.type;
     InterfaceType elseType = (elseResult as ValidResult).value.type;
-    return validWithUnknownValue(thenType.getLeastUpperBound(elseType) as InterfaceType);
+    return _validWithUnknownValue(thenType.getLeastUpperBound(elseType) as InterfaceType);
   }
 
-  EvaluationResultImpl visitDoubleLiteral(DoubleLiteral node) => valid(_typeProvider.doubleType, new DoubleState(node.value));
+  EvaluationResultImpl visitDoubleLiteral(DoubleLiteral node) => _valid(_typeProvider.doubleType, new DoubleState(node.value));
 
   EvaluationResultImpl visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (!node.isConst) {
       // TODO(brianwilkerson) Figure out which error to report.
-      return error(node, null);
+      return _error(node, null);
     }
     ConstructorElement constructor = node.staticElement;
     if (constructor != null && constructor.isConst) {
@@ -570,10 +570,10 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
         if (argument is NamedExpression) {
           NamedExpression namedExpression = argument;
           String name = namedExpression.name.label.name;
-          namedArgumentValues[name] = valueOf(namedExpression.expression);
+          namedArgumentValues[name] = _valueOf(namedExpression.expression);
           argumentValues[i] = null2;
         } else {
-          argumentValues[i] = valueOf(argument);
+          argumentValues[i] = _valueOf(argument);
         }
       }
       InterfaceType definingClass = constructor.returnType as InterfaceType;
@@ -582,7 +582,7 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
         if (className == "Symbol" && argumentCount == 1) {
           String argumentValue = argumentValues[0].stringValue;
           if (argumentValue != null) {
-            return valid(definingClass, new SymbolState(argumentValue));
+            return _valid(definingClass, new SymbolState(argumentValue));
           }
         }
       }
@@ -606,23 +606,23 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
       // TODO(brianwilkerson) This doesn't handle fields initialized in an initializer. We should be
       // able to handle fields initialized by the superclass' constructor fairly easily, but other
       // initializers will be harder.
-      return valid(definingClass, new GenericState(fieldMap));
+      return _valid(definingClass, new GenericState(fieldMap));
     }
     // TODO(brianwilkerson) Figure out which error to report.
-    return error(node, null);
+    return _error(node, null);
   }
 
-  EvaluationResultImpl visitIntegerLiteral(IntegerLiteral node) => valid(_typeProvider.intType, new IntState(node.value));
+  EvaluationResultImpl visitIntegerLiteral(IntegerLiteral node) => _valid(_typeProvider.intType, new IntState(node.value));
 
   EvaluationResultImpl visitInterpolationExpression(InterpolationExpression node) {
     EvaluationResultImpl result = node.expression.accept(this);
     if (result is ValidResult && !result.isBoolNumStringOrNull) {
-      return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
+      return _error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
     }
     return result.performToString(_typeProvider, node);
   }
 
-  EvaluationResultImpl visitInterpolationString(InterpolationString node) => valid(_typeProvider.stringType, new StringState(node.value));
+  EvaluationResultImpl visitInterpolationString(InterpolationString node) => _valid(_typeProvider.stringType, new StringState(node.value));
 
   EvaluationResultImpl visitListLiteral(ListLiteral node) {
     if (node.constKeyword == null) {
@@ -632,7 +632,7 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     List<DartObjectImpl> elements = new List<DartObjectImpl>();
     for (Expression element in node.elements) {
       EvaluationResultImpl elementResult = element.accept(this);
-      result = union(result, elementResult);
+      result = _union(result, elementResult);
       if (elementResult is ValidResult) {
         elements.add(elementResult.value);
       }
@@ -640,7 +640,7 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     if (result != null) {
       return result;
     }
-    return valid(_typeProvider.listType, new ListState(new List.from(elements)));
+    return _valid(_typeProvider.listType, new ListState(new List.from(elements)));
   }
 
   EvaluationResultImpl visitMapLiteral(MapLiteral node) {
@@ -652,8 +652,8 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     for (MapLiteralEntry entry in node.entries) {
       EvaluationResultImpl keyResult = entry.key.accept(this);
       EvaluationResultImpl valueResult = entry.value.accept(this);
-      result = union(result, keyResult);
-      result = union(result, valueResult);
+      result = _union(result, keyResult);
+      result = _union(result, valueResult);
       if (keyResult is ValidResult && valueResult is ValidResult) {
         map[keyResult.value] = valueResult.value;
       }
@@ -661,7 +661,7 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     if (result != null) {
       return result;
     }
-    return valid(_typeProvider.mapType, new MapState(map));
+    return _valid(_typeProvider.mapType, new MapState(map));
   }
 
   EvaluationResultImpl visitMethodInvocation(MethodInvocation node) {
@@ -684,12 +684,12 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
       }
     }
     // TODO(brianwilkerson) Figure out which error to report.
-    return error(node, null);
+    return _error(node, null);
   }
 
   EvaluationResultImpl visitNamedExpression(NamedExpression node) => node.expression.accept(this);
 
-  EvaluationResultImpl visitNode(AstNode node) => error(node, null);
+  EvaluationResultImpl visitNode(AstNode node) => _error(node, null);
 
   EvaluationResultImpl visitNullLiteral(NullLiteral node) => new ValidResult(null2);
 
@@ -702,17 +702,17 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     if (prefixElement is! PrefixElement) {
       EvaluationResultImpl prefixResult = prefixNode.accept(this);
       if (prefixResult is! ValidResult) {
-        return error(node, null);
+        return _error(node, null);
       }
     }
     // validate prefixed identifier
-    return getConstantValue(node, node.staticElement);
+    return _getConstantValue(node, node.staticElement);
   }
 
   EvaluationResultImpl visitPrefixExpression(PrefixExpression node) {
     EvaluationResultImpl operand = node.operand.accept(this);
     if (operand is ValidResult && operand.isNull) {
-      return error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+      return _error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
     }
     while (true) {
       if (node.operator.type == TokenType.BANG) {
@@ -723,17 +723,17 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
         return operand.negated(_typeProvider, node);
       } else {
         // TODO(brianwilkerson) Figure out which error to report.
-        return error(node, null);
+        return _error(node, null);
       }
       break;
     }
   }
 
-  EvaluationResultImpl visitPropertyAccess(PropertyAccess node) => getConstantValue(node, node.propertyName.staticElement);
+  EvaluationResultImpl visitPropertyAccess(PropertyAccess node) => _getConstantValue(node, node.propertyName.staticElement);
 
-  EvaluationResultImpl visitSimpleIdentifier(SimpleIdentifier node) => getConstantValue(node, node.staticElement);
+  EvaluationResultImpl visitSimpleIdentifier(SimpleIdentifier node) => _getConstantValue(node, node.staticElement);
 
-  EvaluationResultImpl visitSimpleStringLiteral(SimpleStringLiteral node) => valid(_typeProvider.stringType, new StringState(node.value));
+  EvaluationResultImpl visitSimpleStringLiteral(SimpleStringLiteral node) => _valid(_typeProvider.stringType, new StringState(node.value));
 
   EvaluationResultImpl visitStringInterpolation(StringInterpolation node) {
     EvaluationResultImpl result = null;
@@ -756,7 +756,7 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
       }
       builder.append(components[i].lexeme);
     }
-    return valid(_typeProvider.symbolType, new SymbolState(builder.toString()));
+    return _valid(_typeProvider.symbolType, new SymbolState(builder.toString()));
   }
 
   /**
@@ -766,7 +766,7 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
    * @param code the error code indicating the nature of the error
    * @return a result object representing an error associated with the given node
    */
-  ErrorResult error(AstNode node, ErrorCode code) => new ErrorResult.con1(node, code == null ? CompileTimeErrorCode.INVALID_CONSTANT : code);
+  ErrorResult _error(AstNode node, ErrorCode code) => new ErrorResult.con1(node, code == null ? CompileTimeErrorCode.INVALID_CONSTANT : code);
 
   /**
    * Return the constant value of the static constant represented by the given element.
@@ -775,7 +775,7 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
    * @param element the element whose value is to be returned
    * @return the constant value of the static constant
    */
-  EvaluationResultImpl getConstantValue(AstNode node, Element element) {
+  EvaluationResultImpl _getConstantValue(AstNode node, Element element) {
     if (element is PropertyAccessorElement) {
       element = (element as PropertyAccessorElement).variable;
     }
@@ -788,13 +788,13 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     } else if (element is ExecutableElement) {
       ExecutableElement function = element;
       if (function.isStatic) {
-        return valid(_typeProvider.functionType, new FunctionState(function));
+        return _valid(_typeProvider.functionType, new FunctionState(function));
       }
     } else if (element is ClassElement || element is FunctionTypeAliasElement) {
-      return valid(_typeProvider.typeType, new TypeState(element));
+      return _valid(_typeProvider.typeType, new TypeState(element));
     }
     // TODO(brianwilkerson) Figure out which error to report.
-    return error(node, null);
+    return _error(node, null);
   }
 
   /**
@@ -818,7 +818,7 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
    *          errors to be added
    * @return the union of the errors encoded in the given results
    */
-  ErrorResult union(ErrorResult leftResult, EvaluationResultImpl rightResult) {
+  ErrorResult _union(ErrorResult leftResult, EvaluationResultImpl rightResult) {
     if (rightResult is ErrorResult) {
       if (leftResult != null) {
         return new ErrorResult.con2(leftResult, rightResult);
@@ -829,22 +829,22 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     return leftResult;
   }
 
-  ValidResult valid(InterfaceType type, InstanceState state) => new ValidResult(new DartObjectImpl(type, state));
+  ValidResult _valid(InterfaceType type, InstanceState state) => new ValidResult(new DartObjectImpl(type, state));
 
-  ValidResult validWithUnknownValue(InterfaceType type) {
+  ValidResult _validWithUnknownValue(InterfaceType type) {
     if (type.element.library.isDartCore) {
       String typeName = type.name;
       if (typeName == "bool") {
-        return valid(type, BoolState.UNKNOWN_VALUE);
+        return _valid(type, BoolState.UNKNOWN_VALUE);
       } else if (typeName == "double") {
-        return valid(type, DoubleState.UNKNOWN_VALUE);
+        return _valid(type, DoubleState.UNKNOWN_VALUE);
       } else if (typeName == "int") {
-        return valid(type, IntState.UNKNOWN_VALUE);
+        return _valid(type, IntState.UNKNOWN_VALUE);
       } else if (typeName == "String") {
-        return valid(type, StringState.UNKNOWN_VALUE);
+        return _valid(type, StringState.UNKNOWN_VALUE);
       }
     }
-    return valid(type, GenericState.UNKNOWN_VALUE);
+    return _valid(type, GenericState.UNKNOWN_VALUE);
   }
 
   /**
@@ -854,7 +854,7 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
    * @param expression the expression whose value is to be returned
    * @return the value of the given expression
    */
-  DartObjectImpl valueOf(Expression expression) {
+  DartObjectImpl _valueOf(Expression expression) {
     EvaluationResultImpl expressionValue = expression.accept(this);
     if (expressionValue is ValidResult) {
       return expressionValue.value;
@@ -1005,7 +1005,7 @@ class DirectedGraph<N> {
    * @return the sink node that was removed
    */
   N removeSink() {
-    N sink = findSink();
+    N sink = _findSink();
     if (sink == null) {
       return null;
     }
@@ -1019,7 +1019,7 @@ class DirectedGraph<N> {
    *
    * @return a sink node
    */
-  N findSink() {
+  N _findSink() {
     for (N key in _edges.keys) {
       if (_edges[key].isEmpty) return key;
     }
@@ -1432,9 +1432,9 @@ class ValidResult extends EvaluationResultImpl {
    */
   EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider, AstNode node) {
     try {
-      return valueOf(value.convertToBool(typeProvider));
+      return _valueOf(value.convertToBool(typeProvider));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1442,9 +1442,9 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl bitNot(TypeProvider typeProvider, Expression node) {
     try {
-      return valueOf(value.bitNot(typeProvider));
+      return _valueOf(value.bitNot(typeProvider));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1522,9 +1522,9 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl logicalNot(TypeProvider typeProvider, Expression node) {
     try {
-      return valueOf(value.logicalNot(typeProvider));
+      return _valueOf(value.logicalNot(typeProvider));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1534,9 +1534,9 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl negated(TypeProvider typeProvider, Expression node) {
     try {
-      return valueOf(value.negated(typeProvider));
+      return _valueOf(value.negated(typeProvider));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1544,9 +1544,9 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl performToString(TypeProvider typeProvider, AstNode node) {
     try {
-      return valueOf(value.performToString(typeProvider));
+      return _valueOf(value.performToString(typeProvider));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1569,9 +1569,9 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl addToValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
     try {
-      return valueOf(leftOperand.value.add(typeProvider, value));
+      return _valueOf(leftOperand.value.add(typeProvider, value));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1579,9 +1579,9 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl bitAndValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
     try {
-      return valueOf(leftOperand.value.bitAnd(typeProvider, value));
+      return _valueOf(leftOperand.value.bitAnd(typeProvider, value));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1589,9 +1589,9 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl bitOrValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
     try {
-      return valueOf(leftOperand.value.bitOr(typeProvider, value));
+      return _valueOf(leftOperand.value.bitOr(typeProvider, value));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1599,9 +1599,9 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl bitXorValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
     try {
-      return valueOf(leftOperand.value.bitXor(typeProvider, value));
+      return _valueOf(leftOperand.value.bitXor(typeProvider, value));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1609,9 +1609,9 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl concatenateValid(TypeProvider typeProvider, Expression node, ValidResult leftOperand) {
     try {
-      return valueOf(leftOperand.value.concatenate(typeProvider, value));
+      return _valueOf(leftOperand.value.concatenate(typeProvider, value));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1619,9 +1619,9 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl divideValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
     try {
-      return valueOf(leftOperand.value.divide(typeProvider, value));
+      return _valueOf(leftOperand.value.divide(typeProvider, value));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1629,9 +1629,9 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl equalEqualValid(TypeProvider typeProvider, Expression node, ValidResult leftOperand) {
     try {
-      return valueOf(leftOperand.value.equalEqual(typeProvider, value));
+      return _valueOf(leftOperand.value.equalEqual(typeProvider, value));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1641,17 +1641,17 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl greaterThanOrEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
     try {
-      return valueOf(leftOperand.value.greaterThanOrEqual(typeProvider, value));
+      return _valueOf(leftOperand.value.greaterThanOrEqual(typeProvider, value));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
   EvaluationResultImpl greaterThanValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
     try {
-      return valueOf(leftOperand.value.greaterThan(typeProvider, value));
+      return _valueOf(leftOperand.value.greaterThan(typeProvider, value));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1659,9 +1659,9 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl integerDivideValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
     try {
-      return valueOf(leftOperand.value.integerDivide(typeProvider, value));
+      return _valueOf(leftOperand.value.integerDivide(typeProvider, value));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1671,17 +1671,17 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl lessThanOrEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
     try {
-      return valueOf(leftOperand.value.lessThanOrEqual(typeProvider, value));
+      return _valueOf(leftOperand.value.lessThanOrEqual(typeProvider, value));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
   EvaluationResultImpl lessThanValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
     try {
-      return valueOf(leftOperand.value.lessThan(typeProvider, value));
+      return _valueOf(leftOperand.value.lessThan(typeProvider, value));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1689,9 +1689,9 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl logicalAndValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
     try {
-      return valueOf(leftOperand.value.logicalAnd(typeProvider, value));
+      return _valueOf(leftOperand.value.logicalAnd(typeProvider, value));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1699,9 +1699,9 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl logicalOrValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
     try {
-      return valueOf(leftOperand.value.logicalOr(typeProvider, value));
+      return _valueOf(leftOperand.value.logicalOr(typeProvider, value));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1709,9 +1709,9 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl minusValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
     try {
-      return valueOf(leftOperand.value.minus(typeProvider, value));
+      return _valueOf(leftOperand.value.minus(typeProvider, value));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1719,9 +1719,9 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl notEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
     try {
-      return valueOf(leftOperand.value.notEqual(typeProvider, value));
+      return _valueOf(leftOperand.value.notEqual(typeProvider, value));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1729,9 +1729,9 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl remainderValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
     try {
-      return valueOf(leftOperand.value.remainder(typeProvider, value));
+      return _valueOf(leftOperand.value.remainder(typeProvider, value));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1739,9 +1739,9 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl shiftLeftValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
     try {
-      return valueOf(leftOperand.value.shiftLeft(typeProvider, value));
+      return _valueOf(leftOperand.value.shiftLeft(typeProvider, value));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1749,9 +1749,9 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl shiftRightValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
     try {
-      return valueOf(leftOperand.value.shiftRight(typeProvider, value));
+      return _valueOf(leftOperand.value.shiftRight(typeProvider, value));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1759,9 +1759,9 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl timesValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
     try {
-      return valueOf(leftOperand.value.times(typeProvider, value));
+      return _valueOf(leftOperand.value.times(typeProvider, value));
     } on EvaluationException catch (exception) {
-      return error(node, exception.errorCode);
+      return _error(node, exception.errorCode);
     }
   }
 
@@ -1772,7 +1772,7 @@ class ValidResult extends EvaluationResultImpl {
    * @param code the error code indicating the nature of the error
    * @return a result object representing an error associated with the given node
    */
-  ErrorResult error(AstNode node, ErrorCode code) => new ErrorResult.con1(node, code);
+  ErrorResult _error(AstNode node, ErrorCode code) => new ErrorResult.con1(node, code);
 
   /**
    * Return a result object representing the given value.
@@ -1780,7 +1780,7 @@ class ValidResult extends EvaluationResultImpl {
    * @param value the value to be represented as a result object
    * @return a result object representing the given value
    */
-  ValidResult valueOf(DartObjectImpl value) => new ValidResult(value);
+  ValidResult _valueOf(DartObjectImpl value) => new ValidResult(value);
 }
 
 /**
@@ -2644,7 +2644,7 @@ class DynamicState extends InstanceState {
 
   NumState add(InstanceState rightOperand) {
     assertNumOrNull(rightOperand);
-    return unknownNum(rightOperand);
+    return _unknownNum(rightOperand);
   }
 
   IntState bitAnd(InstanceState rightOperand) {
@@ -2675,7 +2675,7 @@ class DynamicState extends InstanceState {
 
   NumState divide(InstanceState rightOperand) {
     assertNumOrNull(rightOperand);
-    return unknownNum(rightOperand);
+    return _unknownNum(rightOperand);
   }
 
   BoolState equalEqual(InstanceState rightOperand) {
@@ -2728,14 +2728,14 @@ class DynamicState extends InstanceState {
 
   NumState minus(InstanceState rightOperand) {
     assertNumOrNull(rightOperand);
-    return unknownNum(rightOperand);
+    return _unknownNum(rightOperand);
   }
 
   NumState negated() => NumState.UNKNOWN_VALUE;
 
   NumState remainder(InstanceState rightOperand) {
     assertNumOrNull(rightOperand);
-    return unknownNum(rightOperand);
+    return _unknownNum(rightOperand);
   }
 
   IntState shiftLeft(InstanceState rightOperand) {
@@ -2750,7 +2750,7 @@ class DynamicState extends InstanceState {
 
   NumState times(InstanceState rightOperand) {
     assertNumOrNull(rightOperand);
-    return unknownNum(rightOperand);
+    return _unknownNum(rightOperand);
   }
 
   /**
@@ -2760,7 +2760,7 @@ class DynamicState extends InstanceState {
    * @param rightOperand the operand whose type will determine the type of the result
    * @return an object representing an unknown numeric value
    */
-  NumState unknownNum(InstanceState rightOperand) {
+  NumState _unknownNum(InstanceState rightOperand) {
     if (rightOperand is IntState) {
       return IntState.UNKNOWN_VALUE;
     } else if (rightOperand is DoubleState) {
