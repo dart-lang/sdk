@@ -151,6 +151,8 @@ polymer/example/canonicalization3: Skip
 
 [ $compiler == dart2js && $csp ]
 unittest/test/mirror_matchers_test: Skip # Issue 12151
+polymer/test/noscript_test: Fail # Issue 17326
+polymer/test/js_interop_test: Fail # Issue 17326
 
 # This test cannot run under CSP because it is injecting a JavaScript polyfill
 mutation_observer: Skip
