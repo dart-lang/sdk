@@ -4,6 +4,7 @@
 
 library pub_tests;
 
+import 'package:path/path.dart' as path;
 import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
@@ -33,9 +34,9 @@ main() {
 
     pub.stderr.expect(emitsLines('''
 Warning: Pub reserves paths containing "assets" for using assets from packages.
-Please rename the directory "bin/assets".
-Please rename the directory "test/assets".
-Please rename the directory "web/assets".'''));
+Please rename the directory "${path.join('bin', 'assets')}".
+Please rename the directory "${path.join('test', 'assets')}".
+Please rename the directory "${path.join('web', 'assets')}".'''));
     endPubServe();
   });
 
@@ -58,9 +59,9 @@ Please rename the directory "web/assets".'''));
     waitForBuildSuccess();
     pub.stderr.expect(emitsLines('''
 Warning: Pub reserves paths containing "assets" for using assets from packages.
-Please rename the file "bin/assets".
-Please rename the file "test/assets".
-Please rename the file "web/assets".'''));
+Please rename the file "${path.join('bin', 'assets')}".
+Please rename the file "${path.join('test', 'assets')}".
+Please rename the file "${path.join('web', 'assets')}".'''));
     endPubServe();
   });
 

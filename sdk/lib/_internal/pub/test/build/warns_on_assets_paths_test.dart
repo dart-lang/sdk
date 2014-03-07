@@ -4,6 +4,8 @@
 
 library pub_tests;
 
+import 'package:path/path.dart' as path;
+
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
@@ -28,9 +30,9 @@ main() {
     schedulePub(args: ['build', 'bin', 'test', 'web'],
         error: """
 Warning: Pub reserves paths containing "assets" for using assets from packages.
-Please rename the directory "bin/assets".
-Please rename the directory "test/assets".
-Please rename the directory "web/assets".
+Please rename the directory "${path.join('bin', 'assets')}".
+Please rename the directory "${path.join('test', 'assets')}".
+Please rename the directory "${path.join('web', 'assets')}".
 """);
   });
 
@@ -52,9 +54,9 @@ Please rename the directory "web/assets".
     schedulePub(args: ['build', 'bin', 'test', 'web'],
         error: """
 Warning: Pub reserves paths containing "assets" for using assets from packages.
-Please rename the file "bin/assets".
-Please rename the file "test/assets".
-Please rename the file "web/assets".
+Please rename the file "${path.join('bin', 'assets')}".
+Please rename the file "${path.join('test', 'assets')}".
+Please rename the file "${path.join('web', 'assets')}".
 """);
   });
 
