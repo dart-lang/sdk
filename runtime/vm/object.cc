@@ -1808,11 +1808,12 @@ intptr_t Class::FindFunctionIndex(const Function& needle) const {
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return -1;
   }
-  ReusableHandleScope reused_handles(isolate);
-  Array& funcs = reused_handles.ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(isolate);
+  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
+  Array& funcs = isolate->ArrayHandle();
+  Function& function = isolate->FunctionHandle();
   funcs ^= functions();
   ASSERT(!funcs.IsNull());
-  Function& function = reused_handles.FunctionHandle();
   const intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
@@ -1860,12 +1861,13 @@ intptr_t Class::FindImplicitClosureFunctionIndex(const Function& needle) const {
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return -1;
   }
-  ReusableHandleScope reused_handles(isolate);
-  Array& funcs = reused_handles.ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(isolate);
+  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
+  Array& funcs = isolate->ArrayHandle();
+  Function& function = isolate->FunctionHandle();
   funcs ^= functions();
   ASSERT(!funcs.IsNull());
-  Function& function = reused_handles.FunctionHandle();
-  Function& implicit_closure = Function::Handle();
+  Function& implicit_closure = Function::Handle(isolate);
   const intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
@@ -1890,11 +1892,12 @@ intptr_t Class::FindInvocationDispatcherFunctionIndex(
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return -1;
   }
-  ReusableHandleScope reused_handles(isolate);
-  Array& funcs = reused_handles.ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(isolate);
+  REUSABLE_OBJECT_HANDLESCOPE(isolate);
+  Array& funcs = isolate->ArrayHandle();
+  Object& object = isolate->ObjectHandle();
   funcs ^= invocation_dispatcher_cache();
   ASSERT(!funcs.IsNull());
-  Object& object = reused_handles.ObjectHandle();
   const intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
     object = funcs.At(i);
@@ -1902,7 +1905,7 @@ intptr_t Class::FindInvocationDispatcherFunctionIndex(
     // are functions.
     if (object.IsFunction()) {
       if (Function::Cast(object).raw() == needle.raw()) {
-      return i;
+        return i;
       }
     }
   }
@@ -1913,10 +1916,12 @@ intptr_t Class::FindInvocationDispatcherFunctionIndex(
 
 
 RawFunction* Class::InvocationDispatcherFunctionFromIndex(intptr_t idx) const {
-  ReusableHandleScope reused_handles(Isolate::Current());
-  Array& dispatcher_cache = reused_handles.ArrayHandle();
+  Isolate* isolate = Isolate::Current();
+  REUSABLE_ARRAY_HANDLESCOPE(isolate);
+  REUSABLE_OBJECT_HANDLESCOPE(isolate);
+  Array& dispatcher_cache = isolate->ArrayHandle();
+  Object& object = isolate->ObjectHandle();
   dispatcher_cache ^= invocation_dispatcher_cache();
-  Object& object = reused_handles.ObjectHandle();
   object = dispatcher_cache.At(idx);
   if (!object.IsFunction()) {
     return Function::null();
@@ -1970,10 +1975,10 @@ intptr_t Class::FindClosureIndex(const Function& needle) const {
     return -1;
   }
   Isolate* isolate = Isolate::Current();
-  ReusableHandleScope reused_handles(isolate);
   const GrowableObjectArray& closures_array =
       GrowableObjectArray::Handle(isolate, closures());
-  Function& closure = reused_handles.FunctionHandle();
+  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
+  Function& closure = isolate->FunctionHandle();
   intptr_t num_closures = closures_array.Length();
   for (intptr_t i = 0; i < num_closures; i++) {
     closure ^= closures_array.At(i);
@@ -2027,8 +2032,8 @@ intptr_t Class::NumTypeParameters(Isolate* isolate) const {
   if (type_parameters() == TypeArguments::null()) {
     return 0;
   }
-  ReusableHandleScope reused_handles(isolate);
-  TypeArguments& type_params = reused_handles.TypeArgumentsHandle();
+  REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(isolate);
+  TypeArguments& type_params = isolate->TypeArgumentsHandle();
   type_params = type_parameters();
   return type_params.Length();
 }
@@ -2168,11 +2173,14 @@ void Class::set_super_type(const AbstractType& value) const {
 RawTypeParameter* Class::LookupTypeParameter(const String& type_name) const {
   ASSERT(!type_name.IsNull());
   Isolate* isolate = Isolate::Current();
-  ReusableHandleScope reused_handles(isolate);
-  TypeArguments& type_params = reused_handles.TypeArgumentsHandle();
+  REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(isolate);
+  REUSABLE_TYPE_PARAMETER_HANDLESCOPE(isolate);
+  REUSABLE_STRING_HANDLESCOPE(isolate);
+  TypeArguments& type_params = isolate->TypeArgumentsHandle();
+  TypeParameter&  type_param = isolate->TypeParameterHandle();
+  String& type_param_name = isolate->StringHandle();
+
   type_params ^= type_parameters();
-  TypeParameter& type_param = reused_handles.TypeParameterHandle();
-  String& type_param_name = reused_handles.StringHandle();
   if (!type_params.IsNull()) {
     const intptr_t num_type_params = type_params.Length();
     for (intptr_t i = 0; i < num_type_params; i++) {
@@ -2707,12 +2715,14 @@ intptr_t Class::FindFieldIndex(const Field& needle) const {
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return -1;
   }
-  ReusableHandleScope reused_handles(isolate);
-  Array& fields_array = reused_handles.ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(isolate);
+  REUSABLE_FIELD_HANDLESCOPE(isolate);
+  REUSABLE_STRING_HANDLESCOPE(isolate);
+  Array& fields_array = isolate->ArrayHandle();
+  Field& field = isolate->FieldHandle();
+  String& field_name = isolate->StringHandle();
   fields_array ^= fields();
   ASSERT(!fields_array.IsNull());
-  Field& field = reused_handles.FieldHandle();
-  String& field_name = reused_handles.StringHandle();
   String& needle_name = String::Handle(isolate);
   needle_name ^= needle.name();
   const intptr_t len = fields_array.Length();
@@ -3552,12 +3562,13 @@ RawFunction* Class::LookupFunction(const String& name, intptr_t type) const {
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return Function::null();
   }
-  ReusableHandleScope reused_handles(isolate);
-  Array& funcs = reused_handles.ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(isolate);
+  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
+  Array& funcs = isolate->ArrayHandle();
   funcs ^= functions();
   ASSERT(!funcs.IsNull());
-  Function& function = reused_handles.FunctionHandle();
   const intptr_t len = funcs.Length();
+  Function& function = isolate->FunctionHandle();
   if (name.IsSymbol()) {
     // Quick Symbol compare.
     NoGCScope no_gc;
@@ -3568,7 +3579,8 @@ RawFunction* Class::LookupFunction(const String& name, intptr_t type) const {
       }
     }
   } else {
-    String& function_name = reused_handles.StringHandle();
+    REUSABLE_STRING_HANDLESCOPE(isolate);
+    String& function_name = isolate->StringHandle();
     for (intptr_t i = 0; i < len; i++) {
       function ^= funcs.At(i);
       function_name ^= function.name();
@@ -3588,13 +3600,15 @@ RawFunction* Class::LookupFunctionAllowPrivate(const String& name,
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return Function::null();
   }
-  ReusableHandleScope reused_handles(isolate);
-  Array& funcs = reused_handles.ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(isolate);
+  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
+  REUSABLE_STRING_HANDLESCOPE(isolate);
+  Array& funcs = isolate->ArrayHandle();
   funcs ^= functions();
   ASSERT(!funcs.IsNull());
-  Function& function = reused_handles.FunctionHandle();
-  String& function_name = reused_handles.StringHandle();
   intptr_t len = funcs.Length();
+  Function& function = isolate->FunctionHandle();
+  String& function_name = isolate->StringHandle();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
     function_name ^= function.name();
@@ -3624,12 +3638,14 @@ RawFunction* Class::LookupAccessorFunction(const char* prefix,
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return Function::null();
   }
-  ReusableHandleScope reused_handles(isolate);
-  Array& funcs = reused_handles.ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(isolate);
+  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
+  REUSABLE_STRING_HANDLESCOPE(isolate);
+  Array& funcs = isolate->ArrayHandle();
   funcs ^= functions();
-  Function& function = reused_handles.FunctionHandle();
-  String& function_name = reused_handles.StringHandle();
   intptr_t len = funcs.Length();
+  Function& function = isolate->FunctionHandle();
+  String& function_name = isolate->StringHandle();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
     function_name ^= function.name();
@@ -3689,13 +3705,15 @@ RawField* Class::LookupField(const String& name, intptr_t type) const {
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return Field::null();
   }
-  ReusableHandleScope reused_handles(isolate);
-  Array& flds = reused_handles.ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(isolate);
+  REUSABLE_FIELD_HANDLESCOPE(isolate);
+  REUSABLE_STRING_HANDLESCOPE(isolate);
+  Array& flds = isolate->ArrayHandle();
   flds ^= fields();
   ASSERT(!flds.IsNull());
-  Field& field = reused_handles.FieldHandle();
-  String& field_name = reused_handles.StringHandle();
   intptr_t len = flds.Length();
+  Field& field = isolate->FieldHandle();
+  String& field_name = isolate->StringHandle();
   for (intptr_t i = 0; i < len; i++) {
     field ^= flds.At(i);
     field_name ^= field.name();
@@ -8018,14 +8036,15 @@ RawObject* Library::LookupReExport(const String& name) const {
 
 RawObject* Library::LookupEntry(const String& name, intptr_t *index) const {
   Isolate* isolate = Isolate::Current();
-  ReusableHandleScope reused_handles(isolate);
-  Array& dict = reused_handles.ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(isolate);
+  REUSABLE_OBJECT_HANDLESCOPE(isolate);
+  REUSABLE_STRING_HANDLESCOPE(isolate);
+  Array& dict = isolate->ArrayHandle();
   dict ^= dictionary();
   intptr_t dict_size = dict.Length() - 1;
   *index = name.Hash() % dict_size;
-
-  Object& entry = reused_handles.ObjectHandle();
-  String& entry_name = reused_handles.StringHandle();
+  Object& entry = isolate->ObjectHandle();
+  String& entry_name = isolate->StringHandle();
   entry = dict.At(*index);
   // Search the entry in the hash set.
   while (!entry.IsNull()) {

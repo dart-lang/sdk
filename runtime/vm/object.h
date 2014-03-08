@@ -35,8 +35,12 @@ class DisassemblyFormatter;
 class DeoptInstr;
 class FinalizablePersistentHandle;
 class LocalScope;
-class ReusableHandleScope;
-class ReusableObjectHandleScope;
+
+#define REUSABLE_FORWARD_DECLARATION(name)                                     \
+  class Reusable##name##HandleScope;
+REUSABLE_HANDLE_LIST(REUSABLE_FORWARD_DECLARATION)
+#undef REUSABLE_FORWARD_DECLARATION
+
 class Symbols;
 
 #if defined(DEBUG)
@@ -639,8 +643,10 @@ class Object {
   friend class ExternalOneByteString;
   friend class ExternalTwoByteString;
   friend class Isolate;
-  friend class ReusableHandleScope;
-  friend class ReusableObjectHandleScope;
+#define REUSABLE_FRIEND_DECLARATION(name)                                      \
+  friend class Reusable##name##HandleScope;
+REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
+#undef REUSABLE_FRIEND_DECLARATION
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Object);

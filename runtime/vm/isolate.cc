@@ -281,8 +281,14 @@ bool IsolateMessageHandler::ProcessUnhandledException(
 void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
   ASSERT(isolate == Isolate::Current());
 }
-#endif
+#endif  // defined(DEBUG)
 
+#if defined(DEBUG)
+#define REUSABLE_HANDLE_SCOPE_INIT(object)                                     \
+  reusable_##object##_handle_scope_active_(false),
+#else
+#define REUSABLE_HANDLE_SCOPE_INIT(object)
+#endif  // defined(DEBUG)
 
 #define REUSABLE_HANDLE_INITIALIZERS(object)                                   \
   object##_handle_(NULL),
@@ -328,8 +334,10 @@ Isolate::Isolate()
       thread_state_(NULL),
       next_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
+      REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
       reusable_handles_() {
 }
+#undef REUSABLE_HANDLE_SCOPE_INIT
 #undef REUSABLE_HANDLE_INITIALIZERS
 
 
@@ -405,8 +413,7 @@ Isolate* Isolate::Init(const char* name_prefix) {
 
   // Setup the isolate specific resuable handles.
 #define REUSABLE_HANDLE_ALLOCATION(object)                                     \
-  result->object##_handle_ = result->AllocateReusableHandle<object>();         \
-
+  result->object##_handle_ = result->AllocateReusableHandle<object>();
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_ALLOCATION)
 #undef REUSABLE_HANDLE_ALLOCATION
 

@@ -63,18 +63,6 @@ class TypeParameter;
 class ObjectIdRing;
 
 
-#define REUSABLE_HANDLE_LIST(V)                                                \
-  V(Object)                                                                    \
-  V(Array)                                                                     \
-  V(String)                                                                    \
-  V(Instance)                                                                  \
-  V(Function)                                                                  \
-  V(Field)                                                                     \
-  V(Class)                                                                     \
-  V(TypeParameter)                                                             \
-  V(TypeArguments)                                                             \
-
-
 class IsolateVisitor {
  public:
   IsolateVisitor() {}
@@ -86,6 +74,16 @@ class IsolateVisitor {
   DISALLOW_COPY_AND_ASSIGN(IsolateVisitor);
 };
 
+#define REUSABLE_HANDLE_LIST(V)                                                \
+  V(Object)                                                                    \
+  V(Array)                                                                     \
+  V(String)                                                                    \
+  V(Instance)                                                                  \
+  V(Function)                                                                  \
+  V(Field)                                                                     \
+  V(Class)                                                                     \
+  V(TypeParameter)                                                             \
+  V(TypeArguments)                                                             \
 
 class Isolate : public BaseIsolate {
  public:
@@ -438,6 +436,25 @@ class Isolate : public BaseIsolate {
     return thread_state_;
   }
 
+#if defined(DEBUG)
+#define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
+  void set_reusable_##object##_handle_scope_active(bool value) {               \
+    reusable_##object##_handle_scope_active_ = value;                          \
+  }                                                                            \
+  bool reusable_##object##_handle_scope_active() const {                       \
+    return reusable_##object##_handle_scope_active_;                           \
+  }
+  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_ACCESSORS)
+#undef REUSABLE_HANDLE_SCOPE_ACCESSORS
+#endif  // defined(DEBUG)
+
+#define REUSABLE_HANDLE(object)                                                \
+  object& object##Handle() const {                                             \
+    return *object##_handle_;                                                  \
+  }
+  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE)
+#undef REUSABLE_HANDLE
+
   static void VisitIsolates(IsolateVisitor* visitor);
 
  private:
@@ -503,10 +520,17 @@ class Isolate : public BaseIsolate {
 
   // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object)                                         \
-  object* object##_handle_;                                                    \
-
+  object* object##_handle_;
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_FIELDS)
 #undef REUSABLE_HANDLE_FIELDS
+
+#if defined(DEBUG)
+#define REUSABLE_HANDLE_SCOPE_VARIABLE(object)                                 \
+  bool reusable_##object##_handle_scope_active_;
+  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_VARIABLE);
+#undef REUSABLE_HANDLE_SCOPE_VARIABLE
+#endif  // defined(DEBUG)
+
   VMHandles reusable_handles_;
 
   static Dart_IsolateCreateCallback create_callback_;
@@ -528,8 +552,10 @@ class Isolate : public BaseIsolate {
   static Monitor* isolates_list_monitor_;
   static Isolate* isolates_list_head_;
 
-  friend class ReusableHandleScope;
-  friend class ReusableObjectHandleScope;
+#define REUSABLE_FRIEND_DECLARATION(name)                                      \
+  friend class Reusable##name##HandleScope;
+REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
+#undef REUSABLE_FRIEND_DECLARATION
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };
