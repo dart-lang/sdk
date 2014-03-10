@@ -50,6 +50,8 @@ def GuessArchitecture():
   id = platform.machine()
   if id.startswith('arm'):
     return 'arm'
+  elif id.startswith('mips'):
+    return 'mips'
   elif (not id) or (not re.match('(x|i[3-6])86', id) is None):
     return 'ia32'
   elif id == 'i86pc':
@@ -503,6 +505,8 @@ def DartBinary():
     system = GuessOS()
     if arch == 'arm':
       return os.path.join(dart_binary_prefix, system, 'dart-arm')
+    elif arch == 'mips':
+      return os.path.join(dart_binary_prefix, system, 'dart-mips')
     else:
       return os.path.join(dart_binary_prefix, system, 'dart')
 
