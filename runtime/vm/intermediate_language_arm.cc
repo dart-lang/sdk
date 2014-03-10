@@ -4026,6 +4026,73 @@ void Float32x4ToFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* Float64x2ZeroArgInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+
+  if (representation() == kTagged) {
+    ASSERT(op_kind() == MethodRecognizer::kFloat64x2GetSignMask);
+    // Grabbing the S components means we need a low (< 7) Q.
+    summary->set_in(0, Location::FpuRegisterLocation(Q6));
+    summary->set_out(Location::RequiresRegister());
+    summary->AddTemp(Location::RequiresRegister());
+  } else {
+    summary->set_in(0, Location::RequiresFpuRegister());
+    summary->set_out(Location::RequiresFpuRegister());
+  }
+  return summary;
+}
+
+
+void Float64x2ZeroArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  QRegister q = locs()->in(0).fpu_reg();
+
+  if ((op_kind() == MethodRecognizer::kFloat64x2GetSignMask)) {
+    DRegister dvalue0 = EvenDRegisterOf(q);
+    DRegister dvalue1 = OddDRegisterOf(q);
+
+    Register out = locs()->out().reg();
+    Register temp = locs()->temp(0).reg();
+
+    // Upper 32-bits of X lane.
+    __ vmovrs(out, OddSRegisterOf(dvalue0));
+    __ Lsr(out, out, 31);
+    // Upper 32-bits of Y lane.
+    __ vmovrs(temp, OddSRegisterOf(dvalue1));
+    __ Lsr(temp, temp, 31);
+    __ orr(out, out, ShifterOperand(temp, LSL, 1));
+    // Tag.
+    __ SmiTag(out);
+    return;
+  }
+  ASSERT(representation() == kUnboxedFloat64x2);
+  QRegister r = locs()->out().fpu_reg();
+
+  DRegister dvalue0 = EvenDRegisterOf(q);
+  DRegister dvalue1 = OddDRegisterOf(q);
+  DRegister dresult0 = EvenDRegisterOf(r);
+  DRegister dresult1 = OddDRegisterOf(r);
+
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat64x2Negate:
+      __ vnegd(dresult0, dvalue0);
+      __ vnegd(dresult1, dvalue1);
+      break;
+    case MethodRecognizer::kFloat64x2Abs:
+      __ vabsd(dresult0, dvalue0);
+      __ vabsd(dresult1, dvalue1);
+      break;
+    case MethodRecognizer::kFloat64x2Sqrt:
+      __ vsqrtd(dresult0, dvalue0);
+      __ vsqrtd(dresult1, dvalue1);
+      break;
+    default: UNREACHABLE();
+  }
+}
+
+
 LocationSummary* Int32x4BoolConstructorInstr::MakeLocationSummary(
     bool opt) const {
   const intptr_t kNumInputs = 4;

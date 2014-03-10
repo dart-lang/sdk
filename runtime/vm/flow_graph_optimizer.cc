@@ -3259,6 +3259,24 @@ bool FlowGraphOptimizer::TryInlineFloat64x2Method(
       ASSERT(call->ic_data()->HasReceiverClassId(kFloat64x2Cid));
       ASSERT(call->ic_data()->HasOneTarget());
       return InlineFloat64x2Getter(call, recognized_kind);
+    case MethodRecognizer::kFloat64x2Negate:
+    case MethodRecognizer::kFloat64x2Abs:
+    case MethodRecognizer::kFloat64x2Sqrt:
+    case MethodRecognizer::kFloat64x2GetSignMask: {
+      Definition* left = call->ArgumentAt(0);
+      // Type check left.
+      AddCheckClass(left,
+                    ICData::ZoneHandle(
+                        call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                    call->deopt_id(),
+                    call->env(),
+                    call);
+      Float64x2ZeroArgInstr* zeroArg =
+          new Float64x2ZeroArgInstr(recognized_kind, new Value(left),
+                                    call->deopt_id());
+      ReplaceCall(call, zeroArg);
+      return true;
+    }
     default:
       return false;
   }
@@ -7961,6 +7979,11 @@ void ConstantPropagator::VisitFloat64x2Splat(
 
 void ConstantPropagator::VisitFloat64x2Constructor(
     Float64x2ConstructorInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitFloat64x2ZeroArg(Float64x2ZeroArgInstr* instr) {
+  // TODO(johnmccutchan): Implement constant propagation.
   SetValue(instr, non_constant_);
 }
 

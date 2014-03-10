@@ -1167,6 +1167,14 @@ CompileType Float64x2ToFloat32x4Instr::ComputeType() const {
 }
 
 
+CompileType Float64x2ZeroArgInstr::ComputeType() const {
+  if (op_kind() == MethodRecognizer::kFloat64x2GetSignMask) {
+    return CompileType::Int();
+  }
+  return CompileType::FromCid(kFloat64x2Cid);
+}
+
+
 CompileType Int32x4BoolConstructorInstr::ComputeType() const {
   return CompileType::FromCid(kInt32x4Cid);
 }

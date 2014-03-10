@@ -3986,6 +3986,48 @@ void Float32x4ToFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* Float64x2ZeroArgInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  if (representation() == kTagged) {
+    ASSERT(op_kind() == MethodRecognizer::kFloat64x2GetSignMask);
+    summary->set_out(Location::RequiresRegister());
+  } else {
+    ASSERT(representation() == kUnboxedFloat64x2);
+    summary->set_out(Location::SameAsFirstInput());
+  }
+  return summary;
+}
+
+
+void Float64x2ZeroArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister left = locs()->in(0).fpu_reg();
+
+  ASSERT((op_kind() == MethodRecognizer::kFloat64x2GetSignMask) ||
+         (locs()->out().fpu_reg() == left));
+
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat64x2Negate:
+      __ negatepd(left);
+      break;
+    case MethodRecognizer::kFloat64x2Abs:
+      __ abspd(left);
+      break;
+    case MethodRecognizer::kFloat64x2Sqrt:
+      __ sqrtpd(left);
+      break;
+    case MethodRecognizer::kFloat64x2GetSignMask:
+      __ movmskpd(locs()->out().reg(), left);
+      __ SmiTag(locs()->out().reg());
+      break;
+    default: UNREACHABLE();
+  }
+}
+
+
 LocationSummary* Int32x4BoolConstructorInstr::MakeLocationSummary(
     bool opt) const {
   const intptr_t kNumInputs = 4;

@@ -127,6 +127,10 @@ class Range;
   V(Float64x2, Float64x2.fromFloat32x4, Float64x2FromFloat32x4, 1383666060)    \
   V(_Float64x2, get:x, Float64x2GetX, 176817227)                               \
   V(_Float64x2, get:y, Float64x2GetY, 1858031019)                              \
+  V(_Float64x2, _negate, Float64x2Negate, 1345265430)                          \
+  V(_Float64x2, abs, Float64x2Abs, 778551930)                                  \
+  V(_Float64x2, sqrt, Float64x2Sqrt, 591345168)                                \
+  V(_Float64x2, get:signMask, Float64x2GetSignMask, 601579087)                 \
   V(Int32x4, Int32x4.bool, Int32x4BoolConstructor, 295910141)                  \
   V(Int32x4, Int32x4.fromFloat32x4Bits, Int32x4FromFloat32x4Bits,              \
       893850947)                                                               \
@@ -767,6 +771,7 @@ class EmbeddedArray<T, 0> {
   M(Float32x4ToFloat64x2)                                                      \
   M(Float64x2ToFloat32x4)                                                      \
   M(Simd64x2Shuffle)                                                           \
+  M(Float64x2ZeroArg)                                                          \
 
 
 #define FORWARD_DECLARATION(type) class type##Instr;
@@ -1052,6 +1057,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class Float32x4WithInstr;
   friend class Float32x4ToInt32x4Instr;
   friend class Simd64x2ShuffleInstr;
+  friend class Float64x2ZeroArgInstr;
   friend class Float32x4ToFloat64x2Instr;
   friend class Float64x2ToFloat32x4Instr;
   friend class Float64x2ZeroInstr;
@@ -6059,6 +6065,60 @@ class Float64x2ZeroInstr : public TemplateDefinition<0> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Float64x2ZeroInstr);
+};
+
+
+class Float64x2ZeroArgInstr : public TemplateDefinition<1> {
+ public:
+  Float64x2ZeroArgInstr(MethodRecognizer::Kind op_kind, Value* left,
+                        intptr_t deopt_id) : op_kind_(op_kind) {
+    SetInputAt(0, left);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* left() const { return inputs_[0]; }
+
+  MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    if (op_kind() == MethodRecognizer::kFloat64x2GetSignMask) {
+      // Smi.
+      return kTagged;
+    }
+    return kUnboxedFloat64x2;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedFloat64x2;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float64x2ZeroArg)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsFloat64x2ZeroArg()->op_kind();
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  const MethodRecognizer::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(Float64x2ZeroArgInstr);
 };
 
 

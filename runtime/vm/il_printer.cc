@@ -747,6 +747,12 @@ void Float64x2ToFloat32x4Instr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void Float64x2ZeroArgInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
+  left()->PrintTo(f);
+}
+
+
 void Int32x4BoolConstructorInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("Int32x4.bool(");
   value0()->PrintTo(f);

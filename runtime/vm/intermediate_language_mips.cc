@@ -3218,6 +3218,7 @@ void Float64x2ZeroInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* Float64x2SplatInstr::MakeLocationSummary(bool opt) const {
+  UNIMPLEMENTED();
   return NULL;
 }
 
@@ -3229,6 +3230,7 @@ void Float64x2SplatInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* Float64x2ConstructorInstr::MakeLocationSummary(
     bool opt) const {
+  UNIMPLEMENTED();
   return NULL;
 }
 
@@ -3240,6 +3242,7 @@ void Float64x2ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* Float64x2ToFloat32x4Instr::MakeLocationSummary(
     bool opt) const {
+  UNIMPLEMENTED();
   return NULL;
 }
 
@@ -3251,11 +3254,23 @@ void Float64x2ToFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* Float32x4ToFloat64x2Instr::MakeLocationSummary(
     bool opt) const {
+  UNIMPLEMENTED();
   return NULL;
 }
 
 
 void Float32x4ToFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* Float64x2ZeroArgInstr::MakeLocationSummary(bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Float64x2ZeroArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
