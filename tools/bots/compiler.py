@@ -25,7 +25,7 @@ DART2JS_BUILDER = (
     r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?(-(minified))?(-(x64))?-?(\d*)-?(\d*)')
 DART2JS_FULL_BUILDER = r'dart2js-full-(linux|mac|windows)(-checked)?(-minified)?-(\d+)-(\d+)'
 WEB_BUILDER = (
-    r'dart2js-(ie9|ie10|ff|safari|chrome|chromeOnAndroid|opera|drt)-(win7|win8|mac10\.8|mac10\.7|linux)(-(all|html))?(-(csp))?(-(\d+)-(\d+))?')
+    r'dart2js-(ie9|ie10|ie11|ff|safari|chrome|chromeOnAndroid|opera|drt)-(win7|win8|mac10\.8|mac10\.7|linux)(-(all|html))?(-(csp))?(-(\d+)-(\d+))?')
 
 DART2JS_FULL_CONFIGURATIONS = {
   'linux' : [ ],
@@ -136,8 +136,8 @@ def GetBuildInfo(builder_name, is_buildbot):
 
 
 def NeedsXterm(compiler, runtime):
-  return runtime in ['ie9', 'ie10', 'chrome', 'safari', 'opera', 'ff', 'drt',
-                     'dartium']
+  return runtime in ['ie9', 'ie10', 'ie11', 'chrome', 'safari', 'opera', 
+                     'ff', 'drt', 'dartium']
 
 
 def TestStepName(name, flags):
@@ -261,7 +261,7 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, arch,
     TestStep("dart2js_unit", mode, system, 'none', 'vm', ['dart2js'],
              unit_test_flags, arch)
 
-  if compiler == 'dart2js' and system == 'windows' and runtime == 'ie10':
+  if compiler == 'dart2js' and runtime in ['ie10', 'ie11']:
     TestStep("%s-%s" % (compiler, runtime), mode, system, compiler, runtime,
              ['html'], flags, arch)
   else:
