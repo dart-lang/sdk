@@ -641,10 +641,12 @@ class ResolutionEnqueuer extends Enqueuer {
 
     queue.add(new ResolutionWorkItem(element, itemCompilationContextCreator()));
 
-    // Enable isolate support if we start using something from the
-    // isolate library, or timers for the async library.
+    // Enable isolate support if we start using something from the isolate
+    // library, or timers for the async library.  We exclude constant fields,
+    // which are ending here because their initializing expression is compiled.
     LibraryElement library = element.getLibrary();
-    if (!compiler.hasIsolateSupport()) {
+    if (!compiler.hasIsolateSupport() &&
+        (!element.isField() || !element.modifiers.isConst())) {
       String uri = library.canonicalUri.toString();
       if (uri == 'dart:isolate') {
         enableIsolateSupport(library);
