@@ -173,6 +173,24 @@
 
 
       # ARM and MIPS hardware configurations are only for Linux and Android.
+      'DebugXARM': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_arm_Base', 'Dart_Debug',
+          'Dart_Linux_Base',
+          'Dart_Linux_xarm_Base',
+          'Dart_Linux_Debug',
+        ],
+      },
+
+      'ReleaseXARM': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_arm_Base', 'Dart_Release',
+          'Dart_Linux_Base',
+          'Dart_Linux_xarm_Base',
+          'Dart_Linux_Release',
+        ],
+      },
+
       'DebugARM': {
         'inherit_from': [
           'Dart_Base', 'Dart_arm_Base', 'Dart_Debug',

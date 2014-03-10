@@ -222,7 +222,15 @@ def GetBuildConf(mode, arch, conf_os=None):
   if conf_os == 'android':
     return '%s%s%s' % (GetBuildMode(mode), conf_os.title(), arch.upper())
   else:
-    return '%s%s' % (GetBuildMode(mode), arch.upper())
+    # Ask for a cross build if the host and target architectures don't match.
+    host_arch = ARCH_GUESS
+    target_arch = arch
+    if target_arch == 'x64':
+      target_arch = 'ia32'
+    cross_build = ''
+    if host_arch != target_arch:
+      cross_build = 'X'
+    return '%s%s%s' % (GetBuildMode(mode), cross_build, arch.upper())
 
 ARCH_GUESS = GuessArchitecture()
 BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))

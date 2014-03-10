@@ -49,7 +49,8 @@
         ],
       },
 
-      'Dart_Linux_arm_Base': {
+      # ARM cross-build
+      'Dart_Linux_xarm_Base': {
         'abstract': 1,
         'target_conditions': [
         ['_toolset=="target"', {
@@ -68,6 +69,21 @@
           'cflags': ['-m32', '-msse2'],
           'ldflags': ['-m32'],
         }]]
+      },
+
+      # ARM native build
+      'Dart_Linux_arm_Base': {
+        'abstract': 1,
+        'cflags': [
+          '-marm',
+          '-mfpu=vfp',
+          '-Wno-psabi', # suppresses va_list warning
+          '-fno-strict-overflow',
+        ],
+        'defines': [
+          # In build.py, we specify the hf compiler.
+          'ARM_FLOAT_ABI_HARD',
+        ],
       },
 
       'Dart_Linux_simmips_Base': {
