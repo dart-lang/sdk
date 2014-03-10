@@ -3277,6 +3277,26 @@ bool FlowGraphOptimizer::TryInlineFloat64x2Method(
       ReplaceCall(call, zeroArg);
       return true;
     }
+    case MethodRecognizer::kFloat64x2Scale:
+    case MethodRecognizer::kFloat64x2WithX:
+    case MethodRecognizer::kFloat64x2WithY:
+    case MethodRecognizer::kFloat64x2Min:
+    case MethodRecognizer::kFloat64x2Max: {
+      Definition* left = call->ArgumentAt(0);
+      Definition* right = call->ArgumentAt(1);
+      // Type check left.
+      AddCheckClass(left,
+                    ICData::ZoneHandle(
+                        call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                    call->deopt_id(),
+                    call->env(),
+                    call);
+      Float64x2OneArgInstr* zeroArg =
+          new Float64x2OneArgInstr(recognized_kind, new Value(left),
+                                   new Value(right), call->deopt_id());
+      ReplaceCall(call, zeroArg);
+      return true;
+    }
     default:
       return false;
   }
@@ -7982,7 +8002,14 @@ void ConstantPropagator::VisitFloat64x2Constructor(
   SetValue(instr, non_constant_);
 }
 
+
 void ConstantPropagator::VisitFloat64x2ZeroArg(Float64x2ZeroArgInstr* instr) {
+  // TODO(johnmccutchan): Implement constant propagation.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloat64x2OneArg(Float64x2OneArgInstr* instr) {
   // TODO(johnmccutchan): Implement constant propagation.
   SetValue(instr, non_constant_);
 }

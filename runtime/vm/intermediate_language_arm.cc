@@ -4093,6 +4093,78 @@ void Float64x2ZeroArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* Float64x2OneArgInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void Float64x2OneArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  QRegister left = locs()->in(0).fpu_reg();
+  DRegister left0 = EvenDRegisterOf(left);
+  DRegister left1 = OddDRegisterOf(left);
+  QRegister right = locs()->in(1).fpu_reg();
+  DRegister right0 = EvenDRegisterOf(right);
+  DRegister right1 = OddDRegisterOf(right);
+  QRegister out = locs()->out().fpu_reg();
+  ASSERT(left == out);
+
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat64x2Scale:
+      __ vmuld(left0, left0, right0);
+      __ vmuld(left1, left1, right0);
+      break;
+    case MethodRecognizer::kFloat64x2WithX:
+      __ vmovd(left0, right0);
+      break;
+    case MethodRecognizer::kFloat64x2WithY:
+      __ vmovd(left1, right0);
+      break;
+    case MethodRecognizer::kFloat64x2Min: {
+      // X lane.
+      Label l0;
+      __ vcmpd(left0, right0);
+      __ vmstat();
+      __ b(&l0, LT);
+      __ vmovd(left0, right0);
+      __ Bind(&l0);
+      // Y lane.
+      Label l1;
+      __ vcmpd(left1, right1);
+      __ vmstat();
+      __ b(&l1, LT);
+      __ vmovd(left1, right1);
+      __ Bind(&l1);
+      break;
+    }
+    case MethodRecognizer::kFloat64x2Max: {
+      // X lane.
+      Label g0;
+      __ vcmpd(left0, right0);
+      __ vmstat();
+      __ b(&g0, GT);
+      __ vmovd(left0, right0);
+      __ Bind(&g0);
+      // Y lane.
+      Label g1;
+      __ vcmpd(left1, right1);
+      __ vmstat();
+      __ b(&g1, GT);
+      __ vmovd(left1, right1);
+      __ Bind(&g1);
+      break;
+    }
+    default: UNREACHABLE();
+  }
+}
+
+
 LocationSummary* Int32x4BoolConstructorInstr::MakeLocationSummary(
     bool opt) const {
   const intptr_t kNumInputs = 4;

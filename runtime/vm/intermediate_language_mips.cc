@@ -3275,6 +3275,17 @@ void Float64x2ZeroArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* Float64x2OneArgInstr::MakeLocationSummary(bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Float64x2OneArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
 LocationSummary* Int32x4BoolConstructorInstr::MakeLocationSummary(
     bool opt) const {
   UNIMPLEMENTED();

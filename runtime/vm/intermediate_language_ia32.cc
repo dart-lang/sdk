@@ -4028,6 +4028,59 @@ void Float64x2ZeroArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* Float64x2OneArgInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void Float64x2OneArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister left = locs()->in(0).fpu_reg();
+  XmmRegister right = locs()->in(1).fpu_reg();
+  ASSERT((locs()->out().fpu_reg() == left));
+
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat64x2Scale:
+      __ shufpd(right, right, Immediate(0x00));
+      __ mulpd(left, right);
+      break;
+    case MethodRecognizer::kFloat64x2WithX:
+      __ subl(ESP, Immediate(16));
+      // Move value to stack.
+      __ movups(Address(ESP, 0), left);
+      // Write over X value.
+      __ movsd(Address(ESP, 0), right);
+      // Move updated value into output register.
+      __ movups(left, Address(ESP, 0));
+      __ addl(ESP, Immediate(16));
+      break;
+    case MethodRecognizer::kFloat64x2WithY:
+      __ subl(ESP, Immediate(16));
+      // Move value to stack.
+      __ movups(Address(ESP, 0), left);
+      // Write over Y value.
+      __ movsd(Address(ESP, 8), right);
+      // Move updated value into output register.
+      __ movups(left, Address(ESP, 0));
+      __ addl(ESP, Immediate(16));
+      break;
+    case MethodRecognizer::kFloat64x2Min:
+      __ minpd(left, right);
+      break;
+    case MethodRecognizer::kFloat64x2Max:
+      __ maxpd(left, right);
+      break;
+    default: UNREACHABLE();
+  }
+}
+
+
 LocationSummary* Int32x4BoolConstructorInstr::MakeLocationSummary(
     bool opt) const {
   const intptr_t kNumInputs = 4;
