@@ -15,7 +15,7 @@ patch class _Directory {
   patch static String _systemTemp() {
     throw new UnsupportedError("Directory._systemTemp");
   }
-  patch static int _exists(String path) {
+  patch static _exists(String path) {
     throw new UnsupportedError("Directory._exists");
   }
   patch static _create(String path) {
