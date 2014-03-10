@@ -59,6 +59,10 @@ def GuessArchitecture():
   elif '64' in id:
     return 'x64'
   else:
+    guess_os = GuessOS()
+    print "Warning: Guessing architecture %s based on os %s\n" % (id, guess_os)
+    if guess_os == 'win32':
+      return 'ia32'
     return None
 
 
@@ -209,6 +213,10 @@ BUILD_ROOT = {
   'macos': os.path.join('xcodebuild'),
 }
 
+ARCH_GUESS = GuessArchitecture()
+BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))
+DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..'))
+
 def GetBuildbotGSUtilPath():
   gsutil = '/b/build/scripts/slave/gsutil'
   if platform.system() == 'Windows':
@@ -227,15 +235,12 @@ def GetBuildConf(mode, arch, conf_os=None):
     target_arch = arch
     if target_arch == 'x64':
       target_arch = 'ia32'
+      print "GetBuildConf: Rewritten %s to %s\n" % (arch, target_arch)
     cross_build = ''
     if host_arch != target_arch:
+      print "GetBuildConf: Cross-build of % on %s\n" % (arch, host_arch)
       cross_build = 'X'
     return '%s%s%s' % (GetBuildMode(mode), cross_build, arch.upper())
-
-ARCH_GUESS = GuessArchitecture()
-BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))
-DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..'))
-
 
 def GetBuildDir(host_os, target_os):
   return BUILD_ROOT[host_os]
