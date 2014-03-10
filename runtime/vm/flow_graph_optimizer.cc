@@ -5016,10 +5016,9 @@ class Alias : public ValueObject {
   // VMField load/stores alias each other when field offset matches.
   // TODO(vegorov) storing a context variable does not alias loading array
   // length.
-  static Alias VMField(intptr_t offset_in_bytes) {
-    ASSERT(offset_in_bytes >= 0);
-    const intptr_t idx = offset_in_bytes / kWordSize;
-    return Alias(kVMFieldAlias, idx);
+  static Alias VMField(intptr_t id) {
+    ASSERT(id != 0);
+    return Alias(kVMFieldAlias, id);
   }
 
   // Current context load/stores alias each other.
@@ -5391,7 +5390,9 @@ class AliasedSet : public ZoneAllocated {
         max_field_id_(0),
         field_ids_(),
         max_index_id_(0),
-        index_ids_() { }
+        index_ids_(),
+        max_vm_field_id_(0),
+        vm_field_ids_() { }
 
   Alias ComputeAlias(Place* place) {
     switch (place->kind()) {
@@ -5407,7 +5408,8 @@ class AliasedSet : public ZoneAllocated {
         return Alias::Field(
             GetInstanceFieldId(place->instance(), place->field()));
       case Place::kVMField:
-        return Alias::VMField(place->offset_in_bytes());
+        return Alias::VMField(
+            GetVMFieldId(place->instance(), place->offset_in_bytes()));
       case Place::kContext:
         return Alias::CurrentContext();
       case Place::kNone:
@@ -5436,10 +5438,11 @@ class AliasedSet : public ZoneAllocated {
     if (store_instance_field != NULL) {
       Definition* instance = store_instance_field->instance()->definition();
       if (!store_instance_field->field().IsNull()) {
-        return Alias::Field(GetInstanceFieldId(instance,
-                                               store_instance_field->field()));
+        return Alias::Field(
+            GetInstanceFieldId(instance, store_instance_field->field()));
       }
-      return Alias::VMField(store_instance_field->offset_in_bytes());
+      return Alias::VMField(
+          GetVMFieldId(instance, store_instance_field->offset_in_bytes()));
     }
 
     if (instr->IsStoreContext()) {
@@ -5614,6 +5617,26 @@ class AliasedSet : public ZoneAllocated {
     return GetFieldId(instance_id, field);
   }
 
+  intptr_t GetVMFieldId(Definition* defn, intptr_t offset) {
+    intptr_t instance_id = kAnyInstance;
+
+    if (defn != NULL) {
+      AllocateObjectInstr* alloc = defn->AsAllocateObject();
+      if ((alloc != NULL) && !CanBeAliased(alloc)) {
+        instance_id = alloc->ssa_temp_index();
+        ASSERT(instance_id != kAnyInstance);
+      }
+    }
+
+    intptr_t id = vm_field_ids_.Lookup(VMFieldIdPair::Key(instance_id, offset));
+    if (id == 0) {
+      id = ++max_vm_field_id_;
+      vm_field_ids_.Insert(
+          VMFieldIdPair(VMFieldIdPair::Key(instance_id, offset), id));
+    }
+    return id;
+  }
+
   // Get or create an identifier for a static field.
   intptr_t GetStaticFieldId(const Field& field) {
     ASSERT(field.is_static());
@@ -5716,6 +5739,43 @@ class AliasedSet : public ZoneAllocated {
     Value value_;
   };
 
+  class VMFieldIdPair {
+   public:
+    struct Key {
+      Key(intptr_t instance_id, intptr_t offset)
+          : instance_id_(instance_id), offset_(offset) { }
+
+      intptr_t instance_id_;
+      intptr_t offset_;
+    };
+
+    typedef intptr_t Value;
+    typedef VMFieldIdPair Pair;
+
+    VMFieldIdPair(Key key, Value value) : key_(key), value_(value) { }
+
+    static Key KeyOf(Pair kv) {
+      return kv.key_;
+    }
+
+    static Value ValueOf(Pair kv) {
+      return kv.value_;
+    }
+
+    static intptr_t Hashcode(Key key) {
+      return (key.instance_id_ + 1) * 1024 + key.offset_;
+    }
+
+    static inline bool IsKeyEqual(Pair kv, Key key) {
+      return (KeyOf(kv).offset_ == key.offset_) &&
+          (KeyOf(kv).instance_id_ == key.instance_id_);
+    }
+
+   private:
+    Key key_;
+    Value value_;
+  };
+
   const ZoneGrowableArray<Place*>& places_;
 
   const PhiPlaceMoves* phi_moves_;
@@ -5732,6 +5792,9 @@ class AliasedSet : public ZoneAllocated {
 
   intptr_t max_index_id_;
   DirectChainedHashMap<IndexIdPair> index_ids_;
+
+  intptr_t max_vm_field_id_;
+  DirectChainedHashMap<VMFieldIdPair> vm_field_ids_;
 };
 
 
@@ -8723,15 +8786,15 @@ void AllocationSinking::DetachMaterializations() {
 }
 
 
-// Add the given field to the list of fields if it is not yet present there.
-static void AddField(ZoneGrowableArray<const Field*>* fields,
-                     const Field& field) {
-  for (intptr_t i = 0; i < fields->length(); i++) {
-    if ((*fields)[i]->raw() == field.raw()) {
+// Add a field/offset to the list of fields if it is not yet present there.
+static void AddSlot(ZoneGrowableArray<const Object*>* slots,
+                    const Object& slot) {
+  for (intptr_t i = 0; i < slots->length(); i++) {
+    if ((*slots)[i]->raw() == slot.raw()) {
       return;
     }
   }
-  fields->Add(&field);
+  slots->Add(&slot);
 }
 
 
@@ -8755,22 +8818,25 @@ void AllocationSinking::CreateMaterializationAt(
     Instruction* exit,
     AllocateObjectInstr* alloc,
     const Class& cls,
-    const ZoneGrowableArray<const Field*>& fields) {
+    const ZoneGrowableArray<const Object*>& slots) {
   ZoneGrowableArray<Value*>* values =
-      new ZoneGrowableArray<Value*>(fields.length());
+      new ZoneGrowableArray<Value*>(slots.length());
 
   // Insert load instruction for every field.
-  for (intptr_t i = 0; i < fields.length(); i++) {
-    const Field* field = fields[i];
-    LoadFieldInstr* load = new LoadFieldInstr(new Value(alloc),
-                                              field,
-                                              AbstractType::ZoneHandle());
+  for (intptr_t i = 0; i < slots.length(); i++) {
+    LoadFieldInstr* load = slots[i]->IsField()
+        ? new LoadFieldInstr(new Value(alloc),
+                             &Field::Cast(*slots[i]),
+                             AbstractType::ZoneHandle())
+        : new LoadFieldInstr(new Value(alloc),
+                             Smi::Cast(*slots[i]).Value(),
+                             AbstractType::ZoneHandle());
     flow_graph_->InsertBefore(
         exit, load, NULL, Definition::kValue);
     values->Add(new Value(load));
   }
 
-  MaterializeObjectInstr* mat = new MaterializeObjectInstr(cls, fields, values);
+  MaterializeObjectInstr* mat = new MaterializeObjectInstr(cls, slots, values);
   flow_graph_->InsertBefore(exit, mat, NULL, Definition::kValue);
 
   // Replace all mentions of this allocation with a newly inserted
@@ -8795,29 +8861,24 @@ void AllocationSinking::CreateMaterializationAt(
 
 void AllocationSinking::InsertMaterializations(AllocateObjectInstr* alloc) {
   // Collect all fields that are written for this instance.
-  ZoneGrowableArray<const Field*>* fields =
-      new ZoneGrowableArray<const Field*>(5);
+  ZoneGrowableArray<const Object*>* slots =
+      new ZoneGrowableArray<const Object*>(5);
 
   for (Value* use = alloc->input_use_list();
        use != NULL;
        use = use->next_use()) {
-    ASSERT(use->instruction()->IsStoreInstanceField());
-    AddField(fields, use->instruction()->AsStoreInstanceField()->field());
+    StoreInstanceFieldInstr* store = use->instruction()->AsStoreInstanceField();
+    if (!store->field().IsNull()) {
+      AddSlot(slots, store->field());
+    } else {
+      AddSlot(slots, Smi::ZoneHandle(Smi::New(store->offset_in_bytes())));
+    }
   }
 
   if (alloc->ArgumentCount() > 0) {
     ASSERT(alloc->ArgumentCount() == 1);
-    const String& name = String::Handle(Symbols::New(":type_args"));
-    const Field& type_args_field =
-        Field::ZoneHandle(Field::New(
-            name,
-            false,  // !static
-            false,  // !final
-            false,  // !const
-            alloc->cls(),
-            0));  // No token position.
-    type_args_field.SetOffset(alloc->cls().type_arguments_field_offset());
-    AddField(fields, type_args_field);
+    intptr_t type_args_offset = alloc->cls().type_arguments_field_offset();
+    AddSlot(slots, Smi::ZoneHandle(Smi::New(type_args_offset)));
   }
 
   // Collect all instructions that mention this object in the environment.
@@ -8830,7 +8891,7 @@ void AllocationSinking::InsertMaterializations(AllocateObjectInstr* alloc) {
 
   // Insert materializations at environment uses.
   for (intptr_t i = 0; i < exits.length(); i++) {
-    CreateMaterializationAt(exits[i], alloc, alloc->cls(), *fields);
+    CreateMaterializationAt(exits[i], alloc, alloc->cls(), *slots);
   }
 }
 

@@ -406,7 +406,7 @@ class AllocationSinking : public ZoneAllocated {
       Instruction* exit,
       AllocateObjectInstr* alloc,
       const Class& cls,
-      const ZoneGrowableArray<const Field*>& fields);
+      const ZoneGrowableArray<const Object*>& fields);
 
   FlowGraph* flow_graph_;
 

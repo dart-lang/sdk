@@ -493,7 +493,7 @@ void MaterializeObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", String::Handle(cls_.Name()).ToCString());
   for (intptr_t i = 0; i < InputCount(); i++) {
     f->Print(", ");
-    f->Print("%s: ", String::Handle(fields_[i]->name()).ToCString());
+    f->Print("%s: ", slots_[i]->ToCString());
     InputAt(i)->PrintTo(f);
   }
 }

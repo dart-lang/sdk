@@ -4038,8 +4038,7 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
         cls_(cls),
         arguments_(arguments),
         identity_(kUnknown),
-        closure_function_(Function::ZoneHandle()),
-        context_field_(Field::ZoneHandle()) {
+        closure_function_(Function::ZoneHandle()) {
     // Either no arguments or one type-argument and one instantiator.
     ASSERT(arguments->is_empty() || (arguments->length() == 1));
   }
@@ -4058,11 +4057,6 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
   const Function& closure_function() const { return closure_function_; }
   void set_closure_function(const Function& function) {
     closure_function_ ^= function.raw();
-  }
-
-  const Field& context_field() const { return context_field_; }
-  void set_context_field(const Field& field) {
-    context_field_ ^= field.raw();
   }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -4091,7 +4085,6 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
   ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
   Identity identity_;
   Function& closure_function_;
-  Field& context_field_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectInstr);
 };
@@ -4103,10 +4096,10 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
 class MaterializeObjectInstr : public Definition {
  public:
   MaterializeObjectInstr(const Class& cls,
-                         const ZoneGrowableArray<const Field*>& fields,
+                         const ZoneGrowableArray<const Object*>& slots,
                          ZoneGrowableArray<Value*>* values)
-      : cls_(cls), fields_(fields), values_(values), locations_(NULL) {
-    ASSERT(fields_.length() == values_->length());
+      : cls_(cls), slots_(slots), values_(values), locations_(NULL) {
+    ASSERT(slots_.length() == values_->length());
     for (intptr_t i = 0; i < InputCount(); i++) {
       InputAt(i)->set_instruction(this);
       InputAt(i)->set_use_index(i);
@@ -4115,7 +4108,9 @@ class MaterializeObjectInstr : public Definition {
 
   const Class& cls() const { return cls_; }
   intptr_t FieldOffsetAt(intptr_t i) const {
-    return fields_[i]->Offset();
+    return slots_[i]->IsField()
+        ? Field::Cast(*slots_[i]).Offset()
+        : Smi::Cast(*slots_[i]).Value();
   }
   const Location& LocationAt(intptr_t i) {
     return locations_[i];
@@ -4156,7 +4151,7 @@ class MaterializeObjectInstr : public Definition {
   }
 
   const Class& cls_;
-  const ZoneGrowableArray<const Field*>& fields_;
+  const ZoneGrowableArray<const Object*>& slots_;
   ZoneGrowableArray<Value*>* values_;
   Location* locations_;
 

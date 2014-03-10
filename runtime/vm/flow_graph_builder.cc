@@ -2277,35 +2277,13 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
                                                        arguments);
   alloc->set_closure_function(function);
 
-  // Create fake fields for function and context. Only the context field is
-  // stored at the allocation to be used later when inlining a closure call.
-  const Field& function_field =
-      Field::ZoneHandle(
-          Field::New(Symbols::ClosureFunctionField(),
-          false,  // !static
-          true,  // final
-          false,  // !const
-          alloc->cls(),
-          0));  // No token position.
-  function_field.SetOffset(Closure::function_offset());
-  const Field& context_field =
-      Field::ZoneHandle(Field::New(
-          Symbols::ClosureContextField(),
-          false,  // !static
-          true,  // final
-          false,  // !const
-          alloc->cls(),
-          0));  // No token position.
-  context_field.SetOffset(Closure::context_offset());
-  alloc->set_context_field(context_field);
-
   Value* closure_val = Bind(alloc);
   { LocalVariable* closure_tmp_var = EnterTempLocalScope(closure_val);
     // Store function.
     Value* closure_tmp_val = Bind(new LoadLocalInstr(*closure_tmp_var));
     Value* func_val =
         Bind(new ConstantInstr(Function::ZoneHandle(function.raw())));
-    Do(new StoreInstanceFieldInstr(function_field,
+    Do(new StoreInstanceFieldInstr(Closure::function_offset(),
                                    closure_tmp_val,
                                    func_val,
                                    kEmitStoreBarrier));
@@ -2329,7 +2307,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
         // Store new context in closure.
         closure_tmp_val = Bind(new LoadLocalInstr(*closure_tmp_var));
         context_tmp_val = Bind(new LoadLocalInstr(*context_tmp_var));
-        Do(new StoreInstanceFieldInstr(context_field,
+        Do(new StoreInstanceFieldInstr(Closure::context_offset(),
                                        closure_tmp_val,
                                        context_tmp_val,
                                        kEmitStoreBarrier));
@@ -2339,7 +2317,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
       // Store current context in closure.
       closure_tmp_val = Bind(new LoadLocalInstr(*closure_tmp_var));
       Value* context = Bind(new CurrentContextInstr());
-      Do(new StoreInstanceFieldInstr(context_field,
+      Do(new StoreInstanceFieldInstr(Closure::context_offset(),
                                      closure_tmp_val,
                                      context,
                                      kEmitStoreBarrier));
