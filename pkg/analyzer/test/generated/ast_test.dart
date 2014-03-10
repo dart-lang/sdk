@@ -401,9 +401,10 @@ class AstFactory {
 
   static ConstructorName constructorName(TypeName type, String name) => new ConstructorName(type, name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD), name == null ? null : identifier3(name));
 
-  static ContinueStatement continueStatement() => new ContinueStatement(TokenFactory.tokenFromKeyword(Keyword.CONTINUE), null, TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static ContinueStatement continueStatement2(String label) => new ContinueStatement(TokenFactory.tokenFromKeyword(Keyword.CONTINUE), identifier3(label), TokenFactory.tokenFromType(TokenType.SEMICOLON));
+  static ContinueStatement continueStatement([String label]) {
+    SimpleIdentifier labelNode = label == null ? null : identifier3(label);
+    return new ContinueStatement(TokenFactory.tokenFromKeyword(Keyword.CONTINUE), labelNode, TokenFactory.tokenFromType(TokenType.SEMICOLON));
+  }
 
   static DeclaredIdentifier declaredIdentifier(Keyword keyword, String identifier) => declaredIdentifier2(keyword, null, identifier);
 
@@ -435,11 +436,9 @@ class AstFactory {
 
   static FieldDeclaration fieldDeclaration2(bool isStatic, Keyword keyword, List<VariableDeclaration> variables) => fieldDeclaration(isStatic, keyword, null, variables);
 
-  static FieldFormalParameter fieldFormalParameter(Keyword keyword, TypeName type, String identifier) => new FieldFormalParameter(null, null, keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), type, TokenFactory.tokenFromKeyword(Keyword.THIS), TokenFactory.tokenFromType(TokenType.PERIOD), identifier3(identifier), null);
+  static FieldFormalParameter fieldFormalParameter(Keyword keyword, TypeName type, String identifier, [FormalParameterList parameterList]) => new FieldFormalParameter(null, null, keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), type, TokenFactory.tokenFromKeyword(Keyword.THIS), TokenFactory.tokenFromType(TokenType.PERIOD), identifier3(identifier), parameterList);
 
-  static FieldFormalParameter fieldFormalParameter2(Keyword keyword, TypeName type, String identifier, FormalParameterList parameterList) => new FieldFormalParameter(null, null, keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), type, TokenFactory.tokenFromKeyword(Keyword.THIS), TokenFactory.tokenFromType(TokenType.PERIOD), identifier3(identifier), parameterList);
-
-  static FieldFormalParameter fieldFormalParameter3(String identifier) => fieldFormalParameter(null, null, identifier);
+  static FieldFormalParameter fieldFormalParameter2(String identifier) => fieldFormalParameter(null, null, identifier);
 
   static ForEachStatement forEachStatement(DeclaredIdentifier loopVariable, Expression iterator, Statement body) => new ForEachStatement.con1(TokenFactory.tokenFromKeyword(Keyword.FOR), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), loopVariable, TokenFactory.tokenFromKeyword(Keyword.IN), iterator, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
 
@@ -761,7 +760,7 @@ class SimpleIdentifierTest extends ParserTestCase {
   }
 
   void test_inDeclarationContext_fieldFormalParameter() {
-    SimpleIdentifier identifier = AstFactory.fieldFormalParameter3("p").identifier;
+    SimpleIdentifier identifier = AstFactory.fieldFormalParameter2("p").identifier;
     JUnitTestCase.assertFalse(identifier.inDeclarationContext());
   }
 
@@ -2289,7 +2288,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitContinueStatement_label() {
-    _assertSource("continue l;", AstFactory.continueStatement2("l"));
+    _assertSource("continue l;", AstFactory.continueStatement("l"));
   }
 
   void test_visitContinueStatement_noLabel() {
@@ -2363,7 +2362,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitFieldFormalParameter_functionTyped() {
-    _assertSource("A this.a(b)", AstFactory.fieldFormalParameter2(null, AstFactory.typeName4("A", []), "a", AstFactory.formalParameterList([AstFactory.simpleFormalParameter3("b")])));
+    _assertSource("A this.a(b)", AstFactory.fieldFormalParameter(null, AstFactory.typeName4("A", []), "a", AstFactory.formalParameterList([AstFactory.simpleFormalParameter3("b")])));
   }
 
   void test_visitFieldFormalParameter_keyword() {

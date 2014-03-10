@@ -541,9 +541,15 @@ abstract class XmlNode {
    * Make this node the parent of the given child nodes.
    *
    * @param children the nodes that will become the children of this node
+   * @param ifEmpty the (empty) nodes to return if "children" is empty
    * @return the nodes that were made children of this node
    */
-  List becomeParentOfAll(List children) {
+  List becomeParentOfAll(List children, {List ifEmpty}) {
+    if (children == null || children.isEmpty) {
+      if (ifEmpty != null) {
+        return ifEmpty;
+      }
+    }
     if (children != null) {
       for (JavaIterator iter = new JavaIterator(children); iter.hasNext;) {
         XmlNode node = iter.next();
@@ -1653,8 +1659,8 @@ class XmlTagNode extends XmlNode {
    */
   XmlTagNode(this.nodeStart, Token tag, List<XmlAttributeNode> attributes, this.attributeEnd, List<XmlTagNode> tagNodes, this.contentEnd, this.closingTag, this.nodeEnd) {
     this._tag = tag;
-    this._attributes = becomeParentOfEmpty(attributes, NO_ATTRIBUTES);
-    this._tagNodes = becomeParentOfEmpty(tagNodes, NO_TAG_NODES);
+    this._attributes = becomeParentOfAll(attributes, ifEmpty: NO_ATTRIBUTES);
+    this._tagNodes = becomeParentOfAll(tagNodes, ifEmpty: NO_TAG_NODES);
   }
 
   accept(XmlVisitor visitor) => visitor.visitXmlTagNode(this);
@@ -1774,16 +1780,6 @@ class XmlTagNode extends XmlNode {
     for (XmlTagNode node in _tagNodes) {
       node.accept(visitor);
     }
-  }
-
-  /**
-   * Same as [becomeParentOfAll], but returns given "ifEmpty" if "children" is empty
-   */
-  List becomeParentOfEmpty(List children, List ifEmpty) {
-    if (children != null && children.isEmpty) {
-      return ifEmpty;
-    }
-    return becomeParentOfAll(children);
   }
 }
 

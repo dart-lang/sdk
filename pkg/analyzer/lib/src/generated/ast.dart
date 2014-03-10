@@ -4202,13 +4202,13 @@ abstract class Expression extends AstNode {
   /**
    * The static type of this expression, or `null` if the AST structure has not been resolved.
    */
-  Type2 staticType;
+  DartType staticType;
 
   /**
    * The propagated type of this expression, or `null` if type propagation has not been
    * performed on the AST structure.
    */
-  Type2 propagatedType;
+  DartType propagatedType;
 
   /**
    * Return the best parameter element information available for this expression. If type
@@ -4234,7 +4234,7 @@ abstract class Expression extends AstNode {
    *
    * @return the best type information available for this expression
    */
-  Type2 get bestType {
+  DartType get bestType {
     if (propagatedType != null) {
       return propagatedType;
     } else if (staticType != null) {
@@ -10910,7 +10910,7 @@ class TypeName extends AstNode {
   /**
    * The type being named, or `null` if the AST structure has not been resolved.
    */
-  Type2 type;
+  DartType type;
 
   /**
    * Initialize a newly created type name.

@@ -9576,7 +9576,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
    * @param identifier the identifier to create variable for
    * @return the new [LocalVariableElementImpl]
    */
-  LocalVariableElementImpl _createLocalVariableFromIdentifier(Type2 type, SimpleIdentifier identifier) {
+  LocalVariableElementImpl _createLocalVariableFromIdentifier(DartType type, SimpleIdentifier identifier) {
     LocalVariableElementImpl variable = new LocalVariableElementImpl(identifier);
     _definedVariables.add(variable);
     variable.type = type;
@@ -9590,7 +9590,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
    * @param name the name of the variable
    * @return the new [LocalVariableElementImpl]
    */
-  LocalVariableElementImpl _createLocalVariableWithName(Type2 type, String name) {
+  LocalVariableElementImpl _createLocalVariableWithName(DartType type, String name) {
     SimpleIdentifier identifier = _createIdentifier(name, 0);
     return _createLocalVariableFromIdentifier(type, identifier);
   }
@@ -9779,7 +9779,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
     _topNameScope = _resolver.pushNameScope();
     // add Scope variables - no type, no location, just to avoid warnings
     {
-      Type2 type = _typeProvider.dynamicType;
+      DartType type = _typeProvider.dynamicType;
       _topNameScope.define(_createLocalVariableWithName(type, "\$id"));
       _topNameScope.define(_createLocalVariableWithName(type, "\$parent"));
       _topNameScope.define(_createLocalVariableWithName(type, "\$root"));
@@ -9802,7 +9802,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
    * Defines variable for the given [AngularScopePropertyElement].
    */
   void _defineTopVariable_forScopeProperty(AngularScopePropertyElement element) {
-    Type2 type = element.type;
+    DartType type = element.type;
     LocalVariableElementImpl variable = _createLocalVariableWithName(type, element.name);
     _defineTopVariable(variable);
     variable.toolkitObjects = <AngularElement> [element];
@@ -10276,7 +10276,7 @@ class NgDirectiveElementProcessor extends NgDirectiveProcessor {
    */
   void _onNgEventDirective(AngularHtmlUnitResolver resolver) {
     if (_element.isClass("NgEventDirective")) {
-      Type2 dynamicType = resolver.typeProvider.dynamicType;
+      DartType dynamicType = resolver.typeProvider.dynamicType;
       resolver._defineVariable(resolver._createLocalVariableWithName(dynamicType, "\$event"));
     }
   }

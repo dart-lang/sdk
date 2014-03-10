@@ -1267,7 +1267,7 @@ abstract class IndexStore {
 class UniverseElementImpl extends ElementImpl implements UniverseElement {
   static UniverseElementImpl INSTANCE = new UniverseElementImpl();
 
-  UniverseElementImpl() : super.con2("--universe--", -1);
+  UniverseElementImpl() : super("--universe--", -1);
 
   accept(ElementVisitor visitor) => null;
 
@@ -1347,7 +1347,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
    */
   static Location _getLocationWithExpressionType(Location location, Expression expression) {
     if (expression != null) {
-      return new LocationWithData<Type2>.con1(location, expression.bestType);
+      return new LocationWithData<DartType>.con1(location, expression.bestType);
     }
     return location;
   }
@@ -2115,7 +2115,7 @@ class IndexContributor_ImportElementInfo {
  * kind of this name - field, method or something else.
  */
 class NameElementImpl extends ElementImpl {
-  NameElementImpl(String name) : super.con2("name:${name}", -1);
+  NameElementImpl(String name) : super("name:${name}", -1);
 
   accept(ElementVisitor visitor) => null;
 

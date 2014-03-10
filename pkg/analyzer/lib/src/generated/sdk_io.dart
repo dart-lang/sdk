@@ -173,16 +173,9 @@ class DirectoryBasedDartSdk implements DartSdk {
    * Initialize a newly created SDK to represent the Dart SDK installed in the given directory.
    *
    * @param sdkDirectory the directory containing the SDK
-   */
-  DirectoryBasedDartSdk(JavaFile sdkDirectory) : this.con1(sdkDirectory, false);
-
-  /**
-   * Initialize a newly created SDK to represent the Dart SDK installed in the given directory.
-   *
-   * @param sdkDirectory the directory containing the SDK
    * @param useDart2jsPaths `true` if the dart2js path should be used when it is available
    */
-  DirectoryBasedDartSdk.con1(JavaFile sdkDirectory, bool useDart2jsPaths) {
+  DirectoryBasedDartSdk(JavaFile sdkDirectory, [bool useDart2jsPaths = false]) {
     this._sdkDirectory = sdkDirectory.getAbsoluteFile();
     _initializeSdk();
     _initializeLibraryMap(useDart2jsPaths);
