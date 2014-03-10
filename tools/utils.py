@@ -237,7 +237,7 @@ def GetBuildConf(mode, arch, conf_os=None):
       target_arch = 'ia32'
       print "GetBuildConf: Rewritten %s to %s\n" % (arch, target_arch)
     if host_arch == 'x64':
-      target_arch = 'ia32'
+      host_arch = 'ia32'
       print "GetBuildConf: Rewritten %s to %s\n" % (arch, host_arch)
    cross_build = ''
     if host_arch != target_arch:
