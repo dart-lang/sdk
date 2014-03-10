@@ -87,6 +87,8 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
           var parsed = parseCompilationUnit(code, name: name);
           if (!dart.isEntrypoint(parsed)) return null;
         } on AnalyzerErrorGroup catch (e) {
+          // TODO(rnystrom): This doesn't report the error location very
+          // precisely anymore. Find a better analyzer API to use for this.
           transform.logger.error(e.message);
           return null;
         }
