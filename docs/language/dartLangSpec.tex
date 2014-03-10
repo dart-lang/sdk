@@ -24,13 +24,13 @@
 \label{licensing}
 
 
-Except as otherwise noted at http://code.google.com/policies.html\#restrictions, the content of this document is licensed under the Creative Commons Attribution 3.0 License available at:
+Except as otherwise noted at https://developers.google.com/site-policies, the content of this document is licensed under the Creative Commons Attribution 3.0 License available at:
 
   http://creativecommons.org/licenses/by/3.0/
   
-  and code samples are licensed under the BSD license available at
+  and code samples are licensed under the license available at
   
-  http://code.google.com/google\_bsd\_license.html.
+  https://code.google.com/p/dart/source/browse/trunk/dart/LICENSE.
   
 \section{Notation}
 \label{notation}
@@ -920,7 +920,7 @@ These warnings must be issued regardless of whether the getters or setters are d
 \subsection{Abstract Instance Members}
 \label{abstractInstanceMembers}
 
-An {\em abstract method} (respectively, {\em abstract getter} or {\em abstract setter)} is an instance method, getter or setter that is not declared \EXTERNAL{} and does not  provide an implementation. An {\em concrete method} (respectively, {\em concrete getter} or {\em concrete setter)} is an instance method, getter or setter that is not abstract.
+An {\em abstract method} (respectively, {\em abstract getter} or {\em abstract setter)} is an instance method, getter or setter that is not declared \EXTERNAL{} and does not  provide an implementation. A {\em concrete method} (respectively, {\em concrete getter} or {\em concrete setter)} is an instance method, getter or setter that is not abstract.
 %The declaration of an abstract method is prefixed by the built-in identifier (\ref{identifierReference}) \ABSTRACT{}.
 
 \rationale{
@@ -1595,7 +1595,7 @@ One might argue that it is harmless to repeat a type in the superinterface list,
 It is a compile-time error if the interface of a class $C$ is a superinterface of itself.
 
 Let $C$ be a concrete class that does not declare its own \code{noSuchMethod()} method.
-It is a static warning if the implicit interface of  $C$ includes an instance member $m$ of type $F$ and $C$ does not declare or inherit a corresponding instance member $m$ of type $F'$ such that $F' <: F$. 
+It is a static warning if the implicit interface of  $C$ includes an instance member $m$ of type $F$ and $C$ does not declare or inherit a corresponding non-abstract instance member $m$ of type $F'$ such that $F' <: F$. 
 
 \commentary{A class does not inherit members from its superinterfaces. However, its implicit interface does.
 }
@@ -3180,8 +3180,8 @@ Then the method \code{noSuchMethod()} is looked up in $o$ and invoked with argum
 \commentary{Notice that the wording carefully avoids re-evaluating the receiver $o$ and the arguments $a_i$. }
 
 Let $T$ be the  static type of $o$. It is a static type warning if $T$ does not have an accessible  (\ref{privacy}) instance member named $m$ unless $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}.   If $T.m$ exists, it  is a static type warning if the type $F$ of $T.m$ may not be assigned to a function type. If $T.m$ does not exist, or if $F$ is not a function type, the static type of $i$ is \DYNAMIC{}; otherwise the static type of $i$ is the declared return type of  $F$.  
-%\item Let $T_i$ be the static type of $a_i, i \in 1 .. n+k$. It is a static warning if $F$ is not a supertype of  $(T_1, \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \to \bot$.
-%\end{itemize}
+% The following is not needed because it is specified in 'Binding Actuals to Formals" Let $T_i$ be the static type of $a_i, i \in 1 .. n+k$. It is a static warning if $F$ is not a supertype of  $(T_1, \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \to \bot$.
+
 
 
 %\subsubsection{This Invocation}
@@ -3240,8 +3240,8 @@ The body of $f$ is then executed with respect to the bindings that resulted from
 
 It is a static type warning if the type $F$ of $C.m$ may not be assigned to a function type.  If $F$ is not a function type, or if $C.m$ does not exist, the static type of $i$ is \DYNAMIC{}. Otherwise 
 the static type of $i$ is the declared return type of  $F$.  
-%\item Let $T_i$ be the static type of $a_i, i \in 1 .. n+k$. It is a static warning if $F$ is not a supertype of  $(T_1, \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \to \bot$.
-%\end{itemize}
+% The following is not needed because it is specified in 'Binding Actuals to Formals"Let $T_i$ be the static type of $a_i, i \in 1 .. n+k$. It is a static warning if $F$ is not a supertype of  $(T_1, \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \to \bot$.
+
  
 
 
@@ -3276,8 +3276,9 @@ Then the method \code{noSuchMethod()} is looked up in $S$ and invoked on \THIS{}
 It is a compile-time error if a super method invocation occurs in a top-level function or variable initializer, in an instance variable initializer or initializer list, in class \code{Object}, in a factory constructor or in a static method or variable initializer.
 
 It is a static type warning if $S$ does not have an accessible (\ref{privacy}) instance member named $m$ unless $S$ or a superinterface of $S$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}. If $S.m$ exists, it  is a static type warning if the type $F$ of $S.m$ may not be assigned to a function type. If $S.m$ does not exist, or if $F$ is not a function type, the static type of $i$ is \DYNAMIC{}; otherwise the static type of $i$ is the declared return type of  $F$.  
-%\item Let $T_i$ be the static type of $a_i, i \in 1 .. n+k$. It is a static warning if $F$ is not a supertype of  $(T_1, \ldots, t_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \to \bot$.
-%\end{itemize}
+% The following is not needed because it is specified in 'Binding Actuals to Formals"
+%Let $T_i$ be the static type of $a_i, i \in 1 .. n+k$. It is a static warning if $F$ is not a supertype of  $(T_1, \ldots, t_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \to \bot$.
+
 
 
 
