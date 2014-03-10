@@ -277,6 +277,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
    */
   bool get hasErrors => _errors.length > 0;
 
+  @override
   void onError(AnalysisError error) {
     if (_rawSource != null) {
       int left = error.offset;

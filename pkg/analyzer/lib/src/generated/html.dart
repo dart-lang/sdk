@@ -135,6 +135,7 @@ class Token {
     return token;
   }
 
+  @override
   String toString() => lexeme;
 }
 
@@ -147,12 +148,16 @@ class RawXmlExpression extends XmlExpression {
 
   RawXmlExpression(this.expression);
 
+  @override
   int get end => expression.end;
 
+  @override
   int get length => expression.length;
 
+  @override
   int get offset => expression.offset;
 
+  @override
   XmlExpression_Reference getReference(int offset) {
     AstNode node = new NodeLocator.con1(offset).searchWithin(expression);
     if (node != null) {
@@ -174,21 +179,25 @@ class RawXmlExpression extends XmlExpression {
  * of the visited node to not be visited.
  */
 class RecursiveXmlVisitor<R> implements XmlVisitor<R> {
+  @override
   R visitHtmlScriptTagNode(HtmlScriptTagNode node) {
     node.visitChildren(this);
     return null;
   }
 
+  @override
   R visitHtmlUnit(HtmlUnit node) {
     node.visitChildren(this);
     return null;
   }
 
+  @override
   R visitXmlAttributeNode(XmlAttributeNode node) {
     node.visitChildren(this);
     return null;
   }
 
+  @override
   R visitXmlTagNode(XmlTagNode node) {
     node.visitChildren(this);
     return null;
@@ -315,6 +324,7 @@ class RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode extends RecursiveXmlVis
 
   RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode(this.offset, this.result) : super();
 
+  @override
   Object visitXmlAttributeNode(XmlAttributeNode node) {
     Token nameToken = node.nameToken;
     if (nameToken.offset <= offset && offset < nameToken.end) {
@@ -332,6 +342,7 @@ class ExpressionVisitor_HtmlUnitUtils_getExpression extends ExpressionVisitor {
 
   ExpressionVisitor_HtmlUnitUtils_getExpression(this.offset, this.result) : super();
 
+  @override
   void visitExpression(Expression expression) {
     Expression at = HtmlUnitUtils._getExpressionAt(expression, offset);
     if (at != null) {
@@ -348,6 +359,7 @@ class RecursiveXmlVisitor_HtmlUnitUtils_getTagNode extends RecursiveXmlVisitor<O
 
   RecursiveXmlVisitor_HtmlUnitUtils_getTagNode(this.offset, this.result) : super();
 
+  @override
   Object visitXmlTagNode(XmlTagNode node) {
     super.visitXmlTagNode(node);
     Token tagToken = node.tagToken;
@@ -389,6 +401,7 @@ class HtmlScriptTagNode extends XmlTagNode {
    */
   HtmlScriptTagNode(Token nodeStart, Token tag, List<XmlAttributeNode> attributes, Token attributeEnd, List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag, Token nodeEnd) : super(nodeStart, tag, attributes, attributeEnd, tagNodes, contentEnd, closingTag, nodeEnd);
 
+  @override
   accept(XmlVisitor visitor) => visitor.visitHtmlScriptTagNode(this);
 
   /**
@@ -509,6 +522,7 @@ abstract class XmlNode {
     this._element = element;
   }
 
+  @override
   String toString() {
     PrintStringWriter writer = new PrintStringWriter();
     accept(new ToSourceVisitor(writer));
@@ -622,12 +636,16 @@ abstract class XmlNode {
  * structure) and that only need to visit a small number of node types.
  */
 class SimpleXmlVisitor<R> implements XmlVisitor<R> {
+  @override
   R visitHtmlScriptTagNode(HtmlScriptTagNode node) => null;
 
+  @override
   R visitHtmlUnit(HtmlUnit htmlUnit) => null;
 
+  @override
   R visitXmlAttributeNode(XmlAttributeNode xmlAttributeNode) => null;
 
+  @override
   R visitXmlTagNode(XmlTagNode xmlTagNode) => null;
 }
 
@@ -982,12 +1000,14 @@ class StringScanner extends AbstractScanner {
     this._charOffset = -1;
   }
 
+  @override
   int get offset => _charOffset;
 
   void set offset(int offset) {
     _charOffset = offset;
   }
 
+  @override
   int advance() {
     if (++_charOffset < _stringLength) {
       return _string.codeUnitAt(_charOffset);
@@ -996,8 +1016,10 @@ class StringScanner extends AbstractScanner {
     return -1;
   }
 
+  @override
   String getString(int start, int endDelta) => _string.substring(start, _charOffset + 1 + endDelta).toString();
 
+  @override
   int peek() {
     if (_charOffset + 1 < _stringLength) {
       return _string.codeUnitAt(_charOffset + 1);
@@ -1026,8 +1048,10 @@ class ToSourceVisitor implements XmlVisitor<Object> {
     this._writer = writer;
   }
 
+  @override
   Object visitHtmlScriptTagNode(HtmlScriptTagNode node) => visitXmlTagNode(node);
 
+  @override
   Object visitHtmlUnit(HtmlUnit node) {
     for (XmlTagNode child in node.tagNodes) {
       _visit(child);
@@ -1035,6 +1059,7 @@ class ToSourceVisitor implements XmlVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitXmlAttributeNode(XmlAttributeNode node) {
     String name = node.name;
     Token value = node.valueToken;
@@ -1052,6 +1077,7 @@ class ToSourceVisitor implements XmlVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitXmlTagNode(XmlTagNode node) {
     _writer.print("<");
     String tagName = node.tag;
@@ -1142,6 +1168,7 @@ class TokenType extends Enum<TokenType> {
 class TokenType_EOF extends TokenType {
   TokenType_EOF(String name, int ordinal, String arg0) : super(name, ordinal, arg0);
 
+  @override
   String toString() => "-eof-";
 }
 
@@ -1170,10 +1197,13 @@ class XmlAttributeNode extends XmlNode {
     this._value = value;
   }
 
+  @override
   accept(XmlVisitor visitor) => visitor.visitXmlAttributeNode(this);
 
+  @override
   Token get beginToken => _name;
 
+  @override
   Token get endToken => _value;
 
   /**
@@ -1229,6 +1259,7 @@ class XmlAttributeNode extends XmlNode {
    */
   Token get valueToken => _value;
 
+  @override
   void visitChildren(XmlVisitor visitor) {
   }
 }
@@ -1663,6 +1694,7 @@ class XmlTagNode extends XmlNode {
     this._tagNodes = becomeParentOfAll(tagNodes, ifEmpty: NO_TAG_NODES);
   }
 
+  @override
   accept(XmlVisitor visitor) => visitor.visitXmlTagNode(this);
 
   /**
@@ -1701,6 +1733,7 @@ class XmlTagNode extends XmlNode {
     return attribute != null ? attribute.text : null;
   }
 
+  @override
   Token get beginToken => nodeStart;
 
   /**
@@ -1729,6 +1762,7 @@ class XmlTagNode extends XmlNode {
     return buffer.toString();
   }
 
+  @override
   Token get endToken {
     if (nodeEnd != null) {
       return nodeEnd;
@@ -1773,6 +1807,7 @@ class XmlTagNode extends XmlNode {
    */
   Token get tagToken => _tag;
 
+  @override
   void visitChildren(XmlVisitor visitor) {
     for (XmlAttributeNode node in _attributes) {
       node.accept(visitor);
@@ -1863,8 +1898,10 @@ class HtmlParser extends XmlParser {
     return new HtmlUnit(token, tagNodes, currentToken);
   }
 
+  @override
   XmlAttributeNode createAttributeNode(Token name, Token equals, Token value) => new XmlAttributeNode(name, equals, value);
 
+  @override
   XmlTagNode createTagNode(Token nodeStart, Token tag, List<XmlAttributeNode> attributes, Token attributeEnd, List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag, Token nodeEnd) {
     if (_isScriptNode(tag, attributes, tagNodes)) {
       HtmlScriptTagNode tagNode = new HtmlScriptTagNode(nodeStart, tag, attributes, attributeEnd, tagNodes, contentEnd, closingTag, nodeEnd);
@@ -1883,6 +1920,7 @@ class HtmlParser extends XmlParser {
     return new XmlTagNode(nodeStart, tag, attributes, attributeEnd, tagNodes, contentEnd, closingTag, nodeEnd);
   }
 
+  @override
   bool isSelfClosing(Token tag) => SELF_CLOSING.contains(tag.lexeme);
 
   /**
@@ -1942,6 +1980,7 @@ class HtmlUnit extends XmlNode {
     this._tagNodes = becomeParentOfAll(tagNodes);
   }
 
+  @override
   accept(XmlVisitor visitor) => visitor.visitHtmlUnit(this);
 
   /**
@@ -1949,6 +1988,7 @@ class HtmlUnit extends XmlNode {
    *
    * @return the element or `null` if the receiver is not resolved
    */
+  @override
   HtmlElement get element => super.element as HtmlElement;
 
   /**
@@ -1959,6 +1999,7 @@ class HtmlUnit extends XmlNode {
    */
   List<XmlTagNode> get tagNodes => _tagNodes;
 
+  @override
   void set element(Element element) {
     if (element != null && element is! HtmlElement) {
       throw new IllegalArgumentException("HtmlElement expected, but ${element.runtimeType} given");
@@ -1966,6 +2007,7 @@ class HtmlUnit extends XmlNode {
     super.element = element;
   }
 
+  @override
   void visitChildren(XmlVisitor visitor) {
     for (XmlTagNode node in _tagNodes) {
       node.accept(visitor);

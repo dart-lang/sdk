@@ -138,19 +138,25 @@ class SdkLibraryImpl implements SdkLibrary {
     this._shortName = name;
   }
 
+  @override
   String get shortName => _shortName;
 
+  @override
   bool get isDart2JsLibrary => (_platforms & DART2JS_PLATFORM) != 0;
 
+  @override
   bool get isDocumented => _documented;
 
+  @override
   bool get isImplementation => _implementation;
 
+  @override
   bool get isInternal => "Internal" == category;
 
   /**
    * Return `true` if library can be used for both client and server
    */
+  @override
   bool get isShared => category == "Shared";
 
   /**
@@ -158,6 +164,7 @@ class SdkLibraryImpl implements SdkLibrary {
    *
    * @return `true` if this library can be run on the VM
    */
+  @override
   bool get isVmLibrary => (_platforms & VM_PLATFORM) != 0;
 
   /**
@@ -262,6 +269,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
    */
   LibraryMap get librariesMap => _librariesMap;
 
+  @override
   Object visitMapLiteralEntry(MapLiteralEntry node) {
     String libraryName = null;
     Expression key = node.key;

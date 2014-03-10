@@ -129,6 +129,7 @@ abstract class ClassElement implements Element {
    *
    * @return the resolved [ClassDeclaration], not `null`.
    */
+  @override
   ClassDeclaration get node;
 
   /**
@@ -315,6 +316,7 @@ abstract class ClassMemberElement implements Element {
    *
    * @return the type in which this member is defined
    */
+  @override
   ClassElement get enclosingElement;
 
   /**
@@ -353,6 +355,7 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
    *
    * @return the library in which this compilation unit is defined
    */
+  @override
   LibraryElement get enclosingElement;
 
   /**
@@ -377,6 +380,7 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
    *
    * @return the resolved [CompilationUnit], not `null`.
    */
+  @override
   CompilationUnit get node;
 
   /**
@@ -417,6 +421,7 @@ abstract class ConstructorElement implements ClassMemberElement, ExecutableEleme
    *
    * @return the resolved [ConstructorDeclaration], not `null`.
    */
+  @override
   ConstructorDeclaration get node;
 
   /**
@@ -1078,6 +1083,7 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
    *
    * @return the resolved [FunctionDeclaration], not `null`.
    */
+  @override
   FunctionDeclaration get node;
 }
 
@@ -1091,6 +1097,7 @@ abstract class FunctionTypeAliasElement implements Element {
    *
    * @return the compilation unit in which this type alias is defined
    */
+  @override
   CompilationUnitElement get enclosingElement;
 
   /**
@@ -1102,6 +1109,7 @@ abstract class FunctionTypeAliasElement implements Element {
    *
    * @return the resolved [FunctionTypeAlias], not `null`.
    */
+  @override
   FunctionTypeAlias get node;
 
   /**
@@ -1238,6 +1246,7 @@ abstract class LabelElement implements Element {
    *
    * @return the executable element in which this label is defined
    */
+  @override
   ExecutableElement get enclosingElement;
 }
 
@@ -1426,6 +1435,7 @@ abstract class MethodElement implements ClassMemberElement, ExecutableElement {
    *
    * @return the resolved [MethodDeclaration], not `null`.
    */
+  @override
   MethodDeclaration get node;
 
   /**
@@ -1533,6 +1543,7 @@ abstract class PrefixElement implements Element {
    *
    * @return the library into which other libraries are imported using this prefix
    */
+  @override
   LibraryElement get enclosingElement;
 
   /**
@@ -1763,6 +1774,7 @@ abstract class VariableElement implements Element {
    *
    * @return the resolved [VariableDeclaration], not `null`.
    */
+  @override
   VariableDeclaration get node;
 
   /**
@@ -2003,6 +2015,7 @@ class AngularPropertyKind extends Enum<AngularPropertyKind> {
 class AngularPropertyKind_TWO_WAY extends AngularPropertyKind {
   AngularPropertyKind_TWO_WAY(String name, int ordinal) : super(name, ordinal);
 
+  @override
   bool callsGetter() => true;
 }
 
@@ -2113,30 +2126,41 @@ abstract class AngularViewElement implements AngularHasTemplateElement {
  * to not be visited.
  */
 class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
+  @override
   R visitAngularComponentElement(AngularComponentElement element) => visitAngularHasSelectorElement(element);
 
+  @override
   R visitAngularControllerElement(AngularControllerElement element) => visitAngularHasSelectorElement(element);
 
+  @override
   R visitAngularDirectiveElement(AngularDirectiveElement element) => visitAngularHasSelectorElement(element);
 
   R visitAngularElement(AngularElement element) => visitToolkitObjectElement(element);
 
+  @override
   R visitAngularFilterElement(AngularFilterElement element) => visitAngularElement(element);
 
   R visitAngularHasSelectorElement(AngularHasSelectorElement element) => visitAngularElement(element);
 
+  @override
   R visitAngularPropertyElement(AngularPropertyElement element) => visitAngularElement(element);
 
+  @override
   R visitAngularScopePropertyElement(AngularScopePropertyElement element) => visitAngularElement(element);
 
+  @override
   R visitAngularSelectorElement(AngularSelectorElement element) => visitAngularElement(element);
 
+  @override
   R visitAngularViewElement(AngularViewElement element) => visitAngularElement(element);
 
+  @override
   R visitClassElement(ClassElement element) => visitElement(element);
 
+  @override
   R visitCompilationUnitElement(CompilationUnitElement element) => visitElement(element);
 
+  @override
   R visitConstructorElement(ConstructorElement element) => visitExecutableElement(element);
 
   R visitElement(Element element) {
@@ -2144,30 +2168,41 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
     return null;
   }
 
+  @override
   R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) => visitHtmlScriptElement(element);
 
   R visitExecutableElement(ExecutableElement element) => visitElement(element);
 
+  @override
   R visitExportElement(ExportElement element) => visitElement(element);
 
+  @override
   R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) => visitHtmlScriptElement(element);
 
+  @override
   R visitFieldElement(FieldElement element) => visitPropertyInducingElement(element);
 
+  @override
   R visitFieldFormalParameterElement(FieldFormalParameterElement element) => visitParameterElement(element);
 
+  @override
   R visitFunctionElement(FunctionElement element) => visitLocalElement(element);
 
+  @override
   R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) => visitElement(element);
 
+  @override
   R visitHtmlElement(HtmlElement element) => visitElement(element);
 
   R visitHtmlScriptElement(HtmlScriptElement element) => visitElement(element);
 
+  @override
   R visitImportElement(ImportElement element) => visitElement(element);
 
+  @override
   R visitLabelElement(LabelElement element) => visitElement(element);
 
+  @override
   R visitLibraryElement(LibraryElement element) => visitElement(element);
 
   R visitLocalElement(LocalElement element) {
@@ -2181,24 +2216,32 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
     return null;
   }
 
+  @override
   R visitLocalVariableElement(LocalVariableElement element) => visitLocalElement(element);
 
+  @override
   R visitMethodElement(MethodElement element) => visitExecutableElement(element);
 
+  @override
   R visitMultiplyDefinedElement(MultiplyDefinedElement element) => visitElement(element);
 
+  @override
   R visitParameterElement(ParameterElement element) => visitLocalElement(element);
 
+  @override
   R visitPrefixElement(PrefixElement element) => visitElement(element);
 
+  @override
   R visitPropertyAccessorElement(PropertyAccessorElement element) => visitExecutableElement(element);
 
   R visitPropertyInducingElement(PropertyInducingElement element) => visitVariableElement(element);
 
   R visitToolkitObjectElement(ToolkitObjectElement element) => visitElement(element);
 
+  @override
   R visitTopLevelVariableElement(TopLevelVariableElement element) => visitPropertyInducingElement(element);
 
+  @override
   R visitTypeParameterElement(TypeParameterElement element) => visitElement(element);
 
   R visitVariableElement(VariableElement element) => visitElement(element);
@@ -2215,151 +2258,181 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
  * children of the visited element to not be visited.
  */
 class RecursiveElementVisitor<R> implements ElementVisitor<R> {
+  @override
   R visitAngularComponentElement(AngularComponentElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitAngularControllerElement(AngularControllerElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitAngularDirectiveElement(AngularDirectiveElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitAngularFilterElement(AngularFilterElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitAngularPropertyElement(AngularPropertyElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitAngularScopePropertyElement(AngularScopePropertyElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitAngularSelectorElement(AngularSelectorElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitAngularViewElement(AngularViewElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitClassElement(ClassElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitCompilationUnitElement(CompilationUnitElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitConstructorElement(ConstructorElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitExportElement(ExportElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitFieldElement(FieldElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitFieldFormalParameterElement(FieldFormalParameterElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitFunctionElement(FunctionElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitHtmlElement(HtmlElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitImportElement(ImportElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitLabelElement(LabelElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitLibraryElement(LibraryElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitLocalVariableElement(LocalVariableElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitMethodElement(MethodElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitMultiplyDefinedElement(MultiplyDefinedElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitParameterElement(ParameterElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitPrefixElement(PrefixElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitPropertyAccessorElement(PropertyAccessorElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitTopLevelVariableElement(TopLevelVariableElement element) {
     element.visitChildren(this);
     return null;
   }
 
+  @override
   R visitTypeParameterElement(TypeParameterElement element) {
     element.visitChildren(this);
     return null;
@@ -2373,64 +2446,94 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
  * whole structure) and that only need to visit a small number of element types.
  */
 class SimpleElementVisitor<R> implements ElementVisitor<R> {
+  @override
   R visitAngularComponentElement(AngularComponentElement element) => null;
 
+  @override
   R visitAngularControllerElement(AngularControllerElement element) => null;
 
+  @override
   R visitAngularDirectiveElement(AngularDirectiveElement element) => null;
 
+  @override
   R visitAngularFilterElement(AngularFilterElement element) => null;
 
+  @override
   R visitAngularPropertyElement(AngularPropertyElement element) => null;
 
+  @override
   R visitAngularScopePropertyElement(AngularScopePropertyElement element) => null;
 
+  @override
   R visitAngularSelectorElement(AngularSelectorElement element) => null;
 
+  @override
   R visitAngularViewElement(AngularViewElement element) => null;
 
+  @override
   R visitClassElement(ClassElement element) => null;
 
+  @override
   R visitCompilationUnitElement(CompilationUnitElement element) => null;
 
+  @override
   R visitConstructorElement(ConstructorElement element) => null;
 
+  @override
   R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) => null;
 
+  @override
   R visitExportElement(ExportElement element) => null;
 
+  @override
   R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) => null;
 
+  @override
   R visitFieldElement(FieldElement element) => null;
 
+  @override
   R visitFieldFormalParameterElement(FieldFormalParameterElement element) => null;
 
+  @override
   R visitFunctionElement(FunctionElement element) => null;
 
+  @override
   R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) => null;
 
+  @override
   R visitHtmlElement(HtmlElement element) => null;
 
+  @override
   R visitImportElement(ImportElement element) => null;
 
+  @override
   R visitLabelElement(LabelElement element) => null;
 
+  @override
   R visitLibraryElement(LibraryElement element) => null;
 
+  @override
   R visitLocalVariableElement(LocalVariableElement element) => null;
 
+  @override
   R visitMethodElement(MethodElement element) => null;
 
+  @override
   R visitMultiplyDefinedElement(MultiplyDefinedElement element) => null;
 
+  @override
   R visitParameterElement(ParameterElement element) => null;
 
+  @override
   R visitPrefixElement(PrefixElement element) => null;
 
+  @override
   R visitPropertyAccessorElement(PropertyAccessorElement element) => null;
 
+  @override
   R visitTopLevelVariableElement(TopLevelVariableElement element) => null;
 
+  @override
   R visitTypeParameterElement(TypeParameterElement element) => null;
 }
 
@@ -2530,16 +2633,20 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
    */
   ClassElementImpl(Identifier name) : super.forNode(name);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitClassElement(this);
 
+  @override
   List<PropertyAccessorElement> get accessors => _accessors;
 
+  @override
   List<InterfaceType> get allSupertypes {
     List<InterfaceType> list = new List<InterfaceType>();
     _collectAllSupertypes(list);
     return new List.from(list);
   }
 
+  @override
   ElementImpl getChild(String identifier) {
     //
     // The casts in this method are safe because the set methods would have thrown a CCE if any of
@@ -2573,8 +2680,10 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return null;
   }
 
+  @override
   List<ConstructorElement> get constructors => _constructors;
 
+  @override
   FieldElement getField(String name) {
     for (FieldElement fieldElement in _fields) {
       if (name == fieldElement.name) {
@@ -2584,8 +2693,10 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return null;
   }
 
+  @override
   List<FieldElement> get fields => _fields;
 
+  @override
   PropertyAccessorElement getGetter(String getterName) {
     for (PropertyAccessorElement accessor in _accessors) {
       if (accessor.isGetter && accessor.name == getterName) {
@@ -2595,8 +2706,10 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return null;
   }
 
+  @override
   ElementKind get kind => ElementKind.CLASS;
 
+  @override
   MethodElement getMethod(String methodName) {
     for (MethodElement method in _methods) {
       if (method.name == methodName) {
@@ -2606,8 +2719,10 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return null;
   }
 
+  @override
   List<MethodElement> get methods => _methods;
 
+  @override
   ConstructorElement getNamedConstructor(String name) {
     for (ConstructorElement element in constructors) {
       String elementName = element.name;
@@ -2618,8 +2733,10 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return null;
   }
 
+  @override
   ClassDeclaration get node => getNodeMatching((node) => node is ClassDeclaration);
 
+  @override
   PropertyAccessorElement getSetter(String setterName) {
     // TODO (jwren) revisit- should we append '=' here or require clients to include it?
     // Do we need the check for isSetter below?
@@ -2634,10 +2751,13 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return null;
   }
 
+  @override
   List<ToolkitObjectElement> get toolkitObjects => _toolkitObjects;
 
+  @override
   List<TypeParameterElement> get typeParameters => _typeParameters;
 
+  @override
   ConstructorElement get unnamedConstructor {
     for (ConstructorElement element in constructors) {
       String name = element.displayName;
@@ -2648,6 +2768,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return null;
   }
 
+  @override
   bool get hasNonFinalField {
     List<ClassElement> classesToVisit = new List<ClassElement>();
     Set<ClassElement> visitedClasses = new Set<ClassElement>();
@@ -2680,12 +2801,16 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return false;
   }
 
+  @override
   bool get hasReferenceToSuper => hasModifier(Modifier.REFERENCES_SUPER);
 
+  @override
   bool get isAbstract => hasModifier(Modifier.ABSTRACT);
 
+  @override
   bool get isOrInheritsProxy => _safeIsOrInheritsProxy(this, new Set<ClassElement>());
 
+  @override
   bool get isProxy {
     for (ElementAnnotation annotation in metadata) {
       if (annotation.isProxy) {
@@ -2695,10 +2820,13 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return false;
   }
 
+  @override
   bool get isTypedef => hasModifier(Modifier.TYPEDEF);
 
+  @override
   bool get isValidMixin => hasModifier(Modifier.MIXIN);
 
+  @override
   PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library) {
     Set<ClassElement> visitedClasses = new Set<ClassElement>();
     ClassElement currentElement = this;
@@ -2726,6 +2854,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return null;
   }
 
+  @override
   MethodElement lookUpMethod(String methodName, LibraryElement library) {
     Set<ClassElement> visitedClasses = new Set<ClassElement>();
     ClassElement currentElement = this;
@@ -2753,6 +2882,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return null;
   }
 
+  @override
   PropertyAccessorElement lookUpSetter(String setterName, LibraryElement library) {
     Set<ClassElement> visitedClasses = new Set<ClassElement>();
     ClassElement currentElement = this;
@@ -2888,6 +3018,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     setModifier(Modifier.MIXIN, isValidMixin);
   }
 
+  @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(_accessors, visitor);
@@ -2898,6 +3029,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     safelyVisitChildren(_typeParameters, visitor);
   }
 
+  @override
   void appendTo(JavaStringBuilder builder) {
     String name = displayName;
     if (name == null) {
@@ -3037,14 +3169,19 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
    */
   CompilationUnitElementImpl(String name) : super(name, -1);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitCompilationUnitElement(this);
 
+  @override
   bool operator ==(Object object) => object != null && runtimeType == object.runtimeType && source == (object as CompilationUnitElementImpl).source;
 
+  @override
   List<PropertyAccessorElement> get accessors => _accessors;
 
+  @override
   List<AngularViewElement> get angularViews => _angularViews;
 
+  @override
   ElementImpl getChild(String identifier) {
     //
     // The casts in this method are safe because the set methods would have thrown a CCE if any of
@@ -3078,18 +3215,25 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
     return null;
   }
 
+  @override
   LibraryElement get enclosingElement => super.enclosingElement as LibraryElement;
 
+  @override
   List<FunctionElement> get functions => _functions;
 
+  @override
   List<FunctionTypeAliasElement> get functionTypeAliases => _typeAliases;
 
+  @override
   ElementKind get kind => ElementKind.COMPILATION_UNIT;
 
+  @override
   CompilationUnit get node => unit;
 
+  @override
   List<TopLevelVariableElement> get topLevelVariables => _variables;
 
+  @override
   ClassElement getType(String className) {
     for (ClassElement type in _types) {
       if (type.name == className) {
@@ -3099,8 +3243,10 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
     return null;
   }
 
+  @override
   List<ClassElement> get types => _types;
 
+  @override
   int get hashCode => source.hashCode;
 
   /**
@@ -3176,6 +3322,7 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
     this._types = types;
   }
 
+  @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(_accessors, visitor);
@@ -3186,6 +3333,7 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
     safelyVisitChildren(_angularViews, visitor);
   }
 
+  @override
   void appendTo(JavaStringBuilder builder) {
     if (source == null) {
       builder.append("{compilation unit}");
@@ -3194,6 +3342,7 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
     }
   }
 
+  @override
   String get identifier => source.encoding;
 
   /**
@@ -3238,8 +3387,10 @@ class ConstFieldElementImpl extends FieldElementImpl {
    */
   ConstFieldElementImpl(Identifier name) : super.con1(name);
 
+  @override
   EvaluationResultImpl get evaluationResult => _result;
 
+  @override
   void set evaluationResult(EvaluationResultImpl result) {
     this._result = result;
   }
@@ -3262,8 +3413,10 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl {
    */
   ConstLocalVariableElementImpl(Identifier name) : super(name);
 
+  @override
   EvaluationResultImpl get evaluationResult => _result;
 
+  @override
   void set evaluationResult(EvaluationResultImpl result) {
     this._result = result;
   }
@@ -3286,8 +3439,10 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl {
    */
   ConstTopLevelVariableElementImpl(Identifier name) : super.con1(name);
 
+  @override
   EvaluationResultImpl get evaluationResult => _result;
 
+  @override
   void set evaluationResult(EvaluationResultImpl result) {
     this._result = result;
   }
@@ -3323,16 +3478,22 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
    */
   ConstructorElementImpl.con2(String name, int nameOffset) : super.con2(name, nameOffset);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitConstructorElement(this);
 
+  @override
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
 
+  @override
   ElementKind get kind => ElementKind.CONSTRUCTOR;
 
+  @override
   ConstructorDeclaration get node => getNodeMatching((node) => node is ConstructorDeclaration);
 
+  @override
   bool get isConst => hasModifier(Modifier.CONST);
 
+  @override
   bool get isDefaultConstructor {
     // unnamed
     String name = this.name;
@@ -3349,8 +3510,10 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
     return true;
   }
 
+  @override
   bool get isFactory => hasModifier(Modifier.FACTORY);
 
+  @override
   bool get isStatic => false;
 
   /**
@@ -3371,6 +3534,7 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
     setModifier(Modifier.FACTORY, isFactory);
   }
 
+  @override
   void appendTo(JavaStringBuilder builder) {
     builder.append(enclosingElement.displayName);
     String name = displayName;
@@ -3399,8 +3563,10 @@ class DefaultFieldFormalParameterElementImpl extends FieldFormalParameterElement
    */
   DefaultFieldFormalParameterElementImpl(Identifier name) : super(name);
 
+  @override
   EvaluationResultImpl get evaluationResult => _result;
 
+  @override
   void set evaluationResult(EvaluationResultImpl result) {
     this._result = result;
   }
@@ -3423,8 +3589,10 @@ class DefaultParameterElementImpl extends ParameterElementImpl {
    */
   DefaultParameterElementImpl(Identifier name) : super.con1(name);
 
+  @override
   EvaluationResultImpl get evaluationResult => _result;
 
+  @override
   void set evaluationResult(EvaluationResultImpl result) {
     this._result = result;
   }
@@ -3456,8 +3624,10 @@ class DynamicElementImpl extends ElementImpl {
     setModifier(Modifier.SYNTHETIC, true);
   }
 
+  @override
   accept(ElementVisitor visitor) => null;
 
+  @override
   ElementKind get kind => ElementKind.DYNAMIC;
 }
 
@@ -3504,6 +3674,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
    */
   ElementAnnotationImpl(this.element);
 
+  @override
   bool get isDeprecated {
     if (element != null) {
       LibraryElement library = element.library;
@@ -3521,6 +3692,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
     return false;
   }
 
+  @override
   bool get isOverride {
     if (element != null) {
       LibraryElement library = element.library;
@@ -3533,6 +3705,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
     return false;
   }
 
+  @override
   bool get isProxy {
     if (element != null) {
       LibraryElement library = element.library;
@@ -3545,6 +3718,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
     return false;
   }
 
+  @override
   String toString() => "@${element.toString()}";
 }
 
@@ -3603,6 +3777,7 @@ abstract class ElementImpl implements Element {
     this._name = StringUtilities.intern(name);
   }
 
+  @override
   String computeDocumentationComment() {
     AnalysisContext context = this.context;
     if (context == null) {
@@ -3611,6 +3786,7 @@ abstract class ElementImpl implements Element {
     return context.computeDocumentationComment(this);
   }
 
+  @override
   bool operator ==(Object object) {
     if (identical(this, object)) {
       return true;
@@ -3621,6 +3797,7 @@ abstract class ElementImpl implements Element {
     return object.runtimeType == runtimeType && (object as Element).location == location;
   }
 
+  @override
   Element getAncestor(Predicate<Element> predicate) {
     Element ancestor = _enclosingElement;
     while (ancestor != null && !predicate(ancestor)) {
@@ -3638,6 +3815,7 @@ abstract class ElementImpl implements Element {
    */
   ElementImpl getChild(String identifier) => null;
 
+  @override
   AnalysisContext get context {
     if (_enclosingElement == null) {
       return null;
@@ -3645,18 +3823,25 @@ abstract class ElementImpl implements Element {
     return _enclosingElement.context;
   }
 
+  @override
   String get displayName => _name;
 
+  @override
   Element get enclosingElement => _enclosingElement;
 
+  @override
   LibraryElement get library => getAncestor((element) => element is LibraryElement);
 
+  @override
   ElementLocation get location => new ElementLocationImpl.con1(this);
 
+  @override
   String get name => _name;
 
+  @override
   AstNode get node => getNodeMatching((node) => node is AstNode);
 
+  @override
   Source get source {
     if (_enclosingElement == null) {
       return null;
@@ -3664,8 +3849,10 @@ abstract class ElementImpl implements Element {
     return _enclosingElement.source;
   }
 
+  @override
   CompilationUnit get unit => context.resolveCompilationUnit(source, library);
 
+  @override
   int get hashCode {
     // TODO: We might want to re-visit this optimization in the future.
     // We cache the hash code value as this is a very frequently called method.
@@ -3675,6 +3862,7 @@ abstract class ElementImpl implements Element {
     return _cachedHashCode;
   }
 
+  @override
   bool isAccessibleIn(LibraryElement library) {
     if (Identifier.isPrivateName(_name)) {
       return library == this.library;
@@ -3682,6 +3870,7 @@ abstract class ElementImpl implements Element {
     return true;
   }
 
+  @override
   bool get isDeprecated {
     for (ElementAnnotation annotation in metadata) {
       if (annotation.isDeprecated) {
@@ -3691,6 +3880,7 @@ abstract class ElementImpl implements Element {
     return false;
   }
 
+  @override
   bool get isOverride {
     for (ElementAnnotation annotation in metadata) {
       if (annotation.isOverride) {
@@ -3700,6 +3890,7 @@ abstract class ElementImpl implements Element {
     return false;
   }
 
+  @override
   bool get isPrivate {
     String name = displayName;
     if (name == null) {
@@ -3708,8 +3899,10 @@ abstract class ElementImpl implements Element {
     return Identifier.isPrivateName(name);
   }
 
+  @override
   bool get isPublic => !isPrivate;
 
+  @override
   bool get isSynthetic => hasModifier(Modifier.SYNTHETIC);
 
   /**
@@ -3721,12 +3914,14 @@ abstract class ElementImpl implements Element {
     setModifier(Modifier.SYNTHETIC, isSynthetic);
   }
 
+  @override
   String toString() {
     JavaStringBuilder builder = new JavaStringBuilder();
     appendTo(builder);
     return builder.toString();
   }
 
+  @override
   void visitChildren(ElementVisitor visitor) {
   }
 
@@ -3871,6 +4066,7 @@ class ElementLocationImpl implements ElementLocation {
     this._components = _decode(encoding);
   }
 
+  @override
   bool operator ==(Object object) {
     if (identical(this, object)) {
       return true;
@@ -3905,6 +4101,7 @@ class ElementLocationImpl implements ElementLocation {
    */
   List<String> get components => _components;
 
+  @override
   String get encoding {
     JavaStringBuilder builder = new JavaStringBuilder();
     int length = _components.length;
@@ -3917,6 +4114,7 @@ class ElementLocationImpl implements ElementLocation {
     return builder.toString();
   }
 
+  @override
   int get hashCode {
     int result = 1;
     for (int i = 0; i < _components.length; i++) {
@@ -3932,6 +4130,7 @@ class ElementLocationImpl implements ElementLocation {
     return result;
   }
 
+  @override
   String toString() => encoding;
 
   /**
@@ -4050,6 +4249,7 @@ class ElementPair {
     this._second = second;
   }
 
+  @override
   bool operator ==(Object object) {
     if (identical(object, this)) {
       return true;
@@ -4075,6 +4275,7 @@ class ElementPair {
    */
   Element get secondElt => _second;
 
+  @override
   int get hashCode => ObjectUtilities.combineHashCodes(_first.hashCode, _second.hashCode);
 }
 
@@ -4095,10 +4296,13 @@ class EmbeddedHtmlScriptElementImpl extends HtmlScriptElementImpl implements Emb
    */
   EmbeddedHtmlScriptElementImpl(XmlTagNode node) : super(node);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitEmbeddedHtmlScriptElement(this);
 
+  @override
   ElementKind get kind => ElementKind.EMBEDDED_HTML_SCRIPT;
 
+  @override
   LibraryElement get scriptLibrary => _scriptLibrary;
 
   /**
@@ -4111,6 +4315,7 @@ class EmbeddedHtmlScriptElementImpl extends HtmlScriptElementImpl implements Emb
     this._scriptLibrary = scriptLibrary;
   }
 
+  @override
   void visitChildren(ElementVisitor visitor) {
     safelyVisitChild(_scriptLibrary, visitor);
   }
@@ -4172,6 +4377,7 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
    */
   ExecutableElementImpl.con2(String name, int nameOffset) : super(name, nameOffset);
 
+  @override
   ElementImpl getChild(String identifier) {
     for (ExecutableElement function in _functions) {
       if ((function as ExecutableElementImpl).identifier == identifier) {
@@ -4196,14 +4402,19 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
     return null;
   }
 
+  @override
   List<FunctionElement> get functions => _functions;
 
+  @override
   List<LabelElement> get labels => _labels;
 
+  @override
   List<LocalVariableElement> get localVariables => _localVariables;
 
+  @override
   List<ParameterElement> get parameters => _parameters;
 
+  @override
   bool get isOperator => false;
 
   /**
@@ -4254,6 +4465,7 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
     this._parameters = parameters;
   }
 
+  @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(_functions, visitor);
@@ -4262,6 +4474,7 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
     safelyVisitChildren(_parameters, visitor);
   }
 
+  @override
   void appendTo(JavaStringBuilder builder) {
     if (this.kind != ElementKind.GETTER) {
       builder.append("(");
@@ -4328,15 +4541,19 @@ class ExportElementImpl extends ElementImpl implements ExportElement {
    */
   ExportElementImpl() : super.forNode(null);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitExportElement(this);
 
+  @override
   ElementKind get kind => ElementKind.EXPORT;
 
+  @override
   void appendTo(JavaStringBuilder builder) {
     builder.append("export ");
     (exportedLibrary as LibraryElementImpl).appendTo(builder);
   }
 
+  @override
   String get identifier => exportedLibrary.name;
 }
 
@@ -4357,8 +4574,10 @@ class ExternalHtmlScriptElementImpl extends HtmlScriptElementImpl implements Ext
    */
   ExternalHtmlScriptElementImpl(XmlTagNode node) : super(node);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitExternalHtmlScriptElement(this);
 
+  @override
   ElementKind get kind => ElementKind.EXTERNAL_HTML_SCRIPT;
 }
 
@@ -4385,12 +4604,16 @@ class FieldElementImpl extends PropertyInducingElementImpl implements FieldEleme
    */
   FieldElementImpl.con2(String name) : super.con2(name);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
 
+  @override
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
 
+  @override
   ElementKind get kind => ElementKind.FIELD;
 
+  @override
   bool get isStatic => hasModifier(Modifier.STATIC);
 
   /**
@@ -4421,8 +4644,10 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl implements Fi
    */
   FieldFormalParameterElementImpl(Identifier name) : super.con1(name);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitFieldFormalParameterElement(this);
 
+  @override
   bool get isInitializingFormal => true;
 }
 
@@ -4462,12 +4687,16 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
    */
   FunctionElementImpl.con2(int nameOffset) : super.con2("", nameOffset);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
 
+  @override
   ElementKind get kind => ElementKind.FUNCTION;
 
+  @override
   FunctionDeclaration get node => getNodeMatching((node) => node is FunctionDeclaration);
 
+  @override
   SourceRange get visibleRange {
     if (_visibleRangeLength < 0) {
       return null;
@@ -4475,6 +4704,7 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
     return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
   }
 
+  @override
   bool get isStatic => enclosingElement is CompilationUnitElement;
 
   /**
@@ -4490,6 +4720,7 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
     _visibleRangeLength = length;
   }
 
+  @override
   void appendTo(JavaStringBuilder builder) {
     String name = displayName;
     if (name != null) {
@@ -4498,6 +4729,7 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
     super.appendTo(builder);
   }
 
+  @override
   String get identifier => "${name}@${nameOffset}";
 }
 
@@ -4538,8 +4770,10 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
    */
   FunctionTypeAliasElementImpl(Identifier name) : super.forNode(name);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitFunctionTypeAliasElement(this);
 
+  @override
   ElementImpl getChild(String identifier) {
     for (VariableElement parameter in _parameters) {
       if ((parameter as VariableElementImpl).identifier == identifier) {
@@ -4554,14 +4788,19 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
     return null;
   }
 
+  @override
   CompilationUnitElement get enclosingElement => super.enclosingElement as CompilationUnitElement;
 
+  @override
   ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
 
+  @override
   FunctionTypeAlias get node => getNodeMatching((node) => node is FunctionTypeAlias);
 
+  @override
   List<ParameterElement> get parameters => _parameters;
 
+  @override
   List<TypeParameterElement> get typeParameters => _typeParameters;
 
   /**
@@ -4612,12 +4851,14 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
     this._typeParameters = typeParameters;
   }
 
+  @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(_parameters, visitor);
     safelyVisitChildren(_typeParameters, visitor);
   }
 
+  @override
   void appendTo(JavaStringBuilder builder) {
     builder.append("typedef ");
     builder.append(displayName);
@@ -4659,6 +4900,7 @@ class HideElementCombinatorImpl implements HideElementCombinator {
    */
   List<String> hiddenNames = StringUtilities.EMPTY_ARRAY;
 
+  @override
   String toString() {
     JavaStringBuilder builder = new JavaStringBuilder();
     builder.append("show ");
@@ -4711,8 +4953,10 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
    */
   HtmlElementImpl(this.context, String name) : super(name, -1);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitHtmlElement(this);
 
+  @override
   bool operator ==(Object object) {
     if (identical(object, this)) {
       return true;
@@ -4723,10 +4967,13 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
     return runtimeType == object.runtimeType && source == (object as HtmlElementImpl).source;
   }
 
+  @override
   ElementKind get kind => ElementKind.HTML;
 
+  @override
   List<HtmlScriptElement> get scripts => _scripts;
 
+  @override
   int get hashCode => source.hashCode;
 
   /**
@@ -4744,11 +4991,13 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
     this._scripts = scripts;
   }
 
+  @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(_scripts, visitor);
   }
 
+  @override
   void appendTo(JavaStringBuilder builder) {
     if (source == null) {
       builder.append("{HTML file}");
@@ -4820,20 +5069,25 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
    */
   ImportElementImpl(int offset) : super(null, offset);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitImportElement(this);
 
+  @override
   ElementKind get kind => ElementKind.IMPORT;
 
+  @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(prefix, visitor);
   }
 
+  @override
   void appendTo(JavaStringBuilder builder) {
     builder.append("import ");
     (importedLibrary as LibraryElementImpl).appendTo(builder);
   }
 
+  @override
   String get identifier => "${(importedLibrary as LibraryElementImpl).identifier}@${nameOffset}";
 }
 
@@ -4870,10 +5124,13 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
     this._onSwitchMember = onSwitchMember;
   }
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitLabelElement(this);
 
+  @override
   ExecutableElement get enclosingElement => super.enclosingElement as ExecutableElement;
 
+  @override
   ElementKind get kind => ElementKind.LABEL;
 
   /**
@@ -4982,10 +5239,13 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    */
   LibraryElementImpl(this.context, LibraryIdentifier name) : super.forNode(name);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
 
+  @override
   bool operator ==(Object object) => object != null && runtimeType == object.runtimeType && _definingCompilationUnit == (object as LibraryElementImpl).definingCompilationUnit;
 
+  @override
   ElementImpl getChild(String identifier) {
     if ((_definingCompilationUnit as CompilationUnitElementImpl).identifier == identifier) {
       return _definingCompilationUnit as CompilationUnitElementImpl;
@@ -5008,8 +5268,10 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return null;
   }
 
+  @override
   CompilationUnitElement get definingCompilationUnit => _definingCompilationUnit;
 
+  @override
   List<LibraryElement> get exportedLibraries {
     Set<LibraryElement> libraries = new Set<LibraryElement>();
     for (ExportElement element in _exports) {
@@ -5021,8 +5283,10 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return new List.from(libraries);
   }
 
+  @override
   List<ExportElement> get exports => _exports;
 
+  @override
   List<LibraryElement> get importedLibraries {
     Set<LibraryElement> libraries = new Set<LibraryElement>();
     for (ImportElement element in _imports) {
@@ -5034,14 +5298,19 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return new List.from(libraries);
   }
 
+  @override
   List<ImportElement> get imports => _imports;
 
+  @override
   ElementKind get kind => ElementKind.LIBRARY;
 
+  @override
   LibraryElement get library => this;
 
+  @override
   List<CompilationUnitElement> get parts => _parts;
 
+  @override
   List<PrefixElement> get prefixes {
     Set<PrefixElement> prefixes = new Set<PrefixElement>();
     for (ImportElement element in _imports) {
@@ -5053,6 +5322,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return new List.from(prefixes);
   }
 
+  @override
   Source get source {
     if (_definingCompilationUnit == null) {
       return null;
@@ -5060,6 +5330,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return _definingCompilationUnit.source;
   }
 
+  @override
   ClassElement getType(String className) {
     ClassElement type = _definingCompilationUnit.getType(className);
     if (type != null) {
@@ -5074,6 +5345,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return null;
   }
 
+  @override
   List<CompilationUnitElement> get units {
     List<CompilationUnitElement> units = new List<CompilationUnitElement>(1 + _parts.length);
     units[0] = _definingCompilationUnit;
@@ -5081,24 +5353,32 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return units;
   }
 
+  @override
   List<LibraryElement> get visibleLibraries {
     Set<LibraryElement> visibleLibraries = new Set();
     _addVisibleLibraries(visibleLibraries, false);
     return new List.from(visibleLibraries);
   }
 
+  @override
   bool get hasExtUri => hasModifier(Modifier.HAS_EXT_URI);
 
+  @override
   int get hashCode => _definingCompilationUnit.hashCode;
 
+  @override
   bool get isAngularHtml => _isAngularHtml;
 
+  @override
   bool get isBrowserApplication => entryPoint != null && isOrImportsBrowserLibrary;
 
+  @override
   bool get isDartCore => name == "dart.core";
 
+  @override
   bool get isInSdk => StringUtilities.startsWith5(name, 0, 0x64, 0x61, 0x72, 0x74, 0x2E);
 
+  @override
   bool isUpToDate(int timeStamp) {
     Set<LibraryElement> visitedLibraries = new Set();
     return _safeIsUpToDate(this, timeStamp, visitedLibraries);
@@ -5171,6 +5451,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     this._parts = parts;
   }
 
+  @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_definingCompilationUnit, visitor);
@@ -5179,6 +5460,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     safelyVisitChildren(_parts, visitor);
   }
 
+  @override
   String get identifier => _definingCompilationUnit.source.encoding;
 
   /**
@@ -5274,10 +5556,13 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
    */
   LocalVariableElementImpl(Identifier name) : super.con1(name);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitLocalVariableElement(this);
 
+  @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
 
+  @override
   List<ToolkitObjectElement> get toolkitObjects {
     CompilationUnitElementImpl unit = getAncestor((element) => element is CompilationUnitElementImpl);
     if (unit == null) {
@@ -5286,6 +5571,7 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
     return unit._getToolkitObjects(this);
   }
 
+  @override
   SourceRange get visibleRange {
     if (_visibleRangeLength < 0) {
       return null;
@@ -5293,8 +5579,10 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
     return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
   }
 
+  @override
   bool get isPotentiallyMutatedInClosure => _potentiallyMutatedInClosure;
 
+  @override
   bool get isPotentiallyMutatedInScope => _potentiallyMutatedInScope;
 
   /**
@@ -5337,12 +5625,14 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
     _visibleRangeLength = length;
   }
 
+  @override
   void appendTo(JavaStringBuilder builder) {
     builder.append(type);
     builder.append(" ");
     builder.append(displayName);
   }
 
+  @override
   String get identifier => "${super.identifier}@${nameOffset}";
 }
 
@@ -5371,12 +5661,16 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
    */
   MethodElementImpl.con2(String name, int nameOffset) : super.con2(name, nameOffset);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitMethodElement(this);
 
+  @override
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
 
+  @override
   ElementKind get kind => ElementKind.METHOD;
 
+  @override
   String get name {
     String name = super.name;
     if (isOperator && name == "-") {
@@ -5387,10 +5681,13 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
     return super.name;
   }
 
+  @override
   MethodDeclaration get node => getNodeMatching((node) => node is MethodDeclaration);
 
+  @override
   bool get isAbstract => hasModifier(Modifier.ABSTRACT);
 
+  @override
   bool get isOperator {
     String name = displayName;
     if (name.isEmpty) {
@@ -5400,6 +5697,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
     return !((0x61 <= first && first <= 0x7A) || (0x41 <= first && first <= 0x5A) || first == 0x5F || first == 0x24);
   }
 
+  @override
   bool get isStatic => hasModifier(Modifier.STATIC);
 
   /**
@@ -5420,6 +5718,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
     setModifier(Modifier.STATIC, isStatic);
   }
 
+  @override
   void appendTo(JavaStringBuilder builder) {
     builder.append(enclosingElement.displayName);
     builder.append(".");
@@ -5585,36 +5884,52 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     _name = conflictingElements[0].name;
   }
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitMultiplyDefinedElement(this);
 
+  @override
   String computeDocumentationComment() => null;
 
+  @override
   Element getAncestor(Predicate<Element> predicate) => null;
 
+  @override
   String get displayName => _name;
 
+  @override
   Element get enclosingElement => null;
 
+  @override
   ElementKind get kind => ElementKind.ERROR;
 
+  @override
   LibraryElement get library => null;
 
+  @override
   ElementLocation get location => null;
 
+  @override
   List<ElementAnnotation> get metadata => ElementAnnotationImpl.EMPTY_ARRAY;
 
+  @override
   String get name => _name;
 
+  @override
   int get nameOffset => -1;
 
+  @override
   AstNode get node => null;
 
+  @override
   Source get source => null;
 
+  @override
   DartType get type => DynamicTypeImpl.instance;
 
+  @override
   CompilationUnit get unit => null;
 
+  @override
   bool isAccessibleIn(LibraryElement library) {
     for (Element element in conflictingElements) {
       if (element.isAccessibleIn(library)) {
@@ -5624,10 +5939,13 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     return false;
   }
 
+  @override
   bool get isDeprecated => false;
 
+  @override
   bool get isOverride => false;
 
+  @override
   bool get isPrivate {
     String name = displayName;
     if (name == null) {
@@ -5636,10 +5954,13 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     return Identifier.isPrivateName(name);
   }
 
+  @override
   bool get isPublic => !isPrivate;
 
+  @override
   bool get isSynthetic => true;
 
+  @override
   String toString() {
     JavaStringBuilder builder = new JavaStringBuilder();
     builder.append("[");
@@ -5654,6 +5975,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     return builder.toString();
   }
 
+  @override
   void visitChildren(ElementVisitor visitor) {
   }
 }
@@ -5673,6 +5995,7 @@ class MultiplyInheritedMethodElementImpl extends MethodElementImpl implements Mu
     synthetic = true;
   }
 
+  @override
   List<ExecutableElement> get inheritedElements => _elements;
 
   void set inheritedElements(List<ExecutableElement> elements) {
@@ -5695,6 +6018,7 @@ class MultiplyInheritedPropertyAccessorElementImpl extends PropertyAccessorEleme
     synthetic = true;
   }
 
+  @override
   List<ExecutableElement> get inheritedElements => _elements;
 
   void set inheritedElements(List<ExecutableElement> elements) {
@@ -5770,8 +6094,10 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
    */
   ParameterElementImpl.con2(String name, int nameOffset) : super.con2(name, nameOffset);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitParameterElement(this);
 
+  @override
   SourceRange get defaultValueRange {
     if (_defaultValueRangeLength < 0) {
       return null;
@@ -5779,10 +6105,13 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
     return new SourceRange(_defaultValueRangeOffset, _defaultValueRangeLength);
   }
 
+  @override
   ElementKind get kind => ElementKind.PARAMETER;
 
+  @override
   List<ParameterElement> get parameters => _parameters;
 
+  @override
   SourceRange get visibleRange {
     if (_visibleRangeLength < 0) {
       return null;
@@ -5790,10 +6119,13 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
     return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
   }
 
+  @override
   bool get isInitializingFormal => false;
 
+  @override
   bool get isPotentiallyMutatedInClosure => _potentiallyMutatedInClosure;
 
+  @override
   bool get isPotentiallyMutatedInScope => _potentiallyMutatedInScope;
 
   /**
@@ -5848,11 +6180,13 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
     _visibleRangeLength = length;
   }
 
+  @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(_parameters, visitor);
   }
 
+  @override
   void appendTo(JavaStringBuilder builder) {
     String left = "";
     String right = "";
@@ -5905,12 +6239,16 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
    */
   PrefixElementImpl(Identifier name) : super.forNode(name);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitPrefixElement(this);
 
+  @override
   LibraryElement get enclosingElement => super.enclosingElement as LibraryElement;
 
+  @override
   List<LibraryElement> get importedLibraries => _importedLibraries;
 
+  @override
   ElementKind get kind => ElementKind.PREFIX;
 
   /**
@@ -5925,11 +6263,13 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
     this._importedLibraries = importedLibraries;
   }
 
+  @override
   void appendTo(JavaStringBuilder builder) {
     builder.append("as ");
     super.appendTo(builder);
   }
 
+  @override
   String get identifier => "_${super.identifier}";
 }
 
@@ -5966,10 +6306,13 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
     synthetic = true;
   }
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitPropertyAccessorElement(this);
 
+  @override
   bool operator ==(Object object) => super == object && identical(isGetter, (object as PropertyAccessorElement).isGetter);
 
+  @override
   PropertyAccessorElement get correspondingGetter {
     if (isGetter || variable == null) {
       return null;
@@ -5977,6 +6320,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
     return variable.getter;
   }
 
+  @override
   PropertyAccessorElement get correspondingSetter {
     if (isSetter || variable == null) {
       return null;
@@ -5984,6 +6328,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
     return variable.setter;
   }
 
+  @override
   ElementKind get kind {
     if (isGetter) {
       return ElementKind.GETTER;
@@ -5991,6 +6336,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
     return ElementKind.SETTER;
   }
 
+  @override
   String get name {
     if (isSetter) {
       return "${super.name}=";
@@ -5998,6 +6344,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
     return super.name;
   }
 
+  @override
   AstNode get node {
     if (isSynthetic) {
       return null;
@@ -6011,14 +6358,19 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
     return null;
   }
 
+  @override
   int get hashCode => ObjectUtilities.combineHashCodes(super.hashCode, isGetter ? 1 : 2);
 
+  @override
   bool get isAbstract => hasModifier(Modifier.ABSTRACT);
 
+  @override
   bool get isGetter => hasModifier(Modifier.GETTER);
 
+  @override
   bool get isSetter => hasModifier(Modifier.SETTER);
 
+  @override
   bool get isStatic => hasModifier(Modifier.STATIC);
 
   /**
@@ -6057,6 +6409,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
     setModifier(Modifier.STATIC, isStatic);
   }
 
+  @override
   void appendTo(JavaStringBuilder builder) {
     builder.append(isGetter ? "get " : "set ");
     builder.append(variable.displayName);
@@ -6123,6 +6476,7 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
    */
   int offset = 0;
 
+  @override
   String toString() {
     JavaStringBuilder builder = new JavaStringBuilder();
     builder.append("show ");
@@ -6175,10 +6529,13 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl implements
    */
   TopLevelVariableElementImpl.con2(String name) : super.con2(name);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitTopLevelVariableElement(this);
 
+  @override
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
 
+  @override
   bool get isStatic => true;
 }
 
@@ -6209,10 +6566,13 @@ class TypeParameterElementImpl extends ElementImpl implements TypeParameterEleme
    */
   TypeParameterElementImpl(Identifier name) : super.forNode(name);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitTypeParameterElement(this);
 
+  @override
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
 
+  @override
   void appendTo(JavaStringBuilder builder) {
     builder.append(displayName);
     if (bound != null) {
@@ -6267,12 +6627,16 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
    */
   EvaluationResultImpl get evaluationResult => null;
 
+  @override
   FunctionElement get initializer => _initializer;
 
+  @override
   VariableDeclaration get node => getNodeMatching((node) => node is VariableDeclaration);
 
+  @override
   bool get isConst => hasModifier(Modifier.CONST);
 
+  @override
   bool get isFinal => hasModifier(Modifier.FINAL);
 
   /**
@@ -6333,11 +6697,13 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
     this._initializer = initializer;
   }
 
+  @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_initializer, visitor);
   }
 
+  @override
   void appendTo(JavaStringBuilder builder) {
     builder.append(type);
     builder.append(" ");
@@ -6422,12 +6788,16 @@ class AngularComponentElementImpl extends AngularHasSelectorElementImpl implemen
     this._annotationOffset = annotationOffset;
   }
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitAngularComponentElement(this);
 
+  @override
   ElementKind get kind => ElementKind.ANGULAR_COMPONENT;
 
+  @override
   List<AngularPropertyElement> get properties => _properties;
 
+  @override
   List<AngularScopePropertyElement> get scopeProperties => _scopeProperties;
 
   /**
@@ -6454,12 +6824,14 @@ class AngularComponentElementImpl extends AngularHasSelectorElementImpl implemen
     this._scopeProperties = properties;
   }
 
+  @override
   void visitChildren(ElementVisitor visitor) {
     safelyVisitChildren(_properties, visitor);
     safelyVisitChildren(_scopeProperties, visitor);
     super.visitChildren(visitor);
   }
 
+  @override
   String get identifier => "AngularComponent@${_annotationOffset}";
 }
 
@@ -6476,8 +6848,10 @@ class AngularControllerElementImpl extends AngularHasSelectorElementImpl impleme
    */
   AngularControllerElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitAngularControllerElement(this);
 
+  @override
   ElementKind get kind => ElementKind.ANGULAR_CONTROLLER;
 }
 
@@ -6504,14 +6878,19 @@ class AngularDirectiveElementImpl extends AngularHasSelectorElementImpl implemen
     this._offset = offset;
   }
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitAngularDirectiveElement(this);
 
+  @override
   String get displayName => selector.displayName;
 
+  @override
   ElementKind get kind => ElementKind.ANGULAR_DIRECTIVE;
 
+  @override
   List<AngularPropertyElement> get properties => _properties;
 
+  @override
   bool isClass(String name) {
     Element enclosing = enclosingElement;
     return enclosing is ClassElement && enclosing.name == name;
@@ -6529,11 +6908,13 @@ class AngularDirectiveElementImpl extends AngularHasSelectorElementImpl implemen
     this._properties = properties;
   }
 
+  @override
   void visitChildren(ElementVisitor visitor) {
     safelyVisitChildren(_properties, visitor);
     super.visitChildren(visitor);
   }
 
+  @override
   String get identifier => "NgDirective@${_offset}";
 }
 
@@ -6555,6 +6936,7 @@ abstract class AngularElementImpl extends ToolkitObjectElementImpl implements An
    */
   AngularElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
+  @override
   AngularApplication get application => _application;
 
   /**
@@ -6578,8 +6960,10 @@ class AngularFilterElementImpl extends AngularElementImpl implements AngularFilt
    */
   AngularFilterElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitAngularFilterElement(this);
 
+  @override
   ElementKind get kind => ElementKind.ANGULAR_FILTER;
 }
 
@@ -6589,6 +6973,7 @@ class AngularFilterElementImpl extends AngularElementImpl implements AngularFilt
 class AngularHasClassSelectorElementImpl extends AngularSelectorElementImpl implements AngularHasClassSelectorElement {
   AngularHasClassSelectorElementImpl(String name, int offset) : super(name, offset);
 
+  @override
   bool apply(XmlTagNode node) {
     XmlAttributeNode attribute = node.getAttribute("class");
     if (attribute != null) {
@@ -6605,6 +6990,7 @@ class AngularHasClassSelectorElementImpl extends AngularSelectorElementImpl impl
     return false;
   }
 
+  @override
   void appendTo(JavaStringBuilder builder) {
     builder.append(".");
     builder.append(name);
@@ -6629,6 +7015,7 @@ abstract class AngularHasSelectorElementImpl extends AngularElementImpl implemen
    */
   AngularHasSelectorElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
+  @override
   AngularSelectorElement get selector => _selector;
 
   /**
@@ -6641,6 +7028,7 @@ abstract class AngularHasSelectorElementImpl extends AngularElementImpl implemen
     this._selector = selector;
   }
 
+  @override
   void visitChildren(ElementVisitor visitor) {
     safelyVisitChild(_selector, visitor);
     super.visitChildren(visitor);
@@ -6672,8 +7060,10 @@ class AngularPropertyElementImpl extends AngularElementImpl implements AngularPr
    */
   AngularPropertyElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitAngularPropertyElement(this);
 
+  @override
   ElementKind get kind => ElementKind.ANGULAR_PROPERTY;
 }
 
@@ -6695,8 +7085,10 @@ class AngularScopePropertyElementImpl extends AngularElementImpl implements Angu
    */
   AngularScopePropertyElementImpl(String name, int nameOffset, this.type) : super(name, nameOffset);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitAngularScopePropertyElement(this);
 
+  @override
   ElementKind get kind => ElementKind.ANGULAR_SCOPE_PROPERTY;
 }
 
@@ -6713,8 +7105,10 @@ abstract class AngularSelectorElementImpl extends AngularElementImpl implements 
    */
   AngularSelectorElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitAngularSelectorElement(this);
 
+  @override
   ElementKind get kind => ElementKind.ANGULAR_SELECTOR;
 }
 
@@ -6724,11 +7118,13 @@ abstract class AngularSelectorElementImpl extends AngularElementImpl implements 
 class AngularTagSelectorElementImpl extends AngularSelectorElementImpl implements AngularTagSelectorElement {
   AngularTagSelectorElementImpl(String name, int offset) : super(name, offset);
 
+  @override
   bool apply(XmlTagNode node) {
     String tagName = name;
     return node.tag == tagName;
   }
 
+  @override
   AngularApplication get application => (enclosingElement as AngularElementImpl).application;
 }
 
@@ -6756,10 +7152,13 @@ class AngularViewElementImpl extends AngularElementImpl implements AngularViewEl
    */
   AngularViewElementImpl(this.templateUri, this.templateUriOffset) : super(null, -1);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitAngularViewElement(this);
 
+  @override
   ElementKind get kind => ElementKind.ANGULAR_VIEW;
 
+  @override
   String get identifier => "AngularView@${templateUriOffset}";
 }
 
@@ -6769,11 +7168,13 @@ class AngularViewElementImpl extends AngularElementImpl implements AngularViewEl
 class HasAttributeSelectorElementImpl extends AngularSelectorElementImpl implements AngularHasAttributeSelectorElement {
   HasAttributeSelectorElementImpl(String attributeName, int offset) : super(attributeName, offset);
 
+  @override
   bool apply(XmlTagNode node) {
     String attributeName = name;
     return node.getAttribute(attributeName) != null;
   }
 
+  @override
   void appendTo(JavaStringBuilder builder) {
     builder.append("[");
     builder.append(name);
@@ -6791,6 +7192,7 @@ class IsTagHasAttributeSelectorElementImpl extends AngularSelectorElementImpl {
 
   IsTagHasAttributeSelectorElementImpl(this.tagName, this.attributeName) : super(null, -1);
 
+  @override
   bool apply(XmlTagNode node) => node.tag == tagName && node.getAttribute(attributeName) != null;
 }
 
@@ -6838,22 +7240,31 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
    */
   ConstructorMember(ConstructorElement baseElement, InterfaceType definingType) : super(baseElement, definingType);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitConstructorElement(this);
 
+  @override
   ConstructorElement get baseElement => super.baseElement as ConstructorElement;
 
+  @override
   ClassElement get enclosingElement => baseElement.enclosingElement;
 
+  @override
   ConstructorDeclaration get node => baseElement.node;
 
+  @override
   ConstructorElement get redirectedConstructor => from(baseElement.redirectedConstructor, definingType);
 
+  @override
   bool get isConst => baseElement.isConst;
 
+  @override
   bool get isDefaultConstructor => baseElement.isDefaultConstructor;
 
+  @override
   bool get isFactory => baseElement.isFactory;
 
+  @override
   String toString() {
     ConstructorElement baseElement = this.baseElement;
     List<ParameterElement> parameters = this.parameters;
@@ -6881,6 +7292,7 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
     return builder.toString();
   }
 
+  @override
   InterfaceType get definingType => super.definingType as InterfaceType;
 }
 
@@ -6899,8 +7311,10 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
    */
   ExecutableMember(ExecutableElement baseElement, InterfaceType definingType) : super(baseElement, definingType);
 
+  @override
   ExecutableElement get baseElement => super.baseElement as ExecutableElement;
 
+  @override
   List<FunctionElement> get functions {
     //
     // Elements within this element should have type parameters substituted, just like this element.
@@ -6908,8 +7322,10 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     throw new UnsupportedOperationException();
   }
 
+  @override
   List<LabelElement> get labels => baseElement.labels;
 
+  @override
   List<LocalVariableElement> get localVariables {
     //
     // Elements within this element should have type parameters substituted, just like this element.
@@ -6917,6 +7333,7 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     throw new UnsupportedOperationException();
   }
 
+  @override
   List<ParameterElement> get parameters {
     List<ParameterElement> baseParameters = baseElement.parameters;
     int parameterCount = baseParameters.length;
@@ -6930,14 +7347,19 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     return parameterizedParameters;
   }
 
+  @override
   DartType get returnType => substituteFor(baseElement.returnType);
 
+  @override
   FunctionType get type => substituteFor(baseElement.type);
 
+  @override
   bool get isOperator => baseElement.isOperator;
 
+  @override
   bool get isStatic => baseElement.isStatic;
 
+  @override
   void visitChildren(ElementVisitor visitor) {
     // TODO(brianwilkerson) We need to finish implementing the accessors used below so that we can
     // safely invoke them.
@@ -6962,8 +7384,10 @@ class FieldFormalParameterMember extends ParameterMember implements FieldFormalP
    */
   FieldFormalParameterMember(FieldFormalParameterElement baseElement, ParameterizedType definingType) : super(baseElement, definingType);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitFieldFormalParameterElement(this);
 
+  @override
   FieldElement get field => (baseElement as FieldFormalParameterElement).field;
 }
 
@@ -7010,18 +7434,25 @@ class FieldMember extends VariableMember implements FieldElement {
    */
   FieldMember(FieldElement baseElement, InterfaceType definingType) : super(baseElement, definingType);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
 
+  @override
   FieldElement get baseElement => super.baseElement as FieldElement;
 
+  @override
   ClassElement get enclosingElement => baseElement.enclosingElement;
 
+  @override
   PropertyAccessorElement get getter => PropertyAccessorMember.from(baseElement.getter, definingType);
 
+  @override
   PropertyAccessorElement get setter => PropertyAccessorMember.from(baseElement.setter, definingType);
 
+  @override
   bool get isStatic => baseElement.isStatic;
 
+  @override
   InterfaceType get definingType => super.definingType as InterfaceType;
 }
 
@@ -7051,8 +7482,10 @@ abstract class Member implements Element {
     this._definingType = definingType;
   }
 
+  @override
   String computeDocumentationComment() => _baseElement.computeDocumentationComment();
 
+  @override
   Element getAncestor(Predicate<Element> predicate) => baseElement.getAncestor(predicate);
 
   /**
@@ -7062,40 +7495,58 @@ abstract class Member implements Element {
    */
   Element get baseElement => _baseElement;
 
+  @override
   AnalysisContext get context => _baseElement.context;
 
+  @override
   String get displayName => _baseElement.displayName;
 
+  @override
   ElementKind get kind => _baseElement.kind;
 
+  @override
   LibraryElement get library => _baseElement.library;
 
+  @override
   ElementLocation get location => _baseElement.location;
 
+  @override
   List<ElementAnnotation> get metadata => _baseElement.metadata;
 
+  @override
   String get name => _baseElement.name;
 
+  @override
   int get nameOffset => _baseElement.nameOffset;
 
+  @override
   AstNode get node => _baseElement.node;
 
+  @override
   Source get source => _baseElement.source;
 
+  @override
   CompilationUnit get unit => _baseElement.unit;
 
+  @override
   bool isAccessibleIn(LibraryElement library) => _baseElement.isAccessibleIn(library);
 
+  @override
   bool get isDeprecated => _baseElement.isDeprecated;
 
+  @override
   bool get isOverride => _baseElement.isOverride;
 
+  @override
   bool get isPrivate => _baseElement.isPrivate;
 
+  @override
   bool get isPublic => _baseElement.isPublic;
 
+  @override
   bool get isSynthetic => _baseElement.isSynthetic;
 
+  @override
   void visitChildren(ElementVisitor visitor) {
   }
 
@@ -7202,16 +7653,22 @@ class MethodMember extends ExecutableMember implements MethodElement {
    */
   MethodMember(MethodElement baseElement, InterfaceType definingType) : super(baseElement, definingType);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitMethodElement(this);
 
+  @override
   MethodElement get baseElement => super.baseElement as MethodElement;
 
+  @override
   ClassElement get enclosingElement => baseElement.enclosingElement;
 
+  @override
   MethodDeclaration get node => baseElement.node;
 
+  @override
   bool get isAbstract => baseElement.isAbstract;
 
+  @override
   String toString() {
     MethodElement baseElement = this.baseElement;
     List<ParameterElement> parameters = this.parameters;
@@ -7285,8 +7742,10 @@ class ParameterMember extends VariableMember implements ParameterElement {
    */
   ParameterMember(ParameterElement baseElement, ParameterizedType definingType) : super(baseElement, definingType);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitParameterElement(this);
 
+  @override
   Element getAncestor(Predicate<Element> predicate) {
     Element element = baseElement.getAncestor(predicate);
     ParameterizedType definingType = this.definingType;
@@ -7303,14 +7762,19 @@ class ParameterMember extends VariableMember implements ParameterElement {
     return element;
   }
 
+  @override
   ParameterElement get baseElement => super.baseElement as ParameterElement;
 
+  @override
   SourceRange get defaultValueRange => baseElement.defaultValueRange;
 
+  @override
   Element get enclosingElement => baseElement.enclosingElement;
 
+  @override
   ParameterKind get parameterKind => baseElement.parameterKind;
 
+  @override
   List<ParameterElement> get parameters {
     List<ParameterElement> baseParameters = baseElement.parameters;
     int parameterCount = baseParameters.length;
@@ -7324,10 +7788,13 @@ class ParameterMember extends VariableMember implements ParameterElement {
     return parameterizedParameters;
   }
 
+  @override
   SourceRange get visibleRange => baseElement.visibleRange;
 
+  @override
   bool get isInitializingFormal => baseElement.isInitializingFormal;
 
+  @override
   String toString() {
     ParameterElement baseElement = this.baseElement;
     String left = "";
@@ -7352,6 +7819,7 @@ class ParameterMember extends VariableMember implements ParameterElement {
     return builder.toString();
   }
 
+  @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(parameters, visitor);
@@ -7399,16 +7867,22 @@ class PropertyAccessorMember extends ExecutableMember implements PropertyAccesso
    */
   PropertyAccessorMember(PropertyAccessorElement baseElement, InterfaceType definingType) : super(baseElement, definingType);
 
+  @override
   accept(ElementVisitor visitor) => visitor.visitPropertyAccessorElement(this);
 
+  @override
   PropertyAccessorElement get baseElement => super.baseElement as PropertyAccessorElement;
 
+  @override
   PropertyAccessorElement get correspondingGetter => from(baseElement.correspondingGetter, definingType);
 
+  @override
   PropertyAccessorElement get correspondingSetter => from(baseElement.correspondingSetter, definingType);
 
+  @override
   Element get enclosingElement => baseElement.enclosingElement;
 
+  @override
   PropertyInducingElement get variable {
     PropertyInducingElement variable = baseElement.variable;
     if (variable is FieldElement) {
@@ -7417,12 +7891,16 @@ class PropertyAccessorMember extends ExecutableMember implements PropertyAccesso
     return variable;
   }
 
+  @override
   bool get isAbstract => baseElement.isAbstract;
 
+  @override
   bool get isGetter => baseElement.isGetter;
 
+  @override
   bool get isSetter => baseElement.isSetter;
 
+  @override
   String toString() {
     PropertyAccessorElement baseElement = this.baseElement;
     List<ParameterElement> parameters = this.parameters;
@@ -7452,6 +7930,7 @@ class PropertyAccessorMember extends ExecutableMember implements PropertyAccesso
     return builder.toString();
   }
 
+  @override
   InterfaceType get definingType => super.definingType as InterfaceType;
 }
 
@@ -7470,8 +7949,10 @@ abstract class VariableMember extends Member implements VariableElement {
    */
   VariableMember(VariableElement baseElement, ParameterizedType definingType) : super(baseElement, definingType);
 
+  @override
   VariableElement get baseElement => super.baseElement as VariableElement;
 
+  @override
   FunctionElement get initializer {
     //
     // Elements within this element should have type parameters substituted, just like this element.
@@ -7479,14 +7960,19 @@ abstract class VariableMember extends Member implements VariableElement {
     throw new UnsupportedOperationException();
   }
 
+  @override
   VariableDeclaration get node => baseElement.node;
 
+  @override
   DartType get type => substituteFor(baseElement.type);
 
+  @override
   bool get isConst => baseElement.isConst;
 
+  @override
   bool get isFinal => baseElement.isFinal;
 
+  @override
   void visitChildren(ElementVisitor visitor) {
     // TODO(brianwilkerson) We need to finish implementing the accessors used below so that we can
     // safely invoke them.
@@ -7516,20 +8002,28 @@ class BottomTypeImpl extends TypeImpl {
    */
   BottomTypeImpl() : super(null, "<bottom>");
 
+  @override
   bool operator ==(Object object) => identical(object, this);
 
+  @override
   int get hashCode => 0;
 
+  @override
   bool get isBottom => true;
 
+  @override
   bool isSupertypeOf(DartType type) => false;
 
+  @override
   BottomTypeImpl substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes) => this;
 
+  @override
   bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) => identical(object, this);
 
+  @override
   bool internalIsMoreSpecificThan(DartType type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) => true;
 
+  @override
   bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => true;
 }
 
@@ -7556,14 +8050,19 @@ class DynamicTypeImpl extends TypeImpl {
     (element as DynamicElementImpl).type = this;
   }
 
+  @override
   bool operator ==(Object object) => identical(object, this);
 
+  @override
   int get hashCode => 1;
 
+  @override
   bool get isDynamic => true;
 
+  @override
   bool isSupertypeOf(DartType type) => true;
 
+  @override
   DartType substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes) {
     int length = parameterTypes.length;
     for (int i = 0; i < length; i++) {
@@ -7574,8 +8073,10 @@ class DynamicTypeImpl extends TypeImpl {
     return this;
   }
 
+  @override
   bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) => identical(object, this);
 
+  @override
   bool internalIsMoreSpecificThan(DartType type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
     // T is S
     if (identical(this, type)) {
@@ -7585,6 +8086,7 @@ class DynamicTypeImpl extends TypeImpl {
     return withDynamic;
   }
 
+  @override
   bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => true;
 }
 
@@ -7641,8 +8143,10 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    */
   FunctionTypeImpl.con2(FunctionTypeAliasElement element) : super(element, element == null ? null : element.name);
 
+  @override
   bool operator ==(Object object) => internalEquals(object, new Set<ElementPair>());
 
+  @override
   String get displayName {
     String name = this.name;
     if (name == null || name.length == 0) {
@@ -7712,6 +8216,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return name;
   }
 
+  @override
   Map<String, DartType> get namedParameterTypes {
     LinkedHashMap<String, DartType> namedParameterTypes = new LinkedHashMap<String, DartType>();
     List<ParameterElement> parameters = baseParameters;
@@ -7727,6 +8232,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return namedParameterTypes;
   }
 
+  @override
   List<DartType> get normalParameterTypes {
     List<ParameterElement> parameters = baseParameters;
     if (parameters.length == 0) {
@@ -7742,6 +8248,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return new List.from(types);
   }
 
+  @override
   List<DartType> get optionalParameterTypes {
     List<ParameterElement> parameters = baseParameters;
     if (parameters.length == 0) {
@@ -7757,6 +8264,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return new List.from(types);
   }
 
+  @override
   List<ParameterElement> get parameters {
     List<ParameterElement> baseParameters = this.baseParameters;
     // no parameters, quick return
@@ -7772,6 +8280,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return specializedParameters;
   }
 
+  @override
   DartType get returnType {
     DartType baseReturnType = this.baseReturnType;
     if (baseReturnType == null) {
@@ -7782,6 +8291,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return baseReturnType.substitute2(typeArguments, TypeParameterTypeImpl.getTypes(typeParameters));
   }
 
+  @override
   List<TypeParameterElement> get typeParameters {
     Element element = this.element;
     if (element is FunctionTypeAliasElement) {
@@ -7794,6 +8304,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return TypeParameterElementImpl.EMPTY_ARRAY;
   }
 
+  @override
   int get hashCode {
     if (element == null) {
       return 0;
@@ -7816,6 +8327,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return hashCode;
   }
 
+  @override
   bool internalIsMoreSpecificThan(DartType type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
     // trivial base cases
     if (type == null) {
@@ -7917,10 +8429,13 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return sRetType.isVoid || (tRetType as TypeImpl).isMoreSpecificThan2(sRetType, withDynamic, visitedTypePairs);
   }
 
+  @override
   bool isAssignableTo(DartType type) => isSubtypeOf2(type, new Set<TypeImpl_TypePair>());
 
+  @override
   FunctionTypeImpl substitute3(List<DartType> argumentTypes) => substitute2(argumentTypes, typeArguments);
 
+  @override
   FunctionTypeImpl substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes) {
     if (argumentTypes.length != parameterTypes.length) {
       throw new IllegalArgumentException("argumentTypes.length (${argumentTypes.length}) != parameterTypes.length (${parameterTypes.length})");
@@ -7934,6 +8449,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return newType;
   }
 
+  @override
   void appendTo(JavaStringBuilder builder) {
     List<DartType> normalParameterTypes = this.normalParameterTypes;
     List<DartType> optionalParameterTypes = this.optionalParameterTypes;
@@ -8008,6 +8524,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
   }
 
+  @override
   bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) {
     if (object is! FunctionTypeImpl) {
       return false;
@@ -8026,6 +8543,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return result;
   }
 
+  @override
   bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) {
     // trivial base cases
     if (type == null) {
@@ -8333,8 +8851,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    */
   InterfaceTypeImpl.con2(String name) : super(null, name);
 
+  @override
   bool operator ==(Object object) => internalEquals(object, new Set<ElementPair>());
 
+  @override
   List<PropertyAccessorElement> get accessors {
     List<PropertyAccessorElement> accessors = element.accessors;
     List<PropertyAccessorElement> members = new List<PropertyAccessorElement>(accessors.length);
@@ -8344,6 +8864,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return members;
   }
 
+  @override
   String get displayName {
     String name = this.name;
     List<DartType> typeArguments = this.typeArguments;
@@ -8372,10 +8893,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return name;
   }
 
+  @override
   ClassElement get element => super.element as ClassElement;
 
+  @override
   PropertyAccessorElement getGetter(String getterName) => PropertyAccessorMember.from((element as ClassElementImpl).getGetter(getterName), this);
 
+  @override
   List<InterfaceType> get interfaces {
     ClassElement classElement = element;
     List<InterfaceType> interfaces = classElement.interfaces;
@@ -8392,6 +8916,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return typedInterfaces;
   }
 
+  @override
   DartType getLeastUpperBound(DartType type) {
     // quick check for self
     if (identical(type, this)) {
@@ -8447,8 +8972,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return null;
   }
 
+  @override
   MethodElement getMethod(String methodName) => MethodMember.from((element as ClassElementImpl).getMethod(methodName), this);
 
+  @override
   List<MethodElement> get methods {
     List<MethodElement> methods = element.methods;
     List<MethodElement> members = new List<MethodElement>(methods.length);
@@ -8458,6 +8985,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return members;
   }
 
+  @override
   List<InterfaceType> get mixins {
     ClassElement classElement = element;
     List<InterfaceType> mixins = classElement.mixins;
@@ -8474,8 +9002,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return typedMixins;
   }
 
+  @override
   PropertyAccessorElement getSetter(String setterName) => PropertyAccessorMember.from((element as ClassElementImpl).getSetter(setterName), this);
 
+  @override
   InterfaceType get superclass {
     ClassElement classElement = element;
     InterfaceType supertype = classElement.supertype;
@@ -8485,8 +9015,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return supertype.substitute2(typeArguments, classElement.type.typeArguments);
   }
 
+  @override
   List<TypeParameterElement> get typeParameters => element.typeParameters;
 
+  @override
   int get hashCode {
     ClassElement element = this.element;
     if (element == null) {
@@ -8495,6 +9027,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return element.hashCode;
   }
 
+  @override
   bool get isDartCoreFunction {
     ClassElement element = this.element;
     if (element == null) {
@@ -8503,6 +9036,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return element.name == "Function" && element.library.isDartCore;
   }
 
+  @override
   bool isDirectSupertypeOf(InterfaceType type) {
     InterfaceType i = this;
     InterfaceType j = type;
@@ -8549,8 +9083,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return false;
   }
 
+  @override
   bool get isObject => element.supertype == null;
 
+  @override
   ConstructorElement lookUpConstructor(String constructorName, LibraryElement library) {
     // prepare base ConstructorElement
     ConstructorElement constructorElement;
@@ -8567,6 +9103,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return ConstructorMember.from(constructorElement, this);
   }
 
+  @override
   PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library) {
     PropertyAccessorElement element = getGetter(getterName);
     if (element != null && element.isAccessibleIn(library)) {
@@ -8575,6 +9112,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return lookUpGetterInSuperclass(getterName, library);
   }
 
+  @override
   PropertyAccessorElement lookUpGetterInSuperclass(String getterName, LibraryElement library) {
     for (InterfaceType mixin in mixins) {
       PropertyAccessorElement element = mixin.getGetter(getterName);
@@ -8603,6 +9141,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return null;
   }
 
+  @override
   MethodElement lookUpMethod(String methodName, LibraryElement library) {
     MethodElement element = getMethod(methodName);
     if (element != null && element.isAccessibleIn(library)) {
@@ -8611,6 +9150,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return lookUpMethodInSuperclass(methodName, library);
   }
 
+  @override
   MethodElement lookUpMethodInSuperclass(String methodName, LibraryElement library) {
     for (InterfaceType mixin in mixins) {
       MethodElement element = mixin.getMethod(methodName);
@@ -8639,6 +9179,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return null;
   }
 
+  @override
   PropertyAccessorElement lookUpSetter(String setterName, LibraryElement library) {
     PropertyAccessorElement element = getSetter(setterName);
     if (element != null && element.isAccessibleIn(library)) {
@@ -8647,6 +9188,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return lookUpSetterInSuperclass(setterName, library);
   }
 
+  @override
   PropertyAccessorElement lookUpSetterInSuperclass(String setterName, LibraryElement library) {
     for (InterfaceType mixin in mixins) {
       PropertyAccessorElement element = mixin.getSetter(setterName);
@@ -8675,8 +9217,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return null;
   }
 
+  @override
   InterfaceTypeImpl substitute4(List<DartType> argumentTypes) => substitute2(argumentTypes, typeArguments);
 
+  @override
   InterfaceTypeImpl substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes) {
     if (argumentTypes.length != parameterTypes.length) {
       throw new IllegalArgumentException("argumentTypes.length (${argumentTypes.length}) != parameterTypes.length (${parameterTypes.length})");
@@ -8693,6 +9237,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return newType;
   }
 
+  @override
   void appendTo(JavaStringBuilder builder) {
     builder.append(name);
     int argumentCount = typeArguments.length;
@@ -8708,6 +9253,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
   }
 
+  @override
   bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) {
     if (object is! InterfaceTypeImpl) {
       return false;
@@ -8716,6 +9262,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return (element == otherType.element) && TypeImpl.equalArrays(typeArguments, otherType.typeArguments, visitedElementPairs);
   }
 
+  @override
   bool internalIsMoreSpecificThan(DartType type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
     //
     // S is dynamic.
@@ -8730,6 +9277,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return _isMoreSpecificThan(type as InterfaceType, new Set<ClassElement>(), withDynamic, visitedTypePairs);
   }
 
+  @override
   bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) {
     //
     // T is a subtype of S, written T <: S, iff [bottom/dynamic]T << S
@@ -8933,12 +9481,16 @@ abstract class TypeImpl implements DartType {
     this._element = element;
   }
 
+  @override
   String get displayName => name;
 
+  @override
   Element get element => _element;
 
+  @override
   DartType getLeastUpperBound(DartType type) => null;
 
+  @override
   bool isAssignableTo(DartType type) => isAssignableTo2(type, new Set<TypeImpl_TypePair>());
 
   /**
@@ -8956,12 +9508,16 @@ abstract class TypeImpl implements DartType {
    */
   bool isAssignableTo2(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => isSubtypeOf2(type, visitedTypePairs) || (type as TypeImpl).isSubtypeOf2(this, visitedTypePairs);
 
+  @override
   bool get isBottom => false;
 
+  @override
   bool get isDartCoreFunction => false;
 
+  @override
   bool get isDynamic => false;
 
+  @override
   bool isMoreSpecificThan(DartType type) => isMoreSpecificThan2(type, false, new Set<TypeImpl_TypePair>());
 
   /**
@@ -8987,8 +9543,10 @@ abstract class TypeImpl implements DartType {
     return result;
   }
 
+  @override
   bool get isObject => false;
 
+  @override
   bool isSubtypeOf(DartType type) => isSubtypeOf2(type, new Set<TypeImpl_TypePair>());
 
   /**
@@ -9013,10 +9571,13 @@ abstract class TypeImpl implements DartType {
     return result;
   }
 
+  @override
   bool isSupertypeOf(DartType type) => type.isSubtypeOf(this);
 
+  @override
   bool get isVoid => false;
 
+  @override
   String toString() {
     JavaStringBuilder builder = new JavaStringBuilder();
     appendTo(builder);
@@ -9053,6 +9614,7 @@ class TypeImpl_TypePair {
     this._secondType = secondType;
   }
 
+  @override
   bool operator ==(Object object) {
     if (identical(object, this)) {
       return true;
@@ -9064,6 +9626,7 @@ class TypeImpl_TypePair {
     return false;
   }
 
+  @override
   int get hashCode {
     int firstHashCode = 0;
     if (_firstType != null) {
@@ -9115,12 +9678,16 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
    */
   TypeParameterTypeImpl(TypeParameterElement element) : super(element, element.name);
 
+  @override
   bool operator ==(Object object) => object is TypeParameterTypeImpl && (element == object.element);
 
+  @override
   TypeParameterElement get element => super.element as TypeParameterElement;
 
+  @override
   int get hashCode => element.hashCode;
 
+  @override
   DartType substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes) {
     int length = parameterTypes.length;
     for (int i = 0; i < length; i++) {
@@ -9131,8 +9698,10 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     return this;
   }
 
+  @override
   bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) => this == object;
 
+  @override
   bool internalIsMoreSpecificThan(DartType s, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
     //
     // A type T is more specific than a type S, written T << S,  if one of the following conditions
@@ -9156,6 +9725,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     return _isMoreSpecificThan(s, new Set<DartType>(), withDynamic, visitedTypePairs);
   }
 
+  @override
   bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => isMoreSpecificThan2(type, true, new Set<TypeImpl_TypePair>());
 
   bool _isMoreSpecificThan(DartType s, Set<DartType> visitedTypes, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
@@ -9213,18 +9783,25 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
    */
   VoidTypeImpl() : super(null, Keyword.VOID.syntax);
 
+  @override
   bool operator ==(Object object) => identical(object, this);
 
+  @override
   int get hashCode => 2;
 
+  @override
   bool get isVoid => true;
 
+  @override
   VoidTypeImpl substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes) => this;
 
+  @override
   bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) => identical(object, this);
 
+  @override
   bool internalIsMoreSpecificThan(DartType type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) => isSubtypeOf(type);
 
+  @override
   bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => identical(type, this) || identical(type, DynamicTypeImpl.instance);
 }
 
@@ -9338,6 +9915,7 @@ abstract class FunctionType implements ParameterizedType {
    * @param type the type being compared with this type
    * @return `true` if this type is a subtype of the given type
    */
+  @override
   bool isSubtypeOf(DartType type);
 
   /**
@@ -9349,6 +9927,7 @@ abstract class FunctionType implements ParameterizedType {
    */
   FunctionType substitute3(List<DartType> argumentTypes);
 
+  @override
   FunctionType substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes);
 }
 
@@ -9364,6 +9943,7 @@ abstract class InterfaceType implements ParameterizedType {
    */
   List<PropertyAccessorElement> get accessors;
 
+  @override
   ClassElement get element;
 
   /**
@@ -9400,6 +9980,7 @@ abstract class InterfaceType implements ParameterizedType {
    * @param type the other type used to compute the least upper bound
    * @return the least upper bound of this type and the given type
    */
+  @override
   DartType getLeastUpperBound(DartType type);
 
   /**
@@ -9479,6 +10060,7 @@ abstract class InterfaceType implements ParameterizedType {
    * @param type the type being compared with this type
    * @return `true` if this type is more specific than the given type
    */
+  @override
   bool isMoreSpecificThan(DartType type);
 
   /**
@@ -9491,6 +10073,7 @@ abstract class InterfaceType implements ParameterizedType {
    * @param type the type being compared with this type
    * @return `true` if this type is a subtype of the given type
    */
+  @override
   bool isSubtypeOf(DartType type);
 
   /**
@@ -9635,6 +10218,7 @@ abstract class InterfaceType implements ParameterizedType {
    */
   InterfaceType substitute4(List<DartType> argumentTypes);
 
+  @override
   InterfaceType substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes);
 }
 
@@ -9794,6 +10378,7 @@ abstract class DartType {
  * introduced by a type parameter.
  */
 abstract class TypeParameterType implements DartType {
+  @override
   TypeParameterElement get element;
 }
 
@@ -9802,5 +10387,6 @@ abstract class TypeParameterType implements DartType {
  * `void`.
  */
 abstract class VoidType implements DartType {
+  @override
   VoidType substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes);
 }

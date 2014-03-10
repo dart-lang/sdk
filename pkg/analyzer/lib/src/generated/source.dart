@@ -42,14 +42,17 @@ abstract class LocalSourcePredicate {
 }
 
 class LocalSourcePredicate_FALSE implements LocalSourcePredicate {
+  @override
   bool isLocal(Source source) => false;
 }
 
 class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
+  @override
   bool isLocal(Source source) => true;
 }
 
 class LocalSourcePredicate_NOT_SDK implements LocalSourcePredicate {
+  @override
   bool isLocal(Source source) => source.uriKind != UriKind.DART_URI;
 }
 
@@ -283,6 +286,7 @@ abstract class Source {
    *         this source
    * @see Object#equals(Object)
    */
+  @override
   bool operator ==(Object object);
 
   /**
@@ -365,6 +369,7 @@ abstract class Source {
    * @return a hash code for this source
    * @see Object#hashCode()
    */
+  @override
   int get hashCode;
 
   /**
@@ -558,6 +563,7 @@ class SourceRange {
     return otherRange.contains(thisEnd);
   }
 
+  @override
   bool operator ==(Object obj) {
     if (obj is! SourceRange) {
       return false;
@@ -587,6 +593,7 @@ class SourceRange {
    */
   SourceRange getTranslated(int delta) => new SourceRange(offset + delta, length);
 
+  @override
   int get hashCode => 31 * offset + length;
 
   /**
@@ -610,6 +617,7 @@ class SourceRange {
    */
   bool startsIn(SourceRange otherRange) => otherRange.contains(offset);
 
+  @override
   String toString() {
     JavaStringBuilder builder = new JavaStringBuilder();
     builder.append("[offset=");
@@ -671,6 +679,7 @@ class DartUriResolver extends UriResolver {
     this._sdk = sdk;
   }
 
+  @override
   Source fromEncoding(UriKind kind, Uri uri) {
     if (identical(kind, UriKind.DART_URI)) {
       return _sdk.fromEncoding(kind, uri);
@@ -685,6 +694,7 @@ class DartUriResolver extends UriResolver {
    */
   DartSdk get dartSdk => _sdk;
 
+  @override
   Source resolveAbsolute(Uri uri) {
     if (!isDartUri(uri)) {
       return null;

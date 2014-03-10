@@ -188,10 +188,13 @@ class ScannerErrorCode extends Enum<ScannerErrorCode> implements ErrorCode {
     this.correction10 = correction;
   }
 
+  @override
   String get correction => correction10;
 
+  @override
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
 
+  @override
   ErrorType get type => ErrorType.SYNTACTIC_ERROR;
 }
 
@@ -217,10 +220,13 @@ class SubSequenceReader extends CharSequenceReader {
     this._offsetDelta = offsetDelta;
   }
 
+  @override
   int get offset => _offsetDelta + super.offset;
 
+  @override
   String getString(int start, int endDelta) => super.getString(start - _offsetDelta, endDelta);
 
+  @override
   void set offset(int offset) {
     super.offset = offset - _offsetDelta;
   }
@@ -248,10 +254,13 @@ class StringTokenWithComment extends StringToken {
     this._precedingComment = precedingComment;
   }
 
+  @override
   Token copy() => new StringTokenWithComment(type, lexeme, offset, copyComments(_precedingComment));
 
+  @override
   Token get precedingComments => _precedingComment;
 
+  @override
   void applyDelta(int delta) {
     super.applyDelta(delta);
     Token token = _precedingComment;
@@ -508,6 +517,7 @@ class CharSequenceReader implements CharacterReader {
     this._charOffset = -1;
   }
 
+  @override
   int advance() {
     if (_charOffset + 1 >= _stringLength) {
       return -1;
@@ -515,10 +525,13 @@ class CharSequenceReader implements CharacterReader {
     return _sequence.codeUnitAt(++_charOffset);
   }
 
+  @override
   int get offset => _charOffset;
 
+  @override
   String getString(int start, int endDelta) => _sequence.substring(start, _charOffset + 1 + endDelta).toString();
 
+  @override
   int peek() {
     if (_charOffset + 1 >= _sequence.length) {
       return -1;
@@ -526,6 +539,7 @@ class CharSequenceReader implements CharacterReader {
     return _sequence.codeUnitAt(_charOffset + 1);
   }
 
+  @override
   void set offset(int offset) {
     _charOffset = offset;
   }
@@ -544,6 +558,7 @@ class SyntheticStringToken extends StringToken {
    */
   SyntheticStringToken(TokenType type, String value, int offset) : super(type, value, offset);
 
+  @override
   bool get isSynthetic => true;
 }
 
@@ -1865,10 +1880,13 @@ class StringToken extends Token {
     this._value = StringUtilities.intern(value);
   }
 
+  @override
   Token copy() => new StringToken(type, _value, offset);
 
+  @override
   String get lexeme => _value;
 
+  @override
   String value() => _value;
 }
 
@@ -1894,8 +1912,10 @@ class TokenWithComment extends Token {
     this._precedingComment = precedingComment;
   }
 
+  @override
   Token copy() => new TokenWithComment(type, offset, _precedingComment);
 
+  @override
   Token get precedingComments => _precedingComment;
 }
 
@@ -2043,6 +2063,7 @@ class Token {
     return token;
   }
 
+  @override
   String toString() => lexeme;
 
   /**
@@ -2153,10 +2174,13 @@ class BeginTokenWithComment extends BeginToken {
     this._precedingComment = precedingComment;
   }
 
+  @override
   Token copy() => new BeginTokenWithComment(type, offset, copyComments(_precedingComment));
 
+  @override
   Token get precedingComments => _precedingComment;
 
+  @override
   void applyDelta(int delta) {
     super.applyDelta(delta);
     Token token = _precedingComment;
@@ -2184,10 +2208,13 @@ class KeywordToken extends Token {
    */
   KeywordToken(this.keyword, int offset) : super(TokenType.KEYWORD, offset);
 
+  @override
   Token copy() => new KeywordToken(keyword, offset);
 
+  @override
   String get lexeme => keyword.syntax;
 
+  @override
   Keyword value() => keyword;
 }
 
@@ -2211,6 +2238,7 @@ class BeginToken extends Token {
     assert((identical(type, TokenType.OPEN_CURLY_BRACKET) || identical(type, TokenType.OPEN_PAREN) || identical(type, TokenType.OPEN_SQUARE_BRACKET) || identical(type, TokenType.STRING_INTERPOLATION_EXPRESSION)));
   }
 
+  @override
   Token copy() => new BeginToken(type, offset);
 }
 
@@ -2359,10 +2387,13 @@ class KeywordTokenWithComment extends KeywordToken {
     this._precedingComment = precedingComment;
   }
 
+  @override
   Token copy() => new KeywordTokenWithComment(keyword, offset, copyComments(_precedingComment));
 
+  @override
   Token get precedingComments => _precedingComment;
 
+  @override
   void applyDelta(int delta) {
     super.applyDelta(delta);
     Token token = _precedingComment;
@@ -2715,5 +2746,6 @@ class TokenType extends Enum<TokenType> {
 class TokenType_EOF extends TokenType {
   TokenType_EOF(String name, int ordinal, TokenClass arg0, String arg1) : super.con2(name, ordinal, arg0, arg1);
 
+  @override
   String toString() => "-eof-";
 }

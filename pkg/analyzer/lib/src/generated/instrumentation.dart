@@ -102,34 +102,47 @@ class Instrumentation {
 }
 
 class InstrumentationBuilder_Instrumentation_NULL_INSTRUMENTATION_BUILDER implements InstrumentationBuilder {
+  @override
   InstrumentationBuilder data(String name, bool value) => this;
 
+  @override
   InstrumentationBuilder data2(String name, int value) => this;
 
+  @override
   InstrumentationBuilder data3(String name, String value) => this;
 
+  @override
   InstrumentationBuilder data4(String name, List<String> value) => this;
 
+  @override
   InstrumentationLevel get instrumentationLevel => InstrumentationLevel.OFF;
 
+  @override
   void log() {
   }
 
+  @override
   void log2(int minTimeToLong) {
   }
 
+  @override
   InstrumentationBuilder metric(String name, bool value) => this;
 
+  @override
   InstrumentationBuilder metric2(String name, int value) => this;
 
+  @override
   InstrumentationBuilder metric3(String name, String value) => this;
 
+  @override
   InstrumentationBuilder metric4(String name, List<String> value) => this;
 
+  @override
   InstrumentationBuilder record(Exception exception) => this;
 }
 
 class InstrumentationLogger_Instrumentation_NULL_LOGGER implements InstrumentationLogger {
+  @override
   InstrumentationBuilder createBuilder(String name) => Instrumentation._NULL_INSTRUMENTATION_BUILDER;
 }
 

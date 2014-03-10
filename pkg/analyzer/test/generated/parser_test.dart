@@ -6776,6 +6776,7 @@ class SimpleParserTest extends ParserTestCase {
 }
 
 class AnalysisErrorListener_SimpleParserTest_computeStringValue implements AnalysisErrorListener {
+  @override
   void onError(AnalysisError event) {
     JUnitTestCase.fail("Unexpected compilation error: ${event.message} (${event.offset}, ${event.length})");
   }
@@ -7526,6 +7527,7 @@ class ParserTestCase extends EngineTestCase {
    */
   CommentAndMetadata emptyCommentAndMetadata() => new CommentAndMetadata(null, new List<Annotation>());
 
+  @override
   void setUp() {
     super.setUp();
     parseFunctionBodies = true;
@@ -7563,6 +7565,7 @@ class AstValidator extends UnifyingAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitNode(AstNode node) {
     _validate(node);
     return super.visitNode(node);

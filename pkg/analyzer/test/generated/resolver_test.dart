@@ -5868,6 +5868,7 @@ class LibraryTest extends EngineTestCase {
    */
   Library _library;
 
+  @override
   void setUp() {
     _sourceFactory = new SourceFactory([new FileUriResolver()]);
     _analysisContext = new AnalysisContextImpl();
@@ -9013,6 +9014,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
+  @override
   void setUp() {
     _listener = new GatheringErrorListener();
     SourceFactory factory = new SourceFactory([new FileUriResolver()]);
@@ -9339,6 +9341,7 @@ class ResolverTestCase extends EngineTestCase {
    */
   AnalysisContextImpl _analysisContext;
 
+  @override
   void setUp() {
     reset();
   }
@@ -9625,6 +9628,7 @@ class InheritanceManagerTest extends EngineTestCase {
    */
   int _numOfMembersInObject = 0;
 
+  @override
   void setUp() {
     _typeProvider = new TestTypeProvider();
     _inheritanceManager = _createInheritanceManager();
@@ -15299,14 +15303,19 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitBreakStatement(BreakStatement node) => null;
 
+  @override
   Object visitCommentReference(CommentReference node) => null;
 
+  @override
   Object visitContinueStatement(ContinueStatement node) => null;
 
+  @override
   Object visitExportDirective(ExportDirective node) => null;
 
+  @override
   Object visitExpression(Expression node) {
     node.visitChildren(this);
     DartType staticType = node.staticType;
@@ -15325,12 +15334,16 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitImportDirective(ImportDirective node) => null;
 
+  @override
   Object visitLabel(Label node) => null;
 
+  @override
   Object visitLibraryIdentifier(LibraryIdentifier node) => null;
 
+  @override
   Object visitPrefixedIdentifier(PrefixedIdentifier node) {
     // In cases where we have a prefixed identifier where the prefix is dynamic, we don't want to
     // assert that the node will have a type.
@@ -15340,6 +15353,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
     return super.visitPrefixedIdentifier(node);
   }
 
+  @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     // In cases where identifiers are being used for something other than an expressions,
     // then they can be ignored.
@@ -15361,6 +15375,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
     return super.visitSimpleIdentifier(node);
   }
 
+  @override
   Object visitTypeName(TypeName node) {
     // Note: do not visit children from this node, the child SimpleIdentifier in TypeName
     // (i.e. "String") does not have a static type defined.
@@ -15409,6 +15424,7 @@ class StrictModeTest extends ResolverTestCase {
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
+  @override
   void setUp() {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
@@ -15660,6 +15676,7 @@ class ElementResolverTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
+  @override
   void setUp() {
     _listener = new GatheringErrorListener();
     _typeProvider = new TestTypeProvider();
@@ -20036,6 +20053,7 @@ class TestTypeProvider implements TypeProvider {
    */
   InterfaceType _typeType;
 
+  @override
   InterfaceType get boolType {
     if (_boolType == null) {
       _boolType = ElementFactory.classElement2("bool", []).type;
@@ -20043,6 +20061,7 @@ class TestTypeProvider implements TypeProvider {
     return _boolType;
   }
 
+  @override
   DartType get bottomType {
     if (_bottomType == null) {
       _bottomType = BottomTypeImpl.instance;
@@ -20050,6 +20069,7 @@ class TestTypeProvider implements TypeProvider {
     return _bottomType;
   }
 
+  @override
   InterfaceType get deprecatedType {
     if (_deprecatedType == null) {
       ClassElementImpl deprecatedElement = ElementFactory.classElement2("Deprecated", []);
@@ -20059,6 +20079,7 @@ class TestTypeProvider implements TypeProvider {
     return _deprecatedType;
   }
 
+  @override
   InterfaceType get doubleType {
     if (_doubleType == null) {
       _initializeNumericTypes();
@@ -20066,6 +20087,7 @@ class TestTypeProvider implements TypeProvider {
     return _doubleType;
   }
 
+  @override
   DartType get dynamicType {
     if (_dynamicType == null) {
       _dynamicType = DynamicTypeImpl.instance;
@@ -20073,6 +20095,7 @@ class TestTypeProvider implements TypeProvider {
     return _dynamicType;
   }
 
+  @override
   InterfaceType get functionType {
     if (_functionType == null) {
       _functionType = ElementFactory.classElement2("Function", []).type;
@@ -20080,6 +20103,7 @@ class TestTypeProvider implements TypeProvider {
     return _functionType;
   }
 
+  @override
   InterfaceType get intType {
     if (_intType == null) {
       _initializeNumericTypes();
@@ -20111,6 +20135,7 @@ class TestTypeProvider implements TypeProvider {
     return _iteratorType;
   }
 
+  @override
   InterfaceType get listType {
     if (_listType == null) {
       ClassElementImpl listElement = ElementFactory.classElement2("List", ["E"]);
@@ -20129,6 +20154,7 @@ class TestTypeProvider implements TypeProvider {
     return _listType;
   }
 
+  @override
   InterfaceType get mapType {
     if (_mapType == null) {
       ClassElementImpl mapElement = ElementFactory.classElement2("Map", ["K", "V"]);
@@ -20144,6 +20170,7 @@ class TestTypeProvider implements TypeProvider {
     return _mapType;
   }
 
+  @override
   InterfaceType get nullType {
     if (_nullType == null) {
       _nullType = ElementFactory.classElement2("Null", []).type;
@@ -20151,6 +20178,7 @@ class TestTypeProvider implements TypeProvider {
     return _nullType;
   }
 
+  @override
   InterfaceType get numType {
     if (_numType == null) {
       _initializeNumericTypes();
@@ -20158,6 +20186,7 @@ class TestTypeProvider implements TypeProvider {
     return _numType;
   }
 
+  @override
   InterfaceType get objectType {
     if (_objectType == null) {
       ClassElementImpl objectElement = ElementFactory.object;
@@ -20174,6 +20203,7 @@ class TestTypeProvider implements TypeProvider {
     return _objectType;
   }
 
+  @override
   InterfaceType get stackTraceType {
     if (_stackTraceType == null) {
       _stackTraceType = ElementFactory.classElement2("StackTrace", []).type;
@@ -20181,6 +20211,7 @@ class TestTypeProvider implements TypeProvider {
     return _stackTraceType;
   }
 
+  @override
   InterfaceType get stringType {
     if (_stringType == null) {
       _stringType = ElementFactory.classElement2("String", []).type;
@@ -20197,6 +20228,7 @@ class TestTypeProvider implements TypeProvider {
     return _stringType;
   }
 
+  @override
   InterfaceType get symbolType {
     if (_symbolType == null) {
       _symbolType = ElementFactory.classElement2("Symbol", []).type;
@@ -20204,6 +20236,7 @@ class TestTypeProvider implements TypeProvider {
     return _symbolType;
   }
 
+  @override
   InterfaceType get typeType {
     if (_typeType == null) {
       _typeType = ElementFactory.classElement2("Type", []).type;
@@ -20701,6 +20734,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitBinaryExpression(BinaryExpression node) {
     node.visitChildren(this);
     if (!node.operator.isUserDefinableOperator) {
@@ -20713,15 +20747,19 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     return _checkResolved(node, node.staticElement, (node) => node is MethodElement);
   }
 
+  @override
   Object visitCommentReference(CommentReference node) => null;
 
+  @override
   Object visitCompilationUnit(CompilationUnit node) {
     node.visitChildren(this);
     return _checkResolved(node, node.element, (node) => node is CompilationUnitElement);
   }
 
+  @override
   Object visitExportDirective(ExportDirective node) => _checkResolved(node, node.element, (node) => node is ExportElement);
 
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     node.visitChildren(this);
     if (node.element is LibraryElement) {
@@ -20730,6 +20768,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.visitChildren(this);
     // TODO(brianwilkerson) If we start resolving function expressions, then conditionally check to
@@ -20737,6 +20776,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitImportDirective(ImportDirective node) {
     // Not sure how to test the combinators given that it isn't an error if the names are not defined.
     _checkResolved(node, node.element, (node) => node is ImportElement);
@@ -20747,6 +20787,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     return _checkResolved(prefix, prefix.staticElement, (node) => node is PrefixElement);
   }
 
+  @override
   Object visitIndexExpression(IndexExpression node) {
     node.visitChildren(this);
     DartType targetType = node.realTarget.staticType;
@@ -20756,14 +20797,19 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     return _checkResolved(node, node.staticElement, (node) => node is MethodElement);
   }
 
+  @override
   Object visitLibraryDirective(LibraryDirective node) => _checkResolved(node, node.element, (node) => node is LibraryElement);
 
+  @override
   Object visitNamedExpression(NamedExpression node) => node.expression.accept(this);
 
+  @override
   Object visitPartDirective(PartDirective node) => _checkResolved(node, node.element, (node) => node is CompilationUnitElement);
 
+  @override
   Object visitPartOfDirective(PartOfDirective node) => _checkResolved(node, node.element, (node) => node is LibraryElement);
 
+  @override
   Object visitPostfixExpression(PostfixExpression node) {
     node.visitChildren(this);
     if (!node.operator.isUserDefinableOperator) {
@@ -20776,6 +20822,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     return _checkResolved(node, node.staticElement, (node) => node is MethodElement);
   }
 
+  @override
   Object visitPrefixedIdentifier(PrefixedIdentifier node) {
     SimpleIdentifier prefix = node.prefix;
     prefix.accept(this);
@@ -20786,6 +20833,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     return _checkResolved(node, node.staticElement, null);
   }
 
+  @override
   Object visitPrefixExpression(PrefixExpression node) {
     node.visitChildren(this);
     if (!node.operator.isUserDefinableOperator) {
@@ -20798,6 +20846,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     return _checkResolved(node, node.staticElement, (node) => node is MethodElement);
   }
 
+  @override
   Object visitPropertyAccess(PropertyAccess node) {
     Expression target = node.realTarget;
     target.accept(this);
@@ -20808,6 +20857,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     return node.propertyName.accept(this);
   }
 
+  @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.name == "void") {
       return null;
@@ -20877,6 +20927,7 @@ class MemberMapTest extends JUnitTestCase {
    */
   InterfaceType _nullType;
 
+  @override
   void setUp() {
     _nullType = new TestTypeProvider().nullType;
   }
@@ -21017,6 +21068,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
+  @override
   void setUp() {
     _listener = new GatheringErrorListener();
     _typeProvider = new TestTypeProvider();
@@ -23177,8 +23229,10 @@ class Scope_EnclosedScopeTest_test_define_duplicate extends Scope {
 
   Scope_EnclosedScopeTest_test_define_duplicate(this.errorListener2) : super();
 
+  @override
   AnalysisErrorListener get errorListener => errorListener2;
 
+  @override
   Element internalLookup(Identifier identifier, String name, LibraryElement referencingLibrary) => null;
 }
 
@@ -23187,8 +23241,10 @@ class Scope_EnclosedScopeTest_test_define_normal extends Scope {
 
   Scope_EnclosedScopeTest_test_define_normal(this.errorListener3) : super();
 
+  @override
   AnalysisErrorListener get errorListener => errorListener3;
 
+  @override
   Element internalLookup(Identifier identifier, String name, LibraryElement referencingLibrary) => null;
 }
 
@@ -23198,6 +23254,7 @@ class LibraryElementBuilderTest extends EngineTestCase {
    */
   AnalysisContextImpl _context;
 
+  @override
   void setUp() {
     SourceFactory sourceFactory = new SourceFactory([
         new DartUriResolver(DirectoryBasedDartSdk.defaultSdk),
@@ -23460,6 +23517,7 @@ class ScopeTest_TestScope extends Scope {
 
   ScopeTest_TestScope(this.errorListener);
 
+  @override
   Element internalLookup(Identifier identifier, String name, LibraryElement referencingLibrary) => localLookup(name, referencingLibrary);
 }
 
@@ -24494,6 +24552,7 @@ class RecursiveAstVisitor_SimpleResolverTest_test_localVariable_types_invoked ex
 
   RecursiveAstVisitor_SimpleResolverTest_test_localVariable_types_invoked(this.SimpleResolverTest_this, this.found, this.thrownException) : super();
 
+  @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.name == "myVar" && node.parent is MethodInvocation) {
       try {
@@ -24586,6 +24645,7 @@ class SubtypeManagerTest extends EngineTestCase {
     EngineTestCase.assertContains(arraySubtypesOfA, [classB]);
   }
 
+  @override
   void setUp() {
     super.setUp();
     AnalysisContextImpl context = AnalysisContextFactory.contextWithCore();

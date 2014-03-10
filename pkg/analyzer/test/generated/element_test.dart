@@ -591,6 +591,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
    */
   TestTypeProvider _typeProvider;
 
+  @override
   void setUp() {
     _typeProvider = new TestTypeProvider();
   }
@@ -3977,6 +3978,7 @@ class FunctionTypeImplTest extends EngineTestCase {
 class InterfaceTypeImpl_FunctionTypeImplTest_test_isSubtypeOf_baseCase_classFunction extends InterfaceTypeImpl {
   InterfaceTypeImpl_FunctionTypeImplTest_test_isSubtypeOf_baseCase_classFunction(ClassElement arg0) : super.con1(arg0);
 
+  @override
   bool get isDartCoreFunction => true;
 }
 

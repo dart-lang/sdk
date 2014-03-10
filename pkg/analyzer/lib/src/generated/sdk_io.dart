@@ -189,8 +189,10 @@ class DirectoryBasedDartSdk implements DartSdk {
     _analysisContext.applyChanges(changeSet);
   }
 
+  @override
   Source fromEncoding(UriKind kind, Uri uri) => new FileBasedSource.con2(new JavaFile.fromUri(uri), kind);
 
+  @override
   AnalysisContext get context => _analysisContext;
 
   /**
@@ -269,8 +271,10 @@ class DirectoryBasedDartSdk implements DartSdk {
     return file.exists() ? file : null;
   }
 
+  @override
   List<SdkLibrary> get sdkLibraries => _libraryMap.sdkLibraries;
 
+  @override
   SdkLibrary getSdkLibrary(String dartUri) => _libraryMap.getLibrary(dartUri);
 
   /**
@@ -279,6 +283,7 @@ class DirectoryBasedDartSdk implements DartSdk {
    *
    * @return the revision number of this SDK
    */
+  @override
   String get sdkVersion {
     if (_sdkVersion == null) {
       _sdkVersion = DartSdk.DEFAULT_VERSION;
@@ -299,6 +304,7 @@ class DirectoryBasedDartSdk implements DartSdk {
    *
    * @return the library URI's for the libraries defined in this SDK
    */
+  @override
   List<String> get uris => _libraryMap.uris;
 
   /**
@@ -330,6 +336,7 @@ class DirectoryBasedDartSdk implements DartSdk {
    */
   bool get isDartiumInstalled => dartiumExecutable != null;
 
+  @override
   Source mapDartUri(String dartUri) {
     SdkLibrary library = getSdkLibrary(dartUri);
     if (library == null) {

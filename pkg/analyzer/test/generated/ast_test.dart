@@ -1104,6 +1104,7 @@ class BreadthFirstVisitor_BreadthFirstVisitorTest_testIt extends BreadthFirstVis
 
   BreadthFirstVisitor_BreadthFirstVisitorTest_testIt(this.nodes) : super();
 
+  @override
   Object visitNode(AstNode node) {
     nodes.add(node);
     return super.visitNode(node);

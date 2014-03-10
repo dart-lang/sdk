@@ -50,14 +50,18 @@ class RemoveSourceOperation implements IndexOperation {
     this._context = context;
   }
 
+  @override
   bool get isQuery => false;
 
+  @override
   void performOperation() {
     _indexStore.removeSource(_context, source);
   }
 
+  @override
   bool removeWhenSourceRemoved(Source source) => false;
 
+  @override
   String toString() => "RemoveSource(${source.fullName})";
 }
 
@@ -160,6 +164,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
 
   int _locationCount = 0;
 
+  @override
   bool aboutToIndexDart(AnalysisContext context, CompilationUnitElement unitElement) {
     context = unwrapContext(context);
     // may be already disposed in other thread
@@ -224,6 +229,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     return true;
   }
 
+  @override
   bool aboutToIndexHtml(AnalysisContext context, HtmlElement htmlElement) {
     context = unwrapContext(context);
     // may be already disposed in other thread
@@ -250,6 +256,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     return true;
   }
 
+  @override
   List<Location> getRelationships(Element element, Relationship relationship) {
     MemoryIndexStoreImpl_ElementRelationKey key = new MemoryIndexStoreImpl_ElementRelationKey(element, relationship);
     Set<Location> locations = _keyToLocations[key];
@@ -259,6 +266,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     return Location.EMPTY_ARRAY;
   }
 
+  @override
   String get statistics => "${_locationCount} relationships in ${_keyCount} keys in ${_sourceCount} sources";
 
   int internalGetKeyCount() => _keyToLocations.length;
@@ -295,11 +303,12 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     return count;
   }
 
+  @override
   void recordRelationship(Element element, Relationship relationship, Location location) {
     if (element == null || location == null) {
       return;
     }
-    location = location.clone();
+    location = location.newClone();
     // at the index level we don't care about Member(s)
     if (element is Member) {
       element = (element as Member).baseElement;
@@ -383,6 +392,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     }
   }
 
+  @override
   void removeContext(AnalysisContext context) {
     context = unwrapContext(context);
     if (context == null) {
@@ -397,6 +407,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     _contextToUnitToLibraries.remove(context);
   }
 
+  @override
   void removeSource(AnalysisContext context, Source unit) {
     context = unwrapContext(context);
     if (context == null) {
@@ -432,6 +443,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     }
   }
 
+  @override
   void removeSources(AnalysisContext context, SourceContainer container) {
     context = unwrapContext(context);
     if (context == null) {
@@ -532,12 +544,14 @@ class MemoryIndexStoreImpl_ElementRelationKey {
     this._relationship = relationship;
   }
 
+  @override
   bool operator ==(Object obj) {
     MemoryIndexStoreImpl_ElementRelationKey other = obj as MemoryIndexStoreImpl_ElementRelationKey;
     Element otherElement = other._element;
     return identical(other._relationship, _relationship) && otherElement.nameOffset == _element.nameOffset && identical(otherElement.kind, _element.kind) && otherElement.displayName == _element.displayName && otherElement.source == _element.source;
   }
 
+  @override
   int get hashCode => JavaArrays.makeHashCode([
       _element.source,
       _element.nameOffset,
@@ -545,6 +559,7 @@ class MemoryIndexStoreImpl_ElementRelationKey {
       _element.displayName,
       _relationship]);
 
+  @override
   String toString() => "${_element} ${_relationship}";
 }
 
@@ -558,6 +573,7 @@ class MemoryIndexStoreImpl_Source2 {
     this._unitSource = unitSource;
   }
 
+  @override
   bool operator ==(Object obj) {
     if (identical(obj, this)) {
       return true;
@@ -569,8 +585,10 @@ class MemoryIndexStoreImpl_Source2 {
     return other._librarySource == _librarySource && other._unitSource == _unitSource;
   }
 
+  @override
   int get hashCode => JavaArrays.makeHashCode([_librarySource, _unitSource]);
 
+  @override
   String toString() => "${_librarySource} ${_unitSource}";
 }
 
@@ -623,8 +641,10 @@ class IndexUnitOperation implements IndexOperation {
    */
   Source get source => _source;
 
+  @override
   bool get isQuery => false;
 
+  @override
   void performOperation() {
     try {
       bool mayIndex = _indexStore.aboutToIndexDart(_context, _unitElement);
@@ -638,8 +658,10 @@ class IndexUnitOperation implements IndexOperation {
     }
   }
 
+  @override
   bool removeWhenSourceRemoved(Source source) => this._source == source;
 
+  @override
   String toString() => "IndexUnitOperation(${_source.fullName})";
 }
 
@@ -654,11 +676,13 @@ abstract class ExpressionVisitor extends ht.RecursiveXmlVisitor<Object> {
    */
   void visitExpression(Expression expression);
 
+  @override
   Object visitXmlAttributeNode(ht.XmlAttributeNode node) {
     _visitExpressions(node.expressions);
     return super.visitXmlAttributeNode(node);
   }
 
+  @override
   Object visitXmlTagNode(ht.XmlTagNode node) {
     _visitExpressions(node.expressions);
     return super.visitXmlTagNode(node);
@@ -735,6 +759,7 @@ class Relationship {
    */
   String get identifier => _uniqueId;
 
+  @override
   String toString() => _uniqueId;
 }
 
@@ -770,14 +795,18 @@ class RemoveSourcesOperation implements IndexOperation {
     this._context = context;
   }
 
+  @override
   bool get isQuery => false;
 
+  @override
   void performOperation() {
     _indexStore.removeSources(_context, container);
   }
 
+  @override
   bool removeWhenSourceRemoved(Source source) => false;
 
+  @override
   String toString() => "RemoveSources(${container})";
 }
 
@@ -990,6 +1019,7 @@ class AngularHtmlIndexContributor extends ExpressionVisitor {
     _indexContributor = new IndexContributor_AngularHtmlIndexContributor(store, this);
   }
 
+  @override
   void visitExpression(Expression expression) {
     // NgFilter
     if (expression is SimpleIdentifier) {
@@ -1004,6 +1034,7 @@ class AngularHtmlIndexContributor extends ExpressionVisitor {
     expression.accept(_indexContributor);
   }
 
+  @override
   Object visitHtmlUnit(ht.HtmlUnit node) {
     _htmlUnitElement = node.element;
     CompilationUnitElement dartUnitElement = _htmlUnitElement.angularCompilationUnit;
@@ -1011,6 +1042,7 @@ class AngularHtmlIndexContributor extends ExpressionVisitor {
     return super.visitHtmlUnit(node);
   }
 
+  @override
   Object visitXmlAttributeNode(ht.XmlAttributeNode node) {
     Element element = node.element;
     if (element != null) {
@@ -1021,6 +1053,7 @@ class AngularHtmlIndexContributor extends ExpressionVisitor {
     return super.visitXmlAttributeNode(node);
   }
 
+  @override
   Object visitXmlTagNode(ht.XmlTagNode node) {
     Element element = node.element;
     if (element != null) {
@@ -1050,8 +1083,10 @@ class IndexContributor_AngularHtmlIndexContributor extends IndexContributor {
 
   IndexContributor_AngularHtmlIndexContributor(IndexStore arg0, this.AngularHtmlIndexContributor_this) : super(arg0);
 
+  @override
   Element peekElement() => AngularHtmlIndexContributor_this._htmlUnitElement;
 
+  @override
   void recordRelationship(Element element, Relationship relationship, Location location) {
     AngularElement angularElement = AngularHtmlUnitResolver.getAngularElement(element);
     if (angularElement != null) {
@@ -1269,8 +1304,10 @@ class UniverseElementImpl extends ElementImpl implements UniverseElement {
 
   UniverseElementImpl() : super("--universe--", -1);
 
+  @override
   accept(ElementVisitor visitor) => null;
 
+  @override
   ElementKind get kind => ElementKind.UNIVERSE;
 }
 
@@ -1563,16 +1600,19 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitAssignmentExpression(AssignmentExpression node) {
     _recordOperatorReference(node.operator, node.bestElement);
     return super.visitAssignmentExpression(node);
   }
 
+  @override
   Object visitBinaryExpression(BinaryExpression node) {
     _recordOperatorReference(node.operator, node.bestElement);
     return super.visitBinaryExpression(node);
   }
 
+  @override
   Object visitClassDeclaration(ClassDeclaration node) {
     ClassElement element = node.element;
     enterScope(element);
@@ -1613,6 +1653,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
     ClassElement element = node.element;
     enterScope(element);
@@ -1646,6 +1687,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitCompilationUnit(CompilationUnit node) {
     CompilationUnitElement unitElement = node.element;
     if (unitElement != null) {
@@ -1658,6 +1700,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorElement element = node.element;
     // define
@@ -1682,6 +1725,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitConstructorName(ConstructorName node) {
     ConstructorElement element = node.staticElement;
     // in 'class B = A;' actually A constructors are invoked
@@ -1703,6 +1747,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     return super.visitConstructorName(node);
   }
 
+  @override
   Object visitExportDirective(ExportDirective node) {
     ExportElement element = node.element;
     if (element != null) {
@@ -1712,6 +1757,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     return super.visitExportDirective(node);
   }
 
+  @override
   Object visitFormalParameter(FormalParameter node) {
     ParameterElement element = node.element;
     enterScope(element);
@@ -1722,6 +1768,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     Element element = node.element;
     _recordElementDefinition(element, IndexConstants.DEFINES_FUNCTION);
@@ -1733,12 +1780,14 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
     Element element = node.element;
     _recordElementDefinition(element, IndexConstants.DEFINES_FUNCTION_TYPE);
     return super.visitFunctionTypeAlias(node);
   }
 
+  @override
   Object visitImportDirective(ImportDirective node) {
     ImportElement element = node.element;
     if (element != null) {
@@ -1748,6 +1797,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     return super.visitImportDirective(node);
   }
 
+  @override
   Object visitIndexExpression(IndexExpression node) {
     MethodElement element = node.bestElement;
     if (element is MethodElement) {
@@ -1758,6 +1808,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     return super.visitIndexExpression(node);
   }
 
+  @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement element = node.element;
     enterScope(element);
@@ -1768,6 +1819,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier name = node.methodName;
     Element element = name.bestElement;
@@ -1789,6 +1841,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     return super.visitMethodInvocation(node);
   }
 
+  @override
   Object visitPartDirective(PartDirective node) {
     Element element = node.element;
     Location location = _createLocationFromNode(node.uri);
@@ -1796,22 +1849,26 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     return super.visitPartDirective(node);
   }
 
+  @override
   Object visitPartOfDirective(PartOfDirective node) {
     Location location = _createLocationFromNode(node.libraryName);
     recordRelationship(node.element, IndexConstants.IS_REFERENCED_BY, location);
     return null;
   }
 
+  @override
   Object visitPostfixExpression(PostfixExpression node) {
     _recordOperatorReference(node.operator, node.bestElement);
     return super.visitPostfixExpression(node);
   }
 
+  @override
   Object visitPrefixExpression(PrefixExpression node) {
     _recordOperatorReference(node.operator, node.bestElement);
     return super.visitPrefixExpression(node);
   }
 
+  @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     Element nameElement = new NameElementImpl(node.name);
     Location location = _createLocationFromNode(node);
@@ -1864,6 +1921,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     return super.visitSimpleIdentifier(node);
   }
 
+  @override
   Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     ConstructorElement element = node.staticElement;
     Location location;
@@ -1879,6 +1937,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     return super.visitSuperConstructorInvocation(node);
   }
 
+  @override
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     VariableDeclarationList variables = node.variables;
     for (VariableDeclaration variableDeclaration in variables.variables) {
@@ -1888,6 +1947,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     return super.visitTopLevelVariableDeclaration(node);
   }
 
+  @override
   Object visitTypeParameter(TypeParameter node) {
     TypeParameterElement element = node.element;
     enterScope(element);
@@ -1898,6 +1958,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     VariableElement element = node.element;
     // record declaration
@@ -1916,6 +1977,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitVariableDeclarationList(VariableDeclarationList node) {
     NodeList<VariableDeclaration> variables = node.variables;
     if (variables != null) {
@@ -2117,8 +2179,10 @@ class IndexContributor_ImportElementInfo {
 class NameElementImpl extends ElementImpl {
   NameElementImpl(String name) : super("name:${name}", -1);
 
+  @override
   accept(ElementVisitor visitor) => null;
 
+  @override
   ElementKind get kind => ElementKind.NAME;
 }
 
@@ -2133,6 +2197,7 @@ class AngularDartIndexContributor extends GeneralizingAstVisitor<Object> {
     this._store = store;
   }
 
+  @override
   Object visitClassDeclaration(ClassDeclaration node) {
     ClassElement classElement = node.element;
     if (classElement != null) {
@@ -2151,6 +2216,7 @@ class AngularDartIndexContributor extends GeneralizingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitCompilationUnitMember(CompilationUnitMember node) => null;
 
   void _indexComponent(AngularComponentElement component) {
@@ -2218,14 +2284,18 @@ class RemoveContextOperation implements IndexOperation {
     this._indexStore = indexStore;
   }
 
+  @override
   bool get isQuery => false;
 
+  @override
   void performOperation() {
     _indexStore.removeContext(context);
   }
 
+  @override
   bool removeWhenSourceRemoved(Source source) => false;
 
+  @override
   String toString() => "RemoveContext(${context})";
 }
 
@@ -2278,8 +2348,10 @@ class IndexHtmlUnitOperation implements IndexOperation {
    */
   Source get source => _source;
 
+  @override
   bool get isQuery => false;
 
+  @override
   void performOperation() {
     try {
       bool mayIndex = _indexStore.aboutToIndexHtml(_context, _htmlElement);
@@ -2293,8 +2365,10 @@ class IndexHtmlUnitOperation implements IndexOperation {
     }
   }
 
+  @override
   bool removeWhenSourceRemoved(Source source) => this._source == source;
 
+  @override
   String toString() => "IndexHtmlUnitOperation(${_source.fullName})";
 }
 
@@ -2343,8 +2417,12 @@ class Location {
     }
   }
 
-  Location clone() => new Location(element, offset, length);
+  /**
+   * Returns a clone of this [Location].
+   */
+  Location newClone() => new Location(element, offset, length);
 
+  @override
   String toString() => "[${offset} - ${(offset + length)}) in ${element}";
 }
 
@@ -2376,16 +2454,20 @@ class GetRelationshipsOperation implements IndexOperation {
     this._indexStore = indexStore;
   }
 
+  @override
   bool get isQuery => true;
 
+  @override
   void performOperation() {
     List<Location> locations;
     locations = _indexStore.getRelationships(element, relationship);
     callback.hasRelationships(element, relationship, locations);
   }
 
+  @override
   bool removeWhenSourceRemoved(Source source) => false;
 
+  @override
   String toString() => "GetRelationships(${element}, ${relationship})";
 }
 
@@ -2399,7 +2481,8 @@ class LocationWithData<D> extends Location {
 
   LocationWithData.con2(Element element, int offset, int length, this.data) : super(element, offset, length);
 
-  Location clone() => new LocationWithData<D>.con2(element, offset, length, data);
+  @override
+  Location newClone() => new LocationWithData<D>.con2(element, offset, length, data);
 }
 
 /**

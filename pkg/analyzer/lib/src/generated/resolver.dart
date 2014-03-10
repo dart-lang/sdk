@@ -658,6 +658,7 @@ class RecursiveAstVisitor_AngularCompilationUnitBuilder_parseScopeProperties ext
 
   RecursiveAstVisitor_AngularCompilationUnitBuilder_parseScopeProperties(this.properties) : super();
 
+  @override
   Object visitAssignmentExpression(AssignmentExpression node) {
     _addProperty(node);
     return super.visitAssignmentExpression(node);
@@ -729,6 +730,7 @@ class RecursiveAstVisitor_AngularCompilationUnitBuilder_parseViews extends Recur
 
   RecursiveAstVisitor_AngularCompilationUnitBuilder_parseViews(this.views) : super();
 
+  @override
   Object visitMethodInvocation(MethodInvocation node) {
     _addView(node);
     return super.visitMethodInvocation(node);
@@ -861,6 +863,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     _currentHolder = initialHolder;
   }
 
+  @override
   Object visitBlock(Block node) {
     bool wasInField = _inFieldContext;
     _inFieldContext = false;
@@ -872,6 +875,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitCatchClause(CatchClause node) {
     SimpleIdentifier exceptionParameter = node.exceptionParameter;
     if (exceptionParameter != null) {
@@ -888,6 +892,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return super.visitCatchClause(node);
   }
 
+  @override
   Object visitClassDeclaration(ClassDeclaration node) {
     ElementHolder holder = new ElementHolder();
     _isValidMixin = true;
@@ -942,6 +947,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
     ElementHolder holder = new ElementHolder();
     _functionTypesToFix = new List<FunctionTypeImpl>();
@@ -968,6 +974,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     _isValidMixin = false;
     ElementHolder holder = new ElementHolder();
@@ -1002,6 +1009,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
     SimpleIdentifier variableName = node.identifier;
     sc.Token keyword = node.keyword;
@@ -1017,6 +1025,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return super.visitDeclaredIdentifier(node);
   }
 
+  @override
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     ElementHolder holder = new ElementHolder();
     NormalFormalParameter normalParameter = node.parameter;
@@ -1056,6 +1065,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitFieldDeclaration(FieldDeclaration node) {
     bool wasInField = _inFieldContext;
     _inFieldContext = true;
@@ -1067,6 +1077,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitFieldFormalParameter(FieldFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
       SimpleIdentifier parameterName = node.identifier;
@@ -1091,6 +1102,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     FunctionExpression expression = node.functionExpression;
     if (expression != null) {
@@ -1168,6 +1180,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitFunctionExpression(FunctionExpression node) {
     ElementHolder holder = new ElementHolder();
     bool wasInFunction = _inFunction;
@@ -1201,6 +1214,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
     ElementHolder holder = new ElementHolder();
     _visitChildren(holder, node);
@@ -1219,6 +1233,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
       SimpleIdentifier parameterName = node.identifier;
@@ -1238,6 +1253,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitLabeledStatement(LabeledStatement node) {
     bool onSwitchStatement = node.statement is SwitchStatement;
     for (Label label in node.labels) {
@@ -1249,6 +1265,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return super.visitLabeledStatement(node);
   }
 
+  @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     ElementHolder holder = new ElementHolder();
     bool wasInFunction = _inFunction;
@@ -1318,6 +1335,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
       SimpleIdentifier parameterName = node.identifier;
@@ -1332,11 +1350,13 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return super.visitSimpleFormalParameter(node);
   }
 
+  @override
   Object visitSuperExpression(SuperExpression node) {
     _isValidMixin = false;
     return super.visitSuperExpression(node);
   }
 
+  @override
   Object visitSwitchCase(SwitchCase node) {
     for (Label label in node.labels) {
       SimpleIdentifier labelName = label.label;
@@ -1347,6 +1367,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return super.visitSwitchCase(node);
   }
 
+  @override
   Object visitSwitchDefault(SwitchDefault node) {
     for (Label label in node.labels) {
       SimpleIdentifier labelName = label.label;
@@ -1357,6 +1378,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return super.visitSwitchDefault(node);
   }
 
+  @override
   Object visitTypeParameter(TypeParameter node) {
     SimpleIdentifier parameterName = node.name;
     TypeParameterElementImpl typeParameter = new TypeParameterElementImpl(parameterName);
@@ -1367,6 +1389,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return super.visitTypeParameter(node);
   }
 
+  @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     sc.Token keyword = (node.parent as VariableDeclarationList).keyword;
     bool isConst = _matches(keyword, sc.Keyword.CONST);
@@ -1591,16 +1614,19 @@ class UnifyingAstVisitor_ElementBuilder_visitClassDeclaration extends UnifyingAs
 
   UnifyingAstVisitor_ElementBuilder_visitClassDeclaration(this.ElementBuilder_this, this.nonFields) : super();
 
+  @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     nonFields.add(node);
     return null;
   }
 
+  @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     nonFields.add(node);
     return null;
   }
 
+  @override
   Object visitNode(AstNode node) => node.accept(ElementBuilder_this);
 }
 
@@ -2031,6 +2057,7 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
    */
   Set<Library> get resolvedLibraries => _resolvedLibraries;
 
+  @override
   Object visitHtmlScriptTagNode(ht.HtmlScriptTagNode node) {
     if (_parentNodes.contains(node)) {
       return _reportCircularity(node);
@@ -2080,6 +2107,7 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitHtmlUnit(ht.HtmlUnit node) {
     _parentNodes = new List<ht.XmlTagNode>();
     _scripts = new List<HtmlScriptElement>();
@@ -2093,8 +2121,10 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitXmlAttributeNode(ht.XmlAttributeNode node) => null;
 
+  @override
   Object visitXmlTagNode(ht.XmlTagNode node) {
     if (_parentNodes.contains(node)) {
       return _reportCircularity(node);
@@ -2235,11 +2265,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     this._errorReporter = errorReporter;
   }
 
+  @override
   Object visitAsExpression(AsExpression node) {
     _checkForUnnecessaryCast(node);
     return super.visitAsExpression(node);
   }
 
+  @override
   Object visitAssignmentExpression(AssignmentExpression node) {
     sc.TokenType operatorType = node.operator.type;
     if (operatorType != sc.TokenType.EQ) {
@@ -2250,12 +2282,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     return super.visitAssignmentExpression(node);
   }
 
+  @override
   Object visitBinaryExpression(BinaryExpression node) {
     _checkForDivisionOptimizationHint(node);
     _checkForDeprecatedMemberUse(node.bestElement, node);
     return super.visitBinaryExpression(node);
   }
 
+  @override
   Object visitClassDeclaration(ClassDeclaration node) {
     ClassElement outerClass = _enclosingClass;
     try {
@@ -2268,36 +2302,43 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitExportDirective(ExportDirective node) {
     _checkForDeprecatedMemberUse(node.uriElement, node);
     return super.visitExportDirective(node);
   }
 
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     _checkForMissingReturn(node.returnType, node.functionExpression.body);
     return super.visitFunctionDeclaration(node);
   }
 
+  @override
   Object visitImportDirective(ImportDirective node) {
     _checkForDeprecatedMemberUse(node.uriElement, node);
     return super.visitImportDirective(node);
   }
 
+  @override
   Object visitIndexExpression(IndexExpression node) {
     _checkForDeprecatedMemberUse(node.bestElement, node);
     return super.visitIndexExpression(node);
   }
 
+  @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     _checkForDeprecatedMemberUse(node.staticElement, node);
     return super.visitInstanceCreationExpression(node);
   }
 
+  @override
   Object visitIsExpression(IsExpression node) {
     _checkAllTypeChecks(node);
     return super.visitIsExpression(node);
   }
 
+  @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     // This was determined to not be a good hint, see: dartbug.com/16029
     //checkForOverridingPrivateMember(node);
@@ -2305,31 +2346,37 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     return super.visitMethodDeclaration(node);
   }
 
+  @override
   Object visitPostfixExpression(PostfixExpression node) {
     _checkForDeprecatedMemberUse(node.bestElement, node);
     return super.visitPostfixExpression(node);
   }
 
+  @override
   Object visitPrefixExpression(PrefixExpression node) {
     _checkForDeprecatedMemberUse(node.bestElement, node);
     return super.visitPrefixExpression(node);
   }
 
+  @override
   Object visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     _checkForDeprecatedMemberUse(node.staticElement, node);
     return super.visitRedirectingConstructorInvocation(node);
   }
 
+  @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     _checkForDeprecatedMemberUseAtIdentifier(node);
     return super.visitSimpleIdentifier(node);
   }
 
+  @override
   Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _checkForDeprecatedMemberUse(node.staticElement, node);
     return super.visitSuperConstructorInvocation(node);
   }
 
+  @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     _checkForUseOfVoidResult(node.initializer);
     return super.visitVariableDeclaration(node);
@@ -2676,6 +2723,7 @@ class Dart2JSVerifier extends RecursiveAstVisitor<Object> {
     this._errorReporter = errorReporter;
   }
 
+  @override
   Object visitIsExpression(IsExpression node) {
     _checkForIsDoubleHints(node);
     return super.visitIsExpression(node);
@@ -2740,6 +2788,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
     this._errorReporter = errorReporter;
   }
 
+  @override
   Object visitBinaryExpression(BinaryExpression node) {
     sc.Token operator = node.operator;
     bool isAmpAmp = identical(operator.type, sc.TokenType.AMPERSAND_AMPERSAND);
@@ -2774,6 +2823,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the block to evaluate
    */
+  @override
   Object visitBlock(Block node) {
     NodeList<Statement> statements = node.statements;
     int size = statements.length;
@@ -2792,6 +2842,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitConditionalExpression(ConditionalExpression node) {
     Expression conditionExpression = node.condition;
     _safelyVisit(conditionExpression);
@@ -2814,6 +2865,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
     return super.visitConditionalExpression(node);
   }
 
+  @override
   Object visitIfStatement(IfStatement node) {
     Expression conditionExpression = node.condition;
     _safelyVisit(conditionExpression);
@@ -2839,6 +2891,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
     return super.visitIfStatement(node);
   }
 
+  @override
   Object visitTryStatement(TryStatement node) {
     _safelyVisit(node.body);
     _safelyVisit(node.finallyBlock);
@@ -2898,6 +2951,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitWhileStatement(WhileStatement node) {
     Expression conditionExpression = node.condition;
     _safelyVisit(conditionExpression);
@@ -3003,14 +3057,19 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
    */
   bool _enclosingBlockContainsBreak = false;
 
+  @override
   bool visitArgumentList(ArgumentList node) => _visitExpressions(node.arguments);
 
+  @override
   bool visitAsExpression(AsExpression node) => node.expression.accept(this);
 
+  @override
   bool visitAssertStatement(AssertStatement node) => node.condition.accept(this);
 
+  @override
   bool visitAssignmentExpression(AssignmentExpression node) => node.leftHandSide.accept(this) || node.rightHandSide.accept(this);
 
+  @override
   bool visitBinaryExpression(BinaryExpression node) {
     Expression lhsExpression = node.leftOperand;
     sc.TokenType operatorType = node.operator.type;
@@ -3039,15 +3098,19 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     return lhsExpression.accept(this) || node.rightOperand.accept(this);
   }
 
+  @override
   bool visitBlock(Block node) => _visitStatements(node.statements);
 
+  @override
   bool visitBlockFunctionBody(BlockFunctionBody node) => node.block.accept(this);
 
+  @override
   bool visitBreakStatement(BreakStatement node) {
     _enclosingBlockContainsBreak = true;
     return false;
   }
 
+  @override
   bool visitCascadeExpression(CascadeExpression node) {
     Expression target = node.target;
     if (target.accept(this)) {
@@ -3056,6 +3119,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     return _visitExpressions(node.cascadeSections);
   }
 
+  @override
   bool visitConditionalExpression(ConditionalExpression node) {
     Expression conditionExpression = node.condition;
     Expression thenStatement = node.thenExpression;
@@ -3071,8 +3135,10 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     return thenStatement.accept(this) && elseStatement.accept(this);
   }
 
+  @override
   bool visitContinueStatement(ContinueStatement node) => false;
 
+  @override
   bool visitDoStatement(DoStatement node) {
     bool outerBreakValue = _enclosingBlockContainsBreak;
     _enclosingBlockContainsBreak = false;
@@ -3097,10 +3163,13 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     }
   }
 
+  @override
   bool visitEmptyStatement(EmptyStatement node) => false;
 
+  @override
   bool visitExpressionStatement(ExpressionStatement node) => node.expression.accept(this);
 
+  @override
   bool visitForEachStatement(ForEachStatement node) {
     bool outerBreakValue = _enclosingBlockContainsBreak;
     _enclosingBlockContainsBreak = false;
@@ -3111,6 +3180,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     }
   }
 
+  @override
   bool visitForStatement(ForStatement node) {
     bool outerBreakValue = _enclosingBlockContainsBreak;
     _enclosingBlockContainsBreak = false;
@@ -3144,10 +3214,13 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     }
   }
 
+  @override
   bool visitFunctionDeclarationStatement(FunctionDeclarationStatement node) => false;
 
+  @override
   bool visitFunctionExpression(FunctionExpression node) => false;
 
+  @override
   bool visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     if (node.function.accept(this)) {
       return true;
@@ -3155,8 +3228,10 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     return node.argumentList.accept(this);
   }
 
+  @override
   bool visitIdentifier(Identifier node) => false;
 
+  @override
   bool visitIfStatement(IfStatement node) {
     Expression conditionExpression = node.condition;
     Statement thenStatement = node.thenStatement;
@@ -3181,6 +3256,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     return thenStatement.accept(this) && elseStatement.accept(this);
   }
 
+  @override
   bool visitIndexExpression(IndexExpression node) {
     Expression target = node.realTarget;
     if (target != null && target.accept(this)) {
@@ -3192,16 +3268,22 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     return false;
   }
 
+  @override
   bool visitInstanceCreationExpression(InstanceCreationExpression node) => node.argumentList.accept(this);
 
+  @override
   bool visitIsExpression(IsExpression node) => node.expression.accept(this);
 
+  @override
   bool visitLabel(Label node) => false;
 
+  @override
   bool visitLabeledStatement(LabeledStatement node) => node.statement.accept(this);
 
+  @override
   bool visitLiteral(Literal node) => false;
 
+  @override
   bool visitMethodInvocation(MethodInvocation node) {
     Expression target = node.realTarget;
     if (target != null && target.accept(this)) {
@@ -3210,14 +3292,19 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     return node.argumentList.accept(this);
   }
 
+  @override
   bool visitNamedExpression(NamedExpression node) => node.expression.accept(this);
 
+  @override
   bool visitParenthesizedExpression(ParenthesizedExpression node) => node.expression.accept(this);
 
+  @override
   bool visitPostfixExpression(PostfixExpression node) => false;
 
+  @override
   bool visitPrefixExpression(PrefixExpression node) => false;
 
+  @override
   bool visitPropertyAccess(PropertyAccess node) {
     Expression target = node.realTarget;
     if (target != null && target.accept(this)) {
@@ -3226,16 +3313,22 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     return false;
   }
 
+  @override
   bool visitRethrowExpression(RethrowExpression node) => true;
 
+  @override
   bool visitReturnStatement(ReturnStatement node) => true;
 
+  @override
   bool visitSuperExpression(SuperExpression node) => false;
 
+  @override
   bool visitSwitchCase(SwitchCase node) => _visitStatements(node.statements);
 
+  @override
   bool visitSwitchDefault(SwitchDefault node) => _visitStatements(node.statements);
 
+  @override
   bool visitSwitchStatement(SwitchStatement node) {
     bool outerBreakValue = _enclosingBlockContainsBreak;
     _enclosingBlockContainsBreak = false;
@@ -3264,10 +3357,13 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     }
   }
 
+  @override
   bool visitThisExpression(ThisExpression node) => false;
 
+  @override
   bool visitThrowExpression(ThrowExpression node) => true;
 
+  @override
   bool visitTryStatement(TryStatement node) {
     if (node.body.accept(this)) {
       return true;
@@ -3279,8 +3375,10 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     return false;
   }
 
+  @override
   bool visitTypeName(TypeName node) => false;
 
+  @override
   bool visitVariableDeclaration(VariableDeclaration node) {
     Expression initializer = node.initializer;
     if (initializer != null) {
@@ -3289,8 +3387,10 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     return false;
   }
 
+  @override
   bool visitVariableDeclarationList(VariableDeclarationList node) => _visitVariableDeclarations(node.variables);
 
+  @override
   bool visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     NodeList<VariableDeclaration> variables = node.variables.variables;
     for (int i = 0; i < variables.length; i++) {
@@ -3301,6 +3401,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     return false;
   }
 
+  @override
   bool visitWhileStatement(WhileStatement node) {
     bool outerBreakValue = _enclosingBlockContainsBreak;
     _enclosingBlockContainsBreak = false;
@@ -3542,6 +3643,7 @@ class ImportsVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitCompilationUnit(CompilationUnit node) {
     if (_inDefiningCompilationUnit) {
       NodeList<Directive> directives = node.directives;
@@ -3604,21 +3706,25 @@ class ImportsVerifier extends RecursiveAstVisitor<Object> {
     return super.visitCompilationUnit(node);
   }
 
+  @override
   Object visitExportDirective(ExportDirective node) {
     _visitMetadata(node.metadata);
     return null;
   }
 
+  @override
   Object visitImportDirective(ImportDirective node) {
     _visitMetadata(node.metadata);
     return null;
   }
 
+  @override
   Object visitLibraryDirective(LibraryDirective node) {
     _visitMetadata(node.metadata);
     return null;
   }
 
+  @override
   Object visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (_unusedImports.isEmpty) {
       return null;
@@ -3636,6 +3742,7 @@ class ImportsVerifier extends RecursiveAstVisitor<Object> {
     return _visitIdentifier(element, prefixIdentifier.name);
   }
 
+  @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     if (_unusedImports.isEmpty) {
       return null;
@@ -3789,6 +3896,7 @@ class OverrideVerifier extends RecursiveAstVisitor<Object> {
     this._errorReporter = errorReporter;
   }
 
+  @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement element = node.element;
     if (_isOverride(element)) {
@@ -3856,6 +3964,7 @@ class PubVerifier extends RecursiveAstVisitor<Object> {
     this._errorReporter = errorReporter;
   }
 
+  @override
   Object visitImportDirective(ImportDirective directive) {
     return null;
   }
@@ -4124,6 +4233,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     return _unmatchedElements.isEmpty;
   }
 
+  @override
   Object visitCatchClause(CatchClause node) {
     SimpleIdentifier exceptionParameter = node.exceptionParameter;
     if (exceptionParameter != null) {
@@ -4139,6 +4249,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     return super.visitCatchClause(node);
   }
 
+  @override
   Object visitClassDeclaration(ClassDeclaration node) {
     ClassElement outerClass = _enclosingClass;
     try {
@@ -4157,6 +4268,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
     ClassElement outerClass = _enclosingClass;
     try {
@@ -4169,11 +4281,13 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitCompilationUnit(CompilationUnit node) {
     processElement(_enclosingUnit);
     return super.visitCompilationUnit(node);
   }
 
+  @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     ExecutableElement outerExecutable = _enclosingExecutable;
     try {
@@ -4190,6 +4304,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
     SimpleIdentifier variableName = node.identifier;
     LocalVariableElement element = _findIdentifier(_enclosingExecutable.localVariables, variableName);
@@ -4197,6 +4312,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     return super.visitDeclaredIdentifier(node);
   }
 
+  @override
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     SimpleIdentifier parameterName = node.parameter.identifier;
     ParameterElement element = _getElementForParameter(node, parameterName);
@@ -4224,6 +4340,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitExportDirective(ExportDirective node) {
     String uri = _getStringValue(node.uri);
     if (uri != null) {
@@ -4234,6 +4351,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     return super.visitExportDirective(node);
   }
 
+  @override
   Object visitFieldFormalParameter(FieldFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
       SimpleIdentifier parameterName = node.identifier;
@@ -4251,6 +4369,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerExecutable = _enclosingExecutable;
     try {
@@ -4276,6 +4395,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitFunctionExpression(FunctionExpression node) {
     if (node.parent is! FunctionDeclaration) {
       FunctionElement element = _findAtOffset(_enclosingExecutable.functions, node.beginToken.offset);
@@ -4291,6 +4411,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
     FunctionTypeAliasElement outerAlias = _enclosingAlias;
     try {
@@ -4303,6 +4424,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
       SimpleIdentifier parameterName = node.identifier;
@@ -4320,6 +4442,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitImportDirective(ImportDirective node) {
     String uri = _getStringValue(node.uri);
     if (uri != null) {
@@ -4330,6 +4453,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     return super.visitImportDirective(node);
   }
 
+  @override
   Object visitLabeledStatement(LabeledStatement node) {
     for (Label label in node.labels) {
       SimpleIdentifier labelName = label.label;
@@ -4339,6 +4463,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     return super.visitLabeledStatement(node);
   }
 
+  @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement outerExecutable = _enclosingExecutable;
     try {
@@ -4366,6 +4491,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitPartDirective(PartDirective node) {
     String uri = _getStringValue(node.uri);
     if (uri != null) {
@@ -4376,6 +4502,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     return super.visitPartDirective(node);
   }
 
+  @override
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
       SimpleIdentifier parameterName = node.identifier;
@@ -4393,6 +4520,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     return super.visitSimpleFormalParameter(node);
   }
 
+  @override
   Object visitSwitchCase(SwitchCase node) {
     for (Label label in node.labels) {
       SimpleIdentifier labelName = label.label;
@@ -4402,6 +4530,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     return super.visitSwitchCase(node);
   }
 
+  @override
   Object visitSwitchDefault(SwitchDefault node) {
     for (Label label in node.labels) {
       SimpleIdentifier labelName = label.label;
@@ -4411,6 +4540,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     return super.visitSwitchDefault(node);
   }
 
+  @override
   Object visitTypeParameter(TypeParameter node) {
     SimpleIdentifier parameterName = node.name;
     TypeParameterElement element = null;
@@ -4423,6 +4553,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     return super.visitTypeParameter(node);
   }
 
+  @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     VariableElement element = null;
     SimpleIdentifier variableName = node.name;
@@ -4664,6 +4795,7 @@ class GeneralizingElementVisitor_DeclarationMatcher_gatherElements extends Gener
 
   GeneralizingElementVisitor_DeclarationMatcher_gatherElements(this.DeclarationMatcher_this) : super();
 
+  @override
   Object visitElement(Element element) {
     DeclarationMatcher_this._allElements.add(element);
     DeclarationMatcher_this._unmatchedElements.add(element);
@@ -4718,6 +4850,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     unit.accept(this);
   }
 
+  @override
   Object visitCatchClause(CatchClause node) {
     SimpleIdentifier exceptionParameter = node.exceptionParameter;
     if (exceptionParameter != null) {
@@ -4731,6 +4864,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     return super.visitCatchClause(node);
   }
 
+  @override
   Object visitClassDeclaration(ClassDeclaration node) {
     ClassElement outerClass = _enclosingClass;
     try {
@@ -4742,6 +4876,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
     ClassElement outerClass = _enclosingClass;
     try {
@@ -4753,6 +4888,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     ExecutableElement outerExecutable = _enclosingExecutable;
     try {
@@ -4770,12 +4906,14 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
     SimpleIdentifier variableName = node.identifier;
     _findIdentifier(_enclosingExecutable.localVariables, variableName);
     return super.visitDeclaredIdentifier(node);
   }
 
+  @override
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     SimpleIdentifier parameterName = node.parameter.identifier;
     ParameterElement element = _getElementForParameter(node, parameterName);
@@ -4801,6 +4939,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitExportDirective(ExportDirective node) {
     String uri = _getStringValue(node.uri);
     if (uri != null) {
@@ -4811,6 +4950,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     return super.visitExportDirective(node);
   }
 
+  @override
   Object visitFieldFormalParameter(FieldFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
       SimpleIdentifier parameterName = node.identifier;
@@ -4827,6 +4967,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerExecutable = _enclosingExecutable;
     try {
@@ -4853,6 +4994,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitFunctionExpression(FunctionExpression node) {
     if (node.parent is! FunctionDeclaration) {
       FunctionElement element = _findAtOffset(_enclosingExecutable.functions, node.beginToken.offset);
@@ -4867,6 +5009,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
     FunctionTypeAliasElement outerAlias = _enclosingAlias;
     try {
@@ -4878,6 +5021,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
       SimpleIdentifier parameterName = node.identifier;
@@ -4894,6 +5038,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitImportDirective(ImportDirective node) {
     String uri = _getStringValue(node.uri);
     if (uri != null) {
@@ -4904,6 +5049,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     return super.visitImportDirective(node);
   }
 
+  @override
   Object visitLabeledStatement(LabeledStatement node) {
     for (Label label in node.labels) {
       SimpleIdentifier labelName = label.label;
@@ -4912,11 +5058,13 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     return super.visitLabeledStatement(node);
   }
 
+  @override
   Object visitLibraryDirective(LibraryDirective node) {
     node.element = _enclosingUnit.library;
     return super.visitLibraryDirective(node);
   }
 
+  @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement outerExecutable = _enclosingExecutable;
     try {
@@ -4943,6 +5091,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitPartDirective(PartDirective node) {
     String uri = _getStringValue(node.uri);
     if (uri != null) {
@@ -4952,11 +5101,13 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     return super.visitPartDirective(node);
   }
 
+  @override
   Object visitPartOfDirective(PartOfDirective node) {
     node.element = _enclosingUnit.library;
     return super.visitPartOfDirective(node);
   }
 
+  @override
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
       SimpleIdentifier parameterName = node.identifier;
@@ -4973,6 +5124,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     return super.visitSimpleFormalParameter(node);
   }
 
+  @override
   Object visitSwitchCase(SwitchCase node) {
     for (Label label in node.labels) {
       SimpleIdentifier labelName = label.label;
@@ -4981,6 +5133,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     return super.visitSwitchCase(node);
   }
 
+  @override
   Object visitSwitchDefault(SwitchDefault node) {
     for (Label label in node.labels) {
       SimpleIdentifier labelName = label.label;
@@ -4989,6 +5142,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     return super.visitSwitchDefault(node);
   }
 
+  @override
   Object visitTypeParameter(TypeParameter node) {
     SimpleIdentifier parameterName = node.name;
     if (_enclosingClass != null) {
@@ -4999,6 +5153,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     return super.visitTypeParameter(node);
   }
 
+  @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     VariableElement element = null;
     SimpleIdentifier variableName = node.name;
@@ -5368,6 +5523,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     _promoteManager = resolver.promoteManager;
   }
 
+  @override
   Object visitAssignmentExpression(AssignmentExpression node) {
     sc.Token operator = node.operator;
     sc.TokenType operatorType = operator.type;
@@ -5392,6 +5548,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitBinaryExpression(BinaryExpression node) {
     sc.Token operator = node.operator;
     if (operator.isUserDefinableOperator) {
@@ -5414,21 +5571,25 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitBreakStatement(BreakStatement node) {
     _lookupLabel(node, node.label);
     return null;
   }
 
+  @override
   Object visitClassDeclaration(ClassDeclaration node) {
     _setMetadata(node.element, node);
     return null;
   }
 
+  @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
     _setMetadata(node.element, node);
     return null;
   }
 
+  @override
   Object visitCommentReference(CommentReference node) {
     Identifier identifier = node.identifier;
     if (identifier is SimpleIdentifier) {
@@ -5511,6 +5672,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     super.visitConstructorDeclaration(node);
     ConstructorElement element = node.element;
@@ -5535,6 +5697,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     SimpleIdentifier fieldName = node.fieldName;
     ClassElement enclosingClass = _resolver.enclosingClass;
@@ -5543,6 +5706,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitConstructorName(ConstructorName node) {
     DartType type = node.type.type;
     if (type != null && type.isDynamic) {
@@ -5575,16 +5739,19 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitContinueStatement(ContinueStatement node) {
     _lookupLabel(node, node.label);
     return null;
   }
 
+  @override
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
     _setMetadata(node.element, node);
     return null;
   }
 
+  @override
   Object visitExportDirective(ExportDirective node) {
     ExportElement exportElement = node.element;
     if (exportElement != null) {
@@ -5597,16 +5764,19 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitFieldFormalParameter(FieldFormalParameter node) {
     _setMetadataForParameter(node.element, node);
     return super.visitFieldFormalParameter(node);
   }
 
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     _setMetadata(node.element, node);
     return null;
   }
 
+  @override
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     // TODO(brianwilkerson) Can we ever resolve the function being invoked?
     Expression expression = node.function;
@@ -5622,16 +5792,19 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
     _setMetadata(node.element, node);
     return null;
   }
 
+  @override
   Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     _setMetadataForParameter(node.element, node);
     return null;
   }
 
+  @override
   Object visitImportDirective(ImportDirective node) {
     SimpleIdentifier prefixNode = node.prefix;
     if (prefixNode != null) {
@@ -5655,6 +5828,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitIndexExpression(IndexExpression node) {
     Expression target = node.realTarget;
     DartType staticType = _getStaticType(target);
@@ -5702,6 +5876,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     ConstructorElement invokedConstructor = node.constructorName.staticElement;
     node.staticElement = invokedConstructor;
@@ -5713,16 +5888,19 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitLibraryDirective(LibraryDirective node) {
     _setMetadata(node.element, node);
     return null;
   }
 
+  @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     _setMetadata(node.element, node);
     return null;
   }
 
+  @override
   Object visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier methodName = node.methodName;
     //
@@ -5858,16 +6036,19 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitPartDirective(PartDirective node) {
     _setMetadata(node.element, node);
     return null;
   }
 
+  @override
   Object visitPartOfDirective(PartOfDirective node) {
     _setMetadata(node.element, node);
     return null;
   }
 
+  @override
   Object visitPostfixExpression(PostfixExpression node) {
     Expression operand = node.operand;
     String methodName = _getPostfixOperator(node);
@@ -5885,6 +6066,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitPrefixedIdentifier(PrefixedIdentifier node) {
     SimpleIdentifier prefix = node.prefix;
     SimpleIdentifier identifier = node.identifier;
@@ -5942,6 +6124,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitPrefixExpression(PrefixExpression node) {
     sc.Token operator = node.operator;
     sc.TokenType operatorType = operator.type;
@@ -5963,6 +6146,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitPropertyAccess(PropertyAccess node) {
     Expression target = node.realTarget;
     if (target is SuperExpression && !_isSuperInValidContext(target)) {
@@ -5973,6 +6157,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     ClassElement enclosingClass = _resolver.enclosingClass;
     if (enclosingClass == null) {
@@ -6002,11 +6187,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
     _setMetadataForParameter(node.element, node);
     return null;
   }
 
+  @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     //
     // Synthetic identifiers have been already reported during parsing.
@@ -6066,6 +6253,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     ClassElement enclosingClass = _resolver.enclosingClass;
     if (enclosingClass == null) {
@@ -6104,6 +6292,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitSuperExpression(SuperExpression node) {
     if (!_isSuperInValidContext(node)) {
       _resolver.reportErrorForNode(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, node, []);
@@ -6111,11 +6300,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return super.visitSuperExpression(node);
   }
 
+  @override
   Object visitTypeParameter(TypeParameter node) {
     _setMetadata(node.element, node);
     return null;
   }
 
+  @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     _setMetadata(node.element, node);
     return null;
@@ -7486,20 +7677,28 @@ class ElementResolver_SyntheticIdentifier extends Identifier {
    */
   ElementResolver_SyntheticIdentifier(this.name);
 
+  @override
   accept(AstVisitor visitor) => null;
 
+  @override
   sc.Token get beginToken => null;
 
+  @override
   Element get bestElement => null;
 
+  @override
   sc.Token get endToken => null;
 
+  @override
   int get precedence => 16;
 
+  @override
   Element get propagatedElement => null;
 
+  @override
   Element get staticElement => null;
 
+  @override
   void visitChildren(AstVisitor visitor) {
   }
 }
@@ -8808,6 +9007,7 @@ class Library {
     }
   }
 
+  @override
   String toString() => librarySource.shortName;
 }
 
@@ -10059,18 +10259,21 @@ class ResolverVisitor extends ScopedVisitor {
 
   List<ProxyConditionalAnalysisError> get proxyConditionalAnalysisErrors => _proxyConditionalAnalysisErrors;
 
+  @override
   Object visitAsExpression(AsExpression node) {
     super.visitAsExpression(node);
     overrideExpression(node.expression, node.type.type);
     return null;
   }
 
+  @override
   Object visitAssertStatement(AssertStatement node) {
     super.visitAssertStatement(node);
     _propagateTrueState(node.condition);
     return null;
   }
 
+  @override
   Object visitBinaryExpression(BinaryExpression node) {
     sc.TokenType operatorType = node.operator.type;
     Expression leftOperand = node.leftOperand;
@@ -10114,6 +10317,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitBlockFunctionBody(BlockFunctionBody node) {
     safelyVisit(_commentBeforeFunction);
     try {
@@ -10125,6 +10329,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitBreakStatement(BreakStatement node) {
     //
     // We do not visit the label because it needs to be visited in the context of the statement.
@@ -10134,6 +10339,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitClassDeclaration(ClassDeclaration node) {
     ClassElement outerType = _enclosingClass;
     try {
@@ -10147,6 +10353,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitComment(Comment node) {
     if (node.parent is FunctionDeclaration || node.parent is ConstructorDeclaration || node.parent is MethodDeclaration) {
       if (node != _commentBeforeFunction) {
@@ -10159,6 +10366,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitCommentReference(CommentReference node) {
     //
     // We do not visit the identifier because it needs to be visited in the context of the reference.
@@ -10168,6 +10376,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitCompilationUnit(CompilationUnit node) {
     //
     // TODO(brianwilkerson) The goal of the code below is to visit the declarations in such an
@@ -10206,6 +10415,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitConditionalExpression(ConditionalExpression node) {
     Expression condition = node.condition;
     safelyVisit(condition);
@@ -10250,6 +10460,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
@@ -10261,6 +10472,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     //
     // We visit the expression, but do not visit the field name because it needs to be visited in
@@ -10272,6 +10484,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitConstructorName(ConstructorName node) {
     //
     // We do not visit either the type name, because it won't be visited anyway, or the name,
@@ -10282,6 +10495,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitContinueStatement(ContinueStatement node) {
     //
     // We do not visit the label because it needs to be visited in the context of the statement.
@@ -10291,6 +10505,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitDoStatement(DoStatement node) {
     try {
       _overrideManager.enterScope();
@@ -10303,11 +10518,13 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitEmptyFunctionBody(EmptyFunctionBody node) {
     safelyVisit(_commentBeforeFunction);
     return super.visitEmptyFunctionBody(node);
   }
 
+  @override
   Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
     safelyVisit(_commentBeforeFunction);
     try {
@@ -10319,6 +10536,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitFieldDeclaration(FieldDeclaration node) {
     try {
       _overrideManager.enterScope();
@@ -10331,6 +10549,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitForEachStatement(ForEachStatement node) {
     try {
       _overrideManager.enterScope();
@@ -10341,6 +10560,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitForStatement(ForStatement node) {
     try {
       _overrideManager.enterScope();
@@ -10351,6 +10571,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
@@ -10363,6 +10584,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitFunctionExpression(FunctionExpression node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
@@ -10376,6 +10598,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     safelyVisit(node.function);
     node.accept(_elementResolver);
@@ -10385,8 +10608,10 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitHideCombinator(HideCombinator node) => null;
 
+  @override
   Object visitIfStatement(IfStatement node) {
     Expression condition = node.condition;
     safelyVisit(condition);
@@ -10439,10 +10664,13 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitLabel(Label node) => null;
 
+  @override
   Object visitLibraryIdentifier(LibraryIdentifier node) => null;
 
+  @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
@@ -10454,6 +10682,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitMethodInvocation(MethodInvocation node) {
     //
     // We visit the target and argument list, but do not visit the method name because it needs to
@@ -10467,6 +10696,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitNode(AstNode node) {
     node.visitChildren(this);
     node.accept(_elementResolver);
@@ -10474,6 +10704,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitPrefixedIdentifier(PrefixedIdentifier node) {
     //
     // We visit the prefix, but do not visit the identifier because it needs to be visited in the
@@ -10485,6 +10716,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitPropertyAccess(PropertyAccess node) {
     //
     // We visit the target, but do not visit the property name because it needs to be visited in the
@@ -10496,6 +10728,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     //
     // We visit the argument list, but do not visit the optional identifier because it needs to be
@@ -10507,8 +10740,10 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitShowCombinator(ShowCombinator node) => null;
 
+  @override
   Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     //
     // We visit the argument list, but do not visit the optional identifier because it needs to be
@@ -10520,6 +10755,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitSwitchCase(SwitchCase node) {
     try {
       _overrideManager.enterScope();
@@ -10530,6 +10766,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitSwitchDefault(SwitchDefault node) {
     try {
       _overrideManager.enterScope();
@@ -10540,6 +10777,7 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     try {
       _overrideManager.enterScope();
@@ -10552,8 +10790,10 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitTypeName(TypeName node) => null;
 
+  @override
   Object visitWhileStatement(WhileStatement node) {
     Expression condition = node.condition;
     safelyVisit(condition);
@@ -10744,6 +10984,7 @@ class ResolverVisitor extends ScopedVisitor {
     _proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(enclosingElement, new AnalysisError.con2(source, token.offset, token.length, errorCode, arguments)));
   }
 
+  @override
   void visitForEachStatementInScope(ForEachStatement node) {
     //
     // We visit the iterator before the loop variable because the loop variable cannot be in scope
@@ -10783,6 +11024,7 @@ class ResolverVisitor extends ScopedVisitor {
     node.accept(_typeAnalyzer);
   }
 
+  @override
   void visitForStatementInScope(ForStatement node) {
     safelyVisit(node.variables);
     safelyVisit(node.initialization);
@@ -11165,6 +11407,7 @@ class RecursiveAstVisitor_ResolverVisitor_isVariableAccessedInClosure extends Re
 
   bool _inClosure = false;
 
+  @override
   Object visitFunctionExpression(FunctionExpression node) {
     bool inClosure = this._inClosure;
     try {
@@ -11175,6 +11418,7 @@ class RecursiveAstVisitor_ResolverVisitor_isVariableAccessedInClosure extends Re
     }
   }
 
+  @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     if (result[0]) {
       return null;
@@ -11193,6 +11437,7 @@ class RecursiveAstVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn extends
 
   RecursiveAstVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn(this.result, this.variable) : super();
 
+  @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     if (result[0]) {
       return null;
@@ -11326,6 +11571,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     _errorListener.onError(analysisError);
   }
 
+  @override
   Object visitBlock(Block node) {
     Scope outerScope = _nameScope;
     try {
@@ -11339,6 +11585,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitCatchClause(CatchClause node) {
     SimpleIdentifier exception = node.exceptionParameter;
     if (exception != null) {
@@ -11360,6 +11607,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitClassDeclaration(ClassDeclaration node) {
     Scope outerScope = _nameScope;
     try {
@@ -11371,6 +11619,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
     Scope outerScope = _nameScope;
     try {
@@ -11382,6 +11631,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     Scope outerScope = _nameScope;
     try {
@@ -11393,6 +11643,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
     VariableElement element = node.element;
     if (element != null) {
@@ -11402,6 +11653,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitDoStatement(DoStatement node) {
     LabelScope outerLabelScope = _labelScope;
     try {
@@ -11414,6 +11666,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitForEachStatement(ForEachStatement node) {
     Scope outerNameScope = _nameScope;
     LabelScope outerLabelScope = _labelScope;
@@ -11428,6 +11681,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitFormalParameterList(FormalParameterList node) {
     super.visitFormalParameterList(node);
     // We finished resolving function signature, now include formal parameters scope.
@@ -11440,6 +11694,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitForStatement(ForStatement node) {
     Scope outerNameScope = _nameScope;
     LabelScope outerLabelScope = _labelScope;
@@ -11454,6 +11709,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement function = node.element;
     Scope outerScope = _nameScope;
@@ -11469,6 +11725,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitFunctionExpression(FunctionExpression node) {
     if (node.parent is FunctionDeclaration) {
       // We have already created a function scope and don't need to do so again.
@@ -11489,6 +11746,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
     Scope outerScope = _nameScope;
     try {
@@ -11500,6 +11758,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitIfStatement(IfStatement node) {
     safelyVisit(node.condition);
     visitStatementInScope(node.thenStatement);
@@ -11507,6 +11766,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitLabeledStatement(LabeledStatement node) {
     LabelScope outerScope = _addScopesFor(node.labels);
     try {
@@ -11517,6 +11777,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     Scope outerScope = _nameScope;
     try {
@@ -11528,6 +11789,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitSwitchCase(SwitchCase node) {
     node.expression.accept(this);
     Scope outerNameScope = _nameScope;
@@ -11540,6 +11802,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitSwitchDefault(SwitchDefault node) {
     Scope outerNameScope = _nameScope;
     try {
@@ -11551,6 +11814,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitSwitchStatement(SwitchStatement node) {
     LabelScope outerScope = _labelScope;
     try {
@@ -11569,6 +11833,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     if (node.parent.parent is! TopLevelVariableDeclaration && node.parent.parent is! FieldDeclaration) {
@@ -11580,6 +11845,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitWhileStatement(WhileStatement node) {
     LabelScope outerScope = _labelScope;
     try {
@@ -11898,6 +12164,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * The Dart Language Specification, 12.5: <blockquote>The static type of a string literal is
    * `String`.</blockquote>
    */
+  @override
   Object visitAdjacentStrings(AdjacentStrings node) {
     _recordStaticType(node, _typeProvider.stringType);
     return null;
@@ -11907,6 +12174,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * The Dart Language Specification, 12.33: <blockquote>The static type of an argument definition
    * test is `bool`.</blockquote>
    */
+  @override
   Object visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
     _recordStaticType(node, _typeProvider.boolType);
     return null;
@@ -11920,6 +12188,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    *
    * The static type of a cast expression <i>e as T</i> is <i>T</i>.</blockquote>
    */
+  @override
   Object visitAsExpression(AsExpression node) {
     _recordStaticType(node, _getType(node.type));
     return null;
@@ -11964,6 +12233,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * e<sub>2</sub>)</i> where <i>a</i> and <i>i</i> are a variables that are not used in
    * <i>e<sub>3</sub></i>.</blockquote>
    */
+  @override
   Object visitAssignmentExpression(AssignmentExpression node) {
     sc.TokenType operator = node.operator.type;
     if (identical(operator, sc.TokenType.EQ)) {
@@ -12031,6 +12301,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * e<sub>2</sub></i> is equivalent to the method invocation
    * <i>super.op(e<sub>2</sub>)</i>.</blockquote>
    */
+  @override
   Object visitBinaryExpression(BinaryExpression node) {
     ExecutableElement staticMethodElement = node.staticElement;
     DartType staticType = _computeStaticReturnType(staticMethodElement);
@@ -12050,6 +12321,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * The Dart Language Specification, 12.4: <blockquote>The static type of a boolean literal is
    * bool.</blockquote>
    */
+  @override
   Object visitBooleanLiteral(BooleanLiteral node) {
     _recordStaticType(node, _typeProvider.boolType);
     return null;
@@ -12060,6 +12332,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * of the form <i>e..suffix</i> is equivalent to the expression <i>(t) {t.suffix; return
    * t;}(e)</i>.</blockquote>
    */
+  @override
   Object visitCascadeExpression(CascadeExpression node) {
     _recordStaticType(node, _getStaticType(node.target));
     _recordPropagatedType(node, node.target.propagatedType);
@@ -12075,6 +12348,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * The static type of <i>c</i> is the least upper bound of the static type of <i>e<sub>2</sub></i>
    * and the static type of <i>e<sub>3</sub></i>.</blockquote>
    */
+  @override
   Object visitConditionalExpression(ConditionalExpression node) {
     DartType staticThenType = _getStaticType(node.thenExpression);
     DartType staticElseType = _getStaticType(node.elseExpression);
@@ -12112,11 +12386,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * The Dart Language Specification, 12.3: <blockquote>The static type of a literal double is
    * double.</blockquote>
    */
+  @override
   Object visitDoubleLiteral(DoubleLiteral node) {
     _recordStaticType(node, _typeProvider.doubleType);
     return null;
   }
 
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     FunctionExpression function = node.functionExpression;
     ExecutableElementImpl functionElement = node.element as ExecutableElementImpl;
@@ -12156,6 +12432,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * where <i>T<sub>i</sub>, 1 &lt;= i &lt;= n</i>, is not specified, it is considered to have been
    * specified as dynamic.</blockquote>
    */
+  @override
   Object visitFunctionExpression(FunctionExpression node) {
     if (node.parent is FunctionDeclaration) {
       // The function type will be resolved and set when we visit the parent node.
@@ -12180,6 +12457,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * If <i>F</i> is not a function type, the static type of <i>i</i> is dynamic. Otherwise the
    * static type of <i>i</i> is the declared return type of <i>F</i>.</blockquote>
    */
+  @override
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     ExecutableElement staticMethodElement = node.staticElement;
     // Record static return type of the static element.
@@ -12211,6 +12489,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * <i>e<sub>1</sub>[e<sub>2</sub>]</i> is evaluated as a method invocation of the operator method
    * <i>[]</i> on <i>e<sub>1</sub></i> with argument <i>e<sub>2</sub></i>.</blockquote>
    */
+  @override
   Object visitIndexExpression(IndexExpression node) {
     if (node.inSetterContext()) {
       ExecutableElement staticMethodElement = node.staticElement;
@@ -12247,6 +12526,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * expression of either the form <i>const T.id(a<sub>1</sub>, &hellip;, a<sub>n</sub>)</i> or the
    * form <i>const T(a<sub>1</sub>, &hellip;, a<sub>n</sub>)</i> is <i>T</i>. </blockquote>
    */
+  @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     _recordStaticType(node, node.constructorName.type.type);
     ConstructorElement element = node.staticElement;
@@ -12274,6 +12554,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * The Dart Language Specification, 12.3: <blockquote>The static type of an integer literal is
    * `int`.</blockquote>
    */
+  @override
   Object visitIntegerLiteral(IntegerLiteral node) {
     _recordStaticType(node, _typeProvider.intType);
     return null;
@@ -12285,6 +12566,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    *
    * The static type of an is-expression is `bool`.</blockquote>
    */
+  @override
   Object visitIsExpression(IsExpression node) {
     _recordStaticType(node, _typeProvider.boolType);
     return null;
@@ -12298,6 +12580,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * the form <i>[e<sub>1</sub>, &hellip;, e<sub>n</sub>]</i> is `List&lt;dynamic&gt;`
    * .</blockquote>
    */
+  @override
   Object visitListLiteral(ListLiteral node) {
     DartType staticType = _dynamicType;
     TypeArgumentList typeArguments = node.typeArguments;
@@ -12346,6 +12629,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * It is a compile-time error if the first type argument to a map literal is not
    * <i>String</i>.</blockquote>
    */
+  @override
   Object visitMapLiteral(MapLiteral node) {
     DartType staticKeyType = _dynamicType;
     DartType staticValueType = _dynamicType;
@@ -12444,6 +12728,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * <i>i</i> is dynamic. Otherwise the static type of <i>i</i> is the declared return type of
    * <i>F</i>.</blockquote>
    */
+  @override
   Object visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier methodNameNode = node.methodName;
     Element staticMethodElement = methodNameNode.staticElement;
@@ -12572,6 +12857,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitNamedExpression(NamedExpression node) {
     Expression expression = node.expression;
     _recordStaticType(node, _getStaticType(expression));
@@ -12583,11 +12869,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * The Dart Language Specification, 12.2: <blockquote>The static type of `null` is bottom.
    * </blockquote>
    */
+  @override
   Object visitNullLiteral(NullLiteral node) {
     _recordStaticType(node, _typeProvider.bottomType);
     return null;
   }
 
+  @override
   Object visitParenthesizedExpression(ParenthesizedExpression node) {
     Expression expression = node.expression;
     _recordStaticType(node, _getStaticType(expression));
@@ -12621,6 +12909,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * A postfix expression of the form <i>e1[e2]--</i> is equivalent to <i>(a, i){var r = a[i]; a[i]
    * = r - 1; return r}(e1, e2)</i></blockquote>
    */
+  @override
   Object visitPostfixExpression(PostfixExpression node) {
     Expression operand = node.operand;
     DartType staticType = _getStaticType(operand);
@@ -12639,6 +12928,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   /**
    * See [visitSimpleIdentifier].
    */
+  @override
   Object visitPrefixedIdentifier(PrefixedIdentifier node) {
     SimpleIdentifier prefixedIdentifier = node.identifier;
     Element staticElement = prefixedIdentifier.staticElement;
@@ -12705,6 +12995,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * <i>op e</i> is equivalent to a method invocation <i>expression e.op()</i>. An expression of the
    * form <i>op super</i> is equivalent to the method invocation <i>super.op()<i>.</blockquote>
    */
+  @override
   Object visitPrefixExpression(PrefixExpression node) {
     sc.TokenType operator = node.operator.type;
     if (identical(operator, sc.TokenType.BANG)) {
@@ -12772,6 +13063,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    *
    * The static type of <i>i</i> is the declared return type of <i>m</i>.</blockquote>
    */
+  @override
   Object visitPropertyAccess(PropertyAccess node) {
     SimpleIdentifier propertyName = node.propertyName;
     Element staticElement = propertyName.staticElement;
@@ -12805,6 +13097,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * The Dart Language Specification, 12.9: <blockquote>The static type of a rethrow expression is
    * bottom.</blockquote>
    */
+  @override
   Object visitRethrowExpression(RethrowExpression node) {
     _recordStaticType(node, _typeProvider.bottomType);
     return null;
@@ -12848,6 +13141,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * * Otherwise <i>e</i> is equivalent to the property extraction <i>this.id</i>.
    * </blockquote>
    */
+  @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     Element element = node.staticElement;
     DartType staticType = _dynamicType;
@@ -12894,6 +13188,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * The Dart Language Specification, 12.5: <blockquote>The static type of a string literal is
    * `String`.</blockquote>
    */
+  @override
   Object visitSimpleStringLiteral(SimpleStringLiteral node) {
     _recordStaticType(node, _typeProvider.stringType);
     return null;
@@ -12903,11 +13198,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * The Dart Language Specification, 12.5: <blockquote>The static type of a string literal is
    * `String`.</blockquote>
    */
+  @override
   Object visitStringInterpolation(StringInterpolation node) {
     _recordStaticType(node, _typeProvider.stringType);
     return null;
   }
 
+  @override
   Object visitSuperExpression(SuperExpression node) {
     if (_thisType == null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been reported
@@ -12918,6 +13215,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitSymbolLiteral(SymbolLiteral node) {
     _recordStaticType(node, _typeProvider.symbolType);
     return null;
@@ -12927,6 +13225,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * The Dart Language Specification, 12.10: <blockquote>The static type of `this` is the
    * interface of the immediately enclosing class.</blockquote>
    */
+  @override
   Object visitThisExpression(ThisExpression node) {
     if (_thisType == null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been reported
@@ -12941,11 +13240,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * The Dart Language Specification, 12.8: <blockquote>The static type of a throw expression is
    * bottom.</blockquote>
    */
+  @override
   Object visitThrowExpression(ThrowExpression node) {
     _recordStaticType(node, _typeProvider.bottomType);
     return null;
   }
 
+  @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     Expression initializer = node.initializer;
     if (initializer != null) {
@@ -13399,8 +13700,10 @@ class GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnTypeOfFun
 
   GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction(this.result) : super();
 
+  @override
   Object visitExpression(Expression node) => null;
 
+  @override
   Object visitReturnStatement(ReturnStatement node) {
     // prepare this 'return' type
     DartType type;
@@ -14108,36 +14411,52 @@ class TypeProviderImpl implements TypeProvider {
     _initializeFrom(coreLibrary);
   }
 
+  @override
   InterfaceType get boolType => _boolType;
 
+  @override
   DartType get bottomType => _bottomType;
 
+  @override
   InterfaceType get deprecatedType => _deprecatedType;
 
+  @override
   InterfaceType get doubleType => _doubleType;
 
+  @override
   DartType get dynamicType => _dynamicType;
 
+  @override
   InterfaceType get functionType => _functionType;
 
+  @override
   InterfaceType get intType => _intType;
 
+  @override
   InterfaceType get listType => _listType;
 
+  @override
   InterfaceType get mapType => _mapType;
 
+  @override
   InterfaceType get nullType => _nullType;
 
+  @override
   InterfaceType get numType => _numType;
 
+  @override
   InterfaceType get objectType => _objectType;
 
+  @override
   InterfaceType get stackTraceType => _stackTraceType;
 
+  @override
   InterfaceType get stringType => _stringType;
 
+  @override
   InterfaceType get symbolType => _symbolType;
 
+  @override
   InterfaceType get typeType => _typeType;
 
   /**
@@ -14264,6 +14583,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     _dynamicType = typeProvider.dynamicType;
   }
 
+  @override
   Object visitCatchClause(CatchClause node) {
     super.visitCatchClause(node);
     SimpleIdentifier exception = node.exceptionParameter;
@@ -14291,6 +14611,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitClassDeclaration(ClassDeclaration node) {
     _hasReferenceToSuper = false;
     super.visitClassDeclaration(node);
@@ -14318,6 +14639,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
     super.visitClassTypeAlias(node);
     ClassElementImpl classElement = _getClassElement(node.name);
@@ -14351,6 +14673,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     super.visitConstructorDeclaration(node);
     ExecutableElementImpl element = node.element as ExecutableElementImpl;
@@ -14362,6 +14685,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
     super.visitDeclaredIdentifier(node);
     DartType declaredType;
@@ -14376,6 +14700,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitFieldFormalParameter(FieldFormalParameter node) {
     super.visitFieldFormalParameter(node);
     Element element = node.identifier.staticElement;
@@ -14405,6 +14730,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     super.visitFunctionDeclaration(node);
     ExecutableElementImpl element = node.element as ExecutableElementImpl;
@@ -14418,6 +14744,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
     super.visitFunctionTypeAlias(node);
     FunctionTypeAliasElementImpl element = node.element as FunctionTypeAliasElementImpl;
@@ -14425,6 +14752,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     super.visitFunctionTypedFormalParameter(node);
     Element element = node.identifier.staticElement;
@@ -14435,6 +14763,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
     ExecutableElementImpl element = node.element as ExecutableElementImpl;
@@ -14460,6 +14789,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
     super.visitSimpleFormalParameter(node);
     DartType declaredType;
@@ -14477,11 +14807,13 @@ class TypeResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitSuperExpression(SuperExpression node) {
     _hasReferenceToSuper = true;
     return super.visitSuperExpression(node);
   }
 
+  @override
   Object visitTypeName(TypeName node) {
     super.visitTypeName(node);
     Identifier typeName = node.name;
@@ -14704,6 +15036,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitTypeParameter(TypeParameter node) {
     super.visitTypeParameter(node);
     TypeName bound = node.bound;
@@ -14716,6 +15049,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     DartType declaredType;
@@ -14757,6 +15091,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @override
   void visitClassDeclarationInScope(ClassDeclaration node) {
     //
     // Process field declarations before constructors and methods so that the types of field formal
@@ -15251,16 +15586,19 @@ class UnifyingAstVisitor_TypeResolverVisitor_visitClassDeclarationInScope extend
 
   UnifyingAstVisitor_TypeResolverVisitor_visitClassDeclarationInScope(this.TypeResolverVisitor_this, this.nonFields) : super();
 
+  @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     nonFields.add(node);
     return null;
   }
 
+  @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     nonFields.add(node);
     return null;
   }
 
+  @override
   Object visitNode(AstNode node) => node.accept(TypeResolverVisitor_this);
 }
 
@@ -15296,6 +15634,7 @@ class VariableResolverVisitor extends ScopedVisitor {
    */
   VariableResolverVisitor.con2(LibraryElement definingLibrary, Source source, TypeProvider typeProvider, Scope nameScope, AnalysisErrorListener errorListener) : super.con3(definingLibrary, source, typeProvider, nameScope, errorListener);
 
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
@@ -15306,6 +15645,7 @@ class VariableResolverVisitor extends ScopedVisitor {
     }
   }
 
+  @override
   Object visitFunctionExpression(FunctionExpression node) {
     if (node.parent is! FunctionDeclaration) {
       ExecutableElement outerFunction = _enclosingFunction;
@@ -15320,6 +15660,7 @@ class VariableResolverVisitor extends ScopedVisitor {
     }
   }
 
+  @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     // Ignore if already resolved - declaration or type.
     if (node.staticElement != null) {
@@ -15388,6 +15729,7 @@ class ClassScope extends EnclosedScope {
     _defineMembers(typeElement);
   }
 
+  @override
   AnalysisError getErrorForDuplicate(Element existing, Element duplicate) {
     if (existing is PropertyAccessorElement && duplicate is MethodElement) {
       if (existing.nameOffset < duplicate.nameOffset) {
@@ -15455,6 +15797,7 @@ class EnclosedScope extends Scope {
    */
   EnclosedScope(this.enclosingScope);
 
+  @override
   AnalysisErrorListener get errorListener => enclosingScope.errorListener;
 
   /**
@@ -15474,6 +15817,7 @@ class EnclosedScope extends Scope {
     }
   }
 
+  @override
   Element internalLookup(Identifier identifier, String name, LibraryElement referencingLibrary) {
     Element element = localLookup(name, referencingLibrary);
     if (element != null) {
@@ -15686,12 +16030,14 @@ class LibraryImportScope extends Scope {
     _createImportedNamespaces(definingLibrary);
   }
 
+  @override
   void define(Element element) {
     if (!Scope.isPrivateName(element.displayName)) {
       super.define(element);
     }
   }
 
+  @override
   Element internalLookup(Identifier identifier, String name, LibraryElement referencingLibrary) {
     Element foundElement = localLookup(name, referencingLibrary);
     if (foundElement != null) {
@@ -15820,6 +16166,7 @@ class LibraryScope extends EnclosedScope {
     _defineTopLevelNames(definingLibrary);
   }
 
+  @override
   AnalysisError getErrorForDuplicate(Element existing, Element duplicate) {
     if (existing is PrefixElement) {
       // TODO(scheglov) consider providing actual 'nameOffset' from the synthetic accessor
@@ -16488,6 +16835,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     this._stringType = typeProvider.stringType;
   }
 
+  @override
   Object visitAnnotation(Annotation node) {
     super.visitAnnotation(node);
     // check annotation creation
@@ -16511,6 +16859,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.constKeyword != null) {
       _validateInitializers(node);
@@ -16519,17 +16868,20 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     return super.visitConstructorDeclaration(node);
   }
 
+  @override
   Object visitFunctionExpression(FunctionExpression node) {
     super.visitFunctionExpression(node);
     _validateDefaultValues(node.parameters);
     return null;
   }
 
+  @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     _validateInstanceCreationArguments(node);
     return super.visitInstanceCreationExpression(node);
   }
 
+  @override
   Object visitListLiteral(ListLiteral node) {
     super.visitListLiteral(node);
     if (node.constKeyword != null) {
@@ -16540,6 +16892,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitMapLiteral(MapLiteral node) {
     super.visitMapLiteral(node);
     bool isConst = node.constKeyword != null;
@@ -16581,18 +16934,21 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
     _validateDefaultValues(node.parameters);
     return null;
   }
 
+  @override
   Object visitSwitchCase(SwitchCase node) {
     super.visitSwitchCase(node);
     _validate(node.expression, CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION);
     return null;
   }
 
+  @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     Expression initializer = node.initializer;
@@ -16765,6 +17121,7 @@ class ConstantVisitor_ConstantVerifier_validateInitializerExpression extends Con
 
   ConstantVisitor_ConstantVerifier_validateInitializerExpression(TypeProvider arg0, this.ConstantVerifier_this, this.parameterElements) : super(arg0);
 
+  @override
   EvaluationResultImpl visitSimpleIdentifier(SimpleIdentifier node) {
     Element element = node.staticElement;
     for (ParameterElement parameterElement in parameterElements) {
@@ -17006,16 +17363,19 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         typeProvider.stringType];
   }
 
+  @override
   Object visitArgumentList(ArgumentList node) {
     _checkForArgumentTypesNotAssignableInList(node);
     return super.visitArgumentList(node);
   }
 
+  @override
   Object visitAssertStatement(AssertStatement node) {
     _checkForNonBoolExpression(node);
     return super.visitAssertStatement(node);
   }
 
+  @override
   Object visitAssignmentExpression(AssignmentExpression node) {
     sc.Token operator = node.operator;
     sc.TokenType operatorType = operator.type;
@@ -17029,11 +17389,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return super.visitAssignmentExpression(node);
   }
 
+  @override
   Object visitBinaryExpression(BinaryExpression node) {
     _checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
     return super.visitBinaryExpression(node);
   }
 
+  @override
   Object visitBlockFunctionBody(BlockFunctionBody node) {
     List<ReturnStatement> previousReturnsWith = _returnsWith;
     List<ReturnStatement> previousReturnsWithout = _returnsWithout;
@@ -17049,6 +17411,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitBreakStatement(BreakStatement node) {
     SimpleIdentifier labelNode = node.label;
     if (labelNode != null) {
@@ -17060,6 +17423,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitCatchClause(CatchClause node) {
     bool previousIsInCatchClause = _isInCatchClause;
     try {
@@ -17070,6 +17434,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitClassDeclaration(ClassDeclaration node) {
     ClassElement outerClass = _enclosingClass;
     try {
@@ -17118,6 +17483,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
     _checkForBuiltInIdentifierAsName(node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     _checkForAllMixinErrorCodes(node.withClause);
@@ -17132,6 +17498,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return super.visitClassTypeAlias(node);
   }
 
+  @override
   Object visitComment(Comment node) {
     _isInComment = true;
     try {
@@ -17141,11 +17508,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitConditionalExpression(ConditionalExpression node) {
     _checkForNonBoolCondition(node.condition);
     return super.visitConditionalExpression(node);
   }
 
+  @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
@@ -17171,6 +17540,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     _isInConstructorInitializer = true;
     try {
@@ -17182,6 +17552,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitContinueStatement(ContinueStatement node) {
     SimpleIdentifier labelNode = node.label;
     if (labelNode != null) {
@@ -17193,17 +17564,20 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     _checkForInvalidAssignment(node.identifier, node.defaultValue);
     _checkForDefaultValueInFunctionTypedParameter(node);
     return super.visitDefaultFormalParameter(node);
   }
 
+  @override
   Object visitDoStatement(DoStatement node) {
     _checkForNonBoolCondition(node.condition);
     return super.visitDoStatement(node);
   }
 
+  @override
   Object visitExportDirective(ExportDirective node) {
     ExportElement exportElement = node.element;
     if (exportElement != null) {
@@ -17214,6 +17588,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return super.visitExportDirective(node);
   }
 
+  @override
   Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
     FunctionType functionType = _enclosingFunction == null ? null : _enclosingFunction.type;
     DartType expectedReturnType = functionType == null ? DynamicTypeImpl.instance : functionType.returnType;
@@ -17221,6 +17596,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return super.visitExpressionFunctionBody(node);
   }
 
+  @override
   Object visitFieldDeclaration(FieldDeclaration node) {
     _isInStaticVariableDeclaration = node.isStatic;
     _isInInstanceVariableDeclaration = !_isInStaticVariableDeclaration;
@@ -17239,6 +17615,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitFieldFormalParameter(FieldFormalParameter node) {
     _checkForValidField(node);
     _checkForConstFormalParameter(node);
@@ -17247,6 +17624,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return super.visitFieldFormalParameter(node);
   }
 
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
@@ -17273,6 +17651,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitFunctionExpression(FunctionExpression node) {
     // If this function expression is wrapped in a function declaration, don't change the
     // enclosingFunction field.
@@ -17289,6 +17668,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     Expression functionExpression = node.function;
     DartType expressionType = functionExpression.staticType;
@@ -17298,6 +17678,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return super.visitFunctionExpressionInvocation(node);
   }
 
+  @override
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
     _checkForBuiltInIdentifierAsName(node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     _checkForDefaultValueInFunctionTypeAlias(node);
@@ -17305,6 +17686,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return super.visitFunctionTypeAlias(node);
   }
 
+  @override
   Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     bool old = _isInFunctionTypedFormalParameter;
     _isInFunctionTypedFormalParameter = true;
@@ -17315,11 +17697,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitIfStatement(IfStatement node) {
     _checkForNonBoolCondition(node.condition);
     return super.visitIfStatement(node);
   }
 
+  @override
   Object visitImportDirective(ImportDirective node) {
     ImportElement importElement = node.element;
     if (importElement != null) {
@@ -17329,11 +17713,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return super.visitImportDirective(node);
   }
 
+  @override
   Object visitIndexExpression(IndexExpression node) {
     _checkForArgumentTypeNotAssignableForArgument(node.index);
     return super.visitIndexExpression(node);
   }
 
+  @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     _isInConstInstanceCreation = node.isConst;
     try {
@@ -17357,6 +17743,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitListLiteral(ListLiteral node) {
     if (node.constKeyword != null) {
       TypeArgumentList typeArguments = node.typeArguments;
@@ -17372,6 +17759,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return super.visitListLiteral(node);
   }
 
+  @override
   Object visitMapLiteral(MapLiteral node) {
     TypeArgumentList typeArguments = node.typeArguments;
     if (typeArguments != null) {
@@ -17389,6 +17777,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return super.visitMapLiteral(node);
   }
 
+  @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement previousFunction = _enclosingFunction;
     try {
@@ -17422,6 +17811,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitMethodInvocation(MethodInvocation node) {
     Expression target = node.realTarget;
     SimpleIdentifier methodName = node.methodName;
@@ -17435,6 +17825,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return super.visitMethodInvocation(node);
   }
 
+  @override
   Object visitNativeClause(NativeClause node) {
     // TODO(brianwilkerson) Figure out the right rule for when 'native' is allowed.
     if (!_isInSystemLibrary) {
@@ -17443,17 +17834,20 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return super.visitNativeClause(node);
   }
 
+  @override
   Object visitNativeFunctionBody(NativeFunctionBody node) {
     _checkForNativeFunctionBodyInNonSDKCode(node);
     return super.visitNativeFunctionBody(node);
   }
 
+  @override
   Object visitPostfixExpression(PostfixExpression node) {
     _checkForAssignmentToFinal(node.operand);
     _checkForIntNotAssignable(node.operand);
     return super.visitPostfixExpression(node);
   }
 
+  @override
   Object visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (node.parent is! Annotation) {
       ClassElement typeReference = ElementResolver.getTypeReference(node.prefix);
@@ -17464,6 +17858,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return super.visitPrefixedIdentifier(node);
   }
 
+  @override
   Object visitPrefixExpression(PrefixExpression node) {
     sc.TokenType operatorType = node.operator.type;
     Expression operand = node.operand;
@@ -17476,6 +17871,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return super.visitPrefixExpression(node);
   }
 
+  @override
   Object visitPropertyAccess(PropertyAccess node) {
     ClassElement typeReference = ElementResolver.getTypeReference(node.realTarget);
     SimpleIdentifier propertyName = node.propertyName;
@@ -17484,6 +17880,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return super.visitPropertyAccess(node);
   }
 
+  @override
   Object visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     _isInConstructorInitializer = true;
     try {
@@ -17493,11 +17890,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitRethrowExpression(RethrowExpression node) {
     _checkForRethrowOutsideCatch(node);
     return super.visitRethrowExpression(node);
   }
 
+  @override
   Object visitReturnStatement(ReturnStatement node) {
     if (node.expression == null) {
       _returnsWithout.add(node);
@@ -17508,12 +17907,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return super.visitReturnStatement(node);
   }
 
+  @override
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
     _checkForConstFormalParameter(node);
     _checkForPrivateOptionalParameter(node);
     return super.visitSimpleFormalParameter(node);
   }
 
+  @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     _checkForImplicitThisReferenceInInitializer(node);
     if (!_isUnqualifiedReferenceToNonLocalStaticMemberAllowed(node)) {
@@ -17522,6 +17923,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return super.visitSimpleIdentifier(node);
   }
 
+  @override
   Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _isInConstructorInitializer = true;
     try {
@@ -17531,6 +17933,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  @override
   Object visitSwitchStatement(SwitchStatement node) {
     _checkForInconsistentCaseExpressionTypes(node);
     _checkForSwitchExpressionNotAssignable(node);
@@ -17538,33 +17941,39 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return super.visitSwitchStatement(node);
   }
 
+  @override
   Object visitThisExpression(ThisExpression node) {
     _checkForInvalidReferenceToThis(node);
     return super.visitThisExpression(node);
   }
 
+  @override
   Object visitThrowExpression(ThrowExpression node) {
     _checkForConstEvalThrowsException(node);
     return super.visitThrowExpression(node);
   }
 
+  @override
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _checkForFinalNotInitialized(node.variables);
     return super.visitTopLevelVariableDeclaration(node);
   }
 
+  @override
   Object visitTypeName(TypeName node) {
     _checkForTypeArgumentNotMatchingBounds(node);
     _checkForTypeParameterReferencedByStatic(node);
     return super.visitTypeName(node);
   }
 
+  @override
   Object visitTypeParameter(TypeParameter node) {
     _checkForBuiltInIdentifierAsName(node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME);
     _checkForTypeParameterSupertypeOfItsBound(node);
     return super.visitTypeParameter(node);
   }
 
+  @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     SimpleIdentifier nameNode = node.name;
     Expression initializerNode = node.initializer;
@@ -17588,13 +17997,16 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitVariableDeclarationList(VariableDeclarationList node) => super.visitVariableDeclarationList(node);
 
+  @override
   Object visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     _checkForFinalNotInitialized(node.variables);
     return super.visitVariableDeclarationStatement(node);
   }
 
+  @override
   Object visitWhileStatement(WhileStatement node) {
     _checkForNonBoolCondition(node.condition);
     return super.visitWhileStatement(node);
@@ -21592,6 +22004,7 @@ class GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference extends G
 
   bool _inClass = false;
 
+  @override
   Object visitClassElement(ClassElement element) {
     _addTypeToCheck(element.supertype);
     for (InterfaceType mixin in element.mixins) {
@@ -21605,6 +22018,7 @@ class GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference extends G
     }
   }
 
+  @override
   Object visitExecutableElement(ExecutableElement element) {
     if (element.isSynthetic) {
       return null;
@@ -21613,21 +22027,25 @@ class GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference extends G
     return super.visitExecutableElement(element);
   }
 
+  @override
   Object visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
     _addTypeToCheck(element.returnType);
     return super.visitFunctionTypeAliasElement(element);
   }
 
+  @override
   Object visitParameterElement(ParameterElement element) {
     _addTypeToCheck(element.type);
     return super.visitParameterElement(element);
   }
 
+  @override
   Object visitTypeParameterElement(TypeParameterElement element) {
     _addTypeToCheck(element.bound);
     return super.visitTypeParameterElement(element);
   }
 
+  @override
   Object visitVariableElement(VariableElement element) {
     _addTypeToCheck(element.type);
     return super.visitVariableElement(element);
@@ -21707,7 +22125,9 @@ class ResolverErrorCode extends Enum<ResolverErrorCode> implements ErrorCode {
     this.correction9 = correction;
   }
 
+  @override
   String get correction => correction9;
 
+  @override
   ErrorSeverity get errorSeverity => type.severity;
 }
