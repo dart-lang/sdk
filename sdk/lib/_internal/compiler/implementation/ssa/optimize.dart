@@ -426,6 +426,28 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return null;
   }
 
+  HInstruction visitAdd(HAdd node) {
+    HInstruction left = node.left;
+    HInstruction right = node.right;
+    // We can only perform this rewriting on Integer, as it is not
+    // valid for -0.0.
+    if (left.isInteger(compiler) && right.isInteger(compiler)) {
+      if (left is HConstant && left.constant.isZero()) return right;
+      if (right is HConstant && right.constant.isZero()) return left;
+    }
+    return super.visitAdd(node);
+  }
+
+  HInstruction visitMultiply(HMultiply node) {
+    HInstruction left = node.left;
+    HInstruction right = node.right;
+    if (left.isNumber(compiler) && right.isNumber(compiler)) {
+      if (left is HConstant && left.constant.isOne()) return right;
+      if (right is HConstant && right.constant.isOne()) return left;
+    }
+    return super.visitMultiply(node);
+  }
+
   HInstruction visitInvokeBinary(HInvokeBinary node) {
     HInstruction left = node.left;
     HInstruction right = node.right;

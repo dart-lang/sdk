@@ -23,6 +23,7 @@ abstract class ConstantVisitor<R> {
 abstract class Constant {
   const Constant();
 
+  // TODO: Make all the isXXX in Constant checks getters.
   bool isNull() => false;
   bool isBool() => false;
   bool isTrue() => false;
@@ -45,6 +46,8 @@ abstract class Constant {
 
   bool isNaN() => false;
   bool isMinusZero() => false;
+  bool isZero() => false;
+  bool isOne() => false;
 
   // TODO(johnniwinther): Replace with a 'type' getter.
   DartType computeType(Compiler compiler);
@@ -161,6 +164,8 @@ class IntConstant extends NumConstant {
   bool isUInt31() => value >= 0 && value < (1 << 31);
   bool isUInt32() => value >= 0 && value < (1 << 32);
   bool isPositive() => value >= 0;
+  bool isZero() => value == 0;
+  bool isOne() => value == 1;
 
   DartType computeType(Compiler compiler) {
     return compiler.intClass.computeType(compiler);
@@ -211,6 +216,8 @@ class DoubleConstant extends NumConstant {
   bool isNaN() => value.isNaN;
   // We need to check for the negative sign since -0.0 == 0.0.
   bool isMinusZero() => value == 0.0 && value.isNegative;
+  bool isZero() => value == 0.0;
+  bool isOne() => value == 1.0;
 
   DartType computeType(Compiler compiler) {
     return compiler.doubleClass.computeType(compiler);
