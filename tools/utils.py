@@ -238,7 +238,7 @@ def GetBuildConf(mode, arch, conf_os=None):
       print "GetBuildConf: Rewritten %s to %s\n" % (arch, target_arch)
     cross_build = ''
     if host_arch != target_arch:
-      print "GetBuildConf: Cross-build of % on %s\n" % (arch, host_arch)
+      print "GetBuildConf: Cross-build of %s on %s\n" % (arch, host_arch)
       cross_build = 'X'
     return '%s%s%s' % (GetBuildMode(mode), cross_build, arch.upper())
 
