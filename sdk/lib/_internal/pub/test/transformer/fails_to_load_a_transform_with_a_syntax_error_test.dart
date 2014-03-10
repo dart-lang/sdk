@@ -30,7 +30,7 @@ main() {
     createLockFile('myapp', pkg: ['barback']);
 
     var pub = startPubServe();
-    pub.stderr.expect(startsWith('Error on line'));
+    pub.stderr.expect(startsWith('Error in'));
     pub.shouldExit(1);
     pub.stderr.expect(never(contains('This is an unexpected error')));
   });
