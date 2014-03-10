@@ -1085,6 +1085,15 @@ part of lib.foo;
   static const MessageKind DUPLICATED_LIBRARY_NAME = const MessageKind(
       "Duplicated library name '#{libraryName}'.");
 
+  static const MessageKind DUPLICATED_RESOURCE = const MessageKind(
+      "The resource '#{resourceUri}' is loaded through both "
+      "'#{canonicalUri1}' and '#{canonicalUri2}'.");
+
+  static const MessageKind DUPLICATED_LIBRARY_RESOURCE =
+      const MessageKind(
+          "The library '#{libraryName}' in '#{resourceUri}' is loaded through "
+          "both '#{canonicalUri1}' and '#{canonicalUri2}'.");
+
   // This is used as an exception.
   static const MessageKind INVALID_SOURCE_FILE_LOCATION = const MessageKind('''
 Invalid offset (#{offset}) in source map.

@@ -228,7 +228,7 @@ class Dart2JsSourceLocation implements SourceLocation {
 
   String get text => _script.text.substring(_span.begin, _span.end);
 
-  Uri get sourceUri => _script.uri;
+  Uri get sourceUri => _script.resourceUri;
 
   String get sourceText => _script.text;
 }

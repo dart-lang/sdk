@@ -336,7 +336,7 @@ class MockCompiler extends Compiler {
    */
   LibraryElement createLibrary(String name, String source) {
     Uri uri = new Uri(scheme: "dart", path: name);
-    var script = new Script(uri, new MockFile(source));
+    var script = new Script(uri, uri, new MockFile(source));
     var library = new LibraryElementX(script);
     library.libraryTag = new LibraryName(null, null, null);
     parseScript(source, library);
@@ -447,7 +447,7 @@ class MockCompiler extends Compiler {
   Future<Script> readScript(Uri uri, [Element element, Node node]) {
     SourceFile sourceFile = sourceFiles[uri.toString()];
     if (sourceFile == null) throw new ArgumentError(uri);
-    return new Future.value(new Script(uri, sourceFile));
+    return new Future.value(new Script(uri, uri, sourceFile));
   }
 
   Element lookupElementIn(ScopeContainerElement container, name) {
@@ -536,7 +536,7 @@ void importLibrary(LibraryElement target, LibraryElementX imported,
 
 LibraryElement mockLibrary(Compiler compiler, String source) {
   Uri uri = new Uri(scheme: "source");
-  var library = new LibraryElementX(new Script(uri, new MockFile(source)));
+  var library = new LibraryElementX(new Script(uri, uri, new MockFile(source)));
   importLibrary(library, compiler.coreLibrary, compiler);
   library.setExports(<Element>[]);
   return library;

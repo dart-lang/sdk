@@ -196,7 +196,7 @@ class Compiler extends leg.Compiler {
       // the scheme in the script because [Script.uri] is used for resolving
       // relative URIs mentioned in the script. See the comment on
       // [LibraryLoader] for more details.
-      return new leg.Script(readableUri, sourceFile);
+      return new leg.Script(readableUri, resourceUri, sourceFile);
     }).catchError((error) {
       reportReadError(error);
       return null;

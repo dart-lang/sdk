@@ -643,7 +643,7 @@ class CompilationUnitElementX extends ElementX
 
   int compareTo(CompilationUnitElement other) {
     if (this == other) return 0;
-    return '${script.uri}'.compareTo('${other.script.uri}');
+    return '${script.readableUri}'.compareTo('${other.script.readableUri}');
   }
 
   accept(ElementVisitor visitor) => visitor.visitCompilationUnitElement(this);
@@ -793,7 +793,8 @@ class LibraryElementX extends ElementX implements LibraryElement {
       new Map<LibraryDependency, LibraryElement>();
 
   LibraryElementX(Script script, [Uri canonicalUri, LibraryElement this.origin])
-    : this.canonicalUri = ((canonicalUri == null) ? script.uri : canonicalUri),
+    : this.canonicalUri =
+          ((canonicalUri == null) ? script.readableUri : canonicalUri),
       super(script.name, ElementKind.LIBRARY, null) {
     entryCompilationUnit = new CompilationUnitElementX(script, this);
     if (isPatch) {

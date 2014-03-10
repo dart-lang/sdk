@@ -200,11 +200,11 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
     Script script = getScript();
     SourceSpan span;
     if (beginToken == null) {
-      span = new SourceSpan(script.uri, 0, 0);
+      span = new SourceSpan(script.readableUri, 0, 0);
     } else {
       Token endToken = getEndToken();
       span = mirrorSystem.compiler.spanFromTokens(
-          beginToken, endToken, script.uri);
+          beginToken, endToken, script.readableUri);
     }
     return new Dart2JsSourceLocation(script, span);
   }
@@ -445,7 +445,7 @@ class Dart2JsCompilationUnitMirror extends Dart2JsMirror
   Iterable<DeclarationMirror> _getDeclarationMirrors(Element element) =>
       _library._getDeclarationMirrors(element);
 
-  Uri get uri => _element.script.uri;
+  Uri get uri => _element.script.resourceUri;
 }
 
 /**

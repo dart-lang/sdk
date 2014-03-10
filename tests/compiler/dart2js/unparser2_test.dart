@@ -57,7 +57,7 @@ void compareCode(String code) {
 
 String doUnparse(String source) {
   MessageCollector diagnosticListener = new MessageCollector();
-  Script script = new Script(null, null);
+  Script script = new Script(null, null, null);
   LibraryElement lib = new LibraryElementX(script);
   CompilationUnitElement element = new CompilationUnitElementX(script, lib);
   StringScanner scanner = new StringScanner.fromString(source);

@@ -23,9 +23,6 @@ main() {
       var value = cls.getField(name).reflectee;
       if (value is MessageKind) {
         kinds[MirrorSystem.getName(name)] = value;
-      } else if (value is DualKind) {
-        kinds['${MirrorSystem.getName(name)}.error'] = value.error;
-        kinds['${MirrorSystem.getName(name)}.warning'] = value.warning;
       } else {
         Expect.fail("Weird static field: '${MirrorSystem.getName(name)}'.");
       }

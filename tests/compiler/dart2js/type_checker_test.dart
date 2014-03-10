@@ -1891,7 +1891,7 @@ analyze(String text, {errors, warnings, List hints, List infos}) {
   parser.parseStatement(tokens);
   Node node = listener.popNode();
   Element compilationUnit =
-    new CompilationUnitElementX(new Script(null, null), compiler.mainApp);
+    new CompilationUnitElementX(new Script(null, null, null), compiler.mainApp);
   Element function = new FunctionElementX(
       '', ElementKind.FUNCTION, Modifiers.EMPTY, compilationUnit, false);
   TreeElements elements = compiler.resolveNodeStatement(node, function);

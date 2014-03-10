@@ -764,7 +764,7 @@ abstract class Compiler implements DiagnosticListener {
     } else if (node is Element) {
       return spanFromElement(node);
     } else if (node is MetadataAnnotation) {
-      Uri uri = node.annotatedElement.getCompilationUnit().script.uri;
+      Uri uri = node.annotatedElement.getCompilationUnit().script.readableUri;
       return spanFromTokens(node.beginToken, node.endToken, uri);
     } else {
       throw 'No error location.';
@@ -1469,7 +1469,7 @@ abstract class Compiler implements DiagnosticListener {
       throw 'Cannot find tokens to produce error message.';
     }
     if (uri == null && currentElement != null) {
-      uri = currentElement.getCompilationUnit().script.uri;
+      uri = currentElement.getCompilationUnit().script.readableUri;
     }
     return SourceSpan.withCharacterOffsets(begin, end,
       (beginOffset, endOffset) => new SourceSpan(uri, beginOffset, endOffset));
@@ -1498,7 +1498,7 @@ abstract class Compiler implements DiagnosticListener {
       element = currentElement;
     }
     Token position = element.position();
-    Uri uri = element.getCompilationUnit().script.uri;
+    Uri uri = element.getCompilationUnit().script.readableUri;
     return (position == null)
         ? new SourceSpan(uri, 0, 0)
         : spanFromTokens(position, position, uri);
@@ -1511,7 +1511,7 @@ abstract class Compiler implements DiagnosticListener {
     if (position == null) return spanFromElement(element);
     Token token = position.token;
     if (token == null) return spanFromElement(element);
-    Uri uri = element.getCompilationUnit().script.uri;
+    Uri uri = element.getCompilationUnit().script.readableUri;
     return spanFromTokens(token, token, uri);
   }
 

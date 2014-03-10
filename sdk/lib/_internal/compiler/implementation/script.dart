@@ -12,9 +12,17 @@ class Script {
    *
    * See [LibraryLoader] for terminology on URIs.
    */
-  final Uri uri;
+  final Uri readableUri;
 
-  Script(this.uri, this.file);
+
+  /**
+   * The resource URI from which this script was loaded.
+   *
+   * See [LibraryLoader] for terminology on URIs.
+   */
+  final Uri resourceUri;
+
+  Script(this.readableUri, this.resourceUri, this.file);
 
   String get text => (file == null) ? null : file.slowText();
   String get name => (file == null) ? null : file.filename;

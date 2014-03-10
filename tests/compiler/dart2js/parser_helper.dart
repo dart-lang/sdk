@@ -69,10 +69,8 @@ Node parseBodyCode(String text, Function parseMethod,
                    {DiagnosticListener diagnosticHandler}) {
   Token tokens = scan(text);
   if (diagnosticHandler == null) diagnosticHandler = new LoggerCanceler();
-  Script script =
-      new Script(
-          new Uri(scheme: "source"),
-          new MockFile(text));
+  Uri uri = new Uri(scheme: "source");
+  Script script = new Script(uri, uri,new MockFile(text));
   LibraryElement library = new LibraryElementX(script);
   library.canUseNative = true;
   NodeListener listener =
@@ -116,7 +114,7 @@ Link<Element> parseUnit(String text, Compiler compiler,
   if (registerSource != null) {
     registerSource(uri, text);
   }
-  var script = new Script(uri, new MockFile(text));
+  var script = new Script(uri, uri, new MockFile(text));
   var unit = new CompilationUnitElementX(script, library);
   int id = 0;
   ElementListener listener = new ElementListener(compiler, unit, () => id++);

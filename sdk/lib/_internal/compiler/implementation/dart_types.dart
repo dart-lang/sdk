@@ -1175,7 +1175,7 @@ class Types {
   final PotentialSubtypeVisitor potentialSubtypeVisitor;
 
   factory Types(Compiler compiler, BaseClassElementX dynamicElement) {
-    LibraryElement library = new LibraryElementX(new Script(null, null));
+    LibraryElement library = new LibraryElementX(new Script(null, null, null));
     VoidType voidType = new VoidType(new VoidElementX(library));
     DynamicType dynamicType = new DynamicType(dynamicElement);
     dynamicElement.rawTypeCache = dynamicElement.thisType = dynamicType;
