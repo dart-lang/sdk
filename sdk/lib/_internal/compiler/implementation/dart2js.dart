@@ -56,7 +56,7 @@ String extractParameter(String argument) {
   // m[0] is the entire match (which will be equal to argument). m[1]
   // is something like "-o" or "--out=", and m[2] is the parameter.
   Match m = new RegExp('^(-[a-z]|--.+=)(.*)').firstMatch(argument);
-  if (m == null) helpAndFail('Error: Unknown option "$argument".');
+  if (m == null) helpAndFail('Unknown option "$argument".');
   return m[2];
 }
 
@@ -109,6 +109,9 @@ Future compile(List<String> argv) {
   String outputLanguage = 'JavaScript';
   bool stripArgumentSet = false;
   bool analyzeOnly = false;
+  bool analyzeAll = false;
+  // List of provided options that imply that output is expected.
+  List<String> optionsImplyCompilation = <String>[];
   bool hasDisallowUnsafeEval = false;
   // TODO(johnniwinther): Measure time for reading files.
   SourceFileProvider inputProvider = new CompilerSourceFileProvider();
@@ -130,6 +133,7 @@ Future compile(List<String> argv) {
   }
 
   setOutput(Iterator<String> arguments) {
+    optionsImplyCompilation.add(arguments.current);
     String path;
     if (arguments.current == '-o') {
       if (!arguments.moveNext()) {
@@ -145,6 +149,7 @@ Future compile(List<String> argv) {
   }
 
   setOutputType(String argument) {
+    optionsImplyCompilation.add(argument);
     if (argument == '--output-type=dart') {
       outputLanguage = OUTPUT_LANGUAGE_DART;
       if (!explicitOut) {
@@ -162,6 +167,7 @@ Future compile(List<String> argv) {
   }
 
   setStrip(String argument) {
+    optionsImplyCompilation.add(argument);
     stripArgumentSet = true;
     passThrough(argument);
   }
@@ -171,9 +177,19 @@ Future compile(List<String> argv) {
     passThrough(argument);
   }
 
+  setAnalyzeAll(String argument) {
+    analyzeAll = true;
+    passThrough(argument);
+  }
+
   setVerbose(_) {
     diagnosticHandler.verbose = true;
     passThrough('--verbose');
+  }
+
+  implyCompilation(String argument) {
+    optionsImplyCompilation.add(argument);
+    passThrough(argument);
   }
 
   addInEnvironment(String argument) {
@@ -198,7 +214,7 @@ Future compile(List<String> argv) {
       String allowedCategoriesString = allowedCategoriesList.join(', ');
       for (String category in categories) {
         if (!allowedCategories.contains(category)) {
-          fail('Error: unsupported library category "$category", '
+          fail('Unsupported library category "$category", '
                'supported categories are: $allowedCategoriesString');
         }
       }
@@ -221,7 +237,7 @@ Future compile(List<String> argv) {
           passThrough('--enable-checked-mode');
           break;
         case 'm':
-          passThrough('--minify');
+          implyCompilation('--minify');
           break;
         default:
           throw 'Internal error: "$shortOption" did not match';
@@ -255,7 +271,7 @@ Future compile(List<String> argv) {
     new OptionHandler('--library-root=.+', setLibraryRoot),
     new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
     new OptionHandler('--allow-mock-compilation', passThrough),
-    new OptionHandler('--minify|-m', passThrough),
+    new OptionHandler('--minify|-m', implyCompilation),
     new OptionHandler('--force-strip=.*', setStrip),
     new OptionHandler('--disable-diagnostic-colors',
                       (_) => diagnosticHandler.enableColors = false),
@@ -264,19 +280,20 @@ Future compile(List<String> argv) {
     new OptionHandler('--enable[_-]checked[_-]mode|--checked',
                       (_) => passThrough('--enable-checked-mode')),
     new OptionHandler('--enable-concrete-type-inference',
-                      (_) => passThrough('--enable-concrete-type-inference')),
+                      (_) => implyCompilation(
+                          '--enable-concrete-type-inference')),
     new OptionHandler('--trust-type-annotations',
-                      (_) => passThrough('--trust-type-annotations')),
+                      (_) => implyCompilation('--trust-type-annotations')),
     new OptionHandler(r'--help|/\?|/h', (_) => wantHelp = true),
     new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
-    new OptionHandler('--analyze-all', passThrough),
+    new OptionHandler('--analyze-all', setAnalyzeAll),
     new OptionHandler('--analyze-only', setAnalyzeOnly),
-    new OptionHandler('--analyze-signatures-only', passThrough),
+    new OptionHandler('--analyze-signatures-only', setAnalyzeOnly),
     new OptionHandler('--disable-native-live-type-analysis', passThrough),
     new OptionHandler('--categories=.*', setCategories),
-    new OptionHandler('--disable-type-inference', passThrough),
+    new OptionHandler('--disable-type-inference', implyCompilation),
     new OptionHandler('--terse', passThrough),
-    new OptionHandler('--dump-info', passThrough),
+    new OptionHandler('--dump-info', implyCompilation),
     new OptionHandler('--disallow-unsafe-eval',
                       (_) => hasDisallowUnsafeEval = true),
     new OptionHandler('--show-package-warnings', passThrough),
@@ -284,7 +301,7 @@ Future compile(List<String> argv) {
 
     // The following two options must come last.
     new OptionHandler('-.*', (String argument) {
-      helpAndFail('Error: Unknown option "$argument".');
+      helpAndFail("Unknown option '$argument'.");
     }),
     new OptionHandler('.*', (String argument) {
       arguments.add(nativeToUriPath(argument));
@@ -299,27 +316,40 @@ Future compile(List<String> argv) {
   if (hasDisallowUnsafeEval) {
     String precompiledName =
         relativize(currentDirectory, computePrecompiledUri(), isWindows);
-    helpAndFail("Error: option '--disallow-unsafe-eval' has been removed."
+    helpAndFail("Option '--disallow-unsafe-eval' has been removed."
                 " Instead, the compiler generates a file named"
                 " '$precompiledName'.");
   }
 
   if (outputLanguage != OUTPUT_LANGUAGE_DART && stripArgumentSet) {
-    helpAndFail('Error: --force-strip may only be used with '
-        '--output-type=dart');
+    helpAndFail("Option '--force-strip' may only be used with "
+                "'--output-type=dart'.");
   }
   if (arguments.isEmpty) {
-    helpAndFail('Error: No Dart file specified.');
+    helpAndFail('No Dart file specified.');
   }
   if (arguments.length > 1) {
     var extra = arguments.sublist(1);
-    helpAndFail('Error: Extra arguments: ${extra.join(" ")}');
+    helpAndFail('Extra arguments: ${extra.join(" ")}');
   }
 
   Uri uri = currentDirectory.resolve(arguments[0]);
   if (packageRoot == null) {
     packageRoot = uri.resolve('./packages/');
   }
+
+  if ((analyzeOnly || analyzeAll) && !optionsImplyCompilation.isEmpty) {
+    if (!analyzeOnly) {
+      diagnosticHandler.info(
+          "Option '--analyze-all' implies '--analyze-only'.",
+          api.Diagnostic.INFO);
+    }
+    diagnosticHandler.info(
+        "Options $optionsImplyCompilation indicate that output is expected, "
+        "but compilation is turned off by the option '--analyze-only'.",
+        api.Diagnostic.INFO);
+  }
+  if (analyzeAll) analyzeOnly = true;
 
   diagnosticHandler.info('Package root is $packageRoot');
 
@@ -333,7 +363,7 @@ Future compile(List<String> argv) {
   compilationDone(String code) {
     if (analyzeOnly) return;
     if (code == null) {
-      fail('Error: Compilation failed.');
+      fail('Compilation failed.');
     }
     writeString(Uri.parse('$out.deps'),
                 getDepsOutput(inputProvider.sourceFiles));
@@ -376,14 +406,14 @@ Future compile(List<String> argv) {
         String outName = out.path.substring(out.path.lastIndexOf('/') + 1);
         uri = out.resolve('${outName}.$extension');
       } else {
-        fail('Error: Unknown extension: $extension');
+        fail('Unknown extension: $extension');
       }
     } else {
       uri = out.resolve('$name.$extension');
     }
 
     if (uri.scheme != 'file') {
-      fail('Error: Unhandled scheme ${uri.scheme} in $uri.');
+      fail('Unhandled scheme ${uri.scheme} in $uri.');
     }
 
     RandomAccessFile output;
@@ -446,7 +476,7 @@ class AbortLeg {
 
 void writeString(Uri uri, String text) {
   if (uri.scheme != 'file') {
-    fail('Error: Unhandled scheme ${uri.scheme}.');
+    fail('Unhandled scheme ${uri.scheme}.');
   }
   var file = new File(uri.toFilePath()).openSync(mode: FileMode.WRITE);
   file.writeStringSync(text);
@@ -458,7 +488,7 @@ void fail(String message) {
     diagnosticHandler.diagnosticHandler(
         null, -1, -1, message, api.Diagnostic.ERROR);
   } else {
-    print(message);
+    print('Error: $message');
   }
   exitFunc(1);
 }
@@ -520,9 +550,7 @@ Supported options:
 
   --analyze-all
     Analyze all code.  Without this option, the compiler only analyzes
-    code that is reachable from [main].  This option is useful for
-    finding errors in libraries, but using it can result in bigger and
-    slower output.
+    code that is reachable from [main].  This option implies --analyze-only.
 
   --analyze-only
     Analyze but do not generate code.

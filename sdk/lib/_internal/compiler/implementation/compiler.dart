@@ -626,7 +626,7 @@ abstract class Compiler implements DiagnosticListener {
             this.enableNativeLiveTypeAnalysis: false,
             bool emitJavaScript: true,
             bool generateSourceMap: true,
-            this.analyzeAllFlag: false,
+            bool analyzeAllFlag: false,
             bool analyzeOnly: false,
             bool analyzeSignaturesOnly: false,
             this.preserveComments: false,
@@ -639,8 +639,10 @@ abstract class Compiler implements DiagnosticListener {
             this.showPackageWarnings: false,
             outputProvider,
             List<String> strips: const []})
-      : this.analyzeOnly = analyzeOnly || analyzeSignaturesOnly,
+      : this.analyzeOnly =
+            analyzeOnly || analyzeSignaturesOnly || analyzeAllFlag,
         this.analyzeSignaturesOnly = analyzeSignaturesOnly,
+        this.analyzeAllFlag = analyzeAllFlag,
         this.outputProvider = (outputProvider == null)
             ? NullSink.outputProvider
             : outputProvider {
@@ -1025,16 +1027,16 @@ abstract class Compiler implements DiagnosticListener {
     return scanBuiltinLibraries().then((_) {
       if (librariesToAnalyzeWhenRun != null) {
         return Future.forEach(librariesToAnalyzeWhenRun, (libraryUri) {
-          log('analyzing $libraryUri ($buildId)');
+          log('Analyzing $libraryUri ($buildId)');
           return libraryLoader.loadLibrary(libraryUri, null, libraryUri);
         });
       }
     }).then((_) {
       if (uri != null) {
         if (analyzeOnly) {
-          log('analyzing $uri ($buildId)');
+          log('Analyzing $uri ($buildId)');
         } else {
-          log('compiling $uri ($buildId)');
+          log('Compiling $uri ($buildId)');
         }
         return libraryLoader.loadLibrary(uri, null, uri)
             .then((LibraryElement library) {

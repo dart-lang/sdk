@@ -13,9 +13,9 @@ class ScannerTask extends CompilerTask {
     var canonicalUri = library.canonicalUri.toString();
     var resolvedUri = compilationUnit.script.uri.toString();
     if (canonicalUri == resolvedUri) {
-      compiler.log("scanning library $canonicalUri");
+      compiler.log("Scanning library $canonicalUri");
     } else {
-      compiler.log("scanning library $canonicalUri ($resolvedUri)");
+      compiler.log("Scanning library $canonicalUri ($resolvedUri)");
     }
     scan(compilationUnit);
   }

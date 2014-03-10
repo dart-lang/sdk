@@ -114,14 +114,15 @@ class FormattingDiagnosticHandler {
     if (isAborting) return;
     isAborting = (kind == api.Diagnostic.CRASH);
 
-    message = prefixMessage(message, kind);
-
     bool fatal = (kind.ordinal & FATAL) != 0;
     bool isInfo = (kind.ordinal & INFO) != 0;
     if (isInfo && uri == null && kind != api.Diagnostic.INFO) {
       info(message, kind);
       return;
     }
+
+    message = prefixMessage(message, kind);
+
     // [previousKind]/[lastKind] records the previous non-INFO kind we saw.
     // This is used to suppress info about a warning when warnings are
     // suppressed, and similar for hints.
