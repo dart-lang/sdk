@@ -213,6 +213,15 @@ BUILD_ROOT = {
   'macos': os.path.join('xcodebuild'),
 }
 
+ARCH_FAMILY = {
+  'ia32': 'ia32',
+  'x64': 'ia32',
+  'arm': 'arm',
+  'mips': 'mips',
+  'simarm': 'ia32',
+  'simmips': 'ia32',
+}
+
 ARCH_GUESS = GuessArchitecture()
 BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))
 DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..'))
@@ -226,21 +235,17 @@ def GetBuildbotGSUtilPath():
 def GetBuildMode(mode):
   return BUILD_MODES[mode]
 
+def GetArchFamily(arch):
+  return ARCH_FAMILY[arch]
+
 def GetBuildConf(mode, arch, conf_os=None):
   if conf_os == 'android':
     return '%s%s%s' % (GetBuildMode(mode), conf_os.title(), arch.upper())
   else:
     # Ask for a cross build if the host and target architectures don't match.
     host_arch = ARCH_GUESS
-    target_arch = arch
-    if target_arch == 'x64':
-      target_arch = 'ia32'
-      print "GetBuildConf: Rewritten %s to %s\n" % (arch, target_arch)
-    if host_arch == 'x64':
-      host_arch = 'ia32'
-      print "GetBuildConf: Rewritten %s to %s\n" % (arch, host_arch)
     cross_build = ''
-    if host_arch != target_arch:
+    if GetArchFamily(host_arch) != GetArchFamily(arch):
       print "GetBuildConf: Cross-build of %s on %s\n" % (arch, host_arch)
       cross_build = 'X'
     return '%s%s%s' % (GetBuildMode(mode), cross_build, arch.upper())
