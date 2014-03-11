@@ -1,5 +1,12 @@
 part of unittest;
 
+const _PLACE_HOLDER = const _ArgPlaceHolder();
+
+/// Used to track unused positional args.
+class _ArgPlaceHolder {
+  const _ArgPlaceHolder();
+}
+
 /** Simulates spread arguments using named arguments. */
 // TODO(sigmund): remove this class and simply use a closure with named
 // arguments (if still applicable).
@@ -14,7 +21,7 @@ class _SpreadArgsHelper {
   bool complete;
 
   _SpreadArgsHelper(Function callback, int minExpected, int maxExpected,
-      Function isDone, String id)
+      String id, {bool isDone()})
       : this.callback = callback,
         minExpectedCalls = minExpected,
         maxExpectedCalls = (maxExpected == 0 && minExpected > 0)
@@ -90,31 +97,49 @@ class _SpreadArgsHelper {
     }
   }
 
-  invoke0() {
-    return _guardAsync(
-        () {
-          if (shouldCallBack()) {
-            return callback();
-          }
-        },
-        after, testCase);
+  /// Returns a function that has as many required + positional arguments as
+  /// [callback] (up to a total of 6).
+  ///
+  /// Optional positional arguments are supported by using const place-holders
+  Function get func {
+    if (callback is _Func6) return _max6;
+    if (callback is _Func5) return _max5;
+    if (callback is _Func4) return _max4;
+    if (callback is _Func3) return _max3;
+    if (callback is _Func2) return _max2;
+    if (callback is _Func1) return _max1;
+    if (callback is _Func0) return _max0;
+
+    throw new ArgumentError(
+        'The callback argument has more than 6 required arguments');
   }
 
-  invoke1(arg1) {
-    return _guardAsync(
-        () {
-          if (shouldCallBack()) {
-            return callback(arg1);
-          }
-        },
-        after, testCase);
-  }
+  /// This indirection is critical. It ensures the returned function has an
+  /// argument count of zero.
+  _max0() => _max6();
 
-  invoke2(arg1, arg2) {
+  _max1([a0 = _PLACE_HOLDER]) => _max6(a0);
+
+  _max2([a0 = _PLACE_HOLDER, a1 = _PLACE_HOLDER]) => _max6(a0, a1);
+
+  _max3([a0 = _PLACE_HOLDER, a1 = _PLACE_HOLDER, a2 = _PLACE_HOLDER]) =>
+      _max6(a0, a1, a2);
+
+  _max4([a0 = _PLACE_HOLDER, a1 = _PLACE_HOLDER, a2 = _PLACE_HOLDER,
+      a3 = _PLACE_HOLDER]) => _max6(a0, a1, a2, a3);
+
+  _max5([a0 = _PLACE_HOLDER, a1 = _PLACE_HOLDER, a2 = _PLACE_HOLDER,
+      a3 = _PLACE_HOLDER, a4 = _PLACE_HOLDER]) => _max6(a0, a1, a2, a3, a4);
+
+  _max6([a0 = _PLACE_HOLDER, a1 = _PLACE_HOLDER, a2 = _PLACE_HOLDER,
+      a3 = _PLACE_HOLDER, a4 = _PLACE_HOLDER, a5 = _PLACE_HOLDER]) {
+    var args = [a0, a1, a2, a3, a4, a5];
+    args.removeWhere((a) => a == _PLACE_HOLDER);
+
     return _guardAsync(
         () {
           if (shouldCallBack()) {
-            return callback(arg1, arg2);
+            return Function.apply(callback, args);
           }
         },
         after, testCase);
@@ -131,3 +156,11 @@ class _SpreadArgsHelper {
     }
   }
 }
+
+typedef _Func0();
+typedef _Func1(a);
+typedef _Func2(a, b);
+typedef _Func3(a, b, c);
+typedef _Func4(a, b, c, d);
+typedef _Func5(a, b, c, d, e);
+typedef _Func6(a, b, c, d, e, f);

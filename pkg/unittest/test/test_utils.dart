@@ -36,7 +36,7 @@ void shouldFail(value, Matcher matcher, expected, {bool isAsync: false}) {
     if (expected is String) {
       expect(errorString, equalsIgnoringWhitespace(expected));
     } else {
-     expect(errorString.replaceAll('\n',''), expected);
+      expect(errorString.replaceAll('\n', ''), expected);
     }
   }
 

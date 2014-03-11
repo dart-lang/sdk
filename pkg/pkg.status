@@ -265,6 +265,8 @@ unittest/test/unittest_completion_test: Fail # 13921
 unittest/test/unittest_correct_callback_test: Fail # 13921
 unittest/test/unittest_exception_test: Fail # 13921
 unittest/test/unittest_excess_callback_test: Fail # 13921
+unittest/test/unittest_expect_async_args_test: Fail # 13921
+unittest/test/unittest_expect_async_test: Fail # 13921
 unittest/test/unittest_group_name_test: Fail # 13921
 unittest/test/unittest_invalid_ops_test: Fail # 13921
 unittest/test/unittest_late_exception_test: Fail # 13921
@@ -281,12 +283,12 @@ unittest/test/unittest_teardown_test: Fail # 13921
 unittest/test/unittest_test_returning_future_test: Fail # 13921
 unittest/test/unittest_test_returning_future_using_runasync_test: Fail # 13921
 unittest/test/unittest_testcases_immutable_test: Fail # 13921
-polymer/test/custom_event_test: Pass, Crash # 14360
-polymer/example/canonicalization/test/deploy_test: Fail, OK # tests deploy only behavior
 polymer/example/canonicalization/test/deploy2_test: Fail, OK # tests deploy only behavior
 polymer/example/canonicalization/test/deploy3_test: Fail, OK # tests deploy only behavior
-polymer/example/canonicalization/test/dir/deploy_test: Fail, OK # tests deploy only behavior
+polymer/example/canonicalization/test/deploy_test: Fail, OK # tests deploy only behavior
 polymer/example/canonicalization/test/dir/deploy2_test: Fail, OK # tests deploy only behavior
+polymer/example/canonicalization/test/dir/deploy_test: Fail, OK # tests deploy only behavior
+polymer/test/custom_event_test: Pass, Crash # 14360
 
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) && $checked ]
 polymer/test/custom_event_test: Skip # http://dartbug.com/15517
