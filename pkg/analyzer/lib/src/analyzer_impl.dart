@@ -4,6 +4,8 @@
 
 library analyzer_impl;
 
+import 'dart:async';
+
 import 'dart:io';
 
 import 'package:path/path.dart' as pathos;
@@ -14,9 +16,11 @@ import 'generated/error.dart';
 import 'generated/source_io.dart';
 import 'generated/sdk.dart';
 import 'generated/sdk_io.dart';
-import 'generated/ast.dart';
 import 'generated/element.dart';
 import '../options.dart';
+
+import 'package:analyzer/src/generated/java_core.dart' show JavaSystem;
+import 'package:analyzer/src/error_formatter.dart';
 
 /**
  * The maximum number of sources for which AST structures should be kept in the cache.
@@ -27,7 +31,9 @@ DartSdk sdk;
 
 /// Analyzes single library [File].
 class AnalyzerImpl {
+  final String sourcePath;
   final CommandLineOptions options;
+  final int startTime;
 
   ContentCache contentCache = new ContentCache();
   SourceFactory sourceFactory;
@@ -39,7 +45,7 @@ class AnalyzerImpl {
   /// All [AnalysisErrorInfo]s in the analyzed library.
   final List<AnalysisErrorInfo> errorInfos = new List<AnalysisErrorInfo>();
 
-  AnalyzerImpl(CommandLineOptions this.options) {
+  AnalyzerImpl(this.sourcePath, this.options, this.startTime) {
     if (sdk == null) {
       sdk = new DirectoryBasedDartSdk(new JavaFile(options.dartSdkPath));
     }
@@ -48,35 +54,79 @@ class AnalyzerImpl {
   /**
    * Treats the [sourcePath] as the top level library and analyzes it.
    */
-  void analyze(String sourcePath) {
+  void analyze() {
     sources.clear();
     errorInfos.clear();
     if (sourcePath == null) {
       throw new ArgumentError("sourcePath cannot be null");
     }
-    var sourceFile = new JavaFile(sourcePath);
-    var uriKind = getUriKind(sourceFile);
-    var librarySource = new FileBasedSource.con2(sourceFile, uriKind);
+    JavaFile sourceFile = new JavaFile(sourcePath);
+    UriKind uriKind = getUriKind(sourceFile);
+    Source librarySource = new FileBasedSource.con2(sourceFile, uriKind);
+
     // prepare context
-    prepareAnalysisContext(sourceFile);
-    // don't try to analyzer parts
-    var unit = context.parseCompilationUnit(librarySource);
-    var hasLibraryDirective = false;
-    var hasPartOfDirective = false;
-    for (var directive in unit.directives) {
-      if (directive is LibraryDirective) hasLibraryDirective = true;
-      if (directive is PartOfDirective) hasPartOfDirective = true;
-    }
-    if (hasPartOfDirective && !hasLibraryDirective) {
-      print("Only libraries can be analyzed.");
-      print("$sourceFile is a part and can not be analyzed.");
-      return;
-    }
-    // resolve library
-    var libraryElement = context.computeLibraryElement(librarySource);
-    // prepare source and errors
-    prepareSources(libraryElement);
-    prepareErrors();
+    prepareAnalysisContext(sourceFile, librarySource);
+
+    // async perform all tasks in context
+   _analyze();
+  }
+
+  void _analyze() {
+    new Future(context.performAnalysisTask).then((AnalysisResult result) {
+      List<ChangeNotice> notices = result.changeNotices;
+      // TODO(jwren) change 'notices != null' to 'result.hasMoreWork()' after
+      // next dart translation is landed for the analyzer
+      if (notices != null) {
+        // There is more work, record the set of sources, and then call self
+        // again to perform next task
+        for (ChangeNotice notice in notices) {
+          sources.add(notice.source);
+        }
+        return _analyze();
+      }
+      //
+      // There are not any more tasks, set error code and print performance
+      // numbers.
+      //
+      // prepare errors
+      prepareErrors();
+
+      // compute max severity and set exitCode
+      ErrorSeverity status = maxErrorSeverity;
+      if (status == ErrorSeverity.WARNING && options.warningsAreFatal) {
+        status = ErrorSeverity.ERROR;
+      }
+      exitCode = status.ordinal;
+
+      // print errors
+      ErrorFormatter formatter = new ErrorFormatter(stdout, options);
+      formatter.formatErrors(errorInfos);
+
+      // print performance numbers
+      if (options.perf) {
+        int totalTime = JavaSystem.currentTimeMillis() - startTime;
+        int ioTime = PerformanceStatistics.io.result;
+        int scanTime = PerformanceStatistics.scan.result;
+        int parseTime = PerformanceStatistics.parse.result;
+        int resolveTime = PerformanceStatistics.resolve.result;
+        int errorsTime = PerformanceStatistics.errors.result;
+        int hintsTime = PerformanceStatistics.hints.result;
+        int angularTime = PerformanceStatistics.angular.result;
+        stdout.writeln("io:$ioTime");
+        stdout.writeln("scan:$scanTime");
+        stdout.writeln("parse:$parseTime");
+        stdout.writeln("resolve:$resolveTime");
+        stdout.writeln("errors:$errorsTime");
+        stdout.writeln("hints:$hintsTime");
+        stdout.writeln("angular:$angularTime");
+        stdout.writeln("other:${totalTime
+             - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime
+             + angularTime)}");
+        stdout.writeln("total:$totalTime");
+      }
+    }).catchError((exception, stackTrace) {
+      AnalysisEngine.instance.logger.logError(exception);
+    });
   }
 
   /// Returns the maximal [ErrorSeverity] of the recorded errors.
@@ -91,7 +141,7 @@ class AnalyzerImpl {
     return status;
   }
 
-  void prepareAnalysisContext(JavaFile sourceFile) {
+  void prepareAnalysisContext(JavaFile sourceFile, Source source) {
     List<UriResolver> resolvers = [new DartUriResolver(sdk), new FileUriResolver()];
     // may be add package resolver
     {
@@ -114,13 +164,11 @@ class AnalyzerImpl {
     contextOptions.cacheSize = _MAX_CACHE_SIZE;
     contextOptions.hint = !options.disableHints;
     context.analysisOptions = contextOptions;
-  }
 
-  /// Fills [sources].
-  void prepareSources(LibraryElement library) {
-    var units = new Set<CompilationUnitElement>();
-    var libraries = new Set<LibraryElement>();
-    addLibrarySources(library, libraries, units);
+    // Create and add a ChangeSet
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.addedSource(source);
+    context.applyChanges(changeSet);
   }
 
   void addCompilationUnitSource(CompilationUnitElement unit, Set<LibraryElement> libraries,
@@ -163,7 +211,7 @@ class AnalyzerImpl {
     }
   }
 
-  /// Fills [errorInfos].
+  /// Fills [errorInfos] using [sources].
   void prepareErrors() {
     for (Source source in sources) {
       context.computeErrors(source);
