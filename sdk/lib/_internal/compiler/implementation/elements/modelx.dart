@@ -1230,6 +1230,9 @@ class VariableElementX extends ElementX implements VariableElement {
   }
 
   DartType computeType(Compiler compiler) {
+    // Call [parseNode] to ensure that [definitionsCache] and [initializerCache]
+    // are set as a consequence of calling [computeType].
+    parseNode(compiler);
     return variables.computeType(this, compiler);
   }
 
