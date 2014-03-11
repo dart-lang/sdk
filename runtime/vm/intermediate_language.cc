@@ -162,6 +162,8 @@ Representation LoadFieldInstr::representation() const {
         return kUnboxedDouble;
       case kFloat32x4Cid:
         return kUnboxedFloat32x4;
+      case kFloat64x2Cid:
+        return kUnboxedFloat64x2;
       default:
         UNREACHABLE();
     }
@@ -194,6 +196,8 @@ Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
         return kUnboxedDouble;
       case kFloat32x4Cid:
         return kUnboxedFloat32x4;
+      case kFloat64x2Cid:
+        return kUnboxedFloat64x2;
       default:
         UNREACHABLE();
     }

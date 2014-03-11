@@ -6371,8 +6371,10 @@ void Field::set_guarded_list_length(intptr_t list_length) const {
 
 bool Field::IsUnboxedField() const {
   bool valid_class = (guarded_cid() == kDoubleCid) ||
-                     (FlowGraphCompiler::SupportsUnboxedFloat32x4() &&
-                      (guarded_cid() == kFloat32x4Cid));
+                     (FlowGraphCompiler::SupportsUnboxedSimd128() &&
+                      (guarded_cid() == kFloat32x4Cid)) ||
+                     (FlowGraphCompiler::SupportsUnboxedSimd128() &&
+                      (guarded_cid() == kFloat64x2Cid));
   return is_unboxing_candidate() && !is_final() && !is_nullable() &&
          valid_class;
 }

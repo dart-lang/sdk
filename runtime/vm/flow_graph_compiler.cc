@@ -581,6 +581,7 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
           break;
         case kUnboxedFloat32x4:
         case kUnboxedInt32x4:
+        case kUnboxedFloat64x2:
           it.SetCurrentLocation(Location::QuadStackSlot(index));
           break;
         default:

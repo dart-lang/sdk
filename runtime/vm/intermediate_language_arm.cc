@@ -1687,6 +1687,9 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         case kFloat32x4Cid:
           cls = &compiler->float32x4_class();
           break;
+        case kFloat64x2Cid:
+          cls = &compiler->float64x2_class();
+          break;
         default:
           UNREACHABLE();
       }
@@ -1719,6 +1722,13 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ StoreDToOffset(value_odd, temp,
             Float32x4::value_offset() + 2 * kWordSize - kHeapObjectTag);
         break;
+      case kFloat64x2Cid:
+        __ Comment("UnboxedFloat64x2StoreInstanceFieldInstr");
+        __ StoreDToOffset(value, temp,
+            Float64x2::value_offset() - kHeapObjectTag);
+        __ StoreDToOffset(value_odd, temp,
+            Float64x2::value_offset() + 2 * kWordSize - kHeapObjectTag);
+        break;
       default:
         UNREACHABLE();
     }
@@ -1736,6 +1746,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Label store_pointer;
     Label store_double;
     Label store_float32x4;
+    Label store_float64x2;
 
     __ LoadObject(temp, Field::ZoneHandle(field().raw()));
 
@@ -1754,6 +1765,10 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ ldr(temp2, FieldAddress(temp, Field::guarded_cid_offset()));
     __ CompareImmediate(temp2, kFloat32x4Cid);
     __ b(&store_float32x4, EQ);
+
+    __ ldr(temp2, FieldAddress(temp, Field::guarded_cid_offset()));
+    __ CompareImmediate(temp2, kFloat64x2Cid);
+    __ b(&store_float64x2, EQ);
 
     // Fall through.
     __ b(&store_pointer);
@@ -1825,6 +1840,40 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           Float32x4::value_offset() - kHeapObjectTag);
       __ StoreDToOffset(fpu_temp_odd, temp,
           Float32x4::value_offset() + 2 * kWordSize - kHeapObjectTag);
+      __ b(&skip_store);
+    }
+
+    {
+      __ Bind(&store_float64x2);
+      Label copy_float64x2;
+      StoreInstanceFieldSlowPath* slow_path =
+          new StoreInstanceFieldSlowPath(this, compiler->float64x2_class());
+      compiler->AddSlowPathCode(slow_path);
+
+      __ ldr(temp, FieldAddress(instance_reg, offset_in_bytes_));
+      __ CompareImmediate(temp,
+                          reinterpret_cast<intptr_t>(Object::null()));
+      __ b(&copy_float64x2, NE);
+
+      __ TryAllocate(compiler->float64x2_class(),
+                     slow_path->entry_label(),
+                     temp,
+                     temp2);
+      __ Bind(slow_path->exit_label());
+      __ MoveRegister(temp2, temp);
+      __ StoreIntoObject(instance_reg,
+                         FieldAddress(instance_reg, offset_in_bytes_),
+                         temp2);
+      __ Bind(&copy_float64x2);
+      // TODO(zra): Maybe use vldmd here.
+      __ LoadDFromOffset(fpu_temp, value_reg,
+          Float64x2::value_offset() - kHeapObjectTag);
+      __ LoadDFromOffset(fpu_temp_odd, value_reg,
+          Float64x2::value_offset() + 2 * kWordSize - kHeapObjectTag);
+      __ StoreDToOffset(fpu_temp, temp,
+          Float64x2::value_offset() - kHeapObjectTag);
+      __ StoreDToOffset(fpu_temp_odd, temp,
+          Float64x2::value_offset() + 2 * kWordSize - kHeapObjectTag);
       __ b(&skip_store);
     }
 
@@ -2094,6 +2143,14 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ LoadDFromOffset(result_odd, temp,
             Float32x4::value_offset() + 2 * kWordSize - kHeapObjectTag);
         break;
+      case kFloat64x2Cid:
+        __ Comment("UnboxedFloat64x2LoadFieldInstr");
+        // TODO(zra): Maybe use vldmd here.
+        __ LoadDFromOffset(result, temp,
+            Float64x2::value_offset() - kHeapObjectTag);
+        __ LoadDFromOffset(result_odd, temp,
+            Float64x2::value_offset() + 2 * kWordSize - kHeapObjectTag);
+        break;
       default:
         UNREACHABLE();
     }
@@ -2110,6 +2167,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Label load_pointer;
     Label load_double;
     Label load_float32x4;
+    Label load_float64x2;
 
     __ LoadObject(result_reg, Field::ZoneHandle(field()->raw()));
 
@@ -2128,6 +2186,10 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ ldr(temp, field_cid_operand);
     __ CompareImmediate(temp, kFloat32x4Cid);
     __ b(&load_float32x4, EQ);
+
+    __ ldr(temp, field_cid_operand);
+    __ CompareImmediate(temp, kFloat64x2Cid);
+    __ b(&load_float64x2, EQ);
 
     // Fall through.
     __ b(&load_pointer);
@@ -2174,6 +2236,29 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           Float32x4::value_offset() - kHeapObjectTag);
       __ StoreDToOffset(value_odd, result_reg,
           Float32x4::value_offset() + 2 * kWordSize - kHeapObjectTag);
+      __ b(&done);
+    }
+
+    {
+      __ Bind(&load_float64x2);
+      BoxFloat64x2SlowPath* slow_path = new BoxFloat64x2SlowPath(this);
+      compiler->AddSlowPathCode(slow_path);
+
+      __ TryAllocate(compiler->float64x2_class(),
+                     slow_path->entry_label(),
+                     result_reg,
+                     temp);
+      __ Bind(slow_path->exit_label());
+      __ ldr(temp, FieldAddress(instance_reg, offset_in_bytes()));
+      // TODO(zra): Maybe use vldmd here.
+      __ LoadDFromOffset(value, temp,
+          Float64x2::value_offset() - kHeapObjectTag);
+      __ LoadDFromOffset(value_odd, temp,
+          Float64x2::value_offset() + 2 * kWordSize - kHeapObjectTag);
+      __ StoreDToOffset(value, result_reg,
+          Float64x2::value_offset() - kHeapObjectTag);
+      __ StoreDToOffset(value_odd, result_reg,
+          Float64x2::value_offset() + 2 * kWordSize - kHeapObjectTag);
       __ b(&done);
     }
 

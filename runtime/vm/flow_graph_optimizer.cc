@@ -48,7 +48,7 @@ DECLARE_FLAG(bool, trace_type_check_elimination);
 
 
 static bool ShouldInlineSimd() {
-  return FlowGraphCompiler::SupportsUnboxedFloat32x4();
+  return FlowGraphCompiler::SupportsUnboxedSimd128();
 }
 
 
@@ -1960,6 +1960,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         operands_type = kDoubleCid;
       } else if (HasOnlyTwoOf(ic_data, kFloat32x4Cid)) {
         operands_type = kFloat32x4Cid;
+      } else if (HasOnlyTwoOf(ic_data, kFloat64x2Cid)) {
+        operands_type = kFloat64x2Cid;
       } else {
         return false;
       }
@@ -1970,6 +1972,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         operands_type = kDoubleCid;
       } else if (HasOnlyTwoOf(ic_data, kFloat32x4Cid)) {
         operands_type = kFloat32x4Cid;
+      } else if (HasOnlyTwoOf(ic_data, kFloat64x2Cid)) {
+        operands_type = kFloat64x2Cid;
       } else {
         return false;
       }

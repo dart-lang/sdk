@@ -1578,6 +1578,9 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         case kFloat32x4Cid:
           cls = &compiler->float32x4_class();
           break;
+        case kFloat64x2Cid:
+          cls = &compiler->float64x2_class();
+          break;
         default:
           UNREACHABLE();
       }
@@ -1608,6 +1611,10 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ Comment("UnboxedFloat32x4StoreInstanceFieldInstr");
         __ movups(FieldAddress(temp, Float32x4::value_offset()), value);
         break;
+      case kFloat64x2Cid:
+        __ Comment("UnboxedFloat64x2StoreInstanceFieldInstr");
+        __ movups(FieldAddress(temp, Float64x2::value_offset()), value);
+      break;
       default:
         UNREACHABLE();
     }
@@ -1623,6 +1630,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Label store_pointer;
     Label store_double;
     Label store_float32x4;
+    Label store_float64x2;
 
     __ LoadObject(temp, Field::ZoneHandle(field().raw()), PP);
 
@@ -1641,6 +1649,10 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ cmpq(FieldAddress(temp, Field::guarded_cid_offset()),
             Immediate(kFloat32x4Cid));
     __ j(EQUAL, &store_float32x4);
+
+    __ cmpl(FieldAddress(temp, Field::guarded_cid_offset()),
+            Immediate(kFloat64x2Cid));
+    __ j(EQUAL, &store_float64x2);
 
     // Fall through.
     __ jmp(&store_pointer);
@@ -1703,6 +1715,35 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ Bind(&copy_float32x4);
       __ movups(fpu_temp, FieldAddress(value_reg, Float32x4::value_offset()));
       __ movups(FieldAddress(temp, Float32x4::value_offset()), fpu_temp);
+      __ jmp(&skip_store);
+    }
+
+    {
+      __ Bind(&store_float64x2);
+      Label copy_float64x2;
+
+      StoreInstanceFieldSlowPath* slow_path =
+          new StoreInstanceFieldSlowPath(this, compiler->float64x2_class());
+      compiler->AddSlowPathCode(slow_path);
+
+      __ movq(temp, FieldAddress(instance_reg, offset_in_bytes_));
+      __ CompareObject(temp, Object::null_object(), PP);
+      __ j(NOT_EQUAL, &copy_float64x2);
+
+      __ TryAllocate(compiler->float64x2_class(),
+                     slow_path->entry_label(),
+                     Assembler::kFarJump,
+                     temp,
+                     temp2);
+      __ Bind(slow_path->exit_label());
+      __ movq(temp2, temp);
+      __ StoreIntoObject(instance_reg,
+                         FieldAddress(instance_reg, offset_in_bytes_),
+                         temp2);
+
+      __ Bind(&copy_float64x2);
+      __ movups(fpu_temp, FieldAddress(value_reg, Float64x2::value_offset()));
+      __ movups(FieldAddress(temp, Float64x2::value_offset()), fpu_temp);
       __ jmp(&skip_store);
     }
 
@@ -1963,6 +2004,10 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ Comment("UnboxedFloat32x4LoadFieldInstr");
         __ movups(result, FieldAddress(temp, Float32x4::value_offset()));
         break;
+      case kFloat64x2Cid:
+        __ Comment("UnboxedFloat64x2LoadFieldInstr");
+        __ movups(result, FieldAddress(temp, Float64x2::value_offset()));
+        break;
       default:
         UNREACHABLE();
     }
@@ -1978,6 +2023,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Label load_pointer;
     Label load_double;
     Label load_float32x4;
+    Label load_float64x2;
 
     __ LoadObject(result, Field::ZoneHandle(field()->raw()), PP);
 
@@ -1992,6 +2038,10 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ cmpq(FieldAddress(result, Field::guarded_cid_offset()),
             Immediate(kFloat32x4Cid));
     __ j(EQUAL, &load_float32x4);
+
+    __ cmpq(FieldAddress(result, Field::guarded_cid_offset()),
+            Immediate(kFloat64x2Cid));
+    __ j(EQUAL, &load_float64x2);
 
     // Fall through.
     __ jmp(&load_pointer);
@@ -2030,6 +2080,23 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movq(temp, FieldAddress(instance_reg, offset_in_bytes()));
       __ movups(value, FieldAddress(temp, Float32x4::value_offset()));
       __ movups(FieldAddress(result, Float32x4::value_offset()), value);
+      __ jmp(&done);
+    }
+    {
+      __ Bind(&load_float64x2);
+
+      BoxFloat64x2SlowPath* slow_path = new BoxFloat64x2SlowPath(this);
+      compiler->AddSlowPathCode(slow_path);
+
+      __ TryAllocate(compiler->float64x2_class(),
+                     slow_path->entry_label(),
+                     Assembler::kFarJump,
+                     result,
+                     temp);
+      __ Bind(slow_path->exit_label());
+      __ movq(temp, FieldAddress(instance_reg, offset_in_bytes()));
+      __ movups(value, FieldAddress(temp, Float64x2::value_offset()));
+      __ movups(FieldAddress(result, Float64x2::value_offset()), value);
       __ jmp(&done);
     }
 
@@ -3316,7 +3383,7 @@ void Simd32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   switch (op_kind()) {
     case MethodRecognizer::kFloat32x4ShuffleX:
-      __ shufps(value, value, Immediate(0x00));
+      // Shuffle not necessary.
       __ cvtss2sd(value, value);
       break;
     case MethodRecognizer::kFloat32x4ShuffleY:
@@ -3746,7 +3813,7 @@ void Simd64x2ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->out().fpu_reg() == value);
   switch (op_kind()) {
     case MethodRecognizer::kFloat64x2GetX:
-      __ shufpd(value, value, Immediate(0x00));
+      // nop.
       break;
     case MethodRecognizer::kFloat64x2GetY:
       __ shufpd(value, value, Immediate(0x33));
