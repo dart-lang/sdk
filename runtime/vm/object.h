@@ -6076,7 +6076,6 @@ class TypedData : public Instance {
   static void Copy(const DstType& dst, intptr_t dst_offset_in_bytes,
                    const SrcType& src, intptr_t src_offset_in_bytes,
                    intptr_t length_in_bytes) {
-    ASSERT(dst.ElementType() == src.ElementType());
     ASSERT(Utils::RangeCheck(src_offset_in_bytes,
                              length_in_bytes,
                              src.LengthInBytes()));
@@ -6089,6 +6088,35 @@ class TypedData : public Instance {
         memmove(dst.DataAddr(dst_offset_in_bytes),
                 src.DataAddr(src_offset_in_bytes),
                 length_in_bytes);
+      }
+    }
+  }
+
+
+  template <typename DstType, typename SrcType>
+  static void ClampedCopy(const DstType& dst, intptr_t dst_offset_in_bytes,
+                          const SrcType& src, intptr_t src_offset_in_bytes,
+                          intptr_t length_in_bytes) {
+    ASSERT(Utils::RangeCheck(src_offset_in_bytes,
+                             length_in_bytes,
+                             src.LengthInBytes()));
+    ASSERT(Utils::RangeCheck(dst_offset_in_bytes,
+                             length_in_bytes,
+                             dst.LengthInBytes()));
+    {
+      NoGCScope no_gc;
+      if (length_in_bytes > 0) {
+        uint8_t* dst_data =
+            reinterpret_cast<uint8_t*>(dst.DataAddr(dst_offset_in_bytes));
+        int8_t* src_data =
+            reinterpret_cast<int8_t*>(src.DataAddr(src_offset_in_bytes));
+        for (intptr_t ix = 0; ix < length_in_bytes; ix++) {
+          int8_t v = *src_data;
+          if (v < 0) v = 0;
+          *dst_data = v;
+          src_data++;
+          dst_data++;
+        }
       }
     }
   }

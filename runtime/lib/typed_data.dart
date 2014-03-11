@@ -56,8 +56,6 @@ patch class Uint8ClampedList {
                                              int length]) {
     return new _Uint8ClampedArrayView(buffer, offsetInBytes, length);
   }
-
-  bool _isClamped() { return true; }
 }
 
 
@@ -528,8 +526,6 @@ abstract class _TypedListBase {
     return IterableMixinWorkaround.getRangeList(this, start, end);
   }
 
-  bool _isClamped() { return false; }
-
   void setRange(int start, int end, Iterable from, [int skipCount = 0]) {
     // Check ranges.
     if ((start < 0) || (start > length)) {
@@ -551,17 +547,13 @@ abstract class _TypedListBase {
     }
 
     if (from is _TypedListBase) {
-      final needsClamping =
-          this._isClamped() && (this._isClamped() != from._isClamped());
       if (this.elementSizeInBytes == from.elementSizeInBytes) {
-        if (needsClamping) {
-          Lists.copy(from, skipCount, this, start, count);
-          return;
-        } else if (this.buffer._setRange(
-                     start * elementSizeInBytes + this.offsetInBytes,
-                     count * elementSizeInBytes,
-                     from.buffer,
-                     skipCount * elementSizeInBytes + from.offsetInBytes)) {
+        if (this.buffer._setRange(
+              start * elementSizeInBytes + this.offsetInBytes,
+              count * elementSizeInBytes,
+              from.buffer,
+              skipCount * elementSizeInBytes + from.offsetInBytes,
+              this._cid, from._cid)) {
           return;
         }
       } else if (from.buffer == this.buffer) {
@@ -602,11 +594,16 @@ abstract class _TypedListBase {
   // Internal utility methods.
 
   // Returns true if operation succeeds.
-  // Returns false if 'from' and 'this' do not have the same element types.
-  // The copy occurs using a memory copy (no clamping, conversion, etc).
+  // 'fromCid' and 'toCid' may be cid-s of the views and therefore may not
+  // match the cids of 'this' and 'from'.
+  // Uses toCid and fromCid to decide if clamping is necessary.
+  // Element size of toCid and fromCid must match (test at caller).
   bool _setRange(int startInBytes, int lengthInBytes,
-                 _TypedListBase from, int startFromInBytes)
+                 _TypedListBase from, int startFromInBytes,
+                 int toCid, int fromCid)
       native "TypedData_setRange";
+
+  int get _cid native "Object_cid";
 }
 
 
@@ -796,8 +793,6 @@ class _Uint8ClampedArray extends _TypedList implements Uint8ClampedList {
     }
     return new _Uint8ClampedArrayView(buffer, offsetInBytes, length);
   }
-
-  bool _isClamped() { return true; }
 
   // Methods implementing List interface.
 
@@ -1623,8 +1618,6 @@ class _ExternalUint8ClampedArray extends _TypedList implements Uint8ClampedList 
   factory _ExternalUint8ClampedArray(int length) {
     return _new(length);
   }
-
-  bool _isClamped() { return true; }
 
   // Method(s) implementing the List interface.
 
@@ -2659,8 +2652,6 @@ class _Uint8ClampedArrayView extends _TypedListView implements Uint8ClampedList 
                 length * Uint8List.BYTES_PER_ELEMENT);
   }
 
-
-  bool _isClamped() { return true; }
 
   // Method(s) implementing List interface.
 
