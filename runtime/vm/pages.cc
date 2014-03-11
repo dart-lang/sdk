@@ -423,6 +423,7 @@ void PageSpace::PrintToJSONObject(JSONObject* object) {
   space.AddProperty("collections", collections());
   space.AddProperty("used", UsedInWords() * kWordSize);
   space.AddProperty("capacity", CapacityInWords() * kWordSize);
+  space.AddProperty("external", ExternalInWords() * kWordSize);
   space.AddProperty("time", MicrosecondsToSeconds(gc_time_micros()));
 }
 
