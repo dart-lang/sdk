@@ -508,11 +508,6 @@ class HInstructionStringifier implements HVisitor<String> {
     return "TypeTest: ${temporaryId(node.expression)} is $type";
   }
 
-  String visitIsViaInterceptor(HIsViaInterceptor node) {
-    String type = node.typeExpression.toString();
-    return "TypeTest: ${temporaryId(node.inputs[0])} is $type";
-  }
-
   String visitTypeConversion(HTypeConversion node) {
     assert(node.inputs.length <= 2);
     String otherInput = (node.inputs.length == 2)

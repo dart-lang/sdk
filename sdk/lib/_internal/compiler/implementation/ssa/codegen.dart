@@ -255,7 +255,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void preGenerateMethod(HGraph graph) {
-    new SsaInstructionSelection(compiler).visitGraph(graph);
     new SsaTypeKnownRemover().visitGraph(graph);
     new SsaInstructionMerger(generateAtUseSite, compiler).visitGraph(graph);
     new SsaConditionMerger(
@@ -1200,10 +1199,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  void emitIdentityComparison(HIdentity instruction, bool inverse) {
-    String op = instruction.singleComparisonOp;
-    HInstruction left = instruction.left;
-    HInstruction right = instruction.right;
+  void emitIdentityComparison(HInstruction left,
+                              HInstruction right,
+                              bool inverse) {
+    String op = singleIdentityComparison(left, right, compiler);
     if (op != null) {
       use(left);
       js.Expression jsLeft = pop();
@@ -1228,7 +1227,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitIdentity(HIdentity node) {
-    emitIdentityComparison(node, false);
+    emitIdentityComparison(node.left, node.right, false);
   }
 
   visitAdd(HAdd node)               => visitInvokeBinary(node, '+');
@@ -1813,12 +1812,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       handledBySpecialCase = true;
       if (input is HIs) {
         emitIs(input, '!==');
-      } else if (input is HIsViaInterceptor) {
-        emitIsViaInterceptor(input, true);
       } else if (input is HNot) {
         use(input.inputs[0]);
       } else if (input is HIdentity) {
-        emitIdentityComparison(input, true);
+        HIdentity identity = input;
+        emitIdentityComparison(identity.left, identity.right, true);
       } else if (input is HBoolify) {
         use(input.inputs[0]);
         push(new js.Binary("!==", pop(), newLiteralBool(true)), input);
@@ -2242,16 +2240,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       return;
     }
     if (interceptor != null) {
-      checkTypeViaProperty(interceptor, type, negative);
+      use(interceptor);
     } else {
-      checkTypeViaProperty(input, type, negative);
+      use(input);
     }
-  }
 
-  void checkTypeViaProperty(HInstruction input, DartType type, bool negative) {
     world.registerIsCheck(type, work.resolutionTree);
-
-    use(input);
 
     js.PropertyAccess field =
         new js.PropertyAccess.field(pop(), backend.namer.operatorIsType(type));
@@ -2323,10 +2317,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitIs(HIs node) {
     emitIs(node, "===");
-  }
-
-  void visitIsViaInterceptor(HIsViaInterceptor node) {
-    emitIsViaInterceptor(node, false);
   }
 
   void emitIs(HIs node, String relation)  {
@@ -2406,11 +2396,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         attachLocationToLast(node);
       }
     }
-  }
-
-  void emitIsViaInterceptor(HIsViaInterceptor node, bool negative) {
-    checkTypeViaProperty(node.interceptor, node.typeExpression, negative);
-    attachLocationToLast(node);
   }
 
   js.Expression generateTest(HInstruction input, TypeMask checkedType) {
@@ -2664,5 +2649,22 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
     world.registerStaticUse(helper);
     return backend.namer.elementAccess(helper);
+  }
+}
+
+String singleIdentityComparison(HInstruction left,
+                                HInstruction right,
+                                Compiler compiler) {
+  // Returns the single identity comparison (== or ===) or null if a more
+  // complex expression is required.
+  if (left.canBeNull() && right.canBeNull()) {
+    if (left.isConstantNull() || right.isConstantNull() ||
+        (left.isPrimitive(compiler) &&
+         left.instructionType == right.instructionType)) {
+      return '==';
+    }
+    return null;
+  } else {
+    return '===';
   }
 }

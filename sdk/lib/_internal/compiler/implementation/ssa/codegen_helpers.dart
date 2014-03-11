@@ -5,89 +5,6 @@
 part of ssa;
 
 /**
- * Replaces some instructions with specialized versions to make codegen easier.
- * Caches codegen information on nodes.
- */
-class SsaInstructionSelection extends HBaseVisitor {
-  final Compiler compiler;
-
-  SsaInstructionSelection(this.compiler);
-
-  void visitGraph(HGraph graph) {
-    visitDominatorTree(graph);
-  }
-
-  visitBasicBlock(HBasicBlock block) {
-    HInstruction instruction = block.first;
-    while (instruction != null) {
-      HInstruction next = instruction.next;
-      HInstruction replacement = instruction.accept(this);
-      if (replacement != instruction) {
-        block.rewrite(instruction, replacement);
-
-        // If the replacement instruction does not know its source element, use
-        // the source element of the instruction.
-        if (replacement.sourceElement == null) {
-          replacement.sourceElement = instruction.sourceElement;
-        }
-        if (replacement.sourcePosition == null) {
-          replacement.sourcePosition = instruction.sourcePosition;
-        }
-        if (!replacement.isInBasicBlock()) {
-          // The constant folding can return an instruction that is already
-          // part of the graph (like an input), so we only add the replacement
-          // if necessary.
-          block.addAfter(instruction, replacement);
-          // Visit the replacement as the next instruction in case it can also
-          // be constant folded away.
-          next = replacement;
-        }
-        block.remove(instruction);
-      }
-      instruction = next;
-    }
-  }
-
-  HInstruction visitInstruction(HInstruction node) {
-    return node;
-  }
-
-  HInstruction visitIs(HIs node) {
-    if (node.kind == HIs.RAW_CHECK) {
-      HInstruction interceptor = node.interceptor;
-      if (interceptor != null) {
-        JavaScriptBackend backend = compiler.backend;
-        return new HIsViaInterceptor(node.typeExpression, interceptor,
-                                     backend.boolType);
-      }
-    }
-    return node;
-  }
-
-  HInstruction visitIdentity(HIdentity node) {
-    node.singleComparisonOp = simpleOp(node.left, node.right);
-    return node;
-  }
-
-  String simpleOp(HInstruction left, HInstruction right) {
-    // Returns the single identity comparison (== or ===) or null if a more
-    // complex expression is required.
-    TypeMask leftType = left.instructionType;
-    TypeMask rightType = right.instructionType;
-    if (leftType.isNullable && rightType.isNullable) {
-      if (left.isConstantNull() ||
-          right.isConstantNull() ||
-          (left.isPrimitive(compiler) &&
-           leftType == rightType)) {
-        return '==';
-      }
-      return null;
-    }
-    return '===';
-  }
-}
-
-/**
  * Remove [HTypeKnown] instructions from the graph, to make codegen
  * analysis easier.
  */
@@ -207,7 +124,9 @@ class SsaInstructionMerger extends HBaseVisitor {
   // does not require an expression with multiple uses (because of null /
   // undefined).
   void visitIdentity(HIdentity instruction) {
-    if (instruction.singleComparisonOp != null) {
+    HInstruction left = instruction.left;
+    HInstruction right = instruction.right;
+    if (singleIdentityComparison(left, right, compiler) != null) {
       super.visitIdentity(instruction);
     }
     // Do nothing.

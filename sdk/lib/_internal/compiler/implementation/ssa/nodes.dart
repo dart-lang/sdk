@@ -38,7 +38,6 @@ abstract class HVisitor<R> {
   R visitInvokeSuper(HInvokeSuper node);
   R visitInvokeConstructorBody(HInvokeConstructorBody node);
   R visitIs(HIs node);
-  R visitIsViaInterceptor(HIsViaInterceptor node);
   R visitLazyStatic(HLazyStatic node);
   R visitLess(HLess node);
   R visitLessEqual(HLessEqual node);
@@ -336,7 +335,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitTruncatingDivide(HTruncatingDivide node) => visitBinaryArithmetic(node);
   visitTry(HTry node) => visitControlFlow(node);
   visitIs(HIs node) => visitInstruction(node);
-  visitIsViaInterceptor(HIsViaInterceptor node) => visitInstruction(node);
   visitTypeConversion(HTypeConversion node) => visitCheck(node);
   visitTypeKnown(HTypeKnown node) => visitCheck(node);
   visitReadTypeVariable(HReadTypeVariable node) => visitInstruction(node);
@@ -803,7 +801,6 @@ abstract class HInstruction implements Spannable {
   static const int INTERFACE_TYPE_TYPECODE = 34;
   static const int DYNAMIC_TYPE_TYPECODE = 35;
   static const int TRUNCATING_DIVIDE_TYPECODE = 36;
-  static const int IS_VIA_INTERCEPTOR_TYPECODE = 37;
 
   HInstruction(this.inputs, this.instructionType)
       : id = idCounter++, usedBy = <HInstruction>[] {
@@ -1238,15 +1235,6 @@ abstract class HInstruction implements Spannable {
   bool hasSameLoopHeaderAs(HInstruction other) {
     return block.enclosingLoopHeader == other.block.enclosingLoopHeader;
   }
-}
-
-/**
- * Late instructions are used after the main optimization phases.  They capture
- * codegen decisions just prior to generating JavaScript.
- */
-abstract class HLateInstruction extends HInstruction {
-  HLateInstruction(List<HInstruction> inputs, TypeMask type)
-      : super(inputs, type);
 }
 
 class HBoolify extends HInstruction {
@@ -2037,9 +2025,6 @@ abstract class HRelational extends HInvokeBinary {
 }
 
 class HIdentity extends HRelational {
-  // Cached codegen decision.
-  String singleComparisonOp;  // null, '===', '=='
-
   HIdentity(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitIdentity(this);
 
@@ -2354,30 +2339,6 @@ class HIs extends HInstruction {
   bool dataEquals(HIs other) {
     return typeExpression == other.typeExpression
         && kind == other.kind;
-  }
-}
-
-/**
- * HIsViaInterceptor is a late-stage instruction for a type test that can be
- * done entirely on an interceptor.  It is not a HCheck because the checked
- * input is not one of the inputs.
- */
-class HIsViaInterceptor extends HLateInstruction {
-  final DartType typeExpression;
-   HIsViaInterceptor(this.typeExpression, HInstruction interceptor,
-                     TypeMask type)
-       : super(<HInstruction>[interceptor], type) {
-    setUseGvn();
-  }
-
-  HInstruction get interceptor => inputs[0];
-
-  accept(HVisitor visitor) => visitor.visitIsViaInterceptor(this);
-  toString() => "$interceptor is $typeExpression";
-  int typeCode() => HInstruction.IS_VIA_INTERCEPTOR_TYPECODE;
-  bool typeEquals(HInstruction other) => other is HIsViaInterceptor;
-  bool dataEquals(HIs other) {
-    return typeExpression == other.typeExpression;
   }
 }
 
