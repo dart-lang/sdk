@@ -78,6 +78,8 @@ REUSABLE_HANDLE_LIST(REUSABLE_SCOPE)
 
 #define REUSABLE_OBJECT_HANDLESCOPE(isolate)                                   \
   ReusableObjectHandleScope reused_object_handle(isolate);
+#define REUSABLE_ERROR_HANDLESCOPE(isolate)                                    \
+  ReusableErrorHandleScope reused_error_handle(isolate);
 #define REUSABLE_ARRAY_HANDLESCOPE(isolate)                                    \
   ReusableArrayHandleScope reused_array_handle(isolate);
 #define REUSABLE_STRING_HANDLESCOPE(isolate)                                   \

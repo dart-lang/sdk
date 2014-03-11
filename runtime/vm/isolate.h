@@ -27,6 +27,7 @@ class Class;
 class CodeIndexTable;
 class Debugger;
 class DeoptContext;
+class Error;
 class Field;
 class Function;
 class HandleScope;
@@ -75,15 +76,16 @@ class IsolateVisitor {
 };
 
 #define REUSABLE_HANDLE_LIST(V)                                                \
-  V(Object)                                                                    \
   V(Array)                                                                     \
-  V(String)                                                                    \
-  V(Instance)                                                                  \
-  V(Function)                                                                  \
-  V(Field)                                                                     \
   V(Class)                                                                     \
-  V(TypeParameter)                                                             \
+  V(Error)                                                                     \
+  V(Field)                                                                     \
+  V(Function)                                                                  \
+  V(Instance)                                                                  \
+  V(Object)                                                                    \
+  V(String)                                                                    \
   V(TypeArguments)                                                             \
+  V(TypeParameter)                                                             \
 
 class Isolate : public BaseIsolate {
  public:
