@@ -1,32 +1,34 @@
 <head>
   <link rel="import" href="disassembly_entry.html">
   <link rel="import" href="function_ref.html">
-  <link rel="import" href="isolate_element.html">
+  <link rel="import" href="observatory_element.html">
   <link rel="import" href="nav_bar.html">
 </head>
-<polymer-element name="code-view" extends="isolate-element">
+<polymer-element name="code-view" extends="observatory-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
-      <nav-menu link="." anchor="{{ code.functionRef['user_name'] }}" last="{{ true }}"></nav-menu>
-      <!-- TODO(turnidge): Implement code refresh -->
+      <isolate-nav-menu isolate="{{ code.isolate }}"></isolate-nav-menu>
+      <nav-menu link="." anchor="{{ code.name }}" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
   <div class="row">
     <div class="col-md-8 col-md-offset-2">
       <div class="{{ cssPanelClass }}">
         <div class="panel-heading">
-          <function-ref isolate="{{ isolate }}" ref="{{ code.functionRef }}"></function-ref>
+          <span>Disassembled code for function: </span>
+          <function-ref ref="{{ code.function }}"></function-ref>
         </div>
         <div class="panel-body">
           <div class="row">
-              <div class="col-md-2"><strong>Samples</strong></div>
               <div class="col-md-2"><strong>Address</strong></div>
-              <div><strong>Instruction</strong></div>
+              <div class="col-md-2"><strong>Inclusive</strong></div>
+              <div class="col-md-2"><strong>Exclusive</strong></div>
+              <div class="col-md-6"><strong>Disassembly</strong></div>
           </div>
           <template repeat="{{ instruction in code.instructions }}">
-            <disassembly-entry instruction="{{ instruction }}">
+            <disassembly-entry code="{{ code }}" instruction="{{ instruction }}">
             </disassembly-entry>
           </template>
         </div>

@@ -4,20 +4,16 @@
 
 library class_view_element;
 
-import 'isolate_element.dart';
-import 'package:logging/logging.dart';
+import 'observatory_element.dart';
+import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 
 @CustomTag('class-view')
-class ClassViewElement extends IsolateElement {
-  @published Map cls;
+class ClassViewElement extends ObservatoryElement {
+  @published ServiceMap cls;
   ClassViewElement.created() : super.created();
 
   void refresh(var done) {
-    isolate.getMap(cls['id']).then((map) {
-        cls = map;
-    }).catchError((e, trace) {
-        Logger.root.severe('Error while refreshing class-view: $e\n$trace');
-    }).whenComplete(done);
+    cls.reload().whenComplete(done);
   }
 }

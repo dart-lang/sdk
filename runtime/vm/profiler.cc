@@ -342,6 +342,15 @@ class CodeRegion : public ZoneAllocated {
     obj.AddPropertyF("start", "%" Px "", start());
     obj.AddPropertyF("end", "%" Px "", end());
     obj.AddPropertyF("id", "code/native/%" Px "", start());
+    {
+      // Generate a fake function entry.
+      JSONObject func(&obj, "function");
+      func.AddProperty("type", "@Function");
+      func.AddPropertyF("id", "native/functions/%" Pd "", start());
+      func.AddProperty("name", name());
+      func.AddProperty("user_name", name());
+      func.AddProperty("kind", "Native");
+    }
   }
 
   void PrintCollectedCode(JSONObject* profile_code_obj) {
@@ -354,6 +363,15 @@ class CodeRegion : public ZoneAllocated {
     obj.AddPropertyF("start", "%" Px "", start());
     obj.AddPropertyF("end", "%" Px "", end());
     obj.AddPropertyF("id", "code/collected/%" Px "", start());
+    {
+      // Generate a fake function entry.
+      JSONObject func(&obj, "function");
+      func.AddProperty("type", "@Function");
+      func.AddPropertyF("id", "collected/functions/%" Pd "", start());
+      func.AddProperty("name", name());
+      func.AddProperty("user_name", name());
+      func.AddProperty("kind", "Collected");
+    }
   }
 
   void PrintToJSONArray(Isolate* isolate, JSONArray* events, bool full) {
@@ -824,6 +842,7 @@ void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream,
         // Serialize to JSON.
         JSONObject obj(stream);
         obj.AddProperty("type", "Profile");
+        obj.AddProperty("id", "profile");
         obj.AddProperty("samples", samples);
         obj.AddProperty("time_delta_micros", builder.TimeDeltaMicros());
         JSONArray codes(&obj, "codes");

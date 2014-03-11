@@ -1,12 +1,12 @@
 <head>
   <link rel="import" href="nav_bar.html">
-  <link rel="import" href="isolate_element.html">
+  <link rel="import" href="observatory_element.html">
 </head>
-<polymer-element name="breakpoint-list" extends="isolate-element">
+<polymer-element name="breakpoint-list" extends="observatory-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+      <isolate-nav-menu isolate="{{ msg.isolate }}"></isolate-nav-menu>
       <nav-menu link="." anchor="breakpoints" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>

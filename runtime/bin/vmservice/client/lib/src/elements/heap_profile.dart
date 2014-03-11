@@ -5,14 +5,15 @@
 library heap_profile_element;
 
 import 'dart:html';
-import 'isolate_element.dart';
+import 'observatory_element.dart';
+import 'package:observatory/service.dart';
 import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
 import 'package:observatory/app.dart';
 
 /// Displays an Error response.
 @CustomTag('heap-profile')
-class HeapProfileElement extends IsolateElement {
+class HeapProfileElement extends ObservatoryElement {
   // Indexes into VM provided map.
   static const ALLOCATED_BEFORE_GC = 0;
   static const ALLOCATED_BEFORE_GC_SIZE = 1;
@@ -39,7 +40,7 @@ class HeapProfileElement extends IsolateElement {
   var _fullDataTable;
   var _fullChart;
 
-  @published Map profile;
+  @published ServiceMap profile;
 
   HeapProfileElement.created() : super.created() {
     _fullDataTable = new DataTable();
@@ -100,13 +101,13 @@ class HeapProfileElement extends IsolateElement {
     assert(_combinedDataTable != null);
     _fullDataTable.clearRows();
     _combinedDataTable.clearRows();
-    for (Map cls in profile['members']) {
+    for (ServiceMap cls in profile['members']) {
       if (_classHasNoAllocations(cls)) {
         // If a class has no allocations, don't display it.
         continue;
       }
       var vm_name = cls['class']['name'];
-      var url = isolate.relativeLink(cls['class']['id']);
+      var url = cls['class'].hashLink;
       _fullDataTable.addRow([
           '<a title="$vm_name" href="$url">'
           '${_fullTableColumnValue(cls, 0)}</a>',
@@ -223,7 +224,10 @@ class HeapProfileElement extends IsolateElement {
   }
 
   void refresh(var done) {
-    isolate.getMap('/allocationprofile').then((Map response) {
+    if (profile == null) {
+      return;
+    }
+    profile.isolate.get('/allocationprofile').then((ServiceMap response) {
       assert(response['type'] == 'AllocationProfile');
       profile = response;
     }).catchError((e, st) {
@@ -232,7 +236,10 @@ class HeapProfileElement extends IsolateElement {
   }
 
   void resetAccumulator(Event e, var detail, Node target) {
-    isolate.getMap('/allocationprofile/reset').then((Map response) {
+    if (profile == null) {
+      return;
+    }
+    profile.isolate.get('/allocationprofile/reset').then((ServiceMap response) {
       assert(response['type'] == 'AllocationProfile');
       profile = response;
     }).catchError((e, st) {
@@ -273,6 +280,6 @@ class HeapProfileElement extends IsolateElement {
     }
     String space = newSpace ? 'new' : 'old';
     Map heap = profile['heaps'][space];
-    return '${ObservatoryApplication.timeUnits(heap['time'])} secs';
+    return '${formatSeconds(heap['time'])} secs';
   }
 }

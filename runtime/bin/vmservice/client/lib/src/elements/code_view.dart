@@ -4,14 +4,26 @@
 
 library code_view_element;
 
-import 'isolate_element.dart';
+import 'observatory_element.dart';
+import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
-import 'package:observatory/app.dart';
 
 @CustomTag('code-view')
-class CodeViewElement extends IsolateElement {
+class CodeViewElement extends ObservatoryElement {
   @published Code code;
   CodeViewElement.created() : super.created();
+
+  void enteredView() {
+    super.enteredView();
+    if (code == null) {
+      return;
+    }
+    code.load();
+  }
+
+  void refresh(var done) {
+    code.reload().whenComplete(done);
+  }
 
   String get cssPanelClass {
     return 'panel panel-success';

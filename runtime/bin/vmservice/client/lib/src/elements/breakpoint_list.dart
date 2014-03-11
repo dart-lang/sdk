@@ -4,22 +4,18 @@
 
 library breakpoint_list_element;
 
-import 'isolate_element.dart';
-import 'package:logging/logging.dart';
+import 'observatory_element.dart';
+import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 
 // TODO(turnidge): Is a breakpoint list associated with a VM or an isolate?
 @CustomTag('breakpoint-list')
-class BreakpointListElement extends IsolateElement {
-  @published Map msg = toObservable({});
+class BreakpointListElement extends ObservatoryElement {
+  @published ServiceMap msg;
 
   BreakpointListElement.created() : super.created();
 
   void refresh(var done) {
-    isolate.getMap('breakpoints').then((map) {
-      msg = map;
-    }).catchError((e, trace) {
-      Logger.root.severe('Error while refreshing breakpoint-list: $e\n$trace');
-    }).whenComplete(done);
+    msg.reload().whenComplete(done);
   }
 }

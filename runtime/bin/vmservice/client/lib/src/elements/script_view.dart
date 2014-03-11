@@ -4,36 +4,61 @@
 
 library script_view_element;
 
-import 'dart:html';
-import 'isolate_element.dart';
-import 'package:observatory/app.dart';
+import 'observatory_element.dart';
+import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 
 /// Displays an Error response.
 @CustomTag('script-view')
-class ScriptViewElement extends IsolateElement {
+class ScriptViewElement extends ObservatoryElement {
   @published Script script;
+  @published bool showCoverage = false;
 
   ScriptViewElement.created() : super.created();
 
-  String hitsStyle(ScriptLine line) {
-    if (line.hits == -1) {
-      return 'min-width:32px;';
-    } else if (line.hits == 0) {
-      return 'min-width:32px;background-color:red';
+  void enteredView() {
+    super.enteredView();
+    if (script == null) {
+      return;
     }
-    return 'min-width:32px;background-color:green';
+    script.load();
   }
 
-  void refreshCoverage(Event e, var detail, Node target) {
-    isolate.getMap('coverage').then((Map coverage) {
-      assert(coverage['type'] == 'CodeCoverage');
-      isolate.updateCoverage(coverage['coverage']);
-      notifyPropertyChange(#hitsStyle, "", hitsStyle);
-    }).catchError((e, st) {
-      print('refreshCoverage $e $st');
+  void _triggerHitRefresh() {
+    notifyPropertyChange(#hitsStyle, 0, 1);
+  }
+
+  showCoverageChanged(oldValue) {
+    _triggerHitRefresh();
+  }
+
+  static const hitStyleNone = 'min-width:32px;';
+  static const hitStyleExecuted = 'min-width:32px;background-color:green';
+  static const hitStyleNotExecuted = 'min-width:32px;background-color:red';
+
+  @observable String hitsStyle(ScriptLine line) {
+    if ((script == null) || !showCoverage) {
+      return hitStyleNone;
+    }
+    var hit = script.hits[line.line];
+    if (hit == null) {
+      return hitStyleNone;
+    }
+    if (hit == 0) {
+      return hitStyleNotExecuted;
+    }
+    assert(hit > 0);
+    return hitStyleExecuted;
+  }
+
+  void refresh(var done) {
+    script.reload().whenComplete(done);
+  }
+
+  void refreshCoverage(var done) {
+    script.isolate.refreshCoverage().then((_) {
+      _triggerHitRefresh();
+      done();
     });
   }
-
-
 }

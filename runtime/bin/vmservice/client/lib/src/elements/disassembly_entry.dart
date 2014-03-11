@@ -4,12 +4,14 @@
 
 library disassembly_entry_element;
 
-import 'package:observatory/app.dart';
+import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 import 'observatory_element.dart';
 
 @CustomTag('disassembly-entry')
 class DisassemblyEntryElement extends ObservatoryElement {
   @published CodeInstruction instruction;
+  @published Code code;
+
   DisassemblyEntryElement.created() : super.created();
 }

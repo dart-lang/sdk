@@ -20,7 +20,7 @@ export 'package:observatory/src/elements/isolate_summary.dart';
 export 'package:observatory/src/elements/json_view.dart';
 export 'package:observatory/src/elements/library_ref.dart';
 export 'package:observatory/src/elements/library_view.dart';
-export 'package:observatory/src/elements/message_viewer.dart';
+export 'package:observatory/src/elements/service_view.dart';
 export 'package:observatory/src/elements/nav_bar.dart';
 export 'package:observatory/src/elements/observatory_application.dart';
 export 'package:observatory/src/elements/response_viewer.dart';

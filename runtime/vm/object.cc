@@ -6111,13 +6111,14 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddPropertyF("id", "classes/%" Pd "/%s/%" Pd "", cid, selector, id);
   jsobj.AddProperty("name", internal_name);
   jsobj.AddProperty("user_name", user_name);
+  jsobj.AddProperty("class", cls);
+  const char* kind_string = Function::KindToCString(kind());
+  jsobj.AddProperty("kind", kind_string);
   if (ref) return;
   jsobj.AddProperty("is_static", is_static());
   jsobj.AddProperty("is_const", is_const());
   jsobj.AddProperty("is_optimizable", is_optimizable());
   jsobj.AddProperty("is_inlinable", IsInlineable());
-  const char* kind_string = Function::KindToCString(kind());
-  jsobj.AddProperty("kind", kind_string);
   jsobj.AddProperty("unoptimized_code", Object::Handle(unoptimized_code()));
   jsobj.AddProperty("usage_counter", usage_counter());
   jsobj.AddProperty("optimized_call_site_count", optimized_call_site_count());
@@ -10470,6 +10471,14 @@ void Code::PrintToJSONStream(JSONStream* stream, bool ref) const {
   const Object& obj = Object::Handle(owner());
   if (obj.IsFunction()) {
     jsobj.AddProperty("function", obj);
+  } else {
+    // Generate a fake function reference.
+    JSONObject func(&jsobj, "function");
+    func.AddProperty("type", "@Function");
+    func.AddProperty("kind", "Stub");
+    func.AddPropertyF("id", "stub/functions/%" Pd "", EntryPoint());
+    func.AddProperty("user_name", user_name.ToCString());
+    func.AddProperty("name", name.ToCString());
   }
   if (ref) {
     return;

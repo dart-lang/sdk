@@ -1,22 +1,22 @@
 <head>
   <link rel="import" href="class_ref.html">
   <link rel="import" href="code_ref.html">
-  <link rel="import" href="isolate_element.html">
+  <link rel="import" href="observatory_element.html">
   <link rel="import" href="nav_bar.html">
 </head>
-<polymer-element name="function-view" extends="isolate-element">
+<polymer-element name="function-view" extends="observatory-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+      <isolate-nav-menu isolate="{{ function.isolate }}"></isolate-nav-menu>
       <template if="{{ function['owner']['type'] == '@Class' }}">
         <!-- TODO(turnidge): Add library nav menu here. -->
-        <class-nav-menu isolate="{{ isolate }}" cls="{{ function['owner'] }}"></class-nav-menu>
+        <class-nav-menu cls="{{ function['owner'] }}"></class-nav-menu>
       </template>
       <template if="{{ function['owner']['type'] == '@Library' }}">
-        <library-nav-menu isolate="{{ isolate }}" library="{{ function['owner'] }}"></library-nav-menu>
+        <library-nav-menu library="{{ function['owner'] }}"></library-nav-menu>
       </template>
-      <nav-menu link="." anchor="{{ function['user_name'] }}" last="{{ true }}"></nav-menu>
+      <nav-menu link="." anchor="{{ function.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
@@ -25,12 +25,12 @@
       <div class="panel panel-warning">
         <div class="panel-heading">
           {{ function['user_name'] }} ({{ function['name'] }})
-          <class-ref isolate="{{ isolate }}" ref="{{ function['class'] }}"></class-ref>
+          <class-ref ref="{{ function['class'] }}"></class-ref>
         </div>
         <div class="panel-body">
           <div>
-          <code-ref isolate="{{ isolate }}" ref="{{ function['code'] }}"></code-ref>
-          <code-ref isolate="{{ isolate }}" ref="{{ function['unoptimized_code'] }}"></code-ref>
+          <code-ref ref="{{ function['code'] }}"></code-ref>
+          <code-ref ref="{{ function['unoptimized_code'] }}"></code-ref>
           </div>
           <table class="table table-hover">
             <tbody>

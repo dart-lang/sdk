@@ -1,9 +1,9 @@
 <head>
   <link rel="import" href="isolate_summary.html">
   <link rel="import" href="nav_bar.html">
-  <link rel="import" href="vm_element.html">
+  <link rel="import" href="observatory_element.html">
 </head>
-<polymer-element name="isolate-list" extends="vm-element">
+<polymer-element name="isolate-list" extends="observatory-element">
   <template>
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
@@ -11,7 +11,7 @@
       <nav-refresh callback="{{ refresh } }}"></nav-refresh>
     </nav-bar>
       <ul class="list-group">
-      <template repeat="{{ isolate in vm.isolates.values }}">
+      <template repeat="{{ isolate in isolates.isolates.values }}">
       	<li class="list-group-item">
         <isolate-summary isolate="{{ isolate }}"></isolate-summary>
         </li>

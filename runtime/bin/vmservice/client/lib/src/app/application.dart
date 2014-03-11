@@ -12,24 +12,16 @@ typedef void RequestResponseInterceptor();
 class ObservatoryApplication extends Observable {
   @observable final LocationManager locationManager;
   @observable final VM vm;
-  @observable Map response;
   @observable Isolate isolate;
+  @observable ServiceObject response;
 
-  void setResponse(Map response) {
-    this.response = toObservable(response);
+  void setResponse(ServiceObject response) {
+    this.response = response;
   }
 
-  void setResponseError(String message, [String errorType = 'ResponseError']) {
-    this.response = toObservable({
-      'type': 'Error',
-      'errorType': errorType,
-      'text': message
-    });
-    Logger.root.severe(message);
-  }
-
-  void _setup() {
-    vm._app = this;
+  void _initOnce() {
+    // Only called once.
+    assert(locationManager._app == null);
     locationManager._app = this;
     locationManager.init();
   }
@@ -37,30 +29,12 @@ class ObservatoryApplication extends Observable {
   ObservatoryApplication.devtools() :
       locationManager = new LocationManager(),
       vm = new DartiumVM() {
-    _setup();
+    _initOnce();
   }
 
   ObservatoryApplication() :
       locationManager = new LocationManager(),
       vm = new HttpVM('http://127.0.0.1:8181/') {
-    _setup();
-  }
-
-  static const int KB = 1024;
-  static const int MB = KB * 1024;
-  static String scaledSizeUnits(int x) {
-    if (x > 2 * MB) {
-      var y = x / MB;
-      return '${y.toStringAsFixed(1)} MB';
-    } else if (x > 2 * KB) {
-      var y = x / KB;
-      return '${y.toStringAsFixed(1)} KB';
-    }
-    var y = x.toDouble();
-    return '${y.toStringAsFixed(1)} B';
-  }
-
-  static String timeUnits(double x) {
-    return x.toStringAsFixed(2);
+    _initOnce();
   }
 }

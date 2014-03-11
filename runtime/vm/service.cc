@@ -483,7 +483,7 @@ static RootMessageHandler FindRootMessageHandler(const char* command);
 
 
 static void PrintArgumentsAndOptions(const JSONObject& obj, JSONStream* js) {
-  JSONObject jsobj(&obj, "message");
+  JSONObject jsobj(&obj, "request");
   {
     JSONArray jsarr(&jsobj, "arguments");
     for (intptr_t i = 0; i < js->num_arguments(); i++) {
@@ -505,7 +505,8 @@ static void PrintArgumentsAndOptions(const JSONObject& obj, JSONStream* js) {
 }
 
 
-static void PrintError(JSONStream* js, const char* format, ...) {
+static void PrintError(JSONStream* js,
+                       const char* format, ...) {
   Isolate* isolate = Isolate::Current();
 
   va_list args;
@@ -521,7 +522,33 @@ static void PrintError(JSONStream* js, const char* format, ...) {
 
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Error");
-  jsobj.AddProperty("text", buffer);
+  jsobj.AddProperty("id", "");
+  jsobj.AddProperty("message", buffer);
+  PrintArgumentsAndOptions(jsobj, js);
+}
+
+
+static void PrintErrorWithKind(JSONStream* js,
+                               const char* kind,
+                               const char* format, ...) {
+  Isolate* isolate = Isolate::Current();
+
+  va_list args;
+  va_start(args, format);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  va_end(args);
+
+  char* buffer = isolate->current_zone()->Alloc<char>(len + 1);
+  va_list args2;
+  va_start(args2, format);
+  OS::VSNPrint(buffer, (len + 1), format, args2);
+  va_end(args2);
+
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "Error");
+  jsobj.AddProperty("id", "");
+  jsobj.AddProperty("kind", kind);
+  jsobj.AddProperty("message", buffer);
   PrintArgumentsAndOptions(jsobj, js);
 }
 
@@ -604,6 +631,7 @@ static bool HandleStackTrace(Isolate* isolate, JSONStream* js) {
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "StackTrace");
+  jsobj.AddProperty("id", "stacktrace");
   JSONArray jsarr(&jsobj, "members");
   intptr_t num_frames = stack->Length();
   for (intptr_t i = 0; i < num_frames; i++) {
@@ -1012,7 +1040,8 @@ static bool HandleScriptsFetch(Isolate* isolate, JSONStream* js) {
       }
     }
   }
-  PrintError(js, "Cannot find script %s\n", requested_url.ToCString());
+  PrintErrorWithKind(js, "NotFoundError", "Cannot find script %s",
+                     requested_url.ToCString());
   return true;
 }
 

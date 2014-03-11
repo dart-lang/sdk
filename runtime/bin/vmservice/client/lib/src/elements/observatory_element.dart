@@ -64,6 +64,11 @@ class ObservatoryElement extends PolymerElement {
 
   }
 
+  String formatSeconds(double x) {
+    return x.toStringAsFixed(2);
+  }
+
+
   String formatSize(int bytes) {
     const int bytesPerKB = 1024;
     const int bytesPerMB = 1024 * bytesPerKB;
@@ -89,47 +94,47 @@ class ObservatoryElement extends PolymerElement {
     return "${shortFile}:${frame['line']}";
   }
 
-  bool isNullRef(String type) {
-    return type == '@Null';
+  bool isNull(String type) {
+    return type == 'Null';
   }
 
-  bool isIntRef(String type) {
-    return (type == '@Smi' ||
-            type == '@Mint' ||
-            type == '@Bigint');
+  bool isInt(String type) {
+    return (type == 'Smi' ||
+            type == 'Mint' ||
+            type == 'Bigint');
   }
 
-  bool isBoolRef(String type) {
-    return type == '@Bool';
+  bool isBool(String type) {
+    return type == 'Bool';
   }
 
-  bool isStringRef(String type) {
-    return type == '@String';
+  bool isString(String type) {
+    return type == 'String';
   }
 
-  bool isInstanceRef(String type) {
-    return type == '@Instance';
+  bool isInstance(String type) {
+    return type == 'Instance';
   }
 
-  bool isClosureRef(String type) {
-    return type == '@Closure';
+  bool isClosure(String type) {
+    return type == 'Closure';
   }
 
-  bool isListRef(String type) {
-    return (type == '@GrowableObjectArray' ||
-            type == '@Array');
+  bool isList(String type) {
+    return (type == 'GrowableObjectArray' ||
+            type == 'Array');
   }
 
-  bool isUnexpectedRef(String type) {
-    return (!['@Null',
-              '@Smi',
-              '@Mint',
-              '@Biginit',
-              '@Bool',
-              '@String',
-              '@Closure',
-              '@Instance',
-              '@GrowableObjectArray',
-              '@Array'].contains(type));
+  bool isUnexpected(String type) {
+    return (!['Null',
+              'Smi',
+              'Mint',
+              'Biginit',
+              'Bool',
+              'String',
+              'Closure',
+              'Instance',
+              'GrowableObjectArray',
+              'Array'].contains(type));
   }
 }

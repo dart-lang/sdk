@@ -4,38 +4,31 @@
 
 library instance_ref_element;
 
-import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
+import 'package:observatory/service.dart';
 import 'service_ref.dart';
 
 @CustomTag('instance-ref')
 class InstanceRefElement extends ServiceRefElement {
   InstanceRefElement.created() : super.created();
 
-  String get name {
-    if (ref == null) {
-      return super.name;
-    }
-    return ref['preview'];
-  }
-
   String get hoverText {
     if (ref != null) {
-      if (ref['type'] == '@Null') {
-        if (ref['id'] == 'objects/optimized-out') {
+      if (ref.serviceType == 'Null') {
+        if (ref.id == 'objects/optimized-out') {
           return 'This object is no longer needed and has been removed by the optimizing compiler.';
-        } else if (ref['id'] == 'objects/collected') {
+        } else if (ref.id == 'objects/collected') {
           return 'This object has been reclaimed by the garbage collector.';
-        } else if (ref['id'] == 'objects/expired') {
+        } else if (ref.id == 'objects/expired') {
           return 'The handle to this object has expired.  Consider refreshing the page.';
-        } else if (ref['id'] == 'objects/not-initialized') {
+        } else if (ref.id == 'objects/not-initialized') {
           return 'This object will be initialized once it is accessed by the program.';
-        } else if (ref['id'] == 'objects/being-initialized') {
+        } else if (ref.id == 'objects/being-initialized') {
           return 'This object is currently being initialized.';
         }
       }
     }
-    return '';
+    return super.hoverText;
   }
 
   // TODO(turnidge): This is here to workaround vm/dart2js differences.
@@ -44,29 +37,18 @@ class InstanceRefElement extends ServiceRefElement {
   }
 
   void expandEvent(bool expand, var done) {
-    print("Calling expandEvent");
+    assert(ref is ServiceMap);
+    ServiceMap refMap = ref;
     if (expand) {
-      isolate.getMap(objectId).then((map) {
-          if (map['type'] == 'Null') {
-            // The object is no longer available.  For example, the
-            // object id may have expired or the object may have been
-            // collected by the gc.
-            map['type'] = '@Null';
-            ref = map;
-          } else {
-            ref['fields'] = map['fields'];
-            ref['elements'] = map['elements'];
-            ref['length'] = map['length'];
-          }
-        ref['fields'] = map['fields'];
-        ref['elements'] = map['elements'];
-        ref['length'] = map['length'];
-      }).catchError((e, trace) {
-          Logger.root.severe('Error while expanding instance-ref: $e\n$trace');
+      refMap.reload().then((_) {
+        if (refMap['preview'] != null) {
+          refMap.name = refMap['preview'];
+          refMap.vmName = refMap['preview'];
+        }
       }).whenComplete(done);
     } else {
-      ref['fields'] = null;
-      ref['elements'] = null;
+      refMap['fields'] = null;
+      refMap['elements'] = null;
       done();
     }
   }

@@ -15,7 +15,6 @@ class CurlyBlockElement extends PolymerElement {
   @published var callback = null;
 
   void doneCallback() {
-    print("done callback");
     expanded = !expanded;
     busy = false;
   }

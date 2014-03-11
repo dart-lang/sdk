@@ -4,20 +4,16 @@
 
 library field_view_element;
 
-import 'isolate_element.dart';
-import 'package:logging/logging.dart';
+import 'observatory_element.dart';
+import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 
 @CustomTag('field-view')
-class FieldViewElement extends IsolateElement {
-  @published Map field;
+class FieldViewElement extends ObservatoryElement {
+  @published ServiceMap field;
   FieldViewElement.created() : super.created();
 
   void refresh(var done) {
-    isolate.getMap(field['id']).then((map) {
-        field = map;
-    }).catchError((e, trace) {
-        Logger.root.severe('Error while refreshing field-view: $e\n$trace');
-    }).whenComplete(done);
+    field.reload().whenComplete(done);
   }
 }

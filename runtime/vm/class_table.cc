@@ -243,6 +243,7 @@ void ClassHeapStats::ResetAccumulator() {
 void ClassHeapStats::PrintTOJSONArray(const Class& cls, JSONArray* array) {
   JSONObject obj(array);
   obj.AddProperty("type", "ClassHeapStats");
+  obj.AddPropertyF("id", "allocationprofile/%" Pd "", cls.id());
   obj.AddProperty("class", cls);
   {
     JSONArray new_stats(&obj, "new");
@@ -331,6 +332,7 @@ void ClassTable::AllocationProfilePrintToJSONStream(JSONStream* stream) {
   ASSERT(heap != NULL);
   JSONObject obj(stream);
   obj.AddProperty("type", "AllocationProfile");
+  obj.AddProperty("id", "allocationprofile");
   {
     JSONObject heaps(&obj, "heaps");
     {

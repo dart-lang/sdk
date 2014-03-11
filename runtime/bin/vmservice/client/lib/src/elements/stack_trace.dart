@@ -4,21 +4,17 @@
 
 library stack_trace_element;
 
-import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
-import 'isolate_element.dart';
+import 'observatory_element.dart';
+import 'package:observatory/service.dart';
 
 @CustomTag('stack-trace')
-class StackTraceElement extends IsolateElement {
-  @published Map trace = toObservable({});
+class StackTraceElement extends ObservatoryElement {
+  @published ServiceMap trace;
 
   StackTraceElement.created() : super.created();
 
   void refresh(var done) {
-    isolate.getMap('stacktrace').then((map) {
-        trace = map;
-    }).catchError((e, trace) {
-        Logger.root.severe('Error while reloading stack trace: $e\n$trace');
-    }).whenComplete(done);
+    trace.reload().whenComplete(done);
   }
 }

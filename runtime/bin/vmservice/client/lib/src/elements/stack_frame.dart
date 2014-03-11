@@ -4,11 +4,11 @@
 
 library stack_frame_element;
 
-import 'isolate_element.dart';
+import 'observatory_element.dart';
 import 'package:polymer/polymer.dart';
 
 @CustomTag('stack-frame')
-class StackFrameElement extends IsolateElement {
-  @published Map frame = toObservable({});
+class StackFrameElement extends ObservatoryElement {
+  @published ObservableMap frame;
   StackFrameElement.created() : super.created();
 }

@@ -14,9 +14,6 @@
 <body><polymer-element name="observatory-element">
   
 </polymer-element>
-<polymer-element name="isolate-element" extends="observatory-element">
-  
-</polymer-element>
 <polymer-element name="nav-bar" extends="observatory-element">
   <template>
     <style>
@@ -155,10 +152,10 @@
     </style>
     <li>
       <template if="{{ active }}">
-        <button class="active" on-click="{{ buttonClick }}">Refresh</button>
+        <button class="active" on-click="{{ buttonClick }}">{{ label }}</button>
       </template>
       <template if="{{ !active }}">
-        <button class="idle" on-click="{{ buttonClick }}">Refresh</button>
+        <button class="idle" on-click="{{ buttonClick }}">{{ label }}</button>
       </template>
     </li>
   </template>
@@ -172,40 +169,40 @@
   </template>
 </polymer-element>
 
-<polymer-element name="isolate-nav-menu" extends="isolate-element">
+<polymer-element name="isolate-nav-menu" extends="observatory-element">
   <template>
     <nav-menu link="#" anchor="{{ isolate.name }}" last="{{ last }}">
-      <nav-menu-item link="{{ isolate.hashLink('stacktrace') }}" anchor="stack trace"></nav-menu-item>
-      <nav-menu-item link="{{ isolate.hashLink('profile') }}" anchor="cpu profile"></nav-menu-item>
-      <nav-menu-item link="{{ isolate.hashLink('allocationprofile') }}" anchor="heap profile"></nav-menu-item>
-      <nav-menu-item link="{{ isolate.hashLink('debug/breakpoints') }}" anchor="breakpoints"></nav-menu-item>
+      <nav-menu-item link="{{ isolate.relativeHashLink('stacktrace') }}" anchor="stack trace"></nav-menu-item>
+      <nav-menu-item link="{{ isolate.relativeHashLink('profile') }}" anchor="cpu profile"></nav-menu-item>
+      <nav-menu-item link="{{ isolate.relativeHashLink('allocationprofile') }}" anchor="heap profile"></nav-menu-item>
+      <nav-menu-item link="{{ isolate.relativeHashLink('debug/breakpoints') }}" anchor="breakpoints"></nav-menu-item>
       <content></content>
     </nav-menu>
   </template>
 </polymer-element>
 
-<polymer-element name="library-nav-menu" extends="isolate-element">
+<polymer-element name="library-nav-menu" extends="observatory-element">
   <template>
-    <nav-menu link="{{ isolate.hashLink(library['id']) }}" anchor="{{ library['name'] }}" last="{{ last }}">
+    <nav-menu link="{{ library.hashLink }}" anchor="{{ library.name }}" last="{{ last }}">
       <content></content>
     </nav-menu>
   </template>
 </polymer-element>
 
-<polymer-element name="class-nav-menu" extends="isolate-element">
+<polymer-element name="class-nav-menu" extends="observatory-element">
   <template>
-    <nav-menu link="{{ isolate.hashLink(cls['id']) }}" anchor="{{ cls['user_name'] }}" last="{{ last }}">
+    <nav-menu link="{{ cls.hashLink }}" anchor="{{ cls.name }}" last="{{ last }}">
       <content></content>
     </nav-menu>
   </template>
 </polymer-element>
 
 
-<polymer-element name="breakpoint-list" extends="isolate-element">
+<polymer-element name="breakpoint-list" extends="observatory-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+      <isolate-nav-menu isolate="{{ msg.isolate }}"></isolate-nav-menu>
       <nav-menu link="." anchor="breakpoints" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
@@ -227,7 +224,7 @@
   </template>
   
 </polymer-element>
-<polymer-element name="service-ref" extends="isolate-element">
+<polymer-element name="service-ref" extends="observatory-element">
   
 </polymer-element><polymer-element name="class-ref" extends="service-ref">
 <template>
@@ -240,9 +237,9 @@
     <div class="row">
     <div class="col-md-8 col-md-offset-2">
       <div class="panel panel-danger">
-        <div class="panel-heading">{{ error['errorType'] }}</div>
+        <div class="panel-heading">{{ error.kind }}</div>
         <div class="panel-body">
-          <p>{{ error['text'] }}</p>
+          <p>{{ error.message }}</p>
         </div>
       </div>
     </div>
@@ -258,7 +255,7 @@
   var
   </template>
   <template if="{{ (ref['declared_type']['name'] != 'dynamic') }}">
-  <class-ref app="{{ app }}" ref="{{ ref['declared_type'] }}"></class-ref>
+  <class-ref ref="{{ ref['declared_type'] }}"></class-ref>
   </template>
   <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
 </div>
@@ -316,48 +313,48 @@
       }
     </style>
     <div>
-      <template if="{{ isUnexpectedRef(ref['type']) }}">
+      <template if="{{ isUnexpected(ref.serviceType) }}">
         unexpected reference type &lt;{{ ref['type'] }}&gt;
       </template>
 
-      <template if="{{ isNullRef(ref['type']) }}">
-        <div title="{{ hoverText }}">{{ name }}</div>
+      <template if="{{ isNull(ref.serviceType) }}">
+        <div title="{{ hoverText }}">{{ ref['preview'] }}</div>
       </template>
 
-      <template if="{{ (isStringRef(ref['type']) ||
-                        isBoolRef(ref['type']) ||
-                        isIntRef(ref['type'])) }}">
-        <a href="{{ url }}">{{ name }}</a>
+      <template if="{{ (isString(ref.serviceType) ||
+                        isBool(ref.serviceType) ||
+                        isInt(ref.serviceType)) }}">
+        <a href="{{ url }}">{{ ref['preview'] }}</a>
       </template>
 
-      <template if="{{ isClosureRef(ref['type']) }}">
+      <template if="{{ isClosure(ref.serviceType) }}">
         <a href="{{ url }}">
           {{ ref['closureFunc']['user_name'] }}
         </a>
       </template>
 
-      <template if="{{ isInstanceRef(ref['type']) }}">
+      <template if="{{ isInstance(ref.serviceType) }}">
         <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em></a>
         <curly-block callback="{{ expander() }}">
           <table>
             <tbody><tr template="" repeat="{{ field in ref['fields'] }}">
               <td class="member">{{ field['decl']['user_name'] }}</td>
               <td class="member">
-                <instance-ref isolate="{{ isolate }}" ref="{{ field['value'] }}"></instance-ref>
+                <instance-ref ref="{{ field['value'] }}"></instance-ref>
               </td>
             </tr>
           </tbody></table>
         </curly-block>
       </template>
 
-      <template if="{{ isListRef(ref['type']) }}">
+      <template if="{{ isList(ref.serviceType) }}">
         <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em> ({{ ref['length']}})</a>
         <curly-block callback="{{ expander() }}">
           <table>
             <tbody><tr template="" repeat="{{ element in ref['elements'] }}">
               <td class="member">[{{ element['index']}}]</td>
               <td class="member">
-                <instance-ref isolate="{{ isolate }}" ref="{{ element['value'] }}"></instance-ref>
+                <instance-ref ref="{{ element['value'] }}"></instance-ref>
               </td>
             </tr>
           </tbody></table>
@@ -373,13 +370,13 @@
   <a href="{{ url }}">{{ name }}</a>
 </template>
 
-</polymer-element><polymer-element name="class-view" extends="isolate-element">
+</polymer-element><polymer-element name="class-view" extends="observatory-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
-      <library-nav-menu isolate="{{ isolate }}" library="{{ cls['library'] }}"></library-nav-menu>
-      <class-nav-menu isolate="{{ isolate }}" cls="{{ cls }}" last="{{ true }}"></class-nav-menu>
+      <isolate-nav-menu isolate="{{ cls.isolate }}"></isolate-nav-menu>
+      <library-nav-menu library="{{ cls['library'] }}"></library-nav-menu>
+      <class-nav-menu cls="{{ cls }}" last="{{ true }}"></class-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
@@ -387,12 +384,13 @@
     <div class="col-md-8 col-md-offset-2">
       <div class="panel panel-warning">
         <div class="panel-heading">
-          class <strong>{{ cls['user_name'] }}</strong>
+          class <strong>{{ cls.name }}</strong>
           <template if="{{ cls['super']['type'] != 'Null' }}">
             extends
-            <class-ref app="{{ app }}" ref="{{ cls['super'] }}"></class-ref>
+            <class-ref ref="{{ cls['super'] }}"></class-ref>
           </template>
-          <library-ref app="{{ app }}" ref="{{ cls['library'] }}"></library-ref>
+          <p></p>
+          <library-ref ref="{{ cls['library'] }}"></library-ref>
         </div>
         <div class="panel-body">
           <table class="table table-hover">
@@ -422,8 +420,8 @@
             <table class="table table-hover">
              <tbody>
                 <tr template="" repeat="{{ field in cls['fields'] }}">
-                  <td><field-ref app="{{ app }}" ref="{{ field }}"></field-ref></td>
-                  <td><instance-ref app="{{ app }}" ref="{{ field['value'] }}"></instance-ref></td>
+                  <td><field-ref ref="{{ field }}"></field-ref></td>
+                  <td><instance-ref ref="{{ field['value'] }}"></instance-ref></td>
                 </tr>
               </tbody>
             </table>
@@ -437,8 +435,8 @@
               </thead>
               <tbody>
                 <tr template="" repeat="{{ function in cls['functions'] }}">
-                  <td><function-ref app="{{ app }}" ref="{{ function }}"></function-ref></td>
-                  <td><function-ref app="{{ app }}" ref="{{ function }}" internal=""></function-ref></td>
+                  <td><function-ref ref="{{ function }}"></function-ref></td>
+                  <td><function-ref ref="{{ function }}" internal=""></function-ref></td>
                 </tr>
               </tbody>
             </table>
@@ -460,38 +458,47 @@
 
 </polymer-element><polymer-element name="disassembly-entry" extends="observatory-element">
   <template>
+  <style>
+    .monospace {
+      font-family: consolas, courier, monospace;
+      font-size: 1em;
+      line-height: 1.2em;
+      white-space: nowrap;
+    }
+  </style>
   <div class="row">
-      <div class="col-md-2">{{ instruction.formattedTicks() }}</div>
-      <div class="col-md-2">{{ instruction.formattedAddress() }}</div>
-      <div class="col-md-4">
-        <code>{{ instruction.machine }} {{ instruction.human }}</code>
-      </div>
+      <div class="col-md-2 monospace">{{ instruction.formattedAddress() }}</div>
+      <div class="col-md-2 monospace">{{ instruction.formattedInclusive(code) }}</div>
+      <div class="col-md-2 monospace">{{ instruction.formattedExclusive(code) }}</div>
+      <div class="col-md-6 monospace">{{ instruction.human }}</div>
   </div>
   </template>
   
-</polymer-element><polymer-element name="code-view" extends="isolate-element">
+</polymer-element><polymer-element name="code-view" extends="observatory-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
-      <nav-menu link="." anchor="{{ code.functionRef['user_name'] }}" last="{{ true }}"></nav-menu>
-      <!-- TODO(turnidge): Implement code refresh -->
+      <isolate-nav-menu isolate="{{ code.isolate }}"></isolate-nav-menu>
+      <nav-menu link="." anchor="{{ code.name }}" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
   <div class="row">
     <div class="col-md-8 col-md-offset-2">
       <div class="{{ cssPanelClass }}">
         <div class="panel-heading">
-          <function-ref isolate="{{ isolate }}" ref="{{ code.functionRef }}"></function-ref>
+          <span>Disassembled code for function: </span>
+          <function-ref ref="{{ code.function }}"></function-ref>
         </div>
         <div class="panel-body">
           <div class="row">
-              <div class="col-md-2"><strong>Samples</strong></div>
               <div class="col-md-2"><strong>Address</strong></div>
-              <div><strong>Instruction</strong></div>
+              <div class="col-md-2"><strong>Inclusive</strong></div>
+              <div class="col-md-2"><strong>Exclusive</strong></div>
+              <div class="col-md-6"><strong>Disassembly</strong></div>
           </div>
           <template repeat="{{ instruction in code.instructions }}">
-            <disassembly-entry instruction="{{ instruction }}">
+            <disassembly-entry code="{{ code }}" instruction="{{ instruction }}">
             </disassembly-entry>
           </template>
         </div>
@@ -513,17 +520,17 @@
     </div>
   </template>
   
-</polymer-element><polymer-element name="field-view" extends="isolate-element">
+</polymer-element><polymer-element name="field-view" extends="observatory-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
-      <template if="{{ field['owner']['type'] == '@Class' }}">
+      <isolate-nav-menu isolate="{{ field.isolate }}"></isolate-nav-menu>
+      <template if="{{ field['owner'].serviceType == 'Class' }}">
         <!-- TODO(turnidge): Add library nav menu here. -->
-        <class-nav-menu isolate="{{ isolate }}" cls="{{ field['owner'] }}"></class-nav-menu>
+        <class-nav-menu cls="{{ field['owner'] }}"></class-nav-menu>
       </template>
-      <template if="{{ field['owner']['type'] == '@Library' }}">
-        <library-nav-menu isolate="{{ isolate }}" library="{{ field['owner'] }}"></library-nav-menu>
+      <template if="{{ field['owner'].serviceType == 'Library' }}">
+        <library-nav-menu library="{{ field['owner'] }}"></library-nav-menu>
       </template>
       <nav-menu link="." anchor="{{ field['user_name'] }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
@@ -537,7 +544,7 @@
           <template if="{{ field['final'] }}">final</template>
           <template if="{{ field['const'] }}">const</template>
           {{ field['user_name'] }} ({{ field['name'] }})
-          <class-ref isolate="{{ isolate }}" ref="{{ field['class'] }}"></class-ref>
+          <class-ref ref="{{ field['owner'] }}"></class-ref>
         </div>
         <div class="panel-body">
         <template if="{{ field['guard_class'] == 'dynamic'}}">
@@ -556,7 +563,7 @@
             </div>
           </template>
           <blockquote>
-            <class-ref isolate="{{ isolate }}" ref="{{ field['guard_class'] }}"></class-ref>
+            <class-ref ref="{{ field['guard_class'] }}"></class-ref>
           </blockquote>
         </template>
         </div>
@@ -566,19 +573,19 @@
   </template>
   
 </polymer-element>
-<polymer-element name="function-view" extends="isolate-element">
+<polymer-element name="function-view" extends="observatory-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+      <isolate-nav-menu isolate="{{ function.isolate }}"></isolate-nav-menu>
       <template if="{{ function['owner']['type'] == '@Class' }}">
         <!-- TODO(turnidge): Add library nav menu here. -->
-        <class-nav-menu isolate="{{ isolate }}" cls="{{ function['owner'] }}"></class-nav-menu>
+        <class-nav-menu cls="{{ function['owner'] }}"></class-nav-menu>
       </template>
       <template if="{{ function['owner']['type'] == '@Library' }}">
-        <library-nav-menu isolate="{{ isolate }}" library="{{ function['owner'] }}"></library-nav-menu>
+        <library-nav-menu library="{{ function['owner'] }}"></library-nav-menu>
       </template>
-      <nav-menu link="." anchor="{{ function['user_name'] }}" last="{{ true }}"></nav-menu>
+      <nav-menu link="." anchor="{{ function.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
@@ -587,12 +594,12 @@
       <div class="panel panel-warning">
         <div class="panel-heading">
           {{ function['user_name'] }} ({{ function['name'] }})
-          <class-ref isolate="{{ isolate }}" ref="{{ function['class'] }}"></class-ref>
+          <class-ref ref="{{ function['class'] }}"></class-ref>
         </div>
         <div class="panel-body">
           <div>
-          <code-ref isolate="{{ isolate }}" ref="{{ function['code'] }}"></code-ref>
-          <code-ref isolate="{{ isolate }}" ref="{{ function['unoptimized_code'] }}"></code-ref>
+          <code-ref ref="{{ function['code'] }}"></code-ref>
+          <code-ref ref="{{ function['unoptimized_code'] }}"></code-ref>
           </div>
           <table class="table table-hover">
             <tbody>
@@ -635,7 +642,7 @@
 </template>
 
 </polymer-element>
-<polymer-element name="isolate-summary" extends="isolate-element">
+<polymer-element name="isolate-summary" extends="observatory-element">
   <template>
     <div class="row">
       <div class="col-md-1">
@@ -660,9 +667,9 @@
 
         <div class="row">
           <small>
-            (<a href="{{ isolate.hashLink(isolate.rootLib) }}">library</a>)
-            (<a href="{{ isolate.hashLink('debug/breakpoints') }}">breakpoints</a>)
-            (<a href="{{ isolate.hashLink('profile') }}">profile</a>)
+            (<a href="{{ isolate.rootLib.hashLink }}">library</a>)
+            (<a href="{{ isolate.relativeHashLink('debug/breakpoints') }}">breakpoints</a>)
+            (<a href="{{ isolate.relativeHashLink('profile') }}">profile</a>)
           </small>
         </div>
       </div>
@@ -695,7 +702,7 @@
         </div>
       </div>
       <div class="col-md-2">
-        <a href="{{ isolate.hashLink('allocationprofile') }}">
+        <a href="{{ isolate.relativeHashLink('allocationprofile') }}">
           {{ isolate.newHeapUsed | formatSize }}/{{ isolate.oldHeapUsed | formatSize }}
         </a>
       </div>
@@ -706,7 +713,7 @@
         <template if="{{ isolate.topFrame != null }}">
           run
         </template>
-        ( <a href="{{ isolate.hashLink('stacktrace') }}">stack trace</a> )
+        ( <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a> )
       </div>
     </div>
     <div class="row">
@@ -714,8 +721,8 @@
       </div>
       <div class="col-md-6">
         <template if="{{ isolate.topFrame != null }}">
-          <function-ref isolate="{{ isolate }}" ref="{{ isolate.topFrame['function'] }}"></function-ref>
-          (<script-ref isolate="{{ isolate }}" ref="{{ isolate.topFrame['script'] }}" line="{{ isolate.topFrame['line'] }}"></script-ref>)
+          <function-ref ref="{{ isolate.topFrame['function'] }}"></function-ref>
+          (<script-ref ref="{{ isolate.topFrame['script'] }}" line="{{ isolate.topFrame['line'] }}"></script-ref>)
           <br>
           <pre>{{ isolate.topFrame['line'] }} &nbsp; {{ isolate.topFrame['lineString'] }}</pre>
         </template>
@@ -726,10 +733,7 @@
   </template>
   
 </polymer-element>
-<polymer-element name="vm-element" extends="observatory-element">
-  
-</polymer-element>
-<polymer-element name="isolate-list" extends="vm-element">
+<polymer-element name="isolate-list" extends="observatory-element">
   <template>
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
@@ -737,7 +741,7 @@
       <nav-refresh callback="{{ refresh } }}"></nav-refresh>
     </nav-bar>
       <ul class="list-group">
-      <template repeat="{{ isolate in vm.isolates.values }}">
+      <template repeat="{{ isolate in isolates.isolates.values }}">
       	<li class="list-group-item">
         <isolate-summary isolate="{{ isolate }}"></isolate-summary>
         </li>
@@ -746,13 +750,13 @@
   </template>
   
 </polymer-element>
-<polymer-element name="instance-view" extends="isolate-element">
+<polymer-element name="instance-view" extends="observatory-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+      <isolate-nav-menu isolate="{{ instance.isolate }}"></isolate-nav-menu>
       <!-- TODO(turnidge): Add library nav menu here. -->
-      <class-nav-menu isolate="{{ isolate }}" cls="{{ instance['class'] }}"></class-nav-menu>
+      <class-nav-menu cls="{{ instance['class'] }}"></class-nav-menu>
       <nav-menu link="." anchor="instance" last="{{ true }}"></nav-menu>
       <!-- TODO(turnidge): Add nav refresh here. -->
     </nav-bar>
@@ -762,7 +766,7 @@
       <div class="panel panel-warning">
         <div class="panel-heading">
          Instance of
-         <class-ref isolate="{{ isolate }}" ref="{{ instance['class'] }}"></class-ref>
+         <class-ref ref="{{ instance['class'] }}"></class-ref>
         </div>
         <div class="panel-body">
           <template if="{{ instance['error'] == null }}">
@@ -777,8 +781,8 @@
             <table class="table table-hover">
              <tbody>
                 <tr template="" repeat="{{ field in instance['fields'] }}">
-                  <td><field-ref isolate="{{ isolate }}" ref="{{ field['decl'] }}"></field-ref></td>
-                  <td><instance-ref isolate="{{ isolate }}" ref="{{ field['value'] }}"></instance-ref></td>
+                  <td><field-ref ref="{{ field['decl'] }}"></field-ref></td>
+                  <td><instance-ref ref="{{ field['value'] }}"></instance-ref></td>
                 </tr>
               </tbody>
             </table>
@@ -823,12 +827,12 @@
   </template>
   
 </polymer-element>
-<polymer-element name="library-view" extends="isolate-element">
+<polymer-element name="library-view" extends="observatory-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
-      <library-nav-menu isolate="{{ isolate }}" library="{{ library }}" last="{{ true }}"></library-nav-menu>
+      <isolate-nav-menu isolate="{{ library.isolate }}"></isolate-nav-menu>
+      <library-nav-menu library="{{ library }}" last="{{ true }}"></library-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
@@ -837,10 +841,10 @@
     <tbody>
       <tr template="" repeat="{{ script in library['scripts']}}">
         <td>
-          {{ script['kind'] }}
+          {{ script.kind }}
         </td>
         <td>
-          <script-ref isolate="{{ isolate }}" ref="{{ script }}"></script-ref>
+          <script-ref ref="{{ script }}"></script-ref>
         </td>
       </tr>
     </tbody>
@@ -850,7 +854,7 @@
     <tbody>
       <tr template="" repeat="{{ lib in library['libraries'] }}">
         <td>
-          <library-ref isolate="{{ isolate }}" ref="{{ lib }}"></library-ref>
+          <library-ref ref="{{ lib }}"></library-ref>
         </td>
       </tr>
     </tbody>
@@ -859,8 +863,8 @@
   <table class="table table-hover">
     <tbody>
       <tr template="" repeat="{{ variable in library['variables'] }}">
-        <td><field-ref isolate="{{ isolate }}" ref="{{ variable }}"></field-ref></td>
-        <td><instance-ref isolate="{{ isolate }}" ref="{{ variable['value'] }}"></instance-ref></td>
+        <td><field-ref ref="{{ variable }}"></field-ref></td>
+        <td><instance-ref ref="{{ variable['value'] }}"></instance-ref></td>
       </tr>
     </tbody>
   </table>
@@ -869,7 +873,7 @@
     <tbody>
       <tr template="" repeat="{{ func in library['functions'] }}">
         <td>
-          <function-ref isolate="{{ isolate }}" ref="{{ func }}"></function-ref>
+          <function-ref ref="{{ func }}"></function-ref>
         </td>
       </tr>
     </tbody>
@@ -885,10 +889,10 @@
     <tbody>
       <tr template="" repeat="{{ cls in library['classes'] }}">
         <td>
-          <class-ref isolate="{{ isolate }}" ref="{{ cls }}"></class-ref>
+          <class-ref ref="{{ cls }}"></class-ref>
         </td>
         <td>
-          <class-ref isolate="{{ isolate }}" ref="{{ cls }}" internal=""></class-ref>
+          <class-ref ref="{{ cls }}" internal=""></class-ref>
         </td>
       </tr>
     </tbody>
@@ -897,11 +901,54 @@
   </template>
   
 </polymer-element>
-<polymer-element name="heap-profile" extends="isolate-element">
+<polymer-element name="isolate-profile" extends="observatory-element">
+  <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ profile.isolate }}"></isolate-nav-menu>
+      <nav-menu link="." anchor="cpu profile" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+    <div class="row">
+      <div class="col-md-12">
+        <span>Top</span>
+        <select selectedindex="{{methodCountSelected}}" value="{{methodCounts[methodCountSelected]}}">
+          <option template="" repeat="{{count in methodCounts}}">{{count}}</option>
+        </select>
+        <span>exclusive methods</span>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <p>Refreshed at {{ refreshTime }} with {{ sampleCount }} samples.</p>
+      </div>
+    </div>
+    <table id="tableTree" class="table table-hover">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Exclusive</th>
+          <th>Caller</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr template="" repeat="{{row in tree.rows }}" style="{{}}">
+          <td on-click="{{toggleExpanded}}" class="{{ coloring(row) }}" style="{{ padding(row) }}">
+            <code-ref ref="{{ row.code }}"></code-ref>
+          </td>
+          <td class="{{ coloring(row) }}">{{row.columns[0]}}</td>
+          <td class="{{ coloring(row) }}">{{row.columns[1]}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </template>
+  
+</polymer-element>
+<polymer-element name="heap-profile" extends="observatory-element">
 <template>
   <nav-bar>
     <top-nav-menu></top-nav-menu>
-    <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+    <isolate-nav-menu isolate="{{ profile.isolate }}"></isolate-nav-menu>
     <nav-menu link="." anchor="heap profile" last="{{ true }}"></nav-menu>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>
   </nav-bar>
@@ -964,72 +1011,31 @@
 </template>
 
 </polymer-element>
-<polymer-element name="isolate-profile" extends="isolate-element">
-  <template>
-    <nav-bar>
-      <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
-      <nav-menu link="." anchor="cpu profile" last="{{ true }}"></nav-menu>
-      <nav-refresh callback="{{ refresh }}"></nav-refresh>
-    </nav-bar>
-    <div class="row">
-      <div class="col-md-12">
-        <span>Top</span>
-        <select selectedindex="{{methodCountSelected}}" value="{{methodCounts[methodCountSelected]}}">
-          <option template="" repeat="{{count in methodCounts}}">{{count}}</option>
-        </select>
-        <span>exclusive methods</span>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-12">
-        <p>Refreshed at {{ refreshTime }} with {{ sampleCount }} samples.</p>
-      </div>
-    </div>
-    <table id="tableTree" class="table table-hover">
-      <thead>
-        <tr>
-          <th>Method</th>
-          <th>Exclusive</th>
-          <th>Caller</th>
-          <th>Inclusive</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr template="" repeat="{{row in tree.rows }}" style="{{}}">
-          <td on-click="{{toggleExpanded}}" class="{{ coloring(row) }}" style="{{ padding(row) }}">
-            <code-ref isolate="{{ isolate }}" ref="{{ row.code.codeRef }}"></code-ref>
-          </td>
-          <td class="{{ coloring(row) }}">{{row.columns[0]}}</td>
-          <td class="{{ coloring(row) }}">{{row.columns[1]}}</td>
-          <td class="{{ coloring(row) }}">{{row.columns[2]}}</td>
-        </tr>
-      </tbody>
-    </table>
-  </template>
-  
-</polymer-element>
-<polymer-element name="script-view" extends="isolate-element">
+<polymer-element name="script-view" extends="observatory-element">
 <template>
   <nav-bar>
     <top-nav-menu></top-nav-menu>
-    <isolate-nav-menu isolate="{{ isolate }}">
+    <isolate-nav-menu isolate="{{ script.isolate }}">
     </isolate-nav-menu>
-    <library-nav-menu isolate="{{ isolate }}" library="{{ script.libraryRef }}"></library-nav-menu>
-    <nav-menu link="." anchor="{{ script.shortName }}" last="{{ true }}"></nav-menu>
+    <library-nav-menu library="{{ script.library }}"></library-nav-menu>
+    <nav-menu link="." anchor="{{ script.name }}" last="{{ true }}">
+      <li>
+        <input type="checkbox" checked="{{ showCoverage }}">
+        <label>Show Coverage Data</label>
+      </li>
+    </nav-menu>
+    <nav-refresh callback="{{ refreshCoverage }}" label="Refresh Coverage"></nav-refresh>
+    <nav-refresh callback="{{ refresh }}">
+    </nav-refresh>
   </nav-bar>
 
   <div class="row">
     <div class="col-md-8 col-md-offset-2">
-      <div class="panel-heading">
-      <button on-click="{{refreshCoverage}}">Refresh Coverage</button>
-      {{ script.scriptRef['user_name'] }}
-      {{ script.coveredPercentageFormatted() }}
-      </div>
+      <div class="panel-heading">Script source for: {{ script.name }}</div>
       <div class="panel-body">
         <table style="width:100%">
           <tbody>
-          <tr template="" repeat="{{ line in script.linesForDisplay }}">
+          <tr template="" repeat="{{ line in script.lines }}">
             <td style="{{ hitsStyle(line) }}">  </td>
             <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{line.line}}</td>
             <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: pre;">{{line.text}}</td>
@@ -1042,7 +1048,7 @@
 </template>
 
 </polymer-element>
-<polymer-element name="stack-frame" extends="isolate-element">
+<polymer-element name="stack-frame" extends="observatory-element">
   <template>
     <style>
       .member {
@@ -1056,15 +1062,15 @@
         #{{ frame['depth'] }}
       </div>
       <div class="col-md-9">
-        <function-ref isolate="{{ isolate }}" ref="{{ frame['function'] }}"></function-ref>
-        ( <script-ref isolate="{{ isolate }}" ref="{{ frame['script'] }}" line="{{ frame['line'] }}">
+        <function-ref ref="{{ frame['function'] }}"></function-ref>
+        ( <script-ref ref="{{ frame['script'] }}" line="{{ frame['line'] }}">
         </script-ref> )
         <curly-block>
           <table>
             <tbody><tr template="" repeat="{{ v in frame['vars'] }}">
               <td class="member">{{ v['name']}}</td>
               <td class="member">
-                <instance-ref isolate="{{ isolate }}" ref="{{ v['value'] }}"></instance-ref>
+                <instance-ref ref="{{ v['value'] }}"></instance-ref>
               </td>
             </tr>
           </tbody></table>
@@ -1078,11 +1084,11 @@
   </template>
   
 </polymer-element>
-<polymer-element name="stack-trace" extends="isolate-element">
+<polymer-element name="stack-trace" extends="observatory-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+      <isolate-nav-menu isolate="{{ trace.isolate }}"></isolate-nav-menu>
       <nav-menu link="." anchor="stack trace" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
@@ -1097,7 +1103,7 @@
       <ul class="list-group">
         <template repeat="{{ frame in trace['members'] }}">
           <li class="list-group-item">
-            <stack-frame isolate="{{ isolate }}" frame="{{ frame }}"></stack-frame>
+            <stack-frame frame="{{ frame }}"></stack-frame>
           </li>
         </template>
       </ul>
@@ -1105,78 +1111,77 @@
   </template>
   
 </polymer-element>
-<polymer-element name="message-viewer" extends="observatory-element">
+<polymer-element name="service-view" extends="observatory-element">
   <!--
     This is a big switch statement which instantiates the custom element
-    designated to display the message type.
+    designated to display the service object type.
   -->
   <template>
   	<!-- If the message type is an IsolateList -->
-    <template if="{{ messageType == 'IsolateList' }}">
-      <isolate-list vm="{{ app.vm }}"></isolate-list>
+    <template if="{{ object.serviceType == 'IsolateList' }}">
+      <isolate-list isolates="{{ object }}"></isolate-list>
     </template>
-    <!-- If the message type is a StackTrace -->
-    <template if="{{ messageType == 'StackTrace' }}">
-      <stack-trace isolate="{{ app.isolate }}" trace="{{ message }}"></stack-trace>
+    <template if="{{ object.serviceType == 'Error' }}">
+      <error-view error="{{ object }}"></error-view>
     </template>
-    <template if="{{ messageType == 'BreakpointList' }}">
-      <breakpoint-list isolate="{{ app.isolate }}" msg="{{ message }}"></breakpoint-list>
+    <template if="{{ object.serviceType == 'Script' }}">
+      <script-view script="{{ object }}"></script-view>
     </template>
-    <template if="{{ messageType == 'Error' }}">
-      <error-view isolate="{{ app.isolate }}" error="{{ message }}"></error-view>
+    <template if="{{ object.serviceType == 'StackTrace' }}">
+      <stack-trace trace="{{ object }}"></stack-trace>
     </template>
-    <template if="{{ messageType == 'Library' }}">
-      <library-view isolate="{{ app.isolate }}" library="{{ message }}"></library-view>
+    <template if="{{ object.serviceType == 'Library' }}">
+      <library-view library="{{ object }}"></library-view>
     </template>
-    <template if="{{ messageType == 'Class' }}">
-      <class-view isolate="{{ app.isolate }}" cls="{{ message }}"></class-view>
+    <template if="{{ object.serviceType == 'Class' }}">
+      <class-view cls="{{ object }}"></class-view>
     </template>
-    <template if="{{ messageType == 'Field' }}">
-      <field-view isolate="{{ app.isolate }}" field="{{ message }}"></field-view>
+    <template if="{{ object.serviceType == 'Function' }}">
+      <function-view function="{{ object }}"></function-view>
     </template>
-    <template if="{{ messageType == 'Closure' }}">
-      <instance-view isolate="{{ app.isolate }}" instance="{{ message }}"></instance-view>
+    <template if="{{ object.serviceType == 'Field' }}">
+      <field-view field="{{ object }}"></field-view>
     </template>
-    <template if="{{ messageType == 'Instance' }}">
-      <instance-view isolate="{{ app.isolate }}" instance="{{ message }}"></instance-view>
+    <template if="{{ object.serviceType == 'AllocationProfile' }}">
+      <heap-profile profile="{{ object }}"></heap-profile>
     </template>
-    <template if="{{ messageType == 'Array' }}">
-      <instance-view isolate="{{ app.isolate }}" instance="{{ message }}"></instance-view>
+    <template if="{{ object.serviceType == 'BreakpointList' }}">
+      <breakpoint-list msg="{{ object }}"></breakpoint-list>
     </template>
-    <template if="{{ messageType == 'GrowableObjectArray' }}">
-      <instance-view isolate="{{ app.isolate }}" instance="{{ message }}"></instance-view>
+    <template if="{{ object.serviceType == 'Closure' }}">
+      <instance-view instance="{{ object }}"></instance-view>
     </template>
-    <template if="{{ messageType == 'String' }}">
-      <instance-view isolate="{{ app.isolate }}" instance="{{ message }}"></instance-view>
+    <template if="{{ object.serviceType == 'Instance' }}">
+      <instance-view instance="{{ object }}"></instance-view>
     </template>
-    <template if="{{ messageType == 'Bool' }}">
-      <instance-view isolate="{{ app.isolate }}" instance="{{ message }}"></instance-view>
+    <template if="{{ object.serviceType == 'Array' }}">
+      <instance-view instance="{{ object }}"></instance-view>
     </template>
-    <template if="{{ messageType == 'Smi' }}">
-      <instance-view isolate="{{ app.isolate }}" instance="{{ message }}"></instance-view>
+    <template if="{{ object.serviceType == 'GrowableObjectArray' }}">
+      <instance-view instance="{{ object }}"></instance-view>
     </template>
-    <template if="{{ messageType == 'Function' }}">
-      <function-view isolate="{{ app.isolate }}" function="{{ message }}"></function-view>
+    <template if="{{ object.serviceType == 'String' }}">
+      <instance-view instance="{{ object }}"></instance-view>
     </template>
-    <template if="{{ messageType == 'Code' }}">
-      <code-view isolate="{{ app.isolate }}" code="{{ message['code'] }}"></code-view>
+    <template if="{{ object.serviceType == 'Bool' }}">
+      <instance-view instance="{{ object }}"></instance-view>
     </template>
-    <template if="{{ messageType == 'Script' }}">
-      <script-view isolate="{{ app.isolate }}" script="{{ message['script'] }}"></script-view>
+    <template if="{{ object.serviceType == 'Smi' }}">
+      <instance-view instance="{{ object }}"></instance-view>
     </template>
-    <template if="{{ messageType == 'AllocationProfile' }}">
-      <heap-profile isolate="{{ app.isolate }}" profile="{{ message }}"></heap-profile>
+    <template if="{{ object.serviceType == 'Code' }}">
+      <code-view code="{{ object }}"></code-view>
     </template>
-    <template if="{{ messageType == 'Profile' }}">
-      <isolate-profile isolate="{{ app.isolate }}" profile="{{ message }}"></isolate-profile>
+    <template if="{{ object.serviceType == 'Profile' }}">
+      <isolate-profile profile="{{ object }}"></isolate-profile>
     </template>
-    <!-- Add new views and message types in the future here. -->
+    <!-- Add new views and service object types in the future here. -->
   </template>
   
 </polymer-element>
 <polymer-element name="response-viewer" extends="observatory-element">
   <template>
-    <message-viewer app="{{ app }}" message="{{ app.response }}"></message-viewer>
+    <service-view object="{{ app.response }}"></service-view>
   </template>
   
 </polymer-element><polymer-element name="observatory-application" extends="observatory-element">
