@@ -47,14 +47,13 @@ main() {
     ]).create();
 
     schedulePub(args: ["build"],
-        output: new RegExp(r'Built 3 files to "build".'));
+        output: new RegExp(r'Built 2 files to "build".'));
 
     d.dir(appPath, [
       d.dir('build', [
         d.dir('web', [
           d.matcherFile('main.dart.js', isNot(isEmpty)),
-          d.matcherFile('main.dart.precompiled.js', isNot(isEmpty)),
-          d.matcherFile('main.dart.js.map', isNot(isEmpty))
+          d.matcherFile('main.dart.precompiled.js', isNot(isEmpty))
         ])
       ])
     ]).validate();

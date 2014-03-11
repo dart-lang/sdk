@@ -93,7 +93,8 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
           return null;
         }
 
-        var provider = new _BarbackCompilerProvider(_environment, transform);
+        var provider = new _BarbackCompilerProvider(_environment, transform,
+            generateSourceMaps: _settings.mode != BarbackMode.RELEASE);
 
         // Create a "path" to the entrypoint script. The entrypoint may not
         // actually be on disk, but this gives dart2js a root to resolve
@@ -122,7 +123,9 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
             suppressHints: _configBool('suppressHints'),
             suppressPackageWarnings: _configBool(
                 'suppressPackageWarnings', defaultsTo: true),
-            terse: _configBool('terse'))).then((_) {
+            terse: _configBool('terse'),
+            includeSourceMapUrls: _settings.mode != BarbackMode.RELEASE))
+            .then((_) {
           stopwatch.stop();
           transform.logger.info("Took ${stopwatch.elapsed} to compile $id.");
         });
@@ -211,6 +214,8 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
   /// errors.
   var _isAborting = false;
 
+  final bool generateSourceMaps;
+
   compiler.Diagnostic _lastKind = null;
 
   static final int _FATAL =
@@ -220,7 +225,8 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
       compiler.Diagnostic.INFO.ordinal |
       compiler.Diagnostic.VERBOSE_INFO.ordinal;
 
-  _BarbackCompilerProvider(this._environment, this._transform);
+  _BarbackCompilerProvider(this._environment, this._transform,
+      {this.generateSourceMaps: true});
 
   /// A [CompilerInputProvider] for dart2js.
   Future<String> provideInput(Uri resourceUri) {
@@ -243,6 +249,11 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     // other files, we'd need some logic to determine the right relative path
     // for it.
     assert(name == "");
+
+    // TODO(rnystrom): Do this more cleanly. See: #17403.
+    if (!generateSourceMaps && extension.endsWith(".map")) {
+      return new NullSink<String>();
+    }
 
     var primaryId = _transform.primaryInput.id;
     var id = new AssetId(primaryId.package, "${primaryId.path}.$extension");
@@ -355,4 +366,12 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
 
     return null;
   }
+}
+
+/// An [EventSink] that discards all data. Provided to dart2js when we don't
+/// want an actual output.
+class NullSink<T> implements EventSink<T> {
+  void add(T event) {}
+  void addError(errorEvent, [StackTrace stackTrace]) {}
+  void close() {}
 }

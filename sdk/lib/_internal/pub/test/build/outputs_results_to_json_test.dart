@@ -26,7 +26,7 @@ main() {
         outputJson: {
           'buildResult': 'success',
           'outputDirectory': 'build',
-          'numFiles': 3,
+          'numFiles': 2,
           'log': [
             {
               'level': 'Info',

@@ -27,20 +27,18 @@ main() {
     ]).create();
 
     schedulePub(args: ["build", "example"],
-        output: new RegExp(r'Built 6 files to "build".'));
+        output: new RegExp(r'Built 4 files to "build".'));
 
     d.dir(appPath, [
       d.dir('build', [
         d.dir('example', [
           d.matcherFile('file.dart.js', isNot(isEmpty)),
           d.matcherFile('file.dart.precompiled.js', isNot(isEmpty)),
-          d.matcherFile('file.dart.js.map', isNot(isEmpty)),
           d.nothing('file.dart'),
           d.nothing('lib.dart'),
           d.dir('subdir', [
             d.matcherFile('subfile.dart.js', isNot(isEmpty)),
             d.matcherFile('subfile.dart.precompiled.js', isNot(isEmpty)),
-            d.matcherFile('subfile.dart.js.map', isNot(isEmpty)),
             d.nothing('subfile.dart')
           ])
         ])

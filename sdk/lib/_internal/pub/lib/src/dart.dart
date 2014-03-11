@@ -62,6 +62,7 @@ Future compile(String entrypoint, CompilerProvider provider, {
     bool suppressHints: false,
     bool suppressPackageWarnings: true,
     bool terse: false,
+    bool includeSourceMapUrls: false,
     bool toDart: false}) {
   return syncFuture(() {
     var options = <String>['--categories=Client,Server'];
@@ -76,9 +77,11 @@ Future compile(String entrypoint, CompilerProvider provider, {
     if (toDart) options.add('--output-type=dart');
 
     // Add the source map URLs.
-    var sourceUrl = path.toUri(entrypoint);
-    options.add("--out=$sourceUrl.js");
-    options.add("--source-map=$sourceUrl.js.map");
+    if (includeSourceMapUrls) {
+      var sourceUrl = path.toUri(entrypoint);
+      options.add("--out=$sourceUrl.js");
+      options.add("--source-map=$sourceUrl.js.map");
+    }
 
     if (environment == null) environment = {};
     if (commandLineOptions != null) options.addAll(commandLineOptions);

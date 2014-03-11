@@ -11,7 +11,7 @@ import '../../test_pub.dart';
 
 main() {
   initConfig();
-  integration("includes proper URLs in generated JS and source map", () {
+  integration("includes source map URLs in a debug build", () {
     d.dir(appPath, [
       d.appPubspec(),
       d.dir("web", [
@@ -19,17 +19,15 @@ main() {
       ])
     ]).create();
 
-    schedulePub(args: ["build"],
-        output: new RegExp(r'Built 3 files to "build".'),
+    schedulePub(args: ["build", "--mode", "debug"],
+        output: new RegExp(r'Built 4 files to "build".'),
         exitCode: 0);
 
     d.dir(appPath, [
       d.dir('build', [
         d.dir('web', [
-          d.matcherFile('main.dart.js', allOf([
-            contains("# sourceMappingURL=main.dart.js.map"),
-            contains("@ sourceMappingURL=main.dart.js.map")
-          ])),
+          d.matcherFile('main.dart.js',
+              contains("# sourceMappingURL=main.dart.js.map")),
           d.matcherFile('main.dart.js.map', contains('"file": "main.dart.js"'))
         ])
       ])

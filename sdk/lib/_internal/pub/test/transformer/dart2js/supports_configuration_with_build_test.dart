@@ -69,7 +69,7 @@ main() {
     pubGet();
 
     schedulePub(args: ["build"],
-        output: new RegExp(r'Built 5 files to "build".'),
+        output: new RegExp(r'Built 4 files to "build".'),
         exitCode: 0);
 
     d.dir(appPath, [
@@ -77,7 +77,6 @@ main() {
         d.dir('web', [
           d.matcherFile('file.dart.js', isMinifiedDart2JSOutput),
           d.matcherFile('file.dart.precompiled.js', isNot(isEmpty)),
-          d.matcherFile('file.dart.js.map', isNot(isEmpty)),
           d.dir('packages', [
             d.dir('browser', [
               d.file('dart.js', 'contents of dart.js'),

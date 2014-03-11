@@ -37,14 +37,13 @@ main() {
     pubGet();
 
     schedulePub(args: ["build", "--all"],
-        output: new RegExp(r'Built 20 files to "build".'));
+        output: new RegExp(r'Built 16 files to "build".'));
 
     d.dir(appPath, [
       d.dir('build', [
         d.dir('example', [
           d.matcherFile('file.dart.js', isNot(isEmpty)),
           d.matcherFile('file.dart.precompiled.js', isNot(isEmpty)),
-          d.matcherFile('file.dart.js.map', isNot(isEmpty)),
           d.dir('packages', [d.dir('browser', [
             d.file('dart.js', 'contents of dart.js'),
             d.file('interop.js', 'contents of interop.js')
@@ -56,13 +55,11 @@ main() {
             ])]),
             d.matcherFile('subfile.dart.js', isNot(isEmpty)),
             d.matcherFile('subfile.dart.precompiled.js', isNot(isEmpty)),
-            d.matcherFile('subfile.dart.js.map', isNot(isEmpty))
           ])
         ]),
         d.dir('web', [
           d.matcherFile('file.dart.js', isNot(isEmpty)),
           d.matcherFile('file.dart.precompiled.js', isNot(isEmpty)),
-          d.matcherFile('file.dart.js.map', isNot(isEmpty)),
           d.dir('packages', [d.dir('browser', [
             d.file('dart.js', 'contents of dart.js'),
             d.file('interop.js', 'contents of interop.js')
@@ -73,8 +70,7 @@ main() {
               d.file('interop.js', 'contents of interop.js')
             ])]),
             d.matcherFile('subfile.dart.js', isNot(isEmpty)),
-            d.matcherFile('subfile.dart.precompiled.js', isNot(isEmpty)),
-            d.matcherFile('subfile.dart.js.map', isNot(isEmpty))
+            d.matcherFile('subfile.dart.precompiled.js', isNot(isEmpty))
           ])
         ])
       ])
