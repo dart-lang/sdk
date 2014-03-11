@@ -18,6 +18,10 @@ import 'generated/ast.dart';
 import 'generated/element.dart';
 import '../options.dart';
 
+/**
+ * The maximum number of sources for which AST structures should be kept in the cache.
+ */
+const int _MAX_CACHE_SIZE = 512;
 
 DartSdk sdk;
 
@@ -107,7 +111,7 @@ class AnalyzerImpl {
 
     // set options for context
     AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
-    contextOptions.cacheSize = 256;
+    contextOptions.cacheSize = _MAX_CACHE_SIZE;
     contextOptions.hint = !options.disableHints;
     context.analysisOptions = contextOptions;
   }
