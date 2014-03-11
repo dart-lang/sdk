@@ -325,14 +325,12 @@ const int kNanosecondsPerMillisecond = (kNanosecondsPerMicrosecond *
 const int kNanosecondsPerSecond = (kNanosecondsPerMicrosecond *
                                    kMicrosecondsPerSecond);
 
-// Helpers to round micro second times to human understandable values.
-inline double RoundMicrosecondsToSeconds(int64_t micros) {
-  const int k1M = 1000000;  // Converting us to secs.
-  return static_cast<double>(micros + (k1M >> 1)) / k1M;
+// Helpers to scale micro second times to human understandable values.
+inline double MicrosecondsToSeconds(int64_t micros) {
+  return static_cast<double>(micros) / kMicrosecondsPerSecond;
 }
-inline double RoundMicrosecondsToMilliseconds(int64_t micros) {
-  const int k1K = 1000;  // Conversting us to ms.
-  return static_cast<double>(micros + (k1K >> 1)) / k1K;
+inline double MicrosecondsToMilliseconds(int64_t micros) {
+  return static_cast<double>(micros) / kMicrosecondsPerMillisecond;
 }
 
 // A macro to disallow the copy constructor and operator= functions.

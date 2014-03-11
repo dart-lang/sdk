@@ -740,7 +740,7 @@ void Scavenger::PrintToJSONObject(JSONObject* object) {
   space.AddProperty("collections", collections());
   space.AddProperty("used", UsedInWords() * kWordSize);
   space.AddProperty("capacity", CapacityInWords() * kWordSize);
-  space.AddProperty("time", RoundMicrosecondsToSeconds(gc_time_micros()));
+  space.AddProperty("time", MicrosecondsToSeconds(gc_time_micros()));
 }
 
 

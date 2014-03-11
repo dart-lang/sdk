@@ -490,8 +490,8 @@ void Heap::PrintStats() {
     "]\n",  // End with a comma to make it easier to import in spreadsheets.
     isolate->main_port(), space_str, GCReasonToString(stats_.reason_),
     stats_.num_,
-    RoundMicrosecondsToSeconds(stats_.before_.micros_ - isolate->start_time()),
-    RoundMicrosecondsToMilliseconds(stats_.after_.micros_ -
+    MicrosecondsToSeconds(stats_.before_.micros_ - isolate->start_time()),
+    MicrosecondsToMilliseconds(stats_.after_.micros_ -
                                     stats_.before_.micros_),
     RoundWordsToKB(stats_.before_.new_used_in_words_),
     RoundWordsToKB(stats_.after_.new_used_in_words_),
@@ -501,10 +501,10 @@ void Heap::PrintStats() {
     RoundWordsToKB(stats_.after_.old_used_in_words_),
     RoundWordsToKB(stats_.before_.old_capacity_in_words_),
     RoundWordsToKB(stats_.after_.old_capacity_in_words_),
-    RoundMicrosecondsToMilliseconds(stats_.times_[0]),
-    RoundMicrosecondsToMilliseconds(stats_.times_[1]),
-    RoundMicrosecondsToMilliseconds(stats_.times_[2]),
-    RoundMicrosecondsToMilliseconds(stats_.times_[3]),
+    MicrosecondsToMilliseconds(stats_.times_[0]),
+    MicrosecondsToMilliseconds(stats_.times_[1]),
+    MicrosecondsToMilliseconds(stats_.times_[2]),
+    MicrosecondsToMilliseconds(stats_.times_[3]),
     stats_.data_[0],
     stats_.data_[1],
     stats_.data_[2],
