@@ -547,7 +547,7 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
     return mirror;
   }
   var constructorOrInterceptor =
-      Primitives.getConstructorOrInterceptor(mangledName);
+      Primitives.getConstructorOrInterceptorToken(mangledName);
   if (constructorOrInterceptor == null) {
     int index = JS('int|Null', 'init.functionAliases[#]', mangledName);
     if (index != null) {
@@ -559,7 +559,7 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
     // TODO(ahe): How to handle intercepted classes?
     throw new UnsupportedError('Cannot find class for: ${n(symbol)}');
   }
-  var constructor = (constructorOrInterceptor is Interceptor)
+  var constructor = (Primitives.isInterceptorToken(constructorOrInterceptor))
       ? JS('', '#.constructor', constructorOrInterceptor)
       : constructorOrInterceptor;
   var descriptor = JS('', '#["@"]', constructor);
@@ -1514,7 +1514,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   String get _prettyName => 'ClassMirror';
 
   get _jsConstructor {
-    if (_jsConstructorOrInterceptor is Interceptor) {
+    if (Primitives.isInterceptorToken(_jsConstructorOrInterceptor)) {
       return JS('', '#.constructor', _jsConstructorOrInterceptor);
     } else {
       return _jsConstructorOrInterceptor;
@@ -1784,7 +1784,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
 
   JsLibraryMirror get owner {
     if (_owner == null) {
-      if (_jsConstructorOrInterceptor is Interceptor) {
+      if (Primitives.isInterceptorToken(_jsConstructorOrInterceptor)) {
         _owner = reflectType(Object).owner;
       } else {
         for (var list in JsMirrorSystem.librariesByName.values) {
