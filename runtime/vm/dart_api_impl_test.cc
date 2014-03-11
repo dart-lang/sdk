@@ -2255,6 +2255,33 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSize) {
 }
 
 
+TEST_CASE(PrologueWeakPersistentHandleExternalAllocationSize) {
+  Heap* heap = Isolate::Current()->heap();
+  EXPECT(heap->ExternalInWords(Heap::kNew) == 0);
+  EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
+  Dart_WeakPersistentHandle pwph = NULL;
+  static const intptr_t kWeakExternalSize = 1 * KB;
+  {
+    Dart_EnterScope();
+    Dart_Handle obj = NewString("a string");
+    EXPECT_VALID(obj);
+    pwph = Dart_NewPrologueWeakPersistentHandle(
+        obj, NULL, kWeakExternalSize, NULL);
+    EXPECT_VALID(AsHandle(pwph));
+    Dart_ExitScope();
+  }
+  EXPECT(heap->ExternalInWords(Heap::kNew) == kWeakExternalSize / kWordSize);
+  EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
+  // Promoting the string should transfer the external size to old.
+  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+  EXPECT(heap->ExternalInWords(Heap::kNew) == 0);
+  EXPECT(heap->ExternalInWords(Heap::kOld) == kWeakExternalSize / kWordSize);
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
+}
+
+
 TEST_CASE(WeakPersistentHandleExternalAllocationSizeOversized) {
   Heap* heap = Isolate::Current()->heap();
   Dart_WeakPersistentHandle weak1 = NULL;

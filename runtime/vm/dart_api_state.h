@@ -9,6 +9,7 @@
 
 #include "platform/thread.h"
 #include "platform/utils.h"
+#include "vm/bitfield.h"
 #include "vm/dart_api_impl.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
@@ -215,10 +216,13 @@ class FinalizablePersistentHandle {
 
   void SetExternalSize(intptr_t size, Isolate* isolate) {
     ASSERT(size >= 0);
-    external_size_ = Utils::RoundUp(size, kObjectAlignment);
+    set_external_size(Utils::RoundUp(size, kObjectAlignment));
+    if (SpaceForExternal() == Heap::kNew) {
+      SetExternalNewSpaceBit();
+    }
     // TODO(koda): On repeated/large external allocations for existing objects,
     // without any intervening normal allocation, GC will not trigger.
-    isolate->heap()->AllocateExternal(external_size_, SpaceForExternal());
+    isolate->heap()->AllocateExternal(external_size(), SpaceForExternal());
   }
 
   // Called when the referent becomes unreachable.
@@ -228,23 +232,19 @@ class FinalizablePersistentHandle {
   }
 
   // Called when the referent has moved, potentially between generations.
-  void UpdateRelocated(Heap::Space before, Isolate* isolate) {
-    isolate->heap()->FreeExternal(external_size_, before);
-    isolate->heap()->AllocateExternal(external_size_, SpaceForExternal());
+  void UpdateRelocated(Isolate* isolate) {
+    if (IsSetNewSpaceBit() && (SpaceForExternal() == Heap::kOld)) {
+      isolate->heap()->FreeExternal(external_size(), Heap::kNew);
+      isolate->heap()->AllocateExternal(external_size(), Heap::kOld);
+      ClearExternalNewSpaceBit();
+    }
   }
 
   // Idempotent. Called when the handle is explicitly deleted or the
   // referent becomes unreachable.
   void EnsureFreeExternal(Isolate* isolate) {
-    isolate->heap()->FreeExternal(external_size_, SpaceForExternal());
-    external_size_ = 0;
-  }
-
-  // Returns the space to charge for the external size.
-  Heap::Space SpaceForExternal() const {
-    // Non-heap and VM-heap objects count as old space here.
-    return (raw_->IsHeapObject() && raw_->IsNewObject()) ?
-           Heap::kNew : Heap::kOld;
+    isolate->heap()->FreeExternal(external_size(), SpaceForExternal());
+    set_external_size(0);
   }
 
   static bool IsPrologueWeakPersistentHandle(Dart_WeakPersistentHandle handle) {
@@ -261,12 +261,20 @@ class FinalizablePersistentHandle {
     kWeakPersistentTagMask = 1,
   };
 
+  // This part of external_data_ is the number of externally allocated bytes.
+  // TODO(koda): Measure size in words instead.
+  class ExternalSizeBits : public BitField<intptr_t, 1, kBitsPerWord - 1> {};
+  // This bit of external_data_ is true if the referent was created in new
+  // space and UpdateRelocated has not yet detected any promotion.
+  class ExternalNewSpaceBit : public BitField<bool, 0, 1> {};
+  // TODO(koda): Use bitfield also for the prologue tag.
+
   friend class FinalizablePersistentHandles;
 
   FinalizablePersistentHandle()
       : raw_(NULL),
         peer_(NULL),
-        external_size_(0),
+        external_data_(0),
         callback_(NULL) { }
   ~FinalizablePersistentHandle() { }
 
@@ -303,13 +311,40 @@ class FinalizablePersistentHandle {
   void Clear() {
     raw_ = Object::null();
     peer_ = NULL;
-    external_size_ = 0;
+    external_data_ = 0;
     callback_ = NULL;
+  }
+
+  intptr_t external_size() const {
+    return ExternalSizeBits::decode(external_data_);
+  }
+
+  void set_external_size(intptr_t size) {
+    external_data_ = ExternalSizeBits::update(size, external_data_);
+  }
+
+  bool IsSetNewSpaceBit() const {
+    return ExternalNewSpaceBit::decode(external_data_);
+  }
+
+  void SetExternalNewSpaceBit() {
+    external_data_ = ExternalNewSpaceBit::update(true, external_data_);
+  }
+
+  void ClearExternalNewSpaceBit() {
+    external_data_ = ExternalNewSpaceBit::update(false, external_data_);
+  }
+
+  // Returns the space to charge for the external size.
+  Heap::Space SpaceForExternal() const {
+    // Non-heap and VM-heap objects count as old space here.
+    return (raw_->IsHeapObject() && raw_->IsNewObject()) ?
+           Heap::kNew : Heap::kOld;
   }
 
   RawObject* raw_;
   void* peer_;
-  intptr_t external_size_;
+  uword external_data_;
   Dart_WeakPersistentHandleFinalizer callback_;
   DISALLOW_ALLOCATION();  // Allocated through AllocateHandle methods.
   DISALLOW_COPY_AND_ASSIGN(FinalizablePersistentHandle);

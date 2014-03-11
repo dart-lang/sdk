@@ -271,25 +271,29 @@ class ScavengerVisitor : public ObjectPointerVisitor {
 
 class ScavengerWeakVisitor : public HandleVisitor {
  public:
-  explicit ScavengerWeakVisitor(Scavenger* scavenger)
+  // 'prologue_weak_were_strong' is currently only used for sanity checking.
+  explicit ScavengerWeakVisitor(Scavenger* scavenger,
+                                bool prologue_weak_were_strong)
       :  HandleVisitor(Isolate::Current()),
-         scavenger_(scavenger) {
+         scavenger_(scavenger),
+         prologue_weak_were_strong_(prologue_weak_were_strong) {
   }
 
   void VisitHandle(uword addr, bool is_prologue_weak) {
     FinalizablePersistentHandle* handle =
       reinterpret_cast<FinalizablePersistentHandle*>(addr);
     RawObject** p = handle->raw_addr();
-    Heap::Space before = handle->SpaceForExternal();
     if (scavenger_->IsUnreachable(p)) {
+      ASSERT(!is_prologue_weak || !prologue_weak_were_strong_);
       handle->UpdateUnreachable(isolate(), is_prologue_weak);
     } else {
-      handle->UpdateRelocated(before, isolate());
+      handle->UpdateRelocated(isolate());
     }
   }
 
  private:
   Scavenger* scavenger_;
+  bool prologue_weak_were_strong_;
 
   DISALLOW_COPY_AND_ASSIGN(ScavengerWeakVisitor);
 };
@@ -696,7 +700,8 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   // Setup the visitor and run a scavenge.
   ScavengerVisitor visitor(isolate, this);
   Prologue(isolate, invoke_api_callbacks);
-  IterateRoots(isolate, &visitor, !invoke_api_callbacks);
+  const bool prologue_weak_are_strong = !invoke_api_callbacks;
+  IterateRoots(isolate, &visitor, prologue_weak_are_strong);
   int64_t start = OS::GetCurrentTimeMicros();
   ProcessToSpace(&visitor);
   int64_t middle = OS::GetCurrentTimeMicros();
@@ -704,8 +709,10 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   // Done with promoted stack; restore external allocation.
   ASSERT(!PromotedStackHasMore());
   AllocateExternal(saved_external);
-  ScavengerWeakVisitor weak_visitor(this);
-  IterateWeakRoots(isolate, &weak_visitor, invoke_api_callbacks);
+  ScavengerWeakVisitor weak_visitor(this, prologue_weak_are_strong);
+  // Include the prologue weak handles, since we must process any promotion.
+  const bool visit_prologue_weak_handles = true;
+  IterateWeakRoots(isolate, &weak_visitor, visit_prologue_weak_handles);
   visitor.Finalize();
   ProcessWeakTables();
   int64_t end = OS::GetCurrentTimeMicros();
