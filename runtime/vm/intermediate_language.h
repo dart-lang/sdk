@@ -1719,6 +1719,16 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
 };
 
 
+// If the result of the allocation is not stored into any field, passed
+// as an argument or used in a phi then it can't alias with any other
+// SSA value.
+enum AliasIdentity {
+  kIdentityUnknown,
+  kIdentityAliased,
+  kIdentityNotAliased
+};
+
+
 // Abstract super-class of all instructions that define a value (Bind, Phi).
 class Definition : public Instruction {
  public:
@@ -1854,6 +1864,16 @@ class Definition : public Instruction {
     ASSERT(WasEliminated());
     ssa_temp_index_ = kReplacementMarker;
     temp_index_ = reinterpret_cast<intptr_t>(other);
+  }
+
+  virtual AliasIdentity Identity() const {
+    // Only implemented for allocation instructions.
+    UNREACHABLE();
+    return kIdentityUnknown;
+  }
+
+  virtual void SetIdentity(AliasIdentity identity) {
+    UNREACHABLE();
   }
 
  protected:
@@ -3278,7 +3298,8 @@ class StaticCallInstr : public TemplateDefinition<0> {
         arguments_(arguments),
         result_cid_(kDynamicCid),
         is_known_list_constructor_(false),
-        is_native_list_factory_(false) {
+        is_native_list_factory_(false),
+        identity_(kIdentityUnknown) {
     ASSERT(function.IsZoneHandle());
     ASSERT(argument_names.IsZoneHandle() ||  argument_names.InVMHeap());
   }
@@ -3324,6 +3345,9 @@ class StaticCallInstr : public TemplateDefinition<0> {
 
   virtual bool MayThrow() const { return true; }
 
+  virtual AliasIdentity Identity() const { return identity_; }
+  virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
+
  private:
   const ICData* ic_data_;
   const intptr_t token_pos_;
@@ -3335,6 +3359,8 @@ class StaticCallInstr : public TemplateDefinition<0> {
   // 'True' for recognized list constructors.
   bool is_known_list_constructor_;
   bool is_native_list_factory_;
+
+  AliasIdentity identity_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticCallInstr);
 };
@@ -4050,7 +4076,7 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
       : token_pos_(token_pos),
         cls_(cls),
         arguments_(arguments),
-        identity_(kUnknown),
+        identity_(kIdentityUnknown),
         closure_function_(Function::ZoneHandle()) {
     // Either no arguments or one type-argument and one instantiator.
     ASSERT(arguments->is_empty() || (arguments->length() == 1));
@@ -4080,23 +4106,14 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
 
   virtual bool MayThrow() const { return false; }
 
-  // If the result of the allocation is not stored into any field, passed
-  // as an argument or used in a phi then it can't alias with any other
-  // SSA value.
-  enum Identity {
-    kUnknown,
-    kAliased,
-    kNotAliased
-  };
-
-  Identity identity() const { return identity_; }
-  void set_identity(Identity identity) { identity_ = identity; }
+  virtual AliasIdentity Identity() const { return identity_; }
+  virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
 
  private:
   const intptr_t token_pos_;
   const Class& cls_;
   ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
-  Identity identity_;
+  AliasIdentity identity_;
   Function& closure_function_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectInstr);
@@ -4177,7 +4194,7 @@ class CreateArrayInstr : public TemplateDefinition<2> {
   CreateArrayInstr(intptr_t token_pos,
                    Value* element_type,
                    Value* num_elements)
-      : token_pos_(token_pos) {
+      : token_pos_(token_pos), identity_(kIdentityUnknown)  {
     SetInputAt(kElementTypePos, element_type);
     SetInputAt(kLengthPos, num_elements);
   }
@@ -4203,8 +4220,12 @@ class CreateArrayInstr : public TemplateDefinition<2> {
 
   virtual bool MayThrow() const { return false; }
 
+  virtual AliasIdentity Identity() const { return identity_; }
+  virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
+
  private:
   const intptr_t token_pos_;
+  AliasIdentity identity_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateArrayInstr);
 };

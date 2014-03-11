@@ -5034,8 +5034,8 @@ class Alias : public ValueObject {
   // All indexed load/stores alias each other.
   // TODO(vegorov): incorporate type of array into alias to disambiguate
   // different typed data and normal arrays.
-  static Alias Indexes() {
-    return Alias(kIndexesAlias, 0);
+  static Alias UnknownIndex(intptr_t id) {
+    return Alias(kUnknownIndexAlias, id);
   }
 
   static Alias ConstantIndex(intptr_t id) {
@@ -5091,7 +5091,7 @@ class Alias : public ValueObject {
   enum Kind {
     kNoneAlias = -1,
     kCurrentContextAlias = 0,
-    kIndexesAlias = 1,
+    kUnknownIndexAlias = 1,
     kFieldAlias = 2,
     kVMFieldAlias = 3,
     kConstantIndex = 4,
@@ -5429,6 +5429,8 @@ class AliasedSet : public ZoneAllocated {
         field_ids_(),
         max_index_id_(0),
         index_ids_(),
+        max_unknown_index_id_(0),
+        unknown_index_ids_(),
         max_vm_field_id_(0),
         vm_field_ids_() { }
 
@@ -5438,16 +5440,18 @@ class AliasedSet : public ZoneAllocated {
         if (place->index()->IsConstant()) {
           const Object& index = place->index()->AsConstant()->value();
           if (index.IsSmi()) {
-            return Alias::ConstantIndex(GetIndexId(Smi::Cast(index).Value()));
+            return Alias::ConstantIndex(
+                GetInstanceIndexId(place->instance(),
+                                   Smi::Cast(index).Value()));
           }
         }
-        return Alias::Indexes();
+        return Alias::UnknownIndex(GetUnknownIndexId(place->instance()));
       case Place::kField:
         return Alias::Field(
             GetInstanceFieldId(place->instance(), place->field()));
       case Place::kVMField:
         return Alias::VMField(
-            GetVMFieldId(place->instance(), place->offset_in_bytes()));
+            GetInstanceVMFieldId(place->instance(), place->offset_in_bytes()));
       case Place::kContext:
         return Alias::CurrentContext();
       case Place::kNone:
@@ -5461,14 +5465,16 @@ class AliasedSet : public ZoneAllocated {
   Alias ComputeAliasForStore(Instruction* instr) {
     StoreIndexedInstr* store_indexed = instr->AsStoreIndexed();
     if (store_indexed != NULL) {
+      Definition* instance = store_indexed->array()->definition();
       if (store_indexed->index()->definition()->IsConstant()) {
         const Object& index =
             store_indexed->index()->definition()->AsConstant()->value();
         if (index.IsSmi()) {
-          return Alias::ConstantIndex(GetIndexId(Smi::Cast(index).Value()));
+          return Alias::ConstantIndex(
+              GetInstanceIndexId(instance, Smi::Cast(index).Value()));
         }
       }
-      return Alias::Indexes();
+      return Alias::UnknownIndex(GetUnknownIndexId(instance));
     }
 
     StoreInstanceFieldInstr* store_instance_field =
@@ -5480,7 +5486,8 @@ class AliasedSet : public ZoneAllocated {
             GetInstanceFieldId(instance, store_instance_field->field()));
       }
       return Alias::VMField(
-          GetVMFieldId(instance, store_instance_field->offset_in_bytes()));
+          GetInstanceVMFieldId(instance,
+                               store_instance_field->offset_in_bytes()));
     }
 
     if (instr->IsStoreContext()) {
@@ -5510,27 +5517,32 @@ class AliasedSet : public ZoneAllocated {
     }
   }
 
-  void EnsureAliasingForIndexes() {
-    BitVector* indexes = Get(Alias::Indexes());
-    if (indexes == NULL) {
-      return;
-    }
-
-    // Constant indexes alias all non-constant indexes.
-    // Non-constant indexes alias all constant indexes.
-    // First update alias set for const-indices, then
-    // update set for all indices. Ids start at 1.
-    for (intptr_t id = 1; id <= max_index_id_; id++) {
-      BitVector* const_indexes = Get(Alias::ConstantIndex(id));
-      if (const_indexes != NULL) {
-        const_indexes->AddAll(indexes);
+  void EnsureAliasingForUnknownIndices() {
+    // Ids start at 1 because the hash-map uses 0 for element not found.
+    for (intptr_t unknown_index_id = 1;
+         unknown_index_id <= max_unknown_index_id_;
+         unknown_index_id++) {
+      BitVector* unknown_index = Get(Alias::UnknownIndex(unknown_index_id));
+      if (unknown_index == NULL) {
+        return;
       }
-    }
 
-    for (intptr_t id = 1; id <= max_index_id_; id++) {
-      BitVector* const_indexes = Get(Alias::ConstantIndex(id));
-      if (const_indexes != NULL) {
-        indexes->AddAll(const_indexes);
+      // Constant indexes alias all non-constant indexes.
+      // Non-constant indexes alias all constant indexes.
+      // First update alias set for const-indices, then
+      // update set for all indices. Ids start at 1.
+      for (intptr_t id = 1; id <= max_index_id_; id++) {
+        BitVector* const_indexes = Get(Alias::ConstantIndex(id));
+        if (const_indexes != NULL) {
+          const_indexes->AddAll(unknown_index);
+        }
+      }
+
+      for (intptr_t id = 1; id <= max_index_id_; id++) {
+        BitVector* const_indexes = Get(Alias::ConstantIndex(id));
+        if (const_indexes != NULL) {
+          unknown_index->AddAll(const_indexes);
+        }
       }
     }
   }
@@ -5576,8 +5588,12 @@ class AliasedSet : public ZoneAllocated {
   // some other SSA variable and false otherwise. Currently simply checks if
   // this value is stored in a field, escapes to another function or
   // participates in a phi.
-  static bool CanBeAliased(AllocateObjectInstr* alloc) {
-    if (alloc->identity() == AllocateObjectInstr::kUnknown) {
+  static bool CanBeAliased(Definition* alloc) {
+    ASSERT(alloc->IsAllocateObject() ||
+           alloc->IsCreateArray() ||
+           (alloc->IsStaticCall() &&
+            alloc->AsStaticCall()->is_known_list_constructor()));
+    if (alloc->Identity() == kIdentityUnknown) {
       bool escapes = false;
       for (Value* use = alloc->input_use_list();
            use != NULL;
@@ -5597,11 +5613,10 @@ class AliasedSet : public ZoneAllocated {
         }
       }
 
-      alloc->set_identity(escapes ? AllocateObjectInstr::kAliased
-                                  : AllocateObjectInstr::kNotAliased);
+      alloc->SetIdentity(escapes ? kIdentityAliased : kIdentityNotAliased);
     }
 
-    return alloc->identity() != AllocateObjectInstr::kNotAliased;
+    return alloc->Identity() != kIdentityNotAliased;
   }
 
  private:
@@ -5616,12 +5631,14 @@ class AliasedSet : public ZoneAllocated {
     return id;
   }
 
-  intptr_t GetIndexId(intptr_t index) {
-    intptr_t id = index_ids_.Lookup(index);
+  intptr_t GetIndexId(intptr_t instance_id, intptr_t index) {
+    intptr_t id = index_ids_.Lookup(
+        ConstantIndexIdPair::Key(instance_id, index));
     if (id == 0) {
       // Zero is used to indicate element not found. The first id is one.
       id = ++max_index_id_;
-      index_ids_.Insert(IndexIdPair(index, id));
+      index_ids_.Insert(ConstantIndexIdPair(
+          ConstantIndexIdPair::Key(instance_id, index), id));
     }
     return id;
   }
@@ -5655,15 +5672,17 @@ class AliasedSet : public ZoneAllocated {
     return GetFieldId(instance_id, field);
   }
 
-  intptr_t GetVMFieldId(Definition* defn, intptr_t offset) {
+  intptr_t GetInstanceVMFieldId(Definition* defn, intptr_t offset) {
     intptr_t instance_id = kAnyInstance;
 
-    if (defn != NULL) {
-      AllocateObjectInstr* alloc = defn->AsAllocateObject();
-      if ((alloc != NULL) && !CanBeAliased(alloc)) {
-        instance_id = alloc->ssa_temp_index();
-        ASSERT(instance_id != kAnyInstance);
-      }
+    ASSERT(defn != NULL);
+    if ((defn->IsAllocateObject() ||
+         defn->IsCreateArray() ||
+         (defn->IsStaticCall() &&
+          defn->AsStaticCall()->is_known_list_constructor())) &&
+        !CanBeAliased(defn)) {
+      instance_id = defn->ssa_temp_index();
+      ASSERT(instance_id != kAnyInstance);
     }
 
     intptr_t id = vm_field_ids_.Lookup(VMFieldIdPair::Key(instance_id, offset));
@@ -5671,6 +5690,44 @@ class AliasedSet : public ZoneAllocated {
       id = ++max_vm_field_id_;
       vm_field_ids_.Insert(
           VMFieldIdPair(VMFieldIdPair::Key(instance_id, offset), id));
+    }
+    return id;
+  }
+
+  intptr_t GetInstanceIndexId(Definition* defn, intptr_t index) {
+    intptr_t instance_id = kAnyInstance;
+
+    ASSERT(defn != NULL);
+    if ((defn->IsCreateArray() ||
+         (defn->IsStaticCall() &&
+          defn->AsStaticCall()->is_known_list_constructor())) &&
+        !CanBeAliased(defn)) {
+      instance_id = defn->ssa_temp_index();
+      ASSERT(instance_id != kAnyInstance);
+    }
+
+    return GetIndexId(instance_id, index);
+  }
+
+  intptr_t GetUnknownIndexId(Definition* defn) {
+    intptr_t instance_id = kAnyInstance;
+
+    ASSERT(defn != NULL);
+    if ((defn->IsCreateArray() ||
+         (defn->IsStaticCall() &&
+          defn->AsStaticCall()->is_known_list_constructor())) &&
+        !CanBeAliased(defn)) {
+      instance_id = defn->ssa_temp_index();
+      ASSERT(instance_id != kAnyInstance);
+    }
+
+    intptr_t id = unknown_index_ids_.Lookup(
+        UnknownIndexIdPair::Key(instance_id));
+    if (id == 0) {
+      // Zero is used to indicate element not found. The first id is one.
+      id = ++max_unknown_index_id_;
+      unknown_index_ids_.Insert(
+          UnknownIndexIdPair(UnknownIndexIdPair::Key(instance_id), id));
     }
     return id;
   }
@@ -5748,27 +5805,63 @@ class AliasedSet : public ZoneAllocated {
     Value value_;
   };
 
-  class IndexIdPair {
+  class ConstantIndexIdPair {
    public:
-    typedef intptr_t Key;
+    struct Key {
+      Key(intptr_t instance_id, intptr_t index)
+          : instance_id_(instance_id), index_(index) { }
+
+      intptr_t instance_id_;
+      intptr_t index_;
+    };
     typedef intptr_t Value;
-    typedef IndexIdPair Pair;
+    typedef ConstantIndexIdPair Pair;
 
-    IndexIdPair(Key key, Value value) : key_(key), value_(value) { }
+    ConstantIndexIdPair(Key key, Value value) : key_(key), value_(value) { }
 
-    static Key KeyOf(IndexIdPair kv) {
+    static Key KeyOf(ConstantIndexIdPair kv) {
       return kv.key_;
     }
 
-    static Value ValueOf(IndexIdPair kv) {
+    static Value ValueOf(ConstantIndexIdPair kv) {
       return kv.value_;
     }
 
     static intptr_t Hashcode(Key key) {
-      return key;
+      return (key.instance_id_ + 1) * 1024 + key.index_;
     }
 
-    static inline bool IsKeyEqual(IndexIdPair kv, Key key) {
+    static inline bool IsKeyEqual(ConstantIndexIdPair kv, Key key) {
+      return (KeyOf(kv).index_ == key.index_)
+          && (KeyOf(kv).instance_id_ == key.instance_id_);
+    }
+
+   private:
+    Key key_;
+    Value value_;
+  };
+
+  class UnknownIndexIdPair {
+   public:
+    typedef intptr_t Key;
+    typedef intptr_t Value;
+    typedef UnknownIndexIdPair Pair;
+
+    UnknownIndexIdPair(Key key, Value value) : key_(key), value_(value) { }
+
+    static Key KeyOf(UnknownIndexIdPair kv) {
+      return kv.key_;
+    }
+
+    static Value ValueOf(UnknownIndexIdPair kv) {
+      return kv.value_;
+    }
+
+    static intptr_t Hashcode(Key key) {
+      return key + 1;
+    }
+
+    static inline bool IsKeyEqual(UnknownIndexIdPair kv, Key key) {
       return KeyOf(kv) == key;
     }
 
@@ -5829,7 +5922,10 @@ class AliasedSet : public ZoneAllocated {
   DirectChainedHashMap<FieldIdPair> field_ids_;
 
   intptr_t max_index_id_;
-  DirectChainedHashMap<IndexIdPair> index_ids_;
+  DirectChainedHashMap<ConstantIndexIdPair> index_ids_;
+
+  intptr_t max_unknown_index_id_;
+  DirectChainedHashMap<UnknownIndexIdPair> unknown_index_ids_;
 
   intptr_t max_vm_field_id_;
   DirectChainedHashMap<VMFieldIdPair> vm_field_ids_;
@@ -5967,7 +6063,7 @@ static AliasedSet* NumberPlaces(
     aliased_set->AddRepresentative(place);
   }
 
-  aliased_set->EnsureAliasingForIndexes();
+  aliased_set->EnsureAliasingForUnknownIndices();
 
   return aliased_set;
 }
@@ -8771,7 +8867,7 @@ void AllocationSinking::Optimize() {
         }
 
         // All sinking candidate are known to be not aliased.
-        alloc->set_identity(AllocateObjectInstr::kNotAliased);
+        alloc->SetIdentity(kIdentityNotAliased);
 
         candidates.Add(alloc);
       }
