@@ -56,6 +56,10 @@ abstract class MockTransformer extends Transformer {
   /// that this is called.
   Future<bool> get isRunning => schedule(() => _runningTransforms > 0);
 
+  /// If this is set to `true`, the transformer will consume its primary input
+  /// during [apply].
+  bool consumePrimary = false;
+
   /// Pauses the schedule until this transformer begins running.
   void waitUntilStarted() {
     schedule(() => _started.future, "wait until $this starts");
@@ -176,6 +180,7 @@ abstract class MockTransformer extends Transformer {
     _numRuns++;
     if (_runningTransforms == 0) _started.complete();
     _runningTransforms++;
+    if (consumePrimary) transform.consumePrimary();
     return newFuture(() => doApply(transform)).then((_) {
       if (_apply != null) return _apply.future;
     }).whenComplete(() {

@@ -191,23 +191,23 @@ main() {
       buildShouldSucceed();
     });
 
-    // TODO(nweiz): re-enable this test when a transformer can consume its
-    // primary input (issue 16612).
-    // test("parallel groups' intermediate assets can't collide", () {
-    //   initGraph(["app|foo.a", "app|foo.x"], {"app": [
-    //     [new TransformerGroup([
-    //       [new RewriteTransformer("a", "b")],
-    //       [new RewriteTransformer("b", "c")]
-    //     ]), new TransformerGroup([
-    //       [new RewriteTransformer("x", "b")],
-    //       [new RewriteTransformer("b", "z")]
-    //     ])]
-    //   ]});
-    //   updateSources(["app|foo.a", "app|foo.x"]);
-    //   expectAsset("app|foo.c", "foo.b.c");
-    //   expectAsset("app|foo.z", "foo.b.z");
-    //   buildShouldSucceed();
-    // });
+    test("parallel groups' intermediate assets can't collide", () {
+      initGraph(["app|foo.a", "app|foo.x"], {"app": [
+        [new TransformerGroup([
+          [new RewriteTransformer("a", "b")],
+          [new RewriteTransformer("b", "c")..consumePrimary = true]
+        ]), new TransformerGroup([
+          [new RewriteTransformer("x", "b")],
+          [new RewriteTransformer("b", "z")..consumePrimary = true]
+        ])]
+      ]});
+      updateSources(["app|foo.a", "app|foo.x"]);
+      expectAsset("app|foo.a");
+      expectAsset("app|foo.x");
+      expectAsset("app|foo.c", "foo.b.c");
+      expectAsset("app|foo.z", "foo.b.z");
+      buildShouldSucceed();
+    });
   });
 
   group("pass-through", () {
@@ -296,6 +296,35 @@ main() {
       updateSources(["app|foo.x"]);
       expectNoAsset("app|foo.c");
       expectAsset("app|foo.x", "foo.x");
+      buildShouldSucceed();
+    });
+
+    test("doesn't pass through an input that's consumed by a group but not "
+        "by transformers", () {
+      initGraph(["app|foo.a"], {"app": [[
+        new TransformerGroup([
+          [new RewriteTransformer("a", "b")..consumePrimary = true],
+        ]),
+        new RewriteTransformer("x", "y")
+      ]]});
+      updateSources(["app|foo.a"]);
+      expectNoAsset("app|foo.a");
+      expectAsset("app|foo.b", "foo.b");
+      buildShouldSucceed();
+    });
+
+    test("doesn't pass through an input that's consumed by transformers but "
+        "not by a group", () {
+      initGraph(["app|foo.x"], {"app": [[
+        new TransformerGroup([
+          [new RewriteTransformer("a", "b")],
+          [new RewriteTransformer("b", "c")]
+        ]),
+        new RewriteTransformer("x", "y")..consumePrimary = true
+      ]]});
+      updateSources(["app|foo.x"]);
+      expectNoAsset("app|foo.x");
+      expectAsset("app|foo.y", "foo.y");
       buildShouldSucceed();
     });
 

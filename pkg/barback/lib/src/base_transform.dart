@@ -24,6 +24,11 @@ import 'utils.dart';
 abstract class BaseTransform {
   final TransformNode _node;
 
+  /// Whether the primary input should be consumed.
+  ///
+  /// This is exposed via [BaseTransformController].
+  bool _consumePrimary = false;
+
   /// The controller for the stream of log entries emitted by the transformer.
   ///
   /// This is exposed via [BaseTransformController].
@@ -94,6 +99,17 @@ abstract class BaseTransform {
   /// If the asset was created from a [String], this returns its UTF-8 encoding.
   Stream<List<int>> readInput(AssetId id) =>
       futureStream(getInput(id).then((input) => input.read()));
+
+  /// Consume the primary input so that it doesn't get processed by future
+  /// phases or emitted once processing has finished.
+  ///
+  /// Normally the primary input will automatically be forwarded unless the
+  /// transformer overwrites it by emitting an input with the same id. This
+  /// allows the transformer to tell barback not to forward the primary input
+  /// even if it's not overwritten.
+  void consumePrimary() {
+    _consumePrimary = true;
+  }
 }
 
 /// The base class for controllers of subclasses of [BaseTransform].
@@ -103,6 +119,9 @@ abstract class BaseTransform {
 abstract class BaseTransformController {
   /// The [BaseTransform] controlled by this controller.
   final BaseTransform transform;
+
+  /// Whether the primary input should be consumed.
+  bool get consumePrimary => transform._consumePrimary;
 
   /// The stream of log entries emitted by the transformer during a run.
   Stream<LogEntry> get onLog => transform._onLogController.stream;

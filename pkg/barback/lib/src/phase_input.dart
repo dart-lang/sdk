@@ -260,7 +260,12 @@ class PhaseInput {
           }
 
           _onAssetController.add(asset);
-        }, onDone: () => _transforms.remove(transform));
+        }, onDone: () {
+          _transforms.remove(transform);
+          // When a transform is removed, we need to re-adjust the pass-through
+          // in case its call to `consumePrimary` was preventing pass-through
+          _adjustPassThrough();
+        });
 
         _onLogPool.add(transform.onLog);
       });
@@ -278,10 +283,12 @@ class PhaseInput {
     if (!input.state.isAvailable) return;
 
     // If there's an output with the same id as the primary input, that
-    // overwrites the input so it doesn't get passed through. Otherwise,
-    // create a pass-through controller if none exists, or set the existing
-    // one available.
-    if (_overwritingOutputs.isNotEmpty) {
+    // overwrites the input so it doesn't get passed through. A transformer
+    // explicitly consuming the input will also cause it not to get passed
+    // through. Otherwise, create a pass-through controller if none exists, or
+    // set the existing one available.
+    if (_overwritingOutputs.isNotEmpty ||
+        _transforms.any((transform) => transform.consumePrimary)) {
       if (_passThroughController != null) {
         _passThroughController.setRemoved();
         _passThroughController = null;

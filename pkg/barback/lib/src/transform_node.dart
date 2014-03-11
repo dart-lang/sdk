@@ -55,6 +55,13 @@ class TransformNode {
   /// Whether [_apply] is currently running.
   var _isApplying = false;
 
+  /// Whether the most recent run of this transform has declared that it
+  /// consumes the primary input.
+  ///
+  /// Defaults to `false`.
+  bool get consumePrimary => _consumePrimary;
+  bool _consumePrimary = false;
+
   /// Whether [transformer] is lazy and this transform has yet to be forced.
   bool _isLazy;
 
@@ -246,6 +253,8 @@ class TransformNode {
     }).then((_) {
       if (_hasBecomeDirty || _onAssetController.isClosed) return;
 
+      _consumePrimary = transformController.consumePrimary;
+
       var newOutputs = transformController.outputs;
       // Any ids that are for a different package are invalid.
       var invalidIds = newOutputs
@@ -288,6 +297,8 @@ class TransformNode {
           .declareOutputs(transformController.transform);
     }).then((_) {
       if (_hasBecomeDirty || _onAssetController.isClosed) return;
+
+      _consumePrimary = transformController.consumePrimary;
 
       var newIds = transformController.outputIds;
       var invalidIds =
