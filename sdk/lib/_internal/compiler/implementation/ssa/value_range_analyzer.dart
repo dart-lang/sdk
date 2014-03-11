@@ -783,6 +783,38 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     }
   }
 
+  Range handleInvokeModulo(HInvokeDynamicMethod invoke) {
+    HInstruction left = invoke.inputs[1];
+    HInstruction right = invoke.inputs[1];
+    // For Integer values we can be precise in the upper bound,
+    // so special case those.
+    if (left.isInteger(compiler) && right.isInteger(compiler)) {
+      Range divisor = ranges[right];
+      if (divisor.isPositive) {
+        return info.newNormalizedRange(info.intZero, divisor.upper -
+            info.intOne);
+      } else if (divisor.isNegative) {
+        return info.newNormalizedRange(info.intZero, info.newNegateValue(
+            divisor.lower) - info.intOne);
+      }
+    } else if (left.isNumber(compiler) && right.isNumber(compiler)) {
+      Range divisor = ranges[right];
+      if (divisor.isPositive) {
+        return info.newNormalizedRange(info.intZero, divisor.upper);
+      } else if (divisor.isNegative) {
+        return info.newNormalizedRange(info.intZero, info.newNegateValue(
+            divisor.lower));
+      }
+    }
+    return info.newUnboundRange();
+  }
+
+  Range visitInvokeDynamicMethod(HInvokeDynamicMethod invoke) {
+    if ((invoke.inputs.length == 3) && (invoke.selector.name == "%"))
+      return handleInvokeModulo(invoke);
+    return super.visitInvokeDynamicMethod(invoke);
+  }
+
   Range handleBinaryOperation(HBinaryArithmetic instruction) {
     if (!instruction.isInteger(compiler)) return info.newUnboundRange();
     return instruction.operation(constantSystem).apply(
