@@ -485,10 +485,6 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
   // TODO(ahe): Test this getter.
   DeclarationMirror get owner => null;
 
-  // TODO(ahe): Implement this.
-  Function operator [](Symbol name)
-      => throw new UnimplementedError();
-
   List<LibraryDependencyMirror> get libraryDependencies
       => throw new UnimplementedError();
 }
@@ -790,9 +786,6 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
   }
 
   List<TypeMirror> get typeArguments => const <TypeMirror>[];
-
-  // TODO(ahe): Implement this.
-  Function operator [](Symbol name) => throw new UnimplementedError();
 
   bool get isAbstract => throw new UnimplementedError();
 
@@ -1103,9 +1096,6 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
 
   // TODO(ahe): Remove this method from the API.
   MirrorSystem get mirrors => currentJsMirrorSystem;
-
-  // TODO(ahe): Implement this method.
-  Function operator [](Symbol name) => throw new UnimplementedError();
 }
 
 /**
@@ -1402,9 +1392,6 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
 
   // TODO(ahe): Implement this.
   ClassMirror get mixin => throw new UnimplementedError();
-
-  // TODO(ahe): Implement this.
-  Function operator [](Symbol name) => throw new UnimplementedError();
 
   bool isSubtypeOf(TypeMirror other) => throw new UnimplementedError();
 
@@ -1915,9 +1902,6 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   // TODO(ahe): Implement this.
   ClassMirror get mixin => throw new UnimplementedError();
 
-  // TODO(ahe): Implement this.
-  Function operator [](Symbol name) => throw new UnimplementedError();
-
   bool get isAbstract => throw new UnimplementedError();
 
   bool isSubclassOf(ClassMirror other) {
@@ -2109,9 +2093,6 @@ function(reflectee) {
   InstanceMirror findInContext(Symbol name, {ifAbsent: null}) {
     throw new UnsupportedError("ClosureMirror.findInContext not yet supported");
   }
-
-  // TODO(ahe): Implement this method.
-  Function operator [](Symbol name) => throw new UnimplementedError();
 }
 
 class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
@@ -2412,7 +2393,6 @@ class BrokenClassMirror {
       Symbol constructorName,
       List positionalArguments,
       [Map<Symbol, dynamic> namedArguments]) => throw new UnimplementedError();
-  Function operator [](Symbol name) => throw new UnimplementedError();
   InstanceMirror invoke(Symbol memberName,
                         List positionalArguments,
                         [Map<Symbol, dynamic> namedArguments])

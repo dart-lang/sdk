@@ -155,18 +155,6 @@ class _LocalIsolateMirror extends _LocalMirror implements IsolateMirror {
   String toString() => "IsolateMirror on '$debugName'";
 }
 
-class _InvocationTrampoline implements Function {
-  final ObjectMirror _receiver;
-  final Symbol _selector;
-  _InvocationTrampoline(this._receiver, this._selector);
-  noSuchMethod(Invocation msg) {
-    if (msg.memberName != #call) return super.noSuchMethod(msg);
-    return _receiver.invoke(_selector,
-                            msg.positionalArguments,
-                            msg.namedArguments);
-  }
-}
-
 class _SyntheticAccessor implements MethodMirror {
   final DeclarationMirror owner;
   final Symbol simpleName;
@@ -319,23 +307,6 @@ class _LocalInstanceMirror extends _LocalObjectMirror
     // Avoid hash collisions with the reflectee. This constant is in Smi range
     // and happens to be the inner padding from RFC 2104.
     return identityHashCode(_reflectee) ^ 0x36363636;
-  }
-
-  Function operator [](Symbol selector) {
-    bool found = false;
-    for (ClassMirror c = type; c != null; c = c.superclass) {
-      var target = c._methods[selector];
-      if (target != null && !target.isStatic && target.isRegularMethod) {
-        found = true;
-        break;
-      }
-    }
-    if (!found) {
-      throw new ArgumentError(
-          "${MirrorSystem.getName(type.simpleName)} has no instance method "
-          "${MirrorSystem.getName(selector)}");
-    }
-    return new _InvocationTrampoline(this, selector);
   }
 
   // TODO(16539): Make these weak or soft.
@@ -814,16 +785,6 @@ class _LocalClassMirror extends _LocalObjectMirror
 
   String toString() => "ClassMirror on '${MirrorSystem.getName(simpleName)}'";
 
-  Function operator [](Symbol selector) {
-    var target = _methods[selector];
-    if (target == null || !target.isStatic || !target.isRegularMethod) {
-      throw new ArgumentError(
-          "${MirrorSystem.getName(simpleName)} has no static method "
-          "${MirrorSystem.getName(selector)}");
-    }
-    return new _InvocationTrampoline(this, selector);
-  }
-
   InstanceMirror newInstance(Symbol constructorName,
                              List positionalArguments,
                              [Map<Symbol, dynamic> namedArguments]) {
@@ -1257,14 +1218,6 @@ class _LocalLibraryMirror extends _LocalObjectMirror implements LibraryMirror {
     return _cachedMembers;
   }
 
-  Map<Symbol, MethodMirror> _cachedFunctions;
-  Map<Symbol, MethodMirror> get _functions {
-    if (_cachedFunctions == null) {
-      _cachedFunctions = _filterMap(_members, (key, value) => (value is MethodMirror));
-    }
-    return _cachedFunctions;
-  }
-
   List<InstanceMirror> get metadata {
     // Get the metadata objects, convert them into InstanceMirrors using
     // reflect() and then make them into a Dart list.
@@ -1279,16 +1232,6 @@ class _LocalLibraryMirror extends _LocalObjectMirror implements LibraryMirror {
   int get hashCode => simpleName.hashCode;
 
   String toString() => "LibraryMirror on '${_n(simpleName)}'";
-
-  Function operator [](Symbol selector) {
-    var target = _functions[selector];
-    if (target == null || !target.isRegularMethod) {
-      throw new ArgumentError(
-          "${MirrorSystem.getName(simpleName)} has no top-level method "
-          "${MirrorSystem.getName(selector)}");
-    }
-    return new _InvocationTrampoline(this, selector);
-  }
 
   var _cachedLibraryDependencies;
   get libraryDependencies {

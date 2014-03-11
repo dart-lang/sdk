@@ -482,30 +482,6 @@ abstract class InstanceMirror implements ObjectMirror {
    *             invocation.namedArguments);
    */
   delegate(Invocation invocation);
-
-  /**
-   * Returns a closure for invoking the regular method named [name].
-   *
-   * If [:type.instanceLookup(name):] returns a regular method m, the result of
-   * this method is a closure equivalent to:
-   *
-   *     (r1, ..., rn, {p1: d1, ..., pk: dk}) {
-   *       return this.invoke(name, [r1, ..., rn], {#p1: p1,  ..., #pk: pk});
-   *     }
-   *
-   * if m has required parameters r1, ..., rn, and named parameters p1, ..., pk
-   * with defaults d1, ..., dk. The result of this method is a
-   * closure equivalent to:
-   *
-   *     (r1, ..., rn, [p1 = d1, ..., pk = dk]) {
-   *       return this.invoke(name, [r1, ..., rn, p1, ..., pk]);
-   *     }
-   *
-   * if m has required parameters r1, ..., rn, and optional positional
-   * parameters p1, ..., pk with defaults d1, ..., dk.  Otherwise, an
-   * [ArgumentError] is thrown.
-   */
-  Function operator [](Symbol name);
 }
 
 /**
@@ -585,28 +561,6 @@ abstract class LibraryMirror implements DeclarationMirror, ObjectMirror {
    * the same library in the same isolate.
    */
    bool operator ==(other);
-
-  /**
-   * If [:declarations[name]:] is a regular method m, the result of this method
-   * is a closure equivalent to:
-   *
-   *     (r1, ..., rn, {p1: d1, ..., pk: dk}) {
-   *       return this.invoke(name, [r1, ..., rn], {#p1: p1, ..., #pk: pk});
-   *     }
-   *
-   * if m has required parameters r1, ..., rn, and named parameters p1, ..., pk
-   * with defaults d1, ..., dk. The result of this method is a
-   * closure equivalent to:
-   *
-   *     (r1, ..., rn, [p1 = d1, ..., pk = dk]) {
-   *       return this.invoke(name, [r1, ..., rn, p1, ..., pk]);
-   *     }
-   *
-   * if m has required parameters r1, ..., rn, and optional positional
-   * parameters p1, ..., pk with defaults d1, ..., dk.  Otherwise, an
-   * [ArgumentError] is thrown.
-   */
-  Function operator [](Symbol name);
 
   /**
    * Returns a list of the imports and exports in this library;
@@ -855,28 +809,6 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * and [other] have equal type arguments.
    */
    bool operator == (other);
-
-  /**
-   * If [:declarations[name]:] is a regular method m, the result of this method
-   * is a closure equivalent to:
-   *
-   *     (r1, ..., rn, {p1: d1, ..., pk: dk}) {
-   *       return this.invoke(name, [r1, ..., rn], {#p1: p1, ..., #pk: pk});
-   *     }
-   *
-   * if m has required parameters r1, ..., rn, and named parameters p1, ..., pk
-   * with defaults d1, ..., dk. The result of this method is a
-   * closure equivalent to:
-   *
-   *     (r1, ..., rn, [p1 = d1, ..., pk = dk]) {
-   *       return this.invoke(name, [r1, ..., rn, p1, ..., pk]);
-   *     }
-   *
-   * if m has required parameters r1, ..., rn, and optional positional
-   * parameters p1, ..., pk with defaults d1, ..., dk.  Otherwise, an
-   * [ArgumentError] is thrown.
-   */
-  Function operator [](Symbol name);
 
   /**
    * Returns whether the class denoted by the receiver is a subclass of the
