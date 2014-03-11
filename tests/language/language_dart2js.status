@@ -301,6 +301,3 @@ const_factory_with_body_test/01: Crash
 
 [ ($compiler == dart2js && $csp)]
 deferred_constraints_test/*: Skip # Issue 16898
-
-[ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff) && $checked ]
-deferred_constraints_test/*: Fail, Pass # Issue 17335

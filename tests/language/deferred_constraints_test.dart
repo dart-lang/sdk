@@ -4,6 +4,7 @@
 
 import "dart:async";
 import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
 
 @lazy import "deferred_constraints_lib.dart" as lib;
 import "deferred_constraints_lib.dart" as lib2; /// type_annotation_non_deferred: ok
@@ -25,6 +26,7 @@ void main() {
 
   // In this case we do not defer C.
   lib2.C a1 = new lib2.C(); /// type_annotation_non_deferred: continued
+  asyncStart();
   lazy.load().then((_) {
     lib.C a2 = new lib.C(); /// type_annotation2: dynamic type error, static type warning
     lib.G<F> a3 = new lib.G<F>(); /// type_annotation_generic1: dynamic type error, static type warning
@@ -52,6 +54,7 @@ void main() {
     f();  /// const_default_argument: continued
     var constInstance = lib.constantInstance; /// const_instance: ok
     var h = new H(); /// const_annotation: continued
+    asyncEnd();
   });
 }
 
