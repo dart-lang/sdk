@@ -295,6 +295,8 @@ stack_trace_test: Fail, OK # Stack traces not available in IE9.
 deferred_constraints_test/type_annotation_generic1: Fail, Pass # http://dartbug.com/12635
 deferred_constraints_test/type_annotation2: Fail, Pass # http://dartbug.com/12635
 deferred_constraints_test/type_annotation_generic4: Fail, Pass # http://dartbug.com/12635
+deferred_constraints_test/static_method: Fail, Pass # http://dartbug.com/12635
+deferred_constraints_test/new_generic1: Fail, Pass # http://dartbug.com/12635
 
 [ $compiler == dart2js && $host_checked ]
 const_factory_with_body_test/01: Crash
