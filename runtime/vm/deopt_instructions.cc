@@ -191,6 +191,7 @@ static bool IsObjectInstruction(DeoptInstr::Kind kind) {
     case DeoptInstr::kInt64StackSlot:
     case DeoptInstr::kFloat32x4StackSlot:
     case DeoptInstr::kInt32x4StackSlot:
+    case DeoptInstr::kFloat64x2StackSlot:
     case DeoptInstr::kPp:
     case DeoptInstr::kCallerPp:
     case DeoptInstr::kMaterializedObjectRef:
@@ -201,6 +202,7 @@ static bool IsObjectInstruction(DeoptInstr::Kind kind) {
     case DeoptInstr::kInt64FpuRegister:
     case DeoptInstr::kFloat32x4FpuRegister:
     case DeoptInstr::kInt32x4FpuRegister:
+    case DeoptInstr::kFloat64x2FpuRegister:
       // TODO(turnidge): Sometimes we encounter a deopt instruction
       // with a register source while deoptimizing frames during
       // debugging but we haven't saved our register set.  This

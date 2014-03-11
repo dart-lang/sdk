@@ -404,7 +404,7 @@ class CodeInstruction extends Observable {
       return '';
     }
     var pcent = formatPercent(tick.inclusiveTicks, code.totalSamplesInProfile);
-    return '${tick.inclusiveTicks} ($pcent)';
+    return '$pcent (${tick.inclusiveTicks})';
   }
 
   @reflectable String formattedExclusive(Code code) {
@@ -416,7 +416,7 @@ class CodeInstruction extends Observable {
       return '';
     }
     var pcent = formatPercent(tick.exclusiveTicks, code.totalSamplesInProfile);
-    return '${tick.exclusiveTicks} ($pcent)';
+    return '$pcent (${tick.exclusiveTicks})';
   }
 }
 

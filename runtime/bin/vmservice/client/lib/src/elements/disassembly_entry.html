@@ -12,9 +12,9 @@
     }
   </style>
   <div class="row">
-      <div class="col-md-2 monospace">{{ instruction.formattedAddress() }}</div>
       <div class="col-md-2 monospace">{{ instruction.formattedInclusive(code) }}</div>
       <div class="col-md-2 monospace">{{ instruction.formattedExclusive(code) }}</div>
+      <div class="col-md-2 monospace">{{ instruction.formattedAddress() }}</div>
       <div class="col-md-6 monospace">{{ instruction.human }}</div>
   </div>
   </template>
