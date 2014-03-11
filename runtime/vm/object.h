@@ -3364,6 +3364,10 @@ class Code : public Object {
   RawString* Name() const;
   RawString* UserName() const;
 
+  int64_t compile_timestamp() const {
+    return raw_ptr()->compile_timestamp_;
+  }
+
  private:
   void set_state_bits(intptr_t bits) const;
 
@@ -3395,6 +3399,10 @@ class Code : public Object {
   };
 
   static const intptr_t kEntrySize = sizeof(int32_t);  // NOLINT
+
+  void set_compile_timestamp(int64_t timestamp) const {
+    raw_ptr()->compile_timestamp_ = timestamp;
+  }
 
   void set_instructions(RawInstructions* instructions) {
     // RawInstructions are never allocated in New space and hence a

@@ -10246,6 +10246,7 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
     result.set_is_optimized(false);
     result.set_is_alive(false);
     result.set_comments(Comments::New(0));
+    result.set_compile_timestamp(0);
     result.set_pc_descriptors(Object::empty_descriptors());
   }
   return result.raw();
@@ -10272,6 +10273,7 @@ RawCode* Code::FinalizeCode(const char* name,
   assembler->FinalizeInstructions(region);
   CPU::FlushICache(instrs.EntryPoint(), instrs.size());
 
+  code.set_compile_timestamp(OS::GetCurrentTimeMicros());
   CodeObservers::NotifyAll(name,
                            instrs.EntryPoint(),
                            assembler->prologue_offset(),

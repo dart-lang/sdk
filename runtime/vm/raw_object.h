@@ -834,6 +834,8 @@ class RawCode : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->comments_);
   }
 
+  // Compilation timestamp.
+  int64_t compile_timestamp_;
   intptr_t pointer_offsets_length_;
   // Alive: If true, the embedded object pointers will be visited during GC.
   // This field cannot be shorter because of alignment issues on x64
