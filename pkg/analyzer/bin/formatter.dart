@@ -34,6 +34,7 @@ const WRITE_FLAG = 'write';
 const SELECTION_FLAG = 'selection';
 const TRANSFORM_FLAG = 'transform';
 const MAX_LINE_FLAG = 'max_line_length';
+const INDENT_FLAG = 'indent';
 
 
 const FOLLOW_LINKS = false;
@@ -61,10 +62,28 @@ _readOptions(options) {
   machineFormat = options[MACHINE_FLAG];
   overwriteFileContents = options[WRITE_FLAG];
   selection = _parseSelection(options[SELECTION_FLAG]);
-  formatterSettings =
-      new FormatterOptions(codeTransforms: options[TRANSFORM_FLAG],
-          pageWidth: _parseLineLength(options[MAX_LINE_FLAG]));
+  formatterSettings = new FormatterOptions(
+      codeTransforms: options[TRANSFORM_FLAG],
+      tabsForIndent: _parseTabsForIndent(options[INDENT_FLAG]),
+      spacesPerIndent: _parseSpacesPerIndent(options[INDENT_FLAG]),
+      pageWidth: _parseLineLength(options[MAX_LINE_FLAG]));
 }
+
+/// Translate the indent option into spaces per indent.
+int _parseSpacesPerIndent(String indentOption) {
+  if (indentOption == 'tab') {
+    return 1;
+  }
+  int spacesPerIndent = _toInt(indentOption);
+  if (spacesPerIndent == null) {
+    throw new FormatterException('Indentation is specified as an Integer or '
+        'the value "tab".');
+  }
+  return spacesPerIndent;
+}
+
+/// Translate the indent option into tabs for indent.
+bool _parseTabsForIndent(String indentOption) => indentOption == 'tab';
 
 CodeKind _parseKind(kindOption) {
   switch(kindOption) {
@@ -176,6 +195,10 @@ ArgParser _initArgParser() {
   parser.addOption(MAX_LINE_FLAG, abbr: 'l', defaultsTo: '80',
       help: 'Wrap lines longer than this length. '
             'To never wrap, specify "Infinity" or "Inf" for short.');
+  parser.addOption(INDENT_FLAG, abbr: 'i', defaultsTo: '2',
+      help: 'Specify number of spaces per indentation. '
+            'To indent using tabs, specify "--$INDENT_FLAG tab".'
+            '--- [PROVISIONAL API].', hide: true);
   parser.addOption(KIND_FLAG, abbr: 'k', defaultsTo: 'cu',
       help: 'Specify source snippet kind ("stmt" or "cu") '
             '--- [PROVISIONAL API].', hide: true);

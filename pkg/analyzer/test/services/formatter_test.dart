@@ -49,6 +49,47 @@ main() {
                    throwsA(new isInstanceOf<FormatterException>()));
     });
 
+    test('indent', () {
+      var original =
+          'class A {\n'
+          '  var z;\n'
+          '  inc(int x) => ++x;\n'
+          '  foo(int x) {\n'
+          '    if (x == 0) {\n'
+          '      return true;\n'
+          '    }\n'
+          '  }\n'
+          '}\n';
+      expectCUFormatsTo(
+          original,
+          original
+        );
+//      expectIndentFormatsTo(3, false,
+//          original,
+//          'class A {\n'
+//          '   var z;\n'
+//          '   inc(int x) => ++x;\n'
+//          '   foo(int x) {\n'
+//          '      if (x == 0) {\n'
+//          '         return true;\n'
+//          '      }\n'
+//          '   }\n'
+//          '}\n'
+//        );
+//      expectIndentFormatsTo(1, true,
+//          original,
+//          'class A {\n'
+//          '\tvar z;\n'
+//          '\tinc(int x) => ++x;\n'
+//          '\tfoo(int x) {\n'
+//          '\t\tif (x == 0) {\n'
+//          '\t\t\treturn true;\n'
+//          '\t\t}\n'
+//          '\t}\n'
+//          '}\n'
+//        );
+    });
+
     test('CU (1)', () {
       expectCUFormatsTo(
           'class A {\n'
@@ -1416,6 +1457,14 @@ expectStreamsNotEqual(Token t1, Token t2) =>
 expectCUFormatsTo(src, expected, {transforms: true}) =>
     expect(formatCU(src, options: new FormatterOptions(
         codeTransforms: transforms)).source, equals(expected));
+
+expectIndentFormatsTo(spacesPerIndent, tabsForIndent, src, expected) =>
+    expect(
+      formatCU(src, options: new FormatterOptions(
+          spacesPerIndent: spacesPerIndent,
+          tabsForIndent: tabsForIndent
+        )).source,
+      equals(expected));
 
 expectStmtFormatsTo(src, expected, {transforms: true}) =>
     expect(formatStatement(src, options:
