@@ -63,6 +63,7 @@ LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 [ $compiler == none && $runtime == vm && $arch == mips ]
 LibTest/math/log_A01_t01: Fail
 LibTest/core/double/toInt_A01_t01: Fail
+Libtest/core/List/List_class_A01_t01: Skip # Uses > 300 MB memory on 1 GB slave.
 
 [ $compiler == none && $runtime == vm && ($arch == simarm || $arch == simmips) ]
 LibTest/core/Uri/Uri_A06_t03: Skip # Timeouts, co19-roll r576: Please triage this failure
