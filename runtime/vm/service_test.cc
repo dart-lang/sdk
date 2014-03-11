@@ -189,7 +189,7 @@ TEST_CASE(Service_StackTrace) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
-      "{\"type\":\"StackTrace\",\"members\":[]}",
+      "{\"type\":\"StackTrace\",\"id\":\"stacktrace\",\"members\":[]}",
       handler.msg());
 
   // Malformed request.
@@ -197,8 +197,8 @@ TEST_CASE(Service_StackTrace) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
-      "{\"type\":\"Error\",\"text\":\"Command too long\","
-      "\"message\":{\"arguments\":[\"stacktrace\",\"jamboree\"],"
+      "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Command too long\","
+      "\"request\":{\"arguments\":[\"stacktrace\",\"jamboree\"],"
       "\"option_keys\":[],\"option_values\":[]}}",
       handler.msg());
 }
@@ -257,9 +257,9 @@ TEST_CASE(Service_DebugBreakpoints) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
-      "{\"type\":\"Error\","
-       "\"text\":\"Must specify a subcommand\","
-       "\"message\":{\"arguments\":[\"debug\"],\"option_keys\":[],"
+      "{\"type\":\"Error\",\"id\":\"\","
+       "\"message\":\"Must specify a subcommand\","
+       "\"request\":{\"arguments\":[\"debug\"],\"option_keys\":[],"
                     "\"option_values\":[]}}",
       handler.msg());
 
@@ -267,9 +267,9 @@ TEST_CASE(Service_DebugBreakpoints) {
   service_msg = Eval(lib, "[port, ['debug', 'breakpoints', '1111'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ("{\"type\":\"Error\","
-                "\"text\":\"Unrecognized breakpoint id 1111\","
-                "\"message\":{"
+  EXPECT_STREQ("{\"type\":\"Error\",\"id\":\"\","
+                "\"message\":\"Unrecognized breakpoint id 1111\","
+                "\"request\":{"
                     "\"arguments\":[\"debug\",\"breakpoints\",\"1111\"],"
                     "\"option_keys\":[],\"option_values\":[]}}",
                handler.msg());
@@ -279,8 +279,9 @@ TEST_CASE(Service_DebugBreakpoints) {
       Eval(lib, "[port, ['debug', 'breakpoints', '1111', 'green'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ("{\"type\":\"Error\",\"text\":\"Command too long\","
-                "\"message\":{\"arguments\":[\"debug\",\"breakpoints\","
+  EXPECT_STREQ("{\"type\":\"Error\",\"id\":\"\","
+                "\"message\":\"Command too long\","
+                "\"request\":{\"arguments\":[\"debug\",\"breakpoints\","
                                             "\"1111\",\"green\"],"
                              "\"option_keys\":[],\"option_values\":[]}}",
                handler.msg());
@@ -289,9 +290,9 @@ TEST_CASE(Service_DebugBreakpoints) {
   service_msg = Eval(lib, "[port, ['debug', 'nosferatu'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ("{\"type\":\"Error\","
-                "\"text\":\"Unrecognized subcommand 'nosferatu'\","
-                "\"message\":{\"arguments\":[\"debug\",\"nosferatu\"],"
+  EXPECT_STREQ("{\"type\":\"Error\",\"id\":\"\","
+                "\"message\":\"Unrecognized subcommand 'nosferatu'\","
+                "\"request\":{\"arguments\":[\"debug\",\"nosferatu\"],"
                              "\"option_keys\":[],\"option_values\":[]}}",
                handler.msg());
 }
@@ -342,8 +343,9 @@ TEST_CASE(Service_Classes) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
-    "{\"type\":\"Error\",\"text\":\"999999 is not a valid class id.\","
-    "\"message\":{\"arguments\":[\"classes\",\"999999\"],"
+    "{\"type\":\"Error\",\"id\":\"\","
+    "\"message\":\"999999 is not a valid class id.\","
+    "\"request\":{\"arguments\":[\"classes\",\"999999\"],"
     "\"option_keys\":[],\"option_values\":[]}}", handler.msg());
 
   // Request the class A over the service.
@@ -380,7 +382,8 @@ TEST_CASE(Service_Classes) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
-    "{\"type\":\"Error\",\"text\":\"Invalid sub collection huh\",\"message\":"
+    "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Invalid sub collection huh\""
+    ",\"request\":"
     "{\"arguments\":[\"classes\",\"%" Pd "\",\"huh\",\"0\"],\"option_keys\":[],"
     "\"option_values\":[]}}", cid);
 
@@ -390,8 +393,8 @@ TEST_CASE(Service_Classes) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
-    "{\"type\":\"Error\",\"text\":\"Field 9 not found\","
-    "\"message\":{\"arguments\":[\"classes\",\"%" Pd "\",\"fields\",\"9\"],"
+    "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Field 9 not found\","
+    "\"request\":{\"arguments\":[\"classes\",\"%" Pd "\",\"fields\",\"9\"],"
     "\"option_keys\":[],\"option_values\":[]}}", cid);
 
   // Invalid function request.
@@ -400,8 +403,8 @@ TEST_CASE(Service_Classes) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
-    "{\"type\":\"Error\",\"text\":\"Function 9 not found\","
-    "\"message\":{\"arguments\":[\"classes\",\"%" Pd "\",\"functions\",\"9\"],"
+    "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Function 9 not found\","
+    "\"request\":{\"arguments\":[\"classes\",\"%" Pd "\",\"functions\",\"9\"],"
     "\"option_keys\":[],\"option_values\":[]}}", cid);
 
 
@@ -411,7 +414,8 @@ TEST_CASE(Service_Classes) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
-    "{\"type\":\"Error\",\"text\":\"Command too long\",\"message\":"
+    "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Command too long\","
+    "\"request\":"
     "{\"arguments\":[\"classes\",\"%" Pd "\",\"fields\",\"9\",\"x\"],"
     "\"option_keys\":[],\"option_values\":[]}}", cid);
 
@@ -421,7 +425,8 @@ TEST_CASE(Service_Classes) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
-    "{\"type\":\"Error\",\"text\":\"Command too long\",\"message\":"
+    "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Command too long\","
+    "\"request\":"
     "{\"arguments\":[\"classes\",\"%" Pd "\",\"functions\",\"9\",\"x\"],"
     "\"option_keys\":[],\"option_values\":[]}}", cid);
 }
@@ -479,8 +484,8 @@ TEST_CASE(Service_Code) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
-    "{\"type\":\"Error\",\"text\":\"Could not find code at 0\",\"message\":"
-    "{\"arguments\":[\"code\",\"0\"],"
+    "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Could not find code at 0\","
+    "\"request\":{\"arguments\":[\"code\",\"0\"],"
     "\"option_keys\":[],\"option_values\":[]}}", handler.msg());
 
   // The following four tests check that a code object can be found
@@ -539,8 +544,9 @@ TEST_CASE(Service_Code) {
     const intptr_t kBufferSize = 1024;
     char buffer[kBufferSize];
     OS::SNPrint(buffer, kBufferSize-1,
-        "{\"type\":\"Error\",\"text\":\"Could not find code at %" Px "\","
-        "\"message\":{\"arguments\":[\"code\",\"%" Px "\"],"
+        "{\"type\":\"Error\",\"id\":\"\","
+        "\"message\":\"Could not find code at %" Px "\","
+        "\"request\":{\"arguments\":[\"code\",\"%" Px "\"],"
         "\"option_keys\":[],\"option_values\":[]}}", address, address);
     EXPECT_STREQ(buffer, handler.msg());
   }
