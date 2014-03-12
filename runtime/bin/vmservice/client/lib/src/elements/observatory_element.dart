@@ -97,6 +97,10 @@ class ObservatoryElement extends PolymerElement {
   bool isNull(String type) {
     return type == 'Null';
   }
+  
+  bool isError(String type) {
+    return type == 'Error';
+  }
 
   bool isInt(String type) {
     return (type == 'Smi' ||
@@ -135,6 +139,7 @@ class ObservatoryElement extends PolymerElement {
               'Closure',
               'Instance',
               'GrowableObjectArray',
-              'Array'].contains(type));
+              'Array',
+              'Error'].contains(type));
   }
 }

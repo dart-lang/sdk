@@ -309,12 +309,16 @@
     <style>
       .member {
         vertical-align: top;
-        padding: 0 0 0 1em;
+        padding: 1px 0 1px 1em;
       }
     </style>
     <div>
       <template if="{{ isUnexpected(ref.serviceType) }}">
-        unexpected reference type &lt;{{ ref['type'] }}&gt;
+        unexpected reference type &lt;{{ ref.serviceType }}&gt;
+      </template>
+
+      <template if="{{ isError(ref.serviceType) }}">
+        <pre>{{ ref.message }}</pre>
       </template>
 
       <template if="{{ isNull(ref.serviceType) }}">
@@ -467,9 +471,9 @@
     }
   </style>
   <div class="row">
-      <div class="col-md-2 monospace">{{ instruction.formattedAddress() }}</div>
       <div class="col-md-2 monospace">{{ instruction.formattedInclusive(code) }}</div>
       <div class="col-md-2 monospace">{{ instruction.formattedExclusive(code) }}</div>
+      <div class="col-md-2 monospace">{{ instruction.formattedAddress() }}</div>
       <div class="col-md-6 monospace">{{ instruction.human }}</div>
   </div>
   </template>
@@ -492,9 +496,9 @@
         </div>
         <div class="panel-body">
           <div class="row">
-              <div class="col-md-2"><strong>Address</strong></div>
               <div class="col-md-2"><strong>Inclusive</strong></div>
               <div class="col-md-2"><strong>Exclusive</strong></div>
+              <div class="col-md-2"><strong>Address</strong></div>
               <div class="col-md-6"><strong>Disassembly</strong></div>
           </div>
           <template repeat="{{ instruction in code.instructions }}">
@@ -520,7 +524,88 @@
     </div>
   </template>
   
-</polymer-element><polymer-element name="field-view" extends="observatory-element">
+</polymer-element><polymer-element name="eval-box" extends="observatory-element">
+  <template>
+    <style>
+      .textbox {
+        width: 80ex;
+        font: 400 16px 'Montserrat', sans-serif;
+      }
+      .bigtextbox {
+        font: 400 16px 'Montserrat', sans-serif;
+      }
+      .button {
+        font: 400 16px 'Montserrat', sans-serif;
+      }
+      .radios {
+        display: inline;
+      }
+      .radios label{
+        padding-left: 15px;
+      }
+      .historyExpr, .historyValue {
+        vertical-align: text-top;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      .historyExpr a {
+        display: block;
+        color: black;
+        text-decoration: none;
+        padding: 6px 6px;
+        cursor: pointer;
+        white-space: pre-line;
+      }
+      .historyExpr a:hover {
+        background-color: #e1f5fe
+      }
+      .historyValue {
+        display: block;
+        padding: 6px 6px;
+      }
+    </style>
+    <form>
+      <template if="{{ lineMode == '1-line' }}">
+        <input class="textbox" type="text" value="{{ text }}">
+      </template>
+      <template if="{{ lineMode == 'N-line' }}">
+        <textarea class="bigtextbox" rows="5" cols="80" value="{{ text }}"></textarea>
+      </template>
+
+      <input class="button" type="submit" value="Evaluate" on-click="{{ eval }}">
+      <div class="radios" on-change="{{ updateLineMode }}">
+        <label for="1-line">1-line
+          <input type="radio" name="lineMode" value="1-line" checked="">
+        </label>
+        <label for="N-line">N-line
+          <input type="radio" name="lineMode" value="N-line">
+        </label>
+      </div>
+    </form>
+
+    <br>
+    <template if="{{ results.isNotEmpty }}">
+      <table>
+        <tbody><tr template="" repeat="{{ result in results }}">
+          <td class="historyExpr">
+            <a class="expr" on-click="{{ selectExpr }}" expr="{{ result['expr'] }}">{{ result['expr'] }}</a>
+          </td>
+          <td class="historyValue">
+            <template if="{{ result['value'] == null }}">
+              <div style="color:#aaa;cursor:wait;">&lt;pending&gt;</div>
+            </template>
+            <template if="{{ result['value'] != null }}">
+              <instance-ref isolate="{{ isolate }}" ref="{{ result['value'] }}">
+              </instance-ref>
+            </template>
+          </td>
+        </tr>
+      </tbody></table>
+    </template>
+  </template>
+</polymer-element>
+
+
+<polymer-element name="field-view" extends="observatory-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
@@ -758,42 +843,111 @@
       <!-- TODO(turnidge): Add library nav menu here. -->
       <class-nav-menu cls="{{ instance['class'] }}"></class-nav-menu>
       <nav-menu link="." anchor="instance" last="{{ true }}"></nav-menu>
-      <!-- TODO(turnidge): Add nav refresh here. -->
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
-    <div class="row">
-    <div class="col-md-8 col-md-offset-2">
-      <div class="panel panel-warning">
-        <div class="panel-heading">
-         Instance of
-         <class-ref ref="{{ instance['class'] }}"></class-ref>
-        </div>
-        <div class="panel-body">
-          <template if="{{ instance['error'] == null }}">
-            <table class="table table-hover">
-              <tbody>
-                <tr>
-                  <td>Preview</td><td>{{ instance['preview'] }}</td>
-                </tr>
-              </tbody>
-            </table>
-            <blockquote><strong>Fields</strong></blockquote>
-            <table class="table table-hover">
-             <tbody>
-                <tr template="" repeat="{{ field in instance['fields'] }}">
-                  <td><field-ref ref="{{ field['decl'] }}"></field-ref></td>
-                  <td><instance-ref ref="{{ field['value'] }}"></instance-ref></td>
-                </tr>
-              </tbody>
-            </table>
-          </template>
-          <template if="{{ instance['error'] != null }}">
-            <error-view error_obj="{{ instance['error'] }}"></error-view>
-          </template>
-        </div>
+    <style>
+      .content {
+        padding-left: 10%;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      h1 {
+        font: 400 18px 'Montserrat', sans-serif;
+      }
+      .member {
+        vertical-align: top;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      .memberBold {
+        vertical-align: top;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+    </style>
+
+    <template if="{{ instance['error'] != null }}">
+      <error-view error_obj="{{ instance['error'] }}"></error-view>
+    </template>
+
+    <template if="{{ instance['error'] == null }}">
+      <div class="content">
+        <!-- TODO(turnidge): Handle null instances. -->
+        <h1>instance of {{ instance['class']['user_name'] }}</h1>
+        <table>
+          <tbody><tr>
+            <td class="memberBold">class</td>
+            <td class="member">
+              <class-ref ref="{{ instance['class'] }}">
+              </class-ref>
+            </td>
+          </tr>
+          <tr template="" if="{{ instance['preview'] != null }}">
+            <td class="memberBold">preview</td>
+            <td class="member">{{ instance['preview'] }}</td>
+          </tr>
+          <tr>
+            <td class="memberBold">size</td>
+            <td class="member">{{ instance['size'] | formatSize }}</td>
+          </tr>
+        </tbody></table>
       </div>
-    </div>
-    </div>
+
+      <hr>
+
+      <div class="content">
+        <template if="{{ instance['fields'].isNotEmpty }}">
+          fields ({{ instance['fields'].length }})
+          <curly-block>
+            <table>
+              <tbody><tr template="" repeat="{{ field in instance['fields'] }}">
+                <td class="member">
+                  <field-ref ref="{{ field['decl'] }}"></field-ref>
+                </td>
+                <td class="member">
+                  <instance-ref ref="{{ field['value'] }}"></instance-ref>
+                </td>
+              </tr>
+            </tbody></table>
+          </curly-block>
+        </template>
+
+        <template if="{{ instance['nativeFields'].isNotEmpty }}">
+          native fields ({{ instance['nativeFields'].length }})
+          <curly-block>
+            <table>
+              <tbody><tr template="" repeat="{{ field in instance['nativeFields'] }}">
+                <td class="member">[{{ field['index']}}]</td>
+                <td class="member">[{{ field['value']}}]</td>
+              </tr>
+            </tbody></table>
+          </curly-block>
+        </template>
+
+        <template if="{{ instance['elements'].isNotEmpty }}">
+          elements ({{ instance['elements'].length }})
+          <curly-block>
+            <table>
+              <tbody><tr template="" repeat="{{ element in instance['elements'] }}">
+                <td class="member">[{{ element['index']}}]</td>
+                <td class="member">
+                  <instance-ref ref="{{ element['value'] }}">
+                  </instance-ref>
+                </td>
+              </tr>
+            </tbody></table>
+          </curly-block>
+        </template>
+      </div>
+
+      <hr>
+
+      <div class="content">
+        <eval-box callback="{{ eval }}"></eval-box>
+      </div>
+      <br><br><br><br>
+      <br><br><br><br>
+    </template>
   </template>
   
 </polymer-element>

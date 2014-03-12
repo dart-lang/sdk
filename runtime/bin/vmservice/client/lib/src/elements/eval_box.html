@@ -1,0 +1,88 @@
+<head>
+  <link rel="import" href="instance_ref.html">
+  <link rel="import" href="observatory_element.html">
+</head>
+<polymer-element name="eval-box" extends="observatory-element">
+  <template>
+    <style>
+      .textbox {
+        width: 80ex;
+        font: 400 16px 'Montserrat', sans-serif;
+      }
+      .bigtextbox {
+        font: 400 16px 'Montserrat', sans-serif;
+      }
+      .button {
+        font: 400 16px 'Montserrat', sans-serif;
+      }
+      .radios {
+        display: inline;
+      }
+      .radios label{
+        padding-left: 15px;
+      }
+      .historyExpr, .historyValue {
+        vertical-align: text-top;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      .historyExpr a {
+        display: block;
+        color: black;
+        text-decoration: none;
+        padding: 6px 6px;
+        cursor: pointer;
+        white-space: pre-line;
+      }
+      .historyExpr a:hover {
+        background-color: #e1f5fe
+      }
+      .historyValue {
+        display: block;
+        padding: 6px 6px;
+      }
+    </style>
+    <form>
+      <template if="{{ lineMode == '1-line' }}">
+        <input class="textbox" type="text" value="{{ text }}">
+      </template>
+      <template if="{{ lineMode == 'N-line' }}">
+        <textarea class="bigtextbox" rows="5" cols="80"
+                  value="{{ text }}"></textarea>
+      </template>
+
+      <input class="button" type="submit" value="Evaluate" on-click="{{ eval }}">
+      <div class="radios" on-change="{{ updateLineMode }}">
+        <label for="1-line">1-line
+          <input type="radio" name="lineMode" value="1-line" checked>
+        </label>
+        <label for="N-line">N-line
+          <input type="radio" name="lineMode" value="N-line">
+        </label>
+      </div>
+    </form>
+
+    <br>
+    <template if="{{ results.isNotEmpty }}">
+      <table>
+        <tr template repeat="{{ result in results }}">
+          <td class="historyExpr">
+            <a class="expr" on-click="{{ selectExpr }}"
+               expr="{{ result['expr'] }}">{{ result['expr'] }}</a>
+          </td>
+          <td class="historyValue">
+            <template if="{{ result['value'] == null }}">
+              <div style="color:#aaa;cursor:wait;">&lt;pending&gt;</div>
+            </template>
+            <template if="{{ result['value'] != null }}">
+              <instance-ref isolate="{{ isolate }}"
+                            ref="{{ result['value'] }}">
+              </instance-ref>
+            </template>
+          </td>
+        </tr>
+      </table>
+    </template>
+  </template>
+</polymer-element>
+
+<script type="application/dart" src="eval_box.dart"></script>

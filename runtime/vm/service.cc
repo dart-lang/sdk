@@ -895,96 +895,167 @@ static void PrintPseudoNull(JSONStream* js,
 }
 
 
-static bool HandleObjects(Isolate* isolate, JSONStream* js) {
-  REQUIRE_COLLECTION_ID("objects");
-  ASSERT(js->num_arguments() >= 2);
-  const char* arg = js->GetArgument(1);
-
-  // TODO(turnidge): Handle <optimized out> the same way as other
-  // special nulls.
-  if (strcmp(arg, "null") == 0) {
-    Object::null_object().PrintToJSONStream(js, false);
-    return true;
-
-  } else if (strcmp(arg, "not-initialized") == 0) {
-    Object::sentinel().PrintToJSONStream(js, false);
-    return true;
-
-  } else if (strcmp(arg, "being-initialized") == 0) {
-    Object::transition_sentinel().PrintToJSONStream(js, false);
-    return true;
-
-  } else if (strcmp(arg, "optimized-out") == 0) {
-    Symbols::OptimizedOut().PrintToJSONStream(js, false);
-    return true;
-
-  } else if (strcmp(arg, "collected") == 0) {
-    PrintPseudoNull(js, "objects/collected", "<collected>");
-    return true;
-
-  } else if (strcmp(arg, "expired") == 0) {
-    PrintPseudoNull(js, "objects/expired", "<expired>");
-    return true;
-
-  } else if (strcmp(arg, "int") == 0) {
-    if (js->num_arguments() < 3) {
-      PrintError(js, "expected 3 arguments but found %" Pd "\n",
-                 js->num_arguments());
-      return true;
-    }
+static RawObject* LookupObjectId(Isolate* isolate,
+                                 const char* arg,
+                                 bool* error) {
+  *error = false;
+  if (strncmp(arg, "int-", 4) == 0) {
+    arg += 4;
     int64_t value = 0;
-    if (!OS::StringToInt64(js->GetArgument(2), &value) ||
+    if (!OS::StringToInt64(arg, &value) ||
         !Smi::IsValid64(value)) {
-      PrintError(js, "integer value too large\n",
-                 js->num_arguments());
-      return true;
+      *error = true;
+      return Object::null();
     }
     const Integer& obj =
         Integer::Handle(isolate, Smi::New(static_cast<intptr_t>(value)));
-    obj.PrintToJSONStream(js, false);
-    return true;
+    return obj.raw();
 
-  } else if (strcmp(arg, "bool") == 0) {
-    if (js->num_arguments() < 3) {
-      PrintError(js, "expected 3 arguments but found %" Pd "\n",
-                 js->num_arguments());
-      return true;
-    }
-    const char* value_str = js->GetArgument(2);
-    bool value = false;
-    if (strcmp(value_str, "false") == 0) {
-      value = false;
-    } else if (strcmp(value_str, "true") == 0) {
-      value = true;
-    } else {
-      PrintError(js, "expected 'true' or 'false' but found %s\n", value_str);
-      return true;
-    }
-    Bool::Get(value).PrintToJSONStream(js, false);
-    return true;
+  } else if (strcmp(arg, "bool-true") == 0) {
+    return Bool::True().raw();
+
+  } else if (strcmp(arg, "bool-false") == 0) {
+    return Bool::False().raw();
   }
 
   ObjectIdRing* ring = isolate->object_id_ring();
   ASSERT(ring != NULL);
   intptr_t id = -1;
   if (!GetIntegerId(arg, &id)) {
-    Object::null_object().PrintToJSONStream(js, false);
-    return true;
+    *error = true;
+    return Instance::null();
   }
-  Object& obj = Object::Handle(ring->GetObjectForId(id));
-  if (obj.IsNull()) {
-    // The object has been collected by the gc.
-    PrintPseudoNull(js, "objects/collected", "<collected>");
-    return true;
-  } else if (obj.raw() == Object::sentinel().raw()) {
-    // The object id has expired.
-    PrintPseudoNull(js, "objects/expired", "<expired>");
-    return true;
-  }
-  obj.PrintToJSONStream(js, false);
-  return true;
+  return ring->GetObjectForId(id);
 }
 
+
+static bool HandleObjects(Isolate* isolate, JSONStream* js) {
+  REQUIRE_COLLECTION_ID("objects");
+  if (js->num_arguments() < 2) {
+    PrintError(js, "expected at least 2 arguments but found %" Pd "\n",
+               js->num_arguments());
+    return true;
+  }
+  const char* arg = js->GetArgument(1);
+
+  // Handle special objects first.
+  if (strcmp(arg, "null") == 0) {
+    if (js->num_arguments() > 2) {
+      PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
+                 js->num_arguments());
+    } else {
+      Instance::null_instance().PrintToJSONStream(js, false);
+    }
+    return true;
+
+  } else if (strcmp(arg, "not-initialized") == 0) {
+    if (js->num_arguments() > 2) {
+      PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
+                 js->num_arguments());
+    } else {
+      Object::sentinel().PrintToJSONStream(js, false);
+    }
+    return true;
+
+  } else if (strcmp(arg, "being-initialized") == 0) {
+    if (js->num_arguments() > 2) {
+      PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
+                 js->num_arguments());
+    } else {
+      Object::transition_sentinel().PrintToJSONStream(js, false);
+    }
+    return true;
+
+  } else if (strcmp(arg, "optimized-out") == 0) {
+    if (js->num_arguments() > 2) {
+      PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
+                 js->num_arguments());
+    } else {
+      Symbols::OptimizedOut().PrintToJSONStream(js, false);
+    }
+    return true;
+
+  } else if (strcmp(arg, "collected") == 0) {
+    if (js->num_arguments() > 2) {
+      PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
+                 js->num_arguments());
+    } else {
+      PrintPseudoNull(js, "objects/collected", "<collected>");
+    }
+    return true;
+
+  } else if (strcmp(arg, "expired") == 0) {
+    if (js->num_arguments() > 2) {
+      PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
+                 js->num_arguments());
+    } else {
+      PrintPseudoNull(js, "objects/expired", "<expired>");
+    }
+    return true;
+  }
+
+  // Lookup the object.
+  Object& obj = Object::Handle(isolate);
+  bool error = false;
+  obj = LookupObjectId(isolate, arg, &error);
+  if (error) {
+    PrintError(js, "unrecognized object id '%s'", arg);
+    return true;
+  }
+
+  // Now what should we do with the object?
+  if (js->num_arguments() == 2) {
+    // Print.
+    if (obj.IsNull()) {
+      // The object has been collected by the gc.
+      PrintPseudoNull(js, "objects/collected", "<collected>");
+      return true;
+    } else if (obj.raw() == Object::sentinel().raw()) {
+      // The object id has expired.
+      PrintPseudoNull(js, "objects/expired", "<expired>");
+      return true;
+    }
+    obj.PrintToJSONStream(js, false);
+    return true;
+  }
+  ASSERT(js->num_arguments() > 2);
+
+  const char* action = js->GetArgument(2);
+  if (strcmp(action, "eval") == 0) {
+    if (js->num_arguments() > 3) {
+      PrintError(js, "expected at most 3 arguments but found %" Pd "\n",
+                 js->num_arguments());
+      return true;
+    }
+    if (obj.IsNull()) {
+      PrintErrorWithKind(js, "EvalCollected",
+                         "attempt to evaluate against collected object\n",
+                         js->num_arguments());
+      return true;
+    }
+    if (obj.raw() == Object::sentinel().raw()) {
+      PrintErrorWithKind(js, "EvalExpired",
+                         "attempt to evaluate against expired object\n",
+                         js->num_arguments());
+      return true;
+    }
+    const char* expr = js->LookupOption("expr");
+    if (expr == NULL) {
+      PrintError(js, "eval expects an 'expr' option\n",
+                 js->num_arguments());
+      return true;
+    }
+    const String& expr_str = String::Handle(isolate, String::New(expr));
+    ASSERT(obj.IsInstance());
+    const Instance& instance = Instance::Cast(obj);
+    const Object& result = Object::Handle(instance.Evaluate(expr_str));
+    result.PrintToJSONStream(js, true);
+    return true;
+  }
+
+  PrintError(js, "unrecognized action '%s'\n", action);
+  return true;
+}
 
 
 static bool HandleScriptsEnumerate(Isolate* isolate, JSONStream* js) {
@@ -1109,6 +1180,8 @@ static bool HandleCpu(Isolate* isolate, JSONStream* js) {
 
 
 static bool HandleNullCode(uintptr_t pc, JSONStream* js) {
+  // TODO(turnidge): Consider adding/using Object::null_code() for
+  // consistent "type".
   Object::null_object().PrintToJSONStream(js, false);
   return true;
 }

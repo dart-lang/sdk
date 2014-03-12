@@ -9,6 +9,7 @@ export 'package:observatory/src/elements/code_view.dart';
 export 'package:observatory/src/elements/collapsible_content.dart';
 export 'package:observatory/src/elements/curly_block.dart';
 export 'package:observatory/src/elements/error_view.dart';
+export 'package:observatory/src/elements/eval_box.dart';
 export 'package:observatory/src/elements/field_ref.dart';
 export 'package:observatory/src/elements/field_view.dart';
 export 'package:observatory/src/elements/function_ref.dart';

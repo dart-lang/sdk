@@ -1,6 +1,7 @@
 <head>
   <link rel="import" href="class_ref.html">
   <link rel="import" href="error_view.html">
+  <link rel="import" href="eval_box.html">
   <link rel="import" href="field_ref.html">
   <link rel="import" href="instance_ref.html">
   <link rel="import" href="observatory_element.html">
@@ -14,42 +15,111 @@
       <!-- TODO(turnidge): Add library nav menu here. -->
       <class-nav-menu cls="{{ instance['class'] }}"></class-nav-menu>
       <nav-menu link="." anchor="instance" last="{{ true }}"></nav-menu>
-      <!-- TODO(turnidge): Add nav refresh here. -->
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
-    <div class="row">
-    <div class="col-md-8 col-md-offset-2">
-      <div class="panel panel-warning">
-        <div class="panel-heading">
-         Instance of
-         <class-ref ref="{{ instance['class'] }}"></class-ref>
-        </div>
-        <div class="panel-body">
-          <template if="{{ instance['error'] == null }}">
-            <table class="table table-hover">
-              <tbody>
-                <tr>
-                  <td>Preview</td><td>{{ instance['preview'] }}</td>
-                </tr>
-              </tbody>
-            </table>
-            <blockquote><strong>Fields</strong></blockquote>
-            <table class="table table-hover">
-             <tbody>
-                <tr template repeat="{{ field in instance['fields'] }}">
-                  <td><field-ref ref="{{ field['decl'] }}"></field-ref></td>
-                  <td><instance-ref ref="{{ field['value'] }}"></instance-ref></td>
-                </tr>
-              </tbody>
-            </table>
-          </template>
-          <template if="{{ instance['error'] != null }}">
-            <error-view error_obj="{{ instance['error'] }}"></error-view>
-          </template>
-        </div>
+    <style>
+      .content {
+        padding-left: 10%;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      h1 {
+        font: 400 18px 'Montserrat', sans-serif;
+      }
+      .member {
+        vertical-align: top;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      .memberBold {
+        vertical-align: top;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+    </style>
+
+    <template if="{{ instance['error'] != null }}">
+      <error-view error_obj="{{ instance['error'] }}"></error-view>
+    </template>
+
+    <template if="{{ instance['error'] == null }}">
+      <div class="content">
+        <!-- TODO(turnidge): Handle null instances. -->
+        <h1>instance of {{ instance['class']['user_name'] }}</h1>
+        <table>
+          <tr>
+            <td class="memberBold">class</td>
+            <td class="member">
+              <class-ref ref="{{ instance['class'] }}">
+              </class-ref>
+            </td>
+          </tr>
+          <tr template if="{{ instance['preview'] != null }}">
+            <td class="memberBold">preview</td>
+            <td class="member">{{ instance['preview'] }}</td>
+          </tr>
+          <tr>
+            <td class="memberBold">size</td>
+            <td class="member">{{ instance['size'] | formatSize }}</td>
+          </tr>
+        </table>
       </div>
-    </div>
-    </div>
+
+      <hr>
+
+      <div class="content">
+        <template if="{{ instance['fields'].isNotEmpty }}">
+          fields ({{ instance['fields'].length }})
+          <curly-block>
+            <table>
+              <tr template repeat="{{ field in instance['fields'] }}">
+                <td class="member">
+                  <field-ref ref="{{ field['decl'] }}"></field-ref>
+                </td>
+                <td class="member">
+                  <instance-ref ref="{{ field['value'] }}"></instance-ref>
+                </td>
+              </tr>
+            </table>
+          </curly-block>
+        </template>
+
+        <template if="{{ instance['nativeFields'].isNotEmpty }}">
+          native fields ({{ instance['nativeFields'].length }})
+          <curly-block>
+            <table>
+              <tr template repeat="{{ field in instance['nativeFields'] }}">
+                <td class="member">[{{ field['index']}}]</td>
+                <td class="member">[{{ field['value']}}]</td>
+              </tr>
+            </table>
+          </curly-block>
+        </template>
+
+        <template if="{{ instance['elements'].isNotEmpty }}">
+          elements ({{ instance['elements'].length }})
+          <curly-block>
+            <table>
+              <tr template repeat="{{ element in instance['elements'] }}">
+                <td class="member">[{{ element['index']}}]</td>
+                <td class="member">
+                  <instance-ref ref="{{ element['value'] }}">
+                  </instance-ref>
+                </td>
+              </tr>
+            </table>
+          </curly-block>
+        </template>
+      </div>
+
+      <hr>
+
+      <div class="content">
+        <eval-box callback="{{ eval }}"></eval-box>
+      </div>
+      <br><br><br><br>
+      <br><br><br><br>
+    </template>
   </template>
   <script type="application/dart" src="instance_view.dart"></script>
 </polymer-element>

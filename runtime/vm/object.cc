@@ -11467,9 +11467,7 @@ const char* Error::ToCString() const {
 
 
 void Error::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(false));
-  jsobj.AddProperty("error_msg", ToErrorCString());
+  UNREACHABLE();
 }
 
 
@@ -11515,8 +11513,10 @@ const char* ApiError::ToCString() const {
 
 void ApiError::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(false));
-  jsobj.AddProperty("error_msg", ToErrorCString());
+  jsobj.AddProperty("type", "Error");
+  jsobj.AddProperty("id", "");
+  jsobj.AddProperty("kind", JSONType(false));
+  jsobj.AddProperty("message", ToErrorCString());
 }
 
 
@@ -11701,8 +11701,10 @@ const char* LanguageError::ToCString() const {
 
 void LanguageError::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(false));
-  jsobj.AddProperty("error_msg", ToErrorCString());
+  jsobj.AddProperty("type", "Error");
+  jsobj.AddProperty("id", "");
+  jsobj.AddProperty("kind", JSONType(false));
+  jsobj.AddProperty("message", ToErrorCString());
 }
 
 
@@ -11774,11 +11776,20 @@ const char* UnhandledException::ToCString() const {
 }
 
 
+
 void UnhandledException::PrintToJSONStream(JSONStream* stream,
                                            bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(false));
-  jsobj.AddProperty("error_msg", ToErrorCString());
+  jsobj.AddProperty("type", "Error");
+  jsobj.AddProperty("id", "");
+  jsobj.AddProperty("kind", JSONType(false));
+  jsobj.AddProperty("message", ToErrorCString());
+
+  Instance& instance = Instance::Handle();
+  instance = exception();
+  jsobj.AddProperty("exception", instance);
+  instance = stacktrace();
+  jsobj.AddProperty("stacktrace", instance);
 }
 
 
@@ -11815,8 +11826,10 @@ const char* UnwindError::ToCString() const {
 
 void UnwindError::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(false));
-  jsobj.AddProperty("error_msg", ToErrorCString());
+  jsobj.AddProperty("type", "Error");
+  jsobj.AddProperty("id", "");
+  jsobj.AddProperty("kind", JSONType(false));
+  jsobj.AddProperty("message", ToErrorCString());
 }
 
 
@@ -12207,20 +12220,22 @@ const char* Instance::ToUserCString(intptr_t max_len, intptr_t nesting) const {
 void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   Class& cls = Class::Handle(this->clazz());
-  jsobj.AddProperty("preview", ToUserCString(40));
 
   // TODO(turnidge): Handle <optimized out> like other null-like values.
   if (IsNull()) {
     jsobj.AddProperty("type", ref ? "@Null" : "Null");
     jsobj.AddProperty("id", "objects/null");
+    jsobj.AddProperty("preview", "null");
     return;
   } else if (raw() == Object::sentinel().raw()) {
     jsobj.AddProperty("type", ref ? "@Null" : "Null");
     jsobj.AddProperty("id", "objects/not-initialized");
+    jsobj.AddProperty("preview", "<not initialized>");
     return;
   } else if (raw() == Object::transition_sentinel().raw()) {
     jsobj.AddProperty("type", ref ? "@Null" : "Null");
     jsobj.AddProperty("id", "objects/being-initialized");
+    jsobj.AddProperty("preview", "<being initialized>");
     return;
   } else if (raw() == Symbols::OptimizedOut().raw()) {
     // TODO(turnidge): This is a hack.  The user could have this
@@ -12242,6 +12257,7 @@ void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
     }
     jsobj.AddPropertyF("id", "objects/%" Pd "", id);
     jsobj.AddProperty("class", cls);
+    jsobj.AddProperty("preview", ToUserCString(40));
   }
   if (ref) {
     return;
@@ -12268,6 +12284,18 @@ void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
       cls = cls.SuperClass();
     }
   }
+
+  if (NumNativeFields() > 0) {
+    JSONArray jsarr(&jsobj, "nativeFields");
+    for (intptr_t i = 0; i < NumNativeFields(); i++) {
+      intptr_t value = GetNativeField(i);
+      JSONObject jsfield(&jsarr);
+      jsfield.AddProperty("index", i);
+      jsfield.AddProperty("value", value);
+    }
+  }
+
+  jsobj.AddProperty("size", raw()->Size());
 }
 
 
@@ -14266,7 +14294,7 @@ const char* Smi::ToCString() const {
 void Smi::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
-  jsobj.AddPropertyF("id", "objects/int/%" Pd "", Value());
+  jsobj.AddPropertyF("id", "objects/int-%" Pd "", Value());
   class Class& cls = Class::Handle(this->clazz());
   jsobj.AddProperty("class", cls);
   jsobj.AddPropertyF("preview", "%" Pd "", Value());
@@ -16306,7 +16334,7 @@ void Bool::PrintToJSONStream(JSONStream* stream, bool ref) const {
   const char* str = ToCString();
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
-  jsobj.AddPropertyF("id", "objects/bool/%s", str);
+  jsobj.AddPropertyF("id", "objects/bool-%s", str);
   class Class& cls = Class::Handle(this->clazz());
   jsobj.AddProperty("class", cls);
   jsobj.AddPropertyF("preview", "%s", str);

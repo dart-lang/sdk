@@ -8,12 +8,16 @@
     <style>
       .member {
         vertical-align: top;
-        padding: 0 0 0 1em;
+        padding: 1px 0 1px 1em;
       }
     </style>
     <div>
       <template if="{{ isUnexpected(ref.serviceType) }}">
-        unexpected reference type &lt;{{ ref['type'] }}&gt;
+        unexpected reference type &lt;{{ ref.serviceType }}&gt;
+      </template>
+
+      <template if="{{ isError(ref.serviceType) }}">
+        <pre>{{ ref.message }}</pre>
       </template>
 
       <template if="{{ isNull(ref.serviceType) }}">

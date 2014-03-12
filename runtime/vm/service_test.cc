@@ -8,6 +8,7 @@
 #include "vm/debugger.h"
 #include "vm/globals.h"
 #include "vm/message_handler.h"
+#include "vm/object_id_ring.h"
 #include "vm/os.h"
 #include "vm/port.h"
 #include "vm/service.h"
@@ -36,6 +37,44 @@ class ServiceTestMessageHandler : public MessageHandler {
     response ^= response_obj.raw();
     _msg = strdup(response.ToCString());
     return true;
+  }
+
+  // Removes a given json key:value from _msg.
+  void filterMsg(const char* key) {
+    int key_len = strlen(key);
+    int old_len = strlen(_msg);
+    char* new_msg = reinterpret_cast<char*>(malloc(old_len + 1));
+    int old_pos = 0;
+    int new_pos = 0;
+    while (_msg[old_pos] != '\0') {
+      if (_msg[old_pos] == '\"') {
+        old_pos++;
+        if ((old_len - old_pos) > key_len &&
+            strncmp(&_msg[old_pos], key, key_len) == 0 &&
+            _msg[old_pos + key_len + 2] == '\"') {
+          old_pos += (key_len + 2);
+          // Skip until next , or }.
+          while (_msg[old_pos] != '\0' &&
+                 _msg[old_pos] != ',' &&
+                 _msg[old_pos] != '}') {
+            old_pos++;
+          }
+          if (_msg[old_pos] == ',') {
+            old_pos++;
+          }
+        } else {
+          new_msg[new_pos] = '\"';;
+          new_pos++;
+        }
+      } else {
+        new_msg[new_pos] = _msg[old_pos];
+        new_pos++;
+        old_pos++;
+      }
+    }
+    new_msg[new_pos] = '\0';
+    free(_msg);
+    _msg = new_msg;
   }
 
   const char* msg() const { return _msg; }
@@ -296,6 +335,195 @@ TEST_CASE(Service_DebugBreakpoints) {
                              "\"option_keys\":[],\"option_values\":[]}}",
                handler.msg());
 }
+
+
+TEST_CASE(Service_Objects) {
+  // TODO(turnidge): Extend this test to cover a non-trivial stack trace.
+  const char* kScript =
+      "var port;\n"     // Set to our mock port by C++.
+      "var validId;\n"  // Set to a valid object id by C++.
+      "\n"
+      "main() {\n"
+      "}";
+
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port =
+      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
+
+  ObjectIdRing* ring = isolate->object_id_ring();
+  const String& str = String::Handle(String::New("value"));
+  intptr_t str_id = ring->GetIdForObject(str.raw());
+  Dart_Handle valid_id = Dart_NewInteger(str_id);
+  EXPECT_VALID(valid_id);
+  EXPECT_VALID(Dart_SetField(lib, NewString("validId"), valid_id));
+
+  Instance& service_msg = Instance::Handle();
+
+  // null
+  service_msg = Eval(lib, "[port, ['objects', 'null'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  handler.filterMsg("name");
+  EXPECT_STREQ(
+      "{\"type\":\"Null\",\"id\":\"objects\\/null\","
+      "\"preview\":\"null\"}",
+      handler.msg());
+
+  // not initialized
+  service_msg = Eval(lib, "[port, ['objects', 'not-initialized'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  handler.filterMsg("name");
+  EXPECT_STREQ(
+      "{\"type\":\"Null\",\"id\":\"objects\\/not-initialized\","
+      "\"preview\":\"<not initialized>\"}",
+      handler.msg());
+
+  // being initialized
+  service_msg = Eval(lib, "[port, ['objects', 'being-initialized'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  handler.filterMsg("name");
+  EXPECT_STREQ(
+      "{\"type\":\"Null\",\"id\":\"objects\\/being-initialized\","
+      "\"preview\":\"<being initialized>\"}",
+      handler.msg());
+
+  // optimized out
+  service_msg = Eval(lib, "[port, ['objects', 'optimized-out'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  handler.filterMsg("name");
+  EXPECT_STREQ(
+      "{\"type\":\"Null\",\"id\":\"objects\\/optimized-out\","
+      "\"preview\":\"<optimized out>\"}",
+      handler.msg());
+
+  // collected
+  service_msg = Eval(lib, "[port, ['objects', 'collected'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  handler.filterMsg("name");
+  EXPECT_STREQ(
+      "{\"type\":\"Null\",\"id\":\"objects\\/collected\","
+      "\"preview\":\"<collected>\"}",
+      handler.msg());
+
+  // expired
+  service_msg = Eval(lib, "[port, ['objects', 'expired'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  handler.filterMsg("name");
+  EXPECT_STREQ(
+      "{\"type\":\"Null\",\"id\":\"objects\\/expired\","
+      "\"preview\":\"<expired>\"}",
+      handler.msg());
+
+  // bool
+  service_msg = Eval(lib, "[port, ['objects', 'bool-true'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  handler.filterMsg("name");
+  EXPECT_STREQ(
+      "{\"type\":\"Bool\",\"id\":\"objects\\/bool-true\","
+      "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/46\","
+      "\"user_name\":\"bool\"},\"preview\":\"true\"}",
+      handler.msg());
+
+  // int
+  service_msg = Eval(lib, "[port, ['objects', 'int-123'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  handler.filterMsg("name");
+  EXPECT_STREQ(
+      "{\"type\":\"Smi\",\"id\":\"objects\\/int-123\","
+      "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
+      "\"user_name\":\"int\"},\"preview\":\"123\"}",
+      handler.msg());
+
+  // object id ring / valid
+  service_msg = Eval(lib, "[port, ['objects', '$validId'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  handler.filterMsg("name");
+  EXPECT_STREQ(
+      "{\"type\":\"String\",\"id\":\"objects\\/1\","
+      "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/60\","
+      "\"user_name\":\"String\"},\"preview\":\"\\\"value\\\"\","
+      "\"fields\":[],\"size\":24}",
+      handler.msg());
+
+  // object id ring / invalid => expired
+  service_msg = Eval(lib, "[port, ['objects', '99999999'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  handler.filterMsg("name");
+  EXPECT_STREQ(
+      "{\"type\":\"Null\",\"id\":\"objects\\/expired\","
+      "\"preview\":\"<expired>\"}",
+      handler.msg());
+
+  // expired/eval => error
+  service_msg = Eval(lib, "[port, ['objects', 'expired', 'eval'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  handler.filterMsg("name");
+  EXPECT_STREQ(
+      "{\"type\":\"Error\",\"id\":\"\","
+      "\"message\":\"expected at most 2 arguments but found 3\\n\","
+      "\"request\":{\"arguments\":[\"objects\",\"expired\",\"eval\"],"
+      "\"option_keys\":[],\"option_values\":[]}}",
+      handler.msg());
+
+  // int/eval => good
+  service_msg = Eval(lib,
+                     "[port, ['objects', 'int-123', 'eval'], "
+                     "['expr'], ['this+99']]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  handler.filterMsg("name");
+  EXPECT_STREQ(
+      "{\"type\":\"@Smi\",\"id\":\"objects\\/int-222\","
+      "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
+      "\"user_name\":\"int\"},\"preview\":\"222\"}",
+      handler.msg());
+
+  // object id ring / invalid => expired
+  service_msg = Eval(lib, "[port, ['objects', '99999999', 'eval'], "
+                     "['expr'], ['this']]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  handler.filterMsg("name");
+  EXPECT_STREQ(
+      "{\"type\":\"Error\",\"id\":\"\",\"kind\":\"EvalExpired\","
+      "\"message\":\"attempt to evaluate against expired object\\n\","
+      "\"request\":{\"arguments\":[\"objects\",\"99999999\",\"eval\"],"
+      "\"option_keys\":[\"expr\"],\"option_values\":[\"this\"]}}",
+      handler.msg());
+
+  // Extra arg to eval.
+  service_msg = Eval(lib,
+                     "[port, ['objects', 'int-123', 'eval', 'foo'], "
+                     "['expr'], ['this+99']]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  handler.filterMsg("name");
+  EXPECT_STREQ(
+      "{\"type\":\"Error\",\"id\":\"\","
+      "\"message\":\"expected at most 3 arguments but found 4\\n\","
+      "\"request\":{\"arguments\":[\"objects\",\"int-123\",\"eval\",\"foo\"],"
+      "\"option_keys\":[\"expr\"],\"option_values\":[\"this+99\"]}}",
+      handler.msg());
+}
+
 
 
 TEST_CASE(Service_Classes) {
