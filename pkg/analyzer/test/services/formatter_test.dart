@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library formatter_test;
+
 import 'dart:io';
 
 import 'package:path/path.dart';
@@ -64,30 +66,30 @@ main() {
           original,
           original
         );
-//      expectIndentFormatsTo(3, false,
-//          original,
-//          'class A {\n'
-//          '   var z;\n'
-//          '   inc(int x) => ++x;\n'
-//          '   foo(int x) {\n'
-//          '      if (x == 0) {\n'
-//          '         return true;\n'
-//          '      }\n'
-//          '   }\n'
-//          '}\n'
-//        );
-//      expectIndentFormatsTo(1, true,
-//          original,
-//          'class A {\n'
-//          '\tvar z;\n'
-//          '\tinc(int x) => ++x;\n'
-//          '\tfoo(int x) {\n'
-//          '\t\tif (x == 0) {\n'
-//          '\t\t\treturn true;\n'
-//          '\t\t}\n'
-//          '\t}\n'
-//          '}\n'
-//        );
+      expectIndentFormatsTo(3, false,
+          original,
+          'class A {\n'
+          '   var z;\n'
+          '   inc(int x) => ++x;\n'
+          '   foo(int x) {\n'
+          '      if (x == 0) {\n'
+          '         return true;\n'
+          '      }\n'
+          '   }\n'
+          '}\n'
+        );
+      expectIndentFormatsTo(1, true,
+          original,
+          'class A {\n'
+          '\tvar z;\n'
+          '\tinc(int x) => ++x;\n'
+          '\tfoo(int x) {\n'
+          '\t\tif (x == 0) {\n'
+          '\t\t\treturn true;\n'
+          '\t\t}\n'
+          '\t}\n'
+          '}\n'
+        );
     });
 
     test('CU (1)', () {

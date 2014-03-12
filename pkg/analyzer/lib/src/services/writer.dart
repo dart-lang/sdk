@@ -35,7 +35,8 @@ class Line {
 
   bool isEmpty() => tokens.isEmpty;
 
-  bool isWhitespace() => tokens.every((tok) => tok is SpaceToken);
+  bool isWhitespace() => tokens.every(
+      (tok) => tok is SpaceToken || tok is TabToken);
 
   void indent(int n) {
     tokens.insert(0,
@@ -298,12 +299,14 @@ class SourceWriter {
 
   final String lineSeparator;
   int indentCount = 0;
+  final int spacesPerIndent;
+  final bool useTabs;
 
   LinePrinter linePrinter;
   LineToken _lastToken;
 
   SourceWriter({this.indentCount: 0, this.lineSeparator: NEW_LINE,
-      bool useTabs: false, int spacesPerIndent: 2, int maxLineLength: 80}) {
+      this.useTabs: false, this.spacesPerIndent: 2, int maxLineLength: 80}) {
     if (maxLineLength > 0) {
       linePrinter = new SimpleLineBreaker(maxLineLength, (n) =>
           getIndentString(n, useTabs: useTabs, spacesPerIndent: spacesPerIndent));
@@ -368,7 +371,8 @@ class SourceWriter {
     }
   }
 
-  Line newLine() => new Line(indentLevel: indentCount, printer: linePrinter);
+  Line newLine() => new Line(indentLevel: indentCount, useTabs: useTabs,
+      spacesPerIndent: spacesPerIndent, printer: linePrinter);
 
   String toString() {
     var source = new StringBuffer(buffer.toString());
