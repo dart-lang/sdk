@@ -6782,12 +6782,17 @@ RawString* TokenStream::GenerateSource(intptr_t start_pos,
     switch (curr) {
       case Token::kLBRACE:
       case Token::kRBRACE:
+        if (next != Token::kNEWLINE) {
+          separator = &Symbols::Blank();
+        }
+        break;
       case Token::kPERIOD:
       case Token::kLBRACK:
       case Token::kINTERPOL_VAR:
       case Token::kINTERPOL_START:
       case Token::kINTERPOL_END:
       case Token::kBIT_NOT:
+      case Token::kNOT:
         break;
       // In case we see an opening parentheses '(' we increase the indent to
       // align multi-line parameters accordingly. The indent will be removed as
@@ -6823,10 +6828,10 @@ RawString* TokenStream::GenerateSource(intptr_t start_pos,
     switch (next) {
       case Token::kRBRACE:
         break;
+      case Token::kNEWLINE:
       case Token::kSEMICOLON:
       case Token::kPERIOD:
       case Token::kCOMMA:
-      case Token::kLPAREN:
       case Token::kRPAREN:
       case Token::kLBRACK:
       case Token::kRBRACK:
@@ -6834,6 +6839,13 @@ RawString* TokenStream::GenerateSource(intptr_t start_pos,
       case Token::kINTERPOL_START:
       case Token::kINTERPOL_END:
         separator = NULL;
+        break;
+      case Token::kLPAREN:
+        if (curr == Token::kCATCH) {
+          separator = &Symbols::Blank();
+        } else {
+          separator = NULL;
+        }
         break;
       case Token::kELSE:
         separator = &Symbols::Blank();
