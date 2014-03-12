@@ -167,3 +167,27 @@ for ( ; ; ) {
 for ( ; ; ) {
   print('!');
 }
+>>>
+main() {
+  var zero = 0;
+  if (0 == 0) {
+    zero = 0;
+  } else if (0 == 1) {
+    zero = 1;
+  } else if (0 == 2) {
+    zero = 2;
+  }
+  print(0);
+}
+<<<
+main() {
+  var zero = 0;
+  if (0 == 0) {
+    zero = 0;
+  } else if (0 == 1) {
+    zero = 1;
+  } else if (0 == 2) {
+    zero = 2;
+  }
+  print(0);
+}

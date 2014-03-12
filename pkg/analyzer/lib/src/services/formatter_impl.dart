@@ -924,7 +924,11 @@ class SourceVisitor implements AstVisitor {
       space();
       token(node.elseKeyword);
       space();
-      printAsBlock(node.elseStatement);
+      if (node.elseStatement is IfStatement) {
+        visit(node.elseStatement);
+      } else {
+        printAsBlock(node.elseStatement);
+      }
     } else {
       visit(node.thenStatement);
     }
