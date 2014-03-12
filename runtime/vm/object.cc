@@ -12123,7 +12123,10 @@ RawInstance* Instance::New(const Class& cls, Heap::Space space) {
 
 
 bool Instance::IsValidFieldOffset(intptr_t offset) const {
-  const Class& cls = Class::Handle(clazz());
+  Isolate* isolate = Isolate::Current();
+  REUSABLE_CLASS_HANDLESCOPE(isolate);
+  Class& cls = isolate->ClassHandle();
+  cls = clazz();
   return (offset >= 0 && offset <= (cls.instance_size() - kWordSize));
 }
 
