@@ -2254,7 +2254,8 @@ RawFunction* Class::GetInvocationDispatcher(const String& target_name,
   };
 
   ASSERT(kind == RawFunction::kNoSuchMethodDispatcher ||
-         kind == RawFunction::kInvokeFieldDispatcher);
+         kind == RawFunction::kInvokeFieldDispatcher ||
+         kind == RawFunction::kInvokeClosureDispatcher);
   Function& dispatcher = Function::Handle();
   Array& cache = Array::Handle(invocation_dispatcher_cache());
   ASSERT(!cache.IsNull());
@@ -4656,7 +4657,8 @@ void Function::set_extracted_method_closure(const Function& value) const {
 
 RawArray* Function::saved_args_desc() const {
   ASSERT(kind() == RawFunction::kNoSuchMethodDispatcher ||
-         kind() == RawFunction::kInvokeFieldDispatcher);
+         kind() == RawFunction::kInvokeFieldDispatcher ||
+         kind() == RawFunction::kInvokeClosureDispatcher);
   const Object& obj = Object::Handle(raw_ptr()->data_);
   ASSERT(obj.IsArray());
   return Array::Cast(obj).raw();
@@ -4665,7 +4667,8 @@ RawArray* Function::saved_args_desc() const {
 
 void Function::set_saved_args_desc(const Array& value) const {
   ASSERT(kind() == RawFunction::kNoSuchMethodDispatcher ||
-         kind() == RawFunction::kInvokeFieldDispatcher);
+         kind() == RawFunction::kInvokeFieldDispatcher ||
+         kind() == RawFunction::kInvokeClosureDispatcher);
   ASSERT(raw_ptr()->data_ == Object::null());
   set_data(value);
 }
@@ -4813,6 +4816,9 @@ const char* Function::KindToCString(RawFunction::Kind kind) {
       break;
     case RawFunction::kInvokeFieldDispatcher:
       return "kInvokeFieldDispatcher";
+      break;
+    case RawFunction::kInvokeClosureDispatcher:
+      return "kInvokeClosureDispatcher";
       break;
     default:
       UNREACHABLE();
@@ -6066,6 +6072,9 @@ const char* Function::ToCString() const {
     case RawFunction::kInvokeFieldDispatcher:
       kind_str = "invoke-field-dispatcher";
       break;
+    case RawFunction::kInvokeClosureDispatcher:
+      kind_str = "invoke-closure-dispatcher";
+      break;
     default:
       UNREACHABLE();
   }
@@ -6097,7 +6106,9 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
   } else if (IsImplicitClosureFunction()) {
     id = cls.FindImplicitClosureFunctionIndex(*this);
     selector = "implicit_closures";
-  } else if (IsNoSuchMethodDispatcher() || IsInvokeFieldDispatcher()) {
+  } else if (IsNoSuchMethodDispatcher() ||
+             IsInvokeFieldDispatcher() ||
+             IsInvokeClosureDispatcher()) {
     id = cls.FindInvocationDispatcherFunctionIndex(*this);
     selector = "dispatchers";
   } else {

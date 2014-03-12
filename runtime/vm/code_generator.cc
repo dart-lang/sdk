@@ -1026,11 +1026,18 @@ DEFINE_RUNTIME_ENTRY(InstanceFunctionLookup, 4) {
                                 ic_data,
                                 &result)) {
     ArgumentsDescriptor desc(args_descriptor);
-    const Function& target_function =
-        Function::Handle(receiver_class.GetInvocationDispatcher(
-            target_name,
-            args_descriptor,
-            RawFunction::kNoSuchMethodDispatcher));
+    Function& target_function = Function::Handle();
+    if (receiver.IsClosure() && target_name.Equals(Symbols::Call())) {
+      target_function = receiver_class.GetInvocationDispatcher(
+          target_name,
+          args_descriptor,
+          RawFunction::kInvokeClosureDispatcher);
+    } else {
+      target_function = receiver_class.GetInvocationDispatcher(
+          target_name,
+          args_descriptor,
+          RawFunction::kNoSuchMethodDispatcher);
+    }
     // Update IC data.
     ASSERT(!target_function.IsNull());
     intptr_t receiver_cid = receiver.GetClassId();

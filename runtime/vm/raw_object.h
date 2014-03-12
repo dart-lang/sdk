@@ -591,6 +591,7 @@ class RawFunction : public RawObject {
     kMethodExtractor,  // converts method into implicit closure on the receiver.
     kNoSuchMethodDispatcher,  // invokes noSuchMethod.
     kInvokeFieldDispatcher,  // invokes a field as a closure.
+    kInvokeClosureDispatcher  // invokes this as a closure (implements .call)
   };
 
  private:

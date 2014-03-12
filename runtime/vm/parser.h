@@ -450,6 +450,8 @@ class Parser : public ValueObject {
                                             Array& default_values);
   SequenceNode* ParseInvokeFieldDispatcher(const Function& func,
                                            Array& default_values);
+  SequenceNode* ParseInvokeClosureDispatcher(const Function& func,
+                                             Array& default_values);
   void BuildDispatcherScope(const Function& func,
                             const ArgumentsDescriptor& desc,
                             Array& default_values);
