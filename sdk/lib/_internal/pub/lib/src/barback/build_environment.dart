@@ -365,14 +365,15 @@ void _log(LogEntry entry) {
   prefixParts.add(entry.transform.transformer);
 
   // Mention the primary input of the transform unless the message seems to.
-  if (!messageMentions(entry.transform.primaryId.path)) {
+  if (!messageMentions(
+      path.joinAll(path.url.split(entry.transform.primaryId.path)))) {
     prefixParts.add("on ${entry.transform.primaryId}");
   }
 
   // If the relevant asset isn't the primary input, mention it unless the
   // message already does.
   if (entry.assetId != entry.transform.primaryId &&
-      !messageMentions(entry.assetId.path)) {
+      !messageMentions(path.joinAll(path.url.split(entry.assetId.path)))) {
     prefixParts.add("with input ${entry.assetId}");
   }
 
