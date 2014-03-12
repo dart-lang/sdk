@@ -16,8 +16,8 @@ polymer/example/scoped_style/*: Skip
 
 scheduled_test/test/scheduled_server_test: Pass, Fail # 13524
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
-
 polymer/test/event_path_test: Pass, Fail # Issue 15766
+docgen/test/generate_json_test: Skip # Issue 17430
 
 [ $compiler == dart2js ]
 collection/test/equality_test/01: Fail # Issue 1533
