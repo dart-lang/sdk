@@ -316,8 +316,8 @@ class MarkingWeakVisitor : public HandleVisitor {
 
 
 void GCMarker::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
-  if (invoke_api_callbacks) {
-    isolate->gc_prologue_callbacks().Invoke();
+  if (invoke_api_callbacks && (isolate->gc_prologue_callback() != NULL)) {
+    (isolate->gc_prologue_callback())();
   }
   // The store buffers will be rebuilt as part of marking, reset them now.
   isolate->store_buffer()->Reset();
@@ -325,8 +325,8 @@ void GCMarker::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
 
 
 void GCMarker::Epilogue(Isolate* isolate, bool invoke_api_callbacks) {
-  if (invoke_api_callbacks) {
-    isolate->gc_epilogue_callbacks().Invoke();
+  if (invoke_api_callbacks && (isolate->gc_epilogue_callback() != NULL)) {
+    (isolate->gc_epilogue_callback())();
   }
 }
 

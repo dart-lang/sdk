@@ -377,8 +377,8 @@ Scavenger::~Scavenger() {
 
 
 void Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
-  if (invoke_api_callbacks) {
-    isolate->gc_prologue_callbacks().Invoke();
+  if (invoke_api_callbacks && (isolate->gc_prologue_callback() != NULL)) {
+    (isolate->gc_prologue_callback())();
   }
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
@@ -414,8 +414,8 @@ void Scavenger::Epilogue(Isolate* isolate,
 
   memset(from_->pointer(), 0xf3, from_->size());
 #endif  // defined(DEBUG)
-  if (invoke_api_callbacks) {
-    isolate->gc_epilogue_callbacks().Invoke();
+  if (invoke_api_callbacks && (isolate->gc_epilogue_callback() != NULL)) {
+    (isolate->gc_epilogue_callback())();
   }
 }
 

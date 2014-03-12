@@ -768,14 +768,14 @@ DART_EXPORT Dart_Handle Dart_AddGcPrologueCallback(
     Dart_GcPrologueCallback callback) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
-  GcPrologueCallbacks& callbacks = isolate->gc_prologue_callbacks();
-  if (callbacks.Contains(callback)) {
+  if (isolate->gc_prologue_callback() != NULL) {
     return Api::NewError(
-        "%s permits only one instance of 'callback' to be present in the "
-        "prologue callback list.",
+        "%s permits only one gc prologue callback to be registered, please "
+        "remove the existing callback using Dart_RemoveGcPrologueCallback "
+        "and then add this callback",
         CURRENT_FUNC);
   }
-  callbacks.Add(callback);
+  isolate->set_gc_prologue_callback(callback);
   return Api::Success();
 }
 
@@ -784,13 +784,13 @@ DART_EXPORT Dart_Handle Dart_RemoveGcPrologueCallback(
     Dart_GcPrologueCallback callback) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
-  GcPrologueCallbacks& callbacks = isolate->gc_prologue_callbacks();
-  if (!callbacks.Contains(callback)) {
+  if (isolate->gc_prologue_callback() != callback) {
     return Api::NewError(
-        "%s expects 'callback' to be present in the prologue callback list.",
+        "%s expects 'callback' to be the currently registered gc prologue "
+        "callback.",
         CURRENT_FUNC);
   }
-  callbacks.Remove(callback);
+  isolate->set_gc_prologue_callback(NULL);
   return Api::Success();
 }
 
@@ -799,14 +799,14 @@ DART_EXPORT Dart_Handle Dart_AddGcEpilogueCallback(
     Dart_GcEpilogueCallback callback) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
-  GcEpilogueCallbacks& callbacks = isolate->gc_epilogue_callbacks();
-  if (callbacks.Contains(callback)) {
+  if (isolate->gc_epilogue_callback() != NULL) {
     return Api::NewError(
-        "%s permits only one instance of 'callback' to be present in the "
-        "epilogue callback list.",
+        "%s permits only one gc epilogue callback to be registered, please "
+        "remove the existing callback using Dart_RemoveGcEpilogueCallback "
+        "and then add this callback",
         CURRENT_FUNC);
   }
-  callbacks.Add(callback);
+  isolate->set_gc_epilogue_callback(callback);
   return Api::Success();
 }
 
@@ -815,13 +815,52 @@ DART_EXPORT Dart_Handle Dart_RemoveGcEpilogueCallback(
     Dart_GcEpilogueCallback callback) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
-  GcEpilogueCallbacks& callbacks = isolate->gc_epilogue_callbacks();
-  if (!callbacks.Contains(callback)) {
+  if (isolate->gc_epilogue_callback() != callback) {
     return Api::NewError(
-        "%s expects 'callback' to be present in the epilogue callback list.",
+        "%s expects 'callback' to be the currently registered gc epilogue "
+        " callback.",
         CURRENT_FUNC);
   }
-  callbacks.Remove(callback);
+  isolate->set_gc_epilogue_callback(NULL);
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_SetGcCallbacks(
+    Dart_GcPrologueCallback prologue_callback,
+    Dart_GcEpilogueCallback epilogue_callback) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  if (prologue_callback != NULL) {
+    if (isolate->gc_prologue_callback() != NULL) {
+      return Api::NewError(
+          "%s permits only one gc prologue callback to be registered, please "
+          "remove the existing callback and then add this callback",
+          CURRENT_FUNC);
+    }
+  } else {
+    if (isolate->gc_prologue_callback() == NULL) {
+      return Api::NewError(
+          "%s expects 'prologue_callback' to be present in the callback set.",
+          CURRENT_FUNC);
+    }
+  }
+  if (epilogue_callback != NULL) {
+    if (isolate->gc_epilogue_callback() != NULL) {
+      return Api::NewError(
+          "%s permits only one gc epilogue callback to be registered, please "
+          "remove the existing callback and then add this callback",
+          CURRENT_FUNC);
+    }
+  } else {
+    if (isolate->gc_epilogue_callback() == NULL) {
+      return Api::NewError(
+          "%s expects 'epilogue_callback' to be present in the callback set.",
+          CURRENT_FUNC);
+    }
+  }
+  isolate->set_gc_prologue_callback(prologue_callback);
+  isolate->set_gc_epilogue_callback(epilogue_callback);
   return Api::Success();
 }
 

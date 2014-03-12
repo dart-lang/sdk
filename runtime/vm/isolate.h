@@ -10,7 +10,6 @@
 #include "platform/thread.h"
 #include "vm/base_isolate.h"
 #include "vm/class_table.h"
-#include "vm/gc_callbacks.h"
 #include "vm/handles.h"
 #include "vm/megamorphic_cache_table.h"
 #include "vm/random.h"
@@ -306,12 +305,20 @@ class Isolate : public BaseIsolate {
   Simulator* simulator() const { return simulator_; }
   void set_simulator(Simulator* value) { simulator_ = value; }
 
-  GcPrologueCallbacks& gc_prologue_callbacks() {
-    return gc_prologue_callbacks_;
+  Dart_GcPrologueCallback gc_prologue_callback() const {
+    return gc_prologue_callback_;
   }
 
-  GcEpilogueCallbacks& gc_epilogue_callbacks() {
-    return gc_epilogue_callbacks_;
+  void set_gc_prologue_callback(Dart_GcPrologueCallback callback) {
+    gc_prologue_callback_ = callback;
+  }
+
+  Dart_GcEpilogueCallback gc_epilogue_callback() const {
+    return gc_epilogue_callback_;
+  }
+
+  void set_gc_epilogue_callback(Dart_GcEpilogueCallback callback) {
+    gc_epilogue_callback_ = callback;
   }
 
   static void SetCreateCallback(Dart_IsolateCreateCallback cb) {
@@ -499,8 +506,8 @@ class Isolate : public BaseIsolate {
   MessageHandler* message_handler_;
   IsolateSpawnState* spawn_state_;
   bool is_runnable_;
-  GcPrologueCallbacks gc_prologue_callbacks_;
-  GcEpilogueCallbacks gc_epilogue_callbacks_;
+  Dart_GcPrologueCallback gc_prologue_callback_;
+  Dart_GcEpilogueCallback gc_epilogue_callback_;
   intptr_t defer_finalization_count_;
   DeoptContext* deopt_context_;
 
