@@ -473,6 +473,21 @@ class _DOMWindowCrossFrame extends NativeFieldWrapperClass2 implements
 
   // Implementation support.
   String get typeName => "Window";
+
+  // TODO(efortuna): Remove this method. dartbug.com/16814
+  Events get on => throw new UnsupportedError(
+    'You can only attach EventListeners to your own window.');
+  // TODO(efortuna): Remove this method. dartbug.com/16814
+  void addEventListener(String type, EventListener listener, [bool useCapture])
+      => throw new UnsupportedError(
+    'You can only attach EventListeners to your own window.');
+  // TODO(efortuna): Remove this method. dartbug.com/16814
+  bool dispatchEvent(Event event) => throw new UnsupportedError(
+    'You can only attach EventListeners to your own window.');
+  // TODO(efortuna): Remove this method. dartbug.com/16814
+  void removeEventListener(String type, EventListener listener,
+      [bool useCapture]) => throw new UnsupportedError(
+    'You can only attach EventListeners to your own window.');
 }
 
 class _HistoryCrossFrame extends NativeFieldWrapperClass2 implements HistoryBase {
