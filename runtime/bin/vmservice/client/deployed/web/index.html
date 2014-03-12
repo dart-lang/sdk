@@ -1266,71 +1266,8 @@
   
 </polymer-element>
 <polymer-element name="service-view" extends="observatory-element">
-  <!--
-    This is a big switch statement which instantiates the custom element
-    designated to display the service object type.
-  -->
-  <template>
-  	<!-- If the message type is an IsolateList -->
-    <template if="{{ object.serviceType == 'IsolateList' }}">
-      <isolate-list isolates="{{ object }}"></isolate-list>
-    </template>
-    <template if="{{ object.serviceType == 'Error' }}">
-      <error-view error="{{ object }}"></error-view>
-    </template>
-    <template if="{{ object.serviceType == 'Script' }}">
-      <script-view script="{{ object }}"></script-view>
-    </template>
-    <template if="{{ object.serviceType == 'StackTrace' }}">
-      <stack-trace trace="{{ object }}"></stack-trace>
-    </template>
-    <template if="{{ object.serviceType == 'Library' }}">
-      <library-view library="{{ object }}"></library-view>
-    </template>
-    <template if="{{ object.serviceType == 'Class' }}">
-      <class-view cls="{{ object }}"></class-view>
-    </template>
-    <template if="{{ object.serviceType == 'Function' }}">
-      <function-view function="{{ object }}"></function-view>
-    </template>
-    <template if="{{ object.serviceType == 'Field' }}">
-      <field-view field="{{ object }}"></field-view>
-    </template>
-    <template if="{{ object.serviceType == 'AllocationProfile' }}">
-      <heap-profile profile="{{ object }}"></heap-profile>
-    </template>
-    <template if="{{ object.serviceType == 'BreakpointList' }}">
-      <breakpoint-list msg="{{ object }}"></breakpoint-list>
-    </template>
-    <template if="{{ object.serviceType == 'Closure' }}">
-      <instance-view instance="{{ object }}"></instance-view>
-    </template>
-    <template if="{{ object.serviceType == 'Instance' }}">
-      <instance-view instance="{{ object }}"></instance-view>
-    </template>
-    <template if="{{ object.serviceType == 'Array' }}">
-      <instance-view instance="{{ object }}"></instance-view>
-    </template>
-    <template if="{{ object.serviceType == 'GrowableObjectArray' }}">
-      <instance-view instance="{{ object }}"></instance-view>
-    </template>
-    <template if="{{ object.serviceType == 'String' }}">
-      <instance-view instance="{{ object }}"></instance-view>
-    </template>
-    <template if="{{ object.serviceType == 'Bool' }}">
-      <instance-view instance="{{ object }}"></instance-view>
-    </template>
-    <template if="{{ object.serviceType == 'Smi' }}">
-      <instance-view instance="{{ object }}"></instance-view>
-    </template>
-    <template if="{{ object.serviceType == 'Code' }}">
-      <code-view code="{{ object }}"></code-view>
-    </template>
-    <template if="{{ object.serviceType == 'Profile' }}">
-      <isolate-profile profile="{{ object }}"></isolate-profile>
-    </template>
-    <!-- Add new views and service object types in the future here. -->
-  </template>
+  <!-- This element explicitly manages the child elements to avoid setting
+       an observable property on the old element to an invalid type. -->
   
 </polymer-element>
 <polymer-element name="response-viewer" extends="observatory-element">

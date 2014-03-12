@@ -20,6 +20,7 @@ abstract class ServiceObject extends Observable {
 
   /// The complete service url of this object with a '#/' prefix.
   @reflectable String get hashLink => isolate.relativeHashLink(_id);
+  set hashLink(var o) { /* silence polymer */ }
 
   String _id;
   /// The id of this object.
