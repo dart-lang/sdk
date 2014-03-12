@@ -329,6 +329,11 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitInterceptor(HInterceptor node) {
     String value = temporaryId(node.inputs[0]);
+    if (node.interceptedClasses != null) {
+      JavaScriptBackend backend = compiler.backend;
+      String cls = backend.namer.getInterceptorSuffix(node.interceptedClasses);
+      return "Intercept ($cls): $value";
+    }
     return "Intercept: $value";
   }
 
