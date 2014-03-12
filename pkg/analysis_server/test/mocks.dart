@@ -17,7 +17,7 @@ import 'package:unittest/matcher.dart';
  * or throw an exception if it cannot be found.
  */
 String get sdkPath {
-  Uri sdkUri = Uri.base.resolveUri(Platform.script).resolve('../../../sdk/');
+  Uri sdkUri = Platform.script.resolve('../../../sdk/');
   // Verify that the internal library file exists
   Uri libFileUri = sdkUri.resolve('lib/_internal/libraries.dart');
   if (!new File.fromUri(libFileUri).existsSync()) {
