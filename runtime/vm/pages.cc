@@ -445,8 +445,10 @@ void PageSpace::PrintHeapMapToJSONStream(JSONStream* stream) {
   JSONObject heap_map(stream);
   heap_map.AddProperty("type", "HeapMap");
   heap_map.AddProperty("id", "heapmap");
-  heap_map.AddProperty("free_class_id", kFreeListElement);
-  heap_map.AddProperty("unit_size_bytes", kObjectAlignment);
+  heap_map.AddProperty("free_class_id",
+                       static_cast<intptr_t>(kFreeListElement));
+  heap_map.AddProperty("unit_size_bytes",
+                       static_cast<intptr_t>(kObjectAlignment));
   {
     // "pages" is an array [page0, page1, ..., pageN], each page an array
     // [size, class id, size, class id, ...] (size unit is kObjectAlignment).
