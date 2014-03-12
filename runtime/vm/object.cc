@@ -10855,7 +10855,7 @@ intptr_t ICData::TestEntryLength() const {
 
 intptr_t ICData::NumberOfChecks() const {
   // Do not count the sentinel;
-  return (Array::Handle(ic_data()).Length() / TestEntryLength()) - 1;
+  return (Smi::Value(ic_data()->ptr()->length_) / TestEntryLength()) - 1;
 }
 
 
