@@ -51,7 +51,7 @@ class ServiceTestMessageHandler : public MessageHandler {
         old_pos++;
         if ((old_len - old_pos) > key_len &&
             strncmp(&_msg[old_pos], key, key_len) == 0 &&
-            _msg[old_pos + key_len + 2] == '\"') {
+            _msg[old_pos + key_len] == '\"') {
           old_pos += (key_len + 2);
           // Skip until next , or }.
           while (_msg[old_pos] != '\0' &&
@@ -454,11 +454,12 @@ TEST_CASE(Service_Objects) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   handler.filterMsg("name");
+  handler.filterMsg("size");
   EXPECT_STREQ(
       "{\"type\":\"String\",\"id\":\"objects\\/1\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/60\","
       "\"user_name\":\"String\"},\"preview\":\"\\\"value\\\"\","
-      "\"fields\":[],\"size\":24}",
+      "\"fields\":[],}",
       handler.msg());
 
   // object id ring / invalid => expired
