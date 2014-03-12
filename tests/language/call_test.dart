@@ -38,6 +38,6 @@ main() {
   }
 
   Expect.throws(() => bar.call(), (e) => e is NoSuchMethodError);
-  Expect.throws(() => opt_arg.call({x:"p"}), (e) => e is NoSuchMethodError);
+  Expect.throws(() => opt_arg.call(x:"p"), (e) => e is NoSuchMethodError);
   Expect.throws(() => named_arg.call("p", "q"), (e) => e is NoSuchMethodError);
 }
