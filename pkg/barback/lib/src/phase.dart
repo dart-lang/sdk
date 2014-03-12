@@ -173,14 +173,18 @@ class Phase {
 
     node.force();
 
-    // Each group is one channel along which an asset may be forwarded. Then
-    // there's one additional channel for the non-grouped transformers.
-    var forwarder = new PhaseForwarder(_groups.length + 1);
+    // Each group is one channel along which an asset may be forwarded, as is
+    // each transformer.
+    var forwarder = new PhaseForwarder(
+        node, _transformers.length, _groups.length);
     _forwarders[node.id] = forwarder;
     forwarder.onAsset.listen(_handleOutputWithoutForwarder);
+    if (forwarder.output != null) {
+      _handleOutputWithoutForwarder(forwarder.output);
+    }
 
     _inputOrigins.add(node.origin);
-    var input = new PhaseInput(this, node, _transformers, "$_location.$_index");
+    var input = new PhaseInput(this, node, "$_location.$_index");
     _inputs[node.id] = input;
     input.input.whenRemoved(() {
       _inputOrigins.remove(node.origin);
@@ -193,6 +197,8 @@ class Phase {
     input.onDone.listen((_) {
       if (!isDirty) _onDoneController.add(null);
     });
+
+    input.updateTransformers(_transformers);
 
     for (var group in _groups.values) {
       group.addInput(node);
@@ -245,7 +251,9 @@ class Phase {
         // if it becomes available. If it's removed before becoming available,
         // try again, since it could be generated again.
         output.force();
-        return output.whenAvailable((_) => output).catchError((error) {
+        return output.whenAvailable((_) {
+          return output;
+        }).catchError((error) {
           if (error is! AssetNotFoundException) throw error;
           return getOutput(id);
         });
@@ -293,7 +301,7 @@ class Phase {
     }
 
     for (var forwarder in _forwarders.values) {
-      forwarder.numChannels = _groups.length + 1;
+      forwarder.updateTransformers(_transformers.length, _groups.length);
     }
   }
 

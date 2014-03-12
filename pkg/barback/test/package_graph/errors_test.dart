@@ -56,7 +56,12 @@ main() {
   });
 
   test("reports an error for an unprovided source", () {
-    initGraph(["app|known.txt"]);
+    initGraph(["app|known.txt"], {"app": [
+      // Have a dummy transformer so that barback at least tries to load the
+      // asset.
+      [new RewriteTransformer("a", "b")]
+    ]});
+
     updateSources(["app|unknown.txt"]);
 
     buildShouldFail([
@@ -154,7 +159,11 @@ main() {
   });
 
   test("an error loading an asset removes the asset from the graph", () {
-    initGraph(["app|foo.txt"]);
+    initGraph(["app|foo.txt"], {"app": [
+      // Have a dummy transformer so that barback at least tries to load the
+      // asset.
+      [new RewriteTransformer("a", "b")]
+    ]});
 
     setAssetError("app|foo.txt");
     updateSources(["app|foo.txt"]);

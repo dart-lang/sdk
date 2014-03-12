@@ -11,13 +11,13 @@ import 'asset_node_set.dart';
 
 /// A class that takes care of forwarding assets within a phase.
 ///
-/// Each phase contains one or more channels that process its input assets. The
-/// non-grouped transformers for that phase are one such channel, and each
-/// [TransformerGroup] in that phase is another. For each input asset, each
-/// channel individually decides whether to forward that asset based on whether
-/// that channel uses it. If a channel does decide to forward an asset, we call
-/// that forwarded asset an "intermediate forwarded asset" to distinguish it
-/// from the output of a [PhaseForwarder].
+/// Each phase contains one or more channels that process its input assets. Each
+/// non-grouped transformer for that phase is a channel, each [TransformerGroup]
+/// in that phase is another, and the source node is the final channel. For each
+/// input asset, each channel individually decides whether to forward that asset
+/// based on whether that channel uses it. If a channel does decide to forward
+/// an asset, we call that forwarded asset an "intermediate forwarded asset" to
+/// distinguish it from the output of a [PhaseForwarder].
 ///
 /// All intermediate assets with a given origin are provided to a single
 /// [PhaseForwarder] via [addIntermediateAsset]. This forwarder then determines
@@ -30,14 +30,7 @@ import 'asset_node_set.dart';
 /// forwarded assets are themselves available. If any of the intermediate assets
 /// are dirty, the final asset will also be marked dirty.
 class PhaseForwarder {
-  /// The number of channels through which the asset may have been forwarded.
-  ///
-  /// Each group is a channel, along with one channel for the [PhaseInput] that
-  /// handles all the transformers.
-  set numChannels(int value) {
-    _numChannels = value;
-    _adjustOutput();
-  }
+  /// The number of channels to forward, counting the source node.
   int _numChannels;
 
   /// The intermediate forwarded assets.
@@ -46,7 +39,8 @@ class PhaseForwarder {
   /// The final forwarded asset.
   ///
   /// This will be null if the asset is not being forwarded.
-  AssetNode get output => _outputController.node;
+  AssetNode get output =>
+      _outputController == null ? null : _outputController.node;
   AssetNodeController _outputController;
 
   /// A stream that emits an event whenever [this] starts producing a final
@@ -55,9 +49,26 @@ class PhaseForwarder {
   /// Whenever this stream emits an event, the value will be identical to
   /// [output].
   Stream<AssetNode> get onAsset => _onAssetController.stream;
-  final _onAssetController = new StreamController<AssetNode>(sync: true);
+  final _onAssetController =
+      new StreamController<AssetNode>.broadcast(sync: true);
 
-  PhaseForwarder(this._numChannels);
+  /// Creates a phase forwarder forwarding nodes that come from [node] across
+  /// [numTransformers] transformers and [numGroups] groups.
+  ///
+  /// [node] is passed in explicitly so that it can be forwarded if there are no
+  /// other channels.
+  PhaseForwarder(AssetNode node, int numTransformers, int numGroups)
+      : _numChannels = numTransformers + numGroups + 1 {
+    addIntermediateAsset(node);
+  }
+
+  /// Notify the forwarder that the number of transformer and group channels has
+  /// changed.
+  void updateTransformers(int numTransformers, int numGroups) {
+    // Add one channel for the source node.
+    _numChannels = numTransformers + numGroups + 1;
+    _adjustOutput();
+  }
 
   /// Adds an intermediate forwarded asset to [this].
   ///
@@ -116,10 +127,8 @@ class PhaseForwarder {
     // intermediate assets are dirty.
     if (_intermediateAssets.any((asset) => asset.state.isDirty)) {
       if (!_outputController.node.state.isDirty) _outputController.setDirty();
-    } else {
-      if (!_outputController.node.state.isAvailable) {
-        _outputController.setAvailable(_intermediateAssets.first.asset);
-      }
+    } else if (!_outputController.node.state.isAvailable) {
+      _outputController.setAvailable(_intermediateAssets.first.asset);
     }
   }
 }

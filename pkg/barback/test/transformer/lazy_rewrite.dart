@@ -18,6 +18,7 @@ class LazyRewriteTransformer extends RewriteTransformer
       : super(from, to);
 
   Future declareOutputs(DeclaringTransform transform) {
+    if (consumePrimary) transform.consumePrimary();
     for (var extension in to.split(" ")) {
       var id = transform.primaryInput.id.changeExtension(".$extension");
       transform.declareOutput(id);
