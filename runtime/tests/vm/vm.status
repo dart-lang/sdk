@@ -43,7 +43,7 @@ cc/ThreadInterrupterHigh: Skip
 cc/ThreadInterrupterMedium: Skip
 cc/ThreadInterrupterLow: Skip
 
-[ $arch == simmips ]
+[ $arch == simmips && $arch == mips ]
 cc/Service_Coverage: Skip # Dart bug 16250
 
 [ $compiler == dart2js ]
@@ -68,9 +68,9 @@ dart/inline_stack_frame_test: RuntimeError
 *: Skip
 
 [ $arch == mips ]
-cc/Sdc1Ldc1: Crash # Illegal instructions
-cc/Cop1CvtDL: Crash
-cc/Cop1CvtDL_neg: Crash
+cc/Cop1CvtDL: Crash # Illegal instructions
+cc/Cop1CvtDL_neg: Crash # Illegal instructions
+cc/StaticNonNullSumCallCodegen: Crash # dartbug.com/17440
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 dart/mirrored_compilation_error_test: Skip # Can't pass needed VM flag

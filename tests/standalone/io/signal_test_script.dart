@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:io";
+import "dart:async";
 
 void main(args) {
   var signal;
+  // This process should die if it never receives a signal.
+  var timeout = new Timer(new Duration(seconds: 25), () => exit(1));
   switch (args[0]) {
     case 'SIGHUP': signal = ProcessSignal.SIGHUP; break;
     case 'SIGINT': signal = ProcessSignal.SIGINT; break;
@@ -18,7 +21,7 @@ void main(args) {
     if (signal != s) exit(1);
     if (signal.toString() != args[0]) exit(1);
     print('got signal');
+    timeout.cancel();
   });
   print("ready");
 }
-
