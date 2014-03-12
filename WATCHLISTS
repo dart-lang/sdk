@@ -13,11 +13,15 @@
     'tools': {
       'filepath': 'tools/',
     },
+    'observatory': {
+      'filepath': 'runtime/bin/vmservice/',
+    },
   },
 
   'WATCHLISTS': {
     'runtime': ['vm-dev@dartlang.org'],
     'tools': ['ricow@google.com'],
+    'observatory': ['johnmccutchan@google.com', 'turnidge@google.com'],
   },
 }
 
