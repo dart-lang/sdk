@@ -133,10 +133,12 @@ class HeapProfileElement extends ObservatoryElement {
     var heap = profile['heaps']['new'];
     _newPieDataTable.addRow(['Used', heap['used']]);
     _newPieDataTable.addRow(['Free', heap['capacity'] - heap['used']]);
+    _newPieDataTable.addRow(['External', heap['external']]);
     _oldPieDataTable.clearRows();
     heap = profile['heaps']['old'];
     _oldPieDataTable.addRow(['Used', heap['used']]);
     _oldPieDataTable.addRow(['Free', heap['capacity'] - heap['used']]);
+    _oldPieDataTable.addRow(['External', heap['external']]);
     _draw();
   }
 
