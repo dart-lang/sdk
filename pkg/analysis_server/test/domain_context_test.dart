@@ -15,12 +15,12 @@ import 'package:unittest/unittest.dart';
 import 'mocks.dart';
 
 main() {
-//  group('ContextDomainHandlerTest', () {
-//    test('applyChanges', ContextDomainHandlerTest.applyChanges);
-//    test('setOptions', ContextDomainHandlerTest.setOptions);
-//    test('setPrioritySources_empty', ContextDomainHandlerTest.setPrioritySources_empty);
-//    test('setPrioritySources_nonEmpty', ContextDomainHandlerTest.setPrioritySources_nonEmpty);
-//  });
+  group('ContextDomainHandlerTest', () {
+    test('applyChanges', ContextDomainHandlerTest.applyChanges);
+    test('setOptions', ContextDomainHandlerTest.setOptions);
+    test('setPrioritySources_empty', ContextDomainHandlerTest.setPrioritySources_empty);
+    test('setPrioritySources_nonEmpty', ContextDomainHandlerTest.setPrioritySources_nonEmpty);
+  });
 }
 
 class ContextDomainHandlerTest {
@@ -32,7 +32,9 @@ class ContextDomainHandlerTest {
 
     Request request = new Request('0', ContextDomainHandler.APPLY_CHANGES_NAME);
     request.setParameter(ContextDomainHandler.CONTEXT_ID_PARAM, contextId);
-    request.setParameter(ContextDomainHandler.CHANGES_PARAM, changeSet);
+    // TODO (danrubel) convert ChangeSet to Map
+//    request.setParameter(ContextDomainHandler.CHANGES_PARAM, changeSet);
+    request.setParameter(ContextDomainHandler.CHANGES_PARAM, new Map());
     Response response = handler.handleRequest(request);
     expect(response.toJson(), equals({
       Response.ID: '0',
@@ -92,8 +94,9 @@ class ContextDomainHandlerTest {
   static String _createContext(AnalysisServer server) {
     ServerDomainHandler handler = new ServerDomainHandler(server);
     Request request = new Request('0', ServerDomainHandler.CREATE_CONTEXT_METHOD);
-    request.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, '');
+    request.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, sdkPath);
     Response response = handler.handleRequest(request);
+    expect(response.error, isNull);
     return response.getResult(ServerDomainHandler.CONTEXT_ID_RESULT);
   }
 }

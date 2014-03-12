@@ -13,14 +13,14 @@ import 'package:unittest/unittest.dart';
 import 'mocks.dart';
 
 main() {
-//  group('ServerDomainHandler', () {
-////    test('createContext', ServerDomainHandlerTest.createContext);
-////    test('deleteContext_alreadyDeleted', ServerDomainHandlerTest.deleteContext_alreadyDeleted);
-//    test('deleteContext_doesNotExist', ServerDomainHandlerTest.deleteContext_doesNotExist);
-////    test('deleteContext_existing', ServerDomainHandlerTest.deleteContext_existing);
-//    test('shutdown', ServerDomainHandlerTest.shutdown);
-//    test('version', ServerDomainHandlerTest.version);
-//  });
+  group('ServerDomainHandler', () {
+//    test('createContext', ServerDomainHandlerTest.createContext);
+//    test('deleteContext_alreadyDeleted', ServerDomainHandlerTest.deleteContext_alreadyDeleted);
+    test('deleteContext_doesNotExist', ServerDomainHandlerTest.deleteContext_doesNotExist);
+//    test('deleteContext_existing', ServerDomainHandlerTest.deleteContext_existing);
+    test('shutdown', ServerDomainHandlerTest.shutdown);
+    test('version', ServerDomainHandlerTest.version);
+  });
 }
 
 class ServerDomainHandlerTest {
@@ -29,7 +29,7 @@ class ServerDomainHandlerTest {
     ServerDomainHandler handler = new ServerDomainHandler(server);
 
     Request createRequest = new Request('0', ServerDomainHandler.CREATE_CONTEXT_METHOD);
-    createRequest.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, '');
+    createRequest.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, sdkPath);
     Response response = handler.handleRequest(createRequest);
     String contextId = response.getResult(ServerDomainHandler.CONTEXT_ID_RESULT);
     expect(contextId, isNotNull);
@@ -61,10 +61,8 @@ class ServerDomainHandlerTest {
     Request deleteRequest = new Request('0', ServerDomainHandler.DELETE_CONTEXT_METHOD);
     deleteRequest.setParameter(ServerDomainHandler.CONTEXT_ID_PARAM, 'xyzzy');
     Response response = handler.handleRequest(deleteRequest);
-    expect(response.toJson(), equals({
-      Response.ID: '0',
-      Response.ERROR: 'Context does not exist'
-    }));
+    expect(response.id, equals('0'));
+    expect(response.error, isNotNull);
   }
 
   static void deleteContext_existing() {
