@@ -13,17 +13,19 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/matcher.dart';
 
 /**
- * Answer the path the the SDK relative to the currently running script
- * or throw an exception if it cannot be found.
+ * Answer the absolute path the the SDK relative to the currently running
+ * script or throw an exception if it cannot be found.
  */
 String get sdkPath {
   Uri sdkUri = Platform.script.resolve('../../../sdk/');
-  // Verify that the internal library file exists
-  Uri libFileUri = sdkUri.resolve('lib/_internal/libraries.dart');
-  if (!new File.fromUri(libFileUri).existsSync()) {
-    throw 'Expected Dart SDK at ${sdkUri.path}';
+
+  // Verify the directory exists
+  Directory sdkDir = new Directory.fromUri(sdkUri);
+  if (!sdkDir.existsSync()) {
+    throw 'Specified Dart SDK does not exist: $sdkDir';
   }
-  return sdkUri.path;
+
+  return sdkDir.path;
 }
 
 /**
