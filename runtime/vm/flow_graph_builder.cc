@@ -3017,7 +3017,8 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         load->set_recognized_kind(kind);
         return ReturnDefinition(load);
       }
-      case MethodRecognizer::kObjectCid: {
+      case MethodRecognizer::kObjectCid:
+      case MethodRecognizer::kTypedListBaseCid: {
         Value* receiver = Bind(BuildLoadThisVar(node->scope()));
         LoadClassIdInstr* load = new LoadClassIdInstr(receiver);
         return ReturnDefinition(load);

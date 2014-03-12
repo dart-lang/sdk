@@ -41,6 +41,7 @@ class Range;
   V(Object, ==, ObjectEquals, 1068471689)                                      \
   V(Object, Object., ObjectConstructor, 1058615085)                            \
   V(Object, get:_cid, ObjectCid, 1498751301)                                   \
+  V(_TypedListBase, get:_cid, TypedListBaseCid, 1938244762)                    \
   V(_List, get:length, ObjectArrayLength, 215183186)                           \
   V(_ImmutableList, get:length, ImmutableArrayLength, 578762861)               \
   V(_TypedList, get:length, TypedDataLength, 26646119)                         \

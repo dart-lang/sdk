@@ -548,7 +548,10 @@ abstract class _TypedListBase {
 
     if (from is _TypedListBase) {
       if (this.elementSizeInBytes == from.elementSizeInBytes) {
-        if (this.buffer._setRange(
+        if ((count < 10) && (from.buffer != this.buffer)) {
+          Lists.copy(from, skipCount, this, start, count);
+          return;
+        } else if (this.buffer._setRange(
               start * elementSizeInBytes + this.offsetInBytes,
               count * elementSizeInBytes,
               from.buffer,
