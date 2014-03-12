@@ -136,8 +136,8 @@ class AnalysisServer {
     if (contextWorkQueue.isEmpty) {
       running = false;
     } else {
-      new Future(performTask).catchError((exception, stackTrace) {
-        AnalysisEngine.instance.logger.logError(exception);
+      new Future(performTask).catchError((ex, st) {
+        AnalysisEngine.instance.logger.logError("${ex}\n${st}");
       });
     }
   }

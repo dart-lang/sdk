@@ -124,8 +124,8 @@ class AnalyzerImpl {
              + angularTime)}");
         stdout.writeln("total:$totalTime");
       }
-    }).catchError((exception, stackTrace) {
-      AnalysisEngine.instance.logger.logError(exception);
+    }).catchError((ex, st) {
+      AnalysisEngine.instance.logger.logError("${ex}\n${st}");
     });
   }
 
@@ -158,6 +158,8 @@ class AnalyzerImpl {
     sourceFactory = new SourceFactory(resolvers);
     context = AnalysisEngine.instance.createAnalysisContext();
     context.sourceFactory = sourceFactory;
+    // Uncomment the following to have errors reported on stdout and stderr
+//    AnalysisEngine.instance.logger = new StdLogger();
 
     // set options for context
     AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
@@ -257,5 +259,32 @@ class AnalyzerImpl {
     }
     // some generic file
     return UriKind.FILE_URI;
+  }
+}
+
+/**
+ * This [Logger] prints out information comments to [stdout] and error messages
+ * to [stderr].
+ */
+class StdLogger extends Logger {
+  
+  @override
+  void logError(String message) {
+    stderr.writeln(message);
+  }
+
+  @override
+  void logError2(String message, Exception exception) {
+    stderr.writeln(message);
+  }
+
+  @override
+  void logInformation(String message) {
+    stdout.writeln(message);
+  }
+
+  @override
+  void logInformation2(String message, Exception exception) {
+    stdout.writeln(message);
   }
 }
