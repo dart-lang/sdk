@@ -94,6 +94,25 @@ String byteToHex(int byte) {
   return DIGITS[(byte ~/ 16) % 16] + DIGITS[byte % 16];
 }
 
+/// Returns a sentence fragment listing the elements of [iter].
+///
+/// This converts each element of [iter] to a string and separates them with
+/// commas and/or "and" where appropriate.
+String toSentence(Iterable iter) {
+  if (iter.length == 1) return iter.first.toString();
+  return iter.take(iter.length - 1).join(", ") + " and ${iter.last}";
+}
+
+/// Returns [name] if [number] is 1, or the plural of [name] otherwise.
+///
+/// By default, this just adds "s" to the end of [name] to get the plural. If
+/// [plural] is passed, that's used instead.
+String pluralize(String name, int number, {String plural}) {
+  if (number == 1) return name;
+  if (plural != null) return plural;
+  return '${name}s';
+}
+
 /// Converts [input] into a [Uint8List].
 ///
 /// If [input] is a [TypedData], this just returns a view on [input].

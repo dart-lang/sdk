@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'asset.dart';
 import 'transform.dart';
+import 'utils.dart';
 
 /// A [Transformer] represents a processor that takes in one or more input
 /// assets and uses them to generate one or more output assets.
@@ -19,14 +20,28 @@ import 'transform.dart';
 /// If possible, transformers should implement [DeclaringTransformer] as well to
 /// help barback optimize the package graph.
 abstract class Transformer {
-  /// Override this to return a space-separated list of file extensions
-  /// (with leading `.`) that are allowed for the primary inputs to this
-  /// transformer.
+  /// Override this to return a space-separated list of file extensions that are
+  /// allowed for the primary inputs to this transformer.
+  ///
+  /// Each extension must begin with a leading `.`.
   ///
   /// If you don't override [isPrimary] yourself, it defaults to allowing any
   /// asset whose extension matches one of the ones returned by this. If you
   /// don't override [isPrimary] *or* this, it allows all files.
   String get allowedExtensions => null;
+
+  Transformer() {
+    if (allowedExtensions == null) return;
+
+    var invalidExtensions = allowedExtensions.split(" ")
+        .where((extension) => !extension.startsWith("."))
+        .map((extension) => '"$extension"');
+    if (invalidExtensions.isEmpty) return;
+
+    throw new FormatException('Each extension in $this.allowedExtensions '
+        'must begin with a ".", but ${toSentence(invalidExtensions)} '
+        '${pluralize("doesn't", invalidExtensions.length, plural: "don't")}.');
+  }
 
   /// Returns `true` if [input] can be a primary input for this transformer.
   ///
@@ -49,7 +64,7 @@ abstract class Transformer {
     if (allowedExtensions == null) return new Future.value(true);
 
     for (var extension in allowedExtensions.split(" ")) {
-      if (input.id.extension == extension) return new Future.value(true);
+      if (input.id.path.endsWith(extension)) return new Future.value(true);
     }
 
     return new Future.value(false);
