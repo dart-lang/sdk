@@ -354,12 +354,11 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     // See if it's a path to a "public" asset within the root package. All
     // other files in the root package are not visible to transformers, so
     // should be loaded directly from disk.
-    var rootDir = _environment.rootPackage.dir;
     var sourcePath = path.fromUri(url);
-    if (isBeneath(sourcePath, path.join(rootDir, "lib")) ||
-        isBeneath(sourcePath, path.join(rootDir, "asset")) ||
-        isBeneath(sourcePath, path.join(rootDir, "web"))) {
-      var relative = path.relative(sourcePath, from: rootDir);
+    if (_environment.getPublicDirectories(_environment.rootPackage.name)
+        .any((dir) => path.isWithin(dir, sourcePath))) {
+      var relative = path.relative(sourcePath,
+          from: _environment.rootPackage.dir);
 
       return new AssetId(_environment.rootPackage.name, relative);
     }

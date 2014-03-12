@@ -159,6 +159,18 @@ class BuildEnvironment {
     return _builtInTransformers;
   }
 
+  /// Gets the names of the top-level directories in [package] whose contents
+  /// should be provided as source assets.
+  Set<String> getPublicDirectories(String package) {
+    var directories = ["asset", "lib"];
+
+    if (package == graph.entrypoint.root.name) {
+      directories.addAll(_rootDirectories);
+    }
+
+    return directories.toSet();
+  }
+
   /// Loads the assets and transformers for this environment.
   ///
   /// This transforms and serves all library and asset files in all packages in
@@ -226,8 +238,7 @@ class BuildEnvironment {
 
   /// Provides all of the source assets in the environment to barback.
   Future _loadSources(Barback barback) {
-    return Future.wait(graph.packages.values.map(
-        (package) => _updateSources(graph.entrypoint, package)));
+    return Future.wait(graph.packages.values.map(_updateSources));
   }
 
   /// Adds all of the source assets in this environment to barback and then
@@ -243,12 +254,11 @@ class BuildEnvironment {
       var packageId = graph.lockFile.packages[package.name];
       if (packageId != null &&
           graph.entrypoint.cache.sources[packageId.source].shouldCache) {
-        return _updateSources(graph.entrypoint, package);
+        return _updateSources(package);
       }
 
       // Watch the visible package directories for changes.
-      return Future.wait(_getPublicDirectories(graph.entrypoint, package)
-          .map((name) {
+      return Future.wait(getPublicDirectories(package.name).map((name) {
         var subdirectory = path.join(package.dir, name);
         if (!dirExists(subdirectory)) return new Future.value();
 
@@ -282,7 +292,7 @@ class BuildEnvironment {
           }
         });
         return watcher.ready;
-      })).then((_) => _updateSources(graph.entrypoint, package));
+      })).then((_) => _updateSources(package));
     }));
   }
 
@@ -295,9 +305,8 @@ class BuildEnvironment {
   /// For large packages, listing the contents is a performance bottleneck, so
   /// this is optimized for our needs in here instead of using the more general
   /// but slower [listDir].
-  Future _updateSources(Entrypoint entrypoint, Package package) {
-    return Future.wait(_getPublicDirectories(entrypoint, package)
-        .map((dirPath) {
+  Future _updateSources(Package package) {
+    return Future.wait(getPublicDirectories(package.name).map((dirPath) {
       var dir = path.join(package.dir, dirPath);
       if (!dirExists(dir)) return new Future.value();
 
@@ -332,19 +341,6 @@ class BuildEnvironment {
         return [new AssetId(package.name, relative)];
       }).toList().then(barback.updateSources);
     }));
-  }
-
-  /// Gets the names of the top-level directories in [package] whose contents
-  /// should be provided as source assets.
-  Iterable<String> _getPublicDirectories(Entrypoint entrypoint,
-      Package package) {
-    var directories = ["asset", "lib"];
-
-    if (package.name == entrypoint.root.name) {
-      directories.addAll(_rootDirectories);
-    }
-
-    return directories;
   }
 }
 
