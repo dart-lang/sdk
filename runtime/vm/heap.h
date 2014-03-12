@@ -239,6 +239,11 @@ class Heap {
 
   void PrintToJSONObject(Space space, JSONObject* object) const;
 
+  // The heap map is an array of sizes and class ids (except freelist is 0).
+  void PrintHeapMapToJSONStream(JSONStream* stream) const {
+    return old_space_->PrintHeapMapToJSONStream(stream);
+  }
+
  private:
   class GCStats : public ValueObject {
    public:

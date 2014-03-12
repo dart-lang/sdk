@@ -428,6 +428,38 @@ void PageSpace::PrintToJSONObject(JSONObject* object) {
 }
 
 
+class HeapMapAsJSONVisitor : public ObjectVisitor {
+ public:
+  explicit HeapMapAsJSONVisitor(JSONArray* array)
+      : ObjectVisitor(NULL), array_(array) {}
+  virtual void VisitObject(RawObject* obj) {
+    array_->AddValue(obj->Size() / kObjectAlignment);
+    array_->AddValue(obj->GetClassId());
+  }
+ private:
+  JSONArray* array_;
+};
+
+
+void PageSpace::PrintHeapMapToJSONStream(JSONStream* stream) {
+  JSONObject heap_map(stream);
+  heap_map.AddProperty("type", "HeapMap");
+  heap_map.AddProperty("id", "heapmap");
+  heap_map.AddProperty("free_class_id", kFreeListElement);
+  heap_map.AddProperty("unit_size_bytes", kObjectAlignment);
+  {
+    // "pages" is an array [page0, page1, ..., pageN], each page an array
+    // [size, class id, size, class id, ...] (size unit is kObjectAlignment).
+    JSONArray all_pages(&heap_map, "pages");
+    for (HeapPage* page = pages_; page != NULL; page = page->next()) {
+      JSONArray page_map(&all_pages);
+      HeapMapAsJSONVisitor printer(&page_map);
+      page->VisitObjects(&printer);
+    }
+  }
+}
+
+
 bool PageSpace::ShouldCollectCode() {
   // Try to collect code if enough time has passed since the last attempt.
   const int64_t start = OS::GetCurrentTimeMicros();

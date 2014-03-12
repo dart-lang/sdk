@@ -1271,6 +1271,12 @@ static bool HandleUnpin(Isolate* isolate, JSONStream* js) {
 }
 
 
+static bool HandleHeapMap(Isolate* isolate, JSONStream* js) {
+  isolate->heap()->PrintHeapMapToJSONStream(js);
+  return true;
+}
+
+
 static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "_echo", HandleIsolateEcho },
   { "", HandleIsolate },
@@ -1280,6 +1286,7 @@ static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "coverage", HandleCoverage },
   { "cpu", HandleCpu },
   { "debug", HandleDebug },
+  { "heapmap", HandleHeapMap },
   { "libraries", HandleLibraries },
   { "objects", HandleObjects },
   { "profile", HandleProfile },

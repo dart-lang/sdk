@@ -444,6 +444,7 @@ class RawObject {
   friend class GCMarker;
   friend class ExternalTypedData;
   friend class Heap;
+  friend class HeapMapAsJSONVisitor;
   friend class ClassStatsVisitor;
   friend class MarkingVisitor;
   friend class Object;

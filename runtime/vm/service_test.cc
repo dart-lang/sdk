@@ -884,6 +884,35 @@ TEST_CASE(Service_AllocationProfile) {
 }
 
 
+TEST_CASE(Service_HeapMap) {
+  const char* kScript =
+      "var port;\n"  // Set to our mock port by C++.
+      "\n"
+      "main() {\n"
+      "}";
+
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port =
+      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
+
+  Instance& service_msg = Instance::Handle();
+  service_msg = Eval(lib, "[port, ['heapmap'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"HeapMap\"", handler.msg());
+  EXPECT_SUBSTRING("\"pages\":[[", handler.msg());
+  EXPECT_SUBSTRING("]]", handler.msg());
+}
+
+
 static const char* alpha_callback(
     const char* name,
     const char** arguments,

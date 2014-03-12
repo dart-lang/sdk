@@ -240,6 +240,7 @@ class PageSpace {
   }
 
   void PrintToJSONObject(JSONObject* object);
+  void PrintHeapMapToJSONStream(JSONStream* stream);
 
   void AllocateExternal(intptr_t size);
   void FreeExternal(intptr_t size);
