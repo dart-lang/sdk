@@ -3344,6 +3344,10 @@ class StaticCallInstr : public TemplateDefinition<0> {
     is_native_list_factory_ = value;
   }
 
+  bool IsRecognizedFactory() const {
+    return is_known_list_constructor() || is_native_list_factory();
+  }
+
   virtual bool MayThrow() const { return true; }
 
   virtual AliasIdentity Identity() const { return identity_; }

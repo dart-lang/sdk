@@ -5596,7 +5596,7 @@ class AliasedSet : public ZoneAllocated {
     ASSERT(alloc->IsAllocateObject() ||
            alloc->IsCreateArray() ||
            (alloc->IsStaticCall() &&
-            alloc->AsStaticCall()->is_known_list_constructor()));
+            alloc->AsStaticCall()->IsRecognizedFactory()));
     if (alloc->Identity() == kIdentityUnknown) {
       bool escapes = false;
       for (Value* use = alloc->input_use_list();
@@ -5683,7 +5683,7 @@ class AliasedSet : public ZoneAllocated {
     if ((defn->IsAllocateObject() ||
          defn->IsCreateArray() ||
          (defn->IsStaticCall() &&
-          defn->AsStaticCall()->is_known_list_constructor())) &&
+          defn->AsStaticCall()->IsRecognizedFactory())) &&
         !CanBeAliased(defn)) {
       instance_id = defn->ssa_temp_index();
       ASSERT(instance_id != kAnyInstance);
@@ -5704,7 +5704,7 @@ class AliasedSet : public ZoneAllocated {
     ASSERT(defn != NULL);
     if ((defn->IsCreateArray() ||
          (defn->IsStaticCall() &&
-          defn->AsStaticCall()->is_known_list_constructor())) &&
+          defn->AsStaticCall()->IsRecognizedFactory())) &&
         !CanBeAliased(defn)) {
       instance_id = defn->ssa_temp_index();
       ASSERT(instance_id != kAnyInstance);
@@ -5719,7 +5719,7 @@ class AliasedSet : public ZoneAllocated {
     ASSERT(defn != NULL);
     if ((defn->IsCreateArray() ||
          (defn->IsStaticCall() &&
-          defn->AsStaticCall()->is_known_list_constructor())) &&
+          defn->AsStaticCall()->IsRecognizedFactory())) &&
         !CanBeAliased(defn)) {
       instance_id = defn->ssa_temp_index();
       ASSERT(instance_id != kAnyInstance);
