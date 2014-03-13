@@ -13,6 +13,12 @@ void main() {
         isNull);
   });
 
+  test("an empty Dart file doesn't throw any errors", () {
+      expect(
+          errorsForFile(''),
+          isNull);
+    });
+
   test("an error on the first line", () {
     expect(errorsForFile('void foo;\n'),
         equals("Error in test.dart: Variables cannot have a type of 'void'\n"));
