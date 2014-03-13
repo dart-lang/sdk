@@ -8903,12 +8903,13 @@ RawInstance* Parser::TryCanonicalize(const Instance& instance,
 AstNode* Parser::RunStaticFieldInitializer(const Field& field,
                                            intptr_t field_ref_pos) {
   ASSERT(field.is_static());
-  const Class& field_owner = Class::ZoneHandle(field.owner());
-  const String& field_name = String::ZoneHandle(field.name());
-  const String& getter_name = String::Handle(Field::GetterName(field_name));
-  const Function& getter =
-      Function::Handle(field_owner.LookupStaticFunction(getter_name));
-  const Instance& value = Instance::Handle(field.value());
+  const Class& field_owner = Class::ZoneHandle(isolate(), field.owner());
+  const String& field_name = String::ZoneHandle(isolate(), field.name());
+  const String& getter_name = String::Handle(isolate(),
+                                             Field::GetterName(field_name));
+  const Function& getter = Function::Handle(
+      isolate(), field_owner.LookupStaticFunction(getter_name));
+  const Instance& value = Instance::Handle(isolate(), field.value());
   if (value.raw() == Object::transition_sentinel().raw()) {
     if (field.is_const()) {
       ErrorMsg("circular dependency while initializing static field '%s'",
@@ -8928,15 +8929,18 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field,
     if (field.is_const()) {
       field.set_value(Object::transition_sentinel());
       const int kNumArguments = 0;  // no arguments.
-      const Function& func =
-          Function::Handle(Resolver::ResolveStatic(field_owner,
-                                                   getter_name,
-                                                   kNumArguments,
-                                                   Object::empty_array()));
+      const Function& func = Function::Handle(
+          isolate(), Resolver::ResolveStatic(field_owner,
+                                             getter_name,
+                                             kNumArguments,
+                                             Object::empty_array()));
       ASSERT(!func.IsNull());
       ASSERT(func.kind() == RawFunction::kImplicitStaticFinalGetter);
-      Object& const_value = Object::Handle(
-          DartEntry::InvokeFunction(func, Object::empty_array()));
+      Object& const_value = Object::Handle(isolate());
+      {
+        PAUSETIMERSCOPE(isolate(), time_compilation);
+        const_value = DartEntry::InvokeFunction(func, Object::empty_array());
+      }
       if (const_value.IsError()) {
         const Error& error = Error::Cast(const_value);
         if (error.IsUnhandledException()) {
@@ -8990,8 +8994,9 @@ RawObject* Parser::EvaluateConstConstructorCall(
   // Constructors have 2 extra arguments: rcvr and construction phase.
   const int kNumExtraArgs = constructor.IsFactory() ? 1 : 2;
   const int num_arguments = arguments->length() + kNumExtraArgs;
-  const Array& arg_values = Array::Handle(Array::New(num_arguments));
-  Instance& instance = Instance::Handle();
+  const Array& arg_values = Array::Handle(isolate(),
+                                          Array::New(num_arguments));
+  Instance& instance = Instance::Handle(isolate());
   if (!constructor.IsFactory()) {
     instance = Instance::New(type_class, Heap::kOld);
     if (!type_arguments.IsNull()) {
@@ -9014,13 +9019,14 @@ RawObject* Parser::EvaluateConstConstructorCall(
     ASSERT(arg->IsLiteralNode());
     arg_values.SetAt((i + kNumExtraArgs), arg->AsLiteralNode()->literal());
   }
-  const Array& args_descriptor =
-      Array::Handle(ArgumentsDescriptor::New(num_arguments,
-                                             arguments->names()));
-  const Object& result =
-      Object::Handle(DartEntry::InvokeFunction(constructor,
-                                               arg_values,
-                                               args_descriptor));
+  const Array& args_descriptor = Array::Handle(
+      isolate(), ArgumentsDescriptor::New(num_arguments, arguments->names()));
+  Object& result = Object::Handle(isolate());
+  {
+    PAUSETIMERSCOPE(isolate(), time_compilation);
+    result = DartEntry::InvokeFunction(
+        constructor, arg_values, args_descriptor);
+  }
   if (result.IsError()) {
       // An exception may not occur in every parse attempt, i.e., the
       // generated AST is not deterministic. Therefore mark the function as
@@ -10184,28 +10190,31 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
 
 
 String& Parser::Interpolate(const GrowableArray<AstNode*>& values) {
-  const Class& cls =
-      Class::Handle(Library::LookupCoreClass(Symbols::StringBase()));
+  const Class& cls = Class::Handle(
+      isolate(), Library::LookupCoreClass(Symbols::StringBase()));
   ASSERT(!cls.IsNull());
-  const Function& func =
-      Function::Handle(cls.LookupStaticFunction(
-          Library::PrivateCoreLibName(Symbols::Interpolate())));
+  const Function& func = Function::Handle(isolate(), cls.LookupStaticFunction(
+      Library::PrivateCoreLibName(Symbols::Interpolate())));
   ASSERT(!func.IsNull());
 
   // Build the array of literal values to interpolate.
-  const Array& value_arr = Array::Handle(Array::New(values.length()));
+  const Array& value_arr = Array::Handle(isolate(),
+                                         Array::New(values.length()));
   for (int i = 0; i < values.length(); i++) {
     ASSERT(values[i]->IsLiteralNode());
     value_arr.SetAt(i, values[i]->AsLiteralNode()->literal());
   }
 
   // Build argument array to pass to the interpolation function.
-  const Array& interpolate_arg = Array::Handle(Array::New(1));
+  const Array& interpolate_arg = Array::Handle(isolate(), Array::New(1));
   interpolate_arg.SetAt(0, value_arr);
 
   // Call interpolation function.
-  String& concatenated = String::ZoneHandle();
-  concatenated ^= DartEntry::InvokeFunction(func, interpolate_arg);
+  String& concatenated = String::ZoneHandle(isolate());
+  {
+    PAUSETIMERSCOPE(isolate(), time_compilation);
+    concatenated ^= DartEntry::InvokeFunction(func, interpolate_arg);
+  }
   if (concatenated.IsUnhandledException()) {
     ErrorMsg("Exception thrown in Parser::Interpolate");
   }

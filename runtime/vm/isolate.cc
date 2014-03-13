@@ -116,7 +116,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   HandleScope handle_scope(isolate_);
   // TODO(turnidge): Rework collection total dart execution.  This can
   // overcount when other things (gc, compilation) are active.
-  TIMERSCOPE(time_dart_execution);
+  TIMERSCOPE(isolate_, time_dart_execution);
 
   // If the message is in band we lookup the receive port to dispatch to.  If
   // the receive port is closed, we drop the message without deserializing it.

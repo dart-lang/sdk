@@ -93,6 +93,9 @@ class Symbols;
     initializeHandle(obj, object::null());                                     \
     return obj;                                                                \
   }                                                                            \
+  static object& ZoneHandle(Isolate* isolate) {                                \
+    return ZoneHandle(isolate, object::null());                                \
+  }                                                                            \
   static object& ZoneHandle() {                                                \
     return ZoneHandle(Isolate::Current(), object::null());                     \
   }                                                                            \

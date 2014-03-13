@@ -902,7 +902,7 @@ void Object::RegisterPrivateClass(const Class& cls,
 
 
 RawError* Object::Init(Isolate* isolate) {
-  TIMERSCOPE(time_bootstrap);
+  TIMERSCOPE(isolate, time_bootstrap);
   ObjectStore* object_store = isolate->object_store();
 
   Class& cls = Class::Handle();
@@ -1336,7 +1336,7 @@ RawError* Object::Init(Isolate* isolate) {
 
 
 void Object::InitFromSnapshot(Isolate* isolate) {
-  TIMERSCOPE(time_bootstrap);
+  TIMERSCOPE(isolate, time_bootstrap);
   ObjectStore* object_store = isolate->object_store();
 
   Class& cls = Class::Handle();

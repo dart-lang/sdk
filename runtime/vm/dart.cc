@@ -196,8 +196,8 @@ Isolate* Dart::CreateIsolate(const char* name_prefix) {
 
 RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Initialize the new isolate.
-  TIMERSCOPE(time_isolate_initialization);
   Isolate* isolate = Isolate::Current();
+  TIMERSCOPE(isolate, time_isolate_initialization);
   ASSERT(isolate != NULL);
   StackZone zone(isolate);
   HandleScope handle_scope(isolate);
