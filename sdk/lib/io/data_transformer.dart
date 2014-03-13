@@ -201,19 +201,18 @@ class GZipCodec extends Codec<List<int>, List<int>> {
 
   /**
    * Tunes the compression algorithm. Use the value
-   * [ZlibConstant.STRATEGY_DEFAULT] for normal data,
-   * [ZlibConstant.STRATEGY_FILTERED] for data produced by a filter
-   * (or predictor),
-   * [ZlibConstant.STRATEGY_HUFFMAN_ONLY] to force Huffman encoding only (no
-   * string match), or [ZlibConstant.STRATEGY_RLE] to limit match distances to
-   * one (run-length encoding).
+   * [ZLibOption.STRATEGY_DEFAULT] for normal data,
+   * [ZLibOption.STRATEGY_FILTERED] for data produced by a filter
+   * (or predictor), [ZLibOption.STRATEGY_HUFFMAN_ONLY] to force Huffman
+   * encoding only (no string match), or [ZLibOption.STRATEGY_RLE] to limit
+   * match distances to one (run-length encoding).
    */
   final int strategy;
 
   /**
    * Base two logarithm of the window size (the size of the history buffer). It
-   * should be in the range 8..15. Larger values result in better compression at
-   * the expense of memory usage. The default value is 15
+   * should be in the range `8..15`. Larger values result in better compression
+   * at the expense of memory usage. The default value is `15`
    */
   final int windowBits;
 
@@ -304,19 +303,18 @@ class ZLibEncoder extends Converter<List<int>, List<int>> {
 
   /**
    * Tunes the compression algorithm. Use the value
-   * [ZlibConstant.STRATEGY_DEFAULT] for normal data,
-   * [ZlibConstant.STRATEGY_FILTERED] for data produced by a filter
-   * (or predictor),
-   * [ZlibConstant.STRATEGY_HUFFMAN_ONLY] to force Huffman encoding only (no
-   * string match), or [ZlibConstant.STRATEGY_RLE] to limit match distances to
-   * one (run-length encoding).
+   * [ZLibOption.STRATEGY_DEFAULT] for normal data,
+   * [ZLibOption.STRATEGY_FILTERED] for data produced by a filter
+   * (or predictor), [ZLibOption.STRATEGY_HUFFMAN_ONLY] to force Huffman
+   * encoding only (no string match), or [ZLibOption.STRATEGY_RLE] to limit
+   * match distances to one (run-length encoding).
    */
   final int strategy;
 
   /**
    * Base two logarithm of the window size (the size of the history buffer). It
-   * should be in the range 8..15. Larger values result in better compression at
-   * the expense of memory usage. The default value is 15
+   * should be in the range `8..15`. Larger values result in better compression
+   * at the expense of memory usage. The default value is `15`
    */
   final int windowBits;
 
@@ -386,8 +384,8 @@ class ZLibEncoder extends Converter<List<int>, List<int>> {
 class ZLibDecoder extends Converter<List<int>, List<int>> {
   /**
    * Base two logarithm of the window size (the size of the history buffer). It
-   * should be in the range 8..15. Larger values result in better compression at
-   * the expense of memory usage. The default value is 15
+   * should be in the range `8..15`. Larger values result in better compression
+   * at the expense of memory usage. The default value is `15`.
    */
   final int windowBits;
 
