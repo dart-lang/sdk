@@ -159,7 +159,7 @@ class AnalyzerImpl {
     context = AnalysisEngine.instance.createAnalysisContext();
     context.sourceFactory = sourceFactory;
     // Uncomment the following to have errors reported on stdout and stderr
-//    AnalysisEngine.instance.logger = new StdLogger();
+    AnalysisEngine.instance.logger = new StdLogger(options.log);
 
     // set options for context
     AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
@@ -267,7 +267,10 @@ class AnalyzerImpl {
  * to [stderr].
  */
 class StdLogger extends Logger {
-  
+  final bool log;
+
+  StdLogger(this.log);
+
   @override
   void logError(String message) {
     stderr.writeln(message);
@@ -280,11 +283,15 @@ class StdLogger extends Logger {
 
   @override
   void logInformation(String message) {
-    stdout.writeln(message);
+    if (log) {
+      stdout.writeln(message);
+    }
   }
 
   @override
   void logInformation2(String message, Exception exception) {
-    stdout.writeln(message);
+    if (log) {
+      stdout.writeln(message);
+    }
   }
 }
