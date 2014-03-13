@@ -218,12 +218,11 @@ class JSString extends Interceptor implements String, JSIndexable {
     // Start by doing JS trim. Then check if it leaves a NEL at
     // either end of the string.
     String result = JS('String', '#.trim()', this);
-
     if (result.length == 0) return result;
     int firstCode = result.codeUnitAt(0);
     int startIndex = 0;
     if (firstCode == NEL) {
-      startIndex = _skipLeadingWhitespace(this, 1);
+      startIndex = _skipLeadingWhitespace(result, 1);
       if (startIndex == result.length) return "";
     }
 
@@ -232,7 +231,7 @@ class JSString extends Interceptor implements String, JSIndexable {
     // Therefore we don't need to verify that endIndex > startIndex.
     int lastCode = result.codeUnitAt(endIndex - 1);
     if (lastCode == NEL) {
-      endIndex = _skipTrailingWhitespace(this, endIndex - 1);
+      endIndex = _skipTrailingWhitespace(result, endIndex - 1);
     }
     if (startIndex == 0 && endIndex == result.length) return result;
     return JS('String', r'#.substring(#, #)', result, startIndex, endIndex);
