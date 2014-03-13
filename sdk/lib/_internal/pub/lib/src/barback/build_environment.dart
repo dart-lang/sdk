@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:barback/barback.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:watcher/watcher.dart';
 
@@ -266,7 +266,7 @@ class BuildEnvironment {
 
       // Watch the visible package directories for changes.
       return Future.wait(getPublicDirectories(package.name).map((name) {
-        var subdirectory = path.join(package.dir, name);
+        var subdirectory = p.join(package.dir, name);
         if (!dirExists(subdirectory)) return new Future.value();
 
         // TODO(nweiz): close these watchers when [barback] is closed.
@@ -274,7 +274,7 @@ class BuildEnvironment {
         watcher.events.listen((event) {
           // Don't watch files symlinked into these directories.
           // TODO(rnystrom): If pub gets rid of symlinks, remove this.
-          var parts = path.split(event.path);
+          var parts = p.split(event.path);
           if (parts.contains("packages") || parts.contains("assets")) return;
 
           // Skip files that were (most likely) compiled from nearby ".dart"
@@ -291,7 +291,7 @@ class BuildEnvironment {
           if (event.path.endsWith(".dart.precompiled.js")) return;
 
           var id = new AssetId(package.name,
-              path.relative(event.path, from: package.dir));
+              p.relative(event.path, from: package.dir));
           if (event.type == ChangeType.REMOVE) {
             barback.removeSources([id]);
           } else {
@@ -314,7 +314,7 @@ class BuildEnvironment {
   /// but slower [listDir].
   Future _updateSources(Package package) {
     return Future.wait(getPublicDirectories(package.name).map((dirPath) {
-      var dir = path.join(package.dir, dirPath);
+      var dir = p.join(package.dir, dirPath);
       if (!dirExists(dir)) return new Future.value();
 
       return new Directory(dir).list(recursive: true, followLinks: true)
@@ -323,11 +323,11 @@ class BuildEnvironment {
         if (entry is Directory) return [];
         if (entry is Link) return [];
 
-        var relative = path.normalize(
-            path.relative(entry.path, from: package.dir));
+        var relative = p.normalize(
+            p.relative(entry.path, from: package.dir));
 
         // Ignore hidden files or files in "packages" and hidden directories.
-        if (path.split(relative).any((part) =>
+        if (p.split(relative).any((part) =>
             part.startsWith(".") || part == "packages")) {
           return [];
         }
@@ -357,9 +357,12 @@ class BuildEnvironment {
 /// show the same context like the file where an error occurred, this tries
 /// to avoid showing redundant data in the entry.
 void _log(LogEntry entry) {
-  messageMentions(String text) {
-    return entry.message.toLowerCase().contains(text.toLowerCase());
-  }
+  messageMentions(text) =>
+      entry.message.toLowerCase().contains(text.toLowerCase());
+
+  messageMentionsAsset(id) =>
+      messageMentions(id.toString()) ||
+      messageMentions(p.joinAll(p.url.split(entry.assetId.path)));
 
   var prefixParts = [];
 
@@ -372,15 +375,14 @@ void _log(LogEntry entry) {
   prefixParts.add(entry.transform.transformer);
 
   // Mention the primary input of the transform unless the message seems to.
-  if (!messageMentions(
-      path.joinAll(path.url.split(entry.transform.primaryId.path)))) {
+  if (!messageMentionsAsset(entry.transform.primaryId)) {
     prefixParts.add("on ${entry.transform.primaryId}");
   }
 
   // If the relevant asset isn't the primary input, mention it unless the
   // message already does.
   if (entry.assetId != entry.transform.primaryId &&
-      !messageMentions(path.joinAll(path.url.split(entry.assetId.path)))) {
+      !messageMentionsAsset(entry.assetId)) {
     prefixParts.add("with input ${entry.assetId}");
   }
 
