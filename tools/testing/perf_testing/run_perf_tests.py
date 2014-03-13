@@ -174,7 +174,7 @@ class TestRunner(object):
       # don't have test statistics for what's passing on x64. Eliminate arch
       # specification when we have tests running on x64, too.
       shutil.rmtree(os.path.join(os.getcwd(),
-                    utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32')),
+                    utils.GetBuildRoot(utils.GuessOS())),
                     onerror=TestRunner._OnRmError)
       lines = self.RunCmd([os.path.join('.', 'tools', 'build.py'), '-m',
                             'release', '--arch=ia32', 'create_sdk'])
@@ -721,14 +721,20 @@ class DromaeoTest(RuntimePerformanceTest):
         return
 
       # Build tests.
-      dromaeo_path = os.path.join('samples', 'third_party', 'dromaeo')
+      # TODO(efortuna): Make the pub functionality a separate function.
       current_path = os.getcwd()
-      os.chdir(dromaeo_path)
-      stdout, _ = self.test.test_runner.RunCmd(
-          ['python', 'generate_perf_and_dart2js_tests.py'])
+      os.chdir(os.path.join(DART_REPO_LOC, 'samples', 'third_party',
+          'dromaeo'))
+      self.test.test_runner.RunCmd([os.path.join(DART_REPO_LOC,
+          utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32'),
+          'dart-sdk', 'bin', 'pub'), 'install']) # TODO: pub upgrade?
+      stdout, _ = self.test.test_runner.RunCmd([os.path.join(DART_REPO_LOC,
+          utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32'),
+          'dart-sdk', 'bin', 'pub'), 'build'])
       os.chdir(current_path)
-      if 'Error: Compilation failed' in stdout:
+      if 'failed' in stdout:
         return
+
       versions = DromaeoTester.GetDromaeoVersions()
 
       for browser in BrowserTester.GetBrowsers():
@@ -741,29 +747,19 @@ class DromaeoTest(RuntimePerformanceTest):
               'tools', 'testing', 'perf_testing', self.test.result_folder_name,
               'dromaeo-%s-%s-%s' % (self.test.cur_time, browser, version_name))
           self.AddSvnRevisionToTrace(self.test.trace_file, browser)
-          url_path = '/'.join(['/root_dart', dromaeo_path, 'index%s.html?%s'% (
+          url_path = '/'.join(['/code_root', 'build', 'web', 'index%s.html?%s'%(
               '-dart' if version_name == 'dart_html' else '-js',
               version)])
 
-          # TODO(efortuna): Make this a separate function. We should do this
-          # once per cycle.
-          os.chdir(os.path.join(DART_REPO_LOC, 'tools', 'testing', 'dart',
-              'browser_perf_testing'))
-          self.test.test_runner.RunCmd([os.path.join(DART_REPO_LOC,
-              utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32'),
-              'dart-sdk', 'bin', 'pub'), 'install'])
-          os.chdir(current_path)
-
           self.test.test_runner.RunCmd(
-              [os.path.join(utils.GetBuildRoot(
+              [os.path.join(DART_REPO_LOC, utils.GetBuildRoot(
                utils.GuessOS(), 'release', 'ia32'), 'dart-sdk', 'bin', 'dart'),
-               '--package-root=%s' % os.path.join(DART_REPO_LOC, 'tools',
-               'testing', 'dart', 'browser_perf_testing', 'packages'),
-               os.path.join('tools', 'testing', 'dart', 'browser_perf_testing',
-               'lib', 'browser_perf_testing.dart'),
-               '--browser', browser, '--termination_test_file',
-               '/root_dart/samples/third_party/dromaeo/dromaeo_end_condition.'
-               'js', '--test_path', url_path], self.test.trace_file,
+               '--package-root=%s' % os.path.join(DART_REPO_LOC, 'samples',
+               'third_party', 'dromaeo', 'packages'), os.path.join(
+               DART_REPO_LOC, 'samples', 'third_party', 'dromaeo', 'packages',
+               'browser_controller', 'browser_perf_testing.dart'),
+               '--browser', browser,
+               '--test_path', url_path], self.test.trace_file,
                append=True)
 
     @staticmethod
