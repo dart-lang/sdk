@@ -225,15 +225,13 @@ class TransformNode {
     }).catchError((error, stackTrace) {
       // If the transform became dirty while processing, ignore any errors from
       // it.
-      if (!_state.isProcessing || _isRemoved) return;
+      if (!_state.isProcessing || _isRemoved) return false;
 
       // Catch all transformer errors and pipe them to the results stream. This
       // is so a broken transformer doesn't take down the whole graph.
       phase.cascade.reportError(_wrapException(error, stackTrace));
-
-      _clearOutputs();
-      _dontEmitPassThrough();
-    }).then((_) {
+      return true;
+    }).then((hadError) {
       if (_isRemoved) return;
 
       if (_state.needsIsPrimary) {
@@ -242,6 +240,11 @@ class TransformNode {
         _apply();
       } else {
         assert(_state.isProcessing);
+        if (hadError) {
+          _clearOutputs();
+          _dontEmitPassThrough();
+        }
+
         _state = _TransformNodeState.APPLIED;
         _onDoneController.add(null);
       }
@@ -268,14 +271,17 @@ class TransformNode {
 
   /// Applies the transform so that it produces concrete (as opposed to lazy)
   /// outputs.
-  Future _applyImmediate() {
+  ///
+  /// Returns whether or not the transformer logged an error.
+  Future<bool> _applyImmediate() {
     var transformController = new TransformController(this);
     _onLogPool.add(transformController.onLog);
 
     return syncFuture(() {
       return transformer.apply(transformController.transform);
     }).then((_) {
-      if (!_state.isProcessing || _onAssetController.isClosed) return;
+      if (!_state.isProcessing || _onAssetController.isClosed) return false;
+      if (transformController.loggedError) return true;
 
       _consumePrimary = transformController.consumePrimary;
 
@@ -316,19 +322,24 @@ class TransformNode {
           _onAssetController.add(controller.node);
         }
       }
+
+      return false;
     });
   }
 
   /// Applies the transform in declarative mode so that it produces lazy
   /// outputs.
-  Future _declareLazy() {
+  ///
+  /// Returns whether or not the transformer logged an error.
+  Future<bool> _declareLazy() {
     var transformController = new DeclaringTransformController(this);
 
     return syncFuture(() {
       return (transformer as LazyTransformer)
           .declareOutputs(transformController.transform);
     }).then((_) {
-      if (!_state.isProcessing || _onAssetController.isClosed) return;
+      if (!_state.isProcessing || _onAssetController.isClosed) return false;
+      if (transformController.loggedError) return true;
 
       _consumePrimary = transformController.consumePrimary;
 
@@ -365,6 +376,8 @@ class TransformNode {
           _onAssetController.add(controller.node);
         }
       }
+
+      return false;
     });
   }
 

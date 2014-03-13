@@ -29,6 +29,11 @@ abstract class BaseTransform {
   /// This is exposed via [BaseTransformController].
   bool _consumePrimary = false;
 
+  /// Whether the transformer logged an error.
+  ///
+  /// This is exposed via [BaseTransformController].
+  bool _loggedError = false;
+
   /// The controller for the stream of log entries emitted by the transformer.
   ///
   /// This is exposed via [BaseTransformController].
@@ -67,6 +72,8 @@ abstract class BaseTransform {
 
   BaseTransform(this._node) {
     _logger = new TransformLogger((asset, level, message, span) {
+      if (level == LogLevel.ERROR) _loggedError = true;
+
       // If the log isn't already associated with an asset, use the primary.
       if (asset == null) asset = _node.primary.id;
       var entry = new LogEntry(_node.info, asset, level, message, span);
@@ -125,6 +132,9 @@ abstract class BaseTransformController {
 
   /// Whether the primary input should be consumed.
   bool get consumePrimary => transform._consumePrimary;
+
+  /// Whether the transform logged an error.
+  bool get loggedError => transform._loggedError;
 
   /// The stream of log entries emitted by the transformer during a run.
   Stream<LogEntry> get onLog => transform._onLogController.stream;

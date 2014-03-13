@@ -17,6 +17,7 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:unittest/compact_vm_config.dart';
 
 export 'transformer/bad.dart';
+export 'transformer/bad_log.dart';
 export 'transformer/catch_asset_not_found.dart';
 export 'transformer/check_content.dart';
 export 'transformer/check_content_and_rename.dart';
@@ -98,6 +99,8 @@ void initGraph([assets,
 
   _provider = new MockProvider(assetMap);
   _barback = new Barback(_provider);
+  // Add a dummy listener to the log so it doesn't print to stdout.
+  _barback.log.listen((_) {});
   _nextBuildResult = 0;
   _nextLog = 0;
 

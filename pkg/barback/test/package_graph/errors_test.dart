@@ -153,6 +153,20 @@ main() {
     buildShouldFail([isTransformerException(equals(BadTransformer.ERROR))]);
   });
 
+  test("a transformer that logs errors shouldn't produce output", () {
+    initGraph(["app|foo.txt"], {"app": [
+      [new BadLogTransformer(["app|out.txt"])]
+    ]});
+
+    updateSources(["app|foo.txt"]);
+    expectNoAsset("app|foo.txt");
+    expectNoAsset("app|out.txt");
+    buildShouldFail([
+      isTransformerException(equals("first error")),
+      isTransformerException(equals("second error"))
+    ]);
+  });
+
   test("a transformer can catch an error loading a secondary input", () {
     initGraph(["app|foo.txt"], {"app": [
       [new CatchAssetNotFoundTransformer(".txt", "app|nothing")]
