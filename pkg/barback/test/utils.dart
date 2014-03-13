@@ -17,6 +17,7 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:unittest/compact_vm_config.dart';
 
 export 'transformer/bad.dart';
+export 'transformer/catch_asset_not_found.dart';
 export 'transformer/check_content.dart';
 export 'transformer/check_content_and_rename.dart';
 export 'transformer/conditionally_consume_primary.dart';

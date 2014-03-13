@@ -186,13 +186,9 @@ class TransformNode {
       // it.
       if (_state.needsIsPrimary || _isRemoved) return false;
 
-      if (error is! MissingInputException) {
-        error = new TransformerException(info, error, stackTrace);
-      }
-
       // Catch all transformer errors and pipe them to the results stream. This
       // is so a broken transformer doesn't take down the whole graph.
-      phase.cascade.reportError(error);
+      phase.cascade.reportError(_wrapException(error, stackTrace));
 
       return false;
     }).then((isPrimary) {
@@ -231,13 +227,9 @@ class TransformNode {
       // it.
       if (!_state.isProcessing || _isRemoved) return;
 
-      if (error is! MissingInputException) {
-        error = new TransformerException(info, error, stackTrace);
-      }
-
       // Catch all transformer errors and pipe them to the results stream. This
       // is so a broken transformer doesn't take down the whole graph.
-      phase.cascade.reportError(error);
+      phase.cascade.reportError(_wrapException(error, stackTrace));
 
       _clearOutputs();
       _dontEmitPassThrough();
@@ -258,14 +250,13 @@ class TransformNode {
 
   /// Gets the asset for an input [id].
   ///
-  /// If an input with that ID cannot be found, throws an
-  /// [AssetNotFoundException].
+  /// If an input with [id] cannot be found, throws an [AssetNotFoundException].
   Future<Asset> getInput(AssetId id) {
     return phase.getInput(id).then((node) {
       // Throw if the input isn't found. This ensures the transformer's apply
       // is exited. We'll then catch this and report it through the proper
       // results stream.
-      if (node == null) throw new MissingInputException(info, id);
+      if (node == null) throw new AssetNotFoundException(id);
 
       _inputSubscriptions.putIfAbsent(node.id, () {
         return node.onStateChange.listen((_) => _dirty(primaryChanged: false));
@@ -412,6 +403,14 @@ class TransformNode {
     if (_passThroughController == null) return;
     _passThroughController.setRemoved();
     _passThroughController = null;
+  }
+
+  BarbackException _wrapException(error, StackTrace stackTrace) {
+    if (error is! AssetNotFoundException) {
+      return new TransformerException(info, error, stackTrace);
+    } else {
+      return new MissingInputException(info, error.id);
+    }
   }
 
   String toString() =>

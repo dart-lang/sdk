@@ -52,11 +52,11 @@ abstract class BaseTransform {
   /// entrypoint Dart file. All of the other Dart files that that imports
   /// would be secondary inputs.
   ///
-  /// This method may fail at runtime if called asynchronously after the
-  /// transform begins running. The primary input may become unavailable while
-  /// this transformer is running due to asset changes earlier in the graph.
-  /// You can ignore the error if this happens: the transformer will be re-run
-  /// automatically for you.
+  /// This method may fail at runtime with an [AssetNotFoundException] if called
+  /// asynchronously after the transform begins running. The primary input may
+  /// become unavailable while this transformer is running due to asset changes
+  /// earlier in the graph. You can ignore the error if this happens: the
+  /// transformer will be re-run automatically for you.
   Asset get primaryInput {
     if (_node.primary.state != AssetState.AVAILABLE) {
       throw new AssetNotFoundException(_node.primary.id);
@@ -76,17 +76,18 @@ abstract class BaseTransform {
 
   /// Gets the asset for an input [id].
   ///
-  /// If an input with that ID cannot be found, throws an
-  /// [AssetNotFoundException].
+  /// If an input with [id] cannot be found, throws an [AssetNotFoundException].
   Future<Asset> getInput(AssetId id) => _node.getInput(id);
 
   /// A convenience method to the contents of the input with [id] as a string.
   ///
-  /// This is equivalent to calling `getInput()` followed by `readAsString()`.
+  /// This is equivalent to calling [getInput] followed by [Asset.readAsString].
   ///
   /// If the asset was created from a [String] the original string is always
   /// returned and [encoding] is ignored. Otherwise, the binary data of the
   /// asset is decoded using [encoding], which defaults to [UTF8].
+  ///
+  /// If an input with [id] cannot be found, throws an [AssetNotFoundException].
   Future<String> readInputAsString(AssetId id, {Encoding encoding}) {
     if (encoding == null) encoding = UTF8;
     return getInput(id).then((input) => input.readAsString(encoding: encoding));
@@ -94,9 +95,11 @@ abstract class BaseTransform {
 
   /// A convenience method to the contents of the input with [id].
   ///
-  /// This is equivalent to calling `getInput()` followed by `read()`.
+  /// This is equivalent to calling [getInput] followed by [Asset.read].
   ///
   /// If the asset was created from a [String], this returns its UTF-8 encoding.
+  ///
+  /// If an input with [id] cannot be found, throws an [AssetNotFoundException].
   Stream<List<int>> readInput(AssetId id) =>
       futureStream(getInput(id).then((input) => input.read()));
 

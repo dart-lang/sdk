@@ -146,10 +146,20 @@ main() {
   });
 
   test("an asset isn't passed through a transformer with an error", () {
-    initGraph(["app|foo.txt",], {"app": [[new BadTransformer([])]]});
+    initGraph(["app|foo.txt"], {"app": [[new BadTransformer([])]]});
 
     updateSources(["app|foo.txt"]);
     expectNoAsset("app|foo.txt");
     buildShouldFail([isTransformerException(equals(BadTransformer.ERROR))]);
+  });
+
+  test("a transformer can catch an error loading a secondary input", () {
+    initGraph(["app|foo.txt"], {"app": [
+      [new CatchAssetNotFoundTransformer(".txt", "app|nothing")]
+    ]});
+
+    updateSources(["app|foo.txt"]);
+    expectAsset("app|foo.txt", "failed to load app|nothing");
+    buildShouldSucceed();
   });
 }
