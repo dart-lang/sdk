@@ -190,8 +190,15 @@ class BuildEnvironment {
       // whole program.
       var subscriptions = [
         barback.errors.listen((error) {
-          if (error is TransformerException) error = error.error;
-          if (!completer.isCompleted) {
+          if (error is TransformerException) {
+            var message = error.error.toString();
+            if (error.stackTrace != null) {
+              message += "\n" + error.stackTrace.terse.toString();
+            }
+
+            _log(new LogEntry(error.transform, error.transform.primaryId,
+                LogLevel.ERROR, message, null));
+          } else if (!completer.isCompleted) {
             completer.completeError(error, new Chain.current());
           }
         }),
