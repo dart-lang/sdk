@@ -220,7 +220,7 @@ class TransformNode {
     _clearInputSubscriptions();
     _state = _TransformNodeState.PROCESSING;
     primary.whenAvailable((_) {
-      if (_state.needsIsPrimary) return;
+      if (_state.needsIsPrimary) return null;
       _state = _TransformNodeState.PROCESSING;
       // TODO(nweiz): If [transformer] is a [DeclaringTransformer] but not a
       // [LazyTransformer], we can get some mileage out of doing a declarative
