@@ -128,9 +128,7 @@ class TransformNode {
     _onDoneController.close();
     _primarySubscription.cancel();
     _clearInputSubscriptions();
-    for (var controller in _outputControllers.values) {
-      controller.setRemoved();
-    }
+    _clearOutputs();
     if (_passThroughController != null) {
       _passThroughController.setRemoved();
       _passThroughController = null;
@@ -204,7 +202,8 @@ class TransformNode {
       } else if (isPrimary) {
         _apply();
       } else {
-        _doesNotApply();
+        _clearOutputs();
+        _emitPassThrough();
         _state = _TransformNodeState.NOT_PRIMARY;
         _onDoneController.add(null);
       }
@@ -240,7 +239,8 @@ class TransformNode {
       // is so a broken transformer doesn't take down the whole graph.
       phase.cascade.reportError(error);
 
-      _doesNotApply();
+      _clearOutputs();
+      _dontEmitPassThrough();
     }).then((_) {
       if (_isRemoved) return;
 
@@ -385,17 +385,13 @@ class TransformNode {
     _inputSubscriptions.clear();
   }
 
-  /// Marks this transformer as not applying to [primary].
-  ///
-  /// This might be because [primary] isn't primary for [transformer], or
-  /// because [transformer] threw an error during [transformer.apply].
-  void _doesNotApply() {
+  /// Removes all output assets.
+  void _clearOutputs() {
     // Remove all the previously-emitted assets.
     for (var controller in _outputControllers.values) {
       controller.setRemoved();
     }
     _outputControllers.clear();
-    _emitPassThrough();
   }
 
   /// Emit the pass-through asset if it's not being emitted already.
