@@ -716,6 +716,70 @@ static bool GetUnsignedIntegerId(const char* s, uintptr_t* id, int base = 10) {
 }
 
 
+static bool GetInteger64Id(const char* s, int64_t* id, int base = 10) {
+  if ((s == NULL) || (*s == '\0')) {
+    // Empty string.
+    return false;
+  }
+  if (id == NULL) {
+    // No id pointer.
+    return false;
+  }
+  int64_t r = 0;
+  char* end_ptr = NULL;
+  r = strtoll(s, &end_ptr, base);
+  if (end_ptr == s) {
+    // String was not advanced at all, cannot be valid.
+    return false;
+  }
+  *id = r;
+  return true;
+}
+
+// Scans the string until the '-' character. Returns pointer to string
+// at '-' character. Returns NULL if not found.
+const char* ScanUntilDash(const char* s) {
+  if ((s == NULL) || (*s == '\0')) {
+    // Empty string.
+    return NULL;
+  }
+  while (*s != '\0') {
+    if (*s == '-') {
+      return s;
+    }
+    s++;
+  }
+  return NULL;
+}
+
+
+static bool GetCodeId(const char* s, int64_t* timestamp, uword* address) {
+  if ((s == NULL) || (*s == '\0')) {
+    // Empty string.
+    return false;
+  }
+  if ((timestamp == NULL) || (address == NULL)) {
+    // Bad arguments.
+    return false;
+  }
+  // Extract the timestamp.
+  if (!GetInteger64Id(s, timestamp, 16) || (*timestamp < 0)) {
+    return false;
+  }
+  s = ScanUntilDash(s);
+  if (s == NULL) {
+    return false;
+  }
+  // Skip the dash.
+  s++;
+  // Extract the PC.
+  if (!GetUnsignedIntegerId(s, address, 16)) {
+    return false;
+  }
+  return true;
+}
+
+
 static bool HandleClassesClosures(Isolate* isolate, const Class& cls,
                                   JSONStream* js) {
   intptr_t id;
@@ -1189,42 +1253,55 @@ static bool HandleNullCode(uintptr_t pc, JSONStream* js) {
 
 static bool HandleCode(Isolate* isolate, JSONStream* js) {
   REQUIRE_COLLECTION_ID("code");
-  uintptr_t pc;
-  if (js->num_arguments() > 3) {
+  uword pc;
+  if (js->num_arguments() > 2) {
     PrintError(js, "Command too long");
     return true;
   }
-  if (js->num_arguments() == 3) {
-    const char* command = js->GetArgument(1);
-    if ((strcmp("collected", command) == 0) ||
-        (strcmp("native", command) == 0)) {
-      if (!GetUnsignedIntegerId(js->GetArgument(1), &pc, 16)) {
-        PrintError(js, "Must specify code address: code/%s/c0deadd0.", command);
-        return true;
-      }
-      return HandleNullCode(pc, js);
-    } else {
-      PrintError(js, "Unrecognized subcommand '%s'", js->GetArgument(1));
+  ASSERT(js->num_arguments() == 2);
+  static const char* kCollectedPrefix = "collected-";
+  static intptr_t kCollectedPrefixLen = strlen(kCollectedPrefix);
+  static const char* kNativePrefix = "native-";
+  static intptr_t kNativePrefixLen = strlen(kNativePrefix);
+  static const char* kReusedPrefix = "reused-";
+  static intptr_t kReusedPrefixLen = strlen(kReusedPrefix);
+  const char* command = js->GetArgument(1);
+  if (strncmp(kCollectedPrefix, command, kCollectedPrefixLen) == 0) {
+    if (!GetUnsignedIntegerId(&command[kCollectedPrefixLen], &pc, 16)) {
+      PrintError(js, "Must specify code address: code/%sc0deadd0.",
+                 kCollectedPrefix);
       return true;
     }
+    return HandleNullCode(pc, js);
   }
-  ASSERT(js->num_arguments() == 2);
-  if (!GetUnsignedIntegerId(js->GetArgument(1), &pc, 16)) {
-    PrintError(js, "Must specify code address: code/c0deadd0.");
+  if (strncmp(kNativePrefix, command, kNativePrefixLen) == 0) {
+    if (!GetUnsignedIntegerId(&command[kNativePrefixLen], &pc, 16)) {
+      PrintError(js, "Must specify code address: code/%sc0deadd0.",
+                 kNativePrefix);
+      return true;
+    }
+    // TODO(johnmccutchan): Support native Code.
+    return HandleNullCode(pc, js);
+  }
+  if (strncmp(kReusedPrefix, command, kReusedPrefixLen) == 0) {
+    if (!GetUnsignedIntegerId(&command[kReusedPrefixLen], &pc, 16)) {
+      PrintError(js, "Must specify code address: code/%sc0deadd0.",
+                 kReusedPrefix);
+      return true;
+    }
+    return HandleNullCode(pc, js);
+  }
+  int64_t timestamp = 0;
+  if (!GetCodeId(command, &timestamp, &pc) || (timestamp < 0)) {
+    PrintError(js, "Malformed code id: %s", command);
     return true;
   }
-  Code& code = Code::Handle();
-  code ^= Code::LookupCode(pc);
+  Code& code = Code::Handle(Code::FindCode(pc, timestamp));
   if (!code.IsNull()) {
     code.PrintToJSONStream(js, false);
     return true;
   }
-  code ^= Code::LookupCodeInVmIsolate(pc);
-  if (!code.IsNull()) {
-    code.PrintToJSONStream(js, false);
-    return true;
-  }
-  PrintError(js, "Could not find code at %" Px "", pc);
+  PrintError(js, "Could not find code with id: %s", command);
   return true;
 }
 

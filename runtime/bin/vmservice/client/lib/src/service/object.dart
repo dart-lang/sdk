@@ -19,6 +19,9 @@ class Isolate extends ServiceObject {
   /// Class cache.
   ClassCache _classes;
   ClassCache get classes => _classes;
+  /// Function cache.
+  FunctionCache _functions;
+  FunctionCache get functions => _functions;
 
   void _initOnce() {
     // Only called once.
@@ -27,6 +30,7 @@ class Isolate extends ServiceObject {
     _scripts = new ScriptCache(this);
     _codes = new CodeCache(this);
     _classes = new ClassCache(this);
+    _functions = new FunctionCache(this);
   }
 
   Isolate.fromId(this.vm, String id) : super(null, id, '@Isolate') {
@@ -49,9 +53,10 @@ class Isolate extends ServiceObject {
   void processProfile(ServiceMap profile) {
     assert(profile.serviceType == 'Profile');
     var codeTable = new List<Code>();
-    var profileCodes = profile['codes'];
-    for (var profileCode in profileCodes) {
-      Code code = profileCode['code'];
+    var codeRegions = profile['codes'];
+    for (var codeRegion in codeRegions) {
+      Code code = codeRegion['code'];
+      assert(code != null);
       codeTable.add(code);
     }
     _codes._resetProfileData();
@@ -69,6 +74,9 @@ class Isolate extends ServiceObject {
     }
     if (_classes.cachesId(serviceId)) {
       return _classes.get(serviceId);
+    }
+    if (_functions.cachesId(serviceId)) {
+      return _functions.get(serviceId);
     }
     return vm.getAsMap(relativeLink(serviceId)).then((ObservableMap m) {
       return _upgradeToServiceObject(vm, this, m);
@@ -403,6 +411,10 @@ class CodeInstruction extends Observable {
     if (tick == null) {
       return '';
     }
+    // Don't show inclusive ticks if they are the same as exclusive ticks.
+    if (tick.inclusiveTicks == tick.exclusiveTicks) {
+      return '';
+    }
     var pcent = formatPercent(tick.inclusiveTicks, code.totalSamplesInProfile);
     return '$pcent (${tick.inclusiveTicks})';
   }
@@ -423,7 +435,7 @@ class CodeInstruction extends Observable {
 class CodeKind {
   final _value;
   const CodeKind._internal(this._value);
-  String toString() => 'CodeKind.$_value';
+  String toString() => '$_value';
 
   static CodeKind fromString(String s) {
     if (s == 'Native') {
@@ -432,12 +444,16 @@ class CodeKind {
       return Dart;
     } else if (s == 'Collected') {
       return Collected;
+    } else if (s == 'Reused') {
+      return Reused;
     }
+    Logger.root.warning('Unknown code kind $s');
     throw new FallThroughError();
   }
   static const Native = const CodeKind._internal('Native');
   static const Dart = const CodeKind._internal('Dart');
   static const Collected = const CodeKind._internal('Collected');
+  static const Reused = const CodeKind._internal('Reused');
 }
 
 class CodeCallCount {
@@ -457,6 +473,8 @@ class Code extends ServiceObject {
   @reflectable final callees = new List<CodeCallCount>();
   @reflectable final instructions = new ObservableList<CodeInstruction>();
   @reflectable final addressTicks = new ObservableMap<int, CodeTick>();
+  @observable String formattedInclusiveTicks = '';
+  @observable String formattedExclusiveTicks = '';
 
   @observable ServiceMap function;
   String name;
@@ -469,9 +487,22 @@ class Code extends ServiceObject {
     totalSamplesInProfile = 0;
     exclusiveTicks = 0;
     inclusiveTicks = 0;
+    formattedInclusiveTicks = '';
+    formattedExclusiveTicks = '';
     callers.clear();
     callees.clear();
     addressTicks.clear();
+  }
+
+  /// Reload [this]. Returns a future which completes to [this] or
+  /// a [ServiceError].
+  Future<ServiceObject> reload() {
+    assert(kind != null);
+    if (kind == CodeKind.Dart) {
+      // We only reload Dart code.
+      return super.reload();
+    }
+    return new Future.value(this);
   }
 
   void _resolveCalls(List<CodeCallCount> calls, List data, List<Code> codes) {
@@ -490,11 +521,16 @@ class Code extends ServiceObject {
   }
 
 
+  static String formatPercent(num a, num total) {
+    var percent = 100.0 * (a / total);
+    return '${percent.toStringAsFixed(2)}%';
+  }
+
   void updateProfileData(Map profileData,
                          List<Code> codeTable,
                          int sampleCount) {
-    // Assert we have a ProfileCode entry.
-    assert(profileData['type'] == 'ProfileCode');
+    // Assert we have a CodeRegion entry.
+    assert(profileData['type'] == 'CodeRegion');
     // Assert we are handed profile data for this code object.
     assert(profileData['code'] == this);
     totalSamplesInProfile = sampleCount;
@@ -506,6 +542,12 @@ class Code extends ServiceObject {
     if (ticks != null) {
       _processTicks(ticks);
     }
+    formattedInclusiveTicks =
+        '${formatPercent(inclusiveTicks, totalSamplesInProfile)} '
+        '($inclusiveTicks)';
+    formattedExclusiveTicks =
+        '${formatPercent(exclusiveTicks, totalSamplesInProfile)} '
+        '($inclusiveTicks)';
   }
 
   void _update(ObservableMap m) {
@@ -514,6 +556,7 @@ class Code extends ServiceObject {
     assert(ServiceObject.stripRef(m['type']) == _serviceType);
     name = m['user_name'];
     vmName = m['name'];
+    kind = CodeKind.fromString(m['kind']);
     startAddress = int.parse(m['start'], radix:16);
     endAddress = int.parse(m['end'], radix:16);
     // Upgrade the function.
@@ -522,9 +565,12 @@ class Code extends ServiceObject {
     if (disassembly != null) {
       _processDisassembly(disassembly);
     }
-    // We are a reference if we don't have instructions.
-    _ref = (instructions.length == 0);
+    // We are a reference if we don't have instructions and are Dart code.
+    _ref = (instructions.length == 0) && (kind == CodeKind.Dart);
+    hasDisassembly = (instructions.length != 0) && (kind == CodeKind.Dart);
   }
+
+  @observable bool hasDisassembly = false;
 
   void _processDisassembly(List<String> disassembly){
     assert(disassembly != null);

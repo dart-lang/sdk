@@ -53,6 +53,9 @@ abstract class ServiceObjectCache<T extends ServiceObject> {
     assert(ServiceObject.isServiceMap(obj));
     String id = obj['id'];
     var type = obj['type'];
+    if (!cachesId(id)) {
+      Logger.root.warning('Cache does not cache this id: $id');
+    }
     assert(cachesId(id));
     if (contains(id)) {
       return this[id];
@@ -117,11 +120,11 @@ class CodeCache extends ServiceObjectCache<Code> {
   }
 
   void _updateProfileData(ServiceMap profile, List<Code> codeTable) {
-    var codes = profile['codes'];
+    var codeRegions = profile['codes'];
     var sampleCount = profile['samples'];
-    for (var profileCode in codes) {
-      Code code = profileCode['code'];
-      code.updateProfileData(profileCode, codeTable, sampleCount);
+    for (var codeRegion in codeRegions) {
+      Code code = codeRegion['code'];
+      code.updateProfileData(codeRegion, codeTable, sampleCount);
     }
   }
 }
@@ -135,4 +138,24 @@ class ClassCache extends ServiceObjectCache<ServiceMap> {
       new ServiceMap.fromMap(isolate, obj);
 
   static final RegExp _matcher = new RegExp(r'classes/\d+$');
+}
+
+class FunctionCache extends ServiceObjectCache<ServiceMap> {
+  FunctionCache(Isolate isolate) : super(isolate);
+
+  bool cachesId(String id) => _matcher.hasMatch(id);
+
+  bool cachesType(String type) => ServiceObject.stripRef(type) == 'Function';
+  ServiceMap _upgrade(ObservableMap obj) =>
+      new ServiceMap.fromMap(isolate, obj);
+
+  static final RegExp _matcher =
+      new RegExp(r'^functions/native-.+|'
+                 r'^functions/collected-.+|'
+                 r'^functions/reused-.+|'
+                 r'^functions/stub-.+|'
+                 r'^classes/\d+/functions/.+|'
+                 r'^classes/\d+/closures/.+|'
+                 r'^classes/\d+/implicit_closures/.+|'
+                 r'^classes/\d+/dispatchers/.+');
 }

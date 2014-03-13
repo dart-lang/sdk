@@ -10392,6 +10392,24 @@ RawCode* Code::LookupCodeInVmIsolate(uword pc) {
 }
 
 
+// Given a pc and a timestamp, lookup the code.
+RawCode* Code::FindCode(uword pc, int64_t timestamp) {
+  Code& code = Code::Handle(Code::LookupCode(pc));
+  if (!code.IsNull() && (code.compile_timestamp() == timestamp) &&
+      (code.EntryPoint() == pc)) {
+    // Found code in isolate.
+    return code.raw();
+  }
+  code ^= Code::LookupCodeInVmIsolate(pc);
+  if (!code.IsNull() && (code.compile_timestamp() == timestamp) &&
+      (code.EntryPoint() == pc)) {
+    // Found code in VM isolate.
+    return code.raw();
+  }
+  return Code::null();
+}
+
+
 intptr_t Code::GetTokenIndexOfPC(uword pc) const {
   intptr_t token_pos = -1;
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
@@ -10485,11 +10503,13 @@ RawString* Code::UserName() const {
 void Code::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
-  jsobj.AddPropertyF("id", "code/%" Px "", EntryPoint());
+  jsobj.AddPropertyF("id", "code/%" Px64"-%" Px "", compile_timestamp(),
+                     EntryPoint());
   jsobj.AddPropertyF("start", "%" Px "", EntryPoint());
   jsobj.AddPropertyF("end", "%" Px "", EntryPoint() + Size());
   jsobj.AddProperty("is_optimized", is_optimized());
   jsobj.AddProperty("is_alive", is_alive());
+  jsobj.AddProperty("kind", "Dart");
   const String& name = String::Handle(Name());
   const String& user_name = String::Handle(UserName());
   const char* name_prefix = is_optimized() ? "*" : "";
@@ -10503,7 +10523,7 @@ void Code::PrintToJSONStream(JSONStream* stream, bool ref) const {
     JSONObject func(&jsobj, "function");
     func.AddProperty("type", "@Function");
     func.AddProperty("kind", "Stub");
-    func.AddPropertyF("id", "stub/functions/%" Pd "", EntryPoint());
+    func.AddPropertyF("id", "functions/stub-%" Pd "", EntryPoint());
     func.AddProperty("user_name", user_name.ToCString());
     func.AddProperty("name", name.ToCString());
   }

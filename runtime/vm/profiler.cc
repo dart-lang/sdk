@@ -162,6 +162,31 @@ void Profiler::EndExecution(Isolate* isolate) {
 }
 
 
+class ScopeStopwatch : public ValueObject {
+ public:
+  explicit ScopeStopwatch(const char* name) : name_(name) {
+    start_ = FLAG_trace_profiled_isolates ? OS::GetCurrentTimeMillis() : 0;
+  }
+
+  intptr_t GetElapsed() const {
+    intptr_t end = OS::GetCurrentTimeMillis();
+    ASSERT(end >= start_);
+    return end - start_;
+  }
+
+  ~ScopeStopwatch() {
+    if (FLAG_trace_profiled_isolates) {
+      intptr_t elapsed = GetElapsed();
+      OS::Print("%s took %" Pd " millis.\n", name_, elapsed);
+    }
+  }
+
+ private:
+  const char* name_;
+  intptr_t start_;
+};
+
+
 struct AddressEntry {
   uword pc;
   intptr_t exclusive_ticks;
@@ -183,16 +208,20 @@ struct CallEntry {
 
 typedef bool (*RegionCompare)(uword pc, uword region_start, uword region_end);
 
-// A region of code. Each region is a kind of code (Dart, Collected, or Native).
+// A contiguous address region that holds code. Each CodeRegion has a "kind"
+// which describes the type of code contained inside the region. Each
+// region covers the following interval: [start, end).
 class CodeRegion : public ZoneAllocated {
  public:
   enum Kind {
-    kDartCode,
-    kCollectedCode,
-    kNativeCode
+    kDartCode,       // Live Dart code.
+    kCollectedCode,  // Dead Dart code.
+    kNativeCode,     // Native code.
+    kReusedCode,     // Dead Dart code that has been reused by new kDartCode.
+    kTagCode,        // A special kind of code representing a tag.
   };
 
-  CodeRegion(Kind kind, uword start, uword end) :
+  CodeRegion(Kind kind, uword start, uword end, int64_t timestamp) :
       kind_(kind),
       start_(start),
       end_(end),
@@ -200,14 +229,14 @@ class CodeRegion : public ZoneAllocated {
       exclusive_ticks_(0),
       inclusive_tick_serial_(0),
       name_(NULL),
+      compile_timestamp_(timestamp),
+      creation_serial_(0),
       address_table_(new ZoneGrowableArray<AddressEntry>()),
       callers_table_(new ZoneGrowableArray<CallEntry>()),
       callees_table_(new ZoneGrowableArray<CallEntry>()) {
     ASSERT(start_ < end_);
   }
 
-  ~CodeRegion() {
-  }
 
   uword start() const { return start_; }
   void set_start(uword start) {
@@ -241,6 +270,15 @@ class CodeRegion : public ZoneAllocated {
            contains(other->end() - 1);
   }
 
+  intptr_t creation_serial() const { return creation_serial_; }
+  void set_creation_serial(intptr_t serial) {
+    creation_serial_ = serial;
+  }
+  int64_t compile_timestamp() const { return compile_timestamp_; }
+  void set_compile_timestamp(int64_t timestamp) {
+    compile_timestamp_ = timestamp;
+  }
+
   intptr_t inclusive_ticks() const { return inclusive_ticks_; }
   void set_inclusive_ticks(intptr_t inclusive_ticks) {
     inclusive_ticks_ = inclusive_ticks;
@@ -272,17 +310,25 @@ class CodeRegion : public ZoneAllocated {
         return "Collected";
       case kNativeCode:
         return "Native";
+      case kReusedCode:
+        return "Overwritten";
+      case kTagCode:
+        return "Tag";
     }
     UNREACHABLE();
     return NULL;
   }
 
   void DebugPrint() const {
-    printf("%s [%" Px ", %" Px ") %s\n", KindToCString(kind_), start(), end(),
-           name_);
+    OS::Print("%s [%" Px ", %" Px ") %"Pd" %"Pd64"\n",
+              KindToCString(kind_),
+              start(),
+              end(),
+              creation_serial_,
+              compile_timestamp_);
   }
 
-  void AddTickAtAddress(uword pc, bool exclusive, intptr_t serial) {
+  void Tick(uword pc, bool exclusive, intptr_t serial) {
     // Assert that exclusive ticks are never passed a valid serial number.
     ASSERT((exclusive && (serial == -1)) || (!exclusive && (serial != -1)));
     if (!exclusive && (inclusive_tick_serial_ == serial)) {
@@ -293,35 +339,11 @@ class CodeRegion : public ZoneAllocated {
     if (exclusive) {
       exclusive_ticks_++;
     } else {
+      inclusive_ticks_++;
       // Mark the last serial we ticked the inclusive count.
       inclusive_tick_serial_ = serial;
-      inclusive_ticks_++;
     }
-    // Tick the address entry.
-    const intptr_t length = address_table_->length();
-    intptr_t i = 0;
-    for (; i < length; i++) {
-      AddressEntry& entry = (*address_table_)[i];
-      if (entry.pc == pc) {
-        entry.tick(exclusive);
-        return;
-      }
-      if (entry.pc > pc) {
-        break;
-      }
-    }
-    AddressEntry entry;
-    entry.pc = pc;
-    entry.exclusive_ticks = 0;
-    entry.inclusive_ticks = 0;
-    entry.tick(exclusive);
-    if (i < length) {
-      // Insert at i.
-      address_table_->InsertAt(i, entry);
-    } else {
-      // Add to end.
-      address_table_->Add(entry);
-    }
+    TickAddress(pc, exclusive);
   }
 
   void AddCaller(intptr_t index) {
@@ -341,12 +363,12 @@ class CodeRegion : public ZoneAllocated {
     obj.AddProperty("user_name", name());
     obj.AddPropertyF("start", "%" Px "", start());
     obj.AddPropertyF("end", "%" Px "", end());
-    obj.AddPropertyF("id", "code/native/%" Px "", start());
+    obj.AddPropertyF("id", "code/native-%" Px "", start());
     {
       // Generate a fake function entry.
       JSONObject func(&obj, "function");
       func.AddProperty("type", "@Function");
-      func.AddPropertyF("id", "native/functions/%" Pd "", start());
+      func.AddPropertyF("id", "functions/native-%" Px "", start());
       func.AddProperty("name", name());
       func.AddProperty("user_name", name());
       func.AddProperty("kind", "Native");
@@ -362,27 +384,48 @@ class CodeRegion : public ZoneAllocated {
     obj.AddProperty("user_name", name());
     obj.AddPropertyF("start", "%" Px "", start());
     obj.AddPropertyF("end", "%" Px "", end());
-    obj.AddPropertyF("id", "code/collected/%" Px "", start());
+    obj.AddPropertyF("id", "code/collected-%" Px "", start());
     {
       // Generate a fake function entry.
       JSONObject func(&obj, "function");
       func.AddProperty("type", "@Function");
-      func.AddPropertyF("id", "collected/functions/%" Pd "", start());
+      obj.AddPropertyF("id", "functions/collected-%" Px "", start());
       func.AddProperty("name", name());
       func.AddProperty("user_name", name());
       func.AddProperty("kind", "Collected");
     }
   }
 
+  void PrintOverwrittenCode(JSONObject* profile_code_obj) {
+    ASSERT(kind() == kReusedCode);
+    JSONObject obj(profile_code_obj, "code");
+    obj.AddProperty("type", "@Code");
+    obj.AddProperty("kind", "Reused");
+    obj.AddProperty("name", name());
+    obj.AddProperty("user_name", name());
+    obj.AddPropertyF("start", "%" Px "", start());
+    obj.AddPropertyF("end", "%" Px "", end());
+    obj.AddPropertyF("id", "code/reused-%" Px "", start());
+    {
+      // Generate a fake function entry.
+      JSONObject func(&obj, "function");
+      func.AddProperty("type", "@Function");
+      obj.AddPropertyF("id", "functions/reused-%" Px "", start());
+      func.AddProperty("name", name());
+      func.AddProperty("user_name", name());
+      func.AddProperty("kind", "Reused");
+    }
+  }
+
   void PrintToJSONArray(Isolate* isolate, JSONArray* events, bool full) {
     JSONObject obj(events);
-    obj.AddProperty("type", "ProfileCode");
+    obj.AddProperty("type", "CodeRegion");
     obj.AddProperty("kind", KindToCString(kind()));
     obj.AddPropertyF("inclusive_ticks", "%" Pd "", inclusive_ticks());
     obj.AddPropertyF("exclusive_ticks", "%" Pd "", exclusive_ticks());
     if (kind() == kDartCode) {
       // Look up code in Dart heap.
-      Code& code = Code::Handle();
+      Code& code = Code::Handle(isolate);
       code ^= Code::LookupCode(start());
       if (code.IsNull()) {
         // Code is a stub in the Vm isolate.
@@ -393,14 +436,20 @@ class CodeRegion : public ZoneAllocated {
     } else if (kind() == kCollectedCode) {
       if (name() == NULL) {
         // Lazily set generated name.
-        GenerateAndSetSymbolName("Collected");
+        GenerateAndSetSymbolName("[Collected]");
       }
       PrintCollectedCode(&obj);
+    } else if (kind() == kReusedCode) {
+      if (name() == NULL) {
+        // Lazily set generated name.
+        GenerateAndSetSymbolName("[Reused]");
+      }
+      PrintOverwrittenCode(&obj);
     } else {
       ASSERT(kind() == kNativeCode);
       if (name() == NULL) {
         // Lazily set generated name.
-        GenerateAndSetSymbolName("Native");
+        GenerateAndSetSymbolName("[Native]");
       }
       PrintNativeCode(&obj);
     }
@@ -432,6 +481,36 @@ class CodeRegion : public ZoneAllocated {
   }
 
  private:
+  void TickAddress(uword pc, bool exclusive) {
+    const intptr_t length = address_table_->length();
+    intptr_t i = 0;
+    for (; i < length; i++) {
+      AddressEntry& entry = (*address_table_)[i];
+      if (entry.pc == pc) {
+        // Tick the address entry.
+        entry.tick(exclusive);
+        return;
+      }
+      if (entry.pc > pc) {
+        break;
+      }
+    }
+    // New address, add entry.
+    AddressEntry entry;
+    entry.pc = pc;
+    entry.exclusive_ticks = 0;
+    entry.inclusive_ticks = 0;
+    entry.tick(exclusive);
+    if (i < length) {
+      // Insert at i.
+      address_table_->InsertAt(i, entry);
+    } else {
+      // Add to end.
+      address_table_->Add(entry);
+    }
+  }
+
+
   void AddCallEntry(ZoneGrowableArray<CallEntry>* table, intptr_t index) {
     const intptr_t length = table->length();
     intptr_t i = 0;
@@ -463,77 +542,72 @@ class CodeRegion : public ZoneAllocated {
     SetName(buff);
   }
 
-  Kind kind_;
+  // CodeRegion kind.
+  const Kind kind_;
+  // CodeRegion start address.
   uword start_;
+  // CodeRegion end address.
   uword end_;
+  // Inclusive ticks.
   intptr_t inclusive_ticks_;
+  // Exclusive ticks.
   intptr_t exclusive_ticks_;
+  // Inclusive tick serial number, ensures that each CodeRegion is only given
+  // a single inclusive tick per sample.
   intptr_t inclusive_tick_serial_;
+  // Name of code region.
   const char* name_;
+  // The compilation timestamp associated with this code region.
+  int64_t compile_timestamp_;
+  // Serial number at which this CodeRegion was created.
+  intptr_t creation_serial_;
   ZoneGrowableArray<AddressEntry>* address_table_;
   ZoneGrowableArray<CallEntry>* callers_table_;
   ZoneGrowableArray<CallEntry>* callees_table_;
   DISALLOW_COPY_AND_ASSIGN(CodeRegion);
 };
 
-
-class ScopeStopwatch : public ValueObject {
+// A sorted table of CodeRegions. Does not allow for overlap.
+class CodeRegionTable : public ValueObject {
  public:
-  explicit ScopeStopwatch(const char* name) : name_(name) {
-    start_ = OS::GetCurrentTimeMillis();
-  }
+  enum TickResult {
+    kTicked = 0,     // CodeRegion found and ticked.
+    kNotFound = -1,   // No CodeRegion found.
+    kNewerCode = -2,  // CodeRegion found but it was compiled after sample.
+  };
 
-  intptr_t GetElapsed() const {
-    intptr_t end = OS::GetCurrentTimeMillis();
-    ASSERT(end >= start_);
-    return end - start_;
-  }
-
-  ~ScopeStopwatch() {
-    if (FLAG_trace_profiled_isolates) {
-      intptr_t elapsed = GetElapsed();
-      OS::Print("%s took %" Pd " millis.\n", name_, elapsed);
-    }
-  }
-
- private:
-  const char* name_;
-  intptr_t start_;
-};
-
-
-// All code regions. Code region tables are built on demand when a profile
-// is requested (through the service or on isolate shutdown).
-class ProfilerCodeRegionTable : public ValueObject {
- public:
-  explicit ProfilerCodeRegionTable(Isolate* isolate) :
-      heap_(isolate->heap()),
+  CodeRegionTable() :
       code_region_table_(new ZoneGrowableArray<CodeRegion*>(64)) {
   }
 
-  ~ProfilerCodeRegionTable() {
-  }
-
-  void AddTick(uword pc, bool exclusive, intptr_t serial) {
+  // Ticks the CodeRegion containing pc if it is alive at timestamp.
+  TickResult Tick(uword pc, bool exclusive, intptr_t serial,
+                  int64_t timestamp) {
     intptr_t index = FindIndex(pc);
     if (index < 0) {
-      CodeRegion* code_region = CreateCodeRegion(pc);
-      ASSERT(code_region != NULL);
-      index = InsertCodeRegion(code_region);
+      // Not found.
+      return kNotFound;
     }
-    ASSERT(index >= 0);
     ASSERT(index < code_region_table_->length());
-
-    // Update code object counters.
-    (*code_region_table_)[index]->AddTickAtAddress(pc, exclusive, serial);
+    CodeRegion* region = At(index);
+    if (region->compile_timestamp() > timestamp) {
+      // Compiled after tick.
+      return kNewerCode;
+    }
+    region->Tick(pc, exclusive, serial);
+    return kTicked;
   }
 
+  // Table length.
   intptr_t Length() const { return code_region_table_->length(); }
 
-  CodeRegion* At(intptr_t idx) {
-    return (*code_region_table_)[idx];
+  // Get the CodeRegion at index.
+  CodeRegion* At(intptr_t index) const {
+    return (*code_region_table_)[index];
   }
 
+  // Find the table index to the CodeRegion containing pc.
+  // Returns < 0 if not found.
   intptr_t FindIndex(uword pc) const {
     intptr_t index = FindRegionIndex(pc, &CompareLowerBound);
     const CodeRegion* code_region = NULL;
@@ -541,12 +615,71 @@ class ProfilerCodeRegionTable : public ValueObject {
       // Not present.
       return -1;
     }
-    code_region = (*code_region_table_)[index];
+    code_region = At(index);
     if (code_region->contains(pc)) {
       // Found at index.
       return index;
     }
-    return -1;
+    return -2;
+  }
+
+  // Insert code_region into the table. Returns the table index where the
+  // CodeRegion was inserted. Will merge with an overlapping CodeRegion if
+  // one is present.
+  intptr_t InsertCodeRegion(CodeRegion* code_region) {
+    const uword start = code_region->start();
+    const uword end = code_region->end();
+    const intptr_t length = code_region_table_->length();
+    if (length == 0) {
+      code_region_table_->Add(code_region);
+      return length;
+    }
+    // Determine the correct place to insert or merge code_region into table.
+    intptr_t lo = FindRegionIndex(start, &CompareLowerBound);
+    intptr_t hi = FindRegionIndex(end - 1, &CompareUpperBound);
+    // TODO(johnmccutchan): Simplify below logic.
+    if ((lo == length) && (hi == length)) {
+      lo = length - 1;
+    }
+    if (lo == length) {
+      CodeRegion* region = At(hi);
+      if (region->overlaps(code_region)) {
+        HandleOverlap(region, code_region, start, end);
+        return hi;
+      }
+      code_region_table_->Add(code_region);
+      return length;
+    } else if (hi == length) {
+      CodeRegion* region = At(lo);
+      if (region->overlaps(code_region)) {
+        HandleOverlap(region, code_region, start, end);
+        return lo;
+      }
+      code_region_table_->Add(code_region);
+      return length;
+    } else if (lo == hi) {
+      CodeRegion* region = At(lo);
+      if (region->overlaps(code_region)) {
+        HandleOverlap(region, code_region, start, end);
+        return lo;
+      }
+      code_region_table_->InsertAt(lo, code_region);
+      return lo;
+    } else {
+      CodeRegion* region = At(lo);
+      if (region->overlaps(code_region)) {
+        HandleOverlap(region, code_region, start, end);
+        return lo;
+      }
+      region = At(hi);
+      if (region->overlaps(code_region)) {
+        HandleOverlap(region, code_region, start, end);
+        return hi;
+      }
+      code_region_table_->InsertAt(hi, code_region);
+      return hi;
+    }
+    UNREACHABLE();
   }
 
 #if defined(DEBUG)
@@ -555,6 +688,14 @@ class ProfilerCodeRegionTable : public ValueObject {
     VerifyOverlap();
   }
 #endif
+
+  void DebugPrint() {
+    OS::Print("Dumping CodeRegionTable:\n");
+    for (intptr_t i = 0; i < code_region_table_->length(); i++) {
+      CodeRegion* region = At(i);
+      region->DebugPrint();
+    }
+  }
 
  private:
   intptr_t FindRegionIndex(uword pc, RegionCompare comparator) const {
@@ -565,7 +706,7 @@ class ProfilerCodeRegionTable : public ValueObject {
       intptr_t it = first;
       intptr_t step = count / 2;
       it += step;
-      const CodeRegion* code_region = (*code_region_table_)[it];
+      const CodeRegion* code_region = At(it);
       if (comparator(pc, code_region->start(), code_region->end())) {
         first = ++it;
         count -= (step + 1);
@@ -584,38 +725,6 @@ class ProfilerCodeRegionTable : public ValueObject {
     return end <= pc;
   }
 
-  CodeRegion* CreateCodeRegion(uword pc) {
-    Code& code = Code::Handle();
-    code ^= Code::LookupCode(pc);
-    if (!code.IsNull()) {
-      return new CodeRegion(CodeRegion::kDartCode, code.EntryPoint(),
-                            code.EntryPoint() + code.Size());
-    }
-    code ^= Code::LookupCodeInVmIsolate(pc);
-    if (!code.IsNull()) {
-      return new CodeRegion(CodeRegion::kDartCode, code.EntryPoint(),
-                            code.EntryPoint() + code.Size());
-    }
-    if (heap_->CodeContains(pc)) {
-      const intptr_t kDartCodeAlignment = OS::PreferredCodeAlignment();
-      const intptr_t kDartCodeAlignmentMask = ~(kDartCodeAlignment - 1);
-      return new CodeRegion(CodeRegion::kCollectedCode, pc,
-                            (pc & kDartCodeAlignmentMask) + kDartCodeAlignment);
-    }
-    uintptr_t native_start = 0;
-    char* native_name = NativeSymbolResolver::LookupSymbolName(pc,
-                                                               &native_start);
-    if (native_name == NULL) {
-      return new CodeRegion(CodeRegion::kNativeCode, pc, pc + 1);
-    }
-    ASSERT(pc >= native_start);
-    CodeRegion* code_region =
-        new CodeRegion(CodeRegion::kNativeCode, native_start, pc + 1);
-    code_region->SetName(native_name);
-    free(native_name);
-    return code_region;
-  }
-
   void HandleOverlap(CodeRegion* region, CodeRegion* code_region,
                      uword start, uword end) {
     // We should never see overlapping Dart code regions.
@@ -623,61 +732,6 @@ class ProfilerCodeRegionTable : public ValueObject {
     // When code regions overlap, they should be of the same kind.
     ASSERT(region->kind() == code_region->kind());
     region->AdjustExtent(start, end);
-  }
-
-  intptr_t InsertCodeRegion(CodeRegion* code_region) {
-    const uword start = code_region->start();
-    const uword end = code_region->end();
-    const intptr_t length = code_region_table_->length();
-    if (length == 0) {
-      code_region_table_->Add(code_region);
-      return length;
-    }
-    // Determine the correct place to insert or merge code_region into table.
-    intptr_t lo = FindRegionIndex(start, &CompareLowerBound);
-    intptr_t hi = FindRegionIndex(end - 1, &CompareUpperBound);
-    if ((lo == length) && (hi == length)) {
-      lo = length - 1;
-    }
-    if (lo == length) {
-      CodeRegion* region = (*code_region_table_)[hi];
-      if (region->overlaps(code_region)) {
-        HandleOverlap(region, code_region, start, end);
-        return hi;
-      }
-      code_region_table_->Add(code_region);
-      return length;
-    } else if (hi == length) {
-      CodeRegion* region = (*code_region_table_)[lo];
-      if (region->overlaps(code_region)) {
-        HandleOverlap(region, code_region, start, end);
-        return lo;
-      }
-      code_region_table_->Add(code_region);
-      return length;
-    } else if (lo == hi) {
-      CodeRegion* region = (*code_region_table_)[lo];
-      if (region->overlaps(code_region)) {
-        HandleOverlap(region, code_region, start, end);
-        return lo;
-      }
-      code_region_table_->InsertAt(lo, code_region);
-      return lo;
-    } else {
-      CodeRegion* region = (*code_region_table_)[lo];
-      if (region->overlaps(code_region)) {
-        HandleOverlap(region, code_region, start, end);
-        return lo;
-      }
-      region = (*code_region_table_)[hi];
-      if (region->overlaps(code_region)) {
-        HandleOverlap(region, code_region, start, end);
-        return hi;
-      }
-      code_region_table_->InsertAt(hi, code_region);
-      return hi;
-    }
-    UNREACHABLE();
   }
 
 #if defined(DEBUG)
@@ -709,7 +763,6 @@ class ProfilerCodeRegionTable : public ValueObject {
   }
 #endif
 
-  Heap* heap_;
   ZoneGrowableArray<CodeRegion*>* code_region_table_;
 };
 
@@ -717,11 +770,20 @@ class ProfilerCodeRegionTable : public ValueObject {
 class CodeRegionTableBuilder : public SampleVisitor {
  public:
   CodeRegionTableBuilder(Isolate* isolate,
-                         ProfilerCodeRegionTable* code_region_table)
-      : SampleVisitor(isolate), code_region_table_(code_region_table) {
+                         CodeRegionTable* live_code_table,
+                         CodeRegionTable* dead_code_table)
+      : SampleVisitor(isolate),
+        live_code_table_(live_code_table),
+        dead_code_table_(dead_code_table),
+        isolate_(isolate),
+        vm_isolate_(Dart::vm_isolate()) {
+    ASSERT(live_code_table_ != NULL);
+    ASSERT(dead_code_table_ != NULL);
     frames_ = 0;
     min_time_ = kMaxInt64;
     max_time_ = 0;
+    ASSERT(isolate_ != NULL);
+    ASSERT(vm_isolate_ != NULL);
   }
 
   void VisitSample(Sample* sample) {
@@ -732,44 +794,148 @@ class CodeRegionTableBuilder : public SampleVisitor {
     if (timestamp < min_time_) {
       min_time_ = timestamp;
     }
-    // Give the bottom frame an exclusive tick.
-    code_region_table_->AddTick(sample->At(0), true, -1);
-    // Give all frames (including the bottom) an inclusive tick.
+    // Exclusive tick for bottom frame.
+    Tick(sample->At(0), true, timestamp);
+    // Inclusive tick for all frames.
     for (intptr_t i = 0; i < FLAG_profile_depth; i++) {
       if (sample->At(i) == 0) {
         break;
       }
       frames_++;
-      code_region_table_->AddTick(sample->At(i), false, visited());
+      Tick(sample->At(i), false, timestamp);
     }
   }
 
   intptr_t frames() const { return frames_; }
+
   intptr_t  TimeDeltaMicros() const {
     return static_cast<intptr_t>(max_time_ - min_time_);
   }
   int64_t  max_time() const { return max_time_; }
 
  private:
+  void Tick(uword pc, bool exclusive, int64_t timestamp) {
+    CodeRegionTable::TickResult r;
+    intptr_t serial = exclusive ? -1 : visited();
+    r = live_code_table_->Tick(pc, exclusive, serial, timestamp);
+    if (r == CodeRegionTable::kTicked) {
+      // Live code found and ticked.
+      return;
+    }
+    if (r == CodeRegionTable::kNewerCode) {
+      // Code has been overwritten by newer code.
+      // Update shadow table of dead code regions.
+      r = dead_code_table_->Tick(pc, exclusive, serial, timestamp);
+      ASSERT(r != CodeRegionTable::kNewerCode);
+      if (r == CodeRegionTable::kTicked) {
+        // Dead code found and ticked.
+        return;
+      }
+      ASSERT(r == CodeRegionTable::kNotFound);
+      CreateAndTickDeadCodeRegion(pc, exclusive, serial);
+      return;
+    }
+    // Create new live CodeRegion.
+    ASSERT(r == CodeRegionTable::kNotFound);
+    CodeRegion* region = CreateCodeRegion(pc);
+    region->set_creation_serial(visited());
+    intptr_t index = live_code_table_->InsertCodeRegion(region);
+    ASSERT(index >= 0);
+    region = live_code_table_->At(index);
+    if (region->compile_timestamp() <= timestamp) {
+      region->Tick(pc, exclusive, serial);
+      return;
+    }
+    // We have created a new code region but it's for a CodeRegion
+    // compiled after the sample.
+    ASSERT(region->kind() == CodeRegion::kDartCode);
+    CreateAndTickDeadCodeRegion(pc, exclusive, serial);
+  }
+
+  void CreateAndTickDeadCodeRegion(uword pc, bool exclusive, intptr_t serial) {
+    // Need to create dead code.
+    CodeRegion* region = new CodeRegion(CodeRegion::kReusedCode,
+                                        pc,
+                                        pc + 1,
+                                        0);
+    intptr_t index = dead_code_table_->InsertCodeRegion(region);
+    region->set_creation_serial(visited());
+    ASSERT(index >= 0);
+    dead_code_table_->At(index)->Tick(pc, exclusive, serial);
+  }
+
+  CodeRegion* CreateCodeRegion(uword pc) {
+    const intptr_t kDartCodeAlignment = OS::PreferredCodeAlignment();
+    const intptr_t kDartCodeAlignmentMask = ~(kDartCodeAlignment - 1);
+    Code& code = Code::Handle(isolate_);
+    // Check current isolate for pc.
+    if (isolate_->heap()->CodeContains(pc)) {
+      code ^= Code::LookupCode(pc);
+      if (!code.IsNull()) {
+        return new CodeRegion(CodeRegion::kDartCode, code.EntryPoint(),
+                              code.EntryPoint() + code.Size(),
+                              code.compile_timestamp());
+      }
+      return new CodeRegion(CodeRegion::kCollectedCode, pc,
+                            (pc & kDartCodeAlignmentMask) + kDartCodeAlignment,
+                            0);
+    }
+    // Check VM isolate for pc.
+    if (vm_isolate_->heap()->CodeContains(pc)) {
+      code ^= Code::LookupCodeInVmIsolate(pc);
+      if (!code.IsNull()) {
+        return new CodeRegion(CodeRegion::kDartCode, code.EntryPoint(),
+                              code.EntryPoint() + code.Size(),
+                              code.compile_timestamp());
+      }
+      return new CodeRegion(CodeRegion::kCollectedCode, pc,
+                            (pc & kDartCodeAlignmentMask) + kDartCodeAlignment,
+                            0);
+    }
+    // Check NativeSymbolResolver for pc.
+    uintptr_t native_start = 0;
+    char* native_name = NativeSymbolResolver::LookupSymbolName(pc,
+                                                               &native_start);
+    if (native_name == NULL) {
+      // No native name found.
+      return new CodeRegion(CodeRegion::kNativeCode, pc, pc + 1, 0);
+    }
+    ASSERT(pc >= native_start);
+    CodeRegion* code_region =
+        new CodeRegion(CodeRegion::kNativeCode, native_start, pc + 1, 0);
+    code_region->SetName(native_name);
+    free(native_name);
+    return code_region;
+  }
+
   intptr_t frames_;
   int64_t min_time_;
   int64_t max_time_;
-  ProfilerCodeRegionTable* code_region_table_;
+  CodeRegionTable* live_code_table_;
+  CodeRegionTable* dead_code_table_;
+  Isolate* isolate_;
+  Isolate* vm_isolate_;
 };
 
 
 class CodeRegionTableCallersBuilder : public SampleVisitor {
  public:
   CodeRegionTableCallersBuilder(Isolate* isolate,
-                                ProfilerCodeRegionTable* code_region_table)
-      : SampleVisitor(isolate), code_region_table_(code_region_table) {
-    ASSERT(code_region_table_ != NULL);
+                                CodeRegionTable* live_code_table,
+                                CodeRegionTable* dead_code_table)
+      : SampleVisitor(isolate),
+        live_code_table_(live_code_table),
+        dead_code_table_(dead_code_table) {
+    ASSERT(live_code_table_ != NULL);
+    ASSERT(dead_code_table_ != NULL);
+    dead_code_table_offset_ = live_code_table_->Length();
   }
 
   void VisitSample(Sample* sample) {
-    intptr_t current_index = code_region_table_->FindIndex(sample->At(0));
-    ASSERT(current_index != -1);
-    CodeRegion* current = code_region_table_->At(current_index);
+    int64_t timestamp = sample->timestamp();
+    intptr_t current_index = FindFinalIndex(sample->At(0), timestamp);
+    ASSERT(current_index >= 0);
+    CodeRegion* current = At(current_index);
     intptr_t caller_index = -1;
     CodeRegion* caller = NULL;
     intptr_t callee_index = -1;
@@ -778,9 +944,9 @@ class CodeRegionTableCallersBuilder : public SampleVisitor {
       if (sample->At(i) == 0) {
         break;
       }
-      caller_index = code_region_table_->FindIndex(sample->At(i));
-      ASSERT(caller_index != -1);
-      caller = code_region_table_->At(caller_index);
+      caller_index = FindFinalIndex(sample->At(i), timestamp);
+      ASSERT(caller_index >= 0);
+      caller = At(caller_index);
       current->AddCaller(caller_index);
       if (callee != NULL) {
         current->AddCallee(callee_index);
@@ -794,7 +960,36 @@ class CodeRegionTableCallersBuilder : public SampleVisitor {
   }
 
  private:
-  ProfilerCodeRegionTable* code_region_table_;
+  intptr_t FindFinalIndex(uword pc, int64_t timestamp) const {
+    intptr_t index = live_code_table_->FindIndex(pc);
+    ASSERT(index >= 0);
+    CodeRegion* region = live_code_table_->At(index);
+    ASSERT(region->contains(pc));
+    if (region->compile_timestamp() > timestamp) {
+      // Overwritten code, find in dead code table.
+      index = dead_code_table_->FindIndex(pc);
+      ASSERT(index >= 0);
+      region = dead_code_table_->At(index);
+      ASSERT(region->contains(pc));
+      ASSERT(region->compile_timestamp() <= timestamp);
+      return index + dead_code_table_offset_;
+    }
+    ASSERT(region->compile_timestamp() <= timestamp);
+    return index;
+  }
+
+  CodeRegion* At(intptr_t final_index) {
+    ASSERT(final_index >= 0);
+    if (final_index < dead_code_table_offset_) {
+      return live_code_table_->At(final_index);
+    } else {
+      return dead_code_table_->At(final_index - dead_code_table_offset_);
+    }
+  }
+
+  CodeRegionTable* live_code_table_;
+  CodeRegionTable* dead_code_table_;
+  intptr_t dead_code_table_offset_;
 };
 
 void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream,
@@ -815,27 +1010,42 @@ void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream,
   {
     StackZone zone(isolate);
     {
-      // Build code region table.
-      ProfilerCodeRegionTable code_region_table(isolate);
-      CodeRegionTableBuilder builder(isolate, &code_region_table);
-      CodeRegionTableCallersBuilder build_callers(isolate, &code_region_table);
+      // Live code holds Dart, Native, and Collected CodeRegions.
+      CodeRegionTable live_code_table;
+      // Dead code holds Overwritten CodeRegions.
+      CodeRegionTable dead_code_table;
+      CodeRegionTableBuilder builder(isolate,
+                                     &live_code_table,
+                                     &dead_code_table);
       {
+        // Build CodeRegion tables.
         ScopeStopwatch sw("CodeTableBuild");
         sample_buffer->VisitSamples(&builder);
       }
-#if defined(DEBUG)
-      code_region_table.Verify();
-#endif
-      {
-        ScopeStopwatch sw("CodeTableCallersBuild");
-        sample_buffer->VisitSamples(&build_callers);
-      }
-      // Number of samples we processed.
       intptr_t samples = builder.visited();
       intptr_t frames = builder.frames();
       if (FLAG_trace_profiled_isolates) {
-        OS::Print("%" Pd " frames produced %" Pd " code objects.\n",
-                  frames, code_region_table.Length());
+        intptr_t total_live_code_objects = live_code_table.Length();
+        intptr_t total_dead_code_objects = dead_code_table.Length();
+        OS::Print("Processed %" Pd " frames\n", frames);
+        OS::Print("CodeTables: live=%" Pd " dead=%" Pd "\n",
+                  total_live_code_objects,
+                  total_dead_code_objects);
+      }
+#if defined(DEBUG)
+      live_code_table.Verify();
+      dead_code_table.Verify();
+      if (FLAG_trace_profiled_isolates) {
+        OS::Print("CodeRegionTables verified to be ordered and not overlap.\n");
+      }
+#endif
+      CodeRegionTableCallersBuilder build_callers(isolate,
+                                                  &live_code_table,
+                                                  &dead_code_table);
+      {
+        // Build CodeRegion callers.
+        ScopeStopwatch sw("CodeTableCallersBuild");
+        sample_buffer->VisitSamples(&build_callers);
       }
       {
         ScopeStopwatch sw("CodeTableStream");
@@ -846,8 +1056,13 @@ void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream,
         obj.AddProperty("samples", samples);
         obj.AddProperty("time_delta_micros", builder.TimeDeltaMicros());
         JSONArray codes(&obj, "codes");
-        for (intptr_t i = 0; i < code_region_table.Length(); i++) {
-          CodeRegion* region = code_region_table.At(i);
+        for (intptr_t i = 0; i < live_code_table.Length(); i++) {
+          CodeRegion* region = live_code_table.At(i);
+          ASSERT(region != NULL);
+          region->PrintToJSONArray(isolate, &codes, full);
+        }
+        for (intptr_t i = 0; i < dead_code_table.Length(); i++) {
+          CodeRegion* region = dead_code_table.At(i);
           ASSERT(region != NULL);
           region->PrintToJSONArray(isolate, &codes, full);
         }

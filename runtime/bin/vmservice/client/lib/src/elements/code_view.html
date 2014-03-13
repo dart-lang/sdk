@@ -1,9 +1,6 @@
-<head>
-  <link rel="import" href="disassembly_entry.html">
-  <link rel="import" href="function_ref.html">
-  <link rel="import" href="observatory_element.html">
-  <link rel="import" href="nav_bar.html">
-</head>
+<link rel="import" href="function_ref.html">
+<link rel="import" href="observatory_element.html">
+<link rel="import" href="nav_bar.html">
 <polymer-element name="code-view" extends="observatory-element">
   <template>
     <nav-bar>
@@ -12,29 +9,69 @@
       <nav-menu link="." anchor="{{ code.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
-
-  <div class="row">
-    <div class="col-md-8 col-md-offset-2">
-      <div class="{{ cssPanelClass }}">
-        <div class="panel-heading">
-          <span>Disassembled code for function: </span>
-          <function-ref ref="{{ code.function }}"></function-ref>
-        </div>
-        <div class="panel-body">
-          <div class="row">
-              <div class="col-md-2"><strong>Inclusive</strong></div>
-              <div class="col-md-2"><strong>Exclusive</strong></div>
-              <div class="col-md-2"><strong>Address</strong></div>
-              <div class="col-md-6"><strong>Disassembly</strong></div>
-          </div>
-          <template repeat="{{ instruction in code.instructions }}">
-            <disassembly-entry code="{{ code }}" instruction="{{ instruction }}">
-            </disassembly-entry>
-          </template>
-        </div>
-      </div>
+    <style>
+      .content {
+        padding-left: 10%;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      h1 {
+        font: 400 18px 'Montserrat', sans-serif;
+      }
+      .member, .memberHeader {
+        vertical-align: top;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      .monospace {
+        font-family: consolas, courier, monospace;
+        font-size: 1em;
+        line-height: 1.2em;
+        white-space: nowrap;
+      }
+    </style>
+    <div class="content">
+      <h1>Code for {{ code.name }}</h1>
+      <table>
+        <tr>
+          <td class="memberHeader">kind</td>
+          <td class="member">{{code.kind}}</td>
+        </tr>
+        <tr>
+          <td class="memberHeader">function</td>
+          <td class="member">
+            <function-ref ref="{{code.function}}">
+            </function-ref>
+          </td>
+        </tr>
+        <tr>
+          <td class="memberHeader">Inclusive</td>
+          <td class="member">{{ code.formattedInclusiveTicks }}</td>
+        </tr>
+        <tr>
+          <td class="memberHeader">Exclusive</td>
+          <td class="member">{{ code.formattedExclusiveTicks }}</td>
+        </tr>
+      </table>
     </div>
-  </div>
+    <hr>
+    <div class="content">
+      <template if="{{ code.hasDisassembly }}">
+        <div class="row">
+            <div class="col-md-2 memberHeader">Inclusive</div>
+            <div class="col-md-2 memberHeader">Exclusive</div>
+            <div class="col-md-2 memberHeader">Address</div>
+            <div class="col-md-6 memberHeader">Disassembly</div>
+        </div>
+      </template>
+      <template repeat="{{ instruction in code.instructions }}">
+        <div class="row">
+          <div class="col-md-2 monospace">{{ instruction.formattedInclusive(code) }}</div>
+          <div class="col-md-2 monospace">{{ instruction.formattedExclusive(code) }}</div>
+          <div class="col-md-2 monospace">{{ instruction.formattedAddress() }}</div>
+          <div class="col-md-6 monospace">{{ instruction.human }}</div>
+        </div>
+      </template>
+    </div>
   </template>
   <script type="application/dart" src="code_view.dart"></script>
 </polymer-element>

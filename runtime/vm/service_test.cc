@@ -695,6 +695,7 @@ TEST_CASE(Service_Code) {
   EXPECT(!code_c.IsNull());
   // Use the entry of the code object as it's reference.
   uword entry = code_c.EntryPoint();
+  int64_t compile_timestamp = code_c.compile_timestamp();
   EXPECT_GT(code_c.Size(), 16);
   uword last = entry + code_c.Size();
 
@@ -713,15 +714,15 @@ TEST_CASE(Service_Code) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
-    "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Could not find code at 0\","
+    "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Malformed code id: 0\","
     "\"request\":{\"arguments\":[\"code\",\"0\"],"
     "\"option_keys\":[],\"option_values\":[]}}", handler.msg());
 
-  // The following four tests check that a code object can be found
-  // inside the range: [code.EntryPoint(), code.EntryPoint() + code.Size()).
-  // Request code object at code.EntryPoint()
-  // Expect this to succeed as it is inside [entry, entry + size).
-  service_msg = EvalF(h_lib, "[port, ['code', '%" Px "'], [], []]", entry);
+  // The following test checks that a code object can be found only
+  // at compile_timestamp()-code.EntryPoint().
+  service_msg = EvalF(h_lib, "[port, ['code', '%" Px64"-%" Px "'], [], []]",
+                      compile_timestamp,
+                      entry);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   {
@@ -729,14 +730,18 @@ TEST_CASE(Service_Code) {
     const intptr_t kBufferSize = 512;
     char buffer[kBufferSize];
     OS::SNPrint(buffer, kBufferSize-1,
-                "{\"type\":\"Code\",\"id\":\"code\\/%" Px "\",", entry);
+                "{\"type\":\"Code\",\"id\":\"code\\/%" Px64 "-%" Px "\",",
+                compile_timestamp,
+                entry);
     EXPECT_SUBSTRING(buffer, handler.msg());
   }
 
-  // Request code object at code.EntryPoint() + 16.
-  // Expect this to succeed as it is inside [entry, entry + size).
+  // Request code object at compile_timestamp-code.EntryPoint() + 16
+  // Expect this to fail because the address is not the entry point.
   uintptr_t address = entry + 16;
-  service_msg = EvalF(h_lib, "[port, ['code', '%" Px "'], [], []]", address);
+  service_msg = EvalF(h_lib, "[port, ['code', '%" Px64"-%" Px "'], [], []]",
+                      compile_timestamp,
+                      address);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   {
@@ -744,14 +749,18 @@ TEST_CASE(Service_Code) {
     const intptr_t kBufferSize = 512;
     char buffer[kBufferSize];
     OS::SNPrint(buffer, kBufferSize-1,
-                "{\"type\":\"Code\",\"id\":\"code\\/%" Px "\",", entry);
+                "Could not find code with id: %" Px64 "-%" Px "",
+                compile_timestamp,
+                address);
     EXPECT_SUBSTRING(buffer, handler.msg());
   }
 
-  // Request code object at code.EntryPoint() + code.Size() - 1.
-  // Expect this to succeed as it is inside [entry, entry + size).
-  address = last - 1;
-  service_msg = EvalF(h_lib, "[port, ['code', '%" Px "'], [], []]", address);
+  // Request code object at (compile_timestamp - 1)-code.EntryPoint()
+  // Expect this to fail because the timestamp is wrong.
+  address = entry;
+  service_msg = EvalF(h_lib, "[port, ['code', '%" Px64"-%" Px "'], [], []]",
+                      compile_timestamp - 1,
+                      address);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   {
@@ -759,26 +768,26 @@ TEST_CASE(Service_Code) {
     const intptr_t kBufferSize = 512;
     char buffer[kBufferSize];
     OS::SNPrint(buffer, kBufferSize-1,
-                "{\"type\":\"Code\",\"id\":\"code\\/%" Px "\",", entry);
+                "Could not find code with id: %" Px64 "-%" Px "",
+                compile_timestamp - 1,
+                address);
     EXPECT_SUBSTRING(buffer, handler.msg());
   }
 
-  // Request code object at code.EntryPoint() + code.Size(). Expect this
-  // to fail as it's outside of [entry, entry + size).
+  // Request native code at address. Expect the null code object back.
   address = last;
-  service_msg = EvalF(h_lib, "[port, ['code', '%" Px "'], [], []]", address);
+  service_msg = EvalF(h_lib, "[port, ['code', 'native-%" Px "'], [], []]",
+                      address);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  {
-    const intptr_t kBufferSize = 1024;
-    char buffer[kBufferSize];
-    OS::SNPrint(buffer, kBufferSize-1,
-        "{\"type\":\"Error\",\"id\":\"\","
-        "\"message\":\"Could not find code at %" Px "\","
-        "\"request\":{\"arguments\":[\"code\",\"%" Px "\"],"
-        "\"option_keys\":[],\"option_values\":[]}}", address, address);
-    EXPECT_STREQ(buffer, handler.msg());
-  }
+  EXPECT_STREQ("{\"type\":\"null\"}", handler.msg());
+
+  // Request malformed native code.
+  service_msg = EvalF(h_lib, "[port, ['code', 'native%" Px "'], [], []]",
+                      address);
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"message\":\"Malformed code id:", handler.msg());
 }
 
 

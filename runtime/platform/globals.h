@@ -246,6 +246,10 @@ typedef double fpu_register_t;
 #define DART_UINT64_C(x) x##ULL
 #endif
 
+// Replace calls to strtoll with _strtoi64 on Windows.
+#ifdef _MSC_VER
+#define strtoll _strtoi64
+#endif
 
 // The following macro works on both 32 and 64-bit platforms.
 // Usage: instead of writing 0x1234567890123456ULL

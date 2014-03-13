@@ -183,6 +183,8 @@ ServiceObject _upgradeToServiceObject(VM vm, Isolate isolate, ObservableMap m) {
       return vm.isolates.getIsolateFromMap(m);
     case 'Class':
       return isolate.classes.putIfAbsent(m);
+    case 'Function':
+      return isolate.functions.putIfAbsent(m);
   }
   return new ServiceMap.fromMap(isolate, m);
 }
