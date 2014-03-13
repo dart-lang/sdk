@@ -764,68 +764,6 @@ DART_EXPORT Dart_Handle Dart_NewWeakReferenceSet(
 
 // --- Garbage Collection Callbacks --
 
-DART_EXPORT Dart_Handle Dart_AddGcPrologueCallback(
-    Dart_GcPrologueCallback callback) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  if (isolate->gc_prologue_callback() != NULL) {
-    return Api::NewError(
-        "%s permits only one gc prologue callback to be registered, please "
-        "remove the existing callback using Dart_RemoveGcPrologueCallback "
-        "and then add this callback",
-        CURRENT_FUNC);
-  }
-  isolate->set_gc_prologue_callback(callback);
-  return Api::Success();
-}
-
-
-DART_EXPORT Dart_Handle Dart_RemoveGcPrologueCallback(
-    Dart_GcPrologueCallback callback) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  if (isolate->gc_prologue_callback() != callback) {
-    return Api::NewError(
-        "%s expects 'callback' to be the currently registered gc prologue "
-        "callback.",
-        CURRENT_FUNC);
-  }
-  isolate->set_gc_prologue_callback(NULL);
-  return Api::Success();
-}
-
-
-DART_EXPORT Dart_Handle Dart_AddGcEpilogueCallback(
-    Dart_GcEpilogueCallback callback) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  if (isolate->gc_epilogue_callback() != NULL) {
-    return Api::NewError(
-        "%s permits only one gc epilogue callback to be registered, please "
-        "remove the existing callback using Dart_RemoveGcEpilogueCallback "
-        "and then add this callback",
-        CURRENT_FUNC);
-  }
-  isolate->set_gc_epilogue_callback(callback);
-  return Api::Success();
-}
-
-
-DART_EXPORT Dart_Handle Dart_RemoveGcEpilogueCallback(
-    Dart_GcEpilogueCallback callback) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  if (isolate->gc_epilogue_callback() != callback) {
-    return Api::NewError(
-        "%s expects 'callback' to be the currently registered gc epilogue "
-        " callback.",
-        CURRENT_FUNC);
-  }
-  isolate->set_gc_epilogue_callback(NULL);
-  return Api::Success();
-}
-
-
 DART_EXPORT Dart_Handle Dart_SetGcCallbacks(
     Dart_GcPrologueCallback prologue_callback,
     Dart_GcEpilogueCallback epilogue_callback) {

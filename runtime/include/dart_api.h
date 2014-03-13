@@ -556,57 +556,6 @@ typedef void (*Dart_GcPrologueCallback)();
 typedef void (*Dart_GcEpilogueCallback)();
 
 /**
- * Adds a garbage collection prologue callback.
- *
- * \param callback A function pointer to a prologue callback function.
- *   This function must not have been previously added as a prologue
- *   callback.
- *
- * \return Success if the callback was added.  Otherwise, returns an
- *   error handle.
- */
-DART_EXPORT Dart_Handle Dart_AddGcPrologueCallback(
-    Dart_GcPrologueCallback callback);
-
-/**
- * Removes a garbage collection prologue callback.
- *
- * \param callback A function pointer to a prologue callback function.
- *   This function must have been added as a prologue callback.
- *
- * \return Success if the callback was removed.  Otherwise, returns an
- *   error handle.
- */
-DART_EXPORT Dart_Handle Dart_RemoveGcPrologueCallback(
-    Dart_GcPrologueCallback callback);
-
-/**
- * Adds a garbage collection epilogue callback.
- *
- * \param callback A function pointer to an epilogue callback
- *   function.  This function must not have been previously added as
- *   an epilogue callback.
- *
- * \return Success if the callback was added.  Otherwise, returns an
- *   error handle.
- */
-DART_EXPORT Dart_Handle Dart_AddGcEpilogueCallback(
-    Dart_GcEpilogueCallback callback);
-
-/**
- * Removes a garbage collection epilogue callback.
- *
- * \param callback A function pointer to an epilogue callback
- *   function.  This function must have been added as an epilogue
- *   callback.
- *
- * \return Success if the callback was removed.  Otherwise, returns an
- *   error handle.
- */
-DART_EXPORT Dart_Handle Dart_RemoveGcEpilogueCallback(
-    Dart_GcEpilogueCallback callback);
-
-/**
  * Adds garbage collection callbacks (prologue and epilogue).
  *
  * \param prologue_callback A function pointer to a prologue callback function.

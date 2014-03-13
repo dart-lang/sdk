@@ -2884,74 +2884,6 @@ static void EpilogueCallbackTimes5() {
 }
 
 
-TEST_CASE(AddGarbageCollectionCallbacks) {
-  // Prologue callback addition testing.
-
-  // Add a prologue callback.
-  EXPECT_VALID(Dart_AddGcPrologueCallback(&PrologueCallbackTimes2));
-
-  // Add the same prologue callback again.  This is an error.
-  EXPECT(Dart_IsError(Dart_AddGcPrologueCallback(&PrologueCallbackTimes2)));
-
-  // Add another prologue callback. This is an error.
-  EXPECT(Dart_IsError(Dart_AddGcPrologueCallback(&PrologueCallbackTimes3)));
-
-  // Epilogue callback addition testing.
-
-  // Add an epilogue callback.
-  EXPECT_VALID(Dart_AddGcEpilogueCallback(&EpilogueCallbackTimes4));
-
-  // Add the same epilogue callback again.  This is an error.
-  EXPECT(Dart_IsError(Dart_AddGcEpilogueCallback(&EpilogueCallbackTimes4)));
-
-  // Add annother epilogue callback. This is an error.
-  EXPECT(Dart_IsError(Dart_AddGcEpilogueCallback(&EpilogueCallbackTimes5)));
-}
-
-
-TEST_CASE(RemoveGarbageCollectionCallbacks) {
-  // Prologue callback removal testing.
-
-  // Remove a prologue callback that has not been added.  This is an error.
-  EXPECT(Dart_IsError(Dart_RemoveGcPrologueCallback(&PrologueCallbackTimes2)));
-
-  // Add a prologue callback.
-  EXPECT_VALID(Dart_AddGcPrologueCallback(&PrologueCallbackTimes2));
-
-  // Remove a prologue callback.
-  EXPECT_VALID(Dart_RemoveGcPrologueCallback(&PrologueCallbackTimes2));
-
-  // Remove a prologue callback again.  This is an error.
-  EXPECT(Dart_IsError(Dart_RemoveGcPrologueCallback(&PrologueCallbackTimes2)));
-
-  // Add a prologue callback.
-  EXPECT_VALID(Dart_AddGcPrologueCallback(&PrologueCallbackTimes2));
-
-  // Remove a prolog callback that was not added. This is an error.
-  EXPECT(Dart_IsError(Dart_RemoveGcPrologueCallback(&PrologueCallbackTimes3)));
-
-  // Epilogue callback removal testing.
-
-  // Remove epilogue callback that was not added.  This is an error.
-  EXPECT(Dart_IsError(Dart_RemoveGcEpilogueCallback(&EpilogueCallbackTimes4)));
-
-  // Add an epilogue callback.
-  EXPECT_VALID(Dart_AddGcEpilogueCallback(&EpilogueCallbackTimes4));
-
-  // Remove an epilogue callback.
-  EXPECT_VALID(Dart_RemoveGcEpilogueCallback(&EpilogueCallbackTimes4));
-
-  // Remove an epilogue callback again.  This is an error.
-  EXPECT(Dart_IsError(Dart_RemoveGcEpilogueCallback(&EpilogueCallbackTimes4)));
-
-  // Add an epilogue callbacks.
-  EXPECT_VALID(Dart_AddGcEpilogueCallback(&EpilogueCallbackTimes4));
-
-  // Remove an epilogue callback that was not added. This is an error.
-  EXPECT(Dart_IsError(Dart_RemoveGcEpilogueCallback(&EpilogueCallbackTimes5)));
-}
-
-
 TEST_CASE(SetGarbageCollectionCallbacks) {
   // GC callback addition testing.
 
@@ -3069,8 +3001,7 @@ TEST_CASE(SingleGarbageCollectionCallback) {
   EXPECT_EQ(112, global_epilogue_callback_status);
 
   // Remove the prologue and epilogue callbacks
-  EXPECT_VALID(Dart_RemoveGcPrologueCallback(&PrologueCallbackTimes2));
-  EXPECT_VALID(Dart_RemoveGcEpilogueCallback(&EpilogueCallbackTimes4));
+  EXPECT_VALID(Dart_SetGcCallbacks(NULL, NULL));
 
   // Garbage collect old space.  No callbacks should be invoked.  No
   // status values should change.
