@@ -130,6 +130,7 @@ modulo_test: RuntimeError # Issue 15246
 truncdiv_test: RuntimeError # Issue 15246
 invocation_mirror2_test: RuntimeError # Issue 6490 (wrong retval).
 generic_closure_test: RuntimeError # Issue 12605
+call_closurization_test: RuntimeError # Issue 17474
 
 # Compilation errors.
 const_var_test: CompileTimeError # Issue 12793
