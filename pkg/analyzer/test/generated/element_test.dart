@@ -2948,6 +2948,53 @@ class ClassElementImplTest extends EngineTestCase {
     JUnitTestCase.assertTrue(classB.hasNonFinalField);
   }
 
+  void test_hasStaticMember_false_empty() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    // no members
+    JUnitTestCase.assertFalse(classA.hasStaticMember);
+  }
+
+  void test_hasStaticMember_false_instanceMethod() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    MethodElement method = ElementFactory.methodElement("foo", null, []);
+    classA.methods = <MethodElement> [method];
+    JUnitTestCase.assertFalse(classA.hasStaticMember);
+  }
+
+  void test_hasStaticMember_instanceGetter() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    PropertyAccessorElement getter = ElementFactory.getterElement("foo", false, null);
+    classA.accessors = <PropertyAccessorElement> [getter];
+    JUnitTestCase.assertFalse(classA.hasStaticMember);
+  }
+
+  void test_hasStaticMember_true_getter() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    PropertyAccessorElementImpl getter = ElementFactory.getterElement("foo", false, null);
+    classA.accessors = <PropertyAccessorElement> [getter];
+    // "foo" is static
+    getter.static = true;
+    JUnitTestCase.assertTrue(classA.hasStaticMember);
+  }
+
+  void test_hasStaticMember_true_method() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    MethodElementImpl method = ElementFactory.methodElement("foo", null, []);
+    classA.methods = <MethodElement> [method];
+    // "foo" is static
+    method.static = true;
+    JUnitTestCase.assertTrue(classA.hasStaticMember);
+  }
+
+  void test_hasStaticMember_true_setter() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    PropertyAccessorElementImpl setter = ElementFactory.setterElement("foo", false, null);
+    classA.accessors = <PropertyAccessorElement> [setter];
+    // "foo" is static
+    setter.static = true;
+    JUnitTestCase.assertTrue(classA.hasStaticMember);
+  }
+
   void test_lookUpGetter_declared() {
     LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
@@ -3108,6 +3155,30 @@ class ClassElementImplTest extends EngineTestCase {
       _ut.test('test_hasNonFinalField_true_inherited', () {
         final __test = new ClassElementImplTest();
         runJUnitTest(__test, __test.test_hasNonFinalField_true_inherited);
+      });
+      _ut.test('test_hasStaticMember_false_empty', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_hasStaticMember_false_empty);
+      });
+      _ut.test('test_hasStaticMember_false_instanceMethod', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_hasStaticMember_false_instanceMethod);
+      });
+      _ut.test('test_hasStaticMember_instanceGetter', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_hasStaticMember_instanceGetter);
+      });
+      _ut.test('test_hasStaticMember_true_getter', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_hasStaticMember_true_getter);
+      });
+      _ut.test('test_hasStaticMember_true_method', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_hasStaticMember_true_method);
+      });
+      _ut.test('test_hasStaticMember_true_setter', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_hasStaticMember_true_setter);
       });
       _ut.test('test_lookUpGetter_declared', () {
         final __test = new ClassElementImplTest();

@@ -886,6 +886,13 @@ class AnalysisResult {
    * @return the change notices associated with this result
    */
   List<ChangeNotice> get changeNotices => _notices;
+
+  /**
+   * Return `true` if there is more to be performed after the task that was performed.
+   *
+   * @return `true` if there is more to be performed after the task that was performed
+   */
+  bool get hasMoreWork => _notices != null;
 }
 
 /**
@@ -1370,6 +1377,11 @@ abstract class DartEntry implements SourceEntry {
   static final DataDescriptor<List<Source>> CONTAINING_LIBRARIES = new DataDescriptor<List<Source>>("DartEntry.CONTAINING_LIBRARIES");
 
   /**
+   * The data descriptor representing the errors reported during the resolution of directives.
+   */
+  static final DataDescriptor<List<AnalysisError>> DIRECTIVE_ERRORS = new DataDescriptor<List<AnalysisError>>("DartEntry.DIRECTIVE_ERRORS");
+
+  /**
    * The data descriptor representing the library element for the library. This data is only
    * available for Dart files that are the defining compilation unit of a library.
    */
@@ -1541,8 +1553,8 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   CacheState _scanErrorsState = CacheState.INVALID;
 
   /**
-   * The errors produced while scanning the compilation unit, or `null` if the errors are not
-   * currently cached.
+   * The errors produced while scanning the compilation unit, or an empty array if the errors are
+   * not currently cached.
    */
   List<AnalysisError> _scanErrors = AnalysisError.NO_ERRORS;
 
@@ -1579,7 +1591,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   CacheState _parseErrorsState = CacheState.INVALID;
 
   /**
-   * The errors produced while parsing the compilation unit, or `null` if the errors are not
+   * The errors produced while parsing the compilation unit, or an empty array if the errors are not
    * currently cached.
    */
   List<AnalysisError> _parseErrors = AnalysisError.NO_ERRORS;
@@ -1616,6 +1628,17 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * cached. The list will be empty if the Dart file is a part rather than a library.
    */
   List<Source> _includedParts = Source.EMPTY_ARRAY;
+
+  /**
+   * The state of the cached directive errors.
+   */
+  CacheState _directiveErrorsState = CacheState.INVALID;
+
+  /**
+   * The errors produced while resolving the directives, or an empty array if the errors are not
+   * currently cached.
+   */
+  List<AnalysisError> _directiveErrors = AnalysisError.NO_ERRORS;
 
   /**
    * The list of libraries that contain this compilation unit. The list will be empty if there are
@@ -1714,6 +1737,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     List<AnalysisError> errors = new List<AnalysisError>();
     ListUtilities.addAll(errors, _scanErrors);
     ListUtilities.addAll(errors, _parseErrors);
+    ListUtilities.addAll(errors, _directiveErrors);
     DartEntryImpl_ResolutionState state = _resolutionState;
     while (state != null) {
       ListUtilities.addAll(errors, state._resolutionErrors);
@@ -1798,7 +1822,9 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   @override
   CacheState getState(DataDescriptor descriptor) {
-    if (identical(descriptor, DartEntry.ELEMENT)) {
+    if (identical(descriptor, DartEntry.DIRECTIVE_ERRORS)) {
+      return _directiveErrorsState;
+    } else if (identical(descriptor, DartEntry.ELEMENT)) {
       return _elementState;
     } else if (identical(descriptor, DartEntry.EXPORTED_LIBRARIES)) {
       return _exportedLibrariesState;
@@ -1860,6 +1886,8 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       return _angularErrors;
     } else if (identical(descriptor, DartEntry.CONTAINING_LIBRARIES)) {
       return new List.from(_containingLibraries);
+    } else if (identical(descriptor, DartEntry.DIRECTIVE_ERRORS)) {
+      return _directiveErrors;
     } else if (identical(descriptor, DartEntry.ELEMENT)) {
       return _element;
     } else if (identical(descriptor, DartEntry.EXPORTED_LIBRARIES)) {
@@ -1927,7 +1955,9 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   @override
   bool hasInvalidData(DataDescriptor descriptor) {
-    if (identical(descriptor, DartEntry.ELEMENT)) {
+    if (identical(descriptor, DartEntry.DIRECTIVE_ERRORS)) {
+      return identical(_directiveErrorsState, CacheState.INVALID);
+    } else if (identical(descriptor, DartEntry.ELEMENT)) {
       return identical(_elementState, CacheState.INVALID);
     } else if (identical(descriptor, DartEntry.EXPORTED_LIBRARIES)) {
       return identical(_exportedLibrariesState, CacheState.INVALID);
@@ -2036,6 +2066,8 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     _importedLibrariesState = CacheState.ERROR;
     _includedParts = Source.EMPTY_ARRAY;
     _includedPartsState = CacheState.ERROR;
+    _directiveErrors = AnalysisError.NO_ERRORS;
+    _directiveErrorsState = CacheState.ERROR;
   }
 
   /**
@@ -2052,6 +2084,9 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     if (_includedPartsState != CacheState.VALID) {
       _includedPartsState = CacheState.IN_PROCESS;
     }
+    if (_directiveErrorsState != CacheState.VALID) {
+      _directiveErrorsState = CacheState.IN_PROCESS;
+    }
   }
 
   /**
@@ -2067,6 +2102,9 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     }
     if (identical(_includedPartsState, CacheState.IN_PROCESS)) {
       _includedPartsState = CacheState.INVALID;
+    }
+    if (identical(_directiveErrorsState, CacheState.IN_PROCESS)) {
+      _directiveErrorsState = CacheState.INVALID;
     }
   }
 
@@ -2257,7 +2295,10 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   @override
   void setState(DataDescriptor descriptor, CacheState state) {
-    if (identical(descriptor, DartEntry.ELEMENT)) {
+    if (identical(descriptor, DartEntry.DIRECTIVE_ERRORS)) {
+      _directiveErrors = updatedValue(state, _directiveErrors, null);
+      _directiveErrorsState = state;
+    } else if (identical(descriptor, DartEntry.ELEMENT)) {
       _element = updatedValue(state, _element, null);
       _elementState = state;
     } else if (identical(descriptor, DartEntry.EXPORTED_LIBRARIES)) {
@@ -2334,6 +2375,9 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   void setValue(DataDescriptor descriptor, Object value) {
     if (identical(descriptor, DartEntry.ANGULAR_ERRORS)) {
       _angularErrors = value == null ? AnalysisError.NO_ERRORS : (value as List<AnalysisError>);
+    } else if (identical(descriptor, DartEntry.DIRECTIVE_ERRORS)) {
+      _directiveErrors = value as List<AnalysisError>;
+      _directiveErrorsState = CacheState.VALID;
     } else if (identical(descriptor, DartEntry.ELEMENT)) {
       _element = value as LibraryElement;
       _elementState = CacheState.VALID;
@@ -2423,6 +2467,8 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     _exportedLibraries = other._exportedLibraries;
     _importedLibrariesState = other._importedLibrariesState;
     _importedLibraries = other._importedLibraries;
+    _directiveErrorsState = other._directiveErrorsState;
+    _directiveErrors = other._directiveErrors;
     _containingLibraries = new List<Source>.from(other._containingLibraries);
     _resolutionState.copyFrom(other._resolutionState);
     _elementState = other._elementState;
@@ -2436,7 +2482,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   @override
-  bool get hasErrorState => super.hasErrorState || identical(_scanErrorsState, CacheState.ERROR) || identical(_tokenStreamState, CacheState.ERROR) || identical(_sourceKindState, CacheState.ERROR) || identical(_parsedUnitState, CacheState.ERROR) || identical(_parseErrorsState, CacheState.ERROR) || identical(_importedLibrariesState, CacheState.ERROR) || identical(_exportedLibrariesState, CacheState.ERROR) || identical(_includedPartsState, CacheState.ERROR) || identical(_elementState, CacheState.ERROR) || identical(_publicNamespaceState, CacheState.ERROR) || identical(_clientServerState, CacheState.ERROR) || identical(_launchableState, CacheState.ERROR) || _resolutionState.hasErrorState;
+  bool get hasErrorState => super.hasErrorState || identical(_scanErrorsState, CacheState.ERROR) || identical(_tokenStreamState, CacheState.ERROR) || identical(_sourceKindState, CacheState.ERROR) || identical(_parsedUnitState, CacheState.ERROR) || identical(_parseErrorsState, CacheState.ERROR) || identical(_importedLibrariesState, CacheState.ERROR) || identical(_exportedLibrariesState, CacheState.ERROR) || identical(_includedPartsState, CacheState.ERROR) || identical(_directiveErrorsState, CacheState.ERROR) || identical(_elementState, CacheState.ERROR) || identical(_publicNamespaceState, CacheState.ERROR) || identical(_clientServerState, CacheState.ERROR) || identical(_launchableState, CacheState.ERROR) || _resolutionState.hasErrorState;
 
   @override
   void writeOn(JavaStringBuilder builder) {
@@ -2460,6 +2506,8 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     builder.append(_importedLibrariesState);
     builder.append("; includedParts = ");
     builder.append(_includedPartsState);
+    builder.append("; directiveErrors = ");
+    builder.append(_directiveErrorsState);
     builder.append("; element = ");
     builder.append(_elementState);
     builder.append("; publicNamespace = ");
@@ -2484,6 +2532,8 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     _exportedLibrariesState = CacheState.INVALID;
     _importedLibraries = Source.EMPTY_ARRAY;
     _importedLibrariesState = CacheState.INVALID;
+    _directiveErrors = AnalysisError.NO_ERRORS;
+    _directiveErrorsState = CacheState.INVALID;
     _bitmask = 0;
     _clientServerState = CacheState.INVALID;
     _launchableState = CacheState.INVALID;
@@ -4844,7 +4894,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // change, this loop will eventually terminate.
       //
       dartEntry = _cacheDartParseData(source, dartEntry, DartEntry.PARSED_UNIT);
-      dartEntry = new ResolveDartDependenciesTask(this, source, dartEntry.modificationTime, dartEntry.anyParsedCompilationUnit).perform(_resultRecorder) as DartEntry;
+      CompilationUnit unit = dartEntry.anyParsedCompilationUnit;
+      if (unit == null) {
+        throw new AnalysisException.con2("Could not cache Dart dependency data: no parse unit", dartEntry.exception);
+      }
+      dartEntry = new ResolveDartDependenciesTask(this, source, dartEntry.modificationTime, unit).perform(_resultRecorder) as DartEntry;
       state = dartEntry.getState(descriptor);
     }
     return dartEntry;
@@ -6901,6 +6955,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         dartCopy.setValue(DartEntry.EXPORTED_LIBRARIES, task.exportedSources);
         dartCopy.setValue(DartEntry.IMPORTED_LIBRARIES, task.importedSources);
         dartCopy.setValue(DartEntry.INCLUDED_PARTS, newParts);
+        dartCopy.setValue(DartEntry.DIRECTIVE_ERRORS, task.errors);
       } else {
         dartCopy.recordDependencyError();
       }
@@ -11288,8 +11343,8 @@ class ParseDartTask extends AnalysisTask {
   CompilationUnit get compilationUnit => _unit;
 
   /**
-   * Return the errors that were produced by scanning and parsing the source, or `null` if the
-   * task has not yet been performed or if an exception occurred.
+   * Return the errors that were produced by scanning and parsing the source, or an empty array if
+   * the task has not yet been performed or if an exception occurred.
    *
    * @return the errors that were produced by scanning and parsing the source
    */
@@ -11749,6 +11804,16 @@ class ResolveDartDependenciesTask extends AnalysisTask {
   Set<Source> _includedSources = new Set<Source>();
 
   /**
+   * The errors that were produced by resolving the directives.
+   */
+  List<AnalysisError> _errors = AnalysisError.NO_ERRORS;
+
+  /**
+   * The prefix of a URI using the `dart-ext` scheme to reference a native code library.
+   */
+  static String _DART_EXT_SCHEME = "dart-ext:";
+
+  /**
    * Initialize a newly created task to perform analysis within the given context.
    *
    * @param context the context in which the task is to be performed
@@ -11762,6 +11827,14 @@ class ResolveDartDependenciesTask extends AnalysisTask {
 
   @override
   accept(AnalysisTaskVisitor visitor) => visitor.visitResolveDartDependenciesTask(this);
+
+  /**
+   * Return the errors that were produced by resolving the directives, or an empty array if the task
+   * has not yet been performed or if an exception occurred.
+   *
+   * @return the errors that were produced by resolving the directives.
+   */
+  List<AnalysisError> get errors => _errors;
 
   /**
    * Return an array containing the sources referenced by 'export' directives, or an empty array if
@@ -11799,24 +11872,26 @@ class ResolveDartDependenciesTask extends AnalysisTask {
   void internalPerform() {
     TimeCounter_TimeCounterHandle timeCounterParse = PerformanceStatistics.parse.start();
     try {
+      RecordingErrorListener errorListener = new RecordingErrorListener();
       for (Directive directive in _unit.directives) {
         if (directive is ExportDirective) {
-          Source exportSource = _resolveSource(source, directive);
+          Source exportSource = _resolveSource(source, directive, errorListener);
           if (exportSource != null) {
             _exportedSources.add(exportSource);
           }
         } else if (directive is ImportDirective) {
-          Source importSource = _resolveSource(source, directive);
+          Source importSource = _resolveSource(source, directive, errorListener);
           if (importSource != null) {
             _importedSources.add(importSource);
           }
         } else if (directive is PartDirective) {
-          Source partSource = _resolveSource(source, directive);
+          Source partSource = _resolveSource(source, directive, errorListener);
           if (partSource != null) {
             _includedSources.add(partSource);
           }
         }
       }
+      _errors = errorListener.errors;
     } finally {
       timeCounterParse.stop();
     }
@@ -11828,24 +11903,34 @@ class ResolveDartDependenciesTask extends AnalysisTask {
    *
    * @param librarySource the source representing the library containing the directive
    * @param directive the directive which URI should be resolved
+   * @param errorListener the error listener to which errors should be reported
    * @return the result of resolving the URI against the URI of the library
    */
-  Source _resolveSource(Source librarySource, UriBasedDirective directive) {
+  Source _resolveSource(Source librarySource, UriBasedDirective directive, AnalysisErrorListener errorListener) {
     StringLiteral uriLiteral = directive.uri;
     if (uriLiteral is StringInterpolation) {
+      errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION, []));
       return null;
     }
     String uriContent = uriLiteral.stringValue.trim();
-    if (uriContent == null) {
+    directive.uriContent = uriContent;
+    if (directive is ImportDirective && uriContent.startsWith(_DART_EXT_SCHEME)) {
       return null;
     }
-    uriContent = Uri.encodeFull(uriContent);
     try {
-      parseUriWithException(uriContent);
-      return context.sourceFactory.resolveUri(librarySource, uriContent);
+      String encodedUriContent = Uri.encodeFull(uriContent);
+      parseUriWithException(encodedUriContent);
+      AnalysisContext analysisContext = context;
+      Source source = analysisContext.sourceFactory.resolveUri(librarySource, encodedUriContent);
+      if (!analysisContext.exists(source)) {
+        errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_DOES_NOT_EXIST, [uriContent]));
+      }
+      directive.source = source;
+      return source;
     } on URISyntaxException catch (exception) {
-      return null;
+      errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.INVALID_URI, [uriContent]));
     }
+    return null;
   }
 
   /**

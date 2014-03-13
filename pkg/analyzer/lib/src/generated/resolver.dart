@@ -6322,9 +6322,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   void _addAnnotations(List<ElementAnnotationImpl> annotationList, NodeList<Annotation> annotations) {
     int annotationCount = annotations.length;
     for (int i = 0; i < annotationCount; i++) {
-      Element resolvedElement = annotations[i].element;
+      Annotation annotation = annotations[i];
+      Element resolvedElement = annotation.element;
       if (resolvedElement != null) {
-        annotationList.add(new ElementAnnotationImpl(resolvedElement));
+        ElementAnnotationImpl elementAnnotation = new ElementAnnotationImpl(resolvedElement);
+        annotation.elementAnnotation = elementAnnotation;
+        annotationList.add(elementAnnotation);
       }
     }
   }
@@ -8138,7 +8141,8 @@ class InheritanceManager {
    * @return the passed function type with any parameterized types substituted
    */
   FunctionType substituteTypeArgumentsInMemberFromInheritance(FunctionType baseFunctionType, String memberName, InterfaceType definingType) {
-    if (baseFunctionType == null) {
+    // if the baseFunctionType is null, or does not have any parameters, return it.
+    if (baseFunctionType == null || baseFunctionType.typeArguments.length == 0) {
       return baseFunctionType;
     }
     // First, generate the path from the defining type to the overridden member
@@ -9077,6 +9081,8 @@ class LibraryElementBuilder {
         if (_analysisContext.exists(partSource)) {
           hasPartDirective = true;
           CompilationUnitElementImpl part = builder.buildCompilationUnit(partSource, library.getAST(partSource));
+          part.uriOffset = partUri.offset;
+          part.uriEnd = partUri.end;
           part.uri = library.getUri(partDirective);
           //
           // Validate that the part contains a part-of directive with the same name as the library.
@@ -9562,9 +9568,8 @@ class LibraryResolver {
             if (importedLibrary != null) {
               ImportElementImpl importElement = new ImportElementImpl(directive.offset);
               StringLiteral uriLiteral = importDirective.uri;
-              if (uriLiteral != null) {
-                importElement.uriEnd = uriLiteral.end;
-              }
+              importElement.uriOffset = uriLiteral.offset;
+              importElement.uriEnd = uriLiteral.end;
               importElement.uri = library.getUri(importDirective);
               importElement.combinators = _buildCombinators(importDirective);
               LibraryElement importedLibraryElement = importedLibrary.libraryElement;
@@ -9598,6 +9603,9 @@ class LibraryResolver {
             Library exportedLibrary = _libraryMap[exportedSource];
             if (exportedLibrary != null) {
               ExportElementImpl exportElement = new ExportElementImpl();
+              StringLiteral uriLiteral = exportDirective.uri;
+              exportElement.uriOffset = uriLiteral.offset;
+              exportElement.uriEnd = uriLiteral.end;
               exportElement.uri = library.getUri(exportDirective);
               exportElement.combinators = _buildCombinators(exportDirective);
               LibraryElement exportedLibraryElement = exportedLibrary.libraryElement;
@@ -9607,7 +9615,6 @@ class LibraryResolver {
               directive.element = exportElement;
               exports.add(exportElement);
               if (analysisContext.computeKindOf(exportedSource) != SourceKind.LIBRARY) {
-                StringLiteral uriLiteral = exportDirective.uri;
                 _errorListener.onError(new AnalysisError.con2(library.librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
               }
             }

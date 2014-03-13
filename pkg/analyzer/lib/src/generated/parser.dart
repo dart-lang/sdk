@@ -2559,7 +2559,7 @@ class Parser {
     while (_optional(TokenType.COMMA)) {
       arguments.add(parseTypeName());
     }
-    Token rightBracket = _expect(TokenType.GT);
+    Token rightBracket = _expectGt();
     return new TypeArgumentList(leftBracket, arguments, rightBracket);
   }
 
@@ -2629,7 +2629,7 @@ class Parser {
     while (_optional(TokenType.COMMA)) {
       typeParameters.add(parseTypeParameter());
     }
-    Token rightBracket = _expect(TokenType.GT);
+    Token rightBracket = _expectGt();
     return new TypeParameterList(leftBracket, typeParameters, rightBracket);
   }
 
@@ -2843,7 +2843,9 @@ class Parser {
 
   /**
    * If the current token has the expected type, return it after advancing to the next token.
-   * Otherwise report an error and return the current token without advancing.
+   * Otherwise report an error and return the current token without advancing. Note that the method
+   * [expectGt] should be used if the argument to this method would be [TokenType#GT]
+   * .
    *
    * @param type the type of token that is expected
    * @return the token that matched the given type
@@ -2859,6 +2861,20 @@ class Parser {
     } else {
       _reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TOKEN, [type.lexeme]);
     }
+    return _currentToken;
+  }
+
+  /**
+   * If the current token has the type [TokenType#GT], return it after advancing to the next
+   * token. Otherwise report an error and return the current token without advancing.
+   *
+   * @return the token that matched the given type
+   */
+  Token _expectGt() {
+    if (_matchesGt()) {
+      return andAdvance;
+    }
+    _reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TOKEN, [TokenType.GT.lexeme]);
     return _currentToken;
   }
 
@@ -3262,52 +3278,58 @@ class Parser {
   }
 
   /**
-   * Return `true` if the current token has the given type. Note that this method, unlike
-   * other variants, will modify the token stream if possible to match a wider range of tokens. In
-   * particular, if we are attempting to match a '>' and the next token is either a '>>' or '>>>',
-   * the token stream will be re-written and `true` will be returned.
+   * Return `true` if the current token has the given type. Note that the method
+   * [matchesGt] should be used if the argument to this method would be
+   * [TokenType#GT].
    *
    * @param type the type of token that can optionally appear in the current location
    * @return `true` if the current token has the given type
    */
-  bool _matches(TokenType type) {
+  bool _matches(TokenType type) => identical(_currentToken.type, type);
+
+  /**
+   * Return `true` if the current token has a type of [TokenType#GT]. Note that this
+   * method, unlike other variants, will modify the token stream if possible to match desired type.
+   * In particular, if the next token is either a '>>' or '>>>', the token stream will be re-written
+   * and `true` will be returned.
+   *
+   * @return `true` if the current token has a type of [TokenType#GT]
+   */
+  bool _matchesGt() {
     TokenType currentType = _currentToken.type;
-    if (currentType != type) {
-      if (identical(type, TokenType.GT)) {
-        if (identical(currentType, TokenType.GT_GT)) {
-          int offset = _currentToken.offset;
-          Token first = new Token(TokenType.GT, offset);
-          Token second = new Token(TokenType.GT, offset + 1);
-          second.setNext(_currentToken.next);
-          first.setNext(second);
-          _currentToken.previous.setNext(first);
-          _currentToken = first;
-          return true;
-        } else if (identical(currentType, TokenType.GT_EQ)) {
-          int offset = _currentToken.offset;
-          Token first = new Token(TokenType.GT, offset);
-          Token second = new Token(TokenType.EQ, offset + 1);
-          second.setNext(_currentToken.next);
-          first.setNext(second);
-          _currentToken.previous.setNext(first);
-          _currentToken = first;
-          return true;
-        } else if (identical(currentType, TokenType.GT_GT_EQ)) {
-          int offset = _currentToken.offset;
-          Token first = new Token(TokenType.GT, offset);
-          Token second = new Token(TokenType.GT, offset + 1);
-          Token third = new Token(TokenType.EQ, offset + 2);
-          third.setNext(_currentToken.next);
-          second.setNext(third);
-          first.setNext(second);
-          _currentToken.previous.setNext(first);
-          _currentToken = first;
-          return true;
-        }
-      }
-      return false;
+    if (identical(currentType, TokenType.GT)) {
+      return true;
+    } else if (identical(currentType, TokenType.GT_GT)) {
+      int offset = _currentToken.offset;
+      Token first = new Token(TokenType.GT, offset);
+      Token second = new Token(TokenType.GT, offset + 1);
+      second.setNext(_currentToken.next);
+      first.setNext(second);
+      _currentToken.previous.setNext(first);
+      _currentToken = first;
+      return true;
+    } else if (identical(currentType, TokenType.GT_EQ)) {
+      int offset = _currentToken.offset;
+      Token first = new Token(TokenType.GT, offset);
+      Token second = new Token(TokenType.EQ, offset + 1);
+      second.setNext(_currentToken.next);
+      first.setNext(second);
+      _currentToken.previous.setNext(first);
+      _currentToken = first;
+      return true;
+    } else if (identical(currentType, TokenType.GT_GT_EQ)) {
+      int offset = _currentToken.offset;
+      Token first = new Token(TokenType.GT, offset);
+      Token second = new Token(TokenType.GT, offset + 1);
+      Token third = new Token(TokenType.EQ, offset + 2);
+      third.setNext(_currentToken.next);
+      second.setNext(third);
+      first.setNext(second);
+      _currentToken.previous.setNext(first);
+      _currentToken = first;
+      return true;
     }
-    return true;
+    return false;
   }
 
   /**
@@ -3336,7 +3358,8 @@ class Parser {
 
   /**
    * If the current token has the given type, then advance to the next token and return `true`
-   * . Otherwise, return `false` without advancing.
+   * . Otherwise, return `false` without advancing. This method should not be invoked with an
+   * argument value of [TokenType#GT].
    *
    * @param type the type of token that can optionally appear in the current location
    * @return `true` if the current token has the given type
@@ -8797,6 +8820,7 @@ Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline> {
   'createSyntheticToken_1': new MethodTrampoline(1, (Parser target, arg0) => target._createSyntheticToken(arg0)),
   'ensureAssignable_1': new MethodTrampoline(1, (Parser target, arg0) => target._ensureAssignable(arg0)),
   'expect_1': new MethodTrampoline(1, (Parser target, arg0) => target._expect(arg0)),
+  'expectGt_0': new MethodTrampoline(0, (Parser target) => target._expectGt()),
   'expectKeyword_1': new MethodTrampoline(1, (Parser target, arg0) => target._expectKeyword(arg0)),
   'expectSemicolon_0': new MethodTrampoline(0, (Parser target) => target._expectSemicolon()),
   'findRange_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target._findRange(arg0, arg1)),
@@ -8814,6 +8838,7 @@ Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline> {
   'lexicallyFirst_1': new MethodTrampoline(1, (Parser target, arg0) => target._lexicallyFirst(arg0)),
   'lockErrorListener_0': new MethodTrampoline(0, (Parser target) => target._lockErrorListener()),
   'matches_1': new MethodTrampoline(1, (Parser target, arg0) => target._matches(arg0)),
+  'matchesGt_0': new MethodTrampoline(0, (Parser target) => target._matchesGt()),
   'matchesIdentifier_0': new MethodTrampoline(0, (Parser target) => target._matchesIdentifier()),
   'matchesKeyword_1': new MethodTrampoline(1, (Parser target, arg0) => target._matchesKeyword(arg0)),
   'matchesString_1': new MethodTrampoline(1, (Parser target, arg0) => target._matchesString(arg0)),

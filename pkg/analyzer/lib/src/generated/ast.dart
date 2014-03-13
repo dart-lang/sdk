@@ -10,7 +10,7 @@ library engine.ast;
 import 'dart:collection';
 import 'java_core.dart';
 import 'java_engine.dart';
-import 'source.dart' show LineInfo;
+import 'source.dart' show LineInfo, Source;
 import 'scanner.dart';
 import 'engine.dart' show AnalysisEngine;
 import 'utilities_dart.dart';
@@ -251,6 +251,11 @@ class Annotation extends AstNode {
    * resolved or if this annotation could not be resolved.
    */
   Element _element;
+
+  /**
+   * The element annotation representing this annotation in the element model.
+   */
+  ElementAnnotation elementAnnotation;
 
   /**
    * Initialize a newly created annotation.
@@ -11645,6 +11650,16 @@ abstract class UriBasedDirective extends Directive {
   StringLiteral _uri;
 
   /**
+   * The content of the URI.
+   */
+  String uriContent;
+
+  /**
+   * The source to which the URI was resolved.
+   */
+  Source source;
+
+  /**
    * Initialize a newly create URI-based directive.
    *
    * @param comment the documentation comment associated with this directive
@@ -11664,7 +11679,7 @@ abstract class UriBasedDirective extends Directive {
 
   /**
    * Return the element associated with the URI of this directive, or `null` if the AST
-   * structure has not been resolved or if this URI could not be resolved. Examples of the latter
+   * structure has not been resolved or if the URI could not be resolved. Examples of the latter
    * case include a directive that contains an invalid URL or a URL that does not exist.
    *
    * @return the element associated with this directive
@@ -14311,6 +14326,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _visitTokenWithSuffix(node.abstractKeyword, " ");
     _writer.print("class ");
     _visitNode(node.name);
@@ -14326,6 +14342,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     if (node.abstractKeyword != null) {
       _writer.print("abstract ");
     }
@@ -14370,6 +14387,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _visitTokenWithSuffix(node.externalKeyword, " ");
     _visitTokenWithSuffix(node.constKeyword, " ");
     _visitTokenWithSuffix(node.factoryKeyword, " ");
@@ -14408,6 +14426,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _visitTokenWithSuffix(node.keyword, " ");
     _visitNodeWithSuffix(node.type, " ");
     _visitNode(node.identifier);
@@ -14455,6 +14474,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitExportDirective(ExportDirective node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _writer.print("export ");
     _visitNode(node.uri);
     _visitNodeListWithSeparatorAndPrefix(" ", node.combinators, " ");
@@ -14488,6 +14508,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitFieldDeclaration(FieldDeclaration node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _visitTokenWithSuffix(node.staticKeyword, " ");
     _visitNode(node.fields);
     _writer.print(";");
@@ -14569,6 +14590,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _visitNodeWithSuffix(node.returnType, " ");
     _visitTokenWithSuffix(node.propertyKeyword, " ");
     _visitNode(node.name);
@@ -14600,6 +14622,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _writer.print("typedef ");
     _visitNodeWithSuffix(node.returnType, " ");
     _visitNode(node.name);
@@ -14643,6 +14666,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitImportDirective(ImportDirective node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _writer.print("import ");
     _visitNode(node.uri);
     _visitNodeWithPrefix(" as ", node.prefix);
@@ -14725,6 +14749,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitLibraryDirective(LibraryDirective node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _writer.print("library ");
     _visitNode(node.name);
     _writer.print(';');
@@ -14773,6 +14798,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitMethodDeclaration(MethodDeclaration node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _visitTokenWithSuffix(node.externalKeyword, " ");
     _visitTokenWithSuffix(node.modifierKeyword, " ");
     _visitNodeWithSuffix(node.returnType, " ");
@@ -14836,6 +14862,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitPartDirective(PartDirective node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _writer.print("part ");
     _visitNode(node.uri);
     _writer.print(';');
@@ -14844,6 +14871,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitPartOfDirective(PartOfDirective node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _writer.print("part of ");
     _visitNode(node.libraryName);
     _writer.print(';');
@@ -15050,6 +15078,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitTypeParameter(TypeParameter node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _visitNode(node.name);
     _visitNodeWithPrefix(" extends ", node.bound);
     return null;
@@ -15065,6 +15094,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitVariableDeclaration(VariableDeclaration node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _visitNode(node.name);
     _visitNodeWithPrefix(" = ", node.initializer);
     return null;
@@ -15072,6 +15102,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitVariableDeclarationList(VariableDeclarationList node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _visitTokenWithSuffix(node.keyword, " ");
     _visitNodeWithSuffix(node.type, " ");
     _visitNodeListWithSeparator(node.variables, ", ");
@@ -17581,6 +17612,9 @@ class NodeList<E extends AstNode> extends Object with ListMixin<E> {
     }
     owner.becomeParentOf(node);
     _elements[index] = node;
+  }
+  void clear() {
+    _elements = <E> [];
   }
   int get length => _elements.length;
   void set length(int value) {

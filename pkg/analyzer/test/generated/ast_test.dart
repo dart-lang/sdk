@@ -2160,6 +2160,12 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource("class C {var a;}", AstFactory.classDeclaration(null, "C", null, null, null, null, [AstFactory.fieldDeclaration2(false, Keyword.VAR, [AstFactory.variableDeclaration("a")])]));
   }
 
+  void test_visitClassDeclaration_withMetadata() {
+    ClassDeclaration declaration = AstFactory.classDeclaration(null, "C", null, null, null, null, []);
+    declaration.metadata = AstFactory.list([AstFactory.annotation(AstFactory.identifier3("deprecated"))]);
+    _assertSource("@deprecated class C {}", declaration);
+  }
+
   void test_visitClassTypeAlias_abstract() {
     _assertSource("abstract class C = S with M1;", AstFactory.classTypeAlias("C", null, Keyword.ABSTRACT, AstFactory.typeName4("S", []), AstFactory.withClause([AstFactory.typeName4("M1", [])]), null));
   }
@@ -2190,6 +2196,12 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitClassTypeAlias_parameters_implements() {
     _assertSource("class C<E> = S with M1 implements I;", AstFactory.classTypeAlias("C", AstFactory.typeParameterList(["E"]), null, AstFactory.typeName4("S", []), AstFactory.withClause([AstFactory.typeName4("M1", [])]), AstFactory.implementsClause([AstFactory.typeName4("I", [])])));
+  }
+
+  void test_visitClassTypeAlias_withMetadata() {
+    ClassTypeAlias declaration = AstFactory.classTypeAlias("C", null, null, AstFactory.typeName4("S", []), AstFactory.withClause([AstFactory.typeName4("M1", [])]), null);
+    declaration.metadata = AstFactory.list([AstFactory.annotation(AstFactory.identifier3("deprecated"))]);
+    _assertSource("@deprecated class C = S with M1;", declaration);
   }
 
   void test_visitComment() {
@@ -2268,6 +2280,12 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource("C() : a = b {}", AstFactory.constructorDeclaration2(null, null, AstFactory.identifier3("C"), null, AstFactory.formalParameterList([]), AstFactory.list([AstFactory.constructorFieldInitializer(false, "a", AstFactory.identifier3("b"))]), AstFactory.blockFunctionBody2([])));
   }
 
+  void test_visitConstructorDeclaration_withMetadata() {
+    ConstructorDeclaration declaration = AstFactory.constructorDeclaration2(null, null, AstFactory.identifier3("C"), null, AstFactory.formalParameterList([]), null, AstFactory.blockFunctionBody2([]));
+    declaration.metadata = AstFactory.list([AstFactory.annotation(AstFactory.identifier3("deprecated"))]);
+    _assertSource("@deprecated C() {}", declaration);
+  }
+
   void test_visitConstructorFieldInitializer_withoutThis() {
     _assertSource("a = b", AstFactory.constructorFieldInitializer(false, "a", AstFactory.identifier3("b")));
   }
@@ -2342,6 +2360,12 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource("export 'a.dart';", AstFactory.exportDirective2("a.dart", []));
   }
 
+  void test_visitExportDirective_withMetadata() {
+    ExportDirective directive = AstFactory.exportDirective2("a.dart", []);
+    directive.metadata = AstFactory.list([AstFactory.annotation(AstFactory.identifier3("deprecated"))]);
+    _assertSource("@deprecated export 'a.dart';", directive);
+  }
+
   void test_visitExpressionFunctionBody() {
     _assertSource("=> a;", AstFactory.expressionFunctionBody(AstFactory.identifier3("a")));
   }
@@ -2360,6 +2384,12 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitFieldDeclaration_static() {
     _assertSource("static var a;", AstFactory.fieldDeclaration2(true, Keyword.VAR, [AstFactory.variableDeclaration("a")]));
+  }
+
+  void test_visitFieldDeclaration_withMetadata() {
+    FieldDeclaration declaration = AstFactory.fieldDeclaration2(false, Keyword.VAR, [AstFactory.variableDeclaration("a")]);
+    declaration.metadata = AstFactory.list([AstFactory.annotation(AstFactory.identifier3("deprecated"))]);
+    _assertSource("@deprecated var a;", declaration);
   }
 
   void test_visitFieldFormalParameter_functionTyped() {
@@ -2528,6 +2558,12 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource("set f() {}", AstFactory.functionDeclaration(null, Keyword.SET, "f", AstFactory.functionExpression()));
   }
 
+  void test_visitFunctionDeclaration_withMetadata() {
+    FunctionDeclaration declaration = AstFactory.functionDeclaration(null, null, "f", AstFactory.functionExpression());
+    declaration.metadata = AstFactory.list([AstFactory.annotation(AstFactory.identifier3("deprecated"))]);
+    _assertSource("@deprecated f() {}", declaration);
+  }
+
   void test_visitFunctionDeclarationStatement() {
     _assertSource("f() {};", AstFactory.functionDeclarationStatement(null, null, "f", AstFactory.functionExpression()));
   }
@@ -2538,6 +2574,20 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitFunctionExpressionInvocation() {
     _assertSource("f()", AstFactory.functionExpressionInvocation(AstFactory.identifier3("f"), []));
+  }
+
+  void test_visitFunctionTypeAlias_generic() {
+    _assertSource("typedef A F<B>();", AstFactory.typeAlias(AstFactory.typeName4("A", []), "F", AstFactory.typeParameterList(["B"]), AstFactory.formalParameterList([])));
+  }
+
+  void test_visitFunctionTypeAlias_nonGeneric() {
+    _assertSource("typedef A F();", AstFactory.typeAlias(AstFactory.typeName4("A", []), "F", null, AstFactory.formalParameterList([])));
+  }
+
+  void test_visitFunctionTypeAlias_withMetadata() {
+    FunctionTypeAlias declaration = AstFactory.typeAlias(AstFactory.typeName4("A", []), "F", null, AstFactory.formalParameterList([]));
+    declaration.metadata = AstFactory.list([AstFactory.annotation(AstFactory.identifier3("deprecated"))]);
+    _assertSource("@deprecated typedef A F();", declaration);
   }
 
   void test_visitFunctionTypedFormalParameter_noType() {
@@ -2592,6 +2642,12 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource("import 'a.dart' as p show A hide B;", AstFactory.importDirective2("a.dart", "p", [
         AstFactory.showCombinator([AstFactory.identifier3("A")]),
         AstFactory.hideCombinator([AstFactory.identifier3("B")])]));
+  }
+
+  void test_visitImportDirective_withMetadata() {
+    ImportDirective directive = AstFactory.importDirective2("a.dart", null, []);
+    directive.metadata = AstFactory.list([AstFactory.annotation(AstFactory.identifier3("deprecated"))]);
+    _assertSource("@deprecated import 'a.dart';", directive);
   }
 
   void test_visitImportHideCombinator_multiple() {
@@ -2664,6 +2720,12 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitLibraryDirective() {
     _assertSource("library l;", AstFactory.libraryDirective2("l"));
+  }
+
+  void test_visitLibraryDirective_withMetadata() {
+    LibraryDirective directive = AstFactory.libraryDirective2("l");
+    directive.metadata = AstFactory.list([AstFactory.annotation(AstFactory.identifier3("deprecated"))]);
+    _assertSource("@deprecated library l;", directive);
   }
 
   void test_visitLibraryIdentifier_multiple() {
@@ -2765,6 +2827,12 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource("static T m() {}", AstFactory.methodDeclaration2(Keyword.STATIC, AstFactory.typeName4("T", []), null, null, AstFactory.identifier3("m"), AstFactory.formalParameterList([]), AstFactory.blockFunctionBody2([])));
   }
 
+  void test_visitMethodDeclaration_withMetadata() {
+    MethodDeclaration declaration = AstFactory.methodDeclaration2(null, null, null, null, AstFactory.identifier3("m"), AstFactory.formalParameterList([]), AstFactory.blockFunctionBody2([]));
+    declaration.metadata = AstFactory.list([AstFactory.annotation(AstFactory.identifier3("deprecated"))]);
+    _assertSource("@deprecated m() {}", declaration);
+  }
+
   void test_visitMethodInvocation_noTarget() {
     _assertSource("m()", AstFactory.methodInvocation2("m", []));
   }
@@ -2801,8 +2869,20 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource("part 'a.dart';", AstFactory.partDirective2("a.dart"));
   }
 
+  void test_visitPartDirective_withMetadata() {
+    PartDirective directive = AstFactory.partDirective2("a.dart");
+    directive.metadata = AstFactory.list([AstFactory.annotation(AstFactory.identifier3("deprecated"))]);
+    _assertSource("@deprecated part 'a.dart';", directive);
+  }
+
   void test_visitPartOfDirective() {
     _assertSource("part of l;", AstFactory.partOfDirective(AstFactory.libraryIdentifier2(["l"])));
+  }
+
+  void test_visitPartOfDirective_withMetadata() {
+    PartOfDirective directive = AstFactory.partOfDirective(AstFactory.libraryIdentifier2(["l"]));
+    directive.metadata = AstFactory.list([AstFactory.annotation(AstFactory.identifier3("deprecated"))]);
+    _assertSource("@deprecated part of l;", directive);
   }
 
   void test_visitPositionalFormalParameter() {
@@ -2971,14 +3051,6 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource("try {} finally {}", AstFactory.tryStatement(AstFactory.block([]), AstFactory.block([])));
   }
 
-  void test_visitTypeAlias_generic() {
-    _assertSource("typedef A F<B>();", AstFactory.typeAlias(AstFactory.typeName4("A", []), "F", AstFactory.typeParameterList(["B"]), AstFactory.formalParameterList([])));
-  }
-
-  void test_visitTypeAlias_nonGeneric() {
-    _assertSource("typedef A F();", AstFactory.typeAlias(AstFactory.typeName4("A", []), "F", null, AstFactory.formalParameterList([])));
-  }
-
   void test_visitTypeArgumentList_multiple() {
     _assertSource("<E, F>", AstFactory.typeArgumentList([
         AstFactory.typeName4("E", []),
@@ -3011,6 +3083,12 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource("E extends C", AstFactory.typeParameter2("E", AstFactory.typeName4("C", [])));
   }
 
+  void test_visitTypeParameter_withMetadata() {
+    TypeParameter parameter = AstFactory.typeParameter("E");
+    parameter.metadata = AstFactory.list([AstFactory.annotation(AstFactory.identifier3("deprecated"))]);
+    _assertSource("@deprecated E", parameter);
+  }
+
   void test_visitTypeParameter_withoutExtends() {
     _assertSource("E", AstFactory.typeParameter("E"));
   }
@@ -3031,6 +3109,12 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource("a", AstFactory.variableDeclaration("a"));
   }
 
+  void test_visitVariableDeclaration_withMetadata() {
+    VariableDeclaration declaration = AstFactory.variableDeclaration("a");
+    declaration.metadata = AstFactory.list([AstFactory.annotation(AstFactory.identifier3("deprecated"))]);
+    _assertSource("@deprecated a", declaration);
+  }
+
   void test_visitVariableDeclarationList_const_type() {
     _assertSource("const C a, b", AstFactory.variableDeclarationList(Keyword.CONST, AstFactory.typeName4("C", []), [
         AstFactory.variableDeclaration("a"),
@@ -3041,6 +3125,14 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource("final a, b", AstFactory.variableDeclarationList2(Keyword.FINAL, [
         AstFactory.variableDeclaration("a"),
         AstFactory.variableDeclaration("b")]));
+  }
+
+  void test_visitVariableDeclarationList_final_withMetadata() {
+    VariableDeclarationList declarationList = AstFactory.variableDeclarationList2(Keyword.FINAL, [
+        AstFactory.variableDeclaration("a"),
+        AstFactory.variableDeclaration("b")]);
+    declarationList.metadata = AstFactory.list([AstFactory.annotation(AstFactory.identifier3("deprecated"))]);
+    _assertSource("@deprecated final a, b", declarationList);
   }
 
   void test_visitVariableDeclarationList_type() {
@@ -3242,6 +3334,10 @@ class ToSourceVisitorTest extends EngineTestCase {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitClassDeclaration_singleMember);
       });
+      _ut.test('test_visitClassDeclaration_withMetadata', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitClassDeclaration_withMetadata);
+      });
       _ut.test('test_visitClassTypeAlias_abstract', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitClassTypeAlias_abstract);
@@ -3273,6 +3369,10 @@ class ToSourceVisitorTest extends EngineTestCase {
       _ut.test('test_visitClassTypeAlias_parameters_implements', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitClassTypeAlias_parameters_implements);
+      });
+      _ut.test('test_visitClassTypeAlias_withMetadata', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitClassTypeAlias_withMetadata);
       });
       _ut.test('test_visitComment', () {
         final __test = new ToSourceVisitorTest();
@@ -3346,6 +3446,10 @@ class ToSourceVisitorTest extends EngineTestCase {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitConstructorDeclaration_singleInitializer);
       });
+      _ut.test('test_visitConstructorDeclaration_withMetadata', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitConstructorDeclaration_withMetadata);
+      });
       _ut.test('test_visitConstructorFieldInitializer_withThis', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitConstructorFieldInitializer_withThis);
@@ -3418,6 +3522,10 @@ class ToSourceVisitorTest extends EngineTestCase {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitExportDirective_minimal);
       });
+      _ut.test('test_visitExportDirective_withMetadata', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitExportDirective_withMetadata);
+      });
       _ut.test('test_visitExpressionFunctionBody', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitExpressionFunctionBody);
@@ -3437,6 +3545,10 @@ class ToSourceVisitorTest extends EngineTestCase {
       _ut.test('test_visitFieldDeclaration_static', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitFieldDeclaration_static);
+      });
+      _ut.test('test_visitFieldDeclaration_withMetadata', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitFieldDeclaration_withMetadata);
       });
       _ut.test('test_visitFieldFormalParameter_functionTyped', () {
         final __test = new ToSourceVisitorTest();
@@ -3578,6 +3690,10 @@ class ToSourceVisitorTest extends EngineTestCase {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitFunctionDeclaration_setter);
       });
+      _ut.test('test_visitFunctionDeclaration_withMetadata', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitFunctionDeclaration_withMetadata);
+      });
       _ut.test('test_visitFunctionExpression', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitFunctionExpression);
@@ -3585,6 +3701,18 @@ class ToSourceVisitorTest extends EngineTestCase {
       _ut.test('test_visitFunctionExpressionInvocation', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitFunctionExpressionInvocation);
+      });
+      _ut.test('test_visitFunctionTypeAlias_generic', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitFunctionTypeAlias_generic);
+      });
+      _ut.test('test_visitFunctionTypeAlias_nonGeneric', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitFunctionTypeAlias_nonGeneric);
+      });
+      _ut.test('test_visitFunctionTypeAlias_withMetadata', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitFunctionTypeAlias_withMetadata);
       });
       _ut.test('test_visitFunctionTypedFormalParameter_noType', () {
         final __test = new ToSourceVisitorTest();
@@ -3633,6 +3761,10 @@ class ToSourceVisitorTest extends EngineTestCase {
       _ut.test('test_visitImportDirective_prefix_combinators', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitImportDirective_prefix_combinators);
+      });
+      _ut.test('test_visitImportDirective_withMetadata', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitImportDirective_withMetadata);
       });
       _ut.test('test_visitImportHideCombinator_multiple', () {
         final __test = new ToSourceVisitorTest();
@@ -3705,6 +3837,10 @@ class ToSourceVisitorTest extends EngineTestCase {
       _ut.test('test_visitLibraryDirective', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitLibraryDirective);
+      });
+      _ut.test('test_visitLibraryDirective_withMetadata', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitLibraryDirective_withMetadata);
       });
       _ut.test('test_visitLibraryIdentifier_multiple', () {
         final __test = new ToSourceVisitorTest();
@@ -3794,6 +3930,10 @@ class ToSourceVisitorTest extends EngineTestCase {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitMethodDeclaration_static_returnType);
       });
+      _ut.test('test_visitMethodDeclaration_withMetadata', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitMethodDeclaration_withMetadata);
+      });
       _ut.test('test_visitMethodInvocation_noTarget', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitMethodInvocation_noTarget);
@@ -3830,9 +3970,17 @@ class ToSourceVisitorTest extends EngineTestCase {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitPartDirective);
       });
+      _ut.test('test_visitPartDirective_withMetadata', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitPartDirective_withMetadata);
+      });
       _ut.test('test_visitPartOfDirective', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitPartOfDirective);
+      });
+      _ut.test('test_visitPartOfDirective_withMetadata', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitPartOfDirective_withMetadata);
       });
       _ut.test('test_visitPositionalFormalParameter', () {
         final __test = new ToSourceVisitorTest();
@@ -3990,14 +4138,6 @@ class ToSourceVisitorTest extends EngineTestCase {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitTryStatement_finally);
       });
-      _ut.test('test_visitTypeAlias_generic', () {
-        final __test = new ToSourceVisitorTest();
-        runJUnitTest(__test, __test.test_visitTypeAlias_generic);
-      });
-      _ut.test('test_visitTypeAlias_nonGeneric', () {
-        final __test = new ToSourceVisitorTest();
-        runJUnitTest(__test, __test.test_visitTypeAlias_nonGeneric);
-      });
       _ut.test('test_visitTypeArgumentList_multiple', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitTypeArgumentList_multiple);
@@ -4034,6 +4174,10 @@ class ToSourceVisitorTest extends EngineTestCase {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitTypeParameter_withExtends);
       });
+      _ut.test('test_visitTypeParameter_withMetadata', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitTypeParameter_withMetadata);
+      });
       _ut.test('test_visitTypeParameter_withoutExtends', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitTypeParameter_withoutExtends);
@@ -4045,6 +4189,10 @@ class ToSourceVisitorTest extends EngineTestCase {
       _ut.test('test_visitVariableDeclarationList_final_noType', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitVariableDeclarationList_final_noType);
+      });
+      _ut.test('test_visitVariableDeclarationList_final_withMetadata', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitVariableDeclarationList_final_withMetadata);
       });
       _ut.test('test_visitVariableDeclarationList_type', () {
         final __test = new ToSourceVisitorTest();
@@ -4065,6 +4213,10 @@ class ToSourceVisitorTest extends EngineTestCase {
       _ut.test('test_visitVariableDeclaration_uninitialized', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitVariableDeclaration_uninitialized);
+      });
+      _ut.test('test_visitVariableDeclaration_withMetadata', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitVariableDeclaration_withMetadata);
       });
       _ut.test('test_visitWhileStatement', () {
         final __test = new ToSourceVisitorTest();

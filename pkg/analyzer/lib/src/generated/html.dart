@@ -259,6 +259,23 @@ class HtmlUnitUtils {
   }
 
   /**
+   * Returns the [XmlTagNode] that is part of the given [HtmlUnit] and encloses the
+   * given offset.
+   */
+  static XmlTagNode getEnclosingTagNode(HtmlUnit htmlUnit, int offset) {
+    if (htmlUnit == null) {
+      return null;
+    }
+    List<XmlTagNode> result = [null];
+    try {
+      htmlUnit.accept(new RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode(offset, result));
+    } on HtmlUnitUtils_FoundTagNodeError catch (e) {
+      return result[0];
+    }
+    return null;
+  }
+
+  /**
    * Returns the [Expression] that is part of the given [HtmlUnit] and encloses the
    * given offset.
    */
@@ -277,19 +294,26 @@ class HtmlUnitUtils {
   }
 
   /**
-   * Returns the [XmlTagNode] that is part of the given [HtmlUnit] and encloses the
-   * given offset.
+   * Returns the [XmlTagNode] that is part of the given [HtmlUnit] and its open or
+   * closing tag name encloses the given offset.
    */
   static XmlTagNode getTagNode(HtmlUnit htmlUnit, int offset) {
-    if (htmlUnit == null) {
+    XmlTagNode node = getEnclosingTagNode(htmlUnit, offset);
+    // do we have an enclosing tag at all?
+    if (node == null) {
       return null;
     }
-    List<XmlTagNode> result = [null];
-    try {
-      htmlUnit.accept(new RecursiveXmlVisitor_HtmlUnitUtils_getTagNode(offset, result));
-    } on HtmlUnitUtils_FoundTagNodeError catch (e) {
-      return result[0];
+    // is "offset" in the open tag?
+    Token openTag = node.tagToken;
+    if (openTag.offset <= offset && offset <= openTag.end) {
+      return node;
     }
+    // is "offset" in the open tag?
+    Token closeTag = node.closingTag;
+    if (closeTag != null && closeTag.offset <= offset && offset <= closeTag.end) {
+      return node;
+    }
+    // not on a tag name
     return null;
   }
 
@@ -298,7 +322,7 @@ class HtmlUnitUtils {
    * given offset.
    */
   static Expression _getExpressionAt(AstNode root, int offset) {
-    if (root.offset <= offset && offset < root.end) {
+    if (root.offset <= offset && offset <= root.end) {
       AstNode dartNode = new NodeLocator.con1(offset).searchWithin(root);
       if (dartNode is Expression) {
         return dartNode;
@@ -327,11 +351,29 @@ class RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode extends RecursiveXmlVis
   @override
   Object visitXmlAttributeNode(XmlAttributeNode node) {
     Token nameToken = node.nameToken;
-    if (nameToken.offset <= offset && offset < nameToken.end) {
+    if (nameToken.offset <= offset && offset <= nameToken.end) {
       result[0] = node;
       throw new HtmlUnitUtils_FoundAttributeNodeError();
     }
     return super.visitXmlAttributeNode(node);
+  }
+}
+
+class RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode extends RecursiveXmlVisitor<Object> {
+  int offset = 0;
+
+  List<XmlTagNode> result;
+
+  RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode(this.offset, this.result) : super();
+
+  @override
+  Object visitXmlTagNode(XmlTagNode node) {
+    if (node.offset <= offset && offset < node.end) {
+      result[0] = node;
+      super.visitXmlTagNode(node);
+      throw new HtmlUnitUtils_FoundTagNodeError();
+    }
+    return null;
   }
 }
 
@@ -349,25 +391,6 @@ class ExpressionVisitor_HtmlUnitUtils_getExpression extends ExpressionVisitor {
       result[0] = at;
       throw new HtmlUnitUtils_FoundExpressionError();
     }
-  }
-}
-
-class RecursiveXmlVisitor_HtmlUnitUtils_getTagNode extends RecursiveXmlVisitor<Object> {
-  int offset = 0;
-
-  List<XmlTagNode> result;
-
-  RecursiveXmlVisitor_HtmlUnitUtils_getTagNode(this.offset, this.result) : super();
-
-  @override
-  Object visitXmlTagNode(XmlTagNode node) {
-    super.visitXmlTagNode(node);
-    Token tagToken = node.tagToken;
-    if (tagToken.offset <= offset && offset < tagToken.end) {
-      result[0] = node;
-      throw new HtmlUnitUtils_FoundTagNodeError();
-    }
-    return null;
   }
 }
 

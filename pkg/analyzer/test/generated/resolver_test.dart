@@ -20735,6 +20735,20 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitAnnotation(Annotation node) {
+    node.visitChildren(this);
+    ElementAnnotation elementAnnotation = node.elementAnnotation;
+    if (elementAnnotation == null) {
+      if (_knownExceptions == null || !_knownExceptions.contains(node)) {
+        _unresolvedNodes.add(node);
+      }
+    } else if (elementAnnotation is! ElementAnnotation) {
+      _wrongTypedNodes.add(node);
+    }
+    return null;
+  }
+
+  @override
   Object visitBinaryExpression(BinaryExpression node) {
     node.visitChildren(this);
     if (!node.operator.isUserDefinableOperator) {

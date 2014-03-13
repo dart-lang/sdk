@@ -204,6 +204,13 @@ abstract class ClassElement implements Element {
   bool get hasReferenceToSuper;
 
   /**
+   * Return `true` if this class declares a static member.
+   *
+   * @return `true` if this class declares a static member
+   */
+  bool get hasStaticMember;
+
+  /**
    * Return `true` if this class is abstract. A class is abstract if it has an explicit
    * `abstract` modifier. Note, that this definition of <i>abstract</i> is different from
    * <i>has unimplemented members</i>.
@@ -1226,14 +1233,6 @@ abstract class ImportElement implements Element, UriReferencedElement {
    * @return the offset of the prefix of this import
    */
   int get prefixOffset;
-
-  /**
-   * Return the offset of the character immediately following the last character of this node's URI,
-   * or `-1` for synthetic import.
-   *
-   * @return the offset of the character just past the node's URI
-   */
-  int get uriEnd;
 }
 
 /**
@@ -1742,6 +1741,21 @@ abstract class UndefinedElement implements Element {
  * library using some URI.
  */
 abstract class UriReferencedElement implements Element {
+  /**
+   * Return the offset of the character immediately following the last character of this node's URI,
+   * or `-1` for synthetic import.
+   *
+   * @return the offset of the character just past the node's URI
+   */
+  int get uriEnd;
+
+  /**
+   * Return the offset of the URU in the file, or `-1` if this element is synthetic.
+   *
+   * @return the offset of the URI
+   */
+  int get uriOffset;
+
   /**
    * Return the URI that is used to include this element into the enclosing library, or `null`
    * if this is the defining compilation unit of a library.
@@ -2805,6 +2819,21 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   bool get hasReferenceToSuper => hasModifier(Modifier.REFERENCES_SUPER);
 
   @override
+  bool get hasStaticMember {
+    for (MethodElement method in _methods) {
+      if (method.isStatic) {
+        return true;
+      }
+    }
+    for (PropertyAccessorElement accessor in _accessors) {
+      if (accessor.isStatic) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
   bool get isAbstract => hasModifier(Modifier.ABSTRACT);
 
   @override
@@ -3109,7 +3138,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
  * Instances of the class `CompilationUnitElementImpl` implement a
  * [CompilationUnitElement].
  */
-class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitElement {
+class CompilationUnitElementImpl extends UriReferencedElementImpl implements CompilationUnitElement {
   /**
    * An empty array of compilation unit elements.
    */
@@ -3150,12 +3179,6 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
    * An array containing all of the variables contained in this compilation unit.
    */
   List<TopLevelVariableElement> _variables = TopLevelVariableElementImpl.EMPTY_ARRAY;
-
-  /**
-   * The URI that is specified by the "part" directive in the enclosing library, or `null` if
-   * this is the defining compilation unit of a library.
-   */
-  String uri;
 
   /**
    * An array containing all of the Angular views contained in this compilation unit.
@@ -4519,12 +4542,7 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
 /**
  * Instances of the class `ExportElementImpl` implement an [ExportElement].
  */
-class ExportElementImpl extends ElementImpl implements ExportElement {
-  /**
-   * The URI that is specified by this directive.
-   */
-  String uri;
-
+class ExportElementImpl extends UriReferencedElementImpl implements ExportElement {
   /**
    * The library that is exported from this library by this export directive.
    */
@@ -4539,7 +4557,7 @@ class ExportElementImpl extends ElementImpl implements ExportElement {
   /**
    * Initialize a newly created export element.
    */
-  ExportElementImpl() : super.forNode(null);
+  ExportElementImpl() : super(null, -1);
 
   @override
   accept(ElementVisitor visitor) => visitor.visitExportElement(this);
@@ -5027,23 +5045,12 @@ abstract class HtmlScriptElementImpl extends ElementImpl implements HtmlScriptEl
 /**
  * Instances of the class `ImportElementImpl` implement an [ImportElement].
  */
-class ImportElementImpl extends ElementImpl implements ImportElement {
-  /**
-   * The offset of the character immediately following the last character of this node's URI, may be
-   * `-1` if synthetic.
-   */
-  int uriEnd = -1;
-
+class ImportElementImpl extends UriReferencedElementImpl implements ImportElement {
   /**
    * The offset of the prefix of this import in the file that contains the this import directive, or
    * `-1` if this import is synthetic.
    */
   int prefixOffset = 0;
-
-  /**
-   * The URI that is specified by this directive.
-   */
-  String uri;
 
   /**
    * The library that is imported into this library by this import directive.
@@ -6580,6 +6587,36 @@ class TypeParameterElementImpl extends ElementImpl implements TypeParameterEleme
       builder.append(bound);
     }
   }
+}
+
+/**
+ * Instances of the class `UriReferencedElementImpl` implement an [UriReferencedElement]
+ * .
+ */
+abstract class UriReferencedElementImpl extends ElementImpl implements UriReferencedElement {
+  /**
+   * The offset of the URU in the file, may be `-1` if synthetic.
+   */
+  int uriOffset = -1;
+
+  /**
+   * The offset of the character immediately following the last character of this node's URI, may be
+   * `-1` if synthetic.
+   */
+  int uriEnd = -1;
+
+  /**
+   * The URI that is specified by this directive.
+   */
+  String uri;
+
+  /**
+   * Initialize a newly created import element.
+   *
+   * @param name the name of this element
+   * @param offset the directive offset, may be `-1` if synthetic.
+   */
+  UriReferencedElementImpl(String name, int offset) : super(name, offset);
 }
 
 /**
