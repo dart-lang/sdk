@@ -2062,17 +2062,20 @@ void PushTempInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* DropTempsInstr::MakeLocationSummary(bool optimizing) const {
-  return LocationSummary::Make(1,
-                               Location::SameAsFirstInput(),
-                               LocationSummary::kNoCall);
+  return (InputCount() == 1)
+      ? LocationSummary::Make(1,
+                              Location::SameAsFirstInput(),
+                              LocationSummary::kNoCall)
+      : LocationSummary::Make(0,
+                              Location::NoLocation(),
+                              LocationSummary::kNoCall);
 }
 
 
 void DropTempsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!compiler->is_optimizing());
-  Register value = locs()->in(0).reg();
-  Register result = locs()->out().reg();
-  ASSERT(result == value);  // Assert that register assignment is correct.
+  // Assert that register assignment is correct.
+  ASSERT((InputCount() == 0) || locs()->out().reg() == locs()->in(0).reg());
   __ Drop(num_temps());
 }
 

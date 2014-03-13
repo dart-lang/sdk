@@ -312,8 +312,11 @@ const char* RangeBoundary::ToCString() const {
 
 
 void DropTempsInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%" Pd ", ", num_temps());
-  value()->PrintTo(f);
+  f->Print("%" Pd "", num_temps());
+  if (value() != NULL) {
+    f->Print(", ");
+    value()->PrintTo(f);
+  }
 }
 
 

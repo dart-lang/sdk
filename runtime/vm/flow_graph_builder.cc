@@ -2106,34 +2106,19 @@ void EffectGraphVisitor::BuildLetTempExpressions(LetNode* node) {
 
 
 void EffectGraphVisitor::VisitLetNode(LetNode* node) {
+  BuildLetTempExpressions(node);
+
+  // Visit body.
+  for (intptr_t i = 0; i < node->nodes().length(); ++i) {
+    EffectGraphVisitor for_effect(owner());
+    node->nodes()[i]->Visit(&for_effect);
+    Append(for_effect);
+  }
+
   intptr_t num_temps = node->num_temps();
   if (num_temps > 0) {
-    BuildLetTempExpressions(node);
-    // TODO(fschneider): Generate better code for effect context by visiting the
-    // body for effect. Currently, the value of the body expression is
-    // materialized and then dropped. This also requires changing DropTempsInstr
-    // to have zero or one inputs.
-
-    // Visit body.
-    for (intptr_t i = 0; i < node->nodes().length() - 1; ++i) {
-      EffectGraphVisitor for_effect(owner());
-      node->nodes()[i]->Visit(&for_effect);
-      Append(for_effect);
-    }
-    // Visit the last body expression for value.
-    ValueGraphVisitor for_value(owner());
-    node->nodes().Last()->Visit(&for_value);
-    Append(for_value);
-    Value* result_value = for_value.value();
     owner()->DeallocateTemps(num_temps);
-    Do(new DropTempsInstr(num_temps, result_value));
-  } else {
-    ASSERT(num_temps == 0);
-    for (intptr_t i = 0; i < node->nodes().length(); ++i) {
-      EffectGraphVisitor for_effect(owner());
-      node->nodes()[i]->Visit(&for_effect);
-      Append(for_effect);
-    }
+    Do(new DropTempsInstr(num_temps));
   }
 }
 

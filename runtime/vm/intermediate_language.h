@@ -3435,16 +3435,24 @@ class PushTempInstr : public TemplateDefinition<1> {
 };
 
 
-class DropTempsInstr : public TemplateDefinition<1> {
+class DropTempsInstr : public Definition {
  public:
-  explicit DropTempsInstr(intptr_t num_temps, Value* value)
-      : num_temps_(num_temps) {
-    SetInputAt(0, value);
+  explicit DropTempsInstr(intptr_t num_temps, Value* value = NULL)
+      : num_temps_(num_temps), value_(NULL) {
+    if (value != NULL) {
+      SetInputAt(0, value);
+    }
   }
 
   DECLARE_INSTRUCTION(DropTemps)
 
-  Value* value() const { return inputs_[0]; }
+  virtual intptr_t InputCount() const { return value_ != NULL ? 1 : 0; }
+  virtual Value* InputAt(intptr_t i) const {
+    ASSERT((value_ != NULL) && (i == 0));
+    return value_;
+  }
+
+  Value* value() const { return value_; }
 
   intptr_t num_temps() const { return num_temps_; }
 
@@ -3465,7 +3473,12 @@ class DropTempsInstr : public TemplateDefinition<1> {
   }
 
  private:
-  intptr_t num_temps_;
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    value_ = value;
+  }
+
+  const intptr_t num_temps_;
+  Value* value_;
 
   DISALLOW_COPY_AND_ASSIGN(DropTempsInstr);
 };
