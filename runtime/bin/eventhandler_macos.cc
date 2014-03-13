@@ -47,26 +47,11 @@ bool SocketData::HasWriteEvent() {
 static void RemoveFromKqueue(intptr_t kqueue_fd_, SocketData* sd) {
   if (!sd->tracked_by_kqueue()) return;
   static const intptr_t kMaxChanges = 2;
-  intptr_t changes = 0;
   struct kevent events[kMaxChanges];
-  if (sd->HasReadEvent()) {
-    EV_SET(events + changes, sd->fd(), EVFILT_READ, EV_DELETE, 0, 0, NULL);
-    ++changes;
-  }
-  if (sd->HasWriteEvent()) {
-    EV_SET(events + changes, sd->fd(), EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-    ++changes;
-  }
-  ASSERT(changes > 0);
-  ASSERT(changes <= kMaxChanges);
-  int status =
-    TEMP_FAILURE_RETRY(kevent(kqueue_fd_, events, changes, NULL, 0, NULL));
-  if (status == -1) {
-    const int kBufferSize = 1024;
-    char error_message[kBufferSize];
-    strerror_r(errno, error_message, kBufferSize);
-    FATAL1("Failed deleting events from kqueue: %s\n", error_message);
-  }
+  EV_SET(events, sd->fd(), EVFILT_READ, EV_DELETE, 0, 0, NULL);
+  VOID_TEMP_FAILURE_RETRY(kevent(kqueue_fd_, events, 1, NULL, 0, NULL));
+  EV_SET(events, sd->fd(), EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+  VOID_TEMP_FAILURE_RETRY(kevent(kqueue_fd_, events, 1, NULL, 0, NULL));
   sd->set_tracked_by_kqueue(false);
 }
 
@@ -74,6 +59,7 @@ static void RemoveFromKqueue(intptr_t kqueue_fd_, SocketData* sd) {
 // Update the kqueue registration for SocketData structure to reflect
 // the events currently of interest.
 static void AddToKqueue(intptr_t kqueue_fd_, SocketData* sd) {
+  ASSERT(!sd->tracked_by_kqueue());
   static const intptr_t kMaxChanges = 2;
   intptr_t changes = 0;
   struct kevent events[kMaxChanges];
@@ -102,7 +88,7 @@ static void AddToKqueue(intptr_t kqueue_fd_, SocketData* sd) {
   ASSERT(changes > 0);
   ASSERT(changes <= kMaxChanges);
   int status =
-    TEMP_FAILURE_RETRY(kevent(kqueue_fd_, events, changes, NULL, 0, NULL));
+      TEMP_FAILURE_RETRY(kevent(kqueue_fd_, events, changes, NULL, 0, NULL));
   if (status == -1) {
     // kQueue does not accept the file descriptor. It could be due to
     // already closed file descriptor, or unuspported devices, such
@@ -152,8 +138,7 @@ EventHandlerImplementation::~EventHandlerImplementation() {
 }
 
 
-SocketData* EventHandlerImplementation::GetSocketData(intptr_t fd,
-                                                      bool* is_new) {
+SocketData* EventHandlerImplementation::GetSocketData(intptr_t fd) {
   ASSERT(fd >= 0);
   HashMap::Entry* entry = socket_map_.Lookup(
       GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd), true);
@@ -164,7 +149,6 @@ SocketData* EventHandlerImplementation::GetSocketData(intptr_t fd,
     // new SocketData for the file descriptor is inserted.
     sd = new SocketData(fd);
     entry->value = sd;
-    *is_new = true;
   }
   ASSERT(fd == sd->fd());
   return sd;
@@ -203,19 +187,15 @@ void EventHandlerImplementation::HandleInterruptFd() {
     } else if (msg[i].id == kShutdownId) {
       shutdown_ = true;
     } else {
-      bool is_new = false;
-      SocketData* sd = GetSocketData(msg[i].id, &is_new);
-      if (is_new) {
-        sd->SetPortAndMask(msg[i].dart_port, msg[i].data);
-      }
+      SocketData* sd = GetSocketData(msg[i].id);
       if ((msg[i].data & (1 << kShutdownReadCommand)) != 0) {
         ASSERT(msg[i].data == (1 << kShutdownReadCommand));
         // Close the socket for reading.
-        sd->ShutdownRead();
+        shutdown(sd->fd(), SHUT_RD);
       } else if ((msg[i].data & (1 << kShutdownWriteCommand)) != 0) {
         ASSERT(msg[i].data == (1 << kShutdownWriteCommand));
         // Close the socket for writing.
-        sd->ShutdownWrite();
+        shutdown(sd->fd(), SHUT_WR);
       } else if ((msg[i].data & (1 << kCloseCommand)) != 0) {
         ASSERT(msg[i].data == (1 << kCloseCommand));
         // Close the socket and free system resources.
@@ -225,10 +205,17 @@ void EventHandlerImplementation::HandleInterruptFd() {
         socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
         delete sd;
         DartUtils::PostInt32(msg[i].dart_port, 1 << kDestroyedEvent);
-      } else {
-        if (is_new) {
+      } else if ((msg[i].data & (1 << kReturnTokenCommand)) != 0) {
+        if (sd->ReturnToken()) {
           AddToKqueue(kqueue_fd_, sd);
         }
+      } else {
+        // Setup events to wait for.
+        ASSERT((msg[i].data > 0) && (msg[i].data < kIntptrMax));
+        ASSERT(sd->port() == 0);
+        sd->SetPortAndMask(msg[i].dart_port,
+                           static_cast<intptr_t>(msg[i].data));
+        AddToKqueue(kqueue_fd_, sd);
       }
     }
   }
@@ -320,6 +307,10 @@ void EventHandlerImplementation::HandleEvents(struct kevent* events,
       SocketData* sd = reinterpret_cast<SocketData*>(events[i].udata);
       intptr_t event_mask = GetEvents(events + i, sd);
       if (event_mask != 0) {
+        if (sd->TakeToken()) {
+          // Took last token, remove from epoll.
+          RemoveFromKqueue(kqueue_fd_, sd);
+        }
         Dart_Port port = sd->port();
         ASSERT(port != 0);
         DartUtils::PostInt32(port, event_mask);
@@ -408,13 +399,13 @@ void EventHandlerImplementation::Start(EventHandler* handler) {
 
 
 void EventHandlerImplementation::Shutdown() {
-  Notify(kShutdownId, 0, 0);
+  SendData(kShutdownId, 0, 0);
 }
 
 
-void EventHandlerImplementation::Notify(intptr_t id,
-                                        Dart_Port dart_port,
-                                        int64_t data) {
+void EventHandlerImplementation::SendData(intptr_t id,
+                                          Dart_Port dart_port,
+                                          int64_t data) {
   WakeupHandler(id, dart_port, data);
 }
 

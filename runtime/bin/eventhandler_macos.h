@@ -10,7 +10,6 @@
 #endif
 
 #include <unistd.h>
-#include <errno.h>
 #include <sys/event.h>  // NOLINT
 #include <sys/socket.h>
 
@@ -34,20 +33,13 @@ class SocketData {
       : fd_(fd),
         port_(0),
         mask_(0),
-        tracked_by_kqueue_(false) {
+        tracked_by_kqueue_(false),
+        tokens_(8) {
     ASSERT(fd_ != -1);
   }
 
   bool HasReadEvent();
   bool HasWriteEvent();
-
-  void ShutdownRead() {
-    shutdown(fd_, SHUT_RD);
-  }
-
-  void ShutdownWrite() {
-    shutdown(fd_, SHUT_WR);
-  }
 
   void Close() {
     port_ = 0;
@@ -57,7 +49,6 @@ class SocketData {
   }
 
   bool IsListeningSocket() { return (mask_ & (1 << kListeningSocket)) != 0; }
-  bool IsPipe() { return (mask_ & (1 << kPipe)) != 0; }
 
   void SetPortAndMask(Dart_Port port, intptr_t mask) {
     ASSERT(fd_ != -1);
@@ -73,11 +64,24 @@ class SocketData {
     tracked_by_kqueue_ = value;
   }
 
+  // Returns true if the last token was taken.
+  bool TakeToken() {
+    tokens_--;
+    return tokens_ == 0;
+  }
+
+  // Returns true if the tokens was 0 before adding.
+  bool ReturnToken() {
+    tokens_++;
+    return tokens_ == 1;
+  }
+
  private:
   intptr_t fd_;
   Dart_Port port_;
   intptr_t mask_;
   bool tracked_by_kqueue_;
+  int tokens_;
 };
 
 
@@ -88,8 +92,8 @@ class EventHandlerImplementation {
 
   // Gets the socket data structure for a given file
   // descriptor. Creates a new one if one is not found.
-  SocketData* GetSocketData(intptr_t fd, bool* is_new);
-  void Notify(intptr_t id, Dart_Port dart_port, int64_t data);
+  SocketData* GetSocketData(intptr_t fd);
+  void SendData(intptr_t id, Dart_Port dart_port, int64_t data);
   void Start(EventHandler* handler);
   void Shutdown();
 

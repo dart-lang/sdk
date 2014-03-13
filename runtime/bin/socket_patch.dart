@@ -355,8 +355,9 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   static const int CLOSE_COMMAND = 8;
   static const int SHUTDOWN_READ_COMMAND = 9;
   static const int SHUTDOWN_WRITE_COMMAND = 10;
+  static const int RETURN_TOKEN_COMMAND = 11;
   static const int FIRST_COMMAND = CLOSE_COMMAND;
-  static const int LAST_COMMAND = SHUTDOWN_WRITE_COMMAND;
+  static const int LAST_COMMAND = RETURN_TOKEN_COMMAND;
 
   // Type flag send to the eventhandler providing additional
   // information on the type of the file descriptor.
@@ -817,6 +818,9 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
         }
       }
     }
+    if (eventPort != null && !isClosing && !isClosed) {
+      sendToEventHandler(1 << RETURN_TOKEN_COMMAND);
+    }
   }
 
   void setHandlers({read, write, error, closed, destroyed}) {
@@ -832,7 +836,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     sendWriteEvents = write;
     if (read) issueReadEvent();
     if (write) issueWriteEvent();
-    if (eventPort == null) {
+    if (eventPort == null && !isClosing && !isClosed) {
       int flags = typeFlags & TYPE_TYPE_MASK;
       if (!isClosedRead) flags |= 1 << READ_EVENT;
       if (!isClosedWrite) flags |= 1 << WRITE_EVENT;
@@ -889,7 +893,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   }
 
   void sendToEventHandler(int data) {
-    assert(!isClosed);
+    assert(!isClosing);
     connectToEventHandler();
     _EventHandler._sendData(this, eventPort, data);
   }
