@@ -279,6 +279,8 @@ abstract class Element implements Spannable {
 
   void diagnose(Element context, DiagnosticListener listener);
 
+  TreeElements get treeElements;
+
   accept(ElementVisitor visitor);
 }
 
@@ -926,7 +928,7 @@ abstract class ClassElement extends TypeDeclarationElement
   /// Returns `true` if the class hierarchy for this class contains errors.
   bool get hasIncompleteHierarchy;
 
-  ClassElement ensureResolved(Compiler compiler);
+  void ensureResolved(Compiler compiler);
 
   void addMember(Element element, DiagnosticListener listener);
   void addToScope(Element element, DiagnosticListener listener);
