@@ -16,7 +16,7 @@ part of dart.core;
  *
  * * The plain [HashMap] is unordered (no order is guaranteed),
  * * the [LinkedHashMap] iterates in key insertion order,
- * * and a sorted my like [SplayTreeMap] iterates the keys in sorted order.
+ * * and a sorted map like [SplayTreeMap] iterates the keys in sorted order.
  *
  * It is generally not allowed to modify the map (add or remove keys) while
  * an operation is being performed on the map, for example in functions called
