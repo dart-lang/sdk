@@ -175,33 +175,55 @@ class JSString extends Interceptor implements String, JSIndexable {
     }
   }
 
-  // Dart2js can't use JavaScript trim, because JavaScript does not trim
-  // the NEXT LINE character (0x85) and BOMs (0xFEFF).
-  String trim() {
-    const int CARRIAGE_RETURN = 0x0D;
+  /// Finds the index of the first non-whitespace character, or the
+  /// end of the string. Start looking at position [index].
+  static int _skipLeadingWhitespace(String string, int index) {
     const int SPACE = 0x20;
-    const int NEL = 0x85;
-    const int BOM = 0xFEFF;
+    const int CARRIAGE_RETURN = 0x0D;
+    while (index < string.length) {
+      int codeUnit = string.codeUnitAt(index);
+      if (codeUnit != SPACE &&
+          codeUnit != CARRIAGE_RETURN &&
+          !_isWhitespace(codeUnit)) {
+        break;
+      }
+      index++;
+    }
+    return index;
+  }
 
-    // Start by doing JS trim. Then check if it leaves a NEL or BOM at
+  /// Finds the index after the the last non-whitespace character, or 0.
+  /// Start looking at position [index - 1].
+  static int _skipTrailingWhitespace(String string, int index) {
+    const int SPACE = 0x20;
+    const int CARRIAGE_RETURN = 0x0D;
+    while (index > 0) {
+      int codeUnit = string.codeUnitAt(index - 1);
+      if (codeUnit != SPACE &&
+          codeUnit != CARRIAGE_RETURN &&
+          !_isWhitespace(codeUnit)) {
+        break;
+      }
+      index--;
+    }
+    return index;
+  }
+
+  // Dart2js can't use JavaScript trim directly,
+  // because JavaScript does not trim
+  // the NEXT LINE (NEL) character (0x85).
+  String trim() {
+    const int NEL = 0x85;
+
+    // Start by doing JS trim. Then check if it leaves a NEL at
     // either end of the string.
     String result = JS('String', '#.trim()', this);
 
     if (result.length == 0) return result;
     int firstCode = result.codeUnitAt(0);
     int startIndex = 0;
-    if (firstCode == NEL || firstCode == BOM) {
-      startIndex++;
-      while (startIndex < result.length) {
-        int codeUnit = result.codeUnitAt(startIndex);
-        if (codeUnit == SPACE ||
-            codeUnit == CARRIAGE_RETURN ||
-            _isWhitespace(codeUnit)) {
-          startIndex++;
-        } else {
-          break;
-        }
-      }
+    if (firstCode == NEL) {
+      startIndex = _skipLeadingWhitespace(this, 1);
       if (startIndex == result.length) return "";
     }
 
@@ -209,21 +231,67 @@ class JSString extends Interceptor implements String, JSIndexable {
     // We know that there is at least one character that is non-whitespace.
     // Therefore we don't need to verify that endIndex > startIndex.
     int lastCode = result.codeUnitAt(endIndex - 1);
-    if (lastCode == NEL || lastCode == BOM) {
-      endIndex--;
-      while (true) {
-        int codeUnit = result.codeUnitAt(endIndex - 1);
-        if (codeUnit == SPACE ||
-            codeUnit == CARRIAGE_RETURN ||
-            _isWhitespace(codeUnit)) {
-          endIndex--;
-        } else {
-          break;
-        }
-      }
+    if (lastCode == NEL) {
+      endIndex = _skipTrailingWhitespace(this, endIndex - 1);
     }
     if (startIndex == 0 && endIndex == result.length) return result;
     return JS('String', r'#.substring(#, #)', result, startIndex, endIndex);
+  }
+
+  // Dart2js can't use JavaScript trimLeft directly,
+  // because it is not in ES5, so not every browser implements it,
+  // and because those that do will not trim the NEXT LINE character (0x85).
+  String trimLeft() {
+    const int NEL = 0x85;
+
+    // Start by doing JS trim. Then check if it leaves a NEL at
+    // the beginning of the string.
+    String result;
+    int startIndex = 0;
+    if (JS('bool', 'typeof #.trimLeft != "undefined"', this)) {
+      result = JS('String', '#.trimLeft()', this);
+      if (result.length == 0) return result;
+      int firstCode = result.codeUnitAt(0);
+      if (firstCode == NEL) {
+        startIndex = _skipLeadingWhitespace(result, 1);
+      }
+    } else {
+      result = this;
+      startIndex = _skipLeadingWhitespace(this, 0);
+    }
+    if (startIndex == 0) return result;
+    if (startIndex == result.length) return "";
+    return JS('String', r'#.substring(#)', result, startIndex);
+  }
+
+  // Dart2js can't use JavaScript trimRight directly,
+  // because it is not in ES5 and because JavaScript does not trim
+  // the NEXT LINE character (0x85).
+  String trimRight() {
+    const int NEL = 0x85;
+
+    // Start by doing JS trim. Then check if it leaves a NEL or BOM at
+    // the end of the string.
+    String result;
+    int endIndex;
+    // trimRight is implemented by Firefox and Chrome/Blink,
+    // so use it if it is there.
+    if (JS('bool', 'typeof #.trimRight != "undefined"', this)) {
+      result = JS('String', '#.trimRight()', this);
+      endIndex = result.length;
+      if (endIndex == 0) return result;
+      int lastCode = result.codeUnitAt(endIndex - 1);
+      if (lastCode == NEL) {
+        endIndex = _skipTrailingWhitespace(result, endIndex - 1);
+      }
+    } else {
+      result = this;
+      endIndex = _skipTrailingWhitespace(this, this.length);
+    }
+
+    if (endIndex == result.length) return result;
+    if (endIndex == 0) return "";
+    return JS('String', r'#.substring(#, #)', result, 0, endIndex);
   }
 
   String operator*(int times) {

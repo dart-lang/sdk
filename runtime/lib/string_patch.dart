@@ -294,12 +294,50 @@ class _StringBase {
       }
     }
     if ((first == 0) && (last == (len - 1))) {
-      // Returns this string if it does not have leading or trailing
+      // Returns this string since it does not have leading or trailing
       // whitespaces.
       return this;
-    } else {
-      return _substringUnchecked(first, last + 1);
     }
+    return _substringUnchecked(first, last + 1);
+  }
+
+  String trimLeft() {
+    final len = this.length;
+    int first = 0;
+    for (; first < len; first++) {
+      if (!_isWhitespace(this.codeUnitAt(first))) {
+        break;
+      }
+    }
+    if (len == first) {
+      // String contains only whitespaces.
+      return "";
+    }
+    if (first == 0) {
+      // Returns this string since it does not have leading or trailing
+      // whitespaces.
+      return this;
+    }
+    return _substringUnchecked(first, len);
+  }
+
+  String trimRight() {
+    final len = this.length;
+    int last = len - 1;
+    for (; last >= 0; last--) {
+      if (!_isWhitespace(this.codeUnitAt(last))) {
+        break;
+      }
+    }
+    if (last == -1) {
+      // String contains only whitespaces.
+      return "";
+    }
+    if (last == (len - 1)) {
+      // Returns this string since it does not have trailing whitespaces.
+      return this;
+    }
+    return _substringUnchecked(0, last + 1);
   }
 
   String operator*(int times) {
