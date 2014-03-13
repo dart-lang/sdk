@@ -945,6 +945,8 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
   } else if (msg->id == kShutdownId) {
     shutdown_ = true;
   } else {
+    // No tokens to return on Windows.
+    if ((msg->data & (1 << kReturnTokenCommand)) != 0) return;
     Handle* handle = reinterpret_cast<Handle*>(msg->id);
     ASSERT(handle != NULL);
     if (handle->is_listen_socket()) {
