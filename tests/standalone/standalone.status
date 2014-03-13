@@ -114,7 +114,6 @@ out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 
 [ $arch == mips ]
-io/file_read_special_device_test: Fail # dartbug.com/17440
 io/signals_test: Fail # dartbug.com/17440
 io/file_stat_test: Fail # dartbug.com/17440
 
