@@ -320,7 +320,7 @@ class CodeRegion : public ZoneAllocated {
   }
 
   void DebugPrint() const {
-    OS::Print("%s [%" Px ", %" Px ") %"Pd" %"Pd64"\n",
+    OS::Print("%s [%" Px ", %" Px ") %" Pd " %" Pd64 "\n",
               KindToCString(kind_),
               start(),
               end(),
