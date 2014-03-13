@@ -221,8 +221,12 @@ class Pubspec {
           'Could not find a file named "pubspec.yaml" in "$packageDir".');
     }
 
-    return new Pubspec.parse(readTextFile(pubspecPath), sources,
-        expectedName: expectedName, location: pubspecUri);
+    try {
+      return new Pubspec.parse(readTextFile(pubspecPath), sources,
+          expectedName: expectedName, location: pubspecUri);
+    } on YamlException catch (error) {
+      throw new PubspecException("Error parsing $pubspecPath: $error");
+    }
   }
 
   Pubspec(this._name, this._version, this._dependencies, this._devDependencies,
