@@ -279,8 +279,6 @@ abstract class Element implements Spannable {
 
   void diagnose(Element context, DiagnosticListener listener);
 
-  TreeElements get treeElements;
-
   accept(ElementVisitor visitor);
 }
 
@@ -904,6 +902,7 @@ abstract class ClassElement extends TypeDeclarationElement
   bool get hasLocalScopeMembers;
 
   // TODO(kasperl): These are bit fishy. Do we really need them?
+  void set thisType(InterfaceType value);
   void set supertype(DartType value);
   void set interfaces(Link<DartType> value);
   void set patch(ClassElement value);
@@ -928,7 +927,7 @@ abstract class ClassElement extends TypeDeclarationElement
   /// Returns `true` if the class hierarchy for this class contains errors.
   bool get hasIncompleteHierarchy;
 
-  void ensureResolved(Compiler compiler);
+  ClassElement ensureResolved(Compiler compiler);
 
   void addMember(Element element, DiagnosticListener listener);
   void addToScope(Element element, DiagnosticListener listener);

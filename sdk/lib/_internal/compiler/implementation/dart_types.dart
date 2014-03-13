@@ -8,11 +8,7 @@ import 'dart:math' show min;
 
 import 'dart2jslib.dart' show Compiler, invariant, Script, Message;
 import 'elements/modelx.dart'
-    show VoidElementX,
-         LibraryElementX,
-         BaseClassElementX,
-         TypeDeclarationElementX,
-         TypedefElementX;
+    show VoidElementX, LibraryElementX, BaseClassElementX;
 import 'elements/elements.dart';
 import 'ordered_typeset.dart' show OrderedTypeSet;
 import 'util/util.dart' show Link, LinkBuilder, CURRENT_ELEMENT_SPANNABLE;
@@ -360,20 +356,11 @@ class MalformedType extends DartType {
 }
 
 abstract class GenericType extends DartType {
-  final TypeDeclarationElement element;
   final Link<DartType> typeArguments;
 
-  GenericType(TypeDeclarationElementX element,
-              Link<DartType> this.typeArguments,
-              {bool checkTypeArgumentCount: true})
-      : this.element = element {
-    assert(invariant(element,
-        !checkTypeArgumentCount ||
-        element.thisTypeCache == null ||
-        typeArguments.slowLength() == element.typeVariables.slowLength(),
-        message: () => 'Invalid type argument count on ${element.thisType}. '
-                       'Provided type arguments: $typeArguments.'));
-  }
+  GenericType(Link<DartType> this.typeArguments);
+
+  TypeDeclarationElement get element;
 
   /// Creates a new instance of this type using the provided type arguments.
   GenericType createInstantiation(Link<DartType> newTypeArguments);
@@ -457,18 +444,22 @@ abstract class GenericType extends DartType {
 }
 
 class InterfaceType extends GenericType {
-  InterfaceType(BaseClassElementX element,
+  final ClassElement element;
+
+  InterfaceType(this.element,
                 [Link<DartType> typeArguments = const Link<DartType>()])
-      : super(element, typeArguments) {
+      : super(typeArguments) {
     assert(invariant(element, element.isDeclaration));
+    assert(invariant(element, element.thisType == null ||
+        typeArguments.slowLength() == element.typeVariables.slowLength(),
+        message: () => 'Invalid type argument count on ${element.thisType}. '
+                       'Provided type arguments: $typeArguments.'));
   }
 
-  InterfaceType.forUserProvidedBadType(BaseClassElementX element,
+  InterfaceType.forUserProvidedBadType(this.element,
                                        [Link<DartType> typeArguments =
                                            const Link<DartType>()])
-      : super(element, typeArguments, checkTypeArgumentCount: false);
-
-  ClassElement get element => super.element;
+      : super(typeArguments);
 
   TypeKind get kind => TypeKind.INTERFACE;
 
@@ -758,24 +749,26 @@ class FunctionType extends DartType {
 }
 
 class TypedefType extends GenericType {
-  TypedefType(TypedefElementX element,
+  final TypedefElement element;
+
+  // TODO(johnniwinther): Assert that the number of arguments and parameters
+  // match, like for [InterfaceType].
+  TypedefType(this.element,
               [Link<DartType> typeArguments = const Link<DartType>()])
-      : super(element, typeArguments);
-
-  TypedefType.forUserProvidedBadType(TypedefElementX element,
-                                     [Link<DartType> typeArguments =
-                                         const Link<DartType>()])
-      : super(element, typeArguments, checkTypeArgumentCount: false);
-
-  TypedefElement get element => super.element;
-
-  TypeKind get kind => TypeKind.TYPEDEF;
-
-  String get name => element.name;
+      : super(typeArguments);
 
   TypedefType createInstantiation(Link<DartType> newTypeArguments) {
     return new TypedefType(element, newTypeArguments);
   }
+
+  TypedefType.forUserProvidedBadType(this.element,
+                                     [Link<DartType> typeArguments =
+                                         const Link<DartType>()])
+      : super(typeArguments);
+
+  TypeKind get kind => TypeKind.TYPEDEF;
+
+  String get name => element.name;
 
   DartType unalias(Compiler compiler) {
     // TODO(ahe): This should be [ensureResolved].
@@ -1185,7 +1178,7 @@ class Types {
     LibraryElement library = new LibraryElementX(new Script(null, null, null));
     VoidType voidType = new VoidType(new VoidElementX(library));
     DynamicType dynamicType = new DynamicType(dynamicElement);
-    dynamicElement.rawTypeCache = dynamicElement.thisTypeCache = dynamicType;
+    dynamicElement.rawTypeCache = dynamicElement.thisType = dynamicType;
     MoreSpecificVisitor moreSpecificVisitor =
         new MoreSpecificVisitor(compiler, dynamicType, voidType);
     SubtypeVisitor subtypeVisitor =

@@ -271,6 +271,10 @@ class ResolverTask extends CompilerTask {
 
       if (identical(kind, ElementKind.FIELD)) return resolveField(element);
 
+      if (identical(kind, ElementKind.PARAMETER) ||
+          identical(kind, ElementKind.FIELD_PARAMETER)) {
+        return resolveParameter(element);
+      }
       if (element.isClass()) {
         ClassElement cls = element;
         cls.ensureResolved(compiler);
@@ -448,7 +452,7 @@ class ResolverTask extends CompilerTask {
     }
   }
 
-  TreeElements resolveMethodElement(FunctionElementX element) {
+  TreeElements resolveMethodElement(FunctionElement element) {
     assert(invariant(element, element.isDeclaration));
     return compiler.withCurrentElement(element, () {
       bool isConstructor =
@@ -458,7 +462,7 @@ class ResolverTask extends CompilerTask {
       if (elements != null) {
         // TODO(karlklose): Remove the check for [isConstructor]. [elememts]
         // should never be non-null, not even for constructors.
-        assert(invariant(element, element.isConstructor(),
+        assert(invariant(element, isConstructor,
             message: 'Non-constructor element $element '
                      'has already been analyzed.'));
         return elements;
@@ -473,7 +477,7 @@ class ResolverTask extends CompilerTask {
           compiler.enqueuer.resolution.registerStaticUse(
               element.targetConstructor);
         }
-        return _ensureTreeElements(element);
+        return new TreeElementMapping(element);
       }
       if (element.isPatched) {
         checkMatchingPatchSignatures(element, element.patch);
@@ -546,7 +550,8 @@ class ResolverTask extends CompilerTask {
   /// This method should only be used by this library (or tests of
   /// this library).
   ResolverVisitor visitorFor(Element element) {
-    return new ResolverVisitor(compiler, element, _ensureTreeElements(element));
+    var mapping = new TreeElementMapping(element);
+    return new ResolverVisitor(compiler, element, mapping);
   }
 
   TreeElements resolveField(VariableElementX element) {
@@ -597,6 +602,13 @@ class ResolverTask extends CompilerTask {
     // Perform various checks as side effect of "computing" the type.
     element.computeType(compiler);
 
+    return visitor.mapping;
+  }
+
+  TreeElements resolveParameter(ParameterElement element) {
+    element.parseNode(compiler);
+    ResolverVisitor visitor = visitorFor(element.enclosingElement);
+    visitor.visit(element.initializer);
     return visitor.mapping;
   }
 
@@ -756,11 +768,11 @@ class ResolverTask extends CompilerTask {
    * Warning: Do not call this method directly. Instead use
    * [:element.ensureResolved(compiler):].
    */
-  TreeElements resolveClass(BaseClassElementX element) {
+  void resolveClass(ClassElement element) {
     _resolveTypeDeclaration(element, () {
       // TODO(johnniwinther): Store the mapping in the resolution enqueuer.
-      resolveClassInternal(element, _ensureTreeElements(element));
-      return element.treeElements;
+      TreeElementMapping mapping = new TreeElementMapping(element);
+      resolveClassInternal(element, mapping);
     });
   }
 
@@ -1127,7 +1139,7 @@ class ResolverTask extends CompilerTask {
   }
 
 
-  FunctionSignature resolveSignature(FunctionElementX element) {
+  FunctionSignature resolveSignature(FunctionElement element) {
     MessageKind defaultValuesError = null;
     if (element.isFactoryConstructor()) {
       FunctionExpression body = element.parseNode(compiler);
@@ -1140,15 +1152,19 @@ class ResolverTask extends CompilerTask {
           compiler.parser.measure(() => element.parseNode(compiler));
       return measure(() => SignatureResolver.analyze(
           compiler, node.parameters, node.returnType, element,
-          _ensureTreeElements(element),
+          // TODO(johnniwinther): Use the [TreeElements] used for resolution of
+          // the method body.
+          new TreeElementMapping(element),
           defaultValuesError: defaultValuesError));
     });
   }
 
   TreeElements resolveTypedef(TypedefElementX element) {
-    if (element.isResolved) return element.treeElements;
+    if (element.isResolved) return element.mapping;
     return _resolveTypeDeclaration(element, () {
-      TreeElementMapping mapping = _ensureTreeElements(element);
+      TreeElementMapping mapping = new TreeElementMapping(element);
+      // TODO(johnniwinther): Store the mapping in the resolution enqueuer.
+      element.mapping = mapping;
       return compiler.withCurrentElement(element, () {
         return measure(() {
           Typedef node =
@@ -1202,8 +1218,6 @@ class ResolverTask extends CompilerTask {
       annotation.resolutionState = STATE_STARTED;
 
       Node node = annotation.parseNode(compiler);
-      // TODO(johnniwinther): Find the right analyzable element to hold the
-      // [TreeElements] for the annotation.
       Element annotatedElement = annotation.annotatedElement;
       Element context = annotatedElement.enclosingElement;
       if (context == null) {
@@ -2845,9 +2859,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
         world.registerDynamicInvocation(selector);
       }
     } else if (Elements.isStaticOrTopLevel(target)) {
-      // Avoid registration of type variables since they are not analyzable but
-      // instead resolved through their enclosing type declaration.
-      if (!target.isTypeVariable()) {
+      // TODO(kasperl): It seems like we're not supposed to register
+      // the use of classes. Wouldn't it be simpler if we just did?
+      if (!target.isClass()) {
         // [target] might be the implementation element and only declaration
         // elements may be registered.
         world.registerStaticUse(target.declaration);
@@ -4673,23 +4687,4 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
 Element lookupInScope(Compiler compiler, Node node,
                       Scope scope, String name) {
   return Elements.unwrap(scope.lookup(name), compiler, node);
-}
-
-TreeElements _ensureTreeElements(AnalyzableElement element) {
-  if (element._treeElements == null) {
-    element._treeElements = new TreeElementMapping(element);
-  }
-  return element._treeElements;
-}
-
-abstract class AnalyzableElement implements Element {
-  TreeElements _treeElements;
-
-  bool get hasTreeElements => _treeElements != null;
-
-  TreeElements get treeElements {
-    assert(invariant(this, _treeElements !=null,
-        message: "TreeElements have not been computed for $this."));
-    return _treeElements;
-  }
 }

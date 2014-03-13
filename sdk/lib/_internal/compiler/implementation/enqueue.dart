@@ -631,8 +631,6 @@ class ResolutionEnqueuer extends Enqueuer {
   }
 
   void internalAddToWorkList(Element element) {
-    assert(invariant(element, element is AnalyzableElement,
-        message: 'Element $element is not analyzable.'));
     if (getCachedElements(element) != null) return;
     if (queueIsClosed) {
       throw new SpannableAssertionFailure(element,

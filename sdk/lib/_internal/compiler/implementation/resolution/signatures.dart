@@ -8,7 +8,6 @@ part of resolution;
  * [SignatureResolver] resolves function signatures.
  */
 class SignatureResolver extends MappingVisitor<ParameterElementX> {
-  final ResolverVisitor resolver;
   final Element enclosingElement;
   final Scope scope;
   final MessageKind defaultValuesError;
@@ -24,8 +23,6 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
                     {this.defaultValuesError})
       : this.enclosingElement = enclosingElement,
         this.scope = enclosingElement.buildScope(),
-        this.resolver =
-            new ResolverVisitor(compiler, enclosingElement, treeElements),
         super(compiler, treeElements);
 
   bool get defaultValuesAllowed => defaultValuesError == null;
@@ -87,7 +84,8 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
 
   void computeParameterType(ParameterElementX element) {
     if (currentDefinitions.type != null) {
-      element.type = resolveTypeAnnotation(currentDefinitions.type);
+      element.type = compiler.resolver.resolveTypeAnnotation(element,
+          currentDefinitions.type);
     } else {
       // Is node.definitions exactly one FunctionExpression?
       Link<Node> link = currentDefinitions.definitions.nodes;
@@ -260,10 +258,11 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
       // Because there is no type annotation for the return type of
       // this element, we explicitly add one.
       if (compiler.enableTypeAssertions) {
-        compiler.enqueuer.resolution.registerIsCheck(returnType, mapping);
+        compiler.enqueuer.resolution.registerIsCheck(
+            returnType, new TreeElementMapping(element));
       }
     } else {
-      returnType = visitor.resolveReturnType(returnNode);
+      returnType = compiler.resolver.resolveReturnType(element, returnNode);
     }
 
     if (element.isSetter() && (requiredParameterCount != 1 ||
@@ -282,27 +281,10 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
                                   returnType);
   }
 
-  DartType resolveTypeAnnotation(TypeAnnotation annotation) {
-    DartType type = resolveReturnType(annotation);
-    if (type == compiler.types.voidType) {
-      compiler.reportError(annotation, MessageKind.VOID_NOT_ALLOWED);
-    }
-    return type;
-  }
-
-  DartType resolveReturnType(TypeAnnotation annotation) {
-    if (annotation == null) return compiler.types.dynamicType;
-    DartType result = resolver.resolveTypeAnnotation(annotation);
-    if (result == null) {
-      return compiler.types.dynamicType;
-    }
-    return result;
-  }
-
   // TODO(ahe): This is temporary.
   void resolveExpression(Node node) {
     if (node == null) return;
-    node.accept(resolver);
+    node.accept(new ResolverVisitor(compiler, enclosingElement, mapping));
   }
 
   // TODO(ahe): This is temporary.

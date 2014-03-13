@@ -298,8 +298,6 @@ abstract class ElementX implements Element {
   FunctionElement get targetConstructor => null;
 
   void diagnose(Element context, DiagnosticListener listener) {}
-
-  TreeElements get treeElements => enclosingElement.treeElements;
 }
 
 /**
@@ -579,7 +577,7 @@ class ScopeX {
   }
 }
 
-class CompilationUnitElementX extends ElementX with AnalyzableElement
+class CompilationUnitElementX extends ElementX
     implements CompilationUnitElement {
   final Script script;
   PartOf partTag;
@@ -752,8 +750,7 @@ class ImportScope {
   Element operator [](String name) => importScope[name];
 }
 
-class LibraryElementX extends ElementX with AnalyzableElement
-    implements LibraryElement {
+class LibraryElementX extends ElementX implements LibraryElement {
   final Uri canonicalUri;
   CompilationUnitElement entryCompilationUnit;
   Link<CompilationUnitElement> compilationUnits =
@@ -1046,10 +1043,28 @@ class PrefixElementX extends ElementX implements PrefixElement {
   }
 }
 
-class TypedefElementX extends ElementX
-    with AnalyzableElement, TypeDeclarationElementX<TypedefType>
-    implements TypedefElement {
+class TypedefElementX extends ElementX implements TypedefElement {
   Typedef cachedNode;
+
+  /**
+   * The type of this typedef in which the type arguments are the type
+   * variables.
+   *
+   * This resembles the [ClassElement.thisType] though a typedef has no notion
+   * of [:this:].
+   *
+   * This type is computed in [computeType].
+   */
+  TypedefType thisType;
+
+  /**
+   * Canonicalized raw version of [thisType].
+   *
+   * See [ClassElement.rawType] for motivation.
+   *
+   * The [rawType] is computed together with [thisType] in [computeType].
+   */
+  TypedefType rawType;
 
   /**
    * The type annotation which defines this typedef.
@@ -1059,7 +1074,10 @@ class TypedefElementX extends ElementX
   /// [:true:] if the typedef has been checked for cyclic reference.
   bool hasBeenCheckedForCycles = false;
 
-  bool get isResolved => hasTreeElements;
+  bool get isResolved => mapping != null;
+
+  // TODO(johnniwinther): Store the mapping in the resolution enqueuer instead.
+  TreeElements mapping;
 
   TypedefElementX(String name, Element enclosing)
       : super(name, ElementKind.TYPEDEF, enclosing);
@@ -1075,16 +1093,26 @@ class TypedefElementX extends ElementX
   FunctionSignature functionSignature;
 
   TypedefType computeType(Compiler compiler) {
-    if (thisTypeCache != null) return thisTypeCache;
+    if (thisType != null) return thisType;
     Typedef node = parseNode(compiler);
-    setThisAndRawTypes(compiler, createTypeVariables(node.typeParameters));
+    Link<DartType> parameters =
+        TypeDeclarationElementX.createTypeVariables(this, node.typeParameters);
+    thisType = new TypedefType(this, parameters);
+    if (parameters.isEmpty) {
+      rawType = thisType;
+    } else {
+      var dynamicParameters = const Link<DartType>();
+      parameters.forEach((_) {
+        dynamicParameters =
+            dynamicParameters.prepend(compiler.types.dynamicType);
+      });
+      rawType = new TypedefType(this, dynamicParameters);
+    }
     compiler.resolveTypedef(this);
-    return thisTypeCache;
+    return thisType;
   }
 
-  TypedefType createType(Link<DartType> typeArguments) {
-    return new TypedefType(this, typeArguments);
-  }
+  Link<DartType> get typeVariables => thisType.typeArguments;
 
   Scope buildScope() {
     return new TypeDeclarationScope(enclosingElement.buildScope(), this);
@@ -1124,8 +1152,7 @@ class VariableList {
   DartType computeType(Element element, Compiler compiler) => type;
 }
 
-class VariableElementX extends ElementX with AnalyzableElement
-    implements VariableElement {
+class VariableElementX extends ElementX implements VariableElement {
   final Token token;
   final VariableList variables;
   VariableDefinitions definitionsCache;
@@ -1462,8 +1489,7 @@ class FunctionSignatureX implements FunctionSignature {
   }
 }
 
-class FunctionElementX extends ElementX with AnalyzableElement
-    implements FunctionElement {
+class FunctionElementX extends ElementX implements FunctionElement {
   FunctionExpression cachedNode;
   DartType type;
   final Modifiers modifiers;
@@ -1741,25 +1767,49 @@ class VoidElementX extends ElementX implements VoidElement {
   accept(ElementVisitor visitor) => visitor.visitVoidElement(this);
 }
 
-abstract class TypeDeclarationElementX<T extends GenericType>
-    implements TypeDeclarationElement {
+class TypeDeclarationElementX {
   /**
-   * The `this type` for this type declaration.
+   * Creates the type variables, their type and corresponding element, for the
+   * type variables declared in [parameter] on [element]. The bounds of the type
+   * variables are not set until [element] has been resolved.
+   */
+  static Link<DartType> createTypeVariables(TypeDeclarationElement element,
+                                            NodeList parameters) {
+    if (parameters == null) return const Link<DartType>();
+
+    // Create types and elements for type variable.
+    var arguments = new LinkBuilder<DartType>();
+    for (Link link = parameters.nodes; !link.isEmpty; link = link.tail) {
+      TypeVariable node = link.head;
+      String variableName = node.name.source;
+      TypeVariableElement variableElement =
+          new TypeVariableElementX(variableName, element, node);
+      TypeVariableType variableType = new TypeVariableType(variableElement);
+      variableElement.type = variableType;
+      arguments.addLast(variableType);
+    }
+    return arguments.toLink();
+  }
+}
+
+abstract class BaseClassElementX extends ElementX implements ClassElement {
+  final int id;
+
+  /**
+   * The type of [:this:] for this class declaration.
    *
-   * The type of [:this:] is the generic type based on this element in which
+   * The type of [:this:] is the interface type based on this element in which
    * the type arguments are the declared type variables. For instance,
    * [:List<E>:] for [:List:] and [:Map<K,V>:] for [:Map:].
    *
-   * For a class declaration this is the type of [:this:].
-   *
    * This type is computed in [computeType].
    */
-  T thisTypeCache;
+  InterfaceType thisType;
 
   /**
-   * The raw type for this type declaration.
+   * The raw type for this class declaration.
    *
-   * The raw type is the generic type base on this element in which the type
+   * The raw type is the interface type base on this element in which the type
    * arguments are all [dynamic]. For instance [:List<dynamic>:] for [:List:]
    * and [:Map<dynamic,dynamic>:] for [:Map:]. For non-generic classes [rawType]
    * is the same as [thisType].
@@ -1774,70 +1824,7 @@ abstract class TypeDeclarationElementX<T extends GenericType>
    *
    * This type is computed together with [thisType] in [computeType].
    */
-  T rawTypeCache;
-
-  T get thisType {
-    assert(invariant(this, thisTypeCache != null,
-                     message: 'This type has not been computed for $this'));
-    return thisTypeCache;
-  }
-
-  T get rawType {
-    assert(invariant(this, rawTypeCache != null,
-                     message: 'Raw type has not been computed for $this'));
-    return rawTypeCache;
-  }
-
-  T createType(Link<DartType> typeArguments);
-
-  void setThisAndRawTypes(Compiler compiler, Link<DartType> typeParameters) {
-    assert(invariant(this, thisTypeCache == null,
-        message: "This type has already been set on $this."));
-    assert(invariant(this, rawTypeCache == null,
-        message: "Raw type has already been set on $this."));
-    thisTypeCache = createType(typeParameters);
-    if (typeParameters.isEmpty) {
-      rawTypeCache = thisTypeCache;
-    } else {
-      Link<DartType> dynamicParameters = const Link<DartType>();
-      typeParameters.forEach((_) {
-        dynamicParameters =
-            dynamicParameters.prepend(compiler.types.dynamicType);
-      });
-      rawTypeCache = createType(dynamicParameters);
-    }
-  }
-
-  Link<DartType> get typeVariables => thisType.typeArguments;
-
-  /**
-   * Creates the type variables, their type and corresponding element, for the
-   * type variables declared in [parameter] on [element]. The bounds of the type
-   * variables are not set until [element] has been resolved.
-   */
-  Link<DartType> createTypeVariables(NodeList parameters) {
-    if (parameters == null) return const Link<DartType>();
-
-    // Create types and elements for type variable.
-    LinkBuilder<DartType> arguments = new LinkBuilder<DartType>();
-    for (Link<Node> link = parameters.nodes; !link.isEmpty; link = link.tail) {
-      TypeVariable node = link.head;
-      String variableName = node.name.source;
-      TypeVariableElement variableElement =
-          new TypeVariableElementX(variableName, this, node);
-      TypeVariableType variableType = new TypeVariableType(variableElement);
-      variableElement.type = variableType;
-      arguments.addLast(variableType);
-    }
-    return arguments.toLink();
-  }
-}
-
-abstract class BaseClassElementX extends ElementX
-    with AnalyzableElement, TypeDeclarationElementX<InterfaceType>
-    implements ClassElement {
-  final int id;
-
+  InterfaceType rawTypeCache;
   DartType supertype;
   Link<DartType> interfaces;
   String nativeTagInfo;
@@ -1878,26 +1865,40 @@ abstract class BaseClassElementX extends ElementX
 
   bool get isUnnamedMixinApplication => false;
 
-  InterfaceType computeType(Compiler compiler) {
-    if (thisTypeCache == null) {
-      computeThisAndRawType(compiler, computeTypeParameters(compiler));
-    }
-    return thisTypeCache;
-  }
-
   void computeThisAndRawType(Compiler compiler, Link<DartType> typeVariables) {
-    if (thisTypeCache == null) {
+    if (thisType == null) {
       if (origin == null) {
-        setThisAndRawTypes(compiler, typeVariables);
+        Link<DartType> parameters = typeVariables;
+        thisType = new InterfaceType(this, parameters);
+        if (parameters.isEmpty) {
+          rawTypeCache = thisType;
+        } else {
+          var dynamicParameters = const Link<DartType>();
+          parameters.forEach((_) {
+            dynamicParameters =
+                dynamicParameters.prepend(compiler.types.dynamicType);
+          });
+          rawTypeCache = new InterfaceType(this, dynamicParameters);
+        }
       } else {
-        thisTypeCache = origin.computeType(compiler);
+        thisType = origin.computeType(compiler);
         rawTypeCache = origin.rawType;
       }
     }
   }
 
-  InterfaceType createType(Link<DartType> typeArguments) {
-    return new InterfaceType(this, typeArguments);
+  // TODO(johnniwinther): Add [thisType] getter similar to [rawType].
+  InterfaceType computeType(Compiler compiler) {
+    if (thisType == null) {
+      computeThisAndRawType(compiler, computeTypeParameters(compiler));
+    }
+    return thisType;
+  }
+
+  InterfaceType get rawType {
+    assert(invariant(this, rawTypeCache != null,
+                     message: 'Raw type has not been computed for $this'));
+    return rawTypeCache;
   }
 
   Link<DartType> computeTypeParameters(Compiler compiler);
@@ -1908,10 +1909,13 @@ abstract class BaseClassElementX extends ElementX
   bool isObject(Compiler compiler) =>
       identical(declaration, compiler.objectClass);
 
-  void ensureResolved(Compiler compiler) {
+  Link<DartType> get typeVariables => thisType.typeArguments;
+
+  ClassElement ensureResolved(Compiler compiler) {
     if (resolutionState == STATE_NOT_STARTED) {
       compiler.resolver.resolveClass(this);
     }
+    return this;
   }
 
   void setDefaultConstructor(FunctionElement constructor, Compiler compiler);
@@ -2295,7 +2299,8 @@ abstract class ClassElementX extends BaseClassElementX {
 
   Link<DartType> computeTypeParameters(Compiler compiler) {
     ClassNode node = parseNode(compiler);
-    return createTypeVariables(node.typeParameters);
+    return TypeDeclarationElementX.createTypeVariables(
+        this, node.typeParameters);
   }
 
   Scope buildScope() => new ClassScope(enclosingElement.buildScope(), this);
@@ -2394,7 +2399,8 @@ class MixinApplicationElementX extends BaseClassElementX
           "Type variables on unnamed mixin applications must be set on "
           "creation.");
     }
-    return createTypeVariables(named.typeParameters);
+    return TypeDeclarationElementX.createTypeVariables(
+        this, named.typeParameters);
   }
 
   accept(ElementVisitor visitor) => visitor.visitMixinApplicationElement(this);
