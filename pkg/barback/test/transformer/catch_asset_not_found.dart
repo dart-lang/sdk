@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library barback.test.transformer.bad;
+library barback.test.transformer.catch_asset_not_found;
 
 import 'dart:async';
 
