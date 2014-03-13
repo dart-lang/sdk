@@ -54,7 +54,7 @@ class PubspecFieldValidator extends Validator {
 
     if (authors != null &&
         (authors is! List || authors.any((author) => author is! String))) {
-      errors.add('Your pubspec.yaml\'s "authors" field must be a string, but '
+      errors.add('Your pubspec.yaml\'s "authors" field must be a list, but '
           'it was "$authors".');
       return;
     }
