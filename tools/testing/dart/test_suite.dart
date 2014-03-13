@@ -2068,16 +2068,28 @@ class TestUtils {
     if (configuration['build_directory'] != '') {
       return configuration['build_directory'];
     }
-    var outputDir = '';
-    var system = configuration['system'];
-    if (system == 'linux') {
-      outputDir = 'out/';
-    } else if (system == 'macos') {
-      outputDir = 'xcodebuild/';
-    } else if (system == 'windows') {
-      outputDir = 'build/';
+    
+    return "${outputDir(configuration)}${configurationDir(configuration)}";
+  }
+
+  static getValidOutputDir(Map configuration, String mode, String arch) {
+    // We allow our code to have been cross compiled, i.e., that there
+    // is an X in front of the arch. We don't allow both a cross compiled
+    // and a normal version to be present (except if you specifically pass
+    // in the build_directory).
+    var normal = '$mode$arch';
+    var cross = '${mode}X$arch';
+    var outDir = outputDir(configuration);
+    var normalDir = new Directory(new Path('$outDir$normal').toNativePath());
+    var crossDir = new Directory(new Path('$outDir$cross').toNativePath());
+    if (normalDir.existsSync() && crossDir.existsSync()) {
+      throw "You can't have both $normalDir and $crossDir, we don't know which"
+            " binary to use";
     }
-    return "$outputDir${configurationDir(configuration)}";
+    if (crossDir.existsSync()) {
+      return cross;
+    }
+    return normal;
   }
 
   static String configurationDir(Map configuration) {
@@ -2088,7 +2100,7 @@ class TestUtils {
     var mode = (configuration['mode'] == 'debug') ? 'Debug' : 'Release';
     var arch = configuration['arch'].toUpperCase();
     if (currentWorkingDirectory != dartDir()) {
-      return '$mode$arch';
+      return getValidOutputDir(configuration, mode, arch);
     } else {
       return mode;
     }
