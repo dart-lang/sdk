@@ -382,7 +382,7 @@ class Namer implements ClosureNamer {
     if (element.isGenerativeConstructorBody()) {
       name = Elements.reconstructConstructorNameSourceString(element);
     }
-    FunctionSignature signature = element.computeSignature(compiler);
+    FunctionSignature signature = element.functionSignature;
     String methodName =
         '${privateName(library, name)}\$${signature.parameterCount}';
     if (signature.optionalParametersAreNamed &&

@@ -329,7 +329,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       } else {
         // TODO(ngeoffray): If the method has optional parameters,
         // we should pass the default values.
-        FunctionSignature parameters = method.computeSignature(compiler);
+        FunctionSignature parameters = method.functionSignature;
         if (parameters.optionalParameterCount == 0
             || parameters.parameterCount == node.selector.argumentCount) {
           node.element = element;
@@ -357,7 +357,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     //   foo() native 'return something';
     // They should not be used.
 
-    FunctionSignature signature = method.computeSignature(compiler);
+    FunctionSignature signature = method.functionSignature;
     if (signature.optionalParametersAreNamed) return null;
 
     // Return types on native methods don't need to be checked, since the
@@ -369,10 +369,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
     List<HInstruction> inputs = node.inputs.sublist(1);
     int inputPosition = 1;  // Skip receiver.
     bool canInline = true;
-    signature.forEachParameter((Element element) {
+    signature.forEachParameter((ParameterElement element) {
       if (inputPosition < inputs.length && canInline) {
         HInstruction input = inputs[inputPosition++];
-        DartType type = element.computeType(compiler).unalias(compiler);
+        DartType type = element.type.unalias(compiler);
         if (type is FunctionType) {
           canInline = false;
         }
@@ -657,8 +657,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return inputType.isInMask(checkedType, compiler) ? input : node;
   }
 
-  Element findConcreteFieldForDynamicAccess(HInstruction receiver,
-                                            Selector selector) {
+  VariableElement findConcreteFieldForDynamicAccess(HInstruction receiver,
+                                                    Selector selector) {
     TypeMask receiverType = receiver.instructionType;
     return compiler.world.locateSingleField(
         new TypedSelector(receiverType, selector));
@@ -746,14 +746,15 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     HInstruction receiver = node.getDartReceiver(compiler);
-    Element field = findConcreteFieldForDynamicAccess(receiver, node.selector);
+    VariableElement field =
+        findConcreteFieldForDynamicAccess(receiver, node.selector);
     if (field == null || !field.isAssignable()) return node;
     // Use [:node.inputs.last:] in case the call follows the
     // interceptor calling convention, but is not a call on an
     // interceptor.
     HInstruction value = node.inputs.last;
     if (compiler.enableTypeAssertions) {
-      DartType type = field.computeType(compiler);
+      DartType type = field.type;
       if (!type.treatAsRaw || type.kind == TypeKind.TYPE_VARIABLE) {
         // We cannot generate the correct type representation here, so don't
         // inline this access.

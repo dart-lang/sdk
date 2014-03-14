@@ -2537,7 +2537,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // TODO(5022): We currently generate $isFunction checks for
       // function types.
       world.registerIsCheck(
-          compiler.functionClass.computeType(compiler), work.resolutionTree);
+          compiler.functionClass.rawType, work.resolutionTree);
     }
     world.registerIsCheck(type, work.resolutionTree);
 

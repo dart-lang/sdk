@@ -30,7 +30,7 @@ class ContainerBuilder extends CodeEmitterHelper {
                         Selector selector,
                         AddStubFunction addStub,
                         Set<String> alreadyGenerated) {
-    FunctionSignature parameters = member.computeSignature(compiler);
+    FunctionSignature parameters = member.functionSignature;
     int positionalArgumentCount = selector.positionalArgumentCount;
     if (positionalArgumentCount == parameters.parameterCount) {
       assert(selector.namedArgumentCount == 0);
@@ -349,7 +349,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     if (code == null) return;
     String name = namer.getNameOfMember(member);
     task.interceptorEmitter.recordMangledNameOfMemberMethod(member, name);
-    FunctionSignature parameters = member.computeSignature(compiler);
+    FunctionSignature parameters = member.functionSignature;
     bool needsStubs = !parameters.optionalParameters.isEmpty;
     bool canTearOff = false;
     bool isClosure = false;
@@ -472,9 +472,9 @@ class ContainerBuilder extends CodeEmitterHelper {
       DartType memberType;
       if (member.isGenerativeConstructorBody()) {
         var body = member;
-        memberType = body.constructor.computeType(compiler);
+        memberType = body.constructor.type;
       } else {
-        memberType = member.computeType(compiler);
+        memberType = member.type;
       }
       if (memberType.containsTypeVariables) {
         jsAst.Expression thisAccess = js(r'this.$receiver');

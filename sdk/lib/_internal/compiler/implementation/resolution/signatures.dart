@@ -256,7 +256,7 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
     }
     DartType returnType;
     if (element.isFactoryConstructor()) {
-      returnType = element.getEnclosingClass().computeType(compiler);
+      returnType = element.getEnclosingClass().thisType;
       // Because there is no type annotation for the return type of
       // this element, we explicitly add one.
       if (compiler.enableTypeAssertions) {

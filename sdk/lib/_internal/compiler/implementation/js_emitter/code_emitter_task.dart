@@ -703,9 +703,9 @@ class CodeEmitterTask extends CompilerTask {
           isConstructor = true;
           name = Elements.reconstructConstructorName(function);
         }
-        requiredParameterCount = function.requiredParameterCount(compiler);
-        optionalParameterCount = function.optionalParameterCount(compiler);
-        FunctionSignature signature = function.computeSignature(compiler);
+        FunctionSignature signature = function.functionSignature;
+        requiredParameterCount = signature.requiredParameterCount;
+        optionalParameterCount = signature.optionalParameterCount;
         if (signature.optionalParametersAreNamed) {
           var names = [];
           for (Element e in signature.optionalParameters) {

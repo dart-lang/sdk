@@ -369,10 +369,10 @@ class LocalsHandler<T> {
     }
   }
 
-  void update(Element local, T type, Node node) {
+  void update(TypedElement local, T type, Node node) {
     assert(type != null);
     if (compiler.trustTypeAnnotations || compiler.enableTypeAssertions) {
-      type = types.narrowType(type, local.computeType(compiler));
+      type = types.narrowType(type, local.type);
     }
     updateLocal() {
       T currentType = locals[local];

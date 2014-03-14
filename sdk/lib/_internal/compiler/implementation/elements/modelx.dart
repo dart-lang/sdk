@@ -67,6 +67,7 @@ abstract class ElementX implements Element {
     metadata = metadata.prepend(annotation);
   }
 
+
   bool isFunction() => identical(kind, ElementKind.FUNCTION);
   bool isConstructor() => isFactoryConstructor() || isGenerativeConstructor();
   bool isClosure() => false;
@@ -1209,6 +1210,12 @@ class VariableElementX extends ElementX with AnalyzableElement
     return variables.computeType(this, compiler);
   }
 
+  DartType get type {
+    assert(invariant(this, variables.type != null,
+        message: "Type has not been computed for $this."));
+    return variables.type;
+  }
+
   bool isInstanceMember() => isMember() && !modifiers.isStatic();
 
   // Note: cachedNode.getBeginToken() will not be correct in all
@@ -1465,7 +1472,7 @@ class FunctionSignatureX implements FunctionSignature {
 class FunctionElementX extends ElementX with AnalyzableElement
     implements FunctionElement {
   FunctionExpression cachedNode;
-  DartType type;
+  DartType typeCache;
   final Modifiers modifiers;
 
   List<FunctionElement> nestedClosures = new List<FunctionElement>();
@@ -1596,10 +1603,16 @@ class FunctionElementX extends ElementX with AnalyzableElement
   }
 
   FunctionType computeType(Compiler compiler) {
-    if (type != null) return type;
-    type = compiler.computeFunctionType(declaration,
-                                        computeSignature(compiler));
-    return type;
+    if (typeCache != null) return typeCache;
+    typeCache = compiler.computeFunctionType(declaration,
+                                             computeSignature(compiler));
+    return typeCache;
+  }
+
+  FunctionType get type {
+    assert(invariant(this, typeCache != null,
+        message: "Type has not been computed for $this."));
+    return typeCache;
   }
 
   FunctionExpression parseNode(DiagnosticListener listener) {
@@ -1823,10 +1836,10 @@ abstract class TypeDeclarationElementX<T extends GenericType>
     for (Link<Node> link = parameters.nodes; !link.isEmpty; link = link.tail) {
       TypeVariable node = link.head;
       String variableName = node.name.source;
-      TypeVariableElement variableElement =
+      TypeVariableElementX variableElement =
           new TypeVariableElementX(variableName, this, node);
       TypeVariableType variableType = new TypeVariableType(variableElement);
-      variableElement.type = variableType;
+      variableElement.typeCache = variableType;
       arguments.addLast(variableType);
     }
     return arguments.toLink();
@@ -2470,14 +2483,25 @@ class TargetElementX extends ElementX implements TargetElement {
 
 class TypeVariableElementX extends ElementX implements TypeVariableElement {
   final Node cachedNode;
-  TypeVariableType type;
-  DartType bound;
+  TypeVariableType typeCache;
+  DartType boundCache;
 
-  TypeVariableElementX(String name, Element enclosing, this.cachedNode,
-                       [this.type, this.bound])
+  TypeVariableElementX(String name, Element enclosing, this.cachedNode)
     : super(name, ElementKind.TYPE_VARIABLE, enclosing);
 
   TypeVariableType computeType(compiler) => type;
+
+  TypeVariableType get type {
+    assert(invariant(this, typeCache != null,
+        message: "Type has not been set on $this."));
+    return typeCache;
+  }
+
+  DartType get bound {
+    assert(invariant(this, boundCache != null,
+        message: "Bound has not been set on $this."));
+    return boundCache;
+  }
 
   Node parseNode(compiler) => cachedNode;
 
@@ -2552,3 +2576,4 @@ class ParameterMetadataAnnotation extends MetadataAnnotationX {
 
   Token get endToken => metadata.getEndToken();
 }
+

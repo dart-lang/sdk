@@ -136,11 +136,11 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
 
   List<ParameterMirror> get parameters {
     return _parametersFromFunctionSignature(this,
-        _function.computeSignature(mirrorSystem.compiler));
+        _function.functionSignature);
   }
 
   TypeMirror get returnType => owner._getTypeMirror(
-      _function.computeSignature(mirrorSystem.compiler).returnType);
+      _function.functionSignature.returnType);
 
   bool get isAbstract => _function.isAbstract;
 
@@ -194,8 +194,7 @@ class Dart2JsFieldMirror extends Dart2JsMemberMirror implements VariableMirror {
 
   bool get isConst => _variable.modifiers.isConst();
 
-  TypeMirror get type =>
-      owner._getTypeMirror(_variable.computeType(mirrorSystem.compiler));
+  TypeMirror get type => owner._getTypeMirror(_variable.type);
 
 
 }
@@ -227,9 +226,8 @@ class Dart2JsParameterMirror extends Dart2JsMemberMirror
 
   ParameterElement get _element => super._element;
 
-  TypeMirror get type => owner._getTypeMirror(
-      _element.computeType(mirrorSystem.compiler),
-      _element.functionSignature);
+  TypeMirror get type => owner._getTypeMirror(_element.type,
+                                              _element.functionSignature);
 
 
   bool get isFinal => false;

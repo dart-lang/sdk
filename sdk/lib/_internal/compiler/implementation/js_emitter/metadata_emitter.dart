@@ -43,7 +43,7 @@ class MetadataEmitter extends CodeEmitterHelper {
   }
 
   List<int> reifyDefaultArguments(FunctionElement function) {
-    FunctionSignature signature = function.computeSignature(compiler);
+    FunctionSignature signature = function.functionSignature;
     if (signature.optionalParameterCount == 0) return const [];
     List<int> defaultValues = <int>[];
     for (Element element in signature.optionalParameters) {

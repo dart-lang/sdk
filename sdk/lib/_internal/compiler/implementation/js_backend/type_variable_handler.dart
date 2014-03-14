@@ -63,7 +63,7 @@ class TypeVariableHandler {
         return;
       }
 
-      InterfaceType typeVariableType = typeVariableClass.computeType(compiler);
+      InterfaceType typeVariableType = typeVariableClass.thisType;
       List<int> constants = <int>[];
       evaluator = new CompileTimeConstantEvaluator(
           compiler.constantHandler,

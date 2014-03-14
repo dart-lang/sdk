@@ -168,7 +168,7 @@ class IntConstant extends NumConstant {
   bool isOne() => value == 1;
 
   DartType computeType(Compiler compiler) {
-    return compiler.intClass.computeType(compiler);
+    return compiler.intClass.rawType;
   }
 
   ti.TypeMask computeMask(Compiler compiler) {
@@ -220,7 +220,7 @@ class DoubleConstant extends NumConstant {
   bool isOne() => value == 1.0;
 
   DartType computeType(Compiler compiler) {
-    return compiler.doubleClass.computeType(compiler);
+    return compiler.doubleClass.rawType;
   }
 
   ti.TypeMask computeMask(Compiler compiler) {
@@ -262,7 +262,7 @@ abstract class BoolConstant extends PrimitiveConstant {
   bool isBool() => true;
 
   DartType computeType(Compiler compiler) {
-    return compiler.boolClass.computeType(compiler);
+    return compiler.boolClass.rawType;
   }
 
   ti.TypeMask computeMask(Compiler compiler) {
@@ -321,7 +321,7 @@ class StringConstant extends PrimitiveConstant {
   bool isString() => true;
 
   DartType computeType(Compiler compiler) {
-    return compiler.stringClass.computeType(compiler);
+    return compiler.stringClass.rawType;
   }
 
   ti.TypeMask computeMask(Compiler compiler) {

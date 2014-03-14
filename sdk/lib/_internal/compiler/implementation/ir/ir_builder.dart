@@ -102,7 +102,7 @@ class IrBuilderTask extends CompilerTask {
     if (function == null) return false;
 
     // TODO(lry): support functions with parameters.
-    FunctionSignature signature = function.computeSignature(compiler);
+    FunctionSignature signature = function.functionSignature;
     if (signature.parameterCount > 0) return false;
 
     // TODO(lry): support intercepted methods. Then the dependency on
@@ -186,7 +186,7 @@ class IrBuilderTask extends CompilerTask {
 class IrBuilder extends ResolvedVisitor<ir.Trivial> {
   final SourceFile sourceFile;
   ir.Continuation returnContinuation = null;
-  
+
   // The IR builder maintains a context, which is an expression with a hole in
   // it.  The hole represents the focus where new expressions can be added.
   // The context is implemented by 'root' which is the root of the expression
@@ -212,7 +212,7 @@ class IrBuilder extends ResolvedVisitor<ir.Trivial> {
   // trivial expression denoting its value.
   ir.Expression root = null;
   ir.Expression current = null;
-  
+
   IrBuilder(TreeElements elements, Compiler compiler, this.sourceFile)
       : super(elements, compiler);
 
@@ -258,7 +258,7 @@ class IrBuilder extends ResolvedVisitor<ir.Trivial> {
       current = current.plug(expr);
     }
   }
-  
+
   /**
    * Add an explicit [:return null:] for functions that don't have a return
    * statement on each branch. This includes functions with an empty body,
@@ -271,7 +271,7 @@ class IrBuilder extends ResolvedVisitor<ir.Trivial> {
     add(new ir.InvokeContinuation(returnContinuation, constant));
     current = null;
   }
-  
+
   ir.Trivial visitEmptyStatement(ast.EmptyStatement node) {
     assert(isOpen);
     return null;
@@ -305,7 +305,7 @@ class IrBuilder extends ResolvedVisitor<ir.Trivial> {
     current = null;
     return null;
   }
-  
+
   // For all simple literals:
   // Build(Literal(c)) = (let val x = Constant(c) in [], x)
   ir.Trivial visitLiteralBool(ast.LiteralBool node) {

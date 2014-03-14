@@ -59,17 +59,15 @@ class DartBackend extends Backend {
    */
   bool isSafeToRemoveTypeDeclarations(
       Map<ClassElement, Set<Element>> classMembers) {
+    ClassElement typeErrorElement = compiler.coreLibrary.find('TypeError');
+    if (classMembers.containsKey(typeErrorElement)) {
+      return false;
+    }
     Set<DartType> processedTypes = new Set<DartType>();
     List<DartType> workQueue = new List<DartType>();
     workQueue.addAll(
         classMembers.keys.map((classElement) => classElement.thisType));
     workQueue.addAll(compiler.resolverWorld.isChecks);
-    Element typeErrorElement =
-        compiler.coreLibrary.find('TypeError');
-    DartType typeErrorType = typeErrorElement.computeType(compiler);
-    if (workQueue.indexOf(typeErrorType) != -1) {
-      return false;
-    }
 
     while (!workQueue.isEmpty) {
       DartType type = workQueue.removeLast();
@@ -302,14 +300,8 @@ class DartBackend extends Backend {
       SynthesizedConstructorElementX constructor =
           new SynthesizedConstructorElementX(
               classElement.name, null, classElement, false);
-      constructor.type = new FunctionType(
-          constructor,
-          compiler.types.voidType,
-          const Link<DartType>(),
-          const Link<DartType>(),
-          const Link<String>(),
-          const Link<DartType>()
-          );
+      constructor.typeCache =
+          new FunctionType(constructor, compiler.types.voidType);
       constructor.cachedNode = new FunctionExpression(
           new Send(classNode.name, synthesizedIdentifier),
           new NodeList(new StringToken.fromString(OPEN_PAREN_INFO, '(', -1),

@@ -761,7 +761,7 @@ class TypeGraphInferrerEngine
           types.allocatedClosures.add(info);
         }
         FunctionElement function = callee.implementation;
-        FunctionSignature signature = function.computeSignature(compiler);
+        FunctionSignature signature = function.functionSignature;
         signature.forEachParameter((Element parameter) {
           ElementTypeInformation info = types.getInferredTypeOf(parameter);
           info.giveUp(this, clearAssignments: false);
@@ -770,7 +770,7 @@ class TypeGraphInferrerEngine
       }
     } else {
       FunctionElement function = callee.implementation;
-      FunctionSignature signature = function.computeSignature(compiler);
+      FunctionSignature signature = function.functionSignature;
       int parameterIndex = 0;
       bool visitingRequiredParameter = true;
       signature.forEachParameter((Element parameter) {

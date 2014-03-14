@@ -118,7 +118,7 @@ class ConstantHandler extends CompilerTask {
         if (compiler.enableTypeAssertions &&
             value != null &&
             element.isField()) {
-          DartType elementType = element.computeType(compiler);
+          DartType elementType = element.type;
           if (elementType.kind == TypeKind.MALFORMED_TYPE && !value.isNull()) {
             if (isConst) {
               ErroneousElement element = elementType.element;
@@ -395,7 +395,7 @@ class CompileTimeConstantEvaluator extends Visitor {
   }
 
   Constant visitLiteralSymbol(LiteralSymbol node) {
-    InterfaceType type = compiler.symbolClass.computeType(compiler);
+    InterfaceType type = compiler.symbolClass.rawType;
     List<Constant> createArguments(_) {
       return [constantSystem.createString(
         new DartString.literal(node.slowNameString))];
@@ -404,8 +404,8 @@ class CompileTimeConstantEvaluator extends Visitor {
         node, type, compiler.symbolConstructor, createArguments);
   }
 
-  Constant makeTypeConstant(Element element) {
-    DartType elementType = element.computeType(compiler).asRaw();
+  Constant makeTypeConstant(TypeDeclarationElement element) {
+    DartType elementType = element.rawType;
     DartType constantType =
         compiler.backend.typeImplementation.computeType(compiler);
     return new TypeConstant(elementType, constantType);
@@ -828,9 +828,11 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     return super.visitSend(send);
   }
 
-  void potentiallyCheckType(Node node, Element element, Constant constant) {
+  void potentiallyCheckType(Node node,
+                            TypedElement element,
+                            Constant constant) {
     if (compiler.enableTypeAssertions) {
-      DartType elementType = element.computeType(compiler);
+      DartType elementType = element.type;
       DartType constantType = constant.computeType(compiler);
       // TODO(ngeoffray): Handle type parameters.
       if (elementType.element.isTypeVariable()) return;
@@ -842,7 +844,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     }
   }
 
-  void updateFieldValue(Node node, Element element, Constant constant) {
+  void updateFieldValue(Node node, TypedElement element, Constant constant) {
     potentiallyCheckType(node, element, constant);
     fieldValues[element] = constant;
   }
@@ -854,7 +856,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
    */
   void assignArgumentsToParameters(List<Constant> arguments) {
     // Assign arguments to parameters.
-    FunctionSignature parameters = constructor.computeSignature(compiler);
+    FunctionSignature parameters = constructor.functionSignature;
     int index = 0;
     parameters.orderedForEachParameter((Element parameter) {
       Constant argument = arguments[index++];

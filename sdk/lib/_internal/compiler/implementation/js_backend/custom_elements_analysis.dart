@@ -171,8 +171,8 @@ class CustomElementsAnalysisJoin {
   }
 
   TypeConstant makeTypeConstant(ClassElement element) {
-    DartType elementType = element.computeType(compiler).asRaw();
-    DartType constantType = backend.typeImplementation.computeType(compiler);
+    DartType elementType = element.rawType;
+    DartType constantType = backend.typeImplementation.rawType;
     return new TypeConstant(elementType, constantType);
   }
 
@@ -187,7 +187,7 @@ class CustomElementsAnalysisJoin {
       if (member.isGenerativeConstructor()) {
         // Ignore constructors that cannot be called with zero arguments.
         FunctionElement constructor = member;
-        FunctionSignature parameters = constructor.computeSignature(compiler);
+        FunctionSignature parameters = constructor.functionSignature;
         if (parameters.requiredParameterCount == 0) {
           result.add(member);
         }

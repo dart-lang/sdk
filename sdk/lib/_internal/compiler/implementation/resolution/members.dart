@@ -575,6 +575,9 @@ class ResolverTask extends CompilerTask {
       compiler.reportError(element, MessageKind.CONST_WITHOUT_INITIALIZER);
     } else if (modifiers.isFinal() && !element.isInstanceMember()) {
       compiler.reportError(element, MessageKind.FINAL_WITHOUT_INITIALIZER);
+    } else {
+      compiler.enqueuer.resolution.registerInstantiatedClass(
+          compiler.nullClass, visitor.mapping);
     }
 
     if (Elements.isStaticOrTopLevelField(element)) {
@@ -588,9 +591,6 @@ class ResolverTask extends CompilerTask {
           // unnecessary registrations.
           compiler.backend.registerLazyField(visitor.mapping);
         }
-      } else {
-        compiler.enqueuer.resolution.registerInstantiatedClass(
-            compiler.nullClass, visitor.mapping);
       }
     }
 
@@ -3775,11 +3775,11 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
       }
       nameSet.add(typeName);
 
-      TypeVariableElement variableElement = typeVariable.element;
+      TypeVariableElementX variableElement = typeVariable.element;
       if (typeNode.bound != null) {
         DartType boundType = typeResolver.resolveTypeAnnotation(
             this, typeNode.bound);
-        variableElement.bound = boundType;
+        variableElement.boundCache = boundType;
 
         void checkTypeVariableBound() {
           Link<TypeVariableElement> seenTypeVariables =
@@ -3803,7 +3803,7 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
         }
         addDeferredAction(element, checkTypeVariableBound);
       } else {
-        variableElement.bound = objectType;
+        variableElement.boundCache = objectType;
       }
       nodeLink = nodeLink.tail;
       typeLink = typeLink.tail;
@@ -4098,9 +4098,9 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     Link<DartType> link = typeVariables;
     element.typeVariables.forEach((TypeVariableType type) {
       TypeVariableType typeVariable = link.head;
-      TypeVariableElement typeVariableElement = typeVariable.element;
-      typeVariableElement.type = typeVariable;
-      typeVariableElement.bound =
+      TypeVariableElementX typeVariableElement = typeVariable.element;
+      typeVariableElement.typeCache = typeVariable;
+      typeVariableElement.boundCache =
           type.element.bound.subst(typeVariables, element.typeVariables);
       link = link.tail;
     });

@@ -325,7 +325,8 @@ class ElementTypeInformation extends TypeInformation {
         assert(element.isFunction() ||
                element.isGetter() ||
                element.isSetter());
-        var elementType = element.computeType(inferrer.compiler);
+        TypedElement typedElement = element;
+        var elementType = typedElement.type;
         if (elementType.kind != TypeKind.FUNCTION) {
           return type;
         } else {
