@@ -902,7 +902,6 @@ abstract class ClassElement extends TypeDeclarationElement
   bool get hasLocalScopeMembers;
 
   // TODO(kasperl): These are bit fishy. Do we really need them?
-  void set thisType(InterfaceType value);
   void set supertype(DartType value);
   void set interfaces(Link<DartType> value);
   void set patch(ClassElement value);
