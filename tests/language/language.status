@@ -57,9 +57,6 @@ override_inheritance_mixed_test/09: MissingCompileTimeError # Issue 16137
 
 unicode_bom_test: Fail # Issue 16067
 
-[ $compiler == none && $runtime == vm && $arch == arm ]
-call_test: Fail  # Issue 17449
-
 [ $compiler == none && $checked ]
 type_variable_bounds4_test/01: Fail # Issue 14006
 
