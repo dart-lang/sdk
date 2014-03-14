@@ -10,7 +10,7 @@
 */*/*/packages/*/*: Skip
 */*/*/*/packages/*/*: Skip
 
-code_transformers/test/resolver_test: Skip : Issue 17502
+code_transformers/test/resolver_test: Skip # Issue 17502
 
 # Skip non-test files ending with "_test".
 scheduled_test/lib/*: Skip
