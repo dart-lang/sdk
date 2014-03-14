@@ -12,6 +12,8 @@
 #include "bin/socket.h"
 #include "bin/utils.h"
 
+#include "vm/thread.h"
+
 
 namespace dart {
 namespace bin {
@@ -217,10 +219,14 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
 }
 
 
+static Mutex* getaddrinfo_mutex = new Mutex();
 AddressList<SocketAddress>* Socket::LookupAddress(const char* host,
                                                   int type,
                                                   OSError** os_error) {
   Initialize();
+
+  // getaddrinfo is not thread-safe on Windows. Use a mutex to get around it.
+  MutexLocker locker(getaddrinfo_mutex);
 
   // Perform a name lookup for a host name.
   struct addrinfo hints;
