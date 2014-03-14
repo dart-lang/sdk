@@ -52,7 +52,6 @@ malbounded_type_test_test/04: Fail # Issue 14121
 default_factory2_test/01: Fail # Issue 14121
 typevariable_substitution2_test/01: CompileTimeError # Issue 15875
 typevariable_substitution2_test/02: CompileTimeError # Issue 15875
-mixin_bound_test: CompileTimeError # Issue 15875
 
 [ $compiler == dart2js && $unchecked ]
 type_checks_in_factory_method_test: RuntimeError # Issue 12746
@@ -147,9 +146,6 @@ numbers_test: RuntimeError, OK # Issue 1533
 canonical_const2_test: RuntimeError, OK # Issue 1533
 bit_operations_test: RuntimeError, OK # Issue 1533
 expect_test: RuntimeError, OK # Issue 13080
-
-[ ($compiler == dart2js || $compiler == dart2dart) && $checked ]
-cyclic_typedef_test/07: Crash # Issue 15237
 
 [ ($compiler == dart2js || $compiler == dart2dart) && $unchecked ]
 type_check_const_function_typedef2_test/00: MissingCompileTimeError, OK
