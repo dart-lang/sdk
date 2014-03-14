@@ -130,11 +130,11 @@ testLibraryReflective() {
 }
 
 main() {
-  // Do not access the getters/closures at the base level in this variant.
-  //testInstanceBase();
+  // Access the getters/closures at the base level in this variant.
+  testInstanceBase();
   testInstanceReflective();
-  //testClassBase();
+  testClassBase();
   testClassReflective();
-  //testLibraryBase();
+  testLibraryBase();
   testLibraryReflective();
 }

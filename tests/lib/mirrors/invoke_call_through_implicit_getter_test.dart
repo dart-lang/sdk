@@ -1,8 +1,8 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.invoke_call_through_getter;
+library test.invoke_call_through_implicit_getter;
 
 import 'dart:mirrors';
 
@@ -16,13 +16,19 @@ class FakeFunctionNSM {
 }
 
 class C {
-  get fakeFunctionCall => new FakeFunctionCall();
-  get fakeFunctionNSM => new FakeFunctionNSM();
-  get closure => (x, y) => '2 $this $x $y';
-  get closureOpt => (x, y, [z, w]) => '3 $this $x $y $z $w';
-  get closureNamed => (x, y, {z, w}) => '4 $this $x $y $z $w';
-  get notAClosure => 'Not a closure';
+  var fakeFunctionCall = new FakeFunctionCall();
+  var fakeFunctionNSM = new FakeFunctionNSM();
+  var closure;  // = (x, y) => '2 $this $x $y';
+  var closureOpt;  // = (x, y, [z, w]) => '3 $this $x $y $z $w';
+  var closureNamed;  // = (x, y, {z, w}) => '4 $this $x $y $z $w';
+  var notAClosure = 'Not a closure';
   noSuchMethod(msg) => 'DNU';
+
+  C() {
+    closure = (x, y) => '2 $this $x $y';
+    closureOpt = (x, y, [z, w]) => '3 $this $x $y $z $w';
+    closureNamed = (x, y, {z, w}) => '4 $this $x $y $z $w';
+  }
 
   toString() => 'C';
 }
@@ -62,12 +68,12 @@ testInstanceReflective() {
 }
 
 class D {
-  static get fakeFunctionCall => new FakeFunctionCall();
-  static get fakeFunctionNSM => new FakeFunctionNSM();
-  static get closure => (x, y) => '2 $x $y';
-  static get closureOpt => (x, y, [z, w]) => '3 $x $y $z $w';
-  static get closureNamed => (x, y, {z, w}) => '4 $x $y $z $w';
-  static get notAClosure => 'Not a closure';
+  static var fakeFunctionCall = new FakeFunctionCall();
+  static var fakeFunctionNSM = new FakeFunctionNSM();
+  static var closure = (x, y) => '2 $x $y';
+  static var closureOpt = (x, y, [z, w]) => '3 $x $y $z $w';
+  static var closureNamed = (x, y, {z, w}) => '4 $x $y $z $w';
+  static var notAClosure = 'Not a closure';
 }
 
 testClassBase() {
@@ -96,12 +102,12 @@ testClassReflective() {
                 (e) => e is NoSuchMethodError);
 }
 
-get fakeFunctionCall => new FakeFunctionCall();
-get fakeFunctionNSM => new FakeFunctionNSM();
-get closure => (x, y) => '2 $x $y';
-get closureOpt => (x, y, [z, w]) => '3 $x $y $z $w';
-get closureNamed => (x, y, {z, w}) => '4 $x $y $z $w';
-get notAClosure => 'Not a closure';
+var fakeFunctionCall = new FakeFunctionCall();
+var fakeFunctionNSM = new FakeFunctionNSM();
+var closure = (x, y) => '2 $x $y';
+var closureOpt = (x, y, [z, w]) => '3 $x $y $z $w';
+var closureNamed = (x, y, {z, w}) => '4 $x $y $z $w';
+var notAClosure = 'Not a closure';
 
 testLibraryBase() {
   Expect.equals('1 5 6', fakeFunctionCall(5, 6));

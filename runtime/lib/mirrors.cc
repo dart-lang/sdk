@@ -1976,37 +1976,27 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
 
   if (function.IsNull()) {
     // Didn't find a method: try to find a getter and invoke call on its result.
-    const String& getter_name =
-        String::Handle(Field::GetterName(function_name));
-    function = library.LookupLocalFunction(getter_name);
-    if (!function.IsNull()) {
-      // Invoke getter.
-      const Object& getter_result = Object::Handle(
-          DartEntry::InvokeFunction(function, Object::empty_array()));
-      if (getter_result.IsError()) {
-        ThrowInvokeError(Error::Cast(getter_result));
-        UNREACHABLE();
-      }
-      // Make room for the closure (receiver) in arguments.
-      intptr_t numArgs = args.Length();
-      const Array& call_args = Array::Handle(Array::New(numArgs + 1));
-      Object& temp = Object::Handle();
-      for (int i = 0; i < numArgs; i++) {
-        temp = args.At(i);
-        call_args.SetAt(i + 1, temp);
-      }
-      call_args.SetAt(0, getter_result);
-      const Array& call_args_descriptor_array =
-        Array::Handle(ArgumentsDescriptor::New(call_args.Length(), arg_names));
-      // Call closure.
-      const Object& call_result = Object::Handle(
-          DartEntry::InvokeClosure(call_args, call_args_descriptor_array));
-      if (call_result.IsError()) {
-        ThrowInvokeError(Error::Cast(call_result));
-        UNREACHABLE();
-      }
-      return call_result.raw();
+    const Instance& getter_result =
+        Instance::Handle(InvokeLibraryGetter(library, function_name, true));
+    // Make room for the closure (receiver) in arguments.
+    intptr_t numArgs = args.Length();
+    const Array& call_args = Array::Handle(Array::New(numArgs + 1));
+    Object& temp = Object::Handle();
+    for (int i = 0; i < numArgs; i++) {
+      temp = args.At(i);
+      call_args.SetAt(i + 1, temp);
     }
+    call_args.SetAt(0, getter_result);
+    const Array& call_args_descriptor_array =
+      Array::Handle(ArgumentsDescriptor::New(call_args.Length(), arg_names));
+    // Call closure.
+    const Object& call_result = Object::Handle(
+        DartEntry::InvokeClosure(call_args, call_args_descriptor_array));
+    if (call_result.IsError()) {
+      ThrowInvokeError(Error::Cast(call_result));
+      UNREACHABLE();
+    }
+    return call_result.raw();
   }
 
   const Array& args_descriptor_array =
