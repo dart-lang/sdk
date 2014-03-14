@@ -8,6 +8,8 @@
 
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
+#include "vm/tags.h"
+
 
 namespace dart {
 
@@ -51,6 +53,7 @@ void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
   VERIFY_ON_TRANSITION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   Isolate* isolate = arguments->isolate();
+  VMTagScope tagScope(isolate, VMTag::kRuntimeNativeTagId);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   ApiLocalScope* current_top_scope = state->top_scope();

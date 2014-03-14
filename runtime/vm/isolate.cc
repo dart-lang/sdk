@@ -28,6 +28,7 @@
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/tags.h"
 #include "vm/thread.h"
 #include "vm/thread_interrupter.h"
 #include "vm/timer.h"
@@ -117,6 +118,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   // TODO(turnidge): Rework collection total dart execution.  This can
   // overcount when other things (gc, compilation) are active.
   TIMERSCOPE(isolate_, time_dart_execution);
+  VMTagScope tagScope(isolate_, VMTag::kScriptTagId);
 
   // If the message is in band we lookup the receive port to dispatch to.  If
   // the receive port is closed, we drop the message without deserializing it.
@@ -336,6 +338,7 @@ Isolate::Isolate()
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
       reusable_handles_() {
+  set_vm_tag(VMTag::kVMTagId);
 }
 #undef REUSABLE_HANDLE_SCOPE_INIT
 #undef REUSABLE_HANDLE_INITIALIZERS

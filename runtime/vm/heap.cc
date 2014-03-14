@@ -15,6 +15,7 @@
 #include "vm/raw_object.h"
 #include "vm/scavenger.h"
 #include "vm/stack_frame.h"
+#include "vm/tags.h"
 #include "vm/verifier.h"
 #include "vm/virtual_memory.h"
 #include "vm/weak_table.h"
@@ -176,9 +177,11 @@ RawObject* Heap::FindOldObject(FindObjectVisitor* visitor) const {
 
 
 void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
+  Isolate* isolate = Isolate::Current();
   bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
   switch (space) {
     case kNew: {
+      VMTagScope tagScope(isolate, VMTag::kGCNewSpaceTagId);
       RecordBeforeGC(kNew, kNewSpace);
       UpdateClassHeapStatsBeforeGC(kNew);
       new_space_->Scavenge(invoke_api_callbacks);
@@ -192,6 +195,7 @@ void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
     }
     case kOld:
     case kCode: {
+      VMTagScope tagScope(isolate, VMTag::kGCOldSpaceTagId);
       bool promotion_failure = new_space_->HadPromotionFailure();
       RecordBeforeGC(kOld, promotion_failure ? kPromotionFailure : kOldSpace);
       UpdateClassHeapStatsBeforeGC(kOld);
@@ -229,16 +233,23 @@ void Heap::CollectGarbage(Space space) {
 
 
 void Heap::CollectAllGarbage() {
-  RecordBeforeGC(kNew, kFull);
-  UpdateClassHeapStatsBeforeGC(kNew);
-  new_space_->Scavenge(kInvokeApiCallbacks);
-  RecordAfterGC();
-  PrintStats();
-  RecordBeforeGC(kOld, kFull);
-  UpdateClassHeapStatsBeforeGC(kOld);
-  old_space_->MarkSweep(kInvokeApiCallbacks);
-  RecordAfterGC();
-  PrintStats();
+  Isolate* isolate = Isolate::Current();
+  {
+    VMTagScope tagScope(isolate, VMTag::kGCNewSpaceTagId);
+    RecordBeforeGC(kNew, kFull);
+    UpdateClassHeapStatsBeforeGC(kNew);
+    new_space_->Scavenge(kInvokeApiCallbacks);
+    RecordAfterGC();
+    PrintStats();
+  }
+  {
+    VMTagScope tagScope(isolate, VMTag::kGCOldSpaceTagId);
+    RecordBeforeGC(kOld, kFull);
+    UpdateClassHeapStatsBeforeGC(kOld);
+    old_space_->MarkSweep(kInvokeApiCallbacks);
+    RecordAfterGC();
+    PrintStats();
+  }
 }
 
 

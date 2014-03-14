@@ -350,6 +350,8 @@
     'stub_code_x64_test.cc',
     'symbols.cc',
     'symbols.h',
+    'tags.cc',
+    'tags.h',
     'thread.h',
     'thread_interrupter.cc',
     'thread_interrupter.h',
