@@ -163,7 +163,7 @@ class ScannerErrorCode extends Enum<ScannerErrorCode> implements ErrorCode {
   /**
    * The template used to create the message to be displayed for this error.
    */
-  final String message;
+  String message;
 
   /**
    * The template used to create the correction to be displayed for this error, or `null` if
@@ -176,7 +176,9 @@ class ScannerErrorCode extends Enum<ScannerErrorCode> implements ErrorCode {
    *
    * @param message the message template used to create the message to be displayed for this error
    */
-  ScannerErrorCode.con1(String name, int ordinal, this.message) : super(name, ordinal);
+  ScannerErrorCode.con1(String name, int ordinal, String message) : super(name, ordinal) {
+    this.message = message;
+  }
 
   /**
    * Initialize a newly created error code to have the given message and correction.
@@ -184,7 +186,8 @@ class ScannerErrorCode extends Enum<ScannerErrorCode> implements ErrorCode {
    * @param message the template used to create the message to be displayed for the error
    * @param correction the template used to create the correction to be displayed for the error
    */
-  ScannerErrorCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
+  ScannerErrorCode.con2(String name, int ordinal, String message, String correction) : super(name, ordinal) {
+    this.message = message;
     this.correction10 = correction;
   }
 
@@ -795,7 +798,7 @@ class Scanner {
   /**
    * The source being scanned.
    */
-  final Source source;
+  Source source;
 
   /**
    * The reader used to access the characters in the source.
@@ -865,7 +868,8 @@ class Scanner {
    * @param reader the character reader used to read the characters in the source
    * @param errorListener the error listener that will be informed of any errors that are found
    */
-  Scanner(this.source, CharacterReader reader, AnalysisErrorListener errorListener) {
+  Scanner(Source source, CharacterReader reader, AnalysisErrorListener errorListener) {
+    this.source = source;
     this._reader = reader;
     this._errorListener = errorListener;
     _tokens = new Token(TokenType.EOF, -1);
@@ -1927,7 +1931,7 @@ class Token {
   /**
    * The type of the token.
    */
-  final TokenType type;
+  TokenType type;
 
   /**
    * The offset from the beginning of the file to the first character in the token.
@@ -1950,7 +1954,8 @@ class Token {
    * @param type the type of the token
    * @param offset the offset from the beginning of the file to the first character in the token
    */
-  Token(this.type, int offset) {
+  Token(TokenType type, int offset) {
+    this.type = type;
     this.offset = offset;
   }
 
@@ -2198,7 +2203,7 @@ class KeywordToken extends Token {
   /**
    * The keyword being represented by this token.
    */
-  final Keyword keyword;
+  Keyword keyword;
 
   /**
    * Initialize a newly created token to represent the given keyword.
@@ -2206,7 +2211,9 @@ class KeywordToken extends Token {
    * @param keyword the keyword being represented by this token
    * @param offset the offset from the beginning of the file to the first character in the token
    */
-  KeywordToken(this.keyword, int offset) : super(TokenType.KEYWORD, offset);
+  KeywordToken(Keyword keyword, int offset) : super(TokenType.KEYWORD, offset) {
+    this.keyword = keyword;
+  }
 
   @override
   Token copy() => new KeywordToken(keyword, offset);

@@ -45,12 +45,12 @@ class ErrorSeverity extends Enum<ErrorSeverity> {
   /**
    * The name of the severity used when producing machine output.
    */
-  final String machineCode;
+  String machineCode;
 
   /**
    * The name of the severity used when producing readable output.
    */
-  final String displayName;
+  String displayName;
 
   /**
    * Initialize a newly created severity with the given names.
@@ -58,7 +58,10 @@ class ErrorSeverity extends Enum<ErrorSeverity> {
    * @param machineCode the name of the severity used when producing machine output
    * @param displayName the name of the severity used when producing readable output
    */
-  ErrorSeverity(String name, int ordinal, this.machineCode, this.displayName) : super(name, ordinal);
+  ErrorSeverity(String name, int ordinal, String machineCode, String displayName) : super(name, ordinal) {
+    this.machineCode = machineCode;
+    this.displayName = displayName;
+  }
 
   /**
    * Return the severity constant that represents the greatest severity.
@@ -376,7 +379,7 @@ class AnalysisError {
   /**
    * The error code associated with the error.
    */
-  final ErrorCode errorCode;
+  ErrorCode errorCode;
 
   /**
    * The localized error message.
@@ -419,7 +422,9 @@ class AnalysisError {
    * @param errorCode the error code to be associated with this error
    * @param arguments the arguments used to build the error message
    */
-  AnalysisError.con1(this.source, this.errorCode, List<Object> arguments) {
+  AnalysisError.con1(Source source, ErrorCode errorCode, List<Object> arguments) {
+    this.source = source;
+    this.errorCode = errorCode;
     this._message = JavaString.format(errorCode.message, arguments);
   }
 
@@ -432,9 +437,11 @@ class AnalysisError {
    * @param errorCode the error code to be associated with this error
    * @param arguments the arguments used to build the error message
    */
-  AnalysisError.con2(this.source, int offset, int length, this.errorCode, List<Object> arguments) {
+  AnalysisError.con2(Source source, int offset, int length, ErrorCode errorCode, List<Object> arguments) {
+    this.source = source;
     this._offset = offset;
     this._length = length;
+    this.errorCode = errorCode;
     this._message = JavaString.format(errorCode.message, arguments);
     String correctionTemplate = errorCode.correction;
     if (correctionTemplate != null) {
@@ -813,7 +820,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
   /**
    * The template used to create the message to be displayed for this error.
    */
-  final String message;
+  String message;
 
   /**
    * The template used to create the correction to be displayed for this error, or `null` if
@@ -826,7 +833,9 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    *
    * @param message the message template used to create the message to be displayed for the error
    */
-  HintCode.con1(String name, int ordinal, this.message) : super(name, ordinal);
+  HintCode.con1(String name, int ordinal, String message) : super(name, ordinal) {
+    this.message = message;
+  }
 
   /**
    * Initialize a newly created error code to have the given message and correction.
@@ -834,7 +843,8 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @param message the template used to create the message to be displayed for the error
    * @param correction the template used to create the correction to be displayed for the error
    */
-  HintCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
+  HintCode.con2(String name, int ordinal, String message, String correction) : super(name, ordinal) {
+    this.message = message;
     this.correction3 = correction;
   }
 
@@ -951,14 +961,16 @@ class ErrorType extends Enum<ErrorType> {
   /**
    * The severity of this type of error.
    */
-  final ErrorSeverity severity;
+  ErrorSeverity severity;
 
   /**
    * Initialize a newly created error type to have the given severity.
    *
    * @param severity the severity of this type of error
    */
-  ErrorType(String name, int ordinal, this.severity) : super(name, ordinal);
+  ErrorType(String name, int ordinal, ErrorSeverity severity) : super(name, ordinal) {
+    this.severity = severity;
+  }
 
   String get displayName => name.toLowerCase().replaceAll('_', ' ');
 }
@@ -2274,7 +2286,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
   /**
    * The template used to create the message to be displayed for this error.
    */
-  final String message;
+  String message;
 
   /**
    * The template used to create the correction to be displayed for this error, or `null` if
@@ -2287,7 +2299,9 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param message the message template used to create the message to be displayed for the error
    */
-  CompileTimeErrorCode.con1(String name, int ordinal, this.message) : super(name, ordinal);
+  CompileTimeErrorCode.con1(String name, int ordinal, String message) : super(name, ordinal) {
+    this.message = message;
+  }
 
   /**
    * Initialize a newly created error code to have the given message and correction.
@@ -2295,7 +2309,8 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param message the template used to create the message to be displayed for the error
    * @param correction the template used to create the correction to be displayed for the error
    */
-  CompileTimeErrorCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
+  CompileTimeErrorCode.con2(String name, int ordinal, String message, String correction) : super(name, ordinal) {
+    this.message = message;
     this.correction2 = correction;
   }
 
@@ -2347,7 +2362,7 @@ class PubSuggestionCode extends Enum<PubSuggestionCode> implements ErrorCode {
   /**
    * The template used to create the message to be displayed for this error.
    */
-  final String message;
+  String message;
 
   /**
    * The template used to create the correction to be displayed for this error, or `null` if
@@ -2360,7 +2375,9 @@ class PubSuggestionCode extends Enum<PubSuggestionCode> implements ErrorCode {
    *
    * @param message the message template used to create the message to be displayed for the error
    */
-  PubSuggestionCode.con1(String name, int ordinal, this.message) : super(name, ordinal);
+  PubSuggestionCode.con1(String name, int ordinal, String message) : super(name, ordinal) {
+    this.message = message;
+  }
 
   /**
    * Initialize a newly created error code to have the given message and correction.
@@ -2368,7 +2385,8 @@ class PubSuggestionCode extends Enum<PubSuggestionCode> implements ErrorCode {
    * @param message the template used to create the message to be displayed for the error
    * @param correction the template used to create the correction to be displayed for the error
    */
-  PubSuggestionCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
+  PubSuggestionCode.con2(String name, int ordinal, String message, String correction) : super(name, ordinal) {
+    this.message = message;
     this.correction5 = correction;
   }
 
@@ -3234,7 +3252,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
   /**
    * The template used to create the message to be displayed for this error.
    */
-  final String message;
+  String message;
 
   /**
    * The template used to create the correction to be displayed for this error, or `null` if
@@ -3247,7 +3265,9 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    *
    * @param message the message template used to create the message to be displayed for the error
    */
-  StaticWarningCode.con1(String name, int ordinal, this.message) : super(name, ordinal);
+  StaticWarningCode.con1(String name, int ordinal, String message) : super(name, ordinal) {
+    this.message = message;
+  }
 
   /**
    * Initialize a newly created error code to have the given message and correction.
@@ -3255,7 +3275,8 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param message the template used to create the message to be displayed for the error
    * @param correction the template used to create the correction to be displayed for the error
    */
-  StaticWarningCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
+  StaticWarningCode.con2(String name, int ordinal, String message, String correction) : super(name, ordinal) {
+    this.message = message;
     this.correction7 = correction;
   }
 
@@ -3321,7 +3342,7 @@ class HtmlWarningCode extends Enum<HtmlWarningCode> implements ErrorCode {
   /**
    * The template used to create the message to be displayed for this error.
    */
-  final String message;
+  String message;
 
   /**
    * The template used to create the correction to be displayed for this error, or `null` if
@@ -3334,7 +3355,9 @@ class HtmlWarningCode extends Enum<HtmlWarningCode> implements ErrorCode {
    *
    * @param message the message template used to create the message to be displayed for the error
    */
-  HtmlWarningCode.con1(String name, int ordinal, this.message) : super(name, ordinal);
+  HtmlWarningCode.con1(String name, int ordinal, String message) : super(name, ordinal) {
+    this.message = message;
+  }
 
   /**
    * Initialize a newly created error code to have the given message and correction.
@@ -3342,7 +3365,8 @@ class HtmlWarningCode extends Enum<HtmlWarningCode> implements ErrorCode {
    * @param message the template used to create the message to be displayed for the error
    * @param correction the template used to create the correction to be displayed for the error
    */
-  HtmlWarningCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
+  HtmlWarningCode.con2(String name, int ordinal, String message, String correction) : super(name, ordinal) {
+    this.message = message;
     this.correction4 = correction;
   }
 
@@ -3649,7 +3673,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
   /**
    * The template used to create the message to be displayed for this error.
    */
-  final String message;
+  String message;
 
   /**
    * The template used to create the correction to be displayed for this error, or `null` if
@@ -3662,7 +3686,9 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    *
    * @param message the message template used to create the message to be displayed for the error
    */
-  StaticTypeWarningCode.con1(String name, int ordinal, this.message) : super(name, ordinal);
+  StaticTypeWarningCode.con1(String name, int ordinal, String message) : super(name, ordinal) {
+    this.message = message;
+  }
 
   /**
    * Initialize a newly created error code to have the given message and correction.
@@ -3670,7 +3696,8 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * @param message the template used to create the message to be displayed for the error
    * @param correction the template used to create the correction to be displayed for the error
    */
-  StaticTypeWarningCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
+  StaticTypeWarningCode.con2(String name, int ordinal, String message, String correction) : super(name, ordinal) {
+    this.message = message;
     this.correction6 = correction;
   }
 

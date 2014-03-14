@@ -26,12 +26,14 @@ class ParameterKind extends Enum<ParameterKind> {
   /**
    * A flag indicating whether this is an optional parameter.
    */
-  final bool isOptional;
+  bool isOptional = false;
 
   /**
    * Initialize a newly created kind with the given state.
    *
    * @param isOptional `true` if this is an optional parameter
    */
-  ParameterKind(String name, int ordinal, this.isOptional) : super(name, ordinal);
+  ParameterKind(String name, int ordinal, bool isOptional) : super(name, ordinal) {
+    this.isOptional = isOptional;
+  }
 }

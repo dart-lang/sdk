@@ -26,12 +26,12 @@ class CommentAndMetadata {
   /**
    * The documentation comment that was parsed, or `null` if none was given.
    */
-  final Comment comment;
+  Comment comment;
 
   /**
    * The metadata that was parsed.
    */
-  final List<Annotation> metadata;
+  List<Annotation> metadata;
 
   /**
    * Initialize a newly created holder with the given data.
@@ -39,7 +39,10 @@ class CommentAndMetadata {
    * @param comment the documentation comment that was parsed
    * @param metadata the metadata that was parsed
    */
-  CommentAndMetadata(this.comment, this.metadata);
+  CommentAndMetadata(Comment comment, List<Annotation> metadata) {
+    this.comment = comment;
+    this.metadata = metadata;
+  }
 }
 
 /**
@@ -50,12 +53,12 @@ class FinalConstVarOrType {
   /**
    * The 'final', 'const' or 'var' keyword, or `null` if none was given.
    */
-  final Token keyword;
+  Token keyword;
 
   /**
    * The type, of `null` if no type was specified.
    */
-  final TypeName type;
+  TypeName type;
 
   /**
    * Initialize a newly created holder with the given data.
@@ -63,7 +66,10 @@ class FinalConstVarOrType {
    * @param keyword the 'final', 'const' or 'var' keyword
    * @param type the type
    */
-  FinalConstVarOrType(this.keyword, this.type);
+  FinalConstVarOrType(Token keyword, TypeName type) {
+    this.keyword = keyword;
+    this.type = type;
+  }
 }
 
 /**

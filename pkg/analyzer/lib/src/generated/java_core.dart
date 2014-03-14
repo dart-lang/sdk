@@ -260,6 +260,10 @@ class UnsupportedOperationException extends JavaException {
   String toString() => "UnsupportedOperationException";
 }
 
+class NoSuchElementException extends JavaException {
+  String toString() => "NoSuchElementException";
+}
+
 class NumberFormatException extends JavaException {
   String toString() => "NumberFormatException";
 }
