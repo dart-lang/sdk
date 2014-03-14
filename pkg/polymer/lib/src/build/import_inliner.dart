@@ -318,7 +318,8 @@ class _UrlNormalizer extends TreeVisitor {
         var uri = directive.uri.stringValue;
         var span = _getSpan(file, directive.uri);
 
-        var id = resolve(sourceId, uri, transform.logger, span);
+        var id = resolve(sourceId, uri, transform.logger, span,
+            allowAbsolute: true);
         if (id == null) continue;
 
         var primaryId = transform.primaryInput.id;

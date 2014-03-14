@@ -17,9 +17,13 @@ void main() {
 
   testPhases('no changes', phases, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
-    }, {
-      'a|web/test.html': '<!DOCTYPE html><html></html>',
-    });
+    }, {}, [
+      'error: To run a polymer application, you need to call "initPolymer". You'
+      ' can either include a generic script tag that does this for you:\'<'
+      'script type="application/dart">export "package:polymer/init.dart";'
+      '</script>\' or add your own script tag and call that function. Make sure'
+      ' the script tag is placed after all HTML imports.'
+    ]);
 
   testPhases('observable changes', phases, {
       'a|web/test.dart': _sampleObservable('A', 'foo'),
@@ -146,7 +150,7 @@ void main() {
       'a|web/b.dart': _sampleObservable('B', 'bar'),
       'a|web/test2.html':
           '<!DOCTYPE html><html><head></head><body>'
-          '<polymer-element>1'
+          '<polymer-element name="x-a">1'
           '<script type="application/dart">'
           '${_sampleObservable("A", "foo")}</script>'
           '</polymer-element></html>',
@@ -155,7 +159,7 @@ void main() {
           '<!DOCTYPE html><html><head>'
           '$WEB_COMPONENTS_TAG'
           '$INTEROP_TAG'
-          '</head><body><polymer-element>1</polymer-element>'
+          '</head><body><polymer-element name="x-a">1</polymer-element>'
           '<script src="index.html_bootstrap.dart.js"></script>'
           '</body></html>',
       'a|web/index.html_bootstrap.dart':

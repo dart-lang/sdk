@@ -617,7 +617,7 @@ void stylesheetTests() {
           '<link rel="stylesheet" href="assets/b/test3.css">'
           '</polymer-element>',
       'b|asset/test3.css':
-          'body {\n  background: #eaeaea url("assets/b/test4.png");\n}\n'
+          'body {\n  background: #eaeaea url("../../assets/b/test4.png");\n}\n'
           '.foo {\n  background: url("../../packages/c/test5.png");\n}',
       'b|asset/test4.png': 'PNG',
       'c|lib/test5.png': 'PNG',
@@ -641,7 +641,7 @@ void stylesheetTests() {
           '</polymer-element>'
           '</body></html>',
       'b|asset/test3.css':
-          'body {\n  background: #eaeaea url("assets/b/test4.png");\n}\n'
+          'body {\n  background: #eaeaea url("../../assets/b/test4.png");\n}\n'
           '.foo {\n  background: url("../../packages/c/test5.png");\n}',
       'b|asset/test4.png': 'PNG',
       'c|lib/test5.png': 'PNG',

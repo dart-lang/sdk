@@ -460,6 +460,8 @@ void main() {
 _testLinter(String name, Map inputFiles, List outputMessages) {
   var linter = new Linter(new TransformOptions());
   var outputFiles = {};
-  inputFiles.forEach((k, v) => outputFiles[k] = v);
+  if (outputMessages.every((m) => m.startsWith('warning:'))) {
+    inputFiles.forEach((k, v) => outputFiles[k] = v);
+  }
   testPhases(name, [[linter]], inputFiles, outputFiles, outputMessages);
 }
