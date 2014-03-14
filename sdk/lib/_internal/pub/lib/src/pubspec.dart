@@ -225,7 +225,7 @@ class Pubspec {
       return new Pubspec.parse(readTextFile(pubspecPath), sources,
           expectedName: expectedName, location: pubspecUri);
     } on YamlException catch (error) {
-      throw new PubspecException("Error parsing $pubspecPath: $error");
+      throw new PubspecException(expectedName, pubspecUri, error.toString());
     }
   }
 
