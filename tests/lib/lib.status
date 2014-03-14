@@ -312,3 +312,6 @@ mirrors/immutable_collections_test: StaticWarning, OK # Expect failure for any t
 mirrors/inference_and_no_such_method_test: StaticWarning, OK # Expect to trigger noSuchMethod.
 mirrors/repeated_private_anon_mixin_app_test: StaticWarning, OK # Intentional library name conflict.
 mirrors/removed_api_test: StaticWarning, OK # Deliberately refers to undeclared members.
+
+[ $compiler == dart2js && $runtime == d8 && $system == windows ]
+mirrors/*deferred*: Skip # Issue 17458

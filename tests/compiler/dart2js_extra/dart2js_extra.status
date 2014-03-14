@@ -59,3 +59,6 @@ deferred/deferred_constant2_test: Fail # http://dartbug.com/16898
 deferred/deferred_constant3_test: Fail # http://dartbug.com/16898
 deferred/deferred_constant4_test: Fail # http://dartbug.com/16898
 deferred/deferred_constant5_test: Fail # http://dartbug.com/16898
+
+[ $compiler == dart2js && $runtime == d8 && $system == windows ]
+deferred/*: Skip # Issue 17458

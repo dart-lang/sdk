@@ -300,3 +300,6 @@ const_factory_with_body_test/01: Crash
 
 [ ($compiler == dart2js && $csp)]
 deferred_constraints_test/*: Skip # Issue 16898
+
+[ $compiler == dart2js && $runtime == d8 && $system == windows ]
+*deferred*: Skip # Issue 17458
