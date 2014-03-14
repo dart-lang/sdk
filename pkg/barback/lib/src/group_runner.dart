@@ -37,15 +37,15 @@ class GroupRunner {
   ///
   /// This is synchronous in order to guarantee that it will emit an event as
   /// soon as [isDirty] flips from `true` to `false`.
-  Stream get onDone => _onDoneController.stream;
-  final _onDoneController = new StreamController.broadcast(sync: true);
+  Stream get onDone => _onDone;
+  Stream _onDone;
 
   /// A stream that emits any new assets emitted by [this].
   ///
   /// Assets are emitted synchronously to ensure that any changes are thoroughly
   /// propagated as soon as they occur.
-  Stream<AssetNode> get onAsset => _onAssetPool.stream;
-  final _onAssetPool = new StreamPool<AssetNode>();
+  Stream<AssetNode> get onAsset => _onAsset;
+  Stream<AssetNode> _onAsset;
 
   /// A stream that emits an event whenever any transforms in this group logs
   /// an entry.
@@ -57,6 +57,9 @@ class GroupRunner {
     for (var phase in _group.phases.skip(1)) {
       _addPhase(_phases.last.addPhase(), phase);
     }
+
+    _onAsset = _phases.last.onAsset;
+    _onDone = _phases.last.onDone;
   }
 
   /// Add a phase with [contents] to [this]'s list of phases.
@@ -65,11 +68,7 @@ class GroupRunner {
   /// value.
   void _addPhase(Phase phase, Iterable contents) {
     _phases.add(phase);
-    _onAssetPool.add(phase.onAsset);
     _onLogPool.add(phase.onLog);
-    phase.onDone.listen((_) {
-      if (!isDirty) _onDoneController.add(null);
-    });
     phase.updateTransformers(contents);
   }
 
@@ -88,7 +87,9 @@ class GroupRunner {
 
   /// Removes this group and all sub-phases within it.
   void remove() {
-    _phases.first.remove();
+    for (var phase in _phases) {
+      phase.remove();
+    }
   }
 
   String toString() => "group in phase $_location for $_group";

@@ -36,7 +36,8 @@ class PhaseOutput {
   /// A stream that emits an [AssetNode] each time this output starts forwarding
   /// a new asset.
   Stream<AssetNode> get onAsset => _onAssetController.stream;
-  final _onAssetController = new StreamController<AssetNode>(sync: true);
+  final _onAssetController =
+      new StreamController<AssetNode>.broadcast(sync: true);
 
   /// The assets for this output.
   ///

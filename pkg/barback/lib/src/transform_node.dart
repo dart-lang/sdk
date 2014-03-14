@@ -73,7 +73,8 @@ class TransformNode {
   /// Assets are emitted synchronously to ensure that any changes are thoroughly
   /// propagated as soon as they occur.
   Stream<AssetNode> get onAsset => _onAssetController.stream;
-  final _onAssetController = new StreamController<AssetNode>(sync: true);
+  final _onAssetController =
+      new StreamController<AssetNode>.broadcast(sync: true);
 
   /// A stream that emits an event whenever this transform logs an entry.
   ///

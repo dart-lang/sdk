@@ -91,7 +91,8 @@ class Phase {
   /// propagated as soon as they occur. Only a phase with no [next] phase will
   /// emit assets.
   Stream<AssetNode> get onAsset => _onAssetController.stream;
-  final _onAssetController = new StreamController<AssetNode>(sync: true);
+  final _onAssetController =
+      new StreamController<AssetNode>.broadcast(sync: true);
 
   /// Whether [this] is dirty and still has more processing to do.
   ///
@@ -113,11 +114,8 @@ class Phase {
   /// The subscription to [_previous]'s [onDone] stream.
   StreamSubscription _previousOnDoneSubscription;
 
-  /// The phase after this one.
-  ///
-  /// Outputs from this phase will be passed to it.
-  Phase get next => _next;
-  Phase _next;
+  /// The subscription to [_previous]'s [onAsset] stream.
+  StreamSubscription<AssetNode> _previousOnAssetSubscription;
 
   /// A map of asset ids to completers for [getInput] requests.
   ///
@@ -142,6 +140,7 @@ class Phase {
 
   Phase._(this.cascade, this._location, this._index, [this._previous]) {
     if (_previous != null) {
+      _previousOnAssetSubscription = _previous.onAsset.listen(addInput);
       _previousOnDoneSubscription = _previous.onDone.listen((_) {
         if (!isDirty) _onDoneController.add(null);
       });
@@ -321,23 +320,20 @@ class Phase {
   ///
   /// This may only be called on a phase with no phase following it.
   Phase addPhase() {
-    assert(_next == null);
-    _next = new Phase._(cascade, _location, _index + 1, this);
+    var next = new Phase._(cascade, _location, _index + 1, this);
     for (var output in _outputs.values.toList()) {
       // Remove [output]'s listeners because now they should get the asset from
-      // [_next], rather than this phase. Any transforms consuming [output] will
+      // [next], rather than this phase. Any transforms consuming [output] will
       // be re-run and will consume the output from the new final phase.
       output.removeListeners();
     }
-    return _next;
+    return next;
   }
 
   /// Mark this phase as removed.
   ///
-  /// This will remove all the phase's outputs and all following phases.
+  /// This will remove all the phase's outputs.
   void remove() {
-    if (_previous != null) _previous._next = null;
-    removeFollowing();
     for (var input in _inputs.values.toList()) {
       input.remove();
     }
@@ -349,13 +345,9 @@ class Phase {
     if (_previousOnDoneSubscription != null) {
       _previousOnDoneSubscription.cancel();
     }
-  }
-
-  /// Remove all phases after this one.
-  void removeFollowing() {
-    if (_next == null) return;
-    _next.remove();
-    _next = null;
+    if (_previousOnAssetSubscription != null) {
+      _previousOnAssetSubscription.cancel();
+    }
   }
 
   /// Add [asset] as an output of this phase.
@@ -388,11 +380,7 @@ class Phase {
   /// This should be called after [_handleOutput], so that collisions are
   /// resolved.
   void _emit(AssetNode asset) {
-    if (_next != null) {
-      _next.addInput(asset);
-    } else {
-      _onAssetController.add(asset);
-    }
+    _onAssetController.add(asset);
     _providePendingAsset(asset);
   }
 

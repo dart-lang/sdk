@@ -50,7 +50,7 @@ class PhaseInput {
   /// Assets are emitted synchronously to ensure that any changes are thoroughly
   /// propagated as soon as they occur.
   Stream<AssetNode> get onAsset => _onAssetPool.stream;
-  final _onAssetPool = new StreamPool<AssetNode>();
+  final _onAssetPool = new StreamPool<AssetNode>.broadcast();
 
   /// Whether [this] is dirty and still has more processing to do.
   bool get isDirty => _transforms.any((transform) => transform.isDirty);

@@ -182,8 +182,10 @@ class AssetCascade {
 
     if (transformers.length == 0) {
       _phases.last.updateTransformers([]);
-    } else if (transformers.length < _phases.length) {
-      _phases[transformers.length - 1].removeFollowing();
+    } else {
+      for (var i = transformers.length; i < _phases.length; i++) {
+        _phases[i].remove();
+      }
       _phases.removeRange(transformers.length, _phases.length);
     }
   }
