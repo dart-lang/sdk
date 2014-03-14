@@ -178,4 +178,12 @@ DEFINE_NATIVE_ENTRY(Random_setupSeed, 2) {
   return Object::null();
 }
 
+
+DEFINE_NATIVE_ENTRY(Random_initialSeed, 0) {
+  Random* rnd = isolate->random();
+  int64_t seed = rnd->NextUInt32();
+  seed |= (static_cast<int64_t>(rnd->NextUInt32())) << 32;
+  return Integer::New(seed);
+}
+
 }  // namespace dart

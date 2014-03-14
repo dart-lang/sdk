@@ -121,6 +121,7 @@ namespace dart {
   V(Math_doublePow, 2)                                                         \
   V(Random_nextState, 1)                                                       \
   V(Random_setupSeed, 2)                                                       \
+  V(Random_initialSeed, 0)                                                     \
   V(DateNatives_currentTimeMillis, 0)                                          \
   V(DateNatives_timeZoneName, 1)                                               \
   V(DateNatives_timeZoneOffsetInSeconds, 1)                                    \

@@ -154,13 +154,11 @@ class _Random implements Random {
   static const _A = 0xffffda61;
 
   // Use a singleton Random object to get a new seed if no seed was passed.
-  static var _prng = null;
+  static var _prng = new Random(_initialSeed());
+
+  static int _initialSeed() native "Random_initialSeed";
 
   static int _nextSeed() {
-    if (_prng == null) {
-      // TODO(iposva): Use system to get a random seed.
-      _prng = new Random(new DateTime.now().millisecondsSinceEpoch);
-    }
     // Trigger the PRNG once to change the internal state.
     _prng._nextState();
     return _prng._state[kSTATE_LO];
