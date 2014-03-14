@@ -34,6 +34,10 @@ class BarbackServer {
 
   /// The directory in the root which will serve as the root of this server as
   /// a native platform path.
+  ///
+  /// This may be `null` in which case no files in the root package can be
+  /// served and only assets in public directories ("packages" and "assets")
+  /// are available.
   final String rootDirectory;
 
   /// The root directory as an asset-style ("/") path.
@@ -44,6 +48,9 @@ class BarbackServer {
 
   /// The server's address.
   final InternetAddress address;
+
+  /// The server's base URL.
+  String get url => baseUrlForAddress(address, port);
 
   /// Optional callback to determine if an asset should be served.
   ///
@@ -70,6 +77,7 @@ class BarbackServer {
   static Future<BarbackServer> bind(BuildEnvironment environment,
       String host, int port, String rootDirectory) {
     return Chain.track(HttpServer.bind(host, port)).then((server) {
+      log.fine('Bound "$rootDirectory" to $host:$port.');
       return new BarbackServer._(environment, server, rootDirectory);
     });
   }
@@ -97,6 +105,11 @@ class BarbackServer {
     // See if it's a URL to a public directory in a dependency.
     var id = specialUrlToId(url);
     if (id != null) return id;
+
+    if (rootDirectory == null) {
+      throw new FormatException(
+          "This server cannot serve out of the root directory. Got $url.");
+    }
 
     // Otherwise, it's a path in current package's [rootDirectory].
     var parts = path.url.split(url.path);

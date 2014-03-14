@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:barback/barback.dart';
-import 'package:path/path.dart' as p;
+import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:watcher/watcher.dart';
 
@@ -52,7 +52,6 @@ class BuildEnvironment {
   /// transformers, and server are loaded and ready.
   static Future<BuildEnvironment> create(Entrypoint entrypoint,
       String hostname, int basePort, BarbackMode mode, WatcherType watcherType,
-      Iterable<String> rootDirectories,
       {bool useDart2JS: true}) {
     return entrypoint.loadPackageGraph().then((graph) {
       log.fine("Loaded package graph.");
@@ -60,58 +59,10 @@ class BuildEnvironment {
       barback.log.listen(_log);
 
       var environment = new BuildEnvironment._(graph, barback, mode,
-          watcherType, rootDirectories);
-      return environment._startServers(hostname, basePort).then((_) {
-        log.fine("Started servers.");
-        // If the entrypoint package manually configures the dart2js
-        // transformer, don't include it in the built-in transformer list.
-        //
-        // TODO(nweiz): if/when we support more built-in transformers, make
-        // this more general.
-        var containsDart2JS = graph.entrypoint.root.pubspec.transformers
-            .any((transformers) => transformers
-            .any((id) => id.package == '\$dart2js'));
+          watcherType, hostname, basePort);
 
-        if (!containsDart2JS && useDart2JS) {
-          environment._builtInTransformers.addAll([
-            new Dart2JSTransformer(environment, mode),
-            new DartForwardingTransformer(mode)
-          ]);
-        }
-
-        return environment._load(barback).then((_) => environment);
-      });
-    });
-  }
-
-  /// Start the [BarbackServer]s that will serve [rootDirectories].
-  Future<List<BarbackServer>> _startServers(String hostname, int basePort) {
-    _bind(port, rootDirectory) {
-      if (basePort == 0) port = 0;
-      return BarbackServer.bind(this, hostname, port, rootDirectory);
-    }
-
-    var rootDirectoryList = _rootDirectories.toList();
-
-    // For consistency, "web/" should always have the first available port and
-    // "test/" should always have the second. Other directories are assigned
-    // the following ports in alphabetical order.
-    var serverFutures = [];
-    if (rootDirectoryList.remove('web')) {
-      serverFutures.add(_bind(basePort, 'web'));
-    }
-    if (rootDirectoryList.remove('test')) {
-      serverFutures.add(_bind(basePort + 1, 'test'));
-    }
-
-    var i = 0;
-    for (var dir in rootDirectoryList) {
-      serverFutures.add(_bind(basePort + 2 + i, dir));
-      i += 1;
-    }
-
-    return Future.wait(serverFutures).then((boundServers) {
-      servers.addAll(boundServers);
+      return environment._load(useDart2JS: useDart2JS)
+          .then((_) => environment);
     });
   }
 
@@ -137,13 +88,33 @@ class BuildEnvironment {
   /// How source files should be watched.
   final WatcherType _watcherType;
 
-  /// The set of top-level directories in the entrypoint package that will be
-  /// exposed.
-  final Set<String> _rootDirectories;
+  /// The hostname that servers are bound to.
+  final String _hostname;
+
+  /// The starting number for ports that servers will be bound to.
+  ///
+  /// Servers will be bound to ports starting at this number and then
+  /// incrementing from there. However, if this is zero, then ephemeral port
+  /// numbers will be selected for each server.
+  final int _basePort;
+
+  /// The modified source assets that have not been sent to barback yet.
+  ///
+  /// The build environment can be paused (by calling [pauseUpdates]) and
+  /// resumed ([resumeUpdates]). While paused, all source asset updates that
+  /// come from watching or adding new directories are not sent to barback.
+  /// When resumed, all pending source updates are sent to barback.
+  ///
+  /// This lets pub serve and pub build create an environment and bind several
+  /// servers before barback starts building and producing results
+  /// asynchronously.
+  ///
+  /// If this is `null`, then the environment is "live" and all updates will
+  /// go to barback immediately.
+  Set<AssetId> _modifiedSources;
 
   BuildEnvironment._(this.graph, this.barback, this.mode, this._watcherType,
-      Iterable<String> rootDirectories)
-      : _rootDirectories = rootDirectories.toSet();
+      this._hostname, this._basePort);
 
   /// Gets the built-in [Transformer]s that should be added to [package].
   ///
@@ -159,13 +130,70 @@ class BuildEnvironment {
     return _builtInTransformers;
   }
 
+  /// Binds a new port to serve assets from within [rootDirectory] in the
+  /// entrypoint package.
+  ///
+  /// Adds and watches the sources within that directory. Returns a [Future]
+  /// that completes to the bound server.
+  ///
+  /// If [rootDirectory] is already being served, returns that existing server.
+  Future<BarbackServer> serveDirectory(String rootDirectory) {
+    // See if there is already a server bound to the directory.
+    var server = servers.firstWhere(
+        (server) => server.rootDirectory == rootDirectory, orElse: () => null);
+    if (server != null) return new Future.value(server);
+
+    return _provideDirectorySources(rootPackage, rootDirectory).then((_) {
+      var port = _basePort;
+
+      // If not using an ephemeral port, find the lowest-numbered available one.
+      if (port != 0) {
+        var boundPorts = servers.map((server) => server.port).toSet();
+        while (boundPorts.contains(port)) {
+          port++;
+        }
+      }
+
+      return BarbackServer.bind(this, _hostname, port, rootDirectory)
+          .then((server) {
+        servers.add(server);
+        return server;
+      });
+    });
+  }
+
+  /// Determines if [sourcePath] is contained within any of the directories
+  /// that are visible to this build environment.
+  bool containsPath(String sourcePath) {
+    return _getPublicDirectories(rootPackage.name)
+        .any((dir) => path.isWithin(dir, sourcePath));
+  }
+
+  /// Pauses sending source asset updates to barback.
+  void pauseUpdates() {
+    // Cannot pause while already paused.
+    assert(_modifiedSources == null);
+
+    _modifiedSources = new Set<AssetId>();
+  }
+
+  /// Sends any pending source updates to barback and begins the asynchronous
+  /// build process.
+  void resumeUpdates() {
+    // Cannot resume while not paused.
+    assert(_modifiedSources != null);
+
+    barback.updateSources(_modifiedSources);
+    _modifiedSources = null;
+  }
+
   /// Gets the names of the top-level directories in [package] whose contents
   /// should be provided as source assets.
-  Set<String> getPublicDirectories(String package) {
+  Set<String> _getPublicDirectories(String package) {
     var directories = ["asset", "lib"];
 
     if (package == graph.entrypoint.root.name) {
-      directories.addAll(_rootDirectories);
+      directories.addAll(servers.map((server) => server.rootDirectory));
     }
 
     return directories.toSet();
@@ -178,16 +206,41 @@ class BuildEnvironment {
   /// in packages in [graph] and re-runs them as necessary when any input files
   /// change.
   ///
+  /// If [useDart2JS] is `true`, then the [Dart2JSTransformer] is implicitly
+  /// added to end of the root package's transformer phases.
+  ///
   /// Returns a [Future] that completes once all inputs and transformers are
   /// loaded.
-  Future _load(Barback barback) {
-    return _provideSources(barback).then((_) {
+  Future _load({bool useDart2JS}) {
+    // If the entrypoint package manually configures the dart2js
+    // transformer, don't include it in the built-in transformer list.
+    //
+    // TODO(nweiz): if/when we support more built-in transformers, make
+    // this more general.
+    var containsDart2JS = graph.entrypoint.root.pubspec.transformers
+        .any((transformers) => transformers
+        .any((id) => id.package == '\$dart2js'));
+
+    if (!containsDart2JS && useDart2JS) {
+      _builtInTransformers.addAll([
+        new Dart2JSTransformer(this, mode),
+        new DartForwardingTransformer(mode)
+      ]);
+    }
+
+    // Bind a server that we can use to load the transformers.
+    var transformerServer;
+    return BarbackServer.bind(this, _hostname, 0, null).then((server) {
+      transformerServer = server;
+
+      return _provideSources();
+    }).then((_) {
       log.fine("Provided sources.");
       var completer = new Completer();
 
-      // If any errors get emitted either by barback or by the primary server,
-      // including non-programmatic barback errors, they should take down the
-      // whole program.
+      // If any errors get emitted either by barback or by the transformer
+      // server, including non-programmatic barback errors, they should take
+      // down the whole program.
       var subscriptions = [
         barback.errors.listen((error) {
           if (error is TransformerException) {
@@ -207,16 +260,16 @@ class BuildEnvironment {
           if (completer.isCompleted) return;
           completer.completeError(error, stackTrace);
         }),
-        // We only listen to the first server here because that's the one used
-        // to initialize all the transformers during the initial load.
-        servers.first.results.listen((_) {}, onError: (error, stackTrace) {
+        transformerServer.results.listen((_) {}, onError: (error, stackTrace) {
           if (completer.isCompleted) return;
           completer.completeError(error, stackTrace);
         })
       ];
 
-      loadAllTransformers(this).then((_) {
+      loadAllTransformers(this, transformerServer).then((_) {
         log.fine("Loaded transformers.");
+        return transformerServer.close();
+      }).then((_) {
         if (!completer.isCompleted) completer.complete();
       }).catchError((error, stackTrace) {
         if (!completer.isCompleted) {
@@ -235,119 +288,129 @@ class BuildEnvironment {
   /// Provides all of the source assets in the environment to barback.
   ///
   /// If [watcherType] is not [WatcherType.NONE], enables watching on them.
-  Future _provideSources(Barback barback) {
-    if (_watcherType != WatcherType.NONE) {
-      return _watchSources(barback);
-    }
-
-    return _loadSources(barback);
-  }
-
-  /// Provides all of the source assets in the environment to barback.
-  Future _loadSources(Barback barback) {
-    return Future.wait(graph.packages.values.map(_updateSources));
-  }
-
-  /// Adds all of the source assets in this environment to barback and then
-  /// watches the public directories for changes.
-  ///
-  /// Returns a Future that completes when the sources are loaded and the
-  /// watchers are active.
-  Future _watchSources(Barback barback) {
+  Future _provideSources() {
     return Future.wait(graph.packages.values.map((package) {
-      // If this package comes from a cached source, its contents won't change
-      // so we don't need to monitor it. `packageId` will be null for the
-      // application package, since that's not locked.
-      var packageId = graph.lockFile.packages[package.name];
-      if (packageId != null &&
-          graph.entrypoint.cache.sources[packageId.source].shouldCache) {
-        return _updateSources(package);
-      }
-
-      // Watch the visible package directories for changes.
-      return Future.wait(getPublicDirectories(package.name).map((name) {
-        var subdirectory = p.join(package.dir, name);
-        if (!dirExists(subdirectory)) return new Future.value();
-
-        // TODO(nweiz): close these watchers when [barback] is closed.
-        var watcher = _watcherType.create(subdirectory);
-        watcher.events.listen((event) {
-          // Don't watch files symlinked into these directories.
-          // TODO(rnystrom): If pub gets rid of symlinks, remove this.
-          var parts = p.split(event.path);
-          if (parts.contains("packages") || parts.contains("assets")) return;
-
-          // Skip files that were (most likely) compiled from nearby ".dart"
-          // files. These are created by the Editor's "Run as JavaScript"
-          // command and are written directly into the package's directory.
-          // When pub's dart2js transformer then tries to create the same file
-          // name, we get a build error. To avoid that, just don't consider
-          // that file to be a source.
-          // TODO(rnystrom): Remove these when the Editor no longer generates
-          // .js files and users have had enough time that they no longer have
-          // these files laying around. See #15859.
-          if (event.path.endsWith(".dart.js")) return;
-          if (event.path.endsWith(".dart.js.map")) return;
-          if (event.path.endsWith(".dart.precompiled.js")) return;
-
-          var id = new AssetId(package.name,
-              p.relative(event.path, from: package.dir));
-          if (event.type == ChangeType.REMOVE) {
-            barback.removeSources([id]);
-          } else {
-            barback.updateSources([id]);
-          }
-        });
-        return watcher.ready;
-      })).then((_) => _updateSources(package));
+      return Future.wait(_getPublicDirectories(package.name)
+          .map((dir) => _provideDirectorySources(package, dir)));
     }));
   }
 
-  /// Lists all of the visible files in [package] and updates them in barback.
+  /// Provides all of the source assets within [dir] in [package] to barback.
   ///
-  /// This is the recursive contents of the "asset" and "lib" directories (if
-  /// present). If [package] is the entrypoint package, it also includes the
-  /// build directories.
+  /// If [watcherType] is not [WatcherType.NONE], enables watching on them.
+  Future _provideDirectorySources(Package package, String dir) {
+    // TODO(rnystrom): Handle overlapping directories. If two served
+    // directories overlap like so:
+    //
+    // $ pub serve example example/subdir
+    //
+    // Then the sources of the subdirectory will be updated and watched twice.
+    // See: #17454
+    return _updateDirectorySources(package, dir).then((_) {
+      if (_watcherType == WatcherType.NONE) return null;
+      return _watchDirectorySources(package, dir);
+    });
+  }
+
+  /// Updates barback with all of the files in [dir] inside [package].
   ///
   /// For large packages, listing the contents is a performance bottleneck, so
   /// this is optimized for our needs in here instead of using the more general
   /// but slower [listDir].
-  Future _updateSources(Package package) {
-    return Future.wait(getPublicDirectories(package.name).map((dirPath) {
-      var dir = p.join(package.dir, dirPath);
-      if (!dirExists(dir)) return new Future.value();
+  Future _updateDirectorySources(Package package, String dir) {
+    var subdirectory = path.join(package.dir, dir);
+    if (!dirExists(subdirectory)) return new Future.value();
 
-      return new Directory(dir).list(recursive: true, followLinks: true)
-          .expand((entry) {
-        // Skip directories and (broken) symlinks.
-        if (entry is Directory) return [];
-        if (entry is Link) return [];
+    return new Directory(subdirectory).list(recursive: true, followLinks: true)
+        .expand((entry) {
+      // Skip directories and (broken) symlinks.
+      if (entry is Directory) return [];
+      if (entry is Link) return [];
 
-        var relative = p.normalize(
-            p.relative(entry.path, from: package.dir));
+      var relative = path.normalize(
+          path.relative(entry.path, from: package.dir));
 
-        // Ignore hidden files or files in "packages" and hidden directories.
-        if (p.split(relative).any((part) =>
-            part.startsWith(".") || part == "packages")) {
-          return [];
+      // Ignore hidden files or files in "packages" and hidden directories.
+      if (path.split(relative).any((part) =>
+          part.startsWith(".") || part == "packages")) {
+        return [];
+      }
+
+      // Skip files that were (most likely) compiled from nearby ".dart"
+      // files. These are created by the Editor's "Run as JavaScript"
+      // command and are written directly into the package's directory.
+      // When pub's dart2js transformer then tries to create the same file
+      // name, we get a build error. To avoid that, just don't consider
+      // that file to be a source.
+      // TODO(rnystrom): Remove these when the Editor no longer generates
+      // .js files and users have had enough time that they no longer have
+      // these files laying around. See #15859.
+      if (relative.endsWith(".dart.js")) return [];
+      if (relative.endsWith(".dart.js.map")) return [];
+      if (relative.endsWith(".dart.precompiled.js")) return [];
+
+      return [new AssetId(package.name, relative)];
+    }).toList().then((ids) {
+      if (_modifiedSources == null) {
+        barback.updateSources(ids);
+      } else {
+        _modifiedSources.addAll(ids);
+      }
+    });
+  }
+
+  /// Adds a file watcher for [dir] within [package], if the directory exists
+  /// and the package needs watching.
+  Future _watchDirectorySources(Package package, String dir) {
+    // If this package comes from a cached source, its contents won't change so
+    // we don't need to monitor it. `packageId` will be null for the
+    // application package, since that's not locked.
+    var packageId = graph.lockFile.packages[package.name];
+    if (packageId != null &&
+        graph.entrypoint.cache.sources[packageId.source].shouldCache) {
+      return new Future.value();
+    }
+
+    var subdirectory = path.join(package.dir, dir);
+    if (!dirExists(subdirectory)) return new Future.value();
+
+    // TODO(nweiz): close this watcher when [barback] is closed.
+    var watcher = _watcherType.create(subdirectory);
+    watcher.events.listen((event) {
+      // Don't watch files symlinked into these directories.
+      // TODO(rnystrom): If pub gets rid of symlinks, remove this.
+      var parts = path.split(event.path);
+      if (parts.contains("packages") || parts.contains("assets")) return;
+
+      // Skip files that were (most likely) compiled from nearby ".dart"
+      // files. These are created by the Editor's "Run as JavaScript"
+      // command and are written directly into the package's directory.
+      // When pub's dart2js transformer then tries to create the same file
+      // name, we get a build error. To avoid that, just don't consider
+      // that file to be a source.
+      // TODO(rnystrom): Remove these when the Editor no longer generates
+      // .js files and users have had enough time that they no longer have
+      // these files laying around. See #15859.
+      if (event.path.endsWith(".dart.js")) return;
+      if (event.path.endsWith(".dart.js.map")) return;
+      if (event.path.endsWith(".dart.precompiled.js")) return;
+
+      var id = new AssetId(package.name,
+          path.relative(event.path, from: package.dir));
+      if (event.type == ChangeType.REMOVE) {
+        if (_modifiedSources != null) {
+          _modifiedSources.remove(id);
+        } else {
+          barback.removeSources([id]);
         }
+      } else if (_modifiedSources != null) {
+        _modifiedSources.add(id);
+      } else {
+        barback.updateSources([id]);
+      }
+    });
 
-        // Skip files that were (most likely) compiled from nearby ".dart"
-        // files. These are created by the Editor's "Run as JavaScript"
-        // command and are written directly into the package's directory.
-        // When pub's dart2js transformer then tries to create the same file
-        // name, we get a build error. To avoid that, just don't consider
-        // that file to be a source.
-        // TODO(rnystrom): Remove these when the Editor no longer generates
-        // .js files and users have had enough time that they no longer have
-        // these files laying around. See #15859.
-        if (relative.endsWith(".dart.js")) return [];
-        if (relative.endsWith(".dart.js.map")) return [];
-        if (relative.endsWith(".dart.precompiled.js")) return [];
-
-        return [new AssetId(package.name, relative)];
-      }).toList().then(barback.updateSources);
-    }));
+    return watcher.ready;
   }
 }
 
@@ -362,7 +425,7 @@ void _log(LogEntry entry) {
 
   messageMentionsAsset(id) =>
       messageMentions(id.toString()) ||
-      messageMentions(p.joinAll(p.url.split(entry.assetId.path)));
+      messageMentions(path.joinAll(path.url.split(entry.assetId.path)));
 
   var prefixParts = [];
 

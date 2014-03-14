@@ -39,6 +39,10 @@ class ServeCommand extends PubCommand {
   /// The build mode.
   BarbackMode get mode => new BarbackMode(commandOptions['mode']);
 
+  /// This completer is used to keep pub running (by not completing) and to
+  /// pipe fatal errors to pub's top-level error-handling machinery.
+  final _completer = new Completer();
+
   ServeCommand() {
     commandParser.addOption('port', defaultsTo: '8080',
         help: 'The base port to listen on.');
@@ -68,82 +72,98 @@ class ServeCommand extends PubCommand {
       return flushThenExit(exit_codes.USAGE);
     }
 
+    var directories = _parseDirectoriesToServe();
+
     var watcherType = commandOptions['force-poll'] ?
         WatcherType.POLLING : WatcherType.AUTO;
 
     return BuildEnvironment.create(entrypoint, hostname, port, mode,
-        watcherType, _directoriesToServe,
-        useDart2JS: useDart2JS).then((environment) {
+        watcherType, useDart2JS: useDart2JS).then((environment) {
 
-      // In release mode, strip out .dart files since all relevant ones have
-      // been compiled to JavaScript already.
-      if (mode == BarbackMode.RELEASE) {
-        for (var server in environment.servers) {
-          server.allowAsset = (url) => !url.path.endsWith(".dart");
-        }
-      }
-
-      /// This completer is used to keep pub running (by not completing) and
-      /// to pipe fatal errors to pub's top-level error-handling machinery.
-      var completer = new Completer();
-
-      environment.barback.errors.listen((error) {
-        log.error(log.red("Build error:\n$error"));
-      });
-
-      environment.barback.results.listen((result) {
-        if (result.succeeded) {
-          // TODO(rnystrom): Report using growl/inotify-send where available.
-          log.message("Build completed ${log.green('successfully')}");
-        } else {
-          log.message("Build completed with "
-              "${log.red(result.errors.length)} errors.");
-        }
-      }, onError: (error, [stackTrace]) {
-        if (!completer.isCompleted) completer.completeError(error, stackTrace);
-      });
-
-      var directoryLength = environment.servers
-          .map((server) => server.rootDirectory.length)
+      var directoryLength = directories.map((dir) => dir.length)
           .reduce(math.max);
-      for (var server in environment.servers) {
-        // Add two characters to account for "[" and "]".
-        var directoryPrefix = log.gray(
-            padRight("[${server.rootDirectory}]", directoryLength + 2));
-        server.results.listen((result) {
-          if (result.isSuccess) {
-            log.message("$directoryPrefix ${log.green('GET')} "
-                "${result.url.path} $_arrow ${result.id}");
-            return;
-          }
 
-          var msg = "$directoryPrefix ${log.red('GET')} ${result.url.path} "
-              "$_arrow";
-          var error = result.error.toString();
-          if (error.contains("\n")) {
-            log.message("$msg\n${prefixLines(error)}");
-          } else {
-            log.message("$msg $error");
-          }
-        }, onError: (error, [stackTrace]) {
-          if (completer.isCompleted) return;
-          completer.completeError(error, stackTrace);
+      // Start up the servers. We pause updates while this is happening so that
+      // we don't log spurious build results in the middle of listing out the
+      // bound servers.
+      environment.pauseUpdates();
+      return Future.forEach(directories, (directory) {
+        return _startServer(environment, directory, directoryLength);
+      }).then((_) {
+        // Now that the servers are up and logged, send them to barback.
+        environment.barback.errors.listen((error) {
+          log.error(log.red("Build error:\n$error"));
         });
 
-        log.message("Serving ${entrypoint.root.name} "
-            "${padRight(server.rootDirectory, directoryLength)} "
-            "on ${log.bold('http://$hostname:${server.port}')}");
-      }
+        environment.barback.results.listen((result) {
+          if (result.succeeded) {
+            // TODO(rnystrom): Report using growl/inotify-send where available.
+            log.message("Build completed ${log.green('successfully')}");
+          } else {
+            log.message("Build completed with "
+                "${log.red(result.errors.length)} errors.");
+          }
+        }, onError: (error, [stackTrace]) {
+          if (!_completer.isCompleted) {
+            _completer.completeError(error, stackTrace);
+          }
+        });
 
-      return completer.future;
+        environment.resumeUpdates();
+        return _completer.future;
+      });
     });
   }
 
-  /// Returns the set of directories that will be served from servers exposed to
-  /// the user.
+  Future _startServer(BuildEnvironment environment, String rootDirectory,
+      int directoryLength) {
+    return environment.serveDirectory(rootDirectory).then((server) {
+      // In release mode, strip out .dart files since all relevant ones have
+      // been compiled to JavaScript already.
+      if (mode == BarbackMode.RELEASE) {
+        server.allowAsset = (url) => !url.path.endsWith(".dart");
+      }
+
+      // Add two characters to account for "[" and "]".
+      var prefix = log.gray(
+          padRight("[${server.rootDirectory}]", directoryLength + 2));
+
+      server.results.listen((result) {
+        var buffer = new StringBuffer();
+        buffer.write("$prefix ");
+
+        if (result.isSuccess) {
+          buffer.write(
+              "${log.green('GET')} ${result.url.path} $_arrow ${result.id}");
+        } else {
+          buffer.write("${log.red('GET')} ${result.url.path} $_arrow");
+
+          var error = result.error.toString();
+          if (error.contains("\n")) {
+            buffer.write("\n${prefixLines(error)}");
+          } else {
+            buffer.write(" $error");
+          }
+        }
+
+        log.message(buffer);
+
+      }, onError: (error, [stackTrace]) {
+        if (_completer.isCompleted) return;
+        _completer.completeError(error, stackTrace);
+      });
+
+      log.message("Serving ${entrypoint.root.name} "
+          "${padRight(server.rootDirectory, directoryLength)} "
+          "on ${log.bold('http://$hostname:${server.port}')}");
+    });
+  }
+
+  /// Returns the set of directories that will be served from servers exposed
+  /// to the user.
   ///
   /// Throws a [UsageException] if the command-line arguments are invalid.
-  List<String> get _directoriesToServe {
+  List<String> _parseDirectoriesToServe() {
     if (commandOptions.rest.isEmpty) {
       var directories = ['web', 'test'].where(dirExists).toList();
       if (directories.isNotEmpty) return directories;

@@ -8,14 +8,15 @@ import 'dart:async';
 
 import 'package:barback/barback.dart';
 
+import '../barback.dart';
+import '../package_graph.dart';
+import '../utils.dart';
 import 'build_environment.dart';
 import 'dart2js_transformer.dart';
 import 'excluding_transformer.dart';
 import 'load_transformers.dart';
 import 'rewrite_import_transformer.dart';
-import '../barback.dart';
-import '../package_graph.dart';
-import '../utils.dart';
+import 'server.dart';
 
 /// Loads all transformers depended on by packages in [environment].
 ///
@@ -25,7 +26,8 @@ import '../utils.dart';
 ///
 /// Any built-in transformers that are provided by the environment will
 /// automatically be added to the end of the root package's cascade.
-Future loadAllTransformers(BuildEnvironment environment) {
+Future loadAllTransformers(BuildEnvironment environment,
+    BarbackServer transformerServer) {
   // In order to determine in what order we should load transformers, we need to
   // know which transformers depend on which others. This is different than
   // normal package dependencies. Let's begin with some terminology:
@@ -64,7 +66,7 @@ Future loadAllTransformers(BuildEnvironment environment) {
   var orderingDeps = _computeOrderingDeps(environment.graph);
   var packageTransformers = _computePackageTransformers(environment.graph);
 
-  var loader = new _TransformerLoader(environment);
+  var loader = new _TransformerLoader(environment, transformerServer);
 
   // The packages on which no packages have ordering dependencies -- that is,
   // the packages that don't need to be loaded before any other packages. These
@@ -216,6 +218,8 @@ Map<String, Set<TransformerId>> _computePackageTransformers(
 class _TransformerLoader {
   final BuildEnvironment _environment;
 
+  final BarbackServer _transformerServer;
+
   /// The loaded transformers defined in the library identified by each
   /// transformer id.
   final _transformers = new Map<TransformerId, Set<Transformer>>();
@@ -225,7 +229,7 @@ class _TransformerLoader {
   /// Used for error reporting.
   final _transformerUsers = new Map<Pair<String, String>, Set<String>>();
 
-  _TransformerLoader(this._environment) {
+  _TransformerLoader(this._environment, this._transformerServer) {
     for (var package in _environment.graph.packages.values) {
       for (var id in unionAll(package.pubspec.transformers)) {
         _transformerUsers.putIfAbsent(
@@ -245,7 +249,8 @@ class _TransformerLoader {
 
     // TODO(nweiz): load multiple instances of the same transformer from the
     // same isolate rather than spinning up a separate isolate for each one.
-    return loadTransformers(_environment, id).then((transformers) {
+    return loadTransformers(_environment, _transformerServer, id)
+        .then((transformers) {
       if (!transformers.isEmpty) {
         _transformers[id] = transformers;
         return;

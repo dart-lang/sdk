@@ -62,6 +62,7 @@ class BuildCommand extends PubCommand {
     _parseBuildDirectories();
     cleanDir(target);
 
+    var environment;
     var errorsJson = [];
     var logJson = [];
 
@@ -69,9 +70,17 @@ class BuildCommand extends PubCommand {
     // user-facing, just use an IPv4 address to avoid a weird bug on the
     // OS X buildbots.
     return BuildEnvironment.create(entrypoint, "127.0.0.1", 0, mode,
-        WatcherType.NONE, buildDirectories, useDart2JS: true)
-          .then((environment) {
+        WatcherType.NONE, useDart2JS: true)
+          .then((env) {
+      environment = env;
 
+      // Register all of the build directories.
+      // TODO(rnystrom): We don't actually need to bind servers for these, we
+      // just need to add them to barback's sources. Add support to
+      // BuildEnvironment for going the latter without the former.
+      return Future.wait(buildDirectories.map(
+          (dir) => environment.serveDirectory(dir)));
+    }).then((_) {
       // Show in-progress errors, but not results. Those get handled implicitly
       // by getAllAssets().
       environment.barback.errors.listen((error) {

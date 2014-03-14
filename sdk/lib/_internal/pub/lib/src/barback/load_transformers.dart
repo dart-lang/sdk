@@ -20,6 +20,7 @@ import '../log.dart' as log;
 import '../utils.dart';
 import 'build_environment.dart';
 import 'excluding_transformer.dart';
+import 'server.dart';
 
 /// A Dart script to run in an isolate.
 ///
@@ -414,15 +415,13 @@ Stream callbackStream(Stream callback()) {
 
 /// Load and return all transformers and groups from the library identified by
 /// [id].
-Future<Set> loadTransformers(BuildEnvironment environment, TransformerId id) {
+Future<Set> loadTransformers(BuildEnvironment environment,
+    BarbackServer transformerServer, TransformerId id) {
   return id.getAssetId(environment.barback).then((assetId) {
     var path = assetId.path.replaceFirst('lib/', '');
     // TODO(nweiz): load from a "package:" URI when issue 12474 is fixed.
 
-    // We could load the transformers from any server, since they all serve the
-    // packages' library files. We choose the first one arbitrarily.
-    var baseUrl = baseUrlForAddress(environment.servers.first.address,
-                                    environment.servers.first.port);
+    var baseUrl = transformerServer.url;
     var uri = '$baseUrl/packages/${id.package}/$path';
     var code = 'import "$uri";\n' +
         _TRANSFORMER_ISOLATE.replaceAll('<<URL_BASE>>', baseUrl);
