@@ -58,8 +58,8 @@ class CpuInfo : public AllStatic {
   // Returns the field describing the CPU model. Caller is responsible for
   // freeing the result.
   static const char* GetCpuModel() {
-    ASSERT(HasField(FieldName(kCpuInfoModel)));
-    return ExtractField(kCpuInfoModel);
+    ASSERT(HasField(FieldName(kCpuInfoHardware)));
+    return ExtractField(kCpuInfoHardware);
   }
 
  private:

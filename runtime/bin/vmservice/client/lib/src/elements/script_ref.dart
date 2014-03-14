@@ -11,36 +11,25 @@ import 'service_ref.dart';
 class ScriptRefElement extends ServiceRefElement {
   @published int line = -1;
 
-  String get objectId {
-    if (line < 0) {
-      return super.objectId;
-    }
-    // TODO(johnmccutchan): Add a ?line=XX invalidates the idea that this
-    // method returns an objectId.
-    return '${super.objectId}?line=$line';
-  }
-
   String get hoverText {
     if (ref == null) {
-      return '';
+      return super.hoverText;
     }
     if (line < 0) {
-      return ref['user_name'];
+      return ref.vmName;
     } else {
-      return "${ref['user_name']}:$line";
+      return '${ref.vmName}:$line';
     }
   }
 
   String get name {
     if (ref == null) {
-      return '';
+      return super.name;
     }
-    var scriptUrl = ref['user_name'];
-    var shortScriptUrl = scriptUrl.substring(scriptUrl.lastIndexOf('/') + 1);
     if (line < 0) {
-      return shortScriptUrl;
+      return ref.name;
     } else {
-      return "$shortScriptUrl:$line";
+      return '${ref.name}:$line';
     }
   }
 

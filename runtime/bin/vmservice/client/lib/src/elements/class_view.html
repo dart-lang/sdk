@@ -5,15 +5,15 @@
   <link rel="import" href="instance_ref.html">
   <link rel="import" href="library_ref.html">
   <link rel="import" href="nav_bar.html">
-  <link rel="import" href="isolate_element.html">
+  <link rel="import" href="observatory_element.html">
 </head>
-<polymer-element name="class-view" extends="isolate-element">
+<polymer-element name="class-view" extends="observatory-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
-      <library-nav-menu isolate="{{ isolate }}" library="{{ cls['library'] }}"></library-nav-menu>
-      <class-nav-menu isolate="{{ isolate }}" cls="{{ cls }}" last="{{ true }}"></class-nav-menu>
+      <isolate-nav-menu isolate="{{ cls.isolate }}"></isolate-nav-menu>
+      <library-nav-menu library="{{ cls['library'] }}"></library-nav-menu>
+      <class-nav-menu cls="{{ cls }}" last="{{ true }}"></class-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
@@ -21,12 +21,13 @@
     <div class="col-md-8 col-md-offset-2">
       <div class="panel panel-warning">
         <div class="panel-heading">
-          class <strong>{{ cls['user_name'] }}</strong>
+          class <strong>{{ cls.name }}</strong>
           <template if="{{ cls['super']['type'] != 'Null' }}">
             extends
-            <class-ref app="{{ app }}" ref="{{ cls['super'] }}"></class-ref>
+            <class-ref ref="{{ cls['super'] }}"></class-ref>
           </template>
-          <library-ref app="{{ app }}" ref="{{ cls['library'] }}"></library-ref>
+          <p></p>
+          <library-ref ref="{{ cls['library'] }}"></library-ref>
         </div>
         <div class="panel-body">
           <table class="table table-hover">
@@ -56,8 +57,8 @@
             <table class="table table-hover">
              <tbody>
                 <tr template repeat="{{ field in cls['fields'] }}">
-                  <td><field-ref app="{{ app }}" ref="{{ field }}"></field-ref></td>
-                  <td><instance-ref app="{{ app }}" ref="{{ field['value'] }}"></instance-ref></td>
+                  <td><field-ref ref="{{ field }}"></field-ref></td>
+                  <td><instance-ref ref="{{ field['value'] }}"></instance-ref></td>
                 </tr>
               </tbody>
             </table>
@@ -71,8 +72,8 @@
               </thead>
               <tbody>
                 <tr template repeat="{{ function in cls['functions'] }}">
-                  <td><function-ref app="{{ app }}" ref="{{ function }}"></function-ref></td>
-                  <td><function-ref app="{{ app }}" ref="{{ function }}" internal></function-ref></td>
+                  <td><function-ref ref="{{ function }}"></function-ref></td>
+                  <td><function-ref ref="{{ function }}" internal></function-ref></td>
                 </tr>
               </tbody>
             </table>

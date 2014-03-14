@@ -15,58 +15,48 @@ var testFunction = (_) {
   test("successful", () {
     return _defer(() {
       scheduleMicrotask(() {
-        guardAsync(() {
-          expect(true, true);
-        });
+        expect(true, true);
       });
     });
   });
   test("fail1", () {
-    var callback = expectAsync0((){});
+    var callback = expectAsync(() {});
     return _defer(() {
       scheduleMicrotask(() {
-        guardAsync(() {
-          expect(true, false);
-          callback();
-        });
+        expect(true, false);
+        callback();
       });
     });
   });
   test('error1', () {
-    var callback = expectAsync0((){});
-    var excesscallback = expectAsync0((){});
+    var callback = expectAsync(() {});
+    var excesscallback = expectAsync(() {});
     return _defer(() {
       scheduleMicrotask(() {
-        guardAsync(() {
-          excesscallback();
-          excesscallback();
-          callback();
-        });
+        excesscallback();
+        excesscallback();
+        callback();
       });
     });
   });
   test("fail2", () {
-    var callback = expectAsync0((){});
+    var callback = expectAsync(() {});
     return _defer(() {
       scheduleMicrotask(() {
-        guardAsync(() {
-          fail('failure');
-          callback();
-        });
+        fail('failure');
+        callback();
       });
     });
   });
   test('error2', () {
-    var callback = expectAsync0((){});
-    var excesscallback = expectAsync0((){});
+    var callback = expectAsync(() {});
+    var excesscallback = expectAsync(() {});
     return _defer(() {
       scheduleMicrotask(() {
-        guardAsync(() {
-          excesscallback();
-          excesscallback();
-          excesscallback();
-          callback();
-        });
+        excesscallback();
+        excesscallback();
+        excesscallback();
+        callback();
       });
     });
   });

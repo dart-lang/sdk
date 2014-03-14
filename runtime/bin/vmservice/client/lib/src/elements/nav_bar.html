@@ -1,6 +1,5 @@
 <head>
   <link rel="import" href="observatory_element.html">
-  <link rel="import" href="isolate_element.html">
 </head>
 
 <polymer-element name="nav-bar" extends="observatory-element">
@@ -141,10 +140,10 @@
     </style>
     <li>
       <template if="{{ active }}">
-        <button class="active" on-click="{{ buttonClick }}">Refresh</button>
+        <button class="active" on-click="{{ buttonClick }}">{{ label }}</button>
       </template>
       <template if="{{ !active }}">
-        <button class="idle" on-click="{{ buttonClick }}">Refresh</button>
+        <button class="idle" on-click="{{ buttonClick }}">{{ label }}</button>
       </template>
     </li>
   </template>
@@ -158,35 +157,35 @@
   </template>
 </polymer-element>
 
-<polymer-element name="isolate-nav-menu" extends="isolate-element">
+<polymer-element name="isolate-nav-menu" extends="observatory-element">
   <template>
     <nav-menu link="#" anchor="{{ isolate.name }}" last="{{ last }}">
-      <nav-menu-item link="{{ isolate.hashLink('stacktrace') }}"
+      <nav-menu-item link="{{ isolate.relativeHashLink('stacktrace') }}"
                      anchor="stack trace"></nav-menu-item>
-      <nav-menu-item link="{{ isolate.hashLink('profile') }}"
+      <nav-menu-item link="{{ isolate.relativeHashLink('profile') }}"
                      anchor="cpu profile"></nav-menu-item>
-      <nav-menu-item link="{{ isolate.hashLink('allocationprofile') }}"
+      <nav-menu-item link="{{ isolate.relativeHashLink('allocationprofile') }}"
                      anchor="heap profile"></nav-menu-item>
-      <nav-menu-item link="{{ isolate.hashLink('debug/breakpoints') }}"
+      <nav-menu-item link="{{ isolate.relativeHashLink('debug/breakpoints') }}"
                      anchor="breakpoints"></nav-menu-item>
       <content></content>
     </nav-menu>
   </template>
 </polymer-element>
 
-<polymer-element name="library-nav-menu" extends="isolate-element">
+<polymer-element name="library-nav-menu" extends="observatory-element">
   <template>
-    <nav-menu link="{{ isolate.hashLink(library['id']) }}"
-              anchor="{{ library['name'] }}" last="{{ last }}">
+    <nav-menu link="{{ library.hashLink }}"
+              anchor="{{ library.name }}" last="{{ last }}">
       <content></content>
     </nav-menu>
   </template>
 </polymer-element>
 
-<polymer-element name="class-nav-menu" extends="isolate-element">
+<polymer-element name="class-nav-menu" extends="observatory-element">
   <template>
-    <nav-menu link="{{ isolate.hashLink(cls['id']) }}"
-              anchor="{{ cls['user_name'] }}" last="{{ last }}">
+    <nav-menu link="{{ cls.hashLink }}"
+              anchor="{{ cls.name }}" last="{{ last }}">
       <content></content>
     </nav-menu>
   </template>

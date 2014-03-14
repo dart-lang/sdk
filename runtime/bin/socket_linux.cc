@@ -323,7 +323,7 @@ intptr_t Socket::CreateBindDatagram(
           bind(fd,
                &addr->addr,
                SocketAddress::GetAddrLength(addr))) < 0) {
-    TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(fd));
+    VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(fd));
     return -1;
   }
   return fd;
@@ -392,12 +392,12 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
   if (fd < 0) return -1;
 
   int optval = 1;
-  TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
+  VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
       setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)));
 
   if (addr.ss.ss_family == AF_INET6) {
     optval = v6_only ? 1 : 0;
-    TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
+    VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
         setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof(optval)));
   }
 

@@ -186,8 +186,6 @@ class Dart2JsFieldMirror extends Dart2JsMemberMirror implements VariableMirror {
         this._variable = variable,
         super(owner.mirrorSystem, variable);
 
-  Element get _beginElement => _variable.variables;
-
   bool get isTopLevel => owner is LibraryMirror;
 
   bool get isStatic => _variable.modifiers.isStatic();
@@ -198,6 +196,8 @@ class Dart2JsFieldMirror extends Dart2JsMemberMirror implements VariableMirror {
 
   TypeMirror get type =>
       owner._getTypeMirror(_variable.computeType(mirrorSystem.compiler));
+
+
 }
 
 class Dart2JsParameterMirror extends Dart2JsMemberMirror
@@ -207,7 +207,7 @@ class Dart2JsParameterMirror extends Dart2JsMemberMirror
   final bool isNamed;
 
   factory Dart2JsParameterMirror(Dart2JsDeclarationMirror owner,
-                                 VariableElement element,
+                                 ParameterElement element,
                                  {bool isOptional: false,
                                   bool isNamed: false}) {
     if (element is FieldParameterElement) {
@@ -219,19 +219,17 @@ class Dart2JsParameterMirror extends Dart2JsMemberMirror
   }
 
   Dart2JsParameterMirror._normal(Dart2JsDeclarationMirror owner,
-                                 VariableElement element,
+                                 ParameterElement element,
                                  this.isOptional,
                                  this.isNamed)
     : this.owner = owner,
       super(owner.mirrorSystem, element);
 
-  Element get _beginElement => _variableElement.variables;
-
-  VariableElement get _variableElement => _element;
+  ParameterElement get _element => super._element;
 
   TypeMirror get type => owner._getTypeMirror(
-      _variableElement.computeType(mirrorSystem.compiler),
-      _variableElement.variables.functionSignature);
+      _element.computeType(mirrorSystem.compiler),
+      _element.functionSignature);
 
 
   bool get isFinal => false;
@@ -241,17 +239,17 @@ class Dart2JsParameterMirror extends Dart2JsMemberMirror
   InstanceMirror get defaultValue {
     if (hasDefaultValue) {
       Constant constant = mirrorSystem.compiler.constantHandler
-          .getConstantForVariable(_variableElement);
-      assert(invariant(_variableElement, constant != null,
+          .getConstantForVariable(_element);
+      assert(invariant(_element, constant != null,
           message: "Missing constant for parameter "
-                   "$_variableElement with default value."));
+                   "$_element with default value."));
       return _convertConstantToInstanceMirror(mirrorSystem, constant);
     }
     return null;
   }
 
   bool get hasDefaultValue {
-    return _variableElement.cachedNode.asSendSet() != null;
+    return _element.initializer != null;
   }
 
   bool get isInitializingFormal => false;

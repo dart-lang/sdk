@@ -117,7 +117,7 @@ class ServerDomainHandler implements RequestHandler {
       return new Response(request.id, new RequestError(
           RequestError.CODE_SDK_ERROR, 'Failed to access sdk: $e'));
     }
-    context.sourceFactory = new SourceFactory.con2([
+    context.sourceFactory = new SourceFactory([
       new DartUriResolver(sdk),
       new FileUriResolver(),
       // new PackageUriResolver(),

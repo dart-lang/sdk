@@ -1687,6 +1687,9 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         case kFloat32x4Cid:
           cls = &compiler->float32x4_class();
           break;
+        case kFloat64x2Cid:
+          cls = &compiler->float64x2_class();
+          break;
         default:
           UNREACHABLE();
       }
@@ -1719,6 +1722,13 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ StoreDToOffset(value_odd, temp,
             Float32x4::value_offset() + 2 * kWordSize - kHeapObjectTag);
         break;
+      case kFloat64x2Cid:
+        __ Comment("UnboxedFloat64x2StoreInstanceFieldInstr");
+        __ StoreDToOffset(value, temp,
+            Float64x2::value_offset() - kHeapObjectTag);
+        __ StoreDToOffset(value_odd, temp,
+            Float64x2::value_offset() + 2 * kWordSize - kHeapObjectTag);
+        break;
       default:
         UNREACHABLE();
     }
@@ -1736,6 +1746,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Label store_pointer;
     Label store_double;
     Label store_float32x4;
+    Label store_float64x2;
 
     __ LoadObject(temp, Field::ZoneHandle(field().raw()));
 
@@ -1754,6 +1765,10 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ ldr(temp2, FieldAddress(temp, Field::guarded_cid_offset()));
     __ CompareImmediate(temp2, kFloat32x4Cid);
     __ b(&store_float32x4, EQ);
+
+    __ ldr(temp2, FieldAddress(temp, Field::guarded_cid_offset()));
+    __ CompareImmediate(temp2, kFloat64x2Cid);
+    __ b(&store_float64x2, EQ);
 
     // Fall through.
     __ b(&store_pointer);
@@ -1825,6 +1840,40 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           Float32x4::value_offset() - kHeapObjectTag);
       __ StoreDToOffset(fpu_temp_odd, temp,
           Float32x4::value_offset() + 2 * kWordSize - kHeapObjectTag);
+      __ b(&skip_store);
+    }
+
+    {
+      __ Bind(&store_float64x2);
+      Label copy_float64x2;
+      StoreInstanceFieldSlowPath* slow_path =
+          new StoreInstanceFieldSlowPath(this, compiler->float64x2_class());
+      compiler->AddSlowPathCode(slow_path);
+
+      __ ldr(temp, FieldAddress(instance_reg, offset_in_bytes_));
+      __ CompareImmediate(temp,
+                          reinterpret_cast<intptr_t>(Object::null()));
+      __ b(&copy_float64x2, NE);
+
+      __ TryAllocate(compiler->float64x2_class(),
+                     slow_path->entry_label(),
+                     temp,
+                     temp2);
+      __ Bind(slow_path->exit_label());
+      __ MoveRegister(temp2, temp);
+      __ StoreIntoObject(instance_reg,
+                         FieldAddress(instance_reg, offset_in_bytes_),
+                         temp2);
+      __ Bind(&copy_float64x2);
+      // TODO(zra): Maybe use vldmd here.
+      __ LoadDFromOffset(fpu_temp, value_reg,
+          Float64x2::value_offset() - kHeapObjectTag);
+      __ LoadDFromOffset(fpu_temp_odd, value_reg,
+          Float64x2::value_offset() + 2 * kWordSize - kHeapObjectTag);
+      __ StoreDToOffset(fpu_temp, temp,
+          Float64x2::value_offset() - kHeapObjectTag);
+      __ StoreDToOffset(fpu_temp_odd, temp,
+          Float64x2::value_offset() + 2 * kWordSize - kHeapObjectTag);
       __ b(&skip_store);
     }
 
@@ -2094,6 +2143,14 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ LoadDFromOffset(result_odd, temp,
             Float32x4::value_offset() + 2 * kWordSize - kHeapObjectTag);
         break;
+      case kFloat64x2Cid:
+        __ Comment("UnboxedFloat64x2LoadFieldInstr");
+        // TODO(zra): Maybe use vldmd here.
+        __ LoadDFromOffset(result, temp,
+            Float64x2::value_offset() - kHeapObjectTag);
+        __ LoadDFromOffset(result_odd, temp,
+            Float64x2::value_offset() + 2 * kWordSize - kHeapObjectTag);
+        break;
       default:
         UNREACHABLE();
     }
@@ -2110,6 +2167,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Label load_pointer;
     Label load_double;
     Label load_float32x4;
+    Label load_float64x2;
 
     __ LoadObject(result_reg, Field::ZoneHandle(field()->raw()));
 
@@ -2128,6 +2186,10 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ ldr(temp, field_cid_operand);
     __ CompareImmediate(temp, kFloat32x4Cid);
     __ b(&load_float32x4, EQ);
+
+    __ ldr(temp, field_cid_operand);
+    __ CompareImmediate(temp, kFloat64x2Cid);
+    __ b(&load_float64x2, EQ);
 
     // Fall through.
     __ b(&load_pointer);
@@ -2174,6 +2236,29 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           Float32x4::value_offset() - kHeapObjectTag);
       __ StoreDToOffset(value_odd, result_reg,
           Float32x4::value_offset() + 2 * kWordSize - kHeapObjectTag);
+      __ b(&done);
+    }
+
+    {
+      __ Bind(&load_float64x2);
+      BoxFloat64x2SlowPath* slow_path = new BoxFloat64x2SlowPath(this);
+      compiler->AddSlowPathCode(slow_path);
+
+      __ TryAllocate(compiler->float64x2_class(),
+                     slow_path->entry_label(),
+                     result_reg,
+                     temp);
+      __ Bind(slow_path->exit_label());
+      __ ldr(temp, FieldAddress(instance_reg, offset_in_bytes()));
+      // TODO(zra): Maybe use vldmd here.
+      __ LoadDFromOffset(value, temp,
+          Float64x2::value_offset() - kHeapObjectTag);
+      __ LoadDFromOffset(value_odd, temp,
+          Float64x2::value_offset() + 2 * kWordSize - kHeapObjectTag);
+      __ StoreDToOffset(value, result_reg,
+          Float64x2::value_offset() - kHeapObjectTag);
+      __ StoreDToOffset(value_odd, result_reg,
+          Float64x2::value_offset() + 2 * kWordSize - kHeapObjectTag);
       __ b(&done);
     }
 
@@ -3310,6 +3395,54 @@ void BinaryFloat32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* BinaryFloat64x2OpInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
+}
+
+
+void BinaryFloat64x2OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  QRegister left = locs()->in(0).fpu_reg();
+  QRegister right = locs()->in(1).fpu_reg();
+  QRegister result = locs()->out().fpu_reg();
+
+  DRegister left0 = EvenDRegisterOf(left);
+  DRegister left1 = OddDRegisterOf(left);
+
+  DRegister right0 = EvenDRegisterOf(right);
+  DRegister right1 = OddDRegisterOf(right);
+
+  DRegister result0 = EvenDRegisterOf(result);
+  DRegister result1 = OddDRegisterOf(result);
+
+  switch (op_kind()) {
+    case Token::kADD:
+      __ vaddd(result0, left0, right0);
+      __ vaddd(result1, left1, right1);
+      break;
+    case Token::kSUB:
+      __ vsubd(result0, left0, right0);
+      __ vsubd(result1, left1, right1);
+      break;
+    case Token::kMUL:
+      __ vmuld(result0, left0, right0);
+      __ vmuld(result1, left1, right1);
+      break;
+    case Token::kDIV:
+      __ vdivd(result0, left0, right0);
+      __ vdivd(result1, left1, right1);
+      break;
+    default: UNREACHABLE();
+  }
+}
+
+
 LocationSummary* Simd32x4ShuffleInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
@@ -3809,6 +3942,310 @@ void Float32x4ToInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (value != result) {
     __ vmovq(result, value);
+  }
+}
+
+
+LocationSummary* Simd64x2ShuffleInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
+}
+
+
+void Simd64x2ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  QRegister value = locs()->in(0).fpu_reg();
+
+  DRegister dvalue0 = EvenDRegisterOf(value);
+  DRegister dvalue1 = OddDRegisterOf(value);
+
+  QRegister result = locs()->out().fpu_reg();
+
+  DRegister dresult0 = EvenDRegisterOf(result);
+
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat64x2GetX:
+      __ vmovd(dresult0, dvalue0);
+      break;
+    case MethodRecognizer::kFloat64x2GetY:
+      __ vmovd(dresult0, dvalue1);
+      break;
+    default: UNREACHABLE();
+  }
+}
+
+
+LocationSummary* Float64x2ZeroInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
+}
+
+
+void Float64x2ZeroInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  QRegister q = locs()->out().fpu_reg();
+  __ veorq(q, q, q);
+}
+
+
+LocationSummary* Float64x2SplatInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
+}
+
+
+void Float64x2SplatInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  QRegister value = locs()->in(0).fpu_reg();
+
+  DRegister dvalue = EvenDRegisterOf(value);
+
+  QRegister result = locs()->out().fpu_reg();
+
+  DRegister dresult0 = EvenDRegisterOf(result);
+  DRegister dresult1 = OddDRegisterOf(result);
+
+  // Splat across all lanes.
+  __ vmovd(dresult0, dvalue);
+  __ vmovd(dresult1, dvalue);
+}
+
+
+LocationSummary* Float64x2ConstructorInstr::MakeLocationSummary(
+    bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
+}
+
+
+void Float64x2ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  QRegister q0 = locs()->in(0).fpu_reg();
+  QRegister q1 = locs()->in(1).fpu_reg();
+  QRegister r = locs()->out().fpu_reg();
+
+  DRegister d0 = EvenDRegisterOf(q0);
+  DRegister d1 = EvenDRegisterOf(q1);
+
+  DRegister dr0 = EvenDRegisterOf(r);
+  DRegister dr1 = OddDRegisterOf(r);
+
+  __ vmovd(dr0, d0);
+  __ vmovd(dr1, d1);
+}
+
+
+LocationSummary* Float64x2ToFloat32x4Instr::MakeLocationSummary(
+    bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  // Low (< 7) Q registers are needed for the vcvtsd instruction.
+  summary->set_out(Location::FpuRegisterLocation(Q6));
+  return summary;
+}
+
+
+void Float64x2ToFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  QRegister q = locs()->in(0).fpu_reg();
+  QRegister r = locs()->out().fpu_reg();
+
+  DRegister dq0 = EvenDRegisterOf(q);
+  DRegister dq1 = OddDRegisterOf(q);
+
+  DRegister dr0 = EvenDRegisterOf(r);
+
+  // Zero register.
+  __ veorq(r, r, r);
+  // Set X lane.
+  __ vcvtsd(EvenSRegisterOf(dr0), dq0);
+  // Set Y lane.
+  __ vcvtsd(OddSRegisterOf(dr0), dq1);
+}
+
+
+LocationSummary* Float32x4ToFloat64x2Instr::MakeLocationSummary(
+    bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  // Low (< 7) Q registers are needed for the vcvtsd instruction.
+  summary->set_out(Location::FpuRegisterLocation(Q6));
+  return summary;
+}
+
+
+void Float32x4ToFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  QRegister q = locs()->in(0).fpu_reg();
+  QRegister r = locs()->out().fpu_reg();
+
+  DRegister dq0 = EvenDRegisterOf(q);
+
+  DRegister dr0 = EvenDRegisterOf(r);
+  DRegister dr1 = OddDRegisterOf(r);
+
+  // Set X.
+  __ vcvtds(dr0, EvenSRegisterOf(dq0));
+  // Set Y.
+  __ vcvtds(dr1, OddSRegisterOf(dq0));
+}
+
+
+LocationSummary* Float64x2ZeroArgInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+
+  if (representation() == kTagged) {
+    ASSERT(op_kind() == MethodRecognizer::kFloat64x2GetSignMask);
+    // Grabbing the S components means we need a low (< 7) Q.
+    summary->set_in(0, Location::FpuRegisterLocation(Q6));
+    summary->set_out(Location::RequiresRegister());
+    summary->AddTemp(Location::RequiresRegister());
+  } else {
+    summary->set_in(0, Location::RequiresFpuRegister());
+    summary->set_out(Location::RequiresFpuRegister());
+  }
+  return summary;
+}
+
+
+void Float64x2ZeroArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  QRegister q = locs()->in(0).fpu_reg();
+
+  if ((op_kind() == MethodRecognizer::kFloat64x2GetSignMask)) {
+    DRegister dvalue0 = EvenDRegisterOf(q);
+    DRegister dvalue1 = OddDRegisterOf(q);
+
+    Register out = locs()->out().reg();
+    Register temp = locs()->temp(0).reg();
+
+    // Upper 32-bits of X lane.
+    __ vmovrs(out, OddSRegisterOf(dvalue0));
+    __ Lsr(out, out, 31);
+    // Upper 32-bits of Y lane.
+    __ vmovrs(temp, OddSRegisterOf(dvalue1));
+    __ Lsr(temp, temp, 31);
+    __ orr(out, out, ShifterOperand(temp, LSL, 1));
+    // Tag.
+    __ SmiTag(out);
+    return;
+  }
+  ASSERT(representation() == kUnboxedFloat64x2);
+  QRegister r = locs()->out().fpu_reg();
+
+  DRegister dvalue0 = EvenDRegisterOf(q);
+  DRegister dvalue1 = OddDRegisterOf(q);
+  DRegister dresult0 = EvenDRegisterOf(r);
+  DRegister dresult1 = OddDRegisterOf(r);
+
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat64x2Negate:
+      __ vnegd(dresult0, dvalue0);
+      __ vnegd(dresult1, dvalue1);
+      break;
+    case MethodRecognizer::kFloat64x2Abs:
+      __ vabsd(dresult0, dvalue0);
+      __ vabsd(dresult1, dvalue1);
+      break;
+    case MethodRecognizer::kFloat64x2Sqrt:
+      __ vsqrtd(dresult0, dvalue0);
+      __ vsqrtd(dresult1, dvalue1);
+      break;
+    default: UNREACHABLE();
+  }
+}
+
+
+LocationSummary* Float64x2OneArgInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void Float64x2OneArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  QRegister left = locs()->in(0).fpu_reg();
+  DRegister left0 = EvenDRegisterOf(left);
+  DRegister left1 = OddDRegisterOf(left);
+  QRegister right = locs()->in(1).fpu_reg();
+  DRegister right0 = EvenDRegisterOf(right);
+  DRegister right1 = OddDRegisterOf(right);
+  QRegister out = locs()->out().fpu_reg();
+  ASSERT(left == out);
+
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat64x2Scale:
+      __ vmuld(left0, left0, right0);
+      __ vmuld(left1, left1, right0);
+      break;
+    case MethodRecognizer::kFloat64x2WithX:
+      __ vmovd(left0, right0);
+      break;
+    case MethodRecognizer::kFloat64x2WithY:
+      __ vmovd(left1, right0);
+      break;
+    case MethodRecognizer::kFloat64x2Min: {
+      // X lane.
+      Label l0;
+      __ vcmpd(left0, right0);
+      __ vmstat();
+      __ b(&l0, LT);
+      __ vmovd(left0, right0);
+      __ Bind(&l0);
+      // Y lane.
+      Label l1;
+      __ vcmpd(left1, right1);
+      __ vmstat();
+      __ b(&l1, LT);
+      __ vmovd(left1, right1);
+      __ Bind(&l1);
+      break;
+    }
+    case MethodRecognizer::kFloat64x2Max: {
+      // X lane.
+      Label g0;
+      __ vcmpd(left0, right0);
+      __ vmstat();
+      __ b(&g0, GT);
+      __ vmovd(left0, right0);
+      __ Bind(&g0);
+      // Y lane.
+      Label g1;
+      __ vcmpd(left1, right1);
+      __ vmstat();
+      __ b(&g1, GT);
+      __ vmovd(left1, right1);
+      __ Bind(&g1);
+      break;
+    }
+    default: UNREACHABLE();
   }
 }
 

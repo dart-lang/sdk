@@ -3,17 +3,17 @@
   <link rel="import" href="nav_bar.html">
   <link rel="import" href="observatory_element.html">
 </head>
-<polymer-element name="field-view" extends="isolate-element">
+<polymer-element name="field-view" extends="observatory-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
-      <template if="{{ field['owner']['type'] == '@Class' }}">
+      <isolate-nav-menu isolate="{{ field.isolate }}"></isolate-nav-menu>
+      <template if="{{ field['owner'].serviceType == 'Class' }}">
         <!-- TODO(turnidge): Add library nav menu here. -->
-        <class-nav-menu isolate="{{ isolate }}" cls="{{ field['owner'] }}"></class-nav-menu>
+        <class-nav-menu cls="{{ field['owner'] }}"></class-nav-menu>
       </template>
-      <template if="{{ field['owner']['type'] == '@Library' }}">
-        <library-nav-menu isolate="{{ isolate }}" library="{{ field['owner'] }}"></library-nav-menu>
+      <template if="{{ field['owner'].serviceType == 'Library' }}">
+        <library-nav-menu library="{{ field['owner'] }}"></library-nav-menu>
       </template>
       <nav-menu link="." anchor="{{ field['user_name'] }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
@@ -27,7 +27,7 @@
           <template if="{{ field['final'] }}">final</template>
           <template if="{{ field['const'] }}">const</template>
           {{ field['user_name'] }} ({{ field['name'] }})
-          <class-ref isolate="{{ isolate }}" ref="{{ field['class'] }}"></class-ref>
+          <class-ref ref="{{ field['owner'] }}"></class-ref>
         </div>
         <div class="panel-body">
         <template if="{{ field['guard_class'] == 'dynamic'}}">
@@ -46,7 +46,7 @@
             </div>
           </template>
           <blockquote>
-            <class-ref isolate="{{ isolate }}" ref="{{ field['guard_class'] }}"></class-ref>
+            <class-ref ref="{{ field['guard_class'] }}"></class-ref>
           </blockquote>
         </template>
         </div>

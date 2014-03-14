@@ -11,23 +11,23 @@ part 'unittest_test_utils.dart';
 
 var testFunction = (_) {
   test('protectAsync0', () {
-    var protected = protectAsync0(() {
+    var protected = () {
       throw new StateError('error during protectAsync0');
-    });
+    };
     new Future(protected);
   });
 
   test('protectAsync1', () {
-    var protected = protectAsync1((arg) {
+    var protected = (arg) {
       throw new StateError('error during protectAsync1: $arg');
-    });
+    };
     new Future(() => protected('one arg'));
   });
 
   test('protectAsync2', () {
-    var protected = protectAsync2((arg1, arg2) {
+    var protected = (arg1, arg2) {
       throw new StateError('error during protectAsync2: $arg1, $arg2');
-    });
+    };
     new Future(() => protected('arg1', 'arg2'));
   });
 

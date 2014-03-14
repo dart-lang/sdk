@@ -45,14 +45,17 @@ abstract class LocalSourcePredicate {
 }
 
 class LocalSourcePredicate_FALSE implements LocalSourcePredicate {
+  @override
   bool isLocal(Source source) => false;
 }
 
 class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
+  @override
   bool isLocal(Source source) => true;
 }
 
 class LocalSourcePredicate_NOT_SDK implements LocalSourcePredicate {
+  @override
   bool isLocal(Source source) => source.uriKind != UriKind.DART_URI;
 }
 
@@ -94,10 +97,13 @@ class FileBasedSource implements Source {
     this._uriKind = uriKind;
   }
 
+  @override
   bool operator ==(Object object) => object != null && this.runtimeType == object.runtimeType && _file == (object as FileBasedSource)._file;
 
+  @override
   bool exists() => _file.isFile();
 
+  @override
   TimestampedData<String> get contents {
     TimeCounter_TimeCounterHandle handle = PerformanceStatistics.io.start();
     try {
@@ -107,15 +113,7 @@ class FileBasedSource implements Source {
     }
   }
 
-  void getContentsToReceiver(Source_ContentReceiver receiver) {
-    TimeCounter_TimeCounterHandle handle = PerformanceStatistics.io.start();
-    try {
-      getContentsFromFileToReceiver(receiver);
-    } finally {
-      handle.stop();
-    }
-  }
-
+  @override
   String get encoding {
     if (_encoding == null) {
       _encoding = "${_uriKind.encoding}${_file.toURI().toString()}";
@@ -123,18 +121,25 @@ class FileBasedSource implements Source {
     return _encoding;
   }
 
+  @override
   String get fullName => _file.getAbsolutePath();
 
+  @override
   int get modificationStamp => _file.lastModified();
 
+  @override
   String get shortName => _file.getName();
 
+  @override
   UriKind get uriKind => _uriKind;
 
+  @override
   int get hashCode => _file.hashCode;
 
+  @override
   bool get isInSystemLibrary => identical(_uriKind, UriKind.DART_URI);
 
+  @override
   Source resolveRelative(Uri containedUri) {
     try {
       Uri resolvedUri = file.toURI().resolveUri(containedUri);
@@ -144,6 +149,7 @@ class FileBasedSource implements Source {
     return null;
   }
 
+  @override
   String toString() {
     if (_file == null) {
       return "<unknown source>";
@@ -164,17 +170,6 @@ class FileBasedSource implements Source {
    */
   TimestampedData<String> get contentsFromFile {
     return new TimestampedData<String>(_file.lastModified(), _file.readAsStringSync());
-  }
-
-  /**
-   * Get the contents of underlying file and pass it to the given receiver.
-   *
-   * @param receiver the content receiver to which the content of this source will be passed
-   * @throws Exception if the contents of this source could not be accessed
-   * @see #getContentsToReceiver(ContentReceiver)
-   */
-  void getContentsFromFileToReceiver(Source_ContentReceiver receiver) {
-    throw new UnsupportedOperationException();
   }
 
   /**
@@ -232,6 +227,7 @@ class PackageUriResolver extends UriResolver {
     this._packagesDirectories = packagesDirectories;
   }
 
+  @override
   Source fromEncoding(UriKind kind, Uri uri) {
     if (identical(kind, UriKind.PACKAGE_SELF_URI) || identical(kind, UriKind.PACKAGE_URI)) {
       return new FileBasedSource.con2(new JavaFile.fromUri(uri), kind);
@@ -239,6 +235,7 @@ class PackageUriResolver extends UriResolver {
     return null;
   }
 
+  @override
   Source resolveAbsolute(Uri uri) {
     if (!isPackageUri(uri)) {
       return null;
@@ -269,13 +266,14 @@ class PackageUriResolver extends UriResolver {
       JavaFile resolvedFile = new JavaFile.relative(packagesDirectory, path);
       if (resolvedFile.exists()) {
         JavaFile canonicalFile = getCanonicalFile(packagesDirectory, pkgName, relPath);
-        UriKind uriKind = isSelfReference(packagesDirectory, canonicalFile) ? UriKind.PACKAGE_SELF_URI : UriKind.PACKAGE_URI;
+        UriKind uriKind = _isSelfReference(packagesDirectory, canonicalFile) ? UriKind.PACKAGE_SELF_URI : UriKind.PACKAGE_URI;
         return new FileBasedSource.con2(canonicalFile, uriKind);
       }
     }
     return new FileBasedSource.con2(getCanonicalFile(_packagesDirectories[0], pkgName, relPath), UriKind.PACKAGE_URI);
   }
 
+  @override
   Uri restoreAbsolute(Source source) {
     if (source is FileBasedSource) {
       String sourcePath = source.file.getPath();
@@ -326,7 +324,7 @@ class PackageUriResolver extends UriResolver {
    * @return `true` if "file" was found in "packagesDir", and it is part of the "lib" folder
    *         of the application that contains in this "packagesDir".
    */
-  bool isSelfReference(JavaFile packagesDir, JavaFile file) {
+  bool _isSelfReference(JavaFile packagesDir, JavaFile file) {
     JavaFile rootDir = packagesDir.getParentFile();
     if (rootDir == null) {
       return false;
@@ -349,7 +347,7 @@ class DirectoryBasedSourceContainer implements SourceContainer {
    * @param path the path to which the file separator is to be added
    * @return a path that ends with the system file separator
    */
-  static String appendFileSeparator(String path) {
+  static String _appendFileSeparator(String path) {
     if (path == null || path.length <= 0 || path.codeUnitAt(path.length - 1) == JavaFile.separatorChar) {
       return path;
     }
@@ -378,11 +376,13 @@ class DirectoryBasedSourceContainer implements SourceContainer {
    * @param path the path (not `null` and not empty)
    */
   DirectoryBasedSourceContainer.con2(String path) {
-    this._path = appendFileSeparator(path);
+    this._path = _appendFileSeparator(path);
   }
 
+  @override
   bool contains(Source source) => source.fullName.startsWith(_path);
 
+  @override
   bool operator ==(Object obj) => (obj is DirectoryBasedSourceContainer) && obj.path == path;
 
   /**
@@ -392,8 +392,10 @@ class DirectoryBasedSourceContainer implements SourceContainer {
    */
   String get path => _path;
 
+  @override
   int get hashCode => _path.hashCode;
 
+  @override
   String toString() => "SourceContainer[${_path}]";
 }
 
@@ -414,6 +416,7 @@ class FileUriResolver extends UriResolver {
    */
   static bool isFileUri(Uri uri) => uri.scheme == FILE_SCHEME;
 
+  @override
   Source fromEncoding(UriKind kind, Uri uri) {
     if (identical(kind, UriKind.FILE_URI)) {
       return new FileBasedSource.con2(new JavaFile.fromUri(uri), kind);
@@ -421,6 +424,7 @@ class FileUriResolver extends UriResolver {
     return null;
   }
 
+  @override
   Source resolveAbsolute(Uri uri) {
     if (!isFileUri(uri)) {
       return null;

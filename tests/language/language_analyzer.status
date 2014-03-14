@@ -5,7 +5,6 @@
 [ $compiler == dartanalyzer ]
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
-is_malformed_type_test/*: Fail # don't know how to tell analyzer to expect static warning
 
 # Test issue 12694 (was analyzer issue), (1) when "abstract" is import prefix using it as type is warning; (2) currently analyzer resolves prefix as field (don't ask)
 built_in_identifier_prefix_test: CompileTimeError # Issue 12694
@@ -27,6 +26,8 @@ type_check_const_function_typedef2_test/00: MissingCompileTimeError, Ok # Compil
 
 const_map2_test/00: MissingCompileTimeError # Issue 17209
 switch_case_test/none: CompileTimeError # Issue 17209
+
+call_closurization_test: StaticWarning # Issue 17476
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
@@ -474,3 +475,19 @@ unresolved_top_level_method_negative_test: CompileTimeError
 vm/type_cast_vm_test: StaticWarning
 vm/type_vm_test: StaticWarning
 void_type_test: StaticWarning
+deferred_constraints_test/type_annotation1: MissingStaticWarning
+deferred_constraints_test/type_annotation2: MissingStaticWarning
+deferred_constraints_test/type_annotation_generic1: MissingStaticWarning
+deferred_constraints_test/type_annotation_generic2: MissingStaticWarning
+deferred_constraints_test/type_annotation_generic3: MissingStaticWarning
+deferred_constraints_test/type_annotation_generic4: MissingStaticWarning
+deferred_constraints_test/type_annotation_null: MissingStaticWarning
+deferred_constraints_test/type_annotation_top_level: MissingStaticWarning
+deferred_constraints_test/as_operation: MissingStaticWarning
+deferred_constraints_test/is_check: MissingStaticWarning
+deferred_constraints_test/new_generic2: MissingStaticWarning
+deferred_constraints_test/new_generic3: MissingStaticWarning
+deferred_constraints_test/catch_check: MissingStaticWarning
+deferred_constraints_test/const: MissingCompileTimeError
+deferred_constraints_test/const_annotation: MissingCompileTimeError
+deferred_constraints_test/const_default_argument: MissingCompileTimeError

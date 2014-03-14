@@ -173,11 +173,12 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     // it with a set of classes it intercepts.
     Set<ClassElement> interceptedClasses;
     JavaScriptBackend backend = compiler.backend;
-    HInstruction dominator =
-        findDominator(node.usedBy.where((i) => i is HInvokeDynamic));
-    // If there is an instruction that dominates all others, we can
-    // use only the selector of that instruction.
-    if (dominator != null) {
+    HInstruction dominator = findDominator(node.usedBy);
+    // If there is a call that dominates all other uses, we can use just the
+    // selector of that instruction.
+    if (dominator is HInvokeDynamic &&
+        dominator.isCallOnInterceptor(compiler) &&
+        node == dominator.receiver) {
       interceptedClasses =
             backend.getInterceptedClassesOn(dominator.selector.name);
 
@@ -201,15 +202,17 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     } else {
       interceptedClasses = new Set<ClassElement>();
       for (HInstruction user in node.usedBy) {
-        if (user is HIs) {
-          // Is-checks can be performed on any intercepted class.
+        if (user is HInvokeDynamic &&
+            user.isCallOnInterceptor(compiler) &&
+            node == user.receiver) {
+          interceptedClasses.addAll(
+              backend.getInterceptedClassesOn(user.selector.name));
+        } else {
+          // Use a most general interceptor for other instructions, example,
+          // is-checks and escaping interceptors.
           interceptedClasses.addAll(backend.interceptedClasses);
           break;
         }
-        if (user is! HInvoke) continue;
-        // We don't handle escaping interceptors yet.
-        interceptedClasses.addAll(
-            backend.getInterceptedClassesOn(user.selector.name));
       }
     }
 

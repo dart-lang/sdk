@@ -26,9 +26,6 @@ class StringSource implements Source {
 
   bool exists() => true;
 
-  void getContentsToReceiver(Source_ContentReceiver receiver) =>
-      receiver.accept(_contents, modificationStamp);
-
   TimestampedData<String> get contents => new TimestampedData(modificationStamp, _contents);
 
   String get encoding => throw new UnsupportedError("StringSource doesn't support "

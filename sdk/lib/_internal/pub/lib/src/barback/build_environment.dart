@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:barback/barback.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:watcher/watcher.dart';
 
@@ -159,6 +159,18 @@ class BuildEnvironment {
     return _builtInTransformers;
   }
 
+  /// Gets the names of the top-level directories in [package] whose contents
+  /// should be provided as source assets.
+  Set<String> getPublicDirectories(String package) {
+    var directories = ["asset", "lib"];
+
+    if (package == graph.entrypoint.root.name) {
+      directories.addAll(_rootDirectories);
+    }
+
+    return directories.toSet();
+  }
+
   /// Loads the assets and transformers for this environment.
   ///
   /// This transforms and serves all library and asset files in all packages in
@@ -178,8 +190,15 @@ class BuildEnvironment {
       // whole program.
       var subscriptions = [
         barback.errors.listen((error) {
-          if (error is TransformerException) error = error.error;
-          if (!completer.isCompleted) {
+          if (error is TransformerException) {
+            var message = error.error.toString();
+            if (error.stackTrace != null) {
+              message += "\n" + error.stackTrace.terse.toString();
+            }
+
+            _log(new LogEntry(error.transform, error.transform.primaryId,
+                LogLevel.ERROR, message, null));
+          } else if (!completer.isCompleted) {
             completer.completeError(error, new Chain.current());
           }
         }),
@@ -226,8 +245,7 @@ class BuildEnvironment {
 
   /// Provides all of the source assets in the environment to barback.
   Future _loadSources(Barback barback) {
-    return Future.wait(graph.packages.values.map(
-        (package) => _updateSources(graph.entrypoint, package)));
+    return Future.wait(graph.packages.values.map(_updateSources));
   }
 
   /// Adds all of the source assets in this environment to barback and then
@@ -243,13 +261,12 @@ class BuildEnvironment {
       var packageId = graph.lockFile.packages[package.name];
       if (packageId != null &&
           graph.entrypoint.cache.sources[packageId.source].shouldCache) {
-        return _updateSources(graph.entrypoint, package);
+        return _updateSources(package);
       }
 
       // Watch the visible package directories for changes.
-      return Future.wait(_getPublicDirectories(graph.entrypoint, package)
-          .map((name) {
-        var subdirectory = path.join(package.dir, name);
+      return Future.wait(getPublicDirectories(package.name).map((name) {
+        var subdirectory = p.join(package.dir, name);
         if (!dirExists(subdirectory)) return new Future.value();
 
         // TODO(nweiz): close these watchers when [barback] is closed.
@@ -257,7 +274,7 @@ class BuildEnvironment {
         watcher.events.listen((event) {
           // Don't watch files symlinked into these directories.
           // TODO(rnystrom): If pub gets rid of symlinks, remove this.
-          var parts = path.split(event.path);
+          var parts = p.split(event.path);
           if (parts.contains("packages") || parts.contains("assets")) return;
 
           // Skip files that were (most likely) compiled from nearby ".dart"
@@ -274,7 +291,7 @@ class BuildEnvironment {
           if (event.path.endsWith(".dart.precompiled.js")) return;
 
           var id = new AssetId(package.name,
-              path.relative(event.path, from: package.dir));
+              p.relative(event.path, from: package.dir));
           if (event.type == ChangeType.REMOVE) {
             barback.removeSources([id]);
           } else {
@@ -282,7 +299,7 @@ class BuildEnvironment {
           }
         });
         return watcher.ready;
-      })).then((_) => _updateSources(graph.entrypoint, package));
+      })).then((_) => _updateSources(package));
     }));
   }
 
@@ -295,10 +312,9 @@ class BuildEnvironment {
   /// For large packages, listing the contents is a performance bottleneck, so
   /// this is optimized for our needs in here instead of using the more general
   /// but slower [listDir].
-  Future _updateSources(Entrypoint entrypoint, Package package) {
-    return Future.wait(_getPublicDirectories(entrypoint, package)
-        .map((dirPath) {
-      var dir = path.join(package.dir, dirPath);
+  Future _updateSources(Package package) {
+    return Future.wait(getPublicDirectories(package.name).map((dirPath) {
+      var dir = p.join(package.dir, dirPath);
       if (!dirExists(dir)) return new Future.value();
 
       return new Directory(dir).list(recursive: true, followLinks: true)
@@ -307,11 +323,11 @@ class BuildEnvironment {
         if (entry is Directory) return [];
         if (entry is Link) return [];
 
-        var relative = path.normalize(
-            path.relative(entry.path, from: package.dir));
+        var relative = p.normalize(
+            p.relative(entry.path, from: package.dir));
 
         // Ignore hidden files or files in "packages" and hidden directories.
-        if (path.split(relative).any((part) =>
+        if (p.split(relative).any((part) =>
             part.startsWith(".") || part == "packages")) {
           return [];
         }
@@ -333,19 +349,6 @@ class BuildEnvironment {
       }).toList().then(barback.updateSources);
     }));
   }
-
-  /// Gets the names of the top-level directories in [package] whose contents
-  /// should be provided as source assets.
-  Iterable<String> _getPublicDirectories(Entrypoint entrypoint,
-      Package package) {
-    var directories = ["asset", "lib"];
-
-    if (package.name == entrypoint.root.name) {
-      directories.addAll(_rootDirectories);
-    }
-
-    return directories;
-  }
 }
 
 /// Log [entry] using Pub's logging infrastructure.
@@ -354,9 +357,12 @@ class BuildEnvironment {
 /// show the same context like the file where an error occurred, this tries
 /// to avoid showing redundant data in the entry.
 void _log(LogEntry entry) {
-  messageMentions(String text) {
-    return entry.message.toLowerCase().contains(text.toLowerCase());
-  }
+  messageMentions(text) =>
+      entry.message.toLowerCase().contains(text.toLowerCase());
+
+  messageMentionsAsset(id) =>
+      messageMentions(id.toString()) ||
+      messageMentions(p.joinAll(p.url.split(entry.assetId.path)));
 
   var prefixParts = [];
 
@@ -369,14 +375,14 @@ void _log(LogEntry entry) {
   prefixParts.add(entry.transform.transformer);
 
   // Mention the primary input of the transform unless the message seems to.
-  if (!messageMentions(entry.transform.primaryId.path)) {
+  if (!messageMentionsAsset(entry.transform.primaryId)) {
     prefixParts.add("on ${entry.transform.primaryId}");
   }
 
   // If the relevant asset isn't the primary input, mention it unless the
   // message already does.
   if (entry.assetId != entry.transform.primaryId &&
-      !messageMentions(entry.assetId.path)) {
+      !messageMentionsAsset(entry.assetId)) {
     prefixParts.add("with input ${entry.assetId}");
   }
 

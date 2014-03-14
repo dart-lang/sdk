@@ -5,6 +5,7 @@
 library base_request;
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'byte_stream.dart';
 import 'client.dart';
@@ -79,7 +80,9 @@ abstract class BaseRequest {
 
   /// Creates a new HTTP request.
   BaseRequest(this.method, this.url)
-    : headers = <String, String>{};
+    : headers = new LinkedHashMap(
+        equals: (key1, key2) => key1.toLowerCase() == key2.toLowerCase(),
+        hashCode: (key) => key.toLowerCase().hashCode);
 
   /// Finalizes the HTTP request in preparation for it being sent. This freezes
   /// all mutable fields and returns a single-subscription [ByteStream] that

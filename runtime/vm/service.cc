@@ -483,7 +483,7 @@ static RootMessageHandler FindRootMessageHandler(const char* command);
 
 
 static void PrintArgumentsAndOptions(const JSONObject& obj, JSONStream* js) {
-  JSONObject jsobj(&obj, "message");
+  JSONObject jsobj(&obj, "request");
   {
     JSONArray jsarr(&jsobj, "arguments");
     for (intptr_t i = 0; i < js->num_arguments(); i++) {
@@ -505,7 +505,8 @@ static void PrintArgumentsAndOptions(const JSONObject& obj, JSONStream* js) {
 }
 
 
-static void PrintError(JSONStream* js, const char* format, ...) {
+static void PrintError(JSONStream* js,
+                       const char* format, ...) {
   Isolate* isolate = Isolate::Current();
 
   va_list args;
@@ -521,7 +522,33 @@ static void PrintError(JSONStream* js, const char* format, ...) {
 
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Error");
-  jsobj.AddProperty("text", buffer);
+  jsobj.AddProperty("id", "");
+  jsobj.AddProperty("message", buffer);
+  PrintArgumentsAndOptions(jsobj, js);
+}
+
+
+static void PrintErrorWithKind(JSONStream* js,
+                               const char* kind,
+                               const char* format, ...) {
+  Isolate* isolate = Isolate::Current();
+
+  va_list args;
+  va_start(args, format);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  va_end(args);
+
+  char* buffer = isolate->current_zone()->Alloc<char>(len + 1);
+  va_list args2;
+  va_start(args2, format);
+  OS::VSNPrint(buffer, (len + 1), format, args2);
+  va_end(args2);
+
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "Error");
+  jsobj.AddProperty("id", "");
+  jsobj.AddProperty("kind", kind);
+  jsobj.AddProperty("message", buffer);
   PrintArgumentsAndOptions(jsobj, js);
 }
 
@@ -604,6 +631,7 @@ static bool HandleStackTrace(Isolate* isolate, JSONStream* js) {
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "StackTrace");
+  jsobj.AddProperty("id", "stacktrace");
   JSONArray jsarr(&jsobj, "members");
   intptr_t num_frames = stack->Length();
   for (intptr_t i = 0; i < num_frames; i++) {
@@ -684,6 +712,70 @@ static bool GetUnsignedIntegerId(const char* s, uintptr_t* id, int base = 10) {
     return false;
   }
   *id = r;
+  return true;
+}
+
+
+static bool GetInteger64Id(const char* s, int64_t* id, int base = 10) {
+  if ((s == NULL) || (*s == '\0')) {
+    // Empty string.
+    return false;
+  }
+  if (id == NULL) {
+    // No id pointer.
+    return false;
+  }
+  int64_t r = 0;
+  char* end_ptr = NULL;
+  r = strtoll(s, &end_ptr, base);
+  if (end_ptr == s) {
+    // String was not advanced at all, cannot be valid.
+    return false;
+  }
+  *id = r;
+  return true;
+}
+
+// Scans the string until the '-' character. Returns pointer to string
+// at '-' character. Returns NULL if not found.
+const char* ScanUntilDash(const char* s) {
+  if ((s == NULL) || (*s == '\0')) {
+    // Empty string.
+    return NULL;
+  }
+  while (*s != '\0') {
+    if (*s == '-') {
+      return s;
+    }
+    s++;
+  }
+  return NULL;
+}
+
+
+static bool GetCodeId(const char* s, int64_t* timestamp, uword* address) {
+  if ((s == NULL) || (*s == '\0')) {
+    // Empty string.
+    return false;
+  }
+  if ((timestamp == NULL) || (address == NULL)) {
+    // Bad arguments.
+    return false;
+  }
+  // Extract the timestamp.
+  if (!GetInteger64Id(s, timestamp, 16) || (*timestamp < 0)) {
+    return false;
+  }
+  s = ScanUntilDash(s);
+  if (s == NULL) {
+    return false;
+  }
+  // Skip the dash.
+  s++;
+  // Extract the PC.
+  if (!GetUnsignedIntegerId(s, address, 16)) {
+    return false;
+  }
   return true;
 }
 
@@ -867,96 +959,167 @@ static void PrintPseudoNull(JSONStream* js,
 }
 
 
-static bool HandleObjects(Isolate* isolate, JSONStream* js) {
-  REQUIRE_COLLECTION_ID("objects");
-  ASSERT(js->num_arguments() >= 2);
-  const char* arg = js->GetArgument(1);
-
-  // TODO(turnidge): Handle <optimized out> the same way as other
-  // special nulls.
-  if (strcmp(arg, "null") == 0) {
-    Object::null_object().PrintToJSONStream(js, false);
-    return true;
-
-  } else if (strcmp(arg, "not-initialized") == 0) {
-    Object::sentinel().PrintToJSONStream(js, false);
-    return true;
-
-  } else if (strcmp(arg, "being-initialized") == 0) {
-    Object::transition_sentinel().PrintToJSONStream(js, false);
-    return true;
-
-  } else if (strcmp(arg, "optimized-out") == 0) {
-    Symbols::OptimizedOut().PrintToJSONStream(js, false);
-    return true;
-
-  } else if (strcmp(arg, "collected") == 0) {
-    PrintPseudoNull(js, "objects/collected", "<collected>");
-    return true;
-
-  } else if (strcmp(arg, "expired") == 0) {
-    PrintPseudoNull(js, "objects/expired", "<expired>");
-    return true;
-
-  } else if (strcmp(arg, "int") == 0) {
-    if (js->num_arguments() < 3) {
-      PrintError(js, "expected 3 arguments but found %" Pd "\n",
-                 js->num_arguments());
-      return true;
-    }
+static RawObject* LookupObjectId(Isolate* isolate,
+                                 const char* arg,
+                                 bool* error) {
+  *error = false;
+  if (strncmp(arg, "int-", 4) == 0) {
+    arg += 4;
     int64_t value = 0;
-    if (!OS::StringToInt64(js->GetArgument(2), &value) ||
+    if (!OS::StringToInt64(arg, &value) ||
         !Smi::IsValid64(value)) {
-      PrintError(js, "integer value too large\n",
-                 js->num_arguments());
-      return true;
+      *error = true;
+      return Object::null();
     }
     const Integer& obj =
         Integer::Handle(isolate, Smi::New(static_cast<intptr_t>(value)));
-    obj.PrintToJSONStream(js, false);
-    return true;
+    return obj.raw();
 
-  } else if (strcmp(arg, "bool") == 0) {
-    if (js->num_arguments() < 3) {
-      PrintError(js, "expected 3 arguments but found %" Pd "\n",
-                 js->num_arguments());
-      return true;
-    }
-    const char* value_str = js->GetArgument(2);
-    bool value = false;
-    if (strcmp(value_str, "false") == 0) {
-      value = false;
-    } else if (strcmp(value_str, "true") == 0) {
-      value = true;
-    } else {
-      PrintError(js, "expected 'true' or 'false' but found %s\n", value_str);
-      return true;
-    }
-    Bool::Get(value).PrintToJSONStream(js, false);
-    return true;
+  } else if (strcmp(arg, "bool-true") == 0) {
+    return Bool::True().raw();
+
+  } else if (strcmp(arg, "bool-false") == 0) {
+    return Bool::False().raw();
   }
 
   ObjectIdRing* ring = isolate->object_id_ring();
   ASSERT(ring != NULL);
   intptr_t id = -1;
   if (!GetIntegerId(arg, &id)) {
-    Object::null_object().PrintToJSONStream(js, false);
-    return true;
+    *error = true;
+    return Instance::null();
   }
-  Object& obj = Object::Handle(ring->GetObjectForId(id));
-  if (obj.IsNull()) {
-    // The object has been collected by the gc.
-    PrintPseudoNull(js, "objects/collected", "<collected>");
-    return true;
-  } else if (obj.raw() == Object::sentinel().raw()) {
-    // The object id has expired.
-    PrintPseudoNull(js, "objects/expired", "<expired>");
-    return true;
-  }
-  obj.PrintToJSONStream(js, false);
-  return true;
+  return ring->GetObjectForId(id);
 }
 
+
+static bool HandleObjects(Isolate* isolate, JSONStream* js) {
+  REQUIRE_COLLECTION_ID("objects");
+  if (js->num_arguments() < 2) {
+    PrintError(js, "expected at least 2 arguments but found %" Pd "\n",
+               js->num_arguments());
+    return true;
+  }
+  const char* arg = js->GetArgument(1);
+
+  // Handle special objects first.
+  if (strcmp(arg, "null") == 0) {
+    if (js->num_arguments() > 2) {
+      PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
+                 js->num_arguments());
+    } else {
+      Instance::null_instance().PrintToJSONStream(js, false);
+    }
+    return true;
+
+  } else if (strcmp(arg, "not-initialized") == 0) {
+    if (js->num_arguments() > 2) {
+      PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
+                 js->num_arguments());
+    } else {
+      Object::sentinel().PrintToJSONStream(js, false);
+    }
+    return true;
+
+  } else if (strcmp(arg, "being-initialized") == 0) {
+    if (js->num_arguments() > 2) {
+      PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
+                 js->num_arguments());
+    } else {
+      Object::transition_sentinel().PrintToJSONStream(js, false);
+    }
+    return true;
+
+  } else if (strcmp(arg, "optimized-out") == 0) {
+    if (js->num_arguments() > 2) {
+      PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
+                 js->num_arguments());
+    } else {
+      Symbols::OptimizedOut().PrintToJSONStream(js, false);
+    }
+    return true;
+
+  } else if (strcmp(arg, "collected") == 0) {
+    if (js->num_arguments() > 2) {
+      PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
+                 js->num_arguments());
+    } else {
+      PrintPseudoNull(js, "objects/collected", "<collected>");
+    }
+    return true;
+
+  } else if (strcmp(arg, "expired") == 0) {
+    if (js->num_arguments() > 2) {
+      PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
+                 js->num_arguments());
+    } else {
+      PrintPseudoNull(js, "objects/expired", "<expired>");
+    }
+    return true;
+  }
+
+  // Lookup the object.
+  Object& obj = Object::Handle(isolate);
+  bool error = false;
+  obj = LookupObjectId(isolate, arg, &error);
+  if (error) {
+    PrintError(js, "unrecognized object id '%s'", arg);
+    return true;
+  }
+
+  // Now what should we do with the object?
+  if (js->num_arguments() == 2) {
+    // Print.
+    if (obj.IsNull()) {
+      // The object has been collected by the gc.
+      PrintPseudoNull(js, "objects/collected", "<collected>");
+      return true;
+    } else if (obj.raw() == Object::sentinel().raw()) {
+      // The object id has expired.
+      PrintPseudoNull(js, "objects/expired", "<expired>");
+      return true;
+    }
+    obj.PrintToJSONStream(js, false);
+    return true;
+  }
+  ASSERT(js->num_arguments() > 2);
+
+  const char* action = js->GetArgument(2);
+  if (strcmp(action, "eval") == 0) {
+    if (js->num_arguments() > 3) {
+      PrintError(js, "expected at most 3 arguments but found %" Pd "\n",
+                 js->num_arguments());
+      return true;
+    }
+    if (obj.IsNull()) {
+      PrintErrorWithKind(js, "EvalCollected",
+                         "attempt to evaluate against collected object\n",
+                         js->num_arguments());
+      return true;
+    }
+    if (obj.raw() == Object::sentinel().raw()) {
+      PrintErrorWithKind(js, "EvalExpired",
+                         "attempt to evaluate against expired object\n",
+                         js->num_arguments());
+      return true;
+    }
+    const char* expr = js->LookupOption("expr");
+    if (expr == NULL) {
+      PrintError(js, "eval expects an 'expr' option\n",
+                 js->num_arguments());
+      return true;
+    }
+    const String& expr_str = String::Handle(isolate, String::New(expr));
+    ASSERT(obj.IsInstance());
+    const Instance& instance = Instance::Cast(obj);
+    const Object& result = Object::Handle(instance.Evaluate(expr_str));
+    result.PrintToJSONStream(js, true);
+    return true;
+  }
+
+  PrintError(js, "unrecognized action '%s'\n", action);
+  return true;
+}
 
 
 static bool HandleScriptsEnumerate(Isolate* isolate, JSONStream* js) {
@@ -1012,7 +1175,8 @@ static bool HandleScriptsFetch(Isolate* isolate, JSONStream* js) {
       }
     }
   }
-  PrintError(js, "Cannot find script %s\n", requested_url.ToCString());
+  PrintErrorWithKind(js, "NotFoundError", "Cannot find script %s",
+                     requested_url.ToCString());
   return true;
 }
 
@@ -1080,6 +1244,8 @@ static bool HandleCpu(Isolate* isolate, JSONStream* js) {
 
 
 static bool HandleNullCode(uintptr_t pc, JSONStream* js) {
+  // TODO(turnidge): Consider adding/using Object::null_code() for
+  // consistent "type".
   Object::null_object().PrintToJSONStream(js, false);
   return true;
 }
@@ -1087,42 +1253,55 @@ static bool HandleNullCode(uintptr_t pc, JSONStream* js) {
 
 static bool HandleCode(Isolate* isolate, JSONStream* js) {
   REQUIRE_COLLECTION_ID("code");
-  uintptr_t pc;
-  if (js->num_arguments() > 3) {
+  uword pc;
+  if (js->num_arguments() > 2) {
     PrintError(js, "Command too long");
     return true;
   }
-  if (js->num_arguments() == 3) {
-    const char* command = js->GetArgument(1);
-    if ((strcmp("collected", command) == 0) ||
-        (strcmp("native", command) == 0)) {
-      if (!GetUnsignedIntegerId(js->GetArgument(1), &pc, 16)) {
-        PrintError(js, "Must specify code address: code/%s/c0deadd0.", command);
-        return true;
-      }
-      return HandleNullCode(pc, js);
-    } else {
-      PrintError(js, "Unrecognized subcommand '%s'", js->GetArgument(1));
+  ASSERT(js->num_arguments() == 2);
+  static const char* kCollectedPrefix = "collected-";
+  static intptr_t kCollectedPrefixLen = strlen(kCollectedPrefix);
+  static const char* kNativePrefix = "native-";
+  static intptr_t kNativePrefixLen = strlen(kNativePrefix);
+  static const char* kReusedPrefix = "reused-";
+  static intptr_t kReusedPrefixLen = strlen(kReusedPrefix);
+  const char* command = js->GetArgument(1);
+  if (strncmp(kCollectedPrefix, command, kCollectedPrefixLen) == 0) {
+    if (!GetUnsignedIntegerId(&command[kCollectedPrefixLen], &pc, 16)) {
+      PrintError(js, "Must specify code address: code/%sc0deadd0.",
+                 kCollectedPrefix);
       return true;
     }
+    return HandleNullCode(pc, js);
   }
-  ASSERT(js->num_arguments() == 2);
-  if (!GetUnsignedIntegerId(js->GetArgument(1), &pc, 16)) {
-    PrintError(js, "Must specify code address: code/c0deadd0.");
+  if (strncmp(kNativePrefix, command, kNativePrefixLen) == 0) {
+    if (!GetUnsignedIntegerId(&command[kNativePrefixLen], &pc, 16)) {
+      PrintError(js, "Must specify code address: code/%sc0deadd0.",
+                 kNativePrefix);
+      return true;
+    }
+    // TODO(johnmccutchan): Support native Code.
+    return HandleNullCode(pc, js);
+  }
+  if (strncmp(kReusedPrefix, command, kReusedPrefixLen) == 0) {
+    if (!GetUnsignedIntegerId(&command[kReusedPrefixLen], &pc, 16)) {
+      PrintError(js, "Must specify code address: code/%sc0deadd0.",
+                 kReusedPrefix);
+      return true;
+    }
+    return HandleNullCode(pc, js);
+  }
+  int64_t timestamp = 0;
+  if (!GetCodeId(command, &timestamp, &pc) || (timestamp < 0)) {
+    PrintError(js, "Malformed code id: %s", command);
     return true;
   }
-  Code& code = Code::Handle();
-  code ^= Code::LookupCode(pc);
+  Code& code = Code::Handle(Code::FindCode(pc, timestamp));
   if (!code.IsNull()) {
     code.PrintToJSONStream(js, false);
     return true;
   }
-  code ^= Code::LookupCodeInVmIsolate(pc);
-  if (!code.IsNull()) {
-    code.PrintToJSONStream(js, false);
-    return true;
-  }
-  PrintError(js, "Could not find code at %" Px "", pc);
+  PrintError(js, "Could not find code with id: %s", command);
   return true;
 }
 
@@ -1169,6 +1348,12 @@ static bool HandleUnpin(Isolate* isolate, JSONStream* js) {
 }
 
 
+static bool HandleHeapMap(Isolate* isolate, JSONStream* js) {
+  isolate->heap()->PrintHeapMapToJSONStream(js);
+  return true;
+}
+
+
 static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "_echo", HandleIsolateEcho },
   { "", HandleIsolate },
@@ -1178,6 +1363,7 @@ static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "coverage", HandleCoverage },
   { "cpu", HandleCpu },
   { "debug", HandleDebug },
+  { "heapmap", HandleHeapMap },
   { "libraries", HandleLibraries },
   { "objects", HandleObjects },
   { "profile", HandleProfile },

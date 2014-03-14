@@ -623,11 +623,12 @@ static Dart_WeakPersistentHandle AllocateFinalizableHandle(
     Dart_Handle object,
     bool is_prologue,
     void* peer,
+    intptr_t external_allocation_size,
     Dart_WeakPersistentHandleFinalizer callback) {
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  ReusableObjectHandleScope reused_obj_handle(isolate);
-  Object& ref = reused_obj_handle.Handle();
+  REUSABLE_OBJECT_HANDLESCOPE(isolate);
+  Object& ref = isolate->ObjectHandle();
   ref = Api::UnwrapHandle(object);
   FinalizablePersistentHandle* finalizable_ref = is_prologue ?
       state->prologue_weak_persistent_handles().AllocateHandle() :
@@ -636,6 +637,7 @@ static Dart_WeakPersistentHandle AllocateFinalizableHandle(
   finalizable_ref->set_raw(ref);
   finalizable_ref->set_peer(peer);
   finalizable_ref->set_callback(callback);
+  finalizable_ref->SetExternalSize(external_allocation_size, isolate);
   if (is_prologue) {
     return finalizable_ref->apiPrologueHandle();
   } else {
@@ -647,6 +649,7 @@ static Dart_WeakPersistentHandle AllocateFinalizableHandle(
 DART_EXPORT Dart_WeakPersistentHandle Dart_NewWeakPersistentHandle(
     Dart_Handle object,
     void* peer,
+    intptr_t external_allocation_size,
     Dart_WeakPersistentHandleFinalizer callback) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
@@ -654,6 +657,7 @@ DART_EXPORT Dart_WeakPersistentHandle Dart_NewWeakPersistentHandle(
                                    object,
                                    false,
                                    peer,
+                                   external_allocation_size,
                                    callback);
 }
 
@@ -661,6 +665,7 @@ DART_EXPORT Dart_WeakPersistentHandle Dart_NewWeakPersistentHandle(
 DART_EXPORT Dart_WeakPersistentHandle Dart_NewPrologueWeakPersistentHandle(
     Dart_Handle object,
     void* peer,
+    intptr_t external_allocation_size,
     Dart_WeakPersistentHandleFinalizer callback) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
@@ -668,6 +673,7 @@ DART_EXPORT Dart_WeakPersistentHandle Dart_NewPrologueWeakPersistentHandle(
                                    object,
                                    true,
                                    peer,
+                                   external_allocation_size,
                                    callback);
 }
 
@@ -697,11 +703,13 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
     ASSERT(state->IsValidPrologueWeakPersistentHandle(object));
     FinalizablePersistentHandle* weak_ref =
         FinalizablePersistentHandle::Cast(object);
+    weak_ref->EnsureFreeExternal(isolate);
     state->prologue_weak_persistent_handles().FreeHandle(weak_ref);
   } else {
     ASSERT(!state->IsValidPrologueWeakPersistentHandle(object));
     FinalizablePersistentHandle* weak_ref =
         FinalizablePersistentHandle::Cast(object);
+    weak_ref->EnsureFreeExternal(isolate);
     state->weak_persistent_handles().FreeHandle(weak_ref);
   }
 }
@@ -756,64 +764,41 @@ DART_EXPORT Dart_Handle Dart_NewWeakReferenceSet(
 
 // --- Garbage Collection Callbacks --
 
-DART_EXPORT Dart_Handle Dart_AddGcPrologueCallback(
-    Dart_GcPrologueCallback callback) {
+DART_EXPORT Dart_Handle Dart_SetGcCallbacks(
+    Dart_GcPrologueCallback prologue_callback,
+    Dart_GcEpilogueCallback epilogue_callback) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
-  GcPrologueCallbacks& callbacks = isolate->gc_prologue_callbacks();
-  if (callbacks.Contains(callback)) {
-    return Api::NewError(
-        "%s permits only one instance of 'callback' to be present in the "
-        "prologue callback list.",
-        CURRENT_FUNC);
+  if (prologue_callback != NULL) {
+    if (isolate->gc_prologue_callback() != NULL) {
+      return Api::NewError(
+          "%s permits only one gc prologue callback to be registered, please "
+          "remove the existing callback and then add this callback",
+          CURRENT_FUNC);
+    }
+  } else {
+    if (isolate->gc_prologue_callback() == NULL) {
+      return Api::NewError(
+          "%s expects 'prologue_callback' to be present in the callback set.",
+          CURRENT_FUNC);
+    }
   }
-  callbacks.Add(callback);
-  return Api::Success();
-}
-
-
-DART_EXPORT Dart_Handle Dart_RemoveGcPrologueCallback(
-    Dart_GcPrologueCallback callback) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  GcPrologueCallbacks& callbacks = isolate->gc_prologue_callbacks();
-  if (!callbacks.Contains(callback)) {
-    return Api::NewError(
-        "%s expects 'callback' to be present in the prologue callback list.",
-        CURRENT_FUNC);
+  if (epilogue_callback != NULL) {
+    if (isolate->gc_epilogue_callback() != NULL) {
+      return Api::NewError(
+          "%s permits only one gc epilogue callback to be registered, please "
+          "remove the existing callback and then add this callback",
+          CURRENT_FUNC);
+    }
+  } else {
+    if (isolate->gc_epilogue_callback() == NULL) {
+      return Api::NewError(
+          "%s expects 'epilogue_callback' to be present in the callback set.",
+          CURRENT_FUNC);
+    }
   }
-  callbacks.Remove(callback);
-  return Api::Success();
-}
-
-
-DART_EXPORT Dart_Handle Dart_AddGcEpilogueCallback(
-    Dart_GcEpilogueCallback callback) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  GcEpilogueCallbacks& callbacks = isolate->gc_epilogue_callbacks();
-  if (callbacks.Contains(callback)) {
-    return Api::NewError(
-        "%s permits only one instance of 'callback' to be present in the "
-        "epilogue callback list.",
-        CURRENT_FUNC);
-  }
-  callbacks.Add(callback);
-  return Api::Success();
-}
-
-
-DART_EXPORT Dart_Handle Dart_RemoveGcEpilogueCallback(
-    Dart_GcEpilogueCallback callback) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  GcEpilogueCallbacks& callbacks = isolate->gc_epilogue_callbacks();
-  if (!callbacks.Contains(callback)) {
-    return Api::NewError(
-        "%s expects 'callback' to be present in the epilogue callback list.",
-        CURRENT_FUNC);
-  }
-  callbacks.Remove(callback);
+  isolate->set_gc_prologue_callback(prologue_callback);
+  isolate->set_gc_epilogue_callback(epilogue_callback);
   return Api::Success();
 }
 
@@ -924,7 +909,7 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
       if (FLAG_check_function_fingerprints) {
         Library::CheckFunctionFingerprints();
       }
-      START_TIMER(time_total_runtime);
+      START_TIMER(isolate, time_total_runtime);
       return reinterpret_cast<Dart_Isolate>(isolate);
     }
     *error = strdup(error_obj.ToErrorCString());
@@ -942,7 +927,7 @@ DART_EXPORT void Dart_ShutdownIsolate() {
     HandleScope handle_scope(isolate);
     Dart::RunShutdownCallback();
   }
-  STOP_TIMER(time_total_runtime);
+  STOP_TIMER(isolate, time_total_runtime);
   Dart::ShutdownIsolate();
 }
 
@@ -1004,7 +989,7 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
                                             intptr_t* size) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  TIMERSCOPE(time_creating_snapshot);
+  TIMERSCOPE(isolate, time_creating_snapshot);
   if (buffer == NULL) {
     RETURN_NULL_ERROR(buffer);
   }
@@ -1028,7 +1013,7 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
                                                   intptr_t* size) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  TIMERSCOPE(time_creating_snapshot);
+  TIMERSCOPE(isolate, time_creating_snapshot);
   if (buffer == NULL) {
     RETURN_NULL_ERROR(buffer);
   }
@@ -1387,8 +1372,8 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
 DART_EXPORT bool Dart_IsInstance(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
-  ReusableObjectHandleScope reused_obj_handle(isolate);
-  Object& ref = reused_obj_handle.Handle();
+  REUSABLE_OBJECT_HANDLESCOPE(isolate);
+  Object& ref = isolate->ObjectHandle();
   ref = Api::UnwrapHandle(object);
   return ref.IsInstance();
 }
@@ -3131,7 +3116,9 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
   if (type_obj.IsNull()) {
     RETURN_TYPE_ERROR(isolate, type, Type);
   }
-  const Class& cls = Class::Handle(isolate, type_obj.type_class());
+  REUSABLE_CLASS_HANDLESCOPE(isolate);
+  Class& cls = isolate->ClassHandle();
+  cls = type_obj.type_class();
 
   if (!cls.is_fields_marked_nullable()) {
     // Mark all fields as nullable.
@@ -3152,6 +3139,13 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
     }
   }
 
+  REUSABLE_ERROR_HANDLESCOPE(isolate);
+  Error& error = isolate->ErrorHandle();
+  error = cls.EnsureIsFinalized(isolate);
+  if (!error.IsNull()) {
+    // An error occurred, return error object.
+    return Api::NewHandle(isolate, error.raw());
+  }
   // Allocate an object for the given class.
   return Api::NewHandle(isolate, Instance::New(cls));
 }
@@ -3275,7 +3269,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
   CHECK_CALLBACK_STATE(isolate);
   // TODO(turnidge): This is a bit simplistic.  It overcounts when
   // other operations (gc, compilation) are active.
-  TIMERSCOPE(time_dart_execution);
+  TIMERSCOPE(isolate, time_dart_execution);
 
   const String& function_name = Api::UnwrapStringHandle(isolate, name);
   if (function_name.IsNull()) {
@@ -3828,7 +3822,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
                                                     int index,
                                                     intptr_t* value) {
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
+  CHECK_ISOLATE(isolate);
   ReusableObjectHandleScope reused_obj_handle(isolate);
   const Instance& instance = Api::UnwrapInstanceHandle(reused_obj_handle, obj);
   if (instance.IsNull()) {
@@ -3908,8 +3902,8 @@ DART_EXPORT Dart_Handle Dart_GetNativeFieldsOfArgument(
   }
   Isolate* isolate = arguments->isolate();
   CHECK_ISOLATE(isolate);
-  ReusableObjectHandleScope reused_obj_handle(isolate);
-  Object& obj = reused_obj_handle.Handle();
+  REUSABLE_OBJECT_HANDLESCOPE(isolate);
+  Object& obj = isolate->ObjectHandle();
   obj = arguments->NativeArgAt(arg_index);
   if (obj.IsNull()) {
     for (intptr_t i = 0; i < num_fields; i++) {
@@ -3959,8 +3953,8 @@ DART_EXPORT Dart_Handle Dart_GetNativeStringArgument(Dart_NativeArguments args,
     return Api::Success();
   }
   *peer = NULL;
-  ReusableObjectHandleScope reused_obj_handle(isolate);
-  Object& obj = reused_obj_handle.Handle();
+  REUSABLE_OBJECT_HANDLESCOPE(isolate);
+  Object& obj = isolate->ObjectHandle();
   obj = arguments->NativeArgAt(arg_index);
   if (RawObject::IsStringClassId(obj.GetClassId())) {
     return Api::NewHandle(isolate, obj.raw());
@@ -3984,8 +3978,8 @@ DART_EXPORT Dart_Handle Dart_GetNativeIntegerArgument(Dart_NativeArguments args,
         CURRENT_FUNC, arguments->NativeArgCount() - 1, index);
   }
   Isolate* isolate = arguments->isolate();
-  ReusableObjectHandleScope reused_obj_handle(isolate);
-  Object& obj = reused_obj_handle.Handle();
+  REUSABLE_OBJECT_HANDLESCOPE(isolate);
+  Object& obj = isolate->ObjectHandle();
   obj = arguments->NativeArgAt(index);
   intptr_t cid = obj.GetClassId();
   if (cid == kSmiCid) {
@@ -4041,8 +4035,8 @@ DART_EXPORT Dart_Handle Dart_GetNativeDoubleArgument(Dart_NativeArguments args,
         CURRENT_FUNC, arguments->NativeArgCount() - 1, index);
   }
   Isolate* isolate = arguments->isolate();
-  ReusableObjectHandleScope reused_obj_handle(isolate);
-  Object& obj = reused_obj_handle.Handle();
+  REUSABLE_OBJECT_HANDLESCOPE(isolate);
+  Object& obj = isolate->ObjectHandle();
   obj = arguments->NativeArgAt(index);
   intptr_t cid = obj.GetClassId();
   if (cid == kDoubleCid) {
@@ -4181,9 +4175,9 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                                         Dart_Handle source,
                                         intptr_t line_offset,
                                         intptr_t col_offset) {
-  TIMERSCOPE(time_script_loading);
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  TIMERSCOPE(isolate, time_script_loading);
   const String& url_str = Api::UnwrapStringHandle(isolate, url);
   if (url_str.IsNull()) {
     RETURN_TYPE_ERROR(isolate, url, String);
@@ -4229,7 +4223,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
                                                     intptr_t buffer_len) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  TIMERSCOPE(time_script_loading);
+  TIMERSCOPE(isolate, time_script_loading);
   if (buffer == NULL) {
     RETURN_NULL_ERROR(buffer);
   }
@@ -4409,9 +4403,9 @@ DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url) {
 
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
                                          Dart_Handle source) {
-  TIMERSCOPE(time_script_loading);
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  TIMERSCOPE(isolate, time_script_loading);
   const String& url_str = Api::UnwrapStringHandle(isolate, url);
   if (url_str.IsNull()) {
     RETURN_TYPE_ERROR(isolate, url, String);
@@ -4501,9 +4495,9 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
 DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
                                         Dart_Handle url,
                                         Dart_Handle source) {
-  TIMERSCOPE(time_script_loading);
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  TIMERSCOPE(isolate, time_script_loading);
   const Library& lib = Api::UnwrapLibraryHandle(isolate, library);
   if (lib.IsNull()) {
     RETURN_TYPE_ERROR(isolate, library, Library);
@@ -4531,9 +4525,9 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
 DART_EXPORT Dart_Handle Dart_LibraryLoadPatch(Dart_Handle library,
                                               Dart_Handle url,
                                               Dart_Handle patch_source) {
-  TIMERSCOPE(time_script_loading);
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  TIMERSCOPE(isolate, time_script_loading);
   const Library& lib = Api::UnwrapLibraryHandle(isolate, library);
   if (lib.IsNull()) {
     RETURN_TYPE_ERROR(isolate, library, Library);
@@ -4580,8 +4574,8 @@ DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer) {
   }
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
-  ReusableObjectHandleScope reused_obj_handle(isolate);
-  Object& obj = reused_obj_handle.Handle();
+  REUSABLE_OBJECT_HANDLESCOPE(isolate);
+  Object& obj = isolate->ObjectHandle();
   obj = Api::UnwrapHandle(object);
   if (obj.IsNull() || obj.IsNumber() || obj.IsBool()) {
     const char* msg =
@@ -4600,8 +4594,8 @@ DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer) {
 DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
-  ReusableObjectHandleScope reused_obj_handle(isolate);
-  Object& obj = reused_obj_handle.Handle();
+  REUSABLE_OBJECT_HANDLESCOPE(isolate);
+  Object& obj = isolate->ObjectHandle();
   obj = Api::UnwrapHandle(object);
   if (obj.IsNull() || obj.IsNumber() || obj.IsBool()) {
     const char* msg =

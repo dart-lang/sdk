@@ -29,7 +29,7 @@ class ClosureTask extends CompilerTask {
   String get name => "Closure Simplifier";
 
   ClosureClassMap computeClosureToClassMapping(Element element,
-                                               Expression node,
+                                               Node node,
                                                TreeElements elements) {
     return measure(() {
       ClosureClassMap cached = closureMappingCache[node];
@@ -44,13 +44,17 @@ class ClosureTask extends CompilerTask {
         translator.translateFunction(element, node);
       } else if (element.isSynthesized) {
         return new ClosureClassMap(null, null, null, new ThisElement(element));
-      } else if (node is SendSet) {
-        // The lazy initializer of a static.
-        translator.translateLazyInitializer(element, node);
       } else {
-        assert(element.isInstanceMember() && element.isField());
-        closureMappingCache[node] =
-            new ClosureClassMap(null, null, null, new ThisElement(element));
+        assert(element.isField());
+        VariableElement field = element;
+        if (field.initializer != null) {
+          // The lazy initializer of a static.
+          translator.translateLazyInitializer(element, node, field.initializer);
+        } else {
+          assert(element.isInstanceMember());
+          closureMappingCache[node] =
+              new ClosureClassMap(null, null, null, new ThisElement(element));
+        }
       }
       assert(closureMappingCache[node] != null);
       return closureMappingCache[node];
@@ -80,15 +84,10 @@ class ClosureFieldElement extends ElementX implements VariableElement {
                       ClassElement enclosing)
       : super(name, ElementKind.FIELD, enclosing);
 
-  VariableListElement get variables {
-    throw new SpannableAssertionFailure(
-        variableElement, 'Should not access variables of ClosureFieldElement.');
-  }
-
-  Expression get cachedNode {
+  Expression get initializer {
     throw new SpannableAssertionFailure(
         variableElement,
-        'Should not access cachedNode of ClosureFieldElement.');
+        'Should not access initializer of ClosureFieldElement.');
   }
 
   bool isInstanceMember() => true;
@@ -346,10 +345,10 @@ class ClosureTranslator extends Visitor {
     updateClosures();
   }
 
-  void translateLazyInitializer(Element element, SendSet node) {
-    assert(node.assignmentOperator.source == "=");
-    Expression initialValue = node.argumentsNode.nodes.head;
-    visitInvokable(element, node, () { visit(initialValue); });
+  void translateLazyInitializer(VariableElement element,
+                                VariableDefinitions node,
+                                Expression initializer) {
+    visitInvokable(element, node, () { visit(initializer); });
     updateClosures();
   }
 
@@ -719,7 +718,7 @@ class ClosureTranslator extends Visitor {
                                callElement, thisElement);
   }
 
-  void visitInvokable(Element element, Expression node, void visitChildren()) {
+  void visitInvokable(Element element, Node node, void visitChildren()) {
     bool oldInsideClosure = insideClosure;
     Element oldFunctionElement = currentElement;
     ClosureClassMap oldClosureData = closureData;

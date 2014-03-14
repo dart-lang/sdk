@@ -109,18 +109,10 @@ class TimerList : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(TimerList);
 };
 
-// Timer Usage.
-#define START_TIMER(name)                                                      \
-  Isolate::Current()->timer_list().name().Start();
-
-#define STOP_TIMER(name)                                                       \
-  Isolate::Current()->timer_list().name().Stop();
-
 // The class TimerScope is used to start and stop a timer within a scope.
 // It is used as follows:
 // {
-//   TIMERSCOPE(name_of_timer);
-//   ....
+//   TimerScope timer(FLAG_name_of_flag, timer, isolate);
 //   .....
 //   code that needs to be timed.
 //   ....
@@ -146,15 +138,59 @@ class TimerScope : public StackResource {
   }
 
  private:
-  bool flag_;
+  const bool flag_;
   bool nested_;
-  Timer* timer_;
+  Timer* const timer_;
+
+  DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(TimerScope);
 };
 
-#define TIMERSCOPE(name)                                                       \
-  TimerScope vm_internal_timer_(true,                                          \
-                                &(Isolate::Current()->timer_list().name()))
+
+class PauseTimerScope : public StackResource {
+ public:
+  PauseTimerScope(bool flag, Timer* timer, BaseIsolate* isolate = NULL)
+      : StackResource(isolate), flag_(flag), nested_(false), timer_(timer) {
+    if (flag_) {
+      if (timer_->running()) {
+        timer_->Stop();
+      } else {
+        nested_ = true;
+      }
+    }
+  }
+  ~PauseTimerScope() {
+    if (flag_) {
+      if (!nested_) {
+        timer_->Start();
+      }
+    }
+  }
+
+ private:
+  const bool flag_;
+  bool nested_;
+  Timer* const timer_;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(PauseTimerScope);
+};
+
+
+// Macros to deal with named timers in the isolate.
+#define START_TIMER(isolate, name)                                             \
+isolate->timer_list().name().Start();
+
+#define STOP_TIMER(isolate, name)                                              \
+isolate->timer_list().name().Stop();
+
+#define TIMERSCOPE(isolate, name)                                              \
+  TimerScope vm_internal_timer_(true, &(isolate->timer_list().name()), isolate)
+
+#define PAUSETIMERSCOPE(isolate, name)                                         \
+PauseTimerScope vm_internal_timer_(true,                                       \
+                                   &(isolate->timer_list().name()),            \
+                                   isolate)
 
 }  // namespace dart
 

@@ -1199,7 +1199,14 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
   if (operand_size_ == 0x66) {
     // 0x66 0x0F prefix.
     int mod, regop, rm;
-    if (opcode == 0x3A) {
+    if (opcode == 0xC6) {
+      int mod, regop, rm;
+      get_modrm(*current, &mod, &regop, &rm);
+      AppendToBuffer("shufpd %s, ", NameOfXMMRegister(regop));
+      current += PrintRightXMMOperand(current);
+      AppendToBuffer(" [%x]", *current);
+      current++;
+    } else if (opcode == 0x3A) {
       uint8_t third_byte = *current;
       current = data + 3;
       if (third_byte == 0x17) {

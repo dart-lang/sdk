@@ -175,4 +175,58 @@ main() {
     buildShouldFail([isTransformerException(equals(LazyBadTransformer.ERROR))]);
     expect(transformer.numRuns, completion(equals(0)));
   });
+
+  test("a lazy transformer passes through inputs it doesn't apply to", () {
+    initGraph(["app|foo.txt"], {"app": [
+      [new LazyRewriteTransformer("blub", "blab")]
+    ]});
+
+    updateSources(["app|foo.txt"]);
+    expectAsset("app|foo.txt");
+    buildShouldSucceed();
+  });
+
+  test("a lazy transformer passes through inputs it doesn't overwrite", () {
+    initGraph(["app|foo.txt"], {"app": [
+      [new LazyRewriteTransformer("txt", "out")]
+    ]});
+
+    updateSources(["app|foo.txt"]);
+    expectAsset("app|foo.txt");
+    buildShouldSucceed();
+  });
+
+  test("a lazy transformer doesn't pass through inputs it overwrites", () {
+    initGraph(["app|foo.txt"], {"app": [
+      [new LazyRewriteTransformer("txt", "txt")]
+    ]});
+
+    updateSources(["app|foo.txt"]);
+    expectAsset("app|foo.txt", "foo.txt");
+    buildShouldSucceed();
+  });
+
+  test("a lazy transformer doesn't pass through inputs it consumes", () {
+    initGraph(["app|foo.txt"], {"app": [
+      [new LazyRewriteTransformer("txt", "out")..consumePrimary = true]
+    ]});
+
+    updateSources(["app|foo.txt"]);
+    expectNoAsset("app|foo.txt");
+    buildShouldSucceed();
+  });
+
+  test("a lazy transformer that doesn't apply does nothing when forced", () {
+    initGraph(["app|foo.txt"], {"app": [
+      [new LazyRewriteTransformer("blub", "blab")]
+    ]});
+
+    updateSources(["app|foo.txt"]);
+    expectNoAsset("app|foo.blab");
+
+    // Getting all assets will force every lazy transformer. This shouldn't
+    // cause the rewrite to apply, because foo.txt isn't primary.
+    expectAllAssets(["app|foo.txt"]);
+    buildShouldSucceed();
+  });
 }

@@ -99,6 +99,7 @@ class AnalysisErrorWithProperties extends AnalysisError {
    */
   AnalysisErrorWithProperties.con2(Source source, int offset, int length, ErrorCode errorCode, List<Object> arguments) : super.con2(source, offset, length, errorCode, arguments);
 
+  @override
   Object getProperty(ErrorProperty property) => _propertyMap[property];
 
   /**
@@ -130,6 +131,7 @@ class BooleanErrorListener implements AnalysisErrorListener {
    */
   bool get errorReported => _errorReported;
 
+  @override
   void onError(AnalysisError error) {
     _errorReported = true;
   }
@@ -211,12 +213,16 @@ class AngularCode extends Enum<AngularCode> implements ErrorCode {
     this._severity = ErrorSeverity.INFO;
   }
 
+  @override
   String get correction => null;
 
+  @override
   ErrorSeverity get errorSeverity => _severity;
 
+  @override
   String get message => _message;
 
+  @override
   ErrorType get type => ErrorType.ANGULAR;
 }
 
@@ -436,6 +442,7 @@ class AnalysisError {
     }
   }
 
+  @override
   bool operator ==(Object obj) {
     if (identical(obj, this)) {
       return true;
@@ -507,6 +514,7 @@ class AnalysisError {
    */
   Object getProperty(ErrorProperty property) => null;
 
+  @override
   int get hashCode {
     int hashCode = _offset;
     hashCode ^= (_message != null) ? _message.hashCode : 0;
@@ -514,6 +522,7 @@ class AnalysisError {
     return hashCode;
   }
 
+  @override
   String toString() {
     JavaStringBuilder builder = new JavaStringBuilder();
     builder.append((source != null) ? source.fullName : "<unknown source>");
@@ -572,12 +581,16 @@ class TodoCode extends Enum<TodoCode> implements ErrorCode {
 
   TodoCode(String name, int ordinal) : super(name, ordinal);
 
+  @override
   String get correction => null;
 
+  @override
   ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
 
+  @override
   String get message => "%s";
 
+  @override
   ErrorType get type => ErrorType.TODO;
 }
 
@@ -825,10 +838,13 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
     this.correction3 = correction;
   }
 
+  @override
   String get correction => correction3;
 
+  @override
   ErrorSeverity get errorSeverity => ErrorType.HINT.severity;
 
+  @override
   ErrorType get type => ErrorType.HINT;
 }
 
@@ -2283,10 +2299,13 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
     this.correction2 = correction;
   }
 
+  @override
   String get correction => correction2;
 
+  @override
   ErrorSeverity get errorSeverity => ErrorType.COMPILE_TIME_ERROR.severity;
 
+  @override
   ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
 }
 
@@ -2353,10 +2372,13 @@ class PubSuggestionCode extends Enum<PubSuggestionCode> implements ErrorCode {
     this.correction5 = correction;
   }
 
+  @override
   String get correction => correction5;
 
+  @override
   ErrorSeverity get errorSeverity => ErrorType.PUB_SUGGESTION.severity;
 
+  @override
   ErrorType get type => ErrorType.PUB_SUGGESTION;
 }
 
@@ -3237,10 +3259,13 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
     this.correction7 = correction;
   }
 
+  @override
   String get correction => correction7;
 
+  @override
   ErrorSeverity get errorSeverity => ErrorType.STATIC_WARNING.severity;
 
+  @override
   ErrorType get type => ErrorType.STATIC_WARNING;
 }
 
@@ -3263,6 +3288,7 @@ abstract class AnalysisErrorListener {
 }
 
 class AnalysisErrorListener_NULL_LISTENER implements AnalysisErrorListener {
+  @override
   void onError(AnalysisError event) {
   }
 }
@@ -3320,10 +3346,13 @@ class HtmlWarningCode extends Enum<HtmlWarningCode> implements ErrorCode {
     this.correction4 = correction;
   }
 
+  @override
   String get correction => correction4;
 
+  @override
   ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;
 
+  @override
   ErrorType get type => ErrorType.STATIC_WARNING;
 }
 
@@ -3645,9 +3674,12 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
     this.correction6 = correction;
   }
 
+  @override
   String get correction => correction6;
 
+  @override
   ErrorSeverity get errorSeverity => ErrorType.STATIC_TYPE_WARNING.severity;
 
+  @override
   ErrorType get type => ErrorType.STATIC_TYPE_WARNING;
 }

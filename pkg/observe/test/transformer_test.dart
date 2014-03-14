@@ -142,6 +142,7 @@ Future<String> _transform(String code) {
 }
 
 class _MockTransform implements Transform {
+  bool shouldConsumePrimary = false;
   List<Asset> outs = [];
   Asset _asset;
   TransformLogger logger = new TransformLogger(_mockLogFn);
@@ -155,6 +156,10 @@ class _MockTransform implements Transform {
 
   void addOutput(Asset output) {
     outs.add(output);
+  }
+
+  void consumePrimary() {
+    shouldConsumePrimary = true;
   }
 
   readInput(id) => throw new UnimplementedError();

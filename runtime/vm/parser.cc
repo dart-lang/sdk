@@ -761,6 +761,7 @@ RawObject* Parser::ParseFunctionParameters(const Function& func) {
 
 void Parser::ParseFunction(ParsedFunction* parsed_function) {
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
+  CompilerStats::num_functions_compiled++;
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate->long_jump_base()->IsSafeToJump());
   ASSERT(parsed_function != NULL);
@@ -792,9 +793,11 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       break;
     case RawFunction::kImplicitStaticFinalGetter:
       node_sequence = parser.ParseStaticFinalGetter(func);
+      CompilerStats::num_implicit_final_getters++;
       break;
     case RawFunction::kStaticInitializer:
       node_sequence = parser.ParseStaticInitializer(func);
+      CompilerStats::num_static_initializer_funcs++;
       break;
     case RawFunction::kMethodExtractor:
       node_sequence = parser.ParseMethodExtractor(func);
@@ -806,6 +809,10 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     case RawFunction::kInvokeFieldDispatcher:
       node_sequence =
           parser.ParseInvokeFieldDispatcher(func, default_parameter_values);
+      break;
+    case RawFunction::kInvokeClosureDispatcher:
+      node_sequence =
+          parser.ParseInvokeClosureDispatcher(func, default_parameter_values);
       break;
     default:
       UNREACHABLE();
@@ -1394,6 +1401,53 @@ SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func,
   EnsureSavedCurrentContext();
   ClosureCallNode* closure_call = new ClosureCallNode(token_pos,
                                                       getter_call,
+                                                      closure_args);
+
+  ReturnNode* return_node = new ReturnNode(token_pos, closure_call);
+  current_block_->statements->Add(return_node);
+  return CloseBlock();
+}
+
+
+SequenceNode* Parser::ParseInvokeClosureDispatcher(const Function& func,
+                                                   Array& default_values) {
+  TRACE_PARSER("ParseInvokeClosureDispatcher");
+
+  ASSERT(func.IsInvokeClosureDispatcher());
+  intptr_t token_pos = func.token_pos();
+  ASSERT(func.token_pos() == 0);
+  ASSERT(current_class().raw() == func.Owner());
+
+  const Array& args_desc = Array::Handle(func.saved_args_desc());
+  ArgumentsDescriptor desc(args_desc);
+  ASSERT(desc.Count() > 0);
+
+  // Set up scope for this function.
+  BuildDispatcherScope(func, desc, default_values);
+
+  // Receiver is local 0.
+  LocalScope* scope = current_block_->scope;
+  LoadLocalNode* receiver = new LoadLocalNode(token_pos, scope->VariableAt(0));
+
+  // Pass arguments 1..n to the closure call.
+  ArgumentListNode* closure_args = new ArgumentListNode(token_pos);
+  const Array& names = Array::Handle(Array::New(desc.NamedCount(), Heap::kOld));
+  // Positional parameters.
+  intptr_t i = 1;
+  for (; i < desc.PositionalCount(); ++i) {
+    closure_args->Add(new LoadLocalNode(token_pos, scope->VariableAt(i)));
+  }
+  // Named parameters.
+  for (; i < desc.Count(); i++) {
+    closure_args->Add(new LoadLocalNode(token_pos, scope->VariableAt(i)));
+    intptr_t index = i - desc.PositionalCount();
+    names.SetAt(index, String::Handle(desc.NameAt(index)));
+  }
+  closure_args->set_names(names);
+
+  EnsureSavedCurrentContext();
+  ClosureCallNode* closure_call = new ClosureCallNode(token_pos,
+                                                      receiver,
                                                       closure_args);
 
   ReturnNode* return_node = new ReturnNode(token_pos, closure_call);
@@ -3405,22 +3459,19 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     if (has_initializer) {
       ConsumeToken();
       init_value = Object::sentinel().raw();
-      // For static const fields and static final non-const fields, the
-      // initialization expression will be parsed through the
-      // kImplicitStaticFinalGetter method invocation/compilation.
+      // For static fields, the initialization expression will be parsed
+      // through the kImplicitStaticFinalGetter method invocation/compilation.
       // For instance fields, the expression is parsed when a constructor
       // is compiled.
-      // For static const fields and static final non-const fields with very
-      // simple initializer expressions (e.g. a literal number or string), we
-      // optimize away the kImplicitStaticFinalGetter and initialize the field
-      // here. However, the class finalizer will check the value type for
+      // For static fields with very simple initializer expressions
+      // (e.g. a literal number or string), we optimize away the
+      // kImplicitStaticFinalGetter and initialize the field here.
+      // However, the class finalizer will check the value type for
       // assignability once the declared field type can be resolved. If the
       // value is not assignable (assuming checked mode and disregarding actual
       // mode), the field value is reset and a kImplicitStaticFinalGetter is
       // created at finalization time.
-
-      if (field->has_static && (field->has_const || field->has_final) &&
-          (LookaheadToken(1) == Token::kSEMICOLON)) {
+      if (field->has_static && (LookaheadToken(1) == Token::kSEMICOLON)) {
         has_simple_literal = IsSimpleLiteral(*field->type, &init_value);
       }
       SkipExpr();
@@ -3966,6 +4017,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
 
 void Parser::ParseClassDefinition(const Class& cls) {
   TRACE_PARSER("ParseClassDefinition");
+  CompilerStats::num_classes_compiled++;
   set_current_class(cls);
   is_top_level_ = true;
   String& class_name = String::Handle(cls.Name());
@@ -4580,7 +4632,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
       ConsumeToken();
       Instance& field_value = Instance::Handle(Object::sentinel().raw());
       bool has_simple_literal = false;
-      if ((is_const || is_final) && (LookaheadToken(1) == Token::kSEMICOLON)) {
+      if (LookaheadToken(1) == Token::kSEMICOLON) {
         has_simple_literal = IsSimpleLiteral(type, &field_value);
       }
       SkipExpr();
@@ -4925,7 +4977,7 @@ void Parser::ParseIdentList(GrowableObjectArray* names) {
 }
 
 
-void Parser::ParseLibraryImportExport() {
+void Parser::ParseLibraryImportExport(intptr_t metadata_pos) {
   bool is_import = (CurrentToken() == Token::kIMPORT);
   bool is_export = (CurrentToken() == Token::kEXPORT);
   ASSERT(is_import || is_export);
@@ -4988,8 +5040,13 @@ void Parser::ParseLibraryImportExport() {
       library.Register();
     }
   }
-  const Namespace& ns =
-    Namespace::Handle(Namespace::New(library, show_names, hide_names));
+
+  Namespace& ns =
+      Namespace::Handle(Namespace::New(library, show_names, hide_names));
+  if (metadata_pos >= 0) {
+    ns.AddMetadata(metadata_pos, current_class());
+  }
+
   if (is_import) {
     // Ensure that private dart:_ libraries are only imported into dart:
     // libraries.
@@ -5062,7 +5119,7 @@ void Parser::ParseLibraryDefinition() {
   }
   while ((CurrentToken() == Token::kIMPORT) ||
       (CurrentToken() == Token::kEXPORT)) {
-    ParseLibraryImportExport();
+    ParseLibraryImportExport(metadata_pos);
     rewind_pos = TokenPos();
     metadata_pos = SkipMetadata();
   }
@@ -5827,8 +5884,7 @@ bool Parser::IsSimpleLiteral(const AbstractType& type, Instance* value) {
   // resolved at class finalization time, and if the type of the literal is one
   // of int, double, String, or bool, then preset the field with the value and
   // perform the type check (in checked mode only) at finalization time.
-  if (type.IsTypeParameter() ||
-      (type.arguments() != TypeArguments::null())) {
+  if (type.IsTypeParameter() || (type.arguments() != TypeArguments::null())) {
     // Type parameters are always resolved eagerly by the parser and never
     // resolved later by the class finalizer. Therefore, we know here that if
     // 'type' is not a type parameter (an unresolved type will not get resolved
@@ -8847,12 +8903,13 @@ RawInstance* Parser::TryCanonicalize(const Instance& instance,
 AstNode* Parser::RunStaticFieldInitializer(const Field& field,
                                            intptr_t field_ref_pos) {
   ASSERT(field.is_static());
-  const Class& field_owner = Class::ZoneHandle(field.owner());
-  const String& field_name = String::ZoneHandle(field.name());
-  const String& getter_name = String::Handle(Field::GetterName(field_name));
-  const Function& getter =
-      Function::Handle(field_owner.LookupStaticFunction(getter_name));
-  const Instance& value = Instance::Handle(field.value());
+  const Class& field_owner = Class::ZoneHandle(isolate(), field.owner());
+  const String& field_name = String::ZoneHandle(isolate(), field.name());
+  const String& getter_name = String::Handle(isolate(),
+                                             Field::GetterName(field_name));
+  const Function& getter = Function::Handle(
+      isolate(), field_owner.LookupStaticFunction(getter_name));
+  const Instance& value = Instance::Handle(isolate(), field.value());
   if (value.raw() == Object::transition_sentinel().raw()) {
     if (field.is_const()) {
       ErrorMsg("circular dependency while initializing static field '%s'",
@@ -8872,15 +8929,18 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field,
     if (field.is_const()) {
       field.set_value(Object::transition_sentinel());
       const int kNumArguments = 0;  // no arguments.
-      const Function& func =
-          Function::Handle(Resolver::ResolveStatic(field_owner,
-                                                   getter_name,
-                                                   kNumArguments,
-                                                   Object::empty_array()));
+      const Function& func = Function::Handle(
+          isolate(), Resolver::ResolveStatic(field_owner,
+                                             getter_name,
+                                             kNumArguments,
+                                             Object::empty_array()));
       ASSERT(!func.IsNull());
       ASSERT(func.kind() == RawFunction::kImplicitStaticFinalGetter);
-      Object& const_value = Object::Handle(
-          DartEntry::InvokeFunction(func, Object::empty_array()));
+      Object& const_value = Object::Handle(isolate());
+      {
+        PAUSETIMERSCOPE(isolate(), time_compilation);
+        const_value = DartEntry::InvokeFunction(func, Object::empty_array());
+      }
       if (const_value.IsError()) {
         const Error& error = Error::Cast(const_value);
         if (error.IsUnhandledException()) {
@@ -8934,8 +8994,9 @@ RawObject* Parser::EvaluateConstConstructorCall(
   // Constructors have 2 extra arguments: rcvr and construction phase.
   const int kNumExtraArgs = constructor.IsFactory() ? 1 : 2;
   const int num_arguments = arguments->length() + kNumExtraArgs;
-  const Array& arg_values = Array::Handle(Array::New(num_arguments));
-  Instance& instance = Instance::Handle();
+  const Array& arg_values = Array::Handle(isolate(),
+                                          Array::New(num_arguments));
+  Instance& instance = Instance::Handle(isolate());
   if (!constructor.IsFactory()) {
     instance = Instance::New(type_class, Heap::kOld);
     if (!type_arguments.IsNull()) {
@@ -8958,13 +9019,14 @@ RawObject* Parser::EvaluateConstConstructorCall(
     ASSERT(arg->IsLiteralNode());
     arg_values.SetAt((i + kNumExtraArgs), arg->AsLiteralNode()->literal());
   }
-  const Array& args_descriptor =
-      Array::Handle(ArgumentsDescriptor::New(num_arguments,
-                                             arguments->names()));
-  const Object& result =
-      Object::Handle(DartEntry::InvokeFunction(constructor,
-                                               arg_values,
-                                               args_descriptor));
+  const Array& args_descriptor = Array::Handle(
+      isolate(), ArgumentsDescriptor::New(num_arguments, arguments->names()));
+  Object& result = Object::Handle(isolate());
+  {
+    PAUSETIMERSCOPE(isolate(), time_compilation);
+    result = DartEntry::InvokeFunction(
+        constructor, arg_values, args_descriptor);
+  }
   if (result.IsError()) {
       // An exception may not occur in every parse attempt, i.e., the
       // generated AST is not deterministic. Therefore mark the function as
@@ -10128,28 +10190,31 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
 
 
 String& Parser::Interpolate(const GrowableArray<AstNode*>& values) {
-  const Class& cls =
-      Class::Handle(Library::LookupCoreClass(Symbols::StringBase()));
+  const Class& cls = Class::Handle(
+      isolate(), Library::LookupCoreClass(Symbols::StringBase()));
   ASSERT(!cls.IsNull());
-  const Function& func =
-      Function::Handle(cls.LookupStaticFunction(
-          Library::PrivateCoreLibName(Symbols::Interpolate())));
+  const Function& func = Function::Handle(isolate(), cls.LookupStaticFunction(
+      Library::PrivateCoreLibName(Symbols::Interpolate())));
   ASSERT(!func.IsNull());
 
   // Build the array of literal values to interpolate.
-  const Array& value_arr = Array::Handle(Array::New(values.length()));
+  const Array& value_arr = Array::Handle(isolate(),
+                                         Array::New(values.length()));
   for (int i = 0; i < values.length(); i++) {
     ASSERT(values[i]->IsLiteralNode());
     value_arr.SetAt(i, values[i]->AsLiteralNode()->literal());
   }
 
   // Build argument array to pass to the interpolation function.
-  const Array& interpolate_arg = Array::Handle(Array::New(1));
+  const Array& interpolate_arg = Array::Handle(isolate(), Array::New(1));
   interpolate_arg.SetAt(0, value_arr);
 
   // Call interpolation function.
-  String& concatenated = String::ZoneHandle();
-  concatenated ^= DartEntry::InvokeFunction(func, interpolate_arg);
+  String& concatenated = String::ZoneHandle(isolate());
+  {
+    PAUSETIMERSCOPE(isolate(), time_compilation);
+    concatenated ^= DartEntry::InvokeFunction(func, interpolate_arg);
+  }
   if (concatenated.IsUnhandledException()) {
     ErrorMsg("Exception thrown in Parser::Interpolate");
   }

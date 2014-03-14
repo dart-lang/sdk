@@ -48,7 +48,7 @@ DECLARE_FLAG(bool, trace_type_check_elimination);
 
 
 static bool ShouldInlineSimd() {
-  return FlowGraphCompiler::SupportsUnboxedFloat32x4();
+  return FlowGraphCompiler::SupportsUnboxedSimd128();
 }
 
 
@@ -1943,6 +1943,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         operands_type = kFloat32x4Cid;
       } else if (HasOnlyTwoOf(ic_data, kInt32x4Cid)) {
         operands_type = kInt32x4Cid;
+      } else if (HasOnlyTwoOf(ic_data, kFloat64x2Cid)) {
+        operands_type = kFloat64x2Cid;
       } else {
         return false;
       }
@@ -1958,6 +1960,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         operands_type = kDoubleCid;
       } else if (HasOnlyTwoOf(ic_data, kFloat32x4Cid)) {
         operands_type = kFloat32x4Cid;
+      } else if (HasOnlyTwoOf(ic_data, kFloat64x2Cid)) {
+        operands_type = kFloat64x2Cid;
       } else {
         return false;
       }
@@ -1968,6 +1972,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         operands_type = kDoubleCid;
       } else if (HasOnlyTwoOf(ic_data, kFloat32x4Cid)) {
         operands_type = kFloat32x4Cid;
+      } else if (HasOnlyTwoOf(ic_data, kFloat64x2Cid)) {
+        operands_type = kFloat64x2Cid;
       } else {
         return false;
       }
@@ -2063,6 +2069,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     return InlineFloat32x4BinaryOp(call, op_kind);
   } else if (operands_type == kInt32x4Cid) {
     return InlineInt32x4BinaryOp(call, op_kind);
+  } else if (operands_type == kFloat64x2Cid) {
+    return InlineFloat64x2BinaryOp(call, op_kind);
   } else if (op_kind == Token::kMOD) {
     ASSERT(operands_type == kSmiCid);
     if (right->IsConstant()) {
@@ -2333,6 +2341,29 @@ bool FlowGraphOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
 }
 
 
+bool FlowGraphOptimizer::InlineFloat64x2Getter(InstanceCallInstr* call,
+                                               MethodRecognizer::Kind getter) {
+  AddCheckClass(call->ArgumentAt(0),
+                ICData::ZoneHandle(
+                    call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                call->deopt_id(),
+                call->env(),
+                call);
+  if ((getter == MethodRecognizer::kFloat64x2GetX) ||
+      (getter == MethodRecognizer::kFloat64x2GetY)) {
+    Simd64x2ShuffleInstr* instr = new Simd64x2ShuffleInstr(
+        getter,
+        new Value(call->ArgumentAt(0)),
+        0,
+        call->deopt_id());
+    ReplaceCall(call, instr);
+    return true;
+  }
+  UNREACHABLE();
+  return false;
+}
+
+
 bool FlowGraphOptimizer::InlineInt32x4Getter(InstanceCallInstr* call,
                                               MethodRecognizer::Kind getter) {
   if (!ShouldInlineSimd()) {
@@ -2467,6 +2498,37 @@ bool FlowGraphOptimizer::InlineInt32x4BinaryOp(InstanceCallInstr* call,
       new BinaryInt32x4OpInstr(op_kind, new Value(left), new Value(right),
                                 call->deopt_id());
   ReplaceCall(call, int32x4_bin_op);
+  return true;
+}
+
+
+bool FlowGraphOptimizer::InlineFloat64x2BinaryOp(InstanceCallInstr* call,
+                                                 Token::Kind op_kind) {
+  if (!ShouldInlineSimd()) {
+    return false;
+  }
+  ASSERT(call->ArgumentCount() == 2);
+  Definition* left = call->ArgumentAt(0);
+  Definition* right = call->ArgumentAt(1);
+  // Type check left.
+  AddCheckClass(left,
+                ICData::ZoneHandle(
+                    call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                call->deopt_id(),
+                call->env(),
+                call);
+  // Type check right.
+  AddCheckClass(right,
+                ICData::ZoneHandle(
+                    call->ic_data()->AsUnaryClassChecksForArgNr(1)),
+                call->deopt_id(),
+                call->env(),
+                call);
+  // Replace call.
+  BinaryFloat64x2OpInstr* float64x2_bin_op =
+      new BinaryFloat64x2OpInstr(op_kind, new Value(left), new Value(right),
+                                 call->deopt_id());
+  ReplaceCall(call, float64x2_bin_op);
   return true;
 }
 
@@ -2863,6 +2925,10 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     return TryInlineInt32x4Method(call, recognized_kind);
   }
 
+  if ((class_ids[0] == kFloat64x2Cid) && (ic_data.NumberOfChecks() == 1)) {
+    return TryInlineFloat64x2Method(call, recognized_kind);
+  }
+
   if (recognized_kind == MethodRecognizer::kIntegerLeftShiftWithMask32) {
     ASSERT(call->ArgumentCount() == 3);
     ASSERT(ic_data.num_args_tested() == 2);
@@ -2955,6 +3021,46 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Constructor(
   } else if (recognized_kind == MethodRecognizer::kFloat32x4FromInt32x4Bits) {
     Int32x4ToFloat32x4Instr* cast =
         new Int32x4ToFloat32x4Instr(new Value(call->ArgumentAt(1)),
+                                    call->deopt_id());
+    ReplaceCall(call, cast);
+    return true;
+  } else if (recognized_kind == MethodRecognizer::kFloat32x4FromFloat64x2) {
+    Float64x2ToFloat32x4Instr* cast =
+        new Float64x2ToFloat32x4Instr(new Value(call->ArgumentAt(1)),
+                                      call->deopt_id());
+    ReplaceCall(call, cast);
+    return true;
+  }
+  return false;
+}
+
+
+bool FlowGraphOptimizer::TryInlineFloat64x2Constructor(
+    StaticCallInstr* call,
+    MethodRecognizer::Kind recognized_kind) {
+  if (!ShouldInlineSimd()) {
+    return false;
+  }
+  if (recognized_kind == MethodRecognizer::kFloat64x2Zero) {
+    Float64x2ZeroInstr* zero = new Float64x2ZeroInstr(call->deopt_id());
+    ReplaceCall(call, zero);
+    return true;
+  } else if (recognized_kind == MethodRecognizer::kFloat64x2Splat) {
+    Float64x2SplatInstr* splat =
+        new Float64x2SplatInstr(new Value(call->ArgumentAt(1)),
+                                call->deopt_id());
+    ReplaceCall(call, splat);
+    return true;
+  } else if (recognized_kind == MethodRecognizer::kFloat64x2Constructor) {
+    Float64x2ConstructorInstr* con =
+        new Float64x2ConstructorInstr(new Value(call->ArgumentAt(1)),
+                                      new Value(call->ArgumentAt(2)),
+                                      call->deopt_id());
+    ReplaceCall(call, con);
+    return true;
+  } else if (recognized_kind == MethodRecognizer::kFloat64x2FromFloat32x4) {
+    Float32x4ToFloat64x2Instr* cast =
+        new Float32x4ToFloat64x2Instr(new Value(call->ArgumentAt(1)),
                                     call->deopt_id());
     ReplaceCall(call, cast);
     return true;
@@ -3137,6 +3243,63 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Method(
     case MethodRecognizer::kFloat32x4ShuffleMix:
     case MethodRecognizer::kFloat32x4Shuffle: {
       return InlineFloat32x4Getter(call, recognized_kind);
+    }
+    default:
+      return false;
+  }
+}
+
+
+bool FlowGraphOptimizer::TryInlineFloat64x2Method(
+    InstanceCallInstr* call,
+    MethodRecognizer::Kind recognized_kind) {
+  if (!ShouldInlineSimd()) {
+    return false;
+  }
+  ASSERT(call->HasICData());
+  switch (recognized_kind) {
+    case MethodRecognizer::kFloat64x2GetX:
+    case MethodRecognizer::kFloat64x2GetY:
+      ASSERT(call->ic_data()->HasReceiverClassId(kFloat64x2Cid));
+      ASSERT(call->ic_data()->HasOneTarget());
+      return InlineFloat64x2Getter(call, recognized_kind);
+    case MethodRecognizer::kFloat64x2Negate:
+    case MethodRecognizer::kFloat64x2Abs:
+    case MethodRecognizer::kFloat64x2Sqrt:
+    case MethodRecognizer::kFloat64x2GetSignMask: {
+      Definition* left = call->ArgumentAt(0);
+      // Type check left.
+      AddCheckClass(left,
+                    ICData::ZoneHandle(
+                        call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                    call->deopt_id(),
+                    call->env(),
+                    call);
+      Float64x2ZeroArgInstr* zeroArg =
+          new Float64x2ZeroArgInstr(recognized_kind, new Value(left),
+                                    call->deopt_id());
+      ReplaceCall(call, zeroArg);
+      return true;
+    }
+    case MethodRecognizer::kFloat64x2Scale:
+    case MethodRecognizer::kFloat64x2WithX:
+    case MethodRecognizer::kFloat64x2WithY:
+    case MethodRecognizer::kFloat64x2Min:
+    case MethodRecognizer::kFloat64x2Max: {
+      Definition* left = call->ArgumentAt(0);
+      Definition* right = call->ArgumentAt(1);
+      // Type check left.
+      AddCheckClass(left,
+                    ICData::ZoneHandle(
+                        call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                    call->deopt_id(),
+                    call->env(),
+                    call);
+      Float64x2OneArgInstr* zeroArg =
+          new Float64x2OneArgInstr(recognized_kind, new Value(left),
+                                   new Value(right), call->deopt_id());
+      ReplaceCall(call, zeroArg);
+      return true;
     }
     default:
       return false;
@@ -3818,8 +3981,14 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
     ReplaceCall(call, math_unary);
   } else if ((recognized_kind == MethodRecognizer::kFloat32x4Zero) ||
              (recognized_kind == MethodRecognizer::kFloat32x4Splat) ||
-             (recognized_kind == MethodRecognizer::kFloat32x4Constructor)) {
+             (recognized_kind == MethodRecognizer::kFloat32x4Constructor) ||
+             (recognized_kind == MethodRecognizer::kFloat32x4FromFloat64x2)) {
     TryInlineFloat32x4Constructor(call, recognized_kind);
+  } else if ((recognized_kind == MethodRecognizer::kFloat64x2Constructor) ||
+             (recognized_kind == MethodRecognizer::kFloat64x2Zero) ||
+             (recognized_kind == MethodRecognizer::kFloat64x2Splat) ||
+             (recognized_kind == MethodRecognizer::kFloat64x2FromFloat32x4)) {
+    TryInlineFloat64x2Constructor(call, recognized_kind);
   } else if (recognized_kind == MethodRecognizer::kInt32x4BoolConstructor) {
     TryInlineInt32x4Constructor(call, recognized_kind);
   } else if (recognized_kind == MethodRecognizer::kObjectConstructor) {
@@ -4869,8 +5038,8 @@ class Alias : public ValueObject {
   // All indexed load/stores alias each other.
   // TODO(vegorov): incorporate type of array into alias to disambiguate
   // different typed data and normal arrays.
-  static Alias Indexes() {
-    return Alias(kIndexesAlias, 0);
+  static Alias UnknownIndex(intptr_t id) {
+    return Alias(kUnknownIndexAlias, id);
   }
 
   static Alias ConstantIndex(intptr_t id) {
@@ -4889,10 +5058,9 @@ class Alias : public ValueObject {
   // VMField load/stores alias each other when field offset matches.
   // TODO(vegorov) storing a context variable does not alias loading array
   // length.
-  static Alias VMField(intptr_t offset_in_bytes) {
-    ASSERT(offset_in_bytes >= 0);
-    const intptr_t idx = offset_in_bytes / kWordSize;
-    return Alias(kVMFieldAlias, idx);
+  static Alias VMField(intptr_t id) {
+    ASSERT(id != 0);
+    return Alias(kVMFieldAlias, id);
   }
 
   // Current context load/stores alias each other.
@@ -4927,7 +5095,7 @@ class Alias : public ValueObject {
   enum Kind {
     kNoneAlias = -1,
     kCurrentContextAlias = 0,
-    kIndexesAlias = 1,
+    kUnknownIndexAlias = 1,
     kFieldAlias = 2,
     kVMFieldAlias = 3,
     kConstantIndex = 4,
@@ -5264,7 +5432,11 @@ class AliasedSet : public ZoneAllocated {
         max_field_id_(0),
         field_ids_(),
         max_index_id_(0),
-        index_ids_() { }
+        index_ids_(),
+        max_unknown_index_id_(0),
+        unknown_index_ids_(),
+        max_vm_field_id_(0),
+        vm_field_ids_() { }
 
   Alias ComputeAlias(Place* place) {
     switch (place->kind()) {
@@ -5272,15 +5444,18 @@ class AliasedSet : public ZoneAllocated {
         if (place->index()->IsConstant()) {
           const Object& index = place->index()->AsConstant()->value();
           if (index.IsSmi()) {
-            return Alias::ConstantIndex(GetIndexId(Smi::Cast(index).Value()));
+            return Alias::ConstantIndex(
+                GetInstanceIndexId(place->instance(),
+                                   Smi::Cast(index).Value()));
           }
         }
-        return Alias::Indexes();
+        return Alias::UnknownIndex(GetUnknownIndexId(place->instance()));
       case Place::kField:
         return Alias::Field(
             GetInstanceFieldId(place->instance(), place->field()));
       case Place::kVMField:
-        return Alias::VMField(place->offset_in_bytes());
+        return Alias::VMField(
+            GetInstanceVMFieldId(place->instance(), place->offset_in_bytes()));
       case Place::kContext:
         return Alias::CurrentContext();
       case Place::kNone:
@@ -5294,14 +5469,16 @@ class AliasedSet : public ZoneAllocated {
   Alias ComputeAliasForStore(Instruction* instr) {
     StoreIndexedInstr* store_indexed = instr->AsStoreIndexed();
     if (store_indexed != NULL) {
+      Definition* instance = store_indexed->array()->definition();
       if (store_indexed->index()->definition()->IsConstant()) {
         const Object& index =
             store_indexed->index()->definition()->AsConstant()->value();
         if (index.IsSmi()) {
-          return Alias::ConstantIndex(GetIndexId(Smi::Cast(index).Value()));
+          return Alias::ConstantIndex(
+              GetInstanceIndexId(instance, Smi::Cast(index).Value()));
         }
       }
-      return Alias::Indexes();
+      return Alias::UnknownIndex(GetUnknownIndexId(instance));
     }
 
     StoreInstanceFieldInstr* store_instance_field =
@@ -5309,10 +5486,12 @@ class AliasedSet : public ZoneAllocated {
     if (store_instance_field != NULL) {
       Definition* instance = store_instance_field->instance()->definition();
       if (!store_instance_field->field().IsNull()) {
-        return Alias::Field(GetInstanceFieldId(instance,
-                                               store_instance_field->field()));
+        return Alias::Field(
+            GetInstanceFieldId(instance, store_instance_field->field()));
       }
-      return Alias::VMField(store_instance_field->offset_in_bytes());
+      return Alias::VMField(
+          GetInstanceVMFieldId(instance,
+                               store_instance_field->offset_in_bytes()));
     }
 
     if (instr->IsStoreContext()) {
@@ -5342,27 +5521,32 @@ class AliasedSet : public ZoneAllocated {
     }
   }
 
-  void EnsureAliasingForIndexes() {
-    BitVector* indexes = Get(Alias::Indexes());
-    if (indexes == NULL) {
-      return;
-    }
-
-    // Constant indexes alias all non-constant indexes.
-    // Non-constant indexes alias all constant indexes.
-    // First update alias set for const-indices, then
-    // update set for all indices. Ids start at 1.
-    for (intptr_t id = 1; id <= max_index_id_; id++) {
-      BitVector* const_indexes = Get(Alias::ConstantIndex(id));
-      if (const_indexes != NULL) {
-        const_indexes->AddAll(indexes);
+  void EnsureAliasingForUnknownIndices() {
+    // Ids start at 1 because the hash-map uses 0 for element not found.
+    for (intptr_t unknown_index_id = 1;
+         unknown_index_id <= max_unknown_index_id_;
+         unknown_index_id++) {
+      BitVector* unknown_index = Get(Alias::UnknownIndex(unknown_index_id));
+      if (unknown_index == NULL) {
+        return;
       }
-    }
 
-    for (intptr_t id = 1; id <= max_index_id_; id++) {
-      BitVector* const_indexes = Get(Alias::ConstantIndex(id));
-      if (const_indexes != NULL) {
-        indexes->AddAll(const_indexes);
+      // Constant indexes alias all non-constant indexes.
+      // Non-constant indexes alias all constant indexes.
+      // First update alias set for const-indices, then
+      // update set for all indices. Ids start at 1.
+      for (intptr_t id = 1; id <= max_index_id_; id++) {
+        BitVector* const_indexes = Get(Alias::ConstantIndex(id));
+        if (const_indexes != NULL) {
+          const_indexes->AddAll(unknown_index);
+        }
+      }
+
+      for (intptr_t id = 1; id <= max_index_id_; id++) {
+        BitVector* const_indexes = Get(Alias::ConstantIndex(id));
+        if (const_indexes != NULL) {
+          unknown_index->AddAll(const_indexes);
+        }
       }
     }
   }
@@ -5408,8 +5592,12 @@ class AliasedSet : public ZoneAllocated {
   // some other SSA variable and false otherwise. Currently simply checks if
   // this value is stored in a field, escapes to another function or
   // participates in a phi.
-  static bool CanBeAliased(AllocateObjectInstr* alloc) {
-    if (alloc->identity() == AllocateObjectInstr::kUnknown) {
+  static bool CanBeAliased(Definition* alloc) {
+    ASSERT(alloc->IsAllocateObject() ||
+           alloc->IsCreateArray() ||
+           (alloc->IsStaticCall() &&
+            alloc->AsStaticCall()->IsRecognizedFactory()));
+    if (alloc->Identity() == kIdentityUnknown) {
       bool escapes = false;
       for (Value* use = alloc->input_use_list();
            use != NULL;
@@ -5429,11 +5617,10 @@ class AliasedSet : public ZoneAllocated {
         }
       }
 
-      alloc->set_identity(escapes ? AllocateObjectInstr::kAliased
-                                  : AllocateObjectInstr::kNotAliased);
+      alloc->SetIdentity(escapes ? kIdentityAliased : kIdentityNotAliased);
     }
 
-    return alloc->identity() != AllocateObjectInstr::kNotAliased;
+    return alloc->Identity() != kIdentityNotAliased;
   }
 
  private:
@@ -5448,12 +5635,14 @@ class AliasedSet : public ZoneAllocated {
     return id;
   }
 
-  intptr_t GetIndexId(intptr_t index) {
-    intptr_t id = index_ids_.Lookup(index);
+  intptr_t GetIndexId(intptr_t instance_id, intptr_t index) {
+    intptr_t id = index_ids_.Lookup(
+        ConstantIndexIdPair::Key(instance_id, index));
     if (id == 0) {
       // Zero is used to indicate element not found. The first id is one.
       id = ++max_index_id_;
-      index_ids_.Insert(IndexIdPair(index, id));
+      index_ids_.Insert(ConstantIndexIdPair(
+          ConstantIndexIdPair::Key(instance_id, index), id));
     }
     return id;
   }
@@ -5485,6 +5674,66 @@ class AliasedSet : public ZoneAllocated {
     }
 
     return GetFieldId(instance_id, field);
+  }
+
+  intptr_t GetInstanceVMFieldId(Definition* defn, intptr_t offset) {
+    intptr_t instance_id = kAnyInstance;
+
+    ASSERT(defn != NULL);
+    if ((defn->IsAllocateObject() ||
+         defn->IsCreateArray() ||
+         (defn->IsStaticCall() &&
+          defn->AsStaticCall()->IsRecognizedFactory())) &&
+        !CanBeAliased(defn)) {
+      instance_id = defn->ssa_temp_index();
+      ASSERT(instance_id != kAnyInstance);
+    }
+
+    intptr_t id = vm_field_ids_.Lookup(VMFieldIdPair::Key(instance_id, offset));
+    if (id == 0) {
+      id = ++max_vm_field_id_;
+      vm_field_ids_.Insert(
+          VMFieldIdPair(VMFieldIdPair::Key(instance_id, offset), id));
+    }
+    return id;
+  }
+
+  intptr_t GetInstanceIndexId(Definition* defn, intptr_t index) {
+    intptr_t instance_id = kAnyInstance;
+
+    ASSERT(defn != NULL);
+    if ((defn->IsCreateArray() ||
+         (defn->IsStaticCall() &&
+          defn->AsStaticCall()->IsRecognizedFactory())) &&
+        !CanBeAliased(defn)) {
+      instance_id = defn->ssa_temp_index();
+      ASSERT(instance_id != kAnyInstance);
+    }
+
+    return GetIndexId(instance_id, index);
+  }
+
+  intptr_t GetUnknownIndexId(Definition* defn) {
+    intptr_t instance_id = kAnyInstance;
+
+    ASSERT(defn != NULL);
+    if ((defn->IsCreateArray() ||
+         (defn->IsStaticCall() &&
+          defn->AsStaticCall()->IsRecognizedFactory())) &&
+        !CanBeAliased(defn)) {
+      instance_id = defn->ssa_temp_index();
+      ASSERT(instance_id != kAnyInstance);
+    }
+
+    intptr_t id = unknown_index_ids_.Lookup(
+        UnknownIndexIdPair::Key(instance_id));
+    if (id == 0) {
+      // Zero is used to indicate element not found. The first id is one.
+      id = ++max_unknown_index_id_;
+      unknown_index_ids_.Insert(
+          UnknownIndexIdPair(UnknownIndexIdPair::Key(instance_id), id));
+    }
+    return id;
   }
 
   // Get or create an identifier for a static field.
@@ -5560,28 +5809,101 @@ class AliasedSet : public ZoneAllocated {
     Value value_;
   };
 
-  class IndexIdPair {
+  class ConstantIndexIdPair {
    public:
-    typedef intptr_t Key;
+    struct Key {
+      Key(intptr_t instance_id, intptr_t index)
+          : instance_id_(instance_id), index_(index) { }
+
+      intptr_t instance_id_;
+      intptr_t index_;
+    };
     typedef intptr_t Value;
-    typedef IndexIdPair Pair;
+    typedef ConstantIndexIdPair Pair;
 
-    IndexIdPair(Key key, Value value) : key_(key), value_(value) { }
+    ConstantIndexIdPair(Key key, Value value) : key_(key), value_(value) { }
 
-    static Key KeyOf(IndexIdPair kv) {
+    static Key KeyOf(ConstantIndexIdPair kv) {
       return kv.key_;
     }
 
-    static Value ValueOf(IndexIdPair kv) {
+    static Value ValueOf(ConstantIndexIdPair kv) {
       return kv.value_;
     }
 
     static intptr_t Hashcode(Key key) {
-      return key;
+      return (key.instance_id_ + 1) * 1024 + key.index_;
     }
 
-    static inline bool IsKeyEqual(IndexIdPair kv, Key key) {
+    static inline bool IsKeyEqual(ConstantIndexIdPair kv, Key key) {
+      return (KeyOf(kv).index_ == key.index_)
+          && (KeyOf(kv).instance_id_ == key.instance_id_);
+    }
+
+   private:
+    Key key_;
+    Value value_;
+  };
+
+  class UnknownIndexIdPair {
+   public:
+    typedef intptr_t Key;
+    typedef intptr_t Value;
+    typedef UnknownIndexIdPair Pair;
+
+    UnknownIndexIdPair(Key key, Value value) : key_(key), value_(value) { }
+
+    static Key KeyOf(UnknownIndexIdPair kv) {
+      return kv.key_;
+    }
+
+    static Value ValueOf(UnknownIndexIdPair kv) {
+      return kv.value_;
+    }
+
+    static intptr_t Hashcode(Key key) {
+      return key + 1;
+    }
+
+    static inline bool IsKeyEqual(UnknownIndexIdPair kv, Key key) {
       return KeyOf(kv) == key;
+    }
+
+   private:
+    Key key_;
+    Value value_;
+  };
+
+  class VMFieldIdPair {
+   public:
+    struct Key {
+      Key(intptr_t instance_id, intptr_t offset)
+          : instance_id_(instance_id), offset_(offset) { }
+
+      intptr_t instance_id_;
+      intptr_t offset_;
+    };
+
+    typedef intptr_t Value;
+    typedef VMFieldIdPair Pair;
+
+    VMFieldIdPair(Key key, Value value) : key_(key), value_(value) { }
+
+    static Key KeyOf(Pair kv) {
+      return kv.key_;
+    }
+
+    static Value ValueOf(Pair kv) {
+      return kv.value_;
+    }
+
+    static intptr_t Hashcode(Key key) {
+      return (key.instance_id_ + 1) * 1024 + key.offset_;
+    }
+
+    static inline bool IsKeyEqual(Pair kv, Key key) {
+      return (KeyOf(kv).offset_ == key.offset_) &&
+          (KeyOf(kv).instance_id_ == key.instance_id_);
     }
 
    private:
@@ -5604,7 +5926,13 @@ class AliasedSet : public ZoneAllocated {
   DirectChainedHashMap<FieldIdPair> field_ids_;
 
   intptr_t max_index_id_;
-  DirectChainedHashMap<IndexIdPair> index_ids_;
+  DirectChainedHashMap<ConstantIndexIdPair> index_ids_;
+
+  intptr_t max_unknown_index_id_;
+  DirectChainedHashMap<UnknownIndexIdPair> unknown_index_ids_;
+
+  intptr_t max_vm_field_id_;
+  DirectChainedHashMap<VMFieldIdPair> vm_field_ids_;
 };
 
 
@@ -5739,7 +6067,7 @@ static AliasedSet* NumberPlaces(
     aliased_set->AddRepresentative(place);
   }
 
-  aliased_set->EnsureAliasingForIndexes();
+  aliased_set->EnsureAliasingForUnknownIndices();
 
   return aliased_set;
 }
@@ -7735,6 +8063,58 @@ void ConstantPropagator::VisitBinaryInt32x4Op(BinaryInt32x4OpInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitSimd64x2Shuffle(Simd64x2ShuffleInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitBinaryFloat64x2Op(BinaryFloat64x2OpInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloat32x4ToFloat64x2(
+    Float32x4ToFloat64x2Instr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloat64x2ToFloat32x4(
+    Float64x2ToFloat32x4Instr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloat64x2Zero(
+    Float64x2ZeroInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloat64x2Splat(
+    Float64x2SplatInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloat64x2Constructor(
+    Float64x2ConstructorInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloat64x2ZeroArg(Float64x2ZeroArgInstr* instr) {
+  // TODO(johnmccutchan): Implement constant propagation.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloat64x2OneArg(Float64x2OneArgInstr* instr) {
+  // TODO(johnmccutchan): Implement constant propagation.
+  SetValue(instr, non_constant_);
+}
+
+
 void ConstantPropagator::VisitMathUnary(MathUnaryInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsNonConstant(value)) {
@@ -8491,7 +8871,7 @@ void AllocationSinking::Optimize() {
         }
 
         // All sinking candidate are known to be not aliased.
-        alloc->set_identity(AllocateObjectInstr::kNotAliased);
+        alloc->SetIdentity(kIdentityNotAliased);
 
         candidates.Add(alloc);
       }
@@ -8556,15 +8936,15 @@ void AllocationSinking::DetachMaterializations() {
 }
 
 
-// Add the given field to the list of fields if it is not yet present there.
-static void AddField(ZoneGrowableArray<const Field*>* fields,
-                     const Field& field) {
-  for (intptr_t i = 0; i < fields->length(); i++) {
-    if ((*fields)[i]->raw() == field.raw()) {
+// Add a field/offset to the list of fields if it is not yet present there.
+static void AddSlot(ZoneGrowableArray<const Object*>* slots,
+                    const Object& slot) {
+  for (intptr_t i = 0; i < slots->length(); i++) {
+    if ((*slots)[i]->raw() == slot.raw()) {
       return;
     }
   }
-  fields->Add(&field);
+  slots->Add(&slot);
 }
 
 
@@ -8588,22 +8968,25 @@ void AllocationSinking::CreateMaterializationAt(
     Instruction* exit,
     AllocateObjectInstr* alloc,
     const Class& cls,
-    const ZoneGrowableArray<const Field*>& fields) {
+    const ZoneGrowableArray<const Object*>& slots) {
   ZoneGrowableArray<Value*>* values =
-      new ZoneGrowableArray<Value*>(fields.length());
+      new ZoneGrowableArray<Value*>(slots.length());
 
   // Insert load instruction for every field.
-  for (intptr_t i = 0; i < fields.length(); i++) {
-    const Field* field = fields[i];
-    LoadFieldInstr* load = new LoadFieldInstr(new Value(alloc),
-                                              field,
-                                              AbstractType::ZoneHandle());
+  for (intptr_t i = 0; i < slots.length(); i++) {
+    LoadFieldInstr* load = slots[i]->IsField()
+        ? new LoadFieldInstr(new Value(alloc),
+                             &Field::Cast(*slots[i]),
+                             AbstractType::ZoneHandle())
+        : new LoadFieldInstr(new Value(alloc),
+                             Smi::Cast(*slots[i]).Value(),
+                             AbstractType::ZoneHandle());
     flow_graph_->InsertBefore(
         exit, load, NULL, Definition::kValue);
     values->Add(new Value(load));
   }
 
-  MaterializeObjectInstr* mat = new MaterializeObjectInstr(cls, fields, values);
+  MaterializeObjectInstr* mat = new MaterializeObjectInstr(cls, slots, values);
   flow_graph_->InsertBefore(exit, mat, NULL, Definition::kValue);
 
   // Replace all mentions of this allocation with a newly inserted
@@ -8628,29 +9011,24 @@ void AllocationSinking::CreateMaterializationAt(
 
 void AllocationSinking::InsertMaterializations(AllocateObjectInstr* alloc) {
   // Collect all fields that are written for this instance.
-  ZoneGrowableArray<const Field*>* fields =
-      new ZoneGrowableArray<const Field*>(5);
+  ZoneGrowableArray<const Object*>* slots =
+      new ZoneGrowableArray<const Object*>(5);
 
   for (Value* use = alloc->input_use_list();
        use != NULL;
        use = use->next_use()) {
-    ASSERT(use->instruction()->IsStoreInstanceField());
-    AddField(fields, use->instruction()->AsStoreInstanceField()->field());
+    StoreInstanceFieldInstr* store = use->instruction()->AsStoreInstanceField();
+    if (!store->field().IsNull()) {
+      AddSlot(slots, store->field());
+    } else {
+      AddSlot(slots, Smi::ZoneHandle(Smi::New(store->offset_in_bytes())));
+    }
   }
 
   if (alloc->ArgumentCount() > 0) {
     ASSERT(alloc->ArgumentCount() == 1);
-    const String& name = String::Handle(Symbols::New(":type_args"));
-    const Field& type_args_field =
-        Field::ZoneHandle(Field::New(
-            name,
-            false,  // !static
-            false,  // !final
-            false,  // !const
-            alloc->cls(),
-            0));  // No token position.
-    type_args_field.SetOffset(alloc->cls().type_arguments_field_offset());
-    AddField(fields, type_args_field);
+    intptr_t type_args_offset = alloc->cls().type_arguments_field_offset();
+    AddSlot(slots, Smi::ZoneHandle(Smi::New(type_args_offset)));
   }
 
   // Collect all instructions that mention this object in the environment.
@@ -8663,7 +9041,7 @@ void AllocationSinking::InsertMaterializations(AllocateObjectInstr* alloc) {
 
   // Insert materializations at environment uses.
   for (intptr_t i = 0; i < exits.length(); i++) {
-    CreateMaterializationAt(exits[i], alloc, alloc->cls(), *fields);
+    CreateMaterializationAt(exits[i], alloc, alloc->cls(), *slots);
   }
 }
 

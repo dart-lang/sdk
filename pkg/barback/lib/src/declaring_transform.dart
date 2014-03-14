@@ -6,18 +6,16 @@ library barback.declaring_transform;
 
 import 'asset_id.dart';
 import 'base_transform.dart';
-import 'transform_logger.dart';
 import 'transform_node.dart';
 
 /// A transform for [DeclaringTransform]ers that allows them to declare the ids
 /// of the outputs they'll generate without generating the concrete bodies of
 /// those outputs.
 class DeclaringTransform extends BaseTransform {
-  final Set<AssetId> _outputIds;
+  final _outputIds = new Set<AssetId>();
 
-  DeclaringTransform(TransformNode node, this._outputIds,
-      LogFunction logFunction)
-    : super(node, logFunction);
+  DeclaringTransform._(TransformNode node)
+    : super(node);
 
   /// Stores [id] as the id of an output that will be created by this
   /// transformation when it's run.
@@ -31,4 +29,16 @@ class DeclaringTransform extends BaseTransform {
     // has already been declared by this transformer.
     _outputIds.add(id);
   }
+}
+
+/// The controller for [DeclaringTransform].
+class DeclaringTransformController extends BaseTransformController {
+  DeclaringTransform get transform => super.transform;
+
+  /// The set of ids that the transformer declares it will emit for the given
+  /// primary input.
+  Set<AssetId> get outputIds => transform._outputIds;
+
+  DeclaringTransformController(TransformNode node)
+      : super(new DeclaringTransform._(node));
 }

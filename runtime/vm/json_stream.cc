@@ -9,6 +9,7 @@
 #include "vm/json_stream.h"
 #include "vm/message.h"
 #include "vm/object.h"
+#include "vm/unicode.h"
 
 
 namespace dart {
@@ -80,8 +81,12 @@ void JSONStream::Setup(Zone* zone,
     Isolate* isolate = Isolate::Current();
     ASSERT(isolate != NULL);
     const char* isolate_name = isolate->name();
-    OS::Print("Isolate %s processing service request /%s\n",
+    OS::Print("Isolate %s processing service request /%s",
               isolate_name, command_);
+    for (intptr_t i = 1; i < num_arguments(); i++) {
+      OS::Print("/%s", GetArgument(i));
+    }
+    OS::Print("\n");
     setup_time_micros_ = OS::GetCurrentTimeMicros();
   }
 }
@@ -114,8 +119,12 @@ void JSONStream::PostReply() {
     Isolate* isolate = Isolate::Current();
     ASSERT(isolate != NULL);
     const char* isolate_name = isolate->name();
-    OS::Print("Isolate %s processed service request /%s in %" Pd64" us.\n",
-              isolate_name, command_, process_delta_micros);
+    OS::Print("Isolate %s processed service request /%s",
+              isolate_name, command_);
+    for (intptr_t i = 1; i < num_arguments(); i++) {
+      OS::Print("/%s", GetArgument(i));
+    }
+    OS::Print(" in %" Pd64" us.\n", process_delta_micros);
   }
 }
 
@@ -197,7 +206,7 @@ void JSONStream::PrintValue(double d) {
 void JSONStream::PrintValue(const char* s) {
   PrintCommaIfNeeded();
   buffer_.AddChar('"');
-  buffer_.AddEscapedString(s);
+  AddEscapedUTF8String(s);
   buffer_.AddChar('"');
 }
 
@@ -215,7 +224,7 @@ void JSONStream::PrintfValue(const char* format, ...) {
   va_end(args);
   ASSERT(len == len2);
   buffer_.AddChar('"');
-  buffer_.AddEscapedString(p);
+  AddEscapedUTF8String(p);
   buffer_.AddChar('"');
   free(p);
 }
@@ -275,7 +284,7 @@ void JSONStream::PrintfProperty(const char* name, const char* format, ...) {
   va_end(args);
   ASSERT(len == len2);
   buffer_.AddChar('"');
-  buffer_.AddEscapedString(p);
+  AddEscapedUTF8String(p);
   buffer_.AddChar('"');
   free(p);
 }
@@ -311,7 +320,7 @@ void JSONStream::PrintPropertyName(const char* name) {
   ASSERT(name != NULL);
   PrintCommaIfNeeded();
   buffer_.AddChar('"');
-  buffer_.AddEscapedString(name);
+  AddEscapedUTF8String(name);
   buffer_.AddChar('"');
   buffer_.AddChar(':');
 }
@@ -335,6 +344,23 @@ bool JSONStream::NeedComma() {
 }
 
 
+void JSONStream::AddEscapedUTF8String(const char* s) {
+  intptr_t len = strlen(s);
+  const uint8_t* s8 = reinterpret_cast<const uint8_t*>(s);
+  intptr_t i = 0;
+  for (; i < len; ) {
+    // Extract next UTF8 character.
+    int32_t ch = 0;
+    int32_t ch_len = Utf8::Decode(&s8[i], len - i, &ch);
+    ASSERT(ch_len != 0);
+    buffer_.AddEscapedChar(ch);
+    // Move i forward.
+    i += ch_len;
+  }
+  ASSERT(i == len);
+}
+
+
 JSONObject::JSONObject(const JSONArray* arr) : stream_(arr->stream_) {
   stream_->OpenObject();
 }
@@ -353,7 +379,7 @@ void JSONObject::AddPropertyF(const char* name,
   va_end(args);
   ASSERT(len == len2);
   stream_->buffer_.AddChar('"');
-  stream_->buffer_.AddEscapedString(p);
+  stream_->AddEscapedUTF8String(p);
   stream_->buffer_.AddChar('"');
   free(p);
 }
@@ -371,7 +397,7 @@ void JSONArray::AddValueF(const char* format, ...) const {
   va_end(args);
   ASSERT(len == len2);
   stream_->buffer_.AddChar('"');
-  stream_->buffer_.AddEscapedString(p);
+  stream_->AddEscapedUTF8String(p);
   stream_->buffer_.AddChar('"');
   free(p);
 }

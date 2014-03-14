@@ -18,7 +18,7 @@ class _Directory extends FileSystemEntity implements Directory {
   external static _setCurrent(path);
   external static _createTemp(String path);
   external static String _systemTemp();
-  external static int _exists(String path);
+  external static _exists(String path);
   external static _create(String path);
   external static _deleteNative(String path, bool recursive);
   external static _rename(String path, String newPath);

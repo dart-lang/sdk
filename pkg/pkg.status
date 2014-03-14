@@ -16,8 +16,8 @@ polymer/example/scoped_style/*: Skip
 
 scheduled_test/test/scheduled_server_test: Pass, Fail # 13524
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
-
 polymer/test/event_path_test: Pass, Fail # Issue 15766
+docgen/test/generate_json_test: Skip # Issue 17430
 
 [ $compiler == dart2js ]
 collection/test/equality_test/01: Fail # Issue 1533
@@ -40,9 +40,6 @@ serialization/test/serialization_test: Skip
 
 [ $runtime == jsshell ]
 analyzer/test/generated/element_test: Pass, Slow # Issue 16473
-
-[ $compiler == dart2js && $checked && $runtime == drt && $nocsp ]
-async/test/stream_zip_test: RuntimeError # Issue 16719
 
 [ $runtime == d8 || $runtime == jsshell ]
 unittest/test/unittest_nested_groups_setup_teardown_test: RuntimeError # http://dartbug.com/10109
@@ -181,7 +178,7 @@ docgen/test/single_library_test: Fail # TODO(kasperl): Please triage.
 intl/test/date_time_format_http_request_test: Fail # TODO(kasperl): Please triage.
 
 [ $browser ]
-analysis_server/test/channel_test: Skip # Uses dart:io.
+analysis_server/test/*: Skip # Uses dart:io.
 analyzer/test/generated/ast_test: Fail, OK # Uses dart:io.
 analyzer/test/generated/element_test: Fail, OK # Uses dart:io.
 analyzer/test/generated/parser_test: Fail, OK # Uses dart:io.
@@ -265,6 +262,8 @@ unittest/test/unittest_completion_test: Fail # 13921
 unittest/test/unittest_correct_callback_test: Fail # 13921
 unittest/test/unittest_exception_test: Fail # 13921
 unittest/test/unittest_excess_callback_test: Fail # 13921
+unittest/test/unittest_expect_async_args_test: Fail # 13921
+unittest/test/unittest_expect_async_test: Fail # 13921
 unittest/test/unittest_group_name_test: Fail # 13921
 unittest/test/unittest_invalid_ops_test: Fail # 13921
 unittest/test/unittest_late_exception_test: Fail # 13921
@@ -281,12 +280,12 @@ unittest/test/unittest_teardown_test: Fail # 13921
 unittest/test/unittest_test_returning_future_test: Fail # 13921
 unittest/test/unittest_test_returning_future_using_runasync_test: Fail # 13921
 unittest/test/unittest_testcases_immutable_test: Fail # 13921
-polymer/test/custom_event_test: Pass, Crash # 14360
-polymer/example/canonicalization/test/deploy_test: Fail, OK # tests deploy only behavior
 polymer/example/canonicalization/test/deploy2_test: Fail, OK # tests deploy only behavior
 polymer/example/canonicalization/test/deploy3_test: Fail, OK # tests deploy only behavior
-polymer/example/canonicalization/test/dir/deploy_test: Fail, OK # tests deploy only behavior
+polymer/example/canonicalization/test/deploy_test: Fail, OK # tests deploy only behavior
 polymer/example/canonicalization/test/dir/deploy2_test: Fail, OK # tests deploy only behavior
+polymer/example/canonicalization/test/dir/deploy_test: Fail, OK # tests deploy only behavior
+polymer/test/custom_event_test: Pass, Crash # 14360
 
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) && $checked ]
 polymer/test/custom_event_test: Skip # http://dartbug.com/15517

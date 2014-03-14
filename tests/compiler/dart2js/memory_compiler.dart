@@ -10,7 +10,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
        show NullSink;
 
 import '../../../sdk/lib/_internal/compiler/compiler.dart'
-       show Diagnostic, DiagnosticHandler;
+       show Diagnostic, DiagnosticHandler, CompilerOutputProvider;
 
 import 'dart:async';
 
@@ -59,6 +59,41 @@ class DiagnosticCollector {
   }
 }
 
+class BufferedEventSink implements EventSink<String> {
+  StringBuffer sb = new StringBuffer();
+  String text;
+
+  void add(String event) {
+    sb.write(event);
+  }
+
+  void addError(errorEvent, [StackTrace stackTrace]) {
+    // Do not support this.
+  }
+
+  void close() {
+    text = sb.toString();
+    sb = null;
+  }
+}
+
+class OutputCollector {
+  Map<String, Map<String, BufferedEventSink>> outputMap = {};
+
+  EventSink<String> call(String name, String extension) {
+    Map<String, BufferedEventSink> sinkMap =
+        outputMap.putIfAbsent(extension, () => {});
+    return sinkMap.putIfAbsent(name, () => new BufferedEventSink());
+  }
+
+  String getOutput(String name, String extension) {
+    Map<String, BufferedEventSink> sinkMap = outputMap[extension];
+    if (sinkMap == null) return null;
+    BufferedEventSink sink = sinkMap[name];
+    return sink != null ? sink.text : null;
+  }
+}
+
 DiagnosticHandler createDiagnosticHandler(DiagnosticHandler diagnosticHandler,
                                           SourceFileProvider provider,
                                           bool showDiagnostics) {
@@ -84,6 +119,7 @@ Expando<MemorySourceFileProvider> expando =
 
 Compiler compilerFor(Map<String,String> memorySourceFiles,
                      {DiagnosticHandler diagnosticHandler,
+                      CompilerOutputProvider outputProvider,
                       List<String> options: const [],
                       Compiler cachedCompiler,
                       bool showDiagnostics: true,
@@ -112,9 +148,12 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
   var handler =
       createDiagnosticHandler(diagnosticHandler, provider, showDiagnostics);
 
-  EventSink<String> outputProvider(String name, String extension) {
+  EventSink<String> noOutputProvider(String name, String extension) {
     if (name != '') throw 'Attempt to output file "$name.$extension"';
     return new NullSink('$name.$extension');
+  }
+  if (outputProvider == null) {
+    outputProvider = noOutputProvider;
   }
 
   Compiler compiler = new Compiler(readStringFromUri,

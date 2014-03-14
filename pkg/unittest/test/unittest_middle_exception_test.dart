@@ -15,7 +15,7 @@ var testFunction = (_) {
   test('testOne', () { expect(true, isTrue); });
   test('testTwo', () { expect(true, isFalse); });
   test('testThree', () {
-    var done = expectAsync0((){});
+    var done = expectAsync(() {});
     _defer(() {
       expect(true, isTrue);
       done();

@@ -4,21 +4,17 @@
 
 library function_view_element;
 
-import 'isolate_element.dart';
-import 'package:logging/logging.dart';
+import 'observatory_element.dart';
+import 'package:observatory/service.dart';
+
 import 'package:polymer/polymer.dart';
 
-
 @CustomTag('function-view')
-class FunctionViewElement extends IsolateElement {
-  @published Map function;
+class FunctionViewElement extends ObservatoryElement {
+  @published ServiceMap function;
   FunctionViewElement.created() : super.created();
 
   void refresh(var done) {
-    isolate.getMap(function['id']).then((map) {
-        function = map;
-    }).catchError((e, trace) {
-        Logger.root.severe('Error while refreshing field-view: $e\n$trace');
-    }).whenComplete(done);
+    function.reload().whenComplete(done);
   }
 }

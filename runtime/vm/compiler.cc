@@ -748,7 +748,7 @@ static RawError* CompileFunctionHelper(const Function& function,
     return Error::null();
   }
   if (setjmp(*jump.Set()) == 0) {
-    TIMERSCOPE(time_compilation);
+    TIMERSCOPE(isolate, time_compilation);
     Timer per_compile_timer(FLAG_trace_compiler, "Compilation time");
     per_compile_timer.Start();
     ParsedFunction* parsed_function =

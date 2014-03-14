@@ -28,7 +28,7 @@ Future<Map<String, String>> generate(String code,
     Expect.isTrue(success);
     Map<String, String> result = new Map<String, String>();
     for (var element in compiler.backend.generatedCode.keys) {
-      if (element.getCompilationUnit().script.uri != uri) continue;
+      if (element.getCompilationUnit().script.readableUri != uri) continue;
       var name = element.name;
       var code = compiler.backend.assembleCode(element);
       result[name] = code;

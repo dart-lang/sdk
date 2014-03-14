@@ -267,11 +267,12 @@ main() {
 ''';
   var expectedResult =
       'globalfoo(){}var globalVar;'
-      'var globalVarInitialized=6,globalVarInitialized2=7;'
+      'var globalVarInitialized=6;var globalVarInitialized2=7;'
       'class A{A(){}A.fromFoo(){}static staticfoo(){}foo(){}'
           'static const field=5;}'
       'A_globalfoo(){}'
-      'var A_globalVar;var A_globalVarInitialized=6,A_globalVarInitialized2=7;'
+      'var A_globalVar;var A_globalVarInitialized=6;'
+          'var A_globalVarInitialized2=7;'
       'class A_A{A_A(){}A_A.A_fromFoo(){}static A_staticfoo(){}foo(){}'
           'static const A_field=5;}'
       'main(){A_globalVar;A_globalVarInitialized;'

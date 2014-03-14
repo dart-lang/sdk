@@ -442,10 +442,15 @@ class SimpleTypeInferrerVisitor<T>
 
   T run() {
     var node = analyzedElement.parseNode(compiler);
-    if (analyzedElement.isField() && node.asSendSet() == null) {
-      // Eagerly bailout, because computing the closure data only
-      // works for functions and field assignments.
-      return types.nullType;
+    ast.Expression initializer;
+    if (analyzedElement.isField()) {
+      VariableElement fieldElement = analyzedElement;
+      initializer = fieldElement.initializer;
+      if (initializer == null) {
+        // Eagerly bailout, because computing the closure data only
+        // works for functions and field assignments.
+        return types.nullType;
+      }
     }
     // Update the locals that are boxed in [locals]. These locals will
     // be handled specially, in that we are computing their LUB at
@@ -461,15 +466,14 @@ class SimpleTypeInferrerVisitor<T>
       locals.setCapturedAndBoxed(variable, field);
     });
     if (analyzedElement.isField()) {
-      return visit(node.asSendSet().arguments.head);
+      return visit(initializer);
     }
 
     FunctionElement function = analyzedElement;
     FunctionSignature signature = function.computeSignature(compiler);
     signature.forEachOptionalParameter((element) {
-      ast.Node node = element.parseNode(compiler);
-      ast.Send send = node.asSendSet();
-      T type = (send == null) ? types.nullType : visit(send.arguments.head);
+      ast.Expression defaultValue = element.initializer;
+      T type = (defaultValue == null) ? types.nullType : visit(defaultValue);
       inferrer.setDefaultTypeOfParameter(element, type);
     });
 
@@ -530,7 +534,7 @@ class SimpleTypeInferrerVisitor<T>
         cls.forEachInstanceField((_, field) {
           if (field.modifiers.isFinal()) return;
           T type = locals.fieldScope.readField(field);
-          if (type == null && field.parseNode(compiler).asSendSet() == null) {
+          if (type == null && field.initializer == null) {
             inferrer.recordTypeOfNonFinalField(node, field, types.nullType);
           }
         });
@@ -681,7 +685,7 @@ class SimpleTypeInferrerVisitor<T>
             && isInClassOrSubclass(element)
             && !element.modifiers.isFinal()
             && locals.fieldScope.readField(element) == null
-            && element.parseNode(compiler).asSendSet() == null) {
+            && element.initializer == null) {
           // If the field is being used before this constructor
           // actually had a chance to initialize it, say it can be
           // null.

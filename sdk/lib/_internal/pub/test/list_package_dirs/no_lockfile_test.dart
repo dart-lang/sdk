@@ -15,9 +15,10 @@ main() {
     ]).create();
 
     schedulePub(args: ["list-package-dirs", "--format=json"],
-        error: '''
-        "Package \\"myapp\\" has no lockfile. Please run \\"pub get\\" first."
-        ''',
-        exitCode: exit_codes.NO_INPUT);
+        outputJson: {
+          "error":
+            'Package "myapp" has no lockfile. Please run "pub get" first.'
+        },
+        exitCode: exit_codes.DATA);
   });
 }

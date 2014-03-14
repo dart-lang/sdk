@@ -162,6 +162,8 @@ Representation LoadFieldInstr::representation() const {
         return kUnboxedDouble;
       case kFloat32x4Cid:
         return kUnboxedFloat32x4;
+      case kFloat64x2Cid:
+        return kUnboxedFloat64x2;
       default:
         UNREACHABLE();
     }
@@ -194,6 +196,8 @@ Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
         return kUnboxedDouble;
       case kFloat32x4Cid:
         return kUnboxedFloat32x4;
+      case kFloat64x2Cid:
+        return kUnboxedFloat64x2;
       default:
         UNREACHABLE();
     }
@@ -2058,17 +2062,20 @@ void PushTempInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* DropTempsInstr::MakeLocationSummary(bool optimizing) const {
-  return LocationSummary::Make(1,
-                               Location::SameAsFirstInput(),
-                               LocationSummary::kNoCall);
+  return (InputCount() == 1)
+      ? LocationSummary::Make(1,
+                              Location::SameAsFirstInput(),
+                              LocationSummary::kNoCall)
+      : LocationSummary::Make(0,
+                              Location::NoLocation(),
+                              LocationSummary::kNoCall);
 }
 
 
 void DropTempsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!compiler->is_optimizing());
-  Register value = locs()->in(0).reg();
-  Register result = locs()->out().reg();
-  ASSERT(result == value);  // Assert that register assignment is correct.
+  // Assert that register assignment is correct.
+  ASSERT((InputCount() == 0) || locs()->out().reg() == locs()->in(0).reg());
   __ Drop(num_temps());
 }
 
@@ -3036,6 +3043,12 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
   //   StoreIndexed(v2, v3, v4)   -- v3:constant index, v4: value.
   //   ..
   //   v8 <- StringInterpolate(v2)
+
+  // Don't compile-time fold when optimizing the interpolation function itself.
+  if (flow_graph->parsed_function().function().raw() == CallFunction().raw()) {
+    return this;
+  }
+
   CreateArrayInstr* create_array = value()->definition()->AsCreateArray();
   ASSERT(create_array != NULL);
   // Check if the string interpolation has only constant inputs.
@@ -3080,13 +3093,14 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
   const Array& interpolate_arg = Array::Handle(Array::New(1));
   interpolate_arg.SetAt(0, array_argument);
   // Call interpolation function.
-  String& concatenated = String::ZoneHandle();
-  concatenated ^=
-      DartEntry::InvokeFunction(CallFunction(), interpolate_arg);
-  if (concatenated.IsUnhandledException()) {
+  const Object& result = Object::Handle(
+      DartEntry::InvokeFunction(CallFunction(), interpolate_arg));
+  if (result.IsUnhandledException()) {
     return this;
   }
-  concatenated = Symbols::New(concatenated);
+  ASSERT(result.IsString());
+  const String& concatenated =
+      String::ZoneHandle(Symbols::New(String::Cast(result)));
   return flow_graph->GetConstant(concatenated);
 }
 

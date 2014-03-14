@@ -223,7 +223,7 @@ class LocalsHandler {
    *
    * Invariant: [function] must be an implementation element.
    */
-  void startFunction(Element element, ast.Expression node) {
+  void startFunction(Element element, ast.Node node) {
     assert(invariant(element, element.isImplementation));
     Compiler compiler = builder.compiler;
     closureData = compiler.closureToClassMapper.computeClosureToClassMapping(
@@ -1453,11 +1453,10 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   HGraph buildLazyInitializer(VariableElement variable) {
-    ast.SendSet node = variable.parseNode(compiler);
+    ast.Node node = variable.parseNode(compiler);
     openFunction(variable, node);
-    Link<ast.Node> link = node.arguments;
-    assert(!link.isEmpty && link.tail.isEmpty);
-    visit(link.head);
+    assert(variable.initializer != null);
+    visit(variable.initializer);
     HInstruction value = pop();
     value = potentiallyCheckType(value, variable.computeType(compiler));
     closeAndGotoExit(new HReturn(value));
@@ -1827,19 +1826,19 @@ class SsaBuilder extends ResolvedVisitor {
                               Map<Element, HInstruction> fieldValues) {
     assert(invariant(classElement, classElement.isImplementation));
     classElement.forEachInstanceField(
-        (ClassElement enclosingClass, Element member) {
+        (ClassElement enclosingClass, VariableElement member) {
           compiler.withCurrentElement(member, () {
             TreeElements definitions = compiler.analyzeElement(member);
             ast.Node node = member.parseNode(compiler);
-            ast.SendSet assignment = node.asSendSet();
-            if (assignment == null) {
+            ast.Expression initializer = member.initializer;
+            if (initializer == null) {
               // Unassigned fields of native classes are not initialized to
               // prevent overwriting pre-initialized native properties.
               if (!Elements.isNativeOrExtendsNative(classElement)) {
                 fieldValues[member] = graph.addConstantNull(compiler);
               }
             } else {
-              ast.Node right = assignment.arguments.head;
+              ast.Node right = initializer;
               TreeElements savedElements = elements;
               elements = definitions;
               // In case the field initializer uses closures, run the
@@ -2095,7 +2094,7 @@ class SsaBuilder extends ResolvedVisitor {
    *
    * Invariant: [functionElement] must be the implementation element.
    */
-  void openFunction(Element element, ast.Expression node) {
+  void openFunction(Element element, ast.Node node) {
     assert(invariant(element, element.isImplementation));
     HBasicBlock block = graph.addNewBlock();
     open(graph.entry);

@@ -163,7 +163,7 @@ namespace dart {
   V(ExternalTypedData_Int32x4Array_new, 1)                                     \
   V(ExternalTypedData_Float64x2Array_new, 1)                                   \
   V(TypedData_length, 1)                                                       \
-  V(TypedData_setRange, 5)                                                     \
+  V(TypedData_setRange, 7)                                                     \
   V(TypedData_GetInt8, 2)                                                      \
   V(TypedData_SetInt8, 3)                                                      \
   V(TypedData_GetUint8, 2)                                                     \
@@ -309,6 +309,7 @@ namespace dart {
   V(ClassMirror_members, 2)                                                    \
   V(ClassMirror_constructors, 2)                                               \
   V(LibraryMirror_members, 2)                                                  \
+  V(LibraryMirror_libraryDependencies, 2)                                      \
   V(ClassMirror_invoke, 5)                                                     \
   V(ClassMirror_invokeGetter, 3)                                               \
   V(ClassMirror_invokeSetter, 4)                                               \

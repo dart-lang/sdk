@@ -118,13 +118,13 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
     HandleScope handle_scope(vm_isolate_);
     Heap::Init(vm_isolate_);
     ObjectStore::Init(vm_isolate_);
+    TargetCPUFeatures::InitOnce();
     Object::InitOnce();
     ArgumentsDescriptor::InitOnce();
     StubCode::InitOnce();
     Symbols::InitOnce(vm_isolate_);
     Scanner::InitOnce();
     Object::CreateInternalMetaData();
-    TargetCPUFeatures::InitOnce();
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
     // Dart VM requires at least SSE2.
     if (!TargetCPUFeatures::sse2_supported()) {
@@ -175,11 +175,12 @@ const char* Dart::Cleanup() {
 
   ShutdownIsolate();
   vm_isolate_ = NULL;
+
+  TargetCPUFeatures::Cleanup();
 #endif
 
   Profiler::Shutdown();
   CodeObservers::DeleteAll();
-  TargetCPUFeatures::Cleanup();
 
   return NULL;
 }
@@ -195,8 +196,8 @@ Isolate* Dart::CreateIsolate(const char* name_prefix) {
 
 RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Initialize the new isolate.
-  TIMERSCOPE(time_isolate_initialization);
   Isolate* isolate = Isolate::Current();
+  TIMERSCOPE(isolate, time_isolate_initialization);
   ASSERT(isolate != NULL);
   StackZone zone(isolate);
   HandleScope handle_scope(isolate);

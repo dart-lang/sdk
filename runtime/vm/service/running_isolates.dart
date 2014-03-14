@@ -29,6 +29,7 @@ class RunningIsolates implements MessageRouter {
       });
     });
     result['type'] = 'IsolateList';
+    result['id'] = 'isolates';
     result['members'] = members;
     message.setResponse(JSON.encode(result));
   }

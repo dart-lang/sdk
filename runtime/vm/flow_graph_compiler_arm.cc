@@ -44,7 +44,7 @@ bool FlowGraphCompiler::SupportsUnboxedMints() {
 }
 
 
-bool FlowGraphCompiler::SupportsUnboxedFloat32x4() {
+bool FlowGraphCompiler::SupportsUnboxedSimd128() {
   return TargetCPUFeatures::neon_supported() && FLAG_enable_simd_inline;
 }
 

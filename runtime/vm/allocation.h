@@ -62,16 +62,11 @@ class StackResource {
 
   BaseIsolate* isolate() const { return isolate_; }
 
-  // The delete operator should be private instead of public, but unfortunately
-  // the compiler complains when compiling the destructors for subclasses.
-  void operator delete(void* pointer) { UNREACHABLE(); }
-
  private:
-  BaseIsolate* isolate_;  // Current isolate for this stack resource.
+  BaseIsolate* const isolate_;  // Current isolate for this stack resource.
   StackResource* previous_;
 
-  void* operator new(uword size);
-
+  DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(StackResource);
 };
 

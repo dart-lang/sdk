@@ -1,13 +1,13 @@
 <head>
   <link rel="import" href="class_ref.html">
-  <link rel="import" href="isolate_element.html">
+  <link rel="import" href="observatory_element.html">
   <link rel="import" href="nav_bar.html">
 </head>
-<polymer-element name="heap-profile" extends="isolate-element">
+<polymer-element name="heap-profile" extends="observatory-element">
 <template>
   <nav-bar>
     <top-nav-menu></top-nav-menu>
-    <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+    <isolate-nav-menu isolate="{{ profile.isolate }}"></isolate-nav-menu>
     <nav-menu link="." anchor="heap profile" last="{{ true }}"></nav-menu>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>
   </nav-bar>

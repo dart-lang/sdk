@@ -42,7 +42,7 @@ bool FlowGraphCompiler::SupportsUnboxedMints() {
 }
 
 
-bool FlowGraphCompiler::SupportsUnboxedFloat32x4() {
+bool FlowGraphCompiler::SupportsUnboxedSimd128() {
   return false;
 }
 

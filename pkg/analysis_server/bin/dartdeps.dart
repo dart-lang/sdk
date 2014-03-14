@@ -33,6 +33,11 @@ class _DartDependencyAnalyzer {
   static const BINARY_NAME = 'dartdeps';
 
   /**
+   * The name of the option used to specify the Dart SDK.
+   */
+  static const String DART_SDK_OPTION = 'dart-sdk';
+
+  /**
    * The name of the option used to print usage information.
    */
   static const String HELP_OPTION = 'help';
@@ -46,6 +51,11 @@ class _DartDependencyAnalyzer {
    * The command line arguments.
    */
   final List<String> args;
+
+  /**
+   * The path to the Dart SDK used during analysis.
+   */
+  String sdkPath;
 
   /**
    * The manager for the analysis server.
@@ -69,6 +79,9 @@ class _DartDependencyAnalyzer {
    */
   Future<AnalysisManager> start() {
     var parser = new ArgParser();
+    parser.addOption(
+        DART_SDK_OPTION,
+        help: '[sdkPath] path to Dart SDK');
     parser.addFlag(HELP_OPTION,
         help: 'print this help message without starting analysis',
         defaultsTo: false,
@@ -89,6 +102,18 @@ class _DartDependencyAnalyzer {
       return null;
     }
     if (results[HELP_OPTION]) {
+      printUsage(parser);
+      return null;
+    }
+    sdkPath = results[DART_SDK_OPTION];
+    if (sdkPath is! String) {
+      print('Missing path to Dart SDK');
+      printUsage(parser);
+      return null;
+    }
+    Directory sdkDir = new Directory(sdkPath);
+    if (!sdkDir.existsSync()) {
+      print('Specified Dart SDK does not exist: $sdkPath');
       printUsage(parser);
       return null;
     }

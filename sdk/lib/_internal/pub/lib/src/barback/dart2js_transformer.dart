@@ -57,15 +57,30 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
   Dart2JSTransformer(BuildEnvironment environment, BarbackMode mode)
       : this.withSettings(environment, new BarbackSettings({}, mode));
 
-  /// Only ".dart" files within a buildable directory are processed.
+  /// Only ".dart" entrypoint files within a buildable directory are processed.
   Future<bool> isPrimary(Asset asset) {
     if (asset.id.extension != ".dart") return new Future.value(false);
 
-    for (var dir in ["benchmark", "example", "test", "web"]) {
-      if (asset.id.path.startsWith("$dir/")) return new Future.value(true);
+    if (!["benchmark", "example", "test", "web"]
+        .any((dir) => asset.id.path.startsWith("$dir/"))) {
+      return new Future.value(false);
     }
 
-    return new Future.value(false);
+    return asset.readAsString().then((code) {
+      try {
+        var name = asset.id.path;
+        if (asset.id.package != _environment.rootPackage.name) {
+          name += " in ${asset.id.package}";
+        }
+
+        var parsed = parseCompilationUnit(code, name: name);
+        return dart.isEntrypoint(parsed);
+      } on AnalyzerErrorGroup catch (e) {
+        // If we get a parse error, consider the asset primary so we report
+        // dart2js's more detailed error message instead.
+        return true;
+      }
+    });
   }
 
   Future apply(Transform transform) {
@@ -76,54 +91,41 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
       transform.logger.info("Compiling ${transform.primaryInput.id}...");
       stopwatch.start();
 
-      return transform.primaryInput.readAsString().then((code) {
-        try {
-          var id = transform.primaryInput.id;
-          var name = id.path;
-          if (id.package != _environment.rootPackage.name) {
-            name += " in ${id.package}";
-          }
+      var provider = new _BarbackCompilerProvider(_environment, transform,
+          generateSourceMaps: _settings.mode != BarbackMode.RELEASE);
 
-          var parsed = parseCompilationUnit(code, name: name);
-          if (!dart.isEntrypoint(parsed)) return null;
-        } on AnalyzerErrorGroup catch (e) {
-          transform.logger.error(e.message);
-          return null;
-        }
+      // Create a "path" to the entrypoint script. The entrypoint may not
+      // actually be on disk, but this gives dart2js a root to resolve relative
+      // paths against.
+      var id = transform.primaryInput.id;
 
-        var provider = new _BarbackCompilerProvider(_environment, transform);
+      var entrypoint = path.join(_environment.graph.packages[id.package].dir,
+          id.path);
 
-        // Create a "path" to the entrypoint script. The entrypoint may not
-        // actually be on disk, but this gives dart2js a root to resolve
-        // relative paths against.
-        var id = transform.primaryInput.id;
-
-        var entrypoint = path.join(_environment.graph.packages[id.package].dir,
-            id.path);
-
-        // TODO(rnystrom): Should have more sophisticated error-handling here.
-        // Need to report compile errors to the user in an easily visible way.
-        // Need to make sure paths in errors are mapped to the original source
-        // path so they can understand them.
-        return Chain.track(dart.compile(
-            entrypoint, provider,
-            commandLineOptions: _configCommandLineOptions,
-            checked: _configBool('checked'),
-            minify: _configBool(
-                'minify', defaultsTo: _settings.mode == BarbackMode.RELEASE),
-            verbose: _configBool('verbose'),
-            environment: _configEnvironment,
-            packageRoot: path.join(_environment.rootPackage.dir,
-                                   "packages"),
-            analyzeAll: _configBool('analyzeAll'),
-            suppressWarnings: _configBool('suppressWarnings'),
-            suppressHints: _configBool('suppressHints'),
-            suppressPackageWarnings: _configBool(
-                'suppressPackageWarnings', defaultsTo: true),
-            terse: _configBool('terse'))).then((_) {
-          stopwatch.stop();
-          transform.logger.info("Took ${stopwatch.elapsed} to compile $id.");
-        });
+      // TODO(rnystrom): Should have more sophisticated error-handling here.
+      // Need to report compile errors to the user in an easily visible way.
+      // Need to make sure paths in errors are mapped to the original source
+      // path so they can understand them.
+      return Chain.track(dart.compile(
+          entrypoint, provider,
+          commandLineOptions: _configCommandLineOptions,
+          checked: _configBool('checked'),
+          minify: _configBool(
+              'minify', defaultsTo: _settings.mode == BarbackMode.RELEASE),
+          verbose: _configBool('verbose'),
+          environment: _configEnvironment,
+          packageRoot: path.join(_environment.rootPackage.dir,
+                                 "packages"),
+          analyzeAll: _configBool('analyzeAll'),
+          suppressWarnings: _configBool('suppressWarnings'),
+          suppressHints: _configBool('suppressHints'),
+          suppressPackageWarnings: _configBool(
+              'suppressPackageWarnings', defaultsTo: true),
+          terse: _configBool('terse'),
+          includeSourceMapUrls: _settings.mode != BarbackMode.RELEASE))
+          .then((_) {
+        stopwatch.stop();
+        transform.logger.info("Took ${stopwatch.elapsed} to compile $id.");
       });
     });
   }
@@ -209,6 +211,8 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
   /// errors.
   var _isAborting = false;
 
+  final bool generateSourceMaps;
+
   compiler.Diagnostic _lastKind = null;
 
   static final int _FATAL =
@@ -218,7 +222,8 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
       compiler.Diagnostic.INFO.ordinal |
       compiler.Diagnostic.VERBOSE_INFO.ordinal;
 
-  _BarbackCompilerProvider(this._environment, this._transform);
+  _BarbackCompilerProvider(this._environment, this._transform,
+      {this.generateSourceMaps: true});
 
   /// A [CompilerInputProvider] for dart2js.
   Future<String> provideInput(Uri resourceUri) {
@@ -241,6 +246,11 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     // other files, we'd need some logic to determine the right relative path
     // for it.
     assert(name == "");
+
+    // TODO(rnystrom): Do this more cleanly. See: #17403.
+    if (!generateSourceMaps && extension.endsWith(".map")) {
+      return new NullSink<String>();
+    }
 
     var primaryId = _transform.primaryInput.id;
     var id = new AssetId(primaryId.package, "${primaryId.path}.$extension");
@@ -341,16 +351,23 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     // See if it's a path to a "public" asset within the root package. All
     // other files in the root package are not visible to transformers, so
     // should be loaded directly from disk.
-    var rootDir = _environment.rootPackage.dir;
     var sourcePath = path.fromUri(url);
-    if (isBeneath(sourcePath, path.join(rootDir, "lib")) ||
-        isBeneath(sourcePath, path.join(rootDir, "asset")) ||
-        isBeneath(sourcePath, path.join(rootDir, "web"))) {
-      var relative = path.relative(sourcePath, from: rootDir);
+    if (_environment.getPublicDirectories(_environment.rootPackage.name)
+        .any((dir) => path.isWithin(dir, sourcePath))) {
+      var relative = path.relative(sourcePath,
+          from: _environment.rootPackage.dir);
 
       return new AssetId(_environment.rootPackage.name, relative);
     }
 
     return null;
   }
+}
+
+/// An [EventSink] that discards all data. Provided to dart2js when we don't
+/// want an actual output.
+class NullSink<T> implements EventSink<T> {
+  void add(T event) {}
+  void addError(errorEvent, [StackTrace stackTrace]) {}
+  void close() {}
 }

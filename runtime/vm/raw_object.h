@@ -444,6 +444,7 @@ class RawObject {
   friend class GCMarker;
   friend class ExternalTypedData;
   friend class Heap;
+  friend class HeapMapAsJSONVisitor;
   friend class ClassStatsVisitor;
   friend class MarkingVisitor;
   friend class Object;
@@ -591,6 +592,7 @@ class RawFunction : public RawObject {
     kMethodExtractor,  // converts method into implicit closure on the receiver.
     kNoSuchMethodDispatcher,  // invokes noSuchMethod.
     kInvokeFieldDispatcher,  // invokes a field as a closure.
+    kInvokeClosureDispatcher  // invokes this as a closure (implements .call)
   };
 
  private:
@@ -803,8 +805,10 @@ class RawNamespace : public RawObject {
   RawLibrary* library_;          // library with name dictionary.
   RawArray* show_names_;         // list of names that are exported.
   RawArray* hide_names_;         // blacklist of names that are not exported.
+  RawField* metadata_field_;     // remembers the token pos of metadata if any,
+                                 // and the metadata values if computed.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->hide_names_);
+    return reinterpret_cast<RawObject**>(&ptr()->metadata_field_);
   }
 };
 
@@ -832,6 +836,8 @@ class RawCode : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->comments_);
   }
 
+  // Compilation timestamp.
+  int64_t compile_timestamp_;
   intptr_t pointer_offsets_length_;
   // Alive: If true, the embedded object pointers will be visited during GC.
   // This field cannot be shorter because of alignment issues on x64

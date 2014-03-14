@@ -153,7 +153,7 @@ class ServeCommand extends PubCommand {
     }
 
     var directories = commandOptions.rest.map(p.normalize).toList();
-    var invalid = directories.where((dir) => !isBeneath(dir, '.'));
+    var invalid = directories.where((dir) => !p.isWithin('.', dir));
     if (invalid.isNotEmpty) {
       usageError("${_directorySentence(invalid, "isn't", "aren't")} in this "
           "package.");

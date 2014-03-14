@@ -329,6 +329,11 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitInterceptor(HInterceptor node) {
     String value = temporaryId(node.inputs[0]);
+    if (node.interceptedClasses != null) {
+      JavaScriptBackend backend = compiler.backend;
+      String cls = backend.namer.getInterceptorSuffix(node.interceptedClasses);
+      return "Intercept ($cls): $value";
+    }
     return "Intercept: $value";
   }
 
@@ -506,6 +511,11 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitIs(HIs node) {
     String type = node.typeExpression.toString();
     return "TypeTest: ${temporaryId(node.expression)} is $type";
+  }
+
+  String visitIsViaInterceptor(HIsViaInterceptor node) {
+    String type = node.typeExpression.toString();
+    return "TypeTest: ${temporaryId(node.inputs[0])} is $type";
   }
 
   String visitTypeConversion(HTypeConversion node) {

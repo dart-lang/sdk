@@ -148,15 +148,6 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
     assert (_element != null);
   }
 
-  /**
-   * Returns the element to be used to determine the begin token of this
-   * declaration and the metadata associated with this declaration.
-   *
-   * This indirection is needed to use the [VariableListElement] as the location
-   * for type and metadata information on a [VariableElement].
-   */
-  Element get _beginElement => _element;
-
   String get _simpleNameString => _element.name;
 
   bool get isNameSynthetic => false;
@@ -167,9 +158,9 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
    */
   Token getBeginToken() {
     // TODO(johnniwinther): Avoid calling [parseNode].
-    Node node = _beginElement.parseNode(mirrorSystem.compiler);
+    Node node = _element.parseNode(mirrorSystem.compiler);
     if (node == null) {
-      return _beginElement.position();
+      return _element.position();
     }
     return node.getBeginToken();
   }
@@ -192,8 +183,8 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
    * metadata annotations.
    */
   Token getFirstToken() {
-    if (!_beginElement.metadata.isEmpty) {
-      for (MetadataAnnotation metadata in _beginElement.metadata) {
+    if (!_element.metadata.isEmpty) {
+      for (MetadataAnnotation metadata in _element.metadata) {
         if (metadata.beginToken != null) {
           return metadata.beginToken;
         }
@@ -209,11 +200,11 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
     Script script = getScript();
     SourceSpan span;
     if (beginToken == null) {
-      span = new SourceSpan(script.uri, 0, 0);
+      span = new SourceSpan(script.readableUri, 0, 0);
     } else {
       Token endToken = getEndToken();
       span = mirrorSystem.compiler.spanFromTokens(
-          beginToken, endToken, script.uri);
+          beginToken, endToken, script.readableUri);
     }
     return new Dart2JsSourceLocation(script, span);
   }
@@ -454,7 +445,7 @@ class Dart2JsCompilationUnitMirror extends Dart2JsMirror
   Iterable<DeclarationMirror> _getDeclarationMirrors(Element element) =>
       _library._getDeclarationMirrors(element);
 
-  Uri get uri => _element.script.uri;
+  Uri get uri => _element.script.resourceUri;
 }
 
 /**

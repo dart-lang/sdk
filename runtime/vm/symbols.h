@@ -296,6 +296,8 @@ class ObjectPointerVisitor;
   V(_LocalClassMirror, "_LocalClassMirror")                                    \
   V(_LocalFunctionTypeMirror, "_LocalFunctionTypeMirror")                      \
   V(_LocalLibraryMirror, "_LocalLibraryMirror")                                \
+  V(_LocalLibraryDependencyMirror, "_LocalLibraryDependencyMirror")            \
+  V(_LocalCombinatorMirror, "_LocalCombinatorMirror")                          \
   V(_LocalMethodMirror, "_LocalMethodMirror")                                  \
   V(_LocalVariableMirror, "_LocalVariableMirror")                              \
   V(_LocalParameterMirror, "_LocalParameterMirror")                            \
@@ -309,6 +311,7 @@ class ObjectPointerVisitor;
   V(NotInitialized, "<not initialized>")                                       \
   V(ClassId, "get:_classId")                                                   \
   V(AllocationStubFor, "Allocation stub for ")                                 \
+  V(TempParam, ":temp_param")                                                  \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

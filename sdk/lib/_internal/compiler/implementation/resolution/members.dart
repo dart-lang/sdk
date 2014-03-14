@@ -340,27 +340,6 @@ class ResolverTask extends CompilerTask {
           patchParameter.origin == originParameter));
       assert(invariant(patchParameter, patchParameter.patch == null));
       patchParameter.origin = originParameter;
-      // Hack: Use unparser to test parameter equality. This only works because
-      // we are restricting patch uses and the approach cannot be used
-      // elsewhere.
-      String originParameterText =
-          originParameter.parseNode(compiler).toString();
-      String patchParameterText =
-          patchParameter.parseNode(compiler).toString();
-      if (originParameterText != patchParameterText
-          // We special case the list constructor because of the
-          // optional parameter.
-          && origin != compiler.unnamedListConstructor) {
-        compiler.reportError(
-            originParameter.parseNode(compiler),
-            MessageKind.PATCH_PARAMETER_MISMATCH,
-            {'methodName': origin.name,
-             'originParameter': originParameterText,
-             'patchParameter': patchParameterText});
-        compiler.reportInfo(patchParameter,
-            MessageKind.PATCH_POINT_TO_PARAMETER,
-            {'parameterName': patchParameter.name});
-      }
       DartType originParameterType = originParameter.computeType(compiler);
       DartType patchParameterType = patchParameter.computeType(compiler);
       if (originParameterType != patchParameterType) {
@@ -374,6 +353,31 @@ class ResolverTask extends CompilerTask {
         compiler.reportInfo(patchParameter,
             MessageKind.PATCH_POINT_TO_PARAMETER,
             {'parameterName': patchParameter.name});
+      } else {
+        // Hack: Use unparser to test parameter equality. This only works
+        // because we are restricting patch uses and the approach cannot be used
+        // elsewhere.
+
+        // The node contains the type, so there is a potential overlap.
+        // Therefore we only check the text if the types are identical.
+        String originParameterText =
+            originParameter.parseNode(compiler).toString();
+        String patchParameterText =
+            patchParameter.parseNode(compiler).toString();
+        if (originParameterText != patchParameterText
+            // We special case the list constructor because of the
+            // optional parameter.
+            && origin != compiler.unnamedListConstructor) {
+          compiler.reportError(
+              originParameter.parseNode(compiler),
+              MessageKind.PATCH_PARAMETER_MISMATCH,
+              {'methodName': origin.name,
+               'originParameter': originParameterText,
+               'patchParameter': patchParameterText});
+          compiler.reportInfo(patchParameter,
+              MessageKind.PATCH_POINT_TO_PARAMETER,
+              {'parameterName': patchParameter.name});
+        }
       }
 
       originParameters = originParameters.tail;
@@ -550,21 +554,28 @@ class ResolverTask extends CompilerTask {
     return new ResolverVisitor(compiler, element, mapping);
   }
 
-  TreeElements resolveField(VariableElement element) {
-    Node tree = element.parseNode(compiler);
-    if(element.modifiers.isStatic() && element.variables.isTopLevel()) {
+  TreeElements resolveField(VariableElementX element) {
+    VariableDefinitions tree = element.parseNode(compiler);
+    if(element.modifiers.isStatic() && element.isTopLevel()) {
       error(element.modifiers.getStatic(),
             MessageKind.TOP_LEVEL_VARIABLE_DECLARED_STATIC);
     }
     ResolverVisitor visitor = visitorFor(element);
+    // TODO(johnniwinther): Share the resolved type between all variables
+    // declared in the same declaration.
+    if (tree.type != null) {
+      element.variables.type = visitor.resolveTypeAnnotation(tree.type);
+    } else {
+      element.variables.type = compiler.types.dynamicType;
+    }
     visitor.useElement(tree, element);
 
-    SendSet send = tree.asSendSet();
+    Expression initializer = element.initializer;
     Modifiers modifiers = element.modifiers;
-    if (send != null) {
+    if (initializer != null) {
       // TODO(johnniwinther): Avoid analyzing initializers if
       // [Compiler.analyzeSignaturesOnly] is set.
-      visitor.visit(send.arguments.head);
+      visitor.visit(initializer);
     } else if (modifiers.isConst()) {
       compiler.reportError(element, MessageKind.CONST_WITHOUT_INITIALIZER);
     } else if (modifiers.isFinal() && !element.isInstanceMember()) {
@@ -576,7 +587,7 @@ class ResolverTask extends CompilerTask {
         compiler.constantHandler.compileVariable(
             element, isConst: element.modifiers.isConst());
       });
-      if (tree.asSendSet() != null) {
+      if (initializer != null) {
         if (!element.modifiers.isConst()) {
           // TODO(johnniwinther): Determine the const-ness eagerly to avoid
           // unnecessary registrations.
@@ -594,10 +605,10 @@ class ResolverTask extends CompilerTask {
     return visitor.mapping;
   }
 
-  TreeElements resolveParameter(Element element) {
-    Node tree = element.parseNode(compiler);
+  TreeElements resolveParameter(ParameterElement element) {
+    element.parseNode(compiler);
     ResolverVisitor visitor = visitorFor(element.enclosingElement);
-    initializerDo(tree, visitor.visit);
+    visitor.visit(element.initializer);
     return visitor.mapping;
   }
 
@@ -1228,16 +1239,17 @@ class ResolverTask extends CompilerTask {
     compiler.reportFatalError(node, kind, arguments);
   }
 
-  resolveMetadata(MetadataContainer variables, VariableDefinitions node) {
+  Link<MetadataAnnotation> resolveMetadata(Element element,
+                                           VariableDefinitions node) {
     LinkBuilder<MetadataAnnotation> metadata =
         new LinkBuilder<MetadataAnnotation>();
     for (Metadata annotation in node.metadata.nodes) {
       ParameterMetadataAnnotation metadataAnnotation =
           new ParameterMetadataAnnotation(annotation);
-      metadataAnnotation.annotatedElement = variables;
+      metadataAnnotation.annotatedElement = element;
       metadata.addLast(metadataAnnotation.ensureResolved(compiler));
     }
-    variables.metadata = metadata.toLink();
+    return metadata.toLink();
   }
 }
 
@@ -1291,16 +1303,17 @@ class InitializerResolver {
         MessageKind.ALREADY_INITIALIZED, {'fieldName': field.name});
   }
 
-  void checkForDuplicateInitializers(Element field, Node init) {
+  void checkForDuplicateInitializers(VariableElement field, Node init) {
     // [field] can be null if it could not be resolved.
     if (field == null) return;
     String name = field.name;
     if (initialized.containsKey(field)) {
       reportDuplicateInitializerError(field, init, initialized[field]);
     } else if (field.modifiers.isFinal()) {
-      Node fieldNode = field.parseNode(visitor.compiler).asSendSet();
-      if (fieldNode != null) {
-        reportDuplicateInitializerError(field, init, fieldNode);
+      field.parseNode(visitor.compiler);
+      Expression initializer = field.initializer;
+      if (initializer != null) {
+        reportDuplicateInitializerError(field, init, initializer);
       }
     }
     initialized[field] = init;
@@ -1461,11 +1474,11 @@ class InitializerResolver {
     // that we can ensure that fields are initialized only once.
     FunctionSignature functionParameters =
         constructor.computeSignature(visitor.compiler);
-    functionParameters.forEachParameter((Element element) {
+    functionParameters.forEachParameter((ParameterElement element) {
       if (identical(element.kind, ElementKind.FIELD_PARAMETER)) {
         FieldParameterElement fieldParameter = element;
         checkForDuplicateInitializers(fieldParameter.fieldElement,
-                                      element.parseNode(visitor.compiler));
+                                      element.initializer);
       }
     });
 
@@ -1666,34 +1679,52 @@ class TypeResolver {
 
   TypeResolver(this.compiler);
 
-  Element resolveTypeName(Scope scope,
-                          Identifier prefixName,
-                          Identifier typeName) {
+  /// Tries to resolve the type name as an element.
+  Element resolveTypeName(Identifier prefixName,
+                          Identifier typeName,
+                          Scope scope,
+                          {bool deferredIsMalformed: true}) {
+    Element element;
+    bool deferredTypeAnnotation = false;
     if (prefixName != null) {
-      Element element =
+      Element prefixElement =
           lookupInScope(compiler, prefixName, scope, prefixName.source);
-      if (element != null && element.isPrefix()) {
+      if (prefixElement != null && prefixElement.isPrefix()) {
         // The receiver is a prefix. Lookup in the imported members.
-        PrefixElement prefix = element;
-        return prefix.lookupLocalMember(typeName.source);
+        PrefixElement prefix = prefixElement;
+        element = prefix.lookupLocalMember(typeName.source);
+        // TODO(17260, sigurdm): The test for DartBackend is there because
+        // dart2dart outputs malformed types with prefix.
+        if (element != null &&
+            prefix.isDeferred &&
+            deferredIsMalformed &&
+            compiler.backend is! DartBackend) {
+          element = new ErroneousElementX(MessageKind.DEFERRED_TYPE_ANNOTATION,
+                                          {'node': typeName},
+                                          element.name,
+                                          element);
+        }
+      } else {
+        // The caller of this method will create the ErroneousElement for
+        // the MalformedType.
+        element = null;
       }
-      // The caller of this method will create the ErroneousElement for
-      // the MalformedType.
-      return null;
     } else {
       String stringValue = typeName.source;
       if (identical(stringValue, 'void')) {
-        return compiler.types.voidType.element;
+        element = compiler.types.voidType.element;
       } else if (identical(stringValue, 'dynamic')) {
-        return compiler.dynamicClass;
+        element = compiler.dynamicClass;
       } else {
-        return lookupInScope(compiler, typeName, scope, typeName.source);
+        element = lookupInScope(compiler, typeName, scope, typeName.source);
       }
     }
+    return element;
   }
 
   DartType resolveTypeAnnotation(MappingVisitor visitor, TypeAnnotation node,
-                                 {bool malformedIsError: false}) {
+                                 {bool malformedIsError: false,
+                                  bool deferredIsMalformed: true}) {
     Identifier typeName;
     Identifier prefixName;
     Send send = node.typeName.asSend();
@@ -1705,20 +1736,24 @@ class TypeResolver {
       typeName = node.typeName.asIdentifier();
     }
 
-    Element element = resolveTypeName(visitor.scope, prefixName, typeName);
+    Element element = resolveTypeName(prefixName, typeName, visitor.scope,
+                                      deferredIsMalformed: deferredIsMalformed);
 
     DartType reportFailureAndCreateType(MessageKind messageKind,
                                         Map messageArguments,
-                                        {DartType userProvidedBadType}) {
+                                        {DartType userProvidedBadType,
+                                         Element erroneousElement}) {
       if (malformedIsError) {
         visitor.error(node, messageKind, messageArguments);
       } else {
         compiler.backend.registerThrowRuntimeError(visitor.mapping);
         visitor.warning(node, messageKind, messageArguments);
       }
-      Element erroneousElement = new ErroneousElementX(
-          messageKind, messageArguments, typeName.source,
-          visitor.enclosingElement);
+      if (erroneousElement == null) {
+         erroneousElement = new ErroneousElementX(
+            messageKind, messageArguments, typeName.source,
+            visitor.enclosingElement);
+      }
       LinkBuilder<DartType> arguments = new LinkBuilder<DartType>();
       resolveTypeArguments(visitor, node, null, arguments);
       return new MalformedType(erroneousElement,
@@ -1738,6 +1773,7 @@ class TypeResolver {
       return type;
     }
 
+    // Try to construct the type from the element.
     DartType type;
     if (element == null) {
       type = reportFailureAndCreateType(
@@ -1747,6 +1783,11 @@ class TypeResolver {
       type = reportFailureAndCreateType(
           ambiguous.messageKind, ambiguous.messageArguments);
       ambiguous.diagnose(visitor.mapping.currentElement, compiler);
+    } else if (element.isErroneous()) {
+      ErroneousElement erroneousElement = element;
+      type = reportFailureAndCreateType(
+          erroneousElement.messageKind, erroneousElement.messageArguments,
+          erroneousElement: erroneousElement);
     } else if (!element.impliesType()) {
       type = reportFailureAndCreateType(
           MessageKind.NOT_A_TYPE, {'node': node.typeName});
@@ -2199,20 +2240,20 @@ class ResolverVisitor extends MappingVisitor<Element> {
         function.computeSignature(compiler);
     Link<Node> parameterNodes = (node.parameters == null)
         ? const Link<Node>() : node.parameters.nodes;
-    functionParameters.forEachParameter((Element element) {
+    functionParameters.forEachParameter((ParameterElement element) {
       if (element == functionParameters.optionalParameters.head) {
         NodeList nodes = parameterNodes.head;
         parameterNodes = nodes.nodes;
       }
+      visit(element.initializer);
       VariableDefinitions variableDefinitions = parameterNodes.head;
       Node parameterNode = variableDefinitions.definitions.nodes.head;
-      initializerDo(parameterNode, (n) => n.accept(this));
       // Field parameters (this.x) are not visible inside the constructor. The
       // fields they reference are visible, but must be resolved independently.
       if (element.kind == ElementKind.FIELD_PARAMETER) {
         useElement(parameterNode, element);
       } else {
-        defineElement(variableDefinitions.definitions.nodes.head, element);
+        defineElement(parameterNode, element);
       }
       parameterNodes = parameterNodes.tail;
     });
@@ -2968,19 +3009,17 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   visitVariableDefinitions(VariableDefinitions node) {
+    DartType type;
+    if (node.type != null) {
+      type = resolveTypeAnnotation(node.type);
+    } else {
+      type = compiler.types.dynamicType;
+    }
+    VariableList variables = new VariableList.node(node, type);
     VariableDefinitionsVisitor visitor =
         new VariableDefinitionsVisitor(compiler, node, this,
-                                       ElementKind.VARIABLE);
-    VariableListElementX variables = visitor.variables;
-    // Ensure that we set the type of the [VariableListElement] since it depends
-    // on the current scope. If the current scope is a [MethodScope] or
-    // [BlockScope] it will not be available for the
-    // [VariableListElement.computeType] method.
-    if (node.type != null) {
-      variables.type = resolveTypeAnnotation(node.type);
-    } else {
-      variables.type = compiler.types.dynamicType;
-    }
+                                       ElementKind.VARIABLE,
+                                       variables);
 
     Modifiers modifiers = node.modifiers;
     void reportExtraModifier(String modifier) {
@@ -3012,7 +3051,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
       }
     }
     if (node.metadata != null) {
-      compiler.resolver.resolveMetadata(variables, node);
+      variables.metadata =
+          compiler.resolver.resolveMetadata(enclosingElement, node);
     }
     visitor.visit(node.definitions);
   }
@@ -3181,9 +3221,11 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   DartType resolveTypeAnnotation(TypeAnnotation node,
-                                 {bool malformedIsError: false}) {
+                                 {bool malformedIsError: false,
+                                  bool deferredIsMalformed: true}) {
     DartType type = typeResolver.resolveTypeAnnotation(
-        this, node, malformedIsError: malformedIsError);
+        this, node, malformedIsError: malformedIsError,
+        deferredIsMalformed: deferredIsMalformed);
     if (type == null) return null;
     if (inCheckContext) {
       compiler.enqueuer.resolution.registerIsCheck(type, mapping);
@@ -4407,20 +4449,21 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
   }
 }
 
-class VariableDefinitionsVisitor extends CommonResolverVisitor<String> {
+class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
   VariableDefinitions definitions;
   ResolverVisitor resolver;
   ElementKind kind;
-  VariableListElement variables;
+  VariableList variables;
 
   VariableDefinitionsVisitor(Compiler compiler,
-                             this.definitions, this.resolver, this.kind)
+                             this.definitions,
+                             this.resolver,
+                             this.kind,
+                             this.variables)
       : super(compiler) {
-    variables = new VariableListElementX.node(
-        definitions, ElementKind.VARIABLE_LIST, resolver.enclosingElement);
   }
 
-  String visitSendSet(SendSet node) {
+  Identifier visitSendSet(SendSet node) {
     assert(node.arguments.tail.isEmpty); // Sanity check
     Identifier identifier = node.selector;
     String name = identifier.source;
@@ -4429,12 +4472,12 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<String> {
     resolver.visitIn(node.arguments.head, scope);
     if (scope.variableReferencedInInitializer) {
       resolver.error(identifier, MessageKind.REFERENCE_IN_INITIALIZATION,
-                     {'variableName': name.toString()});
+                     {'variableName': name});
     }
-    return name;
+    return identifier;
   }
 
-  String visitIdentifier(Identifier node) {
+  Identifier visitIdentifier(Identifier node) {
     // The variable is initialized to null.
     resolver.world.registerInstantiatedClass(compiler.nullClass,
                                              resolver.mapping);
@@ -4445,14 +4488,15 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<String> {
         !resolver.allowFinalWithoutInitializer) {
       compiler.reportError(node, MessageKind.FINAL_WITHOUT_INITIALIZER);
     }
-    return node.source;
+    return node;
   }
 
   visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty; link = link.tail) {
-      String name = visit(link.head);
-      VariableElement element =
-          new VariableElementX(name, variables, kind, link.head);
+      Identifier name = visit(link.head);
+      VariableElement element = new VariableElementX(
+          name.source, kind, resolver.enclosingElement,
+          variables, name.token);
       resolver.defineElement(link.head, element);
       if (definitions.modifiers.isConst()) {
         compiler.enqueuer.resolution.addDeferredAction(element, () {
@@ -4567,8 +4611,11 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
 
   Element visitTypeAnnotation(TypeAnnotation node) {
     assert(invariant(node, type == null));
+    // This is not really resolving a type-annotation, but the name of the
+    // constructor. Therefore we allow deferred types.
     type = resolver.resolveTypeAnnotation(node,
-                                          malformedIsError: inConstContext);
+                                          malformedIsError: inConstContext,
+                                          deferredIsMalformed: false);
     compiler.backend.registerRequiredType(type, resolver.enclosingElement);
     return type.element;
   }
@@ -4608,6 +4655,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     String name = node.source;
     Element element = resolver.reportLookupErrorIfAny(
         lookupInScope(compiler, node, resolver.scope, name), node, name);
+    resolver.useElement(node, element);
     // TODO(johnniwinther): Change errors to warnings, cf. 11.11.1.
     if (element == null) {
       return failOrReturnErroneousElement(resolver.enclosingElement, node, name,

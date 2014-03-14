@@ -868,11 +868,10 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           (push != NULL) ||
           (drop != NULL) ||
           (constant != NULL)) {
-        intptr_t index;
-        Definition* result;
+        Definition* result = NULL;
         if (store != NULL) {
           // Update renaming environment.
-          index = store->local().BitIndexIn(num_non_copied_params_);
+          intptr_t index = store->local().BitIndexIn(num_non_copied_params_);
           result = store->value()->definition();
 
           if (variable_liveness->IsStoreAlive(block_entry, store)) {
@@ -884,7 +883,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           // The graph construction ensures we do not have an unused LoadLocal
           // computation.
           ASSERT(definition->is_used());
-          index = load->local().BitIndexIn(num_non_copied_params_);
+          intptr_t index = load->local().BitIndexIn(num_non_copied_params_);
           result = (*env)[index];
 
           PhiInstr* phi = result->AsPhi();
@@ -906,7 +905,10 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           for (intptr_t j = 0; j < drop->num_temps(); j++) {
             env->RemoveLast();
           }
-          result = drop->value()->definition();
+          if (drop->value() != NULL) {
+            result = drop->value()->definition();
+          }
+          ASSERT((drop->value() != NULL) || !drop->is_used());
         } else {
           ASSERT(definition->is_used());
           result = GetConstant(constant->value());

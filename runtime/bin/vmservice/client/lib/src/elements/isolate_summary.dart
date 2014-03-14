@@ -4,10 +4,12 @@
 
 library isolate_summary_element;
 
-import 'isolate_element.dart';
+import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
+import 'observatory_element.dart';
 
 @CustomTag('isolate-summary')
-class IsolateSummaryElement extends IsolateElement {
+class IsolateSummaryElement extends ObservatoryElement {
   IsolateSummaryElement.created() : super.created();
+  @published Isolate isolate;
 }

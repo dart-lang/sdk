@@ -553,6 +553,9 @@ main() => new C<String>();
   static const MessageKind NOT_A_COMPILE_TIME_CONSTANT = const MessageKind(
       "Not a compile-time constant.");
 
+  static const MessageKind DEFERRED_COMPILE_TIME_CONSTANT = const MessageKind(
+      "Deferred classes cannot be used to create compile-time constants.");
+
   static const MessageKind CYCLIC_COMPILE_TIME_CONSTANTS = const MessageKind(
       "Cycle in the compile-time constant computation.");
 
@@ -1082,6 +1085,15 @@ part of lib.foo;
   static const MessageKind DUPLICATED_LIBRARY_NAME = const MessageKind(
       "Duplicated library name '#{libraryName}'.");
 
+  static const MessageKind DUPLICATED_RESOURCE = const MessageKind(
+      "The resource '#{resourceUri}' is loaded through both "
+      "'#{canonicalUri1}' and '#{canonicalUri2}'.");
+
+  static const MessageKind DUPLICATED_LIBRARY_RESOURCE =
+      const MessageKind(
+          "The library '#{libraryName}' in '#{resourceUri}' is loaded through "
+          "both '#{canonicalUri1}' and '#{canonicalUri2}'.");
+
   // This is used as an exception.
   static const MessageKind INVALID_SOURCE_FILE_LOCATION = const MessageKind('''
 Invalid offset (#{offset}) in source map.
@@ -1152,13 +1164,10 @@ main() => A.A = 1;
   static const MessageKind MISSING_FACTORY_KEYWORD = const MessageKind(
       "Did you forget a factory keyword here?");
 
-  static const MessageKind DEFERRED_LIBRARY_NOT_FROM_MAIN =
+  static const MessageKind DEFERRED_LIBRARY_DART_2_DART =
       const MessageKind(
-          "DeferredLibrary used as an annotation here, "
-          "but not used in the main library. Will not split the output.",
-          howToFix:
-            "Try adding a '@DeferredLibrary(...)' annotation in the main "
-            "library");
+          "Deferred loading is not supported by the dart backend yet. "
+          "Will not split the output.");
 
   static const MessageKind DEFERRED_LIBRARY_WITHOUT_PREFIX =
       const MessageKind(
@@ -1171,6 +1180,13 @@ main() => A.A = 1;
           "The prefix of this deferred import is not unique.",
           howToFix:
             "Try changing the import prefix.");
+
+  static const MessageKind DEFERRED_TYPE_ANNOTATION =
+      const MessageKind(
+          "The type #{node} is deferred. "
+          "Deferred types are not valid as type annotations.",
+          howToFix:
+            "Try using a non-deferred abstract class as an interface.");
 
   static const MessageKind ILLEGAL_STATIC = const MessageKind(
       "Modifier static is only allowed on functions declared in "

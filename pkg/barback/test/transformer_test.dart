@@ -27,6 +27,19 @@ main() {
           completion(isFalse));
     });
 
+    test("supports multi-level extensions with allowedExtensions", () {
+      var transformer = new ExtensionTransformer(".dart.js");
+      expect(transformer.isPrimary(makeAsset("foo.dart.js")),
+          completion(isTrue));
+
+      expect(transformer.isPrimary(makeAsset("foo.js")), completion(isFalse));
+      expect(transformer.isPrimary(makeAsset("foo.dart")), completion(isFalse));
+    });
+
+    test("throws an error for extensions without periods", () {
+      expect(() => new ExtensionTransformer("dart"), throwsFormatException);
+    });
+
     test("allows all files if allowedExtensions is not overridden", () {
       var transformer = new MockTransformer();
       expect(transformer.isPrimary(makeAsset("foo.txt")),

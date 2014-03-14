@@ -244,31 +244,13 @@ class _LinterVisitor extends TreeVisitor {
     _inPolymerElement = oldValue;
   }
 
-  /// Produces warnings for malformed script tags. In html5 leaving off type= is
-  /// fine, but it defaults to text/javascript. Because this might be a common
-  /// error, we warn about it when  src file ends in .dart, but the type is
-  /// incorrect, or when users write code in an inline script tag of a custom
-  /// element.
-  ///
-  /// The hope is that these cases shouldn't break existing valid code, but that
-  /// they'll help Polymer authors avoid having their Dart code accidentally
-  /// interpreted as JavaScript by the browser.
+  /// Checks for multiple Dart script tags in the same page, which is invalid.
   void _validateScriptElement(Element node) {
     var scriptType = node.attributes['type'];
     var isDart = scriptType == 'application/dart';
     var src = node.attributes['src'];
 
-    if (scriptType == null) {
-      if (src == null && _inPolymerElement) {
-        // TODO(sigmund): revisit this check once we start interop with polymer
-        // elements written in JS. Maybe we need to inspect the contents of the
-        // script to find whether there is an import or something that indicates
-        // that the code is indeed using Dart.
-        _logger.warning('script tag in polymer element with no type will '
-            'be treated as JavaScript. Did you forget type="application/dart"?',
-            span: node.sourceSpan);
-      }
-    } else if (isDart) {
+    if (isDart) {
       if (_dartTagSeen) {
         _logger.warning('Only one "application/dart" script tag per document '
             'is allowed.', span: node.sourceSpan);

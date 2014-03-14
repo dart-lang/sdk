@@ -35,8 +35,12 @@ class DisassemblyFormatter;
 class DeoptInstr;
 class FinalizablePersistentHandle;
 class LocalScope;
-class ReusableHandleScope;
-class ReusableObjectHandleScope;
+
+#define REUSABLE_FORWARD_DECLARATION(name)                                     \
+  class Reusable##name##HandleScope;
+REUSABLE_HANDLE_LIST(REUSABLE_FORWARD_DECLARATION)
+#undef REUSABLE_FORWARD_DECLARATION
+
 class Symbols;
 
 #if defined(DEBUG)
@@ -88,6 +92,9 @@ class Symbols;
         Dart::AllocateReadOnlyHandle());                                       \
     initializeHandle(obj, object::null());                                     \
     return obj;                                                                \
+  }                                                                            \
+  static object& ZoneHandle(Isolate* isolate) {                                \
+    return ZoneHandle(isolate, object::null());                                \
   }                                                                            \
   static object& ZoneHandle() {                                                \
     return ZoneHandle(Isolate::Current(), object::null());                     \
@@ -639,8 +646,10 @@ class Object {
   friend class ExternalOneByteString;
   friend class ExternalTwoByteString;
   friend class Isolate;
-  friend class ReusableHandleScope;
-  friend class ReusableObjectHandleScope;
+#define REUSABLE_FRIEND_DECLARATION(name)                                      \
+  friend class Reusable##name##HandleScope;
+REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
+#undef REUSABLE_FRIEND_DECLARATION
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Object);
@@ -1535,6 +1544,10 @@ class Function : public Object {
     return kind() == RawFunction::kInvokeFieldDispatcher;
   }
 
+  bool IsInvokeClosureDispatcher() const {
+    return kind() == RawFunction::kInvokeClosureDispatcher;
+  }
+
   // Returns true iff an implicit closure function has been created
   // for this function.
   bool HasImplicitClosureFunction() const {
@@ -1587,6 +1600,7 @@ class Function : public Object {
       case RawFunction::kMethodExtractor:
       case RawFunction::kNoSuchMethodDispatcher:
       case RawFunction::kInvokeFieldDispatcher:
+      case RawFunction::kInvokeClosureDispatcher:
         return true;
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
@@ -2553,6 +2567,8 @@ class Library : public Object {
   RawArray* anonymous_classes() const { return raw_ptr()->anonymous_classes_; }
 
   // Library imports.
+  RawArray* imports() const { return raw_ptr()->imports_; }
+  RawArray* exports() const { return raw_ptr()->exports_; }
   void AddImport(const Namespace& ns) const;
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   RawNamespace* ImportAt(intptr_t index) const;
@@ -2644,8 +2660,6 @@ class Library : public Object {
   void set_num_imports(intptr_t value) const {
     raw_ptr()->num_imports_ = value;
   }
-  RawArray* imports() const { return raw_ptr()->imports_; }
-  RawArray* exports() const { return raw_ptr()->exports_; }
   bool HasExports() const;
   RawArray* loaded_scripts() const { return raw_ptr()->loaded_scripts_; }
   RawGrowableObjectArray* metadata() const { return raw_ptr()->metadata_; }
@@ -2729,6 +2743,9 @@ class Namespace : public Object {
   RawArray* show_names() const { return raw_ptr()->show_names_; }
   RawArray* hide_names() const { return raw_ptr()->hide_names_; }
 
+  void AddMetadata(intptr_t token_pos, const Class& owner_class);
+  RawObject* GetMetadata() const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawNamespace));
   }
@@ -2742,6 +2759,9 @@ class Namespace : public Object {
 
  private:
   static RawNamespace* New();
+
+  RawField* metadata_field() const { return raw_ptr()->metadata_field_; }
+  void set_metadata_field(const Field& value) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Namespace, Object);
   friend class Class;
@@ -3323,6 +3343,7 @@ class Code : public Object {
                                bool optimized = false);
   static RawCode* LookupCode(uword pc);
   static RawCode* LookupCodeInVmIsolate(uword pc);
+  static RawCode* FindCode(uword pc, int64_t timestamp);
 
   int32_t GetPointerOffsetAt(int index) const {
     return *PointerOffsetAddrAt(index);
@@ -3351,6 +3372,10 @@ class Code : public Object {
 
   RawString* Name() const;
   RawString* UserName() const;
+
+  int64_t compile_timestamp() const {
+    return raw_ptr()->compile_timestamp_;
+  }
 
  private:
   void set_state_bits(intptr_t bits) const;
@@ -3383,6 +3408,10 @@ class Code : public Object {
   };
 
   static const intptr_t kEntrySize = sizeof(int32_t);  // NOLINT
+
+  void set_compile_timestamp(int64_t timestamp) const {
+    raw_ptr()->compile_timestamp_ = timestamp;
+  }
 
   void set_instructions(RawInstructions* instructions) {
     // RawInstructions are never allocated in New space and hence a
@@ -6064,7 +6093,6 @@ class TypedData : public Instance {
   static void Copy(const DstType& dst, intptr_t dst_offset_in_bytes,
                    const SrcType& src, intptr_t src_offset_in_bytes,
                    intptr_t length_in_bytes) {
-    ASSERT(dst.ElementType() == src.ElementType());
     ASSERT(Utils::RangeCheck(src_offset_in_bytes,
                              length_in_bytes,
                              src.LengthInBytes()));
@@ -6077,6 +6105,35 @@ class TypedData : public Instance {
         memmove(dst.DataAddr(dst_offset_in_bytes),
                 src.DataAddr(src_offset_in_bytes),
                 length_in_bytes);
+      }
+    }
+  }
+
+
+  template <typename DstType, typename SrcType>
+  static void ClampedCopy(const DstType& dst, intptr_t dst_offset_in_bytes,
+                          const SrcType& src, intptr_t src_offset_in_bytes,
+                          intptr_t length_in_bytes) {
+    ASSERT(Utils::RangeCheck(src_offset_in_bytes,
+                             length_in_bytes,
+                             src.LengthInBytes()));
+    ASSERT(Utils::RangeCheck(dst_offset_in_bytes,
+                             length_in_bytes,
+                             dst.LengthInBytes()));
+    {
+      NoGCScope no_gc;
+      if (length_in_bytes > 0) {
+        uint8_t* dst_data =
+            reinterpret_cast<uint8_t*>(dst.DataAddr(dst_offset_in_bytes));
+        int8_t* src_data =
+            reinterpret_cast<int8_t*>(src.DataAddr(src_offset_in_bytes));
+        for (intptr_t ix = 0; ix < length_in_bytes; ix++) {
+          int8_t v = *src_data;
+          if (v < 0) v = 0;
+          *dst_data = v;
+          src_data++;
+          dst_data++;
+        }
       }
     }
   }

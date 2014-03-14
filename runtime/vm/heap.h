@@ -102,6 +102,10 @@ class Heap {
     return 0;
   }
 
+  // Track external data.
+  void AllocateExternal(intptr_t size, Space space);
+  void FreeExternal(intptr_t size, Space space);
+
   // Heap contains the specified address.
   bool Contains(uword addr) const;
   bool NewContains(uword addr) const;
@@ -162,9 +166,10 @@ class Heap {
   // Print heap sizes.
   void PrintSizes() const;
 
-  // Return amount of memory used and capacity in a space.
+  // Return amount of memory used and capacity in a space, excluding external.
   intptr_t UsedInWords(Space space) const;
   intptr_t CapacityInWords(Space space) const;
+  intptr_t ExternalInWords(Space space) const;
   // Return the amount of GCing in microseconds.
   int64_t GCTimeInMicros(Space space) const;
 
@@ -234,6 +239,11 @@ class Heap {
 
   void PrintToJSONObject(Space space, JSONObject* object) const;
 
+  // The heap map is an array of sizes and class ids (except freelist is 0).
+  void PrintHeapMapToJSONStream(JSONStream* stream) const {
+    return old_space_->PrintHeapMapToJSONStream(stream);
+  }
+
  private:
   class GCStats : public ValueObject {
    public:
@@ -248,8 +258,10 @@ class Heap {
       int64_t micros_;
       intptr_t new_used_in_words_;
       intptr_t new_capacity_in_words_;
+      intptr_t new_external_in_words_;
       intptr_t old_used_in_words_;
       intptr_t old_capacity_in_words_;
+      intptr_t old_external_in_words_;
     private:
       DISALLOW_COPY_AND_ASSIGN(Data);
     };

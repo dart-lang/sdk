@@ -94,12 +94,13 @@ class Phase {
   final _onAssetController = new StreamController<AssetNode>(sync: true);
 
   /// Whether [this] is dirty and still has more processing to do.
-  bool get isDirty => _inputs.values.any((input) => input.isDirty) ||
+  ///
+  /// A phase is considered dirty if any of the previous phases in the same
+  /// cascade are dirty, since those phases could emit an asset that this phase
+  /// will then need to process.
+  bool get isDirty => (_previous != null && _previous.isDirty) ||
+      _inputs.values.any((input) => input.isDirty) ||
       _groups.values.any((group) => group.isDirty);
-
-  /// Whether [this] or any previous phase is dirty.
-  bool get _isTransitivelyDirty => isDirty ||
-      (_previous != null && _previous._isTransitivelyDirty);
 
   /// A stream that emits an event whenever any transforms in this phase logs
   /// an entry.
@@ -108,6 +109,9 @@ class Phase {
 
   /// The previous phase in the cascade, or null if this is the first phase.
   final Phase _previous;
+
+  /// The subscription to [_previous]'s [onDone] stream.
+  StreamSubscription _previousOnDoneSubscription;
 
   /// The phase after this one.
   ///
@@ -137,22 +141,21 @@ class Phase {
       : this._(cascade, location, 0);
 
   Phase._(this.cascade, this._location, this._index, [this._previous]) {
-    // TODO(nweiz): This does O(n^2) work whenever a phase emits an [onDone]
-    // event, since each phase after it has to check each phase before. Find a
-    // better way to do this.
-    for (var phase = this; phase != null; phase = phase._previous) {
-      phase.onDone.listen((_) {
-        if (_isTransitivelyDirty) return;
-
-        // All the previous phases have finished building. If anyone's still
-        // waiting for outputs, cut off the wait; we won't be generating them,
-        // at least until a source asset changes.
-        for (var completer in _pendingOutputRequests.values) {
-          completer.complete(null);
-        }
-        _pendingOutputRequests.clear();
+    if (_previous != null) {
+      _previousOnDoneSubscription = _previous.onDone.listen((_) {
+        if (!isDirty) _onDoneController.add(null);
       });
     }
+
+    onDone.listen((_) {
+      // All the previous phases have finished building. If anyone's still
+      // waiting for outputs, cut off the wait; we won't be generating them,
+      // at least until a source asset changes.
+      for (var completer in _pendingOutputRequests.values) {
+        completer.complete(null);
+      }
+      _pendingOutputRequests.clear();
+    });
   }
 
   /// Adds a new asset as an input for this phase.
@@ -170,14 +173,18 @@ class Phase {
 
     node.force();
 
-    // Each group is one channel along which an asset may be forwarded. Then
-    // there's one additional channel for the non-grouped transformers.
-    var forwarder = new PhaseForwarder(_groups.length + 1);
+    // Each group is one channel along which an asset may be forwarded, as is
+    // each transformer.
+    var forwarder = new PhaseForwarder(
+        node, _transformers.length, _groups.length);
     _forwarders[node.id] = forwarder;
     forwarder.onAsset.listen(_handleOutputWithoutForwarder);
+    if (forwarder.output != null) {
+      _handleOutputWithoutForwarder(forwarder.output);
+    }
 
     _inputOrigins.add(node.origin);
-    var input = new PhaseInput(this, node, _transformers, "$_location.$_index");
+    var input = new PhaseInput(this, node, "$_location.$_index");
     _inputs[node.id] = input;
     input.input.whenRemoved(() {
       _inputOrigins.remove(node.origin);
@@ -190,6 +197,8 @@ class Phase {
     input.onDone.listen((_) {
       if (!isDirty) _onDoneController.add(null);
     });
+
+    input.updateTransformers(_transformers);
 
     for (var group in _groups.values) {
       group.addInput(node);
@@ -242,7 +251,9 @@ class Phase {
         // if it becomes available. If it's removed before becoming available,
         // try again, since it could be generated again.
         output.force();
-        return output.whenAvailable((_) => output).catchError((error) {
+        return output.whenAvailable((_) {
+          return output;
+        }).catchError((error) {
           if (error is! AssetNotFoundException) throw error;
           return getOutput(id);
         });
@@ -250,7 +261,7 @@ class Phase {
 
       // If neither this phase nor the previous phases are dirty, the requested
       // output won't be generated and we can safely return null.
-      if (!_isTransitivelyDirty) return null;
+      if (!isDirty) return null;
 
       // Otherwise, store a completer for the asset node. If it's generated in
       // the future, we'll complete this completer.
@@ -290,7 +301,7 @@ class Phase {
     }
 
     for (var forwarder in _forwarders.values) {
-      forwarder.numChannels = _groups.length + 1;
+      forwarder.updateTransformers(_transformers.length, _groups.length);
     }
   }
 
@@ -335,6 +346,9 @@ class Phase {
     }
     _onAssetController.close();
     _onLogPool.close();
+    if (_previousOnDoneSubscription != null) {
+      _previousOnDoneSubscription.cancel();
+    }
   }
 
   /// Remove all phases after this one.

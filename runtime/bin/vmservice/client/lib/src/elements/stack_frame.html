@@ -2,10 +2,10 @@
   <link rel="import" href="curly_block.html">
   <link rel="import" href="function_ref.html">
   <link rel="import" href="instance_ref.html">
-  <link rel="import" href="isolate_element.html">
+  <link rel="import" href="observatory_element.html">
   <link rel="import" href="script_ref.html">
 </head>
-<polymer-element name="stack-frame" extends="isolate-element">
+<polymer-element name="stack-frame" extends="observatory-element">
   <template>
     <style>
       .member {
@@ -19,15 +19,15 @@
         #{{ frame['depth'] }}
       </div>
       <div class="col-md-9">
-        <function-ref isolate="{{ isolate }}" ref="{{ frame['function'] }}"></function-ref>
-        ( <script-ref isolate="{{ isolate }}" ref="{{ frame['script'] }}" line="{{ frame['line'] }}">
+        <function-ref ref="{{ frame['function'] }}"></function-ref>
+        ( <script-ref ref="{{ frame['script'] }}" line="{{ frame['line'] }}">
         </script-ref> )
         <curly-block>
           <table>
             <tr template repeat="{{ v in frame['vars'] }}">
               <td class="member">{{ v['name']}}</td>
               <td class="member">
-                <instance-ref isolate="{{ isolate }}" ref="{{ v['value'] }}"></instance-ref>
+                <instance-ref ref="{{ v['value'] }}"></instance-ref>
               </td>
             </tr>
           </table>

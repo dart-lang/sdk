@@ -173,19 +173,12 @@ class DirectoryBasedDartSdk implements DartSdk {
    * Initialize a newly created SDK to represent the Dart SDK installed in the given directory.
    *
    * @param sdkDirectory the directory containing the SDK
-   */
-  DirectoryBasedDartSdk(JavaFile sdkDirectory) : this.con1(sdkDirectory, false);
-
-  /**
-   * Initialize a newly created SDK to represent the Dart SDK installed in the given directory.
-   *
-   * @param sdkDirectory the directory containing the SDK
    * @param useDart2jsPaths `true` if the dart2js path should be used when it is available
    */
-  DirectoryBasedDartSdk.con1(JavaFile sdkDirectory, bool useDart2jsPaths) {
+  DirectoryBasedDartSdk(JavaFile sdkDirectory, [bool useDart2jsPaths = false]) {
     this._sdkDirectory = sdkDirectory.getAbsoluteFile();
-    initializeSdk();
-    initializeLibraryMap(useDart2jsPaths);
+    _initializeSdk();
+    _initializeLibraryMap(useDart2jsPaths);
     _analysisContext = new AnalysisContextImpl();
     _analysisContext.sourceFactory = new SourceFactory([new DartUriResolver(this)]);
     List<String> uris = this.uris;
@@ -196,8 +189,10 @@ class DirectoryBasedDartSdk implements DartSdk {
     _analysisContext.applyChanges(changeSet);
   }
 
+  @override
   Source fromEncoding(UriKind kind, Uri uri) => new FileBasedSource.con2(new JavaFile.fromUri(uri), kind);
 
+  @override
   AnalysisContext get context => _analysisContext;
 
   /**
@@ -276,8 +271,10 @@ class DirectoryBasedDartSdk implements DartSdk {
     return file.exists() ? file : null;
   }
 
+  @override
   List<SdkLibrary> get sdkLibraries => _libraryMap.sdkLibraries;
 
+  @override
   SdkLibrary getSdkLibrary(String dartUri) => _libraryMap.getLibrary(dartUri);
 
   /**
@@ -286,6 +283,7 @@ class DirectoryBasedDartSdk implements DartSdk {
    *
    * @return the revision number of this SDK
    */
+  @override
   String get sdkVersion {
     if (_sdkVersion == null) {
       _sdkVersion = DartSdk.DEFAULT_VERSION;
@@ -306,6 +304,7 @@ class DirectoryBasedDartSdk implements DartSdk {
    *
    * @return the library URI's for the libraries defined in this SDK
    */
+  @override
   List<String> get uris => _libraryMap.uris;
 
   /**
@@ -337,6 +336,7 @@ class DirectoryBasedDartSdk implements DartSdk {
    */
   bool get isDartiumInstalled => dartiumExecutable != null;
 
+  @override
   Source mapDartUri(String dartUri) {
     SdkLibrary library = getSdkLibrary(dartUri);
     if (library == null) {
@@ -349,7 +349,7 @@ class DirectoryBasedDartSdk implements DartSdk {
    * Ensure that the dart VM is executable. If it is not, make it executable and log that it was
    * necessary for us to do so.
    */
-  void ensureVmIsExecutable() {
+  void _ensureVmIsExecutable() {
   }
 
   /**
@@ -385,7 +385,7 @@ class DirectoryBasedDartSdk implements DartSdk {
    *
    * @param useDart2jsPaths `true` if the dart2js path should be used when it is available
    */
-  void initializeLibraryMap(bool useDart2jsPaths) {
+  void _initializeLibraryMap(bool useDart2jsPaths) {
     JavaFile librariesFile = new JavaFile.relative(new JavaFile.relative(libraryDirectory, _INTERNAL_DIR), _LIBRARIES_FILE);
     try {
       String contents = librariesFile.readAsStringSync();
@@ -399,9 +399,9 @@ class DirectoryBasedDartSdk implements DartSdk {
   /**
    * Initialize the state of the SDK.
    */
-  void initializeSdk() {
+  void _initializeSdk() {
     if (!OSUtilities.isWindows()) {
-      ensureVmIsExecutable();
+      _ensureVmIsExecutable();
     }
   }
 }

@@ -921,6 +921,17 @@ void Assembler::cvtpd2ps(XmmRegister dst, XmmRegister src) {
 }
 
 
+void Assembler::shufpd(XmmRegister dst, XmmRegister src, const Immediate& imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0xC6);
+  EmitXmmRegisterOperand(dst, src);
+  ASSERT(imm.is_uint8());
+  EmitUint8(imm.value());
+}
+
+
 void Assembler::subsd(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF2);

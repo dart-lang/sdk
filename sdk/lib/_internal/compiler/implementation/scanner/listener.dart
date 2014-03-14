@@ -863,8 +863,9 @@ class ElementListener extends Listener {
   }
 
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
-    void buildFieldElement(String name, Element fields) {
-      pushElement(new FieldElementX(name, fields, null));
+    void buildFieldElement(Identifier name, VariableList fields) {
+      pushElement(
+          new FieldElementX(name, compilationUnitElement, fields));
     }
     NodeList variables = makeNodeList(count, null, null, ",");
     TypeAnnotation type = popNode();
@@ -877,13 +878,11 @@ class ElementListener extends Listener {
   void buildFieldElements(Modifiers modifiers,
                           NodeList variables,
                           Element enclosingElement,
-                          void buildFieldElement(String name,
-                                                 Element fields),
+                          void buildFieldElement(Identifier name,
+                                                 VariableList fields),
                           Token beginToken, Token endToken) {
-    Element fields = new PartialFieldListElement(beginToken,
-                                                 endToken,
-                                                 modifiers,
-                                                 enclosingElement);
+    VariableList fields =
+        new PartialFieldList(beginToken, endToken, modifiers);
     for (Link<Node> variableNodes = variables.nodes;
          !variableNodes.isEmpty;
          variableNodes = variableNodes.tail) {
@@ -892,8 +891,7 @@ class ElementListener extends Listener {
       if (identifier == null) {
         identifier = initializedIdentifier.asSendSet().selector.asIdentifier();
       }
-      String name = identifier.source;
-      buildFieldElement(name, fields);
+      buildFieldElement(identifier, fields);
     }
   }
 
@@ -1961,33 +1959,45 @@ class PartialFunctionElement extends FunctionElementX {
   Token position() => _position;
 }
 
-class PartialFieldListElement extends VariableListElementX {
+class PartialFieldList extends VariableList {
   final Token beginToken;
   final Token endToken;
 
-  PartialFieldListElement(Token this.beginToken,
-                          Token this.endToken,
-                          Modifiers modifiers,
-                          Element enclosing)
-    : super(ElementKind.VARIABLE_LIST, modifiers, enclosing);
+  PartialFieldList(Token this.beginToken,
+                   Token this.endToken,
+                   Modifiers modifiers)
+    : super(modifiers);
 
-  VariableDefinitions parseNode(DiagnosticListener listener) {
-    if (cachedNode != null) return cachedNode;
-    cachedNode = parse(listener,
-                       getCompilationUnit(),
+  VariableDefinitions parseNode(Element element, DiagnosticListener listener) {
+    if (definitions != null) return definitions;
+    definitions = parse(listener,
+                       element.getCompilationUnit(),
                        (p) => p.parseVariablesDeclaration(beginToken));
-    if (!cachedNode.modifiers.isVar() &&
-        !cachedNode.modifiers.isFinal() &&
-        !cachedNode.modifiers.isConst() &&
-        cachedNode.type == null) {
+    if (!definitions.modifiers.isVar() &&
+        !definitions.modifiers.isFinal() &&
+        !definitions.modifiers.isConst() &&
+        definitions.type == null) {
       listener.cancel('A field declaration must start with var, final, '
                       'const, or a type annotation.',
-                      node: cachedNode);
+                      node: definitions);
     }
-    return cachedNode;
+    return definitions;
   }
 
-  Token position() => beginToken; // findMyName doesn't work. I'm nameless.
+  computeType(Element element, Compiler compiler) {
+    if (type != null) return type;
+    // TODO(johnniwinther): Compute this in the resolver.
+    compiler.withCurrentElement(element, () {
+      VariableDefinitions node = parseNode(element, compiler);
+      if (node.type != null) {
+        type = compiler.resolveTypeAnnotation(element, node.type);
+      } else {
+        type = compiler.types.dynamicType;
+      }
+    });
+    assert(type != null);
+    return type;
+  }
 }
 
 class PartialTypedefElement extends TypedefElementX {

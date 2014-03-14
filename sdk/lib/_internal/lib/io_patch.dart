@@ -15,7 +15,7 @@ patch class _Directory {
   patch static String _systemTemp() {
     throw new UnsupportedError("Directory._systemTemp");
   }
-  patch static int _exists(String path) {
+  patch static _exists(String path) {
     throw new UnsupportedError("Directory._exists");
   }
   patch static _create(String path) {
@@ -276,13 +276,13 @@ patch class ServerSocket {
 }
 
 patch class RawSocket {
-  patch static Future<RawSocket> connect(var host, int port) {
+  patch static Future<RawSocket> connect(host, int port) {
     throw new UnsupportedError("RawSocket constructor");
   }
 }
 
 patch class Socket {
-  patch static Future<Socket> connect(var host, int port) {
+  patch static Future<Socket> connect(host, int port) {
     throw new UnsupportedError("Socket constructor");
   }
 }

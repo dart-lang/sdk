@@ -19,7 +19,7 @@ var testFunction = (_) {
     tearDown(() {
       return new Future.value(0);
     });
-    test('foo1', (){});
+    test('foo1', () {});
   });
   group('good setup/bad teardown', () {
     setUp(() {
@@ -28,7 +28,7 @@ var testFunction = (_) {
     tearDown(() {
       return new Future.error("Failed to complete tearDown");
     });
-    test('foo2', (){});
+    test('foo2', () {});
   });
   group('bad setup/good teardown', () {
     setUp(() {
@@ -37,7 +37,7 @@ var testFunction = (_) {
     tearDown(() {
       return new Future.value(0);
     });
-    test('foo3', (){});
+    test('foo3', () {});
   });
   group('bad setup/bad teardown', () {
     setUp(() {
@@ -46,7 +46,7 @@ var testFunction = (_) {
     tearDown(() {
       return new Future.error("Failed to complete tearDown");
     });
-    test('foo4', (){});
+    test('foo4', () {});
   });
   // The next test is just to make sure we make steady progress
   // through the tests.

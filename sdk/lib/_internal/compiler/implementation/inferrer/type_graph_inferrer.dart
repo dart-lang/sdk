@@ -634,11 +634,12 @@ class TypeGraphInferrerEngine
     addedInGraph++;
 
     if (element.isField()) {
-      ast.Node node = element.parseNode(compiler);
+      VariableElement fieldElement = element;
+      ast.Node node = fieldElement.parseNode(compiler);
       if (element.modifiers.isFinal() || element.modifiers.isConst()) {
         // If [element] is final and has an initializer, we record
         // the inferred type.
-        if (node.asSendSet() != null) {
+        if (fieldElement.initializer != null) {
           if (type is! ListTypeInformation) {
             // For non-container types, the constant handler does
             // constant folding that could give more precise results.
@@ -657,7 +658,7 @@ class TypeGraphInferrerEngine
         } else if (!element.isInstanceMember()) {
           recordType(element, types.nullType);
         }
-      } else if (node.asSendSet() == null) {
+      } else if (fieldElement.initializer == null) {
         // Only update types of static fields if there is no
         // assignment. Instance fields are dealt with in the constructor.
         if (Elements.isStaticOrTopLevelField(element)) {
@@ -667,9 +668,9 @@ class TypeGraphInferrerEngine
         recordTypeOfNonFinalField(node, element, type);
       }
       if (Elements.isStaticOrTopLevelField(element) &&
-          node.asSendSet() != null &&
+          fieldElement.initializer != null &&
           !element.modifiers.isConst()) {
-        var argument = node.asSendSet().arguments.head;
+        var argument = fieldElement.initializer;
         // TODO(13429): We could do better here by using the
         // constant handler to figure out if it's a lazy field or not.
         if (argument.asSend() != null ||

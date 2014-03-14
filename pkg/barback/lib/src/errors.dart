@@ -115,23 +115,24 @@ abstract class _WrappedException implements BarbackException {
   final error;
   final Chain stackTrace;
 
-  _WrappedException(this.error, StackTrace stackTrace)
-      : this.stackTrace = stackTrace == null ? null :
-            new Chain.forTrace(stackTrace);
+  _WrappedException(error, StackTrace stackTrace)
+      : this.error = error,
+        this.stackTrace = _getChain(error, stackTrace);
 
   String get _message;
 
   String toString() {
     var result = "$_message: $error";
-
-    var stack = stackTrace;
-    if (stack == null && error is Error) stack = error.stackTrace;
-    if (stack != null) {
-      result = "$result\n${stackTrace.terse}";
-    }
-
+    if (stackTrace != null) result = "$result\n${stackTrace.terse}";
     return result;
   }
+}
+
+/// Returns the stack chain for [error] and [stackTrace].
+Chain _getChain(error, StackTrace stackTrace) {
+  if (error is Error && stackTrace == null) stackTrace = error.stackTrace;
+  if (stackTrace != null) return new Chain.forTrace(stackTrace);
+  return null;
 }
 
 /// Error wrapping an exception thrown by a transform.

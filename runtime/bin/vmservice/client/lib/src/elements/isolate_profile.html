@@ -3,11 +3,11 @@
   <link rel="import" href="nav_bar.html">
   <link rel="import" href="observatory_element.html">
 </head>
-<polymer-element name="isolate-profile" extends="isolate-element">
+<polymer-element name="isolate-profile" extends="observatory-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+      <isolate-nav-menu isolate="{{ profile.isolate }}"></isolate-nav-menu>
       <nav-menu link="." anchor="cpu profile" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
@@ -31,7 +31,6 @@
           <th>Method</th>
           <th>Exclusive</th>
           <th>Caller</th>
-          <th>Inclusive</th>
         </tr>
       </thead>
       <tbody>
@@ -39,11 +38,10 @@
           <td on-click="{{toggleExpanded}}"
               class="{{ coloring(row) }}"
               style="{{ padding(row) }}">
-            <code-ref isolate="{{ isolate }}" ref="{{ row.code.codeRef }}"></code-ref>
+            <code-ref ref="{{ row.code }}"></code-ref>
           </td>
           <td class="{{ coloring(row) }}">{{row.columns[0]}}</td>
           <td class="{{ coloring(row) }}">{{row.columns[1]}}</td>
-          <td class="{{ coloring(row) }}">{{row.columns[2]}}</td>
         </tr>
       </tbody>
     </table>

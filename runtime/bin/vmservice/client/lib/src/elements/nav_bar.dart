@@ -5,9 +5,8 @@
 library nav_bar_element;
 
 import 'dart:html';
-import 'isolate_element.dart';
 import 'observatory_element.dart';
-import 'package:observatory/app.dart';
+import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 
 
@@ -37,6 +36,7 @@ class NavMenuItemElement extends ObservatoryElement {
 class NavRefreshElement extends ObservatoryElement {
   @published var callback;
   @published bool active = false;
+  @published String label = 'Refresh';
 
   NavRefreshElement.created() : super.created();
 
@@ -63,23 +63,24 @@ class TopNavMenuElement extends ObservatoryElement {
 }
 
 @CustomTag('isolate-nav-menu')
-class IsolateNavMenuElement extends IsolateElement {
+class IsolateNavMenuElement extends ObservatoryElement {
   @published bool last = false;
+  @published Isolate isolate;
 
   IsolateNavMenuElement.created() : super.created();
 }
 
 @CustomTag('library-nav-menu')
-class LibraryNavMenuElement extends IsolateElement {
-  @published Map library;
+class LibraryNavMenuElement extends ObservatoryElement {
+  @published ServiceMap library;
   @published bool last = false;
 
   LibraryNavMenuElement.created() : super.created();
 }
 
 @CustomTag('class-nav-menu')
-class ClassNavMenuElement extends IsolateElement {
-  @published Map cls;
+class ClassNavMenuElement extends ObservatoryElement {
+  @published ServiceMap cls;
   @published bool last = false;
 
   ClassNavMenuElement.created() : super.created();

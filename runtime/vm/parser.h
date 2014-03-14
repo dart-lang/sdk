@@ -346,7 +346,7 @@ class Parser : public ValueObject {
   void ParseIdentList(GrowableObjectArray* names);
   void ParseLibraryDefinition();
   void ParseLibraryName();
-  void ParseLibraryImportExport();
+  void ParseLibraryImportExport(intptr_t metadata_pos);
   void ParseLibraryPart();
   void ParsePartHeader();
   void ParseLibraryNameObsoleteSyntax();
@@ -450,6 +450,8 @@ class Parser : public ValueObject {
                                             Array& default_values);
   SequenceNode* ParseInvokeFieldDispatcher(const Function& func,
                                            Array& default_values);
+  SequenceNode* ParseInvokeClosureDispatcher(const Function& func,
+                                             Array& default_values);
   void BuildDispatcherScope(const Function& func,
                             const ArgumentsDescriptor& desc,
                             Array& default_values);

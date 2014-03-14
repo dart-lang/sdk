@@ -5,11 +5,12 @@
 library service_ref_element;
 
 import 'package:polymer/polymer.dart';
-import 'isolate_element.dart';
+import 'observatory_element.dart';
+import 'package:observatory/service.dart';
 
 @CustomTag('service-ref')
-class ServiceRefElement extends IsolateElement {
-  @published Map ref;
+class ServiceRefElement extends ObservatoryElement {
+  @published ServiceObject ref;
   @published bool internal = false;
   ServiceRefElement.created() : super.created();
 
@@ -20,35 +21,30 @@ class ServiceRefElement extends IsolateElement {
   }
 
   String get url {
-    if ((isolate == null) || (ref == null)) {
-      return '';
+    if (ref == null) {
+      return 'NULL REF';
     }
-    return isolate.hashLink(objectId);
+    return ref.hashLink;
   }
 
-  String get objectId => ref == null ? '' : ref['id'];
+  String get serviceId {
+    if (ref == null) {
+      return 'NULL REF';
+    }
+    return ref.id;
+  }
 
   String get hoverText {
     if (ref == null) {
-      return '';
+      return 'NULL REF';
     }
-    // Return the VM name by default.
-    var name = ref['name'];
-    return name != null ? name : '';
+    return ref.vmName;
   }
 
   String get name {
     if (ref == null) {
       return 'NULL REF';
     }
-    String name_key = internal ? 'name' : 'user_name';
-    if (ref[name_key] != null) {
-      return ref[name_key];
-    } else if (ref['name'] != null) {
-      return ref['name'];
-    } else if (ref['user_name'] != null) {
-      return ref['user_name'];
-    }
-    return '';
+    return ref.name;
   }
 }

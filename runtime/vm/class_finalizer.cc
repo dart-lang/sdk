@@ -1188,7 +1188,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
                     super_class_name.ToCString());
       }
     }
-    if (field.is_static() && (field.is_const() || field.is_final()) &&
+    if (field.is_static() &&
         (field.value() != Object::null()) &&
         (field.value() != Object::sentinel().raw())) {
       // The parser does not preset the value if the type is a type parameter or

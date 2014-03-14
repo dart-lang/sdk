@@ -50,14 +50,18 @@ class RemoveSourceOperation implements IndexOperation {
     this._context = context;
   }
 
+  @override
   bool get isQuery => false;
 
+  @override
   void performOperation() {
     _indexStore.removeSource(_context, source);
   }
 
+  @override
   bool removeWhenSourceRemoved(Source source) => false;
 
+  @override
   String toString() => "RemoveSource(${source.fullName})";
 }
 
@@ -93,8 +97,6 @@ abstract class IndexOperation {
  * [IndexStore] which keeps full index in memory.
  */
 class MemoryIndexStoreImpl implements MemoryIndexStore {
-  static Object _WEAK_SET_VALUE = new Object();
-
   /**
    * When logging is on, [AnalysisEngine] actually creates
    * [InstrumentedAnalysisContextImpl], which wraps [AnalysisContextImpl] used to create
@@ -111,7 +113,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
   /**
    * @return the [Source] of the enclosing [LibraryElement], may be `null`.
    */
-  static Source getLibrarySourceOrNull(Element element) {
+  static Source _getLibrarySourceOrNull(Element element) {
     LibraryElement library = element.library;
     if (library == null) {
       return null;
@@ -121,12 +123,6 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     }
     return library.source;
   }
-
-  /**
-   * We add [AnalysisContext] to this weak set to ensure that we don't continue to add
-   * relationships after some context was removed using [removeContext].
-   */
-  Expando _removedContexts = new Expando();
 
   /**
    * This map is used to canonicalize equal keys.
@@ -168,10 +164,11 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
 
   int _locationCount = 0;
 
+  @override
   bool aboutToIndexDart(AnalysisContext context, CompilationUnitElement unitElement) {
     context = unwrapContext(context);
-    // may be already removed in other thread
-    if (isRemovedContext(context)) {
+    // may be already disposed in other thread
+    if (context.isDisposed) {
       return false;
     }
     // validate unit
@@ -207,16 +204,16 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
       if (oldParts != null) {
         Set<Source> noParts = oldParts.difference(newParts);
         for (Source noPart in noParts) {
-          removeLocations(context, library, noPart);
+          _removeLocations(context, library, noPart);
         }
       }
       // remember new parts
       libraryToUnits[library] = newParts;
     }
     // remember libraries in which unit is used
-    recordUnitInLibrary(context, library, unit);
+    _recordUnitInLibrary(context, library, unit);
     // remove locations
-    removeLocations(context, library, unit);
+    _removeLocations(context, library, unit);
     // remove keys
     {
       Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>> sourceToKeys = _contextToSourceToKeys[context];
@@ -232,15 +229,16 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     return true;
   }
 
+  @override
   bool aboutToIndexHtml(AnalysisContext context, HtmlElement htmlElement) {
     context = unwrapContext(context);
-    // may be already removed in other thread
-    if (isRemovedContext(context)) {
+    // may be already disposed in other thread
+    if (context.isDisposed) {
       return false;
     }
     // remove locations
     Source source = htmlElement.source;
-    removeLocations(context, null, source);
+    _removeLocations(context, null, source);
     // remove keys
     {
       Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>> sourceToKeys = _contextToSourceToKeys[context];
@@ -253,11 +251,12 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
       }
     }
     // remember libraries in which unit is used
-    recordUnitInLibrary(context, null, source);
+    _recordUnitInLibrary(context, null, source);
     // OK, we can index
     return true;
   }
 
+  @override
   List<Location> getRelationships(Element element, Relationship relationship) {
     MemoryIndexStoreImpl_ElementRelationKey key = new MemoryIndexStoreImpl_ElementRelationKey(element, relationship);
     Set<Location> locations = _keyToLocations[key];
@@ -267,6 +266,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     return Location.EMPTY_ARRAY;
   }
 
+  @override
   String get statistics => "${_locationCount} relationships in ${_keyCount} keys in ${_sourceCount} sources";
 
   int internalGetKeyCount() => _keyToLocations.length;
@@ -303,11 +303,12 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     return count;
   }
 
+  @override
   void recordRelationship(Element element, Relationship relationship, Location location) {
     if (element == null || location == null) {
       return;
     }
-    location = location.clone();
+    location = location.newClone();
     // at the index level we don't care about Member(s)
     if (element is Member) {
       element = (element as Member).baseElement;
@@ -318,8 +319,8 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     AnalysisContext locationContext = location.element.context;
     Source elementSource = element.source;
     Source locationSource = location.element.source;
-    Source elementLibrarySource = getLibrarySourceOrNull(element);
-    Source locationLibrarySource = getLibrarySourceOrNull(location.element);
+    Source elementLibrarySource = _getLibrarySourceOrNull(element);
+    Source locationLibrarySource = _getLibrarySourceOrNull(location.element);
     // sanity check
     if (locationContext == null) {
       return;
@@ -333,19 +334,19 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     if (elementSource == null && element is! NameElementImpl && element is! UniverseElementImpl) {
       return;
     }
-    // may be already removed in other thread
-    if (isRemovedContext(elementContext)) {
+    // may be already disposed in other thread
+    if (elementContext != null && elementContext.isDisposed) {
       return;
     }
-    if (isRemovedContext(locationContext)) {
+    if (locationContext.isDisposed) {
       return;
     }
     // record: key -> location(s)
-    MemoryIndexStoreImpl_ElementRelationKey key = getCanonicalKey(element, relationship);
+    MemoryIndexStoreImpl_ElementRelationKey key = _getCanonicalKey(element, relationship);
     {
       Set<Location> locations = _keyToLocations.remove(key);
       if (locations == null) {
-        locations = createLocationIdentitySet();
+        locations = _createLocationIdentitySet();
       } else {
         _keyCount--;
       }
@@ -391,13 +392,13 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     }
   }
 
+  @override
   void removeContext(AnalysisContext context) {
     context = unwrapContext(context);
     if (context == null) {
       return;
     }
-    // mark as removed
-    markRemovedContext(context);
+    // remove sources
     removeSources(context, null);
     // remove context
     _contextToSourceToKeys.remove(context);
@@ -406,6 +407,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     _contextToUnitToLibraries.remove(context);
   }
 
+  @override
   void removeSource(AnalysisContext context, Source unit) {
     context = unwrapContext(context);
     if (context == null) {
@@ -419,7 +421,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
         for (Source library in libraries) {
           MemoryIndexStoreImpl_Source2 source2 = new MemoryIndexStoreImpl_Source2(library, unit);
           // remove locations defined in source
-          removeLocations(context, library, unit);
+          _removeLocations(context, library, unit);
           // remove keys for elements defined in source
           Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>> sourceToKeys = _contextToSourceToKeys[context];
           if (sourceToKeys != null) {
@@ -441,6 +443,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     }
   }
 
+  @override
   void removeSources(AnalysisContext context, SourceContainer container) {
     context = unwrapContext(context);
     if (context == null) {
@@ -473,13 +476,13 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
   /**
    * Creates new [Set] that uses object identity instead of equals.
    */
-  Set<Location> createLocationIdentitySet() => new Set<Location>.identity();
+  Set<Location> _createLocationIdentitySet() => new Set<Location>.identity();
 
   /**
    * @return the canonical [ElementRelationKey] for given [Element] and
    *         [Relationship], i.e. unique instance for this combination.
    */
-  MemoryIndexStoreImpl_ElementRelationKey getCanonicalKey(Element element, Relationship relationship) {
+  MemoryIndexStoreImpl_ElementRelationKey _getCanonicalKey(Element element, Relationship relationship) {
     MemoryIndexStoreImpl_ElementRelationKey key = new MemoryIndexStoreImpl_ElementRelationKey(element, relationship);
     MemoryIndexStoreImpl_ElementRelationKey canonicalKey = _canonicalKeys[key];
     if (canonicalKey == null) {
@@ -489,19 +492,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     return canonicalKey;
   }
 
-  /**
-   * Checks if given [AnalysisContext] is marked as removed.
-   */
-  bool isRemovedContext(AnalysisContext context) => _removedContexts[context] != null;
-
-  /**
-   * Marks given [AnalysisContext] as removed.
-   */
-  void markRemovedContext(AnalysisContext context) {
-    _removedContexts[context] = true;
-  }
-
-  void recordUnitInLibrary(AnalysisContext context, Source library, Source unit) {
+  void _recordUnitInLibrary(AnalysisContext context, Source library, Source unit) {
     Map<Source, Set<Source>> unitToLibraries = _contextToUnitToLibraries[context];
     if (unitToLibraries == null) {
       unitToLibraries = {};
@@ -518,7 +509,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
   /**
    * Removes locations recorded in the given library/unit pair.
    */
-  void removeLocations(AnalysisContext context, Source library, Source unit) {
+  void _removeLocations(AnalysisContext context, Source library, Source unit) {
     MemoryIndexStoreImpl_Source2 source2 = new MemoryIndexStoreImpl_Source2(library, unit);
     Map<MemoryIndexStoreImpl_Source2, List<Location>> sourceToLocations = _contextToSourceToLocations[context];
     if (sourceToLocations != null) {
@@ -553,12 +544,14 @@ class MemoryIndexStoreImpl_ElementRelationKey {
     this._relationship = relationship;
   }
 
+  @override
   bool operator ==(Object obj) {
     MemoryIndexStoreImpl_ElementRelationKey other = obj as MemoryIndexStoreImpl_ElementRelationKey;
     Element otherElement = other._element;
     return identical(other._relationship, _relationship) && otherElement.nameOffset == _element.nameOffset && identical(otherElement.kind, _element.kind) && otherElement.displayName == _element.displayName && otherElement.source == _element.source;
   }
 
+  @override
   int get hashCode => JavaArrays.makeHashCode([
       _element.source,
       _element.nameOffset,
@@ -566,6 +559,7 @@ class MemoryIndexStoreImpl_ElementRelationKey {
       _element.displayName,
       _relationship]);
 
+  @override
   String toString() => "${_element} ${_relationship}";
 }
 
@@ -579,6 +573,7 @@ class MemoryIndexStoreImpl_Source2 {
     this._unitSource = unitSource;
   }
 
+  @override
   bool operator ==(Object obj) {
     if (identical(obj, this)) {
       return true;
@@ -590,8 +585,10 @@ class MemoryIndexStoreImpl_Source2 {
     return other._librarySource == _librarySource && other._unitSource == _unitSource;
   }
 
+  @override
   int get hashCode => JavaArrays.makeHashCode([_librarySource, _unitSource]);
 
+  @override
   String toString() => "${_librarySource} ${_unitSource}";
 }
 
@@ -644,8 +641,10 @@ class IndexUnitOperation implements IndexOperation {
    */
   Source get source => _source;
 
+  @override
   bool get isQuery => false;
 
+  @override
   void performOperation() {
     try {
       bool mayIndex = _indexStore.aboutToIndexDart(_context, _unitElement);
@@ -659,8 +658,10 @@ class IndexUnitOperation implements IndexOperation {
     }
   }
 
+  @override
   bool removeWhenSourceRemoved(Source source) => this._source == source;
 
+  @override
   String toString() => "IndexUnitOperation(${_source.fullName})";
 }
 
@@ -675,20 +676,22 @@ abstract class ExpressionVisitor extends ht.RecursiveXmlVisitor<Object> {
    */
   void visitExpression(Expression expression);
 
+  @override
   Object visitXmlAttributeNode(ht.XmlAttributeNode node) {
-    visitExpressions(node.expressions);
+    _visitExpressions(node.expressions);
     return super.visitXmlAttributeNode(node);
   }
 
+  @override
   Object visitXmlTagNode(ht.XmlTagNode node) {
-    visitExpressions(node.expressions);
+    _visitExpressions(node.expressions);
     return super.visitXmlTagNode(node);
   }
 
   /**
    * Visits [Expression]s of the given [XmlExpression]s.
    */
-  void visitExpressions(List<ht.XmlExpression> expressions) {
+  void _visitExpressions(List<ht.XmlExpression> expressions) {
     for (ht.XmlExpression xmlExpression in expressions) {
       if (xmlExpression is AngularXmlExpression) {
         AngularXmlExpression angularXmlExpression = xmlExpression;
@@ -756,73 +759,8 @@ class Relationship {
    */
   String get identifier => _uniqueId;
 
+  @override
   String toString() => _uniqueId;
-}
-
-/**
- * Implementation of [Index].
- */
-class IndexImpl implements Index {
-  IndexStore _store;
-
-  OperationQueue _queue;
-
-  OperationProcessor _processor;
-
-  IndexImpl(IndexStore store, OperationQueue queue, OperationProcessor processor) {
-    this._store = store;
-    this._queue = queue;
-    this._processor = processor;
-  }
-
-  void getRelationships(Element element, Relationship relationship, RelationshipCallback callback) {
-    _queue.enqueue(new GetRelationshipsOperation(_store, element, relationship, callback));
-  }
-
-  String get statistics => _store.statistics;
-
-  void indexHtmlUnit(AnalysisContext context, ht.HtmlUnit unit) {
-    if (unit == null) {
-      return;
-    }
-    if (unit.element == null) {
-      return;
-    }
-    if (unit.element.angularCompilationUnit == null) {
-      return;
-    }
-    _queue.enqueue(new IndexHtmlUnitOperation(_store, context, unit));
-  }
-
-  void indexUnit(AnalysisContext context, CompilationUnit unit) {
-    if (unit == null) {
-      return;
-    }
-    if (unit.element == null) {
-      return;
-    }
-    _queue.enqueue(new IndexUnitOperation(_store, context, unit));
-  }
-
-  void removeContext(AnalysisContext context) {
-    _queue.enqueue(new RemoveContextOperation(_store, context));
-  }
-
-  void removeSource(AnalysisContext context, Source source) {
-    _queue.enqueue(new RemoveSourceOperation(_store, context, source));
-  }
-
-  void removeSources(AnalysisContext context, SourceContainer container) {
-    _queue.enqueue(new RemoveSourcesOperation(_store, context, container));
-  }
-
-  void run() {
-    _processor.run();
-  }
-
-  void stop() {
-    _processor.stop(false);
-  }
 }
 
 /**
@@ -857,14 +795,18 @@ class RemoveSourcesOperation implements IndexOperation {
     this._context = context;
   }
 
+  @override
   bool get isQuery => false;
 
+  @override
   void performOperation() {
     _indexStore.removeSources(_context, container);
   }
 
+  @override
   bool removeWhenSourceRemoved(Source source) => false;
 
+  @override
   String toString() => "RemoveSources(${container})";
 }
 
@@ -874,139 +816,6 @@ class RemoveSourcesOperation implements IndexOperation {
  */
 abstract class UniverseElement implements Element {
   static final UniverseElement INSTANCE = UniverseElementImpl.INSTANCE;
-}
-
-/**
- * Instances of the [OperationProcessor] process the operations on a single
- * [OperationQueue]. Each processor can be run one time on a single thread.
- */
-class OperationProcessor {
-  /**
-   * The queue containing the operations to be processed.
-   */
-  OperationQueue _queue;
-
-  /**
-   * The current state of the processor.
-   */
-  ProcessorState _state = ProcessorState.READY;
-
-  /**
-   * The number of milliseconds for which the thread on which the processor is running will wait for
-   * an operation to become available if there are no operations ready to be processed.
-   */
-  static int _WAIT_DURATION = 100;
-
-  /**
-   * Initialize a newly created operation processor to process the operations on the given queue.
-   *
-   * @param queue the queue containing the operations to be processed
-   */
-  OperationProcessor(OperationQueue queue) {
-    this._queue = queue;
-  }
-
-  /**
-   * Start processing operations. If the processor is already running on a different thread, then
-   * this method will return immediately with no effect. Otherwise, this method will not return
-   * until after the processor has been stopped from a different thread or until the thread running
-   * the processor has been interrupted.
-   */
-  void run() {
-    // This processor is, or was, already running on a different thread.
-    if (_state != ProcessorState.READY) {
-      throw new IllegalStateException("Operation processors can only be run one time");
-    }
-    // OK, run.
-    _state = ProcessorState.RUNNING;
-    try {
-      while (isRunning) {
-        // wait for operation
-        IndexOperation operation = null;
-        {
-          operation = _queue.dequeue(_WAIT_DURATION);
-        }
-        // perform operation
-        if (operation != null) {
-          try {
-            operation.performOperation();
-          } catch (exception) {
-            AnalysisEngine.instance.logger.logError2("Exception in indexing operation: ${operation}", exception);
-          }
-        }
-      }
-    } finally {
-      _state = ProcessorState.STOPPED;
-    }
-  }
-
-  /**
-   * Stop processing operations after the current operation has completed. If the argument is
-   * `true` then this method will wait until the last operation has completed; otherwise this
-   * method might return before the last operation has completed.
-   *
-   * @param wait `true` if this method will wait until the last operation has completed before
-   *          returning
-   * @return the library files for the libraries that need to be analyzed when a new session is
-   *         started.
-   */
-  List<Source> stop(bool wait) {
-    if (identical(_state, ProcessorState.READY)) {
-      _state = ProcessorState.STOPPED;
-      return unanalyzedSources;
-    } else if (identical(_state, ProcessorState.STOPPED)) {
-      return unanalyzedSources;
-    } else if (identical(_state, ProcessorState.RUNNING)) {
-      _state = ProcessorState.STOP_REQESTED;
-    }
-    while (wait) {
-      if (identical(_state, ProcessorState.STOPPED)) {
-        return unanalyzedSources;
-      }
-      waitOneMs();
-    }
-    return unanalyzedSources;
-  }
-
-  /**
-   * Waits until processors will switch from "ready" to "running" state.
-   *
-   * @return `true` if processor is now actually in "running" state, e.g. not in "stopped"
-   *         state.
-   */
-  bool waitForRunning() {
-    while (identical(_state, ProcessorState.READY)) {
-      threadYield();
-    }
-    return identical(_state, ProcessorState.RUNNING);
-  }
-
-  /**
-   * @return the [Source]s that are not indexed yet.
-   */
-  List<Source> get unanalyzedSources {
-    Set<Source> sources = new Set();
-    for (IndexOperation operation in _queue.operations) {
-      if (operation is IndexUnitOperation) {
-        Source source = operation.source;
-        sources.add(source);
-      }
-    }
-    return new List.from(sources);
-  }
-
-  /**
-   * Return `true` if the current state is [ProcessorState#RUNNING].
-   *
-   * @return `true` if this processor is running
-   */
-  bool get isRunning => identical(_state, ProcessorState.RUNNING);
-
-  void threadYield() {
-  }
-
-  void waitOneMs() {
-  }
 }
 
 /**
@@ -1210,13 +1019,14 @@ class AngularHtmlIndexContributor extends ExpressionVisitor {
     _indexContributor = new IndexContributor_AngularHtmlIndexContributor(store, this);
   }
 
+  @override
   void visitExpression(Expression expression) {
     // NgFilter
     if (expression is SimpleIdentifier) {
       SimpleIdentifier identifier = expression;
       Element element = identifier.bestElement;
       if (element is AngularElement) {
-        _store.recordRelationship(element, IndexConstants.ANGULAR_REFERENCE, createLocationForIdentifier(identifier));
+        _store.recordRelationship(element, IndexConstants.ANGULAR_REFERENCE, _createLocationForIdentifier(identifier));
         return;
       }
     }
@@ -1224,6 +1034,7 @@ class AngularHtmlIndexContributor extends ExpressionVisitor {
     expression.accept(_indexContributor);
   }
 
+  @override
   Object visitHtmlUnit(ht.HtmlUnit node) {
     _htmlUnitElement = node.element;
     CompilationUnitElement dartUnitElement = _htmlUnitElement.angularCompilationUnit;
@@ -1231,38 +1042,40 @@ class AngularHtmlIndexContributor extends ExpressionVisitor {
     return super.visitHtmlUnit(node);
   }
 
+  @override
   Object visitXmlAttributeNode(ht.XmlAttributeNode node) {
     Element element = node.element;
     if (element != null) {
       ht.Token nameToken = node.nameToken;
-      Location location = createLocationForToken(nameToken);
+      Location location = _createLocationForToken(nameToken);
       _store.recordRelationship(element, IndexConstants.ANGULAR_REFERENCE, location);
     }
     return super.visitXmlAttributeNode(node);
   }
 
+  @override
   Object visitXmlTagNode(ht.XmlTagNode node) {
     Element element = node.element;
     if (element != null) {
       // tag
       {
         ht.Token tagToken = node.tagToken;
-        Location location = createLocationForToken(tagToken);
+        Location location = _createLocationForToken(tagToken);
         _store.recordRelationship(element, IndexConstants.ANGULAR_REFERENCE, location);
       }
       // maybe add closing tag range
       ht.Token closingTag = node.closingTag;
       if (closingTag != null) {
-        Location location = createLocationForToken(closingTag);
+        Location location = _createLocationForToken(closingTag);
         _store.recordRelationship(element, IndexConstants.ANGULAR_CLOSING_TAG_REFERENCE, location);
       }
     }
     return super.visitXmlTagNode(node);
   }
 
-  Location createLocationForIdentifier(SimpleIdentifier identifier) => new Location(_htmlUnitElement, identifier.offset, identifier.length);
+  Location _createLocationForIdentifier(SimpleIdentifier identifier) => new Location(_htmlUnitElement, identifier.offset, identifier.length);
 
-  Location createLocationForToken(ht.Token token) => new Location(_htmlUnitElement, token.offset, token.length);
+  Location _createLocationForToken(ht.Token token) => new Location(_htmlUnitElement, token.offset, token.length);
 }
 
 class IndexContributor_AngularHtmlIndexContributor extends IndexContributor {
@@ -1270,8 +1083,10 @@ class IndexContributor_AngularHtmlIndexContributor extends IndexContributor {
 
   IndexContributor_AngularHtmlIndexContributor(IndexStore arg0, this.AngularHtmlIndexContributor_this) : super(arg0);
 
+  @override
   Element peekElement() => AngularHtmlIndexContributor_this._htmlUnitElement;
 
+  @override
   void recordRelationship(Element element, Relationship relationship, Location location) {
     AngularElement angularElement = AngularHtmlUnitResolver.getAngularElement(element);
     if (angularElement != null) {
@@ -1487,10 +1302,12 @@ abstract class IndexStore {
 class UniverseElementImpl extends ElementImpl implements UniverseElement {
   static UniverseElementImpl INSTANCE = new UniverseElementImpl();
 
-  UniverseElementImpl() : super.con2("--universe--", -1);
+  UniverseElementImpl() : super("--universe--", -1);
 
+  @override
   accept(ElementVisitor visitor) => null;
 
+  @override
   ElementKind get kind => ElementKind.UNIVERSE;
 }
 
@@ -1552,7 +1369,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     // find ImportElement
     String prefix = prefixNode.name;
     Map<ImportElement, Set<Element>> importElementsMap = {};
-    info._element = internalGetImportElement(libraryElement, prefix, usedElement, importElementsMap);
+    info._element = _internalGetImportElement(libraryElement, prefix, usedElement, importElementsMap);
     if (info._element == null) {
       return null;
     }
@@ -1565,9 +1382,9 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
    * @param location the base location
    * @param expression the expression assigned at the given location
    */
-  static Location getLocationWithExpressionType(Location location, Expression expression) {
+  static Location _getLocationWithExpressionType(Location location, Expression expression) {
     if (expression != null) {
-      return new LocationWithData<Type2>.con1(location, expression.bestType);
+      return new LocationWithData<DartType>.con1(location, expression.bestType);
     }
     return location;
   }
@@ -1576,11 +1393,11 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
    * If the given node is the part of the [ConstructorFieldInitializer], returns location with
    * type of the initializer expression.
    */
-  static Location getLocationWithInitializerType(SimpleIdentifier node, Location location) {
+  static Location _getLocationWithInitializerType(SimpleIdentifier node, Location location) {
     if (node.parent is ConstructorFieldInitializer) {
       ConstructorFieldInitializer initializer = node.parent as ConstructorFieldInitializer;
       if (identical(initializer.fieldName, node)) {
-        location = getLocationWithExpressionType(location, initializer.expression);
+        location = _getLocationWithExpressionType(location, initializer.expression);
       }
     }
     return location;
@@ -1596,7 +1413,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
    * @param location the raw location
    * @return the [Location] with the type of the assigned value
    */
-  static Location getLocationWithTypeAssignedToField(SimpleIdentifier identifier, Element element, Location location) {
+  static Location _getLocationWithTypeAssignedToField(SimpleIdentifier identifier, Element element, Location location) {
     // we need accessor
     if (element is! PropertyAccessorElement) {
       return location;
@@ -1636,7 +1453,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     if (parent is AssignmentExpression) {
       AssignmentExpression assignment = parent as AssignmentExpression;
       Expression rhs = assignment.rightHandSide;
-      location = getLocationWithExpressionType(location, rhs);
+      location = _getLocationWithExpressionType(location, rhs);
     }
     // done
     return location;
@@ -1646,7 +1463,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
    * @return the [ImportElement] that declares given [PrefixElement] and imports library
    *         with given "usedElement".
    */
-  static ImportElement internalGetImportElement(LibraryElement libraryElement, String prefix, Element usedElement, Map<ImportElement, Set<Element>> importElementsMap) {
+  static ImportElement _internalGetImportElement(LibraryElement libraryElement, String prefix, Element usedElement, Map<ImportElement, Set<Element>> importElementsMap) {
     // validate Element
     if (usedElement == null) {
       return null;
@@ -1716,7 +1533,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
   /**
    * @return `true` if given "node" is part of an import [Combinator].
    */
-  static bool isIdentifierInImportCombinator(SimpleIdentifier node) {
+  static bool _isIdentifierInImportCombinator(SimpleIdentifier node) {
     AstNode parent = node.parent;
     return parent is Combinator;
   }
@@ -1724,7 +1541,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
   /**
    * @return `true` if given "node" is part of [PrefixedIdentifier] "prefix.node".
    */
-  static bool isIdentifierInPrefixedIdentifier(SimpleIdentifier node) {
+  static bool _isIdentifierInPrefixedIdentifier(SimpleIdentifier node) {
     AstNode parent = node.parent;
     return parent is PrefixedIdentifier && identical(parent.identifier, node);
   }
@@ -1733,7 +1550,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
    * @return `true` if given [SimpleIdentifier] is "name" part of prefixed identifier or
    *         method invocation.
    */
-  static bool isQualified(SimpleIdentifier node) {
+  static bool _isQualified(SimpleIdentifier node) {
     AstNode parent = node.parent;
     if (parent is PrefixedIdentifier) {
       return identical(parent.identifier, node);
@@ -1783,31 +1600,34 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitAssignmentExpression(AssignmentExpression node) {
-    recordOperatorReference(node.operator, node.bestElement);
+    _recordOperatorReference(node.operator, node.bestElement);
     return super.visitAssignmentExpression(node);
   }
 
+  @override
   Object visitBinaryExpression(BinaryExpression node) {
-    recordOperatorReference(node.operator, node.bestElement);
+    _recordOperatorReference(node.operator, node.bestElement);
     return super.visitBinaryExpression(node);
   }
 
+  @override
   Object visitClassDeclaration(ClassDeclaration node) {
     ClassElement element = node.element;
     enterScope(element);
     try {
-      recordElementDefinition(element, IndexConstants.DEFINES_CLASS);
+      _recordElementDefinition(element, IndexConstants.DEFINES_CLASS);
       {
         ExtendsClause extendsClause = node.extendsClause;
         if (extendsClause != null) {
           TypeName superclassNode = extendsClause.superclass;
-          recordSuperType(superclassNode, IndexConstants.IS_EXTENDED_BY);
+          _recordSuperType(superclassNode, IndexConstants.IS_EXTENDED_BY);
         } else {
           InterfaceType superType = element.supertype;
           if (superType != null) {
             ClassElement objectElement = superType.element;
-            recordRelationship(objectElement, IndexConstants.IS_EXTENDED_BY, createLocationFromOffset(node.name.offset, 0));
+            recordRelationship(objectElement, IndexConstants.IS_EXTENDED_BY, _createLocationFromOffset(node.name.offset, 0));
           }
         }
       }
@@ -1815,7 +1635,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
         WithClause withClause = node.withClause;
         if (withClause != null) {
           for (TypeName mixinNode in withClause.mixinTypes) {
-            recordSuperType(mixinNode, IndexConstants.IS_MIXED_IN_BY);
+            _recordSuperType(mixinNode, IndexConstants.IS_MIXED_IN_BY);
           }
         }
       }
@@ -1823,32 +1643,33 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
         ImplementsClause implementsClause = node.implementsClause;
         if (implementsClause != null) {
           for (TypeName interfaceNode in implementsClause.interfaces) {
-            recordSuperType(interfaceNode, IndexConstants.IS_IMPLEMENTED_BY);
+            _recordSuperType(interfaceNode, IndexConstants.IS_IMPLEMENTED_BY);
           }
         }
       }
       return super.visitClassDeclaration(node);
     } finally {
-      exitScope();
+      _exitScope();
     }
   }
 
+  @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
     ClassElement element = node.element;
     enterScope(element);
     try {
-      recordElementDefinition(element, IndexConstants.DEFINES_CLASS_ALIAS);
+      _recordElementDefinition(element, IndexConstants.DEFINES_CLASS_ALIAS);
       {
         TypeName superclassNode = node.superclass;
         if (superclassNode != null) {
-          recordSuperType(superclassNode, IndexConstants.IS_EXTENDED_BY);
+          _recordSuperType(superclassNode, IndexConstants.IS_EXTENDED_BY);
         }
       }
       {
         WithClause withClause = node.withClause;
         if (withClause != null) {
           for (TypeName mixinNode in withClause.mixinTypes) {
-            recordSuperType(mixinNode, IndexConstants.IS_MIXED_IN_BY);
+            _recordSuperType(mixinNode, IndexConstants.IS_MIXED_IN_BY);
           }
         }
       }
@@ -1856,16 +1677,17 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
         ImplementsClause implementsClause = node.implementsClause;
         if (implementsClause != null) {
           for (TypeName interfaceNode in implementsClause.interfaces) {
-            recordSuperType(interfaceNode, IndexConstants.IS_IMPLEMENTED_BY);
+            _recordSuperType(interfaceNode, IndexConstants.IS_IMPLEMENTED_BY);
           }
         }
       }
       return super.visitClassTypeAlias(node);
     } finally {
-      exitScope();
+      _exitScope();
     }
   }
 
+  @override
   Object visitCompilationUnit(CompilationUnit node) {
     CompilationUnitElement unitElement = node.element;
     if (unitElement != null) {
@@ -1878,6 +1700,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorElement element = node.element;
     // define
@@ -1886,10 +1709,10 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
       if (node.name != null) {
         int start = node.period.offset;
         int end = node.name.end;
-        location = createLocationFromOffset(start, end - start);
+        location = _createLocationFromOffset(start, end - start);
       } else {
         int start = node.returnType.end;
-        location = createLocationFromOffset(start, 0);
+        location = _createLocationFromOffset(start, 0);
       }
       recordRelationship(element, IndexConstants.IS_DEFINED_BY, location);
     }
@@ -1898,10 +1721,11 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     try {
       return super.visitConstructorDeclaration(node);
     } finally {
-      exitScope();
+      _exitScope();
     }
   }
 
+  @override
   Object visitConstructorName(ConstructorName node) {
     ConstructorElement element = node.staticElement;
     // in 'class B = A;' actually A constructors are invoked
@@ -1913,86 +1737,94 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     if (node.name != null) {
       int start = node.period.offset;
       int end = node.name.end;
-      location = createLocationFromOffset(start, end - start);
+      location = _createLocationFromOffset(start, end - start);
     } else {
       int start = node.type.end;
-      location = createLocationFromOffset(start, 0);
+      location = _createLocationFromOffset(start, 0);
     }
     // record relationship
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitConstructorName(node);
   }
 
+  @override
   Object visitExportDirective(ExportDirective node) {
     ExportElement element = node.element;
     if (element != null) {
       LibraryElement expLibrary = element.exportedLibrary;
-      recordLibraryReference(node, expLibrary);
+      _recordLibraryReference(node, expLibrary);
     }
     return super.visitExportDirective(node);
   }
 
+  @override
   Object visitFormalParameter(FormalParameter node) {
     ParameterElement element = node.element;
     enterScope(element);
     try {
       return super.visitFormalParameter(node);
     } finally {
-      exitScope();
+      _exitScope();
     }
   }
 
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     Element element = node.element;
-    recordElementDefinition(element, IndexConstants.DEFINES_FUNCTION);
+    _recordElementDefinition(element, IndexConstants.DEFINES_FUNCTION);
     enterScope(element);
     try {
       return super.visitFunctionDeclaration(node);
     } finally {
-      exitScope();
+      _exitScope();
     }
   }
 
+  @override
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
     Element element = node.element;
-    recordElementDefinition(element, IndexConstants.DEFINES_FUNCTION_TYPE);
+    _recordElementDefinition(element, IndexConstants.DEFINES_FUNCTION_TYPE);
     return super.visitFunctionTypeAlias(node);
   }
 
+  @override
   Object visitImportDirective(ImportDirective node) {
     ImportElement element = node.element;
     if (element != null) {
       LibraryElement impLibrary = element.importedLibrary;
-      recordLibraryReference(node, impLibrary);
+      _recordLibraryReference(node, impLibrary);
     }
     return super.visitImportDirective(node);
   }
 
+  @override
   Object visitIndexExpression(IndexExpression node) {
     MethodElement element = node.bestElement;
     if (element is MethodElement) {
       Token operator = node.leftBracket;
-      Location location = createLocationFromToken(operator);
+      Location location = _createLocationFromToken(operator);
       recordRelationship(element, IndexConstants.IS_INVOKED_BY_QUALIFIED, location);
     }
     return super.visitIndexExpression(node);
   }
 
+  @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement element = node.element;
     enterScope(element);
     try {
       return super.visitMethodDeclaration(node);
     } finally {
-      exitScope();
+      _exitScope();
     }
   }
 
+  @override
   Object visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier name = node.methodName;
     Element element = name.bestElement;
     if (element is MethodElement) {
-      Location location = createLocationFromNode(name);
+      Location location = _createLocationFromNode(name);
       Relationship relationship;
       if (node.target != null) {
         relationship = IndexConstants.IS_INVOKED_BY_QUALIFIED;
@@ -2002,39 +1834,44 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
       recordRelationship(element, relationship, location);
     }
     if (element is FunctionElement) {
-      Location location = createLocationFromNode(name);
+      Location location = _createLocationFromNode(name);
       recordRelationship(element, IndexConstants.IS_INVOKED_BY, location);
     }
-    recordImportElementReferenceWithoutPrefix(name);
+    _recordImportElementReferenceWithoutPrefix(name);
     return super.visitMethodInvocation(node);
   }
 
+  @override
   Object visitPartDirective(PartDirective node) {
     Element element = node.element;
-    Location location = createLocationFromNode(node.uri);
+    Location location = _createLocationFromNode(node.uri);
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitPartDirective(node);
   }
 
+  @override
   Object visitPartOfDirective(PartOfDirective node) {
-    Location location = createLocationFromNode(node.libraryName);
+    Location location = _createLocationFromNode(node.libraryName);
     recordRelationship(node.element, IndexConstants.IS_REFERENCED_BY, location);
     return null;
   }
 
+  @override
   Object visitPostfixExpression(PostfixExpression node) {
-    recordOperatorReference(node.operator, node.bestElement);
+    _recordOperatorReference(node.operator, node.bestElement);
     return super.visitPostfixExpression(node);
   }
 
+  @override
   Object visitPrefixExpression(PrefixExpression node) {
-    recordOperatorReference(node.operator, node.bestElement);
+    _recordOperatorReference(node.operator, node.bestElement);
     return super.visitPrefixExpression(node);
   }
 
+  @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     Element nameElement = new NameElementImpl(node.name);
-    Location location = createLocationFromNode(node);
+    Location location = _createLocationFromNode(node);
     // name in declaration
     if (node.inDeclarationContext()) {
       recordRelationship(nameElement, IndexConstants.IS_DEFINED_BY, location);
@@ -2043,26 +1880,26 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     // prepare information
     Element element = node.bestElement;
     // qualified name reference
-    recordQualifiedMemberReference(node, element, nameElement, location);
+    _recordQualifiedMemberReference(node, element, nameElement, location);
     // stop if already handled
-    if (isAlreadyHandledName(node)) {
+    if (_isAlreadyHandledName(node)) {
       return null;
     }
     // record specific relations
     if (element is ClassElement || element is FunctionElement || element is FunctionTypeAliasElement || element is LabelElement || element is TypeParameterElement) {
       recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     } else if (element is FieldElement) {
-      location = getLocationWithInitializerType(node, location);
+      location = _getLocationWithInitializerType(node, location);
       recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     } else if (element is FieldFormalParameterElement) {
       FieldFormalParameterElement fieldParameter = element;
       FieldElement field = fieldParameter.field;
       recordRelationship(field, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
     } else if (element is PrefixElement) {
-      recordImportElementReferenceWithPrefix(node);
+      _recordImportElementReferenceWithPrefix(node);
     } else if (element is PropertyAccessorElement || element is MethodElement) {
-      location = getLocationWithTypeAssignedToField(node, element, location);
-      if (isQualified(node)) {
+      location = _getLocationWithTypeAssignedToField(node, element, location);
+      if (_isQualified(node)) {
         recordRelationship(element, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
       } else {
         recordRelationship(element, IndexConstants.IS_REFERENCED_BY_UNQUALIFIED, location);
@@ -2080,51 +1917,55 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
         recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
       }
     }
-    recordImportElementReferenceWithoutPrefix(node);
+    _recordImportElementReferenceWithoutPrefix(node);
     return super.visitSimpleIdentifier(node);
   }
 
+  @override
   Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     ConstructorElement element = node.staticElement;
     Location location;
     if (node.constructorName != null) {
       int start = node.period.offset;
       int end = node.constructorName.end;
-      location = createLocationFromOffset(start, end - start);
+      location = _createLocationFromOffset(start, end - start);
     } else {
       int start = node.keyword.end;
-      location = createLocationFromOffset(start, 0);
+      location = _createLocationFromOffset(start, 0);
     }
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitSuperConstructorInvocation(node);
   }
 
+  @override
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     VariableDeclarationList variables = node.variables;
     for (VariableDeclaration variableDeclaration in variables.variables) {
       Element element = variableDeclaration.element;
-      recordElementDefinition(element, IndexConstants.DEFINES_VARIABLE);
+      _recordElementDefinition(element, IndexConstants.DEFINES_VARIABLE);
     }
     return super.visitTopLevelVariableDeclaration(node);
   }
 
+  @override
   Object visitTypeParameter(TypeParameter node) {
     TypeParameterElement element = node.element;
     enterScope(element);
     try {
       return super.visitTypeParameter(node);
     } finally {
-      exitScope();
+      _exitScope();
     }
   }
 
+  @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     VariableElement element = node.element;
     // record declaration
     {
       SimpleIdentifier name = node.name;
-      Location location = createLocationFromNode(name);
-      location = getLocationWithExpressionType(location, node.initializer);
+      Location location = _createLocationFromNode(name);
+      location = _getLocationWithExpressionType(location, node.initializer);
       recordRelationship(element, IndexConstants.IS_DEFINED_BY, location);
     }
     // visit
@@ -2132,10 +1973,11 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     try {
       return super.visitVariableDeclaration(node);
     } finally {
-      exitScope();
+      _exitScope();
     }
   }
 
+  @override
   Object visitVariableDeclarationList(VariableDeclarationList node) {
     NodeList<VariableDeclaration> variables = node.variables;
     if (variables != null) {
@@ -2148,7 +1990,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
             try {
               type.accept(this);
             } finally {
-              exitScope();
+              _exitScope();
             }
             // only one iteration
             break;
@@ -2173,7 +2015,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
   /**
    * @return the [Location] representing location of the [AstNode].
    */
-  Location createLocationFromNode(AstNode node) => createLocationFromOffset(node.offset, node.length);
+  Location _createLocationFromNode(AstNode node) => _createLocationFromOffset(node.offset, node.length);
 
   /**
    * @param offset the offset of the location within [Source]
@@ -2181,7 +2023,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
    * @return the [Location] representing the given offset and length within the inner-most
    *         [Element].
    */
-  Location createLocationFromOffset(int offset, int length) {
+  Location _createLocationFromOffset(int offset, int length) {
     Element element = peekElement();
     return new Location(element, offset, length);
   }
@@ -2189,12 +2031,12 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
   /**
    * @return the [Location] representing location of the [Token].
    */
-  Location createLocationFromToken(Token token) => createLocationFromOffset(token.offset, token.length);
+  Location _createLocationFromToken(Token token) => _createLocationFromOffset(token.offset, token.length);
 
   /**
    * Exit the current scope.
    */
-  void exitScope() {
+  void _exitScope() {
     _elementStack.removeFirst();
   }
 
@@ -2202,7 +2044,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
    * @return `true` if given node already indexed as more interesting reference, so it should
    *         not be indexed again.
    */
-  bool isAlreadyHandledName(SimpleIdentifier node) {
+  bool _isAlreadyHandledName(SimpleIdentifier node) {
     AstNode parent = node.parent;
     if (parent is MethodInvocation) {
       Element element = node.staticElement;
@@ -2216,7 +2058,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
   /**
    * Records the [Element] definition in the library and universe.
    */
-  void recordElementDefinition(Element element, Relationship relationship) {
+  void _recordElementDefinition(Element element, Relationship relationship) {
     Location location = createLocation(element);
     recordRelationship(_libraryElement, relationship, location);
     recordRelationship(IndexConstants.UNIVERSE, relationship, location);
@@ -2226,17 +2068,17 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
    * Records [ImportElement] reference if given [SimpleIdentifier] references some
    * top-level element and not qualified with import prefix.
    */
-  void recordImportElementReferenceWithoutPrefix(SimpleIdentifier node) {
-    if (isIdentifierInImportCombinator(node)) {
+  void _recordImportElementReferenceWithoutPrefix(SimpleIdentifier node) {
+    if (_isIdentifierInImportCombinator(node)) {
       return;
     }
-    if (isIdentifierInPrefixedIdentifier(node)) {
+    if (_isIdentifierInPrefixedIdentifier(node)) {
       return;
     }
     Element element = node.staticElement;
-    ImportElement importElement = internalGetImportElement(_libraryElement, null, element, _importElementsMap);
+    ImportElement importElement = _internalGetImportElement(_libraryElement, null, element, _importElementsMap);
     if (importElement != null) {
-      Location location = createLocationFromOffset(node.offset, 0);
+      Location location = _createLocationFromOffset(node.offset, 0);
       recordRelationship(importElement, IndexConstants.IS_REFERENCED_BY, location);
     }
   }
@@ -2245,12 +2087,12 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
    * Records [ImportElement] that declares given prefix and imports library with element used
    * with given prefix node.
    */
-  void recordImportElementReferenceWithPrefix(SimpleIdentifier prefixNode) {
+  void _recordImportElementReferenceWithPrefix(SimpleIdentifier prefixNode) {
     IndexContributor_ImportElementInfo info = getImportElementInfo(prefixNode);
     if (info != null) {
       int offset = prefixNode.offset;
       int length = info._periodEnd - offset;
-      Location location = createLocationFromOffset(offset, length);
+      Location location = _createLocationFromOffset(offset, length);
       recordRelationship(info._element, IndexConstants.IS_REFERENCED_BY, location);
     }
   }
@@ -2259,9 +2101,9 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
    * Records reference to defining [CompilationUnitElement] of the given
    * [LibraryElement].
    */
-  void recordLibraryReference(UriBasedDirective node, LibraryElement library) {
+  void _recordLibraryReference(UriBasedDirective node, LibraryElement library) {
     if (library != null) {
-      Location location = createLocationFromNode(node.uri);
+      Location location = _createLocationFromNode(node.uri);
       recordRelationship(library.definingCompilationUnit, IndexConstants.IS_REFERENCED_BY, location);
     }
   }
@@ -2269,9 +2111,9 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
   /**
    * Record reference to the given operator [Element] and name.
    */
-  void recordOperatorReference(Token operator, Element element) {
+  void _recordOperatorReference(Token operator, Element element) {
     // prepare location
-    Location location = createLocationFromToken(operator);
+    Location location = _createLocationFromToken(operator);
     // record name reference
     {
       String name = operator.lexeme;
@@ -2298,8 +2140,8 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
    * Records reference if the given [SimpleIdentifier] looks like a qualified property access
    * or method invocation.
    */
-  void recordQualifiedMemberReference(SimpleIdentifier node, Element element, Element nameElement, Location location) {
-    if (isQualified(node)) {
+  void _recordQualifiedMemberReference(SimpleIdentifier node, Element element, Element nameElement, Location location) {
+    if (_isQualified(node)) {
       Relationship relationship = element != null ? IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED : IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED;
       recordRelationship(nameElement, relationship, location);
     }
@@ -2309,12 +2151,12 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
    * Records extends/implements relationships between given [ClassElement] and [Type] of
    * "superNode".
    */
-  void recordSuperType(TypeName superNode, Relationship relationship) {
+  void _recordSuperType(TypeName superNode, Relationship relationship) {
     if (superNode != null) {
       Identifier superName = superNode.name;
       if (superName != null) {
         Element superElement = superName.staticElement;
-        recordRelationship(superElement, relationship, createLocationFromNode(superNode));
+        recordRelationship(superElement, relationship, _createLocationFromNode(superNode));
       }
     }
   }
@@ -2331,162 +2173,16 @@ class IndexContributor_ImportElementInfo {
 }
 
 /**
- * Factory for [Index] and [IndexStore].
- */
-class IndexFactory {
-  /**
-   * @return the new instance of [Index] which uses given [IndexStore].
-   */
-  static Index newIndex(IndexStore store) {
-    OperationQueue queue = new OperationQueue();
-    OperationProcessor processor = new OperationProcessor(queue);
-    return new IndexImpl(store, queue, processor);
-  }
-
-  /**
-   * @return the new instance of [MemoryIndexStore].
-   */
-  static MemoryIndexStore newMemoryIndexStore() => new MemoryIndexStoreImpl();
-}
-
-/**
- * Instances of the [OperationQueue] represent a queue of operations against the index that
- * are waiting to be performed.
- */
-class OperationQueue {
-  /**
-   * The non-query operations that are waiting to be performed.
-   */
-  Queue<IndexOperation> _nonQueryOperations = new Queue();
-
-  /**
-   * The query operations that are waiting to be performed.
-   */
-  Queue<IndexOperation> _queryOperations = new Queue();
-
-  /**
-   * `true` if query operations should be returned by [dequeue] or {code false}
-   * if not.
-   */
-  bool _processQueries = true;
-
-  /**
-   * If this queue is not empty, then remove the next operation from the head of this queue and
-   * return it. If this queue is empty (see [setProcessQueries], then the behavior
-   * of this method depends on the value of the argument. If the argument is less than or equal to
-   * zero (<code>0</code>), then `null` will be returned immediately. If the argument is
-   * greater than zero, then this method will wait until at least one operation has been added to
-   * this queue or until the given amount of time has passed. If, at the end of that time, this
-   * queue is empty, then `null` will be returned. If this queue is not empty, then the first
-   * operation will be removed and returned.
-   *
-   * Note that `null` can be returned, even if a positive timeout is given.
-   *
-   * Note too that this method's timeout is not treated the same way as the timeout value used for
-   * [Object#wait]. In particular, it is not possible to cause this method to wait for
-   * an indefinite period of time.
-   *
-   * @param timeout the maximum number of milliseconds to wait for an operation to be available
-   *          before giving up and returning `null`
-   * @return the operation that was removed from the queue
-   * @throws InterruptedException if the thread on which this method is running was interrupted
-   *           while it was waiting for an operation to be added to the queue
-   */
-  IndexOperation dequeue(int timeout) {
-    if (_nonQueryOperations.isEmpty && (!_processQueries || _queryOperations.isEmpty)) {
-      if (timeout <= 0) {
-        return null;
-      }
-      waitForOperationAvailable(timeout);
-    }
-    if (!_nonQueryOperations.isEmpty) {
-      return _nonQueryOperations.removeFirst();
-    }
-    if (_processQueries && !_queryOperations.isEmpty) {
-      return _queryOperations.removeFirst();
-    }
-    return null;
-  }
-
-  /**
-   * Add the given operation to the tail of this queue.
-   *
-   * @param operation the operation to be added to the queue
-   */
-  void enqueue(IndexOperation operation) {
-    if (operation is RemoveSourceOperation) {
-      Source source = operation.source;
-      removeForSource(source, _nonQueryOperations);
-      removeForSource(source, _queryOperations);
-    }
-    if (operation.isQuery) {
-      _queryOperations.add(operation);
-    } else {
-      _nonQueryOperations.add(operation);
-    }
-    notifyOperationAvailable();
-  }
-
-  /**
-   * Return a list containing all of the operations that are currently on the queue. Modifying this
-   * list will not affect the state of the queue.
-   *
-   * @return all of the operations that are currently on the queue
-   */
-  List<IndexOperation> get operations {
-    List<IndexOperation> operations = [];
-    operations.addAll(_nonQueryOperations);
-    operations.addAll(_queryOperations);
-    return operations;
-  }
-
-  /**
-   * Set whether the receiver's [dequeue] method should return query operations.
-   *
-   * @param processQueries `true` if the receiver's [dequeue] method should
-   *          return query operations or `false` if query operations should be queued but not
-   *          returned by the receiver's [dequeue] method until this method is called
-   *          with a value of `true`.
-   */
-  void set processQueries(bool processQueries) {
-    if (this._processQueries != processQueries) {
-      this._processQueries = processQueries;
-      if (processQueries && !_queryOperations.isEmpty) {
-        notifyOperationAvailable();
-      }
-    }
-  }
-
-  /**
-   * Return the number of operations on the queue.
-   *
-   * @return the number of operations on the queue
-   */
-  int size() => _nonQueryOperations.length + _queryOperations.length;
-
-  void notifyOperationAvailable() {
-  }
-
-  /**
-   * Removes operations that should be removed when given [Source] is removed.
-   */
-  void removeForSource(Source source, Queue<IndexOperation> operations) {
-    operations.removeWhere((_) => _.removeWhenSourceRemoved(source));
-  }
-
-  void waitForOperationAvailable(int timeout) {
-  }
-}
-
-/**
  * Special [Element] which is used to index references to the name without specifying concrete
  * kind of this name - field, method or something else.
  */
 class NameElementImpl extends ElementImpl {
-  NameElementImpl(String name) : super.con2("name:${name}", -1);
+  NameElementImpl(String name) : super("name:${name}", -1);
 
+  @override
   accept(ElementVisitor visitor) => null;
 
+  @override
   ElementKind get kind => ElementKind.NAME;
 }
 
@@ -2501,17 +2197,18 @@ class AngularDartIndexContributor extends GeneralizingAstVisitor<Object> {
     this._store = store;
   }
 
+  @override
   Object visitClassDeclaration(ClassDeclaration node) {
     ClassElement classElement = node.element;
     if (classElement != null) {
       List<ToolkitObjectElement> toolkitObjects = classElement.toolkitObjects;
       for (ToolkitObjectElement object in toolkitObjects) {
         if (object is AngularComponentElement) {
-          indexComponent(object);
+          _indexComponent(object);
         }
         if (object is AngularDirectiveElement) {
           AngularDirectiveElement directive = object;
-          indexDirective(directive);
+          _indexDirective(directive);
         }
       }
     }
@@ -2519,20 +2216,21 @@ class AngularDartIndexContributor extends GeneralizingAstVisitor<Object> {
     return null;
   }
 
+  @override
   Object visitCompilationUnitMember(CompilationUnitMember node) => null;
 
-  void indexComponent(AngularComponentElement component) {
-    indexProperties(component.properties);
+  void _indexComponent(AngularComponentElement component) {
+    _indexProperties(component.properties);
   }
 
-  void indexDirective(AngularDirectiveElement directive) {
-    indexProperties(directive.properties);
+  void _indexDirective(AngularDirectiveElement directive) {
+    _indexProperties(directive.properties);
   }
 
   /**
    * Index [FieldElement] references from [AngularPropertyElement]s.
    */
-  void indexProperties(List<AngularPropertyElement> properties) {
+  void _indexProperties(List<AngularPropertyElement> properties) {
     for (AngularPropertyElement property in properties) {
       FieldElement field = property.field;
       if (field != null) {
@@ -2586,14 +2284,18 @@ class RemoveContextOperation implements IndexOperation {
     this._indexStore = indexStore;
   }
 
+  @override
   bool get isQuery => false;
 
+  @override
   void performOperation() {
     _indexStore.removeContext(context);
   }
 
+  @override
   bool removeWhenSourceRemoved(Source source) => false;
 
+  @override
   String toString() => "RemoveContext(${context})";
 }
 
@@ -2646,8 +2348,10 @@ class IndexHtmlUnitOperation implements IndexOperation {
    */
   Source get source => _source;
 
+  @override
   bool get isQuery => false;
 
+  @override
   void performOperation() {
     try {
       bool mayIndex = _indexStore.aboutToIndexHtml(_context, _htmlElement);
@@ -2661,8 +2365,10 @@ class IndexHtmlUnitOperation implements IndexOperation {
     }
   }
 
+  @override
   bool removeWhenSourceRemoved(Source source) => this._source == source;
 
+  @override
   String toString() => "IndexHtmlUnitOperation(${_source.fullName})";
 }
 
@@ -2711,8 +2417,12 @@ class Location {
     }
   }
 
-  Location clone() => new Location(element, offset, length);
+  /**
+   * Returns a clone of this [Location].
+   */
+  Location newClone() => new Location(element, offset, length);
 
+  @override
   String toString() => "[${offset} - ${(offset + length)}) in ${element}";
 }
 
@@ -2744,16 +2454,20 @@ class GetRelationshipsOperation implements IndexOperation {
     this._indexStore = indexStore;
   }
 
+  @override
   bool get isQuery => true;
 
+  @override
   void performOperation() {
     List<Location> locations;
     locations = _indexStore.getRelationships(element, relationship);
     callback.hasRelationships(element, relationship, locations);
   }
 
+  @override
   bool removeWhenSourceRemoved(Source source) => false;
 
+  @override
   String toString() => "GetRelationships(${element}, ${relationship})";
 }
 
@@ -2767,7 +2481,8 @@ class LocationWithData<D> extends Location {
 
   LocationWithData.con2(Element element, int offset, int length, this.data) : super(element, offset, length);
 
-  Location clone() => new LocationWithData<D>.con2(element, offset, length, data);
+  @override
+  Location newClone() => new LocationWithData<D>.con2(element, offset, length, data);
 }
 
 /**

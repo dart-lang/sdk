@@ -188,6 +188,9 @@ class PageSpace {
 
   intptr_t UsedInWords() const { return used_in_words_; }
   intptr_t CapacityInWords() const { return capacity_in_words_; }
+  intptr_t ExternalInWords() const {
+    return external_in_words_;
+  }
 
   bool Contains(uword addr) const;
   bool Contains(uword addr, HeapPage::PageType type) const;
@@ -237,6 +240,10 @@ class PageSpace {
   }
 
   void PrintToJSONObject(JSONObject* object);
+  void PrintHeapMapToJSONStream(JSONStream* stream);
+
+  void AllocateExternal(intptr_t size);
+  void FreeExternal(intptr_t size);
 
  private:
   // Ids for time and data records in Heap::GCStats.
@@ -280,6 +287,7 @@ class PageSpace {
   intptr_t max_capacity_in_words_;
   intptr_t capacity_in_words_;
   intptr_t used_in_words_;
+  intptr_t external_in_words_;
 
   // Keep track whether a MarkSweep is currently running.
   bool sweeping_;

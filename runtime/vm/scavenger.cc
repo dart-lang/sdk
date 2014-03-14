@@ -271,24 +271,29 @@ class ScavengerVisitor : public ObjectPointerVisitor {
 
 class ScavengerWeakVisitor : public HandleVisitor {
  public:
-  explicit ScavengerWeakVisitor(Scavenger* scavenger)
+  // 'prologue_weak_were_strong' is currently only used for sanity checking.
+  explicit ScavengerWeakVisitor(Scavenger* scavenger,
+                                bool prologue_weak_were_strong)
       :  HandleVisitor(Isolate::Current()),
-         scavenger_(scavenger) {
+         scavenger_(scavenger),
+         prologue_weak_were_strong_(prologue_weak_were_strong) {
   }
 
   void VisitHandle(uword addr, bool is_prologue_weak) {
     FinalizablePersistentHandle* handle =
-        reinterpret_cast<FinalizablePersistentHandle*>(addr);
+      reinterpret_cast<FinalizablePersistentHandle*>(addr);
     RawObject** p = handle->raw_addr();
     if (scavenger_->IsUnreachable(p)) {
-      FinalizablePersistentHandle::Finalize(isolate(),
-                                            handle,
-                                            is_prologue_weak);
+      ASSERT(!is_prologue_weak || !prologue_weak_were_strong_);
+      handle->UpdateUnreachable(isolate(), is_prologue_weak);
+    } else {
+      handle->UpdateRelocated(isolate());
     }
   }
 
  private:
   Scavenger* scavenger_;
+  bool prologue_weak_were_strong_;
 
   DISALLOW_COPY_AND_ASSIGN(ScavengerWeakVisitor);
 };
@@ -324,7 +329,8 @@ Scavenger::Scavenger(Heap* heap,
       object_alignment_(object_alignment),
       scavenging_(false),
       gc_time_micros_(0),
-      collections_(0) {
+      collections_(0),
+      external_size_(0) {
   // Verify assumptions about the first word in objects which the scavenger is
   // going to use for forwarding pointers.
   ASSERT(Object::tags_offset() == 0);
@@ -371,8 +377,8 @@ Scavenger::~Scavenger() {
 
 
 void Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
-  if (invoke_api_callbacks) {
-    isolate->gc_prologue_callbacks().Invoke();
+  if (invoke_api_callbacks && (isolate->gc_prologue_callback() != NULL)) {
+    (isolate->gc_prologue_callback())();
   }
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
@@ -408,8 +414,8 @@ void Scavenger::Epilogue(Isolate* isolate,
 
   memset(from_->pointer(), 0xf3, from_->size());
 #endif  // defined(DEBUG)
-  if (invoke_api_callbacks) {
-    isolate->gc_epilogue_callbacks().Invoke();
+  if (invoke_api_callbacks && (isolate->gc_epilogue_callback() != NULL)) {
+    (isolate->gc_epilogue_callback())();
   }
 }
 
@@ -686,16 +692,27 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
     OS::PrintErr(" done.\n");
   }
 
+  // During from/to flip and promoted stack use, move external allocation
+  // out of tospace temporarily.
+  intptr_t saved_external = external_size_;
+  FreeExternal(saved_external);
+
   // Setup the visitor and run a scavenge.
   ScavengerVisitor visitor(isolate, this);
   Prologue(isolate, invoke_api_callbacks);
-  IterateRoots(isolate, &visitor, !invoke_api_callbacks);
+  const bool prologue_weak_are_strong = !invoke_api_callbacks;
+  IterateRoots(isolate, &visitor, prologue_weak_are_strong);
   int64_t start = OS::GetCurrentTimeMicros();
   ProcessToSpace(&visitor);
   int64_t middle = OS::GetCurrentTimeMicros();
   IterateWeakReferences(isolate, &visitor);
-  ScavengerWeakVisitor weak_visitor(this);
-  IterateWeakRoots(isolate, &weak_visitor, invoke_api_callbacks);
+  // Done with promoted stack; restore external allocation.
+  ASSERT(!PromotedStackHasMore());
+  AllocateExternal(saved_external);
+  ScavengerWeakVisitor weak_visitor(this, prologue_weak_are_strong);
+  // Include the prologue weak handles, since we must process any promotion.
+  const bool visit_prologue_weak_handles = true;
+  IterateWeakRoots(isolate, &weak_visitor, visit_prologue_weak_handles);
   visitor.Finalize();
   ProcessWeakTables();
   int64_t end = OS::GetCurrentTimeMicros();
@@ -730,8 +747,24 @@ void Scavenger::PrintToJSONObject(JSONObject* object) {
   space.AddProperty("collections", collections());
   space.AddProperty("used", UsedInWords() * kWordSize);
   space.AddProperty("capacity", CapacityInWords() * kWordSize);
-  space.AddProperty("time", RoundMicrosecondsToSeconds(gc_time_micros()));
+  space.AddProperty("external", ExternalInWords() * kWordSize);
+  space.AddProperty("time", MicrosecondsToSeconds(gc_time_micros()));
 }
 
+
+void Scavenger::AllocateExternal(intptr_t size) {
+  ASSERT(size >= 0);
+  external_size_ += size;
+  intptr_t remaining = end_ - top_;
+  end_ -= Utils::Minimum(remaining, size);
+}
+
+
+void Scavenger::FreeExternal(intptr_t size) {
+  ASSERT(size >= 0);
+  external_size_ -= size;
+  ASSERT(external_size_ >= 0);
+  end_ = Utils::Minimum(to_->end(), end_ + size);
+}
 
 }  // namespace dart

@@ -55,7 +55,7 @@ SDK_PERMANENT = ('gs://dart-archive/channels/dev/raw/%(version_num)s/sdk/' +
 # Dictionary storing the earliest revision of each download we have stored.
 LAST_VALID = {'dartium': 4285, 'chromedriver': 7823, 'sdk': 9761, 'drt': 5342}
 
-sys.path.append(os.path.join(GSUTIL_DIR, 'boto'))
+sys.path.append(os.path.join(GSUTIL_DIR, 'third_party', 'boto'))
 import boto
 
 

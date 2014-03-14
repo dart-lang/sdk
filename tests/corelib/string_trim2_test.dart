@@ -36,14 +36,14 @@ const WHITESPACE = const [
 
 main() {
   for (var ws in WHITESPACE) {
-    Expect.equals("", new String.fromCharCode(ws).trim());
-  }
-  Expect.equals("", new String.fromCharCodes(WHITESPACE).trim());
-  for (var ws in WHITESPACE) {
+    var name = ws.toRadixString(16);
     var c = new String.fromCharCode(ws);
-    Expect.equals("a", ("a" + c).trim());
-    Expect.equals("a", (c + "a").trim());
-    Expect.equals("a", (c + c + "a" + c + c).trim());
-    Expect.equals("a" + c + "a", (c + c + "a" + c + "a" + c + c).trim());
+    Expect.equals("", c.trim(), "$name");
+    Expect.equals("a", ("a" + c).trim(), "a-$name");
+    Expect.equals("a", (c + "a").trim(), "$name-a");
+    Expect.equals("a", (c + c + "a" + c + c).trim(), "$name around");
+    Expect.equals("a" + c + "a", (c + c + "a" + c + "a" + c + c).trim(),
+                  "$name many");
   }
+  Expect.equals("", new String.fromCharCodes(WHITESPACE).trim(), "ALL");
 }

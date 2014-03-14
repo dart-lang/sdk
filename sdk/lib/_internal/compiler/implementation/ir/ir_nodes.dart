@@ -182,3 +182,66 @@ abstract class Visitor<T> {
   T visitParameter(Parameter triv) => visitTrivial(triv);
   T visitContinuation(Continuation triv) => visitTrivial(triv);
 }
+
+// Generate a Lisp-like S-expression representation of an IR node as a string.
+// The representation is not pretty-printed, but it can easily be quoted and
+// dropped into the REPL of one's favorite Lisp or Scheme implementation to be
+// pretty-printed.
+class SExpressionStringifier extends Visitor<String> {
+  final Map<Trivial, String> names = <Trivial, String>{};
+  
+  int _valueCounter = 0;
+  int _continuationCounter = 0;
+  
+  String newValueName() => 'v${_valueCounter++}';
+  String newContinuationName() => 'k${_continuationCounter++}';
+  
+  String visitFunction(Function node) {
+    names[node.returnContinuation] = 'return';
+    return '(Function ${node.body.accept(this)})';
+  }
+  
+  String visitLetVal(LetVal expr) {
+    String name = newValueName();
+    names[expr.value] = name;
+    String value = expr.value.accept(this);
+    String body = expr.body.accept(this);
+    return '(LetVal $name $value) $body';
+  }
+  
+  String visitLetCont(LetCont expr) {
+    String cont = newContinuationName();
+    String param = newValueName();
+    names[expr.continuation] = cont;
+    names[expr.continuation.parameter] = param;
+    String contBody = expr.continuation.body.accept(this);
+    String body = expr.body == null ? 'null' : expr.body.accept(this);
+    return '(LetCont ($cont $param) $contBody) $body';
+  }
+  
+  String visitInvokeStatic(InvokeStatic expr) {
+    String name = expr.target.name;
+    String cont = names[expr.continuation.definition];
+    List<String> args =
+        expr.arguments.map((v) => names[v.definition]).toList(growable: false);
+    return '(InvokeStatic $name $cont ${args.join(' ')})';
+  }
+  
+  String visitInvokeContinuation(InvokeContinuation expr) {
+    String cont = names[expr.continuation.definition];
+    String arg = names[expr.argument.definition];
+    return '(InvokeContinuation $cont $arg)';
+  }
+  
+  String visitConstant(Constant triv) {
+    return '(Constant ${triv.value})';
+  }
+  
+  String visitParameter(Parameter triv) {
+    return '(Unexpected Parameter)';
+  }
+  
+  String visitContinuation(Continuation triv) {
+    return '(Unexpected Continuation)';
+  }
+}

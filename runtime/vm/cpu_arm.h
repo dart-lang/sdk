@@ -18,6 +18,12 @@ namespace dart {
 // additionally mock the options needed for the target architecture so that
 // they may be altered for testing.
 
+enum ARMVersion {
+  ARMv6,
+  ARMv7,
+  ARMvUnknown,
+};
+
 class HostCPUFeatures: public AllStatic {
  public:
   static void InitOnce();
@@ -34,6 +40,10 @@ class HostCPUFeatures: public AllStatic {
     DEBUG_ASSERT(initialized_);
     return neon_supported_;
   }
+  static ARMVersion arm_version() {
+    DEBUG_ASSERT(initialized_);
+    return arm_version_;
+  }
 
 #if !defined(HOST_ARCH_ARM)
   static void set_integer_division_supported(bool supported) {
@@ -44,12 +54,17 @@ class HostCPUFeatures: public AllStatic {
     DEBUG_ASSERT(initialized_);
     neon_supported_ = supported;
   }
+  static void set_arm_version(ARMVersion version) {
+    DEBUG_ASSERT(initialized_);
+    arm_version_ = version;
+  }
 #endif  // !defined(HOST_ARCH_ARM)
 
  private:
   static const char* hardware_;
   static bool integer_division_supported_;
   static bool neon_supported_;
+  static ARMVersion arm_version_;
 #if defined(DEBUG)
   static bool initialized_;
 #endif
@@ -74,6 +89,9 @@ class TargetCPUFeatures : public AllStatic {
   }
   static const char* hardware() {
     return HostCPUFeatures::hardware();
+  }
+  static ARMVersion arm_version() {
+    return HostCPUFeatures::arm_version();
   }
 };
 

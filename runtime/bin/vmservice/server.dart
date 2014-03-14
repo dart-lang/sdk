@@ -57,7 +57,8 @@ class WebSocketClient extends Client {
 
 
 class HttpRequestClient extends Client {
-  static ContentType jsonContentType = ContentType.parse('application/json');
+  static ContentType jsonContentType =
+      new ContentType("application", "json", charset: "utf-8");
   final HttpRequest request;
 
   HttpRequestClient(this.request, service) : super(service);

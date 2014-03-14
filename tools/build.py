@@ -105,7 +105,7 @@ def ProcessOptions(options, args):
         print ("Cross-compilation to %s is not supported on host os %s."
                % (os, HOST_OS))
         return False
-      if not arch in ['ia32', 'arm']:
+      if not arch in ['ia32', 'arm', 'mips']:
         print ("Cross-compilation to %s is not supported for architecture %s."
                % (os, arch))
         return False
@@ -113,9 +113,6 @@ def ProcessOptions(options, args):
       # NDK/SDK, so don't try to build it.
       if args == []:
         print "For android builds you must specify a target, such as 'runtime'."
-        return False
-      if 'v8' in args:
-        print "The v8 target is not supported for android builds."
         return False
   return True
 

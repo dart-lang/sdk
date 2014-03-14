@@ -290,7 +290,7 @@ abstract class String implements Comparable<String>, Pattern {
   String substring(int startIndex, [int endIndex]);
 
   /**
-   * Removes leading and trailing whitespace from a string.
+   * Returns the string without any leading and trailing whitespace.
    *
    * If the string contains leading or trailing whitespace, a new string with no
    * leading and no trailing whitespace is returned:
@@ -324,6 +324,20 @@ abstract class String implements Comparable<String>, Pattern {
    *     FEFF          ; BOM                ZERO WIDTH NO_BREAK SPACE
    */
   String trim();
+
+  /**
+   * Returns the string without any leading whitespace.
+   *
+   * As [trim], but only removes leading whitespace.
+   */
+  String trimLeft();
+
+  /**
+   * Returns the string without any trailing whitespace.
+   *
+   * As [trim], but only removes trailing whitespace.
+   */
+  String trimRight();
 
   /**
    * Creates a new string by concatenating this string with itself a number

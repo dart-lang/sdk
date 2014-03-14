@@ -394,6 +394,11 @@ abstract class Compiler implements DiagnosticListener {
    */
   final Uri sourceMapUri;
 
+  /**
+   * URI of the main output if the compiler is generating source maps.
+   */
+  final Uri outputUri;
+
   /// Emit terse diagnostics without howToFix.
   final bool terseDiagnostics;
 
@@ -621,20 +626,23 @@ abstract class Compiler implements DiagnosticListener {
             this.enableNativeLiveTypeAnalysis: false,
             bool emitJavaScript: true,
             bool generateSourceMap: true,
-            this.analyzeAllFlag: false,
+            bool analyzeAllFlag: false,
             bool analyzeOnly: false,
             bool analyzeSignaturesOnly: false,
             this.preserveComments: false,
             this.verbose: false,
             this.sourceMapUri: null,
+            this.outputUri: null,
             this.buildId: UNDETERMINED_BUILD_ID,
             this.terseDiagnostics: false,
             this.dumpInfo: false,
             this.showPackageWarnings: false,
             outputProvider,
             List<String> strips: const []})
-      : this.analyzeOnly = analyzeOnly || analyzeSignaturesOnly,
+      : this.analyzeOnly =
+            analyzeOnly || analyzeSignaturesOnly || analyzeAllFlag,
         this.analyzeSignaturesOnly = analyzeSignaturesOnly,
+        this.analyzeAllFlag = analyzeAllFlag,
         this.outputProvider = (outputProvider == null)
             ? NullSink.outputProvider
             : outputProvider {
@@ -756,7 +764,7 @@ abstract class Compiler implements DiagnosticListener {
     } else if (node is Element) {
       return spanFromElement(node);
     } else if (node is MetadataAnnotation) {
-      Uri uri = node.annotatedElement.getCompilationUnit().script.uri;
+      Uri uri = node.annotatedElement.getCompilationUnit().script.readableUri;
       return spanFromTokens(node.beginToken, node.endToken, uri);
     } else {
       throw 'No error location.';
@@ -1019,16 +1027,16 @@ abstract class Compiler implements DiagnosticListener {
     return scanBuiltinLibraries().then((_) {
       if (librariesToAnalyzeWhenRun != null) {
         return Future.forEach(librariesToAnalyzeWhenRun, (libraryUri) {
-          log('analyzing $libraryUri ($buildId)');
+          log('Analyzing $libraryUri ($buildId)');
           return libraryLoader.loadLibrary(libraryUri, null, libraryUri);
         });
       }
     }).then((_) {
       if (uri != null) {
         if (analyzeOnly) {
-          log('analyzing $uri ($buildId)');
+          log('Analyzing $uri ($buildId)');
         } else {
-          log('compiling $uri ($buildId)');
+          log('Compiling $uri ($buildId)');
         }
         return libraryLoader.loadLibrary(uri, null, uri)
             .then((LibraryElement library) {
@@ -1461,7 +1469,7 @@ abstract class Compiler implements DiagnosticListener {
       throw 'Cannot find tokens to produce error message.';
     }
     if (uri == null && currentElement != null) {
-      uri = currentElement.getCompilationUnit().script.uri;
+      uri = currentElement.getCompilationUnit().script.readableUri;
     }
     return SourceSpan.withCharacterOffsets(begin, end,
       (beginOffset, endOffset) => new SourceSpan(uri, beginOffset, endOffset));
@@ -1490,7 +1498,7 @@ abstract class Compiler implements DiagnosticListener {
       element = currentElement;
     }
     Token position = element.position();
-    Uri uri = element.getCompilationUnit().script.uri;
+    Uri uri = element.getCompilationUnit().script.readableUri;
     return (position == null)
         ? new SourceSpan(uri, 0, 0)
         : spanFromTokens(position, position, uri);
@@ -1503,7 +1511,7 @@ abstract class Compiler implements DiagnosticListener {
     if (position == null) return spanFromElement(element);
     Token token = position.token;
     if (token == null) return spanFromElement(element);
-    Uri uri = element.getCompilationUnit().script.uri;
+    Uri uri = element.getCompilationUnit().script.readableUri;
     return spanFromTokens(token, token, uri);
   }
 

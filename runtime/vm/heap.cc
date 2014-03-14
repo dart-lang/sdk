@@ -90,6 +90,23 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   return addr;
 }
 
+void Heap::AllocateExternal(intptr_t size, Space space) {
+  if (space == kNew) {
+    new_space_->AllocateExternal(size);
+  } else {
+    ASSERT(space == kOld);
+    old_space_->AllocateExternal(size);
+  }
+}
+
+void Heap::FreeExternal(intptr_t size, Space space) {
+  if (space == kNew) {
+    new_space_->FreeExternal(size);
+  } else {
+    ASSERT(space == kOld);
+    old_space_->FreeExternal(size);
+  }
+}
 
 bool Heap::Contains(uword addr) const {
   return new_space_->Contains(addr) ||
@@ -324,6 +341,10 @@ intptr_t Heap::CapacityInWords(Space space) const {
                          old_space_->CapacityInWords();
 }
 
+intptr_t Heap::ExternalInWords(Space space) const {
+  return space == kNew ? new_space_->ExternalInWords() :
+                         old_space_->ExternalInWords();
+}
 
 int64_t Heap::GCTimeInMicros(Space space) const {
   if (space == kNew) {
@@ -410,8 +431,10 @@ void Heap::RecordBeforeGC(Space space, GCReason reason) {
   stats_.before_.micros_ = OS::GetCurrentTimeMicros();
   stats_.before_.new_used_in_words_ = new_space_->UsedInWords();
   stats_.before_.new_capacity_in_words_ = new_space_->CapacityInWords();
+  stats_.before_.new_external_in_words_ = new_space_->ExternalInWords();
   stats_.before_.old_used_in_words_ = old_space_->UsedInWords();
   stats_.before_.old_capacity_in_words_ = old_space_->CapacityInWords();
+  stats_.before_.old_external_in_words_ = old_space_->ExternalInWords();
   stats_.times_[0] = 0;
   stats_.times_[1] = 0;
   stats_.times_[2] = 0;
@@ -435,8 +458,10 @@ void Heap::RecordAfterGC() {
   }
   stats_.after_.new_used_in_words_ = new_space_->UsedInWords();
   stats_.after_.new_capacity_in_words_ = new_space_->CapacityInWords();
+  stats_.after_.new_external_in_words_ = new_space_->ExternalInWords();
   stats_.after_.old_used_in_words_ = old_space_->UsedInWords();
   stats_.after_.old_capacity_in_words_ = old_space_->CapacityInWords();
+  stats_.after_.old_external_in_words_ = old_space_->ExternalInWords();
   ASSERT(gc_in_progress_);
   gc_in_progress_ = false;
 }
@@ -451,7 +476,7 @@ void Heap::PrintStats() {
     OS::PrintErr("[    GC    |  space  | count | start | gc time | "
                  "new gen (KB) | old gen (KB) | timers | data ]\n"
                  "[ (isolate)| (reason)|       |  (s)  |   (ms)  | "
-                 " used , cap  |  used , cap  |  (ms)  |      ]\n");
+                 "used,cap,ext | used,cap,ext |  (ms)  |      ]\n");
   }
 
   const char* space_str = stats_.space_ == kNew ? "Scavenge" : "Mark-Sweep";
@@ -462,28 +487,34 @@ void Heap::PrintStats() {
     "%.3f, "  // total time
     "%" Pd ", %" Pd ", "  // new gen: in use before/after
     "%" Pd ", %" Pd ", "  // new gen: capacity before/after
+    "%" Pd ", %" Pd ", "  // new gen: external before/after
     "%" Pd ", %" Pd ", "  // old gen: in use before/after
     "%" Pd ", %" Pd ", "  // old gen: capacity before/after
+    "%" Pd ", %" Pd ", "  // old gen: external before/after
     "%.3f, %.3f, %.3f, %.3f, "  // times
     "%" Pd ", %" Pd ", %" Pd ", %" Pd ", "  // data
     "]\n",  // End with a comma to make it easier to import in spreadsheets.
     isolate->main_port(), space_str, GCReasonToString(stats_.reason_),
     stats_.num_,
-    RoundMicrosecondsToSeconds(stats_.before_.micros_ - isolate->start_time()),
-    RoundMicrosecondsToMilliseconds(stats_.after_.micros_ -
+    MicrosecondsToSeconds(stats_.before_.micros_ - isolate->start_time()),
+    MicrosecondsToMilliseconds(stats_.after_.micros_ -
                                     stats_.before_.micros_),
     RoundWordsToKB(stats_.before_.new_used_in_words_),
     RoundWordsToKB(stats_.after_.new_used_in_words_),
     RoundWordsToKB(stats_.before_.new_capacity_in_words_),
     RoundWordsToKB(stats_.after_.new_capacity_in_words_),
+    RoundWordsToKB(stats_.before_.new_external_in_words_),
+    RoundWordsToKB(stats_.after_.new_external_in_words_),
     RoundWordsToKB(stats_.before_.old_used_in_words_),
     RoundWordsToKB(stats_.after_.old_used_in_words_),
     RoundWordsToKB(stats_.before_.old_capacity_in_words_),
     RoundWordsToKB(stats_.after_.old_capacity_in_words_),
-    RoundMicrosecondsToMilliseconds(stats_.times_[0]),
-    RoundMicrosecondsToMilliseconds(stats_.times_[1]),
-    RoundMicrosecondsToMilliseconds(stats_.times_[2]),
-    RoundMicrosecondsToMilliseconds(stats_.times_[3]),
+    RoundWordsToKB(stats_.before_.old_external_in_words_),
+    RoundWordsToKB(stats_.after_.old_external_in_words_),
+    MicrosecondsToMilliseconds(stats_.times_[0]),
+    MicrosecondsToMilliseconds(stats_.times_[1]),
+    MicrosecondsToMilliseconds(stats_.times_[2]),
+    MicrosecondsToMilliseconds(stats_.times_[3]),
     stats_.data_[0],
     stats_.data_[1],
     stats_.data_[2],

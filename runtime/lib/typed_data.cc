@@ -71,57 +71,96 @@ DEFINE_NATIVE_ENTRY(TypedData_length, 1) {
 template <typename DstType, typename SrcType>
 static RawBool* CopyData(const Instance& dst, const Instance& src,
                          const Smi& dst_start, const Smi& src_start,
-                         const Smi& length) {
+                         const Smi& length,
+                         bool clamped) {
   const DstType& dst_array = DstType::Cast(dst);
   const SrcType& src_array = SrcType::Cast(src);
   const intptr_t dst_offset_in_bytes = dst_start.Value();
   const intptr_t src_offset_in_bytes = src_start.Value();
   const intptr_t length_in_bytes = length.Value();
-  if (dst_array.ElementType() != src_array.ElementType()) {
-    return Bool::False().raw();
-  }
   ASSERT(Utils::RangeCheck(
       src_offset_in_bytes, length_in_bytes, src_array.LengthInBytes()));
   ASSERT(Utils::RangeCheck(
       dst_offset_in_bytes, length_in_bytes, dst_array.LengthInBytes()));
-  TypedData::Copy<DstType, SrcType>(dst_array, dst_offset_in_bytes,
-                                    src_array, src_offset_in_bytes,
-                                    length_in_bytes);
+  if (clamped) {
+    TypedData::ClampedCopy<DstType, SrcType>(dst_array, dst_offset_in_bytes,
+                                             src_array, src_offset_in_bytes,
+                                             length_in_bytes);
+  } else {
+    TypedData::Copy<DstType, SrcType>(dst_array, dst_offset_in_bytes,
+                                      src_array, src_offset_in_bytes,
+                                      length_in_bytes);
+  }
   return Bool::True().raw();
 }
 
-DEFINE_NATIVE_ENTRY(TypedData_setRange, 5) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, dst, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, dst_start, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(2));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, src, arguments->NativeArgAt(3));
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, src_start, arguments->NativeArgAt(4));
+
+static bool IsClamped(intptr_t cid) {
+  switch (cid) {
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataUint8ClampedArrayViewCid:
+      return true;
+    default:
+      return false;
+  }
+}
+
+
+static bool IsUint8(intptr_t cid) {
+  switch (cid) {
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataUint8ClampedArrayViewCid:
+    case kTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kTypedDataUint8ArrayViewCid:
+      return true;
+    default:
+      return false;
+  }
+}
+
+
+DEFINE_NATIVE_ENTRY(TypedData_setRange, 7) {
+  const Instance& dst = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  const Smi& dst_start = Smi::CheckedHandle(arguments->NativeArgAt(1));
+  const Smi& length = Smi::CheckedHandle(arguments->NativeArgAt(2));
+  const Instance& src = Instance::CheckedHandle(arguments->NativeArgAt(3));
+  const Smi& src_start = Smi::CheckedHandle(arguments->NativeArgAt(4));
+  const Smi& to_cid_smi = Smi::CheckedHandle(arguments->NativeArgAt(5));
+  const Smi& from_cid_smi = Smi::CheckedHandle(arguments->NativeArgAt(6));
 
   if (length.Value() < 0) {
     const String& error = String::Handle(String::NewFormatted(
         "length (%" Pd ") must be non-negative", length.Value()));
     Exceptions::ThrowArgumentError(error);
   }
+  const intptr_t to_cid = to_cid_smi.Value();
+  const intptr_t from_cid = from_cid_smi.Value();
+
+  const bool needs_clamping = IsClamped(to_cid) && !IsUint8(from_cid);
   if (dst.IsTypedData()) {
     if (src.IsTypedData()) {
       return CopyData<TypedData, TypedData>(
-          dst, src, dst_start, src_start, length);
+          dst, src, dst_start, src_start, length, needs_clamping);
     } else if (src.IsExternalTypedData()) {
       return CopyData<TypedData, ExternalTypedData>(
-          dst, src, dst_start, src_start, length);
+          dst, src, dst_start, src_start, length, needs_clamping);
     }
   } else if (dst.IsExternalTypedData()) {
     if (src.IsTypedData()) {
       return CopyData<ExternalTypedData, TypedData>(
-          dst, src, dst_start, src_start, length);
+          dst, src, dst_start, src_start, length, needs_clamping);
     } else if (src.IsExternalTypedData()) {
       return CopyData<ExternalTypedData, ExternalTypedData>(
-          dst, src, dst_start, src_start, length);
+          dst, src, dst_start, src_start, length, needs_clamping);
     }
   }
   UNREACHABLE();
   return Bool::False().raw();
 }
+
 
 // We check the length parameter against a possible maximum length for the
 // array based on available physical addressable memory on the system. The

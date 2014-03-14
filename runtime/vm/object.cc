@@ -902,7 +902,7 @@ void Object::RegisterPrivateClass(const Class& cls,
 
 
 RawError* Object::Init(Isolate* isolate) {
-  TIMERSCOPE(time_bootstrap);
+  TIMERSCOPE(isolate, time_bootstrap);
   ObjectStore* object_store = isolate->object_store();
 
   Class& cls = Class::Handle();
@@ -1336,7 +1336,7 @@ RawError* Object::Init(Isolate* isolate) {
 
 
 void Object::InitFromSnapshot(Isolate* isolate) {
-  TIMERSCOPE(time_bootstrap);
+  TIMERSCOPE(isolate, time_bootstrap);
   ObjectStore* object_store = isolate->object_store();
 
   Class& cls = Class::Handle();
@@ -1808,11 +1808,12 @@ intptr_t Class::FindFunctionIndex(const Function& needle) const {
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return -1;
   }
-  ReusableHandleScope reused_handles(isolate);
-  Array& funcs = reused_handles.ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(isolate);
+  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
+  Array& funcs = isolate->ArrayHandle();
+  Function& function = isolate->FunctionHandle();
   funcs ^= functions();
   ASSERT(!funcs.IsNull());
-  Function& function = reused_handles.FunctionHandle();
   const intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
@@ -1860,12 +1861,13 @@ intptr_t Class::FindImplicitClosureFunctionIndex(const Function& needle) const {
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return -1;
   }
-  ReusableHandleScope reused_handles(isolate);
-  Array& funcs = reused_handles.ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(isolate);
+  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
+  Array& funcs = isolate->ArrayHandle();
+  Function& function = isolate->FunctionHandle();
   funcs ^= functions();
   ASSERT(!funcs.IsNull());
-  Function& function = reused_handles.FunctionHandle();
-  Function& implicit_closure = Function::Handle();
+  Function& implicit_closure = Function::Handle(isolate);
   const intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
@@ -1890,11 +1892,12 @@ intptr_t Class::FindInvocationDispatcherFunctionIndex(
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return -1;
   }
-  ReusableHandleScope reused_handles(isolate);
-  Array& funcs = reused_handles.ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(isolate);
+  REUSABLE_OBJECT_HANDLESCOPE(isolate);
+  Array& funcs = isolate->ArrayHandle();
+  Object& object = isolate->ObjectHandle();
   funcs ^= invocation_dispatcher_cache();
   ASSERT(!funcs.IsNull());
-  Object& object = reused_handles.ObjectHandle();
   const intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
     object = funcs.At(i);
@@ -1902,7 +1905,7 @@ intptr_t Class::FindInvocationDispatcherFunctionIndex(
     // are functions.
     if (object.IsFunction()) {
       if (Function::Cast(object).raw() == needle.raw()) {
-      return i;
+        return i;
       }
     }
   }
@@ -1913,10 +1916,12 @@ intptr_t Class::FindInvocationDispatcherFunctionIndex(
 
 
 RawFunction* Class::InvocationDispatcherFunctionFromIndex(intptr_t idx) const {
-  ReusableHandleScope reused_handles(Isolate::Current());
-  Array& dispatcher_cache = reused_handles.ArrayHandle();
+  Isolate* isolate = Isolate::Current();
+  REUSABLE_ARRAY_HANDLESCOPE(isolate);
+  REUSABLE_OBJECT_HANDLESCOPE(isolate);
+  Array& dispatcher_cache = isolate->ArrayHandle();
+  Object& object = isolate->ObjectHandle();
   dispatcher_cache ^= invocation_dispatcher_cache();
-  Object& object = reused_handles.ObjectHandle();
   object = dispatcher_cache.At(idx);
   if (!object.IsFunction()) {
     return Function::null();
@@ -1970,10 +1975,10 @@ intptr_t Class::FindClosureIndex(const Function& needle) const {
     return -1;
   }
   Isolate* isolate = Isolate::Current();
-  ReusableHandleScope reused_handles(isolate);
   const GrowableObjectArray& closures_array =
       GrowableObjectArray::Handle(isolate, closures());
-  Function& closure = reused_handles.FunctionHandle();
+  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
+  Function& closure = isolate->FunctionHandle();
   intptr_t num_closures = closures_array.Length();
   for (intptr_t i = 0; i < num_closures; i++) {
     closure ^= closures_array.At(i);
@@ -2027,8 +2032,8 @@ intptr_t Class::NumTypeParameters(Isolate* isolate) const {
   if (type_parameters() == TypeArguments::null()) {
     return 0;
   }
-  ReusableHandleScope reused_handles(isolate);
-  TypeArguments& type_params = reused_handles.TypeArgumentsHandle();
+  REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(isolate);
+  TypeArguments& type_params = isolate->TypeArgumentsHandle();
   type_params = type_parameters();
   return type_params.Length();
 }
@@ -2168,11 +2173,14 @@ void Class::set_super_type(const AbstractType& value) const {
 RawTypeParameter* Class::LookupTypeParameter(const String& type_name) const {
   ASSERT(!type_name.IsNull());
   Isolate* isolate = Isolate::Current();
-  ReusableHandleScope reused_handles(isolate);
-  TypeArguments& type_params = reused_handles.TypeArgumentsHandle();
+  REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(isolate);
+  REUSABLE_TYPE_PARAMETER_HANDLESCOPE(isolate);
+  REUSABLE_STRING_HANDLESCOPE(isolate);
+  TypeArguments& type_params = isolate->TypeArgumentsHandle();
+  TypeParameter&  type_param = isolate->TypeParameterHandle();
+  String& type_param_name = isolate->StringHandle();
+
   type_params ^= type_parameters();
-  TypeParameter& type_param = reused_handles.TypeParameterHandle();
-  String& type_param_name = reused_handles.StringHandle();
   if (!type_params.IsNull()) {
     const intptr_t num_type_params = type_params.Length();
     for (intptr_t i = 0; i < num_type_params; i++) {
@@ -2246,7 +2254,8 @@ RawFunction* Class::GetInvocationDispatcher(const String& target_name,
   };
 
   ASSERT(kind == RawFunction::kNoSuchMethodDispatcher ||
-         kind == RawFunction::kInvokeFieldDispatcher);
+         kind == RawFunction::kInvokeFieldDispatcher ||
+         kind == RawFunction::kInvokeClosureDispatcher);
   Function& dispatcher = Function::Handle();
   Array& cache = Array::Handle(invocation_dispatcher_cache());
   ASSERT(!cache.IsNull());
@@ -2707,12 +2716,14 @@ intptr_t Class::FindFieldIndex(const Field& needle) const {
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return -1;
   }
-  ReusableHandleScope reused_handles(isolate);
-  Array& fields_array = reused_handles.ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(isolate);
+  REUSABLE_FIELD_HANDLESCOPE(isolate);
+  REUSABLE_STRING_HANDLESCOPE(isolate);
+  Array& fields_array = isolate->ArrayHandle();
+  Field& field = isolate->FieldHandle();
+  String& field_name = isolate->StringHandle();
   fields_array ^= fields();
   ASSERT(!fields_array.IsNull());
-  Field& field = reused_handles.FieldHandle();
-  String& field_name = reused_handles.StringHandle();
   String& needle_name = String::Handle(isolate);
   needle_name ^= needle.name();
   const intptr_t len = fields_array.Length();
@@ -3552,12 +3563,13 @@ RawFunction* Class::LookupFunction(const String& name, intptr_t type) const {
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return Function::null();
   }
-  ReusableHandleScope reused_handles(isolate);
-  Array& funcs = reused_handles.ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(isolate);
+  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
+  Array& funcs = isolate->ArrayHandle();
   funcs ^= functions();
   ASSERT(!funcs.IsNull());
-  Function& function = reused_handles.FunctionHandle();
   const intptr_t len = funcs.Length();
+  Function& function = isolate->FunctionHandle();
   if (name.IsSymbol()) {
     // Quick Symbol compare.
     NoGCScope no_gc;
@@ -3568,7 +3580,8 @@ RawFunction* Class::LookupFunction(const String& name, intptr_t type) const {
       }
     }
   } else {
-    String& function_name = reused_handles.StringHandle();
+    REUSABLE_STRING_HANDLESCOPE(isolate);
+    String& function_name = isolate->StringHandle();
     for (intptr_t i = 0; i < len; i++) {
       function ^= funcs.At(i);
       function_name ^= function.name();
@@ -3588,13 +3601,15 @@ RawFunction* Class::LookupFunctionAllowPrivate(const String& name,
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return Function::null();
   }
-  ReusableHandleScope reused_handles(isolate);
-  Array& funcs = reused_handles.ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(isolate);
+  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
+  REUSABLE_STRING_HANDLESCOPE(isolate);
+  Array& funcs = isolate->ArrayHandle();
   funcs ^= functions();
   ASSERT(!funcs.IsNull());
-  Function& function = reused_handles.FunctionHandle();
-  String& function_name = reused_handles.StringHandle();
   intptr_t len = funcs.Length();
+  Function& function = isolate->FunctionHandle();
+  String& function_name = isolate->StringHandle();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
     function_name ^= function.name();
@@ -3624,12 +3639,14 @@ RawFunction* Class::LookupAccessorFunction(const char* prefix,
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return Function::null();
   }
-  ReusableHandleScope reused_handles(isolate);
-  Array& funcs = reused_handles.ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(isolate);
+  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
+  REUSABLE_STRING_HANDLESCOPE(isolate);
+  Array& funcs = isolate->ArrayHandle();
   funcs ^= functions();
-  Function& function = reused_handles.FunctionHandle();
-  String& function_name = reused_handles.StringHandle();
   intptr_t len = funcs.Length();
+  Function& function = isolate->FunctionHandle();
+  String& function_name = isolate->StringHandle();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
     function_name ^= function.name();
@@ -3689,13 +3706,15 @@ RawField* Class::LookupField(const String& name, intptr_t type) const {
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return Field::null();
   }
-  ReusableHandleScope reused_handles(isolate);
-  Array& flds = reused_handles.ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(isolate);
+  REUSABLE_FIELD_HANDLESCOPE(isolate);
+  REUSABLE_STRING_HANDLESCOPE(isolate);
+  Array& flds = isolate->ArrayHandle();
   flds ^= fields();
   ASSERT(!flds.IsNull());
-  Field& field = reused_handles.FieldHandle();
-  String& field_name = reused_handles.StringHandle();
   intptr_t len = flds.Length();
+  Field& field = isolate->FieldHandle();
+  String& field_name = isolate->StringHandle();
   for (intptr_t i = 0; i < len; i++) {
     field ^= flds.At(i);
     field_name ^= field.name();
@@ -4638,7 +4657,8 @@ void Function::set_extracted_method_closure(const Function& value) const {
 
 RawArray* Function::saved_args_desc() const {
   ASSERT(kind() == RawFunction::kNoSuchMethodDispatcher ||
-         kind() == RawFunction::kInvokeFieldDispatcher);
+         kind() == RawFunction::kInvokeFieldDispatcher ||
+         kind() == RawFunction::kInvokeClosureDispatcher);
   const Object& obj = Object::Handle(raw_ptr()->data_);
   ASSERT(obj.IsArray());
   return Array::Cast(obj).raw();
@@ -4647,7 +4667,8 @@ RawArray* Function::saved_args_desc() const {
 
 void Function::set_saved_args_desc(const Array& value) const {
   ASSERT(kind() == RawFunction::kNoSuchMethodDispatcher ||
-         kind() == RawFunction::kInvokeFieldDispatcher);
+         kind() == RawFunction::kInvokeFieldDispatcher ||
+         kind() == RawFunction::kInvokeClosureDispatcher);
   ASSERT(raw_ptr()->data_ == Object::null());
   set_data(value);
 }
@@ -4795,6 +4816,9 @@ const char* Function::KindToCString(RawFunction::Kind kind) {
       break;
     case RawFunction::kInvokeFieldDispatcher:
       return "kInvokeFieldDispatcher";
+      break;
+    case RawFunction::kInvokeClosureDispatcher:
+      return "kInvokeClosureDispatcher";
       break;
     default:
       UNREACHABLE();
@@ -6048,6 +6072,9 @@ const char* Function::ToCString() const {
     case RawFunction::kInvokeFieldDispatcher:
       kind_str = "invoke-field-dispatcher";
       break;
+    case RawFunction::kInvokeClosureDispatcher:
+      kind_str = "invoke-closure-dispatcher";
+      break;
     default:
       UNREACHABLE();
   }
@@ -6079,7 +6106,9 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
   } else if (IsImplicitClosureFunction()) {
     id = cls.FindImplicitClosureFunctionIndex(*this);
     selector = "implicit_closures";
-  } else if (IsNoSuchMethodDispatcher() || IsInvokeFieldDispatcher()) {
+  } else if (IsNoSuchMethodDispatcher() ||
+             IsInvokeFieldDispatcher() ||
+             IsInvokeClosureDispatcher()) {
     id = cls.FindInvocationDispatcherFunctionIndex(*this);
     selector = "dispatchers";
   } else {
@@ -6093,13 +6122,14 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddPropertyF("id", "classes/%" Pd "/%s/%" Pd "", cid, selector, id);
   jsobj.AddProperty("name", internal_name);
   jsobj.AddProperty("user_name", user_name);
+  jsobj.AddProperty("class", cls);
+  const char* kind_string = Function::KindToCString(kind());
+  jsobj.AddProperty("kind", kind_string);
   if (ref) return;
   jsobj.AddProperty("is_static", is_static());
   jsobj.AddProperty("is_const", is_const());
   jsobj.AddProperty("is_optimizable", is_optimizable());
   jsobj.AddProperty("is_inlinable", IsInlineable());
-  const char* kind_string = Function::KindToCString(kind());
-  jsobj.AddProperty("kind", kind_string);
   jsobj.AddProperty("unoptimized_code", Object::Handle(unoptimized_code()));
   jsobj.AddProperty("usage_counter", usage_counter());
   jsobj.AddProperty("optimized_call_site_count", optimized_call_site_count());
@@ -6352,8 +6382,10 @@ void Field::set_guarded_list_length(intptr_t list_length) const {
 
 bool Field::IsUnboxedField() const {
   bool valid_class = (guarded_cid() == kDoubleCid) ||
-                     (FlowGraphCompiler::SupportsUnboxedFloat32x4() &&
-                      (guarded_cid() == kFloat32x4Cid));
+                     (FlowGraphCompiler::SupportsUnboxedSimd128() &&
+                      (guarded_cid() == kFloat32x4Cid)) ||
+                     (FlowGraphCompiler::SupportsUnboxedSimd128() &&
+                      (guarded_cid() == kFloat64x2Cid));
   return is_unboxing_candidate() && !is_final() && !is_nullable() &&
          valid_class;
 }
@@ -6761,12 +6793,17 @@ RawString* TokenStream::GenerateSource(intptr_t start_pos,
     switch (curr) {
       case Token::kLBRACE:
       case Token::kRBRACE:
+        if (next != Token::kNEWLINE) {
+          separator = &Symbols::Blank();
+        }
+        break;
       case Token::kPERIOD:
       case Token::kLBRACK:
       case Token::kINTERPOL_VAR:
       case Token::kINTERPOL_START:
       case Token::kINTERPOL_END:
       case Token::kBIT_NOT:
+      case Token::kNOT:
         break;
       // In case we see an opening parentheses '(' we increase the indent to
       // align multi-line parameters accordingly. The indent will be removed as
@@ -6802,10 +6839,10 @@ RawString* TokenStream::GenerateSource(intptr_t start_pos,
     switch (next) {
       case Token::kRBRACE:
         break;
+      case Token::kNEWLINE:
       case Token::kSEMICOLON:
       case Token::kPERIOD:
       case Token::kCOMMA:
-      case Token::kLPAREN:
       case Token::kRPAREN:
       case Token::kLBRACK:
       case Token::kRBRACK:
@@ -6813,6 +6850,13 @@ RawString* TokenStream::GenerateSource(intptr_t start_pos,
       case Token::kINTERPOL_START:
       case Token::kINTERPOL_END:
         separator = NULL;
+        break;
+      case Token::kLPAREN:
+        if (curr == Token::kCATCH) {
+          separator = &Symbols::Blank();
+        } else {
+          separator = NULL;
+        }
         break;
       case Token::kELSE:
         separator = &Symbols::Blank();
@@ -8018,14 +8062,15 @@ RawObject* Library::LookupReExport(const String& name) const {
 
 RawObject* Library::LookupEntry(const String& name, intptr_t *index) const {
   Isolate* isolate = Isolate::Current();
-  ReusableHandleScope reused_handles(isolate);
-  Array& dict = reused_handles.ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(isolate);
+  REUSABLE_OBJECT_HANDLESCOPE(isolate);
+  REUSABLE_STRING_HANDLESCOPE(isolate);
+  Array& dict = isolate->ArrayHandle();
   dict ^= dictionary();
   intptr_t dict_size = dict.Length() - 1;
   *index = name.Hash() % dict_size;
-
-  Object& entry = reused_handles.ObjectHandle();
-  String& entry_name = reused_handles.StringHandle();
+  Object& entry = isolate->ObjectHandle();
+  String& entry_name = isolate->StringHandle();
   entry = dict.At(*index);
   // Search the entry in the hash set.
   while (!entry.IsNull()) {
@@ -8944,6 +8989,45 @@ const char* LibraryPrefix::ToCString() const {
 
 void LibraryPrefix::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+}
+
+
+void Namespace::set_metadata_field(const Field& value) const {
+  StorePointer(&raw_ptr()->metadata_field_, value.raw());
+}
+
+
+void Namespace::AddMetadata(intptr_t token_pos, const Class& owner_class) {
+  ASSERT(Field::Handle(metadata_field()).IsNull());
+  Field& field = Field::Handle(Field::New(Symbols::TopLevel(),
+                                          true,   // is_static
+                                          false,  // is_final
+                                          false,  // is_const
+                                          owner_class,
+                                          token_pos));
+  field.set_type(Type::Handle(Type::DynamicType()));
+  field.set_value(Array::empty_array());
+  set_metadata_field(field);
+}
+
+
+RawObject* Namespace::GetMetadata() const {
+  Field& field = Field::Handle(metadata_field());
+  if (field.IsNull()) {
+    // There is no metadata for this object.
+    return Object::empty_array().raw();
+  }
+  Object& metadata = Object::Handle();
+  metadata = field.value();
+  if (field.value() == Object::empty_array().raw()) {
+    metadata = Parser::ParseMetadata(Class::Handle(field.owner()),
+                                     field.token_pos());
+    if (metadata.IsArray()) {
+      ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());
+      field.set_value(Array::Cast(metadata));
+    }
+  }
+  return metadata.raw();
 }
 
 
@@ -10185,6 +10269,7 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
     result.set_is_optimized(false);
     result.set_is_alive(false);
     result.set_comments(Comments::New(0));
+    result.set_compile_timestamp(0);
     result.set_pc_descriptors(Object::empty_descriptors());
   }
   return result.raw();
@@ -10211,6 +10296,7 @@ RawCode* Code::FinalizeCode(const char* name,
   assembler->FinalizeInstructions(region);
   CPU::FlushICache(instrs.EntryPoint(), instrs.size());
 
+  code.set_compile_timestamp(OS::GetCurrentTimeMicros());
   CodeObservers::NotifyAll(name,
                            instrs.EntryPoint(),
                            assembler->prologue_offset(),
@@ -10303,6 +10389,24 @@ RawCode* Code::LookupCode(uword pc) {
 
 RawCode* Code::LookupCodeInVmIsolate(uword pc) {
   return LookupCodeInIsolate(Dart::vm_isolate(), pc);
+}
+
+
+// Given a pc and a timestamp, lookup the code.
+RawCode* Code::FindCode(uword pc, int64_t timestamp) {
+  Code& code = Code::Handle(Code::LookupCode(pc));
+  if (!code.IsNull() && (code.compile_timestamp() == timestamp) &&
+      (code.EntryPoint() == pc)) {
+    // Found code in isolate.
+    return code.raw();
+  }
+  code ^= Code::LookupCodeInVmIsolate(pc);
+  if (!code.IsNull() && (code.compile_timestamp() == timestamp) &&
+      (code.EntryPoint() == pc)) {
+    // Found code in VM isolate.
+    return code.raw();
+  }
+  return Code::null();
 }
 
 
@@ -10399,11 +10503,13 @@ RawString* Code::UserName() const {
 void Code::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
-  jsobj.AddPropertyF("id", "code/%" Px "", EntryPoint());
+  jsobj.AddPropertyF("id", "code/%" Px64"-%" Px "", compile_timestamp(),
+                     EntryPoint());
   jsobj.AddPropertyF("start", "%" Px "", EntryPoint());
   jsobj.AddPropertyF("end", "%" Px "", EntryPoint() + Size());
   jsobj.AddProperty("is_optimized", is_optimized());
   jsobj.AddProperty("is_alive", is_alive());
+  jsobj.AddProperty("kind", "Dart");
   const String& name = String::Handle(Name());
   const String& user_name = String::Handle(UserName());
   const char* name_prefix = is_optimized() ? "*" : "";
@@ -10412,6 +10518,14 @@ void Code::PrintToJSONStream(JSONStream* stream, bool ref) const {
   const Object& obj = Object::Handle(owner());
   if (obj.IsFunction()) {
     jsobj.AddProperty("function", obj);
+  } else {
+    // Generate a fake function reference.
+    JSONObject func(&jsobj, "function");
+    func.AddProperty("type", "@Function");
+    func.AddProperty("kind", "Stub");
+    func.AddPropertyF("id", "functions/stub-%" Pd "", EntryPoint());
+    func.AddProperty("user_name", user_name.ToCString());
+    func.AddProperty("name", name.ToCString());
   }
   if (ref) {
     return;
@@ -10761,7 +10875,7 @@ intptr_t ICData::TestEntryLength() const {
 
 intptr_t ICData::NumberOfChecks() const {
   // Do not count the sentinel;
-  return (Array::Handle(ic_data()).Length() / TestEntryLength()) - 1;
+  return (Smi::Value(ic_data()->ptr()->length_) / TestEntryLength()) - 1;
 }
 
 
@@ -11373,9 +11487,7 @@ const char* Error::ToCString() const {
 
 
 void Error::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(false));
-  jsobj.AddProperty("error_msg", ToErrorCString());
+  UNREACHABLE();
 }
 
 
@@ -11421,8 +11533,10 @@ const char* ApiError::ToCString() const {
 
 void ApiError::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(false));
-  jsobj.AddProperty("error_msg", ToErrorCString());
+  jsobj.AddProperty("type", "Error");
+  jsobj.AddProperty("id", "");
+  jsobj.AddProperty("kind", JSONType(false));
+  jsobj.AddProperty("message", ToErrorCString());
 }
 
 
@@ -11607,8 +11721,10 @@ const char* LanguageError::ToCString() const {
 
 void LanguageError::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(false));
-  jsobj.AddProperty("error_msg", ToErrorCString());
+  jsobj.AddProperty("type", "Error");
+  jsobj.AddProperty("id", "");
+  jsobj.AddProperty("kind", JSONType(false));
+  jsobj.AddProperty("message", ToErrorCString());
 }
 
 
@@ -11680,11 +11796,20 @@ const char* UnhandledException::ToCString() const {
 }
 
 
+
 void UnhandledException::PrintToJSONStream(JSONStream* stream,
                                            bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(false));
-  jsobj.AddProperty("error_msg", ToErrorCString());
+  jsobj.AddProperty("type", "Error");
+  jsobj.AddProperty("id", "");
+  jsobj.AddProperty("kind", JSONType(false));
+  jsobj.AddProperty("message", ToErrorCString());
+
+  Instance& instance = Instance::Handle();
+  instance = exception();
+  jsobj.AddProperty("exception", instance);
+  instance = stacktrace();
+  jsobj.AddProperty("stacktrace", instance);
 }
 
 
@@ -11721,8 +11846,10 @@ const char* UnwindError::ToCString() const {
 
 void UnwindError::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(false));
-  jsobj.AddProperty("error_msg", ToErrorCString());
+  jsobj.AddProperty("type", "Error");
+  jsobj.AddProperty("id", "");
+  jsobj.AddProperty("kind", JSONType(false));
+  jsobj.AddProperty("message", ToErrorCString());
 }
 
 
@@ -12052,7 +12179,10 @@ RawInstance* Instance::New(const Class& cls, Heap::Space space) {
 
 
 bool Instance::IsValidFieldOffset(intptr_t offset) const {
-  const Class& cls = Class::Handle(clazz());
+  Isolate* isolate = Isolate::Current();
+  REUSABLE_CLASS_HANDLESCOPE(isolate);
+  Class& cls = isolate->ClassHandle();
+  cls = clazz();
   return (offset >= 0 && offset <= (cls.instance_size() - kWordSize));
 }
 
@@ -12110,20 +12240,22 @@ const char* Instance::ToUserCString(intptr_t max_len, intptr_t nesting) const {
 void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   Class& cls = Class::Handle(this->clazz());
-  jsobj.AddProperty("preview", ToUserCString(40));
 
   // TODO(turnidge): Handle <optimized out> like other null-like values.
   if (IsNull()) {
     jsobj.AddProperty("type", ref ? "@Null" : "Null");
     jsobj.AddProperty("id", "objects/null");
+    jsobj.AddProperty("preview", "null");
     return;
   } else if (raw() == Object::sentinel().raw()) {
     jsobj.AddProperty("type", ref ? "@Null" : "Null");
     jsobj.AddProperty("id", "objects/not-initialized");
+    jsobj.AddProperty("preview", "<not initialized>");
     return;
   } else if (raw() == Object::transition_sentinel().raw()) {
     jsobj.AddProperty("type", ref ? "@Null" : "Null");
     jsobj.AddProperty("id", "objects/being-initialized");
+    jsobj.AddProperty("preview", "<being initialized>");
     return;
   } else if (raw() == Symbols::OptimizedOut().raw()) {
     // TODO(turnidge): This is a hack.  The user could have this
@@ -12145,6 +12277,7 @@ void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
     }
     jsobj.AddPropertyF("id", "objects/%" Pd "", id);
     jsobj.AddProperty("class", cls);
+    jsobj.AddProperty("preview", ToUserCString(40));
   }
   if (ref) {
     return;
@@ -12171,6 +12304,18 @@ void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
       cls = cls.SuperClass();
     }
   }
+
+  if (NumNativeFields() > 0) {
+    JSONArray jsarr(&jsobj, "nativeFields");
+    for (intptr_t i = 0; i < NumNativeFields(); i++) {
+      intptr_t value = GetNativeField(i);
+      JSONObject jsfield(&jsarr);
+      jsfield.AddProperty("index", i);
+      jsfield.AddProperty("value", value);
+    }
+  }
+
+  jsobj.AddProperty("size", raw()->Size());
 }
 
 
@@ -14169,7 +14314,7 @@ const char* Smi::ToCString() const {
 void Smi::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
-  jsobj.AddPropertyF("id", "objects/int/%" Pd "", Value());
+  jsobj.AddPropertyF("id", "objects/int-%" Pd "", Value());
   class Class& cls = Class::Handle(this->clazz());
   jsobj.AddProperty("class", cls);
   jsobj.AddPropertyF("preview", "%" Pd "", Value());
@@ -16209,7 +16354,7 @@ void Bool::PrintToJSONStream(JSONStream* stream, bool ref) const {
   const char* str = ToCString();
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
-  jsobj.AddPropertyF("id", "objects/bool/%s", str);
+  jsobj.AddPropertyF("id", "objects/bool-%s", str);
   class Class& cls = Class::Handle(this->clazz());
   jsobj.AddProperty("class", cls);
   jsobj.AddPropertyF("preview", "%s", str);

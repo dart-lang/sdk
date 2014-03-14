@@ -185,6 +185,40 @@ TEST_CASE(TokenStream) {
 }
 
 
+TEST_CASE(GenerateExactSource) {
+  // Verify the exact formatting of generated sources.
+  const char* kScriptChars =
+  "\n"
+  "class A {\n"
+  "  static bar() { return 42; }\n"
+  "  static fly() { return 5; }\n"
+  "  void catcher(x) {\n"
+  "    try {\n"
+  "      if (x) {\n"
+  "        fly();\n"
+  "      } else {\n"
+  "        !fly();\n"
+  "      }\n"
+  "    } on Blah catch (a) {\n"
+  "      _print(17);\n"
+  "    } catch (e, s) {\n"
+  "      bar()\n"
+  "    }\n"
+  "  }\n"
+  "}\n";
+
+  String& url = String::Handle(String::New("dart-test:GenerateExactSource"));
+  String& source = String::Handle(String::New(kScriptChars));
+  Script& script = Script::Handle(Script::New(url,
+                                              source,
+                                              RawScript::kScriptTag));
+  script.Tokenize(String::Handle(String::New("")));
+  const TokenStream& tokens = TokenStream::Handle(script.tokens());
+  const String& gen_source = String::Handle(tokens.GenerateSource());
+  EXPECT_STREQ(source.ToCString(), gen_source.ToCString());
+}
+
+
 TEST_CASE(InstanceClass) {
   // Allocate the class first.
   String& class_name = String::Handle(Symbols::New("EmptyClass"));

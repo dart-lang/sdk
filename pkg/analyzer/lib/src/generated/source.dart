@@ -42,14 +42,17 @@ abstract class LocalSourcePredicate {
 }
 
 class LocalSourcePredicate_FALSE implements LocalSourcePredicate {
+  @override
   bool isLocal(Source source) => false;
 }
 
 class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
+  @override
   bool isLocal(Source source) => true;
 }
 
 class LocalSourcePredicate_NOT_SDK implements LocalSourcePredicate {
+  @override
   bool isLocal(Source source) => source.uriKind != UriKind.DART_URI;
 }
 
@@ -93,7 +96,7 @@ class SourceFactory {
     try {
       Uri uri = parseUriWithException(absoluteUri);
       if (uri.isAbsolute) {
-        return internalResolveUri(null, uri);
+        return _internalResolveUri(null, uri);
       }
     } on URISyntaxException catch (exception) {
     }
@@ -171,7 +174,7 @@ class SourceFactory {
     }
     try {
       // Force the creation of an escaped URI to deal with spaces, etc.
-      return internalResolveUri(containingSource, parseUriWithException(containedUri));
+      return _internalResolveUri(containingSource, parseUriWithException(containedUri));
     } on URISyntaxException catch (exception) {
       return null;
     }
@@ -212,7 +215,7 @@ class SourceFactory {
    * @param containedUri the (possibly relative) URI to be resolved against the containing source
    * @return the source representing the contained URI
    */
-  Source internalResolveUri(Source containingSource, Uri containedUri) {
+  Source _internalResolveUri(Source containingSource, Uri containedUri) {
     if (containedUri.isAbsolute) {
       for (UriResolver resolver in _resolvers) {
         Source result = resolver.resolveAbsolute(containedUri);
@@ -283,6 +286,7 @@ abstract class Source {
    *         this source
    * @see Object#equals(Object)
    */
+  @override
   bool operator ==(Object object);
 
   /**
@@ -307,18 +311,6 @@ abstract class Source {
    * @throws Exception if the contents of this source could not be accessed
    */
   TimestampedData<String> get contents;
-
-  /**
-   * Get the contents of this source and pass it to the given content receiver.
-   *
-   * Clients should consider using the the method
-   * [AnalysisContext#getContentsToReceiver] because contexts can have local
-   * overrides of the content of a source that the source is not aware of.
-   *
-   * @param receiver the content receiver to which the content of this source will be passed
-   * @throws Exception if the contents of this source could not be accessed
-   */
-  void getContentsToReceiver(Source_ContentReceiver receiver);
 
   /**
    * Return an encoded representation of this source that can be used to create a source that is
@@ -377,6 +369,7 @@ abstract class Source {
    * @return a hash code for this source
    * @see Object#hashCode()
    */
+  @override
   int get hashCode;
 
   /**
@@ -570,6 +563,7 @@ class SourceRange {
     return otherRange.contains(thisEnd);
   }
 
+  @override
   bool operator ==(Object obj) {
     if (obj is! SourceRange) {
       return false;
@@ -599,6 +593,7 @@ class SourceRange {
    */
   SourceRange getTranslated(int delta) => new SourceRange(offset + delta, length);
 
+  @override
   int get hashCode => 31 * offset + length;
 
   /**
@@ -622,6 +617,7 @@ class SourceRange {
    */
   bool startsIn(SourceRange otherRange) => otherRange.contains(offset);
 
+  @override
   String toString() {
     JavaStringBuilder builder = new JavaStringBuilder();
     builder.append("[offset=");
@@ -683,6 +679,7 @@ class DartUriResolver extends UriResolver {
     this._sdk = sdk;
   }
 
+  @override
   Source fromEncoding(UriKind kind, Uri uri) {
     if (identical(kind, UriKind.DART_URI)) {
       return _sdk.fromEncoding(kind, uri);
@@ -697,6 +694,7 @@ class DartUriResolver extends UriResolver {
    */
   DartSdk get dartSdk => _sdk;
 
+  @override
   Source resolveAbsolute(Uri uri) {
     if (!isDartUri(uri)) {
       return null;

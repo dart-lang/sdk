@@ -14,38 +14,41 @@ void testRelativize() {
       c(expected, base, path, false);
       return;
     }
-    String r;
 
-    r = relativize(Uri.parse('file:$base'),
-                   Uri.parse('file:$path'),
-                   isWindows);
-    Expect.stringEquals(expected, r);
+    test(Uri base, Uri uri) {
+      String r = relativize(base, uri, isWindows);
+      Uri resolved = base.resolve(r);
+      Expect.equals(uri.scheme.toLowerCase(), resolved.scheme.toLowerCase());
+      if (isWindows) {
+        Expect.equals(uri.path.toLowerCase(), resolved.path.toLowerCase());
+      } else {
+        Expect.equals(uri.path, resolved.path);
+      }
+      Expect.stringEquals(expected, r);
+    }
 
-    r = relativize(Uri.parse('FILE:$base'),
-                   Uri.parse('FILE:$path'),
-                   isWindows);
-    Expect.stringEquals(expected, r);
+    test(Uri.parse('file:$base'),
+         Uri.parse('file:$path'));
 
-    r = relativize(Uri.parse('file:$base'),
-                   Uri.parse('FILE:$path'),
-                   isWindows);
-    Expect.stringEquals(expected, r);
+    test(Uri.parse('FILE:$base'),
+         Uri.parse('FILE:$path'));
 
-    r = relativize(Uri.parse('FILE:$base'),
-                   Uri.parse('file:$path'),
-                   isWindows);
-    Expect.stringEquals(expected, r);
+    test(Uri.parse('file:$base'),
+         Uri.parse('FILE:$path'));
+
+    test(Uri.parse('FILE:$base'),
+         Uri.parse('file:$path'));
   }
   c('bar', '/', '/bar', null);
-  c('/bar', '/foo', '/bar', null);
+  c('bar', '/foo', '/bar', null);
   c('/bar', '/foo/', '/bar', null);
 
   c('bar', '///c:/', '///c:/bar', true);
-  c('/c:/bar', '///c:/foo', '///c:/bar', true);
+  c('bar', '///c:/foo', '///c:/bar', true);
   c('/c:/bar', '///c:/foo/', '///c:/bar', true);
 
   c('BAR', '///c:/', '///c:/BAR', true);
-  c('/c:/BAR', '///c:/foo', '///c:/BAR', true);
+  c('BAR', '///c:/foo', '///c:/BAR', true);
   c('/c:/BAR', '///c:/foo/', '///c:/BAR', true);
 
   c('../sdk/lib/_internal/compiler/implementation/dart2js.dart',
@@ -63,6 +66,29 @@ void testRelativize() {
 
   c('/Users/person/file.dart', '/Users/other/', '/Users/person/file.dart',
     true);
+
+  c('out.js.map', '/Users/person/out.js', '/Users/person/out.js.map', null);
+
+  c('../person/out.js.map',
+    '/Users/other/out.js',
+    '/Users/person/out.js.map', false);
+
+  c('/Users/person/out.js.map',
+    '/Users/other/out.js',
+    '/Users/person/out.js.map', true);
+
+  c('out.js', '/Users/person/out.js.map', '/Users/person/out.js', null);
+
+  c('../person/out.js',
+    '/Users/other/out.js.map',
+    '/Users/person/out.js', false);
+
+  c('/Users/person/out.js',
+    '/Users/other/out.js.map',
+    '/Users/person/out.js', true);
+
+  c('out.js', '/out.js.map', '/out.js', null);
+
 }
 
 void main() {

@@ -1019,9 +1019,24 @@ class Primitives {
     return JS('var', '#.apply(#, #)', jsFunction, function, arguments);
   }
 
-  static getConstructorOrInterceptor(String className) {
+  static getConstructorOrInterceptorToken(String className) {
     // TODO(ahe): Generalize this and improve test coverage of
     // reflecting on intercepted classes.
+
+    // We should probably not be mappling the dart:core interface names to the
+    // interceptor library implementation classes like this.  `JSArray` is just
+    // one implementation of `List`, there are others that have no relationship
+    // with JSArray other than implementing a common interface.
+    //
+    // For now `List` in dart:core and `JSArray` is in dart:_interceptors.  We
+    // need to maintain a distinction to get the correct library mirror.
+    //
+    // TODO(17394): Short term: Refactor to avoid two copies of the list of
+    // known interceptor implementations.
+    //
+    // TODO(17394): Longer term: The proper interfaces with abstract methods
+    // should be emitted.
+
     if (JS('bool', '# == "String"', className)) return const JSString();
     if (JS('bool', '# == "int"', className)) return const JSInt();
     if (JS('bool', '# == "double"', className)) return const JSDouble();
@@ -1030,6 +1045,18 @@ class Primitives {
     if (JS('bool', '# == "List"', className)) return const JSArray();
     if (JS('bool', '# == "Null"', className)) return const JSNull();
     return JS('var', 'init.allClasses[#]', className);
+  }
+
+  static bool isInterceptorToken(var object) {
+    // This must match the list of tokens returned by
+    // [getConstructorOrInterceptorToken] above.
+    return JS('bool', '# === #', object, const JSString())
+        || JS('bool', '# === #', object, const JSInt())
+        || JS('bool', '# === #', object, const JSDouble())
+        || JS('bool', '# === #', object, const JSNumber())
+        || JS('bool', '# === #', object, const JSBool())
+        || JS('bool', '# === #', object, const JSArray())
+        || JS('bool', '# === #', object, const JSNull());
   }
 
   static bool identicalImplementation(a, b) {

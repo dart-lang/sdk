@@ -3,7 +3,7 @@
   <link rel="import" href="observatory_element.html">
   <link rel="import" href="script_ref.html">
 </head>
-<polymer-element name="isolate-summary" extends="isolate-element">
+<polymer-element name="isolate-summary" extends="observatory-element">
   <template>
     <div class="row">
       <div class="col-md-1">
@@ -28,9 +28,9 @@
 
         <div class="row">
           <small>
-            (<a href="{{ isolate.hashLink(isolate.rootLib) }}">library</a>)
-            (<a href="{{ isolate.hashLink('debug/breakpoints') }}">breakpoints</a>)
-            (<a href="{{ isolate.hashLink('profile') }}">profile</a>)
+            (<a href="{{ isolate.rootLib.hashLink }}">library</a>)
+            (<a href="{{ isolate.relativeHashLink('debug/breakpoints') }}">breakpoints</a>)
+            (<a href="{{ isolate.relativeHashLink('profile') }}">profile</a>)
           </small>
         </div>
       </div>
@@ -63,7 +63,7 @@
         </div>
       </div>
       <div class="col-md-2">
-        <a href="{{ isolate.hashLink('allocationprofile') }}">
+        <a href="{{ isolate.relativeHashLink('allocationprofile') }}">
           {{ isolate.newHeapUsed | formatSize }}/{{ isolate.oldHeapUsed | formatSize }}
         </a>
       </div>
@@ -74,7 +74,7 @@
         <template if="{{ isolate.topFrame != null }}">
           run
         </template>
-        ( <a href="{{ isolate.hashLink('stacktrace') }}">stack trace</a> )
+        ( <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a> )
       </div>
     </div>
     <div class="row">
@@ -82,10 +82,8 @@
       </div>
       <div class="col-md-6">
         <template if="{{ isolate.topFrame != null }}">
-          <function-ref isolate="{{ isolate }}"
-                        ref="{{ isolate.topFrame['function'] }}"></function-ref>
-          (<script-ref isolate="{{ isolate }}"
-                       ref="{{ isolate.topFrame['script'] }}"
+          <function-ref ref="{{ isolate.topFrame['function'] }}"></function-ref>
+          (<script-ref ref="{{ isolate.topFrame['script'] }}"
                        line="{{ isolate.topFrame['line'] }}"></script-ref>)
           <br>
           <pre>{{ isolate.topFrame['line'] }} &nbsp; {{ isolate.topFrame['lineString'] }}</pre>

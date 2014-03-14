@@ -482,30 +482,6 @@ abstract class InstanceMirror implements ObjectMirror {
    *             invocation.namedArguments);
    */
   delegate(Invocation invocation);
-
-  /**
-   * Returns a closure for invoking the regular method named [name].
-   *
-   * If [:type.instanceLookup(name):] returns a regular method m, the result of
-   * this method is a closure equivalent to:
-   *
-   *     (r1, ..., rn, {p1: d1, ..., pk: dk}) {
-   *       return this.invoke(name, [r1, ..., rn], {#p1: p1,  ..., #pk: pk});
-   *     }
-   *
-   * if m has required parameters r1, ..., rn, and named parameters p1, ..., pk
-   * with defaults d1, ..., dk. The result of this method is a
-   * closure equivalent to:
-   *
-   *     (r1, ..., rn, [p1 = d1, ..., pk = dk]) {
-   *       return this.invoke(name, [r1, ..., rn, p1, ..., pk]);
-   *     }
-   *
-   * if m has required parameters r1, ..., rn, and optional positional
-   * parameters p1, ..., pk with defaults d1, ..., dk.  Otherwise, an
-   * [ArgumentError] is thrown.
-   */
-  Function operator [](Symbol name);
 }
 
 /**
@@ -587,26 +563,49 @@ abstract class LibraryMirror implements DeclarationMirror, ObjectMirror {
    bool operator ==(other);
 
   /**
-   * If [:declarations[name]:] is a regular method m, the result of this method
-   * is a closure equivalent to:
-   *
-   *     (r1, ..., rn, {p1: d1, ..., pk: dk}) {
-   *       return this.invoke(name, [r1, ..., rn], {#p1: p1, ..., #pk: pk});
-   *     }
-   *
-   * if m has required parameters r1, ..., rn, and named parameters p1, ..., pk
-   * with defaults d1, ..., dk. The result of this method is a
-   * closure equivalent to:
-   *
-   *     (r1, ..., rn, [p1 = d1, ..., pk = dk]) {
-   *       return this.invoke(name, [r1, ..., rn, p1, ..., pk]);
-   *     }
-   *
-   * if m has required parameters r1, ..., rn, and optional positional
-   * parameters p1, ..., pk with defaults d1, ..., dk.  Otherwise, an
-   * [ArgumentError] is thrown.
+   * Returns a list of the imports and exports in this library;
    */
-  Function operator [](Symbol name);
+  List<LibraryDependencyMirror> get libraryDependencies;
+}
+
+/// A mirror on an import or export declaration.
+abstract class LibraryDependencyMirror {
+  /// Is `true` if this dependency is an import.
+  bool get isImport;
+
+  /// Is `true` if this dependency is an export.
+  bool get isExport;
+
+  /// Returns the library mirror of the library that imports or exports the
+  /// [targetLibrary].
+  LibraryMirror get sourceLibrary;
+
+  /// Returns the library mirror of the library that is imported or exported.
+  LibraryMirror get targetLibrary;
+
+  /// Returns the prefix if this is a prefixed import and `null` otherwise.
+  Symbol get prefix;
+
+  /// Returns the list of show/hide combinators on the import/export
+  /// declaration.
+  List<CombinatorMirror> get combinators;
+
+  /// Returns the source location for this import/export declaration.
+  SourceLocation get location;
+
+  List<InstanceMirror> get metadata;
+}
+
+/// A mirror on a show/hide combinator declared on a library dependency.
+abstract class CombinatorMirror {
+  /// The list of identifiers on the combinator.
+  List<Symbol> get identifiers;
+
+  /// Is `true` if this is a 'show' combinator.
+  bool get isShow;
+
+  /// Is `true` if this is a 'hide' combinator.
+  bool get isHide;
 }
 
 /**
@@ -810,28 +809,6 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * and [other] have equal type arguments.
    */
    bool operator == (other);
-
-  /**
-   * If [:declarations[name]:] is a regular method m, the result of this method
-   * is a closure equivalent to:
-   *
-   *     (r1, ..., rn, {p1: d1, ..., pk: dk}) {
-   *       return this.invoke(name, [r1, ..., rn], {#p1: p1, ..., #pk: pk});
-   *     }
-   *
-   * if m has required parameters r1, ..., rn, and named parameters p1, ..., pk
-   * with defaults d1, ..., dk. The result of this method is a
-   * closure equivalent to:
-   *
-   *     (r1, ..., rn, [p1 = d1, ..., pk = dk]) {
-   *       return this.invoke(name, [r1, ..., rn, p1, ..., pk]);
-   *     }
-   *
-   * if m has required parameters r1, ..., rn, and optional positional
-   * parameters p1, ..., pk with defaults d1, ..., dk.  Otherwise, an
-   * [ArgumentError] is thrown.
-   */
-  Function operator [](Symbol name);
 
   /**
    * Returns whether the class denoted by the receiver is a subclass of the

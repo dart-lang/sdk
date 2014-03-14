@@ -266,6 +266,24 @@ testIndexedAliasedStore2(a, b, i) {
   }
   return a[0] + a[1];
 }
+
+
+testIndexedAliasedStore3(i) {
+  var a = new List(2);
+  a[0] = 1;
+  a[i] = 3;
+  return a[0];
+}
+
+
+testIndexedAliasedStore4(b) {
+  var a = new List(2);
+  a[0] = 1;
+  b[0] = 3;
+  return a[0];
+}
+
+
 var indices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 class Z {
@@ -348,6 +366,16 @@ main() {
   }
   for (var i = 0; i < 20; i++) {
     Expect.equals(4, testIndexedAliasedStore2(array, array, indices[1]));
+  }
+  for (var i = 0; i < 20; i++) {
+    Expect.equals(3, testIndexedAliasedStore3(indices[0]));
+  }
+  for (var i = 0; i < 20; i++) {
+    Expect.equals(1, testIndexedAliasedStore3(indices[1]));
+  }
+
+  for (var i = 0; i < 20; i++) {
+    Expect.equals(1, testIndexedAliasedStore4(array));
   }
 
   var test_array = new List(1);

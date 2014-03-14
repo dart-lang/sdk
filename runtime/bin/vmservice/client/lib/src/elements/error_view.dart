@@ -4,13 +4,14 @@
 
 library error_view_element;
 
-import 'package:polymer/polymer.dart';
 import 'observatory_element.dart';
+import 'package:polymer/polymer.dart';
+import 'package:observatory/service.dart';
 
-/// Displays an Error response.
+/// Displays an Error ServiceObject.
 @CustomTag('error-view')
 class ErrorViewElement extends ObservatoryElement {
-  @published Map error;
+  @published ServiceObject error;
 
   ErrorViewElement.created() : super.created();
 }

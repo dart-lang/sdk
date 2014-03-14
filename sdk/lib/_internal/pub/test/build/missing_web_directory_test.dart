@@ -16,4 +16,15 @@ main() {
         error: 'Directory "web" does not exist.',
         exitCode: exit_codes.DATA);
   });
+
+  integration("fails if 'web' doesn't exist and no directory is specified "
+      "with JSON output", () {
+    d.appDir().create();
+
+    schedulePub(args: ["build", "--format", "json"],
+        outputJson: {
+          "error": 'Directory "web" does not exist.'
+        },
+        exitCode: exit_codes.DATA);
+  });
 }

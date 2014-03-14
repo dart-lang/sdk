@@ -17,12 +17,22 @@ main() {
       expect(options, isNotNull);
       expect(options.shouldBatch, isFalse);
       expect(options.machineFormat, isFalse);
+      expect(options.displayVersion, isFalse);
+      expect(options.disableHints, isFalse);
       expect(options.ignoreUnrecognizedFlags, isFalse);
+      expect(options.perf, isFalse);
       expect(options.showPackageWarnings, isFalse);
       expect(options.showSdkWarnings, isFalse);
       expect(options.warningsAreFatal, isFalse);
       expect(options.dartSdkPath, isNotNull);
+      expect(options.log, isFalse);
       expect(options.sourceFiles, equals(['foo.dart']));
+    });
+
+    test('batch', () {
+      CommandLineOptions options = CommandLineOptions
+          .parse(['--dart-sdk', '.', '--batch']);
+      expect(options.shouldBatch, isTrue);
     });
 
     test('machine format', () {
@@ -31,10 +41,16 @@ main() {
       expect(options.machineFormat, isTrue);
     });
 
-    test('package root', () {
+    test('no-hints', () {
       CommandLineOptions options = CommandLineOptions
-          .parse(['--dart-sdk', '.', '-p', 'bar', 'foo.dart']);
-      expect(options.packageRootPath, equals('bar'));
+          .parse(['--dart-sdk', '.', '--no-hints', 'foo.dart']);
+      expect(options.disableHints, isTrue);
+    });
+
+    test('perf', () {
+      CommandLineOptions options = CommandLineOptions
+          .parse(['--dart-sdk', '.', '--perf', 'foo.dart']);
+      expect(options.perf, isTrue);
     });
 
     test('package warnings', () {
@@ -47,6 +63,30 @@ main() {
       CommandLineOptions options = CommandLineOptions
           .parse(['--dart-sdk', '.', '--warnings', 'foo.dart']);
       expect(options.showSdkWarnings, isTrue);
+    });
+
+    test('warningsAreFatal', () {
+      CommandLineOptions options = CommandLineOptions
+          .parse(['--dart-sdk', '.', '--fatal-warnings', 'foo.dart']);
+      expect(options.warningsAreFatal, isTrue);
+    });
+
+    test('package root', () {
+      CommandLineOptions options = CommandLineOptions
+          .parse(['--dart-sdk', '.', '-p', 'bar', 'foo.dart']);
+      expect(options.packageRootPath, equals('bar'));
+    });
+
+    test('log', () {
+      CommandLineOptions options = CommandLineOptions
+          .parse(['--dart-sdk', '.', '--log', 'foo.dart']);
+      expect(options.log, isTrue);
+    });
+
+    test('sourceFiles', () {
+      CommandLineOptions options = CommandLineOptions
+          .parse(['--dart-sdk', '.', '--log', 'foo.dart', 'foo2.dart', 'foo3.dart']);
+      expect(options.sourceFiles, equals(['foo.dart', 'foo2.dart', 'foo3.dart']));
     });
 
 //    test('notice unrecognized flags', () {
@@ -65,4 +105,3 @@ main() {
   });
 
 }
-

@@ -4,11 +4,24 @@
 
 library instance_view_element;
 
-import 'isolate_element.dart';
+import 'observatory_element.dart';
+import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 
+import 'dart:async';
+
 @CustomTag('instance-view')
-class InstanceViewElement extends IsolateElement {
-  @published Map instance;
+class InstanceViewElement extends ObservatoryElement {
+  @published ServiceMap instance;
+
   InstanceViewElement.created() : super.created();
+
+  Future<ServiceObject> eval(String text) {
+    return instance.isolate.get(
+        instance.id + "/eval?expr=${Uri.encodeComponent(text)}");
+  }
+
+  void refresh(var done) {
+    instance.reload().whenComplete(done);
+  }
 }

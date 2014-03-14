@@ -116,7 +116,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   HandleScope handle_scope(isolate_);
   // TODO(turnidge): Rework collection total dart execution.  This can
   // overcount when other things (gc, compilation) are active.
-  TIMERSCOPE(time_dart_execution);
+  TIMERSCOPE(isolate_, time_dart_execution);
 
   // If the message is in band we lookup the receive port to dispatch to.  If
   // the receive port is closed, we drop the message without deserializing it.
@@ -281,8 +281,14 @@ bool IsolateMessageHandler::ProcessUnhandledException(
 void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
   ASSERT(isolate == Isolate::Current());
 }
-#endif
+#endif  // defined(DEBUG)
 
+#if defined(DEBUG)
+#define REUSABLE_HANDLE_SCOPE_INIT(object)                                     \
+  reusable_##object##_handle_scope_active_(false),
+#else
+#define REUSABLE_HANDLE_SCOPE_INIT(object)
+#endif  // defined(DEBUG)
 
 #define REUSABLE_HANDLE_INITIALIZERS(object)                                   \
   object##_handle_(NULL),
@@ -316,8 +322,8 @@ Isolate::Isolate()
       message_handler_(NULL),
       spawn_state_(NULL),
       is_runnable_(false),
-      gc_prologue_callbacks_(),
-      gc_epilogue_callbacks_(),
+      gc_prologue_callback_(NULL),
+      gc_epilogue_callback_(NULL),
       defer_finalization_count_(0),
       deopt_context_(NULL),
       stacktrace_(NULL),
@@ -328,8 +334,10 @@ Isolate::Isolate()
       thread_state_(NULL),
       next_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
+      REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
       reusable_handles_() {
 }
+#undef REUSABLE_HANDLE_SCOPE_INIT
 #undef REUSABLE_HANDLE_INITIALIZERS
 
 
@@ -405,8 +413,7 @@ Isolate* Isolate::Init(const char* name_prefix) {
 
   // Setup the isolate specific resuable handles.
 #define REUSABLE_HANDLE_ALLOCATION(object)                                     \
-  result->object##_handle_ = result->AllocateReusableHandle<object>();         \
-
+  result->object##_handle_ = result->AllocateReusableHandle<object>();
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_ALLOCATION)
 #undef REUSABLE_HANDLE_ALLOCATION
 
@@ -734,7 +741,7 @@ class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
   void VisitHandle(uword addr, bool is_prologue_weak) {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
-    FinalizablePersistentHandle::Finalize(isolate(), handle, is_prologue_weak);
+    handle->UpdateUnreachable(isolate(), is_prologue_weak);
   }
 
  private:

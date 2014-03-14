@@ -7,7 +7,6 @@ library barback.transform;
 import 'asset.dart';
 import 'asset_set.dart';
 import 'base_transform.dart';
-import 'transform_logger.dart';
 import 'transform_node.dart';
 
 /// While a [Transformer] represents a *kind* of transformation, this defines
@@ -18,10 +17,10 @@ import 'transform_node.dart';
 /// the transformation. It lets the [Transformer] access inputs and generate
 /// outputs.
 class Transform extends BaseTransform {
-  final AssetSet _outputs;
+  final _outputs = new AssetSet();
 
-  Transform(TransformNode node, this._outputs, LogFunction logFunction)
-    : super(node, logFunction);
+  Transform._(TransformNode node)
+    : super(node);
 
   /// Stores [output] as the output created by this transformation.
   ///
@@ -31,4 +30,15 @@ class Transform extends BaseTransform {
     // has already been created by this transformer.
     _outputs.add(output);
   }
+}
+
+/// The controller for [Transform].
+class TransformController extends BaseTransformController {
+  Transform get transform => super.transform;
+
+  /// The set of assets that the transformer has emitted.
+  AssetSet get outputs => transform._outputs;
+
+  TransformController(TransformNode node)
+      : super(new Transform._(node));
 }

@@ -11,52 +11,26 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analyzer/src/analyzer_impl.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart' show JavaSystem, instanceOfTimer;
+import 'package:analyzer/src/generated/java_core.dart' show JavaSystem;
 import 'package:analyzer/options.dart';
 
-import 'package:analyzer/src/analyzer_impl.dart';
-import 'package:analyzer/src/error_formatter.dart';
-
 void main(args) {
-  var options = CommandLineOptions.parse(args);
+  CommandLineOptions options = CommandLineOptions.parse(args);
   if (options.shouldBatch) {
     BatchRunner.runAsBatch(args, (List<String> args) {
-      var options = CommandLineOptions.parse(args);
-      return _runAnalyzer(options);
+      CommandLineOptions options = CommandLineOptions.parse(args);
+      _runAnalyzer(options);
     });
   } else {
-    int startTime = JavaSystem.currentTimeMillis();
-
-    ErrorSeverity result = _runAnalyzer(options);
-
-    if (options.perf) {
-      int totalTime = JavaSystem.currentTimeMillis() - startTime;
-      int ioTime = PerformanceStatistics.io.result;
-      int scanTime = PerformanceStatistics.scan.result;
-      int parseTime = PerformanceStatistics.parse.result;
-      int resolveTime = PerformanceStatistics.resolve.result;
-      int errorsTime = PerformanceStatistics.errors.result;
-      int hintsTime = PerformanceStatistics.hints.result;
-      int angularTime = PerformanceStatistics.angular.result;
-      print("io:$ioTime");
-      print("scan:$scanTime");
-      print("parse:$parseTime");
-      print("resolve:$resolveTime");
-      print("errors:$errorsTime");
-      print("hints:$hintsTime");
-      print("angular:$angularTime");
-      print("other:${totalTime
-        - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime
-           + angularTime)}");
-      print("total:$totalTime");
-    }
-    exitCode = result.ordinal;
+    _runAnalyzer(options);
   }
 }
 
-ErrorSeverity _runAnalyzer(CommandLineOptions options) {
+void _runAnalyzer(CommandLineOptions options) {
+  int startTime = JavaSystem.currentTimeMillis();
   if (!options.machineFormat) {
     stdout.writeln("Analyzing ${options.sourceFiles}...");
   }
@@ -66,25 +40,18 @@ ErrorSeverity _runAnalyzer(CommandLineOptions options) {
   // check that file exists
   if (!new File(sourcePath).existsSync()) {
     print('File not found: $sourcePath');
-    return ErrorSeverity.ERROR;
+    exitCode = ErrorSeverity.ERROR.ordinal;
+    return;
   }
   // check that file is Dart file
   if (!AnalysisEngine.isDartFileName(sourcePath)) {
     print('$sourcePath is not a Dart file');
-    return ErrorSeverity.ERROR;
+    exitCode = ErrorSeverity.ERROR.ordinal;
+    return;
   }
   // do analyze
-  ErrorFormatter formatter = new ErrorFormatter(options.machineFormat ? stderr : stdout, options);
-  AnalyzerImpl analyzer = new AnalyzerImpl(options);
-  analyzer.analyze(sourcePath);
-  // print errors
-  formatter.formatErrors(analyzer.errorInfos);
-  // prepare status
-  ErrorSeverity status = analyzer.maxErrorSeverity;
-  if (status == ErrorSeverity.WARNING && options.warningsAreFatal) {
-    status = ErrorSeverity.ERROR;
-  }
-  return status;
+  AnalyzerImpl analyzer = new AnalyzerImpl(sourcePath, options, startTime);
+  analyzer.analyze();
 }
 
 typedef ErrorSeverity BatchRunnerHandler(List<String> args);

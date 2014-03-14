@@ -20,7 +20,7 @@ main() {
     ]).create();
 
     schedulePub(args: ["build", "--all"],
-        output: new RegExp(r"Built 1 file!"));
+        output: new RegExp(r'Built 1 file to "build".'));
 
     d.dir(appPath, [
       d.dir('build', [

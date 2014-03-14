@@ -442,15 +442,18 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
  * persistent handle and the peer as arguments. This gives the native code the
  * ability to cleanup data associated with the object and to delete the weak
  * persistent handle. It is illegal to call into the VM from the callback,
- * except to delete the weak persistent handle.
+ * except to delete the weak persistent handle. If the handle is deleted before
+ * the object becomes unreachable, the callback is never invoked.
  *
  * Requires there to be a current isolate.
  *
  * \param object An object.
  * \param peer A pointer to a native object or NULL.  This value is
  *   provided to callback when it is invoked.
+ * \param external_allocation_size The number of externally allocated
+ *   bytes for peer. Used to inform the garbage collector.
  * \param callback A function pointer that will be invoked sometime
- *   after the object is garbage collected.
+ *   after the object is garbage collected, unless the handle has been deleted.
  *
  * \return Success if the weak persistent handle was
  *   created. Otherwise, returns an error.
@@ -458,6 +461,7 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
 DART_EXPORT Dart_WeakPersistentHandle Dart_NewWeakPersistentHandle(
     Dart_Handle object,
     void* peer,
+    intptr_t external_allocation_size,
     Dart_WeakPersistentHandleFinalizer callback);
 
 DART_EXPORT void Dart_DeleteWeakPersistentHandle(
@@ -484,8 +488,10 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
  * \param object An object.
  * \param peer A pointer to a native object or NULL.  This value is
  *   provided to callback when it is invoked.
+ * \param external_allocation_size The number of externally allocated
+ *   bytes for peer. Used to inform the garbage collector.
  * \param callback A function pointer that will be invoked sometime
- *   after the object is garbage collected.
+ *   after the object is garbage collected, unless the handle has been deleted.
  *
  * \return Success if the prologue weak persistent handle was created.
  *   Otherwise, returns an error.
@@ -493,6 +499,7 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
 DART_EXPORT Dart_WeakPersistentHandle Dart_NewPrologueWeakPersistentHandle(
     Dart_Handle object,
     void* peer,
+    intptr_t external_allocation_size,
     Dart_WeakPersistentHandleFinalizer callback);
 
 /**
@@ -549,56 +556,24 @@ typedef void (*Dart_GcPrologueCallback)();
 typedef void (*Dart_GcEpilogueCallback)();
 
 /**
- * Adds a garbage collection prologue callback.
+ * Adds garbage collection callbacks (prologue and epilogue).
  *
- * \param callback A function pointer to a prologue callback function.
- *   This function must not have been previously added as a prologue
- *   callback.
+ * \param prologue_callback A function pointer to a prologue callback function.
+ *   A prologue callback function should not be already set when this function
+ *   is called. A NULL value removes the existing prologue callback function
+ *   if any.
  *
- * \return Success if the callback was added.  Otherwise, returns an
+ * \param epilogue_callback A function pointer to an epilogue callback function.
+ *   An epilogue callback function should not be already set when this function
+ *   is called. A NULL value removes the existing epilogue callback function
+ *   if any.
+ *
+ * \return Success if the callbacks were added.  Otherwise, returns an
  *   error handle.
  */
-DART_EXPORT Dart_Handle Dart_AddGcPrologueCallback(
-    Dart_GcPrologueCallback callback);
-
-/**
- * Removes a garbage collection prologue callback.
- *
- * \param callback A function pointer to a prologue callback function.
- *   This function must have been added as a prologue callback.
- *
- * \return Success if the callback was removed.  Otherwise, returns an
- *   error handle.
- */
-DART_EXPORT Dart_Handle Dart_RemoveGcPrologueCallback(
-    Dart_GcPrologueCallback callback);
-
-/**
- * Adds a garbage collection epilogue callback.
- *
- * \param callback A function pointer to an epilogue callback
- *   function.  This function must not have been previously added as
- *   an epilogue callback.
- *
- * \return Success if the callback was added.  Otherwise, returns an
- *   error handle.
- */
-DART_EXPORT Dart_Handle Dart_AddGcEpilogueCallback(
-    Dart_GcEpilogueCallback callback);
-
-/**
- * Removes a garbage collection epilogue callback.
- *
- * \param callback A function pointer to an epilogue callback
- *   function.  This function must have been added as an epilogue
- *   callback.
- *
- * \return Success if the callback was removed.  Otherwise, returns an
- *   error handle.
- */
-DART_EXPORT Dart_Handle Dart_RemoveGcEpilogueCallback(
-    Dart_GcEpilogueCallback callback);
-
+DART_EXPORT Dart_Handle Dart_SetGcCallbacks(
+    Dart_GcPrologueCallback prologue_callback,
+    Dart_GcEpilogueCallback epilogue_callback);
 
 /*
  * ==========================
@@ -863,8 +838,9 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
  * isolate. */
 
 /**
- * Shuts down the current isolate. After this call, the current
- * isolate is NULL.
+ * Shuts down the current isolate. After this call, the current isolate
+ * is NULL. Invokes the shutdown callback and any callbacks of remaining
+ * weak persistent handles.
  *
  * Requires there to be a current isolate.
  */

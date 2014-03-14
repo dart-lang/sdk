@@ -528,7 +528,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
   // Correct return address to point just after the call that is being
   // deoptimized.
-  __ AddImmediate(LR, -CallPattern::kFixedLengthInBytes);
+  __ AddImmediate(LR, -CallPattern::LengthInBytes());
   GenerateDeoptimizationSequence(assembler, true);  // Preserve R0.
 }
 

@@ -24,4 +24,25 @@ main() {
         error: 'Directories "benchmark" and "test" do not exist.',
         exitCode: exit_codes.DATA);
   });
+
+  integration("fails if any specified build directories don't exist with JSON "
+      "output", () {
+    d.dir(appPath, [
+      d.appPubspec(),
+      d.dir('example', [
+        d.file('file.txt', 'example')
+      ]),
+      d.dir('web', [
+        d.file('file.txt', 'test')
+      ])
+    ]).create();
+
+    schedulePub(args: ["build", "benchmark", "example", "test", "web",
+                       "--format", "json"],
+        outputJson: {
+          "error": 'Directories "benchmark" and "test" do not exist.'
+        },
+        exitCode: exit_codes.DATA);
+  });
+
 }

@@ -3,17 +3,17 @@
   <link rel="import" href="field_ref.html">
   <link rel="import" href="function_ref.html">
   <link rel="import" href="instance_ref.html">
-  <link rel="import" href="isolate_element.html">
+  <link rel="import" href="observatory_element.html">
   <link rel="import" href="library_ref.html">
   <link rel="import" href="nav_bar.html">
   <link rel="import" href="script_ref.html">
 </head>
-<polymer-element name="library-view" extends="isolate-element">
+<polymer-element name="library-view" extends="observatory-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
-      <library-nav-menu isolate="{{ isolate }}" library="{{ library }}" last="{{ true }}"></library-nav-menu>
+      <isolate-nav-menu isolate="{{ library.isolate }}"></isolate-nav-menu>
+      <library-nav-menu library="{{ library }}" last="{{ true }}"></library-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
@@ -22,10 +22,10 @@
     <tbody>
       <tr template repeat="{{ script in library['scripts']}}">
         <td>
-          {{ script['kind'] }}
+          {{ script.kind }}
         </td>
         <td>
-          <script-ref isolate="{{ isolate }}" ref="{{ script }}"></script-ref>
+          <script-ref ref="{{ script }}"></script-ref>
         </td>
       </tr>
     </tbody>
@@ -35,7 +35,7 @@
     <tbody>
       <tr template repeat="{{ lib in library['libraries'] }}">
         <td>
-          <library-ref isolate="{{ isolate }}" ref="{{ lib }}"></library-ref>
+          <library-ref ref="{{ lib }}"></library-ref>
         </td>
       </tr>
     </tbody>
@@ -44,8 +44,8 @@
   <table class="table table-hover">
     <tbody>
       <tr template repeat="{{ variable in library['variables'] }}">
-        <td><field-ref isolate="{{ isolate }}" ref="{{ variable }}"></field-ref></td>
-        <td><instance-ref isolate="{{ isolate }}" ref="{{ variable['value'] }}"></instance-ref></td>
+        <td><field-ref ref="{{ variable }}"></field-ref></td>
+        <td><instance-ref ref="{{ variable['value'] }}"></instance-ref></td>
       </tr>
     </tbody>
   </table>
@@ -54,7 +54,7 @@
     <tbody>
       <tr template repeat="{{ func in library['functions'] }}">
         <td>
-          <function-ref isolate="{{ isolate }}" ref="{{ func }}"></function-ref>
+          <function-ref ref="{{ func }}"></function-ref>
         </td>
       </tr>
     </tbody>
@@ -70,10 +70,10 @@
     <tbody>
       <tr template repeat="{{ cls in library['classes'] }}">
         <td>
-          <class-ref isolate="{{ isolate }}" ref="{{ cls }}"></class-ref>
+          <class-ref ref="{{ cls }}"></class-ref>
         </td>
         <td>
-          <class-ref isolate="{{ isolate }}" ref="{{ cls }}" internal></class-ref>
+          <class-ref ref="{{ cls }}" internal></class-ref>
         </td>
       </tr>
     </tbody>

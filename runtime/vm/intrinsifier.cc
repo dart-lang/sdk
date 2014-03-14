@@ -109,6 +109,9 @@ void Intrinsifier::InitializeState() {
     cls = lib.LookupClassAllowPrivate(str);                                    \
     ASSERT(!cls.IsNull());                                                     \
     error = cls.EnsureIsFinalized(isolate);                                    \
+    if (!error.IsNull()) {                                                     \
+      OS::PrintErr("%s\n", error.ToErrorCString());                            \
+    }                                                                          \
     ASSERT(error.IsNull());                                                    \
     if (#function_name[0] == '.') {                                            \
       str = String::New(#class_name#function_name);                            \

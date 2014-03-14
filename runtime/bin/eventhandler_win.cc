@@ -373,9 +373,7 @@ bool DirectoryWatchHandle::IssueRead() {
   // we create it.
   if (pending_read_ != NULL) return true;
   OverlappedBuffer* buffer = OverlappedBuffer::AllocateReadBuffer(kBufferSize);
-
   ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
-
   BOOL ok = ReadDirectoryChangesW(handle_,
                                   buffer->GetBufferStart(),
                                   buffer->GetBufferSize(),
@@ -947,6 +945,8 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
   } else if (msg->id == kShutdownId) {
     shutdown_ = true;
   } else {
+    // No tokens to return on Windows.
+    if ((msg->data & (1 << kReturnTokenCommand)) != 0) return;
     Handle* handle = reinterpret_cast<Handle*>(msg->id);
     ASSERT(handle != NULL);
     if (handle->is_listen_socket()) {
@@ -1203,9 +1203,9 @@ int64_t EventHandlerImplementation::GetTimeout() {
 }
 
 
-void EventHandlerImplementation::Notify(intptr_t id,
-                                        Dart_Port dart_port,
-                                        int64_t data) {
+void EventHandlerImplementation::SendData(intptr_t id,
+                                          Dart_Port dart_port,
+                                          int64_t data) {
   InterruptMessage* msg = new InterruptMessage;
   msg->id = id;
   msg->dart_port = dart_port;
@@ -1289,7 +1289,7 @@ void EventHandlerImplementation::Start(EventHandler* handler) {
 
 
 void EventHandlerImplementation::Shutdown() {
-  Notify(kShutdownId, 0, 0);
+  SendData(kShutdownId, 0, 0);
 }
 
 }  // namespace bin

@@ -6,13 +6,20 @@
 library pub.log;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
+import 'package:stack_trace/stack_trace.dart';
 
 import 'io.dart';
 import 'transcript.dart';
 import 'utils.dart';
+
+/// The singleton instance so that we can have a nice api like:
+///
+///     log.json.error(...);
+final json = new _JsonLogger();
 
 typedef LogFn(Entry entry);
 final Map<Level, LogFn> _loggers = new Map<Level, LogFn>();
@@ -209,7 +216,9 @@ void dumpTranscript() {
   if (_transcript == null) return;
 
   stderr.writeln('---- Log transcript ----');
-  _transcript.forEach(_logToStderrWithLabel, (discarded) {
+  _transcript.forEach((entry) {
+    _printToStream(stderr, entry, showLabel: true);
+  }, (discarded) {
     stderr.writeln('---- ($discarded discarded) ----');
   });
   stderr.writeln('---- End log transcript ----');
@@ -219,6 +228,8 @@ void dumpTranscript() {
 /// future returned by [callback] completes. If anything else is logged during
 /// this, it cancels the progress.
 Future progress(String message, Future callback()) {
+  if (json.enabled) return callback();
+
   if (_progressTimer != null) throw new StateError("Already in progress.");
 
   _progressMessage = '$message...';
@@ -356,6 +367,12 @@ void _logToStderrWithLabel(Entry entry) {
 }
 
 void _logToStream(IOSink sink, Entry entry, {bool showLabel}) {
+  if (json.enabled) return;
+
+  _printToStream(sink, entry, showLabel: showLabel);
+}
+
+void _printToStream(IOSink sink, Entry entry, {bool showLabel}) {
   _stopProgress();
 
   bool firstLine = true;
@@ -371,5 +388,37 @@ void _logToStream(IOSink sink, Entry entry, {bool showLabel}) {
     sink.writeln(line);
 
     firstLine = false;
+  }
+}
+
+/// Namespace-like class for collecting the methods for JSON logging.
+class _JsonLogger {
+  /// Whether logging should use machine-friendly JSON output or human-friendly
+  /// text.
+  ///
+  /// If set to `true`, then no regular logging is printed. Logged messages
+  /// will still be recorded and displayed if the transcript is printed.
+  bool enabled = false;
+
+  /// Creates an error JSON object for [error] and prints it if JSON output
+  /// is enabled.
+  ///
+  /// Always prints to stdout.
+  void error(error, [stackTrace]) {
+    var errorJson = {"error": error.toString()};
+
+    if (stackTrace == null && error is Error) stackTrace = error.stackTrace;
+    if (stackTrace != null) {
+      errorJson["stackTrace"] = new Chain.forTrace(stackTrace).toString();
+    }
+
+    this.message(errorJson);
+  }
+
+  /// Encodes [message] to JSON and prints it if JSON output is enabled.
+  void message(message) {
+    if (!enabled) return;
+
+    print(JSON.encode(message));
   }
 }

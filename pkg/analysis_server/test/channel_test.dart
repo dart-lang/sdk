@@ -61,20 +61,20 @@ class WebSocketChannelTest {
   }
 
   static Future invalidJsonToClient() {
-    socket.twin.add('{"foo":"bar"}');
-    server.sendResponse(new Response('myId'));
-    return client.responseStream
+    var result = client.responseStream
         .first
         .timeout(new Duration(seconds: 1))
         .then((Response response) {
           expect(response.id, equals('myId'));
           expectMsgCount(responseCount: 1);
         });
+    socket.twin.add('{"foo":"bar"}');
+    server.sendResponse(new Response('myId'));
+    return result;
   }
 
   static Future invalidJsonToServer() {
-    socket.add('"blat"');
-    return client.responseStream
+    var result = client.responseStream
         .first
         .timeout(new Duration(seconds: 1))
         .then((Response response) {
@@ -82,31 +82,34 @@ class WebSocketChannelTest {
           expect(response.error, isNotNull);
           expectMsgCount(responseCount: 1);
         });
+    socket.add('"blat"');
+    return result;
   }
 
   static Future notification() {
-    server.sendNotification(new Notification('myEvent'));
-    return client.notificationStream
+    var result = client.notificationStream
         .first
         .timeout(new Duration(seconds: 1))
         .then((Notification notification) {
           expect(notification.event, equals('myEvent'));
           expectMsgCount(notificationCount: 1);
-
           expect(notificationsReceived.first, equals(notification));
         });
+    server.sendNotification(new Notification('myEvent'));
+    return result;
   }
 
   static Future notificationAndResponse() {
-    server
-        ..sendNotification(new Notification('myEvent'))
-        ..sendResponse(new Response('myId'));
-    return Future
+    var result = Future
         .wait([
           client.notificationStream.first,
           client.responseStream.first])
         .timeout(new Duration(seconds: 1))
         .then((_) => expectMsgCount(responseCount: 1, notificationCount: 1));
+    server
+        ..sendNotification(new Notification('myEvent'))
+        ..sendResponse(new Response('myId'));
+    return result;
   }
 
   static void request() {

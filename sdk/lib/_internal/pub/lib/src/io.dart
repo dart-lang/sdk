@@ -31,13 +31,6 @@ export 'package:http/http.dart' show ByteStream;
 /// additional throughput.
 final _descriptorPool = new Pool(32);
 
-/// Returns whether or not [entry] is nested somewhere within [dir]. This just
-/// performs a path comparison; it doesn't look at the actual filesystem.
-bool isBeneath(String entry, String dir) {
-  var relative = path.relative(entry, from: dir);
-  return !path.isAbsolute(relative) && path.split(relative)[0] != '..';
-}
-
 /// Determines if a file or directory exists at [path].
 bool entryExists(String path) =>
   dirExists(path) || fileExists(path) || linkExists(path);
@@ -795,7 +788,7 @@ ByteStream createTarGz(List contents, {baseDir}) {
     baseDir = path.absolute(baseDir);
     contents = contents.map((entry) {
       entry = path.absolute(entry);
-      if (!isBeneath(entry, baseDir)) {
+      if (!path.isWithin(baseDir, entry)) {
         throw new ArgumentError('Entry $entry is not inside $baseDir.');
       }
       return path.relative(entry, from: baseDir);

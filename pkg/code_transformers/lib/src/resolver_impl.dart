@@ -472,10 +472,6 @@ class _DartSourceProxy implements Source {
 
   int get hashCode => _proxy.hashCode;
 
-  void getContentsToReceiver(Source_ContentReceiver receiver) {
-    _proxy.getContentsToReceiver(receiver);
-  }
-
   TimestampedData<String> get contents => _proxy.contents;
 
   String get encoding => _proxy.encoding;

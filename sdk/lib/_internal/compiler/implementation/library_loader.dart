@@ -223,6 +223,8 @@ class LibraryLoaderTask extends LibraryLoader {
   String get name => 'LibraryLoader';
   List onLibraryLoadedCallbacks = [];
 
+  final Map<Uri, LibraryElement> libraryResourceUriMap =
+      new Map<Uri, LibraryElement>();
   final Map<String, LibraryElement> libraryNames =
       new Map<String, LibraryElement>();
 
@@ -277,7 +279,7 @@ class LibraryLoaderTask extends LibraryLoader {
 
     bool importsDartCore = false;
     var libraryDependencies = new LinkBuilder<LibraryDependency>();
-    Uri base = library.entryCompilationUnit.script.uri;
+    Uri base = library.entryCompilationUnit.script.readableUri;
 
     // TODO(rnystrom): Remove .toList() here if #11523 is fixed.
     return Future.forEach(library.tags.reverse().toList(), (LibraryTag tag) {
@@ -299,7 +301,6 @@ class LibraryLoaderTask extends LibraryLoader {
           } else {
             library.libraryTag = tag;
           }
-          checkDuplicatedLibraryName(library);
         } else if (tag.isPart) {
           Part part = tag;
           StringNode uri = part.uri;
@@ -312,6 +313,7 @@ class LibraryLoaderTask extends LibraryLoader {
       });
     }).then((_) {
       return compiler.withCurrentElement(library, () {
+        checkDuplicatedLibraryName(library);
         // Apply patch, if any.
         if (library.isPlatformLibrary) {
           return patchDartLibrary(handler, library, library.canonicalUri.path);
@@ -337,11 +339,30 @@ class LibraryLoaderTask extends LibraryLoader {
   }
 
   void checkDuplicatedLibraryName(LibraryElement library) {
+    Uri resourceUri = library.entryCompilationUnit.script.resourceUri;
     LibraryName tag = library.libraryTag;
-    if (tag != null) {
+    LibraryElement existing =
+        libraryResourceUriMap.putIfAbsent(resourceUri, () => library);
+    if (!identical(existing, library)) {
+      if (tag != null) {
+        compiler.withCurrentElement(library, () {
+          compiler.reportWarning(tag.name,
+              MessageKind.DUPLICATED_LIBRARY_RESOURCE,
+              {'libraryName': tag.name,
+               'resourceUri': resourceUri,
+               'canonicalUri1': library.canonicalUri,
+               'canonicalUri2': existing.canonicalUri});
+        });
+      } else {
+        compiler.reportHint(library,
+            MessageKind.DUPLICATED_RESOURCE,
+            {'resourceUri': resourceUri,
+             'canonicalUri1': library.canonicalUri,
+             'canonicalUri2': existing.canonicalUri});
+      }
+    } else if (tag != null) {
       String name = library.getLibraryOrScriptName();
-      LibraryElement existing =
-          libraryNames.putIfAbsent(name, () => library);
+      existing = libraryNames.putIfAbsent(name, () => library);
       if (!identical(existing, library)) {
         compiler.withCurrentElement(library, () {
           compiler.reportWarning(tag.name,
@@ -395,6 +416,7 @@ class LibraryLoaderTask extends LibraryLoader {
     return compiler.readScript(readableUri, library, part).
         then((Script sourceScript) {
           if (sourceScript == null) return;
+
           CompilationUnitElement unit =
               new CompilationUnitElementX(sourceScript, library);
           compiler.withCurrentElement(unit, () {
@@ -414,7 +436,7 @@ class LibraryLoaderTask extends LibraryLoader {
   Future registerLibraryFromTag(LibraryDependencyHandler handler,
                                 LibraryElement library,
                                 LibraryDependency tag) {
-    Uri base = library.entryCompilationUnit.script.uri;
+    Uri base = library.entryCompilationUnit.script.readableUri;
     Uri resolvedUri = base.resolve(tag.uri.dartString.slowToString());
     return createLibrary(handler, library, resolvedUri, tag.uri, resolvedUri)
         .then((LibraryElement loadedLibrary) {

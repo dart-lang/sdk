@@ -4,20 +4,17 @@
 
 library isolate_list_element;
 
-import 'vm_element.dart';
-import 'dart:async';
 import 'package:polymer/polymer.dart';
+import 'observatory_element.dart';
+import 'package:observatory/service.dart';
 
 /// Displays an IsolateList response.
 @CustomTag('isolate-list')
-class IsolateListElement extends VMElement {
+class IsolateListElement extends ObservatoryElement {
   IsolateListElement.created() : super.created();
+  @published IsolateList isolates;
 
   void refresh(var done) {
-    var futures = [];
-    vm.isolates.forEach((id, isolate) {
-       futures.add(isolate.refresh());
-    });
-    Future.wait(futures).then((_) => done());
+    isolates.reload().whenComplete(done);
   }
 }

@@ -2106,34 +2106,19 @@ void EffectGraphVisitor::BuildLetTempExpressions(LetNode* node) {
 
 
 void EffectGraphVisitor::VisitLetNode(LetNode* node) {
+  BuildLetTempExpressions(node);
+
+  // Visit body.
+  for (intptr_t i = 0; i < node->nodes().length(); ++i) {
+    EffectGraphVisitor for_effect(owner());
+    node->nodes()[i]->Visit(&for_effect);
+    Append(for_effect);
+  }
+
   intptr_t num_temps = node->num_temps();
   if (num_temps > 0) {
-    BuildLetTempExpressions(node);
-    // TODO(fschneider): Generate better code for effect context by visiting the
-    // body for effect. Currently, the value of the body expression is
-    // materialized and then dropped. This also requires changing DropTempsInstr
-    // to have zero or one inputs.
-
-    // Visit body.
-    for (intptr_t i = 0; i < node->nodes().length() - 1; ++i) {
-      EffectGraphVisitor for_effect(owner());
-      node->nodes()[i]->Visit(&for_effect);
-      Append(for_effect);
-    }
-    // Visit the last body expression for value.
-    ValueGraphVisitor for_value(owner());
-    node->nodes().Last()->Visit(&for_value);
-    Append(for_value);
-    Value* result_value = for_value.value();
     owner()->DeallocateTemps(num_temps);
-    Do(new DropTempsInstr(num_temps, result_value));
-  } else {
-    ASSERT(num_temps == 0);
-    for (intptr_t i = 0; i < node->nodes().length(); ++i) {
-      EffectGraphVisitor for_effect(owner());
-      node->nodes()[i]->Visit(&for_effect);
-      Append(for_effect);
-    }
+    Do(new DropTempsInstr(num_temps));
   }
 }
 
@@ -2277,35 +2262,13 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
                                                        arguments);
   alloc->set_closure_function(function);
 
-  // Create fake fields for function and context. Only the context field is
-  // stored at the allocation to be used later when inlining a closure call.
-  const Field& function_field =
-      Field::ZoneHandle(
-          Field::New(Symbols::ClosureFunctionField(),
-          false,  // !static
-          true,  // final
-          false,  // !const
-          alloc->cls(),
-          0));  // No token position.
-  function_field.SetOffset(Closure::function_offset());
-  const Field& context_field =
-      Field::ZoneHandle(Field::New(
-          Symbols::ClosureContextField(),
-          false,  // !static
-          true,  // final
-          false,  // !const
-          alloc->cls(),
-          0));  // No token position.
-  context_field.SetOffset(Closure::context_offset());
-  alloc->set_context_field(context_field);
-
   Value* closure_val = Bind(alloc);
   { LocalVariable* closure_tmp_var = EnterTempLocalScope(closure_val);
     // Store function.
     Value* closure_tmp_val = Bind(new LoadLocalInstr(*closure_tmp_var));
     Value* func_val =
         Bind(new ConstantInstr(Function::ZoneHandle(function.raw())));
-    Do(new StoreInstanceFieldInstr(function_field,
+    Do(new StoreInstanceFieldInstr(Closure::function_offset(),
                                    closure_tmp_val,
                                    func_val,
                                    kEmitStoreBarrier));
@@ -2329,7 +2292,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
         // Store new context in closure.
         closure_tmp_val = Bind(new LoadLocalInstr(*closure_tmp_var));
         context_tmp_val = Bind(new LoadLocalInstr(*context_tmp_var));
-        Do(new StoreInstanceFieldInstr(context_field,
+        Do(new StoreInstanceFieldInstr(Closure::context_offset(),
                                        closure_tmp_val,
                                        context_tmp_val,
                                        kEmitStoreBarrier));
@@ -2339,7 +2302,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
       // Store current context in closure.
       closure_tmp_val = Bind(new LoadLocalInstr(*closure_tmp_var));
       Value* context = Bind(new CurrentContextInstr());
-      Do(new StoreInstanceFieldInstr(context_field,
+      Do(new StoreInstanceFieldInstr(Closure::context_offset(),
                                      closure_tmp_val,
                                      context,
                                      kEmitStoreBarrier));
@@ -3039,7 +3002,8 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         load->set_recognized_kind(kind);
         return ReturnDefinition(load);
       }
-      case MethodRecognizer::kObjectCid: {
+      case MethodRecognizer::kObjectCid:
+      case MethodRecognizer::kTypedListBaseCid: {
         Value* receiver = Bind(BuildLoadThisVar(node->scope()));
         LoadClassIdInstr* load = new LoadClassIdInstr(receiver);
         return ReturnDefinition(load);
@@ -3469,8 +3433,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         ASSERT(parameter.owner() == scope);
         if (parameter.is_captured()) {
           // Create a temporary local describing the original position.
-          const String& temp_name = String::ZoneHandle(String::Concat(
-              parameter.name(), String::Handle(Symbols::New("-orig"))));
+          const String& temp_name = Symbols::TempParam();
           LocalVariable* temp_local = new LocalVariable(
               0,  // Token index.
               temp_name,

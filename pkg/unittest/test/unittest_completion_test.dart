@@ -14,7 +14,7 @@ var testName = 'completion test';
 var testFunction = (TestConfiguration testConfig) {
   test(testName, () {
     var _callback;
-    _callback = expectAsyncUntil0(() {
+    _callback = expectAsyncUntil(() {
       if (++testConfig.count < 10) {
         _defer(_callback);
       }

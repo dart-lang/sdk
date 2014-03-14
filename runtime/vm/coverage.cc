@@ -182,6 +182,7 @@ void CodeCoverage::PrintToJSONStream(Isolate* isolate, JSONStream* stream) {
   Class& cls = Class::Handle();
   JSONObject coverage(stream);
   coverage.AddProperty("type", "CodeCoverage");
+  coverage.AddProperty("id", "coverage");
   {
     JSONArray jsarr(&coverage, "coverage");
     for (int i = 0; i < libs.Length(); i++) {

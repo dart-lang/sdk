@@ -82,10 +82,15 @@ class JsonCodec extends Codec<Object, String> {
    * If [reviver] is omitted, it defaults to returning the value argument.
    *
    * The [toEncodable] function is used during encoding. It is invoked for
-   * values that are not directly encodable to a JSON
+   * values that are not directly encodable to a JSON1toE
    * string (a value that is not a number, boolean, string, null, list or a map
    * with string keys). The function must return an object that is directly
-   * encodable.
+   * encodable. The elements of a returned list and values of a returned map
+   * do not need be directly encodable, and if they aren't, `toEncodable` will
+   * be used on them as well.
+   * Please notice that it is possible to cause an infinite recursive
+   * regress in this way, by effectively creating an infinite data structure
+   * through repeated call to `toEncodable`.
    *
    * If [toEncodable] is omitted, it defaults to a function that returns the
    * result of calling `.toJson()` on the unencodable object.

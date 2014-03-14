@@ -140,7 +140,6 @@ void useElementVisitor(ElementVisitor visitor) {
     ..visitTypeVariableElement(null)
     ..visitTypedefElement(null)
     ..visitVariableElement(null)
-    ..visitVariableListElement(null)
     ..visitVoidElement(null)
     ..visitWarnOnUseElement(null);
 }

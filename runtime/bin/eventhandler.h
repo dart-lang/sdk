@@ -7,7 +7,6 @@
 
 #include "bin/builtin.h"
 #include "bin/isolate_data.h"
-#include "bin/socket.h"
 
 namespace dart {
 namespace bin {
@@ -25,6 +24,7 @@ enum MessageFlags {
   kCloseCommand = 8,
   kShutdownReadCommand = 9,
   kShutdownWriteCommand = 10,
+  kReturnTokenCommand = 11,
   kListeningSocket = 16,
   kPipe = 17,
 };
@@ -108,7 +108,7 @@ namespace bin {
 class EventHandler {
  public:
   void SendData(intptr_t id, Dart_Port dart_port, int64_t data) {
-    delegate_.Notify(id, dart_port, data);
+    delegate_.SendData(id, dart_port, data);
   }
 
   /**

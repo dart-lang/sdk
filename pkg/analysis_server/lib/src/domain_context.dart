@@ -126,7 +126,7 @@ class ContextDomainHandler implements RequestHandler {
    */
   ChangeSet createChangeSet(Map<String, Object> jsonData) {
     // TODO(brianwilkerson) Implement this.
-    return null;
+    return new ChangeSet();
   }
 
   /**

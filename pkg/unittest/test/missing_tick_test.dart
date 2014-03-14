@@ -10,7 +10,7 @@ main() {
   config.timeout = const Duration(seconds: 2);
   group('Broken', () {
     test('test that should time out', () {
-      expectAsync0(() {});
+      expectAsync(() {});
     });
   });
 }

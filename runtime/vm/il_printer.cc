@@ -312,8 +312,11 @@ const char* RangeBoundary::ToCString() const {
 
 
 void DropTempsInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%" Pd ", ", num_temps());
-  value()->PrintTo(f);
+  f->Print("%" Pd "", num_temps());
+  if (value() != NULL) {
+    f->Print(", ");
+    value()->PrintTo(f);
+  }
 }
 
 
@@ -493,7 +496,7 @@ void MaterializeObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", String::Handle(cls_.Name()).ToCString());
   for (intptr_t i = 0; i < InputCount(); i++) {
     f->Print(", ");
-    f->Print("%s: ", String::Handle(fields_[i]->name()).ToCString());
+    f->Print("%s: ", slots_[i]->ToCString());
     InputAt(i)->PrintTo(f);
   }
 }
@@ -593,11 +596,20 @@ void BinaryFloat32x4OpInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void BinaryFloat64x2OpInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", Token::Str(op_kind()));
+  left()->PrintTo(f);
+  f->Print(", ");
+  right()->PrintTo(f);
+}
+
+
 void Simd32x4ShuffleInstr::PrintOperandsTo(BufferFormatter* f) const {
   // TODO(johnmccutchan): Add proper string enumeration of shuffle.
   f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
   value()->PrintTo(f);
 }
+
 
 void Simd32x4ShuffleMixInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
@@ -699,7 +711,58 @@ void Float32x4ToInt32x4Instr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void Simd64x2ShuffleInstr::PrintOperandsTo(BufferFormatter* f) const {
+  // TODO(johnmccutchan): Add proper string enumeration of shuffle.
+  f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
+  value()->PrintTo(f);
+}
 
+
+void Float64x2ZeroInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Float64x2.zero ");
+}
+
+
+void Float64x2SplatInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Float64x2.splat ");
+  value()->PrintTo(f);
+}
+
+
+void Float64x2ConstructorInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Float64x2(");
+  value0()->PrintTo(f);
+  f->Print(", ");
+  value1()->PrintTo(f);
+  f->Print(")");
+}
+
+
+void Float32x4ToFloat64x2Instr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Float64x2.fromFloat32x4 ");
+  left()->PrintTo(f);
+}
+
+
+void Float64x2ToFloat32x4Instr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Float32x4.fromFloat64x2 ");
+  left()->PrintTo(f);
+}
+
+
+void Float64x2ZeroArgInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
+  left()->PrintTo(f);
+}
+
+
+void Float64x2OneArgInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s(", MethodRecognizer::KindToCString(op_kind()));
+  left()->PrintTo(f);
+  f->Print(", ");
+  right()->PrintTo(f);
+  f->Print(")");
+}
 
 
 void Int32x4BoolConstructorInstr::PrintOperandsTo(BufferFormatter* f) const {

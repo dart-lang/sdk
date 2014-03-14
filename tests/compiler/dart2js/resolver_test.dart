@@ -615,7 +615,7 @@ testTopLevelFields() {
   compiler.parseScript("int a;");
   VariableElement element = compiler.mainApp.find("a");
   Expect.equals(ElementKind.FIELD, element.kind);
-  VariableDefinitions node = element.variables.parseNode(compiler);
+  VariableDefinitions node = element.variables.parseNode(element, compiler);
   Identifier typeName = node.type.typeName;
   Expect.equals(typeName.source, 'int');
 
@@ -626,8 +626,8 @@ testTopLevelFields() {
   Expect.equals(ElementKind.FIELD, cElement.kind);
   Expect.isTrue(bElement != cElement);
 
-  VariableDefinitions bNode = bElement.variables.parseNode(compiler);
-  VariableDefinitions cNode = cElement.variables.parseNode(compiler);
+  VariableDefinitions bNode = bElement.variables.parseNode(bElement, compiler);
+  VariableDefinitions cNode = cElement.variables.parseNode(cElement, compiler);
   Expect.equals(bNode, cNode);
   Expect.isNull(bNode.type);
   Expect.isTrue(bNode.modifiers.isVar());

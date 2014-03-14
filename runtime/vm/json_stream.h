@@ -92,6 +92,8 @@ class JSONStream : ValueObject {
   void PrintCommaIfNeeded();
   bool NeedComma();
 
+  void AddEscapedUTF8String(const char* s);
+
   intptr_t nesting_level() const { return open_objects_; }
 
   intptr_t open_objects_;

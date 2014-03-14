@@ -1746,6 +1746,34 @@ ASSEMBLER_TEST_RUN(PackedDoubleMax, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(PackedDoubleShuffle, assembler) {
+  static const struct ALIGN16 {
+    double a;
+    double b;
+  } constant0 = { 2.0, 9.0 };
+  __ movups(XMM0, Address::Absolute(reinterpret_cast<uword>(&constant0)));
+  // Splat Y across all lanes.
+  __ shufpd(XMM0, XMM0, Immediate(0x33));
+  // Splat X across all lanes.
+  __ shufpd(XMM0, XMM0, Immediate(0x0));
+  // Set return value.
+  __ pushl(EAX);
+  __ pushl(EAX);
+  __ movsd(Address(ESP, 0), XMM0);
+  __ fldl(Address(ESP, 0));
+  __ popl(EAX);
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedDoubleShuffle, test) {
+  typedef double (*PackedDoubleShuffle)();
+  double res = reinterpret_cast<PackedDoubleShuffle>(test->entry())();
+  EXPECT_FLOAT_EQ(9.0, res, 0.000001f);
+}
+
+
 ASSEMBLER_TEST_GENERATE(PackedDoubleToSingle, assembler) {
   static const struct ALIGN16 {
     double a;
