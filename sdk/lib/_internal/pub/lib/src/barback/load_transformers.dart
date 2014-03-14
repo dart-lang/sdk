@@ -248,10 +248,9 @@ void _respond(wrappedMessage, callback(message)) {
   new Future.sync(() => callback(wrappedMessage['message']))
       .then((result) => replyTo.send({'type': 'success', 'value': result}))
       .catchError((error, stackTrace) {
-    // TODO(nweiz): at least MissingInputException should be preserved here.
     replyTo.send({
       'type': 'error',
-      'error': CrossIsolateException.serialize(error, stackTrace)
+      'error': _serializeException(error, stackTrace)
     });
   });
 }
@@ -271,8 +270,8 @@ Future _call(SendPort port, message) {
   return receivePort.first.then((response) {
     if (response['type'] == 'success') return response['value'];
     assert(response['type'] == 'error');
-    return new Future.error(
-        new CrossIsolateException.deserialize(response['error']));
+    var exception = _deserializeException(response['error']);
+    return new Future.error(exception, exception.stackTrace);
   });
 }
 
@@ -315,6 +314,58 @@ class CrossIsolateException implements Exception {
   }
 
   String toString() => "\$message\\n\$stackTrace";
+}
+
+/// An [AssetNotFoundException] that was originally raised in another isolate. 
+class _CrossIsolateAssetNotFoundException extends CrossIsolateException
+    implements AssetNotFoundException {
+  final TransformInfo transform;
+  final AssetId id;
+
+  String get message => "Could not find asset \$id.";
+
+  /// Loads a [_CrossIsolateAssetNotFoundException] from a serialized
+  /// representation.
+  ///
+  /// [error] should be the result of
+  /// [_CrossIsolateAssetNotFoundException.serialize].
+  _CrossIsolateAssetNotFoundException.deserialize(Map error)
+      : id = new AssetId(error['package'], error['path']),
+        super.deserialize(error);
+
+  /// Serializes [error] to an object that can safely be passed across isolate
+  /// boundaries.
+  static Map serialize(AssetNotFoundException error, [StackTrace stack]) {
+    var map = CrossIsolateException.serialize(error);
+    map['package'] = error.id.package;
+    map['path'] = error.id.path;
+    return map;
+  }
+}
+
+/// Serializes [error] to an object that can safely be passed across isolate
+/// boundaries.
+///
+/// This handles [AssetNotFoundException]s specially, ensuring that their
+/// metadata is preserved.
+Map _serializeException(error, [StackTrace stack]) {
+  if (error is AssetNotFoundException) {
+    return _CrossIsolateAssetNotFoundException.serialize(error, stack);
+  } else {
+    return CrossIsolateException.serialize(error, stack);
+  }
+}
+
+/// Loads an exception from a serialized representation.
+///
+/// This handles [AssetNotFoundException]s specially, ensuring that their
+/// metadata is preserved.
+CrossIsolateException _deserializeException(Map error) {
+  if (error['type'] == 'AssetNotFoundException') {
+    return new _CrossIsolateAssetNotFoundException.deserialize(error);
+  } else {
+    return new CrossIsolateException.deserialize(error);
+  }
 }
 
 /// A regular expression to match the exception prefix that some exceptions'
@@ -545,10 +596,9 @@ void _respond(wrappedMessage, callback(message)) {
   syncFuture(() => callback(wrappedMessage['message']))
       .then((result) => replyTo.send({'type': 'success', 'value': result}))
       .catchError((error, stackTrace) {
-    // TODO(nweiz): at least MissingInputException should be preserved here.
     replyTo.send({
       'type': 'error',
-      'error': dart.CrossIsolateException.serialize(error, stackTrace)
+      'error': _serializeException(error, stackTrace)
     });
   });
 }
@@ -568,8 +618,59 @@ Future _call(SendPort port, message) {
   return Chain.track(receivePort.first).then((response) {
     if (response['type'] == 'success') return response['value'];
     assert(response['type'] == 'error');
-    return new Future.error(
-        new dart.CrossIsolateException.deserialize(response['error']),
-        new Chain.current());
+    var exception = _deserializeException(response['error']);
+    return new Future.error(exception, exception.stackTrace);
   });
+}
+
+/// An [AssetNotFoundException] that was originally raised in another isolate. 
+class _CrossIsolateAssetNotFoundException extends dart.CrossIsolateException
+    implements AssetNotFoundException {
+  final TransformInfo transform;
+  final AssetId id;
+
+  String get message => "Could not find asset $id.";
+
+  /// Loads a [_CrossIsolateAssetNotFoundException] from a serialized
+  /// representation.
+  ///
+  /// [error] should be the result of
+  /// [_CrossIsolateAssetNotFoundException.serialize].
+  _CrossIsolateAssetNotFoundException.deserialize(Map error)
+      : id = new AssetId(error['package'], error['path']),
+        super.deserialize(error);
+
+  /// Serializes [error] to an object that can safely be passed across isolate
+  /// boundaries.
+  static Map serialize(AssetNotFoundException error, [StackTrace stack]) {
+    var map = dart.CrossIsolateException.serialize(error);
+    map['package'] = error.id.package;
+    map['path'] = error.id.path;
+    return map;
+  }
+}
+
+/// Serializes [error] to an object that can safely be passed across isolate
+/// boundaries.
+///
+/// This handles [AssetNotFoundException]s specially, ensuring that their
+/// metadata is preserved.
+Map _serializeException(error, [StackTrace stack]) {
+  if (error is AssetNotFoundException) {
+    return _CrossIsolateAssetNotFoundException.serialize(error, stack);
+  } else {
+    return dart.CrossIsolateException.serialize(error, stack);
+  }
+}
+
+/// Loads an exception from a serialized representation.
+///
+/// This handles [AssetNotFoundException]s specially, ensuring that their
+/// metadata is preserved.
+dart.CrossIsolateException _deserializeException(Map error) {
+  if (error['type'] == 'AssetNotFoundException') {
+    return new _CrossIsolateAssetNotFoundException.deserialize(error);
+  } else {
+    return new dart.CrossIsolateException.deserialize(error);
+  }
 }
