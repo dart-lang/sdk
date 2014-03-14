@@ -109,6 +109,9 @@ class AnalyzerImpl {
     prepareSources(libraryElement);
     prepareErrors();
 
+    // print errors and performance numbers
+    _printErrorsAndPerf();
+
     // compute max severity and set exitCode
     ErrorSeverity status = maxErrorSeverity;
     if (status == ErrorSeverity.WARNING && options.warningsAreFatal) {
@@ -136,42 +139,55 @@ class AnalyzerImpl {
       // prepare errors
       prepareErrors();
 
+      // print errors and performance numbers
+      _printErrorsAndPerf();
+
       // compute max severity and set exitCode
       ErrorSeverity status = maxErrorSeverity;
       if (status == ErrorSeverity.WARNING && options.warningsAreFatal) {
         status = ErrorSeverity.ERROR;
       }
       exitCode = status.ordinal;
-
-      // print errors
-      ErrorFormatter formatter = new ErrorFormatter(stdout, options);
-      formatter.formatErrors(errorInfos);
-
-      // print performance numbers
-      if (options.perf) {
-        int totalTime = JavaSystem.currentTimeMillis() - startTime;
-        int ioTime = PerformanceStatistics.io.result;
-        int scanTime = PerformanceStatistics.scan.result;
-        int parseTime = PerformanceStatistics.parse.result;
-        int resolveTime = PerformanceStatistics.resolve.result;
-        int errorsTime = PerformanceStatistics.errors.result;
-        int hintsTime = PerformanceStatistics.hints.result;
-        int angularTime = PerformanceStatistics.angular.result;
-        stdout.writeln("io:$ioTime");
-        stdout.writeln("scan:$scanTime");
-        stdout.writeln("parse:$parseTime");
-        stdout.writeln("resolve:$resolveTime");
-        stdout.writeln("errors:$errorsTime");
-        stdout.writeln("hints:$hintsTime");
-        stdout.writeln("angular:$angularTime");
-        stdout.writeln("other:${totalTime
-             - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime
-             + angularTime)}");
-        stdout.writeln("total:$totalTime");
-      }
     }).catchError((ex, st) {
       AnalysisEngine.instance.logger.logError("${ex}\n${st}");
     });
+  }
+
+  _printErrorsAndPerf() {
+    // The following is a hack. We currently print out to stderr to ensure that
+    // when in batch mode we print to stderr, this is because the prints from
+    // batch are made to stderr. The reason that options.shouldBatch isn't used
+    // is because when the argument flags are constructed in BatchRunner and
+    // passed in from batch mode which removes the batch flag to prevent the
+    // "cannot have the batch flag and source file" error message.
+    IOSink sink = options.machineFormat ? stderr : stdout;
+
+    // print errors
+    ErrorFormatter formatter = new ErrorFormatter(sink, options);
+    formatter.formatErrors(errorInfos);
+
+    // print performance numbers
+    if (options.perf) {
+      int totalTime = JavaSystem.currentTimeMillis() - startTime;
+      int ioTime = PerformanceStatistics.io.result;
+      int scanTime = PerformanceStatistics.scan.result;
+      int parseTime = PerformanceStatistics.parse.result;
+      int resolveTime = PerformanceStatistics.resolve.result;
+      int errorsTime = PerformanceStatistics.errors.result;
+      int hintsTime = PerformanceStatistics.hints.result;
+      int angularTime = PerformanceStatistics.angular.result;
+      stdout.writeln("io:$ioTime");
+      stdout.writeln("scan:$scanTime");
+      stdout.writeln("parse:$parseTime");
+      stdout.writeln("resolve:$resolveTime");
+      stdout.writeln("errors:$errorsTime");
+      stdout.writeln("hints:$hintsTime");
+      stdout.writeln("angular:$angularTime");
+      stdout.writeln("other:${totalTime
+          - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime
+          + angularTime)}");
+      stdout.writeln("total:$totalTime");
+   }
   }
 
   /// Returns the maximal [ErrorSeverity] of the recorded errors.

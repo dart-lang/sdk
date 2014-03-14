@@ -93,8 +93,6 @@ class BatchRunner {
         args.addAll(lineArgs);
         args.remove('-b');
         args.remove('--batch');
-        // TODO(scheglov) https://code.google.com/p/dart/issues/detail?id=11061
-        args.remove('-batch');
       }
       // analyze single set of arguments
       try {
