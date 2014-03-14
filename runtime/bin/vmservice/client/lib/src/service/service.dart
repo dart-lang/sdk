@@ -164,6 +164,9 @@ void _upgradeObservableList(ObservableList list, VM vm, Isolate isolate) {
 /// This acts like a factory which consumes an ObservableMap and returns
 /// a fully upgraded ServiceObject.
 ServiceObject _upgradeToServiceObject(VM vm, Isolate isolate, ObservableMap m) {
+  if (m == null) {
+    return null;
+  }
   if (!ServiceObject.isServiceMap(m)) {
     Logger.root.severe("Malformed service object: $m");
   }

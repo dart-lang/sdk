@@ -10530,6 +10530,8 @@ void Code::PrintToJSONStream(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
+  const Array& array = Array::Handle(ObjectPool());
+  jsobj.AddProperty("object_pool", array);
   JSONArray jsarr(&jsobj, "disassembly");
   if (is_alive()) {
     // Only disassemble alive code objects.

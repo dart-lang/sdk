@@ -22235,8 +22235,9 @@ if(v&&w.t(x,"id")!=null&&w.t(x,"type")!=null)a.u(0,y,D.Lr(b,c,x))
 else if(typeof x==="object"&&x!==null&&!!w.$iswn)D.f3(x,b,c)
 else if(v)D.Gf(x,b,c)}},"call$3","PV",6,0,null,73,[],282,[],14,[]],
 Lr:[function(a,b,c){var z
-if(c!=null){z=J.U6(c)
-z=z.t(c,"id")!=null&&z.t(c,"type")!=null}else z=!1
+if(c==null)return
+z=J.U6(c)
+z=z.t(c,"id")!=null&&z.t(c,"type")!=null
 if(!z)N.Jx("").hh("Malformed service object: "+H.d(c))
 switch(D.Io(J.UQ(c,"type"))){case"Error":z=new D.pt(null,null,null,null,b,null,null,null,null,null,null,null)
 z.H4(b,c)
@@ -22301,7 +22302,7 @@ tR:[function(a){var z,y,x
 z=this.F1
 y=J.im
 x=D.N8
-x=new D.kx(null,0,0,0,0,0,H.VM([],[D.Vi]),H.VM([],[D.Vi]),Q.uX(null,D.Q4),H.VM(new V.qC(P.Py(null,null,null,y,x),null,null),[y,x]),"","",null,null,null,!1,null,null,z,null,null,null,null,null,null,null)
+x=new D.kx(null,0,0,0,0,0,H.VM([],[D.Vi]),H.VM([],[D.Vi]),Q.uX(null,D.Q4),H.VM(new V.qC(P.Py(null,null,null,y,x),null,null),[y,x]),"","",null,null,null,null,!1,null,null,z,null,null,null,null,null,null,null)
 x.H4(z,a)
 return x},"call$1","gUU",2,0,null,98,[]],
 T0:[function(a){var z,y
@@ -22695,7 +22696,7 @@ Vi:{
 "^":"a;tT>,Av<",
 $isVi:true},
 kx:{
-"^":["w8F;J6,jv,Du@-369,fF@-369,vg@-369,Mb@-369,VS<-82,hw<-82,va<-82,yP<-82,mM,qH,MO,oc*,zz@,TD,AP,Lk,Fm,KG,mQ,nr,bN,GR,AP,Lk",null,null,function(){return[C.Nw]},function(){return[C.Nw]},function(){return[C.Nw]},function(){return[C.Nw]},function(){return[C.Nw]},function(){return[C.Nw]},function(){return[C.Nw]},function(){return[C.Nw]},null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+"^":["w8F;J6,jv,Du@-369,fF@-369,vg@-369,Mb@-369,VS<-82,hw<-82,va<-82,yP<-82,mM,qH,Ni,MO,oc*,zz@,TD,AP,Lk,Fm,KG,mQ,nr,bN,GR,AP,Lk",null,null,function(){return[C.Nw]},function(){return[C.Nw]},function(){return[C.Nw]},function(){return[C.Nw]},function(){return[C.Nw]},function(){return[C.Nw]},function(){return[C.Nw]},function(){return[C.Nw]},null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
 gfY:[function(a){return this.J6},null,null,1,0,609,"kind",358,359],
 sfY:[function(a,b){this.J6=F.Wi(this,C.fy,this.J6,b)},null,null,3,0,610,28,[],"kind",358],
 glt:[function(){return this.jv},null,null,1,0,512,"totalSamplesInProfile",358,359],
@@ -22704,6 +22705,8 @@ gAg:[function(){return this.mM},null,null,1,0,365,"formattedInclusiveTicks",358,
 sAg:[function(a){this.mM=F.Wi(this,C.EF,this.mM,a)},null,null,3,0,30,28,[],"formattedInclusiveTicks",358],
 ga3:[function(){return this.qH},null,null,1,0,365,"formattedExclusiveTicks",358,359],
 sa3:[function(a){this.qH=F.Wi(this,C.uU,this.qH,a)},null,null,3,0,30,28,[],"formattedExclusiveTicks",358],
+gL1E:[function(){return this.Ni},null,null,1,0,376,"objectPool",358,359],
+sL1E:[function(a){this.Ni=F.Wi(this,C.xG,this.Ni,a)},null,null,3,0,378,28,[],"objectPool",358],
 gMj:[function(a){return this.MO},null,null,1,0,376,"function",358,359],
 sMj:[function(a,b){this.MO=F.Wi(this,C.nf,this.MO,b)},null,null,3,0,378,28,[],"function",358],
 PF:[function(){this.jv=F.Wi(this,C.QK,this.jv,0)
@@ -22739,7 +22742,7 @@ y=z.t(a,"ticks")
 if(y!=null)this.pd(y)
 z=D.Vb(this.fF,this.jv)+" ("+H.d(this.fF)+")"
 this.mM=F.Wi(this,C.EF,this.mM,z)
-z=D.Vb(this.Du,this.jv)+" ("+H.d(this.fF)+")"
+z=D.Vb(this.Du,this.jv)+" ("+H.d(this.Du)+")"
 this.qH=F.Wi(this,C.uU,this.qH,z)},"call$3","gI1",6,0,null,613,[],594,[],614,[]],
 tM:[function(a,b){var z,y,x
 z=J.U6(b)
@@ -22752,6 +22755,9 @@ this.Mb=H.BU(z.t(b,"end"),16,null)
 y=this.Fm
 y=D.Lr(y.zf,y,z.t(b,"function"))
 this.MO=F.Wi(this,C.nf,this.MO,y)
+y=this.Fm
+y=D.Lr(y.zf,y,z.t(b,"object_pool"))
+this.Ni=F.Wi(this,C.xG,this.Ni,y)
 x=z.t(b,"disassembly")
 if(x!=null)this.xs(x)
 z=this.va
@@ -24674,6 +24680,7 @@ C.YS=new H.GD("name")
 C.IO=new H.GD("newHeapUsed")
 C.OV=new H.GD("noSuchMethod")
 C.VJ=new H.GD("object")
+C.xG=new H.GD("objectPool")
 C.ap=new H.GD("oldHeapUsed")
 C.vb=new H.GD("profile")
 C.kY=new H.GD("ref")
@@ -32196,7 +32203,7 @@ if($desc instanceof Array)$desc=$desc[1]
 Vi.prototype=$desc
 Vi.prototype.gtT=function(receiver){return this.tT}
 Vi.prototype.gAv=function(){return this.Av}
-function kx(J6,jv,Du,fF,vg,Mb,VS,hw,va,yP,mM,qH,MO,oc,zz,TD,AP,Lk,Fm,KG,mQ,nr,bN,GR,AP,Lk){this.J6=J6
+function kx(J6,jv,Du,fF,vg,Mb,VS,hw,va,yP,mM,qH,Ni,MO,oc,zz,TD,AP,Lk,Fm,KG,mQ,nr,bN,GR,AP,Lk){this.J6=J6
 this.jv=jv
 this.Du=Du
 this.fF=fF
@@ -32208,6 +32215,7 @@ this.va=va
 this.yP=yP
 this.mM=mM
 this.qH=qH
+this.Ni=Ni
 this.MO=MO
 this.oc=oc
 this.zz=zz

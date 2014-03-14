@@ -1,4 +1,5 @@
 <link rel="import" href="function_ref.html">
+<link rel="import" href="instance_ref.html">
 <link rel="import" href="observatory_element.html">
 <link rel="import" href="nav_bar.html">
 <polymer-element name="code-view" extends="observatory-element">
@@ -50,6 +51,12 @@
         <tr>
           <td class="memberHeader">Exclusive</td>
           <td class="member">{{ code.formattedExclusiveTicks }}</td>
+        </tr>
+        <tr>
+          <td class="memberHeader">Constant object pool</td>
+          <td class="member">
+            <instance-ref ref="{{ code.objectPool }}"></instance-ref>
+          </td>
         </tr>
       </table>
     </div>

@@ -475,7 +475,7 @@ class Code extends ServiceObject {
   @reflectable final addressTicks = new ObservableMap<int, CodeTick>();
   @observable String formattedInclusiveTicks = '';
   @observable String formattedExclusiveTicks = '';
-
+  @observable ServiceMap objectPool;
   @observable ServiceMap function;
   String name;
   String vmName;
@@ -547,7 +547,7 @@ class Code extends ServiceObject {
         '($inclusiveTicks)';
     formattedExclusiveTicks =
         '${formatPercent(exclusiveTicks, totalSamplesInProfile)} '
-        '($inclusiveTicks)';
+        '($exclusiveTicks)';
   }
 
   void _update(ObservableMap m) {
@@ -559,8 +559,8 @@ class Code extends ServiceObject {
     kind = CodeKind.fromString(m['kind']);
     startAddress = int.parse(m['start'], radix:16);
     endAddress = int.parse(m['end'], radix:16);
-    // Upgrade the function.
-    function = _upgradeToServiceObject(isolate.vm, isolate, m['function']);
+    function = _upgradeToServiceObject(vm, isolate, m['function']);
+    objectPool = _upgradeToServiceObject(vm, isolate, m['object_pool']);
     var disassembly = m['disassembly'];
     if (disassembly != null) {
       _processDisassembly(disassembly);
