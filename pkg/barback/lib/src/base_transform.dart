@@ -110,6 +110,17 @@ abstract class BaseTransform {
   Stream<List<int>> readInput(AssetId id) =>
       futureStream(getInput(id).then((input) => input.read()));
 
+  /// A convenience method to return whether or not an asset exists.
+  ///
+  /// This is equivalent to calling [getInput] and catching an
+  /// [AssetNotFoundException].
+  Future<bool> hasInput(AssetId id) {
+    return getInput(id).then((_) => true).catchError((error) {
+      if (error is AssetNotFoundException && error.id == id) return false;
+      throw error;
+    });
+  }
+
   /// Consume the primary input so that it doesn't get processed by future
   /// phases or emitted once processing has finished.
   ///

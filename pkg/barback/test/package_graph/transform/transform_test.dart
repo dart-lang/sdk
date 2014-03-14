@@ -341,4 +341,46 @@ main() {
     expectAsset('app|bar.out', 'spread txt.out');
     buildShouldSucceed();
   });
+
+  group("Transform.hasInput", () {
+    test("returns whether an input exists", () {
+      initGraph(["app|foo.txt", "app|bar.txt"], {'app': [
+        [new HasInputTransformer(['app|foo.txt', 'app|bar.txt', 'app|baz.txt'])]
+      ]});
+
+      updateSources(['app|foo.txt', 'app|bar.txt']);
+      expectAsset('app|foo.txt',
+          'app|foo.txt: true, app|bar.txt: true, app|baz.txt: false');
+      buildShouldSucceed();
+    });
+
+    test("re-runs the transformer when an input stops existing", () {
+      initGraph(["app|foo.txt", "app|bar.txt"], {'app': [
+        [new HasInputTransformer(['app|bar.txt'])]
+      ]});
+
+      updateSources(['app|foo.txt', 'app|bar.txt']);
+      expectAsset('app|foo.txt', 'app|bar.txt: true');
+      buildShouldSucceed();
+
+      removeSources(['app|bar.txt']);
+      expectAsset('app|foo.txt', 'app|bar.txt: false');
+      buildShouldSucceed();
+    });
+
+    // TODO(nweiz): enable this when issue 17480 is fixed.
+    // test("re-runs the transformer when an input starts existing", () {
+    //   initGraph(["app|foo.txt", "app|bar.txt"], {'app': [
+    //     [new HasInputTransformer(['app|bar.txt'])]
+    //   ]});
+    //
+    //   updateSources(['app|foo.txt']);
+    //   expectAsset('app|foo.txt', 'app|bar.txt: false');
+    //   buildShouldSucceed();
+    //
+    //   updateSources(['app|bar.txt']);
+    //   expectAsset('app|foo.txt', 'app|bar.txt: true');
+    //   buildShouldSucceed();
+    // });
+  });
 }

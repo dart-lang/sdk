@@ -24,6 +24,7 @@ export 'transformer/check_content_and_rename.dart';
 export 'transformer/conditionally_consume_primary.dart';
 export 'transformer/create_asset.dart';
 export 'transformer/emit_nothing.dart';
+export 'transformer/has_input.dart';
 export 'transformer/lazy_bad.dart';
 export 'transformer/lazy_many_to_one.dart';
 export 'transformer/lazy_rewrite.dart';

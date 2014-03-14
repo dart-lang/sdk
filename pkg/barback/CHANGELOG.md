@@ -4,6 +4,9 @@
   default. When using Barback with pub in verbose mode, these messages will be
   printed.
 
+* Add a `Transform.hasInput` function that returns whether or not a given
+  secondary input exists.
+
 * `Transformer.allowedExtensions` now supports extensions containing multiple
   periods, such as `.dart.js`.
 
