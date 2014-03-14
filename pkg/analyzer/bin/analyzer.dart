@@ -22,14 +22,14 @@ void main(args) {
   if (options.shouldBatch) {
     BatchRunner.runAsBatch(args, (List<String> args) {
       CommandLineOptions options = CommandLineOptions.parse(args);
-      _runAnalyzer(options);
+      return _runAnalyzer(options, false);
     });
   } else {
     _runAnalyzer(options);
   }
 }
 
-void _runAnalyzer(CommandLineOptions options) {
+_runAnalyzer(CommandLineOptions options, [bool async = true]) {
   int startTime = JavaSystem.currentTimeMillis();
   if (!options.machineFormat) {
     stdout.writeln("Analyzing ${options.sourceFiles}...");
@@ -41,17 +41,21 @@ void _runAnalyzer(CommandLineOptions options) {
   if (!new File(sourcePath).existsSync()) {
     print('File not found: $sourcePath');
     exitCode = ErrorSeverity.ERROR.ordinal;
-    return;
+    return ErrorSeverity.ERROR;
   }
   // check that file is Dart file
   if (!AnalysisEngine.isDartFileName(sourcePath)) {
     print('$sourcePath is not a Dart file');
     exitCode = ErrorSeverity.ERROR.ordinal;
-    return;
+    return ErrorSeverity.ERROR;
   }
   // do analyze
   AnalyzerImpl analyzer = new AnalyzerImpl(sourcePath, options, startTime);
-  analyzer.analyze();
+  if (async) {
+    return analyzer.analyzeAsync();
+  } else {
+    return analyzer.analyzeSync();
+  }
 }
 
 typedef ErrorSeverity BatchRunnerHandler(List<String> args);

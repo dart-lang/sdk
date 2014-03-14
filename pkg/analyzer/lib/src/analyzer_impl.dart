@@ -10,13 +10,14 @@ import 'dart:io';
 
 import 'package:path/path.dart' as pathos;
 
-import 'generated/java_io.dart';
+import 'generated/ast.dart';
 import 'generated/engine.dart';
+import 'generated/element.dart';
 import 'generated/error.dart';
-import 'generated/source_io.dart';
+import 'generated/java_io.dart';
 import 'generated/sdk.dart';
 import 'generated/sdk_io.dart';
-import 'generated/element.dart';
+import 'generated/source_io.dart';
 import '../options.dart';
 
 import 'package:analyzer/src/generated/java_core.dart' show JavaSystem;
@@ -38,6 +39,7 @@ class AnalyzerImpl {
   ContentCache contentCache = new ContentCache();
   SourceFactory sourceFactory;
   AnalysisContext context;
+  Source librarySource;
 
   /// All [Source]s references by the analyzed library.
   final Set<Source> sources = new Set<Source>();
@@ -52,9 +54,27 @@ class AnalyzerImpl {
   }
 
   /**
-   * Treats the [sourcePath] as the top level library and analyzes it.
+   * Treats the [sourcePath] as the top level library and analyzes it using a
+   * synchronous algorithm over the analysis engine.
    */
-  void analyze() {
+  ErrorSeverity analyzeSync() {
+    setupForAnalysis();
+    return _analyzeSync();
+  }
+
+  /**
+   * Treats the [sourcePath] as the top level library and analyzes it using a
+   * asynchronous algorithm over the analysis engine.
+   */
+  void analyzeAsync() {
+    setupForAnalysis();
+    _analyzeAsync();
+  }
+
+  /**
+   * Setup local fields such as the analysis context for analysis.
+   */
+  void setupForAnalysis() {
     sources.clear();
     errorInfos.clear();
     if (sourcePath == null) {
@@ -62,27 +82,52 @@ class AnalyzerImpl {
     }
     JavaFile sourceFile = new JavaFile(sourcePath);
     UriKind uriKind = getUriKind(sourceFile);
-    Source librarySource = new FileBasedSource.con2(sourceFile, uriKind);
+    librarySource = new FileBasedSource.con2(sourceFile, uriKind);
 
     // prepare context
     prepareAnalysisContext(sourceFile, librarySource);
-
-    // async perform all tasks in context
-   _analyze();
   }
 
-  void _analyze() {
+  /// The sync version of analysis
+  ErrorSeverity _analyzeSync() {
+    // don't try to analyzer parts
+    var unit = context.parseCompilationUnit(librarySource);
+    var hasLibraryDirective = false;
+    var hasPartOfDirective = false;
+    for (var directive in unit.directives) {
+      if (directive is LibraryDirective) hasLibraryDirective = true;
+      if (directive is PartOfDirective) hasPartOfDirective = true;
+    }
+    if (hasPartOfDirective && !hasLibraryDirective) {
+      print("Only libraries can be analyzed.");
+      print("$sourcePath is a part and can not be analyzed.");
+      return ErrorSeverity.ERROR;
+    }
+    // resolve library
+    var libraryElement = context.computeLibraryElement(librarySource);
+    // prepare source and errors
+    prepareSources(libraryElement);
+    prepareErrors();
+
+    // compute max severity and set exitCode
+    ErrorSeverity status = maxErrorSeverity;
+    if (status == ErrorSeverity.WARNING && options.warningsAreFatal) {
+      status = ErrorSeverity.ERROR;
+    }
+    return status;
+  }
+
+  /// The async version of the analysis
+  void _analyzeAsync() {
     new Future(context.performAnalysisTask).then((AnalysisResult result) {
       List<ChangeNotice> notices = result.changeNotices;
-      // TODO(jwren) change 'notices != null' to 'result.hasMoreWork()' after
-      // next dart translation is landed for the analyzer
-      if (notices != null) {
+      if (result.hasMoreWork) {
         // There is more work, record the set of sources, and then call self
         // again to perform next task
         for (ChangeNotice notice in notices) {
           sources.add(notice.source);
         }
-        return _analyze();
+        return _analyzeAsync();
       }
       //
       // There are not any more tasks, set error code and print performance
@@ -211,6 +256,13 @@ class AnalyzerImpl {
     for (LibraryElement child in library.exportedLibraries) {
       addLibrarySources(child, libraries, units);
     }
+  }
+
+  /// Fills [sources].
+  void prepareSources(LibraryElement library) {
+    var units = new Set<CompilationUnitElement>();
+    var libraries = new Set<LibraryElement>();
+    addLibrarySources(library, libraries, units);
   }
 
   /// Fills [errorInfos] using [sources].
