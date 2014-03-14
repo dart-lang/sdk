@@ -33,7 +33,7 @@ io/directory_fuzz_test: Skip
 # of allowed open files ('ulimit -n' says something like 256).
 io/socket_many_connections_test: Skip
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 typed_array_test: Fail # Issue 13921
 typed_array_int64_uint64_test: Fail # Issue 13921
 typed_data_isolate_test: Skip # This test uses dart:io
@@ -117,7 +117,7 @@ io/file_stat_test: Fail # dartbug.com/17440
 [ $compiler == none && $runtime == dartium && $unchecked ]
 assert_test: Fail # Issue 13719: Please triage this failure.
 
-[ $compiler == none && $runtime == dartium ]
+[ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
 javascript_int_overflow_literal_test/01: Fail # Issue 13719: Please triage this failure.
 javascript_int_overflow_test: Fail # Issue 13719: Please triage this failure.
 
