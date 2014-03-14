@@ -6,10 +6,27 @@ part of dart.collection;
 
 
 /**
- * A linked list implementation, providing O(1) removal(unlink) of elements and
- * manual traversal through [next] and [previous].
+ * A specialized double-linked list of elements that extends [LinkedListEntry].
  *
- * The list elements must extend [LinkedListEntry].
+ * This is not a generic data structure. It only accepts elements that extend
+ * the [LinkedListEntry] class. See the [Queue] implementations for
+ * generic collections that allow constant time adding and removing at the ends.
+ *
+ * This is not a [List] implementation. Despite its name, this class does not
+ * implement the [List] interface. It does not allow constant time lookup by
+ * index.
+ *
+ * Because the elements themselves contain the links of this linked list,
+ * each element can be in only one list at a time. To add an element to another
+ * list, it must first be removed from its current list (if any).
+ *
+ * In return, each element knows its own place in the linked list, as well as
+ * which list it is in. This allows constant time [LinkedListEntry.addAfter],
+ * [LinkedListEntry.addBefore] and [LinkedListEntry.unlink] operations
+ * when all you have is the element.
+ *
+ * A `LinkedList` also allows constant time adding and removing at either end,
+ * and a constant time length getter.
  */
 class LinkedList<E extends LinkedListEntry<E>>
     extends IterableBase<E>
@@ -28,30 +45,33 @@ class LinkedList<E extends LinkedListEntry<E>>
   }
 
   /**
-   * Add [entry] to the beginning of the list.
+   * Add [entry] to the beginning of the linked list.
    */
   void addFirst(E entry) {
     _insertAfter(this, entry);
   }
 
   /**
-   * Add [entry] to the end of the list.
+   * Add [entry] to the end of the linked list.
    */
   void add(E entry) {
     _insertAfter(_previous, entry);
   }
 
   /**
-   * Add [entries] to the end of the list.
+   * Add [entries] to the end of the linked list.
    */
   void addAll(Iterable<E> entries) {
     entries.forEach((entry) => _insertAfter(_previous, entry));
   }
 
   /**
-   * Remove [entry] from the list. This is the same as calling `entry.unlink()`.
+   * Remove [entry] from the linked list.
    *
-   * If [entry] is not in the list, `false` is returned.
+   * Returns false and does nothing if [entry] is not in this linked list.
+   *
+   * This is equivalent to calling `entry.unlink()` if the entry is in this
+   * list.
    */
   bool remove(E entry) {
     if (entry._list != this) return false;
@@ -61,11 +81,11 @@ class LinkedList<E extends LinkedListEntry<E>>
 
   Iterator<E> get iterator => new _LinkedListIterator<E>(this);
 
-  // TODO(zarah) Remove this, and let it be inherited by IterableMixin
-  String toString() => IterableMixinWorkaround.toStringIterable(this, '{', '}');
-
   int get length => _length;
 
+  /**
+   * Remove all elements from this linked list.
+   */
   void clear() {
     _modificationCount++;
     _LinkedListLink next = _next;
@@ -103,9 +123,9 @@ class LinkedList<E extends LinkedListEntry<E>>
   }
 
   /**
-   * Call [action] with each entry in the list.
+   * Call [action] with each entry in this linked list.
    *
-   * It's an error if [action] modify the list.
+   * It's an error if [action] modify the linked list.
    */
   void forEach(void action(E entry)) {
     int modificationCount = _modificationCount;
@@ -183,7 +203,18 @@ class _LinkedListLink {
 
 
 /**
- * Entry element for a [LinkedList]. Any entry must extend this class.
+ * An object that can be an element in a [LinkedList].
+ *
+ * All elements of a `LinkedList` must extend this class.
+ * The class provides the internal links that link elements together
+ * in the `LinkedList`, and a reference to the linked list itself
+ * that an element is currently part of.
+ *
+ * An entry can be in at most one linked list at a time.
+ * While an entry is in a linked list, the [list] property points to that
+ * linked list, and otherwise the `list` property is `null`.
+ *
+ * When created, an entry is not in any linked list.
  */
 abstract class LinkedListEntry<E extends LinkedListEntry<E>>
     implements _LinkedListLink {
@@ -192,27 +223,38 @@ abstract class LinkedListEntry<E extends LinkedListEntry<E>>
   _LinkedListLink _previous;
 
   /**
-   * Get the list containing this element.
+   * Get the linked list containing this element.
+   *
+   * Returns `null` if this entry is not currently in any list.
    */
   LinkedList<E> get list => _list;
 
   /**
-   * Unlink the element from the list.
+   * Unlink the element from its linked list.
+   *
+   * The entry must currently be in a linked list when this method is called.
    */
   void unlink() {
     _list._unlink(this);
   }
 
   /**
-   * Return the succeeding element in the list.
+   * Return the succeessor of this element in its linked list.
+   *
+   * Returns `null` if there is no successor in the linked list, or if this
+   * entry is not currently in any list.
    */
   E get next {
     if (identical(_next, _list)) return null;
-    return _next as E;
+    E result = _next;
+    return result;
   }
 
   /**
-   * Return the preceeding element in the list.
+   * Return the predecessor of this element in its linked list.
+   *
+   * Returns `null` if there is no predecessor in the linked list, or if this
+   * entry is not currently in any list.
    */
   E get previous {
     if (identical(_previous, _list)) return null;
@@ -220,14 +262,20 @@ abstract class LinkedListEntry<E extends LinkedListEntry<E>>
   }
 
   /**
-   * insert an element after this.
+   * Insert an element after this element in this element's linked list.
+   *
+   * This entry must be in a linked list when this method is called.
+   * The [entry] must not be in a linked list.
    */
   void insertAfter(E entry) {
     _list._insertAfter(this, entry);
   }
 
   /**
-   * Insert an element before this.
+   * Insert an element before this element in this element's linked list.
+   *
+   * This entry must be in a linked list when this method is called.
+   * The [entry] must not be in a linked list.
    */
   void insertBefore(E entry) {
     _list._insertAfter(_previous, entry);
