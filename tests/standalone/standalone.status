@@ -104,9 +104,6 @@ oom_error_stacktrace_test: Pass # The test only fails at runtime.
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 
-[ $arch == arm ]
-vmservice/isolate_echo_test: Fail # Issue 17431
-
 [ $arch == simmips || $arch == mips ]
 io/web_socket_test: Pass, Slow
 io/http_server_response_test: Pass, Slow
