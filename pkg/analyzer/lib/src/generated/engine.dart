@@ -9312,7 +9312,7 @@ class WorkManager_WorkIterator {
    *
    * @return `true` if there is another [Source] available for processing
    */
-  bool get hasNext => _queueIndex < _workQueues.length;
+  bool get hasNext => _queueIndex < WorkManager_this._workQueues.length;
 
   /**
    * Return the next [Source] available for processing and advance so that the returned
@@ -9338,7 +9338,7 @@ class WorkManager_WorkIterator {
     if (_index >= WorkManager_this._workQueues[_queueIndex].length) {
       _index = 0;
       _queueIndex++;
-      while (_queueIndex < _workQueues.length && WorkManager_this._workQueues[_queueIndex].isEmpty) {
+      while (_queueIndex < WorkManager_this._workQueues.length && WorkManager_this._workQueues[_queueIndex].isEmpty) {
         _queueIndex++;
       }
     }
