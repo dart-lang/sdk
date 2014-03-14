@@ -1914,8 +1914,15 @@ class SsaBuilder extends ResolvedVisitor {
             assert(isNativeUpgradeFactory);
           } else {
             fields.add(member);
-            constructorArguments.add(
-                potentiallyCheckType(value, member.computeType(compiler)));
+            DartType type = member.computeType(compiler);
+            if (enclosingClass.isMixinApplication) {
+              // TODO(johnniwinther): Add a member-like abstraction for fields
+              // that normalizes this.
+              type = type.substByContext(
+                  enclosingClass.thisType.asInstanceOf(
+                      member.enclosingElement));
+            }
+            constructorArguments.add(potentiallyCheckType(value, type));
           }
         },
         includeSuperAndInjectedMembers: true);
