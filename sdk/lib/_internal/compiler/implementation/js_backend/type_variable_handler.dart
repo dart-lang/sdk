@@ -100,7 +100,8 @@ class TypeVariableHandler {
     if (!enqueuer.isResolutionQueue || typeVariableClasses == null) return;
     backend.enqueueClass(
           enqueuer, typeVariableClass, compiler.globalDependencies);
-    Link constructors = typeVariableClass.ensureResolved(compiler).constructors;
+    typeVariableClass.ensureResolved(compiler);
+    Link constructors = typeVariableClass.constructors;
     if (constructors.isEmpty && constructors.tail.isEmpty) {
       compiler.reportInternalError(
           typeVariableClass,

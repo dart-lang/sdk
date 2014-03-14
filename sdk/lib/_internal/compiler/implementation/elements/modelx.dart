@@ -298,6 +298,8 @@ abstract class ElementX implements Element {
   FunctionElement get targetConstructor => null;
 
   void diagnose(Element context, DiagnosticListener listener) {}
+
+  TreeElements get treeElements => enclosingElement.treeElements;
 }
 
 /**
@@ -577,7 +579,7 @@ class ScopeX {
   }
 }
 
-class CompilationUnitElementX extends ElementX
+class CompilationUnitElementX extends ElementX with AnalyzableElement
     implements CompilationUnitElement {
   final Script script;
   PartOf partTag;
@@ -750,7 +752,8 @@ class ImportScope {
   Element operator [](String name) => importScope[name];
 }
 
-class LibraryElementX extends ElementX implements LibraryElement {
+class LibraryElementX extends ElementX with AnalyzableElement
+    implements LibraryElement {
   final Uri canonicalUri;
   CompilationUnitElement entryCompilationUnit;
   Link<CompilationUnitElement> compilationUnits =
@@ -1044,7 +1047,7 @@ class PrefixElementX extends ElementX implements PrefixElement {
 }
 
 class TypedefElementX extends ElementX
-    with TypeDeclarationElementX<TypedefType>
+    with AnalyzableElement, TypeDeclarationElementX<TypedefType>
     implements TypedefElement {
   Typedef cachedNode;
 
@@ -1056,10 +1059,7 @@ class TypedefElementX extends ElementX
   /// [:true:] if the typedef has been checked for cyclic reference.
   bool hasBeenCheckedForCycles = false;
 
-  bool get isResolved => mapping != null;
-
-  // TODO(johnniwinther): Store the mapping in the resolution enqueuer instead.
-  TreeElements mapping;
+  bool get isResolved => hasTreeElements;
 
   TypedefElementX(String name, Element enclosing)
       : super(name, ElementKind.TYPEDEF, enclosing);
@@ -1124,7 +1124,8 @@ class VariableList {
   DartType computeType(Element element, Compiler compiler) => type;
 }
 
-class VariableElementX extends ElementX implements VariableElement {
+class VariableElementX extends ElementX with AnalyzableElement
+    implements VariableElement {
   final Token token;
   final VariableList variables;
   VariableDefinitions definitionsCache;
@@ -1461,7 +1462,8 @@ class FunctionSignatureX implements FunctionSignature {
   }
 }
 
-class FunctionElementX extends ElementX implements FunctionElement {
+class FunctionElementX extends ElementX with AnalyzableElement
+    implements FunctionElement {
   FunctionExpression cachedNode;
   DartType type;
   final Modifiers modifiers;
@@ -1832,7 +1834,7 @@ abstract class TypeDeclarationElementX<T extends GenericType>
 }
 
 abstract class BaseClassElementX extends ElementX
-    with TypeDeclarationElementX<InterfaceType>
+    with AnalyzableElement, TypeDeclarationElementX<InterfaceType>
     implements ClassElement {
   final int id;
 
@@ -1906,11 +1908,10 @@ abstract class BaseClassElementX extends ElementX
   bool isObject(Compiler compiler) =>
       identical(declaration, compiler.objectClass);
 
-  ClassElement ensureResolved(Compiler compiler) {
+  void ensureResolved(Compiler compiler) {
     if (resolutionState == STATE_NOT_STARTED) {
       compiler.resolver.resolveClass(this);
     }
-    return this;
   }
 
   void setDefaultConstructor(FunctionElement constructor, Compiler compiler);

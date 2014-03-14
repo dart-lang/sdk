@@ -445,7 +445,8 @@ class MirrorUsageBuilder {
     if (type.kind == TypeKind.INTERFACE && library.isInternalLibrary) {
       InterfaceType interface = type;
       ClassElement cls = type.element;
-      for (DartType supertype in cls.ensureResolved(compiler).allSupertypes) {
+      cls.ensureResolved(compiler);
+      for (DartType supertype in cls.allSupertypes) {
         if (supertype.kind == TypeKind.INTERFACE
             && !supertype.element.getLibrary().isInternalLibrary) {
           return interface.asInstanceOf(supertype.element);

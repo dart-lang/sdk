@@ -1295,6 +1295,8 @@ abstract class Compiler implements DiagnosticListener {
            element.isGetter() ||
            element.isSetter(),
            message: 'Unexpected element kind: ${element.kind}'));
+    assert(invariant(element, element is AnalyzableElement,
+        message: 'Element $element is not analyzable.'));
     assert(invariant(element, element.isDeclaration));
     ResolutionEnqueuer world = enqueuer.resolution;
     TreeElements elements = world.getCachedElements(element);

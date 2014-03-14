@@ -295,9 +295,6 @@ stack_trace_test: Fail, OK # Stack trace not preserved in minified code.
 stack_trace_test: Fail, OK # Stack traces not available in IE9.
 deferred_constraints_test/*: Fail, Pass # http://dartbug.com/12635
 
-[ $compiler == dart2js && $host_checked ]
-const_factory_with_body_test/01: Crash
-
 [ ($compiler == dart2js && $csp)]
 deferred_constraints_test/*: Skip # Issue 16898
 
