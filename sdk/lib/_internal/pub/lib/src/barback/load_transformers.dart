@@ -625,7 +625,6 @@ Future _call(SendPort port, message) {
 /// An [AssetNotFoundException] that was originally raised in another isolate. 
 class _CrossIsolateAssetNotFoundException extends dart.CrossIsolateException
     implements AssetNotFoundException {
-  final TransformInfo transform;
   final AssetId id;
 
   String get message => "Could not find asset $id.";
