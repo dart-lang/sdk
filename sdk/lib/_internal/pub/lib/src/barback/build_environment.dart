@@ -233,7 +233,7 @@ class BuildEnvironment {
     return BarbackServer.bind(this, _hostname, 0, null).then((server) {
       transformerServer = server;
 
-      return _provideSources();
+      return log.progress("Loading source assets", _provideSources);
     }).then((_) {
       log.fine("Provided sources.");
       var completer = new Completer();

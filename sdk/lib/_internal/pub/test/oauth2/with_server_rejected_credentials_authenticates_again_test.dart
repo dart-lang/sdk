@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:scheduled_test/scheduled_server.dart';
+import 'package:scheduled_test/scheduled_test.dart';
 
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
@@ -32,7 +33,7 @@ main() {
     });
 
     pub.stderr.expect('OAuth2 authorization failed (your token sucks).');
-    pub.stdout.expect('Uploading...');
+    pub.stdout.expect(startsWith('Uploading...'));
     pub.kill();
   });
 }

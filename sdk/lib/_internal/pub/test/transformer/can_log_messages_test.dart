@@ -4,6 +4,10 @@
 
 library pub_tests;
 
+import 'package:scheduled_test/scheduled_test.dart';
+import 'package:scheduled_test/scheduled_stream.dart';
+
+import '../../lib/src/exit_codes.dart' as exit_codes;
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
@@ -52,19 +56,22 @@ main() {
 
     createLockFile('myapp', pkg: ['barback']);
 
-    schedulePub(args: ["build"],
-        output: """
-Building myapp...
+    var pub = startPub(args: ["build"]);
+    pub.stdout.expect(startsWith("Loading source assets..."));
+    pub.stdout.expect(consumeWhile(matches("Loading .* transformers...")));
+    pub.stdout.expect(startsWith("Building myapp..."));
+
+    pub.stdout.expect(emitsLines("""
 [Rewrite on myapp|web/foo.txt]:
-info!
-""",
-        error: """
+info!"""));
+
+    pub.stderr.expect(emitsLines("""
 [Rewrite on myapp|web/foo.txt with input myapp|web/foo.foo]:
 Warning!
 [Rewrite on myapp|web/foo.txt]:
 http://fake.com/not_real.dart:2:1: ERROR!
-Build failed.
-""",
-        exitCode: 65);
+Build failed."""));
+
+    pub.shouldExit(exit_codes.DATA);
   });
 }

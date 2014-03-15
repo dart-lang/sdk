@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:barback/barback.dart';
 
 import '../barback.dart';
+import '../log.dart' as log;
 import '../package_graph.dart';
 import '../utils.dart';
 import 'build_environment.dart';
@@ -249,7 +250,8 @@ class _TransformerLoader {
 
     // TODO(nweiz): load multiple instances of the same transformer from the
     // same isolate rather than spinning up a separate isolate for each one.
-    return loadTransformers(_environment, _transformerServer, id)
+    return log.progress("Loading $id transformers",
+        () => loadTransformers(_environment, _transformerServer, id))
         .then((transformers) {
       if (!transformers.isEmpty) {
         _transformers[id] = transformers;

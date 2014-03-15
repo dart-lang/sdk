@@ -32,7 +32,7 @@ main() {
       request.response.close();
     });
 
-    pub.stdout.expect(matches(r'Uploading\.\.\.+'));
+    pub.stdout.expect(startsWith('Uploading...'));
     pub.stdout.expect('Package test_pkg 1.0.0 uploaded!');
     pub.shouldExit(exit_codes.SUCCESS);
   });

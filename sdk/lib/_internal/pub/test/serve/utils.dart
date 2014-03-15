@@ -150,6 +150,9 @@ ScheduledProcess pubServe({bool shouldGetFirst: false, bool createWebDir: true,
     _pubServer.stdout.expect(consumeThrough("Got dependencies!"));
   }
 
+  _pubServer.stdout.expect(startsWith("Loading source assets..."));
+  _pubServer.stdout.expect(consumeWhile(matches("Loading .* transformers...")));
+
   // The server should emit one or more ports.
   _pubServer.stdout.expect(
       consumeWhile(predicate(_parsePort, 'emits server url')));

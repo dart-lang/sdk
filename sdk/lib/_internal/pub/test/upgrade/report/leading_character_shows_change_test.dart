@@ -77,7 +77,7 @@ main() {
 
     // Upgrade everything.
     pubUpgrade(output: new RegExp(r"""
-Resolving dependencies\.+
+Resolving dependencies\.\.\..*
 \+ added .*
 \* description_changed .*
 < downgraded .*
