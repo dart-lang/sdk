@@ -25,3 +25,8 @@
   considered to have failed after it finishes running `apply()`. This means that
   its outputs will not be consumed by future transformers and its primary input
   will not be passed through to the next phase.
+
+* If a transform calls `Transform.getInput`, `Transform.readInput`,
+  `Transform.readInputAsString`, or `Transform.hasInput` on an input that
+  doesn't exist, the transform will be re-run if that input is created in the
+  future.

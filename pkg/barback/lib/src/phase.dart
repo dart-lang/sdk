@@ -99,7 +99,7 @@ class Phase {
   /// A phase is considered dirty if any of the previous phases in the same
   /// cascade are dirty, since those phases could emit an asset that this phase
   /// will then need to process.
-  bool get isDirty => (_previous != null && _previous.isDirty) ||
+  bool get isDirty => (previous != null && previous.isDirty) ||
       _inputs.values.any((input) => input.isDirty) ||
       _groups.values.any((group) => group.isDirty);
 
@@ -109,12 +109,12 @@ class Phase {
   final _onLogPool = new StreamPool<LogEntry>.broadcast();
 
   /// The previous phase in the cascade, or null if this is the first phase.
-  final Phase _previous;
+  final Phase previous;
 
-  /// The subscription to [_previous]'s [onDone] stream.
+  /// The subscription to [previous]'s [onDone] stream.
   StreamSubscription _previousOnDoneSubscription;
 
-  /// The subscription to [_previous]'s [onAsset] stream.
+  /// The subscription to [previous]'s [onAsset] stream.
   StreamSubscription<AssetNode> _previousOnAssetSubscription;
 
   /// A map of asset ids to completers for [getInput] requests.
@@ -138,10 +138,10 @@ class Phase {
   Phase(AssetCascade cascade, String location)
       : this._(cascade, location, 0);
 
-  Phase._(this.cascade, this._location, this._index, [this._previous]) {
-    if (_previous != null) {
-      _previousOnAssetSubscription = _previous.onAsset.listen(addInput);
-      _previousOnDoneSubscription = _previous.onDone.listen((_) {
+  Phase._(this.cascade, this._location, this._index, [this.previous]) {
+    if (previous != null) {
+      _previousOnAssetSubscription = previous.onAsset.listen(addInput);
+      _previousOnDoneSubscription = previous.onDone.listen((_) {
         if (!isDirty) _onDoneController.add(null);
       });
     }
@@ -204,33 +204,11 @@ class Phase {
     }
   }
 
-  // TODO(nweiz): If the input is available when this is called, it's
+  // TODO(nweiz): If the output is available when this is called, it's
   // theoretically possible for it to become unavailable between the call and
   // the return. If it does so, it won't trigger the rebuilding process. To
   // avoid this, we should have this and the methods it calls take explicit
   // callbacks, as in [AssetNode.whenAvailable].
-  /// Gets the asset node for an input [id].
-  ///
-  /// If [id] is for a generated or transformed asset, this will wait until it
-  /// has been created and return it. This means that the returned asset will
-  /// always be [AssetState.AVAILABLE].
-  /// 
-  /// If the input cannot be found, returns null.
-  Future<AssetNode> getInput(AssetId id) {
-    return syncFuture(() {
-      if (id.package != cascade.package) return cascade.graph.getAssetNode(id);
-      if (_previous != null) return _previous.getOutput(id);
-      if (!_inputs.containsKey(id)) return null;
-
-      var input = _inputs[id].input;
-      return input.whenAvailable((_) => input).catchError((error) {
-        if (error is! AssetNotFoundException || error.id != id) throw error;
-        // Retry in case the input was replaced.
-        return getInput(id);
-      });
-    });
-  }
-
   /// Gets the asset node for an output [id].
   ///
   /// If [id] is for a generated or transformed asset, this will wait until it

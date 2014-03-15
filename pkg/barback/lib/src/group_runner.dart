@@ -53,8 +53,8 @@ class GroupRunner {
   final _onLogPool = new StreamPool<LogEntry>.broadcast();
 
   GroupRunner(AssetCascade cascade, this._group, this._location) {
-    _addPhase(new Phase(cascade, _location), _group.phases.first);
-    for (var phase in _group.phases.skip(1)) {
+    _addPhase(new Phase(cascade, _location), []);
+    for (var phase in _group.phases) {
       _addPhase(_phases.last.addPhase(), phase);
     }
 

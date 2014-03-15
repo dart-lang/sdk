@@ -40,6 +40,9 @@ class TransformNode {
   /// The subscription to [primary]'s [AssetNode.onStateChange] stream.
   StreamSubscription _primarySubscription;
 
+  /// The subscription to [phase]'s [Phase.onAsset] stream.
+  StreamSubscription<AssetNode> _phaseSubscription;
+
   /// Whether [this] is dirty and still has more processing to do.
   bool get isDirty => !_state.isDone;
 
@@ -47,10 +50,12 @@ class TransformNode {
   bool _isLazy;
 
   /// The subscriptions to each input's [AssetNode.onStateChange] stream.
-  var _inputSubscriptions = new Map<AssetId, StreamSubscription>();
+  final _inputSubscriptions = new Map<AssetId, StreamSubscription>();
 
   /// The controllers for the asset nodes emitted by this node.
-  var _outputControllers = new Map<AssetId, AssetNodeController>();
+  final _outputControllers = new Map<AssetId, AssetNodeController>();
+
+  final _missingInputs = new Set<AssetId>();
 
   /// The controller that's used to pass [primary] through [this] if it's not
   /// consumed or overwritten.
@@ -109,6 +114,10 @@ class TransformNode {
       }
     });
 
+    _phaseSubscription = phase.previous.onAsset.listen((node) {
+      if (_missingInputs.contains(node.id)) _dirty(primaryChanged: false);
+    });
+
     _process();
   }
 
@@ -128,6 +137,7 @@ class TransformNode {
     _onAssetController.close();
     _onDoneController.close();
     _primarySubscription.cancel();
+    _phaseSubscription.cancel();
     _clearInputSubscriptions();
     _clearOutputs();
     if (_passThroughController != null) {
@@ -256,11 +266,14 @@ class TransformNode {
   ///
   /// If an input with [id] cannot be found, throws an [AssetNotFoundException].
   Future<Asset> getInput(AssetId id) {
-    return phase.getInput(id).then((node) {
+    return phase.previous.getOutput(id).then((node) {
       // Throw if the input isn't found. This ensures the transformer's apply
       // is exited. We'll then catch this and report it through the proper
       // results stream.
-      if (node == null) throw new AssetNotFoundException(id);
+      if (node == null) {
+        _missingInputs.add(id);
+        throw new AssetNotFoundException(id);
+      }
 
       _inputSubscriptions.putIfAbsent(node.id, () {
         return node.onStateChange.listen((_) => _dirty(primaryChanged: false));
@@ -384,6 +397,7 @@ class TransformNode {
 
   /// Cancels all subscriptions to secondary input nodes.
   void _clearInputSubscriptions() {
+    _missingInputs.clear();
     for (var subscription in _inputSubscriptions.values) {
       subscription.cancel();
     }

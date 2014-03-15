@@ -48,7 +48,16 @@ class AssetCascade {
   /// one.
   final _loadingSources = new Map<AssetId, CancelableFuture<Asset>>();
 
+  /// The list of phases in this cascade.
+  ///
+  /// This will always contain at least one phase, and the first phase will
+  /// never have any transformers. This ensures that every transformer can
+  /// request inputs from a previous phase.
   final _phases = <Phase>[];
+
+  /// The subscription to the [Phase.onDone] stream of the last [Phase] in
+  /// [_phases].
+  StreamSubscription _phaseOnDoneSubscription;
 
   /// A stream that emits any errors from the cascade or the transformers.
   ///
@@ -169,9 +178,12 @@ class AssetCascade {
   void updateTransformers(Iterable<Iterable> transformersIterable) {
     var transformers = transformersIterable.toList();
 
+    // Always preserve a single phase with no transformers at the beginning of
+    // the cascade so that [TransformNode]s in the first populated phase will
+    // have something to request assets from.
     for (var i = 0; i < transformers.length; i++) {
-      if (_phases.length > i) {
-        _phases[i].updateTransformers(transformers[i]);
+      if (_phases.length > i + 1) {
+        _phases[i + 1].updateTransformers(transformers[i]);
         continue;
       }
 
@@ -180,14 +192,14 @@ class AssetCascade {
       phase.updateTransformers(transformers[i]);
     }
 
-    if (transformers.length == 0) {
-      _phases.last.updateTransformers([]);
-    } else {
-      for (var i = transformers.length; i < _phases.length; i++) {
-        _phases[i].remove();
-      }
-      _phases.removeRange(transformers.length, _phases.length);
+    for (var i = transformers.length + 1; i < _phases.length; i++) {
+      _phases[i].remove();
     }
+    _phases.removeRange(transformers.length + 1, _phases.length);
+
+    _phaseOnDoneSubscription.cancel();
+    _phaseOnDoneSubscription = _phases.last.onDone
+        .listen(_onDoneController.add);
   }
 
   /// Force all [LazyTransformer]s' transforms in this cascade to begin
@@ -205,9 +217,8 @@ class AssetCascade {
   /// Add [phase] to the end of [_phases] and watch its streams.
   void _addPhase(Phase phase) {
     _onLogPool.add(phase.onLog);
-    phase.onDone.listen((_) {
-      if (!isDirty) _onDoneController.add(null);
-    });
+    if (_phaseOnDoneSubscription != null) _phaseOnDoneSubscription.cancel();
+    _phaseOnDoneSubscription = phase.onDone.listen(_onDoneController.add);
 
     _phases.add(phase);
   }
