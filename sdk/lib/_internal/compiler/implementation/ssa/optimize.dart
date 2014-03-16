@@ -1529,30 +1529,70 @@ class SsaTypeConversionInserter extends HBaseVisitor
 
     List<HInstruction> ifUsers = <HInstruction>[];
     List<HInstruction> notIfUsers = <HInstruction>[];
-    for (HInstruction user in instruction.usedBy) {
-      if (user is HIf) {
-        ifUsers.add(user);
-      } else if (user is HNot) {
-        for (HInstruction notUser in user.usedBy) {
-          if (notUser is HIf) notIfUsers.add(notUser);
-        }
-      }
-    }
+
+    collectIfUsers(instruction, ifUsers, notIfUsers);
 
     if (ifUsers.isEmpty && notIfUsers.isEmpty) return;
 
     TypeMask convertedType = new TypeMask.nonNullSubtype(element);
     HInstruction input = instruction.expression;
+
     for (HIf ifUser in ifUsers) {
       changeUsesDominatedBy(ifUser.thenBlock, input, convertedType);
       // TODO(ngeoffray): Also change uses for the else block on a type
       // that knows it is not of a specific type.
     }
-
     for (HIf ifUser in notIfUsers) {
       changeUsesDominatedBy(ifUser.elseBlock, input, convertedType);
       // TODO(ngeoffray): Also change uses for the then block on a type
       // that knows it is not of a specific type.
+    }
+  }
+
+  void visitIdentity(HIdentity instruction) {
+    // At HIf(HIdentity(x, null)) strengthens x to non-null on else branch.
+    HInstruction left = instruction.left;
+    HInstruction right = instruction.right;
+    HInstruction input;
+
+    if (left.isConstantNull()) {
+      input = right;
+    } else if (right.isConstantNull()) {
+      input = left;
+    } else {
+      return;
+    }
+
+    if (!input.instructionType.isNullable) return;
+
+    List<HInstruction> ifUsers = <HInstruction>[];
+    List<HInstruction> notIfUsers = <HInstruction>[];
+
+    collectIfUsers(instruction, ifUsers, notIfUsers);
+
+    if (ifUsers.isEmpty && notIfUsers.isEmpty) return;
+
+    TypeMask nonNullType = input.instructionType.nonNullable();
+
+    for (HIf ifUser in ifUsers) {
+      changeUsesDominatedBy(ifUser.elseBlock, input, nonNullType);
+      // Uses in thenBlock are `null`, but probably not common.
+    }
+    for (HIf ifUser in notIfUsers) {
+      changeUsesDominatedBy(ifUser.thenBlock, input, nonNullType);
+      // Uses in elseBlock are `null`, but probably not common.
+    }
+  }
+
+  collectIfUsers(HInstruction instruction,
+                 List<HInstruction> ifUsers,
+                 List<HInstruction> notIfUsers) {
+    for (HInstruction user in instruction.usedBy) {
+      if (user is HIf) {
+        ifUsers.add(user);
+      } else if (user is HNot) {
+        collectIfUsers(user, notIfUsers, ifUsers);
+      }
     }
   }
 }
