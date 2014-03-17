@@ -1,5 +1,6 @@
-library testLib2.foo;
-import 'temp.dart';
+library test_lib.foo;
+
+import 'test_lib.dart';
 
 /**
  * Doc comment for class [B].

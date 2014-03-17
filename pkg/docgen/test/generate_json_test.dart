@@ -39,14 +39,14 @@ void main() {
         d.matcherFile('index.json', _isJsonMap),
         d.matcherFile('index.txt', _hasSortedLines),
         d.matcherFile('library_list.json', _isJsonMap),
-        d.matcherFile('testLib-bar.C.json', _isJsonMap),
-        d.matcherFile('testLib-bar.json', _isJsonMap),
-        d.matcherFile('testLib.A.json', _isJsonMap),
-        d.matcherFile('testLib.B.json', _isJsonMap),
-        d.matcherFile('testLib.C.json', _isJsonMap),
-        d.matcherFile('testLib.json', _isJsonMap),
-        d.matcherFile('testLib2-foo.B.json', _isJsonMap),
-        d.matcherFile('testLib2-foo.json', _isJsonMap)
+        d.matcherFile('test_lib-bar.C.json', _isJsonMap),
+        d.matcherFile('test_lib-bar.json', _isJsonMap),
+        d.matcherFile('test_lib-foo.B.json', _isJsonMap),
+        d.matcherFile('test_lib-foo.json', _isJsonMap),
+        d.matcherFile('test_lib.A.json', _isJsonMap),
+        d.matcherFile('test_lib.B.json', _isJsonMap),
+        d.matcherFile('test_lib.C.json', _isJsonMap),
+        d.matcherFile('test_lib.json', _isJsonMap),
     ]).validate();
 
   });
@@ -59,12 +59,21 @@ void main() {
     });
 
     schedule(() {
-      var dartCoreJson = new File(p.join(d.defaultRoot, 'docs', 'testLib-bar.json'))
-        .readAsStringSync();
+      var path = p.join(d.defaultRoot, 'docs', 'test_lib-bar.json');
+      var dartCoreJson = new File(path).readAsStringSync();
 
-      var dartCore = JSON.decode(dartCoreJson) as Map<String, dynamic>;
+      var testLibBar = JSON.decode(dartCoreJson) as Map<String, dynamic>;
 
-      var classes = dartCore['classes'] as Map<String, dynamic>;
+      //
+      // Validate function doc references
+      //
+      var generateFoo = testLibBar['functions']['methods']['generateFoo']
+          as Map<String, dynamic>;
+
+      expect(generateFoo['comment'], '<p><a>test_lib-bar.generateFoo.input</a> '
+          'is of type <a>test_lib-bar.C</a> returns an <a>test_lib.A</a>.</p>');
+
+      var classes = testLibBar['classes'] as Map<String, dynamic>;
 
       expect(classes, hasLength(3));
 
@@ -74,13 +83,12 @@ void main() {
       var typeDefs = classes['typedef'] as Map<String, dynamic>;
       var comparator = typeDefs['AnATransformer'] as Map<String, dynamic>;
 
-      var expectedPreview = '<p>A trivial use of <code>A</code> to eliminate '
-          'import warnings.</p>';
+      var expectedPreview = '<p>Processes a [C] instance for testing.</p>';
 
       expect(comparator['preview'], expectedPreview);
 
-      var expectedComment = expectedPreview +
-          '\n<p>And to test typedef preview.</p>';
+      var expectedComment = expectedPreview + '\n'
+          '<p>To eliminate import warnings for [A] and to test typedefs.</p>';
 
       expect(comparator['comment'], expectedComment);
     });

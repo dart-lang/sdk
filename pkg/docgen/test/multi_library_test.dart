@@ -14,7 +14,7 @@ List<Uri> _writeLibFiles() {
 
   codePath = p.join(codePath, 'lib');
 
-  return ['temp.dart', 'temp2.dart', 'temp3.dart']
+  return ['test_lib.dart', 'test_lib_bar.dart', 'test_lib_foo.dart']
       .map((name) => p.join(codePath, name))
       .map(p.toUri)
       .toList();
@@ -26,14 +26,14 @@ void main() {
       var files = _writeLibFiles();
       return getMirrorSystem(files)
         .then((mirrorSystem) {
-          var testLibraryUri = files[0];
-          var library = new Library(mirrorSystem.libraries[testLibraryUri]);
+          var test_libraryUri = files[0];
+          var library = new Library(mirrorSystem.libraries[test_libraryUri]);
 
           /// Testing fixReference
           // Testing Doc comment for class [B].
-          var libraryMirror = mirrorSystem.libraries[testLibraryUri];
+          var libraryMirror = mirrorSystem.libraries[test_libraryUri];
           var classDocComment = library.fixReference('B').children.first.text;
-          expect(classDocComment, 'testLib.B');
+          expect(classDocComment, 'test_lib.B');
 
           // Test for linking to parameter [c]
           var importedLib = libraryMirror.libraryDependencies.firstWhere(
@@ -41,7 +41,7 @@ void main() {
           var aClassMirror =
               dart2js_util.classesOf(importedLib.declarations).first;
           expect(dart2js_util.qualifiedNameOf(aClassMirror),
-                 'testLib2.foo.B');
+                 'test_lib.foo.B');
           var exportedClass = Indexable.getDocgenObject(aClassMirror, library);
           expect(exportedClass is Class, isTrue);
 
@@ -50,17 +50,17 @@ void main() {
           expect(method is Method, isTrue);
           var methodParameterDocComment = method.fixReference(
               'c').children.first.text;
-          expect(methodParameterDocComment, 'testLib.B.doThis.c');
+          expect(methodParameterDocComment, 'test_lib.B.doThis.c');
 
 
-          expect(method.fixReference('A').children.first.text, 'testLib.A');
+          expect(method.fixReference('A').children.first.text, 'test_lib.A');
           // Testing trying to refer to doThis function
           expect(method.fixReference('doThis').children.first.text,
-              'testLib.B.doThis');
+              'test_lib.B.doThis');
 
           // Testing trying to refer to doThis function
           expect(method.fixReference('doElse').children.first.text,
-              'testLib.B.doElse');
+              'test_lib.B.doElse');
 
 
           // Test a third library referencing another exported library in a
@@ -68,21 +68,21 @@ void main() {
           importedLib = libraryMirror.libraryDependencies.firstWhere(
             (dep) => dep.isImport &&
                      dart2js_util.qualifiedNameOf(dep.targetLibrary) ==
-            'testLib.bar').targetLibrary;
+            'test_lib.bar').targetLibrary;
           aClassMirror = dart2js_util.classesOf(importedLib.declarations).first;
           expect(dart2js_util.qualifiedNameOf(aClassMirror),
-                 'testLib.bar.C');
+                 'test_lib.bar.C');
           exportedClass = Indexable.getDocgenObject(aClassMirror, library);
           expect(exportedClass is Class, isTrue);
-          expect(exportedClass.docName, 'testLib.C');
+          expect(exportedClass.docName, 'test_lib.C');
 
           methodParameterDocComment = exportedClass.fixReference(
               'B').children.first.text;
-          expect(methodParameterDocComment, 'testLib.B');
+          expect(methodParameterDocComment, 'test_lib.B');
 
           methodParameterDocComment = exportedClass.fixReference(
               'testFunc').children.first.text;
-          expect(methodParameterDocComment, 'testLib.testFunc');
+          expect(methodParameterDocComment, 'test_lib.testFunc');
 
         });
     });

@@ -22,7 +22,7 @@ import 'package:markdown/markdown.dart' as markdown;
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
-import 'dart2yaml.dart';
+import 'src/dart2yaml.dart';
 import 'src/io.dart';
 import 'src/mdn.dart';
 import 'src/models.dart';

@@ -1,5 +1,10 @@
-library io;
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 /// This is a helper library to make working with io easier.
+library docgen.io;
+
 // TODO(janicejl): listDir, canonicalize, resolveLink, and linkExists are from
 // pub/lib/src/io.dart. If the io.dart file becomes a package, should remove
 // copy of the functions.

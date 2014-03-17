@@ -5,7 +5,7 @@
 /**
  * This library is used to convert data from a map to a YAML string.
  */
-library dart2yaml;
+library docgen.dart2yaml;
 
 /**
  * Gets a String representing the input Map in YAML format.

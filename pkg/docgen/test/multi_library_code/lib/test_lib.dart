@@ -1,8 +1,9 @@
-library testLib;
-import 'temp2.dart';
-import 'temp3.dart';
-export 'temp2.dart';
-export 'temp3.dart';
+library test_lib;
+
+import 'test_lib_foo.dart';
+import 'test_lib_bar.dart';
+export 'test_lib_foo.dart';
+export 'test_lib_bar.dart';
 
 /**
  * Doc comment for class [A].
