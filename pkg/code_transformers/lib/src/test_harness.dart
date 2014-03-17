@@ -117,7 +117,7 @@ class TestHelper implements PackageProvider {
     }).then((_) {
       // We only check messages when an expectation is provided.
       if (messages == null) return;
-      expect(messages.length, messagesSeen,
+      expect(messagesSeen, messages.length,
           reason: 'less messages than expected');
     });
   }

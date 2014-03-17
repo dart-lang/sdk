@@ -161,7 +161,6 @@ main() {
           },
           messages: [
             'error: Unable to find asset for "package:b/b.dart"',
-            'error: Unable to find asset for "package:b/b.dart"',
           ],
           validator: (resolver) {
             var lib = resolver.entryLibrary;
