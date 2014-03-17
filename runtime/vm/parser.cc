@@ -810,10 +810,6 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       node_sequence =
           parser.ParseInvokeFieldDispatcher(func, default_parameter_values);
       break;
-    case RawFunction::kInvokeClosureDispatcher:
-      node_sequence =
-          parser.ParseInvokeClosureDispatcher(func, default_parameter_values);
-      break;
     default:
       UNREACHABLE();
   }
@@ -1401,53 +1397,6 @@ SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func,
   EnsureSavedCurrentContext();
   ClosureCallNode* closure_call = new ClosureCallNode(token_pos,
                                                       getter_call,
-                                                      closure_args);
-
-  ReturnNode* return_node = new ReturnNode(token_pos, closure_call);
-  current_block_->statements->Add(return_node);
-  return CloseBlock();
-}
-
-
-SequenceNode* Parser::ParseInvokeClosureDispatcher(const Function& func,
-                                                   Array& default_values) {
-  TRACE_PARSER("ParseInvokeClosureDispatcher");
-
-  ASSERT(func.IsInvokeClosureDispatcher());
-  intptr_t token_pos = func.token_pos();
-  ASSERT(func.token_pos() == 0);
-  ASSERT(current_class().raw() == func.Owner());
-
-  const Array& args_desc = Array::Handle(func.saved_args_desc());
-  ArgumentsDescriptor desc(args_desc);
-  ASSERT(desc.Count() > 0);
-
-  // Set up scope for this function.
-  BuildDispatcherScope(func, desc, default_values);
-
-  // Receiver is local 0.
-  LocalScope* scope = current_block_->scope;
-  LoadLocalNode* receiver = new LoadLocalNode(token_pos, scope->VariableAt(0));
-
-  // Pass arguments 1..n to the closure call.
-  ArgumentListNode* closure_args = new ArgumentListNode(token_pos);
-  const Array& names = Array::Handle(Array::New(desc.NamedCount(), Heap::kOld));
-  // Positional parameters.
-  intptr_t i = 1;
-  for (; i < desc.PositionalCount(); ++i) {
-    closure_args->Add(new LoadLocalNode(token_pos, scope->VariableAt(i)));
-  }
-  // Named parameters.
-  for (; i < desc.Count(); i++) {
-    closure_args->Add(new LoadLocalNode(token_pos, scope->VariableAt(i)));
-    intptr_t index = i - desc.PositionalCount();
-    names.SetAt(index, String::Handle(desc.NameAt(index)));
-  }
-  closure_args->set_names(names);
-
-  EnsureSavedCurrentContext();
-  ClosureCallNode* closure_call = new ClosureCallNode(token_pos,
-                                                      receiver,
                                                       closure_args);
 
   ReturnNode* return_node = new ReturnNode(token_pos, closure_call);

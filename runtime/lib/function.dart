@@ -7,4 +7,6 @@ class _FunctionImpl implements Function {
   bool operator ==(other) native "FunctionImpl_equals";
 
   int get hashCode native "FunctionImpl_hashCode";
+
+  _FunctionImpl get call => this;
 }
