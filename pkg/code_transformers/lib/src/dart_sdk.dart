@@ -47,3 +47,16 @@ String get dartSdkDirectory {
 
   return null;
 }
+
+/// Variant of [dartSdkDirectory] which includes additional cases only
+/// typically encountered in Dart's testing environment.
+String get testingDartSdkDirectory {
+  var sdkDir = dartSdkDirectory;
+  if (sdkDir == null) {
+    // If we cannot find the SDK dir, then assume this is being run from Dart's
+    // source directory and this script is the main script.
+    sdkDir = path.join(
+        path.dirname(path.fromUri(Platform.script)), '..', '..', '..', 'sdk');
+  }
+  return sdkDir;
+}

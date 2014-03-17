@@ -16,17 +16,8 @@ import 'package:unittest/unittest.dart';
 
 main() {
   useCompactVMConfiguration();
-
-  var sdkDir = dartSdkDirectory;
-  if (sdkDir == null) {
-    // If we cannot find the SDK dir, then assume this is being run from Dart's
-    // source directory and this script is the main script.
-    sdkDir = path.join(
-        path.dirname(path.fromUri(Platform.script)), '..', '..', '..', 'sdk');
-  }
-
   var entryPoint = new AssetId('a', 'web/main.dart');
-  var resolvers = new Resolvers(sdkDir);
+  var resolvers = new Resolvers(testingDartSdkDirectory);
 
   Future validateResolver({Map<String, String> inputs, void validator(Resolver),
       List<String> messages: const[]}) {
@@ -47,7 +38,7 @@ main() {
             var source = resolver.sources[entryPoint];
             expect(source.modificationStamp, 1);
 
-            var lib = resolver.entryLibrary;
+            var lib = resolver.getLibrary(entryPoint);
             expect(lib, isNotNull);
             expect(lib.entryPoint, isNull);
           });
@@ -62,7 +53,7 @@ main() {
             var source = resolver.sources[entryPoint];
             expect(source.modificationStamp, 2);
 
-            var lib = resolver.entryLibrary;
+            var lib = resolver.getLibrary(entryPoint);
             expect(lib, isNotNull);
             expect(lib.entryPoint, isNotNull);
           });
@@ -81,7 +72,7 @@ main() {
               ''',
           },
           validator: (resolver) {
-            var lib = resolver.entryLibrary;
+            var lib = resolver.getLibrary(entryPoint);
             expect(lib.importedLibraries.length, 2);
             var libA = lib.importedLibraries.where((l) => l.name == 'a').single;
             expect(libA.getType('Foo'), isNull);
@@ -102,7 +93,7 @@ main() {
               ''',
           },
           validator: (resolver) {
-            var lib = resolver.entryLibrary;
+            var lib = resolver.getLibrary(entryPoint);
             expect(lib.importedLibraries.length, 2);
             var libA = lib.importedLibraries.where((l) => l.name == 'a').single;
             expect(libA.getType('Foo'), isNotNull);
@@ -122,7 +113,7 @@ main() {
               ''',
           },
           validator: (resolver) {
-            var lib = resolver.entryLibrary;
+            var lib = resolver.getLibrary(entryPoint);
             expect(lib.importedLibraries.length, 2);
             var libB = lib.importedLibraries.where((l) => l.name == 'b').single;
             expect(libB.getType('Foo'), isNull);
@@ -143,7 +134,7 @@ main() {
               ''',
           },
           validator: (resolver) {
-            var lib = resolver.entryLibrary;
+            var lib = resolver.getLibrary(entryPoint);
             expect(lib.importedLibraries.length, 2);
             var libB = lib.importedLibraries.where((l) => l.name == 'b').single;
             expect(libB.getType('Bar'), isNotNull);
@@ -163,7 +154,7 @@ main() {
             'error: Unable to find asset for "package:b/b.dart"',
           ],
           validator: (resolver) {
-            var lib = resolver.entryLibrary;
+            var lib = resolver.getLibrary(entryPoint);
             expect(lib.importedLibraries.length, 1);
           });
     });
@@ -179,13 +170,13 @@ main() {
           },
           messages: [
             // First from the AST walker
-            'error: absolute paths not allowed: "/b.dart" (main.dart 0 14)',
+            'error: absolute paths not allowed: "/b.dart" (web/main.dart 0 14)',
             // Then two from the resolver.
             'error: absolute paths not allowed: "/b.dart"',
             'error: absolute paths not allowed: "/b.dart"',
           ],
           validator: (resolver) {
-            var lib = resolver.entryLibrary;
+            var lib = resolver.getLibrary(entryPoint);
             expect(lib.importedLibraries.length, 1);
           });
     });
@@ -328,7 +319,7 @@ main() {
                 library foo;'''
           },
           validator: (resolver) {
-            expect(resolver.entryLibrary.name, 'foo');
+            expect(resolver.getLibrary(entryPoint).name, 'foo');
           }),
         validateResolver(
           inputs: {
@@ -336,7 +327,7 @@ main() {
                 library bar;'''
           },
           validator: (resolver) {
-            expect(resolver.entryLibrary.name, 'bar');
+            expect(resolver.getLibrary(entryPoint).name, 'bar');
           }),
       ]);
     });

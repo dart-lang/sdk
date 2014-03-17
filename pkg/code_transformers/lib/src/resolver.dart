@@ -14,25 +14,23 @@ import 'package:source_maps/span.dart' show SourceFile, Span;
 
 /// Class for working with a barback based resolved AST.
 abstract class Resolver {
-  /// The Dart entry point file where parsing begins.
-  AssetId get entryPoint;
-
-  /// Update the status of all the sources referenced by the entryPoint and
-  /// update the resolved library.
+  /// Update the status of all the sources referenced by the entry points and
+  /// update the resolved library. If [entryPoints] is omitted, the primary
+  /// asset of [transform] is used as the only entry point.
   ///
   /// [release] must be called when done handling this Resolver to allow it
   /// to be used by later phases.
-  Future<Resolver> resolve(Transform transform);
+  Future<Resolver> resolve(Transform transform, [List<AssetId> entryPoints]);
 
   /// Release this resolver so it can be updated by following transforms.
   void release();
 
-  /// Gets the resolved Dart library for the entry asset, or null if
-  /// the AST has not been resolved.
+  /// Gets the resolved Dart library for an asset, or null if the AST has not
+  /// been resolved.
   ///
   /// If the AST has not been resolved then this normally means that the
   /// transformer hosting this needs to be in an earlier phase.
-  LibraryElement get entryLibrary;
+  LibraryElement getLibrary(AssetId assetId);
 
   /// Gets all libraries accessible from the entry point, recursively.
   ///
@@ -82,6 +80,10 @@ abstract class Resolver {
   /// Get the source span where the specified element was defined or null if
   /// the element came from the Dart SDK.
   Span getSourceSpan(Element element);
+
+  /// Get a [SourceFile] with the contents of the file that defines [element],
+  /// or null if the element came from the Dart SDK.
+  SourceFile getSourceFile(Element element);
 
   /// Creates a text edit transaction for the given element if it is able
   /// to be edited, returns null otherwise.
