@@ -24,6 +24,10 @@ import 'package:yaml/yaml.dart';
 
 import 'dart2yaml.dart';
 import 'src/io.dart';
+import 'src/mdn.dart';
+import 'src/models.dart';
+import 'src/utils.dart';
+
 import '../../../sdk/lib/_internal/compiler/compiler.dart' as api;
 import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirrors.dart'
@@ -44,7 +48,7 @@ const List<String> _SKIPPED_ANNOTATIONS = const [
     '_js_helper.Returns'];
 
 /// Support for [:foo:]-style code comments to the markdown parser.
-List<markdown.InlineSyntax> _MARKDOWN_SYNTAXES =
+final List<markdown.InlineSyntax> _MARKDOWN_SYNTAXES =
   [new markdown.CodeSyntax(r'\[:\s?((?:.|\n)*?)\s?:\]')];
 
 /// If we can't find the SDK introduction text, which will happen if running
@@ -215,29 +219,6 @@ class DummyMirror implements Indexable {
     if (mirror is LibraryMirror) return mirror;
     if (mirror == null) return null;
     return _getOwningLibraryFromMirror(mirror.owner);
-  }
-}
-
-/// Docgen representation of an item to be documented, that wraps around a
-/// dart2js mirror.
-abstract class MirrorBased {
-  /// The original dart2js mirror around which this object wraps.
-  DeclarationMirror get mirror;
-
-  /// Returns a list of meta annotations assocated with a mirror.
-  static List<Annotation> _createAnnotations(DeclarationMirror mirror,
-      Library owningLibrary) {
-    var annotationMirrors = mirror.metadata.where((e) =>
-        e is dart2js_mirrors.Dart2JsConstructedConstantMirror);
-    var annotations = [];
-    annotationMirrors.forEach((annotation) {
-      var docgenAnnotation = new Annotation(annotation, owningLibrary);
-      if (!_SKIPPED_ANNOTATIONS.contains(
-          dart2js_util.qualifiedNameOf(docgenAnnotation.mirror))) {
-        annotations.add(docgenAnnotation);
-      }
-    });
-    return annotations;
   }
 }
 
@@ -862,18 +843,14 @@ abstract class Indexable extends MirrorBased {
   /// when running dart by default.
   static Iterable<LibraryMirror> _sdkLibraries;
 
+  Library get _owningLibrary => owner._owningLibrary;
+
   String get qualifiedName => fileName;
-  bool isPrivate;
-  DeclarationMirror mirror;
+  final DeclarationMirror mirror;
+  final bool isPrivate;
   /// The comment text pre-resolution. We keep this around because inherited
   /// methods need to resolve links differently from the superclass.
   String _unresolvedComment = '';
-
-  // TODO(janicejl): Make MDN content generic or pluggable. Maybe move
-  // MDN-specific code to its own library that is imported into the default
-  // impl?
-  /// Map of all the comments for dom elements from MDN.
-  static Map _mdn;
 
   /// Index of all the dart2js mirrors examined to corresponding MirrorBased
   /// docgen objects.
@@ -884,8 +861,9 @@ abstract class Indexable extends MirrorBased {
   static Map<String, Map<String, Set<Indexable>>> _mirrorToDocgen =
       new Map<String, Map<String, Set<Indexable>>>();
 
-  Indexable(this.mirror) {
-    this.isPrivate = _isHidden(mirror);
+  Indexable(DeclarationMirror mirror)
+      : this.mirror = mirror,
+        this.isPrivate = isHidden(mirror) {
 
     var map = _mirrorToDocgen[dart2js_util.qualifiedNameOf(this.mirror)];
     if (map == null) map = new Map<String, Set<Indexable>>();
@@ -895,12 +873,6 @@ abstract class Indexable extends MirrorBased {
     set.add(this);
     map[owner.docName] = set;
     _mirrorToDocgen[dart2js_util.qualifiedNameOf(this.mirror)] = map;
-  }
-
-  /** Walk up the owner chain to find the owning library. */
-  Library _getOwningLibrary(Indexable indexable) {
-    if (indexable is Library) return indexable;
-    return _getOwningLibrary(indexable.owner);
   }
 
   static _initializeTopLevelLibraries(MirrorSystem mirrorSystem) {
@@ -929,12 +901,6 @@ abstract class Indexable extends MirrorBased {
   /// progressively working outward to the current library scope.
   String findElementInScope(String name) =>
       _findElementInScope(name, packagePrefix);
-
-  /// For a given name, determine if we need to resolve it as a qualified name
-  /// or a simple name in the source mirors.
-  static determineLookupFunc(name) => name.contains('.') ?
-      dart2js_util.lookupQualifiedInScope :
-        (mirror, name) => mirror.lookupInScope(name);
 
   /// The reference to this element based on where it is printed as a
   /// documentation file and also the unique URL to refer to this item.
@@ -985,33 +951,6 @@ abstract class Indexable extends MirrorBased {
 
   /// Generates MDN comments from database.json.
   String _mdnComment();
-
-  /// Generates the MDN Comment for variables and method DOM elements.
-  String _mdnMemberComment(String type, String member) {
-    var mdnType = _mdn[type];
-    if (mdnType == null) return '';
-    var mdnMember = mdnType['members'].firstWhere((e) => e['name'] == member,
-        orElse: () => null);
-    if (mdnMember == null) return '';
-    if (mdnMember['help'] == null || mdnMember['help'] == '') return '';
-    if (mdnMember['url'] == null) return '';
-    return _htmlifyMdn(mdnMember['help'], mdnMember['url']);
-  }
-
-  /// Generates the MDN Comment for class DOM elements.
-  String _mdnTypeComment(String type) {
-    var mdnType = _mdn[type];
-    if (mdnType == null) return '';
-    if (mdnType['summary'] == null || mdnType['summary'] == "") return '';
-    if (mdnType['srcUrl'] == null) return '';
-    return _htmlifyMdn(mdnType['summary'], mdnType['srcUrl']);
-  }
-
-  /// Encloses the given content in an MDN div and the original source link.
-  String _htmlifyMdn(String content, String url) {
-    return '<div class="mdn">' + content.trim() + '<p class="mdn-note">'
-        '<a href="' + url.trim() + '">from Mdn</a></p></div>';
-  }
 
   /// The type of this member to be used in index.txt.
   String get typeName => '';
@@ -1081,7 +1020,7 @@ abstract class Indexable extends MirrorBased {
     // TODO(janicejl): When map to map feature is created, replace the below
     // with a filter. Issue(#9590).
     mirrors.forEach((VariableMirror mirror) {
-      if (_Generator._includePrivate || !_isHidden(mirror)) {
+      if (_Generator._includePrivate || !isHidden(mirror)) {
         var mirrorName = dart2js_util.nameOf(mirror);
         data[mirrorName] = new Variable(mirrorName, mirror, owner);
       }
@@ -1110,7 +1049,7 @@ abstract class Indexable extends MirrorBased {
     var data = {};
     mirrorList.forEach((ParameterMirror mirror) {
       data[dart2js_util.nameOf(mirror)] =
-          new Parameter(mirror, _getOwningLibrary(owner));
+          new Parameter(mirror, owner._owningLibrary);
     });
     return data;
   }
@@ -1128,37 +1067,7 @@ abstract class Indexable extends MirrorBased {
   /// Return a map representation of this type.
   Map toMap();
 
-  /// A declaration is private if itself is private, or the owner is private.
-  // Issue(12202) - A declaration is public even if it's owner is private.
-  bool _isHidden(DeclarationMirror mirror) {
-    if (mirror is LibraryMirror) {
-      return _isLibraryPrivate(mirror);
-    } else if (mirror.owner is LibraryMirror) {
-      return (mirror.isPrivate || _isLibraryPrivate(mirror.owner)
-          || mirror.isNameSynthetic);
-    } else {
-      return (mirror.isPrivate || _isHidden(mirror.owner)
-          || owner.mirror.isNameSynthetic);
-    }
-  }
 
-  /// Returns true if a library name starts with an underscore, and false
-  /// otherwise.
-  ///
-  /// An example that starts with _ is _js_helper.
-  /// An example that contains ._ is dart._collection.dev
-  bool _isLibraryPrivate(LibraryMirror mirror) {
-    // This method is needed because LibraryMirror.isPrivate returns `false` all
-    // the time.
-    var sdkLibrary = LIBRARIES[dart2js_util.nameOf(mirror)];
-    if (sdkLibrary != null) {
-      return !sdkLibrary.documented;
-    } else if (dart2js_util.nameOf(mirror).startsWith('_') ||
-        dart2js_util.nameOf(mirror).contains('._')) {
-      return true;
-    }
-    return false;
-  }
 
   ////// Top level resolution functions
   /// Converts all [foo] references in comments to <a>libraryName.foo</a>.
@@ -1182,11 +1091,11 @@ abstract class Indexable extends MirrorBased {
   /// version of resolvedBar.
   static markdown.Node _fixComplexReference(String name) {
     // Parse into multiple elements we can try to resolve.
-    var tokens = _tokenizeComplexReference(name);
+    var tokens = tokenizeComplexReference(name);
 
     // Produce an html representation of our elements. Group unresolved and
     // plain text are grouped into "link" elements so they display as code.
-    final textElements = [' ', ',', '>', _LESS_THAN];
+    final textElements = [' ', ',', '>', LESS_THAN];
     var accumulatedHtml = '';
 
     for (var token in tokens) {
@@ -1204,43 +1113,6 @@ abstract class Indexable extends MirrorBased {
        }
      }
     return new markdown.Text(accumulatedHtml);
-  }
-
-
-  // HTML escaped version of '<' character.
-  static final _LESS_THAN = '&lt;';
-
-  /// Chunk the provided name into individual parts to be resolved. We take a
-  /// simplistic approach to chunking, though, we break at " ", ",", "&lt;"
-  /// and ">". All other characters are grouped into the name to be resolved.
-  /// As a result, these characters will all be treated as part of the item to
-  /// be resolved (aka the * is interpreted literally as a *, not as an
-  /// indicator for bold <em>.
-  static List<String> _tokenizeComplexReference(String name) {
-    var tokens = [];
-    var append = false;
-    var index = 0;
-    while(index < name.length) {
-      if (name.indexOf(_LESS_THAN, index) == index) {
-        tokens.add(_LESS_THAN);
-        append = false;
-        index += _LESS_THAN.length;
-      } else if (name[index] == ' ' || name[index] == ',' ||
-          name[index] == '>') {
-        tokens.add(name[index]);
-        append = false;
-        index++;
-      } else {
-        if (append) {
-          tokens[tokens.length - 1] = tokens.last + name[index];
-        } else {
-          tokens.add(name[index]);
-          append = true;
-        }
-        index++;
-      }
-    }
-    return tokens;
   }
 
   static String _findElementInScope(String name, String packagePrefix) {
@@ -1278,38 +1150,17 @@ abstract class Indexable extends MirrorBased {
   /// Expand the method map [mapToExpand] into a more detailed map that
   /// separates out setters, getters, constructors, operators, and methods.
   Map _expandMethodMap(Map<String, Method> mapToExpand) => {
-    'setters': recurseMap(_filterMap(mapToExpand,
+    'setters': recurseMap(filterMap(mapToExpand,
         (key, val) => val.mirror.isSetter)),
-    'getters': recurseMap(_filterMap(mapToExpand,
+    'getters': recurseMap(filterMap(mapToExpand,
         (key, val) => val.mirror.isGetter)),
-    'constructors': recurseMap(_filterMap(mapToExpand,
+    'constructors': recurseMap(filterMap(mapToExpand,
         (key, val) => val.mirror.isConstructor)),
-    'operators': recurseMap(_filterMap(mapToExpand,
+    'operators': recurseMap(filterMap(mapToExpand,
         (key, val) => val.mirror.isOperator)),
-    'methods': recurseMap(_filterMap(mapToExpand,
+    'methods': recurseMap(filterMap(mapToExpand,
         (key, val) => val.mirror.isRegularMethod && !val.mirror.isOperator))
   };
-
-  /// Transforms the map by calling toMap on each value in it.
-  Map recurseMap(Map inputMap) {
-    var outputMap = {};
-    inputMap.forEach((key, value) {
-      if (value is Map) {
-        outputMap[key] = recurseMap(value);
-      } else {
-        outputMap[key] = value.toMap();
-      }
-    });
-    return outputMap;
-  }
-
-  Map _filterMap(Map map, Function test) {
-    var exported = new Map();
-    map.forEach((key, value) {
-      if (test(key, value)) exported[key] = value;
-    });
-    return exported;
-  }
 
   /// Accessor to determine if this item and all of its owners are visible.
   bool get _isVisible => _Generator._isFullChainVisible(this);
@@ -1380,6 +1231,8 @@ class Library extends Indexable {
   bool _hasBeenCheckedForPackage = false;
   String packageIntro;
 
+  Library get _owningLibrary => this;
+
   /// Returns the [Library] for the given [mirror] if it has already been
   /// created, else creates it.
   factory Library(LibraryMirror mirror) {
@@ -1428,7 +1281,7 @@ class Library extends Indexable {
   /// Look for the specified name starting with the current member, and
   /// progressively working outward to the current library scope.
   String findElementInScope(String name) {
-    var lookupFunc = Indexable.determineLookupFunc(name);
+    var lookupFunc = determineLookupFunc(name);
     var libraryScope = lookupFunc(mirror, name);
     if (libraryScope != null) {
       var result = Indexable.getDocgenObject(libraryScope, this);
@@ -1569,7 +1422,7 @@ class Library extends Indexable {
 
     // Determine the classes, variables and methods that are exported for a
     // specific dependency.
-    _populateExports(LibraryDependencyMirror export, bool showExport) {
+    void _populateExports(LibraryDependencyMirror export, bool showExport) {
       if (!showExport) {
         // Add all items, and then remove the hidden ones.
         // Ex: "export foo hide bar"
@@ -1667,29 +1520,13 @@ abstract class OwnedIndexable extends Indexable {
 
   /// Generates MDN comments from database.json.
   String _mdnComment() {
-    //Check if MDN is loaded.
-    if (Indexable._mdn == null) {
-      // Reading in MDN related json file.
-      var root = _Generator._rootDirectory;
-      var mdnPath = path.join(root, 'utils/apidoc/mdn/database.json');
-      var mdnFile = new File(mdnPath);
-      if (mdnFile.existsSync()) {
-        Indexable._mdn = JSON.decode(mdnFile.readAsStringSync());
-      } else {
-        _Generator.logger.warning("Cannot find MDN docs expected at $mdnPath");
-        Indexable._mdn = {};
-      }
-    }
     var domAnnotation = this.annotations.firstWhere(
         (e) => e.mirror.qualifiedName == #metadata.DomName,
         orElse: () => null);
     if (domAnnotation == null) return '';
     var domName = domAnnotation.parameters.single;
-    var parts = domName.split('.');
-    if (parts.length == 2) return _mdnMemberComment(parts[0], parts[1]);
-    if (parts.length == 1) return _mdnTypeComment(parts[0]);
 
-    throw new StateError('More than two items is not supported: $parts');
+    return mdnComment(_Generator._rootDirectory, _Generator.logger, domName);
   }
 
   String get packagePrefix => owner.packagePrefix;
@@ -1768,7 +1605,7 @@ class Class extends OwnedIndexable implements Comparable {
         dart2js_util.variablesOf(classMirror.declarations), this);
     methods = _createMethods(classMirror.declarations.values.where(
         (mirror) => mirror is MethodMirror), this);
-    annotations = MirrorBased._createAnnotations(classMirror, _getOwningLibrary(owner));
+    annotations = _createAnnotations(classMirror, owner._owningLibrary);
     generics = _createGenerics(classMirror);
     isAbstract = classMirror.isAbstract;
     inheritedMethods = new Map<String, Method>();
@@ -1784,7 +1621,7 @@ class Class extends OwnedIndexable implements Comparable {
   }
 
   String _lookupInClassAndSuperclasses(String name) {
-    var lookupFunc = Indexable.determineLookupFunc(name);
+    var lookupFunc = determineLookupFunc(name);
     var classScope = this;
     while (classScope != null) {
       var classFunc = lookupFunc(classScope.mirror, name);
@@ -1799,7 +1636,7 @@ class Class extends OwnedIndexable implements Comparable {
   /// Look for the specified name starting with the current member, and
   /// progressively working outward to the current library scope.
   String findElementInScope(String name) {
-    var lookupFunc = Indexable.determineLookupFunc(name);
+    var lookupFunc = determineLookupFunc(name);
     var result = _lookupInClassAndSuperclasses(name);
     if (result != null) {
       return result;
@@ -1951,7 +1788,7 @@ class Typedef extends OwnedIndexable {
     returnType = Indexable.getDocgenObject(mirror.referent.returnType).docName;
     generics = _createGenerics(mirror);
     parameters = _createParameters(mirror.referent.parameters, owningLibrary);
-    annotations = MirrorBased._createAnnotations(mirror, owningLibrary);
+    annotations = _createAnnotations(mirror, owningLibrary);
   }
 
   Map toMap() {
@@ -2003,8 +1840,8 @@ class Variable extends OwnedIndexable {
     isFinal = mirror.isFinal;
     isStatic = mirror.isStatic;
     isConst = mirror.isConst;
-    type = new Type(mirror.type, _getOwningLibrary(owner));
-    annotations = MirrorBased._createAnnotations(mirror, _getOwningLibrary(owner));
+    type = new Type(mirror.type, owner._owningLibrary);
+    annotations = _createAnnotations(mirror, owner._owningLibrary);
   }
 
   String get name => _variableName;
@@ -2032,7 +1869,7 @@ class Variable extends OwnedIndexable {
   }
 
   String findElementInScope(String name) {
-    var lookupFunc = Indexable.determineLookupFunc(name);
+    var lookupFunc = determineLookupFunc(name);
     var result = lookupFunc(mirror, name);
     if (result != null) {
       result = Indexable.getDocgenObject(result);
@@ -2081,9 +1918,9 @@ class Method extends OwnedIndexable {
     isStatic = mirror.isStatic;
     isAbstract = mirror.isAbstract;
     isConst = mirror.isConstConstructor;
-    returnType = new Type(mirror.returnType, _getOwningLibrary(owner));
+    returnType = new Type(mirror.returnType, owner._owningLibrary);
     parameters = _createParameters(mirror.parameters, owner);
-    annotations = MirrorBased._createAnnotations(mirror, _getOwningLibrary(owner));
+    annotations = _createAnnotations(mirror, owner._owningLibrary);
   }
 
   Method get originallyInheritedFrom => methodInheritedFrom == null ?
@@ -2092,7 +1929,7 @@ class Method extends OwnedIndexable {
   /// Look for the specified name starting with the current member, and
   /// progressively working outward to the current library scope.
   String findElementInScope(String name) {
-    var lookupFunc = Indexable.determineLookupFunc(name);
+    var lookupFunc = determineLookupFunc(name);
 
     var memberScope = lookupFunc(this.mirror, name);
     if (memberScope != null) {
@@ -2212,7 +2049,7 @@ class Parameter extends MirrorBased {
         hasDefaultValue = mirror.hasDefaultValue,
         defaultValue = '${mirror.defaultValue}',
         type = new Type(mirror.type, owningLibrary),
-        annotations = MirrorBased._createAnnotations(mirror, owningLibrary);
+        annotations = _createAnnotations(mirror, owningLibrary);
 
   /// Generates a map describing the [Parameter] object.
   Map toMap() => {
@@ -2223,16 +2060,6 @@ class Parameter extends MirrorBased {
     'type': new List.filled(1, type.toMap()),
     'value': defaultValue,
     'annotations': annotations.map((a) => a.toMap()).toList()
-  };
-}
-
-/// A Docgen wrapper around the dart2js mirror for a generic type.
-class Generic extends MirrorBased {
-  final TypeVariableMirror mirror;
-  Generic(this.mirror);
-  Map toMap() => {
-    'name': dart2js_util.nameOf(mirror),
-    'type': dart2js_util.qualifiedNameOf(mirror.upperBound)
   };
 }
 
@@ -2314,4 +2141,20 @@ class Annotation extends MirrorBased {
     'name': Indexable.getDocgenObject(mirror, owningLibrary).docName,
     'parameters': parameters
   };
+}
+
+/// Returns a list of meta annotations assocated with a mirror.
+List<Annotation> _createAnnotations(DeclarationMirror mirror,
+    Library owningLibrary) {
+  var annotationMirrors = mirror.metadata.where((e) =>
+      e is dart2js_mirrors.Dart2JsConstructedConstantMirror);
+  var annotations = [];
+  annotationMirrors.forEach((annotation) {
+    var docgenAnnotation = new Annotation(annotation, owningLibrary);
+    if (!_SKIPPED_ANNOTATIONS.contains(
+        dart2js_util.qualifiedNameOf(docgenAnnotation.mirror))) {
+      annotations.add(docgenAnnotation);
+    }
+  });
+  return annotations;
 }
