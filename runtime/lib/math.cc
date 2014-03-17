@@ -111,6 +111,16 @@ DEFINE_NATIVE_ENTRY(Random_nextState, 1) {
 }
 
 
+RawTypedData* CreateRandomState(Isolate* isolate, uint64_t seed) {
+  const TypedData& result = TypedData::Handle(
+      isolate, TypedData::New(kTypedDataUint32ArrayCid, 2));
+  result.SetUint32(0, static_cast<uint32_t>(seed));
+  result.SetUint32(result.ElementSizeInBytes(),
+                   static_cast<uint32_t>(seed >> 32));
+  return result.raw();
+}
+
+
 uint64_t mix64(uint64_t n) {
   // Thomas Wang 64-bit mix.
   // http://www.concentric.net/~Ttwang/tech/inthash.htm
@@ -135,14 +145,12 @@ uint64_t mix64(uint64_t n) {
 //   if (hash == 0) {
 //     hash = 0x5A17;
 //   }
-//   _state[kSTATE_LO] = hash & _MASK_32;
-//   _state[kSTATE_HI] = hash >> 32;
-DEFINE_NATIVE_ENTRY(Random_setupSeed, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, receiver, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, seed_int, arguments->NativeArgAt(1));
-  const TypedData& array = TypedData::Handle(GetRandomStateArray(receiver));
-  ASSERT(!seed_int.IsNull());
-  ASSERT(!array.IsNull());
+//   var result = new Uint32List(2);
+//   result[kSTATE_LO] = seed & _MASK_32;
+//   result[kSTATE_HI] = seed >> 32;
+//   return result;
+DEFINE_NATIVE_ENTRY(Random_setupSeed, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, seed_int, arguments->NativeArgAt(0));
   uint64_t seed = 0;
   if (seed_int.IsBigint()) {
     const Bigint& mask64 = Bigint::Handle(
@@ -172,18 +180,15 @@ DEFINE_NATIVE_ENTRY(Random_setupSeed, 2) {
   if (seed == 0) {
     seed = 0x5a17;
   }
-  array.SetUint32(0, static_cast<uint32_t>(seed));
-  array.SetUint32(array.ElementSizeInBytes(),
-      static_cast<uint32_t>(seed >> 32));
-  return Object::null();
+  return CreateRandomState(isolate, seed);
 }
 
 
 DEFINE_NATIVE_ENTRY(Random_initialSeed, 0) {
   Random* rnd = isolate->random();
-  int64_t seed = rnd->NextUInt32();
-  seed |= (static_cast<int64_t>(rnd->NextUInt32())) << 32;
-  return Integer::New(seed);
+  uint64_t seed = rnd->NextUInt32();
+  seed |= (static_cast<uint64_t>(rnd->NextUInt32()) << 32);
+  return CreateRandomState(isolate, seed);
 }
 
 }  // namespace dart

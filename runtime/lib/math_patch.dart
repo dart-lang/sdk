@@ -71,34 +71,23 @@ double _log(double x) native "Math_log";
 patch class Random {
 
   /*patch*/ factory Random([int seed]) {
-    if (seed == null) {
-      seed = _Random._nextSeed();
-    }
+    var state = _Random._setupSeed((seed == null) ? _Random._nextSeed() : seed);
     // Crank a couple of times to distribute the seed bits a bit further.
-    return new _Random().._setupSeed(seed)
-                        .._nextState()
-                        .._nextState()
-                        .._nextState()
-                        .._nextState();
+    return new _Random._withState(state).._nextState()
+                                        .._nextState()
+                                        .._nextState()
+                                        .._nextState();
   }
 }
 
 
 class _Random implements Random {
   // Internal state of the random number generator.
-  final _state = new Uint32List(2);
+  final _state;
   static const kSTATE_LO = 0;
   static const kSTATE_HI = 1;
 
-  // Implements:
-  //   do {
-  //     seed = (seed + 0x5A17) & _Random._MASK_64;
-  //   } while (seed == 0);
-  //   _state[kSTATE_LO] = seed & _MASK_32;
-  //   _state[kSTATE_HI] = seed >> 32;
-  // This is a native to prevent 64-bit operations in Dart, which
-  // fail with --throw_on_javascript_int_overflow.
-  void _setupSeed(int seed) native "Random_setupSeed";
+  _Random._withState(Uint32List this._state);
 
   // The algorithm used here is Multiply with Carry (MWC) with a Base b = 2^32.
   // http://en.wikipedia.org/wiki/Multiply-with-carry
@@ -154,9 +143,13 @@ class _Random implements Random {
   static const _A = 0xffffda61;
 
   // Use a singleton Random object to get a new seed if no seed was passed.
-  static var _prng = new Random(_initialSeed());
+  static var _prng = new _Random._withState(_initialSeed());
 
-  static int _initialSeed() native "Random_initialSeed";
+  // This is a native to prevent 64-bit operations in Dart, which
+  // fail with --throw_on_javascript_int_overflow.
+  static Uint32List _setupSeed(int seed) native "Random_setupSeed";
+  // Get a seed from the VM's random number provider.
+  static Uint32List _initialSeed() native "Random_initialSeed";
 
   static int _nextSeed() {
     // Trigger the PRNG once to change the internal state.
