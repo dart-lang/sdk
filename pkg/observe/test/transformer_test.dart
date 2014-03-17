@@ -164,6 +164,7 @@ class _MockTransform implements Transform {
 
   readInput(id) => throw new UnimplementedError();
   readInputAsString(id, {encoding}) => throw new UnimplementedError();
+  hsaInput(id) => throw new UnimplementedError();
 
   static void _mockLogFn(AssetId asset, LogLevel level, String message,
                          span) {
