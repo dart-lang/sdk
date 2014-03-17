@@ -398,15 +398,18 @@ void createPackageSymlink(String name, String target, String symlink,
 bool get runningFromSdk => Platform.script.path.endsWith('.snapshot');
 
 /// Resolves [target] relative to the path to pub's `resource` directory.
-String resourcePath(String target) {
+String assetPath(String target) {
   if (runningFromSdk) {
     return path.join(
-        sdk.rootDirectory, 'lib', '_internal', 'pub', 'resource', target);
+        sdk.rootDirectory, 'lib', '_internal', 'pub', 'asset', target);
   } else {
     return path.join(
-        path.dirname(libraryPath('pub.io')), '..', '..', 'resource', target);
+        path.dirname(libraryPath('pub.io')), '..', '..', 'asset', target);
   }
 }
+
+/// Reads a text file from pub's `resource` directory.
+String readAsset(String target) => readTextFile(assetPath(target));
 
 /// Returns the path to the root of the Dart repository. This will throw a
 /// [StateError] if it's called when running pub from the SDK.
@@ -722,7 +725,7 @@ Future<bool> extractTarGz(Stream<List<int>> stream, String destination) {
 }
 
 String get pathTo7zip {
-  if (runningFromSdk) return resourcePath(path.join('7zip', '7za.exe'));
+  if (runningFromSdk) return assetPath(path.join('7zip', '7za.exe'));
   return path.join(repoRoot, 'third_party', '7zip', '7za.exe');
 }
 

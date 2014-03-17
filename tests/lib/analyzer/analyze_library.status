@@ -27,3 +27,4 @@ lib/web_gl/dart2js/web_gl_dart2js: CompileTimeError # Issue 16524
 lib/web_gl/dartium/web_gl_dartium: CompileTimeError # Issue 16524
 lib/web_sql/dart2js/web_sql_dart2js: CompileTimeError # Issue 16524
 lib/web_sql/dartium/web_sql_dartium: CompileTimeError # Issue 16524
+lib/_internal/pub/asset/*: Skip # Issue 17506
