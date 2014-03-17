@@ -885,7 +885,6 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
  * This class builds SSA nodes for functions represented in AST.
  */
 class SsaBuilder extends ResolvedVisitor {
-  final Compiler compiler;
   final JavaScriptBackend backend;
   final ConstantSystem constantSystem;
   final CodegenWorkItem work;
@@ -964,10 +963,9 @@ class SsaBuilder extends ResolvedVisitor {
   List<HInstruction> stack = <HInstruction>[];
 
   SsaBuilder(JavaScriptBackend backend,
-                    CodegenWorkItem work,
-                    this.nativeEmitter)
+             CodegenWorkItem work,
+             this.nativeEmitter)
     : this.backend = backend,
-      this.compiler = backend.compiler,
       this.constantSystem = backend.constantSystem,
       this.work = work,
       this.rti = backend.rti,
