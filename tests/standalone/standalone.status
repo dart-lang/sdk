@@ -121,11 +121,6 @@ assert_test: Fail # Issue 13719: Please triage this failure.
 javascript_int_overflow_literal_test/01: Fail # Issue 13719: Please triage this failure.
 javascript_int_overflow_test: Fail # Issue 13719: Please triage this failure.
 
-[ $compiler == none && $runtime == drt && $checked]
-javascript_int_overflow_literal_test/01: Pass, Crash # Issue 17525
-javascript_int_overflow_literal_test/none: Pass, Crash # Issue 17525
-javascript_int_overflow_test: Pass, Crash # Issue 17525
-
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 io/directory_invalid_arguments_test: StaticWarning
 io/process_invalid_arguments_test: StaticWarning
