@@ -184,7 +184,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInstruction input = inputs[0];
     if (input is HConstant) {
       HConstant constant = input;
-      bool isTrue = constant.constant.isTrue();
+      bool isTrue = constant.constant.isTrue;
       return graph.addConstantBool(!isTrue, compiler);
     } else if (input is HNot) {
       return input.inputs[0];
@@ -405,7 +405,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (index.isInteger(compiler)) return node;
     if (index.isConstant()) {
       HConstant constantInstruction = index;
-      assert(!constantInstruction.constant.isInt());
+      assert(!constantInstruction.constant.isInt);
       if (!constantSystem.isInt(constantInstruction.constant)) {
         // -0.0 is a double but will pass the runtime integer check.
         node.staticChecks = HBoundsCheck.ALWAYS_FALSE;
@@ -432,8 +432,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // We can only perform this rewriting on Integer, as it is not
     // valid for -0.0.
     if (left.isInteger(compiler) && right.isInteger(compiler)) {
-      if (left is HConstant && left.constant.isZero()) return right;
-      if (right is HConstant && right.constant.isZero()) return left;
+      if (left is HConstant && left.constant.isZero) return right;
+      if (right is HConstant && right.constant.isZero) return left;
     }
     return super.visitAdd(node);
   }
@@ -442,8 +442,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInstruction left = node.left;
     HInstruction right = node.right;
     if (left.isNumber(compiler) && right.isNumber(compiler)) {
-      if (left is HConstant && left.constant.isOne()) return right;
-      if (right is HConstant && right.constant.isOne()) return left;
+      if (left is HConstant && left.constant.isOne) return right;
+      if (right is HConstant && right.constant.isOne) return left;
     }
     return super.visitMultiply(node);
   }
@@ -497,7 +497,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     if (left.isConstantBoolean() && right.isBoolean(compiler)) {
       HConstant constant = left;
-      if (constant.constant.isTrue()) {
+      if (constant.constant.isTrue) {
         return right;
       } else {
         return new HNot(right, backend.boolType);
@@ -506,7 +506,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     if (right.isConstantBoolean() && left.isBoolean(compiler)) {
       HConstant constant = right;
-      if (constant.constant.isTrue()) {
+      if (constant.constant.isTrue) {
         return left;
       } else {
         return new HNot(left, backend.boolType);
@@ -817,7 +817,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (input.isString(compiler)) return input;
     if (input.isConstant()) {
       HConstant constant = input;
-      if (!constant.constant.isPrimitive()) return node;
+      if (!constant.constant.isPrimitive) return node;
       PrimitiveConstant primitive = constant.constant;
       return graph.addConstant(constantSystem.createString(
           primitive.toDartString()), compiler);

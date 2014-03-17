@@ -646,7 +646,7 @@ class TypeGraphInferrerEngine
             Constant value =
                 compiler.constantHandler.getConstantForVariable(element);
             if (value != null) {
-              if (value.isFunction()) {
+              if (value.isFunction) {
                 FunctionConstant functionConstant = value;
                 type = types.allocateClosure(node, functionConstant.element);
               } else {

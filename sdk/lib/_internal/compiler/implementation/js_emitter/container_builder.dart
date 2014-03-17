@@ -103,7 +103,7 @@ class ContainerBuilder extends CodeEmitterHelper {
           if (value == null) {
             argumentsBuffer[count] = task.constantReference(new NullConstant());
           } else {
-            if (!value.isNull()) {
+            if (!value.isNull) {
               // If the value is the null constant, we should not pass it
               // down to the native method.
               indexOfLastOptionalArgumentInParameters = count;

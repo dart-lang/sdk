@@ -119,7 +119,7 @@ class ConstantHandler extends CompilerTask {
             value != null &&
             element.isField()) {
           DartType elementType = element.type;
-          if (elementType.kind == TypeKind.MALFORMED_TYPE && !value.isNull()) {
+          if (elementType.kind == TypeKind.MALFORMED_TYPE && !value.isNull) {
             if (isConst) {
               ErroneousElement element = elementType.element;
               compiler.reportFatalError(
@@ -312,7 +312,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     bool onlyStringKeys = true;
     Constant protoValue = null;
     for (var key in keys) {
-      if (key.isString()) {
+      if (key.isString) {
         if (key.value == MapConstant.PROTO_PROPERTY) {
           protoValue = map[key];
         }
@@ -377,10 +377,10 @@ class CompileTimeConstantEvaluator extends Visitor {
       DartString expressionString;
       if (expression == null) {
         return signalNotCompileTimeConstant(part.expression);
-      } else if (expression.isNum() || expression.isBool()) {
+      } else if (expression.isNum || expression.isBool) {
         PrimitiveConstant primitive = expression;
         expressionString = new DartString.literal(primitive.value.toString());
-      } else if (expression.isString()) {
+      } else if (expression.isString) {
         PrimitiveConstant primitive = expression;
         expressionString = primitive.value;
       } else {
@@ -567,7 +567,7 @@ class CompileTimeConstantEvaluator extends Visitor {
           folded = constantSystem.greaterEqual.fold(left, right);
           break;
         case "==":
-          if (left.isPrimitive() && right.isPrimitive()) {
+          if (left.isPrimitive && right.isPrimitive) {
             folded = constantSystem.equal.fold(left, right);
           }
           break;
@@ -575,7 +575,7 @@ class CompileTimeConstantEvaluator extends Visitor {
           folded = constantSystem.identity.fold(left, right);
           break;
         case "!=":
-          if (left.isPrimitive() && right.isPrimitive()) {
+          if (left.isPrimitive && right.isPrimitive) {
             BoolConstant areEquals = constantSystem.equal.fold(left, right);
             if (areEquals == null) {
               folded = null;
@@ -604,7 +604,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     Constant condition = evaluate(node.condition);
     if (condition == null) {
       return null;
-    } else if (!condition.isBool()) {
+    } else if (!condition.isBool) {
       DartType conditionType = condition.computeType(compiler);
       if (isEvaluatingConstant) {
         compiler.reportFatalError(

@@ -947,7 +947,7 @@ class SimpleTypeInferrerVisitor<T>
                && compiler.world.fieldNeverChanges(element)) {
       var constant =
           compiler.constantHandler.getConstantForVariable(element);
-      if (constant != null && constant.isInt()) {
+      if (constant != null && constant.isInt) {
         return constant.value;
       }
     }

@@ -3094,7 +3094,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         Node argumentNode = node.send.arguments.head;
         Constant name = compiler.constantHandler.compileNodeWithDefinitions(
             argumentNode, mapping, isConst: true);
-        if (!name.isString()) {
+        if (!name.isString) {
           DartType type = name.computeType(compiler);
           compiler.reportError(argumentNode, MessageKind.STRING_EXPECTED,
                                    {'type': type});
@@ -3127,7 +3127,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
   void checkConstMapKeysDontOverrideEquals(Spannable spannable,
                                            MapConstant map) {
     for (Constant key in map.keys.entries) {
-      if (!key.isObject()) continue;
+      if (!key.isObject) continue;
       ObjectConstant objectConstant = key;
       DartType keyType = objectConstant.type;
       ClassElement cls = keyType.element;
@@ -3146,7 +3146,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       Constant constant = compiler.constantHandler.compileNodeWithDefinitions(
           node, mapping, isConst: isConst);
 
-      if (isConst && constant != null && constant.isMap()) {
+      if (isConst && constant != null && constant.isMap) {
         checkConstMapKeysDontOverrideEquals(node, constant);
       }
 
@@ -3155,7 +3155,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       // native class dispatch record referencing the interceptor.
       if (argumentsToJsInterceptorConstant != null &&
           argumentsToJsInterceptorConstant.contains(node)) {
-        if (constant.isType()) {
+        if (constant.isType) {
           TypeConstant typeConstant = constant;
           if (typeConstant.representedType is InterfaceType) {
             world.registerInstantiatedType(typeConstant.representedType,
@@ -3494,13 +3494,13 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   DartType typeOfConstant(Constant constant) {
-    if (constant.isInt()) return compiler.intClass.rawType;
-    if (constant.isBool()) return compiler.boolClass.rawType;
-    if (constant.isDouble()) return compiler.doubleClass.rawType;
-    if (constant.isString()) return compiler.stringClass.rawType;
-    if (constant.isNull()) return compiler.nullClass.rawType;
-    if (constant.isFunction()) return compiler.functionClass.rawType;
-    assert(constant.isObject());
+    if (constant.isInt) return compiler.intClass.rawType;
+    if (constant.isBool) return compiler.boolClass.rawType;
+    if (constant.isDouble) return compiler.doubleClass.rawType;
+    if (constant.isString) return compiler.stringClass.rawType;
+    if (constant.isNull) return compiler.nullClass.rawType;
+    if (constant.isFunction) return compiler.functionClass.rawType;
+    assert(constant.isObject);
     ObjectConstant objectConstant = constant;
     return objectConstant.type;
   }
@@ -3550,7 +3550,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
           } else if (caseType.element == compiler.functionClass) {
             compiler.reportError(node, MessageKind.SWITCH_CASE_FORBIDDEN,
                                  {'type': "Function"});
-          } else if (constant.isObject() && overridesEquals(caseType)) {
+          } else if (constant.isObject && overridesEquals(caseType)) {
             compiler.reportError(firstCase.expression,
                 MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
                 {'type': caseType});

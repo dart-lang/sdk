@@ -12,7 +12,7 @@ class JavaScriptBitNotOperation extends BitNotOperation {
   Constant fold(Constant constant) {
     if (JAVA_SCRIPT_CONSTANT_SYSTEM.isInt(constant)) {
       // In JavaScript we don't check for -0 and treat it as if it was zero.
-      if (constant.isMinusZero()) constant = DART_CONSTANT_SYSTEM.createInt(0);
+      if (constant.isMinusZero) constant = DART_CONSTANT_SYSTEM.createInt(0);
       IntConstant intConstant = constant;
       // We convert the result of bit-operations to 32 bit unsigned integers.
       return JAVA_SCRIPT_CONSTANT_SYSTEM.createInt32(~intConstant.value);
@@ -34,8 +34,8 @@ class JavaScriptBinaryBitOperation implements BinaryOperation {
 
   Constant fold(Constant left, Constant right) {
     // In JavaScript we don't check for -0 and treat it as if it was zero.
-    if (left.isMinusZero()) left = DART_CONSTANT_SYSTEM.createInt(0);
-    if (right.isMinusZero()) right = DART_CONSTANT_SYSTEM.createInt(0);
+    if (left.isMinusZero) left = DART_CONSTANT_SYSTEM.createInt(0);
+    if (right.isMinusZero) right = DART_CONSTANT_SYSTEM.createInt(0);
     IntConstant result = dartBitOperation.fold(left, right);
     if (result != null) {
       // We convert the result of bit-operations to 32 bit unsigned integers.
@@ -52,7 +52,7 @@ class JavaScriptShiftRightOperation extends JavaScriptBinaryBitOperation {
 
   Constant fold(Constant left, Constant right) {
     // Truncate the input value to 32 bits if necessary.
-    if (left.isInt()) {
+    if (left.isInt) {
       IntConstant intConstant = left;
       int value = intConstant.value;
       int truncatedValue = value & JAVA_SCRIPT_CONSTANT_SYSTEM.BITS32;
@@ -81,7 +81,7 @@ class JavaScriptNegateOperation implements UnaryOperation {
   String get name => dartNegateOperation.name;
 
   Constant fold(Constant constant) {
-    if (constant.isInt()) {
+    if (constant.isInt) {
       IntConstant intConstant = constant;
       if (intConstant.value == 0) {
         return JAVA_SCRIPT_CONSTANT_SYSTEM.createDouble(-0.0);
@@ -119,7 +119,7 @@ class JavaScriptIdentityOperation implements BinaryOperation {
     if (result == null || result.value) return result;
     // In JavaScript -0.0 === 0 and all doubles are equal to their integer
     // values. Furthermore NaN !== NaN.
-    if (left.isNum() && right.isNum()) {
+    if (left.isNum && right.isNum) {
       NumConstant leftNum = left;
       NumConstant rightNum = right;
       double leftDouble = leftNum.value.toDouble();
@@ -181,7 +181,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
   }
 
   NumConstant convertToJavaScriptConstant(NumConstant constant) {
-    if (constant.isInt()) {
+    if (constant.isInt) {
       IntConstant intConstant = constant;
       int intValue = intConstant.value;
       if (integerBecomesNanOrInfinity(intValue)) {
@@ -193,11 +193,11 @@ class JavaScriptConstantSystem extends ConstantSystem {
       if (floorValue != intValue) {
         return new IntConstant(floorValue);
       }
-    } else if (constant.isDouble()) {
+    } else if (constant.isDouble) {
       DoubleConstant doubleResult = constant;
       double doubleValue = doubleResult.value;
       if (!doubleValue.isInfinite && !doubleValue.isNaN &&
-          !constant.isMinusZero()) {
+          !constant.isMinusZero) {
         int intValue = doubleValue.truncate();
         if (intValue == doubleValue) {
           return new IntConstant(intValue);
@@ -217,12 +217,12 @@ class JavaScriptConstantSystem extends ConstantSystem {
   NullConstant createNull() => new NullConstant();
 
   // Integer checks don't verify that the number is not -0.0.
-  bool isInt(Constant constant) => constant.isInt() || constant.isMinusZero();
+  bool isInt(Constant constant) => constant.isInt || constant.isMinusZero;
   bool isDouble(Constant constant)
-      => constant.isDouble() && !constant.isMinusZero();
-  bool isString(Constant constant) => constant.isString();
-  bool isBool(Constant constant) => constant.isBool();
-  bool isNull(Constant constant) => constant.isNull();
+      => constant.isDouble && !constant.isMinusZero;
+  bool isString(Constant constant) => constant.isString;
+  bool isBool(Constant constant) => constant.isBool;
+  bool isNull(Constant constant) => constant.isNull;
 
   bool isSubtype(Compiler compiler, DartType s, DartType t) {
     // At runtime, an integer is both an integer and a double: the

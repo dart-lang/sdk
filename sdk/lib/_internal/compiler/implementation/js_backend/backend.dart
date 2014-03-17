@@ -652,14 +652,14 @@ class JavaScriptBackend extends Backend {
     DartType type = constant.computeType(compiler);
     registerInstantiatedConstantType(type, elements);
 
-    if (constant.isFunction()) {
+    if (constant.isFunction) {
       FunctionConstant function = constant;
       compiler.enqueuer.codegen.registerGetOfStaticFunction(function.element);
-    } else if (constant.isInterceptor()) {
+    } else if (constant.isInterceptor) {
       // An interceptor constant references the class's prototype chain.
       InterceptorConstant interceptor = constant;
       registerInstantiatedConstantType(interceptor.dispatchedType, elements);
-    } else if (constant.isType()) {
+    } else if (constant.isType) {
       TypeConstant typeConstant = constant;
       registerTypeLiteral(typeConstant.representedType.element,
           compiler.enqueuer.codegen, elements);
@@ -1820,7 +1820,7 @@ class JavaScriptBackend extends Backend {
     bool hasNoSideEffects = false;
     for (MetadataAnnotation metadata in element.metadata) {
       metadata.ensureResolved(compiler);
-      if (!metadata.value.isConstructedObject()) continue;
+      if (!metadata.value.isConstructedObject) continue;
       ObjectConstant value = metadata.value;
       ClassElement cls = value.type.element;
       if (cls == noInlineClass) {

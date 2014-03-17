@@ -305,7 +305,7 @@ class Namer implements ClosureNamer {
     // In the current implementation it doesn't make sense to give names to
     // function constants since the function-implementation itself serves as
     // constant and can be accessed directly.
-    assert(!constant.isFunction());
+    assert(!constant.isFunction);
     String result = constantNames[constant];
     if (result == null) {
       String longName = constantLongName(constant);
