@@ -13,7 +13,6 @@ import 'dart:mirrors' show MirrorsUsed;
 
 import 'package:logging/logging.dart' show Logger, Level;
 import 'package:observe/observe.dart';
-import 'package:observe/src/observable.dart' show objectType;
 import 'package:smoke/smoke.dart' as smoke;
 
 /// A data-bound path starting from a view-model or model object, for example

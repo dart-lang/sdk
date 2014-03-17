@@ -43,7 +43,7 @@ void _tests() {
       var maxNumIterations = dirty_check.MAX_DIRTY_CHECK_CYCLES;
 
       var x = new WatcherModel(0);
-      var sub = x.changes.listen(expectAsync1((_) { x.value++; },
+      var sub = x.changes.listen(expectAsync((_) { x.value++; },
           count: maxNumIterations));
       x.value = 1;
       Observable.dirtyCheck();
@@ -82,7 +82,7 @@ void _observeTests(createModel(x)) {
   });
 
   test('handle future result', () {
-    var callback = expectAsync0((){});
+    var callback = expectAsync((){});
     return new Future(callback);
   });
 
@@ -106,7 +106,7 @@ void _observeTests(createModel(x)) {
     var t = createModel(123);
     int called = 0;
 
-    subs.add(t.changes.listen(expectAsync1((records) {
+    subs.add(t.changes.listen(expectAsync((records) {
       called++;
       expectPropertyChanges(records, watch ? 1 : 2);
     })));
@@ -120,7 +120,7 @@ void _observeTests(createModel(x)) {
     var t = createModel(123);
     int called = 0;
 
-    subs.add(t.changes.listen(expectAsync1((records) {
+    subs.add(t.changes.listen(expectAsync((records) {
       called++;
       expectPropertyChanges(records, 1);
       if (called == 1) {
@@ -139,8 +139,8 @@ void _observeTests(createModel(x)) {
       expectPropertyChanges(records, watch ? 1 : 2);
     };
 
-    subs.add(t.changes.listen(expectAsync1(verifyRecords)));
-    subs.add(t.changes.listen(expectAsync1(verifyRecords)));
+    subs.add(t.changes.listen(expectAsync(verifyRecords)));
+    subs.add(t.changes.listen(expectAsync(verifyRecords)));
 
     t.value = 41;
     t.value = 42;
@@ -173,7 +173,7 @@ void _observeTests(createModel(x)) {
   test('cancel listening', () {
     var t = createModel(123);
     var sub;
-    sub = t.changes.listen(expectAsync1((records) {
+    sub = t.changes.listen(expectAsync((records) {
       expectPropertyChanges(records, 1);
       sub.cancel();
       t.value = 777;
@@ -185,12 +185,12 @@ void _observeTests(createModel(x)) {
   test('cancel and reobserve', () {
     var t = createModel(123);
     var sub;
-    sub = t.changes.listen(expectAsync1((records) {
+    sub = t.changes.listen(expectAsync((records) {
       expectPropertyChanges(records, 1);
       sub.cancel();
 
-      scheduleMicrotask(expectAsync0(() {
-        subs.add(t.changes.listen(expectAsync1((records) {
+      scheduleMicrotask(expectAsync(() {
+        subs.add(t.changes.listen(expectAsync((records) {
           expectPropertyChanges(records, 1);
         })));
         t.value = 777;

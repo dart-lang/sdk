@@ -78,7 +78,6 @@ import 'package:polymer_expressions/polymer_expressions.dart'
 import 'package:smoke/smoke.dart' as smoke;
 import 'package:smoke/mirrors.dart' as smoke;
 import 'package:template_binding/template_binding.dart';
-import 'package:web_components/polyfill.dart' show customElementsReady;
 
 import 'deserialize.dart' as deserialize;
 import 'src/mirror_loader.dart' as loader; // ** see important note above

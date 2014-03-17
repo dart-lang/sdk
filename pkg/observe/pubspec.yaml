@@ -1,5 +1,5 @@
 name: observe
-version: 0.10.0-pre.2
+version: 0.10.0-pre.3.dev
 author: Polymer.dart Authors <web-ui-dev@dartlang.org>
 description: >
   Observable properties and objects for use in template_binding.
@@ -9,13 +9,13 @@ description: >
   user input into the DOM is immediately assigned to the model.
 homepage: https://www.dartlang.org/polymer-dart/
 dependencies:
-  analyzer: "0.13.0-dev.6"
-  barback: ">=0.9.0 <0.13.0"
-  logging: ">=0.9.0 <0.10.0"
-  path: ">=0.9.0 <2.0.0"
-  smoke: ">=0.1.0-pre.0 <0.2.0"
-  source_maps: ">=0.9.0 <0.10.0"
+  analyzer: 0.13.0-dev.6
+  barback: '>=0.9.0 <0.13.0'
+  logging: '>=0.9.0 <0.10.0'
+  path: '>=0.9.0 <2.0.0'
+  smoke: '>=0.1.0-pre.0 <0.2.0'
+  source_maps: '>=0.9.0 <0.10.0'
 dev_dependencies:
-  unittest: ">=0.10.0 <0.11.0"
+  unittest: '>=0.10.0 <0.11.0'
 environment:
-  sdk: ">=1.2.0 <2.0.0"
+  sdk: '>=1.2.0 <2.0.0'

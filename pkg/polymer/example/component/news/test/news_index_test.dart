@@ -16,13 +16,13 @@ main() {
       .map((n) => n.query('a').href.split('/').last).toList();
 
   test('initial state', () {
-    final listComp = query('ul');
-    final items = listComp.queryAll('li');
+    final listComp = querySelector('ul');
+    final items = listComp.querySelectorAll('li');
     expect(items.length, 6);
     expect(extractLinks(items), ['1', '2', '3', '4', '4', '5']);
     expect(listComp is Polymer, true, reason: 'x-news should be created');
 
-    final contents = listComp.shadowRoot.queryAll('content');
+    final contents = listComp.shadowRoot.querySelectorAll('content');
     expect(contents.length, 2, reason: 'news has 2 content tags');
     expect(extractLinks(contents[0].getDistributedNodes()),
         ['3', '5'], reason: 'breaking stories first');
