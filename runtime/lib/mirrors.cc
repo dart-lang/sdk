@@ -1550,23 +1550,6 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_computeType, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(ClosureMirror_apply, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(1));
-
-  const Array& args_descriptor =
-      Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
-
-  const Object& result =
-      Object::Handle(DartEntry::InvokeClosure(args, args_descriptor));
-  if (result.IsError()) {
-    ThrowInvokeError(Error::Cast(result));
-    UNREACHABLE();
-  }
-  return result.raw();
-}
-
-
 DEFINE_NATIVE_ENTRY(ClosureMirror_find_in_context, 2) {
   if (!FLAG_support_find_in_context) {
     return Object::empty_array().raw();

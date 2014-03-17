@@ -446,40 +446,9 @@ class _LocalClosureMirror extends _LocalInstanceMirror
     return _function;
   }
 
-  // TODO(12602): Remove this special case.
-  delegate(Invocation invocation) {
-    if (invocation.isMethod && (invocation.memberName == #call)) {
-      return this.apply(invocation.positionalArguments,
-                        invocation.namedArguments).reflectee;
-    }
-    return super.delegate(invocation);
-  }
-
   InstanceMirror apply(List<Object> positionalArguments,
                        [Map<Symbol, Object> namedArguments]) {
-    // TODO(12602): When closures get an ordinary call method, this can be
-    // replaced with
-    //   return this.invoke(#call, positionalArguments, namedArguments);
-    // and the native ClosureMirror_apply can be removed.
-    int numPositionalArguments = positionalArguments.length + 1;  // Receiver.
-    int numNamedArguments = namedArguments != null ? namedArguments.length : 0;
-    int numArguments = numPositionalArguments + numNamedArguments;
-    List arguments = new List(numArguments);
-    arguments[0] = _reflectee;  // Receiver.
-    arguments.setRange(1, numPositionalArguments, positionalArguments);
-    List names = new List(numNamedArguments);
-    int argumentIndex = numPositionalArguments;
-    int nameIndex = 0;
-    if (numNamedArguments > 0) {
-      namedArguments.forEach((name, value) {
-        arguments[argumentIndex++] = value;
-        names[nameIndex++] = _n(name);
-      });
-    }
-
-    // It is tempting to implement this in terms of Function.apply, but then
-    // lazy compilation errors would be fatal.
-    return reflect(_apply(arguments, names));
+    return this.invoke(#call, positionalArguments, namedArguments);
   }
 
   InstanceMirror findInContext(Symbol name, {ifAbsent: null}) {
