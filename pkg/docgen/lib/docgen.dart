@@ -358,7 +358,7 @@ class _Generator {
     libs.forEach((lib) {
       // Files belonging to the SDK have a uri that begins with 'dart:'.
       if (includeSdk || !lib.uri.toString().startsWith('dart:')) {
-        var library = generateLibrary(lib);
+        generateLibrary(lib);
       }
     });
 
@@ -379,7 +379,7 @@ class _Generator {
 
     // Outputs a JSON file with all libraries and their preview comments.
     // This will help the viewer know what libraries are available to read in.
-    var libraryMap;
+    Map<String, dynamic> libraryMap;
 
     if (append) {
       var docsDir = listDir(_outputDirectory);
@@ -411,7 +411,7 @@ class _Generator {
 
   /// Output all of the libraries and classes into json or yaml files for
   /// consumption by a viewer.
-  static void _writeOutputFiles(libraryMap,
+  static void _writeOutputFiles(Map<String, dynamic> libraryMap,
       Iterable<Indexable> filteredEntities, bool outputToYaml, bool append,
       String startPage) {
     if (startPage != null) libraryMap['start-page'] = startPage;
@@ -558,8 +558,9 @@ class _Generator {
     for (var arg in args) {
       if (FileSystemEntity.typeSync(arg) == FileSystemEntityType.FILE) {
         if (arg.endsWith('.dart')) {
-          libraries.add(new Uri.file(path.absolute(arg)));
-          logger.info('Added to libraries: ${libraries.last}');
+          var lib = new Uri.file(path.absolute(arg));
+          libraries.add(lib);
+          logger.info('Added to libraries: $lib');
         }
       } else {
         libraries.addAll(_findFilesToDocumentInPackage(arg));
@@ -579,16 +580,16 @@ class _Generator {
         (f) => f.endsWith('.dart') && (!f.contains('${path.separator}packages')
             || packageName.contains('${path.separator}packages'))).toList();
 
-    files.forEach((String f) {
+    files.forEach((String lib) {
       // Only include libraries at the top level of "lib"
-      if (path.basename(path.dirname(f)) == 'lib') {
+      if (path.basename(path.dirname(lib)) == 'lib') {
         // Only add the file if it does not contain 'part of'
         // TODO(janicejl): Remove when Issue(12406) is resolved.
-        var contents = new File(f).readAsStringSync();
+        var contents = new File(lib).readAsStringSync();
         if (!(contents.contains(new RegExp('\npart of ')) ||
             contents.startsWith(new RegExp('part of ')))) {
-          libraries.add(new Uri.file(path.normalize(path.absolute(f))));
-          logger.info('Added to libraries: $f');
+          libraries.add(new Uri.file(path.normalize(path.absolute(lib))));
+          logger.info('Added to libraries: $lib');
         }
       }
     });
@@ -629,11 +630,10 @@ class _Generator {
   }
 
   /// Currently left public for testing purposes. :-/
-  static Library generateLibrary(dart2js_mirrors.Dart2JsLibraryMirror library) {
+  static void generateLibrary(dart2js_mirrors.Dart2JsLibraryMirror library) {
     var result = new Library(library);
-    result._findPackage(library);
+    result._updateLibraryPackage(library);
     logger.fine('Generated library for ${result.name}');
-    return result;
   }
 }
 
@@ -1216,16 +1216,15 @@ abstract class Indexable extends MirrorBased {
 
 /// A class containing contents of a Dart library.
 class Library extends Indexable {
+  final Map<String, Class> classes = {};
+  final Map<String, Typedef> typedefs = {};
+  final Map<String, Class> errors = {};
 
   /// Top-level variables in the library.
   Map<String, Variable> variables;
 
   /// Top-level functions in the library.
   Map<String, Method> functions;
-
-  Map<String, Class> classes = {};
-  Map<String, Typedef> typedefs = {};
-  Map<String, Class> errors = {};
 
   String packageName = '';
   bool _hasBeenCheckedForPackage = false;
@@ -1247,10 +1246,7 @@ class Library extends Indexable {
     var exported = _calcExportedItems(libraryMirror);
     var exportedClasses = _addAll(exported['classes'],
         dart2js_util.typesOf(libraryMirror.declarations));
-    _findPackage(mirror);
-    classes = {};
-    typedefs = {};
-    errors = {};
+    _updateLibraryPackage(mirror);
     exportedClasses.forEach((String mirrorName, TypeMirror mirror) {
         if (mirror is TypedefMirror) {
           // This is actually a Dart2jsTypedefMirror, and it does define value,
@@ -1294,7 +1290,7 @@ class Library extends Indexable {
   String _mdnComment() => '';
 
   /// Helper that maps [mirrors] to their simple name in map.
-  Map _addAll(Map map, Iterable<DeclarationMirror> mirrors) {
+  static Map _addAll(Map map, Iterable<DeclarationMirror> mirrors) {
     for (var mirror in mirrors) {
       map[dart2js_util.nameOf(mirror)] = mirror;
     }
@@ -1305,17 +1301,16 @@ class Library extends Indexable {
   /// believe it came from (because of its file URI).
   ///
   /// If no package could be determined, we return an empty string.
-  String _findPackage(LibraryMirror mirror) {
-    if (mirror == null) return '';
-    if (_hasBeenCheckedForPackage) return packageName;
+  void _updateLibraryPackage(LibraryMirror mirror) {
+    if (mirror == null) return;
+    if (_hasBeenCheckedForPackage) return;
     _hasBeenCheckedForPackage = true;
-    if (mirror.uri.scheme != 'file') return '';
+    if (mirror.uri.scheme != 'file') return;
     packageName = _packageName(mirror);
     // Associate the package readme with all the libraries. This is a bit
     // wasteful, but easier than trying to figure out which partial match
     // is best.
     packageIntro = _packageIntro(_getPackageDirectory(mirror));
-    return packageName;
   }
 
   String _packageIntro(packageDir) {

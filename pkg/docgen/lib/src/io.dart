@@ -13,13 +13,14 @@ import 'dart:collection';
 import 'dart:io';
 import 'package:path/path.dart' as path;
 
-/// Lists the contents of [dir]. If [recursive] is `true`, lists subdirectory
-/// contents (defaults to `false`). If [includeHidden] is `true`, includes files
-/// and directories beginning with `.` (defaults to `false`).
+/// Lists the contents of [dir].
+///
+/// If [recursive] is `true`, lists subdirectory contents (defaults to `false`).
+///
+/// Excludes files and directories beginning with `.`
 ///
 /// The returned paths are guaranteed to begin with [dir].
-List<String> listDir(String dir, {bool recursive: false,
-    bool includeHidden: false}) {
+List<String> listDir(String dir, {bool recursive: false}) {
   List<String> doList(String dir, Set<String> listedDirectories) {
     var contents = <String>[];
 
@@ -32,7 +33,7 @@ List<String> listDir(String dir, {bool recursive: false,
 
     var children = <String>[];
     for (var entity in new Directory(dir).listSync()) {
-      if (!includeHidden && path.basename(entity.path).startsWith('.')) {
+      if (path.basename(entity.path).startsWith('.')) {
         continue;
       }
 

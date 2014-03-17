@@ -32,7 +32,7 @@ void main() {
     schedule(() {
       var codeDir = getMultiLibraryCodePath();
       expect(FileSystemEntity.isDirectorySync(codeDir), isTrue);
-      return dg.docgen(['$codeDir/'], out: p.join(d.defaultRoot, 'docs'));
+      return dg.docgen([codeDir], out: p.join(d.defaultRoot, 'docs'));
     });
 
     d.dir('docs', [
@@ -55,7 +55,7 @@ void main() {
     schedule(() {
       var codeDir = getMultiLibraryCodePath();
       expect(FileSystemEntity.isDirectorySync(codeDir), isTrue);
-      return dg.docgen(['$codeDir/'], out: p.join(d.defaultRoot, 'docs'));
+      return dg.docgen([codeDir], out: p.join(d.defaultRoot, 'docs'));
     });
 
     schedule(() {
