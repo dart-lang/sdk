@@ -60,7 +60,9 @@ class DartBackend extends Backend {
   bool isSafeToRemoveTypeDeclarations(
       Map<ClassElement, Set<Element>> classMembers) {
     ClassElement typeErrorElement = compiler.coreLibrary.find('TypeError');
-    if (classMembers.containsKey(typeErrorElement)) {
+    if (classMembers.containsKey(typeErrorElement) ||
+        compiler.resolverWorld.isChecks.any(
+            (DartType type) => type.element == typeErrorElement)) {
       return false;
     }
     Set<DartType> processedTypes = new Set<DartType>();
