@@ -48,6 +48,7 @@ namespace bin {
   V(Process_Wait, 5)                                                           \
   V(Process_Kill, 3)                                                           \
   V(Process_SetExitCode, 1)                                                    \
+  V(Process_GetExitCode, 0)                                                    \
   V(Process_Exit, 1)                                                           \
   V(Process_Sleep, 1)                                                          \
   V(Process_Pid, 1)                                                            \

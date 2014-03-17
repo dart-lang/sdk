@@ -221,6 +221,11 @@ void FUNCTION_NAME(Process_SetExitCode)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(Process_GetExitCode)(Dart_NativeArguments args) {
+  Dart_SetReturnValue(args, Dart_NewInteger(Process::GlobalExitCode()));
+}
+
+
 void FUNCTION_NAME(Process_Sleep)(Dart_NativeArguments args) {
   int64_t milliseconds = 0;
   // Ignore result if passing invalid argument and just set exit code to 0.

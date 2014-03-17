@@ -125,6 +125,7 @@ patch class _ProcessUtils {
   /* patch */ static void _exit(int status) native "Process_Exit";
   /* patch */ static void _setExitCode(int status)
       native "Process_SetExitCode";
+  /* patch */ static int _getExitCode() native "Process_GetExitCode";
   /* patch */ static void _sleep(int millis) native "Process_Sleep";
   /* patch */ static int _pid(Process process) native "Process_Pid";
   /* patch */ static Stream<ProcessSignal> _watchSignal(ProcessSignal signal) {

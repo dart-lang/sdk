@@ -9,6 +9,7 @@ part of dart.io;
 class _ProcessUtils {
   external static void _exit(int status);
   external static void _setExitCode(int status);
+  external static int _getExitCode();
   external static void _sleep(int millis);
   external static int _pid(Process process);
   external static Stream<ProcessSignal> _watchSignal(ProcessSignal signal);
@@ -49,7 +50,26 @@ void exit(int code) {
 }
 
 /**
- * Global exit code for the Dart VM.
+ * Set the global exit code for the Dart VM.
+ *
+ * The exit code is global for the Dart VM and the last assignment to
+ * exitCode from any isolate determines the exit code of the Dart VM
+ * on normal termination.
+ *
+ * Default value is `0`.
+ *
+ * See [exit] for more information on how to chose a value for the
+ * exit code.
+ */
+void set exitCode(int code) {
+  if (code is !int) {
+    throw new ArgumentError("Integer value for exit code expected");
+  }
+  _ProcessUtils._setExitCode(code);
+}
+
+/*
+ * Get the global exit code for the Dart VM.
  *
  * The exit code is global for the Dart VM and the last assignment to
  * exitCode from any isolate determines the exit code of the Dart VM
@@ -58,12 +78,7 @@ void exit(int code) {
  * See [exit] for more information on how to chose a value for the
  * exit code.
  */
-set exitCode(int code) {
-  if (code is !int) {
-    throw new ArgumentError("Integer value for exit code expected");
-  }
-  _ProcessUtils._setExitCode(code);
-}
+int get exitCode => _ProcessUtils._getExitCode();
 
 /**
  * Sleep for the duration specified in [duration].

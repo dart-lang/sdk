@@ -179,6 +179,9 @@ patch class _ProcessUtils {
   patch static void _setExitCode(int status) {
     throw new UnsupportedError("ProcessUtils._setExitCode");
   }
+  patch static int _getExitCode() {
+    throw new UnsupportedError("ProcessUtils._getExitCode");
+  }
   patch static void _sleep(int millis) {
     throw new UnsupportedError("ProcessUtils._sleep");
   }
