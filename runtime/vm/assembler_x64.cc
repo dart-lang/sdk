@@ -2555,9 +2555,9 @@ void Assembler::PushObject(const Object& object, Register pp) {
 
 void Assembler::CompareObject(Register reg, const Object& object, Register pp) {
   if (CanLoadFromObjectPool(object)) {
-    ASSERT(reg != TMP);
-    LoadObject(TMP, object, pp);
-    cmpq(reg, TMP);
+    const int32_t offset =
+        Array::element_offset(FindObject(object, kNotPatchable));
+    cmpq(reg, Address::Address(pp, offset-kHeapObjectTag));
   } else {
     CompareImmediate(
         reg, Immediate(reinterpret_cast<int64_t>(object.raw())), pp);
