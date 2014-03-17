@@ -590,6 +590,34 @@ abstract class HttpSession implements Map {
  */
 abstract class ContentType implements HeaderValue {
   /**
+   * Content type for plain text using UTF-8 encoding.
+   *
+   *     text/plain; charset=utf-8
+   */
+  static final TEXT = new ContentType("text", "plain", charset: "utf-8");
+
+  /**
+   *  Content type for HTML using UTF-8 encoding.
+   *
+   *     text/html; charset=utf-8
+   */
+  static final HTML = new ContentType("text", "html", charset: "utf-8");
+
+  /**
+   *  Content type for JSON using UTF-8 encoding.
+   *
+   *     application/json; charset=utf-8
+   */
+  static final JSON = new ContentType("application", "json", charset: "utf-8");
+
+  /**
+   *  Content type for binary data.
+   *
+   *     application/octet-stream
+   */
+  static final BINARY = new ContentType("application", "octet-stream");
+
+  /**
    * Creates a new content type object setting the primary type and
    * sub type. The charset and additional parameters can also be set
    * using [charset] and [parameters]. If charset is passed and

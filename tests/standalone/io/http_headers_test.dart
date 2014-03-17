@@ -325,6 +325,12 @@ void testContentType() {
   contentType = ContentType.parse(
       "  text/html  ;  charset  =  utf-8  ;  xxx=yyy  ");
   check(contentType, "text", "html", {"charset": "utf-8", "xxx": "yyy"});
+
+  // Test builtin content types.
+  check(ContentType.TEXT, "text", "plain", {"charset": "utf-8"});
+  check(ContentType.HTML, "text", "html", {"charset": "utf-8"});
+  check(ContentType.JSON, "application", "json", {"charset": "utf-8"});
+  check(ContentType.BINARY, "application", "octet-stream");
 }
 
 void testContentTypeCache() {
