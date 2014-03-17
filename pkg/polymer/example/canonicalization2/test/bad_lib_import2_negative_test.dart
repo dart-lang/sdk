@@ -3,17 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Tests how canonicalization works when using the deployed app.
-library canonicalization.dev3_test;
+library canonicalization.dev2_test;
 
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'package:polymer/polymer.dart';
 
-import 'package:canonicalization/a.dart';
-import 'packages/canonicalization/b.dart';
-import 'package:canonicalization/c.dart';
-import 'package:canonicalization/d.dart' as d1;
-import 'packages/canonicalization/d.dart' as d2;
+import 'package:canonicalization2/a.dart';
+import 'packages/canonicalization2/b.dart';
+import 'package:canonicalization2/c.dart';
+import 'package:canonicalization2/d.dart' as d1;
+import 'packages/canonicalization2/d.dart' as d2;
 
 main() {
   initPolymer();
