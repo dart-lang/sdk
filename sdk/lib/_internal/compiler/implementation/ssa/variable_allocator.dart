@@ -437,16 +437,9 @@ class VariableNames {
     : ownName = new Map<HInstruction, String>(),
       copyHandlers = new Map<HBasicBlock, CopyHandler>(),
       allUsedNames = new Set<String>(),
-      swapTemp = computeFreshWithPrefix("t");
+      swapTemp = 't0';
 
   int get numberOfVariables => allUsedNames.length;
-
-  /** Returns a fresh variable with the given prefix. */
-  static String computeFreshWithPrefix(String prefix) {
-    String name = '${prefix}0';
-    int i = 1;
-    return name;
-  }
 
   String getName(HInstruction instruction) {
     return ownName[instruction];
