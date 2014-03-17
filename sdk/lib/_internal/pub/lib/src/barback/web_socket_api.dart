@@ -287,7 +287,7 @@ class WebSocketApi {
   ///       "path": "example/awesome"
   ///     }
   ///
-  /// If successful, it returns a map containing the URLs that can be used to
+  /// If successful, it returns a map containing the URL that can be used to
   /// access the directory.
   ///
   ///     {
