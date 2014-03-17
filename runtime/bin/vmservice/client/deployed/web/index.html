@@ -175,6 +175,7 @@
       <nav-menu-item link="{{ isolate.relativeHashLink('stacktrace') }}" anchor="stack trace"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeHashLink('profile') }}" anchor="cpu profile"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeHashLink('allocationprofile') }}" anchor="heap profile"></nav-menu-item>
+      <nav-menu-item link="{{ isolate.relativeHashLink('heapmap') }}" anchor="heap map"></nav-menu-item>                     
       <nav-menu-item link="{{ isolate.relativeHashLink('debug/breakpoints') }}" anchor="breakpoints"></nav-menu-item>
       <content></content>
     </nav-menu>
@@ -749,6 +750,23 @@
   </template>
   
 </polymer-element>
+<polymer-element name="heap-map" extends="observatory-element">
+<template>
+  <nav-bar>
+    <top-nav-menu></top-nav-menu>
+    <isolate-nav-menu isolate="{{ fragmentation.isolate }}"></isolate-nav-menu>
+    <nav-menu link="." anchor="heap map" last="{{ true }}"></nav-menu>
+    <nav-refresh callback="{{ refresh }}"></nav-refresh>
+  </nav-bar>
+  <div class="row">
+    <p style="text-align:center">{{ status }}</p>
+  </div>
+  <div class="row">
+    <canvas id="fragmentation" width="1px" height="1px"></canvas>
+  </div>
+</template>
+
+</polymer-element>
 <polymer-element name="script-ref" extends="service-ref">
 <template>
   <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
@@ -818,6 +836,7 @@
         <a href="{{ isolate.relativeHashLink('allocationprofile') }}">
           {{ isolate.newHeapUsed | formatSize }}/{{ isolate.oldHeapUsed | formatSize }}
         </a>
+        (<a href="{{ isolate.relativeHashLink('heapmap') }}">map</a>)
       </div>
       <div class="col-md-2">
         <template if="{{ isolate.topFrame == null }}">

@@ -66,6 +66,7 @@
         <a href="{{ isolate.relativeHashLink('allocationprofile') }}">
           {{ isolate.newHeapUsed | formatSize }}/{{ isolate.oldHeapUsed | formatSize }}
         </a>
+        (<a href="{{ isolate.relativeHashLink('heapmap') }}">map</a>)
       </div>
       <div class="col-md-2">
         <template if="{{ isolate.topFrame == null }}">

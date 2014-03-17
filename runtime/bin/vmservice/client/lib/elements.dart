@@ -19,6 +19,7 @@ export 'package:observatory/src/elements/instance_view.dart';
 export 'package:observatory/src/elements/isolate_list.dart';
 export 'package:observatory/src/elements/isolate_summary.dart';
 export 'package:observatory/src/elements/isolate_profile.dart';
+export 'package:observatory/src/elements/heap_map.dart';
 export 'package:observatory/src/elements/heap_profile.dart';
 export 'package:observatory/src/elements/json_view.dart';
 export 'package:observatory/src/elements/library_ref.dart';

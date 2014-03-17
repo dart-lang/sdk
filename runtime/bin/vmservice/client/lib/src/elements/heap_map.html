@@ -1,0 +1,22 @@
+<head>
+  <link rel="import" href="class_ref.html">
+  <link rel="import" href="observatory_element.html">
+  <link rel="import" href="nav_bar.html">
+</head>
+<polymer-element name="heap-map" extends="observatory-element">
+<template>
+  <nav-bar>
+    <top-nav-menu></top-nav-menu>
+    <isolate-nav-menu isolate="{{ fragmentation.isolate }}"></isolate-nav-menu>
+    <nav-menu link="." anchor="heap map" last="{{ true }}"></nav-menu>
+    <nav-refresh callback="{{ refresh }}"></nav-refresh>
+  </nav-bar>
+  <div class="row">
+    <p style="text-align:center">{{ status }}</p>
+  </div>
+  <div class="row">
+    <canvas id="fragmentation" width="1px" height="1px"></canvas>
+  </div>
+</template>
+<script type="application/dart" src="heap_map.dart"></script>
+</polymer-element>
