@@ -18,3 +18,6 @@ dart2js_test: Skip # Uses dart:io.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 source_mirrors_test: StaticWarning # Issue 17264
+
+[ $compiler == dart2js && $mode == debug ]
+source_mirrors_test: Slow, Pass

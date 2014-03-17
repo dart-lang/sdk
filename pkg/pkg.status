@@ -376,3 +376,6 @@ stack_trace/test/vm_test: PubGetError
 
 [ $runtime == ie9 ]
 polymer: Pass, Fail, Timeout # Issue 16717
+
+[ $compiler == dart2js && $mode == debug ]
+docgen/test/single_library_test: Slow, Pass

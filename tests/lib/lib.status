@@ -315,3 +315,6 @@ mirrors/removed_api_test: StaticWarning, OK # Deliberately refers to undeclared 
 
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
 mirrors/*deferred*: Skip # Issue 17458
+
+[ $compiler == dart2js && $mode == debug ]
+mirrors/native_class_test: Pass, Slow
