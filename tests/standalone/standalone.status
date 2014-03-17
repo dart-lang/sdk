@@ -47,7 +47,7 @@ issue14236_test: Skip # Issue 14236 Script snapshots do not work in the browser.
 
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
-javascript_int_overflow_literal_test/01: fail, ok
+javascript_int_overflow_literal_test/01: Fail, OK
 issue14236_test: Skip # Analyzer can't handle Script snapshots.
 
 # test issue https://code.google.com/p/dart/issues/detail?id=11518
@@ -120,6 +120,11 @@ assert_test: Fail # Issue 13719: Please triage this failure.
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
 javascript_int_overflow_literal_test/01: Fail # Issue 13719: Please triage this failure.
 javascript_int_overflow_test: Fail # Issue 13719: Please triage this failure.
+
+[ $compiler == none && $runtime == drt && $checked]
+javascript_int_overflow_literal_test/01: Pass, Crash # Issue 17525
+javascript_int_overflow_literal_test/none: Pass, Crash # Issue 17525
+javascript_int_overflow_test: Pass, Crash # Issue 17525
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 io/directory_invalid_arguments_test: StaticWarning
