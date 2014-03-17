@@ -21,15 +21,10 @@ abstract class ObjectMirrorMixin implements ObjectMirror {
 }
 
 abstract class InstanceMirrorMixin implements InstanceMirror {
-
   bool get hasReflectee => false;
 
   get reflectee {
     throw new UnsupportedError('InstanceMirror.reflectee unsupported.');
-  }
-
-  Function operator [](Symbol name) {
-    throw new UnsupportedError('InstanceMirror.operator [] unsupported.');
   }
 
   delegate(Invocation invocation) {
@@ -68,8 +63,7 @@ InstanceMirror _convertConstantToInstanceMirror(
 ////////////////////////////////////////////////////////////////////////////////
 
 class Dart2JsConstantMirror extends Object
-    with ObjectMirrorMixin, InstanceMirrorMixin
-    implements InstanceMirror {
+    with ObjectMirrorMixin, InstanceMirrorMixin {
   final Dart2JsMirrorSystem mirrorSystem;
   final Constant _constant;
 

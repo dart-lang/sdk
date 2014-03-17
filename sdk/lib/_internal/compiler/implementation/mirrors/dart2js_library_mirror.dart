@@ -153,6 +153,8 @@ class Dart2JsLibraryDependencyMirror implements LibraryDependencySourceMirror {
   bool get isImport => _node.asImport() != null;
 
   bool get isExport => _node.asExport() != null;
+
+  List<InstanceMirror> get metadata => const <InstanceMirror>[];
 }
 
 class Dart2JsCombinatorMirror implements CombinatorSourceMirror {

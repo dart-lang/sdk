@@ -167,8 +167,7 @@ abstract class Dart2JsGenericTypeMirror extends Dart2JsTypeMirror {
 
 class Dart2JsInterfaceTypeMirror
     extends Dart2JsGenericTypeMirror
-    with ObjectMirrorMixin, InstanceMirrorMixin, ClassMirrorMixin,
-         ContainerMixin
+    with ObjectMirrorMixin, ClassMirrorMixin, ContainerMixin
     implements ClassMirror {
   Dart2JsInterfaceTypeMirror(Dart2JsMirrorSystem system,
                              InterfaceType interfaceType)
@@ -255,7 +254,7 @@ class Dart2JsClassDeclarationMirror
       Dart2JsClassDeclarationMirror otherDeclaration =
           other.originalDeclaration;
       return _element.isSubclassOf(otherDeclaration._element);
-    } else if (other is TypeMirror) {
+    } else if (other is FunctionTypeMirror) {
       return false;
     }
     throw new ArgumentError(other);
@@ -351,8 +350,7 @@ class Dart2JsTypeVariableMirror extends Dart2JsTypeMirror
 }
 
 class Dart2JsFunctionTypeMirror extends Dart2JsTypeMirror
-    with ObjectMirrorMixin, InstanceMirrorMixin,
-         ClassMirrorMixin, DeclarationMixin
+    with ObjectMirrorMixin, ClassMirrorMixin, DeclarationMixin
     implements FunctionTypeMirror {
   final FunctionSignature _functionSignature;
   List<ParameterMirror> _parameters;
