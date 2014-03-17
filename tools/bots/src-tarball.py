@@ -11,11 +11,16 @@ Package up the src of the dart repo and create a debian package.
 Archive tarball and debian package to google cloud storage.
 """
 
+import os
 import re
 import sys
 
 import bot
+import bot_utils
 
+utils = bot_utils.GetUtils()
+
+HOST_OS = utils.GuessOS()
 SRC_BUILDER = r'src-tarball-linux'
 
 def SrcConfig(name, is_buildbot):
@@ -32,12 +37,26 @@ def SrcConfig(name, is_buildbot):
   return bot.BuildInfo('none', 'none', 'release', 'linux')
 
 def SrcSteps(build_info):
+  # We always clobber the bot, to not leave old tarballs and packages
+  # floating around the out dir.
+  bot.Clobber(force=True)
   with bot.BuildStep('Create src tarball'):
-    args = [sys.executable, './tools/create_tarball.py']
+    version = utils.GetVersion()
+    builddir = os.path.join(bot_utils.DART_DIR,
+                            utils.GetBuildDir(HOST_OS, HOST_OS),
+                            'src_and_installation')
+    if not os.path.exists(builddir):
+      os.makedirs(builddir)
+    tarfilename = 'dart-%s.tar.gz' % version
+    tarfile = os.path.join(builddir, tarfilename)
+    args = [sys.executable, './tools/create_tarball.py', '--tar_filename',
+            tarfile]
     print 'Building src tarball'
     bot.RunProcess(args)
     print 'Building Debian packages'
-    args = [sys.executable, './tools/create_debian_packages.py']
+    args = [sys.executable, './tools/create_debian_packages.py',
+            '--tar_filename', tarfile,
+            '--out_dir', builddir]
     bot.RunProcess(args)
 
 if __name__ == '__main__':

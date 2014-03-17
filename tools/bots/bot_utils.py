@@ -7,6 +7,7 @@
 import hashlib
 import imp
 import os
+import string
 import subprocess
 import sys
 
@@ -312,3 +313,11 @@ def CreateChecksumFile(filename, mangled_filename=None):
     f.write('%s *%s' % (checksum, mangled_filename))
 
   return checksum_filename
+
+def GetChannelFromName(name):
+  """Get the channel from the name. Bleeding edge builders don't 
+      have a suffix."""
+  channel_name = string.split(name, '-').pop()
+  if channel_name in Channel.ALL_CHANNELS:
+    return channel_name
+  return Channel.BLEEDING_EDGE
