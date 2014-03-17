@@ -148,6 +148,11 @@ Map _serializeTransform(Transform transform) {
         return null;
       }
 
+      if (message['type'] == 'consumePrimary') {
+        transform.consumePrimary();
+        return null;
+      }
+
       assert(message['type'] == 'log');
       var method;
       if (message['level'] == 'Info') {

@@ -109,11 +109,22 @@ class ForeignTransform implements Transform {
   Stream<List<int>> readInput(AssetId id) =>
       _futureStream(getInput(id).then((input) => input.read()));
 
+  Future<bool> hasInput(AssetId id) {
+    return getInput(id).then((_) => true).catchError((error) {
+      if (error is AssetNotFoundException && error.id == id) return false;
+      throw error;
+    });
+  }
+
   void addOutput(Asset output) {
     _call(_port, {
       'type': 'addOutput',
       'output': serializeAsset(output)
     });
+  }
+
+  void consumePrimary() {
+    _call(_port, {'type': 'consumePrimary'});
   }
 }
 
