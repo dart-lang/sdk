@@ -20,6 +20,8 @@ import 'generated/sdk_io.dart';
 import 'generated/source_io.dart';
 import '../options.dart';
 
+import 'dart:collection';
+
 import 'package:analyzer/src/generated/java_core.dart' show JavaSystem;
 import 'package:analyzer/src/error_formatter.dart';
 
@@ -46,6 +48,9 @@ class AnalyzerImpl {
 
   /// All [AnalysisErrorInfo]s in the analyzed library.
   final List<AnalysisErrorInfo> errorInfos = new List<AnalysisErrorInfo>();
+
+  /// [HashMap] between sources and analysis error infos.
+  final HashMap<Source, AnalysisErrorInfo> sourceErrorsMap = new HashMap<Source, AnalysisErrorInfo>();
 
   AnalyzerImpl(this.sourcePath, this.options, this.startTime) {
     if (sdk == null) {
@@ -129,6 +134,7 @@ class AnalyzerImpl {
         // again to perform next task
         for (ChangeNotice notice in notices) {
           sources.add(notice.source);
+          sourceErrorsMap[notice.source] = notice;
         }
         return _analyzeAsync();
       }
@@ -137,7 +143,9 @@ class AnalyzerImpl {
       // numbers.
       //
       // prepare errors
-      prepareErrors();
+      sourceErrorsMap.forEach((k,v) {
+        errorInfos.add(sourceErrorsMap[k]);
+      });
 
       // print errors and performance numbers
       _printErrorsAndPerf();
