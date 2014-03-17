@@ -12,14 +12,13 @@ import "dart:io";
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:path/path.dart";
 
-const HOST_NAME = "localhost";
+InternetAddress HOST;
 const CERTIFICATE = "localhost_cert";
 
 void testSimpleBind() {
   asyncStart();
-  RawSecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((s) {
+  RawSecureServerSocket.bind(HOST, 0, CERTIFICATE).then((s) {
     Expect.isTrue(s.port > 0);
     s.close();
     asyncEnd();
@@ -49,8 +48,8 @@ void testInvalidBind() {
 
   // Bind to a port already in use.
   asyncStart();
-  RawSecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((s) {
-    RawSecureServerSocket.bind(HOST_NAME,
+  RawSecureServerSocket.bind(HOST, 0, CERTIFICATE).then((s) {
+    RawSecureServerSocket.bind(HOST,
                                s.port,
                                CERTIFICATE).then((t) {
       s.close();
@@ -67,8 +66,8 @@ void testInvalidBind() {
 
 void testSimpleConnect(String certificate) {
   asyncStart();
-  RawSecureServerSocket.bind(HOST_NAME, 0, certificate).then((server) {
-    var clientEndFuture = RawSecureSocket.connect(HOST_NAME, server.port);
+  RawSecureServerSocket.bind(HOST, 0, certificate).then((server) {
+    var clientEndFuture = RawSecureSocket.connect(HOST, server.port);
     server.listen((serverEnd) {
       clientEndFuture.then((clientEnd) {
         clientEnd.shutdown(SocketDirection.SEND);
@@ -82,8 +81,8 @@ void testSimpleConnect(String certificate) {
 
 void testSimpleConnectFail(String certificate, bool cancelOnError) {
   asyncStart();
-  RawSecureServerSocket.bind(HOST_NAME, 0, certificate).then((server) {
-    var clientEndFuture = RawSecureSocket.connect(HOST_NAME, server.port)
+  RawSecureServerSocket.bind(HOST, 0, certificate).then((server) {
+    var clientEndFuture = RawSecureSocket.connect(HOST, server.port)
       .then((clientEnd) {
         Expect.fail("No client connection expected.");
       })
@@ -107,9 +106,9 @@ void testSimpleConnectFail(String certificate, bool cancelOnError) {
 
 void testServerListenAfterConnect() {
   asyncStart();
-  RawSecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((server) {
+  RawSecureServerSocket.bind(HOST, 0, CERTIFICATE).then((server) {
     Expect.isTrue(server.port > 0);
-    var clientEndFuture = RawSecureSocket.connect(HOST_NAME, server.port);
+    var clientEndFuture = RawSecureSocket.connect(HOST, server.port);
     new Timer(const Duration(milliseconds: 500), () {
       server.listen((serverEnd) {
         clientEndFuture.then((clientEnd) {
@@ -423,13 +422,13 @@ void testSimpleReadWrite({bool listenSecure,
 
   Future<RawSecureSocket> connectClient(int port) {
     if (connectSecure) {
-      return RawSecureSocket.connect(HOST_NAME, port);
+      return RawSecureSocket.connect(HOST, port);
     } else if (!handshakeBeforeSecure) {
-      return RawSocket.connect(HOST_NAME, port).then((socket) {
+      return RawSocket.connect(HOST, port).then((socket) {
         return RawSecureSocket.secure(socket);
       });
     } else {
-      return RawSocket.connect(HOST_NAME, port).then((socket) {
+      return RawSocket.connect(HOST, port).then((socket) {
         return runClientHandshake(socket).then((subscription) {
             return RawSecureSocket.secure(socket, subscription: subscription);
         });
@@ -466,9 +465,9 @@ void testSimpleReadWrite({bool listenSecure,
 
   if (listenSecure) {
     RawSecureServerSocket.bind(
-        HOST_NAME, 0, CERTIFICATE).then(serverReady);
+        HOST, 0, CERTIFICATE).then(serverReady);
   } else {
-    RawServerSocket.bind(HOST_NAME, 0).then(serverReady);
+    RawServerSocket.bind(HOST, 0).then(serverReady);
   }
 }
 
@@ -477,7 +476,7 @@ testPausedSecuringSubscription(bool pausedServer, bool pausedClient) {
 
   asyncStart();
   var clientComplete = new Completer();
-  RawServerSocket.bind(HOST_NAME, 0).then((server) {
+  RawServerSocket.bind(HOST, 0).then((server) {
     server.listen((client) {
       var subscription;
       subscription = client.listen((_) {
@@ -506,7 +505,7 @@ testPausedSecuringSubscription(bool pausedServer, bool pausedClient) {
       });
     });
 
-    RawSocket.connect(HOST_NAME, server.port).then((socket) {
+    RawSocket.connect(HOST, server.port).then((socket) {
       var subscription;
       subscription = socket.listen((_) {
         if (pausedClient) {
@@ -534,10 +533,19 @@ testPausedSecuringSubscription(bool pausedServer, bool pausedClient) {
 }
 
 main() {
+  asyncStart();
   var certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
   SecureSocket.initialize(database: certificateDatabase,
                           password: 'dartdart',
                           useBuiltinRoots: false);
+  InternetAddress.lookup("localhost").then((hosts) {
+    HOST = hosts.first;
+    runTests();
+    asyncEnd();
+  });
+}
+
+runTests() {
   testSimpleBind();
   testInvalidBind();
   testSimpleConnect(CERTIFICATE);

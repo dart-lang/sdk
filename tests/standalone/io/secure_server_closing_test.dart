@@ -12,9 +12,8 @@ import "dart:io";
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:path/path.dart";
 
-const HOST_NAME = "localhost";
+InternetAddress HOST;
 const CERTIFICATE = "localhost_cert";
 
 void testCloseOneEnd(String toClose) {
@@ -26,7 +25,7 @@ void testCloseOneEnd(String toClose) {
       .then((_) {
         asyncEnd();
       });
-  SecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((server) {
+  SecureServerSocket.bind(HOST, 0, CERTIFICATE).then((server) {
     server.listen((serverConnection) {
       serverConnection.listen(
         (data) {
@@ -44,7 +43,7 @@ void testCloseOneEnd(String toClose) {
     onDone: () {
       serverDone.complete(null);
     });
-    SecureSocket.connect(HOST_NAME, server.port).then((clientConnection) {
+    SecureSocket.connect(HOST, server.port).then((clientConnection) {
       clientConnection.listen(
         (data) {
           Expect.fail("No data should be received by client");
@@ -62,8 +61,8 @@ void testCloseOneEnd(String toClose) {
 
 void testCloseBothEnds() {
   asyncStart();
-  SecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((server) {
-    var clientEndFuture = SecureSocket.connect(HOST_NAME, server.port);
+  SecureServerSocket.bind(HOST, 0, CERTIFICATE).then((server) {
+    var clientEndFuture = SecureSocket.connect(HOST, server.port);
     server.listen((serverEnd) {
       clientEndFuture.then((clientEnd) {
         clientEnd.destroy();
@@ -82,7 +81,7 @@ testPauseServerSocket() {
 
   asyncStart();
 
-  SecureServerSocket.bind(HOST_NAME,
+  SecureServerSocket.bind(HOST,
                           0,
                           CERTIFICATE,
                           backlog: 2 * socketCount).then((server) {
@@ -103,7 +102,7 @@ testPauseServerSocket() {
     subscription.pause();
     var connectCount = 0;
     for (int i = 0; i < socketCount; i++) {
-      SecureSocket.connect(HOST_NAME, server.port).then((connection) {
+      SecureSocket.connect(HOST, server.port).then((connection) {
         connection.close();
       });
     }
@@ -111,7 +110,7 @@ testPauseServerSocket() {
       subscription.resume();
       resumed = true;
       for (int i = 0; i < socketCount; i++) {
-        SecureSocket.connect(HOST_NAME, server.port).then((connection) {
+        SecureSocket.connect(HOST, server.port).then((connection) {
           connection.close();
         });
       }
@@ -126,7 +125,7 @@ testCloseServer() {
   asyncStart();
   List ends = [];
 
-  SecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((server) {
+  SecureServerSocket.bind(HOST, 0, CERTIFICATE).then((server) {
     Expect.isTrue(server.port > 0);
     void checkDone() {
       if (ends.length < 2 * socketCount) return;
@@ -143,7 +142,7 @@ testCloseServer() {
     });
 
     for (int i = 0; i < socketCount; i++) {
-      SecureSocket.connect(HOST_NAME, server.port).then((connection) {
+      SecureSocket.connect(HOST, server.port).then((connection) {
         ends.add(connection);
         checkDone();
       });
@@ -153,11 +152,19 @@ testCloseServer() {
 
 
 main() {
+  asyncStart();
   String certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
   SecureSocket.initialize(database: certificateDatabase,
                           password: 'dartdart',
                           useBuiltinRoots: false);
+  InternetAddress.lookup("localhost").then((hosts) {
+    HOST = hosts.first;
+    runTests();
+    asyncEnd();
+  });
+}
 
+runTests() {
   testCloseOneEnd("client");
   testCloseOneEnd("server");
   testCloseBothEnds();

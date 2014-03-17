@@ -2,20 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
 
-const HOST_NAME = "localhost";
+import "package:expect/expect.dart";
+
+InternetAddress HOST;
+const CERTIFICATE = "localhost_cert";
 
 void testListenOn() {
   void test(void onDone()) {
-    HttpServer.bindSecure(HOST_NAME,
+    HttpServer.bindSecure(HOST,
                           0,
                           backlog: 5,
-                          certificateName: 'localhost_cert').then((server) {
+                          certificateName: CERTIFICATE).then((server) {
       ReceivePort serverPort = new ReceivePort();
       server.listen((HttpRequest request) {
         request.listen(
@@ -28,7 +29,7 @@ void testListenOn() {
 
       HttpClient client = new HttpClient();
       ReceivePort clientPort = new ReceivePort();
-      client.getUrl(Uri.parse("https://$HOST_NAME:${server.port}/"))
+      client.getUrl(Uri.parse("https://${HOST.host}:${server.port}/"))
         .then((HttpClientRequest request) {
           return request.close();
         })
@@ -64,7 +65,7 @@ void InitializeSSL() {
 }
 
 void testEarlyClientClose() {
-  HttpServer.bindSecure(HOST_NAME,
+  HttpServer.bindSecure(HOST,
                         0,
                         certificateName: 'localhost_cert').then((server) {
     server.listen(
@@ -76,7 +77,7 @@ void testEarlyClientClose() {
 
     var count = 0;
     makeRequest() {
-      Socket.connect(HOST_NAME, server.port).then((socket) {
+      Socket.connect(HOST, server.port).then((socket) {
         var data = "Invalid TLS handshake";
         socket.write(data);
         socket.close();
@@ -96,6 +97,9 @@ void testEarlyClientClose() {
 
 void main() {
   InitializeSSL();
-  testListenOn();
-  testEarlyClientClose();
+  InternetAddress.lookup("localhost").then((hosts) {
+    HOST = hosts.first;
+    testListenOn();
+    testEarlyClientClose();
+  });
 }

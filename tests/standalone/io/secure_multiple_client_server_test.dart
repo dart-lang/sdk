@@ -7,19 +7,20 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
-import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
 
-const HOST_NAME = "localhost";
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
+
+InternetAddress HOST;
+SecureServerSocket SERVER;
 const CERTIFICATE = "localhost_cert";
-Future<SecureServerSocket> startServer() {
-  return SecureServerSocket.bind(HOST_NAME,
-                                 0,
-                                 CERTIFICATE).then((server) {
-    server.listen((SecureSocket client) {
+
+Future startServer() {
+  return SecureServerSocket.bind(HOST, 0, CERTIFICATE).then((server) {
+    SERVER = server;
+    SERVER.listen((SecureSocket client) {
       client.fold(<int>[], (message, data) => message..addAll(data))
           .then((message) {
             String received = new String.fromCharCodes(message);
@@ -29,30 +30,29 @@ Future<SecureServerSocket> startServer() {
             client.close();
           });
     });
-    return server;
   });
 }
 
-Future testClient(server, name) {
-  return SecureSocket.connect(HOST_NAME, server.port).then((socket) {
+Future testClient(name) {
+  return SecureSocket.connect(HOST, SERVER.port).then((socket) {
     socket.add("Hello from client $name".codeUnits);
     socket.close();
     return socket.fold(<int>[], (message, data) => message..addAll(data))
         .then((message) {
           Expect.listEquals("Welcome, client $name".codeUnits, message);
-          return server;
         });
   });
 }
 
 void main() {
+  asyncStart();
   var certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
   SecureSocket.initialize(database: certificateDatabase,
                           password: 'dartdart');
-
-  startServer()
-      .then((server) => Future.wait(
-          ['able', 'baker', 'charlie', 'dozen', 'elapse']
-          .map((name) => testClient(server, name))))
-      .then((servers) => servers.first.close());
+  InternetAddress.lookup("localhost").then((hosts) => HOST = hosts.first)
+      .then((_) => startServer())
+      .then((_) => ['ale', 'bar', 'che', 'den', 'els'].map(testClient))
+      .then((futures) => Future.wait(futures))
+      .then((_) => SERVER.close())
+      .then((_) => asyncEnd());
 }

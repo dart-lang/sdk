@@ -16,16 +16,17 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
-import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
 
-const HOST_NAME = "localhost";
+import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
+
+InternetAddress HOST;
 const CERTIFICATE = "localhost_cert";
 Future<SecureServerSocket> startServer() {
-  return SecureServerSocket.bind(HOST_NAME,
+  return SecureServerSocket.bind(HOST,
                                  0,
                                  CERTIFICATE).then((server) {
     server.listen((SecureSocket client) {
@@ -43,7 +44,7 @@ Future<SecureServerSocket> startServer() {
 }
 
 Future testClient(server, name) {
-  return SecureSocket.connect(HOST_NAME, server.port).then((socket) {
+  return SecureSocket.connect(HOST, server.port).then((socket) {
     socket.write("Hello from client $name");
     socket.close();
     return socket.fold(<int>[], (message, data) => message..addAll(data))
@@ -55,14 +56,20 @@ Future testClient(server, name) {
 }
 
 void main() {
+  asyncStart();
   String certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
   SecureSocket.initialize(database: certificateDatabase,
                           password: 'dartdart');
+  InternetAddress.lookup("localhost").then((hosts) {
+    HOST = hosts.first;
+    runTests().then((_) => asyncEnd());
+  });
+}
 
+Future runTests() {
   Duration delay = const Duration(milliseconds: 0);
   Duration delay_between_connections = const Duration(milliseconds: 300);
-
-  startServer()
+  return startServer()
       .then((server) => Future.wait(
           ['able', 'baker', 'charlie', 'dozen', 'elapse']
           .map((name) {

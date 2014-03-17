@@ -12,9 +12,8 @@ import "dart:io";
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:path/path.dart";
 
-const HOST_NAME = "localhost";
+InternetAddress HOST;
 const CERTIFICATE = "localhost_cert";
 
 // This test creates a server and a client connects. After connecting
@@ -154,12 +153,12 @@ void test(bool hostnameInConnect,
 
   Future<SecureSocket> connectClient(int port) {
     if (!handshakeBeforeSecure) {
-      return Socket.connect(HOST_NAME, port).then((socket) {
+      return Socket.connect(HOST, port).then((socket) {
         var future;
         if (hostnameInConnect) {
           future = SecureSocket.secure(socket);
         } else {
-          future = SecureSocket.secure(socket, host: HOST_NAME);
+          future = SecureSocket.secure(socket, host: HOST);
         }
         return future.then((secureSocket) {
           socket.add([0]);
@@ -167,13 +166,13 @@ void test(bool hostnameInConnect,
         });
       });
     } else {
-      return Socket.connect(HOST_NAME, port).then((socket) {
+      return Socket.connect(HOST, port).then((socket) {
         return runClientHandshake(socket).then((_) {
             var future;
             if (hostnameInConnect) {
               future = SecureSocket.secure(socket);
             } else {
-              future = SecureSocket.secure(socket, host: HOST_NAME);
+              future = SecureSocket.secure(socket, host: HOST.host);
             }
             return future.then((secureSocket) {
               socket.add([0]);
@@ -209,18 +208,23 @@ void test(bool hostnameInConnect,
     });
   }
 
-  ServerSocket.bind(HOST_NAME, 0).then(serverReady);
+  ServerSocket.bind(HOST, 0).then(serverReady);
 }
 
 main() {
+  asyncStart();
   var certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
   SecureSocket.initialize(database: certificateDatabase,
                           password: 'dartdart',
                           useBuiltinRoots: false);
-  test(false, false);
-  test(true, false);
-  test(false, true);
-  test(true, true);
-  test(false, true, true);
-  test(true, true, true);
+  InternetAddress.lookup("localhost").then((hosts) {
+    HOST = hosts.first;
+    test(false, false);
+    test(true, false);
+    test(false, true);
+    test(true, true);
+    test(false, true, true);
+    test(true, true, true);
+    asyncEnd();
+  });
 }

@@ -12,9 +12,8 @@ import "dart:io";
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:path/path.dart";
 
-const HOST_NAME = "localhost";
+InternetAddress HOST;
 const CERTIFICATE = "localhost_cert";
 
 // This test sends corrupt data in the middle of a secure network connection.
@@ -133,15 +132,15 @@ Future<RawSocket> runClient(List sockets) {
 
 
 Future<List> connectClient(int port, bool hostnameInConnect) =>
-  RawSocket.connect(HOST_NAME, port)
+  RawSocket.connect(HOST, port)
   .then((socket) =>
     (hostnameInConnect ? RawSecureSocket.secure(socket)
-                       : RawSecureSocket.secure(socket, host: HOST_NAME))
+                       : RawSecureSocket.secure(socket, host: HOST))
     .then((secureSocket) => [socket, secureSocket]));
 
 
 Future test(bool hostnameInConnect) {
-  return RawServerSocket.bind(HOST_NAME, 0).then((server) {
+  return RawServerSocket.bind(HOST, 0).then((server) {
     server.listen((client) {
       RawSecureSocket.secureServer(client, CERTIFICATE)
         .then((secureClient) {
@@ -164,6 +163,8 @@ main() {
                           password: 'dartdart',
                           useBuiltinRoots: false);
   asyncStart();
-  Future.wait([test(false), test(true)])
-      .then((_) => asyncEnd());
+  InternetAddress.lookup("localhost").then((hosts) {
+    HOST = hosts.first;
+    return Future.wait([test(false), test(true)]);
+  }).then((_) => asyncEnd());
 }

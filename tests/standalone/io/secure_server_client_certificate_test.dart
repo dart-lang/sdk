@@ -7,18 +7,17 @@ import "dart:io";
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:path/path.dart";
 
-const HOST_NAME = "localhost";
+InternetAddress HOST;
 const CERTIFICATE = "localhost_cert";
 
 Future testClientCertificate() {
   var completer = new Completer();
-  SecureServerSocket.bind(HOST_NAME,
+  SecureServerSocket.bind(HOST,
                           0,
                           CERTIFICATE,
                           requestClientCertificate: true).then((server) {
-    var clientEndFuture = SecureSocket.connect(HOST_NAME,
+    var clientEndFuture = SecureSocket.connect(HOST,
                                                server.port,
                                                sendClientCertificate: true);
     server.listen((serverEnd) {
@@ -43,11 +42,11 @@ Future testClientCertificate() {
 
 Future testRequiredClientCertificate() {
   var completer = new Completer();
-  SecureServerSocket.bind(HOST_NAME,
+  SecureServerSocket.bind(HOST,
                           0,
                           CERTIFICATE,
                           requireClientCertificate: true).then((server) {
-    var clientEndFuture = SecureSocket.connect(HOST_NAME,
+    var clientEndFuture = SecureSocket.connect(HOST,
                                                server.port,
                                                sendClientCertificate: true);
     server.listen((serverEnd) {
@@ -77,7 +76,8 @@ void main() {
                           useBuiltinRoots: false);
 
   asyncStart();
-  testClientCertificate()
+  InternetAddress.lookup("localhost").then((hosts) => HOST = hosts.first)
+    .then((_) => testClientCertificate())
     .then((_) => testRequiredClientCertificate())
     .then((_) => asyncEnd());
 }
