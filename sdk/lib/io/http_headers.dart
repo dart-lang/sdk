@@ -495,7 +495,11 @@ class _HttpHeaders implements HttpHeaders {
         }
         skipWS();
         String value = parseValue();
-        cookies.add(new _Cookie(name, value));
+        try {
+          cookies.add(new _Cookie(name, value));
+        } catch (_) {
+          // Skip it, invalid cookie data.
+        }
         skipWS();
         if (done()) return;
         if (!expect(";")) {
@@ -718,7 +722,9 @@ class _Cookie implements Cookie {
   bool httpOnly = false;
   bool secure = false;
 
-  _Cookie([this.name, this.value]);
+  _Cookie([this.name, this.value]) {
+    _validate();
+  }
 
   _Cookie.fromSetCookieValue(String value) {
     // Parse the 'set-cookie' header value.
@@ -806,6 +812,7 @@ class _Cookie implements Cookie {
     }
     index++;  // Skip the = character.
     value = parseValue();
+    _validate();
     if (done()) return;
     index++;  // Skip the ; character.
     parseAttributes();
@@ -829,6 +836,32 @@ class _Cookie implements Cookie {
     if (secure) sb.write("; Secure");
     if (httpOnly) sb.write("; HttpOnly");
     return sb.toString();
+  }
+
+  void _validate() {
+    const SEPERATORS = const [
+        "(", ")", "<", ">", "@", ",", ";", ":", "\\",
+        '"', "/", "[", "]", "?", "=", "{", "}"];
+    for (int i = 0; i < name.length; i++) {
+      int codeUnit = name.codeUnits[i];
+      if (codeUnit <= 32 ||
+          codeUnit >= 127 ||
+          SEPERATORS.indexOf(name[i]) >= 0) {
+        throw new FormatException(
+            "Invalid character in cookie name, code unit: '$codeUnit'");
+      }
+    }
+    for (int i = 0; i < value.length; i++) {
+      int codeUnit = value.codeUnits[i];
+      if (!(codeUnit == 0x21 ||
+            (codeUnit >= 0x23 && codeUnit <= 0x2B) ||
+            (codeUnit >= 0x2D && codeUnit <= 0x3A) ||
+            (codeUnit >= 0x3C && codeUnit <= 0x5B) ||
+            (codeUnit >= 0x5D && codeUnit <= 0x7E))) {
+        throw new FormatException(
+            "Invalid character in cookie value, code unit: '$codeUnit'");
+      }
+    }
   }
 }
 

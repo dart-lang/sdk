@@ -436,6 +436,9 @@ void testInvalidCookie() {
   Expect.throws(() => new _Cookie.fromSetCookieValue("xxx"));
   Expect.throws(() => new _Cookie.fromSetCookieValue(
       "xxx=yyy; expires=12 jan 2013"));
+  Expect.throws(() => new _Cookie.fromSetCookieValue("x x = y y"));
+  Expect.throws(() => new _Cookie("[4", "y"));
+  Expect.throws(() => new _Cookie("4", "y\""));
 
   _HttpHeaders headers = new _HttpHeaders("1.1");
   headers.set('Cookie',
