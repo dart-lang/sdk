@@ -12,6 +12,8 @@
 
 #include "bin/fdutils.h"
 
+#include "platform/signal_blocker.h"
+
 
 namespace dart {
 namespace bin {
@@ -22,7 +24,7 @@ bool FileSystemWatcher::IsSupported() {
 
 
 intptr_t FileSystemWatcher::Init() {
-  int id = TEMP_FAILURE_RETRY(inotify_init());
+  int id = NO_RETRY_EXPECTED(inotify_init());
   if (id < 0 || !FDUtils::SetCloseOnExec(id)) {
     return -1;
   }
@@ -48,7 +50,7 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
   if (events & kModifyContent) list_events |= IN_CLOSE_WRITE | IN_ATTRIB;
   if (events & kDelete) list_events |= IN_DELETE;
   if (events & kMove) list_events |= IN_MOVE;
-  int path_id = TEMP_FAILURE_RETRY(inotify_add_watch(id, path, list_events));
+  int path_id = NO_RETRY_EXPECTED(inotify_add_watch(id, path, list_events));
   if (path_id < 0) {
     return -1;
   }
@@ -57,7 +59,7 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
 
 
 void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
-  VOID_TEMP_FAILURE_RETRY(inotify_rm_watch(id, path_id));
+  VOID_NO_RETRY_EXPECTED(inotify_rm_watch(id, path_id));
 }
 
 

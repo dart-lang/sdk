@@ -56,10 +56,10 @@ intptr_t SocketData::GetPollEvents() {
 
 // Unregister the file descriptor for a SocketData structure with epoll.
 static void RemoveFromEpollInstance(intptr_t epoll_fd_, SocketData* sd) {
-  VOID_TEMP_FAILURE_RETRY(epoll_ctl(epoll_fd_,
-                                    EPOLL_CTL_DEL,
-                                    sd->fd(),
-                                    NULL));
+  VOID_NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_,
+                                   EPOLL_CTL_DEL,
+                                   sd->fd(),
+                                   NULL));
 }
 
 
@@ -67,10 +67,10 @@ static void AddToEpollInstance(intptr_t epoll_fd_, SocketData* sd) {
   struct epoll_event event;
   event.events = sd->GetPollEvents();
   event.data.ptr = sd;
-  int status = TEMP_FAILURE_RETRY(epoll_ctl(epoll_fd_,
-                                            EPOLL_CTL_ADD,
-                                            sd->fd(),
-                                            &event));
+  int status = NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_,
+                                           EPOLL_CTL_ADD,
+                                           sd->fd(),
+                                           &event));
   if (status == -1) {
     // Epoll does not accept the file descriptor. It could be due to
     // already closed file descriptor, or unuspported devices, such
@@ -84,7 +84,7 @@ static void AddToEpollInstance(intptr_t epoll_fd_, SocketData* sd) {
 EventHandlerImplementation::EventHandlerImplementation()
     : socket_map_(&HashMap::SamePointerValue, 16) {
   intptr_t result;
-  result = TEMP_FAILURE_RETRY(pipe(interrupt_fds_));
+  result = NO_RETRY_EXPECTED(pipe(interrupt_fds_));
   if (result != 0) {
     FATAL("Pipe creation failed");
   }
@@ -95,7 +95,7 @@ EventHandlerImplementation::EventHandlerImplementation()
   // The initial size passed to epoll_create is ignore on newer (>=
   // 2.6.8) Linux versions
   static const int kEpollInitialSize = 64;
-  epoll_fd_ = TEMP_FAILURE_RETRY(epoll_create(kEpollInitialSize));
+  epoll_fd_ = NO_RETRY_EXPECTED(epoll_create(kEpollInitialSize));
   if (epoll_fd_ == -1) {
     FATAL("Failed creating epoll file descriptor");
   }
@@ -104,7 +104,7 @@ EventHandlerImplementation::EventHandlerImplementation()
   struct epoll_event event;
   event.events = EPOLLIN;
   event.data.ptr = NULL;
-  int status = TEMP_FAILURE_RETRY(epoll_ctl(epoll_fd_,
+  int status = NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_,
                                             EPOLL_CTL_ADD,
                                             interrupt_fds_[0],
                                             &event));
@@ -115,8 +115,8 @@ EventHandlerImplementation::EventHandlerImplementation()
 
 
 EventHandlerImplementation::~EventHandlerImplementation() {
-  TEMP_FAILURE_RETRY(close(interrupt_fds_[0]));
-  TEMP_FAILURE_RETRY(close(interrupt_fds_[1]));
+  VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[0]));
+  VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[1]));
 }
 
 

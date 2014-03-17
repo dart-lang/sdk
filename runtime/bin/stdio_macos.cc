@@ -11,7 +11,8 @@
 
 #include "bin/stdio.h"
 #include "bin/fdutils.h"
-#include "bin/signal_blocker.h"
+
+#include "platform/signal_blocker.h"
 
 
 namespace dart {
@@ -66,8 +67,7 @@ void Stdin::SetLineMode(bool enabled) {
 
 bool Stdout::GetTerminalSize(int size[2]) {
   struct winsize w;
-  if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
-        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) &&
+  if (NO_RETRY_EXPECTED(ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) &&
       (w.ws_col != 0 || w.ws_row != 0)) {
     size[0] = w.ws_col;
     size[1] = w.ws_row;

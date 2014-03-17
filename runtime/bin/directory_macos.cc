@@ -17,6 +17,8 @@
 #include "bin/file.h"
 #include "bin/platform.h"
 
+#include "platform/signal_blocker.h"
+
 
 namespace dart {
 namespace bin {
@@ -104,9 +106,9 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
   int status = 0;
   dirent entry;
   dirent* result;
-  if ((status = TEMP_FAILURE_RETRY(readdir_r(reinterpret_cast<DIR*>(lister_),
-                                    &entry,
-                                    &result))) == 0 &&
+  if ((status = NO_RETRY_EXPECTED(readdir_r(reinterpret_cast<DIR*>(lister_),
+                                            &entry,
+                                            &result))) == 0 &&
       result != NULL) {
     if (!listing->path_buffer().Add(entry.d_name)) {
       done_ = true;
@@ -132,7 +134,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
         // the file pointed to.
         struct stat entry_info;
         int stat_success;
-        stat_success = TEMP_FAILURE_RETRY(
+        stat_success = NO_RETRY_EXPECTED(
             lstat(listing->path_buffer().AsString(), &entry_info));
         if (stat_success == -1) {
           return kListError;
@@ -151,7 +153,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
             }
             previous = previous->next;
           }
-          stat_success = TEMP_FAILURE_RETRY(
+          stat_success = NO_RETRY_EXPECTED(
               stat(listing->path_buffer().AsString(), &entry_info));
           if (stat_success == -1) {
             // Report a broken link as a link, even if follow_links is true.
@@ -232,7 +234,7 @@ static bool DeleteRecursively(PathBuffer* path) {
   // Do not recurse into links for deletion. Instead delete the link.
   // If it's a file, delete it.
   struct stat st;
-  if (TEMP_FAILURE_RETRY(lstat(path->AsString(), &st)) == -1) {
+  if (NO_RETRY_EXPECTED(lstat(path->AsString(), &st)) == -1) {
     return false;
   } else if (S_ISREG(st.st_mode) || S_ISLNK(st.st_mode)) {
     return (unlink(path->AsString()) == 0);
@@ -257,9 +259,9 @@ static bool DeleteRecursively(PathBuffer* path) {
   bool success = true;
   dirent entry;
   dirent* result;
-  while ((read = TEMP_FAILURE_RETRY(readdir_r(dir_pointer,
-                                              &entry,
-                                              &result))) == 0 &&
+  while ((read = NO_RETRY_EXPECTED(readdir_r(dir_pointer,
+                                             &entry,
+                                             &result))) == 0 &&
          result != NULL &&
          success) {
     switch (entry.d_type) {
@@ -282,7 +284,7 @@ static bool DeleteRecursively(PathBuffer* path) {
           success = false;
           break;
         }
-        int lstat_success = TEMP_FAILURE_RETRY(
+        int lstat_success = NO_RETRY_EXPECTED(
             lstat(path->AsString(), &entry_info));
         if (lstat_success == -1) {
           success = false;
@@ -316,7 +318,7 @@ static bool DeleteRecursively(PathBuffer* path) {
 
 Directory::ExistsResult Directory::Exists(const char* dir_name) {
   struct stat entry_info;
-  int success = TEMP_FAILURE_RETRY(stat(dir_name, &entry_info));
+  int success = NO_RETRY_EXPECTED(stat(dir_name, &entry_info));
   if (success == 0) {
     if (S_ISDIR(entry_info.st_mode)) {
       return EXISTS;
@@ -349,7 +351,7 @@ char* Directory::Current() {
 
 
 bool Directory::SetCurrent(const char* path) {
-  int result = TEMP_FAILURE_RETRY(chdir(path));
+  int result = NO_RETRY_EXPECTED(chdir(path));
   return result == 0;
 }
 
@@ -357,7 +359,7 @@ bool Directory::SetCurrent(const char* path) {
 bool Directory::Create(const char* dir_name) {
   // Create the directory with the permissions specified by the
   // process umask.
-  int result = TEMP_FAILURE_RETRY(mkdir(dir_name, 0777));
+  int result = NO_RETRY_EXPECTED(mkdir(dir_name, 0777));
   // If the directory already exists, treat it as a success.
   if (result == -1 && errno == EEXIST) {
     return (Exists(dir_name) == EXISTS);
@@ -410,9 +412,9 @@ bool Directory::Delete(const char* dir_name, bool recursive) {
   if (!recursive) {
     if (File::GetType(dir_name, false) == File::kIsLink &&
         File::GetType(dir_name, true) == File::kIsDirectory) {
-      return (TEMP_FAILURE_RETRY(unlink(dir_name)) == 0);
+      return (NO_RETRY_EXPECTED(unlink(dir_name)) == 0);
     }
-    return (TEMP_FAILURE_RETRY(rmdir(dir_name)) == 0);
+    return (NO_RETRY_EXPECTED(rmdir(dir_name)) == 0);
   } else {
     PathBuffer path;
     if (!path.Add(dir_name)) {
@@ -426,7 +428,7 @@ bool Directory::Delete(const char* dir_name, bool recursive) {
 bool Directory::Rename(const char* path, const char* new_path) {
   ExistsResult exists = Exists(path);
   if (exists != EXISTS) return false;
-  return (TEMP_FAILURE_RETRY(rename(path, new_path)) == 0);
+  return (NO_RETRY_EXPECTED(rename(path, new_path)) == 0);
 }
 
 }  // namespace bin

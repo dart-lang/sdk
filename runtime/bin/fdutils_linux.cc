@@ -11,6 +11,7 @@
 #include <sys/ioctl.h>  // NOLINT
 
 #include "bin/fdutils.h"
+#include "platform/signal_blocker.h"
 
 
 namespace dart {
@@ -18,12 +19,12 @@ namespace bin {
 
 bool FDUtils::SetCloseOnExec(intptr_t fd) {
   intptr_t status;
-  status = TEMP_FAILURE_RETRY(fcntl(fd, F_GETFD));
+  status = NO_RETRY_EXPECTED(fcntl(fd, F_GETFD));
   if (status < 0) {
     return false;
   }
   status |= FD_CLOEXEC;
-  if (TEMP_FAILURE_RETRY(fcntl(fd, F_SETFD, status)) < 0) {
+  if (NO_RETRY_EXPECTED(fcntl(fd, F_SETFD, status)) < 0) {
     return false;
   }
   return true;
@@ -32,12 +33,12 @@ bool FDUtils::SetCloseOnExec(intptr_t fd) {
 
 static bool SetBlockingHelper(intptr_t fd, bool blocking) {
   intptr_t status;
-  status = TEMP_FAILURE_RETRY(fcntl(fd, F_GETFL));
+  status = NO_RETRY_EXPECTED(fcntl(fd, F_GETFL));
   if (status < 0) {
     return false;
   }
   status = blocking ? (status & ~O_NONBLOCK) : (status | O_NONBLOCK);
-  if (TEMP_FAILURE_RETRY(fcntl(fd, F_SETFL, status)) < 0) {
+  if (NO_RETRY_EXPECTED(fcntl(fd, F_SETFL, status)) < 0) {
     return false;
   }
   return true;
@@ -56,7 +57,7 @@ bool FDUtils::SetBlocking(intptr_t fd) {
 
 bool FDUtils::IsBlocking(intptr_t fd, bool* is_blocking) {
   intptr_t status;
-  status = TEMP_FAILURE_RETRY(fcntl(fd, F_GETFL));
+  status = NO_RETRY_EXPECTED(fcntl(fd, F_GETFL));
   if (status < 0) {
     return false;
   }
@@ -67,7 +68,7 @@ bool FDUtils::IsBlocking(intptr_t fd, bool* is_blocking) {
 
 intptr_t FDUtils::AvailableBytes(intptr_t fd) {
   int available;  // ioctl for FIONREAD expects an 'int*' argument.
-  int result = TEMP_FAILURE_RETRY(ioctl(fd, FIONREAD, &available));
+  int result = NO_RETRY_EXPECTED(ioctl(fd, FIONREAD, &available));
   if (result < 0) {
     return result;
   }

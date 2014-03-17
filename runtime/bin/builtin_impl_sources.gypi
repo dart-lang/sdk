@@ -53,7 +53,6 @@
     'io_buffer.cc',
     'io_buffer.h',
     'isolate_data.h',
-    'signal_blocker.h',
     'thread.h',
     'utils.h',
     'utils_android.cc',

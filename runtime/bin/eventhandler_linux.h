@@ -9,11 +9,13 @@
 #error Do not include eventhandler_linux.h directly; use eventhandler.h instead.
 #endif
 
-#include <unistd.h>
+#include <errno.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 #include "platform/hashmap.h"
+#include "platform/signal_blocker.h"
 
 
 namespace dart {
@@ -38,7 +40,7 @@ class SocketData {
   void Close() {
     port_ = 0;
     mask_ = 0;
-    close(fd_);
+    VOID_TEMP_FAILURE_RETRY(close(fd_));
     fd_ = -1;
   }
 

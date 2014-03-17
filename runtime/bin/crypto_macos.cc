@@ -11,6 +11,8 @@
 #include "bin/fdutils.h"
 #include "bin/crypto.h"
 
+#include "platform/signal_blocker.h"
+
 
 namespace dart {
 namespace bin {

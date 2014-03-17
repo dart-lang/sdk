@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_SIGNAL_BLOCKER_H_
-#define BIN_SIGNAL_BLOCKER_H_
+#ifndef PLATFORM_SIGNAL_BLOCKER_H_
+#define PLATFORM_SIGNAL_BLOCKER_H_
 
 #include "platform/globals.h"
 
@@ -16,7 +16,6 @@
 #include "platform/thread.h"
 
 namespace dart {
-namespace bin {
 
 class ThreadSignalBlocker {
  public:
@@ -54,7 +53,10 @@ class ThreadSignalBlocker {
 };
 
 
-#define TEMP_FAILURE_RETRY_BLOCK_SIGNALS(expression)                           \
+// The definition below is copied from Linux and adapted to avoid lint
+// errors (type long int changed to intptr_t and do/while split on
+// separate lines with body in {}s) and to also block signals.
+#define TEMP_FAILURE_RETRY(expression)                                         \
     ({ ThreadSignalBlocker tsb(SIGPROF);                                       \
        intptr_t __result;                                                      \
        do {                                                                    \
@@ -62,10 +64,21 @@ class ThreadSignalBlocker {
        } while ((__result == -1L) && (errno == EINTR));                        \
        __result; })
 
-#define VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(expression)                      \
-    (static_cast<void>(TEMP_FAILURE_RETRY_BLOCK_SIGNALS(expression)))
+// This is a version of TEMP_FAILURE_RETRY which does not use the value
+// returned from the expression.
+#define VOID_TEMP_FAILURE_RETRY(expression)                                    \
+    (static_cast<void>(TEMP_FAILURE_RETRY(expression)))
 
-}  // namespace bin
+// This macro can be used to insert checks that a call is made, that
+// was expected to not return EINTR, but did it anyway.
+#define NO_RETRY_EXPECTED(expression)                                          \
+    ({ intptr_t __result = (expression);                                       \
+       ASSERT(__result != -1L || errno != EINTR);                              \
+       __result; })
+
+#define VOID_NO_RETRY_EXPECTED(expression)                                     \
+    (static_cast<void>(NO_RETRY_EXPECTED(expression)))
+
 }  // namespace dart
 
-#endif  // BIN_SIGNAL_BLOCKER_H_
+#endif  // PLATFORM_SIGNAL_BLOCKER_H_

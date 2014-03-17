@@ -18,8 +18,10 @@
 
 #include "bin/fdutils.h"
 #include "bin/log.h"
-#include "bin/signal_blocker.h"
 #include "bin/thread.h"
+
+#include "platform/signal_blocker.h"
+
 
 extern char **environ;
 
@@ -150,7 +152,7 @@ class ExitCodeHandler {
     running_ = false;
 
     // Fork to wake up waitpid.
-    if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(fork()) == 0) {
+    if (TEMP_FAILURE_RETRY(fork()) == 0) {
       exit(0);
     }
 
@@ -349,7 +351,7 @@ int Process::Start(const char* path,
     program_environment[environment_length] = NULL;
   }
 
-  pid = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(fork());
+  pid = TEMP_FAILURE_RETRY(fork());
   if (pid < 0) {
     SetChildOsErrorMessage(os_error_message);
     delete[] program_arguments;
@@ -717,12 +719,12 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
   }
   if (!found) return -1;
   int fds[2];
-  if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(pipe(fds)) != 0) {
+  if (NO_RETRY_EXPECTED(pipe(fds)) != 0) {
     return -1;
   }
   if (!FDUtils::SetNonBlocking(fds[0])) {
-    VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(fds[0]));
-    VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(fds[1]));
+    VOID_TEMP_FAILURE_RETRY(close(fds[0]));
+    VOID_TEMP_FAILURE_RETRY(close(fds[1]));
     return -1;
   }
   ThreadSignalBlocker blocker(kSignalsCount, kSignals);
@@ -744,11 +746,10 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
     for (int i = 0; i < kSignalsCount; i++) {
       sigaddset(&act.sa_mask, kSignals[i]);
     }
-    intptr_t status = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
-        sigaction(signal, &act, NULL));
+    intptr_t status = NO_RETRY_EXPECTED(sigaction(signal, &act, NULL));
     if (status < 0) {
-      VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(fds[0]));
-      VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(fds[1]));
+      VOID_TEMP_FAILURE_RETRY(close(fds[0]));
+      VOID_TEMP_FAILURE_RETRY(close(fds[1]));
       return -1;
     }
   }
@@ -787,7 +788,7 @@ void Process::ClearSignalHandler(intptr_t signal) {
     struct sigaction act;
     bzero(&act, sizeof(act));
     act.sa_handler = SIG_DFL;
-    VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(sigaction(signal, &act, NULL));
+    VOID_NO_RETRY_EXPECTED(sigaction(signal, &act, NULL));
   }
 }
 

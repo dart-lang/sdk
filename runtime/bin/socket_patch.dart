@@ -836,7 +836,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     sendWriteEvents = write;
     if (read) issueReadEvent();
     if (write) issueWriteEvent();
-    if (eventPort == null && !isClosing && !isClosed) {
+    if (eventPort == null) {
       int flags = typeFlags & TYPE_TYPE_MASK;
       if (!isClosedRead) flags |= 1 << READ_EVENT;
       if (!isClosedWrite) flags |= 1 << WRITE_EVENT;
