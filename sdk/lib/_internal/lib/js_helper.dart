@@ -2100,51 +2100,51 @@ abstract class Closure implements Function {
     case 1:
       return JS(
           '',
-          'function(n,s,r){'
+          'function(f,s,r){'
             'return function(){'
-              'return s(this)[n](r(this))'
+              'return f.call(s(this),r(this))'
             '}'
-          '}(#,#,#)', name, getSelf, getReceiver);
+          '}(#,#,#)', function, getSelf, getReceiver);
     case 2:
       return JS(
           '',
-          'function(n,s,r){'
+          'function(f,s,r){'
             'return function(a){'
-              'return s(this)[n](r(this),a)'
+              'return f.call(s(this),r(this),a)'
             '}'
-          '}(#,#,#)', name, getSelf, getReceiver);
+          '}(#,#,#)', function, getSelf, getReceiver);
     case 3:
       return JS(
           '',
-          'function(n,s,r){'
+          'function(f,s,r){'
             'return function(a,b){'
-              'return s(this)[n](r(this),a,b)'
+              'return f.call(s(this),r(this),a,b)'
             '}'
-          '}(#,#,#)', name, getSelf, getReceiver);
+          '}(#,#,#)', function, getSelf, getReceiver);
     case 4:
       return JS(
           '',
-          'function(n,s,r){'
+          'function(f,s,r){'
             'return function(a,b,c){'
-              'return s(this)[n](r(this),a,b,c)'
+              'return f.call(s(this),r(this),a,b,c)'
             '}'
-          '}(#,#,#)', name, getSelf, getReceiver);
+          '}(#,#,#)', function, getSelf, getReceiver);
     case 5:
       return JS(
           '',
-          'function(n,s,r){'
+          'function(f,s,r){'
             'return function(a,b,c,d){'
-              'return s(this)[n](r(this),a,b,c,d)'
+              'return f.call(s(this),r(this),a,b,c,d)'
             '}'
-          '}(#,#,#)', name, getSelf, getReceiver);
+          '}(#,#,#)', function, getSelf, getReceiver);
     case 6:
       return JS(
           '',
-          'function(n,s,r){'
+          'function(f,s,r){'
             'return function(a,b,c,d,e){'
-              'return s(this)[n](r(this),a,b,c,d,e)'
+              'return f.call(s(this),r(this),a,b,c,d,e)'
             '}'
-          '}(#,#,#)', name, getSelf, getReceiver);
+          '}(#,#,#)', function, getSelf, getReceiver);
     default:
       return JS(
           '',
@@ -2159,16 +2159,22 @@ abstract class Closure implements Function {
   }
 
   static forwardInterceptedCallTo(function) {
+    String selfField = BoundClosure.selfFieldName();
+    String receiverField = BoundClosure.receiverFieldName();
     String stubName = JS('String|Null', '#.\$stubName', function);
     int arity = JS('int', '#.length', function);
     bool isCsp = JS('bool', 'typeof dart_precompiled == "function"');
     if (isCsp) {
       return cspForwardInterceptedCall(arity, stubName, function);
     } else if (arity == 1) {
-      return JS('', 'new Function(#)',
-                'return this.${BoundClosure.selfFieldName()}.$stubName('
-                    'this.${BoundClosure.receiverFieldName()});'
-                '${functionCounter++}');
+      return JS(
+          '',
+          '(new Function("F",#))(#)',
+          'return function(){'
+            'return F.call(this.$selfField, this.$receiverField);'
+            '${functionCounter++}'
+          '}',
+          function);
     } else if (1 < arity && arity < 28) {
       String arguments = JS(
           'String',
@@ -2176,12 +2182,12 @@ abstract class Closure implements Function {
           arity - 1);
       return JS(
           '',
-          '(new Function(#))()',
+          '(new Function("F",#))(#)',
           'return function($arguments){'
-            'return this.${BoundClosure.selfFieldName()}.$stubName('
-                'this.${BoundClosure.receiverFieldName()},$arguments);'
+            'return F.call(this.$selfField, this.$receiverField, $arguments);'
             '${functionCounter++}'
-          '}');
+          '}',
+          function);
     } else {
       return cspForwardInterceptedCall(arity, stubName, function);
     }
