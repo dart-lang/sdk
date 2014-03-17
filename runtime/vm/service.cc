@@ -802,6 +802,29 @@ static bool HandleClassesClosures(Isolate* isolate, const Class& cls,
 }
 
 
+static bool HandleClassesEval(Isolate* isolate, const Class& cls,
+                              JSONStream* js) {
+  if (js->num_arguments() > 3) {
+    PrintError(js, "Command too long");
+    return true;
+  }
+  const char* expr = js->LookupOption("expr");
+  if (expr == NULL) {
+    PrintError(js, "eval expects an 'expr' option\n",
+               js->num_arguments());
+    return true;
+  }
+  const String& expr_str = String::Handle(isolate, String::New(expr));
+  const Object& result = Object::Handle(cls.Evaluate(expr_str));
+  if (result.IsNull()) {
+    Object::null_instance().PrintToJSONStream(js, true);
+  } else {
+    result.PrintToJSONStream(js, true);
+  }
+  return true;
+}
+
+
 static bool HandleClassesDispatchers(Isolate* isolate, const Class& cls,
                                      JSONStream* js) {
   intptr_t id;
@@ -912,7 +935,9 @@ static bool HandleClasses(Isolate* isolate, JSONStream* js) {
     return true;
   } else if (js->num_arguments() >= 3) {
     const char* second = js->GetArgument(2);
-    if (strcmp(second, "closures") == 0) {
+    if (strcmp(second, "eval") == 0) {
+      return HandleClassesEval(isolate, cls, js);
+    } else if (strcmp(second, "closures") == 0) {
       return HandleClassesClosures(isolate, cls, js);
     } else if (strcmp(second, "fields") == 0) {
       return HandleClassesFields(isolate, cls, js);
@@ -932,6 +957,29 @@ static bool HandleClasses(Isolate* isolate, JSONStream* js) {
 }
 
 
+static bool HandleLibrariesEval(Isolate* isolate, const Library& lib,
+                                JSONStream* js) {
+  if (js->num_arguments() > 3) {
+    PrintError(js, "Command too long");
+    return true;
+  }
+  const char* expr = js->LookupOption("expr");
+  if (expr == NULL) {
+    PrintError(js, "eval expects an 'expr' option\n",
+               js->num_arguments());
+    return true;
+  }
+  const String& expr_str = String::Handle(isolate, String::New(expr));
+  const Object& result = Object::Handle(lib.Evaluate(expr_str));
+  if (result.IsNull()) {
+    Object::null_instance().PrintToJSONStream(js, true);
+  } else {
+    result.PrintToJSONStream(js, true);
+  }
+  return true;
+}
+
+
 static bool HandleLibraries(Isolate* isolate, JSONStream* js) {
   // TODO(johnmccutchan): Support fields and functions on libraries.
   REQUIRE_COLLECTION_ID("libraries");
@@ -944,7 +992,19 @@ static bool HandleLibraries(Isolate* isolate, JSONStream* js) {
   Library& lib = Library::Handle();
   lib ^= libs.At(id);
   ASSERT(!lib.IsNull());
-  lib.PrintToJSONStream(js, false);
+  if (js->num_arguments() == 2) {
+    lib.PrintToJSONStream(js, false);
+    return true;
+  } else if (js->num_arguments() >= 3) {
+    const char* second = js->GetArgument(2);
+    if (strcmp(second, "eval") == 0) {
+      return HandleLibrariesEval(isolate, lib, js);
+    } else {
+      PrintError(js, "Invalid sub collection %s", second);
+      return true;
+    }
+  }
+  UNREACHABLE();
   return true;
 }
 
@@ -1113,7 +1173,11 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
     ASSERT(obj.IsInstance());
     const Instance& instance = Instance::Cast(obj);
     const Object& result = Object::Handle(instance.Evaluate(expr_str));
-    result.PrintToJSONStream(js, true);
+    if (result.IsNull()) {
+      Object::null_instance().PrintToJSONStream(js, true);
+    } else {
+      result.PrintToJSONStream(js, true);
+    }
     return true;
   }
 

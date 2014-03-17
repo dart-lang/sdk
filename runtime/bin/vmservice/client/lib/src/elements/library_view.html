@@ -1,5 +1,7 @@
 <head>
   <link rel="import" href="class_ref.html">
+  <link rel="import" href="curly_block.html">
+  <link rel="import" href="eval_box.html">
   <link rel="import" href="field_ref.html">
   <link rel="import" href="function_ref.html">
   <link rel="import" href="instance_ref.html">
@@ -10,6 +12,28 @@
 </head>
 <polymer-element name="library-view" extends="observatory-element">
   <template>
+    <style>
+      .content {
+        padding-left: 10%;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      h1 {
+        font: 400 18px 'Montserrat', sans-serif;
+      }
+      .memberList {
+        display: table;
+      }
+      .memberItem {
+        display: table-row;
+      }
+      .memberName, .memberValue {
+        display: table-cell;
+        vertical-align: top;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+    </style>
+
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ library.isolate }}"></isolate-nav-menu>
@@ -17,68 +41,111 @@
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
-  <div class="alert alert-info">Scripts</div>
-  <table class="table table-hover">
-    <tbody>
-      <tr template repeat="{{ script in library['scripts']}}">
-        <td>
-          {{ script.kind }}
-        </td>
-        <td>
-          <script-ref ref="{{ script }}"></script-ref>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  <div class="alert alert-info">Imported Libraries</div>
-  <table class="table table-hover">
-    <tbody>
-      <tr template repeat="{{ lib in library['libraries'] }}">
-        <td>
-          <library-ref ref="{{ lib }}"></library-ref>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  <div class="alert alert-info">Variables</div>
-  <table class="table table-hover">
-    <tbody>
-      <tr template repeat="{{ variable in library['variables'] }}">
-        <td><field-ref ref="{{ variable }}"></field-ref></td>
-        <td><instance-ref ref="{{ variable['value'] }}"></instance-ref></td>
-      </tr>
-    </tbody>
-  </table>
-  <div class="alert alert-info">Functions</div>
-  <table class="table table-hover">
-    <tbody>
-      <tr template repeat="{{ func in library['functions'] }}">
-        <td>
-          <function-ref ref="{{ func }}"></function-ref>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  <div class="alert alert-info">Classes</div>
-  <table class="table table-hover">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Internal Name</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr template repeat="{{ cls in library['classes'] }}">
-        <td>
-          <class-ref ref="{{ cls }}"></class-ref>
-        </td>
-        <td>
-          <class-ref ref="{{ cls }}" internal></class-ref>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+    <div class="content">
+      <h1>
+        <!-- TODO(turnidge): Handle unnamed libraries -->
+        library {{ library.name }}
+      </h1>
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">url</div>
+          <div class="memberValue">{{ library['url'] }}</div>
+        </div>
+        <template if="{{ library['imports'].length > 0 }}">
+          <div class="memberItem">
+            <div class="memberName">imports</div>
+            <div class="memberValue">
+              <template repeat="{{ import in library['imports'] }}">
+                <library-ref ref="{{ import }}"></library-ref>
+              </template>
+            </div>
+          </div>
+        </template>
+        <template if="{{ library.name != library.vmName }}">
+          <div class="memberItem">
+            <div class="memberName">vm name</div>
+            <div class="memberValue">{{ library.vmName }}</div>
+          </div>
+        </template>
+      </div>
+    </div>
 
+    <hr>
+
+    <div class="content">
+      <template if="{{ library['scripts'].isNotEmpty }}">
+        scripts ({{ library['scripts'].length }})
+        <curly-block>
+          <div class="memberList">
+            <template repeat="{{ script in library['scripts'] }}">
+              <div class="memberItem">
+                <div class="memberValue">
+                  <script-ref ref="{{ script }}"></script-ref>
+                </div>
+              </div>
+            </template>
+          </div>
+        </curly-block><br>
+      </template>
+
+      <template if="{{ library['classes'].isNotEmpty }}">
+        classes ({{ library['classes'].length }})
+        <curly-block>
+          <div class="memberList">
+            <template repeat="{{ cls in library['classes'] }}">
+              <div class="memberItem">
+                <div class="memberValue">
+                  <class-ref ref="{{ cls }}"></class-ref>
+                </div>
+              </div>
+            </template>
+          </div>
+        </curly-block><br>
+      </template>
+
+      <template if="{{ library['variables'].isNotEmpty }}">
+        variables ({{ library['variables'].length }})
+        <curly-block>
+          <div class="memberList">
+            <template repeat="{{ field in library['variables'] }}">
+              <div class="memberItem">
+                <div class="memberName">
+                  <field-ref ref="{{ field }}"></field-ref>
+                </div>
+                <div class="memberValue">
+                  <template if="{{ field['value'] != null }}">
+                    <instance-ref ref="{{ field['value'] }}"></instance-ref>
+                  </template>
+                </div>
+              </div>
+            </template>
+          </div>
+        </curly-block><br>
+      </template>
+
+      <template if="{{ library['functions'].isNotEmpty }}">
+        functions ({{ library['functions'].length }})
+        <curly-block>
+          <div class="memberList">
+            <template repeat="{{ function in library['functions'] }}">
+              <div class="memberItem">
+                <div class="memberValue">
+                  <function-ref ref="{{ function }}"></function-ref>
+                </div>
+              </div>
+            </template>
+          </div>
+        </curly-block><br>
+      </template>
+    </div>
+
+    <hr>
+
+    <div class="content">
+      <eval-box callback="{{ eval }}"></eval-box>
+    </div>
+    <br><br><br><br>
+    <br><br><br><br>
   </template>
   <script type="application/dart" src="library_view.dart"></script>
 </polymer-element>

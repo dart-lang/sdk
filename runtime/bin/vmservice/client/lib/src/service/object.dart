@@ -63,6 +63,12 @@ class Isolate extends ServiceObject {
     _codes._updateProfileData(profile, codeTable);
   }
 
+  Future<ServiceObject> getDirect(String serviceId) {
+    return vm.getAsMap(relativeLink(serviceId)).then((ObservableMap m) {
+        return _upgradeToServiceObject(vm, this, m);
+    });
+  }
+
   /// Requests [serviceId] from [this]. Completes to a [ServiceObject].
   /// Can return pre-existing, cached, [ServiceObject]s.
   Future<ServiceObject> get(String serviceId) {
@@ -78,9 +84,7 @@ class Isolate extends ServiceObject {
     if (_functions.cachesId(serviceId)) {
       return _functions.get(serviceId);
     }
-    return vm.getAsMap(relativeLink(serviceId)).then((ObservableMap m) {
-      return _upgradeToServiceObject(vm, this, m);
-    });
+    return getDirect(serviceId);
   }
 
   @observable ServiceMap rootLib;

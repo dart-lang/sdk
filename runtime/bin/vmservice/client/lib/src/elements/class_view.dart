@@ -4,6 +4,7 @@
 
 library class_view_element;
 
+import 'dart:async';
 import 'observatory_element.dart';
 import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
@@ -12,6 +13,11 @@ import 'package:polymer/polymer.dart';
 class ClassViewElement extends ObservatoryElement {
   @published ServiceMap cls;
   ClassViewElement.created() : super.created();
+
+  Future<ServiceObject> eval(String text) {
+    return cls.isolate.get(
+        cls.id + "/eval?expr=${Uri.encodeComponent(text)}");
+  }
 
   void refresh(var done) {
     cls.reload().whenComplete(done);

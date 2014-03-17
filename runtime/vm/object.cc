@@ -3773,37 +3773,79 @@ void Class::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddPropertyF("id", "classes/%" Pd "", id());
   jsobj.AddProperty("name", internal_class_name);
   jsobj.AddProperty("user_name", user_visible_class_name);
-  if (!ref) {
-    const Error& err = Error::Handle(EnsureIsFinalized(Isolate::Current()));
-    if (!err.IsNull()) {
-      jsobj.AddProperty("error", err);
-    }
-    jsobj.AddProperty("implemented", is_implemented());
-    jsobj.AddProperty("abstract", is_abstract());
-    jsobj.AddProperty("patch", is_patch());
-    jsobj.AddProperty("finalized", is_finalized());
-    jsobj.AddProperty("const", is_const());
-    jsobj.AddProperty("super", Class::Handle(SuperClass()));
-    jsobj.AddProperty("library", Object::Handle(library()));
-    {
-      JSONArray fields_array(&jsobj, "fields");
-      const Array& field_array = Array::Handle(fields());
-      Field& field = Field::Handle();
-      if (!field_array.IsNull()) {
-        for (intptr_t i = 0; i < field_array.Length(); ++i) {
-          field ^= field_array.At(i);
-          fields_array.AddValue(field);
+  if (ref) {
+    return;
+  }
+
+  const Error& err = Error::Handle(EnsureIsFinalized(Isolate::Current()));
+  if (!err.IsNull()) {
+    jsobj.AddProperty("error", err);
+  }
+  jsobj.AddProperty("implemented", is_implemented());
+  jsobj.AddProperty("abstract", is_abstract());
+  jsobj.AddProperty("patch", is_patch());
+  jsobj.AddProperty("finalized", is_finalized());
+  jsobj.AddProperty("const", is_const());
+  jsobj.AddProperty("super", Class::Handle(SuperClass()));
+  jsobj.AddProperty("library", Object::Handle(library()));
+  const Script& script = Script::Handle(this->script());
+  intptr_t line_number = 0;
+  intptr_t column_number = 0;
+  script.GetTokenLocation(token_pos(), &line_number, &column_number);
+  jsobj.AddProperty("script", script);
+  jsobj.AddProperty("line", line_number);
+  jsobj.AddProperty("col", column_number);
+  {
+    JSONArray interfaces_array(&jsobj, "interfaces");
+    const Array& interface_array = Array::Handle(interfaces());
+    Type& interface_type = Type::Handle();
+    Class& interface_cls = Class::Handle();
+    if (!interface_array.IsNull()) {
+      for (intptr_t i = 0; i < interface_array.Length(); ++i) {
+        // TODO(turnidge): Use the Type directly once regis has added
+        // types to the vmservice.
+        interface_type ^= interface_array.At(i);
+        if (interface_type.HasResolvedTypeClass()) {
+          interface_cls = interface_type.type_class();
+          interfaces_array.AddValue(interface_cls);
         }
       }
     }
-    {
-      JSONArray functions_array(&jsobj, "functions");
-      const Array& function_array = Array::Handle(functions());
-      Function& function = Function::Handle();
-      if (!function_array.IsNull()) {
-        for (intptr_t i = 0; i < function_array.Length(); i++) {
-          function ^= function_array.At(i);
-          functions_array.AddValue(function);
+  }
+  {
+    JSONArray fields_array(&jsobj, "fields");
+    const Array& field_array = Array::Handle(fields());
+    Field& field = Field::Handle();
+    if (!field_array.IsNull()) {
+      for (intptr_t i = 0; i < field_array.Length(); ++i) {
+        field ^= field_array.At(i);
+        fields_array.AddValue(field);
+      }
+    }
+  }
+  {
+    JSONArray functions_array(&jsobj, "functions");
+    const Array& function_array = Array::Handle(functions());
+    Function& function = Function::Handle();
+    if (!function_array.IsNull()) {
+      for (intptr_t i = 0; i < function_array.Length(); i++) {
+        function ^= function_array.At(i);
+        functions_array.AddValue(function);
+      }
+    }
+  }
+  {
+    JSONArray subclasses_array(&jsobj, "subclasses");
+    const GrowableObjectArray& subclasses =
+        GrowableObjectArray::Handle(direct_subclasses());
+    if (!subclasses.IsNull()) {
+      Class& subclass = Class::Handle();
+      if (!subclasses.IsNull()) {
+        for (intptr_t i = 0; i < subclasses.Length(); ++i) {
+          // TODO(turnidge): Use the Type directly once regis has added
+          // types to the vmservice.
+          subclass ^= subclasses.At(i);
+          subclasses_array.AddValue(subclass);
         }
       }
     }
@@ -6083,7 +6125,7 @@ const char* Function::ToCString() const {
 void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
   const char* internal_name = String::Handle(name()).ToCString();
   const char* user_name =
-      String::Handle(QualifiedUserVisibleName()).ToCString();
+      String::Handle(UserVisibleName()).ToCString();
   Class& cls = Class::Handle(Owner());
   ASSERT(!cls.IsNull());
   Error& err = Error::Handle();
@@ -6112,9 +6154,15 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("name", internal_name);
   jsobj.AddProperty("user_name", user_name);
   jsobj.AddProperty("class", cls);
+  const Function& parent = Function::Handle(parent_function());
+  if (!parent.IsNull()) {
+    jsobj.AddProperty("parent", parent);
+  }
   const char* kind_string = Function::KindToCString(kind());
   jsobj.AddProperty("kind", kind_string);
-  if (ref) return;
+  if (ref) {
+    return;
+  }
   jsobj.AddProperty("is_static", is_static());
   jsobj.AddProperty("is_const", is_const());
   jsobj.AddProperty("is_optimizable", is_optimizable());
@@ -8768,15 +8816,18 @@ const char* Library::ToCString() const {
 
 void Library::PrintToJSONStream(JSONStream* stream, bool ref) const {
   const char* library_name = String::Handle(name()).ToCString();
-  const char* library_url = String::Handle(url()).ToCString();
   intptr_t id = index();
   ASSERT(id >= 0);
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "libraries/%" Pd "", id);
+  jsobj.AddProperty("user_name", library_name);
   jsobj.AddProperty("name", library_name);
-  jsobj.AddProperty("user_name", library_url);
-  if (ref) return;
+  if (ref) {
+    return;
+  }
+  const char* library_url = String::Handle(url()).ToCString();
+  jsobj.AddProperty("url", library_url);
   {
     JSONArray jsarr(&jsobj, "classes");
     ClassDictionaryIterator class_iter(*this);
@@ -8790,7 +8841,7 @@ void Library::PrintToJSONStream(JSONStream* stream, bool ref) const {
     }
   }
   {
-    JSONArray jsarr(&jsobj, "libraries");
+    JSONArray jsarr(&jsobj, "imports");
     Library& lib = Library::Handle();
     for (intptr_t i = 0; i < num_imports(); i++) {
       lib = ImportLibraryAt(i);

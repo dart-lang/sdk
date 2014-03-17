@@ -57,7 +57,7 @@ abstract class ServiceObject extends Observable {
       // Not a reference.
       return new Future.value(this);
     }
-    // Call refresh which will fill in the entire object.
+    // Call reload which will fill in the entire object.
     return reload();
   }
 

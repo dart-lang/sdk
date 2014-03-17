@@ -42,9 +42,9 @@ abstract class ServiceObjectCache<T extends ServiceObject> {
     assert(cachesId(id));
     T cached = _cache[id];
     if (cached != null) {
-      return new Future.value(cached);
+      return cached.load();
     }
-    return isolate.get(id).then(_addToCache);
+    return isolate.getDirect(id);
   }
 
   /// If [obj] is cached, return the cached object. Otherwise, upgrades [obj]

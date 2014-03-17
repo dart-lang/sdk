@@ -1,14 +1,38 @@
 <head>
-  <link rel="import" href="error_view.html">
+  <link rel="import" href="curly_block.html">
+  <link rel="import" href="eval_box.html">
   <link rel="import" href="field_ref.html">
   <link rel="import" href="function_ref.html">
   <link rel="import" href="instance_ref.html">
   <link rel="import" href="library_ref.html">
   <link rel="import" href="nav_bar.html">
   <link rel="import" href="observatory_element.html">
+  <link rel="import" href="script_ref.html">
 </head>
 <polymer-element name="class-view" extends="observatory-element">
   <template>
+    <style>
+      .content {
+        padding-left: 10%;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      h1 {
+        font: 400 18px 'Montserrat', sans-serif;
+      }
+      .memberList {
+        display: table;
+      }
+      .memberItem {
+        display: table-row;
+      }
+      .memberName, .memberValue {
+        display: table-cell;
+        vertical-align: top;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+    </style>
+
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ cls.isolate }}"></isolate-nav-menu>
@@ -17,74 +41,125 @@
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
-    <div class="row">
-    <div class="col-md-8 col-md-offset-2">
-      <div class="panel panel-warning">
-        <div class="panel-heading">
-          class <strong>{{ cls.name }}</strong>
-          <template if="{{ cls['super']['type'] != 'Null' }}">
-            extends
-            <class-ref ref="{{ cls['super'] }}"></class-ref>
-          </template>
-          <p></p>
-          <library-ref ref="{{ cls['library'] }}"></library-ref>
+    <div class="content">
+      <h1>
+        <template if="{{ cls['abstract'] }}">
+          abstract
+        </template>
+        <template if="{{ cls['patch'] }}">
+          patch
+        </template>
+        class {{ cls.name }}
+      </h1>
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">library</div>
+          <div class="memberValue">
+            <library-ref ref="{{ cls['library'] }}"></library-ref>
+          </div>
         </div>
-        <div class="panel-body">
-          <table class="table table-hover">
-            <tbody>
-              <tr>
-                <td>Abstract</td><td>{{ cls['abstract'] }}</td>
-              </tr>
-              <tr>
-                <td>Const</td><td>{{ cls['const'] }}</td>
-              </tr>
-              <tr>
-                <td>Finalized</td><td>{{ cls['const'] }}</td>
-              </tr>
-              <tr>
-                <td>Implemented</td><td>{{ cls['implemented'] }}</td>
-              </tr>
-              <tr>
-                <td>Patch</td><td>{{ cls['patch'] }}</td>
-              </tr>
-              <tr>
-                <td>VM Name</td><td>{{ cls['name'] }}</td>
-              </tr>
-            </tbody>
-          </table>
-          <template if="{{ cls['error'] == null }}">
-            <blockquote><strong>Fields</strong></blockquote>
-            <table class="table table-hover">
-             <tbody>
-                <tr template repeat="{{ field in cls['fields'] }}">
-                  <td><field-ref ref="{{ field }}"></field-ref></td>
-                  <td><instance-ref ref="{{ field['value'] }}"></instance-ref></td>
-                </tr>
-              </tbody>
-            </table>
-            <blockquote><strong>Functions</strong></blockquote>
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th>User Name</th>
-                  <th>VM Name</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr template repeat="{{ function in cls['functions'] }}">
-                  <td><function-ref ref="{{ function }}"></function-ref></td>
-                  <td><function-ref ref="{{ function }}" internal></function-ref></td>
-                </tr>
-              </tbody>
-            </table>
-          </template>
-          <template if="{{ cls['error'] != null }}">
-            <error-view error_obj="{{ cls['error'] }}"></error-view>
-          </template>
+        <div class="memberItem">
+          <div class="memberName">script</div>
+          <div class="memberValue">
+            <script-ref ref="{{ cls['script'] }}" line="{{ cls['line'] }}">
+            </script-ref>
+          </div>
         </div>
+
+        <div class="memberItem">&nbsp;</div>
+
+        <template if="{{ cls['super']['type'] != 'Null' }}">
+          <div class="memberItem">
+            <div class="memberName">extends</div>
+            <div class="memberValue">
+              <class-ref ref="{{ cls['super'] }}"></class-ref>
+            </div>
+          </div>
+        </template>
+        <template if="{{ cls['subclasses'].length > 0 }}">
+          <div class="memberItem">
+            <div class="memberName">extended by</div>
+            <div class="memberValue">
+              <template repeat="{{ subclass in cls['subclasses'] }}">
+                <class-ref ref="{{ subclass }}"></class-ref>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <div class="memberItem">&nbsp;</div>
+
+        <template if="{{ cls['interfaces'].length > 0 }}">
+          <div class="memberItem">
+            <div class="memberName">implements</div>
+            <div class="memberValue">
+              <template repeat="{{ interface in cls['interfaces'] }}">
+                <class-ref ref="{{ interface }}"></class-ref>
+              </template>
+            </div>
+          </div>
+        </template>
+        <template if="{{ cls.name != cls.vmName }}">
+          <div class="memberItem">
+            <div class="memberName">vm name</div>
+            <div class="memberValue">{{ cls.vmName }}</div>
+          </div>
+        </template>
       </div>
     </div>
+
+    <template if="{{ cls['error'] != null }}">
+      <!-- TODO(turnidge): Don't use instance-ref for error display here -->
+      <instance-ref ref="{{ cls['error'] }}"></instance-ref>
+    </template>
+
+    <hr>
+
+    <div class="content">
+      <template if="{{ cls['fields'].isNotEmpty }}">
+        fields ({{ cls['fields'].length }})
+        <curly-block>
+          <div class="memberList">
+            <template repeat="{{ field in cls['fields'] }}">
+              <div class="memberItem">
+                <div class="memberName">
+                  <field-ref ref="{{ field }}"></field-ref>
+                </div>
+                <div class="memberValue">
+                  <template if="{{ field['value'] != null }}">
+                    <instance-ref ref="{{ field['value'] }}"></instance-ref>
+                  </template>
+                </div>
+              </div>
+            </template>
+          </div>
+        </curly-block><br>
+      </template>
+
+      <template if="{{ cls['functions'].isNotEmpty }}">
+        functions ({{ cls['functions'].length }})
+        <curly-block>
+          <div class="memberList">
+            <template repeat="{{ function in cls['functions'] }}">
+              <div class="memberItem">
+                <div class="memberValue">
+                  <function-ref ref="{{ function }}" qualified="{{ false }}">
+                  </function-ref>
+                </div>
+              </div>
+            </template>
+          </div>
+        </curly-block><br>
+      </template>
     </div>
+
+    <hr>
+
+    <div class="content">
+      <eval-box callback="{{ eval }}"></eval-box>
+    </div>
+    <br><br><br><br>
+    <br><br><br><br>
   </template>
   <script type="application/dart" src="class_view.dart"></script>
 </polymer-element>

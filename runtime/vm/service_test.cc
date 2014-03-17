@@ -497,6 +497,17 @@ TEST_CASE(Service_Objects) {
       "\"user_name\":\"int\"},\"preview\":\"222\"}",
       handler.msg());
 
+  // eval returning null works
+  service_msg = Eval(lib,
+                     "[port, ['objects', 'int-123', 'eval'], "
+                     "['expr'], ['null']]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  handler.filterMsg("name");
+  EXPECT_STREQ(
+      "{\"type\":\"@Null\",\"id\":\"objects\\/null\",\"preview\":\"null\"}",
+      handler.msg());
+
   // object id ring / invalid => expired
   service_msg = Eval(lib, "[port, ['objects', '99999999', 'eval'], "
                      "['expr'], ['this']]");
@@ -526,6 +537,64 @@ TEST_CASE(Service_Objects) {
 }
 
 
+TEST_CASE(Service_Libraries) {
+  const char* kScript =
+      "var port;\n"  // Set to our mock port by C++.
+      "var libVar = 54321;\n"
+      "\n"
+      "main() {\n"
+      "}";
+
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(h_lib);
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(h_lib);
+  EXPECT(!lib.IsNull());
+
+  // Find the current library.
+  intptr_t lib_id = -1;
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(isolate->object_store()->libraries());
+  for (intptr_t i = 0; i < libs.Length(); i++) {
+    if (libs.At(i) == lib.raw()) {
+      lib_id = i;
+    }
+  }
+  ASSERT(lib_id > 0);
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port =
+      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
+
+  Instance& service_msg = Instance::Handle();
+
+  // Request library.
+  service_msg = EvalF(h_lib,
+                      "[port, ['libraries', '%" Pd "'], [], []]", lib_id);
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"Library\"", handler.msg());
+  EXPECT_SUBSTRING("\"url\":\"dart:test-lib\"", handler.msg());
+
+  // Evaluate an expression from a library.
+  service_msg = EvalF(h_lib,
+                      "[port, ['libraries', '%" Pd "', 'eval'], "
+                      "['expr'], ['libVar - 1']]", lib_id);
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  handler.filterMsg("name");
+  EXPECT_STREQ(
+      "{\"type\":\"@Smi\",\"id\":\"objects\\/int-54320\","
+      "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
+      "\"user_name\":\"int\"},\"preview\":\"54320\"}",
+      handler.msg());
+}
+
 
 TEST_CASE(Service_Classes) {
   const char* kScript =
@@ -533,6 +602,7 @@ TEST_CASE(Service_Classes) {
       "\n"
       "class A {\n"
       "  var a;\n"
+      "  static var cobra = 11235;\n"
       "  dynamic b() {}\n"
       "  dynamic c() {\n"
       "    var d = () { b(); };\n"
@@ -581,11 +651,24 @@ TEST_CASE(Service_Classes) {
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "'], [], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-
   EXPECT_SUBSTRING("\"type\":\"Class\"", handler.msg());
   ExpectSubstringF(handler.msg(),
                    "\"id\":\"classes\\/%" Pd "\",\"name\":\"A\",", cid);
 
+  // Evaluate an expression from class A.
+  service_msg = EvalF(h_lib,
+                      "[port, ['classes', '%" Pd "', 'eval'], "
+                      "['expr'], ['cobra + 100000']]", cid);
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  handler.filterMsg("name");
+  EXPECT_STREQ(
+      "{\"type\":\"@Smi\",\"id\":\"objects\\/int-111235\","
+      "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
+      "\"user_name\":\"int\"},\"preview\":\"111235\"}",
+      handler.msg());
+
+  // Request function 0 from class A.
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'functions', '0'],"
                               "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
