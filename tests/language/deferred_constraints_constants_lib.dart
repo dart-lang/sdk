@@ -10,7 +10,7 @@ class G<T> {}
 
 class Const {
   const Const();
-  const Const.otherConstructor();
+  const Const.namedConstructor();
   static const instance = const Const();
 }
 

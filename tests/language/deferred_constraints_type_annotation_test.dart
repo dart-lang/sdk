@@ -14,21 +14,17 @@ const lazy = const DeferredLibrary('lib');
 class F {}
 class G2<T> {}
 
-void f({a: const lib.Const()}) {} /// const_default_argument: compile-time error
-
-@lib.Const() class H {} /// const_annotation: compile-time error
-
-void main() {
-  Expect.throws(() { /// type_annotation1: static type warning
-    lib.C a = new lib.C(); /// type_annotation1: continued
-  }, (e) => e is NoSuchMethodError); /// type_annotation1: continued
+main() {
   lib.C a = null; /// type_annotation_null: static type warning
+  Expect.throws(() { /// new_before_load: static type warning
+    lib.C a = new lib.C(); /// new_before_load: continued
+  }, (e) => e is NoSuchMethodError); /// new_before_load: continued
 
   // In this case we do not defer C.
   lib2.C a1 = new lib2.C(); /// type_annotation_non_deferred: continued
   asyncStart();
   lazy.load().then((_) {
-    lib.C a2 = new lib.C(); /// type_annotation2: dynamic type error, static type warning
+    lib.C a2 = new lib.C(); /// type_annotation1: dynamic type error, static type warning
     lib.G<F> a3 = new lib.G<F>(); /// type_annotation_generic1: dynamic type error, static type warning
     G2<lib.C> a4 = new G2(); /// type_annotation_generic2: static type warning
     G2<lib.C> a5 = new G2<lib.C>(); /// type_annotation_generic3: static type warning
@@ -50,10 +46,6 @@ void main() {
       try { throw instance; } on lib.Const {} /// catch_check: continued
     }, (e) => e is TypeError); /// catch_check: continued
     int i = lib.C.staticMethod(); /// static_method: ok
-    var c1 = const lib.Const(); /// const: compile-time error
-    f();  /// const_default_argument: continued
-    var constInstance = lib.constantInstance; /// const_instance: ok
-    var h = new H(); /// const_annotation: continued
     asyncEnd();
   });
 }

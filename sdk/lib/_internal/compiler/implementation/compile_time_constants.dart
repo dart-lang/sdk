@@ -411,10 +411,44 @@ class CompileTimeConstantEvaluator extends Visitor {
     return new TypeConstant(elementType, constantType);
   }
 
+  /// Returns true if the prefix of the send resolves to a deferred import
+  /// prefix.
+  bool isDeferredUse(Send send) {
+    // We handle:
+    // 1. Send(Send(Send(null, Prefix), className), staticName)
+    // 2. Send(Send(Prefix, Classname), staticName)
+    // 3. Send(Send(null, Prefix), staticName | className)
+    // 4. Send(Send(Prefix), staticName | className)
+    // Nodes of the forms 2,4 occur in metadata.
+    if (send == null) return false;
+    while (send.receiver is Send) {
+      send = send.receiver;
+    }
+    Identifier prefixNode;
+    if (send.receiver is Identifier) {
+      prefixNode = send.receiver;
+    } else if (send.receiver == null &&
+        send.selector is Identifier) {
+      prefixNode = send.selector;
+    }
+    if (prefixNode != null) {
+      Element maybePrefix = elements[prefixNode.asIdentifier()];
+      if (maybePrefix != null && maybePrefix.isPrefix() &&
+          (maybePrefix as PrefixElement).isDeferred) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   // TODO(floitsch): provide better error-messages.
   Constant visitSend(Send send) {
     Element element = elements[send];
     if (send.isPropertyAccess) {
+      if (isDeferredUse(send)) {
+        return signalNotCompileTimeConstant(send,
+            message: MessageKind.DEFERRED_COMPILE_TIME_CONSTANT);
+      }
       if (Elements.isStaticOrTopLevelFunction(element)) {
         return new FunctionConstant(element);
       } else if (Elements.isStaticOrTopLevelField(element)) {
@@ -630,16 +664,9 @@ class CompileTimeConstantEvaluator extends Visitor {
 
     // Deferred types can not be used in const instance creation expressions.
     // Check if the constructor comes from a deferred library.
-    Send selectorSend = node.send.selector.asSend();
-    if (selectorSend != null) {
-      Identifier receiver = selectorSend.receiver.asIdentifier();
-      if (receiver != null) {
-        Element element = elements[receiver];
-        if (element.isPrefix() && (element as PrefixElement).isDeferred) {
-          return signalNotCompileTimeConstant(node,
-              message: MessageKind.DEFERRED_COMPILE_TIME_CONSTANT);
-        }
-      }
+    if (isDeferredUse(node.send.selector.asSend())) {
+      return signalNotCompileTimeConstant(node,
+          message: MessageKind.DEFERRED_COMPILE_TIME_CONSTANT_CONSTRUCTION);
     }
 
     // TODO(ahe): This is nasty: we must eagerly analyze the

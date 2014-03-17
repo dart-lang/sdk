@@ -554,7 +554,11 @@ main() => new C<String>();
       "Not a compile-time constant.");
 
   static const MessageKind DEFERRED_COMPILE_TIME_CONSTANT = const MessageKind(
-      "Deferred classes cannot be used to create compile-time constants.");
+      "A Deferred value cannot be used as a compile-time constant.");
+
+  static const MessageKind DEFERRED_COMPILE_TIME_CONSTANT_CONSTRUCTION =
+      const MessageKind("A deferred class cannot be used to create a"
+          "compile-time constant.");
 
   static const MessageKind CYCLIC_COMPILE_TIME_CONSTANTS = const MessageKind(
       "Cycle in the compile-time constant computation.");
