@@ -93,6 +93,34 @@ void main() {
       expect(comparator['comment'], expectedComment);
     });
   });
+
+  test('exclude non-lib code from package docs', () {
+    schedule(() {
+      var thisScript = Platform.script;
+      var thisPath = p.fromUri(thisScript);
+      expect(p.basename(thisPath), 'generate_json_test.dart');
+      expect(p.dirname(thisPath), endsWith('test'));
+
+
+      var codeDir = p.normalize(p.join(thisPath, '..', '..'));
+      print(codeDir);
+      expect(FileSystemEntity.isDirectorySync(codeDir), isTrue);
+      return dg.docgen(['$codeDir/'], out: p.join(d.defaultRoot, 'docs'));
+    });
+
+    d.dir('docs', [
+        d.dir('docgen', [
+          d.matcherFile('docgen.json',  _isJsonMap)
+        ]),
+        d.matcherFile('index.json', _isJsonMap),
+        d.matcherFile('index.txt', _hasSortedLines),
+        d.matcherFile('library_list.json', _isJsonMap),
+        d.nothing('test_lib.json'),
+        d.nothing('test_lib-bar.json'),
+        d.nothing('test_lib-foo.json')
+    ]).validate();
+
+  });
 }
 
 final Matcher _hasSortedLines = predicate((String input) {

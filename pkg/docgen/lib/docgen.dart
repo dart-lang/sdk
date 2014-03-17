@@ -576,9 +576,10 @@ class _Generator {
     // To avoid anaylzing package files twice, only files with paths not
     // containing '/packages' will be added. The only exception is if the file
     // to analyze already has a '/package' in its path.
-    var files = listDir(packageName, recursive: true).where(
-        (f) => f.endsWith('.dart') && (!f.contains('${path.separator}packages')
-            || packageName.contains('${path.separator}packages'))).toList();
+    var files = listDir(packageName, recursive: true, listDir: _packageDirList)
+        .where((f) => f.endsWith('.dart')
+            &&  (!f.contains('${path.separator}packages')
+                || packageName.contains('${path.separator}packages'))).toList();
 
     files.forEach((String lib) {
       // Only include libraries at the top level of "lib"
@@ -594,6 +595,28 @@ class _Generator {
       }
     });
     return libraries;
+  }
+
+  /// If [dir] contains both a `lib` directory and a `pubspec.yaml` file treat
+  /// it like a package and only return the `lib` dir.
+  ///
+  /// This ensures that packages don't have non-`lib` content documented.
+  static List<FileSystemEntity> _packageDirList(Directory dir) {
+    var entities = dir.listSync();
+
+    var pubspec = entities
+        .firstWhere((e) => e is File &&
+        path.basename(e.path) == 'pubspec.yaml', orElse: () => null);
+
+    var libDir = entities
+        .firstWhere((e) => e is Directory &&
+        path.basename(e.path) == 'lib', orElse: () => null);
+
+    if (pubspec != null && libDir != null) {
+      return [libDir];
+    } else {
+      return entities;
+    }
   }
 
   /// All of the directories for our dependent packages
