@@ -23,15 +23,15 @@ class StreamedResponse extends BaseResponse {
   StreamedResponse(
       Stream<List<int>> stream,
       int statusCode,
-      int contentLength,
-      {BaseRequest request,
+      {int contentLength,
+       BaseRequest request,
        Map<String, String> headers: const {},
        bool isRedirect: false,
        bool persistentConnection: true,
        String reasonPhrase})
     : super(
         statusCode,
-        contentLength,
+        contentLength: contentLength,
         request: request,
         headers: headers,
         isRedirect: isRedirect,

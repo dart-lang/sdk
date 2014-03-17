@@ -27,10 +27,12 @@ class IOClient extends BaseClient {
 
     return Chain.track(_inner.openUrl(request.method, request.url))
         .then((ioRequest) {
+      var contentLength = request.contentLength == null ?
+          -1 : request.contentLength;
       ioRequest
           ..followRedirects = request.followRedirects
           ..maxRedirects = request.maxRedirects
-          ..contentLength = request.contentLength
+          ..contentLength = contentLength
           ..persistentConnection = request.persistentConnection;
       request.headers.forEach((name, value) {
         ioRequest.headers.set(name, value);
@@ -42,10 +44,12 @@ class IOClient extends BaseClient {
         headers[key] = values.join(',');
       });
 
+      var contentLength = response.contentLength == -1 ?
+          null : response.contentLength;
       return new StreamedResponse(
           response,
           response.statusCode,
-          response.contentLength,
+          contentLength: contentLength,
           request: request,
           headers: headers,
           isRedirect: response.isRedirect,

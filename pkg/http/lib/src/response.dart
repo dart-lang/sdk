@@ -57,7 +57,7 @@ class Response extends BaseResponse {
     : bodyBytes = toUint8List(bodyBytes),
       super(
         statusCode,
-        bodyBytes.length,
+        contentLength: bodyBytes.length,
         request: request,
         headers: headers,
         isRedirect: isRedirect,

@@ -52,9 +52,9 @@ void main() {
     test('sets body', () {
       var controller = new StreamController(sync: true);
       var streamResponse = new http.StreamedResponse(
-          controller.stream, 200, 13);
+          controller.stream, 200, contentLength: 13);
       var future = http.Response.fromStream(streamResponse)
-        .then((response) => response.body);
+          .then((response) => response.body);
       expect(future, completion(equals("Hello, world!")));
 
       controller.add([72, 101, 108, 108, 111, 44, 32]);
@@ -64,9 +64,10 @@ void main() {
 
     test('sets bodyBytes', () {
       var controller = new StreamController(sync: true);
-      var streamResponse = new http.StreamedResponse(controller.stream, 200, 5);
+      var streamResponse = new http.StreamedResponse(
+          controller.stream, 200, contentLength: 5);
       var future = http.Response.fromStream(streamResponse)
-        .then((response) => response.bodyBytes);
+          .then((response) => response.bodyBytes);
       expect(future, completion(equals([104, 101, 108, 108, 111])));
 
       controller.add([104, 101, 108, 108, 111]);

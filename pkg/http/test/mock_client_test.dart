@@ -40,7 +40,7 @@ void main() {
           controller.close();
         });
 
-        return new http.StreamedResponse(controller.stream, 200, -1);
+        return new http.StreamedResponse(controller.stream, 200);
       });
     });
 

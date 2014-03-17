@@ -27,12 +27,17 @@ abstract class BaseRequest {
   /// The URL to which the request will be sent.
   final Uri url;
 
-  /// The size of the request body, in bytes. This defaults to -1, which
-  /// indicates that the size of the request is not known in advance.
+  /// The size of the request body, in bytes.
+  ///
+  /// This defaults to `null`, which indicates that the size of the request is
+  /// not known in advance.
   int get contentLength => _contentLength;
-  int _contentLength = -1;
+  int _contentLength;
 
   set contentLength(int value) {
+    if (value != null && value < 0) {
+      throw new ArgumentError("Invalid content length $value.");
+    }
     _checkFinalized();
     _contentLength = value;
   }
@@ -110,10 +115,12 @@ abstract class BaseRequest {
     var client = new Client();
     return client.send(this).then((response) {
       var stream = onDone(response.stream, client.close);
+      var contentLength = response.contentLength < 0 ?
+          null : response.contentLength;
       return new StreamedResponse(
           new ByteStream(stream),
           response.statusCode,
-          response.contentLength,
+          contentLength: contentLength,
           request: response.request,
           headers: response.headers,
           isRedirect: response.isRedirect,
