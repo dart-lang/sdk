@@ -27,6 +27,7 @@ cc/ExternalizeConstantStrings: Skip
 cc/ThreadInterrupterHigh: Skip
 cc/ThreadInterrupterMedium: Skip
 cc/ThreadInterrupterLow: Skip
+cc/Service_Profile: Skip
 
 [ $system == linux ]
 cc/ThreadInterrupterHigh: Skip
