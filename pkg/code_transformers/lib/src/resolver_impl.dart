@@ -289,7 +289,7 @@ class _AssetBasedSource extends Source {
   /// any analyzer resolution.
   void updateDependencies(String contents) {
     if (contents == _contents) return;
-    var unit = parseCompilationUnit(contents);
+    var unit = parseCompilationUnit(contents, suppressErrors: true);
     _dependentAssets = unit.directives
         .where((d) => (d is ImportDirective || d is PartDirective ||
             d is ExportDirective))

@@ -76,6 +76,22 @@ main() {
           },
           expectation: true);
     });
+
+    test('is tolerant of syntax errors with main', () {
+      return checkDartEntry(
+          inputs: {
+            'a|web/main.dart': 'main() {} {',
+          },
+          expectation: true);
+    });
+
+    test('is tolerant of syntax errors without main', () {
+      return checkDartEntry(
+          inputs: {
+            'a|web/main.dart': 'class Foo {',
+          },
+          expectation: false);
+    });
   });
 }
 

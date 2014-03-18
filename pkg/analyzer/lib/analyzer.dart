@@ -52,7 +52,8 @@ CompilationUnit parseDartFile(String path) {
 ///
 /// If [name] is passed, it's used in error messages as the name of the code
 /// being parsed.
-CompilationUnit parseCompilationUnit(String contents, {String name}) {
+CompilationUnit parseCompilationUnit(String contents,
+    {String name, bool suppressErrors: false}) {
   if (name == null) name = '<unknown source>';
   var source = new StringSource(contents, name);
   var errorCollector = new _ErrorCollector();
@@ -63,7 +64,7 @@ CompilationUnit parseCompilationUnit(String contents, {String name}) {
   var unit = parser.parseCompilationUnit(token);
   unit.lineInfo = new LineInfo(scanner.lineStarts);
 
-  if (errorCollector.hasErrors) throw errorCollector.group;
+  if (errorCollector.hasErrors && !suppressErrors) throw errorCollector.group;
 
   return unit;
 }

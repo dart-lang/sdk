@@ -23,7 +23,8 @@ Future<bool> isPossibleDartEntry(Asset asset) {
     return new Future.value(false);
   }
   return asset.readAsString().then((contents) {
-    return _couldBeEntrypoint(analyzer.parseCompilationUnit(contents));
+    return _couldBeEntrypoint(
+        analyzer.parseCompilationUnit(contents, suppressErrors: true));
   });
 }
 
