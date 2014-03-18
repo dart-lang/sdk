@@ -4,7 +4,9 @@
 
 library pub_tests;
 
+import 'package:path/path.dart' as p;
 import 'package:scheduled_test/scheduled_test.dart';
+
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 import '../utils.dart';
@@ -12,7 +14,7 @@ import '../utils.dart';
 main() {
   // TODO(rnystrom): Split into independent tests.
   initConfig();
-  integration("assetIdToUrls converts asset ids to matching URL paths", () {
+  integration("pathToUrls converts asset ids to matching URL paths", () {
     d.dir(appPath, [
       d.appPubspec(),
       d.dir("test", [
@@ -37,30 +39,30 @@ main() {
     schedule(() {
       // Paths in web/.
       expectWebSocketCall({
-        "command": "assetIdToUrls",
-        "path": "web/index.html"
+        "command": "pathToUrls",
+        "path": p.join("web", "index.html")
       }, replyEquals: {"urls": [getServerUrl("web", "index.html")]});
 
       expectWebSocketCall({
-        "command": "assetIdToUrls",
-        "path": "web/sub/bar.html"
+        "command": "pathToUrls",
+        "path": p.join("web", "sub", "bar.html")
       }, replyEquals: {"urls": [getServerUrl("web", "sub/bar.html")]});
 
       // Paths in test/.
       expectWebSocketCall({
-        "command": "assetIdToUrls",
-        "path": "test/index.html"
+        "command": "pathToUrls",
+        "path": p.join("test", "index.html")
       }, replyEquals: {"urls": [getServerUrl("test", "index.html")]});
 
       expectWebSocketCall({
-        "command": "assetIdToUrls",
-        "path": "test/sub/bar.html"
+        "command": "pathToUrls",
+        "path": p.join("test", "sub", "bar.html")
       }, replyEquals: {"urls": [getServerUrl("test", "sub/bar.html")]});
 
       // A non-default directory.
       expectWebSocketCall({
-        "command": "assetIdToUrls",
-        "path": "randomdir/index.html"
+        "command": "pathToUrls",
+        "path": p.join("randomdir", "index.html")
       }, replyEquals: {"urls": [getServerUrl("randomdir", "index.html")]});
     });
 

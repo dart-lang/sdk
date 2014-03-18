@@ -14,7 +14,7 @@ import '../utils.dart';
 main() {
   // TODO(rnystrom): Split into independent tests.
   initConfig();
-  integration("assetIdToUrls returns multiple urls if servers overlap", () {
+  integration("pathToUrls returns multiple urls if servers overlap", () {
     d.dir(appPath, [
       d.appPubspec(),
       d.dir("test", [
@@ -32,8 +32,8 @@ main() {
 
     schedule(() {
       expectWebSocketCall({
-        "command": "assetIdToUrls",
-        "path": "web/index.html"
+        "command": "pathToUrls",
+        "path": path.join("web", "index.html")
       }, replyEquals: {
         "urls": [
           getServerUrl("web", "index.html")
@@ -41,8 +41,8 @@ main() {
       });
 
       expectWebSocketCall({
-        "command": "assetIdToUrls",
-        "path": "web/sub/bar.html"
+        "command": "pathToUrls",
+        "path": path.join("web", "sub", "bar.html")
       }, replyEquals: {
         "urls": [
           getServerUrl("web", "sub/bar.html"),

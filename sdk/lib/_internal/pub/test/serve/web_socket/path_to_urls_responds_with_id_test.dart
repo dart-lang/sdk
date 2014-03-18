@@ -4,14 +4,16 @@
 
 library pub_tests;
 
+import 'package:path/path.dart' as p;
 import 'package:scheduled_test/scheduled_test.dart';
+
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 import '../utils.dart';
 
 main() {
   initConfig();
-  integration("assetIdToUrls includes id in response if given", () {
+  integration("pathToUrls includes id in response if given", () {
     d.dir(appPath, [
       d.appPubspec(),
       d.dir("web", [
@@ -22,9 +24,9 @@ main() {
     pubServe();
 
     expectWebSocketCall({
-      "command": "assetIdToUrls",
+      "command": "pathToUrls",
       "id": "some id",
-      "path": "web/index.html"
+      "path": p.join("web", "index.html")
     }, replyMatches: containsPair("id", "some id"));
 
     endPubServe();

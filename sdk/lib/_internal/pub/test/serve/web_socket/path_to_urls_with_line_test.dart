@@ -4,14 +4,16 @@
 
 library pub_tests;
 
+import 'package:path/path.dart' as p;
 import 'package:scheduled_test/scheduled_test.dart';
+
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 import '../utils.dart';
 
 main() {
   initConfig();
-  integration("assetIdToUrls provides output line if given source", () {
+  integration("pathToUrls provides output line if given source", () {
     d.dir(appPath, [
       d.appPubspec(),
       d.dir("web", [
@@ -23,8 +25,8 @@ main() {
 
     schedule(() {
       expectWebSocketCall({
-        "command": "assetIdToUrls",
-        "path": "web/main.dart",
+        "command": "pathToUrls",
+        "path": p.join("web", "main.dart"),
         "line": 12345
       }, replyEquals: {
         "urls": [getServerUrl("web", "main.dart")],

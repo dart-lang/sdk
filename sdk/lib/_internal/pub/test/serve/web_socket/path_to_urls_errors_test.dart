@@ -4,6 +4,8 @@
 
 library pub_tests;
 
+import 'package:path/path.dart' as p;
+
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 import '../utils.dart';
@@ -11,7 +13,7 @@ import '../utils.dart';
 main() {
   // TODO(rnystrom): Split into independent tests.
   initConfig();
-  integration("assetIdToUrls errors on bad inputs", () {
+  integration("pathToUrls errors on bad inputs", () {
     d.dir(appPath, [
       d.appPubspec(),
       d.file("top-level.txt", "top-level"),
@@ -30,40 +32,43 @@ main() {
 
     // Bad arguments.
     expectWebSocketCall({
-      "command": "assetIdToUrls"
+      "command": "pathToUrls"
     }, replyEquals: {
       "code": "BAD_ARGUMENT",
       "error": 'Missing "path" argument.'
     });
 
     expectWebSocketCall({
-      "command": "assetIdToUrls",
+      "command": "pathToUrls",
       "path": 123
     }, replyEquals: {
       "code": "BAD_ARGUMENT",
       "error": '"path" must be a string. Got 123.'
     });
 
+    var absolutePath = p.style == p.Style.windows ?
+        r"C:\absolute.txt" : "/absolute.txt";
     expectWebSocketCall({
-      "command": "assetIdToUrls",
-      "path": "/absolute.txt"
+      "command": "pathToUrls",
+      "path": absolutePath
     }, replyEquals: {
       "code": "BAD_ARGUMENT",
-      "error": '"path" must be a relative path. Got "/absolute.txt".'
+      "error": '"path" must be a relative path. Got "$absolutePath".'
     });
 
+    var path = p.join("a", "..", "..", "bad.txt");
     expectWebSocketCall({
-      "command": "assetIdToUrls",
-      "path": "a/../../bad.txt"
+      "command": "pathToUrls",
+      "path": path
     }, replyEquals: {
       "code": "BAD_ARGUMENT",
       "error":
           '"path" cannot reach out of its containing directory. '
-          'Got "a/../../bad.txt".'
+          'Got "$path".'
     });
 
     expectWebSocketCall({
-      "command": "assetIdToUrls",
+      "command": "pathToUrls",
       "path": "main.dart",
       "line": 12.34
     }, replyEquals: {
@@ -72,36 +77,40 @@ main() {
     });
 
     // Unserved directories.
+    path = p.join('bin', 'foo.txt');
     expectWebSocketCall({
-      "command": "assetIdToUrls",
-      "path": "bin/foo.txt"
+      "command": "pathToUrls",
+      "path": path
     }, replyEquals: {
       "code": "NOT_SERVED",
-      "error": 'Asset path "bin/foo.txt" is not currently being served.'
+      "error": 'Asset path "$path" is not currently being served.'
     });
 
+    path = p.join("lib", "myapp.dart");
     expectWebSocketCall({
-      "command": "assetIdToUrls",
-      "path": "lib/myapp.dart"
+      "command": "pathToUrls",
+      "path": path
     }, replyEquals: {
       "code": "NOT_SERVED",
-      "error": 'Asset path "lib/myapp.dart" is not currently being served.'
+      "error": 'Asset path "$path" is not currently being served.'
     });
 
+    path = p.join("asset", "myapp.dart");
     expectWebSocketCall({
-      "command": "assetIdToUrls",
-      "path": "asset/myapp.dart"
+      "command": "pathToUrls",
+      "path": path
     }, replyEquals: {
       "code": "NOT_SERVED",
-      "error": 'Asset path "asset/myapp.dart" is not currently being served.'
+      "error": 'Asset path "$path" is not currently being served.'
     });
 
+    path = p.join("nope", "foo.txt");
     expectWebSocketCall({
-      "command": "assetIdToUrls",
-      "path": "nope/foo.txt"
+      "command": "pathToUrls",
+      "path": path
     }, replyEquals: {
       "code": "NOT_SERVED",
-      "error": 'Asset path "nope/foo.txt" is not currently being served.'
+      "error": 'Asset path "$path" is not currently being served.'
     });
 
     endPubServe();

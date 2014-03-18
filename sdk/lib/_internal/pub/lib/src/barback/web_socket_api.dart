@@ -58,7 +58,7 @@ class WebSocketApi {
   WebSocketApi(this._socket, this._environment) {
     _commands = {
       "urlToAssetId": _urlToAssetId,
-      "assetIdToUrls": _assetIdToUrls,
+      "pathToUrls": _pathToUrls,
       "serveDirectory": _serveDirectory
     };
   }
@@ -148,6 +148,10 @@ class WebSocketApi {
   ///       "path": "web/index.html"
   ///     }
   ///
+  /// The "path" key in the result is a URL path that's relative to the root
+  /// directory of the package identified by "package". The location of this
+  /// package may vary depending on which source it was installed from.
+  ///
   /// An optional "line" key may be provided whose value must be an integer. If
   /// given, the result will also include a "line" key that maps the line in
   /// the served final file back to the corresponding source line in the asset
@@ -211,11 +215,12 @@ class WebSocketApi {
   /// Given an asset ID in the root package, returns the URLs served by pub
   /// that can be used to access that asset.
   ///
-  /// The command name is "assetIdToUrl" and it takes a "path" key for the
-  /// asset path being mapped:
+  /// The command name is "pathToUrls" and it takes a "path" key (a native OS
+  /// path relative to the root directory of the entrypoint package) for the
+  /// path being mapped:
   ///
   ///     {
-  ///       "command": "assetIdToUrl",
+  ///       "command": "pathToUrls",
   ///       "path": "web/index.html"
   ///     }
   ///
@@ -246,7 +251,7 @@ class WebSocketApi {
   /// "lib" or "asset" directories.
   ///
   ///     lib/myapp.dart  -> BAD_ARGUMENT error
-  Map _assetIdToUrls(Map command) {
+  Map _pathToUrls(Map command) {
     // TODO(rnystrom): Support assets in other packages. See #17146.
     var assetPath = _validateRelativePath(command, "path");
     var line = _validateOptionalInt(command, "line");
@@ -254,11 +259,11 @@ class WebSocketApi {
     // Find all of the servers whose root directories contain the asset and
     // generate appropriate URLs for each.
     var urls = _environment.servers
-        .where((server) => path.url.isWithin(server.rootAssetPath, assetPath))
-        .map((server) =>
-            server.url + "/" +
-            path.url.relative(assetPath, from: server.rootAssetPath))
-        .toList();
+        .where((server) => path.isWithin(server.rootDirectory, assetPath))
+        .map((server) {
+      var relativePath = path.relative(assetPath, from: server.rootDirectory);
+      return "${server.url}/${path.toUri(relativePath)}";
+    }).toList();
 
     if (urls.isEmpty) {
       throw new _WebSocketException(_ErrorCode.NOT_SERVED,
@@ -279,8 +284,9 @@ class WebSocketApi {
   /// Given a relative directory path within the entrypoint package, binds a
   /// new port to serve from that path and returns its URL.
   ///
-  /// The command name is "serveDirectory" and it takes a "path" key for the
-  /// directory being served:
+  /// The command name is "serveDirectory" and it takes a "path" key (a native
+  /// OS path relative to the root of the entrypoint package) for the directory
+  /// being served:
   ///
   ///     {
   ///       "command": "serveDirectory",
@@ -330,12 +336,12 @@ class WebSocketApi {
   String _validateRelativePath(Map command, String key) {
     var pathString = _validateString(command, key);
 
-    if (!path.url.isRelative(pathString)) {
+    if (!path.isRelative(pathString)) {
       throw new _WebSocketException(_ErrorCode.BAD_ARGUMENT,
           '"$key" must be a relative path. Got "$pathString".');
     }
 
-    if (!path.url.isWithin(".", pathString)) {
+    if (!path.isWithin(".", pathString)) {
       throw new _WebSocketException(_ErrorCode.BAD_ARGUMENT,
           '"$key" cannot reach out of its containing directory. '
           'Got "$pathString".');
