@@ -278,9 +278,6 @@ class ResolverTask extends CompilerTask {
       } else if (element.isTypedef()) {
         TypedefElement typdef = element;
         return resolveTypedef(typdef);
-      } else if (element.isTypeVariable()) {
-        element.computeType(compiler);
-        return null;
       }
 
       compiler.unimplemented("resolve($element)",
@@ -384,27 +381,19 @@ class ResolverTask extends CompilerTask {
   void checkMatchingPatchSignatures(FunctionElement origin,
                                     FunctionElement patch) {
     // TODO(johnniwinther): Show both origin and patch locations on errors.
-    FunctionExpression originTree = compiler.withCurrentElement(origin, () {
-      return origin.parseNode(compiler);
-    });
-    FunctionSignature originSignature = compiler.withCurrentElement(origin, () {
-      return origin.computeSignature(compiler);
-    });
-    FunctionExpression patchTree = compiler.withCurrentElement(patch, () {
-      return patch.parseNode(compiler);
-    });
-    FunctionSignature patchSignature = compiler.withCurrentElement(patch, () {
-      return patch.computeSignature(compiler);
-    });
+    FunctionExpression originTree = origin.node;
+    FunctionSignature originSignature = origin.functionSignature;
+    FunctionExpression patchTree = patch.node;
+    FunctionSignature patchSignature = patch.functionSignature;
 
-    if (originSignature.returnType != patchSignature.returnType) {
+    if (originSignature.type.returnType != patchSignature.type.returnType) {
       compiler.withCurrentElement(patch, () {
         Node errorNode =
             patchTree.returnType != null ? patchTree.returnType : patchTree;
         error(errorNode, MessageKind.PATCH_RETURN_TYPE_MISMATCH,
               {'methodName': origin.name,
-               'originReturnType': originSignature.returnType,
-               'patchReturnType': patchSignature.returnType});
+               'originReturnType': originSignature.type.returnType,
+               'patchReturnType': patchSignature.type.returnType});
       });
     }
     if (originSignature.requiredParameterCount !=
@@ -470,17 +459,23 @@ class ResolverTask extends CompilerTask {
         // seeing this element.
         element.computeSignature(compiler);
         if (!target.isErroneous()) {
-          compiler.enqueuer.resolution.registerStaticUse(
-              element.targetConstructor);
+          compiler.enqueuer.resolution.registerStaticUse(target);
         }
         return _ensureTreeElements(element);
       }
+      element.parseNode(compiler);
+      element.computeSignature(compiler);
       if (element.isPatched) {
-        checkMatchingPatchSignatures(element, element.patch);
-        element = element.patch;
+        FunctionElementX patch = element.patch;
+        compiler.withCurrentElement(patch, () {
+            patch.parseNode(compiler);
+            patch.computeSignature(compiler);
+        });
+        checkMatchingPatchSignatures(element, patch);
+        element = patch;
       }
       return compiler.withCurrentElement(element, () {
-        FunctionExpression tree = element.parseNode(compiler);
+        FunctionExpression tree = element.node;
         if (tree.modifiers.isExternal()) {
           error(tree, MessageKind.PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION);
           return null;
@@ -757,7 +752,7 @@ class ResolverTask extends CompilerTask {
    * [:element.ensureResolved(compiler):].
    */
   TreeElements resolveClass(BaseClassElementX element) {
-    _resolveTypeDeclaration(element, () {
+    return _resolveTypeDeclaration(element, () {
       // TODO(johnniwinther): Store the mapping in the resolution enqueuer.
       resolveClassInternal(element, _ensureTreeElements(element));
       return element.treeElements;
@@ -1061,8 +1056,8 @@ class ResolverTask extends CompilerTask {
   void checkArity(FunctionElement function,
                   int requiredParameterCount, MessageKind messageKind,
                   bool isMinus) {
-    FunctionExpression node = function.parseNode(compiler);
-    FunctionSignature signature = function.computeSignature(compiler);
+    FunctionExpression node = function.node;
+    FunctionSignature signature = function.functionSignature;
     if (signature.requiredParameterCount != requiredParameterCount) {
       Node errorNode = node;
       if (node.parameters != null) {
@@ -1161,39 +1156,6 @@ class ResolverTask extends CompilerTask {
         });
       });
     });
-  }
-
-  FunctionType computeFunctionType(Element element,
-                                   FunctionSignature signature) {
-    var parameterTypes = new LinkBuilder<DartType>();
-    for (Element parameter in signature.requiredParameters) {
-       parameterTypes.addLast(parameter.computeType(compiler));
-    }
-    var optionalParameterTypes = const Link<DartType>();
-    var namedParameters = const Link<String>();
-    var namedParameterTypes = const Link<DartType>();
-    if (signature.optionalParametersAreNamed) {
-      var namedParametersBuilder = new LinkBuilder<String>();
-      var namedParameterTypesBuilder = new LinkBuilder<DartType>();
-      for (Element parameter in signature.orderedOptionalParameters) {
-        namedParametersBuilder.addLast(parameter.name);
-        namedParameterTypesBuilder.addLast(parameter.computeType(compiler));
-      }
-      namedParameters = namedParametersBuilder.toLink();
-      namedParameterTypes = namedParameterTypesBuilder.toLink();
-    } else {
-      var optionalParameterTypesBuilder = new LinkBuilder<DartType>();
-      for (Element parameter in signature.optionalParameters) {
-        optionalParameterTypesBuilder.addLast(parameter.computeType(compiler));
-      }
-      optionalParameterTypes = optionalParameterTypesBuilder.toLink();
-    }
-    return new FunctionType(element,
-        signature.returnType,
-        parameterTypes.toLink(),
-        optionalParameterTypes,
-        namedParameters,
-        namedParameterTypes);
   }
 
   void resolveMetadataAnnotation(MetadataAnnotationX annotation) {
@@ -1458,8 +1420,7 @@ class InitializerResolver {
                                       FunctionExpression functionNode) {
     // Keep track of all "this.param" parameters specified for constructor so
     // that we can ensure that fields are initialized only once.
-    FunctionSignature functionParameters =
-        constructor.computeSignature(visitor.compiler);
+    FunctionSignature functionParameters = constructor.functionSignature;
     functionParameters.forEachParameter((ParameterElement element) {
       if (identical(element.kind, ElementKind.FIELD_PARAMETER)) {
         FieldParameterElement fieldParameter = element;
@@ -1504,10 +1465,10 @@ class InitializerResolver {
           }
           // Check that there are no field initializing parameters.
           Compiler compiler = visitor.compiler;
-          FunctionSignature signature = constructor.computeSignature(compiler);
-          signature.forEachParameter((Element parameter) {
+          FunctionSignature signature = constructor.functionSignature;
+          signature.forEachParameter((ParameterElement parameter) {
             if (parameter.isFieldParameter()) {
-              Node node = parameter.parseNode(compiler);
+              Node node = parameter.node;
               error(node, MessageKind.INITIALIZING_FORMAL_NOT_ALLOWED);
             }
           });
@@ -2222,8 +2183,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
 
     scope = new MethodScope(scope, function);
     // Put the parameters in scope.
-    FunctionSignature functionParameters =
-        function.computeSignature(compiler);
+    FunctionSignature functionParameters = function.functionSignature;
     Link<Node> parameterNodes = (node.parameters == null)
         ? const Link<Node>() : node.parameters.nodes;
     functionParameters.forEachParameter((ParameterElement element) {
@@ -2333,9 +2293,12 @@ class ResolverVisitor extends MappingVisitor<Element> {
     } else {
       name = node.name.asIdentifier().source;
     }
-    FunctionElement function = new FunctionElementX.node(
+    FunctionElementX function = new FunctionElementX.fromNode(
         name, node, ElementKind.FUNCTION, Modifiers.EMPTY,
         enclosingElement);
+    function.functionSignatureCache =
+        SignatureResolver.analyze(compiler, node.parameters, node.returnType,
+            function, mapping);
     Scope oldScope = scope; // The scope is modified by [setupFunction].
     setupFunction(node, function);
     defineElement(node, function, doAddToScope: node.name != null);
@@ -3835,7 +3798,7 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
       defineElement(element.parseNode(compiler), element);
     });
 
-    element.alias = compiler.computeFunctionType(element, signature);
+    element.alias = signature.type;
 
     void checkCyclicReference() {
       element.checkCyclicReference(compiler);
@@ -4588,7 +4551,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
       if (Elements.isUnresolved(element)) {
         type = compiler.types.dynamicType;
       } else {
-        type = element.getEnclosingClass().computeType(compiler).asRaw();
+        type = element.getEnclosingClass().rawType;
       }
     }
     resolver.mapping.setType(expression, type);

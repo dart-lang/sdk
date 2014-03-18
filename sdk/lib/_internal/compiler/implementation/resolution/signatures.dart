@@ -85,9 +85,10 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
     }
   }
 
-  void computeParameterType(ParameterElementX element) {
+  void computeParameterType(ParameterElementX element,
+                            [VariableElement fieldElement]) {
     if (currentDefinitions.type != null) {
-      element.type = resolveTypeAnnotation(currentDefinitions.type);
+      element.typeCache = resolveTypeAnnotation(currentDefinitions.type);
     } else {
       // Is node.definitions exactly one FunctionExpression?
       Link<Node> link = currentDefinitions.definitions.nodes;
@@ -96,14 +97,18 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
           link.tail.isEmpty) {
         FunctionExpression functionExpression = link.head;
         // We found exactly one FunctionExpression
-        element.functionSignature = SignatureResolver.analyze(
+        FunctionSignature functionSignature = SignatureResolver.analyze(
             compiler, functionExpression.parameters,
             functionExpression.returnType, element, mapping,
             defaultValuesError: MessageKind.FUNCTION_TYPE_FORMAL_WITH_DEFAULT);
-        element.type =
-            compiler.computeFunctionType(element, element.functionSignature);
+        element.functionSignatureCache = functionSignature;
+        element.typeCache = functionSignature.type;
       } else {
-        element.type = compiler.types.dynamicType;
+        if (fieldElement != null) {
+          element.typeCache = fieldElement.computeType(compiler);
+        } else {
+          element.typeCache = compiler.types.dynamicType;
+        }
       }
     }
   }
@@ -167,7 +172,7 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
       }
       element = new FieldParameterElementX(enclosingElement,
           currentDefinitions, name, initializer, fieldElement);
-      computeParameterType(element);
+      computeParameterType(element, fieldElement);
     }
     return element;
   }
@@ -274,12 +279,50 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
                                  MessageKind.ILLEGAL_SETTER_FORMALS);
       }
     }
+    LinkBuilder<DartType> parameterTypes = new LinkBuilder<DartType>();
+    for (ParameterElement parameter in parameters) {
+       parameterTypes.addLast(parameter.type);
+    }
+    Link<DartType> optionalParameterTypes = const Link<DartType>();
+    Link<String> namedParameters = const Link<String>();
+    Link<DartType> namedParameterTypes = const Link<DartType>();
+    List<Element> orderedOptionalParameters =
+        visitor.optionalParameters.toList();
+    if (visitor.optionalParametersAreNamed) {
+      orderedOptionalParameters.sort((Element a, Element b) {
+          return a.name.compareTo(b.name);
+      });
+      LinkBuilder<String> namedParametersBuilder = new LinkBuilder<String>();
+      LinkBuilder<DartType> namedParameterTypesBuilder =
+          new LinkBuilder<DartType>();
+      for (ParameterElement parameter in orderedOptionalParameters) {
+        namedParametersBuilder.addLast(parameter.name);
+        namedParameterTypesBuilder.addLast(parameter.type);
+      }
+      namedParameters = namedParametersBuilder.toLink();
+      namedParameterTypes = namedParameterTypesBuilder.toLink();
+    } else {
+      LinkBuilder<DartType> optionalParameterTypesBuilder =
+          new LinkBuilder<DartType>();
+      for (ParameterElement parameter in visitor.optionalParameters) {
+        optionalParameterTypesBuilder.addLast(parameter.type);
+      }
+      optionalParameterTypes = optionalParameterTypesBuilder.toLink();
+    }
+    FunctionType type = new FunctionType(
+        element.declaration,
+        returnType,
+        parameterTypes.toLink(),
+        optionalParameterTypes,
+        namedParameters,
+        namedParameterTypes);
     return new FunctionSignatureX(parameters,
                                   visitor.optionalParameters,
                                   requiredParameterCount,
                                   visitor.optionalParameterCount,
                                   visitor.optionalParametersAreNamed,
-                                  returnType);
+                                  orderedOptionalParameters,
+                                  type);
   }
 
   DartType resolveTypeAnnotation(TypeAnnotation annotation) {

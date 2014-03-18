@@ -1080,7 +1080,8 @@ abstract class Compiler implements DiagnosticListener {
               {'text': "'$MAIN' is not a function."});
         }
         mainFunction = main;
-        FunctionSignature parameters = mainFunction.computeSignature(this);
+        withCurrentElement(main, () => analyzeElement(main));
+        FunctionSignature parameters = mainFunction.functionSignature;
         if (parameters.parameterCount > 2) {
           int index = 0;
           parameters.forEachParameter((Element parameter) {
@@ -1368,12 +1369,6 @@ abstract class Compiler implements DiagnosticListener {
   void resolveTypedef(TypedefElement element) {
     withCurrentElement(element,
                        () => resolver.resolve(element));
-  }
-
-  FunctionType computeFunctionType(Element element,
-                                   FunctionSignature signature) {
-    return withCurrentElement(element,
-        () => resolver.computeFunctionType(element, signature));
   }
 
   void reportError(Spannable node,

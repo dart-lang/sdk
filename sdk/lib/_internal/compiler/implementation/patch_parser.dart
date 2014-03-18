@@ -120,7 +120,10 @@ import "tree/tree.dart" as tree;
 import "dart2jslib.dart" as leg;  // CompilerTask, Compiler.
 import "scanner/scannerlib.dart";  // Scanner, Parsers, Listeners
 import "elements/elements.dart";
-import "elements/modelx.dart" show LibraryElementX, MetadataAnnotationX;
+import "elements/modelx.dart"
+    show LibraryElementX,
+         MetadataAnnotationX,
+         FunctionElementX;
 import 'util/util.dart';
 
 class PatchParserTask extends leg.CompilerTask {
@@ -526,8 +529,8 @@ void tryPatchFunction(leg.DiagnosticListener listener,
 }
 
 void patchFunction(leg.DiagnosticListener listener,
-                    FunctionElement origin,
-                    FunctionElement patch) {
+                    FunctionElementX origin,
+                    FunctionElementX patch) {
   if (!origin.modifiers.isExternal()) {
     listener.reportError(origin, leg.MessageKind.PATCH_NON_EXTERNAL);
     listener.reportInfo(
