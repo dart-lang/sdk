@@ -17,6 +17,7 @@ import '../io.dart';
 import '../log.dart' as log;
 import '../package.dart';
 import '../package_graph.dart';
+import 'build_directory.dart';
 import 'dart_forwarding_transformer.dart';
 import 'dart2js_transformer.dart';
 import 'load_all_transformers.dart';
@@ -66,8 +67,9 @@ class BuildEnvironment {
     });
   }
 
-  /// The servers serving this environment's assets.
-  final servers = <BarbackServer>[];
+  /// The public directories in the root package that are available for
+  /// building, keyed by their root directory.
+  final _directories = new Map<String, BuildDirectory>();
 
   /// The [Barback] instance used to process assets in this environment.
   final Barback barback;
@@ -139,34 +141,80 @@ class BuildEnvironment {
   /// If [rootDirectory] is already being served, returns that existing server.
   Future<BarbackServer> serveDirectory(String rootDirectory) {
     // See if there is already a server bound to the directory.
-    var server = servers.firstWhere(
-        (server) => server.rootDirectory == rootDirectory, orElse: () => null);
-    if (server != null) return new Future.value(server);
+    var directory = _directories[rootDirectory];
+    if (directory != null) return new Future.value(directory.server);
 
-    return _provideDirectorySources(rootPackage, rootDirectory).then((_) {
-      var port = _basePort;
+    var port = _basePort;
 
-      // If not using an ephemeral port, find the lowest-numbered available one.
-      if (port != 0) {
-        var boundPorts = servers.map((server) => server.port).toSet();
-        while (boundPorts.contains(port)) {
-          port++;
-        }
+    // If not using an ephemeral port, find the lowest-numbered available one.
+    if (port != 0) {
+      var boundPorts = _directories.values
+          .map((directory) => directory.server.port).toSet();
+      while (boundPorts.contains(port)) {
+        port++;
       }
+    }
 
-      return BarbackServer.bind(this, _hostname, port, rootDirectory)
-          .then((server) {
-        servers.add(server);
-        return server;
-      });
+    var buildDirectory = new BuildDirectory(this, rootDirectory);
+    _directories[rootDirectory] = buildDirectory;
+
+    return _provideDirectorySources(rootPackage, rootDirectory)
+        .then((subscription) {
+      buildDirectory.watchSubscription = subscription;
+      return buildDirectory.serve(_hostname, port);
     });
   }
 
-  /// Determines if [sourcePath] is contained within any of the directories
-  /// that are visible to this build environment.
+  /// Stops the server bound to [rootDirectory].
+  ///
+  /// Also removes any source files within that directory from barback. Returns
+  /// the URL of the unbound server, of `null` if [rootDirectory] was not
+  /// bound to a server.
+  Future<String> unserveDirectory(String rootDirectory) {
+    log.fine("unserving $rootDirectory");
+    var directory = _directories.remove(rootDirectory);
+    if (directory == null) return new Future.value();
+
+    var url = directory.server.url;
+    return directory.close().then((_) {
+      // Remove the sources from barback, unless some other build directory
+      // includes them.
+      return _removeDirectorySources(rootDirectory);
+    }).then((_) => url);
+  }
+
+  /// Finds all of the servers whose root directories contain the asset and
+  /// generates appropriate URLs for each.
+  List<String> getUrlsForAssetPath(String assetPath) {
+    return _directories.values
+        .where((dir) => path.isWithin(dir.directory, assetPath))
+        .map((dir) {
+      var relativePath = path.relative(assetPath, from: dir.directory);
+      return "${dir.server.url}/${path.toUri(relativePath)}";
+    }).toList();
+  }
+
+  /// Given a URL to an asset served by this environment, returns the ID of the
+  /// asset that would be accessed by that URL.
+  ///
+  /// If no server can serve [url], returns `null`.
+  AssetId getAssetIdForUrl(Uri url) {
+    var directory = _directories.values.firstWhere(
+        (dir) => dir.server.address.host == url.host &&
+            dir.server.port == url.port,
+        orElse: () => null);
+    if (directory == null) return null;
+
+    return directory.server.urlToId(url);
+  }
+
+  /// Determines if [sourcePath] is contained within any of the directories in
+  /// the root package that are visible to this build environment.
   bool containsPath(String sourcePath) {
-    return _getPublicDirectories(rootPackage.name)
-        .any((dir) => path.isWithin(dir, sourcePath));
+    var directories = ["asset", "lib"];
+    directories.addAll(_directories.keys);
+
+    return directories.any((dir) => path.isWithin(dir, sourcePath));
   }
 
   /// Pauses sending source asset updates to barback.
@@ -185,18 +233,6 @@ class BuildEnvironment {
 
     barback.updateSources(_modifiedSources);
     _modifiedSources = null;
-  }
-
-  /// Gets the names of the top-level directories in [package] whose contents
-  /// should be provided as source assets.
-  Set<String> _getPublicDirectories(String package) {
-    var directories = ["asset", "lib"];
-
-    if (package == graph.entrypoint.root.name) {
-      directories.addAll(servers.map((server) => server.rootDirectory));
-    }
-
-    return directories.toSet();
   }
 
   /// Loads the assets and transformers for this environment.
@@ -297,20 +333,27 @@ class BuildEnvironment {
     }).then((_) => barback.removeSources(pubSources));
   }
 
-  /// Provides all of the source assets in the environment to barback.
+  /// Provides the public source assets in the environment to barback.
   ///
   /// If [watcherType] is not [WatcherType.NONE], enables watching on them.
   Future _provideSources() {
     return Future.wait(graph.packages.values.map((package) {
-      return Future.wait(_getPublicDirectories(package.name)
-          .map((dir) => _provideDirectorySources(package, dir)));
+      // Just include the "shared" directories in each package. We'll add the
+      // other build directories in the root package by calling
+      // [serveDirectory].
+      return Future.wait([
+        _provideDirectorySources(package, "asset"),
+        _provideDirectorySources(package, "lib")
+      ]);
     }));
   }
 
   /// Provides all of the source assets within [dir] in [package] to barback.
   ///
   /// If [watcherType] is not [WatcherType.NONE], enables watching on them.
-  Future _provideDirectorySources(Package package, String dir) {
+  /// Returns the subscription to the watcher, or `null` if none was created.
+  Future<StreamSubscription<WatchEvent>> _provideDirectorySources(
+      Package package, String dir) {
     // TODO(rnystrom): Handle overlapping directories. If two served
     // directories overlap like so:
     //
@@ -318,20 +361,59 @@ class BuildEnvironment {
     //
     // Then the sources of the subdirectory will be updated and watched twice.
     // See: #17454
-    return _updateDirectorySources(package, dir).then((_) {
-      if (_watcherType == WatcherType.NONE) return null;
-      return _watchDirectorySources(package, dir);
+    if (_watcherType == WatcherType.NONE) {
+      return _updateDirectorySources(package, dir);
+    }
+
+    // Watch the directory before listing is so we don't miss files that
+    // are added between the initial list and registering the watcher.
+    return _watchDirectorySources(package, dir).then((_) {
+      return _updateDirectorySources(package, dir);
     });
   }
 
   /// Updates barback with all of the files in [dir] inside [package].
+  Future _updateDirectorySources(Package package, String dir) {
+    return _listDirectorySources(package, dir).then((ids) {
+      if (_modifiedSources == null) {
+        barback.updateSources(ids);
+      } else {
+        _modifiedSources.addAll(ids);
+      }
+    });
+  }
+
+  /// Removes all of the files in [dir] in the root package from barback unless
+  /// some other build directory still contains them.
+  Future _removeDirectorySources(String dir) {
+    return _listDirectorySources(rootPackage, dir, where: (relative) {
+      // TODO(rnystrom): This is O(n*m) where n is the number of files and
+      // m is the number of served directories. Consider something more
+      // optimal if this becomes a bottleneck.
+      // Don't remove a source if some other directory still includes it.
+      return !_directories.keys.any((dir) => path.isWithin(dir, relative));
+    }).then((ids) {
+      if (_modifiedSources == null) {
+        barback.removeSources(ids);
+      } else {
+        _modifiedSources.removeAll(ids);
+      }
+    });
+  }
+
+  /// Lists all of the source assets in [dir] inside [package].
   ///
   /// For large packages, listing the contents is a performance bottleneck, so
   /// this is optimized for our needs in here instead of using the more general
   /// but slower [listDir].
-  Future _updateDirectorySources(Package package, String dir) {
+  ///
+  /// If [where] is given, then it is used to filter the resulting list of
+  /// packages. Only assets whose relative path within [package] matches that
+  /// will be included in the results.
+  Future<List<AssetId>> _listDirectorySources(Package package, String dir,
+      {bool where(String relativePath)}) {
     var subdirectory = path.join(package.dir, dir);
-    if (!dirExists(subdirectory)) return new Future.value();
+    if (!dirExists(subdirectory)) return new Future.value([]);
 
     return new Directory(subdirectory).list(recursive: true, followLinks: true)
         .expand((entry) {
@@ -361,19 +443,16 @@ class BuildEnvironment {
       if (relative.endsWith(".dart.js.map")) return [];
       if (relative.endsWith(".dart.precompiled.js")) return [];
 
+      if (where != null && !where(relative)) return [];
+
       return [new AssetId(package.name, relative)];
-    }).toList().then((ids) {
-      if (_modifiedSources == null) {
-        barback.updateSources(ids);
-      } else {
-        _modifiedSources.addAll(ids);
-      }
-    });
+    }).toList();
   }
 
   /// Adds a file watcher for [dir] within [package], if the directory exists
   /// and the package needs watching.
-  Future _watchDirectorySources(Package package, String dir) {
+  Future<StreamSubscription<WatchEvent>> _watchDirectorySources(
+      Package package, String dir) {
     // If this package comes from a cached source, its contents won't change so
     // we don't need to monitor it. `packageId` will be null for the
     // application package, since that's not locked.
@@ -388,7 +467,7 @@ class BuildEnvironment {
 
     // TODO(nweiz): close this watcher when [barback] is closed.
     var watcher = _watcherType.create(subdirectory);
-    watcher.events.listen((event) {
+    var subscription = watcher.events.listen((event) {
       // Don't watch files symlinked into these directories.
       // TODO(rnystrom): If pub gets rid of symlinks, remove this.
       var parts = path.split(event.path);
@@ -422,7 +501,7 @@ class BuildEnvironment {
       }
     });
 
-    return watcher.ready;
+    return watcher.ready.then((_) => subscription);
   }
 }
 

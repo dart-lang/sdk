@@ -95,7 +95,7 @@ class BarbackServer {
   /// Closes this server.
   Future close() {
     var futures = [_server.close(), _resultsController.close()];
-    futures.addAll(_webSockets);
+    futures.addAll(_webSockets.map((socket) => socket.close()));
     return Future.wait(futures);
   }
 
@@ -153,9 +153,7 @@ class BarbackServer {
     _environment.barback.getAssetById(id).then((result) {
       _logRequest(request, "getAssetById($id) returned");
       return result;
-    })
-        .then((asset) => _serveAsset(request, asset))
-        .catchError((error, trace) {
+    }).then((asset) => _serveAsset(request, asset)).catchError((error, trace) {
       if (error is! AssetNotFoundException) throw error;
       return _environment.barback.getAssetById(id.addExtension("/index.html"))
           .then((asset) {

@@ -59,7 +59,8 @@ class WebSocketApi {
     _commands = {
       "urlToAssetId": _urlToAssetId,
       "pathToUrls": _pathToUrls,
-      "serveDirectory": _serveDirectory
+      "serveDirectory": _serveDirectory,
+      "unserveDirectory": _unserveDirectory
     };
   }
 
@@ -188,14 +189,11 @@ class WebSocketApi {
     // If a line number was given, map it to the output line.
     var line = _validateOptionalInt(command, "line");
 
-    // Find the server.
-    var server = _environment.servers.firstWhere(
-        (server) => server.address.host == url.host &&
-            server.port == url.port,
-        orElse: () => throw new _WebSocketException(_ErrorCode.NOT_SERVED,
-            '"${url.host}:${url.port}" is not being served by pub.'));
-
-    var id = server.urlToId(url);
+    var id = _environment.getAssetIdForUrl(url);
+    if (id == null) {
+      throw new _WebSocketException(_ErrorCode.NOT_SERVED,
+          '"${url.host}:${url.port}" is not being served by pub.');
+    }
 
     // TODO(rnystrom): When this is hooked up to actually talk to barback to
     // see if assets exist, consider supporting implicit index.html at that
@@ -256,14 +254,7 @@ class WebSocketApi {
     var assetPath = _validateRelativePath(command, "path");
     var line = _validateOptionalInt(command, "line");
 
-    // Find all of the servers whose root directories contain the asset and
-    // generate appropriate URLs for each.
-    var urls = _environment.servers
-        .where((server) => path.isWithin(server.rootDirectory, assetPath))
-        .map((server) {
-      var relativePath = path.relative(assetPath, from: server.rootDirectory);
-      return "${server.url}/${path.toUri(relativePath)}";
-    }).toList();
+    var urls = _environment.getUrlsForAssetPath(assetPath);
 
     if (urls.isEmpty) {
       throw new _WebSocketException(_ErrorCode.NOT_SERVED,
@@ -307,6 +298,40 @@ class WebSocketApi {
       return {
         "url": server.url
       };
+    });
+  }
+
+
+  /// Given a relative directory path within the entrypoint package, unbinds
+  /// the server previously bound to that directory and returns its (now
+  /// unreachable) URL.
+  ///
+  /// The command name is "unserveDirectory" and it takes a "path" key (a
+  /// native OS path relative to the root of the entrypoint package) for the
+  /// directory being unserved:
+  ///
+  ///     {
+  ///       "command": "unserveDirectory",
+  ///       "path": "example/awesome"
+  ///     }
+  ///
+  /// If successful, it returns a map containing the URL that used to be used
+  /// to access the directory.
+  ///
+  ///     {
+  ///       "url": "http://localhost:8083"
+  ///     }
+  ///
+  /// If no server is bound to that directory, it returns a `NOT_SERVED` error.
+  Future<Map> _unserveDirectory(Map command) {
+    var rootDirectory = _validateRelativePath(command, "path");
+    return _environment.unserveDirectory(rootDirectory).then((url) {
+      if (url == null) {
+        throw new _WebSocketException(_ErrorCode.NOT_SERVED,
+            'Directory "$rootDirectory" is not bound to a server.');
+      }
+
+      return {"url": url};
     });
   }
 

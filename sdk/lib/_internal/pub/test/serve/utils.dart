@@ -239,6 +239,17 @@ void postShould405(String urlPath, {String root}) {
   }, "request $urlPath");
 }
 
+/// Schedules an HTTP request to the (theoretically) running pub server with
+/// [urlPath] and verifies that it cannot be connected to.
+///
+/// [root] indicates which server should be accessed, and defaults to "web".
+void requestShouldNotConnect(String urlPath, {String root}) {
+  schedule(() {
+    return expect(http.get(_getServerUrlSync(root, urlPath)),
+        throwsA(new isInstanceOf<SocketException>()));
+  }, "request $urlPath");
+}
+
 /// Reads lines from pub serve's stdout until it prints the build success
 /// message.
 ///
