@@ -43,8 +43,10 @@
  * ## Stream
  *
  * A Stream provides an asynchronous sequence of data.
- * Examples of data sequences include user-generated events,
- * such as mouse clicks, and a stream of bytes read from a file.
+ * Examples of data sequences include individual events, like mouse clicks,
+ * or sequential chunks of larger data, like multiple byte lists with the
+ * contents of a file
+ * such as mouse clicks, and a stream of byte lists read from a file.
  * The following example opens a file for reading.
  * [Stream.listen] registers a callback function that runs
  * each time more data is available.

@@ -101,7 +101,7 @@ int get pid => _ProcessUtils._pid(null);
 
 /**
  * The means to execute a program.
- * 
+ *
  * Use the static [start] and [run] methods to start a new process.
  * The run method executes the process non-interactively to completion.
  * In contrast, the start method allows your code to interact with the
@@ -153,10 +153,10 @@ int get pid => _ProcessUtils._pid(null);
  *     }
  *
  * ## Standard I/O streams
- * 
+ *
  * As seen in the previous code sample, you can interact with the Process's
  * standard output stream through the getter [stdout],
- * and you can interact with the Process's standard input stream through 
+ * and you can interact with the Process's standard input stream through
  * the getter [stdin].
  * In addition, Process provides a getter [stderr] for using the Process's
  * standard error stream.
@@ -189,7 +189,7 @@ int get pid => _ProcessUtils._pid(null);
  * ## Other resources
  *
  * [Dart by Example](https://www.dartlang.org/dart-by-example/#dart-io-and-command-line-apps)
- * provides additional task-oriented code samples that show how to use 
+ * provides additional task-oriented code samples that show how to use
  * various API from the [dart:io] library.
  */
 abstract class Process {
@@ -411,6 +411,10 @@ abstract class ProcessResult {
 /**
  * On Posix systems, [ProcessSignal] is used to send a specific signal
  * to a child process, see [:Process.kill:].
+ *
+ * Some [ProcessSignal]s can also be watched, as a way to intercept the default
+ * signal handler and implement another. See [ProcessSignal.watch] for more
+ * information.
  */
 class ProcessSignal {
   static const ProcessSignal SIGHUP = const ProcessSignal._(1, "SIGHUP");
@@ -456,13 +460,16 @@ class ProcessSignal {
    * The following [ProcessSignal]s can be listened to:
    *
    *   * [ProcessSignal.SIGHUP].
-   *   * [ProcessSignal.SIGINT].
+   *   * [ProcessSignal.SIGINT]. Signal sent by e.g. CTRL-C.
    *   * [ProcessSignal.SIGTERM]. Not available on Windows.
    *   * [ProcessSignal.SIGUSR1]. Not available on Windows.
    *   * [ProcessSignal.SIGUSR2]. Not available on Windows.
    *   * [ProcessSignal.SIGWINCH]. Not available on Windows.
    *
    * Other signals are disallowed, as they may be used by the VM.
+   *
+   * A signal can be watched multiple times, from multiple isolates, where all
+   * callbacks are invoked when signaled, in no specific order.
    */
   Stream<ProcessSignal> watch() => _ProcessUtils._watchSignal(this);
 }
