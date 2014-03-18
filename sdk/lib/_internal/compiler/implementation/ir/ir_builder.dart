@@ -10,7 +10,7 @@ import '../dart2jslib.dart';
 import '../source_file.dart';
 import '../tree/tree.dart' as ast;
 import '../scanner/scannerlib.dart' show Token;
-import '../js_backend/js_backend.dart' show JavaScriptBackend;
+import '../dart_backend/dart_backend.dart' show DartBackend;
 import 'ir_pickler.dart' show Unpickler, IrConstantPool;
 
 /**
@@ -81,7 +81,6 @@ class IrBuilderTask extends CompilerTask {
             nodes[element] = function;
           }
         }
-        ensureIr(element);
       });
     });
   }
@@ -89,7 +88,7 @@ class IrBuilderTask extends CompilerTask {
   bool irEnabled() {
     // TODO(lry): support checked-mode checks.
     if (compiler.enableTypeAssertions ||
-        compiler.backend is !JavaScriptBackend ||
+        compiler.backend is !DartBackend ||
         compiler.enableConcreteTypeInference) {
       return false;
     }
@@ -105,16 +104,8 @@ class IrBuilderTask extends CompilerTask {
     FunctionSignature signature = function.functionSignature;
     if (signature.parameterCount > 0) return false;
 
-    // TODO(lry): support intercepted methods. Then the dependency on
-    // JavaScriptBackend will go away.
-    JavaScriptBackend backend = compiler.backend;
-    if (backend.isInterceptedMethod(element)) return false;
-
     // TODO(lry): support native functions (also in [visitReturn]).
     if (function.isNative()) return false;
-
-    // Methods annotated @IrRepresentation(false).
-    if (enforceAstRepresentation(function)) return false;
 
     return true;
   }
@@ -123,50 +114,6 @@ class IrBuilderTask extends CompilerTask {
     bool result = false;
     assert((result = true));
     return result;
-  }
-
-  bool enforceAstRepresentation(Element element) {
-    return irRepresentationValue(element, false);
-  }
-
-  bool enforceIrRepresentation(Element element) {
-    return irRepresentationValue(element, true);
-  }
-
-  /**
-   * In host-checked mode, the @IrRepresentation annotation can be used to
-   * enforce the internal representation of a function.
-   */
-  bool irRepresentationValue(Element element, bool expected) {
-    if (!inCheckedMode || compiler.backend is !JavaScriptBackend) return false;
-    JavaScriptBackend backend = compiler.backend;
-    for (MetadataAnnotation metadata in element.metadata) {
-      if (metadata.value == null ||
-          !metadata.value.isConstructedObject) {
-        continue;
-      }
-      ObjectConstant value = metadata.value;
-      ClassElement cls = value.type.element;
-      if (cls == backend.irRepresentationClass) {
-        ConstructedConstant classConstant = value;
-        BoolConstant constant = classConstant.fields[0];
-        return constant.value == expected;
-      }
-    }
-    return false;
-  }
-
-  void ensureIr(Element element) {
-    // If no IR was built for [element], ensure it is not annotated
-    // @IrRepresentation(true).
-    if (inCheckedMode &&
-        !compiler.irBuilder.hasIr(element) &&
-        enforceIrRepresentation(element)) {
-      compiler.reportFatalError(
-          element,
-          MessageKind.GENERIC,
-          {'text': "Error: cannot build IR for $element."});
-    }
   }
 
   SourceFile elementSourceFile(Element element) {
@@ -183,7 +130,7 @@ class IrBuilderTask extends CompilerTask {
  * to the [builder] and return the last added statement for trees that represent
  * an expression.
  */
-class IrBuilder extends ResolvedVisitor<ir.Trivial> {
+class IrBuilder extends ResolvedVisitor<ir.Definition> {
   final SourceFile sourceFile;
   ir.Continuation returnContinuation = null;
 
@@ -202,14 +149,14 @@ class IrBuilder extends ResolvedVisitor<ir.Trivial> {
   // expression and current is null.
   //
   // Conceptually again, visiting an expression takes a context as input and
-  // returns either a pair of a new context and a trivial expression denoting
+  // returns either a pair of a new context and a definition denoting
   // the expression's value, or else an expression without a hole if all
   // control-flow paths through the expression have exited.
   //
   // We do not pass and return contexts, rather we use the current context
   // (root, current) as the visitor state and mutate current.  Visiting a
   // statement returns null; visiting an expression optionally returns the
-  // trivial expression denoting its value.
+  // definition denoting its value.
   ir.Expression root = null;
   ir.Expression current = null;
 
@@ -272,12 +219,12 @@ class IrBuilder extends ResolvedVisitor<ir.Trivial> {
     current = null;
   }
 
-  ir.Trivial visitEmptyStatement(ast.EmptyStatement node) {
+  ir.Definition visitEmptyStatement(ast.EmptyStatement node) {
     assert(isOpen);
     return null;
   }
 
-  ir.Trivial visitBlock(ast.Block node) {
+  ir.Definition visitBlock(ast.Block node) {
     assert(isOpen);
     for (var n in node.statements.nodes) {
       n.accept(this);
@@ -289,11 +236,11 @@ class IrBuilder extends ResolvedVisitor<ir.Trivial> {
   // Build(Return)    = let val x = null in InvokeContinuation(return, x)
   // Build(Return(e)) = C[InvokeContinuation(return, x)]
   //   where (C, x) = Build(e)
-  ir.Trivial visitReturn(ast.Return node) {
+  ir.Definition visitReturn(ast.Return node) {
     assert(isOpen);
     // TODO(lry): support native returns.
     if (node.beginToken.value == 'native') return giveup();
-    ir.Trivial value;
+    ir.Definition value;
     if (node.expression == null) {
       value = new ir.Constant(constantSystem.createNull());
       add(new ir.LetVal(value));
@@ -308,7 +255,7 @@ class IrBuilder extends ResolvedVisitor<ir.Trivial> {
 
   // For all simple literals:
   // Build(Literal(c)) = (let val x = Constant(c) in [], x)
-  ir.Trivial visitLiteralBool(ast.LiteralBool node) {
+  ir.Definition visitLiteralBool(ast.LiteralBool node) {
     assert(isOpen);
     ir.Constant constant =
         new ir.Constant(constantSystem.createBool(node.value));
@@ -316,7 +263,7 @@ class IrBuilder extends ResolvedVisitor<ir.Trivial> {
     return constant;
   }
 
-  ir.Trivial visitLiteralDouble(ast.LiteralDouble node) {
+  ir.Definition visitLiteralDouble(ast.LiteralDouble node) {
     assert(isOpen);
     ir.Constant constant =
         new ir.Constant(constantSystem.createDouble(node.value));
@@ -324,7 +271,7 @@ class IrBuilder extends ResolvedVisitor<ir.Trivial> {
     return constant;
   }
 
-  ir.Trivial visitLiteralInt(ast.LiteralInt node) {
+  ir.Definition visitLiteralInt(ast.LiteralInt node) {
     assert(isOpen);
     ir.Constant constant =
         new ir.Constant(constantSystem.createInt(node.value));
@@ -332,7 +279,7 @@ class IrBuilder extends ResolvedVisitor<ir.Trivial> {
     return constant;
   }
 
-  ir.Trivial visitLiteralString(ast.LiteralString node) {
+  ir.Definition visitLiteralString(ast.LiteralString node) {
     assert(isOpen);
     ir.Constant constant =
         new ir.Constant(constantSystem.createString(node.dartString));
@@ -340,7 +287,7 @@ class IrBuilder extends ResolvedVisitor<ir.Trivial> {
     return constant;
   }
 
-  ir.Trivial visitLiteralNull(ast.LiteralNull node) {
+  ir.Definition visitLiteralNull(ast.LiteralNull node) {
     assert(isOpen);
     ir.Constant constant = new ir.Constant(constantSystem.createNull());
     add(new ir.LetVal(constant));
@@ -353,29 +300,29 @@ class IrBuilder extends ResolvedVisitor<ir.Trivial> {
 //  IrNode visitLiteralMapEntry(LiteralMapEntry node) => visitNode(node);
 //  IrNode visitLiteralSymbol(LiteralSymbol node) => visitExpression(node);
 
-  ir.Trivial visitAssert(ast.Send node) {
+  ir.Definition visitAssert(ast.Send node) {
     return giveup();
   }
 
-  ir.Trivial visitClosureSend(ast.Send node) {
+  ir.Definition visitClosureSend(ast.Send node) {
     return giveup();
   }
 
-  ir.Trivial visitDynamicSend(ast.Send node) {
+  ir.Definition visitDynamicSend(ast.Send node) {
     return giveup();
   }
 
-  ir.Trivial visitGetterSend(ast.Send node) {
+  ir.Definition visitGetterSend(ast.Send node) {
     return giveup();
   }
 
-  ir.Trivial visitOperatorSend(ast.Send node) {
+  ir.Definition visitOperatorSend(ast.Send node) {
     return giveup();
   }
 
   // Build(StaticSend(f, a...)) = C[InvokeStatic(f, x...)]
   //   where (C, x...) = BuildList(a...)
-  ir.Trivial visitStaticSend(ast.Send node) {
+  ir.Definition visitStaticSend(ast.Send node) {
     assert(isOpen);
     Element element = elements[node];
     // TODO(lry): support static fields. (separate IR instruction?)
@@ -415,17 +362,17 @@ class IrBuilder extends ResolvedVisitor<ir.Trivial> {
     return v;
   }
 
-  ir.Trivial visitSuperSend(ast.Send node) {
+  ir.Definition visitSuperSend(ast.Send node) {
     return giveup();
   }
 
-  ir.Trivial visitTypeReferenceSend(ast.Send node) {
+  ir.Definition visitTypeReferenceSend(ast.Send node) {
     return giveup();
   }
 
   static final String ABORT_IRNODE_BUILDER = "IrNode builder aborted";
 
-  ir.Trivial giveup() => throw ABORT_IRNODE_BUILDER;
+  ir.Definition giveup() => throw ABORT_IRNODE_BUILDER;
 
   ir.Function nullIfGiveup(ir.Function action()) {
     try {
