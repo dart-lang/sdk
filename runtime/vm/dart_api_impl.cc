@@ -3271,7 +3271,6 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
   // TODO(turnidge): This is a bit simplistic.  It overcounts when
   // other operations (gc, compilation) are active.
   TIMERSCOPE(isolate, time_dart_execution);
-  VMTagScope tagScope(isolate, VMTag::kScriptTagId);
 
   const String& function_name = Api::UnwrapStringHandle(isolate, name);
   if (function_name.IsNull()) {

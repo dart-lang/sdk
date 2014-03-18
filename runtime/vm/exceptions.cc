@@ -13,6 +13,7 @@
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/tags.h"
 
 // Allow the use of ASan (AddressSanitizer). This is needed as ASan needs to be
 // told about areas where the VM does the equivalent of a long-jump.
@@ -273,6 +274,7 @@ static void JumpToExceptionHandler(uword program_counter,
   NoGCScope no_gc;
   RawObject* raw_exception = exception_object.raw();
   RawObject* raw_stacktrace = stacktrace_object.raw();
+  Isolate* isolate = Isolate::Current();
 
 #if defined(USING_SIMULATOR)
   // Unwinding of the C++ frames and destroying of their stack resources is done
@@ -282,12 +284,13 @@ static void JumpToExceptionHandler(uword program_counter,
   // Continue simulating at the given pc in the given frame after setting up the
   // exception object in the kExceptionObjectReg register and the stacktrace
   // object (may be raw null) in the kStackTraceObjectReg register.
+  isolate->set_vm_tag(VMTag::kScriptTagId);
   Simulator::Current()->Longjmp(program_counter, stack_pointer, frame_pointer,
                                 raw_exception, raw_stacktrace);
 #else
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous frames.
-  Isolate* isolate = Isolate::Current();
+
   while (isolate->top_resource() != NULL &&
          (reinterpret_cast<uword>(isolate->top_resource()) < stack_pointer)) {
     isolate->top_resource()->~StackResource();
@@ -304,6 +307,7 @@ static void JumpToExceptionHandler(uword program_counter,
   uword current_sp = reinterpret_cast<uword>(&program_counter) - 1024;
   __asan_unpoison_memory_region(reinterpret_cast<void*>(current_sp),
                                 stack_pointer - current_sp);
+  isolate->set_vm_tag(VMTag::kScriptTagId);
   func(program_counter, stack_pointer, frame_pointer,
        raw_exception, raw_stacktrace);
 #endif

@@ -16,6 +16,7 @@
 #include "vm/scavenger.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
+#include "vm/tags.h"
 
 
 #define __ assembler->
@@ -57,6 +58,20 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Cache Isolate pointer into CTX while executing runtime code.
   __ movl(CTX, EAX);
 
+#if defined(DEBUG)
+  { Label ok;
+    // Check that we are always entering from Dart code.
+    __ movl(EAX, Address(CTX, Isolate::vm_tag_offset()));
+    __ cmpl(EAX, Immediate(VMTag::kScriptTagId));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Mark that the isolate is executing VM code.
+  __ movl(Address(CTX, Isolate::vm_tag_offset()), Immediate(VMTag::kVMTagId));
+
   // Reserve space for arguments and align frame before entering C++ world.
   __ AddImmediate(ESP, Immediate(-sizeof(NativeArguments)));
   if (OS::ActivationFrameAlignment() > 1) {
@@ -73,6 +88,10 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ addl(EAX, Immediate(1 * kWordSize));  // Retval is next to 1st argument.
   __ movl(Address(ESP, retval_offset), EAX);  // Set retval in NativeArguments.
   __ call(ECX);
+
+  // Mark that the isolate is executing Dart code.
+  __ movl(Address(CTX, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kScriptTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movl(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -147,6 +166,21 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Cache Isolate pointer into CTX while executing native code.
   __ movl(CTX, EDI);
 
+#if defined(DEBUG)
+  { Label ok;
+    // Check that we are always entering from Dart code.
+    __ movl(EDI, Address(CTX, Isolate::vm_tag_offset()));
+    __ cmpl(EDI, Immediate(VMTag::kScriptTagId));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Mark that the isolate is executing Native code.
+  __ movl(Address(CTX, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kRuntimeNativeTagId));
+
   // Reserve space for the native arguments structure, the outgoing parameters
   // (pointer to the native arguments structure, the C function entry point)
   // and align frame before entering the C++ world.
@@ -175,6 +209,10 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ Bind(&leaf_call);
   __ call(ECX);
   __ Bind(&done);
+
+  // Mark that the isolate is executing Dart code.
+  __ movl(Address(CTX, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kScriptTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movl(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -228,6 +266,21 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Cache Isolate pointer into CTX while executing native code.
   __ movl(CTX, EDI);
 
+#if defined(DEBUG)
+  { Label ok;
+    // Check that we are always entering from Dart code.
+    __ movl(EDI, Address(CTX, Isolate::vm_tag_offset()));
+    __ cmpl(EDI, Immediate(VMTag::kScriptTagId));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Mark that the isolate is executing Native code.
+  __ movl(Address(CTX, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kRuntimeNativeTagId));
+
   // Reserve space for the native arguments structure, the outgoing parameter
   // (pointer to the native arguments structure) and align frame before
   // entering the C++ world.
@@ -245,6 +298,10 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ leal(EAX, Address(ESP, kWordSize));  // Pointer to the NativeArguments.
   __ movl(Address(ESP, 0), EAX);  // Pass the pointer to the NativeArguments.
   __ call(ECX);
+
+  // Mark that the isolate is executing Dart code.
+  __ movl(Address(CTX, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kScriptTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movl(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -815,11 +872,20 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Load Isolate pointer from Context structure into EDI.
   __ movl(EDI, FieldAddress(CTX, Context::isolate_offset()));
 
+  // Save the current VMTag on the stack.
+  ASSERT(kSavedVMTagSlotFromEntryFp == -4);
+  __ movl(ECX, Address(EDI, Isolate::vm_tag_offset()));
+  __ pushl(ECX);
+
+  // Mark that the isolate is executing Dart code.
+  __ movl(Address(EDI, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kScriptTagId));
+
   // Save the top exit frame info. Use EDX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
   // The constant kExitLinkSlotFromEntryFp must be kept in sync with the
   // code below.
-  ASSERT(kExitLinkSlotFromEntryFp == -4);
+  ASSERT(kExitLinkSlotFromEntryFp == -5);
   __ movl(EDX, Address(EDI, Isolate::top_exit_frame_info_offset()));
   __ pushl(EDX);
   __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -831,7 +897,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // EntryFrame::SavedContext reads the context saved in this frame.
   // The constant kSavedContextSlotFromEntryFp must be kept in sync with
   // the code below.
-  ASSERT(kSavedContextSlotFromEntryFp == -5);
+  ASSERT(kSavedContextSlotFromEntryFp == -6);
   __ movl(ECX, Address(EDI, Isolate::top_context_offset()));
   __ pushl(ECX);
 
@@ -890,6 +956,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Uses EDX as a temporary register for this.
   __ popl(EDX);
   __ movl(Address(CTX, Isolate::top_exit_frame_info_offset()), EDX);
+
+  // Restore the current VMTag from the stack.
+  __ popl(ECX);
+  __ movl(Address(CTX, Isolate::vm_tag_offset()), ECX);
 
   // Restore C++ ABI callee-saved registers.
   __ popl(EDI);

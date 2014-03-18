@@ -176,6 +176,10 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, top_exit_frame_info_);
   }
 
+  static intptr_t vm_tag_offset() {
+    return OFFSET_OF(Isolate, vm_tag_);
+  }
+
   ApiState* api_state() const { return api_state_; }
   void set_api_state(ApiState* value) { api_state_ = value; }
 

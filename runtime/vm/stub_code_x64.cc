@@ -16,7 +16,7 @@
 #include "vm/scavenger.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
-
+#include "vm/tags.h"
 
 #define __ assembler->
 
@@ -58,6 +58,20 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Cache Isolate pointer into CTX while executing runtime code.
   __ movq(CTX, RAX);
 
+#if defined(DEBUG)
+  { Label ok;
+    // Check that we are always entering from Dart code.
+    __ movq(RAX, Immediate(VMTag::kScriptTagId));
+    __ cmpq(RAX, Address(CTX, Isolate::vm_tag_offset()));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Mark that the isolate is executing VM code.
+  __ movq(Address(CTX, Isolate::vm_tag_offset()), Immediate(VMTag::kVMTagId));
+
   // Reserve space for arguments and align frame before entering C++ world.
   __ subq(RSP, Immediate(sizeof(NativeArguments)));
   if (OS::ActivationFrameAlignment() > 1) {
@@ -74,6 +88,10 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ addq(RAX, Immediate(1 * kWordSize));  // Retval is next to 1st argument.
   __ movq(Address(RSP, retval_offset), RAX);  // Set retval in NativeArguments.
   __ call(RBX);
+
+  // Mark that the isolate is executing Dart code.
+  __ movq(Address(CTX, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kScriptTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movq(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -139,11 +157,26 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // to transition to native code.
   __ movq(Address(R8, Isolate::top_exit_frame_info_offset()), RSP);
 
-  // Save current Context pointer into Isolate structure.
+// Save current Context pointer into Isolate structure.
   __ movq(Address(R8, Isolate::top_context_offset()), CTX);
 
   // Cache Isolate pointer into CTX while executing native code.
   __ movq(CTX, R8);
+
+#if defined(DEBUG)
+  { Label ok;
+    // Check that we are always entering from Dart code.
+    __ movq(R8, Immediate(VMTag::kScriptTagId));
+    __ cmpq(R8, Address(CTX, Isolate::vm_tag_offset()));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Mark that the isolate is executing Native code.
+  __ movq(Address(CTX, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kRuntimeNativeTagId));
 
   // Reserve space for the native arguments structure passed on the stack (the
   // outgoing pointer parameter to the native arguments structure is passed in
@@ -172,6 +205,10 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ Bind(&leaf_call);
   __ call(RBX);
   __ Bind(&done);
+
+  // Mark that the isolate is executing Dart code.
+  __ movq(Address(CTX, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kScriptTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movq(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -223,6 +260,21 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Cache Isolate pointer into CTX while executing native code.
   __ movq(CTX, R8);
 
+#if defined(DEBUG)
+  { Label ok;
+    // Check that we are always entering from Dart code.
+    __ movq(R8, Immediate(VMTag::kScriptTagId));
+    __ cmpq(R8, Address(CTX, Isolate::vm_tag_offset()));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Mark that the isolate is executing Native code.
+  __ movq(Address(CTX, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kRuntimeNativeTagId));
+
   // Reserve space for the native arguments structure passed on the stack (the
   // outgoing pointer parameter to the native arguments structure is passed in
   // RDI) and align frame before entering the C++ world.
@@ -239,6 +291,10 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ movq(Address(RSP, retval_offset), RAX);  // Set retval in NativeArguments.
   __ movq(RDI, RSP);  // Pass the pointer to the NativeArguments.
   __ call(RBX);
+
+  // Mark that the isolate is executing Dart code.
+  __ movq(Address(CTX, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kScriptTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movq(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -819,11 +875,20 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Load Isolate pointer from Context structure into R8.
   __ movq(R8, FieldAddress(CTX, Context::isolate_offset()));
 
+  // Save the current VMTag on the stack.
+  ASSERT(kSavedVMTagSlotFromEntryFp == -8);
+  __ movq(RAX, Address(R8, Isolate::vm_tag_offset()));
+  __ pushq(RAX);
+
+  // Mark that the isolate is executing Dart code.
+  __ movq(Address(R8, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kScriptTagId));
+
   // Save the top exit frame info. Use RAX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
   // The constant kExitLinkSlotFromEntryFp must be kept in sync with the
   // code below.
-  ASSERT(kExitLinkSlotFromEntryFp == -8);
+  ASSERT(kExitLinkSlotFromEntryFp == -9);
   __ movq(RAX, Address(R8, Isolate::top_exit_frame_info_offset()));
   __ pushq(RAX);
   __ movq(Address(R8, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -835,7 +900,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // EntryFrame::SavedContext reads the context saved in this frame.
   // The constant kSavedContextSlotFromEntryFp must be kept in sync with
   // the code below.
-  ASSERT(kSavedContextSlotFromEntryFp == -9);
+  ASSERT(kSavedContextSlotFromEntryFp == -10);
   __ movq(RAX, Address(R8, Isolate::top_context_offset()));
   __ pushq(RAX);
 
@@ -891,6 +956,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Uses RDX as a temporary register for this.
   __ popq(RDX);
   __ movq(Address(CTX, Isolate::top_exit_frame_info_offset()), RDX);
+
+  // Restore the current VMTag from the stack.
+  __ popq(RDX);
+  __ movq(Address(CTX, Isolate::vm_tag_offset()), RDX);
 
   // Restore C++ ABI callee-saved registers.
   __ popq(R15);

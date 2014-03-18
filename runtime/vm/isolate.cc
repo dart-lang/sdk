@@ -118,7 +118,6 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   // TODO(turnidge): Rework collection total dart execution.  This can
   // overcount when other things (gc, compilation) are active.
   TIMERSCOPE(isolate_, time_dart_execution);
-  VMTagScope tagScope(isolate_, VMTag::kScriptTagId);
 
   // If the message is in band we lookup the receive port to dispatch to.  If
   // the receive port is closed, we drop the message without deserializing it.
