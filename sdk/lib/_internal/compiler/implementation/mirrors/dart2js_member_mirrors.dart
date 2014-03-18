@@ -140,7 +140,7 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
   }
 
   TypeMirror get returnType => owner._getTypeMirror(
-      _function.functionSignature.type.returnType);
+      _function.functionSignature.returnType);
 
   bool get isAbstract => _function.isAbstract;
 

@@ -1561,7 +1561,7 @@ class SsaBuilder extends ResolvedVisitor {
 
     elements = compiler.enqueuer.resolution.getCachedElements(function);
     assert(elements != null);
-    returnType = signature.type.returnType;
+    returnType = signature.returnType;
     stack = <HInstruction>[];
   }
 
@@ -2147,7 +2147,7 @@ class SsaBuilder extends ResolvedVisitor {
         localsHandler.directLocals[parameterElement] = newParameter;
       });
 
-      returnType = signature.type.returnType;
+      returnType = signature.returnType;
     } else {
       // Otherwise it is a lazy initializer which does not have parameters.
       assert(element is VariableElement);

@@ -31,14 +31,14 @@ bool test(compiler, String name1, String name2, {bool expect}) {
   DartType type2;
   if (signature1.requiredParameterCount == 0) {
     // If parameters is empty, use return type.
-    type1 = signature1.type.returnType;
+    type1 = signature1.returnType;
   } else {
     // Otherwise use the first argument type.
     type1 = signature1.requiredParameters.head.computeType(compiler);
   }
   if (signature2.requiredParameterCount == 0) {
     // If parameters is empty, use return type.
-    type2 = signature2.type.returnType;
+    type2 = signature2.returnType;
   } else {
     // Otherwise use the first argument type.
     type2 = signature2.requiredParameters.head.computeType(compiler);

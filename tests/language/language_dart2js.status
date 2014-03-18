@@ -31,9 +31,6 @@ ref_before_declaration_test/04: MissingCompileTimeError
 ref_before_declaration_test/05: MissingCompileTimeError
 ref_before_declaration_test/06: MissingCompileTimeError
 
-deferred_constraints_test/const_annotation: MissingCompileTimeError # Issue 17549
-deferred_constraints_constants_test/metadata* : MissingCompileTimeError # Issue 17549
-
 # VM specific tests that should not be run by dart2js.
 vm/*: Skip # Issue 12699
 

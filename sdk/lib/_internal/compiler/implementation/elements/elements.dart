@@ -774,7 +774,6 @@ abstract class FieldElement extends VariableElement
     implements ClosureContainer {}
 
 abstract class ParameterElement extends VariableElement {
-  VariableDefinitions get node;
   FunctionSignature get functionSignature;
 }
 
@@ -795,7 +794,7 @@ abstract class AbstractFieldElement extends Element {
 }
 
 abstract class FunctionSignature {
-  FunctionType get type;
+  DartType get returnType;
   Link<Element> get requiredParameters;
   Link<Element> get optionalParameters;
 
@@ -818,7 +817,7 @@ abstract class FunctionSignature {
 
 abstract class FunctionElement extends Element
     implements TypedElement, ClosureContainer {
-  FunctionExpression get node;
+  FunctionExpression get cachedNode;
   DartType get type;
   FunctionSignature get functionSignature;
   FunctionElement get redirectionTarget;
@@ -839,6 +838,8 @@ abstract class FunctionElement extends Element
   void set patch(FunctionElement value);
   void set origin(FunctionElement value);
   void set defaultImplementation(FunctionElement value);
+
+  void setPatch(FunctionElement patchElement);
 
   /// Do not use [computeSignature] outside of the resolver; instead retrieve
   /// the signature through the [functionSignature] field.

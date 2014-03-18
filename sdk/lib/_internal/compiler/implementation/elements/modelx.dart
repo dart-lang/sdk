@@ -335,7 +335,6 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   }
 
   Link<MetadataAnnotation> get metadata => unsupported();
-  get node => unsupported();
   get type => unsupported();
   get cachedNode => unsupported();
   get functionSignature => unsupported();
@@ -1254,6 +1253,13 @@ class FieldParameterElementX extends ParameterElementX
       : super(ElementKind.FIELD_PARAMETER, enclosingElement,
               variables, identifier, initializer);
 
+  DartType computeType(Compiler compiler) {
+    if (definitions.type == null) {
+      return fieldElement.computeType(compiler);
+    }
+    return super.computeType(compiler);
+  }
+
   accept(ElementVisitor visitor) => visitor.visitFieldParameterElement(this);
 }
 
@@ -1267,14 +1273,14 @@ class ParameterElementX extends ElementX implements ParameterElement {
   final VariableDefinitions definitions;
   final Identifier identifier;
   final Expression initializer;
-  DartType typeCache;
+  DartType type;
 
   /**
    * Function signature for a variable with a function type. The signature is
    * kept to provide full information about parameter names through the mirror
    * system.
    */
-  FunctionSignature functionSignatureCache;
+  FunctionSignature functionSignature;
 
   ParameterElementX(ElementKind elementKind,
                     Element enclosingElement,
@@ -1295,20 +1301,6 @@ class ParameterElementX extends ElementX implements ParameterElement {
         message: "Parameter type has not been set for $this."));
     return type;
   }
-
-  DartType get type {
-    assert(invariant(this, typeCache != null,
-            message: "Parameter type has not been set for $this."));
-        return typeCache;
-  }
-
-  FunctionSignature get functionSignature {
-    assert(invariant(this, typeCache != null,
-            message: "Parameter signature has not been set for $this."));
-    return functionSignatureCache;
-  }
-
-  VariableDefinitions get node => definitions;
 
   FunctionType get functionType => type;
 
@@ -1384,19 +1376,19 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
 class FunctionSignatureX implements FunctionSignature {
   final Link<Element> requiredParameters;
   final Link<Element> optionalParameters;
+  final DartType returnType;
   final int requiredParameterCount;
   final int optionalParameterCount;
   final bool optionalParametersAreNamed;
-  final List<Element> orderedOptionalParameters;
-  final FunctionType type;
+
+  List<Element> _orderedOptionalParameters;
 
   FunctionSignatureX(this.requiredParameters,
                      this.optionalParameters,
                      this.requiredParameterCount,
                      this.optionalParameterCount,
                      this.optionalParametersAreNamed,
-                     this.orderedOptionalParameters,
-                     this.type);
+                     this.returnType);
 
   void forEachRequiredParameter(void function(Element parameter)) {
     for (Link<Element> link = requiredParameters;
@@ -1412,6 +1404,18 @@ class FunctionSignatureX implements FunctionSignature {
          link = link.tail) {
       function(link.head);
     }
+  }
+
+  List<Element> get orderedOptionalParameters {
+    if (_orderedOptionalParameters != null) return _orderedOptionalParameters;
+    List<Element> list = optionalParameters.toList();
+    if (optionalParametersAreNamed) {
+      list.sort((Element a, Element b) {
+        return a.name.compareTo(b.name);
+      });
+    }
+    _orderedOptionalParameters = list;
+    return list;
   }
 
   Element get firstOptionalParameter => optionalParameters.head;
@@ -1473,7 +1477,7 @@ class FunctionElementX extends ElementX with AnalyzableElement
 
   List<FunctionElement> nestedClosures = new List<FunctionElement>();
 
-  FunctionSignature functionSignatureCache;
+  FunctionSignature functionSignature;
 
   /**
    * A function declaration that should be parsed instead of the current one.
@@ -1501,18 +1505,18 @@ class FunctionElementX extends ElementX with AnalyzableElement
       : this.tooMuchOverloading(name, null, kind, modifiers, enclosing, null,
                                 hasNoBody);
 
-  FunctionElementX.fromNode(String name,
-                            FunctionExpression node,
-                            ElementKind kind,
-                            Modifiers modifiers,
-                            Element enclosing)
+  FunctionElementX.node(String name,
+                        FunctionExpression node,
+                        ElementKind kind,
+                        Modifiers modifiers,
+                        Element enclosing)
       : this.tooMuchOverloading(name, node, kind, modifiers, enclosing, null,
                                 false);
 
   FunctionElementX.from(String name,
                         FunctionElement other,
                         Element enclosing)
-      : this.tooMuchOverloading(name, other.node, other.kind,
+      : this.tooMuchOverloading(name, other.cachedNode, other.kind,
                                 other.modifiers, enclosing,
                                 other.functionSignature,
                                 false);
@@ -1522,7 +1526,7 @@ class FunctionElementX extends ElementX with AnalyzableElement
                                       ElementKind kind,
                                       this.modifiers,
                                       Element enclosing,
-                                      this.functionSignatureCache,
+                                      this.functionSignature,
                                       bool hasNoBody)
       : super(name, kind, enclosing),
         _hasNoBody = hasNoBody {
@@ -1579,22 +1583,29 @@ class FunctionElementX extends ElementX with AnalyzableElement
   }
 
   FunctionSignature computeSignature(Compiler compiler) {
-    if (functionSignatureCache != null) return functionSignatureCache;
+    if (functionSignature != null) return functionSignature;
     compiler.withCurrentElement(this, () {
-      functionSignatureCache = compiler.resolveSignature(this);
+      functionSignature = compiler.resolveSignature(this);
     });
-    return functionSignatureCache;
+    return functionSignature;
   }
 
-  FunctionSignature get functionSignature {
-    assert(invariant(this, functionSignatureCache != null,
-        message: "Function signature has not been computed for $this."));
-    return functionSignatureCache;
+  int requiredParameterCount(Compiler compiler) {
+    return computeSignature(compiler).requiredParameterCount;
+  }
+
+  int optionalParameterCount(Compiler compiler) {
+    return computeSignature(compiler).optionalParameterCount;
+  }
+
+  int parameterCount(Compiler compiler) {
+    return computeSignature(compiler).parameterCount;
   }
 
   FunctionType computeType(Compiler compiler) {
     if (typeCache != null) return typeCache;
-    typeCache = computeSignature(compiler).type;
+    typeCache = compiler.computeFunctionType(declaration,
+                                             computeSignature(compiler));
     return typeCache;
   }
 
@@ -1611,12 +1622,6 @@ class FunctionElementX extends ElementX with AnalyzableElement
                         element: this);
       }
     }
-    return cachedNode;
-  }
-
-  FunctionExpression get node {
-    assert(invariant(this, cachedNode != null,
-        message: "Node has not been computed for $this."));
     return cachedNode;
   }
 
@@ -1660,7 +1665,7 @@ class ConstructorBodyElementX extends FunctionElementX
               ElementKind.GENERATIVE_CONSTRUCTOR_BODY,
               Modifiers.EMPTY,
               constructor.enclosingElement, false) {
-    functionSignatureCache = constructor.functionSignature;
+    functionSignature = constructor.functionSignature;
   }
 
   bool isInstanceMember() => true;
@@ -1714,20 +1719,19 @@ class SynthesizedConstructorElementX extends FunctionElementX {
   FunctionElement get targetConstructor => superMember;
 
   FunctionSignature computeSignature(compiler) {
-    if (functionSignatureCache != null) return functionSignatureCache;
+    if (functionSignature != null) return functionSignature;
     if (isDefaultConstructor) {
-      return functionSignatureCache = new FunctionSignatureX(
+      return functionSignature = new FunctionSignatureX(
           const Link<Element>(), const Link<Element>(), 0, 0, false,
-          const <Element>[],
-          new FunctionType(this, getEnclosingClass().thisType));
+          getEnclosingClass().thisType);
     }
     if (superMember.isErroneous()) {
-      return functionSignatureCache =
-          compiler.objectClass.localLookup('').computeSignature(compiler);
+      return functionSignature = compiler.objectClass.localLookup('')
+          .computeSignature(compiler);
     }
     // TODO(johnniwinther): Ensure that the function signature (and with it the
     // function type) substitutes type variables correctly.
-    return functionSignatureCache = superMember.computeSignature(compiler);
+    return functionSignature = superMember.computeSignature(compiler);
   }
 
   get declaration => this;
