@@ -24,8 +24,7 @@ docgen/test/multi_library_test: Skip # Way too slow
 docgen/test/single_library_test: Skip # Way too slow
 docgen/test/typedef_test: Skip # Way too slow
 
-[ $mode == debug ]
-docgen/test/only_lib_content_in_pkg_test: Skip # doesn't make any progress
+docgen/test/only_lib_content_in_pkg_test: Fail # Issue 17597
 
 [ $runtime == vm && $system == windows ]
 docgen\test\only_lib_content_in_pkg_test: Fail # Issue 17597
