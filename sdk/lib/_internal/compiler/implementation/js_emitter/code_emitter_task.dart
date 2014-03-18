@@ -1009,7 +1009,7 @@ class CodeEmitterTask extends CompilerTask {
 
         js('var rootProperty = "_${generateIsolateTagRoot()}"'),
         js.for_('var i = 0', null, 'i++', [
-            js('property = intern(rootProperty + "_" + i + "_")'),
+            js('var property = intern(rootProperty + "_" + i + "_")'),
             js.if_('!(property in usedProperties)', [
                 js('usedProperties[property] = 1'),
                 js('init.isolateTag = property'),
