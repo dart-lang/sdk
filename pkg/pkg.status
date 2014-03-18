@@ -27,6 +27,9 @@ docgen/test/typedef_test: Skip # Way too slow
 [ $mode == debug ]
 docgen/test/only_lib_content_in_pkg_test: Skip # doesn't make any progress
 
+[ $runtime == vm && $system == windows ]
+docgen\test\only_lib_content_in_pkg_test: Fail # Issue 17597
+
 [ $compiler == dart2js ]
 collection/test/equality_test/01: Fail # Issue 1533
 collection/test/equality_test/02: Fail # Issue 1533
@@ -326,8 +329,10 @@ source_maps/test/parser_test: Pass, Timeout # Issue 13719: Please triage this fa
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 docgen/test/generate_json_test: StaticWarning # Issue 16950
-docgen/test/single_library_test: StaticWarning # Issue 16950
 docgen/test/multi_library_test: StaticWarning # Issue 16950
+docgen/test/only_lib_content_in_pkg_test: StaticWarning # Issue 16950
+docgen/test/single_library_test: StaticWarning # Issue 16950
+docgen/test/typedef_test: StaticWarning # Issue 16950
 unittest/test/matchers_test: StaticWarning, OK # testing error creating abstract class
 
 [ $runtime == vm && ($system == windows || $system == macos) ]
