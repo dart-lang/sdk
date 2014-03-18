@@ -294,7 +294,7 @@ class BuildCommand extends PubCommand {
     var entrypointDirs = entrypoints
         // Convert the asset path to a native-separated one and get the
         // directory containing the entrypoint.
-        .map((id) => path.dirname(path.joinAll(path.url.split(id.path))))
+        .map((id) => path.dirname(path.fromUri(id.path)))
         // Don't copy files to the top levels of the build directories since
         // the normal lib asset copying will take care of that.
         .where((dir) => dir.contains(path.separator))

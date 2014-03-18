@@ -24,7 +24,7 @@ class PubPackageProvider implements PackageProvider {
 
   Future<Asset> getAsset(AssetId id) {
     if (id.package != r'$pub') {
-      var nativePath = path.joinAll(path.url.split(id.path));
+      var nativePath = path.fromUri(id.path);
       var file = path.join(_graph.packages[id.package].dir, nativePath);
       return new Future.value(new Asset.fromPath(id, file));
     }

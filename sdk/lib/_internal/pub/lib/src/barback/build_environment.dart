@@ -437,7 +437,7 @@ void _log(LogEntry entry) {
 
   messageMentionsAsset(id) =>
       messageMentions(id.toString()) ||
-      messageMentions(path.joinAll(path.url.split(entry.assetId.path)));
+      messageMentions(path.fromUri(entry.assetId.path));
 
   var prefixParts = [];
 
