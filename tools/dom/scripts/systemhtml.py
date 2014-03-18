@@ -61,7 +61,7 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'Element.insertAdjacentText',
     'Element.remove',
     'Element.shadowRoot',
-    'Element.webkitMatchesSelector',
+    'Element.matches',
     'ElementEvents.mouseWheel',
     'ElementEvents.transitionEnd',
     'FileReader.result',

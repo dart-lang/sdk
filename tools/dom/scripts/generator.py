@@ -70,6 +70,17 @@ _methods_with_named_formals = monitored.Set(
   'XMLHttpRequest.open',
   ])
 
+def ReturnValueConversionHack(idl_type, value, interface_name):
+  if idl_type == 'SVGMatrix':
+    return '%sTearOff::create(%s)' % (idl_type, value)
+  elif ((idl_type == 'SVGAngle' and interface_name != 'SVGAnimatedAngle')
+      or (idl_type == 'SVGTransform' and interface_name == 'SVGSVGElement')):
+    # Somewhere in the IDL it probably specifies whether we need to call
+    # create or not.
+    return 'SVGPropertyTearOff<%s>::create(%s)' % (idl_type, value)
+
+  return value
+
 #
 # Renames for attributes that have names that are not legal Dart names.
 #
@@ -662,21 +673,25 @@ class IDLTypeInfo(object):
   def vector_to_dart_template_parameter(self):
     return self.native_type()
 
-  def to_native_info(self, idl_node, interface_name):
+  def to_native_info(self, idl_node, interface_name, callback_name):
     cls = self.bindings_class()
 
     if 'Callback' in idl_node.ext_attrs:
       return '%s.release()', 'OwnPtr<%s>' % self.native_type(), cls, 'create'
 
-    if self.custom_to_native():
+    # This is a hack to handle property references correctly.
+    if (self.native_type() in ['SVGPropertyTearOff<SVGAngle>',
+          'SVGPropertyTearOff<SVGAngle>*', 'SVGMatrixTearOff']
+        and (callback_name != 'createSVGTransformFromMatrixCallback'
+          or interface_name != 'SVGTransformList')):
+      argument_expression_template = '%s->propertyReference()'
+      type = '%s*' % self.native_type()
+    elif self.custom_to_native():
       type = 'RefPtr<%s>' % self.native_type()
       argument_expression_template = '%s.get()'
     else:
       type = '%s*' % self.native_type()
-      if isinstance(self, SVGTearOffIDLTypeInfo) and not interface_name.endswith('List'):
-        argument_expression_template = '%s->propertyReference()'
-      else:
-        argument_expression_template = '%s'
+      argument_expression_template = '%s'
     return argument_expression_template, type, cls, 'toNative'
 
   def pass_native_by_ref(self): return False
@@ -729,7 +744,7 @@ class IDLTypeInfo(object):
                                 interface_name=None, attributes=None):
     auto_dart_scope='true' if auto_dart_scope_setup else 'false'
     return 'Dart%s::returnToDart(args, %s, %s)' % (self._idl_type,
-                                                   value,
+                                                   ReturnValueConversionHack(self._idl_type, value, interface_name),
                                                    auto_dart_scope)
 
   def custom_to_dart(self):
@@ -838,7 +853,7 @@ class SequenceIDLTypeInfo(IDLTypeInfo):
   def vector_to_dart_template_parameter(self):
     raise Exception('sequences of sequences are not supported yet')
 
-  def to_native_info(self, idl_node, interface_name):
+  def to_native_info(self, idl_node, interface_name, callback_name):
     item_native_type = self._item_info.vector_to_dart_template_parameter()
     if isinstance(self._item_info, PrimitiveIDLTypeInfo):
       return '%s', 'Vector<%s>' % item_native_type, 'DartUtilities', 'toNativeVector<%s>' % item_native_type
@@ -873,7 +888,7 @@ class DOMStringArrayTypeInfo(SequenceIDLTypeInfo):
   def __init__(self, data, item_info):
     super(DOMStringArrayTypeInfo, self).__init__('DOMString[]', data, item_info)
 
-  def to_native_info(self, idl_node, interface_name):
+  def to_native_info(self, idl_node, interface_name, callback_name):
     return '%s', 'RefPtr<DOMStringList>', 'DartDOMStringList', 'toNative'
 
   def pass_native_by_ref(self): return False
@@ -892,7 +907,7 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
     if self.idl_type() == 'float': return 'float'
     return self.native_type()
 
-  def to_native_info(self, idl_node, interface_name):
+  def to_native_info(self, idl_node, interface_name, callback_name):
     type = self.native_type()
     if type == 'SerializedScriptValue':
       type = 'RefPtr<%s>' % type
@@ -956,24 +971,18 @@ class SVGTearOffIDLTypeInfo(InterfaceIDLTypeInfo):
     return '%s<%s>' % (tear_off_type, self._idl_type)
 
   def receiver(self):
-    if self._idl_type.endswith('List'):
-      return 'receiver->'
-    return 'receiver->propertyReference().'
+    return 'receiver->'
 
   def to_conversion_cast(self, value, interface_name, attributes):
-    svg_primitive_types = ['SVGAngle', 'SVGLength', 'SVGMatrix',
+    svg_primitive_types = ['SVGLength', 'SVGMatrix',
         'SVGNumber', 'SVGPoint', 'SVGRect', 'SVGTransform']
-    conversion_cast = '%s::create(%s)'
-    if interface_name.startswith('SVGAnimated'):
-      conversion_cast = 'static_cast<%s*>(%s)'
-    elif self.idl_type() == 'SVGStringList':
-      conversion_cast = '%s::create(receiver, %s)'
-    elif interface_name.endswith('List'):
-      conversion_cast = 'static_cast<%s*>(%s.get())'
-    elif self.idl_type() in svg_primitive_types:
-      conversion_cast = '%s::create(%s)'
-    else:
-      conversion_cast = 'static_cast<%s*>(%s)'
+
+    # This is a hack. We either need to figure out the right way to derive this
+    # information from the IDL or remove this generator.
+    if self.idl_type() != 'SVGTransformList':
+      return value
+
+    conversion_cast = 'static_cast<%s*>(%s)'
     conversion_cast = conversion_cast % (self.native_type(), value)
     return '%s' % (conversion_cast)
 
@@ -985,14 +994,13 @@ class SVGTearOffIDLTypeInfo(InterfaceIDLTypeInfo):
     auto_dart_scope='true' if auto_dart_scope_setup else 'false'
     return 'Dart%s::returnToDart(args, %s, %s)' % (self._idl_type,
                                                    self.to_conversion_cast(
-                                                       value,
+                                                       ReturnValueConversionHack(self._idl_type, value, interface_name),
                                                        interface_name,
                                                        attr),
                                                    auto_dart_scope)
 
   def argument_expression(self, name, interface_name):
-    return name if interface_name.endswith('List') else '%s->propertyReference()' % name
-
+    return name
 
 class TypedListIDLTypeInfo(InterfaceIDLTypeInfo):
   def __init__(self, idl_type, data, interface_name, type_registry):
@@ -1012,7 +1020,7 @@ class TypedListIDLTypeInfo(InterfaceIDLTypeInfo):
         interface_name,
         attributes)
 
-  def to_native_info(self, idl_node, interface_name):
+  def to_native_info(self, idl_node, interface_name, callback_name):
     return '%s.get()', 'RefPtr<%s>' % self._idl_type, 'DartUtilities', 'dartTo%s' % self._idl_type
 
 
@@ -1036,7 +1044,7 @@ class BasicTypedListIDLTypeInfo(InterfaceIDLTypeInfo):
         interface_name,
         attributes)
 
-  def to_native_info(self, idl_node, interface_name):
+  def to_native_info(self, idl_node, interface_name, callback_name):
     return '%s.get()', 'RefPtr<%s>' % self._idl_type, 'DartUtilities', 'dartTo%s' % self._idl_type
 
 
@@ -1176,32 +1184,27 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'ArrayBufferView': TypeData(clazz='BasicTypedList'),
     'ArrayBuffer': TypeData(clazz='BasicTypedList'),
 
-    'SVGAngle': TypeData(clazz='SVGTearOff'),
-    'SVGLength': TypeData(clazz='SVGTearOff'),
-    'SVGLengthList': TypeData(clazz='SVGTearOff', item_type='SVGLength'),
-    'SVGMatrix': TypeData(clazz='SVGTearOff'),
-    'SVGNumber': TypeData(clazz='SVGTearOff', native_type='SVGPropertyTearOff<SVGNumber>'),
-    'SVGNumberList': TypeData(clazz='SVGTearOff', item_type='SVGNumber'),
+    'SVGAngle': TypeData(clazz='SVGTearOff', native_type='SVGPropertyTearOff<SVGAngle>'),
+    'SVGLength': TypeData(clazz='SVGTearOff', native_type='SVGLengthTearOff'),
+    'SVGLengthList': TypeData(clazz='SVGTearOff', item_type='SVGLength', native_type='SVGLengthListTearOff'),
+    'SVGMatrix': TypeData(clazz='SVGTearOff', native_type='SVGMatrixTearOff'),
+    'SVGNumber': TypeData(clazz='SVGTearOff', native_type='SVGNumberTearOff'),
+    'SVGNumberList': TypeData(clazz='SVGTearOff', item_type='SVGNumber', native_type='SVGNumberListTearOff'),
     'SVGPathSegList': TypeData(clazz='SVGTearOff', item_type='SVGPathSeg',
         native_type='SVGPathSegListPropertyTearOff'),
-    'SVGPoint': TypeData(clazz='SVGTearOff', native_type='SVGPropertyTearOff<FloatPoint>'),
-    'SVGPointList': TypeData(clazz='SVGTearOff'),
-    'SVGPreserveAspectRatio': TypeData(clazz='SVGTearOff'),
-    'SVGRect': TypeData(clazz='SVGTearOff', native_type='SVGPropertyTearOff<SVGRect>'),
+    'SVGPoint': TypeData(clazz='SVGTearOff', native_type='SVGPointTearOff'),
+    'SVGPointList': TypeData(clazz='SVGTearOff', native_type='SVGPointListTearOff'),
+    'SVGPreserveAspectRatio': TypeData(clazz='SVGTearOff', native_type='SVGPreserveAspectRatioTearOff'),
+    'SVGRect': TypeData(clazz='SVGTearOff', native_type='SVGRectTearOff'),
     'SVGStringList': TypeData(clazz='SVGTearOff', item_type='DOMString',
-        native_type='SVGStaticListPropertyTearOff<SVGStringList>'),
-    'SVGTransform': TypeData(clazz='SVGTearOff'),
+        native_type='SVGStringListTearOff'),
+    'SVGTransform': TypeData(clazz='SVGTearOff', native_type="SVGPropertyTearOff<SVGTransform>"),
     'SVGTransformList': TypeData(clazz='SVGTearOff', item_type='SVGTransform',
         native_type='SVGTransformListPropertyTearOff'),
 })
 
 _svg_supplemental_includes = [
-    '"SVGAnimatedPropertyTearOff.h"',
-    '"SVGAnimatedListPropertyTearOff.h"',
-    '"SVGStaticListPropertyTearOff.h"',
-    '"SVGAnimatedListPropertyTearOff.h"',
-    '"SVGTransformListPropertyTearOff.h"',
-    '"SVGPathSegListPropertyTearOff.h"',
+    '"core/svg/properties/SVGPropertyTraits.h"',
 ]
 
 class TypeRegistry(object):

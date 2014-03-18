@@ -146,8 +146,7 @@ class _Utils {
    * that does not expect REPL support.
    */
   static const _CONSOLE_API_SUPPORT_HEADER =
-      'with ((console && console._commandLineAPI) || {}) {\n';
-
+      'with ((console && console._commandLineAPI) || { __proto__: null }) {\n';
   static bool expectsConsoleApi(String expression) {
     return expression.indexOf(_CONSOLE_API_SUPPORT_HEADER) == 0;;
   }

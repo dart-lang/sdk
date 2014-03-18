@@ -280,7 +280,7 @@ interface FormData {
 interface SQLResultSetRowList {
   // Change the return type to Dictionary so that rows are exposed in the Dart
   // API as a Maps, with the appropriate conversion in JavaScript.
-  [Suppressed] any item(unsigned long index);
+  [Suppressed] object item(unsigned long index);
   [Custom] Dictionary item(unsigned long index);
 };
 
@@ -358,5 +358,14 @@ interface TextDecoder {};
 
 [Supplemental]
 interface Window : EventTarget {};
+
+[Suppressed]
+interface Promise {};
+
+[Suppressed]
+interface InstallEvent {};
+
+[Suppressed]
+interface InstallPhaseEvent {};
 
 Element implements GlobalEventHandlers;

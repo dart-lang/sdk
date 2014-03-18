@@ -76,10 +76,56 @@ _cpp_callback_map = {
   ('WorkerGlobalScope', 'btoa'): 'DOMWindowBase64',
   ('WorkerGlobalScope', 'clearTimeout'): 'DOMWindowTimers',
   ('WorkerGlobalScope', 'clearInterval'): 'DOMWindowTimers',
-  }
+  ('Document', 'rootElement'): 'SVGDocument',
+  ('Document', 'childElementCount'): 'ParentNode',
+  ('Document', 'firstElementChild'): 'ParentNode',
+  ('Document', 'lastElementChild'): 'ParentNode',
+  ('DocumentFragment', 'childElementCount'): 'ParentNode',
+  ('DocumentFragment', 'firstElementChild'): 'ParentNode',
+  ('DocumentFragment', 'lastElementChild'): 'ParentNode',
+  ('CharacterData', 'nextElementSibling'): 'ChildNode',
+  ('CharacterData', 'previousElementSibling'): 'ChildNode',
+  ('Element', 'childElementCount'): 'ParentNode',
+  ('Element', 'firstElementChild'): 'ParentNode',
+  ('Element', 'lastElementChild'): 'ParentNode',
+  ('Element', 'nextElementSibling'): 'ChildNode',
+  ('Element', 'previousElementSibling'): 'ChildNode',
+  ('SVGAnimationElement', 'requiredExtensions'): 'SVGTests',
+  ('SVGAnimationElement', 'requiredFeatures'): 'SVGTests',
+  ('SVGAnimationElement', 'systemLanguage'): 'SVGTests',
+  ('SVGAnimationElement', 'hasExtension'): 'SVGTests',
+  ('SVGGraphicsElement', 'requiredExtensions'): 'SVGTests',
+  ('SVGGraphicsElement', 'requiredFeatures'): 'SVGTests',
+  ('SVGGraphicsElement', 'systemLanguage'): 'SVGTests',
+  ('SVGGraphicsElement', 'hasExtension'): 'SVGTests',
+  ('SVGPatternElement', 'requiredExtensions'): 'SVGTests',
+  ('SVGPatternElement', 'requiredFeatures'): 'SVGTests',
+  ('SVGPatternElement', 'systemLanguage'): 'SVGTests',
+  ('SVGPatternElement', 'hasExtension'): 'SVGTests',
+  ('SVGUseElement', 'requiredExtensions'): 'SVGTests',
+  ('SVGUseElement', 'requiredFeatures'): 'SVGTests',
+  ('SVGUseElement', 'systemLanguage'): 'SVGTests',
+  ('SVGUseElement', 'hasExtension'): 'SVGTests',
+  ('SVGMaskElement', 'requiredExtensions'): 'SVGTests',
+  ('SVGMaskElement', 'requiredFeatures'): 'SVGTests',
+  ('SVGMaskElement', 'systemLanguage'): 'SVGTests',
+  ('SVGMaskElement', 'hasExtension'): 'SVGTests',
+  ('SVGViewSpec', 'zoomAndPan'): 'SVGZoomAndPan',
+  ('SVGViewSpec', 'setZoomAndPan'): 'SVGZoomAndPan',
+  ('SVGViewElement', 'setZoomAndPan'): 'SVGZoomAndPan',
+  ('SVGSVGElement', 'setZoomAndPan'): 'SVGZoomAndPan',
+  ('Screen', 'orientation'): 'ScreenOrientation',
+  ('Screen', 'lockOrientation'): 'ScreenOrientation',
+  ('Screen', 'unlockOrientation'): 'ScreenOrientation',
+  ('Navigator', 'serviceWorker'): 'NavigatorServiceWorker',
+  ('Navigator', 'storageQuota'): 'NavigatorStorageQuota',
+  ('Navigator', 'isProtocolHandlerRegistered'): 'NavigatorContentUtils',
+  ('SharedWorker', 'workerStart'): 'SharedWorkerPerformance',
+}
 
 _cpp_import_map = {
-  'ImageBitmapFactories' : 'modules/imagebitmap/ImageBitmapFactories'
+  'ImageBitmapFactories' : 'modules/imagebitmap/ImageBitmapFactories',
+  'ScreenOrientation' : 'modules/screen_orientation/ScreenOrientation'
 }
 
 _cpp_overloaded_callback_map = {
@@ -318,8 +364,15 @@ class DartiumBackend(HtmlDartGenerator):
     self._interface_type_info = self._TypeInfo(self._interface.id)
     self._members_emitter = members_emitter
     self._cpp_declarations_emitter = emitter.Emitter()
+
     self._cpp_impl_includes = set(['"' + partial + '.h"'
                                    for partial in _GetCPPPartialNames(self._interface)])
+
+    # This is a hack to work around a strange C++ compile error that we weren't
+    # able to track down the true cause of.
+    if self._interface.id == 'Timing':
+      self._cpp_impl_includes.add('"core/animation/TimedItem.h"')
+
     self._cpp_definitions_emitter = emitter.Emitter()
     self._cpp_resolver_emitter = emitter.Emitter()
 
@@ -549,10 +602,17 @@ class DartiumBackend(HtmlDartGenerator):
     def TypeCheckHelper(test):
       return 'true' if any(map(test, self._database.Hierarchy(self._interface))) else 'false'
 
+    v8_interface_include = ''
+    # V8AbstractWorker.h does not exist so we have to hard code this case.
+    if self._interface.id != 'AbstractWorker':
+      # FIXME: We need this to access the WrapperTypeInfo.
+      v8_interface_include = '#include "V8%s.h"' % (self._interface.id)
+
     self._cpp_header_emitter.Emit(
         self._template_loader.Load('cpp_header.template'),
         INTERFACE=self._interface.id,
         WEBCORE_INCLUDES=webcore_includes,
+        V8_INTERFACE_INCLUDE=v8_interface_include,
         WEBCORE_CLASS_NAME=self._interface_type_info.native_type(),
         WEBCORE_CLASS_NAME_ESCAPED=
         self._interface_type_info.native_type().replace('<', '_').replace('>', '_'),
@@ -833,6 +893,7 @@ class DartiumBackend(HtmlDartGenerator):
 
   def _GenerateOperationNativeCallback(self, operation, arguments, cpp_callback_name, auto_scope_setup=True):
     webcore_function_name = operation.ext_attrs.get('ImplementedAs', operation.id)
+
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, operation, cpp_callback_name)
     self._GenerateNativeCallback(
         cpp_callback_name,
@@ -859,6 +920,7 @@ class DartiumBackend(HtmlDartGenerator):
       generate_custom_element_scope_if_needed=False):
 
     ext_attrs = node.ext_attrs
+
     if self._IsStatic(node.id):
       needs_receiver = True
 
@@ -891,6 +953,14 @@ class DartiumBackend(HtmlDartGenerator):
 
     requires_script_execution_context = (ext_attrs.get('CallWith') == 'ExecutionContext' or
                                          ext_attrs.get('ConstructorCallWith') == 'ExecutionContext')
+
+    # Hack because our parser misses that these IDL members require an execution
+    # context.
+
+    if (self._interface.id == 'FontFace'
+        and callback_name in ['familySetter', 'featureSettingsSetter', 'stretchSetter',
+                              'styleSetter', 'unicodeRangeSetter', 'variantSetter', 'weightSetter']):
+      requires_script_execution_context = True
 
     requires_document = ext_attrs.get('ConstructorCallWith') == 'Document'
 
@@ -996,6 +1066,7 @@ class DartiumBackend(HtmlDartGenerator):
 
     if requires_dom_window or requires_document:
       self._cpp_impl_includes.add('"DOMWindow.h"')
+
       body_emitter.Emit(
           '        DOMWindow* domWindow = DartUtilities::domWindowForCurrentIsolate();\n'
           '        if (!domWindow) {\n'
@@ -1045,7 +1116,7 @@ class DartiumBackend(HtmlDartGenerator):
       type_info = self._TypeInfo(argument.type.id)
       self._cpp_impl_includes |= set(type_info.conversion_includes())
       argument_expression_template, type, cls, function = \
-          type_info.to_native_info(argument, self._interface.id)
+          type_info.to_native_info(argument, self._interface.id, callback_name)
 
       def AllowsNull():
         # TODO(vsm): HTMLSelectElement's indexed setter treats a null as a remove.
@@ -1116,18 +1187,31 @@ class DartiumBackend(HtmlDartGenerator):
         '        }\n')
 
 
+    interface_name = self._interface_type_info.native_type()
+
     if needs_receiver:
-      interface_name = self._interface_type_info.native_type()
       # Hack to determine if this came from the _cpp_callback_map.
       # In this case, the getter is mapped to a static method.
-      if (not function_expression.startswith('receiver->') and
+      if function_expression.startswith('SVGTests::'):
+          cpp_arguments.insert(0, 'receiver')
+      elif (not function_expression.startswith('receiver->') and
           not function_expression.startswith(interface_name + '::')):
-        if interface_name in ['DOMWindow', 'Element', 'Navigator', 'WorkerGlobalScope']:
+        if (interface_name in ['DOMWindow', 'Element', 'Navigator', 'WorkerGlobalScope']
+            or (interface_name in ['SVGViewSpec', 'SVGViewElement', 'SVGSVGElement']
+              and callback_name in ['setZoomAndPan', 'zoomAndPanSetter', 'zoomAndPan'])
+            or (interface_name == 'Screen'
+              and callback_name in ['_lockOrientation_1Callback', '_lockOrientation_2Callback', 'unlockOrientation', 'orientation'])):
           cpp_arguments.insert(0, 'receiver')
         else:
           cpp_arguments.append('receiver')
       elif self._IsStatic(node.id):
         cpp_arguments.insert(0, 'receiver')
+
+    if interface_name in ['SVGPropertyTearOff<SVGTransform>', 'SVGPropertyTearOff<SVGAngle>', 'SVGMatrixTearOff'] and function_expression.startswith('receiver->'):
+      # This is a horrible hack. I don't know why this one case has to be
+      # special cased.
+      if not (self._interface.id == 'SVGTransformList' and callback_name == 'createSVGTransformFromMatrixCallback'):
+        function_expression = 'receiver->propertyReference().%s' % (function_expression[len('receiver->'):])
 
     function_call = '%s(%s)' % (function_expression, ', '.join(cpp_arguments))
     if return_type == 'void':

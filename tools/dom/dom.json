@@ -75,6 +75,12 @@
     },
     "support_level": "experimental"
   },
+  "Animation": {
+    "members": {
+      "Animation": {}
+    },
+    "support_level": "untriaged"
+  },
   "ApplicationCache": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/offline.html#application-cache-api",
     "dart_action": "unstable",
@@ -1009,6 +1015,12 @@
   "CompositionEvent": {
     "comment": "http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-CompositionEvent",
     "members": {
+      "activeSegmentEnd": {
+        "support_level": "untriaged"
+      },
+      "activeSegmentStart": {
+        "support_level": "untriaged"
+      },
       "data": {},
       "initCompositionEvent": {}
     },
@@ -1072,6 +1084,9 @@
   },
   "ConsoleBase": {
     "members": {
+      "assert": {
+        "support_level": "untriaged"
+      },
       "assertCondition": {
         "support_level": "untriaged"
       },
@@ -1580,6 +1595,14 @@
     },
     "support_level": "experimental"
   },
+  "DeprecatedStorageInfo": {
+    "members": {},
+    "support_level": "untriaged"
+  },
+  "DeprecatedStorageQuota": {
+    "members": {},
+    "support_level": "untriaged"
+  },
   "DeviceAcceleration": {
     "comment": "http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion",
     "members": {
@@ -1594,6 +1617,9 @@
     "members": {
       "acceleration": {},
       "accelerationIncludingGravity": {},
+      "initDeviceMotionEvent": {
+        "support_level": "untriaged"
+      },
       "interval": {},
       "rotationRate": {}
     },
@@ -1657,6 +1683,9 @@
     "comment": "http://dom.spec.whatwg.org/#interface-document",
     "members": {
       "URL": {},
+      "activeElement": {
+        "support_level": "untriaged"
+      },
       "adoptNode": {},
       "anchors": {
         "dart_action": "suppress"
@@ -1896,6 +1925,9 @@
       },
       "onreadystatechange": {},
       "onreset": {},
+      "onresize": {
+        "support_level": "untriaged"
+      },
       "onscroll": {},
       "onsearch": {
         "comment": "http://www.w3.org/TR/html-markup/input.search.html",
@@ -1977,6 +2009,9 @@
       "querySelectorAll": {},
       "readyState": {},
       "referrer": {},
+      "rootElement": {
+        "support_level": "untriaged"
+      },
       "securityPolicy": {
         "comment": "https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#idl-def-SecurityPolicy",
         "support_level": "experimental"
@@ -1985,6 +2020,9 @@
         "comment": "http://dev.w3.org/csswg/cssom/#widl-Document-selectedStyleSheetSet"
       },
       "styleSheets": {},
+      "timeline": {
+        "support_level": "untriaged"
+      },
       "title": {},
       "visibilityState": {
         "support_level": "untriaged"
@@ -2274,6 +2312,9 @@
       "localName": {
         "support_level": "untriaged"
       },
+      "matches": {
+        "support_level": "untriaged"
+      },
       "namespaceURI": {
         "support_level": "untriaged"
       },
@@ -2370,6 +2411,9 @@
         "support_level": "untriaged"
       },
       "onreset": {},
+      "onresize": {
+        "support_level": "untriaged"
+      },
       "onscroll": {},
       "onsearch": {
         "comment": "http://www.w3.org/TR/html-markup/input.search.html",
@@ -3092,13 +3136,28 @@
   },
   "FontFaceSet": {
     "members": {
+      "add": {
+        "support_level": "untriaged"
+      },
       "addEventListener": {
         "support_level": "untriaged"
       },
       "check": {
         "support_level": "untriaged"
       },
+      "clear": {
+        "support_level": "untriaged"
+      },
+      "delete": {
+        "support_level": "untriaged"
+      },
       "dispatchEvent": {
+        "support_level": "untriaged"
+      },
+      "forEach": {
+        "support_level": "untriaged"
+      },
+      "has": {
         "support_level": "untriaged"
       },
       "match": {
@@ -3107,10 +3166,17 @@
       "removeEventListener": {
         "support_level": "untriaged"
       },
+      "size": {
+        "support_level": "untriaged"
+      },
       "status": {
         "support_level": "untriaged"
       }
     },
+    "support_level": "untriaged"
+  },
+  "FontFaceSetForEachCallback": {
+    "members": {},
     "support_level": "untriaged"
   },
   "FontLoader": {
@@ -3312,6 +3378,9 @@
         "support_level": "untriaged"
       },
       "onreset": {
+        "support_level": "untriaged"
+      },
+      "onresize": {
         "support_level": "untriaged"
       },
       "onscroll": {
@@ -3936,6 +4005,9 @@
       "onreset": {
         "support_level": "untriaged"
       },
+      "onresize": {
+        "support_level": "untriaged"
+      },
       "onscroll": {
         "support_level": "untriaged"
       },
@@ -4479,6 +4551,9 @@
         "dart_action": "suppress",
         "support_level": "deprecated"
       },
+      "crossOrigin": {
+        "support_level": "untriaged"
+      },
       "disabled": {},
       "href": {},
       "hreflang": {},
@@ -4668,6 +4743,9 @@
       "readyState": {},
       "seekable": {},
       "seeking": {},
+      "setMediaKeys": {
+        "support_level": "untriaged"
+      },
       "src": {},
       "startTime": {
         "support_level": "nonstandard"
@@ -5022,6 +5100,9 @@
     "members": {
       "HTMLSelectElement": {},
       "__setter__": {},
+      "add": {
+        "support_level": "untriaged"
+      },
       "autofocus": {},
       "checkValidity": {},
       "disabled": {},
@@ -5036,6 +5117,9 @@
       "name": {},
       "namedItem": {},
       "options": {},
+      "remove": {
+        "support_level": "untriaged"
+      },
       "required": {},
       "selectedIndex": {},
       "selectedOptions": {},
@@ -5752,6 +5836,14 @@
     "members": {},
     "support_level": "untriaged"
   },
+  "ImageBitmapFactories": {
+    "members": {
+      "createImageBitmap": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "ImageData": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#imagedata",
     "members": {
@@ -5791,6 +5883,25 @@
       }
     },
     "support_level": "experimental"
+  },
+  "InstallEvent": {
+    "members": {
+      "reloadAll": {
+        "support_level": "untriaged"
+      },
+      "replace": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "InstallPhaseEvent": {
+    "members": {
+      "waitUntil": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "Int16Array": {
     "comment": "http://www.khronos.org/registry/typedarray/specs/latest/",
@@ -6111,6 +6222,9 @@
   "MediaKeyNeededEvent": {
     "comment": "https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-mediakeyneededevent",
     "members": {
+      "contentType": {
+        "support_level": "untriaged"
+      },
       "initData": {}
     },
     "support_level": "experimental"
@@ -6135,6 +6249,9 @@
       "onwebkitkeyadded": {},
       "onwebkitkeyerror": {},
       "onwebkitkeymessage": {},
+      "release": {
+        "support_level": "untriaged"
+      },
       "removeEventListener": {},
       "sessionId": {},
       "update": {}
@@ -6510,6 +6627,9 @@
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#navigatorstorageutils",
         "support_level": "experimental"
       },
+      "isProtocolHandlerRegistered": {
+        "support_level": "untriaged"
+      },
       "javaEnabled": {
         "dart_action": "suppress",
         "support_level": "nonstandard"
@@ -6549,6 +6669,15 @@
         "dart_action": "unstable"
       },
       "requestMIDIAccess": {
+        "support_level": "untriaged"
+      },
+      "serviceWorker": {
+        "support_level": "untriaged"
+      },
+      "storageQuota": {
+        "support_level": "untriaged"
+      },
+      "unregisterProtocolHandler": {
         "support_level": "untriaged"
       },
       "userAgent": {
@@ -7262,6 +7391,47 @@
   },
   "PeriodicWave": {
     "members": {},
+    "support_level": "untriaged"
+  },
+  "Player": {
+    "members": {
+      "cancel": {
+        "support_level": "untriaged"
+      },
+      "currentTime": {
+        "support_level": "untriaged"
+      },
+      "finish": {
+        "support_level": "untriaged"
+      },
+      "finished": {
+        "support_level": "untriaged"
+      },
+      "pause": {
+        "support_level": "untriaged"
+      },
+      "paused": {
+        "support_level": "untriaged"
+      },
+      "play": {
+        "support_level": "untriaged"
+      },
+      "playbackRate": {
+        "support_level": "untriaged"
+      },
+      "reverse": {
+        "support_level": "untriaged"
+      },
+      "source": {
+        "support_level": "untriaged"
+      },
+      "startTime": {
+        "support_level": "untriaged"
+      },
+      "timeLag": {
+        "support_level": "untriaged"
+      }
+    },
     "support_level": "untriaged"
   },
   "Plugin": {
@@ -8313,6 +8483,10 @@
     },
     "support_level": "stable"
   },
+  "SVGDiscardElement": {
+    "members": {},
+    "support_level": "untriaged"
+  },
   "SVGDocument": {
     "comment": "http://www.w3.org/TR/SVG/struct.html#InterfaceSVGDocument",
     "dart_action": "unstable",
@@ -8457,6 +8631,9 @@
         "support_level": "untriaged"
       },
       "onreset": {
+        "support_level": "untriaged"
+      },
+      "onresize": {
         "support_level": "untriaged"
       },
       "onscroll": {
@@ -11086,6 +11263,9 @@
   "Screen": {
     "comment": "http://dev.w3.org/csswg/cssom-view/#the-screen-interface",
     "members": {
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
       "availHeight": {},
       "availLeft": {
         "dart_action": "experimental",
@@ -11097,8 +11277,23 @@
       },
       "availWidth": {},
       "colorDepth": {},
+      "dispatchEvent": {
+        "support_level": "untriaged"
+      },
       "height": {},
+      "lockOrientation": {
+        "support_level": "untriaged"
+      },
+      "orientation": {
+        "support_level": "untriaged"
+      },
       "pixelDepth": {},
+      "removeEventListener": {
+        "support_level": "untriaged"
+      },
+      "unlockOrientation": {
+        "support_level": "untriaged"
+      },
       "width": {}
     },
     "support_level": "stable"
@@ -11211,6 +11406,17 @@
     "members": {},
     "support_level": "untriaged"
   },
+  "ServiceWorkerContainer": {
+    "members": {
+      "register": {
+        "support_level": "untriaged"
+      },
+      "unregister": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "ServiceWorkerGlobalScope": {
     "members": {},
     "support_level": "untriaged"
@@ -11245,7 +11451,22 @@
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#shared-workers-and-the-sharedworker-interface",
     "members": {
       "SharedWorker": {},
-      "port": {}
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
+      "dispatchEvent": {
+        "support_level": "untriaged"
+      },
+      "onerror": {
+        "support_level": "untriaged"
+      },
+      "port": {},
+      "removeEventListener": {
+        "support_level": "untriaged"
+      },
+      "workerStart": {
+        "support_level": "untriaged"
+      }
     },
     "support_level": "experimental"
   },
@@ -11302,6 +11523,9 @@
       },
       "buffered": {},
       "dispatchEvent": {
+        "support_level": "untriaged"
+      },
+      "mode": {
         "support_level": "untriaged"
       },
       "remove": {
@@ -11577,15 +11801,30 @@
       "PERSISTENT": {},
       "TEMPORARY": {},
       "queryUsageAndQuota": {},
-      "requestQuota": {}
+      "quota": {
+        "support_level": "untriaged"
+      },
+      "requestQuota": {},
+      "usage": {
+        "support_level": "untriaged"
+      }
     },
     "support_level": "experimental"
   },
   "StorageQuota": {
     "comment": "http://www.w3.org/TR/quota-api/#idl-def-StorageQuota",
     "members": {
+      "queryInfo": {
+        "support_level": "untriaged"
+      },
       "queryUsageAndQuota": {},
-      "requestQuota": {}
+      "requestPersistentQuota": {
+        "support_level": "untriaged"
+      },
+      "requestQuota": {},
+      "supportedTypes": {
+        "support_level": "untriaged"
+      }
     },
     "support_level": "experimental"
   },
@@ -11695,6 +11934,30 @@
       "wholeText": {}
     },
     "support_level": "stable"
+  },
+  "TextDecoder": {
+    "members": {
+      "TextDecoder": {},
+      "decode": {
+        "support_level": "untriaged"
+      },
+      "encoding": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "TextEncoder": {
+    "members": {
+      "TextEncoder": {},
+      "encode": {
+        "support_level": "untriaged"
+      },
+      "encoding": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "TextEvent": {
     "comment": "http://www.w3.org/TR/2006/WD-DOM-Level-3-Events-20060413/events.html#Events-TextEvent",
@@ -11831,12 +12094,81 @@
     },
     "support_level": "stable"
   },
+  "TimedItem": {
+    "members": {
+      "activeDuration": {
+        "support_level": "untriaged"
+      },
+      "currentIteration": {
+        "support_level": "untriaged"
+      },
+      "duration": {
+        "support_level": "untriaged"
+      },
+      "endTime": {
+        "support_level": "untriaged"
+      },
+      "localTime": {
+        "support_level": "untriaged"
+      },
+      "player": {
+        "support_level": "untriaged"
+      },
+      "specified": {
+        "support_level": "untriaged"
+      },
+      "startTime": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "Timeline": {
+    "members": {
+      "play": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "TimeoutHandler": {
     "comment": "http://www.whatwg.org/specs/web-apps/2007-10-26/multipage/section-timers.html#timeouthandler",
     "members": {
       "handleEvent": {}
     },
     "support_level": "stable"
+  },
+  "Timing": {
+    "members": {
+      "__setter__": {
+        "support_level": "untriaged"
+      },
+      "delay": {
+        "support_level": "untriaged"
+      },
+      "direction": {
+        "support_level": "untriaged"
+      },
+      "easing": {
+        "support_level": "untriaged"
+      },
+      "endDelay": {
+        "support_level": "untriaged"
+      },
+      "fill": {
+        "support_level": "untriaged"
+      },
+      "iterationStart": {
+        "support_level": "untriaged"
+      },
+      "iterations": {
+        "support_level": "untriaged"
+      },
+      "playbackRate": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "Touch": {
     "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
@@ -13436,6 +13768,9 @@
         "support_level": "deprecated"
       },
       "opener": {},
+      "orientation": {
+        "support_level": "untriaged"
+      },
       "outerHeight": {},
       "outerWidth": {},
       "pagePopupController": {
@@ -13743,6 +14078,9 @@
       "console": {
         "support_level": "untriaged"
       },
+      "createImageBitmap": {
+        "support_level": "untriaged"
+      },
       "crypto": {
         "support_level": "untriaged"
       },
@@ -13873,6 +14211,10 @@
         "support_level": "untriaged"
       }
     },
+    "support_level": "untriaged"
+  },
+  "XMLDocument": {
+    "members": {},
     "support_level": "untriaged"
   },
   "XMLHttpRequest": {
