@@ -1680,9 +1680,15 @@ RawClass* Class::New() {
   ASSERT((FakeObject::kClassId != kInstanceCid));
   result.set_id(FakeObject::kClassId);
   result.set_state_bits(0);
-  // VM backed classes are almost ready: run checks and resolve class
-  // references, but do not recompute size.
-  result.set_is_prefinalized();
+  if (FakeObject::kClassId < kInstanceCid) {
+    // VM internal classes are done. There is no finalization needed or
+    // possible in this case.
+    result.set_is_finalized();
+  } else {
+    // VM backed classes are almost ready: run checks and resolve class
+    // references, but do not recompute size.
+    result.set_is_prefinalized();
+  }
   result.set_type_arguments_field_offset_in_words(kNoTypeArguments);
   result.set_num_type_arguments(0);
   result.set_num_own_type_arguments(0);
@@ -3789,12 +3795,14 @@ void Class::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("super", Class::Handle(SuperClass()));
   jsobj.AddProperty("library", Object::Handle(library()));
   const Script& script = Script::Handle(this->script());
-  intptr_t line_number = 0;
-  intptr_t column_number = 0;
-  script.GetTokenLocation(token_pos(), &line_number, &column_number);
-  jsobj.AddProperty("script", script);
-  jsobj.AddProperty("line", line_number);
-  jsobj.AddProperty("col", column_number);
+  if (!script.IsNull()) {
+    intptr_t line_number = 0;
+    intptr_t column_number = 0;
+    script.GetTokenLocation(token_pos(), &line_number, &column_number);
+    jsobj.AddProperty("script", script);
+    jsobj.AddProperty("line", line_number);
+    jsobj.AddProperty("col", column_number);
+  }
   {
     JSONArray interfaces_array(&jsobj, "interfaces");
     const Array& interface_array = Array::Handle(interfaces());
