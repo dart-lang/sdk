@@ -63,6 +63,35 @@ class MessageHandler {
   // A message handler tracks how many live ports it has.
   bool HasLivePorts() const { return live_ports_ > control_ports_; }
 
+  intptr_t live_ports() const {
+    return live_ports_;
+  }
+
+  intptr_t control_ports() const {
+    return control_ports_;
+  }
+
+  bool pause_on_start() const {
+    return pause_on_start_;
+  }
+
+  void set_pause_on_start(bool pause_on_start) {
+    pause_on_start_ = pause_on_start;
+  }
+
+  bool pause_on_exit() const {
+    return pause_on_exit_;
+  }
+
+  void set_pause_on_exit(bool pause_on_exit) {
+    pause_on_exit_ = pause_on_exit;
+  }
+
+  bool paused_on_exit() const {
+    return paused_on_exit_;
+  }
+
+
 #if defined(DEBUG)
   // Check that it is safe to access this message handler.
   //
@@ -129,6 +158,9 @@ class MessageHandler {
   MessageQueue* oob_queue_;
   intptr_t control_ports_;  // The number of open control ports usually 0 or 1.
   intptr_t live_ports_;  // The number of open ports, including control ports.
+  bool pause_on_start_;
+  bool pause_on_exit_;
+  bool paused_on_exit_;
   ThreadPool* pool_;
   ThreadPool::Task* task_;
   StartCallback start_callback_;

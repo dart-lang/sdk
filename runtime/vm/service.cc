@@ -14,6 +14,7 @@
 #include "vm/debugger.h"
 #include "vm/isolate.h"
 #include "vm/message.h"
+#include "vm/message_handler.h"
 #include "vm/native_entry.h"
 #include "vm/native_arguments.h"
 #include "vm/object.h"
@@ -263,6 +264,9 @@ Isolate* Service::GetServiceIsolate(void* callback_data) {
   if (isolate == NULL) {
     return NULL;
   }
+  // We don't want to pause the service isolate.
+  isolate->message_handler()->set_pause_on_start(false);
+  isolate->message_handler()->set_pause_on_exit(false);
   Isolate::SetCurrent(isolate);
   {
     // Install the dart:vmservice library.
@@ -366,6 +370,11 @@ bool Service::SendIsolateStartupMessage() {
   MessageWriter writer(&data, &allocator);
   writer.WriteMessage(list);
   intptr_t len = writer.BytesWritten();
+  if (FLAG_trace_service) {
+    OS::Print("Isolate %s %" Pd64 " registered with service \n",
+              name.ToCString(),
+              Dart_GetMainPortId());
+  }
   return PortMap::PostMessage(
       new Message(port_, data, len, Message::kNormalPriority));
 }
@@ -378,15 +387,22 @@ bool Service::SendIsolateShutdownMessage() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   HANDLESCOPE(isolate);
+  const String& name = String::Handle(String::New(isolate->name()));
+  ASSERT(!name.IsNull());
   const Array& list = Array::Handle(
       MakeServiceControlMessage(Dart_GetMainPortId(),
                                 VM_SERVICE_ISOLATE_SHUTDOWN_MESSAGE_ID,
-                                String::Handle(String::null())));
+                                name));
   ASSERT(!list.IsNull());
   uint8_t* data = NULL;
   MessageWriter writer(&data, &allocator);
   writer.WriteMessage(list);
   intptr_t len = writer.BytesWritten();
+  if (FLAG_trace_service) {
+    OS::Print("Isolate %s %" Pd64 " deregistered with service \n",
+              name.ToCString(),
+              Dart_GetMainPortId());
+  }
   return PortMap::PostMessage(
       new Message(port_, data, len, Message::kNormalPriority));
 }
@@ -1414,9 +1430,16 @@ static bool HandleAllocationProfile(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleUnpin(Isolate* isolate, JSONStream* js) {
+static bool HandleResume(Isolate* isolate, JSONStream* js) {
   // TODO(johnmccutchan): What do I respond with??
-  isolate->ClosePinPort();
+  if (isolate->message_handler()->pause_on_start()) {
+    isolate->message_handler()->set_pause_on_start(false);
+    return true;
+  }
+  if (isolate->message_handler()->pause_on_exit()) {
+    isolate->message_handler()->set_pause_on_exit(false);
+    return true;
+  }
   return true;
 }
 
@@ -1440,7 +1463,7 @@ static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "libraries", HandleLibraries },
   { "objects", HandleObjects },
   { "profile", HandleProfile },
-  { "unpin", HandleUnpin },
+  { "resume", HandleResume },
   { "scripts", HandleScripts },
   { "stacktrace", HandleStackTrace },
 };
