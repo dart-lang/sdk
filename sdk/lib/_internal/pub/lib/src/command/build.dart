@@ -27,7 +27,7 @@ final _allowedBuildDirectories = new Set<String>.from([
 /// Handles the `build` pub command.
 class BuildCommand extends PubCommand {
   String get description => "Apply transformers to build a package.";
-  String get usage => "pub build [options]";
+  String get usage => "pub build [options] [directories...]";
   List<String> get aliases => const ["deploy", "settle-up"];
   bool get takesArguments => true;
 
