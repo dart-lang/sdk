@@ -17,6 +17,7 @@ import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:barback/barback.dart';
+import 'package:code_transformers/assets.dart';
 import 'package:path/path.dart' as native_path;
 import 'package:source_maps/refactor.dart';
 import 'package:source_maps/span.dart' show SourceFile, Span;
@@ -514,14 +515,7 @@ AssetId _resolve(AssetId source, String url, TransformLogger logger,
   // Dart SDK libraries do not have assets.
   if (uri.scheme == 'dart') return null;
 
-  if (uri.host != '' || uri.scheme != '' || path.isAbsolute(url)) {
-    logger.error('absolute paths not allowed: "$url"', span: span);
-    return null;
-  }
-
-  var targetPath = path.normalize(
-      path.join(path.dirname(source.path), url));
-  return new AssetId(source.package, targetPath);
+  return uriToAssetId(source, url, logger, span);
 }
 
 

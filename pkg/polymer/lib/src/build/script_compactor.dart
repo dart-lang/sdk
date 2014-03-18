@@ -11,6 +11,7 @@ import 'dart:convert';
 import 'package:html5lib/dom.dart' show Document, Element;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:barback/barback.dart';
+import 'package:code_transformers/assets.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_maps/span.dart' show SourceFile;
 
@@ -102,7 +103,7 @@ class _ScriptCompactor extends PolymerTransformer {
         tag.remove();
         continue;
       }
-      mainLibraryId = resolve(docId, src, logger, tag.sourceSpan);
+      mainLibraryId = uriToAssetId(docId, src, logger, tag.sourceSpan);
       mainScriptTag = tag;
     }
   }
@@ -171,7 +172,7 @@ class _ScriptCompactor extends PolymerTransformer {
       return Future.forEach(unit.directives, (directive) {
         // Include anything from parts.
         if (directive is PartDirective) {
-          var targetId = resolve(dartLibrary, directive.uri.stringValue,
+          var targetId = uriToAssetId(dartLibrary, directive.uri.stringValue,
               logger, _getSpan(file, directive));
           return _initializersOf(targetId).then(result.addAll);
         }
@@ -179,7 +180,7 @@ class _ScriptCompactor extends PolymerTransformer {
         // Similarly, include anything from exports except what's filtered by
         // the show/hide combinators.
         if (directive is ExportDirective) {
-          var targetId = resolve(dartLibrary, directive.uri.stringValue,
+          var targetId = uriToAssetId(dartLibrary, directive.uri.stringValue,
               logger, _getSpan(file, directive));
           return _initializersOf(targetId).then(
             (r) => _processExportDirective(directive, r, result));
