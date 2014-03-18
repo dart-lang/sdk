@@ -6,6 +6,7 @@ library observe.test.observe_test_utils;
 
 import 'dart:async';
 import 'package:observe/observe.dart';
+import 'package:observe/mirrors_used.dart'; // to make tests smaller
 import 'package:unittest/unittest.dart';
 export 'package:observe/src/dirty_check.dart' show dirtyCheckZone;
 
