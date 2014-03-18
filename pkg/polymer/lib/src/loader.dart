@@ -81,13 +81,9 @@ void _hookJsPolymer() {
   polymerJs.callMethod('whenPolymerReady',
       [zone.bindCallback(() => Polymer._ready.complete())]);
 
-  var jsPolymer = new JsObject.fromBrowserObject(
-      document.createElement('polymer-element'));
-
-  var proto = js.context['Object'].callMethod('getPrototypeOf', [jsPolymer]);
-  if (proto is Node) {
-    proto = new JsObject.fromBrowserObject(proto);
-  }
+  var polyElem = document.createElement('polymer-element');
+  var proto = new JsObject.fromBrowserObject(polyElem)['__proto__'];
+  if (proto is Node) proto = new JsObject.fromBrowserObject(proto);
 
   JsFunction originalRegister = proto['register'];
   if (originalRegister == null) {
