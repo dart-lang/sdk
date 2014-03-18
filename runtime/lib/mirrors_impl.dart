@@ -469,9 +469,6 @@ class _LocalClosureMirror extends _LocalInstanceMirror
 
   String toString() => "ClosureMirror on '${Error.safeToString(_reflectee)}'";
 
-  static _apply(arguments, argumentNames)
-      native 'ClosureMirror_apply';
-
   static _computeFunction(reflectee)
       native 'ClosureMirror_function';
 
