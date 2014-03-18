@@ -84,7 +84,7 @@ void _makeHttpRequest(String uri) {
           return request.close();
         })
         .then((HttpClientResponse response) {
-          // Only create a ByteBuilder, if multiple chunks is received.
+          // Only create a ByteBuilder, if multiple chunks are received.
           var bufferOrBuilder;
           response.listen(
             (data) {
@@ -102,6 +102,7 @@ void _makeHttpRequest(String uri) {
               var data = bufferOrBuilder;
               if (data is BytesBuilder) data = data.takeBytes();
               _requestCompleted(data, response);
+              // Close the client to stop any timers currently held alive.
               _client.close();
             },
             onError: _requestFailed);
