@@ -90,10 +90,13 @@ export_ambiguous_main_negative_test: Fail # Issue 14763
 lazy_static3_test: Fail # Issue 13469
 
 [ $compiler == none && $runtime == dartium && $unchecked ]
-positional_parameters_type_test/01: Fail # Issue 13719: Please triage this failure.
-positional_parameters_type_test/02: Fail # Issue 13719: Please triage this failure.
-assertion_test: Fail # Issue 13719: Please triage this failure.
-generic_test: Fail # Issue 13719: Please triage this failure.
+named_parameters_type_test/01: Fail # Issue 17561.
+named_parameters_type_test/02: Fail # Issue 17561.
+named_parameters_type_test/03: Fail # Issue 17561.
+positional_parameters_type_test/01: Fail # Issue 17561.
+positional_parameters_type_test/02: Fail # Issue 17561.
+assertion_test: Fail # Issue 17561.
+generic_test: Fail # Issue 17561.
 list_literal1_test/01: Fail # Issue 13719: Please triage this failure.
 list_literal4_test: Fail # Issue 13719: Please triage this failure.
 map_literal1_test/01: Fail # Issue 13719: Please triage this failure.
