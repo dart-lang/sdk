@@ -28,6 +28,7 @@
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
+#include "vm/tags.h"
 #include "vm/timer.h"
 #include "vm/zone.h"
 
@@ -353,8 +354,10 @@ void Parser::SetPosition(intptr_t position) {
 
 void Parser::ParseCompilationUnit(const Library& library,
                                   const Script& script) {
-  ASSERT(Isolate::Current()->long_jump_base()->IsSafeToJump());
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->long_jump_base()->IsSafeToJump());
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
+  VMTagScope tagScope(isolate, VMTag::kCompileTagId);
   Parser parser(script, library, 0);
   parser.ParseTopLevel();
 }
@@ -702,8 +705,9 @@ static bool HasReturnNode(SequenceNode* seq) {
 
 void Parser::ParseClass(const Class& cls) {
   if (!cls.is_synthesized_class()) {
-    TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
     Isolate* isolate = Isolate::Current();
+    VMTagScope tagScope(isolate, VMTag::kCompileTagId);
+    TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
     ASSERT(isolate->long_jump_base()->IsSafeToJump());
     const Script& script = Script::Handle(isolate, cls.script());
     const Library& lib = Library::Handle(isolate, cls.library());
@@ -760,9 +764,10 @@ RawObject* Parser::ParseFunctionParameters(const Function& func) {
 
 
 void Parser::ParseFunction(ParsedFunction* parsed_function) {
+  Isolate* isolate = Isolate::Current();
+  VMTagScope tagScope(isolate, VMTag::kCompileTagId);
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
   CompilerStats::num_functions_compiled++;
-  Isolate* isolate = Isolate::Current();
   ASSERT(isolate->long_jump_base()->IsSafeToJump());
   ASSERT(parsed_function != NULL);
   const Function& func = parsed_function->function();

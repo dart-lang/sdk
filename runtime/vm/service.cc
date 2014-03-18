@@ -1374,7 +1374,16 @@ static bool HandleProfile(Isolate* isolate, JSONStream* js) {
   // A full profile includes disassembly of all Dart code objects.
   // TODO(johnmccutchan): Add sub command to trigger full code dump.
   bool full_profile = false;
-  Profiler::PrintToJSONStream(isolate, js, full_profile);
+  const char* tags_option = js->LookupOption("tags");
+  bool use_tags = true;
+  if (tags_option != NULL) {
+    if (strcmp("hide", tags_option) != 0) {
+      PrintError(js, "Invalid tags option value: %s\n", tags_option);
+      return true;
+    }
+    use_tags = false;
+  }
+  Profiler::PrintToJSONStream(isolate, js, full_profile, use_tags);
   return true;
 }
 

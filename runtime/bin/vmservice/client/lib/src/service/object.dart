@@ -224,6 +224,10 @@ class Isolate extends ServiceObject {
     }
     _codes._resetProfileData();
     _codes._updateProfileData(profile, codeTable);
+    var exclusiveTrie = profile['exclusive_trie'];
+    if (exclusiveTrie != null) {
+      profileTrieRoot = _processProfileTrie(exclusiveTrie, codeTable);
+    }
   }
 
   Future<ServiceObject> getDirect(String serviceId) {
@@ -311,6 +315,51 @@ class Isolate extends ServiceObject {
     oldHeapUsed = map['heap']['usedOld'];
     newHeapCapacity = map['heap']['capacityNew'];
     oldHeapCapacity = map['heap']['capacityOld'];
+  }
+
+  @reflectable CodeTrieNode profileTrieRoot;
+  // The profile trie is serialized as a list of integers. Each node
+  // is recreated by consuming some portion of the list. The format is as
+  // follows:
+  // [0] index into codeTable of code object.
+  // [1] tick count (number of times this stack frame occured).
+  // [2] child node count
+  // Reading the trie is done by recursively reading the tree depth-first
+  // pre-order.
+  CodeTrieNode _processProfileTrie(List<int> data, List<Code> codeTable) {
+    // Setup state shared across calls to _readTrieNode.
+    _trieDataCursor = 0;
+    _trieData = data;
+    if (_trieData == null) {
+      return null;
+    }
+    if (_trieData.length < 3) {
+      // Not enough integers for 1 node.
+      return null;
+    }
+    // Read the tree, returns the root node.
+    return _readTrieNode(codeTable);
+  }
+  int _trieDataCursor;
+  List<int> _trieData;
+  CodeTrieNode _readTrieNode(List<Code> codeTable) {
+    // Read index into code table.
+    var index = _trieData[_trieDataCursor++];
+    // Lookup code object.
+    var code = codeTable[index];
+    // Frame counter.
+    var count = _trieData[_trieDataCursor++];
+    // Create node.
+    var node = new CodeTrieNode(code, count);
+    // Number of children.
+    var children = _trieData[_trieDataCursor++];
+    // Recursively read child nodes.
+    for (var i = 0; i < children; i++) {
+      var child = _readTrieNode(codeTable);
+      node.children.add(child);
+      node.summedChildCount += child.count;
+    }
+    return node;
   }
 }
 
@@ -620,6 +669,8 @@ class CodeKind {
       return Collected;
     } else if (s == 'Reused') {
       return Reused;
+    } else if (s == 'Tag') {
+      return Tag;
     }
     Logger.root.warning('Unknown code kind $s');
     throw new FallThroughError();
@@ -628,12 +679,21 @@ class CodeKind {
   static const Dart = const CodeKind._internal('Dart');
   static const Collected = const CodeKind._internal('Collected');
   static const Reused = const CodeKind._internal('Reused');
+  static const Tag = const CodeKind._internal('Tag');
 }
 
 class CodeCallCount {
   final Code code;
   final int count;
   CodeCallCount(this.code, this.count);
+}
+
+class CodeTrieNode {
+  final Code code;
+  final int count;
+  final children = new List<CodeTrieNode>();
+  int summedChildCount = 0;
+  CodeTrieNode(this.code, this.count);
 }
 
 class Code extends ServiceObject {

@@ -1429,6 +1429,90 @@
   </template>
   
 </polymer-element>
+<polymer-element name="sliding-checkbox">
+  <template>
+    <style>
+      .switch {
+        position: relative;
+        width: 121px;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+      }
+      .hide {
+        display: none;
+      }
+      .label {
+        display: block;
+        overflow: hidden;
+        cursor: pointer;
+        border: 2px solid #999999;
+        border-radius: 15px;
+      }
+      .content {
+        width: 200%;
+        margin-left: -100%;
+        -moz-transition: margin 0.3s ease-in 0s;
+        -webkit-transition: margin 0.3s ease-in 0s;
+        -o-transition: margin 0.3s ease-in 0s;
+        transition: margin 0.3s ease-in 0s;
+      }
+      .content:before, .content:after {
+        float: left;
+        width: 50%;
+        height: 30px;
+        padding: 0;
+        line-height: 30px;
+        color: white;
+        font: 400 14px 'Montserrat', sans-serif;
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+      }
+      .content:before {
+        content: {{ checkedText }};
+        padding-left: 10px;
+        background-color: #0489C3;
+      }
+      .content:after {
+        content: {{ uncheckedText }};
+        padding-right: 10px;
+        background-color: #EEEEEE;
+        color: #999999;
+        text-align: right;
+      }
+      .dot {
+        width: 14px;
+        margin: 8px;
+        background: #FFFFFF;
+        border: 2px solid #999999;
+        border-radius: 15px;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 87px;
+        -moz-transition: all 0.3s ease-in 0s;
+        -webkit-transition: all 0.3s ease-in 0s;
+        -o-transition: all 0.3s ease-in 0s;
+        transition: all 0.3s ease-in 0s;
+      }
+      :checked + .label .content {
+        margin-left: 0;
+      }
+      :checked + .label .dot {
+        right: 0px;
+      }
+    </style>
+    <div class="switch">
+      <input type="checkbox" class="hide" id="slide-switch" on-change="{{ change }}">
+      <label class="label" for="slide-switch">
+        <div class="content"></div>
+        <div class="dot"></div>
+      </label>
+    </div>
+  </template>
+  
+</polymer-element>
 <polymer-element name="isolate-profile" extends="observatory-element">
   <template>
     <nav-bar>
@@ -1437,38 +1521,81 @@
       <nav-menu link="." anchor="cpu profile" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
-    <div class="row">
-      <div class="col-md-12">
-        <span>Top</span>
-        <select selectedindex="{{methodCountSelected}}" value="{{methodCounts[methodCountSelected]}}">
-          <option template="" repeat="{{count in methodCounts}}">{{count}}</option>
-        </select>
-        <span>exclusive methods</span>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-12">
-        <p>Refreshed at {{ refreshTime }} with {{ sampleCount }} samples.</p>
-      </div>
-    </div>
-    <table id="tableTree" class="table table-hover">
-      <thead>
+    <style>
+      .content {
+        padding-left: 10%;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      h1 {
+        font: 400 18px 'Montserrat', sans-serif;
+      }
+      .member, .memberHeader {
+        vertical-align: top;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      .monospace {
+        font-family: consolas, courier, monospace;
+        font-size: 1em;
+        line-height: 1.2em;
+        white-space: nowrap;
+      }
+    </style>
+    <div class="content">
+      <h1>Sampled CPU profile</h1>
+      <table>
+        <tbody><tr>
+          <td class="memberHeader">Timestamp</td>
+          <td class="member">{{ refreshTime }}</td>
+        </tr>
         <tr>
-          <th>Method</th>
-          <th>Exclusive</th>
-          <th>Caller</th>
+          <td class="memberHeader">Sample count</td>
+          <td class="member">{{ sampleCount }}</td>
         </tr>
-      </thead>
-      <tbody>
-        <tr template="" repeat="{{row in tree.rows }}" style="{{}}">
-          <td on-click="{{toggleExpanded}}" class="{{ coloring(row) }}" style="{{ padding(row) }}">
-            <code-ref ref="{{ row.code }}"></code-ref>
+        <tr>
+          <td class="memberHeader">Sample rate</td>
+          <td class="member">{{ sampleRate }} Hz</td>
+        </tr>
+        <tr>
+          <td class="memberHeader">Sample depth</td>
+          <td class="member">{{ sampleDepth }} stack frames</td>
+        </tr>
+        <tr>
+          <td class="memberHeader">Call graph tree</td>
+          <td class="member">
+            <input type="checkbox" checked="{{ callGraphChecked }}">
           </td>
-          <td class="{{ coloring(row) }}">{{row.columns[0]}}</td>
-          <td class="{{ coloring(row) }}">{{row.columns[1]}}</td>
-        </tr>
-      </tbody>
-    </table>
+         </tr><tr>
+          <td class="memberHeader">Display cutoff</td>
+          <td class="member">{{ displayCutoff }}</td>
+         </tr>
+         <tr>
+          <td class="memberHeader">Hide tags</td>
+          <td class="member">
+            <input type="checkbox" checked="{{ hideTagsChecked }}">
+          </td>
+         </tr>
+      </tbody></table>
+      <hr>
+      <table id="tableTree" class="table table-hover">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Caller</th>
+            <th>Exclusive</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr template="" repeat="{{row in tree.rows }}" style="{{}}">
+            <td on-click="{{toggleExpanded}}" class="{{ coloring(row) }}" style="{{ padding(row) }}">
+              <code-ref ref="{{ row.code }}"></code-ref>
+            </td>
+            <td class="{{ coloring(row) }}">{{row.columns[0]}}</td>
+            <td class="{{ coloring(row) }}">{{row.columns[1]}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </template>
   
 </polymer-element>
