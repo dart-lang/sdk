@@ -268,7 +268,7 @@ class BuildEnvironment {
     // infrastructure to share code with pub proper. We provide it only during
     // the initial transformer loading process.
     var dartPath = assetPath('dart');
-    var pubSources = listDir(dartPath).map((library) {
+    var pubSources = listDir(dartPath, recursive: true).map((library) {
       return new AssetId('\$pub',
           path.join('lib', path.relative(library, from: dartPath)));
     });
