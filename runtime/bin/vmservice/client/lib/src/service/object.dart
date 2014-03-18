@@ -4,6 +4,169 @@
 
 part of service;
 
+/// A [ServiceObject] is an object known to the VM service and is tied
+/// to an owning [Isolate].
+abstract class ServiceObject extends Observable {
+  Isolate _isolate;
+
+  /// Owning isolate.
+  @reflectable Isolate get isolate => _isolate;
+
+  /// Owning vm.
+  @reflectable VM get vm => _isolate.vm;
+
+  /// The complete service url of this object.
+  @reflectable String get link => isolate.relativeLink(_id);
+
+  /// The complete service url of this object with a '#/' prefix.
+  @reflectable String get hashLink => isolate.relativeHashLink(_id);
+  set hashLink(var o) { /* silence polymer */ }
+
+  String _id;
+  /// The id of this object.
+  @reflectable String get id => _id;
+
+  String _serviceType;
+  /// The service type of this object.
+  @reflectable String get serviceType => _serviceType;
+
+  bool _ref;
+
+  @observable String name;
+  @observable String vmName;
+
+  ServiceObject(this._isolate, this._id, this._serviceType) {
+    _ref = isRefType(_serviceType);
+    _serviceType = stripRef(_serviceType);
+    _created();
+  }
+
+  ServiceObject.fromMap(this._isolate, ObservableMap m) {
+    assert(isServiceMap(m));
+    _id = m['id'];
+    _ref = isRefType(m['type']);
+    _serviceType = stripRef(m['type']);
+    _created();
+    update(m);
+  }
+
+  /// If [this] was created from a reference, load the full object
+  /// from the service by calling [reload]. Else, return [this].
+  Future<ServiceObject> load() {
+    if (!_ref) {
+      // Not a reference.
+      return new Future.value(this);
+    }
+    // Call reload which will fill in the entire object.
+    return reload();
+  }
+
+  /// Reload [this]. Returns a future which completes to [this] or
+  /// a [ServiceError].
+  Future<ServiceObject> reload() {
+    assert(isolate != null);
+    if (id == '') {
+      // Errors don't have ids.
+      assert(serviceType == 'Error');
+      return new Future.value(this);
+    }
+    return isolate.vm.getAsMap(link).then(update);
+  }
+
+  /// Update [this] using [m] as a source. [m] can be a reference.
+  ServiceObject update(ObservableMap m) {
+    // Assert that m is a service map.
+    assert(ServiceObject.isServiceMap(m));
+    if ((m['type'] == 'Error') && (_serviceType != 'Error')) {
+      // Got an unexpected error. Don't update the object.
+      return _upgradeToServiceObject(vm, isolate, m);
+    }
+    // TODO(johnmccutchan): Should we allow for a ServiceObject's id
+    // or type to change?
+    _id = m['id'];
+    _serviceType = stripRef(m['type']);
+    _update(m);
+    return this;
+  }
+
+  // update internal state from [map]. [map] can be a reference.
+  void _update(ObservableMap map);
+
+  /// Returns true if [this] has only been partially initialized via
+  /// a reference. See [load].
+  bool isRef() => _ref;
+
+  void _created() {
+    var refNotice = _ref ? ' Created from reference.' : '';
+    Logger.root.info('Created ServiceObject for \'${_id}\' with type '
+                     '\'${_serviceType}\'.' + refNotice);
+  }
+
+  /// Returns true if [map] is a service map. i.e. it has the following keys:
+  /// 'id' and a 'type'.
+  static bool isServiceMap(ObservableMap m) {
+    return (m != null) && (m['id'] != null) && (m['type'] != null);
+  }
+
+  /// Returns true if [type] is a reference type. i.e. it begins with an
+  /// '@' character.
+  static bool isRefType(String type) {
+    return type.startsWith('@');
+  }
+
+  /// Returns the unreffed version of [type].
+  static String stripRef(String type) {
+    if (!isRefType(type)) {
+      return type;
+    }
+    // Strip off the '@' character.
+    return type.substring(1);
+  }
+}
+
+/// State for a VM being inspected.
+abstract class VM extends Observable {
+  @reflectable IsolateList _isolates;
+  @reflectable IsolateList get isolates => _isolates;
+
+  void _initOnce() {
+    assert(_isolates == null);
+    _isolates = new IsolateList(this);
+  }
+
+  VM() {
+    _initOnce();
+  }
+
+  /// Get [id] as an [ObservableMap] from the service directly.
+  Future<ObservableMap> getAsMap(String id) {
+    return getString(id).then((response) {
+      try {
+        var map = JSON.decode(response);
+        Logger.root.info('Decoded $id');
+        return toObservable(map);
+      } catch (e, st) {
+        return toObservable({
+          'type': 'Error',
+          'id': '',
+          'kind': 'DecodeError',
+          'message': '$e',
+        });
+      }
+    }).catchError((error) {
+      return toObservable({
+        'type': 'Error',
+        'id': '',
+        'kind': 'LastResort',
+        'message': '$error'
+      });
+    });
+  }
+
+  /// Get [id] as a [String] from the service directly. See [getAsMap].
+  Future<String> getString(String id);
+}
+
 /// State for a running isolate.
 class Isolate extends ServiceObject {
   final VM vm;

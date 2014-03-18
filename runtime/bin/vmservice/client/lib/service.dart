@@ -13,4 +13,3 @@ import 'package:observe/observe.dart';
 part 'src/service/cache.dart';
 part 'src/service/object.dart';
 part 'src/service/service.dart';
-part 'src/service/vm.dart';
