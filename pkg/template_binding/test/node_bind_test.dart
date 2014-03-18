@@ -9,7 +9,6 @@ import 'dart:html';
 
 import 'package:observe/observe.dart'
     show toObservable, PathObserver, PropertyPath;
-import 'package:observe/mirrors_used.dart'; // make test smaller.
 import 'package:template_binding/template_binding.dart' show nodeBind;
 
 import 'package:unittest/html_config.dart';

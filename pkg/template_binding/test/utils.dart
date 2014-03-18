@@ -7,6 +7,10 @@ library template_binding.test.utils;
 import 'dart:async';
 import 'dart:html';
 import 'package:observe/observe.dart';
+
+// Note: tests that import 'utils.dart' rely on the following line to make test
+// smaller for dart2js and prevent timeouts in the test bots.
+import 'package:observe/mirrors_used.dart';
 import 'package:template_binding/template_binding.dart';
 export 'package:observe/src/dirty_check.dart' show dirtyCheckZone;
 

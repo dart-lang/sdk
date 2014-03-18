@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:math' as math;
 import 'package:observe/observe.dart';
-import 'package:observe/mirrors_used.dart'; // make test smaller.
 import 'package:template_binding/template_binding.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
