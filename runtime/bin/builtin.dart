@@ -79,16 +79,32 @@ void _makeHttpRequest(String uri) {
   try {
     Uri requestUri = Uri.parse(uri);
     _client.getUrl(requestUri)
-        .then((HttpClientRequest request) => request.close())
+        .then((HttpClientRequest request) {
+          request.persistentConnection = false;
+          return request.close();
+        })
         .then((HttpClientResponse response) {
-          return response
-              .fold(new BytesBuilder(), (b, d) => b..add(d))
-              .then((builder) {
-                _requestCompleted(builder.takeBytes(), response);
-                // This client is only used for a single request. Force closing
-                // it now otherwise we wait around until it times out.
-                _client.close(force:true);
-              });
+          // Only create a ByteBuilder, if multiple chunks is received.
+          var bufferOrBuilder;
+          response.listen(
+            (data) {
+              if (bufferOrBuilder == null) {
+                bufferOrBuilder = data;
+              } else {
+                if (bufferOrBuilder is! BytesBuilder) {
+                  bufferOrBuilder = new BytesBuilder()
+                      ..add(bufferOrBuilder);
+                }
+                bufferOrBuilder.add(data);
+              }
+            },
+            onDone: () {
+              var data = bufferOrBuilder;
+              if (data is BytesBuilder) data = data.takeBytes();
+              _requestCompleted(data, response);
+              _client.close();
+            },
+            onError: _requestFailed);
         }).catchError((error) {
           _requestFailed(error);
         });
