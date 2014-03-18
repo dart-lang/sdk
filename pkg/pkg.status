@@ -18,7 +18,14 @@ scheduled_test/test/scheduled_server_test: Pass, Fail # 13524
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 polymer/test/event_path_test: Pass, Fail # Issue 15766
 
-docgen/test/generate_json_test: Skip # Issue 17430
+[ $compiler == dart2js && $mode == debug ]
+docgen/test/generate_json_test: Skip # Way too slow
+docgen/test/multi_library_test: Skip # Way too slow
+docgen/test/single_library_test: Skip # Way too slow
+docgen/test/typedef_test: Skip # Way too slow
+
+[ $mode == debug ]
+docgen/test/only_lib_content_in_pkg_test: Skip # doesn't make any progress
 
 [ $compiler == dart2js ]
 collection/test/equality_test/01: Fail # Issue 1533
@@ -307,9 +314,7 @@ third_party/html5lib/test/browser/browser_test: Skip
 polymer_expressions/test/globals_test: Fail # Issue 16568
 
 [ $browser ]
-docgen/test/generate_json_test: Skip  # Uses dart:io
-docgen/test/single_library_test: Skip # Uses dart:io
-docgen/test/multi_library_test: Skip # Uses dart:io
+docgen/test/*: Skip  # Uses dart:io
 scheduled_test/test/scheduled_server_test: Skip # Uses dart:io
 
 [ $browser || $runtime == vm ]
@@ -371,6 +376,3 @@ stack_trace/test/vm_test: PubGetError
 
 [ $runtime == ie9 ]
 polymer: Pass, Fail, Timeout # Issue 16717
-
-[ $compiler == dart2js && $mode == debug ]
-docgen/test/single_library_test: Slow, Pass

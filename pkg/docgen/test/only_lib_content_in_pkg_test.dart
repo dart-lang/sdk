@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library docgen.generate_json_test;
+library docgen.test.only_lib_content_in_pkg;
 
 import 'dart:io';
 
@@ -11,8 +11,8 @@ import 'package:scheduled_test/descriptor.dart' as d;
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:unittest/matcher.dart';
 
-import 'util.dart';
 import '../lib/docgen.dart' as dg;
+import 'util.dart';
 
 void main() {
 
@@ -20,25 +20,30 @@ void main() {
     scheduleTempDir();
   });
 
-  test('json output', () {
+  test('exclude non-lib code from package docs', () {
     schedule(() {
-      var codeDir = getMultiLibraryCodePath();
+      var thisScript = Platform.script;
+      var thisPath = p.fromUri(thisScript);
+      expect(p.basename(thisPath), 'only_lib_content_in_pkg_test.dart');
+      expect(p.dirname(thisPath), endsWith('test'));
+
+
+      var codeDir = p.normalize(p.join(thisPath, '..', '..'));
+      print(codeDir);
       expect(FileSystemEntity.isDirectorySync(codeDir), isTrue);
-      return dg.docgen([codeDir], out: p.join(d.defaultRoot, 'docs'));
+      return dg.docgen(['$codeDir/'], out: p.join(d.defaultRoot, 'docs'));
     });
 
     d.dir('docs', [
+        d.dir('docgen', [
+          d.matcherFile('docgen.json',  isJsonMap)
+        ]),
         d.matcherFile('index.json', isJsonMap),
         d.matcherFile('index.txt', hasSortedLines),
         d.matcherFile('library_list.json', isJsonMap),
-        d.matcherFile('test_lib-bar.C.json', isJsonMap),
-        d.matcherFile('test_lib-bar.json', isJsonMap),
-        d.matcherFile('test_lib-foo.B.json', isJsonMap),
-        d.matcherFile('test_lib-foo.json', isJsonMap),
-        d.matcherFile('test_lib.A.json', isJsonMap),
-        d.matcherFile('test_lib.B.json', isJsonMap),
-        d.matcherFile('test_lib.C.json', isJsonMap),
-        d.matcherFile('test_lib.json', isJsonMap),
+        d.nothing('test_lib.json'),
+        d.nothing('test_lib-bar.json'),
+        d.nothing('test_lib-foo.json')
     ]).validate();
 
   });
