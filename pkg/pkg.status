@@ -306,7 +306,7 @@ third_party/html5lib/test/browser/browser_test: Skip
 [ $runtime == safari || $runtime == ie9 || $runtime == ie10 ]
 polymer_expressions/test/globals_test: Fail # Issue 16568
 
-[ $runtime == safari || $runtime == chrome || $runtime == ie9 || $runtime == ff || $runtime == dartium || $runtime == drt ]
+[ $browser ]
 docgen/test/generate_json_test: Skip  # Uses dart:io
 docgen/test/single_library_test: Skip # Uses dart:io
 docgen/test/multi_library_test: Skip # Uses dart:io
