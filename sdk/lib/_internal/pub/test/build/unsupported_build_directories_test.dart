@@ -17,7 +17,7 @@ main() {
             Unsupported build directories "bar" and "foo".
             The allowed directories are "benchmark", "bin", "example", "test" and "web".
 
-            Usage: pub build [options]
+            Usage: pub build [options] [directories...]
             -h, --help      Print usage information for this command.
                 --format    How output should be displayed.
                             [text (default), json]
