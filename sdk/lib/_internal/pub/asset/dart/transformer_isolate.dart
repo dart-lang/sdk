@@ -2,22 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Note: this explicitly avoids using a library tag because pub will add
-// additional imports at the top of the file.
+library pub.transformer_isolate;
 
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:convert';
 import 'dart:mirrors';
 
-import '<<URL_BASE>>/packages/source_maps/span.dart';
-import '<<URL_BASE>>/packages/stack_trace/stack_trace.dart';
-import '<<URL_BASE>>/packages/barback/barback.dart';
+import 'package:source_maps/span.dart';
+import 'package:stack_trace/stack_trace.dart';
+import 'package:barback/barback.dart';
 // TODO(nweiz): don't import from "src" once issue 14966 is fixed.
-import '<<URL_BASE>>/packages/barback/src/internal_asset.dart';
+import 'package:barback/src/internal_asset.dart';
 
 /// Sets up the initial communication with the host isolate.
-void main(_, SendPort replyTo) {
+void loadTransformers(SendPort replyTo) {
   var port = new ReceivePort();
   replyTo.send(port.sendPort);
   port.first.then((wrappedMessage) {
@@ -25,7 +24,7 @@ void main(_, SendPort replyTo) {
       var library = Uri.parse(message['library']);
       var configuration = JSON.decode(message['configuration']);
       var mode = new BarbackMode(message['mode']);
-      return initialize(library, configuration, mode).
+      return _initialize(library, configuration, mode).
           map(_serializeTransformerOrGroup).toList();
     });
   });
@@ -35,7 +34,7 @@ void main(_, SendPort replyTo) {
 ///
 /// Loads the library, finds any Transformer or TransformerGroup subclasses in
 /// it, instantiates them with [configuration] and [mode], and returns them.
-Iterable initialize(Uri uri, Map configuration, BarbackMode mode) {
+Iterable _initialize(Uri uri, Map configuration, BarbackMode mode) {
   var mirrors = currentMirrorSystem();
   var transformerClass = reflectClass(Transformer);
   var groupClass = reflectClass(TransformerGroup);

@@ -34,9 +34,15 @@ Future<Set> loadTransformers(BuildEnvironment environment,
 
     var baseUrl = transformerServer.url;
     var uri = '$baseUrl/packages/${id.package}/$path';
-    var code = 'import "$uri";\n' +
-        readAsset(p.join("dart", "transformer_isolate.dart"))
-            .replaceAll('<<URL_BASE>>', baseUrl);
+    var code = """
+        import 'dart:isolate';
+
+        import '$uri';
+
+        import r'$baseUrl/packages/\$pub/transformer_isolate.dart';
+
+        void main(_, SendPort replyTo) => loadTransformers(replyTo);
+        """;
     log.fine("Loading transformers from $assetId");
 
     var port = new ReceivePort();
@@ -60,7 +66,7 @@ Future<Set> loadTransformers(BuildEnvironment environment,
       if (error.type != 'IsolateSpawnException') throw error;
       // TODO(nweiz): don't parse this as a string once issues 12617 and 12689
       // are fixed.
-      if (!error.message.split('\n')[1].startsWith('import "$uri";')) {
+      if (!error.message.split('\n')[1].endsWith("import '$uri';")) {
         throw error;
       }
 

@@ -408,9 +408,6 @@ String assetPath(String target) {
   }
 }
 
-/// Reads a text file from pub's `resource` directory.
-String readAsset(String target) => readTextFile(assetPath(target));
-
 /// Returns the path to the root of the Dart repository. This will throw a
 /// [StateError] if it's called when running pub from the SDK.
 String get repoRoot {

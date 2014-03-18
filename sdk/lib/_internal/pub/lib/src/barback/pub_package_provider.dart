@@ -10,18 +10,32 @@ import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 
 import '../package_graph.dart';
+import '../io.dart';
 
 /// An implementation of barback's [PackageProvider] interface so that barback
 /// can find assets within pub packages.
 class PubPackageProvider implements PackageProvider {
   final PackageGraph _graph;
+  final List<String> packages;
 
-  PubPackageProvider(this._graph);
-
-  Iterable<String> get packages => _graph.packages.keys;
+  PubPackageProvider(PackageGraph graph)
+      : _graph = graph,
+        packages = new List.from(graph.packages.keys)..add(r"$pub");
 
   Future<Asset> getAsset(AssetId id) {
-    var file = path.join(_graph.packages[id.package].dir, id.path);
+    if (id.package != r'$pub') {
+      var nativePath = path.joinAll(path.url.split(id.path));
+      var file = path.join(_graph.packages[id.package].dir, nativePath);
+      return new Future.value(new Asset.fromPath(id, file));
+    }
+
+    // "$pub" is a psuedo-package that allows pub's transformer-loading
+    // infrastructure to share code with pub proper.
+    var components = path.url.split(id.path);
+    assert(components.isNotEmpty);
+    assert(components.first == 'lib');
+    components[0] = 'dart';
+    var file = assetPath(path.joinAll(components));
     return new Future.value(new Asset.fromPath(id, file));
   }
 }

@@ -150,7 +150,10 @@ class BarbackServer {
     }
 
     _logRequest(request, "Loading $id");
-    _environment.barback.getAssetById(id)
+    _environment.barback.getAssetById(id).then((result) {
+      _logRequest(request, "getAssetById($id) returned");
+      return result;
+    })
         .then((asset) => _serveAsset(request, asset))
         .catchError((error, trace) {
       if (error is! AssetNotFoundException) throw error;

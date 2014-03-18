@@ -63,6 +63,7 @@ Future loadAllTransformers(BuildEnvironment environment,
   for (var package in environment.graph.packages.values) {
     environment.barback.updateTransformers(package.name, [[rewrite]]);
   }
+  environment.barback.updateTransformers(r'$pub', [[rewrite]]);
 
   var orderingDeps = _computeOrderingDeps(environment.graph);
   var packageTransformers = _computePackageTransformers(environment.graph);

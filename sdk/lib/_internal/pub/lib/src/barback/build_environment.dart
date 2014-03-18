@@ -228,12 +228,24 @@ class BuildEnvironment {
       ]);
     }
 
+    // "$pub" is a psuedo-package that allows pub's transformer-loading
+    // infrastructure to share code with pub proper. We provide it only during
+    // the initial transformer loading process.
+    var dartPath = assetPath('dart');
+    var pubSources = listDir(dartPath).map((library) {
+      return new AssetId('\$pub',
+          path.join('lib', path.relative(library, from: dartPath)));
+    });
+
     // Bind a server that we can use to load the transformers.
     var transformerServer;
     return BarbackServer.bind(this, _hostname, 0, null).then((server) {
       transformerServer = server;
 
-      return log.progress("Loading source assets", _provideSources);
+      return log.progress("Loading source assets", () {
+        barback.updateSources(pubSources);
+        return _provideSources();
+      });
     }).then((_) {
       log.fine("Provided sources.");
       var completer = new Completer();
@@ -282,7 +294,7 @@ class BuildEnvironment {
           subscription.cancel();
         }
       });
-    });
+    }).then((_) => barback.removeSources(pubSources));
   }
 
   /// Provides all of the source assets in the environment to barback.
