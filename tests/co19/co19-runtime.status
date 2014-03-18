@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 
-[ $compiler == none && ($runtime == vm || $runtime == dartium) ]
+[ $compiler == none && ($runtime == vm || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail # Issue 12508
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail # Issue 12508

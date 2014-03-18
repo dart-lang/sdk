@@ -79,24 +79,17 @@ compile_time_constant_checked3_test/06: Fail, OK
 type_check_const_function_typedef2_test/00: Fail, OK
 malformed2_test/01: Fail, OK
 
-[ $runtime == vm || (($runtime == drt || $runtime == dartium) && $compiler == none) ]
+[ ($compiler == none || $compiler == dart2dart) && $runtime != none ]
 dynamic_prefix_core_test/01: Fail # Issue 12478
 
-[ $compiler == none && ($runtime == vm || $runtime == drt || $runtime == dartium) ]
+[ $compiler == none && ($runtime == vm || $runtime == drt || $runtime == dartium|| $runtime == ContentShellOnAndroid) ]
 dynamic_prefix_core_test/none: Fail # Issue 12478
 export_ambiguous_main_negative_test: Fail # Issue 14763
-
-[ $compiler == none && $runtime == drt ]
-mixin_illegal_object_test/01: pass # Issue 10952.
-mixin_illegal_object_test/02: pass # Issue 10952.
 
 [ $compiler == dart2js && $runtime == ie9 ]
 lazy_static3_test: Fail # Issue 13469
 
 [ $compiler == none && $runtime == dartium && $unchecked ]
-named_parameters_type_test/01: Fail # Issue 13719: Please triage this failure.
-named_parameters_type_test/02: Fail # Issue 13719: Please triage this failure.
-named_parameters_type_test/03: Fail # Issue 13719: Please triage this failure.
 positional_parameters_type_test/01: Fail # Issue 13719: Please triage this failure.
 positional_parameters_type_test/02: Fail # Issue 13719: Please triage this failure.
 assertion_test: Fail # Issue 13719: Please triage this failure.
@@ -119,4 +112,8 @@ override_inheritance_mixed_test/08: Fail # Issue 16137
 override_inheritance_mixed_test/09: Fail # Issue 16137
 
 [ $compiler == none && $runtime == vm && $arch == mips && $checked ]
-generic_instanceof3_test: Pass, Crash # dartbug.com/17440
+generic_instanceof3_test: Pass, Crash # Issue 17440.
+
+[ $compiler == none && $runtime == vm && $arch == mips && $mode == debug ]
+stack_overflow_test: Skip # Crashes. Issue 17440.
+stack_overflow_stacktrace_test: Skip # Crashes. Issue 17440.
