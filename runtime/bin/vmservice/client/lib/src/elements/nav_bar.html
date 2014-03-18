@@ -159,7 +159,7 @@
 
 <polymer-element name="isolate-nav-menu" extends="observatory-element">
   <template>
-    <nav-menu link="#" anchor="{{ isolate.name }}" last="{{ last }}">
+    <nav-menu link="{{ isolate.hashLink }}" anchor="{{ isolate.name }}" last="{{ last }}">
       <nav-menu-item link="{{ isolate.relativeHashLink('stacktrace') }}"
                      anchor="stack trace"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeHashLink('profile') }}"

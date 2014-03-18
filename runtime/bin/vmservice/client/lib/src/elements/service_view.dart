@@ -62,6 +62,10 @@ class ServiceObjectViewElement extends ObservatoryElement {
         InstanceViewElement element = new Element.tag('instance-view');
         element.instance = object;
         return element;
+      case 'Isolate':
+        IsolateViewElement element = new Element.tag('isolate-view');
+        element.isolate = object;
+        return element;
       case 'IsolateList':
         IsolateListElement element = new Element.tag('isolate-list');
         element.isolates = object;

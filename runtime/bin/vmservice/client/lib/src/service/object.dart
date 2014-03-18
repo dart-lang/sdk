@@ -72,6 +72,9 @@ class Isolate extends ServiceObject {
   /// Requests [serviceId] from [this]. Completes to a [ServiceObject].
   /// Can return pre-existing, cached, [ServiceObject]s.
   Future<ServiceObject> get(String serviceId) {
+    if (serviceId == '') {
+      return reload();
+    }
     if (_scripts.cachesId(serviceId)) {
       return _scripts.get(serviceId);
     }
@@ -99,6 +102,8 @@ class Isolate extends ServiceObject {
 
   @observable int newHeapUsed = 0;
   @observable int oldHeapUsed = 0;
+  @observable int newHeapCapacity = 0;
+  @observable int oldHeapCapacity = 0;
 
   @observable String fileAndLine;
 
@@ -118,7 +123,7 @@ class Isolate extends ServiceObject {
       name = entry['name'];
     } else {
       // fred
-      name = 'root isolate';
+      name = 'root';
     }
     if (map['topFrame'] != null) {
       topFrame = map['topFrame'];
@@ -141,6 +146,8 @@ class Isolate extends ServiceObject {
 
     newHeapUsed = map['heap']['usedNew'];
     oldHeapUsed = map['heap']['usedOld'];
+    newHeapCapacity = map['heap']['capacityNew'];
+    oldHeapCapacity = map['heap']['capacityOld'];
   }
 }
 

@@ -171,7 +171,7 @@
 
 <polymer-element name="isolate-nav-menu" extends="observatory-element">
   <template>
-    <nav-menu link="#" anchor="{{ isolate.name }}" last="{{ last }}">
+    <nav-menu link="{{ isolate.hashLink }}" anchor="{{ isolate.name }}" last="{{ last }}">
       <nav-menu-item link="{{ isolate.relativeHashLink('stacktrace') }}" anchor="stack trace"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeHashLink('profile') }}" anchor="cpu profile"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeHashLink('allocationprofile') }}" anchor="heap profile"></nav-menu-item>
@@ -874,6 +874,12 @@
 </template>
 
 </polymer-element>
+<polymer-element name="isolate-ref" extends="service-ref">
+<template>
+  <a href="{{ url }}">{{ ref.name }}</a>
+</template>
+
+</polymer-element>
 <polymer-element name="isolate-summary" extends="observatory-element">
   <template>
     <div class="row">
@@ -887,14 +893,7 @@
       <div class="col-md-4">
 
         <div class="row">
-          <template if="{{ isolate.entry['id'] != null }}">
-            <a href="{{ isolate.hashLink(isolate.entry['id']) }}">
-              {{ isolate.name }}
-            </a>
-          </template>
-          <template if="{{ isolate.entry['id'] == null }}">
-            {{ isolate.name }}
-          </template>
+          <isolate-ref ref="{{ isolate }}"></isolate-ref>
         </div>
 
         <div class="row">
@@ -937,7 +936,7 @@
         <a href="{{ isolate.relativeHashLink('allocationprofile') }}">
           {{ isolate.newHeapUsed | formatSize }}/{{ isolate.oldHeapUsed | formatSize }}
         </a>
-        (<a href="{{ isolate.relativeHashLink('heapmap') }}">map</a>)
+        ( <a href="{{ isolate.relativeHashLink('heapmap') }}">map</a> )
       </div>
       <div class="col-md-2">
         <template if="{{ isolate.topFrame == null }}">
@@ -980,6 +979,158 @@
         </li>
       </template>
       </ul>
+  </template>
+  
+</polymer-element>
+<polymer-element name="isolate-view" extends="observatory-element">
+  <template>
+    <style>
+      .content {
+        padding-left: 10%;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      h1 {
+        font: 400 18px 'Montserrat', sans-serif;
+      }
+      .memberList {
+        display: table;
+      }
+      .memberItem {
+        display: table-row;
+      }
+      .memberName, .memberValue {
+        display: table-cell;
+        vertical-align: top;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      .sourceInset {
+        padding-left: 15%;
+        padding-right: 15%;
+      }
+    </style>
+
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}" last="{{ true }}">
+      </isolate-nav-menu>
+    </nav-bar>
+
+    <div class="content">
+      <h1>isolate '{{ isolate.name }}'</h1>
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">status</div>
+          <div class="memberValue">
+            <template if="{{ isolate.topFrame == null }}">
+              <strong>idle</strong>
+            </template>
+            <template if="{{ isolate.topFrame != null }}">
+              <strong>running</strong>
+              @
+              <function-ref ref="{{ isolate.topFrame['function'] }}">
+              </function-ref>
+              (<script-ref ref="{{ isolate.topFrame['script'] }}" line="{{ isolate.topFrame['line'] }}"></script-ref>)
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <template if="{{ isolate.topFrame != null }}">
+      <br>
+      <div class="sourceInset">
+        <pre>          {{ isolate.topFrame['line'] }} &nbsp; {{ isolate.topFrame['lineString'] }}</pre>
+      </div>
+    </template>
+
+    <br>
+
+    <div class="content">
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">root library</div>
+          <div class="memberValue">
+            <function-ref ref="{{ isolate.rootLib }}"></function-ref>
+          </div>
+        </div>
+        <div class="memberItem">
+          <template if="{{ isolate.entry != null }}">
+            <div class="memberName">entry</div>
+            <div class="memberValue">
+              <function-ref ref="{{ isolate.entry }}"></function-ref>
+            </div>
+          </template>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">id</div>
+          <div class="memberValue">{{ isolate.vmName }}</div>
+        </div>
+        <br>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a href="{{ isolate.relativeHashLink('profile') }}">cpu profile</a>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a href="{{ isolate.relativeHashLink('debug/breakpoints') }}">breakpoints</a>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="content">
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">new heap</div>
+          <div class="memberValue">
+            {{ isolate.newHeapUsed | formatSize }}
+            of
+            {{ isolate.newHeapCapacity | formatSize }}
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">old heap</div>
+          <div class="memberValue">
+            {{ isolate.oldHeapUsed | formatSize }}
+            of
+            {{ isolate.oldHeapCapacity | formatSize }}
+          </div>
+        </div>
+      </div>
+
+      <br>
+
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a href="{{ isolate.relativeHashLink('allocationprofile') }}">heap profile</a>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a href="{{ isolate.relativeHashLink('heapmap') }}">heap map</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="content">
+      <eval-box callback="{{ eval }}"></eval-box>
+    </div>
+    <br><br><br><br>
+    <br><br><br><br>
   </template>
   
 </polymer-element>

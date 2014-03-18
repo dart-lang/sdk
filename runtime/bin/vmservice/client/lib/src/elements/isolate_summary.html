@@ -1,5 +1,6 @@
 <head>
   <link rel="import" href="function_ref.html">
+  <link rel="import" href="isolate_ref.html">
   <link rel="import" href="observatory_element.html">
   <link rel="import" href="script_ref.html">
 </head>
@@ -16,14 +17,7 @@
       <div class="col-md-4">
 
         <div class="row">
-          <template if="{{ isolate.entry['id'] != null }}">
-            <a href="{{ isolate.hashLink(isolate.entry['id']) }}">
-              {{ isolate.name }}
-            </a>
-          </template>
-          <template if="{{ isolate.entry['id'] == null }}">
-            {{ isolate.name }}
-          </template>
+          <isolate-ref ref="{{ isolate }}"></isolate-ref>
         </div>
 
         <div class="row">
@@ -66,7 +60,7 @@
         <a href="{{ isolate.relativeHashLink('allocationprofile') }}">
           {{ isolate.newHeapUsed | formatSize }}/{{ isolate.oldHeapUsed | formatSize }}
         </a>
-        (<a href="{{ isolate.relativeHashLink('heapmap') }}">map</a>)
+        ( <a href="{{ isolate.relativeHashLink('heapmap') }}">map</a> )
       </div>
       <div class="col-md-2">
         <template if="{{ isolate.topFrame == null }}">
