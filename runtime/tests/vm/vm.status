@@ -70,7 +70,10 @@ dart/inline_stack_frame_test: RuntimeError
 [ $arch == mips ]
 cc/Cop1CvtDL: Crash # Illegal instructions
 cc/Cop1CvtDL_neg: Crash # Illegal instructions
-cc/StaticNonNullSumCallCodegen: Crash # dartbug.com/17440
+cc/StaticNonNullSumCallCodegen: Crash, Pass # dartbug.com/17440
+
+[ $arch == mips && $mode == debug ]
+cc/FindCodeObject: Skip # Takes more than 8 minutes. dartbug.com/17440.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 dart/mirrored_compilation_error_test: Skip # Can't pass needed VM flag

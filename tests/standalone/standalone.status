@@ -114,6 +114,10 @@ oom_error_stacktrace_test: Skip # Fails on Linux
 io/signals_test: Fail # dartbug.com/17440
 io/file_stat_test: Fail # dartbug.com/17440
 io/process_sync_test: Skip # Starts 10 dart subprocesses, uses too much memory.
+io/signals_test: Skip # Starts 10 dart subprocesses, uses too much memory
+
+[ $arch == mips && $mode == debug ]
+io/file_read_special_device_test: Fail # dartbug.com/17440
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $unchecked ]
 assert_test: Fail # Issue 13719: Please triage this failure.
