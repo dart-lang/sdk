@@ -12,6 +12,7 @@ import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 
+import '../log.dart' as log;
 import '../utils.dart';
 import 'build_environment.dart';
 
@@ -74,6 +75,8 @@ class WebSocketApi {
   /// complete to `null`.
   Future listen() {
     return _socket.listen((data) {
+      log.io("Web Socket command: $data");
+
       var command;
       return syncFuture(() {
         try {
@@ -315,7 +318,6 @@ class WebSocketApi {
       };
     });
   }
-
 
   /// Given a relative directory path within the entrypoint package, unbinds
   /// the server previously bound to that directory and returns its (now

@@ -142,7 +142,10 @@ class BuildEnvironment {
   Future<BarbackServer> serveDirectory(String rootDirectory) {
     // See if there is already a server bound to the directory.
     var directory = _directories[rootDirectory];
-    if (directory != null) return new Future.value(directory.server);
+    if (directory != null) {
+      log.fine('Already serving $rootDirectory on ${directory.server.url}.');
+      return new Future.value(directory.server);
+    }
 
     var port = _basePort;
 
@@ -171,7 +174,7 @@ class BuildEnvironment {
   /// the URL of the unbound server, of `null` if [rootDirectory] was not
   /// bound to a server.
   Future<Uri> unserveDirectory(String rootDirectory) {
-    log.fine("unserving $rootDirectory");
+    log.fine("Unserving $rootDirectory.");
     var directory = _directories.remove(rootDirectory);
     if (directory == null) return new Future.value();
 
@@ -398,6 +401,7 @@ class BuildEnvironment {
   /// Returns the subscription to the watcher, or `null` if none was created.
   Future<StreamSubscription<WatchEvent>> _provideDirectorySources(
       Package package, String dir) {
+    log.fine("Providing sources for ${package.name}|$dir.");
     // TODO(rnystrom): Handle overlapping directories. If two served
     // directories overlap like so:
     //
