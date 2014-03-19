@@ -1,5 +1,5 @@
 name: smoke
-version: 0.1.0-pre.0
+version: 0.1.0-dev
 author: Polymer.dart Authors <web-ui-dev@dartlang.org>
 homepage: "https://api.dartlang.org/apidocs/channels/be/#smoke"
 description: >
@@ -13,10 +13,10 @@ dependencies:
 # app-level transformers or a way to enable this selectively from the
 # application package.
 #transformers:
-#- smoke/src/default_transformer
+#- smoke/src/default_transformer:
 #    # TODO(sigmund): include this once this feature is available in the stable
 #    # channel, or when we really need some other feature in the dev channel.
-#    # $include: lib/src/implementation.dart
+#    $include: lib/src/implementation.dart
 dev_dependencies:
   unittest: ">=0.10.0 <0.11.0"
   path: ">=1.0.0 <2.0.0"

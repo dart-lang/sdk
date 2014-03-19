@@ -15,8 +15,6 @@ import 'src/common.dart';
 typedef T Getter<T>(object);
 typedef void Setter<T>(object, value);
 
-StaticConfiguration _configuration;
-
 class StaticConfiguration {
   /// Maps symbol to a function that reads that symbol of an object. For
   /// instance, `#i: (o) => o.i`.
@@ -35,9 +33,6 @@ class StaticConfiguration {
   /// A map from symbol to strings.
   final Map<Symbol, String> names;
 
-  /// A map from strings to symbols (the reverse of [names]).
-  final Map<String, Symbol> symbols;
-
   /// Whether to check for missing declarations, otherwise, return default
   /// values (for example a missing parent class can be treated as Object)
   final bool checkedMode;
@@ -45,32 +40,35 @@ class StaticConfiguration {
   StaticConfiguration({
       this.getters: const {}, this.setters: const {}, this.parents: const {},
       this.declarations: const {}, this.names: const {},
-      this.checkedMode: true})
-      : this.symbols = {} {
-    names.forEach((k, v) { symbols[v] = k; });
-  }
+      this.checkedMode: true});
 }
 
 /// Set up the smoke package to use a static implementation based on the given
 /// [configuration].
 useGeneratedCode(StaticConfiguration configuration) {
-  _configuration = configuration;
-  configure(new _GeneratedObjectAccessorService(),
-      new _GeneratedTypeInspectorService(),
-      new _GeneratedSymbolConverterService());
+  configure(new GeneratedObjectAccessorService(configuration),
+      new GeneratedTypeInspectorService(configuration),
+      new GeneratedSymbolConverterService(configuration));
 }
 
 /// Implements [ObjectAccessorService] using a static configuration.
-class _GeneratedObjectAccessorService implements ObjectAccessorService {
+class GeneratedObjectAccessorService implements ObjectAccessorService {
+  final Map<Symbol, Getter> _getters;
+  final Map<Symbol, Setter> _setters;
+
+  GeneratedObjectAccessorService(StaticConfiguration configuration)
+      : _getters = configuration.getters,
+        _setters = configuration.setters;
+
   read(Object object, Symbol name) {
-    var getter = _configuration.getters[name];
+    var getter = _getters[name];
     if (getter == null) {
       throw new MissingCodeException('getter "$name" in $object');
     }
     return getter(object);
   }
   void write(Object object, Symbol name, value) {
-    var setter = _configuration.setters[name];
+    var setter = _setters[name];
     if (setter == null) {
       throw new MissingCodeException('setter "$name" in $object');
     }
@@ -81,7 +79,7 @@ class _GeneratedObjectAccessorService implements ObjectAccessorService {
     var method;
     if (object is Type) {
     } else {
-      var getter = _configuration.getters[name];
+      var getter = _getters[name];
       method = getter == null ? null : getter(object);
     }
     if (method == null) {
@@ -119,14 +117,22 @@ class _GeneratedObjectAccessorService implements ObjectAccessorService {
 }
 
 /// Implements [TypeInspectorService] using a static configuration.
-class _GeneratedTypeInspectorService implements TypeInspectorService {
+class GeneratedTypeInspectorService implements TypeInspectorService {
+  final Map<Type, Type> _parents;
+  final Map<Type, Map<Symbol, Declaration>> _declarations;
+  final bool _checkedMode;
+
+  GeneratedTypeInspectorService(StaticConfiguration configuration)
+      : _parents = configuration.parents,
+        _declarations = configuration.declarations,
+        _checkedMode = configuration.checkedMode;
   bool isSubclassOf(Type type, Type supertype) {
     if (type == supertype || supertype == Object) return true;
     while (type != Object) {
-      var parentType = _configuration.parents[type];
+      var parentType = _parents[type];
       if (parentType == supertype) return true;
       if (parentType == null) {
-        if (!_configuration.checkedMode) return false;
+        if (!_checkedMode) return false;
         throw new MissingCodeException('superclass of "$type" ($parentType)');
       }
       type = parentType;
@@ -152,9 +158,9 @@ class _GeneratedTypeInspectorService implements TypeInspectorService {
   }
 
   bool hasStaticMethod(Type type, Symbol name) {
-    final map = _configuration.declarations[type];
+    final map = _declarations[type];
     if (map == null) {
-      if (!_configuration.checkedMode) return false;
+      if (!_checkedMode) return false;
       throw new MissingCodeException('declarations for $type');
     }
     final decl = map[name];
@@ -164,7 +170,7 @@ class _GeneratedTypeInspectorService implements TypeInspectorService {
   Declaration getDeclaration(Type type, Symbol name) {
     var decl = _findDeclaration(type, name);
     if (decl == null) {
-      if (!_configuration.checkedMode) return null;
+      if (!_checkedMode) return null;
       throw new MissingCodeException('declaration for $type.$name');
     }
     return decl;
@@ -173,18 +179,18 @@ class _GeneratedTypeInspectorService implements TypeInspectorService {
   List<Declaration> query(Type type, QueryOptions options) {
     var result = [];
     if (options.includeInherited) {
-      var superclass = _configuration.parents[type];
+      var superclass = _parents[type];
       if (superclass == null) {
-        if (_configuration.checkedMode) {
+        if (_checkedMode) {
           throw new MissingCodeException('superclass of "$type"');
         }
       } else if (superclass != options.includeUpTo) {
         result = query(superclass, options);
       }
     }
-    var map = _configuration.declarations[type];
+    var map = _declarations[type];
     if (map == null) {
-      if (!_configuration.checkedMode) return result;
+      if (!_checkedMode) return result;
       throw new MissingCodeException('declarations for $type');
     }
     for (var decl in map.values) {
@@ -192,6 +198,7 @@ class _GeneratedTypeInspectorService implements TypeInspectorService {
       if (!options.includeProperties && decl.isProperty) continue;
       if (options.excludeFinal && decl.isFinal) continue;
       if (!options.includeMethods && decl.isMethod) continue;
+      if (options.matches != null && !options.matches(decl.name)) continue;
       if (options.withAnnotations != null &&
           !matchesAnnotation(decl.annotations, options.withAnnotations)) {
         continue;
@@ -200,12 +207,40 @@ class _GeneratedTypeInspectorService implements TypeInspectorService {
     }
     return result;
   }
+
+  Declaration _findDeclaration(Type type, Symbol name) {
+    while (type != Object) {
+      final declarations = _declarations[type];
+      if (declarations != null) {
+        final declaration = declarations[name];
+        if (declaration != null) return declaration;
+      }
+      var parentType = _parents[type];
+      if (parentType == null) {
+        if (!_checkedMode) return null;
+        throw new MissingCodeException('superclass of "$type"');
+      }
+      type = parentType;
+    }
+    return null;
+  }
 }
 
 /// Implements [SymbolConverterService] using a static configuration.
-class _GeneratedSymbolConverterService implements SymbolConverterService {
-  String symbolToName(Symbol symbol) => _configuration.names[symbol];
-  Symbol nameToSymbol(String name) => _configuration.symbols[name];
+class GeneratedSymbolConverterService implements SymbolConverterService {
+  Map<Symbol, String> _names;
+
+  /// A map from strings to symbols (the reverse of [names]).
+  final Map<String, Symbol> _symbols;
+
+  GeneratedSymbolConverterService(StaticConfiguration configuration)
+      : _names = configuration.names,
+        _symbols = {} {
+    _names.forEach((k, v) { _symbols[v] = k; });
+  }
+
+  String symbolToName(Symbol symbol) => _names[symbol];
+  Symbol nameToSymbol(String name) => _symbols[name];
 }
 
 
@@ -217,21 +252,4 @@ class MissingCodeException implements Exception {
 
   String toString() => 'Missing $description. '
       'Code generation for the smoke package seems incomplete.';
-}
-
-Declaration _findDeclaration(Type type, Symbol name) {
-  while (type != Object) {
-    final declarations = _configuration.declarations[type];
-    if (declarations != null) {
-      final declaration = declarations[name];
-      if (declaration != null) return declaration;
-    }
-    var parentType = _configuration.parents[type];
-    if (parentType == null) {
-      if (!_configuration.checkedMode) return null;
-      throw new MissingCodeException('superclass of "$type"');
-    }
-    type = parentType;
-  }
-  return null;
 }

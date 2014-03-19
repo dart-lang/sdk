@@ -77,3 +77,32 @@ int maxArgs(Function f) {
   if (f is _Func0) return 0;
   return -1;
 }
+
+/// Shallow comparison of two lists.
+bool compareLists(List a, List b, {bool unordered: false}) {
+  if (a == null && b != null) return false;
+  if (a != null && b == null) return false;
+  if (a.length != b.length) return false;
+  if (unordered) {
+    var bSet = new Set()..addAll(b);
+    for (int i = 0; i < a.length; i++) {
+      if (!bSet.contains(a[i])) return false;
+    }
+  } else {
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+  }
+  return true;
+}
+
+/// Shallow comparison of two maps.
+bool compareMaps(Map a, Map b) {
+  if (a == null && b != null) return false;
+  if (a != null && b == null) return false;
+  if (a.length != b.length) return false;
+  for (var k in a.keys) {
+    if (!b.containsKey(k) || a[k] != b[k]) return false;
+  }
+  return true;
+}

@@ -33,76 +33,76 @@ main(args) {
     var coreLib = lib.visibleLibraries.firstWhere(
         (l) => l.displayName == 'dart.core');
     var generator = new SmokeCodeGenerator();
-    var recorder = new Recorder(generator, resolveImportUrl);
+    var recorder = new Recorder(generator, _resolveImportUrl);
+
+    lookupMember(String className, String memberName, bool recursive) {
+      recorder.lookupMember(lib.getType(className), memberName,
+          recursive: recursive, includeAccessors: false);
+    }
+
+    runQuery(String className, QueryOptions options) {
+      recorder.runQuery(lib.getType(className), options,
+          includeAccessors: false);
+    }
 
     // Record all getters and setters we use in the tests.
-    generator.addGetter("i");
-    generator.addGetter("j");
-    generator.addGetter("j2");
-    generator.addGetter("inc0");
-    generator.addGetter("inc1");
-    generator.addGetter("inc2");
-    generator.addSetter("i");
-    generator.addSetter("j2");
+    ['i', 'j', 'j2', 'inc0', 'inc1', 'inc2'].forEach(generator.addGetter);
+    ['i', 'j2'].forEach(generator.addSetter);
 
     // Record symbol convertions.
     generator.addSymbol('i');
 
-    /// Record all parent-class relations that we explicitly request for 
-    recorder.lookupParent(lib.getType('AnnotB'));
-    recorder.lookupParent(lib.getType('A'));
-    recorder.lookupParent(lib.getType('B'));
-    recorder.lookupParent(lib.getType('D'));
-    recorder.lookupParent(lib.getType('H'));
+    /// Record all parent-class relations that we explicitly request.
+    ['AnnotB', 'A', 'B', 'D', 'H'].forEach(
+        (className) => recorder.lookupParent(lib.getType(className)));
 
     // Record members for which we implicitly request their declaration in
     // has-getter and has-setter tests.
-    recorder.lookupMember(lib.getType('A'), "i", recursive: true);
-    recorder.lookupMember(lib.getType('A'), "j2", recursive: true);
-    recorder.lookupMember(lib.getType('A'), "inc2", recursive: true);
-    recorder.lookupMember(lib.getType('B'), "a", recursive: true);
-    recorder.lookupMember(lib.getType('B'), "f", recursive: true);
-    recorder.lookupMember(lib.getType('D'), "i", recursive: true);
-    recorder.lookupMember(lib.getType('E'), "y", recursive: true);
+    lookupMember('A', 'i', true);
+    lookupMember('A', 'j2', true);
+    lookupMember('A', 'inc2', true);
+    lookupMember('B', 'a', true);
+    lookupMember('B', 'f', true);
+    lookupMember('D', 'i', true);
+    lookupMember('E', 'y', true);
 
     // Record also lookups for non-exisiting members.
-    recorder.lookupMember(lib.getType('B'), "i", recursive: true);
-    recorder.lookupMember(lib.getType('E'), "x", recursive: true);
-    recorder.lookupMember(lib.getType('E'), "z", recursive: true);
+    lookupMember('B', 'i', true);
+    lookupMember('E', 'x', true);
+    lookupMember('E', 'z', true);
 
     // Record members for which we explicitly request their declaration.
-    recorder.lookupMember(lib.getType('B'), "a");
-    recorder.lookupMember(lib.getType('B'), "w");
-    recorder.lookupMember(lib.getType('A'), "inc1");
-    recorder.lookupMember(lib.getType('F'), "staticMethod");
-    recorder.lookupMember(lib.getType('G'), "b");
-    recorder.lookupMember(lib.getType('G'), "d");
+    lookupMember('B', 'a', false);
+    lookupMember('B', 'w', false);
+    lookupMember('A', 'inc1', false);
+    lookupMember('F', 'staticMethod', false);
+    lookupMember('G', 'b', false);
+    lookupMember('G', 'd', false);
 
     // Lookups from no-such-method test.
-    recorder.lookupMember(lib.getType('A'), "noSuchMethod", recursive: true);
-    recorder.lookupMember(lib.getType('E'), "noSuchMethod", recursive: true);
-    recorder.lookupMember(lib.getType('E2'), "noSuchMethod", recursive: true);
+    lookupMember('A', 'noSuchMethod', true);
+    lookupMember('E', 'noSuchMethod', true);
+    lookupMember('E2', 'noSuchMethod', true);
 
     // Lookups from has-instance-method and has-static-method tests.
-    recorder.lookupMember(lib.getType('A'), "inc0", recursive: true);
-    recorder.lookupMember(lib.getType('A'), "inc3", recursive: true);
-    recorder.lookupMember(lib.getType('C'), "inc", recursive: true);
-    recorder.lookupMember(lib.getType('D'), "inc", recursive: true);
-    recorder.lookupMember(lib.getType('D'), "inc0", recursive: true);
-    recorder.lookupMember(lib.getType('F'), "staticMethod", recursive: true);
-    recorder.lookupMember(lib.getType('F2'), "staticMethod", recursive: true);
+    lookupMember('A', 'inc0', true);
+    lookupMember('A', 'inc3', true);
+    lookupMember('C', 'inc', true);
+    lookupMember('D', 'inc', true);
+    lookupMember('D', 'inc0', true);
+    lookupMember('F', 'staticMethod', true);
+    lookupMember('F2', 'staticMethod', true);
 
     // Record all queries done by the test.
-    recorder.runQuery(lib.getType('A'), new QueryOptions());
-    recorder.runQuery(lib.getType('D'),
-        new QueryOptions(includeInherited: true));
+    runQuery('A', new QueryOptions());
+    runQuery('D', new QueryOptions(includeInherited: true));
 
     var vars = lib.definingCompilationUnit.topLevelVariables;
     expect(vars[0].name, 'a1');
     expect(vars[1].name, 'a2');
-    var options = new QueryOptions(includeInherited: true,
-        withAnnotations: [vars[0], vars[1], lib.getType('Annot')]);
-    recorder.runQuery(lib.getType('H'), options);
+
+    runQuery('H', new QueryOptions(includeInherited: true,
+        withAnnotations: [vars[0], vars[1], lib.getType('Annot')]));
 
     var code = _createEntrypoint(generator);
     var staticTestFile = new File(path.posix.join(testDir, 'static_test.dart'));
@@ -123,24 +123,25 @@ _createEntrypoint(SmokeCodeGenerator generator) {
       ..writeln('/// ---- AUTOGENERATED: DO NOT EDIT THIS FILE --------------')
       ..writeln('/// To update this test file, call:')
       ..writeln('/// > dart codegen/end_to_end_test.dart --update_static_test')
-      ..writeln('/// --------------------------------------------------------');
-  sb.write('\nlibrary smoke.test.static_test;\n\n');
-  sb.writeln("import 'package:unittest/unittest.dart';");
+      ..writeln('/// --------------------------------------------------------')
+      ..writeln('\nlibrary smoke.test.static_test;\n')
+      ..writeln("import 'package:unittest/unittest.dart';");
+
   generator.writeImports(sb);
   sb.writeln("import 'common.dart' as common show main;\n");
   generator.writeTopLevelDeclarations(sb);
   sb.writeln('\n_configure() {');
   generator.writeInitCall(sb);
-  sb.writeln('}\n');
-  sb.writeln('main() {');
-  sb.writeln('  setUp(_configure);');
-  sb.writeln('  common.main();');
-  sb.writeln('}');
+
+  sb..writeln('}\n')
+      ..writeln('main() {')
+      ..writeln('  setUp(_configure);')
+      ..writeln('  common.main();')
+      ..writeln('}');
   return sb.toString();
 }
 
-
-resolveImportUrl(LibraryElement lib) {
+_resolveImportUrl(LibraryElement lib) {
   if (lib.isDartCore) return 'dart:core';
   if (lib.displayName == 'smoke.test.common') return 'common.dart';
   return 'unknown.dart';
