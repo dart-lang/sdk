@@ -10,6 +10,7 @@ test/serve/web_socket/path_to_urls_test: Skip # Issue 17601
 
 [ $runtime == vm && $system == windows ]
 test/serve/warns_on_assets_paths_test: Pass, Fail # Issue 15741
+test/transformer/can_log_messages_test: Pass, Fail # Issue 17603 
 
 # Pub only runs on the VM, so just rule out all compilers.
 [ $compiler == dart2js || $compiler == dart2dart ]
