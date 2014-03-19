@@ -6,7 +6,7 @@ third_party/pkg/route_hierarchical: Fail
 
 samples/third_party/angular_todo: Pass, Slow
 samples/third_party/dromaeo: Pass, Slow
-samples/third_party/pop-pop-win: Pass, Slow
+samples/pop_pop_win: Pass, Slow
 samples/searchable_list: Pass, Slow
 pkg/docgen: Pass, Slow
 
@@ -20,5 +20,5 @@ samples/third_party/todomvc: Fail # Issue 17324
 pkg/code_transformers: Fail # analyzer 0.13.0-dev.10 has not been published
 
 [ $builder_tag == russian ]
-samples/third_party/pop-pop-win: Fail # Issue 16356
+samples/pop_pop_win: Fail # Issue 16356
 samples/third_party/angular_todo: Fail # Issue 16356
