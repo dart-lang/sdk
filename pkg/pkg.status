@@ -25,7 +25,7 @@ docgen/test/single_library_test: Skip # Way too slow
 docgen/test/typedef_test: Skip # Way too slow
 
 [ $runtime == vm ]
-docgen/test/only_lib_content_in_pkg_test: Fail # Issue 17597
+docgen/test/only_lib_content_in_pkg_test: Fail, Timeout # Issue 17597
 
 [ $compiler == dart2js ]
 collection/test/equality_test/01: Fail # Issue 1533
