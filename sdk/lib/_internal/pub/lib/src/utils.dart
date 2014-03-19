@@ -284,9 +284,9 @@ Map mapMapValues(Map map, fn(key, value)) => mapMap(map, (key, _) => key, fn);
 
 /// Returns the shortest path from [start] to [end] in [graph].
 ///
-/// The graph is represented by a map whose keys are vertices and whose values
-/// are vertices reachable from the keys. [start] and [end] must be vertices in
-/// this graph.
+/// The graph is represented by a map where each key is a vertex and the value
+/// is the set of other vertices directly reachable from the key. [start] and
+/// [end] must be vertices in this graph.
 List shortestPath(Map<dynamic, Iterable> graph, start, end) {
   assert(graph.containsKey(start));
   assert(graph.containsKey(end));
@@ -330,6 +330,20 @@ List shortestPath(Map<dynamic, Iterable> graph, start, end) {
   }
 
   return path.toList();
+}
+
+/// Returns a copy of [graph] with all the edges reversed.
+///
+/// The graph is represented by a map where each key is a vertex and the value
+/// is the set of other vertices directly reachable from the key.
+Map<dynamic, Set> reverseGraph(Map<dynamic, Set> graph) {
+  var reversed = new Map.fromIterable(graph.keys, value: (_) => new Set());
+  graph.forEach((vertex, edges) {
+    for (var edge in edges) {
+      reversed[edge].add(vertex);
+    }
+  });
+  return reversed;
 }
 
 /// Replace each instance of [matcher] in [source] with the return value of

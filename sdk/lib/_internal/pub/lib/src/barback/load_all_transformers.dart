@@ -66,6 +66,7 @@ Future loadAllTransformers(BuildEnvironment environment,
   environment.barback.updateTransformers(r'$pub', [[rewrite]]);
 
   var orderingDeps = _computeOrderingDeps(environment.graph);
+  var reverseOrderingDeps = reverseGraph(orderingDeps);
   var packageTransformers = _computePackageTransformers(environment.graph);
 
   var loader = new _TransformerLoader(environment, transformerServer);
@@ -91,13 +92,24 @@ Future loadAllTransformers(BuildEnvironment environment,
     // First, load each package upon which [package] has an ordering dependency.
     var future = Future.wait(orderingDeps[package].map(loadPackage)).then((_) {
       // Go through the transformers used by [package] phase-by-phase. If any
-      // phase uses a transformer defined in [package] itself, that transform
+      // phase uses a transformer defined in [package] itself, that transformer
       // should be loaded after running all previous phases.
       var transformers = [[rewrite]];
-      return Future.forEach(
-          environment.graph.packages[package].pubspec.transformers, (phase) {
+
+      var phases = environment.graph.packages[package].pubspec.transformers;
+      return Future.forEach(phases, (phase) {
         return Future.wait(phase.where((id) => id.package == package)
             .map(loader.load)).then((_) {
+          // If we've already loaded all the transformers in this package and no
+          // other package imports it, there's no need to keep applying
+          // transformers, so we can short-circuit.
+          var loadedAllTransformers = packageTransformers[package]
+              .difference(loader.loadedTransformers).isEmpty;
+          if (loadedAllTransformers &&
+              !reverseOrderingDeps.containsKey(package)) {
+            return null;
+          }
+
           transformers.add(unionAll(phase.map(
               (id) => loader.transformersFor(id))));
           environment.barback.updateTransformers(package, transformers);
@@ -230,6 +242,10 @@ class _TransformerLoader {
   ///
   /// Used for error reporting.
   final _transformerUsers = new Map<Pair<String, String>, Set<String>>();
+
+  // TODO(nweiz): Make this a view when issue 17637 is fixed.
+  /// The set of all transformers that have been loaded so far.
+  Set<TransformerId> get loadedTransformers => _transformers.keys.toSet();
 
   _TransformerLoader(this._environment, this._transformerServer) {
     for (var package in _environment.graph.packages.values) {
