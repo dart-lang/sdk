@@ -215,72 +215,76 @@ main() {
   });
 
   group('query', () {
+    _checkQuery(result, names) {
+      expect(result.map((e) => e.name), unorderedEquals(names));
+    }
+
     test('default', () {
       var options = new smoke.QueryOptions();
       var res = smoke.query(A, options);
-      expect(res.map((e) => e.name), [#i, #j, #j2]);
+      _checkQuery(res, [#i, #j, #j2]);
     });
 
     test('only fields', () {
       var options = new smoke.QueryOptions(includeProperties: false);
       var res = smoke.query(A, options);
-      expect(res.map((e) => e.name), [#i, #j]);
+      _checkQuery(res, [#i, #j]);
     });
 
     test('only properties', () {
       var options = new smoke.QueryOptions(includeFields: false);
       var res = smoke.query(A, options);
-      expect(res.map((e) => e.name), [#j2]);
+      _checkQuery(res, [#j2]);
     });
 
     test('properties and methods', () {
       var options = new smoke.QueryOptions(includeMethods: true);
       var res = smoke.query(A, options);
-      expect(res.map((e) => e.name), [#i, #j, #j2, #inc0, #inc1, #inc2]);
+      _checkQuery(res, [#i, #j, #j2, #inc0, #inc1, #inc2]);
     });
 
     test('inherited properties and fields', () {
       var options = new smoke.QueryOptions(includeInherited: true);
       var res = smoke.query(D, options);
-      expect(res.map((e) => e.name), [#x, #y, #b, #i, #j, #j2, #x2, #i2]);
+      _checkQuery(res, [#x, #y, #b, #i, #j, #j2, #x2, #i2]);
     });
 
     test('inherited fields only', () {
       var options = new smoke.QueryOptions(includeInherited: true,
           includeProperties: false);
       var res = smoke.query(D, options);
-      expect(res.map((e) => e.name), [#x, #y, #b, #i, #j]);
+      _checkQuery(res, [#x, #y, #b, #i, #j]);
     });
 
     test('exact annotation', () {
       var options = new smoke.QueryOptions(includeInherited: true,
           withAnnotations: const [a1]);
       var res = smoke.query(H, options);
-      expect(res.map((e) => e.name), [#b, #f, #g]);
+      _checkQuery(res, [#b, #f, #g]);
 
       options = new smoke.QueryOptions(includeInherited: true,
           withAnnotations: const [a2]);
       res = smoke.query(H, options);
-      expect(res.map((e) => e.name), [#d, #h]);
+      _checkQuery(res, [#d, #h]);
 
       options = new smoke.QueryOptions(includeInherited: true,
           withAnnotations: const [a1, a2]);
       res = smoke.query(H, options);
-      expect(res.map((e) => e.name), [#b, #d, #f, #g, #h]);
+      _checkQuery(res, [#b, #d, #f, #g, #h]);
     });
 
     test('type annotation', () {
       var options = new smoke.QueryOptions(includeInherited: true,
           withAnnotations: const [Annot]);
       var res = smoke.query(H, options);
-      expect(res.map((e) => e.name), [#b, #f, #g, #i]);
+      _checkQuery(res, [#b, #f, #g, #i]);
     });
 
     test('mixed annotations (type and exact)', () {
       var options = new smoke.QueryOptions(includeInherited: true,
           withAnnotations: const [a2, Annot]);
       var res = smoke.query(H, options);
-      expect(res.map((e) => e.name), [#b, #d, #f, #g, #h, #i]);
+      _checkQuery(res, [#b, #d, #f, #g, #h, #i]);
     });
 
     test('symbol to name', () {

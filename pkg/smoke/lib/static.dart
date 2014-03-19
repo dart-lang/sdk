@@ -37,9 +37,15 @@ class StaticConfiguration {
 
   /// A map from strings to symbols (the reverse of [names]).
   final Map<String, Symbol> symbols;
+
+  /// Whether to check for missing declarations, otherwise, return default
+  /// values (for example a missing parent class can be treated as Object)
+  final bool checkedMode;
+
   StaticConfiguration({
       this.getters: const {}, this.setters: const {}, this.parents: const {},
-      this.declarations: const {}, this.names: const {}})
+      this.declarations: const {}, this.names: const {},
+      this.checkedMode: true})
       : this.symbols = {} {
     names.forEach((k, v) { symbols[v] = k; });
   }
@@ -120,6 +126,7 @@ class _GeneratedTypeInspectorService implements TypeInspectorService {
       var parentType = _configuration.parents[type];
       if (parentType == supertype) return true;
       if (parentType == null) {
+        if (!_configuration.checkedMode) return false;
         throw new MissingCodeException('superclass of "$type" ($parentType)');
       }
       type = parentType;
@@ -147,6 +154,7 @@ class _GeneratedTypeInspectorService implements TypeInspectorService {
   bool hasStaticMethod(Type type, Symbol name) {
     final map = _configuration.declarations[type];
     if (map == null) {
+      if (!_configuration.checkedMode) return false;
       throw new MissingCodeException('declarations for $type');
     }
     final decl = map[name];
@@ -156,25 +164,27 @@ class _GeneratedTypeInspectorService implements TypeInspectorService {
   Declaration getDeclaration(Type type, Symbol name) {
     var decl = _findDeclaration(type, name);
     if (decl == null) {
+      if (!_configuration.checkedMode) return null;
       throw new MissingCodeException('declaration for $type.$name');
     }
     return decl;
   }
 
   List<Declaration> query(Type type, QueryOptions options) {
-    var result;
+    var result = [];
     if (options.includeInherited) {
       var superclass = _configuration.parents[type];
       if (superclass == null) {
-        throw new MissingCodeException('superclass of "$type"');
+        if (_configuration.checkedMode) {
+          throw new MissingCodeException('superclass of "$type"');
+        }
+      } else if (superclass != options.includeUpTo) {
+        result = query(superclass, options);
       }
-      result = (superclass == options.includeUpTo) ? []
-          : query(superclass, options);
-    } else {
-      result = [];
     }
     var map = _configuration.declarations[type];
     if (map == null) {
+      if (!_configuration.checkedMode) return result;
       throw new MissingCodeException('declarations for $type');
     }
     for (var decl in map.values) {
@@ -218,6 +228,7 @@ Declaration _findDeclaration(Type type, Symbol name) {
     }
     var parentType = _configuration.parents[type];
     if (parentType == null) {
+      if (!_configuration.checkedMode) return null;
       throw new MissingCodeException('superclass of "$type"');
     }
     type = parentType;
