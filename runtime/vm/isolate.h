@@ -84,6 +84,7 @@ class IsolateVisitor {
   V(Object)                                                                    \
   V(String)                                                                    \
   V(TypeArguments)                                                             \
+  V(AbstractType)                                                              \
   V(TypeParameter)                                                             \
 
 class Isolate : public BaseIsolate {

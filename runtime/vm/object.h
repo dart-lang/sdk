@@ -943,6 +943,10 @@ class Class : public Object {
 
   void InsertCanonicalConstant(intptr_t index, const Instance& constant) const;
 
+  intptr_t NumCanonicalTypes() const;
+  intptr_t FindCanonicalTypeIndex(const Type& needle) const;
+  RawType* CanonicalTypeFromIndex(intptr_t idx) const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawClass));
   }
@@ -1336,6 +1340,12 @@ class TypeArguments : public Object {
   RawTypeArguments* InstantiateAndCanonicalizeFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error) const;
+
+  // Return true if this type argument vector has cached instantiations.
+  bool HasInstantiations() const;
+
+  // Return the number of cached instantiations for this type argument vector.
+  intptr_t NumInstantiations() const;
 
   static intptr_t instantiations_offset() {
     return OFFSET_OF(RawTypeArguments, instantiations_);

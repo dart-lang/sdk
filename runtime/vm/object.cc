@@ -3251,6 +3251,72 @@ void Class::set_canonical_types(const Object& value) const {
 }
 
 
+intptr_t Class::NumCanonicalTypes() const {
+  if (CanonicalType() != Type::null()) {
+    return 1;
+  }
+  const Object& types = Object::Handle(canonical_types());
+  if (types.IsNull()) {
+    return 0;
+  }
+  intptr_t num_types = Array::Cast(types).Length();
+  while ((num_types > 0) &&
+         (Array::Cast(types).At(num_types - 1) == Type::null())) {
+    num_types--;
+  }
+  return num_types;
+}
+
+
+intptr_t Class::FindCanonicalTypeIndex(const Type& needle) const {
+  Isolate* isolate = Isolate::Current();
+  if (EnsureIsFinalized(isolate) != Error::null()) {
+    return -1;
+  }
+  if (needle.raw() == CanonicalType()) {
+    return 0;
+  }
+  REUSABLE_OBJECT_HANDLESCOPE(isolate);
+  Object& types = isolate->ObjectHandle();
+  types = canonical_types();
+  if (types.IsNull()) {
+    return -1;
+  }
+  const intptr_t len = Array::Cast(types).Length();
+  REUSABLE_ABSTRACT_TYPE_HANDLESCOPE(isolate);
+  AbstractType& type = isolate->AbstractTypeHandle();
+  for (intptr_t i = 0; i < len; i++) {
+    type ^= Array::Cast(types).At(i);
+    if (needle.raw() == type.raw()) {
+      return i;
+    }
+  }
+  // No type found.
+  return -1;
+}
+
+
+RawType* Class::CanonicalTypeFromIndex(intptr_t idx) const {
+  Type& type = Type::Handle();
+  if (idx == 0) {
+    type = CanonicalType();
+    if (!type.IsNull()) {
+      return type.raw();
+    }
+  }
+  Object& types = Object::Handle(canonical_types());
+  if (types.IsNull()) {
+    return Type::null();
+  }
+  if ((idx < 0) || (idx >= Array::Cast(types).Length())) {
+    return Type::null();
+  }
+  type ^= Array::Cast(types).At(idx);
+  ASSERT(!type.IsNull());
+  return type.raw();
+}
+
+
 void Class::set_allocation_stub(const Code& value) const {
   ASSERT(!value.IsNull());
   ASSERT(raw_ptr()->allocation_stub_ == Code::null());
@@ -3613,7 +3679,7 @@ RawFunction* Class::LookupFunctionAllowPrivate(const String& name,
   Array& funcs = isolate->ArrayHandle();
   funcs ^= functions();
   ASSERT(!funcs.IsNull());
-  intptr_t len = funcs.Length();
+  const intptr_t len = funcs.Length();
   Function& function = isolate->FunctionHandle();
   String& function_name = isolate->StringHandle();
   for (intptr_t i = 0; i < len; i++) {
@@ -3956,8 +4022,9 @@ static intptr_t FinalizeHash(uword hash) {
 
 intptr_t TypeArguments::Hash() const {
   if (IsNull()) return 0;
-  uword result = 0;
   const intptr_t num_types = Length();
+  if (IsRaw(0, num_types)) return 0;
+  intptr_t result = 0;
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
@@ -4073,9 +4140,28 @@ void TypeArguments::PrintToJSONStream(JSONStream* stream, bool ref) const {
 }
 
 
+bool TypeArguments::HasInstantiations() const {
+  const Array& prior_instantiations = Array::Handle(instantiations());
+  ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
+  return prior_instantiations.Length() > 1;
+}
+
+
+intptr_t TypeArguments::NumInstantiations() const {
+  const Array& prior_instantiations = Array::Handle(instantiations());
+  ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
+  intptr_t i = 0;
+  while (prior_instantiations.At(i) != Smi::New(StubCode::kNoInstantiator)) {
+    i += 2;
+  }
+  return i/2;
+}
+
+
 RawArray* TypeArguments::instantiations() const {
   return raw_ptr()->instantiations_;
 }
+
 
 void TypeArguments::set_instantiations(const Array& value) const {
   ASSERT(!value.IsNull());
@@ -4316,7 +4402,7 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   ASSERT(!prior_instantiations.IsNull() && prior_instantiations.IsArray());
   // The instantiations cache is initialized with Object::zero_array() and is
   // therefore guaranteed to contain kNoInstantiator. No length check needed.
-  ASSERT(prior_instantiations.Length() > 0);
+  ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
   intptr_t index = 0;
   while (true) {
     if (prior_instantiations.At(index) == instantiator_type_arguments.raw()) {
@@ -4335,6 +4421,9 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   }
   // Instantiation did not result in bound error. Canonicalize type arguments.
   result = result.Canonicalize();
+  // InstantiateAndCanonicalizeFrom is not reentrant. It cannot have been called
+  // indirectly, so the prior_instantiations array cannot have grown.
+  ASSERT(prior_instantiations.raw() == instantiations());
   // Add instantiator and result to instantiations array.
   intptr_t length = prior_instantiations.Length();
   if ((index + 2) >= length) {
@@ -4397,8 +4486,8 @@ void TypeArguments::SetLength(intptr_t value) const {
 
 static void GrowCanonicalTypeArguments(Isolate* isolate, const Array& table) {
   // Last element of the array is the number of used elements.
-  intptr_t table_size = table.Length() - 1;
-  intptr_t new_table_size = table_size * 2;
+  const intptr_t table_size = table.Length() - 1;
+  const intptr_t new_table_size = table_size * 2;
   Array& new_table = Array::Handle(isolate, Array::New(new_table_size + 1));
   // Copy all elements from the original table to the newly allocated
   // array.
@@ -4434,8 +4523,9 @@ static void InsertIntoCanonicalTypeArguments(Isolate* isolate,
   table.SetAt(index, arguments);  // Remember the new element.
   // Update used count.
   // Last element of the array is the number of used elements.
-  intptr_t table_size = table.Length() - 1;
-  intptr_t used_elements = Smi::Value(Smi::RawCast(table.At(table_size))) + 1;
+  const intptr_t table_size = table.Length() - 1;
+  const intptr_t used_elements =
+      Smi::Value(Smi::RawCast(table.At(table_size))) + 1;
   const Smi& used = Smi::Handle(isolate, Smi::New(used_elements));
   table.SetAt(table_size, used);
 
@@ -4452,7 +4542,7 @@ static intptr_t FindIndexInCanonicalTypeArguments(
     const TypeArguments& arguments,
     intptr_t hash) {
   // Last element of the array is the number of used elements.
-  intptr_t table_size = table.Length() - 1;
+  const intptr_t table_size = table.Length() - 1;
   ASSERT(Utils::IsPowerOfTwo(table_size));
   intptr_t index = hash & (table_size - 1);
 
@@ -4491,34 +4581,53 @@ RawTypeArguments* TypeArguments::Canonicalize(
     ASSERT(IsOld());
     return this->raw();
   }
+  const intptr_t num_types = Length();
+  if (IsRaw(0, num_types)) {
+    return TypeArguments::null();
+  }
   Isolate* isolate = Isolate::Current();
   ObjectStore* object_store = isolate->object_store();
-  const Array& table = Array::Handle(isolate,
-                                     object_store->canonical_type_arguments());
-  ASSERT(table.Length() > 0);
-  intptr_t index = FindIndexInCanonicalTypeArguments(isolate,
-                                                     table,
-                                                     *this,
-                                                     Hash());
+  Array& table = Array::Handle(isolate,
+                               object_store->canonical_type_arguments());
+  // Last element of the array is the number of used elements.
+  const intptr_t used_elements =
+      Smi::Value(Smi::RawCast(table.At(table.Length() - 1)));
+  const intptr_t hash = Hash();
+  intptr_t index =
+      FindIndexInCanonicalTypeArguments(isolate, table, *this, hash);
   TypeArguments& result = TypeArguments::Handle(isolate);
   result ^= table.At(index);
   if (result.IsNull()) {
     // Canonicalize each type argument.
-    const intptr_t num_types = Length();
-    AbstractType& type = AbstractType::Handle(isolate);
+    AbstractType& type_arg = AbstractType::Handle(isolate);
     for (intptr_t i = 0; i < num_types; i++) {
-      type = TypeAt(i);
-      type = type.Canonicalize(trail);
-      SetTypeAt(i, type);
+      type_arg = TypeAt(i);
+      type_arg = type_arg.Canonicalize(trail);
+      SetTypeAt(i, type_arg);
     }
-    // Make sure we have an old space object and add it to the table.
-    if (this->IsNew()) {
-      result ^= Object::Clone(*this, Heap::kOld);
-    } else {
-      result ^= this->raw();
+    // Canonicalization of a recursive type may change its hash.
+    const intptr_t new_hash = Hash();
+    // Canonicalization of the type argument's own type arguments may add an
+    // entry to the table, or even grow the table, and thereby change the
+    // previously calculated index.
+    table = object_store->canonical_type_arguments();
+    if ((new_hash != hash) ||
+        (Smi::Value(Smi::RawCast(table.At(table.Length() - 1)))
+         != used_elements)) {
+      index =
+          FindIndexInCanonicalTypeArguments(isolate, table, *this, new_hash);
+      result ^= table.At(index);
     }
-    ASSERT(result.IsOld());
-    InsertIntoCanonicalTypeArguments(isolate, table, result, index);
+    if (result.IsNull()) {
+      // Make sure we have an old space object and add it to the table.
+      if (this->IsNew()) {
+        result ^= Object::Clone(*this, Heap::kOld);
+      } else {
+        result ^= this->raw();
+      }
+      ASSERT(result.IsOld());
+      InsertIntoCanonicalTypeArguments(isolate, table, result, index);
+    }
   }
   ASSERT(result.Equals(*this));
   ASSERT(!result.IsNull());
@@ -8029,7 +8138,7 @@ void Library::GrowDictionary(const Array& dict, intptr_t dict_size) const {
     if (!entry.IsNull()) {
       entry_name = entry.DictionaryName();
       ASSERT(!entry_name.IsNull());
-      intptr_t hash = entry_name.Hash();
+      const intptr_t hash = entry_name.Hash();
       intptr_t index = hash % new_dict_size;
       new_entry = new_dict.At(index);
       while (!new_entry.IsNull()) {
@@ -13135,7 +13244,7 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
   if (canonical_types.IsNull()) {
     canonical_types = empty_array().raw();
   }
-  const intptr_t length = canonical_types.Length();
+  intptr_t length = canonical_types.Length();
   // Linear search to see whether this type is already present in the
   // list of canonicalized types.
   // TODO(asiva): Try to re-factor this lookup code to make sharing
@@ -13152,6 +13261,8 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
     }
     index++;
   }
+  // The type was not found in the table. It is not canonical yet.
+
   // Canonicalize the type arguments.
   TypeArguments& type_args = TypeArguments::Handle(isolate, arguments());
   // In case the type is first canonicalized at runtime, its type argument
@@ -13159,6 +13270,26 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
   ASSERT(type_args.IsNull() || (type_args.Length() >= cls.NumTypeArguments()));
   type_args = type_args.Canonicalize(trail);
   set_arguments(type_args);
+
+  // Canonicalizing the type arguments may have changed the index, may have
+  // grown the table, or may even have canonicalized this type.
+  canonical_types ^= cls.canonical_types();
+  if (canonical_types.IsNull()) {
+    canonical_types = empty_array().raw();
+  }
+  length = canonical_types.Length();
+  while (index < length) {
+    type ^= canonical_types.At(index);
+    if (type.IsNull()) {
+      break;
+    }
+    ASSERT(type.IsFinalized());
+    if (this->Equals(type)) {
+      return type.raw();
+    }
+    index++;
+  }
+
   // The type needs to be added to the list. Grow the list if it is full.
   if (index == length) {
     const intptr_t new_length = (length > 64) ?
@@ -13270,7 +13401,7 @@ const char* Type::ToCString() const {
     }
     if (type_arguments.IsNull()) {
       const char* format = "Type: class '%s'";
-      intptr_t len = OS::SNPrint(NULL, 0, format, class_name) + 1;
+      const intptr_t len = OS::SNPrint(NULL, 0, format, class_name) + 1;
       char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
       OS::SNPrint(chars, len, format, class_name);
       return chars;
@@ -13416,7 +13547,7 @@ RawObject* TypeRef::OnlyBuddyInTrail(GrowableObjectArray* trail) const {
 
 
 void TypeRef::AddOnlyBuddyToTrail(GrowableObjectArray** trail,
-                              const Object& buddy) const {
+                                  const Object& buddy) const {
   if (*trail == NULL) {
     *trail = &GrowableObjectArray::ZoneHandle(GrowableObjectArray::New());
   } else {
