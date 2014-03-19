@@ -120,7 +120,8 @@ namespace dart {
   V(Math_log, 1)                                                               \
   V(Math_doublePow, 2)                                                         \
   V(Random_nextState, 1)                                                       \
-  V(Random_setupSeed, 2)                                                       \
+  V(Random_setupSeed, 1)                                                       \
+  V(Random_initialSeed, 0)                                                     \
   V(DateNatives_currentTimeMillis, 0)                                          \
   V(DateNatives_timeZoneName, 1)                                               \
   V(DateNatives_timeZoneOffsetInSeconds, 1)                                    \
@@ -296,7 +297,6 @@ namespace dart {
   V(InstanceMirror_computeType, 1)                                             \
   V(ClosureMirror_find_in_context, 2)                                          \
   V(ClosureMirror_function, 1)                                                 \
-  V(ClosureMirror_apply, 2)                                                    \
   V(TypeMirror_subtypeTest, 2)                                                 \
   V(TypeMirror_moreSpecificTest, 2)                                            \
   V(ClassMirror_library, 1)                                                    \

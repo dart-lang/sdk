@@ -1413,7 +1413,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     if (condition.isConstant()) {
       HConstant constant = condition;
-      if (constant.constant.isTrue()) {
+      if (constant.constant.isTrue) {
         generateStatements(info.thenGraph);
       } else {
         generateStatements(info.elseGraph);
@@ -1746,11 +1746,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void generateConstant(Constant constant) {
-    if (constant.isFunction()) {
+    if (constant.isFunction) {
       FunctionConstant function = constant;
       world.registerStaticUse(function.element);
     }
-    if (constant.isType()) {
+    if (constant.isType) {
       // If the type is a web component, we need to ensure the constructors are
       // available to 'upgrade' the native object.
       TypeConstant type = constant;
@@ -2537,7 +2537,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // TODO(5022): We currently generate $isFunction checks for
       // function types.
       world.registerIsCheck(
-          compiler.functionClass.computeType(compiler), work.resolutionTree);
+          compiler.functionClass.rawType, work.resolutionTree);
     }
     world.registerIsCheck(type, work.resolutionTree);
 

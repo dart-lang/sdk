@@ -19,7 +19,6 @@ import '../../../../compiler/implementation/dart2js.dart'
 import '../../../../compiler/implementation/source_file.dart';
 import '../barback.dart';
 import '../dart.dart' as dart;
-import '../io.dart';
 import '../pool.dart';
 import '../utils.dart';
 import 'build_environment.dart';
@@ -352,8 +351,7 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     // other files in the root package are not visible to transformers, so
     // should be loaded directly from disk.
     var sourcePath = path.fromUri(url);
-    if (_environment.getPublicDirectories(_environment.rootPackage.name)
-        .any((dir) => path.isWithin(dir, sourcePath))) {
+    if (_environment.containsPath(sourcePath)) {
       var relative = path.relative(sourcePath,
           from: _environment.rootPackage.dir);
 

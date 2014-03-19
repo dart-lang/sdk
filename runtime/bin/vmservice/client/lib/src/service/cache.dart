@@ -42,9 +42,9 @@ abstract class ServiceObjectCache<T extends ServiceObject> {
     assert(cachesId(id));
     T cached = _cache[id];
     if (cached != null) {
-      return new Future.value(cached);
+      return cached.load();
     }
-    return isolate.get(id).then(_addToCache);
+    return isolate.getDirect(id);
   }
 
   /// If [obj] is cached, return the cached object. Otherwise, upgrades [obj]
@@ -113,6 +113,13 @@ class CodeCache extends ServiceObjectCache<Code> {
     return codeList;
   }
 
+  static const TAG_ROOT_ID = 'code/tag-0';
+
+  /// Returns the Code object for the root tag.
+  Code tagRoot() {
+    return _cache[TAG_ROOT_ID];
+  }
+
   void _resetProfileData() {
     _cache.forEach((k, Code code) {
       code.resetProfileData();
@@ -154,6 +161,7 @@ class FunctionCache extends ServiceObjectCache<ServiceMap> {
                  r'^functions/collected-.+|'
                  r'^functions/reused-.+|'
                  r'^functions/stub-.+|'
+                 r'^functions/tag-.+|'
                  r'^classes/\d+/functions/.+|'
                  r'^classes/\d+/closures/.+|'
                  r'^classes/\d+/implicit_closures/.+|'

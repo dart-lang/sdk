@@ -201,7 +201,7 @@ observePathTests() {
   test('Path Value With Indices', () {
     var model = toObservable([]);
     var path = new PathObserver(model, '0');
-    path.open(expectAsync1((x) {
+    path.open(expectAsync((x) {
       expect(path.value, 123);
       expect(x, 123);
     }));
@@ -214,7 +214,7 @@ observePathTests() {
       var path = new PathObserver(model, 'isNotEmpty');
       expect(path.value, false);
 
-      path.open(expectAsync1((_) {
+      path.open(expectAsync((_) {
         expect(path.value, true);
       }));
       model.add(123);
@@ -225,7 +225,7 @@ observePathTests() {
       var path = new PathObserver(model, 'isEmpty');
       expect(path.value, true);
 
-      path.open(expectAsync1((_) {
+      path.open(expectAsync((_) {
         expect(path.value, false);
       }));
       model.add(123);

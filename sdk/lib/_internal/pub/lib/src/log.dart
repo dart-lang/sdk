@@ -13,6 +13,7 @@ import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 
 import 'io.dart';
+import 'progress.dart';
 import 'transcript.dart';
 import 'utils.dart';
 
@@ -36,12 +37,8 @@ const _MAX_TRANSCRIPT = 10000;
 /// [recordTranscript()] is called.
 Transcript<Entry> _transcript;
 
-/// The timer used to write "..." during a progress log.
-Timer _progressTimer;
-
-/// The progress message as it's being incrementally appended. When the
-/// progress is done, a single entry will be added to the log for it.
-String _progressMessage;
+/// The currently-running progress indicator or `null` if there is none.
+Progress _progress;
 
 final _cyan = getSpecial('\u001b[36m');
 final _green = getSpecial('\u001b[32m');
@@ -224,23 +221,30 @@ void dumpTranscript() {
   stderr.writeln('---- End log transcript ----');
 }
 
-/// Prints [message] then slowly prints additional "..." after it until the
-/// future returned by [callback] completes. If anything else is logged during
-/// this, it cancels the progress.
+/// Prints [message] then displays an updated elapsed time until the future
+/// returned by [callback] completes. If anything else is logged during this
+/// (include another call to [progress]) that cancels the progress.
 Future progress(String message, Future callback()) {
-  if (json.enabled) return callback();
+  _stopProgress();
+  _progress = new Progress(message);
+  return callback().whenComplete(() {
+    var message = _stopProgress();
 
-  if (_progressTimer != null) throw new StateError("Already in progress.");
-
-  _progressMessage = '$message...';
-  stdout.write(_progressMessage);
-
-  _progressTimer = new Timer.periodic(new Duration(milliseconds: 500), (_) {
-    stdout.write('.');
-    _progressMessage += '.';
+    // Add the progress message to the transcript.
+    if (_transcript != null && message != null) {
+      _transcript.add(new Entry(Level.MESSAGE, [message]));
+    }
   });
+}
 
-  return callback().whenComplete(_stopProgress);
+/// Stops the running progress indicator, if currently running.
+///
+/// Returns the final progress message, if any, otherwise `null`.
+String _stopProgress() {
+  if (_progress == null) return null;
+  var message = _progress.stop();
+  _progress = null;
+  return message;
 }
 
 /// Wraps [text] in the ANSI escape codes to make it bold when on a platform
@@ -286,23 +290,6 @@ String red(text) => "$_red$text$_none";
 /// Use this to highlight warnings, cautions or other things that are bad but
 /// do not prevent the user's goal from being reached.
 String yellow(text) => "$_yellow$text$_none";
-
-/// Stops the running progress indicator, if currently running.
-_stopProgress() {
-  if (_progressTimer == null) return;
-
-  // Stop the timer.
-  _progressTimer.cancel();
-  _progressTimer = null;
-  stdout.writeln();
-
-  // Add the progress message to the transcript.
-  if (_transcript != null) {
-    _transcript.add(new Entry(Level.MESSAGE, [_progressMessage]));
-  }
-
-  _progressMessage = null;
-}
 
 /// Sets the verbosity to "normal", which shows errors, warnings, and messages.
 void showNormal() {

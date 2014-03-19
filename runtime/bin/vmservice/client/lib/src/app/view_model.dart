@@ -42,18 +42,16 @@ abstract class TableTreeRow extends Observable {
 }
 
 class TableTree extends Observable {
-  final List<String> columnHeaders = [];
   @observable final List<TableTreeRow> rows = toObservable([]);
 
   /// Create a table tree with column [headers].
-  TableTree(List<String> headers) {
-    columnHeaders.addAll(headers);
-  }
+  TableTree();
 
   /// Initialize the table tree with the list of root children.
-  void initialize(List<TableTreeRow> children) {
+  void initialize(TableTreeRow root) {
     rows.clear();
-    rows.addAll(children);
+    root.onShow();
+    rows.addAll(root.children);
   }
 
   /// Toggle expansion of row at [rowIndex].
@@ -70,20 +68,10 @@ class TableTree extends Observable {
 
   int _index(TableTreeRow row) => rows.indexOf(row);
 
-  void _insertRow(int index, TableTreeRow row) {
-    if (index == -1) {
-      rows.add(row);
-    } else {
-      rows.insert(index, row);
-    }
-  }
-
   void _expand(TableTreeRow row) {
     int index = _index(row);
     assert(index != -1);
-    for (var i = 0; i < row.children.length; i++) {
-      _insertRow(index + i + 1, row.children[i]);
-    }
+    rows.insertAll(index + 1, row.children);
   }
 
   void _collapse(TableTreeRow row) {
@@ -101,8 +89,6 @@ class TableTree extends Observable {
     row.expanded = false;
     // Remove all children.
     int index = _index(row);
-    for (var i = 0; i < childCount; i++) {
-      rows.removeAt(index + 1);
-    }
+    rows.removeRange(index + 1, index + 1 + childCount);
   }
 }

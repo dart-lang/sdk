@@ -48,6 +48,10 @@ class ServiceObjectViewElement extends ObservatoryElement {
         FunctionViewElement element = new Element.tag('function-view');
         element.function = object;
         return element;
+      case 'HeapMap':
+        HeapMapElement element = new Element.tag('heap-map');
+        element.fragmentation = object;
+        return element;
       case 'Array':
       case 'Bool':
       case 'Closure':
@@ -57,6 +61,10 @@ class ServiceObjectViewElement extends ObservatoryElement {
       case 'String':
         InstanceViewElement element = new Element.tag('instance-view');
         element.instance = object;
+        return element;
+      case 'Isolate':
+        IsolateViewElement element = new Element.tag('isolate-view');
+        element.isolate = object;
         return element;
       case 'IsolateList':
         IsolateListElement element = new Element.tag('isolate-list');

@@ -201,12 +201,108 @@ struct AddressEntry {
   }
 };
 
+
 struct CallEntry {
   intptr_t code_table_index;
   intptr_t count;
 };
 
+
 typedef bool (*RegionCompare)(uword pc, uword region_start, uword region_end);
+
+
+class CodeRegionTrieNode : public ZoneAllocated {
+ public:
+  explicit CodeRegionTrieNode(intptr_t code_region_index)
+      : code_region_index_(code_region_index),
+        count_(0),
+        children_(new ZoneGrowableArray<CodeRegionTrieNode*>()) {
+  }
+
+  void Tick() {
+    ASSERT(code_region_index_ >= 0);
+    count_++;
+  }
+
+  intptr_t count() const {
+    ASSERT(code_region_index_ >= 0);
+    return count_;
+  }
+
+  intptr_t code_region_index() const {
+    return code_region_index_;
+  }
+
+  ZoneGrowableArray<CodeRegionTrieNode*>& children() const {
+    return *children_;
+  }
+
+  CodeRegionTrieNode* GetChild(intptr_t child_code_region_index) {
+    const intptr_t length = children_->length();
+    intptr_t i = 0;
+    while (i < length) {
+      CodeRegionTrieNode* child = (*children_)[i];
+      if (child->code_region_index() == child_code_region_index) {
+        return child;
+      }
+      if (child->code_region_index() > child_code_region_index) {
+        break;
+      }
+      i++;
+    }
+    // Add new CodeRegion, sorted by CodeRegionTable index.
+    CodeRegionTrieNode* child = new CodeRegionTrieNode(child_code_region_index);
+    if (i < length) {
+      // Insert at i.
+      children_->InsertAt(i, child);
+    } else {
+      // Add to end.
+      children_->Add(child);
+    }
+    return child;
+  }
+
+  // Sort this's children and (recursively) all descendants by count.
+  // This should only be called after the trie is completely built.
+  void SortByCount() {
+    children_->Sort(CodeRegionTrieNodeCompare);
+    ZoneGrowableArray<CodeRegionTrieNode*>& kids = children();
+    intptr_t child_count = kids.length();
+    // Recurse.
+    for (intptr_t i = 0; i < child_count; i++) {
+      kids[i]->SortByCount();
+    }
+  }
+
+  void PrintToJSONArray(JSONArray* array) const {
+    ASSERT(array != NULL);
+    // Write CodeRegion index.
+    array->AddValue(code_region_index_);
+    // Write count.
+    array->AddValue(count_);
+    // Write number of children.
+    ZoneGrowableArray<CodeRegionTrieNode*>& kids = children();
+    intptr_t child_count = kids.length();
+    array->AddValue(child_count);
+    // Recurse.
+    for (intptr_t i = 0; i < child_count; i++) {
+      kids[i]->PrintToJSONArray(array);
+    }
+  }
+
+ private:
+  static int CodeRegionTrieNodeCompare(CodeRegionTrieNode* const* a,
+                                       CodeRegionTrieNode* const* b) {
+    ASSERT(a != NULL);
+    ASSERT(b != NULL);
+    return (*b)->count() - (*a)->count();
+  }
+
+  const intptr_t code_region_index_;
+  intptr_t count_;
+  ZoneGrowableArray<CodeRegionTrieNode*>* children_;
+};
+
 
 // A contiguous address region that holds code. Each CodeRegion has a "kind"
 // which describes the type of code contained inside the region. Each
@@ -221,19 +317,19 @@ class CodeRegion : public ZoneAllocated {
     kTagCode,        // A special kind of code representing a tag.
   };
 
-  CodeRegion(Kind kind, uword start, uword end, int64_t timestamp) :
-      kind_(kind),
-      start_(start),
-      end_(end),
-      inclusive_ticks_(0),
-      exclusive_ticks_(0),
-      inclusive_tick_serial_(0),
-      name_(NULL),
-      compile_timestamp_(timestamp),
-      creation_serial_(0),
-      address_table_(new ZoneGrowableArray<AddressEntry>()),
-      callers_table_(new ZoneGrowableArray<CallEntry>()),
-      callees_table_(new ZoneGrowableArray<CallEntry>()) {
+  CodeRegion(Kind kind, uword start, uword end, int64_t timestamp)
+      : kind_(kind),
+        start_(start),
+        end_(end),
+        inclusive_ticks_(0),
+        exclusive_ticks_(0),
+        inclusive_tick_serial_(0),
+        name_(NULL),
+        compile_timestamp_(timestamp),
+        creation_serial_(0),
+        address_table_(new ZoneGrowableArray<AddressEntry>()),
+        callers_table_(new ZoneGrowableArray<CallEntry>()),
+        callees_table_(new ZoneGrowableArray<CallEntry>()) {
     ASSERT(start_ < end_);
   }
 
@@ -346,12 +442,12 @@ class CodeRegion : public ZoneAllocated {
     TickAddress(pc, exclusive);
   }
 
-  void AddCaller(intptr_t index) {
-    AddCallEntry(callers_table_, index);
+  void AddCaller(intptr_t index, intptr_t count) {
+    AddCallEntry(callers_table_, index, count);
   }
 
-  void AddCallee(intptr_t index) {
-    AddCallEntry(callees_table_, index);
+  void AddCallee(intptr_t index, intptr_t count) {
+    AddCallEntry(callees_table_, index, count);
   }
 
   void PrintNativeCode(JSONObject* profile_code_obj) {
@@ -417,6 +513,27 @@ class CodeRegion : public ZoneAllocated {
     }
   }
 
+  void  PrintTagCode(JSONObject* profile_code_obj) {
+    ASSERT(kind() == kTagCode);
+    JSONObject obj(profile_code_obj, "code");
+    obj.AddProperty("type", "@Code");
+    obj.AddProperty("kind", "Tag");
+    obj.AddPropertyF("id", "code/tag-%" Px "", start());
+    obj.AddProperty("name", name());
+    obj.AddProperty("user_name", name());
+    obj.AddPropertyF("start", "%" Px "", start());
+    obj.AddPropertyF("end", "%" Px "", end());
+    {
+      // Generate a fake function entry.
+      JSONObject func(&obj, "function");
+      func.AddProperty("type", "@Function");
+      func.AddProperty("kind", "Tag");
+      obj.AddPropertyF("id", "functions/tag-%" Px "", start());
+      func.AddProperty("name", name());
+      func.AddProperty("user_name", name());
+    }
+  }
+
   void PrintToJSONArray(Isolate* isolate, JSONArray* events, bool full) {
     JSONObject obj(events);
     obj.AddProperty("type", "CodeRegion");
@@ -445,6 +562,13 @@ class CodeRegion : public ZoneAllocated {
         GenerateAndSetSymbolName("[Reused]");
       }
       PrintOverwrittenCode(&obj);
+    } else if (kind() == kTagCode) {
+      if (name() == NULL) {
+        const char* tag_name = start() == 0 ? "root" : VMTag::TagName(start());
+        ASSERT(tag_name != NULL);
+        SetName(tag_name);
+      }
+      PrintTagCode(&obj);
     } else {
       ASSERT(kind() == kNativeCode);
       if (name() == NULL) {
@@ -511,13 +635,14 @@ class CodeRegion : public ZoneAllocated {
   }
 
 
-  void AddCallEntry(ZoneGrowableArray<CallEntry>* table, intptr_t index) {
+  void AddCallEntry(ZoneGrowableArray<CallEntry>* table, intptr_t index,
+                    intptr_t count) {
     const intptr_t length = table->length();
     intptr_t i = 0;
     for (; i < length; i++) {
       CallEntry& entry = (*table)[i];
       if (entry.code_table_index == index) {
-        entry.count++;
+        entry.count += count;
         return;
       }
       if (entry.code_table_index > index) {
@@ -526,7 +651,7 @@ class CodeRegion : public ZoneAllocated {
     }
     CallEntry entry;
     entry.code_table_index = index;
-    entry.count = 1;
+    entry.count = count;
     if (i < length) {
       table->InsertAt(i, entry);
     } else {
@@ -566,6 +691,7 @@ class CodeRegion : public ZoneAllocated {
   ZoneGrowableArray<CallEntry>* callees_table_;
   DISALLOW_COPY_AND_ASSIGN(CodeRegion);
 };
+
 
 // A sorted table of CodeRegions. Does not allow for overlap.
 class CodeRegionTable : public ValueObject {
@@ -729,6 +855,8 @@ class CodeRegionTable : public ValueObject {
                      uword start, uword end) {
     // We should never see overlapping Dart code regions.
     ASSERT(region->kind() != CodeRegion::kDartCode);
+    // We should never see overlapping Tag code regions.
+    ASSERT(region->kind() != CodeRegion::kTagCode);
     // When code regions overlap, they should be of the same kind.
     ASSERT(region->kind() == code_region->kind());
     region->AdjustExtent(start, end);
@@ -771,14 +899,17 @@ class CodeRegionTableBuilder : public SampleVisitor {
  public:
   CodeRegionTableBuilder(Isolate* isolate,
                          CodeRegionTable* live_code_table,
-                         CodeRegionTable* dead_code_table)
+                         CodeRegionTable* dead_code_table,
+                         CodeRegionTable* tag_code_table)
       : SampleVisitor(isolate),
         live_code_table_(live_code_table),
         dead_code_table_(dead_code_table),
+        tag_code_table_(tag_code_table),
         isolate_(isolate),
         vm_isolate_(Dart::vm_isolate()) {
     ASSERT(live_code_table_ != NULL);
     ASSERT(dead_code_table_ != NULL);
+    ASSERT(tag_code_table_ != NULL);
     frames_ = 0;
     min_time_ = kMaxInt64;
     max_time_ = 0;
@@ -794,6 +925,8 @@ class CodeRegionTableBuilder : public SampleVisitor {
     if (timestamp < min_time_) {
       min_time_ = timestamp;
     }
+    // Make sure VM tag is created.
+    CreateTag(sample->vm_tag());
     // Exclusive tick for bottom frame.
     Tick(sample->At(0), true, timestamp);
     // Inclusive tick for all frames.
@@ -814,6 +947,45 @@ class CodeRegionTableBuilder : public SampleVisitor {
   int64_t  max_time() const { return max_time_; }
 
  private:
+  void CreateTag(uword tag) {
+    intptr_t index = tag_code_table_->FindIndex(tag);
+    if (index >= 0) {
+      // Already created.
+      return;
+    }
+    CodeRegion* region = new CodeRegion(CodeRegion::kTagCode,
+                                        tag,
+                                        tag + 1,
+                                        0);
+    index = tag_code_table_->InsertCodeRegion(region);
+    ASSERT(index >= 0);
+    region->set_creation_serial(visited());
+  }
+
+  void TickTag(uword tag, bool exclusive) {
+    CodeRegionTable::TickResult r;
+    intptr_t serial = exclusive ? -1 : visited();
+    r = tag_code_table_->Tick(tag, exclusive, serial, 0);
+    if (r == CodeRegionTable::kTicked) {
+      // Live code found and ticked.
+      return;
+    }
+    ASSERT(r == CodeRegionTable::kNotFound);
+    CreateAndTickTagCodeRegion(tag, exclusive, serial);
+  }
+
+  void CreateAndTickTagCodeRegion(uword tag, bool exclusive, intptr_t serial) {
+    // Need to create tag code.
+    CodeRegion* region = new CodeRegion(CodeRegion::kTagCode,
+                                        tag,
+                                        tag + 1,
+                                        0);
+    intptr_t index = tag_code_table_->InsertCodeRegion(region);
+    region->set_creation_serial(visited());
+    ASSERT(index >= 0);
+    tag_code_table_->At(index)->Tick(tag, exclusive, serial);
+  }
+
   void Tick(uword pc, bool exclusive, int64_t timestamp) {
     CodeRegionTable::TickResult r;
     intptr_t serial = exclusive ? -1 : visited();
@@ -913,53 +1085,82 @@ class CodeRegionTableBuilder : public SampleVisitor {
   int64_t max_time_;
   CodeRegionTable* live_code_table_;
   CodeRegionTable* dead_code_table_;
+  CodeRegionTable* tag_code_table_;
   Isolate* isolate_;
   Isolate* vm_isolate_;
 };
 
 
-class CodeRegionTableCallersBuilder : public SampleVisitor {
+class CodeRegionExclusiveTrieBuilder : public SampleVisitor {
  public:
-  CodeRegionTableCallersBuilder(Isolate* isolate,
-                                CodeRegionTable* live_code_table,
-                                CodeRegionTable* dead_code_table)
+  CodeRegionExclusiveTrieBuilder(Isolate* isolate,
+                                 CodeRegionTable* live_code_table,
+                                 CodeRegionTable* dead_code_table,
+                                 CodeRegionTable* tag_code_table)
       : SampleVisitor(isolate),
         live_code_table_(live_code_table),
-        dead_code_table_(dead_code_table) {
+        dead_code_table_(dead_code_table),
+        tag_code_table_(tag_code_table) {
     ASSERT(live_code_table_ != NULL);
     ASSERT(dead_code_table_ != NULL);
+    ASSERT(tag_code_table_ != NULL);
     dead_code_table_offset_ = live_code_table_->Length();
+    tag_code_table_offset_ = dead_code_table_offset_ +
+                             dead_code_table_->Length();
+    intptr_t root_index = tag_code_table_->FindIndex(0);
+    // Verify that the "0" tag does not exist.
+    ASSERT(root_index < 0);
+    // Insert the dummy tag CodeRegion that is used for the Trie root.
+    CodeRegion* region = new CodeRegion(CodeRegion::kTagCode, 0, 1, 0);
+    root_index = tag_code_table_->InsertCodeRegion(region);
+    ASSERT(root_index >= 0);
+    region->set_creation_serial(0);
+    root_ = new CodeRegionTrieNode(tag_code_table_offset_ + root_index);
+    // Use tags by default.
+    set_use_tags(true);
   }
 
   void VisitSample(Sample* sample) {
-    int64_t timestamp = sample->timestamp();
-    intptr_t current_index = FindFinalIndex(sample->At(0), timestamp);
-    ASSERT(current_index >= 0);
-    CodeRegion* current = At(current_index);
-    intptr_t caller_index = -1;
-    CodeRegion* caller = NULL;
-    intptr_t callee_index = -1;
-    CodeRegion* callee = NULL;
-    for (intptr_t i = 1; i < FLAG_profile_depth; i++) {
+    // Give the root a tick.
+    root_->Tick();
+    CodeRegionTrieNode* current = root_;
+    if (use_tags()) {
+      intptr_t tag_index = FindTagIndex(sample->vm_tag());
+      current = current->GetChild(tag_index);
+      // Give the tag a tick.
+      current->Tick();
+    }
+    // Walk the sampled PCs.
+    for (intptr_t i = 0; i < FLAG_profile_depth; i++) {
       if (sample->At(i) == 0) {
         break;
       }
-      caller_index = FindFinalIndex(sample->At(i), timestamp);
-      ASSERT(caller_index >= 0);
-      caller = At(caller_index);
-      current->AddCaller(caller_index);
-      if (callee != NULL) {
-        current->AddCallee(callee_index);
-      }
-      // Move cursors.
-      callee_index = current_index;
-      callee = current;
-      current_index = caller_index;
-      current = caller;
+      intptr_t index = FindFinalIndex(sample->At(i), sample->timestamp());
+      current = current->GetChild(index);
+      current->Tick();
     }
   }
 
+  CodeRegionTrieNode* root() const {
+    return root_;
+  }
+
+  bool use_tags() const {
+    return use_tags_;
+  }
+
+  void set_use_tags(bool use_tags) {
+    use_tags_ = use_tags;
+  }
+
  private:
+  intptr_t FindTagIndex(uword tag) const {
+    intptr_t index = tag_code_table_->FindIndex(tag);
+    ASSERT(index >= 0);
+    ASSERT((tag_code_table_->At(index))->contains(tag));
+    return tag_code_table_offset_ + index;
+  }
+
   intptr_t FindFinalIndex(uword pc, int64_t timestamp) const {
     intptr_t index = live_code_table_->FindIndex(pc);
     ASSERT(index >= 0);
@@ -978,22 +1179,80 @@ class CodeRegionTableCallersBuilder : public SampleVisitor {
     return index;
   }
 
+  bool use_tags_;
+  CodeRegionTrieNode* root_;
+  CodeRegionTable* live_code_table_;
+  CodeRegionTable* dead_code_table_;
+  CodeRegionTable* tag_code_table_;
+  intptr_t dead_code_table_offset_;
+  intptr_t tag_code_table_offset_;
+};
+
+
+class CodeRegionTableCallersBuilder {
+ public:
+  CodeRegionTableCallersBuilder(CodeRegionTrieNode* exclusive_root,
+                                CodeRegionTable* live_code_table,
+                                CodeRegionTable* dead_code_table,
+                                CodeRegionTable* tag_code_table)
+      : exclusive_root_(exclusive_root),
+        live_code_table_(live_code_table),
+        dead_code_table_(dead_code_table),
+        tag_code_table_(tag_code_table) {
+    ASSERT(exclusive_root_ != NULL);
+    ASSERT(live_code_table_ != NULL);
+    ASSERT(dead_code_table_ != NULL);
+    ASSERT(tag_code_table_ != NULL);
+    dead_code_table_offset_ = live_code_table_->Length();
+    tag_code_table_offset_ = dead_code_table_offset_ +
+                             dead_code_table_->Length();
+  }
+
+  void Build() {
+    ProcessNode(exclusive_root_);
+  }
+
+ private:
+  void ProcessNode(CodeRegionTrieNode* parent) {
+    const ZoneGrowableArray<CodeRegionTrieNode*>& children = parent->children();
+    intptr_t parent_index = parent->code_region_index();
+    ASSERT(parent_index >= 0);
+    CodeRegion* parent_region = At(parent_index);
+    ASSERT(parent_region != NULL);
+    for (intptr_t i = 0; i < children.length(); i++) {
+      CodeRegionTrieNode* node = children[i];
+      ProcessNode(node);
+      intptr_t index = node->code_region_index();
+      ASSERT(index >= 0);
+      CodeRegion* region = At(index);
+      ASSERT(region != NULL);
+      region->AddCallee(parent_index, node->count());
+      parent_region->AddCaller(index, node->count());
+    }
+  }
+
   CodeRegion* At(intptr_t final_index) {
     ASSERT(final_index >= 0);
     if (final_index < dead_code_table_offset_) {
       return live_code_table_->At(final_index);
-    } else {
+    } else if (final_index < tag_code_table_offset_) {
       return dead_code_table_->At(final_index - dead_code_table_offset_);
+    } else {
+      return tag_code_table_->At(final_index - tag_code_table_offset_);
     }
   }
 
+  CodeRegionTrieNode* exclusive_root_;
   CodeRegionTable* live_code_table_;
   CodeRegionTable* dead_code_table_;
+  CodeRegionTable* tag_code_table_;
   intptr_t dead_code_table_offset_;
+  intptr_t tag_code_table_offset_;
 };
 
+
 void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream,
-                                 bool full) {
+                                 bool full, bool use_tags) {
   ASSERT(isolate == Isolate::Current());
   // Disable profile interrupts while processing the buffer.
   EndExecution(isolate);
@@ -1014,12 +1273,15 @@ void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream,
       CodeRegionTable live_code_table;
       // Dead code holds Overwritten CodeRegions.
       CodeRegionTable dead_code_table;
+      // Tag code holds Tag CodeRegions.
+      CodeRegionTable tag_code_table;
       CodeRegionTableBuilder builder(isolate,
                                      &live_code_table,
-                                     &dead_code_table);
+                                     &dead_code_table,
+                                     &tag_code_table);
       {
         // Build CodeRegion tables.
-        ScopeStopwatch sw("CodeTableBuild");
+        ScopeStopwatch sw("CodeRegionTableBuilder");
         sample_buffer->VisitSamples(&builder);
       }
       intptr_t samples = builder.visited();
@@ -1027,25 +1289,40 @@ void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream,
       if (FLAG_trace_profiled_isolates) {
         intptr_t total_live_code_objects = live_code_table.Length();
         intptr_t total_dead_code_objects = dead_code_table.Length();
+        intptr_t total_tag_code_objects = tag_code_table.Length();
         OS::Print("Processed %" Pd " frames\n", frames);
-        OS::Print("CodeTables: live=%" Pd " dead=%" Pd "\n",
+        OS::Print("CodeTables: live=%" Pd " dead=%" Pd " tag=%" Pd "\n",
                   total_live_code_objects,
-                  total_dead_code_objects);
+                  total_dead_code_objects,
+                  total_tag_code_objects);
       }
 #if defined(DEBUG)
       live_code_table.Verify();
       dead_code_table.Verify();
+      tag_code_table.Verify();
       if (FLAG_trace_profiled_isolates) {
         OS::Print("CodeRegionTables verified to be ordered and not overlap.\n");
       }
 #endif
-      CodeRegionTableCallersBuilder build_callers(isolate,
+      CodeRegionExclusiveTrieBuilder build_trie(isolate,
+                                                &live_code_table,
+                                                &dead_code_table,
+                                                &tag_code_table);
+      build_trie.set_use_tags(use_tags);
+      {
+        // Build CodeRegion trie.
+        ScopeStopwatch sw("CodeRegionExclusiveTrieBuilder");
+        sample_buffer->VisitSamples(&build_trie);
+        build_trie.root()->SortByCount();
+      }
+      CodeRegionTableCallersBuilder build_callers(build_trie.root(),
                                                   &live_code_table,
-                                                  &dead_code_table);
+                                                  &dead_code_table,
+                                                  &tag_code_table);
       {
         // Build CodeRegion callers.
-        ScopeStopwatch sw("CodeTableCallersBuild");
-        sample_buffer->VisitSamples(&build_callers);
+        ScopeStopwatch sw("CodeRegionTableCallersBuilder");
+        build_callers.Build();
       }
       {
         ScopeStopwatch sw("CodeTableStream");
@@ -1054,7 +1331,15 @@ void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream,
         obj.AddProperty("type", "Profile");
         obj.AddProperty("id", "profile");
         obj.AddProperty("samples", samples);
+        obj.AddProperty("depth", static_cast<intptr_t>(FLAG_profile_depth));
+        obj.AddProperty("period", static_cast<intptr_t>(FLAG_profile_period));
         obj.AddProperty("time_delta_micros", builder.TimeDeltaMicros());
+        {
+          JSONArray exclusive_trie(&obj, "exclusive_trie");
+          CodeRegionTrieNode* root = build_trie.root();
+          ASSERT(root != NULL);
+          root->PrintToJSONArray(&exclusive_trie);
+        }
         JSONArray codes(&obj, "codes");
         for (intptr_t i = 0; i < live_code_table.Length(); i++) {
           CodeRegion* region = live_code_table.At(i);
@@ -1063,6 +1348,11 @@ void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream,
         }
         for (intptr_t i = 0; i < dead_code_table.Length(); i++) {
           CodeRegion* region = dead_code_table.At(i);
+          ASSERT(region != NULL);
+          region->PrintToJSONArray(isolate, &codes, full);
+        }
+        for (intptr_t i = 0; i < tag_code_table.Length(); i++) {
+          CodeRegion* region = tag_code_table.At(i);
           ASSERT(region != NULL);
           region->PrintToJSONArray(isolate, &codes, full);
         }
@@ -1096,7 +1386,7 @@ void Profiler::WriteProfile(Isolate* isolate) {
   ASSERT(Isolate::Current() == isolate);
   JSONStream stream(10 * MB);
   intptr_t pid = OS::ProcessId();
-  PrintToJSONStream(isolate, &stream, true);
+  PrintToJSONStream(isolate, &stream, true, false);
   const char* format = "%s/dart-profile-%" Pd "-%" Pd ".json";
   intptr_t len = OS::SNPrint(NULL, 0, format,
                              FLAG_profile_dir, pid, isolate->main_port());
@@ -1165,11 +1455,13 @@ class ProfilerSampleStackWalker : public ValueObject {
     ASSERT(sample_ != NULL);
   }
 
-  int walk(Heap* heap) {
+  int walk(Heap* heap, uword vm_tag) {
     const intptr_t kMaxStep = 0x1000;  // 4K.
     const bool kWalkStack = true;  // Walk the stack.
     // Always store the exclusive PC.
     sample_->SetAt(0, original_pc_);
+    // Always store the vm tag.
+    sample_->set_vm_tag(vm_tag);
     if (!kWalkStack) {
       // Not walking the stack, only took exclusive sample.
       return 1;
@@ -1287,7 +1579,7 @@ void Profiler::RecordSampleInterruptCallback(
   }
   ProfilerSampleStackWalker stackWalker(sample, stack_lower, stack_upper,
                                         state.pc, state.fp, state.sp);
-  stackWalker.walk(isolate->heap());
+  stackWalker.walk(isolate->heap(), isolate->vm_tag());
 }
 
 

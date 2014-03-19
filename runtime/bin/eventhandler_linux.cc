@@ -20,7 +20,7 @@
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
 #include "bin/log.h"
-#include "platform/hashmap.h"
+#include "bin/socket.h"
 #include "platform/thread.h"
 #include "platform/utils.h"
 
@@ -49,10 +49,10 @@ intptr_t SocketData::GetPollEvents() {
 
 // Unregister the file descriptor for a SocketData structure with epoll.
 static void RemoveFromEpollInstance(intptr_t epoll_fd_, SocketData* sd) {
-  VOID_TEMP_FAILURE_RETRY(epoll_ctl(epoll_fd_,
-                                    EPOLL_CTL_DEL,
-                                    sd->fd(),
-                                    NULL));
+  VOID_NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_,
+                                   EPOLL_CTL_DEL,
+                                   sd->fd(),
+                                   NULL));
 }
 
 
@@ -60,10 +60,10 @@ static void AddToEpollInstance(intptr_t epoll_fd_, SocketData* sd) {
   struct epoll_event event;
   event.events = sd->GetPollEvents();
   event.data.ptr = sd;
-  int status = TEMP_FAILURE_RETRY(epoll_ctl(epoll_fd_,
-                                            EPOLL_CTL_ADD,
-                                            sd->fd(),
-                                            &event));
+  int status = NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_,
+                                           EPOLL_CTL_ADD,
+                                           sd->fd(),
+                                           &event));
   if (status == -1) {
     // Epoll does not accept the file descriptor. It could be due to
     // already closed file descriptor, or unuspported devices, such
@@ -77,7 +77,7 @@ static void AddToEpollInstance(intptr_t epoll_fd_, SocketData* sd) {
 EventHandlerImplementation::EventHandlerImplementation()
     : socket_map_(&HashMap::SamePointerValue, 16) {
   intptr_t result;
-  result = TEMP_FAILURE_RETRY(pipe(interrupt_fds_));
+  result = NO_RETRY_EXPECTED(pipe(interrupt_fds_));
   if (result != 0) {
     FATAL("Pipe creation failed");
   }
@@ -88,7 +88,7 @@ EventHandlerImplementation::EventHandlerImplementation()
   // The initial size passed to epoll_create is ignore on newer (>=
   // 2.6.8) Linux versions
   static const int kEpollInitialSize = 64;
-  epoll_fd_ = TEMP_FAILURE_RETRY(epoll_create(kEpollInitialSize));
+  epoll_fd_ = NO_RETRY_EXPECTED(epoll_create(kEpollInitialSize));
   if (epoll_fd_ == -1) {
     FATAL1("Failed creating epoll file descriptor: %i", errno);
   }
@@ -97,24 +97,24 @@ EventHandlerImplementation::EventHandlerImplementation()
   struct epoll_event event;
   event.events = EPOLLIN;
   event.data.ptr = NULL;
-  int status = TEMP_FAILURE_RETRY(epoll_ctl(epoll_fd_,
-                                            EPOLL_CTL_ADD,
-                                            interrupt_fds_[0],
-                                            &event));
+  int status = NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_,
+                                           EPOLL_CTL_ADD,
+                                           interrupt_fds_[0],
+                                           &event));
   if (status == -1) {
     FATAL("Failed adding interrupt fd to epoll instance");
   }
-  timer_fd_ = TEMP_FAILURE_RETRY(timerfd_create(CLOCK_REALTIME, TFD_CLOEXEC));
+  timer_fd_ = NO_RETRY_EXPECTED(timerfd_create(CLOCK_REALTIME, TFD_CLOEXEC));
   if (timer_fd_ == -1) {
     FATAL1("Failed creating timerfd file descriptor: %i", errno);
   }
   // Register the timer_fd_ with the epoll instance.
   event.events = EPOLLIN;
   event.data.fd = timer_fd_;
-  status = TEMP_FAILURE_RETRY(epoll_ctl(epoll_fd_,
-                                        EPOLL_CTL_ADD,
-                                        timer_fd_,
-                                        &event));
+  status = NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_,
+                                       EPOLL_CTL_ADD,
+                                       timer_fd_,
+                                       &event));
   if (status == -1) {
     FATAL2(
         "Failed adding timerfd fd(%i) to epoll instance: %i", timer_fd_, errno);
@@ -184,7 +184,8 @@ void EventHandlerImplementation::HandleInterruptFd() {
         it.it_value.tv_sec = millis / 1000;
         it.it_value.tv_nsec = (millis % 1000) * 1000000;
       }
-      timerfd_settime(timer_fd_, TFD_TIMER_ABSTIME, &it, NULL);
+      VOID_NO_RETRY_EXPECTED(
+          timerfd_settime(timer_fd_, TFD_TIMER_ABSTIME, &it, NULL));
     } else if (msg[i].id == kShutdownId) {
       shutdown_ = true;
     } else {
@@ -192,11 +193,11 @@ void EventHandlerImplementation::HandleInterruptFd() {
       if ((msg[i].data & (1 << kShutdownReadCommand)) != 0) {
         ASSERT(msg[i].data == (1 << kShutdownReadCommand));
         // Close the socket for reading.
-        shutdown(sd->fd(), SHUT_RD);
+        VOID_NO_RETRY_EXPECTED(shutdown(sd->fd(), SHUT_RD));
       } else if ((msg[i].data & (1 << kShutdownWriteCommand)) != 0) {
         ASSERT(msg[i].data == (1 << kShutdownWriteCommand));
         // Close the socket for writing.
-        shutdown(sd->fd(), SHUT_WR);
+        VOID_NO_RETRY_EXPECTED(shutdown(sd->fd(), SHUT_WR));
       } else if ((msg[i].data & (1 << kCloseCommand)) != 0) {
         ASSERT(msg[i].data == (1 << kCloseCommand));
         // Close the socket and free system resources and move on to

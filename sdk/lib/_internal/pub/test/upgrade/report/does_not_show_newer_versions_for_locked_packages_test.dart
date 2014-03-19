@@ -36,7 +36,7 @@ main() {
 
     // Only upgrade "upgraded".
     pubUpgrade(args: ["upgraded"], output: new RegExp(r"""
-Resolving dependencies\.+
+Resolving dependencies\.\.\..*
   not_upgraded 1\.0\.0
 . upgraded 2\.0\.0 \(was 1\.0\.0\) \(1 newer unstable version available\)
 """, multiLine: true));

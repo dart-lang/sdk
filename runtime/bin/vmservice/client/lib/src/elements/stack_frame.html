@@ -8,9 +8,17 @@
 <polymer-element name="stack-frame" extends="observatory-element">
   <template>
     <style>
-      .member {
+      .memberList {
+        display: table;
+      }
+      .memberItem {
+        display: table-row;
+      }
+      .memberName, .memberValue {
+        display: table-cell;
         vertical-align: top;
-        padding: 0 0 0 1em;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
       }
     </style>
     <div class="row">
@@ -22,15 +30,18 @@
         <function-ref ref="{{ frame['function'] }}"></function-ref>
         ( <script-ref ref="{{ frame['script'] }}" line="{{ frame['line'] }}">
         </script-ref> )
+
         <curly-block>
-          <table>
-            <tr template repeat="{{ v in frame['vars'] }}">
-              <td class="member">{{ v['name']}}</td>
-              <td class="member">
-                <instance-ref ref="{{ v['value'] }}"></instance-ref>
-              </td>
-            </tr>
-          </table>
+          <div class="memberList">
+            <template repeat="{{ v in frame['vars'] }}">
+              <div class="memberItem">
+                <div class="memberName">{{ v['name']}}</div>
+                <div class="memberValue">
+                  <instance-ref ref="{{ v['value'] }}"></instance-ref>
+                </div>
+              </div>
+            </template>
+          </div>
         </curly-block>
 
       </div>

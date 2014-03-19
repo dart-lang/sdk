@@ -7,14 +7,6 @@ library observe.src.observable;
 import 'dart:async';
 import 'dart:collection';
 
-// TODO(sigmund): figure out how to remove this annotation entirely
-// Note: ObservableProperty is in this list only for the unusual use case of
-// dart2js without deploy tool. The deploy tool (see "transformer.dart") will
-// add the @reflectable annotation, which makes it work with Polymer's
-// @published.
-@MirrorsUsed(metaTargets: const [Reflectable, ObservableProperty],
-    override: 'smoke.mirrors')
-import 'dart:mirrors' show MirrorsUsed;
 import 'package:smoke/smoke.dart' as smoke;
 import 'package:observe/observe.dart';
 

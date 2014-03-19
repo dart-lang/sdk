@@ -16,6 +16,7 @@ import '../../../compiler/compiler.dart' as compiler;
 import '../../../compiler/implementation/filenames.dart'
     show appendSlash;
 
+import '../../asset/dart/serialize.dart';
 import 'io.dart';
 import 'sdk.dart' as sdk;
 import 'utils.dart';
@@ -169,45 +170,4 @@ void _isolateBuffer(message) {
       'error': CrossIsolateException.serialize(e, stack)
     });
   });
-}
-
-/// An exception that was originally raised in another isolate.
-///
-/// Exception objects can't cross isolate boundaries in general, so this class
-/// wraps as much information as can be consistently serialized.
-class CrossIsolateException implements Exception {
-  /// The name of the type of exception thrown.
-  ///
-  /// This is the return value of [error.runtimeType.toString()]. Keep in mind
-  /// that objects in different libraries may have the same type name.
-  final String type;
-
-  /// The exception's message, or its [toString] if it didn't expose a `message`
-  /// property.
-  final String message;
-
-  /// The exception's stack chain, or `null` if no stack chain was available.
-  final Chain stackTrace;
-
-  /// Loads a [CrossIsolateException] from a serialized representation.
-  ///
-  /// [error] should be the result of [CrossIsolateException.serialize].
-  CrossIsolateException.deserialize(Map error)
-      : type = error['type'],
-        message = error['message'],
-        stackTrace = error['stack'] == null ? null :
-            new Chain.parse(error['stack']);
-
-  /// Serializes [error] to an object that can safely be passed across isolate
-  /// boundaries.
-  static Map serialize(error, [StackTrace stack]) {
-    if (stack == null && error is Error) stack = error.stackTrace;
-    return {
-      'type': error.runtimeType.toString(),
-      'message': getErrorMessage(error),
-      'stack': stack == null ? null : new Chain.forTrace(stack).toString()
-    };
-  }
-
-  String toString() => "$message\n$stackTrace";
 }

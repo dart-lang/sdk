@@ -271,10 +271,6 @@ class ResolverTask extends CompilerTask {
 
       if (identical(kind, ElementKind.FIELD)) return resolveField(element);
 
-      if (identical(kind, ElementKind.PARAMETER) ||
-          identical(kind, ElementKind.FIELD_PARAMETER)) {
-        return resolveParameter(element);
-      }
       if (element.isClass()) {
         ClassElement cls = element;
         cls.ensureResolved(compiler);
@@ -452,7 +448,7 @@ class ResolverTask extends CompilerTask {
     }
   }
 
-  TreeElements resolveMethodElement(FunctionElement element) {
+  TreeElements resolveMethodElement(FunctionElementX element) {
     assert(invariant(element, element.isDeclaration));
     return compiler.withCurrentElement(element, () {
       bool isConstructor =
@@ -462,7 +458,7 @@ class ResolverTask extends CompilerTask {
       if (elements != null) {
         // TODO(karlklose): Remove the check for [isConstructor]. [elememts]
         // should never be non-null, not even for constructors.
-        assert(invariant(element, isConstructor,
+        assert(invariant(element, element.isConstructor(),
             message: 'Non-constructor element $element '
                      'has already been analyzed.'));
         return elements;
@@ -477,7 +473,7 @@ class ResolverTask extends CompilerTask {
           compiler.enqueuer.resolution.registerStaticUse(
               element.targetConstructor);
         }
-        return new TreeElementMapping(element);
+        return _ensureTreeElements(element);
       }
       if (element.isPatched) {
         checkMatchingPatchSignatures(element, element.patch);
@@ -550,8 +546,7 @@ class ResolverTask extends CompilerTask {
   /// This method should only be used by this library (or tests of
   /// this library).
   ResolverVisitor visitorFor(Element element) {
-    var mapping = new TreeElementMapping(element);
-    return new ResolverVisitor(compiler, element, mapping);
+    return new ResolverVisitor(compiler, element, _ensureTreeElements(element));
   }
 
   TreeElements resolveField(VariableElementX element) {
@@ -580,6 +575,9 @@ class ResolverTask extends CompilerTask {
       compiler.reportError(element, MessageKind.CONST_WITHOUT_INITIALIZER);
     } else if (modifiers.isFinal() && !element.isInstanceMember()) {
       compiler.reportError(element, MessageKind.FINAL_WITHOUT_INITIALIZER);
+    } else {
+      compiler.enqueuer.resolution.registerInstantiatedClass(
+          compiler.nullClass, visitor.mapping);
     }
 
     if (Elements.isStaticOrTopLevelField(element)) {
@@ -593,22 +591,12 @@ class ResolverTask extends CompilerTask {
           // unnecessary registrations.
           compiler.backend.registerLazyField(visitor.mapping);
         }
-      } else {
-        compiler.enqueuer.resolution.registerInstantiatedClass(
-            compiler.nullClass, visitor.mapping);
       }
     }
 
     // Perform various checks as side effect of "computing" the type.
     element.computeType(compiler);
 
-    return visitor.mapping;
-  }
-
-  TreeElements resolveParameter(ParameterElement element) {
-    element.parseNode(compiler);
-    ResolverVisitor visitor = visitorFor(element.enclosingElement);
-    visitor.visit(element.initializer);
     return visitor.mapping;
   }
 
@@ -768,11 +756,11 @@ class ResolverTask extends CompilerTask {
    * Warning: Do not call this method directly. Instead use
    * [:element.ensureResolved(compiler):].
    */
-  void resolveClass(ClassElement element) {
+  TreeElements resolveClass(BaseClassElementX element) {
     _resolveTypeDeclaration(element, () {
       // TODO(johnniwinther): Store the mapping in the resolution enqueuer.
-      TreeElementMapping mapping = new TreeElementMapping(element);
-      resolveClassInternal(element, mapping);
+      resolveClassInternal(element, _ensureTreeElements(element));
+      return element.treeElements;
     });
   }
 
@@ -1139,7 +1127,7 @@ class ResolverTask extends CompilerTask {
   }
 
 
-  FunctionSignature resolveSignature(FunctionElement element) {
+  FunctionSignature resolveSignature(FunctionElementX element) {
     MessageKind defaultValuesError = null;
     if (element.isFactoryConstructor()) {
       FunctionExpression body = element.parseNode(compiler);
@@ -1152,19 +1140,15 @@ class ResolverTask extends CompilerTask {
           compiler.parser.measure(() => element.parseNode(compiler));
       return measure(() => SignatureResolver.analyze(
           compiler, node.parameters, node.returnType, element,
-          // TODO(johnniwinther): Use the [TreeElements] used for resolution of
-          // the method body.
-          new TreeElementMapping(element),
+          _ensureTreeElements(element),
           defaultValuesError: defaultValuesError));
     });
   }
 
   TreeElements resolveTypedef(TypedefElementX element) {
-    if (element.isResolved) return element.mapping;
+    if (element.isResolved) return element.treeElements;
     return _resolveTypeDeclaration(element, () {
-      TreeElementMapping mapping = new TreeElementMapping(element);
-      // TODO(johnniwinther): Store the mapping in the resolution enqueuer.
-      element.mapping = mapping;
+      TreeElementMapping mapping = _ensureTreeElements(element);
       return compiler.withCurrentElement(element, () {
         return measure(() {
           Typedef node =
@@ -1218,6 +1202,8 @@ class ResolverTask extends CompilerTask {
       annotation.resolutionState = STATE_STARTED;
 
       Node node = annotation.parseNode(compiler);
+      // TODO(johnniwinther): Find the right analyzable element to hold the
+      // [TreeElements] for the annotation.
       Element annotatedElement = annotation.annotatedElement;
       Element context = annotatedElement.enclosingElement;
       if (context == null) {
@@ -2859,9 +2845,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
         world.registerDynamicInvocation(selector);
       }
     } else if (Elements.isStaticOrTopLevel(target)) {
-      // TODO(kasperl): It seems like we're not supposed to register
-      // the use of classes. Wouldn't it be simpler if we just did?
-      if (!target.isClass()) {
+      // Avoid registration of type variables since they are not analyzable but
+      // instead resolved through their enclosing type declaration.
+      if (!target.isTypeVariable()) {
         // [target] might be the implementation element and only declaration
         // elements may be registered.
         world.registerStaticUse(target.declaration);
@@ -3108,7 +3094,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         Node argumentNode = node.send.arguments.head;
         Constant name = compiler.constantHandler.compileNodeWithDefinitions(
             argumentNode, mapping, isConst: true);
-        if (!name.isString()) {
+        if (!name.isString) {
           DartType type = name.computeType(compiler);
           compiler.reportError(argumentNode, MessageKind.STRING_EXPECTED,
                                    {'type': type});
@@ -3141,7 +3127,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
   void checkConstMapKeysDontOverrideEquals(Spannable spannable,
                                            MapConstant map) {
     for (Constant key in map.keys.entries) {
-      if (!key.isObject()) continue;
+      if (!key.isObject) continue;
       ObjectConstant objectConstant = key;
       DartType keyType = objectConstant.type;
       ClassElement cls = keyType.element;
@@ -3160,7 +3146,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       Constant constant = compiler.constantHandler.compileNodeWithDefinitions(
           node, mapping, isConst: isConst);
 
-      if (isConst && constant != null && constant.isMap()) {
+      if (isConst && constant != null && constant.isMap) {
         checkConstMapKeysDontOverrideEquals(node, constant);
       }
 
@@ -3169,7 +3155,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       // native class dispatch record referencing the interceptor.
       if (argumentsToJsInterceptorConstant != null &&
           argumentsToJsInterceptorConstant.contains(node)) {
-        if (constant.isType()) {
+        if (constant.isType) {
           TypeConstant typeConstant = constant;
           if (typeConstant.representedType is InterfaceType) {
             world.registerInstantiatedType(typeConstant.representedType,
@@ -3508,13 +3494,13 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   DartType typeOfConstant(Constant constant) {
-    if (constant.isInt()) return compiler.intClass.rawType;
-    if (constant.isBool()) return compiler.boolClass.rawType;
-    if (constant.isDouble()) return compiler.doubleClass.rawType;
-    if (constant.isString()) return compiler.stringClass.rawType;
-    if (constant.isNull()) return compiler.nullClass.rawType;
-    if (constant.isFunction()) return compiler.functionClass.rawType;
-    assert(constant.isObject());
+    if (constant.isInt) return compiler.intClass.rawType;
+    if (constant.isBool) return compiler.boolClass.rawType;
+    if (constant.isDouble) return compiler.doubleClass.rawType;
+    if (constant.isString) return compiler.stringClass.rawType;
+    if (constant.isNull) return compiler.nullClass.rawType;
+    if (constant.isFunction) return compiler.functionClass.rawType;
+    assert(constant.isObject);
     ObjectConstant objectConstant = constant;
     return objectConstant.type;
   }
@@ -3564,7 +3550,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
           } else if (caseType.element == compiler.functionClass) {
             compiler.reportError(node, MessageKind.SWITCH_CASE_FORBIDDEN,
                                  {'type': "Function"});
-          } else if (constant.isObject() && overridesEquals(caseType)) {
+          } else if (constant.isObject && overridesEquals(caseType)) {
             compiler.reportError(firstCase.expression,
                 MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
                 {'type': caseType});
@@ -3789,11 +3775,11 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
       }
       nameSet.add(typeName);
 
-      TypeVariableElement variableElement = typeVariable.element;
+      TypeVariableElementX variableElement = typeVariable.element;
       if (typeNode.bound != null) {
         DartType boundType = typeResolver.resolveTypeAnnotation(
             this, typeNode.bound);
-        variableElement.bound = boundType;
+        variableElement.boundCache = boundType;
 
         void checkTypeVariableBound() {
           Link<TypeVariableElement> seenTypeVariables =
@@ -3817,7 +3803,7 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
         }
         addDeferredAction(element, checkTypeVariableBound);
       } else {
-        variableElement.bound = objectType;
+        variableElement.boundCache = objectType;
       }
       nodeLink = nodeLink.tail;
       typeLink = typeLink.tail;
@@ -4112,9 +4098,9 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     Link<DartType> link = typeVariables;
     element.typeVariables.forEach((TypeVariableType type) {
       TypeVariableType typeVariable = link.head;
-      TypeVariableElement typeVariableElement = typeVariable.element;
-      typeVariableElement.type = typeVariable;
-      typeVariableElement.bound =
+      TypeVariableElementX typeVariableElement = typeVariable.element;
+      typeVariableElement.typeCache = typeVariable;
+      typeVariableElement.boundCache =
           type.element.bound.subst(typeVariables, element.typeVariables);
       link = link.tail;
     });
@@ -4687,4 +4673,23 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
 Element lookupInScope(Compiler compiler, Node node,
                       Scope scope, String name) {
   return Elements.unwrap(scope.lookup(name), compiler, node);
+}
+
+TreeElements _ensureTreeElements(AnalyzableElement element) {
+  if (element._treeElements == null) {
+    element._treeElements = new TreeElementMapping(element);
+  }
+  return element._treeElements;
+}
+
+abstract class AnalyzableElement implements Element {
+  TreeElements _treeElements;
+
+  bool get hasTreeElements => _treeElements != null;
+
+  TreeElements get treeElements {
+    assert(invariant(this, _treeElements !=null,
+        message: "TreeElements have not been computed for $this."));
+    return _treeElements;
+  }
 }

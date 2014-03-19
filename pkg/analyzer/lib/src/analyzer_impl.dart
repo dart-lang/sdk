@@ -10,14 +10,17 @@ import 'dart:io';
 
 import 'package:path/path.dart' as pathos;
 
-import 'generated/java_io.dart';
+import 'generated/ast.dart';
 import 'generated/engine.dart';
+import 'generated/element.dart';
 import 'generated/error.dart';
-import 'generated/source_io.dart';
+import 'generated/java_io.dart';
 import 'generated/sdk.dart';
 import 'generated/sdk_io.dart';
-import 'generated/element.dart';
+import 'generated/source_io.dart';
 import '../options.dart';
+
+import 'dart:collection';
 
 import 'package:analyzer/src/generated/java_core.dart' show JavaSystem;
 import 'package:analyzer/src/error_formatter.dart';
@@ -38,12 +41,16 @@ class AnalyzerImpl {
   ContentCache contentCache = new ContentCache();
   SourceFactory sourceFactory;
   AnalysisContext context;
+  Source librarySource;
 
   /// All [Source]s references by the analyzed library.
   final Set<Source> sources = new Set<Source>();
 
   /// All [AnalysisErrorInfo]s in the analyzed library.
   final List<AnalysisErrorInfo> errorInfos = new List<AnalysisErrorInfo>();
+
+  /// [HashMap] between sources and analysis error infos.
+  final HashMap<Source, AnalysisErrorInfo> sourceErrorsMap = new HashMap<Source, AnalysisErrorInfo>();
 
   AnalyzerImpl(this.sourcePath, this.options, this.startTime) {
     if (sdk == null) {
@@ -52,9 +59,27 @@ class AnalyzerImpl {
   }
 
   /**
-   * Treats the [sourcePath] as the top level library and analyzes it.
+   * Treats the [sourcePath] as the top level library and analyzes it using a
+   * synchronous algorithm over the analysis engine.
    */
-  void analyze() {
+  ErrorSeverity analyzeSync() {
+    setupForAnalysis();
+    return _analyzeSync();
+  }
+
+  /**
+   * Treats the [sourcePath] as the top level library and analyzes it using a
+   * asynchronous algorithm over the analysis engine.
+   */
+  void analyzeAsync() {
+    setupForAnalysis();
+    _analyzeAsync();
+  }
+
+  /**
+   * Setup local fields such as the analysis context for analysis.
+   */
+  void setupForAnalysis() {
     sources.clear();
     errorInfos.clear();
     if (sourcePath == null) {
@@ -62,34 +87,68 @@ class AnalyzerImpl {
     }
     JavaFile sourceFile = new JavaFile(sourcePath);
     UriKind uriKind = getUriKind(sourceFile);
-    Source librarySource = new FileBasedSource.con2(sourceFile, uriKind);
+    librarySource = new FileBasedSource.con2(sourceFile, uriKind);
 
     // prepare context
     prepareAnalysisContext(sourceFile, librarySource);
-
-    // async perform all tasks in context
-   _analyze();
   }
 
-  void _analyze() {
+  /// The sync version of analysis
+  ErrorSeverity _analyzeSync() {
+    // don't try to analyzer parts
+    var unit = context.parseCompilationUnit(librarySource);
+    var hasLibraryDirective = false;
+    var hasPartOfDirective = false;
+    for (var directive in unit.directives) {
+      if (directive is LibraryDirective) hasLibraryDirective = true;
+      if (directive is PartOfDirective) hasPartOfDirective = true;
+    }
+    if (hasPartOfDirective && !hasLibraryDirective) {
+      print("Only libraries can be analyzed.");
+      print("$sourcePath is a part and can not be analyzed.");
+      return ErrorSeverity.ERROR;
+    }
+    // resolve library
+    var libraryElement = context.computeLibraryElement(librarySource);
+    // prepare source and errors
+    prepareSources(libraryElement);
+    prepareErrors();
+
+    // print errors and performance numbers
+    _printErrorsAndPerf();
+
+    // compute max severity and set exitCode
+    ErrorSeverity status = maxErrorSeverity;
+    if (status == ErrorSeverity.WARNING && options.warningsAreFatal) {
+      status = ErrorSeverity.ERROR;
+    }
+    return status;
+  }
+
+  /// The async version of the analysis
+  void _analyzeAsync() {
     new Future(context.performAnalysisTask).then((AnalysisResult result) {
       List<ChangeNotice> notices = result.changeNotices;
-      // TODO(jwren) change 'notices != null' to 'result.hasMoreWork()' after
-      // next dart translation is landed for the analyzer
-      if (notices != null) {
+      if (result.hasMoreWork) {
         // There is more work, record the set of sources, and then call self
         // again to perform next task
         for (ChangeNotice notice in notices) {
           sources.add(notice.source);
+          sourceErrorsMap[notice.source] = notice;
         }
-        return _analyze();
+        return _analyzeAsync();
       }
       //
       // There are not any more tasks, set error code and print performance
       // numbers.
       //
       // prepare errors
-      prepareErrors();
+      sourceErrorsMap.forEach((k,v) {
+        errorInfos.add(sourceErrorsMap[k]);
+      });
+
+      // print errors and performance numbers
+      _printErrorsAndPerf();
 
       // compute max severity and set exitCode
       ErrorSeverity status = maxErrorSeverity;
@@ -97,36 +156,46 @@ class AnalyzerImpl {
         status = ErrorSeverity.ERROR;
       }
       exitCode = status.ordinal;
-
-      // print errors
-      ErrorFormatter formatter = new ErrorFormatter(stdout, options);
-      formatter.formatErrors(errorInfos);
-
-      // print performance numbers
-      if (options.perf) {
-        int totalTime = JavaSystem.currentTimeMillis() - startTime;
-        int ioTime = PerformanceStatistics.io.result;
-        int scanTime = PerformanceStatistics.scan.result;
-        int parseTime = PerformanceStatistics.parse.result;
-        int resolveTime = PerformanceStatistics.resolve.result;
-        int errorsTime = PerformanceStatistics.errors.result;
-        int hintsTime = PerformanceStatistics.hints.result;
-        int angularTime = PerformanceStatistics.angular.result;
-        stdout.writeln("io:$ioTime");
-        stdout.writeln("scan:$scanTime");
-        stdout.writeln("parse:$parseTime");
-        stdout.writeln("resolve:$resolveTime");
-        stdout.writeln("errors:$errorsTime");
-        stdout.writeln("hints:$hintsTime");
-        stdout.writeln("angular:$angularTime");
-        stdout.writeln("other:${totalTime
-             - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime
-             + angularTime)}");
-        stdout.writeln("total:$totalTime");
-      }
     }).catchError((ex, st) {
       AnalysisEngine.instance.logger.logError("${ex}\n${st}");
     });
+  }
+
+  _printErrorsAndPerf() {
+    // The following is a hack. We currently print out to stderr to ensure that
+    // when in batch mode we print to stderr, this is because the prints from
+    // batch are made to stderr. The reason that options.shouldBatch isn't used
+    // is because when the argument flags are constructed in BatchRunner and
+    // passed in from batch mode which removes the batch flag to prevent the
+    // "cannot have the batch flag and source file" error message.
+    IOSink sink = options.machineFormat ? stderr : stdout;
+
+    // print errors
+    ErrorFormatter formatter = new ErrorFormatter(sink, options);
+    formatter.formatErrors(errorInfos);
+
+    // print performance numbers
+    if (options.perf) {
+      int totalTime = JavaSystem.currentTimeMillis() - startTime;
+      int ioTime = PerformanceStatistics.io.result;
+      int scanTime = PerformanceStatistics.scan.result;
+      int parseTime = PerformanceStatistics.parse.result;
+      int resolveTime = PerformanceStatistics.resolve.result;
+      int errorsTime = PerformanceStatistics.errors.result;
+      int hintsTime = PerformanceStatistics.hints.result;
+      int angularTime = PerformanceStatistics.angular.result;
+      stdout.writeln("io:$ioTime");
+      stdout.writeln("scan:$scanTime");
+      stdout.writeln("parse:$parseTime");
+      stdout.writeln("resolve:$resolveTime");
+      stdout.writeln("errors:$errorsTime");
+      stdout.writeln("hints:$hintsTime");
+      stdout.writeln("angular:$angularTime");
+      stdout.writeln("other:${totalTime
+          - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime
+          + angularTime)}");
+      stdout.writeln("total:$totalTime");
+   }
   }
 
   /// Returns the maximal [ErrorSeverity] of the recorded errors.
@@ -211,6 +280,13 @@ class AnalyzerImpl {
     for (LibraryElement child in library.exportedLibraries) {
       addLibrarySources(child, libraries, units);
     }
+  }
+
+  /// Fills [sources].
+  void prepareSources(LibraryElement library) {
+    var units = new Set<CompilationUnitElement>();
+    var libraries = new Set<LibraryElement>();
+    addLibrarySources(library, libraries, units);
   }
 
   /// Fills [errorInfos] using [sources].

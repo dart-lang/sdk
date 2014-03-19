@@ -19,21 +19,23 @@ import 'resolver_impl.dart';
 /// If multiple transformers rely on a resolved AST they should (ideally) share
 /// the same Resolvers object to minimize re-parsing the AST.
 class Resolvers {
-  final Map<AssetId, ResolverImpl> _resolvers = {};
+  final Map<AssetId, Resolver> _resolvers = {};
   final String dartSdkDirectory;
 
   Resolvers(this.dartSdkDirectory);
 
-  /// Get a resolver for the AST starting from [id].
+  /// Get a resolver for [transform]. If provided, this resolves the code
+  /// starting from each of the assets in [entryPoints]. If not, this resolves
+  /// the code starting from `transform.primaryInput.id` by default.
   ///
   /// [Resolver.release] must be called once it's done being used, or
   /// [ResolverTransformer] should be used to automatically release the
   /// resolver.
-  Future<Resolver> get(Transform transform) {
+  Future<Resolver> get(Transform transform, [List<AssetId> entryPoints]) {
     var id = transform.primaryInput.id;
     var resolver = _resolvers.putIfAbsent(id,
-        () => new ResolverImpl(id, dartSdkDirectory));
-    return resolver.resolve(transform);
+        () => new ResolverImpl(dartSdkDirectory));
+    return resolver.resolve(transform, entryPoints);
   }
 }
 
@@ -45,8 +47,27 @@ abstract class ResolverTransformer implements Transformer {
   /// The cache of resolvers- must be set from subclass.
   Resolvers resolvers;
 
-  Future apply(Transform transform) {
-    return resolvers.get(transform).then((resolver) {
+  /// This provides a default implementation of `Transformer.apply` that will
+  /// get and release resolvers automatically. Internally this:
+  ///   * Gets a resolver associated with the transform primary input.
+  ///   * Does resolution to the code starting from that input.
+  ///   * Calls [applyResolver].
+  ///   * Then releases the resolver.
+  ///
+  /// Use [applyToEntryPoints] instead if you need to override the entry points
+  /// to run the resolver on.
+  Future apply(Transform transform) => applyToEntryPoints(transform);
+
+  /// Helper function to make it easy to write an `Transformer.apply` method
+  /// that automatically gets and releases the resolver. This is typically used
+  /// as follows:
+  ///
+  ///    Future apply(Transform transform) {
+  ///       var entryPoints = ...; // compute entry points
+  ///       return applyToEntryPoints(transform, entryPoints);
+  ///    }
+  Future applyToEntryPoints(Transform transform, [List<AssetId> entryPoints]) {
+    return resolvers.get(transform, entryPoints).then((resolver) {
       return new Future.value(applyResolver(transform, resolver)).then((_) {
         resolver.release();
       });

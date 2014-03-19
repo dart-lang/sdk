@@ -14,6 +14,7 @@
 #include "vm/debugger.h"
 #include "vm/isolate.h"
 #include "vm/message.h"
+#include "vm/message_handler.h"
 #include "vm/native_entry.h"
 #include "vm/native_arguments.h"
 #include "vm/object.h"
@@ -263,6 +264,9 @@ Isolate* Service::GetServiceIsolate(void* callback_data) {
   if (isolate == NULL) {
     return NULL;
   }
+  // We don't want to pause the service isolate.
+  isolate->message_handler()->set_pause_on_start(false);
+  isolate->message_handler()->set_pause_on_exit(false);
   Isolate::SetCurrent(isolate);
   {
     // Install the dart:vmservice library.
@@ -366,6 +370,11 @@ bool Service::SendIsolateStartupMessage() {
   MessageWriter writer(&data, &allocator);
   writer.WriteMessage(list);
   intptr_t len = writer.BytesWritten();
+  if (FLAG_trace_service) {
+    OS::Print("Isolate %s %" Pd64 " registered with service \n",
+              name.ToCString(),
+              Dart_GetMainPortId());
+  }
   return PortMap::PostMessage(
       new Message(port_, data, len, Message::kNormalPriority));
 }
@@ -378,15 +387,22 @@ bool Service::SendIsolateShutdownMessage() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   HANDLESCOPE(isolate);
+  const String& name = String::Handle(String::New(isolate->name()));
+  ASSERT(!name.IsNull());
   const Array& list = Array::Handle(
       MakeServiceControlMessage(Dart_GetMainPortId(),
                                 VM_SERVICE_ISOLATE_SHUTDOWN_MESSAGE_ID,
-                                String::Handle(String::null())));
+                                name));
   ASSERT(!list.IsNull());
   uint8_t* data = NULL;
   MessageWriter writer(&data, &allocator);
   writer.WriteMessage(list);
   intptr_t len = writer.BytesWritten();
+  if (FLAG_trace_service) {
+    OS::Print("Isolate %s %" Pd64 " deregistered with service \n",
+              name.ToCString(),
+              Dart_GetMainPortId());
+  }
   return PortMap::PostMessage(
       new Message(port_, data, len, Message::kNormalPriority));
 }
@@ -802,6 +818,29 @@ static bool HandleClassesClosures(Isolate* isolate, const Class& cls,
 }
 
 
+static bool HandleClassesEval(Isolate* isolate, const Class& cls,
+                              JSONStream* js) {
+  if (js->num_arguments() > 3) {
+    PrintError(js, "Command too long");
+    return true;
+  }
+  const char* expr = js->LookupOption("expr");
+  if (expr == NULL) {
+    PrintError(js, "eval expects an 'expr' option\n",
+               js->num_arguments());
+    return true;
+  }
+  const String& expr_str = String::Handle(isolate, String::New(expr));
+  const Object& result = Object::Handle(cls.Evaluate(expr_str));
+  if (result.IsNull()) {
+    Object::null_instance().PrintToJSONStream(js, true);
+  } else {
+    result.PrintToJSONStream(js, true);
+  }
+  return true;
+}
+
+
 static bool HandleClassesDispatchers(Isolate* isolate, const Class& cls,
                                      JSONStream* js) {
   intptr_t id;
@@ -912,7 +951,9 @@ static bool HandleClasses(Isolate* isolate, JSONStream* js) {
     return true;
   } else if (js->num_arguments() >= 3) {
     const char* second = js->GetArgument(2);
-    if (strcmp(second, "closures") == 0) {
+    if (strcmp(second, "eval") == 0) {
+      return HandleClassesEval(isolate, cls, js);
+    } else if (strcmp(second, "closures") == 0) {
       return HandleClassesClosures(isolate, cls, js);
     } else if (strcmp(second, "fields") == 0) {
       return HandleClassesFields(isolate, cls, js);
@@ -932,6 +973,29 @@ static bool HandleClasses(Isolate* isolate, JSONStream* js) {
 }
 
 
+static bool HandleLibrariesEval(Isolate* isolate, const Library& lib,
+                                JSONStream* js) {
+  if (js->num_arguments() > 3) {
+    PrintError(js, "Command too long");
+    return true;
+  }
+  const char* expr = js->LookupOption("expr");
+  if (expr == NULL) {
+    PrintError(js, "eval expects an 'expr' option\n",
+               js->num_arguments());
+    return true;
+  }
+  const String& expr_str = String::Handle(isolate, String::New(expr));
+  const Object& result = Object::Handle(lib.Evaluate(expr_str));
+  if (result.IsNull()) {
+    Object::null_instance().PrintToJSONStream(js, true);
+  } else {
+    result.PrintToJSONStream(js, true);
+  }
+  return true;
+}
+
+
 static bool HandleLibraries(Isolate* isolate, JSONStream* js) {
   // TODO(johnmccutchan): Support fields and functions on libraries.
   REQUIRE_COLLECTION_ID("libraries");
@@ -944,7 +1008,19 @@ static bool HandleLibraries(Isolate* isolate, JSONStream* js) {
   Library& lib = Library::Handle();
   lib ^= libs.At(id);
   ASSERT(!lib.IsNull());
-  lib.PrintToJSONStream(js, false);
+  if (js->num_arguments() == 2) {
+    lib.PrintToJSONStream(js, false);
+    return true;
+  } else if (js->num_arguments() >= 3) {
+    const char* second = js->GetArgument(2);
+    if (strcmp(second, "eval") == 0) {
+      return HandleLibrariesEval(isolate, lib, js);
+    } else {
+      PrintError(js, "Invalid sub collection %s", second);
+      return true;
+    }
+  }
+  UNREACHABLE();
   return true;
 }
 
@@ -1113,7 +1189,11 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
     ASSERT(obj.IsInstance());
     const Instance& instance = Instance::Cast(obj);
     const Object& result = Object::Handle(instance.Evaluate(expr_str));
-    result.PrintToJSONStream(js, true);
+    if (result.IsNull()) {
+      Object::null_instance().PrintToJSONStream(js, true);
+    } else {
+      result.PrintToJSONStream(js, true);
+    }
     return true;
   }
 
@@ -1310,7 +1390,16 @@ static bool HandleProfile(Isolate* isolate, JSONStream* js) {
   // A full profile includes disassembly of all Dart code objects.
   // TODO(johnmccutchan): Add sub command to trigger full code dump.
   bool full_profile = false;
-  Profiler::PrintToJSONStream(isolate, js, full_profile);
+  const char* tags_option = js->LookupOption("tags");
+  bool use_tags = true;
+  if (tags_option != NULL) {
+    if (strcmp("hide", tags_option) != 0) {
+      PrintError(js, "Invalid tags option value: %s\n", tags_option);
+      return true;
+    }
+    use_tags = false;
+  }
+  Profiler::PrintToJSONStream(isolate, js, full_profile, use_tags);
   return true;
 }
 
@@ -1341,9 +1430,16 @@ static bool HandleAllocationProfile(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleUnpin(Isolate* isolate, JSONStream* js) {
+static bool HandleResume(Isolate* isolate, JSONStream* js) {
   // TODO(johnmccutchan): What do I respond with??
-  isolate->ClosePinPort();
+  if (isolate->message_handler()->pause_on_start()) {
+    isolate->message_handler()->set_pause_on_start(false);
+    return true;
+  }
+  if (isolate->message_handler()->pause_on_exit()) {
+    isolate->message_handler()->set_pause_on_exit(false);
+    return true;
+  }
   return true;
 }
 
@@ -1367,7 +1463,7 @@ static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "libraries", HandleLibraries },
   { "objects", HandleObjects },
   { "profile", HandleProfile },
-  { "unpin", HandleUnpin },
+  { "resume", HandleResume },
   { "scripts", HandleScripts },
   { "stacktrace", HandleStackTrace },
 };

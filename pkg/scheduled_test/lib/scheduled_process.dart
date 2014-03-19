@@ -185,8 +185,8 @@ class ScheduledProcess {
     });
   }
 
-  /// Converts a stream of bytes to a stream of lines and returns that along
-  /// with a [StreamCanceller] controlling it.
+  /// Converts a stream of byte lists to a stream of lines and returns that
+  /// along with a [StreamCanceller] controlling it.
   Pair<Stream<String>, StreamCanceller> _lineStreamWithCanceller(
       Future<Stream<List<int>>> streamFuture) {
     return streamWithCanceller(futureStream(streamFuture)

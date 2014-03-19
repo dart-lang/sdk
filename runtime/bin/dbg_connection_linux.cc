@@ -10,6 +10,7 @@
 #include <stdlib.h>  // NOLINT
 #include <sys/epoll.h>  // NOLINT
 
+#include "platform/signal_blocker.h"
 #include "bin/dbg_connection.h"
 #include "bin/fdutils.h"
 #include "bin/log.h"
@@ -69,14 +70,14 @@ void DebuggerConnectionImpl::Handler(uword args) {
 
 
 void DebuggerConnectionImpl::SetupPollQueue() {
-  int result = TEMP_FAILURE_RETRY(pipe(wakeup_fds_));
+  int result = NO_RETRY_EXPECTED(pipe(wakeup_fds_));
   if (result != 0) {
     FATAL1("Pipe creation failed with error %d\n", result);
   }
   FDUtils::SetNonBlocking(wakeup_fds_[0]);
 
   static const int kEpollInitialSize = 16;
-  epoll_fd_ = TEMP_FAILURE_RETRY(epoll_create(kEpollInitialSize));
+  epoll_fd_ = NO_RETRY_EXPECTED(epoll_create(kEpollInitialSize));
   if (epoll_fd_ == -1) {
     FATAL("Failed creating epoll file descriptor");
   }
@@ -85,8 +86,8 @@ void DebuggerConnectionImpl::SetupPollQueue() {
   struct epoll_event event;
   event.events = EPOLLIN;
   event.data.fd = wakeup_fds_[0];
-  int status = TEMP_FAILURE_RETRY(epoll_ctl(
-                   epoll_fd_, EPOLL_CTL_ADD, wakeup_fds_[0], &event));
+  int status = NO_RETRY_EXPECTED(epoll_ctl(
+      epoll_fd_, EPOLL_CTL_ADD, wakeup_fds_[0], &event));
   if (status == -1) {
     FATAL("Failed adding wakeup fd to epoll instance");
   }
@@ -94,8 +95,8 @@ void DebuggerConnectionImpl::SetupPollQueue() {
   // Register the listener_fd with the epoll instance.
   event.events = EPOLLIN;
   event.data.fd = DebuggerConnectionHandler::listener_fd_;
-  status = TEMP_FAILURE_RETRY(epoll_ctl(epoll_fd_, EPOLL_CTL_ADD,
-               DebuggerConnectionHandler::listener_fd_, &event));
+  status = NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_, EPOLL_CTL_ADD,
+      DebuggerConnectionHandler::listener_fd_, &event));
   if (status == -1) {
     FATAL("Failed adding listener fd to epoll instance");
   }

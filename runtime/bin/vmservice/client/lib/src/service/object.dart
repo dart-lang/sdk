@@ -4,6 +4,169 @@
 
 part of service;
 
+/// A [ServiceObject] is an object known to the VM service and is tied
+/// to an owning [Isolate].
+abstract class ServiceObject extends Observable {
+  Isolate _isolate;
+
+  /// Owning isolate.
+  @reflectable Isolate get isolate => _isolate;
+
+  /// Owning vm.
+  @reflectable VM get vm => _isolate.vm;
+
+  /// The complete service url of this object.
+  @reflectable String get link => isolate.relativeLink(_id);
+
+  /// The complete service url of this object with a '#/' prefix.
+  @reflectable String get hashLink => isolate.relativeHashLink(_id);
+  set hashLink(var o) { /* silence polymer */ }
+
+  String _id;
+  /// The id of this object.
+  @reflectable String get id => _id;
+
+  String _serviceType;
+  /// The service type of this object.
+  @reflectable String get serviceType => _serviceType;
+
+  bool _ref;
+
+  @observable String name;
+  @observable String vmName;
+
+  ServiceObject(this._isolate, this._id, this._serviceType) {
+    _ref = isRefType(_serviceType);
+    _serviceType = stripRef(_serviceType);
+    _created();
+  }
+
+  ServiceObject.fromMap(this._isolate, ObservableMap m) {
+    assert(isServiceMap(m));
+    _id = m['id'];
+    _ref = isRefType(m['type']);
+    _serviceType = stripRef(m['type']);
+    _created();
+    update(m);
+  }
+
+  /// If [this] was created from a reference, load the full object
+  /// from the service by calling [reload]. Else, return [this].
+  Future<ServiceObject> load() {
+    if (!_ref) {
+      // Not a reference.
+      return new Future.value(this);
+    }
+    // Call reload which will fill in the entire object.
+    return reload();
+  }
+
+  /// Reload [this]. Returns a future which completes to [this] or
+  /// a [ServiceError].
+  Future<ServiceObject> reload() {
+    assert(isolate != null);
+    if (id == '') {
+      // Errors don't have ids.
+      assert(serviceType == 'Error');
+      return new Future.value(this);
+    }
+    return isolate.vm.getAsMap(link).then(update);
+  }
+
+  /// Update [this] using [m] as a source. [m] can be a reference.
+  ServiceObject update(ObservableMap m) {
+    // Assert that m is a service map.
+    assert(ServiceObject.isServiceMap(m));
+    if ((m['type'] == 'Error') && (_serviceType != 'Error')) {
+      // Got an unexpected error. Don't update the object.
+      return _upgradeToServiceObject(vm, isolate, m);
+    }
+    // TODO(johnmccutchan): Should we allow for a ServiceObject's id
+    // or type to change?
+    _id = m['id'];
+    _serviceType = stripRef(m['type']);
+    _update(m);
+    return this;
+  }
+
+  // update internal state from [map]. [map] can be a reference.
+  void _update(ObservableMap map);
+
+  /// Returns true if [this] has only been partially initialized via
+  /// a reference. See [load].
+  bool isRef() => _ref;
+
+  void _created() {
+    var refNotice = _ref ? ' Created from reference.' : '';
+    Logger.root.info('Created ServiceObject for \'${_id}\' with type '
+                     '\'${_serviceType}\'.' + refNotice);
+  }
+
+  /// Returns true if [map] is a service map. i.e. it has the following keys:
+  /// 'id' and a 'type'.
+  static bool isServiceMap(ObservableMap m) {
+    return (m != null) && (m['id'] != null) && (m['type'] != null);
+  }
+
+  /// Returns true if [type] is a reference type. i.e. it begins with an
+  /// '@' character.
+  static bool isRefType(String type) {
+    return type.startsWith('@');
+  }
+
+  /// Returns the unreffed version of [type].
+  static String stripRef(String type) {
+    if (!isRefType(type)) {
+      return type;
+    }
+    // Strip off the '@' character.
+    return type.substring(1);
+  }
+}
+
+/// State for a VM being inspected.
+abstract class VM extends Observable {
+  @reflectable IsolateList _isolates;
+  @reflectable IsolateList get isolates => _isolates;
+
+  void _initOnce() {
+    assert(_isolates == null);
+    _isolates = new IsolateList(this);
+  }
+
+  VM() {
+    _initOnce();
+  }
+
+  /// Get [id] as an [ObservableMap] from the service directly.
+  Future<ObservableMap> getAsMap(String id) {
+    return getString(id).then((response) {
+      try {
+        var map = JSON.decode(response);
+        Logger.root.info('Decoded $id');
+        return toObservable(map);
+      } catch (e, st) {
+        return toObservable({
+          'type': 'Error',
+          'id': '',
+          'kind': 'DecodeError',
+          'message': '$e',
+        });
+      }
+    }).catchError((error) {
+      return toObservable({
+        'type': 'Error',
+        'id': '',
+        'kind': 'LastResort',
+        'message': '$error'
+      });
+    });
+  }
+
+  /// Get [id] as a [String] from the service directly. See [getAsMap].
+  Future<String> getString(String id);
+}
+
 /// State for a running isolate.
 class Isolate extends ServiceObject {
   final VM vm;
@@ -61,11 +224,24 @@ class Isolate extends ServiceObject {
     }
     _codes._resetProfileData();
     _codes._updateProfileData(profile, codeTable);
+    var exclusiveTrie = profile['exclusive_trie'];
+    if (exclusiveTrie != null) {
+      profileTrieRoot = _processProfileTrie(exclusiveTrie, codeTable);
+    }
+  }
+
+  Future<ServiceObject> getDirect(String serviceId) {
+    return vm.getAsMap(relativeLink(serviceId)).then((ObservableMap m) {
+        return _upgradeToServiceObject(vm, this, m);
+    });
   }
 
   /// Requests [serviceId] from [this]. Completes to a [ServiceObject].
   /// Can return pre-existing, cached, [ServiceObject]s.
   Future<ServiceObject> get(String serviceId) {
+    if (serviceId == '') {
+      return reload();
+    }
     if (_scripts.cachesId(serviceId)) {
       return _scripts.get(serviceId);
     }
@@ -78,9 +254,7 @@ class Isolate extends ServiceObject {
     if (_functions.cachesId(serviceId)) {
       return _functions.get(serviceId);
     }
-    return vm.getAsMap(relativeLink(serviceId)).then((ObservableMap m) {
-      return _upgradeToServiceObject(vm, this, m);
-    });
+    return getDirect(serviceId);
   }
 
   @observable ServiceMap rootLib;
@@ -95,6 +269,8 @@ class Isolate extends ServiceObject {
 
   @observable int newHeapUsed = 0;
   @observable int oldHeapUsed = 0;
+  @observable int newHeapCapacity = 0;
+  @observable int oldHeapCapacity = 0;
 
   @observable String fileAndLine;
 
@@ -114,7 +290,7 @@ class Isolate extends ServiceObject {
       name = entry['name'];
     } else {
       // fred
-      name = 'root isolate';
+      name = 'root';
     }
     if (map['topFrame'] != null) {
       topFrame = map['topFrame'];
@@ -137,6 +313,53 @@ class Isolate extends ServiceObject {
 
     newHeapUsed = map['heap']['usedNew'];
     oldHeapUsed = map['heap']['usedOld'];
+    newHeapCapacity = map['heap']['capacityNew'];
+    oldHeapCapacity = map['heap']['capacityOld'];
+  }
+
+  @reflectable CodeTrieNode profileTrieRoot;
+  // The profile trie is serialized as a list of integers. Each node
+  // is recreated by consuming some portion of the list. The format is as
+  // follows:
+  // [0] index into codeTable of code object.
+  // [1] tick count (number of times this stack frame occured).
+  // [2] child node count
+  // Reading the trie is done by recursively reading the tree depth-first
+  // pre-order.
+  CodeTrieNode _processProfileTrie(List<int> data, List<Code> codeTable) {
+    // Setup state shared across calls to _readTrieNode.
+    _trieDataCursor = 0;
+    _trieData = data;
+    if (_trieData == null) {
+      return null;
+    }
+    if (_trieData.length < 3) {
+      // Not enough integers for 1 node.
+      return null;
+    }
+    // Read the tree, returns the root node.
+    return _readTrieNode(codeTable);
+  }
+  int _trieDataCursor;
+  List<int> _trieData;
+  CodeTrieNode _readTrieNode(List<Code> codeTable) {
+    // Read index into code table.
+    var index = _trieData[_trieDataCursor++];
+    // Lookup code object.
+    var code = codeTable[index];
+    // Frame counter.
+    var count = _trieData[_trieDataCursor++];
+    // Create node.
+    var node = new CodeTrieNode(code, count);
+    // Number of children.
+    var children = _trieData[_trieDataCursor++];
+    // Recursively read child nodes.
+    for (var i = 0; i < children; i++) {
+      var child = _readTrieNode(codeTable);
+      node.children.add(child);
+      node.summedChildCount += child.count;
+    }
+    return node;
   }
 }
 
@@ -446,6 +669,8 @@ class CodeKind {
       return Collected;
     } else if (s == 'Reused') {
       return Reused;
+    } else if (s == 'Tag') {
+      return Tag;
     }
     Logger.root.warning('Unknown code kind $s');
     throw new FallThroughError();
@@ -454,12 +679,21 @@ class CodeKind {
   static const Dart = const CodeKind._internal('Dart');
   static const Collected = const CodeKind._internal('Collected');
   static const Reused = const CodeKind._internal('Reused');
+  static const Tag = const CodeKind._internal('Tag');
 }
 
 class CodeCallCount {
   final Code code;
   final int count;
   CodeCallCount(this.code, this.count);
+}
+
+class CodeTrieNode {
+  final Code code;
+  final int count;
+  final children = new List<CodeTrieNode>();
+  int summedChildCount = 0;
+  CodeTrieNode(this.code, this.count);
 }
 
 class Code extends ServiceObject {
@@ -475,7 +709,7 @@ class Code extends ServiceObject {
   @reflectable final addressTicks = new ObservableMap<int, CodeTick>();
   @observable String formattedInclusiveTicks = '';
   @observable String formattedExclusiveTicks = '';
-
+  @observable ServiceMap objectPool;
   @observable ServiceMap function;
   String name;
   String vmName;
@@ -547,7 +781,7 @@ class Code extends ServiceObject {
         '($inclusiveTicks)';
     formattedExclusiveTicks =
         '${formatPercent(exclusiveTicks, totalSamplesInProfile)} '
-        '($inclusiveTicks)';
+        '($exclusiveTicks)';
   }
 
   void _update(ObservableMap m) {
@@ -559,8 +793,8 @@ class Code extends ServiceObject {
     kind = CodeKind.fromString(m['kind']);
     startAddress = int.parse(m['start'], radix:16);
     endAddress = int.parse(m['end'], radix:16);
-    // Upgrade the function.
-    function = _upgradeToServiceObject(isolate.vm, isolate, m['function']);
+    function = _upgradeToServiceObject(vm, isolate, m['function']);
+    objectPool = _upgradeToServiceObject(vm, isolate, m['object_pool']);
     var disassembly = m['disassembly'];
     if (disassembly != null) {
       _processDisassembly(disassembly);

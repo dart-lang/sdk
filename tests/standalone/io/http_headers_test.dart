@@ -325,6 +325,12 @@ void testContentType() {
   contentType = ContentType.parse(
       "  text/html  ;  charset  =  utf-8  ;  xxx=yyy  ");
   check(contentType, "text", "html", {"charset": "utf-8", "xxx": "yyy"});
+
+  // Test builtin content types.
+  check(ContentType.TEXT, "text", "plain", {"charset": "utf-8"});
+  check(ContentType.HTML, "text", "html", {"charset": "utf-8"});
+  check(ContentType.JSON, "application", "json", {"charset": "utf-8"});
+  check(ContentType.BINARY, "application", "octet-stream");
 }
 
 void testContentTypeCache() {
@@ -436,6 +442,9 @@ void testInvalidCookie() {
   Expect.throws(() => new _Cookie.fromSetCookieValue("xxx"));
   Expect.throws(() => new _Cookie.fromSetCookieValue(
       "xxx=yyy; expires=12 jan 2013"));
+  Expect.throws(() => new _Cookie.fromSetCookieValue("x x = y y"));
+  Expect.throws(() => new _Cookie("[4", "y"));
+  Expect.throws(() => new _Cookie("4", "y\""));
 
   _HttpHeaders headers = new _HttpHeaders("1.1");
   headers.set('Cookie',

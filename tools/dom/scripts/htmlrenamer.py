@@ -76,6 +76,8 @@ _removed_html_interfaces = [
   'DOMFileSystemSync', # Workers
   'DatabaseSync', # Workers
   'DataView', # Typed arrays
+  'DeprecatedStorageQuota',
+  'DeprecatedStorageInfo',
   'DirectoryEntrySync', # Workers
   'DirectoryReaderSync', # Workers
   'DocumentType',
@@ -99,6 +101,7 @@ _removed_html_interfaces = [
   'RGBColor',
   'RadioNodeList',  # Folded onto NodeList in dart2js.
   'Rect',
+  'ServiceWorker',
   'SQLTransactionSync', # Workers
   'SQLTransactionSyncCallback', # Workers
   'SVGAltGlyphDefElement', # Webkit only.
@@ -122,7 +125,6 @@ _removed_html_interfaces = [
   'SVGMissingGlyphElement',
   'SVGTRefElement',
   'SVGVKernElement',
-  'SharedWorker', # Workers
   'SubtleCrypto',
   'WebKitCSSFilterValue',
   'WebKitCSSMatrix',
@@ -358,7 +360,6 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'Window.webkitNotifications': 'notifications',
     'Window.webkitRequestFileSystem': '_requestFileSystem',
     'Window.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
-    'Element.webkitMatchesSelector' : 'matches',
     'Navigator.webkitGetUserMedia': '_getUserMedia',
     'Node.appendChild': 'append',
     'Node.cloneNode': 'clone',

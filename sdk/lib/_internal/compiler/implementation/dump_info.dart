@@ -378,7 +378,7 @@ class InfoDumpVisitor extends ElementVisitor<InfoNode> {
     }
     List contents = [];
     if (emittedCode != null) {
-      FunctionSignature signature = element.computeSignature(compiler);
+      FunctionSignature signature = element.functionSignature;
       signature.forEachParameter((parameter) {
         contents.add(new InferredInfoNode(
             description: "parameter",
@@ -412,7 +412,7 @@ class InfoDumpVisitor extends ElementVisitor<InfoNode> {
       return null;
     }
     return new ElementInfoNode(
-        type: element.type.toString(),
+        type: element.computeType(compiler).toString(),
         kind: kindString,
         name: nameString,
         size: size,

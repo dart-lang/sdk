@@ -20,8 +20,9 @@ abstract class BaseResponse {
   /// The reason phrase associated with the status code.
   final String reasonPhrase;
 
-  /// The size of the response body, in bytes. If the size of the request is not
-  /// known in advance, this is -1.
+  /// The size of the response body, in bytes.
+  ///
+  /// If the size of the request is not known in advance, this is `null`.
   final int contentLength;
 
   // TODO(nweiz): automatically parse cookies from headers
@@ -39,10 +40,16 @@ abstract class BaseResponse {
   /// Creates a new HTTP response.
   BaseResponse(
       this.statusCode,
-      this.contentLength,
-      {this.request,
+      {this.contentLength,
+       this.request,
        this.headers: const {},
        this.isRedirect: false,
        this.persistentConnection: true,
-       this.reasonPhrase});
+       this.reasonPhrase}) {
+    if (statusCode < 100) {
+      throw new ArgumentError("Invalid status code $statusCode.");
+    } else if (contentLength != null && contentLength < 0) {
+      throw new ArgumentError("Invalid content length $contentLength.");
+    }
+  }
 }

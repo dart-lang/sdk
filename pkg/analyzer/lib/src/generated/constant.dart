@@ -206,7 +206,7 @@ class EvaluationResult {
   /**
    * The value of the expression.
    */
-  final DartObject value;
+  DartObject value;
 
   /**
    * The errors that should be reported for the expression(s) that were evaluated.
@@ -220,7 +220,8 @@ class EvaluationResult {
    * @param value the value of the expression
    * @param errors the errors that should be reported for the expression(s) that were evaluated
    */
-  EvaluationResult(this.value, List<AnalysisError> errors) {
+  EvaluationResult(DartObject value, List<AnalysisError> errors) {
+    this.value = value;
     this._errors = errors;
   }
 
@@ -1126,12 +1127,12 @@ class ErrorResult_ErrorData {
   /**
    * The node against which the error should be reported.
    */
-  final AstNode node;
+  AstNode node;
 
   /**
    * The error code for the error to be generated.
    */
-  final ErrorCode errorCode;
+  ErrorCode errorCode;
 
   /**
    * Initialize a newly created data holder to represent the error with the given code reported
@@ -1140,7 +1141,10 @@ class ErrorResult_ErrorData {
    * @param node the node against which the error should be reported
    * @param errorCode the error code for the error to be generated
    */
-  ErrorResult_ErrorData(this.node, this.errorCode);
+  ErrorResult_ErrorData(AstNode node, ErrorCode errorCode) {
+    this.node = node;
+    this.errorCode = errorCode;
+  }
 }
 
 /**
@@ -1341,14 +1345,16 @@ class ValidResult extends EvaluationResultImpl {
   /**
    * The value of the expression.
    */
-  final DartObjectImpl value;
+  DartObjectImpl value;
 
   /**
    * Initialize a newly created result to represent the given value.
    *
    * @param value the value of the expression
    */
-  ValidResult(this.value);
+  ValidResult(DartObjectImpl value) {
+    this.value = value;
+  }
 
   @override
   EvaluationResultImpl add(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.addToValid(typeProvider, node, this);
@@ -1786,7 +1792,7 @@ class BoolState extends InstanceState {
   /**
    * The value of this instance.
    */
-  final bool value;
+  bool value = false;
 
   /**
    * An instance representing the boolean value 'false'.
@@ -1816,7 +1822,9 @@ class BoolState extends InstanceState {
    *
    * @param value the value of this instance
    */
-  BoolState(this.value);
+  BoolState(bool value) {
+    this.value = value;
+  }
 
   @override
   BoolState convertToBool() => this;
@@ -1907,7 +1915,7 @@ class DartObjectImpl implements DartObject {
   /**
    * The run-time type of this object.
    */
-  final InterfaceType type;
+  InterfaceType type;
 
   /**
    * The state of the object.
@@ -1920,7 +1928,8 @@ class DartObjectImpl implements DartObject {
    * @param type the run-time type of this object
    * @param state the state of the object
    */
-  DartObjectImpl(this.type, InstanceState state) {
+  DartObjectImpl(InterfaceType type, InstanceState state) {
+    this.type = type;
     this._state = state;
   }
 
@@ -2356,7 +2365,7 @@ class DoubleState extends NumState {
   /**
    * The value of this instance.
    */
-  final double value;
+  double value = 0.0;
 
   /**
    * A state that can be used to represent a double whose value is not known.
@@ -2368,7 +2377,9 @@ class DoubleState extends NumState {
    *
    * @param value the value of this instance
    */
-  DoubleState(this.value);
+  DoubleState(double value) {
+    this.value = value;
+  }
 
   @override
   NumState add(InstanceState rightOperand) {
@@ -2844,14 +2855,16 @@ class EvaluationException extends JavaException {
   /**
    * The error code associated with the exception.
    */
-  final ErrorCode errorCode;
+  ErrorCode errorCode;
 
   /**
    * Initialize a newly created exception to have the given error code.
    *
    * @param errorCode the error code associated with the exception
    */
-  EvaluationException(this.errorCode);
+  EvaluationException(ErrorCode errorCode) {
+    this.errorCode = errorCode;
+  }
 }
 
 /**
@@ -3387,7 +3400,7 @@ class IntState extends NumState {
   /**
    * The value of this instance.
    */
-  final int value;
+  int value = 0;
 
   /**
    * A state that can be used to represent an int whose value is not known.
@@ -3399,7 +3412,9 @@ class IntState extends NumState {
    *
    * @param value the value of this instance
    */
-  IntState(this.value);
+  IntState(int value) {
+    this.value = value;
+  }
 
   @override
   NumState add(InstanceState rightOperand) {
@@ -4171,7 +4186,7 @@ class StringState extends InstanceState {
   /**
    * The value of this instance.
    */
-  final String value;
+  String value;
 
   /**
    * A state that can be used to represent a double whose value is not known.
@@ -4183,7 +4198,9 @@ class StringState extends InstanceState {
    *
    * @param value the value of this instance
    */
-  StringState(this.value);
+  StringState(String value) {
+    this.value = value;
+  }
 
   @override
   StringState concatenate(InstanceState rightOperand) {
@@ -4250,14 +4267,16 @@ class SymbolState extends InstanceState {
   /**
    * The value of this instance.
    */
-  final String value;
+  String value;
 
   /**
    * Initialize a newly created state to represent the given value.
    *
    * @param value the value of this instance
    */
-  SymbolState(this.value);
+  SymbolState(String value) {
+    this.value = value;
+  }
 
   @override
   StringState convertToString() {

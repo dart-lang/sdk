@@ -7,16 +7,16 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
-import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
 
-const HOST_NAME = "localhost";
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
+
+InternetAddress HOST;
 const CERTIFICATE = "localhost_cert";
 Future<SecureServerSocket> startEchoServer() {
-  return SecureServerSocket.bind(HOST_NAME,
+  return SecureServerSocket.bind(HOST,
                                  0,
                                  CERTIFICATE).then((server) {
     server.listen((SecureSocket client) {
@@ -31,7 +31,7 @@ Future<SecureServerSocket> startEchoServer() {
 }
 
 Future testClient(server) {
-  return SecureSocket.connect(HOST_NAME, server.port).then((socket) {
+  return SecureSocket.connect(HOST, server.port).then((socket) {
     socket.write("Hello server.");
     socket.close();
     return socket.fold(<int>[], (message, data) => message..addAll(data))
@@ -43,13 +43,13 @@ Future testClient(server) {
 }
 
 void main() {
+  asyncStart();
   String certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
   SecureSocket.initialize(database: certificateDatabase,
                           password: 'dartdart');
-
-  startEchoServer()
+  InternetAddress.lookup("localhost").then((hosts) => HOST = hosts.first )
+      .then((_) => startEchoServer())
       .then(testClient)
-      .then((server) {
-        server.close();
-      });
+      .then((server) => server.close())
+      .then((_) => asyncEnd());
 }

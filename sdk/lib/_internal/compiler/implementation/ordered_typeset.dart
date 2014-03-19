@@ -121,7 +121,7 @@ class OrderedTypeSetBuilder {
   void add(Compiler compiler, InterfaceType type) {
     if (type.element == cls) {
       if (type.element != compiler.objectClass) {
-        allSupertypes.addLast(compiler.objectClass.computeType(compiler));
+        allSupertypes.addLast(compiler.objectClass.rawType);
       }
       _addAtDepth(compiler, type, maxDepth + 1);
     } else {
@@ -141,7 +141,7 @@ class OrderedTypeSetBuilder {
       if (existingType.element == type.element) {
         compiler.reportInternalError(cls,
             MessageKind.MULTI_INHERITANCE,
-            {'thisType': cls.computeType(compiler),
+            {'thisType': cls.thisType,
              'firstType': existingType,
              'secondType': type});
         return;

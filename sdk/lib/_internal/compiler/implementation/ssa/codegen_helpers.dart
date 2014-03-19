@@ -285,16 +285,66 @@ class SsaInstructionMerger extends HBaseVisitor {
         markAsGenerateAtUseSite(instruction);
         continue;
       }
-      if (instruction.isJsStatement()) {
-        expectedInputs.clear();
-      }
       if (instruction.isPure()) {
         if (pureInputs.contains(instruction)) {
           tryGenerateAtUseSite(instruction);
         } else {
           // If the input is not in the [pureInputs] set, it has not
-          // been visited.
+          // been visited or should not be generated at use-site. The most
+          // likely reason for the latter, is that the instruction is used
+          // in more than one location.
+          // We must either clear the expectedInputs, or move the pure
+          // instruction's inputs in front of the existing ones.
+          // Example:
+          //   t1 = foo();  // side-effect.
+          //   t2 = bar();  // side-effect.
+          //   t3 = pure(t2);    // used more than once.
+          //   f(t1, t3);   // expected inputs of 'f': t1.
+          //   use(t3);
+          //
+          // If we don't clear the expected inputs we end up in a situation
+          // where pure pushes "t2" on top of "t1" leading to:
+          //   t3 = pure(bar());
+          //   f(foo(), t3);
+          //   use(t3);
+          //
+          // If we clear the expected-inputs list we have the correct
+          // output:
+          //   t1 = foo();
+          //   t3 = pure(bar());
+          //   f(t1, t3);
+          //   use(t3);
+          //
+          // Clearing is, however, not optimal.
+          // Example:
+          //   t1 = foo();  // t1 is now used by `pure`.
+          //   t2 = bar();  // t2 is now used by `f`.
+          //   t3 = pure(t1);
+          //   f(t2, t3);
+          //   use(t3);
+          //
+          // If we clear the expected-inputs we can't generate-at-use any of
+          // the instructions.
+          //
+          // The optimal solution is to move the inputs of 'pure' in
+          // front of the expectedInputs list. This makes sense, since we
+          // push expected-inputs from left-to right, and the `pure` function
+          // invocation is "more left" (i.e. before) the first argument of `f`.
+          // With that approach we end up with:
+          //   t3 = pure(foo();
+          //   f(bar(), t3);
+          //   use(t3);
+          //
+          int oldLength = expectedInputs.length;
           instruction.accept(this);
+          if (oldLength != 0 && oldLength != expectedInputs.length) {
+            // Move the pure instruction's inputs to the front.
+            List<HInstruction> newInputs = expectedInputs.sublist(oldLength);
+            int newCount = newInputs.length;
+            expectedInputs.setRange(
+                newCount, newCount + oldLength, expectedInputs);
+            expectedInputs.setRange(0, newCount, newInputs);
+          }
         }
       } else {
         if (findInInputsAndPopNonMatching(instruction)) {

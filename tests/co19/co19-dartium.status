@@ -5,7 +5,7 @@
 [ $compiler == none && $runtime == drt ]
 *: Skip # running co19 tests on content_shell would make our dartium cycle-times very long
 
-[ $compiler == none && $runtime == dartium ]
+[ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Pass, Fail # Issue 13719: Please triage this failure.
 Language/14_Libraries_and_Scripts/3_Parts_A02_t02: Pass, Timeout # Issue 13719: Please triage this failure.
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: Pass # Issue 14478: This should break.
@@ -37,5 +37,5 @@ LibTest/isolate/Isolate/spawn_A01_t05: RuntimeError # co19-roll r667: Please tri
 
 LibTest/async/Timer/Timer_A01_t01: RuntimeError, Pass # Issue 16475
 
-[ $compiler == none && $runtime == dartium && $checked ]
+[ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid ) && $checked ]
 LibTest/core/List/removeAt_A02_t01: Fail # co19-roll r641: Please triage this failure

@@ -322,23 +322,27 @@ bool isWithin(String parent, String child) => _context.isWithin(parent, child);
 ///     withoutExtension('path/to/foo.dart'); // -> 'path/to/foo'
 String withoutExtension(String path) => _context.withoutExtension(path);
 
-/// Returns the path represented by [uri].
+/// Returns the path represented by [uri], which may be a [String] or a [Uri].
 ///
 /// For POSIX and Windows styles, [uri] must be a `file:` URI. For the URL
 /// style, this will just convert [uri] to a string.
 ///
 ///     // POSIX
-///     path.fromUri(Uri.parse('file:///path/to/foo'))
+///     context.fromUri('file:///path/to/foo')
 ///       // -> '/path/to/foo'
 ///
 ///     // Windows
-///     path.fromUri(Uri.parse('file:///C:/path/to/foo'))
+///     context.fromUri('file:///C:/path/to/foo')
 ///       // -> r'C:\path\to\foo'
 ///
 ///     // URL
-///     path.fromUri(Uri.parse('http://dartlang.org/path/to/foo'))
+///     context.fromUri('http://dartlang.org/path/to/foo')
 ///       // -> 'http://dartlang.org/path/to/foo'
-String fromUri(Uri uri) => _context.fromUri(uri);
+///
+/// If [uri] is relative, a relative path will be returned.
+///
+///     path.fromUri('path/to/foo'); // -> 'path/to/foo'
+String fromUri(uri) => _context.fromUri(uri);
 
 /// Returns the URI that represents [path].
 ///

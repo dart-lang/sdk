@@ -159,13 +159,15 @@
 
 <polymer-element name="isolate-nav-menu" extends="observatory-element">
   <template>
-    <nav-menu link="#" anchor="{{ isolate.name }}" last="{{ last }}">
+    <nav-menu link="{{ isolate.hashLink }}" anchor="{{ isolate.name }}" last="{{ last }}">
       <nav-menu-item link="{{ isolate.relativeHashLink('stacktrace') }}"
                      anchor="stack trace"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeHashLink('profile') }}"
                      anchor="cpu profile"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeHashLink('allocationprofile') }}"
                      anchor="heap profile"></nav-menu-item>
+      <nav-menu-item link="{{ isolate.relativeHashLink('heapmap') }}"
+                     anchor="heap map"></nav-menu-item>                     
       <nav-menu-item link="{{ isolate.relativeHashLink('debug/breakpoints') }}"
                      anchor="breakpoints"></nav-menu-item>
       <content></content>

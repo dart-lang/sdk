@@ -25,7 +25,7 @@ main() {
 
     // Upgrade everything.
     pubUpgrade(output: new RegExp(r"""
-Resolving dependencies\.+
+Resolving dependencies\.\.\..*
 ! overridden 1\.0\.0 \(overridden\)
 """, multiLine: true));
   });

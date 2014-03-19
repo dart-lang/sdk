@@ -49,9 +49,9 @@ static void RemoveFromKqueue(intptr_t kqueue_fd_, SocketData* sd) {
   static const intptr_t kMaxChanges = 2;
   struct kevent events[kMaxChanges];
   EV_SET(events, sd->fd(), EVFILT_READ, EV_DELETE, 0, 0, NULL);
-  VOID_TEMP_FAILURE_RETRY(kevent(kqueue_fd_, events, 1, NULL, 0, NULL));
+  VOID_NO_RETRY_EXPECTED(kevent(kqueue_fd_, events, 1, NULL, 0, NULL));
   EV_SET(events, sd->fd(), EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-  VOID_TEMP_FAILURE_RETRY(kevent(kqueue_fd_, events, 1, NULL, 0, NULL));
+  VOID_NO_RETRY_EXPECTED(kevent(kqueue_fd_, events, 1, NULL, 0, NULL));
   sd->set_tracked_by_kqueue(false);
 }
 
@@ -88,7 +88,7 @@ static void AddToKqueue(intptr_t kqueue_fd_, SocketData* sd) {
   ASSERT(changes > 0);
   ASSERT(changes <= kMaxChanges);
   int status =
-      TEMP_FAILURE_RETRY(kevent(kqueue_fd_, events, changes, NULL, 0, NULL));
+      NO_RETRY_EXPECTED(kevent(kqueue_fd_, events, changes, NULL, 0, NULL));
   if (status == -1) {
     // kQueue does not accept the file descriptor. It could be due to
     // already closed file descriptor, or unuspported devices, such
@@ -104,7 +104,7 @@ static void AddToKqueue(intptr_t kqueue_fd_, SocketData* sd) {
 EventHandlerImplementation::EventHandlerImplementation()
     : socket_map_(&HashMap::SamePointerValue, 16) {
   intptr_t result;
-  result = TEMP_FAILURE_RETRY(pipe(interrupt_fds_));
+  result = NO_RETRY_EXPECTED(pipe(interrupt_fds_));
   if (result != 0) {
     FATAL("Pipe creation failed");
   }
@@ -113,7 +113,7 @@ EventHandlerImplementation::EventHandlerImplementation()
   FDUtils::SetCloseOnExec(interrupt_fds_[1]);
   shutdown_ = false;
 
-  kqueue_fd_ = TEMP_FAILURE_RETRY(kqueue());
+  kqueue_fd_ = NO_RETRY_EXPECTED(kqueue());
   if (kqueue_fd_ == -1) {
     FATAL("Failed creating kqueue");
   }
@@ -121,7 +121,7 @@ EventHandlerImplementation::EventHandlerImplementation()
   // Register the interrupt_fd with the kqueue.
   struct kevent event;
   EV_SET(&event, interrupt_fds_[0], EVFILT_READ, EV_ADD, 0, 0, NULL);
-  int status = TEMP_FAILURE_RETRY(kevent(kqueue_fd_, &event, 1, NULL, 0, NULL));
+  int status = NO_RETRY_EXPECTED(kevent(kqueue_fd_, &event, 1, NULL, 0, NULL));
   if (status == -1) {
     const int kBufferSize = 1024;
     char error_message[kBufferSize];

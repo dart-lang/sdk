@@ -18,7 +18,7 @@ main() {
         error: '''
             Build directory names are not allowed if "--all" is passed.
 
-            Usage: pub build [options]
+            Usage: pub build [options] [directories...]
             -h, --help      Print usage information for this command.
                 --format    How output should be displayed.
                             [text (default), json]

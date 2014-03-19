@@ -1,9 +1,15 @@
 <head>
+<link rel="import" href="class_ref.html">
 <link rel="import" href="service_ref.html">
 </head>
 <polymer-element name="function-ref" extends="service-ref">
-<template>
-  <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
-</template>
+  <template><!-- These comments are here to allow newlines.
+     --><template if="{{ qualified && !hasParent && hasClass }}"><!--
+       --><class-ref ref="{{ ref['class'] }}"></class-ref>.</template><!--
+     --><template if="{{ qualified && hasParent }}"><!--
+       --><function-ref ref="{{ ref['parent'] }}" qualified="{{ true }}">
+          </function-ref>.<!--
+     --></template><a href="{{ url }}">{{ name }}</a><!--
+  --></template>
 <script type="application/dart" src="function_ref.dart"></script>
 </polymer-element>

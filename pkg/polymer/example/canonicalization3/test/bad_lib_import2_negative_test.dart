@@ -9,11 +9,11 @@ import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'package:polymer/polymer.dart';
 
-import 'package:canonicalization/a.dart';
-import 'packages/canonicalization/b.dart';
-import 'package:canonicalization/c.dart';
-import 'package:canonicalization/d.dart' as d1;
-import 'packages/canonicalization/d.dart' as d2;
+import 'package:canonicalization3/a.dart';
+import 'packages/canonicalization3/b.dart';
+import 'package:canonicalization3/c.dart';
+import 'package:canonicalization3/d.dart' as d1;
+import 'packages/canonicalization3/d.dart' as d2;
 
 main() {
   initPolymer();

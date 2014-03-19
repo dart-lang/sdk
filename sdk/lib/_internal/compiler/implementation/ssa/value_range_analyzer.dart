@@ -135,7 +135,7 @@ class IntValue extends Value {
     ConstantSystem constantSystem = info.constantSystem;
     var constant = constantSystem.add.fold(
         constantSystem.createInt(value), constantSystem.createInt(other.value));
-    if (!constant.isInt()) return const UnknownValue();
+    if (!constant.isInt) return const UnknownValue();
     return info.newIntValue(constant.value);
   }
 
@@ -145,7 +145,7 @@ class IntValue extends Value {
     ConstantSystem constantSystem = info.constantSystem;
     var constant = constantSystem.subtract.fold(
         constantSystem.createInt(value), constantSystem.createInt(other.value));
-    if (!constant.isInt()) return const UnknownValue();
+    if (!constant.isInt) return const UnknownValue();
     return info.newIntValue(constant.value);
   }
 
@@ -154,7 +154,7 @@ class IntValue extends Value {
     ConstantSystem constantSystem = info.constantSystem;
     var constant = constantSystem.negate.fold(
         constantSystem.createInt(value));
-    if (!constant.isInt()) return const UnknownValue();
+    if (!constant.isInt) return const UnknownValue();
     return info.newIntValue(constant.value);
   }
 
@@ -670,7 +670,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   Range visitConstant(HConstant constant) {
     if (!constant.isInteger(compiler)) return info.newUnboundRange();
     NumConstant constantNum = constant.constant;
-    if (constantNum.isMinusZero()) constantNum = new IntConstant(0);
+    if (constantNum.isMinusZero) constantNum = new IntConstant(0);
     Value value = info.newIntValue(constantNum.value);
     return info.newNormalizedRange(value, value);
   }

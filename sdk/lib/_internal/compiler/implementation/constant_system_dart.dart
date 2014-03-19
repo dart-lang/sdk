@@ -10,7 +10,7 @@ class BitNotOperation implements UnaryOperation {
   final String name = '~';
   const BitNotOperation();
   Constant fold(Constant constant) {
-    if (constant.isInt()) {
+    if (constant.isInt) {
       IntConstant intConstant = constant;
       return DART_CONSTANT_SYSTEM.createInt(~intConstant.value);
     }
@@ -22,11 +22,11 @@ class NegateOperation implements UnaryOperation {
   final String name = 'negate';
   const NegateOperation();
   Constant fold(Constant constant) {
-    if (constant.isInt()) {
+    if (constant.isInt) {
       IntConstant intConstant = constant;
       return DART_CONSTANT_SYSTEM.createInt(-intConstant.value);
     }
-    if (constant.isDouble()) {
+    if (constant.isDouble) {
       DoubleConstant doubleConstant = constant;
       return DART_CONSTANT_SYSTEM.createDouble(-doubleConstant.value);
     }
@@ -38,7 +38,7 @@ class NotOperation implements UnaryOperation {
   final String name = '!';
   const NotOperation();
   Constant fold(Constant constant) {
-    if (constant.isBool()) {
+    if (constant.isBool) {
       BoolConstant boolConstant = constant;
       return DART_CONSTANT_SYSTEM.createBool(!boolConstant.value);
     }
@@ -52,7 +52,7 @@ class NotOperation implements UnaryOperation {
 abstract class BinaryBitOperation implements BinaryOperation {
   const BinaryBitOperation();
   Constant fold(Constant left, Constant right) {
-    if (left.isInt() && right.isInt()) {
+    if (left.isInt && right.isInt) {
       IntConstant leftInt = left;
       IntConstant rightInt = right;
       int resultValue = foldInts(leftInt.value, rightInt.value);
@@ -111,7 +111,7 @@ class ShiftRightOperation extends BinaryBitOperation {
 abstract class BinaryBoolOperation implements BinaryOperation {
   const BinaryBoolOperation();
   Constant fold(Constant left, Constant right) {
-    if (left.isBool() && right.isBool()) {
+    if (left.isBool && right.isBool) {
       BoolConstant leftBool = left;
       BoolConstant rightBool = right;
       bool resultValue = foldBools(leftBool.value, rightBool.value);
@@ -140,18 +140,18 @@ class BooleanOrOperation extends BinaryBoolOperation {
 abstract class ArithmeticNumOperation implements BinaryOperation {
   const ArithmeticNumOperation();
   Constant fold(Constant left, Constant right) {
-    if (left.isNum() && right.isNum()) {
+    if (left.isNum && right.isNum) {
       NumConstant leftNum = left;
       NumConstant rightNum = right;
       num foldedValue;
-      if (left.isInt() && right.isInt()) {
+      if (left.isInt && right.isInt) {
         foldedValue = foldInts(leftNum.value, rightNum.value);
       } else {
         foldedValue = foldNums(leftNum.value, rightNum.value);
       }
       // A division by 0 means that we might not have a folded value.
       if (foldedValue == null) return null;
-      if (left.isInt() && right.isInt() && !isDivide() ||
+      if (left.isInt && right.isInt && !isDivide() ||
           isTruncatingDivide()) {
         assert(foldedValue is int);
         return DART_CONSTANT_SYSTEM.createInt(foldedValue);
@@ -221,12 +221,12 @@ class AddOperation implements BinaryOperation {
   final String name = '+';
   const AddOperation();
   Constant fold(Constant left, Constant right) {
-    if (left.isInt() && right.isInt()) {
+    if (left.isInt && right.isInt) {
       IntConstant leftInt = left;
       IntConstant rightInt = right;
       int result = leftInt.value + rightInt.value;
       return DART_CONSTANT_SYSTEM.createInt(result);
-    } else if (left.isNum() && right.isNum()) {
+    } else if (left.isNum && right.isNum) {
       NumConstant leftNum = left;
       NumConstant rightNum = right;
       double result = leftNum.value + rightNum.value;
@@ -241,7 +241,7 @@ class AddOperation implements BinaryOperation {
 abstract class RelationalNumOperation implements BinaryOperation {
   const RelationalNumOperation();
   Constant fold(Constant left, Constant right) {
-    if (!left.isNum() || !right.isNum()) return null;
+    if (!left.isNum || !right.isNum) return null;
     NumConstant leftNum = left;
     NumConstant rightNum = right;
     bool foldedValue = foldNums(leftNum.value, rightNum.value);
@@ -284,7 +284,7 @@ class EqualsOperation implements BinaryOperation {
   final String name = '==';
   const EqualsOperation();
   Constant fold(Constant left, Constant right) {
-    if (left.isNum() && right.isNum()) {
+    if (left.isNum && right.isNum) {
       // Numbers need to be treated specially because: NaN != NaN, -0.0 == 0.0,
       // and 1 == 1.0.
       NumConstant leftNum = left;
@@ -292,7 +292,7 @@ class EqualsOperation implements BinaryOperation {
       bool result = leftNum.value == rightNum.value;
       return DART_CONSTANT_SYSTEM.createBool(result);
     }
-    if (left.isConstructedObject()) {
+    if (left.isConstructedObject) {
       // Unless we know that the user-defined object does not implement the
       // equality operator we cannot fold here.
       return null;
@@ -309,7 +309,7 @@ class IdentityOperation implements BinaryOperation {
     // In order to preserve runtime semantics which says that NaN !== NaN don't
     // constant fold NaN === NaN. Otherwise the output depends on inlined
     // variables and other optimizations.
-    if (left.isNaN() && right.isNaN()) return null;
+    if (left.isNaN && right.isNaN) return null;
     return DART_CONSTANT_SYSTEM.createBool(left == right);
   }
   apply(left, right) => identical(left, right);
@@ -353,11 +353,11 @@ class DartConstantSystem extends ConstantSystem {
   BoolConstant createBool(bool value) => new BoolConstant(value);
   NullConstant createNull() => new NullConstant();
 
-  bool isInt(Constant constant) => constant.isInt();
-  bool isDouble(Constant constant) => constant.isDouble();
-  bool isString(Constant constant) => constant.isString();
-  bool isBool(Constant constant) => constant.isBool();
-  bool isNull(Constant constant) => constant.isNull();
+  bool isInt(Constant constant) => constant.isInt;
+  bool isDouble(Constant constant) => constant.isDouble;
+  bool isString(Constant constant) => constant.isString;
+  bool isBool(Constant constant) => constant.isBool;
+  bool isNull(Constant constant) => constant.isNull;
 
   bool isSubtype(Compiler compiler, DartType s, DartType t) {
     return compiler.types.isSubtype(s, t);

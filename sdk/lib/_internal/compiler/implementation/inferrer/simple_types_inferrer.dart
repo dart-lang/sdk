@@ -470,7 +470,7 @@ class SimpleTypeInferrerVisitor<T>
     }
 
     FunctionElement function = analyzedElement;
-    FunctionSignature signature = function.computeSignature(compiler);
+    FunctionSignature signature = function.functionSignature;
     signature.forEachOptionalParameter((element) {
       ast.Expression defaultValue = element.initializer;
       T type = (defaultValue == null) ? types.nullType : visit(defaultValue);
@@ -947,7 +947,7 @@ class SimpleTypeInferrerVisitor<T>
                && compiler.world.fieldNeverChanges(element)) {
       var constant =
           compiler.constantHandler.getConstantForVariable(element);
-      if (constant != null && constant.isInt()) {
+      if (constant != null && constant.isInt) {
         return constant.value;
       }
     }
@@ -1180,8 +1180,8 @@ class SimpleTypeInferrerVisitor<T>
   T synthesizeForwardingCall(Spannable node, FunctionElement element) {
     element = element.implementation;
     FunctionElement function = analyzedElement;
-    FunctionSignature signature = function.computeSignature(compiler);
-    FunctionSignature calleeSignature = element.computeSignature(compiler);
+    FunctionSignature signature = function.functionSignature;
+    FunctionSignature calleeSignature = element.functionSignature;
     if (!calleeSignature.isCompatibleWith(signature)) {
       return types.nonNullEmpty();
     }

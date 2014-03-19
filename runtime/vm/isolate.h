@@ -142,12 +142,6 @@ class Isolate : public BaseIsolate {
 
   int64_t start_time() const { return start_time_; }
 
-  // Creates the pin port (responsible for stopping the isolate from being
-  // destroyed).
-  void CreatePinPort();
-  // Closes pin port.
-  void ClosePinPort();
-
   Dart_Port main_port() { return main_port_; }
   void set_main_port(Dart_Port port) {
     ASSERT(main_port_ == 0);  // Only set main port once.
@@ -174,6 +168,10 @@ class Isolate : public BaseIsolate {
   void set_top_exit_frame_info(uword value) { top_exit_frame_info_ = value; }
   static intptr_t top_exit_frame_info_offset() {
     return OFFSET_OF(Isolate, top_exit_frame_info_);
+  }
+
+  static intptr_t vm_tag_offset() {
+    return OFFSET_OF(Isolate, vm_tag_);
   }
 
   ApiState* api_state() const { return api_state_; }
@@ -482,7 +480,6 @@ class Isolate : public BaseIsolate {
   Dart_MessageNotifyCallback message_notify_callback_;
   char* name_;
   int64_t start_time_;
-  Dart_Port pin_port_;
   Dart_Port main_port_;
   Heap* heap_;
   ObjectStore* object_store_;

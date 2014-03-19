@@ -10,6 +10,7 @@ import 'dart:convert';
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:barback/barback.dart';
+import 'package:code_transformers/assets.dart';
 import 'package:path/path.dart' as path;
 import 'package:html5lib/dom.dart' show
     Document, DocumentFragment, Element, Node;
@@ -80,8 +81,8 @@ class _HtmlInliner extends PolymerTransformer {
 
       // Note: URL has already been normalized so use docId.
       var href = tag.attributes['href'];
-      var id = resolve(docId, href, transform.logger, tag.sourceSpan,
-          allowAbsolute: rel == 'stylesheet');
+      var id = uriToAssetId(docId, href, transform.logger, tag.sourceSpan,
+          errorOnAbsolute: rel != 'stylesheet');
 
       if (rel == 'import') {
         changed = true;
@@ -162,7 +163,7 @@ class _HtmlInliner extends PolymerTransformer {
       if (script.attributes['type'] == TYPE_DART) {
         script.remove();
         var src = script.attributes['src'];
-        scriptIds.add(resolve(docId, src, logger, script.sourceSpan));
+        scriptIds.add(uriToAssetId(docId, src, logger, script.sourceSpan));
 
         // only the first script needs to be added.
         // others are already removed by _extractScripts
@@ -318,8 +319,8 @@ class _UrlNormalizer extends TreeVisitor {
         var uri = directive.uri.stringValue;
         var span = _getSpan(file, directive.uri);
 
-        var id = resolve(sourceId, uri, transform.logger, span,
-            allowAbsolute: true);
+        var id = uriToAssetId(sourceId, uri, transform.logger, span,
+            errorOnAbsolute: false);
         if (id == null) continue;
 
         var primaryId = transform.primaryInput.id;
@@ -345,7 +346,7 @@ class _UrlNormalizer extends TreeVisitor {
     if (uri.path.isEmpty) return href;  // Implies standalone ? or # in URI.
     if (path.isAbsolute(href)) return href;
 
-    var id = resolve(sourceId, href, transform.logger, span);
+    var id = uriToAssetId(sourceId, href, transform.logger, span);
     if (id == null) return href;
     var primaryId = transform.primaryInput.id;
 

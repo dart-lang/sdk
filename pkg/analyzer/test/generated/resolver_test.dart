@@ -23527,9 +23527,11 @@ class ScopeTest_TestScope extends Scope {
   /**
    * The listener that is to be informed when an error is encountered.
    */
-  final AnalysisErrorListener errorListener;
+  AnalysisErrorListener errorListener;
 
-  ScopeTest_TestScope(this.errorListener);
+  ScopeTest_TestScope(AnalysisErrorListener errorListener) {
+    this.errorListener = errorListener;
+  }
 
   @override
   Element internalLookup(Identifier identifier, String name, LibraryElement referencingLibrary) => localLookup(name, referencingLibrary);

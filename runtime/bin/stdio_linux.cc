@@ -11,14 +11,15 @@
 
 #include "bin/stdio.h"
 #include "bin/fdutils.h"
-#include "bin/signal_blocker.h"
+
+#include "platform/signal_blocker.h"
 
 
 namespace dart {
 namespace bin {
 
 int Stdin::ReadByte() {
-  int c = getchar();
+  int c = NO_RETRY_EXPECTED(getchar());
   if (c == EOF) {
     c = -1;
   }
@@ -28,46 +29,45 @@ int Stdin::ReadByte() {
 
 bool Stdin::GetEchoMode() {
   struct termios term;
-  tcgetattr(STDIN_FILENO, &term);
+  VOID_NO_RETRY_EXPECTED(tcgetattr(STDIN_FILENO, &term));
   return (term.c_lflag & ECHO) != 0;
 }
 
 
 void Stdin::SetEchoMode(bool enabled) {
   struct termios term;
-  tcgetattr(STDIN_FILENO, &term);
+  VOID_NO_RETRY_EXPECTED(tcgetattr(STDIN_FILENO, &term));
   if (enabled) {
     term.c_lflag |= ECHO|ECHONL;
   } else {
     term.c_lflag &= ~(ECHO|ECHONL);
   }
-  tcsetattr(STDIN_FILENO, TCSANOW, &term);
+  VOID_NO_RETRY_EXPECTED(tcsetattr(STDIN_FILENO, TCSANOW, &term));
 }
 
 
 bool Stdin::GetLineMode() {
   struct termios term;
-  tcgetattr(STDIN_FILENO, &term);
+  VOID_NO_RETRY_EXPECTED(tcgetattr(STDIN_FILENO, &term));
   return (term.c_lflag & ICANON) != 0;
 }
 
 
 void Stdin::SetLineMode(bool enabled) {
   struct termios term;
-  tcgetattr(STDIN_FILENO, &term);
+  VOID_NO_RETRY_EXPECTED(tcgetattr(STDIN_FILENO, &term));
   if (enabled) {
     term.c_lflag |= ICANON;
   } else {
     term.c_lflag &= ~(ICANON);
   }
-  tcsetattr(STDIN_FILENO, TCSANOW, &term);
+  VOID_NO_RETRY_EXPECTED(tcsetattr(STDIN_FILENO, TCSANOW, &term));
 }
 
 
 bool Stdout::GetTerminalSize(int size[2]) {
   struct winsize w;
-  if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
-        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) &&
+  if (NO_RETRY_EXPECTED(ioctl(STDOUT_FILENO, TIOCGWINSZ, &w)) == 0 &&
       (w.ws_col != 0 || w.ws_row != 0)) {
     size[0] = w.ws_col;
     size[1] = w.ws_row;

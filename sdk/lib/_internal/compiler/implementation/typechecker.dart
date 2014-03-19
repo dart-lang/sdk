@@ -156,8 +156,7 @@ class TypeLiteralAccess extends ElementAccess {
     assert(element != null);
   }
 
-  DartType computeType(Compiler compiler) =>
-      compiler.typeClass.computeType(compiler);
+  DartType computeType(Compiler compiler) => compiler.typeClass.rawType;
 
   String toString() => 'TypeLiteralAccess($element)';
 }
@@ -297,7 +296,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   DartType getKnownType(VariableElement element) {
     TypePromotion typePromotion = getKnownTypePromotion(element);
     if (typePromotion != null) return typePromotion.type;
-    return element.computeType(compiler);
+    return element.type;
   }
 
   TypeCheckerVisitor(this.compiler, TreeElements elements, this.types)
@@ -312,7 +311,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     listType = compiler.listClass.computeType(compiler);
 
     if (currentClass != null) {
-      thisType = currentClass.computeType(compiler);
+      thisType = currentClass.thisType;
       superType = currentClass.supertype;
     }
   }
@@ -569,11 +568,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       type = types.dynamicType;
       returnType = types.voidType;
 
-      element.functionSignature.forEachParameter((Element parameter) {
+      element.functionSignature.forEachParameter((ParameterElement parameter) {
         if (parameter.isFieldParameter()) {
           FieldParameterElement fieldParameter = parameter;
-          checkAssignable(parameter,
-              parameter.computeType(compiler),
+          checkAssignable(parameter, parameter.type,
               fieldParameter.fieldElement.computeType(compiler));
         }
       });
@@ -1459,7 +1457,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   DartType visitLiteralSymbol(LiteralSymbol node) {
-    return compiler.symbolClass.computeType(compiler);
+    return compiler.symbolClass.rawType;
   }
 
   DartType computeConstructorType(Element constructor, DartType type) {

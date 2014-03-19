@@ -343,13 +343,11 @@ class Dart2JsMirrorSystem extends MirrorSystem {
     return null;
   }
 
-  DeclarationMirror _getTypeDeclarationMirror(Element element) {
+  DeclarationMirror _getTypeDeclarationMirror(TypeDeclarationElement element) {
     if (element.isClass()) {
-      return new Dart2JsClassDeclarationMirror(
-          this, element.computeType(compiler));
+      return new Dart2JsClassDeclarationMirror(this, element.thisType);
     } else if (element.isTypedef()) {
-      return new Dart2JsTypedefDeclarationMirror(this,
-          element.computeType(compiler));
+      return new Dart2JsTypedefDeclarationMirror(this, element.thisType);
     }
     compiler.internalError("Unexpected element $element");
     return null;
@@ -395,15 +393,16 @@ abstract class ContainerMixin {
 DeclarationMirror _convertElementToDeclarationMirror(Dart2JsMirrorSystem system,
                                                      Element element) {
   if (element.isTypeVariable()) {
-    return new Dart2JsTypeVariableMirror(
-        system, element.computeType(system.compiler));
+    TypeVariableElement typeVariable = element;
+    return new Dart2JsTypeVariableMirror(system, typeVariable.type);
   }
 
   Dart2JsLibraryMirror library = system._libraryMap[element.getLibrary()];
   if (element.isLibrary()) return library;
   if (element.isTypedef()) {
+    TypedefElement typedefElement = element;
     return new Dart2JsTypedefMirror.fromLibrary(
-        library, element.computeType(system.compiler));
+        library, typedefElement.thisType);
   }
 
   Dart2JsDeclarationMirror container = library;

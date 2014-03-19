@@ -194,7 +194,7 @@ class Selector {
         return new Selector.indexSet();
       }
       FunctionSignature signature =
-          element.asFunctionElement().computeSignature(compiler);
+          element.asFunctionElement().functionSignature;
       int arity = signature.parameterCount;
       List<String> namedArguments = null;
       if (signature.optionalParametersAreNamed) {
@@ -407,7 +407,7 @@ class Selector {
     assert(invariant(element, element.isImplementation));
     if (!this.applies(element, compiler)) return false;
 
-    FunctionSignature parameters = element.computeSignature(compiler);
+    FunctionSignature parameters = element.functionSignature;
     parameters.forEachRequiredParameter((element) {
       list.add(compileArgument(arguments.head));
       arguments = arguments.tail;
@@ -465,7 +465,7 @@ class Selector {
       compileConstant(Element element),
       Compiler compiler) {
 
-    FunctionSignature signature = caller.computeSignature(compiler);
+    FunctionSignature signature = caller.functionSignature;
     Map mapping = new Map();
 
     // TODO(ngeoffray): This is a hack that fakes up AST nodes, so

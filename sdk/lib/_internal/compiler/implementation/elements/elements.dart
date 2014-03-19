@@ -186,8 +186,7 @@ abstract class Element implements Spannable {
 
   /// Do not use [computeType] outside of the resolver; instead retrieve the
   /// type from the corresponding field:
-  /// - `variables.type` for fields and variables.
-  /// - `type` for function elements.
+  /// - `type` for fields, variables, type variable, and function elements.
   /// - `thisType` or `rawType` for [TypeDeclarationElement]s (classes and
   ///    typedefs), depending on the use case.
   /// Trying to access a type that has not been computed in resolution is an
@@ -278,6 +277,8 @@ abstract class Element implements Spannable {
   FunctionElement get targetConstructor;
 
   void diagnose(Element context, DiagnosticListener listener);
+
+  TreeElements get treeElements;
 
   accept(ElementVisitor visitor);
 }
@@ -765,7 +766,7 @@ abstract class TypedefElement extends Element
   void checkCyclicReference(Compiler compiler);
 }
 
-abstract class VariableElement extends Element {
+abstract class VariableElement extends Element implements TypedElement {
   Expression get initializer;
 }
 
@@ -814,7 +815,8 @@ abstract class FunctionSignature {
   bool isCompatibleWith(FunctionSignature constructorSignature);
 }
 
-abstract class FunctionElement extends Element implements ClosureContainer {
+abstract class FunctionElement extends Element
+    implements TypedElement, ClosureContainer {
   FunctionExpression get cachedNode;
   DartType get type;
   FunctionSignature get functionSignature;
@@ -838,10 +840,13 @@ abstract class FunctionElement extends Element implements ClosureContainer {
   void set defaultImplementation(FunctionElement value);
 
   void setPatch(FunctionElement patchElement);
-  FunctionSignature computeSignature(Compiler compiler);
-  int requiredParameterCount(Compiler compiler);
-  int optionalParameterCount(Compiler compiler);
-  int parameterCount(Compiler compiler);
+
+  /// Do not use [computeSignature] outside of the resolver; instead retrieve
+  /// the signature through the [functionSignature] field.
+  /// Trying to access a function signature that has not been computed in
+  /// resolution is an error and calling [computeSignature] covers that error.
+  /// This method will go away!
+  @deprecated FunctionSignature computeSignature(Compiler compiler);
 
   FunctionExpression parseNode(DiagnosticListener listener);
 }
@@ -902,7 +907,6 @@ abstract class ClassElement extends TypeDeclarationElement
   bool get hasLocalScopeMembers;
 
   // TODO(kasperl): These are bit fishy. Do we really need them?
-  void set thisType(InterfaceType value);
   void set supertype(DartType value);
   void set interfaces(Link<DartType> value);
   void set patch(ClassElement value);
@@ -927,7 +931,7 @@ abstract class ClassElement extends TypeDeclarationElement
   /// Returns `true` if the class hierarchy for this class contains errors.
   bool get hasIncompleteHierarchy;
 
-  ClassElement ensureResolved(Compiler compiler);
+  void ensureResolved(Compiler compiler);
 
   void addMember(Element element, DiagnosticListener listener);
   void addToScope(Element element, DiagnosticListener listener);
@@ -1023,13 +1027,14 @@ abstract class TargetElement extends Element {
   LabelElement addLabel(Label label, String labelName);
 }
 
-abstract class TypeVariableElement extends Element {
+/// The [Element] for a type variable declaration on a generic class or typedef.
+abstract class TypeVariableElement extends Element implements TypedElement {
+  /// The [type] defined by the type variable.
   TypeVariableType get type;
-  DartType get bound;
 
-  // TODO(kasperl): Try to get rid of these.
-  void set type(TypeVariableType value);
-  void set bound(DartType value);
+  /// The upper bound on the type variable. If not explicitly declared, this is
+  /// `Object`.
+  DartType get bound;
 }
 
 abstract class MetadataAnnotation implements Spannable {
@@ -1047,6 +1052,11 @@ abstract class MetadataAnnotation implements Spannable {
 }
 
 abstract class VoidElement extends Element {}
+
+/// An [Element] that has a type.
+abstract class TypedElement extends Element {
+  DartType get type;
+}
 
 /// A [MemberSignature] is a member of an interface.
 ///

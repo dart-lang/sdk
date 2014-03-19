@@ -590,27 +590,35 @@ main() {
     expect(context.withoutExtension(r'a\b.c\'), r'a\b\');
   });
 
-  test('fromUri', () {
-    expect(context.fromUri(Uri.parse('file:///C:/path/to/foo')),
-        r'C:\path\to\foo');
-    expect(context.fromUri(Uri.parse('file://server/share/path/to/foo')),
-        r'\\server\share\path\to\foo');
-    expect(context.fromUri(Uri.parse('file:///C:/')), r'C:\');
-    expect(context.fromUri(Uri.parse('file://server/share')),
-        r'\\server\share');
-    expect(context.fromUri(Uri.parse('foo/bar')), r'foo\bar');
-    expect(context.fromUri(Uri.parse('/C:/path/to/foo')), r'C:\path\to\foo');
-    expect(context.fromUri(Uri.parse('///C:/path/to/foo')), r'C:\path\to\foo');
-    expect(context.fromUri(Uri.parse('//server/share/path/to/foo')),
-        r'\\server\share\path\to\foo');
-    expect(context.fromUri(Uri.parse('file:///C:/path/to/foo%23bar')),
-        r'C:\path\to\foo#bar');
-    expect(context.fromUri(Uri.parse('file://server/share/path/to/foo%23bar')),
-        r'\\server\share\path\to\foo#bar');
-    expect(context.fromUri(Uri.parse('_%7B_%7D_%60_%5E_%20_%22_%25_')),
-        r'_{_}_`_^_ _"_%_');
-    expect(() => context.fromUri(Uri.parse('http://dartlang.org')),
-        throwsArgumentError);
+  group('fromUri', () {
+    test('with a URI', () {
+      expect(context.fromUri(Uri.parse('file:///C:/path/to/foo')),
+          r'C:\path\to\foo');
+      expect(context.fromUri(Uri.parse('file://server/share/path/to/foo')),
+          r'\\server\share\path\to\foo');
+      expect(context.fromUri(Uri.parse('file:///C:/')), r'C:\');
+      expect(context.fromUri(Uri.parse('file://server/share')),
+          r'\\server\share');
+      expect(context.fromUri(Uri.parse('foo/bar')), r'foo\bar');
+      expect(context.fromUri(Uri.parse('/C:/path/to/foo')), r'C:\path\to\foo');
+      expect(context.fromUri(Uri.parse('///C:/path/to/foo')),
+          r'C:\path\to\foo');
+      expect(context.fromUri(Uri.parse('//server/share/path/to/foo')),
+          r'\\server\share\path\to\foo');
+      expect(context.fromUri(Uri.parse('file:///C:/path/to/foo%23bar')),
+          r'C:\path\to\foo#bar');
+      expect(context.fromUri(
+          Uri.parse('file://server/share/path/to/foo%23bar')),
+          r'\\server\share\path\to\foo#bar');
+      expect(context.fromUri(Uri.parse('_%7B_%7D_%60_%5E_%20_%22_%25_')),
+          r'_{_}_`_^_ _"_%_');
+      expect(() => context.fromUri(Uri.parse('http://dartlang.org')),
+          throwsArgumentError);
+    });
+
+    test('with a string', () {
+      expect(context.fromUri('file:///C:/path/to/foo'), r'C:\path\to\foo');
+    });
   });
 
   test('toUri', () {

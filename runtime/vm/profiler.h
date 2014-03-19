@@ -8,6 +8,7 @@
 #include "vm/allocation.h"
 #include "vm/code_observers.h"
 #include "vm/globals.h"
+#include "vm/tags.h"
 #include "vm/thread.h"
 #include "vm/thread_interrupter.h"
 
@@ -37,7 +38,7 @@ class Profiler : public AllStatic {
   static void EndExecution(Isolate* isolate);
 
   static void PrintToJSONStream(Isolate* isolate, JSONStream* stream,
-                                bool full);
+                                bool full, bool use_tags);
   static void WriteProfile(Isolate* isolate);
 
   static SampleBuffer* sample_buffer() {
@@ -109,6 +110,7 @@ class Sample {
     timestamp_ = timestamp;
     tid_ = tid;
     isolate_ = isolate;
+    vm_tag_ = VMTag::kInvalidTagId;
     for (intptr_t i = 0; i < kSampleFramesSize; i++) {
       pcs_[i] = 0;
     }
@@ -138,10 +140,19 @@ class Sample {
     pcs_[i] = pc;
   }
 
+  uword vm_tag() const {
+    return vm_tag_;
+  }
+  void set_vm_tag(uword tag) {
+    ASSERT(tag != VMTag::kInvalidTagId);
+    vm_tag_ = tag;
+  }
+
  private:
   int64_t timestamp_;
   ThreadId tid_;
   Isolate* isolate_;
+  uword vm_tag_;
   uword pcs_[kSampleFramesSize];
 };
 

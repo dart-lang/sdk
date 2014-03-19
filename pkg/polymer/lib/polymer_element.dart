@@ -4,4 +4,4 @@
 
 library polymer.polymer_element;
 
-export 'polymer.dart' show PolymerElement, registerPolymerElement;
+export 'polymer.dart' show PolymerElement;

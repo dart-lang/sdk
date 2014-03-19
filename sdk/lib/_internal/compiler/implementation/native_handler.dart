@@ -815,9 +815,9 @@ class NativeBehavior {
     // TODO(sra): Optional arguments are currently missing from the
     // DartType. This should be fixed so the following work-around can be
     // removed.
-    method.computeSignature(compiler).forEachOptionalParameter(
-        (Element parameter) {
-          behavior._escape(parameter.computeType(compiler), compiler);
+    method.functionSignature.forEachOptionalParameter(
+        (ParameterElement parameter) {
+          behavior._escape(parameter.type, compiler);
         });
 
     behavior._overrideWithAnnotations(method, compiler);
@@ -853,7 +853,7 @@ class NativeBehavior {
       if (e is! ClassElement) return null;
       ClassElement cls = e;
       cls.ensureResolved(compiler);
-      return cls.computeType(compiler);
+      return cls.thisType;
     }
 
     NativeEnqueuer enqueuer = compiler.enqueuer.resolution.nativeEnqueuer;
@@ -1090,7 +1090,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
     nativeEmitter.nativeMethods.add(element);
   }
 
-  FunctionSignature parameters = element.computeSignature(builder.compiler);
+  FunctionSignature parameters = element.functionSignature;
   if (!hasBody) {
     List<String> arguments = <String>[];
     List<HInstruction> inputs = <HInstruction>[];
@@ -1099,8 +1099,8 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
       receiver = '#.';
       inputs.add(builder.localsHandler.readThis());
     }
-    parameters.forEachParameter((Element parameter) {
-      DartType type = parameter.computeType(compiler).unalias(compiler);
+    parameters.forEachParameter((ParameterElement parameter) {
+      DartType type = parameter.type.unalias(compiler);
       HInstruction input = builder.localsHandler.readLocal(parameter);
       if (type is FunctionType) {
         // The parameter type is a function type either directly or through

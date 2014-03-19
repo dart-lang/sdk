@@ -2,6 +2,7 @@
   <link rel="import" href="code_ref.html">
   <link rel="import" href="nav_bar.html">
   <link rel="import" href="observatory_element.html">
+  <link rel="import" href="sliding_checkbox.html">
 </head>
 <polymer-element name="isolate-profile" extends="observatory-element">
   <template>
@@ -11,40 +12,83 @@
       <nav-menu link="." anchor="cpu profile" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
-    <div class="row">
-      <div class="col-md-12">
-        <span>Top</span>
-        <select selectedIndex="{{methodCountSelected}}" value="{{methodCounts[methodCountSelected]}}">
-          <option template repeat="{{count in methodCounts}}">{{count}}</option>
-        </select>
-        <span>exclusive methods</span>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-12">
-        <p>Refreshed at {{ refreshTime }} with {{ sampleCount }} samples.</p>
-      </div>
-    </div>
-    <table id="tableTree" class="table table-hover">
-      <thead>
+    <style>
+      .content {
+        padding-left: 10%;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      h1 {
+        font: 400 18px 'Montserrat', sans-serif;
+      }
+      .member, .memberHeader {
+        vertical-align: top;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      .monospace {
+        font-family: consolas, courier, monospace;
+        font-size: 1em;
+        line-height: 1.2em;
+        white-space: nowrap;
+      }
+    </style>
+    <div class="content">
+      <h1>Sampled CPU profile</h1>
+      <table>
         <tr>
-          <th>Method</th>
-          <th>Exclusive</th>
-          <th>Caller</th>
+          <td class="memberHeader">Timestamp</td>
+          <td class="member">{{ refreshTime }}</td>
         </tr>
-      </thead>
-      <tbody>
-        <tr template repeat="{{row in tree.rows }}" style="{{}}">
-          <td on-click="{{toggleExpanded}}"
-              class="{{ coloring(row) }}"
-              style="{{ padding(row) }}">
-            <code-ref ref="{{ row.code }}"></code-ref>
+        <tr>
+          <td class="memberHeader">Sample count</td>
+          <td class="member">{{ sampleCount }}</td>
+        </tr>
+        <tr>
+          <td class="memberHeader">Sample rate</td>
+          <td class="member">{{ sampleRate }} Hz</td>
+        </tr>
+        <tr>
+          <td class="memberHeader">Sample depth</td>
+          <td class="member">{{ sampleDepth }} stack frames</td>
+        </tr>
+        <tr>
+          <td class="memberHeader">Call graph tree</td>
+          <td class="member">
+            <input type="checkbox" checked="{{ callGraphChecked }}">
           </td>
-          <td class="{{ coloring(row) }}">{{row.columns[0]}}</td>
-          <td class="{{ coloring(row) }}">{{row.columns[1]}}</td>
-        </tr>
-      </tbody>
-    </table>
+         <tr>
+          <td class="memberHeader">Display cutoff</td>
+          <td class="member">{{ displayCutoff }}</td>
+         </tr>
+         <tr>
+          <td class="memberHeader">Hide tags</td>
+          <td class="member">
+            <input type="checkbox" checked="{{ hideTagsChecked }}">
+          </td>
+         </tr>
+      </table>
+      <hr>
+      <table id="tableTree" class="table table-hover">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Caller</th>
+            <th>Exclusive</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr template repeat="{{row in tree.rows }}" style="{{}}">
+            <td on-click="{{toggleExpanded}}"
+                class="{{ coloring(row) }}"
+                style="{{ padding(row) }}">
+              <code-ref ref="{{ row.code }}"></code-ref>
+            </td>
+            <td class="{{ coloring(row) }}">{{row.columns[0]}}</td>
+            <td class="{{ coloring(row) }}">{{row.columns[1]}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </template>
   <script type="application/dart" src="isolate_profile.dart"></script>
 </polymer-element>

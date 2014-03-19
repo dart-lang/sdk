@@ -9,6 +9,7 @@ library polymer.src.build.linter;
 import 'dart:async';
 
 import 'package:barback/barback.dart';
+import 'package:code_transformers/assets.dart';
 import 'package:html5lib/dom.dart';
 import 'package:html5lib/dom_parsing.dart';
 import 'package:source_maps/span.dart';
@@ -74,7 +75,7 @@ class Linter extends Transformer with PolymerTransformer {
       if (tag.attributes['rel'] != 'import') continue;
       var href = tag.attributes['href'];
       var span = tag.sourceSpan;
-      var id = resolve(sourceId, href, logger, span);
+      var id = uriToAssetId(sourceId, href, logger, span);
       if (id == null ||
           (id.package == 'polymer' && id.path == 'lib/init.html')) continue;
       importIds.add(assetExists(id, transform).then((exists) {

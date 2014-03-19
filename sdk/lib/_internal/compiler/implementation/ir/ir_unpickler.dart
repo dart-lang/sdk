@@ -121,7 +121,7 @@ class Unpickler {
     int tag = readByte();
     switch (tag) {
       case Pickles.NODE_CONSTANT:
-        ir.Trivial constant = readConstantNode();
+        ir.Definition constant = readConstantNode();
         unpickled[index++] = constant;
         addExpression(new ir.LetVal(constant));
         break;
@@ -169,9 +169,9 @@ class Unpickler {
     return unpickled[entryIndex];
   }
 
-  List<ir.Trivial> readBackReferenceList() {
+  List<ir.Definition> readBackReferenceList() {
     int length = readInt();
-    List<ir.Trivial> result = new List<ir.Trivial>(length);
+    List<ir.Definition> result = new List<ir.Definition>(length);
     for (int i = 0; i < length; i++) {
       result[i] = readBackReference();
     }
@@ -199,14 +199,14 @@ class Unpickler {
     FunctionElement functionElement = readElement();
     Selector selector = readSelector();
     ir.Continuation continuation = readBackReference();
-    List<ir.Trivial> arguments = readBackReferenceList();
+    List<ir.Definition> arguments = readBackReferenceList();
     return new ir.InvokeStatic(functionElement, selector, continuation,
                                arguments);
   }
 
   ir.InvokeContinuation readInvokeContinuationNode() {
     ir.Continuation continuation = readBackReference();
-    ir.Trivial argument = readBackReference();
+    ir.Definition argument = readBackReference();
     return new ir.InvokeContinuation(continuation, argument);
   }
 

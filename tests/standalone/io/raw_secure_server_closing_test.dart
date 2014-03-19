@@ -12,9 +12,8 @@ import "dart:io";
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:path/path.dart";
 
-const HOST_NAME = "localhost";
+InternetAddress HOST;
 const CERTIFICATE = "localhost_cert";
 
 void testCloseOneEnd(String toClose) {
@@ -26,7 +25,7 @@ void testCloseOneEnd(String toClose) {
       .then((_) {
         asyncEnd();
       });
-  RawSecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((server) {
+  RawSecureServerSocket.bind(HOST, 0, CERTIFICATE).then((server) {
     server.listen((serverConnection) {
       serverConnection.listen((event) {
         if (toClose == "server" || event == RawSocketEvent.READ_CLOSED) {
@@ -40,7 +39,7 @@ void testCloseOneEnd(String toClose) {
     onDone: () {
       serverDone.complete(null);
     });
-    RawSecureSocket.connect(HOST_NAME, server.port).then((clientConnection) {
+    RawSecureSocket.connect(HOST, server.port).then((clientConnection) {
       clientConnection.listen((event){
         if (toClose == "client" || event == RawSocketEvent.READ_CLOSED) {
           clientConnection.shutdown(SocketDirection.SEND);
@@ -56,8 +55,8 @@ void testCloseOneEnd(String toClose) {
 
 void testCloseBothEnds() {
   asyncStart();
-  RawSecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((server) {
-    var clientEndFuture = RawSecureSocket.connect(HOST_NAME, server.port);
+  RawSecureServerSocket.bind(HOST, 0, CERTIFICATE).then((server) {
+    var clientEndFuture = RawSecureSocket.connect(HOST, server.port);
     server.listen((serverEnd) {
       clientEndFuture.then((clientEnd) {
         clientEnd.close();
@@ -76,7 +75,7 @@ testPauseServerSocket() {
 
   asyncStart();
 
-  RawSecureServerSocket.bind(HOST_NAME,
+  RawSecureServerSocket.bind(HOST,
                              0,
                              CERTIFICATE,
                              backlog: 2 * socketCount).then((server) {
@@ -97,7 +96,7 @@ testPauseServerSocket() {
     subscription.pause();
     var connectCount = 0;
     for (int i = 0; i < socketCount; i++) {
-      RawSecureSocket.connect(HOST_NAME, server.port).then((connection) {
+      RawSecureSocket.connect(HOST, server.port).then((connection) {
         connection.shutdown(SocketDirection.SEND);
       });
     }
@@ -105,7 +104,7 @@ testPauseServerSocket() {
       subscription.resume();
       resumed = true;
       for (int i = 0; i < socketCount; i++) {
-        RawSecureSocket.connect(HOST_NAME, server.port).then((connection) {
+        RawSecureSocket.connect(HOST, server.port).then((connection) {
           connection.shutdown(SocketDirection.SEND);
         });
       }
@@ -118,7 +117,7 @@ testCloseServer() {
   asyncStart();
   List ends = [];
 
-  RawSecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((server) {
+  RawSecureServerSocket.bind(HOST, 0, CERTIFICATE).then((server) {
     Expect.isTrue(server.port > 0);
     void checkDone() {
       if (ends.length < 2 * socketCount) return;
@@ -135,7 +134,7 @@ testCloseServer() {
     });
 
     for (int i = 0; i < socketCount; i++) {
-      RawSecureSocket.connect(HOST_NAME, server.port).then((connection) {
+      RawSecureSocket.connect(HOST, server.port).then((connection) {
         ends.add(connection);
         checkDone();
       });
@@ -145,11 +144,19 @@ testCloseServer() {
 
 
 main() {
+  asyncStart();
   var certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
   SecureSocket.initialize(database: certificateDatabase,
                           password: 'dartdart',
                           useBuiltinRoots: false);
+  InternetAddress.lookup("localhost").then((hosts) {
+    HOST = hosts.first;
+    runTests();
+    asyncEnd();
+  });
+}
 
+runTests() {
   testCloseOneEnd("client");
   testCloseOneEnd("server");
   testCloseBothEnds();

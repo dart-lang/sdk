@@ -91,14 +91,15 @@ class Phase {
   /// propagated as soon as they occur. Only a phase with no [next] phase will
   /// emit assets.
   Stream<AssetNode> get onAsset => _onAssetController.stream;
-  final _onAssetController = new StreamController<AssetNode>(sync: true);
+  final _onAssetController =
+      new StreamController<AssetNode>.broadcast(sync: true);
 
   /// Whether [this] is dirty and still has more processing to do.
   ///
   /// A phase is considered dirty if any of the previous phases in the same
   /// cascade are dirty, since those phases could emit an asset that this phase
   /// will then need to process.
-  bool get isDirty => (_previous != null && _previous.isDirty) ||
+  bool get isDirty => (previous != null && previous.isDirty) ||
       _inputs.values.any((input) => input.isDirty) ||
       _groups.values.any((group) => group.isDirty);
 
@@ -108,16 +109,13 @@ class Phase {
   final _onLogPool = new StreamPool<LogEntry>.broadcast();
 
   /// The previous phase in the cascade, or null if this is the first phase.
-  final Phase _previous;
+  final Phase previous;
 
-  /// The subscription to [_previous]'s [onDone] stream.
+  /// The subscription to [previous]'s [onDone] stream.
   StreamSubscription _previousOnDoneSubscription;
 
-  /// The phase after this one.
-  ///
-  /// Outputs from this phase will be passed to it.
-  Phase get next => _next;
-  Phase _next;
+  /// The subscription to [previous]'s [onAsset] stream.
+  StreamSubscription<AssetNode> _previousOnAssetSubscription;
 
   /// A map of asset ids to completers for [getInput] requests.
   ///
@@ -140,9 +138,10 @@ class Phase {
   Phase(AssetCascade cascade, String location)
       : this._(cascade, location, 0);
 
-  Phase._(this.cascade, this._location, this._index, [this._previous]) {
-    if (_previous != null) {
-      _previousOnDoneSubscription = _previous.onDone.listen((_) {
+  Phase._(this.cascade, this._location, this._index, [this.previous]) {
+    if (previous != null) {
+      _previousOnAssetSubscription = previous.onAsset.listen(addInput);
+      _previousOnDoneSubscription = previous.onDone.listen((_) {
         if (!isDirty) _onDoneController.add(null);
       });
     }
@@ -205,33 +204,11 @@ class Phase {
     }
   }
 
-  // TODO(nweiz): If the input is available when this is called, it's
+  // TODO(nweiz): If the output is available when this is called, it's
   // theoretically possible for it to become unavailable between the call and
   // the return. If it does so, it won't trigger the rebuilding process. To
   // avoid this, we should have this and the methods it calls take explicit
   // callbacks, as in [AssetNode.whenAvailable].
-  /// Gets the asset node for an input [id].
-  ///
-  /// If [id] is for a generated or transformed asset, this will wait until it
-  /// has been created and return it. This means that the returned asset will
-  /// always be [AssetState.AVAILABLE].
-  /// 
-  /// If the input cannot be found, returns null.
-  Future<AssetNode> getInput(AssetId id) {
-    return syncFuture(() {
-      if (id.package != cascade.package) return cascade.graph.getAssetNode(id);
-      if (_previous != null) return _previous.getOutput(id);
-      if (!_inputs.containsKey(id)) return null;
-
-      var input = _inputs[id].input;
-      return input.whenAvailable((_) => input).catchError((error) {
-        if (error is! AssetNotFoundException || error.id != id) throw error;
-        // Retry in case the input was replaced.
-        return getInput(id);
-      });
-    });
-  }
-
   /// Gets the asset node for an output [id].
   ///
   /// If [id] is for a generated or transformed asset, this will wait until it
@@ -321,23 +298,20 @@ class Phase {
   ///
   /// This may only be called on a phase with no phase following it.
   Phase addPhase() {
-    assert(_next == null);
-    _next = new Phase._(cascade, _location, _index + 1, this);
+    var next = new Phase._(cascade, _location, _index + 1, this);
     for (var output in _outputs.values.toList()) {
       // Remove [output]'s listeners because now they should get the asset from
-      // [_next], rather than this phase. Any transforms consuming [output] will
+      // [next], rather than this phase. Any transforms consuming [output] will
       // be re-run and will consume the output from the new final phase.
       output.removeListeners();
     }
-    return _next;
+    return next;
   }
 
   /// Mark this phase as removed.
   ///
-  /// This will remove all the phase's outputs and all following phases.
+  /// This will remove all the phase's outputs.
   void remove() {
-    if (_previous != null) _previous._next = null;
-    removeFollowing();
     for (var input in _inputs.values.toList()) {
       input.remove();
     }
@@ -349,13 +323,9 @@ class Phase {
     if (_previousOnDoneSubscription != null) {
       _previousOnDoneSubscription.cancel();
     }
-  }
-
-  /// Remove all phases after this one.
-  void removeFollowing() {
-    if (_next == null) return;
-    _next.remove();
-    _next = null;
+    if (_previousOnAssetSubscription != null) {
+      _previousOnAssetSubscription.cancel();
+    }
   }
 
   /// Add [asset] as an output of this phase.
@@ -388,11 +358,7 @@ class Phase {
   /// This should be called after [_handleOutput], so that collisions are
   /// resolved.
   void _emit(AssetNode asset) {
-    if (_next != null) {
-      _next.addInput(asset);
-    } else {
-      _onAssetController.add(asset);
-    }
+    _onAssetController.add(asset);
     _providePendingAsset(asset);
   }
 

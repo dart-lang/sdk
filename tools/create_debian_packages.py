@@ -9,6 +9,7 @@
 # will build a source package and a 32-bit (i386) and 64-bit (amd64)
 # binary packages.
 
+import optparse
 import sys
 import tarfile
 import subprocess
@@ -21,6 +22,17 @@ HOST_OS = utils.GuessOS()
 HOST_CPUS = utils.GuessCpus()
 DART_DIR = abspath(join(__file__, '..', '..'))
 
+def BuildOptions():
+  result = optparse.OptionParser()
+  result.add_option("--tar_filename",
+                    default=None,
+                    help="The tar file to build from.")
+  result.add_option("--out_dir",
+                    default=None,
+                    help="Where to put the packages.")
+ 
+  return result
+
 def RunBuildPackage(opt, cwd):
   cmd = ['dpkg-buildpackage', '-j%d' % HOST_CPUS]
   cmd.extend(opt)
@@ -32,14 +44,12 @@ def RunBuildPackage(opt, cwd):
     raise Exception('Command \'%s\' failed: %s\nSTDOUT: %s' %
                     (' '.join(cmd), stderr, stdout))
 
-def BuildDebianPackage():
+def BuildDebianPackage(tarball, out_dir):
   version = utils.GetVersion()
-  builddir = join(DART_DIR, utils.GetBuildDir(HOST_OS, HOST_OS))
   tarroot = 'dart-%s' % version
-  tarname = 'dart-%s.tar.gz' % version
   origtarname = 'dart_%s.orig.tar.gz' % version
-  tarball = join(builddir, tarname)
-  if not exists(join(builddir, tarball)):
+
+  if not exists(join(out_dir, tarball)):
     print 'Source tarball not found'
     return -1
 
@@ -76,18 +86,25 @@ def BuildDebianPackage():
       '%s-1_amd64.deb' % debbase
     ]
     for name in source_package:
-      copyfile(join(temp_dir, name), join(builddir, name))
+      copyfile(join(temp_dir, name), join(out_dir, name))
     for name in i386_package:
-      copyfile(join(temp_dir, name), join(builddir, name))
+      copyfile(join(temp_dir, name), join(out_dir, name))
     for name in amd64_package:
-      copyfile(join(temp_dir, name), join(builddir, name))
+      copyfile(join(temp_dir, name), join(out_dir, name))
 
 def Main():
   if HOST_OS != 'linux':
     print 'Debian build only supported on linux'
     return -1
 
-  BuildDebianPackage()
+  options, args = BuildOptions().parse_args()
+  out_dir = options.out_dir
+  tar_filename = options.tar_filename
+  if not options.out_dir:
+    out_dir = join(DART_DIR, utils.GetBuildDir(HOST_OS, HOST_OS))
+  if not options.tar_filename:
+    raise Exception('Please specify the input filename.')
+  BuildDebianPackage(options.tar_filename, options.out_dir)
 
 if __name__ == '__main__':
   sys.exit(Main())

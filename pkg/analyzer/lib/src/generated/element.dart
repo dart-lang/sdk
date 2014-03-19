@@ -603,6 +603,8 @@ abstract class Element {
    * This method is expensive, because resolved AST might be evicted from cache, so parsing and
    * resolving will be performed.
    *
+   * <b>Note:</b> This method cannot be used in an async environment.
+   *
    * @return the resolved [AstNode], maybe `null` if [Element] is synthetic or
    *         isn't contained in a compilation unit, such as a [LibraryElement].
    */
@@ -847,14 +849,16 @@ class ElementKind extends Enum<ElementKind> {
   /**
    * The name displayed in the UI for this kind of element.
    */
-  final String displayName;
+  String displayName;
 
   /**
    * Initialize a newly created element kind to have the given display name.
    *
    * @param displayName the name displayed in the UI for this kind of element
    */
-  ElementKind(String name, int ordinal, this.displayName) : super(name, ordinal);
+  ElementKind(String name, int ordinal, String displayName) : super(name, ordinal) {
+    this.displayName = displayName;
+  }
 }
 
 /**
@@ -1750,7 +1754,7 @@ abstract class UriReferencedElement implements Element {
   int get uriEnd;
 
   /**
-   * Return the offset of the URU in the file, or `-1` if this element is synthetic.
+   * Return the offset of the URI in the file, or `-1` if this element is synthetic.
    *
    * @return the offset of the URI
    */
@@ -2563,13 +2567,13 @@ class AuxiliaryElements {
    * The element based on propagated type information, or `null` if the AST structure has not
    * been resolved or if this identifier could not be resolved.
    */
-  final ExecutableElement propagatedElement;
+  ExecutableElement propagatedElement;
 
   /**
    * The element associated with this identifier based on static type information, or `null`
    * if the AST structure has not been resolved or if this identifier could not be resolved.
    */
-  final ExecutableElement staticElement;
+  ExecutableElement staticElement;
 
   /**
    * Create the [AuxiliaryElements] with a static and propagated [ExecutableElement].
@@ -2577,7 +2581,10 @@ class AuxiliaryElements {
    * @param staticElement the static element
    * @param propagatedElement the propagated element
    */
-  AuxiliaryElements(this.staticElement, this.propagatedElement);
+  AuxiliaryElements(ExecutableElement staticElement, ExecutableElement propagatedElement) {
+    this.staticElement = staticElement;
+    this.propagatedElement = propagatedElement;
+  }
 }
 
 /**
@@ -3661,7 +3668,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /**
    * The element representing the field, variable, or constructor being used as an annotation.
    */
-  final Element element;
+  Element element;
 
   /**
    * An empty array of annotations.
@@ -3695,7 +3702,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
    * @param element the element representing the field, variable, or constructor being used as an
    *          annotation
    */
-  ElementAnnotationImpl(this.element);
+  ElementAnnotationImpl(Element element) {
+    this.element = element;
+  }
 
   @override
   bool get isDeprecated {
@@ -3796,8 +3805,9 @@ abstract class ElementImpl implements Element {
    * @param nameOffset the offset of the name of this element in the file that contains the
    *          declaration of this element
    */
-  ElementImpl(String name, this.nameOffset) {
+  ElementImpl(String name, int nameOffset) {
     this._name = StringUtilities.intern(name);
+    this.nameOffset = nameOffset;
   }
 
   @override
@@ -4945,7 +4955,7 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
   /**
    * The analysis context in which this library is defined.
    */
-  final AnalysisContext context;
+  AnalysisContext context;
 
   /**
    * The scripts contained in or referenced from script tags in the HTML file.
@@ -4969,7 +4979,9 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
    * @param context the analysis context in which the HTML file is defined
    * @param name the name of this element
    */
-  HtmlElementImpl(this.context, String name) : super(name, -1);
+  HtmlElementImpl(AnalysisContext context, String name) : super(name, -1) {
+    this.context = context;
+  }
 
   @override
   accept(ElementVisitor visitor) => visitor.visitHtmlElement(this);
@@ -5205,7 +5217,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /**
    * The analysis context in which this library is defined.
    */
-  final AnalysisContext context;
+  AnalysisContext context;
 
   /**
    * The compilation unit that defines this library.
@@ -5244,7 +5256,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * @param context the analysis context in which the library is defined
    * @param name the name of this element
    */
-  LibraryElementImpl(this.context, LibraryIdentifier name) : super.forNode(name);
+  LibraryElementImpl(AnalysisContext context, LibraryIdentifier name) : super.forNode(name) {
+    this.context = context;
+  }
 
   @override
   accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
@@ -5869,7 +5883,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   /**
    * The analysis context in which the multiply defined elements are defined.
    */
-  final AnalysisContext context;
+  AnalysisContext context;
 
   /**
    * The name of the conflicting elements.
@@ -5879,7 +5893,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   /**
    * A list containing all of the elements that conflict.
    */
-  final List<Element> conflictingElements;
+  List<Element> conflictingElements;
 
   /**
    * Initialize a newly created element to represent a list of conflicting elements.
@@ -5887,8 +5901,10 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
    * @param context the analysis context in which the multiply defined elements are defined
    * @param conflictingElements the elements that conflict
    */
-  MultiplyDefinedElementImpl(this.context, this.conflictingElements) {
+  MultiplyDefinedElementImpl(AnalysisContext context, List<Element> conflictingElements) {
+    this.context = context;
     _name = conflictingElements[0].name;
+    this.conflictingElements = conflictingElements;
   }
 
   @override
@@ -6595,7 +6611,7 @@ class TypeParameterElementImpl extends ElementImpl implements TypeParameterEleme
  */
 abstract class UriReferencedElementImpl extends ElementImpl implements UriReferencedElement {
   /**
-   * The offset of the URU in the file, may be `-1` if synthetic.
+   * The offset of the URI in the file, may be `-1` if synthetic.
    */
   int uriOffset = -1;
 
@@ -6752,16 +6768,19 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
  * Information about Angular application.
  */
 class AngularApplication {
-  final Source entryPoint;
+  Source entryPoint;
 
   Set<Source> _librarySources;
 
-  final List<AngularElement> elements;
+  List<AngularElement> elements;
 
-  final List<Source> elementSources;
+  List<Source> elementSources;
 
-  AngularApplication(this.entryPoint, Set<Source> librarySources, this.elements, this.elementSources) {
+  AngularApplication(Source entryPoint, Set<Source> librarySources, List<AngularElement> elements, List<Source> elementSources) {
+    this.entryPoint = entryPoint;
     this._librarySources = librarySources;
+    this.elements = elements;
+    this.elementSources = elementSources;
   }
 
   /**
@@ -7111,7 +7130,7 @@ class AngularScopePropertyElementImpl extends AngularElementImpl implements Angu
   /**
    * The type of the property
    */
-  final DartType type;
+  DartType type;
 
   /**
    * Initialize a newly created Angular scope property to have the given name.
@@ -7120,7 +7139,9 @@ class AngularScopePropertyElementImpl extends AngularElementImpl implements Angu
    * @param nameOffset the offset of the name of this element in the file that contains the
    *          declaration of this element
    */
-  AngularScopePropertyElementImpl(String name, int nameOffset, this.type) : super(name, nameOffset);
+  AngularScopePropertyElementImpl(String name, int nameOffset, DartType type) : super(name, nameOffset) {
+    this.type = type;
+  }
 
   @override
   accept(ElementVisitor visitor) => visitor.visitAngularScopePropertyElement(this);
@@ -7172,12 +7193,12 @@ class AngularViewElementImpl extends AngularElementImpl implements AngularViewEl
   /**
    * The HTML template URI.
    */
-  final String templateUri;
+  String templateUri;
 
   /**
    * The offset of the [templateUri] in the [getSource].
    */
-  final int templateUriOffset;
+  int templateUriOffset = 0;
 
   /**
    * The HTML template source.
@@ -7187,7 +7208,10 @@ class AngularViewElementImpl extends AngularElementImpl implements AngularViewEl
   /**
    * Initialize a newly created Angular view.
    */
-  AngularViewElementImpl(this.templateUri, this.templateUriOffset) : super(null, -1);
+  AngularViewElementImpl(String templateUri, int templateUriOffset) : super(null, -1) {
+    this.templateUri = templateUri;
+    this.templateUriOffset = templateUriOffset;
+  }
 
   @override
   accept(ElementVisitor visitor) => visitor.visitAngularViewElement(this);
@@ -7223,11 +7247,14 @@ class HasAttributeSelectorElementImpl extends AngularSelectorElementImpl impleme
  * Combination of [AngularTagSelectorElementImpl] and [HasAttributeSelectorElementImpl].
  */
 class IsTagHasAttributeSelectorElementImpl extends AngularSelectorElementImpl {
-  final String tagName;
+  String tagName;
 
-  final String attributeName;
+  String attributeName;
 
-  IsTagHasAttributeSelectorElementImpl(this.tagName, this.attributeName) : super(null, -1);
+  IsTagHasAttributeSelectorElementImpl(String tagName, String attributeName) : super(null, -1) {
+    this.tagName = tagName;
+    this.attributeName = attributeName;
+  }
 
   @override
   bool apply(XmlTagNode node) => node.tag == tagName && node.getAttribute(attributeName) != null;
@@ -9501,7 +9528,7 @@ abstract class TypeImpl implements DartType {
   /**
    * The name of this type, or `null` if the type does not have a name.
    */
-  final String name;
+  String name;
 
   /**
    * An empty array of types.
@@ -9514,8 +9541,9 @@ abstract class TypeImpl implements DartType {
    * @param element the element representing the declaration of the type
    * @param name the name of the type
    */
-  TypeImpl(Element element, this.name) {
+  TypeImpl(Element element, String name) {
     this._element = element;
+    this.name = name;
   }
 
   @override

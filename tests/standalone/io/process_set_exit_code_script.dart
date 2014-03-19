@@ -5,7 +5,13 @@
 import "dart:io";
 
 main() {
+  if (exitCode != 0) {
+    throw "Bad initial exit-code";
+  }
   stdout.write("standard out");
   stderr.write("standard error");
   exitCode = 25;
+  if (exitCode != 25) {
+    throw "Exit-code not set correctly";
+  }
 }

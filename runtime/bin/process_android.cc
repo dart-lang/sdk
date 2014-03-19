@@ -18,8 +18,9 @@
 
 #include "bin/fdutils.h"
 #include "bin/log.h"
-#include "bin/signal_blocker.h"
 #include "bin/thread.h"
+
+#include "platform/signal_blocker.h"
 
 
 extern char **environ;
@@ -151,7 +152,7 @@ class ExitCodeHandler {
     running_ = false;
 
     // Fork to wake up waitpid.
-    if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(fork()) == 0) {
+    if (TEMP_FAILURE_RETRY(fork()) == 0) {
       exit(0);
     }
 
@@ -251,7 +252,7 @@ static void ReportChildError(int exec_control_fd) {
     FDUtils::WriteToBlocking(
         exec_control_fd, os_error_message, strlen(os_error_message) + 1);
   }
-  TEMP_FAILURE_RETRY(close(exec_control_fd));
+  VOID_TEMP_FAILURE_RETRY(close(exec_control_fd));
   exit(1);
 }
 
@@ -286,8 +287,8 @@ int Process::Start(const char* path,
   result = TEMP_FAILURE_RETRY(pipe(read_err));
   if (result < 0) {
     SetChildOsErrorMessage(os_error_message);
-    TEMP_FAILURE_RETRY(close(read_in[0]));
-    TEMP_FAILURE_RETRY(close(read_in[1]));
+    VOID_TEMP_FAILURE_RETRY(close(read_in[0]));
+    VOID_TEMP_FAILURE_RETRY(close(read_in[1]));
     Log::PrintErr("Error pipe creation failed: %s\n", *os_error_message);
     return errno;
   }
@@ -296,10 +297,10 @@ int Process::Start(const char* path,
   result = TEMP_FAILURE_RETRY(pipe(write_out));
   if (result < 0) {
     SetChildOsErrorMessage(os_error_message);
-    TEMP_FAILURE_RETRY(close(read_in[0]));
-    TEMP_FAILURE_RETRY(close(read_in[1]));
-    TEMP_FAILURE_RETRY(close(read_err[0]));
-    TEMP_FAILURE_RETRY(close(read_err[1]));
+    VOID_TEMP_FAILURE_RETRY(close(read_in[0]));
+    VOID_TEMP_FAILURE_RETRY(close(read_in[1]));
+    VOID_TEMP_FAILURE_RETRY(close(read_err[0]));
+    VOID_TEMP_FAILURE_RETRY(close(read_err[1]));
     Log::PrintErr("Error pipe creation failed: %s\n", *os_error_message);
     return errno;
   }
@@ -308,12 +309,12 @@ int Process::Start(const char* path,
   result = TEMP_FAILURE_RETRY(pipe(exec_control));
   if (result < 0) {
     SetChildOsErrorMessage(os_error_message);
-    TEMP_FAILURE_RETRY(close(read_in[0]));
-    TEMP_FAILURE_RETRY(close(read_in[1]));
-    TEMP_FAILURE_RETRY(close(read_err[0]));
-    TEMP_FAILURE_RETRY(close(read_err[1]));
-    TEMP_FAILURE_RETRY(close(write_out[0]));
-    TEMP_FAILURE_RETRY(close(write_out[1]));
+    VOID_TEMP_FAILURE_RETRY(close(read_in[0]));
+    VOID_TEMP_FAILURE_RETRY(close(read_in[1]));
+    VOID_TEMP_FAILURE_RETRY(close(read_err[0]));
+    VOID_TEMP_FAILURE_RETRY(close(read_err[1]));
+    VOID_TEMP_FAILURE_RETRY(close(write_out[0]));
+    VOID_TEMP_FAILURE_RETRY(close(write_out[1]));
     Log::PrintErr("Error pipe creation failed: %s\n", *os_error_message);
     return errno;
   }
@@ -322,14 +323,14 @@ int Process::Start(const char* path,
 
   if (result < 0) {
     SetChildOsErrorMessage(os_error_message);
-    TEMP_FAILURE_RETRY(close(read_in[0]));
-    TEMP_FAILURE_RETRY(close(read_in[1]));
-    TEMP_FAILURE_RETRY(close(read_err[0]));
-    TEMP_FAILURE_RETRY(close(read_err[1]));
-    TEMP_FAILURE_RETRY(close(write_out[0]));
-    TEMP_FAILURE_RETRY(close(write_out[1]));
-    TEMP_FAILURE_RETRY(close(exec_control[0]));
-    TEMP_FAILURE_RETRY(close(exec_control[1]));
+    VOID_TEMP_FAILURE_RETRY(close(read_in[0]));
+    VOID_TEMP_FAILURE_RETRY(close(read_in[1]));
+    VOID_TEMP_FAILURE_RETRY(close(read_err[0]));
+    VOID_TEMP_FAILURE_RETRY(close(read_err[1]));
+    VOID_TEMP_FAILURE_RETRY(close(write_out[0]));
+    VOID_TEMP_FAILURE_RETRY(close(write_out[1]));
+    VOID_TEMP_FAILURE_RETRY(close(exec_control[0]));
+    VOID_TEMP_FAILURE_RETRY(close(exec_control[1]));
     Log::PrintErr("fcntl failed: %s\n", *os_error_message);
     return errno;
   }
@@ -350,18 +351,18 @@ int Process::Start(const char* path,
     program_environment[environment_length] = NULL;
   }
 
-  pid = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(fork());
+  pid = TEMP_FAILURE_RETRY(fork());
   if (pid < 0) {
     SetChildOsErrorMessage(os_error_message);
     delete[] program_arguments;
-    TEMP_FAILURE_RETRY(close(read_in[0]));
-    TEMP_FAILURE_RETRY(close(read_in[1]));
-    TEMP_FAILURE_RETRY(close(read_err[0]));
-    TEMP_FAILURE_RETRY(close(read_err[1]));
-    TEMP_FAILURE_RETRY(close(write_out[0]));
-    TEMP_FAILURE_RETRY(close(write_out[1]));
-    TEMP_FAILURE_RETRY(close(exec_control[0]));
-    TEMP_FAILURE_RETRY(close(exec_control[1]));
+    VOID_TEMP_FAILURE_RETRY(close(read_in[0]));
+    VOID_TEMP_FAILURE_RETRY(close(read_in[1]));
+    VOID_TEMP_FAILURE_RETRY(close(read_err[0]));
+    VOID_TEMP_FAILURE_RETRY(close(read_err[1]));
+    VOID_TEMP_FAILURE_RETRY(close(write_out[0]));
+    VOID_TEMP_FAILURE_RETRY(close(write_out[1]));
+    VOID_TEMP_FAILURE_RETRY(close(exec_control[0]));
+    VOID_TEMP_FAILURE_RETRY(close(exec_control[1]));
     return errno;
   } else if (pid == 0) {
     // Wait for parent process before setting up the child process.
@@ -372,25 +373,25 @@ int Process::Start(const char* path,
       exit(1);
     }
 
-    TEMP_FAILURE_RETRY(close(write_out[1]));
-    TEMP_FAILURE_RETRY(close(read_in[0]));
-    TEMP_FAILURE_RETRY(close(read_err[0]));
-    TEMP_FAILURE_RETRY(close(exec_control[0]));
+    VOID_TEMP_FAILURE_RETRY(close(write_out[1]));
+    VOID_TEMP_FAILURE_RETRY(close(read_in[0]));
+    VOID_TEMP_FAILURE_RETRY(close(read_err[0]));
+    VOID_TEMP_FAILURE_RETRY(close(exec_control[0]));
 
     if (TEMP_FAILURE_RETRY(dup2(write_out[0], STDIN_FILENO)) == -1) {
       ReportChildError(exec_control[1]);
     }
-    TEMP_FAILURE_RETRY(close(write_out[0]));
+    VOID_TEMP_FAILURE_RETRY(close(write_out[0]));
 
     if (TEMP_FAILURE_RETRY(dup2(read_in[1], STDOUT_FILENO)) == -1) {
       ReportChildError(exec_control[1]);
     }
-    TEMP_FAILURE_RETRY(close(read_in[1]));
+    VOID_TEMP_FAILURE_RETRY(close(read_in[1]));
 
     if (TEMP_FAILURE_RETRY(dup2(read_err[1], STDERR_FILENO)) == -1) {
       ReportChildError(exec_control[1]);
     }
-    TEMP_FAILURE_RETRY(close(read_err[1]));
+    VOID_TEMP_FAILURE_RETRY(close(read_err[1]));
 
     if (working_directory != NULL &&
         TEMP_FAILURE_RETRY(chdir(working_directory)) == -1) {
@@ -419,12 +420,12 @@ int Process::Start(const char* path,
   result = TEMP_FAILURE_RETRY(pipe(event_fds));
   if (result < 0) {
     SetChildOsErrorMessage(os_error_message);
-    TEMP_FAILURE_RETRY(close(read_in[0]));
-    TEMP_FAILURE_RETRY(close(read_in[1]));
-    TEMP_FAILURE_RETRY(close(read_err[0]));
-    TEMP_FAILURE_RETRY(close(read_err[1]));
-    TEMP_FAILURE_RETRY(close(write_out[0]));
-    TEMP_FAILURE_RETRY(close(write_out[1]));
+    VOID_TEMP_FAILURE_RETRY(close(read_in[0]));
+    VOID_TEMP_FAILURE_RETRY(close(read_in[1]));
+    VOID_TEMP_FAILURE_RETRY(close(read_err[0]));
+    VOID_TEMP_FAILURE_RETRY(close(read_err[1]));
+    VOID_TEMP_FAILURE_RETRY(close(write_out[0]));
+    VOID_TEMP_FAILURE_RETRY(close(write_out[1]));
     Log::PrintErr("Error pipe creation failed: %s\n", *os_error_message);
     return errno;
   }
@@ -445,7 +446,7 @@ int Process::Start(const char* path,
   // Read exec result from child. If no data is returned the exec was
   // successful and the exec call closed the pipe. Otherwise the errno
   // is written to the pipe.
-  TEMP_FAILURE_RETRY(close(exec_control[1]));
+  VOID_TEMP_FAILURE_RETRY(close(exec_control[1]));
   int child_errno;
   int bytes_read = -1;
   ASSERT(sizeof(child_errno) == sizeof(errno));
@@ -461,22 +462,22 @@ int Process::Start(const char* path,
     message[kMaxMessageSize - 1] = '\0';
     *os_error_message = message;
   }
-  TEMP_FAILURE_RETRY(close(exec_control[0]));
+  VOID_TEMP_FAILURE_RETRY(close(exec_control[0]));
 
   // Return error code if any failures.
   if (bytes_read != 0) {
-    TEMP_FAILURE_RETRY(close(read_in[0]));
-    TEMP_FAILURE_RETRY(close(read_in[1]));
-    TEMP_FAILURE_RETRY(close(read_err[0]));
-    TEMP_FAILURE_RETRY(close(read_err[1]));
-    TEMP_FAILURE_RETRY(close(write_out[0]));
-    TEMP_FAILURE_RETRY(close(write_out[1]));
+    VOID_TEMP_FAILURE_RETRY(close(read_in[0]));
+    VOID_TEMP_FAILURE_RETRY(close(read_in[1]));
+    VOID_TEMP_FAILURE_RETRY(close(read_err[0]));
+    VOID_TEMP_FAILURE_RETRY(close(read_err[1]));
+    VOID_TEMP_FAILURE_RETRY(close(write_out[0]));
+    VOID_TEMP_FAILURE_RETRY(close(write_out[1]));
 
     // Since exec() failed, we're not interested in the exit code.
     // We close the reading side of the exit code pipe here.
     // GetProcessExitCodes will get a broken pipe error when it tries to write
     // to the writing side of the pipe and it will ignore the error.
-    TEMP_FAILURE_RETRY(close(*exit_event));
+    VOID_TEMP_FAILURE_RETRY(close(*exit_event));
     *exit_event = -1;
 
     if (bytes_read == -1) {
@@ -488,13 +489,13 @@ int Process::Start(const char* path,
 
   FDUtils::SetNonBlocking(read_in[0]);
   *in = read_in[0];
-  TEMP_FAILURE_RETRY(close(read_in[1]));
+  VOID_TEMP_FAILURE_RETRY(close(read_in[1]));
   FDUtils::SetNonBlocking(write_out[1]);
   *out = write_out[1];
-  TEMP_FAILURE_RETRY(close(write_out[0]));
+  VOID_TEMP_FAILURE_RETRY(close(write_out[0]));
   FDUtils::SetNonBlocking(read_err[0]);
   *err = read_err[0];
-  TEMP_FAILURE_RETRY(close(read_err[1]));
+  VOID_TEMP_FAILURE_RETRY(close(read_err[1]));
 
   *id = pid;
   return 0;
@@ -674,12 +675,12 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
   }
   if (!found) return -1;
   int fds[2];
-  if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(pipe(fds)) != 0) {
+  if (NO_RETRY_EXPECTED(pipe(fds)) != 0) {
     return -1;
   }
   if (!FDUtils::SetNonBlocking(fds[0])) {
-    VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(fds[0]));
-    VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(fds[1]));
+    VOID_TEMP_FAILURE_RETRY(close(fds[0]));
+    VOID_TEMP_FAILURE_RETRY(close(fds[1]));
     return -1;
   }
   ThreadSignalBlocker blocker(kSignalsCount, kSignals);
@@ -701,11 +702,10 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
     for (int i = 0; i < kSignalsCount; i++) {
       sigaddset(&act.sa_mask, kSignals[i]);
     }
-    int status = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
-        sigaction(signal, &act, NULL));
+    int status = NO_RETRY_EXPECTED(sigaction(signal, &act, NULL));
     if (status < 0) {
-      VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(fds[0]));
-      VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(fds[1]));
+      VOID_TEMP_FAILURE_RETRY(close(fds[0]));
+      VOID_TEMP_FAILURE_RETRY(close(fds[1]));
       return -1;
     }
   }
@@ -742,7 +742,7 @@ void Process::ClearSignalHandler(intptr_t signal) {
     struct sigaction act;
     bzero(&act, sizeof(act));
     act.sa_handler = SIG_DFL;
-    VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(sigaction(signal, &act, NULL));
+    VOID_NO_RETRY_EXPECTED(sigaction(signal, &act, NULL));
   }
 }
 

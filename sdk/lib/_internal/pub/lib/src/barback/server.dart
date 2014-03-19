@@ -34,16 +34,20 @@ class BarbackServer {
 
   /// The directory in the root which will serve as the root of this server as
   /// a native platform path.
+  ///
+  /// This may be `null` in which case no files in the root package can be
+  /// served and only assets in public directories ("packages" and "assets")
+  /// are available.
   final String rootDirectory;
-
-  /// The root directory as an asset-style ("/") path.
-  String get rootAssetPath => path.url.joinAll(path.split(rootDirectory));
 
   /// The server's port.
   final int port;
 
   /// The server's address.
   final InternetAddress address;
+
+  /// The server's base URL.
+  Uri get url => baseUrlForAddress(address, port);
 
   /// Optional callback to determine if an asset should be served.
   ///
@@ -70,6 +74,7 @@ class BarbackServer {
   static Future<BarbackServer> bind(BuildEnvironment environment,
       String host, int port, String rootDirectory) {
     return Chain.track(HttpServer.bind(host, port)).then((server) {
+      log.fine('Bound "$rootDirectory" to $host:$port.');
       return new BarbackServer._(environment, server, rootDirectory);
     });
   }
@@ -87,7 +92,7 @@ class BarbackServer {
   /// Closes this server.
   Future close() {
     var futures = [_server.close(), _resultsController.close()];
-    futures.addAll(_webSockets);
+    futures.addAll(_webSockets.map((socket) => socket.close()));
     return Future.wait(futures);
   }
 
@@ -97,6 +102,11 @@ class BarbackServer {
     // See if it's a URL to a public directory in a dependency.
     var id = specialUrlToId(url);
     if (id != null) return id;
+
+    if (rootDirectory == null) {
+      throw new FormatException(
+          "This server cannot serve out of the root directory. Got $url.");
+    }
 
     // Otherwise, it's a path in current package's [rootDirectory].
     var parts = path.url.split(url.path);
@@ -137,9 +147,10 @@ class BarbackServer {
     }
 
     _logRequest(request, "Loading $id");
-    _environment.barback.getAssetById(id)
-        .then((asset) => _serveAsset(request, asset))
-        .catchError((error, trace) {
+    _environment.barback.getAssetById(id).then((result) {
+      _logRequest(request, "getAssetById($id) returned");
+      return result;
+    }).then((asset) => _serveAsset(request, asset)).catchError((error, trace) {
       if (error is! AssetNotFoundException) throw error;
       return _environment.barback.getAssetById(id.addExtension("/index.html"))
           .then((asset) {

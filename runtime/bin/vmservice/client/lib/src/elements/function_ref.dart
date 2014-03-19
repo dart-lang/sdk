@@ -9,5 +9,21 @@ import 'service_ref.dart';
 
 @CustomTag('function-ref')
 class FunctionRefElement extends ServiceRefElement {
+  @published bool qualified = true;
+
+  void refChanged(oldValue) {
+    super.refChanged(oldValue);
+    notifyPropertyChange(#hasParent, 0, 1);
+    notifyPropertyChange(#hasClass, 0, 1);
+    hasParent = (ref != null && ref['parent'] != null);
+    hasClass = (ref != null &&
+                ref['class'] != null &&
+                ref['class']['name'] != null &&
+                ref['class']['name'] != '::');
+  }
+
+  @observable bool hasParent = false;
+  @observable bool hasClass = false;
+
   FunctionRefElement.created() : super.created();
 }

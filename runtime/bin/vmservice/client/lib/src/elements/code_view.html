@@ -1,4 +1,5 @@
 <link rel="import" href="function_ref.html">
+<link rel="import" href="instance_ref.html">
 <link rel="import" href="observatory_element.html">
 <link rel="import" href="nav_bar.html">
 <polymer-element name="code-view" extends="observatory-element">
@@ -17,7 +18,14 @@
       h1 {
         font: 400 18px 'Montserrat', sans-serif;
       }
-      .member, .memberHeader {
+      .memberList {
+        display: table;
+      }
+      .memberItem {
+        display: table-row;
+      }
+      .memberName, .memberValue {
+        display: table-cell;
         vertical-align: top;
         padding: 3px 0 3px 1em;
         font: 400 14px 'Montserrat', sans-serif;
@@ -31,27 +39,33 @@
     </style>
     <div class="content">
       <h1>Code for {{ code.name }}</h1>
-      <table>
-        <tr>
-          <td class="memberHeader">kind</td>
-          <td class="member">{{code.kind}}</td>
-        </tr>
-        <tr>
-          <td class="memberHeader">function</td>
-          <td class="member">
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">kind</div>
+          <div class="memberValue">{{code.kind}}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">function</div>
+          <div class="memberValue">
             <function-ref ref="{{code.function}}">
             </function-ref>
-          </td>
-        </tr>
-        <tr>
-          <td class="memberHeader">Inclusive</td>
-          <td class="member">{{ code.formattedInclusiveTicks }}</td>
-        </tr>
-        <tr>
-          <td class="memberHeader">Exclusive</td>
-          <td class="member">{{ code.formattedExclusiveTicks }}</td>
-        </tr>
-      </table>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Inclusive</div>
+          <div class="memberValue">{{ code.formattedInclusiveTicks }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Exclusive</div>
+          <div class="memberValue">{{ code.formattedExclusiveTicks }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Constant object pool</div>
+          <div class="memberValue">
+            <instance-ref ref="{{ code.objectPool }}"></instance-ref>
+          </div>
+        </div>
+      </div>
     </div>
     <hr>
     <div class="content">

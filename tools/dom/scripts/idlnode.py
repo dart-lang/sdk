@@ -7,6 +7,12 @@ import os
 import sys
 
 
+_operation_suffix_map = {
+  '__getter__': "Getter",
+  '__setter__': "Setter",
+  '__delete__': "Deleter",
+}
+
 class IDLNode(object):
   """Base class for all IDL elements.
   IDLNode may contain various child nodes, and have properties. Examples
@@ -492,6 +498,11 @@ class IDLOperation(IDLMember):
         self.id = '__delete__'
       else:
         raise Exception('Cannot handle %s: operation has no id' % ast)
+
+      if len(self.arguments) >= 1 and (self.id in _operation_suffix_map) and not self.ext_attrs.get('ImplementedAs'):
+        arg = self.arguments[0]
+        operation_category = 'Named' if arg.type.id == 'DOMString' else 'Indexed'
+        self.ext_attrs.setdefault('ImplementedAs', 'anonymous%s%s' % (operation_category, _operation_suffix_map[self.id]))
 
   def _extra_repr(self):
     return [self.arguments]

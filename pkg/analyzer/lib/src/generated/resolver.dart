@@ -7671,14 +7671,16 @@ class ElementResolver_SyntheticIdentifier extends Identifier {
   /**
    * The name of the synthetic identifier.
    */
-  final String name;
+  String name;
 
   /**
    * Initialize a newly created synthetic identifier to have the given name.
    *
    * @param name the name of the synthetic identifier
    */
-  ElementResolver_SyntheticIdentifier(this.name);
+  ElementResolver_SyntheticIdentifier(String name) {
+    this.name = name;
+  }
 
   @override
   accept(AstVisitor visitor) => null;
@@ -8731,7 +8733,7 @@ class Library {
   /**
    * The source specifying the defining compilation unit of this library.
    */
-  final Source librarySource;
+  Source librarySource;
 
   /**
    * The library element representing this library.
@@ -8786,9 +8788,10 @@ class Library {
    * @param errorListener the listener to which analysis errors will be reported
    * @param librarySource the source specifying the defining compilation unit of this library
    */
-  Library(InternalAnalysisContext analysisContext, AnalysisErrorListener errorListener, this.librarySource) {
+  Library(InternalAnalysisContext analysisContext, AnalysisErrorListener errorListener, Source librarySource) {
     this._analysisContext = analysisContext;
     this._errorListener = errorListener;
+    this.librarySource = librarySource;
     this._libraryElement = analysisContext.getLibraryElement(librarySource) as LibraryElementImpl;
   }
 
@@ -8978,7 +8981,7 @@ class Library {
    * @param unit the AST structure associated with the defining compilation unit for this library
    */
   void setDefiningCompilationUnit(int modificationStamp, CompilationUnit unit) {
-    _astMap[librarySource] = new ResolvableCompilationUnit(modificationStamp, unit);
+    _astMap[librarySource] = new ResolvableCompilationUnit.con1(modificationStamp, unit);
   }
 
   /**
@@ -9223,7 +9226,7 @@ class LibraryResolver {
   /**
    * The analysis context in which the libraries are being analyzed.
    */
-  final InternalAnalysisContext analysisContext;
+  InternalAnalysisContext analysisContext;
 
   /**
    * The listener to which analysis errors will be reported, this error listener is either
@@ -9262,7 +9265,8 @@ class LibraryResolver {
    *
    * @param analysisContext the analysis context in which the library is being analyzed
    */
-  LibraryResolver(this.analysisContext) {
+  LibraryResolver(InternalAnalysisContext analysisContext) {
+    this.analysisContext = analysisContext;
     this._errorListener = new RecordingErrorListener();
     _coreLibrarySource = analysisContext.sourceFactory.forUri(DartSdk.DART_CORE);
   }
@@ -10126,7 +10130,7 @@ class ProxyConditionalAnalysisError {
   /**
    * The conditional analysis error.
    */
-  final AnalysisError analysisError;
+  AnalysisError analysisError;
 
   /**
    * Instantiate a new [ProxyConditionalAnalysisError] with some enclosing element and the
@@ -10135,8 +10139,9 @@ class ProxyConditionalAnalysisError {
    * @param enclosingElement the enclosing element
    * @param analysisError the conditional analysis error
    */
-  ProxyConditionalAnalysisError(Element enclosingElement, this.analysisError) {
+  ProxyConditionalAnalysisError(Element enclosingElement, AnalysisError analysisError) {
     this._enclosingElement = enclosingElement;
+    this.analysisError = analysisError;
   }
 
   /**
@@ -11471,7 +11476,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   /**
    * The source representing the compilation unit being visited.
    */
-  final Source source;
+  Source source;
 
   /**
    * The error listener that will be informed of any errors that are found during resolution.
@@ -11486,7 +11491,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   /**
    * The object used to access the types from the core library.
    */
-  final TypeProvider typeProvider;
+  TypeProvider typeProvider;
 
   /**
    * The scope used to resolve labels for `break` and `continue` statements, or
@@ -11501,11 +11506,13 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * @param source the source representing the compilation unit being visited
    * @param typeProvider the object used to access the types from the core library
    */
-  ScopedVisitor.con1(Library library, this.source, this.typeProvider) {
+  ScopedVisitor.con1(Library library, Source source, TypeProvider typeProvider) {
     this._definingLibrary = library.libraryElement;
+    this.source = source;
     LibraryScope libraryScope = library.libraryScope;
     this._errorListener = libraryScope.errorListener;
     this._nameScope = libraryScope;
+    this.typeProvider = typeProvider;
   }
 
   /**
@@ -11518,10 +11525,12 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * @param errorListener the error listener that will be informed of any errors that are found
    *          during resolution
    */
-  ScopedVisitor.con2(LibraryElement definingLibrary, this.source, this.typeProvider, AnalysisErrorListener errorListener) {
+  ScopedVisitor.con2(LibraryElement definingLibrary, Source source, TypeProvider typeProvider, AnalysisErrorListener errorListener) {
     this._definingLibrary = definingLibrary;
+    this.source = source;
     this._errorListener = errorListener;
     this._nameScope = new LibraryScope(definingLibrary, errorListener);
+    this.typeProvider = typeProvider;
   }
 
   /**
@@ -11535,10 +11544,12 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * @param errorListener the error listener that will be informed of any errors that are found
    *          during resolution
    */
-  ScopedVisitor.con3(LibraryElement definingLibrary, this.source, this.typeProvider, Scope nameScope, AnalysisErrorListener errorListener) {
+  ScopedVisitor.con3(LibraryElement definingLibrary, Source source, TypeProvider typeProvider, Scope nameScope, AnalysisErrorListener errorListener) {
     this._definingLibrary = definingLibrary;
+    this.source = source;
     this._errorListener = errorListener;
     this._nameScope = nameScope;
+    this.typeProvider = typeProvider;
   }
 
   /**
@@ -15783,7 +15794,7 @@ class EnclosedScope extends Scope {
   /**
    * The scope in which this scope is lexically enclosed.
    */
-  final Scope enclosingScope;
+  Scope enclosingScope;
 
   /**
    * A table mapping names that will be defined in this scope, but right now are not initialized.
@@ -15802,7 +15813,9 @@ class EnclosedScope extends Scope {
    *
    * @param enclosingScope the scope in which this scope is lexically enclosed
    */
-  EnclosedScope(this.enclosingScope);
+  EnclosedScope(Scope enclosingScope) {
+    this.enclosingScope = enclosingScope;
+  }
 
   @override
   AnalysisErrorListener get errorListener => enclosingScope.errorListener;
@@ -16017,7 +16030,7 @@ class LibraryImportScope extends Scope {
   /**
    * The listener that is to be informed when an error is encountered.
    */
-  final AnalysisErrorListener errorListener;
+  AnalysisErrorListener errorListener;
 
   /**
    * A list of the namespaces representing the names that are available in this scope from imported
@@ -16032,8 +16045,9 @@ class LibraryImportScope extends Scope {
    *          this scope
    * @param errorListener the listener that is to be informed when an error is encountered
    */
-  LibraryImportScope(LibraryElement definingLibrary, this.errorListener) {
+  LibraryImportScope(LibraryElement definingLibrary, AnalysisErrorListener errorListener) {
     this._definingLibrary = definingLibrary;
+    this.errorListener = errorListener;
     _createImportedNamespaces(definingLibrary);
   }
 
@@ -20712,8 +20726,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (executableElt.enclosingElement != null && (executableElt.enclosingElement as ClassElement).type.isObject) {
         continue;
       }
-      // Reference the type of the enclosing class
-      InterfaceType enclosingType = _enclosingClass.type;
       // Check to see if some element is in local enclosing class that matches the name of the
       // required member.
       if (_isMemberInClassOrMixin(executableElt, _enclosingClass)) {
@@ -20724,9 +20736,16 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
       // First check to see if this element was declared in the superclass chain, in which case
       // there is already a concrete implementation.
-      ExecutableElement elt = membersInheritedFromSuperclasses.get(executableElt.name);
+      ExecutableElement elt = membersInheritedFromSuperclasses.get(memberName);
       // Check to see if an element was found in the superclass chain with the correct name.
       if (elt != null) {
+        // Reference the types, if any are null then continue.
+        InterfaceType enclosingType = _enclosingClass.type;
+        FunctionType concreteType = elt.type;
+        FunctionType requiredMemberType = executableElt.type;
+        if (enclosingType == null || concreteType == null || requiredMemberType == null) {
+          continue;
+        }
         // Some element was found in the superclass chain that matches the name of the required
         // member.
         // If it is not abstract and it is the correct one (types match- the version of this method
@@ -20735,8 +20754,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         if ((elt is MethodElement && !elt.isAbstract) || (elt is PropertyAccessorElement && !elt.isAbstract)) {
           // Since we are comparing two function types, we need to do the appropriate type
           // substitutions first ().
-          FunctionType foundConcreteFT = _inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(elt.type, executableElt.name, enclosingType);
-          FunctionType requiredMemberFT = _inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(executableElt.type, executableElt.name, enclosingType);
+          FunctionType foundConcreteFT = _inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(concreteType, memberName, enclosingType);
+          FunctionType requiredMemberFT = _inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(requiredMemberType, memberName, enclosingType);
           if (foundConcreteFT.isSubtypeOf(requiredMemberFT)) {
             continue;
           }
@@ -22100,12 +22119,12 @@ class ResolverErrorCode extends Enum<ResolverErrorCode> implements ErrorCode {
   /**
    * The type of this error.
    */
-  final ErrorType type;
+  ErrorType type;
 
   /**
    * The template used to create the message to be displayed for this error.
    */
-  final String message;
+  String message;
 
   /**
    * The template used to create the correction to be displayed for this error, or `null` if
@@ -22119,7 +22138,10 @@ class ResolverErrorCode extends Enum<ResolverErrorCode> implements ErrorCode {
    * @param type the type of this error
    * @param message the message template used to create the message to be displayed for the error
    */
-  ResolverErrorCode.con1(String name, int ordinal, this.type, this.message) : super(name, ordinal);
+  ResolverErrorCode.con1(String name, int ordinal, ErrorType type, String message) : super(name, ordinal) {
+    this.type = type;
+    this.message = message;
+  }
 
   /**
    * Initialize a newly created error code to have the given type, message and correction.
@@ -22128,7 +22150,9 @@ class ResolverErrorCode extends Enum<ResolverErrorCode> implements ErrorCode {
    * @param message the template used to create the message to be displayed for the error
    * @param correction the template used to create the correction to be displayed for the error
    */
-  ResolverErrorCode.con2(String name, int ordinal, this.type, this.message, String correction) : super(name, ordinal) {
+  ResolverErrorCode.con2(String name, int ordinal, ErrorType type, String message, String correction) : super(name, ordinal) {
+    this.type = type;
+    this.message = message;
     this.correction9 = correction;
   }
 

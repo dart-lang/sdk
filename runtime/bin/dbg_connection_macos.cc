@@ -17,6 +17,7 @@
 #include "bin/fdutils.h"
 #include "bin/log.h"
 #include "bin/socket.h"
+#include "platform/signal_blocker.h"
 #include "platform/thread.h"
 #include "platform/utils.h"
 
@@ -132,20 +133,20 @@ void DebuggerConnectionImpl::Handler(uword args) {
 
 void DebuggerConnectionImpl::SetupPollQueue() {
   int result;
-  result = TEMP_FAILURE_RETRY(pipe(wakeup_fds_));
+  result = NO_RETRY_EXPECTED(pipe(wakeup_fds_));
   if (result != 0) {
     FATAL1("Pipe creation failed with error %d\n", result);
   }
   FDUtils::SetNonBlocking(wakeup_fds_[0]);
 
-  kqueue_fd_ = TEMP_FAILURE_RETRY(kqueue());
+  kqueue_fd_ = NO_RETRY_EXPECTED(kqueue());
   if (kqueue_fd_ == -1) {
     FATAL("Failed creating kqueue\n");
   }
   // Register the wakeup_fd_ with the kqueue.
   struct kevent event;
   EV_SET(&event, wakeup_fds_[0], EVFILT_READ, EV_ADD, 0, 0, NULL);
-  int status = TEMP_FAILURE_RETRY(kevent(kqueue_fd_, &event, 1, NULL, 0, NULL));
+  int status = NO_RETRY_EXPECTED(kevent(kqueue_fd_, &event, 1, NULL, 0, NULL));
   if (status == -1) {
     const int kBufferSize = 1024;
     char error_message[kBufferSize];
@@ -156,7 +157,7 @@ void DebuggerConnectionImpl::SetupPollQueue() {
   // Register the listening socket.
   EV_SET(&event, DebuggerConnectionHandler::listener_fd_,
          EVFILT_READ, EV_ADD, 0, 0, NULL);
-  status = TEMP_FAILURE_RETRY(kevent(kqueue_fd_, &event, 1, NULL, 0, NULL));
+  status = NO_RETRY_EXPECTED(kevent(kqueue_fd_, &event, 1, NULL, 0, NULL));
   if (status == -1) {
     const int kBufferSize = 1024;
     char error_message[kBufferSize];

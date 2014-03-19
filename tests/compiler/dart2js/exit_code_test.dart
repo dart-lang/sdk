@@ -218,6 +218,7 @@ Future testExitCodes(String marker, Map<String,int> expectedExitCodes) {
 }
 
 void main() {
+  // TODO(johnniwinther): implement this test for unchecked mode.
   bool isCheckedMode = false;
   assert(isCheckedMode = true);
   Expect.isTrue(isCheckedMode, 'This test must be run in checked mode.');

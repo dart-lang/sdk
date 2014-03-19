@@ -176,4 +176,22 @@ main() {
     expectAsset("app|foo.txt", "failed to load app|nothing");
     buildShouldSucceed();
   });
+
+  test("a transformer that fails due to a missing secondary input is re-run "
+      "when that input appears", () {
+    initGraph({
+      "app|foo.txt": "bar.inc",
+      "app|bar.inc": "bar"
+    }, {"app": [
+      [new ManyToOneTransformer("txt")]
+    ]});
+
+    updateSources(["app|foo.txt"]);
+    expectNoAsset("app|foo.out");
+    buildShouldFail([isMissingInputException("app|bar.inc")]);
+
+    updateSources(["app|bar.inc"]);
+    expectAsset("app|foo.out", "bar");
+    buildShouldSucceed();
+  });
 }

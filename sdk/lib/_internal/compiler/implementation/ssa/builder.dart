@@ -6,10 +6,10 @@ part of ssa;
 
 /**
  * A special element for the extra parameter taken by intercepted
- * methods. We need to override [Element.computeType] because our
+ * methods. We need to implement [TypedElement.type] because our
  * optimizers may look at its declared type.
  */
-class InterceptedElement extends ElementX {
+class InterceptedElement extends ElementX implements TypedElement {
   final DartType type;
   InterceptedElement(this.type, String name, Element enclosing)
       : super(name, ElementKind.PARAMETER, enclosing);
@@ -60,7 +60,7 @@ class SsaBuilderTask extends CompilerTask {
         assert(graph.isValid());
         if (!identical(kind, ElementKind.FIELD)) {
           FunctionElement function = element;
-          FunctionSignature signature = function.computeSignature(compiler);
+          FunctionSignature signature = function.functionSignature;
           signature.forEachOptionalParameter((Element parameter) {
             // This ensures the default value will be computed.
             Constant constant =
@@ -231,7 +231,7 @@ class LocalsHandler {
 
     if (element is FunctionElement) {
       FunctionElement functionElement = element;
-      FunctionSignature params = functionElement.computeSignature(compiler);
+      FunctionSignature params = functionElement.functionSignature;
       params.orderedForEachParameter((Element parameterElement) {
         if (element.isGenerativeConstructorBody()) {
           ClosureScope scopeData = closureData.capturingScopes[node];
@@ -293,7 +293,7 @@ class LocalsHandler {
       bool isInterceptorClass = backend.isInterceptorClass(cls.declaration);
       String name = isInterceptorClass ? 'receiver' : '_';
       Element parameter = new InterceptedElement(
-          cls.computeType(compiler), name, element);
+          cls.thisType, name, element);
       HParameterValue value =
           new HParameterValue(parameter, builder.getTypeOfThis());
       builder.graph.explicitReceiverParameter = value;
@@ -305,7 +305,7 @@ class LocalsHandler {
       }
     } else if (isNativeUpgradeFactory) {
       Element parameter = new InterceptedElement(
-          cls.computeType(compiler), 'receiver', element);
+          cls.thisType, 'receiver', element);
       // Unlike `this`, receiver is nullable since direct calls to generative
       // constructor call the constructor with `null`.
       HParameterValue value =
@@ -885,7 +885,6 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
  * This class builds SSA nodes for functions represented in AST.
  */
 class SsaBuilder extends ResolvedVisitor {
-  final Compiler compiler;
   final JavaScriptBackend backend;
   final ConstantSystem constantSystem;
   final CodegenWorkItem work;
@@ -964,10 +963,9 @@ class SsaBuilder extends ResolvedVisitor {
   List<HInstruction> stack = <HInstruction>[];
 
   SsaBuilder(JavaScriptBackend backend,
-                    CodegenWorkItem work,
-                    this.nativeEmitter)
+             CodegenWorkItem work,
+             this.nativeEmitter)
     : this.backend = backend,
-      this.compiler = backend.compiler,
       this.constantSystem = backend.constantSystem,
       this.work = work,
       this.rti = backend.rti,
@@ -1101,7 +1099,7 @@ class SsaBuilder extends ResolvedVisitor {
       FunctionElement function,
       List<HInstruction> providedArguments) {
     assert(selector.applies(function, compiler));
-    FunctionSignature signature = function.computeSignature(compiler);
+    FunctionSignature signature = function.functionSignature;
     List<HInstruction> compiledArguments = new List<HInstruction>(
         signature.parameterCount + 1); // Plus one for receiver.
 
@@ -1447,7 +1445,7 @@ class SsaBuilder extends ResolvedVisitor {
     // to be the first parameter.
     graph.entry.addBefore(graph.entry.last, parameter);
     HInstruction value =
-        potentiallyCheckType(parameter, field.computeType(compiler));
+        potentiallyCheckType(parameter, field.type);
     add(new HFieldSet(field, thisInstruction, value));
     return closeFunction();
   }
@@ -1458,7 +1456,7 @@ class SsaBuilder extends ResolvedVisitor {
     assert(variable.initializer != null);
     visit(variable.initializer);
     HInstruction value = pop();
-    value = potentiallyCheckType(value, variable.computeType(compiler));
+    value = potentiallyCheckType(value, variable.type);
     closeAndGotoExit(new HReturn(value));
     return closeFunction();
   }
@@ -1545,7 +1543,7 @@ class SsaBuilder extends ResolvedVisitor {
           compiledArguments[argumentIndex++]);
     }
 
-    FunctionSignature signature = function.computeSignature(compiler);
+    FunctionSignature signature = function.functionSignature;
     signature.orderedForEachParameter((Element parameter) {
       HInstruction argument = compiledArguments[argumentIndex++];
       localsHandler.updateLocal(parameter, argument);
@@ -1618,10 +1616,10 @@ class SsaBuilder extends ResolvedVisitor {
    * function.
    */
   void potentiallyCheckInlinedParameterTypes(FunctionElement function) {
-    FunctionSignature signature = function.computeSignature(compiler);
-    signature.orderedForEachParameter((Element parameter) {
+    FunctionSignature signature = function.functionSignature;
+    signature.orderedForEachParameter((ParameterElement parameter) {
       HInstruction argument = localsHandler.readLocal(parameter);
-      potentiallyCheckType(argument, parameter.computeType(compiler));
+      potentiallyCheckType(argument, parameter.type);
     });
   }
 
@@ -1676,7 +1674,7 @@ class SsaBuilder extends ResolvedVisitor {
       }
 
       int index = 0;
-      FunctionSignature params = callee.computeSignature(compiler);
+      FunctionSignature params = callee.functionSignature;
       params.orderedForEachParameter((Element parameter) {
         HInstruction argument = compiledArguments[index++];
         // Because we are inlining the initializer, we must update
@@ -1828,7 +1826,7 @@ class SsaBuilder extends ResolvedVisitor {
     classElement.forEachInstanceField(
         (ClassElement enclosingClass, VariableElement member) {
           compiler.withCurrentElement(member, () {
-            TreeElements definitions = compiler.analyzeElement(member);
+            TreeElements definitions = member.treeElements;
             ast.Node node = member.parseNode(compiler);
             ast.Expression initializer = member.initializer;
             if (initializer == null) {
@@ -1885,7 +1883,7 @@ class SsaBuilder extends ResolvedVisitor {
     buildFieldInitializers(classElement, fieldValues);
 
     // Compile field-parameters such as [:this.x:].
-    FunctionSignature params = functionElement.computeSignature(compiler);
+    FunctionSignature params = functionElement.functionSignature;
     params.orderedForEachParameter((Element element) {
       if (element.kind == ElementKind.FIELD_PARAMETER) {
         // If the [element] is a field-parameter then
@@ -1906,7 +1904,7 @@ class SsaBuilder extends ResolvedVisitor {
     List<Element> fields = <Element>[];
 
     classElement.forEachInstanceField(
-        (ClassElement enclosingClass, Element member) {
+        (ClassElement enclosingClass, VariableElement member) {
           HInstruction value = fieldValues[member];
           if (value == null) {
             // Uninitialized native fields are pre-initialized by the native
@@ -1914,13 +1912,20 @@ class SsaBuilder extends ResolvedVisitor {
             assert(isNativeUpgradeFactory);
           } else {
             fields.add(member);
-            constructorArguments.add(
-                potentiallyCheckType(value, member.computeType(compiler)));
+            DartType type = member.type;
+            if (enclosingClass.isMixinApplication) {
+              // TODO(johnniwinther): Add a member-like abstraction for fields
+              // that normalizes this.
+              type = type.substByContext(
+                  enclosingClass.thisType.asInstanceOf(
+                      member.enclosingElement));
+            }
+            constructorArguments.add(potentiallyCheckType(value, type));
           }
         },
         includeSuperAndInjectedMembers: true);
 
-    InterfaceType type = classElement.computeType(compiler);
+    InterfaceType type = classElement.thisType;
     TypeMask ssaType = new TypeMask.nonNullExact(classElement.declaration);
     List<DartType> instantiatedTypes;
     addInlinedInstantiation(type);
@@ -2030,8 +2035,7 @@ class SsaBuilder extends ResolvedVisitor {
       List bodyCallInputs = <HInstruction>[];
       if (isNativeUpgradeFactory) {
         if (interceptor == null) {
-          Constant constant = new InterceptorConstant(
-              classElement.computeType(compiler));
+          Constant constant = new InterceptorConstant(classElement.thisType);
           interceptor = graph.addConstant(constant, compiler);
         }
         bodyCallInputs.add(interceptor);
@@ -2043,7 +2047,7 @@ class SsaBuilder extends ResolvedVisitor {
       ClosureClassMap parameterClosureData =
           compiler.closureToClassMapper.getMappingForNestedFunction(node);
 
-      FunctionSignature functionSignature = body.computeSignature(compiler);
+      FunctionSignature functionSignature = body.functionSignature;
       // Provide the parameters to the generative constructor body.
       functionSignature.orderedForEachParameter((parameter) {
         // If [parameter] is boxed, it will be a field in the box passed as the
@@ -2119,13 +2123,13 @@ class SsaBuilder extends ResolvedVisitor {
 
     if (element is FunctionElement) {
       FunctionElement functionElement = element;
-      FunctionSignature signature = functionElement.computeSignature(compiler);
+      FunctionSignature signature = functionElement.functionSignature;
 
       // Put the type checks in the first successor of the entry,
       // because that is where the type guards will also be inserted.
       // This way we ensure that a type guard will dominate the type
       // check.
-      signature.orderedForEachParameter((Element parameterElement) {
+      signature.orderedForEachParameter((ParameterElement parameterElement) {
         if (element.isGenerativeConstructorBody()) {
           ClosureScope scopeData =
               localsHandler.closureData.capturingScopes[node];
@@ -2139,7 +2143,7 @@ class SsaBuilder extends ResolvedVisitor {
         }
         HInstruction newParameter = potentiallyCheckType(
             localsHandler.directLocals[parameterElement],
-            parameterElement.computeType(compiler));
+            parameterElement.type);
         localsHandler.directLocals[parameterElement] = newParameter;
       });
 
@@ -2235,7 +2239,7 @@ class SsaBuilder extends ResolvedVisitor {
     if (compiler.enableTypeAssertions) {
       return potentiallyCheckType(
           value,
-          compiler.boolClass.computeType(compiler),
+          compiler.boolClass.rawType,
           kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
     }
     HInstruction result = new HBoolify(value, backend.boolType);
@@ -3012,8 +3016,9 @@ class SsaBuilder extends ResolvedVisitor {
         pushInvokeStatic(location, element, <HInstruction>[value]);
         pop();
       } else {
+        VariableElement field = element;
         value =
-            potentiallyCheckType(value, element.computeType(compiler));
+            potentiallyCheckType(value, field.type);
         addWithPosition(new HStaticStore(element, value), location);
       }
       stack.add(value);
@@ -3431,7 +3436,7 @@ class SsaBuilder extends ResolvedVisitor {
     // and implementation signatures. Currently it is need because the
     // signatures have different elements for parameters.
     FunctionElement implementation = function.implementation;
-    FunctionSignature params = implementation.computeSignature(compiler);
+    FunctionSignature params = implementation.functionSignature;
     if (params.optionalParameterCount != 0) {
       compiler.cancel(
           '"$name" does not handle closure with optional parameters',
@@ -4133,8 +4138,8 @@ class SsaBuilder extends ResolvedVisitor {
         stack.add(addConstant(node));
       }
     } else if (element.isTypeVariable()) {
-      HInstruction value =
-          addTypeVariableReference(element.computeType(compiler));
+      TypeVariableElement typeVariable = element;
+      HInstruction value = addTypeVariableReference(typeVariable.type);
       pushInvokeStatic(node,
                        backend.getRuntimeTypeToString(),
                        [value],
@@ -4236,7 +4241,7 @@ class SsaBuilder extends ResolvedVisitor {
                                        FunctionElement function,
                                        Link<ast.Node> argumentNodes) {
     List<String> existingArguments = <String>[];
-    FunctionSignature signature = function.computeSignature(compiler);
+    FunctionSignature signature = function.functionSignature;
     signature.forEachParameter((Element parameter) {
       existingArguments.add(parameter.name);
     });

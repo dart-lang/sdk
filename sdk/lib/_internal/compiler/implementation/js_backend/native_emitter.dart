@@ -370,19 +370,19 @@ class NativeEmitter {
       List<jsAst.Statement> statements,
       FunctionElement member,
       List<jsAst.Parameter> stubParameters) {
-    FunctionSignature parameters = member.computeSignature(compiler);
+    FunctionSignature parameters = member.functionSignature;
     Element converter =
         compiler.findHelper('convertDartClosureToJS');
     String closureConverter = backend.namer.isolateAccess(converter);
     Set<String> stubParameterNames = new Set<String>.from(
         stubParameters.map((param) => param.name));
-    parameters.forEachParameter((Element parameter) {
+    parameters.forEachParameter((ParameterElement parameter) {
       String name = parameter.name;
       // If [name] is not in [stubParameters], then the parameter is an optional
       // parameter that was not provided for this stub.
       for (jsAst.Parameter stubParameter in stubParameters) {
         if (stubParameter.name == name) {
-          DartType type = parameter.computeType(compiler).unalias(compiler);
+          DartType type = parameter.type.unalias(compiler);
           if (type is FunctionType) {
             // The parameter type is a function type either directly or through
             // typedef(s).

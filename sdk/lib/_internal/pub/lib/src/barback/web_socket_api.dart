@@ -8,10 +8,15 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 
+import '../log.dart' as log;
+import '../utils.dart';
 import 'build_environment.dart';
+
+import '../log.dart' as log;
 
 /// Implements the [WebSocket] API for communicating with a running pub serve
 /// process, mainly for use by the Editor.
@@ -57,7 +62,9 @@ class WebSocketApi {
   WebSocketApi(this._socket, this._environment) {
     _commands = {
       "urlToAssetId": _urlToAssetId,
-      "assetIdToUrls": _assetIdToUrls
+      "pathToUrls": _pathToUrls,
+      "serveDirectory": _serveDirectory,
+      "unserveDirectory": _unserveDirectory
     };
   }
 
@@ -68,8 +75,10 @@ class WebSocketApi {
   /// complete to `null`.
   Future listen() {
     return _socket.listen((data) {
-      try {
-        var command;
+      log.io("Web Socket command: $data");
+
+      var command;
+      return syncFuture(() {
         try {
           command = JSON.decode(data);
         } on FormatException catch (ex) {
@@ -93,24 +102,37 @@ class WebSocketApi {
               'Unknown command "${command["command"]}".');
         }
 
-        var response = handler(command);
-
+        return handler(command);
+      }).then((response) {
         // If the command has an ID, include it in the response.
         if (command.containsKey("id")) {
           response["id"] = command["id"];
         }
 
         _socket.add(JSON.encode(response));
-      } on _WebSocketException catch(ex) {
-        _socket.add(JSON.encode({"code": ex.code, "error": ex.message}));
-      } catch (ex, stack) {
-        // Catch any other errors and pipe them through the web socket.
-        _socket.add(JSON.encode({
-          "code": _ErrorCode.UNEXPECTED_ERROR,
-          "error": ex.toString(),
-          "stackTrace": new Chain.forTrace(stack).toString()
-        }));
-      }
+      }).catchError((error, [stackTrace]) {
+        var response;
+        if (error is _WebSocketException) {
+          response = {
+            "code": error.code,
+            "error": error.message
+          };
+        } else {
+          // Catch any other errors and pipe them through the web socket.
+          response = {
+            "code": _ErrorCode.UNEXPECTED_ERROR,
+            "error": error.toString(),
+            "stackTrace": new Chain.forTrace(stackTrace).toString()
+          };
+        }
+
+        // If the command has an ID, include it in the response.
+        if (command is Map && command.containsKey("id")) {
+          response["id"] = command["id"];
+        }
+
+        _socket.add(JSON.encode(response));
+      });
     }, cancelOnError: true).asFuture();
   }
 
@@ -132,6 +154,10 @@ class WebSocketApi {
   ///       "package": "myapp",
   ///       "path": "web/index.html"
   ///     }
+  ///
+  /// The "path" key in the result is a URL path that's relative to the root
+  /// directory of the package identified by "package". The location of this
+  /// package may vary depending on which source it was installed from.
   ///
   /// An optional "line" key may be provided whose value must be an integer. If
   /// given, the result will also include a "line" key that maps the line in
@@ -169,13 +195,11 @@ class WebSocketApi {
     // If a line number was given, map it to the output line.
     var line = _validateOptionalInt(command, "line");
 
-    // Find the server.
-    var server = _environment.servers.firstWhere(
-        (server) => server.address.host == url.host && server.port == url.port,
-        orElse: () => throw new _WebSocketException(_ErrorCode.NOT_SERVED,
-            '"${url.host}:${url.port}" is not being served by pub.'));
-
-    var id = server.urlToId(url);
+    var id = _environment.getAssetIdForUrl(url);
+    if (id == null) {
+      throw new _WebSocketException(_ErrorCode.NOT_SERVED,
+          '"${url.host}:${url.port}" is not being served by pub.');
+    }
 
     // TODO(rnystrom): When this is hooked up to actually talk to barback to
     // see if assets exist, consider supporting implicit index.html at that
@@ -185,21 +209,22 @@ class WebSocketApi {
 
     // Map the line.
     // TODO(rnystrom): Right now, source maps are not supported and it just
-    // passes through the original line. This lets the editor start using this
-    // API before we've fully implemented it. See #12339 and #16061.
+    // passes through the original line. This lets the editor start using
+    // this API before we've fully implemented it. See #12339 and #16061.
     if (line != null) result["line"] = line;
 
     return result;
   }
 
-  /// Given an asset ID in the root package, returns the URLs served by pub
-  /// that can be used to access that asset.
+  /// Given a path on the filesystem, returns the URLs served by pub that can be
+  /// used to access asset found at that path.
   ///
-  /// The command name is "assetIdToUrl" and it takes a "path" key for the
-  /// asset path being mapped:
+  /// The command name is "pathToUrls" and it takes a "path" key (a native OS
+  /// path which may be absolute or relative to the root directory of the
+  /// entrypoint package) for the path being mapped:
   ///
   ///     {
-  ///       "command": "assetIdToUrl",
+  ///       "command": "pathToUrls",
   ///       "path": "web/index.html"
   ///     }
   ///
@@ -208,6 +233,26 @@ class WebSocketApi {
   ///
   ///     {
   ///       "urls": ["http://localhost:8080/index.html"]
+  ///     }
+  ///
+  /// The "path" key may refer to a path in another package, either by referring
+  /// to its location within the top-level "packages" directory or by referring
+  /// to its location on disk. Only the "lib" and "asset" directories are
+  /// visible in other packages:
+  ///
+  ///     {
+  ///       "command": "assetIdToUrl",
+  ///       "path": "packages/http/http.dart"
+  ///     }
+  ///
+  /// Assets in the "lib" and "asset" directories will usually have one URL for
+  /// each server:
+  ///
+  ///     {
+  ///       "urls": [
+  ///         "http://localhost:8080/packages/http/http.dart",
+  ///         "http://localhost:8081/packages/http/http.dart"
+  ///       ]
   ///     }
   ///
   /// An optional "line" key may be provided whose value must be an integer. If
@@ -224,69 +269,128 @@ class WebSocketApi {
   /// If the asset is not in a directory being served by pub, returns an error:
   ///
   ///     example/index.html  -> NOT_SERVED error
-  ///
-  /// This cannot currently be used to access assets in other packages aside
-  /// from the root. Nor can it be used to access assets in the root package's
-  /// "lib" or "asset" directories.
-  ///
-  ///     lib/myapp.dart  -> BAD_ARGUMENT error
-  Map _assetIdToUrls(Map command) {
-    // TODO(rnystrom): Support assets in other packages. See #17146.
+  Map _pathToUrls(Map command) {
     var assetPath = _validateString(command, "path");
-
-    if (!path.url.isRelative(assetPath)) {
-      throw new _WebSocketException(_ErrorCode.BAD_ARGUMENT,
-          '"path" must be a relative path. Got "$assetPath".');
-    }
-
-    if (!path.url.isWithin(".", assetPath)) {
-      throw new _WebSocketException(_ErrorCode.BAD_ARGUMENT,
-          '"path" cannot reach out of its containing directory. '
-          'Got "$assetPath".');
-    }
-
     var line = _validateOptionalInt(command, "line");
 
-    // Find all of the servers whose root directories contain the asset and
-    // generate appropriate URLs for each.
-    var urls = _environment.servers
-        .where((server) => path.url.isWithin(server.rootAssetPath, assetPath))
-        .map((server) =>
-            "http://${server.address.host}:${server.port}/" +
-            path.url.relative(assetPath, from: server.rootAssetPath))
-        .toList();
-
+    var urls = _environment.getUrlsForAssetPath(assetPath);
     if (urls.isEmpty) {
       throw new _WebSocketException(_ErrorCode.NOT_SERVED,
           'Asset path "$assetPath" is not currently being served.');
     }
 
-    var result = {"urls": urls};
+    var result = {"urls": urls.map((url) => url.toString()).toList()};
 
     // Map the line.
     // TODO(rnystrom): Right now, source maps are not supported and it just
-    // passes through the original line. This lets the editor start using this
-    // API before we've fully implemented it. See #12339 and #16061.
+    // passes through the original line. This lets the editor start using
+    // this API before we've fully implemented it. See #12339 and #16061.
     if (line != null) result["line"] = line;
 
     return result;
+  }
+
+  /// Given a relative directory path within the entrypoint package, binds a
+  /// new port to serve from that path and returns its URL.
+  ///
+  /// The command name is "serveDirectory" and it takes a "path" key (a native
+  /// OS path relative to the root of the entrypoint package) for the directory
+  /// being served:
+  ///
+  ///     {
+  ///       "command": "serveDirectory",
+  ///       "path": "example/awesome"
+  ///     }
+  ///
+  /// If successful, it returns a map containing the URL that can be used to
+  /// access the directory.
+  ///
+  ///     {
+  ///       "url": "http://localhost:8083"
+  ///     }
+  ///
+  /// If the directory is already being served, returns the previous URL.
+  Future<Map> _serveDirectory(Map command) {
+    var rootDirectory = _validateRelativePath(command, "path");
+    return _environment.serveDirectory(rootDirectory).then((server) {
+      return {
+        "url": server.url.toString()
+      };
+    });
+  }
+
+  /// Given a relative directory path within the entrypoint package, unbinds
+  /// the server previously bound to that directory and returns its (now
+  /// unreachable) URL.
+  ///
+  /// The command name is "unserveDirectory" and it takes a "path" key (a
+  /// native OS path relative to the root of the entrypoint package) for the
+  /// directory being unserved:
+  ///
+  ///     {
+  ///       "command": "unserveDirectory",
+  ///       "path": "example/awesome"
+  ///     }
+  ///
+  /// If successful, it returns a map containing the URL that used to be used
+  /// to access the directory.
+  ///
+  ///     {
+  ///       "url": "http://localhost:8083"
+  ///     }
+  ///
+  /// If no server is bound to that directory, it returns a `NOT_SERVED` error.
+  Future<Map> _unserveDirectory(Map command) {
+    var rootDirectory = _validateRelativePath(command, "path");
+    return _environment.unserveDirectory(rootDirectory).then((url) {
+      if (url == null) {
+        throw new _WebSocketException(_ErrorCode.NOT_SERVED,
+            'Directory "$rootDirectory" is not bound to a server.');
+      }
+
+      return {"url": url.toString()};
+    });
   }
 
   /// Validates that [command] has a field named [key] whose value is a string.
   ///
   /// Returns the string if found, or throws a [_WebSocketException] if
   /// validation failed.
-  String _validateString(Map command, String key) {
-    if (!command.containsKey(key)) {
+  String _validateString(Map command, String key, {bool optional: false}) {
+    if (!optional && !command.containsKey(key)) {
       throw new _WebSocketException(_ErrorCode.BAD_ARGUMENT,
           'Missing "$key" argument.');
     }
 
     var field = command[key];
     if (field is String) return field;
+    if (field == null && optional) return null;
 
     throw new _WebSocketException(_ErrorCode.BAD_ARGUMENT,
         '"$key" must be a string. Got ${JSON.encode(field)}.');
+  }
+
+  /// Validates that [command] has a field named [key] whose value is a string
+  /// containing a relative path that doesn't reach out of the entrypoint
+  /// package's root directory.
+  ///
+  /// Returns the path if found, or throws a [_WebSocketException] if
+  /// validation failed.
+  String _validateRelativePath(Map command, String key) {
+    var pathString = _validateString(command, key);
+
+    if (!path.isRelative(pathString)) {
+      throw new _WebSocketException(_ErrorCode.BAD_ARGUMENT,
+          '"$key" must be a relative path. Got "$pathString".');
+    }
+
+    if (!path.isWithin(".", pathString)) {
+      throw new _WebSocketException(_ErrorCode.BAD_ARGUMENT,
+          '"$key" cannot reach out of its containing directory. '
+          'Got "$pathString".');
+    }
+
+    return pathString;
   }
 
   /// Validates that if [command] has a field named [key], then its value is a
@@ -306,7 +410,9 @@ class WebSocketApi {
 }
 
 /// Function for processing a single web socket command.
-typedef Map _CommandHandler(Map command);
+///
+/// It can return a [Map] or a [Future] that completes to one.
+typedef _CommandHandler(Map command);
 
 /// Web socket API error codenames.
 class _ErrorCode {

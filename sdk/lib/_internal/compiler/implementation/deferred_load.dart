@@ -497,7 +497,7 @@ class DeferredLoadTask extends CompilerTask {
     for (Constant constant in allConstants) {
       // If the constant is not a "constructed" constant, it can stay where
       // it is.
-      if (!constant.isConstructedObject()) continue;
+      if (!constant.isConstructedObject) continue;
       OutputUnit constantUnit = _constantToOutputUnit[constant];
       Setlet<Import> constantImports = constantUnit.imports;
       ConstructedConstant constructed = constant;

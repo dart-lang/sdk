@@ -27,7 +27,7 @@ final _allowedBuildDirectories = new Set<String>.from([
 /// Handles the `build` pub command.
 class BuildCommand extends PubCommand {
   String get description => "Apply transformers to build a package.";
-  String get usage => "pub build [options]";
+  String get usage => "pub build [options] [directories...]";
   List<String> get aliases => const ["deploy", "settle-up"];
   bool get takesArguments => true;
 
@@ -62,6 +62,7 @@ class BuildCommand extends PubCommand {
     _parseBuildDirectories();
     cleanDir(target);
 
+    var environment;
     var errorsJson = [];
     var logJson = [];
 
@@ -69,9 +70,17 @@ class BuildCommand extends PubCommand {
     // user-facing, just use an IPv4 address to avoid a weird bug on the
     // OS X buildbots.
     return BuildEnvironment.create(entrypoint, "127.0.0.1", 0, mode,
-        WatcherType.NONE, buildDirectories, useDart2JS: true)
-          .then((environment) {
+        WatcherType.NONE, useDart2JS: true)
+          .then((env) {
+      environment = env;
 
+      // Register all of the build directories.
+      // TODO(rnystrom): We don't actually need to bind servers for these, we
+      // just need to add them to barback's sources. Add support to
+      // BuildEnvironment for going the latter without the former.
+      return Future.wait(buildDirectories.map(
+          (dir) => environment.serveDirectory(dir)));
+    }).then((_) {
       // Show in-progress errors, but not results. Those get handled implicitly
       // by getAllAssets().
       environment.barback.errors.listen((error) {
@@ -285,7 +294,7 @@ class BuildCommand extends PubCommand {
     var entrypointDirs = entrypoints
         // Convert the asset path to a native-separated one and get the
         // directory containing the entrypoint.
-        .map((id) => path.dirname(path.joinAll(path.url.split(id.path))))
+        .map((id) => path.dirname(path.fromUri(id.path)))
         // Don't copy files to the top levels of the build directories since
         // the normal lib asset copying will take care of that.
         .where((dir) => dir.contains(path.separator))

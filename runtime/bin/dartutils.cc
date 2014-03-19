@@ -523,8 +523,16 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
   // Handle 'part' of IO library.
   if (is_io_library) {
     if (tag == Dart_kSourceTag) {
+      // Prepend the library URI to form a unique script URI for the part.
+      intptr_t len = snprintf(NULL, 0, "%s/%s", library_url_string, url_string);
+      char* part_uri = reinterpret_cast<char*>(malloc(len + 1));
+      snprintf(part_uri, len + 1, "%s/%s", library_url_string, url_string);
+      Dart_Handle part_uri_obj = DartUtils::NewString(part_uri);
+      free(part_uri);
       return Dart_LoadSource(
-          library, url, Builtin::PartSource(Builtin::kIOLibrary, url_string));
+          library,
+          part_uri_obj,
+          Builtin::PartSource(Builtin::kIOLibrary, url_string));
     } else {
       ASSERT(tag == Dart_kImportTag);
       return NewError("Unable to import '%s' ", url_string);

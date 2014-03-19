@@ -17,7 +17,22 @@ polymer/example/scoped_style/*: Skip
 scheduled_test/test/scheduled_server_test: Pass, Fail # 13524
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 polymer/test/event_path_test: Pass, Fail # Issue 15766
-docgen/test/generate_json_test: Skip # Issue 17430
+
+[ $compiler == dart2js && $mode == debug ]
+docgen/test/generate_json_test: Skip # Way too slow
+docgen/test/multi_library_test: Skip # Way too slow
+docgen/test/single_library_test: Skip # Way too slow
+docgen/test/typedef_test: Skip # Way too slow
+
+[ $runtime == vm ]
+docgen/test/only_lib_content_in_pkg_test: Fail, Timeout # Issue 17597
+
+[ $runtime == vm && ( $arch == simarm || $arch == simmips ) ]
+docgen/test/only_lib_content_in_pkg_test: Skip # slow
+docgen/test/typedef_test: Skip # slow
+
+[ $runtime == vm && $arch == ia32 && $mode == debug ]
+docgen/test/generate_json_test: Skip # Issue 17602
 
 [ $compiler == dart2js ]
 collection/test/equality_test/01: Fail # Issue 1533
@@ -118,6 +133,7 @@ intl/test/date_time_format_http_request_test: Skip
 
 [ $runtime == vm && $system == windows ]
 intl/test/find_default_locale_standalone_test: Fail # Issue 8110
+smoke/test/codegen/end_to_end_test: Fail # Issue 17600
 
 [ $compiler == dartanalyzer ]
 # These tests are runtime negative but statically positive, so we skip
@@ -212,6 +228,8 @@ oauth2/test/handle_access_token_response_test: Fail, OK # Uses dart:io.
 observe/test/transformer_test: Fail, OK # Uses dart:io.
 path/test/io_test: Fail, OK # Uses dart:io.
 polymer/test/build/*: Fail, OK # Uses dart:io.
+smoke/test/codegen/recorder_test: Skip # Uses dart:io.
+smoke/test/codegen/end_to_end_test: Skip # Uses dart:io.
 third_party/angular_tests/vm_test: Skip # Uses dart:io
 third_party/angular_tests/browser_test/core_dom/cookies: Fail # Issue 16337
 watcher/test/*: Fail, OK # Uses dart:io.
@@ -305,10 +323,8 @@ third_party/html5lib/test/browser/browser_test: Skip
 [ $runtime == safari || $runtime == ie9 || $runtime == ie10 ]
 polymer_expressions/test/globals_test: Fail # Issue 16568
 
-[ $runtime == safari || $runtime == chrome || $runtime == ie9 || $runtime == ff || $runtime == dartium || $runtime == drt ]
-docgen/test/generate_json_test: Skip  # Uses dart:io
-docgen/test/single_library_test: Skip # Uses dart:io
-docgen/test/multi_library_test: Skip # Uses dart:io
+[ $browser ]
+docgen/test/*: Skip  # Uses dart:io
 scheduled_test/test/scheduled_server_test: Skip # Uses dart:io
 
 [ $browser || $runtime == vm ]
@@ -320,8 +336,10 @@ source_maps/test/parser_test: Pass, Timeout # Issue 13719: Please triage this fa
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 docgen/test/generate_json_test: StaticWarning # Issue 16950
-docgen/test/single_library_test: StaticWarning # Issue 16950
 docgen/test/multi_library_test: StaticWarning # Issue 16950
+docgen/test/only_lib_content_in_pkg_test: StaticWarning # Issue 16950
+docgen/test/single_library_test: StaticWarning # Issue 16950
+docgen/test/typedef_test: StaticWarning # Issue 16950
 unittest/test/matchers_test: StaticWarning, OK # testing error creating abstract class
 
 [ $runtime == vm && ($system == windows || $system == macos) ]

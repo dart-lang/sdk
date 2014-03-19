@@ -30,6 +30,7 @@
 #include "vm/parser.h"
 #include "vm/scanner.h"
 #include "vm/symbols.h"
+#include "vm/tags.h"
 #include "vm/timer.h"
 
 namespace dart {
@@ -261,6 +262,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::codegen_timer);
   bool is_compiled = false;
   Isolate* isolate = Isolate::Current();
+  VMTagScope tagScope(isolate, VMTag::kCompileTagId);
   HANDLESCOPE(isolate);
   isolate->set_cha_used(false);
 

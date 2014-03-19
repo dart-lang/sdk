@@ -10,7 +10,7 @@ part of app;
 class LocationManager extends Observable {
   static const String defaultHash = '#/isolates/';
   static final RegExp _currentIsolateMatcher = new RegExp(r'#/isolates/\d+');
-  static final RegExp _currentObjectMatcher = new RegExp(r'#/isolates/\d+/');
+  static final RegExp _currentObjectMatcher = new RegExp(r'#/isolates/\d+(/|$)');
   ObservatoryApplication _app;
   @observable String currentHash = '';
 

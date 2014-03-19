@@ -474,24 +474,12 @@ inline D bit_copy(const S& source) {
 #endif
 
 #if !defined(TARGET_OS_WINDOWS)
-#if !defined(TEMP_FAILURE_RETRY)
-// TEMP_FAILURE_RETRY is defined in unistd.h on some platforms. The
-// definition below is copied from Linux and adapted to avoid lint
-// errors (type long int changed to intptr_t and do/while split on
-// separate lines with body in {}s).
-#define TEMP_FAILURE_RETRY(expression)                                         \
-    ({ intptr_t __result;                                                      \
-       do {                                                                    \
-         __result = (expression);                                              \
-       } while ((__result == -1L) && (errno == EINTR));                        \
-       __result; })
-#endif  // !defined(TEMP_FAILURE_RETRY)
-
-// This is a version of TEMP_FAILURE_RETRY which does not use the value
-// returned from the expression.
-#define VOID_TEMP_FAILURE_RETRY(expression)                                    \
-    (static_cast<void>(TEMP_FAILURE_RETRY(expression)))
-
+#if defined(TEMP_FAILURE_RETRY)
+// TEMP_FAILURE_RETRY is defined in unistd.h on some platforms. We should
+// not use that version, but instead the one in signal_blocker.h, to ensure
+// we disable signal interrupts.
+#undef TEMP_FAILURE_RETRY
+#endif  // defined(TEMP_FAILURE_RETRY)
 #endif  // !defined(TARGET_OS_WINDOWS)
 
 #if defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS)

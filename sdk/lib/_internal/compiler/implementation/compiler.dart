@@ -803,9 +803,13 @@ abstract class Compiler implements DiagnosticListener {
       try {
         if (!hasCrashed) {
           hasCrashed = true;
-          reportDiagnostic(new SourceSpan(uri, 0, 0),
-                           MessageKind.COMPILER_CRASHED.message(),
-                           api.Diagnostic.CRASH);
+          if (error is SpannableAssertionFailure) {
+            reportAssertionFailure(error);
+          } else {
+            reportDiagnostic(new SourceSpan(uri, 0, 0),
+                             MessageKind.COMPILER_CRASHED.message(),
+                             api.Diagnostic.CRASH);
+          }
           pleaseReportCrash();
         }
       } catch (doubleFault) {
@@ -1295,6 +1299,8 @@ abstract class Compiler implements DiagnosticListener {
            element.isGetter() ||
            element.isSetter(),
            message: 'Unexpected element kind: ${element.kind}'));
+    assert(invariant(element, element is AnalyzableElement,
+        message: 'Element $element is not analyzable.'));
     assert(invariant(element, element.isDeclaration));
     ResolutionEnqueuer world = enqueuer.resolution;
     TreeElements elements = world.getCachedElements(element);
@@ -1458,7 +1464,7 @@ abstract class Compiler implements DiagnosticListener {
     String message = (ex.message != null) ? tryToString(ex.message)
                                           : tryToString(ex);
     SourceSpan span = spanFromSpannable(ex.node);
-    reportError(ex.node, MessageKind.GENERIC, {'text': message});
+    reportInternalError(ex.node, MessageKind.GENERIC, {'text': message});
   }
 
   SourceSpan spanFromTokens(Token begin, Token end, [Uri uri]) {

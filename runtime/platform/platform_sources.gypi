@@ -9,6 +9,7 @@
     'hashmap.cc',
     'json.cc',
     'floating_point_win.cc',
+    'signal_blocker.h',
     'thread_android.cc',
     'thread_linux.cc',
     'thread_macos.cc',

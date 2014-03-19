@@ -23,64 +23,64 @@ abstract class Expression extends Node {
   Expression plug(Expression expr) => throw 'impossible';
 }
 
-// Trivial is the base class of things that variables can refer to: primitives,
-// continuations, function and continuation parameters, etc.
-abstract class Trivial extends Node {
+/// The base class of things that variables can refer to: primitives,
+/// continuations, function and continuation parameters, etc.
+abstract class Definition extends Node {
   // The head of a linked-list of occurrences, in no particular order.
   Variable firstUse = null;
 }
 
-// Operands to invocations and primitives are always variables.  They point to
-// their definition and are linked into a list of occurrences.
+/// Operands to invocations and primitives are always variables.  They point to
+/// their definition and are linked into a list of occurrences.
 class Variable {
-  Trivial definition;
+  Definition definition;
   Variable nextUse = null;
-  
+
   Variable(this.definition) {
     nextUse = definition.firstUse;
     definition.firstUse = this;
   }
 }
 
-// Binding a value (primitive or constant): 'let val x = V in E'.  The bound
-// value is in scope in the body.
-// During one-pass construction a LetVal with an empty body is used to
-// represent one-level context 'let val x = V in []'.
+/// Binding a value (primitive or constant): 'let val x = V in E'.  The bound
+/// value is in scope in the body.
+/// During one-pass construction a LetVal with an empty body is used to
+/// represent one-level context 'let val x = V in []'.
 class LetVal extends Expression {
-  final Trivial value;
+  final Definition value;
   Expression body = null;
-  
+
   LetVal(this.value);
-  
+
   Expression plug(Expression expr) {
     assert(body == null);
     return body = expr;
   }
-  
+
   accept(Visitor visitor) => visitor.visitLetVal(this);
 }
 
 
-// Binding a continuation: 'let cont k(v) = E in E'.  The bound continuation is
-// in scope in the body and the continuation parameter is in scope in the
-// continuation body.
-// During one-pass construction a LetCont with an empty continuation body is
-// used to represent the one-level context 'let cont k(v) = [] in E'.
+/// Binding a continuation: 'let cont k(v) = E in E'.  The bound continuation
+/// is in scope in the body and the continuation parameter is in scope in the
+/// continuation body.
+/// During one-pass construction a LetCont with an empty continuation body is
+/// used to represent the one-level context 'let cont k(v) = [] in E'.
 class LetCont extends Expression {
   final Continuation continuation;
   final Expression body;
-  
+
   LetCont(this.continuation, this.body);
-  
+
   Expression plug(Expression expr) {
     assert(continuation.body == null);
     return continuation.body = expr;
   }
-  
+
   accept(Visitor visitor) => visitor.visitLetCont(this);
 }
 
-// Invoke a static function in tail position.
+/// Invoke a static function in tail position.
 class InvokeStatic extends Expression {
   final FunctionElement target;
 
@@ -93,9 +93,9 @@ class InvokeStatic extends Expression {
 
   final Variable continuation;
   final List<Variable> arguments;
-  
+
   InvokeStatic(this.target, this.selector, Continuation cont,
-               List<Trivial> args)
+               List<Definition> args)
       : continuation = new Variable(cont),
         arguments = args.map((t) => new Variable(t)).toList(growable: false) {
     assert(selector.kind == SelectorKind.CALL);
@@ -105,54 +105,52 @@ class InvokeStatic extends Expression {
   accept(Visitor visitor) => visitor.visitInvokeStatic(this);
 }
 
-// Invoke a continuation in tail position.
+/// Invoke a continuation in tail position.
 class InvokeContinuation extends Expression {
   final Variable continuation;
   final Variable argument;
-  
-  InvokeContinuation(Continuation cont, Trivial arg)
+
+  InvokeContinuation(Continuation cont, Definition arg)
       : continuation = new Variable(cont),
         argument = new Variable(arg);
-  
+
   accept(Visitor visitor) => visitor.visitInvokeContinuation(this);
 }
 
-// Constants are values, they are always bound by 'let val'.
-class Constant extends Trivial {
+class Constant extends Definition {
   final dart2js.Constant value;
-  
+
   Constant(this.value);
-  
+
   accept(Visitor visitor) => visitor.visitConstant(this);
 }
 
-// Function and continuation parameters are trivial.
-class Parameter extends Trivial {
+class Parameter extends Definition {
   Parameter();
-  
+
   accept(Visitor visitor) => visitor.visitParameter(this);
 }
 
-// Continuations are trivial.  They are normally bound by 'let cont'.  A
-// continuation with no parameter (or body) is used to represent a function's
-// return continuation.
-class Continuation extends Trivial {
+/// Continuations are normally bound by 'let cont'.  A continuation with no
+/// parameter (or body) is used to represent a function's return continuation.
+/// The return continuation is bound by the Function, not by 'let cont'.
+class Continuation extends Definition {
   final Parameter parameter;
   Expression body = null;
-  
+
   Continuation(this.parameter);
-  
+
   Continuation.retrn() : parameter = null;
-  
+
   accept(Visitor visitor) => visitor.visitContinuation(this);
 }
 
-// A function definition, consisting of parameters and a body.  The parameters
-// include a distinguished continuation parameter.
-class Function extends Expression {
+/// A function definition, consisting of parameters and a body.  The parameters
+/// include a distinguished continuation parameter.
+class Function extends Node {
   final int endOffset;
   final int namePosition;
-  
+
   final Continuation returnContinuation;
   final Expression body;
 
@@ -168,39 +166,39 @@ class Function extends Expression {
 
 abstract class Visitor<T> {
   T visitNode(Node node) => node.accept(this);
-  
+
   T visitFunction(Function node) => visitNode(node);
   T visitExpression(Expression node) => visitNode(node);
-  T visitTrivial(Trivial node) => visitNode(node);
-  
+  T visitDefinition(Definition node) => visitNode(node);
+
   T visitLetVal(LetVal expr) => visitExpression(expr);
   T visitLetCont(LetCont expr) => visitExpression(expr);
   T visitInvokeStatic(InvokeStatic expr) => visitExpression(expr);
   T visitInvokeContinuation(InvokeContinuation expr) => visitExpression(expr);
-  
-  T visitConstant(Constant triv) => visitTrivial(triv);
-  T visitParameter(Parameter triv) => visitTrivial(triv);
-  T visitContinuation(Continuation triv) => visitTrivial(triv);
+
+  T visitConstant(Constant triv) => visitDefinition(triv);
+  T visitParameter(Parameter triv) => visitDefinition(triv);
+  T visitContinuation(Continuation triv) => visitDefinition(triv);
 }
 
-// Generate a Lisp-like S-expression representation of an IR node as a string.
-// The representation is not pretty-printed, but it can easily be quoted and
-// dropped into the REPL of one's favorite Lisp or Scheme implementation to be
-// pretty-printed.
+/// Generate a Lisp-like S-expression representation of an IR node as a string.
+/// The representation is not pretty-printed, but it can easily be quoted and
+/// dropped into the REPL of one's favorite Lisp or Scheme implementation to be
+/// pretty-printed.
 class SExpressionStringifier extends Visitor<String> {
-  final Map<Trivial, String> names = <Trivial, String>{};
-  
+  final Map<Definition, String> names = <Definition, String>{};
+
   int _valueCounter = 0;
   int _continuationCounter = 0;
-  
+
   String newValueName() => 'v${_valueCounter++}';
   String newContinuationName() => 'k${_continuationCounter++}';
-  
+
   String visitFunction(Function node) {
     names[node.returnContinuation] = 'return';
     return '(Function ${node.body.accept(this)})';
   }
-  
+
   String visitLetVal(LetVal expr) {
     String name = newValueName();
     names[expr.value] = name;
@@ -208,7 +206,7 @@ class SExpressionStringifier extends Visitor<String> {
     String body = expr.body.accept(this);
     return '(LetVal $name $value) $body';
   }
-  
+
   String visitLetCont(LetCont expr) {
     String cont = newContinuationName();
     String param = newValueName();
@@ -218,7 +216,7 @@ class SExpressionStringifier extends Visitor<String> {
     String body = expr.body == null ? 'null' : expr.body.accept(this);
     return '(LetCont ($cont $param) $contBody) $body';
   }
-  
+
   String visitInvokeStatic(InvokeStatic expr) {
     String name = expr.target.name;
     String cont = names[expr.continuation.definition];
@@ -226,21 +224,21 @@ class SExpressionStringifier extends Visitor<String> {
         expr.arguments.map((v) => names[v.definition]).toList(growable: false);
     return '(InvokeStatic $name $cont ${args.join(' ')})';
   }
-  
+
   String visitInvokeContinuation(InvokeContinuation expr) {
     String cont = names[expr.continuation.definition];
     String arg = names[expr.argument.definition];
     return '(InvokeContinuation $cont $arg)';
   }
-  
+
   String visitConstant(Constant triv) {
     return '(Constant ${triv.value})';
   }
-  
+
   String visitParameter(Parameter triv) {
     return '(Unexpected Parameter)';
   }
-  
+
   String visitContinuation(Continuation triv) {
     return '(Unexpected Continuation)';
   }

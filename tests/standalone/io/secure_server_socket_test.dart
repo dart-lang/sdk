@@ -12,14 +12,13 @@ import "dart:io";
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:path/path.dart";
 
-const HOST_NAME = "localhost";
+InternetAddress HOST;
 const CERTIFICATE = "localhost_cert";
 
 void testSimpleBind() {
   asyncStart();
-  SecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((s) {
+  SecureServerSocket.bind(HOST, 0, CERTIFICATE).then((s) {
     Expect.isTrue(s.port > 0);
     s.close();
     asyncEnd();
@@ -49,8 +48,8 @@ void testInvalidBind() {
 
   // Bind to a port already in use.
   asyncStart();
-  SecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((s) {
-    SecureServerSocket.bind(HOST_NAME,
+  SecureServerSocket.bind(HOST, 0, CERTIFICATE).then((s) {
+    SecureServerSocket.bind(HOST,
                             s.port,
                             CERTIFICATE).then((t) {
       Expect.fail("Multiple listens on same port");
@@ -64,8 +63,8 @@ void testInvalidBind() {
 
 void testSimpleConnect(String certificate) {
   asyncStart();
-  SecureServerSocket.bind(HOST_NAME, 0, certificate).then((server) {
-    var clientEndFuture = SecureSocket.connect(HOST_NAME, server.port);
+  SecureServerSocket.bind(HOST, 0, certificate).then((server) {
+    var clientEndFuture = SecureSocket.connect(HOST, server.port);
     server.listen((serverEnd) {
       clientEndFuture.then((clientEnd) {
         clientEnd.close();
@@ -79,8 +78,8 @@ void testSimpleConnect(String certificate) {
 
 void testSimpleConnectFail(String certificate, bool cancelOnError) {
   asyncStart();
-  SecureServerSocket.bind(HOST_NAME, 0, certificate).then((server) {
-    var clientEndFuture = SecureSocket.connect(HOST_NAME, server.port)
+  SecureServerSocket.bind(HOST, 0, certificate).then((server) {
+    var clientEndFuture = SecureSocket.connect(HOST, server.port)
       .then((clientEnd) {
         Expect.fail("No client connection expected.");
       })
@@ -104,9 +103,9 @@ void testSimpleConnectFail(String certificate, bool cancelOnError) {
 
 void testServerListenAfterConnect() {
   asyncStart();
-  SecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((server) {
+  SecureServerSocket.bind(HOST, 0, CERTIFICATE).then((server) {
     Expect.isTrue(server.port > 0);
-    var clientEndFuture = SecureSocket.connect(HOST_NAME, server.port);
+    var clientEndFuture = SecureSocket.connect(HOST, server.port);
     new Timer(const Duration(milliseconds: 500), () {
       server.listen((serverEnd) {
         clientEndFuture.then((clientEnd) {
@@ -145,7 +144,7 @@ void testSimpleReadWrite() {
     }
   }
 
-  SecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((server) {
+  SecureServerSocket.bind(HOST, 0, CERTIFICATE).then((server) {
     server.listen((client) {
       int bytesRead = 0;
       int bytesWritten = 0;
@@ -167,7 +166,7 @@ void testSimpleReadWrite() {
         });
     });
 
-    SecureSocket.connect(HOST_NAME, server.port).then((socket) {
+    SecureSocket.connect(HOST, server.port).then((socket) {
       int bytesRead = 0;
       int bytesWritten = 0;
       List<int> dataSent = createTestData();
@@ -194,6 +193,14 @@ main() {
   SecureSocket.initialize(database: certificateDatabase,
                           password: 'dartdart',
                           useBuiltinRoots: false);
+  InternetAddress.lookup("localhost").then((hosts) {
+    HOST = hosts.first;
+    runTests();
+    asyncEnd();
+  });
+}
+
+runTests() {
   testSimpleBind();
   testInvalidBind();
   testSimpleConnect(CERTIFICATE);
@@ -204,5 +211,4 @@ main() {
   testSimpleConnectFail("CN=notARealDistinguishedName", true);
   testServerListenAfterConnect();
   testSimpleReadWrite();
-  asyncEnd();
 }

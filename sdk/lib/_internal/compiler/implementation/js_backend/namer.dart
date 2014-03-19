@@ -305,7 +305,7 @@ class Namer implements ClosureNamer {
     // In the current implementation it doesn't make sense to give names to
     // function constants since the function-implementation itself serves as
     // constant and can be accessed directly.
-    assert(!constant.isFunction());
+    assert(!constant.isFunction);
     String result = constantNames[constant];
     if (result == null) {
       String longName = constantLongName(constant);
@@ -382,7 +382,7 @@ class Namer implements ClosureNamer {
     if (element.isGenerativeConstructorBody()) {
       name = Elements.reconstructConstructorNameSourceString(element);
     }
-    FunctionSignature signature = element.computeSignature(compiler);
+    FunctionSignature signature = element.functionSignature;
     String methodName =
         '${privateName(library, name)}\$${signature.parameterCount}';
     if (signature.optionalParametersAreNamed &&

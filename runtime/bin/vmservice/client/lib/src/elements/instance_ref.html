@@ -6,9 +6,17 @@
 <polymer-element name="instance-ref" extends="service-ref">
   <template>
     <style>
-      .member {
+      .memberList {
+        display: table;
+      }
+      .memberItem {
+        display: table-row;
+      }
+      .memberName, .memberValue {
+        display: table-cell;
         vertical-align: top;
-        padding: 1px 0 1px 1em;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
       }
     </style>
     <div>
@@ -32,6 +40,7 @@
 
       <template if="{{ isClosure(ref.serviceType) }}">
         <a href="{{ url }}">
+          <!-- TODO(turnidge): Switch this to fully-qualified function -->
           {{ ref['closureFunc']['user_name'] }}
         </a>
       </template>
@@ -39,28 +48,34 @@
       <template if="{{ isInstance(ref.serviceType) }}">
         <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em></a>
         <curly-block callback="{{ expander() }}">
-          <table>
-            <tr template repeat="{{ field in ref['fields'] }}">
-              <td class="member">{{ field['decl']['user_name'] }}</td>
-              <td class="member">
-                <instance-ref ref="{{ field['value'] }}"></instance-ref>
-              </td>
-            </tr>
-          </table>
+          <div class="memberList">
+            <template repeat="{{ field in ref['fields'] }}">
+              <div class="memberItem">
+                <div class="memberName">
+                  {{ field['decl']['user_name'] }}
+                </div>
+                <div class="memberValue">
+                  <instance-ref ref="{{ field['value'] }}"></instance-ref>
+                </div>
+              </div>
+            </template>
+          </div>
         </curly-block>
       </template>
 
       <template if="{{ isList(ref.serviceType) }}">
         <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em> ({{ ref['length']}})</a>
         <curly-block callback="{{ expander() }}">
-          <table>
-            <tr template repeat="{{ element in ref['elements'] }}">
-              <td class="member">[{{ element['index']}}]</td>
-              <td class="member">
-                <instance-ref ref="{{ element['value'] }}"></instance-ref>
-              </td>
-            </tr>
-          </table>
+          <div class="memberList">
+            <template repeat="{{ element in ref['elements'] }}">
+              <div class="memberItem">
+                <div class="memberName">[{{ element['index']}}]</div>
+                <div class="memberValue">
+                  <instance-ref ref="{{ element['value'] }}"></instance-ref>
+                </div>
+              </div>
+            </template>
+          </div>
         </curly-block>
       </template>
 

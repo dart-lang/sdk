@@ -34,6 +34,9 @@ MessageHandler::MessageHandler()
       oob_queue_(new MessageQueue()),
       control_ports_(0),
       live_ports_(0),
+      pause_on_start_(false),
+      pause_on_exit_(false),
+      paused_on_exit_(false),
       pool_(NULL),
       task_(NULL),
       start_callback_(NULL),
@@ -197,6 +200,15 @@ void MessageHandler::TaskCallback() {
     // Initialize the message handler by running its start function,
     // if we have one.  For an isolate, this will run the isolate's
     // main() function.
+    if (pause_on_start()) {
+      HandleMessages(false, false);
+      if (pause_on_start()) {
+        // Still paused.
+        task_ = NULL;  // No task in queue.
+        return;
+      }
+    }
+
     if (start_callback_) {
       monitor_.Exit();
       ok = start_callback_(callback_data_);
@@ -212,14 +224,19 @@ void MessageHandler::TaskCallback() {
     task_ = NULL;  // No task in queue.
 
     if (!ok || !HasLivePorts()) {
-      if (FLAG_trace_isolates) {
+      if (pause_on_exit()) {
+        paused_on_exit_ = true;
+      } else {
+        if (FLAG_trace_isolates) {
         OS::Print("[-] Stopping message handler (%s):\n"
                   "\thandler:    %s\n",
                   (ok ? "no live ports" : "error"),
                   name());
+        }
+        pool_ = NULL;
+        run_end_callback = true;
+        paused_on_exit_ = false;
       }
-      pool_ = NULL;
-      run_end_callback = true;
     }
   }
   if (run_end_callback && end_callback_ != NULL) {

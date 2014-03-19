@@ -40,6 +40,7 @@
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
+#include "vm/tags.h"
 #include "vm/timer.h"
 #include "vm/unicode.h"
 
@@ -1680,9 +1681,15 @@ RawClass* Class::New() {
   ASSERT((FakeObject::kClassId != kInstanceCid));
   result.set_id(FakeObject::kClassId);
   result.set_state_bits(0);
-  // VM backed classes are almost ready: run checks and resolve class
-  // references, but do not recompute size.
-  result.set_is_prefinalized();
+  if (FakeObject::kClassId < kInstanceCid) {
+    // VM internal classes are done. There is no finalization needed or
+    // possible in this case.
+    result.set_is_finalized();
+  } else {
+    // VM backed classes are almost ready: run checks and resolve class
+    // references, but do not recompute size.
+    result.set_is_prefinalized();
+  }
   result.set_type_arguments_field_offset_in_words(kNoTypeArguments);
   result.set_num_type_arguments(0);
   result.set_num_own_type_arguments(0);
@@ -2254,8 +2261,7 @@ RawFunction* Class::GetInvocationDispatcher(const String& target_name,
   };
 
   ASSERT(kind == RawFunction::kNoSuchMethodDispatcher ||
-         kind == RawFunction::kInvokeFieldDispatcher ||
-         kind == RawFunction::kInvokeClosureDispatcher);
+         kind == RawFunction::kInvokeFieldDispatcher);
   Function& dispatcher = Function::Handle();
   Array& cache = Array::Handle(invocation_dispatcher_cache());
   ASSERT(!cache.IsNull());
@@ -3774,37 +3780,81 @@ void Class::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddPropertyF("id", "classes/%" Pd "", id());
   jsobj.AddProperty("name", internal_class_name);
   jsobj.AddProperty("user_name", user_visible_class_name);
-  if (!ref) {
-    const Error& err = Error::Handle(EnsureIsFinalized(Isolate::Current()));
-    if (!err.IsNull()) {
-      jsobj.AddProperty("error", err);
-    }
-    jsobj.AddProperty("implemented", is_implemented());
-    jsobj.AddProperty("abstract", is_abstract());
-    jsobj.AddProperty("patch", is_patch());
-    jsobj.AddProperty("finalized", is_finalized());
-    jsobj.AddProperty("const", is_const());
-    jsobj.AddProperty("super", Class::Handle(SuperClass()));
-    jsobj.AddProperty("library", Object::Handle(library()));
-    {
-      JSONArray fields_array(&jsobj, "fields");
-      const Array& field_array = Array::Handle(fields());
-      Field& field = Field::Handle();
-      if (!field_array.IsNull()) {
-        for (intptr_t i = 0; i < field_array.Length(); ++i) {
-          field ^= field_array.At(i);
-          fields_array.AddValue(field);
+  if (ref) {
+    return;
+  }
+
+  const Error& err = Error::Handle(EnsureIsFinalized(Isolate::Current()));
+  if (!err.IsNull()) {
+    jsobj.AddProperty("error", err);
+  }
+  jsobj.AddProperty("implemented", is_implemented());
+  jsobj.AddProperty("abstract", is_abstract());
+  jsobj.AddProperty("patch", is_patch());
+  jsobj.AddProperty("finalized", is_finalized());
+  jsobj.AddProperty("const", is_const());
+  jsobj.AddProperty("super", Class::Handle(SuperClass()));
+  jsobj.AddProperty("library", Object::Handle(library()));
+  const Script& script = Script::Handle(this->script());
+  if (!script.IsNull()) {
+    intptr_t line_number = 0;
+    intptr_t column_number = 0;
+    script.GetTokenLocation(token_pos(), &line_number, &column_number);
+    jsobj.AddProperty("script", script);
+    jsobj.AddProperty("line", line_number);
+    jsobj.AddProperty("col", column_number);
+  }
+  {
+    JSONArray interfaces_array(&jsobj, "interfaces");
+    const Array& interface_array = Array::Handle(interfaces());
+    Type& interface_type = Type::Handle();
+    Class& interface_cls = Class::Handle();
+    if (!interface_array.IsNull()) {
+      for (intptr_t i = 0; i < interface_array.Length(); ++i) {
+        // TODO(turnidge): Use the Type directly once regis has added
+        // types to the vmservice.
+        interface_type ^= interface_array.At(i);
+        if (interface_type.HasResolvedTypeClass()) {
+          interface_cls = interface_type.type_class();
+          interfaces_array.AddValue(interface_cls);
         }
       }
     }
-    {
-      JSONArray functions_array(&jsobj, "functions");
-      const Array& function_array = Array::Handle(functions());
-      Function& function = Function::Handle();
-      if (!function_array.IsNull()) {
-        for (intptr_t i = 0; i < function_array.Length(); i++) {
-          function ^= function_array.At(i);
-          functions_array.AddValue(function);
+  }
+  {
+    JSONArray fields_array(&jsobj, "fields");
+    const Array& field_array = Array::Handle(fields());
+    Field& field = Field::Handle();
+    if (!field_array.IsNull()) {
+      for (intptr_t i = 0; i < field_array.Length(); ++i) {
+        field ^= field_array.At(i);
+        fields_array.AddValue(field);
+      }
+    }
+  }
+  {
+    JSONArray functions_array(&jsobj, "functions");
+    const Array& function_array = Array::Handle(functions());
+    Function& function = Function::Handle();
+    if (!function_array.IsNull()) {
+      for (intptr_t i = 0; i < function_array.Length(); i++) {
+        function ^= function_array.At(i);
+        functions_array.AddValue(function);
+      }
+    }
+  }
+  {
+    JSONArray subclasses_array(&jsobj, "subclasses");
+    const GrowableObjectArray& subclasses =
+        GrowableObjectArray::Handle(direct_subclasses());
+    if (!subclasses.IsNull()) {
+      Class& subclass = Class::Handle();
+      if (!subclasses.IsNull()) {
+        for (intptr_t i = 0; i < subclasses.Length(); ++i) {
+          // TODO(turnidge): Use the Type directly once regis has added
+          // types to the vmservice.
+          subclass ^= subclasses.At(i);
+          subclasses_array.AddValue(subclass);
         }
       }
     }
@@ -4657,8 +4707,7 @@ void Function::set_extracted_method_closure(const Function& value) const {
 
 RawArray* Function::saved_args_desc() const {
   ASSERT(kind() == RawFunction::kNoSuchMethodDispatcher ||
-         kind() == RawFunction::kInvokeFieldDispatcher ||
-         kind() == RawFunction::kInvokeClosureDispatcher);
+         kind() == RawFunction::kInvokeFieldDispatcher);
   const Object& obj = Object::Handle(raw_ptr()->data_);
   ASSERT(obj.IsArray());
   return Array::Cast(obj).raw();
@@ -4667,8 +4716,7 @@ RawArray* Function::saved_args_desc() const {
 
 void Function::set_saved_args_desc(const Array& value) const {
   ASSERT(kind() == RawFunction::kNoSuchMethodDispatcher ||
-         kind() == RawFunction::kInvokeFieldDispatcher ||
-         kind() == RawFunction::kInvokeClosureDispatcher);
+         kind() == RawFunction::kInvokeFieldDispatcher);
   ASSERT(raw_ptr()->data_ == Object::null());
   set_data(value);
 }
@@ -4816,9 +4864,6 @@ const char* Function::KindToCString(RawFunction::Kind kind) {
       break;
     case RawFunction::kInvokeFieldDispatcher:
       return "kInvokeFieldDispatcher";
-      break;
-    case RawFunction::kInvokeClosureDispatcher:
-      return "kInvokeClosureDispatcher";
       break;
     default:
       UNREACHABLE();
@@ -6072,9 +6117,6 @@ const char* Function::ToCString() const {
     case RawFunction::kInvokeFieldDispatcher:
       kind_str = "invoke-field-dispatcher";
       break;
-    case RawFunction::kInvokeClosureDispatcher:
-      kind_str = "invoke-closure-dispatcher";
-      break;
     default:
       UNREACHABLE();
   }
@@ -6092,7 +6134,7 @@ const char* Function::ToCString() const {
 void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
   const char* internal_name = String::Handle(name()).ToCString();
   const char* user_name =
-      String::Handle(QualifiedUserVisibleName()).ToCString();
+      String::Handle(UserVisibleName()).ToCString();
   Class& cls = Class::Handle(Owner());
   ASSERT(!cls.IsNull());
   Error& err = Error::Handle();
@@ -6106,9 +6148,7 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
   } else if (IsImplicitClosureFunction()) {
     id = cls.FindImplicitClosureFunctionIndex(*this);
     selector = "implicit_closures";
-  } else if (IsNoSuchMethodDispatcher() ||
-             IsInvokeFieldDispatcher() ||
-             IsInvokeClosureDispatcher()) {
+  } else if (IsNoSuchMethodDispatcher() || IsInvokeFieldDispatcher()) {
     id = cls.FindInvocationDispatcherFunctionIndex(*this);
     selector = "dispatchers";
   } else {
@@ -6123,9 +6163,15 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("name", internal_name);
   jsobj.AddProperty("user_name", user_name);
   jsobj.AddProperty("class", cls);
+  const Function& parent = Function::Handle(parent_function());
+  if (!parent.IsNull()) {
+    jsobj.AddProperty("parent", parent);
+  }
   const char* kind_string = Function::KindToCString(kind());
   jsobj.AddProperty("kind", kind_string);
-  if (ref) return;
+  if (ref) {
+    return;
+  }
   jsobj.AddProperty("is_static", is_static());
   jsobj.AddProperty("is_const", is_const());
   jsobj.AddProperty("is_optimizable", is_optimizable());
@@ -7327,17 +7373,19 @@ void Script::set_tokens(const TokenStream& value) const {
 
 
 void Script::Tokenize(const String& private_key) const {
-  const TokenStream& tkns = TokenStream::Handle(tokens());
+  Isolate* isolate = Isolate::Current();
+  const TokenStream& tkns = TokenStream::Handle(isolate, tokens());
   if (!tkns.IsNull()) {
     // Already tokenized.
     return;
   }
-
   // Get the source, scan and allocate the token stream.
+  VMTagScope tagScope(isolate, VMTag::kCompileTagId);
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::scanner_timer);
-  const String& src = String::Handle(Source());
+  const String& src = String::Handle(isolate, Source());
   Scanner scanner(src, private_key);
-  set_tokens(TokenStream::Handle(TokenStream::New(scanner.GetStream(),
+  set_tokens(TokenStream::Handle(isolate,
+                                 TokenStream::New(scanner.GetStream(),
                                                   private_key)));
   if (FLAG_compiler_stats) {
     CompilerStats::src_length += src.Length();
@@ -8779,15 +8827,18 @@ const char* Library::ToCString() const {
 
 void Library::PrintToJSONStream(JSONStream* stream, bool ref) const {
   const char* library_name = String::Handle(name()).ToCString();
-  const char* library_url = String::Handle(url()).ToCString();
   intptr_t id = index();
   ASSERT(id >= 0);
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "libraries/%" Pd "", id);
+  jsobj.AddProperty("user_name", library_name);
   jsobj.AddProperty("name", library_name);
-  jsobj.AddProperty("user_name", library_url);
-  if (ref) return;
+  if (ref) {
+    return;
+  }
+  const char* library_url = String::Handle(url()).ToCString();
+  jsobj.AddProperty("url", library_url);
   {
     JSONArray jsarr(&jsobj, "classes");
     ClassDictionaryIterator class_iter(*this);
@@ -8801,7 +8852,7 @@ void Library::PrintToJSONStream(JSONStream* stream, bool ref) const {
     }
   }
   {
-    JSONArray jsarr(&jsobj, "libraries");
+    JSONArray jsarr(&jsobj, "imports");
     Library& lib = Library::Handle();
     for (intptr_t i = 0; i < num_imports(); i++) {
       lib = ImportLibraryAt(i);
@@ -10530,6 +10581,8 @@ void Code::PrintToJSONStream(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
+  const Array& array = Array::Handle(ObjectPool());
+  jsobj.AddProperty("object_pool", array);
   JSONArray jsarr(&jsobj, "disassembly");
   if (is_alive()) {
     // Only disassemble alive code objects.

@@ -184,7 +184,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInstruction input = inputs[0];
     if (input is HConstant) {
       HConstant constant = input;
-      bool isTrue = constant.constant.isTrue();
+      bool isTrue = constant.constant.isTrue;
       return graph.addConstantBool(!isTrue, compiler);
     } else if (input is HNot) {
       return input.inputs[0];
@@ -329,7 +329,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       } else {
         // TODO(ngeoffray): If the method has optional parameters,
         // we should pass the default values.
-        FunctionSignature parameters = method.computeSignature(compiler);
+        FunctionSignature parameters = method.functionSignature;
         if (parameters.optionalParameterCount == 0
             || parameters.parameterCount == node.selector.argumentCount) {
           node.element = element;
@@ -357,7 +357,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     //   foo() native 'return something';
     // They should not be used.
 
-    FunctionSignature signature = method.computeSignature(compiler);
+    FunctionSignature signature = method.functionSignature;
     if (signature.optionalParametersAreNamed) return null;
 
     // Return types on native methods don't need to be checked, since the
@@ -369,10 +369,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
     List<HInstruction> inputs = node.inputs.sublist(1);
     int inputPosition = 1;  // Skip receiver.
     bool canInline = true;
-    signature.forEachParameter((Element element) {
+    signature.forEachParameter((ParameterElement element) {
       if (inputPosition < inputs.length && canInline) {
         HInstruction input = inputs[inputPosition++];
-        DartType type = element.computeType(compiler).unalias(compiler);
+        DartType type = element.type.unalias(compiler);
         if (type is FunctionType) {
           canInline = false;
         }
@@ -405,7 +405,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (index.isInteger(compiler)) return node;
     if (index.isConstant()) {
       HConstant constantInstruction = index;
-      assert(!constantInstruction.constant.isInt());
+      assert(!constantInstruction.constant.isInt);
       if (!constantSystem.isInt(constantInstruction.constant)) {
         // -0.0 is a double but will pass the runtime integer check.
         node.staticChecks = HBoundsCheck.ALWAYS_FALSE;
@@ -432,8 +432,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // We can only perform this rewriting on Integer, as it is not
     // valid for -0.0.
     if (left.isInteger(compiler) && right.isInteger(compiler)) {
-      if (left is HConstant && left.constant.isZero()) return right;
-      if (right is HConstant && right.constant.isZero()) return left;
+      if (left is HConstant && left.constant.isZero) return right;
+      if (right is HConstant && right.constant.isZero) return left;
     }
     return super.visitAdd(node);
   }
@@ -442,8 +442,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInstruction left = node.left;
     HInstruction right = node.right;
     if (left.isNumber(compiler) && right.isNumber(compiler)) {
-      if (left is HConstant && left.constant.isOne()) return right;
-      if (right is HConstant && right.constant.isOne()) return left;
+      if (left is HConstant && left.constant.isOne) return right;
+      if (right is HConstant && right.constant.isOne) return left;
     }
     return super.visitMultiply(node);
   }
@@ -497,7 +497,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     if (left.isConstantBoolean() && right.isBoolean(compiler)) {
       HConstant constant = left;
-      if (constant.constant.isTrue()) {
+      if (constant.constant.isTrue) {
         return right;
       } else {
         return new HNot(right, backend.boolType);
@@ -506,7 +506,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     if (right.isConstantBoolean() && left.isBoolean(compiler)) {
       HConstant constant = right;
-      if (constant.constant.isTrue()) {
+      if (constant.constant.isTrue) {
         return left;
       } else {
         return new HNot(left, backend.boolType);
@@ -657,8 +657,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return inputType.isInMask(checkedType, compiler) ? input : node;
   }
 
-  Element findConcreteFieldForDynamicAccess(HInstruction receiver,
-                                            Selector selector) {
+  VariableElement findConcreteFieldForDynamicAccess(HInstruction receiver,
+                                                    Selector selector) {
     TypeMask receiverType = receiver.instructionType;
     return compiler.world.locateSingleField(
         new TypedSelector(receiverType, selector));
@@ -746,14 +746,15 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     HInstruction receiver = node.getDartReceiver(compiler);
-    Element field = findConcreteFieldForDynamicAccess(receiver, node.selector);
+    VariableElement field =
+        findConcreteFieldForDynamicAccess(receiver, node.selector);
     if (field == null || !field.isAssignable()) return node;
     // Use [:node.inputs.last:] in case the call follows the
     // interceptor calling convention, but is not a call on an
     // interceptor.
     HInstruction value = node.inputs.last;
     if (compiler.enableTypeAssertions) {
-      DartType type = field.computeType(compiler);
+      DartType type = field.type;
       if (!type.treatAsRaw || type.kind == TypeKind.TYPE_VARIABLE) {
         // We cannot generate the correct type representation here, so don't
         // inline this access.
@@ -816,7 +817,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (input.isString(compiler)) return input;
     if (input.isConstant()) {
       HConstant constant = input;
-      if (!constant.constant.isPrimitive()) return node;
+      if (!constant.constant.isPrimitive) return node;
       PrimitiveConstant primitive = constant.constant;
       return graph.addConstant(constantSystem.createString(
           primitive.toDartString()), compiler);
@@ -1528,30 +1529,70 @@ class SsaTypeConversionInserter extends HBaseVisitor
 
     List<HInstruction> ifUsers = <HInstruction>[];
     List<HInstruction> notIfUsers = <HInstruction>[];
-    for (HInstruction user in instruction.usedBy) {
-      if (user is HIf) {
-        ifUsers.add(user);
-      } else if (user is HNot) {
-        for (HInstruction notUser in user.usedBy) {
-          if (notUser is HIf) notIfUsers.add(notUser);
-        }
-      }
-    }
+
+    collectIfUsers(instruction, ifUsers, notIfUsers);
 
     if (ifUsers.isEmpty && notIfUsers.isEmpty) return;
 
     TypeMask convertedType = new TypeMask.nonNullSubtype(element);
     HInstruction input = instruction.expression;
+
     for (HIf ifUser in ifUsers) {
       changeUsesDominatedBy(ifUser.thenBlock, input, convertedType);
       // TODO(ngeoffray): Also change uses for the else block on a type
       // that knows it is not of a specific type.
     }
-
     for (HIf ifUser in notIfUsers) {
       changeUsesDominatedBy(ifUser.elseBlock, input, convertedType);
       // TODO(ngeoffray): Also change uses for the then block on a type
       // that knows it is not of a specific type.
+    }
+  }
+
+  void visitIdentity(HIdentity instruction) {
+    // At HIf(HIdentity(x, null)) strengthens x to non-null on else branch.
+    HInstruction left = instruction.left;
+    HInstruction right = instruction.right;
+    HInstruction input;
+
+    if (left.isConstantNull()) {
+      input = right;
+    } else if (right.isConstantNull()) {
+      input = left;
+    } else {
+      return;
+    }
+
+    if (!input.instructionType.isNullable) return;
+
+    List<HInstruction> ifUsers = <HInstruction>[];
+    List<HInstruction> notIfUsers = <HInstruction>[];
+
+    collectIfUsers(instruction, ifUsers, notIfUsers);
+
+    if (ifUsers.isEmpty && notIfUsers.isEmpty) return;
+
+    TypeMask nonNullType = input.instructionType.nonNullable();
+
+    for (HIf ifUser in ifUsers) {
+      changeUsesDominatedBy(ifUser.elseBlock, input, nonNullType);
+      // Uses in thenBlock are `null`, but probably not common.
+    }
+    for (HIf ifUser in notIfUsers) {
+      changeUsesDominatedBy(ifUser.thenBlock, input, nonNullType);
+      // Uses in elseBlock are `null`, but probably not common.
+    }
+  }
+
+  collectIfUsers(HInstruction instruction,
+                 List<HInstruction> ifUsers,
+                 List<HInstruction> notIfUsers) {
+    for (HInstruction user in instruction.usedBy) {
+      if (user is HIf) {
+        ifUsers.add(user);
+      } else if (user is HNot) {
+        collectIfUsers(user, notIfUsers, ifUsers);
+      }
     }
   }
 }

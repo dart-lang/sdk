@@ -32,7 +32,6 @@ from os.path import join, exists, split, dirname, abspath
 
 HOST_OS = utils.GuessOS()
 DART_DIR = abspath(join(__file__, '..', '..'))
-
 # Flags.
 verbose = False
 
@@ -52,6 +51,10 @@ def BuildOptions():
   result.add_option("-v", "--verbose",
       help='Verbose output.',
       default=False, action="store_true")
+  result.add_option("--tar_filename",
+                    default=None,
+                    help="The output file.")
+
   return result
 
 def Filter(tar_info):
@@ -103,23 +106,18 @@ def GenerateSvnRevision(filename, svn_revision):
     f.write(svn_revision)
 
 
-def CreateTarball():
+def CreateTarball(tarfilename):
   global ignoredPaths  # Used for adding the output directory.
   # Generate the name of the tarfile
   version = utils.GetVersion()
   global versiondir
   versiondir = 'dart-%s' % version
-  tarname = '%s.tar.gz' % versiondir
   debian_dir = 'tools/linux_dist_support/debian'
-  # Create the tar file in the build directory.
-  builddir = utils.GetBuildDir(HOST_OS, HOST_OS)
-  tardir = join(DART_DIR, builddir)
   # Don't include the build directory in the tarball (ignored paths
   # are relative to DART_DIR).
+  builddir = utils.GetBuildDir(HOST_OS, HOST_OS)
   ignoredPaths.append(builddir)
-  if not exists(tardir):
-    makedirs(tardir)
-  tarfilename = join(tardir, tarname)
+
   print 'Creating tarball: %s' % tarfilename
   with tarfile.open(tarfilename, mode='w:gz') as tar:
     for f in listdir(DART_DIR):
@@ -157,7 +155,10 @@ def Main():
     global verbose
     verbose = True
 
-  CreateTarball()
+  if not options.tar_filename:
+    raise Exception('Please specify an output filename')
+
+  CreateTarball(options.tar_filename)
 
 if __name__ == '__main__':
   sys.exit(Main())

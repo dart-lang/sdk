@@ -703,9 +703,9 @@ class CodeEmitterTask extends CompilerTask {
           isConstructor = true;
           name = Elements.reconstructConstructorName(function);
         }
-        requiredParameterCount = function.requiredParameterCount(compiler);
-        optionalParameterCount = function.optionalParameterCount(compiler);
-        FunctionSignature signature = function.computeSignature(compiler);
+        FunctionSignature signature = function.functionSignature;
+        requiredParameterCount = signature.requiredParameterCount;
+        optionalParameterCount = signature.optionalParameterCount;
         if (signature.optionalParametersAreNamed) {
           var names = [];
           for (Element e in signature.optionalParameters) {
@@ -922,7 +922,7 @@ class CodeEmitterTask extends CompilerTask {
       }
 
       String name = namer.constantName(constant);
-      if (constant.isList()) emitMakeConstantListIfNotEmitted(buffer);
+      if (constant.isList) emitMakeConstantListIfNotEmitted(buffer);
       jsAst.Expression init = js(
           '${namer.globalObjectForConstant(constant)}.$name = #',
           constantInitializerExpression(constant));
@@ -932,9 +932,9 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   bool isConstantInlinedOrAlreadyEmitted(Constant constant) {
-    if (constant.isFunction()) return true;    // Already emitted.
-    if (constant.isPrimitive()) return true;   // Inlined.
-    if (constant.isDummy()) return true;       // Inlined.
+    if (constant.isFunction) return true;    // Already emitted.
+    if (constant.isPrimitive) return true;   // Inlined.
+    if (constant.isDummy) return true;       // Inlined.
     // The name is null when the constant is already a JS constant.
     // TODO(floitsch): every constant should be registered, so that we can
     // share the ones that take up too much space (like some strings).
@@ -1009,7 +1009,7 @@ class CodeEmitterTask extends CompilerTask {
 
         js('var rootProperty = "_${generateIsolateTagRoot()}"'),
         js.for_('var i = 0', null, 'i++', [
-            js('property = intern(rootProperty + "_" + i + "_")'),
+            js('var property = intern(rootProperty + "_" + i + "_")'),
             js.if_('!(property in usedProperties)', [
                 js('usedProperties[property] = 1'),
                 js('init.isolateTag = property'),

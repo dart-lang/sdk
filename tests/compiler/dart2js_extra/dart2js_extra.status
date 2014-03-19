@@ -18,11 +18,8 @@ mirror_printer_test: Pass, Slow # Issue 16473
 variable_type_test/03: Fail, OK
 variable_type_test/01: Fail, OK
 
-[ $compiler == dart2js && $host_checked && $checked == false ]
-# Test that @IrRepresentation yields compile-time errors in host-checked mode.
-# The condition "$checked == false" is to be removed once we build IR in
-# target-checked mode.
-ir_representation_test: CompileTimeError, OK
+[ $compiler == dart2js && ($runtime == d8 || $runtime == chrome || $runtime == drt) ]
+bound_closure_interceptor_type_test: Fail, Pass # v8 issue 3084. https://code.google.com/p/v8/issues/detail?id=3084
 
 [ $compiler == dart2js && $mode == debug ]
 operator_test: Skip
@@ -59,3 +56,6 @@ deferred/deferred_constant2_test: Fail # http://dartbug.com/16898
 deferred/deferred_constant3_test: Fail # http://dartbug.com/16898
 deferred/deferred_constant4_test: Fail # http://dartbug.com/16898
 deferred/deferred_constant5_test: Fail # http://dartbug.com/16898
+
+[ $compiler == dart2js && $runtime == d8 && $system == windows ]
+deferred/*: Skip # Issue 17458

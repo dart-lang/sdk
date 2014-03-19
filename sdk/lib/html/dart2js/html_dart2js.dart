@@ -2261,9 +2261,9 @@ class CompositionEvent extends UIEvent native "CompositionEvent" {
 @DomName('Console')
 class Console {
 
-  Console._safe() {}
+  const Console._safe();
 
-  static Console _safeConsole = new Console._safe();
+  static const Console _safeConsole = const Console._safe();
 
   bool get _isConsoleDefined => JS('bool', 'typeof console != "undefined"');
 
@@ -2289,7 +2289,7 @@ class Console {
 
   @DomName('Console.dir')
   void dir(Object arg) => _isConsoleDefined ?
-      JS('void', 'console.debug(#)', arg) : null;
+      JS('void', 'console.dir(#)', arg) : null;
 
   @DomName('Console.dirxml')
   void dirxml(Object arg) => _isConsoleDefined ?

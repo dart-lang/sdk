@@ -1573,7 +1573,7 @@ class ConcreteTypesInferrer
       FunctionElement function,
       ArgumentsTypes<ConcreteType> argumentsTypes) {
     final Map<Element, ConcreteType> result = new Map<Element, ConcreteType>();
-    final FunctionSignature signature = function.computeSignature(compiler);
+    final FunctionSignature signature = function.functionSignature;
 
     // guard 1: too many arguments
     if (argumentsTypes.length > signature.parameterCount) {
@@ -1798,7 +1798,7 @@ class ConcreteTypesInferrer
                                    ConcreteTypesEnvironment environment) {
     // We trust the return type of native elements
     if (isNativeElement(element)) {
-      var elementType = element.computeType(compiler);
+      var elementType = element.type;
       assert(elementType.kind == TypeKind.FUNCTION);
       return typeOfNativeBehavior(
           native.NativeBehavior.ofMethod(element, compiler));

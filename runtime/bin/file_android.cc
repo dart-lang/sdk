@@ -17,7 +17,8 @@
 
 #include "bin/builtin.h"
 #include "bin/log.h"
-#include "bin/signal_blocker.h"
+
+#include "platform/signal_blocker.h"
 
 
 namespace dart {
@@ -52,7 +53,7 @@ void File::Close() {
     VOID_TEMP_FAILURE_RETRY(dup2(null_fd, handle_->fd()));
     VOID_TEMP_FAILURE_RETRY(close(null_fd));
   } else {
-    int err = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(handle_->fd()));
+    int err = TEMP_FAILURE_RETRY(close(handle_->fd()));
     if (err != 0) {
       const int kBufferSize = 1024;
       char error_message[kBufferSize];
@@ -71,47 +72,44 @@ bool File::IsClosed() {
 
 int64_t File::Read(void* buffer, int64_t num_bytes) {
   ASSERT(handle_->fd() >= 0);
-  return TEMP_FAILURE_RETRY_BLOCK_SIGNALS(read(handle_->fd(), buffer,
-                                               num_bytes));
+  return TEMP_FAILURE_RETRY(read(handle_->fd(), buffer, num_bytes));
 }
 
 
 int64_t File::Write(const void* buffer, int64_t num_bytes) {
   ASSERT(handle_->fd() >= 0);
-  return TEMP_FAILURE_RETRY_BLOCK_SIGNALS(write(handle_->fd(), buffer,
-                                                num_bytes));
+  return TEMP_FAILURE_RETRY(write(handle_->fd(), buffer, num_bytes));
 }
 
 
 int64_t File::Position() {
   ASSERT(handle_->fd() >= 0);
-  return lseek64(handle_->fd(), 0, SEEK_CUR);
+  return NO_RETRY_EXPECTED(lseek64(handle_->fd(), 0, SEEK_CUR));
 }
 
 
 bool File::SetPosition(int64_t position) {
   ASSERT(handle_->fd() >= 0);
-  return lseek64(handle_->fd(), position, SEEK_SET) >= 0;
+  return NO_RETRY_EXPECTED(lseek64(handle_->fd(), position, SEEK_SET)) >= 0;
 }
 
 
 bool File::Truncate(int64_t length) {
   ASSERT(handle_->fd() >= 0);
-  return TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
-      ftruncate(handle_->fd(), length) != -1);
+  return TEMP_FAILURE_RETRY(ftruncate(handle_->fd(), length) != -1);
 }
 
 
 bool File::Flush() {
   ASSERT(handle_->fd() >= 0);
-  return TEMP_FAILURE_RETRY_BLOCK_SIGNALS(fsync(handle_->fd()) != -1);
+  return NO_RETRY_EXPECTED(fsync(handle_->fd()) != -1);
 }
 
 
 int64_t File::Length() {
   ASSERT(handle_->fd() >= 0);
   struct stat st;
-  if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(fstat(handle_->fd(), &st)) == 0) {
+  if (NO_RETRY_EXPECTED(fstat(handle_->fd(), &st)) == 0) {
     return st.st_size;
   }
   return -1;
@@ -121,7 +119,7 @@ int64_t File::Length() {
 File* File::Open(const char* name, FileOpenMode mode) {
   // Report errors for non-regular files.
   struct stat st;
-  if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(stat(name, &st)) == 0) {
+  if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
     if (!S_ISREG(st.st_mode)) {
       errno = (S_ISDIR(st.st_mode)) ? EISDIR : ENOENT;
       return NULL;
@@ -135,7 +133,7 @@ File* File::Open(const char* name, FileOpenMode mode) {
     flags = flags | O_TRUNC;
   }
   flags |= O_CLOEXEC;
-  int fd = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(open(name, flags, 0666));
+  int fd = TEMP_FAILURE_RETRY(open(name, flags, 0666));
   if (fd < 0) {
     return NULL;
   }
@@ -157,7 +155,7 @@ File* File::OpenStdio(int fd) {
 
 bool File::Exists(const char* name) {
   struct stat st;
-  if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(stat(name, &st)) == 0) {
+  if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
     return S_ISREG(st.st_mode);
   } else {
     return false;
@@ -166,9 +164,7 @@ bool File::Exists(const char* name) {
 
 
 bool File::Create(const char* name) {
-  int fd = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(open(name,
-                                                 O_RDONLY | O_CREAT | O_CLOEXEC,
-                                                 0666));
+  int fd = TEMP_FAILURE_RETRY(open(name, O_RDONLY | O_CREAT | O_CLOEXEC, 0666));
   if (fd < 0) {
     return false;
   }
@@ -177,7 +173,7 @@ bool File::Create(const char* name) {
 
 
 bool File::CreateLink(const char* name, const char* target) {
-  int status = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(symlink(target, name));
+  int status = NO_RETRY_EXPECTED(symlink(target, name));
   return (status == 0);
 }
 
@@ -185,7 +181,7 @@ bool File::CreateLink(const char* name, const char* target) {
 bool File::Delete(const char* name) {
   File::Type type = File::GetType(name, true);
   if (type == kIsFile) {
-    return TEMP_FAILURE_RETRY_BLOCK_SIGNALS(unlink(name)) == 0;
+    return NO_RETRY_EXPECTED(unlink(name)) == 0;
   } else if (type == kIsDirectory) {
     errno = EISDIR;
   } else {
@@ -198,7 +194,7 @@ bool File::Delete(const char* name) {
 bool File::DeleteLink(const char* name) {
   File::Type type = File::GetType(name, false);
   if (type == kIsLink) {
-    return TEMP_FAILURE_RETRY_BLOCK_SIGNALS(unlink(name)) == 0;
+    return NO_RETRY_EXPECTED(unlink(name)) == 0;
   }
   errno = EINVAL;
   return false;
@@ -208,7 +204,7 @@ bool File::DeleteLink(const char* name) {
 bool File::Rename(const char* old_path, const char* new_path) {
   File::Type type = File::GetType(old_path, true);
   if (type == kIsFile) {
-    return TEMP_FAILURE_RETRY_BLOCK_SIGNALS(rename(old_path, new_path)) == 0;
+    return NO_RETRY_EXPECTED(rename(old_path, new_path)) == 0;
   } else if (type == kIsDirectory) {
     errno = EISDIR;
   } else {
@@ -221,7 +217,7 @@ bool File::Rename(const char* old_path, const char* new_path) {
 bool File::RenameLink(const char* old_path, const char* new_path) {
   File::Type type = File::GetType(old_path, false);
   if (type == kIsLink) {
-    return TEMP_FAILURE_RETRY_BLOCK_SIGNALS(rename(old_path, new_path)) == 0;
+    return NO_RETRY_EXPECTED(rename(old_path, new_path)) == 0;
   } else if (type == kIsDirectory) {
     errno = EISDIR;
   } else {
@@ -235,25 +231,24 @@ bool File::Copy(const char* old_path, const char* new_path) {
   File::Type type = File::GetType(old_path, true);
   if (type == kIsFile) {
     struct stat st;
-    if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(stat(old_path, &st)) != 0) {
+    if (NO_RETRY_EXPECTED(stat(old_path, &st)) != 0) {
       return false;
     }
-    int old_fd = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(open(old_path,
-                                                       O_RDONLY | O_CLOEXEC));
+    int old_fd = TEMP_FAILURE_RETRY(open(old_path, O_RDONLY | O_CLOEXEC));
     if (old_fd < 0) {
       return false;
     }
-    int new_fd = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
+    int new_fd = TEMP_FAILURE_RETRY(
         open(new_path, O_WRONLY | O_TRUNC | O_CREAT | O_CLOEXEC, st.st_mode));
     if (new_fd < 0) {
-      VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(old_fd));
+      VOID_TEMP_FAILURE_RETRY(close(old_fd));
       return false;
     }
     off_t offset = 0;
     int result = 1;
     while (result > 0) {
       // Loop to ensure we copy everything, and not only up to 2GB.
-      result = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
+      result = NO_RETRY_EXPECTED(
           sendfile(new_fd, old_fd, &offset, kMaxUint32));
     }
     // From sendfile man pages:
@@ -262,10 +257,9 @@ bool File::Copy(const char* old_path, const char* new_path) {
     if (result < 0 && (errno == EINVAL || errno == ENOSYS)) {
       const intptr_t kBufferSize = 8 * KB;
       uint8_t buffer[kBufferSize];
-      while ((result = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
+      while ((result = TEMP_FAILURE_RETRY(
           read(old_fd, buffer, kBufferSize))) > 0) {
-        int wrote = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(write(new_fd, buffer,
-                                                           result));
+        int wrote = TEMP_FAILURE_RETRY(write(new_fd, buffer, result));
         if (wrote != result) {
           result = -1;
           break;
@@ -274,9 +268,9 @@ bool File::Copy(const char* old_path, const char* new_path) {
     }
     if (result < 0) {
       int e = errno;
-      VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(old_fd));
-      VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(new_fd));
-      VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(unlink(new_path));
+      VOID_TEMP_FAILURE_RETRY(close(old_fd));
+      VOID_TEMP_FAILURE_RETRY(close(new_fd));
+      VOID_NO_RETRY_EXPECTED(unlink(new_path));
       errno = e;
       return false;
     }
@@ -292,7 +286,7 @@ bool File::Copy(const char* old_path, const char* new_path) {
 
 int64_t File::LengthFromPath(const char* name) {
   struct stat st;
-  if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(stat(name, &st)) == 0) {
+  if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
     return st.st_size;
   }
   return -1;
@@ -301,7 +295,7 @@ int64_t File::LengthFromPath(const char* name) {
 
 void File::Stat(const char* name, int64_t* data) {
   struct stat st;
-  if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(stat(name, &st)) == 0) {
+  if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
     if (S_ISREG(st.st_mode)) {
       data[kType] = kIsFile;
     } else if (S_ISDIR(st.st_mode)) {
@@ -324,7 +318,7 @@ void File::Stat(const char* name, int64_t* data) {
 
 time_t File::LastModified(const char* name) {
   struct stat st;
-  if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(stat(name, &st)) == 0) {
+  if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
     return st.st_mtime;
   }
   return -1;
@@ -406,11 +400,9 @@ File::Type File::GetType(const char* pathname, bool follow_links) {
   struct stat entry_info;
   int stat_success;
   if (follow_links) {
-    stat_success = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(stat(pathname,
-                                                         &entry_info));
+    stat_success = NO_RETRY_EXPECTED(stat(pathname, &entry_info));
   } else {
-    stat_success = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(lstat(pathname,
-                                                          &entry_info));
+    stat_success = NO_RETRY_EXPECTED(lstat(pathname, &entry_info));
   }
   if (stat_success == -1) return File::kDoesNotExist;
   if (S_ISDIR(entry_info.st_mode)) return File::kIsDirectory;
@@ -423,8 +415,8 @@ File::Type File::GetType(const char* pathname, bool follow_links) {
 File::Identical File::AreIdentical(const char* file_1, const char* file_2) {
   struct stat file_1_info;
   struct stat file_2_info;
-  if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(lstat(file_1, &file_1_info)) == -1 ||
-      TEMP_FAILURE_RETRY_BLOCK_SIGNALS(lstat(file_2, &file_2_info)) == -1) {
+  if (NO_RETRY_EXPECTED(lstat(file_1, &file_1_info)) == -1 ||
+      NO_RETRY_EXPECTED(lstat(file_2, &file_2_info)) == -1) {
     return File::kError;
   }
   return (file_1_info.st_ino == file_2_info.st_ino &&

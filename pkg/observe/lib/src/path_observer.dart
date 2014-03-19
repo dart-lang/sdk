@@ -7,13 +7,9 @@ library observe.src.path_observer;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:math' show min;
-@MirrorsUsed(metaTargets: const [Reflectable, ObservableProperty],
-    override: 'smoke.mirrors')
-import 'dart:mirrors' show MirrorsUsed;
 
 import 'package:logging/logging.dart' show Logger, Level;
 import 'package:observe/observe.dart';
-import 'package:observe/src/observable.dart' show objectType;
 import 'package:smoke/smoke.dart' as smoke;
 
 /// A data-bound path starting from a view-model or model object, for example
@@ -128,7 +124,7 @@ class PropertyPath {
     for (var segment in path.trim().split('.')) {
       if (segment == '') continue;
       var index = int.parse(segment, radix: 10, onError: (_) => null);
-      segments.add(index != null ? index : new Symbol(segment));
+      segments.add(index != null ? index : smoke.nameToSymbol(segment));
     }
 
     // TODO(jmesserly): we could use an UnmodifiableListView here, but that adds

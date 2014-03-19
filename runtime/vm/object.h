@@ -1544,10 +1544,6 @@ class Function : public Object {
     return kind() == RawFunction::kInvokeFieldDispatcher;
   }
 
-  bool IsInvokeClosureDispatcher() const {
-    return kind() == RawFunction::kInvokeClosureDispatcher;
-  }
-
   // Returns true iff an implicit closure function has been created
   // for this function.
   bool HasImplicitClosureFunction() const {
@@ -1600,7 +1596,6 @@ class Function : public Object {
       case RawFunction::kMethodExtractor:
       case RawFunction::kNoSuchMethodDispatcher:
       case RawFunction::kInvokeFieldDispatcher:
-      case RawFunction::kInvokeClosureDispatcher:
         return true;
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:

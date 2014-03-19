@@ -40,7 +40,7 @@ main() {
 
     // Upgrade everything.
     pubUpgrade(output: new RegExp(r"""
-Resolving dependencies\.+
+Resolving dependencies\.\.\..*
 . multiple_newer 1\.0\.0 \(1 newer version available\)
 . multiple_newer_stable 1\.0\.0 \(2 newer versions available\)
 . multiple_newer_unstable 1\.0\.0 \(2 newer unstable versions available\)

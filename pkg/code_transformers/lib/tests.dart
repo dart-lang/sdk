@@ -7,11 +7,14 @@
 library code_transformers.tests;
 
 import 'dart:async' show Future;
+import 'dart:io' show Platform;
 
 import 'package:barback/barback.dart' show Transformer;
+import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
 import 'src/test_harness.dart';
+import 'src/dart_sdk.dart';
 
 /// Defines a test which invokes [applyTransformers].
 testPhases(String testName, List<List<Transformer>> phases,
@@ -37,4 +40,20 @@ Future applyTransformers(List<List<Transformer>> phases,
 
   var helper = new TestHelper(phases, inputs, messages)..run();
   return helper.checkAll(results).then((_) => helper.tearDown());
+}
+
+/// Variant of [dartSdkDirectory] which includes additional cases only
+/// typically encountered in Dart's testing environment.
+String get testingDartSdkDirectory {
+  var sdkDir = dartSdkDirectory;
+  if (sdkDir == null) {
+    // If we cannot find the SDK dir, then assume this is being run from Dart's
+    // source directory and this script is the main script.
+    var segments = path.split(path.fromUri(Platform.script));
+    var index = segments.indexOf('pkg');
+    expect(index, greaterThan(0),
+        reason: 'testingDartSdkDirectory is only supported in pkg/ tests');
+    sdkDir = path.joinAll(segments.sublist(0, index)..add('sdk'));
+  }
+  return sdkDir;
 }

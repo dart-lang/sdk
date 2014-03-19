@@ -496,14 +496,16 @@ class UriKind extends Enum<UriKind> {
   /**
    * The single character encoding used to identify this kind of URI.
    */
-  final int encoding;
+  int encoding = 0;
 
   /**
    * Initialize a newly created URI kind to have the given encoding.
    *
    * @param encoding the single character encoding used to identify this kind of URI.
    */
-  UriKind(String name, int ordinal, this.encoding) : super(name, ordinal);
+  UriKind(String name, int ordinal, int encoding) : super(name, ordinal) {
+    this.encoding = encoding;
+  }
 }
 
 /**
@@ -519,13 +521,13 @@ class SourceRange {
    * The 0-based index of the first character of the source code for this element, relative to the
    * source buffer in which this element is contained.
    */
-  final int offset;
+  int offset = 0;
 
   /**
    * The number of characters of the source code for this element, relative to the source buffer in
    * which this element is contained.
    */
-  final int length;
+  int length = 0;
 
   /**
    * Initialize a newly created source range using the given offset and the given length.
@@ -533,7 +535,10 @@ class SourceRange {
    * @param offset the given offset
    * @param length the given length
    */
-  SourceRange(this.offset, this.length);
+  SourceRange(int offset, int length) {
+    this.offset = offset;
+    this.length = length;
+  }
 
   /**
    * @return `true` if <code>x</code> is in [offset, offset + length) interval.
@@ -753,12 +758,12 @@ class LineInfo_Location {
   /**
    * The one-based index of the line containing the character.
    */
-  final int lineNumber;
+  int lineNumber = 0;
 
   /**
    * The one-based index of the column containing the character.
    */
-  final int columnNumber;
+  int columnNumber = 0;
 
   /**
    * Initialize a newly created location to represent the location of the character at the given
@@ -767,7 +772,10 @@ class LineInfo_Location {
    * @param lineNumber the one-based index of the line containing the character
    * @param columnNumber the one-based index of the column containing the character
    */
-  LineInfo_Location(this.lineNumber, this.columnNumber);
+  LineInfo_Location(int lineNumber, int columnNumber) {
+    this.lineNumber = lineNumber;
+    this.columnNumber = columnNumber;
+  }
 }
 
 /**

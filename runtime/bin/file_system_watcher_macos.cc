@@ -18,6 +18,8 @@
 #include "bin/socket.h"
 #include "bin/thread.h"
 
+#include "platform/signal_blocker.h"
+
 
 #ifndef MAC_OS_X_VERSION_10_7
 enum {
@@ -71,7 +73,7 @@ class FSEventsWatcher {
 
     ~Node() {
       Stop();
-      close(write_fd_);
+      VOID_TEMP_FAILURE_RETRY(close(write_fd_));
       CFRelease(path_ref_);
     }
 
@@ -261,7 +263,7 @@ class FSEventsWatcher {
 
   Node* AddPath(const char* path, int events, bool recursive) {
     int fds[2];
-    VOID_TEMP_FAILURE_RETRY(pipe(fds));
+    VOID_NO_RETRY_EXPECTED(pipe(fds));
     Socket::SetNonBlocking(fds[0]);
     Socket::SetBlocking(fds[1]);
 

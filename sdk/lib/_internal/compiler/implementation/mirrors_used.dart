@@ -395,16 +395,16 @@ class MirrorUsageBuilder {
   /// and a hint is emitted).
   List convertConstantToUsageList(
       Constant constant, { bool onlyStrings: false }) {
-    if (constant.isNull()) {
+    if (constant.isNull) {
       return null;
-    } else if (constant.isList()) {
+    } else if (constant.isList) {
       ListConstant list = constant;
       List result = onlyStrings ? <String> [] : [];
       for (Constant entry in list.entries) {
-        if (entry.isString()) {
+        if (entry.isString) {
           StringConstant string = entry;
           result.add(string.value.slowToString());
-        } else if (!onlyStrings && entry.isType()) {
+        } else if (!onlyStrings && entry.isType) {
           TypeConstant type = entry;
           result.add(type.representedType);
         } else {
@@ -418,10 +418,10 @@ class MirrorUsageBuilder {
         }
       }
       return result;
-    } else if (!onlyStrings && constant.isType()) {
+    } else if (!onlyStrings && constant.isType) {
       TypeConstant type = constant;
       return [type.representedType];
-    } else if (constant.isString()) {
+    } else if (constant.isString) {
       StringConstant string = constant;
       var iterable =
           string.value.slowToString().split(',').map((e) => e.trim());
@@ -445,7 +445,8 @@ class MirrorUsageBuilder {
     if (type.kind == TypeKind.INTERFACE && library.isInternalLibrary) {
       InterfaceType interface = type;
       ClassElement cls = type.element;
-      for (DartType supertype in cls.ensureResolved(compiler).allSupertypes) {
+      cls.ensureResolved(compiler);
+      for (DartType supertype in cls.allSupertypes) {
         if (supertype.kind == TypeKind.INTERFACE
             && !supertype.element.getLibrary().isInternalLibrary) {
           return interface.asInstanceOf(supertype.element);

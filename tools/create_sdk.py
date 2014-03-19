@@ -230,10 +230,14 @@ def Main(argv):
   for jarFile in jarFiles:
     copyfile(jarFile, join(DARTANALYZER_DEST, os.path.basename(jarFile)))
 
+  RESOURCE = join(SDK_tmp, 'lib', '_internal', 'pub', 'asset')
+  os.makedirs(os.path.dirname(RESOURCE))
+  copytree(join(HOME, 'sdk', 'lib', '_internal', 'pub', 'asset'),
+           join(RESOURCE),
+           ignore=ignore_patterns('.svn'))
+
   # Copy in 7zip for Windows.
   if HOST_OS == 'win32':
-    RESOURCE = join(SDK_tmp, 'lib', '_internal', 'pub', 'resource')
-    os.makedirs(RESOURCE)
     copytree(join(HOME, 'third_party', '7zip'),
              join(RESOURCE, '7zip'),
              ignore=ignore_patterns('.svn'))

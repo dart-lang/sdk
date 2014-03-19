@@ -190,7 +190,7 @@ class _Timer implements Timer {
     _clear();
     if (!_isInHeap) return;
     assert(_wakeupTime != 0);
-    bool update = _firstZeroTimer == null && _heap.isFirst(this);
+    bool update = (_firstZeroTimer == null) && _heap.isFirst(this);
     _heap.remove(this);
     if (update) {
       _notifyEventHandler();
@@ -207,10 +207,12 @@ class _Timer implements Timer {
   bool _addTimerToHeap() {
     if (_wakeupTime == 0) {
       if (_firstZeroTimer == null) {
-        _lastZeroTimer = _firstZeroTimer = this;
+        _lastZeroTimer = this;
+        _firstZeroTimer = this;
         return true;
       } else {
-        _lastZeroTimer = _lastZeroTimer._indexOrNext = this;
+        _lastZeroTimer._indexOrNext = this;
+        _lastZeroTimer = this;
         return false;
       }
     } else {
@@ -257,13 +259,16 @@ class _Timer implements Timer {
     // Collect all pending timers.
     var timer = _firstZeroTimer;
     var nextTimer = _lastZeroTimer;
-    _firstZeroTimer = _lastZeroTimer = null;
+    _firstZeroTimer = null;
+    _lastZeroTimer = null;
     while (_heap.isNotEmpty && _heap.first._wakeupTime <= currentTime) {
       var next = _heap.removeFirst();
       if (timer == null) {
-        nextTimer = timer = next;
+        nextTimer = next;
+        timer = next;
       } else {
-        nextTimer = nextTimer._indexOrNext = next;
+        nextTimer._indexOrNext = next;
+        nextTimer = next;
       }
     }
 

@@ -20,8 +20,8 @@ class RawCode;
 // List of stubs created in the VM isolate, these stubs are shared by different
 // isolates running in this dart process.
 #define VM_STUB_CODE_LIST(V)                                                   \
-  V(CallToRuntime)                                                             \
   V(PrintStopMessage)                                                          \
+  V(CallToRuntime)                                                             \
   V(CallBootstrapCFunction)                                                    \
   V(CallNativeCFunction)                                                       \
   V(AllocateArray)                                                             \

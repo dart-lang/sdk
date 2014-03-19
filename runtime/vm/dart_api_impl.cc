@@ -30,6 +30,7 @@
 #include "vm/service.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
+#include "vm/tags.h"
 #include "vm/timer.h"
 #include "vm/unicode.h"
 #include "vm/verifier.h"

@@ -61,7 +61,7 @@ void main(List<String> arguments) {
 }
 
 void useConstant(dart2jslib.Constant constant, dart2jslib.ConstantSystem cs) {
-  constant.isObject();
+  constant.isObject;
   cs.isBool(constant);
 }
 

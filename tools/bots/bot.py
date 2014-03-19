@@ -185,16 +185,19 @@ def GetBotName():
   return name, True
 
 
-def Clobber():
+def Clobber(force=None):
   """
   Clobbers the builder before we do the build, if appropriate.
 
   - mode: either 'debug' or 'release'
   """
-  if os.environ.get(BUILDER_CLOBBER) != "1":
+  if os.environ.get(BUILDER_CLOBBER) != "1" and not force:
     return
+  clobber_string = 'Clobber'
+  if force:
+    clobber_string = 'Clobber(always)'
 
-  with BuildStep('Clobber'):
+  with BuildStep(clobber_string):
     cmd = [sys.executable,
            './tools/clean_output_directory.py']
     print 'Clobbering %s' % (' '.join(cmd))

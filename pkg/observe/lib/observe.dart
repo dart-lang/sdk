@@ -12,6 +12,9 @@
 /// You can provide an observable object in two ways. The simplest way is to
 /// use dirty checking to discover changes automatically:
 ///
+///     import 'package:observe/observe.dart';
+///     import 'package:observe/mirrors_used.dart'; // for smaller code
+///
 ///     class Monster extends Unit with Observable {
 ///       @observable int health = 100;
 ///
@@ -40,6 +43,9 @@
 /// manually. This avoids the potentially expensive [Observable.dirtyCheck]
 /// operation, but requires more work in the object:
 ///
+///     import 'package:observe/observe.dart';
+///     import 'package:observe/mirrors_used.dart'; // for smaller code
+///
 ///     class Monster extends Unit with ChangeNotifier {
 ///       int _health = 100;
 ///       @reflectable get health => _health;
@@ -66,9 +72,24 @@
 ///       print('done!');
 ///     }
 ///
-/// *Note*: it is good practice to keep `@reflectable` annotation on
-/// getters/setters so they are accessible via reflection. This will preserve
-/// them from tree-shaking. You can also put this annotation on the class and it
+/// **Note**: by default this package uses mirrors to access getters and setters
+/// marked with `@reflectable`. Dart2js disables tree-shaking if there are any
+/// uses of mirrors, unless you declare how mirrors are used (via the
+/// [MirrorsUsed](https://api.dartlang.org/apidocs/channels/stable/#dart-mirrors.MirrorsUsed)
+/// annotation).
+///
+/// As of version 0.10.0, this package doesn't declare `@MirrorsUsed`. This is
+/// because we intend to use mirrors for development time, but assume that
+/// frameworks and apps that use this pacakge will either generate code that
+/// replaces the use of mirrors, or add the `@MirrorsUsed` declaration
+/// themselves.  For convenience, you can import
+/// `package:observe/mirrors_used.dart` as shown on the first example above.
+/// That will add a `@MirrorsUsed` annotation that preserves properties and
+/// classes labeled with `@reflectable` and properties labeled with
+/// `@observable`.
+///
+/// If you are using the `package:observe/mirrors_used.dart` import, you can
+/// also make use of `@reflectable` on your own classes and dart2js will
 /// preserve all of its members for reflection.
 ///
 /// [Tools](https://www.dartlang.org/polymer-dart/) exist to convert the first

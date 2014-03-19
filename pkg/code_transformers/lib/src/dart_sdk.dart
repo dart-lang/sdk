@@ -5,7 +5,7 @@
 library code_transformers.src.dart_sdk;
 
 import 'dart:convert' as convert;
-import 'dart:io' show Directory, File, Platform, Process;
+import 'dart:io' show File, Platform, Process;
 import 'package:path/path.dart' as path;
 
 

@@ -150,6 +150,9 @@ ScheduledProcess pubServe({bool shouldGetFirst: false, bool createWebDir: true,
     _pubServer.stdout.expect(consumeThrough("Got dependencies!"));
   }
 
+  _pubServer.stdout.expect(startsWith("Loading source assets..."));
+  _pubServer.stdout.expect(consumeWhile(matches("Loading .* transformers...")));
+
   // The server should emit one or more ports.
   _pubServer.stdout.expect(
       consumeWhile(predicate(_parsePort, 'emits server url')));
@@ -236,6 +239,17 @@ void postShould405(String urlPath, {String root}) {
   }, "request $urlPath");
 }
 
+/// Schedules an HTTP request to the (theoretically) running pub server with
+/// [urlPath] and verifies that it cannot be connected to.
+///
+/// [root] indicates which server should be accessed, and defaults to "web".
+void requestShouldNotConnect(String urlPath, {String root}) {
+  schedule(() {
+    return expect(http.get(_getServerUrlSync(root, urlPath)),
+        throwsA(new isInstanceOf<SocketException>()));
+  }, "request $urlPath");
+}
+
 /// Reads lines from pub serve's stdout until it prints the build success
 /// message.
 ///
@@ -270,19 +284,21 @@ Future _ensureWebSocket() {
 ///
 /// Only one of [replyEquals] or [replyMatches] may be provided.
 ///
-/// [request] and [replyMatches] may contain futures, in which case this will
-/// wait until they've completed before matching.
+/// [request], [replyEquals], and [replyMatches] may contain futures, in which
+/// case this will wait until they've completed before matching.
 ///
 /// If [encodeRequest] is `false`, then [request] will be sent as-is over the
 /// socket. It omitted, request is JSON encoded to a string first.
-void expectWebSocketCall(request, {Map replyEquals, replyMatches,
+///
+/// Returns a [Future] that completes to the call's response.
+Future<Map> expectWebSocketCall(request, {Map replyEquals, replyMatches,
     bool encodeRequest: true}) {
   assert((replyEquals == null) != (replyMatches == null));
 
-  schedule(() => _ensureWebSocket().then((_) {
+  return schedule(() => _ensureWebSocket().then((_) {
     var matcherFuture;
     if (replyMatches != null) {
-      matcherFuture = new Future.value(replyMatches);
+      matcherFuture = awaitObject(replyMatches);
     } else {
       matcherFuture = awaitObject(replyEquals).then((reply) => equals(reply));
     }
@@ -293,7 +309,9 @@ void expectWebSocketCall(request, {Map replyEquals, replyMatches,
         _webSocket.add(completeRequest);
 
         return _webSocketBroadcastStream.first.then((value) {
-          expect(JSON.decode(value), matcher);
+          value = JSON.decode(value);
+          expect(value, matcher);
+          return value;
         });
       });
     });
@@ -308,6 +326,14 @@ void expectWebSocketCall(request, {Map replyEquals, replyMatches,
 /// the bound ports are known.
 Future<String> getServerUrl([String root, String path]) =>
     _portsCompleter.future.then((_) => _getServerUrlSync(root, path));
+
+/// Records that [root] has been bound to [port].
+///
+/// Used for testing the Web Socket API for binding new root directories to
+/// ports after pub serve has been started.
+registerServerPort(String root, int port) {
+  _ports[root] = port;
+}
 
 /// Returns a URL string for the server serving [path] from [root].
 ///

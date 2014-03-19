@@ -9,11 +9,16 @@ description: >
 dependencies:
   barback: ">=0.9.0 <0.12.0"
   logging: ">=0.9.0 <0.10.0"
-#TODO(sigmund): uncomment this once we have some easier way to do global
+# TODO(sigmund): uncomment this once we have some easier way to do global
 # app-level transformers or a way to enable this selectively from the
 # application package.
-#transformers: [smoke/src/default_transformer]
+#transformers:
+#- smoke/src/default_transformer
+#    # TODO(sigmund): include this once this feature is available in the stable
+#    # channel, or when we really need some other feature in the dev channel.
+#    # $include: lib/src/implementation.dart
 dev_dependencies:
   unittest: ">=0.10.0 <0.11.0"
+  path: ">=1.0.0 <2.0.0"
 environment:
   sdk: ">=1.2.0 <2.0.0"

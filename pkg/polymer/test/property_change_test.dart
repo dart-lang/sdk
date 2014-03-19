@@ -5,7 +5,6 @@
 library polymer.test.property_change_test;
 
 import 'dart:async';
-import 'dart:html';
 import 'package:polymer/polymer.dart';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';

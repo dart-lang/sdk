@@ -170,10 +170,11 @@
 
 <polymer-element name="isolate-nav-menu" extends="observatory-element">
   <template>
-    <nav-menu link="#" anchor="{{ isolate.name }}" last="{{ last }}">
+    <nav-menu link="{{ isolate.hashLink }}" anchor="{{ isolate.name }}" last="{{ last }}">
       <nav-menu-item link="{{ isolate.relativeHashLink('stacktrace') }}" anchor="stack trace"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeHashLink('profile') }}" anchor="cpu profile"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeHashLink('allocationprofile') }}" anchor="heap profile"></nav-menu-item>
+      <nav-menu-item link="{{ isolate.relativeHashLink('heapmap') }}" anchor="heap map"></nav-menu-item>                     
       <nav-menu-item link="{{ isolate.relativeHashLink('debug/breakpoints') }}" anchor="breakpoints"></nav-menu-item>
       <content></content>
     </nav-menu>
@@ -226,44 +227,12 @@
 <polymer-element name="service-ref" extends="observatory-element">
   
 </polymer-element><polymer-element name="class-ref" extends="service-ref">
-<template>
-  <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
-</template>
+
+<template><a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a></template>
+
 
 </polymer-element>
-<polymer-element name="error-view" extends="observatory-element">
-  <template>
-    <div class="row">
-    <div class="col-md-8 col-md-offset-2">
-      <div class="panel panel-danger">
-        <div class="panel-heading">{{ error.kind }}</div>
-        <div class="panel-body">
-          <p>{{ error.message }}</p>
-        </div>
-      </div>
-    </div>
-    </div>
-  </template>
-  
-</polymer-element><polymer-element name="field-ref" extends="service-ref">
-<template>
-<div>
-  <template if="{{ ref['final'] }}"> final </template>
-  <template if="{{ ref['const'] }}"> const </template>
-  <template if="{{ (ref['declared_type']['name'] == 'dynamic' &amp;&amp; !ref['final'] &amp;&amp; !ref['const']) }}">
-  var
-  </template>
-  <template if="{{ (ref['declared_type']['name'] != 'dynamic') }}">
-  <class-ref ref="{{ ref['declared_type'] }}"></class-ref>
-  </template>
-  <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
-</div>
-</template>  </polymer-element><polymer-element name="function-ref" extends="service-ref">
-<template>
-  <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
-</template>
-
-</polymer-element><polymer-element name="curly-block">
+<polymer-element name="curly-block">
   <template>
     <style>
       .idle {
@@ -306,9 +275,17 @@
 <polymer-element name="instance-ref" extends="service-ref">
   <template>
     <style>
-      .member {
+      .memberList {
+        display: table;
+      }
+      .memberItem {
+        display: table-row;
+      }
+      .memberName, .memberValue {
+        display: table-cell;
         vertical-align: top;
-        padding: 1px 0 1px 1em;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
       }
     </style>
     <div>
@@ -332,6 +309,7 @@
 
       <template if="{{ isClosure(ref.serviceType) }}">
         <a href="{{ url }}">
+          <!-- TODO(turnidge): Switch this to fully-qualified function -->
           {{ ref['closureFunc']['user_name'] }}
         </a>
       </template>
@@ -339,28 +317,34 @@
       <template if="{{ isInstance(ref.serviceType) }}">
         <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em></a>
         <curly-block callback="{{ expander() }}">
-          <table>
-            <tbody><tr template="" repeat="{{ field in ref['fields'] }}">
-              <td class="member">{{ field['decl']['user_name'] }}</td>
-              <td class="member">
-                <instance-ref ref="{{ field['value'] }}"></instance-ref>
-              </td>
-            </tr>
-          </tbody></table>
+          <div class="memberList">
+            <template repeat="{{ field in ref['fields'] }}">
+              <div class="memberItem">
+                <div class="memberName">
+                  {{ field['decl']['user_name'] }}
+                </div>
+                <div class="memberValue">
+                  <instance-ref ref="{{ field['value'] }}"></instance-ref>
+                </div>
+              </div>
+            </template>
+          </div>
         </curly-block>
       </template>
 
       <template if="{{ isList(ref.serviceType) }}">
         <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em> ({{ ref['length']}})</a>
         <curly-block callback="{{ expander() }}">
-          <table>
-            <tbody><tr template="" repeat="{{ element in ref['elements'] }}">
-              <td class="member">[{{ element['index']}}]</td>
-              <td class="member">
-                <instance-ref ref="{{ element['value'] }}"></instance-ref>
-              </td>
-            </tr>
-          </tbody></table>
+          <div class="memberList">
+            <template repeat="{{ element in ref['elements'] }}">
+              <div class="memberItem">
+                <div class="memberName">[{{ element['index']}}]</div>
+                <div class="memberValue">
+                  <instance-ref ref="{{ element['value'] }}"></instance-ref>
+                </div>
+              </div>
+            </template>
+          </div>
         </curly-block>
       </template>
 
@@ -368,184 +352,7 @@
   </template>
   
 </polymer-element>
-<polymer-element name="library-ref" extends="service-ref">
-<template>
-  <a href="{{ url }}">{{ name }}</a>
-</template>
-
-</polymer-element><polymer-element name="class-view" extends="observatory-element">
-  <template>
-    <nav-bar>
-      <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu isolate="{{ cls.isolate }}"></isolate-nav-menu>
-      <library-nav-menu library="{{ cls['library'] }}"></library-nav-menu>
-      <class-nav-menu cls="{{ cls }}" last="{{ true }}"></class-nav-menu>
-      <nav-refresh callback="{{ refresh }}"></nav-refresh>
-    </nav-bar>
-
-    <div class="row">
-    <div class="col-md-8 col-md-offset-2">
-      <div class="panel panel-warning">
-        <div class="panel-heading">
-          class <strong>{{ cls.name }}</strong>
-          <template if="{{ cls['super']['type'] != 'Null' }}">
-            extends
-            <class-ref ref="{{ cls['super'] }}"></class-ref>
-          </template>
-          <p></p>
-          <library-ref ref="{{ cls['library'] }}"></library-ref>
-        </div>
-        <div class="panel-body">
-          <table class="table table-hover">
-            <tbody>
-              <tr>
-                <td>Abstract</td><td>{{ cls['abstract'] }}</td>
-              </tr>
-              <tr>
-                <td>Const</td><td>{{ cls['const'] }}</td>
-              </tr>
-              <tr>
-                <td>Finalized</td><td>{{ cls['const'] }}</td>
-              </tr>
-              <tr>
-                <td>Implemented</td><td>{{ cls['implemented'] }}</td>
-              </tr>
-              <tr>
-                <td>Patch</td><td>{{ cls['patch'] }}</td>
-              </tr>
-              <tr>
-                <td>VM Name</td><td>{{ cls['name'] }}</td>
-              </tr>
-            </tbody>
-          </table>
-          <template if="{{ cls['error'] == null }}">
-            <blockquote><strong>Fields</strong></blockquote>
-            <table class="table table-hover">
-             <tbody>
-                <tr template="" repeat="{{ field in cls['fields'] }}">
-                  <td><field-ref ref="{{ field }}"></field-ref></td>
-                  <td><instance-ref ref="{{ field['value'] }}"></instance-ref></td>
-                </tr>
-              </tbody>
-            </table>
-            <blockquote><strong>Functions</strong></blockquote>
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th>User Name</th>
-                  <th>VM Name</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr template="" repeat="{{ function in cls['functions'] }}">
-                  <td><function-ref ref="{{ function }}"></function-ref></td>
-                  <td><function-ref ref="{{ function }}" internal=""></function-ref></td>
-                </tr>
-              </tbody>
-            </table>
-          </template>
-          <template if="{{ cls['error'] != null }}">
-            <error-view error_obj="{{ cls['error'] }}"></error-view>
-          </template>
-        </div>
-      </div>
-    </div>
-    </div>
-  </template>
-  
-</polymer-element>
-<polymer-element name="code-ref" extends="service-ref">
-<template>
-  <a href="{{ url }}">{{ name }}</a>
-</template>
-
-</polymer-element><polymer-element name="code-view" extends="observatory-element">
-  <template>
-    <nav-bar>
-      <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu isolate="{{ code.isolate }}"></isolate-nav-menu>
-      <nav-menu link="." anchor="{{ code.name }}" last="{{ true }}"></nav-menu>
-      <nav-refresh callback="{{ refresh }}"></nav-refresh>
-    </nav-bar>
-    <style>
-      .content {
-        padding-left: 10%;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-      h1 {
-        font: 400 18px 'Montserrat', sans-serif;
-      }
-      .member, .memberHeader {
-        vertical-align: top;
-        padding: 3px 0 3px 1em;
-        font: 400 14px 'Montserrat', sans-serif;
-      }
-      .monospace {
-        font-family: consolas, courier, monospace;
-        font-size: 1em;
-        line-height: 1.2em;
-        white-space: nowrap;
-      }
-    </style>
-    <div class="content">
-      <h1>Code for {{ code.name }}</h1>
-      <table>
-        <tbody><tr>
-          <td class="memberHeader">kind</td>
-          <td class="member">{{code.kind}}</td>
-        </tr>
-        <tr>
-          <td class="memberHeader">function</td>
-          <td class="member">
-            <function-ref ref="{{code.function}}">
-            </function-ref>
-          </td>
-        </tr>
-        <tr>
-          <td class="memberHeader">Inclusive</td>
-          <td class="member">{{ code.formattedInclusiveTicks }}</td>
-        </tr>
-        <tr>
-          <td class="memberHeader">Exclusive</td>
-          <td class="member">{{ code.formattedExclusiveTicks }}</td>
-        </tr>
-      </tbody></table>
-    </div>
-    <hr>
-    <div class="content">
-      <template if="{{ code.hasDisassembly }}">
-        <div class="row">
-            <div class="col-md-2 memberHeader">Inclusive</div>
-            <div class="col-md-2 memberHeader">Exclusive</div>
-            <div class="col-md-2 memberHeader">Address</div>
-            <div class="col-md-6 memberHeader">Disassembly</div>
-        </div>
-      </template>
-      <template repeat="{{ instruction in code.instructions }}">
-        <div class="row">
-          <div class="col-md-2 monospace">{{ instruction.formattedInclusive(code) }}</div>
-          <div class="col-md-2 monospace">{{ instruction.formattedExclusive(code) }}</div>
-          <div class="col-md-2 monospace">{{ instruction.formattedAddress() }}</div>
-          <div class="col-md-6 monospace">{{ instruction.human }}</div>
-        </div>
-      </template>
-    </div>
-  </template>
-  
-</polymer-element>
-<polymer-element name="collapsible-content" extends="observatory-element">
-  <template>
-    <div class="well row">
-      <a on-click="toggleDisplay" class="btn muted unselectable">
-           Raw message... <i class="{{ iconClass }}"></i>
-      </a>
-      <div style="display: {{ displayValue }}" class="well">
-        <content></content>
-      </div>
-    </div>
-  </template>
-  
-</polymer-element><polymer-element name="eval-box" extends="observatory-element">
+<polymer-element name="eval-box" extends="observatory-element">
   <template>
     <style>
       .textbox {
@@ -626,7 +433,314 @@
 </polymer-element>
 
 
-<polymer-element name="field-view" extends="observatory-element">
+<polymer-element name="field-ref" extends="service-ref">
+<template>
+<div>
+  <template if="{{ ref['final'] }}"> final </template>
+  <template if="{{ ref['const'] }}"> const </template>
+  <template if="{{ (ref['declared_type']['name'] == 'dynamic' &amp;&amp; !ref['final'] &amp;&amp; !ref['const']) }}">
+  var
+  </template>
+  <template if="{{ (ref['declared_type']['name'] != 'dynamic') }}">
+  <class-ref ref="{{ ref['declared_type'] }}"></class-ref>
+  </template>
+  <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
+</div>
+</template>  </polymer-element><polymer-element name="function-ref" extends="service-ref">
+  <template><!-- These comments are here to allow newlines.
+     --><template if="{{ qualified &amp;&amp; !hasParent &amp;&amp; hasClass }}"><!--
+       --><class-ref ref="{{ ref['class'] }}"></class-ref>.</template><!--
+     --><template if="{{ qualified &amp;&amp; hasParent }}"><!--
+       --><function-ref ref="{{ ref['parent'] }}" qualified="{{ true }}">
+          </function-ref>.<!--
+     --></template><a href="{{ url }}">{{ name }}</a><!--
+  --></template>
+
+</polymer-element>
+<polymer-element name="library-ref" extends="service-ref">
+<template>
+  <a href="{{ url }}">{{ name }}</a>
+</template>
+
+</polymer-element><polymer-element name="script-ref" extends="service-ref">
+<template>
+  <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
+</template>
+
+</polymer-element>
+<polymer-element name="class-view" extends="observatory-element">
+  <template>
+    <style>
+      .content {
+        padding-left: 10%;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      h1 {
+        font: 400 18px 'Montserrat', sans-serif;
+      }
+      .memberList {
+        display: table;
+      }
+      .memberItem {
+        display: table-row;
+      }
+      .memberName, .memberValue {
+        display: table-cell;
+        vertical-align: top;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+    </style>
+
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ cls.isolate }}"></isolate-nav-menu>
+      <library-nav-menu library="{{ cls['library'] }}"></library-nav-menu>
+      <class-nav-menu cls="{{ cls }}" last="{{ true }}"></class-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content">
+      <h1>
+        <template if="{{ cls['abstract'] }}">
+          abstract
+        </template>
+        <template if="{{ cls['patch'] }}">
+          patch
+        </template>
+        class {{ cls.name }}
+      </h1>
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">library</div>
+          <div class="memberValue">
+            <library-ref ref="{{ cls['library'] }}"></library-ref>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">script</div>
+          <div class="memberValue">
+            <script-ref ref="{{ cls['script'] }}" line="{{ cls['line'] }}">
+            </script-ref>
+          </div>
+        </div>
+
+        <div class="memberItem">&nbsp;</div>
+
+        <template if="{{ cls['super']['type'] != 'Null' }}">
+          <div class="memberItem">
+            <div class="memberName">extends</div>
+            <div class="memberValue">
+              <class-ref ref="{{ cls['super'] }}"></class-ref>
+            </div>
+          </div>
+        </template>
+        <template if="{{ cls['subclasses'].length > 0 }}">
+          <div class="memberItem">
+            <div class="memberName">extended by</div>
+            <div class="memberValue">
+              <template repeat="{{ subclass in cls['subclasses'] }}">
+                <class-ref ref="{{ subclass }}"></class-ref>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <div class="memberItem">&nbsp;</div>
+
+        <template if="{{ cls['interfaces'].length > 0 }}">
+          <div class="memberItem">
+            <div class="memberName">implements</div>
+            <div class="memberValue">
+              <template repeat="{{ interface in cls['interfaces'] }}">
+                <class-ref ref="{{ interface }}"></class-ref>
+              </template>
+            </div>
+          </div>
+        </template>
+        <template if="{{ cls.name != cls.vmName }}">
+          <div class="memberItem">
+            <div class="memberName">vm name</div>
+            <div class="memberValue">{{ cls.vmName }}</div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <template if="{{ cls['error'] != null }}">
+      <!-- TODO(turnidge): Don't use instance-ref for error display here -->
+      <instance-ref ref="{{ cls['error'] }}"></instance-ref>
+    </template>
+
+    <hr>
+
+    <div class="content">
+      <template if="{{ cls['fields'].isNotEmpty }}">
+        fields ({{ cls['fields'].length }})
+        <curly-block>
+          <div class="memberList">
+            <template repeat="{{ field in cls['fields'] }}">
+              <div class="memberItem">
+                <div class="memberName">
+                  <field-ref ref="{{ field }}"></field-ref>
+                </div>
+                <div class="memberValue">
+                  <template if="{{ field['value'] != null }}">
+                    <instance-ref ref="{{ field['value'] }}"></instance-ref>
+                  </template>
+                </div>
+              </div>
+            </template>
+          </div>
+        </curly-block><br>
+      </template>
+
+      <template if="{{ cls['functions'].isNotEmpty }}">
+        functions ({{ cls['functions'].length }})
+        <curly-block>
+          <div class="memberList">
+            <template repeat="{{ function in cls['functions'] }}">
+              <div class="memberItem">
+                <div class="memberValue">
+                  <function-ref ref="{{ function }}" qualified="{{ false }}">
+                  </function-ref>
+                </div>
+              </div>
+            </template>
+          </div>
+        </curly-block><br>
+      </template>
+    </div>
+
+    <hr>
+
+    <div class="content">
+      <eval-box callback="{{ eval }}"></eval-box>
+    </div>
+    <br><br><br><br>
+    <br><br><br><br>
+  </template>
+  
+</polymer-element>
+<polymer-element name="code-ref" extends="service-ref">
+<template>
+  <a href="{{ url }}">{{ name }}</a>
+</template>
+
+</polymer-element><polymer-element name="code-view" extends="observatory-element">
+  <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ code.isolate }}"></isolate-nav-menu>
+      <nav-menu link="." anchor="{{ code.name }}" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+    <style>
+      .content {
+        padding-left: 10%;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      h1 {
+        font: 400 18px 'Montserrat', sans-serif;
+      }
+      .memberList {
+        display: table;
+      }
+      .memberItem {
+        display: table-row;
+      }
+      .memberName, .memberValue {
+        display: table-cell;
+        vertical-align: top;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      .monospace {
+        font-family: consolas, courier, monospace;
+        font-size: 1em;
+        line-height: 1.2em;
+        white-space: nowrap;
+      }
+    </style>
+    <div class="content">
+      <h1>Code for {{ code.name }}</h1>
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">kind</div>
+          <div class="memberValue">{{code.kind}}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">function</div>
+          <div class="memberValue">
+            <function-ref ref="{{code.function}}">
+            </function-ref>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Inclusive</div>
+          <div class="memberValue">{{ code.formattedInclusiveTicks }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Exclusive</div>
+          <div class="memberValue">{{ code.formattedExclusiveTicks }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Constant object pool</div>
+          <div class="memberValue">
+            <instance-ref ref="{{ code.objectPool }}"></instance-ref>
+          </div>
+        </div>
+      </div>
+    </div>
+    <hr>
+    <div class="content">
+      <template if="{{ code.hasDisassembly }}">
+        <div class="row">
+            <div class="col-md-2 memberHeader">Inclusive</div>
+            <div class="col-md-2 memberHeader">Exclusive</div>
+            <div class="col-md-2 memberHeader">Address</div>
+            <div class="col-md-6 memberHeader">Disassembly</div>
+        </div>
+      </template>
+      <template repeat="{{ instruction in code.instructions }}">
+        <div class="row">
+          <div class="col-md-2 monospace">{{ instruction.formattedInclusive(code) }}</div>
+          <div class="col-md-2 monospace">{{ instruction.formattedExclusive(code) }}</div>
+          <div class="col-md-2 monospace">{{ instruction.formattedAddress() }}</div>
+          <div class="col-md-6 monospace">{{ instruction.human }}</div>
+        </div>
+      </template>
+    </div>
+  </template>
+  
+</polymer-element>
+<polymer-element name="collapsible-content" extends="observatory-element">
+  <template>
+    <div class="well row">
+      <a on-click="toggleDisplay" class="btn muted unselectable">
+           Raw message... <i class="{{ iconClass }}"></i>
+      </a>
+      <div style="display: {{ displayValue }}" class="well">
+        <content></content>
+      </div>
+    </div>
+  </template>
+  
+</polymer-element><polymer-element name="error-view" extends="observatory-element">
+  <template>
+    <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-danger">
+        <div class="panel-heading">{{ error.kind }}</div>
+        <div class="panel-body">
+          <p>{{ error.message }}</p>
+        </div>
+      </div>
+    </div>
+    </div>
+  </template>
+  
+</polymer-element><polymer-element name="field-view" extends="observatory-element">
   <template>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
@@ -742,9 +856,26 @@
   </template>
   
 </polymer-element>
-<polymer-element name="script-ref" extends="service-ref">
+<polymer-element name="heap-map" extends="observatory-element">
 <template>
-  <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
+  <nav-bar>
+    <top-nav-menu></top-nav-menu>
+    <isolate-nav-menu isolate="{{ fragmentation.isolate }}"></isolate-nav-menu>
+    <nav-menu link="." anchor="heap map" last="{{ true }}"></nav-menu>
+    <nav-refresh callback="{{ refresh }}"></nav-refresh>
+  </nav-bar>
+  <div class="row">
+    <p style="text-align:center">{{ status }}</p>
+  </div>
+  <div class="row">
+    <canvas id="fragmentation" width="1px" height="1px"></canvas>
+  </div>
+</template>
+
+</polymer-element>
+<polymer-element name="isolate-ref" extends="service-ref">
+<template>
+  <a href="{{ url }}">{{ ref.name }}</a>
 </template>
 
 </polymer-element>
@@ -761,14 +892,7 @@
       <div class="col-md-4">
 
         <div class="row">
-          <template if="{{ isolate.entry['id'] != null }}">
-            <a href="{{ isolate.hashLink(isolate.entry['id']) }}">
-              {{ isolate.name }}
-            </a>
-          </template>
-          <template if="{{ isolate.entry['id'] == null }}">
-            {{ isolate.name }}
-          </template>
+          <isolate-ref ref="{{ isolate }}"></isolate-ref>
         </div>
 
         <div class="row">
@@ -811,6 +935,7 @@
         <a href="{{ isolate.relativeHashLink('allocationprofile') }}">
           {{ isolate.newHeapUsed | formatSize }}/{{ isolate.oldHeapUsed | formatSize }}
         </a>
+        ( <a href="{{ isolate.relativeHashLink('heapmap') }}">map</a> )
       </div>
       <div class="col-md-2">
         <template if="{{ isolate.topFrame == null }}">
@@ -856,6 +981,158 @@
   </template>
   
 </polymer-element>
+<polymer-element name="isolate-view" extends="observatory-element">
+  <template>
+    <style>
+      .content {
+        padding-left: 10%;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      h1 {
+        font: 400 18px 'Montserrat', sans-serif;
+      }
+      .memberList {
+        display: table;
+      }
+      .memberItem {
+        display: table-row;
+      }
+      .memberName, .memberValue {
+        display: table-cell;
+        vertical-align: top;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      .sourceInset {
+        padding-left: 15%;
+        padding-right: 15%;
+      }
+    </style>
+
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}" last="{{ true }}">
+      </isolate-nav-menu>
+    </nav-bar>
+
+    <div class="content">
+      <h1>isolate '{{ isolate.name }}'</h1>
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">status</div>
+          <div class="memberValue">
+            <template if="{{ isolate.topFrame == null }}">
+              <strong>idle</strong>
+            </template>
+            <template if="{{ isolate.topFrame != null }}">
+              <strong>running</strong>
+              @
+              <function-ref ref="{{ isolate.topFrame['function'] }}">
+              </function-ref>
+              (<script-ref ref="{{ isolate.topFrame['script'] }}" line="{{ isolate.topFrame['line'] }}"></script-ref>)
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <template if="{{ isolate.topFrame != null }}">
+      <br>
+      <div class="sourceInset">
+        <pre>          {{ isolate.topFrame['line'] }} &nbsp; {{ isolate.topFrame['lineString'] }}</pre>
+      </div>
+    </template>
+
+    <br>
+
+    <div class="content">
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">root library</div>
+          <div class="memberValue">
+            <function-ref ref="{{ isolate.rootLib }}"></function-ref>
+          </div>
+        </div>
+        <div class="memberItem">
+          <template if="{{ isolate.entry != null }}">
+            <div class="memberName">entry</div>
+            <div class="memberValue">
+              <function-ref ref="{{ isolate.entry }}"></function-ref>
+            </div>
+          </template>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">id</div>
+          <div class="memberValue">{{ isolate.vmName }}</div>
+        </div>
+        <br>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a href="{{ isolate.relativeHashLink('profile') }}">cpu profile</a>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a href="{{ isolate.relativeHashLink('debug/breakpoints') }}">breakpoints</a>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="content">
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">new heap</div>
+          <div class="memberValue">
+            {{ isolate.newHeapUsed | formatSize }}
+            of
+            {{ isolate.newHeapCapacity | formatSize }}
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">old heap</div>
+          <div class="memberValue">
+            {{ isolate.oldHeapUsed | formatSize }}
+            of
+            {{ isolate.oldHeapCapacity | formatSize }}
+          </div>
+        </div>
+      </div>
+
+      <br>
+
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a href="{{ isolate.relativeHashLink('allocationprofile') }}">heap profile</a>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a href="{{ isolate.relativeHashLink('heapmap') }}">heap map</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="content">
+      <eval-box callback="{{ eval }}"></eval-box>
+    </div>
+    <br><br><br><br>
+    <br><br><br><br>
+  </template>
+  
+</polymer-element>
 <polymer-element name="instance-view" extends="observatory-element">
   <template>
     <nav-bar>
@@ -875,12 +1152,14 @@
       h1 {
         font: 400 18px 'Montserrat', sans-serif;
       }
-      .member {
-        vertical-align: top;
-        padding: 3px 0 3px 1em;
-        font: 400 14px 'Montserrat', sans-serif;
+      .memberList {
+        display: table;
       }
-      .memberBold {
+      .memberItem {
+        display: table-row;
+      }
+      .memberName, .memberValue {
+        display: table-cell;
         vertical-align: top;
         padding: 3px 0 3px 1em;
         font: 400 14px 'Montserrat', sans-serif;
@@ -895,23 +1174,25 @@
       <div class="content">
         <!-- TODO(turnidge): Handle null instances. -->
         <h1>instance of {{ instance['class']['user_name'] }}</h1>
-        <table>
-          <tbody><tr>
-            <td class="memberBold">class</td>
-            <td class="member">
+        <div class="memberList">
+          <div class="memberItem">
+            <div class="memberName">class</div>
+            <div class="memberValue">
               <class-ref ref="{{ instance['class'] }}">
               </class-ref>
-            </td>
-          </tr>
-          <tr template="" if="{{ instance['preview'] != null }}">
-            <td class="memberBold">preview</td>
-            <td class="member">{{ instance['preview'] }}</td>
-          </tr>
-          <tr>
-            <td class="memberBold">size</td>
-            <td class="member">{{ instance['size'] | formatSize }}</td>
-          </tr>
-        </tbody></table>
+            </div>
+          </div>
+          <template if="{{ instance['preview'] != null }}">
+            <div class="memberItem">
+              <div class="memberName">preview</div>
+              <div class="memberValue">{{ instance['preview'] }}</div>
+            </div>
+          </template>
+          <div class="memberItem">
+            <div class="memberName">size</div>
+            <div class="memberValue">{{ instance['size'] | formatSize }}</div>
+          </div>
+        </div>
       </div>
 
       <hr>
@@ -920,44 +1201,50 @@
         <template if="{{ instance['fields'].isNotEmpty }}">
           fields ({{ instance['fields'].length }})
           <curly-block>
-            <table>
-              <tbody><tr template="" repeat="{{ field in instance['fields'] }}">
-                <td class="member">
-                  <field-ref ref="{{ field['decl'] }}"></field-ref>
-                </td>
-                <td class="member">
-                  <instance-ref ref="{{ field['value'] }}"></instance-ref>
-                </td>
-              </tr>
-            </tbody></table>
+            <div class="memberList">
+              <template repeat="{{ field in instance['fields'] }}">
+                <div class="memberItem">
+                  <div class="memberName">
+                    <field-ref ref="{{ field['decl'] }}"></field-ref>
+                  </div>
+                  <div class="memberValue">
+                    <instance-ref ref="{{ field['value'] }}"></instance-ref>
+                  </div>
+                </div>
+              </template>
+            </div>
           </curly-block>
         </template>
 
         <template if="{{ instance['nativeFields'].isNotEmpty }}">
           native fields ({{ instance['nativeFields'].length }})
           <curly-block>
-            <table>
-              <tbody><tr template="" repeat="{{ field in instance['nativeFields'] }}">
-                <td class="member">[{{ field['index']}}]</td>
-                <td class="member">[{{ field['value']}}]</td>
-              </tr>
-            </tbody></table>
-          </curly-block>
+            <div class="memberList">
+              <template repeat="{{ field in instance['nativeFields'] }}">
+                <div class="memberItem">
+                  <div class="memberName">[{{ field['index']}}]</div>
+                  <div class="memberValue">[{{ field['value']}}]</div>
+                </div>
+              </template>
+            </div>
+          </curly-block><br>
         </template>
 
         <template if="{{ instance['elements'].isNotEmpty }}">
           elements ({{ instance['elements'].length }})
           <curly-block>
-            <table>
-              <tbody><tr template="" repeat="{{ element in instance['elements'] }}">
-                <td class="member">[{{ element['index']}}]</td>
-                <td class="member">
-                  <instance-ref ref="{{ element['value'] }}">
-                  </instance-ref>
-                </td>
-              </tr>
-            </tbody></table>
-          </curly-block>
+            <div class="memberList">
+              <template repeat="{{ element in instance['elements'] }}">
+                <div class="memberItem">
+                  <div class="memberName">[{{ element['index']}}]</div>
+                  <div class="memberValue">
+                    <instance-ref ref="{{ element['value'] }}">
+                    </instance-ref>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </curly-block><br>
         </template>
       </div>
 
@@ -1004,6 +1291,28 @@
 </polymer-element>
 <polymer-element name="library-view" extends="observatory-element">
   <template>
+    <style>
+      .content {
+        padding-left: 10%;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      h1 {
+        font: 400 18px 'Montserrat', sans-serif;
+      }
+      .memberList {
+        display: table;
+      }
+      .memberItem {
+        display: table-row;
+      }
+      .memberName, .memberValue {
+        display: table-cell;
+        vertical-align: top;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+    </style>
+
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ library.isolate }}"></isolate-nav-menu>
@@ -1011,68 +1320,195 @@
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
-  <div class="alert alert-info">Scripts</div>
-  <table class="table table-hover">
-    <tbody>
-      <tr template="" repeat="{{ script in library['scripts']}}">
-        <td>
-          {{ script.kind }}
-        </td>
-        <td>
-          <script-ref ref="{{ script }}"></script-ref>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  <div class="alert alert-info">Imported Libraries</div>
-  <table class="table table-hover">
-    <tbody>
-      <tr template="" repeat="{{ lib in library['libraries'] }}">
-        <td>
-          <library-ref ref="{{ lib }}"></library-ref>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  <div class="alert alert-info">Variables</div>
-  <table class="table table-hover">
-    <tbody>
-      <tr template="" repeat="{{ variable in library['variables'] }}">
-        <td><field-ref ref="{{ variable }}"></field-ref></td>
-        <td><instance-ref ref="{{ variable['value'] }}"></instance-ref></td>
-      </tr>
-    </tbody>
-  </table>
-  <div class="alert alert-info">Functions</div>
-  <table class="table table-hover">
-    <tbody>
-      <tr template="" repeat="{{ func in library['functions'] }}">
-        <td>
-          <function-ref ref="{{ func }}"></function-ref>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  <div class="alert alert-info">Classes</div>
-  <table class="table table-hover">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Internal Name</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr template="" repeat="{{ cls in library['classes'] }}">
-        <td>
-          <class-ref ref="{{ cls }}"></class-ref>
-        </td>
-        <td>
-          <class-ref ref="{{ cls }}" internal=""></class-ref>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+    <div class="content">
+      <h1>
+        <!-- TODO(turnidge): Handle unnamed libraries -->
+        library {{ library.name }}
+      </h1>
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">url</div>
+          <div class="memberValue">{{ library['url'] }}</div>
+        </div>
+        <template if="{{ library['imports'].length > 0 }}">
+          <div class="memberItem">
+            <div class="memberName">imports</div>
+            <div class="memberValue">
+              <template repeat="{{ import in library['imports'] }}">
+                <library-ref ref="{{ import }}"></library-ref>
+              </template>
+            </div>
+          </div>
+        </template>
+        <template if="{{ library.name != library.vmName }}">
+          <div class="memberItem">
+            <div class="memberName">vm name</div>
+            <div class="memberValue">{{ library.vmName }}</div>
+          </div>
+        </template>
+      </div>
+    </div>
 
+    <hr>
+
+    <div class="content">
+      <template if="{{ library['scripts'].isNotEmpty }}">
+        scripts ({{ library['scripts'].length }})
+        <curly-block>
+          <div class="memberList">
+            <template repeat="{{ script in library['scripts'] }}">
+              <div class="memberItem">
+                <div class="memberValue">
+                  <script-ref ref="{{ script }}"></script-ref>
+                </div>
+              </div>
+            </template>
+          </div>
+        </curly-block><br>
+      </template>
+
+      <template if="{{ library['classes'].isNotEmpty }}">
+        classes ({{ library['classes'].length }})
+        <curly-block>
+          <div class="memberList">
+            <template repeat="{{ cls in library['classes'] }}">
+              <div class="memberItem">
+                <div class="memberValue">
+                  <class-ref ref="{{ cls }}"></class-ref>
+                </div>
+              </div>
+            </template>
+          </div>
+        </curly-block><br>
+      </template>
+
+      <template if="{{ library['variables'].isNotEmpty }}">
+        variables ({{ library['variables'].length }})
+        <curly-block>
+          <div class="memberList">
+            <template repeat="{{ field in library['variables'] }}">
+              <div class="memberItem">
+                <div class="memberName">
+                  <field-ref ref="{{ field }}"></field-ref>
+                </div>
+                <div class="memberValue">
+                  <template if="{{ field['value'] != null }}">
+                    <instance-ref ref="{{ field['value'] }}"></instance-ref>
+                  </template>
+                </div>
+              </div>
+            </template>
+          </div>
+        </curly-block><br>
+      </template>
+
+      <template if="{{ library['functions'].isNotEmpty }}">
+        functions ({{ library['functions'].length }})
+        <curly-block>
+          <div class="memberList">
+            <template repeat="{{ function in library['functions'] }}">
+              <div class="memberItem">
+                <div class="memberValue">
+                  <function-ref ref="{{ function }}"></function-ref>
+                </div>
+              </div>
+            </template>
+          </div>
+        </curly-block><br>
+      </template>
+    </div>
+
+    <hr>
+
+    <div class="content">
+      <eval-box callback="{{ eval }}"></eval-box>
+    </div>
+    <br><br><br><br>
+    <br><br><br><br>
+  </template>
+  
+</polymer-element>
+<polymer-element name="sliding-checkbox">
+  <template>
+    <style>
+      .switch {
+        position: relative;
+        width: 121px;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+      }
+      .hide {
+        display: none;
+      }
+      .label {
+        display: block;
+        overflow: hidden;
+        cursor: pointer;
+        border: 2px solid #999999;
+        border-radius: 15px;
+      }
+      .content {
+        width: 200%;
+        margin-left: -100%;
+        -moz-transition: margin 0.3s ease-in 0s;
+        -webkit-transition: margin 0.3s ease-in 0s;
+        -o-transition: margin 0.3s ease-in 0s;
+        transition: margin 0.3s ease-in 0s;
+      }
+      .content:before, .content:after {
+        float: left;
+        width: 50%;
+        height: 30px;
+        padding: 0;
+        line-height: 30px;
+        color: white;
+        font: 400 14px 'Montserrat', sans-serif;
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+      }
+      .content:before {
+        content: {{ checkedText }};
+        padding-left: 10px;
+        background-color: #0489C3;
+      }
+      .content:after {
+        content: {{ uncheckedText }};
+        padding-right: 10px;
+        background-color: #EEEEEE;
+        color: #999999;
+        text-align: right;
+      }
+      .dot {
+        width: 14px;
+        margin: 8px;
+        background: #FFFFFF;
+        border: 2px solid #999999;
+        border-radius: 15px;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 87px;
+        -moz-transition: all 0.3s ease-in 0s;
+        -webkit-transition: all 0.3s ease-in 0s;
+        -o-transition: all 0.3s ease-in 0s;
+        transition: all 0.3s ease-in 0s;
+      }
+      :checked + .label .content {
+        margin-left: 0;
+      }
+      :checked + .label .dot {
+        right: 0px;
+      }
+    </style>
+    <div class="switch">
+      <input type="checkbox" class="hide" id="slide-switch" on-change="{{ change }}">
+      <label class="label" for="slide-switch">
+        <div class="content"></div>
+        <div class="dot"></div>
+      </label>
+    </div>
   </template>
   
 </polymer-element>
@@ -1084,38 +1520,81 @@
       <nav-menu link="." anchor="cpu profile" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
-    <div class="row">
-      <div class="col-md-12">
-        <span>Top</span>
-        <select selectedindex="{{methodCountSelected}}" value="{{methodCounts[methodCountSelected]}}">
-          <option template="" repeat="{{count in methodCounts}}">{{count}}</option>
-        </select>
-        <span>exclusive methods</span>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-12">
-        <p>Refreshed at {{ refreshTime }} with {{ sampleCount }} samples.</p>
-      </div>
-    </div>
-    <table id="tableTree" class="table table-hover">
-      <thead>
+    <style>
+      .content {
+        padding-left: 10%;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      h1 {
+        font: 400 18px 'Montserrat', sans-serif;
+      }
+      .member, .memberHeader {
+        vertical-align: top;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      .monospace {
+        font-family: consolas, courier, monospace;
+        font-size: 1em;
+        line-height: 1.2em;
+        white-space: nowrap;
+      }
+    </style>
+    <div class="content">
+      <h1>Sampled CPU profile</h1>
+      <table>
+        <tbody><tr>
+          <td class="memberHeader">Timestamp</td>
+          <td class="member">{{ refreshTime }}</td>
+        </tr>
         <tr>
-          <th>Method</th>
-          <th>Exclusive</th>
-          <th>Caller</th>
+          <td class="memberHeader">Sample count</td>
+          <td class="member">{{ sampleCount }}</td>
         </tr>
-      </thead>
-      <tbody>
-        <tr template="" repeat="{{row in tree.rows }}" style="{{}}">
-          <td on-click="{{toggleExpanded}}" class="{{ coloring(row) }}" style="{{ padding(row) }}">
-            <code-ref ref="{{ row.code }}"></code-ref>
+        <tr>
+          <td class="memberHeader">Sample rate</td>
+          <td class="member">{{ sampleRate }} Hz</td>
+        </tr>
+        <tr>
+          <td class="memberHeader">Sample depth</td>
+          <td class="member">{{ sampleDepth }} stack frames</td>
+        </tr>
+        <tr>
+          <td class="memberHeader">Call graph tree</td>
+          <td class="member">
+            <input type="checkbox" checked="{{ callGraphChecked }}">
           </td>
-          <td class="{{ coloring(row) }}">{{row.columns[0]}}</td>
-          <td class="{{ coloring(row) }}">{{row.columns[1]}}</td>
-        </tr>
-      </tbody>
-    </table>
+         </tr><tr>
+          <td class="memberHeader">Display cutoff</td>
+          <td class="member">{{ displayCutoff }}</td>
+         </tr>
+         <tr>
+          <td class="memberHeader">Hide tags</td>
+          <td class="member">
+            <input type="checkbox" checked="{{ hideTagsChecked }}">
+          </td>
+         </tr>
+      </tbody></table>
+      <hr>
+      <table id="tableTree" class="table table-hover">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Caller</th>
+            <th>Exclusive</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr template="" repeat="{{row in tree.rows }}" style="{{}}">
+            <td on-click="{{toggleExpanded}}" class="{{ coloring(row) }}" style="{{ padding(row) }}">
+              <code-ref ref="{{ row.code }}"></code-ref>
+            </td>
+            <td class="{{ coloring(row) }}">{{row.columns[0]}}</td>
+            <td class="{{ coloring(row) }}">{{row.columns[1]}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </template>
   
 </polymer-element>
@@ -1226,9 +1705,17 @@
 <polymer-element name="stack-frame" extends="observatory-element">
   <template>
     <style>
-      .member {
+      .memberList {
+        display: table;
+      }
+      .memberItem {
+        display: table-row;
+      }
+      .memberName, .memberValue {
+        display: table-cell;
         vertical-align: top;
-        padding: 0 0 0 1em;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
       }
     </style>
     <div class="row">
@@ -1240,15 +1727,18 @@
         <function-ref ref="{{ frame['function'] }}"></function-ref>
         ( <script-ref ref="{{ frame['script'] }}" line="{{ frame['line'] }}">
         </script-ref> )
+
         <curly-block>
-          <table>
-            <tbody><tr template="" repeat="{{ v in frame['vars'] }}">
-              <td class="member">{{ v['name']}}</td>
-              <td class="member">
-                <instance-ref ref="{{ v['value'] }}"></instance-ref>
-              </td>
-            </tr>
-          </tbody></table>
+          <div class="memberList">
+            <template repeat="{{ v in frame['vars'] }}">
+              <div class="memberItem">
+                <div class="memberName">{{ v['name']}}</div>
+                <div class="memberValue">
+                  <instance-ref ref="{{ v['value'] }}"></instance-ref>
+                </div>
+              </div>
+            </template>
+          </div>
         </curly-block>
 
       </div>

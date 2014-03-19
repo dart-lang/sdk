@@ -494,10 +494,10 @@ class ClassEmitter extends CodeEmitterHelper {
     return field is ClosureFieldElement;
   }
 
-  bool canAvoidGeneratedCheckedSetter(Element member) {
+  bool canAvoidGeneratedCheckedSetter(VariableElement member) {
     // We never generate accessors for top-level/static fields.
     if (!member.isInstanceMember()) return true;
-    DartType type = member.computeType(compiler);
+    DartType type = member.type;
     return type.treatAsDynamic || (type.element == compiler.objectClass);
   }
 
