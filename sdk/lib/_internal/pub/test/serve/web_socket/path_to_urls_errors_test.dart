@@ -14,8 +14,15 @@ main() {
   // TODO(rnystrom): Split into independent tests.
   initConfig();
   integration("pathToUrls errors on bad inputs", () {
+    d.dir("foo", [
+      d.libPubspec("foo", "1.0.0"),
+      d.dir("web", [
+        d.file("foo.txt", "foo")
+      ])
+    ]).create();
+
     d.dir(appPath, [
-      d.appPubspec(),
+      d.appPubspec({"foo": {"path": "../foo"}}),
       d.file("top-level.txt", "top-level"),
       d.dir("asset", [
         d.file("foo.txt", "foo"),
@@ -28,7 +35,7 @@ main() {
       ])
     ]).create();
 
-    pubServe();
+    pubServe(shouldGetFirst: true);
 
     // Bad arguments.
     expectWebSocketCall({
@@ -46,27 +53,6 @@ main() {
       "error": '"path" must be a string. Got 123.'
     });
 
-    var absolutePath = p.style == p.Style.windows ?
-        r"C:\absolute.txt" : "/absolute.txt";
-    expectWebSocketCall({
-      "command": "pathToUrls",
-      "path": absolutePath
-    }, replyEquals: {
-      "code": "BAD_ARGUMENT",
-      "error": '"path" must be a relative path. Got "$absolutePath".'
-    });
-
-    var path = p.join("a", "..", "..", "bad.txt");
-    expectWebSocketCall({
-      "command": "pathToUrls",
-      "path": path
-    }, replyEquals: {
-      "code": "BAD_ARGUMENT",
-      "error":
-          '"path" cannot reach out of its containing directory. '
-          'Got "$path".'
-    });
-
     expectWebSocketCall({
       "command": "pathToUrls",
       "path": "main.dart",
@@ -77,42 +63,21 @@ main() {
     });
 
     // Unserved directories.
-    path = p.join('bin', 'foo.txt');
-    expectWebSocketCall({
-      "command": "pathToUrls",
-      "path": path
-    }, replyEquals: {
-      "code": "NOT_SERVED",
-      "error": 'Asset path "$path" is not currently being served.'
-    });
-
-    path = p.join("lib", "myapp.dart");
-    expectWebSocketCall({
-      "command": "pathToUrls",
-      "path": path
-    }, replyEquals: {
-      "code": "NOT_SERVED",
-      "error": 'Asset path "$path" is not currently being served.'
-    });
-
-    path = p.join("asset", "myapp.dart");
-    expectWebSocketCall({
-      "command": "pathToUrls",
-      "path": path
-    }, replyEquals: {
-      "code": "NOT_SERVED",
-      "error": 'Asset path "$path" is not currently being served.'
-    });
-
-    path = p.join("nope", "foo.txt");
-    expectWebSocketCall({
-      "command": "pathToUrls",
-      "path": path
-    }, replyEquals: {
-      "code": "NOT_SERVED",
-      "error": 'Asset path "$path" is not currently being served.'
-    });
+    expectNotServed(p.join('bin', 'foo.txt'));
+    expectNotServed(p.join('nope', 'foo.txt'));
+    expectNotServed(p.join("..", "bar", "lib", "bar.txt"));
+    expectNotServed(p.join("..", "foo", "web", "foo.txt"));
 
     endPubServe();
+  });
+}
+
+void expectNotServed(String path) {
+  expectWebSocketCall({
+    "command": "pathToUrls",
+    "path": path
+  }, replyEquals: {
+    "code": "NOT_SERVED",
+    "error": 'Asset path "$path" is not currently being served.'
   });
 }

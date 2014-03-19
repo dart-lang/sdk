@@ -30,7 +30,7 @@ Future<Set> loadTransformers(BuildEnvironment environment,
     // TODO(nweiz): load from a "package:" URI when issue 12474 is fixed.
 
     var baseUrl = transformerServer.url;
-    var uri = '$baseUrl/packages/${id.package}/$path';
+    var uri = baseUrl.resolve('packages/${id.package}/$path');
     var code = """
         import 'dart:isolate';
 
@@ -47,7 +47,7 @@ Future<Set> loadTransformers(BuildEnvironment environment,
         .then((_) => port.first)
         .then((sendPort) {
       return call(sendPort, {
-        'library': uri,
+        'library': uri.toString(),
         'mode': environment.mode.name,
         // TODO(nweiz): support non-JSON-encodable configuration maps.
         'configuration': JSON.encode(id.configuration)

@@ -40,9 +40,6 @@ class BarbackServer {
   /// are available.
   final String rootDirectory;
 
-  /// The root directory as an asset-style ("/") path.
-  String get rootAssetPath => path.url.joinAll(path.split(rootDirectory));
-
   /// The server's port.
   final int port;
 
@@ -50,7 +47,7 @@ class BarbackServer {
   final InternetAddress address;
 
   /// The server's base URL.
-  String get url => baseUrlForAddress(address, port);
+  Uri get url => baseUrlForAddress(address, port);
 
   /// Optional callback to determine if an asset should be served.
   ///

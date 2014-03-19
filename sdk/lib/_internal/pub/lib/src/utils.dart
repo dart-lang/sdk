@@ -188,14 +188,14 @@ String quoteRegExp(String string) {
 /// Creates a URL string for [address]:[port].
 ///
 /// Handles properly formatting IPv6 addresses.
-String baseUrlForAddress(InternetAddress address, int port) {
+Uri baseUrlForAddress(InternetAddress address, int port) {
   // IPv6 addresses in URLs need to be enclosed in square brackets to avoid
   // URL ambiguity with the ":" in the address.
   if (address.type == InternetAddressType.IP_V6) {
-    return "http://[${address.address}]:$port";
+    return new Uri(scheme: "http", host: "[${address.address}]", port: port);
   }
 
-  return "http://${address.address}:$port";
+  return new Uri(scheme: "http", host: address.address, port: port);
 }
 
 /// Flattens nested lists inside an iterable into a single list containing only

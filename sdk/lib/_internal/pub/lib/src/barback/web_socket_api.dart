@@ -8,11 +8,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 
 import '../utils.dart';
 import 'build_environment.dart';
+
+import '../log.dart' as log;
 
 /// Implements the [WebSocket] API for communicating with a running pub serve
 /// process, mainly for use by the Editor.
@@ -210,12 +213,12 @@ class WebSocketApi {
     return result;
   }
 
-  /// Given an asset ID in the root package, returns the URLs served by pub
-  /// that can be used to access that asset.
+  /// Given a path on the filesystem, returns the URLs served by pub that can be
+  /// used to access asset found at that path.
   ///
   /// The command name is "pathToUrls" and it takes a "path" key (a native OS
-  /// path relative to the root directory of the entrypoint package) for the
-  /// path being mapped:
+  /// path which may be absolute or relative to the root directory of the
+  /// entrypoint package) for the path being mapped:
   ///
   ///     {
   ///       "command": "pathToUrls",
@@ -227,6 +230,26 @@ class WebSocketApi {
   ///
   ///     {
   ///       "urls": ["http://localhost:8080/index.html"]
+  ///     }
+  ///
+  /// The "path" key may refer to a path in another package, either by referring
+  /// to its location within the top-level "packages" directory or by referring
+  /// to its location on disk. Only the "lib" and "asset" directories are
+  /// visible in other packages:
+  ///
+  ///     {
+  ///       "command": "assetIdToUrl",
+  ///       "path": "packages/http/http.dart"
+  ///     }
+  ///
+  /// Assets in the "lib" and "asset" directories will usually have one URL for
+  /// each server:
+  ///
+  ///     {
+  ///       "urls": [
+  ///         "http://localhost:8080/packages/http/http.dart",
+  ///         "http://localhost:8081/packages/http/http.dart"
+  ///       ]
   ///     }
   ///
   /// An optional "line" key may be provided whose value must be an integer. If
@@ -243,25 +266,19 @@ class WebSocketApi {
   /// If the asset is not in a directory being served by pub, returns an error:
   ///
   ///     example/index.html  -> NOT_SERVED error
-  ///
-  /// This cannot currently be used to access assets in other packages aside
-  /// from the root. Nor can it be used to access assets in the root package's
-  /// "lib" or "asset" directories.
-  ///
-  ///     lib/myapp.dart  -> BAD_ARGUMENT error
   Map _pathToUrls(Map command) {
-    // TODO(rnystrom): Support assets in other packages. See #17146.
-    var assetPath = _validateRelativePath(command, "path");
+    var assetPath = _validateString(command, "path");
     var line = _validateOptionalInt(command, "line");
 
     var urls = _environment.getUrlsForAssetPath(assetPath);
-
     if (urls.isEmpty) {
+      var name = '"$assetPath"';
+      if (command['package'] != null) name += ' in package "$package"';
       throw new _WebSocketException(_ErrorCode.NOT_SERVED,
-          'Asset path "$assetPath" is not currently being served.');
+          'Asset path $name is not currently being served.');
     }
 
-    var result = {"urls": urls};
+    var result = {"urls": urls.map((url) => url.toString()).toList()};
 
     // Map the line.
     // TODO(rnystrom): Right now, source maps are not supported and it just
@@ -296,7 +313,7 @@ class WebSocketApi {
     var rootDirectory = _validateRelativePath(command, "path");
     return _environment.serveDirectory(rootDirectory).then((server) {
       return {
-        "url": server.url
+        "url": server.url.toString()
       };
     });
   }
@@ -331,7 +348,7 @@ class WebSocketApi {
             'Directory "$rootDirectory" is not bound to a server.');
       }
 
-      return {"url": url};
+      return {"url": url.toString()};
     });
   }
 
@@ -339,14 +356,15 @@ class WebSocketApi {
   ///
   /// Returns the string if found, or throws a [_WebSocketException] if
   /// validation failed.
-  String _validateString(Map command, String key) {
-    if (!command.containsKey(key)) {
+  String _validateString(Map command, String key, {bool optional: false}) {
+    if (!optional && !command.containsKey(key)) {
       throw new _WebSocketException(_ErrorCode.BAD_ARGUMENT,
           'Missing "$key" argument.');
     }
 
     var field = command[key];
     if (field is String) return field;
+    if (field == null && optional) return null;
 
     throw new _WebSocketException(_ErrorCode.BAD_ARGUMENT,
         '"$key" must be a string. Got ${JSON.encode(field)}.');

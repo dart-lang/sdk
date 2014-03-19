@@ -170,7 +170,7 @@ class BuildEnvironment {
   /// Also removes any source files within that directory from barback. Returns
   /// the URL of the unbound server, of `null` if [rootDirectory] was not
   /// bound to a server.
-  Future<String> unserveDirectory(String rootDirectory) {
+  Future<Uri> unserveDirectory(String rootDirectory) {
     log.fine("unserving $rootDirectory");
     var directory = _directories.remove(rootDirectory);
     if (directory == null) return new Future.value();
@@ -183,15 +183,59 @@ class BuildEnvironment {
     }).then((_) => url);
   }
 
-  /// Finds all of the servers whose root directories contain the asset and
-  /// generates appropriate URLs for each.
-  List<String> getUrlsForAssetPath(String assetPath) {
+  /// Return all URLs serving [assetPath] in this environment.
+  List<Uri> getUrlsForAssetPath(String assetPath) {
+    // Check the three (mutually-exclusive) places the path could be pointing.
+    var urls = _lookUpPathInServerRoot(assetPath);
+    if (urls.isEmpty) urls = _lookUpPathInPackagesDirectory(assetPath);
+    if (urls.isEmpty) urls = _lookUpPathInDependency(assetPath);
+    return urls.toList();
+  }
+
+  /// Look up [assetPath] in the root directories of servers running in the
+  /// entrypoint package.
+  Iterable<Uri> _lookUpPathInServerRoot(String assetPath) {
+    // Find all of the servers whose root directories contain the asset and
+    // generate appropriate URLs for each.
     return _directories.values
         .where((dir) => path.isWithin(dir.directory, assetPath))
         .map((dir) {
       var relativePath = path.relative(assetPath, from: dir.directory);
-      return "${dir.server.url}/${path.toUri(relativePath)}";
-    }).toList();
+      return dir.server.url.resolveUri(path.toUri(relativePath));
+    });
+  }
+
+  /// Look up [assetPath] in the "packages" directory in the entrypoint package.
+  Iterable<Uri> _lookUpPathInPackagesDirectory(String assetPath) {
+    var components = path.split(path.relative(assetPath));
+    if (components.first != "packages") return [];
+    if (!graph.packages.containsKey(components[1])) return [];
+    return _directories.values.map((dir) =>
+        dir.server.url.resolveUri(path.toUri(assetPath)));
+  }
+
+  /// Look up [assetPath] in the "lib" or "asset" directory of a dependency
+  /// package.
+  Iterable<Uri> _lookUpPathInDependency(String assetPath) {
+    for (var package in graph.packages.values) {
+      var libDir = path.join(package.dir, 'lib');
+      var assetDir = path.join(package.dir, 'asset');
+
+      var uri;
+      if (path.isWithin(libDir, assetPath)) {
+        uri = path.toUri(path.join('packages', package.name,
+            path.relative(assetPath, from: libDir)));
+      } else if (path.isWithin(assetDir, assetPath)) {
+        uri = path.toUri(path.join('assets', package.name,
+            path.relative(assetPath, from: assetDir)));
+      } else {
+        continue;
+      }
+
+      return _directories.values.map((dir) => dir.server.url.resolveUri(uri));
+    }
+
+    return [];
   }
 
   /// Given a URL to an asset served by this environment, returns the ID of the
