@@ -13,8 +13,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
-import 'package:code_transformers/src/dart_sdk.dart' show
-    testingDartSdkDirectory;
+import 'package:code_transformers/tests.dart' show testingDartSdkDirectory;
 
 class LibraryProvider {
   final AnalysisContext _analyzer;
