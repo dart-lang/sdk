@@ -24,7 +24,7 @@ docgen/test/multi_library_test: Skip # Way too slow
 docgen/test/single_library_test: Skip # Way too slow
 docgen/test/typedef_test: Skip # Way too slow
 
-[ $runtime = vm ]
+[ $runtime == vm ]
 docgen/test/only_lib_content_in_pkg_test: Fail # Issue 17597
 
 [ $compiler == dart2js ]
