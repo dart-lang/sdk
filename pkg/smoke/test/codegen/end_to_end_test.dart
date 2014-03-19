@@ -24,9 +24,9 @@ main(args) {
   final updateStaticTest = args.length > 0 && args[0] == '--update_static_test';
 
   test('static_test is up to date', () {
-    var scriptPath = Platform.script.path;
-    var testDir = path.posix.dirname(path.posix.dirname(scriptPath));
-    var commonPath = path.posix.join(testDir, 'common.dart');
+    var scriptPath = path.fromUri(Platform.script);
+    var testDir = path.dirname(path.dirname(scriptPath));
+    var commonPath = path.join(testDir, 'common.dart');
     var testCode = new File('$commonPath').readAsStringSync();
     var lib = initAnalyzer({'common.dart' : testCode})
         .libraryFor('common.dart');
@@ -105,7 +105,7 @@ main(args) {
         withAnnotations: [vars[0], vars[1], lib.getType('Annot')]));
 
     var code = _createEntrypoint(generator);
-    var staticTestFile = new File(path.posix.join(testDir, 'static_test.dart'));
+    var staticTestFile = new File(path.join(testDir, 'static_test.dart'));
     var existingCode = staticTestFile.readAsStringSync();
     if (!updateStaticTest) {
       expect(code, existingCode);

@@ -137,7 +137,6 @@ intl/test/date_time_format_http_request_test: Skip
 
 [ $runtime == vm && $system == windows ]
 intl/test/find_default_locale_standalone_test: Fail # Issue 8110
-smoke/test/codegen/end_to_end_test: Fail # Issue 17600
 
 [ $compiler == dartanalyzer ]
 # These tests are runtime negative but statically positive, so we skip
