@@ -17,6 +17,7 @@ pkg/browser: PubGetError
 
 [ $use_public_packages ]
 samples/third_party/todomvc: Fail # Issue 17324
+pkg/code_transformers: Fail # analyzer 0.13.0-dev.10 has not been published
 
 [ $builder_tag == russian ]
 samples/third_party/pop-pop-win: Fail # Issue 16356
