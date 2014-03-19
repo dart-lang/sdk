@@ -133,7 +133,7 @@ main() {
     // An absolute path to another package's lib/ directory.
     expectWebSocketCall({
       "command": "pathToUrls",
-      "path": p.absolute(sandboxDir, "foo", "lib", "foo.dart")
+      "path": p.join(sandboxDir, "foo", "lib", "foo.dart")
     }, replyEquals: {"urls": [
       getServerUrl("test", "packages/foo/foo.dart"),
       getServerUrl("web", "packages/foo/foo.dart"),
@@ -153,7 +153,7 @@ main() {
     // An absolute path to another package's asset/ directory.
     expectWebSocketCall({
       "command": "pathToUrls",
-      "path": p.absolute(sandboxDir, "foo", "asset", "foo.dart")
+      "path": p.join(sandboxDir, "foo", "asset", "foo.dart")
     }, replyEquals: {"urls": [
       getServerUrl("test", "assets/foo/foo.dart"),
       getServerUrl("web", "assets/foo/foo.dart"),
