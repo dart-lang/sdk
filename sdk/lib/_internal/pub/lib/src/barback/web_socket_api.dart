@@ -272,10 +272,8 @@ class WebSocketApi {
 
     var urls = _environment.getUrlsForAssetPath(assetPath);
     if (urls.isEmpty) {
-      var name = '"$assetPath"';
-      if (command['package'] != null) name += ' in package "$package"';
       throw new _WebSocketException(_ErrorCode.NOT_SERVED,
-          'Asset path $name is not currently being served.');
+          'Asset path "$assetPath" is not currently being served.');
     }
 
     var result = {"urls": urls.map((url) => url.toString()).toList()};
