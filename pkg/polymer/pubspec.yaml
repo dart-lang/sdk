@@ -17,7 +17,7 @@ dependencies:
   observe: '>=0.10.0-pre.0 <0.11.0'
   path: '>=0.9.0 <2.0.0'
   polymer_expressions: '>=0.10.0-pre.0 <0.11.0'
-  smoke: '>=0.1.0-pre.0 <0.2.0'
+  smoke: '>=0.1.0-pre.1 <0.2.0'
   source_maps: '>=0.9.0 <0.10.0'
   template_binding: '>=0.10.0-pre.0 <0.11.0'
   web_components: '>=0.3.2 <0.4.0'
