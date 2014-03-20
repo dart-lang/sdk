@@ -55,6 +55,7 @@ class ServiceObjectViewElement extends ObservatoryElement {
       case 'Array':
       case 'Bool':
       case 'Closure':
+      case 'Double':
       case 'GrowableObjectArray':
       case 'Instance':
       case 'Smi':

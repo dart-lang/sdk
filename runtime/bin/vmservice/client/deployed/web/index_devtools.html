@@ -303,7 +303,8 @@
 
       <template if="{{ (isString(ref.serviceType) ||
                         isBool(ref.serviceType) ||
-                        isInt(ref.serviceType)) }}">
+                        isInt(ref.serviceType)) ||
+                        isDouble(ref.serviceType)) }}">
         <a href="{{ url }}">{{ ref['preview'] }}</a>
       </template>
 
