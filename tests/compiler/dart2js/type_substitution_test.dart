@@ -27,7 +27,7 @@ DartType getType(compiler, String name) {
   // intention to check the whole signatures against eachother.
   if (signature.requiredParameterCount == 0) {
     // If parameters is empty, use return type.
-    return signature.returnType;
+    return signature.type.returnType;
   } else {
     // Otherwise use the first argument type.
     return signature.requiredParameters.head.computeType(compiler);
