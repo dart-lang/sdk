@@ -2368,7 +2368,7 @@ class TokenStream : public Object {
   void SetPrivateKey(const String& value) const;
 
   static RawTokenStream* New();
-  static void DataFinalizer(Dart_Isolate isolate,
+  static void DataFinalizer(void* isolate_callback_data,
                             Dart_WeakPersistentHandle handle,
                             void *peer);
 
@@ -5328,7 +5328,7 @@ class OneByteString : public AllStatic {
                       void* peer,
                       Dart_PeerFinalizer cback);
 
-  static void Finalize(Dart_Isolate isolate,
+  static void Finalize(void* isolate_callback_data,
                        Dart_WeakPersistentHandle handle,
                        void* peer);
 
@@ -5421,7 +5421,7 @@ class TwoByteString : public AllStatic {
                       void* peer,
                       Dart_PeerFinalizer cback);
 
-  static void Finalize(Dart_Isolate isolate,
+  static void Finalize(void* isolate_callback_data,
                        Dart_WeakPersistentHandle handle,
                        void* peer);
 
@@ -5516,7 +5516,7 @@ class ExternalOneByteString : public AllStatic {
     raw_ptr(str)->external_data_ = data;
   }
 
-  static void Finalize(Dart_Isolate isolate,
+  static void Finalize(void* isolate_callback_data,
                        Dart_WeakPersistentHandle handle,
                        void* peer);
 
@@ -5589,7 +5589,7 @@ class ExternalTwoByteString : public AllStatic {
     raw_ptr(str)->external_data_ = data;
   }
 
-  static void Finalize(Dart_Isolate isolate,
+  static void Finalize(void* isolate_callback_data,
                        Dart_WeakPersistentHandle handle,
                        void* peer);
 

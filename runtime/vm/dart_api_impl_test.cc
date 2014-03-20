@@ -1777,10 +1777,15 @@ TEST_CASE(ExternalUint8ClampedArrayAccess) {
 }
 
 
-static void ExternalTypedDataFinalizer(Dart_Isolate isolate,
+static void NopCallback(void* isolate_callback_data,
+                        Dart_WeakPersistentHandle handle,
+                        void* peer) {
+}
+
+
+static void ExternalTypedDataFinalizer(void* isolate_callback_data,
                                        Dart_WeakPersistentHandle handle,
                                        void* peer) {
-  Dart_DeleteWeakPersistentHandle(isolate, handle);
   *static_cast<int*>(peer) = 42;
 }
 
@@ -2036,14 +2041,29 @@ static Dart_Handle AsHandle(Dart_WeakPersistentHandle weak) {
 }
 
 
+static Dart_WeakPersistentHandle weak_new_ref = NULL;
+static Dart_WeakPersistentHandle weak_old_ref = NULL;
+
+
+static void WeakPersistentHandleCallback(void* isolate_callback_data,
+                                         Dart_WeakPersistentHandle handle,
+                                         void* peer) {
+  if (handle == weak_new_ref) {
+    weak_new_ref = NULL;
+  } else if (handle == weak_old_ref) {
+    weak_old_ref = NULL;
+  }
+}
+
+
 TEST_CASE(WeakPersistentHandle) {
   Dart_Handle local_new_ref = Dart_Null();
-  Dart_WeakPersistentHandle weak_new_ref = Dart_NewWeakPersistentHandle(
-      local_new_ref, NULL, 0, NULL);
+  weak_new_ref = Dart_NewWeakPersistentHandle(
+      local_new_ref, NULL, 0, WeakPersistentHandleCallback);
 
   Dart_Handle local_old_ref = Dart_Null();
-  Dart_WeakPersistentHandle weak_old_ref = Dart_NewWeakPersistentHandle(
-      local_old_ref, NULL, 0, NULL);
+  weak_old_ref = Dart_NewWeakPersistentHandle(
+      local_old_ref, NULL, 0, WeakPersistentHandleCallback);
 
   {
     Dart_EnterScope();
@@ -2062,12 +2082,18 @@ TEST_CASE(WeakPersistentHandle) {
     }
 
     // Create a weak ref to the new space object.
-    weak_new_ref = Dart_NewWeakPersistentHandle(new_ref, NULL, 0, NULL);
+    weak_new_ref = Dart_NewWeakPersistentHandle(new_ref,
+                                                NULL,
+                                                0,
+                                                WeakPersistentHandleCallback);
     EXPECT_VALID(AsHandle(weak_new_ref));
     EXPECT(!Dart_IsNull(AsHandle(weak_new_ref)));
 
     // Create a weak ref to the old space object.
-    weak_old_ref = Dart_NewWeakPersistentHandle(old_ref, NULL, 0, NULL);
+    weak_old_ref = Dart_NewWeakPersistentHandle(old_ref,
+                                                NULL,
+                                                0,
+                                                WeakPersistentHandleCallback);
     EXPECT_VALID(AsHandle(weak_old_ref));
     EXPECT(!Dart_IsNull(AsHandle(weak_old_ref)));
 
@@ -2115,8 +2141,7 @@ TEST_CASE(WeakPersistentHandle) {
   {
     Dart_EnterScope();
     // Weak ref to new space object should now be cleared.
-    EXPECT_VALID(AsHandle(weak_new_ref));
-    EXPECT(Dart_IsNull(AsHandle(weak_new_ref)));
+    EXPECT(weak_new_ref == NULL);
     EXPECT_VALID(AsHandle(weak_old_ref));
     EXPECT(!Dart_IsNull(AsHandle(weak_old_ref)));
     Dart_ExitScope();
@@ -2128,16 +2153,10 @@ TEST_CASE(WeakPersistentHandle) {
   {
     Dart_EnterScope();
     // Weak ref to old space object should now be cleared.
-    EXPECT_VALID(AsHandle(weak_new_ref));
-    EXPECT(Dart_IsNull(AsHandle(weak_new_ref)));
-    EXPECT_VALID(AsHandle(weak_old_ref));
-    EXPECT(Dart_IsNull(AsHandle(weak_old_ref)));
+    EXPECT(weak_new_ref == NULL);
+    EXPECT(weak_old_ref == NULL);
     Dart_ExitScope();
   }
-
-  Dart_Isolate isolate = reinterpret_cast<Dart_Isolate>(Isolate::Current());
-  Dart_DeleteWeakPersistentHandle(isolate, weak_new_ref);
-  Dart_DeleteWeakPersistentHandle(isolate, weak_old_ref);
 
   // Garbage collect one last time to revisit deleted handles.
   Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
@@ -2145,7 +2164,7 @@ TEST_CASE(WeakPersistentHandle) {
 }
 
 
-static void WeakPersistentHandlePeerFinalizer(Dart_Isolate isolate,
+static void WeakPersistentHandlePeerFinalizer(void* isolate_callback_data,
                                               Dart_WeakPersistentHandle handle,
                                               void* peer) {
   *static_cast<int*>(peer) = 42;
@@ -2169,8 +2188,6 @@ TEST_CASE(WeakPersistentHandleCallback) {
   EXPECT(peer == 0);
   GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
   EXPECT(peer == 42);
-  Dart_Isolate isolate = reinterpret_cast<Dart_Isolate>(Isolate::Current());
-  Dart_DeleteWeakPersistentHandle(isolate, weak_ref);
 }
 
 
@@ -2221,7 +2238,10 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSize) {
     Dart_EnterScope();
     Dart_Handle obj = NewString("weakly referenced string");
     EXPECT_VALID(obj);
-    weak1 = Dart_NewWeakPersistentHandle(obj, NULL, kWeak1ExternalSize, NULL);
+    weak1 = Dart_NewWeakPersistentHandle(obj,
+                                         NULL,
+                                         kWeak1ExternalSize,
+                                         NopCallback);
     EXPECT_VALID(AsHandle(weak1));
     EXPECT(!Dart_IsPrologueWeakPersistentHandle(weak1));
     Dart_ExitScope();
@@ -2234,7 +2254,10 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSize) {
     Dart_Handle obj = NewString("strongly referenced string");
     EXPECT_VALID(obj);
     strong_ref = Dart_NewPersistentHandle(obj);
-    weak2 = Dart_NewWeakPersistentHandle(obj, NULL, kWeak2ExternalSize, NULL);
+    weak2 = Dart_NewWeakPersistentHandle(obj,
+                                         NULL,
+                                         kWeak2ExternalSize,
+                                         NopCallback);
     EXPECT_VALID(AsHandle(strong_ref));
     Dart_ExitScope();
   }
@@ -2266,7 +2289,7 @@ TEST_CASE(PrologueWeakPersistentHandleExternalAllocationSize) {
     Dart_Handle obj = NewString("a string");
     EXPECT_VALID(obj);
     pwph = Dart_NewPrologueWeakPersistentHandle(
-        obj, NULL, kWeakExternalSize, NULL);
+        obj, NULL, kWeakExternalSize, NopCallback);
     EXPECT_VALID(AsHandle(pwph));
     Dart_ExitScope();
   }
@@ -2290,7 +2313,10 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeOversized) {
     Dart_EnterScope();
     Dart_Handle obj = NewString("weakly referenced string");
     EXPECT_VALID(obj);
-    weak1 = Dart_NewWeakPersistentHandle(obj, NULL, kWeak1ExternalSize, NULL);
+    weak1 = Dart_NewWeakPersistentHandle(obj,
+                                         NULL,
+                                         kWeak1ExternalSize,
+                                         NopCallback);
     EXPECT_VALID(AsHandle(weak1));
     // While new space is "full" of external data, any allocation will
     // trigger GC, so after two of them, obj should be promoted.
@@ -2326,12 +2352,12 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeOddReferents) {
     Dart_Handle dart_null = Dart_Null();  // VM heap object.
     EXPECT_VALID(dart_null);
     weak1 = Dart_NewWeakPersistentHandle(
-        dart_null, NULL, kWeak1ExternalSize, NULL);
+        dart_null, NULL, kWeak1ExternalSize, NopCallback);
     EXPECT_VALID(AsHandle(weak1));
     Dart_Handle zero = Dart_NewInteger(0);  // Smi.
     EXPECT_VALID(dart_null);
     weak2 = Dart_NewWeakPersistentHandle(
-        zero, NULL, kWeak2ExternalSize, NULL);
+        zero, NULL, kWeak2ExternalSize, NopCallback);
     EXPECT_VALID(AsHandle(weak2));
     // Both should be charged to old space.
     EXPECT(heap->ExternalInWords(Heap::kOld) ==
@@ -2346,14 +2372,30 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeOddReferents) {
 }
 
 
+static Dart_WeakPersistentHandle weak1 = NULL;
+static Dart_WeakPersistentHandle weak2 = NULL;
+static Dart_WeakPersistentHandle weak3 = NULL;
+static Dart_WeakPersistentHandle weak4 = NULL;
+
+
+static void ObjectGroupsCallback(void* isolate_callback_data,
+                                 Dart_WeakPersistentHandle handle,
+                                 void* peer) {
+  if (handle == weak1) {
+    weak1 = NULL;
+  } else if (handle == weak2) {
+    weak2 = NULL;
+  } else if (handle == weak3) {
+    weak3 = NULL;
+  } else if (handle == weak4) {
+    weak4 = NULL;
+  }
+}
+
+
 TEST_CASE(ObjectGroups) {
   Dart_PersistentHandle strong = NULL;
   Dart_WeakPersistentHandle strong_weak = NULL;
-
-  Dart_WeakPersistentHandle weak1 = NULL;
-  Dart_WeakPersistentHandle weak2 = NULL;
-  Dart_WeakPersistentHandle weak3 = NULL;
-  Dart_WeakPersistentHandle weak4 = NULL;
 
   Dart_EnterScope();
   {
@@ -2363,31 +2405,31 @@ TEST_CASE(ObjectGroups) {
     Dart_Handle local = Api::NewHandle(
         isolate, String::New("strongly reachable", Heap::kOld));
     strong = Dart_NewPersistentHandle(local);
-    strong_weak = Dart_NewWeakPersistentHandle(local, NULL, 0, NULL);
+    strong_weak = Dart_NewWeakPersistentHandle(local, NULL, 0, NopCallback);
     EXPECT_VALID(AsHandle(strong));
     EXPECT(!Dart_IsNull(AsHandle(strong)));
 
     weak1 = Dart_NewWeakPersistentHandle(
         Api::NewHandle(isolate, String::New("weakly reachable 1", Heap::kOld)),
-        NULL, 0, NULL);
+        NULL, 0, ObjectGroupsCallback);
     EXPECT_VALID(AsHandle(weak1));
     EXPECT(!Dart_IsNull(AsHandle(weak1)));
 
     weak2 = Dart_NewWeakPersistentHandle(
         Api::NewHandle(isolate, String::New("weakly reachable 2", Heap::kOld)),
-        NULL, 0, NULL);
+        NULL, 0, ObjectGroupsCallback);
     EXPECT_VALID(AsHandle(weak2));
     EXPECT(!Dart_IsNull(AsHandle(weak2)));
 
     weak3 = Dart_NewWeakPersistentHandle(
         Api::NewHandle(isolate, String::New("weakly reachable 3", Heap::kOld)),
-        NULL, 0, NULL);
+        NULL, 0, ObjectGroupsCallback);
     EXPECT_VALID(AsHandle(weak3));
     EXPECT(!Dart_IsNull(AsHandle(weak3)));
 
     weak4 = Dart_NewWeakPersistentHandle(
         Api::NewHandle(isolate, String::New("weakly reachable 4", Heap::kOld)),
-        NULL, 0, NULL);
+        NULL, 0, ObjectGroupsCallback);
     EXPECT_VALID(AsHandle(weak4));
     EXPECT(!Dart_IsNull(AsHandle(weak4)));
   }
@@ -2513,18 +2555,20 @@ TEST_CASE(ObjectGroups) {
     EXPECT(!Dart_IsNull(AsHandle(strong_weak)));
     EXPECT(!Dart_IsNull(AsHandle(weak1)));
     EXPECT(!Dart_IsNull(AsHandle(weak2)));
-    EXPECT(Dart_IsNull(AsHandle(weak3)));
-    EXPECT(Dart_IsNull(AsHandle(weak4)));
+    EXPECT(weak3 == NULL);
+    EXPECT(weak4 == NULL);
     Dart_ExitScope();
   }
 
   {
+    Dart_WeakPersistentHandle lweak3 = Dart_NewWeakPersistentHandle(
+        Dart_Null(), NULL, 0, NopCallback);
     Dart_WeakPersistentHandle array1[] = { weak1, strong_weak };
     EXPECT_VALID(Dart_NewWeakReferenceSet(array1, ARRAY_SIZE(array1),
                                           array1, ARRAY_SIZE(array1)));
 
-    // weak3 is cleared so weak2 is unreferenced and should be cleared
-    Dart_WeakPersistentHandle array2[] = { weak2, weak3 };
+    // lweak3 is unreferenced so weak2 is unreferenced and should be cleared
+    Dart_WeakPersistentHandle array2[] = { weak2, lweak3 };
     EXPECT_VALID(Dart_NewWeakReferenceSet(array2, ARRAY_SIZE(array2),
                                           array2, ARRAY_SIZE(array2)));
 
@@ -2536,15 +2580,24 @@ TEST_CASE(ObjectGroups) {
     // Only weak1 should be preserved, weak3 should not preserve weak2.
     EXPECT(!Dart_IsNull(AsHandle(strong_weak)));
     EXPECT(!Dart_IsNull(AsHandle(weak1)));
-    EXPECT(Dart_IsNull(AsHandle(weak2)));
-    EXPECT(Dart_IsNull(AsHandle(weak3)));  // was cleared, should remain cleared
-    EXPECT(Dart_IsNull(AsHandle(weak4)));  // was cleared, should remain cleared
+    EXPECT(weak2 == NULL);
+    EXPECT(weak3 == NULL);  // was cleared, should remain cleared
+    EXPECT(weak4 == NULL);  // was cleared, should remain cleared
     Dart_ExitScope();
   }
 
   {
-    // weak{2,3,4} are cleared and should have no effect on weak1
-    Dart_WeakPersistentHandle array1[] = { strong_weak, weak2, weak3, weak4 };
+    Dart_WeakPersistentHandle lweak2 = Dart_NewWeakPersistentHandle(
+        Dart_Null(), NULL, 0, NopCallback);
+    Dart_WeakPersistentHandle lweak3 = Dart_NewWeakPersistentHandle(
+        Dart_Null(), NULL, 0, NopCallback);
+    Dart_WeakPersistentHandle lweak4 = Dart_NewWeakPersistentHandle(
+        Dart_Null(), NULL, 0, NopCallback);
+    // lweak{2,3,4} are cleared and should have no effect on weak1
+    Dart_WeakPersistentHandle array1[] = { strong_weak,
+                                           lweak2,
+                                           lweak3,
+                                           lweak4 };
     EXPECT_VALID(Dart_NewWeakReferenceSet(array1, ARRAY_SIZE(array1),
                                           array1, ARRAY_SIZE(array1)));
 
@@ -2560,19 +2613,31 @@ TEST_CASE(ObjectGroups) {
     Dart_EnterScope();
     // All weak references should now be cleared.
     EXPECT(!Dart_IsNull(AsHandle(strong_weak)));
-    EXPECT(Dart_IsNull(AsHandle(weak1)));
-    EXPECT(Dart_IsNull(AsHandle(weak2)));
-    EXPECT(Dart_IsNull(AsHandle(weak3)));
-    EXPECT(Dart_IsNull(AsHandle(weak4)));
+    EXPECT(weak1 == NULL);
+    EXPECT(weak2 == NULL);
+    EXPECT(weak3 == NULL);
+    EXPECT(weak4 == NULL);
     Dart_ExitScope();
   }
 }
 
 
-TEST_CASE(PrologueWeakPersistentHandles) {
-  Dart_WeakPersistentHandle old_pwph = NULL;
-  Dart_WeakPersistentHandle new_pwph = NULL;
+static Dart_WeakPersistentHandle old_pwph = NULL;
+static Dart_WeakPersistentHandle new_pwph = NULL;
 
+
+static void PrologueWeakHandleCallback(void* isolate_callback_data,
+                                       Dart_WeakPersistentHandle handle,
+                                       void* peer) {
+  if (handle == old_pwph) {
+    old_pwph = NULL;
+  } else if (handle == new_pwph) {
+    new_pwph = NULL;
+  }
+}
+
+
+TEST_CASE(PrologueWeakPersistentHandles) {
   Dart_EnterScope();
   {
     Isolate* isolate = Isolate::Current();
@@ -2580,13 +2645,13 @@ TEST_CASE(PrologueWeakPersistentHandles) {
     new_pwph = Dart_NewPrologueWeakPersistentHandle(
         Api::NewHandle(isolate,
                        String::New("new space prologue weak", Heap::kNew)),
-        NULL, 0, NULL);
+        NULL, 0, PrologueWeakHandleCallback);
     EXPECT_VALID(AsHandle(new_pwph));
     EXPECT(!Dart_IsNull(AsHandle(new_pwph)));
     old_pwph = Dart_NewPrologueWeakPersistentHandle(
         Api::NewHandle(isolate,
                        String::New("old space prologue weak", Heap::kOld)),
-        NULL, 0, NULL);
+        NULL, 0, PrologueWeakHandleCallback);
     EXPECT_VALID(AsHandle(old_pwph));
     EXPECT(!Dart_IsNull(AsHandle(old_pwph)));
   }
@@ -2633,7 +2698,7 @@ TEST_CASE(PrologueWeakPersistentHandles) {
     Dart_EnterScope();
     // The prologue weak handle with a new space referent should now be
     // cleared.  The old space referent should be preserved.
-    EXPECT(Dart_IsNull(AsHandle(new_pwph)));
+    EXPECT(new_pwph == NULL);
     EXPECT(!Dart_IsNull(AsHandle(old_pwph)));
     Dart_ExitScope();
   }
@@ -2645,9 +2710,22 @@ TEST_CASE(PrologueWeakPersistentHandles) {
     Dart_EnterScope();
     // The prologue weak handle with an old space referent should now be
     // cleared.  The new space referent should remain cleared.
-    EXPECT(Dart_IsNull(AsHandle(new_pwph)));
-    EXPECT(Dart_IsNull(AsHandle(old_pwph)));
+    EXPECT(new_pwph == NULL);
+    EXPECT(old_pwph == NULL);
     Dart_ExitScope();
+  }
+}
+
+
+static void ImplicitReferencesCallback(void* isolate_callback_data,
+                                       Dart_WeakPersistentHandle handle,
+                                       void* peer) {
+  if (handle == weak1) {
+    weak1 = NULL;
+  } else if (handle == weak2) {
+    weak2 = NULL;
+  } else if (handle == weak3) {
+    weak3 = NULL;
   }
 }
 
@@ -2655,10 +2733,6 @@ TEST_CASE(PrologueWeakPersistentHandles) {
 TEST_CASE(ImplicitReferencesOldSpace) {
   Dart_PersistentHandle strong = NULL;
   Dart_WeakPersistentHandle strong_weak = NULL;
-
-  Dart_WeakPersistentHandle weak1 = NULL;
-  Dart_WeakPersistentHandle weak2 = NULL;
-  Dart_WeakPersistentHandle weak3 = NULL;
 
   Dart_EnterScope();
   {
@@ -2668,7 +2742,7 @@ TEST_CASE(ImplicitReferencesOldSpace) {
     Dart_Handle local = Api::NewHandle(
         isolate, String::New("strongly reachable", Heap::kOld));
     strong = Dart_NewPersistentHandle(local);
-    strong_weak = Dart_NewWeakPersistentHandle(local, NULL, 0, NULL);
+    strong_weak = Dart_NewWeakPersistentHandle(local, NULL, 0, NopCallback);
 
     EXPECT(!Dart_IsNull(AsHandle(strong)));
     EXPECT_VALID(AsHandle(strong));
@@ -2678,19 +2752,19 @@ TEST_CASE(ImplicitReferencesOldSpace) {
 
     weak1 = Dart_NewWeakPersistentHandle(
         Api::NewHandle(isolate, String::New("weakly reachable 1", Heap::kOld)),
-        NULL, 0, NULL);
+        NULL, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak1)));
     EXPECT_VALID(AsHandle(weak1));
 
     weak2 = Dart_NewWeakPersistentHandle(
         Api::NewHandle(isolate, String::New("weakly reachable 2", Heap::kOld)),
-        NULL, 0, NULL);
+        NULL, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak2)));
     EXPECT_VALID(AsHandle(weak2));
 
     weak3 = Dart_NewWeakPersistentHandle(
         Api::NewHandle(isolate, String::New("weakly reachable 3", Heap::kOld)),
-        NULL, 0, NULL);
+        NULL, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak3)));
     EXPECT_VALID(AsHandle(weak3));
   }
@@ -2752,7 +2826,7 @@ TEST_CASE(ImplicitReferencesOldSpace) {
     // All weak references except weak3 should be preserved.
     EXPECT(!Dart_IsNull(AsHandle(weak1)));
     EXPECT(!Dart_IsNull(AsHandle(weak2)));
-    EXPECT(Dart_IsNull(AsHandle(weak3)));
+    EXPECT(weak3 == NULL);
     Dart_ExitScope();
   }
 }
@@ -2762,9 +2836,6 @@ TEST_CASE(ImplicitReferencesNewSpace) {
   Dart_PersistentHandle strong = NULL;
   Dart_WeakPersistentHandle strong_weak = NULL;
 
-  Dart_WeakPersistentHandle weak1 = NULL;
-  Dart_WeakPersistentHandle weak2 = NULL;
-  Dart_WeakPersistentHandle weak3 = NULL;
 
   Dart_EnterScope();
   {
@@ -2774,7 +2845,7 @@ TEST_CASE(ImplicitReferencesNewSpace) {
     Dart_Handle local = Api::NewHandle(
         isolate, String::New("strongly reachable", Heap::kOld));
     strong = Dart_NewPersistentHandle(local);
-    strong_weak = Dart_NewWeakPersistentHandle(local, NULL, 0, NULL);
+    strong_weak = Dart_NewWeakPersistentHandle(local, NULL, 0, NopCallback);
 
     EXPECT(!Dart_IsNull(AsHandle(strong)));
     EXPECT_VALID(AsHandle(strong));
@@ -2784,19 +2855,19 @@ TEST_CASE(ImplicitReferencesNewSpace) {
 
     weak1 = Dart_NewWeakPersistentHandle(
         Api::NewHandle(isolate, String::New("weakly reachable 1", Heap::kNew)),
-        NULL, 0, NULL);
+        NULL, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak1)));
     EXPECT_VALID(AsHandle(weak1));
 
     weak2 = Dart_NewWeakPersistentHandle(
         Api::NewHandle(isolate, String::New("weakly reachable 2", Heap::kNew)),
-        NULL, 0, NULL);
+        NULL, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak2)));
     EXPECT_VALID(AsHandle(weak2));
 
     weak3 = Dart_NewWeakPersistentHandle(
         Api::NewHandle(isolate, String::New("weakly reachable 3", Heap::kNew)),
-        NULL, 0, NULL);
+        NULL, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak3)));
     EXPECT_VALID(AsHandle(weak3));
   }
@@ -2846,9 +2917,9 @@ TEST_CASE(ImplicitReferencesNewSpace) {
   {
     Dart_EnterScope();
     // No weak references should be preserved.
-    EXPECT(Dart_IsNull(AsHandle(weak1)));
-    EXPECT(Dart_IsNull(AsHandle(weak2)));
-    EXPECT(Dart_IsNull(AsHandle(weak3)));
+    EXPECT(weak1 == NULL);
+    EXPECT(weak2 == NULL);
+    EXPECT(weak3 == NULL);
     Dart_ExitScope();
   }
 }

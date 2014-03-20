@@ -371,6 +371,29 @@ FinalizablePersistentHandle* FinalizablePersistentHandle::Cast(
 }
 
 
+void FinalizablePersistentHandle::Finalize(Isolate* isolate,
+                                           FinalizablePersistentHandle* handle,
+                                           bool is_prologue_weak) {
+  if (!handle->raw()->IsHeapObject()) {
+    return;
+  }
+  Dart_WeakPersistentHandleFinalizer callback = handle->callback();
+  ASSERT(callback != NULL);
+  void* peer = handle->peer();
+  Dart_WeakPersistentHandle object = is_prologue_weak ?
+      handle->apiPrologueHandle() :
+      handle->apiHandle();
+  (*callback)(isolate->init_callback_data(), object, peer);
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  if (is_prologue_weak) {
+    state->prologue_weak_persistent_handles().FreeHandle(handle);
+  } else {
+    state->weak_persistent_handles().FreeHandle(handle);
+  }
+}
+
+
 // --- Handles ---
 
 DART_EXPORT bool Dart_IsError(Dart_Handle handle) {
@@ -654,6 +677,9 @@ DART_EXPORT Dart_WeakPersistentHandle Dart_NewWeakPersistentHandle(
     Dart_WeakPersistentHandleFinalizer callback) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
+  if (callback == NULL) {
+    return NULL;
+  }
   return AllocateFinalizableHandle(isolate,
                                    object,
                                    false,
@@ -670,6 +696,9 @@ DART_EXPORT Dart_WeakPersistentHandle Dart_NewPrologueWeakPersistentHandle(
     Dart_WeakPersistentHandleFinalizer callback) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
+  if (callback == NULL) {
+    return NULL;
+  }
   return AllocateFinalizableHandle(isolate,
                                    object,
                                    true,

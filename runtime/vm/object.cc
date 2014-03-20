@@ -420,18 +420,6 @@ static type SpecialCharacter(type value) {
 }
 
 
-static void DeleteWeakPersistentHandle(Dart_Isolate current_isolate,
-                                       Dart_WeakPersistentHandle handle) {
-  Isolate* isolate = reinterpret_cast<Isolate*>(current_isolate);
-  ApiState* state = isolate->api_state();
-  ASSERT(state != NULL);
-  FinalizablePersistentHandle* weak_ref =
-      reinterpret_cast<FinalizablePersistentHandle*>(handle);
-  ASSERT(state->IsValidWeakPersistentHandle(handle));
-  state->weak_persistent_handles().FreeHandle(weak_ref);
-}
-
-
 void Object::InitOnce() {
   // TODO(iposva): NoGCScope needs to be added here.
   ASSERT(class_class() == null_);
@@ -6921,12 +6909,11 @@ void TokenStream::SetStream(const ExternalTypedData& value) const {
 }
 
 
-void TokenStream::DataFinalizer(Dart_Isolate isolate,
+void TokenStream::DataFinalizer(void* isolate_callback_data,
                                 Dart_WeakPersistentHandle handle,
                                 void *peer) {
   ASSERT(peer != NULL);
   ::free(peer);
-  DeleteWeakPersistentHandle(isolate, handle);
 }
 
 
@@ -16365,11 +16352,10 @@ void OneByteString::SetPeer(const String& str,
 }
 
 
-void OneByteString::Finalize(Dart_Isolate isolate,
+void OneByteString::Finalize(void* isolate_callback_data,
                              Dart_WeakPersistentHandle handle,
                              void* peer) {
   delete reinterpret_cast<ExternalStringData<uint8_t>*>(peer);
-  DeleteWeakPersistentHandle(isolate, handle);
 }
 
 
@@ -16541,11 +16527,10 @@ void TwoByteString::SetPeer(const String& str,
 }
 
 
-void TwoByteString::Finalize(Dart_Isolate isolate,
+void TwoByteString::Finalize(void* isolate_callback_data,
                              Dart_WeakPersistentHandle handle,
                              void* peer) {
   delete reinterpret_cast<ExternalStringData<uint16_t>*>(peer);
-  DeleteWeakPersistentHandle(isolate, handle);
 }
 
 
@@ -16580,11 +16565,10 @@ RawExternalOneByteString* ExternalOneByteString::New(
 }
 
 
-void ExternalOneByteString::Finalize(Dart_Isolate isolate,
+void ExternalOneByteString::Finalize(void* isolate_callback_data,
                                      Dart_WeakPersistentHandle handle,
                                      void* peer) {
   delete reinterpret_cast<ExternalStringData<uint8_t>*>(peer);
-  DeleteWeakPersistentHandle(isolate, handle);
 }
 
 
@@ -16619,11 +16603,10 @@ RawExternalTwoByteString* ExternalTwoByteString::New(
 }
 
 
-void ExternalTwoByteString::Finalize(Dart_Isolate isolate,
+void ExternalTwoByteString::Finalize(void* isolate_callback_data,
                                      Dart_WeakPersistentHandle handle,
                                      void* peer) {
   delete reinterpret_cast<ExternalStringData<uint16_t>*>(peer);
-  DeleteWeakPersistentHandle(isolate, handle);
 }
 
 

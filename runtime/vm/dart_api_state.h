@@ -280,19 +280,7 @@ class FinalizablePersistentHandle {
 
   static void Finalize(Isolate* isolate,
                        FinalizablePersistentHandle* handle,
-                       bool is_prologue_weak) {
-    Dart_WeakPersistentHandleFinalizer callback = handle->callback();
-    if (callback != NULL) {
-      void* peer = handle->peer();
-      handle->Clear();
-      Dart_WeakPersistentHandle object = is_prologue_weak ?
-          handle->apiPrologueHandle() :
-          handle->apiHandle();
-      (*callback)(reinterpret_cast<Dart_Isolate>(isolate), object, peer);
-    } else {
-      handle->Clear();
-    }
-  }
+                       bool is_prologue_weak);
 
   // Overload the raw_ field as a next pointer when adding freed
   // handles to the free list.

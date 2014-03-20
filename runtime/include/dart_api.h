@@ -209,7 +209,7 @@ typedef Dart_Handle Dart_PersistentHandle;
 typedef struct _Dart_WeakPersistentHandle* Dart_WeakPersistentHandle;
 
 typedef void (*Dart_WeakPersistentHandleFinalizer)(
-    Dart_Isolate isolate,
+    void* isolate_callback_data,
     Dart_WeakPersistentHandle handle,
     void* peer);
 typedef void (*Dart_PeerFinalizer)(void* peer);
@@ -435,15 +435,19 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
 /**
  * Allocates a weak persistent handle for an object.
  *
- * This handle has the lifetime of the current isolate unless it is
- * explicitly deallocated by calling Dart_DeleteWeakPersistentHandle.
+ * This handle has the lifetime of the current isolate unless the object
+ * pointed to by the handle is garbage collected, in this case the VM
+ * automatically deletes the handle after invoking the callback associated
+ * with the handle. The handle can also be explicitly deallocated by
+ * calling Dart_DeleteWeakPersistentHandle.
  *
  * If the object becomes unreachable the callback is invoked with the weak
  * persistent handle and the peer as arguments. This gives the native code the
- * ability to cleanup data associated with the object and to delete the weak
- * persistent handle. It is illegal to call into the VM from the callback,
- * except to delete the weak persistent handle. If the handle is deleted before
- * the object becomes unreachable, the callback is never invoked.
+ * ability to cleanup data associated with the object and clear out any cached
+ * references to the handle. All references to this handle after the callback
+ * will be invalid. It is illegal to call into the VM from the callback.
+ * If the handle is deleted before the object becomes unreachable,
+ * the callback is never invoked.
  *
  * Requires there to be a current isolate.
  *
@@ -454,6 +458,7 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
  *   bytes for peer. Used to inform the garbage collector.
  * \param callback A function pointer that will be invoked sometime
  *   after the object is garbage collected, unless the handle has been deleted.
+ *   A valid callback needs to be specified it cannot be NULL.
  *
  * \return Success if the weak persistent handle was
  *   created. Otherwise, returns an error.
@@ -480,8 +485,19 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
  * epilogue callbacks.  During all other garbage collections, prologue
  * weak persistent handles strongly reference their referents.
  *
- * This handle has the lifetime of the current isolate unless it is
- * explicitly deallocated by calling Dart_DeleteWeakPersistentHandle.
+ * This handle has the lifetime of the current isolate unless the object
+ * pointed to by the handle is garbage collected, in this case the VM
+ * automatically deletes the handle after invoking the callback associated
+ * with the handle. The handle can also be explicitly deallocated by
+ * calling Dart_DeleteWeakPersistentHandle.
+ *
+ * If the object becomes unreachable the callback is invoked with the weak
+ * persistent handle and the peer as arguments. This gives the native code the
+ * ability to cleanup data associated with the object and clear out any cached
+ * references to the handle. All references to this handle after the callback
+ * will be invalid. It is illegal to call into the VM from the callback.
+ * If the handle is deleted before the object becomes unreachable,
+ * the callback is never invoked.
  *
  * Requires there to be a current isolate.
  *
@@ -492,6 +508,7 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
  *   bytes for peer. Used to inform the garbage collector.
  * \param callback A function pointer that will be invoked sometime
  *   after the object is garbage collected, unless the handle has been deleted.
+ *   A valid callback needs to be specified it cannot be NULL.
  *
  * \return Success if the prologue weak persistent handle was created.
  *   Otherwise, returns an error.
