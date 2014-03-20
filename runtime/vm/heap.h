@@ -239,9 +239,9 @@ class Heap {
 
   void PrintToJSONObject(Space space, JSONObject* object) const;
 
-  // The heap map is an array of sizes and class ids (except freelist is 0).
-  void PrintHeapMapToJSONStream(JSONStream* stream) const {
-    return old_space_->PrintHeapMapToJSONStream(stream);
+  // The heap map contains the sizes and class ids for the objects in each page.
+  void PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) const {
+    return old_space_->PrintHeapMapToJSONStream(isolate, stream);
   }
 
  private:

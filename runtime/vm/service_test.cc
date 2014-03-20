@@ -1090,8 +1090,7 @@ TEST_CASE(Service_HeapMap) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"HeapMap\"", handler.msg());
-  EXPECT_SUBSTRING("\"pages\":[[", handler.msg());
-  EXPECT_SUBSTRING("]]", handler.msg());
+  EXPECT_SUBSTRING("\"pages\":[", handler.msg());
 }
 
 

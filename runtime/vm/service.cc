@@ -965,7 +965,8 @@ static bool HandleClassesTypes(Isolate* isolate, const Class& cls,
 static bool HandleClasses(Isolate* isolate, JSONStream* js) {
   if (js->num_arguments() == 1) {
     ClassTable* table = isolate->class_table();
-    table->PrintToJSONStream(js);
+    JSONObject jsobj(js);
+    table->PrintToJSONObject(&jsobj);
     return true;
   }
   ASSERT(js->num_arguments() >= 2);
@@ -1533,7 +1534,7 @@ static bool HandleTypeArguments(Isolate* isolate, JSONStream* js) {
 
 
 static bool HandleHeapMap(Isolate* isolate, JSONStream* js) {
-  isolate->heap()->PrintHeapMapToJSONStream(js);
+  isolate->heap()->PrintHeapMapToJSONStream(isolate, js);
   return true;
 }
 
