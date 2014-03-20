@@ -10,7 +10,6 @@ import 'dart:io';
 
 import 'package:path/path.dart' as pathos;
 
-import 'generated/ast.dart';
 import 'generated/engine.dart';
 import 'generated/element.dart';
 import 'generated/error.dart';
@@ -95,15 +94,8 @@ class AnalyzerImpl {
 
   /// The sync version of analysis
   ErrorSeverity _analyzeSync() {
-    // don't try to analyzer parts
-    var unit = context.parseCompilationUnit(librarySource);
-    var hasLibraryDirective = false;
-    var hasPartOfDirective = false;
-    for (var directive in unit.directives) {
-      if (directive is LibraryDirective) hasLibraryDirective = true;
-      if (directive is PartOfDirective) hasPartOfDirective = true;
-    }
-    if (hasPartOfDirective && !hasLibraryDirective) {
+    // don't try to analyze parts
+    if (context.getKindOf(librarySource) == SourceKind.PART) {
       print("Only libraries can be analyzed.");
       print("$sourcePath is a part and can not be analyzed.");
       return ErrorSeverity.ERROR;
