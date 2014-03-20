@@ -28,7 +28,8 @@ WHITELIST = [
     ]
 
 # WebKit / WebCore info.
-WEBKIT_URL_PATTERN = r'"dartium_webkit_trunk": "(\S+)",'
+CHROME_TRUNK = "http://src.chromium.org"
+WEBKIT_URL_PATTERN = r'"dartium_webkit_branch": "(\S+)",'
 WEBKIT_REV_PATTERN = r'"dartium_webkit_revision": "(\d+)",'
 WEBCORE_SUBPATH = 'Source/core'
 MODULES_SUBPATH = 'Source/modules'
@@ -46,8 +47,8 @@ Current revision: %(revision)s
 """
 
 # Chrome info.
-CHROME_URL_PATTERN = r'"chromium_url": "(\S+)",'
-CHROME_REV_PATTERN = r'"chromium_revision": "(\d+)",'
+CHROME_URL_PATTERN = r'"dartium_chromium_branch": "(\S+)",'
+CHROME_REV_PATTERN = r'"dartium_chromium_revision": "(\d+)",'
 CHROME_IDL_SUBPATH = 'trunk/src/chrome/common/extensions/api'
 CHROME_COMMENT_EATER_SUBPATH = 'trunk/src/tools/json_comment_eater'
 CHROME_COMPILER_SUBPATH = 'trunk/src/tools/json_schema_compiler'
@@ -79,8 +80,8 @@ DEPTH_INFINITY = 'infinity'
 # Regular expressions corresponding to URL/revision patters in the
 # DEPS file.
 DEPS_PATTERNS = {
-    'webkit': (WEBKIT_URL_PATTERN, WEBKIT_REV_PATTERN),
-    'chrome': (CHROME_URL_PATTERN, CHROME_REV_PATTERN),
+    'webkit': (CHROME_TRUNK, WEBKIT_URL_PATTERN, WEBKIT_REV_PATTERN),
+    'chrome': (CHROME_TRUNK, CHROME_URL_PATTERN, CHROME_REV_PATTERN),
     }
 
 # List of components to update.
@@ -132,8 +133,8 @@ def GetDeps():
 
 def GetSvnRevision(deps, component):
   """Returns a tuple with the (dartium webkit repo, latest revision)."""
-  url_pattern, rev_pattern = DEPS_PATTERNS[component]
-  url = re.search(url_pattern, deps).group(1)
+  url_base, url_pattern, rev_pattern = DEPS_PATTERNS[component]
+  url = url_base + re.search(url_pattern, deps).group(1)
   revision = re.search(rev_pattern, deps).group(1)
   return (url, revision)
 
