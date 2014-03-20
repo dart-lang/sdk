@@ -5490,7 +5490,8 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
 // Set 'chars' to allocated buffer and return number of written characters.
 static intptr_t ConstructFunctionFullyQualifiedCString(const Function& function,
                                                        char** chars,
-                                                       intptr_t reserve_len) {
+                                                       intptr_t reserve_len,
+                                                       bool with_lib) {
   const char* name = String::Handle(function.name()).ToCString();
   const char* function_format = (reserve_len == 0) ? "%s" : "%s_";
   reserve_len += OS::SNPrint(NULL, 0, function_format, name);
@@ -5503,10 +5504,16 @@ static intptr_t ConstructFunctionFullyQualifiedCString(const Function& function,
     ASSERT(class_name != NULL);
     const Library& library = Library::Handle(function_class.library());
     ASSERT(!library.IsNull());
-    const char* library_name = String::Handle(library.url()).ToCString();
-    ASSERT(library_name != NULL);
-    const char* lib_class_format =
-        (library_name[0] == '\0') ? "%s%s_" : "%s_%s_";
+    const char* library_name = NULL;
+    const char* lib_class_format = NULL;
+    if (with_lib) {
+      library_name = String::Handle(library.url()).ToCString();
+      ASSERT(library_name != NULL);
+      lib_class_format = (library_name[0] == '\0') ? "%s%s_" : "%s_%s_";
+    } else {
+      library_name = "";
+      lib_class_format = "%s%s.";
+    }
     reserve_len +=
         OS::SNPrint(NULL, 0, lib_class_format, library_name, class_name);
     ASSERT(chars != NULL);
@@ -5516,7 +5523,8 @@ static intptr_t ConstructFunctionFullyQualifiedCString(const Function& function,
   } else {
     written = ConstructFunctionFullyQualifiedCString(parent,
                                                      chars,
-                                                     reserve_len);
+                                                     reserve_len,
+                                                     with_lib);
   }
   ASSERT(*chars != NULL);
   char* next = *chars + written;
@@ -5533,7 +5541,14 @@ static intptr_t ConstructFunctionFullyQualifiedCString(const Function& function,
 
 const char* Function::ToFullyQualifiedCString() const {
   char* chars = NULL;
-  ConstructFunctionFullyQualifiedCString(*this, &chars, 0);
+  ConstructFunctionFullyQualifiedCString(*this, &chars, 0, true);
+  return chars;
+}
+
+
+const char* Function::ToQualifiedCString() const {
+  char* chars = NULL;
+  ConstructFunctionFullyQualifiedCString(*this, &chars, 0, false);
   return chars;
 }
 

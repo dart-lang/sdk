@@ -1782,6 +1782,8 @@ class Function : public Object {
   // ast printing. The special ':' character, if present, is replaced by '_'.
   const char* ToFullyQualifiedCString() const;
 
+  const char* ToQualifiedCString() const;
+
   // Returns true if this function has parameters that are compatible with the
   // parameters of the other function in order for this function to override the
   // other function.
