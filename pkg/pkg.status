@@ -31,9 +31,6 @@ docgen/test/only_lib_content_in_pkg_test: Fail, Timeout # Issue 17597
 docgen/test/only_lib_content_in_pkg_test: Skip # slow
 docgen/test/typedef_test: Skip # slow
 
-[ $runtime == vm && $arch == ia32 && $mode == debug && $system != macos ]
-docgen/test/generate_json_test: Skip # Issue 17602
-
 [ $compiler == dart2js ]
 collection/test/equality_test/01: Fail # Issue 1533
 collection/test/equality_test/02: Fail # Issue 1533
