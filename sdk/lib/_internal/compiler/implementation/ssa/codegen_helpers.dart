@@ -115,7 +115,12 @@ class SsaInstructionSelection extends HBaseVisitor {
           !backend.isInterceptedMixinSelector(selector)) {
         HInstruction interceptor = node.inputs[0];
         HInstruction receiverArgument = node.inputs[1];
-        if (interceptor.nonCheck() == receiverArgument.nonCheck()) {
+
+        // TODO(15720): The test here should be
+        //
+        //     interceptor.nonCheck() == receiverArgument.nonCheck()
+        //
+        if (interceptor == receiverArgument) {
           // TODO(15933): Make automatically generated property extraction
           // closures work with the dummy receiver optimization.
           if (!selector.isGetter()) {
