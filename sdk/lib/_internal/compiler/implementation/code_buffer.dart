@@ -43,7 +43,7 @@ class CodeBuffer implements StringBuffer {
         write(iterator.current);
       } while (iterator.moveNext());
     } else {
-      buffer.write(iterator.current);
+      write(iterator.current);
       while (iterator.moveNext()) {
         write(separator);
         write(iterator.current);
