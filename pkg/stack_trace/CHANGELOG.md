@@ -1,4 +1,4 @@
-## 0.9.2
+## 0.9.3
 
 * Add a `Chain.foldFrames` method that parallels `Trace.foldFrames`.
 
