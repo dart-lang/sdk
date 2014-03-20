@@ -3925,6 +3925,14 @@ void Class::PrintToJSONStream(JSONStream* stream, bool ref) const {
       }
     }
   }
+  {
+    JSONObject typesRef(&jsobj, "canonicalTypes");
+    typesRef.AddProperty("type", "@TypeList");
+    typesRef.AddPropertyF("id", "classes/%" Pd "/types", id());
+    jsobj.AddPropertyF("name", "canonical types of %s", internal_class_name);
+    jsobj.AddPropertyF("user_name", "canonical types of %s",
+                       user_visible_class_name);
+  }
 }
 
 
@@ -4137,6 +4145,57 @@ bool TypeArguments::TypeTest(TypeTestKind test_kind,
 
 void TypeArguments::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  if (IsNull()) {
+    jsobj.AddProperty("type", ref ? "@Null" : "Null");
+    jsobj.AddProperty("id", "objects/null");
+    return;
+  }
+  // The index in the canonical_type_arguments table cannot be used as part of
+  // the object id (as in typearguments/id), because the indices are not
+  // preserved when the table grows and the entries get rehashed. Use the ring.
+  Isolate* isolate = Isolate::Current();
+  ObjectStore* object_store = isolate->object_store();
+  const Array& table = Array::Handle(object_store->canonical_type_arguments());
+  ASSERT(table.Length() > 0);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddProperty("type", JSONType(ref));
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  const char* name = String::Handle(Name()).ToCString();
+  const char* user_name = String::Handle(UserVisibleName()).ToCString();
+  jsobj.AddProperty("name", name);
+  jsobj.AddProperty("user_name", user_name);
+  jsobj.AddProperty("length", Length());
+  jsobj.AddProperty("num_instantiations", NumInstantiations());
+  if (ref) {
+    return;
+  }
+  {
+    JSONArray jsarr(&jsobj, "types");
+    AbstractType& type_arg = AbstractType::Handle();
+    for (intptr_t i = 0; i < Length(); i++) {
+      type_arg = TypeAt(i);
+      jsarr.AddValue(type_arg);
+    }
+  }
+  if (!IsInstantiated()) {
+    JSONArray jsarr(&jsobj, "instantiations");
+    Array& prior_instantiations = Array::Handle(instantiations());
+    ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
+    TypeArguments& type_args = TypeArguments::Handle();
+    intptr_t i = 0;
+    while (true) {
+      if (prior_instantiations.At(i) == Smi::New(StubCode::kNoInstantiator)) {
+        break;
+      }
+      JSONObject instantiation(&jsarr);
+      type_args ^= prior_instantiations.At(i);
+      instantiation.AddProperty("instantiator", type_args, true);
+      type_args ^= prior_instantiations.At(i + 1);
+      instantiation.AddProperty("instantiated", type_args, true);
+      i += 2;
+    }
+  }
 }
 
 
@@ -12429,7 +12488,7 @@ void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
     return;
   } else {
     ObjectIdRing* ring = Isolate::Current()->object_id_ring();
-    intptr_t id = ring->GetIdForObject(raw());
+    const intptr_t id = ring->GetIdForObject(raw());
     if (IsClosure()) {
       const Function& closureFunc = Function::Handle(Closure::function(*this));
       jsobj.AddProperty("closureFunc", closureFunc);
@@ -12879,7 +12938,7 @@ const char* AbstractType::ToCString() const {
 
 
 void AbstractType::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  UNREACHABLE();
 }
 
 
@@ -13420,7 +13479,23 @@ const char* Type::ToCString() const {
 
 
 void Type::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  ASSERT(IsCanonical());
   JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(ref));
+  const Class& type_cls = Class::Handle(type_class());
+  intptr_t id = type_cls.FindCanonicalTypeIndex(*this);
+  ASSERT(id >= 0);
+  intptr_t cid = type_cls.id();
+  jsobj.AddPropertyF("id", "classes/%" Pd "/types/%" Pd "", cid, id);
+  const char* name = String::Handle(Name()).ToCString();
+  const char* user_name = String::Handle(UserVisibleName()).ToCString();
+  jsobj.AddProperty("name", name);
+  jsobj.AddProperty("user_name", user_name);
+  if (ref) {
+    return;
+  }
+  jsobj.AddProperty("type_class", type_cls);
+  jsobj.AddProperty("type_arguments", TypeArguments::Handle(arguments()));
 }
 
 
@@ -13589,6 +13664,18 @@ const char* TypeRef::ToCString() const {
 
 void TypeRef::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddProperty("type", JSONType(ref));
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  const char* name = String::Handle(Name()).ToCString();
+  const char* user_name = String::Handle(UserVisibleName()).ToCString();
+  jsobj.AddProperty("name", name);
+  jsobj.AddProperty("user_name", user_name);
+  if (ref) {
+    return;
+  }
+  jsobj.AddProperty("ref_type", AbstractType::Handle(type()));
 }
 
 
@@ -13793,6 +13880,22 @@ const char* TypeParameter::ToCString() const {
 
 void TypeParameter::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddProperty("type", JSONType(ref));
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  const char* name = String::Handle(Name()).ToCString();
+  const char* user_name = String::Handle(UserVisibleName()).ToCString();
+  jsobj.AddProperty("name", name);
+  jsobj.AddProperty("user_name", user_name);
+  const Class& cls = Class::Handle(parameterized_class());
+  jsobj.AddProperty("parameterized_class", cls);
+  if (ref) {
+    return;
+  }
+  jsobj.AddProperty("index", index());
+  const AbstractType& upper_bound = AbstractType::Handle(bound());
+  jsobj.AddProperty("upper_bound", upper_bound);
 }
 
 
@@ -13974,6 +14077,19 @@ const char* BoundedType::ToCString() const {
 
 void BoundedType::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddProperty("type", JSONType(ref));
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  const char* name = String::Handle(Name()).ToCString();
+  const char* user_name = String::Handle(UserVisibleName()).ToCString();
+  jsobj.AddProperty("name", name);
+  jsobj.AddProperty("user_name", user_name);
+  if (ref) {
+    return;
+  }
+  jsobj.AddProperty("bounded_type", AbstractType::Handle(type()));
+  jsobj.AddProperty("upper_bound", AbstractType::Handle(bound()));
 }
 
 
@@ -14007,7 +14123,7 @@ const char* MixinAppType::ToCString() const {
 
 
 void MixinAppType::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  UNREACHABLE();
 }
 
 
@@ -16628,7 +16744,7 @@ void Array::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   Class& cls = Class::Handle(this->clazz());
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
-  intptr_t id = ring->GetIdForObject(raw());
+  const intptr_t id = ring->GetIdForObject(raw());
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
   jsobj.AddProperty("class", cls);
@@ -16968,7 +17084,7 @@ void GrowableObjectArray::PrintToJSONStream(JSONStream* stream,
   JSONObject jsobj(stream);
   Class& cls = Class::Handle(this->clazz());
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
-  intptr_t id = ring->GetIdForObject(raw());
+  const intptr_t id = ring->GetIdForObject(raw());
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
   jsobj.AddProperty("class", cls);

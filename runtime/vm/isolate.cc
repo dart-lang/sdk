@@ -909,6 +909,13 @@ void Isolate::PrintToJSONStream(JSONStream* stream) {
   jsobj.AddProperty("rootLib", lib);
 
   timer_list().PrintTimersToJSONProperty(&jsobj);
+
+  {
+    JSONObject typeargsRef(&jsobj, "canonicalTypeArguments");
+    typeargsRef.AddProperty("type", "@TypeArgumentsList");
+    typeargsRef.AddProperty("id", "typearguments");
+    typeargsRef.AddProperty("name", "canonical type arguments");
+  }
 }
 
 
