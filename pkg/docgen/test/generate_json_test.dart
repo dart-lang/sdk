@@ -39,14 +39,6 @@ void main() {
         d.matcherFile('test_lib.B.json', isJsonMap),
         d.matcherFile('test_lib.C.json', isJsonMap),
         d.matcherFile('test_lib.json', isJsonMap),
-    ]).validate()
-      // TODO(ajohnsen): Remove once the issue is resolved.
-      .catchError((e, s) {
-        print(e);
-        print(s);
-        print(p.join(d.defaultRoot, 'docs'));
-        exit(1);
-      });
-
+    ]).validate();
   });
 }

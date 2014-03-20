@@ -256,12 +256,27 @@ void FUNCTION_NAME(File_WriteFrom)(Dart_NativeArguments args) {
       Dart_TypedDataAcquireData(buffer_obj, &type, &buffer, &buffer_len);
   if (Dart_IsError(result)) Dart_PropagateError(result);
 
+#ifdef DEBUG
+  // TODO(ajohnsen): Remove once issue 17602 is fixed.
+  bool print_debug = true;
+  for (int i = 0; i < length; i++) {
+    if (reinterpret_cast<uint8_t*>(buffer)[i] != 0xf3) {
+      print_debug = false;
+      break;
+    }
+  }
+  if (print_debug) {
+    fprintf(stderr, "WARNING: Data is purely 0x3f in File_WriteFrom\n");
+    fflush(stderr);
+  }
+#endif
+
   ASSERT(type == Dart_TypedData_kUint8 || type == Dart_TypedData_kInt8);
   ASSERT(end <= buffer_len);
   ASSERT(buffer != NULL);
 
   // Write the data out into the file.
-  int64_t bytes_written = file->Write(reinterpret_cast<void*>(buffer), length);
+  int64_t bytes_written = file->Write(buffer, length);
   // Release the direct pointer acquired above.
   result = Dart_TypedDataReleaseData(buffer_obj);
   if (Dart_IsError(result)) Dart_PropagateError(result);
