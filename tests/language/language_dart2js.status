@@ -38,6 +38,7 @@ deferred_constraints_constants_test/metadata* : Pass, MissingCompileTimeError # 
 vm/*: Skip # Issue 12699
 
 [ $compiler == dart2js && $checked ]
+mixin_bound_test: CompileTimeError # Issue 17658
 type_variable_bounds_test/02: Fail # Issue 12702
 type_variable_bounds2_test/01: Fail # Issue 12702
 type_variable_bounds2_test/04: Fail # Issue 12702
