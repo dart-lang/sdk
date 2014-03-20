@@ -44,7 +44,7 @@ void main() {
       .catchError((e, s) {
         print(e);
         print(s);
-        print(d.describe());
+        print(p.join(d.defaultRoot, 'docs'));
         exit(1);
       });
 
