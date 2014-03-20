@@ -21,7 +21,7 @@ import bot_utils
 utils = bot_utils.GetUtils()
 
 HOST_OS = utils.GuessOS()
-SRC_BUILDER = r'src-tarball-linux-(debian_wheezy|ubuntu_precise)'
+SRC_BUILDER = r'linux-distribution-support-(debian_wheezy|ubuntu_precise)'
 
 def SrcConfig(name, is_buildbot):
   """Returns info for the current buildbot based on the name of the builder.
