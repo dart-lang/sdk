@@ -471,7 +471,7 @@ class HInstructionStringifier implements HVisitor<String> {
       buf.write(", ");
     }
     buf.write("default: B");
-    buf.write(node.block.successors.last.id);
+    buf.write(node.defaultTarget.id);
     return buf.toString();
   }
 

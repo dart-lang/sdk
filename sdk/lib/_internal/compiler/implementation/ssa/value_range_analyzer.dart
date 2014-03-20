@@ -610,6 +610,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     // that the graph does not get polluted with these instructions
     // only necessary for this phase.
     removeRangeConversion();
+    JavaScriptBackend backend = compiler.backend;
+    // TODO(herhut): Find a cleaner way to pass around ranges.
+    backend.optimizer.ranges = ranges;
   }
 
   void removeRangeConversion() {
@@ -785,7 +788,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
   Range handleInvokeModulo(HInvokeDynamicMethod invoke) {
     HInstruction left = invoke.inputs[1];
-    HInstruction right = invoke.inputs[1];
+    HInstruction right = invoke.inputs[2];
     Range divisor = ranges[right];
     if (divisor != null) {
       // For Integer values we can be precise in the upper bound,

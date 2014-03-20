@@ -5007,7 +5007,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   visitSwitchStatement(ast.SwitchStatement node) {
-    Map<ast.CaseMatch,Constant> constants = buildSwitchCaseConstants(node);
+    Map<ast.CaseMatch, Constant> constants = buildSwitchCaseConstants(node);
 
     // The switch case indices must match those computed in
     // [SwitchCaseJumpHandler].
