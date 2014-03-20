@@ -135,6 +135,13 @@ class GCSNamer(object):
   def sdk_directory(self, revision):
     return self._variant_directory('sdk', revision)
 
+  def linux_packages_directory(self, revision, linux_system):
+    return '/'.join([self._variant_directory('linux_packages', revision),
+                     linux_system])
+
+  def src_directory(self, revision):
+    return self._variant_directory('src', revision)
+
   def editor_directory(self, revision):
     return self._variant_directory('editor', revision)
 
