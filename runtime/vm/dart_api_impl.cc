@@ -3117,10 +3117,7 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
   if (type_obj.IsNull()) {
     RETURN_TYPE_ERROR(isolate, type, Type);
   }
-  REUSABLE_CLASS_HANDLESCOPE(isolate);
-  Class& cls = isolate->ClassHandle();
-  cls = type_obj.type_class();
-
+  const Class& cls = Class::Handle(isolate, type_obj.type_class());
   if (!cls.is_fields_marked_nullable()) {
     // Mark all fields as nullable.
     Class& iterate_cls = Class::Handle(isolate, cls.raw());
@@ -3140,9 +3137,7 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
     }
   }
 
-  REUSABLE_ERROR_HANDLESCOPE(isolate);
-  Error& error = isolate->ErrorHandle();
-  error = cls.EnsureIsFinalized(isolate);
+  const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));
   if (!error.IsNull()) {
     // An error occurred, return error object.
     return Api::NewHandle(isolate, error.raw());
