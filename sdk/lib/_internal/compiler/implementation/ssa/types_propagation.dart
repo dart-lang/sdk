@@ -343,7 +343,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
         // Insert a refinement node after the call and update all
         // users dominated by the call to use that node instead of
         // [receiver].
-        HTypeKnown converted = new HTypeKnown(newType, receiver);
+        HTypeKnown converted =
+            new HTypeKnown.witnessed(newType, receiver, instruction);
         instruction.block.addBefore(instruction.next, converted);
         receiver.replaceAllUsersDominatedBy(converted.next, converted);
         addDependentInstructionsToWorkList(converted);

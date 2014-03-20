@@ -1301,7 +1301,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
             && loopHeader.successors[0] == block);
     while (instruction != null) {
       HInstruction next = instruction.next;
-      if (instruction.useGvn()
+      if (instruction.useGvn() && instruction.isMovable
           && (!instruction.canThrow() || firstInstructionInLoop)
           && !instruction.sideEffects.dependsOn(dependsFlags)) {
         bool loopInvariantInputs = true;
@@ -1523,11 +1523,11 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
 
       HInstruction current = instruction;
       instruction = instruction.next;
-
-      // TODO(ngeoffray): this check is needed because we currently do
-      // not have flags to express 'Gvn'able', but not movable.
-      if (current is HCheck) continue;
-      if (!current.useGvn()) continue;
+      if (!current.useGvn() || !current.isMovable) continue;
+      // TODO(sra): We could move throwing instructions provided we keep the
+      // exceptions in the same order.  This requires they are in the same order
+      // in all successors, which is not tracked by the ValueSet.
+      if (current.canThrow()) continue;
       if (current.sideEffects.dependsOn(dependsFlags)) continue;
 
       bool canBeMoved = true;
@@ -1562,14 +1562,16 @@ class SsaTypeConversionInserter extends HBaseVisitor
   }
 
   // Update users of [input] that are dominated by [:dominator.first:]
-  // to use [newInput] instead.
-  void changeUsesDominatedBy(HBasicBlock dominator,
-                             HInstruction input,
-                             TypeMask convertedType) {
+  // to use [TypeKnown] of [input] instead. As the type information depends
+  // on the control flow, we mark the inserted [HTypeKnown] nodes as
+  // non-movable.
+  void insertTypePropagationForDominatedUsers(HBasicBlock dominator,
+                                              HInstruction input,
+                                              TypeMask convertedType) {
     Setlet<HInstruction> dominatedUsers = input.dominatedUsers(dominator.first);
     if (dominatedUsers.isEmpty) return;
 
-    HTypeKnown newInput = new HTypeKnown(convertedType, input);
+    HTypeKnown newInput = new HTypeKnown.pinned(convertedType, input);
     dominator.addBefore(dominator.first, newInput);
     dominatedUsers.forEach((HInstruction user) {
       user.changeUse(input, newInput);
@@ -1596,12 +1598,14 @@ class SsaTypeConversionInserter extends HBaseVisitor
     HInstruction input = instruction.expression;
 
     for (HIf ifUser in ifUsers) {
-      changeUsesDominatedBy(ifUser.thenBlock, input, convertedType);
+      insertTypePropagationForDominatedUsers(ifUser.thenBlock, input,
+                                             convertedType);
       // TODO(ngeoffray): Also change uses for the else block on a type
       // that knows it is not of a specific type.
     }
     for (HIf ifUser in notIfUsers) {
-      changeUsesDominatedBy(ifUser.elseBlock, input, convertedType);
+      insertTypePropagationForDominatedUsers(ifUser.elseBlock, input,
+                                             convertedType);
       // TODO(ngeoffray): Also change uses for the then block on a type
       // that knows it is not of a specific type.
     }
@@ -1633,11 +1637,13 @@ class SsaTypeConversionInserter extends HBaseVisitor
     TypeMask nonNullType = input.instructionType.nonNullable();
 
     for (HIf ifUser in ifUsers) {
-      changeUsesDominatedBy(ifUser.elseBlock, input, nonNullType);
+      insertTypePropagationForDominatedUsers(ifUser.elseBlock, input,
+                                             nonNullType);
       // Uses in thenBlock are `null`, but probably not common.
     }
     for (HIf ifUser in notIfUsers) {
-      changeUsesDominatedBy(ifUser.thenBlock, input, nonNullType);
+      insertTypePropagationForDominatedUsers(ifUser.thenBlock, input,
+                                             nonNullType);
       // Uses in elseBlock are `null`, but probably not common.
     }
   }

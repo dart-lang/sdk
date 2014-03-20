@@ -816,6 +816,8 @@ abstract class HInstruction implements Spannable {
   void setUseGvn() { _useGvn = true; }
   void clearUseGvn() { _useGvn = false; }
 
+  bool get isMovable => useGvn();
+
   /**
    * A pure instruction is an instruction that does not have any side
    * effect, nor any dependency. They can be moved anywhere in the
@@ -2464,16 +2466,27 @@ class HTypeConversion extends HCheck {
   bool dataEquals(HTypeConversion other) {
     return kind == other.kind
         && typeExpression == other.typeExpression
-        && checkedType == other.checkedType;
+        && checkedType == other.checkedType
+        && receiverTypeCheckSelector == other.receiverTypeCheckSelector;
   }
 }
 
 /// The [HTypeKnown] instruction marks a value with a refined type.
 class HTypeKnown extends HCheck {
   TypeMask knownType;
-  HTypeKnown(TypeMask knownType, HInstruction input)
+  bool _isMovable;
+
+  HTypeKnown.pinned(TypeMask knownType, HInstruction input)
       : this.knownType = knownType,
+        this._isMovable = false,
         super(<HInstruction>[input], knownType);
+
+  HTypeKnown.witnessed(TypeMask knownType, HInstruction input,
+                       HInstruction witness)
+      : this.knownType = knownType,
+        this._isMovable = true,
+        super(<HInstruction>[input, witness], knownType);
+
   toString() => 'TypeKnown $knownType';
   accept(HVisitor visitor) => visitor.visitTypeKnown(this);
 
@@ -2484,6 +2497,7 @@ class HTypeKnown extends HCheck {
   int typeCode() => HInstruction.TYPE_KNOWN_TYPECODE;
   bool typeEquals(HInstruction other) => other is HTypeKnown;
   bool isCodeMotionInvariant() => true;
+  bool get isMovable => _isMovable && useGvn();
 
   bool dataEquals(HTypeKnown other) {
     return knownType == other.knownType
@@ -2496,6 +2510,9 @@ class HRangeConversion extends HCheck {
       : super(<HInstruction>[input], type) {
     sourceElement = input.sourceElement;
   }
+
+  bool get isMovable => false;
+
   accept(HVisitor visitor) => visitor.visitRangeConversion(this);
 }
 
