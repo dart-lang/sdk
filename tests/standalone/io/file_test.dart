@@ -349,8 +349,11 @@ class FileTest {
     // Open the file in append mode and ensure that we do not overwrite
     // the existing content.
     openedFile = (new File(filename)).openSync(mode: APPEND);
-    openedFile.writeFromSync(buffer, 0, buffer.length);
-    Expect.equals(content.length * 2, openedFile.lengthSync());
+    openedFile.writeFromSync(buffer, 2, buffer.length - 2);
+    Expect.equals(content.length + content.length - 4,
+                  openedFile.lengthSync());
+    Expect.equals(content + content.substring(2, content.length - 2),
+                  file.readAsStringSync());
     openedFile.closeSync();
     file.deleteSync();
   }
