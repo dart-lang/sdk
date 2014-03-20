@@ -10,10 +10,14 @@ part of ssa;
  */
 class SsaInstructionSelection extends HBaseVisitor {
   final Compiler compiler;
+  HGraph graph;
 
   SsaInstructionSelection(this.compiler);
 
+  JavaScriptBackend get backend => compiler.backend;
+
   void visitGraph(HGraph graph) {
+    this.graph = graph;
     visitDominatorTree(graph);
   }
 
@@ -56,7 +60,6 @@ class SsaInstructionSelection extends HBaseVisitor {
     if (node.kind == HIs.RAW_CHECK) {
       HInstruction interceptor = node.interceptor;
       if (interceptor != null) {
-        JavaScriptBackend backend = compiler.backend;
         return new HIsViaInterceptor(node.typeExpression, interceptor,
                                      backend.boolType);
       }
@@ -84,6 +87,50 @@ class SsaInstructionSelection extends HBaseVisitor {
       return null;
     }
     return '===';
+  }
+
+  HInstruction visitInvokeDynamic(HInvokeDynamic node) {
+    if (node.isInterceptedCall) {
+      // Calls of the form
+      //
+      //     a.foo$1(a, x)
+      //
+      // where the interceptor calling convention is used come from recognizing
+      // that 'a' is a 'self-interceptor'.  If the selector matches only methods
+      // that ignore the explicit receiver parameter, replace occurences of the
+      // receiver argument with a dummy receiver '0':
+      //
+      //     a.foo$1(a, x)   --->   a.foo$1(0, x)
+      //
+      // This often reduces the number of references to 'a' to one, allowing 'a'
+      // to be generated at use to avoid a temporary, e.g.
+      //
+      //     t1 = b.get$thing();
+      //     t1.foo$1(t1, x)
+      // --->
+      //     b.get$thing().foo$1(0, x)
+      //
+      Selector selector = node.selector;
+      if (backend.isInterceptedSelector(selector) &&
+          !backend.isInterceptedMixinSelector(selector)) {
+        HInstruction interceptor = node.inputs[0];
+        HInstruction receiverArgument = node.inputs[1];
+        if (interceptor.nonCheck() == receiverArgument.nonCheck()) {
+          // TODO(15933): Make automatically generated property extraction
+          // closures work with the dummy receiver optimization.
+          if (!selector.isGetter()) {
+            Constant constant = new DummyConstant(
+                receiverArgument.instructionType);
+            HConstant dummy = graph.addConstant(constant, compiler);
+            receiverArgument.usedBy.remove(node);
+            node.inputs[1] = dummy;
+            dummy.usedBy.add(node);
+          }
+        }
+      }
+    }
+
+    return node;
   }
 }
 
