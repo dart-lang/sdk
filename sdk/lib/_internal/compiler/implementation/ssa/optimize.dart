@@ -1245,6 +1245,9 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
       HInstruction next = instruction.next;
       if (instruction.useGvn()
           && (!instruction.canThrow() || firstInstructionInLoop)
+          // TODO(sra): this check is needed because we currently do
+          // not have flags to express 'Gvn'able', but not movable.
+          && (instruction is! HCheck)
           && !instruction.sideEffects.dependsOn(dependsFlags)) {
         bool loopInvariantInputs = true;
         List<HInstruction> inputs = instruction.inputs;
