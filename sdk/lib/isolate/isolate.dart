@@ -272,9 +272,10 @@ class Isolate {
  * a [SendPort] is delivered to its corresponding [ReceivePort]. There might be
  * many [SendPort]s for the same [ReceivePort].
  *
- * [SendPort]s can be transmitted to other isolates.
+ * [SendPort]s can be transmitted to other isolates, and they preserve equality
+ * when sent.
  */
-abstract class SendPort {
+abstract class SendPort implements Capability {
 
   /**
    * Sends an asynchronous [message] through this send port, to its
