@@ -671,6 +671,24 @@ void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
 }
 
 
+RawObject* Scavenger::FindObject(FindObjectVisitor* visitor) const {
+  ASSERT(!scavenging_);
+  uword cur = FirstObjectStart();
+  if (visitor->VisitRange(cur, top_)) {
+    while (cur < top_) {
+      RawObject* raw_obj = RawObject::FromAddr(cur);
+      uword next = cur + raw_obj->Size();
+      if (visitor->VisitRange(cur, next) && raw_obj->FindObject(visitor)) {
+        return raw_obj;  // Found object, return it.
+      }
+      cur = next;
+    }
+    ASSERT(cur == top_);
+  }
+  return Object::null();
+}
+
+
 void Scavenger::Scavenge() {
   // TODO(cshapiro): Add a decision procedure for determining when the
   // the API callbacks should be invoked.

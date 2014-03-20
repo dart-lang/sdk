@@ -5,6 +5,7 @@
 #include "vm/service.h"
 
 #include "include/dart_api.h"
+#include "platform/globals.h"
 
 #include "vm/compiler.h"
 #include "vm/coverage.h"
@@ -1538,9 +1539,47 @@ static bool HandleHeapMap(Isolate* isolate, JSONStream* js) {
 }
 
 
+class ContainsAddressVisitor : public FindObjectVisitor {
+ public:
+  ContainsAddressVisitor(Isolate* isolate, uword addr)
+      : FindObjectVisitor(isolate), addr_(addr) { }
+  virtual ~ContainsAddressVisitor() { }
+
+  virtual uword filter_addr() const { return addr_; }
+
+  virtual bool FindObject(RawObject* obj) const {
+    uword obj_begin = RawObject::ToAddr(obj);
+    uword obj_end = obj_begin + obj->Size();
+    return obj_begin <= addr_ && addr_ < obj_end;
+  }
+ private:
+  uword addr_;
+};
+
+
+static bool HandleAddress(Isolate* isolate, JSONStream* js) {
+  uword addr = 0;
+  if (js->num_arguments() != 2 ||
+      !GetUnsignedIntegerId(js->GetArgument(1), &addr, 16)) {
+    static const uword kExampleAddr = static_cast<uword>(kIntptrMax / 7);
+    PrintError(js, "Must specify address: address/" Px ".", kExampleAddr);
+    return true;
+  }
+  Object& object = Object::Handle(isolate);
+  {
+    NoGCScope no_gc;
+    ContainsAddressVisitor visitor(isolate, addr);
+    object = isolate->heap()->FindObject(&visitor);
+  }
+  object.PrintToJSONStream(js, true);
+  return true;
+}
+
+
 static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "_echo", HandleIsolateEcho },
   { "", HandleIsolate },
+  { "address", HandleAddress },
   { "allocationprofile", HandleAllocationProfile },
   { "classes", HandleClasses },
   { "code", HandleCode },

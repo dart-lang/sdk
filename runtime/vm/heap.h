@@ -134,9 +134,11 @@ class Heap {
   // point.
   // The 'visitor' function should return false if the object is not found,
   // traversal through the heap space continues.
-  RawInstructions* FindObjectInCodeSpace(FindObjectVisitor* visitor);
-  RawInstructions* FindObjectInStubCodeSpace(FindObjectVisitor* visitor);
+  // Returns null object if nothing is found. Must be called within a NoGCScope.
+  RawInstructions* FindObjectInCodeSpace(FindObjectVisitor* visitor) const;
   RawObject* FindOldObject(FindObjectVisitor* visitor) const;
+  RawObject* FindNewObject(FindObjectVisitor* visitor) const;
+  RawObject* FindObject(FindObjectVisitor* visitor) const;
 
   void CollectGarbage(Space space);
   void CollectGarbage(Space space, ApiCallbacks api_callbacks);

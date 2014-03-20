@@ -1098,6 +1098,49 @@ TEST_CASE(Service_HeapMap) {
 }
 
 
+TEST_CASE(Service_Address) {
+  const char* kScript =
+      "var port;\n"  // Set to our mock port by C++.
+      "\n"
+      "main() {\n"
+      "}";
+
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port =
+      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
+
+  const String& str = String::Handle(String::New("foobar", Heap::kOld));
+  Instance& service_msg = Instance::Handle();
+  // Note: If we ever introduce old space compaction, this test might fail.
+  uword start_addr = RawObject::ToAddr(str.raw());
+  // Expect to find 'str', also from internal addresses.
+  for (int offset = 0; offset < kObjectAlignment; ++offset) {
+    uword addr = start_addr + offset;
+    char buf[1024];
+    OS::SNPrint(buf, sizeof(buf),
+                "[port, ['address', '%" Px "'], [], []]", addr);
+    service_msg = Eval(lib, buf);
+    Service::HandleIsolateMessage(isolate, service_msg);
+    handler.HandleNextMessage();
+    EXPECT_SUBSTRING("\"type\":\"@String\"", handler.msg());
+    EXPECT_SUBSTRING("foobar", handler.msg());
+  }
+  // Expect null when no object is found.
+  service_msg = Eval(lib, "[port, ['address', '7'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"null\"", handler.msg());
+}
+
+
 static const char* alpha_callback(
     const char* name,
     const char** arguments,
