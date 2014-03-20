@@ -1236,7 +1236,7 @@ abstract class StreamSubscription<T> {
 /**
  * An interface that abstracts creation or handling of [Stream] events.
  */
-abstract class EventSink<T> {
+abstract class EventSink<T> implements Sink<T> {
   /** Create a data event */
   void add(T event);
   /** Create an async error. */

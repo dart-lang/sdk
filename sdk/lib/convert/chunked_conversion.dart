@@ -10,10 +10,14 @@ typedef void _ChunkedConversionCallback<T>(T accumulated);
  * A [ChunkedConversionSink] is used to transmit data more efficiently between
  * two converters during chunked conversions.
  *
+ * The basic `ChunkedConversionSink` is just a [Sink], and converters should
+ * work with a plain `Sink`, but may work more efficiently with certain
+ * specialized types of `ChunkedConversionSink`.
+ *
  * It is recommended that implementations of `ChunkedConversionSink` extends
  * this class, to inherit any further methods that may be added to the class.
  */
-abstract class ChunkedConversionSink<T> {
+abstract class ChunkedConversionSink<T> implements Sink<T> {
   ChunkedConversionSink();
   factory ChunkedConversionSink.withCallback(
       void callback(List<T> accumulated)) = _SimpleCallbackSink;
@@ -80,8 +84,7 @@ class _ConverterStreamEventSink<S, T> implements EventSink<S> {
 
   _ConverterStreamEventSink(Converter converter, EventSink<T> sink)
       : this._eventSink = sink,
-        _chunkedSink =
-            converter.startChunkedConversion(new _EventSinkAdapter(sink));
+        _chunkedSink = converter.startChunkedConversion(sink);
 
   void add(S o) => _chunkedSink.add(o);
   void addError(Object error, [StackTrace stackTrace]) {

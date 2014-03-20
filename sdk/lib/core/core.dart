@@ -182,6 +182,7 @@ part "pattern.dart";
 part "print.dart";
 part "regexp.dart";
 part "set.dart";
+part "sink.dart";
 part "stacktrace.dart";
 part "stopwatch.dart";
 part "string.dart";

@@ -30,6 +30,7 @@
     'print.dart',
     'regexp.dart',
     'set.dart',
+    'sink.dart',
     'stacktrace.dart',
     'stopwatch.dart',
     'string.dart',

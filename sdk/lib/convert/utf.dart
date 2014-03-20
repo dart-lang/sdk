@@ -107,8 +107,7 @@ class Utf8Encoder extends Converter<String, List<int>> {
    * The converter works more efficiently if the given [sink] is a
    * [ByteConversionSink].
    */
-  StringConversionSink startChunkedConversion(
-      ChunkedConversionSink<List<int>> sink) {
+  StringConversionSink startChunkedConversion(Sink<List<int>> sink) {
     if (sink is! ByteConversionSink) {
       sink = new ByteConversionSink.from(sink);
     }
@@ -332,8 +331,7 @@ class Utf8Decoder extends Converter<List<int>, String> {
    * The converter works more efficiently if the given [sink] is a
    * [StringConversionSink].
    */
-  ByteConversionSink startChunkedConversion(
-      ChunkedConversionSink<String> sink) {
+  ByteConversionSink startChunkedConversion(Sink<String> sink) {
     StringConversionSink stringSink;
     if (sink is StringConversionSink) {
       stringSink = sink;
