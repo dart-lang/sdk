@@ -34,6 +34,10 @@ async_test: Fail # Background timers not implemented.
 keyboard_event_test: Fail # Issue 13902
 isolates_test: Fail # Issue 13921
 
+[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellInAndroid) && $mode == debug ]
+websocket_test/websocket: Skip # Issue 17666
+canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip #Issue 17666
+
 [ $compiler == none && $runtime == ContentShellInAndroid ]
 element_offset_test/offset: Pass, Fail # Issue 13296
 
