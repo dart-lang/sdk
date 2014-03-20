@@ -39,7 +39,14 @@ void main() {
         d.matcherFile('test_lib.B.json', isJsonMap),
         d.matcherFile('test_lib.C.json', isJsonMap),
         d.matcherFile('test_lib.json', isJsonMap),
-    ]).validate();
+    ]).validate()
+      // TODO(ajohnsen): Remove once the issue is resolved.
+      .catchError((e, s) {
+        print(e);
+        print(s);
+        print(d.describe());
+        exit(1);
+      });
 
   });
 }
