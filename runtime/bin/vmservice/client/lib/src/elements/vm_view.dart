@@ -2,19 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library isolate_list_element;
+library vm_view_element;
 
-import 'package:polymer/polymer.dart';
+import 'dart:async';
 import 'observatory_element.dart';
 import 'package:observatory/service.dart';
+import 'package:polymer/polymer.dart';
 
-/// Displays an IsolateList response.
-@CustomTag('isolate-list')
-class IsolateListElement extends ObservatoryElement {
-  IsolateListElement.created() : super.created();
-  @published IsolateList isolates;
+@CustomTag('vm-view')
+class VMViewElement extends ObservatoryElement {
+  @published VM vm;
+  @published ServiceError error;
+
+  VMViewElement.created() : super.created();
 
   void refresh(var done) {
-    isolates.reload().whenComplete(done);
+    vm.reload().whenComplete(done);
   }
 }

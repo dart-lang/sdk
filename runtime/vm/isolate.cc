@@ -860,14 +860,28 @@ void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor,
 }
 
 
-void Isolate::PrintToJSONStream(JSONStream* stream) {
+void Isolate::PrintToJSONStream(JSONStream* stream, bool ref) {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", "Isolate");
+  jsobj.AddProperty("type", (ref ? "@Isolate" : "Isolate"));
   jsobj.AddPropertyF("id", "isolates/%" Pd "",
                      static_cast<intptr_t>(main_port()));
-  jsobj.AddPropertyF("name", "%" Pd "",
+  jsobj.AddPropertyF("mainPort", "%" Pd "",
                      static_cast<intptr_t>(main_port()));
+
+  // Assign an isolate name based on the entry function.
   IsolateSpawnState* state = spawn_state();
+  if (state == NULL) {
+    jsobj.AddPropertyF("name", "root");
+  } else if (state->class_name() != NULL) {
+    jsobj.AddPropertyF("name", "%s.%s",
+                       state->class_name(),
+                       state->function_name());
+  } else {
+    jsobj.AddPropertyF("name", "%s", state->function_name());
+  }
+  if (ref) {
+    return;
+  }
   if (state != NULL) {
     const Object& entry = Object::Handle(this, state->ResolveFunction());
     if (!entry.IsNull() && entry.IsFunction()) {
@@ -899,11 +913,11 @@ void Isolate::PrintToJSONStream(JSONStream* stream) {
   bool paused_on_exit = message_handler()->paused_on_exit();
   bool pause_on_start = message_handler()->pause_on_start();
   bool pause_on_exit = message_handler()->pause_on_exit();
-  jsobj.AddProperty("live_ports", live_ports);
-  jsobj.AddProperty("control_ports", control_ports);
-  jsobj.AddProperty("paused_on_exit", paused_on_exit);
-  jsobj.AddProperty("paused_on_start", pause_on_start);
-  jsobj.AddProperty("pause_on_exit", pause_on_exit);
+  jsobj.AddProperty("livePorts", live_ports);
+  jsobj.AddProperty("controlPorts", control_ports);
+  jsobj.AddProperty("pausedOnStart", pause_on_start);
+  jsobj.AddProperty("pausedOnExit", paused_on_exit);
+  jsobj.AddProperty("pauseOnExit", pause_on_exit);
   const Library& lib =
       Library::Handle(object_store()->root_library());
   jsobj.AddProperty("rootLib", lib);

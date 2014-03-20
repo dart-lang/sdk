@@ -24,6 +24,7 @@
 #include "vm/profiler.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
+#include "vm/version.h"
 
 
 namespace dart {
@@ -634,7 +635,7 @@ void Service::HandleIsolateMessage(Isolate* isolate, const Instance& msg) {
 
 
 static bool HandleIsolate(Isolate* isolate, JSONStream* js) {
-  isolate->PrintToJSONStream(js);
+  isolate->PrintToJSONStream(js, false);
   return true;
 }
 
@@ -1351,15 +1352,6 @@ static bool HandleDebug(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleCpu(Isolate* isolate, JSONStream* js) {
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "CPU");
-  jsobj.AddProperty("targetCPU", CPU::Id());
-  jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
-  return true;
-}
-
-
 static bool HandleNullCode(uintptr_t pc, JSONStream* js) {
   // TODO(turnidge): Consider adding/using Object::null_code() for
   // consistent "type".
@@ -1468,15 +1460,22 @@ static bool HandleAllocationProfile(Isolate* isolate, JSONStream* js) {
 
 
 static bool HandleResume(Isolate* isolate, JSONStream* js) {
-  // TODO(johnmccutchan): What do I respond with??
   if (isolate->message_handler()->pause_on_start()) {
     isolate->message_handler()->set_pause_on_start(false);
+    JSONObject jsobj(js);
+    jsobj.AddProperty("type", "Success");
+    jsobj.AddProperty("id", "");
     return true;
   }
   if (isolate->message_handler()->pause_on_exit()) {
     isolate->message_handler()->set_pause_on_exit(false);
+    JSONObject jsobj(js);
+    jsobj.AddProperty("type", "Success");
+    jsobj.AddProperty("id", "");
     return true;
   }
+
+  PrintError(js, "VM was not paused");
   return true;
 }
 
@@ -1546,7 +1545,6 @@ static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "classes", HandleClasses },
   { "code", HandleCode },
   { "coverage", HandleCoverage },
-  { "cpu", HandleCpu },
   { "debug", HandleDebug },
   { "heapmap", HandleHeapMap },
   { "libraries", HandleLibraries },
@@ -1649,17 +1647,51 @@ static bool HandleRootEcho(JSONStream* js) {
 }
 
 
-static bool HandleCpu(JSONStream* js) {
+class ServiceIsolateVisitor : public IsolateVisitor {
+ public:
+  explicit ServiceIsolateVisitor(JSONArray* jsarr)
+      : jsarr_(jsarr) {
+  }
+
+  virtual ~ServiceIsolateVisitor() {}
+
+  void VisitIsolate(Isolate* isolate) {
+    if (isolate != Dart::vm_isolate() && !Service::IsServiceIsolate(isolate)) {
+      jsarr_->AddValue(isolate);
+    }
+  }
+
+ private:
+  JSONArray* jsarr_;
+};
+
+
+static bool HandleVM(JSONStream* js) {
   JSONObject jsobj(js);
-  jsobj.AddProperty("type", "CPU");
+  jsobj.AddProperty("type", "VM");
+  jsobj.AddProperty("id", "vm");
   jsobj.AddProperty("architecture", CPU::Id());
+  jsobj.AddProperty("version", Version::String());
+
+  int64_t start_time_micros = Dart::vm_isolate()->start_time();
+  int64_t uptime_micros = (OS::GetCurrentTimeMicros() - start_time_micros);
+  double seconds = (static_cast<double>(uptime_micros) /
+                    static_cast<double>(kMicrosecondsPerSecond));
+  jsobj.AddProperty("uptime", seconds);
+
+  // Construct the isolate list.
+  {
+    JSONArray jsarr(&jsobj, "isolates");
+    ServiceIsolateVisitor visitor(&jsarr);
+    Isolate::VisitIsolates(&visitor);
+  }
   return true;
 }
 
 
 static RootMessageHandlerEntry root_handlers[] = {
   { "_echo", HandleRootEcho },
-  { "cpu", HandleCpu },
+  { "vm", HandleVM },
 };
 
 

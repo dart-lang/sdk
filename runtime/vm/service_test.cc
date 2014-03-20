@@ -963,7 +963,7 @@ TEST_CASE(Service_Code) {
 }
 
 
-TEST_CASE(Service_Cpu) {
+TEST_CASE(Service_VM) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.
       "\n"
@@ -983,11 +983,15 @@ TEST_CASE(Service_Cpu) {
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   Instance& service_msg = Instance::Handle();
-  service_msg = Eval(lib, "[port, ['cpu'], [], []]");
+  service_msg = Eval(lib, "[port, ['vm'], [], []]");
 
   Service::HandleRootMessage(service_msg);
   handler.HandleNextMessage();
-  EXPECT_SUBSTRING("\"type\":\"CPU\"", handler.msg());
+  EXPECT_SUBSTRING("\"type\":\"VM\",\"id\":\"vm\"", handler.msg());
+  EXPECT_SUBSTRING("\"architecture\"", handler.msg());
+  EXPECT_SUBSTRING("\"version\"", handler.msg());
+  EXPECT_SUBSTRING("\"uptime\"", handler.msg());
+  EXPECT_SUBSTRING("\"isolates\"", handler.msg());
 }
 
 

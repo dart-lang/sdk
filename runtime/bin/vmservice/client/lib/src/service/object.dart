@@ -7,47 +7,73 @@ part of service;
 /// A [ServiceObject] is an object known to the VM service and is tied
 /// to an owning [Isolate].
 abstract class ServiceObject extends Observable {
-  Isolate _isolate;
+  /// The owner of this [ServiceObject].  This can be an [Isolate], a
+  /// [VM], or null.
+  @reflectable ServiceObject get owner => _owner;
+  ServiceObject _owner;
 
-  /// Owning isolate.
-  @reflectable Isolate get isolate => _isolate;
+  /// The [VM] which owns this [ServiceObject].
+  @reflectable VM get vm {
+    if (owner == null) {
+      assert(this is VM);
+      return this;
+    } else if (owner is VM) {
+      return owner;
+    } else {
+      assert(owner.owner is VM);
+      return owner.owner;
+    }
+  }
 
-  /// Owning vm.
-  @reflectable VM get vm => _isolate.vm;
+  /// The [Isolate] which owns this [ServiceObject].  May be null.
+  @reflectable Isolate get isolate {
+    if (owner == null) {
+      return null;
+    } else if (this is Isolate) {
+      return this;
+    } else {
+      assert(owner is Isolate);
+      return owner;
+    }
+  }
+
+  /// The id of this object.
+  @reflectable String get id => _id;
+  String _id;
+
+  /// The service type of this object.
+  @reflectable String get serviceType => _serviceType;
+  String _serviceType;
 
   /// The complete service url of this object.
   @reflectable String get link => isolate.relativeLink(_id);
 
   /// The complete service url of this object with a '#/' prefix.
-  @reflectable String get hashLink => isolate.relativeHashLink(_id);
+  @reflectable String get hashLink => '#/${link}';
   set hashLink(var o) { /* silence polymer */ }
 
-  String _id;
-  /// The id of this object.
-  @reflectable String get id => _id;
-
-  String _serviceType;
-  /// The service type of this object.
-  @reflectable String get serviceType => _serviceType;
-
+  /// Returns true if [this] has only been partially initialized via
+  /// a reference. See [load].
+  bool isRef() => _ref;
   bool _ref;
 
   @observable String name;
   @observable String vmName;
+  @observable String mainPort;
 
-  ServiceObject(this._isolate, this._id, this._serviceType) {
+  ServiceObject(this._owner, this._id, this._serviceType) {
     _ref = isRefType(_serviceType);
     _serviceType = stripRef(_serviceType);
     _created();
   }
 
-  ServiceObject.fromMap(this._isolate, ObservableMap m) {
-    assert(isServiceMap(m));
-    _id = m['id'];
-    _ref = isRefType(m['type']);
-    _serviceType = stripRef(m['type']);
+  ServiceObject.fromMap(this._owner, ObservableMap map) {
+    assert(isServiceMap(map));
+    _id = map['id'];
+    _ref = isRefType(map['type']);
+    _serviceType = stripRef(map['type']);
+    update(map);
     _created();
-    update(m);
   }
 
   /// If [this] was created from a reference, load the full object
@@ -64,13 +90,12 @@ abstract class ServiceObject extends Observable {
   /// Reload [this]. Returns a future which completes to [this] or
   /// a [ServiceError].
   Future<ServiceObject> reload() {
-    assert(isolate != null);
     if (id == '') {
       // Errors don't have ids.
       assert(serviceType == 'Error');
       return new Future.value(this);
     }
-    return isolate.vm.getAsMap(link).then(update);
+    return vm.getAsMap(link).then(update);
   }
 
   /// Update [this] using [m] as a source. [m] can be a reference.
@@ -92,15 +117,13 @@ abstract class ServiceObject extends Observable {
   // update internal state from [map]. [map] can be a reference.
   void _update(ObservableMap map);
 
-  /// Returns true if [this] has only been partially initialized via
-  /// a reference. See [load].
-  bool isRef() => _ref;
-
   void _created() {
     var refNotice = _ref ? ' Created from reference.' : '';
     Logger.root.info('Created ServiceObject for \'${_id}\' with type '
                      '\'${_serviceType}\'.' + refNotice);
   }
+
+  // ------------------------------------------------------
 
   /// Returns true if [map] is a service map. i.e. it has the following keys:
   /// 'id' and a 'type'.
@@ -125,25 +148,87 @@ abstract class ServiceObject extends Observable {
 }
 
 /// State for a VM being inspected.
-abstract class VM extends Observable {
+abstract class VM extends ServiceObject {
   @reflectable IsolateList _isolates;
   @reflectable IsolateList get isolates => _isolates;
+
+  @observable List<Isolate> allIsolates = toObservable([]);
+
+  @reflectable String get link => "$id";
+
+  @observable String version = 'unknown';
+  @observable String architecture = 'unknown';
+  @observable double uptime = 0.0;
 
   void _initOnce() {
     assert(_isolates == null);
     _isolates = new IsolateList(this);
+    name = "vm";
+    vmName = "vm";
   }
 
-  VM() {
+  VM() : super(null, "vm", "VM") {
     _initOnce();
   }
 
-  /// Get [id] as an [ObservableMap] from the service directly.
+  static final RegExp _currentIsolateMatcher = new RegExp(r'isolates/\d+');
+  static final RegExp _currentObjectMatcher = new RegExp(r'isolates/\d+(/|$)');
+
+  String _parseObjectId(String id) {
+    Match m = _currentObjectMatcher.matchAsPrefix(id);
+    if (m == null) {
+      return null;
+    }
+    return m.input.substring(m.end);
+  }
+
+  String _parseIsolateId(String id) {
+    Match m = _currentIsolateMatcher.matchAsPrefix(id);
+    if (m == null) {
+      return '';
+    }
+    return id.substring(0, m.end);
+  }
+
+  Future<ServiceObject> getDirect(String id) {
+    return vm.getAsMap(id).then((ObservableMap m) {
+        return _upgradeToServiceObject(vm, null, m);
+    });
+  }
+
+  Future<ServiceObject> get(String id) {
+    if (id.startsWith('isolates/')) {
+      String isolateId = _parseIsolateId(id);
+      if (isolateId == '') {
+        return reload();
+      } else {
+        Isolate isolate = _isolates.getIsolate(isolateId);
+        if (isolate == null) {
+          // TODO(turnidge): Isolate not found error.
+          return reload();
+        } else {
+          String objectId = _parseObjectId(id);
+          if (objectId == null) {
+            return isolate.reload();
+          } else {
+            return isolate.get(objectId);
+          }
+        }
+      }
+    } else if (id == 'vm') {
+      return reload();
+    } else {
+      return getDirect(id);
+    }
+  }
+
+  /// Gets [id] as an [ObservableMap] from the service directly.
   Future<ObservableMap> getAsMap(String id) {
     return getString(id).then((response) {
       try {
         var map = JSON.decode(response);
         Logger.root.info('Decoded $id');
+        Logger.root.info('Response $response');
         return toObservable(map);
       } catch (e, st) {
         return toObservable({
@@ -165,13 +250,27 @@ abstract class VM extends Observable {
 
   /// Get [id] as a [String] from the service directly. See [getAsMap].
   Future<String> getString(String id);
+
+  void _update(ObservableMap map) {
+    _ref = false;
+    version = map['version'];
+    architecture = map['architecture'];
+    uptime = map['uptime'];
+    _isolates.updateIsolates(map['isolates']);
+    allIsolates.clear();
+    allIsolates.addAll(_isolates.isolates.values);
+  }
 }
 
 /// State for a running isolate.
 class Isolate extends ServiceObject {
-  final VM vm;
   String get link => _id;
   String get hashLink => '#/$_id';
+
+  @observable bool pausedOnStart = false;
+  @observable bool pausedOnExit = false;
+  @observable bool running = false;
+  @observable bool idle = false;
 
   ScriptCache _scripts;
   /// Script cache.
@@ -188,19 +287,18 @@ class Isolate extends ServiceObject {
 
   void _initOnce() {
     // Only called once.
-    assert(_isolate == null);
-    _isolate = this;
+    assert(_scripts == null);
     _scripts = new ScriptCache(this);
     _codes = new CodeCache(this);
     _classes = new ClassCache(this);
     _functions = new FunctionCache(this);
   }
 
-  Isolate.fromId(this.vm, String id) : super(null, id, '@Isolate') {
+  Isolate.fromId(VM vm, String id) : super(vm, id, '@Isolate') {
     _initOnce();
   }
 
-  Isolate.fromMap(this.vm, Map map) : super.fromMap(null, map) {
+  Isolate.fromMap(VM vm, Map map) : super.fromMap(vm, map) {
     _initOnce();
   }
 
@@ -276,6 +374,11 @@ class Isolate extends ServiceObject {
 
   void _update(ObservableMap map) {
     upgradeCollection(map, vm, this);
+    mainPort = map['mainPort'];
+    name = map['name'];
+    if (ServiceObject.isRefType(map['type'])) {
+      return;
+    }
     _ref = false;
     if (map['rootLib'] == null ||
         map['timers'] == null ||
@@ -287,10 +390,6 @@ class Isolate extends ServiceObject {
     vmName = map['name'];
     if (map['entry'] != null) {
       entry = map['entry'];
-      name = entry['name'];
-    } else {
-      // fred
-      name = 'root';
     }
     if (map['topFrame'] != null) {
       topFrame = map['topFrame'];
@@ -315,6 +414,12 @@ class Isolate extends ServiceObject {
     oldHeapUsed = map['heap']['usedOld'];
     newHeapCapacity = map['heap']['capacityNew'];
     oldHeapCapacity = map['heap']['capacityOld'];
+
+    // Isolate status
+    pausedOnStart = map['pausedOnStart'];
+    pausedOnExit = map['pausedOnExit'];
+    running = map['topFrame'] != null;
+    idle = !pausedOnStart && !pausedOnExit && !running;
   }
 
   @reflectable CodeTrieNode profileTrieRoot;
@@ -364,28 +469,13 @@ class Isolate extends ServiceObject {
 }
 
 // TODO(johnmccutchan): Make this into an IsolateCache.
-class IsolateList extends ServiceObject {
+class IsolateList {
   final VM _vm;
-  VM get vm => _vm;
-  @observable final isolates = new ObservableMap<String, Isolate>();
-  IsolateList(this._vm) : super(null, 'isolates', 'IsolateList') {
-    name = 'IsolateList';
-    vmName = name;
-  }
-  IsolateList.fromMap(this._vm, Map m) : super.fromMap(null, m) {
-    name = 'IsolateList';
-    vmName = name;
-  }
+  final isolates = new ObservableMap<String, Isolate>();
 
-  Future<ServiceObject> reload() {
-    return vm.getAsMap(id).then(update);
-  }
-
-  void _update(ObservableMap map) {
-    _updateIsolates(map['members']);
-  }
-
-  void _updateIsolates(List<Map> members) {
+  IsolateList(this._vm);
+  
+  void updateIsolates(List<Map> members) {
      // Find dead isolates.
      var deadIsolates = [];
      isolates.forEach((k, v) {
@@ -404,7 +494,7 @@ class IsolateList extends ServiceObject {
        var id = map['id'];
        var isolate = isolates[id];
        if (isolate == null) {
-         isolate = new Isolate.fromMap(vm, map);
+         isolate = new Isolate.fromMap(_vm, map);
          Logger.root.info('Created ServiceObject for \'${isolate.id}\' with '
                           'type \'${isolate.serviceType}\'');
          isolates[id] = isolate;
@@ -429,7 +519,7 @@ class IsolateList extends ServiceObject {
     if (isolate != null) {
       return isolate;
     }
-    isolate = new Isolate.fromId(vm, id);
+    isolate = new Isolate.fromId(_vm, id);
     isolates[id] = isolate;
     isolate.load();
     return isolate;
@@ -444,7 +534,7 @@ class IsolateList extends ServiceObject {
       isolate.update(m);
       return isolate;
     }
-    isolate = new Isolate.fromMap(vm, m);
+    isolate = new Isolate.fromMap(_vm, m);
     isolates[id] = isolate;
     isolate.load();
     return isolate;
@@ -509,7 +599,7 @@ class ServiceMap extends ServiceObject implements ObservableMap {
 }
 
 class ServiceError extends ServiceObject {
-  ServiceError.fromMap(Isolate isolate, Map m) : super.fromMap(isolate, m);
+  ServiceError.fromMap(ServiceObject owner, Map m) : super.fromMap(owner, m);
 
   @observable String kind;
   @observable String message;

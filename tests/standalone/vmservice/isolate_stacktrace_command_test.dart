@@ -24,15 +24,15 @@ class StacktraceTest extends VmServiceRequestHelper {
   }
 }
 
-class IsolateListTest extends VmServiceRequestHelper {
-  IsolateListTest(port) : super('http://127.0.0.1:$port/isolates');
+class VMTest extends VmServiceRequestHelper {
+  VMTest(port) : super('http://127.0.0.1:$port/vm');
 
   String _isolateId;
   onRequestCompleted(Map reply) {
-    IsolateListTester tester = new IsolateListTester(reply);
+    VMTester tester = new VMTester(reply);
     tester.checkIsolateCount(2);
     // TODO(turnidge): Fragile.  Relies on isolate order in response.
-    _isolateId = tester.getIsolateId(1);
+    _isolateId = tester.getIsolateId(0);
   }
 }
 
@@ -40,7 +40,7 @@ class IsolateListTest extends VmServiceRequestHelper {
 main() {
   var process = new TestLauncher('isolate_stacktrace_command_script.dart');
   process.launch().then((port) {
-    var test = new IsolateListTest(port);
+    var test = new VMTest(port);
     test.makeRequest().then((_) {
       var stacktraceTest = new StacktraceTest(port, test._isolateId);
       stacktraceTest.makeRequest().then((_) {

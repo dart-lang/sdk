@@ -242,6 +242,12 @@ void JSONStream::PrintValue(SourceBreakpoint* bpt) {
 }
 
 
+void JSONStream::PrintValue(Isolate* isolate, bool ref) {
+  PrintCommaIfNeeded();
+  isolate->PrintToJSONStream(this, ref);
+}
+
+
 void JSONStream::PrintPropertyBool(const char* name, bool b) {
   PrintPropertyName(name);
   PrintValueBool(b);

@@ -8,11 +8,11 @@ import 'test_helper.dart';
 import 'package:expect/expect.dart';
 
 
-class IsolateListTest extends VmServiceRequestHelper {
-  IsolateListTest(port) : super('http://127.0.0.1:$port/isolates');
+class VMTest extends VmServiceRequestHelper {
+  VMTest(port) : super('http://127.0.0.1:$port/vm');
 
   onRequestCompleted(Map reply) {
-    IsolateListTester tester = new IsolateListTester(reply);
+    VMTester tester = new VMTester(reply);
     tester.checkIsolateCount(1);
   }
 }
@@ -21,7 +21,7 @@ class IsolateListTest extends VmServiceRequestHelper {
 main() {
   var process = new TestLauncher('isolate_list_script.dart');
   process.launch().then((port) {
-    var test = new IsolateListTest(port);
+    var test = new VMTest(port);
     test.makeRequest().then((_) {
       process.requestExit();
     });

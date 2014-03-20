@@ -143,7 +143,7 @@ class Isolate : public BaseIsolate {
 
   int64_t start_time() const { return start_time_; }
 
-  Dart_Port main_port() { return main_port_; }
+  Dart_Port main_port() const { return main_port_; }
   void set_main_port(Dart_Port port) {
     ASSERT(main_port_ == 0);  // Only set main port once.
     main_port_ = port;
@@ -433,7 +433,7 @@ class Isolate : public BaseIsolate {
     return profiler_data_;
   }
 
-  void PrintToJSONStream(JSONStream* stream);
+  void PrintToJSONStream(JSONStream* stream, bool ref = true);
 
   void set_thread_state(InterruptableThreadState* state) {
     ASSERT((thread_state_ == NULL) || (state == NULL));

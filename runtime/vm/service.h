@@ -40,6 +40,10 @@ class Service : public AllStatic {
       Dart_ServiceRequestCallback callback,
       void* user_data);
 
+  static bool IsServiceIsolate(Isolate* isolate) {
+    return isolate == service_isolate_;
+  }
+
  private:
   static void EmbedderHandleMessage(EmbedderServiceHandler* handler,
                                     JSONStream* js);

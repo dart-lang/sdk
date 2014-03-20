@@ -39,6 +39,7 @@
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ isolate }}" last="{{ true }}">
       </isolate-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
     <div class="content">
@@ -47,16 +48,31 @@
         <div class="memberItem">
           <div class="memberName">status</div>
           <div class="memberValue">
-            <template if="{{ isolate.topFrame == null }}">
-              <strong>idle</strong>
+            <template if="{{ isolate.pausedOnStart }}">
+              <strong style="color:darkred;">paused</strong> @ isolate start
+              <span style="padding-left:20px;">
+                [<a on-click="{{ resume }}">resume</a>]
+              </span>
             </template>
-            <template if="{{ isolate.topFrame != null }}">
+
+            <template if="{{ isolate.pausedOnExit }}">
+              <strong style="color:darkred;">paused</strong> @ isolate exit
+              <span style="padding-left:20px;">
+                [<a on-click="{{ resume }}">resume</a>]
+              </span>
+            </template>
+
+            <template if="{{ isolate.running }}">
               <strong>running</strong>
               @
               <function-ref ref="{{ isolate.topFrame['function'] }}">
               </function-ref>
               (<script-ref ref="{{ isolate.topFrame['script'] }}"
                            line="{{ isolate.topFrame['line'] }}"></script-ref>)
+            </template>
+
+            <template if="{{ isolate.idle }}">
+              <strong>idle</strong>
             </template>
           </div>
         </div>
@@ -91,7 +107,7 @@
         </div>
         <div class="memberItem">
           <div class="memberName">id</div>
-          <div class="memberValue">{{ isolate.vmName }}</div>
+          <div class="memberValue">{{ isolate.mainPort }}</div>
         </div>
         <br>
         <div class="memberItem">
@@ -140,7 +156,7 @@
       <div class="memberList">
         <div class="memberItem">
           <div class="memberValue">
-            See <a href="{{ isolate.relativeHashLink('allocationprofile') }}">heap profile</a>
+            See <a href="{{ isolate.relativeHashLink('allocationprofile') }}">allocation profile</a>
           </div>
         </div>
         <div class="memberItem">

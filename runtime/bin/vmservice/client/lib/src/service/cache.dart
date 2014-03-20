@@ -74,7 +74,7 @@ class ScriptCache extends ServiceObjectCache<Script> {
 
   bool cachesId(String id) => _matcher.hasMatch(id);
   Script _upgrade(ObservableMap obj) => new Script.fromMap(isolate, obj);
-  static final RegExp _matcher = new RegExp(r'scripts/.+');
+  static final RegExp _matcher = new RegExp(r'^scripts/.+');
 
   void _processCoverage(ServiceMap coverage) {
     assert(coverage.serviceType == 'CodeCoverage');
@@ -99,7 +99,7 @@ class CodeCache extends ServiceObjectCache<Code> {
   bool cachesId(String id) => _matcher.hasMatch(id);
   Code _upgrade(ObservableMap obj) => new Code.fromMap(isolate, obj);
 
-  static final RegExp _matcher = new RegExp(r'code/.+');
+  static final RegExp _matcher = new RegExp(r'^code/.+');
 
   List<Code> topExclusive(int count) {
     var codeList = _cache.values.toList();
@@ -144,7 +144,7 @@ class ClassCache extends ServiceObjectCache<ServiceMap> {
   ServiceMap _upgrade(ObservableMap obj) =>
       new ServiceMap.fromMap(isolate, obj);
 
-  static final RegExp _matcher = new RegExp(r'classes/\d+$');
+  static final RegExp _matcher = new RegExp(r'^classes/\d+$');
 }
 
 class FunctionCache extends ServiceObjectCache<ServiceMap> {

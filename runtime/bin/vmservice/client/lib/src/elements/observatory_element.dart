@@ -38,7 +38,7 @@ class ObservatoryElement extends PolymerElement {
     return "${prefix}${value}";
   }
 
-  String formatTime(double time) {
+  String formatTimePrecise(double time) {
     if (time == null) {
       return "-";
     }
@@ -62,6 +62,34 @@ class ObservatoryElement extends PolymerElement {
             ":${_zeroPad(seconds,2)}"
             ".${_zeroPad(millis,3)}");
 
+  }
+
+  String formatTime(double time) {
+    if (time == null) {
+      return "-";
+    }
+    const millisPerHour = 60 * 60 * 1000;
+    const millisPerMinute = 60 * 1000;
+    const millisPerSecond = 1000;
+
+    var millis = (time * millisPerSecond).round();
+
+    var hours = millis ~/ millisPerHour;
+    millis = millis % millisPerHour;
+
+    var minutes = millis ~/ millisPerMinute;
+    millis = millis % millisPerMinute;
+
+    var seconds = millis ~/ millisPerSecond;
+
+    StringBuffer out = new StringBuffer();
+    if (hours != 0) {
+      return '${hours}h ${minutes}m ${seconds}s';
+    }
+    if (minutes != 0) {
+      return '${minutes}m ${seconds}s';
+    }
+    return '${seconds}s';
   }
 
   String formatSeconds(double x) {

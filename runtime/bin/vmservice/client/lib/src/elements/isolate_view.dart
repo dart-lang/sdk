@@ -22,4 +22,13 @@ class IsolateViewElement extends ObservatoryElement {
   void refresh(var done) {
     isolate.reload().whenComplete(done);
   }
+
+  void resume(var a, var b, var c) {
+    isolate.get("resume").then((result) {
+        // TODO(turnidge): Instead of asserting here, handling errors
+        // properly.
+        assert(result.serviceType == 'Success');
+        isolate.reload();
+      });
+  }
 }
