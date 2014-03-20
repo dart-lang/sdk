@@ -3863,9 +3863,9 @@ class ImportsVerifier extends RecursiveAstVisitor<Object> {
    * @param annotations the list of annotations to visit
    */
   void _visitMetadata(NodeList<Annotation> annotations) {
-    for (Annotation annotation in annotations) {
-      Identifier name = annotation.name;
-      _visitIdentifier(name.staticElement, name.name);
+    int count = annotations.length;
+    for (int i = 0; i < count; i++) {
+      annotations[i].accept(this);
     }
   }
 }
@@ -5539,9 +5539,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         MethodElement propagatedMethod = _lookUpMethod(leftHandSide, propagatedType, methodName);
         node.propagatedElement = propagatedMethod;
         if (_shouldReportMissingMember(staticType, staticMethod)) {
-          _resolver.reportErrorProxyConditionalAnalysisError(staticType.element, StaticTypeWarningCode.UNDEFINED_METHOD, operator, [methodName, staticType.displayName]);
+          _resolver.reportProxyConditionalErrorForToken(staticType.element, StaticTypeWarningCode.UNDEFINED_METHOD, operator, [methodName, staticType.displayName]);
         } else if (_enableHints && _shouldReportMissingMember(propagatedType, propagatedMethod) && !_memberFoundInSubclass(propagatedType.element, methodName, true, false)) {
-          _resolver.reportErrorProxyConditionalAnalysisError(propagatedType.element, HintCode.UNDEFINED_METHOD, operator, [methodName, propagatedType.displayName]);
+          _resolver.reportProxyConditionalErrorForToken(propagatedType.element, HintCode.UNDEFINED_METHOD, operator, [methodName, propagatedType.displayName]);
         }
       }
     }
@@ -5562,9 +5562,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         MethodElement propagatedMethod = _lookUpMethod(leftOperand, propagatedType, methodName);
         node.propagatedElement = propagatedMethod;
         if (_shouldReportMissingMember(staticType, staticMethod)) {
-          _resolver.reportErrorProxyConditionalAnalysisError(staticType.element, StaticTypeWarningCode.UNDEFINED_OPERATOR, operator, [methodName, staticType.displayName]);
+          _resolver.reportProxyConditionalErrorForToken(staticType.element, StaticTypeWarningCode.UNDEFINED_OPERATOR, operator, [methodName, staticType.displayName]);
         } else if (_enableHints && _shouldReportMissingMember(propagatedType, propagatedMethod) && !_memberFoundInSubclass(propagatedType.element, methodName, true, false)) {
-          _resolver.reportErrorProxyConditionalAnalysisError(propagatedType.element, HintCode.UNDEFINED_OPERATOR, operator, [methodName, propagatedType.displayName]);
+          _resolver.reportProxyConditionalErrorForToken(propagatedType.element, HintCode.UNDEFINED_OPERATOR, operator, [methodName, propagatedType.displayName]);
         }
       }
     }
@@ -6059,9 +6059,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     MethodElement propagatedMethod = _lookUpMethod(operand, propagatedType, methodName);
     node.propagatedElement = propagatedMethod;
     if (_shouldReportMissingMember(staticType, staticMethod)) {
-      _resolver.reportErrorProxyConditionalAnalysisError(staticType.element, StaticTypeWarningCode.UNDEFINED_OPERATOR, node.operator, [methodName, staticType.displayName]);
+      _resolver.reportProxyConditionalErrorForToken(staticType.element, StaticTypeWarningCode.UNDEFINED_OPERATOR, node.operator, [methodName, staticType.displayName]);
     } else if (_enableHints && _shouldReportMissingMember(propagatedType, propagatedMethod) && !_memberFoundInSubclass(propagatedType.element, methodName, true, false)) {
-      _resolver.reportErrorProxyConditionalAnalysisError(propagatedType.element, HintCode.UNDEFINED_OPERATOR, node.operator, [methodName, propagatedType.displayName]);
+      _resolver.reportProxyConditionalErrorForToken(propagatedType.element, HintCode.UNDEFINED_OPERATOR, node.operator, [methodName, propagatedType.displayName]);
     }
     return null;
   }
@@ -6138,9 +6138,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       MethodElement propagatedMethod = _lookUpMethod(operand, propagatedType, methodName);
       node.propagatedElement = propagatedMethod;
       if (_shouldReportMissingMember(staticType, staticMethod)) {
-        _resolver.reportErrorProxyConditionalAnalysisError(staticType.element, StaticTypeWarningCode.UNDEFINED_OPERATOR, operator, [methodName, staticType.displayName]);
+        _resolver.reportProxyConditionalErrorForToken(staticType.element, StaticTypeWarningCode.UNDEFINED_OPERATOR, operator, [methodName, staticType.displayName]);
       } else if (_enableHints && _shouldReportMissingMember(propagatedType, propagatedMethod) && !_memberFoundInSubclass(propagatedType.element, methodName, true, false)) {
-        _resolver.reportErrorProxyConditionalAnalysisError(propagatedType.element, HintCode.UNDEFINED_OPERATOR, operator, [methodName, propagatedType.displayName]);
+        _resolver.reportProxyConditionalErrorForToken(propagatedType.element, HintCode.UNDEFINED_OPERATOR, operator, [methodName, propagatedType.displayName]);
       }
     }
     return null;
@@ -9040,11 +9040,12 @@ class LibraryElementBuilder {
   /**
    * Initialize a newly created library element builder.
    *
-   * @param resolver the resolver for which the element model is being built
+   * @param analysisContext the analysis context in which the element model will be built
+   * @param errorListener the listener to which errors will be reported
    */
-  LibraryElementBuilder(LibraryResolver resolver) {
-    this._analysisContext = resolver.analysisContext;
-    this._errorListener = resolver.errorListener;
+  LibraryElementBuilder(InternalAnalysisContext analysisContext, AnalysisErrorListener errorListener) {
+    this._analysisContext = analysisContext;
+    this._errorListener = errorListener;
   }
 
   /**
@@ -9083,14 +9084,97 @@ class LibraryElementBuilder {
         Source partSource = library.getSource(partDirective);
         if (_analysisContext.exists(partSource)) {
           hasPartDirective = true;
-          CompilationUnitElementImpl part = builder.buildCompilationUnit(partSource, library.getAST(partSource));
+          CompilationUnit partUnit = library.getAST(partSource);
+          CompilationUnitElementImpl part = builder.buildCompilationUnit(partSource, partUnit);
           part.uriOffset = partUri.offset;
           part.uriEnd = partUri.end;
           part.uri = library.getUri(partDirective);
           //
           // Validate that the part contains a part-of directive with the same name as the library.
           //
-          String partLibraryName = _getPartLibraryName(library, partSource, directivesToResolve);
+          String partLibraryName = _getPartLibraryName(partSource, partUnit, directivesToResolve);
+          if (partLibraryName == null) {
+            _errorListener.onError(new AnalysisError.con2(librarySource, partUri.offset, partUri.length, CompileTimeErrorCode.PART_OF_NON_PART, [partUri.toSource()]));
+          } else if (libraryNameNode == null) {
+          } else if (libraryNameNode.name != partLibraryName) {
+            _errorListener.onError(new AnalysisError.con2(librarySource, partUri.offset, partUri.length, StaticWarningCode.PART_OF_DIFFERENT_LIBRARY, [libraryNameNode.name, partLibraryName]));
+          }
+          if (entryPoint == null) {
+            entryPoint = _findEntryPoint(part);
+          }
+          directive.element = part;
+          sourcedCompilationUnits.add(part);
+        }
+      }
+    }
+    if (hasPartDirective && libraryNameNode == null) {
+      _errorListener.onError(new AnalysisError.con1(librarySource, ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART, []));
+    }
+    //
+    // Create and populate the library element.
+    //
+    LibraryElementImpl libraryElement = new LibraryElementImpl(_analysisContext, libraryNameNode);
+    libraryElement.definingCompilationUnit = definingCompilationUnitElement;
+    if (entryPoint != null) {
+      libraryElement.entryPoint = entryPoint;
+    }
+    int sourcedUnitCount = sourcedCompilationUnits.length;
+    libraryElement.parts = new List.from(sourcedCompilationUnits);
+    for (Directive directive in directivesToResolve) {
+      directive.element = libraryElement;
+    }
+    library.libraryElement = libraryElement;
+    if (sourcedUnitCount > 0) {
+      _patchTopLevelAccessors(libraryElement);
+    }
+    return libraryElement;
+  }
+
+  /**
+   * Build the library element for the given library.
+   *
+   * @param library the library for which an element model is to be built
+   * @return the library element that was built
+   * @throws AnalysisException if the analysis could not be performed
+   */
+  LibraryElementImpl buildLibrary2(ResolvableLibrary library) {
+    CompilationUnitBuilder builder = new CompilationUnitBuilder();
+    Source librarySource = library.librarySource;
+    CompilationUnit definingCompilationUnit = library.definingCompilationUnit;
+    CompilationUnitElementImpl definingCompilationUnitElement = builder.buildCompilationUnit(librarySource, definingCompilationUnit);
+    NodeList<Directive> directives = definingCompilationUnit.directives;
+    LibraryIdentifier libraryNameNode = null;
+    bool hasPartDirective = false;
+    FunctionElement entryPoint = _findEntryPoint(definingCompilationUnitElement);
+    List<Directive> directivesToResolve = new List<Directive>();
+    List<CompilationUnitElementImpl> sourcedCompilationUnits = new List<CompilationUnitElementImpl>();
+    for (Directive directive in directives) {
+      //
+      // We do not build the elements representing the import and export directives at this point.
+      // That is not done until we get to LibraryResolver.buildDirectiveModels() because we need the
+      // LibraryElements for the referenced libraries, which might not exist at this point (due to
+      // the possibility of circular references).
+      //
+      if (directive is LibraryDirective) {
+        if (libraryNameNode == null) {
+          libraryNameNode = directive.name;
+          directivesToResolve.add(directive);
+        }
+      } else if (directive is PartDirective) {
+        PartDirective partDirective = directive;
+        StringLiteral partUri = partDirective.uri;
+        Source partSource = partDirective.source;
+        if (_analysisContext.exists(partSource)) {
+          hasPartDirective = true;
+          CompilationUnit partUnit = library.getAST(partSource);
+          CompilationUnitElementImpl part = builder.buildCompilationUnit(partSource, partUnit);
+          part.uriOffset = partUri.offset;
+          part.uriEnd = partUri.end;
+          part.uri = partDirective.uriContent;
+          //
+          // Validate that the part contains a part-of directive with the same name as the library.
+          //
+          String partLibraryName = _getPartLibraryName(partSource, partUnit, directivesToResolve);
           if (partLibraryName == null) {
             _errorListener.onError(new AnalysisError.con2(librarySource, partUri.offset, partUri.length, CompileTimeErrorCode.PART_OF_NON_PART, [partUri.toSource()]));
           } else if (libraryNameNode == null) {
@@ -9170,25 +9254,21 @@ class LibraryElementBuilder {
    * Return the name of the library that the given part is declared to be a part of, or `null`
    * if the part does not contain a part-of directive.
    *
-   * @param library the library containing the part
    * @param partSource the source representing the part
+   * @param partUnit the AST structure of the part
    * @param directivesToResolve a list of directives that should be resolved to the library being
    *          built
    * @return the name of the library that the given part is declared to be a part of
    */
-  String _getPartLibraryName(Library library, Source partSource, List<Directive> directivesToResolve) {
-    try {
-      CompilationUnit partUnit = library.getAST(partSource);
-      for (Directive directive in partUnit.directives) {
-        if (directive is PartOfDirective) {
-          directivesToResolve.add(directive);
-          LibraryIdentifier libraryName = directive.libraryName;
-          if (libraryName != null) {
-            return libraryName.name;
-          }
+  String _getPartLibraryName(Source partSource, CompilationUnit partUnit, List<Directive> directivesToResolve) {
+    for (Directive directive in partUnit.directives) {
+      if (directive is PartOfDirective) {
+        directivesToResolve.add(directive);
+        LibraryIdentifier libraryName = directive.libraryName;
+        if (libraryName != null) {
+          return libraryName.name;
         }
       }
-    } on AnalysisException catch (exception) {
     }
     return null;
   }
@@ -9652,7 +9732,7 @@ class LibraryResolver {
    */
   void _buildElementModels() {
     for (Library library in _librariesInCycles) {
-      LibraryElementBuilder builder = new LibraryElementBuilder(this);
+      LibraryElementBuilder builder = new LibraryElementBuilder(analysisContext, errorListener);
       LibraryElementImpl libraryElement = builder.buildLibrary(library);
       library.libraryElement = libraryElement;
     }
@@ -9949,6 +10029,413 @@ class LibraryResolver {
 }
 
 /**
+ * Instances of the class `LibraryResolver` are used to resolve one or more mutually dependent
+ * libraries within a single context.
+ */
+class LibraryResolver2 {
+  /**
+   * The analysis context in which the libraries are being analyzed.
+   */
+  InternalAnalysisContext analysisContext;
+
+  /**
+   * The listener to which analysis errors will be reported, this error listener is either
+   * references [recordingErrorListener], or it unions the passed
+   * [AnalysisErrorListener] with the [recordingErrorListener].
+   */
+  RecordingErrorListener _errorListener;
+
+  /**
+   * A source object representing the core library (dart:core).
+   */
+  Source _coreLibrarySource;
+
+  /**
+   * The object representing the core library.
+   */
+  ResolvableLibrary _coreLibrary;
+
+  /**
+   * The object used to access the types from the core library.
+   */
+  TypeProvider _typeProvider;
+
+  /**
+   * A table mapping library sources to the information being maintained for those libraries.
+   */
+  Map<Source, ResolvableLibrary> _libraryMap = new Map<Source, ResolvableLibrary>();
+
+  /**
+   * A collection containing the libraries that are being resolved together.
+   */
+  List<ResolvableLibrary> _librariesInCycle;
+
+  /**
+   * Initialize a newly created library resolver to resolve libraries within the given context.
+   *
+   * @param analysisContext the analysis context in which the library is being analyzed
+   */
+  LibraryResolver2(InternalAnalysisContext analysisContext) {
+    this.analysisContext = analysisContext;
+    this._errorListener = new RecordingErrorListener();
+    _coreLibrarySource = analysisContext.sourceFactory.forUri(DartSdk.DART_CORE);
+  }
+
+  /**
+   * Return the listener to which analysis errors will be reported.
+   *
+   * @return the listener to which analysis errors will be reported
+   */
+  RecordingErrorListener get errorListener => _errorListener;
+
+  /**
+   * Return an array containing information about all of the libraries that were resolved.
+   *
+   * @return an array containing the libraries that were resolved
+   */
+  List<ResolvableLibrary> get resolvedLibraries => _librariesInCycle;
+
+  /**
+   * Resolve the library specified by the given source in the given context.
+   *
+   * Note that because Dart allows circular imports between libraries, it is possible that more than
+   * one library will need to be resolved. In such cases the error listener can receive errors from
+   * multiple libraries.
+   *
+   * @param librarySource the source specifying the defining compilation unit of the library to be
+   *          resolved
+   * @param fullAnalysis `true` if a full analysis should be performed
+   * @return the element representing the resolved library
+   * @throws AnalysisException if the library could not be resolved for some reason
+   */
+  LibraryElement resolveLibrary(Source librarySource, List<ResolvableLibrary> librariesInCycle) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder2("dart.engine.LibraryResolver.resolveLibrary");
+    try {
+      instrumentation.data3("fullName", librarySource.fullName);
+      //
+      // Build the map of libraries that are known.
+      //
+      this._librariesInCycle = librariesInCycle;
+      _libraryMap = _buildLibraryMap();
+      ResolvableLibrary targetLibrary = _libraryMap[librarySource];
+      _coreLibrary = _libraryMap[_coreLibrarySource];
+      instrumentation.metric3("buildLibraryMap", "complete");
+      //
+      // Build the element models representing the libraries being resolved. This is done in three
+      // steps:
+      //
+      // 1. Build the basic element models without making any connections between elements other than
+      //    the basic parent/child relationships. This includes building the elements representing the
+      //    libraries.
+      // 2. Build the elements for the import and export directives. This requires that we have the
+      //    elements built for the referenced libraries, but because of the possibility of circular
+      //    references needs to happen after all of the library elements have been created.
+      // 3. Build the rest of the type model by connecting superclasses, mixins, and interfaces. This
+      //    requires that we be able to compute the names visible in the libraries being resolved,
+      //    which in turn requires that we have resolved the import directives.
+      //
+      _buildElementModels();
+      instrumentation.metric3("buildElementModels", "complete");
+      LibraryElement coreElement = _coreLibrary.libraryElement;
+      if (coreElement == null) {
+        throw new AnalysisException.con1("Could not resolve dart:core");
+      }
+      _buildDirectiveModels();
+      instrumentation.metric3("buildDirectiveModels", "complete");
+      _typeProvider = new TypeProviderImpl(coreElement);
+      _buildTypeHierarchies();
+      instrumentation.metric3("buildTypeHierarchies", "complete");
+      //
+      // Perform resolution and type analysis.
+      //
+      // TODO(brianwilkerson) Decide whether we want to resolve all of the libraries or whether we
+      // want to only resolve the target library. The advantage to resolving everything is that we
+      // have already done part of the work so we'll avoid duplicated effort. The disadvantage of
+      // resolving everything is that we might do extra work that we don't really care about. Another
+      // possibility is to add a parameter to this method and punt the decision to the clients.
+      //
+      //if (analyzeAll) {
+      _resolveReferencesAndTypes();
+      instrumentation.metric3("resolveReferencesAndTypes", "complete");
+      //} else {
+      //  resolveReferencesAndTypes(targetLibrary);
+      //}
+      _performConstantEvaluation();
+      instrumentation.metric3("performConstantEvaluation", "complete");
+      instrumentation.metric2("librariesInCycles", librariesInCycle.length);
+      for (ResolvableLibrary lib in librariesInCycle) {
+        instrumentation.metric2("librariesInCycles-CompilationUnitSources-Size", lib.compilationUnitSources.length);
+      }
+      return targetLibrary.libraryElement;
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  /**
+   * Build the element model representing the combinators declared by the given directive.
+   *
+   * @param directive the directive that declares the combinators
+   * @return an array containing the import combinators that were built
+   */
+  List<NamespaceCombinator> _buildCombinators(NamespaceDirective directive) {
+    List<NamespaceCombinator> combinators = new List<NamespaceCombinator>();
+    for (Combinator combinator in directive.combinators) {
+      if (combinator is HideCombinator) {
+        HideElementCombinatorImpl hide = new HideElementCombinatorImpl();
+        hide.hiddenNames = _getIdentifiers(combinator.hiddenNames);
+        combinators.add(hide);
+      } else {
+        ShowElementCombinatorImpl show = new ShowElementCombinatorImpl();
+        show.offset = combinator.offset;
+        show.end = combinator.end;
+        show.shownNames = _getIdentifiers((combinator as ShowCombinator).shownNames);
+        combinators.add(show);
+      }
+    }
+    return new List.from(combinators);
+  }
+
+  /**
+   * Every library now has a corresponding [LibraryElement], so it is now possible to resolve
+   * the import and export directives.
+   *
+   * @throws AnalysisException if the defining compilation unit for any of the libraries could not
+   *           be accessed
+   */
+  void _buildDirectiveModels() {
+    for (ResolvableLibrary library in _librariesInCycle) {
+      Map<String, PrefixElementImpl> nameToPrefixMap = new Map<String, PrefixElementImpl>();
+      List<ImportElement> imports = new List<ImportElement>();
+      List<ExportElement> exports = new List<ExportElement>();
+      for (Directive directive in library.definingCompilationUnit.directives) {
+        if (directive is ImportDirective) {
+          ImportDirective importDirective = directive;
+          Source importedSource = importDirective.source;
+          if (importedSource != null && analysisContext.exists(importedSource)) {
+            // The imported source will be null if the URI in the import directive was invalid.
+            ResolvableLibrary importedLibrary = _libraryMap[importedSource];
+            if (importedLibrary != null) {
+              ImportElementImpl importElement = new ImportElementImpl(directive.offset);
+              StringLiteral uriLiteral = importDirective.uri;
+              if (uriLiteral != null) {
+                importElement.uriOffset = uriLiteral.offset;
+                importElement.uriEnd = uriLiteral.end;
+              }
+              importElement.uri = importDirective.uriContent;
+              importElement.combinators = _buildCombinators(importDirective);
+              LibraryElement importedLibraryElement = importedLibrary.libraryElement;
+              if (importedLibraryElement != null) {
+                importElement.importedLibrary = importedLibraryElement;
+              }
+              SimpleIdentifier prefixNode = directive.prefix;
+              if (prefixNode != null) {
+                importElement.prefixOffset = prefixNode.offset;
+                String prefixName = prefixNode.name;
+                PrefixElementImpl prefix = nameToPrefixMap[prefixName];
+                if (prefix == null) {
+                  prefix = new PrefixElementImpl(prefixNode);
+                  nameToPrefixMap[prefixName] = prefix;
+                }
+                importElement.prefix = prefix;
+                prefixNode.staticElement = prefix;
+              }
+              directive.element = importElement;
+              imports.add(importElement);
+              if (analysisContext.computeKindOf(importedSource) != SourceKind.LIBRARY) {
+                _errorListener.onError(new AnalysisError.con2(library.librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
+              }
+            }
+          }
+        } else if (directive is ExportDirective) {
+          ExportDirective exportDirective = directive;
+          Source exportedSource = exportDirective.source;
+          if (exportedSource != null && analysisContext.exists(exportedSource)) {
+            // The exported source will be null if the URI in the export directive was invalid.
+            ResolvableLibrary exportedLibrary = _libraryMap[exportedSource];
+            if (exportedLibrary != null) {
+              ExportElementImpl exportElement = new ExportElementImpl();
+              StringLiteral uriLiteral = exportDirective.uri;
+              if (uriLiteral != null) {
+                exportElement.uriOffset = uriLiteral.offset;
+                exportElement.uriEnd = uriLiteral.end;
+              }
+              exportElement.uri = exportDirective.uriContent;
+              exportElement.combinators = _buildCombinators(exportDirective);
+              LibraryElement exportedLibraryElement = exportedLibrary.libraryElement;
+              if (exportedLibraryElement != null) {
+                exportElement.exportedLibrary = exportedLibraryElement;
+              }
+              directive.element = exportElement;
+              exports.add(exportElement);
+              if (analysisContext.computeKindOf(exportedSource) != SourceKind.LIBRARY) {
+                _errorListener.onError(new AnalysisError.con2(library.librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
+              }
+            }
+          }
+        }
+      }
+      Source librarySource = library.librarySource;
+      if (!library.explicitlyImportsCore && _coreLibrarySource != librarySource) {
+        ImportElementImpl importElement = new ImportElementImpl(-1);
+        importElement.importedLibrary = _coreLibrary.libraryElement;
+        importElement.synthetic = true;
+        imports.add(importElement);
+      }
+      LibraryElementImpl libraryElement = library.libraryElement;
+      libraryElement.imports = new List.from(imports);
+      libraryElement.exports = new List.from(exports);
+      if (libraryElement.entryPoint == null) {
+        Namespace namespace = new NamespaceBuilder().createExportNamespaceForLibrary(libraryElement);
+        Element element = namespace.get(LibraryElementBuilder.ENTRY_POINT_NAME);
+        if (element is FunctionElement) {
+          libraryElement.entryPoint = element;
+        }
+      }
+    }
+  }
+
+  /**
+   * Build element models for all of the libraries in the current cycle.
+   *
+   * @throws AnalysisException if any of the element models cannot be built
+   */
+  void _buildElementModels() {
+    for (ResolvableLibrary library in _librariesInCycle) {
+      LibraryElementBuilder builder = new LibraryElementBuilder(analysisContext, errorListener);
+      LibraryElementImpl libraryElement = builder.buildLibrary2(library);
+      library.libraryElement = libraryElement;
+    }
+  }
+
+  Map<Source, ResolvableLibrary> _buildLibraryMap() {
+    Map<Source, ResolvableLibrary> libraryMap = new Map<Source, ResolvableLibrary>();
+    int libraryCount = _librariesInCycle.length;
+    for (int i = 0; i < libraryCount; i++) {
+      ResolvableLibrary library = _librariesInCycle[i];
+      library.errorListener = _errorListener;
+      libraryMap[library.librarySource] = library;
+      List<ResolvableLibrary> dependencies = library.importsAndExports;
+      int dependencyCount = dependencies.length;
+      for (int j = 0; j < dependencyCount; j++) {
+        ResolvableLibrary dependency = dependencies[j];
+        //dependency.setErrorListener(errorListener);
+        libraryMap[dependency.librarySource] = dependency;
+      }
+    }
+    return libraryMap;
+  }
+
+  /**
+   * Resolve the type hierarchy across all of the types declared in the libraries in the current
+   * cycle.
+   *
+   * @throws AnalysisException if any of the type hierarchies could not be resolved
+   */
+  void _buildTypeHierarchies() {
+    TimeCounter_TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
+    try {
+      for (ResolvableLibrary library in _librariesInCycle) {
+        for (ResolvableCompilationUnit unit in library.resolvableCompilationUnits) {
+          Source source = unit.source;
+          CompilationUnit ast = unit.compilationUnit;
+          TypeResolverVisitor visitor = new TypeResolverVisitor.con4(library, source, _typeProvider);
+          ast.accept(visitor);
+        }
+      }
+    } finally {
+      timeCounter.stop();
+    }
+  }
+
+  /**
+   * Return an array containing the lexical identifiers associated with the nodes in the given list.
+   *
+   * @param names the AST nodes representing the identifiers
+   * @return the lexical identifiers associated with the nodes in the list
+   */
+  List<String> _getIdentifiers(NodeList<SimpleIdentifier> names) {
+    int count = names.length;
+    List<String> identifiers = new List<String>(count);
+    for (int i = 0; i < count; i++) {
+      identifiers[i] = names[i].name;
+    }
+    return identifiers;
+  }
+
+  /**
+   * Compute a value for all of the constants in the libraries being analyzed.
+   */
+  void _performConstantEvaluation() {
+    TimeCounter_TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
+    try {
+      ConstantValueComputer computer = new ConstantValueComputer(_typeProvider);
+      for (ResolvableLibrary library in _librariesInCycle) {
+        for (ResolvableCompilationUnit unit in library.resolvableCompilationUnits) {
+          CompilationUnit ast = unit.compilationUnit;
+          if (ast != null) {
+            computer.add(ast);
+          }
+        }
+      }
+      computer.computeValues();
+    } finally {
+      timeCounter.stop();
+    }
+  }
+
+  /**
+   * Resolve the identifiers and perform type analysis in the libraries in the current cycle.
+   *
+   * @throws AnalysisException if any of the identifiers could not be resolved or if any of the
+   *           libraries could not have their types analyzed
+   */
+  void _resolveReferencesAndTypes() {
+    for (ResolvableLibrary library in _librariesInCycle) {
+      _resolveReferencesAndTypesInLibrary(library);
+    }
+  }
+
+  /**
+   * Resolve the identifiers and perform type analysis in the given library.
+   *
+   * @param library the library to be resolved
+   * @throws AnalysisException if any of the identifiers could not be resolved or if the types in
+   *           the library cannot be analyzed
+   */
+  void _resolveReferencesAndTypesInLibrary(ResolvableLibrary library) {
+    TimeCounter_TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
+    try {
+      for (ResolvableCompilationUnit unit in library.resolvableCompilationUnits) {
+        Source source = unit.source;
+        CompilationUnit ast = unit.compilationUnit;
+        ast.accept(new VariableResolverVisitor.con3(library, source, _typeProvider));
+        ResolverVisitor visitor = new ResolverVisitor.con4(library, source, _typeProvider);
+        ast.accept(visitor);
+        for (ProxyConditionalAnalysisError conditionalCode in visitor.proxyConditionalAnalysisErrors) {
+          if (conditionalCode.shouldIncludeErrorCode()) {
+            visitor.reportError(conditionalCode.analysisError);
+          }
+        }
+      }
+    } finally {
+      timeCounter.stop();
+    }
+    // Angular
+    timeCounter = PerformanceStatistics.angular.start();
+    try {
+      for (ResolvableCompilationUnit unit in library.resolvableCompilationUnits) {
+        Source source = unit.source;
+        CompilationUnit ast = unit.compilationUnit;
+        new AngularCompilationUnitBuilder(_errorListener, source, ast).build();
+      }
+    } finally {
+      timeCounter.stop();
+    }
+  }
+}
+
+/**
  * This class is used to replace uses of `HashMap<String, ExecutableElement>` which are not as
  * performant as this class.
  */
@@ -10158,6 +10645,272 @@ class ProxyConditionalAnalysisError {
 }
 
 /**
+ * Instances of the class `Library` represent the data about a single library during the
+ * resolution of some (possibly different) library. They are not intended to be used except during
+ * the resolution process.
+ */
+class ResolvableLibrary {
+  /**
+   * The source specifying the defining compilation unit of this library.
+   */
+  Source librarySource;
+
+  /**
+   * A list containing all of the libraries that are imported into this library.
+   */
+  List<ResolvableLibrary> _importedLibraries = _EMPTY_ARRAY;
+
+  /**
+   * A flag indicating whether this library explicitly imports core.
+   */
+  bool explicitlyImportsCore = false;
+
+  /**
+   * An array containing all of the libraries that are exported from this library.
+   */
+  List<ResolvableLibrary> _exportedLibraries = _EMPTY_ARRAY;
+
+  /**
+   * An array containing the compilation units that comprise this library. The defining compilation
+   * unit is always first.
+   */
+  List<ResolvableCompilationUnit> _compilationUnits;
+
+  /**
+   * The library element representing this library.
+   */
+  LibraryElementImpl _libraryElement;
+
+  /**
+   * The listener to which analysis errors will be reported.
+   */
+  AnalysisErrorListener _errorListener;
+
+  /**
+   * The inheritance manager which is used for member lookups in this library.
+   */
+  InheritanceManager _inheritanceManager;
+
+  /**
+   * An empty array that can be used to initialize lists of libraries.
+   */
+  static List<ResolvableLibrary> _EMPTY_ARRAY = new List<ResolvableLibrary>(0);
+
+  /**
+   * The library scope used when resolving elements within this library's compilation units.
+   */
+  LibraryScope _libraryScope;
+
+  /**
+   * Initialize a newly created data holder that can maintain the data associated with a library.
+   *
+   * @param librarySource the source specifying the defining compilation unit of this library
+   * @param errorListener the listener to which analysis errors will be reported
+   */
+  ResolvableLibrary(Source librarySource) {
+    this.librarySource = librarySource;
+  }
+
+  /**
+   * Return the AST structure associated with the given source, or `null` if the source does
+   * not represent a compilation unit that is included in this library.
+   *
+   * @param source the source representing the compilation unit whose AST is to be returned
+   * @return the AST structure associated with the given source
+   * @throws AnalysisException if an AST structure could not be created for the compilation unit
+   */
+  CompilationUnit getAST(Source source) {
+    int count = _compilationUnits.length;
+    for (int i = 0; i < count; i++) {
+      if (_compilationUnits[i].source == source) {
+        return _compilationUnits[i].compilationUnit;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Return an array of the [CompilationUnit]s that make up the library. The first unit is
+   * always the defining unit.
+   *
+   * @return an array of the [CompilationUnit]s that make up the library. The first unit is
+   *         always the defining unit
+   */
+  List<CompilationUnit> get compilationUnits {
+    int count = _compilationUnits.length;
+    List<CompilationUnit> units = new List<CompilationUnit>(count);
+    for (int i = 0; i < count; i++) {
+      units[i] = _compilationUnits[i].compilationUnit;
+    }
+    return units;
+  }
+
+  /**
+   * Return an array containing the sources for the compilation units in this library, including the
+   * defining compilation unit.
+   *
+   * @return the sources for the compilation units in this library
+   */
+  List<Source> get compilationUnitSources {
+    int count = _compilationUnits.length;
+    List<Source> sources = new List<Source>(count);
+    for (int i = 0; i < count; i++) {
+      sources[i] = _compilationUnits[i].source;
+    }
+    return sources;
+  }
+
+  /**
+   * Return the AST structure associated with the defining compilation unit for this library.
+   *
+   * @return the AST structure associated with the defining compilation unit for this library
+   * @throws AnalysisException if an AST structure could not be created for the defining compilation
+   *           unit
+   */
+  CompilationUnit get definingCompilationUnit => _compilationUnits[0].compilationUnit;
+
+  /**
+   * Return an array containing the libraries that are exported from this library.
+   *
+   * @return an array containing the libraries that are exported from this library
+   */
+  List<ResolvableLibrary> get exports => _exportedLibraries;
+
+  /**
+   * Return an array containing the libraries that are imported into this library.
+   *
+   * @return an array containing the libraries that are imported into this library
+   */
+  List<ResolvableLibrary> get imports => _importedLibraries;
+
+  /**
+   * Return an array containing the libraries that are either imported or exported from this
+   * library.
+   *
+   * @return the libraries that are either imported or exported from this library
+   */
+  List<ResolvableLibrary> get importsAndExports {
+    Set<ResolvableLibrary> libraries = new Set<ResolvableLibrary>();
+    for (ResolvableLibrary library in _importedLibraries) {
+      libraries.add(library);
+    }
+    for (ResolvableLibrary library in _exportedLibraries) {
+      libraries.add(library);
+    }
+    return new List.from(libraries);
+  }
+
+  /**
+   * Return the inheritance manager for this library.
+   *
+   * @return the inheritance manager for this library
+   */
+  InheritanceManager get inheritanceManager {
+    if (_inheritanceManager == null) {
+      return _inheritanceManager = new InheritanceManager(_libraryElement);
+    }
+    return _inheritanceManager;
+  }
+
+  /**
+   * Return the library element representing this library, creating it if necessary.
+   *
+   * @return the library element representing this library
+   */
+  LibraryElementImpl get libraryElement => _libraryElement;
+
+  /**
+   * Return the library scope used when resolving elements within this library's compilation units.
+   *
+   * @return the library scope used when resolving elements within this library's compilation units
+   */
+  LibraryScope get libraryScope {
+    if (_libraryScope == null) {
+      _libraryScope = new LibraryScope(_libraryElement, _errorListener);
+    }
+    return _libraryScope;
+  }
+
+  /**
+   * Return the modification time associated with the given source.
+   *
+   * @param source the source representing the compilation unit whose modification time is to be
+   *          returned
+   * @return the modification time associated with the given source
+   * @throws AnalysisException if an AST structure could not be created for the compilation unit
+   */
+  int getModificationTime(Source source) {
+    int count = _compilationUnits.length;
+    for (int i = 0; i < count; i++) {
+      if (source == _compilationUnits[i].source) {
+        return _compilationUnits[i].modificationTime;
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Return an array containing the compilation units that comprise this library. The defining
+   * compilation unit is always first.
+   *
+   * @return the compilation units that comprise this library
+   */
+  List<ResolvableCompilationUnit> get resolvableCompilationUnits => _compilationUnits;
+
+  /**
+   * Set the compilation unit in this library to the given compilation units. The defining
+   * compilation unit must be the first element of the array.
+   *
+   * @param units the compilation units in this library
+   */
+  void set resolvableCompilationUnits(List<ResolvableCompilationUnit> units) {
+    _compilationUnits = units;
+  }
+
+  /**
+   * Set the listener to which analysis errors will be reported to be the given listener.
+   *
+   * @param errorListener the listener to which analysis errors will be reported
+   */
+  void set errorListener(AnalysisErrorListener errorListener) {
+    this._errorListener = errorListener;
+  }
+
+  /**
+   * Set the libraries that are exported by this library to be those in the given array.
+   *
+   * @param exportedLibraries the libraries that are exported by this library
+   */
+  void set exportedLibraries(List<ResolvableLibrary> exportedLibraries) {
+    this._exportedLibraries = exportedLibraries;
+  }
+
+  /**
+   * Set the libraries that are imported into this library to be those in the given array.
+   *
+   * @param importedLibraries the libraries that are imported into this library
+   */
+  void set importedLibraries(List<ResolvableLibrary> importedLibraries) {
+    this._importedLibraries = importedLibraries;
+  }
+
+  /**
+   * Set the library element representing this library to the given library element.
+   *
+   * @param libraryElement the library element representing this library
+   */
+  void set libraryElement(LibraryElementImpl libraryElement) {
+    this._libraryElement = libraryElement;
+    if (_inheritanceManager != null) {
+      _inheritanceManager.libraryElement = libraryElement;
+    }
+  }
+
+  @override
+  String toString() => librarySource.shortName;
+}
+
+/**
  * Instances of the class `ResolverVisitor` are used to resolve the nodes within a single
  * compilation unit.
  */
@@ -10251,6 +11004,19 @@ class ResolverVisitor extends ScopedVisitor {
    */
   ResolverVisitor.con3(LibraryElement definingLibrary, Source source, TypeProvider typeProvider, Scope nameScope, AnalysisErrorListener errorListener) : super.con3(definingLibrary, source, typeProvider, nameScope, errorListener) {
     this._inheritanceManager = new InheritanceManager(definingLibrary);
+    this._elementResolver = new ElementResolver(this);
+    this._typeAnalyzer = new StaticTypeAnalyzer(this);
+  }
+
+  /**
+   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
+   *
+   * @param library the library containing the compilation unit being resolved
+   * @param source the source representing the compilation unit being visited
+   * @param typeProvider the object used to access the types from the core library
+   */
+  ResolverVisitor.con4(ResolvableLibrary library, Source source, TypeProvider typeProvider) : super.con4(library, source, typeProvider) {
+    this._inheritanceManager = library.inheritanceManager;
     this._elementResolver = new ElementResolver(this);
     this._typeAnalyzer = new StaticTypeAnalyzer(this);
   }
@@ -10992,7 +11758,7 @@ class ResolverVisitor extends ScopedVisitor {
    * @param token the token specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportErrorProxyConditionalAnalysisError(Element enclosingElement, ErrorCode errorCode, sc.Token token, List<Object> arguments) {
+  void reportProxyConditionalErrorForToken(Element enclosingElement, ErrorCode errorCode, sc.Token token, List<Object> arguments) {
     _proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(enclosingElement, new AnalysisError.con2(source, token.offset, token.length, errorCode, arguments)));
   }
 
@@ -11147,6 +11913,11 @@ class ResolverVisitor extends ScopedVisitor {
       return;
     }
     FunctionType expectedClosureType = mayByFunctionType as FunctionType;
+    // If the expectedClosureType is not more specific than the static type, return.
+    DartType staticClosureType = (closure.element != null ? closure.element.type : null) as DartType;
+    if (staticClosureType != null && !expectedClosureType.isMoreSpecificThan(staticClosureType)) {
+      return;
+    }
     // set propagated type for the closure
     closure.propagatedType = expectedClosureType;
     // set inferred types for parameters
@@ -11553,6 +12324,22 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   }
 
   /**
+   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
+   *
+   * @param library the library containing the compilation unit being resolved
+   * @param source the source representing the compilation unit being visited
+   * @param typeProvider the object used to access the types from the core library
+   */
+  ScopedVisitor.con4(ResolvableLibrary library, Source source, TypeProvider typeProvider) {
+    this._definingLibrary = library.libraryElement;
+    this.source = source;
+    LibraryScope libraryScope = library.libraryScope;
+    this._errorListener = libraryScope.errorListener;
+    this._nameScope = libraryScope;
+    this.typeProvider = typeProvider;
+  }
+
+  /**
    * Return the library element for the library containing the compilation unit being resolved.
    *
    * @return the library element for the library containing the compilation unit being resolved
@@ -11627,9 +12414,14 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
+    ClassElement classElement = node.element;
     Scope outerScope = _nameScope;
     try {
-      _nameScope = new ClassScope(_nameScope, node.element);
+      if (classElement == null) {
+        AnalysisEngine.instance.logger.logInformation2("Missing element for constructor ${node.name.name} in ${definingLibrary.source.fullName}", new JavaException());
+      } else {
+        _nameScope = new ClassScope(_nameScope, classElement);
+      }
       visitClassDeclarationInScope(node);
     } finally {
       _nameScope = outerScope;
@@ -11651,9 +12443,23 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
 
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
+    ConstructorElement constructorElement = node.element;
     Scope outerScope = _nameScope;
     try {
-      _nameScope = new FunctionScope(_nameScope, node.element);
+      if (constructorElement == null) {
+        JavaStringBuilder builder = new JavaStringBuilder();
+        builder.append("Missing element for constructor ");
+        builder.append(node.returnType.name);
+        if (node.name != null) {
+          builder.append(".");
+          builder.append(node.name.name);
+        }
+        builder.append(" in ");
+        builder.append(definingLibrary.source.fullName);
+        AnalysisEngine.instance.logger.logInformation2(builder.toString(), new JavaException());
+      } else {
+        _nameScope = new FunctionScope(_nameScope, constructorElement);
+      }
       super.visitConstructorDeclaration(node);
     } finally {
       _nameScope = outerScope;
@@ -11729,16 +12535,20 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
 
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
-    ExecutableElement function = node.element;
+    ExecutableElement functionElement = node.element;
     Scope outerScope = _nameScope;
     try {
-      _nameScope = new FunctionScope(_nameScope, function);
+      if (functionElement == null) {
+        AnalysisEngine.instance.logger.logInformation2("Missing element for top-level function ${node.name.name} in ${definingLibrary.source.fullName}", new JavaException());
+      } else {
+        _nameScope = new FunctionScope(_nameScope, functionElement);
+      }
       super.visitFunctionDeclaration(node);
     } finally {
       _nameScope = outerScope;
     }
-    if (function.enclosingElement is! CompilationUnitElement) {
-      _nameScope.define(function);
+    if (functionElement.enclosingElement is! CompilationUnitElement) {
+      _nameScope.define(functionElement);
     }
     return null;
   }
@@ -11753,6 +12563,19 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       try {
         ExecutableElement functionElement = node.element;
         if (functionElement == null) {
+          JavaStringBuilder builder = new JavaStringBuilder();
+          builder.append("Missing element for function ");
+          AstNode parent = node.parent;
+          while (parent != null) {
+            if (parent is Declaration) {
+              Element parentElement = (parent as Declaration).element;
+              builder.append(parentElement == null ? "<unknown> " : ("${parentElement.name} "));
+            }
+            parent = parent.parent;
+          }
+          builder.append("in ");
+          builder.append(definingLibrary.source.fullName);
+          AnalysisEngine.instance.logger.logInformation2(builder.toString(), new JavaException());
         } else {
           _nameScope = new FunctionScope(_nameScope, functionElement);
         }
@@ -11799,7 +12622,12 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   Object visitMethodDeclaration(MethodDeclaration node) {
     Scope outerScope = _nameScope;
     try {
-      _nameScope = new FunctionScope(_nameScope, node.element);
+      ExecutableElement methodElement = node.element;
+      if (methodElement == null) {
+        AnalysisEngine.instance.logger.logInformation2("Missing element for method ${node.name.name} in ${definingLibrary.source.fullName}", new JavaException());
+      } else {
+        _nameScope = new FunctionScope(_nameScope, methodElement);
+      }
       super.visitMethodDeclaration(node);
     } finally {
       _nameScope = outerScope;
@@ -14601,6 +15429,17 @@ class TypeResolverVisitor extends ScopedVisitor {
     _dynamicType = typeProvider.dynamicType;
   }
 
+  /**
+   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
+   *
+   * @param library the library containing the compilation unit being resolved
+   * @param source the source representing the compilation unit being visited
+   * @param typeProvider the object used to access the types from the core library
+   */
+  TypeResolverVisitor.con4(ResolvableLibrary library, Source source, TypeProvider typeProvider) : super.con4(library, source, typeProvider) {
+    _dynamicType = typeProvider.dynamicType;
+  }
+
   @override
   Object visitCatchClause(CatchClause node) {
     super.visitCatchClause(node);
@@ -15652,6 +16491,15 @@ class VariableResolverVisitor extends ScopedVisitor {
    */
   VariableResolverVisitor.con2(LibraryElement definingLibrary, Source source, TypeProvider typeProvider, Scope nameScope, AnalysisErrorListener errorListener) : super.con3(definingLibrary, source, typeProvider, nameScope, errorListener);
 
+  /**
+   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
+   *
+   * @param library the library containing the compilation unit being resolved
+   * @param source the source representing the compilation unit being visited
+   * @param typeProvider the object used to access the types from the core library
+   */
+  VariableResolverVisitor.con3(ResolvableLibrary library, Source source, TypeProvider typeProvider) : super.con4(library, source, typeProvider);
+
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
@@ -15743,6 +16591,9 @@ class ClassScope extends EnclosedScope {
    * @param typeElement the element representing the type represented by this scope
    */
   ClassScope(Scope enclosingScope, ClassElement typeElement) : super(new EnclosedScope(enclosingScope)) {
+    if (typeElement == null) {
+      throw new IllegalArgumentException("class element cannot be null");
+    }
     _defineTypeParameters(typeElement);
     _defineMembers(typeElement);
   }
@@ -15871,6 +16722,9 @@ class FunctionScope extends EnclosedScope {
    * @param functionElement the element representing the type represented by this scope
    */
   FunctionScope(Scope enclosingScope, ExecutableElement functionElement) : super(new EnclosedScope(enclosingScope)) {
+    if (functionElement == null) {
+      throw new IllegalArgumentException("function element cannot be null");
+    }
     this._functionElement = functionElement;
   }
 
@@ -16772,21 +17626,41 @@ class ScopeBuilder {
     }
     Scope scope = _scopeForAstNode(parent);
     if (node is ClassDeclaration) {
-      scope = new ClassScope(scope, node.element);
+      ClassElement element = node.element;
+      if (element == null) {
+        throw new AnalysisException.con1("Cannot build a scope for an unresolved class");
+      }
+      scope = new ClassScope(scope, element);
     } else if (node is ClassTypeAlias) {
-      scope = new ClassScope(scope, node.element);
+      ClassElement element = node.element;
+      if (element == null) {
+        throw new AnalysisException.con1("Cannot build a scope for an unresolved class type alias");
+      }
+      scope = new ClassScope(scope, element);
     } else if (node is ConstructorDeclaration) {
-      FunctionScope functionScope = new FunctionScope(scope, node.element);
+      ConstructorElement element = node.element;
+      if (element == null) {
+        throw new AnalysisException.con1("Cannot build a scope for an unresolved constructor");
+      }
+      FunctionScope functionScope = new FunctionScope(scope, element);
       functionScope.defineParameters();
       scope = functionScope;
     } else if (node is FunctionDeclaration) {
-      FunctionScope functionScope = new FunctionScope(scope, node.element);
+      ExecutableElement element = node.element;
+      if (element == null) {
+        throw new AnalysisException.con1("Cannot build a scope for an unresolved function");
+      }
+      FunctionScope functionScope = new FunctionScope(scope, element);
       functionScope.defineParameters();
       scope = functionScope;
     } else if (node is FunctionTypeAlias) {
       scope = new FunctionTypeScope(scope, node.element);
     } else if (node is MethodDeclaration) {
-      FunctionScope functionScope = new FunctionScope(scope, node.element);
+      ExecutableElement element = node.element;
+      if (element == null) {
+        throw new AnalysisException.con1("Cannot build a scope for an unresolved method");
+      }
+      FunctionScope functionScope = new FunctionScope(scope, element);
       functionScope.defineParameters();
       scope = functionScope;
     }
@@ -17507,6 +18381,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
     _checkForBuiltInIdentifierAsName(node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
+    _checkForExtendsDisallowedClassInTypeAlias(node);
+    _checkForImplementsDisallowedClass(node.implementsClause);
     _checkForAllMixinErrorCodes(node.withClause);
     ClassElement outerClassElement = _enclosingClass;
     try {
@@ -19734,6 +20610,20 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @see CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS
    */
   bool _checkForExtendsDisallowedClass(ExtendsClause node) {
+    if (node == null) {
+      return false;
+    }
+    return _checkForExtendsOrImplementsDisallowedClass(node.superclass, CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
+  }
+
+  /**
+   * This verifies that the passed type alias does not extend classes such as num or String.
+   *
+   * @param node the extends clause to test
+   * @return `true` if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS
+   */
+  bool _checkForExtendsDisallowedClassInTypeAlias(ClassTypeAlias node) {
     if (node == null) {
       return false;
     }
