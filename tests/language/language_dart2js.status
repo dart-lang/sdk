@@ -189,7 +189,6 @@ type_variable_conflict2_test/06: MissingCompileTimeError # Issue 16180
 type_variable_conflict2_test/08: MissingCompileTimeError # Issue 16180
 type_variable_conflict2_test/10: MissingCompileTimeError # Issue 16180
 regress_13494_test: Fail # Issue 13494
-malformed_test/none: CompileTimeError # Issue 12695
 mixin_super_constructor_named_test: Fail # Issue 12631
 mixin_super_constructor_positionals_test: Fail # Issue 12631
 
@@ -203,11 +202,6 @@ type_checks_in_factory_method_test: Fail # Issue 12747
 mixin_forwarding_constructor2_test: Fail # Issue 13641
 
 mixin_with_two_implicit_constructors_test: Fail # Issue 11889
-
-# Malformed types not handled as unresolved:
-import_core_prefix_test: Fail # Issue 13081
-prefix16_test: Fail # Issue 13081
-prefix22_test: Fail # Issue 13081
 
 # Calling unresolved class constructor:
 call_nonexistent_constructor_test/01: Fail # Issue 13082
@@ -280,8 +274,6 @@ f_bounded_quantification5_test: Fail # Issue 12605.
 type_variable_typedef_test: Fail # Issue 11467
 type_variable_conflict2_test/01: RuntimeError # Issue 16180
 
-import_core_prefix_test: Pass
-prefix22_test: Pass
 invocation_mirror_test: Fail, OK # Issue 12706 (hardcoded names).
 super_call4_test: Fail, OK # hardcoded names.
 

@@ -1351,16 +1351,6 @@ abstract class Compiler implements DiagnosticListener {
     backend.codegen(work);
   }
 
-  DartType resolveTypeAnnotation(Element element,
-                                 TypeAnnotation annotation) {
-    return resolver.resolveTypeAnnotation(element, annotation);
-  }
-
-  DartType resolveReturnType(Element element,
-                             TypeAnnotation annotation) {
-    return resolver.resolveReturnType(element, annotation);
-  }
-
   FunctionSignature resolveSignature(FunctionElement element) {
     return withCurrentElement(element,
                               () => resolver.resolveSignature(element));

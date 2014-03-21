@@ -459,44 +459,15 @@ class PlaceholderCollector extends Visitor {
     if (isPrivateName(identifier.source)) makePrivateIdentifier(identifier);
   }
 
-  static bool isPlainTypeName(TypeAnnotation typeAnnotation) {
-    if (typeAnnotation.typeName is !Identifier) return false;
-    if (typeAnnotation.typeArguments == null) return true;
-    if (typeAnnotation.typeArguments.isEmpty) return true;
-    return false;
-  }
-
-  static bool isDynamicType(TypeAnnotation typeAnnotation) {
-    if (!isPlainTypeName(typeAnnotation)) return false;
-    String name = typeAnnotation.typeName.asIdentifier().source;
-    return name == 'dynamic';
-  }
-
   visitTypeAnnotation(TypeAnnotation node) {
-    // Poor man generic variables resolution.
-    // TODO(antonm): get rid of it once resolver can deal with it.
-    TypeDeclarationElement typeDeclarationElement;
-    if (currentElement is TypeDeclarationElement) {
-      typeDeclarationElement = currentElement;
-    } else {
-      typeDeclarationElement = currentElement.getEnclosingClass();
-    }
-    if (typeDeclarationElement != null && isPlainTypeName(node)
-        && tryResolveAndCollectTypeVariable(
-               typeDeclarationElement, node.typeName)) {
-      return;
-    }
-    // We call [resolveReturnType] to allow having 'void'.
-    final type = compiler.resolveReturnType(currentElement, node);
-    if (type is InterfaceType || type is TypedefType) {
-      // TODO(antonm): is there a better way to detect unresolved types?
-      // Corner case: dart:core type with a prefix.
-      // Most probably there are some additional problems with
-      // coreLibPrefix.topLevels.
+    final type = treeElements.getType(node);
+    assert(invariant(node, type != null,
+        message: "Missing type for type annotation: $treeElements"));
+    if (!type.isVoid) {
       if (!type.treatAsDynamic) {
         makeTypePlaceholder(node.typeName, type);
-      } else {
-        if (!isDynamicType(node)) makeUnresolvedPlaceholder(node.typeName);
+      } else if (!type.isDynamic) {
+        makeUnresolvedPlaceholder(node.typeName);
       }
     }
     // Visit only type arguments, otherwise in case of lib.Class type
@@ -605,22 +576,11 @@ class PlaceholderCollector extends Visitor {
     node.visitChildren(this);
   }
 
-  bool tryResolveAndCollectTypeVariable(
-      TypeDeclarationElement typeDeclaration, Identifier name) {
-    // Another poor man type resolution.
-    // Find this variable in enclosing type declaration parameters.
-    for (DartType type in typeDeclaration.typeVariables) {
-      if (type.name == name.source) {
-        makeTypePlaceholder(name, type);
-        return true;
-      }
-    }
-    return false;
-  }
-
   visitTypeVariable(TypeVariable node) {
-    assert(currentElement is TypedefElement || currentElement is ClassElement);
-    tryResolveAndCollectTypeVariable(currentElement, node.name);
+    DartType type = treeElements.getType(node);
+    assert(invariant(node, type != null,
+        message: "Missing type for type variable: $treeElements"));
+    makeTypePlaceholder(node.name, type);
     node.visitChildren(this);
   }
 

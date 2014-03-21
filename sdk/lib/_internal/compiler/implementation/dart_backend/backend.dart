@@ -12,9 +12,6 @@ class ElementAst {
   final TreeElements treeElements;
 
   ElementAst(this.ast, this.treeElements);
-
-  ElementAst.forClassLike(this.ast)
-      : this.treeElements = new TreeElementMapping(null);
 }
 
 class DartBackend extends Backend {
@@ -245,14 +242,15 @@ class DartBackend extends Backend {
 
     addClass(classElement) {
       addTopLevel(classElement,
-                  new ElementAst.forClassLike(parse(classElement)));
+                  new ElementAst(parse(classElement),
+                                 classElement.treeElements));
       classMembers.putIfAbsent(classElement, () => new Set());
     }
 
     newTypedefElementCallback = (TypedefElement element) {
       if (!shouldOutput(element)) return;
-      addTopLevel(element,
-                  new ElementAst.forClassLike(parse(element)));
+      addTopLevel(element, new ElementAst(parse(element),
+                                          element.treeElements));
     };
     newClassElementCallback = (ClassElement classElement) {
       if (!shouldOutput(classElement)) return;
@@ -509,8 +507,9 @@ class ReferencedElementCollector extends Visitor {
   }
 
   visitTypeAnnotation(TypeAnnotation typeAnnotation) {
-    // We call [resolveReturnType] to allow having 'void'.
-    final type = compiler.resolveReturnType(rootElement, typeAnnotation);
+    final DartType type = treeElements.getType(typeAnnotation);
+    assert(invariant(typeAnnotation, type != null,
+        message: "Missing type for type annotation: $treeElements."));
     Element typeElement = type.element;
     if (typeElement.isTypedef()) newTypedefElementCallback(typeElement);
     if (typeElement.isClass()) newClassElementCallback(typeElement);

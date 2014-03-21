@@ -1900,7 +1900,7 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
     return mapping[node] = element;
   }
 
-  DartType useType(TypeAnnotation annotation, DartType type) {
+  DartType useType(Node annotation, DartType type) {
     if (type != null) {
       mapping.setType(annotation, type);
       useElement(annotation, type.element);
@@ -3736,6 +3736,7 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
       TypeVariableType typeVariable = typeLink.head;
       String typeName = typeVariable.name;
       TypeVariable typeNode = nodeLink.head;
+      useType(typeNode, typeVariable);
       if (nameSet.contains(typeName)) {
         error(typeNode, MessageKind.DUPLICATE_TYPE_VARIABLE_NAME,
               {'typeVariableName': typeName});

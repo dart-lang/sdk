@@ -1994,7 +1994,7 @@ class PartialFieldList extends VariableList {
     compiler.withCurrentElement(element, () {
       VariableDefinitions node = parseNode(element, compiler);
       if (node.type != null) {
-        type = compiler.resolveTypeAnnotation(element, node.type);
+        type = compiler.resolver.resolveTypeAnnotation(element, node.type);
       } else {
         type = compiler.types.dynamicType;
       }
