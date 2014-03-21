@@ -7,7 +7,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # This file is a modified copy of Chromium's src/third_party/sqlite/sqlite.gyp.
-# Revision 232552 (this should agree with "nss_rev" in DEPS).
+# Revision 257452 (this should agree with "nss_rev" in DEPS).
 {
   # Added by Dart. All Dart comments refer to the following block or line.
   'includes': [
