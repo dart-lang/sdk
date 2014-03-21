@@ -15,13 +15,25 @@ import 'package:observatory/service.dart';
 export 'package:observatory/service.dart';
 
 class HttpVM extends VM {
-  final String address;
+  String host;
 
-  HttpVM(this.address) : super();
+  bool runningInJavaScript() => identical(1.0, 1);
+
+  HttpVM() : super() {
+    if (runningInJavaScript()) {
+      // When we are running as JavaScript use the same hostname:port
+      // that the Observatory is loaded from.
+      host = 'http://${window.location.host}/';
+    } else {
+      // Otherwise, assume we are running from the Dart Editor and
+      // want to connect on the default port.
+      host = 'http://127.0.0.1:8181/';
+    }
+  }
 
   Future<String> getString(String id) {
-    Logger.root.info('Fetching $id from $address');
-    return HttpRequest.getString(address + id).catchError((error) {
+    Logger.root.info('Fetching $id from $host');
+    return HttpRequest.getString(host + id).catchError((error) {
       // If we get an error here, the network request has failed.
       Logger.root.severe('HttpRequest.getString failed.');
       return JSON.encode({

@@ -4243,7 +4243,7 @@ if(typeof z!=="number")return z.i()
 return(z&4)!==0},
 uO:[function(){},"call$0","gp4",0,0,114],
 LP:[function(){},"call$0","gZ9",0,0,114],
-static:{"^":"FJ,CM,cP"}},
+static:{"^":"FJ,CM,VCd"}},
 WVu:{
 "^":"a;iE@,SJ@",
 gRW:function(){return!1},
@@ -7642,11 +7642,11 @@ $isQV:true,
 $asQV:function(){return[W.M5]},
 "%":"EntryArray"},
 Ps:{
-"^":"qE;N:target=,t5:type%,cC:hash%,mH:href=",
+"^":"qE;N:target=,t5:type%,cC:hash%,Jf:host=,mH:href=",
 bu:[function(a){return a.toString()},"call$0","gXo",0,0,null],
 "%":"HTMLAnchorElement"},
 Ym:{
-"^":"qE;N:target=,cC:hash%,mH:href=",
+"^":"qE;N:target=,cC:hash%,Jf:host=,mH:href=",
 bu:[function(a){return a.toString()},"call$0","gXo",0,0,null],
 "%":"HTMLAreaElement"},
 Xk:{
@@ -7883,7 +7883,7 @@ Qj:{
 $isQj:true,
 "%":"HTMLLinkElement"},
 cS:{
-"^":"Gv;cC:hash%,mH:href=",
+"^":"Gv;cC:hash%,Jf:host=,mH:href=",
 VD:[function(a){return a.reload()},"call$0","gQU",0,0,null],
 bu:[function(a){return a.toString()},"call$0","gXo",0,0,null],
 $iscS:true,
@@ -8057,7 +8057,7 @@ return H.VM(new P.Yp(P.F(z,!0,H.ip(z,"mW",0))),[null])},
 $islp:true,
 "%":"HTMLSelectElement"},
 I0:{
-"^":"Aj;pQ:applyAuthorStyles=",
+"^":"Aj;pQ:applyAuthorStyles=,Jf:host=",
 Kb:[function(a,b){return a.getElementById(b)},"call$1","giu",2,0,null,300,[]],
 $isI0:true,
 "%":"ShadowRoot"},
@@ -8734,6 +8734,7 @@ Dk:{
 "^":"a;WK",
 gcC:function(a){return this.WK.hash},
 scC:function(a,b){this.WK.hash=b},
+gJf:function(a){return this.WK.host},
 gmH:function(a){return this.WK.href},
 VD:[function(a){return this.WK.reload()},"call$0","gQU",0,0,null],
 bu:[function(a){return this.WK.toString()},"call$0","gXo",0,0,null],
@@ -11067,11 +11068,12 @@ y.PI()
 y=new G.mL(new G.dZ(null,"",null,null),y,null,null,null,null,null)
 y.hq()
 a.Oe=this.ct(a,C.wh,a.Oe,y)}else{z=R.Jk([])
-z=new U.XK("http://127.0.0.1:8181/",null,z,"unknown","unknown",0,null,null,null,"vm","VM",null,null,null,null,null,null)
+z=new U.XK(null,null,z,"unknown","unknown",0,null,null,null,"vm","VM",null,null,null,null,null,null)
 z.nr=C.xB.nC("VM","@")
 z.mQ=D.Io("VM")
 z.DC(0)
 z.pC()
+z.aq()
 z=new G.mL(new G.dZ(null,"",null,null),z,null,null,null,null,null)
 z.US()
 a.Oe=this.ct(a,C.wh,a.Oe,z)}},null,null,0,0,115,"created"],
@@ -14038,7 +14040,7 @@ static:{"^":"RI"}},
 q1:{
 "^":"Tp:112;a",
 call$1:[function(a){var z=J.U6(a)
-z.t(a,"script").aq(z.t(a,"hits"))},"call$1",null,2,0,null,611,[],"call"],
+z.t(a,"script").SC(z.t(a,"hits"))},"call$1",null,2,0,null,611,[],"call"],
 $isEH:true},
 jx:{
 "^":"G8;F1,Qy",
@@ -14553,7 +14555,7 @@ this.GR=this.ct(this,C.KS,this.GR,y)
 y=z.t(b,"kind")
 this.J6=F.Wi(this,C.fy,this.J6,y)
 this.W8(z.t(b,"source"))},"call$1","gci",2,0,null,190,[]],
-aq:[function(a){var z,y,x,w,v
+SC:[function(a){var z,y,x,w,v
 if(this.nr)this.xW(0)
 z=J.U6(a)
 y=this.u9
@@ -14746,10 +14748,10 @@ else if(y)D.Gf(b,this.b,this.c)},"call$2",null,4,0,null,452,[],275,[],"call"],
 $isEH:true}}],["service_html","package:observatory/service_html.dart",,U,{
 "^":"",
 XK:{
-"^":["zM;Yu<,tl-617,a8,Ox,GY,Rp,AP,Lk,P3,KG,mQ,nr,bN,GR,Er,AP,Lk",null,function(){return[C.Nw]},null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
-z6:[function(a,b){var z=this.Yu
-N.Jx("").To("Fetching "+H.d(b)+" from "+z)
-return W.It(C.xB.g(z,b),null,null).OA(new U.dT())},"call$1","gpV",2,0,null,281,[]]},
+"^":["zM;Jf>,tl-617,a8,Ox,GY,Rp,AP,Lk,P3,KG,mQ,nr,bN,GR,Er,AP,Lk",null,function(){return[C.Nw]},null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+z6:[function(a,b){N.Jx("").To("Fetching "+H.d(b)+" from "+H.d(this.Jf))
+return W.It(J.WB(this.Jf,b),null,null).OA(new U.dT())},"call$1","gpV",2,0,null,281,[]],
+aq:function(){this.Jf="http://"+H.d(J.cP(C.ol.gyH(window)))+"/"}},
 dT:{
 "^":"Tp:112;",
 call$1:[function(a){N.Jx("").hh("HttpRequest.getString failed.")
@@ -16188,6 +16190,7 @@ J.bj=function(a,b){return J.w1(a).FV(a,b)}
 J.bs=function(a){return J.RE(a).JP(a)}
 J.c9=function(a,b){return J.RE(a).sa4(a,b)}
 J.cG=function(a){return J.RE(a).Ki(a)}
+J.cP=function(a){return J.RE(a).gJf(a)}
 J.cR=function(a,b){return J.Wx(a).WZ(a,b)}
 J.cZ=function(a,b,c,d){return J.RE(a).On(a,b,c,d)}
 J.co=function(a,b){return J.rY(a).nC(a,b)}
@@ -16795,7 +16798,7 @@ $.Td=!1
 $.Bh=0
 $.uP=!0
 $.To=null
-$.Dq=["A3","A5","A8","AZ","Ar","B2","BN","BT","BX","Ba","Bf","C","C0","C4","Ch","Cn","Cp","Cs","Cx","D","D3","D6","DC","Dd","E","EX","Ec","Ey","F","F6","FL","FV","Fr","Fv","GB","GG","GT","HG","Hn","Hs","Ic","Id","Ih","Is","J","J2","J3","JG","JP","JV","Ja","Jk","K1","KJ","Kb","LI","LV","Md","Mh","Mi","Ms","Mu","My","NC","NZ","Nj","O","OP","OZ","Om","On","PM","PN","PQ","PZ","Pa","Pk","Pv","Q0","QE","QI","Qi","Qx","R3","R4","RB","RP","RR","RU","Rg","Rz","SS","Se","T","TP","TW","Tc","Tk","Tp","Ty","U","U8","UD","UH","UZ","Uc","V","V1","VD","VI","Vk","Vr","W","W3","W4","WO","WZ","X6","XF","XG","XU","Xl","Y","Y9","YF","YS","YU","YW","Yy","Z","Z1","Z2","ZB","ZF","ZL","ZZ","Zi","Zv","aC","aD","aN","aZ","an","at","az","bA","bS","ba","br","bu","cO","cU","cn","ct","d0","dR","da","dd","du","e6","eR","ea","ek","eo","er","es","ev","ez","f6","fZ","fa","fk","fm","g","gA","gAS","gAb","gAn","gAp","gAu","gAy","gB","gB1","gB3","gBP","gBW","gBb","gCO","gCY","gCd","gCj","gD5","gD7","gDD","gE7","gE8","gEh","gEly","gEu","gF1","gFR","gFw","gG0","gG1","gG3","gG6","gGQ","gGV","gGd","gGe","gHJ","gHX","gHm","gHq","gHu","gI","gID","gIF","gIK","gIW","gIt","gJ0","gJQ","gJS","gJf","gJo","gJy","gKK","gKM","gKU","gKV","gKx","gLA","gLY","gLm","gLn","gLx","gM0","gM5","gMB","gMj","gN","gN7","gNF","gNG","gNh","gNl","gO3","gO9","gOL","gOc","gOe","gOh","gOl","gP","gP1","gPA","gPK","gPL","gPe","gPj","gPu","gPw","gPy","gQ7","gQG","gQb","gQg","gQr","gQt","gR","gRA","gRH","gRY","gRd","gRn","gRu","gSB","gSR","gT8","gTq","gU4","gUL","gUQ","gUj","gUo","gUy","gUz","gV4","gV5","gVE","gVa","gVe","gVl","gWA","gWT","gX3","gXX","gXd","gXh","gXt","gXv","gXx","gYe","gZ8","gZf","ga4","gai","gbG","gbP","gbV","gbx","gcC","gdU","gdW","gdt","geH","geT","geb","gey","gf0c","gfN","gfY","gfc","gfg","gfn","ghU","ghf","ghi","gho","gi9","giC","giO","gig","gik","giy","gjL","gjO","gjT","gk5","gkF","gkG","gkU","gkW","gkc","gkf","gkg","gkp","gl0","gl7","glb","glc","glh","gm2","gmC","gmH","gmm","gn9","gnN","gnZ","gng","gnv","gnx","gnz","go6","goE","goY","goc","gor","gp8","gpD","gpQ","gph","gq3","gqO","gqe","gqn","grK","grM","grU","grZ","grs","grz","gt0","gt5","gtD","gtH","gtN","gtT","gtY","gtp","guD","guw","gvH","gvL","gvc","gvk","gvt","gwd","gwl","gx","gx8","gxA","gxX","gxj","gxr","gxw","gy","gy4","gyH","gyT","gys","gyw","gz1","gzP","gzW","gzZ","gzf","gzg","gzh","gzj","gzt","gzw","h","h8","hZ","hc","hr","hu","i","i4","i5","iF","iM","ib","ii","iw","j","j9","jh","jp","jx","k0","kO","kk","l5","l9","lj","lp","m","mK","n","nC","nH","na","ni","nq","oB","oF","oP","oW","oX","oZ","od","oo","pA","pM","pZ","pr","ps","q1","qA","qC","qZ","r6","rJ","rW","sAS","sAb","sAn","sAp","sAu","sAy","sB","sB1","sB3","sBP","sBW","sBb","sCO","sCY","sCd","sCj","sE7","sEh","sEly","sEu","sF1","sFR","sFw","sG1","sG3","sG6","sGQ","sGV","sGd","sGe","sHJ","sHX","sHm","sHq","sHu","sID","sIF","sIK","sIt","sJ0","sJQ","sJS","sJo","sJy","sKK","sKM","sKU","sKV","sKx","sLA","sLY","sLn","sLx","sM0","sM5","sMB","sMj","sN","sN7","sNF","sNG","sNh","sNl","sO3","sO9","sOc","sOe","sOh","sOl","sP","sPA","sPK","sPL","sPe","sPj","sPu","sPw","sPy","sQ7","sQG","sQb","sQr","sQt","sR","sRA","sRH","sRY","sRd","sRn","sRu","sSB","sT8","sTq","sU4","sUL","sUQ","sUo","sUy","sUz","sV4","sV5","sVa","sVe","sWA","sWT","sX3","sXX","sXd","sXh","sXt","sXv","sXx","sYe","sZ8","sa4","sai","sbG","sbP","sbV","scC","sdU","sdW","sdt","seH","seT","seb","sfN","sfY","sfc","sfg","sfn","shU","shf","shi","sho","siC","sig","sik","siy","sjL","sjO","sjT","sk5","skF","skG","skU","skW","skc","skf","skg","skp","sl7","slb","slc","slh","sm2","smC","smH","sn9","snN","snZ","sng","snv","snx","so6","soE","soY","soc","sp8","spD","spQ","sph","sq3","sqO","sqe","srM","srU","srZ","srs","srz","st0","st5","stD","stN","stT","stY","suD","suw","svH","svL","svk","svt","swd","sx","sxA","sxX","sxj","sxr","sxw","sy","sy4","syT","sys","syw","sz1","szW","szZ","szf","szg","szh","szj","szt","szw","t","tM","tZ","tg","tn","tt","u","u8","uB","ub","vQ","vV","w","wE","wL","wY","wg","x3","xW","xc","xe","xo","y0","yC","yM","yN","yc","yl","yn","yq","yu","yx","yy","z2","z6","zB","zV","zY"]
+$.Dq=["A3","A5","A8","AZ","Ar","B2","BN","BT","BX","Ba","Bf","C","C0","C4","Ch","Cn","Cp","Cs","Cx","D","D3","D6","DC","Dd","E","EX","Ec","Ey","F","F6","FL","FV","Fr","Fv","GB","GG","GT","HG","Hn","Hs","Ic","Id","Ih","Is","J","J2","J3","JG","JP","JV","Ja","Jk","K1","KJ","Kb","LI","LV","Md","Mh","Mi","Ms","Mu","My","NC","NZ","Nj","O","OP","OZ","Om","On","PM","PN","PQ","PZ","Pa","Pk","Pv","Q0","QE","QI","Qi","Qx","R3","R4","RB","RP","RR","RU","Rg","Rz","SS","Se","T","TP","TW","Tc","Tk","Tp","Ty","U","U8","UD","UH","UZ","Uc","V","V1","VD","VI","Vk","Vr","W","W3","W4","WO","WZ","X6","XF","XG","XU","Xl","Y","Y9","YF","YS","YU","YW","Yy","Z","Z1","Z2","ZB","ZF","ZL","ZZ","Zi","Zv","aC","aD","aN","aZ","an","at","az","bA","bS","ba","br","bu","cO","cU","cn","ct","d0","dR","da","dd","du","e6","eR","ea","ek","eo","er","es","ev","ez","f6","fZ","fa","fk","fm","g","gA","gAS","gAb","gAn","gAp","gAu","gAy","gB","gB1","gB3","gBP","gBW","gBb","gCO","gCY","gCd","gCj","gD5","gD7","gDD","gE7","gE8","gEh","gEly","gEu","gF1","gFR","gFw","gG0","gG1","gG3","gG6","gGQ","gGV","gGd","gGe","gHJ","gHX","gHm","gHq","gHu","gI","gID","gIF","gIK","gIW","gIt","gJ0","gJQ","gJS","gJf","gJo","gJy","gKK","gKM","gKU","gKV","gKx","gLA","gLY","gLm","gLn","gLx","gM0","gM5","gMB","gMj","gN","gN7","gNF","gNG","gNh","gNl","gO3","gO9","gOL","gOc","gOe","gOh","gOl","gP","gP1","gPA","gPK","gPL","gPe","gPj","gPu","gPw","gPy","gQ7","gQG","gQb","gQg","gQr","gQt","gR","gRA","gRH","gRY","gRd","gRn","gRu","gSB","gSR","gT8","gTq","gU4","gUL","gUQ","gUj","gUo","gUy","gUz","gV4","gV5","gVE","gVa","gVe","gVl","gWA","gWT","gX3","gXX","gXd","gXh","gXt","gXv","gXx","gYe","gZ8","gZf","ga4","gai","gbG","gbP","gbV","gbx","gcC","gdU","gdW","gdt","geH","geT","geb","gey","gf0c","gfN","gfY","gfc","gfg","gfn","ghU","ghf","ghi","gho","gi9","giC","giO","gig","gik","giy","gjL","gjO","gjT","gk5","gkF","gkG","gkU","gkW","gkc","gkf","gkg","gkp","gl0","gl7","glb","glc","glh","gm2","gmC","gmH","gmm","gn9","gnN","gnZ","gng","gnv","gnx","gnz","go6","goE","goY","goc","gor","gp8","gpD","gpQ","gph","gq3","gqO","gqe","gqn","grK","grM","grU","grZ","grs","grz","gt0","gt5","gtD","gtH","gtN","gtT","gtY","gtp","guD","guw","gvH","gvL","gvc","gvk","gvt","gwd","gwl","gx","gx8","gxA","gxX","gxj","gxr","gxw","gy","gy4","gyH","gyT","gys","gyw","gz1","gzP","gzW","gzZ","gzf","gzg","gzh","gzj","gzt","gzw","h","h8","hZ","hc","hr","hu","i","i4","i5","iF","iM","ib","ii","iw","j","j9","jh","jp","jx","k0","kO","kk","l5","l9","lj","lp","m","mK","n","nC","nH","na","ni","nq","oB","oF","oP","oW","oX","oZ","od","oo","pA","pM","pZ","pr","ps","q1","qA","qC","qZ","r6","rJ","rW","sAS","sAb","sAn","sAp","sAu","sAy","sB","sB1","sB3","sBP","sBW","sBb","sCO","sCY","sCd","sCj","sE7","sEh","sEly","sEu","sF1","sFR","sFw","sG1","sG3","sG6","sGQ","sGV","sGd","sGe","sHJ","sHX","sHm","sHq","sHu","sID","sIF","sIK","sIt","sJ0","sJQ","sJS","sJf","sJo","sJy","sKK","sKM","sKU","sKV","sKx","sLA","sLY","sLn","sLx","sM0","sM5","sMB","sMj","sN","sN7","sNF","sNG","sNh","sNl","sO3","sO9","sOc","sOe","sOh","sOl","sP","sPA","sPK","sPL","sPe","sPj","sPu","sPw","sPy","sQ7","sQG","sQb","sQr","sQt","sR","sRA","sRH","sRY","sRd","sRn","sRu","sSB","sT8","sTq","sU4","sUL","sUQ","sUo","sUy","sUz","sV4","sV5","sVa","sVe","sWA","sWT","sX3","sXX","sXd","sXh","sXt","sXv","sXx","sYe","sZ8","sa4","sai","sbG","sbP","sbV","scC","sdU","sdW","sdt","seH","seT","seb","sfN","sfY","sfc","sfg","sfn","shU","shf","shi","sho","siC","sig","sik","siy","sjL","sjO","sjT","sk5","skF","skG","skU","skW","skc","skf","skg","skp","sl7","slb","slc","slh","sm2","smC","smH","sn9","snN","snZ","sng","snv","snx","so6","soE","soY","soc","sp8","spD","spQ","sph","sq3","sqO","sqe","srM","srU","srZ","srs","srz","st0","st5","stD","stN","stT","stY","suD","suw","svH","svL","svk","svt","swd","sx","sxA","sxX","sxj","sxr","sxw","sy","sy4","syT","sys","syw","sz1","szW","szZ","szf","szg","szh","szj","szt","szw","t","tM","tZ","tg","tn","tt","u","u8","uB","ub","vQ","vV","w","wE","wL","wY","wg","x3","xW","xc","xe","xo","y0","yC","yM","yN","yc","yl","yn","yq","yu","yx","yy","z2","z6","zB","zV","zY"]
 $.Au=[C.RP,Z.hx,{created:Z.HC},C.Ln,H.Dg,{"":H.bu},C.z6Y,Q.Tg,{created:Q.rt},C.xFi,L.rm,{created:L.Dn},C.zq,A.Qa,{created:A.EL},C.tf,A.Zt,{created:A.fg},C.pkU,Q.JG,{created:Q.Zo},C.GTO,A.F1,{created:A.aD},C.jRs,F.Be,{created:F.Fe},C.P9,N.oO,{created:N.Qm},C.P0k,V.lI,{created:V.fv},C.xLI,B.pz,{created:B.t4},C.hG,A.ir,{created:A.oa},C.aj,U.fI,{created:U.Ry},C.cK,X.I5,{created:X.cF},C.G4,O.CN,{created:O.On},C.RcY,A.aQ,{created:A.AJ},C.ld,U.AX,{created:U.wH},C.KJ,N.mk,{created:N.N0},C.ST4,U.en,{created:U.oH},C.yiu,A.knI,{created:A.Th},C.dUi,Q.Uj,{created:Q.Al},C.cNA,B.NG,{created:B.b4},C.HI,H.Pg,{"":H.aR},C.ila,Q.xI,{created:Q.lK},C.lpG,R.LU,{created:R.rA},C.Yte,M.KL,{created:M.Ro},C.mR,A.fl,{created:A.Du},C.OdR,O.pL,{created:O.pn},C.wE,Z.vj,{created:Z.mA},C.JW,A.Ww,{created:A.zN},C.qo,K.jY,{created:K.Lz},C.Pa,D.St,{created:D.JR},C.cx5,D.m8,{created:D.zY},C.l49,Z.uL,{created:Z.ew},C.FU,R.lw,{created:R.p7},C.px,A.tz,{created:A.J8},C.epC,Z.Jc,{created:Z.zg},C.m3,X.lb,{created:X.jD},C.JA3,H.b0B,{"":H.UI},C.qY,A.wM,{created:A.lT},C.BP,L.qkb,{created:L.uD},C.bh,R.i6,{created:R.Hv},C.Bm,A.XP,{created:A.XL},C.hg,W.hd,{},C.Fv,U.ob,{created:U.zy},C.ri,W.yy,{},C.hI,F.Ir,{created:F.TW},C.IE,A.Gk,{created:A.bH},C.IWi,X.Vu,{created:X.bV},C.LF,K.xT,{created:K.an}]
 I.$lazy($,"globalThis","DX","jk",function(){return function() { return this; }()})
 I.$lazy($,"globalWindow","cO","C5",function(){return $.jk().window})

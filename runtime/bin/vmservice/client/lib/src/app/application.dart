@@ -36,7 +36,7 @@ class ObservatoryApplication extends Observable {
 
   ObservatoryApplication() :
       locationManager = new LocationManager(),
-      vm = new HttpVM('http://127.0.0.1:8181/') {
+      vm = new HttpVM() {
     _initOnce();
   }
 }
