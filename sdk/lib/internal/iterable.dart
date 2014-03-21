@@ -713,7 +713,7 @@ class EmptyIterable<E> extends IterableBase<E> implements EfficientLength {
 
   Iterable<E> take(int count) {
     if (count < 0) throw new RangeError.value(count);
-    this;
+    return this;
   }
 
   Iterable<E> takeWhile(bool test(E element)) => this;
