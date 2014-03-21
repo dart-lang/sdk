@@ -95,7 +95,7 @@ class AnalyzerImpl {
   /// The sync version of analysis
   ErrorSeverity _analyzeSync() {
     // don't try to analyze parts
-    if (context.getKindOf(librarySource) == SourceKind.PART) {
+    if (context.computeKindOf(librarySource) == SourceKind.PART) {
       print("Only libraries can be analyzed.");
       print("$sourcePath is a part and can not be analyzed.");
       return ErrorSeverity.ERROR;
