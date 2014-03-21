@@ -41,8 +41,7 @@ abstract class Description {
    * This is used to add a description of an [Iterable] [list],
    * with appropriate [start] and [end] markers and inter-element [separator].
    */
-  Description addAll(String start, String separator, String end,
-                     Iterable list);
+  Description addAll(String start, String separator, String end, Iterable list);
 }
 
 /**

@@ -21,8 +21,7 @@ class _Empty extends Matcher {
       return false;
     }
   }
-  Description describe(Description description) =>
-      description.add('empty');
+  Description describe(Description description) => description.add('empty');
 }
 
 /** A matcher that matches any null value. */
@@ -34,15 +33,13 @@ const Matcher isNotNull = const _IsNotNull();
 class _IsNull extends Matcher {
   const _IsNull();
   bool matches(item, Map matchState) => item == null;
-  Description describe(Description description) =>
-      description.add('null');
+  Description describe(Description description) => description.add('null');
 }
 
 class _IsNotNull extends Matcher {
   const _IsNotNull();
   bool matches(item, Map matchState) => item != null;
-  Description describe(Description description) =>
-      description.add('not null');
+  Description describe(Description description) => description.add('not null');
 }
 
 /** A matcher that matches the Boolean value true. */
@@ -54,15 +51,13 @@ const Matcher isFalse = const _IsFalse();
 class _IsTrue extends Matcher {
   const _IsTrue();
   bool matches(item, Map matchState) => item == true;
-  Description describe(Description description) =>
-      description.add('true');
+  Description describe(Description description) => description.add('true');
 }
 
 class _IsFalse extends Matcher {
   const _IsFalse();
   bool matches(item, Map matchState) => item == false;
-  Description describe(Description description) =>
-      description.add('false');
+  Description describe(Description description) => description.add('false');
 }
 
 /**
@@ -101,7 +96,7 @@ class _DeepMatcher extends Matcher {
   final int _limit;
   var count;
 
-  _DeepMatcher(this._expected, [limit = 1000]) : this._limit = limit;
+  _DeepMatcher(this._expected, [limit = 1000]): this._limit = limit;
 
   // Returns a pair (reason, location)
   List _compareIterables(expected, actual, matcher, depth, location) {
@@ -109,7 +104,7 @@ class _DeepMatcher extends Matcher {
 
     var expectedIterator = expected.iterator;
     var actualIterator = actual.iterator;
-    for (var index = 0;; index++) {
+    for (var index = 0; ; index++) {
       // Advance in lockstep.
       var expectedNext = expectedIterator.moveNext();
       var actualNext = actualIterator.moveNext();
@@ -324,8 +319,7 @@ const Matcher anything = const _IsAnything();
 class _IsAnything extends Matcher {
   const _IsAnything();
   bool matches(item, Map matchState) => true;
-  Description describe(Description description) =>
-      description.add('anything');
+  Description describe(Description description) => description.add('anything');
 }
 
 /**
@@ -352,7 +346,7 @@ class _IsAnything extends Matcher {
  */
 class isInstanceOf<T> extends Matcher {
   final String _name;
-  const isInstanceOf([name = 'specified type']) : this._name = name;
+  const isInstanceOf([name = 'specified type']): this._name = name;
   bool matches(obj, Map matchState) => obj is T;
   // The description here is lame :-(
   Description describe(Description description) =>
@@ -405,8 +399,7 @@ const Matcher returnsNormally = const _ReturnsNormally();
 class Throws extends Matcher {
   final Matcher _matcher;
 
-  const Throws([Matcher matcher]) :
-    this._matcher = matcher;
+  const Throws([Matcher matcher]): this._matcher = matcher;
 
   bool matches(item, Map matchState) {
     if (item is! Function && item is! Future) return false;
@@ -523,19 +516,17 @@ class _ReturnsNormally extends Matcher {
 abstract class TypeMatcher extends Matcher {
   final String _name;
   const TypeMatcher(this._name);
-  Description describe(Description description) =>
-      description.add(_name);
+  Description describe(Description description) => description.add(_name);
 }
 
 /** A matcher for FormatExceptions. */
 const isFormatException = const _FormatException();
 
 /** A matcher for functions that throw FormatException. */
-const Matcher throwsFormatException =
-    const Throws(isFormatException);
+const Matcher throwsFormatException = const Throws(isFormatException);
 
 class _FormatException extends TypeMatcher {
-  const _FormatException() : super("FormatException");
+  const _FormatException(): super("FormatException");
   bool matches(item, Map matchState) => item is FormatException;
 }
 
@@ -546,7 +537,7 @@ const isException = const _Exception();
 const Matcher throwsException = const Throws(isException);
 
 class _Exception extends TypeMatcher {
-  const _Exception() : super("Exception");
+  const _Exception(): super("Exception");
   bool matches(item, Map matchState) => item is Exception;
 }
 
@@ -554,11 +545,10 @@ class _Exception extends TypeMatcher {
 const isArgumentError = const _ArgumentError();
 
 /** A matcher for functions that throw ArgumentError. */
-const Matcher throwsArgumentError =
-    const Throws(isArgumentError);
+const Matcher throwsArgumentError = const Throws(isArgumentError);
 
 class _ArgumentError extends TypeMatcher {
-  const _ArgumentError() : super("ArgumentError");
+  const _ArgumentError(): super("ArgumentError");
   bool matches(item, Map matchState) => item is ArgumentError;
 }
 
@@ -566,11 +556,10 @@ class _ArgumentError extends TypeMatcher {
 const isRangeError = const _RangeError();
 
 /** A matcher for functions that throw RangeError. */
-const Matcher throwsRangeError =
-    const Throws(isRangeError);
+const Matcher throwsRangeError = const Throws(isRangeError);
 
 class _RangeError extends TypeMatcher {
-  const _RangeError() : super("RangeError");
+  const _RangeError(): super("RangeError");
   bool matches(item, Map matchState) => item is RangeError;
 }
 
@@ -578,11 +567,10 @@ class _RangeError extends TypeMatcher {
 const isNoSuchMethodError = const _NoSuchMethodError();
 
 /** A matcher for functions that throw NoSuchMethodError. */
-const Matcher throwsNoSuchMethodError =
-    const Throws(isNoSuchMethodError);
+const Matcher throwsNoSuchMethodError = const Throws(isNoSuchMethodError);
 
 class _NoSuchMethodError extends TypeMatcher {
-  const _NoSuchMethodError() : super("NoSuchMethodError");
+  const _NoSuchMethodError(): super("NoSuchMethodError");
   bool matches(item, Map matchState) => item is NoSuchMethodError;
 }
 
@@ -590,11 +578,10 @@ class _NoSuchMethodError extends TypeMatcher {
 const isUnimplementedError = const _UnimplementedError();
 
 /** A matcher for functions that throw Exception. */
-const Matcher throwsUnimplementedError =
-    const Throws(isUnimplementedError);
+const Matcher throwsUnimplementedError = const Throws(isUnimplementedError);
 
 class _UnimplementedError extends TypeMatcher {
-  const _UnimplementedError() : super("UnimplementedError");
+  const _UnimplementedError(): super("UnimplementedError");
   bool matches(item, Map matchState) => item is UnimplementedError;
 }
 
@@ -605,8 +592,7 @@ const isUnsupportedError = const _UnsupportedError();
 const Matcher throwsUnsupportedError = const Throws(isUnsupportedError);
 
 class _UnsupportedError extends TypeMatcher {
-  const _UnsupportedError() :
-      super("UnsupportedError");
+  const _UnsupportedError(): super("UnsupportedError");
   bool matches(item, Map matchState) => item is UnsupportedError;
 }
 
@@ -614,11 +600,10 @@ class _UnsupportedError extends TypeMatcher {
 const isStateError = const _StateError();
 
 /** A matcher for functions that throw StateError. */
-const Matcher throwsStateError =
-    const Throws(isStateError);
+const Matcher throwsStateError = const Throws(isStateError);
 
 class _StateError extends TypeMatcher {
-  const _StateError() : super("StateError");
+  const _StateError(): super("StateError");
   bool matches(item, Map matchState) => item is StateError;
 }
 
@@ -626,11 +611,10 @@ class _StateError extends TypeMatcher {
 const isFallThroughError = const _FallThroughError();
 
 /** A matcher for functions that throw FallThroughError. */
-const Matcher throwsFallThroughError =
-    const Throws(isFallThroughError);
+const Matcher throwsFallThroughError = const Throws(isFallThroughError);
 
 class _FallThroughError extends TypeMatcher {
-  const _FallThroughError() : super("FallThroughError");
+  const _FallThroughError(): super("FallThroughError");
   bool matches(item, Map matchState) => item is FallThroughError;
 }
 
@@ -638,11 +622,10 @@ class _FallThroughError extends TypeMatcher {
 const isNullThrownError = const _NullThrownError();
 
 /** A matcher for functions that throw NullThrownError. */
-const Matcher throwsNullThrownError =
-    const Throws(isNullThrownError);
+const Matcher throwsNullThrownError = const Throws(isNullThrownError);
 
 class _NullThrownError extends TypeMatcher {
-  const _NullThrownError() : super("NullThrownError");
+  const _NullThrownError(): super("NullThrownError");
   bool matches(item, Map matchState) => item is NullThrownError;
 }
 
@@ -654,7 +637,7 @@ const Matcher throwsConcurrentModificationError =
     const Throws(isConcurrentModificationError);
 
 class _ConcurrentModificationError extends TypeMatcher {
-  const _ConcurrentModificationError() : super("ConcurrentModificationError");
+  const _ConcurrentModificationError(): super("ConcurrentModificationError");
   bool matches(item, Map matchState) => item is ConcurrentModificationError;
 }
 
@@ -680,7 +663,7 @@ const Matcher throwsCyclicInitializationError =
     const Throws(isCyclicInitializationError);
 
 class _CyclicInitializationError extends TypeMatcher {
-  const _CyclicInitializationError() : super("CyclicInitializationError");
+  const _CyclicInitializationError(): super("CyclicInitializationError");
   bool matches(item, Map matchState) => item is CyclicInitializationError;
 }
 
@@ -688,7 +671,7 @@ class _CyclicInitializationError extends TypeMatcher {
 const isMap = const _IsMap();
 
 class _IsMap extends TypeMatcher {
-  const _IsMap() : super("Map");
+  const _IsMap(): super("Map");
   bool matches(item, Map matchState) => item is Map;
 }
 
@@ -696,7 +679,7 @@ class _IsMap extends TypeMatcher {
 const isList = const _IsList();
 
 class _IsList extends TypeMatcher {
-  const _IsList() : super("List");
+  const _IsList(): super("List");
   bool matches(item, Map matchState) => item is List;
 }
 
@@ -704,12 +687,11 @@ class _IsList extends TypeMatcher {
  * Returns a matcher that matches if an object has a length property
  * that matches [matcher].
  */
-Matcher hasLength(matcher) =>
-    new _HasLength(wrapMatcher(matcher));
+Matcher hasLength(matcher) => new _HasLength(wrapMatcher(matcher));
 
 class _HasLength extends Matcher {
   final Matcher _matcher;
-  const _HasLength([Matcher matcher = null]) : this._matcher = matcher;
+  const _HasLength([Matcher matcher = null]): this._matcher = matcher;
 
   bool matches(item, Map matchState) {
     try {
@@ -820,7 +802,7 @@ class _In extends Matcher {
  *
  *     expect(v, predicate((x) => ((x % 2) == 0), "is even"))
  */
-Matcher predicate(Function f, [description ='satisfies function']) =>
+Matcher predicate(Function f, [description = 'satisfies function']) =>
     new _Predicate(f, description);
 
 class _Predicate extends Matcher {

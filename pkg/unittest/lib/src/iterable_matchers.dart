@@ -156,8 +156,7 @@ abstract class _IterableMatcher extends Matcher {
  *
  *  Note that this is `O(n^2)` and so should only be used on small objects.
  */
-Matcher unorderedMatches(Iterable expected) =>
-    new _UnorderedMatches(expected);
+Matcher unorderedMatches(Iterable expected) => new _UnorderedMatches(expected);
 
 class _UnorderedMatches extends Matcher {
   final List<Matcher> _expected;
@@ -166,7 +165,7 @@ class _UnorderedMatches extends Matcher {
       : _expected = expected.map(wrapMatcher).toList();
 
   String _test(item) {
-    if (item is !Iterable) return 'not iterable';
+    if (item is! Iterable) return 'not iterable';
     item = item.toList();
 
     // Check the lengths are the same.

@@ -269,13 +269,13 @@ void test(String spec, TestFunction body) {
   ensureInitialized();
   if (!_soloTestSeen || _soloNestingLevel > 0) {
     var testcase = new TestCase._internal(testCases.length + 1, _fullSpec(spec),
-                                        body);
+        body);
     _testCases.add(testcase);
   }
 }
 
 /** Convenience function for skipping a test. */
-void skip_test(String spec, TestFunction body){}
+void skip_test(String spec, TestFunction body) {}
 
 /**
  * Creates a new test case with the given description and body. The
@@ -671,8 +671,7 @@ void _ensureInitialized(bool configAutoStart) {
 }
 
 /** Select a solo test by ID. */
-void setSoloTest(int id) =>
-  _testCases.retainWhere((t) => t.id == id);
+void setSoloTest(int id) => _testCases.retainWhere((t) => t.id == id);
 
 /** Enable/disable a test by ID. */
 void _setTestEnabledState(int testId, bool state) {
@@ -713,7 +712,7 @@ bool formatStacks = true;
 bool filterStacks = true;
 
 void _requireNotRunning() {
-  if(_currentTestCaseIndex != -1) {
+  if (_currentTestCaseIndex != -1) {
     throw new StateError('Not allowed when tests are running.');
   }
 }

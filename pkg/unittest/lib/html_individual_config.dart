@@ -28,8 +28,8 @@ class HtmlIndividualConfiguration extends htmlconfig.HtmlConfiguration {
           .where((p) => p.startsWith('group='))
           .toList();
 
-      if(!groups.isEmpty) {
-        if(groups.length > 1) {
+      if (!groups.isEmpty) {
+        if (groups.length > 1) {
           throw new ArgumentError('More than one "group" parameter provided.');
         }
 

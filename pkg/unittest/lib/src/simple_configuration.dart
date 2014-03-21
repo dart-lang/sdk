@@ -56,7 +56,7 @@ class SimpleConfiguration extends Configuration {
    * The constructor sets up a failure handler for [expect] that redirects
    * [expect] failures to [onExpectFailure].
    */
-  SimpleConfiguration() : super.blank() {
+  SimpleConfiguration(): super.blank() {
     configureExpectFailureHandler(new _ExpectFailureHandler(this));
   }
 

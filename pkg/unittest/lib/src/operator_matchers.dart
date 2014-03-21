@@ -14,8 +14,7 @@ class _IsNot extends Matcher {
 
   const _IsNot(Matcher this._matcher);
 
-  bool matches(item, Map matchState) =>
-      !_matcher.matches(item, matchState);
+  bool matches(item, Map matchState) => !_matcher.matches(item, matchState);
 
   Description describe(Description description) =>
     description.add('not ').addDescriptionOf(_matcher);
