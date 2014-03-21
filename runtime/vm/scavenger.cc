@@ -279,13 +279,14 @@ class ScavengerWeakVisitor : public HandleVisitor {
          prologue_weak_were_strong_(prologue_weak_were_strong) {
   }
 
-  void VisitHandle(uword addr, bool is_prologue_weak) {
+  void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
       reinterpret_cast<FinalizablePersistentHandle*>(addr);
     RawObject** p = handle->raw_addr();
     if (scavenger_->IsUnreachable(p)) {
-      ASSERT(!is_prologue_weak || !prologue_weak_were_strong_);
-      handle->UpdateUnreachable(isolate(), is_prologue_weak);
+      ASSERT(!handle->IsPrologueWeakPersistent() ||
+             !prologue_weak_were_strong_);
+      handle->UpdateUnreachable(isolate());
     } else {
       handle->UpdateRelocated(isolate());
     }

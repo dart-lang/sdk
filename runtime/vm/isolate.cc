@@ -718,10 +718,10 @@ class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
   FinalizeWeakPersistentHandlesVisitor() : HandleVisitor(Isolate::Current()) {
   }
 
-  void VisitHandle(uword addr, bool is_prologue_weak) {
+  void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
-    handle->UpdateUnreachable(isolate(), is_prologue_weak);
+    handle->UpdateUnreachable(isolate());
   }
 
  private:
@@ -764,9 +764,8 @@ void Isolate::Shutdown() {
 
     // Finalize any weak persistent handles with a non-null referent.
     FinalizeWeakPersistentHandlesVisitor visitor;
-    api_state()->weak_persistent_handles().VisitHandles(&visitor, false);
-    api_state()->prologue_weak_persistent_handles().VisitHandles(
-        &visitor, true);
+    api_state()->weak_persistent_handles().VisitHandles(&visitor);
+    api_state()->prologue_weak_persistent_handles().VisitHandles(&visitor);
 
     CompilerStats::Print();
     if (FLAG_trace_isolates) {

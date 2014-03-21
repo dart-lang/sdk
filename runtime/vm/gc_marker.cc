@@ -301,12 +301,12 @@ class MarkingWeakVisitor : public HandleVisitor {
   MarkingWeakVisitor() : HandleVisitor(Isolate::Current()) {
   }
 
-  void VisitHandle(uword addr, bool is_prologue_weak) {
+  void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
     RawObject* raw_obj = handle->raw();
     if (IsUnreachable(raw_obj)) {
-      handle->UpdateUnreachable(isolate(), is_prologue_weak);
+      handle->UpdateUnreachable(isolate());
     }
   }
 

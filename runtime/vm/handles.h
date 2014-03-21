@@ -69,7 +69,7 @@ class HandleVisitor {
 
   Isolate* isolate() const { return isolate_; }
 
-  virtual void VisitHandle(uword addr, bool is_prologue_weak) = 0;
+  virtual void VisitHandle(uword addr) = 0;
 
  private:
   Isolate* isolate_;
@@ -104,7 +104,7 @@ class Handles {
   void VisitUnvisitedScopedHandles(ObjectPointerVisitor* visitor);
 
   // Visit all of the various handles.
-  void Visit(HandleVisitor* visitor, bool is_prologue_weak);
+  void Visit(HandleVisitor* visitor);
 
   // Reset the handles so that we can reuse.
   void Reset();
@@ -179,7 +179,7 @@ class Handles {
     void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
     // Visit all of the handles in the handle block.
-    void Visit(HandleVisitor* visitor, bool is_prologue_weak);
+    void Visit(HandleVisitor* visitor);
 
 #if defined(DEBUG)
     // Zaps the free handle area to an uninitialized value.

@@ -205,11 +205,6 @@ class FinalizablePersistentHandle {
   void set_callback(Dart_WeakPersistentHandleFinalizer callback) {
     callback_ = callback;
   }
-  Dart_WeakPersistentHandle apiPrologueHandle() {
-    uword addr = reinterpret_cast<uword>(this);
-    return reinterpret_cast<Dart_WeakPersistentHandle>(
-        addr | kPrologueWeakPersistentTag);
-  }
   Dart_WeakPersistentHandle apiHandle() {
     return reinterpret_cast<Dart_WeakPersistentHandle>(this);
   }
@@ -226,9 +221,9 @@ class FinalizablePersistentHandle {
   }
 
   // Called when the referent becomes unreachable.
-  void UpdateUnreachable(Isolate* isolate, bool is_prologue_weak) {
+  void UpdateUnreachable(Isolate* isolate) {
     EnsureFreeExternal(isolate);
-    Finalize(isolate, this, is_prologue_weak);
+    Finalize(isolate, this);
   }
 
   // Called when the referent has moved, potentially between generations.
@@ -247,27 +242,34 @@ class FinalizablePersistentHandle {
     set_external_size(0);
   }
 
-  static bool IsPrologueWeakPersistentHandle(Dart_WeakPersistentHandle handle) {
-    uword addr = reinterpret_cast<uword>(handle);
-    return (addr & kWeakPersistentTagMask) == kPrologueWeakPersistentTag;
+  bool IsPrologueWeakPersistent() {
+    return PrologueWeakBit::decode(external_data_);
   }
+
+  void SetPrologueWeakPersistent(bool value) {
+    external_data_ = PrologueWeakBit::update(value, external_data_);
+  }
+
   static FinalizablePersistentHandle* Cast(Dart_WeakPersistentHandle handle);
 
  private:
   enum {
-    kWeakPersistentTag = 0,
-    kPrologueWeakPersistentTag = 1,
-    kWeakPersistentTagSize = 1,
-    kWeakPersistentTagMask = 1,
+    kExternalNewSpaceBit = 0,
+    kPrologueWeakBit = 1,
+    kExternalSizeBits = 2,
+    kExternalSizeBitsSize = (kBitsPerWord - 2),
   };
 
   // This part of external_data_ is the number of externally allocated bytes.
   // TODO(koda): Measure size in words instead.
-  class ExternalSizeBits : public BitField<intptr_t, 1, kBitsPerWord - 1> {};
+  class ExternalSizeBits : public BitField<intptr_t,
+                                           kExternalSizeBits,
+                                           kExternalSizeBitsSize> {};  // NOLINT
   // This bit of external_data_ is true if the referent was created in new
   // space and UpdateRelocated has not yet detected any promotion.
-  class ExternalNewSpaceBit : public BitField<bool, 0, 1> {};
-  // TODO(koda): Use bitfield also for the prologue tag.
+  class ExternalNewSpaceBit : public BitField<bool, kExternalNewSpaceBit, 1> {};
+  // This bit is used to indicate that it is a prologue weak persistent handle.
+  class PrologueWeakBit : public BitField<bool, kPrologueWeakBit, 1> {};
 
   friend class FinalizablePersistentHandles;
 
@@ -278,9 +280,7 @@ class FinalizablePersistentHandle {
         callback_(NULL) { }
   ~FinalizablePersistentHandle() { }
 
-  static void Finalize(Isolate* isolate,
-                       FinalizablePersistentHandle* handle,
-                       bool is_prologue_weak);
+  static void Finalize(Isolate* isolate, FinalizablePersistentHandle* handle);
 
   // Overload the raw_ field as a next pointer when adding freed
   // handles to the free list.
@@ -308,6 +308,7 @@ class FinalizablePersistentHandle {
   }
 
   void set_external_size(intptr_t size) {
+    ASSERT(ExternalSizeBits::is_valid(size));
     external_data_ = ExternalSizeBits::update(size, external_data_);
   }
 
@@ -509,11 +510,11 @@ class FinalizablePersistentHandles
   void set_free_list(FinalizablePersistentHandle* value) { free_list_ = value; }
 
   // Visit all handles stored in the various handle blocks.
-  void VisitHandles(HandleVisitor* visitor, bool is_prologue_weak) {
+  void VisitHandles(HandleVisitor* visitor) {
     Handles<kFinalizablePersistentHandleSizeInWords,
             kFinalizablePersistentHandlesPerChunk,
             kOffsetOfRawPtrInFinalizablePersistentHandle>::Visit(
-                visitor, is_prologue_weak);
+                visitor);
   }
 
   // Visit all object pointers stored in the various handles.
@@ -751,9 +752,9 @@ class ApiState {
 
   void VisitWeakHandles(HandleVisitor* visitor,
                         bool visit_prologue_weak_handles) {
-    weak_persistent_handles().VisitHandles(visitor, false);
+    weak_persistent_handles().VisitHandles(visitor);
     if (visit_prologue_weak_handles) {
-      prologue_weak_persistent_handles().VisitHandles(visitor, true);
+      prologue_weak_persistent_handles().VisitHandles(visitor);
     }
   }
 
