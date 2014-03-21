@@ -47,16 +47,10 @@ class ServeCommand extends PubCommand {
   final _completer = new Completer();
 
   ServeCommand() {
+    commandParser.addOption('hostname', defaultsTo: 'localhost',
+        help: 'The hostname to listen on.');
     commandParser.addOption('port', defaultsTo: '8080',
         help: 'The base port to listen on.');
-
-    // A hidden option for the tests to work around a bug in some of the OS X
-    // bots where "localhost" very rarely resolves to the IPv4 loopback address
-    // instead of IPv6 (or vice versa). The tests will always set this to
-    // 127.0.0.1.
-    commandParser.addOption('hostname',
-                            defaultsTo: 'localhost',
-                            hide: true);
 
     // TODO(rnystrom): A hidden option to print the URL that the admin server
     // is bound to on startup. Since this is currently only used for the Web
