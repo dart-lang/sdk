@@ -288,6 +288,7 @@ class _IsolateContext implements IsolateContext {
    * event queue is paused.
    */
   var _scheduledControlEvents;
+  bool _isExecutingEvent = false;
 
   /** Whether errors are considered fatal. */
   // This doesn't do anything yet. We need to be able to catch uncaught errors
@@ -343,7 +344,7 @@ class _IsolateContext implements IsolateContext {
   void handlePing(SendPort responsePort, int pingType) {
     if (pingType == Isolate.IMMEDIATE ||
         (pingType == Isolate.BEFORE_NEXT_EVENT &&
-         !identical(_globalState.currentContext, this))) {
+         !_isExecutingEvent)) {
       responsePort.send(null);
       return;
     }
@@ -363,7 +364,7 @@ class _IsolateContext implements IsolateContext {
     if (this.terminateCapability != authentification) return;
     if (priority == Isolate.IMMEDIATE ||
         (priority == Isolate.BEFORE_NEXT_EVENT &&
-         !identical(_globalState.currentContext, this))) {
+         !_isExecutingEvent)) {
       kill();
       return;
     }
@@ -386,9 +387,11 @@ class _IsolateContext implements IsolateContext {
     _globalState.currentContext = this;
     this._setGlobals();
     var result = null;
+    _isExecutingEvent = true;
     try {
       result = code();
     } finally {
+      _isExecutingEvent = false;
       _globalState.currentContext = old;
       if (old != null) old._setGlobals();
       if (_scheduledControlEvents != null) {
