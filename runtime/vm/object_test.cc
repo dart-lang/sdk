@@ -4058,4 +4058,35 @@ TEST_CASE(ToUserCString) {
   EXPECT_STREQ("Instance of '_LinkedHashMap'", obj.ToUserCString());
 }
 
+
+class JSONTypeVerifier : public ObjectVisitor {
+ public:
+  JSONTypeVerifier() : ObjectVisitor(Isolate::Current()) {}
+  virtual ~JSONTypeVerifier() { }
+  virtual void VisitObject(RawObject* obj) {
+    // Free-list elements cannot even be wrapped in handles.
+    if (obj->IsFreeListElement()) {
+      return;
+    }
+    Object& handle = Object::Handle(obj);
+    // Skip some common simple objects to run in reasonable time.
+    if (handle.IsString() ||
+        handle.IsArray() ||
+        handle.IsLiteralToken()) {
+      return;
+    }
+    JSONStream js;
+    handle.PrintToJSONStream(&js, false);
+    // TODO(koda): When all objects include a "type" field, expect that here.
+  }
+};
+
+
+TEST_CASE(PrintToJSONStream) {
+  Heap* heap = Isolate::Current()->heap();
+  heap->CollectAllGarbage();
+  JSONTypeVerifier verifier;
+  heap->IterateObjects(&verifier);
+}
+
 }  // namespace dart

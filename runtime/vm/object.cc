@@ -4038,7 +4038,7 @@ RawString* TypeArguments::SubvectorName(intptr_t from_index,
                                         NameVisibility name_visibility) const {
   ASSERT(from_index + len <= Length());
   String& name = String::Handle();
-  const intptr_t num_strings = 2*len + 1;  // "<""T"", ""T"">".
+  const intptr_t num_strings = (len == 0) ? 2 : 2*len + 1;  // "<""T"", ""T"">".
   const Array& strings = Array::Handle(Array::New(num_strings));
   intptr_t s = 0;
   strings.SetAt(s++, Symbols::LAngleBracket());
@@ -6327,7 +6327,12 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
     id = cls.FindFunctionIndex(*this);
     selector = "functions";
   }
-  ASSERT(id >= 0);
+  // TODO(17697): Oddball functions are treated as plain objects and use the
+  // object id ring. Current known examples are signature functions of closures
+  // and stubs like 'megamorphic_miss'.
+  if (id < 0) {
+    return Object::PrintToJSONStream(stream, ref);
+  }
   intptr_t cid = cls.id();
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
@@ -13482,6 +13487,10 @@ const char* Type::ToCString() const {
 
 
 void Type::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  // TODO(koda): Decide whether to assign stable ids to non-canonical types.
+  if (!IsCanonical()) {
+    return Object::PrintToJSONStream(stream, ref);
+  }
   ASSERT(IsCanonical());
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
@@ -16757,9 +16766,8 @@ void Array::PrintToJSONStream(JSONStream* stream, bool ref) const {
       JSONObject jselement(&jsarr);
       jselement.AddProperty("index", index);
 
-      Instance& instance = Instance::Handle();
-      instance ^= At(index);
-      jselement.AddProperty("value", instance);
+      Object& element = Object::Handle(At(index));
+      jselement.AddProperty("value", element);
     }
   }
 }
@@ -17097,9 +17105,8 @@ void GrowableObjectArray::PrintToJSONStream(JSONStream* stream,
       JSONObject jselement(&jsarr);
       jselement.AddProperty("index", index);
 
-      Instance& instance = Instance::Handle();
-      instance ^= At(index);
-      jselement.AddProperty("value", instance);
+      Object& element = Object::Handle(At(index));
+      jselement.AddProperty("value", element);
     }
   }
 }
