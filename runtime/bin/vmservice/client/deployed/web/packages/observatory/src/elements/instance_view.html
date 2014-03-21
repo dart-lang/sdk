@@ -1,0 +1,135 @@
+<head>
+  <link rel="import" href="class_ref.html">
+  <link rel="import" href="error_view.html">
+  <link rel="import" href="eval_box.html">
+  <link rel="import" href="field_ref.html">
+  <link rel="import" href="instance_ref.html">
+  <link rel="import" href="observatory_element.html">
+  <link rel="import" href="nav_bar.html">
+</head>
+<polymer-element name="instance-view" extends="observatory-element">
+  <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ instance.isolate }}"></isolate-nav-menu>
+      <!-- TODO(turnidge): Add library nav menu here. -->
+      <class-nav-menu cls="{{ instance['class'] }}"></class-nav-menu>
+      <nav-menu link="." anchor="instance" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <style>
+      .content {
+        padding-left: 10%;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      h1 {
+        font: 400 18px 'Montserrat', sans-serif;
+      }
+      .memberList {
+        display: table;
+      }
+      .memberItem {
+        display: table-row;
+      }
+      .memberName, .memberValue {
+        display: table-cell;
+        vertical-align: top;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+    </style>
+
+    <template if="{{ instance['error'] != null }}">
+      <error-view error_obj="{{ instance['error'] }}"></error-view>
+    </template>
+
+    <template if="{{ instance['error'] == null }}">
+      <div class="content">
+        <!-- TODO(turnidge): Handle null instances. -->
+        <h1>instance of {{ instance['class']['user_name'] }}</h1>
+        <div class="memberList">
+          <div class="memberItem">
+            <div class="memberName">class</div>
+            <div class="memberValue">
+              <class-ref ref="{{ instance['class'] }}">
+              </class-ref>
+            </div>
+          </div>
+          <template if="{{ instance['preview'] != null }}">
+            <div class="memberItem">
+              <div class="memberName">preview</div>
+              <div class="memberValue">{{ instance['preview'] }}</div>
+            </div>
+          </template>
+          <div class="memberItem">
+            <div class="memberName">size</div>
+            <div class="memberValue">{{ instance['size'] | formatSize }}</div>
+          </div>
+        </div>
+      </div>
+
+      <hr>
+
+      <div class="content">
+        <template if="{{ instance['fields'].isNotEmpty }}">
+          fields ({{ instance['fields'].length }})
+          <curly-block>
+            <div class="memberList">
+              <template repeat="{{ field in instance['fields'] }}">
+                <div class="memberItem">
+                  <div class="memberName">
+                    <field-ref ref="{{ field['decl'] }}"></field-ref>
+                  </div>
+                  <div class="memberValue">
+                    <instance-ref ref="{{ field['value'] }}"></instance-ref>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </curly-block>
+        </template>
+
+        <template if="{{ instance['nativeFields'].isNotEmpty }}">
+          native fields ({{ instance['nativeFields'].length }})
+          <curly-block>
+            <div class="memberList">
+              <template repeat="{{ field in instance['nativeFields'] }}">
+                <div class="memberItem">
+                  <div class="memberName">[{{ field['index']}}]</div>
+                  <div class="memberValue">[{{ field['value']}}]</div>
+                </div>
+              </template>
+            </div>
+          </curly-block><br>
+        </template>
+
+        <template if="{{ instance['elements'].isNotEmpty }}">
+          elements ({{ instance['elements'].length }})
+          <curly-block>
+            <div class="memberList">
+              <template repeat="{{ element in instance['elements'] }}">
+                <div class="memberItem">
+                  <div class="memberName">[{{ element['index']}}]</div>
+                  <div class="memberValue">
+                    <instance-ref ref="{{ element['value'] }}">
+                    </instance-ref>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </curly-block><br>
+        </template>
+      </div>
+
+      <hr>
+
+      <div class="content">
+        <eval-box callback="{{ eval }}"></eval-box>
+      </div>
+      <br><br><br><br>
+      <br><br><br><br>
+    </template>
+  </template>
+  <script type="application/dart" src="instance_view.dart"></script>
+</polymer-element>

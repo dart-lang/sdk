@@ -1,13 +1,17 @@
 Dart Observatory Developer Guide
 ---
 
+Assumptions:
+You are running pub from the latest dev channel release of Dart Editor.
+
 During development you do not need to run dart2js or rebuild the VM (unless
 you are also making changes to the backend). While you're working on your
 feature follow the steps:
 
 1. Open runtime/bin/vmservice/client in the Dart Editor
-2. Launch dart --enable-vm-service with a long running script in a terminal
-3. Launch web/index.html in Dartium
+2. Run pub upgrade
+3. Launch dart --enable-vm-service --pause-isolates-on-exit script.dart
+4. Launch web/index.html in Dartium
 
 At this point you should see the initial Observatory UI and that
 it is communicating with the VM you launched in step 2.
@@ -15,15 +19,18 @@ it is communicating with the VM you launched in step 2.
 Continue to develop and iterate until you're ready to upload your change
 for review. Upload your change and get an LGTM.
 
-4. Run dart build_.dart
-5. Run ./precommit.sh
+5. Run pub build
+6. Run ./deploy.sh
+7. If you have added new resource files (images, html files) you must run
+resources.sh and use its output to update resources_sources.gypi (Standalone)
+and devtools.gypi (Dartium).
 
 At this point you should rebuild your VM and using the build:
 
-6. Launch dart --enable-vm-service with a long running script.
+8. Launch dart --enable-vm-service --pause-isolates-on-exit script.dart
 
 In a non-Dart enabled browser navigate to localhost:8181 and ensure
 that your feature works after being compiled to JavaScript.
 
-7. Commit your change
+9. Commit your change
 
