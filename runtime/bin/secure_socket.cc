@@ -444,7 +444,7 @@ void SSLFilter::Init(Dart_Handle dart_this) {
   ASSERT(bad_certificate_callback_ != NULL);
 
   InitializeBuffers(dart_this);
-  filter_ = memio_CreateIOLayer(kMemioBufferSize);
+  filter_ = memio_CreateIOLayer(kMemioBufferSize, kMemioBufferSize);
 }
 
 
