@@ -15,6 +15,7 @@ import 'package:stack_trace/stack_trace.dart';
 import '../barback.dart';
 import '../log.dart' as log;
 import '../utils.dart';
+import 'base_server.dart';
 import 'build_environment.dart';
 import 'web_socket_api.dart';
 
@@ -22,16 +23,7 @@ import 'web_socket_api.dart';
 typedef bool AllowAsset(AssetId id);
 
 /// A server that serves assets transformed by barback.
-class BarbackServer {
-  /// The [BuildEnvironment] being served.
-  final BuildEnvironment _environment;
-
-  /// The underlying HTTP server.
-  final HttpServer _server;
-
-  /// All currently open [WebSocket] connections.
-  final _webSockets = new Set<WebSocket>();
-
+class BarbackServer extends BaseServer<BarbackServerResult> {
   /// The directory in the root which will serve as the root of this server as
   /// a native platform path.
   ///
@@ -39,15 +31,6 @@ class BarbackServer {
   /// served and only assets in public directories ("packages" and "assets")
   /// are available.
   final String rootDirectory;
-
-  /// The server's port.
-  final int port;
-
-  /// The server's address.
-  final InternetAddress address;
-
-  /// The server's base URL.
-  Uri get url => baseUrlForAddress(address, port);
 
   /// Optional callback to determine if an asset should be served.
   ///
@@ -58,14 +41,10 @@ class BarbackServer {
   /// If this is `null`, all assets may be served.
   AllowAsset allowAsset;
 
-  /// The results of requests handled by the server.
-  ///
-  /// These can be used to provide visual feedback for the server's processing.
-  /// This stream is also used to emit any programmatic errors that occur in the
-  /// server.
-  Stream<BarbackServerResult> get results => _resultsController.stream;
-  final _resultsController =
-      new StreamController<BarbackServerResult>.broadcast();
+  // TODO(rnystrom): Remove this when the Editor is using the admin server.
+  // port. See #17640.
+  /// All currently open [WebSocket] connections.
+  final _webSockets = new Set<WebSocket>();
 
   /// Creates a new server and binds it to [port] of [host].
   ///
@@ -79,19 +58,15 @@ class BarbackServer {
     });
   }
 
-  BarbackServer._(this._environment, HttpServer server, this.rootDirectory)
-      : _server = server,
-        port = server.port,
-        address = server.address {
-    Chain.track(_server).listen(_handleRequest, onError: (error, stackTrace) {
-      _resultsController.addError(error, stackTrace);
-      close();
-    });
-  }
+  BarbackServer._(BuildEnvironment environment, HttpServer server,
+      this.rootDirectory)
+      : super(environment, server);
 
-  /// Closes this server.
+  // TODO(rnystrom): Remove this when the Editor is using the admin server.
+  // port. See #17640.
+  /// Closes the server.
   Future close() {
-    var futures = [_server.close(), _resultsController.close()];
+    var futures = [super.close()];
     futures.addAll(_webSockets.map((socket) => socket.close()));
     return Future.wait(futures);
   }
@@ -115,18 +90,20 @@ class BarbackServer {
     if (parts.isNotEmpty && parts.first == "/") parts = parts.skip(1);
 
     var relativePath = path.url.join(rootDirectory, path.url.joinAll(parts));
-    return new AssetId(_environment.rootPackage.name, relativePath);
+    return new AssetId(environment.rootPackage.name, relativePath);
   }
 
   /// Handles an HTTP request.
-  void _handleRequest(HttpRequest request) {
+  void handleRequest(HttpRequest request) {
+    // TODO(rnystrom): Remove this when the Editor is using the admin server.
+    // port. See #17640.
     if (WebSocketTransformer.isUpgradeRequest(request)) {
       _handleWebSocket(request);
       return;
     }
 
     if (request.method != "GET" && request.method != "HEAD") {
-      _methodNotAllowed(request);
+      methodNotAllowed(request);
       return;
     }
 
@@ -136,30 +113,30 @@ class BarbackServer {
     } on FormatException catch (ex) {
       // If we got here, we had a path like "/packages" which is a special
       // directory, but not a valid path since it lacks a following package name.
-      _notFound(request, ex.message);
+      notFound(request, ex.message);
       return;
     }
 
     // See if the asset should be blocked.
     if (allowAsset != null && !allowAsset(id)) {
-      _notFound(request, "Asset $id is not available in this configuration.");
+      notFound(request, "Asset $id is not available in this configuration.");
       return;
     }
 
-    _logRequest(request, "Loading $id");
-    _environment.barback.getAssetById(id).then((result) {
-      _logRequest(request, "getAssetById($id) returned");
+    logRequest(request, "Loading $id");
+    environment.barback.getAssetById(id).then((result) {
+      logRequest(request, "getAssetById($id) returned");
       return result;
     }).then((asset) => _serveAsset(request, asset)).catchError((error, trace) {
       if (error is! AssetNotFoundException) throw error;
-      return _environment.barback.getAssetById(id.addExtension("/index.html"))
+      return environment.barback.getAssetById(id.addExtension("/index.html"))
           .then((asset) {
         if (request.uri.path.endsWith('/')) return _serveAsset(request, asset);
 
         // We only want to serve index.html if the URL explicitly ends in a
         // slash. For other URLs, we redirect to one with the slash added to
         // implicitly support that too. This follows Apache's behavior.
-        _logRequest(request, "302 Redirect to ${request.uri}/");
+        logRequest(request, "302 Redirect to ${request.uri}/");
         request.response.statusCode = 302;
         request.response.headers.add('location', '${request.uri}/');
         request.response.close();
@@ -171,17 +148,30 @@ class BarbackServer {
     }).catchError((error, trace) {
       if (error is! AssetNotFoundException) {
         trace = new Chain.forTrace(trace);
-        _logRequest(request, "$error\n$trace");
+        logRequest(request, "$error\n$trace");
 
-        _resultsController.addError(error, trace);
+        addError(error, trace);
         close();
         return;
       }
 
-      _resultsController.add(
-          new BarbackServerResult._failure(request.uri, id, error));
-      _notFound(request, error);
+      addResult(new BarbackServerResult._failure(request.uri, id, error));
+      notFound(request, error);
     });
+  }
+
+  // TODO(rnystrom): Remove this when the Editor is using the admin server.
+  // port. See #17640.
+  /// Creates a web socket for [request] which should be an upgrade request.
+  void _handleWebSocket(HttpRequest request) {
+    Chain.track(WebSocketTransformer.upgrade(request)).then((socket) {
+      _webSockets.add(socket);
+      var api = new WebSocketApi(socket, environment);
+
+      return api.listen().whenComplete(() {
+        _webSockets.remove(api);
+      });
+    }).catchError(addError);
   }
 
   /// Serves the body of [asset] on [request]'s response stream.
@@ -190,8 +180,7 @@ class BarbackServer {
   /// written.
   Future _serveAsset(HttpRequest request, Asset asset) {
     return validateStream(asset.read()).then((stream) {
-      _resultsController.add(
-          new BarbackServerResult._success(request.uri, asset.id));
+      addResult(new BarbackServerResult._success(request.uri, asset.id));
       var mimeType = lookupMimeType(asset.id.path);
       if (mimeType != null) {
         request.response.headers.add('content-type', mimeType);
@@ -201,23 +190,22 @@ class BarbackServer {
         // Log successful requests both so we can provide debugging
         // information and so scheduled_test knows we haven't timed out while
         // loading transformers.
-        _logRequest(request, "Served ${asset.id}");
+        logRequest(request, "Served ${asset.id}");
         request.response.close();
       });
     }).catchError((error, trace) {
-      _resultsController.add(
-          new BarbackServerResult._failure(request.uri, asset.id, error));
+      addResult(new BarbackServerResult._failure(request.uri, asset.id, error));
 
       // If we couldn't read the asset, handle the error gracefully.
       if (error is FileSystemException) {
         // Assume this means the asset was a file-backed source asset
         // and we couldn't read it, so treat it like a missing asset.
-        _notFound(request, error);
+        notFound(request, error);
         return;
       }
 
       trace = new Chain.forTrace(trace);
-      _logRequest(request, "$error\n$trace");
+      logRequest(request, "$error\n$trace");
 
       // Otherwise, it's some internal error.
       request.response.statusCode = 500;
@@ -226,48 +214,6 @@ class BarbackServer {
       request.response.close();
     });
   }
-
-  /// Creates a web socket for [request] which should be an upgrade request.
-  void _handleWebSocket(HttpRequest request) {
-    Chain.track(WebSocketTransformer.upgrade(request)).then((socket) {
-      _webSockets.add(socket);
-      var api = new WebSocketApi(socket, _environment);
-
-      return api.listen().whenComplete(() {
-        _webSockets.remove(api);
-      });
-    }).catchError(_resultsController.addError);
-  }
-
-  /// Responds to [request] with a 405 response and closes it.
-  void _methodNotAllowed(HttpRequest request) {
-    _logRequest(request, "405 Method Not Allowed");
-    request.response.statusCode = 405;
-    request.response.reasonPhrase = "Method Not Allowed";
-    request.response.headers.add('Allow', 'GET, HEAD');
-    request.response.write(
-        "The ${request.method} method is not allowed for ${request.uri}.");
-    request.response.close();
-  }
-
-  /// Responds to [request] with a 404 response and closes it.
-  void _notFound(HttpRequest request, message) {
-    _logRequest(request, "404 Not Found");
-
-    // Force a UTF-8 encoding so that error messages in non-English locales are
-    // sent correctly.
-    request.response.headers.contentType =
-        ContentType.parse("text/plain; charset=utf-8");
-
-    request.response.statusCode = 404;
-    request.response.reasonPhrase = "Not Found";
-    request.response.write(message);
-    request.response.close();
-  }
-
-  /// Log [message] at [log.Level.FINE] with metadata about [request].
-  void _logRequest(HttpRequest request, String message) =>
-    log.fine("BarbackServer ${request.method} ${request.uri}\n$message");
 }
 
 /// The result of the server handling a URL.

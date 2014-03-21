@@ -17,7 +17,7 @@ import 'dart2js_transformer.dart';
 import 'excluding_transformer.dart';
 import 'load_transformers.dart';
 import 'rewrite_import_transformer.dart';
-import 'server.dart';
+import 'barback_server.dart';
 
 /// Loads all transformers depended on by packages in [environment].
 ///

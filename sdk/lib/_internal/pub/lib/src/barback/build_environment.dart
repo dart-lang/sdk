@@ -17,12 +17,13 @@ import '../io.dart';
 import '../log.dart' as log;
 import '../package.dart';
 import '../package_graph.dart';
+import 'admin_server.dart';
 import 'build_directory.dart';
 import 'dart_forwarding_transformer.dart';
 import 'dart2js_transformer.dart';
 import 'load_all_transformers.dart';
 import 'pub_package_provider.dart';
-import 'server.dart';
+import 'barback_server.dart';
 
 /// The entire "visible" state of the assets of a package and all of its
 /// dependencies, taking into account the user's configuration when running pub.
@@ -66,6 +67,9 @@ class BuildEnvironment {
           .then((_) => environment);
     });
   }
+
+  /// The server for the Web Socket API and admin interface.
+  AdminServer _adminServer;
 
   /// The public directories in the root package that are available for
   /// building, keyed by their root directory.
@@ -130,6 +134,21 @@ class BuildEnvironment {
     if (_builtInTransformers.isEmpty) return null;
 
     return _builtInTransformers;
+  }
+
+  /// Starts up the admin server on an appropriate port and returns it.
+  ///
+  /// This may only be called once on the build environment.
+  Future<AdminServer> startAdminServer() {
+    // Can only start once.
+    assert(_adminServer == null);
+
+    // The admin server is bound to one before the base port, unless it's
+    // ephemeral in which case the admin port is too.
+    var port = _basePort == 0 ? 0 : _basePort - 1;
+
+    return AdminServer.bind(this, _hostname, port)
+        .then((server) => _adminServer = server);
   }
 
   /// Binds a new port to serve assets from within [rootDirectory] in the
