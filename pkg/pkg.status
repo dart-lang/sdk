@@ -165,6 +165,7 @@ polymer/example/canonicalization2: Skip
 polymer/example/canonicalization3: Skip
 
 [ $compiler == dart2js && $csp ]
+matcher/test/mirror_matchers_test: Skip # Issue 12151
 unittest/test/mirror_matchers_test: Skip # Issue 12151
 polymer/test/noscript_test: Fail # Issue 17326
 polymer/test/js_interop_test: Fail # Issue 17326
@@ -176,6 +177,8 @@ mutation_observer: Skip
 # The unminified unittest tests test that the real names of Dart types are
 # printed. Minified versions of these tests exist that test the behavior when
 # minified.
+matcher/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
+matcher/test/mirror_matchers_test: Fail # Issue 15405
 unittest/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
 unittest/test/mirror_matchers_test: Fail # Issue 15405
 
@@ -255,6 +258,7 @@ polymer/test/unbind_test: Pass, Fail # Issue 15259
 # The minified unittest tests test that the minified names of Dart types are
 # printed. Unminified versions of these tests exist that test the behavior when
 # not minified.
+matcher/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
 unittest/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
 
 [ $arch == mips ]
@@ -342,6 +346,7 @@ docgen/test/multi_library_test: StaticWarning # Issue 16950
 docgen/test/only_lib_content_in_pkg_test: StaticWarning # Issue 16950
 docgen/test/single_library_test: StaticWarning # Issue 16950
 docgen/test/typedef_test: StaticWarning # Issue 16950
+matcher/test/matchers_test: StaticWarning, OK # testing error creating abstract class
 unittest/test/matchers_test: StaticWarning, OK # testing error creating abstract class
 
 [ $runtime == vm && ($system == windows || $system == macos) ]
