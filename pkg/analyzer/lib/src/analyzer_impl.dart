@@ -153,6 +153,8 @@ class AnalyzerImpl {
     });
   }
 
+  bool _excludeTodo(AnalysisError error) => error.errorCode.type != ErrorType.TODO;
+
   _printErrorsAndPerf() {
     // The following is a hack. We currently print out to stderr to ensure that
     // when in batch mode we print to stderr, this is because the prints from
@@ -163,7 +165,7 @@ class AnalyzerImpl {
     IOSink sink = options.machineFormat ? stderr : stdout;
 
     // print errors
-    ErrorFormatter formatter = new ErrorFormatter(sink, options);
+    ErrorFormatter formatter = new ErrorFormatter(sink, options, _excludeTodo);
     formatter.formatErrors(errorInfos);
 
     // print performance numbers
