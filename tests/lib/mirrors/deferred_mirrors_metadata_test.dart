@@ -5,13 +5,9 @@ library main;
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
-import "dart:async";
 import "dart:math";
 
-@l import 'deferred_mirrors_metadata_lib.dart' as lib1;
-
-const l = const DeferredLibrary("lib1");
-
+import 'deferred_mirrors_metadata_lib.dart' deferred as lib1;
 
 class A {
   final B b;
@@ -31,7 +27,7 @@ class C {
 
 void main() {
   asyncStart();
-  l.load().then((_) {
+  lib1.loadLibrary().then((_) {
     Expect.equals("ABC", lib1.foo());
     asyncEnd();
   });

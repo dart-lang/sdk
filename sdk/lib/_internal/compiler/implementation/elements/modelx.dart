@@ -76,6 +76,7 @@ abstract class ElementX implements Element {
     return enclosingElement != null && enclosingElement.isClass();
   }
   bool isInstanceMember() => false;
+  bool isDeferredLoaderGetter() => false;
 
   bool isFactoryConstructor() => modifiers.isFactory();
   bool isGenerativeConstructor() =>
@@ -697,6 +698,12 @@ class ImportScope {
     Importers importers = library.importers;
 
     String name = element.name;
+
+    // The loadLibrary function always shadows existing bindings to that name.
+    if (element.isDeferredLoaderGetter()) {
+      importScope.remove(name);
+      // TODO(sigurdm): Print a hint.
+    }
     Element existing = importScope.putIfAbsent(name, () => element);
     importers.registerImport(element, import);
 
@@ -1026,7 +1033,11 @@ class PrefixElementX extends ElementX implements PrefixElement {
 
   final ImportScope importScope = new ImportScope();
 
-  bool isDeferred = false;
+  bool get isDeferred => _deferredImport != null;
+
+  // Only needed for deferred imports.
+  Import _deferredImport;
+  Import get deferredImport => _deferredImport;
 
   PrefixElementX(String prefix, Element enclosing, this.firstPosition)
       : super(prefix, ElementKind.PREFIX, enclosing);
@@ -1043,8 +1054,8 @@ class PrefixElementX extends ElementX implements PrefixElement {
 
   accept(ElementVisitor visitor) => visitor.visitPrefixElement(this);
 
-  void markAsDeferred() {
-    isDeferred = true;
+  void markAsDeferred(Import deferredImport) {
+    _deferredImport = deferredImport;
   }
 }
 
@@ -1648,6 +1659,44 @@ class FunctionElementX extends ElementX with AnalyzableElement
   }
 
   accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
+}
+
+class DeferredLoaderGetterElementX extends FunctionElementX {
+
+  final PrefixElement prefix;
+
+  DeferredLoaderGetterElementX(PrefixElement prefix)
+      : this.prefix = prefix,
+        super("loadLibrary",
+              ElementKind.FUNCTION,
+              Modifiers.EMPTY,
+              prefix, true);
+
+  FunctionSignature computeSignature(Compiler compiler) {
+    if (functionSignatureCache != null) return functionSignature;
+    compiler.withCurrentElement(this, () {
+      DartType inner = new FunctionType(this, compiler.types.dynamicType);
+      functionSignatureCache = new FunctionSignatureX(const Link(),
+          const Link(), 0, 0, false, [], inner);
+    });
+    return functionSignatureCache;
+  }
+
+  bool isMember() => false;
+
+  bool isForeign(Compiler compiler) => true;
+
+  bool get isSynthesized => true;
+
+  bool isFunction() => false;
+
+  bool isDeferredLoaderGetter() => true;
+
+  bool isGetter() => true;
+
+  // By having position null, the enclosing elements location is printed in
+  // error messages.
+  Token position() => null;
 }
 
 class ConstructorBodyElementX extends FunctionElementX

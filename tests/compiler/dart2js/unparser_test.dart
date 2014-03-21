@@ -203,6 +203,13 @@ testCombinators() {
   testUnparseTopLevelWithMetadata('export "søhest" hide a,show hide a,show;');
 }
 
+testDeferredImport() {
+  testUnparseTopLevelWithMetadata('import "lib.dart" as a;');
+  testUnparseTopLevelWithMetadata('import "lib.dart" deferred as a;');
+  testUnparseTopLevelWithMetadata('import "lib.dart" deferred as a show b;');
+  testUnparseTopLevelWithMetadata('import "lib.dart" deferred as a hide b;');
+}
+
 testUnparseMemberAndAsMemberOfFoo(String code) {
   testUnparseMember(code);
   testUnparseTopLevelWithMetadata('class Foo{$code}');
@@ -380,6 +387,7 @@ main() {
   testPart();
   testPartOf();
   testCombinators();
+  testDeferredImport();
   testRedirectingFactoryConstructors();
   testClassDeclarations();
   testMixinApplications();

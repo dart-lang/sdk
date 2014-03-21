@@ -5,6 +5,13 @@
 library _js_helper;
 
 import 'dart:collection';
+import 'dart:_isolate_helper' show
+    IsolateNatives,
+    leaveJsAsync,
+    enterJsAsync,
+    isWorker;
+
+import 'dart:async' show Future, DeferredLoadException, Completer;
 
 import 'dart:_foreign_helper' show
     DART_CLOSURE_TO_JS,
@@ -3155,4 +3162,123 @@ int random64() {
  */
 String getIsolateAffinityTag(String name) {
   return JS('String', 'init.getIsolateTag(#)', name);
+}
+
+typedef Future<bool> LoadLibraryFunctionType();
+
+LoadLibraryFunctionType _loadLibraryWrapper(String loadId) {
+  return () => loadDeferredLibrary(loadId);
+}
+
+final Map<String, Future<bool>> _loadedLibraries = <String, Future<bool>>{};
+
+Future<bool> loadDeferredLibrary(String loadId, [String uri]) {
+  List hunkNames = new List();
+  if (JS('bool', '\$.libraries_to_load[#] === undefined', loadId)) {
+    return new Future(() => false);
+  }
+  for (int index = 0;
+       index < JS('int', '\$.libraries_to_load[#].length', loadId);
+       ++index) {
+    hunkNames.add(JS('String', '\$.libraries_to_load[#][#]',
+                     loadId, index));
+  }
+  Iterable<Future<bool>> allLoads =
+      hunkNames.map((hunkName) => _loadHunk(hunkName, uri));
+  return Future.wait(allLoads).then((results) {
+    return results.any((x) => x);
+  });
+}
+
+Future<bool> _loadHunk(String hunkName, String uri) {
+  // TODO(ahe): Validate libraryName.  Kasper points out that you want
+  // to be able to experiment with the effect of toggling @DeferLoad,
+  // so perhaps we should silently ignore "bad" library names.
+  Future<bool> future = _loadedLibraries[hunkName];
+  if (future != null) {
+    return future.then((_) => false);
+  }
+
+  if (uri == null) {
+    uri = IsolateNatives.thisScript;
+  }
+  int index = uri.lastIndexOf('/');
+  uri = '${uri.substring(0, index + 1)}$hunkName';
+
+  if (Primitives.isJsshell || Primitives.isD8) {
+    // TODO(ahe): Move this code to a JavaScript command helper script that is
+    // not included in generated output.
+    return _loadedLibraries[hunkName] = new Future<bool>(() {
+      try {
+        // Create a new function to avoid getting access to current function
+        // context.
+        JS('void', '(new Function(#))()', 'load("$uri")');
+      } catch (error, stackTrace) {
+        throw new DeferredLoadException("Loading $uri failed.");
+      }
+      return true;
+    });
+  } else if (isWorker()) {
+    // We are in a web worker. Load the code with an XMLHttpRequest.
+    return _loadedLibraries[hunkName] = new Future<bool>(() {
+      Completer completer = new Completer<bool>();
+      enterJsAsync();
+      Future<bool> leavingFuture = completer.future.whenComplete(() {
+        leaveJsAsync();
+      });
+
+      int index = uri.lastIndexOf('/');
+      uri = '${uri.substring(0, index + 1)}$hunkName';
+      var xhr = JS('dynamic', 'new XMLHttpRequest()');
+      JS('void', '#.open("GET", #)', xhr, uri);
+      JS('void', '#.addEventListener("load", #, false)',
+         xhr, convertDartClosureToJS((event) {
+        if (JS('int', '#.status', xhr) != 200) {
+          completer.completeError(
+              new DeferredLoadException("Loading $uri failed."));
+          return;
+        }
+        String code = JS('String', '#.responseText', xhr);
+        try {
+          // Create a new function to avoid getting access to current function
+          // context.
+          JS('void', '(new Function(#))()', code);
+        } catch (error, stackTrace) {
+          completer.completeError(
+            new DeferredLoadException("Evaluating $uri failed."));
+          return;
+        }
+        completer.complete(true);
+      }, 1));
+
+      var fail = convertDartClosureToJS((event) {
+        new DeferredLoadException("Loading $uri failed.");
+      }, 1);
+      JS('void', '#.addEventListener("error", #, false)', xhr, fail);
+      JS('void', '#.addEventListener("abort", #, false)', xhr, fail);
+
+      JS('void', '#.send()', xhr);
+      return leavingFuture;
+    });
+  }
+  // We are in a dom-context.
+  return _loadedLibraries[hunkName] = new Future<bool>(() {
+    Completer completer = new Completer<bool>();
+    // Inject a script tag.
+    var script = JS('', 'document.createElement("script")');
+    JS('', '#.type = "text/javascript"', script);
+    JS('', '#.src = #', script, uri);
+    JS('', '#.addEventListener("load", #, false)',
+       script, convertDartClosureToJS((event) {
+      completer.complete(true);
+    }, 1));
+    JS('', '#.addEventListener("error", #, false)',
+       script, convertDartClosureToJS((event) {
+      completer.completeError(
+          new DeferredLoadException("Loading $uri failed."));
+    }, 1));
+    JS('', 'document.body.appendChild(#)', script);
+
+    return completer.future;
+  });
 }

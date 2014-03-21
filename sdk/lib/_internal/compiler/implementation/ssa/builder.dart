@@ -2924,7 +2924,9 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   void generateGetter(ast.Send send, Element element) {
-    if (Elements.isStaticOrTopLevelField(element)) {
+    if (element != null && element.isForeign(compiler)) {
+      visitForeignGetter(send);
+    } else if (Elements.isStaticOrTopLevelField(element)) {
       Constant value;
       if (element.isField() && !element.isAssignable()) {
         // A static final or const. Get its constant value and inline it if
@@ -3571,6 +3573,21 @@ class SsaBuilder extends ResolvedVisitor {
     }
   }
 
+  visitForeignGetter(ast.Send node) {
+    Element element = elements[node];
+    // Until now we only handle these as getters.
+    invariant(node, element.isDeferredLoaderGetter());
+    FunctionElement deferredLoader = element;
+    Element loadFunction = compiler.loadLibraryFunction;
+    PrefixElement prefixElement = deferredLoader.enclosingElement;
+    String loadId = compiler.deferredLoadTask
+        .importDeferName[prefixElement.deferredImport];
+    var inputs = [graph.addConstantString(
+        new ast.DartString.literal(loadId), compiler)];
+    push(new HInvokeStatic(loadFunction, inputs, backend.nonNullType,
+                           targetCanThrow: false));
+  }
+
   generateSuperNoSuchMethodSend(ast.Send node,
                                 Selector selector,
                                 List<HInstruction> arguments) {
@@ -4077,7 +4094,7 @@ class SsaBuilder extends ResolvedVisitor {
   visitStaticSend(ast.Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
-    if (element.isForeign(compiler)) {
+    if (element.isForeign(compiler) && element.isFunction()) {
       visitForeignSend(node);
       return;
     }

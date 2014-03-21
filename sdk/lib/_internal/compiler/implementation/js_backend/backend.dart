@@ -1556,6 +1556,14 @@ class JavaScriptBackend extends Backend {
       mustRetainMetadata = true;
     } else if (element == getIsolateAffinityTagMarker) {
       needToInitializeIsolateAffinityTag = true;
+    } else if (element.isDeferredLoaderGetter()) {
+      // TODO(sigurdm): Create a function registerLoadLibraryAccess.
+      if (compiler.loadLibraryFunction == null) {
+        compiler.loadLibraryFunction =
+            compiler.findHelper("_loadLibraryWrapper");
+        enqueueInResolution(compiler.loadLibraryFunction,
+                            compiler.globalDependencies);
+      }
     }
     customElementsAnalysis.registerStaticUse(element, enqueuer);
   }

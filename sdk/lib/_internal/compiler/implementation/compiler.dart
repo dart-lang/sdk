@@ -489,6 +489,7 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement documentClass;
   Element assertMethod;
   Element identicalFunction;
+  Element loadLibraryFunction;
   Element functionApplyMethod;
   Element invokeOnMethod;
   Element intEnvironment;

@@ -18,7 +18,8 @@ import 'elements/modelx.dart'
          LibraryElementX,
          PrefixElementX,
          VoidElementX,
-         AnalyzableElement;
+         AnalyzableElement,
+         DeferredLoaderGetterElementX;
 import 'js_backend/js_backend.dart' as js_backend;
 import 'native_handler.dart' as native;
 import 'scanner/scannerlib.dart';

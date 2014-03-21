@@ -537,9 +537,11 @@ class Unparser implements Visitor {
   visitImport(Import node) {
     addToken(node.importKeyword);
     visit(node.uri);
+    if (node.isDeferred) {
+      sb.write(' deferred');
+    }
     if (node.prefix != null) {
-      sb.write(' ');
-      addToken(node.asKeyword);
+      sb.write(' as ');
       visit(node.prefix);
     }
     if (node.combinators != null) {

@@ -57,6 +57,8 @@ class IrBuilderTask extends CompilerTask {
           ElementKind kind = element.kind;
           if (kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
             // TODO(lry): build ir for constructors.
+          } else if (element.isDeferredLoaderGetter()) {
+            // TODO(sigurdm): Build ir for deferred loader functions.
           } else if (kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY ||
               kind == ElementKind.FUNCTION ||
               kind == ElementKind.GETTER ||

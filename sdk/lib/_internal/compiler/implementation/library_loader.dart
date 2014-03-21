@@ -556,6 +556,15 @@ class ImportLink {
         if (combinatorFilter.exclude(element)) return;
         prefixElement.addImport(element, import, compiler);
       });
+      if (import.isDeferred) {
+        prefixElement.addImport(
+            new DeferredLoaderGetterElementX(prefixElement),
+            import, compiler);
+        // TODO(sigurdm): When we remove support for the annotation based
+        // syntax the [PrefixElement] constructor should receive this
+        // information.
+        prefixElement.markAsDeferred(import);
+      }
     } else {
       importedLibrary.forEachExport((Element element) {
         compiler.withCurrentElement(importingLibrary, () {

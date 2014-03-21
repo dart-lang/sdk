@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:async";
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 
-import "deferred_constraints_constants_lib.dart" deferred as lib;
+@lazy import "deferred_constraints_constants_old_syntax_lib.dart" as lib;
+
+const lazy = const DeferredLibrary('lib');
 
 const myConst1 =
   lib.constantInstance; /// reference1: compile-time error
@@ -44,7 +47,7 @@ void main() {
   var a2 = myConst2;
 
   asyncStart();
-  lib.loadLibrary().then((_) {
+  lazy.load().then((_) {
     var instance = lib.constantInstance;
     var c1 = const lib.Const(); /// constructor1: compile-time error
     var c2 = const lib.Const.namedConstructor(); /// constructor2: compile-time error

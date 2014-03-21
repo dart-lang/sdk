@@ -31,9 +31,6 @@ ref_before_declaration_test/04: MissingCompileTimeError
 ref_before_declaration_test/05: MissingCompileTimeError
 ref_before_declaration_test/06: MissingCompileTimeError
 
-deferred_constraints_test/const_annotation: MissingCompileTimeError # Issue 17549
-deferred_constraints_constants_test/metadata* : Pass, MissingCompileTimeError # Issue 17549
-
 # VM specific tests that should not be run by dart2js.
 vm/*: Skip # Issue 12699
 
@@ -296,11 +293,15 @@ stack_trace_test: Fail, OK # Stack traces not available in IE9.
 deferred_constraints_type_annotation_test/*: Fail, Pass # http://dartbug.com/12635
 deferred_constraints_constants_test/*: Fail, Pass # http://dartbug.com/12635
 deferred_no_such_method_test*: Fail, Pass # http://dartbug.com/12635
+deferred_constraints_type_annotation_old_syntax_test/*: Fail, Pass # http://dartbug.com/12635
+deferred_constraints_constants_old_syntax_test/*: Fail, Pass # http://dartbug.com/12635
 
 [ ($compiler == dart2js && $csp)]
 deferred_constraints_type_annotation_test/*: Skip # Issue 16898
 deferred_constraints_constants_test/*: Skip # Issue 16898
 deferred_no_such_method_test*: Skip # Issue 16898
+deferred_constraints_type_annotation_old_syntax_test/*: Skip # Issue 16898
+deferred_constraints_constants_old_syntax_test/*: Skip # Issue 16898
 
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
 *deferred*: Skip # Issue 17458

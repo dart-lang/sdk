@@ -249,6 +249,7 @@ mirrors/hierarchy_test: Fail # TODO(ahe): This test is slightly broken. http://d
 mirrors/mixin_application_test/01: Fail, OK # TODO(ahe): Slight broken test to ensure test coverage on dart2js.
 mirrors/intercepted_object_test: Fail, OK # TODO(ahe): Slight broken test to ensure test coverage on dart2js.
 mirrors/typedef_test/01: Fail, OK # Incorrect dart2js behavior.
+mirrors/deferred_mirrors_metadata_test: Fail # Issue 17521
 
 mirrors/generic_local_function_test: RuntimeError # Issue 14913
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
@@ -315,6 +316,8 @@ mirrors/immutable_collections_test: StaticWarning, OK # Expect failure for any t
 mirrors/inference_and_no_such_method_test: StaticWarning, OK # Expect to trigger noSuchMethod.
 mirrors/repeated_private_anon_mixin_app_test: StaticWarning, OK # Intentional library name conflict.
 mirrors/removed_api_test: StaticWarning, OK # Deliberately refers to undeclared members.
+
+mirrors/deferred_mirrors_metadata_test: Fail # Issue 17522
 
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
 mirrors/*deferred*: Skip # Issue 17458

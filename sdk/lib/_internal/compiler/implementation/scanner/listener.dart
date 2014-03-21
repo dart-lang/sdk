@@ -192,7 +192,8 @@ class Listener {
   void beginImport(Token importKeyword) {
   }
 
-  void endImport(Token importKeyword, Token asKeyword, Token semicolon) {
+  void endImport(Token importKeyword, Token DeferredKeyword,
+                 Token asKeyword, Token semicolon) {
   }
 
   void beginInitializedIdentifier(Token token) {
@@ -705,15 +706,18 @@ class ElementListener extends Listener {
                                   popMetadata(compilationUnitElement)));
   }
 
-  void endImport(Token importKeyword, Token asKeyword, Token semicolon) {
+  void endImport(Token importKeyword, Token deferredKeyword, Token asKeyword,
+                 Token semicolon) {
     NodeList combinators = popNode();
+    bool isDeferred = deferredKeyword != null;
     Identifier prefix;
     if (asKeyword != null) {
       prefix = popNode();
     }
     StringNode uri = popLiteralString();
     addLibraryTag(new Import(importKeyword, uri, prefix, combinators,
-                             popMetadata(compilationUnitElement)));
+                             popMetadata(compilationUnitElement),
+                             isDeferred: isDeferred));
   }
 
   void endExport(Token exportKeyword, Token semicolon) {

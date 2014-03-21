@@ -95,6 +95,11 @@ class Parser {
     listener.beginImport(importKeyword);
     assert(optional('import', token));
     token = parseLiteralStringOrRecoverExpression(token.next);
+    Token deferredKeyword;
+    if (optional('deferred', token)) {
+      deferredKeyword = token;
+      token = token.next;
+    }
     Token asKeyword;
     if (optional('as', token)) {
       asKeyword = token;
@@ -103,7 +108,7 @@ class Parser {
     token = parseCombinators(token);
     Token semicolon = token;
     token = expect(';', token);
-    listener.endImport(importKeyword, asKeyword, semicolon);
+    listener.endImport(importKeyword, deferredKeyword, asKeyword, semicolon);
     return token;
   }
 

@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:async";
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 
-import "deferred_constraints_lib.dart" deferred as lib;
-import "deferred_constraints_lib.dart" as lib2; /// type_annotation_non_deferred: ok
+@lazy import "deferred_constraints_old_syntax_lib.dart" as lib;
+import "deferred_constraints_old_syntax_lib.dart" as lib2; /// type_annotation_non_deferred: ok
+
+const lazy = const DeferredLibrary('lib');
 
 class F {}
 class G2<T> {}
@@ -20,7 +23,7 @@ main() {
   // In this case we do not defer C.
   lib2.C a1 = new lib2.C(); /// type_annotation_non_deferred: continued
   asyncStart();
-  lib.loadLibrary().then((_) {
+  lazy.load().then((_) {
     lib.C a2 = new lib.C(); /// type_annotation1: dynamic type error, static type warning
     lib.G<F> a3 = new lib.G<F>(); /// type_annotation_generic1: dynamic type error, static type warning
     G2<lib.C> a4 = new G2(); /// type_annotation_generic2: static type warning
