@@ -280,16 +280,6 @@ class _IsolateContext implements IsolateContext {
   // Container with the "on exit" handler send-ports.
   var doneHandlers;
 
-  /**
-   * Queue of functions to call when the current event is complete.
-   *
-   * These events are not just put at the front of the event queue, because
-   * they represent control messages, and should be handled even if the
-   * event queue is paused.
-   */
-  var _scheduledControlEvents;
-  bool _isExecutingEvent = false;
-
   /** Whether errors are considered fatal. */
   // This doesn't do anything yet. We need to be able to catch uncaught errors
   // (oxymoronically) in order to take lethal action. This is waiting for the
@@ -342,41 +332,15 @@ class _IsolateContext implements IsolateContext {
   }
 
   void handlePing(SendPort responsePort, int pingType) {
-    if (pingType == Isolate.IMMEDIATE ||
-        (pingType == Isolate.BEFORE_NEXT_EVENT &&
-         !_isExecutingEvent)) {
+    if (pingType == Isolate.PING_EVENT) {
+      _globalState.topEventLoop.enqueue(this, () {
+        responsePort.send(null);
+      }, "ping");
+    } else {
+      // There is no difference between PING_ALIVE and PING_CONTROL
+      // since we don't handle it before the control event queue.
       responsePort.send(null);
-      return;
     }
-    void respond() { responsePort.send(null); }
-    if (pingType == Isolate.AS_EVENT) {
-      _globalState.topEventLoop.enqueue(this, respond, "ping");
-      return;
-    }
-    assert(pingType == Isolate.BEFORE_NEXT_EVENT);
-    if (_scheduledControlEvents == null) {
-      _scheduledControlEvents = new Queue();
-    }
-    _scheduledControlEvents.addLast(respond);
-  }
-
-  void handleKill(Capability authentification, int priority) {
-    if (this.terminateCapability != authentification) return;
-    if (priority == Isolate.IMMEDIATE ||
-        (priority == Isolate.BEFORE_NEXT_EVENT &&
-         !_isExecutingEvent)) {
-      kill();
-      return;
-    }
-    if (priority == Isolate.AS_EVENT) {
-      _globalState.topEventLoop.enqueue(this, kill, "kill");
-      return;
-    }
-    assert(priority == Isolate.BEFORE_NEXT_EVENT);
-    if (_scheduledControlEvents == null) {
-      _scheduledControlEvents = new Queue();
-    }
-    _scheduledControlEvents.addLast(kill);
   }
 
   /**
@@ -387,18 +351,11 @@ class _IsolateContext implements IsolateContext {
     _globalState.currentContext = this;
     this._setGlobals();
     var result = null;
-    _isExecutingEvent = true;
     try {
       result = code();
     } finally {
-      _isExecutingEvent = false;
       _globalState.currentContext = old;
       if (old != null) old._setGlobals();
-      if (_scheduledControlEvents != null) {
-        while (_scheduledControlEvents.isNotEmpty) {
-          (_scheduledControlEvents.removeFirst())();
-        }
-      }
     }
     return result;
   }
@@ -407,13 +364,6 @@ class _IsolateContext implements IsolateContext {
     JS_SET_CURRENT_ISOLATE(isolateStatics);
   }
 
-  /**
-   * Handle messages comming in on the control port.
-   *
-   * These events do not go through the event queue.
-   * The `_globalState.currentContext` context is not set to this context
-   * during the handling.
-   */
   void handleControlMessage(message) {
     switch (message[0]) {
       case "pause":
@@ -434,10 +384,8 @@ class _IsolateContext implements IsolateContext {
       case "ping":
         handlePing(message[1], message[2]);
         break;
-      case "kill":
-        handleKill(message[1], message[2]);
-        break;
       default:
+        print("UNKNOWN MESSAGE: $message");
     }
   }
 
@@ -471,30 +419,18 @@ class _IsolateContext implements IsolateContext {
     if (ports.length - weakPorts.length > 0 || isPaused) {
       _globalState.isolates[id] = this; // indicate this isolate is active
     } else {
-      kill();
+      _shutdown();
     }
   }
 
-  void kill() {
-    if (_scheduledControlEvents != null) {
-      // Kill all pending events.
-      _scheduledControlEvents.clear();
-    }
-    // Stop listening on all ports.
-    // This should happen before sending events to done handlers, in case
-    // we are listening on ourselves.
-    // Closes all ports, including control port.
-    for (var port in ports.values) {
-      port._close();
-    }
-    ports.clear();
-    weakPorts.clear();
+  void _shutdown() {
     _globalState.isolates.remove(id); // indicate this isolate is not active
+    // Send "done" event to all listeners. This must be done after deactivating
+    // the current isolate, or it may get events if listening to itself.
     if (doneHandlers != null) {
       for (SendPort port in doneHandlers) {
         port.send(null);
       }
-      doneHandlers = null;
     }
   }
 
@@ -1108,13 +1044,6 @@ class RawReceivePortImpl implements RawReceivePort {
 
   void set handler(Function newHandler) {
     _handler = newHandler;
-  }
-
-  // Close the port without unregistering it.
-  // Used by an isolate context to close all ports when shutting down.
-  void _close() {
-    _isClosed = true;
-    _handler = null;
   }
 
   void close() {

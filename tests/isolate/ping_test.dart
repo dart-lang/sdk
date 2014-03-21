@@ -27,22 +27,19 @@ void main(){
         result.add(v);
         if (v == 0) {
           Expect.listEquals(["alive", "control", "event"],
-                            result.where((x) => x is String).toList(),
-                            "control events");
+                            result.where((x) => x is String).toList());
           Expect.listEquals([4, 3, 2, 1, 0],
-                            result.where((x) => x is int).toList(),
-                            "data events");
-          Expect.isTrue(result.indexOf("alive") < result.indexOf(3),
-                        "alive index < 3");
-          Expect.isTrue(result.indexOf("control") < result.indexOf(2),
-                        "control index < 2");
+                            result.where((x) => x is int).toList());
+          Expect.isTrue(result.indexOf("alive") < result.indexOf(3));
+          Expect.isTrue(result.indexOf("control") < result.indexOf(2));
           int eventIndex = result.indexOf("event");
-          Expect.isTrue(eventIndex > result.indexOf(2), "event index > 2");
-          Expect.isTrue(eventIndex < result.indexOf(1), "event index < 1");
+          Expect.isTrue(eventIndex > result.indexOf(2));
+          Expect.isTrue(eventIndex < result.indexOf(1));
           reply.close();
           asyncEnd();
         }
       };
+      echoPort.send(4);
       SendPort createPingPort(message) {
         var pingPort = new RawReceivePort();
         pingPort.handler = (_) {
@@ -51,12 +48,11 @@ void main(){
         };
         return pingPort.sendPort;
       }
-      echoPort.send(4);
-      isolate.ping(createPingPort("alive"), Isolate.IMMEDIATE);
+      isolate.ping(createPingPort("alive"), Isolate.PING_ALIVE);
       echoPort.send(3);
-      isolate.ping(createPingPort("control"), Isolate.BEFORE_NEXT_EVENT);
+      isolate.ping(createPingPort("control"), Isolate.PING_CONTROL);
       echoPort.send(2);
-      isolate.ping(createPingPort("event"), Isolate.AS_EVENT);
+      isolate.ping(createPingPort("event"), Isolate.PING_EVENT);
       echoPort.send(1);
       echoPort.send(0);
     });
