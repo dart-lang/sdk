@@ -1223,6 +1223,18 @@ void Assembler::vmulqs(QRegister qd, QRegister qn, QRegister qm) {
 }
 
 
+void Assembler::vshlqi(OperandSize sz,
+                       QRegister qd, QRegister qm, QRegister qn) {
+  EmitSIMDqqq(B25 | B10, sz, qd, qn, qm);
+}
+
+
+void Assembler::vshlqu(OperandSize sz,
+                       QRegister qd, QRegister qm, QRegister qn) {
+  EmitSIMDqqq(B25 | B24 | B10, sz, qd, qn, qm);
+}
+
+
 void Assembler::veorq(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B24 | B8 | B4, kByte, qd, qn, qm);
 }
@@ -1240,6 +1252,11 @@ void Assembler::vornq(QRegister qd, QRegister qn, QRegister qm) {
 
 void Assembler::vandq(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B8 | B4, kByte, qd, qn, qm);
+}
+
+
+void Assembler::vmvnq(QRegister qd, QRegister qm) {
+  EmitSIMDqqq(B25 | B24 | B23 | B10 | B8 | B7, kWordPair, qd, Q0, qm);
 }
 
 

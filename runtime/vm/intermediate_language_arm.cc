@@ -332,12 +332,14 @@ static Condition TokenKindToSmiCondition(Token::Kind kind) {
 LocationSummary* EqualityCompareInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 2;
   if (operation_cid() == kMintCid) {
-    const intptr_t kNumTemps = 1;
+    const intptr_t kNumTemps = 3;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     locs->set_in(0, Location::RequiresFpuRegister());
     locs->set_in(1, Location::RequiresFpuRegister());
-    locs->set_temp(0, Location::RequiresRegister());
+    locs->set_temp(0, Location::RequiresFpuRegister());
+    locs->set_temp(1, Location::RequiresRegister());
+    locs->set_temp(2, Location::RequiresRegister());
     locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
@@ -446,6 +448,101 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
 }
 
 
+static Condition TokenKindToMintCondition(Token::Kind kind) {
+  switch (kind) {
+    case Token::kEQ: return EQ;
+    case Token::kNE: return NE;
+    case Token::kLT: return LT;
+    case Token::kGT: return GT;
+    case Token::kLTE: return LE;
+    case Token::kGTE: return GE;
+    default:
+      UNREACHABLE();
+      return VS;
+  }
+}
+
+
+static Condition EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
+                                           LocationSummary* locs,
+                                           Token::Kind kind) {
+  ASSERT(Token::IsEqualityOperator(kind));
+  QRegister left = locs->in(0).fpu_reg();
+  QRegister right = locs->in(1).fpu_reg();
+  QRegister tmpq = locs->temp(0).fpu_reg();
+  Register tmp_lo = locs->temp(1).reg();
+  Register tmp_hi = locs->temp(2).reg();
+
+  __ vceqqi(kWord, tmpq, left, right);
+  __ vmovrrd(tmp_lo, tmp_hi, EvenDRegisterOf(tmpq));
+  // tmp_lo and tmp_hi must both be 0xffffffff.
+  __ and_(tmp_lo, tmp_lo, ShifterOperand(tmp_hi));
+
+  Condition true_condition = TokenKindToMintCondition(kind);
+  __ CompareImmediate(tmp_lo, 0xffffffff);
+  return true_condition;
+}
+
+
+static Condition EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
+                                             LocationSummary* locs,
+                                             Token::Kind kind) {
+  QRegister left = locs->in(0).fpu_reg();
+  QRegister right = locs->in(1).fpu_reg();
+  DRegister dleft0 = EvenDRegisterOf(left);
+  DRegister dright0 = EvenDRegisterOf(right);
+  SRegister sleft0 = EvenSRegisterOf(dleft0);
+  SRegister sleft1 = OddSRegisterOf(dleft0);
+  SRegister sright0 = EvenSRegisterOf(dright0);
+  SRegister sright1 = OddSRegisterOf(dright0);
+
+  Register tmp_left = locs->temp(0).reg();
+  Register tmp_right = locs->temp(1).reg();
+
+  // 64-bit comparison
+  Condition hi_true_cond, hi_false_cond, lo_false_cond;
+  switch (kind) {
+    case Token::kLT:
+    case Token::kLTE:
+      hi_true_cond = LT;
+      hi_false_cond = GT;
+      lo_false_cond = (kind == Token::kLT) ? CS : HI;
+      break;
+    case Token::kGT:
+    case Token::kGTE:
+      hi_true_cond = GT;
+      hi_false_cond = LT;
+      lo_false_cond = (kind == Token::kGT) ? LS : CC;
+      break;
+    default:
+      UNREACHABLE();
+      hi_true_cond = hi_false_cond = lo_false_cond = VS;
+  }
+
+  Label is_true, is_false, done;
+  __ vmovrs(tmp_left, sleft1);
+  __ vmovrs(tmp_right, sright1);
+  __ cmp(tmp_left, ShifterOperand(tmp_right));
+  __ b(&is_false, hi_false_cond);
+  __ b(&is_true, hi_true_cond);
+
+  __ vmovrs(tmp_left, sleft0);
+  __ vmovrs(tmp_right, sright0);
+  __ cmp(tmp_left, ShifterOperand(tmp_right));
+  __ b(&is_false, lo_false_cond);
+  // Else is true.
+  __ b(&is_true);
+
+  __ Bind(&is_false);
+  __ LoadImmediate(tmp_left, 0);
+  __ b(&done);
+  __ Bind(&is_true);
+  __ LoadImmediate(tmp_left, 1);
+  __ Bind(&done);
+  return NegateCondition(lo_false_cond);
+}
+
+
 static Condition TokenKindToDoubleCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ: return EQ;
@@ -479,6 +576,8 @@ Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                    BranchLabels labels) {
   if (operation_cid() == kSmiCid) {
     return EmitSmiComparisonOp(compiler, locs(), kind());
+  } else if (operation_cid() == kMintCid) {
+    return EmitUnboxedMintEqualityOp(compiler, locs(), kind());
   } else {
     ASSERT(operation_cid() == kDoubleCid);
     return EmitDoubleComparisonOp(compiler, locs(), kind());
@@ -494,7 +593,7 @@ void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Condition true_condition = EmitComparisonCode(compiler, labels);
 
   Register result = locs()->out(0).reg();
-  if (operation_cid() == kSmiCid) {
+  if ((operation_cid() == kSmiCid) || (operation_cid() == kMintCid)) {
     __ LoadObject(result, Bool::True(), true_condition);
     __ LoadObject(result, Bool::False(), NegateCondition(true_condition));
   } else {
@@ -609,6 +708,8 @@ Condition RelationalOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                 BranchLabels labels) {
   if (operation_cid() == kSmiCid) {
     return EmitSmiComparisonOp(compiler, locs(), kind());
+  } else if (operation_cid() == kMintCid) {
+    return EmitUnboxedMintComparisonOp(compiler, locs(), kind());
   } else {
     ASSERT(operation_cid() == kDoubleCid);
     return EmitDoubleComparisonOp(compiler, locs(), kind());
@@ -625,6 +726,11 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (operation_cid() == kSmiCid) {
     __ LoadObject(result, Bool::True(), true_condition);
     __ LoadObject(result, Bool::False(), NegateCondition(true_condition));
+  } else if (operation_cid() == kMintCid) {
+    Register cr = locs()->temp(0).reg();
+    __ LoadObject(result, Bool::True());
+    __ CompareImmediate(cr, 1);
+    __ LoadObject(result, Bool::False(), NE);
   } else {
     ASSERT(operation_cid() == kDoubleCid);
     Label done;
@@ -643,12 +749,19 @@ void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   BranchLabels labels = compiler->CreateBranchLabels(branch);
   Condition true_condition = EmitComparisonCode(compiler, labels);
 
-  if (operation_cid() == kDoubleCid) {
+  if (operation_cid() == kSmiCid) {
+    EmitBranchOnCondition(compiler, true_condition, labels);
+  } else if (operation_cid() == kMintCid) {
+    Register result = locs()->temp(0).reg();
+    __ CompareImmediate(result, 1);
+    __ b(labels.true_label, EQ);
+    __ b(labels.false_label, NE);
+  } else if (operation_cid() == kDoubleCid) {
     Label* nan_result = (true_condition == NE) ?
         labels.true_label : labels.false_label;
     __ b(nan_result, VS);
+    EmitBranchOnCondition(compiler, true_condition, labels);
   }
-  EmitBranchOnCondition(compiler, true_condition, labels);
 }
 
 
@@ -971,12 +1084,24 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     QRegister result = locs()->out(0).fpu_reg();
     DRegister dresult0 = EvenDRegisterOf(result);
     DRegister dresult1 = OddDRegisterOf(result);
+    Register idx = index.reg();
     switch (class_id()) {
       case kTypedDataInt32ArrayCid:
-        UNIMPLEMENTED();
+        __ veorq(result, result, result);
+        __ ldr(TMP, element_address);
+        // Re-use the index register so we don't have to require a low-numbered
+        // Q register.
+        // Sign-extend into idx.
+        __ Asr(idx, TMP, 31);
+        __ vmovdrr(dresult0, TMP, idx);
         break;
       case kTypedDataUint32ArrayCid:
-        UNIMPLEMENTED();
+        __ veorq(result, result, result);
+        __ ldr(TMP, element_address);
+        // Re-use the index register so we don't have to require a low-numbered
+        // Q register.
+        __ LoadImmediate(idx, 0);
+        __ vmovdrr(dresult0, TMP, idx);
         break;
       case kTypedDataFloat32ArrayCid:
         // Load single precision float.
@@ -1041,7 +1166,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptUint32Load);
         __ ldr(result, element_address);
         // Verify that the unsigned value in 'result' can fit inside a Smi.
-        __ tst(result, ShifterOperand(0xC0000000));
+        __ TestImmediate(result, 0xC0000000);
         __ b(deopt, NE);
         __ SmiTag(result);
       }
@@ -1114,9 +1239,15 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(bool opt) const {
     case kOneByteStringCid:
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid:
+      locs->set_in(2, Location::WritableRegister());
+      break;
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
-      locs->set_in(2, Location::WritableRegister());
+      // Mints are stored in Q registers. For smis, use a writable register
+      // because the value must be untagged before storing.
+      locs->set_in(2, value()->IsSmiValue()
+                      ? Location::WritableRegister()
+                      : Location::FpuRegisterLocation(Q7));
       break;
     case kTypedDataFloat32ArrayCid:
       // Need low register (<= Q7).
@@ -1246,7 +1377,11 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ SmiUntag(value);
         __ str(value, element_address);
       } else {
-        UNIMPLEMENTED();
+        ASSERT(RequiredInputRepresentation(2) == kUnboxedMint);
+        QRegister value = locs()->in(2).fpu_reg();
+        ASSERT(value == Q7);
+        __ vmovrs(TMP, EvenSRegisterOf(EvenDRegisterOf(value)));
+        __ str(TMP, element_address);
       }
       break;
     }
@@ -3717,8 +3852,7 @@ void Float32x4ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case MethodRecognizer::kFloat32x4NotEqual:
       __ vceqqs(result, left, right);
       // Invert the result.
-      __ veorq(QTMP, QTMP, QTMP);  // QTMP <- 0.
-      __ vornq(result, QTMP, result);  // result <- ~result.
+      __ vmvnq(result, result);
       break;
     case MethodRecognizer::kFloat32x4GreaterThan:
       __ vcgtqs(result, left, right);
@@ -4367,8 +4501,7 @@ void Int32x4SelectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Copy mask.
   __ vmovq(temp, mask);
   // Invert it.
-  __ veorq(QTMP, QTMP, QTMP);  // QTMP <- 0.
-  __ vornq(temp, QTMP, temp);  //  temp <- ~temp.
+  __ vmvnq(temp, temp);
   // mask = mask & trueValue.
   __ vandq(mask, mask, trueValue);
   // temp = temp & falseValue.
@@ -5184,58 +5317,371 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+static void EmitJavascriptIntOverflowCheck(FlowGraphCompiler* compiler,
+                                           Label* overflow,
+                                           QRegister result,
+                                           Register tmp_hi, Register tmp_lo) {
+  __ vmovrrd(tmp_lo, tmp_hi, EvenDRegisterOf(result));
+  // Compare upper half.
+  Label check_lower;
+  __ CompareImmediate(tmp_hi, 0x00200000);
+  __ b(overflow, GT);
+  __ b(&check_lower, NE);
+
+  __ CompareImmediate(tmp_lo, 0);
+  __ b(overflow, HI);
+
+  __ Bind(&check_lower);
+  __ CompareImmediate(tmp_hi, -0x00200000);
+  __ b(overflow, LT);
+  // Anything in the lower part would make the number bigger than the lower
+  // bound, so we are done.
+}
+
+
 LocationSummary* UnboxIntegerInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t value_cid = value()->Type()->ToCid();
+  const bool needs_writable_input = (value_cid != kMintCid);
+  const bool needs_temp = (value_cid != kMintCid);
+  const intptr_t kNumTemps = needs_temp ? 1 : 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, needs_writable_input
+                     ? Location::WritableRegister()
+                     : Location::RequiresRegister());
+  if (needs_temp) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
+  summary->set_out(0, Location::RequiresFpuRegister());
+  return summary;
 }
 
 
 void UnboxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  const intptr_t value_cid = value()->Type()->ToCid();
+  const Register value = locs()->in(0).reg();
+  const QRegister result = locs()->out(0).fpu_reg();
+
+  __ Comment("UnboxIntegerInstr");
+  __ veorq(result, result, result);
+  if (value_cid == kMintCid) {
+    __ LoadDFromOffset(EvenDRegisterOf(result), value,
+                       Mint::value_offset() - kHeapObjectTag);
+  } else if (value_cid == kSmiCid) {
+    Register temp = locs()->temp(0).reg();
+    __ SmiUntag(value);
+    // Sign extend value into temp.
+    __ Asr(temp, value, 31);
+    __ vmovdrr(EvenDRegisterOf(result), value, temp);
+  } else {
+    Register temp = locs()->temp(0).reg();
+    Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptUnboxInteger);
+    Label is_smi, done;
+    __ tst(value, ShifterOperand(kSmiTagMask));
+    __ b(&is_smi, EQ);
+    __ CompareClassId(value, kMintCid, temp);
+    __ b(deopt, NE);
+
+    // It's a Mint.
+    __ LoadDFromOffset(EvenDRegisterOf(result), value,
+                       Mint::value_offset() - kHeapObjectTag);
+    __ b(&done);
+
+    // It's a Smi.
+    __ Bind(&is_smi);
+    __ SmiUntag(value);
+    // Sign extend into temp.
+    __ Asr(temp, value, 31);
+    __ vmovdrr(EvenDRegisterOf(result), value, temp);
+    __ Bind(&done);
+  }
 }
 
 
 LocationSummary* BoxIntegerInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 2;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs,
+                          kNumTemps,
+                          LocationSummary::kCallOnSlowPath);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_temp(0, Location::RequiresRegister());
+  summary->set_temp(1, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
 }
 
 
+class BoxIntegerSlowPath : public SlowPathCode {
+ public:
+  explicit BoxIntegerSlowPath(BoxIntegerInstr* instruction)
+      : instruction_(instruction) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    __ Comment("BoxIntegerSlowPath");
+    __ Bind(entry_label());
+    const Class& mint_class =
+        Class::ZoneHandle(Isolate::Current()->object_store()->mint_class());
+    const Code& stub =
+        Code::Handle(StubCode::GetAllocationStubForClass(mint_class));
+    const ExternalLabel label(mint_class.ToCString(), stub.EntryPoint());
+
+    LocationSummary* locs = instruction_->locs();
+    locs->live_registers()->Remove(locs->out(0));
+
+    compiler->SaveLiveRegisters(locs);
+    compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
+                           &label,
+                           PcDescriptors::kOther,
+                           locs);
+    __ mov(locs->out(0).reg(), ShifterOperand(R0));
+    compiler->RestoreLiveRegisters(locs);
+
+    __ b(exit_label());
+  }
+
+ private:
+  BoxIntegerInstr* instruction_;
+};
+
+
 void BoxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  BoxIntegerSlowPath* slow_path = new BoxIntegerSlowPath(this);
+  compiler->AddSlowPathCode(slow_path);
+
+  Register out_reg = locs()->out(0).reg();
+  QRegister value = locs()->in(0).fpu_reg();
+  DRegister dvalue0 = EvenDRegisterOf(value);
+  Register lo = locs()->temp(0).reg();
+  Register hi = locs()->temp(1).reg();
+
+  // Unboxed operations produce smis or mint-sized values.
+  // Check if value fits into a smi.
+  __ Comment("BoxIntegerInstr");
+  Label not_smi, done, maybe_pos_smi, maybe_neg_smi, is_smi;
+  __ vmovrrd(lo, hi, dvalue0);
+  __ CompareImmediate(hi, 0);
+  __ b(&maybe_pos_smi, EQ);
+
+  __ CompareImmediate(hi, -1);
+  __ b(&maybe_neg_smi, EQ);
+  __ b(&not_smi);
+
+  __ Bind(&maybe_pos_smi);
+  __ CompareImmediate(lo, kSmiMax);
+  __ b(&is_smi, LS);  // unsigned lower or same.
+  __ b(&not_smi);
+
+  __ Bind(&maybe_neg_smi);
+  __ CompareImmediate(lo, 0);
+  __ b(&not_smi, GE);
+  __ CompareImmediate(lo, kSmiMin);
+  __ b(&not_smi, LT);
+
+  // lo is a Smi. Tag it and return.
+  __ Bind(&is_smi);
+  __ SmiTag(lo);
+  __ mov(out_reg, ShifterOperand(lo));
+  __ b(&done);
+
+  // Not a smi. Box it.
+  __ Bind(&not_smi);
+  __ TryAllocate(
+      Class::ZoneHandle(Isolate::Current()->object_store()->mint_class()),
+      slow_path->entry_label(),
+      out_reg,
+      lo);
+  __ Bind(slow_path->exit_label());
+  __ StoreDToOffset(dvalue0, out_reg, Mint::value_offset() - kHeapObjectTag);
+  __ Bind(&done);
 }
 
 
 LocationSummary* BinaryMintOpInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps =
+      FLAG_throw_on_javascript_int_overflow ? 2 : 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  if (FLAG_throw_on_javascript_int_overflow) {
+    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_temp(1, Location::RequiresRegister());
+  }
+  if ((op_kind() == Token::kADD) || (op_kind() == Token::kSUB)) {
+    // Need another temp for checking for overflow.
+    summary->AddTemp(Location::RequiresFpuRegister());
+    summary->AddTemp(Location::FpuRegisterLocation(Q7));
+  }
+  summary->set_out(0, Location::RequiresFpuRegister());
+  return summary;
 }
 
 
 void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  QRegister left = locs()->in(0).fpu_reg();
+  QRegister right = locs()->in(1).fpu_reg();
+  QRegister out = locs()->out(0).fpu_reg();
+
+  Label* deopt = NULL;
+  if (FLAG_throw_on_javascript_int_overflow) {
+    deopt = compiler->AddDeoptStub(deopt_id(), kDeoptBinaryMintOp);
+  }
+  switch (op_kind()) {
+    case Token::kBIT_AND: __ vandq(out, left, right); break;
+    case Token::kBIT_OR: __ vorrq(out, left, right); break;
+    case Token::kBIT_XOR: __ veorq(out, left, right); break;
+    case Token::kADD:
+    case Token::kSUB: {
+      const intptr_t tmpidx = FLAG_throw_on_javascript_int_overflow ? 2 : 0;
+      QRegister tmp = locs()->temp(tmpidx).fpu_reg();
+      QRegister ro = locs()->temp(tmpidx + 1).fpu_reg();
+      ASSERT(ro == Q7);
+      if (!FLAG_throw_on_javascript_int_overflow) {
+        deopt  = compiler->AddDeoptStub(deopt_id(), kDeoptBinaryMintOp);
+      }
+      if (op_kind() == Token::kADD) {
+        __ vaddqi(kWordPair, out, left, right);
+      } else {
+        ASSERT(op_kind() == Token::kSUB);
+        __ vsubqi(kWordPair, out, left, right);
+      }
+      __ veorq(ro, out, left);
+      __ veorq(tmp, left, right);
+      __ vandq(ro, tmp, ro);
+      __ vmovrs(TMP, OddSRegisterOf(EvenDRegisterOf(ro)));
+      // If TMP < 0, there was overflow.
+      __ cmp(TMP, ShifterOperand(0));
+      __ b(deopt, LT);
+      break;
+    }
+    default: UNREACHABLE(); break;
+  }
+  if (FLAG_throw_on_javascript_int_overflow) {
+    Register tmp1 = locs()->temp(0).reg();
+    Register tmp2 = locs()->temp(1).reg();
+    EmitJavascriptIntOverflowCheck(compiler, deopt, out, tmp1, tmp2);
+  }
 }
 
 
 LocationSummary* ShiftMintOpInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps =
+      FLAG_throw_on_javascript_int_overflow ? 2 : 1;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::WritableRegister());
+  summary->set_temp(0, Location::FpuRegisterLocation(Q7));
+  if (FLAG_throw_on_javascript_int_overflow) {
+    summary->set_temp(1, Location::RequiresRegister());
+  }
+  summary->set_out(0, Location::RequiresFpuRegister());
+  return summary;
 }
 
 
 void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  QRegister value = locs()->in(0).fpu_reg();
+  Register shift = locs()->in(1).reg();
+  QRegister temp = locs()->temp(0).fpu_reg();
+  ASSERT(temp == Q7);
+  QRegister out = locs()->out(0).fpu_reg();
+  DRegister dtemp0 = EvenDRegisterOf(temp);
+  SRegister stemp0 = EvenSRegisterOf(dtemp0);
+  SRegister stemp1 = OddSRegisterOf(dtemp0);
+
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptShiftMintOp);
+  Label done;
+
+  __ CompareImmediate(shift, 0);
+  __ vmovq(out, value);
+  __ b(&done, EQ);
+  __ SmiUntag(shift);
+
+  // vshlq takes the shift value from low byte. Deopt if shift is
+  // outside of [0, 127].
+  __ CompareImmediate(shift, 127);
+  __ b(deopt, GT);
+  __ CompareImmediate(shift, 0);
+  __ b(deopt, LT);
+
+  __ veorq(temp, temp, temp);  // Zero out temp.
+  switch (op_kind()) {
+    case Token::kSHR: {
+      __ rsb(shift, shift, ShifterOperand(0));  // Negate shift.
+      __ vmovsr(stemp0, shift);  // Move the shift into the low S register.
+      __ vshlqi(kWordPair, out, value, temp);
+      break;
+    }
+    case Token::kSHL: {
+      __ vmovsr(stemp0, shift);  // Move the shift into the low S register.
+      __ vshlqu(kWordPair, out, value, temp);
+
+      // check for overflow by shifting back and comparing.
+      __ rsb(shift, shift, ShifterOperand(0));
+      __ vmovsr(stemp0, shift);
+      __ vshlqi(kWordPair, temp, out, temp);
+      __ vceqqi(kWord, temp, temp, value);
+      // Low 64 bits of temp should be all 1's, otherwise temp != value and
+      // we deopt.
+      __ vmovrs(shift, stemp0);
+      __ CompareImmediate(shift, -1);
+      __ b(deopt, NE);
+      __ vmovrs(shift, stemp1);
+      __ CompareImmediate(shift, -1);
+      __ b(deopt, NE);
+      break;
+    }
+    default:
+      UNREACHABLE();
+      break;
+  }
+
+  __ Bind(&done);
+  if (FLAG_throw_on_javascript_int_overflow) {
+    Register tmp1 = locs()->in(1).reg();
+    Register tmp2 = locs()->temp(1).reg();
+    EmitJavascriptIntOverflowCheck(compiler, deopt, out, tmp1, tmp2);
+  }
 }
 
 
 LocationSummary* UnaryMintOpInstr::MakeLocationSummary(bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps =
+      FLAG_throw_on_javascript_int_overflow ? 2 : 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(0, Location::RequiresFpuRegister());
+  if (FLAG_throw_on_javascript_int_overflow) {
+    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_temp(1, Location::RequiresRegister());
+  }
+  return summary;
 }
 
 
 void UnaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  ASSERT(op_kind() == Token::kBIT_NOT);
+  QRegister value = locs()->in(0).fpu_reg();
+  QRegister out = locs()->out(0).fpu_reg();
+  Label* deopt = NULL;
+  if (FLAG_throw_on_javascript_int_overflow) {
+    deopt = compiler->AddDeoptStub(deopt_id(),
+                                   kDeoptUnaryMintOp);
+  }
+  __ vmvnq(out, value);
+  if (FLAG_throw_on_javascript_int_overflow) {
+    Register tmp1 = locs()->temp(0).reg();
+    Register tmp2 = locs()->temp(1).reg();
+    EmitJavascriptIntOverflowCheck(compiler, deopt, out, tmp1, tmp2);
+  }
 }
 
 

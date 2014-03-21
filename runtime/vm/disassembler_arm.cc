@@ -1322,6 +1322,12 @@ void ARMDecoder::DecodeSIMDDataProcessing(Instr* instr) {
     } else if ((instr->Bits(8, 4) == 13) && (instr->Bit(4) == 1) &&
                (instr->Bits(23, 2) == 2) && (instr->Bit(21) == 0)) {
       Format(instr, "vmulqs 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(8, 4) == 4) && (instr->Bit(4) == 0) &&
+               (instr->Bits(23, 5) == 4)) {
+      Format(instr, "vshlqi'sz 'qd, 'qm, 'qn");
+    } else if ((instr->Bits(8, 4) == 4) && (instr->Bit(4) == 0) &&
+               (instr->Bits(23, 5) == 6)) {
+      Format(instr, "vshlqu'sz 'qd, 'qm, 'qn");
     } else if ((instr->Bits(8, 4) == 1) && (instr->Bit(4) == 1) &&
                (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 2)) {
       Format(instr, "veorq 'qd, 'qn, 'qm");
@@ -1338,6 +1344,10 @@ void ARMDecoder::DecodeSIMDDataProcessing(Instr* instr) {
     } else if ((instr->Bits(8, 4) == 1) && (instr->Bit(4) == 1) &&
                (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 0)) {
       Format(instr, "vandq 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(7, 5) == 11) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 5) == 7) &&
+               (instr->Bits(16, 4) == 0)) {
+      Format(instr, "vmvnq 'qd, 'qm");
     } else if ((instr->Bits(8, 4) == 15) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 2) && (instr->Bits(23, 2) == 0)) {
       Format(instr, "vminqs 'qd, 'qn, 'qm");

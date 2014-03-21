@@ -474,6 +474,8 @@ class Assembler : public ValueObject {
   void vmuld(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
   void vmulqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
   void vmulqs(QRegister qd, QRegister qn, QRegister qm);
+  void vshlqi(OperandSize sz, QRegister qd, QRegister qm, QRegister qn);
+  void vshlqu(OperandSize sz, QRegister qd, QRegister qm, QRegister qn);
   void vmlas(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   void vmlad(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
   void vmlss(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
@@ -491,6 +493,7 @@ class Assembler : public ValueObject {
   void vorrq(QRegister qd, QRegister qn, QRegister qm);
   void vornq(QRegister qd, QRegister qn, QRegister qm);
   void vandq(QRegister qd, QRegister qn, QRegister qm);
+  void vmvnq(QRegister qd, QRegister qm);
 
   void vceqqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
   void vceqqs(QRegister qd, QRegister qn, QRegister qm);

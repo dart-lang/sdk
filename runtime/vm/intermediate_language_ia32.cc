@@ -365,7 +365,7 @@ static void EmitJavascriptIntOverflowCheck(FlowGraphCompiler* compiler,
                                            XmmRegister result,
                                            Register tmp) {
   // Compare upper half.
-  Label check_lower, done;
+  Label check_lower;
   __ pextrd(tmp, result, Immediate(1));
   __ cmpl(tmp, Immediate(0x00200000));
   __ j(GREATER, overflow);
@@ -381,8 +381,6 @@ static void EmitJavascriptIntOverflowCheck(FlowGraphCompiler* compiler,
   __ j(LESS, overflow);
   // Anything in the lower part would make the number bigger than the lower
   // bound, so we are done.
-
-  __ Bind(&done);
 }
 
 
@@ -5177,7 +5175,9 @@ LocationSummary* UnboxIntegerInstr::MakeLocationSummary(bool opt) const {
   summary->set_in(0, needs_writable_input
                      ? Location::WritableRegister()
                      : Location::RequiresRegister());
-  if (needs_temp) summary->set_temp(0, Location::RequiresRegister());
+  if (needs_temp) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
@@ -5414,8 +5414,8 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(1).reg() == ECX);
   ASSERT(locs()->out(0).fpu_reg() == left);
 
-  Label* deopt  = compiler->AddDeoptStub(deopt_id(),
-                                         kDeoptShiftMintOp);
+  Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                        kDeoptShiftMintOp);
   Label done;
   __ testl(ECX, ECX);
   __ j(ZERO, &done);  // Shift by 0 is a nop.
