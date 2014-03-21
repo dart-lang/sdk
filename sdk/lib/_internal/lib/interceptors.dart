@@ -148,7 +148,16 @@ getNativeInterceptor(object) {
 
   var interceptor = lookupAndCacheInterceptor(object);
   if (interceptor == null) {
-    return JS_INTERCEPTOR_CONSTANT(UnknownJavaScriptObject);
+    // JavaScript Objects created via object literals and `Object.create(null)`
+    // are 'plain' Objects.  This test could be simplified and the dispatch path
+    // be faster if Object.prototype was pre-patched with a non-leaf dispatch
+    // record.
+    var proto = JS('', 'Object.getPrototypeOf(#)', object);
+    if (JS('bool', '# == null || # === Object.prototype', proto, proto)) {
+      return JS_INTERCEPTOR_CONSTANT(PlainJavaScriptObject);
+    } else {
+      return JS_INTERCEPTOR_CONSTANT(UnknownJavaScriptObject);
+    }
   }
 
   return interceptor;
