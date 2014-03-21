@@ -53,108 +53,105 @@ main() {
     pubServe(args: ["test", "web", "randomdir"], shouldGetFirst: true);
 
     // Paths in web/.
-    expectWebSocketCall({
-      "command": "pathToUrls",
+    expectWebSocketResult("pathToUrls", {
       "path": p.join("web", "index.html")
-    }, replyEquals: {"urls": [getServerUrl("web", "index.html")]});
+    }, {
+      "urls": [getServerUrl("web", "index.html")]
+    });
 
-    expectWebSocketCall({
-      "command": "pathToUrls",
+    expectWebSocketResult("pathToUrls", {
       "path": p.join("web", "sub", "bar.html")
-    }, replyEquals: {"urls": [getServerUrl("web", "sub/bar.html")]});
+    }, {
+      "urls": [getServerUrl("web", "sub/bar.html")]
+    });
 
     // Paths in test/.
-    expectWebSocketCall({
-      "command": "pathToUrls",
+    expectWebSocketResult("pathToUrls", {
       "path": p.join("test", "index.html")
-    }, replyEquals: {"urls": [getServerUrl("test", "index.html")]});
+    }, {
+      "urls": [getServerUrl("test", "index.html")]
+    });
 
-    expectWebSocketCall({
-      "command": "pathToUrls",
+    expectWebSocketResult("pathToUrls", {
       "path": p.join("test", "sub", "bar.html")
-    }, replyEquals: {"urls": [getServerUrl("test", "sub/bar.html")]});
+    }, {
+      "urls": [getServerUrl("test", "sub/bar.html")]
+    });
 
     // A non-default directory.
-    expectWebSocketCall({
-      "command": "pathToUrls",
+    expectWebSocketResult("pathToUrls", {
       "path": p.join("randomdir", "index.html")
-    }, replyEquals: {"urls": [getServerUrl("randomdir", "index.html")]});
+    }, {
+      "urls": [getServerUrl("randomdir", "index.html")]
+    });
 
     // A path in lib/.
-    expectWebSocketCall({
-      "command": "pathToUrls",
+    expectWebSocketResult("pathToUrls", {
       "path": p.join("lib", "app.dart")
-    }, replyEquals: {"urls": [
+    }, {"urls": [
       getServerUrl("test", "packages/myapp/app.dart"),
       getServerUrl("web", "packages/myapp/app.dart"),
       getServerUrl("randomdir", "packages/myapp/app.dart")
     ]});
 
     // A path in asset/.
-    expectWebSocketCall({
-      "command": "pathToUrls",
+    expectWebSocketResult("pathToUrls", {
       "path": p.join("asset", "app.txt")
-    }, replyEquals: {"urls": [
+    }, {"urls": [
       getServerUrl("test", "assets/myapp/app.txt"),
       getServerUrl("web", "assets/myapp/app.txt"),
       getServerUrl("randomdir", "assets/myapp/app.txt")
     ]});
 
     // A path to this package in packages/.
-    expectWebSocketCall({
-      "command": "pathToUrls",
+    expectWebSocketResult("pathToUrls", {
       "path": p.join("packages", "myapp", "app.dart")
-    }, replyEquals: {"urls": [
+    }, {"urls": [
       getServerUrl("test", "packages/myapp/app.dart"),
       getServerUrl("web", "packages/myapp/app.dart"),
       getServerUrl("randomdir", "packages/myapp/app.dart")
     ]});
 
     // A path to another package in packages/.
-    expectWebSocketCall({
-      "command": "pathToUrls",
+    expectWebSocketResult("pathToUrls", {
       "path": p.join("packages", "foo", "foo.dart")
-    }, replyEquals: {"urls": [
+    }, {"urls": [
       getServerUrl("test", "packages/foo/foo.dart"),
       getServerUrl("web", "packages/foo/foo.dart"),
       getServerUrl("randomdir", "packages/foo/foo.dart")
     ]});
 
     // A relative path to another package's lib/ directory.
-    expectWebSocketCall({
-      "command": "pathToUrls",
+    expectWebSocketResult("pathToUrls", {
       "path": p.join("..", "foo", "lib", "foo.dart")
-    }, replyEquals: {"urls": [
+    }, {"urls": [
       getServerUrl("test", "packages/foo/foo.dart"),
       getServerUrl("web", "packages/foo/foo.dart"),
       getServerUrl("randomdir", "packages/foo/foo.dart")
     ]});
 
     // An absolute path to another package's lib/ directory.
-    expectWebSocketCall({
-      "command": "pathToUrls",
+    expectWebSocketResult("pathToUrls", {
       "path": p.join(sandboxDir, "foo", "lib", "foo.dart")
-    }, replyEquals: {"urls": [
+    }, {"urls": [
       getServerUrl("test", "packages/foo/foo.dart"),
       getServerUrl("web", "packages/foo/foo.dart"),
       getServerUrl("randomdir", "packages/foo/foo.dart")
     ]});
 
     // A relative path to another package's asset/ directory.
-    expectWebSocketCall({
-      "command": "pathToUrls",
+    expectWebSocketResult("pathToUrls", {
       "path": p.join("..", "foo", "asset", "foo.dart")
-    }, replyEquals: {"urls": [
+    }, {"urls": [
       getServerUrl("test", "assets/foo/foo.dart"),
       getServerUrl("web", "assets/foo/foo.dart"),
       getServerUrl("randomdir", "assets/foo/foo.dart")
     ]});
 
     // An absolute path to another package's asset/ directory.
-    expectWebSocketCall({
-      "command": "pathToUrls",
+    expectWebSocketResult("pathToUrls", {
       "path": p.join(sandboxDir, "foo", "asset", "foo.dart")
-    }, replyEquals: {"urls": [
+    }, {"urls": [
       getServerUrl("test", "assets/foo/foo.dart"),
       getServerUrl("web", "assets/foo/foo.dart"),
       getServerUrl("randomdir", "assets/foo/foo.dart")

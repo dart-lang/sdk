@@ -20,10 +20,7 @@ main() {
 
     pubServe();
 
-    expectWebSocketCall({
-      "command": "serveDirectory",
-      "path": "web"
-    }, replyMatches: {
+    expectWebSocketResult("serveDirectory", {"path": "web"}, {
       "url": getServerUrl("web")
     });
 

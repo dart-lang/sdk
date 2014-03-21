@@ -17,7 +17,7 @@ import '../log.dart' as log;
 import '../utils.dart';
 import 'base_server.dart';
 import 'build_environment.dart';
-import 'web_socket_api.dart';
+import 'old_web_socket_api.dart';
 
 /// Callback for determining if an asset with [id] should be served or not.
 typedef bool AllowAsset(AssetId id);
@@ -166,7 +166,7 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
   void _handleWebSocket(HttpRequest request) {
     Chain.track(WebSocketTransformer.upgrade(request)).then((socket) {
       _webSockets.add(socket);
-      var api = new WebSocketApi(socket, environment);
+      var api = new OldWebSocketApi(socket, environment);
 
       return api.listen().whenComplete(() {
         _webSockets.remove(api);

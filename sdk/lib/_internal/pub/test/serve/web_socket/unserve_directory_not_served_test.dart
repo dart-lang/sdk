@@ -21,13 +21,8 @@ main() {
     pubServe();
 
     // Unbind the directory.
-    expectWebSocketCall({
-      "command": "unserveDirectory",
-      "path": "test"
-    }, replyEquals: {
-      "code": "NOT_SERVED",
-      "error": 'Directory "test" is not bound to a server.'
-    });
+    expectWebSocketError("unserveDirectory", {"path": "test"}, NOT_SERVED,
+        'Directory "test" is not bound to a server.');
 
     endPubServe();
   });
