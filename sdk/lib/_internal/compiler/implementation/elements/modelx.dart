@@ -48,12 +48,12 @@ abstract class ElementX implements Element {
   Modifiers get modifiers => Modifiers.EMPTY;
 
   Node parseNode(DiagnosticListener listener) {
-    listener.internalErrorOnElement(this, 'not implemented');
+    listener.internalError(this, 'Not implemented.');
     return null;
   }
 
   DartType computeType(Compiler compiler) {
-    compiler.internalError("$this.computeType.", token: position());
+    compiler.internalError(this, "$this.computeType.");
     return null;
   }
 
@@ -544,10 +544,13 @@ class ScopeX {
                    Element existing,
                    DiagnosticListener listener) {
     void reportError(Element other) {
-      // TODO(ahe): Do something similar to Resolver.reportErrorWithContext.
-      listener.cancel('duplicate definition of ${accessor.name}',
-                      element: accessor);
-      listener.cancel('existing definition', element: other);
+      listener.reportError(accessor,
+                           MessageKind.DUPLICATE_DEFINITION,
+                           {'name': accessor.name});
+      // TODO(johnniwinther): Make this an info instead of a fatal error.
+      listener.reportFatalError(other,
+                                MessageKind.EXISTING_DEFINITION,
+                                {'name': accessor.name});
     }
 
     if (existing != null) {
@@ -1198,8 +1201,8 @@ class VariableElementX extends ElementX with AnalyzableElement
       count++;
     }
     if (node == null) {
-      listener.cancel('internal error: could not find $name',
-                      node: definitions);
+      listener.internalError(definitions,
+                             "Could not find '$name'.");
     }
     if (count == 1) {
       definitionsCache = definitions;
@@ -1618,8 +1621,8 @@ class FunctionElementX extends ElementX with AnalyzableElement
   FunctionExpression parseNode(DiagnosticListener listener) {
     if (patch == null) {
       if (modifiers.isExternal()) {
-        listener.cancel("Compiling external function with no implementation.",
-                        element: this);
+        listener.internalError(this,
+            "Compiling external function with no implementation.");
       }
     }
     return cachedNode;
@@ -1715,7 +1718,7 @@ class ConstructorBodyElementX extends FunctionElementX
   bool isInstanceMember() => true;
 
   FunctionType computeType(Compiler compiler) {
-    compiler.internalErrorOnElement(this, '$this.computeType.');
+    compiler.internalError(this, '$this.computeType.');
     return null;
   }
 
@@ -2429,11 +2432,11 @@ class MixinApplicationElementX extends BaseClassElementX
   }
 
   void addMember(Element element, DiagnosticListener listener) {
-    throw new UnsupportedError("cannot add member to $this");
+    throw new UnsupportedError("Cannot add member to $this.");
   }
 
   void addToScope(Element element, DiagnosticListener listener) {
-    listener.internalError('cannot add to scope of $this', element: this);
+    listener.internalError(this, 'Cannot add to scope of $this.');
   }
 
   void addConstructor(FunctionElement constructor) {

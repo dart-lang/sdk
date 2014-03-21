@@ -47,8 +47,10 @@ export 'scanner/scannerlib.dart' show isUserDefinableOperator,
                                       isTernaryOperator,
                                       isMinusOperator;
 export 'universe/universe.dart' show Selector, TypedSelector;
-export 'util/util.dart' show Spannable;
-
+export 'util/util.dart'
+    show Spannable,
+         CURRENT_ELEMENT_SPANNABLE,
+         NO_LOCATION_SPANNABLE;
 
 part 'code_buffer.dart';
 part 'compile_time_constants.dart';

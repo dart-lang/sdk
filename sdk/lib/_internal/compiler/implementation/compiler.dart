@@ -696,24 +696,17 @@ abstract class Compiler implements DiagnosticListener {
 
   int getNextFreeClassId() => nextFreeClassId++;
 
-  void unimplemented(String methodName,
-                     {Node node, Token token, HInstruction instruction,
-                      Element element}) {
-    internalError("$methodName not implemented",
-                  node: node, token: token,
-                  instruction: instruction, element: element);
+  void unimplemented(Spannable spannable, String methodName) {
+    internalError(spannable, "$methodName not implemented.");
   }
 
-  void internalError(String message,
-                     {Node node, Token token, HInstruction instruction,
-                      Element element}) {
-    cancel(message,
-           node: node, token: token,
-           instruction: instruction, element: element);
-  }
-
-  void internalErrorOnElement(Element element, String message) {
-    internalError(message, element: element);
+  void internalError(Spannable node, reason) {
+    assembledCode = null; // Compilation failed. Make sure that we
+                          // don't return a bogus result.
+    String message = tryToString(reason);
+    reportDiagnosticInternal(
+        node, MessageKind.GENERIC, {'text': message}, api.Diagnostic.CRASH);
+    throw 'Internal Error: $message';
   }
 
   void unhandledExceptionOnElement(Element element) {
@@ -729,29 +722,13 @@ abstract class Compiler implements DiagnosticListener {
     print(MessageKind.PLEASE_REPORT_THE_CRASH.message({'buildId': buildId}));
   }
 
-  void cancel(String reason, {Node node, Token token,
-               HInstruction instruction, Element element}) {
-    assembledCode = null; // Compilation failed. Make sure that we
-                          // don't return a bogus result.
-    Spannable spannable = null;
-    if (node != null) {
-      spannable = node;
-    } else if (token != null) {
-      spannable = token;
-    } else if (instruction != null) {
-      spannable = instruction;
-    } else if (element != null) {
-      spannable = element;
-    } else {
-      throw 'No error location for error: $reason';
-    }
-    reportInternalError(spannable, MessageKind.GENERIC, {'text': reason});
-    throw new CompilerCancelledException(reason);
-  }
-
   SourceSpan spanFromSpannable(Spannable node) {
+    // TODO(johnniwinther): Disallow `node == null` ?
     if (node == null) return null;
     if (node == CURRENT_ELEMENT_SPANNABLE) {
+      node = currentElement;
+    } else if (node == NO_LOCATION_SPANNABLE) {
+      if (currentElement == null) return null;
       node = currentElement;
     }
     if (node is SourceSpan) {
@@ -869,10 +846,9 @@ abstract class Compiler implements DiagnosticListener {
   Element findRequiredElement(LibraryElement library, String name) {
     var element = library.find(name);
     if (element == null) {
-      internalErrorOnElement(
-          library,
-          'The library "${library.canonicalUri}" does not contain required '
-          'element: $name');
+      internalError(library,
+          "The library '${library.canonicalUri}' does not contain required "
+          "element: '$name'.");
       }
     return element;
   }
@@ -922,7 +898,7 @@ abstract class Compiler implements DiagnosticListener {
     nullClass = lookupCoreClass('Null');
     stackTraceClass = lookupCoreClass('StackTrace');
     if (!missingCoreClasses.isEmpty) {
-      internalErrorOnElement(coreLibrary,
+      internalError(coreLibrary,
           'dart:core library does not contain required classes: '
           '$missingCoreClasses');
     }
@@ -945,7 +921,7 @@ abstract class Compiler implements DiagnosticListener {
     closureClass = lookupHelperClass('Closure');
     dynamicClass = lookupHelperClass('Dynamic_');
     if (!missingHelperClasses.isEmpty) {
-      internalErrorOnElement(jsHelperLibrary,
+      internalError(jsHelperLibrary,
           'dart:_js_helper library does not contain required classes: '
           '$missingHelperClasses');
     }
@@ -1255,7 +1231,7 @@ abstract class Compiler implements DiagnosticListener {
   checkQueues() {
     for (Enqueuer world in [enqueuer.resolution, enqueuer.codegen]) {
       world.forEach((WorkItem work) {
-        internalErrorOnElement(work.element, "Work list is not empty.");
+        internalError(work.element, "Work list is not empty.");
       });
     }
     if (!REPORT_EXCESS_RESOLUTION) return;
@@ -1401,12 +1377,6 @@ abstract class Compiler implements DiagnosticListener {
     reportInfo(node, MessageKind.GENERIC, {'text': 'HERE: $debugMessage'});
   }
 
-  void reportInternalError(Spannable node, MessageKind messageKind,
-                           [Map arguments = const {}]) {
-    reportDiagnosticInternal(
-        node, messageKind, arguments, api.Diagnostic.CRASH);
-  }
-
   void reportDiagnosticInternal(Spannable node,
                                 MessageKind messageKind,
                                 Map arguments,
@@ -1449,7 +1419,8 @@ abstract class Compiler implements DiagnosticListener {
     String message = (ex.message != null) ? tryToString(ex.message)
                                           : tryToString(ex);
     SourceSpan span = spanFromSpannable(ex.node);
-    reportInternalError(ex.node, MessageKind.GENERIC, {'text': message});
+    reportDiagnosticInternal(
+        ex.node, MessageKind.GENERIC, {'text': message}, api.Diagnostic.CRASH);
   }
 
   SourceSpan spanFromTokens(Token begin, Token end, [Uri uri]) {
@@ -1521,7 +1492,7 @@ abstract class Compiler implements DiagnosticListener {
    */
   Uri translateResolvedUri(LibraryElement importingLibrary,
                            Uri resolvedUri, Node node) {
-    unimplemented('Compiler.translateResolvedUri');
+    unimplemented(importingLibrary, 'Compiler.translateResolvedUri');
     return null;
   }
 
@@ -1530,13 +1501,8 @@ abstract class Compiler implements DiagnosticListener {
    *
    * See [LibraryLoader] for terminology on URIs.
    */
-  Future<Script> readScript(Uri readableUri, [Element element, Node node]) {
-    unimplemented('Compiler.readScript');
-    return null;
-  }
-
-  String get legDirectory {
-    unimplemented('Compiler.legDirectory');
+  Future<Script> readScript(Spannable node, Uri readableUri) {
+    unimplemented(node, 'Compiler.readScript');
     return null;
   }
 

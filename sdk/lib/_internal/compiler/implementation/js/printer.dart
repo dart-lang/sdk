@@ -619,7 +619,7 @@ class Printer implements NodeVisitor {
         rightPrecedenceRequirement = UNARY;
         break;
       default:
-        compiler.internalError("Forgot operator: $op");
+        compiler.internalError(NO_LOCATION_SPANNABLE, "Forgot operator: $op");
     }
 
     visitNestedExpression(left, leftPrecedenceRequirement,
@@ -856,7 +856,8 @@ class Printer implements NodeVisitor {
     List<String> parts = template.split('#');
     int inputsLength = inputs == null ? 0 : inputs.length;
     if (parts.length != inputsLength + 1) {
-      compiler.internalError('Wrong number of arguments for JS: $template');
+      compiler.internalError(NO_LOCATION_SPANNABLE,
+          'Wrong number of arguments for JS: $template');
     }
     // Code that uses JS must take care of operator precedences, and
     // put parenthesis if needed.
@@ -872,7 +873,8 @@ class Printer implements NodeVisitor {
   }
 
   visitJSExpression(JSExpression node) {
-    compiler.internalError('JSPrinter should never see a JSExpression');
+    compiler.internalError(NO_LOCATION_SPANNABLE,
+        'JSPrinter should never see a JSExpression.');
   }
 
   visitInterpolatedExpression(InterpolatedExpression node) {
@@ -973,7 +975,7 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
   bool visitProgram(Program node) => false;
 
   bool visitNode(Statement node) {
-    compiler.internalError("Forgot node: $node");
+    compiler.internalError(NO_LOCATION_SPANNABLE, "Forgot node: $node");
     return null;
   }
 

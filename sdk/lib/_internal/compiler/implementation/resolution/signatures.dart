@@ -46,26 +46,26 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
   ParameterElementX visitVariableDefinitions(VariableDefinitions node) {
     Link<Node> definitions = node.definitions.nodes;
     if (definitions.isEmpty) {
-      cancel(node, 'internal error: no parameter definition');
+      internalError(node, 'no parameter definition');
       return null;
     }
     if (!definitions.tail.isEmpty) {
-      cancel(definitions.tail.head, 'internal error: extra definition');
+      internalError(definitions.tail.head, 'extra definition');
       return null;
     }
     Node definition = definitions.head;
     if (definition is NodeList) {
-      cancel(node, 'optional parameters are not implemented');
+      internalError(node, 'optional parameters are not implemented');
     }
     if (node.modifiers.isConst()) {
-      error(node, MessageKind.FORMAL_DECLARED_CONST);
+      compiler.reportError(node, MessageKind.FORMAL_DECLARED_CONST);
     }
     if (node.modifiers.isStatic()) {
-      error(node, MessageKind.FORMAL_DECLARED_STATIC);
+      compiler.reportError(node, MessageKind.FORMAL_DECLARED_STATIC);
     }
 
     if (currentDefinitions != null) {
-      cancel(node, 'function type parameters not supported');
+      internalError(node, 'function type parameters not supported');
     }
     currentDefinitions = node;
     ParameterElementX element = definition.accept(this);
@@ -140,7 +140,7 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
           functionExpression.name.asIdentifier() != null) {
         return functionExpression.name.asIdentifier();
       } else {
-        cancel(node,
+        internalError(node,
             'internal error: unimplemented receiver on parameter send');
         return null;
       }

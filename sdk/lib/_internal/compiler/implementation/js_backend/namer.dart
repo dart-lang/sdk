@@ -769,13 +769,12 @@ class Namer implements ClosureNamer {
       } else if (element.kind == ElementKind.SETTER) {
         return setterName(element);
       } else if (element.kind == ElementKind.FIELD) {
-        compiler.internalError(
-            'use instanceFieldPropertyName or instanceFieldAccessorName',
-            node: element.parseNode(compiler));
+        compiler.internalError(element,
+            'Use instanceFieldPropertyName or instanceFieldAccessorName.');
         return null;
       } else {
-        compiler.internalError('getName for bad kind: ${element.kind}',
-                               node: element.parseNode(compiler));
+        compiler.internalError(element,
+            'getName for bad kind: ${element.kind}.');
         return null;
       }
     } else {
@@ -811,8 +810,8 @@ class Namer implements ClosureNamer {
         globals[element] = result;
         return result;
       }
-      compiler.internalError('getName for unknown kind: ${element.kind}',
-                              node: element.parseNode(compiler));
+      compiler.internalError(element,
+          'getName for unknown kind: ${element.kind}.');
       return null;
     }
   }
@@ -1258,7 +1257,7 @@ class ConstantCanonicalHasher implements ConstantVisitor<int> {
   }
 
   visitDummy(DummyConstant constant) {
-    compiler.internalError(
+    compiler.internalError(NO_LOCATION_SPANNABLE,
         'DummyReceiverConstant should never be named and never be subconstant');
   }
 

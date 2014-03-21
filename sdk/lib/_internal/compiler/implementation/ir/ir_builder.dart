@@ -67,8 +67,7 @@ class IrBuilderTask extends CompilerTask {
           } else if (kind == ElementKind.FIELD) {
             // TODO(lry): build ir for lazy initializers of static fields.
           } else {
-            compiler.internalErrorOnElement(element,
-                'unexpected element kind $kind');
+            compiler.internalError(element, 'Unexpected element kind $kind.');
           }
 
           if (function != null) {

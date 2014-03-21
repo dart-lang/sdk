@@ -203,9 +203,8 @@ class ClassEmitter extends CodeEmitterHelper {
             }
             int code = getterCode + (setterCode << 2);
             if (code == 0) {
-              compiler.reportInternalError(
-                  field, MessageKind.GENERIC,
-                  {'text': 'Field code is 0 ($element/$field)'});
+              compiler.internalError(field,
+                  'Field code is 0 ($element/$field).');
             } else {
               fieldCode = FIELD_CODE_CHARACTERS[code - FIRST_FIELD_CODE];
             }

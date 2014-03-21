@@ -28,7 +28,7 @@ class Unpickler {
   ByteData doubleData = new ByteData(8);
 
   ConstantSystem get constantSystem => compiler.backend.constantSystem;
-  
+
   // A partially constructed expression is one that has a single 'hole' where
   // there is an expression missing.  Just like the IR builder, the unpickler
   // represents such an expression by its root and by the 'current' expression
@@ -76,7 +76,8 @@ class Unpickler {
     } else if (tag == Pickles.STRING_UTF8) {
       return UTF8.decode(bytes);
     } else {
-      compiler.internalError("Unexpected string tag: $tag");
+      compiler.internalError(NO_LOCATION_SPANNABLE,
+                             "Unexpected string tag: $tag");
       return null;
     }
   }
@@ -142,7 +143,8 @@ class Unpickler {
         current = null;
         break;
       default:
-        compiler.internalError("Unexpected expression entry tag: $tag");
+        compiler.internalError(NO_LOCATION_SPANNABLE,
+                               "Unexpected expression entry tag: $tag");
         break;
     }
   }
@@ -231,7 +233,8 @@ class Unpickler {
       case Pickles.CONST_NULL:
         return constantSystem.createNull();
       default:
-        compiler.internalError("Unexpected constant tag: $tag");
+        compiler.internalError(NO_LOCATION_SPANNABLE,
+                               "Unexpected constant tag: $tag");
         return null;
     }
   }
@@ -248,7 +251,8 @@ class Unpickler {
         return new ast.ConsDartString(
             readDartString(readByte()), readDartString(readByte()));
       default:
-        compiler.internalError("Unexpected dart string tag: $tag");
+        compiler.internalError(NO_LOCATION_SPANNABLE,
+                               "Unexpected dart string tag: $tag");
         return null;
     }
   }

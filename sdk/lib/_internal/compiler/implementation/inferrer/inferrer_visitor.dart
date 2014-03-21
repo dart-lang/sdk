@@ -1144,7 +1144,7 @@ abstract class InferrerVisitor
   }
 
   void internalError(String reason, {Node node}) {
-    compiler.internalError(reason, node: node);
+    compiler.internalError(node, reason);
   }
 
   T visitSwitchStatement(SwitchStatement node) {

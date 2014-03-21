@@ -11,7 +11,7 @@ import '../dart2jslib.dart' show
     InterceptorConstant, DummyConstant, FunctionConstant, TypeConstant,
     ConstructedConstant,
     ConstantVisitor, ConstantSystem,
-    Compiler;
+    Compiler, NO_LOCATION_SPANNABLE;
 import 'dart:typed_data' show ByteData, Endianness, Uint8List;
 import 'dart:convert' show UTF8;
 import '../tree/tree.dart' as ast show

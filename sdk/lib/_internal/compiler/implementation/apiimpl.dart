@@ -159,15 +159,16 @@ class Compiler extends leg.Compiler {
   /**
    * Reads the script designated by [readableUri].
    */
-  Future<leg.Script> readScript(Uri readableUri,
-                                [elements.Element element, tree.Node node]) {
+  Future<leg.Script> readScript(leg.Spannable node, Uri readableUri) {
     if (!readableUri.isAbsolute) {
-      internalError('Relative uri $readableUri provided to readScript(Uri)',
-                    node: node);
+      internalError(node,
+          'Relative uri $readableUri provided to readScript(Uri).');
     }
 
-    // TODO(johnniwinther): Add [:report(..., {Element element}):] to
-    // report methods in Compiler.
+    // We need to store the current element since we are reporting read errors
+    // asynchronously and therefore need to restore the current element for
+    // [node] to be valid.
+    elements.Element element = currentElement;
     void reportReadError(exception) {
       withCurrentElement(element, () {
         reportError(node,
@@ -176,7 +177,7 @@ class Compiler extends leg.Compiler {
       });
     }
 
-    Uri resourceUri = translateUri(readableUri, node);
+    Uri resourceUri = translateUri(node, readableUri);
     // TODO(johnniwinther): Wrap the result from [provider] in a specialized
     // [Future] to ensure that we never execute an asynchronous action without
     // setting up the current element of the compiler.
@@ -208,9 +209,9 @@ class Compiler extends leg.Compiler {
    *
    * See [LibraryLoader] for terminology on URIs.
    */
-  Uri translateUri(Uri readableUri, tree.Node node) {
+  Uri translateUri(leg.Spannable node, Uri readableUri) {
     switch (readableUri.scheme) {
-      case 'package': return translatePackageUri(readableUri, node);
+      case 'package': return translatePackageUri(node, readableUri);
       default: return readableUri;
     }
   }
@@ -265,7 +266,7 @@ class Compiler extends leg.Compiler {
     return libraryRoot.resolve(patchPath);
   }
 
-  Uri translatePackageUri(Uri uri, tree.Node node) {
+  Uri translatePackageUri(leg.Spannable node, Uri uri) {
     if (packageRoot == null) {
       reportFatalError(
           node, leg.MessageKind.PACKAGE_ROOT_NOT_SET, {'uri': uri});
@@ -302,7 +303,7 @@ class Compiler extends leg.Compiler {
       callUserHandler(null, null, null, '$message', kind);
     } else {
       callUserHandler(
-          translateUri(span.uri, null), span.begin, span.end, '$message', kind);
+          translateUri(null, span.uri), span.begin, span.end, '$message', kind);
     }
   }
 

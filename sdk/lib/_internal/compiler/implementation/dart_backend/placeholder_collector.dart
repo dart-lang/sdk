@@ -368,7 +368,7 @@ class PlaceholderCollector extends Visitor {
   }
 
   void internalError(String reason, {Node node}) {
-    compiler.cancel(reason, node: node);
+    compiler.internalError(node, reason);
   }
 
   visit(Node node) => (node == null) ? null : node.accept(this);

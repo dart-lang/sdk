@@ -32,11 +32,7 @@ class LoggerCanceler implements DiagnosticListener {
     print(message);
   }
 
-  void internalErrorOnElement(element, String message) {
-    log(message);
-  }
-
-  void internalError(String message, {node, token, instruction, element}) {
+  void internalError(node, String message) {
     log(message);
   }
 
@@ -48,6 +44,12 @@ class LoggerCanceler implements DiagnosticListener {
     log(message);
   }
 
+  void reportFatalError(Spannable node,
+                        MessageKind errorCode,
+                        [Map arguments]) {
+    log(new Message(errorCode, arguments, false));
+  }
+
   void reportError(Spannable node, MessageKind errorCode, [Map arguments]) {
     log(new Message(errorCode, arguments, false));
   }
@@ -57,6 +59,10 @@ class LoggerCanceler implements DiagnosticListener {
   }
 
   void reportInfo(Spannable node, MessageKind errorCode, [Map arguments]) {
+    log(new Message(errorCode, arguments, false));
+  }
+
+  void reportHint(Spannable node, MessageKind errorCode, [Map arguments]) {
     log(new Message(errorCode, arguments, false));
   }
 

@@ -116,10 +116,10 @@ class Bar extends Foo implements X<Bar> {}
   compiler.resolveStatement("Bar bar;");
   ClassElement classBar = compiler.mainApp.find("Bar");
   Expect.equals(0, compiler.warnings.length);
-  Expect.equals(0, compiler.errors.length);
-  Expect.equals(1, compiler.crashes.length);
+  Expect.equals(1, compiler.errors.length);
   Expect.equals(MessageKind.MULTI_INHERITANCE,
-                compiler.crashes[0].message.kind);
+                compiler.errors[0].message.kind);
+  Expect.equals(0, compiler.crashes.length);
 }
 
 testTypeVariables() {
@@ -754,10 +754,10 @@ testClassHierarchy() {
   mainElement = compiler.mainApp.find(MAIN);
   compiler.resolver.resolve(mainElement);
   Expect.equals(0, compiler.warnings.length);
-  Expect.equals(0, compiler.errors.length);
-  Expect.equals(1, compiler.crashes.length);
+  Expect.equals(1, compiler.errors.length);
   Expect.equals(MessageKind.MULTI_INHERITANCE,
-                compiler.crashes[0].message.kind);
+                compiler.errors[0].message.kind);
+  Expect.equals(0, compiler.crashes.length);
 }
 
 testInitializers() {

@@ -443,7 +443,7 @@ class NativeEmitter {
 
   bool isSupertypeOfNativeClass(Element element) {
     if (element.isTypeVariable()) {
-      compiler.cancel("Is check for type variable", element: element);
+      compiler.internalError(element, "Is check for type variable.");
       return false;
     }
     if (element.computeType(compiler).unalias(compiler) is FunctionType) {
@@ -453,7 +453,7 @@ class NativeEmitter {
     }
 
     if (!element.isClass()) {
-      compiler.cancel("Is check does not handle element", element: element);
+      compiler.internalError(element, "Is check does not handle element.");
       return false;
     }
 

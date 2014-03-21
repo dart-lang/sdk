@@ -73,8 +73,7 @@ class TypeVariableHandler {
       for (TypeVariableType currentTypeVariable in cls.typeVariables) {
         List<Constant> createArguments(FunctionElement constructor) {
         if (constructor != typeVariableConstructor) {
-            compiler.internalErrorOnElement(
-                currentTypeVariable.element,
+            compiler.internalError(currentTypeVariable.element,
                 'Unexpected constructor $constructor');
           }
           Constant name = backend.constantSystem.createString(
@@ -103,11 +102,8 @@ class TypeVariableHandler {
     typeVariableClass.ensureResolved(compiler);
     Link constructors = typeVariableClass.constructors;
     if (constructors.isEmpty && constructors.tail.isEmpty) {
-      compiler.reportInternalError(
-          typeVariableClass,
-          MessageKind.GENERIC,
-          {'text': "Class '$typeVariableClass' should only "
-                   "have one constructor"});
+      compiler.internalError(typeVariableClass,
+          "Class '$typeVariableClass' should only have one constructor");
     }
     typeVariableConstructor = typeVariableClass.constructors.head;
     backend.enqueueInResolution(typeVariableConstructor,

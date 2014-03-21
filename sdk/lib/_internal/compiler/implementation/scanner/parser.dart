@@ -948,7 +948,7 @@ class Parser {
     if (identical(token.kind, STRING_TOKEN)) {
       return parseLiteralString(token);
     } else {
-      listener.recoverableError("unexpected", token: token);
+      listener.recoverableError(token, "unexpected");
       return parseExpression(token);
     }
   }

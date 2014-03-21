@@ -367,11 +367,11 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   /// a field and not to a setter.
   DartType analyze(Node node, {bool inInitializer: false}) {
     if (node == null) {
-      final String error = 'unexpected node: null';
+      final String error = 'Unexpected node: null';
       if (lastSeenNode != null) {
-        compiler.internalError(error, node: lastSeenNode);
+        compiler.internalError(lastSeenNode, error);
       } else {
-        compiler.cancel(error);
+        compiler.internalError(elements.currentElement, error);
       }
     } else {
       lastSeenNode = node;
@@ -381,7 +381,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     DartType result = node.accept(this);
     analyzingInitializer = previouslyInitializer;
     if (result == null) {
-      compiler.internalError('type is null', node: node);
+      compiler.internalError(node, 'Type is null.');
     }
     return result;
   }
@@ -982,8 +982,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     } else if (element.isGetter() || element.isSetter()) {
       return createResolvedAccess(node, name, element);
     } else {
-      compiler.internalErrorOnElement(
-          element, 'unexpected element kind ${element.kind}');
+      compiler.internalError(element,
+          'Unexpected element kind ${element.kind}.');
       return null;
     }
   }
@@ -1015,8 +1015,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         computeAccess(node, name, element, memberKind,
             lookupClassMember: lookupClassMember).computeType(compiler);
     if (type == null) {
-      compiler.internalError('type is null on access of $name on $node',
-                             node: node);
+      compiler.internalError(node, 'Type is null on access of $name on $node.');
     }
     return type;
   }
@@ -1412,8 +1411,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         case '<<=': operatorName = '<<'; break;
         case '>>=': operatorName = '>>'; break;
         default:
-          compiler.internalError(
-              'Unexpected assignment operator $name', node: node);
+          compiler.internalError(node, 'Unexpected assignment operator $name.');
       }
       if (node.isIndex) {
         // base[key] o= value for some operator o.
@@ -1746,8 +1744,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   visitNode(Node node) {
-    compiler.internalError(
-        'Unexpected node ${node.getObjectDescription()} in the type checker.',
-        node: node);
+    compiler.internalError(node,
+        'Unexpected node ${node.getObjectDescription()} in the type checker.');
   }
 }

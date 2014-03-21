@@ -53,7 +53,8 @@ InstanceMirror _convertConstantToInstanceMirror(
   } else if (constant is ConstructedConstant) {
     return new Dart2JsConstructedConstantMirror(mirrorSystem, constant);
   }
-  mirrorSystem.compiler.internalError("Unexpected constant $constant");
+  mirrorSystem.compiler.internalError(NO_LOCATION_SPANNABLE,
+      "Unexpected constant $constant");
   return null;
 }
 

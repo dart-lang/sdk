@@ -1840,8 +1840,7 @@ class JavaScriptBackend extends Backend {
       } else if (cls == noThrowsClass) {
         hasNoThrows = true;
         if (!Elements.isStaticOrTopLevelFunction(element)) {
-          compiler.internalErrorOnElement(
-              element,
+          compiler.internalError(element,
               "@NoThrows() is currently limited to top-level"
               " or static functions");
         }
@@ -1858,12 +1857,12 @@ class JavaScriptBackend extends Backend {
       }
     }
     if (hasNoThrows && !hasNoInline) {
-      compiler.internalErrorOnElement(
-          element, "@NoThrows() should always be combined with @NoInline");
+      compiler.internalError(element,
+          "@NoThrows() should always be combined with @NoInline.");
     }
     if (hasNoSideEffects && !hasNoInline) {
-      compiler.internalErrorOnElement(
-          element, "@NoSideEffects() should always be combined with @NoInline");
+      compiler.internalError(element,
+          "@NoSideEffects() should always be combined with @NoInline.");
     }
   }
 

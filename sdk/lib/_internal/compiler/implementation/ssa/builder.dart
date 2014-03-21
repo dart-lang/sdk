@@ -54,8 +54,7 @@ class SsaBuilderTask extends CompilerTask {
             graph = builder.buildLazyInitializer(element);
           }
         } else {
-          compiler.internalErrorOnElement(element,
-                                          'unexpected element kind $kind');
+          compiler.internalError(element, 'Unexpected element kind $kind.');
         }
         assert(graph.isValid());
         if (!identical(kind, ElementKind.FIELD)) {
@@ -356,13 +355,11 @@ class LocalsHandler {
     if (isAccessedDirectly(element)) {
       if (directLocals[element] == null) {
         if (element.isTypeVariable()) {
-          builder.compiler.internalError(
-              "Runtime type information not available for $element",
-              element: builder.compiler.currentElement);
+          builder.compiler.internalError(builder.compiler.currentElement,
+              "Runtime type information not available for $element.");
         } else {
-          builder.compiler.internalError(
-              "Cannot find value $element",
-              element: element);
+          builder.compiler.internalError(element,
+              "Cannot find value $element.");
         }
       }
       return directLocals[element];
@@ -696,11 +693,13 @@ class NullJumpHandler implements JumpHandler {
   NullJumpHandler(this.compiler);
 
   void generateBreak([LabelElement label]) {
-    compiler.internalError('generateBreak should not be called');
+    compiler.internalError(CURRENT_ELEMENT_SPANNABLE,
+        'NullJumpHandler.generateBreak should not be called.');
   }
 
   void generateContinue([LabelElement label]) {
-    compiler.internalError('generateContinue should not be called');
+    compiler.internalError(CURRENT_ELEMENT_SPANNABLE,
+        'NullJumpHandler.generateContinue should not be called.');
   }
 
   void forEachBreak(Function ignored) { }
@@ -1796,7 +1795,8 @@ class SsaBuilder extends ResolvedVisitor {
         // TODO(johnniwinther): Should we find injected constructors as well?
         FunctionElement target = superClass.lookupConstructor(selector);
         if (target == null) {
-          compiler.internalError("no default constructor available");
+          compiler.internalError(superClass,
+              "No default constructor available.");
         }
         List<HInstruction> arguments = <HInstruction>[];
         selector.addArgumentsToList(const Link<ast.Node>(),
@@ -2281,16 +2281,21 @@ class SsaBuilder extends ResolvedVisitor {
       visit(link.head);
       if (!isReachable) {
         // The block has been aborted by a return or a throw.
-        if (!stack.isEmpty) compiler.cancel('non-empty instruction stack');
+        if (!stack.isEmpty) {
+          compiler.internalError(node, 'Non-empty instruction stack.');
+        }
         return;
       }
     }
     assert(!current.isClosed());
-    if (!stack.isEmpty) compiler.cancel('non-empty instruction stack');
+    if (!stack.isEmpty) {
+      compiler.internalError(node, 'Non-empty instruction stack.');
+    }
   }
 
   visitClassNode(ast.ClassNode node) {
-    compiler.internalError('visitClassNode should not be called', node: node);
+    compiler.internalError(node,
+        'SsaBuilder.visitClassNode should not be called.');
   }
 
   visitThrowExpression(ast.Expression expression) {
@@ -2817,8 +2822,8 @@ class SsaBuilder extends ResolvedVisitor {
     if (node.isThis()) {
       stack.add(localsHandler.readThis());
     } else {
-      compiler.internalError("SsaFromAstMixin.visitIdentifier on non-this",
-                             node: node);
+      compiler.internalError(node,
+          "SsaFromAstMixin.visitIdentifier on non-this.");
     }
   }
 
@@ -3300,8 +3305,8 @@ class SsaBuilder extends ResolvedVisitor {
     // argument, which is the type, and the second argument,
     // which is the foreign code.
     if (link.isEmpty || link.tail.isEmpty) {
-      compiler.cancel('At least two arguments expected',
-                      node: node.argumentsNode);
+      compiler.internalError(node.argumentsNode,
+          'At least two arguments expected.');
     }
     native.NativeBehavior nativeBehavior =
         compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
@@ -3319,8 +3324,8 @@ class SsaBuilder extends ResolvedVisitor {
 
   void handleForeignJsCurrentIsolateContext(ast.Send node) {
     if (!node.arguments.isEmpty) {
-      compiler.cancel(
-          'Too many arguments to JS_CURRENT_ISOLATE_CONTEXT', node: node);
+      compiler.internalError(node,
+          'Too many arguments to JS_CURRENT_ISOLATE_CONTEXT.');
     }
 
     if (!compiler.hasIsolateSupport()) {
@@ -3336,8 +3341,8 @@ class SsaBuilder extends ResolvedVisitor {
       // Leg's isolate.
       Element element = compiler.isolateHelperLibrary.find('_currentIsolate');
       if (element == null) {
-        compiler.cancel(
-            'Isolate library and compiler mismatch', node: node);
+        compiler.internalError(node,
+            'Isolate library and compiler mismatch.');
       }
       pushInvokeStatic(null, element, [], backend.dynamicType);
     }
@@ -3412,8 +3417,8 @@ class SsaBuilder extends ResolvedVisitor {
       // Call a helper method from the isolate library.
       Element element = compiler.isolateHelperLibrary.find('_callInIsolate');
       if (element == null) {
-        compiler.cancel(
-            'Isolate library and compiler mismatch', node: node);
+        compiler.internalError(node,
+            'Isolate library and compiler mismatch.');
       }
       List<HInstruction> inputs = <HInstruction>[];
       addGenericSendArgumentsToList(link, inputs);
@@ -3423,15 +3428,14 @@ class SsaBuilder extends ResolvedVisitor {
 
   FunctionSignature handleForeignRawFunctionRef(ast.Send node, String name) {
     if (node.arguments.isEmpty || !node.arguments.tail.isEmpty) {
-      compiler.cancel('"$name" requires exactly one argument',
-                      node: node.argumentsNode);
+      compiler.internalError(node.argumentsNode,
+          '"$name" requires exactly one argument.');
     }
     ast.Node closure = node.arguments.head;
     Element element = elements[closure];
     if (!Elements.isStaticOrTopLevelFunction(element)) {
-      compiler.cancel(
-          '"$name" requires a static or top-level method',
-          node: closure);
+      compiler.internalError(closure,
+          '"$name" requires a static or top-level method.');
     }
     FunctionElement function = element;
     // TODO(johnniwinther): Try to eliminate the need to distinguish declaration
@@ -3440,9 +3444,8 @@ class SsaBuilder extends ResolvedVisitor {
     FunctionElement implementation = function.implementation;
     FunctionSignature params = implementation.functionSignature;
     if (params.optionalParameterCount != 0) {
-      compiler.cancel(
-          '"$name" does not handle closure with optional parameters',
-          node: closure);
+      compiler.internalError(closure,
+          '"$name" does not handle closure with optional parameters.');
     }
 
     compiler.enqueuer.codegen.registerStaticUse(element);
@@ -3461,8 +3464,8 @@ class SsaBuilder extends ResolvedVisitor {
 
   void handleForeignSetCurrentIsolate(ast.Send node) {
     if (node.arguments.isEmpty || !node.arguments.tail.isEmpty) {
-      compiler.cancel('Exactly one argument required',
-                      node: node.argumentsNode);
+      compiler.internalError(node.argumentsNode,
+          'Exactly one argument required.');
     }
     visit(node.arguments.head);
     String isolateName = backend.namer.currentIsolate;
@@ -3476,8 +3479,7 @@ class SsaBuilder extends ResolvedVisitor {
 
   void handleForeignCreateIsolate(ast.Send node) {
     if (!node.arguments.isEmpty) {
-      compiler.cancel('Too many arguments',
-                      node: node.argumentsNode);
+      compiler.internalError(node.argumentsNode, 'Too many arguments.');
     }
     String constructorName = backend.namer.isolateName;
     push(new HForeign(js.js("new $constructorName()"),
@@ -3487,7 +3489,7 @@ class SsaBuilder extends ResolvedVisitor {
 
   void handleForeignDartObjectJsConstructorFunction(ast.Send node) {
     if (!node.arguments.isEmpty) {
-      compiler.cancel('Too many arguments', node: node.argumentsNode);
+      compiler.internalError(node.argumentsNode, 'Too many arguments.');
     }
     String jsClassReference = backend.namer.isolateAccess(compiler.objectClass);
     push(new HForeign(new js.LiteralString(jsClassReference),
@@ -3497,7 +3499,7 @@ class SsaBuilder extends ResolvedVisitor {
 
   void handleForeignJsCurrentIsolate(ast.Send node) {
     if (!node.arguments.isEmpty) {
-      compiler.cancel('Too many arguments', node: node.argumentsNode);
+      compiler.internalError(node.argumentsNode, 'Too many arguments.');
     }
     push(new HForeign(new js.LiteralString(backend.namer.currentIsolate),
                       backend.dynamicType,
@@ -3779,8 +3781,8 @@ class SsaBuilder extends ResolvedVisitor {
     } else {
       // TODO(ngeoffray): Match the VM behavior and throw an
       // exception at runtime.
-      compiler.cancel('Unimplemented unresolved type variable',
-                      element: type.element);
+      compiler.internalError(type.element,
+          'Unimplemented unresolved type variable.');
       return null;
     }
   }
@@ -4187,7 +4189,7 @@ class SsaBuilder extends ResolvedVisitor {
 
   // TODO(antonm): migrate rest of SsaFromAstMixin to internalError.
   internalError(String reason, {ast.Node node}) {
-    compiler.internalError(reason, node: node);
+    compiler.internalError(node, reason);
   }
 
   void generateError(ast.Node node, String message, Element helper) {
@@ -4557,7 +4559,7 @@ class SsaBuilder extends ResolvedVisitor {
         generateNonInstanceSetter(node, element, pop());
       }
     } else if (identical(op.source, "is")) {
-      compiler.internalError("is-operator as SendSet", node: op);
+      compiler.internalError(op, "is-operator as SendSet.");
     } else {
       assert("++" == op.source || "--" == op.source ||
              node.assignmentOperator.source.endsWith("="));
@@ -4650,7 +4652,8 @@ class SsaBuilder extends ResolvedVisitor {
 
   visitOperator(ast.Operator node) {
     // Operators are intercepted in their surrounding Send nodes.
-    compiler.internalError('visitOperator should not be called', node: node);
+    compiler.internalError(node,
+        'SsaBuilder.visitOperator should not be called.');
   }
 
   visitCascade(ast.Cascade node) {
@@ -4676,8 +4679,8 @@ class SsaBuilder extends ResolvedVisitor {
     HInstruction exception = rethrowableException;
     if (exception == null) {
       exception = graph.addConstantNull(compiler);
-      compiler.internalError(
-          'rethrowableException should not be null', node: node);
+      compiler.internalError(node,
+          'rethrowableException should not be null.');
     }
     handleInTryStatement();
     closeAndGotoExit(new HThrow(exception, isRethrow: true));
@@ -4744,8 +4747,8 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   visitTypeAnnotation(ast.TypeAnnotation node) {
-    compiler.internalError('visiting type annotation in SSA builder',
-                           node: node);
+    compiler.internalError(node,
+        'Visiting type annotation in SSA builder.');
   }
 
   visitVariableDefinitions(ast.VariableDefinitions node) {
@@ -4818,8 +4821,8 @@ class SsaBuilder extends ResolvedVisitor {
 
   visitStringInterpolationPart(ast.StringInterpolationPart node) {
     // The parts are iterated in visitStringInterpolation.
-    compiler.internalError('visitStringInterpolation should not be called',
-                           node: node);
+    compiler.internalError(node,
+      'SsaBuilder.visitStringInterpolation should not be called.');
   }
 
   visitEmptyStatement(ast.EmptyStatement node) {
@@ -4827,7 +4830,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   visitModifiers(ast.Modifiers node) {
-    compiler.unimplemented('SsaFromAstMixin.visitModifiers', node: node);
+    compiler.unimplemented(node, 'SsaFromAstMixin.visitModifiers.');
   }
 
   visitBreakStatement(ast.BreakStatement node) {
@@ -4935,7 +4938,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   visitLabel(ast.Label node) {
-    compiler.internalError('SsaFromAstMixin.visitLabel', node: node);
+    compiler.internalError(node, 'SsaFromAstMixin.visitLabel.');
   }
 
   visitLabeledStatement(ast.LabeledStatement node) {
@@ -5365,11 +5368,11 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   visitSwitchCase(ast.SwitchCase node) {
-    compiler.internalError('SsaFromAstMixin.visitSwitchCase');
+    compiler.internalError(node, 'SsaFromAstMixin.visitSwitchCase.');
   }
 
   visitCaseMatch(ast.CaseMatch node) {
-    compiler.internalError('SsaFromAstMixin.visitCaseMatch');
+    compiler.internalError(node, 'SsaFromAstMixin.visitCaseMatch.');
   }
 
   visitTryStatement(ast.TryStatement node) {
@@ -5426,7 +5429,7 @@ class SsaBuilder extends ResolvedVisitor {
         if (catchBlock.onKeyword != null) {
           DartType type = elements.getType(catchBlock.type);
           if (type == null) {
-            compiler.internalError('On with no type', node: catchBlock.type);
+            compiler.internalError(catchBlock.type, 'On with no type.');
           }
           HInstruction condition =
               buildIsNode(catchBlock.type, type, unwrappedException);
@@ -5444,7 +5447,7 @@ class SsaBuilder extends ResolvedVisitor {
             // condition.
             DartType type = elements.getType(declaration.type);
             if (type == null) {
-              compiler.cancel('Catch with unresolved type', node: catchBlock);
+              compiler.internalError(catchBlock, 'Catch with unresolved type.');
             }
             condition = buildIsNode(declaration.type, type, unwrappedException);
             push(condition);
@@ -5569,11 +5572,11 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   visitTypedef(ast.Typedef node) {
-    compiler.unimplemented('SsaFromAstMixin.visitTypedef', node: node);
+    compiler.unimplemented(node, 'SsaFromAstMixin.visitTypedef.');
   }
 
   visitTypeVariable(ast.TypeVariable node) {
-    compiler.internalError('SsaFromAstMixin.visitTypeVariable');
+    compiler.internalError(node, 'SsaFromAstMixin.visitTypeVariable.');
   }
 
   /**
@@ -5637,7 +5640,7 @@ class StringBuilderVisitor extends ast.Visitor {
   }
 
   visitNode(ast.Node node) {
-    builder.compiler.internalError('unexpected node', node: node);
+    builder.compiler.internalError(node, 'Unexpected node.');
   }
 
   void visitExpression(ast.Node node) {
@@ -5827,7 +5830,7 @@ class SsaBranchBuilder {
 
   void checkNotAborted() {
     if (builder.isAborted()) {
-      compiler.unimplemented("aborted control flow", node: diagnosticNode);
+      compiler.unimplemented(diagnosticNode, "aborted control flow");
     }
   }
 

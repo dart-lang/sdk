@@ -269,7 +269,9 @@ void testOperatorParse() {
 class Collector implements DiagnosticListener {
   int token = -1;
 
-  void cancel(String reason, {node, token, instruction, element}) {
+  void reportFatalError(Token token,
+                        messageKind,
+                        [Map arguments = const {}]) {
     this.token = token.kind;
     throw this;
   }

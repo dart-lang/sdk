@@ -548,9 +548,9 @@ class MembersCreator {
   }
 
   void reportErrorWithContext(Element errorneousElement,
-                         MessageKind errorMessage,
-                         Element contextElement,
-                         MessageKind contextMessage) {
+                              MessageKind errorMessage,
+                              Element contextElement,
+                              MessageKind contextMessage) {
     compiler.reportError(
         errorneousElement,
         errorMessage,

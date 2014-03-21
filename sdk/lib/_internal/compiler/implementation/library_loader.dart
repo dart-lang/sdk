@@ -297,7 +297,7 @@ class LibraryLoaderTask extends LibraryLoader {
         } else if (tag.isLibraryName) {
           tagState = checkTag(TagState.LIBRARY, tag);
           if (library.libraryTag != null) {
-            compiler.cancel("duplicated library declaration", node: tag);
+            compiler.internalError(tag, "Duplicated library declaration.");
           } else {
             library.libraryTag = tag;
           }
@@ -308,7 +308,7 @@ class LibraryLoaderTask extends LibraryLoader {
           tagState = checkTag(TagState.SOURCE, part);
           return scanPart(part, resolvedUri, library);
         } else {
-          compiler.internalError("Unhandled library tag.", node: tag);
+          compiler.internalError(tag, "Unhandled library tag.");
         }
       });
     }).then((_) {
@@ -413,19 +413,21 @@ class LibraryLoaderTask extends LibraryLoader {
     if (!resolvedUri.isAbsolute) throw new ArgumentError(resolvedUri);
     Uri readableUri = compiler.translateResolvedUri(library, resolvedUri, part);
     if (readableUri == null) return new Future.value();
-    return compiler.readScript(readableUri, library, part).
-        then((Script sourceScript) {
-          if (sourceScript == null) return;
+    return compiler.withCurrentElement(library, () {
+      return compiler.readScript(part, readableUri).
+          then((Script sourceScript) {
+            if (sourceScript == null) return;
 
-          CompilationUnitElement unit =
-              new CompilationUnitElementX(sourceScript, library);
-          compiler.withCurrentElement(unit, () {
-            compiler.scanner.scan(unit);
-            if (unit.partTag == null) {
-              compiler.reportError(unit, MessageKind.MISSING_PART_OF_TAG);
-            }
+            CompilationUnitElement unit =
+                new CompilationUnitElementX(sourceScript, library);
+            compiler.withCurrentElement(unit, () {
+              compiler.scanner.scan(unit);
+              if (unit.partTag == null) {
+                compiler.reportError(unit, MessageKind.MISSING_PART_OF_TAG);
+              }
+            });
           });
-        });
+    });
   }
 
   /**
@@ -456,8 +458,10 @@ class LibraryLoaderTask extends LibraryLoader {
   // TODO(johnniwinther): Remove [canonicalUri] and make [resolvedUri] the
   // canonical uri when [Compiler.scanBuiltinLibrary] is removed.
   Future<LibraryElement> createLibrary(LibraryDependencyHandler handler,
-                               LibraryElement importingLibrary,
-                               Uri resolvedUri, Node node, Uri canonicalUri) {
+                                       LibraryElement importingLibrary,
+                                       Uri resolvedUri,
+                                       Node node,
+                                       Uri canonicalUri) {
     // TODO(johnniwinther): Create erroneous library elements for missing
     // libraries.
     Uri readableUri =
@@ -470,27 +474,29 @@ class LibraryLoaderTask extends LibraryLoader {
     if (library != null) {
       return new Future.value(library);
     }
-    return compiler.readScript(readableUri, importingLibrary, node)
-        .then((Script script) {
-          if (script == null) return null;
-          LibraryElement element = new LibraryElementX(script, canonicalUri);
-          compiler.withCurrentElement(element, () {
-            handler.registerNewLibrary(element);
-            native.maybeEnableNative(compiler, element);
-            if (canonicalUri != null) {
-              compiler.libraries[canonicalUri.toString()] = element;
-            }
-            compiler.scanner.scanLibrary(element);
-          });
-          return processLibraryTags(handler, element).then((_) {
+    return compiler.withCurrentElement(importingLibrary, () {
+      return compiler.readScript(node, readableUri)
+          .then((Script script) {
+            if (script == null) return null;
+            LibraryElement element = new LibraryElementX(script, canonicalUri);
             compiler.withCurrentElement(element, () {
-              handler.registerLibraryExports(element);
-              onLibraryLoadedCallbacks.add(
-                  () => compiler.onLibraryLoaded(element, resolvedUri));
+              handler.registerNewLibrary(element);
+              native.maybeEnableNative(compiler, element);
+              if (canonicalUri != null) {
+                compiler.libraries[canonicalUri.toString()] = element;
+              }
+              compiler.scanner.scanLibrary(element);
             });
-            return element;
+            return processLibraryTags(handler, element).then((_) {
+              compiler.withCurrentElement(element, () {
+                handler.registerLibraryExports(element);
+                onLibraryLoadedCallbacks.add(
+                    () => compiler.onLibraryLoaded(element, resolvedUri));
+              });
+              return element;
+            });
           });
-        });
+    });
   }
 
   // TODO(johnniwinther): Remove this method when 'js_helper' is handled by

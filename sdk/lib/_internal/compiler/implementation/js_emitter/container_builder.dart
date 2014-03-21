@@ -151,10 +151,10 @@ class ContainerBuilder extends CodeEmitterHelper {
     if (member.enclosingElement.isClosure()) {
       ClosureClassElement cls = member.enclosingElement;
       if (cls.supertype.element == compiler.boundClosureClass) {
-        compiler.internalErrorOnElement(cls.methodElement, 'Bound closure1.');
+        compiler.internalError(cls.methodElement, 'Bound closure1.');
       }
       if (cls.methodElement.isInstanceMember()) {
-        compiler.internalErrorOnElement(cls.methodElement, 'Bound closure2.');
+        compiler.internalError(cls.methodElement, 'Bound closure2.');
       }
     }
 
@@ -337,8 +337,8 @@ class ContainerBuilder extends CodeEmitterHelper {
                member.isAccessor()) {
       addMemberMethod(member, builder);
     } else {
-      compiler.internalErrorOnElement(
-          member, 'unexpected kind: "${member.kind}"');
+      compiler.internalError(member,
+          'Unexpected kind: "${member.kind}".');
     }
     if (member.isInstanceMember()) emitExtraAccessors(member, builder);
   }
