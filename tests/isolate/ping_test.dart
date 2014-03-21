@@ -48,11 +48,11 @@ void main(){
         };
         return pingPort.sendPort;
       }
-      isolate.ping(createPingPort("alive"), Isolate.PING_ALIVE);
+      isolate.ping(createPingPort("alive"), Isolate.IMMEDIATE);
       echoPort.send(3);
-      isolate.ping(createPingPort("control"), Isolate.PING_CONTROL);
+      isolate.ping(createPingPort("control"), Isolate.BEFORE_NEXT_EVENT);
       echoPort.send(2);
-      isolate.ping(createPingPort("event"), Isolate.PING_EVENT);
+      isolate.ping(createPingPort("event"), Isolate.AS_EVENT);
       echoPort.send(1);
       echoPort.send(0);
     });
