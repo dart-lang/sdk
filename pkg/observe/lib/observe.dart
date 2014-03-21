@@ -108,7 +108,7 @@ export 'src/change_record.dart';
 export 'src/list_path_observer.dart';
 export 'src/list_diff.dart' show ListChangeRecord;
 export 'src/metadata.dart';
-export 'src/observable.dart' hide notifyPropertyChangeHelper, objectType;
+export 'src/observable.dart' hide notifyPropertyChangeHelper;
 export 'src/observable_box.dart';
 export 'src/observable_list.dart';
 export 'src/observable_map.dart';
