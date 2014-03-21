@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 
 main() {
   bool checkedMode = false;
-  assert(checkedMode = true);
+  assert((checkedMode = true));
   void test(expectedList, generatedIterable) {
     Expect.equals(expectedList.length, generatedIterable.length);
     Expect.listEquals(expectedList, generatedIterable.toList());
