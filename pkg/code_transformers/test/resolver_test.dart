@@ -188,10 +188,12 @@ main() {
               library a.main;
               import 'package:a/a.dart';
               import 'package:a/b.dart';
+              export 'package:a/d.dart';
               ''',
             'a|lib/a.dart': 'library a.a;\n import "package:a/c.dart";',
             'a|lib/b.dart': 'library a.b;\n import "c.dart";',
-            'a|lib/c.dart': 'library a.c;'
+            'a|lib/c.dart': 'library a.c;',
+            'a|lib/d.dart': 'library a.d;'
           },
           validator: (resolver) {
             var libs = resolver.libraries.where((l) => !l.isInSdk);
@@ -200,6 +202,7 @@ main() {
               'a.a',
               'a.b',
               'a.c',
+              'a.d',
             ]));
           });
     });
