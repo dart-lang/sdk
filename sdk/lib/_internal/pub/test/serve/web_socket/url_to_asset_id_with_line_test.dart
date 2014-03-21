@@ -4,32 +4,32 @@
 
 library pub_tests;
 
-import 'package:path/path.dart' as p;
 import 'package:scheduled_test/scheduled_test.dart';
-
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 import '../utils.dart';
 
 main() {
   initConfig();
-  integration("pathToUrls provides output line if given source", () {
+  integration("provides output line number if given source one", () {
     d.dir(appPath, [
       d.appPubspec(),
       d.dir("web", [
-        d.file("main.dart", "main"),
+        d.file("main.dart", "main")
       ])
     ]).create();
 
     pubServe();
 
     schedule(() {
+      // Paths in web/.
       expectWebSocketCall({
-        "command": "pathToUrls",
-        "path": p.join("web", "main.dart"),
+        "command": "urlToAssetId",
+        "url": getServerUrl("web", "main.dart"),
         "line": 12345
       }, replyEquals: {
-        "urls": [getServerUrl("web", "main.dart")],
+        "package": "myapp",
+        "path": "web/main.dart",
         "line": 12345
       });
     });

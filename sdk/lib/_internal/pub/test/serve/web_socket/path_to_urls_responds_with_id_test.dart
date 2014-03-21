@@ -13,26 +13,21 @@ import '../utils.dart';
 
 main() {
   initConfig();
-  integration("pathToUrls provides output line if given source", () {
+  integration("pathToUrls includes id in response if given", () {
     d.dir(appPath, [
       d.appPubspec(),
       d.dir("web", [
-        d.file("main.dart", "main"),
+        d.file("index.html", "<body>")
       ])
     ]).create();
 
     pubServe();
 
-    schedule(() {
-      expectWebSocketCall({
-        "command": "pathToUrls",
-        "path": p.join("web", "main.dart"),
-        "line": 12345
-      }, replyEquals: {
-        "urls": [getServerUrl("web", "main.dart")],
-        "line": 12345
-      });
-    });
+    expectWebSocketCall({
+      "command": "pathToUrls",
+      "id": "some id",
+      "path": p.join("web", "index.html")
+    }, replyMatches: containsPair("id", "some id"));
 
     endPubServe();
   });

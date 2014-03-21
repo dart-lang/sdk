@@ -57,9 +57,6 @@ class RewriteTransformer extends Transformer {
 }
 """;
 
-/// The web socket error code for a directory not being served.
-const NOT_SERVED = 1;
-
 /// Returns the source code for a Dart library defining a Transformer that
 /// rewrites Dart files.
 ///
@@ -297,91 +294,44 @@ Future _ensureWebSocket() {
   });
 }
 
-/// Sends a JSON RPC 2.0 request to the running pub serve's web socket
-/// connection, waits for a reply, then verifies the result.
+/// Sends [request] (an arbitrary JSON object) to the running pub serve's web
+/// socket connection, waits for a reply, then verifies that the reply is
+/// either equal to [replyEquals] or matches [replyMatches].
 ///
-/// This calls a method named [method] with the given [params]. [params] may
-/// contain Futures, in which case this will wait until they've completed before
-/// sending the request.
+/// Only one of [replyEquals] or [replyMatches] may be provided.
 ///
-/// The result is validated using [result], which may be a [Matcher] or a [Map]
-/// containing [Matcher]s and [Future]s. This will wait until any futures are
-/// completed before sending the request.
+/// [request], [replyEquals], and [replyMatches] may contain futures, in which
+/// case this will wait until they've completed before matching.
 ///
-/// Returns a [Future] that completes to the call's result.
-Future<Map> expectWebSocketResult(String method, Map params, result) {
-  return schedule(() {
-    return Future.wait([
-      _ensureWebSocket(),
-      awaitObject(params),
-      awaitObject(result)
-    ]).then((results) {
-      var resolvedParams = results[1];
-      var resolvedResult = results[2];
+/// If [encodeRequest] is `false`, then [request] will be sent as-is over the
+/// socket. It omitted, request is JSON encoded to a string first.
+///
+/// Returns a [Future] that completes to the call's response.
+Future<Map> expectWebSocketCall(request, {Map replyEquals, replyMatches,
+    bool encodeRequest: true}) {
+  assert((replyEquals == null) != (replyMatches == null));
 
-      return _jsonRpcRequest(method, resolvedParams).then((response) {
-        expect(response["result"], resolvedResult);
-        return response["result"];
+  return schedule(() => _ensureWebSocket().then((_) {
+    var matcherFuture;
+    if (replyMatches != null) {
+      matcherFuture = awaitObject(replyMatches);
+    } else {
+      matcherFuture = awaitObject(replyEquals).then((reply) => equals(reply));
+    }
+
+    return matcherFuture.then((matcher) {
+      return awaitObject(request).then((completeRequest) {
+        if (encodeRequest) completeRequest = JSON.encode(completeRequest);
+        _webSocket.add(completeRequest);
+
+        return _webSocketBroadcastStream.first.then((value) {
+          value = JSON.decode(value);
+          expect(value, matcher);
+          return value;
+        });
       });
     });
-  }, "send $method with $params to web socket and expect $result");
-}
-
-/// Sends a JSON RPC 2.0 request to the running pub serve's web socket
-/// connection, waits for a reply, then verifies the error response.
-///
-/// This calls a method named [method] with the given [params]. [params] may
-/// contain Futures, in which case this will wait until they've completed before
-/// sending the request.
-///
-/// The error response is validated using [errorCode] and [errorMessage]. Both
-/// of these must be provided. The error code is checked against [errorCode] and
-/// the error message is checked against [errorMessage]. Either of these may be
-/// matchers.
-///
-/// Returns a [Future] that completes to the error's [data] field.
-Future expectWebSocketError(String method, Map params, errorCode,
-    errorMessage) {
-  return schedule(() {
-    return Future.wait([
-      _ensureWebSocket(),
-      awaitObject(params)
-    ]).then((results) {
-      var resolvedParams = results[1];
-      return _jsonRpcRequest(method, resolvedParams);
-    }).then((response) {
-      expect(response["error"]["code"], errorCode);
-      expect(response["error"]["message"], errorMessage);
-
-      return response["error"]["data"];
-    });
-  }, "send $method with $params to web socket and expect error $errorCode");
-}
-
-/// The next id to use for a JSON-RPC 2.0 request.
-var _rpcId = 0;
-
-/// Sends a JSON-RPC 2.0 request calling [method] with [params].
-///
-/// Returns the response object.
-Future<Map> _jsonRpcRequest(String method, Map params) {
-  var id = _rpcId++;
-  _webSocket.add(JSON.encode({
-    "jsonrpc": "2.0",
-    "method": method,
-    "params": params,
-    "id": id
-  }));
-
-  return _webSocketBroadcastStream.first.then((value) {
-    value = JSON.decode(value);
-    currentSchedule.addDebugInfo(
-        "Web Socket request $method with params $params\n"
-        "Result: $value");
-
-    expect(value["id"], equals(id));
-    return value;
-  });
+  }), "send $request to web socket and expect reply $replyEquals");
 }
 
 /// Returns a [Future] that completes to a URL string for the server serving

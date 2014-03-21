@@ -4,35 +4,27 @@
 
 library pub_tests;
 
-import 'package:path/path.dart' as p;
 import 'package:scheduled_test/scheduled_test.dart';
-
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 import '../utils.dart';
 
 main() {
   initConfig();
-  integration("pathToUrls provides output line if given source", () {
+  integration("an error includes id in response if given", () {
     d.dir(appPath, [
       d.appPubspec(),
       d.dir("web", [
-        d.file("main.dart", "main"),
+        d.file("index.html", "<body>")
       ])
     ]).create();
 
     pubServe();
 
-    schedule(() {
-      expectWebSocketCall({
-        "command": "pathToUrls",
-        "path": p.join("web", "main.dart"),
-        "line": 12345
-      }, replyEquals: {
-        "urls": [getServerUrl("web", "main.dart")],
-        "line": 12345
-      });
-    });
+    expectWebSocketCall({
+      "command": "bad command",
+      "id": "some id"
+    }, replyMatches: containsPair("id", "some id"));
 
     endPubServe();
   });

@@ -4,7 +4,6 @@
 
 library pub_tests;
 
-import 'package:json_rpc_2/error_code.dart' as rpc_error_code;
 import 'package:path/path.dart' as p;
 
 import '../../descriptor.dart' as d;
@@ -39,15 +38,29 @@ main() {
     pubServe(shouldGetFirst: true);
 
     // Bad arguments.
-    expectWebSocketError("pathToUrls", {"path": 123},
-        rpc_error_code.INVALID_PARAMS,
-        'Parameter "path" for method "pathToUrls" must be a string, but was '
-            '123.');
+    expectWebSocketCall({
+      "command": "pathToUrls"
+    }, replyEquals: {
+      "code": "BAD_ARGUMENT",
+      "error": 'Missing "path" argument.'
+    });
 
-    expectWebSocketError("pathToUrls", {"path": "main.dart", "line": 12.34},
-        rpc_error_code.INVALID_PARAMS,
-        'Parameter "line" for method "pathToUrls" must be an integer, but was '
-            '12.34.');
+    expectWebSocketCall({
+      "command": "pathToUrls",
+      "path": 123
+    }, replyEquals: {
+      "code": "BAD_ARGUMENT",
+      "error": '"path" must be a string. Got 123.'
+    });
+
+    expectWebSocketCall({
+      "command": "pathToUrls",
+      "path": "main.dart",
+      "line": 12.34
+    }, replyEquals: {
+      "code": "BAD_ARGUMENT",
+      "error": '"line" must be an integer. Got 12.34.'
+    });
 
     // Unserved directories.
     expectNotServed(p.join('bin', 'foo.txt'));
@@ -60,6 +73,11 @@ main() {
 }
 
 void expectNotServed(String path) {
-  expectWebSocketError("pathToUrls", {"path": path}, NOT_SERVED,
-      'Asset path "$path" is not currently being served.');
+  expectWebSocketCall({
+    "command": "pathToUrls",
+    "path": path
+  }, replyEquals: {
+    "code": "NOT_SERVED",
+    "error": 'Asset path "$path" is not currently being served.'
+  });
 }

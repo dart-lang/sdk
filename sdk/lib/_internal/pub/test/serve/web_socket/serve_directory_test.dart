@@ -26,9 +26,11 @@ main() {
     pubServe(args: ["web"]);
 
     // Bind the new directory.
-    expectWebSocketResult("serveDirectory", {"path": "test"}, {
-      "url": matches(r"http://127\.0\.0\.1:\d+")
-    }).then((response) {
+    expectWebSocketCall({
+      "command": "serveDirectory",
+      "path": "test"
+    }, replyMatches: {"url": matches(r"http://127\.0\.0\.1:\d+")})
+        .then((response) {
       var url = Uri.parse(response["url"]);
       registerServerPort("test", url.port);
     });

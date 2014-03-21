@@ -4,41 +4,28 @@
 
 library pub_tests;
 
+import 'package:scheduled_test/scheduled_test.dart';
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 import '../utils.dart';
 
 main() {
   initConfig();
-  integration("unbinds a directory from a port", () {
+  integration("unserveDirectory includes id in response if given", () {
     d.dir(appPath, [
       d.appPubspec(),
-      d.dir("test", [
-        d.file("index.html", "<test body>")
-      ]),
       d.dir("web", [
         d.file("index.html", "<body>")
       ])
     ]).create();
 
-    pubServe();
+    pubServe(args: ["web"]);
 
-    requestShouldSucceed("index.html", "<body>");
-    requestShouldSucceed("index.html", "<test body>", root: "test");
-
-    // Unbind the directory.
     expectWebSocketCall({
       "command": "unserveDirectory",
-      "path": "test"
-    }, replyEquals: {
-      "url": getServerUrl("test")
-    });
-
-    // "test" should not be served now.
-    requestShouldNotConnect("index.html", root: "test");
-
-    // "web" is still fine.
-    requestShouldSucceed("index.html", "<body>");
+      "id": 12345,
+      "path": "web"
+    }, replyMatches: containsPair("id", 12345));
 
     endPubServe();
   });
