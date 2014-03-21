@@ -2075,7 +2075,7 @@ LocationSummary* DropTempsInstr::MakeLocationSummary(bool optimizing) const {
 void DropTempsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!compiler->is_optimizing());
   // Assert that register assignment is correct.
-  ASSERT((InputCount() == 0) || locs()->out().reg() == locs()->in(0).reg());
+  ASSERT((InputCount() == 0) || (locs()->out(0).reg() == locs()->in(0).reg()));
   __ Drop(num_temps());
 }
 
@@ -2186,7 +2186,7 @@ void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                      dst_type(),
                                      dst_name(),
                                      locs());
-  ASSERT(locs()->in(0).reg() == locs()->out().reg());
+  ASSERT(locs()->in(0).reg() == locs()->out(0).reg());
 }
 
 

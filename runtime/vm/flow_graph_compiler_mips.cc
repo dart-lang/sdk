@@ -729,7 +729,7 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
   if (is_optimizing()) return;
   Definition* defn = instr->AsDefinition();
   if ((defn != NULL) && defn->is_used()) {
-    __ Push(defn->locs()->out().reg());
+    __ Push(defn->locs()->out(0).reg());
   }
 }
 

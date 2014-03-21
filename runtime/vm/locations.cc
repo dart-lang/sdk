@@ -28,7 +28,7 @@ LocationSummary::LocationSummary(intptr_t input_count,
                                  LocationSummary::ContainsCall contains_call)
     : input_locations_(input_count),
       temp_locations_(temp_count),
-      output_location_(),
+      output_locations_(1),
       stack_bitmap_(NULL),
       contains_call_(contains_call),
       live_registers_() {
@@ -38,7 +38,36 @@ LocationSummary::LocationSummary(intptr_t input_count,
   for (intptr_t i = 0; i < temp_count; i++) {
     temp_locations_.Add(Location());
   }
+  output_locations_.Add(Location());
+  ASSERT(output_locations_.length() == 1);
+  if (contains_call_ != kNoCall) {
+    stack_bitmap_ = new BitmapBuilder();
+  }
+}
 
+
+LocationSummary::LocationSummary(intptr_t input_count,
+                                intptr_t temp_count,
+                                intptr_t output_count,
+                                LocationSummary::ContainsCall contains_call)
+    : input_locations_(input_count),
+      temp_locations_(temp_count),
+      output_locations_(output_count),
+      stack_bitmap_(NULL),
+      contains_call_(contains_call),
+      live_registers_() {
+  for (intptr_t i = 0; i < input_count; i++) {
+    input_locations_.Add(Location());
+  }
+  for (intptr_t i = 0; i < temp_count; i++) {
+    temp_locations_.Add(Location());
+  }
+  // TODO(johnmccutchan): Remove this assertion once support for multiple
+  // outputs is complete.
+  ASSERT(output_count == 1);
+  for (intptr_t i = 0; i < output_count; i++) {
+    output_locations_.Add(Location());
+  }
   if (contains_call_ != kNoCall) {
     stack_bitmap_ = new BitmapBuilder();
   }
@@ -53,7 +82,7 @@ LocationSummary* LocationSummary::Make(
   for (intptr_t i = 0; i < input_count; i++) {
     summary->set_in(i, Location::RequiresRegister());
   }
-  summary->set_out(out);
+  summary->set_out(0, out);
   return summary;
 }
 
@@ -195,9 +224,9 @@ void LocationSummary::PrintTo(BufferFormatter* f) const {
     f->Print("]");
   }
 
-  if (!out().IsInvalid()) {
+  if (!out(0).IsInvalid()) {
     f->Print(" => ");
-    out().PrintTo(f);
+    out(0).PrintTo(f);
   }
 
   if (always_calls()) f->Print(" C");
