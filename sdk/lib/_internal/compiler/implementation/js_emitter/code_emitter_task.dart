@@ -1449,7 +1449,7 @@ mainBuffer.add(r'''
         mainBuffer.write('"$constant":[');
         for (OutputUnit outputUnit in
             compiler.deferredLoadTask.hunksToLoad[constant]) {
-          mainBuffer.write('"${outputUnit.name}.js", ');
+          mainBuffer.write('"${outputUnit.partFileName(compiler)}.part.js", ');
         }
         mainBuffer.write("],\n");
       }
@@ -1651,7 +1651,7 @@ if (typeof $printHelperName === "function") {
       emitCompileTimeConstants(buffer, outputUnit);
 
       String code = buffer.getText();
-      compiler.outputProvider(outputUnit.name, 'js')
+      compiler.outputProvider(outputUnit.partFileName(compiler), 'part.js')
         ..add(code)
         ..close();
 
