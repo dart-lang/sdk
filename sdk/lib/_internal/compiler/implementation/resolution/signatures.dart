@@ -87,23 +87,34 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
 
   void computeParameterType(ParameterElementX element,
                             [VariableElement fieldElement]) {
+    void computeFunctionType(FunctionExpression functionExpression) {
+      FunctionSignature functionSignature = SignatureResolver.analyze(
+          compiler, functionExpression.parameters,
+          functionExpression.returnType, element, mapping,
+          defaultValuesError: MessageKind.FUNCTION_TYPE_FORMAL_WITH_DEFAULT);
+      element.functionSignatureCache = functionSignature;
+      element.typeCache = functionSignature.type;
+    }
+
     if (currentDefinitions.type != null) {
       element.typeCache = resolveTypeAnnotation(currentDefinitions.type);
     } else {
       // Is node.definitions exactly one FunctionExpression?
       Link<Node> link = currentDefinitions.definitions.nodes;
-      if (!link.isEmpty &&
-          link.head.asFunctionExpression() != null &&
-          link.tail.isEmpty) {
-        FunctionExpression functionExpression = link.head;
-        // We found exactly one FunctionExpression
-        FunctionSignature functionSignature = SignatureResolver.analyze(
-            compiler, functionExpression.parameters,
-            functionExpression.returnType, element, mapping,
-            defaultValuesError: MessageKind.FUNCTION_TYPE_FORMAL_WITH_DEFAULT);
-        element.functionSignatureCache = functionSignature;
-        element.typeCache = functionSignature.type;
+      assert(invariant(currentDefinitions, !link.isEmpty));
+      assert(invariant(currentDefinitions, link.tail.isEmpty));
+      if (link.head.asFunctionExpression() != null) {
+        // Inline function typed parameter, like `void m(int f(String s))`.
+        computeFunctionType(link.head);
+      } else if (link.head.asSend() != null &&
+                 link.head.asSend().selector.asFunctionExpression() != null) {
+        // Inline function typed initializing formal or
+        // parameter with default value, like `C(int this.f(String s))` or
+        // `void m([int f(String s) = null])`.
+        computeFunctionType(link.head.asSend().selector.asFunctionExpression());
       } else {
+        assert(invariant(currentDefinitions,
+            link.head.asIdentifier() != null || link.head.asSend() != null));
         if (fieldElement != null) {
           element.typeCache = fieldElement.computeType(compiler);
         } else {
