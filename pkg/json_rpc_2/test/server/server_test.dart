@@ -76,7 +76,7 @@ void main() {
         'data': {
           'request': {'jsonrpc': '2.0', 'method': 'foo', 'id': 1234},
           'full': 'FormatException: bad format',
-          'stack': contains('server_test.dart')
+          'stack': new isInstanceOf<String>()
         }
       }
     }));
@@ -123,17 +123,17 @@ void main() {
     });
 
     test("a JSON parse error is rejected", () {
-      expect(server.parseRequest('invalid json {'),
-          completion(equals(JSON.encode({
-        'jsonrpc': '2.0',
-        'error': {
-          'code': error_code.PARSE_ERROR,
-          'message': "Invalid JSON: Unexpected character at 0: 'invalid json "
-                     "{'",
-          'data': {'request': 'invalid json {'}
-        },
-        'id': null
-      }))));
+      return server.parseRequest('invalid json {').then((result) {
+        expect(JSON.decode(result), {
+          'jsonrpc': '2.0',
+          'error': {
+            'code': error_code.PARSE_ERROR,
+            'message': startsWith("Invalid JSON: "),
+            'data': {'request': 'invalid json {'}
+          },
+          'id': null
+        });
+      });
     });
   });
 
@@ -189,7 +189,7 @@ void main() {
           'data': {
             'request': {'jsonrpc': '2.0', 'method': 'foo', 'id': 1234},
             'full': 'FormatException: bad format',
-            'stack': contains('server_test.dart')
+            'stack': new isInstanceOf<String>()
           }
         }
       }));
