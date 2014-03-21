@@ -365,7 +365,7 @@ const char* BigintOperations::ToDecimalCString(
   // Approximate the size of the resulting string. We prefer overestimating
   // to not allocating enough.
   int64_t bit_length = length * kDigitBitSize;
-  ASSERT(bit_length > length);
+  ASSERT(bit_length > length || length == 0);
   int64_t decimal_length = (bit_length * kLog2Dividend / kLog2Divisor) + 1;
   // Add one byte for the trailing \0 character.
   int64_t required_size = decimal_length + 1;
@@ -399,8 +399,11 @@ const char* BigintOperations::ToDecimalCString(
     }
     ASSERT(part == 0);
   }
-  // Move the resulting position back until we don't have any zeroes anymore.
-  // This is done so that we can remove all leading zeroes.
+  // Add a leading zero, so that we have at least one digit.
+  result[result_pos++] = '0';
+  // Move the resulting position back until we don't have any zeroes anymore
+  // or we reach the first digit. This is done so that we can remove all
+  // redundant leading zeroes.
   while (result_pos > 1 && result[result_pos - 1] == '0') {
     result_pos--;
   }
