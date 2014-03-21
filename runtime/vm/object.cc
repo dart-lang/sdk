@@ -864,6 +864,7 @@ void Object::VerifyBuiltinVtables() {
       ASSERT(builtin_vtables_[cid] == cls.raw_ptr()->handle_vtable_);
     }
   }
+  ASSERT(builtin_vtables_[kFreeListElement] == 0);
 #endif
 }
 
