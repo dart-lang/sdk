@@ -166,7 +166,8 @@ class HtmlConfiguration extends SimpleConfiguration {
 
   void onDone(bool success) {
     _uninstallHandlers();
-    window.postMessage('unittest-suite-done', '*');
+    window.postMessage(
+        success ? 'unittest-suite-done' : 'unittest-suite-fail', '*');
   }
 }
 
