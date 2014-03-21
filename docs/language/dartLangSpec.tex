@@ -733,7 +733,7 @@ metadata \ABSTRACT{}?  \CLASS{} mixinApplicationClass
       \EXTERNAL{}? operatorSignature;
        ((\EXTERNAL{} \STATIC{}?))? functionSignature;
       \STATIC{} (\FINAL{} $|$ \CONST{}) type? staticFinalDeclarationList;
-      \CONST{} type? staticFinalDeclarationList;
+%      \CONST{} type? staticFinalDeclarationList;
       \FINAL{} type? initializedIdentifierList;
       \STATIC{}? (\VAR{} $|$ type) initializedIdentifierList
     .
@@ -1160,7 +1160,7 @@ Execution of a generative constructor $k$ is always done with respect to a set o
 \commentary{These bindings are usually determined by the instance creation expression that invoked the constructor (directly or indirectly). However, they may also be determined by a reflective call,.
 }
 
-If $k$ is redirecting, then its redirect clause has the form 
+If $k$ is redirecting then its redirect clause has the form 
 
 \THIS{}$.g(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ 
 
@@ -1343,6 +1343,20 @@ The superinitializer that appears, explicitly or implicitly, in the initializer 
 Any expression that appears within the initializer list of a constant constructor must be a potentially constant expression, or a compile-time error occurs. 
 
 A {\em potentially constant expression} is an expression $e$ that would be a valid constant expression if all formal parameters of $e$'s immediately enclosing constant constructor were treated as compile-time constants that were guaranteed to evaluate to an integer, boolean or string value as required by their immediately enclosing superexpression.
+
+\commentary{
+Note that a parameter that is not used in an superexpression that is restricted to certain types can be a constant of any type. For example}
+
+\begin{dartCode}
+\CLASS{} A \{
+  \FINAL{} m;
+  \CONST{} A(this.m);
+\}
+\end{dartCode}
+
+\commentary{can be instantiated via \cd{\CONST{} A(\CONST []);}}
+
+
 
 \commentary{
 The difference between a potentially constant expression and a compile-time constant expression (\ref{const}) deserves some explanation. 
@@ -1894,6 +1908,7 @@ Even where type parameters are in scope there are numerous restrictions at this 
 \begin{itemize}
 \item A type parameter cannot be used to name a constructor in an instance creation expression (\ref{instanceCreation}).
 \item A type parameter cannot be used as a superclass or superinterface (\ref{superclasses}, \ref{superinterfaces}, \ref{interfaceSuperinterfaces}).
+\item A type parameter cannot be used as a generic.
 \end{itemize}
 
 The normative versions of these  are given in the appropriate sections of this specification. Some of these restrictions may be lifted in the future.
@@ -2246,7 +2261,7 @@ Invoking the getter \code{runtimeType} on a boolean literal returns the \code{Ty
 \subsubsection{Boolean Conversion}
 \label{booleanConversion}
 
-{\em Boolean conversion} maps any object $o$ into a boolean. Boolean conversion is  defined by the function 
+{\em Boolean conversion} maps any object $o$ into a boolean. Boolean conversion is  defined by the function application
 
 \begin{dartCode}
 (bool v)\{
@@ -3512,7 +3527,7 @@ If all of the following hold:
 then the type of $v$ is known to be $T$ in $e_2$.
 
 
- It is a static type warning if the type of $e_1$ may not be assigned to \code{bool}.  The static type of $c$ is the least upper bound (\ref{leastUpperBounds}) of the static type of $e_2$ and the static type of $e_3$.
+ It is a static type warning if the static type of $e_1$ may not be assigned to \code{bool}.  The static type of $c$ is the least upper bound (\ref{leastUpperBounds}) of the static type of $e_2$ and the static type of $e_3$.
   
 
 \subsection{ Logical Boolean Expressions}
@@ -3554,7 +3569,7 @@ Furthermore, if all of the following hold:
 \end{itemize}
 then the type of $v$ is known to be $T$ in $e_2$.
 
-The static type of a logical boolean expression is \code{bool}.
+It is a static warning if the static types of both $e_1$ and $e_2$ may not be assigned to \cd{bool}. The static type of a logical boolean expression is \code{bool}.
 
      
  \subsection{ Equality}
@@ -3906,7 +3921,6 @@ An {\em identifier expression} consists of a single identifier; it provides acce
 
 {\bf BUILT\_IN\_IDENTIFIER:} \ABSTRACT{};
      \AS{};
-%     \ASSERT{};
      \DEFERRED{};
      \DYNAMIC{};
      \EXPORT{};
@@ -3924,11 +3938,11 @@ An {\em identifier expression} consists of a single identifier; it provides acce
     .
 
  {\bf IDENTIFIER\_START:}IDENTIFIER\_START\_NO\_DOLLAR;
-      '\$'
+      `\$'
     .
 
 {\bf IDENTIFIER\_START\_NO\_DOLLAR:}LETTER;
-      '\_'
+      `\_'
     .
 
 {\bf  IDENTIFIER\_PART\_NO\_DOLLAR:}IDENTIFIER\_START\_NO\_DOLLAR;
@@ -4333,7 +4347,7 @@ The definition above is intended to prevent the common error where users create 
 Instead, each iteration has its own distinct variable.  The first iteration uses the variable created by the initial declaration. The expression executed at the end of each iteration uses a fresh variable $v^{\prime\prime}$, bound to the value of the current iteration variable, and then modifies $v^{\prime\prime}$ as required for the next iteration.
 }
 
-
+It is a static warning if the static type of $c$ may not be assigned to \cd{bool}.
 
 %A for statement of the form \code{ \FOR{} ($d$ ; $c$; $e$) $s$} is equivalent to the the following code:
 
@@ -4380,7 +4394,7 @@ The while statement supports conditional iteration, where the condition is evalu
 
 The expression $e$ is evaluated to an object $o$. Then, $o$ is  subjected to boolean conversion (\ref{booleanConversion}), producing an object $r$.  If $r$ is \TRUE{}, then the statement $\{s\}$ is executed and then the while statement is re-executed recursively. If $r$ is \FALSE{}, execution of the while statement is complete.
 
-It is a static type warning if the type of $e$ may not be assigned to \code{bool}.
+It is a static type warning if the static type of $e$ may not be assigned to \code{bool}.
     
 
 \subsection{Do}
@@ -4399,7 +4413,7 @@ Execution of a do statement of the form \code{\DO{} $s$ \WHILE{} ($e$);} proceed
 
 The statement $\{s\}$ is executed. Then, the expression $e$ is evaluated to an object $o$. Then, $o$ is  subjected to boolean conversion (\ref{booleanConversion}), producing an object $r$. If $r$ is \FALSE{}, execution of the do statement is complete. If $r$ is \TRUE{}, then the do statement is re-executed recursively. 
 
-It is a static type warning if the type of $e$ may not be assigned to \code{bool}. 
+It is a static type warning if the static type of $e$ may not be assigned to \code{bool}. 
 
 \subsection{Switch}
 \label{switch}
@@ -4880,7 +4894,8 @@ A library consists of (a possibly empty) set of imports, a set of exports,  and 
       \EXTERNAL{}? getterSignature `{\escapegrammar ;}';
       \EXTERNAL{}? setterSignature `{\escapegrammar ;}';      
       functionSignature functionBody;
-      returnType? getOrSet identifier formalParameterList functionBody;
+      returnType? \GET{} identifier functionBody;
+      returnType? \SET{} identifier formalParameterList functionBody;
       (\FINAL{} $|$ \CONST{}) type? staticFinalDeclarationList `{\escapegrammar ;}';
       variableDeclaration `{\escapegrammar ;}'
     .
