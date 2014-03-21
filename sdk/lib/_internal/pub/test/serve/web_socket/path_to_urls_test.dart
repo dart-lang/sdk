@@ -5,8 +5,8 @@
 library pub_tests;
 
 import 'package:path/path.dart' as p;
-import 'package:scheduled_test/scheduled_test.dart';
 
+import '../../../lib/src/io.dart';
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 import '../utils.dart';
@@ -130,9 +130,14 @@ main() {
       getServerUrl("randomdir", "packages/foo/foo.dart")
     ]});
 
+    // Note: Using canonicalize here because pub gets the path to the
+    // entrypoint package from the working directory, which has had symlinks
+    // resolve. On Mac, "/tmp" is actually a symlink to "/private/tmp", so we
+    // need to accomodate that.
+
     // An absolute path to another package's lib/ directory.
     expectWebSocketResult("pathToUrls", {
-      "path": p.join(sandboxDir, "foo", "lib", "foo.dart")
+      "path": canonicalize(p.join(sandboxDir, "foo", "lib", "foo.dart"))
     }, {"urls": [
       getServerUrl("test", "packages/foo/foo.dart"),
       getServerUrl("web", "packages/foo/foo.dart"),
@@ -150,7 +155,7 @@ main() {
 
     // An absolute path to another package's asset/ directory.
     expectWebSocketResult("pathToUrls", {
-      "path": p.join(sandboxDir, "foo", "asset", "foo.dart")
+      "path": canonicalize(p.join(sandboxDir, "foo", "asset", "foo.dart"))
     }, {"urls": [
       getServerUrl("test", "assets/foo/foo.dart"),
       getServerUrl("web", "assets/foo/foo.dart"),
