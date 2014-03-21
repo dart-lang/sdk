@@ -255,11 +255,11 @@ class DeoptInstr : public ZoneAllocated {
   // set the output parameter info_number to the index of the shared suffix.
   static intptr_t DecodeSuffix(intptr_t source_index, intptr_t* info_number);
 
-  // Get the function and return address which is encoded in this
+  // Get the code and return address which is encoded in this
   // kRetAfterAddress deopt instruction.
   static uword GetRetAddress(DeoptInstr* instr,
                              const Array& object_table,
-                             Function* func);
+                             Code* code);
 
   // Return number of initialized fields in the object that will be
   // materialized by kMaterializeObject instruction.

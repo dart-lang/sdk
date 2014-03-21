@@ -404,14 +404,12 @@ void InlinedFunctionsIterator::Advance() {
     return;
   }
 
-  Function& func = Function::Handle();
   ASSERT(deopt_instructions_.length() != 0);
   while (index_ < deopt_instructions_.length()) {
     DeoptInstr* deopt_instr = deopt_instructions_[index_++];
     if (deopt_instr->kind() == DeoptInstr::kRetAddress) {
-      pc_ = DeoptInstr::GetRetAddress(deopt_instr, object_table_, &func);
-      code_ = func.unoptimized_code();
-      function_ = func.raw();
+      pc_ = DeoptInstr::GetRetAddress(deopt_instr, object_table_, &code_);
+      function_ = code_.function();
       return;
     }
   }

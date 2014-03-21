@@ -1104,7 +1104,7 @@ intptr_t DeoptInstr::DecodeSuffix(intptr_t source_index,
 
 uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
                                 const Array& object_table,
-                                Function* func) {
+                                Code* code) {
   ASSERT(instr->kind() == kRetAddress);
   DeoptRetAddressInstr* ret_address_instr =
       static_cast<DeoptRetAddressInstr*>(instr);
@@ -1112,13 +1112,11 @@ uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
   // from the simulator.
   ASSERT(Isolate::IsDeoptAfter(ret_address_instr->deopt_id()));
   ASSERT(!object_table.IsNull());
-  ASSERT(func != NULL);
-  Code& code = Code::Handle();
-  code ^= object_table.At(ret_address_instr->object_table_index());
-  ASSERT(!code.IsNull());
-  *func ^= code.function();
-  uword res = code.GetPcForDeoptId(ret_address_instr->deopt_id(),
-                                   PcDescriptors::kDeopt);
+  ASSERT(code != NULL);
+  *code ^= object_table.At(ret_address_instr->object_table_index());
+  ASSERT(!code->IsNull());
+  uword res = code->GetPcForDeoptId(ret_address_instr->deopt_id(),
+                                    PcDescriptors::kDeopt);
   ASSERT(res != 0);
   return res;
 }
