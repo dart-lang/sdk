@@ -108,8 +108,9 @@ class TypePropagationTest extends ResolverTestCase {
 
   void test_forEach() {
     String code = EngineTestCase.createSource([
-        "f(List<String> p) {",
-        "  for (var e in p) {",
+        "main() {",
+        "  var list = <String> [];",
+        "  for (var e in list) {",
         "    e;",
         "  }",
         "}"]);
@@ -7751,6 +7752,33 @@ class HintCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_argumentTypeNotAssignable_functionType() {
+    Source source = addSource(EngineTestCase.createSource([
+        "m() {",
+        "  var a = new A();",
+        "  a.n(() => 0);",
+        "}",
+        "class A {",
+        "  n(void f(int i)) {}",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
+  void test_argumentTypeNotAssignable_message() {
+    // The implementation of HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE assumes that
+    // StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE has the same message.
+    JUnitTestCase.assertEquals(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE.message, StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE.message);
+  }
+
+  void test_argumentTypeNotAssignable_type() {
+    Source source = addSource(EngineTestCase.createSource(["m() {", "  var i = '';", "  n(i);", "}", "n(int i) {}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
   void test_deadCode_deadBlock_conditionalElse() {
     Source source = addSource(EngineTestCase.createSource(["f() {", "  true ? 1 : 2;", "}"]));
     resolve(source);
@@ -8340,6 +8368,8 @@ class HintCodeTest extends ResolverTestCase {
   }
 
   void test_undefinedGetter_message() {
+    // The implementation of HintCode.UNDEFINED_SETTER assumes that UNDEFINED_SETTER in
+    // StaticTypeWarningCode and StaticWarningCode are the same, this verifies that assumption.
     JUnitTestCase.assertEquals(StaticTypeWarningCode.UNDEFINED_GETTER.message, StaticWarningCode.UNDEFINED_GETTER.message);
   }
 
@@ -8452,6 +8482,8 @@ class HintCodeTest extends ResolverTestCase {
   }
 
   void test_undefinedSetter_message() {
+    // The implementation of HintCode.UNDEFINED_SETTER assumes that UNDEFINED_SETTER in
+    // StaticTypeWarningCode and StaticWarningCode are the same, this verifies that assumption.
     JUnitTestCase.assertEquals(StaticTypeWarningCode.UNDEFINED_SETTER.message, StaticWarningCode.UNDEFINED_SETTER.message);
   }
 
@@ -8641,6 +8673,18 @@ class HintCodeTest extends ResolverTestCase {
 
   static dartSuite() {
     _ut.group('HintCodeTest', () {
+      _ut.test('test_argumentTypeNotAssignable_functionType', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_argumentTypeNotAssignable_functionType);
+      });
+      _ut.test('test_argumentTypeNotAssignable_message', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_argumentTypeNotAssignable_message);
+      });
+      _ut.test('test_argumentTypeNotAssignable_type', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_argumentTypeNotAssignable_type);
+      });
       _ut.test('test_deadCode_deadBlock_conditionalElse', () {
         final __test = new HintCodeTest();
         runJUnitTest(__test, __test.test_deadCode_deadBlock_conditionalElse);

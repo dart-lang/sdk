@@ -5126,8 +5126,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   DartEntry _cacheDartParseData(Source source, DartEntry dartEntry, DataDescriptor descriptor) {
     if (identical(descriptor, DartEntry.PARSED_UNIT)) {
-      CompilationUnit unit = dartEntry.anyParsedCompilationUnit;
-      if (unit != null) {
+      if (dartEntry.hasResolvableCompilationUnit) {
         return dartEntry;
       }
     }
@@ -6038,8 +6037,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         return _createParseDartTask(source, dartEntry);
       }
       if (isPriority && parseErrorsState != CacheState.ERROR) {
-        CompilationUnit parseUnit = dartEntry.anyParsedCompilationUnit;
-        if (parseUnit == null) {
+        if (!dartEntry.hasResolvableCompilationUnit) {
           return _createParseDartTask(source, dartEntry);
         }
       }
@@ -6268,8 +6266,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         return;
       }
       if (isPriority) {
-        CompilationUnit parseUnit = dartEntry.anyParsedCompilationUnit;
-        if (parseUnit == null) {
+        if (!dartEntry.hasResolvableCompilationUnit) {
           sources.add(source);
           return;
         }
@@ -7604,15 +7601,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   bool _validateCacheConsistency() {
     int consistencyCheckStart = JavaSystem.nanoTime();
+    List<Source> changedSources = new List<Source>();
     List<Source> missingSources = new List<Source>();
-    int inconsistentCount = 0;
     for (MapEntry<Source, SourceEntry> entry in _cache.entrySet()) {
       Source source = entry.getKey();
       SourceEntry sourceEntry = entry.getValue();
       int sourceTime = getModificationStamp(source);
       if (sourceTime != sourceEntry.modificationTime) {
-        _sourceChanged(source);
-        inconsistentCount++;
+        changedSources.add(source);
       }
       if (sourceEntry.exception != null) {
         if (!exists(source)) {
@@ -7620,14 +7616,18 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         }
       }
     }
+    int count = changedSources.length;
+    for (int i = 0; i < count; i++) {
+      _sourceChanged(changedSources[i]);
+    }
     int consistencyCheckEnd = JavaSystem.nanoTime();
-    if (inconsistentCount > 0 || missingSources.length > 0) {
+    if (changedSources.length > 0 || missingSources.length > 0) {
       PrintStringWriter writer = new PrintStringWriter();
       writer.print("Consistency check took ");
       writer.print((consistencyCheckEnd - consistencyCheckStart) / 1000000.0);
       writer.println(" ms and found");
       writer.print("  ");
-      writer.print(inconsistentCount);
+      writer.print(changedSources.length);
       writer.println(" inconsistent entries");
       writer.print("  ");
       writer.print(missingSources.length);
@@ -7638,7 +7638,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
       _logInformation(writer.toString());
     }
-    return inconsistentCount > 0;
+    return changedSources.length > 0;
   }
 }
 
