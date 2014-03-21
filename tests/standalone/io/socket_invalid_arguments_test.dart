@@ -30,20 +30,24 @@ testSocketCreation(host, port) {
 
 testAdd(buffer) {
   asyncStart();
+  asyncStart();
   ServerSocket.bind("127.0.0.1", 0).then((server) {
     server.listen((socket) => socket.destroy());
     Socket.connect("127.0.0.1", server.port).then((socket) {
       int errors = 0;
-      socket.done.catchError((e) { errors++; });
+      socket.done
+        .catchError((e) { errors++; })
+        .then((_) {
+          Expect.equals(1, errors);
+          asyncEnd();
+          server.close();
+        });
       socket.listen(
           (_) { },
           onError: (error) {
             Expect.fail("Error on stream");
           },
           onDone: () {
-            Expect.equals(1, errors);
-            socket.destroy();
-            server.close();
             asyncEnd();
           });
       socket.add(buffer);

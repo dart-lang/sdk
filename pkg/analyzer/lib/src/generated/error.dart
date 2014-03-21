@@ -607,16 +607,27 @@ class TodoCode extends Enum<TodoCode> implements ErrorCode {
  */
 class HintCode extends Enum<HintCode> implements ErrorCode {
   /**
+   * This hint is generated anywhere where the
+   * [StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE] would have been generated, if we used
+   * propagated information for the warnings.
+   *
+   * @param actualType the name of the actual argument type
+   * @param expectedType the name of the expected type
+   * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   */
+  static final HintCode ARGUMENT_TYPE_NOT_ASSIGNABLE = new HintCode.con1('ARGUMENT_TYPE_NOT_ASSIGNABLE', 0, StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE.message);
+
+  /**
    * Dead code is code that is never reached, this can happen for instance if a statement follows a
    * return statement.
    */
-  static final HintCode DEAD_CODE = new HintCode.con1('DEAD_CODE', 0, "Dead code");
+  static final HintCode DEAD_CODE = new HintCode.con1('DEAD_CODE', 1, "Dead code");
 
   /**
    * Dead code is code that is never reached. This case covers cases where the user has catch
    * clauses after `catch (e)` or `on Object catch (e)`.
    */
-  static final HintCode DEAD_CODE_CATCH_FOLLOWING_CATCH = new HintCode.con1('DEAD_CODE_CATCH_FOLLOWING_CATCH', 1, "Dead code, catch clauses after a 'catch (e)' or an 'on Object catch (e)' are never reached");
+  static final HintCode DEAD_CODE_CATCH_FOLLOWING_CATCH = new HintCode.con1('DEAD_CODE_CATCH_FOLLOWING_CATCH', 2, "Dead code, catch clauses after a 'catch (e)' or an 'on Object catch (e)' are never reached");
 
   /**
    * Dead code is code that is never reached. This case covers cases where the user has an on-catch
@@ -625,44 +636,44 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @param subtypeName name of the subtype
    * @param supertypeName name of the supertype
    */
-  static final HintCode DEAD_CODE_ON_CATCH_SUBTYPE = new HintCode.con1('DEAD_CODE_ON_CATCH_SUBTYPE', 2, "Dead code, this on-catch block will never be executed since '%s' is a subtype of '%s'");
+  static final HintCode DEAD_CODE_ON_CATCH_SUBTYPE = new HintCode.con1('DEAD_CODE_ON_CATCH_SUBTYPE', 3, "Dead code, this on-catch block will never be executed since '%s' is a subtype of '%s'");
 
   /**
    * Deprecated members should not be invoked or used.
    *
    * @param memberName the name of the member
    */
-  static final HintCode DEPRECATED_MEMBER_USE = new HintCode.con1('DEPRECATED_MEMBER_USE', 3, "'%s' is deprecated");
+  static final HintCode DEPRECATED_MEMBER_USE = new HintCode.con1('DEPRECATED_MEMBER_USE', 4, "'%s' is deprecated");
 
   /**
    * Duplicate imports.
    */
-  static final HintCode DUPLICATE_IMPORT = new HintCode.con1('DUPLICATE_IMPORT', 4, "Duplicate import");
+  static final HintCode DUPLICATE_IMPORT = new HintCode.con1('DUPLICATE_IMPORT', 5, "Duplicate import");
 
   /**
    * Hint to use the ~/ operator.
    */
-  static final HintCode DIVISION_OPTIMIZATION = new HintCode.con1('DIVISION_OPTIMIZATION', 5, "The operator x ~/ y is more efficient than (x / y).toInt()");
+  static final HintCode DIVISION_OPTIMIZATION = new HintCode.con1('DIVISION_OPTIMIZATION', 6, "The operator x ~/ y is more efficient than (x / y).toInt()");
 
   /**
    * Hint for the `x is double` type checks.
    */
-  static final HintCode IS_DOUBLE = new HintCode.con1('IS_DOUBLE', 6, "When compiled to JS, this test might return true when the left hand side is an int");
+  static final HintCode IS_DOUBLE = new HintCode.con1('IS_DOUBLE', 7, "When compiled to JS, this test might return true when the left hand side is an int");
 
   /**
    * Hint for the `x is int` type checks.
    */
-  static final HintCode IS_INT = new HintCode.con1('IS_INT', 7, "When compiled to JS, this test might return true when the left hand side is a double");
+  static final HintCode IS_INT = new HintCode.con1('IS_INT', 8, "When compiled to JS, this test might return true when the left hand side is a double");
 
   /**
    * Hint for the `x is! double` type checks.
    */
-  static final HintCode IS_NOT_DOUBLE = new HintCode.con1('IS_NOT_DOUBLE', 8, "When compiled to JS, this test might return false when the left hand side is an int");
+  static final HintCode IS_NOT_DOUBLE = new HintCode.con1('IS_NOT_DOUBLE', 9, "When compiled to JS, this test might return false when the left hand side is an int");
 
   /**
    * Hint for the `x is! int` type checks.
    */
-  static final HintCode IS_NOT_INT = new HintCode.con1('IS_NOT_INT', 9, "When compiled to JS, this test might return false when the left hand side is a double");
+  static final HintCode IS_NOT_INT = new HintCode.con1('IS_NOT_INT', 10, "When compiled to JS, this test might return false when the left hand side is a double");
 
   /**
    * Generate a hint for methods or functions that have a return type, but do not have a non-void
@@ -671,22 +682,22 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    *
    * @param returnType the name of the declared return type
    */
-  static final HintCode MISSING_RETURN = new HintCode.con2('MISSING_RETURN', 10, "This function declares a return type of '%s', but does not end with a return statement", "Either add a return statement or change the return type to 'void'");
+  static final HintCode MISSING_RETURN = new HintCode.con2('MISSING_RETURN', 11, "This function declares a return type of '%s', but does not end with a return statement", "Either add a return statement or change the return type to 'void'");
 
   /**
    * A getter with the override annotation does not override an existing getter.
    */
-  static final HintCode OVERRIDE_ON_NON_OVERRIDING_GETTER = new HintCode.con1('OVERRIDE_ON_NON_OVERRIDING_GETTER', 11, "Getter does not override an inherited getter");
+  static final HintCode OVERRIDE_ON_NON_OVERRIDING_GETTER = new HintCode.con1('OVERRIDE_ON_NON_OVERRIDING_GETTER', 12, "Getter does not override an inherited getter");
 
   /**
    * A method with the override annotation does not override an existing method.
    */
-  static final HintCode OVERRIDE_ON_NON_OVERRIDING_METHOD = new HintCode.con1('OVERRIDE_ON_NON_OVERRIDING_METHOD', 12, "Method does not override an inherited method");
+  static final HintCode OVERRIDE_ON_NON_OVERRIDING_METHOD = new HintCode.con1('OVERRIDE_ON_NON_OVERRIDING_METHOD', 13, "Method does not override an inherited method");
 
   /**
    * A setter with the override annotation does not override an existing setter.
    */
-  static final HintCode OVERRIDE_ON_NON_OVERRIDING_SETTER = new HintCode.con1('OVERRIDE_ON_NON_OVERRIDING_SETTER', 13, "Setter does not override an inherited setter");
+  static final HintCode OVERRIDE_ON_NON_OVERRIDING_SETTER = new HintCode.con1('OVERRIDE_ON_NON_OVERRIDING_SETTER', 14, "Setter does not override an inherited setter");
 
   /**
    * It is not in best practice to declare a private method that happens to override the method in a
@@ -697,24 +708,24 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @param memberName some private member name
    * @param className the class name where the member is overriding the functionality
    */
-  static final HintCode OVERRIDDING_PRIVATE_MEMBER = new HintCode.con1('OVERRIDDING_PRIVATE_MEMBER', 14, "The %s '%s' does not override the definition from '%s' because it is private and in a different library");
+  static final HintCode OVERRIDDING_PRIVATE_MEMBER = new HintCode.con1('OVERRIDDING_PRIVATE_MEMBER', 15, "The %s '%s' does not override the definition from '%s' because it is private and in a different library");
 
   /**
    * Hint for classes that override equals, but not hashCode.
    *
    * @param className the name of the current class
    */
-  static final HintCode OVERRIDE_EQUALS_BUT_NOT_HASH_CODE = new HintCode.con1('OVERRIDE_EQUALS_BUT_NOT_HASH_CODE', 15, "The class '%s' overrides 'operator==', but not 'get hashCode'");
+  static final HintCode OVERRIDE_EQUALS_BUT_NOT_HASH_CODE = new HintCode.con1('OVERRIDE_EQUALS_BUT_NOT_HASH_CODE', 16, "The class '%s' overrides 'operator==', but not 'get hashCode'");
 
   /**
    * Type checks of the type `x is! Null` should be done with `x != null`.
    */
-  static final HintCode TYPE_CHECK_IS_NOT_NULL = new HintCode.con1('TYPE_CHECK_IS_NOT_NULL', 16, "Tests for non-null should be done with '!= null'");
+  static final HintCode TYPE_CHECK_IS_NOT_NULL = new HintCode.con1('TYPE_CHECK_IS_NOT_NULL', 17, "Tests for non-null should be done with '!= null'");
 
   /**
    * Type checks of the type `x is Null` should be done with `x == null`.
    */
-  static final HintCode TYPE_CHECK_IS_NULL = new HintCode.con1('TYPE_CHECK_IS_NULL', 17, "Tests for null should be done with '== null'");
+  static final HintCode TYPE_CHECK_IS_NULL = new HintCode.con1('TYPE_CHECK_IS_NULL', 18, "Tests for null should be done with '== null'");
 
   /**
    * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_GETTER] or
@@ -726,7 +737,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @see StaticTypeWarningCode#UNDEFINED_GETTER
    * @see StaticWarningCode#UNDEFINED_GETTER
    */
-  static final HintCode UNDEFINED_GETTER = new HintCode.con1('UNDEFINED_GETTER', 18, StaticTypeWarningCode.UNDEFINED_GETTER.message);
+  static final HintCode UNDEFINED_GETTER = new HintCode.con1('UNDEFINED_GETTER', 19, StaticTypeWarningCode.UNDEFINED_GETTER.message);
 
   /**
    * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_METHOD] would
@@ -736,7 +747,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @param typeName the resolved type name that the method lookup is happening on
    * @see StaticTypeWarningCode#UNDEFINED_METHOD
    */
-  static final HintCode UNDEFINED_METHOD = new HintCode.con1('UNDEFINED_METHOD', 19, StaticTypeWarningCode.UNDEFINED_METHOD.message);
+  static final HintCode UNDEFINED_METHOD = new HintCode.con1('UNDEFINED_METHOD', 20, StaticTypeWarningCode.UNDEFINED_METHOD.message);
 
   /**
    * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_OPERATOR]
@@ -746,7 +757,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @param enclosingType the name of the enclosing type where the operator is being looked for
    * @see StaticTypeWarningCode#UNDEFINED_OPERATOR
    */
-  static final HintCode UNDEFINED_OPERATOR = new HintCode.con1('UNDEFINED_OPERATOR', 20, StaticTypeWarningCode.UNDEFINED_OPERATOR.message);
+  static final HintCode UNDEFINED_OPERATOR = new HintCode.con1('UNDEFINED_OPERATOR', 21, StaticTypeWarningCode.UNDEFINED_OPERATOR.message);
 
   /**
    * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_SETTER] or
@@ -758,27 +769,27 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @see StaticTypeWarningCode#UNDEFINED_SETTER
    * @see StaticWarningCode#UNDEFINED_SETTER
    */
-  static final HintCode UNDEFINED_SETTER = new HintCode.con1('UNDEFINED_SETTER', 21, StaticTypeWarningCode.UNDEFINED_SETTER.message);
+  static final HintCode UNDEFINED_SETTER = new HintCode.con1('UNDEFINED_SETTER', 22, StaticTypeWarningCode.UNDEFINED_SETTER.message);
 
   /**
    * Unnecessary cast.
    */
-  static final HintCode UNNECESSARY_CAST = new HintCode.con1('UNNECESSARY_CAST', 22, "Unnecessary cast");
+  static final HintCode UNNECESSARY_CAST = new HintCode.con1('UNNECESSARY_CAST', 23, "Unnecessary cast");
 
   /**
    * Unnecessary type checks, the result is always true.
    */
-  static final HintCode UNNECESSARY_TYPE_CHECK_FALSE = new HintCode.con1('UNNECESSARY_TYPE_CHECK_FALSE', 23, "Unnecessary type check, the result is always false");
+  static final HintCode UNNECESSARY_TYPE_CHECK_FALSE = new HintCode.con1('UNNECESSARY_TYPE_CHECK_FALSE', 24, "Unnecessary type check, the result is always false");
 
   /**
    * Unnecessary type checks, the result is always false.
    */
-  static final HintCode UNNECESSARY_TYPE_CHECK_TRUE = new HintCode.con1('UNNECESSARY_TYPE_CHECK_TRUE', 24, "Unnecessary type check, the result is always true");
+  static final HintCode UNNECESSARY_TYPE_CHECK_TRUE = new HintCode.con1('UNNECESSARY_TYPE_CHECK_TRUE', 25, "Unnecessary type check, the result is always true");
 
   /**
    * Unused imports are imports which are never not used.
    */
-  static final HintCode UNUSED_IMPORT = new HintCode.con1('UNUSED_IMPORT', 25, "Unused import");
+  static final HintCode UNUSED_IMPORT = new HintCode.con1('UNUSED_IMPORT', 26, "Unused import");
 
   /**
    * Hint for cases where the source expects a method or function to return a non-void result, but
@@ -786,9 +797,10 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    *
    * @param name the name of the method or function that returns void
    */
-  static final HintCode USE_OF_VOID_RESULT = new HintCode.con1('USE_OF_VOID_RESULT', 26, "The result of '%s' is being used, even though it is declared to be 'void'");
+  static final HintCode USE_OF_VOID_RESULT = new HintCode.con1('USE_OF_VOID_RESULT', 27, "The result of '%s' is being used, even though it is declared to be 'void'");
 
   static final List<HintCode> values = [
+      ARGUMENT_TYPE_NOT_ASSIGNABLE,
       DEAD_CODE,
       DEAD_CODE_CATCH_FOLLOWING_CATCH,
       DEAD_CODE_ON_CATCH_SUBTYPE,
@@ -2443,6 +2455,9 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * p<sub>n+k</sub>}</i> or a static warning occurs. It is a static warning if
    * <i>T<sub>m+j</sub></i> may not be assigned to <i>S<sub>r</sub></i>, where <i>r = q<sub>j</sub>,
    * 1 &lt;= j &lt;= l</i>.
+   *
+   * @param actualType the name of the actual argument type
+   * @param expectedType the name of the expected type
    */
   static final StaticWarningCode ARGUMENT_TYPE_NOT_ASSIGNABLE = new StaticWarningCode.con1('ARGUMENT_TYPE_NOT_ASSIGNABLE', 1, "The argument type '%s' cannot be assigned to the parameter type '%s'");
 

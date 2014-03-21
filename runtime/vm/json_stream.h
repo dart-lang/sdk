@@ -78,6 +78,7 @@ class JSONStream : ValueObject {
   void PrintfValue(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void PrintValue(const Object& o, bool ref = true);
   void PrintValue(SourceBreakpoint* bpt);
+  void PrintValue(Isolate* isolate, bool ref = true);
 
   void PrintPropertyBool(const char* name, bool b);
   void PrintProperty(const char* name, intptr_t i);
@@ -179,6 +180,9 @@ class JSONArray : public ValueObject {
   void AddValue(const char* s) const { stream_->PrintValue(s); }
   void AddValue(const Object& obj, bool ref = true) const {
     stream_->PrintValue(obj, ref);
+  }
+  void AddValue(Isolate* isolate, bool ref = true) const {
+    stream_->PrintValue(isolate, ref);
   }
   void AddValue(SourceBreakpoint* bpt) const {
     stream_->PrintValue(bpt);

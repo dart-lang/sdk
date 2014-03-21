@@ -9,6 +9,7 @@ library smoke;
 import 'src/implementation.dart' as implementation;
 
 export 'src/common.dart' show minArgs, maxArgs, SUPPORTED_ARGS;
+import 'src/common.dart' show compareLists;
 
 /// Configures this library to use [objectAccessor] for all read/write/invoke
 /// APIs, [typeInspector] for all type query APIs, and [symbolConverter] for all
@@ -121,6 +122,10 @@ class QueryOptions {
   /// included.
   final List withAnnotations;
 
+  /// If [matches] is not null, then include only those fields, properties, or
+  /// methods that match the predicate.
+  final NameMatcher matches;
+
   const QueryOptions({
       this.includeFields: true,
       this.includeProperties: true,
@@ -128,8 +133,24 @@ class QueryOptions {
       this.includeUpTo: Object,
       this.excludeFinal: false,
       this.includeMethods: false,
-      this.withAnnotations: null});
+      this.withAnnotations: null,
+      this.matches: null});
+
+  String toString() => (new StringBuffer()
+      ..write('(options:')
+      ..write(includeFields ? 'fields ' : '')
+      ..write(includeProperties ? 'properties ' : '')
+      ..write(includeMethods ? 'methods ' : '')
+      ..write(includeInherited ? 'inherited ' : '_')
+      ..write(excludeFinal ? 'no finals ' : '')
+      ..write('annotations: $withAnnotations')
+      ..write(matches != null ? 'with matcher' : '')
+      ..write(')')).toString();
 }
+
+/// Used to filter query results based on a predicate on [name]. Returns true if
+/// [name] should be included in the query results.
+typedef bool NameMatcher(Symbol name);
 
 /// Information associated with a symbol declaration (like a property or
 /// method).
@@ -166,15 +187,21 @@ class Declaration {
   const Declaration(this.name, this.type, {this.kind: FIELD,
       this.isFinal: false, this.isStatic: false, this.annotations: const []});
 
+  int get hashCode => name.hashCode;
+  operator ==(other) => other is Declaration && name == other.name &&
+      kind == other.kind && isFinal == other.isFinal &&
+      type == other.type && isStatic == other.isStatic &&
+      compareLists(annotations, other.annotations);
+
   String toString() {
     return (new StringBuffer()
-        ..write('[declaration ')
+        ..write('(declaration ')
         ..write(name)
         ..write(isProperty ? ' (property) ' : ' (method) ')
         ..write(isFinal ? 'final ' : '')
         ..write(isStatic ? 'static ' : '')
         ..write(annotations)
-        ..write(']')).toString();
+        ..write(')')).toString();
   }
 }
 

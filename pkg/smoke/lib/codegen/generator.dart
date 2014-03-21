@@ -12,6 +12,8 @@ library smoke.codegen.generator;
 
 import 'dart:collection' show SplayTreeMap, SplayTreeSet;
 
+import 'package:smoke/src/common.dart' show compareLists, compareMaps;
+
 /// Collects the necessary information and generates code to initialize a
 /// `StaticConfiguration`. After setting up the generator by calling
 /// [addGetter], [addSetter], [addSymbol], and [addDeclaration], you can
@@ -274,7 +276,7 @@ class _DeclarationCode extends ConstExpression {
   operator== (other) => other is _DeclarationCode && name == other.name && 
       type == other.type && kind == other.kind && isFinal == other.isFinal &&
       isStatic == other.isStatic &&
-      _compareLists(annotations, other.annotations);
+      compareLists(annotations, other.annotations);
   int get hashCode => name.hashCode + (31 * type.hashCode);
 }
 
@@ -384,8 +386,8 @@ class ConstructorExpression extends ConstExpression {
   String toString() => '(ctor: $importUrl, $name, $positionalArgs, $namedArgs)';
   operator== (other) => other is ConstructorExpression && name == other.name
       && importUrl == other.importUrl &&
-      _compareLists(positionalArgs, other.positionalArgs) &&
-      _compareMaps(namedArgs, other.namedArgs);
+      compareLists(positionalArgs, other.positionalArgs) &&
+      compareMaps(namedArgs, other.namedArgs);
   int get hashCode => 31 * importUrl.hashCode + name.hashCode;
 }
 
@@ -421,25 +423,3 @@ const DEFAULT_IMPORTS = const [
     "import 'package:smoke/static.dart' show "
         "useGeneratedCode, StaticConfiguration;",
   ];
-
-/// Shallow comparison of two lists.
-bool _compareLists(List a, List b) {
-  if (a == null && b != null) return false;
-  if (a != null && b == null) return false;
-  if (a.length != b.length) return false;
-  for (int i = 0; i < a.length; i++) {
-    if (a[i] != b[i]) return false;
-  }
-  return true;
-}
-
-/// Shallow comparison of two maps.
-bool _compareMaps(Map a, Map b) {
-  if (a == null && b != null) return false;
-  if (a != null && b == null) return false;
-  if (a.length != b.length) return false;
-  for (var k in a.keys) {
-    if (!b.containsKey(k) || a[k] != b[k]) return false;
-  }
-  return true;
-}

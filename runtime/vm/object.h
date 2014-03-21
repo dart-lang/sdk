@@ -943,6 +943,10 @@ class Class : public Object {
 
   void InsertCanonicalConstant(intptr_t index, const Instance& constant) const;
 
+  intptr_t NumCanonicalTypes() const;
+  intptr_t FindCanonicalTypeIndex(const Type& needle) const;
+  RawType* CanonicalTypeFromIndex(intptr_t idx) const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawClass));
   }
@@ -1336,6 +1340,12 @@ class TypeArguments : public Object {
   RawTypeArguments* InstantiateAndCanonicalizeFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error) const;
+
+  // Return true if this type argument vector has cached instantiations.
+  bool HasInstantiations() const;
+
+  // Return the number of cached instantiations for this type argument vector.
+  intptr_t NumInstantiations() const;
 
   static intptr_t instantiations_offset() {
     return OFFSET_OF(RawTypeArguments, instantiations_);
@@ -1771,6 +1781,8 @@ class Function : public Object {
   // Fully qualified name uniquely identifying the function under gdb and during
   // ast printing. The special ':' character, if present, is replaced by '_'.
   const char* ToFullyQualifiedCString() const;
+
+  const char* ToQualifiedCString() const;
 
   // Returns true if this function has parameters that are compatible with the
   // parameters of the other function in order for this function to override the
@@ -2358,7 +2370,7 @@ class TokenStream : public Object {
   void SetPrivateKey(const String& value) const;
 
   static RawTokenStream* New();
-  static void DataFinalizer(Dart_Isolate isolate,
+  static void DataFinalizer(void* isolate_callback_data,
                             Dart_WeakPersistentHandle handle,
                             void *peer);
 
@@ -5318,7 +5330,7 @@ class OneByteString : public AllStatic {
                       void* peer,
                       Dart_PeerFinalizer cback);
 
-  static void Finalize(Dart_Isolate isolate,
+  static void Finalize(void* isolate_callback_data,
                        Dart_WeakPersistentHandle handle,
                        void* peer);
 
@@ -5411,7 +5423,7 @@ class TwoByteString : public AllStatic {
                       void* peer,
                       Dart_PeerFinalizer cback);
 
-  static void Finalize(Dart_Isolate isolate,
+  static void Finalize(void* isolate_callback_data,
                        Dart_WeakPersistentHandle handle,
                        void* peer);
 
@@ -5506,7 +5518,7 @@ class ExternalOneByteString : public AllStatic {
     raw_ptr(str)->external_data_ = data;
   }
 
-  static void Finalize(Dart_Isolate isolate,
+  static void Finalize(void* isolate_callback_data,
                        Dart_WeakPersistentHandle handle,
                        void* peer);
 
@@ -5579,7 +5591,7 @@ class ExternalTwoByteString : public AllStatic {
     raw_ptr(str)->external_data_ = data;
   }
 
-  static void Finalize(Dart_Isolate isolate,
+  static void Finalize(void* isolate_callback_data,
                        Dart_WeakPersistentHandle handle,
                        void* peer);
 

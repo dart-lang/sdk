@@ -213,8 +213,7 @@ class JsonEncoder extends Converter<Object, String> {
    * Returns a chunked-conversion sink that accepts at most one object. It is
    * an error to invoke `add` more than once on the returned sink.
    */
-  ChunkedConversionSink<Object> startChunkedConversion(
-      ChunkedConversionSink<String> sink) {
+  ChunkedConversionSink<Object> startChunkedConversion(Sink<String> sink) {
     if (sink is! StringConversionSink) {
       sink = new StringConversionSink.from(sink);
     }
@@ -292,8 +291,7 @@ class JsonDecoder extends Converter<String, Object> {
    *
    * The output [sink] receives exactly one decoded element through `add`.
    */
-  StringConversionSink startChunkedConversion(
-      ChunkedConversionSink<Object> sink) {
+  StringConversionSink startChunkedConversion(Sink<Object> sink) {
     return new _JsonDecoderSink(_reviver, sink);
   }
 
@@ -310,9 +308,9 @@ class JsonDecoder extends Converter<String, Object> {
 // TODO(floitsch): don't accumulate everything before starting to decode.
 class _JsonDecoderSink extends _StringSinkConversionSink {
   final _Reviver _reviver;
-  final ChunkedConversionSink<Object> _chunkedSink;
+  final Sink<Object> _sink;
 
-  _JsonDecoderSink(this._reviver, this._chunkedSink)
+  _JsonDecoderSink(this._reviver, this._sink)
       : super(new StringBuffer());
 
   void close() {
@@ -321,8 +319,8 @@ class _JsonDecoderSink extends _StringSinkConversionSink {
     String accumulated = buffer.toString();
     buffer.clear();
     Object decoded = _parseJson(accumulated, _reviver);
-    _chunkedSink.add(decoded);
-    _chunkedSink.close();
+    _sink.add(decoded);
+    _sink.close();
   }
 }
 

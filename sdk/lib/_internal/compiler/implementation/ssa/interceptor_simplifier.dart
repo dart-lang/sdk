@@ -256,51 +256,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
   }
 
   bool rewriteToUseSelfAsInterceptor(HInterceptor node, HInstruction receiver) {
-    // `rewrite` below clears `node.usedBy`.
-    List<HInstruction> originalUsers = node.usedBy.toList();
-
     node.block.rewrite(node, receiver);
-
-    // We have just rewritten:
-    //
-    //     m = getInterceptor(a)
-    //     m.foo$1(a, x)
-    // -->
-    //     m = getInterceptor(a)
-    //     a.foo$1(a, x)
-    //
-    // For the rewritten calls, if the selector matches only methods that ignore
-    // the explicit receiver parameter, replace occurences of the receiver
-    // argument with a dummy receiver '0':
-    //
-    //     a.foo$1(a, x)   -->   a.foo$1(0, x)
-    //
-    JavaScriptBackend backend = compiler.backend;
-    for (HInstruction user in originalUsers) {
-      if (user is HInvokeDynamic) {
-        HInvokeDynamic invoke = user;
-        if (invoke.receiver == receiver &&
-            !backend.isInterceptedMixinSelector(invoke.selector)) {
-          HInstruction receiverArgument = invoke.inputs[1];
-          // TODO(15720): The test here should be
-          //
-          //     invoke.receiver.nonCheck() == receiverArgument.nonCheck()
-          //
-          if (invoke.receiver == receiverArgument) {  // recognize a.foo(a,...)
-            // TODO(15933): Make automatically generated property extraction
-            // closures work with the dummy receiver optimization.
-            if (!invoke.selector.isGetter()) {
-              Constant constant = new DummyConstant(
-                  receiverArgument.instructionType);
-              HConstant dummy = graph.addConstant(constant, compiler);
-              receiverArgument.usedBy.remove(invoke);
-              invoke.inputs[1] = dummy;
-              dummy.usedBy.add(invoke);
-            }
-          }
-        }
-      }
-    }
     return false;
   }
 

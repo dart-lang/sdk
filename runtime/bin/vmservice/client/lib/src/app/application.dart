@@ -13,11 +13,13 @@ class ObservatoryApplication extends Observable {
   @observable final LocationManager locationManager;
   @observable final VM vm;
   @observable Isolate isolate;
+
+  /// The current [ServiceObject] being viewed by the application.
   @observable ServiceObject response;
 
-  void setResponse(ServiceObject response) {
-    this.response = response;
-  }
+  /// Any client-level arguments for viewing the current response.
+  @observable String args;
+  // TODO(turnidge): Make args a Map.
 
   void _initOnce() {
     // Only called once.

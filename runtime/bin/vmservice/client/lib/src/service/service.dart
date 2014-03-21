@@ -54,10 +54,12 @@ ServiceObject _upgradeToServiceObject(VM vm, Isolate isolate, ObservableMap m) {
   var type = ServiceObject.stripRef(m['type']);
   switch (type) {
     case 'Error':
-      return new ServiceError.fromMap(isolate, m);
-    case 'IsolateList':
-      vm.isolates.update(m);
-      return vm.isolates;
+      if (isolate != null) {
+        return new ServiceError.fromMap(isolate, m);
+      } else {
+        return new ServiceError.fromMap(vm, m);
+      }
+      break;
     case 'Script':
       return isolate.scripts.putIfAbsent(m);
     case 'Code':
@@ -68,6 +70,8 @@ ServiceObject _upgradeToServiceObject(VM vm, Isolate isolate, ObservableMap m) {
       return isolate.classes.putIfAbsent(m);
     case 'Function':
       return isolate.functions.putIfAbsent(m);
+    case 'VM':
+      return vm.update(m);
   }
   return new ServiceMap.fromMap(isolate, m);
 }

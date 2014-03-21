@@ -371,6 +371,29 @@ FinalizablePersistentHandle* FinalizablePersistentHandle::Cast(
 }
 
 
+void FinalizablePersistentHandle::Finalize(Isolate* isolate,
+                                           FinalizablePersistentHandle* handle,
+                                           bool is_prologue_weak) {
+  if (!handle->raw()->IsHeapObject()) {
+    return;
+  }
+  Dart_WeakPersistentHandleFinalizer callback = handle->callback();
+  ASSERT(callback != NULL);
+  void* peer = handle->peer();
+  Dart_WeakPersistentHandle object = is_prologue_weak ?
+      handle->apiPrologueHandle() :
+      handle->apiHandle();
+  (*callback)(isolate->init_callback_data(), object, peer);
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  if (is_prologue_weak) {
+    state->prologue_weak_persistent_handles().FreeHandle(handle);
+  } else {
+    state->weak_persistent_handles().FreeHandle(handle);
+  }
+}
+
+
 // --- Handles ---
 
 DART_EXPORT bool Dart_IsError(Dart_Handle handle) {
@@ -654,6 +677,9 @@ DART_EXPORT Dart_WeakPersistentHandle Dart_NewWeakPersistentHandle(
     Dart_WeakPersistentHandleFinalizer callback) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
+  if (callback == NULL) {
+    return NULL;
+  }
   return AllocateFinalizableHandle(isolate,
                                    object,
                                    false,
@@ -670,6 +696,9 @@ DART_EXPORT Dart_WeakPersistentHandle Dart_NewPrologueWeakPersistentHandle(
     Dart_WeakPersistentHandleFinalizer callback) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
+  if (callback == NULL) {
+    return NULL;
+  }
   return AllocateFinalizableHandle(isolate,
                                    object,
                                    true,
@@ -3117,10 +3146,7 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
   if (type_obj.IsNull()) {
     RETURN_TYPE_ERROR(isolate, type, Type);
   }
-  REUSABLE_CLASS_HANDLESCOPE(isolate);
-  Class& cls = isolate->ClassHandle();
-  cls = type_obj.type_class();
-
+  const Class& cls = Class::Handle(isolate, type_obj.type_class());
   if (!cls.is_fields_marked_nullable()) {
     // Mark all fields as nullable.
     Class& iterate_cls = Class::Handle(isolate, cls.raw());
@@ -3140,9 +3166,7 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
     }
   }
 
-  REUSABLE_ERROR_HANDLESCOPE(isolate);
-  Error& error = isolate->ErrorHandle();
-  error = cls.EnsureIsFinalized(isolate);
+  const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));
   if (!error.IsNull()) {
     // An error occurred, return error object.
     return Api::NewHandle(isolate, error.raw());

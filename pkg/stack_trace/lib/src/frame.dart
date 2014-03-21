@@ -180,9 +180,12 @@ class Frame {
 
     // V8 stack frames can be in two forms.
     if (match[2] != null) {
-      // The first form looks like " at FUNCTION (LOCATION)".
-      return parseLocation(
-          match[2], match[1].replaceAll("<anonymous>", "<fn>"));
+      // The first form looks like " at FUNCTION (LOCATION)". V8 proper lists
+      // anonymous functions within eval as "<anonymous>", while IE10 lists them
+      // as "Anonymous function".
+      return parseLocation(match[2],
+          match[1].replaceAll("<anonymous>", "<fn>")
+                  .replaceAll("Anonymous function", "<fn>"));
     } else {
       // The second form looks like " at LOCATION", and is used for anonymous
       // functions.

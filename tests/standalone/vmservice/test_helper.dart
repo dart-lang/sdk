@@ -86,7 +86,7 @@ abstract class VmServiceRequestHelper {
     var reply;
     try {
       reply = JSON.decode(replyAsString);
-    } catch (e) {
+    } catch (e, trace) {
       onRequestFailed(e);
       return null;
     }
@@ -174,21 +174,21 @@ class TestLauncher {
   }
 }
 
-class IsolateListTester {
-  final Map isolateList;
+class VMTester {
+  final Map vm;
 
-  IsolateListTester(this.isolateList) {
-    // The reply is an IsolateList.
-    Expect.equals('IsolateList', isolateList['type'], 'Not an IsolateList.');
+  VMTester(this.vm) {
+    // The reply is a VM.
+    Expect.equals('VM', vm['type'], 'Not an VM.');
   }
 
   void checkIsolateCount(int n) {
-    Expect.equals(n, isolateList['members'].length, 'Isolate count not $n');
+    Expect.equals(n, vm['isolates'].length, 'Isolate count not $n');
   }
 
   void checkIsolateIdExists(String id) {
     var exists = false;
-    isolateList['members'].forEach((isolate) {
+    vm['isolates'].forEach((isolate) {
       if (isolate['id'] == id) {
         exists = true;
       }
@@ -197,7 +197,7 @@ class IsolateListTester {
   }
 
   String getIsolateId(int index) {
-    return isolateList['members'][index]['id'];
+    return vm['isolates'][index]['id'];
   }
 }
 

@@ -1,0 +1,69 @@
+<head>
+  <link rel="import" href="curly_block.html">
+  <link rel="import" href="eval_box.html">
+  <link rel="import" href="function_ref.html">
+  <link rel="import" href="isolate_summary.html">
+  <link rel="import" href="library_ref.html">
+  <link rel="import" href="nav_bar.html">
+  <link rel="import" href="observatory_element.html">
+  <link rel="import" href="script_ref.html">
+</head>
+<polymer-element name="vm-view" extends="observatory-element">
+  <template>
+    <style>
+      .content {
+        padding-left: 10%;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      h1 {
+        font: 400 18px 'Montserrat', sans-serif;
+      }
+      .memberList {
+        display: table;
+      }
+      .memberItem {
+        display: table-row;
+      }
+      .memberName, .memberValue {
+        display: table-cell;
+        vertical-align: top;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      .sourceInset {
+        padding-left: 15%;
+        padding-right: 15%;
+      }
+    </style>
+
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content">
+      <h1>VM</h1>
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">version</div>
+          <div class="memberValue">{{ vm.version }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">uptime</div>
+          <div class="memberValue">{{ vm.uptime | formatTime }}</div>
+        </div>
+      </div>
+    </div>
+
+    <br>
+
+    <ul class="list-group">
+      <template repeat="{{ isolate in vm.allIsolates }}">
+      	<li class="list-group-item">
+          <isolate-summary isolate="{{ isolate }}"></isolate-summary>
+        </li>
+      </template>
+    </ul>
+  </template>
+  <script type="application/dart" src="vm_view.dart"></script>
+</polymer-element>

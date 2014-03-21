@@ -162,7 +162,7 @@ void Heap::IterateOldObjects(ObjectVisitor* visitor) {
 }
 
 
-RawInstructions* Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) {
+RawInstructions* Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) const {
   // Only executable pages can have RawInstructions objects.
   RawObject* raw_obj = old_space_->FindObject(visitor, HeapPage::kExecutable);
   ASSERT((raw_obj == Object::null()) ||
@@ -173,6 +173,26 @@ RawInstructions* Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) {
 
 RawObject* Heap::FindOldObject(FindObjectVisitor* visitor) const {
   return old_space_->FindObject(visitor, HeapPage::kData);
+}
+
+
+RawObject* Heap::FindNewObject(FindObjectVisitor* visitor) const {
+  return new_space_->FindObject(visitor);
+}
+
+
+RawObject* Heap::FindObject(FindObjectVisitor* visitor) const {
+  ASSERT(Isolate::Current()->no_gc_scope_depth() != 0);
+  RawObject* raw_obj = FindNewObject(visitor);
+  if (raw_obj != Object::null()) {
+    return raw_obj;
+  }
+  raw_obj = FindOldObject(visitor);
+  if (raw_obj != Object::null()) {
+    return raw_obj;
+  }
+  raw_obj = FindObjectInCodeSpace(visitor);
+  return raw_obj;
 }
 
 

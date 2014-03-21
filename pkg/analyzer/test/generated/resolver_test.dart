@@ -108,8 +108,9 @@ class TypePropagationTest extends ResolverTestCase {
 
   void test_forEach() {
     String code = EngineTestCase.createSource([
-        "f(List<String> p) {",
-        "  for (var e in p) {",
+        "main() {",
+        "  var list = <String> [];",
+        "  for (var e in list) {",
         "    e;",
         "  }",
         "}"]);
@@ -233,6 +234,26 @@ class TypePropagationTest extends ResolverTestCase {
     SimpleIdentifier vIdentifier = EngineTestCase.findNode(unit, code, "v;", (node) => node is SimpleIdentifier);
     JUnitTestCase.assertSame(intType, vIdentifier.staticType);
     JUnitTestCase.assertSame(null, vIdentifier.propagatedType);
+  }
+
+  void test_functionExpression_asInvocationArgument_notSubtypeOfStaticType() {
+    String code = EngineTestCase.createSource([
+        "class A {",
+        "  m(void f(int i)) {}",
+        "}",
+        "x() {",
+        "  A a = new A();",
+        "  a.m(() => 0);",
+        "}"]);
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    // () => 0
+    FunctionExpression functionExpression = EngineTestCase.findNode(unit, code, "() => 0)", (node) => node is FunctionExpression);
+    JUnitTestCase.assertSame(0, (functionExpression.staticType as FunctionType).parameters.length);
+    JUnitTestCase.assertSame(null, functionExpression.propagatedType);
   }
 
   void test_functionExpression_asInvocationArgument_replaceIfMoreSpecific() {
@@ -834,6 +855,10 @@ class TypePropagationTest extends ResolverTestCase {
       _ut.test('test_functionExpression_asInvocationArgument_keepIfLessSpecific', () {
         final __test = new TypePropagationTest();
         runJUnitTest(__test, __test.test_functionExpression_asInvocationArgument_keepIfLessSpecific);
+      });
+      _ut.test('test_functionExpression_asInvocationArgument_notSubtypeOfStaticType', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_functionExpression_asInvocationArgument_notSubtypeOfStaticType);
       });
       _ut.test('test_functionExpression_asInvocationArgument_replaceIfMoreSpecific', () {
         final __test = new TypePropagationTest();
@@ -7727,6 +7752,33 @@ class HintCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_argumentTypeNotAssignable_functionType() {
+    Source source = addSource(EngineTestCase.createSource([
+        "m() {",
+        "  var a = new A();",
+        "  a.n(() => 0);",
+        "}",
+        "class A {",
+        "  n(void f(int i)) {}",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
+  void test_argumentTypeNotAssignable_message() {
+    // The implementation of HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE assumes that
+    // StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE has the same message.
+    JUnitTestCase.assertEquals(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE.message, StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE.message);
+  }
+
+  void test_argumentTypeNotAssignable_type() {
+    Source source = addSource(EngineTestCase.createSource(["m() {", "  var i = '';", "  n(i);", "}", "n(int i) {}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
   void test_deadCode_deadBlock_conditionalElse() {
     Source source = addSource(EngineTestCase.createSource(["f() {", "  true ? 1 : 2;", "}"]));
     resolve(source);
@@ -8316,6 +8368,8 @@ class HintCodeTest extends ResolverTestCase {
   }
 
   void test_undefinedGetter_message() {
+    // The implementation of HintCode.UNDEFINED_SETTER assumes that UNDEFINED_SETTER in
+    // StaticTypeWarningCode and StaticWarningCode are the same, this verifies that assumption.
     JUnitTestCase.assertEquals(StaticTypeWarningCode.UNDEFINED_GETTER.message, StaticWarningCode.UNDEFINED_GETTER.message);
   }
 
@@ -8428,6 +8482,8 @@ class HintCodeTest extends ResolverTestCase {
   }
 
   void test_undefinedSetter_message() {
+    // The implementation of HintCode.UNDEFINED_SETTER assumes that UNDEFINED_SETTER in
+    // StaticTypeWarningCode and StaticWarningCode are the same, this verifies that assumption.
     JUnitTestCase.assertEquals(StaticTypeWarningCode.UNDEFINED_SETTER.message, StaticWarningCode.UNDEFINED_SETTER.message);
   }
 
@@ -8617,6 +8673,18 @@ class HintCodeTest extends ResolverTestCase {
 
   static dartSuite() {
     _ut.group('HintCodeTest', () {
+      _ut.test('test_argumentTypeNotAssignable_functionType', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_argumentTypeNotAssignable_functionType);
+      });
+      _ut.test('test_argumentTypeNotAssignable_message', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_argumentTypeNotAssignable_message);
+      });
+      _ut.test('test_argumentTypeNotAssignable_type', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_argumentTypeNotAssignable_type);
+      });
       _ut.test('test_deadCode_deadBlock_conditionalElse', () {
         final __test = new HintCodeTest();
         runJUnitTest(__test, __test.test_deadCode_deadBlock_conditionalElse);
@@ -11670,7 +11738,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
-  void test_extendsDisallowedClass_bool() {
+  void test_extendsDisallowedClass_class_bool() {
     Source source = addSource(EngineTestCase.createSource(["class A extends bool {}"]));
     resolve(source);
     assertErrors(source, [
@@ -11679,7 +11747,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
-  void test_extendsDisallowedClass_double() {
+  void test_extendsDisallowedClass_class_double() {
     Source source = addSource(EngineTestCase.createSource(["class A extends double {}"]));
     resolve(source);
     assertErrors(source, [
@@ -11688,7 +11756,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
-  void test_extendsDisallowedClass_int() {
+  void test_extendsDisallowedClass_class_int() {
     Source source = addSource(EngineTestCase.createSource(["class A extends int {}"]));
     resolve(source);
     assertErrors(source, [
@@ -11697,7 +11765,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
-  void test_extendsDisallowedClass_Null() {
+  void test_extendsDisallowedClass_class_Null() {
     Source source = addSource(EngineTestCase.createSource(["class A extends Null {}"]));
     resolve(source);
     assertErrors(source, [
@@ -11706,7 +11774,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
-  void test_extendsDisallowedClass_num() {
+  void test_extendsDisallowedClass_class_num() {
     Source source = addSource(EngineTestCase.createSource(["class A extends num {}"]));
     resolve(source);
     assertErrors(source, [
@@ -11715,12 +11783,54 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
-  void test_extendsDisallowedClass_String() {
+  void test_extendsDisallowedClass_class_String() {
     Source source = addSource(EngineTestCase.createSource(["class A extends String {}"]));
     resolve(source);
     assertErrors(source, [
         CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    verify([source]);
+  }
+
+  void test_extendsDisallowedClass_classTypeAlias_bool() {
+    Source source = addSource(EngineTestCase.createSource(["class C = bool;"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+
+  void test_extendsDisallowedClass_classTypeAlias_double() {
+    Source source = addSource(EngineTestCase.createSource(["class C = double;"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+
+  void test_extendsDisallowedClass_classTypeAlias_int() {
+    Source source = addSource(EngineTestCase.createSource(["class C = int;"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+
+  void test_extendsDisallowedClass_classTypeAlias_Null() {
+    Source source = addSource(EngineTestCase.createSource(["class C = Null;"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+
+  void test_extendsDisallowedClass_classTypeAlias_num() {
+    Source source = addSource(EngineTestCase.createSource(["class C = num;"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+
+  void test_extendsDisallowedClass_classTypeAlias_String() {
+    Source source = addSource(EngineTestCase.createSource(["class C = String;"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -11933,45 +12043,105 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
-  void test_implementsDisallowedClass_bool() {
+  void test_implementsDisallowedClass_class_bool() {
     Source source = addSource(EngineTestCase.createSource(["class A implements bool {}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
-  void test_implementsDisallowedClass_double() {
+  void test_implementsDisallowedClass_class_double() {
     Source source = addSource(EngineTestCase.createSource(["class A implements double {}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
-  void test_implementsDisallowedClass_int() {
+  void test_implementsDisallowedClass_class_int() {
     Source source = addSource(EngineTestCase.createSource(["class A implements int {}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
-  void test_implementsDisallowedClass_Null() {
+  void test_implementsDisallowedClass_class_Null() {
     Source source = addSource(EngineTestCase.createSource(["class A implements Null {}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
-  void test_implementsDisallowedClass_num() {
+  void test_implementsDisallowedClass_class_num() {
     Source source = addSource(EngineTestCase.createSource(["class A implements num {}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
-  void test_implementsDisallowedClass_String() {
+  void test_implementsDisallowedClass_class_String() {
     Source source = addSource(EngineTestCase.createSource(["class A implements String {}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+
+  void test_implementsDisallowedClass_class_String_num() {
+    Source source = addSource(EngineTestCase.createSource(["class A implements String, num {}"]));
+    resolve(source);
+    assertErrors(source, [
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+
+  void test_implementsDisallowedClass_classTypeAlias_bool() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C = A implements bool;"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+
+  void test_implementsDisallowedClass_classTypeAlias_double() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C = A implements double;"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+
+  void test_implementsDisallowedClass_classTypeAlias_int() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C = A implements int;"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+
+  void test_implementsDisallowedClass_classTypeAlias_Null() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C = A implements Null;"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+
+  void test_implementsDisallowedClass_classTypeAlias_num() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C = A implements num;"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+
+  void test_implementsDisallowedClass_classTypeAlias_String() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C = A implements String;"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+
+  void test_implementsDisallowedClass_classTypeAlias_String_num() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C = A implements String, num;"]));
+    resolve(source);
+    assertErrors(source, [
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -12610,45 +12780,96 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
-  void test_mixinOfDisallowedClass_bool() {
+  void test_mixinOfDisallowedClass_class_bool() {
     Source source = addSource(EngineTestCase.createSource(["class A extends Object with bool {}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
-  void test_mixinOfDisallowedClass_double() {
+  void test_mixinOfDisallowedClass_class_double() {
     Source source = addSource(EngineTestCase.createSource(["class A extends Object with double {}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
-  void test_mixinOfDisallowedClass_int() {
+  void test_mixinOfDisallowedClass_class_int() {
     Source source = addSource(EngineTestCase.createSource(["class A extends Object with int {}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
-  void test_mixinOfDisallowedClass_Null() {
+  void test_mixinOfDisallowedClass_class_Null() {
     Source source = addSource(EngineTestCase.createSource(["class A extends Object with Null {}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
-  void test_mixinOfDisallowedClass_num() {
+  void test_mixinOfDisallowedClass_class_num() {
     Source source = addSource(EngineTestCase.createSource(["class A extends Object with num {}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
-  void test_mixinOfDisallowedClass_String() {
+  void test_mixinOfDisallowedClass_class_String() {
     Source source = addSource(EngineTestCase.createSource(["class A extends Object with String {}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+
+  void test_mixinOfDisallowedClass_classTypeAlias_bool() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C = A with bool;"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+
+  void test_mixinOfDisallowedClass_classTypeAlias_double() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C = A with double;"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+
+  void test_mixinOfDisallowedClass_classTypeAlias_int() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C = A with int;"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+
+  void test_mixinOfDisallowedClass_classTypeAlias_Null() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C = A with Null;"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+
+  void test_mixinOfDisallowedClass_classTypeAlias_num() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C = A with num;"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+
+  void test_mixinOfDisallowedClass_classTypeAlias_String() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C = A with String;"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+
+  void test_mixinOfDisallowedClass_classTypeAlias_String_num() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C = A with String, num;"]));
+    resolve(source);
+    assertErrors(source, [
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -14249,29 +14470,53 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_exportOfNonLibrary);
       });
-      _ut.test('test_extendsDisallowedClass_Null', () {
+      _ut.test('test_extendsDisallowedClass_classTypeAlias_Null', () {
         final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_extendsDisallowedClass_Null);
+        runJUnitTest(__test, __test.test_extendsDisallowedClass_classTypeAlias_Null);
       });
-      _ut.test('test_extendsDisallowedClass_String', () {
+      _ut.test('test_extendsDisallowedClass_classTypeAlias_String', () {
         final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_extendsDisallowedClass_String);
+        runJUnitTest(__test, __test.test_extendsDisallowedClass_classTypeAlias_String);
       });
-      _ut.test('test_extendsDisallowedClass_bool', () {
+      _ut.test('test_extendsDisallowedClass_classTypeAlias_bool', () {
         final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_extendsDisallowedClass_bool);
+        runJUnitTest(__test, __test.test_extendsDisallowedClass_classTypeAlias_bool);
       });
-      _ut.test('test_extendsDisallowedClass_double', () {
+      _ut.test('test_extendsDisallowedClass_classTypeAlias_double', () {
         final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_extendsDisallowedClass_double);
+        runJUnitTest(__test, __test.test_extendsDisallowedClass_classTypeAlias_double);
       });
-      _ut.test('test_extendsDisallowedClass_int', () {
+      _ut.test('test_extendsDisallowedClass_classTypeAlias_int', () {
         final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_extendsDisallowedClass_int);
+        runJUnitTest(__test, __test.test_extendsDisallowedClass_classTypeAlias_int);
       });
-      _ut.test('test_extendsDisallowedClass_num', () {
+      _ut.test('test_extendsDisallowedClass_classTypeAlias_num', () {
         final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_extendsDisallowedClass_num);
+        runJUnitTest(__test, __test.test_extendsDisallowedClass_classTypeAlias_num);
+      });
+      _ut.test('test_extendsDisallowedClass_class_Null', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_extendsDisallowedClass_class_Null);
+      });
+      _ut.test('test_extendsDisallowedClass_class_String', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_extendsDisallowedClass_class_String);
+      });
+      _ut.test('test_extendsDisallowedClass_class_bool', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_extendsDisallowedClass_class_bool);
+      });
+      _ut.test('test_extendsDisallowedClass_class_double', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_extendsDisallowedClass_class_double);
+      });
+      _ut.test('test_extendsDisallowedClass_class_int', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_extendsDisallowedClass_class_int);
+      });
+      _ut.test('test_extendsDisallowedClass_class_num', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_extendsDisallowedClass_class_num);
       });
       _ut.test('test_extendsNonClass_class', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -14361,29 +14606,61 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_getterAndMethodWithSameName);
       });
-      _ut.test('test_implementsDisallowedClass_Null', () {
+      _ut.test('test_implementsDisallowedClass_classTypeAlias_Null', () {
         final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_implementsDisallowedClass_Null);
+        runJUnitTest(__test, __test.test_implementsDisallowedClass_classTypeAlias_Null);
       });
-      _ut.test('test_implementsDisallowedClass_String', () {
+      _ut.test('test_implementsDisallowedClass_classTypeAlias_String', () {
         final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_implementsDisallowedClass_String);
+        runJUnitTest(__test, __test.test_implementsDisallowedClass_classTypeAlias_String);
       });
-      _ut.test('test_implementsDisallowedClass_bool', () {
+      _ut.test('test_implementsDisallowedClass_classTypeAlias_String_num', () {
         final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_implementsDisallowedClass_bool);
+        runJUnitTest(__test, __test.test_implementsDisallowedClass_classTypeAlias_String_num);
       });
-      _ut.test('test_implementsDisallowedClass_double', () {
+      _ut.test('test_implementsDisallowedClass_classTypeAlias_bool', () {
         final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_implementsDisallowedClass_double);
+        runJUnitTest(__test, __test.test_implementsDisallowedClass_classTypeAlias_bool);
       });
-      _ut.test('test_implementsDisallowedClass_int', () {
+      _ut.test('test_implementsDisallowedClass_classTypeAlias_double', () {
         final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_implementsDisallowedClass_int);
+        runJUnitTest(__test, __test.test_implementsDisallowedClass_classTypeAlias_double);
       });
-      _ut.test('test_implementsDisallowedClass_num', () {
+      _ut.test('test_implementsDisallowedClass_classTypeAlias_int', () {
         final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_implementsDisallowedClass_num);
+        runJUnitTest(__test, __test.test_implementsDisallowedClass_classTypeAlias_int);
+      });
+      _ut.test('test_implementsDisallowedClass_classTypeAlias_num', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_implementsDisallowedClass_classTypeAlias_num);
+      });
+      _ut.test('test_implementsDisallowedClass_class_Null', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_implementsDisallowedClass_class_Null);
+      });
+      _ut.test('test_implementsDisallowedClass_class_String', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_implementsDisallowedClass_class_String);
+      });
+      _ut.test('test_implementsDisallowedClass_class_String_num', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_implementsDisallowedClass_class_String_num);
+      });
+      _ut.test('test_implementsDisallowedClass_class_bool', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_implementsDisallowedClass_class_bool);
+      });
+      _ut.test('test_implementsDisallowedClass_class_double', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_implementsDisallowedClass_class_double);
+      });
+      _ut.test('test_implementsDisallowedClass_class_int', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_implementsDisallowedClass_class_int);
+      });
+      _ut.test('test_implementsDisallowedClass_class_num', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_implementsDisallowedClass_class_num);
       });
       _ut.test('test_implementsDynamic', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -14673,29 +14950,57 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_mixinInheritsFromNotObject_typeAlias_with);
       });
-      _ut.test('test_mixinOfDisallowedClass_Null', () {
+      _ut.test('test_mixinOfDisallowedClass_classTypeAlias_Null', () {
         final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_mixinOfDisallowedClass_Null);
+        runJUnitTest(__test, __test.test_mixinOfDisallowedClass_classTypeAlias_Null);
       });
-      _ut.test('test_mixinOfDisallowedClass_String', () {
+      _ut.test('test_mixinOfDisallowedClass_classTypeAlias_String', () {
         final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_mixinOfDisallowedClass_String);
+        runJUnitTest(__test, __test.test_mixinOfDisallowedClass_classTypeAlias_String);
       });
-      _ut.test('test_mixinOfDisallowedClass_bool', () {
+      _ut.test('test_mixinOfDisallowedClass_classTypeAlias_String_num', () {
         final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_mixinOfDisallowedClass_bool);
+        runJUnitTest(__test, __test.test_mixinOfDisallowedClass_classTypeAlias_String_num);
       });
-      _ut.test('test_mixinOfDisallowedClass_double', () {
+      _ut.test('test_mixinOfDisallowedClass_classTypeAlias_bool', () {
         final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_mixinOfDisallowedClass_double);
+        runJUnitTest(__test, __test.test_mixinOfDisallowedClass_classTypeAlias_bool);
       });
-      _ut.test('test_mixinOfDisallowedClass_int', () {
+      _ut.test('test_mixinOfDisallowedClass_classTypeAlias_double', () {
         final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_mixinOfDisallowedClass_int);
+        runJUnitTest(__test, __test.test_mixinOfDisallowedClass_classTypeAlias_double);
       });
-      _ut.test('test_mixinOfDisallowedClass_num', () {
+      _ut.test('test_mixinOfDisallowedClass_classTypeAlias_int', () {
         final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_mixinOfDisallowedClass_num);
+        runJUnitTest(__test, __test.test_mixinOfDisallowedClass_classTypeAlias_int);
+      });
+      _ut.test('test_mixinOfDisallowedClass_classTypeAlias_num', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_mixinOfDisallowedClass_classTypeAlias_num);
+      });
+      _ut.test('test_mixinOfDisallowedClass_class_Null', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_mixinOfDisallowedClass_class_Null);
+      });
+      _ut.test('test_mixinOfDisallowedClass_class_String', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_mixinOfDisallowedClass_class_String);
+      });
+      _ut.test('test_mixinOfDisallowedClass_class_bool', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_mixinOfDisallowedClass_class_bool);
+      });
+      _ut.test('test_mixinOfDisallowedClass_class_double', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_mixinOfDisallowedClass_class_double);
+      });
+      _ut.test('test_mixinOfDisallowedClass_class_int', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_mixinOfDisallowedClass_class_int);
+      });
+      _ut.test('test_mixinOfDisallowedClass_class_num', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_mixinOfDisallowedClass_class_num);
       });
       _ut.test('test_mixinOfNonClass_class', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -19889,13 +20194,18 @@ class AnalysisContextHelper {
    */
   AnalysisContextHelper() {
     context = AnalysisContextFactory.contextWithCore();
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl.con1(context.analysisOptions);
+    options.cacheSize = 256;
+    context.analysisOptions = options;
   }
 
   Source addSource(String path, String code) {
     Source source = new FileBasedSource.con1(FileUtilities2.createFile(path));
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.addedSource(source);
-    context.applyChanges(changeSet);
+    if (path.endsWith(".dart") || path.endsWith(".html")) {
+      ChangeSet changeSet = new ChangeSet();
+      changeSet.addedSource(source);
+      context.applyChanges(changeSet);
+    }
     context.setContents(source, code);
     return source;
   }
@@ -22945,6 +23255,21 @@ class NonHintCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_unusedImport_metadata() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library L;",
+        "@A(x)",
+        "import 'lib1.dart';",
+        "class A {",
+        "  final int value;",
+        "  const A(this.value);",
+        "}"]));
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "const x = 0;"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_unusedImport_prefix_topLevelFunction() {
     Source source = addSource(EngineTestCase.createSource([
         "library L;",
@@ -23184,6 +23509,10 @@ class NonHintCodeTest extends ResolverTestCase {
         final __test = new NonHintCodeTest();
         runJUnitTest(__test, __test.test_unusedImport_export_infiniteLoop);
       });
+      _ut.test('test_unusedImport_metadata', () {
+        final __test = new NonHintCodeTest();
+        runJUnitTest(__test, __test.test_unusedImport_metadata);
+      });
       _ut.test('test_unusedImport_prefix_topLevelFunction', () {
         final __test = new NonHintCodeTest();
         runJUnitTest(__test, __test.test_unusedImport_prefix_topLevelFunction);
@@ -23416,7 +23745,7 @@ class LibraryElementBuilderTest extends EngineTestCase {
    */
   LibraryElement _buildLibrary(Source librarySource, List<ErrorCode> expectedErrorCodes) {
     LibraryResolver resolver = new LibraryResolver(_context);
-    LibraryElementBuilder builder = new LibraryElementBuilder(resolver);
+    LibraryElementBuilder builder = new LibraryElementBuilder(resolver.analysisContext, resolver.errorListener);
     Library library = resolver.createLibrary(librarySource);
     LibraryElement element = builder.buildLibrary(library);
     GatheringErrorListener listener = new GatheringErrorListener();

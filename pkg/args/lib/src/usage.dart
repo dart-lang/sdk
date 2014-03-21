@@ -127,6 +127,8 @@ class Usage {
     int abbr = 0;
     int title = 0;
     args.options.forEach((name, option) {
+      if (option.hide) return;
+
       // Make room in the first column if there are abbreviations.
       abbr = max(abbr, getAbbreviation(option).length);
 

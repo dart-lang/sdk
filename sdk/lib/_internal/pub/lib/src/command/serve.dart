@@ -36,6 +36,9 @@ class ServeCommand extends PubCommand {
   /// `true` if Dart entrypoints should be compiled to JavaScript.
   bool get useDart2JS => commandOptions['dart2js'];
 
+  /// `true` if the admin server URL should be displayed on startup.
+  bool get logAdminUrl => commandOptions['log-admin-url'];
+
   /// The build mode.
   BarbackMode get mode => new BarbackMode(commandOptions['mode']);
 
@@ -44,16 +47,18 @@ class ServeCommand extends PubCommand {
   final _completer = new Completer();
 
   ServeCommand() {
+    commandParser.addOption('hostname', defaultsTo: 'localhost',
+        help: 'The hostname to listen on.');
     commandParser.addOption('port', defaultsTo: '8080',
         help: 'The base port to listen on.');
 
-    // A hidden option for the tests to work around a bug in some of the OS X
-    // bots where "localhost" very rarely resolves to the IPv4 loopback address
-    // instead of IPv6 (or vice versa). The tests will always set this to
-    // 127.0.0.1.
-    commandParser.addOption('hostname',
-                            defaultsTo: 'localhost',
-                            hide: true);
+    // TODO(rnystrom): A hidden option to print the URL that the admin server
+    // is bound to on startup. Since this is currently only used for the Web
+    // Socket interface, we don't want to show it to users, but the tests and
+    // Editor need this logged to know what port to bind to.
+    // Remove this (and always log) when #16954 is fixed.
+    commandParser.addFlag('log-admin-url', defaultsTo: false, hide: true);
+
     commandParser.addFlag('dart2js', defaultsTo: true,
         help: 'Compile Dart to JavaScript.');
     commandParser.addFlag('force-poll', defaultsTo: false,
@@ -83,12 +88,24 @@ class ServeCommand extends PubCommand {
       var directoryLength = directories.map((dir) => dir.length)
           .reduce(math.max);
 
-      // Start up the servers. We pause updates while this is happening so that
-      // we don't log spurious build results in the middle of listing out the
-      // bound servers.
-      environment.pauseUpdates();
-      return Future.forEach(directories, (directory) {
-        return _startServer(environment, directory, directoryLength);
+      return environment.startAdminServer().then((server) {
+        server.results.listen((_) {
+          // The admin server produces no result values.
+          assert(false);
+        }, onError: _fatalError);
+
+        if (logAdminUrl) {
+          log.message("Running admin server on "
+              "${log.bold('http://$hostname:${server.port}')}");
+        }
+
+        // Start up the servers. We pause updates while this is happening so
+        // that we don't log spurious build results in the middle of listing
+        // out the bound servers.
+        environment.pauseUpdates();
+        return Future.forEach(directories, (directory) {
+          return _startServer(environment, directory, directoryLength);
+        });
       }).then((_) {
         // Now that the servers are up and logged, send them to barback.
         environment.barback.errors.listen((error) {
@@ -103,11 +120,7 @@ class ServeCommand extends PubCommand {
             log.message("Build completed with "
                 "${log.red(result.errors.length)} errors.");
           }
-        }, onError: (error, [stackTrace]) {
-          if (!_completer.isCompleted) {
-            _completer.completeError(error, stackTrace);
-          }
-        });
+        }, onError: _fatalError);
 
         environment.resumeUpdates();
         return _completer.future;
@@ -147,11 +160,7 @@ class ServeCommand extends PubCommand {
         }
 
         log.message(buffer);
-
-      }, onError: (error, [stackTrace]) {
-        if (_completer.isCompleted) return;
-        _completer.completeError(error, stackTrace);
-      });
+      }, onError: _fatalError);
 
       log.message("Serving ${entrypoint.root.name} "
           "${padRight(server.rootDirectory, directoryLength)} "
@@ -201,5 +210,11 @@ class ServeCommand extends PubCommand {
     var verb = pluralize(singularVerb, directoryNames.length,
         plural: pluralVerb);
     return "$directories $names $verb";
+  }
+
+  /// Reports [error] and exits the server.
+  void _fatalError(error, [stackTrace]) {
+    if (_completer.isCompleted) return;
+    _completer.completeError(error, stackTrace);
   }
 }

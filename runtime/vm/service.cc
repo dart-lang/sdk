@@ -5,6 +5,7 @@
 #include "vm/service.h"
 
 #include "include/dart_api.h"
+#include "platform/globals.h"
 
 #include "vm/compiler.h"
 #include "vm/coverage.h"
@@ -24,6 +25,7 @@
 #include "vm/profiler.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
+#include "vm/version.h"
 
 
 namespace dart {
@@ -634,7 +636,7 @@ void Service::HandleIsolateMessage(Isolate* isolate, const Instance& msg) {
 
 
 static bool HandleIsolate(Isolate* isolate, JSONStream* js) {
-  isolate->PrintToJSONStream(js);
+  isolate->PrintToJSONStream(js, false);
   return true;
 }
 
@@ -928,10 +930,45 @@ static bool HandleClassesFields(Isolate* isolate, const Class& cls,
 }
 
 
+static bool HandleClassesTypes(Isolate* isolate, const Class& cls,
+                               JSONStream* js) {
+  if (js->num_arguments() == 3) {
+    JSONObject jsobj(js);
+    jsobj.AddProperty("type", "TypeList");
+    JSONArray members(&jsobj, "members");
+    const intptr_t num_types = cls.NumCanonicalTypes();
+    Type& type = Type::Handle();
+    for (intptr_t i = 0; i < num_types; i++) {
+      type = cls.CanonicalTypeFromIndex(i);
+      members.AddValue(type);
+    }
+    return true;
+  }
+  intptr_t id;
+  if (js->num_arguments() > 4) {
+    PrintError(js, "Command too long");
+    return true;
+  }
+  if (!GetIntegerId(js->GetArgument(3), &id)) {
+    PrintError(js, "Must specify collection object id: types/id");
+    return true;
+  }
+  Type& type = Type::Handle();
+  type ^= cls.CanonicalTypeFromIndex(id);
+  if (type.IsNull()) {
+    PrintError(js, "Canonical type %" Pd " not found", id);
+    return true;
+  }
+  type.PrintToJSONStream(js, false);
+  return true;
+}
+
+
 static bool HandleClasses(Isolate* isolate, JSONStream* js) {
   if (js->num_arguments() == 1) {
     ClassTable* table = isolate->class_table();
-    table->PrintToJSONStream(js);
+    JSONObject jsobj(js);
+    table->PrintToJSONObject(&jsobj);
     return true;
   }
   ASSERT(js->num_arguments() >= 2);
@@ -942,7 +979,7 @@ static bool HandleClasses(Isolate* isolate, JSONStream* js) {
   }
   ClassTable* table = isolate->class_table();
   if (!table->IsValidIndex(id)) {
-    PrintError(js, "%" Pd " is not a valid class id.", id);;
+    PrintError(js, "%" Pd " is not a valid class id.", id);
     return true;
   }
   Class& cls = Class::Handle(table->At(id));
@@ -963,6 +1000,8 @@ static bool HandleClasses(Isolate* isolate, JSONStream* js) {
       return HandleClassesImplicitClosures(isolate, cls, js);
     } else if (strcmp(second, "dispatchers") == 0) {
       return HandleClassesDispatchers(isolate, cls, js);
+    } else if (!strcmp(second, "types")) {
+      return HandleClassesTypes(isolate, cls, js);
     } else {
       PrintError(js, "Invalid sub collection %s", second);
       return true;
@@ -1314,15 +1353,6 @@ static bool HandleDebug(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleCpu(Isolate* isolate, JSONStream* js) {
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "CPU");
-  jsobj.AddProperty("targetCPU", CPU::Id());
-  jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
-  return true;
-}
-
-
 static bool HandleNullCode(uintptr_t pc, JSONStream* js) {
   // TODO(turnidge): Consider adding/using Object::null_code() for
   // consistent "type".
@@ -1431,21 +1461,117 @@ static bool HandleAllocationProfile(Isolate* isolate, JSONStream* js) {
 
 
 static bool HandleResume(Isolate* isolate, JSONStream* js) {
-  // TODO(johnmccutchan): What do I respond with??
   if (isolate->message_handler()->pause_on_start()) {
     isolate->message_handler()->set_pause_on_start(false);
+    JSONObject jsobj(js);
+    jsobj.AddProperty("type", "Success");
+    jsobj.AddProperty("id", "");
     return true;
   }
   if (isolate->message_handler()->pause_on_exit()) {
     isolate->message_handler()->set_pause_on_exit(false);
+    JSONObject jsobj(js);
+    jsobj.AddProperty("type", "Success");
+    jsobj.AddProperty("id", "");
     return true;
   }
+
+  PrintError(js, "VM was not paused");
+  return true;
+}
+
+
+static bool HandleTypeArguments(Isolate* isolate, JSONStream* js) {
+  ObjectStore* object_store = isolate->object_store();
+  const Array& table = Array::Handle(object_store->canonical_type_arguments());
+  ASSERT(table.Length() > 0);
+  TypeArguments& type_args = TypeArguments::Handle();
+  const intptr_t table_size = table.Length() - 1;
+  const intptr_t table_used = Smi::Value(Smi::RawCast(table.At(table_size)));
+  bool only_with_instantiations = false;
+  if (js->num_arguments() >= 2) {
+    const char* second = js->GetArgument(1);
+    if (strcmp(second, "withinstantiations") == 0) {
+      only_with_instantiations = true;
+      if (js->num_arguments() > 2) {
+        PrintError(js, "Command too long");
+        return true;
+      }
+    }
+  }
+  if ((js->num_arguments() == 1) || only_with_instantiations) {
+    JSONObject jsobj(js);
+    jsobj.AddProperty("type", "TypeArgumentsList");
+    jsobj.AddProperty("table_size", table_size);
+    jsobj.AddProperty("table_used", table_used);
+    JSONArray members(&jsobj, "members");
+    for (intptr_t i = 0; i < table_size; i++) {
+      type_args ^= table.At(i);
+      if (!type_args.IsNull()) {
+        if (!only_with_instantiations || type_args.HasInstantiations()) {
+          members.AddValue(type_args);
+        }
+      }
+    }
+    return true;
+  }
+  ASSERT((js->num_arguments() >= 2) && !only_with_instantiations);
+  intptr_t id;
+  if (!GetIntegerId(js->GetArgument(1), &id)) {
+    // Note that the table index of the canonical type arguments will change
+    // when the table grows. Should we not support this access at all?
+    PrintError(js, "Must specify collection object id: /typearguments/id");
+    return true;
+  }
+  if ((id < 0) || (id >= table_size) || (table.At(id) == Object::null())) {
+    PrintError(js, "%" Pd " is not a valid typearguments id.", id);
+    return true;
+  }
+  type_args ^= table.At(id);
+  type_args.PrintToJSONStream(js, false);
   return true;
 }
 
 
 static bool HandleHeapMap(Isolate* isolate, JSONStream* js) {
-  isolate->heap()->PrintHeapMapToJSONStream(js);
+  isolate->heap()->PrintHeapMapToJSONStream(isolate, js);
+  return true;
+}
+
+
+class ContainsAddressVisitor : public FindObjectVisitor {
+ public:
+  ContainsAddressVisitor(Isolate* isolate, uword addr)
+      : FindObjectVisitor(isolate), addr_(addr) { }
+  virtual ~ContainsAddressVisitor() { }
+
+  virtual uword filter_addr() const { return addr_; }
+
+  virtual bool FindObject(RawObject* obj) const {
+    uword obj_begin = RawObject::ToAddr(obj);
+    uword obj_end = obj_begin + obj->Size();
+    return obj_begin <= addr_ && addr_ < obj_end;
+  }
+ private:
+  uword addr_;
+};
+
+
+static bool HandleAddress(Isolate* isolate, JSONStream* js) {
+  uword addr = 0;
+  if (js->num_arguments() != 2 ||
+      !GetUnsignedIntegerId(js->GetArgument(1), &addr, 16)) {
+    static const uword kExampleAddr = static_cast<uword>(kIntptrMax / 7);
+    PrintError(js, "Must specify address: address/" Px ".", kExampleAddr);
+    return true;
+  }
+  Object& object = Object::Handle(isolate);
+  {
+    NoGCScope no_gc;
+    ContainsAddressVisitor visitor(isolate, addr);
+    object = isolate->heap()->FindObject(&visitor);
+  }
+  object.PrintToJSONStream(js, true);
   return true;
 }
 
@@ -1453,11 +1579,11 @@ static bool HandleHeapMap(Isolate* isolate, JSONStream* js) {
 static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "_echo", HandleIsolateEcho },
   { "", HandleIsolate },
+  { "address", HandleAddress },
   { "allocationprofile", HandleAllocationProfile },
   { "classes", HandleClasses },
   { "code", HandleCode },
   { "coverage", HandleCoverage },
-  { "cpu", HandleCpu },
   { "debug", HandleDebug },
   { "heapmap", HandleHeapMap },
   { "libraries", HandleLibraries },
@@ -1466,6 +1592,7 @@ static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "resume", HandleResume },
   { "scripts", HandleScripts },
   { "stacktrace", HandleStackTrace },
+  { "typearguments", HandleTypeArguments },
 };
 
 
@@ -1559,17 +1686,51 @@ static bool HandleRootEcho(JSONStream* js) {
 }
 
 
-static bool HandleCpu(JSONStream* js) {
+class ServiceIsolateVisitor : public IsolateVisitor {
+ public:
+  explicit ServiceIsolateVisitor(JSONArray* jsarr)
+      : jsarr_(jsarr) {
+  }
+
+  virtual ~ServiceIsolateVisitor() {}
+
+  void VisitIsolate(Isolate* isolate) {
+    if (isolate != Dart::vm_isolate() && !Service::IsServiceIsolate(isolate)) {
+      jsarr_->AddValue(isolate);
+    }
+  }
+
+ private:
+  JSONArray* jsarr_;
+};
+
+
+static bool HandleVM(JSONStream* js) {
   JSONObject jsobj(js);
-  jsobj.AddProperty("type", "CPU");
+  jsobj.AddProperty("type", "VM");
+  jsobj.AddProperty("id", "vm");
   jsobj.AddProperty("architecture", CPU::Id());
+  jsobj.AddProperty("version", Version::String());
+
+  int64_t start_time_micros = Dart::vm_isolate()->start_time();
+  int64_t uptime_micros = (OS::GetCurrentTimeMicros() - start_time_micros);
+  double seconds = (static_cast<double>(uptime_micros) /
+                    static_cast<double>(kMicrosecondsPerSecond));
+  jsobj.AddProperty("uptime", seconds);
+
+  // Construct the isolate list.
+  {
+    JSONArray jsarr(&jsobj, "isolates");
+    ServiceIsolateVisitor visitor(&jsarr);
+    Isolate::VisitIsolates(&visitor);
+  }
   return true;
 }
 
 
 static RootMessageHandlerEntry root_handlers[] = {
   { "_echo", HandleRootEcho },
-  { "cpu", HandleCpu },
+  { "vm", HandleVM },
 };
 
 

@@ -186,7 +186,7 @@ class PolymerDeclaration {
         // do not override explicit entries
         if (attr == '') continue;
 
-        var property = new Symbol(attr);
+        var property = smoke.nameToSymbol(attr);
         var path = new PropertyPath([property]);
         if (_publish != null && _publish.containsKey(path)) {
           continue;
@@ -350,18 +350,13 @@ class PolymerDeclaration {
   /// Fetch a list of all *Changed methods so we can observe the associated
   /// properties.
   void inferObservers() {
-    var options = const smoke.QueryOptions(includeFields: false,
-        includeProperties: false, includeMethods: true, includeInherited: true,
-        includeUpTo: HtmlElement);
-    for (var decl in smoke.query(type, options)) {
-      String name = smoke.symbolToName(decl.name);
-      if (name.endsWith(_OBSERVE_SUFFIX) && name != 'attributeChanged') {
-        // TODO(jmesserly): now that we have a better system, should we
-        // deprecate *Changed methods?
-        if (_observe == null) _observe = new HashMap();
-        name = name.substring(0, name.length - 7);
-        _observe[new PropertyPath(name)] = [decl.name];
-      }
+    for (var decl in smoke.query(type, _changedMethodQueryOptions)) {
+      // TODO(jmesserly): now that we have a better system, should we
+      // deprecate *Changed methods?
+      if (_observe == null) _observe = new HashMap();
+      var name = smoke.symbolToName(decl.name);
+      name = name.substring(0, name.length - 7);
+      _observe[new PropertyPath(name)] = [decl.name];
     }
   }
 
@@ -478,7 +473,17 @@ String _cssTextFromSheet(LinkElement sheet) {
 
 final Logger _sheetLog = new Logger('polymer.stylesheet');
 
-const _OBSERVE_SUFFIX = 'Changed';
+
+final smoke.QueryOptions _changedMethodQueryOptions = new smoke.QueryOptions(
+    includeFields: false, includeProperties: false, includeMethods: true,
+    includeInherited: true, includeUpTo: HtmlElement,
+    matches: _isObserverMethod);
+
+bool _isObserverMethod(Symbol symbol) {
+  String name = smoke.symbolToName(symbol);
+  if (name == null) return false;
+  return name.endsWith('Changed') && name != 'attributeChanged';
+}
 
 // TODO(jmesserly): is this list complete?
 final _eventTranslations = const {

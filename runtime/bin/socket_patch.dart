@@ -1345,13 +1345,13 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>> {
             try {
               write();
             } catch (e) {
+              socket.destroy();
               stop();
-              socket._consumerDone();
               done(e);
             }
           },
           onError: (error, [stackTrace]) {
-            socket._consumerDone();
+            socket.destroy();
             done(error, stackTrace);
           },
           onDone: () {

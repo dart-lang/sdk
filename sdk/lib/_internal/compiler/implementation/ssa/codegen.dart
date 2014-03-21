@@ -657,20 +657,37 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
          inputIndex < inputs.length;
          statementIndex++) {
       HBasicBlock successor = successors[inputIndex - 1];
-      do {
-        visit(inputs[inputIndex]);
-        currentContainer = new js.Block.empty();
-        cases.add(new js.Case(pop(), currentContainer));
-        inputIndex++;
-      } while ((successors[inputIndex - 1] == successor)
-               && (inputIndex < inputs.length));
+      // If liveness analysis has figured out that this case is dead,
+      // omit the code for it.
+      if (successor.isLive) {
+        do {
+          visit(inputs[inputIndex]);
+          currentContainer = new js.Block.empty();
+          cases.add(new js.Case(pop(), currentContainer));
+          inputIndex++;
+        } while ((successors[inputIndex - 1] == successor)
+                 && (inputIndex < inputs.length));
 
-      generateStatements(info.statements[statementIndex]);
+        generateStatements(info.statements[statementIndex]);
+      } else {
+        // Skip all the case statements that belong to this
+        // block.
+        while ((successors[inputIndex - 1] == successor)
+              && (inputIndex < inputs.length)) {
+          ++inputIndex;
+        }
+      }
     }
 
-    currentContainer = new js.Block.empty();
-    cases.add(new js.Default(currentContainer));
-    generateStatements(info.statements.last);
+    // If the default case is dead, we omit it. Likewise, if it is an
+    // empty block, we omit it, too.
+    if (info.statements.last.start.isLive) {
+      currentContainer = new js.Block.empty();
+      generateStatements(info.statements.last);
+      if (currentContainer.statements.isNotEmpty) {
+        cases.add(new js.Default(currentContainer));
+      }
+    }
 
     currentContainer = oldContainer;
 

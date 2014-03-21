@@ -281,33 +281,37 @@ class NsmEmitter extends CodeEmitterHelper {
            '    nameNumber = 0,'
            '    diffEncodedString = shortNames[0],'
            '    calculatedShortNames = [0, 1]'),  // 0, 1 are args for splice.
-        js.if_('objectClassObject instanceof Array',
-               js('objectClassObject = objectClassObject[1]')),
-        js.for_('var i = 0', 'i < diffEncodedString.length', 'i++', [
-          js('var codes = [],'
-             '    diff = 0,'
-             '    digit = diffEncodedString.charCodeAt(i)'),
-          js.if_('digit == ${$PERIOD}', [
-            js('nameNumber = 0'),
-            js('digit = diffEncodedString.charCodeAt(++i)')
-          ]),
-          js.while_('digit <= ${$Z}', [
+        // If we are loading a deferred library the object class will not be in
+        // the collectedClasses so objectClassObject is undefined, and we skip
+        // setting up the names.
+        js.if_('objectClassObject', [
+          js.if_('objectClassObject instanceof Array',
+                 js('objectClassObject = objectClassObject[1]')),
+          js.for_('var i = 0', 'i < diffEncodedString.length', 'i++', [
+            js('var codes = [],'
+               '    diff = 0,'
+               '    digit = diffEncodedString.charCodeAt(i)'),
+            js.if_('digit == ${$PERIOD}', [
+              js('nameNumber = 0'),
+              js('digit = diffEncodedString.charCodeAt(++i)')
+            ]),
+            js.while_('digit <= ${$Z}', [
+              js('diff *= 26'),
+              js('diff += (digit - ${$A})'),
+              js('digit = diffEncodedString.charCodeAt(++i)')
+            ]),
             js('diff *= 26'),
-            js('diff += (digit - ${$A})'),
-            js('digit = diffEncodedString.charCodeAt(++i)')
+            js('diff += (digit - ${$a})'),
+            js('nameNumber += diff'),
+            js.for_('var remaining = nameNumber',
+                    'remaining > 0',
+                    'remaining = (remaining / 88) | 0', [
+              js('codes.unshift(${$HASH} + remaining % 88)')
+            ]),
+            js('calculatedShortNames.push('
+               '    String.fromCharCode.apply(String, codes))')
           ]),
-          js('diff *= 26'),
-          js('diff += (digit - ${$a})'),
-          js('nameNumber += diff'),
-          js.for_('var remaining = nameNumber',
-                  'remaining > 0',
-                  'remaining = (remaining / 88) | 0', [
-            js('codes.unshift(${$HASH} + remaining % 88)')
-          ]),
-          js('calculatedShortNames.push('
-             '    String.fromCharCode.apply(String, codes))')
-        ]),
-        js('shortNames.splice.apply(shortNames, calculatedShortNames)')
+          js('shortNames.splice.apply(shortNames, calculatedShortNames)')])
       ]);
     } else {
       // No useDiffEncoding version.
@@ -341,23 +345,28 @@ class NsmEmitter extends CodeEmitterHelper {
       params.add('sliceOffset');
     }
     statements.addAll([
-      js.for_('var j = 0', 'j < shortNames.length', 'j++', [
-        js('var type = 0'),
-        js('var short = shortNames[j]'),
-        js.if_('short[0] == "${namer.getterPrefix[0]}"', js('type = 1')),
-        js.if_('short[0] == "${namer.setterPrefix[0]}"', js('type = 2')),
-        // Generate call to:
-        // createInvocationMirror(String name, internalName, type, arguments,
-        //                        argumentNames)
-        js('$whatToPatch[short] = #(${minify ? "shortNames" : "longNames"}[j], '
-                                    'short, type$sliceOffset)',
-           js.fun(params, [js.return_(js.fun([],
-               [js.return_(js(
-                   'this.$noSuchMethodName('
-                       'this, '
-                       '$createInvocationMirror('
-                           'name, short, type, '
-                           '$slice(arguments$sliceOffsetParam), []))'))]))]))
+      // If we are loading a deferred library the object class will not be in
+      // the collectedClasses so objectClassObject is undefined, and we skip
+      // setting up the names.
+      js.if_('objectClassObject', [
+        js.for_('var j = 0', 'j < shortNames.length', 'j++', [
+          js('var type = 0'),
+          js('var short = shortNames[j]'),
+          js.if_('short[0] == "${namer.getterPrefix[0]}"', js('type = 1')),
+          js.if_('short[0] == "${namer.setterPrefix[0]}"', js('type = 2')),
+          // Generate call to:
+          // createInvocationMirror(String name, internalName, type, arguments,
+          //                        argumentNames)
+          js('$whatToPatch[short] = #(${minify ? "shortNames" : "longNames"}[j], '
+                                      'short, type$sliceOffset)',
+             js.fun(params, [js.return_(js.fun([],
+                 [js.return_(js(
+                     'this.$noSuchMethodName('
+                         'this, '
+                         '$createInvocationMirror('
+                             'name, short, type, '
+                             '$slice(arguments$sliceOffsetParam), []))'))]))]))
+        ])
       ])
     ]);
   }

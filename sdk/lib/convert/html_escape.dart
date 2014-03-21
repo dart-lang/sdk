@@ -72,9 +72,7 @@ class HtmlEscape extends Converter<String, String> {
     return result != null ? result.toString() : null;
   }
 
-  StringConversionSink startChunkedConversion(
-    ChunkedConversionSink<String> sink) {
-
+  StringConversionSink startChunkedConversion(Sink<String> sink) {
     if (sink is! StringConversionSink) {
       sink = new StringConversionSink.from(sink);
     }

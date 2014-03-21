@@ -9,7 +9,7 @@ import 'dart:async';
 import 'package:watcher/watcher.dart';
 
 import 'build_environment.dart';
-import 'server.dart';
+import 'barback_server.dart';
 
 /// A directory in the entrypoint package whose contents have been made
 /// available to barback and that are bound to a server.

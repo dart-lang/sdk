@@ -201,7 +201,7 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
     type_arguments =
         type_arguments.InstantiateAndCanonicalizeFrom(instantiator, NULL);
   }
-  ASSERT(type_arguments.IsInstantiated());
+  ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   arguments.SetReturn(type_arguments);
 }
 

@@ -1040,6 +1040,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
  private:
   friend class FlowGraphPrinter;
   friend class Definition;  // Needed for InsertBefore, InsertAfter.
+  friend class CallSiteInliner;
 
   // Classes that set or read deopt_id_.
   friend class UnboxIntegerInstr;

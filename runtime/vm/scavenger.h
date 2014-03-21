@@ -40,6 +40,8 @@ class Scavenger {
     return to_->Contains(addr);
   }
 
+  RawObject* FindObject(FindObjectVisitor* visitor) const;
+
   uword TryAllocate(intptr_t size) {
     ASSERT(Utils::IsAligned(size, kObjectAlignment));
 #if defined(DEBUG)

@@ -51,8 +51,7 @@ class _WindowsCodePageEncoder extends Converter<String, List<int>> {
   /**
    * Starts a chunked conversion.
    */
-  StringConversionSink startChunkedConversion(
-      ChunkedConversionSink<List<int>> sink) {
+  StringConversionSink startChunkedConversion(Sink<List<int>> sink) {
     return new _WindowsCodePageEncoderSink(sink);
   }
 
@@ -66,7 +65,7 @@ class _WindowsCodePageEncoderSink extends StringConversionSinkBase {
   // TODO(floitsch): provide more efficient conversions when the input is
   // not a String.
 
-  final ChunkedConversionSink<List<int>> _sink;
+  final Sink<List<int>> _sink;
 
   _WindowsCodePageEncoderSink(this._sink);
 
@@ -103,8 +102,7 @@ class _WindowsCodePageDecoder extends Converter<List<int>, String> {
   /**
    * Starts a chunked conversion.
    */
-  ByteConversionSink startChunkedConversion(
-      ChunkedConversionSink<String> sink) {
+  ByteConversionSink startChunkedConversion(Sink<String> sink) {
     return new _WindowsCodePageDecoderSink(sink);
   }
 
@@ -118,7 +116,7 @@ class _WindowsCodePageDecoderSink extends ByteConversionSinkBase {
   // TODO(floitsch): provide more efficient conversions when the input is
   // a slice.
 
-  final ChunkedConversionSink<String> _sink;
+  final Sink<String> _sink;
 
   _WindowsCodePageDecoderSink(this._sink);
 

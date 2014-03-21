@@ -92,6 +92,8 @@ REUSABLE_HANDLE_LIST(REUSABLE_SCOPE)
   ReusableFieldHandleScope reused_field_handle(isolate);
 #define REUSABLE_CLASS_HANDLESCOPE(isolate)                                    \
   ReusableClassHandleScope reused_class_handle(isolate);
+#define REUSABLE_ABSTRACT_TYPE_HANDLESCOPE(isolate)                            \
+  ReusableAbstractTypeHandleScope reused_abstract_type(isolate);
 #define REUSABLE_TYPE_PARAMETER_HANDLESCOPE(isolate)                           \
   ReusableTypeParameterHandleScope reused_type_parameter(isolate);
 #define REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(isolate)                           \

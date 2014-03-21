@@ -11,7 +11,7 @@
         <img src="img/isolate_icon.png" class="img-polaroid">
       </div>
 
-      <div class="col-md-1">{{ isolate.vmName }}</div>
+      <div class="col-md-1">{{ isolate.mainPort }}</div>
 
       <!-- TODO(turnidge): Use function-ref when it can take isolate param -->
       <div class="col-md-4">
@@ -31,27 +31,27 @@
 
       <div class="col-md-2">
         <div class="row">
-          <div class="col-md-3">{{ isolate.timers['total'] | formatTime }}</div>
+          <div class="col-md-5">{{ isolate.timers['total'] | formatTimePrecise }}</div>
           <div class="col-md-1"></div>
           <div class="col-md-3"><p class="text-muted">total</p></div>
         </div>
         <div class="row">
-          <div class="col-md-3">{{ isolate.timers['dart'] | formatTime }}</div>
+          <div class="col-md-5">{{ isolate.timers['dart'] | formatTimePrecise }}</div>
           <div class="col-md-1"></div>
           <div class="col-md-3"><p class="text-muted">dart</p></div>
         </div>
         <div class="row">
-          <div class="col-md-3">{{ isolate.timers['compile'] | formatTime }}</div>
+          <div class="col-md-5">{{ isolate.timers['compile'] | formatTimePrecise }}</div>
           <div class="col-md-1"></div>
           <div class="col-md-3"><p class="text-muted">compile</p></div>
         </div>
         <div class="row">
-          <div class="col-md-3">{{ isolate.timers['gc'] | formatTime }}</div>
+          <div class="col-md-5">{{ isolate.timers['gc'] | formatTimePrecise }}</div>
           <div class="col-md-1"></div>
           <div class="col-md-3"><p class="text-muted">gc</p></div>
         </div>
         <div class="row">
-          <div class="col-md-3">{{ isolate.timers['init'] | formatTime }}</div>
+          <div class="col-md-5">{{ isolate.timers['init'] | formatTimePrecise }}</div>
           <div class="col-md-1"></div>
           <div class="col-md-3"><p class="text-muted">init</p></div>
         </div>

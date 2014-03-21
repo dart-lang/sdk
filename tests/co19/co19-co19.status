@@ -2,8 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# This file contains the tests that have been identified as broken and have been filed
-# on the co19 issue tracker.
+# This file contains the tests that have been identified as broken and
+# have been filed on the co19 issue tracker at
+#    https://code.google.com/p/co19/issues/list .
+#
 # In order to qualify here these tests need to fail both on the VM and dart2js.
 
 ### GENERAL FAILURES ###

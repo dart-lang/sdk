@@ -420,18 +420,6 @@ static type SpecialCharacter(type value) {
 }
 
 
-static void DeleteWeakPersistentHandle(Dart_Isolate current_isolate,
-                                       Dart_WeakPersistentHandle handle) {
-  Isolate* isolate = reinterpret_cast<Isolate*>(current_isolate);
-  ApiState* state = isolate->api_state();
-  ASSERT(state != NULL);
-  FinalizablePersistentHandle* weak_ref =
-      reinterpret_cast<FinalizablePersistentHandle*>(handle);
-  ASSERT(state->IsValidWeakPersistentHandle(handle));
-  state->weak_persistent_handles().FreeHandle(weak_ref);
-}
-
-
 void Object::InitOnce() {
   // TODO(iposva): NoGCScope needs to be added here.
   ASSERT(class_class() == null_);
@@ -3251,6 +3239,72 @@ void Class::set_canonical_types(const Object& value) const {
 }
 
 
+intptr_t Class::NumCanonicalTypes() const {
+  if (CanonicalType() != Type::null()) {
+    return 1;
+  }
+  const Object& types = Object::Handle(canonical_types());
+  if (types.IsNull()) {
+    return 0;
+  }
+  intptr_t num_types = Array::Cast(types).Length();
+  while ((num_types > 0) &&
+         (Array::Cast(types).At(num_types - 1) == Type::null())) {
+    num_types--;
+  }
+  return num_types;
+}
+
+
+intptr_t Class::FindCanonicalTypeIndex(const Type& needle) const {
+  Isolate* isolate = Isolate::Current();
+  if (EnsureIsFinalized(isolate) != Error::null()) {
+    return -1;
+  }
+  if (needle.raw() == CanonicalType()) {
+    return 0;
+  }
+  REUSABLE_OBJECT_HANDLESCOPE(isolate);
+  Object& types = isolate->ObjectHandle();
+  types = canonical_types();
+  if (types.IsNull()) {
+    return -1;
+  }
+  const intptr_t len = Array::Cast(types).Length();
+  REUSABLE_ABSTRACT_TYPE_HANDLESCOPE(isolate);
+  AbstractType& type = isolate->AbstractTypeHandle();
+  for (intptr_t i = 0; i < len; i++) {
+    type ^= Array::Cast(types).At(i);
+    if (needle.raw() == type.raw()) {
+      return i;
+    }
+  }
+  // No type found.
+  return -1;
+}
+
+
+RawType* Class::CanonicalTypeFromIndex(intptr_t idx) const {
+  Type& type = Type::Handle();
+  if (idx == 0) {
+    type = CanonicalType();
+    if (!type.IsNull()) {
+      return type.raw();
+    }
+  }
+  Object& types = Object::Handle(canonical_types());
+  if (types.IsNull()) {
+    return Type::null();
+  }
+  if ((idx < 0) || (idx >= Array::Cast(types).Length())) {
+    return Type::null();
+  }
+  type ^= Array::Cast(types).At(idx);
+  ASSERT(!type.IsNull());
+  return type.raw();
+}
+
+
 void Class::set_allocation_stub(const Code& value) const {
   ASSERT(!value.IsNull());
   ASSERT(raw_ptr()->allocation_stub_ == Code::null());
@@ -3613,7 +3667,7 @@ RawFunction* Class::LookupFunctionAllowPrivate(const String& name,
   Array& funcs = isolate->ArrayHandle();
   funcs ^= functions();
   ASSERT(!funcs.IsNull());
-  intptr_t len = funcs.Length();
+  const intptr_t len = funcs.Length();
   Function& function = isolate->FunctionHandle();
   String& function_name = isolate->StringHandle();
   for (intptr_t i = 0; i < len; i++) {
@@ -3859,6 +3913,14 @@ void Class::PrintToJSONStream(JSONStream* stream, bool ref) const {
       }
     }
   }
+  {
+    JSONObject typesRef(&jsobj, "canonicalTypes");
+    typesRef.AddProperty("type", "@TypeList");
+    typesRef.AddPropertyF("id", "classes/%" Pd "/types", id());
+    jsobj.AddPropertyF("name", "canonical types of %s", internal_class_name);
+    jsobj.AddPropertyF("user_name", "canonical types of %s",
+                       user_visible_class_name);
+  }
 }
 
 
@@ -3956,8 +4018,9 @@ static intptr_t FinalizeHash(uword hash) {
 
 intptr_t TypeArguments::Hash() const {
   if (IsNull()) return 0;
-  uword result = 0;
   const intptr_t num_types = Length();
+  if (IsRaw(0, num_types)) return 0;
+  intptr_t result = 0;
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
@@ -4070,12 +4133,82 @@ bool TypeArguments::TypeTest(TypeTestKind test_kind,
 
 void TypeArguments::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  if (IsNull()) {
+    jsobj.AddProperty("type", ref ? "@Null" : "Null");
+    jsobj.AddProperty("id", "objects/null");
+    return;
+  }
+  // The index in the canonical_type_arguments table cannot be used as part of
+  // the object id (as in typearguments/id), because the indices are not
+  // preserved when the table grows and the entries get rehashed. Use the ring.
+  Isolate* isolate = Isolate::Current();
+  ObjectStore* object_store = isolate->object_store();
+  const Array& table = Array::Handle(object_store->canonical_type_arguments());
+  ASSERT(table.Length() > 0);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddProperty("type", JSONType(ref));
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  const char* name = String::Handle(Name()).ToCString();
+  const char* user_name = String::Handle(UserVisibleName()).ToCString();
+  jsobj.AddProperty("name", name);
+  jsobj.AddProperty("user_name", user_name);
+  jsobj.AddProperty("length", Length());
+  jsobj.AddProperty("num_instantiations", NumInstantiations());
+  if (ref) {
+    return;
+  }
+  {
+    JSONArray jsarr(&jsobj, "types");
+    AbstractType& type_arg = AbstractType::Handle();
+    for (intptr_t i = 0; i < Length(); i++) {
+      type_arg = TypeAt(i);
+      jsarr.AddValue(type_arg);
+    }
+  }
+  if (!IsInstantiated()) {
+    JSONArray jsarr(&jsobj, "instantiations");
+    Array& prior_instantiations = Array::Handle(instantiations());
+    ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
+    TypeArguments& type_args = TypeArguments::Handle();
+    intptr_t i = 0;
+    while (true) {
+      if (prior_instantiations.At(i) == Smi::New(StubCode::kNoInstantiator)) {
+        break;
+      }
+      JSONObject instantiation(&jsarr);
+      type_args ^= prior_instantiations.At(i);
+      instantiation.AddProperty("instantiator", type_args, true);
+      type_args ^= prior_instantiations.At(i + 1);
+      instantiation.AddProperty("instantiated", type_args, true);
+      i += 2;
+    }
+  }
+}
+
+
+bool TypeArguments::HasInstantiations() const {
+  const Array& prior_instantiations = Array::Handle(instantiations());
+  ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
+  return prior_instantiations.Length() > 1;
+}
+
+
+intptr_t TypeArguments::NumInstantiations() const {
+  const Array& prior_instantiations = Array::Handle(instantiations());
+  ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
+  intptr_t i = 0;
+  while (prior_instantiations.At(i) != Smi::New(StubCode::kNoInstantiator)) {
+    i += 2;
+  }
+  return i/2;
 }
 
 
 RawArray* TypeArguments::instantiations() const {
   return raw_ptr()->instantiations_;
 }
+
 
 void TypeArguments::set_instantiations(const Array& value) const {
   ASSERT(!value.IsNull());
@@ -4316,7 +4449,7 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   ASSERT(!prior_instantiations.IsNull() && prior_instantiations.IsArray());
   // The instantiations cache is initialized with Object::zero_array() and is
   // therefore guaranteed to contain kNoInstantiator. No length check needed.
-  ASSERT(prior_instantiations.Length() > 0);
+  ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
   intptr_t index = 0;
   while (true) {
     if (prior_instantiations.At(index) == instantiator_type_arguments.raw()) {
@@ -4335,6 +4468,9 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   }
   // Instantiation did not result in bound error. Canonicalize type arguments.
   result = result.Canonicalize();
+  // InstantiateAndCanonicalizeFrom is not reentrant. It cannot have been called
+  // indirectly, so the prior_instantiations array cannot have grown.
+  ASSERT(prior_instantiations.raw() == instantiations());
   // Add instantiator and result to instantiations array.
   intptr_t length = prior_instantiations.Length();
   if ((index + 2) >= length) {
@@ -4397,8 +4533,8 @@ void TypeArguments::SetLength(intptr_t value) const {
 
 static void GrowCanonicalTypeArguments(Isolate* isolate, const Array& table) {
   // Last element of the array is the number of used elements.
-  intptr_t table_size = table.Length() - 1;
-  intptr_t new_table_size = table_size * 2;
+  const intptr_t table_size = table.Length() - 1;
+  const intptr_t new_table_size = table_size * 2;
   Array& new_table = Array::Handle(isolate, Array::New(new_table_size + 1));
   // Copy all elements from the original table to the newly allocated
   // array.
@@ -4434,8 +4570,9 @@ static void InsertIntoCanonicalTypeArguments(Isolate* isolate,
   table.SetAt(index, arguments);  // Remember the new element.
   // Update used count.
   // Last element of the array is the number of used elements.
-  intptr_t table_size = table.Length() - 1;
-  intptr_t used_elements = Smi::Value(Smi::RawCast(table.At(table_size))) + 1;
+  const intptr_t table_size = table.Length() - 1;
+  const intptr_t used_elements =
+      Smi::Value(Smi::RawCast(table.At(table_size))) + 1;
   const Smi& used = Smi::Handle(isolate, Smi::New(used_elements));
   table.SetAt(table_size, used);
 
@@ -4452,7 +4589,7 @@ static intptr_t FindIndexInCanonicalTypeArguments(
     const TypeArguments& arguments,
     intptr_t hash) {
   // Last element of the array is the number of used elements.
-  intptr_t table_size = table.Length() - 1;
+  const intptr_t table_size = table.Length() - 1;
   ASSERT(Utils::IsPowerOfTwo(table_size));
   intptr_t index = hash & (table_size - 1);
 
@@ -4491,34 +4628,53 @@ RawTypeArguments* TypeArguments::Canonicalize(
     ASSERT(IsOld());
     return this->raw();
   }
+  const intptr_t num_types = Length();
+  if (IsRaw(0, num_types)) {
+    return TypeArguments::null();
+  }
   Isolate* isolate = Isolate::Current();
   ObjectStore* object_store = isolate->object_store();
-  const Array& table = Array::Handle(isolate,
-                                     object_store->canonical_type_arguments());
-  ASSERT(table.Length() > 0);
-  intptr_t index = FindIndexInCanonicalTypeArguments(isolate,
-                                                     table,
-                                                     *this,
-                                                     Hash());
+  Array& table = Array::Handle(isolate,
+                               object_store->canonical_type_arguments());
+  // Last element of the array is the number of used elements.
+  const intptr_t used_elements =
+      Smi::Value(Smi::RawCast(table.At(table.Length() - 1)));
+  const intptr_t hash = Hash();
+  intptr_t index =
+      FindIndexInCanonicalTypeArguments(isolate, table, *this, hash);
   TypeArguments& result = TypeArguments::Handle(isolate);
   result ^= table.At(index);
   if (result.IsNull()) {
     // Canonicalize each type argument.
-    const intptr_t num_types = Length();
-    AbstractType& type = AbstractType::Handle(isolate);
+    AbstractType& type_arg = AbstractType::Handle(isolate);
     for (intptr_t i = 0; i < num_types; i++) {
-      type = TypeAt(i);
-      type = type.Canonicalize(trail);
-      SetTypeAt(i, type);
+      type_arg = TypeAt(i);
+      type_arg = type_arg.Canonicalize(trail);
+      SetTypeAt(i, type_arg);
     }
-    // Make sure we have an old space object and add it to the table.
-    if (this->IsNew()) {
-      result ^= Object::Clone(*this, Heap::kOld);
-    } else {
-      result ^= this->raw();
+    // Canonicalization of a recursive type may change its hash.
+    const intptr_t new_hash = Hash();
+    // Canonicalization of the type argument's own type arguments may add an
+    // entry to the table, or even grow the table, and thereby change the
+    // previously calculated index.
+    table = object_store->canonical_type_arguments();
+    if ((new_hash != hash) ||
+        (Smi::Value(Smi::RawCast(table.At(table.Length() - 1)))
+         != used_elements)) {
+      index =
+          FindIndexInCanonicalTypeArguments(isolate, table, *this, new_hash);
+      result ^= table.At(index);
     }
-    ASSERT(result.IsOld());
-    InsertIntoCanonicalTypeArguments(isolate, table, result, index);
+    if (result.IsNull()) {
+      // Make sure we have an old space object and add it to the table.
+      if (this->IsNew()) {
+        result ^= Object::Clone(*this, Heap::kOld);
+      } else {
+        result ^= this->raw();
+      }
+      ASSERT(result.IsOld());
+      InsertIntoCanonicalTypeArguments(isolate, table, result, index);
+    }
   }
   ASSERT(result.Equals(*this));
   ASSERT(!result.IsNull());
@@ -5334,7 +5490,8 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
 // Set 'chars' to allocated buffer and return number of written characters.
 static intptr_t ConstructFunctionFullyQualifiedCString(const Function& function,
                                                        char** chars,
-                                                       intptr_t reserve_len) {
+                                                       intptr_t reserve_len,
+                                                       bool with_lib) {
   const char* name = String::Handle(function.name()).ToCString();
   const char* function_format = (reserve_len == 0) ? "%s" : "%s_";
   reserve_len += OS::SNPrint(NULL, 0, function_format, name);
@@ -5347,10 +5504,16 @@ static intptr_t ConstructFunctionFullyQualifiedCString(const Function& function,
     ASSERT(class_name != NULL);
     const Library& library = Library::Handle(function_class.library());
     ASSERT(!library.IsNull());
-    const char* library_name = String::Handle(library.url()).ToCString();
-    ASSERT(library_name != NULL);
-    const char* lib_class_format =
-        (library_name[0] == '\0') ? "%s%s_" : "%s_%s_";
+    const char* library_name = NULL;
+    const char* lib_class_format = NULL;
+    if (with_lib) {
+      library_name = String::Handle(library.url()).ToCString();
+      ASSERT(library_name != NULL);
+      lib_class_format = (library_name[0] == '\0') ? "%s%s_" : "%s_%s_";
+    } else {
+      library_name = "";
+      lib_class_format = "%s%s.";
+    }
     reserve_len +=
         OS::SNPrint(NULL, 0, lib_class_format, library_name, class_name);
     ASSERT(chars != NULL);
@@ -5360,7 +5523,8 @@ static intptr_t ConstructFunctionFullyQualifiedCString(const Function& function,
   } else {
     written = ConstructFunctionFullyQualifiedCString(parent,
                                                      chars,
-                                                     reserve_len);
+                                                     reserve_len,
+                                                     with_lib);
   }
   ASSERT(*chars != NULL);
   char* next = *chars + written;
@@ -5377,7 +5541,14 @@ static intptr_t ConstructFunctionFullyQualifiedCString(const Function& function,
 
 const char* Function::ToFullyQualifiedCString() const {
   char* chars = NULL;
-  ConstructFunctionFullyQualifiedCString(*this, &chars, 0);
+  ConstructFunctionFullyQualifiedCString(*this, &chars, 0, true);
+  return chars;
+}
+
+
+const char* Function::ToQualifiedCString() const {
+  char* chars = NULL;
+  ConstructFunctionFullyQualifiedCString(*this, &chars, 0, false);
   return chars;
 }
 
@@ -6753,12 +6924,11 @@ void TokenStream::SetStream(const ExternalTypedData& value) const {
 }
 
 
-void TokenStream::DataFinalizer(Dart_Isolate isolate,
+void TokenStream::DataFinalizer(void* isolate_callback_data,
                                 Dart_WeakPersistentHandle handle,
                                 void *peer) {
   ASSERT(peer != NULL);
   ::free(peer);
-  DeleteWeakPersistentHandle(isolate, handle);
 }
 
 
@@ -8029,7 +8199,7 @@ void Library::GrowDictionary(const Array& dict, intptr_t dict_size) const {
     if (!entry.IsNull()) {
       entry_name = entry.DictionaryName();
       ASSERT(!entry_name.IsNull());
-      intptr_t hash = entry_name.Hash();
+      const intptr_t hash = entry_name.Hash();
       intptr_t index = hash % new_dict_size;
       new_entry = new_dict.At(index);
       while (!new_entry.IsNull()) {
@@ -12320,7 +12490,7 @@ void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
     return;
   } else {
     ObjectIdRing* ring = Isolate::Current()->object_id_ring();
-    intptr_t id = ring->GetIdForObject(raw());
+    const intptr_t id = ring->GetIdForObject(raw());
     if (IsClosure()) {
       const Function& closureFunc = Function::Handle(Closure::function(*this));
       jsobj.AddProperty("closureFunc", closureFunc);
@@ -12770,7 +12940,7 @@ const char* AbstractType::ToCString() const {
 
 
 void AbstractType::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  UNREACHABLE();
 }
 
 
@@ -13135,7 +13305,7 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
   if (canonical_types.IsNull()) {
     canonical_types = empty_array().raw();
   }
-  const intptr_t length = canonical_types.Length();
+  intptr_t length = canonical_types.Length();
   // Linear search to see whether this type is already present in the
   // list of canonicalized types.
   // TODO(asiva): Try to re-factor this lookup code to make sharing
@@ -13152,6 +13322,8 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
     }
     index++;
   }
+  // The type was not found in the table. It is not canonical yet.
+
   // Canonicalize the type arguments.
   TypeArguments& type_args = TypeArguments::Handle(isolate, arguments());
   // In case the type is first canonicalized at runtime, its type argument
@@ -13159,6 +13331,26 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
   ASSERT(type_args.IsNull() || (type_args.Length() >= cls.NumTypeArguments()));
   type_args = type_args.Canonicalize(trail);
   set_arguments(type_args);
+
+  // Canonicalizing the type arguments may have changed the index, may have
+  // grown the table, or may even have canonicalized this type.
+  canonical_types ^= cls.canonical_types();
+  if (canonical_types.IsNull()) {
+    canonical_types = empty_array().raw();
+  }
+  length = canonical_types.Length();
+  while (index < length) {
+    type ^= canonical_types.At(index);
+    if (type.IsNull()) {
+      break;
+    }
+    ASSERT(type.IsFinalized());
+    if (this->Equals(type)) {
+      return type.raw();
+    }
+    index++;
+  }
+
   // The type needs to be added to the list. Grow the list if it is full.
   if (index == length) {
     const intptr_t new_length = (length > 64) ?
@@ -13270,7 +13462,7 @@ const char* Type::ToCString() const {
     }
     if (type_arguments.IsNull()) {
       const char* format = "Type: class '%s'";
-      intptr_t len = OS::SNPrint(NULL, 0, format, class_name) + 1;
+      const intptr_t len = OS::SNPrint(NULL, 0, format, class_name) + 1;
       char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
       OS::SNPrint(chars, len, format, class_name);
       return chars;
@@ -13289,7 +13481,23 @@ const char* Type::ToCString() const {
 
 
 void Type::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  ASSERT(IsCanonical());
   JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(ref));
+  const Class& type_cls = Class::Handle(type_class());
+  intptr_t id = type_cls.FindCanonicalTypeIndex(*this);
+  ASSERT(id >= 0);
+  intptr_t cid = type_cls.id();
+  jsobj.AddPropertyF("id", "classes/%" Pd "/types/%" Pd "", cid, id);
+  const char* name = String::Handle(Name()).ToCString();
+  const char* user_name = String::Handle(UserVisibleName()).ToCString();
+  jsobj.AddProperty("name", name);
+  jsobj.AddProperty("user_name", user_name);
+  if (ref) {
+    return;
+  }
+  jsobj.AddProperty("type_class", type_cls);
+  jsobj.AddProperty("type_arguments", TypeArguments::Handle(arguments()));
 }
 
 
@@ -13416,7 +13624,7 @@ RawObject* TypeRef::OnlyBuddyInTrail(GrowableObjectArray* trail) const {
 
 
 void TypeRef::AddOnlyBuddyToTrail(GrowableObjectArray** trail,
-                              const Object& buddy) const {
+                                  const Object& buddy) const {
   if (*trail == NULL) {
     *trail = &GrowableObjectArray::ZoneHandle(GrowableObjectArray::New());
   } else {
@@ -13458,6 +13666,18 @@ const char* TypeRef::ToCString() const {
 
 void TypeRef::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddProperty("type", JSONType(ref));
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  const char* name = String::Handle(Name()).ToCString();
+  const char* user_name = String::Handle(UserVisibleName()).ToCString();
+  jsobj.AddProperty("name", name);
+  jsobj.AddProperty("user_name", user_name);
+  if (ref) {
+    return;
+  }
+  jsobj.AddProperty("ref_type", AbstractType::Handle(type()));
 }
 
 
@@ -13662,6 +13882,22 @@ const char* TypeParameter::ToCString() const {
 
 void TypeParameter::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddProperty("type", JSONType(ref));
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  const char* name = String::Handle(Name()).ToCString();
+  const char* user_name = String::Handle(UserVisibleName()).ToCString();
+  jsobj.AddProperty("name", name);
+  jsobj.AddProperty("user_name", user_name);
+  const Class& cls = Class::Handle(parameterized_class());
+  jsobj.AddProperty("parameterized_class", cls);
+  if (ref) {
+    return;
+  }
+  jsobj.AddProperty("index", index());
+  const AbstractType& upper_bound = AbstractType::Handle(bound());
+  jsobj.AddProperty("upper_bound", upper_bound);
 }
 
 
@@ -13843,6 +14079,19 @@ const char* BoundedType::ToCString() const {
 
 void BoundedType::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddProperty("type", JSONType(ref));
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  const char* name = String::Handle(Name()).ToCString();
+  const char* user_name = String::Handle(UserVisibleName()).ToCString();
+  jsobj.AddProperty("name", name);
+  jsobj.AddProperty("user_name", user_name);
+  if (ref) {
+    return;
+  }
+  jsobj.AddProperty("bounded_type", AbstractType::Handle(type()));
+  jsobj.AddProperty("upper_bound", AbstractType::Handle(bound()));
 }
 
 
@@ -13876,7 +14125,7 @@ const char* MixinAppType::ToCString() const {
 
 
 void MixinAppType::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  UNREACHABLE();
 }
 
 
@@ -16118,11 +16367,10 @@ void OneByteString::SetPeer(const String& str,
 }
 
 
-void OneByteString::Finalize(Dart_Isolate isolate,
+void OneByteString::Finalize(void* isolate_callback_data,
                              Dart_WeakPersistentHandle handle,
                              void* peer) {
   delete reinterpret_cast<ExternalStringData<uint8_t>*>(peer);
-  DeleteWeakPersistentHandle(isolate, handle);
 }
 
 
@@ -16294,11 +16542,10 @@ void TwoByteString::SetPeer(const String& str,
 }
 
 
-void TwoByteString::Finalize(Dart_Isolate isolate,
+void TwoByteString::Finalize(void* isolate_callback_data,
                              Dart_WeakPersistentHandle handle,
                              void* peer) {
   delete reinterpret_cast<ExternalStringData<uint16_t>*>(peer);
-  DeleteWeakPersistentHandle(isolate, handle);
 }
 
 
@@ -16333,11 +16580,10 @@ RawExternalOneByteString* ExternalOneByteString::New(
 }
 
 
-void ExternalOneByteString::Finalize(Dart_Isolate isolate,
+void ExternalOneByteString::Finalize(void* isolate_callback_data,
                                      Dart_WeakPersistentHandle handle,
                                      void* peer) {
   delete reinterpret_cast<ExternalStringData<uint8_t>*>(peer);
-  DeleteWeakPersistentHandle(isolate, handle);
 }
 
 
@@ -16372,11 +16618,10 @@ RawExternalTwoByteString* ExternalTwoByteString::New(
 }
 
 
-void ExternalTwoByteString::Finalize(Dart_Isolate isolate,
+void ExternalTwoByteString::Finalize(void* isolate_callback_data,
                                      Dart_WeakPersistentHandle handle,
                                      void* peer) {
   delete reinterpret_cast<ExternalStringData<uint16_t>*>(peer);
-  DeleteWeakPersistentHandle(isolate, handle);
 }
 
 
@@ -16497,7 +16742,7 @@ void Array::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   Class& cls = Class::Handle(this->clazz());
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
-  intptr_t id = ring->GetIdForObject(raw());
+  const intptr_t id = ring->GetIdForObject(raw());
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
   jsobj.AddProperty("class", cls);
@@ -16837,7 +17082,7 @@ void GrowableObjectArray::PrintToJSONStream(JSONStream* stream,
   JSONObject jsobj(stream);
   Class& cls = Class::Handle(this->clazz());
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
-  intptr_t id = ring->GetIdForObject(raw());
+  const intptr_t id = ring->GetIdForObject(raw());
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
   jsobj.AddProperty("class", cls);

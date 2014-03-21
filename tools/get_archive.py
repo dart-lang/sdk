@@ -288,6 +288,10 @@ def GetFromGsutil(name, directory, version_file, latest_pattern,
       z.close()
     if directory == SDK_DIR:
       unzipped_dir = os.path.join(temp_dir, 'dart-sdk')
+    if os.path.exists(directory):
+      raise Exception(
+          'Removal of directory %s failed. Is the executable running?' %
+          directory)
     shutil.move(unzipped_dir, directory)
   finally:
     shutil.rmtree(temp_dir)

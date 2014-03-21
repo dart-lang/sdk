@@ -19,7 +19,7 @@ abstract class ByteConversionSink extends ChunkedConversionSink<List<int>> {
   ByteConversionSink();
   factory ByteConversionSink.withCallback(void callback(List<int> accumulated))
       = _ByteCallbackSink;
-  factory ByteConversionSink.from(ChunkedConversionSink<List<int>> sink)
+  factory ByteConversionSink.from(Sink<List<int>> sink)
       = _ByteAdapterSink;
 
   /**
@@ -54,13 +54,13 @@ abstract class ByteConversionSinkBase extends ByteConversionSink {
 }
 
 /**
- * This class adapts a simple [ChunkedConversionSink] to a [ByteConversionSink].
+ * This class adapts a simple [Sink] to a [ByteConversionSink].
  *
  * All additional methods of the [ByteConversionSink] (compared to the
  * ChunkedConversionSink) are redirected to the `add` method.
  */
 class _ByteAdapterSink extends ByteConversionSinkBase {
-  final ChunkedConversionSink<List<int>> _sink;
+  final Sink<List<int>> _sink;
 
   _ByteAdapterSink(this._sink);
 

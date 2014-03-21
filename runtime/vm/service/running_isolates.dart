@@ -18,34 +18,17 @@ class RunningIsolates implements MessageRouter {
     isolates.remove(portId);
   }
 
-  void _isolateCollectionRequest(Message message) {
-    var members = [];
-    var result = {};
-    isolates.forEach((portId, runningIsolate) {
-      members.add({
-          'type': '@Isolate',
-          'id': 'isolates/$portId',
-          'name': '$portId',
-      });
-    });
-    result['type'] = 'IsolateList';
-    result['id'] = 'isolates';
-    result['members'] = members;
-    message.setResponse(JSON.encode(result));
-  }
-
   Future<String> route(Message message) {
     if (message.path.length == 0) {
       message.setErrorResponse('No path.');
       return message.response;
     }
     if (message.path[0] != 'isolates') {
-      message.setErrorResponse('Path must begin with /isolates/.');
+      message.setErrorResponse('Path must begin with /isolates/');
       return message.response;
     }
-    if (message.path.length == 1) {
-      // Requesting list of running isolates.
-      _isolateCollectionRequest(message);
+    if (message.path.length < 2) {
+      message.setErrorResponse('An isolate id must be provided');
       return message.response;
     }
     var isolateId;

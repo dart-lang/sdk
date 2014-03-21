@@ -15875,7 +15875,12 @@ class AstCloner implements AstVisitor<AstNode> {
   EmptyStatement visitEmptyStatement(EmptyStatement node) => new EmptyStatement(node.semicolon);
 
   @override
-  ExportDirective visitExportDirective(ExportDirective node) => new ExportDirective(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.keyword, _cloneNode(node.uri), _cloneNodeList(node.combinators), node.semicolon);
+  ExportDirective visitExportDirective(ExportDirective node) {
+    ExportDirective directive = new ExportDirective(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.keyword, _cloneNode(node.uri), _cloneNodeList(node.combinators), node.semicolon);
+    directive.source = node.source;
+    directive.uriContent = node.uriContent;
+    return directive;
+  }
 
   @override
   ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) => new ExpressionFunctionBody(node.functionDefinition, _cloneNode(node.expression), node.semicolon);
@@ -15935,7 +15940,12 @@ class AstCloner implements AstVisitor<AstNode> {
   ImplementsClause visitImplementsClause(ImplementsClause node) => new ImplementsClause(node.keyword, _cloneNodeList(node.interfaces));
 
   @override
-  ImportDirective visitImportDirective(ImportDirective node) => new ImportDirective(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.keyword, _cloneNode(node.uri), node.asToken, _cloneNode(node.prefix), _cloneNodeList(node.combinators), node.semicolon);
+  ImportDirective visitImportDirective(ImportDirective node) {
+    ImportDirective directive = new ImportDirective(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.keyword, _cloneNode(node.uri), node.asToken, _cloneNode(node.prefix), _cloneNodeList(node.combinators), node.semicolon);
+    directive.source = node.source;
+    directive.uriContent = node.uriContent;
+    return directive;
+  }
 
   @override
   IndexExpression visitIndexExpression(IndexExpression node) {
@@ -16005,7 +16015,12 @@ class AstCloner implements AstVisitor<AstNode> {
   ParenthesizedExpression visitParenthesizedExpression(ParenthesizedExpression node) => new ParenthesizedExpression(node.leftParenthesis, _cloneNode(node.expression), node.rightParenthesis);
 
   @override
-  PartDirective visitPartDirective(PartDirective node) => new PartDirective(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.partToken, _cloneNode(node.uri), node.semicolon);
+  PartDirective visitPartDirective(PartDirective node) {
+    PartDirective directive = new PartDirective(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.partToken, _cloneNode(node.uri), node.semicolon);
+    directive.source = node.source;
+    directive.uriContent = node.uriContent;
+    return directive;
+  }
 
   @override
   PartOfDirective visitPartOfDirective(PartOfDirective node) => new PartOfDirective(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.partToken, node.ofToken, _cloneNode(node.libraryName), node.semicolon);

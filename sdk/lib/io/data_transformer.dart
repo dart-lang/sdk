@@ -362,16 +362,13 @@ class ZLibEncoder extends Converter<List<int>, List<int>> {
 
   /**
    * Start a chunked conversion using the options given to the [ZLibEncoder]
-   * constructor. While it accepts any [ChunkedConversionSink] taking
-   * [List<int>]'s, the optimal sink to be passed as [sink] is a
-   * [ByteConversionSink].
+   * constructor. While it accepts any [Sink] taking [List<int>]'s,
+   * the optimal sink to be passed as [sink] is a [ByteConversionSink].
    */
-  ByteConversionSink startChunkedConversion(
-      ChunkedConversionSink<List<int>> sink) {
+  ByteConversionSink startChunkedConversion(Sink<List<int>> sink) {
     if (sink is! ByteConversionSink) {
       sink = new ByteConversionSink.from(sink);
     }
-
     return new _ZLibEncoderSink(sink, gzip, level, windowBits, memLevel,
                                 strategy, dictionary, raw);
   }
@@ -423,12 +420,11 @@ class ZLibDecoder extends Converter<List<int>, List<int>> {
   }
 
   /**
-   * Start a chunked conversion. While it accepts any [ChunkedConversionSink]
+   * Start a chunked conversion. While it accepts any [Sink]
    * taking [List<int>]'s, the optimal sink to be passed as [sink] is a
    * [ByteConversionSink].
    */
-  ByteConversionSink startChunkedConversion(
-      ChunkedConversionSink<List<int>> sink) {
+  ByteConversionSink startChunkedConversion(Sink<List<int>> sink) {
     if (sink is! ByteConversionSink) {
       sink = new ByteConversionSink.from(sink);
     }

@@ -219,6 +219,9 @@ main() {
 
             Usage: pub serve [directories...]
             -h, --help               Print usage information for this command.
+                --hostname           The hostname to listen on.
+                                     (defaults to "localhost")
+
                 --port               The base port to listen on.
                                      (defaults to "8080")
 

@@ -36,6 +36,7 @@ deferred_constraints_type_annotation_test/as_operation: Fail
 deferred_constraints_type_annotation_test/is_check: Fail
 deferred_constraints_type_annotation_test/catch_check: Fail
 deferred_constraints_type_annotation_test/new_before_load: Fail
+cyclic_type_test: Fail, OK # Issue 17629
 
 [ ($compiler == none || $compiler == dart2dart) && $checked ]
 # The vm and dart2dart do not support deferred loading.

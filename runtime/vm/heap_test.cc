@@ -161,4 +161,48 @@ TEST_CASE(ClassHeapStats) {
   EXPECT_EQ(0, class_stats->recent.old_count);
 }
 
+
+class FindOnly : public FindObjectVisitor {
+ public:
+  FindOnly(Isolate* isolate, RawObject* target)
+      : FindObjectVisitor(isolate), target_(target) {
+    ASSERT(isolate->no_gc_scope_depth() != 0);
+  }
+  virtual ~FindOnly() { }
+
+  virtual bool FindObject(RawObject* obj) const {
+    return obj == target_;
+  }
+ private:
+  RawObject* target_;
+};
+
+
+class FindNothing : public FindObjectVisitor {
+ public:
+  FindNothing() : FindObjectVisitor(Isolate::Current()) { }
+  virtual ~FindNothing() { }
+  virtual bool FindObject(RawObject* obj) const { return false; }
+};
+
+
+TEST_CASE(FindObject) {
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+  Heap::Space spaces[2] = {Heap::kOld, Heap::kNew};
+  for (size_t space = 0; space < ARRAY_SIZE(spaces); ++space) {
+    const String& obj = String::Handle(String::New("x", spaces[space]));
+    {
+      NoGCScope no_gc;
+      FindOnly find_only(isolate, obj.raw());
+      EXPECT(obj.raw() == heap->FindObject(&find_only));
+    }
+  }
+  {
+    NoGCScope no_gc;
+    FindNothing find_nothing;
+    EXPECT(Object::null() == heap->FindObject(&find_nothing));
+  }
+}
+
 }  // namespace dart.

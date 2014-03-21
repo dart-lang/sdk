@@ -14,19 +14,12 @@ main() {
   integration("unserveDirectory includes id in response if given", () {
     d.dir(appPath, [
       d.appPubspec(),
-      d.dir("example", [
-        d.file("index.html", "<body>")
-      ]),
       d.dir("web", [
         d.file("index.html", "<body>")
       ])
     ]).create();
 
-    // TODO(rnystrom): "example" is in here so that that's the port the web
-    // socket is bound to. That way, when we unserve "web", we don't close the
-    // web socket connection itself.
-    // Remove this when #16957 is fixed.
-    pubServe(args: ["example", "web"]);
+    pubServe(args: ["web"]);
 
     expectWebSocketCall({
       "command": "unserveDirectory",

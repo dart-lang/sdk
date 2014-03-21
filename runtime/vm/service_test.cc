@@ -744,6 +744,95 @@ TEST_CASE(Service_Classes) {
 }
 
 
+TEST_CASE(Service_Types) {
+  const char* kScript =
+      "var port;\n"  // Set to our mock port by C++.
+      "\n"
+      "class A<T> { }\n"
+      "\n"
+      "main() {\n"
+      "  new A<A<bool>>();\n"
+      "}";
+
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(h_lib);
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(h_lib);
+  EXPECT(!lib.IsNull());
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+  const Class& class_a = Class::Handle(GetClass(lib, "A"));
+  EXPECT(!class_a.IsNull());
+  intptr_t cid = class_a.id();
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port =
+      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
+
+  Instance& service_msg = Instance::Handle();
+
+  // Request the class A over the service.
+  service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "'], [], []]", cid);
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"Class\"", handler.msg());
+  ExpectSubstringF(handler.msg(),
+                   "\"id\":\"classes\\/%" Pd "\",\"name\":\"A\",", cid);
+
+  // Request canonical type 0 from class A.
+  service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'types', '0'],"
+                              "[], []]", cid);
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"Type\"", handler.msg());
+  ExpectSubstringF(handler.msg(),
+                   "\"id\":\"classes\\/%" Pd "\\/types\\/0\","
+                   "\"name\":\"A<bool>\",", cid);
+
+  // Request canonical type 1 from class A.
+  service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'types', '1'],"
+                              "[], []]", cid);
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"Type\"", handler.msg());
+  ExpectSubstringF(handler.msg(),
+                   "\"id\":\"classes\\/%" Pd "\\/types\\/1\","
+                   "\"name\":\"A<A<bool>>\",", cid);
+
+  // Request for non-existent canonical type from class A.
+  service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'types', '42'],"
+                              "[], []]", cid);
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  ExpectSubstringF(handler.msg(),
+    "{\"type\":\"Error\",\"id\":\"\","
+    "\"message\":\"Canonical type 42 not found\""
+    ",\"request\":"
+    "{\"arguments\":[\"classes\",\"%" Pd "\",\"types\",\"42\"],"
+    "\"option_keys\":[],\"option_values\":[]}}", cid);
+
+  // Request canonical type arguments. Expect <A<bool>> to be listed.
+  service_msg = EvalF(h_lib, "[port, ['typearguments'],"
+                              "[], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"TypeArgumentsList\"", handler.msg());
+  ExpectSubstringF(handler.msg(), "\"name\":\"<A<bool>>\",");
+
+  // Request canonical type arguments with instantiations.
+  service_msg = EvalF(h_lib, "[port, ['typearguments', 'withinstantiations'],"
+                              "[], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"TypeArgumentsList\"", handler.msg());
+}
+
+
 TEST_CASE(Service_Code) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.
@@ -874,7 +963,7 @@ TEST_CASE(Service_Code) {
 }
 
 
-TEST_CASE(Service_Cpu) {
+TEST_CASE(Service_VM) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.
       "\n"
@@ -894,11 +983,15 @@ TEST_CASE(Service_Cpu) {
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   Instance& service_msg = Instance::Handle();
-  service_msg = Eval(lib, "[port, ['cpu'], [], []]");
+  service_msg = Eval(lib, "[port, ['vm'], [], []]");
 
   Service::HandleRootMessage(service_msg);
   handler.HandleNextMessage();
-  EXPECT_SUBSTRING("\"type\":\"CPU\"", handler.msg());
+  EXPECT_SUBSTRING("\"type\":\"VM\",\"id\":\"vm\"", handler.msg());
+  EXPECT_SUBSTRING("\"architecture\"", handler.msg());
+  EXPECT_SUBSTRING("\"version\"", handler.msg());
+  EXPECT_SUBSTRING("\"uptime\"", handler.msg());
+  EXPECT_SUBSTRING("\"isolates\"", handler.msg());
 }
 
 
@@ -1001,8 +1094,50 @@ TEST_CASE(Service_HeapMap) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"HeapMap\"", handler.msg());
-  EXPECT_SUBSTRING("\"pages\":[[", handler.msg());
-  EXPECT_SUBSTRING("]]", handler.msg());
+  EXPECT_SUBSTRING("\"pages\":[", handler.msg());
+}
+
+
+TEST_CASE(Service_Address) {
+  const char* kScript =
+      "var port;\n"  // Set to our mock port by C++.
+      "\n"
+      "main() {\n"
+      "}";
+
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port =
+      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
+
+  const String& str = String::Handle(String::New("foobar", Heap::kOld));
+  Instance& service_msg = Instance::Handle();
+  // Note: If we ever introduce old space compaction, this test might fail.
+  uword start_addr = RawObject::ToAddr(str.raw());
+  // Expect to find 'str', also from internal addresses.
+  for (int offset = 0; offset < kObjectAlignment; ++offset) {
+    uword addr = start_addr + offset;
+    char buf[1024];
+    OS::SNPrint(buf, sizeof(buf),
+                "[port, ['address', '%" Px "'], [], []]", addr);
+    service_msg = Eval(lib, buf);
+    Service::HandleIsolateMessage(isolate, service_msg);
+    handler.HandleNextMessage();
+    EXPECT_SUBSTRING("\"type\":\"@String\"", handler.msg());
+    EXPECT_SUBSTRING("foobar", handler.msg());
+  }
+  // Expect null when no object is found.
+  service_msg = Eval(lib, "[port, ['address', '7'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"null\"", handler.msg());
 }
 
 

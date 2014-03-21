@@ -219,6 +219,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   // [noSuchMethod] if the receiver is not of a specific type.
   // Return true if the receiver type check was added.
   bool checkReceiver(HInvokeDynamic instruction) {
+    assert(instruction.isInterceptedCall);
     HInstruction receiver = instruction.inputs[1];
     if (receiver.isNumber(compiler)) return false;
     if (receiver.isNumberOrNull(compiler)) {

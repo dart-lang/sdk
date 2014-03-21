@@ -129,7 +129,7 @@ main() {
     });
 
     test('missing declaration', () {
-      recorder.lookupMember(lib.getType('A'), 'q');
+      recorder.lookupMember(lib.getType('A'), 'q', includeAccessors: false);
       checkResults(generator,
           imports: [
             "import '/common.dart' as smoke_0;",
@@ -143,7 +143,7 @@ main() {
     });
 
     test('field declaration', () {
-      recorder.lookupMember(lib.getType('A'), 'i');
+      recorder.lookupMember(lib.getType('A'), 'i', includeAccessors: false);
       checkResults(generator,
           imports: [
             "import '/common.dart' as smoke_0;",
@@ -159,7 +159,7 @@ main() {
     });
 
     test('property declaration', () {
-      recorder.lookupMember(lib.getType('A'), 'j2');
+      recorder.lookupMember(lib.getType('A'), 'j2', includeAccessors: false);
       checkResults(generator,
           imports: [
             "import '/common.dart' as smoke_0;",
@@ -174,8 +174,43 @@ main() {
             '    }));\n');
     });
 
+    test('field and property of dynamic type', () {
+      recorder.lookupMember(lib.getType('I'), 'i1', includeAccessors: false);
+      recorder.lookupMember(lib.getType('I'), 'i2', includeAccessors: false);
+      checkResults(generator,
+          imports: [
+            "import '/common.dart' as smoke_0;",
+          ],
+          initCall:
+            'useGeneratedCode(new StaticConfiguration(\n'
+            '    checkedMode: false,\n'
+            '    declarations: {\n'
+            '      smoke_0.I: {\n'
+            '        #i1: const Declaration(#i1, dynamic),\n'
+            '        #i2: const Declaration(#i2, dynamic, kind: PROPERTY),\n'
+            '      },\n'
+            '    }));\n');
+    });
+
+    test('property of concrete type', () {
+      recorder.lookupMember(lib.getType('I'), 'i3', includeAccessors: false);
+      checkResults(generator,
+          imports: [
+            "import '/common.dart' as smoke_0;",
+          ],
+          initCall:
+            'useGeneratedCode(new StaticConfiguration(\n'
+            '    checkedMode: false,\n'
+            '    declarations: {\n'
+            '      smoke_0.I: {\n'
+            '        #i3: const Declaration(#i3, smoke_0.G, kind: PROPERTY, '
+                                           'isFinal: true),\n'
+            '      },\n'
+            '    }));\n');
+    });
+
     test('method declaration', () {
-      recorder.lookupMember(lib.getType('A'), 'inc0');
+      recorder.lookupMember(lib.getType('A'), 'inc0', includeAccessors: false);
       checkResults(generator,
           imports: [
             "import '/common.dart' as smoke_0;",
@@ -191,7 +226,7 @@ main() {
     });
 
     test('inherited field - not recursive', () {
-      recorder.lookupMember(lib.getType('D'), 'i');
+      recorder.lookupMember(lib.getType('D'), 'i', includeAccessors: false);
       checkResults(generator,
           imports: [
             "import '/common.dart' as smoke_0;",
@@ -205,7 +240,8 @@ main() {
     });
 
     test('inherited field - recursive', () {
-      recorder.lookupMember(lib.getType('D'), 'i', recursive: true);
+      recorder.lookupMember(lib.getType('D'), 'i', recursive: true,
+          includeAccessors: false);
       checkResults(generator,
           imports: [
             "import '/common.dart' as smoke_0;",
@@ -231,7 +267,7 @@ main() {
     test('default query', () {
       var options = new QueryOptions();
       var lib = provider.libraryFor('/common.dart');
-      recorder.runQuery(lib.getType('A'), options);
+      recorder.runQuery(lib.getType('A'), options, includeAccessors: false);
       checkResults(generator,
           imports: [
             "import '/common.dart' as smoke_0;",
@@ -252,7 +288,7 @@ main() {
     test('only fields', () {
       var options = new QueryOptions(includeProperties: false);
       var lib = provider.libraryFor('/common.dart');
-      recorder.runQuery(lib.getType('A'), options);
+      recorder.runQuery(lib.getType('A'), options, includeAccessors: false);
       checkResults(generator,
           imports: [
             "import '/common.dart' as smoke_0;",
@@ -272,7 +308,7 @@ main() {
     test('only properties', () {
       var options = new QueryOptions(includeFields: false);
       var lib = provider.libraryFor('/common.dart');
-      recorder.runQuery(lib.getType('A'), options);
+      recorder.runQuery(lib.getType('A'), options, includeAccessors: false);
       checkResults(generator,
           imports: [
             "import '/common.dart' as smoke_0;",
@@ -291,7 +327,7 @@ main() {
     test('fields, properties, and and methods', () {
       var options = new QueryOptions(includeMethods: true);
       var lib = provider.libraryFor('/common.dart');
-      recorder.runQuery(lib.getType('A'), options);
+      recorder.runQuery(lib.getType('A'), options, includeAccessors: false);
       checkResults(generator,
           imports: [
             "import '/common.dart' as smoke_0;",
@@ -314,7 +350,7 @@ main() {
     test('exclude inherited', () {
       var options = new QueryOptions(includeInherited: false);
       var lib = provider.libraryFor('/common.dart');
-      recorder.runQuery(lib.getType('D'), options);
+      recorder.runQuery(lib.getType('D'), options, includeAccessors: false);
       checkResults(generator,
           imports: [
             "import '/common.dart' as smoke_0;",
@@ -335,7 +371,7 @@ main() {
     test('include inherited', () {
       var options = new QueryOptions(includeInherited: true);
       var lib = provider.libraryFor('/common.dart');
-      recorder.runQuery(lib.getType('D'), options);
+      recorder.runQuery(lib.getType('D'), options, includeAccessors: false);
       checkResults(generator,
           imports: [
             "import '/common.dart' as smoke_0;",
@@ -374,7 +410,7 @@ main() {
       expect(vars[0].name, 'a1');
       var options = new QueryOptions(includeInherited: true,
           withAnnotations: [vars[0]]);
-      recorder.runQuery(lib.getType('H'), options);
+      recorder.runQuery(lib.getType('H'), options, includeAccessors: false);
       final annot = 'annotations: const [smoke_0.a1]';
       checkResults(generator,
           imports: [
@@ -401,7 +437,7 @@ main() {
       var lib = provider.libraryFor('/common.dart');
       var options = new QueryOptions(includeInherited: true,
           withAnnotations: [lib.getType('Annot')]);
-      recorder.runQuery(lib.getType('H'), options);
+      recorder.runQuery(lib.getType('H'), options, includeAccessors: false);
       final a1Annot = 'annotations: const [smoke_0.a1]';
       final a3Annot = 'annotations: const [smoke_0.a3]';
       final exprAnnot = 'annotations: const [const smoke_0.Annot(1)]';
@@ -425,6 +461,96 @@ main() {
             '        #i: const Declaration(#i, int, $a3Annot),\n'
             '        #j: const Declaration(#j, int, $exprAnnot),\n'
             '      },\n'
+            '    }));\n');
+    });
+  });
+
+  group('with accessors', () {
+    test('lookup member', () {
+      var lib = provider.libraryFor('/common.dart');
+      recorder.lookupMember(lib.getType('I'), 'i1');
+      recorder.lookupMember(lib.getType('I'), 'i2');
+      recorder.lookupMember(lib.getType('I'), 'i3');
+      checkResults(generator,
+          imports: [
+            "import '/common.dart' as smoke_0;",
+          ],
+          initCall:
+            'useGeneratedCode(new StaticConfiguration(\n'
+            '    checkedMode: false,\n'
+            '    getters: {\n'
+            '      #i1: (o) => o.i1,\n'
+            '      #i2: (o) => o.i2,\n'
+            '      #i3: (o) => o.i3,\n'
+            '    },\n'
+            '    setters: {\n' // #i3 is final
+            '      #i1: (o, v) { o.i1 = v; },\n'
+            '      #i2: (o, v) { o.i2 = v; },\n'
+            '    },\n'
+            '    declarations: {\n'
+            '      smoke_0.I: {\n'
+            '        #i1: const Declaration(#i1, dynamic),\n'
+            '        #i2: const Declaration(#i2, dynamic, kind: PROPERTY),\n'
+            '        #i3: const Declaration(#i3, smoke_0.G, kind: PROPERTY, '
+                                           'isFinal: true),\n'
+            '      },\n'
+            '    },\n'
+            '    names: {\n'
+            '      #i1: \'i1\',\n'
+            '      #i2: \'i2\',\n'
+            '      #i3: \'i3\',\n'
+            '    }));\n');
+    });
+
+    test('query', () {
+      var lib = provider.libraryFor('/common.dart');
+      var options = new QueryOptions(includeInherited: true,
+          withAnnotations: [lib.getType('Annot')]);
+      recorder.runQuery(lib.getType('H'), options);
+      final a1Annot = 'annotations: const [smoke_0.a1]';
+      final a3Annot = 'annotations: const [smoke_0.a3]';
+      final exprAnnot = 'annotations: const [const smoke_0.Annot(1)]';
+      checkResults(generator,
+          imports: [
+            "import '/common.dart' as smoke_0;",
+          ],
+          initCall:
+            'useGeneratedCode(new StaticConfiguration(\n'
+            '    checkedMode: false,\n'
+            '    getters: {\n'
+            '      #b: (o) => o.b,\n'
+            '      #f: (o) => o.f,\n'
+            '      #g: (o) => o.g,\n'
+            '      #i: (o) => o.i,\n'
+            '      #j: (o) => o.j,\n'
+            '    },\n'
+            '    setters: {\n' // #i3 is final
+            '      #b: (o, v) { o.b = v; },\n'
+            '      #f: (o, v) { o.f = v; },\n'
+            '      #g: (o, v) { o.g = v; },\n'
+            '      #i: (o, v) { o.i = v; },\n'
+            '      #j: (o, v) { o.j = v; },\n'
+            '    },\n'
+            '    parents: {\n'
+            '      smoke_0.H: smoke_0.G,\n'
+            '    },\n'
+            '    declarations: {\n'
+            '      smoke_0.G: {\n'
+            '        #b: const Declaration(#b, int, $a1Annot),\n'
+            '      },\n'
+            '      smoke_0.H: {\n'
+            '        #f: const Declaration(#f, int, $a1Annot),\n'
+            '        #g: const Declaration(#g, int, $a1Annot),\n'
+            '        #i: const Declaration(#i, int, $a3Annot),\n'
+            '        #j: const Declaration(#j, int, $exprAnnot),\n'
+            '      },\n'
+            '    },\n'
+            '    names: {\n'
+            '      #b: \'b\',\n'
+            '      #f: \'f\',\n'
+            '      #g: \'g\',\n'
+            '      #i: \'i\',\n'
+            '      #j: \'j\',\n'
             '    }));\n');
     });
   });
@@ -546,6 +672,13 @@ const _SOURCES = const {
         @a2 int h;
         @a3 int i;
         @Annot(1) int j;
+      }
+
+      class I {
+        dynamic i1;
+        get i2 => null;
+        set i2(v) {}
+        G get i3;
       }
       '''
 };

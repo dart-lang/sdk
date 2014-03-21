@@ -548,7 +548,7 @@ class InterceptorConstant extends Constant {
   }
 
   String toString() {
-    return 'InterceptorConstant(${Error.safeToString(dispatchedType)})';
+    return 'InterceptorConstant(${dispatchedType.getStringAsDeclared("o")})';
   }
 }
 

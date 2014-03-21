@@ -19,7 +19,7 @@ import '../log.dart' as log;
 import '../utils.dart';
 import 'build_environment.dart';
 import 'excluding_transformer.dart';
-import 'server.dart';
+import 'barback_server.dart';
 
 /// Load and return all transformers and groups from the library identified by
 /// [id].

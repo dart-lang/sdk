@@ -5,11 +5,10 @@
 \usepackage{hyperref}
 \newcommand{\code}[1]{{\sf #1}}
 \title{Dart Programming Language  Specification \\
-{\large Version 1.2}}
-\author{The Dart Team}
+{\large Version 1.3}}
+%\author{The Dart Team}
 \begin{document}
 \maketitle
-
 \tableofcontents
 
 
@@ -18,19 +17,40 @@
 \pagestyle{myheadings}
 \markright{Dart Programming Language Specification}
 
-\section{Notes}
+% begin Ecma boilerplate
+\section{Scope}
+\label{ecmaScope}
 
-\subsection{Licensing}
-\label{licensing}
+This Ecma standard specifies the syntax and semantics of the Dart programming language.  It does not specify the APIs of the Dart libraries except where those library elements are essential to the correct functioning of the language itself (e.g., the existence of class \cd{Object} with methods such as \cd{noSuchMethod}, \cd{runtimeType}).
+
+\section{Conformance}
+\label{ecmaConformance}
+
+A conforming  implementation of the Dart programming language must provide and support all the  APIs (libraries, types, functions, getters, setters, whether top-level, static, instance or local) mandated in this specification. 
+
+A conforming implementation is permitted to provide additional APIs, but not additional syntax, except for experimental features in support of enumerated types and deferred loading which are expected to be added in the next revision of this specification.
+
+% A claim of conformance with this Ecma Standard shall specify?
+
+\section{Normative References}
+\label{ecmaNormativeReferences}
+
+The following referenced documents are indispensable for the application of this document. For dated references, only the edition cited applies. For undated references, the latest edition of the referenced document (including any amendments) applies.
+
+\begin{enumerate}
+\item
+The Unicode Standard, Version 5.0, as amended by Unicode 5.1.0, or successor.
+\item
+Dart API Reference, https://api.dartlang.org/
+\end{enumerate}
 
 
-Except as otherwise noted at https://developers.google.com/site-policies, the content of this document is licensed under the Creative Commons Attribution 3.0 License available at:
+\section{Terms and Definitions}
+\label{ecmaTermsAndDefinitions}
 
-  http://creativecommons.org/licenses/by/3.0/
-  
-  and code samples are licensed under the license available at
-  
-  https://code.google.com/p/dart/source/browse/trunk/dart/LICENSE.
+Terms and definitions used in this specification are given in the body of the specification proper. Such terms are highlighted in italics when they are introduced, e.g., `we use the term {\em verbosity} to refer to the property of excess verbiage'.
+% End Ecma Boilerplate
+
   
 \section{Notation}
 \label{notation}
@@ -860,7 +880,7 @@ Getters are functions (\ref{functions})  that are used to retrieve the values of
 
 \begin{grammar}
 {\bf getterSignature:}
-       type? \GET{} identifier 
+       returnType? \GET{} identifier 
 .
 \end{grammar}
 
@@ -880,6 +900,7 @@ It is a compile-time error if a class has both a getter and a method with the sa
 This implies that a getter can never override a method, and a method can never override a getter or field. 
 }
 
+It is a static warning if the return type of a getter is \VOID.
 It is a static warning if a getter $m_1$ overrides  (\ref{inheritanceAndOverriding}) a getter 
 $m_2$ and the type of $m_1$ is not a subtype of the type of $m_2$.   
 
@@ -1233,6 +1254,8 @@ Default values specified in $k$ would be ignored, since it is the {\em actual} p
 }
 
 It is a compile-time error if a redirecting factory constructor redirects to itself, either directly or indirectly via a sequence of redirections. %does not redirect to a non-redirecting factory constructor or to a generative constructor in a finite number of steps.
+
+% Make this a runtime error so deferred loading works
 
 \rationale{
 If a redirecting factory $F_1$ redirects to another redirecting factory $F_2$ and $F_2$ then redirects to $F_1$, then both $F_1$ and $F_2$ are ill-defined. Such cycles are therefore illegal.
@@ -3884,6 +3907,7 @@ An {\em identifier expression} consists of a single identifier; it provides acce
 {\bf BUILT\_IN\_IDENTIFIER:} \ABSTRACT{};
      \AS{};
 %     \ASSERT{};
+     \DEFERRED{};
      \DYNAMIC{};
      \EXPORT{};
      \EXTERNAL{};
@@ -5640,7 +5664,9 @@ Let $T$ be a parameterized type  $G<S_1,  \ldots, S_n>$. If $G$ is not a generic
 Otherwise, let
  $T_i$ be the type parameters of $G$ and let $B_i$ be the bound of $T_i,  i \in 1.. n$,. $T$ is {\em malbounded} iff either $S_i$ is malbounded  or $S_i$ is not a subtype of $[S_1,  \ldots, S_n/T_1, \ldots, T_n]B_i,   i \in 1.. n$. 
  
+\commentary{
 Note, that, in checked mode, it is a dynamic type error if a malbounded type is used in a type test as specified in \ref{dynamicTypeSystem}.
+}
  
 Any use of a malbounded type gives rise to a static warning.
 

@@ -178,7 +178,7 @@ class _JsonStreamDecoder extends Converter<String, Map> {
   Map convert(String text) => JSON.decode(text);
 
   @override
-  ChunkedConversionSink startChunkedConversion(ChunkedConversionSink sink) =>
+  ChunkedConversionSink startChunkedConversion(Sink sink) =>
       new _ChannelChunkSink<String, Map>(this, sink);
 }
 
@@ -191,7 +191,7 @@ class _ResponseConverter extends Converter<Map, Response> {
   Response convert(Map json) => new Response.fromJson(json);
 
   @override
-  ChunkedConversionSink startChunkedConversion(ChunkedConversionSink sink) =>
+  ChunkedConversionSink startChunkedConversion(Sink sink) =>
       new _ChannelChunkSink<Map, Response>(this, sink);
 }
 
@@ -204,27 +204,27 @@ class _NotificationConverter extends Converter<Map, Notification> {
   Notification convert(Map json) => new Notification.fromJson(json);
 
   @override
-  ChunkedConversionSink startChunkedConversion(ChunkedConversionSink sink) =>
+  ChunkedConversionSink startChunkedConversion(Sink sink) =>
       new _ChannelChunkSink<Map, Notification>(this, sink);
 }
 
 /**
- * A [_ChannelChunkSink] uses a [Convter] to translate chunks.
+ * A [_ChannelChunkSink] uses a [Converter] to translate chunks.
  */
 class _ChannelChunkSink<S, T> extends ChunkedConversionSink<S> {
   final Converter<S, T> _converter;
-  final ChunkedConversionSink _chunkedSink;
+  final Sink _sink;
 
-  _ChannelChunkSink(this._converter, this._chunkedSink);
+  _ChannelChunkSink(this._converter, this._sink);
 
   @override
   void add(S chunk) {
     var convertedChunk = _converter.convert(chunk);
     if (convertedChunk != null) {
-      _chunkedSink.add(convertedChunk);
+      _sink.add(convertedChunk);
     }
   }
 
   @override
-  void close() => _chunkedSink.close();
+  void close() => _sink.close();
 }

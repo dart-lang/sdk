@@ -180,6 +180,8 @@ class ReflectiveTypeInspectorService implements TypeInspectorService {
         isMethod = true;
       }
 
+      if (options.matches != null && !options.matches(name)) continue;
+
       var annotations =
           member.metadata.map((m) => m.reflectee).toList();
       if (options.withAnnotations != null &&
@@ -298,17 +300,20 @@ class _MirrorDeclaration implements Declaration {
   /// List of annotations in this declaration.
   List get annotations => _original.metadata.map((a) => a.reflectee).toList();
 
-  String toString() {
-    return (new StringBuffer()
-        ..write('[declaration ')
-        ..write(name)
-        ..write(isField ? ' (field) '
-            : (isProperty ? ' (property) ' : ' (method) '))
-        ..write(isFinal ? 'final ' : '')
-        ..write(isStatic ? 'static ' : '')
-        ..write(annotations)
-        ..write(']')).toString();
-  }
+  int get hashCode => name.hashCode;
+  operator ==(other) => other is Declaration && name == other.name &&
+      kind == other.kind && isFinal == other.isFinal &&
+      type == other.type && isStatic == other.isStatic &&
+      compareLists(annotations, other.annotations);
+  String toString() => (new StringBuffer()
+      ..write('(mirror-based-declaration ')
+      ..write(name)
+      ..write(isField ? ' (field) '
+          : (isProperty ? ' (property) ' : ' (method) '))
+      ..write(isFinal ? 'final ' : '')
+      ..write(isStatic ? 'static ' : '')
+      ..write(annotations)
+      ..write(')')).toString();
 }
 
 class _MethodClosure extends Function {

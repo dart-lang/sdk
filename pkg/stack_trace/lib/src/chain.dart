@@ -27,7 +27,14 @@ typedef void ChainHandler(error, Chain chain);
 /// up a new [Zone] in which the current stack chain is tracked and can be
 /// accessed using [new Chain.current]. Any errors that would be top-leveled in
 /// the zone can be handled, along with their associated chains, with the
-/// `onError` callback.
+/// `onError` callback. For example:
+///
+///     Chain.capture(() {
+///       // ...
+///     }, onError: (error, stackChain) {
+///       print("Caught error $error\n"
+///             "$stackChain");
+///     });
 ///
 /// For the most part [Chain.capture] will notice when an error is thrown and
 /// associate the correct stack chain with it; the chain can be accessed using

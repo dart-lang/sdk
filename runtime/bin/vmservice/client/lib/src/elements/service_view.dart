@@ -55,6 +55,7 @@ class ServiceObjectViewElement extends ObservatoryElement {
       case 'Array':
       case 'Bool':
       case 'Closure':
+      case 'Double':
       case 'GrowableObjectArray':
       case 'Instance':
       case 'Smi':
@@ -65,10 +66,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
       case 'Isolate':
         IsolateViewElement element = new Element.tag('isolate-view');
         element.isolate = object;
-        return element;
-      case 'IsolateList':
-        IsolateListElement element = new Element.tag('isolate-list');
-        element.isolates = object;
         return element;
       case 'Library':
         LibraryViewElement element = new Element.tag('library-view');
@@ -85,6 +82,10 @@ class ServiceObjectViewElement extends ObservatoryElement {
       case 'StackTrace':
         StackTraceElement element = new Element.tag('stack-trace');
         element.trace = object;
+        return element;
+      case 'VM':
+        VMViewElement element = new Element.tag('vm-view');
+        element.vm = object;
         return element;
       default:
         return null;

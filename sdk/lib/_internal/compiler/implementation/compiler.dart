@@ -1370,12 +1370,6 @@ abstract class Compiler implements DiagnosticListener {
                        () => resolver.resolve(element));
   }
 
-  FunctionType computeFunctionType(Element element,
-                                   FunctionSignature signature) {
-    return withCurrentElement(element,
-        () => resolver.computeFunctionType(element, signature));
-  }
-
   void reportError(Spannable node,
                    MessageKind messageKind,
                    [Map arguments = const {}]) {

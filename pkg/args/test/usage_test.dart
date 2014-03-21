@@ -177,8 +177,8 @@ void main() {
 
       validateUsage(parser,
           '''
-          --first     The first option
-          --third     The third option
+          --first    The first option
+          --third    The third option
           ''');
     });
 
@@ -191,8 +191,22 @@ void main() {
 
       validateUsage(parser,
           '''
-          --[no-]first     The first flag
-          --[no-]third     The third flag
+          --[no-]first    The first flag
+          --[no-]third    The third flag
+          ''');
+    });
+
+    test("hidden options don't affect spacing", () {
+      var parser = new ArgParser();
+      parser.addFlag('first', help: 'The first flag');
+      parser.addFlag('second-very-long-option', hide: true);
+      parser.addFlag('third', help: 'The third flag');
+
+
+      validateUsage(parser,
+          '''
+          --[no-]first    The first flag
+          --[no-]third    The third flag
           ''');
     });
   });

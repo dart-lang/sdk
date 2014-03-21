@@ -55,3 +55,163 @@ example:
     pkg/stack_trace/lib/stack_trace.dart 24:28  format
     test.dart 21:29                             main.<fn>
     dart:async                                  Timer.Timer.<fn>
+
+## Stack Chains
+
+This library also provides the ability to capture "stack chains" with the
+`Chain` class. When writing asynchronous code, a single stack trace isn't very
+useful, since the call stack is unwound every time something async happens. A
+stack chain tracks stack traces through asynchronous calls, so that you can see
+the full path from `main` down to the error.
+
+To use stack chains, just wrap the code that you want to track in
+`Chain.capture`. This will create a new [Zone][] in which stack traces are
+recorded and woven into chains every time an asynchronous call occurs. Zones are
+sticky, too, so any asynchronous operations started in the `Chain.capture`
+callback will have their chains tracked, as will asynchronous operations they
+start and so on.
+
+Here's an example of some code that doesn't capture its stack chains:
+
+```dart
+import 'dart:async';
+
+void main() {
+  scheduleAsync();
+}
+
+void scheduleAsync() {
+  return new Future.delayed(new Duration(seconds: 1))
+      .then((_) => runAsync());
+}
+
+void runAsync() {
+  throw 'oh no!';
+}
+```
+
+If we run this, it prints the following:
+
+    Uncaught Error: oh no!
+    Stack Trace: 
+    #0      runAsync (file:///usr/local/google-old/home/goog/dart/dart/test.dart:13:3)
+    #1      scheduleAsync.<anonymous closure> (file:///usr/local/google-old/home/goog/dart/dart/test.dart:9:28)
+    #2      _rootRunUnary (dart:async/zone.dart:717)
+    #3      _RootZone.runUnary (dart:async/zone.dart:854)
+    #4      _Future._propagateToListeners.handleValueCallback (dart:async/future_impl.dart:488)
+    #5      _Future._propagateToListeners (dart:async/future_impl.dart:571)
+    #6      _Future._complete (dart:async/future_impl.dart:317)
+    #7      _SyncCompleter.complete (dart:async/future_impl.dart:44)
+    #8      Future.Future.delayed.<anonymous closure> (dart:async/future.dart:219)
+    #9      _createTimer.<anonymous closure> (dart:async-patch/timer_patch.dart:11)
+    #10     _handleTimeout (dart:io/timer_impl.dart:292)
+    #11     _RawReceivePortImpl._handleMessage (dart:isolate-patch/isolate_patch.dart:115)
+
+Notice how there's no mention of `main` in that stack trace. All we know is that
+the error was in `runAsync`; we don't know why `runAsync` was called.
+
+Now let's look at the same code with stack chains captured:
+
+```dart
+import 'dart:async';
+
+import 'package:stack_trace/stack_trace.dart';
+
+void main() {
+  Chain.capture(() {
+    scheduleAsync();
+  });
+}
+
+void scheduleAsync() {
+  new Future.delayed(new Duration(seconds: 1))
+      .then((_) => runAsync());
+}
+
+void runAsync() {
+  throw 'oh no!';
+}
+```
+
+Now if we run it, it prints this:
+
+    Uncaught Error: oh no!
+    Stack Trace: 
+    test.dart 17:3                                                runAsync
+    test.dart 13:28                                               scheduleAsync.<fn>
+    package:stack_trace/src/stack_zone_specification.dart 129:26  registerUnaryCallback.<fn>.<fn>
+    package:stack_trace/src/stack_zone_specification.dart 174:15  StackZoneSpecification._run
+    package:stack_trace/src/stack_zone_specification.dart 177:7   StackZoneSpecification._run
+    package:stack_trace/src/stack_zone_specification.dart 175:7   StackZoneSpecification._run
+    package:stack_trace/src/stack_zone_specification.dart 129:18  registerUnaryCallback.<fn>
+    dart:async/zone.dart 717                                      _rootRunUnary
+    dart:async/zone.dart 449                                      _ZoneDelegate.runUnary
+    dart:async/zone.dart 654                                      _CustomizedZone.runUnary
+    dart:async/future_impl.dart 488                               _Future._propagateToListeners.handleValueCallback
+    dart:async/future_impl.dart 571                               _Future._propagateToListeners
+    dart:async/future_impl.dart 317                               _Future._complete
+    dart:async/future_impl.dart 44                                _SyncCompleter.complete
+    dart:async/future.dart 219                                    Future.Future.delayed.<fn>
+    package:stack_trace/src/stack_zone_specification.dart 174:15  StackZoneSpecification._run
+    package:stack_trace/src/stack_zone_specification.dart 119:52  registerCallback.<fn>
+    dart:async/zone.dart 706                                      _rootRun
+    dart:async/zone.dart 440                                      _ZoneDelegate.run
+    dart:async/zone.dart 650                                      _CustomizedZone.run
+    dart:async/zone.dart 561                                      _BaseZone.runGuarded
+    dart:async/zone.dart 586                                      _BaseZone.bindCallback.<fn>
+    package:stack_trace/src/stack_zone_specification.dart 174:15  StackZoneSpecification._run
+    package:stack_trace/src/stack_zone_specification.dart 119:52  registerCallback.<fn>
+    dart:async/zone.dart 710                                      _rootRun
+    dart:async/zone.dart 440                                      _ZoneDelegate.run
+    dart:async/zone.dart 650                                      _CustomizedZone.run
+    dart:async/zone.dart 561                                      _BaseZone.runGuarded
+    dart:async/zone.dart 586                                      _BaseZone.bindCallback.<fn>
+    dart:async-patch/timer_patch.dart 11                          _createTimer.<fn>
+    dart:io/timer_impl.dart 292                                   _handleTimeout
+    dart:isolate-patch/isolate_patch.dart 115                     _RawReceivePortImpl._handleMessage
+    ===== asynchronous gap ===========================
+    dart:async/zone.dart 476                   _ZoneDelegate.registerUnaryCallback
+    dart:async/zone.dart 666                   _CustomizedZone.registerUnaryCallback
+    dart:async/future_impl.dart 164            _Future._Future._then
+    dart:async/future_impl.dart 187            _Future.then
+    test.dart 13:12                            scheduleAsync
+    test.dart 7:18                             main.<fn>
+    dart:async/zone.dart 710                   _rootRun
+    dart:async/zone.dart 440                   _ZoneDelegate.run
+    dart:async/zone.dart 650                   _CustomizedZone.run
+    dart:async/zone.dart 944                   runZoned
+    package:stack_trace/src/chain.dart 93:20   Chain.capture
+    test.dart 6:16                             main
+    dart:isolate-patch/isolate_patch.dart 216  _startIsolate.isolateStartHandler
+    dart:isolate-patch/isolate_patch.dart 115  _RawReceivePortImpl._handleMessage
+
+That's a lot of text! If you look closely, though, you can see that `main` is
+listed in the first trace in the chain.
+
+Thankfully, you can call `Chain.terse` just like `Trace.terse` to get rid of all
+the frames you don't care about. The terse version of the stack chain above is
+this:
+
+    test.dart 17:3   runAsync
+    test.dart 13:28  scheduleAsync.<fn>
+    dart:isolate     _RawReceivePortImpl._handleMessage
+    ===== asynchronous gap ===========================
+    dart:async                                _Future.then
+    test.dart 13:12                           scheduleAsync
+    test.dart 7:18                            main.<fn>
+    package:stack_trace/src/chain.dart 93:20  Chain.capture
+    test.dart 6:16                            main
+    dart:isolate                              _RawReceivePortImpl._handleMessage
+
+That's a lot easier to understand!
+
+### `Chain.track`
+
+For the most part `Chain.capture` will notice when an error is thrown and
+associate the correct stack chain with it. However, there are some cases where
+exceptions won't be automatically detected: any `Future` constructor,
+`Completer.completeError`, `Stream.addError`, and libraries that use these such
+as `dart:io` and `dart:async`. For these, all you need to do is wrap the Future
+or Stream in a call to `Chain.track` and the errors will be tracked correctly.
+
+[Zone]: https://api.dartlang.org/apidocs/channels/stable/#dart-async.Zone

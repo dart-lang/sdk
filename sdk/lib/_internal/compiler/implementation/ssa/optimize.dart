@@ -16,6 +16,7 @@ class SsaOptimizerTask extends CompilerTask {
       super(backend.compiler);
   String get name => 'SSA optimizer';
   Compiler get compiler => backend.compiler;
+  Map<HInstruction, Range> ranges = <HInstruction, Range>{};
 
   void runPhases(HGraph graph, List<OptimizationPhase> phases) {
     for (OptimizationPhase phase in phases) {
@@ -66,17 +67,24 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaInstructionSimplifier(constantSystem, backend, work),
           new SsaCheckInserter(backend, work, context.boundsChecked),
           new SsaSimplifyInterceptors(compiler, constantSystem, work),
-          dce = new SsaDeadCodeEliminator(compiler)];
+          dce = new SsaDeadCodeEliminator(compiler),
+          new SsaTypePropagator(compiler)];
       runPhases(graph, phases);
-      if (!dce.eliminatedSideEffects) return;
-      phases = <OptimizationPhase>[
-          new SsaGlobalValueNumberer(compiler),
-          new SsaCodeMotion(),
-          new SsaValueRangeAnalyzer(compiler, constantSystem, work),
-          new SsaInstructionSimplifier(constantSystem, backend, work),
-          new SsaCheckInserter(backend, work, context.boundsChecked),
-          new SsaSimplifyInterceptors(compiler, constantSystem, work),
-          new SsaDeadCodeEliminator(compiler)];
+      if (dce.eliminatedSideEffects) {
+        phases = <OptimizationPhase>[
+            new SsaGlobalValueNumberer(compiler),
+            new SsaCodeMotion(),
+            new SsaValueRangeAnalyzer(compiler, constantSystem, work),
+            new SsaInstructionSimplifier(constantSystem, backend, work),
+            new SsaCheckInserter(backend, work, context.boundsChecked),
+            new SsaSimplifyInterceptors(compiler, constantSystem, work),
+            new SsaDeadCodeEliminator(compiler)];
+      } else {
+        phases = <OptimizationPhase>[
+            // Run the simplifier to remove unneeded type checks inserted
+            // by type propagation.
+            new SsaInstructionSimplifier(constantSystem, backend, work)];
+      }
       runPhases(graph, phases);
     });
   }
@@ -964,7 +972,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   }
 
   void visitGraph(HGraph graph) {
-    analyzer = new SsaLiveBlockAnalyzer(graph);
+    analyzer = new SsaLiveBlockAnalyzer(graph, compiler);
     analyzer.analyze();
     visitPostDominatorTree(graph);
     cleanPhis(graph);
@@ -992,6 +1000,14 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   void cleanPhis(HGraph graph) {
     L: for (HBasicBlock block in graph.blocks) {
       List<HBasicBlock> predecessors = block.predecessors;
+      // Zap all inputs to phis that correspond to dead blocks.
+      block.forEachPhi((HPhi phi) {
+        for (int i = 0; i < phi.inputs.length; ++i) {
+          if (!predecessors[i].isLive && phi.inputs[i] != zapInstruction) {
+            replaceInput(i, phi, zapInstruction);
+          }
+        }
+      });
       if (predecessors.length < 2) continue L;
       // Find the index of the single live predecessor if it exists.
       int indexOfLive = -1;
@@ -1014,6 +1030,12 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     }
   }
 
+  void replaceInput(int i, HInstruction from, HInstruction by) {
+    from.inputs[i].usedBy.remove(from);
+    from.inputs[i] = by;
+    by.usedBy.add(from);
+  }
+
   void removeUsers(HInstruction instruction) {
     instruction.usedBy.forEach((user) {
       removeInput(user, instruction);
@@ -1025,9 +1047,8 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     List<HInstruction> inputs = user.inputs;
     for (int i = 0, length = inputs.length; i < length; i++) {
       if (input == inputs[i]) {
-        HInstruction zap = zapInstruction;
-        inputs[i] = zap;
-        zap.usedBy.add(user);
+        user.inputs[i] = zapInstruction;
+        zapInstruction.usedBy.add(user);
       }
     }
   }
@@ -1035,9 +1056,14 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
 
 class SsaLiveBlockAnalyzer extends HBaseVisitor {
   final HGraph graph;
+  final Compiler compiler;
   final Set<HBasicBlock> live = new Set<HBasicBlock>();
   final List<HBasicBlock> worklist = <HBasicBlock>[];
-  SsaLiveBlockAnalyzer(this.graph);
+
+  SsaLiveBlockAnalyzer(this.graph, this.compiler);
+
+  JavaScriptBackend get backend => compiler.backend;
+  Map<HInstruction, Range> get ranges => backend.optimizer.ranges;
 
   bool isDeadBlock(HBasicBlock block) => !live.contains(block);
 
@@ -1071,6 +1097,38 @@ class SsaLiveBlockAnalyzer extends HBaseVisitor {
     } else {
       visitControlFlow(instruction);
     }
+  }
+
+  void visitSwitch(HSwitch node) {
+    if (node.expression.isInteger(compiler)) {
+      Range switchRange = ranges[node.expression];
+      if (switchRange != null &&
+          switchRange.lower is IntValue &&
+          switchRange.upper is IntValue) {
+        IntValue lowerValue = switchRange.lower;
+        IntValue upperValue = switchRange.upper;
+        int lower = lowerValue.value;
+        int upper = upperValue.value;
+        Set<int> liveLabels = new Set<int>();
+        for (int pos = 1; pos < node.inputs.length; pos++) {
+          HConstant input = node.inputs[pos];
+          if (!input.isConstantInteger()) continue;
+          IntConstant constant = input.constant;
+          int label = constant.value;
+          if (!liveLabels.contains(label) &&
+              label <= upper &&
+              label >= lower) {
+            markBlockLive(node.block.successors[pos - 1]);
+            liveLabels.add(label);
+          }
+        }
+        if (liveLabels.length != upper - lower + 1) {
+          markBlockLive(node.defaultTarget);
+        }
+        return;
+      }
+    }
+    visitControlFlow(node);
   }
 }
 

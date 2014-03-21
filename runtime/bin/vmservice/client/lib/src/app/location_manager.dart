@@ -8,9 +8,8 @@ part of app;
 /// URL in window.location. The text after the '#' is used as the request
 /// string for the VM service.
 class LocationManager extends Observable {
-  static const String defaultHash = '#/isolates/';
-  static final RegExp _currentIsolateMatcher = new RegExp(r'#/isolates/\d+');
-  static final RegExp _currentObjectMatcher = new RegExp(r'#/isolates/\d+(/|$)');
+  static const String defaultHash = '#/vm';
+
   ObservatoryApplication _app;
   @observable String currentHash = '';
 
@@ -30,34 +29,6 @@ class LocationManager extends Observable {
     }
   }
 
-  /// Parses the location entry and extracts the id for the object
-  /// inside the current isolate.
-  String currentIsolateObjectId() {
-    Match m = _currentObjectMatcher.matchAsPrefix(currentHash);
-    if (m == null) {
-      return null;
-    }
-    return m.input.substring(m.end);
-  }
-
-  /// Parses the location entry and extracts the id for the current isolate.
-  String currentIsolateId() {
-    Match m = _currentIsolateMatcher.matchAsPrefix(currentHash);
-    if (m == null) {
-      return '';
-    }
-    return m.input.substring(2, m.end);
-  }
-
-  /// Returns the current isolate.
-  @observable Isolate currentIsolate() {
-    var id = currentIsolateId();
-    if (id == '') {
-      return null;
-    }
-    return _app.vm.isolates.getIsolate(id);
-  }
-
   /// If no anchor is set, set the default anchor and return true.
   /// Return false otherwise.
   bool setDefaultHash() {
@@ -69,21 +40,20 @@ class LocationManager extends Observable {
     return false;
   }
 
-  void _setResponse(ServiceObject serviceObject) {
-    _app.response = serviceObject;
-  }
-
   /// Refresh the service object reference in the location entry.
   void requestCurrentHash() {
     currentHash = window.location.hash;
-    _app.isolate = currentIsolate();
-    if (_app.isolate == null) {
-      // No current isolate, refresh the isolate list.
-      _app.vm.isolates.reload().then(_setResponse);
-      return;
+    assert(currentHash.startsWith('#/'));
+
+    var parts = currentHash.substring(2).split('#');
+    var location = parts[0];
+    var args = (parts.length > 1 ? parts[1] : '');
+    if (parts.length > 2) {
+      Logger.root.warning('Found more than 2 #-characters in $currentHash');
     }
-    // Have a current isolate, request object.
-    var objectId = currentIsolateObjectId();
-    _app.isolate.get(objectId).then(_setResponse);
+    _app.vm.get(currentHash.substring(2)).then((obj) {
+        _app.response = obj;
+        _app.args = args;
+      });
   }
 }

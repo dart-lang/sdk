@@ -105,16 +105,21 @@ class ObservableMap<K, V> extends ChangeNotifier implements Map<K, V> {
   @reflectable V operator [](Object key) => _map[key];
 
   @reflectable void operator []=(K key, V value) {
+    if (!hasObservers) {
+      _map[key] = value;
+      return;
+    }
+
     int len = _map.length;
     V oldValue = _map[key];
+
     _map[key] = value;
-    if (hasObservers) {
-      if (len != _map.length) {
-        notifyPropertyChange(#length, len, _map.length);
-        notifyChange(new MapChangeRecord.insert(key, value));
-      } else if (oldValue != value) {
-        notifyChange(new MapChangeRecord(key, oldValue, value));
-      }
+
+    if (len != _map.length) {
+      notifyPropertyChange(#length, len, _map.length);
+      notifyChange(new MapChangeRecord.insert(key, value));
+    } else if (oldValue != value) {
+      notifyChange(new MapChangeRecord(key, oldValue, value));
     }
   }
 

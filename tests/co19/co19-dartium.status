@@ -39,3 +39,6 @@ LibTest/async/Timer/Timer_A01_t01: RuntimeError, Pass # Issue 16475
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid ) && $checked ]
 LibTest/core/List/removeAt_A02_t01: Fail # co19-roll r641: Please triage this failure
+
+[ $compiler == none && $runtime == ContentShellOnAndroid ]
+LibTest/math/log_A01_t01: Pass, Fail # co19 issue 44.

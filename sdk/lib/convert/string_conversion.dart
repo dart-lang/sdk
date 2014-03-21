@@ -22,7 +22,7 @@ abstract class StringConversionSink
   StringConversionSink();
   factory StringConversionSink.withCallback(void callback(String accumulated))
       = _StringCallbackSink;
-  factory StringConversionSink.from(ChunkedConversionSink<String> sink)
+  factory StringConversionSink.from(Sink<String> sink)
       = _StringAdapterSink;
 
   /**
@@ -250,7 +250,7 @@ class _StringCallbackSink extends _StringSinkConversionSink {
  * ChunkedConversionSink) are redirected to the `add` method.
  */
 class _StringAdapterSink extends StringConversionSinkBase {
-  final ChunkedConversionSink<String> _sink;
+  final Sink<String> _sink;
 
   _StringAdapterSink(this._sink);
 
@@ -274,16 +274,15 @@ class _StringAdapterSink extends StringConversionSinkBase {
  */
 class _Utf8StringSinkAdapter extends ByteConversionSink {
   final _Utf8Decoder _decoder;
-  final ChunkedConversionSink _chunkedSink;
+  final Sink _sink;
 
-  _Utf8StringSinkAdapter(ChunkedConversionSink chunkedSink,
-                         StringSink sink, bool allowMalformed)
-      : _chunkedSink = chunkedSink,
-        _decoder = new _Utf8Decoder(sink, allowMalformed);
+  _Utf8StringSinkAdapter(this._sink,
+                         StringSink stringSink, bool allowMalformed)
+      : _decoder = new _Utf8Decoder(stringSink, allowMalformed);
 
   void close() {
     _decoder.close();
-    if(_chunkedSink != null) _chunkedSink.close();
+    if(_sink != null) _sink.close();
   }
 
   void add(List<int> chunk) {

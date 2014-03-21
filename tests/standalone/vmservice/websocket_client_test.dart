@@ -17,9 +17,9 @@ class ClientsRequestTest extends ServiceWebSocketRequestHelper {
       Expect.equals('ClientList', response['type']);
       Expect.equals(1, response['members'].length);
       _count++;
-    } else if (seq == 'iso') {
-      // Verify response is correct for 'iso' sequence id.
-      Expect.equals('IsolateList', response['type']);
+    } else if (seq == 'vm') {
+      // Verify response is correct for 'vm' sequence id.
+      Expect.equals('VM', response['type']);
       _count++;
     }
     if (_count == 2) {
@@ -31,8 +31,8 @@ class ClientsRequestTest extends ServiceWebSocketRequestHelper {
   runTest() {
     // Send a request for clients with 'cli' sequence id.
     sendMessage('cli', ['clients']);
-    // Send a request for isolates with 'iso' sequence id.
-    sendMessage('iso', ['isolates']);
+    // Send a request for vm info with 'vm' sequence id.
+    sendMessage('vm', ['vm']);
   }
 }
 

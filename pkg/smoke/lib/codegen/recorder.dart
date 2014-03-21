@@ -63,28 +63,31 @@ class Recorder {
     if (!baseType.type.isObject) generator.addParent(_typeFor(type), baseId);
   }
 
-  TypeIdentifier _typeFor(ClassElement type) =>
-      new TypeIdentifier(importUrlFor(type.library), type.displayName);
+  TypeIdentifier _typeFor(Element type) => new TypeIdentifier(
+      type.library == null ? 'dart:core' : importUrlFor(type.library),
+      type.displayName);
 
   /// Adds any declaration and superclass information that is needed to answer a
-  /// query on [type] that matches [options].
-  void runQuery(ClassElement type, QueryOptions options) {
+  /// query on [type] that matches [options]. Also adds symbols, getters, and
+  /// setters if [includeAccessors] is true.
+  void runQuery(ClassElement type, QueryOptions options,
+      {bool includeAccessors: true}) {
     if (type.type.isObject) return; // We don't include Object in query results.
     var id = _typeFor(type);
     var parent = type.supertype != null ? type.supertype.element : null;
     if (options.includeInherited && parent != null &&
         parent != options.includeUpTo) {
       lookupParent(type);
-      runQuery(parent, options);
+      runQuery(parent, options, includeAccessors: includeAccessors);
       var parentId = _typeFor(parent);
       for (var m in type.mixins) {
         var mixinClass = m.element;
         var mixinId = _mixins[parentId][mixinClass];
-        _runQueryInternal(mixinClass, mixinId, options);
+        _runQueryInternal(mixinClass, mixinId, options, includeAccessors);
         parentId = mixinId;
       }
     }
-    _runQueryInternal(type, id, options);
+    _runQueryInternal(type, id, options, includeAccessors);
   }
 
   /// Helper for [runQuery]. This runs the query only on a specific [type],
@@ -93,7 +96,7 @@ class Recorder {
   // we should consider to include the mixin declaration information directly,
   // and remove the duplication we have for mixins today.
   void _runQueryInternal(ClassElement type, TypeIdentifier id,
-      QueryOptions options) {
+      QueryOptions options, bool includeAccessors) {
 
     skipBecauseOfAnnotations(Element e) {
       if (options.withAnnotations == null) return false;
@@ -105,10 +108,13 @@ class Recorder {
         if (f.isStatic) continue;
         if (f.isSynthetic) continue; // exclude getters
         if (options.excludeFinal && f.isFinal) continue;
+        var name = f.displayName;
+        if (options.matches != null && !options.matches(name)) continue;
         if (skipBecauseOfAnnotations(f)) continue;
-        generator.addDeclaration(id, f.displayName, _typeFor(f.type.element),
+        generator.addDeclaration(id, name, _typeFor(f.type.element),
             isField: true, isFinal: f.isFinal,
             annotations: _copyAnnotations(f));
+        if (includeAccessors) _addAccessors(name, !f.isFinal);
       }
     }
 
@@ -119,44 +125,54 @@ class Recorder {
         var v = a.variable;
         if (v is FieldElement && !v.isSynthetic) continue; // exclude fields
         if (options.excludeFinal && v.isFinal) continue;
-        if (skipBecauseOfAnnotations(v)) continue;
-        generator.addDeclaration(id, v.displayName, _typeFor(v.type.element),
+        var name = v.displayName;
+        if (options.matches != null && !options.matches(name)) continue;
+        if (skipBecauseOfAnnotations(a)) continue;
+        generator.addDeclaration(id, name, _typeFor(a.type.returnType.element),
             isProperty: true, isFinal: v.isFinal,
             annotations: _copyAnnotations(a));
+        if (includeAccessors) _addAccessors(name, !v.isFinal);
       }
     }
 
     if (options.includeMethods) {
       for (var m in type.methods) {
         if (m.isStatic) continue;
+        var name = m.displayName;
+        if (options.matches != null && !options.matches(name)) continue;
         if (skipBecauseOfAnnotations(m)) continue;
-        generator.addDeclaration(id, m.displayName,
+        generator.addDeclaration(id, name,
             new TypeIdentifier('dart:core', 'Function'), isMethod: true,
             annotations: _copyAnnotations(m));
+        if (includeAccessors) _addAccessors(name, false);
       }
     }
   }
 
   /// Adds the declaration of [name] if it was found in [type]. If [recursive]
   /// is true, then we continue looking up [name] in the parent classes until we
-  /// find it or we reach Object.
-  void lookupMember(ClassElement type, String name, {bool recursive: false}) {
-    _lookupMemberInternal(type, _typeFor(type), name, recursive);
-  }
+  /// find it or we reach Object. Returns whether the declaration was found.
+  /// When a declaration is found, add also a symbol, getter, and setter if
+  /// [includeAccessors] is true.
+  bool lookupMember(ClassElement type, String name, {bool recursive: false,
+      bool includeAccessors: true}) =>
+    _lookupMemberInternal(type, _typeFor(type), name, recursive,
+        includeAccessors);
 
   /// Helper for [lookupMember] that walks up the type hierarchy including mixin
   /// classes.
   bool _lookupMemberInternal(ClassElement type, TypeIdentifier id, String name,
-      bool recursive) {
+      bool recursive, bool includeAccessors) {
     // Exclude members from [Object].
     if (type.type.isObject) return false;
     generator.addEmptyDeclaration(id);
     for (var f in type.fields) {
       if (f.displayName != name) continue;
       if (f.isSynthetic) continue; // exclude getters
-      generator.addDeclaration(id, f.displayName,
+      generator.addDeclaration(id, name,
           _typeFor(f.type.element), isField: true, isFinal: f.isFinal,
           isStatic: f.isStatic, annotations: _copyAnnotations(f));
+      if (includeAccessors) _addAccessors(name, !f.isFinal);
       return true;
     }
 
@@ -167,17 +183,20 @@ class Recorder {
       if (a.displayName != name) continue;
       var v = a.variable;
       if (v is FieldElement && !v.isSynthetic) continue; // exclude fields
-      generator.addDeclaration(id, v.displayName,
-          _typeFor(v.type.element), isProperty: true, isFinal: v.isFinal,
-          isStatic: v.isStatic, annotations: _copyAnnotations(a));
+      generator.addDeclaration(id, name,
+          _typeFor(a.type.returnType.element), isProperty: true,
+          isFinal: v.isFinal, isStatic: a.isStatic,
+          annotations: _copyAnnotations(a));
+      if (includeAccessors) _addAccessors(name, !v.isFinal);
       return true;
     }
 
     for (var m in type.methods) {
       if (m.displayName != name) continue;
-      generator.addDeclaration(id, m.displayName,
+      generator.addDeclaration(id, name,
           new TypeIdentifier('dart:core', 'Function'), isMethod: true,
           isStatic: m.isStatic, annotations: _copyAnnotations(m));
+      if (includeAccessors) _addAccessors(name, false);
       return true;
     }
 
@@ -189,16 +208,25 @@ class Recorder {
       for (var m in type.mixins) {
         var mixinClass = m.element;
         var mixinId = _mixins[parentId][mixinClass];
-        if (_lookupMemberInternal(mixinClass, mixinId, name, false)) {
+        if (_lookupMemberInternal(mixinClass, mixinId, name, false,
+              includeAccessors)) {
           return true;
         }
         parentId = mixinId;
       }
-      return _lookupMemberInternal(parent, parentId, name, true);
+      return _lookupMemberInternal(parent, parentId, name, true,
+          includeAccessors);
     }
     return false;
   }
 
+
+  /// Adds [name] as a symbol, a getter, and optionally a setter in [generator].
+  _addAccessors(String name, bool includeSetter) {
+    generator.addSymbol(name);
+    generator.addGetter(name);
+    if (includeSetter) generator.addSetter(name);
+  }
 
   /// Copy metadata associated with the declaration of [target].
   List<ConstExpression> _copyAnnotations(Element target) {
@@ -338,6 +366,10 @@ class QueryOptions {
   /// included.
   final List<Element> withAnnotations;
 
+  /// If [matches] is not null, then only those fields, properties, or methods
+  /// that match will be included.
+  final NameMatcher matches;
+
   const QueryOptions({
       this.includeFields: true,
       this.includeProperties: true,
@@ -345,5 +377,9 @@ class QueryOptions {
       this.includeUpTo: null,
       this.excludeFinal: false,
       this.includeMethods: false,
-      this.withAnnotations: null});
+      this.withAnnotations: null,
+      this.matches: null});
 }
+
+/// Predicate that tells whether [name] should be included in query results.
+typedef bool NameMatcher(String name);

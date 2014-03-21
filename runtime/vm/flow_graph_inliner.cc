@@ -47,6 +47,7 @@ DEFINE_FLAG(int, inlining_hotness, 10,
     "default 10%: calls above-equal 10% of max-count are inlined.");
 DEFINE_FLAG(bool, inline_recursive, true,
     "Inline recursive calls.");
+DEFINE_FLAG(bool, print_inline_tree, false, "Print inlining tree");
 
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
@@ -161,22 +162,33 @@ class CallSites : public ValueObject {
         closure_calls_(),
         instance_calls_() { }
 
-  const GrowableArray<ClosureCallInstr*>& closure_calls() const {
-    return closure_calls_;
-  }
-
   struct InstanceCallInfo {
     PolymorphicInstanceCallInstr* call;
     double ratio;
-    explicit InstanceCallInfo(PolymorphicInstanceCallInstr* call_arg)
-        : call(call_arg), ratio(0.0) {}
+    const Function* caller;
+    InstanceCallInfo(PolymorphicInstanceCallInstr* call_arg,
+                     FlowGraph* flow_graph)
+        : call(call_arg),
+          ratio(0.0),
+          caller(&flow_graph->parsed_function().function()) {}
   };
 
   struct StaticCallInfo {
     StaticCallInstr* call;
     double ratio;
-    explicit StaticCallInfo(StaticCallInstr* value)
-        : call(value), ratio(0.0) {}
+    const Function* caller;
+    StaticCallInfo(StaticCallInstr* value, FlowGraph* flow_graph)
+        : call(value),
+          ratio(0.0),
+          caller(&flow_graph->parsed_function().function()) {}
+  };
+
+  struct ClosureCallInfo {
+    ClosureCallInstr* call;
+    const Function* caller;
+    ClosureCallInfo(ClosureCallInstr* value, FlowGraph* flow_graph)
+        : call(value),
+          caller(&flow_graph->parsed_function().function()) {}
   };
 
   const GrowableArray<InstanceCallInfo>& instance_calls() const {
@@ -185,6 +197,10 @@ class CallSites : public ValueObject {
 
   const GrowableArray<StaticCallInfo>& static_calls() const {
     return static_calls_;
+  }
+
+  const GrowableArray<ClosureCallInfo>& closure_calls() const {
+    return closure_calls_;
   }
 
   bool HasCalls() const {
@@ -261,25 +277,25 @@ class CallSites : public ValueObject {
           PolymorphicInstanceCallInstr* instance_call =
               current->AsPolymorphicInstanceCall();
           if ((instance_call != NULL) && instance_call->HasRecognizedTarget()) {
-            instance_calls_.Add(InstanceCallInfo(instance_call));
+            instance_calls_.Add(InstanceCallInfo(instance_call, graph));
           }
           continue;
         }
         // Collect all call sites (!only_recognized_methods).
         ClosureCallInstr* closure_call = current->AsClosureCall();
         if (closure_call != NULL) {
-          closure_calls_.Add(closure_call);
+          closure_calls_.Add(ClosureCallInfo(closure_call, graph));
           continue;
         }
         StaticCallInstr* static_call = current->AsStaticCall();
         if (static_call != NULL) {
-          static_calls_.Add(StaticCallInfo(static_call));
+          static_calls_.Add(StaticCallInfo(static_call, graph));
           continue;
         }
         PolymorphicInstanceCallInstr* instance_call =
             current->AsPolymorphicInstanceCall();
         if (instance_call != NULL) {
-          instance_calls_.Add(InstanceCallInfo(instance_call));
+          instance_calls_.Add(InstanceCallInfo(instance_call, graph));
           continue;
         }
       }
@@ -289,7 +305,7 @@ class CallSites : public ValueObject {
 
  private:
   GrowableArray<StaticCallInfo> static_calls_;
-  GrowableArray<ClosureCallInstr*> closure_calls_;
+  GrowableArray<ClosureCallInfo> closure_calls_;
   GrowableArray<InstanceCallInfo> instance_calls_;
 
   DISALLOW_COPY_AND_ASSIGN(CallSites);
@@ -297,18 +313,39 @@ class CallSites : public ValueObject {
 
 
 struct InlinedCallData {
-  InlinedCallData(Definition* call, GrowableArray<Value*>* arguments)
+  InlinedCallData(Definition* call,
+                  GrowableArray<Value*>* arguments,
+                  const Function& caller)
       : call(call),
         arguments(arguments),
         callee_graph(NULL),
         parameter_stubs(NULL),
-        exit_collector(NULL) { }
+        exit_collector(NULL),
+        caller_(caller) { }
 
   Definition* call;
   GrowableArray<Value*>* arguments;
   FlowGraph* callee_graph;
   ZoneGrowableArray<Definition*>* parameter_stubs;
   InlineExitCollector* exit_collector;
+  const Function& caller_;
+};
+
+
+// Structure for collecting inline data needed to print inlining tree.
+struct InlinedInfo {
+  const Function* caller;
+  const Function* inlined;
+  intptr_t inlined_depth;
+  const Definition* call_instr;
+  InlinedInfo(const Function* caller_function,
+              const Function* inlined_function,
+              const intptr_t depth,
+              const Definition* call)
+      : caller(caller_function),
+        inlined(inlined_function),
+        inlined_depth(depth),
+        call_instr(call) {}
 };
 
 
@@ -317,7 +354,8 @@ class CallSiteInliner;
 class PolymorphicInliner : public ValueObject {
  public:
   PolymorphicInliner(CallSiteInliner* owner,
-                     PolymorphicInstanceCallInstr* call);
+                     PolymorphicInstanceCallInstr* call,
+                     const Function& caller_function);
 
   void Inline();
 
@@ -325,7 +363,7 @@ class PolymorphicInliner : public ValueObject {
   bool CheckInlinedDuplicate(const Function& target);
   bool CheckNonInlinedDuplicate(const Function& target);
 
-  bool TryInlining(intptr_t receiver_cid, const Function& target);
+  bool TryInliningPoly(intptr_t receiver_cid, const Function& target);
   bool TryInlineRecognizedMethod(intptr_t receiver_cid, const Function& target);
 
   TargetEntryInstr* BuildDecisionGraph();
@@ -339,6 +377,8 @@ class PolymorphicInliner : public ValueObject {
   GrowableArray<CidTarget> non_inlined_variants_;
   GrowableArray<BlockEntryInstr*> inlined_entries_;
   InlineExitCollector* exit_collector_;
+
+  const Function& caller_function_;
 };
 
 
@@ -352,7 +392,8 @@ class CallSiteInliner : public ValueObject {
         inlining_depth_(1),
         collected_call_sites_(NULL),
         inlining_call_sites_(NULL),
-        function_cache_() { }
+        function_cache_(),
+        inlined_info_() { }
 
   FlowGraph* caller_graph() const { return caller_graph_; }
 
@@ -647,6 +688,10 @@ class CallSiteInliner : public ValueObject {
       // disconnected from its function during the rest of compilation.
       Code::ZoneHandle(unoptimized_code.raw());
       TRACE_INLINING(OS::Print("     Success\n"));
+      if (FLAG_print_inline_tree) {
+        inlined_info_.Add(
+            InlinedInfo(&call_data->caller_, &function, inlining_depth_, call));
+      }
       return true;
     } else {
       Error& error = Error::Handle();
@@ -658,8 +703,29 @@ class CallSiteInliner : public ValueObject {
     }
   }
 
+  void PrintInlinedInfo(const Function& top) {
+    OS::Print("Inlining into: %s\n", top.ToFullyQualifiedCString());
+    PrintInlinedInfoFor(top, 1);
+  }
+
  private:
   friend class PolymorphicInliner;
+
+  void PrintInlinedInfoFor(const Function& caller, intptr_t depth) {
+    for (intptr_t i = 0; i < inlined_info_.length(); i++) {
+      const InlinedInfo& info = inlined_info_[i];
+      if ((info.inlined_depth == depth) &&
+          (info.caller->raw() == caller.raw())) {
+        for (int t = 0; t < depth; t++) {
+          OS::Print("  ");
+        }
+        OS::Print("%" Pd " %s\n",
+            info.call_instr->GetDeoptId(),
+            info.inlined->ToQualifiedCString());
+        PrintInlinedInfoFor(*info.inlined, depth + 1);
+      }
+    }
+  }
 
   void InlineCall(InlinedCallData* call_data) {
     TimerScope timer(FLAG_compiler_stats,
@@ -783,7 +849,7 @@ class CallSiteInliner : public ValueObject {
       for (int i = 0; i < call->ArgumentCount(); ++i) {
         arguments.Add(call->PushArgumentAt(i)->value());
       }
-      InlinedCallData call_data(call, &arguments);
+      InlinedCallData call_data(call, &arguments, *call_info[call_idx].caller);
       if (TryInlining(call->function(), call->argument_names(), &call_data)) {
         InlineCall(&call_data);
       }
@@ -791,11 +857,12 @@ class CallSiteInliner : public ValueObject {
   }
 
   void InlineClosureCalls() {
-    const GrowableArray<ClosureCallInstr*>& calls =
+    const GrowableArray<CallSites::ClosureCallInfo>& call_info =
         inlining_call_sites_->closure_calls();
-    TRACE_INLINING(OS::Print("  Closure Calls (%" Pd ")\n", calls.length()));
-    for (intptr_t i = 0; i < calls.length(); ++i) {
-      ClosureCallInstr* call = calls[i];
+    TRACE_INLINING(OS::Print("  Closure Calls (%" Pd ")\n",
+        call_info.length()));
+    for (intptr_t call_idx = 0; call_idx < call_info.length(); ++call_idx) {
+      ClosureCallInstr* call = call_info[call_idx].call;
       // Find the closure of the callee.
       ASSERT(call->ArgumentCount() > 0);
       Function& target = Function::ZoneHandle();
@@ -813,7 +880,7 @@ class CallSiteInliner : public ValueObject {
       for (int i = 0; i < call->ArgumentCount(); ++i) {
         arguments.Add(call->PushArgumentAt(i)->value());
       }
-      InlinedCallData call_data(call, &arguments);
+      InlinedCallData call_data(call, &arguments, *call_info[call_idx].caller);
       if (TryInlining(target,
                       call->argument_names(),
                       &call_data)) {
@@ -830,7 +897,8 @@ class CallSiteInliner : public ValueObject {
     for (intptr_t call_idx = 0; call_idx < call_info.length(); ++call_idx) {
       PolymorphicInstanceCallInstr* call = call_info[call_idx].call;
       if (call->with_checks()) {
-        PolymorphicInliner inliner(this, call);
+        const Function& cl = *call_info[call_idx].caller;
+        PolymorphicInliner inliner(this, call, cl);
         inliner.Inline();
         continue;
       }
@@ -850,7 +918,7 @@ class CallSiteInliner : public ValueObject {
       for (int arg_i = 0; arg_i < call->ArgumentCount(); ++arg_i) {
         arguments.Add(call->PushArgumentAt(arg_i)->value());
       }
-      InlinedCallData call_data(call, &arguments);
+      InlinedCallData call_data(call, &arguments, *call_info[call_idx].caller);
       if (TryInlining(target,
                       call->instance_call()->argument_names(),
                       &call_data)) {
@@ -951,7 +1019,6 @@ class CallSiteInliner : public ValueObject {
     return argument_names_count == match_count;
   }
 
-
   FlowGraph* caller_graph_;
   bool inlined_;
   intptr_t initial_size_;
@@ -960,13 +1027,15 @@ class CallSiteInliner : public ValueObject {
   CallSites* collected_call_sites_;
   CallSites* inlining_call_sites_;
   GrowableArray<ParsedFunction*> function_cache_;
+  GrowableArray<InlinedInfo> inlined_info_;
 
   DISALLOW_COPY_AND_ASSIGN(CallSiteInliner);
 };
 
 
 PolymorphicInliner::PolymorphicInliner(CallSiteInliner* owner,
-                                       PolymorphicInstanceCallInstr* call)
+                                       PolymorphicInstanceCallInstr* call,
+                                       const Function& caller_function)
     : owner_(owner),
       call_(call),
       num_variants_(call->ic_data().NumberOfChecks()),
@@ -974,7 +1043,8 @@ PolymorphicInliner::PolymorphicInliner(CallSiteInliner* owner,
       inlined_variants_(num_variants_),
       non_inlined_variants_(num_variants_),
       inlined_entries_(num_variants_),
-      exit_collector_(new InlineExitCollector(owner->caller_graph(), call)) {
+      exit_collector_(new InlineExitCollector(owner->caller_graph(), call)),
+      caller_function_(caller_function) {
 }
 
 
@@ -1050,8 +1120,8 @@ bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
 }
 
 
-bool PolymorphicInliner::TryInlining(intptr_t receiver_cid,
-                                     const Function& target) {
+bool PolymorphicInliner::TryInliningPoly(intptr_t receiver_cid,
+                                        const Function& target) {
   if (!target.IsInlineable()) {
     if (TryInlineRecognizedMethod(receiver_cid, target)) {
       owner_->inlined_ = true;
@@ -1064,7 +1134,7 @@ bool PolymorphicInliner::TryInlining(intptr_t receiver_cid,
   for (int i = 0; i < call_->ArgumentCount(); ++i) {
     arguments.Add(call_->PushArgumentAt(i)->value());
   }
-  InlinedCallData call_data(call_, &arguments);
+  InlinedCallData call_data(call_, &arguments, caller_function_);
   if (!owner_->TryInlining(target,
                            call_->instance_call()->argument_names(),
                            &call_data)) {
@@ -1404,7 +1474,7 @@ void PolymorphicInliner::Inline() {
     }
 
     // Make an inlining decision.
-    if (TryInlining(receiver_cid, target)) {
+    if (TryInliningPoly(receiver_cid, target)) {
       inlined_variants_.Add(variants_[var_idx]);
     } else {
       non_inlined_variants_.Add(variants_[var_idx]);
@@ -1453,16 +1523,13 @@ void FlowGraphInliner::Inline() {
   // We might later use it for an early bailout from the inlining.
   CollectGraphInfo(flow_graph_);
 
+  const Function& top = flow_graph_->parsed_function().function();
   if ((FLAG_inlining_filter != NULL) &&
-      (strstr(flow_graph_->
-              parsed_function().function().ToFullyQualifiedCString(),
-              FLAG_inlining_filter) == NULL)) {
+      (strstr(top.ToFullyQualifiedCString(), FLAG_inlining_filter) == NULL)) {
     return;
   }
 
-  TRACE_INLINING(OS::Print(
-      "Inlining calls in %s\n",
-      flow_graph_->parsed_function().function().ToCString()));
+  TRACE_INLINING(OS::Print("Inlining calls in %s\n", top.ToCString()));
 
   if (FLAG_trace_inlining &&
       (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized)) {
@@ -1474,6 +1541,9 @@ void FlowGraphInliner::Inline() {
 
   CallSiteInliner inliner(flow_graph_);
   inliner.InlineCalls();
+  if (FLAG_print_inline_tree) {
+    inliner.PrintInlinedInfo(top);
+  }
 
   if (inliner.inlined()) {
     flow_graph_->DiscoverBlocks();

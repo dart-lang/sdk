@@ -20,6 +20,9 @@ import '../test_pub.dart';
 /// The pub process running "pub serve".
 ScheduledProcess _pubServer;
 
+/// The ephemeral port assign to the running admin server.
+int _adminPort;
+
 /// The ephemeral ports assigned to the running servers, associated with the
 /// directories they're serving.
 final _ports = new Map<String, int>();
@@ -108,8 +111,13 @@ class DartTransformer extends Transformer {
 /// Returns the `pub serve` process.
 ScheduledProcess startPubServe({Iterable<String> args,
     bool createWebDir: true}) {
-  // Use port 0 to get an ephemeral port.
-  var pubArgs = ["serve", "--port=0", "--hostname=127.0.0.1", "--force-poll"];
+  var pubArgs = [
+    "serve",
+    "--port=0", // Use port 0 to get an ephemeral port.
+    "--hostname=127.0.0.1", // Force IPv4 on bots.
+    "--force-poll",
+    "--log-admin-url"
+  ];
 
   if (args != null) pubArgs.addAll(args);
 
@@ -153,6 +161,8 @@ ScheduledProcess pubServe({bool shouldGetFirst: false, bool createWebDir: true,
   _pubServer.stdout.expect(startsWith("Loading source assets..."));
   _pubServer.stdout.expect(consumeWhile(matches("Loading .* transformers...")));
 
+  _pubServer.stdout.expect(predicate(_parseAdminPort));
+
   // The server should emit one or more ports.
   _pubServer.stdout.expect(
       consumeWhile(predicate(_parsePort, 'emits server url')));
@@ -167,6 +177,15 @@ ScheduledProcess pubServe({bool shouldGetFirst: false, bool createWebDir: true,
 /// The regular expression for parsing pub's output line describing the URL for
 /// the server.
 final _parsePortRegExp = new RegExp(r"([^ ]+) +on http://127\.0\.0\.1:(\d+)");
+
+/// Parses the port number from the "Running admin server on 127.0.0.1:1234"
+/// line printed by pub serve.
+bool _parseAdminPort(String line) {
+  var match = _parsePortRegExp.firstMatch(line);
+  if (match == null) return false;
+  _adminPort = int.parse(match[2]);
+  return true;
+}
 
 /// Parses the port number from the "Serving blah on 127.0.0.1:1234" line
 /// printed by pub serve.
@@ -266,12 +285,9 @@ Future _ensureWebSocket() {
 
   // Server should already be running.
   expect(_pubServer, isNotNull);
-  expect(_ports, isNot(isEmpty));
+  expect(_adminPort, isNotNull);
 
-  // TODO(nweiz): once we have a separate port for a web interface into the
-  // server, use that port for the websocket interface.
-  var port = _ports.values.first;
-  return WebSocket.connect("ws://127.0.0.1:$port").then((socket) {
+  return WebSocket.connect("ws://127.0.0.1:$_adminPort").then((socket) {
     _webSocket = socket;
     // TODO(rnystrom): Works around #13913.
     _webSocketBroadcastStream = _webSocket.asBroadcastStream();
