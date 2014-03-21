@@ -148,6 +148,3 @@ Language/12_Expressions/18_Assignment_A05_t02: fail # co19-roll r559: Please tri
 Language/12_Expressions/18_Assignment_A05_t04: fail # co19-roll r559: Please triage this failure
 LibTest/convert/JsonCodec/encode_A01_t02: RuntimeError # co19-roll r641: Please triage this failure
 Language/12_Expressions/32_Type_Test_A02_t04: RuntimeError # co19-roll to r667: Please triage this failure
-
-[ $compiler == dart2dart && $unminified ]
-Language/14_Libraries_and_Scripts/1_Imports_A03_t31: RuntimeError # co19-roll r667: Please triage this failure
