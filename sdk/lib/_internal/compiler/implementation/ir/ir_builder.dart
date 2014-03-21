@@ -93,7 +93,7 @@ class IrBuilderTask extends CompilerTask {
         compiler.enableConcreteTypeInference) {
       return false;
     }
-    return const bool.fromEnvironment('enable_ir', defaultValue: true);
+    return const bool.fromEnvironment('enable_ir', defaultValue: false);
   }
 
   bool canBuild(Element element) {
@@ -104,6 +104,16 @@ class IrBuilderTask extends CompilerTask {
     // TODO(lry): support functions with parameters.
     FunctionSignature signature = function.functionSignature;
     if (signature.parameterCount > 0) return false;
+
+    // TODO(kmillikin): support return types.  With the current Dart Tree
+    // emitter they require constructing an AST and tokens from a type element.
+    if (!signature.type.returnType.isDynamic) return false;
+
+    // TODO(kmillikin): support getters and setters and static class members.
+    // With the current Dart Tree emitter they just require recognizing them
+    // and generating the correct syntax.
+    if (element.isGetter() || element.isSetter()) return false;
+    if (element.enclosingElement.isClass()) return false;
 
     // TODO(lry): support native functions (also in [visitReturn]).
     if (function.isNative()) return false;
@@ -215,7 +225,7 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
   void ensureReturn(ast.FunctionExpression node) {
     if (!isOpen) return;
     ir.Constant constant = new ir.Constant(constantSystem.createNull());
-    add(new ir.LetVal(constant));
+    add(new ir.LetPrim(constant));
     add(new ir.InvokeContinuation(returnContinuation, constant));
     current = null;
   }
@@ -244,7 +254,7 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
     ir.Definition value;
     if (node.expression == null) {
       value = new ir.Constant(constantSystem.createNull());
-      add(new ir.LetVal(value));
+      add(new ir.LetPrim(value));
     } else {
       value = node.expression.accept(this);
       if (!isOpen) return null;
@@ -260,7 +270,7 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
     assert(isOpen);
     ir.Constant constant =
         new ir.Constant(constantSystem.createBool(node.value));
-    add(new ir.LetVal(constant));
+    add(new ir.LetPrim(constant));
     return constant;
   }
 
@@ -268,7 +278,7 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
     assert(isOpen);
     ir.Constant constant =
         new ir.Constant(constantSystem.createDouble(node.value));
-    add(new ir.LetVal(constant));
+    add(new ir.LetPrim(constant));
     return constant;
   }
 
@@ -276,30 +286,25 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
     assert(isOpen);
     ir.Constant constant =
         new ir.Constant(constantSystem.createInt(node.value));
-    add(new ir.LetVal(constant));
+    add(new ir.LetPrim(constant));
     return constant;
   }
 
-  ir.Definition visitLiteralString(ast.LiteralString node) {
-    assert(isOpen);
-    ir.Constant constant =
-        new ir.Constant(constantSystem.createString(node.dartString));
-    add(new ir.LetVal(constant));
-    return constant;
-  }
 
   ir.Definition visitLiteralNull(ast.LiteralNull node) {
     assert(isOpen);
     ir.Constant constant = new ir.Constant(constantSystem.createNull());
-    add(new ir.LetVal(constant));
+    add(new ir.LetPrim(constant));
     return constant;
   }
 
-//  TODO(lry): other literals.
-//  IrNode visitLiteralList(LiteralList node) => visitExpression(node);
-//  IrNode visitLiteralMap(LiteralMap node) => visitExpression(node);
-//  IrNode visitLiteralMapEntry(LiteralMapEntry node) => visitNode(node);
-//  IrNode visitLiteralSymbol(LiteralSymbol node) => visitExpression(node);
+  // TODO(kmillikin): other literals.  Strings require quoting and escaping
+  // in the Dart backend.
+  //   LiteralString
+  //   LiteralList
+  //   LiteralMap
+  //   LiteralMapEntry
+  //   LiteralSymbol
 
   ir.Definition visitAssert(ast.Send node) {
     return giveup();
@@ -341,6 +346,9 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
     Selector selector = elements.getSelector(node);
     // TODO(lry): support named arguments
     if (selector.namedArgumentCount != 0) return giveup();
+
+    // TODO(kmillikin): support a receiver: A.m().
+    if (node.receiver != null) return giveup();
 
     List arguments = [];
     // TODO(lry): support default arguments, need support for locals.

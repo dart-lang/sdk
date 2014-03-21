@@ -364,10 +364,10 @@ class Pickler extends ir.Visitor {
     node.body.accept(this);
   }
 
-  void visitLetVal(ir.LetVal node) {
-    node.value.accept(this);
+  void visitLetPrim(ir.LetPrim node) {
+    node.primitive.accept(this);
     // The right-hand side is bound in the body.
-    recordForBackReference(node.value);
+    recordForBackReference(node.primitive);
     node.body.accept(this);
   }
 

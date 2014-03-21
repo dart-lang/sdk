@@ -124,7 +124,7 @@ class Unpickler {
       case Pickles.NODE_CONSTANT:
         ir.Definition constant = readConstantNode();
         unpickled[index++] = constant;
-        addExpression(new ir.LetVal(constant));
+        addExpression(new ir.LetPrim(constant));
         break;
       case Pickles.NODE_LET_CONT:
         ir.Parameter parameter = new ir.Parameter();

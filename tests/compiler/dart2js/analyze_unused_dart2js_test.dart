@@ -10,12 +10,9 @@ import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 
 import 'analyze_helper.dart';
 
-const Map<String, List<String>> WHITE_LIST = const {
-  "ir_builder.dart":
-      const ["The method 'getIr' is never called.",
-             "The method 'hasIr' is never called.",
-            ],
-};
+// Do not remove WHITE_LIST even if it's empty.  The error message for
+// unused members refers to WHITE_LIST by name.
+const Map<String, List<String>> WHITE_LIST = const {};
 
 void main() {
   var uri = currentDirectory.resolve(

@@ -217,7 +217,20 @@ class DartBackend extends Backend {
 
     final elementAsts = new Map<Element, ElementAst>();
 
-    parse(element) => element.parseNode(compiler);
+    ElementAst parse(Element element, TreeElements treeElements) {
+      Node node;
+      if (!compiler.irBuilder.hasIr(element)) {
+        node = element.parseNode(compiler);
+      } else {
+        ir.Function function = compiler.irBuilder.getIr(element);
+        tree.Builder builder = new tree.Builder(compiler);
+        tree.Expression expr = function.accept(builder);
+        treeElements = new TreeElementMapping(element);
+        tree.Emitter emitter = new tree.Emitter();
+        node = emitter.emit(element, treeElements, expr);
+      }
+      return new ElementAst(node, treeElements);
+    }
 
     Set<Element> topLevelElements = new Set<Element>();
     Map<ClassElement, Set<Element>> classMembers =
@@ -242,14 +255,14 @@ class DartBackend extends Backend {
 
     addClass(classElement) {
       addTopLevel(classElement,
-                  new ElementAst(parse(classElement),
+                  new ElementAst(classElement.parseNode(compiler),
                                  classElement.treeElements));
       classMembers.putIfAbsent(classElement, () => new Set());
     }
 
     newTypedefElementCallback = (TypedefElement element) {
       if (!shouldOutput(element)) return;
-      addTopLevel(element, new ElementAst(parse(element),
+      addTopLevel(element, new ElementAst(element.parseNode(compiler),
                                           element.treeElements));
     };
     newClassElementCallback = (ClassElement classElement) {
@@ -263,7 +276,7 @@ class DartBackend extends Backend {
     });
     resolvedElements.forEach((element, treeElements) {
       if (!shouldOutput(element) || treeElements == null) return;
-      var elementAst = new ElementAst(parse(element), treeElements);
+      ElementAst elementAst = parse(element, treeElements);
 
       if (element.isMember()) {
         ClassElement enclosingClass = element.getEnclosingClass();
@@ -357,7 +370,9 @@ class DartBackend extends Backend {
       // TODO(antonm): Ideally XML should be a separate backend.
       // TODO(antonm): obey renames and minification, at least as an option.
       StringBuffer sb = new StringBuffer();
-      outputElement(element) { sb.write(parse(element).toDebugString()); }
+      outputElement(element) {
+        sb.write(element.parseNode(compiler).toDebugString());
+      }
 
       // Emit XML for AST instead of the program.
       for (final topLevel in sortedTopLevels) {
