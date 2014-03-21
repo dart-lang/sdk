@@ -122,6 +122,23 @@ main() {
     });
   });
 
+  test('add static method, no declaration', () {
+    var lib = provider.libraryFor('/common.dart');
+    recorder.addStaticMethod(lib.getType('A'), 'sM');
+    checkResults(generator,
+        imports: [
+          "import '/common.dart' as smoke_0;",
+        ],
+        initCall:
+          'useGeneratedCode(new StaticConfiguration(\n'
+          '    checkedMode: false,\n'
+          '    staticMethods: {\n'
+          '      smoke_0.A: {\n'
+          '        #sM: smoke_0.A.sM,\n'
+          '      },\n'
+          '    }));\n');
+  });
+
   group('lookup member', () {
     var lib;
     setUp(() {
@@ -158,6 +175,22 @@ main() {
             '    }));\n');
     });
 
+    test('sattic field declaration', () {
+      recorder.lookupMember(lib.getType('A'), 'sI', includeAccessors: false);
+      checkResults(generator,
+          imports: [
+            "import '/common.dart' as smoke_0;",
+          ],
+          initCall:
+            'useGeneratedCode(new StaticConfiguration(\n'
+            '    checkedMode: false,\n'
+            '    declarations: {\n'
+            '      smoke_0.A: {\n'
+            '        #sI: const Declaration(#sI, int, isStatic: true),\n'
+            '      },\n'
+            '    }));\n');
+    });
+
     test('property declaration', () {
       recorder.lookupMember(lib.getType('A'), 'j2', includeAccessors: false);
       checkResults(generator,
@@ -170,6 +203,23 @@ main() {
             '    declarations: {\n'
             '      smoke_0.A: {\n'
             '        #j2: const Declaration(#j2, int, kind: PROPERTY),\n'
+            '      },\n'
+            '    }));\n');
+    });
+
+    test('static property declaration', () {
+      recorder.lookupMember(lib.getType('A'), 'sJ', includeAccessors: false);
+      final details = 'kind: PROPERTY, isFinal: true, isStatic: true';
+      checkResults(generator,
+          imports: [
+            "import '/common.dart' as smoke_0;",
+          ],
+          initCall:
+            'useGeneratedCode(new StaticConfiguration(\n'
+            '    checkedMode: false,\n'
+            '    declarations: {\n'
+            '      smoke_0.A: {\n'
+            '        #sJ: const Declaration(#sJ, int, $details),\n'
             '      },\n'
             '    }));\n');
     });
@@ -221,6 +271,23 @@ main() {
             '    declarations: {\n'
             '      smoke_0.A: {\n'
             '        #inc0: const Declaration(#inc0, Function, kind: METHOD),\n'
+            '      },\n'
+            '    }));\n');
+    });
+
+    test('static method declaration', () {
+      recorder.lookupMember(lib.getType('A'), 'sM', includeAccessors: false);
+      const details = 'kind: METHOD, isStatic: true';
+      checkResults(generator,
+          imports: [
+            "import '/common.dart' as smoke_0;",
+          ],
+          initCall:
+            'useGeneratedCode(new StaticConfiguration(\n'
+            '    checkedMode: false,\n'
+            '    declarations: {\n'
+            '      smoke_0.A: {\n'
+            '        #sM: const Declaration(#sM, Function, $details),\n'
             '      },\n'
             '    }));\n');
     });
@@ -471,6 +538,7 @@ main() {
       recorder.lookupMember(lib.getType('I'), 'i1');
       recorder.lookupMember(lib.getType('I'), 'i2');
       recorder.lookupMember(lib.getType('I'), 'i3');
+      recorder.lookupMember(lib.getType('I'), 'm4');
       checkResults(generator,
           imports: [
             "import '/common.dart' as smoke_0;",
@@ -482,6 +550,7 @@ main() {
             '      #i1: (o) => o.i1,\n'
             '      #i2: (o) => o.i2,\n'
             '      #i3: (o) => o.i3,\n'
+            '      #m4: (o) => o.m4,\n'
             '    },\n'
             '    setters: {\n' // #i3 is final
             '      #i1: (o, v) { o.i1 = v; },\n'
@@ -493,12 +562,45 @@ main() {
             '        #i2: const Declaration(#i2, dynamic, kind: PROPERTY),\n'
             '        #i3: const Declaration(#i3, smoke_0.G, kind: PROPERTY, '
                                            'isFinal: true),\n'
+            '        #m4: const Declaration(#m4, Function, kind: METHOD),\n'
             '      },\n'
             '    },\n'
             '    names: {\n'
-            '      #i1: \'i1\',\n'
-            '      #i2: \'i2\',\n'
-            '      #i3: \'i3\',\n'
+            '      #i1: r\'i1\',\n'
+            '      #i2: r\'i2\',\n'
+            '      #i3: r\'i3\',\n'
+            '      #m4: r\'m4\',\n'
+            '    }));\n');
+    });
+
+    test('static members', () {
+      var lib = provider.libraryFor('/common.dart');
+      recorder.lookupMember(lib.getType('A'), 'sI');
+      recorder.lookupMember(lib.getType('A'), 'sJ');
+      recorder.lookupMember(lib.getType('A'), 'sM');
+      final pDetails = 'kind: PROPERTY, isFinal: true, isStatic: true';
+      const mDetails = 'kind: METHOD, isStatic: true';
+      checkResults(generator,
+          imports: [
+            "import '/common.dart' as smoke_0;",
+          ],
+          initCall:
+            'useGeneratedCode(new StaticConfiguration(\n'
+            '    checkedMode: false,\n'
+            '    declarations: {\n'
+            '      smoke_0.A: {\n'
+            '        #sI: const Declaration(#sI, int, isStatic: true),\n'
+            '        #sJ: const Declaration(#sJ, int, $pDetails),\n'
+            '        #sM: const Declaration(#sM, Function, $mDetails),\n'
+            '      },\n'
+            '    },\n'
+            '    staticMethods: {\n'
+            '      smoke_0.A: {\n'
+            '        #sM: smoke_0.A.sM,\n'
+            '      },\n'
+            '    },\n'
+            '    names: {\n'
+            '      #sM: r\'sM\',\n'
             '    }));\n');
     });
 
@@ -546,11 +648,11 @@ main() {
             '      },\n'
             '    },\n'
             '    names: {\n'
-            '      #b: \'b\',\n'
-            '      #f: \'f\',\n'
-            '      #g: \'g\',\n'
-            '      #i: \'i\',\n'
-            '      #j: \'j\',\n'
+            '      #b: r\'b\',\n'
+            '      #f: r\'f\',\n'
+            '      #g: r\'g\',\n'
+            '      #i: r\'i\',\n'
+            '      #j: r\'j\',\n'
             '    }));\n');
     });
   });
@@ -599,6 +701,9 @@ const _SOURCES = const {
         void inc0() { i++; }
         void inc1(int v) { i = i + (v == null ? -10 : v); }
         void inc2([int v]) { i = i + (v == null ? -10 : v); }
+        static int sI;
+        static int get sJ => 0;
+        static void sM() {}
       }
 
       class B {
@@ -679,6 +784,7 @@ const _SOURCES = const {
         get i2 => null;
         set i2(v) {}
         G get i3;
+        G m4() {};
       }
       '''
 };

@@ -24,11 +24,15 @@ class StaticConfiguration {
   /// instance, `#i: (o, v) { o.i = v; }`.
   final Map<Symbol, Setter> setters;
 
-  /// Maps a type to it's super class. For example, String: Object.
+  /// Maps a type to its super class. For example, String: Object.
   final Map<Type, Type> parents;
 
   /// For each type, a map of declarations per symbol (property or method).
   final Map<Type, Map<Symbol, Declaration>> declarations;
+
+  /// Static methods for each type.
+  // TODO(sigmund): should we add static getters & setters too?
+  final Map<Type, Map<Symbol, Function>> staticMethods;
 
   /// A map from symbol to strings.
   final Map<Symbol, String> names;
@@ -39,8 +43,8 @@ class StaticConfiguration {
 
   StaticConfiguration({
       this.getters: const {}, this.setters: const {}, this.parents: const {},
-      this.declarations: const {}, this.names: const {},
-      this.checkedMode: true});
+      this.declarations: const {}, this.staticMethods: const {},
+      this.names: const {}, this.checkedMode: true});
 }
 
 /// Set up the smoke package to use a static implementation based on the given
@@ -55,10 +59,12 @@ useGeneratedCode(StaticConfiguration configuration) {
 class GeneratedObjectAccessorService implements ObjectAccessorService {
   final Map<Symbol, Getter> _getters;
   final Map<Symbol, Setter> _setters;
+  final Map<Type, Map<Symbol, Function>> _staticMethods;
 
   GeneratedObjectAccessorService(StaticConfiguration configuration)
       : _getters = configuration.getters,
-        _setters = configuration.setters;
+        _setters = configuration.setters,
+        _staticMethods = configuration.staticMethods;
 
   read(Object object, Symbol name) {
     var getter = _getters[name];
@@ -67,6 +73,7 @@ class GeneratedObjectAccessorService implements ObjectAccessorService {
     }
     return getter(object);
   }
+
   void write(Object object, Symbol name, value) {
     var setter = _setters[name];
     if (setter == null) {
@@ -78,6 +85,8 @@ class GeneratedObjectAccessorService implements ObjectAccessorService {
   invoke(object, Symbol name, List args, {Map namedArgs, bool adjust: false}) {
     var method;
     if (object is Type) {
+      var classMethods = _staticMethods[object];
+      method = classMethods == null ? null : classMethods[name];
     } else {
       var getter = _getters[name];
       method = getter == null ? null : getter(object);

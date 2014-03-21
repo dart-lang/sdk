@@ -58,8 +58,8 @@ main() {
         'useGeneratedCode(new StaticConfiguration(\n'
         '    checkedMode: false,\n'
         '    names: {\n'
-        '      #foo: \'foo\',\n'
-        '      #i: \'i\',\n'
+        '      #foo: r\'foo\',\n'
+        '      #i: r\'i\',\n'
         '    }));\n');
   });
 
@@ -80,7 +80,7 @@ main() {
         '      #i: (o, v) { o.i = v; },\n'
         '    },\n'
         '    names: {\n'
-        '      #foo: \'foo\',\n'
+        '      #foo: r\'foo\',\n'
         '    }));\n');
   });
 
@@ -122,6 +122,21 @@ main() {
             '        #bar: const Declaration(#bar, Function, kind: METHOD, '
                            'annotations: const [const Annotation(\'hi\')]),\n'
             '        #foo: const Declaration(#foo, int, isFinal: true),\n'
+            '      },\n'
+            '    }));\n');
+  });
+
+  test('staticMethod', () {
+    var generator = new SmokeCodeGenerator();
+    generator.addStaticMethod(new TypeIdentifier('a.dart', 'A'), 'm1');
+    checkResults(generator,
+        imports: ["import 'a.dart' as smoke_0;"],
+        initCall:
+            'useGeneratedCode(new StaticConfiguration(\n'
+            '    checkedMode: false,\n'
+            '    staticMethods: {\n'
+            '      smoke_0.A: {\n'
+            '        #m1: smoke_0.A.m1,\n'
             '      },\n'
             '    }));\n');
   });
@@ -174,8 +189,8 @@ main() {
           '      },\n'
           '    },\n'
           '    names: {\n'
-          '      #c: \'c\',\n'
-          '      #d: \'d\',\n'
+          '      #c: r\'c\',\n'
+          '      #d: r\'d\',\n'
           '    }));\n');
   });
 }

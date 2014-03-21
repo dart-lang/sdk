@@ -43,6 +43,9 @@ class SmokeCodeGenerator {
   final Map<TypeIdentifier, Map<String, _DeclarationCode>> _declarations =
       new SplayTreeMap();
 
+  /// Static methods used on each type.
+  final Map<TypeIdentifier, Set<String>> _staticMethods = new SplayTreeMap();
+
   /// Names that are used both as strings and symbols.
   final Set<String> _names = new SplayTreeSet();
 
@@ -57,6 +60,14 @@ class SmokeCodeGenerator {
 
   /// Register that [name] might be needed as a symbol.
   void addSymbol(String name) { _names.add(name); }
+
+  /// Register that `cls.name` is used as a static method in the code.
+  void addStaticMethod(TypeIdentifier cls, String name) {
+    var methods = _staticMethods.putIfAbsent(cls,
+        () => new SplayTreeSet<String>());
+    _addLibrary(cls.importUrl);
+    methods.add(name);
+  }
 
   int _mixins = 0;
 
@@ -208,8 +219,29 @@ class SmokeCodeGenerator {
       args['declarations'] = declarations;
     }
 
+    if (_staticMethods.isNotEmpty) {
+      var methods = [];
+      _staticMethods.forEach((type, members) {
+        var className = type.asCode(_libraryPrefix);
+        final sb = new StringBuffer()
+            ..write(className)
+            ..write(': ');
+        if (members.isEmpty) {
+          sb.write('const {}');
+        } else {
+          sb.write('{\n');
+          for (var name in members) {
+            sb.write('$spaces        #$name: $className.$name,\n');
+          }
+          sb.write('$spaces      }');
+        }
+        methods.add(sb.toString());
+      });
+      args['staticMethods'] = methods;
+    }
+
     if (_names.isNotEmpty) {
-      args['names'] = _names.map((n) => "#$n: '$n'");
+      args['names'] = _names.map((n) => "#$n: r'$n'");
     }
 
     buffer..write(spaces)

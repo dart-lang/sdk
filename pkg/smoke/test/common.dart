@@ -53,6 +53,12 @@ main() {
     expect(a.i, 41);
   });
 
+  test('static invoke', () {
+    A.staticValue = 42;
+    smoke.invoke(A, #staticInc, []);
+    expect(A.staticValue, 43);
+  });
+
   test('read and invoke function', () {
     var a = new A();
     expect(a.i, 42);
@@ -305,6 +311,10 @@ class A {
   void inc0() { i++; }
   void inc1(int v) { i = i + (v == null ? -10 : v); }
   void inc2([int v]) { i = i + (v == null ? -10 : v); }
+
+  static int staticValue = 42;
+  static void staticInc() { staticValue++; }
+
 }
 
 class B {

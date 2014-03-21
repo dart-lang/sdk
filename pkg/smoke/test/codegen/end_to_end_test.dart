@@ -49,6 +49,9 @@ main(args) {
     ['i', 'j', 'j2', 'inc0', 'inc1', 'inc2'].forEach(generator.addGetter);
     ['i', 'j2'].forEach(generator.addSetter);
 
+    // Record static methods used in the tests
+    recorder.addStaticMethod(lib.getType('A'), 'staticInc');
+
     // Record symbol convertions.
     generator.addSymbol('i');
 
