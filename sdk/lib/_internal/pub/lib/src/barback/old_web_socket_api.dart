@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 
+import '../log.dart' as log;
 import '../utils.dart';
 import 'build_environment.dart';
 
