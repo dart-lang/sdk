@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:html';
 
-import 'package:logging/logging.dart';
 import 'package:observe/observe.dart';
 import 'package:observe/mirrors_used.dart'; // make test smaller.
 import 'package:polymer_expressions/polymer_expressions.dart';
@@ -37,7 +36,7 @@ main() {
       templateBind(query('#test'))
           ..bindingDelegate = new PolymerExpressions()
           ..model = person;
-      return new Future.delayed(new Duration()).then((_) {
+      return new Future(() {}).then((_) {
         InputElement input = query('#input');
         expect(input.value, 'John');
         input.focus();
@@ -64,22 +63,19 @@ main() {
     });
 
     test('should silently handle bad variable names', () {
-      var logger = new Logger('polymer_expressions');
-      var logFuture = logger.onRecord.toList();
-      testDiv.nodes.add(new Element.html('''
-          <template id="test" bind>{{ foo }}</template>'''));
-      templateBind(query('#test'))
-          ..bindingDelegate = new PolymerExpressions()
-          ..model = [];
-      return new Future(() {
-        logger.clearListeners();
-        return logFuture.then((records) {
-          expect(records.length, 1);
-          expect(records.first.message,
-              contains('Error evaluating expression'));
-          expect(records.first.message, contains('foo'));
-        });
+      var completer = new Completer();
+      runZoned(() {
+        testDiv.nodes.add(new Element.html('''
+            <template id="test" bind>{{ foo }}</template>'''));
+        templateBind(query('#test'))
+            ..bindingDelegate = new PolymerExpressions()
+            ..model = [];
+        return new Future(() {});
+      }, onError: (e, s) {
+        expect('$e', contains('foo'));
+        completer.complete(true);
       });
+      return completer.future;
     });
   });
 }

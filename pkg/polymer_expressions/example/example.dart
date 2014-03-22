@@ -4,17 +4,12 @@
 
 import 'dart:html';
 
-import 'package:logging/logging.dart';
 import 'package:polymer_expressions/polymer_expressions.dart';
 import 'package:template_binding/template_binding.dart' show templateBind;
 
 import 'person.dart';
 
 main() {
-  new Logger('polymer_expressions').onRecord.listen((LogRecord r) {
-    print("${r.loggerName} ${r.level} ${r.message}");
-  });
-
   var john = new Person('John', 'Messerly', ['A', 'B', 'C']);
   var justin = new Person('Justin', 'Fagnani', ['D', 'E', 'F']);
   var globals = {

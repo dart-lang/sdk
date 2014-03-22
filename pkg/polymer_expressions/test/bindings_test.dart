@@ -7,7 +7,6 @@ library bindings_test;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:logging/logging.dart';
 import 'package:observe/observe.dart';
 import 'package:observe/mirrors_used.dart'; // make test smaller.
 import 'package:observe/src/dirty_check.dart' show dirtyCheckZone;
@@ -21,19 +20,14 @@ main() => dirtyCheckZone().run(() {
 
   group('bindings', () {
     var stop = null;
-    var messages = [];
     var testDiv;
     setUp(() {
-      stop = Logger.root.onRecord.listen((r) => messages.add(r));
       document.body.append(testDiv = new DivElement());
     });
 
     tearDown(() {
       testDiv.remove();
       testDiv = null;
-      stop.cancel();
-      stop = null;
-      messages = [];
     });
 
     test('should update binding when data changes', () {
@@ -44,7 +38,6 @@ main() => dirtyCheckZone().run(() {
       model.x = "hi";
       return new Future(() {
         expect(binding.value, 'hi');
-        expect(messages.length, 0);
       });
     });
 
@@ -69,15 +62,19 @@ main() => dirtyCheckZone().run(() {
 
     test('should log eval exceptions', () {
       var model = new NotifyModel('abcde');
-      var template = templateBind(new Element.html(
-          '<template><span>{{foo}}</span></template>'));
-      testDiv.append(template.createInstance(model, new PolymerExpressions()));
+      var completer = new Completer();
+      runZoned(() {
+        var template = templateBind(new Element.html(
+            '<template><span>{{foo}}</span></template>'));
+        testDiv.append(template.createInstance(model,
+            new PolymerExpressions()));
 
-      return new Future(() {
-        expect(messages.length, 1);
-        expect(messages[0].message,
-            "Error evaluating expression 'foo': variable 'foo' not found");
+        return new Future(() {});
+      }, onError: (e) {
+        expect('$e', startsWith("Error evaluating expression 'foo':"));
+        completer.complete(true);
       });
+      return completer.future;
     });
 
     test('should preserve the cursor position', () {

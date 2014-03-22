@@ -295,7 +295,7 @@ main() {
 
     test("should a field from the parent's model", () {
       var parent = new Scope(variables: {'a': 'A', 'b': 'B'});
-      var child = new Scope(variables: {'a': 'a'}, parent: parent);
+      var child = parent.childScope('a', 'a');
       expect(child['a'], 'a');
       expect(parent['a'], 'A');
       expect(child['b'], 'B');

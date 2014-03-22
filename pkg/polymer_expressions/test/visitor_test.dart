@@ -22,6 +22,4 @@ main() {
   });
 }
 
-class TestVisitor extends RecursiveVisitor {
-  visitExpression(e) => null;
-}
+class TestVisitor extends RecursiveVisitor {}
