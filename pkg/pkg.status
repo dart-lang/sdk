@@ -24,9 +24,6 @@ docgen/test/multi_library_test: Skip # Way too slow
 docgen/test/single_library_test: Skip # Way too slow
 docgen/test/typedef_test: Skip # Way too slow
 
-[ $runtime == vm ]
-docgen/test/only_lib_content_in_pkg_test: Fail, Timeout # Issue 17597
-
 [ $runtime == vm && ( $arch == simarm || $arch == simmips ) ]
 docgen/test/only_lib_content_in_pkg_test: Skip # slow
 docgen/test/typedef_test: Skip # slow
