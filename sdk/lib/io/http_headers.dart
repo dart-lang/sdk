@@ -17,8 +17,12 @@ class _HttpHeaders implements HttpHeaders {
   String _host;
   int _port;
 
-  _HttpHeaders(this.protocolVersion)
-      : _headers = new HashMap<String, List<String>>() {
+  final int _defaultPortForScheme;
+
+  _HttpHeaders(this.protocolVersion,
+               {int defaultPortForScheme: HttpClient.DEFAULT_HTTP_PORT})
+      : _headers = new HashMap<String, List<String>>(),
+        _defaultPortForScheme = defaultPortForScheme {
     if (protocolVersion == "1.0") {
       _persistentConnection = false;
     }
@@ -368,7 +372,7 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   _updateHostHeader() {
-    bool defaultPort = _port == null || _port == HttpClient.DEFAULT_HTTP_PORT;
+    bool defaultPort = _port == null || _port == _defaultPortForScheme;
     String portPart = defaultPort ? "" : ":$_port";
     _set("host", "$host$portPart");
   }
