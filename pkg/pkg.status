@@ -137,6 +137,8 @@ intl/test/find_default_locale_standalone_test: Fail # Issue 8110
 [ $compiler == dartanalyzer ]
 # These tests are runtime negative but statically positive, so we skip
 # them in the analyzer.
+mock/test/mock_regexp_negative_test: Skip
+mock/test/mock_stepwise_negative_test: Skip
 unittest/test/mock_regexp_negative_test: Skip
 unittest/test/mock_stepwise_negative_test: Skip
 polymer/example/canonicalization: Skip
@@ -148,6 +150,8 @@ third_party/angular_tests/browser_test: StaticWarning # Issue 15890
 [ $compiler == dart2analyzer ]
 # These tests are runtime negative but statically positive, so we skip
 # them in the analyzer.
+mock/test/mock_regexp_negative_test: Skip
+mock/test/mock_stepwise_negative_test: Skip
 unittest/test/mock_regexp_negative_test: Skip
 unittest/test/mock_stepwise_negative_test: Skip
 polymer/example/canonicalization: Skip
