@@ -2045,14 +2045,17 @@ class JsClosureMirror extends JsInstanceMirror implements ClosureMirror {
     if (cachedFunction != null) return cachedFunction;
     disableTreeShaking();
     // TODO(ahe): What about optional parameters (named or not).
+    String callPrefix = "${JS_GET_NAME("CALL_PREFIX")}\$";
     var extractCallName = JS('', r'''
 function(reflectee) {
   for (var property in reflectee) {
-    if ("call$" == property.substring(0, 5)) return property;
+    if (# == property.substring(0, #) && 
+        property[#] >= '0' &&
+        property[#] <= '9') return property;
   }
   return null;
 }
-''');
+''', callPrefix, callPrefix.length, callPrefix.length, callPrefix.length);
     String callName = JS('String|Null', '#(#)', extractCallName, reflectee);
     if (callName == null) {
       throw new RuntimeError('Cannot find callName on "$reflectee"');
