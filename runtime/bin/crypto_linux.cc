@@ -19,7 +19,7 @@ namespace bin {
 bool Crypto::GetRandomBytes(intptr_t count, uint8_t* buffer) {
   intptr_t fd = TEMP_FAILURE_RETRY(open("/dev/urandom", O_RDONLY));
   if (fd < 0) return false;
-  intptr_t bytes_read = TEMP_FAILURE_RETRY(read(fd, buffer, count));
+  intptr_t bytes_read = FDUtils::ReadFromBlocking(fd, buffer, count);
   VOID_TEMP_FAILURE_RETRY(close(fd));
   return bytes_read == count;
 }
