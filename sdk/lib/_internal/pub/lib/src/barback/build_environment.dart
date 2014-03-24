@@ -139,13 +139,13 @@ class BuildEnvironment {
   /// Starts up the admin server on an appropriate port and returns it.
   ///
   /// This may only be called once on the build environment.
-  Future<AdminServer> startAdminServer() {
+  Future<AdminServer> startAdminServer([int port]) {
     // Can only start once.
     assert(_adminServer == null);
 
-    // The admin server is bound to one before the base port, unless it's
-    // ephemeral in which case the admin port is too.
-    var port = _basePort == 0 ? 0 : _basePort - 1;
+    // The admin server is bound to one before the base port by default, unless
+    // it's ephemeral in which case the admin port is too.
+    if (port == null) port = _basePort == 0 ? 0 : _basePort - 1;
 
     return AdminServer.bind(this, _hostname, port)
         .then((server) => _adminServer = server);

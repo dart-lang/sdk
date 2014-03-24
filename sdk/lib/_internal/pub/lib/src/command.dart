@@ -21,6 +21,8 @@ import 'command/upgrade.dart';
 import 'command/uploader.dart';
 import 'command/version.dart';
 import 'entrypoint.dart';
+import 'exit_codes.dart' as exit_codes;
+import 'io.dart';
 import 'log.dart' as log;
 import 'system_cache.dart';
 import 'utils.dart';
@@ -202,6 +204,17 @@ abstract class PubCommand {
   /// This will report the error and cause pub to exit with [exit_codes.DATA].
   void dataError(String message) {
     throw new DataException(message);
+  }
+
+  /// Parses a user-supplied integer [intString] named [name].
+  ///
+  /// If the parsing fails, prints a usage message and exits.
+  int parseInt(String intString, String name) {
+    try {
+      return int.parse(intString);
+    } on FormatException catch (_) {
+      usageError('Could not parse $name "$intString".');
+    }
   }
 
   /// Generates a string of usage information for this command.

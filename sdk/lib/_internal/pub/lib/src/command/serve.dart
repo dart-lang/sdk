@@ -13,7 +13,6 @@ import 'package:path/path.dart' as p;
 import '../barback/build_environment.dart';
 import '../barback/pub_package_provider.dart';
 import '../command.dart';
-import '../exit_codes.dart' as exit_codes;
 import '../io.dart';
 import '../log.dart' as log;
 import '../utils.dart';
@@ -32,6 +31,19 @@ class ServeCommand extends PubCommand {
   PubPackageProvider _provider;
 
   String get hostname => commandOptions['hostname'];
+
+  /// The base port for the servers.
+  ///
+  /// This will print a usage error and exit if the specified port is invalid.
+  int get port => parseInt(commandOptions['port'], 'port');
+
+  /// The port for the admin UI.
+  ///
+  /// This will print a usage error and exit if the specified port is invalid.
+  int get adminPort {
+    var adminPort = commandOptions['admin-port'];
+    return adminPort == null ? null : parseInt(adminPort, 'admin port');
+  }
 
   /// `true` if Dart entrypoints should be compiled to JavaScript.
   bool get useDart2JS => commandOptions['dart2js'];
@@ -59,6 +71,9 @@ class ServeCommand extends PubCommand {
     // Remove this (and always log) when #16954 is fixed.
     commandParser.addFlag('log-admin-url', defaultsTo: false, hide: true);
 
+    // TODO(nweiz): Make this public when issue 16954 is fixed.
+    commandParser.addOption('admin-port', hide: true);
+
     commandParser.addFlag('dart2js', defaultsTo: true,
         help: 'Compile Dart to JavaScript.');
     commandParser.addFlag('force-poll', defaultsTo: false,
@@ -68,14 +83,9 @@ class ServeCommand extends PubCommand {
   }
 
   Future onRun() {
-    var port;
-    try {
-      port = int.parse(commandOptions['port']);
-    } on FormatException catch (_) {
-      log.error('Could not parse port "${commandOptions['port']}"');
-      this.printUsage();
-      return flushThenExit(exit_codes.USAGE);
-    }
+    var port = parseInt(commandOptions['port'], 'port');
+    var adminPort = commandOptions['admin-port'] == null ? null :
+        parseInt(commandOptions['admin-port'], 'admin port');
 
     var directories = _parseDirectoriesToServe();
 
@@ -88,7 +98,7 @@ class ServeCommand extends PubCommand {
       var directoryLength = directories.map((dir) => dir.length)
           .reduce(math.max);
 
-      return environment.startAdminServer().then((server) {
+      return environment.startAdminServer(adminPort).then((server) {
         server.results.listen((_) {
           // The admin server produces no result values.
           assert(false);
