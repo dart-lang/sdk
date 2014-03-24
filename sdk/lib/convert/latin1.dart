@@ -125,13 +125,22 @@ class _Latin1DecoderSink extends ByteConversionSinkBase {
   void _addSliceToSink(List<int> source, int start, int end, bool isLast) {
     // If _sink was a UTF-16 conversion sink, just add the slice directly with
     // _sink.addSlice(source, start, end, isLast).
-    // The code below is an incredibly stupid workaround until a real
+    // The code below is an moderately stupid workaround until a real
     // solution can be made.
-    _sink.add(new String.fromCharCodes(source.getRange(start, end)));
+    if (start == 0 && end == source.length) {
+      _sink.add(new String.fromCharCodes(source));
+    } else {
+      _sink.add(new String.fromCharCodes(source.sublist(start, end)));
+    }
     if (isLast) close();
   }
 
   void addSlice(List<int> source, int start, int end, bool isLast) {
+    // If Uint8List, just add dircetly.
+    if (source is Uint8List) {
+      _addSliceToSink(source, start, end, isLast);
+      return;
+    }
     if (start < 0 || start > source.length) {
       throw new RangeError.range(start, 0, source.length);
     }
