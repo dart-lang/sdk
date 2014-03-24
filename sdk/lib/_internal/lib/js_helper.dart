@@ -1958,7 +1958,7 @@ abstract class Closure implements Function {
         // Intercepted call.
         isIntercepted = true;
       }
-      trampoline = forwardCallTo(function, isIntercepted);
+      trampoline = forwardCallTo(receiver, function, isIntercepted);
     } else {
       JS('', '#.\$name = #', prototype, propertyName);
     }
@@ -1992,7 +1992,7 @@ abstract class Closure implements Function {
       var stubCallName = JS('String|Null', '#.\$callName', stub);
       if (stubCallName != null) {
         JS('', '#[#] = #', prototype, stubCallName,
-           isStatic ? stub : forwardCallTo(stub, isIntercepted));
+           isStatic ? stub : forwardCallTo(receiver, stub, isIntercepted));
       }
     }
 
@@ -2001,57 +2001,60 @@ abstract class Closure implements Function {
     return constructor;
   }
 
-  static cspForwardCall(int arity, function) {
+  static cspForwardCall(int arity, bool isSuperCall, String stubName,
+                        function) {
     var getSelf = RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
+    // Handle intercepted stub-names with the default slow case.
+    if (isSuperCall) arity = -1;
     switch (arity) {
     case 0:
       return JS(
           '',
-          'function(F,S){'
+          'function(n,S){'
             'return function(){'
-              'return F.call(S(this))'
+              'return S(this)[n]()'
             '}'
-          '}(#,#)', function, getSelf);
+          '}(#,#)', stubName, getSelf);
     case 1:
       return JS(
           '',
-          'function(F,S){'
+          'function(n,S){'
             'return function(a){'
-              'return F.call(S(this),a)'
+              'return S(this)[n](a)'
             '}'
-          '}(#,#)', function, getSelf);
+          '}(#,#)', stubName, getSelf);
     case 2:
       return JS(
           '',
-          'function(F,S){'
+          'function(n,S){'
             'return function(a,b){'
-              'return F.call(S(this),a,b)'
+              'return S(this)[n](a,b)'
             '}'
-          '}(#,#)', function, getSelf);
+          '}(#,#)', stubName, getSelf);
     case 3:
       return JS(
           '',
-          'function(F,S){'
+          'function(n,S){'
             'return function(a,b,c){'
-              'return F.call(S(this),a,b,c)'
+              'return S(this)[n](a,b,c)'
             '}'
-          '}(#,#)', function, getSelf);
+          '}(#,#)', stubName, getSelf);
     case 4:
       return JS(
           '',
-          'function(F,S){'
+          'function(n,S){'
             'return function(a,b,c,d){'
-              'return F.call(S(this),a,b,c,d)'
+              'return S(this)[n](a,b,c,d)'
             '}'
-          '}(#,#)', function, getSelf);
+          '}(#,#)', stubName, getSelf);
     case 5:
       return JS(
           '',
-          'function(F,S){'
+          'function(n,S){'
             'return function(a,b,c,d,e){'
-              'return F.call(S(this),a,b,c,d,e)'
+              'return S(this)[n](a,b,c,d,e)'
             '}'
-          '}(#,#)', function, getSelf);
+          '}(#,#)', stubName, getSelf);
     default:
       return JS(
           '',
@@ -2065,40 +2068,50 @@ abstract class Closure implements Function {
 
   static bool get isCsp => JS('bool', 'typeof dart_precompiled == "function"');
 
-  static forwardCallTo(function, bool isIntercepted) {
-    if (isIntercepted) return forwardInterceptedCallTo(function);
+  static forwardCallTo(receiver, function, bool isIntercepted) {
+    if (isIntercepted) return forwardInterceptedCallTo(receiver, function);
+    String stubName = JS('String|Null', '#.\$stubName', function);
     int arity = JS('int', '#.length', function);
-    if (isCsp) {
-      return cspForwardCall(arity, function);
-    } else if (arity == 0) {
-      return JS(
-          '',
-          '(new Function("F",#))(#)',
-          'return function(){'
-            'return F.call(this.${BoundClosure.selfFieldName()});${functionCounter++}'
-          '}',
-          function);
-    } else if (1 <= arity && arity < 27) {
-      String arguments = JS(
-          'String',
-          '"abcdefghijklmnopqrstuvwxyz".split("").splice(0,#).join(",")',
-          arity);
-      return JS(
-          '',
-          '(new Function("F",#))(#)',
-          'return function($arguments){'
-            'return F.call(this.${BoundClosure.selfFieldName()},$arguments);'
-            '${functionCounter++}'
-          '}',
-          function);
-    } else {
-      return cspForwardCall(arity, function);
+    var lookedUpFunction = JS("", "#[#]", receiver, stubName);
+    // The receiver[stubName] may not be equal to the function if we try to
+    // forward to a super-method. Especially when we create a bound closure
+    // of a super-call we need to make sure that we don't forward back to the
+    // dynamically looked up function.
+    bool isSuperCall = !identical(function, lookedUpFunction);
+
+    if (isCsp || isSuperCall || arity >= 27) {
+      return cspForwardCall(arity, isSuperCall, stubName, function);
     }
+
+    if (arity == 0) {
+      return JS(
+          '',
+          '(new Function(#))()',
+          'return function(){'
+            'return this.${BoundClosure.selfFieldName()}.$stubName();'
+            '${functionCounter++}'
+          '}');
+    }
+    assert (1 <= arity && arity < 27);
+    String arguments = JS(
+        'String',
+        '"abcdefghijklmnopqrstuvwxyz".split("").splice(0,#).join(",")',
+        arity);
+    return JS(
+        '',
+        '(new Function(#))()',
+        'return function($arguments){'
+          'return this.${BoundClosure.selfFieldName()}.$stubName($arguments);'
+          '${functionCounter++}'
+        '}');
   }
 
-  static cspForwardInterceptedCall(int arity, String name, function) {
+  static cspForwardInterceptedCall(int arity, bool isSuperCall,
+                                   String name, function) {
     var getSelf = RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
     var getReceiver = RAW_DART_FUNCTION_REF(BoundClosure.receiverOf);
+    // Handle intercepted stub-names with the default slow case.
+    if (isSuperCall) arity = -1;
     switch (arity) {
     case 0:
       // Intercepted functions always takes at least one argument (the
@@ -2107,51 +2120,51 @@ abstract class Closure implements Function {
     case 1:
       return JS(
           '',
-          'function(f,s,r){'
+          'function(n,s,r){'
             'return function(){'
-              'return f.call(s(this),r(this))'
+              'return s(this)[n](r(this))'
             '}'
-          '}(#,#,#)', function, getSelf, getReceiver);
+          '}(#,#,#)', name, getSelf, getReceiver);
     case 2:
       return JS(
           '',
-          'function(f,s,r){'
+          'function(n,s,r){'
             'return function(a){'
-              'return f.call(s(this),r(this),a)'
+              'return s(this)[n](r(this),a)'
             '}'
-          '}(#,#,#)', function, getSelf, getReceiver);
+          '}(#,#,#)', name, getSelf, getReceiver);
     case 3:
       return JS(
           '',
-          'function(f,s,r){'
+          'function(n,s,r){'
             'return function(a,b){'
-              'return f.call(s(this),r(this),a,b)'
+              'return s(this)[n](r(this),a,b)'
             '}'
-          '}(#,#,#)', function, getSelf, getReceiver);
+          '}(#,#,#)', name, getSelf, getReceiver);
     case 4:
       return JS(
           '',
-          'function(f,s,r){'
+          'function(n,s,r){'
             'return function(a,b,c){'
-              'return f.call(s(this),r(this),a,b,c)'
+              'return s(this)[n](r(this),a,b,c)'
             '}'
-          '}(#,#,#)', function, getSelf, getReceiver);
+          '}(#,#,#)', name, getSelf, getReceiver);
     case 5:
       return JS(
           '',
-          'function(f,s,r){'
+          'function(n,s,r){'
             'return function(a,b,c,d){'
-              'return f.call(s(this),r(this),a,b,c,d)'
+              'return s(this)[n](r(this),a,b,c,d)'
             '}'
-          '}(#,#,#)', function, getSelf, getReceiver);
+          '}(#,#,#)', name, getSelf, getReceiver);
     case 6:
       return JS(
           '',
-          'function(f,s,r){'
+          'function(n,s,r){'
             'return function(a,b,c,d,e){'
-              'return f.call(s(this),r(this),a,b,c,d,e)'
+              'return s(this)[n](r(this),a,b,c,d,e)'
             '}'
-          '}(#,#,#)', function, getSelf, getReceiver);
+          '}(#,#,#)', name, getSelf, getReceiver);
     default:
       return JS(
           '',
@@ -2165,39 +2178,44 @@ abstract class Closure implements Function {
     }
   }
 
-  static forwardInterceptedCallTo(function) {
+  static forwardInterceptedCallTo(receiver, function) {
     String selfField = BoundClosure.selfFieldName();
     String receiverField = BoundClosure.receiverFieldName();
     String stubName = JS('String|Null', '#.\$stubName', function);
     int arity = JS('int', '#.length', function);
     bool isCsp = JS('bool', 'typeof dart_precompiled == "function"');
-    if (isCsp) {
-      return cspForwardInterceptedCall(arity, stubName, function);
-    } else if (arity == 1) {
-      return JS(
-          '',
-          '(new Function("F",#))(#)',
-          'return function(){'
-            'return F.call(this.$selfField, this.$receiverField);'
-            '${functionCounter++}'
-          '}',
-          function);
-    } else if (1 < arity && arity < 28) {
-      String arguments = JS(
-          'String',
-          '"abcdefghijklmnopqrstuvwxyz".split("").splice(0,#).join(",")',
-          arity - 1);
-      return JS(
-          '',
-          '(new Function("F",#))(#)',
-          'return function($arguments){'
-            'return F.call(this.$selfField, this.$receiverField, $arguments);'
-            '${functionCounter++}'
-          '}',
-          function);
-    } else {
-      return cspForwardInterceptedCall(arity, stubName, function);
+    var lookedUpFunction = JS("", "#[#]", receiver, stubName);
+    // The receiver[stubName] may not be equal to the function if we try to
+    // forward to a super-method. Especially when we create a bound closure
+    // of a super-call we need to make sure that we don't forward back to the
+    // dynamically looked up function.
+    bool isSuperCall = !identical(function, lookedUpFunction);
+
+    if (isCsp || isSuperCall || arity >= 28) {
+      return cspForwardInterceptedCall(arity, isSuperCall, stubName,
+                                       function);
     }
+    if (arity == 1) {
+      return JS(
+          '',
+          '(new Function(#))()',
+          'return function(){'
+            'return this.$selfField.$stubName(this.$receiverField);'
+            '${functionCounter++}'
+          '}');
+    }
+    assert(1 < arity && arity < 28);
+    String arguments = JS(
+        'String',
+        '"abcdefghijklmnopqrstuvwxyz".split("").splice(0,#).join(",")',
+        arity - 1);
+    return JS(
+        '',
+        '(new Function(#))()',
+        'return function($arguments){'
+          'return this.$selfField.$stubName(this.$receiverField, $arguments);'
+          '${functionCounter++}'
+        '}');
   }
 
   String toString() => "Closure";
