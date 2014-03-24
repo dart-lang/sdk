@@ -139,7 +139,7 @@ class Rectangle<T extends num> extends _RectangleBase<T> {
    *
    * The rectangle contains the points
    * with x-coordinate between `left` and `left + width`, and
-   * with y-coordiante between `top` and `top + height`, both inclusive.
+   * with y-coordinate between `top` and `top + height`, both inclusive.
    *
    * The `width` and `height` should be non-negative.
    * If `width` or `height` are negative, they are clamped to zero.
@@ -151,12 +151,12 @@ class Rectangle<T extends num> extends _RectangleBase<T> {
       : this.width = (width >= 0) ? width : -width * 0,  // Inline _clampToZero.
         this.height = (height >= 0) ? height : -height * 0;
 
-  /*
+  /**
    * Create a rectangle spanned by the points [a] and [b];
    *
    * The rectangle contains the points
    * with x-coordinate between `a.x` and `b.x`, and
-   * with y-coordiante between `a.y` and `b.y`, both inclusive.
+   * with y-coordinate between `a.y` and `b.y`, both inclusive.
    *
    * If the distance between `a.x` and `b.x` is not representable
    * (which can happen if one or both is a double),
@@ -200,7 +200,7 @@ class MutableRectangle<T extends num> extends _RectangleBase<T>
    *
    * The rectangle contains the points
    * with x-coordinate between `left` and `left + width`, and
-   * with y-coordiante between `top` and `top + height`, both inclusive.
+   * with y-coordinate between `top` and `top + height`, both inclusive.
    *
    * The `width` and `height` should be non-negative.
    * If `width` or `height` are negative, they are clamped to zero.
@@ -212,12 +212,12 @@ class MutableRectangle<T extends num> extends _RectangleBase<T>
       : this._width = (width >= 0) ? width : _clampToZero(width),
         this._height = (height >= 0) ? height : _clampToZero(height);
 
-  /*
+  /**
    * Create a mutable rectangle spanned by the points [a] and [b];
    *
    * The rectangle contains the points
    * with x-coordinate between `a.x` and `b.x`, and
-   * with y-coordiante between `a.y` and `b.y`, both inclusive.
+   * with y-coordinate between `a.y` and `b.y`, both inclusive.
    *
    * If the distance between `a.x` and `b.x` is not representable
    * (which can happen if one or both is a double),
