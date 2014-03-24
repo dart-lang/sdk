@@ -25,7 +25,7 @@ void main(args) {
       return _runAnalyzer(options, false);
     });
   } else {
-    _runAnalyzer(options);
+    _runAnalyzer(options, false);
   }
 }
 
