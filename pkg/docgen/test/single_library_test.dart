@@ -53,7 +53,7 @@ main() {
       var file = new File(fileName);
       file.writeAsStringSync(DART_LIBRARY);
 
-      return getMirrorSystem([new Uri.file(fileName)])
+      return getMirrorSystem([new Uri.file(fileName)], false)
         .then((mirrorSystem) {
           var testLibraryUri = new Uri.file(path.absolute(fileName),
                                             windows: Platform.isWindows);
@@ -112,7 +112,7 @@ main() {
           expect(classDocComment, 'test.A');
 
           // Test for linking to parameter [A]
-          var method = Indexable.getDocgenObject(
+          var method = getDocgenObject(
               classMirror.declarations[dart2js_util.symbolOf('doThis')]);
           var methodParameterDocComment = method.fixReference(
               'A').children.first.text;

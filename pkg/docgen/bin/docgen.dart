@@ -83,7 +83,7 @@ bool _singlePackage(List files) {
 String _defaultStartPageFor(files) {
   var pubspec = new File(path.join(files.first, 'pubspec.yaml'));
   if (!pubspec.existsSync()) return null;
-  return Library.packageNameFor(files.first);
+  return packageNameFor(files.first);
 }
 
 /**

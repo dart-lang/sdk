@@ -28,7 +28,7 @@ void main() {
   group('Generate docs for', () {
     test('multiple libraries.', () {
       var files = _writeLibFiles();
-      return getMirrorSystem(files)
+      return getMirrorSystem(files, false)
         .then((mirrorSystem) {
           var test_libraryUri = files[0];
           var library = new Library(mirrorSystem.libraries[test_libraryUri]);
@@ -46,7 +46,7 @@ void main() {
               dart2js_util.classesOf(importedLib.declarations).first;
           expect(dart2js_util.qualifiedNameOf(aClassMirror),
                  'test_lib.foo.B');
-          var exportedClass = Indexable.getDocgenObject(aClassMirror, library);
+          var exportedClass = getDocgenObject(aClassMirror, library);
           expect(exportedClass is Class, isTrue);
 
 
@@ -76,7 +76,7 @@ void main() {
           aClassMirror = dart2js_util.classesOf(importedLib.declarations).first;
           expect(dart2js_util.qualifiedNameOf(aClassMirror),
                  'test_lib.bar.C');
-          exportedClass = Indexable.getDocgenObject(aClassMirror, library);
+          exportedClass = getDocgenObject(aClassMirror, library);
           expect(exportedClass is Class, isTrue);
           expect(exportedClass.docName, 'test_lib.C');
 
