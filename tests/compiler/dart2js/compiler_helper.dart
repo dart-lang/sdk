@@ -89,7 +89,6 @@ MockCompiler compilerFor(String code, Uri uri,
                           bool analyzeOnly: false,
                           String coreSource: DEFAULT_CORELIB,
                           bool disableInlining: true,
-                          bool minify: false,
                           int expectedErrors,
                           int expectedWarnings}) {
   MockCompiler compiler = new MockCompiler(
@@ -97,7 +96,6 @@ MockCompiler compilerFor(String code, Uri uri,
       analyzeOnly: analyzeOnly,
       coreSource: coreSource,
       disableInlining: disableInlining,
-      enableMinification: minify,
       expectedErrors: expectedErrors,
       expectedWarnings: expectedWarnings);
   compiler.sourceFiles[uri.toString()] =
@@ -108,14 +106,12 @@ MockCompiler compilerFor(String code, Uri uri,
 Future<String> compileAll(String code,
                           {String coreSource: DEFAULT_CORELIB,
                           bool disableInlining: true,
-                          bool minify: false,
                           int expectedErrors,
                           int expectedWarnings}) {
   Uri uri = new Uri(scheme: 'source');
   MockCompiler compiler = compilerFor(
       code, uri, coreSource: coreSource, disableInlining: disableInlining,
-      minify: minify, expectedErrors: expectedErrors,
-      expectedWarnings: expectedWarnings);
+      expectedErrors: expectedErrors, expectedWarnings: expectedWarnings);
   return compiler.runCompiler(uri).then((_) {
     Expect.isFalse(compiler.compilationFailed,
                    'Unexpected compilation error');
