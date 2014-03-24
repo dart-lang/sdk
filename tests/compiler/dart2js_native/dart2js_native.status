@@ -11,9 +11,6 @@ call_on_native_class_test: CompileTimeError # Issue 14813
 native_no_such_method_exception4_frog_test: Fail  # Issue 9631
 native_no_such_method_exception5_frog_test: Fail  # Issue 9631
 
-[ $compiler == dart2js && $unminified ]
-fake_thing_test: Fail # Issue 13010
-
 [ $compiler == dart2js && $minified ]
 optimization_hints_test: Fail, OK # Test relies on unminified names.
 
