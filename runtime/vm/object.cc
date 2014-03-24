@@ -3848,7 +3848,10 @@ void Class::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("patch", is_patch());
   jsobj.AddProperty("finalized", is_finalized());
   jsobj.AddProperty("const", is_const());
-  jsobj.AddProperty("super", Class::Handle(SuperClass()));
+  const Class& superClass = Class::Handle(SuperClass());
+  if (!superClass.IsNull()) {
+    jsobj.AddProperty("super", superClass);
+  }
   jsobj.AddProperty("library", Object::Handle(library()));
   const Script& script = Script::Handle(this->script());
   if (!script.IsNull()) {

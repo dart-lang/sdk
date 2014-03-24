@@ -77,7 +77,7 @@ class ProfileCallerTreeRow extends TableTreeRow {
     var totalSamples = profile['samples'];
     // When the row is created, fill out the columns.
     if (parent == null) {
-      var root = profile.isolate.codes.tagRoot();
+      var root = profile.isolate.tagRoot();
       var totalAttributedCalls = root.callersCount(code);
       var totalParentCalls = root.sumCallersCount();
       columns.add(formatPercent(totalAttributedCalls, totalParentCalls));
@@ -188,7 +188,7 @@ class IsolateProfileElement extends ObservatoryElement {
 
   void _buildCallersTree() {
     assert(profile != null);
-    var root = profile.isolate.codes.tagRoot();
+    var root = profile.isolate.tagRoot();
     if (root == null) {
       Logger.root.warning('No profile root tag.');
     }

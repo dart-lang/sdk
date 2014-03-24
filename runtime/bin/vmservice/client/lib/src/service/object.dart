@@ -9,33 +9,14 @@ part of service;
 abstract class ServiceObject extends Observable {
   /// The owner of this [ServiceObject].  This can be an [Isolate], a
   /// [VM], or null.
-  @reflectable ServiceObject get owner => _owner;
-  ServiceObject _owner;
+  @reflectable ServiceObjectOwner get owner => _owner;
+  ServiceObjectOwner _owner;
 
   /// The [VM] which owns this [ServiceObject].
-  @reflectable VM get vm {
-    if (owner == null) {
-      assert(this is VM);
-      return this;
-    } else if (owner is VM) {
-      return owner;
-    } else {
-      assert(owner.owner is VM);
-      return owner.owner;
-    }
-  }
+  @reflectable VM get vm => _owner.vm;
 
   /// The [Isolate] which owns this [ServiceObject].  May be null.
-  @reflectable Isolate get isolate {
-    if (owner == null) {
-      return null;
-    } else if (this is Isolate) {
-      return this;
-    } else {
-      assert(owner is Isolate);
-      return owner;
-    }
-  }
+  @reflectable Isolate get isolate => _owner.isolate;
 
   /// The id of this object.
   @reflectable String get id => _id;
@@ -52,35 +33,57 @@ abstract class ServiceObject extends Observable {
   @reflectable String get hashLink => '#/${link}';
   set hashLink(var o) { /* silence polymer */ }
 
-  /// Returns true if [this] has only been partially initialized via
-  /// a reference. See [load].
-  bool isRef() => _ref;
-  bool _ref;
+  /// Has this object been fully loaded?
+  bool get loaded => _loaded;
+  bool _loaded = false;
+
+  /// Is this object cacheable?  That is, is it impossible for the [id]
+  /// of this object to change?
+  bool get canCache => false;
+
+  /// Is this object immutable after it is [loaded]?
+  bool get immutable => false;
 
   @observable String name;
   @observable String vmName;
-  @observable String mainPort;
 
-  ServiceObject(this._owner, this._id, this._serviceType) {
-    _ref = isRefType(_serviceType);
-    _serviceType = stripRef(_serviceType);
-    _created();
-  }
+  /// Creates an empty [ServiceObject].
+  ServiceObject._empty(this._owner);
 
-  ServiceObject.fromMap(this._owner, ObservableMap map) {
-    assert(isServiceMap(map));
-    _id = map['id'];
-    _ref = isRefType(map['type']);
-    _serviceType = stripRef(map['type']);
-    update(map);
-    _created();
+  /// Creates a [ServiceObject] initialized from [map].
+  factory ServiceObject._fromMap(ServiceObjectOwner owner,
+                                 ObservableMap map) {
+    if (!_isServiceMap(map)) {
+      Logger.root.severe('Malformed service object: $map');
+    }
+    assert(_isServiceMap(map));
+    var type = _stripRef(map['type']);
+    var obj = null;
+    assert(type != 'VM');
+    switch (type) {
+      case 'Code':
+        obj = new Code._empty(owner);
+        break;
+      case 'Error':
+        obj = new ServiceError._empty(owner);
+        break;
+      case 'Isolate':
+        obj = new Isolate._empty(owner);
+        break;
+      case 'Script':
+        obj = new Script._empty(owner);
+        break;
+      default:
+        obj = new ServiceMap._empty(owner);
+    }
+    obj.update(map);
+    return obj;
   }
 
   /// If [this] was created from a reference, load the full object
   /// from the service by calling [reload]. Else, return [this].
   Future<ServiceObject> load() {
-    if (!_ref) {
-      // Not a reference.
+    if (loaded) {
       return new Future.value(this);
     }
     // Call reload which will fill in the entire object.
@@ -95,84 +98,79 @@ abstract class ServiceObject extends Observable {
       assert(serviceType == 'Error');
       return new Future.value(this);
     }
-    return vm.getAsMap(link).then(update);
-  }
-
-  /// Update [this] using [m] as a source. [m] can be a reference.
-  ServiceObject update(ObservableMap m) {
-    // Assert that m is a service map.
-    assert(ServiceObject.isServiceMap(m));
-    if ((m['type'] == 'Error') && (_serviceType != 'Error')) {
-      // Got an unexpected error. Don't update the object.
-      return _upgradeToServiceObject(vm, isolate, m);
+    if (loaded && immutable) {
+      return new Future.value(this);
     }
-    // TODO(johnmccutchan): Should we allow for a ServiceObject's id
-    // or type to change?
-    _id = m['id'];
-    _serviceType = stripRef(m['type']);
-    _update(m);
-    return this;
+    return vm.getAsMap(link).then((ObservableMap map) {
+        var mapType = _stripRef(map['type']);
+        if (mapType != _serviceType) {
+          // If the type changes, return a new object instead of
+          // updating the existing one.
+          assert(mapType == 'Error' || mapType == 'Null');
+          return new ServiceObject._fromMap(owner, map);
+        }
+        update(map);
+        return this;
+      });
   }
 
-  // update internal state from [map]. [map] can be a reference.
-  void _update(ObservableMap map);
+  /// Update [this] using [map] as a source. [map] can be a reference.
+  void update(ObservableMap map) {
+    assert(_isServiceMap(map));
 
-  void _created() {
-    var refNotice = _ref ? ' Created from reference.' : '';
-    Logger.root.info('Created ServiceObject for \'${_id}\' with type '
-                     '\'${_serviceType}\'.' + refNotice);
-  }
+    // Don't allow the type to change on an object update.
+    // TODO(turnidge): Make this a ServiceError?
+    var mapIsRef = _hasRef(map['type']);
+    var mapType = _stripRef(map['type']);
+    assert(_serviceType == null || _serviceType == mapType);
 
-  // ------------------------------------------------------
-
-  /// Returns true if [map] is a service map. i.e. it has the following keys:
-  /// 'id' and a 'type'.
-  static bool isServiceMap(ObservableMap m) {
-    return (m != null) && (m['id'] != null) && (m['type'] != null);
-  }
-
-  /// Returns true if [type] is a reference type. i.e. it begins with an
-  /// '@' character.
-  static bool isRefType(String type) {
-    return type.startsWith('@');
-  }
-
-  /// Returns the unreffed version of [type].
-  static String stripRef(String type) {
-    if (!isRefType(type)) {
-      return type;
+    if (_id != null && _id != map['id']) {
+      // It is only safe to change an id when the object isn't cacheable.
+      assert(!canCache);
     }
-    // Strip off the '@' character.
-    return type.substring(1);
+    _id = map['id'];
+
+    _serviceType = mapType;
+    _update(map, mapIsRef);
   }
+
+  // Updates internal state from [map]. [map] can be a reference.
+  void _update(ObservableMap map, bool mapIsRef);
+}
+
+abstract class ServiceObjectOwner extends ServiceObject {
+  /// Creates an empty [ServiceObjectOwner].
+  ServiceObjectOwner._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  /// Builds a [ServiceObject] corresponding to the [id] from [map].
+  /// The result may come from the cache.  The result will not necessarily
+  /// be [loaded].
+  ServiceObject getFromMap(ObservableMap map);
 }
 
 /// State for a VM being inspected.
-abstract class VM extends ServiceObject {
-  @reflectable IsolateList _isolates;
-  @reflectable IsolateList get isolates => _isolates;
+abstract class VM extends ServiceObjectOwner {
+  @reflectable VM get vm => this;
+  @reflectable Isolate get isolate => null;
 
-  @observable List<Isolate> allIsolates = toObservable([]);
+  @reflectable Iterable<Isolate> get isolates => _isolateCache.values;
 
-  @reflectable String get link => "$id";
+  @reflectable String get link => '$id';
 
   @observable String version = 'unknown';
   @observable String architecture = 'unknown';
   @observable double uptime = 0.0;
 
-  void _initOnce() {
-    assert(_isolates == null);
-    _isolates = new IsolateList(this);
-    name = "vm";
-    vmName = "vm";
-  }
-
-  VM() : super(null, "vm", "VM") {
-    _initOnce();
+  VM() : super._empty(null) {
+    name = 'vm';
+    vmName = 'vm';
+    _cache['vm'] = this;
+    update(toObservable({'id':'vm', 'type':'@VM'}));
   }
 
   static final RegExp _currentIsolateMatcher = new RegExp(r'isolates/\d+');
   static final RegExp _currentObjectMatcher = new RegExp(r'isolates/\d+(/|$)');
+  static final String _isolatesPrefix = 'isolates/';
 
   String _parseObjectId(String id) {
     Match m = _currentObjectMatcher.matchAsPrefix(id);
@@ -190,36 +188,64 @@ abstract class VM extends ServiceObject {
     return id.substring(0, m.end);
   }
 
-  Future<ServiceObject> getDirect(String id) {
-    return vm.getAsMap(id).then((ObservableMap m) {
-        return _upgradeToServiceObject(vm, null, m);
-    });
+  Map<String,ServiceObject> _cache = new Map<String,ServiceObject>();
+  Map<String,Isolate> _isolateCache = new Map<String,Isolate>();
+
+  ServiceObject getFromMap(ObservableMap map) {
+    throw new UnimplementedError();
+  }
+
+  Future<ServiceObject> _getIsolate(String isolateId) {
+    if (isolateId == '') {
+      return new Future.value(null);
+    }
+    Isolate isolate = _isolateCache[isolateId];
+    if (isolate != null) {
+      return new Future.value(isolate);
+    }
+    // The isolate is not in the cache.  Reload the vm and see if the
+    // requested isolate is found.
+    return reload().then((result) {
+        if (result is! VM) {
+          return null;
+        }
+        assert(result == this);
+        return _isolateCache[isolateId];
+      });
   }
 
   Future<ServiceObject> get(String id) {
-    if (id.startsWith('isolates/')) {
+    // Isolates are handled specially, since they can cache sub-objects.
+    if (id.startsWith(_isolatesPrefix)) {
       String isolateId = _parseIsolateId(id);
-      if (isolateId == '') {
-        return reload();
-      } else {
-        Isolate isolate = _isolates.getIsolate(isolateId);
-        if (isolate == null) {
-          // TODO(turnidge): Isolate not found error.
-          return reload();
-        } else {
-          String objectId = _parseObjectId(id);
+      String objectId = _parseObjectId(id);
+      return _getIsolate(isolateId).then((isolate) {
+          if (isolate == null) {
+            // The isolate does not exist.  Return the VM object instead.
+            //
+            // TODO(turnidge): Generate a service error?
+            return this;
+          }
           if (objectId == null) {
             return isolate.reload();
           } else {
             return isolate.get(objectId);
           }
-        }
-      }
-    } else if (id == 'vm') {
-      return reload();
-    } else {
-      return getDirect(id);
+        });
     }
+
+    var obj = _cache[id];
+    if (obj != null) {
+      return obj.reload();
+    }
+    // Cache miss.  Get the object from the vm directly.
+    return getAsMap(id).then((ObservableMap map) {
+        var obj = new ServiceObject._fromMap(this, map);
+        if (obj.canCache) {
+          _cache.putIfAbsent(id, () => obj);
+        }
+        return obj;
+      });
   }
 
   /// Gets [id] as an [ObservableMap] from the service directly.
@@ -227,8 +253,6 @@ abstract class VM extends ServiceObject {
     return getString(id).then((response) {
       try {
         var map = JSON.decode(response);
-        Logger.root.info('Decoded $id');
-        Logger.root.info('Response $response');
         return toObservable(map);
       } catch (e, st) {
         return toObservable({
@@ -251,19 +275,45 @@ abstract class VM extends ServiceObject {
   /// Get [id] as a [String] from the service directly. See [getAsMap].
   Future<String> getString(String id);
 
-  void _update(ObservableMap map) {
-    _ref = false;
+  void _update(ObservableMap map, bool mapIsRef) {
+    if (mapIsRef) {
+      return;
+    }
+    _loaded = true;
     version = map['version'];
     architecture = map['architecture'];
     uptime = map['uptime'];
-    _isolates.updateIsolates(map['isolates']);
-    allIsolates.clear();
-    allIsolates.addAll(_isolates.isolates.values);
+    _updateIsolates(map['isolates']);
+  }
+
+  void _updateIsolates(List newIsolates) {
+    var oldIsolateCache = _isolateCache;
+    var newIsolateCache = new Map<String,Isolate>();
+    for (var isolateMap in newIsolates) {
+      var isolateId = isolateMap['id'];
+      var isolate = oldIsolateCache[isolateId];
+      if (isolate != null) {
+        newIsolateCache[isolateId] = isolate;
+      } else {
+        isolate = new ServiceObject._fromMap(this, isolateMap);
+        newIsolateCache[isolateId] = isolate;
+        Logger.root.info('New isolate \'${isolate.id}\'');
+      }
+    }
+    // Update the individual isolates asynchronously.
+    newIsolateCache.forEach((isolateId, isolate) {
+      isolate.reload();
+    });
+
+    _isolateCache = newIsolateCache;
   }
 }
 
 /// State for a running isolate.
-class Isolate extends ServiceObject {
+class Isolate extends ServiceObjectOwner {
+  @reflectable VM get vm => owner;
+  @reflectable Isolate get isolate => this;
+
   String get link => _id;
   String get hashLink => '#/$_id';
 
@@ -272,43 +322,21 @@ class Isolate extends ServiceObject {
   @observable bool running = false;
   @observable bool idle = false;
 
-  ScriptCache _scripts;
-  /// Script cache.
-  ScriptCache get scripts => _scripts;
-  CodeCache _codes;
-  /// Code cache.
-  CodeCache get codes => _codes;
-  /// Class cache.
-  ClassCache _classes;
-  ClassCache get classes => _classes;
-  /// Function cache.
-  FunctionCache _functions;
-  FunctionCache get functions => _functions;
+  Map<String,ServiceObject> _cache = new Map<String,ServiceObject>();
 
-  void _initOnce() {
-    // Only called once.
-    assert(_scripts == null);
-    _scripts = new ScriptCache(this);
-    _codes = new CodeCache(this);
-    _classes = new ClassCache(this);
-    _functions = new FunctionCache(this);
-  }
-
-  Isolate.fromId(VM vm, String id) : super(vm, id, '@Isolate') {
-    _initOnce();
-  }
-
-  Isolate.fromMap(VM vm, Map map) : super.fromMap(vm, map) {
-    _initOnce();
-  }
+  Isolate._empty(ServiceObjectOwner owner) : super._empty(owner);
 
   /// Creates a link to [id] relative to [this].
   @reflectable String relativeLink(String id) => '${this.id}/$id';
   /// Creates a relative link to [id] with a '#/' prefix.
   @reflectable String relativeHashLink(String id) => '#/${relativeLink(id)}';
 
-  Future<ScriptCache> refreshCoverage() {
-    return get('coverage').then(_scripts._processCoverage);
+  static const TAG_ROOT_ID = 'code/tag-0';
+
+  /// Returns the Code object for the root tag.
+  Code tagRoot() {
+    // TODO(turnidge): Use get() here instead?
+    return _cache[TAG_ROOT_ID];
   }
 
   void processProfile(ServiceMap profile) {
@@ -320,39 +348,82 @@ class Isolate extends ServiceObject {
       assert(code != null);
       codeTable.add(code);
     }
-    _codes._resetProfileData();
-    _codes._updateProfileData(profile, codeTable);
+    _resetProfileData();
+    _updateProfileData(profile, codeTable);
     var exclusiveTrie = profile['exclusive_trie'];
     if (exclusiveTrie != null) {
       profileTrieRoot = _processProfileTrie(exclusiveTrie, codeTable);
     }
   }
 
-  Future<ServiceObject> getDirect(String serviceId) {
-    return vm.getAsMap(relativeLink(serviceId)).then((ObservableMap m) {
-        return _upgradeToServiceObject(vm, this, m);
+  void _resetProfileData() {
+    _cache.values.forEach((value) {
+        if (value is Code) {
+          Code code = value;
+          code.resetProfileData();
+        }
+      });
+  }
+
+  void _updateProfileData(ServiceMap profile, List<Code> codeTable) {
+    var codeRegions = profile['codes'];
+    var sampleCount = profile['samples'];
+    for (var codeRegion in codeRegions) {
+      Code code = codeRegion['code'];
+      code.updateProfileData(codeRegion, codeTable, sampleCount);
+    }
+  }
+
+  Future refreshCoverage() {
+    return get('coverage').then(_processCoverage);
+  }
+
+  void _processCoverage(ServiceMap coverage) {
+    assert(coverage.serviceType == 'CodeCoverage');
+    var coverageList = coverage['coverage'];
+    assert(coverageList != null);
+    coverageList.forEach((scriptCoverage) {
+      _processScriptCoverage(scriptCoverage);
     });
   }
 
-  /// Requests [serviceId] from [this]. Completes to a [ServiceObject].
-  /// Can return pre-existing, cached, [ServiceObject]s.
-  Future<ServiceObject> get(String serviceId) {
-    if (serviceId == '') {
-      return reload();
+  void _processScriptCoverage(ObservableMap scriptCoverage) {
+    // Because the coverage data was upgraded into a ServiceObject,
+    // the script can be directly accessed.
+    Script script = scriptCoverage['script'];
+    script._processHits(scriptCoverage['hits']);
+  }
+
+  ServiceObject getFromMap(ObservableMap map) {
+    if (map == null) {
+      return null;
     }
-    if (_scripts.cachesId(serviceId)) {
-      return _scripts.get(serviceId);
+    String id = map['id'];
+    var obj = _cache[id];
+    if (obj != null) {
+      return obj;
     }
-    if (_codes.cachesId(serviceId)) {
-      return _codes.get(serviceId);
+    // Build the object from the map directly.
+    obj = new ServiceObject._fromMap(this, map);
+    if (obj.canCache) {
+      _cache[id] = obj;
     }
-    if (_classes.cachesId(serviceId)) {
-      return _classes.get(serviceId);
+    return obj;
+  }
+
+  Future<ServiceObject> get(String id) {
+    var obj = _cache[id];
+    if (obj != null) {
+      return obj.reload();
     }
-    if (_functions.cachesId(serviceId)) {
-      return _functions.get(serviceId);
-    }
-    return getDirect(serviceId);
+    // Cache miss.  Get the object from the vm directly.
+    return vm.getAsMap(relativeLink(id)).then((ObservableMap map) {
+        var obj = new ServiceObject._fromMap(this, map);
+        if (obj.canCache) {
+          _cache.putIfAbsent(id, () => obj);
+        }
+        return obj;
+      });
   }
 
   @observable ServiceMap rootLib;
@@ -360,6 +431,7 @@ class Isolate extends ServiceObject {
 
   @observable String name;
   @observable String vmName;
+  @observable String mainPort;
   @observable Map entry;
 
   @observable final Map<String, double> timers =
@@ -372,14 +444,15 @@ class Isolate extends ServiceObject {
 
   @observable String fileAndLine;
 
-  void _update(ObservableMap map) {
-    upgradeCollection(map, vm, this);
+  void _update(ObservableMap map, bool mapIsRef) {
     mainPort = map['mainPort'];
     name = map['name'];
-    if (ServiceObject.isRefType(map['type'])) {
+    vmName = map['name'];
+    if (mapIsRef) {
       return;
     }
-    _ref = false;
+    _loaded = true;
+    _upgradeCollection(map, isolate);
     if (map['rootLib'] == null ||
         map['timers'] == null ||
         map['heap'] == null) {
@@ -387,7 +460,6 @@ class Isolate extends ServiceObject {
       return;
     }
     rootLib = map['rootLib'];
-    vmName = map['name'];
     if (map['entry'] != null) {
       entry = map['entry'];
     }
@@ -468,104 +540,35 @@ class Isolate extends ServiceObject {
   }
 }
 
-// TODO(johnmccutchan): Make this into an IsolateCache.
-class IsolateList {
-  final VM _vm;
-  final isolates = new ObservableMap<String, Isolate>();
-
-  IsolateList(this._vm);
-  
-  void updateIsolates(List<Map> members) {
-     // Find dead isolates.
-     var deadIsolates = [];
-     isolates.forEach((k, v) {
-       if (!_foundIsolateInMembers(k, members)) {
-         deadIsolates.add(k);
-       }
-     });
-     // Remove them.
-     deadIsolates.forEach((id) {
-       isolates.remove(id);
-       Logger.root.info('Isolate \'$id\' has gone away.');
-     });
-
-     // Add new isolates.
-     members.forEach((map) {
-       var id = map['id'];
-       var isolate = isolates[id];
-       if (isolate == null) {
-         isolate = new Isolate.fromMap(_vm, map);
-         Logger.root.info('Created ServiceObject for \'${isolate.id}\' with '
-                          'type \'${isolate.serviceType}\'');
-         isolates[id] = isolate;
-       }
-     });
-
-     // After updating the isolate list, refresh each isolate.
-     _refreshIsolates();
-   }
-
-  void _refreshIsolates() {
-    // This is technically asynchronous but we don't need to wait for
-    // the result.
-    isolates.forEach((k, Isolate isolate) {
-      isolate.reload();
-    });
-  }
-
-  Isolate getIsolate(String id) {
-    assert(id.startsWith('isolates/'));
-    var isolate = isolates[id];
-    if (isolate != null) {
-      return isolate;
-    }
-    isolate = new Isolate.fromId(_vm, id);
-    isolates[id] = isolate;
-    isolate.load();
-    return isolate;
-  }
-
-  Isolate getIsolateFromMap(ObservableMap m) {
-    assert(ServiceObject.isServiceMap(m));
-    String id = m['id'];
-    assert(id.startsWith('isolates/'));
-    var isolate = isolates[id];
-    if (isolate != null) {
-      isolate.update(m);
-      return isolate;
-    }
-    isolate = new Isolate.fromMap(_vm, m);
-    isolates[id] = isolate;
-    isolate.load();
-    return isolate;
-  }
-
-  static bool _foundIsolateInMembers(String id, List<Map> members) {
-    return members.any((E) => E['id'] == id);
-  }
-}
-
-
 /// A [ServiceObject] which implements [ObservableMap].
 class ServiceMap extends ServiceObject implements ObservableMap {
   final ObservableMap _map = new ObservableMap();
-  ServiceMap(Isolate isolate, String id, String serviceType) :
-      super(isolate, id, serviceType) {
-  }
 
-  ServiceMap.fromMap(Isolate isolate, ObservableMap m) :
-      super.fromMap(isolate, m);
+  bool get canCache {
+    return (_serviceType == 'Class' ||
+            _serviceType == 'Function' ||
+            _serviceType == 'Library');
+  }
+  bool get immutable => canCache;
+
+  ServiceMap._empty(ServiceObjectOwner owner) : super._empty(owner);
 
   String toString() => _map.toString();
 
   void _upgradeValues() {
-    assert(isolate != null);
-    upgradeCollection(_map, vm, isolate);
+    assert(owner != null);
+    _upgradeCollection(_map, owner);
   }
 
-  void _update(ObservableMap m) {
+  void _update(ObservableMap map, bool mapIsRef) {
+    _loaded = !mapIsRef;
+
+    // TODO(turnidge): Currently _map.clear() prevents us from
+    // upgrading an already upgraded submap.  Is clearing really the
+    // right thing to do here?
     _map.clear();
-    _map.addAll(m);
+    _map.addAll(map);
+    
     name = _map['user_name'];
     vmName = _map['name'];
     _upgradeValues();
@@ -599,12 +602,13 @@ class ServiceMap extends ServiceObject implements ObservableMap {
 }
 
 class ServiceError extends ServiceObject {
-  ServiceError.fromMap(ServiceObject owner, Map m) : super.fromMap(owner, m);
+  ServiceError._empty(ServiceObjectOwner owner) : super._empty(owner);
 
   @observable String kind;
   @observable String message;
 
-  void _update(ObservableMap map) {
+  void _update(ObservableMap map, bool mapIsRef) {
+    _loaded = true;
     kind = map['kind'];
     message = map['message'];
     name = 'ServiceError $kind';
@@ -626,35 +630,25 @@ class Script extends ServiceObject {
   @observable ServiceObject library;
   @observable String kind;
 
+  bool get canCache => true;
+  bool get immutable => true;
+
   String _shortUrl;
   String _url;
 
-  Script.fromMap(Isolate isolate, Map m) : super.fromMap(isolate, m);
+  Script._empty(ServiceObjectOwner owner) : super._empty(owner);
 
-  void _update(ObservableMap m) {
-    // Assert that m is a service map.
-    assert(ServiceObject.isServiceMap(m));
-    if ((m['type'] == 'Error') && (m['kind'] == 'NotFoundError')) {
-      // TODO(johnmccutchan): Find out why dart:core/identical.dart can't
-      // be found but shows up in coverage. i.e. a function has reference
-      // to script that no library does.
-      Logger.root.info(m['message']);
-      return;
-    }
-    // Assert that the id hasn't changed.
-    assert(m['id'] == _id);
-    // Assert that the type hasn't changed.
-    assert(ServiceObject.stripRef(m['type']) == _serviceType);
-    _url = m['name'];
+  void _update(ObservableMap map, bool mapIsRef) {
+    kind = map['kind'];
+    _url = map['name'];
     _shortUrl = _url.substring(_url.lastIndexOf('/') + 1);
     name = _shortUrl;
     vmName = _url;
-    kind = m['kind'];
-    _processSource(m['source']);
+    _processSource(map['source']);
   }
 
   void _processHits(List scriptHits) {
-    if (_ref) {
+    if (!_loaded) {
       // Eagerly grab script source.
       load();
     }
@@ -668,8 +662,8 @@ class Script extends ServiceObject {
   }
 
   void _processSource(String source) {
-    // Preemptyively mark that this is a reference.
-    _ref = true;
+    // Preemptyively mark that this is not loaded.
+    _loaded = false;
     if (source == null) {
       return;
     }
@@ -677,8 +671,8 @@ class Script extends ServiceObject {
     if (sourceLines.length == 0) {
       return;
     }
-    // We have the source to the script. This is no longer a reference.
-    _ref = false;
+    // We have the source to the script. This is now loaded.
+    _loaded = true;
     lines.clear();
     Logger.root.info('Adding ${sourceLines.length} source lines for ${_url}');
     for (var i = 0; i < sourceLines.length; i++) {
@@ -804,7 +798,10 @@ class Code extends ServiceObject {
   String name;
   String vmName;
 
-  Code.fromMap(Isolate isolate, Map map) : super.fromMap(isolate, map);
+  bool get canCache => true;
+  bool get immutable => true;
+
+  Code._empty(ServiceObjectOwner owner) : super._empty(owner);
 
   // Reset all data associated with a profile.
   void resetProfileData() {
@@ -874,23 +871,20 @@ class Code extends ServiceObject {
         '($exclusiveTicks)';
   }
 
-  void _update(ObservableMap m) {
-    assert(ServiceObject.isServiceMap(m));
-    assert(m['id'] == _id);
-    assert(ServiceObject.stripRef(m['type']) == _serviceType);
+  void _update(ObservableMap m, bool mapIsRef) {
     name = m['user_name'];
     vmName = m['name'];
     kind = CodeKind.fromString(m['kind']);
     startAddress = int.parse(m['start'], radix:16);
     endAddress = int.parse(m['end'], radix:16);
-    function = _upgradeToServiceObject(vm, isolate, m['function']);
-    objectPool = _upgradeToServiceObject(vm, isolate, m['object_pool']);
+    function = isolate.getFromMap(m['function']);
+    objectPool = isolate.getFromMap(m['object_pool']);
     var disassembly = m['disassembly'];
     if (disassembly != null) {
       _processDisassembly(disassembly);
     }
-    // We are a reference if we don't have instructions and are Dart code.
-    _ref = (instructions.length == 0) && (kind == CodeKind.Dart);
+    // We are loaded if we have instructions or are not Dart code.
+    _loaded = (instructions.length != 0) || (kind != CodeKind.Dart);
     hasDisassembly = (instructions.length != 0) && (kind == CodeKind.Dart);
   }
 
@@ -954,5 +948,53 @@ class Code extends ServiceObject {
       }
     }
     return 0;
+  }
+}
+
+// Returns true if [map] is a service map. i.e. it has the following keys:
+// 'id' and a 'type'.
+bool _isServiceMap(ObservableMap m) {
+  return (m != null) && (m['id'] != null) && (m['type'] != null);
+}
+
+bool _hasRef(String type) => type.startsWith('@');
+String _stripRef(String type) => (_hasRef(type) ? type.substring(1) : type);
+
+/// Recursively upgrades all [ServiceObject]s inside [collection] which must
+/// be an [ObservableMap] or an [ObservableList]. Upgraded elements will be
+/// associated with [vm] and [isolate].
+void _upgradeCollection(collection, ServiceObjectOwner owner) {
+  if (collection is ServiceMap) {
+    return;
+  }
+  if (collection is ObservableMap) {
+    _upgradeObservableMap(collection, owner);
+  } else if (collection is ObservableList) {
+    _upgradeObservableList(collection, owner);
+  }
+}
+
+void _upgradeObservableMap(ObservableMap map, ServiceObjectOwner owner) {
+  map.forEach((k, v) {
+    if ((v is ObservableMap) && _isServiceMap(v)) {
+      map[k] = owner.getFromMap(v);
+    } else if (v is ObservableList) {
+      _upgradeObservableList(v, owner);
+    } else if (v is ObservableMap) {
+      _upgradeObservableMap(v, owner);
+    }
+  });
+}
+
+void _upgradeObservableList(ObservableList list, ServiceObjectOwner owner) {
+  for (var i = 0; i < list.length; i++) {
+    var v = list[i];
+    if ((v is ObservableMap) && _isServiceMap(v)) {
+      list[i] = owner.getFromMap(v);
+    } else if (v is ObservableList) {
+      _upgradeObservableList(v, owner);
+    } else if (v is ObservableMap) {
+      _upgradeObservableMap(v, owner);
+    }
   }
 }

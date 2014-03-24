@@ -5,11 +5,10 @@
 library service;
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:logging/logging.dart';
 import 'package:observe/observe.dart';
 
-part 'src/service/cache.dart';
 part 'src/service/object.dart';
-part 'src/service/service.dart';

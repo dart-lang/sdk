@@ -423,8 +423,7 @@
               <div style="color:#aaa;cursor:wait;">&lt;pending&gt;</div>
             </template>
             <template if="{{ result['value'] != null }}">
-              <instance-ref isolate="{{ isolate }}" ref="{{ result['value'] }}">
-              </instance-ref>
+              <instance-ref ref="{{ result['value'] }}"></instance-ref>
             </template>
           </td>
         </tr>
@@ -528,7 +527,7 @@
 
         <div class="memberItem">&nbsp;</div>
 
-        <template if="{{ cls['super']['type'] != 'Null' }}">
+        <template if="{{ cls['super'] != null }}">
           <div class="memberItem">
             <div class="memberName">extends</div>
             <div class="memberValue">
@@ -1831,7 +1830,7 @@
     <br>
 
     <ul class="list-group">
-      <template repeat="{{ isolate in vm.allIsolates }}">
+      <template repeat="{{ isolate in vm.isolates }}">
       	<li class="list-group-item">
           <isolate-summary isolate="{{ isolate }}"></isolate-summary>
         </li>
