@@ -4077,7 +4077,7 @@ class JSONTypeVerifier : public ObjectVisitor {
     }
     JSONStream js;
     handle.PrintToJSONStream(&js, false);
-    // TODO(koda): When all objects include a "type" field, expect that here.
+    EXPECT_SUBSTRING("\"type\":", js.ToCString());
   }
 };
 

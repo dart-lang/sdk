@@ -4005,7 +4005,7 @@ const char* UnresolvedClass::ToCString() const {
 
 
 void UnresolvedClass::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -4715,7 +4715,7 @@ const char* PatchClass::ToCString() const {
 
 
 void PatchClass::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -6399,7 +6399,7 @@ const char* ClosureData::ToCString() const {
 
 
 void ClosureData::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -6434,7 +6434,7 @@ const char* RedirectionData::ToCString() const {
 
 
 void RedirectionData::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -6906,7 +6906,7 @@ const char* LiteralToken::ToCString() const {
 
 
 void LiteralToken::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -7351,7 +7351,7 @@ const char* TokenStream::ToCString() const {
 
 
 void TokenStream::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -9215,7 +9215,7 @@ const char* LibraryPrefix::ToCString() const {
 
 
 void LibraryPrefix::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -9269,7 +9269,7 @@ const char* Namespace::ToCString() const {
 
 
 void Namespace::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -9535,7 +9535,7 @@ const char* Instructions::ToCString() const {
 
 
 void Instructions::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -9689,7 +9689,7 @@ const char* PcDescriptors::ToCString() const {
 
 
 void PcDescriptors::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -9844,7 +9844,7 @@ const char* Stackmap::ToCString() const {
 
 
 void Stackmap::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -9914,7 +9914,7 @@ const char* LocalVarDescriptors::ToCString() const {
 
 void LocalVarDescriptors::PrintToJSONStream(JSONStream* stream,
                                             bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -10098,7 +10098,7 @@ const char* ExceptionHandlers::ToCString() const {
 
 void ExceptionHandlers::PrintToJSONStream(JSONStream* stream,
                                           bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -10215,7 +10215,7 @@ bool DeoptInfo::VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
 
 
 void DeoptInfo::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -10913,7 +10913,7 @@ const char* Context::ToCString() const {
 
 
 void Context::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -11032,7 +11032,7 @@ const char* ContextScope::ToCString() const {
 
 
 void ContextScope::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -11506,7 +11506,7 @@ RawICData* ICData::New(const Function& function,
 
 
 void ICData::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -11622,7 +11622,7 @@ const char* MegamorphicCache::ToCString() const {
 
 
 void MegamorphicCache::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -11698,7 +11698,7 @@ const char* SubtypeTestCache::ToCString() const {
 
 
 void SubtypeTestCache::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
