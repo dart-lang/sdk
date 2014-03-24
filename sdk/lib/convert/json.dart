@@ -340,6 +340,7 @@ class _JsonStringifier {
   static const int CARRIAGE_RETURN = 0x0d;
   static const int FORM_FEED       = 0x0c;
   static const int QUOTE           = 0x22;
+  static const int CHAR_0          = 0x30;
   static const int BACKSLASH       = 0x5c;
   static const int CHAR_b          = 0x62;
   static const int CHAR_f          = 0x66;
@@ -375,47 +376,51 @@ class _JsonStringifier {
   static int hexDigit(int x) => x < 10 ? 48 + x : 87 + x;
 
   void escape(String s) {
+    int offset = 0;
     final int length = s.length;
-    bool needsEscape = false;
-    final charCodes = new List<int>();
     for (int i = 0; i < length; i++) {
       int charCode = s.codeUnitAt(i);
+      if (charCode > BACKSLASH) continue;
       if (charCode < 32) {
-        needsEscape = true;
-        charCodes.add(BACKSLASH);
+        if (i > offset) _sink.write(s.substring(offset, i));
+        offset = i + 1;
+        _sink.writeCharCode(BACKSLASH);
         switch (charCode) {
         case BACKSPACE:
-          charCodes.add(CHAR_b);
+          _sink.writeCharCode(CHAR_b);
           break;
         case TAB:
-          charCodes.add(CHAR_t);
+          _sink.writeCharCode(CHAR_t);
           break;
         case NEWLINE:
-          charCodes.add(CHAR_n);
+          _sink.writeCharCode(CHAR_n);
           break;
         case FORM_FEED:
-          charCodes.add(CHAR_f);
+          _sink.writeCharCode(CHAR_f);
           break;
         case CARRIAGE_RETURN:
-          charCodes.add(CHAR_r);
+          _sink.writeCharCode(CHAR_r);
           break;
         default:
-          charCodes.add(CHAR_u);
-          charCodes.add(hexDigit((charCode >> 12) & 0xf));
-          charCodes.add(hexDigit((charCode >> 8) & 0xf));
-          charCodes.add(hexDigit((charCode >> 4) & 0xf));
-          charCodes.add(hexDigit(charCode & 0xf));
+          _sink.writeCharCode(CHAR_u);
+          _sink.writeCharCode(CHAR_0);
+          _sink.writeCharCode(CHAR_0);
+          _sink.writeCharCode(hexDigit((charCode >> 4) & 0xf));
+          _sink.writeCharCode(hexDigit(charCode & 0xf));
           break;
         }
       } else if (charCode == QUOTE || charCode == BACKSLASH) {
-        needsEscape = true;
-        charCodes.add(BACKSLASH);
-        charCodes.add(charCode);
-      } else {
-        charCodes.add(charCode);
+        if (i > offset) _sink.write(s.substring(offset, i));
+        offset = i + 1;
+        _sink.writeCharCode(BACKSLASH);
+        _sink.writeCharCode(charCode);
       }
     }
-    _sink.write(needsEscape ? new String.fromCharCodes(charCodes) : s);
+    if (offset == 0) {
+      _sink.write(s);
+    } else if (offset < length) {
+      _sink.write(s.substring(offset, length));
+    }
   }
 
   void checkCycle(object) {
