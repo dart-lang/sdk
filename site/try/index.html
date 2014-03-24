@@ -9,6 +9,12 @@ BSD-style license that can be found in the LICENSE file.
 <meta charset="utf-8">
 <title>Try Dart!</title>
 <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+<!--
+TODO(ahe): Reduce the number of fonts used based on actual usage.
+
+See: http://www.google.com/fonts#UsePlace:use/Collection:Open+Sans:400,600,700,800,300
+-->
+<link href='http://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800,300' rel='stylesheet' type='text/css'>
 <link rel="stylesheet" type="text/css" href="dartlang-style.css">
 <style>
 a.diagnostic {
@@ -39,6 +45,110 @@ a:hover.diagnostic span {
   font-weight: bolder;
   opacity: 0.0;
 }
+
+.dart-code-completion-holder {
+  position: relative;
+  display: 'inline-block';
+}
+
+.dart-code-completion-holder *.dart-code-completion {
+  display: none;
+  position: absolute;
+  left: 0px;
+  min-width: 200px;
+  background: white;
+  foreground: black;
+  border: 1px solid black;
+  z-index: 10;
+  padding-left: 5px;
+}
+
+.dart-code-completion-holder.active *.dart-code-completion {
+  display: block;
+}
+
+.dart-static {
+  width: 198px;
+  overflow: auto;
+}
+
+/*
+ * TODO(ahe): There are problems with scroll bars on Macs, see:
+ * http://stackoverflow.com/questions/7855590/how-can-i-prevent-scroll-bars-from-being-hidden-for-os-x-trackpad-users-in-webki
+ * .dart-static::-webkit-scrollbar {
+ *   -webkit-appearance: none;
+ * }
+ *
+ * .dart-static::-webkit-scrollbar:vertical {
+ *   width: 11px;
+ * }
+ *
+ * .dart-static::-webkit-scrollbar:horizontal {
+ *   height: 11px;
+ * }
+ *
+ * .dart-static::-webkit-scrollbar-thumb {
+ *   border-radius: 8px;
+ *   border: 2px solid white; /* should match background, can't be transparent * /
+ *   background-color: rgba(0, 0, 0, .5);
+ * }
+ *
+ * .dart-static::-webkit-scrollbar-track {
+ *   background-color: #fff;
+ *   border-radius: 8px;
+ * }
+ */
+
+.dart-limited-height {
+  /* TODO(ahe): Make sure to compute this height to avoid jumping in the UI. */
+  max-height: 66px;
+}
+
+.dart-server {
+  width: 198px;
+  border-top: 1px solid black;
+}
+
+.activeEntry {
+  background: #86b4bf;
+}
+
+.doubleplusgood {
+  font-weight: 700;
+}
+
+.dart-entry {
+  max-width: 198px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.hazed-suggestion {
+  color: #aaa;
+}
+
+.hazed-suggestion:after {
+  content: " ";
+}
+
+.slider {
+  overflow-y: hidden;
+  height: 0;
+  max-height: 9999px;
+
+  transition-property: height;
+  transition-duration: .5s;
+  transition-timing-function: cubic-bezier(0.4, 0.0, 0.2, 1);
+/* cubic-bezier(0, 1, 0.5, 1);*/
+}
+
+.myhidden {
+  position: absolute;
+  visibility: hidden;
+  height: auto;
+}
+
+
 </style>
 
 <meta itemprop="name" content="Try Dart!">
@@ -108,12 +218,28 @@ a:hover.diagnostic span {
 </div>
 </div>
 </div>
+
+<div id="settings-dialog" class="myhidden container-fluid">
+  <div class="row-fluid">
+    <div class="span12">
+      <div>
+        <h3>Settings</h3>
+        <div id="settings-body">
+        </div>
+        <div>
+          <a href="#" class="btn btn-primary" id="settings-done">Done</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="container-fluid">
 <article class="homepage">
 <section>
 <div class="callouts row-fluid">
 <div class="span6" id="try-dart-column">
-<h2><i class="icon-play"></i> Try Dart! <select id="inspiration"></select></h2>
+<h2><i class="icon-play"></i> Try Dart! <select id="code-picker"></select></h2>
 </div>
 <div class="span6" id="run-dart-column">
 <h2><i class="icon-cogs"></i> See Dart</h2>
@@ -121,17 +247,6 @@ a:hover.diagnostic span {
 </div>
 </section>
 </article>
-</div>
-
-<div id="settings-dialog" class="modal hide fade">
-  <div class="modal-header">
-    <h3>Settings</h3>
-  </div>
-  <div class="modal-body" id="settings-body">
-  </div>
-  <div class="modal-footer">
-    <a href="#" class="btn btn-primary" id="settings-done">Done</a>
-  </div>
 </div>
 
 <footer>

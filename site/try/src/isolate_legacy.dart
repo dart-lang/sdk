@@ -5,7 +5,6 @@
 library trydart.isolate_legacy;
 
 import 'dart:isolate';
-import 'dart:async';
 
 ReceivePort spawnFunction(void function(SendPort port)) {
   ReceivePort port = new ReceivePort();

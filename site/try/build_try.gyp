@@ -76,7 +76,7 @@
           ],
           'action': [
             '<(PRODUCT_DIR)/dart-sdk/bin/dart2js',
-            '-v',
+            '-p../../sdk/lib/_internal/',
             '-Denable_ir=false',
             'src/leap.dart',
             '-o<(SHARED_INTERMEDIATE_DIR)/leap.dart.js',

@@ -7,15 +7,17 @@ library trydart.ui;
 import 'dart:html';
 
 import 'dart:async' show
+    Future,
+    Timer,
     scheduleMicrotask;
+
+import 'dart:convert' show JSON;
 
 import 'cache.dart' show
     onLoad,
     updateCacheStatus;
 
-import 'editor.dart' show
-    onKeyUp,
-    onMutation;
+import 'interaction_manager.dart' show InteractionManager;
 
 import 'run.dart' show
     makeOutputFrame;
@@ -31,21 +33,23 @@ import 'samples.dart' show
     EXAMPLE_HELLO_HTML,
     EXAMPLE_SUNFLOWER;
 
+import 'settings.dart';
+
+import 'user_option.dart';
+
+import 'messages.dart' show messages;
+
+// TODO(ahe): Make internal to buildUI once all interactions have been moved to
+// the manager.
+InteractionManager interaction;
+
 DivElement inputPre;
 PreElement outputDiv;
 DivElement hackDiv;
 IFrameElement outputFrame;
 MutationObserver observer;
 SpanElement cacheStatusElement;
-bool alwaysRunInWorker = window.localStorage['alwaysRunInWorker'] == 'true';
-bool verboseCompiler = window.localStorage['verboseCompiler'] == 'true';
-bool minified = window.localStorage['minified'] == 'true';
-bool onlyAnalyze = window.localStorage['onlyAnalyze'] == 'true';
-final String rawCodeFont = window.localStorage['codeFont'];
-String codeFont = rawCodeFont == null ? '' : rawCodeFont;
-String currentSample = window.localStorage['currentSample'];
-Theme currentTheme = Theme.named(window.localStorage['theme']);
-bool applyingSettings = false;
+Theme currentTheme = Theme.named(theme);
 
 buildButton(message, action) {
   if (message is String) {
@@ -65,126 +69,48 @@ buildTab(message, id, action) {
     event.preventDefault();
     Element e = event.target;
     LIElement parent = e.parent;
-    parent.parent.query('li[class="active"]').classes.remove('active');
+    parent.parent.querySelector('li[class="active"]').classes.remove('active');
     parent.classes.add('active');
     action(event);
   }
 
-  inspirationCallbacks[id] = action;
+  codeCallbacks[id] = action;
 
   return new OptionElement()..append(message)..id = id;
 }
 
-Map<String, Function> inspirationCallbacks = new Map<String, Function>();
+Map<String, Function> codeCallbacks = new Map<String, Function>();
 
-void onInspirationChange(Event event) {
+void onCodeChange(Event event) {
   SelectElement select = event.target;
-  String id = select.queryAll('option')[select.selectedIndex].id;
-  Function action = inspirationCallbacks[id];
+  String id = select.querySelectorAll('option')[select.selectedIndex].id;
+  Function action = codeCallbacks[id];
   if (action != null) action(event);
   outputFrame.style.display = 'none';
 }
 
 buildUI() {
+  interaction = new InteractionManager();
+
   window.localStorage['currentSample'] = '$currentSample';
 
-  var inspirationTabs = document.getElementById('inspiration');
-  var htmlGroup = new OptGroupElement()..label = 'HTML';
-  var benchmarkGroup = new OptGroupElement()..label = 'Benchmarks';
-  inspirationTabs.append(new OptionElement()..appendText('Pick an example'));
-  inspirationTabs.onChange.listen(onInspirationChange);
-  // inspirationTabs.classes.addAll(['nav', 'nav-tabs']);
-  inspirationTabs.append(buildTab('Hello, World!', 'EXAMPLE_HELLO', (_) {
-    inputPre
-        ..nodes.clear()
-        ..appendText(EXAMPLE_HELLO);
-  }));
-  inspirationTabs.append(buildTab('Fibonacci', 'EXAMPLE_FIBONACCI', (_) {
-    inputPre
-        ..nodes.clear()
-        ..appendText(EXAMPLE_FIBONACCI);
-  }));
-  inspirationTabs.append(htmlGroup);
-  // TODO(ahe): Restore benchmarks.
-  // inspirationTabs.append(benchmarkGroup);
-
-  htmlGroup.append(
-      buildTab('Hello, World!', 'EXAMPLE_HELLO_HTML', (_) {
-    inputPre
-        ..nodes.clear()
-        ..appendText(EXAMPLE_HELLO_HTML);
-  }));
-  htmlGroup.append(
-      buildTab('Fibonacci', 'EXAMPLE_FIBONACCI_HTML', (_) {
-    inputPre
-        ..nodes.clear()
-        ..appendText(EXAMPLE_FIBONACCI_HTML);
-  }));
-  htmlGroup.append(buildTab('Sunflower', 'EXAMPLE_SUNFLOWER', (_) {
-    inputPre
-        ..nodes.clear()
-        ..appendText(EXAMPLE_SUNFLOWER);
-  }));
-
-  benchmarkGroup.append(buildTab('DeltaBlue', 'BENCHMARK_DELTA_BLUE', (_) {
-    inputPre.contentEditable = 'false';
-    LinkElement link = query('link[rel="benchmark-DeltaBlue"]');
-    String deltaBlueUri = link.href;
-    link = query('link[rel="benchmark-base"]');
-    String benchmarkBaseUri = link.href;
-    HttpRequest.getString(benchmarkBaseUri).then((String benchmarkBase) {
-      HttpRequest.getString(deltaBlueUri).then((String deltaBlue) {
-        benchmarkBase = benchmarkBase.replaceFirst(
-            'part of benchmark_harness;', '// part of benchmark_harness;');
-        deltaBlue = deltaBlue.replaceFirst(
-            "import 'package:benchmark_harness/benchmark_harness.dart';",
-            benchmarkBase);
-        inputPre
-            ..nodes.clear()
-            ..appendText(deltaBlue)
-            ..contentEditable = 'true';
-      });
-    });
-  }));
-
-  benchmarkGroup.append(buildTab('Richards', 'BENCHMARK_RICHARDS', (_) {
-    inputPre.contentEditable = 'false';
-    LinkElement link = query('link[rel="benchmark-Richards"]');
-    String richardsUri = link.href;
-    link = query('link[rel="benchmark-base"]');
-    String benchmarkBaseUri = link.href;
-    HttpRequest.getString(benchmarkBaseUri).then((String benchmarkBase) {
-      HttpRequest.getString(richardsUri).then((String richards) {
-        benchmarkBase = benchmarkBase.replaceFirst(
-            'part of benchmark_harness;', '// part of benchmark_harness;');
-        richards = richards.replaceFirst(
-            "import 'package:benchmark_harness/benchmark_harness.dart';",
-            benchmarkBase);
-        inputPre
-            ..nodes.clear()
-            ..appendText(richards)
-            ..contentEditable = 'true';
-      });
-    });
-  }));
-
-  // TODO(ahe): Update currentSample.  Or try switching to a drop-down menu.
-  var active = inspirationTabs.query('[id="$currentSample"]');
-  if (active == null) {
-    // inspirationTabs.query('li').classes.add('active');
-  }
+  buildCode(interaction);
 
   (inputPre = new DivElement())
       ..classes.add('well')
       ..style.backgroundColor = currentTheme.background.color
       ..style.color = currentTheme.foreground.color
-      ..style.overflow = 'auto'
+      ..style.overflow = 'visible'
       ..style.whiteSpace = 'pre'
       ..style.font = codeFont
       ..spellcheck = false;
 
-  inputPre.contentEditable = 'true';
-  inputPre.onKeyDown.listen(onKeyUp);
+  inputPre
+      ..contentEditable = 'true'
+      ..onKeyDown.listen(interaction.onKeyUp)
+      ..onInput.listen(interaction.onInput);
+
+  document.onSelectionChange.listen(interaction.onSelectionChange);
 
   var inputWrapper = new DivElement()
       ..append(inputPre)
@@ -241,8 +167,7 @@ buildUI() {
   cacheStatusElement = document.getElementById('appcache-status');
   updateCacheStatus();
 
-  // TODO(ahe): Switch to two column layout so the console is on the right.
-  var section = document.query('article[class="homepage"]>section');
+  var section = document.querySelector('article[class="homepage"]>section');
 
   DivElement tryColumn = document.getElementById('try-dart-column');
   DivElement runColumn = document.getElementById('run-dart-column');
@@ -278,7 +203,7 @@ buildUI() {
     outputDiv.appendText('${event.data}\n');
   });
 
-  observer = new MutationObserver(onMutation)
+  observer = new MutationObserver(interaction.onMutation)
       ..observe(inputPre, childList: true, characterData: true, subtree: true);
 
   scheduleMicrotask(() {
@@ -295,17 +220,140 @@ buildUI() {
   onLoad(null);
 }
 
+buildCode(InteractionManager interaction) {
+  var codePicker =
+      document.getElementById('code-picker')
+      ..style.visibility = 'hidden'
+      ..onChange.listen(onCodeChange);
+  var htmlGroup = new OptGroupElement()..label = 'HTML';
+  var benchmarkGroup = new OptGroupElement()..label = 'Benchmarks';
+
+  new Future(() => HttpRequest.getString('project?list').then(
+  (String response) {
+    OptionElement none = new OptionElement()
+        ..appendText('--')
+        ..disabled = true;
+    codePicker.append(none);
+    for (String projectFile in JSON.decode(response)) {
+      codePicker.append(buildTab(projectFile, projectFile, (_) {
+        inputPre.contentEditable = 'false';
+        HttpRequest.getString('project/$projectFile').then((String text) {
+          inputPre
+              ..contentEditable = 'true'
+              ..nodes.clear();
+          observer.takeRecords();
+          inputPre.appendText(text);
+        });
+      }));
+    }
+    codePicker.style.visibility = 'visible';
+    codePicker.selectedIndex = 0;
+  })).catchError((error) {
+    codePicker.style.visibility = 'visible';
+    print(error);
+    OptionElement none = new OptionElement()
+        ..appendText('Pick an example')
+        ..disabled = true;
+    codePicker.append(none);
+
+    // codePicker.classes.addAll(['nav', 'nav-tabs']);
+    codePicker.append(buildTab('Hello, World!', 'EXAMPLE_HELLO', (_) {
+      inputPre
+          ..nodes.clear()
+          ..appendText(EXAMPLE_HELLO);
+    }));
+    codePicker.append(buildTab('Fibonacci', 'EXAMPLE_FIBONACCI', (_) {
+      inputPre
+          ..nodes.clear()
+          ..appendText(EXAMPLE_FIBONACCI);
+    }));
+    codePicker.append(htmlGroup);
+    // TODO(ahe): Restore benchmarks.
+    // codePicker.append(benchmarkGroup);
+
+    htmlGroup.append(
+        buildTab('Hello, World!', 'EXAMPLE_HELLO_HTML', (_) {
+      inputPre
+          ..nodes.clear()
+          ..appendText(EXAMPLE_HELLO_HTML);
+    }));
+    htmlGroup.append(
+        buildTab('Fibonacci', 'EXAMPLE_FIBONACCI_HTML', (_) {
+      inputPre
+          ..nodes.clear()
+          ..appendText(EXAMPLE_FIBONACCI_HTML);
+    }));
+    htmlGroup.append(buildTab('Sunflower', 'EXAMPLE_SUNFLOWER', (_) {
+      inputPre
+          ..nodes.clear()
+          ..appendText(EXAMPLE_SUNFLOWER);
+    }));
+
+    benchmarkGroup.append(buildTab('DeltaBlue', 'BENCHMARK_DELTA_BLUE', (_) {
+      inputPre.contentEditable = 'false';
+      LinkElement link = querySelector('link[rel="benchmark-DeltaBlue"]');
+      String deltaBlueUri = link.href;
+      link = querySelector('link[rel="benchmark-base"]');
+      String benchmarkBaseUri = link.href;
+      HttpRequest.getString(benchmarkBaseUri).then((String benchmarkBase) {
+        HttpRequest.getString(deltaBlueUri).then((String deltaBlue) {
+          benchmarkBase = benchmarkBase.replaceFirst(
+              'part of benchmark_harness;', '// part of benchmark_harness;');
+          deltaBlue = deltaBlue.replaceFirst(
+              "import 'package:benchmark_harness/benchmark_harness.dart';",
+              benchmarkBase);
+          inputPre
+              ..nodes.clear()
+              ..appendText(deltaBlue)
+              ..contentEditable = 'true';
+        });
+      });
+    }));
+
+    benchmarkGroup.append(buildTab('Richards', 'BENCHMARK_RICHARDS', (_) {
+      inputPre.contentEditable = 'false';
+      LinkElement link = querySelector('link[rel="benchmark-Richards"]');
+      String richardsUri = link.href;
+      link = querySelector('link[rel="benchmark-base"]');
+      String benchmarkBaseUri = link.href;
+      HttpRequest.getString(benchmarkBaseUri).then((String benchmarkBase) {
+        HttpRequest.getString(richardsUri).then((String richards) {
+          benchmarkBase = benchmarkBase.replaceFirst(
+              'part of benchmark_harness;', '// part of benchmark_harness;');
+          richards = richards.replaceFirst(
+              "import 'package:benchmark_harness/benchmark_harness.dart';",
+              benchmarkBase);
+          inputPre
+              ..nodes.clear()
+              ..appendText(richards)
+              ..contentEditable = 'true';
+        });
+      });
+    }));
+
+    codePicker.selectedIndex = 0;
+  });
+}
+
+num settingsHeight = 0;
+
 void openSettings(MouseEvent event) {
   event.preventDefault();
 
-  var backdrop = new DivElement()..classes.add('modal-backdrop');
-  document.body.append(backdrop);
+  if (settingsHeight != 0) {
+    var dialog = document.getElementById('settings-dialog');
+    if (dialog.getBoundingClientRect().height > 0) {
+      dialog.style.height = '0px';
+    } else {
+      dialog.style.height = '${settingsHeight}px';
+    }
+    return;
+  }
 
   void updateCodeFont(Event e) {
     TextInputElement target = e.target;
     codeFont = target.value;
     inputPre.style.font = codeFont;
-    backdrop.style.opacity = '0.0';
   }
 
   void updateTheme(Event e) {
@@ -322,13 +370,11 @@ void openSettings(MouseEvent event) {
         ..backgroundColor = currentTheme.background.color
         ..color = currentTheme.foreground.color;
 
-    backdrop.style.opacity = '0.0';
-
-    applyingSettings = true;
-    onMutation([], observer);
-    applyingSettings = false;
+    bool oldCompilationPaused = compilationPaused;
+    compilationPaused = true;
+    interaction.onMutation([], observer);
+    compilationPaused = false;
   }
-
 
   var body = document.getElementById('settings-body');
 
@@ -339,65 +385,84 @@ void openSettings(MouseEvent event) {
   body.append(form);
   form.append(fieldSet);
 
-  buildCheckBox(String text, bool defaultValue, void action(Event e)) {
-    var checkBox = new CheckboxInputElement()
-        // TODO(ahe): Used to be ..defaultChecked = defaultValue
-        ..checked = defaultValue
-        ..onChange.listen(action);
-    return new LabelElement()
-        ..classes.add('checkbox')
-        ..append(checkBox)
-        ..appendText(' $text');
-  }
-
   bool isChecked(CheckboxInputElement checkBox) => checkBox.checked;
 
-  // TODO(ahe): Build abstraction for flags/options.
-  fieldSet.append(
-      buildCheckBox(
-          'Always run in Worker thread.', alwaysRunInWorker,
-          (Event e) { alwaysRunInWorker = isChecked(e.target); }));
-
-  fieldSet.append(
-      buildCheckBox(
-          'Verbose compiler output.', verboseCompiler,
-          (Event e) { verboseCompiler = isChecked(e.target); }));
-
-  fieldSet.append(
-      buildCheckBox(
-          'Generate compact (minified) JavaScript.', minified,
-          (Event e) { minified = isChecked(e.target); }));
-
-  fieldSet.append(
-      buildCheckBox(
-          'Only analyze program.', onlyAnalyze,
-          (Event e) { onlyAnalyze = isChecked(e.target); }));
-
-  fieldSet.append(new LabelElement()..appendText('Code font:'));
-  var textInput = new TextInputElement();
-  textInput.classes.add('input-block-level');
-  if (codeFont != null && codeFont != '') {
-    textInput.value = codeFont;
+  String messageFor(UserOption option) {
+    var message = messages[option.name];
+    if (message is List) message = message[0];
+    return (message == null) ? option.name : message;
   }
-  textInput.placeholder = 'Enter a size and font, for example, 11pt monospace';
-  textInput.onChange.listen(updateCodeFont);
-  fieldSet.append(textInput);
 
-  fieldSet.append(new LabelElement()..appendText('Theme:'));
-  var themeSelector = new SelectElement();
-  themeSelector.classes.add('input-block-level');
-  for (Theme theme in THEMES) {
-    OptionElement option = new OptionElement()..appendText(theme.name);
-    if (theme == currentTheme) option.selected = true;
-    themeSelector.append(option);
+  String placeHolderFor(UserOption option) {
+    var message = messages[option.name];
+    if (message is! List) return '';
+    message = message[1];
+    return (message == null) ? '' : message;
   }
-  themeSelector.onChange.listen(updateTheme);
-  fieldSet.append(themeSelector);
+
+  void addBooleanOption(BooleanUserOption option) {
+    CheckboxInputElement checkBox = new CheckboxInputElement()
+        ..checked = option.value
+        ..onChange.listen((Event e) { option.value = isChecked(e.target); });
+
+    LabelElement label = new LabelElement()
+        ..classes.add('checkbox')
+        ..append(checkBox)
+        ..appendText(' ${messageFor(option)}');
+
+    fieldSet.append(label);
+  }
+
+  void addStringOption(StringUserOption option) {
+    fieldSet.append(new LabelElement()..appendText(messageFor(option)));
+    var textInput = new TextInputElement();
+    textInput.classes.add('input-block-level');
+    String value = option.value;
+    if (!value.isEmpty) {
+      textInput.value = value;
+    }
+    textInput.placeholder = placeHolderFor(option);;
+    textInput.onChange.listen(updateCodeFont);
+    fieldSet.append(textInput);
+  }
+
+  void addThemeOption(StringUserOption option) {
+    fieldSet.append(new LabelElement()..appendText('Theme:'));
+    var themeSelector = new SelectElement();
+    themeSelector.classes.add('input-block-level');
+    for (Theme theme in THEMES) {
+      OptionElement option = new OptionElement()..appendText(theme.name);
+      if (theme == currentTheme) option.selected = true;
+      themeSelector.append(option);
+    }
+    themeSelector.onChange.listen(updateTheme);
+    fieldSet.append(themeSelector);
+  }
+
+  for (UserOption option in options) {
+    if (option.isHidden) continue;
+    if (option.name == 'theme') {
+      addThemeOption(option);
+    } else if (option is BooleanUserOption) {
+      addBooleanOption(option);
+    } else if (option is StringUserOption) {
+      addStringOption(option);
+    }
+  }
 
   var dialog = document.getElementById('settings-dialog');
 
-  dialog.style.display = 'block';
-  dialog.classes.add('in');
+  if (settingsHeight == 0) {
+    settingsHeight = dialog.getBoundingClientRect().height;
+    dialog.classes
+        ..add('slider')
+        ..remove('myhidden');
+    Timer.run(() {
+      dialog.style.height = '${settingsHeight}px';
+    });
+  } else {
+    dialog.style.height = '${settingsHeight}px';
+  }
 
   onSubmit(Event event) {
     event.preventDefault();
@@ -406,11 +471,11 @@ void openSettings(MouseEvent event) {
     window.localStorage['verboseCompiler'] = '$verboseCompiler';
     window.localStorage['minified'] = '$minified';
     window.localStorage['onlyAnalyze'] = '$onlyAnalyze';
+    window.localStorage['enableDartMind'] = '$enableDartMind';
+    window.localStorage['compilationPaused'] = '$compilationPaused';
     window.localStorage['codeFont'] = '$codeFont';
 
-    dialog.style.display = 'none';
-    dialog.classes.remove('in');
-    backdrop.remove();
+    dialog.style.height = '0px';
   }
   form.onSubmit.listen(onSubmit);
 
