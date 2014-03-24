@@ -11,7 +11,6 @@ import 'observatory_element.dart';
 import 'package:observatory/service.dart';
 import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
-import 'package:observatory/app.dart';
 
 // A reference to a particular pixel of ImageData.
 class PixelReference {
@@ -24,24 +23,24 @@ class PixelReference {
         _dataIndex = (point.y * data.width + point.x) * NUM_COLOR_COMPONENTS;
 
   PixelReference._fromDataIndex(this._data, this._dataIndex);
-  
+
   Point<int> get point =>
       new Point(index % _data.width, index ~/ _data.width);
-  
+
   void set color(Iterable<int> color) {
     _data.data.setRange(
         _dataIndex, _dataIndex + NUM_COLOR_COMPONENTS, color);
   }
-  
+
   Iterable<int> get color =>
       _data.data.getRange(_dataIndex, _dataIndex + NUM_COLOR_COMPONENTS);
 
   // Returns the next pixel in row-major order.
   PixelReference next() => new PixelReference._fromDataIndex(
       _data, _dataIndex + NUM_COLOR_COMPONENTS);
-  
+
   // The row-major index of this pixel.
-  int get index => _dataIndex ~/ NUM_COLOR_COMPONENTS;      
+  int get index => _dataIndex ~/ NUM_COLOR_COMPONENTS;
 }
 
 @CustomTag('heap-map')
@@ -52,11 +51,11 @@ class HeapMapElement extends ObservatoryElement {
   var _classIdToColor = {};
   var _colorToClassId = {};
   var _classIdToName = {};
-  
+
   static final _freeColor = [255, 255, 255, 255];
   static final _pageSeparationColor = [0, 0, 0, 255];
   static const _PAGE_SEPARATION_HEIGHT = 4;
-  
+
   @observable String status;
   @published ServiceMap fragmentation;
 
@@ -83,7 +82,7 @@ class HeapMapElement extends ObservatoryElement {
     _classIdToColor[classId] = color;
     _colorToClassId[_packColor(color)] = classId;
   }
-  
+
   void _updateClassList(classList, int freeClassId) {
     for (var member in classList['members']) {
       if (member['type'] != '@Class') {
@@ -97,7 +96,7 @@ class HeapMapElement extends ObservatoryElement {
     _addClass(freeClassId, 'Free', _freeColor);
     _addClass(0, '', _pageSeparationColor);
   }
-  
+
   Iterable<int> _classIdToRGBA(int classId) {
     // TODO(koda): Pick random hue, but fixed saturation and value.
     var rng = new Random(classId);
@@ -108,7 +107,7 @@ class HeapMapElement extends ObservatoryElement {
     var color = new PixelReference(_fragmentationData, point).color;
     return _classIdToName[_colorToClassId[_packColor(color)]];
   }
-  
+
   // TODO(koda): Find start of object.
   int _addressAt(Point<int> point) {
     var pagePixels = _pageHeight * _fragmentationData.width;
@@ -123,13 +122,13 @@ class HeapMapElement extends ObservatoryElement {
       return 0;
     }
   }
-  
+
   void _handleMouseMove(MouseEvent event) {
     var addressString = '@ 0x${_addressAt(event.offset).toRadixString(16)}';
     var className = _classNameAt(event.offset);
     status = (className == '') ? '-' : '$className $addressString';
   }
-  
+
   void _updateFragmentationData() {
     if (fragmentation == null || _fragmentationCanvas == null) {
       return;
@@ -148,7 +147,7 @@ class HeapMapElement extends ObservatoryElement {
     _fragmentationCanvas.height = _fragmentationData.height;
     _renderPages(0);
   }
-  
+
   // Renders and draws asynchronously, one page at a time to avoid
   // blocking the UI.
   void _renderPages(int startPage) {

@@ -543,11 +543,13 @@ class Isolate extends ServiceObjectOwner {
 /// A [ServiceObject] which implements [ObservableMap].
 class ServiceMap extends ServiceObject implements ObservableMap {
   final ObservableMap _map = new ObservableMap();
+  static String objectIdRingPrefix = 'objects/';
 
   bool get canCache {
     return (_serviceType == 'Class' ||
             _serviceType == 'Function' ||
-            _serviceType == 'Library');
+            _serviceType == 'Library') &&
+           !_id.startsWith(objectIdRingPrefix);
   }
   bool get immutable => canCache;
 
@@ -568,7 +570,7 @@ class ServiceMap extends ServiceObject implements ObservableMap {
     // right thing to do here?
     _map.clear();
     _map.addAll(map);
-    
+
     name = _map['user_name'];
     vmName = _map['name'];
     _upgradeValues();

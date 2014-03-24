@@ -6330,16 +6330,19 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
     id = cls.FindFunctionIndex(*this);
     selector = "functions";
   }
-  // TODO(17697): Oddball functions are treated as plain objects and use the
-  // object id ring. Current known examples are signature functions of closures
-  // and stubs like 'megamorphic_miss'.
-  if (id < 0) {
-    return Object::PrintToJSONStream(stream, ref);
-  }
   intptr_t cid = cls.id();
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
-  jsobj.AddPropertyF("id", "classes/%" Pd "/%s/%" Pd "", cid, selector, id);
+  // TODO(17697): Oddball functions (functions without owners) use the object
+  // id ring. Current known examples are signature functions of closures
+  // and stubs like 'megamorphic_miss'.
+  if (id < 0) {
+    ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+    id = ring->GetIdForObject(raw());
+    jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  } else {
+    jsobj.AddPropertyF("id", "classes/%" Pd "/%s/%" Pd "", cid, selector, id);
+  }
   jsobj.AddProperty("name", internal_name);
   jsobj.AddProperty("user_name", user_name);
   jsobj.AddProperty("class", cls);
