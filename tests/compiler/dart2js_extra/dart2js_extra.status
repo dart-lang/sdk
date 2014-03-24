@@ -11,7 +11,7 @@ no_such_method_test: Fail # Wrong Invocation.memberName.
 deferred/deferred_constant_test: Fail # http://dartbug.com/11138
 constant_javascript_semantics4_test: Fail, OK
 
-[ $compiler == dart2js && $runtime == jsshell ]
+[ $compiler == dart2js && ($runtime == jsshell || $runtime == ff) ]
 mirror_printer_test: Pass, Slow # Issue 16473
 
 [ $compiler == dart2js && $checked ]
