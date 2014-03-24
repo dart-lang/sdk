@@ -5306,6 +5306,16 @@ class OneByteString : public AllStatic {
                                intptr_t other_len,
                                Heap::Space space);
 
+  static RawOneByteString* New(const TypedData& other_typed_data,
+                               intptr_t other_start_index,
+                               intptr_t other_len,
+                               Heap::Space space = Heap::kNew);
+
+  static RawOneByteString* New(const ExternalTypedData& other_typed_data,
+                               intptr_t other_start_index,
+                               intptr_t other_len,
+                               Heap::Space space = Heap::kNew);
+
   static RawOneByteString* Concat(const String& str1,
                                   const String& str2,
                                   Heap::Space space);

@@ -16293,6 +16293,38 @@ RawOneByteString* OneByteString::New(const String& other_one_byte_string,
 }
 
 
+RawOneByteString* OneByteString::New(const TypedData& other_typed_data,
+                                     intptr_t other_start_index,
+                                     intptr_t other_len,
+                                     Heap::Space space) {
+  const String& result = String::Handle(OneByteString::New(other_len, space));
+  ASSERT(other_typed_data.ElementSizeInBytes() == 1);
+  if (other_len > 0) {
+    NoGCScope no_gc;
+    memmove(OneByteString::CharAddr(result, 0),
+            other_typed_data.DataAddr(other_start_index),
+            other_len);
+  }
+  return OneByteString::raw(result);
+}
+
+
+RawOneByteString* OneByteString::New(const ExternalTypedData& other_typed_data,
+                                     intptr_t other_start_index,
+                                     intptr_t other_len,
+                                     Heap::Space space) {
+  const String& result = String::Handle(OneByteString::New(other_len, space));
+  ASSERT(other_typed_data.ElementSizeInBytes() == 1);
+  if (other_len > 0) {
+    NoGCScope no_gc;
+    memmove(OneByteString::CharAddr(result, 0),
+            other_typed_data.DataAddr(other_start_index),
+            other_len);
+  }
+  return OneByteString::raw(result);
+}
+
+
 RawOneByteString* OneByteString::Concat(const String& str1,
                                         const String& str2,
                                         Heap::Space space) {

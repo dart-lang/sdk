@@ -157,29 +157,25 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocate, 1) {
 
 DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 1) {
   Instance& list = Instance::CheckedHandle(arguments->NativeArgAt(0));
-  uint8_t* data = NULL;
-  intptr_t length = 0;
   if (list.IsTypedData()) {
     const TypedData& array = TypedData::Cast(list);
-    length = array.LengthInBytes();
-    data = reinterpret_cast<uint8_t*>(array.DataAddr(0));
+    intptr_t length = array.LengthInBytes();
+    return OneByteString::New(array, 0, length);
   } else if (list.IsExternalTypedData()) {
     const ExternalTypedData& array = ExternalTypedData::Cast(list);
-    length = array.LengthInBytes();
-    data = reinterpret_cast<uint8_t*>(array.DataAddr(0));
+    intptr_t length = array.LengthInBytes();
+    return OneByteString::New(array, 0, length);
   } else if (RawObject::IsTypedDataViewClassId(list.GetClassId())) {
     const Instance& view = Instance::Cast(list);
-    length = Smi::Value(TypedDataView::Length(view));
+    intptr_t length = Smi::Value(TypedDataView::Length(view));
     const Instance& data_obj = Instance::Handle(TypedDataView::Data(view));
     intptr_t data_offset = Smi::Value(TypedDataView::OffsetInBytes(view));
     if (data_obj.IsTypedData()) {
       const TypedData& array = TypedData::Cast(data_obj);
-      data = reinterpret_cast<uint8_t*>(array.DataAddr(data_offset));
+      return OneByteString::New(array, data_offset, length);
     } else if (data_obj.IsExternalTypedData()) {
       const ExternalTypedData& array = ExternalTypedData::Cast(data_obj);
-      data = reinterpret_cast<uint8_t*>(array.DataAddr(data_offset));
-    } else {
-      UNREACHABLE();
+      return OneByteString::New(array, data_offset, length);
     }
   } else if (list.IsArray()) {
     const Array& array = Array::Cast(list);
@@ -199,10 +195,9 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 1) {
       OneByteString::SetCharAt(string, i, value);
     }
     return string.raw();
-  } else {
-    UNREACHABLE();
   }
-  return OneByteString::New(data, length, Heap::kNew);
+  UNREACHABLE();
+  return Object::null();
 }
 
 
