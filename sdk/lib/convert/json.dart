@@ -350,10 +350,10 @@ class _JsonStringifier {
 
   final Function _toEncodable;
   final StringSink _sink;
-  final Set<Object> _seen;
+  final List _seen;
 
   _JsonStringifier(this._sink, this._toEncodable)
-      : this._seen = new HashSet.identity();
+      : this._seen = new List();
 
   static String stringify(object, toEncodable(object)) {
     if (toEncodable == null) toEncodable = _defaultToEncodable;
@@ -419,9 +419,12 @@ class _JsonStringifier {
   }
 
   void checkCycle(object) {
-    if (!_seen.add(object)) {
-      throw new JsonCyclicError(object);
+    for (int i = 0; i < _seen.length; i++) {
+      if (identical(object, _seen[i])) {
+        throw new JsonCyclicError(object);
+      }
     }
+    _seen.add(object);
   }
 
   void stringifyValue(object) {
@@ -435,7 +438,7 @@ class _JsonStringifier {
         if (!stringifyJsonValue(customJson)) {
           throw new JsonUnsupportedObjectError(object);
         }
-        _seen.remove(object);
+        _removeSeen(object);
       } catch (e) {
         throw new JsonUnsupportedObjectError(object, cause: e);
       }
@@ -479,7 +482,7 @@ class _JsonStringifier {
         }
       }
       _sink.write(']');
-      _seen.remove(object);
+      _removeSeen(object);
       return true;
     } else if (object is Map) {
       checkCycle(object);
@@ -494,10 +497,16 @@ class _JsonStringifier {
         stringifyValue(m[key]);
       }
       _sink.write('}');
-      _seen.remove(object);
+      _removeSeen(object);
       return true;
     } else {
       return false;
     }
+  }
+
+  void _removeSeen(object) {
+    assert(!_seen.isEmpty);
+    assert(identical(_seen.last, object));
+    _seen.removeLast();
   }
 }
