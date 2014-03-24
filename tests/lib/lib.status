@@ -116,6 +116,7 @@ mirrors/variable_is_const_test/01: MissingCompileTimeError # Issue 5519
 mirrors/list_constructor_test/01: RuntimeError # Issue 13523
 mirrors/raw_type_test/01: RuntimeError # http://dartbug.com/6490
 mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
+mirrors/deferred_mirrors_metadata_test: Crash # Issue 17732
 
 [ $runtime == safari ]
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
