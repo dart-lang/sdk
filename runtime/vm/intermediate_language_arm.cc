@@ -1081,10 +1081,9 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       (representation() == kUnboxedFloat32x4) ||
       (representation() == kUnboxedInt32x4)   ||
       (representation() == kUnboxedFloat64x2)) {
-    QRegister result = locs()->out(0).fpu_reg();
-    DRegister dresult0 = EvenDRegisterOf(result);
-    DRegister dresult1 = OddDRegisterOf(result);
-    Register idx = index.reg();
+    const QRegister result = locs()->out(0).fpu_reg();
+    const DRegister dresult0 = EvenDRegisterOf(result);
+    const Register idx = index.reg();
     switch (class_id()) {
       case kTypedDataInt32ArrayCid:
         __ veorq(result, result, result);
@@ -1120,9 +1119,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case kTypedDataInt32x4ArrayCid:
       case kTypedDataFloat32x4ArrayCid:
         __ add(index.reg(), index.reg(), ShifterOperand(array));
-        // TODO(zra): Maybe use vldmd here.
-        __ LoadDFromOffset(dresult0, index.reg(), 0);
-        __ LoadDFromOffset(dresult1, index.reg(), 2 * kWordSize);
+        __ vldmd(IA, index.reg(), dresult0, 2);
         break;
     }
     return;
@@ -1401,12 +1398,10 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataFloat64x2ArrayCid:
     case kTypedDataInt32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid: {
-      QRegister in = locs()->in(2).fpu_reg();
-      DRegister din0 = EvenDRegisterOf(in);
-      DRegister din1 = OddDRegisterOf(in);
+      const QRegister in = locs()->in(2).fpu_reg();
+      const DRegister din0 = EvenDRegisterOf(in);
       __ add(index.reg(), index.reg(), ShifterOperand(array));
-      __ StoreDToOffset(din0, index.reg(), 0);
-      __ StoreDToOffset(din1, index.reg(), 2 * kWordSize);
+      __ vstmd(IA, index.reg(), din0, 2);
       break;
     }
     default:
@@ -1807,10 +1802,9 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register instance_reg = locs()->in(0).reg();
 
   if (IsUnboxedStore() && compiler->is_optimizing()) {
-    DRegister value = EvenDRegisterOf(locs()->in(1).fpu_reg());
-    DRegister value_odd = OddDRegisterOf(locs()->in(1).fpu_reg());
-    Register temp = locs()->temp(0).reg();
-    Register temp2 = locs()->temp(1).reg();
+    const DRegister value = EvenDRegisterOf(locs()->in(1).fpu_reg());
+    const Register temp = locs()->temp(0).reg();
+    const Register temp2 = locs()->temp(1).reg();
     const intptr_t cid = field().UnboxedFieldCid();
 
     if (is_initialization_) {
@@ -1852,17 +1846,13 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
       case kFloat32x4Cid:
         __ Comment("UnboxedFloat32x4StoreInstanceFieldInstr");
-        __ StoreDToOffset(value, temp,
+        __ StoreMultipleDToOffset(value, 2, temp,
             Float32x4::value_offset() - kHeapObjectTag);
-        __ StoreDToOffset(value_odd, temp,
-            Float32x4::value_offset() + 2 * kWordSize - kHeapObjectTag);
         break;
       case kFloat64x2Cid:
         __ Comment("UnboxedFloat64x2StoreInstanceFieldInstr");
-        __ StoreDToOffset(value, temp,
+        __ StoreMultipleDToOffset(value, 2, temp,
             Float64x2::value_offset() - kHeapObjectTag);
-        __ StoreDToOffset(value_odd, temp,
-            Float64x2::value_offset() + 2 * kWordSize - kHeapObjectTag);
         break;
       default:
         UNREACHABLE();
@@ -1872,11 +1862,10 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if (IsPotentialUnboxedStore()) {
-    Register value_reg = locs()->in(1).reg();
-    Register temp = locs()->temp(0).reg();
-    Register temp2 = locs()->temp(1).reg();
-    DRegister fpu_temp = EvenDRegisterOf(locs()->temp(2).fpu_reg());
-    DRegister fpu_temp_odd = OddDRegisterOf(locs()->temp(2).fpu_reg());
+    const Register value_reg = locs()->in(1).reg();
+    const Register temp = locs()->temp(0).reg();
+    const Register temp2 = locs()->temp(1).reg();
+    const DRegister fpu_temp = EvenDRegisterOf(locs()->temp(2).fpu_reg());
 
     Label store_pointer;
     Label store_double;
@@ -1966,15 +1955,10 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          FieldAddress(instance_reg, offset_in_bytes_),
                          temp2);
       __ Bind(&copy_float32x4);
-      // TODO(zra): Maybe use vldmd here.
-      __ LoadDFromOffset(fpu_temp, value_reg,
+      __ LoadMultipleDFromOffset(fpu_temp, 2, value_reg,
           Float32x4::value_offset() - kHeapObjectTag);
-      __ LoadDFromOffset(fpu_temp_odd, value_reg,
-          Float32x4::value_offset() + 2 * kWordSize - kHeapObjectTag);
-      __ StoreDToOffset(fpu_temp, temp,
+      __ StoreMultipleDToOffset(fpu_temp, 2, temp,
           Float32x4::value_offset() - kHeapObjectTag);
-      __ StoreDToOffset(fpu_temp_odd, temp,
-          Float32x4::value_offset() + 2 * kWordSize - kHeapObjectTag);
       __ b(&skip_store);
     }
 
@@ -2000,15 +1984,10 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          FieldAddress(instance_reg, offset_in_bytes_),
                          temp2);
       __ Bind(&copy_float64x2);
-      // TODO(zra): Maybe use vldmd here.
-      __ LoadDFromOffset(fpu_temp, value_reg,
+      __ LoadMultipleDFromOffset(fpu_temp, 2, value_reg,
           Float64x2::value_offset() - kHeapObjectTag);
-      __ LoadDFromOffset(fpu_temp_odd, value_reg,
-          Float64x2::value_offset() + 2 * kWordSize - kHeapObjectTag);
-      __ StoreDToOffset(fpu_temp, temp,
+      __ StoreMultipleDToOffset(fpu_temp, 2, temp,
           Float64x2::value_offset() - kHeapObjectTag);
-      __ StoreDToOffset(fpu_temp_odd, temp,
-          Float64x2::value_offset() + 2 * kWordSize - kHeapObjectTag);
       __ b(&skip_store);
     }
 
@@ -2259,11 +2238,10 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(bool opt) const {
 void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register instance_reg = locs()->in(0).reg();
   if (IsUnboxedLoad() && compiler->is_optimizing()) {
-    DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
-    DRegister result_odd = OddDRegisterOf(locs()->out(0).fpu_reg());
-    Register temp = locs()->temp(0).reg();
+    const DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
+    const Register temp = locs()->temp(0).reg();
     __ ldr(temp, FieldAddress(instance_reg, offset_in_bytes()));
-    intptr_t cid = field()->UnboxedFieldCid();
+    const intptr_t cid = field()->UnboxedFieldCid();
     switch (cid) {
       case kDoubleCid:
         __ Comment("UnboxedDoubleLoadFieldInstr");
@@ -2272,19 +2250,13 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
       case kFloat32x4Cid:
         __ Comment("UnboxedFloat32x4LoadFieldInstr");
-        // TODO(zra): Maybe use vldmd here.
-        __ LoadDFromOffset(result, temp,
+        __ LoadMultipleDFromOffset(result, 2, temp,
             Float32x4::value_offset() - kHeapObjectTag);
-        __ LoadDFromOffset(result_odd, temp,
-            Float32x4::value_offset() + 2 * kWordSize - kHeapObjectTag);
         break;
       case kFloat64x2Cid:
         __ Comment("UnboxedFloat64x2LoadFieldInstr");
-        // TODO(zra): Maybe use vldmd here.
-        __ LoadDFromOffset(result, temp,
+        __ LoadMultipleDFromOffset(result, 2, temp,
             Float64x2::value_offset() - kHeapObjectTag);
-        __ LoadDFromOffset(result_odd, temp,
-            Float64x2::value_offset() + 2 * kWordSize - kHeapObjectTag);
         break;
       default:
         UNREACHABLE();
@@ -2295,9 +2267,8 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label done;
   Register result_reg = locs()->out(0).reg();
   if (IsPotentialUnboxedLoad()) {
-    Register temp = locs()->temp(1).reg();
-    DRegister value = EvenDRegisterOf(locs()->temp(0).fpu_reg());
-    DRegister value_odd = OddDRegisterOf(locs()->temp(0).fpu_reg());
+    const Register temp = locs()->temp(1).reg();
+    const DRegister value = EvenDRegisterOf(locs()->temp(0).fpu_reg());
 
     Label load_pointer;
     Label load_double;
@@ -2362,15 +2333,10 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                      temp);
       __ Bind(slow_path->exit_label());
       __ ldr(temp, FieldAddress(instance_reg, offset_in_bytes()));
-      // TODO(zra): Maybe use vldmd here.
-      __ LoadDFromOffset(value, temp,
+      __ LoadMultipleDFromOffset(value, 2, temp,
           Float32x4::value_offset() - kHeapObjectTag);
-      __ LoadDFromOffset(value_odd, temp,
-          Float32x4::value_offset() + 2 * kWordSize - kHeapObjectTag);
-      __ StoreDToOffset(value, result_reg,
+      __ StoreMultipleDToOffset(value, 2, result_reg,
           Float32x4::value_offset() - kHeapObjectTag);
-      __ StoreDToOffset(value_odd, result_reg,
-          Float32x4::value_offset() + 2 * kWordSize - kHeapObjectTag);
       __ b(&done);
     }
 
@@ -2385,15 +2351,10 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                      temp);
       __ Bind(slow_path->exit_label());
       __ ldr(temp, FieldAddress(instance_reg, offset_in_bytes()));
-      // TODO(zra): Maybe use vldmd here.
-      __ LoadDFromOffset(value, temp,
+      __ LoadMultipleDFromOffset(value, 2, temp,
           Float64x2::value_offset() - kHeapObjectTag);
-      __ LoadDFromOffset(value_odd, temp,
-          Float64x2::value_offset() + 2 * kWordSize - kHeapObjectTag);
-      __ StoreDToOffset(value, result_reg,
+      __ StoreMultipleDToOffset(value, 2, result_reg,
           Float64x2::value_offset() - kHeapObjectTag);
-      __ StoreDToOffset(value_odd, result_reg,
-          Float64x2::value_offset() + 2 * kWordSize - kHeapObjectTag);
       __ b(&done);
     }
 
@@ -3236,10 +3197,9 @@ void BoxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   BoxFloat32x4SlowPath* slow_path = new BoxFloat32x4SlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  Register out_reg = locs()->out(0).reg();
-  QRegister value = locs()->in(0).fpu_reg();
-  DRegister value_even = EvenDRegisterOf(value);
-  DRegister value_odd = OddDRegisterOf(value);
+  const Register out_reg = locs()->out(0).reg();
+  const QRegister value = locs()->in(0).fpu_reg();
+  const DRegister dvalue0 = EvenDRegisterOf(value);
 
   __ TryAllocate(compiler->float32x4_class(),
                  slow_path->entry_label(),
@@ -3247,10 +3207,8 @@ void BoxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
                  locs()->temp(0).reg());
   __ Bind(slow_path->exit_label());
 
-  __ StoreDToOffset(value_even, out_reg,
+  __ StoreMultipleDToOffset(dvalue0, 2, out_reg,
       Float32x4::value_offset() - kHeapObjectTag);
-  __ StoreDToOffset(value_odd, out_reg,
-      Float32x4::value_offset() + 2 * kWordSize - kHeapObjectTag);
 }
 
 
@@ -3284,13 +3242,9 @@ void UnboxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ b(deopt, NE);
   }
 
-  const DRegister result_even = EvenDRegisterOf(result);
-  const DRegister result_odd = OddDRegisterOf(result);
-  // TODO(zra): Maybe use vldmd here.
-  __ LoadDFromOffset(result_even, value,
+  const DRegister dresult0 = EvenDRegisterOf(result);
+  __ LoadMultipleDFromOffset(dresult0, 2, value,
       Float32x4::value_offset() - kHeapObjectTag);
-  __ LoadDFromOffset(result_odd, value,
-      Float32x4::value_offset() + 2 * kWordSize - kHeapObjectTag);
 }
 
 
@@ -3312,10 +3266,9 @@ void BoxFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   BoxFloat64x2SlowPath* slow_path = new BoxFloat64x2SlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  Register out_reg = locs()->out(0).reg();
-  QRegister value = locs()->in(0).fpu_reg();
-  DRegister value_even = EvenDRegisterOf(value);
-  DRegister value_odd = OddDRegisterOf(value);
+  const Register out_reg = locs()->out(0).reg();
+  const QRegister value = locs()->in(0).fpu_reg();
+  const DRegister dvalue0 = EvenDRegisterOf(value);
 
   __ TryAllocate(compiler->float64x2_class(),
                  slow_path->entry_label(),
@@ -3323,10 +3276,8 @@ void BoxFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
                  locs()->temp(0).reg());
   __ Bind(slow_path->exit_label());
 
-  __ StoreDToOffset(value_even, out_reg,
+  __ StoreMultipleDToOffset(dvalue0, 2, out_reg,
       Float64x2::value_offset() - kHeapObjectTag);
-  __ StoreDToOffset(value_odd, out_reg,
-      Float64x2::value_offset() + 2 * kWordSize - kHeapObjectTag);
 }
 
 
@@ -3360,13 +3311,9 @@ void UnboxFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ b(deopt, NE);
   }
 
-  const DRegister result_even = EvenDRegisterOf(result);
-  const DRegister result_odd = OddDRegisterOf(result);
-  // TODO(zra): Maybe use vldmd here.
-  __ LoadDFromOffset(result_even, value,
+  const DRegister dresult0 = EvenDRegisterOf(result);
+  __ LoadMultipleDFromOffset(dresult0, 2, value,
       Float64x2::value_offset() - kHeapObjectTag);
-  __ LoadDFromOffset(result_odd, value,
-      Float64x2::value_offset() + 2 * kWordSize - kHeapObjectTag);
 }
 
 
@@ -3420,20 +3367,17 @@ void BoxInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   BoxInt32x4SlowPath* slow_path = new BoxInt32x4SlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  Register out_reg = locs()->out(0).reg();
-  QRegister value = locs()->in(0).fpu_reg();
-  DRegister value_even = EvenDRegisterOf(value);
-  DRegister value_odd = OddDRegisterOf(value);
+  const Register out_reg = locs()->out(0).reg();
+  const QRegister value = locs()->in(0).fpu_reg();
+  const DRegister dvalue0 = EvenDRegisterOf(value);
 
   __ TryAllocate(compiler->int32x4_class(),
                  slow_path->entry_label(),
                  out_reg,
                  locs()->temp(0).reg());
   __ Bind(slow_path->exit_label());
-  __ StoreDToOffset(value_even, out_reg,
+  __ StoreMultipleDToOffset(dvalue0, 2, out_reg,
       Int32x4::value_offset() - kHeapObjectTag);
-  __ StoreDToOffset(value_odd, out_reg,
-      Int32x4::value_offset() + 2 * kWordSize - kHeapObjectTag);
 }
 
 
@@ -3467,13 +3411,9 @@ void UnboxInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ b(deopt, NE);
   }
 
-  const DRegister result_even = EvenDRegisterOf(result);
-  const DRegister result_odd = OddDRegisterOf(result);
-  // TODO(zra): Maybe use vldmd here.
-  __ LoadDFromOffset(result_even, value,
+  const DRegister dresult0 = EvenDRegisterOf(result);
+  __ LoadMultipleDFromOffset(dresult0, 2, value,
       Int32x4::value_offset() - kHeapObjectTag);
-  __ LoadDFromOffset(result_odd, value,
-      Int32x4::value_offset() + 2 * kWordSize - kHeapObjectTag);
 }
 
 
@@ -4842,8 +4782,8 @@ LocationSummary* DoubleToIntegerInstr::MakeLocationSummary(bool opt) const {
 
 
 void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register result = locs()->out(0).reg();
-  Register value_obj = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  const Register value_obj = locs()->in(0).reg();
   ASSERT(result == R0);
   ASSERT(result != value_obj);
   __ LoadDFromOffset(DTMP, value_obj, Double::value_offset() - kHeapObjectTag);

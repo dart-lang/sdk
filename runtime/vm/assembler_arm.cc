@@ -2426,6 +2426,25 @@ void Assembler::StoreDToOffset(DRegister reg,
 }
 
 
+void Assembler::LoadMultipleDFromOffset(DRegister first,
+                                        intptr_t count,
+                                        Register base,
+                                        int32_t offset) {
+  ASSERT(base != IP);
+  AddImmediate(IP, base, offset);
+  vldmd(IA, IP, first, count);
+}
+
+void Assembler::StoreMultipleDToOffset(DRegister first,
+                                       intptr_t count,
+                                       Register base,
+                                       int32_t offset) {
+  ASSERT(base != IP);
+  AddImmediate(IP, base, offset);
+  vstmd(IA, IP, first, count);
+}
+
+
 void Assembler::AddImmediate(Register rd, int32_t value, Condition cond) {
   AddImmediate(rd, rd, value, cond);
 }

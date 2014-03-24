@@ -656,6 +656,15 @@ class Assembler : public ValueObject {
                       int32_t offset,
                       Condition cond = AL);
 
+  void LoadMultipleDFromOffset(DRegister first,
+                               intptr_t count,
+                               Register base,
+                               int32_t offset);
+  void StoreMultipleDToOffset(DRegister first,
+                              intptr_t count,
+                              Register base,
+                              int32_t offset);
+
   void Push(Register rd, Condition cond = AL);
   void Pop(Register rd, Condition cond = AL);
 
