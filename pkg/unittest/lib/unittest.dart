@@ -150,8 +150,9 @@ import 'dart:collection';
 import 'dart:isolate';
 import 'package:stack_trace/stack_trace.dart';
 
-import 'matcher.dart';
-export 'matcher.dart';
+import 'package:matcher/matcher.dart' show DefaultFailureHandler,
+    configureExpectFailureHandler, TestFailure, wrapAsync;
+export 'package:matcher/matcher.dart';
 
 import 'src/utils.dart';
 

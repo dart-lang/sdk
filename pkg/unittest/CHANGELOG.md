@@ -2,7 +2,15 @@
 
 ##0.10.1-dev
 
-* `equals` now allows a nested matcher as an expected list element or map value when doing deep matching.
+* **DEPRECATED**
+    * `matcher.dart` and `mirror_matchers.dart` are now in the `matcher`
+      package.
+    * `mock.dart` is now in the `mock` package.
+* `equals` now allows a nested matcher as an expected list element or map value
+  when doing deep matching.
+* `expectAsync` and `expectAsyncUntil` now support up to 6 positional arguments
+  and correctly handle functions with optional positional arguments with default
+  values.
 
 ##0.10.0
 
