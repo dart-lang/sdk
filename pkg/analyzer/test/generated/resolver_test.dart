@@ -7049,6 +7049,45 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
+  void test_undefinedGetter_wrongNumberOfTypeArguments_tooLittle() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A<K, V> {",
+        "  K element;",
+        "}",
+        "main(A<int> a) {",
+        "  a.element.anyGetterExistsInDynamic;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
+    verify([source]);
+  }
+
+  void test_undefinedGetter_wrongNumberOfTypeArguments_tooMany() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A<E> {",
+        "  E element;",
+        "}",
+        "main(A<int,int> a) {",
+        "  a.element.anyGetterExistsInDynamic;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
+    verify([source]);
+  }
+
+  void test_undefinedGetter_wrongOfTypeArgument() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A<E> {",
+        "  E element;",
+        "}",
+        "main(A<NoSuchType> a) {",
+        "  a.element.anyGetterExistsInDynamic;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT]);
+    verify([source]);
+  }
+
   void test_undefinedMethod() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  void m() {", "    n();", "  }", "}"]));
     resolve(source);
@@ -7588,6 +7627,18 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
       _ut.test('test_undefinedGetter_void', () {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_undefinedGetter_void);
+      });
+      _ut.test('test_undefinedGetter_wrongNumberOfTypeArguments_tooLittle', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_undefinedGetter_wrongNumberOfTypeArguments_tooLittle);
+      });
+      _ut.test('test_undefinedGetter_wrongNumberOfTypeArguments_tooMany', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_undefinedGetter_wrongNumberOfTypeArguments_tooMany);
+      });
+      _ut.test('test_undefinedGetter_wrongOfTypeArgument', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_undefinedGetter_wrongOfTypeArgument);
       });
       _ut.test('test_undefinedMethod', () {
         final __test = new StaticTypeWarningCodeTest();
