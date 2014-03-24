@@ -1010,7 +1010,7 @@ class Primitives {
       arguments.addAll(positionalArguments);
     }
 
-    String selectorName = 'call\$$argumentCount';
+    String selectorName = '${JS_GET_NAME("CALL_PREFIX")}\$$argumentCount';
     var jsFunction = JS('var', '#[#]', function, selectorName);
     if (jsFunction == null) {
 
