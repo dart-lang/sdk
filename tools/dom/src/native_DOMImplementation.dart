@@ -107,6 +107,9 @@ class _Utils {
 
   static window() native "Utils_window";
   static forwardingPrint(String message) native "Utils_forwardingPrint";
+  // TODO(vsm): Make this API compatible with spawnUri.  It should also
+  // return a Future<Isolate>.
+  static spawnDomUri(String uri) native "Utils_spawnDomUri";
 
   // The following methods were added for debugger integration to make working
   // with the Dart C mirrors API simpler.
