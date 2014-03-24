@@ -419,10 +419,9 @@ class _JsonStringifier {
   }
 
   void checkCycle(object) {
-    if (_seen.contains(object)) {
+    if (!_seen.add(object)) {
       throw new JsonCyclicError(object);
     }
-    _seen.add(object);
   }
 
   void stringifyValue(object) {
@@ -486,18 +485,14 @@ class _JsonStringifier {
       checkCycle(object);
       Map<String, Object> m = object;
       _sink.write('{');
-      bool first = true;
-      m.forEach((String key, Object value) {
-        if (!first) {
-          _sink.write(',"');
-        } else {
-          _sink.write('"');
-        }
+      String separator = '"';
+      for (String key in m.keys) {
+        _sink.write(separator);
+        separator = ',"';
         escape(key);
         _sink.write('":');
-        stringifyValue(value);
-        first = false;
-      });
+        stringifyValue(m[key]);
+      }
       _sink.write('}');
       _seen.remove(object);
       return true;
