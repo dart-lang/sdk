@@ -3348,6 +3348,44 @@ class SsaBuilder extends ResolvedVisitor {
     }
   }
 
+  void handleForeingJsGetFlag(ast.Send node) {
+    List<ast.Node> arguments = node.arguments.toList();
+     ast.Node argument;
+     switch (arguments.length) {
+     case 0:
+       compiler.reportError(
+           node, MessageKind.GENERIC,
+           {'text': 'Error: Expected one argument to JS_GET_FLAG.'});
+       return;
+     case 1:
+       argument = arguments[0];
+       break;
+     default:
+       for (int i = 1; i < arguments.length; i++) {
+         compiler.reportError(
+             arguments[i], MessageKind.GENERIC,
+             {'text': 'Error: Extra argument to JS_GET_FLAG.'});
+       }
+       return;
+     }
+     ast.LiteralString string = argument.asLiteralString();
+     if (string == null) {
+       compiler.reportError(
+           argument, MessageKind.GENERIC,
+           {'text': 'Error: Expected a literal string.'});
+     }
+     String name = string.dartString.slowToString();
+     bool value = false;
+     if (name == 'MUST_RETAIN_METADATA') {
+       value = backend.mustRetainMetadata;
+     } else {
+       compiler.reportError(
+           node, MessageKind.GENERIC,
+           {'text': 'Error: Unknown internal flag "$name".'});
+     }
+     stack.add(graph.addConstantBool(value, compiler));
+  }
+
   void handleForeignJsGetName(ast.Send node) {
     List<ast.Node> arguments = node.arguments.toList();
     ast.Node argument;
@@ -3566,6 +3604,8 @@ class SsaBuilder extends ResolvedVisitor {
       handleForeignJsCurrentIsolate(node);
     } else if (name == 'JS_GET_NAME') {
       handleForeignJsGetName(node);
+    } else if (name == 'JS_GET_FLAG') {
+      handleForeingJsGetFlag(node);
     } else if (name == 'JS_EFFECT') {
       stack.add(graph.addConstantNull(compiler));
     } else if (name == 'JS_INTERCEPTOR_CONSTANT') {

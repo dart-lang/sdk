@@ -30,6 +30,7 @@ import 'dart:_foreign_helper' show
     JS_FUNCTION_TYPE_TAG,
     JS_FUNCTION_TYPE_VOID_RETURN_TAG,
     JS_GET_NAME,
+    JS_GET_FLAG,
     JS_HAS_EQUALS,
     JS_IS_INDEXABLE_FIELD_NAME,
     JS_NULL_CLASS_NAME,
@@ -405,14 +406,24 @@ class ReflectionInfo {
   }
 
   String parameterName(int parameter) {
-    int metadataIndex = JS('int', '#[2 * # + # + #]', data, parameter,
-        optionalParameterCount, FIRST_DEFAULT_ARGUMENT);
+    int metadataIndex;
+    if (JS_GET_FLAG('MUST_RETAIN_METADATA')) {
+      metadataIndex = JS('int', '#[2 * # + # + #]', data,
+          parameter, optionalParameterCount, FIRST_DEFAULT_ARGUMENT);
+    } else {
+      metadataIndex = JS('int', '#[# + # + #]', data,
+          parameter, optionalParameterCount, FIRST_DEFAULT_ARGUMENT);
+    }
     return JS('String', 'init.metadata[#]', metadataIndex);
   }
 
   List<int> parameterMetadataAnnotations(int parameter) {
-    return JS('', '#[2 * # + # + # + 1]', data, parameter,
-        optionalParameterCount, FIRST_DEFAULT_ARGUMENT);
+    if (!JS_GET_FLAG('MUST_RETAIN_METADATA')) {
+      throw new StateError('metadata has not been preserved');
+    } else {
+      return JS('', '#[2 * # + # + # + 1]', data, parameter,
+          optionalParameterCount, FIRST_DEFAULT_ARGUMENT);
+    }
   }
 
   int defaultValue(int parameter) {

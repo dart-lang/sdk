@@ -246,6 +246,10 @@ String JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG() {}
  */
 String JS_GET_NAME(String name) {}
 
+/// Returns the state of a flag that is determined by the state of the compiler
+/// when the program has been analyzed.
+bool JS_GET_FLAG(String name) {}
+
 /**
  * Pretend [code] is executed.  Generates no executable code.  This is used to
  * model effects at some other point in external code.  For example, the

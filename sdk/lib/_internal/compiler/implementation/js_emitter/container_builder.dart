@@ -502,13 +502,16 @@ class ContainerBuilder extends CodeEmitterHelper {
     if (canBeReflected || canBeApplied) {
       parameters.forEachParameter((Element parameter) {
         expressions.add(task.metadataEmitter.reifyName(parameter.name));
-        List<MetadataAnnotation> annotations = parameter.metadata.toList();
-        Iterable<int> metadataIndices = annotations.map((MetadataAnnotation a) {
-          compiler.constantHandler.addCompileTimeConstantForEmission(a.value);
-          return task.metadataEmitter.reifyMetadata(a);
-        });
-        expressions.add(metadataIndices.isNotEmpty ? metadataIndices.toList()
-                                                   : js('[]'));
+        if (backend.mustRetainMetadata) {
+          List<MetadataAnnotation> annotations = parameter.metadata.toList();
+          Iterable<int> metadataIndices =
+              annotations.map((MetadataAnnotation a) {
+            compiler.constantHandler.addCompileTimeConstantForEmission(a.value);
+            return task.metadataEmitter.reifyMetadata(a);
+          });
+          expressions.add(metadataIndices.isNotEmpty ? metadataIndices.toList()
+                                                     : js('[]'));
+        }
       });
     }
     if (canBeReflected) {
