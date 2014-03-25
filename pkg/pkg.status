@@ -143,7 +143,6 @@ mock/test/mock_stepwise_negative_test: Skip
 polymer/example/canonicalization: Skip
 polymer/example/canonicalization2: Skip
 polymer/example/canonicalization3: Skip
-custom_element/test/analyzer_test: StaticWarning # Issue 17773
 
 third_party/angular_tests/browser_test: StaticWarning # Issue 15890
 

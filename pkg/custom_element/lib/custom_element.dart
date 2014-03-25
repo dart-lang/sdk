@@ -304,12 +304,6 @@ class CustomElement implements Element {
 
   String get tagName => host.tagName;
 
-  String get pseudo => host.pseudo;
-
-  void set pseudo(String value) {
-    host.pseudo = value;
-  }
-
   // Note: we are not polyfilling the shadow root here. This will be fixed when
   // we migrate to the JS Shadow DOM polyfills. You can still use getShadowRoot
   // to retrieve a node that behaves as the shadow root when Shadow DOM is not
@@ -437,11 +431,7 @@ class CustomElement implements Element {
 
   void appendHtml(String html) => host.appendHtml(html);
 
-  String get regionOverset => host.regionOverset;
-
-  List<Range> getRegionFlowRanges() => host.getRegionFlowRanges();
-
-  void animate(List<Map> keyframes, [num duration]) =>
+  Animation animate(List<Map> keyframes, [num duration]) =>
       host.animate(keyframes, duration);
 
   // TODO(jmesserly): rename "created" to "onCreated".
@@ -481,6 +471,7 @@ class CustomElement implements Element {
   Stream<Event> get onFullscreenError => host.onFullscreenError;
   Stream<Event> get onPaste => host.onPaste;
   Stream<Event> get onReset => host.onReset;
+  Stream<Event> get onResize => host.onResize;
   Stream<Event> get onScroll => host.onScroll;
   Stream<Event> get onSearch => host.onSearch;
   Stream<Event> get onSelect => host.onSelect;
