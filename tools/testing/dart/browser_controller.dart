@@ -464,7 +464,7 @@ class IE extends Browser {
     var args = ["query",
                 "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Internet Explorer",
                 "/v",
-                "version"];
+                "svcVersion"];
     return Process.run("reg", args).then((result) {
       if (result.exitCode == 0) {
         // The string we get back looks like this:
