@@ -85,7 +85,8 @@ abstract class Enqueuer {
   EnqueueTask task;
   native.NativeEnqueuer nativeEnqueuer;  // Set by EnqueueTask
 
-  bool hasEnqueuedReflectiveElements = false;
+  bool hasEnqueuedEverything = false;
+  bool hasEnqueuedReflectiveStaticFields = false;
 
   Enqueuer(this.name, this.compiler, this.itemCompilationContextCreator);
 
@@ -359,7 +360,7 @@ abstract class Enqueuer {
   }
 
   void enqueueEverything() {
-    if (hasEnqueuedReflectiveElements) return;
+    if (hasEnqueuedEverything) return;
     compiler.log('Enqueuing everything');
     task.ensureAllElementsByName();
     for (Link link in task.allElementsByName.values) {
@@ -367,14 +368,15 @@ abstract class Enqueuer {
         pretendElementWasUsed(element, compiler.globalDependencies);
       }
     }
-    hasEnqueuedReflectiveElements = true;
+    hasEnqueuedEverything = true;
+    hasEnqueuedReflectiveStaticFields = true;
   }
 
   /// Enqueue the static fields that have been marked as used by reflective
   /// usage through `MirrorsUsed`.
   void enqueueReflectiveStaticFields(Iterable<Element> elements) {
-    if (hasEnqueuedReflectiveElements) return;
-    hasEnqueuedReflectiveElements = true;
+    if (hasEnqueuedReflectiveStaticFields) return;
+    hasEnqueuedReflectiveStaticFields = true;
     for (Element element in elements) {
       pretendElementWasUsed(element, compiler.globalDependencies);
     }
