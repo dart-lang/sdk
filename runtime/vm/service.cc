@@ -1461,6 +1461,10 @@ static bool HandleAllocationProfile(Isolate* isolate, JSONStream* js) {
       isolate->class_table()->ResetAllocationAccumulators();
       isolate->class_table()->AllocationProfilePrintToJSONStream(js);
       return true;
+    } else if (!strcmp(sub_command, "fullgc")) {
+      isolate->heap()->CollectAllGarbage();
+      isolate->class_table()->AllocationProfilePrintToJSONStream(js);
+      return true;
     } else {
       PrintError(js, "Unrecognized subcommand '%s'", sub_command);
       return true;
