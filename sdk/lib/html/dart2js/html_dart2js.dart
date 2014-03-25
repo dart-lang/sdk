@@ -105,6 +105,18 @@ class HtmlElement extends Element native "HTMLElement" {
 // older Chrome versions.
 // Issue #12573.
 abstract class _EntryArray implements List<Entry> native "EntryArray" {}
+
+/**
+ * Spawn a DOM isolate using the given URI in the same window.
+ * This isolate is not concurrent.  It runs on the browser thread
+ * with full access to the DOM.
+ * Note: this API is still evolving and may move to dart:isolate.
+ */
+@Experimental()
+Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
+  // TODO(17738): Implement this.
+  throw new UnimplementedError();
+}
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
