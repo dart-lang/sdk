@@ -20,6 +20,9 @@ void main() {
         "bool": true,
         "string": "zap",
         "list": [1, 2, 3],
+        "date-time": "1990-01-01 00:00:00.000",
+        "uri": "http://dartlang.org",
+        "invalid-uri": "http://[::1",
         "map": {
           "num": 4.2,
           "bool": false
@@ -34,6 +37,9 @@ void main() {
         "bool": true,
         "string": "zap",
         "list": [1, 2, 3],
+        "date-time": "1990-01-01 00:00:00.000",
+        "uri": "http://dartlang.org",
+        "invalid-uri": "http://[::1",
         "map": {
           "num": 4.2,
           "bool": false
@@ -193,6 +199,71 @@ void main() {
 
     test("[].asMapOr succeeds for absent parameters", () {
       expect(parameters['fblthp'].asMapOr({}), equals({}));
+    });
+
+    test("[].asDateTime returns date/time parameters", () {
+      expect(parameters['date-time'].asDateTime, equals(new DateTime(1990)));
+    });
+
+    test("[].asDateTimeOr returns date/time parameters", () {
+      expect(parameters['date-time'].asDateTimeOr(new DateTime(2014)),
+          equals(new DateTime(1990)));
+    });
+
+    test("[].asDateTime fails for non-date/time parameters", () {
+      expect(() => parameters['int'].asDateTime,
+          throwsInvalidParams('Parameter "int" for method "foo" must be a '
+              'string, but was 1.'));
+    });
+
+    test("[].asDateTimeOr succeeds for absent parameters", () {
+      expect(parameters['fblthp'].asDateTimeOr(new DateTime(2014)),
+          equals(new DateTime(2014)));
+    });
+
+    test("[].asDateTime fails for non-date/time parameters", () {
+      expect(() => parameters['int'].asDateTime,
+          throwsInvalidParams('Parameter "int" for method "foo" must be a '
+              'string, but was 1.'));
+    });
+
+    test("[].asDateTime fails for invalid date/times", () {
+      expect(() => parameters['string'].asDateTime,
+          throwsInvalidParams('Parameter "string" for method "foo" must be a '
+              'valid date/time, but was "zap".'));
+    });
+
+    test("[].asUri returns URI parameters", () {
+      expect(parameters['uri'].asUri, equals(Uri.parse('http://dartlang.org')));
+    });
+
+    test("[].asUriOr returns URI parameters", () {
+      expect(parameters['uri'].asUriOr(Uri.parse('http://google.com')),
+          equals(Uri.parse('http://dartlang.org')));
+    });
+
+    test("[].asUri fails for non-URI parameters", () {
+      expect(() => parameters['int'].asUri,
+          throwsInvalidParams('Parameter "int" for method "foo" must be a '
+              'string, but was 1.'));
+    });
+
+    test("[].asUriOr succeeds for absent parameters", () {
+      expect(parameters['fblthp'].asUriOr(Uri.parse('http://google.com')),
+          equals(Uri.parse('http://google.com')));
+    });
+
+    test("[].asUri fails for non-URI parameters", () {
+      expect(() => parameters['int'].asUri,
+          throwsInvalidParams('Parameter "int" for method "foo" must be a '
+              'string, but was 1.'));
+    });
+
+    test("[].asUri fails for invalid URIs", () {
+      expect(() => parameters['invalid-uri'].asUri,
+          throwsInvalidParams('Parameter "invalid-uri" for method "foo" must '
+              'be a valid URI, but was "http://[::1".\n'
+              'Bad end of IPv6 host'));
     });
 
     group("with a nested parameter map", () {

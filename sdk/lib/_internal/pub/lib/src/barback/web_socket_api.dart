@@ -90,15 +90,7 @@ class WebSocketApi {
   /// This does *not* currently check to ensure the asset actually exists. It
   /// only maps what the corresponding asset *should* be for that URL.
   Map _urlToAssetId(json_rpc.Parameters params) {
-    // TODO(nweiz): Use [params.asUrl] when issue 17700 is fixed.
-    var urlString = params["url"].asString;
-    var url;
-    try {
-      url = Uri.parse(urlString);
-    } on FormatException catch (ex) {
-      throw new json_rpc.RpcException.invalidParams(
-          '"$urlString" is not a valid URL.');
-    }
+    var url = params["url"].asUrl;
 
     // If a line number was given, map it to the output line.
     var line = params["line"].asIntOr(null);
