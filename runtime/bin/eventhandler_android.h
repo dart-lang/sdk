@@ -33,7 +33,7 @@ class InterruptMessage {
 class SocketData {
  public:
   explicit SocketData(intptr_t fd)
-      : fd_(fd), port_(0), mask_(0), tokens_(8) {
+      : fd_(fd), port_(0), mask_(0), tokens_(16) {
     ASSERT(fd_ != -1);
   }
 
@@ -54,6 +54,8 @@ class SocketData {
 
   intptr_t fd() { return fd_; }
   Dart_Port port() { return port_; }
+
+  bool IsListeningSocket() { return (mask_ & (1 << kListeningSocket)) != 0; }
 
   // Returns true if the last token was taken.
   bool TakeToken() {

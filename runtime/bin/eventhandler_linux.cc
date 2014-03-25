@@ -209,8 +209,11 @@ void EventHandlerImplementation::HandleInterruptFd() {
         delete sd;
         DartUtils::PostInt32(msg[i].dart_port, 1 << kDestroyedEvent);
       } else if ((msg[i].data & (1 << kReturnTokenCommand)) != 0) {
-        if (sd->ReturnToken()) {
-          AddToEpollInstance(epoll_fd_, sd);
+        int count = msg[i].data & ((1 << kReturnTokenCommand) - 1);
+        for (int i = 0; i < count; i++) {
+          if (sd->ReturnToken()) {
+            AddToEpollInstance(epoll_fd_, sd);
+          }
         }
       } else {
         // Setup events to wait for.
@@ -276,7 +279,7 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
       SocketData* sd = reinterpret_cast<SocketData*>(events[i].data.ptr);
       intptr_t event_mask = GetPollEvents(events[i].events, sd);
       if (event_mask != 0) {
-        if (sd->TakeToken()) {
+        if (!sd->IsListeningSocket() && sd->TakeToken()) {
           // Took last token, remove from epoll.
           RemoveFromEpollInstance(epoll_fd_, sd);
         }

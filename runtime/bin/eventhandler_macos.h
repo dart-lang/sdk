@@ -36,7 +36,7 @@ class SocketData {
         port_(0),
         mask_(0),
         tracked_by_kqueue_(false),
-        tokens_(8) {
+        tokens_(16) {
     ASSERT(fd_ != -1);
   }
 

@@ -355,6 +355,8 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   static const int CLOSE_COMMAND = 8;
   static const int SHUTDOWN_READ_COMMAND = 9;
   static const int SHUTDOWN_WRITE_COMMAND = 10;
+  // The lower bits of RETURN_TOKEN_COMMAND messages contains the number
+  // of tokens returned.
   static const int RETURN_TOKEN_COMMAND = 11;
   static const int FIRST_COMMAND = CLOSE_COMMAND;
   static const int LAST_COMMAND = RETURN_TOKEN_COMMAND;
@@ -409,6 +411,8 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   InternetAddress address;
 
   int available = 0;
+
+  int returnTokens = 0;
 
   bool sendReadEvents = false;
   bool readEventIssued = false;
@@ -818,8 +822,14 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
         }
       }
     }
-    if (eventPort != null && !isClosing && !isClosed) {
-      sendToEventHandler(1 << RETURN_TOKEN_COMMAND);
+    if (eventPort != null && !isClosing && !isClosed && !isListening) {
+      returnTokens++;
+      if (returnTokens == 8) {
+        // Return in batches of 8.
+        assert(returnTokens < (1 << FIRST_COMMAND));
+        sendToEventHandler((1 << RETURN_TOKEN_COMMAND) | returnTokens);
+        returnTokens = 0;
+      }
     }
   }
 
