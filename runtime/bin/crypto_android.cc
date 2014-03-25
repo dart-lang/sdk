@@ -18,11 +18,24 @@ namespace dart {
 namespace bin {
 
 bool Crypto::GetRandomBytes(intptr_t count, uint8_t* buffer) {
-  intptr_t fd = TEMP_FAILURE_RETRY(open("/dev/urandom", O_RDONLY));
+  ThreadSignalBlocker signal_blocker(SIGPROF);
+  intptr_t fd = TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(
+      open("/dev/urandom", O_RDONLY));
   if (fd < 0) return false;
-  intptr_t bytes_read = FDUtils::ReadFromBlocking(fd, buffer, count);
-  VOID_TEMP_FAILURE_RETRY(close(fd));
-  return bytes_read == count;
+  intptr_t bytes_read = 0;
+  do {
+    int res = TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(
+        read(fd, buffer + bytes_read, count - bytes_read));
+    if (res < 0) {
+      int err = errno;
+      VOID_TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(close(fd));
+      errno = err;
+      return false;
+    }
+    bytes_read += res;
+  } while (bytes_read < count);
+  VOID_TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(close(fd));
+  return true;
 }
 
 }  // namespace bin

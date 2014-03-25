@@ -162,7 +162,7 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
 void EventHandlerImplementation::HandleInterruptFd() {
   const intptr_t MAX_MESSAGES = kInterruptMessageSize;
   InterruptMessage msg[MAX_MESSAGES];
-  ssize_t bytes = TEMP_FAILURE_RETRY(
+  ssize_t bytes = TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(
       read(interrupt_fds_[0], msg, MAX_MESSAGES * kInterruptMessageSize));
   for (ssize_t i = 0; i < bytes / kInterruptMessageSize; i++) {
     if (msg[i].id == kTimerId) {
@@ -290,6 +290,7 @@ void EventHandlerImplementation::HandleTimeout() {
 
 
 void EventHandlerImplementation::Poll(uword args) {
+  ThreadSignalBlocker signal_blocker(SIGPROF);
   static const intptr_t kMaxEvents = 16;
   struct epoll_event events[kMaxEvents];
   EventHandlerImplementation* handler =
@@ -299,10 +300,8 @@ void EventHandlerImplementation::Poll(uword args) {
     int64_t millis = handler->GetTimeout();
     ASSERT(millis == kInfinityTimeout || millis >= 0);
     if (millis > kMaxInt32) millis = kMaxInt32;
-    intptr_t result = TEMP_FAILURE_RETRY(epoll_wait(handler->epoll_fd_,
-                                                    events,
-                                                    kMaxEvents,
-                                                    millis));
+    intptr_t result = TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(
+        epoll_wait(handler->epoll_fd_, events, kMaxEvents, millis));
     ASSERT(EAGAIN == EWOULDBLOCK);
     if (result == -1) {
       if (errno != EWOULDBLOCK) {

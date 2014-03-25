@@ -172,7 +172,7 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
 void EventHandlerImplementation::HandleInterruptFd() {
   const intptr_t MAX_MESSAGES = kInterruptMessageSize;
   InterruptMessage msg[MAX_MESSAGES];
-  ssize_t bytes = TEMP_FAILURE_RETRY(
+  ssize_t bytes = TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(
       read(interrupt_fds_[0], msg, MAX_MESSAGES * kInterruptMessageSize));
   for (ssize_t i = 0; i < bytes / kInterruptMessageSize; i++) {
     if (msg[i].id == kTimerId) {
@@ -266,7 +266,8 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
       interrupt_seen = true;
     } else if (events[i].data.fd == timer_fd_) {
       int64_t val;
-      VOID_TEMP_FAILURE_RETRY(read(timer_fd_, &val, sizeof(val)));
+      VOID_TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(
+          read(timer_fd_, &val, sizeof(val)));
       if (timeout_queue_.HasTimeout()) {
         DartUtils::PostNull(timeout_queue_.CurrentPort());
         timeout_queue_.RemoveCurrent();
@@ -294,16 +295,15 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
 
 
 void EventHandlerImplementation::Poll(uword args) {
+  ThreadSignalBlocker signal_blocker(SIGPROF);
   static const intptr_t kMaxEvents = 16;
   struct epoll_event events[kMaxEvents];
   EventHandler* handler = reinterpret_cast<EventHandler*>(args);
   EventHandlerImplementation* handler_impl = &handler->delegate_;
   ASSERT(handler_impl != NULL);
   while (!handler_impl->shutdown_) {
-    intptr_t result = TEMP_FAILURE_RETRY(epoll_wait(handler_impl->epoll_fd_,
-                                                    events,
-                                                    kMaxEvents,
-                                                    -1));
+    intptr_t result = TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(
+        epoll_wait(handler_impl->epoll_fd_, events, kMaxEvents, -1));
     ASSERT(EAGAIN == EWOULDBLOCK);
     if (result <= 0) {
       if (errno != EWOULDBLOCK) {
