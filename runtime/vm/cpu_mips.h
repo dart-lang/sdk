@@ -17,6 +17,12 @@ namespace dart {
 // additionally mock the options needed for the target architecture so that
 // they may be altered for testing.
 
+enum MIPSVersion {
+  MIPS32,
+  MIPS32r2,
+  MIPSvUnknown,
+};
+
 class HostCPUFeatures: public AllStatic {
  public:
   static void InitOnce();
@@ -25,9 +31,14 @@ class HostCPUFeatures: public AllStatic {
     DEBUG_ASSERT(initialized_);
     return hardware_;
   }
+  static MIPSVersion mips_version() {
+    DEBUG_ASSERT(initialized_);
+    return mips_version_;
+  }
 
  private:
   static const char* hardware_;
+  static MIPSVersion mips_version_;
 #if defined(DEBUG)
   static bool initialized_;
 #endif
@@ -46,6 +57,9 @@ class TargetCPUFeatures : public AllStatic {
   }
   static bool double_truncate_round_supported() {
     return false;
+  }
+  static MIPSVersion mips_version() {
+    return HostCPUFeatures::mips_version();
   }
 };
 

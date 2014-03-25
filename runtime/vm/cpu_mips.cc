@@ -41,6 +41,7 @@ const char* CPU::Id() {
 
 
 const char* HostCPUFeatures::hardware_ = NULL;
+MIPSVersion HostCPUFeatures::mips_version_ = MIPSvUnknown;
 #if defined(DEBUG)
 bool HostCPUFeatures::initialized_ = false;
 #endif
@@ -52,6 +53,15 @@ void HostCPUFeatures::InitOnce() {
   hardware_ = CpuInfo::GetCpuModel();
   // Has a floating point unit.
   ASSERT(CpuInfo::FieldContains(kCpuInfoModel, "FPU"));
+
+  // We want to know the ISA version, but on MIPS, CpuInfo can't tell us, so
+  // we use the same ISA version that Dart's C++ compiler targeted.
+#if defined(_MIPS_ARCH_MIPS32R2)
+  mips_version_ = MIPS32r2;
+#elif defined(_MIPS_ARCH_MIPS32)
+  mips_version_ = MIPS32;
+#endif
+
 #if defined(DEBUG)
   initialized_ = true;
 #endif
@@ -74,6 +84,7 @@ void HostCPUFeatures::Cleanup() {
 void HostCPUFeatures::InitOnce() {
   CpuInfo::InitOnce();
   hardware_ = CpuInfo::GetCpuModel();
+  mips_version_ = MIPS32r2;
 #if defined(DEBUG)
   initialized_ = true;
 #endif

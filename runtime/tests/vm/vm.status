@@ -70,8 +70,6 @@ dart/inline_stack_frame_test: RuntimeError
 *: Skip
 
 [ $arch == mips ]
-cc/Cop1CvtDL: Crash # Illegal instructions
-cc/Cop1CvtDL_neg: Crash # Illegal instructions
 cc/StaticNonNullSumCallCodegen: Crash, Pass # dartbug.com/17440
 
 [ $arch == mips && $mode == debug ]
