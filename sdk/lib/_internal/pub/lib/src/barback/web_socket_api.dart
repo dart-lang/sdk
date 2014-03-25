@@ -90,7 +90,7 @@ class WebSocketApi {
   /// This does *not* currently check to ensure the asset actually exists. It
   /// only maps what the corresponding asset *should* be for that URL.
   Map _urlToAssetId(json_rpc.Parameters params) {
-    var url = params["url"].asUrl;
+    var url = params["url"].asUri;
 
     // If a line number was given, map it to the output line.
     var line = params["line"].asIntOr(null);
