@@ -665,6 +665,9 @@ Note: currently only implemented for dart2js.''',
     // Set the javascript command line flag for less verbose status files.
     configuration['jscl'] = TestUtils.isJsCommandLineRuntime(runtime);
 
+    // Allow suppression that is valid for all ie versions
+    configuration['ie'] = runtime.startsWith('ie');
+
     // Expand the test selectors into a suite name and a simple
     // regular expressions to be used on the full path of a test file
     // in that test suite. If no selectors are explicitly given use
