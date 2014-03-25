@@ -206,7 +206,7 @@ def main():
                         custom_env=EnvironmentWithoutBotoConfig())
   elif name.startswith('linux-distribution-support'):
     status = ProcessBot(name, 'linux_distribution_support')
-  elif name.statswith('ft'):
+  elif name.startswith('ft'):
     status = ProcessBot(name, 'functional_testing')
   else:
     status = ProcessBot(name, 'compiler')
