@@ -72,7 +72,7 @@ Future compile(String entrypoint, CompilerProvider provider, {
     bool toDart: false}) {
   return syncFuture(() {
     var options = <String>['--categories=Client,Server'];
-    if (checked) options.add('--checked');
+    if (checked) options.add('--enable-checked-mode');
     if (minify) options.add('--minify');
     if (verbose) options.add('--verbose');
     if (analyzeAll) options.add('--analyze-all');
