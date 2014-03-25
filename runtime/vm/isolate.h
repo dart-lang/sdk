@@ -14,6 +14,7 @@
 #include "vm/megamorphic_cache_table.h"
 #include "vm/random.h"
 #include "vm/store_buffer.h"
+#include "vm/tags.h"
 #include "vm/timer.h"
 
 namespace dart {
@@ -444,6 +445,12 @@ class Isolate : public BaseIsolate {
     return thread_state_;
   }
 
+  void ProfileInterrupt();
+
+  VMTagCounters* vm_tag_counters() {
+    return &vm_tag_counters_;
+  }
+
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
   void set_reusable_##object##_handle_scope_active(bool value) {               \
@@ -470,6 +477,8 @@ class Isolate : public BaseIsolate {
 
   void BuildName(const char* name_prefix);
   void PrintInvokedFunctions();
+
+  void ProfileIdle();
 
   template<class T> T* AllocateReusableHandle();
 
@@ -521,6 +530,8 @@ class Isolate : public BaseIsolate {
   IsolateProfilerData* profiler_data_;
   Mutex profiler_data_mutex_;
   InterruptableThreadState* thread_state_;
+
+  VMTagCounters vm_tag_counters_;
 
   // Isolate list next pointer.
   Isolate* next_;

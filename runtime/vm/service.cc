@@ -1417,6 +1417,21 @@ static bool HandleCode(Isolate* isolate, JSONStream* js) {
 
 
 static bool HandleProfile(Isolate* isolate, JSONStream* js) {
+  if (js->num_arguments() == 2) {
+    const char* sub_command = js->GetArgument(1);
+    if (!strcmp(sub_command, "tag")) {
+      {
+        JSONObject miniProfile(js);
+        miniProfile.AddProperty("type", "TagProfile");
+        miniProfile.AddProperty("id", "profile/tag");
+        isolate->vm_tag_counters()->PrintToJSONObject(&miniProfile);
+      }
+      return true;
+    } else {
+      PrintError(js, "Unrecognized subcommand '%s'", sub_command);
+      return true;
+    }
+  }
   // A full profile includes disassembly of all Dart code objects.
   // TODO(johnmccutchan): Add sub command to trigger full code dump.
   bool full_profile = false;
@@ -1576,7 +1591,29 @@ static bool HandleAddress(Isolate* isolate, JSONStream* js) {
 }
 
 
+static bool HandleMalformedJson(Isolate* isolate, JSONStream* js) {
+  JSONObject jsobj(js);
+  jsobj.AddProperty("a", "a");
+  JSONObject jsobj1(js);
+  jsobj1.AddProperty("a", "a");
+  JSONObject jsobj2(js);
+  jsobj2.AddProperty("a", "a");
+  JSONObject jsobj3(js);
+  jsobj3.AddProperty("a", "a");
+  return true;
+}
+
+
+static bool HandleMalformedObject(Isolate* isolate, JSONStream* js) {
+  JSONObject jsobj(js);
+  jsobj.AddProperty("bart", "simpson");
+  return true;
+}
+
+
 static IsolateMessageHandlerEntry isolate_handlers[] = {
+  { "_malformedjson", HandleMalformedJson },
+  { "_malformedobject", HandleMalformedObject },
   { "_echo", HandleIsolateEcho },
   { "", HandleIsolate },
   { "address", HandleAddress },

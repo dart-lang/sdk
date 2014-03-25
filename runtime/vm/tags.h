@@ -7,18 +7,19 @@
 
 #include "vm/allocation.h"
 
-class Isolate;
-
 namespace dart {
 
+class Isolate;
+class JSONObject;
+
 #define VM_TAG_LIST(V)                                                         \
+  V(Idle)                                                                      \
   V(VM) /* Catch all */                                                        \
   V(Compile)                                                                   \
   V(Script)                                                                    \
   V(GCNewSpace)                                                                \
   V(GCOldSpace)                                                                \
   V(RuntimeNative)                                                             \
-  V(Idle)                                                                      \
 
 
 class VMTag : public AllStatic {
@@ -42,6 +43,7 @@ class VMTag : public AllStatic {
   static TagEntry entries_[];
 };
 
+
 class VMTagScope : StackResource {
  public:
   VMTagScope(Isolate* isolate, uword tag);
@@ -51,6 +53,21 @@ class VMTagScope : StackResource {
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(VMTagScope);
+};
+
+
+class VMTagCounters {
+ public:
+  VMTagCounters();
+
+  void Increment(uword tag);
+
+  int64_t count(uword tag);
+
+  void PrintToJSONObject(JSONObject* obj);
+
+ private:
+  int64_t counters_[VMTag::kNumVMTags];
 };
 
 }  // namespace dart

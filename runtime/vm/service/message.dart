@@ -90,8 +90,10 @@ class Message {
 
   void setErrorResponse(String error) {
     _completer.complete(JSON.encode({
-        'type': 'Error',
-        'msg': error,
+        'type': 'ServiceError',
+        'id': '',
+        'kind': 'RequestError',
+        'message': error,
         'path': path,
         'options': options
     }));

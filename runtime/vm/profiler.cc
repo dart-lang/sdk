@@ -962,30 +962,6 @@ class CodeRegionTableBuilder : public SampleVisitor {
     region->set_creation_serial(visited());
   }
 
-  void TickTag(uword tag, bool exclusive) {
-    CodeRegionTable::TickResult r;
-    intptr_t serial = exclusive ? -1 : visited();
-    r = tag_code_table_->Tick(tag, exclusive, serial, 0);
-    if (r == CodeRegionTable::kTicked) {
-      // Live code found and ticked.
-      return;
-    }
-    ASSERT(r == CodeRegionTable::kNotFound);
-    CreateAndTickTagCodeRegion(tag, exclusive, serial);
-  }
-
-  void CreateAndTickTagCodeRegion(uword tag, bool exclusive, intptr_t serial) {
-    // Need to create tag code.
-    CodeRegion* region = new CodeRegion(CodeRegion::kTagCode,
-                                        tag,
-                                        tag + 1,
-                                        0);
-    intptr_t index = tag_code_table_->InsertCodeRegion(region);
-    region->set_creation_serial(visited());
-    ASSERT(index >= 0);
-    tag_code_table_->At(index)->Tick(tag, exclusive, serial);
-  }
-
   void Tick(uword pc, bool exclusive, int64_t timestamp) {
     CodeRegionTable::TickResult r;
     intptr_t serial = exclusive ? -1 : visited();
@@ -1553,6 +1529,7 @@ class ProfilerSampleStackWalker : public ValueObject {
   uword lower_bound_;
 };
 
+
 void Profiler::RecordSampleInterruptCallback(
     const InterruptedThreadState& state,
     void* data) {
@@ -1560,6 +1537,9 @@ void Profiler::RecordSampleInterruptCallback(
   if (isolate == NULL) {
     return;
   }
+  VMTagCounters* counters = isolate->vm_tag_counters();
+  ASSERT(counters != NULL);
+  counters->Increment(isolate->vm_tag());
   IsolateProfilerData* profiler_data = isolate->profiler_data();
   if (profiler_data == NULL) {
     return;
@@ -1581,6 +1561,5 @@ void Profiler::RecordSampleInterruptCallback(
                                         state.pc, state.fp, state.sp);
   stackWalker.walk(isolate->heap(), isolate->vm_tag());
 }
-
 
 }  // namespace dart

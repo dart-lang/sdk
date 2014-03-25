@@ -26,6 +26,20 @@ class ObservatoryApplication extends Observable {
     assert(locationManager._app == null);
     locationManager._app = this;
     locationManager.init();
+    vm.errors.stream.listen(_onError);
+    vm.exceptions.stream.listen(_onException);
+  }
+
+  void _onError(ServiceError error) {
+    response = error;
+    // No id, clear the hash.
+    locationManager.clearCurrentHash();
+  }
+
+  void _onException(ServiceException exception) {
+    response = exception;
+    // No id, clear the hash.
+    locationManager.clearCurrentHash();
   }
 
   ObservatoryApplication.devtools() :

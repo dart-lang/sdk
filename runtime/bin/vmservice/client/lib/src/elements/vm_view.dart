@@ -11,7 +11,7 @@ import 'package:polymer/polymer.dart';
 @CustomTag('vm-view')
 class VMViewElement extends ObservatoryElement {
   @published VM vm;
-  @published ServiceError error;
+  @published DartError error;
 
   VMViewElement.created() : super.created();
 

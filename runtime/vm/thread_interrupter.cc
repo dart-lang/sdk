@@ -220,12 +220,7 @@ class ThreadInterrupterVisitIsolates : public IsolateVisitor {
   ThreadInterrupterVisitIsolates() { }
   void VisitIsolate(Isolate* isolate) {
     ASSERT(isolate != NULL);
-    InterruptableThreadState* state = isolate->thread_state();
-    if (state == NULL) {
-      return;
-    }
-    ASSERT(state->id != Thread::kInvalidThreadId);
-    ThreadInterrupter::InterruptThread(state);
+    isolate->ProfileInterrupt();
   }
 };
 

@@ -36,13 +36,15 @@ class HttpVM extends VM {
     return HttpRequest.getString(host + id).catchError((error) {
       // If we get an error here, the network request has failed.
       Logger.root.severe('HttpRequest.getString failed.');
+      var request = error.target;
       return JSON.encode({
-          'type': 'Error',
+          'type': 'ServiceException',
           'id': '',
-          'kind': 'NetworkError',
+          'response': error.target.responseText,
+          'kind': 'NetworkException',
           'message': 'Could not connect to service. Check that you started the'
                      ' VM with the following flags:\n --enable-vm-service'
-                    ' --pin-isolates'
+                    ' --pause-isolates-on-exit'
         });
     });
   }

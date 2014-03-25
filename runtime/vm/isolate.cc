@@ -338,7 +338,7 @@ Isolate::Isolate()
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
       reusable_handles_() {
-  set_vm_tag(VMTag::kVMTagId);
+  set_vm_tag(VMTag::kIdleTagId);
 }
 #undef REUSABLE_HANDLE_SCOPE_INIT
 #undef REUSABLE_HANDLE_INITIALIZERS
@@ -366,6 +366,7 @@ Isolate::~Isolate() {
 void Isolate::SetCurrent(Isolate* current) {
   Isolate* old_current = Current();
   if (old_current != NULL) {
+    old_current->set_vm_tag(VMTag::kIdleTagId);
     old_current->set_thread_state(NULL);
     Profiler::EndExecution(old_current);
   }
@@ -379,6 +380,7 @@ void Isolate::SetCurrent(Isolate* current) {
 #endif
     Profiler::BeginExecution(current);
     current->set_thread_state(thread_state);
+    current->set_vm_tag(VMTag::kVMTagId);
   }
 }
 
@@ -923,12 +925,35 @@ void Isolate::PrintToJSONStream(JSONStream* stream, bool ref) {
 
   timer_list().PrintTimersToJSONProperty(&jsobj);
 
+  if (object_store()->sticky_error() != Object::null()) {
+    Error& error = Error::Handle(this, object_store()->sticky_error());
+    ASSERT(!error.IsNull());
+    jsobj.AddProperty("error", error, false);
+  }
+
   {
     JSONObject typeargsRef(&jsobj, "canonicalTypeArguments");
     typeargsRef.AddProperty("type", "@TypeArgumentsList");
     typeargsRef.AddProperty("id", "typearguments");
     typeargsRef.AddProperty("name", "canonical type arguments");
   }
+}
+
+
+void Isolate::ProfileInterrupt() {
+  InterruptableThreadState* state = thread_state();
+  if (state == NULL) {
+    // Isolate is not scheduled on a thread.
+    ProfileIdle();
+    return;
+  }
+  ASSERT(state->id != Thread::kInvalidThreadId);
+  ThreadInterrupter::InterruptThread(state);
+}
+
+
+void Isolate::ProfileIdle() {
+  vm_tag_counters_.Increment(vm_tag());
 }
 
 

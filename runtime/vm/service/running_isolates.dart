@@ -6,15 +6,22 @@ part of vmservice;
 
 class RunningIsolates implements MessageRouter {
   final Map<int, RunningIsolate> isolates = new Map<int, RunningIsolate>();
+  int _rootPortId;
 
   RunningIsolates();
 
   void isolateStartup(int portId, SendPort sp, String name) {
+    if (_rootPortId == null) {
+      _rootPortId = portId;
+    }
     var ri = new RunningIsolate(portId, sp, name);
     isolates[portId] = ri;
   }
 
   void isolateShutdown(int portId, SendPort sp) {
+    if (_rootPortId == portId) {
+      _rootPortId = null;
+    }
     isolates.remove(portId);
   }
 
@@ -32,12 +39,17 @@ class RunningIsolates implements MessageRouter {
       return message.response;
     }
     var isolateId;
-    try {
-      isolateId = int.parse(message.path[1]);
-    } catch (e) {
-      message.setErrorResponse('Could not parse isolate id: $e');
-      return message.response;
+    if ((message.path[1] == 'root') && (_rootPortId != null)) {
+      isolateId = _rootPortId;
+    } else {
+      try {
+        isolateId = int.parse(message.path[1]);
+      } catch (e) {
+        message.setErrorResponse('Could not parse isolate id: $e');
+        return message.response;
+      }
     }
+    assert(isolateId != null);
     var isolate = isolates[isolateId];
     if (isolate == null) {
       message.setErrorResponse('Cannot find isolate id: $isolateId');

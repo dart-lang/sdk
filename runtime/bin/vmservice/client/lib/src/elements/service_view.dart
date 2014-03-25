@@ -75,6 +75,16 @@ class ServiceObjectViewElement extends ObservatoryElement {
         IsolateProfileElement element = new Element.tag('isolate-profile');
         element.profile = object;
         return element;
+      case 'ServiceError':
+        ServiceErrorViewElement element =
+            new Element.tag('service-error-view');
+        element.error = object;
+        return element;
+      case 'ServiceException':
+        ServiceExceptionViewElement element =
+                    new Element.tag('service-exception-view');
+        element.exception = object;
+        return element;
       case 'Script':
         ScriptViewElement element = new Element.tag('script-view');
         element.script = object;

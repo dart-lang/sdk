@@ -79,6 +79,37 @@
       </div>
     </div>
 
+    <template if="{{ isolate.error != null }}">
+      <div class="content">
+        <h1>Error</h1>
+        <div class="memberList">
+          <div class="memberItem">
+            <div class="memberName">message</div>
+            <div class="memberValue">
+              <pre>{{ isolate.error.message }}</pre>
+            </div>
+          </div>
+          <div class="memberItem">
+            <template if="{{ isolate.error.exception != null }}">
+              <div class="memberName">exception</div>
+              <div class="memberValue">
+                <instance-ref ref="{{ isolate.error.exception }}"></instance-ref>
+              </div>
+            </template>
+          </div>
+          <div class="memberItem">
+            <template if="{{ isolate.error.stacktrace != null }}">
+            <div class="memberName">stacktrace</div>
+            <div class="memberValue">
+              <instance-ref ref="{{ isolate.error.stacktrace }}"></instance-ref>
+            </div>
+            </template>
+          </div>
+        </div>
+      </div>
+      <hr>
+    </template>
+
     <template if="{{ isolate.topFrame != null }}">
       <br>
       <div class="sourceInset">
@@ -165,6 +196,12 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <hr>
+
+    <div class="content">
+      <div id="tagProfileChart" class="col-md-8" style="height: 400px"></div>
     </div>
 
     <hr>

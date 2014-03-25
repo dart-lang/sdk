@@ -53,6 +53,9 @@ abstract class ServiceObject extends Observable {
   /// Creates a [ServiceObject] initialized from [map].
   factory ServiceObject._fromMap(ServiceObjectOwner owner,
                                  ObservableMap map) {
+    if (map == null) {
+      return null;
+    }
     if (!_isServiceMap(map)) {
       Logger.root.severe('Malformed service object: $map');
     }
@@ -65,10 +68,16 @@ abstract class ServiceObject extends Observable {
         obj = new Code._empty(owner);
         break;
       case 'Error':
-        obj = new ServiceError._empty(owner);
+        obj = new DartError._empty(owner);
         break;
       case 'Isolate':
         obj = new Isolate._empty(owner);
+        break;
+      case 'ServiceError':
+        obj = new ServiceError._empty(owner);
+        break;
+      case 'ServiceException':
+        obj = new ServiceException._empty(owner);
         break;
       case 'Script':
         obj = new Script._empty(owner);
@@ -168,8 +177,13 @@ abstract class VM extends ServiceObjectOwner {
     update(toObservable({'id':'vm', 'type':'@VM'}));
   }
 
+  final StreamController<ServiceException> exceptions =
+      new StreamController.broadcast();
+  final StreamController<ServiceError> errors =
+      new StreamController.broadcast();
+
   static final RegExp _currentIsolateMatcher = new RegExp(r'isolates/\d+');
-  static final RegExp _currentObjectMatcher = new RegExp(r'isolates/\d+(/|$)');
+  static final RegExp _currentObjectMatcher = new RegExp(r'isolates/\d+/');
   static final String _isolatesPrefix = 'isolates/';
 
   String _parseObjectId(String id) {
@@ -248,28 +262,54 @@ abstract class VM extends ServiceObjectOwner {
       });
   }
 
-  /// Gets [id] as an [ObservableMap] from the service directly.
+  /// Gets [id] as an [ObservableMap] from the service directly. If
+  /// an error occurs, the future is completed as an error with a
+  /// ServiceError or ServiceException. Therefore any chained then() calls
+  /// will only receive a map encoding a valid ServiceObject.
   Future<ObservableMap> getAsMap(String id) {
     return getString(id).then((response) {
       try {
-        var map = JSON.decode(response);
-        return toObservable(map);
+        var map = toObservable(JSON.decode(response));
+        // Verify that the top level response is a service map.
+        if (!_isServiceMap(map)) {
+          return new Future.error(
+                new ServiceObject._fromMap(this, toObservable({
+            'type': 'ServiceException',
+            'id': '',
+            'kind': 'FormatException',
+            'response': map,
+            'message': 'Top level service responses must be service maps.',
+          })));
+        }
+        // Preemptively capture ServiceError and ServiceExceptions.
+        if (map['type'] == 'ServiceError') {
+          return new Future.error(new ServiceObject._fromMap(this, map));
+        } else if (map['type'] == 'ServiceException') {
+          return new Future.error(new ServiceObject._fromMap(this, map));
+        }
+        // map is now guaranteed to be a non-error/exception ServiceObject.
+        return map;
       } catch (e, st) {
-        return toObservable({
-          'type': 'Error',
+        print(e);
+        print(st);
+        return new Future.error(
+              new ServiceObject._fromMap(this, toObservable({
+          'type': 'ServiceException',
           'id': '',
-          'kind': 'DecodeError',
-          'message': '$e',
-        });
+          'kind': 'DecodeException',
+          'response': response,
+          'message': 'Could not decode JSON: $e',
+        })));
       }
     }).catchError((error) {
-      return toObservable({
-        'type': 'Error',
-        'id': '',
-        'kind': 'LastResort',
-        'message': '$error'
-      });
-    });
+      // ServiceError, forward to VM's ServiceError stream.
+      errors.add(error);
+      return new Future.error(error);
+    }, test: (e) => e is ServiceError).catchError((exception) {
+      // ServiceException, forward to VM's ServiceException stream.
+      exceptions.add(exception);
+      return new Future.error(exception);
+    }, test: (e) => e is ServiceException);
   }
 
   /// Get [id] as a [String] from the service directly. See [getAsMap].
@@ -309,6 +349,89 @@ abstract class VM extends ServiceObjectOwner {
   }
 }
 
+/// Snapshot in time of tag counters.
+class TagProfileSnapshot {
+  final double seconds;
+  final List<int> counters;
+  int get sum => _sum;
+  int _sum = 0;
+  TagProfileSnapshot(this.seconds, int countersLength)
+      : counters = new List<int>(countersLength);
+
+  /// Set [counters] and update [sum].
+  void set(List<int> counters) {
+    this.counters.setAll(0, counters);
+    for (var i = 0; i < this.counters.length; i++) {
+      _sum += this.counters[i];
+    }
+  }
+
+  /// Set [counters] with the delta from [counters] to [old_counters]
+  /// and update [sum].
+  void delta(List<int> counters, List<int> old_counters) {
+    for (var i = 0; i < this.counters.length; i++) {
+      this.counters[i] = counters[i] - old_counters[i];
+      _sum += this.counters[i];
+    }
+  }
+
+  /// Update [counters] with new maximum values seen in [counters].
+  void max(List<int> counters) {
+    for (var i = 0; i < counters.length; i++) {
+      var c = counters[i];
+      this.counters[i] = this.counters[i] > c ? this.counters[i] : c;
+    }
+  }
+
+  /// Zero [counters].
+  void zero() {
+    for (var i = 0; i < counters.length; i++) {
+      counters[i] = 0;
+    }
+  }
+}
+
+class TagProfile {
+  final List<String> names = new List<String>();
+  final List<TagProfileSnapshot> snapshots = new List<TagProfileSnapshot>();
+  double get updatedAtSeconds => _seconds;
+  double _seconds;
+  TagProfileSnapshot _maxSnapshot;
+  int _historySize;
+  int _countersLength = 0;
+
+  TagProfile(this._historySize);
+
+  void _processTagProfile(double seconds, ObservableMap tagProfile) {
+    _seconds = seconds;
+    var counters = tagProfile['counters'];
+    if (names.length == 0) {
+      // Initialization.
+      names.addAll(tagProfile['names']);
+      _countersLength = tagProfile['counters'].length;
+      for (var i = 0; i < _historySize; i++) {
+        var snapshot = new TagProfileSnapshot(0.0, _countersLength);
+        snapshot.zero();
+        snapshots.add(snapshot);
+      }
+      // The counters monotonically grow, keep track of the maximum value.
+      _maxSnapshot = new TagProfileSnapshot(0.0, _countersLength);
+      _maxSnapshot.set(counters);
+      return;
+    }
+    var snapshot = new TagProfileSnapshot(seconds, _countersLength);
+    // We snapshot the delta from the current counters to the maximum counter
+    // values.
+    snapshot.delta(counters, _maxSnapshot.counters);
+    _maxSnapshot.max(counters);
+    snapshots.add(snapshot);
+    // Only keep _historySize snapshots.
+    if (snapshots.length > _historySize) {
+      snapshots.removeAt(0);
+    }
+  }
+}
+
 /// State for a running isolate.
 class Isolate extends ServiceObjectOwner {
   @reflectable VM get vm => owner;
@@ -323,8 +446,11 @@ class Isolate extends ServiceObjectOwner {
   @observable bool idle = false;
 
   Map<String,ServiceObject> _cache = new Map<String,ServiceObject>();
+  final TagProfile tagProfile = new TagProfile(20);
 
-  Isolate._empty(ServiceObjectOwner owner) : super._empty(owner);
+  Isolate._empty(ServiceObjectOwner owner) : super._empty(owner) {
+    assert(owner is VM);
+  }
 
   /// Creates a link to [id] relative to [this].
   @reflectable String relativeLink(String id) => '${this.id}/$id';
@@ -412,6 +538,8 @@ class Isolate extends ServiceObjectOwner {
   }
 
   Future<ServiceObject> get(String id) {
+    // Do not allow null ids or empty ids.
+    assert(id != null && id != '');
     var obj = _cache[id];
     if (obj != null) {
       return obj.reload();
@@ -443,6 +571,8 @@ class Isolate extends ServiceObjectOwner {
   @observable int oldHeapCapacity = 0;
 
   @observable String fileAndLine;
+
+  @observable DartError error;
 
   void _update(ObservableMap map, bool mapIsRef) {
     mainPort = map['mainPort'];
@@ -492,6 +622,15 @@ class Isolate extends ServiceObjectOwner {
     pausedOnExit = map['pausedOnExit'];
     running = map['topFrame'] != null;
     idle = !pausedOnStart && !pausedOnExit && !running;
+    error = map['error'];
+  }
+
+  Future<TagProfile> updateTagProfile() {
+    return vm.getAsMap(relativeLink('profile/tag')).then((ObservableMap m) {
+      var seconds = new DateTime.now().millisecondsSinceEpoch / 1000.0;
+      tagProfile._processTagProfile(seconds, m);
+      return tagProfile;
+    });
   }
 
   @reflectable CodeTrieNode profileTrieRoot;
@@ -603,6 +742,29 @@ class ServiceMap extends ServiceObject implements ObservableMap {
   bool get hasObservers => _map.hasObservers;
 }
 
+/// A [DartError] is peered to a Dart Error object.
+class DartError extends ServiceObject {
+  DartError._empty(ServiceObject owner) : super._empty(owner);
+
+  @observable String kind;
+  @observable String message;
+  @observable ServiceMap exception;
+  @observable ServiceMap stacktrace;
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    kind = map['kind'];
+    message = map['message'];
+    exception = new ServiceObject._fromMap(owner, map['exception']);
+    stacktrace = new ServiceObject._fromMap(owner, map['stacktrace']);
+    name = 'DartError $kind';
+    vmName = name;
+  }
+}
+
+/// A [ServiceError] is an error that was triggered in the service
+/// server or client. Errors are prorammer mistakes that could have
+/// been prevented, for example, requesting a non-existant path over the
+/// service.
 class ServiceError extends ServiceObject {
   ServiceError._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -616,8 +778,25 @@ class ServiceError extends ServiceObject {
     name = 'ServiceError $kind';
     vmName = name;
   }
+}
 
-  // TODO: stackTrace?
+/// A [ServiceException] is an exception that was triggered in the service
+/// server or client. Exceptions are events that should be handled,
+/// for example, an isolate went away or the connection to the VM was lost.
+class ServiceException extends ServiceObject {
+  ServiceException._empty(ServiceObject owner) : super._empty(owner);
+
+  @observable String kind;
+  @observable String message;
+  @observable dynamic response;
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    kind = map['kind'];
+    message = map['message'];
+    response = map['response'];
+    name = 'ServiceException $kind';
+    vmName = name;
+  }
 }
 
 class ScriptLine {

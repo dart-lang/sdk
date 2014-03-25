@@ -70,6 +70,7 @@ class IsolateProfilerData {
  private:
   SampleBuffer* sample_buffer_;
   bool own_sample_buffer_;
+
   DISALLOW_COPY_AND_ASSIGN(IsolateProfilerData);
 };
 
