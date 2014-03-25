@@ -414,8 +414,8 @@ String get repoRoot {
   if (runningFromSdk) {
     throw new StateError("Can't get the repo root from the SDK.");
   }
-  return path.join(
-      path.dirname(libraryPath('pub.io')), '..', '..', '..', '..', '..', '..');
+  return path.normalize(path.join(
+      path.dirname(libraryPath('pub.io')), '..', '..', '..', '..', '..', '..'));
 }
 
 /// A line-by-line stream of standard input.

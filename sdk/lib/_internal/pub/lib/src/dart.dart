@@ -18,7 +18,6 @@ import '../../../compiler/implementation/filenames.dart'
 
 import '../../asset/dart/serialize.dart';
 import 'io.dart';
-import 'sdk.dart' as sdk;
 import 'utils.dart';
 
 /// Interface to communicate with dart2js.
@@ -28,6 +27,12 @@ import 'utils.dart';
 /// [compiler.DiagnosticHandler] function types so that we can provide them
 /// as a single unit.
 abstract class CompilerProvider {
+  /// The URI to the root directory where "dart:" libraries can be found.
+  ///
+  /// This is used as the base URL to generate library URLs that are then sent
+  /// back to [provideInput].
+  Uri get libraryRoot;
+
   /// Given [uri], responds with a future that completes to the contents of
   /// the input file at that URI.
   ///
@@ -93,7 +98,7 @@ Future compile(String entrypoint, CompilerProvider provider, {
 
     return Chain.track(compiler.compile(
         path.toUri(entrypoint),
-        path.toUri(appendSlash(_libPath)),
+        provider.libraryRoot,
         path.toUri(appendSlash(packageRoot)),
         provider.provideInput,
         provider.handleDiagnostic,
@@ -101,15 +106,6 @@ Future compile(String entrypoint, CompilerProvider provider, {
         provider.provideOutput,
         environment));
   });
-}
-
-/// Returns the path to the directory containing the Dart core libraries.
-///
-/// This corresponds to the "sdk" directory in the repo and to the root of the
-/// compiled SDK.
-String get _libPath {
-  if (runningFromSdk) return sdk.rootDirectory;
-  return path.join(repoRoot, 'sdk');
 }
 
 /// Returns whether [dart] looks like an entrypoint file.

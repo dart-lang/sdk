@@ -185,8 +185,11 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
 /// difference is that it uses barback's logging code and, more importantly, it
 /// handles missing source files more gracefully.
 class _BarbackCompilerProvider implements dart.CompilerProvider {
+  Uri get libraryRoot => Uri.parse("${path.toUri(_libraryRootPath)}/");
+
   final BuildEnvironment _environment;
   final Transform _transform;
+  String _libraryRootPath;
 
   /// The map of previously loaded files.
   ///
@@ -222,7 +225,30 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
       compiler.Diagnostic.VERBOSE_INFO.ordinal;
 
   _BarbackCompilerProvider(this._environment, this._transform,
-      {this.generateSourceMaps: true});
+      {this.generateSourceMaps: true}) {
+    // Dart2js outputs source maps that reference the Dart SDK sources. For
+    // that to work, those sources need to be inside the build environment. We
+    // do that by placing them in a special "$sdk" pseudo-package. In order for
+    // dart2js to generate the right URLs to point to that package, we give it
+    // a library root that corresponds to where that package can be found
+    // relative to the public build directory containing that entrypoint.
+    //
+    // For example, say the package being compiled is "/dev/myapp", the
+    // entrypoint is "web/sub/foo/bar.dart", and the build directory is
+    // "web/sub". This means the SDK sources will be (conceptually) at:
+    //
+    //     /dev/myapp/web/sub/packages/$sdk/lib/
+    //
+    // This implies that the asset path for a file in the SDK is:
+    //
+    //     $sdk|lib/lib/...
+    //
+    // TODO(rnystrom): Fix this if #17751 is fixed.
+    var buildDir = _environment.getBuildDirectoryContaining(
+        _transform.primaryInput.id.path);
+    _libraryRootPath = path.join(_environment.rootPackage.dir,
+        buildDir, "packages", r"$sdk");
+  }
 
   /// A [CompilerInputProvider] for dart2js.
   Future<String> provideInput(Uri resourceUri) {
@@ -329,17 +355,16 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
   }
 
   Future<String> _readResource(Uri url) {
-    // See if the path is within a package. If so, use Barback so we can use
-    // generated Dart assets.
+    return syncFuture(() {
+      // Find the corresponding asset in barback.
+      var id = _sourceUrlToId(url);
+      if (id != null) return _transform.readInputAsString(id);
 
-    var id = _sourceUrlToId(url);
-    if (id != null) return _transform.readInputAsString(id);
-
-    // If we get here, the path doesn't appear to be in a package, so we'll
-    // skip Barback and just hit the file system. This will occur at the very
-    // least for dart2js's implementations of the core libraries.
-    var sourcePath = path.fromUri(url);
-    return Chain.track(new File(sourcePath).readAsString());
+      // Don't allow arbitrary file paths that point to things not in packages.
+      // Doing so won't work in Dartium.
+      throw new Exception(
+          "Cannot read $url because it is outside of the build environment.");
+    });
   }
 
   AssetId _sourceUrlToId(Uri url) {

@@ -32,7 +32,7 @@ main() {
     ]).create();
 
     schedulePub(args: ["build", "--mode", "debug"],
-        output: new RegExp(r'Built 8 files to "build".'));
+        output: new RegExp(r'Built \d+ files to "build".'));
 
     d.dir(appPath, [
       d.dir('build', [
