@@ -6,20 +6,22 @@
 // These tests normally fail when run in minified dart2js, since the names will
 // be mangled. This version of the file is modified to expect minified names.
 
+library matcher.minified_test;
+
 import 'package:matcher/matcher.dart';
-import 'package:unittest/unittest.dart' as ut;
+import 'package:unittest/unittest.dart' show test, group;
 
 import 'test_common.dart';
 import 'test_utils.dart';
 
 // A regexp fragment matching a minified name.
-final _minifiedName = r"[A-Za-z0-9]{1,3}";
+const _MINIFIED_NAME = r"[A-Za-z0-9]{1,3}";
 
 void main() {
   initUtils();
 
-  ut.group('Core matchers', () {
-    ut.test('throwsFormatException', () {
+  group('Core matchers', () {
+    test('throwsFormatException', () {
       shouldPass(() { throw new FormatException(''); },
           throwsFormatException);
       shouldFail(() { throw new Exception(); },
@@ -27,10 +29,10 @@ void main() {
           matches(
               r"Expected: throws FormatException +"
               r"Actual: <Closure(: \(\) => dynamic)?> +"
-              r"Which: threw " + _minifiedName + r":<Exception>"));
+              r"Which: threw " + _MINIFIED_NAME + r":<Exception>"));
     });
 
-    ut.test('throwsArgumentError', () {
+    test('throwsArgumentError', () {
       shouldPass(() { throw new ArgumentError(''); },
           throwsArgumentError);
       shouldFail(() { throw new Exception(); },
@@ -38,10 +40,10 @@ void main() {
           matches(
               r"Expected: throws ArgumentError +"
               r"Actual: <Closure(: \(\) => dynamic)?> +"
-              r"Which: threw " + _minifiedName + r":<Exception>"));
+              r"Which: threw " + _MINIFIED_NAME + r":<Exception>"));
     });
 
-    ut.test('throwsRangeError', () {
+    test('throwsRangeError', () {
       shouldPass(() { throw new RangeError(0); },
           throwsRangeError);
       shouldFail(() { throw new Exception(); },
@@ -49,10 +51,10 @@ void main() {
           matches(
               r"Expected: throws RangeError +"
               r"Actual: <Closure(: \(\) => dynamic)?> +"
-              r"Which: threw " + _minifiedName + r":<Exception>"));
+              r"Which: threw " + _MINIFIED_NAME + r":<Exception>"));
     });
 
-    ut.test('throwsNoSuchMethodError', () {
+    test('throwsNoSuchMethodError', () {
       shouldPass(() {
         throw new NoSuchMethodError(null, const Symbol(''), null, null);
       }, throwsNoSuchMethodError);
@@ -61,10 +63,10 @@ void main() {
           matches(
               r"Expected: throws NoSuchMethodError +"
               r"Actual: <Closure(: \(\) => dynamic)?> +"
-              r"Which: threw " + _minifiedName + r":<Exception>"));
+              r"Which: threw " + _MINIFIED_NAME + r":<Exception>"));
     });
 
-    ut.test('throwsUnimplementedError', () {
+    test('throwsUnimplementedError', () {
       shouldPass(() { throw new UnimplementedError(''); },
           throwsUnimplementedError);
       shouldFail(() { throw new Exception(); },
@@ -72,10 +74,10 @@ void main() {
           matches(
               r"Expected: throws UnimplementedError +"
               r"Actual: <Closure(: \(\) => dynamic)?> +"
-              r"Which: threw " + _minifiedName + r":<Exception>"));
+              r"Which: threw " + _MINIFIED_NAME + r":<Exception>"));
     });
 
-    ut.test('throwsUnsupportedError', () {
+    test('throwsUnsupportedError', () {
       shouldPass(() { throw new UnsupportedError(''); },
           throwsUnsupportedError);
       shouldFail(() { throw new Exception(); },
@@ -83,10 +85,10 @@ void main() {
           matches(
               r"Expected: throws UnsupportedError +"
               r"Actual: <Closure(: \(\) => dynamic)?> +"
-              r"Which: threw " + _minifiedName + r":<Exception>"));
+              r"Which: threw " + _MINIFIED_NAME + r":<Exception>"));
     });
 
-    ut.test('throwsStateError', () {
+    test('throwsStateError', () {
       shouldPass(() { throw new StateError(''); },
           throwsStateError);
       shouldFail(() { throw new Exception(); },
@@ -94,31 +96,31 @@ void main() {
           matches(
               r"Expected: throws StateError +"
               r"Actual: <Closure(: \(\) => dynamic)?> +"
-              r"Which: threw " + _minifiedName + r":<Exception>"));
+              r"Which: threw " + _MINIFIED_NAME + r":<Exception>"));
     });
   });
 
-  ut.group('Iterable Matchers', () {
-    ut.test('isEmpty', () {
+  group('Iterable Matchers', () {
+    test('isEmpty', () {
       var d = new SimpleIterable(0);
       var e = new SimpleIterable(1);
       shouldPass(d, isEmpty);
       shouldFail(e, isEmpty,
-          matches(r"Expected: empty +Actual: " + _minifiedName + r":\[1\]"));
+          matches(r"Expected: empty +Actual: " + _MINIFIED_NAME + r":\[1\]"));
     });
 
-    ut.test('contains', () {
+    test('contains', () {
       var d = new SimpleIterable(3);
       shouldPass(d, contains(2));
       shouldFail(d, contains(5),
           matches(
               r"Expected: contains <5> +"
-              r"Actual: " + _minifiedName + r":\[3, 2, 1\]"));
+              r"Actual: " + _MINIFIED_NAME + r":\[3, 2, 1\]"));
     });
   });
 
-  ut.group('Feature Matchers', () {
-    ut.test("Feature Matcher", () {
+  group('Feature Matchers', () {
+    test("Feature Matcher", () {
       var w = new Widget();
       w.price = 10;
       shouldPass(w, new HasPrice(10));
@@ -127,7 +129,7 @@ void main() {
           matches(
               r"Expected: Widget with a price that is a value greater than "
                   r"<10> +"
-              r"Actual: <Instance of '" + _minifiedName + r"'> +"
+              r"Actual: <Instance of '" + _MINIFIED_NAME + r"'> +"
               r"Which: has price with value <10> which is not "
               r"a value greater than <10>"));
     });

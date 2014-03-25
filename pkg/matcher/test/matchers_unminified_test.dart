@@ -7,8 +7,10 @@
 // mangled. A version of this file that works in minified dart2js is in
 // matchers_minified_test.dart.
 
+library matcher.unminified_test;
+
 import 'package:matcher/matcher.dart';
-import 'package:unittest/unittest.dart' as ut;
+import 'package:unittest/unittest.dart' show group, test;
 
 import 'test_common.dart';
 import 'test_utils.dart';
@@ -16,8 +18,8 @@ import 'test_utils.dart';
 void main() {
   initUtils();
 
-  ut.group('Core matchers', () {
-    ut.test('throwsFormatException', () {
+  group('Core matchers', () {
+    test('throwsFormatException', () {
       shouldPass(() { throw new FormatException(''); },
           throwsFormatException);
       shouldFail(() { throw new Exception(); },
@@ -29,7 +31,7 @@ void main() {
 
     });
 
-    ut.test('throwsArgumentError', () {
+    test('throwsArgumentError', () {
       shouldPass(() { throw new ArgumentError(''); },
           throwsArgumentError);
       shouldFail(() { throw new Exception(); },
@@ -40,7 +42,7 @@ void main() {
               r"Which: threw \?:<Exception>"));
     });
 
-    ut.test('throwsRangeError', () {
+    test('throwsRangeError', () {
       shouldPass(() { throw new RangeError(0); },
           throwsRangeError);
       shouldFail(() { throw new Exception(); },
@@ -51,7 +53,7 @@ void main() {
               r"Which: threw \?:<Exception>"));
     });
 
-    ut.test('throwsNoSuchMethodError', () {
+    test('throwsNoSuchMethodError', () {
       shouldPass(() {
           throw new NoSuchMethodError(null, const Symbol(''), null, null);
       }, throwsNoSuchMethodError);
@@ -63,7 +65,7 @@ void main() {
               r"Which: threw \?:<Exception>"));
     });
 
-    ut.test('throwsUnimplementedError', () {
+    test('throwsUnimplementedError', () {
       shouldPass(() { throw new UnimplementedError(''); },
           throwsUnimplementedError);
       shouldFail(() { throw new Exception(); },
@@ -74,7 +76,7 @@ void main() {
               r"Which: threw \?:<Exception>"));
     });
 
-    ut.test('throwsUnsupportedError', () {
+    test('throwsUnsupportedError', () {
       shouldPass(() { throw new UnsupportedError(''); },
           throwsUnsupportedError);
       shouldFail(() { throw new Exception(); },
@@ -85,7 +87,7 @@ void main() {
               r"Which: threw \?:<Exception>"));
     });
 
-    ut.test('throwsStateError', () {
+    test('throwsStateError', () {
       shouldPass(() { throw new StateError(''); },
           throwsStateError);
       shouldFail(() { throw new Exception(); },
@@ -97,8 +99,8 @@ void main() {
     });
   });
 
-  ut.group('Iterable Matchers', () {
-    ut.test('isEmpty', () {
+  group('Iterable Matchers', () {
+    test('isEmpty', () {
       var d = new SimpleIterable(0);
       var e = new SimpleIterable(1);
       shouldPass(d, isEmpty);
@@ -106,7 +108,7 @@ void main() {
           "Actual: SimpleIterable:[1]");
     });
 
-    ut.test('contains', () {
+    test('contains', () {
       var d = new SimpleIterable(3);
       shouldPass(d, contains(2));
       shouldFail(d, contains(5),
@@ -115,8 +117,8 @@ void main() {
     });
   });
 
-  ut.group('Feature Matchers', () {
-    ut.test("Feature Matcher", () {
+  group('Feature Matchers', () {
+    test("Feature Matcher", () {
       var w = new Widget();
       w.price = 10;
       shouldPass(w, new HasPrice(10));

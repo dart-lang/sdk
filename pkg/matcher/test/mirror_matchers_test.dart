@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library matcher.mirror_test;
+
 import 'package:matcher/mirror_matchers.dart';
-import 'package:unittest/unittest.dart' as ut;
+import 'package:unittest/unittest.dart' show test;
 
 import 'test_utils.dart';
 
@@ -18,7 +20,7 @@ void main() {
 
   initUtils();
 
-  ut.test('hasProperty', () {
+  test('hasProperty', () {
     var foo = [3];
     shouldPass(foo, hasProperty('length', 1));
     shouldFail(foo, hasProperty('foo'), 'Expected: has property "foo" '

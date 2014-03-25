@@ -2,21 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test_utils;
-
-import 'package:matcher/matcher.dart';
-import 'package:unittest/unittest.dart' as ut;
+library matcher.test_utils;
 
 import 'dart:async';
 
-int errorCount;
-String errorString;
-var _testHandler = null;
+import 'package:matcher/matcher.dart';
+import 'package:unittest/unittest.dart' show test, expectAsync;
+
+int _errorCount;
+String _errorString;
+FailureHandler _testHandler = null;
 
 class MyFailureHandler extends DefaultFailureHandler {
   void fail(String reason) {
-    ++errorCount;
-    errorString = reason;
+    ++_errorCount;
+    _errorString = reason;
   }
 }
 
@@ -28,21 +28,21 @@ void initUtils() {
 
 void shouldFail(value, Matcher matcher, expected, {bool isAsync: false}) {
   configureExpectFailureHandler(_testHandler);
-  errorCount = 0;
-  errorString = '';
+  _errorCount = 0;
+  _errorString = '';
   expect(value, matcher);
   afterTest() {
     configureExpectFailureHandler(null);
-    expect(errorCount, equals(1));
+    expect(_errorCount, equals(1));
     if (expected is String) {
-      expect(errorString, equalsIgnoringWhitespace(expected));
+      expect(_errorString, equalsIgnoringWhitespace(expected));
     } else {
-      expect(errorString.replaceAll('\n', ''), expected);
+      expect(_errorString.replaceAll('\n', ''), expected);
     }
   }
 
   if (isAsync) {
-    Timer.run(ut.expectAsync(afterTest));
+    Timer.run(expectAsync(afterTest));
   } else {
     afterTest();
   }
@@ -50,15 +50,15 @@ void shouldFail(value, Matcher matcher, expected, {bool isAsync: false}) {
 
 void shouldPass(value, Matcher matcher, {bool isAsync: false}) {
   configureExpectFailureHandler(_testHandler);
-  errorCount = 0;
-  errorString = '';
+  _errorCount = 0;
+  _errorString = '';
   expect(value, matcher);
   afterTest() {
     configureExpectFailureHandler(null);
-    expect(errorCount, equals(0));
+    expect(_errorCount, equals(0));
   }
   if (isAsync) {
-    Timer.run(ut.expectAsync(afterTest));
+    Timer.run(expectAsync(afterTest));
   } else {
     afterTest();
   }

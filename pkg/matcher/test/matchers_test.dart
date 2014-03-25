@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library matcher.test;
+
 import 'dart:async';
 import 'dart:collection';
 
 import 'package:matcher/matcher.dart';
-import 'package:unittest/unittest.dart' as ut;
+import 'package:unittest/unittest.dart' show test, group;
 
 import 'test_utils.dart';
 
@@ -16,44 +18,44 @@ void main() {
 
   // Core matchers
 
-  ut.group('Core matchers', () {
+  group('Core matchers', () {
 
-    ut.test('isTrue', () {
+    test('isTrue', () {
       shouldPass(true, isTrue);
       shouldFail(false, isTrue, "Expected: true Actual: <false>");
     });
 
-    ut.test('isFalse', () {
+    test('isFalse', () {
       shouldPass(false, isFalse);
       shouldFail(10, isFalse, "Expected: false Actual: <10>");
       shouldFail(true, isFalse, "Expected: false Actual: <true>");
     });
 
-    ut.test('isNull', () {
+    test('isNull', () {
       shouldPass(null, isNull);
       shouldFail(false, isNull, "Expected: null Actual: <false>");
     });
 
-    ut.test('isNotNull', () {
+    test('isNotNull', () {
       shouldPass(false, isNotNull);
       shouldFail(null, isNotNull, "Expected: not null Actual: <null>");
     });
 
-    ut.test('same', () {
+    test('same', () {
       var a = new Map();
       var b = new Map();
       shouldPass(a, same(a));
       shouldFail(b, same(a), "Expected: same instance as {} Actual: {}");
     });
 
-    ut.test('equals', () {
+    test('equals', () {
       var a = new Map();
       var b = new Map();
       shouldPass(a, equals(a));
       shouldPass(a, equals(b));
     });
 
-    ut.test('anything', () {
+    test('anything', () {
       var a = new Map();
       shouldPass(0, anything);
       shouldPass(null, anything);
@@ -61,7 +63,7 @@ void main() {
       shouldFail(a, isNot(anything), "Expected: not anything Actual: {}");
     });
 
-    ut.test('throws', () {
+    test('throws', () {
       shouldFail(doesNotThrow, throws,
           matches(
               r"Expected: throws"
@@ -75,7 +77,7 @@ void main() {
           "   Which: is not a Function or Future");
     });
 
-    ut.test('throwsA', () {
+    test('throwsA', () {
       shouldPass(doesThrow, throwsA(equals('X')));
       shouldFail(doesThrow, throwsA(equals('Y')),
           matches(
@@ -85,7 +87,7 @@ void main() {
               r"   Which: threw 'X'"));
     });
 
-    ut.test('returnsNormally', () {
+    test('returnsNormally', () {
       shouldPass(doesNotThrow, returnsNormally);
       shouldFail(doesThrow, returnsNormally,
           matches(
@@ -96,7 +98,7 @@ void main() {
     });
 
 
-    ut.test('hasLength', () {
+    test('hasLength', () {
       var a = new Map();
       var b = new List();
       shouldPass(a, hasLength(0));
@@ -122,27 +124,27 @@ void main() {
       shouldPass(b, hasLength(2));
     });
 
-    ut.test('scalar type mismatch', () {
+    test('scalar type mismatch', () {
       shouldFail('error', equals(5.1),
           "Expected: <5.1> "
           "Actual: 'error'");
     });
 
-    ut.test('nested type mismatch', () {
+    test('nested type mismatch', () {
       shouldFail(['error'], equals([5.1]),
           "Expected: [5.1] "
           "Actual: ['error'] "
           "Which: was 'error' instead of <5.1> at location [0]");
     });
 
-    ut.test('doubly-nested type mismatch', () {
+    test('doubly-nested type mismatch', () {
       shouldFail([['error']], equals([[5.1]]),
           "Expected: [[5.1]] "
           "Actual: [['error']] "
           "Which: was 'error' instead of <5.1> at location [0][0]");
     });
 
-    ut.test('doubly nested inequality', () {
+    test('doubly nested inequality', () {
       var actual1 = [['foo', 'bar'], ['foo'], 3, []];
       var expected1 = [['foo', 'bar'], ['foo'], 4, []];
       var reason1 = "Expected: [['foo', 'bar'], ['foo'], 4, []] "
@@ -167,9 +169,9 @@ void main() {
     });
   });
 
-  ut.group('Numeric Matchers', () {
+  group('Numeric Matchers', () {
 
-    ut.test('greaterThan', () {
+    test('greaterThan', () {
       shouldPass(10, greaterThan(9));
       shouldFail(9, greaterThan(10),
         "Expected: a value greater than <10> "
@@ -177,7 +179,7 @@ void main() {
         "Which: is not a value greater than <10>");
     });
 
-    ut.test('greaterThanOrEqualTo', () {
+    test('greaterThanOrEqualTo', () {
       shouldPass(10, greaterThanOrEqualTo(10));
       shouldFail(9, greaterThanOrEqualTo(10),
         "Expected: a value greater than or equal to <10> "
@@ -185,7 +187,7 @@ void main() {
         "Which: is not a value greater than or equal to <10>");
     });
 
-    ut.test('lessThan', () {
+    test('lessThan', () {
       shouldFail(10, lessThan(9),
           "Expected: a value less than <9> "
           "Actual: <10> "
@@ -193,7 +195,7 @@ void main() {
       shouldPass(9, lessThan(10));
     });
 
-    ut.test('lessThanOrEqualTo', () {
+    test('lessThanOrEqualTo', () {
       shouldPass(10, lessThanOrEqualTo(10));
       shouldFail(11, lessThanOrEqualTo(10),
         "Expected: a value less than or equal to <10> "
@@ -201,7 +203,7 @@ void main() {
         "Which: is not a value less than or equal to <10>");
     });
 
-    ut.test('isZero', () {
+    test('isZero', () {
       shouldPass(0, isZero);
       shouldFail(1, isZero,
           "Expected: a value equal to <0> "
@@ -209,7 +211,7 @@ void main() {
           "Which: is not a value equal to <0>");
     });
 
-    ut.test('isNonZero', () {
+    test('isNonZero', () {
       shouldFail(0, isNonZero,
           "Expected: a value not equal to <0> "
           "Actual: <0> "
@@ -217,7 +219,7 @@ void main() {
       shouldPass(1, isNonZero);
     });
 
-    ut.test('isPositive', () {
+    test('isPositive', () {
       shouldFail(-1, isPositive,
           "Expected: a positive value "
           "Actual: <-1> "
@@ -229,7 +231,7 @@ void main() {
       shouldPass(1, isPositive);
     });
 
-    ut.test('isNegative', () {
+    test('isNegative', () {
       shouldPass(-1, isNegative);
       shouldFail(0, isNegative,
           "Expected: a negative value "
@@ -237,7 +239,7 @@ void main() {
           "Which: is not a negative value");
     });
 
-    ut.test('isNonPositive', () {
+    test('isNonPositive', () {
       shouldPass(-1, isNonPositive);
       shouldPass(0, isNonPositive);
       shouldFail(1, isNonPositive,
@@ -246,7 +248,7 @@ void main() {
           "Which: is not a non-positive value");
     });
 
-    ut.test('isNonNegative', () {
+    test('isNonNegative', () {
       shouldPass(1, isNonNegative);
       shouldPass(0, isNonNegative);
       shouldFail(-1, isNonNegative,
@@ -255,7 +257,7 @@ void main() {
         "Which: is not a non-negative value");
     });
 
-    ut.test('closeTo', () {
+    test('closeTo', () {
       shouldPass(0, closeTo(0, 1));
       shouldPass(-1, closeTo(0, 1));
       shouldPass(1, closeTo(0, 1));
@@ -269,7 +271,7 @@ void main() {
           "Which: differs by <1.001>");
     });
 
-    ut.test('inInclusiveRange', () {
+    test('inInclusiveRange', () {
       shouldFail(-1, inInclusiveRange(0,2),
           "Expected: be in range from 0 (inclusive) to 2 (inclusive) "
           "Actual: <-1>");
@@ -281,7 +283,7 @@ void main() {
           "Actual: <3>");
     });
 
-    ut.test('inExclusiveRange', () {
+    test('inExclusiveRange', () {
       shouldFail(0, inExclusiveRange(0,2),
           "Expected: be in range from 0 (exclusive) to 2 (exclusive) "
           "Actual: <0>");
@@ -291,7 +293,7 @@ void main() {
           "Actual: <2>");
     });
 
-    ut.test('inOpenClosedRange', () {
+    test('inOpenClosedRange', () {
       shouldFail(0, inOpenClosedRange(0,2),
           "Expected: be in range from 0 (exclusive) to 2 (inclusive) "
           "Actual: <0>");
@@ -299,7 +301,7 @@ void main() {
       shouldPass(2, inOpenClosedRange(0,2));
     });
 
-    ut.test('inClosedOpenRange', () {
+    test('inClosedOpenRange', () {
       shouldPass(0, inClosedOpenRange(0,2));
       shouldPass(1, inClosedOpenRange(0,2));
       shouldFail(2, inClosedOpenRange(0,2),
@@ -308,9 +310,9 @@ void main() {
     });
   });
 
-  ut.group('String Matchers', () {
+  group('String Matchers', () {
 
-    ut.test('isEmpty', () {
+    test('isEmpty', () {
       shouldPass('', isEmpty);
       shouldFail(null, isEmpty,
           "Expected: empty Actual: <null>");
@@ -319,13 +321,13 @@ void main() {
       shouldFail('a', isEmpty, "Expected: empty Actual: 'a'");
     });
 
-    ut.test('equalsIgnoringCase', () {
+    test('equalsIgnoringCase', () {
       shouldPass('hello', equalsIgnoringCase('HELLO'));
       shouldFail('hi', equalsIgnoringCase('HELLO'),
           "Expected: 'HELLO' ignoring case Actual: 'hi'");
     });
 
-    ut.test('equalsIgnoringWhitespace', () {
+    test('equalsIgnoringWhitespace', () {
       shouldPass(' hello   world  ', equalsIgnoringWhitespace('hello world'));
       shouldFail(' helloworld  ', equalsIgnoringWhitespace('hello world'),
           "Expected: 'hello world' ignoring whitespace "
@@ -333,7 +335,7 @@ void main() {
           "Which: is 'helloworld' with whitespace compressed");
     });
 
-    ut.test('startsWith', () {
+    test('startsWith', () {
       shouldPass('hello', startsWith(''));
       shouldPass('hello', startsWith('hell'));
       shouldPass('hello', startsWith('hello'));
@@ -342,7 +344,7 @@ void main() {
           "Actual: 'hello'");
     });
 
-    ut.test('endsWith', () {
+    test('endsWith', () {
       shouldPass('hello', endsWith(''));
       shouldPass('hello', endsWith('lo'));
       shouldPass('hello', endsWith('hello'));
@@ -351,7 +353,7 @@ void main() {
           "Actual: 'hello'");
     });
 
-    ut.test('contains', () {
+    test('contains', () {
       shouldPass('hello', contains(''));
       shouldPass('hello', contains('h'));
       shouldPass('hello', contains('o'));
@@ -361,7 +363,7 @@ void main() {
           "Expected: contains ' ' Actual: 'hello'");
     });
 
-    ut.test('stringContainsInOrder', () {
+    test('stringContainsInOrder', () {
       shouldPass('goodbye cruel world', stringContainsInOrder(['']));
       shouldPass('goodbye cruel world', stringContainsInOrder(['goodbye']));
       shouldPass('goodbye cruel world', stringContainsInOrder(['cruel']));
@@ -380,7 +382,7 @@ void main() {
         "Actual: 'goodbye cruel world'");
     });
 
-    ut.test('matches', () {
+    test('matches', () {
       shouldPass('c0d', matches('[a-z][0-9][a-z]'));
       shouldPass('c0d', matches(new RegExp('[a-z][0-9][a-z]')));
       shouldFail('cOd', matches('[a-z][0-9][a-z]'),
@@ -388,21 +390,21 @@ void main() {
     });
   });
 
-  ut.group('Iterable Matchers', () {
+  group('Iterable Matchers', () {
 
-    ut.test('isEmpty', () {
+    test('isEmpty', () {
       shouldPass([], isEmpty);
       shouldFail([1], isEmpty, "Expected: empty Actual: [1]");
     });
 
-    ut.test('contains', () {
+    test('contains', () {
       var d = [1, 2];
       shouldPass(d, contains(1));
       shouldFail(d, contains(0), "Expected: contains <0> "
           "Actual: [1, 2]");
     });
 
-    ut.test('equals with matcher element', () {
+    test('equals with matcher element', () {
       var d = ['foo', 'bar'];
       shouldPass(d, equals(['foo', startsWith('ba')]));
       shouldFail(d, equals(['foo', endsWith('ba')]),
@@ -411,13 +413,13 @@ void main() {
           "Which: does not match a string ending with 'ba' at location [1]");
     });
 
-    ut.test('isIn', () {
+    test('isIn', () {
       var d = [1, 2];
       shouldPass(1, isIn(d));
       shouldFail(0, isIn(d), "Expected: is in [1, 2] Actual: <0>");
     });
 
-    ut.test('everyElement', () {
+    test('everyElement', () {
       var d = [1, 2];
       var e = [1, 1, 1];
       shouldFail(d, everyElement(1),
@@ -427,7 +429,7 @@ void main() {
       shouldPass(e, everyElement(1));
     });
 
-    ut.test('nested everyElement', () {
+    test('nested everyElement', () {
       var d = [['foo', 'bar'], ['foo'], []];
       var e = [['foo', 'bar'], ['foo'], 3, []];
       shouldPass(d, everyElement(anyOf(isEmpty, contains('foo'))));
@@ -459,7 +461,7 @@ void main() {
           "at index 2");
     });
 
-    ut.test('anyElement', () {
+    test('anyElement', () {
       var d = [1, 2];
       var e = [1, 1, 1];
       shouldPass(d, anyElement(2));
@@ -467,7 +469,7 @@ void main() {
           "Expected: some element <2> Actual: [1, 1, 1]");
     });
 
-    ut.test('orderedEquals', () {
+    test('orderedEquals', () {
       shouldPass([null], orderedEquals([null]));
       var d = [1, 2];
       shouldPass(d, orderedEquals([1, 2]));
@@ -477,7 +479,7 @@ void main() {
           "Which: was <1> instead of <2> at location [0]");
     });
 
-    ut.test('unorderedEquals', () {
+    test('unorderedEquals', () {
       var d = [1, 2];
       shouldPass(d, unorderedEquals([2, 1]));
       shouldFail(d, unorderedEquals([1]),
@@ -494,7 +496,7 @@ void main() {
           "Which: has no match for <3> at index 0");
     });
 
-    ut.test('unorderedMatchess', () {
+    test('unorderedMatchess', () {
       var d = [1, 2];
       shouldPass(d, unorderedMatches([2, 1]));
       shouldPass(d, unorderedMatches([greaterThan(1), greaterThan(0)]));
@@ -517,7 +519,7 @@ void main() {
           "Which: has no match for a value greater than <3> at index 0");
     });
 
-    ut.test('pairwise compare', () {
+    test('pairwise compare', () {
       var c = [1, 2];
       var d = [1, 2, 3];
       var e = [1, 4, 9];
@@ -543,9 +545,9 @@ void main() {
     });
   });
 
-  ut.group('Map Matchers', () {
+  group('Map Matchers', () {
 
-    ut.test('isEmpty', () {
+    test('isEmpty', () {
       var a = new Map();
       shouldPass({}, isEmpty);
       shouldPass(a, isEmpty);
@@ -554,7 +556,7 @@ void main() {
           "Actual: {'foo': 'bar'}");
     });
 
-    ut.test('equals', () {
+    test('equals', () {
       var a = new Map();
       a['foo'] = 'bar';
       var b = new Map();
@@ -568,7 +570,7 @@ void main() {
           "Which: is missing map key 'bar'");
     });
 
-    ut.test('equals with different lengths', () {
+    test('equals with different lengths', () {
       var a = new LinkedHashMap();
       a['foo'] = 'bar';
       var b = new LinkedHashMap();
@@ -603,7 +605,7 @@ void main() {
           "Which: has different length and is missing map key 'foo'");
     });
 
-    ut.test('equals with matcher value', () {
+    test('equals with matcher value', () {
       var a = new Map();
       a['foo'] = 'bar';
       shouldPass(a, equals({'foo': startsWith('ba')}));
@@ -614,7 +616,7 @@ void main() {
               "at location ['foo']");
     });
 
-    ut.test('contains', () {
+    test('contains', () {
       var a = new Map();
       a['foo'] = 'bar';
       var b = new Map();
@@ -626,7 +628,7 @@ void main() {
           "Which: is not a string, map or iterable");
     });
 
-    ut.test('containsValue', () {
+    test('containsValue', () {
       var a = new Map();
       a['foo'] = 'bar';
       shouldPass(a, containsValue('bar'));
@@ -635,7 +637,7 @@ void main() {
           "Actual: {'foo': 'bar'}");
     });
 
-    ut.test('containsPair', () {
+    test('containsPair', () {
       var a = new Map();
       a['foo'] = 'bar';
       shouldPass(a, containsPair('foo', 'bar'));
@@ -650,7 +652,7 @@ void main() {
           "Which: doesn't contain key 'fo'");
     });
 
-    ut.test('hasLength', () {
+    test('hasLength', () {
       var a = new Map();
       a['foo'] = 'bar';
       var b = new Map();
@@ -662,15 +664,15 @@ void main() {
     });
   });
 
-  ut.group('Operator Matchers', () {
+  group('Operator Matchers', () {
 
-    ut.test('anyOf', () {
+    test('anyOf', () {
       shouldFail(0, anyOf([equals(1), equals(2)]),
           "Expected: (<1> or <2>) Actual: <0>");
       shouldPass(1, anyOf([equals(1), equals(2)]));
     });
 
-    ut.test('allOf', () {
+    test('allOf', () {
       shouldPass(1, allOf([lessThan(10), greaterThan(0)]));
       shouldFail(-1, allOf([lessThan(10), greaterThan(0)]),
           "Expected: (a value less than <10> and a value greater than <0>) "
@@ -679,9 +681,9 @@ void main() {
     });
   });
 
-  ut.group('Future Matchers', () {
+  group('Future Matchers', () {
 
-    ut.test('completes - unexpected error', () {
+    test('completes - unexpected error', () {
       var completer = new Completer();
       completer.completeError('X');
       shouldFail(completer.future, completes,
@@ -690,13 +692,13 @@ void main() {
           isAsync: true);
     });
 
-    ut.test('completes - successfully', () {
+    test('completes - successfully', () {
       var completer = new Completer();
       completer.complete('1');
       shouldPass(completer.future, completes, isAsync: true);
     });
 
-    ut.test('throws - unexpected to see normal completion', () {
+    test('throws - unexpected to see normal completion', () {
       var completer = new Completer();
       completer.complete('1');
       shouldFail(completer.future, throws,
@@ -704,20 +706,20 @@ void main() {
         isAsync: true);
     });
 
-    ut.test('throws - expected to see exception', () {
+    test('throws - expected to see exception', () {
       var completer = new Completer();
       completer.completeError('X');
       shouldPass(completer.future, throws, isAsync: true);
     });
 
-    ut.test('throws - expected to see exception thrown later on', () {
+    test('throws - expected to see exception thrown later on', () {
       var completer = new Completer();
       var chained = completer.future.then((_) { throw 'X'; });
       shouldPass(chained, throws, isAsync: true);
       completer.complete('1');
     });
 
-    ut.test('throwsA - unexpected normal completion', () {
+    test('throwsA - unexpected normal completion', () {
       var completer = new Completer();
       completer.complete('1');
       shouldFail(completer.future, throwsA(equals('X')),
@@ -725,13 +727,13 @@ void main() {
         isAsync: true);
     });
 
-    ut.test('throwsA - correct error', () {
+    test('throwsA - correct error', () {
       var completer = new Completer();
       completer.completeError('X');
       shouldPass(completer.future, throwsA(equals('X')), isAsync: true);
     });
 
-    ut.test('throwsA - wrong error', () {
+    test('throwsA - wrong error', () {
       var completer = new Completer();
       completer.completeError('X');
       shouldFail(completer.future, throwsA(equals('Y')),
@@ -742,29 +744,27 @@ void main() {
     });
   });
 
-  ut.group('Predicate Matchers', () {
-    ut.test('isInstanceOf', () {
+  group('Predicate Matchers', () {
+    test('isInstanceOf', () {
       shouldFail(0, predicate((x) => x is String, "an instance of String"),
           "Expected: an instance of String Actual: <0>");
       shouldPass('cow', predicate((x) => x is String, "an instance of String"));
     });
   });
 
-  ut.group('exception/error matchers', () {
+  group('exception/error matchers', () {
     // TODO(gram): extend this to more types; for now this is just
     // the types being added in this CL.
 
-    // TODO: enable this test when it works.
-    // See issue 12052.
-    ut.skip_test('throwsCyclicInitializationError', () {
-      expect(() => new Bicycle(), throwsCyclicInitializationError);
+    test('throwsCyclicInitializationError', () {
+      expect(() => _Bicycle.foo, throwsCyclicInitializationError);
     });
 
-    ut.test('throwsAbstractClassInstantiationError', () {
-      expect(() => new Abstraction(), throwsAbstractClassInstantiationError);
+    test('throwsAbstractClassInstantiationError', () {
+      expect(() => new _AbstractClass(), throwsAbstractClassInstantiationError);
     });
 
-    ut.test('throwsConcurrentModificationError', () {
+    test('throwsConcurrentModificationError', () {
       expect(() {
         var a = { 'foo': 'bar' };
         for (var k in a.keys) {
@@ -773,11 +773,11 @@ void main() {
       }, throwsConcurrentModificationError);
       });
 
-    ut.test('throwsNullThrownError', () {
+    test('throwsNullThrownError', () {
       expect(() => throw null, throwsNullThrownError);
     });
 
-    ut.test('throwsFallThroughError', () {
+    test('throwsFallThroughError', () {
       expect(() {
         var a = 0;
         switch (a) {
@@ -791,19 +791,13 @@ void main() {
   });
 }
 
-class Bicycle {
-  static var foo = bar();
+class _Bicycle {
+  static final foo = bar();
 
   static bar() {
     return foo + 1;
   }
-
-  X() {
-    print(foo);
-  }
 }
 
-abstract class Abstraction {
-  void norealization();
+abstract class _AbstractClass {
 }
-
