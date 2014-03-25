@@ -80,7 +80,8 @@ abstract class Browser {
   }
 
   static const List<String> SUPPORTED_BROWSERS =
-    const ['safari', 'ff', 'firefox', 'chrome', 'ie9', 'ie10', 'dartium'];
+    const ['safari', 'ff', 'firefox', 'chrome', 'ie9', 'ie10',
+           'ie11', 'dartium'];
 
   static const List<String> BROWSERS_WITH_WINDOW_SUPPORT = const [];
 

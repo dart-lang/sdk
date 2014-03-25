@@ -31,6 +31,7 @@ class RuntimeConfiguration {
       case 'dartium':
       case 'ff':
       case 'firefox':
+      case 'ie11':
       case 'ie10':
       case 'ie9':
       case 'opera':

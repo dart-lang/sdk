@@ -2043,6 +2043,7 @@ class TestUtils {
       'dartium',
       'ie9',
       'ie10',
+      'ie11',      
       'safari',
       'opera',
       'chrome',

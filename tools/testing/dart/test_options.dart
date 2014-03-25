@@ -63,7 +63,7 @@ class TestOptionsParser {
 
    dart2js: Compile dart code to JavaScript by running dart2js.
          (only valid with the following runtimes: d8, drt, chrome,
-         safari, ie9, ie10, firefox, opera, chromeOnAndroid,
+         safari, ie9, ie10, ie11, firefox, opera, chromeOnAndroid,
          none (compile only)),
 
    dartanalyzer: Perform static analysis on Dart code by running the analyzer on Java.
@@ -92,14 +92,15 @@ class TestOptionsParser {
 
     DartiumOnAndroid: Run Dart or Javascript in Dartium on Android.
 
-    [ff | chrome | safari | ie9 | ie10 | opera | chromeOnAndroid]:
+    [ff | chrome | safari | ie9 | ie10 | ie11 | opera | chromeOnAndroid]:
         Run JavaScript in the specified browser.
 
     none: No runtime, compile only (for example, used for dartanalyzer static
           analysis tests).''',
               ['-r', '--runtime'],
               ['vm', 'd8', 'jsshell', 'drt', 'dartium', 'ff', 'firefox',
-               'chrome', 'safari', 'ie9', 'ie10', 'opera', 'chromeOnAndroid',
+               'chrome', 'safari', 'ie9', 'ie10', 'ie11', 'opera',
+               'chromeOnAndroid',
                'ContentShellOnAndroid', 'DartiumOnAndroid', 'none'],
               'vm'),
           new _TestOptionSpecification(
@@ -586,7 +587,7 @@ Note: currently only implemented for dart2js.''',
         // dart2js_drt will be duplicating work. If later we don't need 'none'
         // with dart2js, we should remove it from here.
         validRuntimes = const ['d8', 'jsshell', 'drt', 'none', 'dartium',
-                               'ff', 'chrome', 'safari', 'ie9', 'ie10',
+                               'ff', 'chrome', 'safari', 'ie9', 'ie10', 'ie11',
                                'opera', 'chromeOnAndroid'];
         break;
       case 'dartanalyzer':
