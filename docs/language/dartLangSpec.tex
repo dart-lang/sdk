@@ -1908,11 +1908,12 @@ Even where type parameters are in scope there are numerous restrictions at this 
 \begin{itemize}
 \item A type parameter cannot be used to name a constructor in an instance creation expression (\ref{instanceCreation}).
 \item A type parameter cannot be used as a superclass or superinterface (\ref{superclasses}, \ref{superinterfaces}, \ref{interfaceSuperinterfaces}).
-\item A type parameter cannot be used as a generic.
+\item A type parameter cannot be used as a generic type.
 \end{itemize}
 
 The normative versions of these  are given in the appropriate sections of this specification. Some of these restrictions may be lifted in the future.
 }
+
 
 %A generic has a type parameter scope. The enclosing scope of a type parameter scope of a generic G  is the enclosing scope of G.
 
@@ -5031,9 +5032,12 @@ a top-level declaration with the name $k$ exists in $L$, OR
 
 \rationale{The greatly increases the chance that a member can be added to a library without breaking its importers.}
 
-If a name $N$ is referenced by a library $L$ and $N$ would be introduced into the top level scope of $L$ by an import from a library whose URI begins with \code{dart:} and an import from a library whose URI does not begin with \code{dart:}:
+A {\em system library} is a library that is part of the Dart implementation. Any other library is a {\em non-system library}. If a name $N$ is referenced by a library $L$ and $N$ would be introduced into the top level scope of $L$ by 
+imports of two libraries, $L_1$ and $L_2$, and the exported namespace of $L_1$ binds $N$ to a declaration originating in a system library:
+
+%an import of a  system library and an import of a non-system library:
 \begin{itemize}
-\item The import from \code{dart:} is implicitly extended by a \code{\HIDE{} $N$} clause.
+\item The import of $L_1$ is implicitly extended by a \code{\HIDE{} $N$} clause.
 \item A static warning is issued.
 \end{itemize}
 
@@ -5133,9 +5137,10 @@ then let $NS_i = \HIDE{}([id_1, \ldots, id_k], NS_{i-1}$).
 For each
 entry mapping key $k$ to declaration $d$ in $NS_n$ an entry mapping $k$ to $d$ is added to the exported namespace of $L$ unless a  top-level declaration with the name $k$ exists in $L$.  
 
-If a name $N$ is referenced by a library $L$ and $N$ would be introduced into the exported namespace of $L$ by an export from a library whose URI begins with \code{dart:} and an export from a library whose URI does not begin with \code{dart:}:
+If a name $N$ is referenced by a library $L$ and $N$ would be introduced into the exported namespace of $L$ by exports of two libraries, $L_1$ and $L_2$, and the exported namespace of $L_1$ binds $N$ to a declaration originating in a system library:
+%an export of a system library and an export of a non-system library:
 \begin{itemize}
-\item The export from \code{dart:} is implicitly extended by a \code{\HIDE{} $N$} clause.
+\item The export of $L_1$ is implicitly extended by a \code{\HIDE{} $N$} clause.
 \item A static warning is issued.
 \end{itemize}
 
@@ -5208,7 +5213,7 @@ This specification does not discuss the interpretation of URIs, with the followi
  The interpretation of URIs is mostly left to the surrounding computing environment. For example, if Dart is running in a web browser, that browser will likely interpret some URIs. While it might seem attractive to specify, say, that URIs are interpreted with respect to a standard such as IETF RFC 3986, in practice this will usually depend on the browser and cannot be relied upon.
  }
  
-A URI of the form \code{dart:$s$} is interpreted as a reference to a library $s$ that is part of the Dart implementation. 
+A URI of the form \code{dart:$s$} is interpreted as a reference to a system library (\ref{imports}) $s$. 
  
 A URI of the form \code{package:$s$} is interpreted as a URI of the form \code{packages/s} relative to an implementation specified location.
 
