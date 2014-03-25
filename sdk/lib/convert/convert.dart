@@ -56,7 +56,6 @@ library dart.convert;
 
 import 'dart:async';
 import "dart:collection" show HashSet;
-import 'dart:typed_data';
 
 part 'ascii.dart';
 part 'byte_conversion.dart';

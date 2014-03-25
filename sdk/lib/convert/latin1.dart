@@ -136,7 +136,6 @@ class _Latin1DecoderSink extends ByteConversionSinkBase {
   }
 
   void addSlice(List<int> source, int start, int end, bool isLast) {
-    // If Uint8List, just add dircetly.
     if (start < 0 || start > source.length) {
       throw new RangeError.range(start, 0, source.length);
     }
