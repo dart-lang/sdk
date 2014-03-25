@@ -547,7 +547,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
             _state = _State.HEADER_ENDING;
           } else {
             // Start of new header field.
-            _headerField.add(_toLowerCase(byte));
+            _headerField.add(_toLowerCaseByte(byte));
             _state = _State.HEADER_FIELD;
           }
           break;
@@ -559,7 +559,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
             if (!_isTokenChar(byte)) {
               throw new HttpException("Invalid header field name");
             }
-            _headerField.add(_toLowerCase(byte));
+            _headerField.add(_toLowerCaseByte(byte));
           }
           break;
 
@@ -615,7 +615,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
               _state = _State.HEADER_ENDING;
             } else {
               // Start of new header field.
-              _headerField.add(_toLowerCase(byte));
+              _headerField.add(_toLowerCaseByte(byte));
               _state = _State.HEADER_FIELD;
             }
           }
@@ -933,18 +933,20 @@ class _HttpParser extends Stream<_HttpIncoming> {
     return tokens;
   }
 
-  int _toLowerCase(int byte) {
-    final int aCode = "A".codeUnitAt(0);
-    final int zCode = "Z".codeUnitAt(0);
-    final int delta = "a".codeUnitAt(0) - aCode;
-    return (aCode <= byte && byte <= zCode) ? byte + delta : byte;
+  static int _toLowerCaseByte(int x) {
+    // Optimized version:
+    //  -  0x41 is 'A'
+    //  -  0x7f is ASCII mask
+    //  -  26 is the number of alpha characters.
+    //  -  0x20 is the delta between lower and upper chars.
+    return (((x - 0x41) & 0x7f) < 26) ? (x | 0x20) : x;
   }
 
   // expected should already be lowercase.
   bool _caseInsensitiveCompare(List<int> expected, List<int> value) {
     if (expected.length != value.length) return false;
     for (int i = 0; i < expected.length; i++) {
-      if (expected[i] != _toLowerCase(value[i])) return false;
+      if (expected[i] != _toLowerCaseByte(value[i])) return false;
     }
     return true;
   }
