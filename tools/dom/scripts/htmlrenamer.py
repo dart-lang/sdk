@@ -601,6 +601,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Element.setAttributeNode',
     'Element.setAttributeNodeNS',
     'Element.webkitCreateShadowRoot',
+    'Element.webkitMatchesSelector',
     'Element.webkitPseudo',
     'Element.webkitShadowRoot',
     '=Event.returnValue', # Only suppress on Event, allow for BeforeUnloadEvnt.

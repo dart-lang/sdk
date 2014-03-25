@@ -35,7 +35,7 @@ class _SvgElementFactoryProvider {
 @DocsEditable()
 @DomName('SVGAElement')
 @Unstable()
-class AElement extends GraphicsElement implements UriReference, ExternalResourcesRequired {
+class AElement extends GraphicsElement implements UriReference {
   // To suppress missing implicit constructor warnings.
   factory AElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -52,10 +52,6 @@ class AElement extends GraphicsElement implements UriReference, ExternalResource
   @DomName('SVGAElement.target')
   @DocsEditable()
   AnimatedString get target native "SVGAElement_target_Getter";
-
-  @DomName('SVGAElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGAElement_externalResourcesRequired_Getter";
 
   @DomName('SVGAElement.href')
   @DocsEditable()
@@ -583,7 +579,7 @@ class AnimatedTransformList extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimationElement')
 @Unstable()
-class AnimationElement extends SvgElement implements ExternalResourcesRequired, Tests {
+class AnimationElement extends SvgElement implements Tests {
   // To suppress missing implicit constructor warnings.
   factory AnimationElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -629,10 +625,6 @@ class AnimationElement extends SvgElement implements ExternalResourcesRequired, 
   @DocsEditable()
   double getStartTime() native "SVGAnimationElement_getStartTime_Callback";
 
-  @DomName('SVGAnimationElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGAnimationElement_externalResourcesRequired_Getter";
-
   @DomName('SVGAnimationElement.requiredExtensions')
   @DocsEditable()
   StringList get requiredExtensions native "SVGAnimationElement_requiredExtensions_Getter";
@@ -660,7 +652,7 @@ class AnimationElement extends SvgElement implements ExternalResourcesRequired, 
 @DocsEditable()
 @DomName('SVGCircleElement')
 @Unstable()
-class CircleElement extends GeometryElement implements ExternalResourcesRequired {
+class CircleElement extends GeometryElement {
   // To suppress missing implicit constructor warnings.
   factory CircleElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -686,10 +678,6 @@ class CircleElement extends GeometryElement implements ExternalResourcesRequired
   @DocsEditable()
   AnimatedLength get r native "SVGCircleElement_r_Getter";
 
-  @DomName('SVGCircleElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGCircleElement_externalResourcesRequired_Getter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -701,7 +689,7 @@ class CircleElement extends GeometryElement implements ExternalResourcesRequired
 @DocsEditable()
 @DomName('SVGClipPathElement')
 @Unstable()
-class ClipPathElement extends GraphicsElement implements ExternalResourcesRequired {
+class ClipPathElement extends GraphicsElement {
   // To suppress missing implicit constructor warnings.
   factory ClipPathElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -719,10 +707,6 @@ class ClipPathElement extends GraphicsElement implements ExternalResourcesRequir
   @DocsEditable()
   AnimatedEnumeration get clipPathUnits native "SVGClipPathElement_clipPathUnits_Getter";
 
-  @DomName('SVGClipPathElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGClipPathElement_externalResourcesRequired_Getter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -734,7 +718,7 @@ class ClipPathElement extends GraphicsElement implements ExternalResourcesRequir
 @DocsEditable()
 @DomName('SVGDefsElement')
 @Unstable()
-class DefsElement extends GraphicsElement implements ExternalResourcesRequired {
+class DefsElement extends GraphicsElement {
   // To suppress missing implicit constructor warnings.
   factory DefsElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -747,10 +731,6 @@ class DefsElement extends GraphicsElement implements ExternalResourcesRequired {
    * This can only be called by subclasses from their created constructor.
    */
   DefsElement.created() : super.created();
-
-  @DomName('SVGDefsElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGDefsElement_externalResourcesRequired_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -776,6 +756,27 @@ class DescElement extends SvgElement {
    * This can only be called by subclasses from their created constructor.
    */
   DescElement.created() : super.created();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('SVGDiscardElement')
+@Experimental() // untriaged
+class DiscardElement extends SvgElement {
+  // To suppress missing implicit constructor warnings.
+  factory DiscardElement._() { throw new UnsupportedError("Not supported"); }
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  DiscardElement.created() : super.created();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1488,7 +1489,7 @@ class ElementInstance extends EventTarget {
 @DocsEditable()
 @DomName('SVGEllipseElement')
 @Unstable()
-class EllipseElement extends GeometryElement implements ExternalResourcesRequired {
+class EllipseElement extends GeometryElement {
   // To suppress missing implicit constructor warnings.
   factory EllipseElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -1517,32 +1518,6 @@ class EllipseElement extends GeometryElement implements ExternalResourcesRequire
   @DomName('SVGEllipseElement.ry')
   @DocsEditable()
   AnimatedLength get ry native "SVGEllipseElement_ry_Getter";
-
-  @DomName('SVGEllipseElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGEllipseElement_externalResourcesRequired_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('SVGExternalResourcesRequired')
-@Unstable()
-abstract class ExternalResourcesRequired extends NativeFieldWrapperClass2 {
-  // To suppress missing implicit constructor warnings.
-  factory ExternalResourcesRequired._() { throw new UnsupportedError("Not supported"); }
-
-  /// Checks if this type is supported on the current platform.
-  static bool supported(SvgElement element) => true;
-
-  @DomName('SVGExternalResourcesRequired.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGExternalResourcesRequired_externalResourcesRequired_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2452,7 +2427,7 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttributes, UriReference, ExternalResourcesRequired {
+class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttributes, UriReference {
   // To suppress missing implicit constructor warnings.
   factory FEImageElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2472,10 +2447,6 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
   @DomName('SVGFEImageElement.preserveAspectRatio')
   @DocsEditable()
   AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGFEImageElement_preserveAspectRatio_Getter";
-
-  @DomName('SVGFEImageElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGFEImageElement_externalResourcesRequired_Getter";
 
   @DomName('SVGFEImageElement.height')
   @DocsEditable()
@@ -3077,7 +3048,7 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class FilterElement extends SvgElement implements UriReference, ExternalResourcesRequired {
+class FilterElement extends SvgElement implements UriReference {
   // To suppress missing implicit constructor warnings.
   factory FilterElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3129,10 +3100,6 @@ class FilterElement extends SvgElement implements UriReference, ExternalResource
   @DomName('SVGFilterElement.setFilterRes')
   @DocsEditable()
   void setFilterRes(int filterResX, int filterResY) native "SVGFilterElement_setFilterRes_Callback";
-
-  @DomName('SVGFilterElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGFilterElement_externalResourcesRequired_Getter";
 
   @DomName('SVGFilterElement.href')
   @DocsEditable()
@@ -3210,7 +3177,7 @@ abstract class FitToViewBox extends NativeFieldWrapperClass2 {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class ForeignObjectElement extends GraphicsElement implements ExternalResourcesRequired {
+class ForeignObjectElement extends GraphicsElement {
   // To suppress missing implicit constructor warnings.
   factory ForeignObjectElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3243,10 +3210,6 @@ class ForeignObjectElement extends GraphicsElement implements ExternalResourcesR
   @DocsEditable()
   AnimatedLength get y native "SVGForeignObjectElement_y_Getter";
 
-  @DomName('SVGForeignObjectElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGForeignObjectElement_externalResourcesRequired_Getter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3258,7 +3221,7 @@ class ForeignObjectElement extends GraphicsElement implements ExternalResourcesR
 @DocsEditable()
 @DomName('SVGGElement')
 @Unstable()
-class GElement extends GraphicsElement implements ExternalResourcesRequired {
+class GElement extends GraphicsElement {
   // To suppress missing implicit constructor warnings.
   factory GElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3271,10 +3234,6 @@ class GElement extends GraphicsElement implements ExternalResourcesRequired {
    * This can only be called by subclasses from their created constructor.
    */
   GElement.created() : super.created();
-
-  @DomName('SVGGElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGGElement_externalResourcesRequired_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3358,11 +3317,6 @@ class GraphicsElement extends SvgElement implements Tests {
   @Experimental() // untriaged
   Matrix getScreenCtm() native "SVGGraphicsElement_getScreenCTM_Callback";
 
-  @DomName('SVGGraphicsElement.getStrokeBBox')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Rect getStrokeBBox() native "SVGGraphicsElement_getStrokeBBox_Callback";
-
   @DomName('SVGGraphicsElement.getTransformToElement')
   @DocsEditable()
   @Experimental() // untriaged
@@ -3399,7 +3353,7 @@ class GraphicsElement extends SvgElement implements Tests {
 @DocsEditable()
 @DomName('SVGImageElement')
 @Unstable()
-class ImageElement extends GraphicsElement implements UriReference, ExternalResourcesRequired {
+class ImageElement extends GraphicsElement implements UriReference {
   // To suppress missing implicit constructor warnings.
   factory ImageElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3432,10 +3386,6 @@ class ImageElement extends GraphicsElement implements UriReference, ExternalReso
   @DomName('SVGImageElement.y')
   @DocsEditable()
   AnimatedLength get y native "SVGImageElement_y_Getter";
-
-  @DomName('SVGImageElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGImageElement_externalResourcesRequired_Getter";
 
   @DomName('SVGImageElement.href')
   @DocsEditable()
@@ -3640,7 +3590,7 @@ class LengthList extends NativeFieldWrapperClass2 with ListMixin<Length>, Immuta
 @DocsEditable()
 @DomName('SVGLineElement')
 @Unstable()
-class LineElement extends GeometryElement implements ExternalResourcesRequired {
+class LineElement extends GeometryElement {
   // To suppress missing implicit constructor warnings.
   factory LineElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3669,10 +3619,6 @@ class LineElement extends GeometryElement implements ExternalResourcesRequired {
   @DomName('SVGLineElement.y2')
   @DocsEditable()
   AnimatedLength get y2 native "SVGLineElement_y2_Getter";
-
-  @DomName('SVGLineElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGLineElement_externalResourcesRequired_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3726,7 +3672,7 @@ class LinearGradientElement extends _GradientElement {
 @DocsEditable()
 @DomName('SVGMarkerElement')
 @Unstable()
-class MarkerElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired {
+class MarkerElement extends SvgElement implements FitToViewBox {
   // To suppress missing implicit constructor warnings.
   factory MarkerElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3800,10 +3746,6 @@ class MarkerElement extends SvgElement implements FitToViewBox, ExternalResource
   @DocsEditable()
   void setOrientToAuto() native "SVGMarkerElement_setOrientToAuto_Callback";
 
-  @DomName('SVGMarkerElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGMarkerElement_externalResourcesRequired_Getter";
-
   @DomName('SVGMarkerElement.preserveAspectRatio')
   @DocsEditable()
   AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGMarkerElement_preserveAspectRatio_Getter";
@@ -3823,7 +3765,7 @@ class MarkerElement extends SvgElement implements FitToViewBox, ExternalResource
 @DocsEditable()
 @DomName('SVGMaskElement')
 @Unstable()
-class MaskElement extends SvgElement implements ExternalResourcesRequired, Tests {
+class MaskElement extends SvgElement implements Tests {
   // To suppress missing implicit constructor warnings.
   factory MaskElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3860,10 +3802,6 @@ class MaskElement extends SvgElement implements ExternalResourcesRequired, Tests
   @DomName('SVGMaskElement.y')
   @DocsEditable()
   AnimatedLength get y native "SVGMaskElement_y_Getter";
-
-  @DomName('SVGMaskElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGMaskElement_externalResourcesRequired_Getter";
 
   @DomName('SVGMaskElement.requiredExtensions')
   @DocsEditable()
@@ -4136,7 +4074,7 @@ class NumberList extends NativeFieldWrapperClass2 with ListMixin<Number>, Immuta
 @DocsEditable()
 @DomName('SVGPathElement')
 @Unstable()
-class PathElement extends GeometryElement implements ExternalResourcesRequired {
+class PathElement extends GeometryElement {
   // To suppress missing implicit constructor warnings.
   factory PathElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -4257,10 +4195,6 @@ class PathElement extends GeometryElement implements ExternalResourcesRequired {
   @DomName('SVGPathElement.getTotalLength')
   @DocsEditable()
   double getTotalLength() native "SVGPathElement_getTotalLength_Callback";
-
-  @DomName('SVGPathElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGPathElement_externalResourcesRequired_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5218,7 +5152,7 @@ class PathSegMovetoRel extends PathSeg {
 @DocsEditable()
 @DomName('SVGPatternElement')
 @Unstable()
-class PatternElement extends SvgElement implements FitToViewBox, UriReference, ExternalResourcesRequired, Tests {
+class PatternElement extends SvgElement implements FitToViewBox, UriReference, Tests {
   // To suppress missing implicit constructor warnings.
   factory PatternElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5259,10 +5193,6 @@ class PatternElement extends SvgElement implements FitToViewBox, UriReference, E
   @DomName('SVGPatternElement.y')
   @DocsEditable()
   AnimatedLength get y native "SVGPatternElement_y_Getter";
-
-  @DomName('SVGPatternElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGPatternElement_externalResourcesRequired_Getter";
 
   @DomName('SVGPatternElement.preserveAspectRatio')
   @DocsEditable()
@@ -5385,7 +5315,7 @@ class PointList extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGPolygonElement')
 @Unstable()
-class PolygonElement extends GeometryElement implements ExternalResourcesRequired {
+class PolygonElement extends GeometryElement {
   // To suppress missing implicit constructor warnings.
   factory PolygonElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5407,10 +5337,6 @@ class PolygonElement extends GeometryElement implements ExternalResourcesRequire
   @DocsEditable()
   PointList get points native "SVGPolygonElement_points_Getter";
 
-  @DomName('SVGPolygonElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGPolygonElement_externalResourcesRequired_Getter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5422,7 +5348,7 @@ class PolygonElement extends GeometryElement implements ExternalResourcesRequire
 @DocsEditable()
 @DomName('SVGPolylineElement')
 @Unstable()
-class PolylineElement extends GeometryElement implements ExternalResourcesRequired {
+class PolylineElement extends GeometryElement {
   // To suppress missing implicit constructor warnings.
   factory PolylineElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5443,10 +5369,6 @@ class PolylineElement extends GeometryElement implements ExternalResourcesRequir
   @DomName('SVGPolylineElement.points')
   @DocsEditable()
   PointList get points native "SVGPolylineElement_points_Getter";
-
-  @DomName('SVGPolylineElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGPolylineElement_externalResourcesRequired_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5642,7 +5564,7 @@ class Rect extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGRectElement')
 @Unstable()
-class RectElement extends GeometryElement implements ExternalResourcesRequired {
+class RectElement extends GeometryElement {
   // To suppress missing implicit constructor warnings.
   factory RectElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5679,10 +5601,6 @@ class RectElement extends GeometryElement implements ExternalResourcesRequired {
   @DomName('SVGRectElement.y')
   @DocsEditable()
   AnimatedLength get y native "SVGRectElement_y_Getter";
-
-  @DomName('SVGRectElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGRectElement_externalResourcesRequired_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5734,7 +5652,7 @@ class RenderingIntent extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGScriptElement')
 @Unstable()
-class ScriptElement extends SvgElement implements UriReference, ExternalResourcesRequired {
+class ScriptElement extends SvgElement implements UriReference {
   // To suppress missing implicit constructor warnings.
   factory ScriptElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5755,10 +5673,6 @@ class ScriptElement extends SvgElement implements UriReference, ExternalResource
   @DomName('SVGScriptElement.type')
   @DocsEditable()
   void set type(String value) native "SVGScriptElement_type_Setter";
-
-  @DomName('SVGScriptElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGScriptElement_externalResourcesRequired_Getter";
 
   @DomName('SVGScriptElement.href')
   @DocsEditable()
@@ -5974,29 +5888,6 @@ class StyleElement extends SvgElement {
   @DomName('SVGStyleElement.type')
   @DocsEditable()
   void set type(String value) native "SVGStyleElement_type_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('SVGDocument')
-@Unstable()
-class SvgDocument extends Document {
-  // To suppress missing implicit constructor warnings.
-  factory SvgDocument._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('SVGDocument.rootElement')
-  @DocsEditable()
-  SvgSvgElement get rootElement native "SVGDocument_rootElement_Getter";
-
-  @DomName('SVGDocument.createEvent')
-  @DocsEditable()
-  Event _createEvent(String eventType) native "SVGDocument_createEvent_Callback";
 
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -6358,6 +6249,11 @@ class SvgElement extends Element implements GlobalEventHandlers {
   @Experimental() // untriaged
   static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
 
+  @DomName('SVGElement.resizeEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
+
   @DomName('SVGElement.scrollEvent')
   @DocsEditable()
   @Experimental() // untriaged
@@ -6665,6 +6561,11 @@ class SvgElement extends Element implements GlobalEventHandlers {
   @Experimental() // untriaged
   ElementStream<Event> get onReset => resetEvent.forElement(this);
 
+  @DomName('SVGElement.onresize')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onResize => resizeEvent.forElement(this);
+
   @DomName('SVGElement.onscroll')
   @DocsEditable()
   @Experimental() // untriaged
@@ -6723,7 +6624,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
 
 @DomName('SVGSVGElement')
 @Unstable()
-class SvgSvgElement extends GraphicsElement implements FitToViewBox, ExternalResourcesRequired, ZoomAndPan {
+class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan {
   factory SvgSvgElement() {
     final el = new SvgElement.tag("svg");
     // The SVG spec requires the version attribute to match the spec version
@@ -6904,10 +6805,6 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ExternalRes
   @DocsEditable()
   void unsuspendRedrawAll() native "SVGSVGElement_unsuspendRedrawAll_Callback";
 
-  @DomName('SVGSVGElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGSVGElement_externalResourcesRequired_Getter";
-
   @DomName('SVGSVGElement.preserveAspectRatio')
   @DocsEditable()
   AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGSVGElement_preserveAspectRatio_Getter";
@@ -6935,7 +6832,7 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ExternalRes
 @DocsEditable()
 @DomName('SVGSwitchElement')
 @Unstable()
-class SwitchElement extends GraphicsElement implements ExternalResourcesRequired {
+class SwitchElement extends GraphicsElement {
   // To suppress missing implicit constructor warnings.
   factory SwitchElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -6949,10 +6846,6 @@ class SwitchElement extends GraphicsElement implements ExternalResourcesRequired
    */
   SwitchElement.created() : super.created();
 
-  @DomName('SVGSwitchElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGSwitchElement_externalResourcesRequired_Getter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6964,7 +6857,7 @@ class SwitchElement extends GraphicsElement implements ExternalResourcesRequired
 @DocsEditable()
 @DomName('SVGSymbolElement')
 @Unstable()
-class SymbolElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired {
+class SymbolElement extends SvgElement implements FitToViewBox {
   // To suppress missing implicit constructor warnings.
   factory SymbolElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -6977,10 +6870,6 @@ class SymbolElement extends SvgElement implements FitToViewBox, ExternalResource
    * This can only be called by subclasses from their created constructor.
    */
   SymbolElement.created() : super.created();
-
-  @DomName('SVGSymbolElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGSymbolElement_externalResourcesRequired_Getter";
 
   @DomName('SVGSymbolElement.preserveAspectRatio')
   @DocsEditable()
@@ -7057,7 +6946,7 @@ abstract class Tests extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGTextContentElement')
 @Unstable()
-class TextContentElement extends GraphicsElement implements ExternalResourcesRequired {
+class TextContentElement extends GraphicsElement {
   // To suppress missing implicit constructor warnings.
   factory TextContentElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -7122,10 +7011,6 @@ class TextContentElement extends GraphicsElement implements ExternalResourcesReq
   @DomName('SVGTextContentElement.selectSubString')
   @DocsEditable()
   void selectSubString(int offset, int length) native "SVGTextContentElement_selectSubString_Callback";
-
-  @DomName('SVGTextContentElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGTextContentElement_externalResourcesRequired_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7516,7 +7401,7 @@ abstract class UriReference extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGUseElement')
 @Unstable()
-class UseElement extends GraphicsElement implements UriReference, ExternalResourcesRequired, Tests {
+class UseElement extends GraphicsElement implements UriReference, Tests {
   // To suppress missing implicit constructor warnings.
   factory UseElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -7554,10 +7439,6 @@ class UseElement extends GraphicsElement implements UriReference, ExternalResour
   @DocsEditable()
   AnimatedLength get y native "SVGUseElement_y_Getter";
 
-  @DomName('SVGUseElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGUseElement_externalResourcesRequired_Getter";
-
   @DomName('SVGUseElement.requiredExtensions')
   @DocsEditable()
   StringList get requiredExtensions native "SVGUseElement_requiredExtensions_Getter";
@@ -7589,7 +7470,7 @@ class UseElement extends GraphicsElement implements UriReference, ExternalResour
 @DocsEditable()
 @DomName('SVGViewElement')
 @Unstable()
-class ViewElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, ZoomAndPan {
+class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
   // To suppress missing implicit constructor warnings.
   factory ViewElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -7606,10 +7487,6 @@ class ViewElement extends SvgElement implements FitToViewBox, ExternalResourcesR
   @DomName('SVGViewElement.viewTarget')
   @DocsEditable()
   StringList get viewTarget native "SVGViewElement_viewTarget_Getter";
-
-  @DomName('SVGViewElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGViewElement_externalResourcesRequired_Getter";
 
   @DomName('SVGViewElement.preserveAspectRatio')
   @DocsEditable()
@@ -7638,7 +7515,7 @@ class ViewElement extends SvgElement implements FitToViewBox, ExternalResourcesR
 @DocsEditable()
 @DomName('SVGViewSpec')
 @Unstable()
-class ViewSpec extends NativeFieldWrapperClass2 implements FitToViewBox {
+class ViewSpec extends NativeFieldWrapperClass2 implements FitToViewBox, ZoomAndPan {
   // To suppress missing implicit constructor warnings.
   factory ViewSpec._() { throw new UnsupportedError("Not supported"); }
 
@@ -7666,16 +7543,6 @@ class ViewSpec extends NativeFieldWrapperClass2 implements FitToViewBox {
   @DocsEditable()
   String get viewTargetString native "SVGViewSpec_viewTargetString_Getter";
 
-  @DomName('SVGViewSpec.zoomAndPan')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  int get zoomAndPan native "SVGViewSpec_zoomAndPan_Getter";
-
-  @DomName('SVGViewSpec.zoomAndPan')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  void set zoomAndPan(int value) native "SVGViewSpec_zoomAndPan_Setter";
-
   @DomName('SVGViewSpec.preserveAspectRatio')
   @DocsEditable()
   @Experimental() // nonstandard
@@ -7685,6 +7552,16 @@ class ViewSpec extends NativeFieldWrapperClass2 implements FitToViewBox {
   @DocsEditable()
   @Experimental() // nonstandard
   AnimatedRect get viewBox native "SVGViewSpec_viewBox_Getter";
+
+  @DomName('SVGViewSpec.zoomAndPan')
+  @DocsEditable()
+  @Experimental() // nonstandard
+  int get zoomAndPan native "SVGViewSpec_zoomAndPan_Getter";
+
+  @DomName('SVGViewSpec.zoomAndPan')
+  @DocsEditable()
+  @Experimental() // nonstandard
+  void set zoomAndPan(int value) native "SVGViewSpec_zoomAndPan_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7835,7 +7712,7 @@ class _ElementInstanceList extends NativeFieldWrapperClass2 with ListMixin<Eleme
 @DocsEditable()
 @DomName('SVGGradientElement')
 @Unstable()
-class _GradientElement extends SvgElement implements UriReference, ExternalResourcesRequired {
+class _GradientElement extends SvgElement implements UriReference {
   // To suppress missing implicit constructor warnings.
   factory _GradientElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -7872,10 +7749,6 @@ class _GradientElement extends SvgElement implements UriReference, ExternalResou
   @DomName('SVGGradientElement.spreadMethod')
   @DocsEditable()
   AnimatedEnumeration get spreadMethod native "SVGGradientElement_spreadMethod_Getter";
-
-  @DomName('SVGGradientElement.externalResourcesRequired')
-  @DocsEditable()
-  AnimatedBoolean get externalResourcesRequired native "SVGGradientElement_externalResourcesRequired_Getter";
 
   @DomName('SVGGradientElement.href')
   @DocsEditable()
@@ -7932,40 +7805,6 @@ abstract class _SVGAltGlyphItemElement extends SvgElement {
 
 
 @DocsEditable()
-@DomName('SVGAnimateColorElement')
-@Unstable()
-abstract class _SVGAnimateColorElement extends AnimationElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGAnimateColorElement._() { throw new UnsupportedError("Not supported"); }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGAnimateColorElement.created() : super.created();
-
-}
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-// Hack because the baseclass is private in dart:html, and we want to omit this
-// type entirely but can't.
-@DocsEditable()
-@DomName('SVGColor')
-@Unstable()
-abstract class _SVGColor {
-  _SVGColor.internal();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
 @DomName('SVGComponentTransferFunctionElement')
 @Unstable()
 abstract class _SVGComponentTransferFunctionElement extends SvgElement {
@@ -7989,7 +7828,7 @@ abstract class _SVGComponentTransferFunctionElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGCursorElement')
 @Unstable()
-abstract class _SVGCursorElement extends SvgElement implements UriReference, ExternalResourcesRequired, Tests {
+abstract class _SVGCursorElement extends SvgElement implements UriReference, Tests {
   // To suppress missing implicit constructor warnings.
   factory _SVGCursorElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -8234,7 +8073,7 @@ abstract class _SVGHKernElement extends SvgElement {
 
 @DocsEditable()
 @DomName('SVGMPathElement')
-abstract class _SVGMPathElement extends SvgElement implements UriReference, ExternalResourcesRequired {
+abstract class _SVGMPathElement extends SvgElement implements UriReference {
   // To suppress missing implicit constructor warnings.
   factory _SVGMPathElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -8268,21 +8107,6 @@ abstract class _SVGMissingGlyphElement extends SvgElement {
    * This can only be called by subclasses from their created constructor.
    */
   _SVGMissingGlyphElement.created() : super.created();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('SVGPaint')
-@Unstable()
-abstract class _SVGPaint extends _SVGColor {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGPaint._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
