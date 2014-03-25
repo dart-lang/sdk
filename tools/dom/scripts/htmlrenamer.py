@@ -313,7 +313,6 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Storage.removeItem',
   'Storage.setItem',
   'StorageEvent.initStorageEvent',
-  'StorageInfo.queryUsageAndQuota',
   'TextEvent.initTextEvent',
   'Touch.clientX',
   'Touch.clientY',

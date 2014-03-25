@@ -24443,11 +24443,12 @@ class StorageEvent extends Event native "StorageEvent" {
   void _initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) native;
 
 }
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable()
 @DomName('StorageInfo')
 // http://www.w3.org/TR/file-system-api/
 @Experimental()
@@ -24464,27 +24465,6 @@ class StorageInfo extends Interceptor native "StorageInfo" {
   @DocsEditable()
   @Experimental() // untriaged
   final int usage;
-
-  Future<StorageInfoUsage> queryUsageAndQuota(int storageType) {
-    var completer = new Completer<StorageInfoUsage>();
-    _queryUsageAndQuota(storageType,
-        (currentUsageInBytes, currentQuotaInBytes) {
-          completer.complete(new StorageInfoUsage(currentUsageInBytes,
-              currentQuotaInBytes));
-        },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
-}
-
-/**
- * A simple container class for the two values that are returned from the
- * futures in requestQuota and queryUsageAndQuota.
- */
-class StorageInfoUsage {
-  final int currentUsageInBytes;
-  final int currentQuotaInBytes;
-  const StorageInfoUsage(this.currentUsageInBytes, this.currentQuotaInBytes);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
