@@ -16,46 +16,36 @@ class _ExpectFailureHandler extends DefaultFailureHandler {
   }
 }
 
-/**
- * Hooks to configure the unittest library for different platforms. This class
- * implements the API in a platform-independent way. Tests that want to take
- * advantage of the platform can create a subclass and override methods from
- * this class.
- */
+/// Hooks to configure the unittest library for different platforms. This class
+/// implements the API in a platform-independent way. Tests that want to take
+/// advantage of the platform can create a subclass and override methods from
+/// this class.
 class SimpleConfiguration extends Configuration {
   // The VM won't shut down if a receive port is open. Use this to make sure
   // we correctly wait for asynchronous tests.
   ReceivePort _receivePort;
 
-  /**
-   * Subclasses can override this with something useful for diagnostics.
-   * Particularly useful in cases where we have parent/child configurations
-   * such as layout tests.
-   */
+  /// Subclasses can override this with something useful for diagnostics.
+  /// Particularly useful in cases where we have parent/child configurations
+  /// such as layout tests.
   String get name => 'Configuration';
 
   bool get autoStart => true;
 
-  /**
-   * If true (the default), throw an exception at the end if any tests failed.
-   */
+  /// If true (the default), throw an exception at the end if any tests failed.
   bool throwOnTestFailures = true;
 
-  /**
-   * If true (the default), then tests will stop after the first failed
-   * [expect]. If false, failed [expect]s will not cause the test
-   * to stop (other exceptions will still terminate the test).
-   */
+  /// If true (the default), then tests will stop after the first failed
+  /// [expect]. If false, failed [expect]s will not cause the test
+  /// to stop (other exceptions will still terminate the test).
   bool stopTestOnExpectFailure = true;
 
   // If stopTestOnExpectFailure is false, we need to capture failures, which
   // we do with this List.
   final _testLogBuffer = <Pair<String, StackTrace>>[];
 
-  /**
-   * The constructor sets up a failure handler for [expect] that redirects
-   * [expect] failures to [onExpectFailure].
-   */
+  /// The constructor sets up a failure handler for [expect] that redirects
+  /// [expect] failures to [onExpectFailure].
   SimpleConfiguration(): super.blank() {
     configureExpectFailureHandler(new _ExpectFailureHandler(this));
   }
@@ -69,21 +59,17 @@ class SimpleConfiguration extends Configuration {
     _postMessage('unittest-suite-wait-for-done');
   }
 
-  /**
-   * Called when each test starts. Useful to show intermediate progress on
-   * a test suite. Derived classes should call this first before their own
-   * override code.
-   */
+  /// Called when each test starts. Useful to show intermediate progress on
+  /// a test suite. Derived classes should call this first before their own
+  /// override code.
   void onTestStart(TestCase testCase) {
     assert(testCase != null);
     _testLogBuffer.clear();
   }
 
-  /**
-   * Called when each test is first completed. Useful to show intermediate
-   * progress on a test suite. Derived classes should call this first
-   * before their own override code.
-   */
+  /// Called when each test is first completed. Useful to show intermediate
+  /// progress on a test suite. Derived classes should call this first
+  /// before their own override code.
   void onTestResult(TestCase testCase) {
     assert(testCase != null);
     if (!stopTestOnExpectFailure && _testLogBuffer.length > 0) {
@@ -120,18 +106,14 @@ class SimpleConfiguration extends Configuration {
     assert(testCase != null);
   }
 
-  /**
-   * Handles the logging of messages by a test case. The default in
-   * this base configuration is to call print();
-   */
+  /// Handles the logging of messages by a test case. The default in
+  /// this base configuration is to call print();
   void onLogMessage(TestCase testCase, String message) {
     print(message);
   }
 
-  /**
-   * Handles failures from expect(). The default in
-   * this base configuration is to throw an exception;
-   */
+  /// Handles failures from expect(). The default in
+  /// this base configuration is to throw an exception;
   void onExpectFailure(String reason) {
     if (stopTestOnExpectFailure) {
       throw new TestFailure(reason);
@@ -146,9 +128,7 @@ class SimpleConfiguration extends Configuration {
     }
   }
 
-  /**
-   * Format a test result.
-   */
+  /// Format a test result.
   String formatResult(TestCase testCase) {
     var result = new StringBuffer();
     result.write(testCase.result.toUpperCase());
@@ -168,14 +148,14 @@ class SimpleConfiguration extends Configuration {
     return result.toString();
   }
 
-  /**
-   * Called with the result of all test cases. The default implementation prints
-   * the result summary using the built-in [print] command. Browser tests
-   * commonly override this to reformat the output.
-   *
-   * When [uncaughtError] is not null, it contains an error that occured outside
-   * of tests (e.g. setting up the test).
-   */
+  /// Called with the result of all test cases.
+  ///
+  /// The default implementation prints the result summary using the built-in
+  /// [print] command. Browser tests commonly override this to reformat the
+  /// output.
+  ///
+  /// When [uncaughtError] is not null, it contains an error that occured
+  /// outside of tests (e.g. setting up the test).
   void onSummary(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
     // Print each test's result.

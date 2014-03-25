@@ -1,6 +1,6 @@
 # Changelog - unittest
 
-##0.10.1-dev
+##0.10.1
 
 * **DEPRECATED**
     * `matcher.dart` and `mirror_matchers.dart` are now in the `matcher`

@@ -1,16 +1,14 @@
 part of unittest;
 
-/**
- * Setup and teardown functions for a group and its parents, the latter
- * for chaining.
- */
+/// Setup and teardown functions for a group and its parents, the latter
+/// for chaining.
 class _GroupContext {
   final _GroupContext parent;
 
-  /** Description text of the current test group. */
+  /// Description text of the current test group.
   final String _name;
 
-  /** Setup function called before each test in a group. */
+  /// Setup function called before each test in a group.
   Function _testSetup;
 
   get testSetup => _testSetup;
@@ -33,7 +31,7 @@ class _GroupContext {
     }
   }
 
-  /** Teardown function called after each test in a group. */
+  /// Teardown function called after each test in a group.
   Function _testTeardown;
 
   get testTeardown => _testTeardown;

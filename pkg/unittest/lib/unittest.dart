@@ -2,147 +2,136 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Support for writing Dart unit tests.
- *
- * For information on installing and importing this library, see the
- * [unittest package on pub.dartlang.org]
- * (http://pub.dartlang.org/packages/unittest).
- *
- * **See also:**
- * [Unit Testing with Dart]
- * (http://www.dartlang.org/articles/dart-unit-tests/)
- *
- * ##Concepts
- *
- *  * __Tests__: Tests are specified via the top-level function [test], they can be
- *    organized together using [group].
- *
- *  * __Checks__: Test expectations can be specified via [expect]
- *
- *  * __Matchers__: [expect] assertions are written declaratively using the
- *    [Matcher] class.
- *
- *  * __Configuration__: The framework can be adapted by setting
- *    [unittestConfiguration] with a [Configuration]. See the other libraries
- *    in the `unittest` package for alternative implementations of
- *    [Configuration] including `compact_vm_config.dart`, `html_config.dart` and
- *    `html_enhanced_config.dart`.
- *
- * ##Examples
- *
- * A trivial test:
- *
- *     import 'package:unittest/unittest.dart';
- *     main() {
- *       test('this is a test', () {
- *         int x = 2 + 3;
- *         expect(x, equals(5));
- *       });
- *     }
- *
- * Multiple tests:
- *
- *     import 'package:unittest/unittest.dart';
- *     main() {
- *       test('this is a test', () {
- *         int x = 2 + 3;
- *         expect(x, equals(5));
- *       });
- *       test('this is another test', () {
- *         int x = 2 + 3;
- *         expect(x, equals(5));
- *       });
- *     }
- *
- * Multiple tests, grouped by category:
- *
- *     import 'package:unittest/unittest.dart';
- *     main() {
- *       group('group A', () {
- *         test('test A.1', () {
- *           int x = 2 + 3;
- *           expect(x, equals(5));
- *         });
- *         test('test A.2', () {
- *           int x = 2 + 3;
- *           expect(x, equals(5));
- *         });
- *       });
- *       group('group B', () {
- *         test('this B.1', () {
- *           int x = 2 + 3;
- *           expect(x, equals(5));
- *         });
- *       });
- *     }
- *
- * Asynchronous tests: if callbacks expect between 0 and 2 positional arguments,
- * depending on the suffix of expectAsyncX(). expectAsyncX() will wrap a
- * function into a new callback and will not consider the test complete until
- * that callback is run. A count argument can be provided to specify the number
- * of times the callback should be called (the default is 1).
- *
- *     import 'dart:async';
- *     import 'package:unittest/unittest.dart';
- *     void main() {
- *       test('callback is executed once', () {
- *         // wrap the callback of an asynchronous call with [expectAsync0] if
- *         // the callback takes 0 arguments...
- *         var timer = Timer.run(expectAsync0(() {
- *           int x = 2 + 3;
- *           expect(x, equals(5));
- *         }));
- *       });
- *
- *       test('callback is executed twice', () {
- *         var callback = expectAsync0(() {
- *           int x = 2 + 3;
- *           expect(x, equals(5));
- *         }, count: 2); // <-- we can indicate multiplicity to [expectAsync0]
- *         Timer.run(callback);
- *         Timer.run(callback);
- *       });
- *     }
- *
- * expectAsyncX() will wrap the callback code and block the completion of the
- * test until the wrapped callback has been called the specified number of times
- * -- the default is 1. There may be times when the number of times a callback
- * should be called is non-deterministic. In this case a dummy callback can be
- * created with expectAsync0((){}) and this can be called from the real callback
- * when it is finally complete.
- *
- * A variation on this is expectAsyncUntilX(), which takes a callback as the
- * first parameter and a predicate function as the second parameter; after each
- * time * the callback is called, the predicate function will be called; if it
- * returns false the test will still be considered incomplete.
- *
- * Test functions can return [Future]s, which provide another way of doing
- * asynchronous tests. The test framework will handle exceptions thrown by
- * the Future, and will advance to the next test when the Future is complete.
- *
- *     import 'dart:async';
- *     import 'package:unittest/unittest.dart';
- *     void main() {
- *       test('test that time has passed', () {
- *         var duration = const Duration(milliseconds: 200);
- *         var time = new DateTime.now();
- *
- *         return new Future.delayed(duration).then((_) {
- *           var delta = new DateTime.now().difference(time);
- *
- *           expect(delta, greaterThanOrEqualTo(duration));
- *         });
- *       });
- *     }
- *
- * Note: Due to some language limitations we have to use different functions
- * depending on the number of positional arguments of the callback. In the
- * future, we plan to expose a single `expectAsync` function that can be used
- * regardless of the number of positional arguments. This requires new langauge
- * features or fixes to the current spec (e.g. see
- * [Issue 2706](http://dartbug.com/2706)).
- */
+/// Support for writing Dart unit tests.
+///
+/// For information on installing and importing this library, see the
+/// [unittest package on pub.dartlang.org]
+/// (http://pub.dartlang.org/packages/unittest).
+///
+/// **See also:**
+/// [Unit Testing with Dart]
+/// (http://www.dartlang.org/articles/dart-unit-tests/)
+///
+/// ##Concepts
+///
+///  * __Tests__: Tests are specified via the top-level function [test], they can be
+///    organized together using [group].
+///
+///  * __Checks__: Test expectations can be specified via [expect]
+///
+///  * __Matchers__: [expect] assertions are written declaratively using the
+///    [Matcher] class.
+///
+///  * __Configuration__: The framework can be adapted by setting
+///    [unittestConfiguration] with a [Configuration]. See the other libraries
+///    in the `unittest` package for alternative implementations of
+///    [Configuration] including `compact_vm_config.dart`, `html_config.dart`
+///    and `html_enhanced_config.dart`.
+///
+/// ##Examples
+///
+/// A trivial test:
+///
+///     import 'package:unittest/unittest.dart';
+///     main() {
+///       test('this is a test', () {
+///         int x = 2 + 3;
+///         expect(x, equals(5));
+///       });
+///     }
+///
+/// Multiple tests:
+///
+///     import 'package:unittest/unittest.dart';
+///     main() {
+///       test('this is a test', () {
+///         int x = 2 + 3;
+///         expect(x, equals(5));
+///       });
+///       test('this is another test', () {
+///         int x = 2 + 3;
+///         expect(x, equals(5));
+///       });
+///     }
+///
+/// Multiple tests, grouped by category:
+///
+///     import 'package:unittest/unittest.dart';
+///     main() {
+///       group('group A', () {
+///         test('test A.1', () {
+///           int x = 2 + 3;
+///           expect(x, equals(5));
+///         });
+///         test('test A.2', () {
+///           int x = 2 + 3;
+///           expect(x, equals(5));
+///         });
+///       });
+///       group('group B', () {
+///         test('this B.1', () {
+///           int x = 2 + 3;
+///           expect(x, equals(5));
+///         });
+///       });
+///     }
+///
+/// Asynchronous tests: if callbacks expect between 0 and 6 positional
+/// arguments, [expectAsync] will wrap a function into a new callback and will
+/// not consider the test complete until that callback is run. A count argument
+/// can be provided to specify the number of times the callback should be called
+/// (the default is 1).
+///
+///     import 'dart:async';
+///     import 'package:unittest/unittest.dart';
+///     void main() {
+///       test('callback is executed once', () {
+///         // wrap the callback of an asynchronous call with [expectAsync] if
+///         // the callback takes 0 arguments...
+///         var timer = Timer.run(expectAsync(() {
+///           int x = 2 + 3;
+///           expect(x, equals(5));
+///         }));
+///       });
+///
+///       test('callback is executed twice', () {
+///         var callback = expectAsync(() {
+///           int x = 2 + 3;
+///           expect(x, equals(5));
+///         }, count: 2); // <-- we can indicate multiplicity to [expectAsync]
+///         Timer.run(callback);
+///         Timer.run(callback);
+///       });
+///     }
+///
+/// There may be times when the number of times a callback should be called is
+/// non-deterministic. In this case a dummy callback can be created with
+/// expectAsync((){}) and this can be called from the real callback when it is
+/// finally complete.
+///
+/// A variation on this is [expectAsyncUntil], which takes a callback as the
+/// first parameter and a predicate function as the second parameter. After each
+/// time the callback is called, the predicate function will be called. If it
+/// returns `false` the test will still be considered incomplete.
+///
+/// Test functions can return [Future]s, which provide another way of doing
+/// asynchronous tests. The test framework will handle exceptions thrown by
+/// the Future, and will advance to the next test when the Future is complete.
+///
+///     import 'dart:async';
+///     import 'package:unittest/unittest.dart';
+///     void main() {
+///       test('test that time has passed', () {
+///         var duration = const Duration(milliseconds: 200);
+///         var time = new DateTime.now();
+///
+///         return new Future.delayed(duration).then((_) {
+///           var delta = new DateTime.now().difference(time);
+///
+///           expect(delta, greaterThanOrEqualTo(duration));
+///         });
+///       });
+///     }
 library unittest;
 
 import 'dart:async';
@@ -164,11 +153,9 @@ part 'src/test_case.dart';
 
 Configuration _config;
 
-/**
- * [Configuration] used by the unittest library. Note that if a
- * configuration has not been set, calling this getter will create
- * a default configuration.
- */
+/// [Configuration] used by the unittest library. Note that if a
+/// configuration has not been set, calling this getter will create
+/// a default configuration.
 Configuration get unittestConfiguration {
   if (_config == null) {
     _config = new Configuration();
@@ -176,11 +163,9 @@ Configuration get unittestConfiguration {
   return _config;
 }
 
-/**
- * Sets the [Configuration] used by the unittest library.
- *
- * Throws a [StateError] if there is an existing, incompatible value.
- */
+/// Sets the [Configuration] used by the unittest library.
+///
+/// Throws a [StateError] if there is an existing, incompatible value.
 void set unittestConfiguration(Configuration value) {
   if (!identical(_config, value)) {
     if (_config != null) {
@@ -190,33 +175,27 @@ void set unittestConfiguration(Configuration value) {
   }
 }
 
-/**
- * Can be called by tests to log status. Tests should use this
- * instead of [print].
- */
+/// Can be called by tests to log status. Tests should use this
+/// instead of [print].
 void logMessage(String message) =>
     _config.onLogMessage(currentTestCase, message);
 
-/** Separator used between group names and test names. */
+/// Separator used between group names and test names.
 String groupSep = ' ';
 
 final List<TestCase> _testCases = new List<TestCase>();
 
-/** Tests executed in this suite. */
+/// Tests executed in this suite.
 final List<TestCase> testCases = new UnmodifiableListView<TestCase>(_testCases);
 
-/**
- * Interval (in msecs) after which synchronous tests will insert an async
- * delay to allow DOM or other updates.
- */
+/// Interval (in msecs) after which synchronous tests will insert an async
+/// delay to allow DOM or other updates.
 const int BREATH_INTERVAL = 200;
 
-/**
- * The set of tests to run can be restricted by using [solo_test] and
- * [solo_group].
- * As groups can be nested we use a counter to keep track of the nest level
- * of soloing, and a flag to tell if we have seen any solo tests.
- */
+/// The set of tests to run can be restricted by using [solo_test] and
+/// [solo_group].
+/// As groups can be nested we use a counter to keep track of the nest level
+/// of soloing, and a flag to tell if we have seen any solo tests.
 int _soloNestingLevel = 0;
 bool _soloTestSeen = false;
 
@@ -226,26 +205,24 @@ bool _soloTestSeen = false;
 final _rootContext = new _GroupContext();
 _GroupContext _currentContext = _rootContext;
 
-/**
- * Represents the index of the currently running test case
- * == -1 implies the test system is not running
- * == [number of test cases] is a short-lived state flagging that the last test
- *    has completed
- */
+/// Represents the index of the currently running test case
+/// == -1 implies the test system is not running
+/// == [number of test cases] is a short-lived state flagging that the last test
+///    has completed
 int _currentTestCaseIndex = -1;
 
-/** [TestCase] currently being executed. */
+/// [TestCase] currently being executed.
 TestCase get currentTestCase =>
     (_currentTestCaseIndex >= 0 && _currentTestCaseIndex < testCases.length)
         ? testCases[_currentTestCaseIndex]
         : null;
 
-/** Whether the framework is in an initialized state. */
+/// Whether the framework is in an initialized state.
 bool _initialized = false;
 
 String _uncaughtErrorMessage = null;
 
-/** Time since we last gave non-sync code a chance to be scheduled. */
+/// Time since we last gave non-sync code a chance to be scheduled.
 int _lastBreath = new DateTime.now().millisecondsSinceEpoch;
 
 /* Test case result strings. */
@@ -260,11 +237,9 @@ const FAIL = 'fail';
 /// Result string for an test case with an error.
 const ERROR = 'error';
 
-/**
- * Creates a new test case with the given description and body. The
- * description will include the descriptions of any surrounding group()
- * calls.
- */
+/// Creates a new test case with the given description and body. The
+/// description will include the descriptions of any surrounding group()
+/// calls.
 void test(String spec, TestFunction body) {
   _requireNotRunning();
   ensureInitialized();
@@ -275,25 +250,23 @@ void test(String spec, TestFunction body) {
   }
 }
 
-/** Convenience function for skipping a test. */
+/// Convenience function for skipping a test.
 void skip_test(String spec, TestFunction body) {}
 
-/**
- * Creates a new test case with the given description and body. The
- * description will include the descriptions of any surrounding group()
- * calls.
- *
- * If we use [solo_test] (or [solo_group]) instead of test, then all non-solo
- * tests will be disabled. Note that if we use [solo_group], all tests in
- * the group will be enabled, regardless of whether they use [test] or
- * [solo_test], or whether they are in a nested [group] vs [solo_group]. Put
- * another way, if there are any calls to [solo_test] or [solo_group] in a test
- * file, all tests that are not inside a [solo_group] will be disabled unless
- * they are [solo_test]s.
- *
- * [skip_test] and [skip_group] take precedence over soloing, by virtue of the
- * fact that they are effectively no-ops.
- */
+/// Creates a new test case with the given description and body. The
+/// description will include the descriptions of any surrounding group()
+/// calls.
+///
+/// If we use [solo_test] (or [solo_group]) instead of test, then all non-solo
+/// tests will be disabled. Note that if we use [solo_group], all tests in
+/// the group will be enabled, regardless of whether they use [test] or
+/// [solo_test], or whether they are in a nested [group] vs [solo_group]. Put
+/// another way, if there are any calls to [solo_test] or [solo_group] in a test
+/// file, all tests that are not inside a [solo_group] will be disabled unless
+/// they are [solo_test]s.
+///
+/// [skip_test] and [skip_group] take precedence over soloing, by virtue of the
+/// fact that they are effectively no-ops.
 void solo_test(String spec, TestFunction body) {
   _requireNotRunning();
   ensureInitialized();
@@ -310,135 +283,111 @@ void solo_test(String spec, TestFunction body) {
   }
 }
 
-/**
- * Indicate that [callback] is expected to be called a [count] number of times
- * (by default 1). The unittest framework will wait for the callback to run the
- * specified [count] times before it continues with the following test.  Using
- * [expectAsync] will also ensure that errors that occur within [callback] are
- * tracked and reported. [callback] should take 0 positional arguments (named
- * arguments are not supported). [id] can be used to provide more
- * descriptive error messages if the callback is called more often than
- * expected. [max] can be used to specify an upper bound on the number of
- * calls; if this is exceeded the test will fail (or be marked as in error if
- * it was already complete). A value of 0 for [max] (the default) will set
- * the upper bound to the same value as [count]; i.e. the callback should be
- * called exactly [count] times. A value of -1 for [max] will mean no upper
- * bound.
- */
+/// Indicate that [callback] is expected to be called a [count] number of times
+/// (by default 1). The unittest framework will wait for the callback to run the
+/// specified [count] times before it continues with the following test.  Using
+/// [expectAsync] will also ensure that errors that occur within [callback] are
+/// tracked and reported. [callback] should take 0 positional arguments (named
+/// arguments are not supported). [id] can be used to provide more
+/// descriptive error messages if the callback is called more often than
+/// expected. [max] can be used to specify an upper bound on the number of
+/// calls; if this is exceeded the test will fail (or be marked as in error if
+/// it was already complete). A value of 0 for [max] (the default) will set
+/// the upper bound to the same value as [count]; i.e. the callback should be
+/// called exactly [count] times. A value of -1 for [max] will mean no upper
+/// bound.
 Function expectAsync(Function callback,
     {int count: 1, int max: 0, String id}) =>
   new _SpreadArgsHelper(callback, count, max, id).func;
 
-/**
- * *Deprecated*
- *
- * Use [expectAsync] instead.
- */
+/// *Deprecated*
+///
+/// Use [expectAsync] instead.
 @deprecated
 Function expectAsync0(Function callback,
                      {int count: 1, int max: 0, String id}) =>
     expectAsync(callback, count: count, max: max, id: id);
 
-/**
- * *Deprecated*
- *
- * Use [expectAsync] instead.
- */
+/// *Deprecated*
+///
+/// Use [expectAsync] instead.
 @deprecated
 Function expectAsync1(Function callback,
                      {int count: 1, int max: 0, String id}) =>
     expectAsync(callback, count: count, max: max, id: id);
 
-/**
- * *Deprecated*
- *
- * Use [expectAsync] instead.
- */
+/// *Deprecated*
+///
+/// Use [expectAsync] instead.
 @deprecated
 Function expectAsync2(Function callback,
                      {int count: 1, int max: 0, String id}) =>
     expectAsync(callback, count: count, max: max, id: id);
 
-/**
- * Indicate that [callback] is expected to be called until [isDone] returns
- * true. The unittest framework check [isDone] after each callback and only
- * when it returns true will it continue with the following test. Using
- * [expectAsyncUntil] will also ensure that errors that occur within
- * [callback] are tracked and reported. [callback] should take 0 positional
- * arguments (named arguments are not supported). [id] can be used to
- * identify the callback in error messages (for example if it is called
- * after the test case is complete).
- */
+/// Indicate that [callback] is expected to be called until [isDone] returns
+/// true. The unittest framework check [isDone] after each callback and only
+/// when it returns true will it continue with the following test. Using
+/// [expectAsyncUntil] will also ensure that errors that occur within
+/// [callback] are tracked and reported. [callback] should take 0 positional
+/// arguments (named arguments are not supported). [id] can be used to
+/// identify the callback in error messages (for example if it is called
+/// after the test case is complete).
 Function expectAsyncUntil(Function callback, bool isDone(), {String id}) =>
     new _SpreadArgsHelper(callback, 0, -1, id, isDone: isDone).func;
 
-/**
- * *Deprecated*
- *
- * Use [expectAsyncUntil] instead.
- */
+/// *Deprecated*
+///
+/// Use [expectAsyncUntil] instead.
 @deprecated
 Function expectAsyncUntil0(Function callback, Function isDone, {String id}) =>
     expectAsyncUntil(callback, isDone, id: id);
 
-/**
- * *Deprecated*
- *
- * Use [expectAsyncUntil] instead.
- */
+/// *Deprecated*
+///
+/// Use [expectAsyncUntil] instead.
 @deprecated
 Function expectAsyncUntil1(Function callback, Function isDone, {String id}) =>
     expectAsyncUntil(callback, isDone, id: id);
 
-/**
- * *Deprecated*
- *
- * Use [expectAsyncUntil] instead.
- */
+/// *Deprecated*
+///
+/// Use [expectAsyncUntil] instead.
 @deprecated
 Function expectAsyncUntil2(Function callback, Function isDone, {String id}) =>
     expectAsyncUntil(callback, isDone, id: id);
 
-/**
- * *Deprecated*
- *
- * All tests are now run an isolated [Zone].
- *
- * You can safely remove calls to this method.
- */
+/// *Deprecated*
+///
+/// All tests are now run an isolated [Zone].
+///
+/// You can safely remove calls to this method.
 @deprecated
 Function protectAsync0(Function callback, {String id}) {
   return callback;
 }
 
-/**
- * *Deprecated*
- *
- * All tests are now run an isolated [Zone].
- *
- * You can safely remove calls to this method.
- */
+/// *Deprecated*
+///
+/// All tests are now run an isolated [Zone].
+///
+/// You can safely remove calls to this method.
 @deprecated
 Function protectAsync1(Function callback, {String id}) {
   return callback;
 }
 
-/**
- * *Deprecated*
- *
- * All tests are now run an isolated [Zone].
- *
- * You can safely remove calls to this method.
- */
+/// *Deprecated*
+///
+/// All tests are now run an isolated [Zone].
+///
+/// You can safely remove calls to this method.
 @deprecated
 Function protectAsync2(Function callback, {String id}) {
   return callback;
 }
 
-/**
- * Creates a new named group of tests. Calls to group() or test() within the
- * body of the function passed to this will inherit this group's description.
- */
+/// Creates a new named group of tests. Calls to group() or test() within the
+/// body of the function passed to this will inherit this group's description.
 void group(String description, void body()) {
   ensureInitialized();
   _requireNotRunning();
@@ -454,10 +403,10 @@ void group(String description, void body()) {
   }
 }
 
-/** Like [skip_test], but for groups. */
+/// Like [skip_test], but for groups.
 void skip_group(String description, void body()) {}
 
-/** Like [solo_test], but for groups. */
+/// Like [solo_test], but for groups.
 void solo_group(String description, void body()) {
   _requireNotRunning();
   ensureInitialized();
@@ -474,38 +423,34 @@ void solo_group(String description, void body()) {
   }
 }
 
-/**
- * Register a [setUp] function for a test [group]. This function will
- * be called before each test in the group is run.
- * [setUp] and [tearDown] should be called within the [group] before any
- * calls to [test]. The [setupTest] function can be asynchronous; in this
- * case it must return a [Future].
- */
+/// Register a [setUp] function for a test [group]. This function will
+/// be called before each test in the group is run.
+/// [setUp] and [tearDown] should be called within the [group] before any
+/// calls to [test]. The [setupTest] function can be asynchronous; in this
+/// case it must return a [Future].
 void setUp(Function setupTest) {
   _requireNotRunning();
   _currentContext.testSetup = setupTest;
 }
 
-/**
- * Register a [tearDown] function for a test [group]. This function will
- * be called after each test in the group is run. Note that if groups
- * are nested only the most locally scoped [teardownTest] function will be run.
- * [setUp] and [tearDown] should be called within the [group] before any
- * calls to [test]. The [teardownTest] function can be asynchronous; in this
- * case it must return a [Future].
- */
+/// Register a [tearDown] function for a test [group]. This function will
+/// be called after each test in the group is run. Note that if groups
+/// are nested only the most locally scoped [teardownTest] function will be run.
+/// [setUp] and [tearDown] should be called within the [group] before any
+/// calls to [test]. The [teardownTest] function can be asynchronous; in this
+/// case it must return a [Future].
 void tearDown(Function teardownTest) {
   _requireNotRunning();
   _currentContext.testTeardown = teardownTest;
 }
 
-/** Advance to the next test case. */
+/// Advance to the next test case.
 void _nextTestCase() {
   _currentTestCaseIndex++;
   _runTest();
 }
 
-/** Handle errors that happen outside the tests. */
+/// Handle errors that happen outside the tests.
 // TODO(vsm): figure out how to expose the stack trace here
 // Currently e.message works in dartium, but not in dartc.
 void handleExternalError(e, String message, [stack]) {
@@ -518,11 +463,9 @@ void handleExternalError(e, String message, [stack]) {
   }
 }
 
-/**
- * Filter the tests. [testFilter] can be a [RegExp], a [String] or a
- * predicate function. This is different to enabling/disabling tests
- * in that it removes the tests completely.
- */
+/// Filter the tests. [testFilter] can be a [RegExp], a [String] or a
+/// predicate function. This is different to enabling/disabling tests
+/// in that it removes the tests completely.
 void filterTests(testFilter) {
   var filterFunction;
   if (testFilter is String) {
@@ -536,7 +479,7 @@ void filterTests(testFilter) {
   _testCases.retainWhere(filterFunction);
 }
 
-/** Runs all queued tests, one at a time. */
+/// Runs all queued tests, one at a time.
 void runTests() {
   _requireNotRunning();
   _ensureInitialized(false);
@@ -545,28 +488,22 @@ void runTests() {
   _runTest();
 }
 
-/**
- * *Deprecated*
- *
- * All tests are now run an isolated [Zone].
- *
- * You can safely remove calls to this method.
- */
+/// *Deprecated*
+///
+/// All tests are now run an isolated [Zone].
+///
+/// You can safely remove calls to this method.
 @deprecated
 guardAsync(Function tryBody) {
   return tryBody();
 }
 
-/**
- * Registers that an exception was caught for the current test.
- */
+/// Registers that an exception was caught for the current test.
 void registerException(e, [trace]) {
   _registerException(currentTestCase, e, trace);
 }
 
-/**
- * Registers that an exception was caught for the current test.
- */
+/// Registers that an exception was caught for the current test.
 void _registerException(TestCase testCase, e, [trace]) {
   String message = (e is TestFailure) ? e.message : 'Caught $e';
   if (testCase.result == null) {
@@ -576,9 +513,7 @@ void _registerException(TestCase testCase, e, [trace]) {
   }
 }
 
-/**
- * Runs the next test.
- */
+/// Runs the next test.
 void _runTest() {
   if (_currentTestCaseIndex >= testCases.length) {
     assert(_currentTestCaseIndex == testCases.length);
@@ -618,7 +553,7 @@ void _runTest() {
   }
 }
 
-/** Publish results on the page and notify controller. */
+/// Publish results on the page and notify controller.
 void _completeTests() {
   if (!_initialized) return;
   int passed = 0;
@@ -645,9 +580,7 @@ String _fullSpec(String spec) {
   return group != '' ? '$group$groupSep$spec' : spec;
 }
 
-/**
- * Lazily initializes the test library if not already initialized.
- */
+/// Lazily initializes the test library if not already initialized.
 void ensureInitialized() {
   _ensureInitialized(true);
 }
@@ -671,10 +604,10 @@ void _ensureInitialized(bool configAutoStart) {
   }
 }
 
-/** Select a solo test by ID. */
+/// Select a solo test by ID.
 void setSoloTest(int id) => _testCases.retainWhere((t) => t.id == id);
 
-/** Enable/disable a test by ID. */
+/// Enable/disable a test by ID.
 void _setTestEnabledState(int testId, bool state) {
   // Try fast path first.
   if (testCases.length > testId && testCases[testId].id == testId) {
@@ -689,27 +622,23 @@ void _setTestEnabledState(int testId, bool state) {
   }
 }
 
-/** Enable a test by ID. */
+/// Enable a test by ID.
 void enableTest(int testId) => _setTestEnabledState(testId, true);
 
-/** Disable a test by ID. */
+/// Disable a test by ID.
 void disableTest(int testId) => _setTestEnabledState(testId, false);
 
-/** Signature for a test function. */
+/// Signature for a test function.
 typedef dynamic TestFunction();
 
-/**
- * A flag that controls whether we hide unittest and core library details in
- * exception stacks.
- *
- * Useful to disable when debugging unittest or matcher customizations.
- */
+/// A flag that controls whether we hide unittest and core library details in
+/// exception stacks.
+///
+/// Useful to disable when debugging unittest or matcher customizations.
 bool formatStacks = true;
 
-/**
- * A flag that controls whether we try to filter out irrelevant frames from
- * the stack trace. Requires formatStacks to be set.
- */
+/// A flag that controls whether we try to filter out irrelevant frames from
+/// the stack trace. Requires formatStacks to be set.
 bool filterStacks = true;
 
 void _requireNotRunning() {
@@ -718,10 +647,8 @@ void _requireNotRunning() {
   }
 }
 
-/**
- * Returns a Trace object from a StackTrace object or a String, or the
- * unchanged input if formatStacks is false;
- */
+/// Returns a Trace object from a StackTrace object or a String, or the
+/// unchanged input if formatStacks is false;
 Trace _getTrace(stack) {
   Trace trace;
   if (stack == null || !formatStacks) return null;
