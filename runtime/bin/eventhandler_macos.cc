@@ -309,8 +309,8 @@ void EventHandlerImplementation::HandleEvents(struct kevent* events,
     } else {
       SocketData* sd = reinterpret_cast<SocketData*>(events[i].udata);
       intptr_t event_mask = GetEvents(events + i, sd);
-      if (!sd->IsListeningSocket() && event_mask != 0) {
-        if (sd->TakeToken()) {
+      if (event_mask != 0) {
+        if (!sd->IsListeningSocket() && sd->TakeToken()) {
           // Took last token, remove from epoll.
           RemoveFromKqueue(kqueue_fd_, sd);
         }
