@@ -218,18 +218,7 @@ Symbol _setterName(Symbol getter) =>
 
 ClassMirror _safeSuperclass(ClassMirror type) {
   try {
-    var t = type.superclass;
-    // TODO(sigmund): workaround for darbug.com/17779.
-    // Interceptor is leaked by dart2js. It has the same methods as Object
-    // (including noSuchMethod), and our code above assumes that it doesn't
-    // exist. Most queries exclude Object, so they should exclude Interceptor
-    // too. We don't check for t.simpleName == #Interceptor because depending on
-    // dart2js optimizations it may be #Interceptor or #num/Interceptor.
-    // Checking for a private library seems to reliably filter this out.
-    if (t != null && t.owner != null && t.owner.isPrivate) {
-      t = _objectType;
-    }
-    return t;
+    return type.superclass;
   } on UnsupportedError catch (e) {
     // Note: dart2js throws UnsupportedError when the type is not reflectable.
     return _objectType;

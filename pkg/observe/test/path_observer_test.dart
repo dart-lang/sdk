@@ -9,9 +9,7 @@ import 'observe_test_utils.dart';
 
 // This file contains code ported from:
 // https://github.com/rafaelw/ChangeSummary/blob/master/tests/test.js
-// Dart note: getting invalid properties is an error, unlike in JS where it
-// returns undefined. This difference comes up where we check for _throwsNSM in
-// the tests below.
+
 main() => dirtyCheckZone().run(() {
   group('PathObserver', observePathTests);
 
@@ -70,18 +68,19 @@ main() => dirtyCheckZone().run(() {
   });
 });
 
+
 observePathTests() {
   test('Degenerate Values', () {
     expect(new PathObserver(null, '').value, null);
     expect(new PathObserver(123, '').value, 123);
-    expect(() => new PathObserver(123, 'foo.bar.baz').value, _throwsNSM('foo'));
+    expect(new PathObserver(123, 'foo.bar.baz').value, null);
 
     // shouldn't throw:
     new PathObserver(123, '')..open((_) {})..close();
     new PropertyPath('').setValueFrom(null, null);
     new PropertyPath('').setValueFrom(123, 42);
-    expect(() => new PropertyPath('foo.bar.baz').setValueFrom(123, 42),
-        _throwsNSM('foo'));
+    new PropertyPath('foo.bar.baz').setValueFrom(123, 42);
+
     var foo = {};
     expect(new PathObserver(foo, '').value, foo);
 
@@ -106,8 +105,7 @@ observePathTests() {
     expect(new PathObserver(obj, 'value.value.value').value, 3);
 
     obj.value = new ObservableBox(4);
-    expect(() => new PathObserver(obj, 'value.value.value').value,
-        _throwsNSM('value'));
+    expect(new PathObserver(obj, 'value.value.value').value, null);
     expect(new PathObserver(obj, 'value.value').value, 4);
   });
 
@@ -127,7 +125,7 @@ observePathTests() {
     expect(new PathObserver(obj, 'a.b.c').value, 3);
 
     obj['a'] = toObservable({'b': 4});
-    expect(() => new PathObserver(obj, 'a.b.c').value, _throwsNSM('c'));
+    expect(new PathObserver(obj, 'a.b.c').value, null);
     expect(new PathObserver(obj, 'a.b').value, 4);
   });
 
@@ -140,9 +138,8 @@ observePathTests() {
     new PropertyPath('bar').setValueFrom(obj, bar);
     expect(obj['bar'], bar);
 
-    expect(() => new PropertyPath('bar.baz.bat').setValueFrom(obj, 'not here'),
-        _throwsNSM('bat='));
-    expect(() => new PathObserver(obj, 'bar.baz.bat').value, _throwsNSM('bat'));
+    new PropertyPath('bar.baz.bat').setValueFrom(obj, 'not here');
+    expect(new PathObserver(obj, 'bar.baz.bat').value, null);
   });
 
   test('set value back to same', () {
@@ -242,13 +239,7 @@ observePathTests() {
 
       var path = new PathObserver(model, 'a.b.c');
       var lastValue = null;
-      var errorSeen = false;
-      runZoned(() {
-        path.open((x) { lastValue = x; });
-      }, onError: (e) {
-        expect(e, _isNoSuchMethodOf('c'));
-        errorSeen = true;
-      });
+      path.open((x) { lastValue = x; });
 
       model.a.b.c = 'hello, mom';
 
@@ -266,17 +257,15 @@ observePathTests() {
         expect(lastValue, 'hello, you');
 
         model.a.b = 1;
-        expect(errorSeen, isFalse);
       }).then(newMicrotask).then((_) {
-        expect(errorSeen, isTrue);
-        expect(lastValue, 'hello, you');
+        expect(lastValue, null);
 
         // Stop observing
         path.close();
 
         model.a.b = createModel()..c = 'hello, back again -- but not observing';
       }).then(newMicrotask).then((_) {
-        expect(lastValue, 'hello, you');
+        expect(lastValue, null);
 
         // Resume observing
         new PathObserver(model, 'a.b.c').open((x) { lastValue = x; });
@@ -311,10 +300,10 @@ observePathTests() {
     var model = new ObjectWithErrors();
     var observer = new PathObserver(model, 'foo');
 
-    expect(() => observer.value, _throwsNSM('bar'));
+    expect(() => observer.value, throws);
     expect(model.getFooCalled, 1);
 
-    expect(() { observer.value = 123; }, _throwsNSM('bar='));
+    expect(() { observer.value = 123; }, throws);
     expect(model.setFooCalled, [123]);
   });
 
@@ -363,19 +352,6 @@ observePathTests() {
   });
 }
 
-/// A matcher that checks that a closure throws a NoSuchMethodError matching the
-/// given [name].
-_throwsNSM(String name) => throwsA(_isNoSuchMethodOf(name));
-
-/// A matcher that checkes whether an exception is a NoSuchMethodError matching
-/// the given [name].
-_isNoSuchMethodOf(String name) => predicate((e) =>
-    e is NoSuchMethodError &&
-    // Dart2js and VM error messages are a bit different, but they both contain
-    // the name.
-    ('$e'.contains("'$name'") || // VM error
-     '$e'.contains('\'Symbol("$name")\''))); // dart2js error
-
 class ObjectWithErrors {
   int getFooCalled = 0;
   List setFooCalled = [];
@@ -407,7 +383,7 @@ class NoSuchMethodModel {
   }
 }
 
-class IndexerModel implements Indexable<String, dynamic> {
+class IndexerModel {
   var _foo = 42;
   List log = [];
 

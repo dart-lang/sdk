@@ -122,7 +122,6 @@ main() {
     expect(smoke.hasNoSuchMethod(A), isFalse);
     expect(smoke.hasNoSuchMethod(E), isTrue);
     expect(smoke.hasNoSuchMethod(E2), isTrue);
-    expect(smoke.hasNoSuchMethod(int), isFalse);
   });
 
   test('has instance method', () {
