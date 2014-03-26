@@ -221,7 +221,6 @@ useIr(ir_nodes.SExpressionStringifier stringifier,
     ..visitFunction(null)
     ..visitInvokeStatic(null)
     ..visitLetCont(null)
-    ..visitLetVal(null)
     ..visitNode(null)
     ..visitParameter(null);
   task
