@@ -150,7 +150,7 @@ void assign(Expression expr, Object value, Scope scope) {
  * searches for the name in local variables, then in global variables,
  * and then finally looks up the name as a property in the model.
  */
-abstract class Scope {
+abstract class Scope implements Indexable<String, Object> {
   Scope._();
 
   /** Create a scope containing a [model] and all of [variables]. */
@@ -168,7 +168,11 @@ abstract class Scope {
    * we return the [model]. For any other name, this finds the first variable
    * matching [name] or, if none exists, the property [name] in the [model].
    */
-  Object operator[](String name);
+  Object operator [](String name);
+
+  operator []=(String name, Object value) {
+    throw new UnsupportedError('[]= is not supported in Scope.');
+  }
 
   /**
    * Returns whether [name] is defined in [model], that is, a lookup

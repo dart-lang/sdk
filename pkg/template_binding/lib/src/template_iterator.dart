@@ -430,13 +430,26 @@ class _TemplateIterator extends Bindable {
           instanceBindings = instance.instanceBindings;
           instanceNodes = instance.nodes;
         } else {
-          instanceBindings = [];
-          if (_instanceModelFn != null) {
-            model = _instanceModelFn(model);
-          }
-          if (model != null) {
-            fragment = _templateExt.createInstance(model, delegate,
-                instanceBindings);
+          try {
+            instanceBindings = [];
+            if (_instanceModelFn != null) {
+              model = _instanceModelFn(model);
+            }
+            if (model != null) {
+              fragment = _templateExt.createInstance(model, delegate,
+                  instanceBindings);
+            }
+          } catch (e, s) {
+            // Dart note: we propagate errors asynchronously here to avoid
+            // disrupting the rendering flow. This is different than in the JS
+            // implementation but it should probably be fixed there too. Dart
+            // hits this case more because non-existing properties in
+            // [PropertyPath] are treated as errors, while JS treats them as
+            // null/undefined.
+            // TODO(sigmund): this should be a synchronous throw when this is
+            // called from createInstance, but that requires enough refactoring
+            // that it should be done upstream first. See dartbug.com/17789.
+            new Completer().completeError(e, s);
           }
         }
 
