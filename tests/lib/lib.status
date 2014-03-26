@@ -245,6 +245,9 @@ async/timer_test: Fail, Pass
 async/timer_not_available_test: Fail, OK
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 
+[ $runtime == vm  && $arch == x64]
+typed_data/float64x2_functional_test: Fail # Issue 17846.
+
 [ $compiler == none  ]
 mirrors/hierarchy_test: Fail # TODO(ahe): This test is slightly broken. http://dartbug.com/12464
 mirrors/mixin_application_test/01: Fail, OK # TODO(ahe): Slight broken test to ensure test coverage on dart2js.
