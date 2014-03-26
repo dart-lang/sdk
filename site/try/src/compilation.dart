@@ -302,5 +302,8 @@ void compilerIsolate(SendPort port) {
       port.send('$exception\n$stack');
     }
   });
-  // cacheCompiler.compilerFor(null);
+  var notTrue = false; // Confuse the analyzer.
+  if (notTrue) {
+    cacheCompiler.compilerFor(null);
+  }
 }
