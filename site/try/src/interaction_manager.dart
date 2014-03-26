@@ -260,6 +260,7 @@ class InitialState extends InteractionState {
           selectionOffset = selection.anchorOffset;
         }
         int splitPoint = token.charOffset - offset;
+        if (splitPoint < 0) continue; // Happens for scanner errors.
         Text str = node.splitText(splitPoint);
         Text after = str.splitText(token.charCount);
         offset += splitPoint + token.charCount;
