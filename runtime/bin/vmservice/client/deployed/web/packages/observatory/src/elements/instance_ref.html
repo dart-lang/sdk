@@ -19,7 +19,7 @@
         font: 400 14px 'Montserrat', sans-serif;
       }
     </style>
-    <div>
+    <span>
       <template if="{{ isUnexpected(ref.serviceType) }}">
         unexpected reference type &lt;{{ ref.serviceType }}&gt;
       </template>
@@ -37,6 +37,10 @@
                         isInt(ref.serviceType)) ||
                         isDouble(ref.serviceType)) }}">
         <a href="{{ url }}">{{ ref['preview'] }}</a>
+      </template>
+
+      <template if="{{ (isType(ref.serviceType)) }}">
+        <a href="{{ url }}">{{ ref['user_name'] }}</a>
       </template>
 
       <template if="{{ isClosure(ref.serviceType) }}">
@@ -79,8 +83,7 @@
           </div>
         </curly-block>
       </template>
-
-    </div>
+    </span>
   </template>
   <script type="application/dart" src="instance_ref.dart"></script>
 </polymer-element>

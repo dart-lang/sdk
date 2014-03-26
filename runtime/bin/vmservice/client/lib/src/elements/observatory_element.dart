@@ -161,6 +161,10 @@ class ObservatoryElement extends PolymerElement {
             type == 'Array');
   }
 
+  bool isType(String type) {
+    return (type == 'Type');
+  }
+
   bool isUnexpected(String type) {
     return (!['Null',
               'Smi',
@@ -173,6 +177,7 @@ class ObservatoryElement extends PolymerElement {
               'Instance',
               'GrowableObjectArray',
               'Array',
+              'Type',
               'Error'].contains(type));
   }
 }

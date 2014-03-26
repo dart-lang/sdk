@@ -4075,6 +4075,9 @@ class Instance : public Object {
 
   static RawInstance* New(const Class& cls, Heap::Space space = Heap::kNew);
 
+ protected:
+  virtual void PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const;
+
  private:
   RawObject** FieldAddrAtOffset(intptr_t offset) const {
     ASSERT(IsValidFieldOffset(offset));

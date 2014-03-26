@@ -47,7 +47,12 @@
     <template if="{{ instance['error'] == null }}">
       <div class="content">
         <!-- TODO(turnidge): Handle null instances. -->
-        <h1>instance of {{ instance['class']['user_name'] }}</h1>
+        <template if="{{ isType(instance.serviceType) }}">
+          <h1>type {{ instance['user_name'] }}</h1>
+        </template>
+        <template if="{{ !isType(instance.serviceType) }}">
+          <h1>instance of {{ instance['class']['user_name'] }}</h1>
+        </template>
         <div class="memberList">
           <div class="memberItem">
             <div class="memberName">class</div>
@@ -66,6 +71,15 @@
             <div class="memberName">size</div>
             <div class="memberValue">{{ instance['size'] | formatSize }}</div>
           </div>
+          <template if="{{ instance['type_class'] != null }}">
+            <div class="memberItem">
+              <div class="memberName">type class</div>
+              <div class="memberValue">
+                <class-ref ref="{{ instance['type_class'] }}">
+                </class-ref>
+              </div>
+            </div>
+          </template>
         </div>
       </div>
 

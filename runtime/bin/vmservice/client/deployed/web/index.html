@@ -289,7 +289,7 @@
         font: 400 14px 'Montserrat', sans-serif;
       }
     </style>
-    <div>
+    <span>
       <template if="{{ isUnexpected(ref.serviceType) }}">
         unexpected reference type &lt;{{ ref.serviceType }}&gt;
       </template>
@@ -307,6 +307,10 @@
                         isInt(ref.serviceType)) ||
                         isDouble(ref.serviceType)) }}">
         <a href="{{ url }}">{{ ref['preview'] }}</a>
+      </template>
+
+      <template if="{{ (isType(ref.serviceType)) }}">
+        <a href="{{ url }}">{{ ref['user_name'] }}</a>
       </template>
 
       <template if="{{ isClosure(ref.serviceType) }}">
@@ -349,8 +353,7 @@
           </div>
         </curly-block>
       </template>
-
-    </div>
+    </span>
   </template>
   
 </polymer-element>
@@ -443,11 +446,12 @@
   var
   </template>
   <template if="{{ (ref['declared_type']['name'] != 'dynamic') }}">
-  <class-ref ref="{{ ref['declared_type'] }}"></class-ref>
+    <instance-ref ref="{{ ref['declared_type'] }}"></instance-ref>
   </template>
   <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
 </div>
-</template>  </polymer-element><polymer-element name="function-ref" extends="service-ref">
+</template>  </polymer-element>
+<polymer-element name="function-ref" extends="service-ref">
   <template><!-- These comments are here to allow newlines.
      --><template if="{{ qualified &amp;&amp; !hasParent &amp;&amp; hasClass }}"><!--
        --><class-ref ref="{{ ref['class'] }}"></class-ref>.</template><!--
@@ -801,6 +805,28 @@
 </polymer-element>
 <polymer-element name="function-view" extends="observatory-element">
   <template>
+    <style>
+      .content {
+        padding-left: 10%;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      h1 {
+        font: 400 18px 'Montserrat', sans-serif;
+      }
+      .memberList {
+        display: table;
+      }
+      .memberItem {
+        display: table-row;
+      }
+      .memberName, .memberValue {
+        display: table-cell;
+        vertical-align: top;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+    </style>
+
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ function.isolate }}"></isolate-nav-menu>
@@ -815,50 +841,86 @@
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
-  <div class="row">
-    <div class="col-md-8 col-md-offset-2">
-      <div class="panel panel-warning">
-        <div class="panel-heading">
-          {{ function['user_name'] }} ({{ function['name'] }})
-          <class-ref ref="{{ function['class'] }}"></class-ref>
-        </div>
-        <div class="panel-body">
-          <div>
-          <code-ref ref="{{ function['code'] }}"></code-ref>
-          <code-ref ref="{{ function['unoptimized_code'] }}"></code-ref>
+    <div class="content">
+      <h1>function {{ qualifiedName }}</h1>
+
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">kind</div>
+          <div class="memberValue">
+            <template if="{{ function['is_static'] }}">static</template>
+            <template if="{{ function['is_const'] }}">const</template>
+            {{ kind }}
           </div>
-          <table class="table table-hover">
-            <tbody>
-              <tr>
-                <td>static</td><td>{{ function['is_static'] }}</td>
-              </tr>
-              <tr>
-                <td>Const</td><td>{{ function['is_const'] }}</td>
-              </tr>
-              <tr>
-                <td>Optimizable</td><td>{{ function['is_optimizable'] }}</td>
-              </tr>
-              <tr>
-                <td>Inlinable</td><td>{{ function['is_inlinable'] }}</td>
-              </tr>
-              <tr>
-                <td>Kind</td><td>{{ function['kind'] }}</td>
-              </tr>
-              <tr>
-                <td>Usage Count</td><td>{{ function['usage_counter'] }}</td>
-              </tr>
-              <tr>
-                <td>Optimized Call Site Count</td><td>{{ function['optimized_call_site_count'] }}</td>
-              </tr>
-              <tr>
-                <td>Deoptimizations</td><td>{{ function['deoptimizations'] }}</td>
-              </tr>
-            </tbody>
-          </table>
         </div>
-      </div>
+        <template if="{{ function['parent'] != null }}">
+          <div class="memberItem">
+            <div class="memberName">parent function</div>
+            <div class="memberValue">
+              <function-ref ref="{{ function['parent'] }}"></function-ref>
+            </div>
+          </div>
+        </template>
+        <template if="{{ function['parent'] == null &amp;&amp;
+                         function['class'] != null }}">
+          <div class="memberItem">
+            <div class="memberName">parent class</div>
+            <div class="memberValue">
+              <class-ref ref="{{ function['class'] }}"></class-ref>
+            </div>
+          </div>
+        </template>
+        <div class="memberItem">
+          <div class="memberName">script</div>
+          <div class="memberValue">
+            <script-ref ref="{{ function['script'] }}">
+            </script-ref>
+          </div>
+        </div>
+
+        <div class="memberItem">&nbsp;</div>
+
+        <template if="{{ function['code'] != null }}">
+          <div class="memberItem">
+            <div class="memberName">optimized code</div>
+            <div class="memberValue">
+              <code-ref ref="{{ function['code'] }}"></code-ref>
+            </div>
+          </div>
+        </template>
+        <template if="{{ function['unoptimized_code'] != null }}">
+          <div class="memberItem">
+            <div class="memberName">unoptimized code</div>
+            <div class="memberValue">
+              <code-ref ref="{{ function['unoptimized_code'] }}"></code-ref>
+            </div>
+              <div class="memberValue">
+                <span title="This count is used to determine when a function will be optimized.  It is a combination of call counts and other factors.">
+                  (usage count: {{ function['usage_counter'] }})
+                </span>
+             </div>
+           </div>
+         </template>
+         <div class="memberItem">
+           <div class="memberName">deoptimizations</div>
+           <div class="memberValue">{{ function['deoptimizations'] }}</div>
+         </div>
+         <div class="memberItem">
+           <div class="memberName">optimizable</div>
+           <div class="memberValue">{{ function['is_optimizable'] }}</div>
+         </div>
+         <div class="memberItem">
+           <div class="memberName">inlinable</div>
+           <div class="memberValue">{{ function['is_inlinable'] }}</div>
+         </div>
+         <template if="{{ function.name != function.vmName }}">
+           <div class="memberItem">
+             <div class="memberName">vm name</div>
+             <div class="memberValue">{{ function.vmName }}</div>
+           </div>
+         </template>
+       </div>
     </div>
-  </div>
   </template>
   
 </polymer-element>
@@ -1215,7 +1277,12 @@
     <template if="{{ instance['error'] == null }}">
       <div class="content">
         <!-- TODO(turnidge): Handle null instances. -->
-        <h1>instance of {{ instance['class']['user_name'] }}</h1>
+        <template if="{{ isType(instance.serviceType) }}">
+          <h1>type {{ instance['user_name'] }}</h1>
+        </template>
+        <template if="{{ !isType(instance.serviceType) }}">
+          <h1>instance of {{ instance['class']['user_name'] }}</h1>
+        </template>
         <div class="memberList">
           <div class="memberItem">
             <div class="memberName">class</div>
@@ -1234,6 +1301,15 @@
             <div class="memberName">size</div>
             <div class="memberValue">{{ instance['size'] | formatSize }}</div>
           </div>
+          <template if="{{ instance['type_class'] != null }}">
+            <div class="memberItem">
+              <div class="memberName">type class</div>
+              <div class="memberValue">
+                <class-ref ref="{{ instance['type_class'] }}">
+                </class-ref>
+              </div>
+            </div>
+          </template>
         </div>
       </div>
 

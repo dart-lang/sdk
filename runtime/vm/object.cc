@@ -6365,6 +6365,13 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("code", Object::Handle(CurrentCode()));
   jsobj.AddProperty("deoptimizations",
                     static_cast<intptr_t>(deoptimization_counter()));
+
+  const Script& script = Script::Handle(this->script());
+  if (!script.IsNull()) {
+    jsobj.AddProperty("script", script);
+    jsobj.AddProperty("token_pos", token_pos());
+    jsobj.AddProperty("end_token_pos", end_token_pos());
+  }
 }
 
 
@@ -6663,14 +6670,8 @@ void Field::PrintToJSONStream(JSONStream* stream, bool ref) const {
 
   jsobj.AddProperty("owner", cls);
 
-  // TODO(turnidge): Once the vmservice supports returning types,
-  // return the type here instead of the class.
   AbstractType& declared_type = AbstractType::Handle(type());
-  if (declared_type.HasResolvedTypeClass()) {
-    cls = declared_type.type_class();
-    jsobj.AddProperty("declared_type", cls);
-  }
-
+  jsobj.AddProperty("declared_type", declared_type);
   jsobj.AddProperty("static", is_static());
   jsobj.AddProperty("final", is_final());
   jsobj.AddProperty("const", is_const());
@@ -12472,11 +12473,54 @@ const char* Instance::ToUserCString(intptr_t max_len, intptr_t nesting) const {
 }
 
 
+void Instance::PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const {
+  jsobj->AddProperty("type", JSONType(ref));
+  Class& cls = Class::Handle(this->clazz());
+  jsobj->AddProperty("class", cls);
+  if (ref) {
+    return;
+  }
+
+  jsobj->AddProperty("size", raw()->Size());
+
+  // Walk the superclass chain, adding all instance fields.
+  {
+    Instance& fieldValue = Instance::Handle();
+    JSONArray jsarr(jsobj, "fields");
+    while (!cls.IsNull()) {
+      const Array& field_array = Array::Handle(cls.fields());
+      Field& field = Field::Handle();
+      if (!field_array.IsNull()) {
+        for (intptr_t i = 0; i < field_array.Length(); i++) {
+          field ^= field_array.At(i);
+          if (!field.is_static()) {
+            fieldValue ^= GetField(field);
+            JSONObject jsfield(&jsarr);
+            jsfield.AddProperty("decl", field);
+            jsfield.AddProperty("value", fieldValue);
+          }
+        }
+      }
+      cls = cls.SuperClass();
+    }
+  }
+
+  if (NumNativeFields() > 0) {
+    JSONArray jsarr(jsobj, "nativeFields");
+    for (intptr_t i = 0; i < NumNativeFields(); i++) {
+      intptr_t value = GetNativeField(i);
+      JSONObject jsfield(&jsarr);
+      jsfield.AddProperty("index", i);
+      jsfield.AddProperty("value", value);
+    }
+  }
+}
+
+
 void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  Class& cls = Class::Handle(this->clazz());
 
-  // TODO(turnidge): Handle <optimized out> like other null-like values.
+  // Handle certain special instance values.
   if (IsNull()) {
     jsobj.AddProperty("type", ref ? "@Null" : "Null");
     jsobj.AddProperty("id", "objects/null");
@@ -12500,57 +12544,20 @@ void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("id", "objects/optimized-out");
     jsobj.AddProperty("preview", "<optimized out>");
     return;
-  } else {
-    ObjectIdRing* ring = Isolate::Current()->object_id_ring();
-    const intptr_t id = ring->GetIdForObject(raw());
-    if (IsClosure()) {
-      const Function& closureFunc = Function::Handle(Closure::function(*this));
-      jsobj.AddProperty("closureFunc", closureFunc);
-      jsobj.AddProperty("type", ref ? "@Closure" : "Closure");
-    } else {
-      jsobj.AddProperty("type", JSONType(ref));
-    }
-    jsobj.AddPropertyF("id", "objects/%" Pd "", id);
-    jsobj.AddProperty("class", cls);
-    jsobj.AddProperty("preview", ToUserCString(40));
   }
+
+  PrintSharedInstanceJSON(&jsobj, ref);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  if (IsClosure()) {
+    const Function& closureFunc = Function::Handle(Closure::function(*this));
+    jsobj.AddProperty("closureFunc", closureFunc);
+  }
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  jsobj.AddProperty("preview", ToUserCString(40));
   if (ref) {
     return;
   }
-
-  // Walk the superclass chain, adding all instance fields.
-  {
-    Instance& fieldValue = Instance::Handle();
-    JSONArray jsarr(&jsobj, "fields");
-    while (!cls.IsNull()) {
-      const Array& field_array = Array::Handle(cls.fields());
-      Field& field = Field::Handle();
-      if (!field_array.IsNull()) {
-        for (intptr_t i = 0; i < field_array.Length(); i++) {
-          field ^= field_array.At(i);
-          if (!field.is_static()) {
-            fieldValue ^= GetField(field);
-            JSONObject jsfield(&jsarr);
-            jsfield.AddProperty("decl", field);
-            jsfield.AddProperty("value", fieldValue);
-          }
-        }
-      }
-      cls = cls.SuperClass();
-    }
-  }
-
-  if (NumNativeFields() > 0) {
-    JSONArray jsarr(&jsobj, "nativeFields");
-    for (intptr_t i = 0; i < NumNativeFields(); i++) {
-      intptr_t value = GetNativeField(i);
-      JSONObject jsfield(&jsarr);
-      jsfield.AddProperty("index", i);
-      jsfield.AddProperty("value", value);
-    }
-  }
-
-  jsobj.AddProperty("size", raw()->Size());
 }
 
 
@@ -13493,18 +13500,20 @@ const char* Type::ToCString() const {
 
 
 void Type::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  // TODO(koda): Decide whether to assign stable ids to non-canonical types.
-  if (!IsCanonical()) {
-    return Object::PrintToJSONStream(stream, ref);
-  }
-  ASSERT(IsCanonical());
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(ref));
-  const Class& type_cls = Class::Handle(type_class());
-  intptr_t id = type_cls.FindCanonicalTypeIndex(*this);
-  ASSERT(id >= 0);
-  intptr_t cid = type_cls.id();
-  jsobj.AddPropertyF("id", "classes/%" Pd "/types/%" Pd "", cid, id);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  if (IsCanonical()) {
+    const Class& type_cls = Class::Handle(type_class());
+    intptr_t id = type_cls.FindCanonicalTypeIndex(*this);
+    ASSERT(id >= 0);
+    intptr_t cid = type_cls.id();
+    jsobj.AddPropertyF("id", "classes/%" Pd "/types/%" Pd "", cid, id);
+    jsobj.AddProperty("type_class", type_cls);
+  } else {
+    ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+    const intptr_t id = ring->GetIdForObject(raw());
+    jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  }
   const char* name = String::Handle(Name()).ToCString();
   const char* user_name = String::Handle(UserVisibleName()).ToCString();
   jsobj.AddProperty("name", name);
@@ -13512,7 +13521,6 @@ void Type::PrintToJSONStream(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-  jsobj.AddProperty("type_class", type_cls);
   jsobj.AddProperty("type_arguments", TypeArguments::Handle(arguments()));
 }
 
@@ -13682,9 +13690,9 @@ const char* TypeRef::ToCString() const {
 
 void TypeRef::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
-  jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
   const char* name = String::Handle(Name()).ToCString();
   const char* user_name = String::Handle(UserVisibleName()).ToCString();
@@ -13898,16 +13906,16 @@ const char* TypeParameter::ToCString() const {
 
 void TypeParameter::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
-  jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
   const char* name = String::Handle(Name()).ToCString();
   const char* user_name = String::Handle(UserVisibleName()).ToCString();
   jsobj.AddProperty("name", name);
   jsobj.AddProperty("user_name", user_name);
-  const Class& cls = Class::Handle(parameterized_class());
-  jsobj.AddProperty("parameterized_class", cls);
+  const Class& param_cls = Class::Handle(parameterized_class());
+  jsobj.AddProperty("parameterized_class", param_cls);
   if (ref) {
     return;
   }
@@ -14095,9 +14103,9 @@ const char* BoundedType::ToCString() const {
 
 void BoundedType::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
-  jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
   const char* name = String::Handle(Name()).ToCString();
   const char* user_name = String::Handle(UserVisibleName()).ToCString();
@@ -16788,12 +16796,10 @@ const char* Array::ToCString() const {
 
 void Array::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  Class& cls = Class::Handle(this->clazz());
+  PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
-  jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
-  jsobj.AddProperty("class", cls);
   jsobj.AddProperty("length", Length());
   if (ref) {
     return;
@@ -17127,12 +17133,10 @@ const char* GrowableObjectArray::ToUserCString(intptr_t max_len,
 void GrowableObjectArray::PrintToJSONStream(JSONStream* stream,
                                             bool ref) const {
   JSONObject jsobj(stream);
-  Class& cls = Class::Handle(this->clazz());
+  PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
-  jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
-  jsobj.AddProperty("class", cls);
   jsobj.AddProperty("length", Length());
   if (ref) {
     return;

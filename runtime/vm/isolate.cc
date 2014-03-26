@@ -899,6 +899,8 @@ void Isolate::PrintToJSONStream(JSONStream* stream, bool ref) {
     jsheap.AddProperty("capacityOld", heap()->CapacityInWords(Heap::kOld));
   }
 
+  // TODO(turnidge): Don't compute a full stack trace every time we
+  // request an isolate's info.
   DebuggerStackTrace* stack = debugger()->StackTrace();
   if (stack->Length() > 0) {
     JSONObject jsframe(&jsobj, "topFrame");

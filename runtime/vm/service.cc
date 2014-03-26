@@ -798,6 +798,54 @@ static bool GetCodeId(const char* s, int64_t* timestamp, uword* address) {
 }
 
 
+static bool HandleInstanceCommands(Isolate* isolate,
+                                   const Object& obj,
+                                   JSONStream* js,
+                                   intptr_t arg_pos) {
+  ASSERT(js->num_arguments() > arg_pos);
+  const char* action = js->GetArgument(arg_pos);
+  if (strcmp(action, "eval") == 0) {
+    if (js->num_arguments() > (arg_pos + 1)) {
+      PrintError(js, "expected at most %" Pd " arguments but found %" Pd "\n",
+                 arg_pos + 1,
+                 js->num_arguments());
+      return true;
+    }
+    if (obj.IsNull()) {
+      PrintErrorWithKind(js, "EvalCollected",
+                         "attempt to evaluate against collected object\n",
+                         js->num_arguments());
+      return true;
+    }
+    if (obj.raw() == Object::sentinel().raw()) {
+      PrintErrorWithKind(js, "EvalExpired",
+                         "attempt to evaluate against expired object\n",
+                         js->num_arguments());
+      return true;
+    }
+    const char* expr = js->LookupOption("expr");
+    if (expr == NULL) {
+      PrintError(js, "eval expects an 'expr' option\n",
+                 js->num_arguments());
+      return true;
+    }
+    const String& expr_str = String::Handle(isolate, String::New(expr));
+    ASSERT(obj.IsInstance());
+    const Instance& instance = Instance::Cast(obj);
+    const Object& result = Object::Handle(instance.Evaluate(expr_str));
+    if (result.IsNull()) {
+      Object::null_instance().PrintToJSONStream(js, true);
+    } else {
+      result.PrintToJSONStream(js, true);
+    }
+    return true;
+  }
+
+  PrintError(js, "unrecognized action '%s'\n", action);
+  return true;
+}
+
+
 static bool HandleClassesClosures(Isolate* isolate, const Class& cls,
                                   JSONStream* js) {
   intptr_t id;
@@ -944,11 +992,8 @@ static bool HandleClassesTypes(Isolate* isolate, const Class& cls,
     }
     return true;
   }
+  ASSERT(js->num_arguments() >= 4);
   intptr_t id;
-  if (js->num_arguments() > 4) {
-    PrintError(js, "Command too long");
-    return true;
-  }
   if (!GetIntegerId(js->GetArgument(3), &id)) {
     PrintError(js, "Must specify collection object id: types/id");
     return true;
@@ -959,8 +1004,11 @@ static bool HandleClassesTypes(Isolate* isolate, const Class& cls,
     PrintError(js, "Canonical type %" Pd " not found", id);
     return true;
   }
-  type.PrintToJSONStream(js, false);
-  return true;
+  if (js->num_arguments() == 4) {
+    type.PrintToJSONStream(js, false);
+    return true;
+  }
+  return HandleInstanceCommands(isolate, type, js, 4);
 }
 
 
@@ -1181,8 +1229,6 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
     PrintError(js, "unrecognized object id '%s'", arg);
     return true;
   }
-
-  // Now what should we do with the object?
   if (js->num_arguments() == 2) {
     // Print.
     if (obj.IsNull()) {
@@ -1197,47 +1243,7 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
     obj.PrintToJSONStream(js, false);
     return true;
   }
-  ASSERT(js->num_arguments() > 2);
-
-  const char* action = js->GetArgument(2);
-  if (strcmp(action, "eval") == 0) {
-    if (js->num_arguments() > 3) {
-      PrintError(js, "expected at most 3 arguments but found %" Pd "\n",
-                 js->num_arguments());
-      return true;
-    }
-    if (obj.IsNull()) {
-      PrintErrorWithKind(js, "EvalCollected",
-                         "attempt to evaluate against collected object\n",
-                         js->num_arguments());
-      return true;
-    }
-    if (obj.raw() == Object::sentinel().raw()) {
-      PrintErrorWithKind(js, "EvalExpired",
-                         "attempt to evaluate against expired object\n",
-                         js->num_arguments());
-      return true;
-    }
-    const char* expr = js->LookupOption("expr");
-    if (expr == NULL) {
-      PrintError(js, "eval expects an 'expr' option\n",
-                 js->num_arguments());
-      return true;
-    }
-    const String& expr_str = String::Handle(isolate, String::New(expr));
-    ASSERT(obj.IsInstance());
-    const Instance& instance = Instance::Cast(obj);
-    const Object& result = Object::Handle(instance.Evaluate(expr_str));
-    if (result.IsNull()) {
-      Object::null_instance().PrintToJSONStream(js, true);
-    } else {
-      result.PrintToJSONStream(js, true);
-    }
-    return true;
-  }
-
-  PrintError(js, "unrecognized action '%s'\n", action);
-  return true;
+  return HandleInstanceCommands(isolate, obj, js, 2);
 }
 
 

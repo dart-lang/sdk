@@ -112,6 +112,9 @@ static RawInstance* EvalF(Dart_Handle lib, const char* fmt, ...) {
 
 
 // Search for the formatted string in buff.
+//
+// TODO(turnidge): This function obscures the line number of failing
+// EXPECTs.  Rework this.
 static void ExpectSubstringF(const char* buff, const char* fmt, ...) {
   Isolate* isolate = Isolate::Current();
 
@@ -456,10 +459,10 @@ TEST_CASE(Service_Objects) {
   handler.filterMsg("name");
   handler.filterMsg("size");
   EXPECT_STREQ(
-      "{\"type\":\"String\",\"id\":\"objects\\/1\","
+      "{\"type\":\"String\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/60\","
-      "\"user_name\":\"String\"},\"preview\":\"\\\"value\\\"\","
-      "\"fields\":[],}",
+      "\"user_name\":\"String\"},\"fields\":[],"
+      "\"id\":\"objects\\/1\",\"preview\":\"\\\"value\\\"\"}",
       handler.msg());
 
   // object id ring / invalid => expired
@@ -781,8 +784,9 @@ TEST_CASE(Service_Types) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Class\"", handler.msg());
+  EXPECT_SUBSTRING("\"name\":\"A\"", handler.msg());
   ExpectSubstringF(handler.msg(),
-                   "\"id\":\"classes\\/%" Pd "\",\"name\":\"A\",", cid);
+                   "\"id\":\"classes\\/%" Pd "\"", cid);
 
   // Request canonical type 0 from class A.
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'types', '0'],"
@@ -790,9 +794,9 @@ TEST_CASE(Service_Types) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Type\"", handler.msg());
+  EXPECT_SUBSTRING("\"name\":\"A<bool>\"", handler.msg());
   ExpectSubstringF(handler.msg(),
-                   "\"id\":\"classes\\/%" Pd "\\/types\\/0\","
-                   "\"name\":\"A<bool>\",", cid);
+                   "\"id\":\"classes\\/%" Pd "\\/types\\/0\"", cid);
 
   // Request canonical type 1 from class A.
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'types', '1'],"
@@ -800,9 +804,9 @@ TEST_CASE(Service_Types) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Type\"", handler.msg());
+  EXPECT_SUBSTRING("\"name\":\"A<A<bool>>\"", handler.msg());
   ExpectSubstringF(handler.msg(),
-                   "\"id\":\"classes\\/%" Pd "\\/types\\/1\","
-                   "\"name\":\"A<A<bool>>\",", cid);
+                   "\"id\":\"classes\\/%" Pd "\\/types\\/1\"", cid);
 
   // Request for non-existent canonical type from class A.
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'types', '42'],"
