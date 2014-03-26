@@ -257,6 +257,8 @@ mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
 
+mirrors/immutable_collections_test: Fail # Issue 17823
+
 [ $compiler == none && ( $runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 async/schedule_microtask6_test: Fail # Issue 10910
 mirrors/immutable_collections_test: Pass, Slow # Dartium debug uses -O0
