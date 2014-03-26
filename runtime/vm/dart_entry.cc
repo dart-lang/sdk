@@ -493,9 +493,9 @@ RawObject* DartLibraryCalls::PortGetId(const Instance& port) {
 }
 
 
-bool DartLibraryCalls::IsSendPort(const Instance& send_port) {
+bool DartLibraryCalls::IsSendPort(const Instance& obj) {
   // Get instance class.
-  const Class& cls = Class::Handle(send_port.clazz());
+  const Class& cls = Class::Handle(obj.clazz());
   // Get send port class from isolate library.
   const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
   const Class& send_port_cls = Class::Handle(
@@ -503,6 +503,19 @@ bool DartLibraryCalls::IsSendPort(const Instance& send_port) {
   // Check for the same class id.
   ASSERT(!send_port_cls.IsNull());
   return cls.id() == send_port_cls.id();
+}
+
+
+bool DartLibraryCalls::IsReceivePort(const Instance& obj) {
+  // Get instance class.
+  const Class& cls = Class::Handle(obj.clazz());
+  // Get send port class from isolate library.
+  const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
+  const Class& recv_port_cls = Class::Handle(
+      isolate_lib.LookupClassAllowPrivate(Symbols::_RawReceivePortImpl()));
+  // Check for the same class id.
+  ASSERT(!recv_port_cls.IsNull());
+  return cls.id() == recv_port_cls.id();
 }
 
 }  // namespace dart

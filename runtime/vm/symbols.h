@@ -241,7 +241,7 @@ class ObjectPointerVisitor;
   V(DotCreate, "._create")                                                     \
   V(DotWithType, "._withType")                                                 \
   V(_id, "_id")                                                                \
-  V(_get_or_create, "_get_or_create")                                          \
+  V(_get, "_get")                                                              \
   V(RangeError, "RangeError")                                                  \
   V(ArgumentError, "ArgumentError")                                            \
   V(FormatException, "FormatException")                                        \

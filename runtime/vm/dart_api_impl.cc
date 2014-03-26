@@ -1189,6 +1189,27 @@ DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {
 }
 
 
+DART_EXPORT Dart_Handle Dart_PortGetId(Dart_Handle port, Dart_Port* port_id) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  CHECK_CALLBACK_STATE(isolate);
+  const Instance& port_instance = Api::UnwrapInstanceHandle(isolate, port);
+  if (port_instance.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, port, Instance);
+  }
+  if (!DartLibraryCalls::IsSendPort(port_instance) &&
+      !DartLibraryCalls::IsReceivePort(port_instance)) {
+    return Api::NewError("expected an instance of RawReceivePort or SendPort.");
+  }
+  const Object& idObj = Object::Handle(
+      DartLibraryCalls::PortGetId(port_instance));
+  ASSERT(idObj.IsInteger());
+  const Integer& id = Integer::Cast(idObj);
+  *port_id = static_cast<Dart_Port>(id.AsInt64Value());
+  return Api::Success();
+}
+
+
 DART_EXPORT Dart_Handle Dart_GetReceivePort(Dart_Port port_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -1200,7 +1221,7 @@ DART_EXPORT Dart_Handle Dart_GetReceivePort(Dart_Port port_id) {
       isolate, isolate_lib.PrivateName(Symbols::_RawReceivePortImpl()));
   // TODO(asiva): Symbols should contain private keys.
   const String& function_name =
-      String::Handle(isolate_lib.PrivateName(Symbols::_get_or_create()));
+      String::Handle(isolate_lib.PrivateName(Symbols::_get()));
   const int kNumArguments = 1;
   const Function& function = Function::Handle(
       isolate,

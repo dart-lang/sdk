@@ -83,10 +83,9 @@ const char* CanonicalFunction(const char* func);
                            CURRENT_FUNC, #dart_handle);                        \
     } else if (tmp.IsError()) {                                                \
       return dart_handle;                                                      \
-    } else {                                                                   \
-      return Api::NewError("%s expects argument '%s' to be of type %s.",       \
-                           CURRENT_FUNC, #dart_handle, #type);                 \
     }                                                                          \
+    return Api::NewError("%s expects argument '%s' to be of type %s.",         \
+                         CURRENT_FUNC, #dart_handle, #type);                   \
   } while (0)
 
 
