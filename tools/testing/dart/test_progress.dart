@@ -81,14 +81,17 @@ List<String> _buildFailureOutput(TestCase test,
   output.add('Actual: ${test.result}');
   if (!test.lastCommandOutput.hasTimedOut && test.info != null) {
     if (test.commandOutputs.length != test.commands.length
-        && !test.info.hasCompileError) {
+        && !test.expectCompileError) {
       output.add('Unexpected compile-time error.');
     } else {
-      if (test.info.hasCompileError) {
+      if (test.expectCompileError) {
         output.add('Compile-time error expected.');
       }
       if (test.info.hasRuntimeError) {
         output.add('Runtime error expected.');
+      }
+      if (test.configuration['checked'] && test.info.isNegativeIfChecked) {
+        output.add('Dynamic type error expected.');
       }
     }
   }

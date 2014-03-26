@@ -475,6 +475,21 @@ unresolved_top_level_method_negative_test: CompileTimeError
 vm/type_cast_vm_test: StaticWarning
 vm/type_vm_test: StaticWarning
 void_type_test: StaticWarning
+
+# Issue 16392.
+const_constructor2_test/20: MissingStaticWarning # Issue 16392.
+const_constructor2_test/22: MissingStaticWarning # Issue 16392.
+const_constructor2_test/24: MissingStaticWarning # Issue 16392.
+
+# Issue 16391. The analyzer handle compile-time error in checked only in these
+# cases:
+compile_time_constant_checked2_test/01: CompileTimeError # Issue 16391
+compile_time_constant_checked2_test/05: CompileTimeError # Issue 16391
+compile_time_constant_checked3_test/01: CompileTimeError # Issue 16391
+compile_time_constant_checked3_test/05: CompileTimeError # Issue 16391
+list_literal1_test/01: CompileTimeError # Issue 16391
+map_literal1_test/01: CompileTimeError # Issue 16391
+
 # Issue 17522
 deferred_constraints_type_annotation_test/*: Pass, Fail
 deferred_constraints_constants_test/*: Pass, Fail

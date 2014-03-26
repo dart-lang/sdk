@@ -63,23 +63,6 @@ assertion_test: RuntimeError # Issue 12748
 double_to_string_as_exponential2_test: RuntimeError # Issue 12749
 double_to_string_as_fixed2_test: RuntimeError # Issue 12749
 double_to_string_as_precision2_test: RuntimeError # Issue 12749
-list_literal1_test/01: MissingCompileTimeError, OK # Checked mode test.
-map_literal1_test/01: MissingCompileTimeError, OK # Checked mode test.
-compile_time_constant_checked_test/02: MissingCompileTimeError, OK
-compile_time_constant_checked2_test/01: MissingCompileTimeError, OK
-compile_time_constant_checked2_test/02: MissingCompileTimeError, OK
-compile_time_constant_checked2_test/03: MissingCompileTimeError, OK
-compile_time_constant_checked2_test/04: MissingCompileTimeError, OK
-compile_time_constant_checked2_test/05: MissingCompileTimeError, OK
-compile_time_constant_checked2_test/06: MissingCompileTimeError, OK
-compile_time_constant_checked3_test/01: MissingCompileTimeError, OK
-compile_time_constant_checked3_test/02: MissingCompileTimeError, OK
-compile_time_constant_checked3_test/03: MissingCompileTimeError, OK
-compile_time_constant_checked3_test/04: MissingCompileTimeError, OK
-compile_time_constant_checked3_test/05: MissingCompileTimeError, OK
-compile_time_constant_checked3_test/06: MissingCompileTimeError, OK
-type_check_const_function_typedef2_test/00: MissingCompileTimeError, OK
-malformed2_test/01: MissingCompileTimeError, OK
 generic_test: RuntimeError, OK
 named_parameters_type_test/01: MissingRuntimeError, OK
 named_parameters_type_test/02: MissingRuntimeError, OK
@@ -226,8 +209,6 @@ const_var_test: CompileTimeError # Issue 12794
 map_literal3_test: Fail # Issue 12794
 external_test/13: Fail # Issue 12888
 built_in_identifier_test/01: Fail # Issue 13022
-list_literal1_test/01: Fail # Issue 12993
-map_literal1_test/01: Fail # Issue 12993
 method_override4_test: Fail # Issue 12810
 method_override5_test: Fail # Issue 12810
 scope_variable_test/01: Fail # Issue 13016
@@ -247,23 +228,6 @@ closure_in_initializer_test: Fail
 
 new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
 new_expression_type_args_test/01: Fail # Wrongly reports compile-time error.
-
-# Only checked mode reports an error on type assignment
-# problems in compile time constants.
-compile_time_constant_checked_test/02: Fail, OK
-compile_time_constant_checked2_test/01: Fail, OK
-compile_time_constant_checked2_test/02: Fail, OK
-compile_time_constant_checked2_test/03: Fail, OK
-compile_time_constant_checked2_test/04: Fail, OK
-compile_time_constant_checked2_test/05: Fail, OK
-compile_time_constant_checked2_test/06: Fail, OK
-compile_time_constant_checked3_test/01: Fail, OK
-compile_time_constant_checked3_test/02: Fail, OK
-compile_time_constant_checked3_test/03: Fail, OK
-compile_time_constant_checked3_test/04: Fail, OK
-compile_time_constant_checked3_test/05: Fail, OK
-compile_time_constant_checked3_test/06: Fail, OK
-malformed2_test/01: Fail, OK
 
 [ $compiler == dart2dart && $checked ]
 # Dart VM problems

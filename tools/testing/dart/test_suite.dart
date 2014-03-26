@@ -48,6 +48,7 @@ typedef void CreateTest(Path filePath,
                         bool hasCompileError,
                         bool hasRuntimeError,
                         {bool isNegativeIfChecked,
+                         bool hasCompileErrorIfChecked,
                          bool hasStaticWarning,
                          Set<String> multitestOutcome,
                          String multitestKey,
@@ -279,7 +280,7 @@ abstract class TestSuite {
     if (configuration['report']) {
       SummaryReport.add(expectations);
       if (testCase.info != null &&
-          testCase.info.hasCompileError &&
+          testCase.expectCompileError &&
           TestUtils.isBrowserRuntime(configuration['runtime']) &&
           new CompilerConfiguration(configuration).hasCompiler) {
         SummaryReport.addCompileErrorSkipTest();
@@ -571,13 +572,15 @@ class TestInformation {
   bool hasCompileError;
   bool hasRuntimeError;
   bool isNegativeIfChecked;
+  bool hasCompileErrorIfChecked;
   bool hasStaticWarning;
   Set<String> multitestOutcome;
   String multitestKey;
 
   TestInformation(this.filePath, this.optionsFromFile,
                   this.hasCompileError, this.hasRuntimeError,
-                  this.isNegativeIfChecked, this.hasStaticWarning,
+                  this.isNegativeIfChecked, this.hasCompileErrorIfChecked,
+                  this.hasStaticWarning,
                   this.multitestOutcome,
                   {this.multitestKey, this.originTestPath}) {
     assert(filePath.isAbsolute);
@@ -893,7 +896,7 @@ class StandardTestSuite extends TestSuite {
 
     Set<Expectation> expectations = testExpectations.expectations(testName);
     if (new CompilerConfiguration(configuration).hasCompiler &&
-        info.hasCompileError) {
+        expectCompileError(info)) {
       // If a compile-time error is expected, and we're testing a
       // compiler, we never need to attempt to run the program (in a
       // browser or otherwise).
@@ -949,8 +952,13 @@ class StandardTestSuite extends TestSuite {
     }
   }
 
+  bool expectCompileError(TestInformation info) {
+    return info.hasCompileError ||
+        (configuration['checked'] && info.hasCompileErrorIfChecked);
+  }
+
   bool isNegative(TestInformation info) {
-    bool negative = info.hasCompileError ||
+    bool negative = expectCompileError(info) ||
         (configuration['checked'] && info.isNegativeIfChecked);
     if (info.hasRuntimeError && hasRuntime) {
       negative = true;
@@ -983,7 +991,7 @@ class StandardTestSuite extends TestSuite {
             environmentOverrides);
     commands.addAll(compilationArtifact.commands);
 
-    if (info.hasCompileError && compilerConfiguration.hasCompiler) {
+    if (expectCompileError(info) && compilerConfiguration.hasCompiler) {
       // Do not attempt to run the compiled result. A compilation
       // error should be reported by the compilation command.
       return commands;
@@ -1014,6 +1022,7 @@ class StandardTestSuite extends TestSuite {
             bool hasCompileError,
             bool hasRuntimeError,
             {bool isNegativeIfChecked: false,
+             bool hasCompileErrorIfChecked: false,
              bool hasStaticWarning: false,
              Set<String> multitestOutcome: null,
              String multitestKey,
@@ -1024,6 +1033,7 @@ class StandardTestSuite extends TestSuite {
                                      hasCompileError,
                                      hasRuntimeError,
                                      isNegativeIfChecked,
+                                     hasCompileErrorIfChecked,
                                      hasStaticWarning,
                                      multitestOutcome,
                                      multitestKey: multitestKey,
@@ -2043,7 +2053,7 @@ class TestUtils {
       'dartium',
       'ie9',
       'ie10',
-      'ie11',      
+      'ie11',
       'safari',
       'opera',
       'chrome',
@@ -2069,7 +2079,7 @@ class TestUtils {
     if (configuration['build_directory'] != '') {
       return configuration['build_directory'];
     }
-    
+
     return "${outputDir(configuration)}${configurationDir(configuration)}";
   }
 

@@ -49,7 +49,7 @@ test(bool expectTypeError, f(), [String message]) {
   }
 }
 
-const Unresolved c1 = 0; /// 01: static type warning, compile-time error
+const Unresolved c1 = 0; /// 01: static type warning, checked mode compile-time error
 
 void main() {
   print(c1); /// 01: continued

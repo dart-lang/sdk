@@ -78,7 +78,8 @@ void ExtractTestsFromMultitest(Path filePath,
   contents = null;
   Set<String> validMultitestOutcomes = new Set<String>.from(
       ['ok', 'compile-time error', 'runtime error',
-       'static type warning', 'dynamic type error']);
+       'static type warning', 'dynamic type error',
+       'checked mode compile-time error']);
 
   List<String> testTemplate = new List<String>();
   testTemplate.add(
@@ -264,10 +265,12 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
       bool hasRuntimeErrors = outcome.contains('runtime error');
       bool hasCompileError = outcome.contains('compile-time error');
       bool isNegativeIfChecked = outcome.contains('dynamic type error');
+      bool hasCompileErrorIfChecked = outcome.contains('checked mode compile-time error');
       doTest(multitestFilename,
              hasCompileError,
              hasRuntimeErrors,
              isNegativeIfChecked: isNegativeIfChecked,
+             hasCompileErrorIfChecked: hasCompileErrorIfChecked,
              hasStaticWarning: hasStaticWarning,
              multitestOutcome: outcome,
              multitestKey: key,

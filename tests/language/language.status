@@ -89,21 +89,7 @@ type_variable_bounds4_test/01: Fail # Issue 14006
 [ $compiler == none && $unchecked ]
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
-compile_time_constant_checked_test/02: Fail, OK
-compile_time_constant_checked2_test/01: Fail, OK
-compile_time_constant_checked2_test/02: Fail, OK
-compile_time_constant_checked2_test/03: Fail, OK
-compile_time_constant_checked2_test/04: Fail, OK
-compile_time_constant_checked2_test/05: Fail, OK
-compile_time_constant_checked2_test/06: Fail, OK
-compile_time_constant_checked3_test/01: Fail, OK
-compile_time_constant_checked3_test/02: Fail, OK
-compile_time_constant_checked3_test/03: Fail, OK
-compile_time_constant_checked3_test/04: Fail, OK
-compile_time_constant_checked3_test/05: Fail, OK
-compile_time_constant_checked3_test/06: Fail, OK
 type_check_const_function_typedef2_test/00: Fail, OK
-malformed2_test/01: Fail, OK
 
 [ ($compiler == none || $compiler == dart2dart) && $runtime != none ]
 dynamic_prefix_core_test/01: Fail # Issue 12478
@@ -116,16 +102,14 @@ export_ambiguous_main_negative_test: Fail # Issue 14763
 lazy_static3_test: Fail # Issue 13469
 
 [ $compiler == none && $runtime == dartium && $unchecked ]
-named_parameters_type_test/01: Fail # Issue 17561.
-named_parameters_type_test/02: Fail # Issue 17561.
-named_parameters_type_test/03: Fail # Issue 17561.
-positional_parameters_type_test/01: Fail # Issue 17561.
-positional_parameters_type_test/02: Fail # Issue 17561.
-assertion_test: Fail # Issue 17561.
-generic_test: Fail # Issue 17561.
-list_literal1_test/01: Fail # Issue 13719: Please triage this failure.
+named_parameters_type_test/01: Fail # Issue 13719: Please triage this failure.
+named_parameters_type_test/02: Fail # Issue 13719: Please triage this failure.
+named_parameters_type_test/03: Fail # Issue 13719: Please triage this failure.
+positional_parameters_type_test/01: Fail # Issue 13719: Please triage this failure.
+positional_parameters_type_test/02: Fail # Issue 13719: Please triage this failure.
+assertion_test: Fail # Issue 13719: Please triage this failure.
+generic_test: Fail # Issue 13719: Please triage this failure.
 list_literal4_test: Fail # Issue 13719: Please triage this failure.
-map_literal1_test/01: Fail # Issue 13719: Please triage this failure.
 map_literal4_test: Fail # Issue 13719: Please triage this failure.
 type_checks_in_factory_method_test: Fail # Issue 13719: Please triage this failure.
 vm/type_vm_test: Fail # Issue 13719: Please triage this failure.

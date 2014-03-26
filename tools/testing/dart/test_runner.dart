@@ -726,6 +726,14 @@ class TestCase extends UniqueObject {
     }
   }
 
+  /// Returns `true` if this test case should result in a compile-time error,
+  /// either unconditionally or if the configuration is 'checked'.
+  bool get expectCompileError {
+    if (info == null) return false;
+    return info.hasCompileError ||
+        (configuration['checked'] && info.hasCompileErrorIfChecked);
+  }
+
   bool get unexpectedOutput {
     var outcome = lastCommandOutput.result(this);
     return !expectedOutcomes.any((expectation) {
@@ -1396,6 +1404,8 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
 
     // Handle errors / missing errors
     if (testCase.info.hasCompileError) {
+      // Don't use [TestCase.expectCompileError] since the analyzer does not
+      // (currently) report checked-mode only compile time errors.
       if (errors.length > 0) {
         return Expectation.PASS;
       }
@@ -1482,7 +1492,7 @@ class VmCommandOutputImpl extends CommandOutputImpl
 
     // Multitests are handled specially
     if (testCase.info != null) {
-      if (testCase.info.hasCompileError) {
+      if (testCase.expectCompileError) {
         if (exitCode == DART_VM_EXITCODE_COMPILE_TIME_ERROR) {
           return Expectation.PASS;
         }
@@ -1539,7 +1549,7 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
 
     // Multitests are handled specially
     if (testCase.info != null) {
-    if (testCase.info.hasCompileError) {
+    if (testCase.expectCompileError) {
         // Nonzero exit code of the compiler means compilation failed
         // TODO(kustermann): Do we have a special exit code in that case???
         if (exitCode != 0) {
