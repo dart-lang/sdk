@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library json_tests;
-import "package:expect/expect.dart";
-import "dart:convert";
-import 'dart:html';
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+library json2_tests;
 
-main() {
-  useHtmlConfiguration();
+import "dart:convert";
+
+import 'package:unittest/unittest.dart';
+
+// Moved from "tests/json/json_test.dart"
+
+void main() {
   test('Parse', () {
     // Scalars.
     expect(JSON.decode(' 5 '), equals(5));
@@ -85,9 +85,8 @@ main() {
     expect(JSON.encode(null), equals('null'));
     expect(JSON.encode(' hi there" bob '), equals('" hi there\\" bob "'));
     expect(JSON.encode('hi\\there'), equals('"hi\\\\there"'));
-    // TODO(devoncarew): these tests break the dartium build
-    //expect(JSON.encode('hi\nthere'), equals('"hi\\nthere"'));
-    //expect(JSON.encode('hi\r\nthere'), equals('"hi\\r\\nthere"'));
+    expect(JSON.encode('hi\nthere'), equals('"hi\\nthere"'));
+    expect(JSON.encode('hi\r\nthere'), equals('"hi\\r\\nthere"'));
     expect(JSON.encode(''), equals('""'));
 
     // Lists.
@@ -119,14 +118,9 @@ main() {
     expect(JSON.encode(new ToJson([4, new ToJson({"x":42})])),
            '[4,{"x":42}]');
 
-    Expect.throws(() {
-      JSON.encode([new ToJson(new ToJson(4))]);
-    });
+    expect(() => JSON.encode([new ToJson(new ToJson(4))]), throws);
 
-    Expect.throws(() {
-      JSON.encode([new Object()]);
-    });
-
+    expect(() => JSON.encode([new Object()]), throws);
   });
 
   test('stringify throws if argument cannot be converted', () {
@@ -168,6 +162,6 @@ class ToJson {
  * Checks that the argument can be converted to a JSON string and
  * back, and produce something equivalent to the argument.
  */
-validateRoundTrip(expected) {
+void validateRoundTrip(expected) {
   expect(JSON.decode(JSON.encode(expected)), equals(expected));
 }
