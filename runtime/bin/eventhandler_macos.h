@@ -43,13 +43,6 @@ class SocketData {
   bool HasReadEvent();
   bool HasWriteEvent();
 
-  void Close() {
-    port_ = 0;
-    mask_ = 0;
-    VOID_TEMP_FAILURE_RETRY(close(fd_));
-    fd_ = -1;
-  }
-
   bool IsListeningSocket() { return (mask_ & (1 << kListeningSocket)) != 0; }
 
   void SetPortAndMask(Dart_Port port, intptr_t mask) {

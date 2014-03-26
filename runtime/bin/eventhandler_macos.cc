@@ -179,7 +179,7 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
 void EventHandlerImplementation::HandleInterruptFd() {
   const intptr_t MAX_MESSAGES = kInterruptMessageSize;
   InterruptMessage msg[MAX_MESSAGES];
-  ssize_t bytes = TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(
+  ssize_t bytes = TEMP_FAILURE_RETRY(
       read(interrupt_fds_[0], msg, MAX_MESSAGES * kInterruptMessageSize));
   for (ssize_t i = 0; i < bytes / kInterruptMessageSize; i++) {
     if (msg[i].id == kTimerId) {
@@ -201,7 +201,7 @@ void EventHandlerImplementation::HandleInterruptFd() {
         // Close the socket and free system resources.
         RemoveFromKqueue(kqueue_fd_, sd);
         intptr_t fd = sd->fd();
-        sd->Close();
+        VOID_TEMP_FAILURE_RETRY(close(fd));
         socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
         delete sd;
         DartUtils::PostInt32(msg[i].dart_port, 1 << kDestroyedEvent);
@@ -351,7 +351,6 @@ void EventHandlerImplementation::HandleTimeout() {
 
 
 void EventHandlerImplementation::EventHandlerEntry(uword args) {
-  ThreadSignalBlocker signal_blocker(SIGPROF);
   static const intptr_t kMaxEvents = 16;
   struct kevent events[kMaxEvents];
   EventHandler* handler = reinterpret_cast<EventHandler*>(args);
@@ -372,7 +371,9 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
       ts.tv_nsec = (millis32 - (secs * 1000)) * 1000000;
       timeout = &ts;
     }
-    intptr_t result = TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(
+    // We have to use TEMP_FAILURE_RETRY for mac, as kevent can modify the
+    // current sigmask.
+    intptr_t result = TEMP_FAILURE_RETRY(
         kevent(handler_impl->kqueue_fd_, NULL, 0, events, kMaxEvents, timeout));
     if (result == -1) {
       const int kBufferSize = 1024;
