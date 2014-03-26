@@ -335,7 +335,6 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
 
     var fatal = (kind.ordinal & _FATAL) != 0;
     if (uri == null) {
-      assert(fatal);
       logFn(message);
     } else {
       SourceFile file = _sourceFiles[uri.toString()];
