@@ -1596,11 +1596,31 @@
     "support_level": "experimental"
   },
   "DeprecatedStorageInfo": {
-    "members": {},
+    "members": {
+      "PERSISTENT": {
+        "support_level": "untriaged"
+      },
+      "TEMPORARY": {
+        "support_level": "untriaged"
+      },
+      "queryUsageAndQuota": {
+        "support_level": "untriaged"
+      },
+      "requestQuota": {
+        "support_level": "untriaged"
+      }
+    },
     "support_level": "untriaged"
   },
   "DeprecatedStorageQuota": {
-    "members": {},
+    "members": {
+      "queryUsageAndQuota": {
+        "support_level": "untriaged"
+      },
+      "requestQuota": {
+        "support_level": "untriaged"
+      }
+    },
     "support_level": "untriaged"
   },
   "DeviceAcceleration": {

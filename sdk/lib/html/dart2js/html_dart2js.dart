@@ -6515,6 +6515,60 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope native "DedicatedWork
 
 
 @DocsEditable()
+@DomName('DeprecatedStorageInfo')
+@Experimental() // untriaged
+class DeprecatedStorageInfo extends Interceptor native "DeprecatedStorageInfo" {
+  // To suppress missing implicit constructor warnings.
+  factory DeprecatedStorageInfo._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('DeprecatedStorageInfo.PERSISTENT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int PERSISTENT = 1;
+
+  @DomName('DeprecatedStorageInfo.TEMPORARY')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEMPORARY = 0;
+
+  @DomName('DeprecatedStorageInfo.queryUsageAndQuota')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void queryUsageAndQuota(int storageType, [StorageUsageCallback usageCallback, StorageErrorCallback errorCallback]) native;
+
+  @DomName('DeprecatedStorageInfo.requestQuota')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void requestQuota(int storageType, int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('DeprecatedStorageQuota')
+@Experimental() // untriaged
+class DeprecatedStorageQuota extends Interceptor native "DeprecatedStorageQuota" {
+  // To suppress missing implicit constructor warnings.
+  factory DeprecatedStorageQuota._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('DeprecatedStorageQuota.queryUsageAndQuota')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void queryUsageAndQuota(StorageUsageCallback usageCallback, [StorageErrorCallback errorCallback]) native;
+
+  @DomName('DeprecatedStorageQuota.requestQuota')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void requestQuota(int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('HTMLDetailsElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -19308,7 +19362,7 @@ class Navigator extends Interceptor implements NavigatorOnLine, NavigatorID nati
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://www.w3.org/TR/quota-api/#accessing-storagequota
-  final _DeprecatedStorageQuota persistentStorage;
+  final DeprecatedStorageQuota persistentStorage;
 
   @JSName('webkitTemporaryStorage')
   @DomName('Navigator.webkitTemporaryStorage')
@@ -19317,7 +19371,7 @@ class Navigator extends Interceptor implements NavigatorOnLine, NavigatorID nati
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://www.w3.org/TR/quota-api/#accessing-storagequota
-  final _DeprecatedStorageQuota temporaryStorage;
+  final DeprecatedStorageQuota temporaryStorage;
 
   @DomName('Navigator.getStorageUpdates')
   @DocsEditable()
@@ -30257,30 +30311,6 @@ abstract class _DOMFileSystemSync extends Interceptor native "DOMFileSystemSync"
 abstract class _DatabaseSync extends Interceptor native "DatabaseSync" {
   // To suppress missing implicit constructor warnings.
   factory _DatabaseSync._() { throw new UnsupportedError("Not supported"); }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('DeprecatedStorageInfo')
-@Experimental() // untriaged
-abstract class _DeprecatedStorageInfo extends Interceptor native "DeprecatedStorageInfo" {
-  // To suppress missing implicit constructor warnings.
-  factory _DeprecatedStorageInfo._() { throw new UnsupportedError("Not supported"); }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('DeprecatedStorageQuota')
-@Experimental() // untriaged
-abstract class _DeprecatedStorageQuota extends Interceptor native "DeprecatedStorageQuota" {
-  // To suppress missing implicit constructor warnings.
-  factory _DeprecatedStorageQuota._() { throw new UnsupportedError("Not supported"); }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

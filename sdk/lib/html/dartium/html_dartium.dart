@@ -7008,6 +7008,66 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
 
 
 @DocsEditable()
+@DomName('DeprecatedStorageInfo')
+@Experimental() // untriaged
+class DeprecatedStorageInfo extends NativeFieldWrapperClass2 {
+  // To suppress missing implicit constructor warnings.
+  factory DeprecatedStorageInfo._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('DeprecatedStorageInfo.PERSISTENT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int PERSISTENT = 1;
+
+  @DomName('DeprecatedStorageInfo.TEMPORARY')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEMPORARY = 0;
+
+  @DomName('DeprecatedStorageInfo.queryUsageAndQuota')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void queryUsageAndQuota(int storageType, [StorageUsageCallback usageCallback, StorageErrorCallback errorCallback]) native "DeprecatedStorageInfo_queryUsageAndQuota_Callback";
+
+  @DomName('DeprecatedStorageInfo.requestQuota')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void requestQuota(int storageType, int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) native "DeprecatedStorageInfo_requestQuota_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('DeprecatedStorageQuota')
+@Experimental() // untriaged
+class DeprecatedStorageQuota extends NativeFieldWrapperClass2 {
+  // To suppress missing implicit constructor warnings.
+  factory DeprecatedStorageQuota._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('DeprecatedStorageQuota.queryUsageAndQuota')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void queryUsageAndQuota(StorageUsageCallback usageCallback, [StorageErrorCallback errorCallback]) native "DeprecatedStorageQuota_queryUsageAndQuota_Callback";
+
+  @DomName('DeprecatedStorageQuota.requestQuota')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void requestQuota(int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) native "DeprecatedStorageQuota_requestQuota_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('HTMLDetailsElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -21030,7 +21090,7 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorOnLine, Nav
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://www.w3.org/TR/quota-api/#accessing-storagequota
-  _DeprecatedStorageQuota get persistentStorage native "Navigator_webkitPersistentStorage_Getter";
+  DeprecatedStorageQuota get persistentStorage native "Navigator_webkitPersistentStorage_Getter";
 
   @DomName('Navigator.webkitTemporaryStorage')
   @DocsEditable()
@@ -21038,7 +21098,7 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorOnLine, Nav
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://www.w3.org/TR/quota-api/#accessing-storagequota
-  _DeprecatedStorageQuota get temporaryStorage native "Navigator_webkitTemporaryStorage_Getter";
+  DeprecatedStorageQuota get temporaryStorage native "Navigator_webkitTemporaryStorage_Getter";
 
   @DomName('Navigator.getStorageUpdates')
   @DocsEditable()
@@ -32743,36 +32803,6 @@ abstract class _DOMFileSystemSync extends NativeFieldWrapperClass2 {
 abstract class _DatabaseSync extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _DatabaseSync._() { throw new UnsupportedError("Not supported"); }
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('DeprecatedStorageInfo')
-@Experimental() // untriaged
-abstract class _DeprecatedStorageInfo extends NativeFieldWrapperClass2 {
-  // To suppress missing implicit constructor warnings.
-  factory _DeprecatedStorageInfo._() { throw new UnsupportedError("Not supported"); }
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('DeprecatedStorageQuota')
-@Experimental() // untriaged
-abstract class _DeprecatedStorageQuota extends NativeFieldWrapperClass2 {
-  // To suppress missing implicit constructor warnings.
-  factory _DeprecatedStorageQuota._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

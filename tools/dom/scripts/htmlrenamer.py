@@ -76,8 +76,6 @@ _removed_html_interfaces = [
   'DOMFileSystemSync', # Workers
   'DatabaseSync', # Workers
   'DataView', # Typed arrays
-  'DeprecatedStorageQuota',
-  'DeprecatedStorageInfo',
   'DirectoryEntrySync', # Workers
   'DirectoryReaderSync', # Workers
   'DocumentType',
