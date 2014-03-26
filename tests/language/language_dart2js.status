@@ -257,6 +257,8 @@ deferred_constraints_constants_test/*: Fail, Pass # http://dartbug.com/12635
 deferred_no_such_method_test*: Fail, Pass # http://dartbug.com/12635
 deferred_constraints_type_annotation_old_syntax_test/*: Fail, Pass # http://dartbug.com/12635
 deferred_constraints_constants_old_syntax_test/*: Fail, Pass # http://dartbug.com/12635
+deferred_shadow_load_library_test: Fail, Pass # Issue 17807
+deferred_closurize_load_library_test: Fail, Pass # Issue 17807
 
 [ ($compiler == dart2js && $csp)]
 deferred_constraints_type_annotation_test/*: Skip # Issue 16898
