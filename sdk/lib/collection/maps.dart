@@ -20,7 +20,7 @@ part of dart.collection;
  * A more efficient implementation is usually possible by overriding
  * some of the other members as well.
  */
-class MapBase<K, V> implements Map<K, V> {
+abstract class MapBase<K, V> implements Map<K, V> {
   MapBase();  // Prevents use as mixin.
 
   Iterable<K> get keys;
@@ -84,7 +84,7 @@ class MapBase<K, V> implements Map<K, V> {
  * A more efficient implementation is usually possible by overriding
  * some of the other members as well.
  */
-class UnmodifiableMapBase<K, V> =
+abstract class UnmodifiableMapBase<K, V> =
     MapBase<K, V> with _UnmodifiableMapMixin<K, V>;
 
 /**
@@ -137,7 +137,7 @@ class _MapBaseValueIterator<V> implements Iterator<V> {
 /**
  * Mixin that overrides mutating map operations with implementations that throw.
  */
-class _UnmodifiableMapMixin<K, V> implements Map<K, V> {
+abstract class _UnmodifiableMapMixin<K, V> implements Map<K, V> {
   void operator[]=(K key, V value) {
     throw new UnsupportedError("Cannot modify unmodifiable map");
   }
