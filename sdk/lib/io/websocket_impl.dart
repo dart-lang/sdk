@@ -864,7 +864,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
   _WebSocketImpl._fromSocket(this._socket, this.protocol,
                              [this._serverSide = false]) {
     _consumer = new _WebSocketConsumer(this, _socket);
-    _sink = new _StreamSinkImpl(_consumer);
+    _sink = new StreamSinkAdapter(_consumer);
     _readyState = WebSocket.OPEN;
 
     var transformer = new _WebSocketProtocolTransformer(_serverSide);

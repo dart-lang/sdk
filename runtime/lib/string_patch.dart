@@ -798,6 +798,8 @@ class _OneByteString extends _StringBase implements String {
   }
 
   // Lower-case conversion table for Latin-1.
+  // Upper-case ranges: 0x41-0x5a ('A' - 'Z'), 0xc0-0xd6, 0xd8-0xde.
+  // Conversion to lower case performed by adding 0x20.
   static const _LC_TABLE = const [
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
     0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
@@ -833,28 +835,19 @@ class _OneByteString extends _StringBase implements String {
     0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff,
   ];
 
-  String _toLowerCaseUpperCaseDetectedAt(int firstUpperCaseIndex) {
-    // String contains upper case characters. Create a new string.
-    final length = this.length;
-    final result = _allocate(length);
-    // First up to firstUpperIndex.
-    int i = 0;
-    for (; i < firstUpperCaseIndex; i++) {
-      result._setAt(i, this.codeUnitAt(i));
-    }
-    for (; i < length; i++) {
-      result._setAt(i, _LC_TABLE[this.codeUnitAt(i)]);
-    }
-    return result;
-  }
-
   String toLowerCase() {
     for (int i = 0; i < this.length; i++) {
       final c = this.codeUnitAt(i);
-      // Ranges: 0x41-0x5a ('A' - 'Z'), 0xc0-0xd6, 0xd8-0xde.
-      if (c != _LC_TABLE[c]) {
-        return _toLowerCaseUpperCaseDetectedAt(i);
+      if (c == _LC_TABLE[c]) continue;
+      // Upper-case character found.
+      final result = _allocate(this.length);
+      for (int j = 0; j < i; j++) {
+        result._setAt(j, this.codeUnitAt(j));
       }
+      for (int j = i; j < this.length; j++) {
+        result._setAt(j, _LC_TABLE[this.codeUnitAt(j)]);
+      }
+      return result;
     }
     return this;
   }
