@@ -212,8 +212,7 @@ self.importScripts("$url");
       var frame = new IFrameElement()
           ..src = 'iframe.html'
           ..style.width = '100%'
-          ..style.height = '0px'
-          ..seamless = false;
+          ..style.height = '0px';
       frame.onLoad.listen((_) {
         frame.contentWindow.postMessage(['source', code], '*');
       });
