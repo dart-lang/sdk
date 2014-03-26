@@ -5,6 +5,3 @@
 # Not dart2js on chrome or drt.
 [ $compiler != dart2js || ($runtime != drt && $runtime != chrome) ]
 *: Skip
-
-[ $compiler == dart2js && ($runtime == drt || $runtime == chrome) ]
-paste_content_rewriting_test: Fail # http://dartbug.com/17726

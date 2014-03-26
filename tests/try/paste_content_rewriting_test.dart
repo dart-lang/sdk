@@ -36,5 +36,13 @@ main() {
   asyncTest(() => new Future(() {
     print('Welcome to the future');
     Expect.stringEquals('//...\n}\n', inputPre.text);
+  }).then((_) {
+    inputPre.innerHtml = 'someText';
+    return new Future(() {
+      Expect.stringEquals('someText\n', inputPre.text);
+
+      // Clear the DOM to work around a bug in test.dart.
+      document.body.nodes.clear();
+    });
   }));
 }

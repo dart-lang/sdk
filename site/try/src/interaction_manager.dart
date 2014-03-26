@@ -40,6 +40,8 @@ import 'decoration.dart' show
     info,
     warning;
 
+import 'html_to_text.dart' show
+    htmlToText;
 import 'editor.dart' as editor;
 
 import 'mock.dart' as mock;
@@ -173,66 +175,20 @@ class InitialState extends InteractionState {
       }
     }
 
-    // Discard clean-up mutations.
-    observer.takeRecords();
-
     Selection selection = window.getSelection();
 
-    while (!mutations.isEmpty) {
-      for (MutationRecord record in mutations) {
-        String type = record.type;
-        switch (type) {
-
-          case 'characterData':
-            bool hasSelection = false;
-            int offset = selection.anchorOffset;
-            if (selection.isCollapsed &&
-                selection.anchorNode == record.target) {
-              hasSelection = true;
-            }
-            var parent = record.target.parentNode;
-            if (parent != inputPre) {
-              editor.inlineChildren(parent);
-            }
-            if (hasSelection) {
-              selection.collapse(record.target, offset);
-            }
-            break;
-
-          default:
-            if (!record.addedNodes.isEmpty) {
-              for (var node in record.addedNodes) {
-
-                if (node.nodeType != Node.ELEMENT_NODE) continue;
-
-                if (node is BRElement) {
-                  if (selection.anchorNode != node) {
-                    node.replaceWith(new Text('\n'));
-                  }
-                } else {
-                  var parent = node.parentNode;
-                  if (parent == null) continue;
-                  var nodes = new List.from(node.nodes);
-                  var style = node.getComputedStyle();
-                  if (style.display != 'inline') {
-                    var previous = node.previousNode;
-                    if (previous is Text) {
-                      previous.appendData('\n');
-                    } else {
-                      parent.insertBefore(new Text('\n'), node);
-                    }
-                  }
-                  for (Node child in nodes) {
-                    child.remove();
-                    parent.insertBefore(child, node);
-                  }
-                  node.remove();
-                }
-              }
-            }
+    for (MutationRecord record in mutations) {
+      if (record.addedNodes.isEmpty) continue;
+      for (Node node in record.addedNodes) {
+        if (node.parent == null) continue;
+        StringBuffer buffer = new StringBuffer();
+        int selectionOffset = htmlToText(node, buffer, selection);
+        Text newNode = new Text('$buffer');
+        node.replaceWith(newNode);
+        if (selectionOffset != -1) {
+          selection.collapse(newNode, selectionOffset);
         }
       }
-      mutations = observer.takeRecords();
     }
 
     if (!inputPre.nodes.isEmpty && inputPre.nodes.last is Text) {
