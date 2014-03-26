@@ -116,13 +116,9 @@ abstract class String implements Comparable<String>, Pattern {
    * the code units form a surrogate pair. See documentation for
    * [fromCharCodes].
    *
-   * Creating a String with half of a surrogate pair is legal but generally
-   * discouraged.
+   * Creating a String with half of a surrogate pair is allowed.
    */
-  factory String.fromCharCode(int charCode) {
-    List<int> charCodes = new List<int>.filled(1, charCode);
-    return new String.fromCharCodes(charCodes);
-  }
+  external factory String.fromCharCode(int charCode);
 
   /**
    * Returns the string value of the environment declaration [name].

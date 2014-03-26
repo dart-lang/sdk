@@ -760,6 +760,21 @@ class Primitives {
     return _fromCharCodeApply(charCodes);
   }
 
+  static String stringFromCharCode(charCode) {
+    if (0 <= charCode) {
+      if (charCode <= 0xffff) {
+        return JS('String', 'String.fromCharCode(#)', charCode);
+      }
+      if (charCode <= 0x10ffff) {
+        var bits = charCode - 0x10000;
+        var low = 0xDC00 | (bits & 0x3ff);
+        var high = 0xD800 | (bits >> 10);
+        return  JS('String', 'String.fromCharCode(#, #)', high, low);
+      }
+    }
+    throw new RangeError.range(charCode, 0, 0x10ffff);
+  }
+
   static String stringConcatUnchecked(String string1, String string2) {
     return JS('String', r'# + #', string1, string2);
   }

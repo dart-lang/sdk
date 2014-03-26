@@ -7,6 +7,25 @@ patch class String {
     return _StringBase.createFromCharCodes(charCodes);
   }
 
+  /* patch */ factory String.fromCharCode(int charCode) {
+    if (charCode >= 0) {
+      if (charCode <= 0xff) {
+        return _OneByteString._allocate(1).._setAt(0, charCode);
+      }
+      if (charCode <= 0xffff) {
+        return _StringBase._createFromCodePoints(new _List(1)..[0] = charCode);
+      }
+      if (charCode <= 0x10ffff) {
+        var low = 0xDC00 | (charCode & 0x3ff);
+        int bits = charCode - 0x10000;
+        var high = 0xD800 | (bits >> 10);
+        return  _StringBase._createFromCodePoints(new _List(2)..[0] = high
+                                                              ..[1] = low);
+      }
+    }
+    throw new RangeError.range(charCode, 0, 0x10ffff);
+  }
+
   /* patch */ const factory String.fromEnvironment(String name,
                                                    {String defaultValue})
       native "String_fromEnvironment";
