@@ -1077,16 +1077,18 @@ abstract class Compiler implements DiagnosticListener {
       deferredLoadTask.ensureMetadataResolved(this);
     }
 
-    log('Resolving...');
     phase = PHASE_RESOLVING;
     if (analyzeAll) {
-      libraries.forEach(
-          (_, lib) => fullyEnqueueLibrary(lib, enqueuer.resolution));
+      libraries.forEach((uri, lib) {
+        log('Enqueuing $uri');
+        fullyEnqueueLibrary(lib, enqueuer.resolution);
+      });
     }
     // Elements required by enqueueHelpers are global dependencies
     // that are not pulled in by a particular element.
     backend.enqueueHelpers(enqueuer.resolution, globalDependencies);
     resolveLibraryMetadata();
+    log('Resolving...');
     processQueue(enqueuer.resolution, main);
     enqueuer.resolution.logSummary(log);
 
