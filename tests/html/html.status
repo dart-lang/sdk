@@ -15,7 +15,7 @@ custom/js_custom_test: Fail # Issue 14643
 [ $compiler == dart2js && $browser ]
 custom/created_callback_test: Fail # Support for created constructor.
 
-[ $compiler == dart2js && ($runtime == safari || $runtime == ff || $runtime == chrome || $runtime == ie9 || $runtime == ie10) ]
+[ $compiler == dart2js && ($runtime == safari || $runtime == ff || $runtime == chrome || $ie) ]
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 
@@ -68,14 +68,6 @@ speechrecognition_test/supported: Fail # TODO(dart2js-team): Please triage this 
 speechrecognition_test/types: Fail # TODO(dart2js-team): Please triage this failure.
 xhr_test/json: Fail # TODO(dart2js-team): Please triage this failure.
 
-
-[ $compiler == dart2js && $runtime == ie10 ]
-indexeddb_5_test: Fail # Issue 12893
-js_test: Fail # Issue 14246
-
-[ $compiler == dart2js && ( $runtime == ie9 || $runtime == ie10 ) ]
-worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
-
 [ $runtime == chrome ]
 touchevent_test/supported: Pass, Fail # Issue 17061
 xhr_cross_origin_test: Pass, Fail # Issue 11884
@@ -97,7 +89,9 @@ native_gc_test: Pass, Slow
 [ $compiler == dart2js && $runtime == drt && $system == macos]
 audiobuffersourcenode_test: Pass, Fail
 
-[$runtime == ie10 ]
+[$runtime == ie10 || $runtime == ie11]
+indexeddb_5_test: Fail # Issue 12893
+js_test: Fail # Issue 14246
 element_test/click: Fail                # IE does not support firing this event.
 serialized_script_value_test: Fail
 transferables_test: Fail # Issue 9846
@@ -105,6 +99,8 @@ websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
 worker_test/functional: Fail # IE uses incorrect security context for Blob URIs.
+
+[$runtime == ie10 ]
 custom/entered_left_view_test: Skip # Issue 13551 - IE is timing out
 
 # IE10 Feature support statuses-
@@ -149,9 +145,53 @@ xhr_test/json: Fail # IE10 returns string, not JSON object
 xhr_test/supported_overrideMimeType: Fail
 xsltprocessor_test/supported: Fail
 
+[ $runtime == ie11 ]
+custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
+
+# IE11 Feature support statuses-
+# These results not yet noted in platform support annotations.
+# All changes should be accompanied by platform support annotation changes.
+audiobuffersourcenode_test/supported: Fail
+audiocontext_test/supported: Fail
+crypto_test/supported: Fail
+css_test/supportsPointConversions: Fail
+document_test/supports_cssCanvasContext: Fail
+element_types_test/supported_content: Fail
+element_types_test/supported_details: Fail
+element_types_test/supported_keygen: Fail
+element_types_test/supported_meter: Fail
+element_types_test/supported_output: Fail
+element_types_test/supported_shadow: Fail
+element_types_test/supported_template: Fail
+fileapi_test/supported: Fail
+history_test/supported_HashChangeEvent: Fail
+indexeddb_1_test/supportsDatabaseNames: Fail
+input_element_test/supported_date: Fail
+input_element_test/supported_datetime-local: Fail
+input_element_test/supported_month: Fail
+input_element_test/supported_time: Fail
+input_element_test/supported_week: Fail
+media_stream_test/supported_MediaStreamEvent: Fail
+media_stream_test/supported_MediaStreamTrackEvent: Fail
+media_stream_test/supported_media: Fail
+rtc_test/supported: Fail
+shadow_dom_test/supported: Fail
+speechrecognition_test/supported: Fail
+svgelement_test/supported_altGlyph: Fail
+svgelement_test/supported_animate: Fail
+svgelement_test/supported_animateMotion: Fail
+svgelement_test/supported_animateTransform: Fail
+svgelement_test/supported_foreignObject: Fail
+svgelement_test/supported_set: Fail
+touchevent_test/supported: Fail
+webgl_1_test/functional: Fail
+websql_test/supported: Fail
+xhr_test/json: Fail # IE10 returns string, not JSON object
+xsltprocessor_test/supported: Fail
 
 [ $runtime == ie9 || $runtime == ie10 ]
 custom/document_register_type_extensions_test/construction: Fail # Issue 13193
+worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
 
 [ $runtime == ie9 ]
 event_customevent_test: Fail # Issue 14170
