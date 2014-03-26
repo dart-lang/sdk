@@ -29,6 +29,7 @@ const Map<String, String> tests = const <String, String> {
   '"\$\$"': '"\$\$<DIAGNOSTIC>"<DIAGNOSTIC>\n',
   '"\$\$4"': '"\$\$<DIAGNOSTIC>4<DIAGNOSTIC>"\n',
   '"\$\$4 "': '"\$\$<DIAGNOSTIC>4<DIAGNOSTIC> "\n',
+  '1e': '1<DIAGNOSTIC>e\n',
 };
 
 List<Node> queryDiagnosticNodes() {
