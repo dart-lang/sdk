@@ -2156,6 +2156,41 @@ DEFINE_NATIVE_ENTRY(MethodMirror_source, 1) {
 }
 
 
+static RawInstance* CreateSourceLocation(const String& uri,
+                                         intptr_t line,
+                                         intptr_t column) {
+  const Array& args = Array::Handle(Array::New(3));
+  args.SetAt(0, uri);
+  args.SetAt(1, Smi::Handle(Smi::New(line)));
+  args.SetAt(2, Smi::Handle(Smi::New(column)));
+  return CreateMirror(Symbols::_SourceLocation(), args);
+}
+
+
+DEFINE_NATIVE_ENTRY(MethodMirror_location, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  const Function& func = Function::Handle(ref.GetFunctionReferent());
+  if (func.IsImplicitConstructor() || func.IsSignatureFunction()) {
+    // These are synthetic methods; they have no source.
+    return Instance::null();
+  }
+  const Script& script = Script::Handle(func.script());
+  const String& uri = String::Handle(script.url());
+  intptr_t from_line = 0;
+  intptr_t from_col = 0;
+  if (script.HasSource()) {
+    script.GetTokenLocation(func.token_pos(), &from_line, &from_col);
+  } else {
+    // Avoid the slow path of printing the token stream when precise source
+    // information is not available.
+    script.GetTokenLocation(func.token_pos(), &from_line, NULL);
+  }
+  // We should always have at least the line number.
+  ASSERT(from_line != 0);
+  return CreateSourceLocation(uri, from_line, from_col);
+}
+
+
 DEFINE_NATIVE_ENTRY(TypedefMirror_referent, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Type, type, arguments->NativeArgAt(0));
   const Class& cls = Class::Handle(type.type_class());
