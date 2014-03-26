@@ -242,44 +242,25 @@ String createSystemTempDir() {
 /// contents (defaults to `false`). If [includeHidden] is `true`, includes files
 /// and directories beginning with `.` (defaults to `false`).
 ///
+/// Note that dart:io handles recursive symlinks in an unfortunate way. You
+/// end up with two copies of every entity that is within the recursive loop.
+/// We originally had our own directory list code that addressed that, but it
+/// had a noticeable performance impact. In the interest of speed, we'll just
+/// live with that annoying behavior.
+///
 /// The returned paths are guaranteed to begin with [dir].
 List<String> listDir(String dir, {bool recursive: false,
     bool includeHidden: false}) {
-  List<String> doList(String dir, Set<String> listedDirectories) {
-    var contents = <String>[];
+  var entities = new Directory(dir).listSync(recursive: recursive);
 
-    // Avoid recursive symlinks.
-    var resolvedPath = canonicalize(dir);
-    if (listedDirectories.contains(resolvedPath)) return [];
+  isHidden(part) => part.startsWith(".") && part != "." && part != "..";
 
-    listedDirectories = new Set<String>.from(listedDirectories);
-    listedDirectories.add(resolvedPath);
-
-    log.io("Listing directory $dir.");
-
-    var children = <String>[];
-    for (var entity in new Directory(dir).listSync()) {
-      if (!includeHidden && path.basename(entity.path).startsWith('.')) {
-        continue;
-      }
-
-      contents.add(entity.path);
-      if (entity is Directory) {
-        // TODO(nweiz): don't manually recurse once issue 4794 is fixed.
-        // Note that once we remove the manual recursion, we'll need to
-        // explicitly filter out files in hidden directories.
-        if (recursive) {
-          children.addAll(doList(entity.path, listedDirectories));
-        }
-      }
-    }
-
-    log.fine("Listed directory $dir:\n${contents.join('\n')}");
-    contents.addAll(children);
-    return contents;
+  if (!includeHidden) {
+    entities = entities.where(
+        (entity) => !path.split(entity.path).any(isHidden));
   }
 
-  return doList(dir, new Set<String>());
+  return entities.map((entity) => entity.path).toList();
 }
 
 /// Returns whether [dir] exists on the file system. This will return `true` for
