@@ -753,7 +753,7 @@ class CallSiteInliner : public ValueObject {
 
   void PrintInlinedInfo(const Function& top) {
     if (inlined_info_.length() > 0) {
-      OS::Print("Inlining into: '%s' growth: %f (%"Pd" -> %"Pd")\n",
+      OS::Print("Inlining into: '%s' growth: %f (%" Pd " -> %" Pd ")\n",
           top.ToFullyQualifiedCString(),
           GrowthFactor(),
           initial_size_,
