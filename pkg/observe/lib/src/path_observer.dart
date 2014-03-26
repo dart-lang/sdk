@@ -82,8 +82,12 @@ class PathObserver extends _Observer implements Bindable {
 }
 
 /// A dot-delimieted property path such as "foo.bar" or "foo.10.bar".
+///
 /// The path specifies how to get a particular value from an object graph, where
-/// the graph can include arrays.
+/// the graph can include arrays and maps. Each segment of the path describes
+/// how to take a single step in the object graph. Properties like 'foo' or
+/// 'bar' are read as properties on objects, or as keys if the object is a [Map]
+/// or a [Indexable], while integer values are read as indexes in a [List].
 // TODO(jmesserly): consider specialized subclasses for:
 // * empty path
 // * "value"
@@ -180,7 +184,7 @@ class PropertyPath {
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 
-  /// Returns the current of the path from the provided [obj]ect.
+  /// Returns the current value of the path from the provided [obj]ect.
   getValueFrom(Object obj) {
     if (!isValid) return null;
     for (var segment in _segments) {
@@ -233,6 +237,12 @@ bool _changeRecordMatches(record, key) {
   return false;
 }
 
+/// Properties in [Map] that need to be read as properties and not as keys in
+/// the map. We exclude methods ('containsValue', 'containsKey', 'putIfAbsent',
+/// 'addAll', 'remove', 'clear', 'forEach') because there is no use in reading
+/// them as part of path-observer segments.
+const _MAP_PROPERTIES = const [#keys, #values, #length, #isEmpty, #isNotEmpty];
+
 _getObjectProperty(object, property) {
   if (object == null) return null;
 
@@ -241,21 +251,24 @@ _getObjectProperty(object, property) {
       return object[property];
     }
   } else if (property is Symbol) {
-    final type = object.runtimeType;
+    // Support indexer if available, e.g. Maps or polymer_expressions Scope.
+    // This is the default syntax used by polymer/nodebind and
+    // polymer/observe-js PathObserver.
+    // TODO(sigmund): should we also support using checking dynamically for
+    // whether the type practically implements the indexer API
+    // (smoke.hasInstanceMethod(type, const Symbol('[]')))?
+    if (object is Indexable<String, dynamic> ||
+        object is Map<String, dynamic> && !_MAP_PROPERTIES.contains(property)) {
+      return object[smoke.symbolToName(property)];
+    }
     try {
-      if (smoke.hasGetter(type, property) || smoke.hasNoSuchMethod(type)) {
-        return smoke.read(object, property);
-      }
-      // Support indexer if available, e.g. Maps or polymer_expressions Scope.
-      // This is the default syntax used by polymer/nodebind and
-      // polymer/observe-js PathObserver.
-      if (smoke.hasInstanceMethod(type, const Symbol('[]'))) {
-        return object[smoke.symbolToName(property)];
-      }
+      return smoke.read(object, property);
     } on NoSuchMethodError catch (e) {
       // Rethrow, unless the type implements noSuchMethod, in which case we
       // interpret the exception as a signal that the method was not found.
-      if (!smoke.hasNoSuchMethod(type)) rethrow;
+      // Dart note: getting invalid properties is an error, unlike in JS where
+      // it returns undefined.
+      if (!smoke.hasNoSuchMethod(object.runtimeType)) rethrow;
     }
   }
 
@@ -274,19 +287,17 @@ bool _setObjectProperty(object, property, value) {
       return true;
     }
   } else if (property is Symbol) {
-    final type = object.runtimeType;
+    // Support indexer if available, e.g. Maps or polymer_expressions Scope.
+    if (object is Indexable<String, dynamic> ||
+        object is Map<String, dynamic> && !_MAP_PROPERTIES.contains(property)) {
+      object[smoke.symbolToName(property)] = value;
+      return true;
+    }
     try {
-      if (smoke.hasSetter(type, property) || smoke.hasNoSuchMethod(type)) {
-        smoke.write(object, property, value);
-        return true;
-      }
-      // Support indexer if available, e.g. Maps or polymer_expressions Scope.
-      if (smoke.hasInstanceMethod(type, const Symbol('[]='))) {
-        object[smoke.symbolToName(property)] = value;
-        return true;
-      }
-    } on NoSuchMethodError catch (e) {
-      if (!smoke.hasNoSuchMethod(type)) rethrow;
+      smoke.write(object, property, value);
+      return true;
+    } on NoSuchMethodError catch (e, s) {
+      if (!smoke.hasNoSuchMethod(object.runtimeType)) rethrow;
     }
   }
 
@@ -468,6 +479,13 @@ class CompoundObserver extends _Observer implements Bindable {
     _report(_value, oldValues, _observed);
     return true;
   }
+}
+
+/// An object accepted by [PropertyPath] where properties are read and written
+/// as indexing operations, just like a [Map].
+abstract class Indexable<K, V> {
+  V operator [](K key);
+  operator []=(K key, V value);
 }
 
 const _observerSentinel = const _ObserverSentinel();
