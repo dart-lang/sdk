@@ -57,6 +57,9 @@ class FlowGraphPrinter : public ValueObject {
 
   static void PrintGraph(const char* phase, FlowGraph* flow_graph);
 
+  // Debugging helper function.
+  static void PrintICData(const ICData& ic_data);
+
  private:
   const Function& function_;
   const GrowableArray<BlockEntryInstr*>& block_order_;

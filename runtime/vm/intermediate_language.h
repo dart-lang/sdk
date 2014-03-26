@@ -2974,7 +2974,7 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
     return instance_call()->PushArgumentAt(index);
   }
 
-  bool HasRecognizedTarget() const;
+  bool HasSingleRecognizedTarget() const;
 
   virtual intptr_t CallCount() const { return ic_data().AggregateCount(); }
 

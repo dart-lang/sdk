@@ -21,7 +21,8 @@ class FlowGraphInliner : ValueObject {
   // The flow graph is destructively updated upon inlining.
   void Inline();
 
-  static void CollectGraphInfo(FlowGraph* flow_graph);
+  // Compute graph info if it was not already computed or if 'force' is true.
+  static void CollectGraphInfo(FlowGraph* flow_graph, bool force = false);
 
   static bool AlwaysInline(const Function& function);
 

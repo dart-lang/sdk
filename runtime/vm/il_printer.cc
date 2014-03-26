@@ -132,7 +132,7 @@ const char* CompileType::ToCString() const {
 }
 
 
-static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
+static void PrintICDataHelper(BufferFormatter* f, const ICData& ic_data) {
   f->Print(" IC[%" Pd ": ", ic_data.NumberOfChecks());
   Function& target = Function::Handle();
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
@@ -156,6 +156,14 @@ static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
     f->Print(" <%p>", static_cast<void*>(target.raw()));
   }
   f->Print("]");
+}
+
+
+void FlowGraphPrinter::PrintICData(const ICData& ic_data) {
+  char buffer[1024];
+  BufferFormatter f(buffer, sizeof(buffer));
+  PrintICDataHelper(&f, ic_data);
+  OS::Print("%s\n", buffer);
 }
 
 
@@ -354,7 +362,7 @@ void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
     PushArgumentAt(i)->value()->PrintTo(f);
   }
   if (HasICData()) {
-    PrintICData(f, *ic_data());
+    PrintICDataHelper(f, *ic_data());
   }
 }
 
@@ -365,7 +373,7 @@ void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
     f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);
   }
-  PrintICData(f, ic_data());
+  PrintICDataHelper(f, ic_data());
 }
 
 
@@ -852,7 +860,7 @@ void UnaryDoubleOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void CheckClassInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  PrintICData(f, unary_checks());
+  PrintICDataHelper(f, unary_checks());
   if (IsNullCheck()) {
     f->Print(" nullcheck");
   }
