@@ -8,7 +8,6 @@
 #include "include/dart_api.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
-#include "vm/random.h"
 
 namespace dart {
 
@@ -83,7 +82,7 @@ class PortMap: public AllStatic {
   static intptr_t used_;
   static intptr_t deleted_;
 
-  static Random* prng_;
+  static Dart_Port next_port_;
 };
 
 }  // namespace dart

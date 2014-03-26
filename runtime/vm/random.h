@@ -10,7 +10,7 @@
 
 namespace dart {
 
-class Random {
+class Random : public ValueObject {
  public:
   Random();
   ~Random();
@@ -22,6 +22,7 @@ class Random {
 
   uint64_t _state;
 
+  DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Random);
 };
 
