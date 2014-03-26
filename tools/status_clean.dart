@@ -19,7 +19,6 @@ final STATUS_TUPLES = [
     ["corelib", "tests/corelib", "tests/corelib/corelib.status"],
     ["html", "tests/html", "tests/html/html.status"],
     ["isolate", "tests/isolate", "tests/isolate/isolate.status"],
-    ["json", "tests/json", "tests/json/json.status"],
     ["language", "tests/language", "tests/language/language.status"],
     ["language", "tests/language", "tests/language/language_analyzer2.status"],
     ["language","tests/language", "tests/language/language_analyzer.status"],

@@ -19,7 +19,6 @@ void main() {
   TestReadStatusFile("tests/dom/dom.status");
   TestReadStatusFile("tests/html/html.status");
   TestReadStatusFile("tests/isolate/isolate.status");
-  TestReadStatusFile("tests/json/json.status");
   TestReadStatusFile("tests/language/language.status");
   TestReadStatusFile("tests/standalone/standalone.status");
 }
