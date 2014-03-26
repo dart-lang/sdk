@@ -50,6 +50,8 @@ deferred_constraints_type_annotation_test/new_before_load: Fail
 deferred_load_library_wrong_args_test/none: Fail
 
 cyclic_type_test: Fail, OK # Issue 17629
+cyclic_type2_test: Fail, OK # Issue 17629
+least_upper_bound_expansive_test/*: Fail, OK # Issue 17629
 
 [ ($compiler == dart2dart)]
 # Issue 17523

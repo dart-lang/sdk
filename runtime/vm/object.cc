@@ -4012,9 +4012,17 @@ void UnresolvedClass::PrintToJSONStream(JSONStream* stream, bool ref) const {
 }
 
 
-static intptr_t FinalizeHash(uword hash) {
+static uint32_t CombineHashes(uint32_t hash, uint32_t other_hash) {
+  hash += other_hash;
+  hash += hash << 10;
+  hash ^= hash >> 6;  // Logical shift, unsigned hash.
+  return hash;
+}
+
+
+static uint32_t FinalizeHash(uint32_t hash) {
   hash += hash << 3;
-  hash ^= hash >> 11;
+  hash ^= hash >> 11;  // Logical shift, unsigned hash.
   hash += hash << 15;
   return hash;
 }
@@ -4024,13 +4032,11 @@ intptr_t TypeArguments::Hash() const {
   if (IsNull()) return 0;
   const intptr_t num_types = Length();
   if (IsRaw(0, num_types)) return 0;
-  intptr_t result = 0;
+  uint32_t result = 0;
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
-    result += type.Hash();
-    result += result << 10;
-    result ^= result >> 6;
+    result = CombineHashes(result, type.Hash());
   }
   return FinalizeHash(result);
 }
@@ -4061,8 +4067,10 @@ RawString* TypeArguments::SubvectorName(intptr_t from_index,
 }
 
 
-bool TypeArguments::IsEquivalent(const TypeArguments& other,
-                                 GrowableObjectArray* trail) const {
+bool TypeArguments::IsSubvectorEquivalent(const TypeArguments& other,
+                                          intptr_t from_index,
+                                          intptr_t len,
+                                          GrowableObjectArray* trail) const {
   if (this->raw() == other.raw()) {
     return true;
   }
@@ -4075,7 +4083,7 @@ bool TypeArguments::IsEquivalent(const TypeArguments& other,
   }
   AbstractType& type = AbstractType::Handle();
   AbstractType& other_type = AbstractType::Handle();
-  for (intptr_t i = 0; i < num_types; i++) {
+  for (intptr_t i = from_index; i < from_index + len; i++) {
     type = TypeAt(i);
     other_type = other.TypeAt(i);
     if (!type.IsEquivalent(other_type, trail)) {
@@ -4083,6 +4091,20 @@ bool TypeArguments::IsEquivalent(const TypeArguments& other,
     }
   }
   return true;
+}
+
+
+bool TypeArguments::IsRecursive() const {
+  if (IsNull()) return false;
+  const intptr_t num_types = Length();
+  AbstractType& type = AbstractType::Handle();
+  for (intptr_t i = 0; i < num_types; i++) {
+    type = TypeAt(i);
+    if (type.IsRecursive()) {
+      return true;
+    }
+  }
+  return false;
 }
 
 
@@ -4094,7 +4116,6 @@ bool TypeArguments::IsDynamicTypes(bool raw_instantiated,
   Class& type_class = Class::Handle();
   for (intptr_t i = 0; i < len; i++) {
     type = TypeAt(from_index + i);
-    ASSERT(!type.IsNull());
     if (!type.HasResolvedTypeClass()) {
       if (raw_instantiated && type.IsTypeParameter()) {
         // An uninstantiated type parameter is equivalent to dynamic (even in
@@ -4262,12 +4283,14 @@ bool TypeArguments::IsResolved() const {
 }
 
 
-bool TypeArguments::IsInstantiated(GrowableObjectArray* trail) const {
+bool TypeArguments::IsSubvectorInstantiated(intptr_t from_index,
+                                            intptr_t len,
+                                            GrowableObjectArray* trail) const {
+  ASSERT(!IsNull());
   AbstractType& type = AbstractType::Handle();
-  const intptr_t num_types = Length();
-  for (intptr_t i = 0; i < num_types; i++) {
-    type = TypeAt(i);
-    if (!type.IsBeingFinalized() && !type.IsInstantiated(trail)) {
+  for (intptr_t i = 0; i < len; i++) {
+    type = TypeAt(from_index + i);
+    if (!type.IsInstantiated(trail)) {
       return false;
     }
   }
@@ -4431,7 +4454,7 @@ RawTypeArguments* TypeArguments::InstantiateFrom(
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
-    if (!type.IsBeingFinalized() && !type.IsInstantiated()) {
+    if (!type.IsInstantiated()) {
       type = type.InstantiateFrom(instantiator_type_arguments,
                                   bound_error,
                                   trail);
@@ -4547,7 +4570,7 @@ static void GrowCanonicalTypeArguments(Isolate* isolate, const Array& table) {
   for (intptr_t i = 0; i < table_size; i++) {
     element ^= table.At(i);
     if (!element.IsNull()) {
-      intptr_t hash = element.Hash();
+      const intptr_t hash = element.Hash();
       ASSERT(Utils::IsPowerOfTwo(new_table_size));
       intptr_t index = hash & (new_table_size - 1);
       new_element = new_table.At(index);
@@ -4579,6 +4602,24 @@ static void InsertIntoCanonicalTypeArguments(Isolate* isolate,
       Smi::Value(Smi::RawCast(table.At(table_size))) + 1;
   const Smi& used = Smi::Handle(isolate, Smi::New(used_elements));
   table.SetAt(table_size, used);
+
+#ifdef DEBUG
+  // Verify that there are no duplicates.
+  // Duplicates could appear if hash values are not kept constant across
+  // snapshots, e.g. if class ids are not preserved by the snapshots.
+  TypeArguments& other_arguments = TypeArguments::Handle();
+  for (intptr_t i = 0; i < table_size; i++) {
+    if ((i != index) && (table.At(i) != TypeArguments::null())) {
+      other_arguments ^= table.At(i);
+      if (arguments.Equals(other_arguments)) {
+        // Recursive types may be equal, but have different hashes.
+        ASSERT(arguments.IsRecursive());
+        ASSERT(other_arguments.IsRecursive());
+        ASSERT(arguments.Hash() != other_arguments.Hash());
+      }
+    }
+  }
+#endif
 
   // Rehash if table is 75% full.
   if (used_elements > ((table_size / 4) * 3)) {
@@ -4641,7 +4682,7 @@ RawTypeArguments* TypeArguments::Canonicalize(
   Array& table = Array::Handle(isolate,
                                object_store->canonical_type_arguments());
   // Last element of the array is the number of used elements.
-  const intptr_t used_elements =
+  const intptr_t num_used =
       Smi::Value(Smi::RawCast(table.At(table.Length() - 1)));
   const intptr_t hash = Hash();
   intptr_t index =
@@ -4656,17 +4697,14 @@ RawTypeArguments* TypeArguments::Canonicalize(
       type_arg = type_arg.Canonicalize(trail);
       SetTypeAt(i, type_arg);
     }
-    // Canonicalization of a recursive type may change its hash.
-    const intptr_t new_hash = Hash();
+    // Canonicalization of a type should not change its hash. Verify.
+    ASSERT(Hash() == hash);
     // Canonicalization of the type argument's own type arguments may add an
     // entry to the table, or even grow the table, and thereby change the
     // previously calculated index.
     table = object_store->canonical_type_arguments();
-    if ((new_hash != hash) ||
-        (Smi::Value(Smi::RawCast(table.At(table.Length() - 1)))
-         != used_elements)) {
-      index =
-          FindIndexInCanonicalTypeArguments(isolate, table, *this, new_hash);
+    if (Smi::Value(Smi::RawCast(table.At(table.Length() - 1))) != num_used) {
+      index = FindIndexInCanonicalTypeArguments(isolate, table, *this, hash);
       result ^= table.At(index);
     }
     if (result.IsNull()) {
@@ -12666,6 +12704,13 @@ bool AbstractType::IsEquivalent(const Instance& other,
 }
 
 
+bool AbstractType::IsRecursive() const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+  return false;
+}
+
+
 RawAbstractType* AbstractType::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
@@ -12687,6 +12732,34 @@ RawAbstractType* AbstractType::Canonicalize(GrowableObjectArray* trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
+}
+
+
+RawObject* AbstractType::OnlyBuddyInTrail(GrowableObjectArray* trail) const {
+  if (trail == NULL) {
+    return Object::null();
+  }
+  const intptr_t len = trail->Length();
+  ASSERT((len % 2) == 0);
+  for (intptr_t i = 0; i < len; i += 2) {
+    if (trail->At(i) == this->raw()) {
+      ASSERT(trail->At(i + 1) != Object::null());
+      return trail->At(i + 1);
+    }
+  }
+  return Object::null();
+}
+
+
+void AbstractType::AddOnlyBuddyToTrail(GrowableObjectArray** trail,
+                                       const Object& buddy) const {
+  if (*trail == NULL) {
+    *trail = &GrowableObjectArray::ZoneHandle(GrowableObjectArray::New());
+  } else {
+    ASSERT(OnlyBuddyInTrail(*trail) == Object::null());
+  }
+  (*trail)->Add(*this);
+  (*trail)->Add(buddy);
 }
 
 
@@ -12729,7 +12802,14 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   intptr_t num_type_params;  // Number of type parameters to print.
   if (HasResolvedTypeClass()) {
     const Class& cls = Class::Handle(type_class());
-    num_type_params = cls.NumTypeParameters();  // Do not print the full vector.
+    if (IsResolved() || !cls.IsMixinApplication()) {
+      // Do not print the full vector, but only the declared type parameters.
+      num_type_params = cls.NumTypeParameters();
+    } else {
+      // Do not print the type parameters of an unresolved mixin application,
+      // since it would prematurely trigger the application of the mixin type.
+      num_type_params = 0;
+    }
     if (name_visibility == kInternalName) {
       class_name = cls.Name();
     } else {
@@ -13181,8 +13261,25 @@ bool Type::IsInstantiated(GrowableObjectArray* trail) const {
   if (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated) {
     return false;
   }
+  if (arguments() == TypeArguments::null()) {
+    return true;
+  }
   const TypeArguments& args = TypeArguments::Handle(arguments());
-  return args.IsNull() || args.IsInstantiated(trail);
+  const intptr_t num_type_args = args.Length();
+  intptr_t len = num_type_args;  // Check the full vector of type args.
+  ASSERT(num_type_args > 0);
+  // This type is not instantiated if it refers to type parameters.
+  // This IsInstantiated() call may be invoked on an unresolved signature type.
+  // Although this type may still be unresolved, the type parameters it may
+  // refer to are resolved by definition. We can therefore return the correct
+  // result even for an unresolved type. We just need to look at all type
+  // arguments and not just at the type parameters.
+  if (HasResolvedTypeClass()) {
+    const Class& cls = Class::Handle(type_class());
+    len = cls.NumTypeParameters();  // Check the type parameters only.
+    ASSERT(num_type_args == cls.NumTypeArguments());
+  }
+  return (len == 0) || args.IsSubvectorInstantiated(num_type_args - len, len);
 }
 
 
@@ -13196,19 +13293,25 @@ RawAbstractType* Type::InstantiateFrom(
   if (IsMalformed()) {
     return raw();
   }
-  TypeArguments& type_arguments = TypeArguments::Handle(arguments());
-  type_arguments = type_arguments.InstantiateFrom(instantiator_type_arguments,
-                                                  bound_error,
-                                                  trail);
   // Note that the type class has to be resolved at this time, but not
-  // necessarily finalized yet. We may be checking bounds at compile time.
+  // necessarily finalized yet. We may be checking bounds at compile time or
+  // finalizing the type argument vector of a recursive type.
   const Class& cls = Class::Handle(type_class());
   // This uninstantiated type is not modified, as it can be instantiated
   // with different instantiators.
   Type& instantiated_type = Type::Handle(
-      Type::New(cls, type_arguments, token_pos()));
-  ASSERT(type_arguments.IsNull() ||
-         (type_arguments.Length() == cls.NumTypeArguments()));
+      Type::New(cls, TypeArguments::Handle(), token_pos()));
+  if (arguments() != TypeArguments::null()) {
+    TypeArguments& type_arguments = TypeArguments::Handle(arguments());
+    ASSERT(type_arguments.Length() == cls.NumTypeArguments());
+    if (type_arguments.IsRecursive()) {
+      AddOnlyBuddyToTrail(&trail, instantiated_type);
+    }
+    type_arguments = type_arguments.InstantiateFrom(instantiator_type_arguments,
+                                                    bound_error,
+                                                    trail);
+    instantiated_type.set_arguments(type_arguments);
+  }
   instantiated_type.SetIsFinalized();
   // Canonicalization is not part of instantiation.
   return instantiated_type.raw();
@@ -13258,23 +13361,39 @@ bool Type::IsEquivalent(const Instance& other,
   const TypeArguments& other_type_args = TypeArguments::Handle(
       isolate, other_type.arguments());
   if (type_args.IsNull()) {
-    return other_type_args.IsRaw(from_index, num_type_params);
+    // Ignore from_index.
+    return other_type_args.IsRaw(0, num_type_params);
   }
   if (other_type_args.IsNull()) {
-    return type_args.IsRaw(from_index, num_type_params);
+    // Ignore from_index.
+    return type_args.IsRaw(0, num_type_params);
   }
-  ASSERT(type_args.Length() >= (from_index + num_type_params));
-  ASSERT(other_type_args.Length() >= (from_index + num_type_params));
-  AbstractType& type_arg = AbstractType::Handle(isolate);
-  AbstractType& other_type_arg = AbstractType::Handle(isolate);
-  for (intptr_t i = 0; i < num_type_params; i++) {
-    type_arg = type_args.TypeAt(from_index + i);
-    other_type_arg = other_type_args.TypeAt(from_index + i);
-    if (!type_arg.IsEquivalent(other_type_arg, trail)) {
-      return false;
+  if (!type_args.IsSubvectorEquivalent(other_type_args,
+                                       from_index,
+                                       num_type_params)) {
+    return false;
+  }
+#ifdef DEBUG
+  if (from_index > 0) {
+    // Verify that the type arguments of the super class match, since they
+    // depend solely on the type parameters that were just verified to match.
+    ASSERT(type_args.Length() >= (from_index + num_type_params));
+    ASSERT(other_type_args.Length() >= (from_index + num_type_params));
+    AbstractType& type_arg = AbstractType::Handle(isolate);
+    AbstractType& other_type_arg = AbstractType::Handle(isolate);
+    for (intptr_t i = 0; i < from_index; i++) {
+      type_arg = type_args.TypeAt(i);
+      other_type_arg = other_type_args.TypeAt(i);
+      ASSERT(type_arg.IsEquivalent(other_type_arg, trail));
     }
   }
+#endif
   return true;
+}
+
+
+bool Type::IsRecursive() const {
+  return TypeArguments::Handle(arguments()).IsRecursive();
 }
 
 
@@ -13415,10 +13534,10 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
 
 intptr_t Type::Hash() const {
   ASSERT(IsFinalized());
-  uword result = 1;
+  uint32_t result = 1;
   if (IsMalformed()) return result;
-  result += Class::Handle(type_class()).id();
-  result += TypeArguments::Handle(arguments()).Hash();
+  result = CombineHashes(result, Class::Handle(type_class()).id());
+  result = CombineHashes(result, TypeArguments::Handle(arguments()).Hash());
   return FinalizeHash(result);
 }
 
@@ -13485,10 +13604,20 @@ const char* Type::ToCString() const {
       char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
       OS::SNPrint(chars, len, format, class_name);
       return chars;
+    } else if (IsFinalized() && IsRecursive()) {
+      const char* format = "Type: (@%" Px " H%" Px ") class '%s', args:[%s]";
+      const intptr_t hash = Hash();
+      const char* args_cstr = TypeArguments::Handle(arguments()).ToCString();
+      const intptr_t len =
+          OS::SNPrint(NULL, 0, format, raw(), hash, class_name, args_cstr) + 1;
+      char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+      OS::SNPrint(chars, len, format, raw(), hash, class_name, args_cstr);
+      return chars;
     } else {
       const char* format = "Type: class '%s', args:[%s]";
       const char* args_cstr = TypeArguments::Handle(arguments()).ToCString();
-      intptr_t len = OS::SNPrint(NULL, 0, format, class_name, args_cstr) + 1;
+      const intptr_t len =
+          OS::SNPrint(NULL, 0, format, class_name, args_cstr) + 1;
       char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
       OS::SNPrint(chars, len, format, class_name, args_cstr);
       return chars;
@@ -13549,21 +13678,17 @@ RawAbstractType* TypeRef::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
     GrowableObjectArray* trail) const {
-  TypeRef& instantiated_type_ref = TypeRef::Handle();
-  instantiated_type_ref ^= OnlyBuddyInTrail(trail);
-  if (!instantiated_type_ref.IsNull()) {
-    return instantiated_type_ref.raw();
-  }
-  instantiated_type_ref = TypeRef::New(Type::Handle(Type::DynamicType()));
-  AddOnlyBuddyToTrail(&trail, instantiated_type_ref);
-  const AbstractType& ref_type = AbstractType::Handle(type());
+  AbstractType& ref_type = AbstractType::Handle(type());
   ASSERT(!ref_type.IsTypeRef());
-  const AbstractType& instantiated_ref_type = AbstractType::Handle(
-      ref_type.InstantiateFrom(instantiator_type_arguments,
-                               bound_error,
-                               trail));
-  instantiated_type_ref.set_type(instantiated_ref_type);
-  return instantiated_type_ref.raw();
+  AbstractType& instantiated_ref_type = AbstractType::Handle();
+  instantiated_ref_type ^= ref_type.OnlyBuddyInTrail(trail);
+  if (instantiated_ref_type.IsNull()) {
+    // The referenced type is first encountered here during instantiation.
+    instantiated_ref_type = ref_type.InstantiateFrom(
+        instantiator_type_arguments, bound_error, trail);
+  }
+  ASSERT(!instantiated_ref_type.IsTypeRef());
+  return TypeRef::New(instantiated_ref_type);
 }
 
 
@@ -13576,7 +13701,7 @@ void TypeRef::set_type(const AbstractType& value) const {
 // A TypeRef cannot be canonical by definition. Only its referenced type can be.
 // Consider the type Derived, where class Derived extends Base<Derived>.
 // The first type argument of its flattened type argument vector is Derived,
-// i.e. itself, but pointer equality is not possible.
+// represented by a TypeRef pointing to itself.
 RawAbstractType* TypeRef::Canonicalize(GrowableObjectArray* trail) const {
   if (TestAndAddToTrail(&trail)) {
     return raw();
@@ -13590,7 +13715,8 @@ RawAbstractType* TypeRef::Canonicalize(GrowableObjectArray* trail) const {
 
 intptr_t TypeRef::Hash() const {
   // Do not calculate the hash of the referenced type to avoid divergence.
-  uword result = Class::Handle(AbstractType::Handle(type()).type_class()).id();
+  const uint32_t result =
+      Class::Handle(AbstractType::Handle(type()).type_class()).id();
   return FinalizeHash(result);
 }
 
@@ -13631,34 +13757,6 @@ bool TypeRef::TestAndAddBuddyToTrail(GrowableObjectArray** trail,
 }
 
 
-RawObject* TypeRef::OnlyBuddyInTrail(GrowableObjectArray* trail) const {
-  if (trail == NULL) {
-    return Object::null();
-  }
-  const intptr_t len = trail->Length();
-  ASSERT((len % 2) == 0);
-  for (intptr_t i = 0; i < len; i += 2) {
-    if (trail->At(i) == this->raw()) {
-      ASSERT(trail->At(i + 1) != Object::null());
-      return trail->At(i + 1);
-    }
-  }
-  return Object::null();
-}
-
-
-void TypeRef::AddOnlyBuddyToTrail(GrowableObjectArray** trail,
-                                  const Object& buddy) const {
-  if (*trail == NULL) {
-    *trail = &GrowableObjectArray::ZoneHandle(GrowableObjectArray::New());
-  } else {
-    ASSERT(OnlyBuddyInTrail(*trail) == Object::null());
-  }
-  (*trail)->Add(*this);
-  (*trail)->Add(buddy);
-}
-
-
 RawTypeRef* TypeRef::New() {
   ASSERT(Isolate::Current()->object_store()->type_ref_class() != Class::null());
   RawObject* raw = Object::Allocate(TypeRef::kClassId,
@@ -13676,15 +13774,24 @@ RawTypeRef* TypeRef::New(const AbstractType& type) {
 
 
 const char* TypeRef::ToCString() const {
-  const char* format = "TypeRef: %s%s";
-  const char* type_cstr = String::Handle(Class::Handle(AbstractType::Handle(
-      type()).type_class()).Name()).ToCString();
-  const char* args_cstr = (AbstractType::Handle(
-      type()).arguments() == TypeArguments::null()) ? "" : "<...>";
-  intptr_t len = OS::SNPrint(NULL, 0, format, type_cstr, args_cstr) + 1;
-  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, type_cstr, args_cstr);
-  return chars;
+  const char* type_cstr = String::Handle(Class::Handle(
+      type_class()).Name()).ToCString();
+  AbstractType& ref_type = AbstractType::Handle(type());
+  if (ref_type.IsFinalized()) {
+    const char* format = "TypeRef: %s<...> (@%" Px " H%" Px ")";
+    const intptr_t hash = ref_type.Hash();
+    const intptr_t len =
+        OS::SNPrint(NULL, 0, format, type_cstr, ref_type.raw(), hash) + 1;
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, format, type_cstr, ref_type.raw(), hash);
+    return chars;
+  } else {
+    const char* format = "TypeRef: %s<...>";
+    const intptr_t len = OS::SNPrint(NULL, 0, format, type_cstr) + 1;
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, format, type_cstr);
+    return chars;
+  }
 }
 
 
@@ -13839,10 +13946,10 @@ RawAbstractType* TypeParameter::CloneUnfinalized() const {
 
 intptr_t TypeParameter::Hash() const {
   ASSERT(IsFinalized());
-  uword result = Class::Handle(parameterized_class()).id();
+  uint32_t result = Class::Handle(parameterized_class()).id();
   // No need to include the hash of the bound, since the type parameter is fully
   // identified by its class and index.
-  result <<= index();
+  result = CombineHashes(result, index());
   return FinalizeHash(result);
 }
 
@@ -13979,6 +14086,11 @@ bool BoundedType::IsEquivalent(const Instance& other,
 }
 
 
+bool BoundedType::IsRecursive() const {
+  return AbstractType::Handle(type()).IsRecursive();
+}
+
+
 void BoundedType::set_type(const AbstractType& value) const {
   ASSERT(value.IsFinalized() || value.IsBeingFinalized());
   ASSERT(!value.IsMalformed());
@@ -14053,11 +14165,12 @@ RawAbstractType* BoundedType::CloneUnfinalized() const {
 
 
 intptr_t BoundedType::Hash() const {
-  uword result = AbstractType::Handle(type()).Hash();
+  uint32_t result = AbstractType::Handle(type()).Hash();
   // No need to include the hash of the bound, since the bound is defined by the
   // type parameter (modulo instantiation state).
-  result += TypeParameter::Handle(type_parameter()).Hash();
-return FinalizeHash(result);
+  result = CombineHashes(result,
+                         TypeParameter::Handle(type_parameter()).Hash());
+  return FinalizeHash(result);
 }
 
 
@@ -15058,16 +15171,12 @@ class StringHasher : ValueObject {
  public:
   StringHasher() : hash_(0) {}
   void Add(int32_t ch) {
-    hash_ += ch;
-    hash_ += hash_ << 10;
-    hash_ ^= hash_ >> 6;
+    hash_ = CombineHashes(hash_, ch);
   }
   // Return a non-zero hash of at most 'bits' bits.
   intptr_t Finalize(int bits) {
     ASSERT(1 <= bits && bits <= (kBitsPerWord - 1));
-    hash_ += hash_ << 3;
-    hash_ ^= hash_ >> 11;
-    hash_ += hash_ << 15;
+    hash_ = FinalizeHash(hash_);
     hash_ = hash_ & ((static_cast<intptr_t>(1) << bits) - 1);
     ASSERT(hash_ <= static_cast<uint32_t>(kMaxInt32));
     return hash_ == 0 ? 1 : hash_;

@@ -1300,23 +1300,38 @@ class TypeArguments : public Object {
     return TypeTest(kIsMoreSpecificThan, other, from_index, len, bound_error);
   }
 
-  // Check if the vectors are equal.
+  // Check if the vectors are equal (they may be null).
   bool Equals(const TypeArguments& other) const {
-    return IsEquivalent(other);
+    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length());
   }
 
   bool IsEquivalent(const TypeArguments& other,
-                    GrowableObjectArray* trail = NULL) const;
+                    GrowableObjectArray* trail = NULL) const {
+    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(), trail);
+  }
+  bool IsSubvectorEquivalent(const TypeArguments& other,
+                             intptr_t from_index,
+                             intptr_t len,
+                             GrowableObjectArray* trail = NULL) const;
 
-  bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
+  // Check if the vector is instantiated (it must not be null).
+  bool IsInstantiated(GrowableObjectArray* trail = NULL) const {
+    return IsSubvectorInstantiated(0, Length(), trail);
+  }
+  bool IsSubvectorInstantiated(intptr_t from_index,
+                               intptr_t len,
+                               GrowableObjectArray* trail = NULL) const;
   bool IsUninstantiatedIdentity() const;
   bool CanShareInstantiatorTypeArguments(const Class& instantiator_class) const;
 
-  // Returns true if all types of this vector are respectively, resolved,
+  // Return true if all types of this vector are respectively, resolved,
   // finalized, or bounded.
   bool IsResolved() const;
   bool IsFinalized() const;
   bool IsBounded() const;
+
+  // Return true if this vector contains a recursive type argument.
+  bool IsRecursive() const;
 
   // Clone this type argument vector and clone all unfinalized type arguments.
   // Finalized type arguments are shared.
@@ -4132,6 +4147,7 @@ class AbstractType : public Instance {
   }
   virtual bool IsEquivalent(const Instance& other,
                             GrowableObjectArray* trail = NULL) const;
+  virtual bool IsRecursive() const;
 
   // Instantiate this type using the given type argument vector.
   // Return a new type, or return 'this' if it is already instantiated.
@@ -4153,6 +4169,15 @@ class AbstractType : public Instance {
   // Return the canonical version of this type.
   virtual RawAbstractType* Canonicalize(
       GrowableObjectArray* trail = NULL) const;
+
+  // Return the object associated with the receiver in the trail or
+  // Object::null() if the receiver is not contained in the trail.
+  RawObject* OnlyBuddyInTrail(GrowableObjectArray* trail) const;
+
+  // If the trail is null, allocate a trail, add the pair <receiver, buddy> to
+  // the trail. The receiver may only be added once with its only buddy.
+  void AddOnlyBuddyToTrail(GrowableObjectArray** trail,
+                           const Object& buddy) const;
 
   // The name of this type, including the names of its type arguments, if any.
   virtual RawString* Name() const {
@@ -4287,6 +4312,7 @@ class Type : public AbstractType {
   virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other,
                             GrowableObjectArray* trail = NULL) const;
+  virtual bool IsRecursive() const;
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* malformed_error,
@@ -4405,6 +4431,7 @@ class TypeRef : public AbstractType {
   virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other,
                             GrowableObjectArray* trail = NULL) const;
+  virtual bool IsRecursive() const { return true; }
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
@@ -4425,15 +4452,6 @@ class TypeRef : public AbstractType {
   // The receiver may be added several times, each time with a different buddy.
   bool TestAndAddBuddyToTrail(GrowableObjectArray** trail,
                               const Object& buddy) const;
-
-  // Return the object associated with the receiver in the trail or
-  // Object::null() if the receiver is not contained in the trail.
-  RawObject* OnlyBuddyInTrail(GrowableObjectArray* trail) const;
-
-  // If the trail is null, allocate a trail, add the pair <receiver, buddy> to
-  // the trail. The receiver may only be added once with its only buddy.
-  void AddOnlyBuddyToTrail(GrowableObjectArray** trail,
-                           const Object& buddy) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawTypeRef));
@@ -4493,6 +4511,7 @@ class TypeParameter : public AbstractType {
   }
   virtual bool IsEquivalent(const Instance& other,
                             GrowableObjectArray* trail = NULL) const;
+  virtual bool IsRecursive() const { return false; }
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
@@ -4576,6 +4595,7 @@ class BoundedType : public AbstractType {
   }
   virtual bool IsEquivalent(const Instance& other,
                             GrowableObjectArray* trail = NULL) const;
+  virtual bool IsRecursive() const;
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,

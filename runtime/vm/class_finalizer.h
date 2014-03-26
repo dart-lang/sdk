@@ -145,7 +145,11 @@ class ClassFinalizer : public AllStatic {
                                     const TypeArguments& arguments,
                                     intptr_t num_uninitialized_arguments,
                                     Error* bound_error,
-                                    GrowableObjectArray* pending_types);
+                                    GrowableObjectArray* pending_types,
+                                    GrowableObjectArray* trail);
+  static void CheckRecursiveType(const Class& cls,
+                                 const Type& type,
+                                 GrowableObjectArray* pending_types);
   static void CheckTypeBounds(const Class& cls, const Type& type);
   static void CheckTypeArgumentBounds(const Class& cls,
                                       const TypeArguments& arguments,
