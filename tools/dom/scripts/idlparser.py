@@ -385,47 +385,14 @@ class IDLParser(object):
           re.compile(r'#.*'),
           re.compile(r'/\*.*?\*/', re.S))
 
-  def _pre_process(self, content, defines, includePaths):
-    """Pre-processes the content using gcc.
-
-    WebKit IDLs require pre-processing by gcc. This is done by invoking
-    gcc in a sub-process and capturing the results.
-
-    Returns:
-      The result of running gcc on the content.
-
-    Args:
-      content -- text to process.
-      defines -- an array of pre-processor defines.
-      includePaths -- an array of path strings.
-    """
-    # FIXME: Handle gcc not found, or any other processing errors
-    gcc = 'gcc'
-    cmd = [gcc, '-E', '-P', '-C', '-x', 'c++']
-    for define in defines:
-      cmd.append('-D%s' % define)
-    cmd.append('-')
-    pipe = subprocess.Popen(cmd, stdin=subprocess.PIPE,
-      stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    (content, stderr) = pipe.communicate(content)
-    return content
-
-  def parse(self, content, defines=[], includePaths=[]):
+  def parse(self, content):
     """Parse the give content string.
-
-    The WebKit IDL syntax also allows gcc pre-processing instructions.
-    Lists of defined variables and include paths can be provided.
 
     Returns:
       An abstract syntax tree (AST).
 
     Args:
       content -- text to parse.
-      defines -- an array of pre-processor defines.
-      includePaths -- an array of path strings used by the
-        gcc pre-processor.
     """
-    if self._syntax == WEBKIT_SYNTAX:
-      content = self._pre_process(content, defines, includePaths)
 
     return self._pegparser.parse(content)

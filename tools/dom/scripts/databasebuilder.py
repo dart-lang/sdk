@@ -67,9 +67,7 @@ def _load_idl_file(file_name, import_options):
     content = f.read()
     f.close()
 
-    idl_ast = idl_parser.parse(
-      content,
-      defines=import_options.idl_defines)
+    idl_ast = idl_parser.parse(content)
     return IDLFile(idl_ast, file_name)
   except SyntaxError, e:
     raise RuntimeError('Failed to load file %s: %s: Content: %s[end]'
