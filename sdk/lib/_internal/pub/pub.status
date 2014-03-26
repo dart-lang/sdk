@@ -4,10 +4,6 @@
 
 test/hosted/version_negotiation_test: Pass, Timeout # Issue 14346
 
-
-[ $runtime == vm && $system == macos ]
-test/serve/web_socket/path_to_urls_test: Skip # Issue 17601
-
 [ $runtime == vm && $system == windows ]
 test/serve/warns_on_assets_paths_test: Pass, Fail # Issue 15741
 

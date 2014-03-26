@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * A simple unit test library for running tests in a browser.
- *
- * Provides enhanced HTML output with collapsible group headers
- * and other at-a-glance information about the test results.
- */
+/// A simple unit test library for running tests in a browser.
+///
+/// Provides enhanced HTML output with collapsible group headers
+/// and other at-a-glance information about the test results.
 library unittest.html_enhanced_config;
 
 import 'dart:collection' show LinkedHashMap;
@@ -16,7 +14,7 @@ import 'dart:html';
 import 'unittest.dart';
 
 class HtmlEnhancedConfiguration extends SimpleConfiguration {
-  /** Whether this is run within dartium layout tests. */
+  /// Whether this is run within dartium layout tests.
   final bool _isLayoutTest;
   HtmlEnhancedConfiguration(this._isLayoutTest);
 

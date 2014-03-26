@@ -27,18 +27,24 @@ abstract class Expression extends Node {
 /// continuations, function and continuation parameters, etc.
 abstract class Definition extends Node {
   // The head of a linked-list of occurrences, in no particular order.
-  Variable firstUse = null;
+  Reference firstRef = null;
+
+  bool get hasAtMostOneUse => firstRef == null || firstRef.nextRef == null;
+  bool get hasExactlyOneUse => firstRef != null && firstRef.nextRef == null;
+}
+
+abstract class Primitive extends Definition {
 }
 
 /// Operands to invocations and primitives are always variables.  They point to
 /// their definition and are linked into a list of occurrences.
-class Variable {
+class Reference {
   Definition definition;
-  Variable nextUse = null;
+  Reference nextRef = null;
 
-  Variable(this.definition) {
-    nextUse = definition.firstUse;
-    definition.firstUse = this;
+  Reference(this.definition) {
+    nextRef = definition.firstRef;
+    definition.firstRef = this;
   }
 }
 
@@ -46,18 +52,18 @@ class Variable {
 /// value is in scope in the body.
 /// During one-pass construction a LetVal with an empty body is used to
 /// represent one-level context 'let val x = V in []'.
-class LetVal extends Expression {
-  final Definition value;
+class LetPrim extends Expression {
+  final Primitive primitive;
   Expression body = null;
 
-  LetVal(this.value);
+  LetPrim(this.primitive);
 
   Expression plug(Expression expr) {
     assert(body == null);
     return body = expr;
   }
 
-  accept(Visitor visitor) => visitor.visitLetVal(this);
+  accept(Visitor visitor) => visitor.visitLetPrim(this);
 }
 
 
@@ -91,13 +97,13 @@ class InvokeStatic extends Expression {
    */
   final Selector selector;
 
-  final Variable continuation;
-  final List<Variable> arguments;
+  final Reference continuation;
+  final List<Reference> arguments;
 
   InvokeStatic(this.target, this.selector, Continuation cont,
                List<Definition> args)
-      : continuation = new Variable(cont),
-        arguments = args.map((t) => new Variable(t)).toList(growable: false) {
+      : continuation = new Reference(cont),
+        arguments = args.map((t) => new Reference(t)).toList(growable: false) {
     assert(selector.kind == SelectorKind.CALL);
     assert(selector.name == target.name);
   }
@@ -107,17 +113,17 @@ class InvokeStatic extends Expression {
 
 /// Invoke a continuation in tail position.
 class InvokeContinuation extends Expression {
-  final Variable continuation;
-  final Variable argument;
+  final Reference continuation;
+  final Reference argument;
 
   InvokeContinuation(Continuation cont, Definition arg)
-      : continuation = new Variable(cont),
-        argument = new Variable(arg);
+      : continuation = new Reference(cont),
+        argument = new Reference(arg);
 
   accept(Visitor visitor) => visitor.visitInvokeContinuation(this);
 }
 
-class Constant extends Definition {
+class Constant extends Primitive {
   final dart2js.Constant value;
 
   Constant(this.value);
@@ -125,7 +131,7 @@ class Constant extends Definition {
   accept(Visitor visitor) => visitor.visitConstant(this);
 }
 
-class Parameter extends Definition {
+class Parameter extends Primitive {
   Parameter();
 
   accept(Visitor visitor) => visitor.visitParameter(this);
@@ -165,20 +171,23 @@ class Function extends Node {
 }
 
 abstract class Visitor<T> {
+  // Abstract classes.
   T visitNode(Node node) => node.accept(this);
-
-  T visitFunction(Function node) => visitNode(node);
   T visitExpression(Expression node) => visitNode(node);
   T visitDefinition(Definition node) => visitNode(node);
+  T visitPrimitive(Primitive node) => visitDefinition(node);
 
-  T visitLetVal(LetVal expr) => visitExpression(expr);
-  T visitLetCont(LetCont expr) => visitExpression(expr);
-  T visitInvokeStatic(InvokeStatic expr) => visitExpression(expr);
-  T visitInvokeContinuation(InvokeContinuation expr) => visitExpression(expr);
+  // Concrete classes.
+  T visitFunction(Function node) => visitNode(node);
 
-  T visitConstant(Constant triv) => visitDefinition(triv);
-  T visitParameter(Parameter triv) => visitDefinition(triv);
-  T visitContinuation(Continuation triv) => visitDefinition(triv);
+  T visitLetPrim(LetPrim node) => visitExpression(node);
+  T visitLetCont(LetCont node) => visitExpression(node);
+  T visitInvokeStatic(InvokeStatic node) => visitExpression(node);
+  T visitInvokeContinuation(InvokeContinuation node) => visitExpression(node);
+
+  T visitConstant(Constant node) => visitPrimitive(node);
+  T visitParameter(Parameter node) => visitPrimitive(node);
+  T visitContinuation(Continuation node) => visitDefinition(node);
 }
 
 /// Generate a Lisp-like S-expression representation of an IR node as a string.
@@ -199,12 +208,12 @@ class SExpressionStringifier extends Visitor<String> {
     return '(Function ${node.body.accept(this)})';
   }
 
-  String visitLetVal(LetVal expr) {
+  String visitLetPrim(LetPrim expr) {
     String name = newValueName();
-    names[expr.value] = name;
-    String value = expr.value.accept(this);
+    names[expr.primitive] = name;
+    String value = expr.primitive.accept(this);
     String body = expr.body.accept(this);
-    return '(LetVal $name $value) $body';
+    return '(LetPrim $name $value) $body';
   }
 
   String visitLetCont(LetCont expr) {
@@ -236,10 +245,12 @@ class SExpressionStringifier extends Visitor<String> {
   }
 
   String visitParameter(Parameter triv) {
+    // Parameters are visited directly in visitLetCont.
     return '(Unexpected Parameter)';
   }
 
   String visitContinuation(Continuation triv) {
+    // Continuations are visited directly in visitLetCont.
     return '(Unexpected Continuation)';
   }
 }

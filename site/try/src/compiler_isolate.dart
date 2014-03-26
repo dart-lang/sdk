@@ -9,7 +9,9 @@ import 'dart:html';
 import 'dart:isolate';
 import 'dart:convert' show JSON;
 
-import '../../../sdk/lib/_internal/compiler/compiler.dart' as compiler;
+import 'compilation.dart' show PRIVATE_SCHEME;
+
+import 'package:compiler/compiler.dart' as compiler;
 
 const bool THROW_ON_ERROR = false;
 
@@ -64,9 +66,11 @@ compile(source, SendPort replyTo) {
       });
       charactersRead += value.length;
       return new Future.value(value);
-    } else if ('$uri' == 'memory:/main.dart') {
+    } else if ('$uri' == '$PRIVATE_SCHEME:/main.dart') {
       charactersRead += source.length;
       return new Future.value(source);
+    } else if (uri.scheme == PRIVATE_SCHEME) {
+      return HttpRequest.getString('project${uri.path}');
     }
     throw new Exception('Error: Cannot read: $uri');
   }
@@ -81,9 +85,9 @@ compile(source, SendPort replyTo) {
       throw new Exception('Throw on error');
     }
   }
-  compiler.compile(Uri.parse('memory:/main.dart'),
+  compiler.compile(Uri.parse('$PRIVATE_SCHEME:/main.dart'),
                    sdkLocation,
-                   null,
+                   Uri.parse('packages/'),
                    inputProvider,
                    handler,
                    options).then((js) {

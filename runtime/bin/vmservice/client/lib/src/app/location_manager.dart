@@ -15,36 +15,24 @@ class LocationManager extends Observable {
 
   void init() {
     window.onHashChange.listen((event) {
-      if (setDefaultHash()) {
-        // We just triggered another onHashChange event.
-        return;
-      }
       // Request the current anchor.
       requestCurrentHash();
     });
-
-    if (!setDefaultHash()) {
-      // An anchor was already present, trigger a request.
-      requestCurrentHash();
-    }
+    // Set the default hash.
+    window.location.hash = defaultHash;
   }
 
-  /// If no anchor is set, set the default anchor and return true.
-  /// Return false otherwise.
-  bool setDefaultHash() {
-    currentHash = window.location.hash;
-    if (currentHash == '' || currentHash == '#') {
-      window.location.hash = defaultHash;
-      return true;
-    }
-    return false;
+  /// Clear the current hash.
+  void clearCurrentHash() {
+    window.location.hash = '';
   }
 
   /// Refresh the service object reference in the location entry.
   void requestCurrentHash() {
     currentHash = window.location.hash;
-    assert(currentHash.startsWith('#/'));
-
+    if (!currentHash.startsWith('#/')) {
+      return;
+    }
     var parts = currentHash.substring(2).split('#');
     var location = parts[0];
     var args = (parts.length > 1 ? parts[1] : '');

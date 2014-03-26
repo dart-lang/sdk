@@ -264,7 +264,7 @@ class TestOutcomeLogWriter extends EventListener {
   }
 
   void allDone() {
-    _sink.close();
+    if (_sink != null) _sink.close();
   }
 
   void _writeTestOutcomeRecord(Map record) {

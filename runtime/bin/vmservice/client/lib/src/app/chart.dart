@@ -82,8 +82,8 @@ class Chart {
   var _chart;
   final Map options = new Map();
 
-  /// Create a Google Chart of [chartType]. e.g. 'Table', 'BarChart', the
-  /// chart is rendered inside [element].
+  /// Create a Google Chart of [chartType]. e.g. 'Table', 'AreaChart',
+  /// 'BarChart', the chart is rendered inside [element].
   Chart(String chartType, Element element) {
     _chart = new JsObject(GoogleChart.api[chartType], [element]);
   }

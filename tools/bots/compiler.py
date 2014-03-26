@@ -282,6 +282,10 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, arch,
       TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras,
                extras_flags, arch)
 
+      TestStep("try_dart", mode, system, 'dart2js', runtime, ['try'],
+               extras_flags, arch)
+
+
 def GetHasHardCodedCheckedMode(build_info):
   # TODO(ricow): We currently run checked mode tests on chrome on linux and
   # on the slow (all) IE windows bots. This is a hack and we should use the

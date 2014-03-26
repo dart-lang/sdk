@@ -67,7 +67,7 @@ class ClosureTask extends CompilerTask {
     return measure(() {
       ClosureClassMap nestedClosureData = closureMappingCache[node];
       if (nestedClosureData == null) {
-        compiler.internalError("No closure cache", node: node);
+        compiler.internalError(node, "No closure cache.");
       }
       return nestedClosureData;
     });
@@ -799,7 +799,7 @@ class ClosureTranslator extends Visitor {
     for (Element freeElement in freeVariables) {
       if (capturedVariableMapping[freeElement] != null &&
           capturedVariableMapping[freeElement] != freeElement) {
-        compiler.internalError('In closure analyzer', node: node);
+        compiler.internalError(node, 'In closure analyzer.');
       }
       capturedVariableMapping[freeElement] = freeElement;
       useLocal(freeElement);

@@ -7,12 +7,8 @@ library pub.barback.base_server;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:barback/barback.dart';
-import 'package:mime/mime.dart';
-import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 
-import '../barback.dart';
 import '../log.dart' as log;
 import '../utils.dart';
 import 'build_environment.dart';

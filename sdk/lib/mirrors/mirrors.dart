@@ -1083,6 +1083,24 @@ abstract class ParameterMirror implements VariableMirror {
  * A [SourceLocation] describes the span of an entity in Dart source code.
  */
 abstract class SourceLocation {
+  /**
+   * The 1-based line number for this source location.
+   *
+   * A value of 0 means that the line number is unknown.
+   */
+  int get line;
+
+  /**
+   * The 1-based column number for this source location.
+   *
+   * A value of 0 means that the column number is unknown.
+   */
+  int get column;
+
+  /**
+   * Returns the URI where the source originated.
+   */
+  Uri get sourceUri;
 }
 
 /**

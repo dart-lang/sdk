@@ -29,8 +29,17 @@ class _SpannableSentinel implements Spannable {
   String toString() => name;
 }
 
+/// Sentinel spannable used to mark that diagnostics should point to the
+/// current element. Note that the diagnostic reporting will fail if the current
+/// element is `null`.
 const Spannable CURRENT_ELEMENT_SPANNABLE =
     const _SpannableSentinel("Current element");
+
+/// Sentinel spannable used to mark that there might be no location for the
+/// diagnostic. Use this only when it is not an error not to have a current
+/// element.
+const Spannable NO_LOCATION_SPANNABLE =
+    const _SpannableSentinel("No location");
 
 class SpannableAssertionFailure {
   final Spannable node;

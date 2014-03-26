@@ -151,10 +151,10 @@ class ContainerBuilder extends CodeEmitterHelper {
     if (member.enclosingElement.isClosure()) {
       ClosureClassElement cls = member.enclosingElement;
       if (cls.supertype.element == compiler.boundClosureClass) {
-        compiler.internalErrorOnElement(cls.methodElement, 'Bound closure1.');
+        compiler.internalError(cls.methodElement, 'Bound closure1.');
       }
       if (cls.methodElement.isInstanceMember()) {
-        compiler.internalErrorOnElement(cls.methodElement, 'Bound closure2.');
+        compiler.internalError(cls.methodElement, 'Bound closure2.');
       }
     }
 
@@ -337,8 +337,8 @@ class ContainerBuilder extends CodeEmitterHelper {
                member.isAccessor()) {
       addMemberMethod(member, builder);
     } else {
-      compiler.internalErrorOnElement(
-          member, 'unexpected kind: "${member.kind}"');
+      compiler.internalError(member,
+          'Unexpected kind: "${member.kind}".');
     }
     if (member.isInstanceMember()) emitExtraAccessors(member, builder);
   }
@@ -353,11 +353,11 @@ class ContainerBuilder extends CodeEmitterHelper {
     bool needsStubs = !parameters.optionalParameters.isEmpty;
     bool canTearOff = false;
     bool isClosure = false;
-    bool canBeApplied = compiler.enabledFunctionApply;
+    bool isNotApplyTarget =
+        !member.isFunction() || member.isConstructor() || member.isAccessor();
     String tearOffName;
-    if (!member.isFunction() || member.isConstructor() || member.isAccessor()) {
+    if (isNotApplyTarget) {
       canTearOff = false;
-      canBeApplied = false;
     } else if (member.isInstanceMember()) {
       if (member.getEnclosingClass().isClosure()) {
         canTearOff = false;
@@ -373,9 +373,11 @@ class ContainerBuilder extends CodeEmitterHelper {
           compiler.codegenWorld.staticFunctionsNeedingGetter.contains(member);
       tearOffName = namer.getStaticClosureName(member);
     }
-
-    bool canBeReflected = backend.isAccessibleByReflection(member);
-    bool needStructuredInfo =
+    final bool canBeApplied = !isNotApplyTarget &&
+        compiler.enabledFunctionApply &&
+        (canTearOff || member.name == 'call' || !member.isInstanceMember());
+    final bool canBeReflected = backend.isAccessibleByReflection(member);
+    final bool needStructuredInfo =
         canTearOff || canBeReflected || canBeApplied;
     if (!needStructuredInfo) {
       builder.addProperty(name, code);
@@ -500,13 +502,16 @@ class ContainerBuilder extends CodeEmitterHelper {
     if (canBeReflected || canBeApplied) {
       parameters.forEachParameter((Element parameter) {
         expressions.add(task.metadataEmitter.reifyName(parameter.name));
-        List<MetadataAnnotation> annotations = parameter.metadata.toList();
-        Iterable<int> metadataIndices = annotations.map((MetadataAnnotation a) {
-          compiler.constantHandler.addCompileTimeConstantForEmission(a.value);
-          return task.metadataEmitter.reifyMetadata(a);
-        });
-        expressions.add(metadataIndices.isNotEmpty ? metadataIndices.toList()
-                                                   : js('[]'));
+        if (backend.mustRetainMetadata) {
+          List<MetadataAnnotation> annotations = parameter.metadata.toList();
+          Iterable<int> metadataIndices =
+              annotations.map((MetadataAnnotation a) {
+            compiler.constantHandler.addCompileTimeConstantForEmission(a.value);
+            return task.metadataEmitter.reifyMetadata(a);
+          });
+          expressions.add(metadataIndices.isNotEmpty ? metadataIndices.toList()
+                                                     : js('[]'));
+        }
       });
     }
     if (canBeReflected) {

@@ -416,11 +416,16 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
 
   final _HttpHeaders headers;
 
-  _HttpOutboundMessage(this._uri,
+  _HttpOutboundMessage(Uri uri,
                        String protocolVersion,
                        _HttpOutgoing outgoing)
       : super(outgoing, null),
-        headers = new _HttpHeaders(protocolVersion),
+        _uri = uri,
+        headers = new _HttpHeaders(
+            protocolVersion,
+            defaultPortForScheme: uri.scheme == 'https' ?
+                HttpClient.DEFAULT_HTTPS_PORT :
+                HttpClient.DEFAULT_HTTP_PORT),
         _outgoing = outgoing {
     _outgoing.outbound = this;
     _encodingMutable = false;

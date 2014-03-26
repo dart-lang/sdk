@@ -32,7 +32,7 @@ typedef void PrintHandler(
     Zone self, ZoneDelegate parent, Zone zone, String line);
 typedef Zone ForkHandler(Zone self, ZoneDelegate parent, Zone zone,
                          ZoneSpecification specification,
-                         Map<Symbol, dynamic> zoneValues);
+                         Map zoneValues);
 
 /**
  * This class provides the specification for a forked zone.
@@ -109,7 +109,7 @@ abstract class ZoneSpecification {
     void print(Zone self, ZoneDelegate parent, Zone zone, String line): null,
     Zone fork(Zone self, ZoneDelegate parent, Zone zone,
               ZoneSpecification specification,
-              Map<Symbol, dynamic> zoneValues): null
+              Map zoneValues): null
   }) {
     return new ZoneSpecification(
       handleUncaughtError: handleUncaughtError != null
@@ -255,9 +255,17 @@ abstract class Zone {
 
   /**
    * Creates a new zone as a child of `this`.
+   *
+   * The new zone will have behavior like the current zone, except where
+   * overridden by functions in [specification].
+   *
+   * The new zone will have the same stored values (accessed through
+   * `operator []`) as this zone, but updated with the keys and values
+   * in [zoneValues]. If a key is in both this zone's values and in
+   * `zoneValues`, the new zone will use the value from `zoneValues``.
    */
   Zone fork({ ZoneSpecification specification,
-              Map<Symbol, dynamic> zoneValues });
+              Map zoneValues });
 
   /**
    * Executes the given function [f] in this zone.
@@ -412,8 +420,13 @@ abstract class Zone {
    *
    * If this zone does not contain the value looks up the same key in the
    * parent zone. If the [key] is not found returns `null`.
+   *
+   * Any object can be used as key, as long as it has compatible `operator ==`
+   * and `hashCode` implementations.
+   * By controlling access to the key, a zone can grant or deny access to the
+   * zone value.
    */
-  operator[](Symbol key);
+  operator [](Object key);
 }
 
 class _ZoneDelegate implements ZoneDelegate {
@@ -524,7 +537,7 @@ class _ZoneDelegate implements ZoneDelegate {
   }
 
   Zone fork(Zone zone, ZoneSpecification specification,
-            Map<Symbol, dynamic> zoneValues) {
+            Map zoneValues) {
     _BaseZone parent = _degelationTarget;
     while (parent._specification.fork == null) {
       parent = parent.parent;
@@ -618,7 +631,7 @@ class _CustomizedZone extends _BaseZone {
   final ZoneSpecification _specification;
 
   /// The zone's value map.
-  final Map<Symbol, dynamic> _map;
+  final Map _map;
 
   const _CustomizedZone(this.parent, this._specification, this._map);
 
@@ -627,7 +640,7 @@ class _CustomizedZone extends _BaseZone {
     return parent._errorZone;
   }
 
-  operator [](Symbol key) {
+  operator [](Object key) {
     var result = _map[key];
     if (result != null || _map.containsKey(key)) return result;
     // If we are not the root zone look up in the parent zone.
@@ -785,7 +798,7 @@ void _printToZone(String line) {
 
 Zone _rootFork(Zone self, ZoneDelegate parent, Zone zone,
                ZoneSpecification specification,
-               Map<Symbol, dynamic> zoneValues) {
+               Map zoneValues) {
   // TODO(floitsch): it would be nice if we could get rid of this hack.
   // Change the static zoneOrDirectPrint function to go through zones
   // from now on.
@@ -797,12 +810,9 @@ Zone _rootFork(Zone self, ZoneDelegate parent, Zone zone,
     throw new ArgumentError("ZoneSpecifications must be instantiated"
         " with the provided constructor.");
   }
-  Map<Symbol, dynamic> copiedMap = new HashMap();
+  Map copiedMap = new HashMap();
   if (zoneValues != null) {
-    zoneValues.forEach((Symbol key, value) {
-      if (key == null) {
-        throw new ArgumentError("ZoneValue key must not be null");
-      }
+    zoneValues.forEach((key, value) {
       copiedMap[key] = value;
     });
   }
@@ -839,7 +849,7 @@ class _RootZone extends _BaseZone {
 
   bool inSameErrorZone(Zone otherZone) => otherZone._errorZone == this;
 
-  operator [](Symbol key) => null;
+  operator [](Object key) => null;
 
   // Methods that can be customized by the zone specification.
 
@@ -907,7 +917,7 @@ const _ROOT_ZONE = const _RootZone();
  *     }, onError: print);  // Will print "asynchronous error".
  */
 dynamic runZoned(body(),
-                 { Map<Symbol, dynamic> zoneValues,
+                 { Map zoneValues,
                    ZoneSpecification zoneSpecification,
                    Function onError }) {
   HandleUncaughtErrorHandler errorHandler;

@@ -3053,18 +3053,25 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
     int8_t* s8d_8 = reinterpret_cast<int8_t*>(&s8d);
     int8_t* s8n_8 = reinterpret_cast<int8_t*>(&s8n);
     int8_t* s8m_8 = reinterpret_cast<int8_t*>(&s8m);
+    uint8_t* s8d_u8 = reinterpret_cast<uint8_t*>(&s8d);
     uint8_t* s8n_u8 = reinterpret_cast<uint8_t*>(&s8n);
     uint8_t* s8m_u8 = reinterpret_cast<uint8_t*>(&s8m);
     int16_t* s8d_16 = reinterpret_cast<int16_t*>(&s8d);
     int16_t* s8n_16 = reinterpret_cast<int16_t*>(&s8n);
     int16_t* s8m_16 = reinterpret_cast<int16_t*>(&s8m);
+    uint16_t* s8d_u16 = reinterpret_cast<uint16_t*>(&s8d);
     uint16_t* s8n_u16 = reinterpret_cast<uint16_t*>(&s8n);
     uint16_t* s8m_u16 = reinterpret_cast<uint16_t*>(&s8m);
+    int32_t* s8d_32 = reinterpret_cast<int32_t*>(&s8d);
     int32_t* s8n_32 = reinterpret_cast<int32_t*>(&s8n);
     int32_t* s8m_32 = reinterpret_cast<int32_t*>(&s8m);
+    uint32_t* s8d_u32 = reinterpret_cast<uint32_t*>(&s8d);
+    uint32_t* s8m_u32 = reinterpret_cast<uint32_t*>(&s8m);
     int64_t* s8d_64 = reinterpret_cast<int64_t*>(&s8d);
     int64_t* s8n_64 = reinterpret_cast<int64_t*>(&s8n);
     int64_t* s8m_64 = reinterpret_cast<int64_t*>(&s8m);
+    uint64_t* s8d_u64 = reinterpret_cast<uint64_t*>(&s8d);
+    uint64_t* s8m_u64 = reinterpret_cast<uint64_t*>(&s8m);
 
     if ((instr->Bits(8, 4) == 8) && (instr->Bit(4) == 0) &&
         (instr->Bits(23, 2) == 0)) {
@@ -3152,6 +3159,66 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
       for (int i = 0; i < 4; i++) {
         s8d.data_[i].f = s8n.data_[i].f * s8m.data_[i].f;
       }
+    } else if ((instr->Bits(8, 4) == 4) && (instr->Bit(4) == 0) &&
+               (instr->Bit(23) == 0) && (instr->Bits(25, 3) == 1)) {
+      // Format(instr, "vshlqu'sz 'qd, 'qm, 'qn");
+      // Format(instr, "vshlqi'sz 'qd, 'qm, 'qn");
+      const bool signd = instr->Bit(24) == 0;
+      const int size = instr->Bits(20, 2);
+      if (size == 0) {
+        for (int i = 0; i < 16; i++) {
+          int8_t shift = s8n_8[i];
+          if (shift > 0) {
+            s8d_u8[i] = s8m_u8[i] << shift;
+          } else if (shift < 0) {
+            if (signd) {
+              s8d_8[i] = s8m_8[i] >> (-shift);
+            } else {
+              s8d_u8[i] = s8m_u8[i] >> (-shift);
+            }
+          }
+        }
+      } else if (size == 1) {
+        for (int i = 0; i < 8; i++) {
+          int8_t shift = s8n_8[i * 2];
+          if (shift > 0) {
+            s8d_u16[i] = s8m_u16[i] << shift;
+          } else if (shift < 0) {
+            if (signd) {
+              s8d_16[i] = s8m_16[i] >> (-shift);
+            } else {
+              s8d_u16[i] = s8m_u16[i] >> (-shift);
+            }
+          }
+        }
+      } else if (size == 2) {
+        for (int i = 0; i < 4; i++) {
+          int8_t shift = s8n_8[i * 4];
+          if (shift > 0) {
+            s8d_u32[i] = s8m_u32[i] << shift;
+          } else if (shift < 0) {
+            if (signd) {
+              s8d_32[i] = s8m_32[i] >> (-shift);
+            } else {
+              s8d_u32[i] = s8m_u32[i] >> (-shift);
+            }
+          }
+        }
+      } else {
+        ASSERT(size == 3);
+        for (int i = 0; i < 2; i++) {
+          int8_t shift = s8n_8[i * 8];
+          if (shift > 0) {
+            s8d_u64[i] = s8m_u64[i] << shift;
+          } else if (shift < 0) {
+            if (signd) {
+              s8d_64[i] = s8m_64[i] >> (-shift);
+            } else {
+              s8d_u64[i] = s8m_u64[i] >> (-shift);
+            }
+          }
+        }
+      }
     } else if ((instr->Bits(8, 4) == 1) && (instr->Bit(4) == 1) &&
                (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 2)) {
       // Format(instr, "veorq 'qd, 'qn, 'qm");
@@ -3182,6 +3249,13 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
       // Format(instr, "vandq 'qd, 'qn, 'qm");
       for (int i = 0; i < 4; i++) {
         s8d.data_[i].u = s8n.data_[i].u & s8m.data_[i].u;
+      }
+    } else if ((instr->Bits(7, 5) == 11) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 5) == 7) &&
+               (instr->Bits(16, 4) == 0)) {
+      // Format(instr, "vmvnq 'qd, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.data_[i].u = ~s8m.data_[i].u;
       }
     } else if ((instr->Bits(8, 4) == 15) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 2) && (instr->Bits(23, 2) == 0)) {

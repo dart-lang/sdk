@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * A unit test library for running groups of tests in a browser, instead of the
- * entire test file. This is especially used for large tests files that have
- * many subtests, so we can mark groups as failing at a finer granularity than
- * the entire test file.
- *
- * To use, import this file, and call [useHtmlIndividualConfiguration] at the
- * start of your set sequence. Important constraint: your group descriptions
- * MUST NOT contain spaces.
- */
+/// A unit test library for running groups of tests in a browser, instead of the
+/// entire test file. This is especially used for large tests files that have
+/// many subtests, so we can mark groups as failing at a finer granularity than
+/// the entire test file.
+///
+/// To use, import this file, and call [useHtmlIndividualConfiguration] at the
+/// start of your set sequence. Important constraint: your group descriptions
+/// MUST NOT contain spaces.
 library unittest.html_individual_config;
 
 import 'dart:html';
@@ -28,8 +26,8 @@ class HtmlIndividualConfiguration extends htmlconfig.HtmlConfiguration {
           .where((p) => p.startsWith('group='))
           .toList();
 
-      if(!groups.isEmpty) {
-        if(groups.length > 1) {
+      if (!groups.isEmpty) {
+        if (groups.length > 1) {
           throw new ArgumentError('More than one "group" parameter provided.');
         }
 

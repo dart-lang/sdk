@@ -142,6 +142,21 @@ class _LocalMirrorSystem extends MirrorSystem {
   String toString() => "MirrorSystem for isolate '${isolate.debugName}'";
 }
 
+class _SourceLocation implements SourceLocation {
+  _SourceLocation(uriString, this.line, this.column)
+      : this.sourceUri = Uri.parse(uriString);
+
+  // Line and column positions are 1-origin, or 0 if unknown.
+  final int line;
+  final int column;
+
+  final Uri sourceUri;
+
+  String toString() {
+    return column == 0 ? "$sourceUri:$line" : "$sourceUri:$line:$column";
+  }
+}
+
 abstract class _LocalMirror implements Mirror {}
 
 class _LocalIsolateMirror extends _LocalMirror implements IsolateMirror {
@@ -195,7 +210,7 @@ class _SyntheticAccessor implements MethodMirror {
 
   List<InstanceMirror> get metadata => emptyList;
   String get source => null;
-  SourceLocation get location => throw new UnimplementedError();
+  SourceLocation get location => null;
 }
 
 class _SyntheticSetterParameter implements ParameterMirror {
@@ -1301,8 +1316,12 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
   bool get isTopLevel => owner is LibraryMirror;
   bool get isSynthetic => false;
 
+  SourceLocation _location;
   SourceLocation get location {
-    throw new UnimplementedError('MethodMirror.location is not implemented');
+    if (_location == null) {
+      _location = _MethodMirror_location(_reflectee);
+    }
+    return _location;
   }
 
   Type get _instantiator {
@@ -1387,6 +1406,9 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
 
   static String _MethodMirror_source(reflectee)
       native "MethodMirror_source";
+
+  static SourceLocation _MethodMirror_location(reflectee)
+      native "MethodMirror_location";
 }
 
 class _LocalVariableMirror extends _LocalDeclarationMirror

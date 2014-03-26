@@ -4,6 +4,7 @@
 
 library pub_tests;
 
+import 'package:json_rpc_2/error_code.dart' as rpc_error_code;
 import 'package:scheduled_test/scheduled_test.dart';
 
 import '../../descriptor.dart' as d;
@@ -22,52 +23,29 @@ main() {
     ]).create();
   });
 
-  integration("responds with an error if 'path' is missing", () {
-    pubServe();
-    expectWebSocketCall({
-      "command": "unserveDirectory"
-    }, replyEquals: {
-      "code": "BAD_ARGUMENT",
-      "error": 'Missing "path" argument.'
-    });
-    endPubServe();
-  });
-
   integration("responds with an error if 'path' is not a string", () {
     pubServe();
-    expectWebSocketCall({
-      "command": "unserveDirectory",
-      "path": 123
-    }, replyEquals: {
-      "code": "BAD_ARGUMENT",
-      "error": '"path" must be a string. Got 123.'
-    });
+    expectWebSocketError("unserveDirectory", {"path": 123},
+        rpc_error_code.INVALID_PARAMS,
+        'Parameter "path" for method "unserveDirectory" must be a string, but '
+            'was 123.');
     endPubServe();
   });
 
   integration("responds with an error if 'path' is absolute", () {
     pubServe();
-    expectWebSocketCall({
-      "command": "unserveDirectory",
-      "path": "/absolute.txt"
-    }, replyEquals: {
-      "code": "BAD_ARGUMENT",
-      "error": '"path" must be a relative path. Got "/absolute.txt".'
-    });
+    expectWebSocketError("unserveDirectory", {"path": "/absolute.txt"},
+        rpc_error_code.INVALID_PARAMS,
+        '"path" must be a relative path. Got "/absolute.txt".');
     endPubServe();
   });
 
   integration("responds with an error if 'path' reaches out", () {
     pubServe();
-    expectWebSocketCall({
-      "command": "unserveDirectory",
-      "path": "a/../../bad.txt"
-    }, replyEquals: {
-      "code": "BAD_ARGUMENT",
-      "error":
-          '"path" cannot reach out of its containing directory. '
-          'Got "a/../../bad.txt".'
-    });
+    expectWebSocketError("unserveDirectory", {"path": "a/../../bad.txt"},
+        rpc_error_code.INVALID_PARAMS,
+        '"path" cannot reach out of its containing directory. Got '
+            '"a/../../bad.txt".');
     endPubServe();
   });
 }

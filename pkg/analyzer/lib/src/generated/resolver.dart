@@ -15945,34 +15945,28 @@ class TypeResolverVisitor extends ScopedVisitor {
       int argumentCount = arguments.length;
       List<DartType> parameters = _getTypeArguments(type);
       int parameterCount = parameters.length;
-      int count = Math.min(argumentCount, parameterCount);
-      List<DartType> typeArguments = new List<DartType>();
-      for (int i = 0; i < count; i++) {
-        DartType argumentType = _getType(arguments[i]);
-        if (argumentType != null) {
-          typeArguments.add(argumentType);
+      List<DartType> typeArguments = new List<DartType>(parameterCount);
+      if (argumentCount == parameterCount) {
+        for (int i = 0; i < parameterCount; i++) {
+          TypeName argumentTypeName = arguments[i];
+          DartType argumentType = _getType(argumentTypeName);
+          if (argumentType == null) {
+            argumentType = _dynamicType;
+          }
+          typeArguments[i] = argumentType;
         }
-      }
-      if (argumentCount != parameterCount) {
+      } else {
         reportErrorForNode(_getInvalidTypeParametersErrorCode(node), node, [typeName.name, parameterCount, argumentCount]);
-      }
-      argumentCount = typeArguments.length;
-      if (argumentCount < parameterCount) {
-        //
-        // If there were too many arguments, we already handled it by not adding the values of the
-        // extra arguments to the list. If there are too few, we handle it by adding 'dynamic'
-        // enough times to make the count equal.
-        //
-        for (int i = argumentCount; i < parameterCount; i++) {
-          typeArguments.add(_dynamicType);
+        for (int i = 0; i < parameterCount; i++) {
+          typeArguments[i] = _dynamicType;
         }
       }
       if (type is InterfaceTypeImpl) {
         InterfaceTypeImpl interfaceType = type as InterfaceTypeImpl;
-        type = interfaceType.substitute4(new List.from(typeArguments));
+        type = interfaceType.substitute4(typeArguments);
       } else if (type is FunctionTypeImpl) {
         FunctionTypeImpl functionType = type as FunctionTypeImpl;
-        type = functionType.substitute3(new List.from(typeArguments));
+        type = functionType.substitute3(typeArguments);
       } else {
       }
     } else {

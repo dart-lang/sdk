@@ -17,6 +17,7 @@ import '../io.dart';
 import '../log.dart' as log;
 import '../package.dart';
 import '../package_graph.dart';
+import '../sdk.dart' as sdk;
 import 'admin_server.dart';
 import 'build_directory.dart';
 import 'dart_forwarding_transformer.dart';
@@ -139,13 +140,13 @@ class BuildEnvironment {
   /// Starts up the admin server on an appropriate port and returns it.
   ///
   /// This may only be called once on the build environment.
-  Future<AdminServer> startAdminServer() {
+  Future<AdminServer> startAdminServer([int port]) {
     // Can only start once.
     assert(_adminServer == null);
 
-    // The admin server is bound to one before the base port, unless it's
-    // ephemeral in which case the admin port is too.
-    var port = _basePort == 0 ? 0 : _basePort - 1;
+    // The admin server is bound to one before the base port by default, unless
+    // it's ephemeral in which case the admin port is too.
+    if (port == null) port = _basePort == 0 ? 0 : _basePort - 1;
 
     return AdminServer.bind(this, _hostname, port)
         .then((server) => _adminServer = server);
@@ -204,6 +205,16 @@ class BuildEnvironment {
       return _removeDirectorySources(rootDirectory);
     }).then((_) => url);
   }
+
+  /// Gets the build directory that contains [assetPath] within the entrypoint
+  /// package.
+  ///
+  /// If [assetPath] is not contained within a build directory, this will
+  /// throw an exception.
+  String getBuildDirectoryContaining(String assetPath) =>
+      _directories.values
+          .firstWhere((dir) => path.isWithin(dir.directory, assetPath))
+          .directory;
 
   /// Return all URLs serving [assetPath] in this environment.
   List<Uri> getUrlsForAssetPath(String assetPath) {
@@ -339,6 +350,15 @@ class BuildEnvironment {
           path.join('lib', path.relative(library, from: dartPath)));
     });
 
+    // "$sdk" is a pseudo-package that allows the dart2js transformer to find
+    // the Dart core libraries without hitting the file system directly. This
+    // ensures they work with source maps.
+    var libPath = path.join(sdk.rootDirectory, "lib");
+    var sdkSources = listDir(libPath, recursive: true)
+        .where((file) => path.extension(file) == ".dart")
+        .map((file) => new AssetId('\$sdk',
+            path.join("lib", path.relative(file, from: sdk.rootDirectory))));
+
     // Bind a server that we can use to load the transformers.
     var transformerServer;
     return BarbackServer.bind(this, _hostname, 0, null).then((server) {
@@ -346,6 +366,7 @@ class BuildEnvironment {
 
       return log.progress("Loading source assets", () {
         barback.updateSources(pubSources);
+        barback.updateSources(sdkSources);
         return _provideSources();
       });
     }).then((_) {

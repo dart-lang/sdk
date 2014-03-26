@@ -418,35 +418,53 @@ class PrettyPrinter implements Visitor {
     closeNode();
   }
 
+  visitCombinator(Combinator node) {
+    openNode(node, "Combinator", {"isShow" : "${node.isShow}",
+                                  "isHide" : "${node.isHide}"});
+    closeNode();
+  }
+
+  visitExport(Export node) {
+    openNode(node, "Export");
+    visitChildNode(node.uri, "uri");
+    visitChildNode(node.combinators, "combinators");
+    closeNode();
+  }
+
+  visitImport(Import node) {
+    openNode(node, "Import", {
+      "isDeferred" : "${node.isDeferred}"});
+    visitChildNode(node.uri, "uri");
+    visitChildNode(node.combinators, "combinators");
+    if (node.prefix != null) {
+      visitChildNode(node.prefix, "prefix");
+    }
+    closeNode();
+  }
+
+  visitPart(Part node) {
+    openNode(node, "Part");
+    visitChildNode(node.uri, "uri");
+    closeNode();
+  }
+
+  visitPartOf(PartOf node) {
+    openNode(node, "PartOf");
+    visitChildNode(node.name, "name");
+    closeNode();
+  }
+
+  visitLibraryName(LibraryName node) {
+    openNode(node, "LibraryName");
+    visitChildNode(node.name, "name");
+    closeNode();
+  }
+
   visitNode(Node node) {
     unimplemented('visitNode', node: node);
   }
 
-  visitCombinator(Combinator node) {
-    unimplemented('visitNode', node: node);
-  }
-
-  visitExport(Export node) {
-    unimplemented('visitNode', node: node);
-  }
-
-  visitExpression(Expression node) {
-    unimplemented('visitNode', node: node);
-  }
-
-  visitGotoStatement(GotoStatement node) {
-    unimplemented('visitNode', node: node);
-  }
-
-  visitImport(Import node) {
-    unimplemented('visitNode', node: node);
-  }
-
   visitLibraryDependency(Node node) {
-    unimplemented('visitNode', node: node);
-  }
-
-  visitLibraryName(LibraryName node) {
     unimplemented('visitNode', node: node);
   }
 
@@ -462,14 +480,6 @@ class PrettyPrinter implements Visitor {
     unimplemented('visitNode', node: node);
   }
 
-  visitPart(Part node) {
-    unimplemented('visitNode', node: node);
-  }
-
-  visitPartOf(PartOf node) {
-    unimplemented('visitNode', node: node);
-  }
-
   visitPostfix(Postfix node) {
     unimplemented('visitNode', node: node);
   }
@@ -478,11 +488,19 @@ class PrettyPrinter implements Visitor {
     unimplemented('visitNode', node: node);
   }
 
+  visitStringNode(StringNode node) {
+    unimplemented('visitNode', node: node);
+  }
+
   visitStatement(Statement node) {
     unimplemented('visitNode', node: node);
   }
 
-  visitStringNode(StringNode node) {
+  visitExpression(Expression node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  visitGotoStatement(GotoStatement node) {
     unimplemented('visitNode', node: node);
   }
 

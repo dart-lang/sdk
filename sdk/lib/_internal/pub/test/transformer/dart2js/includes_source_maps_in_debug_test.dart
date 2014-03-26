@@ -20,7 +20,7 @@ main() {
     ]).create();
 
     schedulePub(args: ["build", "--mode", "debug"],
-        output: new RegExp(r'Built 4 files to "build".'),
+        output: new RegExp(r'Built \d+ files to "build".'),
         exitCode: 0);
 
     d.dir(appPath, [

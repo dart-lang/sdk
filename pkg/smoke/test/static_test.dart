@@ -87,8 +87,13 @@ _configure() {
           #j2: const Declaration(#j2, int, kind: PROPERTY),
         },
       },
+      staticMethods: {
+        smoke_0.A: {
+          #staticInc: smoke_0.A.staticInc,
+        },
+      },
       names: {
-        #i: 'i',
+        #i: r'i',
       }));
 }
 

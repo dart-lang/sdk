@@ -1,0 +1,40 @@
+<polymer-element name="curly-block">
+  <template>
+    <style>
+      .idle {
+        display: inline-block;
+        color: #0489c3;
+        cursor: pointer;
+      }
+      .busy {
+        display: inline-block;
+        color: white;
+        cursor: wait;
+      }
+    </style>
+    <template if="{{ expanded }}">
+      <template if="{{ busy }}">
+        {<div class="busy">&nbsp;&nbsp;&#8863;&nbsp;&nbsp;</div>
+        <br>
+        <content></content>
+        }
+      </template>
+      <template if="{{ !busy }}">
+        {<a on-click="{{ toggleExpand }}"><div class="idle">&nbsp;&nbsp;&#8863;&nbsp;&nbsp;</div></a>
+        <br>
+        <content></content>
+        }
+      </template>
+    </template>
+
+    <template if="{{ !expanded }}">
+      <template if="{{ busy }}">
+        {<div class="busy">&nbsp;&nbsp;&#8862;&nbsp;&nbsp;</div>}
+      </template>
+      <template if="{{ !busy }}">
+        {<a on-click="{{ toggleExpand }}"><div class="idle">&nbsp;&nbsp;&#8862;&nbsp;&nbsp;</div></a>}
+      </template>
+    </template>
+  </template>
+  <script type="application/dart" src="curly_block.dart"></script>
+</polymer-element>

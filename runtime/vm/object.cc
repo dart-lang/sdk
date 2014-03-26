@@ -864,6 +864,7 @@ void Object::VerifyBuiltinVtables() {
       ASSERT(builtin_vtables_[cid] == cls.raw_ptr()->handle_vtable_);
     }
   }
+  ASSERT(builtin_vtables_[kFreeListElement] == 0);
 #endif
 }
 
@@ -3847,7 +3848,10 @@ void Class::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("patch", is_patch());
   jsobj.AddProperty("finalized", is_finalized());
   jsobj.AddProperty("const", is_const());
-  jsobj.AddProperty("super", Class::Handle(SuperClass()));
+  const Class& superClass = Class::Handle(SuperClass());
+  if (!superClass.IsNull()) {
+    jsobj.AddProperty("super", superClass);
+  }
   jsobj.AddProperty("library", Object::Handle(library()));
   const Script& script = Script::Handle(this->script());
   if (!script.IsNull()) {
@@ -4004,7 +4008,7 @@ const char* UnresolvedClass::ToCString() const {
 
 
 void UnresolvedClass::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -4037,7 +4041,7 @@ RawString* TypeArguments::SubvectorName(intptr_t from_index,
                                         NameVisibility name_visibility) const {
   ASSERT(from_index + len <= Length());
   String& name = String::Handle();
-  const intptr_t num_strings = 2*len + 1;  // "<""T"", ""T"">".
+  const intptr_t num_strings = (len == 0) ? 2 : 2*len + 1;  // "<""T"", ""T"">".
   const Array& strings = Array::Handle(Array::New(num_strings));
   intptr_t s = 0;
   strings.SetAt(s++, Symbols::LAngleBracket());
@@ -4714,7 +4718,7 @@ const char* PatchClass::ToCString() const {
 
 
 void PatchClass::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -6326,11 +6330,19 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
     id = cls.FindFunctionIndex(*this);
     selector = "functions";
   }
-  ASSERT(id >= 0);
   intptr_t cid = cls.id();
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
-  jsobj.AddPropertyF("id", "classes/%" Pd "/%s/%" Pd "", cid, selector, id);
+  // TODO(17697): Oddball functions (functions without owners) use the object
+  // id ring. Current known examples are signature functions of closures
+  // and stubs like 'megamorphic_miss'.
+  if (id < 0) {
+    ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+    id = ring->GetIdForObject(raw());
+    jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  } else {
+    jsobj.AddPropertyF("id", "classes/%" Pd "/%s/%" Pd "", cid, selector, id);
+  }
   jsobj.AddProperty("name", internal_name);
   jsobj.AddProperty("user_name", user_name);
   jsobj.AddProperty("class", cls);
@@ -6393,7 +6405,7 @@ const char* ClosureData::ToCString() const {
 
 
 void ClosureData::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -6428,7 +6440,7 @@ const char* RedirectionData::ToCString() const {
 
 
 void RedirectionData::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -6900,7 +6912,7 @@ const char* LiteralToken::ToCString() const {
 
 
 void LiteralToken::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -7345,7 +7357,7 @@ const char* TokenStream::ToCString() const {
 
 
 void TokenStream::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -9209,7 +9221,7 @@ const char* LibraryPrefix::ToCString() const {
 
 
 void LibraryPrefix::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -9263,7 +9275,7 @@ const char* Namespace::ToCString() const {
 
 
 void Namespace::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -9529,7 +9541,7 @@ const char* Instructions::ToCString() const {
 
 
 void Instructions::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -9683,7 +9695,7 @@ const char* PcDescriptors::ToCString() const {
 
 
 void PcDescriptors::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -9838,7 +9850,7 @@ const char* Stackmap::ToCString() const {
 
 
 void Stackmap::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -9908,7 +9920,7 @@ const char* LocalVarDescriptors::ToCString() const {
 
 void LocalVarDescriptors::PrintToJSONStream(JSONStream* stream,
                                             bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -10092,7 +10104,7 @@ const char* ExceptionHandlers::ToCString() const {
 
 void ExceptionHandlers::PrintToJSONStream(JSONStream* stream,
                                           bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -10209,7 +10221,7 @@ bool DeoptInfo::VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
 
 
 void DeoptInfo::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -10907,7 +10919,7 @@ const char* Context::ToCString() const {
 
 
 void Context::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -11026,7 +11038,7 @@ const char* ContextScope::ToCString() const {
 
 
 void ContextScope::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -11500,7 +11512,7 @@ RawICData* ICData::New(const Function& function,
 
 
 void ICData::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -11616,7 +11628,7 @@ const char* MegamorphicCache::ToCString() const {
 
 
 void MegamorphicCache::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -11692,7 +11704,7 @@ const char* SubtypeTestCache::ToCString() const {
 
 
 void SubtypeTestCache::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Object::PrintToJSONStream(stream, ref);
 }
 
 
@@ -13481,6 +13493,10 @@ const char* Type::ToCString() const {
 
 
 void Type::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  // TODO(koda): Decide whether to assign stable ids to non-canonical types.
+  if (!IsCanonical()) {
+    return Object::PrintToJSONStream(stream, ref);
+  }
   ASSERT(IsCanonical());
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
@@ -16283,6 +16299,38 @@ RawOneByteString* OneByteString::New(const String& other_one_byte_string,
 }
 
 
+RawOneByteString* OneByteString::New(const TypedData& other_typed_data,
+                                     intptr_t other_start_index,
+                                     intptr_t other_len,
+                                     Heap::Space space) {
+  const String& result = String::Handle(OneByteString::New(other_len, space));
+  ASSERT(other_typed_data.ElementSizeInBytes() == 1);
+  if (other_len > 0) {
+    NoGCScope no_gc;
+    memmove(OneByteString::CharAddr(result, 0),
+            other_typed_data.DataAddr(other_start_index),
+            other_len);
+  }
+  return OneByteString::raw(result);
+}
+
+
+RawOneByteString* OneByteString::New(const ExternalTypedData& other_typed_data,
+                                     intptr_t other_start_index,
+                                     intptr_t other_len,
+                                     Heap::Space space) {
+  const String& result = String::Handle(OneByteString::New(other_len, space));
+  ASSERT(other_typed_data.ElementSizeInBytes() == 1);
+  if (other_len > 0) {
+    NoGCScope no_gc;
+    memmove(OneByteString::CharAddr(result, 0),
+            other_typed_data.DataAddr(other_start_index),
+            other_len);
+  }
+  return OneByteString::raw(result);
+}
+
+
 RawOneByteString* OneByteString::Concat(const String& str1,
                                         const String& str2,
                                         Heap::Space space) {
@@ -16756,9 +16804,8 @@ void Array::PrintToJSONStream(JSONStream* stream, bool ref) const {
       JSONObject jselement(&jsarr);
       jselement.AddProperty("index", index);
 
-      Instance& instance = Instance::Handle();
-      instance ^= At(index);
-      jselement.AddProperty("value", instance);
+      Object& element = Object::Handle(At(index));
+      jselement.AddProperty("value", element);
     }
   }
 }
@@ -17096,9 +17143,8 @@ void GrowableObjectArray::PrintToJSONStream(JSONStream* stream,
       JSONObject jselement(&jsarr);
       jselement.AddProperty("index", index);
 
-      Instance& instance = Instance::Handle();
-      instance ^= At(index);
-      jselement.AddProperty("value", instance);
+      Object& element = Object::Handle(At(index));
+      jselement.AddProperty("value", element);
     }
   }
 }

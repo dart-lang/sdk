@@ -124,7 +124,7 @@ class MemberListener extends NodeListener {
     ElementKind kind = ElementKind.FUNCTION;
     if (isConstructor) {
       if (getOrSet != null) {
-        recoverableError('illegal modifier', token: getOrSet);
+        recoverableError(getOrSet, 'illegal modifier');
       }
       kind = ElementKind.GENERATIVE_CONSTRUCTOR;
     } else if (getOrSet != null) {

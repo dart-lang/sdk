@@ -4,10 +4,8 @@
 
 library unittest.utils;
 
-/**
- * Returns the name of the type of [x], or "Unknown" if the type name can't be
- * determined.
- */
+/// Returns the name of the type of [x], or "Unknown" if the type name can't be
+/// determined.
 String typeName(x) {
   // dart2js blows up on some objects (e.g. window.navigator).
   // So we play safe here.
@@ -22,17 +20,15 @@ String typeName(x) {
   }
 }
 
-/**
- * Returns [source] with any control characters replaced by their escape
- * sequences.
- *
- * This doesn't add quotes to the string, but it does escape single quote
- * characters so that single quotes can be applied externally.
- */
+/// Returns [source] with any control characters replaced by their escape
+/// sequences.
+///
+/// This doesn't add quotes to the string, but it does escape single quote
+/// characters so that single quotes can be applied externally.
 String escapeString(String source) =>
     source.split("").map(_escapeChar).join("");
 
-/** Return the escaped form of a character [ch]. */
+/// Return the escaped form of a character [ch].
 String _escapeChar(String ch) {
   if (ch == "'")
     return "\\'";
@@ -46,14 +42,14 @@ String _escapeChar(String ch) {
     return ch;
 }
 
-/** Indent each line in [str] by two spaces. */
+/// Indent each line in [str] by two spaces.
 String indent(String str) =>
   str.replaceAll(new RegExp("^", multiLine: true), "  ");
 
-/** A pair of values. */
+/// A pair of values.
 class Pair<E, F> {
-  E first;
-  F last;
+  final E first;
+  final F last;
 
   Pair(this.first, this.last);
 

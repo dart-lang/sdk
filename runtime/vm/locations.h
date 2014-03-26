@@ -394,8 +394,14 @@ class LocationSummary : public ZoneAllocated {
     kCallOnSlowPath
   };
 
+  // Defaults to 1 output.
   LocationSummary(intptr_t input_count,
                   intptr_t temp_count,
+                  LocationSummary::ContainsCall contains_call);
+
+  LocationSummary(intptr_t input_count,
+                  intptr_t temp_count,
+                  intptr_t output_count,
                   LocationSummary::ContainsCall contains_call);
 
   intptr_t input_count() const {
@@ -437,17 +443,21 @@ class LocationSummary : public ZoneAllocated {
     temp_locations_.Add(loc);
   }
 
-  Location out() const {
-    return output_location_;
+  intptr_t output_count() const {
+    return output_locations_.length();
   }
 
-  Location* out_slot() {
-    return &output_location_;
+  Location out(intptr_t index) const {
+    return output_locations_[index];
   }
 
-  void set_out(Location loc) {
+  Location* out_slot(intptr_t index) {
+    return &output_locations_[index];
+  }
+
+  void set_out(intptr_t index, Location loc) {
     ASSERT(!always_calls() || (loc.IsMachineRegister() || loc.IsInvalid()));
-    output_location_ = loc;
+    output_locations_[index] = loc;
   }
 
   BitmapBuilder* stack_bitmap() const { return stack_bitmap_; }
@@ -471,10 +481,10 @@ class LocationSummary : public ZoneAllocated {
   }
 
  private:
-  // TODO(vegorov): replace with ZoneArray.
-  GrowableArray<Location> input_locations_;
-  GrowableArray<Location> temp_locations_;
-  Location output_location_;
+  ZoneGrowableArray<Location> input_locations_;
+  ZoneGrowableArray<Location> temp_locations_;
+  ZoneGrowableArray<Location> output_locations_;
+
   BitmapBuilder* stack_bitmap_;
 
   const ContainsCall contains_call_;

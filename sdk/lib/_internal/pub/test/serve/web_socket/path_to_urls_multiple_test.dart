@@ -30,25 +30,19 @@ main() {
 
     pubServe(args: ["web", path.join("web", "sub"), "test"]);
 
-    schedule(() {
-      expectWebSocketCall({
-        "command": "pathToUrls",
-        "path": path.join("web", "index.html")
-      }, replyEquals: {
-        "urls": [
-          getServerUrl("web", "index.html")
-        ]
-      });
+    expectWebSocketResult("pathToUrls", {
+      "path": path.join("web", "index.html")
+    }, {
+      "urls": [getServerUrl("web", "index.html")]
+    });
 
-      expectWebSocketCall({
-        "command": "pathToUrls",
-        "path": path.join("web", "sub", "bar.html")
-      }, replyEquals: {
-        "urls": [
-          getServerUrl("web", "sub/bar.html"),
-          getServerUrl(path.join("web", "sub"), "bar.html")
-        ]
-      });
+    expectWebSocketResult("pathToUrls", {
+      "path": path.join("web", "sub", "bar.html")
+    }, {
+      "urls": [
+        getServerUrl("web", "sub/bar.html"),
+        getServerUrl(path.join("web", "sub"), "bar.html")
+      ]
     });
 
     endPubServe();

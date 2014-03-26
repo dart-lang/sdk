@@ -305,6 +305,7 @@ class ObjectPointerVisitor;
   V(_LocalMirrorSystem, "_LocalMirrorSystem")                                  \
   V(_LocalTypedefMirror, "_LocalTypedefMirror")                                \
   V(_LocalTypeVariableMirror, "_LocalTypeVariableMirror")                      \
+  V(_SourceLocation, "_SourceLocation")                                        \
   V(hashCode, "get:hashCode")                                                  \
   V(_leftShiftWithMask32, "_leftShiftWithMask32")                              \
   V(OptimizedOut, "<optimized out>")                                           \

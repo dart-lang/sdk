@@ -1,5 +1,10 @@
 name: observatory
-version: 0.1.1
+version: 0.1.9
 dependencies:
   polymer: any
   logging: any
+transformers:
+- polymer:
+    entry_points: 
+      - web/index.html
+      - web/index_devtools.html

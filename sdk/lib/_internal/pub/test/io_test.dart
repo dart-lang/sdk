@@ -17,37 +17,6 @@ main() {
   initConfig();
 
   group('listDir', () {
-    test('lists a simple directory non-recursively', () {
-      expect(withTempDir((temp) {
-        writeTextFile(path.join(temp, 'file1.txt'), '');
-        writeTextFile(path.join(temp, 'file2.txt'), '');
-        createDir(path.join(temp, 'subdir'));
-        writeTextFile(path.join(temp, 'subdir', 'file3.txt'), '');
-
-        expect(listDir(temp), unorderedEquals([
-          path.join(temp, 'file1.txt'),
-          path.join(temp, 'file2.txt'),
-          path.join(temp, 'subdir')
-        ]));
-      }), completes);
-    });
-
-    test('lists a simple directory recursively', () {
-      expect(withTempDir((temp) {
-        writeTextFile(path.join(temp, 'file1.txt'), '');
-        writeTextFile(path.join(temp, 'file2.txt'), '');
-        createDir(path.join(temp, 'subdir'));
-        writeTextFile(path.join(temp, 'subdir', 'file3.txt'), '');
-
-        expect(listDir(temp, recursive: true), unorderedEquals([
-          path.join(temp, 'file1.txt'),
-          path.join(temp, 'file2.txt'),
-          path.join(temp, 'subdir'),
-          path.join(temp, 'subdir', 'file3.txt'),
-        ]));
-      }), completes);
-    });
-
     test('ignores hidden files by default', () {
       expect(withTempDir((temp) {
         writeTextFile(path.join(temp, 'file1.txt'), '');
@@ -78,58 +47,6 @@ main() {
           path.join(temp, '.file3.txt'),
           path.join(temp, '.subdir'),
           path.join(temp, '.subdir', 'file3.txt')
-        ]));
-      }), completes);
-    });
-
-    test('returns the unresolved paths for symlinks', () {
-      expect(withTempDir((temp) {
-        var dirToList = path.join(temp, 'dir-to-list');
-        createDir(path.join(temp, 'dir1'));
-        writeTextFile(path.join(temp, 'dir1', 'file1.txt'), '');
-        createDir(path.join(temp, 'dir2'));
-        writeTextFile(path.join(temp, 'dir2', 'file2.txt'), '');
-        createDir(dirToList);
-        createSymlink(
-            path.join(temp, 'dir1'),
-            path.join(dirToList, 'linked-dir1'));
-        createDir(path.join(dirToList, 'subdir'));
-        createSymlink(
-            path.join(temp, 'dir2'),
-            path.join(dirToList, 'subdir', 'linked-dir2'));
-
-        expect(listDir(dirToList, recursive: true), unorderedEquals([
-          path.join(dirToList, 'linked-dir1'),
-          path.join(dirToList, 'linked-dir1', 'file1.txt'),
-          path.join(dirToList, 'subdir'),
-          path.join(dirToList, 'subdir', 'linked-dir2'),
-          path.join(dirToList, 'subdir', 'linked-dir2', 'file2.txt'),
-        ]));
-      }), completes);
-    });
-
-    test('works with recursive symlinks', () {
-      expect(withTempDir((temp) {
-        writeTextFile(path.join(temp, 'file1.txt'), '');
-        createSymlink(temp, path.join(temp, 'linkdir'));
-
-        expect(listDir(temp, recursive: true), unorderedEquals([
-          path.join(temp, 'file1.txt'),
-          path.join(temp, 'linkdir')
-        ]));
-      }), completes);
-    });
-
-    test('treats a broken symlink as a file', () {
-      expect(withTempDir((temp) {
-        writeTextFile(path.join(temp, 'file1.txt'), '');
-        createDir(path.join(temp, 'dir'));
-        createSymlink(path.join(temp, 'dir'), path.join(temp, 'linkdir'));
-        deleteEntry(path.join(temp, 'dir'));
-
-        expect(listDir(temp, recursive: true), unorderedEquals([
-          path.join(temp, 'file1.txt'),
-          path.join(temp, 'linkdir')
         ]));
       }), completes);
     });

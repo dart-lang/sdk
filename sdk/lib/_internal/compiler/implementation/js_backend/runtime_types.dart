@@ -721,7 +721,8 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
   }
 
   visitType(DartType type, _) {
-    compiler.internalError('Unexpected type: $type (${type.kind})');
+    compiler.internalError(NO_LOCATION_SPANNABLE,
+        'Unexpected type: $type (${type.kind}).');
   }
 }
 

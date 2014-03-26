@@ -29,8 +29,7 @@ class MetadataEmitter extends CodeEmitterHelper {
           MetadataAnnotation annotation = link.head;
           Constant value = annotation.value;
           if (value == null) {
-            compiler.reportInternalError(annotation,
-                MessageKind.GENERIC, {'text': 'Annotation value is null'});
+            compiler.internalError(annotation, 'Annotation value is null.');
           } else {
             metadata.add(task.constantReference(value));
           }
@@ -61,8 +60,7 @@ class MetadataEmitter extends CodeEmitterHelper {
   int reifyMetadata(MetadataAnnotation annotation) {
     Constant value = annotation.value;
     if (value == null) {
-      compiler.reportInternalError(annotation,
-          MessageKind.GENERIC, {'text': 'Annotation value is null'});
+      compiler.internalError(annotation, 'Annotation value is null.');
       return -1;
     }
     return addGlobalMetadata(

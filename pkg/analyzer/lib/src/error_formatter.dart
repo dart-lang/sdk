@@ -9,23 +9,32 @@ import 'generated/error.dart';
 import 'generated/source_io.dart';
 import '../options.dart';
 
+/// Returns `true` if [AnalysisError] should be printed.
+typedef bool _ErrorFilter(AnalysisError error);
+
+/// Allows any [AnalysisError].
+bool _anyError(AnalysisError error) => true;
+
 /**
  * Helper for formatting [AnalysisError]s.
  * The two format options are a user consumable format and a machine consumable format.
  */
 class ErrorFormatter {
-  StringSink out;
-  CommandLineOptions options;
+  final StringSink out;
+  final CommandLineOptions options;
+  final _ErrorFilter errorFilter;
 
-  ErrorFormatter(this.out, this.options);
+  ErrorFormatter(this.out, this.options, [this.errorFilter = _anyError]);
 
   void formatErrors(List<AnalysisErrorInfo> errorInfos) {
     var errors = new List<AnalysisError>();
     var errorToLine = new Map<AnalysisError, LineInfo>();
     for (AnalysisErrorInfo errorInfo in errorInfos) {
       for (AnalysisError error in errorInfo.errors) {
-        errors.add(error);
-        errorToLine[error] = errorInfo.lineInfo;
+        if (errorFilter(error)) {
+          errors.add(error);
+          errorToLine[error] = errorInfo.lineInfo;
+        }
       }
     }
     // sort errors

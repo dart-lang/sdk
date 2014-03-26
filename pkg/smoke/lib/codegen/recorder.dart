@@ -172,7 +172,7 @@ class Recorder {
       generator.addDeclaration(id, name,
           _typeFor(f.type.element), isField: true, isFinal: f.isFinal,
           isStatic: f.isStatic, annotations: _copyAnnotations(f));
-      if (includeAccessors) _addAccessors(name, !f.isFinal);
+      if (includeAccessors && !f.isStatic) _addAccessors(name, !f.isFinal);
       return true;
     }
 
@@ -187,7 +187,7 @@ class Recorder {
           _typeFor(a.type.returnType.element), isProperty: true,
           isFinal: v.isFinal, isStatic: a.isStatic,
           annotations: _copyAnnotations(a));
-      if (includeAccessors) _addAccessors(name, !v.isFinal);
+      if (includeAccessors && !v.isStatic) _addAccessors(name, !v.isFinal);
       return true;
     }
 
@@ -196,7 +196,14 @@ class Recorder {
       generator.addDeclaration(id, name,
           new TypeIdentifier('dart:core', 'Function'), isMethod: true,
           isStatic: m.isStatic, annotations: _copyAnnotations(m));
-      if (includeAccessors) _addAccessors(name, false);
+      if (includeAccessors) {
+        if (m.isStatic) {
+          generator.addStaticMethod(id, name);
+          generator.addSymbol(name);
+        } else {
+          _addAccessors(name, false);
+        }
+      }
       return true;
     }
 
@@ -220,6 +227,10 @@ class Recorder {
     return false;
   }
 
+  /// Add information so smoke can invoke the static method [type].[name].
+  void addStaticMethod(ClassElement type, String name) {
+    generator.addStaticMethod(_typeFor(type), name);
+  }
 
   /// Adds [name] as a symbol, a getter, and optionally a setter in [generator].
   _addAccessors(String name, bool includeSetter) {

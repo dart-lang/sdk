@@ -7,11 +7,6 @@ library polymer_expressions.eval;
 import 'dart:async';
 import 'dart:collection';
 
-@MirrorsUsed(
-    metaTargets: const [Reflectable, ObservableProperty],
-    override: 'smoke.mirrors')
-import 'dart:mirrors' show MirrorsUsed;
-
 import 'package:observe/observe.dart';
 import 'package:smoke/smoke.dart' as smoke;
 
@@ -147,73 +142,126 @@ void assign(Expression expr, Object value, Scope scope) {
   }
 }
 
-/**
- * A mapping of names to objects. Scopes contain a set of named [variables] and
- * a single [model] object (which can be thought of as the "this" reference).
- * Names are currently looked up in [variables] first, then the [model].
- *
- * Scopes can be nested by giving them a [parent]. If a name in not found in a
- * Scope, it will look for it in it's parent.
- */
-class Scope {
-  final Scope parent;
-  final Object model;
-  // TODO(justinfagnani): disallow adding/removing names
-  final ObservableMap<String, Object> _variables;
 
-  Scope({this.model, Map<String, Object> variables, this.parent})
-      : _variables = new ObservableMap.from(variables == null ? {} : variables);
+/**
+ * A scope in polymer expressions that can map names to objects. Scopes contain
+ * a set of named variables and a unique model object. The scope structure
+ * is then used to lookup names using the `[]` operator. The lookup first
+ * searches for the name in local variables, then in global variables,
+ * and then finally looks up the name as a property in the model.
+ */
+abstract class Scope {
+  Scope._();
+
+  /** Create a scope containing a [model] and all of [variables]. */
+  factory Scope({Object model, Map<String, Object> variables}) {
+    var scope = new _ModelScope(model);
+    return variables == null ? scope
+        : new _GlobalsScope(new Map<String, Object>.from(variables), scope);
+  }
+
+  /** Return the unique model in this scope. */
+  Object get model;
+
+  /**
+   * Lookup the value of [name] in the current scope. If [name] is 'this', then
+   * we return the [model]. For any other name, this finds the first variable
+   * matching [name] or, if none exists, the property [name] in the [model].
+   */
+  Object operator[](String name);
+
+  /**
+   * Returns whether [name] is defined in [model], that is, a lookup
+   * would not find a variable with that name, but there is a non-null model
+   * where we can look it up as a property.
+   */
+  bool _isModelProperty(String name);
+
+  /** Create a new scope extending this scope with an additional variable. */
+  Scope childScope(String name, Object value) =>
+      new _LocalVariableScope(name, value, this);
+}
+
+/**
+ * A scope that looks up names in a model object. This kind of scope has no
+ * parent scope because all our lookup operations stop when we reach the model
+ * object. Any variables added in scope or global variables are added as child
+ * scopes.
+ */
+class _ModelScope extends Scope {
+  final Object model;
+
+  _ModelScope(this.model) : super._();
 
   Object operator[](String name) {
-    if (name == 'this') {
-      return model;
-    } else if (_variables.containsKey(name)) {
-      return _convert(_variables[name]);
-    } else {
-      var symbol = smoke.nameToSymbol(name);
-      if (model != null && smoke.hasGetter(model.runtimeType, symbol)) {
-        return _convert(smoke.read(model, symbol));
-      }
-    }
-    if (parent != null) {
-      return _convert(parent[name]);
-    } else {
+    if (name == 'this') return model;
+    var symbol = smoke.nameToSymbol(name);
+    if (model == null || symbol == null) {
       throw new EvalException("variable '$name' not found");
     }
+    return _convert(smoke.read(model, symbol));
   }
 
-  Object ownerOf(String name) {
-    if (name == 'this') {
-      // we could return the Scope if it were Observable, but since assigning
-      // a model to a template destroys and recreates the instance, it doesn't
-      // seem neccessary
-      return null;
-    } else if (_variables.containsKey(name)) {
-      return _variables;
-    } else if (smoke.hasGetter(model.runtimeType, smoke.nameToSymbol(name))) {
-      return model;
-    }
-    if (parent != null) {
-      return parent.ownerOf(name);
+  Object _isModelProperty(String name) => name != 'this';
+}
+
+/**
+ * A scope that holds a reference to a single variable. Polymer expressions
+ * introduce variables to the scope one at a time. Each time a variable is
+ * added, a new [_LocalVariableScope] is created.
+ */
+class _LocalVariableScope extends Scope {
+  final Scope parent;
+  final String varName;
+  // TODO(sigmund,justinfagnani): make this @observable?
+  final Object value;
+
+  _LocalVariableScope(this.varName, this.value, this.parent) : super._() {
+    if (varName == 'this') {
+      throw new EvalException("'this' cannot be used as a variable name.");
     }
   }
 
-  bool contains(String name) {
-    if (_variables.containsKey(name) ||
-        smoke.hasGetter(model.runtimeType, smoke.nameToSymbol(name))) {
-      return true;
-    }
-    if (parent != null) {
-      return parent.contains(name);
-    }
-    return false;
+  Object get model => parent != null ? parent.model : null;
+
+  Object operator[](String name) {
+    if (varName == name) return _convert(value);
+    if (parent != null) return parent[name];
+    throw new EvalException("variable '$name' not found");
+  }
+
+  bool _isModelProperty(String name) {
+    if (varName == name) return false;
+    return parent == null ? false : parent._isModelProperty(name);
   }
 }
 
-Object _convert(v) {
-  if (v is Stream) return new StreamBinding(v);
-  return v;
+/** A scope that holds a reference to a global variables. */
+class _GlobalsScope extends Scope {
+  final _ModelScope parent;
+  final Map<String, Object> variables;
+
+  _GlobalsScope(this.variables, this.parent) : super._() {
+    if (variables.containsKey('this')) {
+      throw new EvalException("'this' cannot be used as a variable name.");
+    }
+  }
+
+  Object get model => parent != null ? parent.model : null;
+
+  Object operator[](String name) {
+    if (variables.containsKey(name)) return _convert(variables[name]);
+    if (parent != null) return parent[name];
+    throw new EvalException("variable '$name' not found");
+  }
+
+  bool _isModelProperty(String name) {
+    if (variables.containsKey(name)) return false;
+    return parent == null ? false : parent._isModelProperty(name);
+  }
 }
+
+Object _convert(v) => v is Stream ? new StreamBinding(v) : v;
 
 abstract class ExpressionObserver<E extends Expression> implements Expression {
   final E _expr;
@@ -456,16 +504,15 @@ class IdentifierObserver extends ExpressionObserver<Identifier>
   _updateSelf(Scope scope) {
     _value = scope[value];
 
-    var owner = scope.ownerOf(value);
-    if (owner is Observable) {
-      var symbol = smoke.nameToSymbol(value);
-      _subscription = (owner as Observable).changes.listen((changes) {
-        if (changes.any(
-            (c) => c is PropertyChangeRecord && c.name == symbol)) {
-          _invalidate(scope);
-        }
-      });
-    }
+    if (!scope._isModelProperty(value)) return;
+    var model = scope.model;
+    if (model is! Observable) return;
+    var symbol = smoke.nameToSymbol(value);
+    _subscription = (model as Observable).changes.listen((changes) {
+      if (changes.any((c) => c is PropertyChangeRecord && c.name == symbol)) {
+        _invalidate(scope);
+      }
+    });
   }
 
   accept(Visitor v) => v.visitIdentifier(this);

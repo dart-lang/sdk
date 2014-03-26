@@ -1801,17 +1801,17 @@ abstract class LibraryDependency extends LibraryTag {
 class Import extends LibraryDependency {
   final Identifier prefix;
   final Token importKeyword;
+  final bool isDeferred;
 
   Import(this.importKeyword, StringNode uri,
          this.prefix, NodeList combinators,
-         Link<MetadataAnnotation> metadata)
+         Link<MetadataAnnotation> metadata,
+         {this.isDeferred})
       : super(uri, combinators, metadata);
 
   bool get isImport => true;
 
   Import asImport() => this;
-
-  Token get asKeyword => prefix == null ? null : uri.getEndToken().next;
 
   accept(Visitor visitor) => visitor.visitImport(this);
 

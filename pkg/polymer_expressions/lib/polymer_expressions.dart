@@ -30,7 +30,6 @@ library polymer_expressions;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:logging/logging.dart';
 import 'package:observe/observe.dart';
 import 'package:template_binding/template_binding.dart';
 
@@ -38,8 +37,6 @@ import 'eval.dart';
 import 'expression.dart';
 import 'parser.dart';
 import 'src/globals.dart';
-
-final Logger _logger = new Logger('polymer_expressions');
 
 // TODO(justin): Investigate XSS protection
 Object _classAttributeConverter(v) =>
@@ -64,7 +61,7 @@ class PolymerExpressions extends BindingDelegate {
    * [DEFAULT_GLOBALS] will be used.
    */
   PolymerExpressions({Map<String, Object> globals})
-      : globals = (globals == null) ?
+      : globals = globals == null ?
           new Map<String, Object>.from(DEFAULT_GLOBALS) : globals;
 
   prepareBinding(String path, name, node) {
@@ -118,10 +115,11 @@ class _Binding extends Bindable {
   static _oneTime(Expression expr, Scope scope, [converter]) {
     try {
       return _convertValue(eval(expr, scope), scope, converter);
-    } on EvalException catch (e) {
-      _logger.warning("Error evaluating expression '$expr': ${e.message}");
-      return null;
+    } catch (e, s) {
+      new Completer().completeError(
+          "Error evaluating expression '$expr': $e", s);
     }
+    return null;
   }
 
   _setValue(v) {
@@ -133,12 +131,8 @@ class _Binding extends Bindable {
     if (v is Comprehension) {
       // convert the Comprehension into a list of scopes with the loop
       // variable added to the scope
-      return v.iterable.map((i) {
-        var vars = new Map();
-        vars[v.identifier] = i;
-        Scope childScope = new Scope(parent: scope, variables: vars);
-        return childScope;
-      }).toList(growable: false);
+      return v.iterable.map((i) => scope.childScope(v.identifier, i))
+          .toList(growable: false);
     } else {
       return converter == null ? v : converter(v);
     }
@@ -152,8 +146,9 @@ class _Binding extends Bindable {
   set value(v) {
     try {
       assign(_expr, v, _scope);
-    } on EvalException catch (e) {
-      _logger.warning("Error evaluating expression '$_expr': ${e.message}");
+    } catch (e, s) {
+      new Completer().completeError(
+          "Error evaluating expression '$_expr': $e", s);
     }
   }
 
@@ -163,14 +158,16 @@ class _Binding extends Bindable {
     _callback = callback;
     final expr = observe(_expr, _scope);
     _expr = expr;
-    _sub = expr.onUpdate.listen(_setValue)..onError((e) {
-      _logger.warning("Error evaluating expression '$_expr': ${e.message}");
+    _sub = expr.onUpdate.listen(_setValue)..onError((e, s) {
+      new Completer().completeError(
+          "Error evaluating expression '$expr': $e", s);
     });
     try {
       update(expr, _scope);
       _value = _convertValue(expr.currentValue, _scope, _converter);
-    } on EvalException catch (e) {
-      _logger.warning("Error evaluating expression '$_expr': ${e.message}");
+    } catch (e, s) {
+      new Completer().completeError(
+          "Error evaluating expression '$expr': $e", s);
     }
     return _value;
   }

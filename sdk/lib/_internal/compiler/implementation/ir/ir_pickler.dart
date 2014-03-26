@@ -11,7 +11,7 @@ import '../dart2jslib.dart' show
     InterceptorConstant, DummyConstant, FunctionConstant, TypeConstant,
     ConstructedConstant,
     ConstantVisitor, ConstantSystem,
-    Compiler;
+    Compiler, NO_LOCATION_SPANNABLE;
 import 'dart:typed_data' show ByteData, Endianness, Uint8List;
 import 'dart:convert' show UTF8;
 import '../tree/tree.dart' as ast show
@@ -364,10 +364,10 @@ class Pickler extends ir.Visitor {
     node.body.accept(this);
   }
 
-  void visitLetVal(ir.LetVal node) {
-    node.value.accept(this);
+  void visitLetPrim(ir.LetPrim node) {
+    node.primitive.accept(this);
     // The right-hand side is bound in the body.
-    recordForBackReference(node.value);
+    recordForBackReference(node.primitive);
     node.body.accept(this);
   }
 

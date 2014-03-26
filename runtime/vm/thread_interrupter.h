@@ -61,6 +61,9 @@ class ThreadInterrupter : public AllStatic {
   // Get the current thread state. Will not create one if one doesn't exist.
   static InterruptableThreadState* CurrentThreadState();
 
+  // Interrupt a thread.
+  static void InterruptThread(InterruptableThreadState* thread_state);
+
  private:
   static const intptr_t kMaxThreads = 4096;
   static bool initialized_;
@@ -76,7 +79,6 @@ class ThreadInterrupter : public AllStatic {
 
   static void SetCurrentThreadState(InterruptableThreadState* state);
 
-  static void InterruptThread(InterruptableThreadState* thread_state);
   static void ThreadMain(uword parameters);
 
   static void InstallSignalHandler();

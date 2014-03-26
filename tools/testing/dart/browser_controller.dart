@@ -80,7 +80,8 @@ abstract class Browser {
   }
 
   static const List<String> SUPPORTED_BROWSERS =
-    const ['safari', 'ff', 'firefox', 'chrome', 'ie9', 'ie10', 'dartium'];
+    const ['safari', 'ff', 'firefox', 'chrome', 'ie9', 'ie10',
+           'ie11', 'dartium'];
 
   static const List<String> BROWSERS_WITH_WINDOW_SUPPORT = const [];
 
@@ -463,7 +464,7 @@ class IE extends Browser {
     var args = ["query",
                 "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Internet Explorer",
                 "/v",
-                "version"];
+                "svcVersion"];
     return Process.run("reg", args).then((result) {
       if (result.exitCode == 0) {
         // The string we get back looks like this:

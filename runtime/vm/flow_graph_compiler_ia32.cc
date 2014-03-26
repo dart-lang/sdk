@@ -734,7 +734,7 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
   }
   Definition* defn = instr->AsDefinition();
   if ((defn != NULL) && defn->is_used()) {
-    Location value = defn->locs()->out();
+    Location value = defn->locs()->out(0);
     if (value.IsRegister()) {
       __ pushl(value.reg());
     } else {

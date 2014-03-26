@@ -23,6 +23,7 @@
 namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
+DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(bool, enable_type_checks);
@@ -40,7 +41,7 @@ FlowGraphCompiler::~FlowGraphCompiler() {
 
 
 bool FlowGraphCompiler::SupportsUnboxedMints() {
-  return false;
+  return TargetCPUFeatures::neon_supported() && FLAG_unbox_mints;
 }
 
 
@@ -710,7 +711,7 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
   }
   Definition* defn = instr->AsDefinition();
   if ((defn != NULL) && defn->is_used()) {
-    __ Push(defn->locs()->out().reg());
+    __ Push(defn->locs()->out(0).reg());
   }
 }
 
@@ -1612,12 +1613,8 @@ void ParallelMoveResolver::EmitMove(int index) {
       } else {
         ASSERT(destination.IsQuadStackSlot());
         const intptr_t dest_offset = destination.ToStackSlotOffset();
-        DRegister dsrc0 = EvenDRegisterOf(source.fpu_reg());
-        DRegister dsrc1 = OddDRegisterOf(source.fpu_reg());
-        // TODO(zra): Write and use {Load,Store}Q{From,To}Offset(), which can
-        // use a single vld1/vst1 instruction.
-        __ StoreDToOffset(dsrc0, FP, dest_offset);
-        __ StoreDToOffset(dsrc1, FP, dest_offset + 2*kWordSize);
+        const DRegister dsrc0 = EvenDRegisterOf(source.fpu_reg());
+        __ StoreMultipleDToOffset(dsrc0, 2, FP, dest_offset);
       }
     }
   } else if (source.IsDoubleStackSlot()) {
@@ -1635,20 +1632,15 @@ void ParallelMoveResolver::EmitMove(int index) {
   } else if (source.IsQuadStackSlot()) {
     if (destination.IsFpuRegister()) {
       const intptr_t dest_offset = source.ToStackSlotOffset();
-      DRegister dst0 = EvenDRegisterOf(destination.fpu_reg());
-      DRegister dst1 = OddDRegisterOf(destination.fpu_reg());
-      __ LoadDFromOffset(dst0, FP, dest_offset);
-      __ LoadDFromOffset(dst1, FP, dest_offset + 2*kWordSize);
+      const DRegister dst0 = EvenDRegisterOf(destination.fpu_reg());
+      __ LoadMultipleDFromOffset(dst0, 2, FP, dest_offset);
     } else {
       ASSERT(destination.IsQuadStackSlot());
       const intptr_t source_offset = source.ToStackSlotOffset();
       const intptr_t dest_offset = destination.ToStackSlotOffset();
-      DRegister dtmp0 = DTMP;
-      DRegister dtmp1 = OddDRegisterOf(QTMP);
-      __ LoadDFromOffset(dtmp0, FP, source_offset);
-      __ LoadDFromOffset(dtmp1, FP, source_offset + 2*kWordSize);
-      __ StoreDToOffset(dtmp0, FP, dest_offset);
-      __ StoreDToOffset(dtmp1, FP, dest_offset + 2*kWordSize);
+      const DRegister dtmp0 = DTMP;
+      __ LoadMultipleDFromOffset(dtmp0, 2, FP, source_offset);
+      __ StoreMultipleDToOffset(dtmp0, 2, FP, dest_offset);
     }
   } else {
     ASSERT(source.IsConstant());

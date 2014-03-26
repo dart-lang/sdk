@@ -285,7 +285,7 @@ class SqlTransaction extends Interceptor native "SQLTransaction" {
 
   @DomName('SQLTransaction.executeSql')
   @DocsEditable()
-  void executeSql(String sqlStatement, List arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) native;
+  void executeSql(String sqlStatement, List<Object> arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

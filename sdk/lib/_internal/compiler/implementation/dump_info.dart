@@ -235,9 +235,9 @@ class InfoDumpVisitor extends ElementVisitor<InfoNode> {
   InfoDumpVisitor(Compiler this.compiler);
 
   InfoNode visitElement(Element element) {
-    compiler.internalError("This element of kind ${element.kind} "
-        "does not support --dump-info",
-        token: element.position());
+    compiler.internalError(element,
+        "This element of kind ${element.kind} "
+        "does not support --dump-info");
     return null;
   }
 

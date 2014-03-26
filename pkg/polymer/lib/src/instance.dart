@@ -81,7 +81,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
 
   /// The one syntax to rule them all.
   static final BindingDelegate _polymerSyntax =
-      new _PolymerExpressionsWithEventDelegate();
+      new PolymerExpressionsWithEvents();
 
   static int _preparingElements = 0;
 
@@ -968,7 +968,10 @@ class _PropertyValue {
   _PropertyValue(this.oldValue);
 }
 
-class _PolymerExpressionsWithEventDelegate extends PolymerExpressions {
+class PolymerExpressionsWithEvents extends PolymerExpressions {
+  PolymerExpressionsWithEvents({Map<String, Object> globals})
+      : super(globals: globals);
+
   prepareBinding(String path, name, node) {
     if (_hasEventPrefix(name)) return Polymer.prepareBinding(path, name, node);
     return super.prepareBinding(path, name, node);

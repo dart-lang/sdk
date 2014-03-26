@@ -1,0 +1,10 @@
+# Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Not dart2js on chrome or drt.
+[ $compiler != dart2js || ($runtime != drt && $runtime != chrome) ]
+*: Skip
+
+[ $compiler == dart2js && ($runtime == drt || $runtime == chrome) ]
+paste_content_rewriting_test: Fail # http://dartbug.com/17726

@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * A test configuration that generates a compact 1-line progress bar. The bar is
- * updated in-place before and after each test is executed. If all test pass,
- * you should only see a couple lines in the terminal. If a test fails, the
- * failure is shown and the progress bar continues to be updated below it.
- */
+/// A test configuration that generates a compact 1-line progress bar. The bar
+/// is updated in-place before and after each test is executed. If all tests
+/// pass, only a couple of lines are printed in the terminal. If a test fails,
+/// the failure is shown and the progress bar continues to be updated below it.
 library unittest.compact_vm_config;
 
 import 'dart:async';

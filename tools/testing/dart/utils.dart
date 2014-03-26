@@ -213,6 +213,9 @@ class Locations {
         },
         'ie10': const {
           'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
+        }, 
+        'ie11': const {
+          'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
         }};
     browserLocations['ff'] = browserLocations['firefox'];
 

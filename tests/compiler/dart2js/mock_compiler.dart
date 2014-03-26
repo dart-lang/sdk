@@ -444,7 +444,7 @@ class MockCompiler extends Compiler {
   // The mock library doesn't need any patches.
   Uri resolvePatchUri(String dartLibraryName) => null;
 
-  Future<Script> readScript(Uri uri, [Element element, Node node]) {
+  Future<Script> readScript(Spannable node, Uri uri) {
     SourceFile sourceFile = sourceFiles[uri.toString()];
     if (sourceFile == null) throw new ArgumentError(uri);
     return new Future.value(new Script(uri, uri, sourceFile));

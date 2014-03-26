@@ -916,10 +916,10 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
     }
   }
 
-  if (locs->out().IsRegister()) {
+  if (locs->out(0).IsRegister()) {
     // Fixed output registers are allowed to overlap with
     // temps and inputs.
-    blocked_registers[locs->out().reg()] = true;
+    blocked_registers[locs->out(0).reg()] = true;
   }
 
   // Do not allocate known registers.
@@ -976,7 +976,7 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
     }
   }
 
-  Location result_location = locs->out();
+  Location result_location = locs->out(0);
   if (result_location.IsUnallocated()) {
     switch (result_location.policy()) {
       case Location::kAny:
@@ -993,7 +993,7 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
         UNREACHABLE();
         break;
     }
-    locs->set_out(result_location);
+    locs->set_out(0, result_location);
   }
 }
 

@@ -76,8 +76,6 @@ _removed_html_interfaces = [
   'DOMFileSystemSync', # Workers
   'DatabaseSync', # Workers
   'DataView', # Typed arrays
-  'DeprecatedStorageQuota',
-  'DeprecatedStorageInfo',
   'DirectoryEntrySync', # Workers
   'DirectoryReaderSync', # Workers
   'DocumentType',
@@ -313,7 +311,6 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Storage.removeItem',
   'Storage.setItem',
   'StorageEvent.initStorageEvent',
-  'StorageInfo.queryUsageAndQuota',
   'TextEvent.initTextEvent',
   'Touch.clientX',
   'Touch.clientY',
@@ -601,6 +598,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Element.setAttributeNode',
     'Element.setAttributeNodeNS',
     'Element.webkitCreateShadowRoot',
+    'Element.webkitMatchesSelector',
     'Element.webkitPseudo',
     'Element.webkitShadowRoot',
     '=Event.returnValue', # Only suppress on Event, allow for BeforeUnloadEvnt.

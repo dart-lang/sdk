@@ -48,12 +48,12 @@ abstract class ElementX implements Element {
   Modifiers get modifiers => Modifiers.EMPTY;
 
   Node parseNode(DiagnosticListener listener) {
-    listener.internalErrorOnElement(this, 'not implemented');
+    listener.internalError(this, 'Not implemented.');
     return null;
   }
 
   DartType computeType(Compiler compiler) {
-    compiler.internalError("$this.computeType.", token: position());
+    compiler.internalError(this, "$this.computeType.");
     return null;
   }
 
@@ -76,6 +76,7 @@ abstract class ElementX implements Element {
     return enclosingElement != null && enclosingElement.isClass();
   }
   bool isInstanceMember() => false;
+  bool isDeferredLoaderGetter() => false;
 
   bool isFactoryConstructor() => modifiers.isFactory();
   bool isGenerativeConstructor() =>
@@ -543,10 +544,13 @@ class ScopeX {
                    Element existing,
                    DiagnosticListener listener) {
     void reportError(Element other) {
-      // TODO(ahe): Do something similar to Resolver.reportErrorWithContext.
-      listener.cancel('duplicate definition of ${accessor.name}',
-                      element: accessor);
-      listener.cancel('existing definition', element: other);
+      listener.reportError(accessor,
+                           MessageKind.DUPLICATE_DEFINITION,
+                           {'name': accessor.name});
+      // TODO(johnniwinther): Make this an info instead of a fatal error.
+      listener.reportFatalError(other,
+                                MessageKind.EXISTING_DEFINITION,
+                                {'name': accessor.name});
     }
 
     if (existing != null) {
@@ -697,6 +701,12 @@ class ImportScope {
     Importers importers = library.importers;
 
     String name = element.name;
+
+    // The loadLibrary function always shadows existing bindings to that name.
+    if (element.isDeferredLoaderGetter()) {
+      importScope.remove(name);
+      // TODO(sigurdm): Print a hint.
+    }
     Element existing = importScope.putIfAbsent(name, () => element);
     importers.registerImport(element, import);
 
@@ -1026,7 +1036,11 @@ class PrefixElementX extends ElementX implements PrefixElement {
 
   final ImportScope importScope = new ImportScope();
 
-  bool isDeferred = false;
+  bool get isDeferred => _deferredImport != null;
+
+  // Only needed for deferred imports.
+  Import _deferredImport;
+  Import get deferredImport => _deferredImport;
 
   PrefixElementX(String prefix, Element enclosing, this.firstPosition)
       : super(prefix, ElementKind.PREFIX, enclosing);
@@ -1043,8 +1057,8 @@ class PrefixElementX extends ElementX implements PrefixElement {
 
   accept(ElementVisitor visitor) => visitor.visitPrefixElement(this);
 
-  void markAsDeferred() {
-    isDeferred = true;
+  void markAsDeferred(Import deferredImport) {
+    _deferredImport = deferredImport;
   }
 }
 
@@ -1187,8 +1201,8 @@ class VariableElementX extends ElementX with AnalyzableElement
       count++;
     }
     if (node == null) {
-      listener.cancel('internal error: could not find $name',
-                      node: definitions);
+      listener.internalError(definitions,
+                             "Could not find '$name'.");
     }
     if (count == 1) {
       definitionsCache = definitions;
@@ -1607,8 +1621,8 @@ class FunctionElementX extends ElementX with AnalyzableElement
   FunctionExpression parseNode(DiagnosticListener listener) {
     if (patch == null) {
       if (modifiers.isExternal()) {
-        listener.cancel("Compiling external function with no implementation.",
-                        element: this);
+        listener.internalError(this,
+            "Compiling external function with no implementation.");
       }
     }
     return cachedNode;
@@ -1650,6 +1664,44 @@ class FunctionElementX extends ElementX with AnalyzableElement
   accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
 }
 
+class DeferredLoaderGetterElementX extends FunctionElementX {
+
+  final PrefixElement prefix;
+
+  DeferredLoaderGetterElementX(PrefixElement prefix)
+      : this.prefix = prefix,
+        super("loadLibrary",
+              ElementKind.FUNCTION,
+              Modifiers.EMPTY,
+              prefix, true);
+
+  FunctionSignature computeSignature(Compiler compiler) {
+    if (functionSignatureCache != null) return functionSignature;
+    compiler.withCurrentElement(this, () {
+      DartType inner = new FunctionType(this, compiler.types.dynamicType);
+      functionSignatureCache = new FunctionSignatureX(const Link(),
+          const Link(), 0, 0, false, [], inner);
+    });
+    return functionSignatureCache;
+  }
+
+  bool isMember() => false;
+
+  bool isForeign(Compiler compiler) => true;
+
+  bool get isSynthesized => true;
+
+  bool isFunction() => false;
+
+  bool isDeferredLoaderGetter() => true;
+
+  bool isGetter() => true;
+
+  // By having position null, the enclosing elements location is printed in
+  // error messages.
+  Token position() => null;
+}
+
 class ConstructorBodyElementX extends FunctionElementX
     implements ConstructorBodyElement {
   FunctionElement constructor;
@@ -1666,7 +1718,7 @@ class ConstructorBodyElementX extends FunctionElementX
   bool isInstanceMember() => true;
 
   FunctionType computeType(Compiler compiler) {
-    compiler.internalErrorOnElement(this, '$this.computeType.');
+    compiler.internalError(this, '$this.computeType.');
     return null;
   }
 
@@ -2380,11 +2432,11 @@ class MixinApplicationElementX extends BaseClassElementX
   }
 
   void addMember(Element element, DiagnosticListener listener) {
-    throw new UnsupportedError("cannot add member to $this");
+    throw new UnsupportedError("Cannot add member to $this.");
   }
 
   void addToScope(Element element, DiagnosticListener listener) {
-    listener.internalError('cannot add to scope of $this', element: this);
+    listener.internalError(this, 'Cannot add to scope of $this.');
   }
 
   void addConstructor(FunctionElement constructor) {

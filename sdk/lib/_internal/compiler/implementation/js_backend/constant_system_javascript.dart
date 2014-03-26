@@ -56,15 +56,20 @@ class JavaScriptShiftRightOperation extends JavaScriptBinaryBitOperation {
       IntConstant intConstant = left;
       int value = intConstant.value;
       int truncatedValue = value & JAVA_SCRIPT_CONSTANT_SYSTEM.BITS32;
-      // TODO(floitsch): we should treat the input to right shifts as unsigned.
+      if (value < 0) {
+        // Sign-extend if the input was negative. The current semantics don't
+        // make much sense, since we only look at bit 31.
+        // TODO(floitsch): we should treat the input to right shifts as
+        // unsigned.
 
-      // Sign-extend. A 32 bit complement-two value x can be computed by:
-      //    x_u - 2^32 (where x_u is its unsigned representation).
-      // Example: 0xFFFFFFFF - 0x100000000 => -1.
-      // We simply and with the sign-bit and multiply by two. If the sign-bit
-      // was set, then the result is 0. Otherwise it will become 2^32.
-      final int SIGN_BIT = 0x80000000;
-      truncatedValue -= 2 * (truncatedValue & SIGN_BIT);
+        // A 32 bit complement-two value x can be computed by:
+        //    x_u - 2^32 (where x_u is its unsigned representation).
+        // Example: 0xFFFFFFFF - 0x100000000 => -1.
+        // We simply and with the sign-bit and multiply by two. If the sign-bit
+        // was set, then the result is 0. Otherwise it will become 2^32.
+        final int SIGN_BIT = 0x80000000;
+        truncatedValue -= 2 * (truncatedValue & SIGN_BIT);
+      }
       if (value != truncatedValue) {
         left = DART_CONSTANT_SYSTEM.createInt(truncatedValue);
       }

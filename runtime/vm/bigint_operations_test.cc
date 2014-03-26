@@ -491,6 +491,14 @@ TEST_CASE(BigintHexStrings) {
 TEST_CASE(BigintDecStrings) {
   {
     const Bigint& bigint = Bigint::Handle(
+        BigintOperations::NewFromCString("0x0"));
+    const char* str =
+        BigintOperations::ToDecimalCString(bigint, &ZoneAllocator);
+    EXPECT_STREQ("0", str);
+  }
+
+  {
+    const Bigint& bigint = Bigint::Handle(
         BigintOperations::NewFromCString("0x123"));
     const char* str =
         BigintOperations::ToDecimalCString(bigint, &ZoneAllocator);

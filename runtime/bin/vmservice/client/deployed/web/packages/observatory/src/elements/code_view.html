@@ -1,0 +1,91 @@
+<link rel="import" href="function_ref.html">
+<link rel="import" href="instance_ref.html">
+<link rel="import" href="observatory_element.html">
+<link rel="import" href="nav_bar.html">
+<polymer-element name="code-view" extends="observatory-element">
+  <template>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ code.isolate }}"></isolate-nav-menu>
+      <nav-menu link="." anchor="{{ code.name }}" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+    <style>
+      .content {
+        padding-left: 10%;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      h1 {
+        font: 400 18px 'Montserrat', sans-serif;
+      }
+      .memberList {
+        display: table;
+      }
+      .memberItem {
+        display: table-row;
+      }
+      .memberName, .memberValue {
+        display: table-cell;
+        vertical-align: top;
+        padding: 3px 0 3px 1em;
+        font: 400 14px 'Montserrat', sans-serif;
+      }
+      .monospace {
+        font-family: consolas, courier, monospace;
+        font-size: 1em;
+        line-height: 1.2em;
+        white-space: nowrap;
+      }
+    </style>
+    <div class="content">
+      <h1>Code for {{ code.name }}</h1>
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">kind</div>
+          <div class="memberValue">{{code.kind}}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">function</div>
+          <div class="memberValue">
+            <function-ref ref="{{code.function}}">
+            </function-ref>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Inclusive</div>
+          <div class="memberValue">{{ code.formattedInclusiveTicks }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Exclusive</div>
+          <div class="memberValue">{{ code.formattedExclusiveTicks }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Constant object pool</div>
+          <div class="memberValue">
+            <instance-ref ref="{{ code.objectPool }}"></instance-ref>
+          </div>
+        </div>
+      </div>
+    </div>
+    <hr>
+    <div class="content">
+      <template if="{{ code.hasDisassembly }}">
+        <div class="row">
+            <div class="col-md-2 memberHeader">Inclusive</div>
+            <div class="col-md-2 memberHeader">Exclusive</div>
+            <div class="col-md-2 memberHeader">Address</div>
+            <div class="col-md-6 memberHeader">Disassembly</div>
+        </div>
+      </template>
+      <template repeat="{{ instruction in code.instructions }}">
+        <div class="row">
+          <div class="col-md-2 monospace">{{ instruction.formattedInclusive(code) }}</div>
+          <div class="col-md-2 monospace">{{ instruction.formattedExclusive(code) }}</div>
+          <div class="col-md-2 monospace">{{ instruction.formattedAddress() }}</div>
+          <div class="col-md-6 monospace">{{ instruction.human }}</div>
+        </div>
+      </template>
+    </div>
+  </template>
+  <script type="application/dart" src="code_view.dart"></script>
+</polymer-element>

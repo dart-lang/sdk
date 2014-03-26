@@ -84,22 +84,26 @@ class TestCompiler extends apiimpl.Compiler {
         break;
       case 'invariant':
         onTest(testMarker, testType);
-        invariant(CURRENT_ELEMENT_SPANNABLE, false, message: marker);
+        invariant(NO_LOCATION_SPANNABLE, false, message: marker);
         break;
       case 'warning':
         onTest(testMarker, testType);
-        reportWarning(CURRENT_ELEMENT_SPANNABLE,
+        reportWarning(NO_LOCATION_SPANNABLE,
                       MessageKind.GENERIC, {'text': marker});
         break;
       case 'error':
         onTest(testMarker, testType);
-        reportError(CURRENT_ELEMENT_SPANNABLE,
+        reportError(NO_LOCATION_SPANNABLE,
                     MessageKind.GENERIC, {'text': marker});
         break;
       case 'fatalError':
         onTest(testMarker, testType);
-        reportFatalError(CURRENT_ELEMENT_SPANNABLE,
+        reportFatalError(NO_LOCATION_SPANNABLE,
                          MessageKind.GENERIC, {'text': marker});
+        break;
+      case 'internalError':
+        onTest(testMarker, testType);
+        internalError(NO_LOCATION_SPANNABLE, marker);
         break;
       case 'NoSuchMethodError':
         onTest(testMarker, testType);
@@ -156,7 +160,8 @@ Future testExitCode(String marker, String type, int expectedExitCode) {
                             Map<String, dynamic> environment = const {}]) {
       libraryRoot = Platform.script.resolve('../../../sdk/');
       outputProvider = NullSink.outputProvider;
-      handler = (uri, begin, end, message, kind) {};
+      // Use this to silence the test when debugging:
+      // handler = (uri, begin, end, message, kind) {};
       Compiler compiler = new TestCompiler(inputProvider,
                                            outputProvider,
                                            handler,
@@ -218,29 +223,28 @@ Future testExitCodes(String marker, Map<String,int> expectedExitCodes) {
 }
 
 void main() {
-  // TODO(johnniwinther): implement this test for unchecked mode.
   bool isCheckedMode = false;
-  assert(isCheckedMode = true);
-  Expect.isTrue(isCheckedMode, 'This test must be run in checked mode.');
+  assert((isCheckedMode = true));
 
-  const beforeRun = const {
+  final beforeRun = {
     '': 0,
     'NoSuchMethodError': 253,
-    'assert': 253,
+    'assert': isCheckedMode ? 253 : 0,
     'invariant': 253
   };
 
-  const duringRun = const {
+  final duringRun = {
     '': 0,
     'NoSuchMethodError': 253,
-    'assert': 253,
+    'assert': isCheckedMode ? 253 : 0,
     'invariant': 253,
     'warning': 0,
     'error': 1,
     'fatalError': 1,
+    'internalError': 253,
   };
 
-  const tests = const {
+  final tests = {
     'Compiler': beforeRun,
     'Compiler.run': beforeRun,
     'Compiler.scanBuiltinLibraries': beforeRun,

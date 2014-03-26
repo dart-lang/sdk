@@ -224,7 +224,7 @@ class Parameter extends Parameters {
 
   /// Asserts that [value] exists and is a [Map] and returns it.
   ///
-  /// [asListOr] may be used to provide a default value instead of rejecting the
+  /// [asMapOr] may be used to provide a default value instead of rejecting the
   /// request if [value] doesn't exist.
   Map get asMap => _getTyped('an Object', (value) => value is Map);
 
@@ -232,6 +232,32 @@ class Parameter extends Parameters {
   ///
   /// If [value] doesn't exist, this returns [defaultValue].
   Map asMapOr(Map defaultValue) => asMap;
+
+  /// Asserts that [value] exists, is a string, and can be parsed as a
+  /// [DateTime] and returns it.
+  ///
+  /// [asDateTimeOr] may be used to provide a default value instead of rejecting
+  /// the request if [value] doesn't exist.
+  DateTime get asDateTime => _getParsed('date/time', DateTime.parse);
+
+  /// Asserts that [value] exists, is a string, and can be parsed as a
+  /// [DateTime] and returns it.
+  ///
+  /// If [value] doesn't exist, this returns [defaultValue].
+  DateTime asDateTimeOr(DateTime defaultValue) => asDateTime;
+
+  /// Asserts that [value] exists, is a string, and can be parsed as a
+  /// [Uri] and returns it.
+  ///
+  /// [asUriOr] may be used to provide a default value instead of rejecting the
+  /// request if [value] doesn't exist.
+  Uri get asUri => _getParsed('URI', Uri.parse);
+
+  /// Asserts that [value] exists, is a string, and can be parsed as a
+  /// [Uri] and returns it.
+  ///
+  /// If [value] doesn't exist, this returns [defaultValue].
+  Uri asUriOr(Uri defaultValue) => asUri;
 
   /// Get a parameter named [named] that matches [test], or the value of calling
   /// [orElse].
@@ -242,6 +268,27 @@ class Parameter extends Parameters {
     if (test(value)) return value;
     throw new RpcException.invalidParams('Parameter $_path for method '
         '"$method" must be $type, but was ${JSON.encode(value)}.');
+  }
+
+  _getParsed(String description, parse(String value)) {
+    var string = asString;
+    try {
+      return parse(string);
+    } on FormatException catch (error) {
+      // DateTime.parse doesn't actually include any useful information in the
+      // FormatException, just the string that was being parsed. There's no use
+      // in including that in the RPC exception. See issue 17753.
+      var message = error.message;
+      if (message == string) {
+        message = '';
+      } else {
+        message = '\n$message';
+      }
+
+      throw new RpcException.invalidParams('Parameter $_path for method '
+          '"$method" must be a valid $description, but was '
+          '${JSON.encode(string)}.$message');
+    }
   }
 
   void _assertPositional() {
@@ -280,4 +327,8 @@ class _MissingParameter extends Parameter {
   List asListOr(List defaultValue) => defaultValue;
 
   Map asMapOr(Map defaultValue) => defaultValue;
+
+  DateTime asDateTimeOr(DateTime defaultValue) => defaultValue;
+
+  Uri asUriOr(Uri defaultValue) => defaultValue;
 }

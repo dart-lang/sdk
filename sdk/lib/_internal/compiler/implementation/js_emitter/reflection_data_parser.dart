@@ -58,6 +58,9 @@ String getReflectionDataParser(String classesCollector,
   function map(x){x={x:x};delete x.x;return x}
 ''';
 
+  String unmangledNameIndex = backend.mustRetainMetadata
+      ? ' 3 * optionalParameterCount + 2 * requiredParameterCount + 3'
+      : ' 2 * optionalParameterCount + requiredParameterCount + 3';
 
   /**
    * See [dart2js.js_emitter.ContainerBuilder.addMemberMethod] for format of
@@ -97,9 +100,9 @@ String getReflectionDataParser(String classesCollector,
     var isIntercepted =''' // Break long line.
        ''' requiredParameterCount + optionalParameterCount != funcs[0].length;
     var functionTypeIndex = ${readFunctionType("array", "2")};
-    var isReflectable =''' // Break long line.
-    ''' array.length > 3 * optionalParameterCount + ''' // Break
-    '''2 * requiredParameterCount + 3
+    var unmangledNameIndex = $unmangledNameIndex;
+    var isReflectable = array.length > unmangledNameIndex;
+
     if (getterStubName) {
       f = tearOff(funcs, array, isStatic, name, isIntercepted);
 '''
@@ -119,8 +122,6 @@ String getReflectionDataParser(String classesCollector,
       }
     }
     if (isReflectable) {
-      var unmangledNameIndex =''' // Break long line.
-      ''' 3 * optionalParameterCount + 2 * requiredParameterCount + 3;
       var unmangledName = ${readString("array", "unmangledNameIndex")};
       var reflectionName =''' // Break long line.
       ''' unmangledName + ":" + requiredParameterCount +''' // Break long line.

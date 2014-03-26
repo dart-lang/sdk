@@ -7,7 +7,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # This file is a modified copy of Chromium's deps/third_party/nss/nss.gyp.
-# Revision 232552 (this should agree with "nss_rev" in DEPS).
+# Revision 257452 (this should agree with "nss_rev" in DEPS).
 {
   # Added by Dart. All Dart comments refer to the following block or line.
   'includes': [
@@ -732,6 +732,7 @@
         '<(nss_directory)/nss/lib/freebl/rijndael.h',
         '<(nss_directory)/nss/lib/freebl/rijndael32.tab',
         '<(nss_directory)/nss/lib/freebl/rsa.c',
+        '<(nss_directory)/nss/lib/freebl/rsapkcs.c',
         '<(nss_directory)/nss/lib/freebl/secmpi.h',
         '<(nss_directory)/nss/lib/freebl/secrng.h',
         '<(nss_directory)/nss/lib/freebl/seed.c',
@@ -1001,7 +1002,6 @@
         '<(nss_directory)/nss/lib/softoken/pkcs11i.h',
         '<(nss_directory)/nss/lib/softoken/pkcs11ni.h',
         '<(nss_directory)/nss/lib/softoken/pkcs11u.c',
-        '<(nss_directory)/nss/lib/softoken/rsawrapr.c',
         '<(nss_directory)/nss/lib/softoken/sdb.c',
         '<(nss_directory)/nss/lib/softoken/sdb.h',
         '<(nss_directory)/nss/lib/softoken/sftkdb.c',
@@ -1102,7 +1102,6 @@
       'defines': [
         'MP_API_COMPATIBLE',
         'NSS_DISABLE_DBM',
-        'NSS_ENABLE_ECC',
         'NSS_STATIC',
         'NSS_USE_STATIC_LIBS',
         'RIJNDAEL_INCLUDE_TABLES',
@@ -1142,7 +1141,6 @@
       ],
       'direct_dependent_settings': {
         'defines': [
-          'NSS_ENABLE_ECC',
           'NSS_STATIC',
           'NSS_USE_STATIC_LIBS',
           'USE_UTIL_DIRECTLY',
@@ -1193,6 +1191,23 @@
           # So we use the partial match by dropping '^' from '^nss/...
           'include_dirs/': [
             ['exclude', 'nss/lib/libpkix/'],
+          ],
+        }, { # else: exclude_nss_libpkix==0
+          # Disable the LDAP code in libpkix.
+          'defines': [
+            'NSS_PKIX_NO_LDAP',
+          ],
+          'sources!': [
+            '<(nss_directory)/nss/lib/libpkix/pkix_pl_nss/module/pkix_pl_ldapcertstore.c',
+            '<(nss_directory)/nss/lib/libpkix/pkix_pl_nss/module/pkix_pl_ldapcertstore.h',
+            '<(nss_directory)/nss/lib/libpkix/pkix_pl_nss/module/pkix_pl_ldapdefaultclient.c',
+            '<(nss_directory)/nss/lib/libpkix/pkix_pl_nss/module/pkix_pl_ldapdefaultclient.h',
+            '<(nss_directory)/nss/lib/libpkix/pkix_pl_nss/module/pkix_pl_ldaprequest.c',
+            '<(nss_directory)/nss/lib/libpkix/pkix_pl_nss/module/pkix_pl_ldaprequest.h',
+            '<(nss_directory)/nss/lib/libpkix/pkix_pl_nss/module/pkix_pl_ldapresponse.c',
+            '<(nss_directory)/nss/lib/libpkix/pkix_pl_nss/module/pkix_pl_ldapresponse.h',
+            '<(nss_directory)/nss/lib/libpkix/pkix_pl_nss/module/pkix_pl_ldapt.h',
+            '<(nss_directory)/nss/lib/libpkix/pkix_pl_nss/module/pkix_pl_ldaptemplates.c',
           ],
         }],
         ['target_arch=="ia32"', {

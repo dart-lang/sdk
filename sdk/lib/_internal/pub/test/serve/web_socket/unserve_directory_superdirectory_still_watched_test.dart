@@ -30,10 +30,7 @@ main() {
     requestShouldSucceed("foo.txt", "before", root: exampleOne);
 
     // Unbind the subdirectory.
-    expectWebSocketCall({
-      "command": "unserveDirectory",
-      "path": "example"
-    }, replyEquals: {
+    expectWebSocketResult("unserveDirectory", {"path": "example"}, {
       "url": getServerUrl("example")
     });
 

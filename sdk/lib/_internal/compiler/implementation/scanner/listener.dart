@@ -192,7 +192,8 @@ class Listener {
   void beginImport(Token importKeyword) {
   }
 
-  void endImport(Token importKeyword, Token asKeyword, Token semicolon) {
+  void endImport(Token importKeyword, Token DeferredKeyword,
+                 Token asKeyword, Token semicolon) {
   }
 
   void beginInitializedIdentifier(Token token) {
@@ -610,10 +611,7 @@ class Listener {
     return token;
   }
 
-  void recoverableError(String message, {Token token, Node node}) {
-    if (token == null && node != null) {
-      token = node.getBeginToken();
-    }
+  void recoverableError(Token token, String message) {
     error(message, token);
   }
 
@@ -630,11 +628,11 @@ class Listener {
     if (spannable is Token) {
       token = spannable;
     } else if (spannable is Node) {
-      node = spannable;
+      token = spannable.getBeginToken();
     } else {
       throw new ParserError(message);
     }
-    recoverableError(message, token: token, node: node);
+    recoverableError(token, message);
   }
 }
 
@@ -684,8 +682,8 @@ class ElementListener extends Listener {
     StringNode node = popNode();
     // TODO(lrn): Handle interpolations in script tags.
     if (node.isInterpolation) {
-      listener.cancel("String interpolation not supported in library tags",
-                      node: node);
+      listener.internalError(node,
+          "String interpolation not supported in library tags.");
       return null;
     }
     return node;
@@ -705,15 +703,18 @@ class ElementListener extends Listener {
                                   popMetadata(compilationUnitElement)));
   }
 
-  void endImport(Token importKeyword, Token asKeyword, Token semicolon) {
+  void endImport(Token importKeyword, Token deferredKeyword, Token asKeyword,
+                 Token semicolon) {
     NodeList combinators = popNode();
+    bool isDeferred = deferredKeyword != null;
     Identifier prefix;
     if (asKeyword != null) {
       prefix = popNode();
     }
     StringNode uri = popLiteralString();
     addLibraryTag(new Import(importKeyword, uri, prefix, combinators,
-                             popMetadata(compilationUnitElement)));
+                             popMetadata(compilationUnitElement),
+                             isDeferred: isDeferred));
   }
 
   void endExport(Token exportKeyword, Token semicolon) {
@@ -774,8 +775,8 @@ class ElementListener extends Listener {
 
   void endTopLevelDeclaration(Token token) {
     if (!metadata.isEmpty) {
-      recoverableError('Error: Metadata not supported here.',
-                       token: metadata.head.beginToken);
+      recoverableError(metadata.head.beginToken,
+                       'Metadata not supported here.');
       metadata = const Link<MetadataAnnotation>();
     }
   }
@@ -801,7 +802,7 @@ class ElementListener extends Listener {
     if (name.token is KeywordToken) {
       Keyword keyword = (name.token as KeywordToken).keyword;
       if (!keyword.isPseudo) {
-        recoverableError('illegal name ${keyword.syntax}', node: name);
+        recoverableError(name, "Illegal name '${keyword.syntax}'.");
       }
     }
   }
@@ -957,8 +958,8 @@ class ElementListener extends Listener {
   }
 
   Token expected(String string, Token token) {
-    listener.cancel("expected '$string', but got '${token.value}'",
-                    token: token);
+    reportFatalError(token,
+        "Expected '$string', but got '${token.value}'.");
     return skipToEof(token);
   }
 
@@ -968,15 +969,15 @@ class ElementListener extends Listener {
           token, MessageKind.EXPECTED_IDENTIFIER_NOT_RESERVED_WORD,
           {'keyword': token.value});
     } else {
-      listener.cancel(
-          "Error: Expected identifier, but got '${token.value}'", token: token);
+      reportFatalError(token,
+          "Expected identifier, but got '${token.value}'.");
     }
     return token;
   }
 
   Token expectedType(Token token) {
-    listener.cancel("expected a type, but got '${token.value}'",
-                    token: token);
+    reportFatalError(token,
+                     "Expected a type, but got '${token.value}'.");
     pushNode(null);
     return skipToEof(token);
   }
@@ -987,19 +988,19 @@ class ElementListener extends Listener {
       pushNode(new ErrorExpression(token));
       return token.next;
     } else {
-      listener.cancel("expected an expression, but got '${token.value}'",
-                      token: token);
+      reportFatalError(token,
+                       "Expected an expression, but got '${token.value}'.");
       pushNode(null);
       return skipToEof(token);
     }
   }
 
   Token unexpected(Token token) {
-    String message = "unexpected token '${token.value}'";
+    String message = "Unexpected token '${token.value}'.";
     if (token.info == BAD_INPUT_INFO) {
       message = token.value;
     }
-    listener.cancel(message, token: token);
+    reportFatalError(token, message);
     return skipToEof(token);
   }
 
@@ -1013,14 +1014,14 @@ class ElementListener extends Listener {
 
   Token expectedFunctionBody(Token token) {
     String printString = token.value;
-    listener.cancel("expected a function body, but got '$printString'",
-                    token: token);
+    reportFatalError(token,
+                     "Expected a function body, but got '$printString'.");
     return skipToEof(token);
   }
 
   Token expectedClassBody(Token token) {
-    listener.cancel("expected a class body, but got '${token.value}'",
-                    token: token);
+    reportFatalError(token,
+                     "Expected a class body, but got '${token.value}'.");
     return skipToEof(token);
   }
 
@@ -1033,18 +1034,20 @@ class ElementListener extends Listener {
   }
 
   Link<Token> expectedDeclaration(Token token) {
-    listener.cancel("expected a declaration, but got '${token.value}'",
-                    token: token);
+    reportFatalError(token,
+                     "Expected a declaration, but got '${token.value}'.");
     return const Link<Token>();
   }
 
   Token unmatched(Token token) {
-    listener.cancel("unmatched '${token.value}'", token: token);
+    reportFatalError(token,
+                     "Unmatched '${token.value}'.");
     return skipToEof(token);
   }
 
-  void recoverableError(String message, {Token token, Node node}) {
-    listener.cancel(message, token: token, node: node);
+  void recoverableError(Spannable node, String message) {
+    // TODO(johnniwinther): Make recoverable errors non-fatal.
+    reportFatalError(node, message);
   }
 
   void pushElement(Element element) {
@@ -1069,7 +1072,7 @@ class ElementListener extends Listener {
 
   void addLibraryTag(LibraryTag tag) {
     if (!allowLibraryTags()) {
-      recoverableError('library tags not allowed here', node: tag);
+      recoverableError(tag, 'Library tags not allowed here.');
     }
     compilationUnitElement.getImplementationLibrary().addTag(tag, listener);
   }
@@ -1163,6 +1166,12 @@ class ElementListener extends Listener {
       stringCount--;
     }
     pushNode(accumulator);
+  }
+
+  void reportFatalError(Spannable spannable,
+                        String message) {
+    listener.reportFatalError(
+        spannable, MessageKind.GENERIC, {'text': message});
   }
 
   void reportError(Spannable spannable,
@@ -1336,17 +1345,15 @@ class NodeListener extends ElementListener {
   }
 
   void handleOnError(Token token, var errorInformation) {
-    listener.cancel("internal error: '${token.value}': ${errorInformation}",
-                    token: token);
+    listener.internalError(token, "'${token.value}': ${errorInformation}");
   }
 
   Token expectedFunctionBody(Token token) {
     if (identical(token.stringValue, 'native')) {
       return native.handleNativeFunctionBody(this, token);
     } else {
-      listener.cancel(
-          "expected a function body, but got '${token.value}'",
-          token: token);
+      reportFatalError(token,
+                       "Expected a function body, but got '${token.value}'.");
       return skipToEof(token);
     }
   }
@@ -1355,9 +1362,8 @@ class NodeListener extends ElementListener {
     if (identical(token.stringValue, 'native')) {
       return native.handleNativeClassBody(this, token);
     } else {
-      listener.cancel(
-          "expected a class body, but got '${token.value}'",
-          token: token);
+      reportFatalError(token,
+                       "Expected a class body, but got '${token.value}'.");
       return skipToEof(token);
     }
   }
@@ -1392,8 +1398,8 @@ class NodeListener extends ElementListener {
       if (argumentSend == null) {
         // TODO(ahe): The parser should diagnose this problem, not
         // this listener.
-        listener.cancel('Syntax error: Expected an identifier.',
-                        node: argument);
+        reportFatalError(argument,
+                         'Expected an identifier.');
       }
       if (argumentSend.receiver != null) internalError(node: argument);
       if (argument is SendSet) internalError(node: argument);
@@ -1450,7 +1456,8 @@ class NodeListener extends ElementListener {
   void reportNotAssignable(Node node) {
     // TODO(ahe): The parser should diagnose this problem, not this
     // listener.
-    listener.cancel('Syntax error: Not assignable.', node: node);
+    reportFatalError(node,
+                     'Not assignable.');
   }
 
   void handleConditionalExpression(Token question, Token colon) {
@@ -1840,8 +1847,8 @@ class NodeListener extends ElementListener {
       Node receiver = popNode();
       if (typeArguments != null) {
         receiver = new TypeAnnotation(receiver, typeArguments);
-        recoverableError('Error: type arguments are not allowed here',
-                         node: typeArguments);
+        recoverableError(typeArguments,
+                         'Type arguments are not allowed here.');
       } else {
         Identifier identifier = receiver.asIdentifier();
         Send send = receiver.asSend();
@@ -1912,7 +1919,7 @@ class NodeListener extends ElementListener {
   void internalError({Token token, Node node}) {
     // TODO(ahe): This should call listener.internalError.
     Spannable spannable = (token == null) ? node : token;
-    throw new SpannableAssertionFailure(spannable, 'internal error in parser');
+    throw new SpannableAssertionFailure(spannable, 'Internal error in parser.');
   }
 }
 
@@ -1977,9 +1984,11 @@ class PartialFieldList extends VariableList {
         !definitions.modifiers.isFinal() &&
         !definitions.modifiers.isConst() &&
         definitions.type == null) {
-      listener.cancel('A field declaration must start with var, final, '
-                      'const, or a type annotation.',
-                      node: definitions);
+      listener.reportError(
+          definitions,
+          MessageKind.GENERIC,
+          { 'text': 'A field declaration must start with var, final, '
+                    'const, or a type annotation.' });
     }
     return definitions;
   }
@@ -1990,7 +1999,7 @@ class PartialFieldList extends VariableList {
     compiler.withCurrentElement(element, () {
       VariableDefinitions node = parseNode(element, compiler);
       if (node.type != null) {
-        type = compiler.resolveTypeAnnotation(element, node.type);
+        type = compiler.resolver.resolveTypeAnnotation(element, node.type);
       } else {
         type = compiler.types.dynamicType;
       }

@@ -917,9 +917,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         currentContainer = oldContainer;
         break;
       default:
-        compiler.internalError(
-          'Unexpected loop kind: ${info.kind}',
-          instruction: condition.conditionExpression);
+        compiler.internalError(condition.conditionExpression,
+            'Unexpected loop kind: ${info.kind}.');
     }
     attachLocationRange(loop, info.sourcePosition, info.endSourcePosition);
     js.Statement result = loop;
@@ -1297,12 +1296,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // is responsible for visiting the successor.
     if (dominated.isEmpty) return;
     if (dominated.length > 2) {
-      compiler.internalError('dominated.length = ${dominated.length}',
-                             instruction: node);
+      compiler.internalError(node, 'dominated.length = ${dominated.length}');
     }
     if (dominated.length == 2 && block != currentGraph.entry) {
-      compiler.internalError('node.block != currentGraph.entry',
-                             instruction: node);
+      compiler.internalError(node, 'node.block != currentGraph.entry');
     }
     assert(dominated[0] == block.successors[0]);
     visitBasicBlock(dominated[0]);
@@ -1386,7 +1383,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitTry(HTry node) {
     // We should never get here. Try/catch/finally is always handled using block
     // information in [visitTryInfo].
-    compiler.internalError('visitTry should not be called', instruction: node);
+    compiler.internalError(node, 'visitTry should not be called.');
   }
 
   bool tryControlFlowOperation(HIf node) {
@@ -1716,8 +1713,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     List<HInstruction> inputs = node.inputs;
     if (node.isJsStatement()) {
       if (!inputs.isEmpty) {
-        compiler.internalError("foreign statement with inputs",
-                               instruction: node);
+        compiler.internalError(node, "Foreign statement with inputs.");
       }
       pushStatement(node.codeAst, node);
     } else {
@@ -2517,7 +2513,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           new js.Binary('||', objectTest, notIndexingTest);
       test = new js.Binary('&&', stringTest, notObjectOrIndexingTest);
     } else {
-      compiler.internalError('Unexpected check', instruction: input);
+      compiler.internalError(input, 'Unexpected check.');
     }
     return test;
   }

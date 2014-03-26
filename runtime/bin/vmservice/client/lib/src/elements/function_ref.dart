@@ -5,6 +5,7 @@
 library function_ref_element;
 
 import 'package:polymer/polymer.dart';
+import 'package:observatory/service.dart';
 import 'service_ref.dart';
 
 @CustomTag('function-ref')
@@ -15,11 +16,12 @@ class FunctionRefElement extends ServiceRefElement {
     super.refChanged(oldValue);
     notifyPropertyChange(#hasParent, 0, 1);
     notifyPropertyChange(#hasClass, 0, 1);
-    hasParent = (ref != null && ref['parent'] != null);
-    hasClass = (ref != null &&
-                ref['class'] != null &&
-                ref['class']['name'] != null &&
-                ref['class']['name'] != '::');
+    ServiceMap refMap = ref;
+    hasParent = (refMap != null && refMap['parent'] != null);
+    hasClass = (refMap != null &&
+                refMap['class'] != null &&
+                refMap['class']['name'] != null &&
+                refMap['class']['name'] != '::');
   }
 
   @observable bool hasParent = false;

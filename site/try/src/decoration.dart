@@ -99,3 +99,33 @@ warning(text) {
       ..style.opacity = '0.75'
       ..append(text);
 }
+
+class CodeCompletionDecoration extends Decoration {
+  const CodeCompletionDecoration(
+      {String color: '#000000',
+       bool bold: false,
+       bool italic: false,
+       bool stress: false,
+       bool important: false})
+      : super(color: color, bold: bold, italic: italic, stress: stress,
+              important: important);
+
+  static from(Decoration decoration) {
+    return new CodeCompletionDecoration(
+        color: decoration.color,
+        bold: decoration.bold,
+        italic: decoration.italic,
+        stress: decoration.stress,
+        important: decoration.important);
+  }
+
+  Element applyTo(text) {
+    var codeCompletion = new DivElement()
+        ..contentEditable = 'false'
+        ..classes.add('dart-code-completion')
+        ..appendText('Completion goes here');
+    return super.applyTo(text)
+        ..classes.add('dart-code-completion-holder')
+        ..nodes.add(codeCompletion);
+  }
+}

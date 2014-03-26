@@ -4,7 +4,6 @@
 
 library vm_view_element;
 
-import 'dart:async';
 import 'observatory_element.dart';
 import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
@@ -12,7 +11,7 @@ import 'package:polymer/polymer.dart';
 @CustomTag('vm-view')
 class VMViewElement extends ObservatoryElement {
   @published VM vm;
-  @published ServiceError error;
+  @published DartError error;
 
   VMViewElement.created() : super.created();
 

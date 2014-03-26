@@ -2,16 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:async";
-
 // Loading a deferred library without prefix is not allowed.
-@lazy import "deferred_constraints_lib2.dart"; /// 01: compile-time error
-
-const lazy = const DeferredLibrary('lib');
+import "deferred_constraints_lib2.dart"
+  deferred /// 01: compile-time error
+;
 
 void main() {
-  lazy.load().then((_) { /// 01: continued
-    C c = new C();       /// 01: continued
-    print(c);            /// 01: continued
-  });                    /// 01: continued
 }

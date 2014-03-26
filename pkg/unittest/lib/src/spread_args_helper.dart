@@ -7,7 +7,7 @@ class _ArgPlaceHolder {
   const _ArgPlaceHolder();
 }
 
-/** Simulates spread arguments using named arguments. */
+/// Simulates spread arguments using named arguments.
 // TODO(sigmund): remove this class and simply use a closure with named
 // arguments (if still applicable).
 class _SpreadArgsHelper {

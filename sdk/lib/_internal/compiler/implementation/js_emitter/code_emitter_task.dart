@@ -742,8 +742,8 @@ class CodeEmitterTask extends CompilerTask {
       if (cls.isUnnamedMixinApplication) return null;
       return cls.name;
     }
-    throw compiler.internalErrorOnElement(
-        element, 'Do not know how to reflect on this $element');
+    throw compiler.internalError(element,
+        'Do not know how to reflect on this $element.');
   }
 
   String namedParametersAsReflectionNames(Selector selector) {
@@ -1421,7 +1421,8 @@ mainBuffer.add(r'''
           elementDescriptors[library] = const {};
         }
         if (!pendingStatics.isEmpty) {
-          compiler.internalError('Pending statics (see above).');
+          compiler.internalError(pendingStatics.first,
+              'Pending statics (see above).');
         }
         mainBuffer.write('])$N');
 
@@ -1448,7 +1449,7 @@ mainBuffer.add(r'''
         mainBuffer.write('"$constant":[');
         for (OutputUnit outputUnit in
             compiler.deferredLoadTask.hunksToLoad[constant]) {
-          mainBuffer.write('"${outputUnit.name}.js", ');
+          mainBuffer.write('"${outputUnit.partFileName(compiler)}.part.js", ');
         }
         mainBuffer.write("],\n");
       }
@@ -1600,7 +1601,7 @@ if (typeof $printHelperName === "function") {
       }
     }
     if (owner == null) {
-      compiler.internalErrorOnElement(element, 'Owner is null');
+      compiler.internalError(element, 'Owner is null.');
     }
     return getElementDescriptorForOutputUnit(owner,
         compiler.deferredLoadTask.outputUnitForElement(element));
@@ -1650,7 +1651,7 @@ if (typeof $printHelperName === "function") {
       emitCompileTimeConstants(buffer, outputUnit);
 
       String code = buffer.getText();
-      compiler.outputProvider(outputUnit.name, 'js')
+      compiler.outputProvider(outputUnit.partFileName(compiler), 'part.js')
         ..add(code)
         ..close();
 

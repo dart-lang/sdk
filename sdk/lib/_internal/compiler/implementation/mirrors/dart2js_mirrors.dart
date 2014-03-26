@@ -12,7 +12,11 @@ import '../resolution/resolution.dart' show Scope;
 import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../tree/tree.dart';
-import '../util/util.dart' show Spannable, Link, LinkBuilder;
+import '../util/util.dart'
+    show Spannable,
+         Link,
+         LinkBuilder,
+         NO_LOCATION_SPANNABLE;
 import '../util/characters.dart' show $CR, $LF;
 
 import 'source_mirrors.dart';
@@ -131,8 +135,8 @@ abstract class Dart2JsDeclarationMirror extends Dart2JsMirror
       }
       return members;
     }
-    mirrorSystem.compiler.internalError(
-        "Unexpected member type $element ${element.kind}");
+    mirrorSystem.compiler.internalError(element,
+        "Unexpected member type $element ${element.kind}.");
     return null;
   }
 
@@ -339,7 +343,8 @@ class Dart2JsMirrorSystem extends MirrorSystem {
         return new Dart2JsTypedefMirror(this, type);
       }
     }
-    compiler.internalError("Unexpected type $type of kind ${type.kind}");
+    compiler.internalError(type.element,
+        "Unexpected type $type of kind ${type.kind}.");
     return null;
   }
 
@@ -349,7 +354,7 @@ class Dart2JsMirrorSystem extends MirrorSystem {
     } else if (element.isTypedef()) {
       return new Dart2JsTypedefDeclarationMirror(this, element.thisType);
     }
-    compiler.internalError("Unexpected element $element");
+    compiler.internalError(element, "Unexpected element $element.");
     return null;
   }
 }

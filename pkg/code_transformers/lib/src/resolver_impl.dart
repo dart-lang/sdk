@@ -44,6 +44,7 @@ class ResolverImpl implements Resolver {
 
   /// The currently resolved entry libraries, or null if nothing is resolved.
   List<LibraryElement> _entryLibraries;
+  Set<LibraryElement> _libraries;
 
   /// Future indicating when this resolver is done in the current phase.
   Future _lastPhaseComplete = new Future.value();
@@ -101,6 +102,7 @@ class ResolverImpl implements Resolver {
 
     // Clear out libraries since they should not be referenced after release.
     _entryLibraries = null;
+    _libraries = null;
     _currentTransform = null;
   }
 
@@ -156,8 +158,22 @@ class ResolverImpl implements Resolver {
     });
   }
 
-  Iterable<LibraryElement> get libraries =>
-      _entryLibraries.expand((lib) => lib.visibleLibraries).toSet();
+  Iterable<LibraryElement> get libraries {
+    if (_libraries == null) {
+      // Note: we don't use `lib.visibleLibraries` because that excludes the
+      // exports seen in the entry libraries.
+      _libraries = new Set<LibraryElement>();
+      _entryLibraries.forEach(_collectLibraries);
+    }
+    return _libraries;
+  }
+
+  void _collectLibraries(LibraryElement lib) {
+    if (lib == null || _libraries.contains(lib)) return;
+    _libraries.add(lib);
+    lib.importedLibraries.forEach(_collectLibraries);
+    lib.exportedLibraries.forEach(_collectLibraries);
+  }
 
   LibraryElement getLibraryByName(String libraryName) =>
       libraries.firstWhere((l) => l.name == libraryName, orElse: () => null);

@@ -371,7 +371,8 @@ class _JsonParser {
     return position + 5;
   }
 
-  /** Parses a "null" literal starting at [position].
+  /**
+   * Parses a "null" literal starting at [position].
    *
    * [:source[position]:] must be "n".
    */
@@ -387,33 +388,49 @@ class _JsonParser {
     return position + 4;
   }
 
+  /**
+   * Parses a string value.
+   *
+   * Initial [position] is right after the initial quote.
+   * Returned position right after the final quote.
+   */
   int parseString(int position) {
     // Format: '"'([^\x00-\x1f\\\"]|'\\'[bfnrt/\\"])*'"'
     // Initial position is right after first '"'.
     int start = position;
-    int char;
-    do {
-      if (position == source.length) {
-        fail(start - 1, "Unterminated string");
+    while (position < source.length) {
+      int char = source.codeUnitAt(position++);
+      // BACKSLASH is larger than QUOTE and SPACE.
+      if (char > BACKSLASH) {
+        continue;
       }
-      char = source.codeUnitAt(position);
+      if (char == BACKSLASH) {
+        return parseStringWithEscapes(start, position - 1);
+      }
       if (char == QUOTE) {
-        listener.handleString(source.substring(start, position));
-        return position + 1;
+        listener.handleString(source.substring(start, position - 1));
+        return position;
       }
       if (char < SPACE) {
-        fail(position, "Control character in string");
+        fail(position - 1, "Control character in string");
       }
-      position++;
-    } while (char != BACKSLASH);
+    }
+    fail(start - 1, "Unterminated string");
+  }
+
+  int parseStringWithEscapes(start, position) {
     // Backslash escape detected. Collect character codes for rest of string.
-    int firstEscape = position - 1;
+    int firstEscape = position;
     List<int> chars = <int>[];
+    for (int i = start; i < firstEscape; i++) {
+      chars.add(source.codeUnitAt(i));
+    }
+    position++;
     while (true) {
       if (position == source.length) {
         fail(start - 1, "Unterminated string");
       }
-      char = source.codeUnitAt(position);
+      int char = source.codeUnitAt(position);
       switch (char) {
         case CHAR_b: char = BACKSPACE; break;
         case CHAR_f: char = FORM_FEED; break;
@@ -458,9 +475,6 @@ class _JsonParser {
         char = source.codeUnitAt(position);
         if (char == QUOTE) {
           String result = new String.fromCharCodes(chars);
-          if (start < firstEscape) {
-            result = "${source.substring(start, firstEscape)}$result";
-          }
           listener.handleString(result);
           return position + 1;
         }
@@ -472,60 +486,20 @@ class _JsonParser {
     }
   }
 
-  int _handleLiteral(start, position, isDouble) {
-    String literal = source.substring(start, position);
-    // This correctly creates -0 for doubles.
-    num value = (isDouble ? double.parse(literal) : int.parse(literal));
-    listener.handleNumber(value);
-    return position;
-  }
-
   int parseNumber(int char, int position) {
     // Format:
     //  '-'?('0'|[1-9][0-9]*)('.'[0-9]+)?([eE][+-]?[0-9]+)?
     int start = position;
     int length = source.length;
+    int intValue = 0;  // Collect int value while parsing.
+    int intSign = 1;
     bool isDouble = false;
-    if (char == MINUS) {
-      position++;
-      if (position == length) fail(position, "Missing expected digit");
-      char = source.codeUnitAt(position);
-    }
-    if (char < CHAR_0 || char > CHAR_9) {
-      fail(position, "Missing expected digit");
-    }
-    if (char == CHAR_0) {
-      position++;
-      if (position == length) return _handleLiteral(start, position, false);
-      char = source.codeUnitAt(position);
-      if (CHAR_0 <= char && char <= CHAR_9) {
-        fail(position);
-      }
-    } else {
-      do {
-        position++;
-        if (position == length) return _handleLiteral(start, position, false);
-        char = source.codeUnitAt(position);
-      } while (CHAR_0 <= char && char <= CHAR_9);
-    }
-    if (char == DECIMALPOINT) {
-      isDouble = true;
-      position++;
-      if (position == length) fail(position, "Missing expected digit");
-      char = source.codeUnitAt(position);
-      if (char < CHAR_0 || char > CHAR_9) fail(position);
-      do {
-        position++;
-        if (position == length) return _handleLiteral(start, position, true);
-        char = source.codeUnitAt(position);
-      } while (CHAR_0 <= char && char <= CHAR_9);
-    }
-    if (char == CHAR_e || char == CHAR_E) {
-      isDouble = true;
-      position++;
-      if (position == length) fail(position, "Missing expected digit");
-      char = source.codeUnitAt(position);
-      if (char == PLUS || char == MINUS) {
+    // Break this block when the end of the number literal is reached.
+    // At that time, position points to the next character, and isDouble
+    // is set if the literal contains a decimal point or an exponential.
+    parsing: {
+      if (char == MINUS) {
+        intSign = -1;
         position++;
         if (position == length) fail(position, "Missing expected digit");
         char = source.codeUnitAt(position);
@@ -533,13 +507,63 @@ class _JsonParser {
       if (char < CHAR_0 || char > CHAR_9) {
         fail(position, "Missing expected digit");
       }
-      do {
+      if (char == CHAR_0) {
         position++;
-        if (position == length) return _handleLiteral(start, position, true);
+        if (position == length) break parsing;
         char = source.codeUnitAt(position);
-      } while (CHAR_0 <= char && char <= CHAR_9);
+        if (CHAR_0 <= char && char <= CHAR_9) {
+          fail(position);
+        }
+      } else {
+        do {
+          intValue = intValue * 10 + (char - CHAR_0);
+          position++;
+          if (position == length) break parsing;
+          char = source.codeUnitAt(position);
+        } while (CHAR_0 <= char && char <= CHAR_9);
+      }
+      if (char == DECIMALPOINT) {
+        isDouble = true;
+        position++;
+        if (position == length) fail(position, "Missing expected digit");
+        char = source.codeUnitAt(position);
+        if (char < CHAR_0 || char > CHAR_9) fail(position);
+        do {
+          position++;
+          if (position == length) break parsing;
+          char = source.codeUnitAt(position);
+        } while (CHAR_0 <= char && char <= CHAR_9);
+      }
+      if (char == CHAR_e || char == CHAR_E) {
+        isDouble = true;
+        position++;
+        if (position == length) fail(position, "Missing expected digit");
+        char = source.codeUnitAt(position);
+        if (char == PLUS || char == MINUS) {
+          position++;
+          if (position == length) fail(position, "Missing expected digit");
+          char = source.codeUnitAt(position);
+        }
+        if (char < CHAR_0 || char > CHAR_9) {
+          fail(position, "Missing expected digit");
+        }
+        do {
+          position++;
+          if (position == length) break parsing;
+          char = source.codeUnitAt(position);
+        } while (CHAR_0 <= char && char <= CHAR_9);
+      }
     }
-    return _handleLiteral(start, position, isDouble);
+    if (!isDouble) {
+      listener.handleNumber(intSign * intValue);
+      return position;
+    }
+    // Consider whether we can have an int/double.parse that works on part of
+    // a string, to avoid creating the substring.
+    String literal = source.substring(start, position);
+    // This correctly creates -0.0 for doubles.
+    listener.handleNumber(double.parse(literal));
+    return position;
   }
 
   void fail(int position, [String message]) {

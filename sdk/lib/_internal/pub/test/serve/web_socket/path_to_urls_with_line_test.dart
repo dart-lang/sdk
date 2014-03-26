@@ -23,15 +23,12 @@ main() {
 
     pubServe();
 
-    schedule(() {
-      expectWebSocketCall({
-        "command": "pathToUrls",
-        "path": p.join("web", "main.dart"),
-        "line": 12345
-      }, replyEquals: {
-        "urls": [getServerUrl("web", "main.dart")],
-        "line": 12345
-      });
+    expectWebSocketResult("pathToUrls", {
+      "path": p.join("web", "main.dart"),
+      "line": 12345
+    }, {
+      "urls": [getServerUrl("web", "main.dart")],
+      "line": 12345
     });
 
     endPubServe();

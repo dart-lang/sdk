@@ -3890,7 +3890,13 @@ abstract class ElementImpl implements Element {
     // TODO: We might want to re-visit this optimization in the future.
     // We cache the hash code value as this is a very frequently called method.
     if (_cachedHashCode == 0) {
-      _cachedHashCode = location.hashCode;
+      int hashIdentifier = identifier.hashCode;
+      Element enclosing = enclosingElement;
+      if (enclosing != null) {
+        _cachedHashCode = hashIdentifier + enclosing.hashCode;
+      } else {
+        _cachedHashCode = hashIdentifier;
+      }
     }
     return _cachedHashCode;
   }
@@ -9674,6 +9680,8 @@ class TypeImpl_TypePair {
 
   DartType _secondType;
 
+  int _cachedHashCode = 0;
+
   TypeImpl_TypePair(DartType firstType, DartType secondType) {
     this._firstType = firstType;
     this._secondType = secondType;
@@ -9693,15 +9701,20 @@ class TypeImpl_TypePair {
 
   @override
   int get hashCode {
-    int firstHashCode = 0;
-    if (_firstType != null) {
-      firstHashCode = _firstType.element == null ? 0 : _firstType.element.hashCode;
+    if (_cachedHashCode == 0) {
+      int firstHashCode = 0;
+      if (_firstType != null) {
+        Element firstElement = _firstType.element;
+        firstHashCode = firstElement == null ? 0 : firstElement.hashCode;
+      }
+      int secondHashCode = 0;
+      if (_secondType != null) {
+        Element secondElement = _secondType.element;
+        secondHashCode = secondElement == null ? 0 : secondElement.hashCode;
+      }
+      _cachedHashCode = firstHashCode + secondHashCode;
     }
-    int secondHashCode = 0;
-    if (_secondType != null) {
-      secondHashCode = _secondType.element == null ? 0 : _secondType.element.hashCode;
-    }
-    return firstHashCode + secondHashCode;
+    return _cachedHashCode;
   }
 }
 

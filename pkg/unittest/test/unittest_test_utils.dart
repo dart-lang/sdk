@@ -58,33 +58,33 @@ class TestConfiguration extends Configuration {
   }
 }
 
-makeDelayedSetup(index, s) => () {
+Function makeDelayedSetup(index, s) => () {
   return new Future.delayed(new Duration(milliseconds: 1), () {
     s.write('l$index U ');
   });
 };
 
-makeDelayedTeardown(index, s) => () {
+Function makeDelayedTeardown(index, s) => () {
   return new Future.delayed(new Duration(milliseconds: 1), () {
     s.write('l$index D ');
   });
 };
 
-makeImmediateSetup(index, s) => () {
+Function makeImmediateSetup(index, s) => () {
   s.write('l$index U ');
 };
 
-makeImmediateTeardown(index, s) => () {
+Function makeImmediateTeardown(index, s) => () {
   s.write('l$index D ');
 };
 
-runTestInIsolate(sendport) {
+void runTestInIsolate(sendport) {
   var testConfig = new TestConfiguration(sendport);
   unittestConfiguration = testConfig;
   testFunction(testConfig);
 }
 
-main() {
+void main() {
   var replyPort = new ReceivePort();
   Isolate.spawn(runTestInIsolate, replyPort.sendPort);
   replyPort.first.then((String msg) {

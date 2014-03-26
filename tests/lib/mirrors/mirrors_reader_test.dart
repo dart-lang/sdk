@@ -32,13 +32,17 @@ class RuntimeMirrorsReader extends MirrorsReader {
   bool expectUnsupported(var receiver, String tag, UnsupportedError exception) {
     // [DeclarationMirror.location] is intentionally not supported in runtime
     // mirrors.
-    if (receiver is DeclarationMirror && tag == 'location') {
-      return true;
-    }
+
     if (mirrorSystemType == '_LocalMirrorSystem') {
       // VM mirror system.
+      if (receiver is DeclarationMirror && tag == 'location') {
+        return receiver is! MethodMirror;
+      }
     } else if (mirrorSystemType == 'JsMirrorSystem') {
       // Dart2js runtime mirror system.
+      if (receiver is DeclarationMirror && tag == 'location') {
+        return true;
+      }
     }
     return false;
   }

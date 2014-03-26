@@ -27,10 +27,7 @@ main() {
     requestShouldSucceed("index.html", "<test body>", root: "test");
 
     // Unbind the directory.
-    expectWebSocketCall({
-      "command": "unserveDirectory",
-      "path": "test"
-    }, replyEquals: {
+    expectWebSocketResult("unserveDirectory", {"path": "test"}, {
       "url": getServerUrl("test")
     });
 

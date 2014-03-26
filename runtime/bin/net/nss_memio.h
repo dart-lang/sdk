@@ -3,6 +3,14 @@
 // found in the LICENSE file.
 // Written in NSPR style to also be suitable for adding to the NSS demo suite
 
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// This file is a modified copy of Chromium's src/net/base/nss_memio.h.
+// char* has been changed to uint8_t* everywhere, and C++ casts are used.
+// Revision 257452 (this should agree with "nss_rev" in DEPS).
+
 #ifndef BIN_NET_NSS_MEMIO_H_
 #define BIN_NET_NSS_MEMIO_H_
 
@@ -38,7 +46,7 @@ typedef struct memio_Private memio_Private;
 ----------------------------------------------------------------------*/
 
 /* Create the I/O layer and its two circular buffers. */
-PRFileDesc *memio_CreateIOLayer(int bufsize);
+PRFileDesc *memio_CreateIOLayer(int readbufsize, int writebufsize);
 
 /* Must call before trying to make an ssl connection */
 void memio_SetPeerName(PRFileDesc *fd, const PRNetAddr *peername);
@@ -51,11 +59,23 @@ void memio_SetPeerName(PRFileDesc *fd, const PRNetAddr *peername);
  */
 memio_Private *memio_GetSecret(PRFileDesc *fd);
 
+/* Ask memio how many bytes were requested by a higher layer if the
+ * last attempt to read data resulted in PR_WOULD_BLOCK_ERROR, due to the
+ * transport buffer being empty. If the last attempt to read data from the
+ * memio did not result in PR_WOULD_BLOCK_ERROR, returns 0.
+ */
+int memio_GetReadRequest(memio_Private *secret);
+
 /* Ask memio where to put bytes from the network, and how many it can handle.
  * Returns bytes available to write, or 0 if none available.
  * Puts current buffer position into *buf.
  */
 int memio_GetReadParams(memio_Private *secret, uint8_t **buf);
+
+/* Ask memio how many bytes are contained in the internal buffer.
+ * Returns bytes available to read, or 0 if none available.
+ */
+int memio_GetReadableBufferSize(memio_Private *secret);
 
 /* Tell memio how many bytes were read from the network.
  * If bytes_read is 0, causes EOF to be reported to

@@ -41,10 +41,15 @@ abstract class Iterable<E> {
    * zero to [:count - 1:] while iterating, and call [generator]
    * with that index to create the next value.
    *
+   * If [generator] is omitted, it defaults to an identity function
+   * on integers `(int x) => x`, so it should only be omitted if the type
+   * parameter allows integer values.
+   *
    * As an Iterable, [:new Iterable.generate(n, generator)):] is equivalent to
    * [:const [0, ..., n - 1].map(generator):]
    */
-  factory Iterable.generate(int count, E generator(int index)) {
+  factory Iterable.generate(int count, [E generator(int index)]) {
+    if (count <= 0) return new EmptyIterable<E>();
     return new _GeneratorIterable<E>(count, generator);
   }
 
@@ -289,23 +294,48 @@ typedef E _Generator<E>(int index);
 
 class _GeneratorIterable<E> extends IterableBase<E>
                             implements EfficientLength {
-  final int _count;
+  final int _start;
+  final int _end;
   final _Generator<E> _generator;
-  _GeneratorIterable(this._count, this._generator);
-  Iterator<E> get iterator => new _GeneratorIterator(_count, _generator);
-  int get length => _count;
+  _GeneratorIterable(this._end, E generator(int n))
+      : _start = 0,
+        _generator = (generator != null) ? generator : _id;
+
+  _GeneratorIterable.slice(this._start, this._end, this._generator);
+
+  Iterator<E> get iterator =>
+      new _GeneratorIterator<E>(_start, _end, _generator);
+  int get length => _end - _start;
+
+  Iterable<E> skip(int n) {
+    if (n < 0) throw new RangeError.value(n);
+    if (n == 0) return this;
+    int newStart = _start + n;
+    if (newStart >= _end) return new EmptyIterable<E>();
+    return new _GeneratorIterable<E>.slice(newStart, _end, _generator);
+  }
+
+  Iterable<E> take(int n) {
+    if (n < 0) throw new RangeError.value(n);
+    if (n == 0) return new EmptyIterable<E>();
+    int newEnd = _start + n;
+    if (newEnd >= _end) return this;
+    return new _GeneratorIterable<E>.slice(_start, newEnd, _generator);
+  }
+
+  static int _id(int n) => n;
 }
 
 class _GeneratorIterator<E> implements Iterator<E> {
-  final int _count;
+  final int _end;
   final _Generator<E> _generator;
-  int _index = 0;
+  int _index;
   E _current;
 
-  _GeneratorIterator(this._count, this._generator);
+  _GeneratorIterator(this._index, this._end, this._generator);
 
   bool moveNext() {
-    if (_index < _count) {
+    if (_index < _end) {
       _current = _generator(_index);
       _index++;
       return true;

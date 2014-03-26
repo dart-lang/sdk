@@ -11,6 +11,8 @@ import 'package:watcher/watcher.dart';
 import 'build_environment.dart';
 import 'barback_server.dart';
 
+// TODO(rnystrom): Rename to "SourceDirectory" and clean up various doc
+// comments that refer to "build directories" to use "source directory".
 /// A directory in the entrypoint package whose contents have been made
 /// available to barback and that are bound to a server.
 class BuildDirectory {

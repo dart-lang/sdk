@@ -226,8 +226,7 @@ class ConstantHandler extends CompilerTask {
   Constant getInitialValueFor(VariableElement element) {
     Constant initialValue = initialVariableValues[element.declaration];
     if (initialValue == null) {
-      compiler.internalError("No initial value for given element",
-                             element: element);
+      compiler.internalError(element, "No initial value for given element.");
     }
     return initialValue;
   }
@@ -502,7 +501,7 @@ class CompileTimeConstantEvaluator extends Visitor {
           folded = constantSystem.bitNot.fold(receiverConstant);
           break;
         default:
-          compiler.internalError("Unexpected operator.", node: op);
+          compiler.internalError(op, "Unexpected operator.");
           break;
       }
       if (folded == null) return signalNotCompileTimeConstant(send);
@@ -848,7 +847,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     if (Elements.isLocal(element)) {
       Constant constant = definitions[element];
       if (constant == null) {
-        compiler.internalError("Local variable without value", node: send);
+        compiler.internalError(send, "Local variable without value.");
       }
       return constant;
     }
@@ -972,8 +971,8 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
         FunctionElement targetConstructor =
             superClass.lookupConstructor(selector);
         if (targetConstructor == null) {
-          compiler.internalError("no default constructor available",
-                                 node: functionNode);
+          compiler.internalError(functionNode,
+              "No default constructor available.");
         }
         List<Constant> compiledArguments = evaluateArgumentsToConstructor(
             functionNode, selector, const Link<Node>(), targetConstructor);

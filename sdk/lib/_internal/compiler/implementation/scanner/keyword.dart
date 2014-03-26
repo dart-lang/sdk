@@ -66,7 +66,8 @@ class Keyword {
       const Keyword("of", isPseudo: true),
       const Keyword("on", isPseudo: true),
       const Keyword("show", isPseudo: true),
-      const Keyword("source", isPseudo: true) ];
+      const Keyword("source", isPseudo: true),
+      const Keyword("deferred", isPseudo: true)];
 
   final String syntax;
   final bool isPseudo;

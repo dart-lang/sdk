@@ -231,6 +231,7 @@ abstract class Element implements Spannable {
   bool isTopLevel();
   bool isAssignable();
   bool isNative();
+  bool isDeferredLoaderGetter();
 
   bool impliesType();
 
@@ -331,12 +332,14 @@ class Elements {
       return true;
     }
     return !Elements.isUnresolved(element)
+           && !element.isAmbiguous()
            && !element.isInstanceMember()
            && !element.isPrefix()
            && element.enclosingElement != null
            && (element.enclosingElement.kind == ElementKind.CLASS ||
                element.enclosingElement.kind == ElementKind.COMPILATION_UNIT ||
-               element.enclosingElement.kind == ElementKind.LIBRARY);
+               element.enclosingElement.kind == ElementKind.LIBRARY ||
+               element.enclosingElement.kind == ElementKind.PREFIX);
   }
 
   static bool isInStaticContext(Element element) {
@@ -746,7 +749,8 @@ abstract class PrefixElement extends Element {
   Element lookupLocalMember(String memberName);
   /// Is true if this prefix belongs to a deferred import.
   bool get isDeferred;
-  void markAsDeferred();
+  void markAsDeferred(Import import);
+  Import get deferredImport;
 }
 
 abstract class TypedefElement extends Element

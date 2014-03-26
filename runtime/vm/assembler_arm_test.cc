@@ -1817,6 +1817,188 @@ ASSEMBLER_TEST_RUN(Vaddqi64, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Vshlqu64, assembler) {
+  if (TargetCPUFeatures::neon_supported()) {
+    Label fail;
+    __ LoadImmediate(R1, 21);
+    __ LoadImmediate(R0, 1);
+    __ vmovsr(S0, R1);
+    __ vmovsr(S2, R1);
+    __ vmovsr(S4, R0);
+    __ vmovsr(S6, R0);
+
+    __ vshlqu(kWordPair, Q2, Q0, Q1);
+
+    __ vmovrs(R0, S8);
+    __ vmovrs(R1, S10);
+    __ CompareImmediate(R0, 42);
+    __ LoadImmediate(R0, 0);
+    __ b(&fail, NE);
+    __ CompareImmediate(R1, 42);
+    __ LoadImmediate(R0, 0);
+    __ b(&fail, NE);
+
+    __ LoadImmediate(R0, 1);
+    __ Bind(&fail);
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 1);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vshlqu64, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vshlqi64, assembler) {
+  if (TargetCPUFeatures::neon_supported()) {
+    Label fail;
+    __ LoadImmediate(R1, -84);
+    __ LoadImmediate(R0, -1);
+    __ vmovdrr(D0, R1, R0);
+    __ vmovdrr(D1, R1, R0);
+    __ vmovsr(S4, R0);
+    __ vmovsr(S6, R0);
+
+    __ vshlqi(kWordPair, Q2, Q0, Q1);
+
+    __ vmovrs(R0, S8);
+    __ vmovrs(R1, S10);
+    __ CompareImmediate(R0, -42);
+    __ LoadImmediate(R0, 0);
+    __ b(&fail, NE);
+    __ CompareImmediate(R1, -42);
+    __ LoadImmediate(R0, 0);
+    __ b(&fail, NE);
+
+    __ LoadImmediate(R0, 1);
+    __ Bind(&fail);
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 1);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vshlqi64, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Mint_shl_ok, assembler) {
+  const QRegister value = Q0;
+  const QRegister temp = Q1;
+  const QRegister out = Q2;
+  const Register shift = R1;
+  const DRegister dtemp0 = EvenDRegisterOf(temp);
+  const SRegister stemp0 = EvenSRegisterOf(dtemp0);
+  const DRegister dout0 = EvenDRegisterOf(out);
+  const SRegister sout0 = EvenSRegisterOf(dout0);
+  const SRegister sout1 = OddSRegisterOf(dout0);
+  Label fail;
+
+  // Initialize.
+  __ veorq(value, value, value);
+  __ veorq(temp, temp, temp);
+  __ veorq(out, out, out);
+  __ LoadImmediate(shift, 32);
+  __ LoadImmediate(R2, 1 << 7);
+  __ vmovsr(S0, R2);
+
+  __ vmovsr(stemp0, shift);  // Move the shift into the low S register.
+  __ vshlqu(kWordPair, out, value, temp);
+
+  // check for overflow by shifting back and comparing.
+  __ rsb(shift, shift, ShifterOperand(0));
+  __ vmovsr(stemp0, shift);
+  __ vshlqi(kWordPair, temp, out, temp);
+  __ vceqqi(kWord, out, temp, value);
+  // Low 64 bits of temp should be all 1's, otherwise temp != value and
+  // we deopt.
+  __ vmovrs(shift, sout0);
+  __ CompareImmediate(shift, -1);
+  __ b(&fail, NE);
+  __ vmovrs(shift, sout1);
+  __ CompareImmediate(shift, -1);
+  __ b(&fail, NE);
+
+  __ LoadImmediate(R0, 1);
+  __ bx(LR);
+
+  __ Bind(&fail);
+  __ LoadImmediate(R0, 0);
+  __ bx(LR);
+}
+
+
+ASSEMBLER_TEST_RUN(Mint_shl_ok, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Mint_shl_overflow, assembler) {
+  const QRegister value = Q0;
+  const QRegister temp = Q1;
+  const QRegister out = Q2;
+  const Register shift = R1;
+  const DRegister dtemp0 = EvenDRegisterOf(temp);
+  const SRegister stemp0 = EvenSRegisterOf(dtemp0);
+  const DRegister dout0 = EvenDRegisterOf(out);
+  const SRegister sout0 = EvenSRegisterOf(dout0);
+  const SRegister sout1 = OddSRegisterOf(dout0);
+  Label fail;
+
+  // Initialize.
+  __ veorq(value, value, value);
+  __ veorq(temp, temp, temp);
+  __ veorq(out, out, out);
+  __ LoadImmediate(shift, 60);
+  __ LoadImmediate(R2, 1 << 7);
+  __ vmovsr(S0, R2);
+
+  __ vmovsr(stemp0, shift);  // Move the shift into the low S register.
+  __ vshlqu(kWordPair, out, value, temp);
+
+  // check for overflow by shifting back and comparing.
+  __ rsb(shift, shift, ShifterOperand(0));
+  __ vmovsr(stemp0, shift);
+  __ vshlqi(kWordPair, temp, out, temp);
+  __ vceqqi(kWord, out, temp, value);
+  // Low 64 bits of temp should be all 1's, otherwise temp != value and
+  // we deopt.
+  __ vmovrs(shift, sout0);
+  __ CompareImmediate(shift, -1);
+  __ b(&fail, NE);
+  __ vmovrs(shift, sout1);
+  __ CompareImmediate(shift, -1);
+  __ b(&fail, NE);
+
+  __ LoadImmediate(R0, 0);
+  __ bx(LR);
+
+  __ Bind(&fail);
+  __ LoadImmediate(R0, 1);
+  __ bx(LR);
+}
+
+
+ASSEMBLER_TEST_RUN(Mint_shl_overflow, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(Vsubqi8, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
     __ mov(R0, ShifterOperand(1));
@@ -2593,6 +2775,28 @@ ASSEMBLER_TEST_RUN(Vmovq, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)();
   EXPECT_EQ(4, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vmvnq, assembler) {
+  if (TargetCPUFeatures::neon_supported()) {
+    __ LoadImmediate(R1, 42);  // R1 <- 42.
+    __ vmovsr(S2, R1);  // S2 <- R1.
+    __ vmvnq(Q1, Q0);  // Q1 <- ~Q0.
+    __ vmvnq(Q2, Q1);  // Q2 <- ~Q1.
+    __ vmovrs(R0, S10);  // Now R0 should be 42 again.
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 42);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vmvnq, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
 
 

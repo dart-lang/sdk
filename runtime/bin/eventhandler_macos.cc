@@ -201,13 +201,16 @@ void EventHandlerImplementation::HandleInterruptFd() {
         // Close the socket and free system resources.
         RemoveFromKqueue(kqueue_fd_, sd);
         intptr_t fd = sd->fd();
-        sd->Close();
+        VOID_TEMP_FAILURE_RETRY(close(fd));
         socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
         delete sd;
         DartUtils::PostInt32(msg[i].dart_port, 1 << kDestroyedEvent);
       } else if ((msg[i].data & (1 << kReturnTokenCommand)) != 0) {
-        if (sd->ReturnToken()) {
-          AddToKqueue(kqueue_fd_, sd);
+        int count = msg[i].data & ((1 << kReturnTokenCommand) - 1);
+        for (int i = 0; i < count; i++) {
+          if (sd->ReturnToken()) {
+            AddToKqueue(kqueue_fd_, sd);
+          }
         }
       } else {
         // Setup events to wait for.
@@ -307,7 +310,7 @@ void EventHandlerImplementation::HandleEvents(struct kevent* events,
       SocketData* sd = reinterpret_cast<SocketData*>(events[i].udata);
       intptr_t event_mask = GetEvents(events + i, sd);
       if (event_mask != 0) {
-        if (sd->TakeToken()) {
+        if (!sd->IsListeningSocket() && sd->TakeToken()) {
           // Took last token, remove from epoll.
           RemoveFromKqueue(kqueue_fd_, sd);
         }
@@ -368,12 +371,10 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
       ts.tv_nsec = (millis32 - (secs * 1000)) * 1000000;
       timeout = &ts;
     }
-    intptr_t result = TEMP_FAILURE_RETRY(kevent(handler_impl->kqueue_fd_,
-                                                NULL,
-                                                0,
-                                                events,
-                                                kMaxEvents,
-                                                timeout));
+    // We have to use TEMP_FAILURE_RETRY for mac, as kevent can modify the
+    // current sigmask.
+    intptr_t result = TEMP_FAILURE_RETRY(
+        kevent(handler_impl->kqueue_fd_, NULL, 0, events, kMaxEvents, timeout));
     if (result == -1) {
       const int kBufferSize = 1024;
       char error_message[kBufferSize];

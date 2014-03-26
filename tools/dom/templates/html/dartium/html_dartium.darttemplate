@@ -119,3 +119,15 @@ HtmlDocument get document {
   _document = window.document;
   return _document;
 }
+
+/**
+ * Spawn a DOM isolate using the given URI in the same window.
+ * This isolate is not concurrent.  It runs on the browser thread
+ * with full access to the DOM.
+ * Note: this API is still evolving and may move to dart:isolate.
+ */
+@Experimental()
+Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
+  // TODO(17738): Plumb arguments and return value through.
+  return _Utils.spawnDomUri(uri.toString());
+}

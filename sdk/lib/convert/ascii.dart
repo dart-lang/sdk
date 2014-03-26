@@ -239,14 +239,17 @@ class AsciiDecoder extends _UnicodeSubsetDecoder {
     // works just as well, is likely to have less decoding overhead,
     // and make adding U+FFFD easier.
     // At that time, merge this with _Latin1DecoderSink;
-    return new _AsciiDecoderSink(_allowInvalid, stringSink.asUtf8Sink(false));
+    if (_allowInvalid) {
+      return new _ErrorHandlingAsciiDecoderSink(stringSink.asUtf8Sink(false));
+    } else {
+      return new _SimpleAsciiDecoderSink(stringSink);
+    }
   }
 }
 
-class _AsciiDecoderSink extends ByteConversionSinkBase {
-  final bool _allowInvalid;
+class _ErrorHandlingAsciiDecoderSink extends ByteConversionSinkBase {
   ByteConversionSink _utf8Sink;
-  _AsciiDecoderSink(this._allowInvalid, this._utf8Sink);
+  _ErrorHandlingAsciiDecoderSink(this._utf8Sink);
 
   void close() {
     _utf8Sink.close();
@@ -265,14 +268,10 @@ class _AsciiDecoderSink extends ByteConversionSinkBase {
     }
     for (int i = start; i < end; i++) {
       if ((source[i] & ~_ASCII_MASK) != 0) {
-        if (_allowInvalid) {
-          if (i > start) _utf8Sink.addSlice(source, start, i, false);
-          // Add UTF-8 encoding of U+FFFD.
-          _utf8Sink.add(const<int>[0xEF, 0xBF, 0xBD]);
-          start = i + 1;
-        } else {
-          throw new FormatException("Source contains non-ASCII bytes.");
-        }
+        if (i > start) _utf8Sink.addSlice(source, start, i, false);
+        // Add UTF-8 encoding of U+FFFD.
+        _utf8Sink.add(const<int>[0xEF, 0xBF, 0xBD]);
+        start = i + 1;
       }
     }
     if (start < end) {
@@ -280,5 +279,40 @@ class _AsciiDecoderSink extends ByteConversionSinkBase {
     } else if (isLast) {
       close();
     }
+  }
+}
+
+class _SimpleAsciiDecoderSink extends ByteConversionSinkBase {
+  Sink _sink;
+  _SimpleAsciiDecoderSink(this._sink);
+
+  void close() {
+    _sink.close();
+  }
+
+  void add(List<int> source) {
+    for (int i = 0; i < source.length; i++) {
+      if ((source[i] & ~_ASCII_MASK) != 0) {
+        throw new FormatException("Source contains non-ASCII bytes.");
+      }
+    }
+    _sink.add(new String.fromCharCodes(source));
+  }
+
+  void addSlice(List<int> source, int start, int end, bool isLast) {
+    final int length = source.length;
+    if (start < 0 || start > length) {
+      throw new RangeError.range(start, 0, length - 1);
+    }
+    if (end < start || end > length) {
+      throw new RangeError.range(end, start, length - 1);
+    }
+    if (start < end) {
+      if (start != 0 || end != length) {
+        source = source.sublist(start, end);
+      }
+      add(source);
+    }
+    if (isLast) close();
   }
 }

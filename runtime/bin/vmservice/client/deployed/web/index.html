@@ -1,12 +1,12 @@
-<!DOCTYPE html><html><head>
-
+<!DOCTYPE html><html><head><script src="packages/shadow_dom/shadow_dom.debug.js"></script>
+<script src="packages/custom_element/custom-elements.debug.js"></script>
 
   <meta charset="utf-8">
   <link type="text/css" rel="stylesheet" href="bootstrap_css/css/bootstrap.min.css">
 
   <title>Dart VM Observatory</title>
   <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-  
+  <script src="packages/browser/interop.js"></script>
   
   <script src="index.html_bootstrap.dart.js"></script>
   
@@ -424,8 +424,7 @@
               <div style="color:#aaa;cursor:wait;">&lt;pending&gt;</div>
             </template>
             <template if="{{ result['value'] != null }}">
-              <instance-ref isolate="{{ isolate }}" ref="{{ result['value'] }}">
-              </instance-ref>
+              <instance-ref ref="{{ result['value'] }}"></instance-ref>
             </template>
           </td>
         </tr>
@@ -529,7 +528,7 @@
 
         <div class="memberItem">&nbsp;</div>
 
-        <template if="{{ cls['super']['type'] != 'Null' }}">
+        <template if="{{ cls['super'] != null }}">
           <div class="memberItem">
             <div class="memberName">extends</div>
             <div class="memberValue">
@@ -890,7 +889,7 @@
   <template>
     <div class="row">
       <div class="col-md-1">
-        <img src="img/isolate_icon.png" class="img-polaroid">
+        <img src="packages/observatory/src/elements/img/isolate_icon.png" class="img-polaroid">
       </div>
 
       <div class="col-md-1">{{ isolate.mainPort }}</div>
@@ -1042,6 +1041,37 @@
       </div>
     </div>
 
+    <template if="{{ isolate.error != null }}">
+      <div class="content">
+        <h1>Error</h1>
+        <div class="memberList">
+          <div class="memberItem">
+            <div class="memberName">message</div>
+            <div class="memberValue">
+              <pre>{{ isolate.error.message }}</pre>
+            </div>
+          </div>
+          <div class="memberItem">
+            <template if="{{ isolate.error.exception != null }}">
+              <div class="memberName">exception</div>
+              <div class="memberValue">
+                <instance-ref ref="{{ isolate.error.exception }}"></instance-ref>
+              </div>
+            </template>
+          </div>
+          <div class="memberItem">
+            <template if="{{ isolate.error.stacktrace != null }}">
+            <div class="memberName">stacktrace</div>
+            <div class="memberValue">
+              <instance-ref ref="{{ isolate.error.stacktrace }}"></instance-ref>
+            </div>
+            </template>
+          </div>
+        </div>
+      </div>
+      <hr>
+    </template>
+
     <template if="{{ isolate.topFrame != null }}">
       <br>
       <div class="sourceInset">
@@ -1127,6 +1157,12 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <hr>
+
+    <div class="content">
+      <div id="tagProfileChart" class="col-md-8" style="height: 400px"></div>
     </div>
 
     <hr>
@@ -1832,7 +1868,7 @@
     <br>
 
     <ul class="list-group">
-      <template repeat="{{ isolate in vm.allIsolates }}">
+      <template repeat="{{ isolate in vm.isolates }}">
       	<li class="list-group-item">
           <isolate-summary isolate="{{ isolate }}"></isolate-summary>
         </li>
@@ -1854,6 +1890,47 @@
 </polymer-element><polymer-element name="observatory-application" extends="observatory-element">
   <template>
     <response-viewer app="{{ app }}"></response-viewer>
+  </template>
+  
+</polymer-element>
+<polymer-element name="service-exception-view" extends="observatory-element">
+  <template>
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+    </nav-bar>
+
+    <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-danger">
+        <div class="panel-heading">{{ exception.kind }}</div>
+        <div class="panel-body">
+          <p>{{ exception.message }}</p>
+        </div>
+        <div class="well">
+          <p>{{ exception.response }}</p>
+        </div>
+      </div>
+    </div>
+    </div>
+  </template>
+  
+</polymer-element>
+<polymer-element name="service-error-view" extends="observatory-element">
+  <template>
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+    </nav-bar>
+
+    <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-danger">
+        <div class="panel-heading">{{ error.kind }}</div>
+        <div class="panel-body">
+          <p>{{ error.message }}</p>
+        </div>
+      </div>
+    </div>
+    </div>
   </template>
   
 </polymer-element>

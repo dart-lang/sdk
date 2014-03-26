@@ -27,11 +27,13 @@ void main() {
       expect(p.basename(thisPath), 'only_lib_content_in_pkg_test.dart');
       expect(p.dirname(thisPath), endsWith('test'));
 
+      var packageRoot = Platform.packageRoot;
+      if (packageRoot == '') packageRoot = null;
 
       var codeDir = p.normalize(p.join(thisPath, '..', '..'));
-      print(codeDir);
       expect(FileSystemEntity.isDirectorySync(codeDir), isTrue);
-      return dg.docgen(['$codeDir/'], out: p.join(d.defaultRoot, 'docs'));
+      return dg.docgen(['$codeDir/'], out: p.join(d.defaultRoot, 'docs'),
+          packageRoot: packageRoot);
     });
 
     d.dir('docs', [

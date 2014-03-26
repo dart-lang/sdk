@@ -128,7 +128,7 @@ class PartialParser extends Parser {
     listener.beginOptionalFormalParameters(token);
     if (!optional('(', token)) {
       if (optional(';', token)) {
-        listener.recoverableError("expected '('", token: token);
+        listener.recoverableError(token, "expected '('");
         return token;
       }
       return listener.unexpected(token);

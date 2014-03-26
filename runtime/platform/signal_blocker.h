@@ -79,6 +79,28 @@ class ThreadSignalBlocker {
 #define VOID_NO_RETRY_EXPECTED(expression)                                     \
     (static_cast<void>(NO_RETRY_EXPECTED(expression)))
 
+// Define to check in debug mode, if a signal is currently being blocked.
+#define CHECK_IS_BLOCKING(signal)                                              \
+    ({ sigset_t signal_mask;                                                   \
+       int __r = pthread_sigmask(SIG_BLOCK, NULL, &signal_mask);               \
+       USE(__r);                                                               \
+       ASSERT(__r == 0);                                                       \
+       sigismember(&signal_mask, signal); })                                   \
+
+
+// Versions of the above, that does not enter a signal blocking scope. Use only
+// when a signal blocking scope is entered manually.
+#define TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(expression)                       \
+    ({ intptr_t __result;                                                      \
+       ASSERT(CHECK_IS_BLOCKING(SIGPROF));                                     \
+       do {                                                                    \
+         __result = (expression);                                              \
+       } while ((__result == -1L) && (errno == EINTR));                        \
+       __result; })
+
+#define VOID_TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(expression)                  \
+    (static_cast<void>(TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(expression)))
+
 }  // namespace dart
 
 #endif  // PLATFORM_SIGNAL_BLOCKER_H_

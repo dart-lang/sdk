@@ -20,36 +20,61 @@ closure_in_initializer_test: Fail # Issue 6422
 duplicate_export_negative_test: Fail # Issue 6134
 mixin_forwarding_constructor2_test: Fail # Issue 13641
 
-deferred_constraints_constants_test/reference1: Fail
-deferred_constraints_constants_test/reference2: Fail
-deferred_constraints_constants_test/metadata1: Fail
-deferred_constraints_constants_test/metadata2: Fail
-deferred_constraints_constants_test/metadata3: Fail
-deferred_constraints_constants_test/default_argument1: Fail
-deferred_constraints_constants_test/default_argument2: Fail
-deferred_constraints_constants_test/constructor1: Fail
-deferred_constraints_constants_test/constructor2: Fail
+# Issue 17521
+deferred_constraints_constants_test/*: Fail, Pass
+deferred_constraints_type_annotation_test/*: Fail, Pass
+deferred_shadow_load_library_test: Fail
+deferred_closurize_load_library_test: Fail
+deferred_constraints_type_annotation_old_syntax_test/as_operation: Fail
+deferred_constraints_type_annotation_old_syntax_test/is_check: Fail
+deferred_constraints_type_annotation_old_syntax_test/catch_check: Fail
+deferred_constraints_type_annotation_old_syntax_test/new_before_load: Fail
+
+# These test use the old syntax, and will be phased out.
+deferred_constraints_constants_old_syntax_test/reference1: Fail, Ok
+deferred_constraints_constants_old_syntax_test/reference2: Fail, Ok
+deferred_constraints_constants_old_syntax_test/metadata1: Fail, Ok
+deferred_constraints_constants_old_syntax_test/metadata2: Fail, Ok
+deferred_constraints_constants_old_syntax_test/metadata3: Fail, Ok
+deferred_constraints_constants_old_syntax_test/default_argument1: Fail, Ok
+deferred_constraints_constants_old_syntax_test/default_argument2: Fail, Ok
+deferred_constraints_constants_old_syntax_test/constructor1: Fail, Ok
+deferred_constraints_constants_old_syntax_test/constructor2: Fail, Ok
 
 [ ($compiler == none || $compiler == dart2dart)]
-# The vm does not support deferred loading.
+# Issue 17521, 17523
 deferred_constraints_type_annotation_test/as_operation: Fail
 deferred_constraints_type_annotation_test/is_check: Fail
 deferred_constraints_type_annotation_test/catch_check: Fail
 deferred_constraints_type_annotation_test/new_before_load: Fail
+deferred_load_library_wrong_args_test/none: Fail
+
 cyclic_type_test: Fail, OK # Issue 17629
 
+[ ($compiler == dart2dart)]
+# Issue 17523
+deferred_constraints_type_annotation_test/*: Fail, Pass
+deferred_constraints_constants_test/*: Fail, Pass
+deferred_constraints_type_annotation_old_syntax_test/as_operation: Fail
+deferred_constraints_type_annotation_old_syntax_test/is_check: Fail
+deferred_constraints_type_annotation_old_syntax_test/catch_check: Fail
+deferred_constraints_type_annotation_old_syntax_test/new_before_load: Fail
+deferred_shadow_load_library_test: Fail
+deferred_closurize_load_library_test: Fail
+
 [ ($compiler == none || $compiler == dart2dart) && $checked ]
-# The vm and dart2dart do not support deferred loading.
-deferred_constraints_type_annotation_test/type_annotation1: Fail
-deferred_constraints_type_annotation_test/type_annotation_generic1: Fail
-deferred_constraints_type_annotation_test/type_annotation_generic4: Fail
+# Issue 17521, 17523
+# Dart2dart does not support deferred loading.
+deferred_constraints_type_annotation_old_syntax_test/type_annotation1: Fail
+deferred_constraints_type_annotation_old_syntax_test/type_annotation_generic1: Fail
+deferred_constraints_type_annotation_old_syntax_test/type_annotation_generic4: Fail
 
 [ $compiler == none || $compiler == dartanalyzer || $compiler == dart2analyzer ]
-# The vm and analyzer do not support deferred loading.
-deferred_no_prefix_test/01: Fail
-deferred_duplicate_prefix1_test/01: Fail
-deferred_duplicate_prefix2_test/01: Fail
-deferred_duplicate_prefix3_test/01: Fail
+# Issue 17521, 17522
+deferred_no_prefix_old_syntax_test/01: Fail
+deferred_duplicate_prefix1_old_syntax_test/01: Fail
+deferred_duplicate_prefix2_old_syntax_test/01: Fail
+deferred_duplicate_prefix3_old_syntax_test/01: Fail
 
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627

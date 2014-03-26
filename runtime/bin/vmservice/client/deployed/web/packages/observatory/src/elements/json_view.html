@@ -1,0 +1,33 @@
+<head>
+  <link rel="import" href="observatory_element.html">
+</head>
+<polymer-element name="json-view" extends="observatory-element">
+  <template>
+    <template bind if="{{ valueType == 'Primitive' }}">
+      <span>{{primitiveString}}</span>
+    </template>
+    <template bind if="{{ valueType == 'List' }}">
+      <table class="table table-condensed table-bordered">
+        <caption class="text-left">List, {{list.length}}</caption>
+        <tbody>
+          <tr template repeat="{{item in list)}}">
+            <th>{{counter}}</th>
+            <td><json-view json="{{item}}"></json-view></td>
+          </tr>
+        </tbody>
+      </table>
+    </template>
+    <template if="{{ valueType == 'Map' }}">
+      <table class="table table-condensed table-bordered">
+        <caption class="text-left">Map, {{keys.length}}</caption>
+        <tbody>
+          <tr template repeat="{{key in keys}}">
+            <th>{{key}}</th>
+            <td><json-view json="{{value(key)}}"></json-view></td>
+          </tr>
+        </tbody>
+      </table>
+    </template>
+  </template>
+  <script type="application/dart" src="json_view.dart"></script>
+</polymer-element>

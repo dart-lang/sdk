@@ -36,19 +36,12 @@ class SocketData {
         port_(0),
         mask_(0),
         tracked_by_kqueue_(false),
-        tokens_(8) {
+        tokens_(16) {
     ASSERT(fd_ != -1);
   }
 
   bool HasReadEvent();
   bool HasWriteEvent();
-
-  void Close() {
-    port_ = 0;
-    mask_ = 0;
-    VOID_TEMP_FAILURE_RETRY(close(fd_));
-    fd_ = -1;
-  }
 
   bool IsListeningSocket() { return (mask_ & (1 << kListeningSocket)) != 0; }
 

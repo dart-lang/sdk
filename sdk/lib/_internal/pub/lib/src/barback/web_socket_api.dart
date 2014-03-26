@@ -5,67 +5,31 @@
 library pub.barback.web_socket_api;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
-import 'package:stack_trace/stack_trace.dart';
+import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 
-import '../log.dart' as log;
-import '../utils.dart';
 import 'build_environment.dart';
 
-import '../log.dart' as log;
+/// The error code for a directory not being served.
+const _NOT_SERVED = 1;
 
 /// Implements the [WebSocket] API for communicating with a running pub serve
 /// process, mainly for use by the Editor.
 ///
-/// Requests must be string-encoded JSON maps. Each request is a command, and
-/// the map must have a command key:
-///
-///     {
-///       "command": "name"
-///     }
-///
-/// The request may also have an "id" key with any value. If present in the
-/// request, the response will include an "id" key with the same value. This
-/// can be used by the client to match requests to responses when multiple
-/// concurrent requests may be in flight.
-///
-///     {
-///       "command": "name",
-///       "id": "anything you want"
-///     }
-///
-/// The request may have other keys for parameters to the command. It's an
-/// error to invoke an unknown command.
-///
-/// All responses sent on the socket are string-encoded JSON maps. If an error
-/// occurs while processing the request, an error response will be sent like:
-///
-///     {
-///       "error": "Human-friendly error message."
-///       "code": "UNIQUE_IDENTIFIER"
-///     }
-///
-/// The code will be a short string that can be used to uniquely identify the
-/// category of error.
-///
-/// No successful response map will contain a key named "error".
+/// This is a [JSON-RPC 2.0](http://www.jsonrpc.org/specification) server. Its
+/// methods are described in the method-level documentation below.
 class WebSocketApi {
   final WebSocket _socket;
   final BuildEnvironment _environment;
-
-  Map<String, _CommandHandler> _commands;
+  final _server = new json_rpc.Server();
 
   WebSocketApi(this._socket, this._environment) {
-    _commands = {
-      "urlToAssetId": _urlToAssetId,
-      "pathToUrls": _pathToUrls,
-      "serveDirectory": _serveDirectory,
-      "unserveDirectory": _unserveDirectory
-    };
+    _server.registerMethod("urlToAssetId", _urlToAssetId);
+    _server.registerMethod("pathToUrls", _pathToUrls);
+    _server.registerMethod("serveDirectory", _serveDirectory);
+    _server.registerMethod("unserveDirectory", _unserveDirectory);
   }
 
   /// Listens on the socket.
@@ -74,64 +38,9 @@ class WebSocketApi {
   /// complete with an error if the socket had an error, otherwise it will
   /// complete to `null`.
   Future listen() {
-    return _socket.listen((data) {
-      log.io("Web Socket command: $data");
-
-      var command;
-      return syncFuture(() {
-        try {
-          command = JSON.decode(data);
-        } on FormatException catch (ex) {
-          throw new _WebSocketException(_ErrorCode.BAD_COMMAND,
-              '"$data" is not valid JSON: ${ex.message}');
-        }
-
-        if (command is! Map) {
-          throw new _WebSocketException(_ErrorCode.BAD_COMMAND,
-              'Command must be a JSON map. Got $data.');
-        }
-
-        if (!command.containsKey("command")) {
-          throw new _WebSocketException(_ErrorCode.BAD_COMMAND,
-              'Missing command name. Got $data.');
-        }
-
-        var handler = _commands[command["command"]];
-        if (handler == null) {
-          throw new _WebSocketException(_ErrorCode.BAD_COMMAND,
-              'Unknown command "${command["command"]}".');
-        }
-
-        return handler(command);
-      }).then((response) {
-        // If the command has an ID, include it in the response.
-        if (command.containsKey("id")) {
-          response["id"] = command["id"];
-        }
-
-        _socket.add(JSON.encode(response));
-      }).catchError((error, [stackTrace]) {
-        var response;
-        if (error is _WebSocketException) {
-          response = {
-            "code": error.code,
-            "error": error.message
-          };
-        } else {
-          // Catch any other errors and pipe them through the web socket.
-          response = {
-            "code": _ErrorCode.UNEXPECTED_ERROR,
-            "error": error.toString(),
-            "stackTrace": new Chain.forTrace(stackTrace).toString()
-          };
-        }
-
-        // If the command has an ID, include it in the response.
-        if (command is Map && command.containsKey("id")) {
-          response["id"] = command["id"];
-        }
-
-        _socket.add(JSON.encode(response));
+    return _socket.listen((request) {
+      _server.parseRequest(request).then((response) {
+        if (response != null) _socket.add(response);
       });
     }, cancelOnError: true).asFuture();
   }
@@ -139,18 +48,17 @@ class WebSocketApi {
   /// Given a URL to an asset that is served by pub, returns the ID of the
   /// asset that would be accessed by that URL.
   ///
-  /// The command name is "urlToAssetId" and it takes a "url" key for the URL
-  /// being mapped:
+  /// The method name is "urlToAssetId" and it takes a "url" parameter for the
+  /// URL being mapped:
   ///
-  ///     {
-  ///       "command": "urlToAssetId",
+  ///     "params": {
   ///       "url": "http://localhost:8080/index.html"
   ///     }
   ///
   /// If successful, it returns a map containing the asset ID's package and
   /// path:
   ///
-  ///     {
+  ///     "result": {
   ///       "package": "myapp",
   ///       "path": "web/index.html"
   ///     }
@@ -181,23 +89,15 @@ class WebSocketApi {
   ///
   /// This does *not* currently check to ensure the asset actually exists. It
   /// only maps what the corresponding asset *should* be for that URL.
-  Map _urlToAssetId(Map command) {
-    var urlString = _validateString(command, "url");
-    var url;
-    try {
-      url = Uri.parse(urlString);
-    } on FormatException catch(ex) {
-      print(ex);
-      throw new _WebSocketException(_ErrorCode.BAD_ARGUMENT,
-          '"$urlString" is not a valid URL.');
-    }
+  Map _urlToAssetId(json_rpc.Parameters params) {
+    var url = params["url"].asUri;
 
     // If a line number was given, map it to the output line.
-    var line = _validateOptionalInt(command, "line");
+    var line = params["line"].asIntOr(null);
 
     var id = _environment.getAssetIdForUrl(url);
     if (id == null) {
-      throw new _WebSocketException(_ErrorCode.NOT_SERVED,
+      throw new json_rpc.RpcException(_NOT_SERVED,
           '"${url.host}:${url.port}" is not being served by pub.');
     }
 
@@ -219,19 +119,18 @@ class WebSocketApi {
   /// Given a path on the filesystem, returns the URLs served by pub that can be
   /// used to access asset found at that path.
   ///
-  /// The command name is "pathToUrls" and it takes a "path" key (a native OS
+  /// The method name is "pathToUrls" and it takes a "path" key (a native OS
   /// path which may be absolute or relative to the root directory of the
   /// entrypoint package) for the path being mapped:
   ///
-  ///     {
-  ///       "command": "pathToUrls",
+  ///     "params": {
   ///       "path": "web/index.html"
   ///     }
   ///
   /// If successful, it returns a map containing the list of URLs that can be
   /// used to access that asset.
   ///
-  ///     {
+  ///     "result": {
   ///       "urls": ["http://localhost:8080/index.html"]
   ///     }
   ///
@@ -240,15 +139,14 @@ class WebSocketApi {
   /// to its location on disk. Only the "lib" and "asset" directories are
   /// visible in other packages:
   ///
-  ///     {
-  ///       "command": "assetIdToUrl",
+  ///     "params": {
   ///       "path": "packages/http/http.dart"
   ///     }
   ///
   /// Assets in the "lib" and "asset" directories will usually have one URL for
   /// each server:
   ///
-  ///     {
+  ///     "result": {
   ///       "urls": [
   ///         "http://localhost:8080/packages/http/http.dart",
   ///         "http://localhost:8081/packages/http/http.dart"
@@ -269,13 +167,13 @@ class WebSocketApi {
   /// If the asset is not in a directory being served by pub, returns an error:
   ///
   ///     example/index.html  -> NOT_SERVED error
-  Map _pathToUrls(Map command) {
-    var assetPath = _validateString(command, "path");
-    var line = _validateOptionalInt(command, "line");
+  Map _pathToUrls(json_rpc.Parameters params) {
+    var assetPath = params["path"].asString;
+    var line = params["line"].asIntOr(null);
 
     var urls = _environment.getUrlsForAssetPath(assetPath);
     if (urls.isEmpty) {
-      throw new _WebSocketException(_ErrorCode.NOT_SERVED,
+      throw new json_rpc.RpcException(_NOT_SERVED,
           'Asset path "$assetPath" is not currently being served.');
     }
 
@@ -293,25 +191,24 @@ class WebSocketApi {
   /// Given a relative directory path within the entrypoint package, binds a
   /// new port to serve from that path and returns its URL.
   ///
-  /// The command name is "serveDirectory" and it takes a "path" key (a native
+  /// The method name is "serveDirectory" and it takes a "path" key (a native
   /// OS path relative to the root of the entrypoint package) for the directory
   /// being served:
   ///
-  ///     {
-  ///       "command": "serveDirectory",
+  ///     "params": {
   ///       "path": "example/awesome"
   ///     }
   ///
   /// If successful, it returns a map containing the URL that can be used to
   /// access the directory.
   ///
-  ///     {
+  ///     "result": {
   ///       "url": "http://localhost:8083"
   ///     }
   ///
   /// If the directory is already being served, returns the previous URL.
-  Future<Map> _serveDirectory(Map command) {
-    var rootDirectory = _validateRelativePath(command, "path");
+  Future<Map> _serveDirectory(json_rpc.Parameters params) {
+    var rootDirectory = _validateRelativePath(params, "path");
     return _environment.serveDirectory(rootDirectory).then((server) {
       return {
         "url": server.url.toString()
@@ -323,51 +220,32 @@ class WebSocketApi {
   /// the server previously bound to that directory and returns its (now
   /// unreachable) URL.
   ///
-  /// The command name is "unserveDirectory" and it takes a "path" key (a
+  /// The method name is "unserveDirectory" and it takes a "path" key (a
   /// native OS path relative to the root of the entrypoint package) for the
   /// directory being unserved:
   ///
-  ///     {
-  ///       "command": "unserveDirectory",
+  ///     "params": {
   ///       "path": "example/awesome"
   ///     }
   ///
   /// If successful, it returns a map containing the URL that used to be used
   /// to access the directory.
   ///
-  ///     {
+  ///     "result": {
   ///       "url": "http://localhost:8083"
   ///     }
   ///
   /// If no server is bound to that directory, it returns a `NOT_SERVED` error.
-  Future<Map> _unserveDirectory(Map command) {
-    var rootDirectory = _validateRelativePath(command, "path");
+  Future<Map> _unserveDirectory(json_rpc.Parameters params) {
+    var rootDirectory = _validateRelativePath(params, "path");
     return _environment.unserveDirectory(rootDirectory).then((url) {
       if (url == null) {
-        throw new _WebSocketException(_ErrorCode.NOT_SERVED,
+        throw new json_rpc.RpcException(_NOT_SERVED,
             'Directory "$rootDirectory" is not bound to a server.');
       }
 
       return {"url": url.toString()};
     });
-  }
-
-  /// Validates that [command] has a field named [key] whose value is a string.
-  ///
-  /// Returns the string if found, or throws a [_WebSocketException] if
-  /// validation failed.
-  String _validateString(Map command, String key, {bool optional: false}) {
-    if (!optional && !command.containsKey(key)) {
-      throw new _WebSocketException(_ErrorCode.BAD_ARGUMENT,
-          'Missing "$key" argument.');
-    }
-
-    var field = command[key];
-    if (field is String) return field;
-    if (field == null && optional) return null;
-
-    throw new _WebSocketException(_ErrorCode.BAD_ARGUMENT,
-        '"$key" must be a string. Got ${JSON.encode(field)}.');
   }
 
   /// Validates that [command] has a field named [key] whose value is a string
@@ -376,67 +254,20 @@ class WebSocketApi {
   ///
   /// Returns the path if found, or throws a [_WebSocketException] if
   /// validation failed.
-  String _validateRelativePath(Map command, String key) {
-    var pathString = _validateString(command, key);
+  String _validateRelativePath(json_rpc.Parameters params, String key) {
+    var pathString = params[key].asString;
 
     if (!path.isRelative(pathString)) {
-      throw new _WebSocketException(_ErrorCode.BAD_ARGUMENT,
+      throw new json_rpc.RpcException.invalidParams(
           '"$key" must be a relative path. Got "$pathString".');
     }
 
     if (!path.isWithin(".", pathString)) {
-      throw new _WebSocketException(_ErrorCode.BAD_ARGUMENT,
+      throw new json_rpc.RpcException.invalidParams(
           '"$key" cannot reach out of its containing directory. '
           'Got "$pathString".');
     }
 
     return pathString;
   }
-
-  /// Validates that if [command] has a field named [key], then its value is a
-  /// number.
-  ///
-  /// Returns the number if found or `null` if not present. Throws an
-  /// [_WebSocketException] if the key is there but the field is the wrong type.
-  int _validateOptionalInt(Map command, String key) {
-    if (!command.containsKey(key)) return null;
-
-    var field = command[key];
-    if (field is int) return field;
-
-    throw new _WebSocketException(_ErrorCode.BAD_ARGUMENT,
-        '"$key" must be an integer. Got ${JSON.encode(field)}.');
-  }
-}
-
-/// Function for processing a single web socket command.
-///
-/// It can return a [Map] or a [Future] that completes to one.
-typedef _CommandHandler(Map command);
-
-/// Web socket API error codenames.
-class _ErrorCode {
-  /// An error of an unknown type has occurred.
-  static const UNEXPECTED_ERROR = "UNEXPECTED_ERROR";
-
-  /// The format or name of the command is not valid.
-  static const BAD_COMMAND = "BAD_COMMAND";
-
-  /// An argument to the commant is the wrong type or has an invalid value.
-  static const BAD_ARGUMENT = "BAD_ARGUMENT";
-
-  /// The path or URL requested is not currently covered by any of the running
-  /// servers.
-  static const NOT_SERVED = "NOT_SERVED";
-}
-
-/// Exception thrown when an error occurs while processing a WebSocket command.
-///
-/// The top-level WebSocket API code will catch this and translate it to an
-/// appropriate error response.
-class _WebSocketException implements Exception {
-  final String code;
-  final String message;
-
-  _WebSocketException(this.code, this.message);
 }

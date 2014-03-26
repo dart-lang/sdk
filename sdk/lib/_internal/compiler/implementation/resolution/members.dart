@@ -280,8 +280,7 @@ class ResolverTask extends CompilerTask {
         return resolveTypedef(typdef);
       }
 
-      compiler.unimplemented("resolve($element)",
-                             node: element.parseNode(compiler));
+      compiler.unimplemented(element, "resolve($element)");
     });
   }
 
@@ -453,13 +452,17 @@ class ResolverTask extends CompilerTask {
         return elements;
       }
       if (element.isSynthesized) {
-        Element target = element.targetConstructor;
-        // Ensure the signature of the synthesized element is
-        // resolved. This is the only place where the resolver is
-        // seeing this element.
-        element.computeSignature(compiler);
-        if (!target.isErroneous()) {
-          compiler.enqueuer.resolution.registerStaticUse(target);
+        if (isConstructor) {
+          Element target = element.targetConstructor;
+          // Ensure the signature of the synthesized element is
+          // resolved. This is the only place where the resolver is
+          // seeing this element.
+          element.computeSignature(compiler);
+          if (!target.isErroneous()) {
+            compiler.enqueuer.resolution.registerStaticUse(target);
+          }
+        } else {
+          assert(element.isDeferredLoaderGetter());
         }
         return _ensureTreeElements(element);
       }
@@ -981,11 +984,11 @@ class ResolverTask extends CompilerTask {
     ClassElement classElement = member.getEnclosingClass();
     Element lookupElement = classElement.lookupLocalMember(member.name);
     if (lookupElement == null) {
-      compiler.internalErrorOnElement(member,
-                                      "No abstract field for accessor");
+      compiler.internalError(member,
+          "No abstract field for accessor");
     } else if (!identical(lookupElement.kind, ElementKind.ABSTRACT_FIELD)) {
-       compiler.internalErrorOnElement(
-           member, "Inaccessible abstract field for accessor");
+      compiler.internalError(member,
+          "Inaccessible abstract field for accessor");
     }
     AbstractFieldElement field = lookupElement;
 
@@ -1036,7 +1039,7 @@ class ResolverTask extends CompilerTask {
       messageKind = MessageKind.TERNARY_OPERATOR_BAD_ARITY;
       requiredParameterCount = 2;
     } else {
-      compiler.internalErrorOnElement(function,
+      compiler.internalError(function,
           'Unexpected user defined operator $value');
     }
     checkArity(function, requiredParameterCount, messageKind, isMinus);
@@ -1494,8 +1497,8 @@ class CommonResolverVisitor<R> extends Visitor<R> {
   CommonResolverVisitor(Compiler this.compiler);
 
   R visitNode(Node node) {
-    cancel(node,
-           'internal error: Unhandled node: ${node.getObjectDescription()}');
+    internalError(node,
+        'internal error: Unhandled node: ${node.getObjectDescription()}');
     return null;
   }
 
@@ -1512,12 +1515,8 @@ class CommonResolverVisitor<R> extends Visitor<R> {
     compiler.reportWarning(node, kind, arguments);
   }
 
-  void cancel(Node node, String message) {
-    compiler.cancel(message, node: node);
-  }
-
-  void internalError(Node node, String message) {
-    compiler.internalError(message, node: node);
+  void internalError(Spannable node, message) {
+    compiler.internalError(node, message);
   }
 
   void addDeferredAction(Element element, DeferredAction action) {
@@ -1800,8 +1799,8 @@ class TypeResolver {
         }
         type = checkNoTypeArguments(type);
       } else {
-        compiler.cancel("unexpected element kind ${element.kind}",
-                        node: node);
+        compiler.internalError(node,
+            "Unexpected element kind ${element.kind}.");
       }
       // TODO(johnniwinther): We should not resolve type annotations after the
       // resolution queue has been closed. Currently the dart backend does so.
@@ -1896,7 +1895,7 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
     return mapping[node] = element;
   }
 
-  DartType useType(TypeAnnotation annotation, DartType type) {
+  DartType useType(Node annotation, DartType type) {
     if (type != null) {
       mapping.setType(annotation, type);
       useElement(annotation, type.element);
@@ -2225,7 +2224,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   visitClassNode(ClassNode node) {
-    cancel(node, "shouldn't be called");
+    internalError(node, "shouldn't be called");
   }
 
   visitIn(Node node, Scope nestedScope) {
@@ -2843,7 +2842,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     world.registerStaticUse(compiler.symbolConstructor.declaration);
     world.registerConstSymbol(node.slowNameString, mapping);
     if (!validateSymbol(node, node.slowNameString, reportError: false)) {
-      compiler.reportInternalError(node,
+      compiler.reportError(node,
           MessageKind.UNSUPPORTED_LITERAL_SYMBOL,
           {'value': node.slowNameString});
     }
@@ -3732,6 +3731,7 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
       TypeVariableType typeVariable = typeLink.head;
       String typeName = typeVariable.name;
       TypeVariable typeNode = nodeLink.head;
+      useType(typeNode, typeVariable);
       if (nameSet.contains(typeName)) {
         error(typeNode, MessageKind.DUPLICATE_TYPE_VARIABLE_NAME,
               {'typeVariableName': typeName});
@@ -3953,9 +3953,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       // Avoid making the superclass (usually Object) extend itself.
       if (element != superElement) {
         if (superElement == null) {
-          compiler.internalError(
-              "Cannot resolve default superclass for $element",
-              node: node);
+          compiler.internalError(node,
+              "Cannot resolve default superclass for $element.");
         } else {
           superElement.ensureResolved(compiler);
         }

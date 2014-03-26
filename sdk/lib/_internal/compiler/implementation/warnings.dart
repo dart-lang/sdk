@@ -803,8 +803,8 @@ main() => new C();
       "in the implements clause.");
 
   static const MessageKind MULTI_INHERITANCE = const MessageKind(
-      "Inheritance of the same class with different type "
-      "arguments is not supported: Both #{firstType} and #{secondType} are "
+      "Dart2js does not currently support inheritance of the same class with "
+      "different type arguments: Both #{firstType} and #{secondType} are "
       "supertypes of #{thisType}.");
 
   static const MessageKind ILLEGAL_SUPER_SEND = const MessageKind(
@@ -1225,7 +1225,7 @@ main() => A.A = 1;
       );
 
   static const MessageKind UNSUPPORTED_LITERAL_SYMBOL = const MessageKind(
-      "Symbol literal '##{value}' is currently unsupported.");
+      "Symbol literal '##{value}' is currently unsupported by dart2js.");
 
   static const MessageKind INVALID_SYMBOL = const MessageKind('''
 '#{value}' is not a valid Symbol name because is not:
