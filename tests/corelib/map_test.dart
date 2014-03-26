@@ -11,6 +11,9 @@ void main() {
   test(new LinkedHashMap());
   test(new SplayTreeMap());
   test(new SplayTreeMap(Comparable.compare));
+  test(new MapView(new HashMap()));
+  test(new MapView(new SplayTreeMap()));
+  test(new MapBaseMap());
   testLinkedHashMap();
   testMapLiteral();
   testNullValue();
@@ -24,6 +27,7 @@ void main() {
   testWeirdStringKeys(new LinkedHashMap<String, String>());
   testWeirdStringKeys(new SplayTreeMap());
   testWeirdStringKeys(new SplayTreeMap<String, String>());
+  testWeirdStringKeys(new MapBaseMap<String, String>());
 
   testNumericKeys(new Map());
   testNumericKeys(new Map<num, String>());
@@ -35,6 +39,7 @@ void main() {
   testNumericKeys(new LinkedHashMap<num, String>());
   testNumericKeys(new LinkedHashMap.identity());
   testNumericKeys(new LinkedHashMap<num, String>.identity());
+  testNumericKeys(new MapBaseMap<num, String>());
 
   testNaNKeys(new Map());
   testNaNKeys(new Map<num, String>());
@@ -42,6 +47,7 @@ void main() {
   testNaNKeys(new HashMap<num, String>());
   testNaNKeys(new LinkedHashMap());
   testNaNKeys(new LinkedHashMap<num, String>());
+  testNaNKeys(new MapBaseMap<num, String>());
   // Identity maps fail the NaN-keys tests because the test assumes that
   // NaN is not equal to NaN.
 
@@ -89,6 +95,11 @@ void main() {
   testOtherKeys(new LinkedHashMap(equals: (int x, int y) => x == y,
                                   hashCode: (int v) => v.hashCode,
                                   isValidKey: (v) => v is int));
+  testOtherKeys(new MapBaseMap<int, int>());
+
+  testUnmodifiableMap(new UnmodifiableMapView({1 : 37}));
+  testUnmodifiableMap(new UnmodifiableMapBaseMap([1, 37]));
+  testUnmodifiableMap(new MapBaseUnmodifiableMap([1, 37]));
 }
 
 
@@ -704,6 +715,18 @@ void testCustomMap(Map map) {
   testLength(0, map);
 }
 
+void testUnmodifiableMap(Map map) {
+  Expect.isTrue(map.containsKey(1));
+  testLength(1, map);
+  Expect.equals(1, map.keys.first);
+  Expect.equals(37, map.values.first);
+
+  Expect.throws(map.clear);
+  Expect.throws(() { map.remove(1); });
+  Expect.throws(() { map[2] = 42; });
+  Expect.throws(() { map.addAll({2 : 42}); });
+}
+
 class Customer {
   final int id;
   final int secondId;
@@ -748,4 +771,129 @@ class Mutable {
   Mutable(this.id);
   int get hashCode => id;
   bool operator==(other) => other is Mutable && other.id == id;
+}
+
+
+// Slow implementation of Map based on MapBase.
+class MapBaseMap<K, V> extends MapBase<K, V> {
+  final List _keys = <K>[];
+  final List _values = <V>[];
+  int _modCount = 0;
+
+  V operator[](Object key) {
+    int index = _keys.indexOf(key);
+    if (index < 0) return null;
+    return _values[index];
+  }
+
+  Iterable<K> get keys => new TestKeyIterable<K>(this);
+
+  void operator[]=(K key, V value) {
+    int index = _keys.indexOf(key);
+    if (index >= 0) {
+      _values[index] = value;
+    } else {
+      _modCount++;
+      _keys.add(key);
+      _values.add(value);
+    }
+  }
+
+  V remove(Object key) {
+    int index = _keys.indexOf(key);
+    if (index >= 0) {
+      var result = _values[index];
+      key = _keys.removeLast();
+      var value = _values.removeLast();
+      if (index != _keys.length) {
+        _keys[index] = key;
+        _values[index] = value;
+      }
+      _modCount++;
+      return result;
+    }
+    return null;
+  }
+
+  void clear() {
+    // Clear cannot be based on remove, since remove won't remove keys that
+    // are not equal to themselves. It will fail the testNaNKeys test.
+    _keys.clear();
+    _values.clear();
+    _modCount++;
+  }
+}
+
+class TestKeyIterable<K> extends IterableBase<K> {
+  final _map;
+  TestKeyIterable(this._map);
+  int get length => _map._keys.length;
+  Iterator<K> get iterator => new TestKeyIterator<K>(_map);
+}
+
+class TestKeyIterator<K> implements Iterator<K> {
+  final _map;
+  final int _modCount;
+  int _index = 0;
+  var _current;
+  TestKeyIterator(map) : _map = map, _modCount = map._modCount;
+  bool moveNext() {
+    if (_modCount != _map._modCount) {
+      throw new ConcurrentModificationError(_map);
+    }
+    if (_index == _map._keys.length) {
+      _current = null;
+      return false;
+    }
+    _current = _map._keys[_index++];
+    return true;
+  }
+  K get current => _current;
+}
+
+// Slow implementation of Map based on MapBase.
+class UnmodifiableMapBaseMap<K, V> extends UnmodifiableMapBase<K, V> {
+  final List _keys = <K>[];
+  final List _values = <V>[];
+  UnmodifiableMapBaseMap(List pairs) {
+    for (int i = 0; i < pairs.length; i += 2) {
+      _keys.add(pairs[i]);
+      _values.add(pairs[i + 1]);
+    }
+  }
+
+  int get _modCount => 0;
+
+  V operator[](K key) {
+    int index = _keys.indexOf(key);
+    if (index < 0) return null;
+    return _values[index];
+  }
+
+  Iterable<K> get keys => _keys.skip(0);
+}
+
+// Slow implementation of unmodifiable Map based on MapBase and
+// UnmodifiableMapMixin.
+class MapBaseUnmodifiableMap<K, V> extends MapBase<K, V>
+                                   with UnmodifiableMapMixin<K, V> {
+  final List _keys = <K>[];
+  final List _values = <V>[];
+
+  int get _modCount => 0;
+
+  MapBaseUnmodifiableMap(List pairs) {
+    for (int i = 0; i < pairs.length; i += 2) {
+      _keys.add(pairs[i]);
+      _values.add(pairs[i + 1]);
+    }
+  }
+
+  V operator[](Object key) {
+    int index = _keys.indexOf(key);
+    if (index < 0) return null;
+    return _values[index];
+  }
+
+  Iterable<K> get keys => new TestKeyIterable<K>(this);
 }

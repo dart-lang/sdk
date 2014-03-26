@@ -2770,7 +2770,6 @@ class UnmodifiableMapView<K, V> implements Map<K, V> {
 
   Iterable<V> get values => _source.values;
 
-
   void operator []=(K key, V value) => _throw();
 
   V putIfAbsent(K key, V ifAbsent()) { _throw(); }
