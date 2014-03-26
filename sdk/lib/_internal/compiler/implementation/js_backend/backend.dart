@@ -1834,7 +1834,9 @@ class JavaScriptBackend extends Backend {
       if (cls == noInlineClass) {
         hasNoInline = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
-          compiler.reportHere(element, "Cannot inline");
+          compiler.reportHint(element,
+              MessageKind.GENERIC,
+              {'text': "Cannot inline"});
         }
         inlineCache.markAsNonInlinable(element);
       } else if (cls == noThrowsClass) {
@@ -1845,13 +1847,17 @@ class JavaScriptBackend extends Backend {
               " or static functions");
         }
         if (VERBOSE_OPTIMIZER_HINTS) {
-          compiler.reportHere(element, "Cannot throw");
+          compiler.reportHint(element,
+              MessageKind.GENERIC,
+              {'text': "Cannot throw"});
         }
         compiler.world.registerCannotThrow(element);
       } else if (cls == noSideEffectsClass) {
         hasNoSideEffects = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
-          compiler.reportHere(element, "Has no side effects");
+          compiler.reportHint(element,
+              MessageKind.GENERIC,
+              {'text': "Has no side effects"});
         }
         compiler.world.registerSideEffectsFree(element);
       }
@@ -1881,53 +1887,3 @@ class Dependency {
   const Dependency(this.constant, this.user);
 }
 
-/// Used to copy metadata to the the actual constant handler.
-class ConstantCopier implements ConstantVisitor {
-  final ConstantHandler target;
-
-  ConstantCopier(this.target);
-
-  void copy(/* Constant or List<Constant> */ value) {
-    if (value is Constant) {
-      target.compiledConstants.add(value);
-    } else {
-      target.compiledConstants.addAll(value);
-    }
-  }
-
-  void visitFunction(FunctionConstant constant) => copy(constant);
-
-  void visitNull(NullConstant constant) => copy(constant);
-
-  void visitInt(IntConstant constant) => copy(constant);
-
-  void visitDouble(DoubleConstant constant) => copy(constant);
-
-  void visitTrue(TrueConstant constant) => copy(constant);
-
-  void visitFalse(FalseConstant constant) => copy(constant);
-
-  void visitString(StringConstant constant) => copy(constant);
-
-  void visitType(TypeConstant constant) => copy(constant);
-
-  void visitInterceptor(InterceptorConstant constant) => copy(constant);
-
-  void visitDummy(DummyConstant constant) => copy(constant);
-
-  void visitList(ListConstant constant) {
-    copy(constant.entries);
-    copy(constant);
-  }
-  void visitMap(MapConstant constant) {
-    copy(constant.keys);
-    copy(constant.values);
-    copy(constant.protoValue);
-    copy(constant);
-  }
-
-  void visitConstructed(ConstructedConstant constant) {
-    copy(constant.fields);
-    copy(constant);
-  }
-}

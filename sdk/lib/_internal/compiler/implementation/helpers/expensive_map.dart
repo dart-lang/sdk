@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.util;
+part of dart2js.helpers;
 
 /**
  * The expensive map is a data structure useful for tracking down

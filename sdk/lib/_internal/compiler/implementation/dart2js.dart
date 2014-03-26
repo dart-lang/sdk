@@ -15,7 +15,7 @@ import 'source_file.dart';
 import 'source_file_provider.dart';
 import 'filenames.dart';
 import 'util/uri_extras.dart';
-import 'util/util.dart';
+import 'util/util.dart' show stackTraceFilePrefix;
 import '../../libraries.dart';
 
 const String LIBRARY_ROOT = '../../../../..';

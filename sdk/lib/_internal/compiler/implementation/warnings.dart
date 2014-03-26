@@ -1474,9 +1474,19 @@ main() {}
           examples: const ["do() {} main() {}"]);
 
   static const MessageKind UNUSED_METHOD = const MessageKind(
-      "The method '#{method_name}' is never called.",
+      "The method '#{name}' is never called.",
       howToFix: "Consider deleting it.",
       examples: const ["deadCode() {} main() {}"]);
+
+  static const MessageKind UNUSED_CLASS = const MessageKind(
+      "The class '#{name}' is never used.",
+      howToFix: "Consider deleting it.",
+      examples: const ["class DeadCode {} main() {}"]);
+
+  static const MessageKind UNUSED_TYPEDEF = const MessageKind(
+      "The typedef '#{name}' is never used.",
+      howToFix: "Consider deleting it.",
+      examples: const ["typedef DeadCode(); main() {}"]);
 
   static const MessageKind ABSTRACT_METHOD = const MessageKind(
       "The method '#{name}' has no implementation in "

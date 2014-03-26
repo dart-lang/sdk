@@ -4,7 +4,6 @@
 
 library source_map_builder;
 
-
 import 'util/util.dart';
 import 'scanner/scannerlib.dart' show Token;
 import 'source_file.dart';
@@ -214,13 +213,4 @@ class TokenSourceFileLocation extends SourceFileLocation {
     if (token.isIdentifier()) return token.value;
     return null;
   }
-}
-
-class OffsetSourceFileLocation extends SourceFileLocation {
-  final int offset;
-  final String sourceName;
-  OffsetSourceFileLocation(SourceFile sourceFile, this.offset,
-      [this.sourceName]) : super(sourceFile);
-
-  String getSourceName() => sourceName;
 }

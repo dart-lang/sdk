@@ -1372,11 +1372,6 @@ abstract class Compiler implements DiagnosticListener {
     reportDiagnosticInternal(node, messageKind, arguments, api.Diagnostic.HINT);
   }
 
-  /// For debugging only, print a message with a source location.
-  void reportHere(Spannable node, String debugMessage) {
-    reportInfo(node, MessageKind.GENERIC, {'text': 'HERE: $debugMessage'});
-  }
-
   void reportDiagnosticInternal(Spannable node,
                                 MessageKind messageKind,
                                 Map arguments,
@@ -1386,7 +1381,7 @@ abstract class Compiler implements DiagnosticListener {
       case api.Diagnostic.WARNING:
       case api.Diagnostic.HINT:
         Element element = elementFromSpannable(node);
-        if (!inUserCode(element)) {
+        if (!inUserCode(element, assumeInUserCode: true)) {
           Uri uri = getCanonicalUri(element);
           SuppressionInfo info =
               suppressedWarnings.putIfAbsent(uri, () => new SuppressionInfo());
@@ -1550,10 +1545,20 @@ abstract class Compiler implements DiagnosticListener {
       if (member.isFunction()) {
         if (!enqueuer.resolution.isLive(member)) {
           reportHint(member, MessageKind.UNUSED_METHOD,
-                     {'method_name': member.name});
+                     {'name': member.name});
         }
-      } else if (member.isClass() && !member.isMixinApplication) {
-        member.forEachLocalMember(checkLive);
+      } else if (member.isClass()) {
+        if (!member.isResolved) {
+          reportHint(member, MessageKind.UNUSED_CLASS,
+                     {'name': member.name});
+        } else {
+          member.forEachLocalMember(checkLive);
+        }
+      } else if (member.isTypedef()) {
+        if (!member.isResolved) {
+          reportHint(member, MessageKind.UNUSED_TYPEDEF,
+                     {'name': member.name});
+        }
       }
     }
     libraries.forEach((_, library) {
@@ -1589,7 +1594,10 @@ abstract class Compiler implements DiagnosticListener {
   /// with that scheme is in user code. For instance, an entry point URI is
   /// 'file:///foo.dart' then every library whose canonical URI scheme is
   /// 'file' is in user code.
-  bool inUserCode(Element element) {
+  ///
+  /// If [assumeInUserCode] is `true`, [element] is assumed to be in user code
+  /// if no entrypoints have been set.
+  bool inUserCode(Element element, {bool assumeInUserCode: false}) {
     List<Uri> entrypoints = <Uri>[];
     if (mainApp != null) {
       entrypoints.add(mainApp.canonicalUri);
@@ -1597,7 +1605,7 @@ abstract class Compiler implements DiagnosticListener {
     if (librariesToAnalyzeWhenRun != null) {
       entrypoints.addAll(librariesToAnalyzeWhenRun);
     }
-    if (entrypoints.isEmpty) {
+    if (entrypoints.isEmpty && assumeInUserCode) {
       // Assume in user code since [mainApp] has not been set yet.
       return true;
     }

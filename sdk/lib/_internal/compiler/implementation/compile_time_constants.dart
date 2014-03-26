@@ -799,26 +799,6 @@ class CompileTimeConstantEvaluator extends Visitor {
   }
 }
 
-class TryCompileTimeConstantEvaluator extends CompileTimeConstantEvaluator {
-  TryCompileTimeConstantEvaluator(ConstantHandler handler,
-                                  TreeElements elements,
-                                  Compiler compiler)
-      : super(handler, elements, compiler, isConst: true);
-
-  error(Node node, MessageKind message) {
-    // Just fail without reporting it anywhere.
-    throw new CompileTimeConstantError(
-        message, const {}, compiler.terseDiagnostics);
-  }
-}
-
-class CompileTimeConstantError {
-  final Message message;
-  CompileTimeConstantError(MessageKind kind, Map arguments, bool terse)
-    : message = new Message(kind, arguments, terse);
-  String toString() => message.toString();
-}
-
 class ConstructorEvaluator extends CompileTimeConstantEvaluator {
   final FunctionElement constructor;
   final Map<Element, Constant> definitions;

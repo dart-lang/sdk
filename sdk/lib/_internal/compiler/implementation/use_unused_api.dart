@@ -8,6 +8,8 @@
 
 library dart2js.use_unused_api;
 
+import '../compiler.dart' as api;
+
 import 'dart2js.dart' as dart2js;
 
 import 'dart2jslib.dart' as dart2jslib;
@@ -38,11 +40,16 @@ import 'source_file_provider.dart' as source_file_provider;
 
 import 'ssa/ssa.dart' as ssa;
 
+import 'ir/ir_nodes.dart' as ir_nodes;
+
+import 'ir/ir_builder.dart' as ir_builder;
+
 class ElementVisitor extends elements_visitor.ElementVisitor {
   visitElement(e) {}
 }
 
 void main(List<String> arguments) {
+  useApi();
   dart2js.main(arguments);
   useConstant(null, null);
   useNode(null);
@@ -58,6 +65,11 @@ void main(List<String> arguments) {
   useCodeBuffer(null);
   usedByTests();
   useElements(null, null);
+  useIr(null, null);
+}
+
+useApi() {
+  api.ReadStringFromUri uri;
 }
 
 void useConstant(dart2jslib.Constant constant, dart2jslib.ConstantSystem cs) {
@@ -109,7 +121,6 @@ void useNode(tree.Node node) {
 
 void useUtil(util.Link link) {
   link.reversePrependAll(link);
-  util.trace("");
 }
 
 void useElementVisitor(ElementVisitor visitor) {
@@ -179,7 +190,6 @@ usedByTests() {
   dart2jslib.World world = null;
   dart2jslib.Compiler compiler = null;
   compiler.currentlyInUserCode();
-  compiler.inUserCode(null);
   type_graph_inferrer.TypeGraphInferrer typeGraphInferrer = null;
   source_file_provider.SourceFileProvider sourceFileProvider = null;
   world.hasAnyUserDefinedGetter(null);
@@ -196,4 +206,25 @@ useElements(elements.ClassElement e, elements.Name n) {
   e.lookupClassMember(null);
   e.lookupInterfaceMember(null);
   n.isAccessibleFrom(null);
+}
+
+useIr(ir_nodes.SExpressionStringifier stringifier,
+      ir_builder.IrBuilderTask task) {
+  new ir_nodes.SExpressionStringifier();
+  stringifier
+    ..newContinuationName()
+    ..newValueName()
+    ..visitConstant(null)
+    ..visitContinuation(null)
+    ..visitDefinition(null)
+    ..visitExpression(null)
+    ..visitFunction(null)
+    ..visitInvokeStatic(null)
+    ..visitLetCont(null)
+    ..visitLetVal(null)
+    ..visitNode(null)
+    ..visitParameter(null);
+  task
+    ..hasIr(null)
+    ..getIr(null);
 }
