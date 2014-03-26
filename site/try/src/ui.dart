@@ -43,7 +43,7 @@ import 'messages.dart' show messages;
 // the manager.
 InteractionManager interaction;
 
-DivElement inputPre;
+DivElement mainEditorPane;
 PreElement outputDiv;
 DivElement hackDiv;
 IFrameElement outputFrame;
@@ -96,7 +96,7 @@ buildUI() {
 
   buildCode(interaction);
 
-  (inputPre = new DivElement())
+  (mainEditorPane = new DivElement())
       ..classes.add('well')
       ..style.backgroundColor = currentTheme.background.color
       ..style.color = currentTheme.foreground.color
@@ -105,7 +105,7 @@ buildUI() {
       ..style.font = codeFont
       ..spellcheck = false;
 
-  inputPre
+  mainEditorPane
       ..contentEditable = 'true'
       ..onKeyDown.listen(interaction.onKeyUp)
       ..onInput.listen(interaction.onInput);
@@ -113,7 +113,7 @@ buildUI() {
   document.onSelectionChange.listen(interaction.onSelectionChange);
 
   var inputWrapper = new DivElement()
-      ..append(inputPre)
+      ..append(mainEditorPane)
       ..style.position = 'relative';
 
   var inputHeader = new DivElement()..appendText('Code');
@@ -154,7 +154,7 @@ buildUI() {
   var saveButton = new ButtonElement()
       ..onClick.listen((_) {
         var blobUrl =
-            Url.createObjectUrl(new Blob([inputPre.text], 'text/plain'));
+            Url.createObjectUrl(new Blob([mainEditorPane.text], 'text/plain'));
         var save = new AnchorElement(href: blobUrl);
         save.target = '_blank';
         save.download = 'untitled.dart';
@@ -204,10 +204,11 @@ buildUI() {
   });
 
   observer = new MutationObserver(interaction.onMutation)
-      ..observe(inputPre, childList: true, characterData: true, subtree: true);
+      ..observe(
+          mainEditorPane, childList: true, characterData: true, subtree: true);
 
   scheduleMicrotask(() {
-    inputPre.appendText(window.localStorage['currentSource']);
+    mainEditorPane.appendText(window.localStorage['currentSource']);
   });
 
   // You cannot install event handlers on window.applicationCache
@@ -236,13 +237,13 @@ buildCode(InteractionManager interaction) {
     codePicker.append(none);
     for (String projectFile in JSON.decode(response)) {
       codePicker.append(buildTab(projectFile, projectFile, (_) {
-        inputPre.contentEditable = 'false';
+        mainEditorPane.contentEditable = 'false';
         HttpRequest.getString('project/$projectFile').then((String text) {
-          inputPre
+          mainEditorPane
               ..contentEditable = 'true'
               ..nodes.clear();
           observer.takeRecords();
-          inputPre.appendText(text);
+          mainEditorPane.appendText(text);
         });
       }));
     }
@@ -258,12 +259,12 @@ buildCode(InteractionManager interaction) {
 
     // codePicker.classes.addAll(['nav', 'nav-tabs']);
     codePicker.append(buildTab('Hello, World!', 'EXAMPLE_HELLO', (_) {
-      inputPre
+      mainEditorPane
           ..nodes.clear()
           ..appendText(EXAMPLE_HELLO);
     }));
     codePicker.append(buildTab('Fibonacci', 'EXAMPLE_FIBONACCI', (_) {
-      inputPre
+      mainEditorPane
           ..nodes.clear()
           ..appendText(EXAMPLE_FIBONACCI);
     }));
@@ -273,24 +274,24 @@ buildCode(InteractionManager interaction) {
 
     htmlGroup.append(
         buildTab('Hello, World!', 'EXAMPLE_HELLO_HTML', (_) {
-      inputPre
+      mainEditorPane
           ..nodes.clear()
           ..appendText(EXAMPLE_HELLO_HTML);
     }));
     htmlGroup.append(
         buildTab('Fibonacci', 'EXAMPLE_FIBONACCI_HTML', (_) {
-      inputPre
+      mainEditorPane
           ..nodes.clear()
           ..appendText(EXAMPLE_FIBONACCI_HTML);
     }));
     htmlGroup.append(buildTab('Sunflower', 'EXAMPLE_SUNFLOWER', (_) {
-      inputPre
+      mainEditorPane
           ..nodes.clear()
           ..appendText(EXAMPLE_SUNFLOWER);
     }));
 
     benchmarkGroup.append(buildTab('DeltaBlue', 'BENCHMARK_DELTA_BLUE', (_) {
-      inputPre.contentEditable = 'false';
+      mainEditorPane.contentEditable = 'false';
       LinkElement link = querySelector('link[rel="benchmark-DeltaBlue"]');
       String deltaBlueUri = link.href;
       link = querySelector('link[rel="benchmark-base"]');
@@ -302,7 +303,7 @@ buildCode(InteractionManager interaction) {
           deltaBlue = deltaBlue.replaceFirst(
               "import 'package:benchmark_harness/benchmark_harness.dart';",
               benchmarkBase);
-          inputPre
+          mainEditorPane
               ..nodes.clear()
               ..appendText(deltaBlue)
               ..contentEditable = 'true';
@@ -311,7 +312,7 @@ buildCode(InteractionManager interaction) {
     }));
 
     benchmarkGroup.append(buildTab('Richards', 'BENCHMARK_RICHARDS', (_) {
-      inputPre.contentEditable = 'false';
+      mainEditorPane.contentEditable = 'false';
       LinkElement link = querySelector('link[rel="benchmark-Richards"]');
       String richardsUri = link.href;
       link = querySelector('link[rel="benchmark-base"]');
@@ -323,7 +324,7 @@ buildCode(InteractionManager interaction) {
           richards = richards.replaceFirst(
               "import 'package:benchmark_harness/benchmark_harness.dart';",
               benchmarkBase);
-          inputPre
+          mainEditorPane
               ..nodes.clear()
               ..appendText(richards)
               ..contentEditable = 'true';
@@ -353,7 +354,7 @@ void openSettings(MouseEvent event) {
   void updateCodeFont(Event e) {
     TextInputElement target = e.target;
     codeFont = target.value;
-    inputPre.style.font = codeFont;
+    mainEditorPane.style.font = codeFont;
   }
 
   void updateTheme(Event e) {
@@ -362,7 +363,7 @@ void openSettings(MouseEvent event) {
     window.localStorage['theme'] = theme;
     currentTheme = Theme.named(theme);
 
-    inputPre.style
+    mainEditorPane.style
         ..backgroundColor = currentTheme.background.color
         ..color = currentTheme.foreground.color;
 

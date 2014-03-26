@@ -28,7 +28,7 @@ import 'compilation.dart' show
 import 'ui.dart' show
     currentTheme,
     hackDiv,
-    inputPre,
+    mainEditorPane,
     observer,
     outputDiv;
 
@@ -170,7 +170,7 @@ class InitialState extends InteractionState {
     for (String query in const ['a.diagnostic>span',
                                 '.dart-code-completion',
                                 '.hazed-suggestion']) {
-      for (Element element in inputPre.querySelectorAll(query)) {
+      for (Element element in mainEditorPane.querySelectorAll(query)) {
         element.remove();
       }
     }
@@ -191,8 +191,8 @@ class InitialState extends InteractionState {
       }
     }
 
-    if (!inputPre.nodes.isEmpty && inputPre.nodes.last is Text) {
-      Text text = inputPre.nodes.last;
+    if (!mainEditorPane.nodes.isEmpty && mainEditorPane.nodes.last is Text) {
+      Text text = mainEditorPane.nodes.last;
       if (!text.text.endsWith('\n')) {
         text.appendData('\n');
       }
@@ -230,18 +230,18 @@ class InitialState extends InteractionState {
       }
     }
     if (selection.isCollapsed) {
-      walk4(inputPre);
+      walk4(mainEditorPane);
     }
 
-    editor.currentSource = inputPre.text;
-    inputPre.nodes.clear();
-    inputPre.appendText(editor.currentSource);
+    editor.currentSource = mainEditorPane.text;
+    mainEditorPane.nodes.clear();
+    mainEditorPane.appendText(editor.currentSource);
     if (hasSelection) {
-      selection.collapse(inputPre.firstChild, anchorOffset);
+      selection.collapse(mainEditorPane.firstChild, anchorOffset);
     }
 
     editor.isMalformedInput = false;
-    for (var n in new List.from(inputPre.nodes)) {
+    for (var n in new List.from(mainEditorPane.nodes)) {
       if (n is! Text) continue;
       Text node = n;
       String text = node.text;
@@ -263,8 +263,8 @@ class InitialState extends InteractionState {
         Text str = node.splitText(splitPoint);
         Text after = str.splitText(token.charCount);
         offset += splitPoint + token.charCount;
-        inputPre.insertBefore(after, node.nextNode);
-        inputPre.insertBefore(decoration.applyTo(str), after);
+        mainEditorPane.insertBefore(after, node.nextNode);
+        mainEditorPane.insertBefore(decoration.applyTo(str), after);
 
         if (hasSelection && selectionOffset > node.length) {
           selectionOffset -= node.length;
@@ -387,7 +387,8 @@ class CodeCompletionState extends InitialState {
       suggestionAccepted();
     }
     activeCompletion.classes.remove('active');
-    inputPre.querySelectorAll('.hazed-suggestion').forEach((e) => e.remove());
+    mainEditorPane.querySelectorAll('.hazed-suggestion')
+        .forEach((e) => e.remove());
     // The above changes create mutation records. This implicitly fire mutation
     // events that result in saving the source code in local storage.
     // TODO(ahe): Consider making this more explicit.

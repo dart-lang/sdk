@@ -15,7 +15,7 @@ import 'package:compiler/implementation/scanner/scannerlib.dart'
 import 'ui.dart' show
     currentTheme,
     hackDiv,
-    inputPre,
+    mainEditorPane,
     observer,
     outputDiv;
 
@@ -108,14 +108,14 @@ Element getElementAtSelection() {
   Selection selection = window.getSelection();
   if (!selection.isCollapsed) return null;
   var anchorNode = selection.anchorNode;
-  if (!inputPre.contains(anchorNode)) return null;
-  if (inputPre == anchorNode) return null;
+  if (!mainEditorPane.contains(anchorNode)) return null;
+  if (mainEditorPane == anchorNode) return null;
   int type = anchorNode.nodeType;
   if (type != Node.TEXT_NODE) return null;
   Text text = anchorNode;
   var parent = text.parent;
   if (parent is! Element) return null;
-  if (inputPre == parent) return null;
+  if (mainEditorPane == parent) return null;
   return parent;
 }
 
@@ -178,7 +178,7 @@ addDiagnostic(String kind, String message, int begin, int end) {
       child = child.nextNode;
     }
   }
-  walk4(inputPre);
+  walk4(mainEditorPane);
 
   if (!foundNode) {
     outputDiv.appendText('$message\n');
@@ -186,7 +186,7 @@ addDiagnostic(String kind, String message, int begin, int end) {
 
   observer.takeRecords();
   observer.observe(
-      inputPre, childList: true, characterData: true, subtree: true);
+      mainEditorPane, childList: true, characterData: true, subtree: true);
 }
 
 void inlineChildren(Element element) {
