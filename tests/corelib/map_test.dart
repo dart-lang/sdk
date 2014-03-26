@@ -97,9 +97,9 @@ void main() {
                                   isValidKey: (v) => v is int));
   testOtherKeys(new MapBaseMap<int, int>());
 
+  testUnmodifiableMap(const {1 : 37});
   testUnmodifiableMap(new UnmodifiableMapView({1 : 37}));
   testUnmodifiableMap(new UnmodifiableMapBaseMap([1, 37]));
-  testUnmodifiableMap(new MapBaseUnmodifiableMap([1, 37]));
 }
 
 
@@ -871,29 +871,4 @@ class UnmodifiableMapBaseMap<K, V> extends UnmodifiableMapBase<K, V> {
   }
 
   Iterable<K> get keys => _keys.skip(0);
-}
-
-// Slow implementation of unmodifiable Map based on MapBase and
-// UnmodifiableMapMixin.
-class MapBaseUnmodifiableMap<K, V> extends MapBase<K, V>
-                                   with UnmodifiableMapMixin<K, V> {
-  final List _keys = <K>[];
-  final List _values = <V>[];
-
-  int get _modCount => 0;
-
-  MapBaseUnmodifiableMap(List pairs) {
-    for (int i = 0; i < pairs.length; i += 2) {
-      _keys.add(pairs[i]);
-      _values.add(pairs[i + 1]);
-    }
-  }
-
-  V operator[](Object key) {
-    int index = _keys.indexOf(key);
-    if (index < 0) return null;
-    return _values[index];
-  }
-
-  Iterable<K> get keys => new TestKeyIterable<K>(this);
 }
