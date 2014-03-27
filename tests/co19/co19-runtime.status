@@ -79,3 +79,7 @@ LibTest/collection/ListBase/ListBase_class_A01_t01: Skip # Timeouts
 
 [ $runtime == vm ]
 LibTest/isolate/Isolate/spawn_A02_t01: Skip # co19 issue 667
+LibTest/html/*: Skip # dart:html not supported on VM.
+LayoutTests/fast/*: Skip # DOM not supported on VM.
+WebPlatformTest/*: Skip # dart:html not supported on VM.
+WebPlatformTest1/*: Skip # dart:html not supported on VM.

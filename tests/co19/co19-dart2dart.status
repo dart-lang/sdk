@@ -57,7 +57,6 @@ LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # co19 issue 294
 LibTest/core/int/operator_left_shift_A01_t02: Fail, OK # co19 issue 129
 LibTest/core/int/toRadixString_A01_t01: Fail # inherited from VM
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail, OK # co19 issue 276
-LibTest/isolate/SendPort/send_A02_t01: CompileTimeError # Issue 13683
 LibTest/math/tan_A01_t01: Fail # Issue co19 - 44
 LibTest/typed_data/Float32x4/equal_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/notEqual_A01_t01: Skip # co19 issue 656
@@ -76,14 +75,6 @@ LibTest/core/double/remainder_A01_t04: Fail # Result is NaN
 LibTest/math/acos_A01_t01: Fail, OK # co19 issue 44
 LibTest/math/asin_A01_t01: Fail, OK # co19 issue 44
 LibTest/math/atan_A01_t01: Fail, OK # co19 issue 44
-
-[ $compiler == dart2dart ]
-LibTest/core/double/ceil_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
-LibTest/core/double/ceil_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
-LibTest/core/double/floor_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
-LibTest/core/double/floor_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
-LibTest/core/double/round_A01_t02: Fail # truncate/ceil/floor/round returns ints, issue 389
-LibTest/core/double/round_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
 
 
 [ $compiler == dart2dart ]
@@ -137,6 +128,9 @@ LibTest/isolate/SendPort/send_A02_t03: timeout # co19-roll r546: Please triage t
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/core/Function/Function_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 Language/13_Statements/04_Local_Function_Declaration_A04_t03: MissingCompileTimeError # co19-roll r667: Please triage this failure
+LibTest/isolate/SendPort/send_A01_t01: CompileTimeError # co19-roll r706: Please triage this failure
+LibTest/isolate/SendPort/send_A01_t02: CompileTimeError # co19-roll r706: Please triage this failure
+LibTest/isolate/SendPort/send_A01_t03: CompileTimeError # co19-roll r706: Please triage this failure
 
 LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError # Dart issue 15617
 LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError # Dart issue 15617
