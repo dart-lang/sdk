@@ -3187,6 +3187,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   visitLiteralList(LiteralList node) {
+    bool oldSendIsMemberAccess = sendIsMemberAccess;
+    sendIsMemberAccess = false;
+
     NodeList arguments = node.typeArguments;
     DartType typeArgument;
     if (arguments != null) {
@@ -3221,6 +3224,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (node.isConst()) {
       analyzeConstant(node);
     }
+
+    sendIsMemberAccess = false;
   }
 
   visitConditional(Conditional node) {
@@ -3401,6 +3406,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   visitLiteralMap(LiteralMap node) {
+    bool oldSendIsMemberAccess = sendIsMemberAccess;
+    sendIsMemberAccess = false;
+
     NodeList arguments = node.typeArguments;
     DartType keyTypeArgument;
     DartType valueTypeArgument;
@@ -3445,6 +3453,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (node.isConst()) {
       analyzeConstant(node);
     }
+
+    sendIsMemberAccess = false;
   }
 
   visitLiteralMapEntry(LiteralMapEntry node) {
