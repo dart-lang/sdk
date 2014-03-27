@@ -182,10 +182,11 @@ class SmokeCodeGenerator {
     var args = {};
 
     if (_getters.isNotEmpty) {
-      args['getters'] = _getters.map((n) => '#$n: (o) => o.$n');
+      args['getters'] = _getters.map((n) => '${_symbol(n)}: (o) => o.$n');
     }
     if (_setters.isNotEmpty) {
-      args['setters'] = _setters.map((n) => '#$n: (o, v) { o.$n = v; }');
+      args['setters'] = _setters.map(
+          (n) => '${_symbol(n)}: (o, v) { o.$n = v; }');
     }
 
     if (_parents.isNotEmpty) {
@@ -210,7 +211,7 @@ class SmokeCodeGenerator {
           sb.write('{\n');
           members.forEach((name, decl) {
             var decl = members[name].asCode(_libraryPrefix);
-            sb.write('$spaces        #$name: $decl,\n');
+            sb.write('$spaces        ${_symbol(name)}: $decl,\n');
           });
           sb.write('$spaces      }');
         }
@@ -231,7 +232,7 @@ class SmokeCodeGenerator {
         } else {
           sb.write('{\n');
           for (var name in members) {
-            sb.write('$spaces        #$name: $className.$name,\n');
+            sb.write('$spaces        ${_symbol(name)}: $className.$name,\n');
           }
           sb.write('$spaces      }');
         }
@@ -241,7 +242,7 @@ class SmokeCodeGenerator {
     }
 
     if (_names.isNotEmpty) {
-      args['names'] = _names.map((n) => "#$n: r'$n'");
+      args['names'] = _names.map((n) => "${_symbol(n)}: r'$n'");
     }
 
     buffer..write(spaces)
@@ -285,7 +286,8 @@ class _DeclarationCode extends ConstExpression {
 
   String asCode(Map<String, String> libraryPrefixes) {
     var sb = new StringBuffer();
-    sb.write("const Declaration(#$name, ${type.asCode(libraryPrefixes)}");
+    sb.write('const Declaration(${_symbol(name)}, '
+        '${type.asCode(libraryPrefixes)}');
     if (kind != 'FIELD') sb.write(', kind: $kind');
     if (isFinal) sb.write(', isFinal: true');
     if (isStatic) sb.write(', isStatic: true');
@@ -455,3 +457,6 @@ const DEFAULT_IMPORTS = const [
     "import 'package:smoke/static.dart' show "
         "useGeneratedCode, StaticConfiguration;",
   ];
+
+_symbol(String name) =>
+   name.contains('[') ? "const Symbol('$name')" : '#$name';

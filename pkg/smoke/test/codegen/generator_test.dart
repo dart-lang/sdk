@@ -112,6 +112,10 @@ main() {
         new TypeIdentifier('dart:core', 'Function'), isMethod: true,
         annotations: [new ConstExpression.constructor(null, 'Annotation',
           [new ConstExpression.string("hi")], const {})]);
+    generator.addDeclaration(new TypeIdentifier('a.dart', 'A'), '[]',
+        new TypeIdentifier('dart:core', 'Function'), isMethod: true);
+    var symbol = "const Symbol('[]')";
+    var details = "$symbol, Function, kind: METHOD";
     checkResults(generator,
         imports: ["import 'a.dart' as smoke_0;"],
         initCall:
@@ -119,6 +123,7 @@ main() {
             '    checkedMode: false,\n'
             '    declarations: {\n'
             '      smoke_0.A: {\n'
+            '        $symbol: const Declaration($details),\n'
             '        #bar: const Declaration(#bar, Function, kind: METHOD, '
                            'annotations: const [const Annotation(\'hi\')]),\n'
             '        #foo: const Declaration(#foo, int, isFinal: true),\n'
