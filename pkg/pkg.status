@@ -311,6 +311,8 @@ polymer/test/custom_event_test: Skip # http://dartbug.com/15517
 [ $runtime == vm ]
 intl/test/message_extraction/message_extraction_test: Skip # Issue 17130
 
+code_transformers/test/resolver_test: Skip # Issue 17709
+
 # Skip tests on the VM if the package depends on dart:html
 custom_element: Skip
 template_binding: Skip

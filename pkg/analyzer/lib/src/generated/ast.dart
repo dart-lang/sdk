@@ -270,10 +270,8 @@ class Annotation extends AstNode {
    * @param arguments the arguments to the constructor being invoked, or `null` if this
    *          annotation is not the invocation of a constructor
    */
-  Annotation(Token atSign, Identifier name, Token period, SimpleIdentifier constructorName, ArgumentList arguments) {
-    this.atSign = atSign;
+  Annotation(this.atSign, Identifier name, this.period, SimpleIdentifier constructorName, ArgumentList arguments) {
     this._name = becomeParentOf(name);
-    this.period = period;
     this._constructorName = becomeParentOf(constructorName);
     this._arguments = becomeParentOf(arguments);
   }
@@ -404,8 +402,7 @@ class ArgumentDefinitionTest extends Expression {
    * @param question the token representing the question mark
    * @param identifier the identifier representing the argument being tested
    */
-  ArgumentDefinitionTest(Token question, SimpleIdentifier identifier) {
-    this.question = question;
+  ArgumentDefinitionTest(this.question, SimpleIdentifier identifier) {
     this._identifier = becomeParentOf(identifier);
   }
 
@@ -775,12 +772,8 @@ class AssertStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param semicolon the semicolon terminating the statement
    */
-  AssertStatement(Token keyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Token semicolon) {
-    this.keyword = keyword;
-    this.leftParenthesis = leftParenthesis;
+  AssertStatement(this.keyword, this.leftParenthesis, Expression condition, this.rightParenthesis, this.semicolon) {
     this._condition = becomeParentOf(condition);
-    this.rightParenthesis = rightParenthesis;
-    this.semicolon = semicolon;
   }
 
   @override
@@ -859,9 +852,8 @@ class AssignmentExpression extends Expression {
    * @param operator the assignment operator being applied
    * @param rightHandSide the expression used to compute the right hand side
    */
-  AssignmentExpression(Expression leftHandSide, Token operator, Expression rightHandSide) {
+  AssignmentExpression(Expression leftHandSide, this.operator, Expression rightHandSide) {
     this._leftHandSide = becomeParentOf(leftHandSide);
-    this.operator = operator;
     this._rightHandSide = becomeParentOf(rightHandSide);
   }
 
@@ -1506,9 +1498,8 @@ class BinaryExpression extends Expression {
    * @param operator the binary operator being applied
    * @param rightOperand the expression used to compute the right operand
    */
-  BinaryExpression(Expression leftOperand, Token operator, Expression rightOperand) {
+  BinaryExpression(Expression leftOperand, this.operator, Expression rightOperand) {
     this._leftOperand = becomeParentOf(leftOperand);
-    this.operator = operator;
     this._rightOperand = becomeParentOf(rightOperand);
   }
 
@@ -1692,11 +1683,9 @@ class Block extends Statement {
    * @param statements the statements contained in the block
    * @param rightBracket the right curly bracket
    */
-  Block(Token leftBracket, List<Statement> statements, Token rightBracket) {
+  Block(this.leftBracket, List<Statement> statements, this.rightBracket) {
     this._statements = new NodeList<Statement>(this);
-    this.leftBracket = leftBracket;
     this._statements.addAll(statements);
-    this.rightBracket = rightBracket;
   }
 
   @override
@@ -1801,10 +1790,7 @@ class BooleanLiteral extends Literal {
    * @param literal the token representing the literal
    * @param value the value of the literal
    */
-  BooleanLiteral(Token literal, bool value) {
-    this.literal = literal;
-    this.value = value;
-  }
+  BooleanLiteral(this.literal, this.value);
 
   @override
   accept(AstVisitor visitor) => visitor.visitBooleanLiteral(this);
@@ -1854,10 +1840,8 @@ class BreakStatement extends Statement {
    * @param label the label associated with the statement
    * @param semicolon the semicolon terminating the statement
    */
-  BreakStatement(Token keyword, SimpleIdentifier label, Token semicolon) {
-    this.keyword = keyword;
+  BreakStatement(this.keyword, SimpleIdentifier label, this.semicolon) {
     this._label = becomeParentOf(label);
-    this.semicolon = semicolon;
   }
 
   @override
@@ -2048,13 +2032,10 @@ class CatchClause extends AstNode {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the catch block
    */
-  CatchClause(Token onKeyword, TypeName exceptionType, Token catchKeyword, Token leftParenthesis, SimpleIdentifier exceptionParameter, Token comma, SimpleIdentifier stackTraceParameter, Token rightParenthesis, Block body) {
-    this.onKeyword = onKeyword;
+  CatchClause(this.onKeyword, TypeName exceptionType, this.catchKeyword, Token leftParenthesis, SimpleIdentifier exceptionParameter, this.comma, SimpleIdentifier stackTraceParameter, Token rightParenthesis, Block body) {
     this.exceptionType = becomeParentOf(exceptionType);
-    this.catchKeyword = catchKeyword;
     this._leftParenthesis = leftParenthesis;
     this._exceptionParameter = becomeParentOf(exceptionParameter);
-    this.comma = comma;
     this._stackTraceParameter = becomeParentOf(stackTraceParameter);
     this._rightParenthesis = rightParenthesis;
     this._body = becomeParentOf(body);
@@ -2251,18 +2232,14 @@ class ClassDeclaration extends CompilationUnitMember {
    * @param members the members defined by the class
    * @param rightBracket the right curly bracket
    */
-  ClassDeclaration(Comment comment, List<Annotation> metadata, Token abstractKeyword, Token classKeyword, SimpleIdentifier name, TypeParameterList typeParameters, ExtendsClause extendsClause, WithClause withClause, ImplementsClause implementsClause, Token leftBracket, List<ClassMember> members, Token rightBracket) : super(comment, metadata) {
+  ClassDeclaration(Comment comment, List<Annotation> metadata, this.abstractKeyword, this.classKeyword, SimpleIdentifier name, TypeParameterList typeParameters, ExtendsClause extendsClause, WithClause withClause, ImplementsClause implementsClause, this.leftBracket, List<ClassMember> members, this.rightBracket) : super(comment, metadata) {
     this._members = new NodeList<ClassMember>(this);
-    this.abstractKeyword = abstractKeyword;
-    this.classKeyword = classKeyword;
     this._name = becomeParentOf(name);
     this.typeParameters = becomeParentOf(typeParameters);
     this._extendsClause = becomeParentOf(extendsClause);
     this._withClause = becomeParentOf(withClause);
     this._implementsClause = becomeParentOf(implementsClause);
-    this.leftBracket = leftBracket;
     this._members.addAll(members);
-    this.rightBracket = rightBracket;
   }
 
   @override
@@ -2509,11 +2486,9 @@ class ClassTypeAlias extends TypeAlias {
    * @param implementsClause the implements clause for this class
    * @param semicolon the semicolon terminating the declaration
    */
-  ClassTypeAlias(Comment comment, List<Annotation> metadata, Token keyword, SimpleIdentifier name, TypeParameterList typeParameters, Token equals, Token abstractKeyword, TypeName superclass, WithClause withClause, ImplementsClause implementsClause, Token semicolon) : super(comment, metadata, keyword, semicolon) {
+  ClassTypeAlias(Comment comment, List<Annotation> metadata, Token keyword, SimpleIdentifier name, TypeParameterList typeParameters, this.equals, this.abstractKeyword, TypeName superclass, WithClause withClause, ImplementsClause implementsClause, Token semicolon) : super(comment, metadata, keyword, semicolon) {
     this._name = becomeParentOf(name);
     this._typeParameters = becomeParentOf(typeParameters);
-    this.equals = equals;
-    this.abstractKeyword = abstractKeyword;
     this._superclass = becomeParentOf(superclass);
     this._withClause = becomeParentOf(withClause);
     this._implementsClause = becomeParentOf(implementsClause);
@@ -2639,9 +2614,7 @@ abstract class Combinator extends AstNode {
    * @param keyword the keyword specifying what kind of processing is to be done on the imported
    *          names
    */
-  Combinator(Token keyword) {
-    this.keyword = keyword;
-  }
+  Combinator(this.keyword);
 
   @override
   Token get beginToken => keyword;
@@ -2704,12 +2677,12 @@ class Comment extends AstNode {
   /**
    * The tokens representing the comment.
    */
-  List<Token> tokens;
+  final List<Token> tokens;
 
   /**
    * The type of the comment.
    */
-  CommentType _type;
+  final CommentType _type;
 
   /**
    * The references embedded within the documentation comment. This list will be empty unless this
@@ -2724,10 +2697,8 @@ class Comment extends AstNode {
    * @param type the type of the comment
    * @param references the references embedded within the documentation comment
    */
-  Comment(List<Token> tokens, CommentType type, List<CommentReference> references) {
+  Comment(this.tokens, this._type, List<CommentReference> references) {
     this._references = new NodeList<CommentReference>(this);
-    this.tokens = tokens;
-    this._type = type;
     this._references.addAll(references);
   }
 
@@ -2782,21 +2753,21 @@ class CommentType extends Enum<CommentType> {
   /**
    * An end-of-line comment.
    */
-  static final CommentType END_OF_LINE = new CommentType('END_OF_LINE', 0);
+  static const CommentType END_OF_LINE = const CommentType('END_OF_LINE', 0);
 
   /**
    * A block comment.
    */
-  static final CommentType BLOCK = new CommentType('BLOCK', 1);
+  static const CommentType BLOCK = const CommentType('BLOCK', 1);
 
   /**
    * A documentation comment.
    */
-  static final CommentType DOCUMENTATION = new CommentType('DOCUMENTATION', 2);
+  static const CommentType DOCUMENTATION = const CommentType('DOCUMENTATION', 2);
 
-  static final List<CommentType> values = [END_OF_LINE, BLOCK, DOCUMENTATION];
+  static const List<CommentType> values = const [END_OF_LINE, BLOCK, DOCUMENTATION];
 
-  CommentType(String name, int ordinal) : super(name, ordinal);
+  const CommentType(String name, int ordinal) : super(name, ordinal);
 }
 
 /**
@@ -2825,8 +2796,7 @@ class CommentReference extends AstNode {
    * @param newKeyword the token representing the 'new' keyword
    * @param identifier the identifier being referenced
    */
-  CommentReference(Token newKeyword, Identifier identifier) {
-    this.newKeyword = newKeyword;
+  CommentReference(this.newKeyword, Identifier identifier) {
     this._identifier = becomeParentOf(identifier);
   }
 
@@ -2889,7 +2859,7 @@ class CompilationUnit extends AstNode {
   /**
    * The first token in the token stream that was parsed to form this compilation unit.
    */
-  Token beginToken;
+  final Token beginToken;
 
   /**
    * The script tag at the beginning of the compilation unit, or `null` if there is no script
@@ -2911,7 +2881,7 @@ class CompilationUnit extends AstNode {
    * The last token in the token stream that was parsed to form this compilation unit. This token
    * should always have a type of [TokenType.EOF].
    */
-  Token endToken;
+  final Token endToken;
 
   /**
    * The element associated with this compilation unit, or `null` if the AST structure has not
@@ -2933,14 +2903,12 @@ class CompilationUnit extends AstNode {
    * @param declarations the declarations contained in this compilation unit
    * @param endToken the last token in the token stream
    */
-  CompilationUnit(Token beginToken, ScriptTag scriptTag, List<Directive> directives, List<CompilationUnitMember> declarations, Token endToken) {
+  CompilationUnit(this.beginToken, ScriptTag scriptTag, List<Directive> directives, List<CompilationUnitMember> declarations, this.endToken) {
     this._directives = new NodeList<Directive>(this);
     this._declarations = new NodeList<CompilationUnitMember>(this);
-    this.beginToken = beginToken;
     this._scriptTag = becomeParentOf(scriptTag);
     this._directives.addAll(directives);
     this._declarations.addAll(declarations);
-    this.endToken = endToken;
   }
 
   @override
@@ -3102,11 +3070,9 @@ class ConditionalExpression extends Expression {
    * @param elseExpression the expression that is executed if the condition evaluates to
    *          `false`
    */
-  ConditionalExpression(Expression condition, Token question, Expression thenExpression, Token colon, Expression elseExpression) {
+  ConditionalExpression(Expression condition, this.question, Expression thenExpression, this.colon, Expression elseExpression) {
     this._condition = becomeParentOf(condition);
-    this.question = question;
     this._thenExpression = becomeParentOf(thenExpression);
-    this.colon = colon;
     this._elseExpression = becomeParentOf(elseExpression);
   }
 
@@ -3290,16 +3256,11 @@ class ConstructorDeclaration extends ClassMember {
    *          redirected
    * @param body the body of the constructor
    */
-  ConstructorDeclaration(Comment comment, List<Annotation> metadata, Token externalKeyword, Token constKeyword, Token factoryKeyword, Identifier returnType, Token period, SimpleIdentifier name, FormalParameterList parameters, Token separator, List<ConstructorInitializer> initializers, ConstructorName redirectedConstructor, FunctionBody body) : super(comment, metadata) {
+  ConstructorDeclaration(Comment comment, List<Annotation> metadata, this.externalKeyword, this.constKeyword, this.factoryKeyword, Identifier returnType, this.period, SimpleIdentifier name, FormalParameterList parameters, this.separator, List<ConstructorInitializer> initializers, ConstructorName redirectedConstructor, FunctionBody body) : super(comment, metadata) {
     this._initializers = new NodeList<ConstructorInitializer>(this);
-    this.externalKeyword = externalKeyword;
-    this.constKeyword = constKeyword;
-    this.factoryKeyword = factoryKeyword;
     this._returnType = becomeParentOf(returnType);
-    this.period = period;
     this._name = becomeParentOf(name);
     this._parameters = becomeParentOf(parameters);
-    this.separator = separator;
     this._initializers.addAll(initializers);
     this._redirectedConstructor = becomeParentOf(redirectedConstructor);
     this._body = becomeParentOf(body);
@@ -3496,11 +3457,8 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
    * @param equals the token for the equal sign between the field name and the expression
    * @param expression the expression computing the value to which the field will be initialized
    */
-  ConstructorFieldInitializer(Token keyword, Token period, SimpleIdentifier fieldName, Token equals, Expression expression) {
-    this.keyword = keyword;
-    this.period = period;
+  ConstructorFieldInitializer(this.keyword, this.period, SimpleIdentifier fieldName, this.equals, Expression expression) {
     this._fieldName = becomeParentOf(fieldName);
-    this.equals = equals;
     this._expression = becomeParentOf(expression);
   }
 
@@ -3611,9 +3569,8 @@ class ConstructorName extends AstNode {
    * @param period the token for the period before the constructor name
    * @param name the name of the constructor
    */
-  ConstructorName(TypeName type, Token period, SimpleIdentifier name) {
+  ConstructorName(TypeName type, this.period, SimpleIdentifier name) {
     this._type = becomeParentOf(type);
-    this.period = period;
     this._name = becomeParentOf(name);
   }
 
@@ -3721,10 +3678,8 @@ class ContinueStatement extends Statement {
    * @param label the label associated with the statement
    * @param semicolon the semicolon terminating the statement
    */
-  ContinueStatement(Token keyword, SimpleIdentifier label, Token semicolon) {
-    this.keyword = keyword;
+  ContinueStatement(this.keyword, SimpleIdentifier label, this.semicolon) {
     this._label = becomeParentOf(label);
-    this.semicolon = semicolon;
   }
 
   @override
@@ -3816,8 +3771,7 @@ class DeclaredIdentifier extends Declaration {
    * @param type the name of the declared type of the parameter
    * @param identifier the name of the parameter being declared
    */
-  DeclaredIdentifier(Comment comment, List<Annotation> metadata, Token keyword, TypeName type, SimpleIdentifier identifier) : super(comment, metadata) {
-    this.keyword = keyword;
+  DeclaredIdentifier(Comment comment, List<Annotation> metadata, this.keyword, TypeName type, SimpleIdentifier identifier) : super(comment, metadata) {
     this._type = becomeParentOf(type);
     this._identifier = becomeParentOf(identifier);
   }
@@ -3939,10 +3893,8 @@ class DefaultFormalParameter extends FormalParameter {
    * @param separator the token separating the parameter from the default value
    * @param defaultValue the expression computing the default value for the parameter
    */
-  DefaultFormalParameter(NormalFormalParameter parameter, ParameterKind kind, Token separator, Expression defaultValue) {
+  DefaultFormalParameter(NormalFormalParameter parameter, this.kind, this.separator, Expression defaultValue) {
     this._parameter = becomeParentOf(parameter);
-    this.kind = kind;
-    this.separator = separator;
     this._defaultValue = becomeParentOf(defaultValue);
   }
 
@@ -4119,14 +4071,11 @@ class DoStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param semicolon the semicolon terminating the statement
    */
-  DoStatement(Token doKeyword, Statement body, Token whileKeyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Token semicolon) {
-    this.doKeyword = doKeyword;
+  DoStatement(this.doKeyword, Statement body, this.whileKeyword, Token leftParenthesis, Expression condition, Token rightParenthesis, this.semicolon) {
     this._body = becomeParentOf(body);
-    this.whileKeyword = whileKeyword;
     this._leftParenthesis = leftParenthesis;
     this._condition = becomeParentOf(condition);
     this._rightParenthesis = rightParenthesis;
-    this.semicolon = semicolon;
   }
 
   @override
@@ -4238,10 +4187,7 @@ class DoubleLiteral extends Literal {
    * @param literal the token representing the literal
    * @param value the value of the literal
    */
-  DoubleLiteral(Token literal, double value) {
-    this.literal = literal;
-    this.value = value;
-  }
+  DoubleLiteral(this.literal, this.value);
 
   @override
   accept(AstVisitor visitor) => visitor.visitDoubleLiteral(this);
@@ -4277,9 +4223,7 @@ class EmptyFunctionBody extends FunctionBody {
    *
    * @param semicolon the token representing the semicolon that marks the end of the function body
    */
-  EmptyFunctionBody(Token semicolon) {
-    this.semicolon = semicolon;
-  }
+  EmptyFunctionBody(this.semicolon);
 
   @override
   accept(AstVisitor visitor) => visitor.visitEmptyFunctionBody(this);
@@ -4314,9 +4258,7 @@ class EmptyStatement extends Statement {
    *
    * @param semicolon the semicolon terminating the statement
    */
-  EmptyStatement(Token semicolon) {
-    this.semicolon = semicolon;
-  }
+  EmptyStatement(this.semicolon);
 
   @override
   accept(AstVisitor visitor) => visitor.visitEmptyStatement(this);
@@ -4574,10 +4516,8 @@ class ExpressionFunctionBody extends FunctionBody {
    * @param expression the expression representing the body of the function
    * @param semicolon the semicolon terminating the statement
    */
-  ExpressionFunctionBody(Token functionDefinition, Expression expression, Token semicolon) {
-    this.functionDefinition = functionDefinition;
+  ExpressionFunctionBody(this.functionDefinition, Expression expression, this.semicolon) {
     this._expression = becomeParentOf(expression);
-    this.semicolon = semicolon;
   }
 
   @override
@@ -4642,9 +4582,8 @@ class ExpressionStatement extends Statement {
    * @param expression the expression that comprises the statement
    * @param semicolon the semicolon terminating the statement
    */
-  ExpressionStatement(Expression expression, Token semicolon) {
+  ExpressionStatement(Expression expression, this.semicolon) {
     this._expression = becomeParentOf(expression);
-    this.semicolon = semicolon;
   }
 
   @override
@@ -4712,8 +4651,7 @@ class ExtendsClause extends AstNode {
    * @param keyword the token representing the 'extends' keyword
    * @param superclass the name of the class that is being extended
    */
-  ExtendsClause(Token keyword, TypeName superclass) {
-    this.keyword = keyword;
+  ExtendsClause(this.keyword, TypeName superclass) {
     this._superclass = becomeParentOf(superclass);
   }
 
@@ -4782,10 +4720,8 @@ class FieldDeclaration extends ClassMember {
    * @param fieldList the fields being declared
    * @param semicolon the semicolon terminating the declaration
    */
-  FieldDeclaration(Comment comment, List<Annotation> metadata, Token staticKeyword, VariableDeclarationList fieldList, Token semicolon) : super(comment, metadata) {
-    this.staticKeyword = staticKeyword;
+  FieldDeclaration(Comment comment, List<Annotation> metadata, this.staticKeyword, VariableDeclarationList fieldList, this.semicolon) : super(comment, metadata) {
     this._fieldList = becomeParentOf(fieldList);
-    this.semicolon = semicolon;
   }
 
   @override
@@ -4885,11 +4821,8 @@ class FieldFormalParameter extends NormalFormalParameter {
    * @param parameters the parameters of the function-typed parameter, or `null` if this is
    *          not a function-typed field formal parameter
    */
-  FieldFormalParameter(Comment comment, List<Annotation> metadata, Token keyword, TypeName type, Token thisToken, Token period, SimpleIdentifier identifier, FormalParameterList parameters) : super(comment, metadata, identifier) {
-    this.keyword = keyword;
+  FieldFormalParameter(Comment comment, List<Annotation> metadata, this.keyword, TypeName type, this.thisToken, this.period, SimpleIdentifier identifier, FormalParameterList parameters) : super(comment, metadata, identifier) {
     this._type = becomeParentOf(type);
-    this.thisToken = thisToken;
-    this.period = period;
     this._parameters = becomeParentOf(parameters);
   }
 
@@ -5020,13 +4953,9 @@ class ForEachStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the loop
    */
-  ForEachStatement.con1(Token forKeyword, Token leftParenthesis, DeclaredIdentifier loopVariable, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body) {
-    this.forKeyword = forKeyword;
-    this.leftParenthesis = leftParenthesis;
+  ForEachStatement.con1(this.forKeyword, this.leftParenthesis, DeclaredIdentifier loopVariable, this.inKeyword, Expression iterator, this.rightParenthesis, Statement body) {
     this._loopVariable = becomeParentOf(loopVariable);
-    this.inKeyword = inKeyword;
     this._iterator = becomeParentOf(iterator);
-    this.rightParenthesis = rightParenthesis;
     this._body = becomeParentOf(body);
   }
 
@@ -5040,13 +4969,9 @@ class ForEachStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the loop
    */
-  ForEachStatement.con2(Token forKeyword, Token leftParenthesis, SimpleIdentifier identifier, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body) {
-    this.forKeyword = forKeyword;
-    this.leftParenthesis = leftParenthesis;
+  ForEachStatement.con2(this.forKeyword, this.leftParenthesis, SimpleIdentifier identifier, this.inKeyword, Expression iterator, this.rightParenthesis, Statement body) {
     this._identifier = becomeParentOf(identifier);
-    this.inKeyword = inKeyword;
     this._iterator = becomeParentOf(iterator);
-    this.rightParenthesis = rightParenthesis;
     this._body = becomeParentOf(body);
   }
 
@@ -5218,17 +5143,12 @@ class ForStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the loop
    */
-  ForStatement(Token forKeyword, Token leftParenthesis, VariableDeclarationList variableList, Expression initialization, Token leftSeparator, Expression condition, Token rightSeparator, List<Expression> updaters, Token rightParenthesis, Statement body) {
+  ForStatement(this.forKeyword, this.leftParenthesis, VariableDeclarationList variableList, Expression initialization, this.leftSeparator, Expression condition, this.rightSeparator, List<Expression> updaters, this.rightParenthesis, Statement body) {
     this._updaters = new NodeList<Expression>(this);
-    this.forKeyword = forKeyword;
-    this.leftParenthesis = leftParenthesis;
     this._variableList = becomeParentOf(variableList);
     this._initialization = becomeParentOf(initialization);
-    this.leftSeparator = leftSeparator;
     this._condition = becomeParentOf(condition);
-    this.rightSeparator = rightSeparator;
     this._updaters.addAll(updaters);
-    this.rightParenthesis = rightParenthesis;
     this._body = becomeParentOf(body);
   }
 
@@ -5627,10 +5547,8 @@ class FunctionDeclaration extends CompilationUnitMember {
    * @param name the name of the function
    * @param functionExpression the function expression being wrapped
    */
-  FunctionDeclaration(Comment comment, List<Annotation> metadata, Token externalKeyword, TypeName returnType, Token propertyKeyword, SimpleIdentifier name, FunctionExpression functionExpression) : super(comment, metadata) {
-    this.externalKeyword = externalKeyword;
+  FunctionDeclaration(Comment comment, List<Annotation> metadata, this.externalKeyword, TypeName returnType, this.propertyKeyword, SimpleIdentifier name, FunctionExpression functionExpression) : super(comment, metadata) {
     this._returnType = becomeParentOf(returnType);
-    this.propertyKeyword = propertyKeyword;
     this._name = becomeParentOf(name);
     this._functionExpression = becomeParentOf(functionExpression);
   }
@@ -6412,13 +6330,9 @@ class IfStatement extends Statement {
    * @param elseKeyword the token representing the 'else' keyword
    * @param elseStatement the statement that is executed if the condition evaluates to `false`
    */
-  IfStatement(Token ifKeyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Statement thenStatement, Token elseKeyword, Statement elseStatement) {
-    this.ifKeyword = ifKeyword;
-    this.leftParenthesis = leftParenthesis;
+  IfStatement(this.ifKeyword, this.leftParenthesis, Expression condition, this.rightParenthesis, Statement thenStatement, this.elseKeyword, Statement elseStatement) {
     this._condition = becomeParentOf(condition);
-    this.rightParenthesis = rightParenthesis;
     this._thenStatement = becomeParentOf(thenStatement);
-    this.elseKeyword = elseKeyword;
     this._elseStatement = becomeParentOf(elseStatement);
   }
 
@@ -6522,9 +6436,8 @@ class ImplementsClause extends AstNode {
    * @param keyword the token representing the 'implements' keyword
    * @param interfaces the interfaces that are being implemented
    */
-  ImplementsClause(Token keyword, List<TypeName> interfaces) {
+  ImplementsClause(this.keyword, List<TypeName> interfaces) {
     this._interfaces = new NodeList<TypeName>(this);
-    this.keyword = keyword;
     this._interfaces.addAll(interfaces);
   }
 
@@ -6673,8 +6586,7 @@ class ImportDirective extends NamespaceDirective {
    * @param combinators the combinators used to control how names are imported
    * @param semicolon the semicolon terminating the directive
    */
-  ImportDirective(Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, Token asToken, SimpleIdentifier prefix, List<Combinator> combinators, Token semicolon) : super(comment, metadata, keyword, libraryUri, combinators, semicolon) {
-    this.asToken = asToken;
+  ImportDirective(Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, this.asToken, SimpleIdentifier prefix, List<Combinator> combinators, Token semicolon) : super(comment, metadata, keyword, libraryUri, combinators, semicolon) {
     this._prefix = becomeParentOf(prefix);
   }
 
@@ -6798,8 +6710,7 @@ class IndexExpression extends Expression {
    * @param index the expression used to compute the index
    * @param rightBracket the right square bracket
    */
-  IndexExpression.forCascade(Token period, Token leftBracket, Expression index, Token rightBracket) {
-    this.period = period;
+  IndexExpression.forCascade(this.period, Token leftBracket, Expression index, Token rightBracket) {
     this._leftBracket = leftBracket;
     this._index = becomeParentOf(index);
     this._rightBracket = rightBracket;
@@ -7108,8 +7019,7 @@ class InstanceCreationExpression extends Expression {
    * @param constructorName the name of the constructor to be invoked
    * @param argumentList the list of arguments to the constructor
    */
-  InstanceCreationExpression(Token keyword, ConstructorName constructorName, ArgumentList argumentList) {
-    this.keyword = keyword;
+  InstanceCreationExpression(this.keyword, ConstructorName constructorName, ArgumentList argumentList) {
     this.constructorName = becomeParentOf(constructorName);
     this._argumentList = becomeParentOf(argumentList);
   }
@@ -7189,10 +7099,7 @@ class IntegerLiteral extends Literal {
    * @param literal the token representing the literal
    * @param value the value of the literal
    */
-  IntegerLiteral(Token literal, int value) {
-    this.literal = literal;
-    this.value = value;
-  }
+  IntegerLiteral(this.literal, this.value);
 
   @override
   accept(AstVisitor visitor) => visitor.visitIntegerLiteral(this);
@@ -7255,10 +7162,8 @@ class InterpolationExpression extends InterpolationElement {
    * @param expression the expression to be evaluated for the value to be converted into a string
    * @param rightBracket the right curly bracket
    */
-  InterpolationExpression(Token leftBracket, Expression expression, Token rightBracket) {
-    this.leftBracket = leftBracket;
+  InterpolationExpression(this.leftBracket, Expression expression, this.rightBracket) {
     this._expression = becomeParentOf(expression);
-    this.rightBracket = rightBracket;
   }
 
   @override
@@ -7412,10 +7317,8 @@ class IsExpression extends Expression {
    * @param notOperator the not operator, or `null` if the sense of the test is not negated
    * @param type the name of the type being tested for
    */
-  IsExpression(Expression expression, Token isOperator, Token notOperator, TypeName type) {
+  IsExpression(Expression expression, this.isOperator, this.notOperator, TypeName type) {
     this._expression = becomeParentOf(expression);
-    this.isOperator = isOperator;
-    this.notOperator = notOperator;
     this._type = becomeParentOf(type);
   }
 
@@ -7496,9 +7399,8 @@ class Label extends AstNode {
    * @param label the label being applied
    * @param colon the colon that separates the label from whatever follows
    */
-  Label(SimpleIdentifier label, Token colon) {
+  Label(SimpleIdentifier label, this.colon) {
     this._label = becomeParentOf(label);
-    this.colon = colon;
   }
 
   @override
@@ -7641,10 +7543,8 @@ class LibraryDirective extends Directive {
    * @param name the name of the library being defined
    * @param semicolon the semicolon terminating the directive
    */
-  LibraryDirective(Comment comment, List<Annotation> metadata, Token libraryToken, LibraryIdentifier name, Token semicolon) : super(comment, metadata) {
-    this.libraryToken = libraryToken;
+  LibraryDirective(Comment comment, List<Annotation> metadata, this.libraryToken, LibraryIdentifier name, this.semicolon) : super(comment, metadata) {
     this._name = becomeParentOf(name);
-    this.semicolon = semicolon;
   }
 
   @override
@@ -8019,9 +7919,8 @@ class MapLiteralEntry extends AstNode {
    * @param separator the colon that separates the key from the value
    * @param value the expression computing the value that will be associated with the key
    */
-  MapLiteralEntry(Expression key, Token separator, Expression value) {
+  MapLiteralEntry(Expression key, this.separator, Expression value) {
     this._key = becomeParentOf(key);
-    this.separator = separator;
     this._value = becomeParentOf(value);
   }
 
@@ -8150,12 +8049,8 @@ class MethodDeclaration extends ClassMember {
    *          declares a getter
    * @param body the body of the method
    */
-  MethodDeclaration(Comment comment, List<Annotation> metadata, Token externalKeyword, Token modifierKeyword, TypeName returnType, Token propertyKeyword, Token operatorKeyword, SimpleIdentifier name, FormalParameterList parameters, FunctionBody body) : super(comment, metadata) {
-    this.externalKeyword = externalKeyword;
-    this.modifierKeyword = modifierKeyword;
+  MethodDeclaration(Comment comment, List<Annotation> metadata, this.externalKeyword, this.modifierKeyword, TypeName returnType, this.propertyKeyword, this.operatorKeyword, SimpleIdentifier name, FormalParameterList parameters, FunctionBody body) : super(comment, metadata) {
     this._returnType = becomeParentOf(returnType);
-    this.propertyKeyword = propertyKeyword;
-    this.operatorKeyword = operatorKeyword;
     this._name = becomeParentOf(name);
     this._parameters = becomeParentOf(parameters);
     this._body = becomeParentOf(body);
@@ -8345,9 +8240,8 @@ class MethodInvocation extends Expression {
    * @param methodName the name of the method being invoked
    * @param argumentList the list of arguments to the method
    */
-  MethodInvocation(Expression target, Token period, SimpleIdentifier methodName, ArgumentList argumentList) {
+  MethodInvocation(Expression target, this.period, SimpleIdentifier methodName, ArgumentList argumentList) {
     this._target = becomeParentOf(target);
-    this.period = period;
     this._methodName = becomeParentOf(methodName);
     this._argumentList = becomeParentOf(argumentList);
   }
@@ -8595,11 +8489,9 @@ abstract class NamespaceDirective extends UriBasedDirective {
    * @param combinators the combinators used to control which names are imported or exported
    * @param semicolon the semicolon terminating the directive
    */
-  NamespaceDirective(Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, List<Combinator> combinators, Token semicolon) : super(comment, metadata, libraryUri) {
+  NamespaceDirective(Comment comment, List<Annotation> metadata, this.keyword, StringLiteral libraryUri, List<Combinator> combinators, this.semicolon) : super(comment, metadata, libraryUri) {
     this._combinators = new NodeList<Combinator>(this);
-    this.keyword = keyword;
     this._combinators.addAll(combinators);
-    this.semicolon = semicolon;
   }
 
   /**
@@ -8645,10 +8537,7 @@ class NativeClause extends AstNode {
    * @param keyword the token representing the 'native' keyword
    * @param name the name of the native object that implements the class.
    */
-  NativeClause(Token keyword, StringLiteral name) {
-    this.keyword = keyword;
-    this.name = name;
-  }
+  NativeClause(this.keyword, this.name);
 
   @override
   accept(AstVisitor visitor) => visitor.visitNativeClause(this);
@@ -8678,7 +8567,7 @@ class NativeFunctionBody extends FunctionBody {
   /**
    * The token representing 'native' that marks the start of the function body.
    */
-  Token nativeToken;
+  final Token nativeToken;
 
   /**
    * The string literal, after the 'native' token.
@@ -8688,7 +8577,7 @@ class NativeFunctionBody extends FunctionBody {
   /**
    * The token representing the semicolon that marks the end of the function body.
    */
-  Token semicolon;
+  final Token semicolon;
 
   /**
    * Initialize a newly created function body consisting of the 'native' token, a string literal,
@@ -8698,10 +8587,8 @@ class NativeFunctionBody extends FunctionBody {
    * @param stringLiteral the string literal
    * @param semicolon the token representing the semicolon that marks the end of the function body
    */
-  NativeFunctionBody(Token nativeToken, StringLiteral stringLiteral, Token semicolon) {
-    this.nativeToken = nativeToken;
+  NativeFunctionBody(this.nativeToken, StringLiteral stringLiteral, this.semicolon) {
     this._stringLiteral = becomeParentOf(stringLiteral);
-    this.semicolon = semicolon;
   }
 
   @override
@@ -9027,10 +8914,7 @@ class PartDirective extends UriBasedDirective {
    * @param partUri the URI of the part being included
    * @param semicolon the semicolon terminating the directive
    */
-  PartDirective(Comment comment, List<Annotation> metadata, Token partToken, StringLiteral partUri, Token semicolon) : super(comment, metadata, partUri) {
-    this.partToken = partToken;
-    this.semicolon = semicolon;
-  }
+  PartDirective(Comment comment, List<Annotation> metadata, this.partToken, StringLiteral partUri, this.semicolon) : super(comment, metadata, partUri);
 
   @override
   accept(AstVisitor visitor) => visitor.visitPartDirective(this);
@@ -9087,11 +8971,8 @@ class PartOfDirective extends Directive {
    * @param libraryName the name of the library that the containing compilation unit is part of
    * @param semicolon the semicolon terminating the directive
    */
-  PartOfDirective(Comment comment, List<Annotation> metadata, Token partToken, Token ofToken, LibraryIdentifier libraryName, Token semicolon) : super(comment, metadata) {
-    this.partToken = partToken;
-    this.ofToken = ofToken;
+  PartOfDirective(Comment comment, List<Annotation> metadata, this.partToken, this.ofToken, LibraryIdentifier libraryName, this.semicolon) : super(comment, metadata) {
     this._libraryName = becomeParentOf(libraryName);
-    this.semicolon = semicolon;
   }
 
   @override
@@ -9168,9 +9049,8 @@ class PostfixExpression extends Expression {
    * @param operand the expression computing the operand for the operator
    * @param operator the postfix operator being applied to the operand
    */
-  PostfixExpression(Expression operand, Token operator) {
+  PostfixExpression(Expression operand, this.operator) {
     this._operand = becomeParentOf(operand);
-    this.operator = operator;
   }
 
   @override
@@ -9344,8 +9224,7 @@ class PrefixExpression extends Expression {
    * @param operator the prefix operator being applied to the operand
    * @param operand the expression computing the operand for the operator
    */
-  PrefixExpression(Token operator, Expression operand) {
-    this.operator = operator;
+  PrefixExpression(this.operator, Expression operand) {
     this._operand = becomeParentOf(operand);
   }
 
@@ -9514,9 +9393,8 @@ class PrefixedIdentifier extends Identifier {
    * @param period the period used to separate the prefix from the identifier
    * @param identifier the prefix associated with the library in which the identifier is defined
    */
-  PrefixedIdentifier(SimpleIdentifier prefix, Token period, SimpleIdentifier identifier) {
+  PrefixedIdentifier(SimpleIdentifier prefix, this.period, SimpleIdentifier identifier) {
     this._prefix = becomeParentOf(prefix);
-    this.period = period;
     this._identifier = becomeParentOf(identifier);
   }
 
@@ -9634,9 +9512,8 @@ class PropertyAccess extends Expression {
    * @param operator the property access operator
    * @param propertyName the name of the property being accessed
    */
-  PropertyAccess(Expression target, Token operator, SimpleIdentifier propertyName) {
+  PropertyAccess(Expression target, this.operator, SimpleIdentifier propertyName) {
     this._target = becomeParentOf(target);
-    this.operator = operator;
     this._propertyName = becomeParentOf(propertyName);
   }
 
@@ -9781,9 +9658,7 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
    * @param constructorName the name of the constructor that is being invoked
    * @param argumentList the list of arguments to the constructor
    */
-  RedirectingConstructorInvocation(Token keyword, Token period, SimpleIdentifier constructorName, ArgumentList argumentList) {
-    this.keyword = keyword;
-    this.period = period;
+  RedirectingConstructorInvocation(this.keyword, this.period, SimpleIdentifier constructorName, ArgumentList argumentList) {
     this._constructorName = becomeParentOf(constructorName);
     this._argumentList = becomeParentOf(argumentList);
   }
@@ -9856,9 +9731,7 @@ class RethrowExpression extends Expression {
    *
    * @param keyword the token representing the 'rethrow' keyword
    */
-  RethrowExpression(Token keyword) {
-    this.keyword = keyword;
-  }
+  RethrowExpression(this.keyword);
 
   @override
   accept(AstVisitor visitor) => visitor.visitRethrowExpression(this);
@@ -9909,10 +9782,8 @@ class ReturnStatement extends Statement {
    * @param expression the expression computing the value to be returned
    * @param semicolon the semicolon terminating the statement
    */
-  ReturnStatement(Token keyword, Expression expression, Token semicolon) {
-    this.keyword = keyword;
+  ReturnStatement(this.keyword, Expression expression, this.semicolon) {
     this._expression = becomeParentOf(expression);
-    this.semicolon = semicolon;
   }
 
   @override
@@ -9967,9 +9838,7 @@ class ScriptTag extends AstNode {
    *
    * @param scriptTag the token representing this script tag
    */
-  ScriptTag(Token scriptTag) {
-    this.scriptTag = scriptTag;
-  }
+  ScriptTag(this.scriptTag);
 
   @override
   accept(AstVisitor visitor) => visitor.visitScriptTag(this);
@@ -10060,8 +9929,7 @@ class SimpleFormalParameter extends NormalFormalParameter {
    * @param type the name of the declared type of the parameter
    * @param identifier the name of the parameter being declared
    */
-  SimpleFormalParameter(Comment comment, List<Annotation> metadata, Token keyword, TypeName type, SimpleIdentifier identifier) : super(comment, metadata, identifier) {
-    this.keyword = keyword;
+  SimpleFormalParameter(Comment comment, List<Annotation> metadata, this.keyword, TypeName type, SimpleIdentifier identifier) : super(comment, metadata, identifier) {
     this._type = becomeParentOf(type);
   }
 
@@ -10155,9 +10023,7 @@ class SimpleIdentifier extends Identifier {
    *
    * @param token the token representing the identifier
    */
-  SimpleIdentifier(Token token) {
-    this.token = token;
-  }
+  SimpleIdentifier(this.token);
 
   @override
   accept(AstVisitor visitor) => visitor.visitSimpleIdentifier(this);
@@ -10432,8 +10298,7 @@ class SimpleStringLiteral extends StringLiteral {
    * @param literal the token representing the literal
    * @param value the value of the literal
    */
-  SimpleStringLiteral(Token literal, String value) {
-    this.literal = literal;
+  SimpleStringLiteral(this.literal, String value) {
     this._value = StringUtilities.intern(value);
   }
 
@@ -10690,9 +10555,7 @@ class SuperConstructorInvocation extends ConstructorInitializer {
    * @param constructorName the name of the constructor that is being invoked
    * @param argumentList the list of arguments to the constructor
    */
-  SuperConstructorInvocation(Token keyword, Token period, SimpleIdentifier constructorName, ArgumentList argumentList) {
-    this.keyword = keyword;
-    this.period = period;
+  SuperConstructorInvocation(this.keyword, this.period, SimpleIdentifier constructorName, ArgumentList argumentList) {
     this._constructorName = becomeParentOf(constructorName);
     this._argumentList = becomeParentOf(argumentList);
   }
@@ -10765,9 +10628,7 @@ class SuperExpression extends Expression {
    *
    * @param keyword the token representing the keyword
    */
-  SuperExpression(Token keyword) {
-    this.keyword = keyword;
-  }
+  SuperExpression(this.keyword);
 
   @override
   accept(AstVisitor visitor) => visitor.visitSuperExpression(this);
@@ -10908,12 +10769,10 @@ abstract class SwitchMember extends AstNode {
    * @param colon the colon separating the keyword or the expression from the statements
    * @param statements the statements that will be executed if this switch member is selected
    */
-  SwitchMember(List<Label> labels, Token keyword, Token colon, List<Statement> statements) {
+  SwitchMember(List<Label> labels, this.keyword, this.colon, List<Statement> statements) {
     this._labels = new NodeList<Label>(this);
     this._statements = new NodeList<Statement>(this);
     this._labels.addAll(labels);
-    this.keyword = keyword;
-    this.colon = colon;
     this._statements.addAll(statements);
   }
 
@@ -11003,15 +10862,10 @@ class SwitchStatement extends Statement {
    * @param members the switch members that can be selected by the expression
    * @param rightBracket the right curly bracket
    */
-  SwitchStatement(Token keyword, Token leftParenthesis, Expression expression, Token rightParenthesis, Token leftBracket, List<SwitchMember> members, Token rightBracket) {
+  SwitchStatement(this.keyword, this.leftParenthesis, Expression expression, this.rightParenthesis, this.leftBracket, List<SwitchMember> members, this.rightBracket) {
     this._members = new NodeList<SwitchMember>(this);
-    this.keyword = keyword;
-    this.leftParenthesis = leftParenthesis;
     this._expression = becomeParentOf(expression);
-    this.rightParenthesis = rightParenthesis;
-    this.leftBracket = leftBracket;
     this._members.addAll(members);
-    this.rightBracket = rightBracket;
   }
 
   @override
@@ -11071,7 +10925,7 @@ class SymbolLiteral extends Literal {
   /**
    * The components of the literal.
    */
-  List<Token> components;
+  final List<Token> components;
 
   /**
    * Initialize a newly created symbol literal.
@@ -11079,10 +10933,7 @@ class SymbolLiteral extends Literal {
    * @param poundSign the token introducing the literal
    * @param components the components of the literal
    */
-  SymbolLiteral(Token poundSign, List<Token> components) {
-    this.poundSign = poundSign;
-    this.components = components;
-  }
+  SymbolLiteral(this.poundSign, this.components);
 
   @override
   accept(AstVisitor visitor) => visitor.visitSymbolLiteral(this);
@@ -11117,9 +10968,7 @@ class ThisExpression extends Expression {
    *
    * @param keyword the token representing the keyword
    */
-  ThisExpression(Token keyword) {
-    this.keyword = keyword;
-  }
+  ThisExpression(this.keyword);
 
   @override
   accept(AstVisitor visitor) => visitor.visitThisExpression(this);
@@ -11163,8 +11012,7 @@ class ThrowExpression extends Expression {
    * @param keyword the token representing the 'throw' keyword
    * @param expression the expression computing the exception to be thrown
    */
-  ThrowExpression(Token keyword, Expression expression) {
-    this.keyword = keyword;
+  ThrowExpression(this.keyword, Expression expression) {
     this._expression = becomeParentOf(expression);
   }
 
@@ -11236,9 +11084,8 @@ class TopLevelVariableDeclaration extends CompilationUnitMember {
    * @param variableList the top-level variables being declared
    * @param semicolon the semicolon terminating the declaration
    */
-  TopLevelVariableDeclaration(Comment comment, List<Annotation> metadata, VariableDeclarationList variableList, Token semicolon) : super(comment, metadata) {
+  TopLevelVariableDeclaration(Comment comment, List<Annotation> metadata, VariableDeclarationList variableList, this.semicolon) : super(comment, metadata) {
     this._variableList = becomeParentOf(variableList);
-    this.semicolon = semicolon;
   }
 
   @override
@@ -11324,12 +11171,10 @@ class TryStatement extends Statement {
    * @param finallyKeyword the token representing the 'finally' keyword
    * @param finallyBlock the finally block contained in the try statement
    */
-  TryStatement(Token tryKeyword, Block body, List<CatchClause> catchClauses, Token finallyKeyword, Block finallyBlock) {
+  TryStatement(this.tryKeyword, Block body, List<CatchClause> catchClauses, this.finallyKeyword, Block finallyBlock) {
     this._catchClauses = new NodeList<CatchClause>(this);
-    this.tryKeyword = tryKeyword;
     this._body = becomeParentOf(body);
     this._catchClauses.addAll(catchClauses);
-    this.finallyKeyword = finallyKeyword;
     this._finallyBlock = becomeParentOf(finallyBlock);
   }
 
@@ -11430,10 +11275,7 @@ abstract class TypeAlias extends CompilationUnitMember {
    * @param keyword the token representing the 'typedef' keyword
    * @param semicolon the semicolon terminating the declaration
    */
-  TypeAlias(Comment comment, List<Annotation> metadata, Token keyword, Token semicolon) : super(comment, metadata) {
-    this.keyword = keyword;
-    this.semicolon = semicolon;
-  }
+  TypeAlias(Comment comment, List<Annotation> metadata, this.keyword, this.semicolon) : super(comment, metadata);
 
   @override
   Token get endToken => semicolon;
@@ -11473,11 +11315,9 @@ class TypeArgumentList extends AstNode {
    * @param arguments the type arguments associated with the type
    * @param rightBracket the right bracket
    */
-  TypeArgumentList(Token leftBracket, List<TypeName> arguments, Token rightBracket) {
+  TypeArgumentList(this.leftBracket, List<TypeName> arguments, this.rightBracket) {
     this._arguments = new NodeList<TypeName>(this);
-    this.leftBracket = leftBracket;
     this._arguments.addAll(arguments);
-    this.rightBracket = rightBracket;
   }
 
   @override
@@ -11631,9 +11471,8 @@ class TypeParameter extends Declaration {
    * @param keyword the token representing the 'extends' keyword
    * @param bound the name of the upper bound for legal arguments
    */
-  TypeParameter(Comment comment, List<Annotation> metadata, SimpleIdentifier name, Token keyword, TypeName bound) : super(comment, metadata) {
+  TypeParameter(Comment comment, List<Annotation> metadata, SimpleIdentifier name, this.keyword, TypeName bound) : super(comment, metadata) {
     this._name = becomeParentOf(name);
-    this.keyword = keyword;
     this._bound = becomeParentOf(bound);
   }
 
@@ -11707,7 +11546,7 @@ class TypeParameterList extends AstNode {
   /**
    * The left angle bracket.
    */
-  Token leftBracket;
+  final Token leftBracket;
 
   /**
    * The type parameters in the list.
@@ -11717,7 +11556,7 @@ class TypeParameterList extends AstNode {
   /**
    * The right angle bracket.
    */
-  Token rightBracket;
+  final Token rightBracket;
 
   /**
    * Initialize a newly created list of type parameters.
@@ -11726,11 +11565,9 @@ class TypeParameterList extends AstNode {
    * @param typeParameters the type parameters in the list
    * @param rightBracket the right angle bracket
    */
-  TypeParameterList(Token leftBracket, List<TypeParameter> typeParameters, Token rightBracket) {
+  TypeParameterList(this.leftBracket, List<TypeParameter> typeParameters, this.rightBracket) {
     this._typeParameters = new NodeList<TypeParameter>(this);
-    this.leftBracket = leftBracket;
     this._typeParameters.addAll(typeParameters);
-    this.rightBracket = rightBracket;
   }
 
   @override
@@ -11784,8 +11621,7 @@ abstract class TypedLiteral extends Literal {
    * @param typeArguments the type argument associated with this literal, or `null` if no type
    *          arguments were declared
    */
-  TypedLiteral(Token constKeyword, TypeArgumentList typeArguments) {
-    this.constKeyword = constKeyword;
+  TypedLiteral(this.constKeyword, TypeArgumentList typeArguments) {
     this.typeArguments = becomeParentOf(typeArguments);
   }
 
@@ -11902,9 +11738,8 @@ class VariableDeclaration extends Declaration {
    * @param equals the equal sign separating the variable name from the initial value
    * @param initializer the expression used to compute the initial value for the variable
    */
-  VariableDeclaration(Comment comment, List<Annotation> metadata, SimpleIdentifier name, Token equals, Expression initializer) : super(comment, metadata) {
+  VariableDeclaration(Comment comment, List<Annotation> metadata, SimpleIdentifier name, this.equals, Expression initializer) : super(comment, metadata) {
     this._name = becomeParentOf(name);
-    this.equals = equals;
     this._initializer = becomeParentOf(initializer);
   }
 
@@ -12047,9 +11882,8 @@ class VariableDeclarationList extends AnnotatedNode {
    * @param type the type of the variables being declared
    * @param variables a list containing the individual variables being declared
    */
-  VariableDeclarationList(Comment comment, List<Annotation> metadata, Token keyword, TypeName type, List<VariableDeclaration> variables) : super(comment, metadata) {
+  VariableDeclarationList(Comment comment, List<Annotation> metadata, this.keyword, TypeName type, List<VariableDeclaration> variables) : super(comment, metadata) {
     this._variables = new NodeList<VariableDeclaration>(this);
-    this.keyword = keyword;
     this._type = becomeParentOf(type);
     this._variables.addAll(variables);
   }
@@ -12142,9 +11976,8 @@ class VariableDeclarationStatement extends Statement {
    * @param variableList the fields being declared
    * @param semicolon the semicolon terminating the statement
    */
-  VariableDeclarationStatement(VariableDeclarationList variableList, Token semicolon) {
+  VariableDeclarationStatement(VariableDeclarationList variableList, this.semicolon) {
     this._variableList = becomeParentOf(variableList);
-    this.semicolon = semicolon;
   }
 
   @override
@@ -12221,11 +12054,8 @@ class WhileStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the loop
    */
-  WhileStatement(Token keyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Statement body) {
-    this.keyword = keyword;
-    this.leftParenthesis = leftParenthesis;
+  WhileStatement(this.keyword, this.leftParenthesis, Expression condition, this.rightParenthesis, Statement body) {
     this._condition = becomeParentOf(condition);
-    this.rightParenthesis = rightParenthesis;
     this._body = becomeParentOf(body);
   }
 
@@ -14362,7 +14192,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
   /**
    * The writer to which the source is to be written.
    */
-  PrintWriter _writer;
+  final PrintWriter _writer;
 
   /**
    * Initialize a newly created visitor to write source code representing the visited nodes to the
@@ -14370,9 +14200,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
    *
    * @param writer the writer to which the source is to be written
    */
-  ToSourceVisitor(PrintWriter writer) {
-    this._writer = writer;
-  }
+  ToSourceVisitor(this._writer);
 
   @override
   Object visitAdjacentStrings(AdjacentStrings node) {
@@ -16874,17 +16702,17 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   /**
    * The node to be replaced during the cloning process.
    */
-  AstNode _oldNode;
+  final AstNode _oldNode;
 
   /**
    * The replacement node used during the cloning process.
    */
-  AstNode _newNode;
+  final AstNode _newNode;
 
   /**
    * A mapping of old tokens to new tokens used during the cloning process.
    */
-  TokenMap _tokenMap;
+  final TokenMap _tokenMap;
 
   /**
    * Construct a new instance that will replace `oldNode` with `newNode` in the process
@@ -16894,11 +16722,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
    * @param newNode the replacement node
    * @param tokenMap a mapping of old tokens to new tokens (not `null`)
    */
-  IncrementalAstCloner(AstNode oldNode, AstNode newNode, TokenMap tokenMap) {
-    this._oldNode = oldNode;
-    this._newNode = newNode;
-    this._tokenMap = tokenMap;
-  }
+  IncrementalAstCloner(this._oldNode, this._newNode, this._tokenMap);
 
   @override
   AdjacentStrings visitAdjacentStrings(AdjacentStrings node) => new AdjacentStrings(_cloneNodeList(node.strings));
@@ -17513,13 +17337,11 @@ class ScopedNameFinder extends GeneralizingAstVisitor<Object> {
 
   Map<String, SimpleIdentifier> _locals = new Map<String, SimpleIdentifier>();
 
-  int _position = 0;
+  final int _position;
 
   bool _referenceIsWithinLocalFunction = false;
 
-  ScopedNameFinder(int position) {
-    this._position = position;
-  }
+  ScopedNameFinder(this._position);
 
   Declaration get declaration => _declarationNode;
 

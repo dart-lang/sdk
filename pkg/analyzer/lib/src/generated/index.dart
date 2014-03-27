@@ -26,17 +26,17 @@ class RemoveSourceOperation implements IndexOperation {
   /**
    * The index store against which this operation is being run.
    */
-  IndexStore _indexStore;
+  final IndexStore _indexStore;
 
   /**
    * The context in which source being removed.
    */
-  AnalysisContext _context;
+  final AnalysisContext _context;
 
   /**
    * The source being removed.
    */
-  Source source;
+  final Source source;
 
   /**
    * Initialize a newly created operation that will remove the specified resource.
@@ -45,11 +45,7 @@ class RemoveSourceOperation implements IndexOperation {
    * @param context the [AnalysisContext] to remove source in
    * @param source the [Source] to remove from index
    */
-  RemoveSourceOperation(IndexStore indexStore, AnalysisContext context, Source source) {
-    this._indexStore = indexStore;
-    this._context = context;
-    this.source = source;
-  }
+  RemoveSourceOperation(this._indexStore, this._context, this.source);
 
   @override
   bool get isQuery => false;
@@ -536,14 +532,11 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
 }
 
 class MemoryIndexStoreImpl_ElementRelationKey {
-  Element _element;
+  final Element _element;
 
-  Relationship _relationship;
+  final Relationship _relationship;
 
-  MemoryIndexStoreImpl_ElementRelationKey(Element element, Relationship relationship) {
-    this._element = element;
-    this._relationship = relationship;
-  }
+  MemoryIndexStoreImpl_ElementRelationKey(this._element, this._relationship);
 
   @override
   bool operator ==(Object obj) {
@@ -565,14 +558,11 @@ class MemoryIndexStoreImpl_ElementRelationKey {
 }
 
 class MemoryIndexStoreImpl_Source2 {
-  Source _librarySource;
+  final Source _librarySource;
 
-  Source _unitSource;
+  final Source _unitSource;
 
-  MemoryIndexStoreImpl_Source2(Source librarySource, Source unitSource) {
-    this._librarySource = librarySource;
-    this._unitSource = unitSource;
-  }
+  MemoryIndexStoreImpl_Source2(this._librarySource, this._unitSource);
 
   @override
   bool operator ==(Object obj) {
@@ -601,17 +591,17 @@ class IndexUnitOperation implements IndexOperation {
   /**
    * The index store against which this operation is being run.
    */
-  IndexStore _indexStore;
+  final IndexStore _indexStore;
 
   /**
    * The context in which compilation unit was resolved.
    */
-  AnalysisContext _context;
+  final AnalysisContext _context;
 
   /**
    * The compilation unit being indexed.
    */
-  CompilationUnit unit;
+  final CompilationUnit unit;
 
   /**
    * The element of the compilation unit being indexed.
@@ -630,10 +620,7 @@ class IndexUnitOperation implements IndexOperation {
    * @param context the context in which compilation unit was resolved
    * @param unit the fully resolved AST structure
    */
-  IndexUnitOperation(IndexStore indexStore, AnalysisContext context, CompilationUnit unit) {
-    this._indexStore = indexStore;
-    this._context = context;
-    this.unit = unit;
+  IndexUnitOperation(this._indexStore, this._context, this.unit) {
     this._unitElement = unit.element;
     this._source = _unitElement.source;
   }
@@ -718,7 +705,7 @@ class Relationship {
   /**
    * The unique identifier for this relationship.
    */
-  String _uniqueId;
+  final String _uniqueId;
 
   /**
    * A table mapping relationship identifiers to relationships.
@@ -750,9 +737,7 @@ class Relationship {
    *
    * @param uniqueId the unique identifier for this relationship
    */
-  Relationship(String uniqueId) {
-    this._uniqueId = uniqueId;
-  }
+  Relationship(this._uniqueId);
 
   /**
    * Return the unique identifier for this relationship.
@@ -773,17 +758,17 @@ class RemoveSourcesOperation implements IndexOperation {
   /**
    * The index store against which this operation is being run.
    */
-  IndexStore _indexStore;
+  final IndexStore _indexStore;
 
   /**
    * The context to remove container.
    */
-  AnalysisContext _context;
+  final AnalysisContext _context;
 
   /**
    * The source container to remove.
    */
-  SourceContainer container;
+  final SourceContainer container;
 
   /**
    * Initialize a newly created operation that will remove the specified resource.
@@ -792,11 +777,7 @@ class RemoveSourcesOperation implements IndexOperation {
    * @param context the [AnalysisContext] to remove container in
    * @param container the [SourceContainer] to remove from index
    */
-  RemoveSourcesOperation(IndexStore indexStore, AnalysisContext context, SourceContainer container) {
-    this._indexStore = indexStore;
-    this._context = context;
-    this.container = container;
-  }
+  RemoveSourcesOperation(this._indexStore, this._context, this.container);
 
   @override
   bool get isQuery => false;
@@ -829,26 +810,26 @@ class ProcessorState extends Enum<ProcessorState> {
   /**
    * The processor is ready to be run (has not been run before).
    */
-  static final ProcessorState READY = new ProcessorState('READY', 0);
+  static const ProcessorState READY = const ProcessorState('READY', 0);
 
   /**
    * The processor is currently performing operations.
    */
-  static final ProcessorState RUNNING = new ProcessorState('RUNNING', 1);
+  static const ProcessorState RUNNING = const ProcessorState('RUNNING', 1);
 
   /**
    * The processor is currently performing operations but has been asked to stop.
    */
-  static final ProcessorState STOP_REQESTED = new ProcessorState('STOP_REQESTED', 2);
+  static const ProcessorState STOP_REQESTED = const ProcessorState('STOP_REQESTED', 2);
 
   /**
    * The processor has stopped performing operations and cannot be used again.
    */
-  static final ProcessorState STOPPED = new ProcessorState('STOPPED', 3);
+  static const ProcessorState STOPPED = const ProcessorState('STOPPED', 3);
 
-  static final List<ProcessorState> values = [READY, RUNNING, STOP_REQESTED, STOPPED];
+  static const List<ProcessorState> values = const [READY, RUNNING, STOP_REQESTED, STOPPED];
 
-  ProcessorState(String name, int ordinal) : super(name, ordinal);
+  const ProcessorState(String name, int ordinal) : super(name, ordinal);
 }
 
 /**
@@ -1003,7 +984,7 @@ class AngularHtmlIndexContributor extends ExpressionVisitor {
   /**
    * The [IndexStore] to record relations into.
    */
-  IndexStore _store;
+  final IndexStore _store;
 
   /**
    * The index contributor used to index Dart [Expression]s.
@@ -1017,9 +998,8 @@ class AngularHtmlIndexContributor extends ExpressionVisitor {
    *
    * @param store the [IndexStore] to record relations into.
    */
-  AngularHtmlIndexContributor(IndexStore store) {
-    this._store = store;
-    _indexContributor = new IndexContributor_AngularHtmlIndexContributor(store, this);
+  AngularHtmlIndexContributor(this._store) {
+    _indexContributor = new IndexContributor_AngularHtmlIndexContributor(_store, this);
   }
 
   @override
@@ -1568,7 +1548,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     return false;
   }
 
-  IndexStore _store;
+  final IndexStore _store;
 
   LibraryElement _libraryElement;
 
@@ -1580,9 +1560,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
    */
   Queue<Element> _elementStack = new Queue();
 
-  IndexContributor(IndexStore store) {
-    this._store = store;
-  }
+  IndexContributor(this._store);
 
   /**
    * Enter a new scope represented by the given [Element].
@@ -2194,11 +2172,9 @@ class NameElementImpl extends ElementImpl {
  * [IndexStore].
  */
 class AngularDartIndexContributor extends GeneralizingAstVisitor<Object> {
-  IndexStore _store;
+  final IndexStore _store;
 
-  AngularDartIndexContributor(IndexStore store) {
-    this._store = store;
-  }
+  AngularDartIndexContributor(this._store);
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
@@ -2270,12 +2246,12 @@ class RemoveContextOperation implements IndexOperation {
   /**
    * The index store against which this operation is being run.
    */
-  IndexStore _indexStore;
+  final IndexStore _indexStore;
 
   /**
    * The context being removed.
    */
-  AnalysisContext context;
+  final AnalysisContext context;
 
   /**
    * Initialize a newly created operation that will remove the specified resource.
@@ -2283,10 +2259,7 @@ class RemoveContextOperation implements IndexOperation {
    * @param indexStore the index store against which this operation is being run
    * @param context the [AnalysisContext] to remove
    */
-  RemoveContextOperation(IndexStore indexStore, AnalysisContext context) {
-    this._indexStore = indexStore;
-    this.context = context;
-  }
+  RemoveContextOperation(this._indexStore, this.context);
 
   @override
   bool get isQuery => false;
@@ -2311,17 +2284,17 @@ class IndexHtmlUnitOperation implements IndexOperation {
   /**
    * The index store against which this operation is being run.
    */
-  IndexStore _indexStore;
+  final IndexStore _indexStore;
 
   /**
    * The context in which [HtmlUnit] was resolved.
    */
-  AnalysisContext _context;
+  final AnalysisContext _context;
 
   /**
    * The [HtmlUnit] being indexed.
    */
-  ht.HtmlUnit unit;
+  final ht.HtmlUnit unit;
 
   /**
    * The element of the [HtmlUnit] being indexed.
@@ -2340,10 +2313,7 @@ class IndexHtmlUnitOperation implements IndexOperation {
    * @param context the context in which [HtmlUnit] was resolved
    * @param unit the fully resolved [HtmlUnit]
    */
-  IndexHtmlUnitOperation(IndexStore indexStore, AnalysisContext context, ht.HtmlUnit unit) {
-    this._indexStore = indexStore;
-    this._context = context;
-    this.unit = unit;
+  IndexHtmlUnitOperation(this._indexStore, this._context, this.unit) {
     this._htmlElement = unit.element;
     this._source = _htmlElement.source;
   }
@@ -2391,17 +2361,17 @@ class Location {
   /**
    * The element containing this location.
    */
-  Element element;
+  final Element element;
 
   /**
    * The offset of this location within the resource containing the element.
    */
-  int offset = 0;
+  final int offset;
 
   /**
    * The length of this location.
    */
-  int length = 0;
+  final int length;
 
   /**
    * Internal field used to hold a key that is referenced at this location.
@@ -2416,13 +2386,10 @@ class Location {
    * @param offset the offset of this location within the resource containing the element
    * @param length the length of this location
    */
-  Location(Element element, int offset, int length) {
+  Location(this.element, this.offset, this.length) {
     if (element == null) {
       throw new IllegalArgumentException("element location cannot be null");
     }
-    this.element = element;
-    this.offset = offset;
-    this.length = length;
   }
 
   /**
@@ -2446,24 +2413,19 @@ abstract class MemoryIndexStore implements IndexStore {
  * locations that have a specified relationship with a specified element.
  */
 class GetRelationshipsOperation implements IndexOperation {
-  IndexStore _indexStore;
+  final IndexStore _indexStore;
 
-  Element element;
+  final Element element;
 
-  Relationship relationship;
+  final Relationship relationship;
 
-  RelationshipCallback callback;
+  final RelationshipCallback callback;
 
   /**
    * Initialize a newly created operation that will access the locations that have a specified
    * relationship with a specified element.
    */
-  GetRelationshipsOperation(IndexStore indexStore, Element element, Relationship relationship, RelationshipCallback callback) {
-    this._indexStore = indexStore;
-    this.element = element;
-    this.relationship = relationship;
-    this.callback = callback;
-  }
+  GetRelationshipsOperation(this._indexStore, this.element, this.relationship, this.callback);
 
   @override
   bool get isQuery => true;
@@ -2486,15 +2448,11 @@ class GetRelationshipsOperation implements IndexOperation {
  * [Location] with attached data.
  */
 class LocationWithData<D> extends Location {
-  D data;
+  final D data;
 
-  LocationWithData.con1(Location location, D data) : super(location.element, location.offset, location.length) {
-    this.data = data;
-  }
+  LocationWithData.con1(Location location, this.data) : super(location.element, location.offset, location.length);
 
-  LocationWithData.con2(Element element, int offset, int length, D data) : super(element, offset, length) {
-    this.data = data;
-  }
+  LocationWithData.con2(Element element, int offset, int length, this.data) : super(element, offset, length);
 
   @override
   Location newClone() => new LocationWithData<D>.con2(element, offset, length, data);

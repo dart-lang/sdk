@@ -1000,27 +1000,27 @@ class SimpleIdentifierTest extends ParserTestCase {
 }
 
 class AssignmentKind extends Enum<AssignmentKind> {
-  static final AssignmentKind BINARY = new AssignmentKind('BINARY', 0);
+  static const AssignmentKind BINARY = const AssignmentKind('BINARY', 0);
 
-  static final AssignmentKind COMPOUND_LEFT = new AssignmentKind('COMPOUND_LEFT', 1);
+  static const AssignmentKind COMPOUND_LEFT = const AssignmentKind('COMPOUND_LEFT', 1);
 
-  static final AssignmentKind COMPOUND_RIGHT = new AssignmentKind('COMPOUND_RIGHT', 2);
+  static const AssignmentKind COMPOUND_RIGHT = const AssignmentKind('COMPOUND_RIGHT', 2);
 
-  static final AssignmentKind POSTFIX_INC = new AssignmentKind('POSTFIX_INC', 3);
+  static const AssignmentKind POSTFIX_INC = const AssignmentKind('POSTFIX_INC', 3);
 
-  static final AssignmentKind PREFIX_DEC = new AssignmentKind('PREFIX_DEC', 4);
+  static const AssignmentKind PREFIX_DEC = const AssignmentKind('PREFIX_DEC', 4);
 
-  static final AssignmentKind PREFIX_INC = new AssignmentKind('PREFIX_INC', 5);
+  static const AssignmentKind PREFIX_INC = const AssignmentKind('PREFIX_INC', 5);
 
-  static final AssignmentKind PREFIX_NOT = new AssignmentKind('PREFIX_NOT', 6);
+  static const AssignmentKind PREFIX_NOT = const AssignmentKind('PREFIX_NOT', 6);
 
-  static final AssignmentKind SIMPLE_LEFT = new AssignmentKind('SIMPLE_LEFT', 7);
+  static const AssignmentKind SIMPLE_LEFT = const AssignmentKind('SIMPLE_LEFT', 7);
 
-  static final AssignmentKind SIMPLE_RIGHT = new AssignmentKind('SIMPLE_RIGHT', 8);
+  static const AssignmentKind SIMPLE_RIGHT = const AssignmentKind('SIMPLE_RIGHT', 8);
 
-  static final AssignmentKind NONE = new AssignmentKind('NONE', 9);
+  static const AssignmentKind NONE = const AssignmentKind('NONE', 9);
 
-  static final List<AssignmentKind> values = [
+  static const List<AssignmentKind> values = const [
       BINARY,
       COMPOUND_LEFT,
       COMPOUND_RIGHT,
@@ -1032,28 +1032,28 @@ class AssignmentKind extends Enum<AssignmentKind> {
       SIMPLE_RIGHT,
       NONE];
 
-  AssignmentKind(String name, int ordinal) : super(name, ordinal);
+  const AssignmentKind(String name, int ordinal) : super(name, ordinal);
 }
 
 class WrapperKind extends Enum<WrapperKind> {
-  static final WrapperKind PREFIXED_LEFT = new WrapperKind('PREFIXED_LEFT', 0);
+  static const WrapperKind PREFIXED_LEFT = const WrapperKind('PREFIXED_LEFT', 0);
 
-  static final WrapperKind PREFIXED_RIGHT = new WrapperKind('PREFIXED_RIGHT', 1);
+  static const WrapperKind PREFIXED_RIGHT = const WrapperKind('PREFIXED_RIGHT', 1);
 
-  static final WrapperKind PROPERTY_LEFT = new WrapperKind('PROPERTY_LEFT', 2);
+  static const WrapperKind PROPERTY_LEFT = const WrapperKind('PROPERTY_LEFT', 2);
 
-  static final WrapperKind PROPERTY_RIGHT = new WrapperKind('PROPERTY_RIGHT', 3);
+  static const WrapperKind PROPERTY_RIGHT = const WrapperKind('PROPERTY_RIGHT', 3);
 
-  static final WrapperKind NONE = new WrapperKind('NONE', 4);
+  static const WrapperKind NONE = const WrapperKind('NONE', 4);
 
-  static final List<WrapperKind> values = [
+  static const List<WrapperKind> values = const [
       PREFIXED_LEFT,
       PREFIXED_RIGHT,
       PROPERTY_LEFT,
       PROPERTY_RIGHT,
       NONE];
 
-  WrapperKind(String name, int ordinal) : super(name, ordinal);
+  const WrapperKind(String name, int ordinal) : super(name, ordinal);
 }
 
 class BreadthFirstVisitorTest extends ParserTestCase {

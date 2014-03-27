@@ -69,7 +69,7 @@ class SourceFactory {
   /**
    * The resolvers used to resolve absolute URI's.
    */
-  List<UriResolver> _resolvers;
+  final List<UriResolver> _resolvers;
 
   /**
    * The predicate to determine is [Source] is local.
@@ -81,9 +81,7 @@ class SourceFactory {
    *
    * @param resolvers the resolvers used to resolve absolute URI's
    */
-  SourceFactory(List<UriResolver> resolvers) {
-    this._resolvers = resolvers;
-  }
+  SourceFactory(this._resolvers);
 
   /**
    * Return a source object representing the given absolute URI, or `null` if the URI is not a
@@ -418,29 +416,29 @@ class SourceKind extends Enum<SourceKind> {
   /**
    * A source containing HTML. The HTML might or might not contain Dart scripts.
    */
-  static final SourceKind HTML = new SourceKind('HTML', 0);
+  static const SourceKind HTML = const SourceKind('HTML', 0);
 
   /**
    * A Dart compilation unit that is not a part of another library. Libraries might or might not
    * contain any directives, including a library directive.
    */
-  static final SourceKind LIBRARY = new SourceKind('LIBRARY', 1);
+  static const SourceKind LIBRARY = const SourceKind('LIBRARY', 1);
 
   /**
    * A Dart compilation unit that is part of another library. Parts contain a part-of directive.
    */
-  static final SourceKind PART = new SourceKind('PART', 2);
+  static const SourceKind PART = const SourceKind('PART', 2);
 
   /**
    * An unknown kind of source. Used both when it is not possible to identify the kind of a source
    * and also when the kind of a source is not known without performing a computation and the client
    * does not want to spend the time to identify the kind.
    */
-  static final SourceKind UNKNOWN = new SourceKind('UNKNOWN', 3);
+  static const SourceKind UNKNOWN = const SourceKind('UNKNOWN', 3);
 
-  static final List<SourceKind> values = [HTML, LIBRARY, PART, UNKNOWN];
+  static const List<SourceKind> values = const [HTML, LIBRARY, PART, UNKNOWN];
 
-  SourceKind(String name, int ordinal) : super(name, ordinal);
+  const SourceKind(String name, int ordinal) : super(name, ordinal);
 }
 
 /**
@@ -451,24 +449,24 @@ class UriKind extends Enum<UriKind> {
   /**
    * A 'dart:' URI.
    */
-  static final UriKind DART_URI = new UriKind('DART_URI', 0, 0x64);
+  static const UriKind DART_URI = const UriKind('DART_URI', 0, 0x64);
 
   /**
    * A 'file:' URI.
    */
-  static final UriKind FILE_URI = new UriKind('FILE_URI', 1, 0x66);
+  static const UriKind FILE_URI = const UriKind('FILE_URI', 1, 0x66);
 
   /**
    * A 'package:' URI referencing source package itself.
    */
-  static final UriKind PACKAGE_SELF_URI = new UriKind('PACKAGE_SELF_URI', 2, 0x73);
+  static const UriKind PACKAGE_SELF_URI = const UriKind('PACKAGE_SELF_URI', 2, 0x73);
 
   /**
    * A 'package:' URI.
    */
-  static final UriKind PACKAGE_URI = new UriKind('PACKAGE_URI', 3, 0x70);
+  static const UriKind PACKAGE_URI = const UriKind('PACKAGE_URI', 3, 0x70);
 
-  static final List<UriKind> values = [DART_URI, FILE_URI, PACKAGE_SELF_URI, PACKAGE_URI];
+  static const List<UriKind> values = const [DART_URI, FILE_URI, PACKAGE_SELF_URI, PACKAGE_URI];
 
   /**
    * Return the URI kind represented by the given encoding, or `null` if there is no kind with
@@ -496,16 +494,14 @@ class UriKind extends Enum<UriKind> {
   /**
    * The single character encoding used to identify this kind of URI.
    */
-  int encoding = 0;
+  final int encoding;
 
   /**
    * Initialize a newly created URI kind to have the given encoding.
    *
    * @param encoding the single character encoding used to identify this kind of URI.
    */
-  UriKind(String name, int ordinal, int encoding) : super(name, ordinal) {
-    this.encoding = encoding;
-  }
+  const UriKind(String name, int ordinal, this.encoding) : super(name, ordinal);
 }
 
 /**
@@ -521,13 +517,13 @@ class SourceRange {
    * The 0-based index of the first character of the source code for this element, relative to the
    * source buffer in which this element is contained.
    */
-  int offset = 0;
+  final int offset;
 
   /**
    * The number of characters of the source code for this element, relative to the source buffer in
    * which this element is contained.
    */
-  int length = 0;
+  final int length;
 
   /**
    * Initialize a newly created source range using the given offset and the given length.
@@ -535,10 +531,7 @@ class SourceRange {
    * @param offset the given offset
    * @param length the given length
    */
-  SourceRange(int offset, int length) {
-    this.offset = offset;
-    this.length = length;
-  }
+  SourceRange(this.offset, this.length);
 
   /**
    * @return `true` if <code>x</code> is in [offset, offset + length) interval.
@@ -657,14 +650,27 @@ abstract class SourceContainer {
  */
 class DartUriResolver extends UriResolver {
   /**
+   * Return `true` if the given URI is a `dart-ext:` URI.
+   *
+   * @param uriContent the textual representation of the URI being tested
+   * @return `true` if the given URI is a `dart-ext:` URI
+   */
+  static bool isDartExtUri(String uriContent) => uriContent != null && uriContent.startsWith(_DART_EXT_SCHEME);
+
+  /**
    * The Dart SDK against which URI's are to be resolved.
    */
-  DartSdk _sdk;
+  final DartSdk _sdk;
 
   /**
    * The name of the `dart` scheme.
    */
   static String _DART_SCHEME = "dart";
+
+  /**
+   * The prefix of a URI using the dart-ext scheme to reference a native code library.
+   */
+  static String _DART_EXT_SCHEME = "dart-ext:";
 
   /**
    * Return `true` if the given URI is a `dart:` URI.
@@ -680,9 +686,7 @@ class DartUriResolver extends UriResolver {
    *
    * @param sdk the Dart SDK against which URI's are to be resolved
    */
-  DartUriResolver(DartSdk sdk) {
-    this._sdk = sdk;
-  }
+  DartUriResolver(this._sdk);
 
   @override
   Source fromEncoding(UriKind kind, Uri uri) {
@@ -716,7 +720,7 @@ class LineInfo {
   /**
    * An array containing the offsets of the first character of each line in the source code.
    */
-  List<int> _lineStarts;
+  final List<int> _lineStarts;
 
   /**
    * Initialize a newly created set of line information to represent the data encoded in the given
@@ -724,13 +728,12 @@ class LineInfo {
    *
    * @param lineStarts the offsets of the first character of each line in the source code
    */
-  LineInfo(List<int> lineStarts) {
-    if (lineStarts == null) {
+  LineInfo(this._lineStarts) {
+    if (_lineStarts == null) {
       throw new IllegalArgumentException("lineStarts must be non-null");
-    } else if (lineStarts.length < 1) {
+    } else if (_lineStarts.length < 1) {
       throw new IllegalArgumentException("lineStarts must be non-empty");
     }
-    this._lineStarts = lineStarts;
   }
 
   /**
@@ -758,12 +761,12 @@ class LineInfo_Location {
   /**
    * The one-based index of the line containing the character.
    */
-  int lineNumber = 0;
+  final int lineNumber;
 
   /**
    * The one-based index of the column containing the character.
    */
-  int columnNumber = 0;
+  final int columnNumber;
 
   /**
    * Initialize a newly created location to represent the location of the character at the given
@@ -772,10 +775,7 @@ class LineInfo_Location {
    * @param lineNumber the one-based index of the line containing the character
    * @param columnNumber the one-based index of the column containing the character
    */
-  LineInfo_Location(int lineNumber, int columnNumber) {
-    this.lineNumber = lineNumber;
-    this.columnNumber = columnNumber;
-  }
+  LineInfo_Location(this.lineNumber, this.columnNumber);
 }
 
 /**

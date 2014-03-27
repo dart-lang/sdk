@@ -66,7 +66,7 @@ class FileBasedSource implements Source {
   /**
    * The file represented by this source.
    */
-  JavaFile _file;
+  final JavaFile file;
 
   /**
    * The cached encoding for this source.
@@ -76,7 +76,7 @@ class FileBasedSource implements Source {
   /**
    * The kind of URI from which this source was originally derived.
    */
-  UriKind _uriKind;
+  final UriKind uriKind;
 
   /**
    * Initialize a newly created source object. The source object is assumed to not be in a system
@@ -92,16 +92,13 @@ class FileBasedSource implements Source {
    * @param file the file represented by this source
    * @param flags `true` if this source is in one of the system libraries
    */
-  FileBasedSource.con2(JavaFile file, UriKind uriKind) {
-    this._file = file;
-    this._uriKind = uriKind;
-  }
+  FileBasedSource.con2(this.file, this.uriKind);
 
   @override
-  bool operator ==(Object object) => object != null && this.runtimeType == object.runtimeType && _file == (object as FileBasedSource)._file;
+  bool operator ==(Object object) => object != null && this.runtimeType == object.runtimeType && file == (object as FileBasedSource).file;
 
   @override
-  bool exists() => _file.isFile();
+  bool exists() => file.isFile();
 
   @override
   TimestampedData<String> get contents {
@@ -116,34 +113,31 @@ class FileBasedSource implements Source {
   @override
   String get encoding {
     if (_encoding == null) {
-      _encoding = "${_uriKind.encoding}${_file.toURI().toString()}";
+      _encoding = "${uriKind.encoding}${file.toURI().toString()}";
     }
     return _encoding;
   }
 
   @override
-  String get fullName => _file.getAbsolutePath();
+  String get fullName => file.getAbsolutePath();
 
   @override
-  int get modificationStamp => _file.lastModified();
+  int get modificationStamp => file.lastModified();
 
   @override
-  String get shortName => _file.getName();
+  String get shortName => file.getName();
 
   @override
-  UriKind get uriKind => _uriKind;
+  int get hashCode => file.hashCode;
 
   @override
-  int get hashCode => _file.hashCode;
-
-  @override
-  bool get isInSystemLibrary => identical(_uriKind, UriKind.DART_URI);
+  bool get isInSystemLibrary => identical(uriKind, UriKind.DART_URI);
 
   @override
   Source resolveRelative(Uri containedUri) {
     try {
       Uri resolvedUri = file.toURI().resolveUri(containedUri);
-      return new FileBasedSource.con2(new JavaFile.fromUri(resolvedUri), _uriKind);
+      return new FileBasedSource.con2(new JavaFile.fromUri(resolvedUri), uriKind);
     } on JavaException catch (exception) {
     }
     return null;
@@ -151,10 +145,10 @@ class FileBasedSource implements Source {
 
   @override
   String toString() {
-    if (_file == null) {
+    if (file == null) {
       return "<unknown source>";
     }
-    return _file.getAbsolutePath();
+    return file.getAbsolutePath();
   }
 
   /**
@@ -169,16 +163,8 @@ class FileBasedSource implements Source {
    * @see #getContents()
    */
   TimestampedData<String> get contentsFromFile {
-    return new TimestampedData<String>(_file.lastModified(), _file.readAsStringSync());
+    return new TimestampedData<String>(file.lastModified(), file.readAsStringSync());
   }
-
-  /**
-   * Return the file represented by this source. This is an internal method that is only intended to
-   * be used by subclasses of [UriResolver] that are designed to work with file-based sources.
-   *
-   * @return the file represented by this source
-   */
-  JavaFile get file => _file;
 }
 
 /**
@@ -193,7 +179,7 @@ class PackageUriResolver extends UriResolver {
   /**
    * The package directories that `package` URI's are assumed to be relative to.
    */
-  List<JavaFile> _packagesDirectories;
+  final List<JavaFile> _packagesDirectories;
 
   /**
    * The name of the `package` scheme.
@@ -220,11 +206,10 @@ class PackageUriResolver extends UriResolver {
    * @param packagesDirectories the package directories that `package` URI's are assumed to be
    *          relative to
    */
-  PackageUriResolver(List<JavaFile> packagesDirectories) {
-    if (packagesDirectories.length < 1) {
+  PackageUriResolver(this._packagesDirectories) {
+    if (_packagesDirectories.length < 1) {
       throw new IllegalArgumentException("At least one package directory must be provided");
     }
-    this._packagesDirectories = packagesDirectories;
   }
 
   @override

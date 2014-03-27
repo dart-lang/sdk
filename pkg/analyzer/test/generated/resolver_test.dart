@@ -7733,6 +7733,33 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
 }
 
 class HintCodeTest extends ResolverTestCase {
+  void fail_deadCode_statementAfterRehrow() {
+    Source source = addSource(EngineTestCase.createSource([
+        "f() {",
+        "  try {",
+        "    var one = 1;",
+        "  } catch (e) {",
+        "    rethrow;",
+        "    var two = 2;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
+  void fail_deadCode_statementAfterThrow() {
+    Source source = addSource(EngineTestCase.createSource([
+        "f() {",
+        "  var one = 1;",
+        "  throw 'Stop here';",
+        "  var two = 2;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
   void fail_isInt() {
     Source source = addSource(EngineTestCase.createSource(["var v = 1 is int;"]));
     resolve(source);
@@ -19396,6 +19423,12 @@ class StaticWarningCodeTest extends ResolverTestCase {
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
   }
 
+  void test_voidReturnForGetter() {
+    Source source = addSource(EngineTestCase.createSource(["class S {", "  void get value {}", "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.VOID_RETURN_FOR_GETTER]);
+  }
+
   static dartSuite() {
     _ut.group('StaticWarningCodeTest', () {
       _ut.test('test_ambiguousImport_as', () {
@@ -20230,6 +20263,10 @@ class StaticWarningCodeTest extends ResolverTestCase {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_undefinedStaticMethodOrGetter_setter_inSuperclass);
       });
+      _ut.test('test_voidReturnForGetter', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_voidReturnForGetter);
+      });
     });
   }
 }
@@ -21042,7 +21079,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
    * A set containing nodes that are known to not be resolvable and should therefore not cause the
    * test to fail.
    */
-  Set<AstNode> _knownExceptions;
+  final Set<AstNode> _knownExceptions;
 
   /**
    * A list containing all of the AST nodes that were not resolved.
@@ -21069,9 +21106,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
    * @param knownExceptions a set containing nodes that are known to not be resolvable and should
    *          therefore not cause the test to fail
    **/
-  ResolutionVerifier.con1(Set<AstNode> knownExceptions) {
-    this._knownExceptions = knownExceptions;
-  }
+  ResolutionVerifier.con1(this._knownExceptions);
 
   /**
    * Assert that all of the visited identifiers were resolved.
@@ -23582,26 +23617,26 @@ class NonHintCodeTest extends ResolverTestCase {
 
 class EnclosedScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
-    GatheringErrorListener errorListener2 = new GatheringErrorListener();
-    Scope rootScope = new Scope_EnclosedScopeTest_test_define_duplicate(errorListener2);
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Scope rootScope = new Scope_EnclosedScopeTest_test_define_duplicate(listener);
     EnclosedScope scope = new EnclosedScope(rootScope);
     VariableElement element1 = ElementFactory.localVariableElement(AstFactory.identifier3("v1"));
     VariableElement element2 = ElementFactory.localVariableElement(AstFactory.identifier3("v1"));
     scope.define(element1);
     scope.define(element2);
-    errorListener2.assertErrorsWithSeverities([ErrorSeverity.ERROR]);
+    listener.assertErrorsWithSeverities([ErrorSeverity.ERROR]);
   }
 
   void test_define_normal() {
-    GatheringErrorListener errorListener3 = new GatheringErrorListener();
-    Scope rootScope = new Scope_EnclosedScopeTest_test_define_normal(errorListener3);
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Scope rootScope = new Scope_EnclosedScopeTest_test_define_normal(listener);
     EnclosedScope outerScope = new EnclosedScope(rootScope);
     EnclosedScope innerScope = new EnclosedScope(outerScope);
     VariableElement element1 = ElementFactory.localVariableElement(AstFactory.identifier3("v1"));
     VariableElement element2 = ElementFactory.localVariableElement(AstFactory.identifier3("v2"));
     outerScope.define(element1);
     innerScope.define(element2);
-    errorListener3.assertNoErrors();
+    listener.assertNoErrors();
   }
 
   static dartSuite() {
@@ -23619,24 +23654,24 @@ class EnclosedScopeTest extends ResolverTestCase {
 }
 
 class Scope_EnclosedScopeTest_test_define_duplicate extends Scope {
-  GatheringErrorListener errorListener2;
+  GatheringErrorListener listener;
 
-  Scope_EnclosedScopeTest_test_define_duplicate(this.errorListener2) : super();
+  Scope_EnclosedScopeTest_test_define_duplicate(this.listener) : super();
 
   @override
-  AnalysisErrorListener get errorListener => errorListener2;
+  AnalysisErrorListener get errorListener => listener;
 
   @override
   Element internalLookup(Identifier identifier, String name, LibraryElement referencingLibrary) => null;
 }
 
 class Scope_EnclosedScopeTest_test_define_normal extends Scope {
-  GatheringErrorListener errorListener3;
+  GatheringErrorListener listener;
 
-  Scope_EnclosedScopeTest_test_define_normal(this.errorListener3) : super();
+  Scope_EnclosedScopeTest_test_define_normal(this.listener) : super();
 
   @override
-  AnalysisErrorListener get errorListener => errorListener3;
+  AnalysisErrorListener get errorListener => listener;
 
   @override
   Element internalLookup(Identifier identifier, String name, LibraryElement referencingLibrary) => null;
@@ -23695,12 +23730,6 @@ class LibraryElementBuilderTest extends EngineTestCase {
     EngineTestCase.assertLength(0, unit.functionTypeAliases);
     EngineTestCase.assertLength(0, unit.types);
     EngineTestCase.assertLength(0, unit.topLevelVariables);
-  }
-
-  void test_invalidUri_part() {
-    Source librarySource = addSource("/lib.dart", EngineTestCase.createSource(["library lib;", "", "part '\${'a'}.dart';"]));
-    LibraryElement element = _buildLibrary(librarySource, [CompileTimeErrorCode.URI_WITH_INTERPOLATION]);
-    JUnitTestCase.assertNotNull(element);
   }
 
   void test_missingLibraryDirectiveWithPart() {
@@ -23815,10 +23844,6 @@ class LibraryElementBuilderTest extends EngineTestCase {
         final __test = new LibraryElementBuilderTest();
         runJUnitTest(__test, __test.test_empty);
       });
-      _ut.test('test_invalidUri_part', () {
-        final __test = new LibraryElementBuilderTest();
-        runJUnitTest(__test, __test.test_invalidUri_part);
-      });
       _ut.test('test_missingLibraryDirectiveWithPart', () {
         final __test = new LibraryElementBuilderTest();
         runJUnitTest(__test, __test.test_missingLibraryDirectiveWithPart);
@@ -23907,11 +23932,9 @@ class ScopeTest_TestScope extends Scope {
   /**
    * The listener that is to be informed when an error is encountered.
    */
-  AnalysisErrorListener errorListener;
+  final AnalysisErrorListener errorListener;
 
-  ScopeTest_TestScope(AnalysisErrorListener errorListener) {
-    this.errorListener = errorListener;
-  }
+  ScopeTest_TestScope(this.errorListener);
 
   @override
   Element internalLookup(Identifier identifier, String name, LibraryElement referencingLibrary) => localLookup(name, referencingLibrary);

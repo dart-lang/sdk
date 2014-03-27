@@ -1880,17 +1880,13 @@ class ScannerTest extends JUnitTestCase {
  * of a given offset in source code.
  */
 class ScannerTest_ExpectedLocation {
-  int _offset = 0;
+  final int _offset;
 
-  int _lineNumber = 0;
+  final int _lineNumber;
 
-  int _columnNumber = 0;
+  final int _columnNumber;
 
-  ScannerTest_ExpectedLocation(int offset, int lineNumber, int columnNumber) {
-    this._offset = offset;
-    this._lineNumber = lineNumber;
-    this._columnNumber = columnNumber;
-  }
+  ScannerTest_ExpectedLocation(this._offset, this._lineNumber, this._columnNumber);
 }
 
 class IncrementalScannerTest extends EngineTestCase {
