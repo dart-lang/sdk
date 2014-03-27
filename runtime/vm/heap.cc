@@ -34,6 +34,8 @@ DEFINE_FLAG(int, new_gen_heap_size, 32, "new gen heap size in MB,"
 DEFINE_FLAG(int, old_gen_heap_size, Heap::kHeapSizeInMB,
             "old gen heap size in MB,"
             "e.g: --old_gen_heap_size=1024 allocates a 1024MB old gen heap");
+DEFINE_FLAG(int, new_gen_ext_limit, 64,
+            "maximum total external size (MB) in new gen before triggering GC");
 
 Heap::Heap() : read_only_(false), gc_in_progress_(false) {
   for (int sel = 0;
@@ -94,6 +96,11 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
 void Heap::AllocateExternal(intptr_t size, Space space) {
   if (space == kNew) {
     new_space_->AllocateExternal(size);
+    if (new_space_->ExternalInWords() > (FLAG_new_gen_ext_limit * MBInWords)) {
+      // Attempt to free some external allocation by a scavenge. (If the total
+      // remains above the limit, next external alloc will trigger another.)
+      CollectGarbage(kNew);
+    }
   } else {
     ASSERT(space == kOld);
     old_space_->AllocateExternal(size);

@@ -160,14 +160,12 @@ class Scavenger {
   // not consume space in the to space they leave enough room for this stack.
   void PushToPromotedStack(uword addr) {
     ASSERT(scavenging_);
-    ASSERT(external_size_ == 0);
     end_ -= sizeof(addr);
     ASSERT(end_ > top_);
     *reinterpret_cast<uword*>(end_) = addr;
   }
   uword PopFromPromotedStack() {
     ASSERT(scavenging_);
-    ASSERT(external_size_ == 0);
     uword result = *reinterpret_cast<uword*>(end_);
     end_ += sizeof(result);
     ASSERT(end_ <= to_->end());
@@ -175,7 +173,6 @@ class Scavenger {
   }
   bool PromotedStackHasMore() const {
     ASSERT(scavenging_);
-    ASSERT(external_size_ == 0);
     return end_ < to_->end();
   }
 
@@ -211,7 +208,6 @@ class Scavenger {
   intptr_t collections_;
 
   // The total size of external data associated with objects in this scavenger.
-  // External allocations decrease end_. If promoted stack is in use, this is 0.
   intptr_t external_size_;
 
   friend class ScavengerVisitor;
