@@ -394,5 +394,5 @@ class DartBasedAnalyzerCompilerConfiguration
           'dart2analyzer', isDebug: isDebug, isChecked: isChecked,
           isHostChecked: isHostChecked, useSdk: useSdk);
 
-  String computeCompilerPath(String buildDir) => 'pkg/analyzer/bin/analyzer';
+  String computeCompilerPath(String buildDir) => 'editor/tools/analyzer';
 }
