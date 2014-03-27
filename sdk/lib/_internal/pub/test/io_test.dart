@@ -50,6 +50,22 @@ main() {
         ]));
       }), completes);
     });
+
+    test("doesn't ignore hidden files above the directory being listed", () {
+      expect(withTempDir((temp) {
+        var dir = path.join(temp, '.foo', 'bar');
+        ensureDir(dir);
+        writeTextFile(path.join(dir, 'file1.txt'), '');
+        writeTextFile(path.join(dir, 'file2.txt'), '');
+        writeTextFile(path.join(dir, 'file3.txt'), '');
+
+        expect(listDir(dir, recursive: true), unorderedEquals([
+          path.join(dir, 'file1.txt'),
+          path.join(dir, 'file2.txt'),
+          path.join(dir, 'file3.txt')
+        ]));
+      }), completes);
+    });
   });
 
   group('canonicalize', () {
