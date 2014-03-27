@@ -226,6 +226,8 @@ class DartBackend extends Backend {
         tree.Builder builder = new tree.Builder(compiler);
         tree.Expression expr = function.accept(builder);
         treeElements = new TreeElementMapping(element);
+        tree.Unnamer unnamer = new tree.Unnamer();
+        expr = unnamer.unname(expr);
         tree.Emitter emitter = new tree.Emitter();
         node = emitter.emit(element, treeElements, expr);
       }

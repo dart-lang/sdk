@@ -36,7 +36,9 @@ abstract class Node {
 /**
  * The base class of [Expression]s.
  */
-abstract class Expression extends Node {}
+abstract class Expression extends Node {
+  bool get isPure;
+}
 
 /**
  * Variables are [Expression]s.
@@ -57,6 +59,8 @@ class Variable extends Expression {
     return identifier;
   }
 
+  final bool isPure = true;
+
   accept(Visitor visitor) => visitor.visitVariable(this);
 }
 
@@ -73,6 +77,8 @@ class LetVal extends Expression {
 
   LetVal(this.variable, this.definition, this.body);
 
+  bool get isPure => definition.isPure && body.isPure;
+
   accept(Visitor visitor) => visitor.visitLetVal(this);
 }
 
@@ -87,6 +93,8 @@ class InvokeStatic extends Expression {
 
   InvokeStatic(this.target, this.arguments);
 
+  final bool isPure = false;
+
   accept(Visitor visitor) => visitor.visitInvokeStatic(this);
 }
 
@@ -97,9 +105,11 @@ class InvokeStatic extends Expression {
  * expression.
  */
 class Return extends Expression {
-  final Expression value;
+  Expression value;
 
   Return(this.value);
+
+  final bool isPure = true;
 
   accept(Visitor visitor) => visitor.visitReturn(this);
 }
@@ -111,6 +121,8 @@ class Constant extends Expression {
   final dart2js.Constant value;
 
   Constant(this.value);
+
+  final bool isPure = true;
 
   accept(Visitor visitor) => visitor.visitConstant(this);
 }
@@ -241,6 +253,103 @@ class Builder extends ir.Visitor<Expression> {
 }
 
 /**
+ * Unnamer propagates single-use definitions to their use site when possible.
+ *
+ * After translating out of CPS, all intermediate values are bound by [LetVal].
+ * This transformation propagates such definitions to their uses when it is
+ * safe and profitable.  Bindings are processed "on demand" when their uses are
+ * seen, but are only processed once to keep this transformation linear in
+ * the size of the tree.
+ *
+ * The transformation builds an environment containing [LetVal] bindings that
+ * are in scope.  These bindings have yet-untranslated definitions.  When a use
+ * is encountered the transformation determines if it is safe and profitable
+ * to propagate the definition to its use.  If so, it is removed from the
+ * environment and the definition is recursively processed (in the
+ * new environment at the use site) before being propagated.
+ *
+ * See [visitVariable] for the implementation of the heuristic for propagating
+ * a definition.
+ */
+class Unnamer extends Visitor<Expression> {
+  // The binding environment.  The rightmost element of the list is the nearest
+  // enclosing binding.
+  List<LetVal> environment;
+
+  Expression unname(Expression body) {
+    environment = <LetVal>[];
+    body = body.accept(this);
+
+    // TODO(kmillikin):  Allow definitions that are not propagated.  Here,
+    // this means rebuilding the binding with a recursively unnamed definition,
+    // or else introducing a variable definition and an assignment.
+    assert(environment.isEmpty);
+    return body;
+  }
+
+  Expression visitVariable(Variable node) {
+    // Propagate a variable's definition to its use site if:
+    // 1.  It has a single use, to avoid code growth and potential duplication
+    //     of side effects, AND
+    // 2a. It is pure (i.e., does not have side effects that prevent it from
+    //     being moved), OR
+    // 2b. There are only pure expressions between the definition and use.
+
+    // TODO(kmillikin): It's not always beneficial to propagate pure
+    // definitions---it can prevent propagation of their inputs.  Implement
+    // a heuristic to avoid this.
+
+    // TODO(kmillikin): Replace linear search with something faster in
+    // practice.
+    bool seenImpure = false;
+    for (int i = environment.length - 1; i >= 0; --i) {
+      if (environment[i].variable == node) {
+        if (!seenImpure || environment[i].definition.isPure) {
+          // Use the definition if it is pure or if it is the first impure
+          // definition (i.e., propagating past only pure expressions).
+          return environment.removeAt(i).definition.accept(this);
+        }
+        break;
+      } else if (!environment[i].definition.isPure) {
+        // Once the first impure definition is seen, impure definitions should
+        // no longer be propagated.  Continue searching for a pure definition.
+        seenImpure = true;
+      }
+    }
+    // If the definition could not be propagated, leave the variable use.
+    return node;
+  }
+
+  Expression visitLetVal(LetVal node) {
+    environment.add(node);
+    Expression body = node.body.accept(this);
+
+    // TODO(kmillikin): Allow definitions that are not propagated.  Currently,
+    // the only bindings are anonymous intermediate values (which only have one
+    // use in the absence of optimizations) and they are not reordered.
+    assert(!environment.contains(node));
+    return body;
+  }
+
+  Expression visitInvokeStatic(InvokeStatic node) {
+    // Process arguments right-to-left, the opposite of evaluation order.
+    for (int i = node.arguments.length - 1; i >= 0; --i) {
+      node.arguments[i] = node.arguments[i].accept(this);
+    }
+    return node;
+  }
+
+  Expression visitReturn(Return node) {
+    node.value = node.value.accept(this);
+    return node;
+  }
+
+  visitConstant(Constant node) {
+    return node;
+  }
+}
+
+/**
  * [Emitter] translates Tree to a Dart AST.
  *
  * The AST is handed off to the Dart backend for renaming and to emit Dart
@@ -286,21 +395,41 @@ class Emitter extends Visitor<ast.Node> {
         ',');
     ast.Node body = expr.accept(this);
 
-    ast.Identifier modifier =
-        new ast.Identifier(new KeywordToken(Keyword.keywords['var'], -1));
-    ast.VariableDefinitions definitions = new ast.VariableDefinitions(
-        null,
-        new ast.Modifiers(new ast.NodeList(
-            null,
-            new Link<ast.Node>.fromList([modifier]),
-            null,
-            ' ')),
-        new ast.NodeList(
-            null,
-            new Link<ast.Node>.fromList(variables),
-            new SymbolToken(SEMICOLON_INFO, -1),
-            ','));
-    body = concatenate(definitions, body);
+    if (!variables.isEmpty) {
+      // Introduce hoisted definitions for all variables.
+      ast.Identifier modifier =
+          new ast.Identifier(new KeywordToken(Keyword.keywords['var'], -1));
+      ast.VariableDefinitions definitions = new ast.VariableDefinitions(
+          null,
+          new ast.Modifiers(new ast.NodeList(
+              null,
+              new Link<ast.Node>.fromList([modifier]),
+              null,
+              ' ')),
+          new ast.NodeList(
+              null,
+              new Link<ast.Node>.fromList(variables),
+              new SymbolToken(SEMICOLON_INFO, -1),
+              ','));
+      body = concatenate(definitions, body);
+    }
+
+    if (body is ast.Return) {
+      // Use a short form for bodies that are a single return.
+      ast.Expression value = (body as ast.Return).expression;
+      if (value is ast.LiteralNull) {
+        // '{ return null; }' is '{}'.
+        body = new ast.Block(new ast.NodeList(
+            new BeginGroupToken(OPEN_CURLY_BRACKET_INFO, -1),
+            new Link<ast.Node>(),
+            new SymbolToken(CLOSE_CURLY_BRACKET_INFO, -1)));
+      } else {
+        // '{ return e; }' is '=> e;'.
+        body = new ast.Return(new SymbolToken(FUNCTION_INFO, -1),
+                              new SymbolToken(SEMICOLON_INFO, -1),
+                              value);
+      }
+    }
     return new ast.FunctionExpression(name, parameters, body, null,
         ast.Modifiers.EMPTY, null, null);
   }

@@ -93,7 +93,7 @@ class IrBuilderTask extends CompilerTask {
         compiler.enableConcreteTypeInference) {
       return false;
     }
-    return const bool.fromEnvironment('enable_ir', defaultValue: false);
+    return const bool.fromEnvironment('enable_ir', defaultValue: true);
   }
 
   bool canBuild(Element element) {
