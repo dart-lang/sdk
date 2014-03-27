@@ -34,6 +34,7 @@
     'integers_patch.dart',
     'invocation_mirror.h',
     'invocation_mirror_patch.dart',
+    'lib_prefix.dart',
     'map_patch.dart',
     'null_patch.dart',
     'object.cc',

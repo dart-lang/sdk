@@ -125,7 +125,6 @@ RawClass* Object::literal_token_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::token_stream_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::script_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::library_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
-RawClass* Object::library_prefix_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::namespace_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::code_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::instructions_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -569,9 +568,6 @@ void Object::InitOnce() {
   cls = Class::New<Library>();
   library_class_ = cls.raw();
 
-  cls = Class::New<LibraryPrefix>();
-  library_prefix_class_ = cls.raw();
-
   cls = Class::New<Namespace>();
   namespace_class_ = cls.raw();
 
@@ -770,7 +766,6 @@ void Object::RegisterSingletonClassNames() {
   SET_CLASS_NAME(token_stream, TokenStream);
   SET_CLASS_NAME(script, Script);
   SET_CLASS_NAME(library, LibraryClass);
-  SET_CLASS_NAME(library_prefix, LibraryPrefix);
   SET_CLASS_NAME(namespace, Namespace);
   SET_CLASS_NAME(code, Code);
   SET_CLASS_NAME(instructions, Instructions);
@@ -945,6 +940,9 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<MixinAppType>();
   object_store->set_mixin_app_type_class(cls);
 
+  cls = Class::New<LibraryPrefix>();
+  object_store->set_library_prefix_class(cls);
+
   // Pre-allocate the OneByteString class needed by the symbol table.
   cls = Class::NewStringClass(kOneByteStringCid);
   object_store->set_one_byte_string_class(cls);
@@ -1061,6 +1059,11 @@ RawError* Object::Init(Isolate* isolate) {
   cls.set_num_own_type_arguments(0);
   cls.set_is_prefinalized();
   RegisterClass(cls, Symbols::Null(), core_lib);
+  pending_classes.Add(cls);
+
+  cls = object_store->library_prefix_class();
+  ASSERT(!cls.IsNull());
+  RegisterPrivateClass(cls, Symbols::_LibraryPrefix(), core_lib);
   pending_classes.Add(cls);
 
   cls = object_store->type_class();
@@ -1336,6 +1339,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   // This is done to allow bootstrapping of reading classes from the snapshot.
   cls = Class::New<Instance>(kInstanceCid);
   object_store->set_object_class(cls);
+
+  cls = Class::New<LibraryPrefix>();
+  object_store->set_library_prefix_class(cls);
 
   cls = Class::New<Type>();
   object_store->set_type_class(cls);
@@ -2443,9 +2449,12 @@ class WeakCodeReferences : public ValueObject {
       function ^= code.function();
       // If function uses dependent code switch it to unoptimized.
       if (function.CurrentCode() == code.raw()) {
-        ASSERT(function.HasOptimizedCode());
         ReportSwitchingCode(code);
-        function.SwitchToUnoptimizedCode();
+        if (code.is_optimized()) {
+          function.SwitchToUnoptimizedCode();
+        } else {
+          function.ClearCode();
+        }
       }
     }
   }
@@ -9152,6 +9161,9 @@ bool LibraryPrefix::ContainsLibrary(const Library& library) const {
 void LibraryPrefix::AddImport(const Namespace& import) const {
   intptr_t num_current_imports = num_imports();
 
+  // Prefixes with deferred libraries can only contain one library.
+  ASSERT((num_current_imports == 0) || !is_deferred_load());
+
   // The library needs to be added to the list.
   Array& imports = Array::Handle(this->imports());
   const intptr_t length = (imports.IsNull()) ? 0 : imports.Length();
@@ -9167,6 +9179,9 @@ void LibraryPrefix::AddImport(const Namespace& import) const {
 
 
 RawObject* LibraryPrefix::LookupObject(const String& name) const {
+  if (!is_loaded()) {
+    return Object::null();
+  }
   Array& imports = Array::Handle(this->imports());
   Object& obj = Object::Handle();
   Namespace& import = Namespace::Handle();
@@ -9213,8 +9228,81 @@ RawClass* LibraryPrefix::LookupClass(const String& class_name) const {
 }
 
 
+void LibraryPrefix::set_is_loaded() const {
+  raw_ptr()->is_loaded_ = true;
+}
+
+
+void LibraryPrefix::LoadLibrary() const {
+  // Non-deferred prefixes are loaded.
+  ASSERT(is_deferred_load() || is_loaded());
+  if (is_loaded()) {
+    return;
+  }
+  InvalidateDependentCode();
+  set_is_loaded();
+}
+
+
+RawArray* LibraryPrefix::dependent_code() const {
+  return raw_ptr()->dependent_code_;
+}
+
+
+void LibraryPrefix::set_dependent_code(const Array& array) const {
+  StorePointer(&raw_ptr()->dependent_code_, array.raw());
+}
+
+
+class PrefixDependentArray : public WeakCodeReferences {
+ public:
+  explicit PrefixDependentArray(const LibraryPrefix& prefix)
+      : WeakCodeReferences(Array::Handle(prefix.dependent_code())),
+                           prefix_(prefix) {}
+
+  virtual void UpdateArrayTo(const Array& value) {
+    prefix_.set_dependent_code(value);
+  }
+
+  virtual void ReportDeoptimization(const Code& code) {
+    // This gets called when the code object is on the stack
+    // while nuking code that depends on a prefix. We don't expect
+    // this to happen, so make sure we die loudly if we find
+    // ourselves here.
+    UNIMPLEMENTED();
+  }
+
+  virtual void ReportSwitchingCode(const Code& code) {
+    if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
+      OS::PrintErr("Prefix '%s': deleting code for function '%s'\n",
+        String::Handle(prefix_.name()).ToCString(),
+        Function::Handle(code.function()).ToCString());
+    }
+  }
+
+ private:
+  const LibraryPrefix& prefix_;
+  DISALLOW_COPY_AND_ASSIGN(PrefixDependentArray);
+};
+
+
+void LibraryPrefix::RegisterDependentCode(const Code& code) const {
+  ASSERT(is_deferred_load());
+  ASSERT(!is_loaded());
+  PrefixDependentArray a(*this);
+  a.Register(code);
+}
+
+
+void LibraryPrefix::InvalidateDependentCode() const {
+  PrefixDependentArray a(*this);
+  a.DisableCode();
+}
+
+
 RawLibraryPrefix* LibraryPrefix::New() {
-  ASSERT(Object::library_prefix_class() != Class::null());
+  ASSERT(Isolate::Current()->object_store()->library_prefix_class() !=
+      Class::null());
   RawObject* raw = Object::Allocate(LibraryPrefix::kClassId,
                                     LibraryPrefix::InstanceSize(),
                                     Heap::kOld);
@@ -9223,12 +9311,16 @@ RawLibraryPrefix* LibraryPrefix::New() {
 
 
 RawLibraryPrefix* LibraryPrefix::New(const String& name,
-                                     const Namespace& import) {
+                                     const Namespace& import,
+                                     bool deferred_load) {
   const LibraryPrefix& result = LibraryPrefix::Handle(LibraryPrefix::New());
   result.set_name(name);
   result.set_num_imports(0);
+  result.raw_ptr()->is_deferred_load_ = deferred_load;
+  result.raw_ptr()->is_loaded_ = !deferred_load;
   result.set_imports(Array::Handle(Array::New(kInitialSize)));
   result.AddImport(import);
+  result.set_dependent_code(Object::null_array());
   return result.raw();
 }
 

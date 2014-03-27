@@ -4513,7 +4513,7 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
     if (!library_prefix.IsNull()) {
       library_prefix.AddImport(import_ns);
     } else {
-      library_prefix = LibraryPrefix::New(prefix_symbol, import_ns);
+      library_prefix = LibraryPrefix::New(prefix_symbol, import_ns, false);
       library_vm.AddObject(library_prefix, prefix_symbol);
     }
   }

@@ -447,7 +447,6 @@ class Object {
   static RawClass* token_stream_class() { return token_stream_class_; }
   static RawClass* script_class() { return script_class_; }
   static RawClass* library_class() { return library_class_; }
-  static RawClass* library_prefix_class() { return library_prefix_class_; }
   static RawClass* namespace_class() { return namespace_class_; }
   static RawClass* code_class() { return code_class_; }
   static RawClass* instructions_class() { return instructions_class_; }
@@ -598,7 +597,6 @@ class Object {
   static RawClass* token_stream_class_;  // Class of the TokenStream vm object.
   static RawClass* script_class_;  // Class of the Script vm object.
   static RawClass* library_class_;  // Class of the Library vm object.
-  static RawClass* library_prefix_class_;  // Class of Library prefix vm object.
   static RawClass* namespace_class_;  // Class of Namespace vm object.
   static RawClass* code_class_;  // Class of the Code vm object.
   static RawClass* instructions_class_;  // Class of the Instructions vm object.
@@ -2722,41 +2720,6 @@ class Library : public Object {
 };
 
 
-class LibraryPrefix : public Object {
- public:
-  RawString* name() const { return raw_ptr()->name_; }
-  virtual RawString* DictionaryName() const { return name(); }
-
-  RawArray* imports() const { return raw_ptr()->imports_; }
-  intptr_t num_imports() const { return raw_ptr()->num_imports_; }
-
-  bool ContainsLibrary(const Library& library) const;
-  RawLibrary* GetLibrary(int index) const;
-  void AddImport(const Namespace& import) const;
-  RawObject* LookupObject(const String& name) const;
-  RawClass* LookupClass(const String& class_name) const;
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawLibraryPrefix));
-  }
-
-  static RawLibraryPrefix* New(const String& name, const Namespace& import);
-
- private:
-  static const int kInitialSize = 2;
-  static const int kIncrementSize = 2;
-
-  void set_name(const String& value) const;
-  void set_imports(const Array& value) const;
-  void set_num_imports(intptr_t value) const;
-
-  static RawLibraryPrefix* New();
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(LibraryPrefix, Object);
-  friend class Class;
-};
-
-
 // A Namespace contains the names in a library dictionary, filtered by
 // the show/hide combinators.
 class Namespace : public Object {
@@ -4121,6 +4084,58 @@ class Instance : public Object {
   friend class StubCode;
   friend class TypedDataView;
   friend class DeferredObject;
+};
+
+
+class LibraryPrefix : public Instance {
+ public:
+  RawString* name() const { return raw_ptr()->name_; }
+  virtual RawString* DictionaryName() const { return name(); }
+
+  RawArray* imports() const { return raw_ptr()->imports_; }
+  intptr_t num_imports() const { return raw_ptr()->num_imports_; }
+
+  bool ContainsLibrary(const Library& library) const;
+  RawLibrary* GetLibrary(int index) const;
+  void AddImport(const Namespace& import) const;
+  RawObject* LookupObject(const String& name) const;
+  RawClass* LookupClass(const String& class_name) const;
+
+  bool is_deferred_load() const { return raw_ptr()->is_deferred_load_; }
+  bool is_loaded() const { return raw_ptr()->is_loaded_; }
+  void LoadLibrary() const;
+
+  // Return the list of code objects that were compiled when this
+  // prefix was not yet loaded. These code objects will be invalidated
+  // when the prefix is loaded.
+  RawArray* dependent_code() const;
+  void set_dependent_code(const Array& array) const;
+
+  // Add the given code object to the list of dependent ones.
+  void RegisterDependentCode(const Code& code) const;
+  void InvalidateDependentCode() const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawLibraryPrefix));
+  }
+
+  static RawLibraryPrefix* New(const String& name,
+                               const Namespace& import,
+                               bool deferred_load);
+
+ private:
+  static const int kInitialSize = 2;
+  static const int kIncrementSize = 2;
+
+  void set_name(const String& value) const;
+  void set_imports(const Array& value) const;
+  void set_num_imports(intptr_t value) const;
+  void set_is_loaded() const;
+
+  static RawLibraryPrefix* New();
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(LibraryPrefix, Instance);
+  friend class Class;
 };
 
 

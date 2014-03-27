@@ -26,7 +26,6 @@ namespace dart {
   V(TokenStream)                                                               \
   V(Script)                                                                    \
   V(Library)                                                                   \
-  V(LibraryPrefix)                                                             \
   V(Namespace)                                                                 \
   V(Code)                                                                      \
   V(Instructions)                                                              \
@@ -46,6 +45,7 @@ namespace dart {
     V(UnhandledException)                                                      \
     V(UnwindError)                                                             \
   V(Instance)                                                                  \
+    V(LibraryPrefix)                                                           \
     V(AbstractType)                                                            \
       V(Type)                                                                  \
       V(TypeRef)                                                               \
@@ -782,19 +782,6 @@ class RawLibrary : public RawObject {
 };
 
 
-class RawLibraryPrefix : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(LibraryPrefix);
-
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
-  RawString* name_;               // library prefix name.
-  RawArray* imports_;             // libraries imported with this prefix.
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->imports_);
-  }
-  intptr_t num_imports_;          // Number of library entries in libraries_.
-};
-
-
 class RawNamespace : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Namespace);
 
@@ -1133,6 +1120,23 @@ class RawUnwindError : public RawError {
 
 class RawInstance : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Instance);
+};
+
+
+class RawLibraryPrefix : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LibraryPrefix);
+
+  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
+  RawString* name_;               // Library prefix name.
+  RawArray* imports_;             // Libraries imported with this prefix.
+  RawArray* dependent_code_;      // Code that refers to deferred, unloaded
+                                  // library prefix.
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
+  }
+  intptr_t num_imports_;          // Number of library entries in libraries_.
+  bool is_deferred_load_;
+  bool is_loaded_;
 };
 
 

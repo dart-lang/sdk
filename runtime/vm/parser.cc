@@ -127,6 +127,22 @@ void ParsedFunction::SetNodeSequence(SequenceNode* node_sequence) {
 }
 
 
+void ParsedFunction::AddDeferredPrefix(const LibraryPrefix& prefix) {
+  ASSERT(prefix.is_deferred_load());
+  ASSERT(!prefix.is_loaded());
+  if (deferred_prefixes_ == NULL) {
+    deferred_prefixes_ =
+        &GrowableObjectArray::ZoneHandle(GrowableObjectArray::New());
+  }
+  for (intptr_t i = 0; i < deferred_prefixes_->Length(); i++) {
+    if (deferred_prefixes_->At(i) == prefix.raw()) {
+      return;
+    }
+  }
+  deferred_prefixes_->Add(prefix);
+}
+
+
 void ParsedFunction::AllocateVariables() {
   LocalScope* scope = node_sequence()->scope();
   const intptr_t num_fixed_params = function().num_fixed_parameters();
@@ -4945,19 +4961,32 @@ void Parser::ParseLibraryImportExport(intptr_t metadata_pos) {
   if (url.Length() == 0) {
     ErrorMsg("library url expected");
   }
+  bool is_deferred_import = false;
+  if (is_import && (IsLiteral("deferred"))) {
+    is_deferred_import = true;
+    ConsumeToken();
+    CheckToken(Token::kAS, "'as' expected");
+  }
   String& prefix = String::Handle();
+  intptr_t prefix_pos = 0;
   if (is_import && (CurrentToken() == Token::kAS)) {
     ConsumeToken();
+    prefix_pos = TokenPos();
     prefix = ExpectIdentifier("prefix identifier expected")->raw();
   }
 
   Array& show_names = Array::Handle();
   Array& hide_names = Array::Handle();
-  if (IsLiteral("show") || IsLiteral("hide")) {
+  if (is_deferred_import || IsLiteral("show") || IsLiteral("hide")) {
     GrowableObjectArray& show_list =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
     GrowableObjectArray& hide_list =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
+    // Libraries imported through deferred import automatically hide
+    // the name 'loadLibrary'.
+    if (is_deferred_import) {
+      hide_list.Add(Symbols::LoadLibrary());
+    }
     for (;;) {
       if (IsLiteral("show")) {
         ConsumeToken();
@@ -4985,6 +5014,7 @@ void Parser::ParseLibraryImportExport(intptr_t metadata_pos) {
   Library& library = Library::Handle(Library::LookupLibrary(canon_url));
   if (library.IsNull()) {
     // Call the library tag handler to load the library.
+    // TODO(hausner): do not load eagerly if import is deferred.
     CallLibraryTagHandler(Dart_kImportTag, import_pos, canon_url);
     // If the library tag handler succeded without registering the
     // library we create an empty library to import.
@@ -5010,14 +5040,25 @@ void Parser::ParseLibraryImportExport(intptr_t metadata_pos) {
       ErrorMsg(import_pos, "private library is not accessible");
     }
     if (prefix.IsNull() || (prefix.Length() == 0)) {
+      ASSERT(!is_deferred_import);
       library_.AddImport(ns);
     } else {
       LibraryPrefix& library_prefix = LibraryPrefix::Handle();
       library_prefix = library_.LookupLocalLibraryPrefix(prefix);
       if (!library_prefix.IsNull()) {
+        // Check that prefix names of deferred import clauses are
+        // unique.
+        if (!is_deferred_import && library_prefix.is_deferred_load()) {
+          ErrorMsg(prefix_pos,
+                   "prefix '%s' already used in a deferred import clause",
+                   prefix.ToCString());
+        }
+        if (is_deferred_import) {
+          ErrorMsg(prefix_pos, "prefix of deferred import must be uniqe");
+        }
         library_prefix.AddImport(ns);
       } else {
-        library_prefix = LibraryPrefix::New(prefix, ns);
+        library_prefix = LibraryPrefix::New(prefix, ns, is_deferred_import);
         library_.AddObject(library_prefix, prefix);
       }
     }
@@ -9196,14 +9237,17 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
                                            const String& ident) {
   TRACE_PARSER("ResolveIdentInPrefixScope");
   HANDLESCOPE(isolate());
-  Object& obj = Object::Handle(prefix.LookupObject(ident));
+  Object& obj = Object::Handle();
+  if (prefix.is_loaded()) {
+    obj = prefix.LookupObject(ident);
+  } else {
+    // Remember that this function depends on an import prefix of an
+    // unloaded deferred library.
+    parsed_function()->AddDeferredPrefix(prefix);
+  }
   if (obj.IsNull()) {
     // Unresolved prefixed primary identifier.
-    String& qualified_name = String::ZoneHandle(prefix.name());
-    qualified_name = String::Concat(qualified_name, Symbols::Dot());
-    qualified_name = String::Concat(qualified_name, ident);
-    qualified_name = Symbols::New(qualified_name);
-    return new PrimaryNode(ident_pos, qualified_name);
+    return NULL;
   } else if (obj.IsClass()) {
     const Class& cls = Class::Cast(obj);
     return new PrimaryNode(ident_pos, Class::ZoneHandle(cls.raw()));
@@ -9311,7 +9355,8 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
 // Parses type = [ident "."] ident ["<" type { "," type } ">"], then resolve and
 // finalize it according to the given type finalization mode.
 RawAbstractType* Parser::ParseType(
-    ClassFinalizer::FinalizationKind finalization) {
+    ClassFinalizer::FinalizationKind finalization,
+    bool allow_deferred_type) {
   TRACE_PARSER("ParseType");
   CheckToken(Token::kIDENT, "type name expected");
   QualIdent type_name;
@@ -9335,6 +9380,18 @@ RawAbstractType* Parser::ParseType(
           script_,
           type_name.ident_pos,
           "using '%s' in this context is invalid",
+          type_name.ident->ToCString());
+    }
+    if ((type_name.lib_prefix != NULL) &&
+        type_name.lib_prefix->is_deferred_load() &&
+        !allow_deferred_type) {
+      ParseTypeArguments(ClassFinalizer::kIgnore);
+      return ClassFinalizer::NewFinalizedMalformedType(
+          Error::Handle(),  // No previous error.
+          script_,
+          type_name.ident_pos,
+          "using deferred type '%s.%s' is invalid",
+          String::Handle(type_name.lib_prefix->name()).ToCString(),
           type_name.ident->ToCString());
     }
   }
@@ -9895,8 +9952,10 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
     ErrorMsg("type name expected");
   }
   intptr_t type_pos = TokenPos();
+  // Can't allocate const objects of a deferred type.
+  const bool allow_deferred_type = !is_const;
   AbstractType& type = AbstractType::Handle(
-      ParseType(ClassFinalizer::kCanonicalizeWellFormed));
+      ParseType(ClassFinalizer::kCanonicalizeWellFormed, allow_deferred_type));
   // In case the type is malformed, throw a dynamic type error after finishing
   // parsing the instance creation expression.
   if (!type.IsMalformed() && (type.IsTypeParameter() || type.IsDynamicType())) {
@@ -10282,6 +10341,7 @@ AstNode* Parser::ParsePrimary() {
     CloseBlock();
   } else if (IsIdentifier()) {
     QualIdent qual_ident;
+    intptr_t qual_ident_pos = TokenPos();
     ParseQualIdent(&qual_ident);
     if (qual_ident.lib_prefix == NULL) {
       if (!ResolveIdentInLocalScope(qual_ident.ident_pos,
@@ -10312,30 +10372,42 @@ AstNode* Parser::ParsePrimary() {
       // Note: unlike in the case of an unqualified identifier, do not
       // interpret the unresolved identifier as an instance method or
       // instance getter call when compiling an instance method.
-      // TODO(hausner): Ideally we should generate the NoSuchMethodError
-      // later, when we know more about how the unresolved name is used.
-      // For example, we don't know yet whether the unresolved name
-      // refers to a getter or a setter. However, it is more awkward
-      // to distinuish four NoSuchMethodError cases all over the place
-      // in the parser. The four cases are: prefixed vs non-prefixed
-      // name, static vs dynamic context in which the unresolved name
-      // is used. We cheat a little here by looking at the next token
-      // to determine whether we have an unresolved method call or
-      // field access.
-      if (primary->IsPrimaryNode() &&
-          primary->AsPrimaryNode()->primary().IsString()) {
-        InvocationMirror::Type call_type =
-            CurrentToken() == Token::kLPAREN ?
-               InvocationMirror::kMethod : InvocationMirror::kGetter;
-        const String& unresolved_name =
-            String::Cast(primary->AsPrimaryNode()->primary());
-        primary = ThrowNoSuchMethodError(primary->token_pos(),
-                                        current_class(),
-                                        unresolved_name,
-                                        NULL,  // No arguments.
-                                        InvocationMirror::kTopLevel,
-                                        call_type,
-                                        NULL);  // No existing function.
+      if (primary == NULL) {
+        if (qual_ident.lib_prefix->is_deferred_load() &&
+            qual_ident.ident->Equals(Symbols::LoadLibrary())) {
+          // Hack Alert: recognize special 'loadLibrary' call on the
+          // prefix object. The prefix is the primary. Rewind parser and
+          // let ParseSelectors() handle the loadLibrary call.
+          SetPosition(qual_ident_pos);
+          ConsumeToken();  // Prefix name.
+          primary = new LiteralNode(qual_ident_pos, *qual_ident.lib_prefix);
+        } else {
+          // TODO(hausner): Ideally we should generate the NoSuchMethodError
+          // later, when we know more about how the unresolved name is used.
+          // For example, we don't know yet whether the unresolved name
+          // refers to a getter or a setter. However, it is more awkward
+          // to distinuish four NoSuchMethodError cases all over the place
+          // in the parser. The four cases are: prefixed vs non-prefixed
+          // name, static vs dynamic context in which the unresolved name
+          // is used. We cheat a little here by looking at the next token
+          // to determine whether we have an unresolved method call or
+          // field access.
+          String& qualified_name =
+              String::ZoneHandle(qual_ident.lib_prefix->name());
+          qualified_name = String::Concat(qualified_name, Symbols::Dot());
+          qualified_name = String::Concat(qualified_name, *qual_ident.ident);
+          qualified_name = Symbols::New(qualified_name);
+          InvocationMirror::Type call_type =
+              CurrentToken() == Token::kLPAREN ?
+                  InvocationMirror::kMethod : InvocationMirror::kGetter;
+          primary = ThrowNoSuchMethodError(qual_ident_pos,
+                                           current_class(),
+                                           qualified_name,
+                                           NULL,  // No arguments.
+                                           InvocationMirror::kTopLevel,
+                                           call_type,
+                                           NULL);  // No existing function.
+        }
       }
     }
     ASSERT(primary != NULL);

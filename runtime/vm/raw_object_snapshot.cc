@@ -1094,6 +1094,8 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
 
   // Set all non object fields.
   prefix.raw_ptr()->num_imports_ = reader->ReadIntptrValue();
+  prefix.raw_ptr()->is_deferred_load_ = reader->Read<bool>();
+  prefix.raw_ptr()->is_loaded_ = reader->Read<bool>();
 
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
@@ -1119,11 +1121,13 @@ void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
   writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteVMIsolateObject(kLibraryPrefixCid);
+  writer->WriteIndexedObject(kLibraryPrefixCid);
   writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all non object fields.
   writer->WriteIntptrValue(ptr()->num_imports_);
+  writer->Write<bool>(ptr()->is_deferred_load_);
+  writer->Write<bool>(ptr()->is_loaded_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);

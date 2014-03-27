@@ -15,7 +15,7 @@ main() {
   lib.C a = null; /// type_annotation_null: static type warning
   Expect.throws(() { /// new_before_load: static type warning
     lib.C a = new lib.C(); /// new_before_load: continued
-  }, (e) => e is NoSuchMethodError); /// new_before_load: continued
+  }, (e) => e is Error); /// new_before_load: continued
 
   // In this case we do not defer C.
   lib2.C a1 = new lib2.C(); /// type_annotation_non_deferred: continued

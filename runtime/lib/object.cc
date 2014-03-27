@@ -230,4 +230,12 @@ DEFINE_NATIVE_ENTRY(AbstractType_toString, 1) {
   return type.UserVisibleName();
 }
 
+
+DEFINE_NATIVE_ENTRY(LibraryPrefix_load, 1) {
+  const LibraryPrefix& prefix =
+      LibraryPrefix::CheckedHandle(arguments->NativeArgAt(0));
+  prefix.LoadLibrary();
+  return Bool::Get(true).raw();
+}
+
 }  // namespace dart
