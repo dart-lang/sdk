@@ -310,8 +310,6 @@ polymer/test/custom_event_test: Pass, Crash # 14360
 polymer/test/custom_event_test: Skip # http://dartbug.com/15517
 
 [ $runtime == vm ]
-code_transformers/test/resolver_test: Skip # Issue 17709
-
 # Skip tests on the VM if the package depends on dart:html
 custom_element: Skip
 template_binding: Skip

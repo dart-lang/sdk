@@ -15,23 +15,25 @@ import 'java_core.dart';
  * two kinds: positional optional and named optional.
  */
 class ParameterKind extends Enum<ParameterKind> {
-  static const ParameterKind REQUIRED = const ParameterKind('REQUIRED', 0, false);
+  static final ParameterKind REQUIRED = new ParameterKind('REQUIRED', 0, false);
 
-  static const ParameterKind POSITIONAL = const ParameterKind('POSITIONAL', 1, true);
+  static final ParameterKind POSITIONAL = new ParameterKind('POSITIONAL', 1, true);
 
-  static const ParameterKind NAMED = const ParameterKind('NAMED', 2, true);
+  static final ParameterKind NAMED = new ParameterKind('NAMED', 2, true);
 
-  static const List<ParameterKind> values = const [REQUIRED, POSITIONAL, NAMED];
+  static final List<ParameterKind> values = [REQUIRED, POSITIONAL, NAMED];
 
   /**
    * A flag indicating whether this is an optional parameter.
    */
-  final bool isOptional;
+  bool isOptional = false;
 
   /**
    * Initialize a newly created kind with the given state.
    *
    * @param isOptional `true` if this is an optional parameter
    */
-  const ParameterKind(String name, int ordinal, this.isOptional) : super(name, ordinal);
+  ParameterKind(String name, int ordinal, bool isOptional) : super(name, ordinal) {
+    this.isOptional = isOptional;
+  }
 }

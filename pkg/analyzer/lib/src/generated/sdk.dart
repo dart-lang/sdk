@@ -243,7 +243,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
   /**
    * A flag indicating whether the dart2js path should be used when it is available.
    */
-  final bool _useDart2jsPaths;
+  bool _useDart2jsPaths = false;
 
   /**
    * The library map that is populated by visiting the AST structure parsed from the contents of
@@ -257,7 +257,9 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
    *
    * @param useDart2jsPaths `true` if the dart2js path should be used when it is available
    */
-  SdkLibrariesReader_LibraryBuilder(this._useDart2jsPaths);
+  SdkLibrariesReader_LibraryBuilder(bool useDart2jsPaths) {
+    this._useDart2jsPaths = useDart2jsPaths;
+  }
 
   /**
    * Return the library map that was populated by visiting the AST structure parsed from the

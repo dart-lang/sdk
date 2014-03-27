@@ -336,7 +336,7 @@ class DirectedGraph_SccFinder<N> {
   /**
    * The graph to work with.
    */
-  final DirectedGraph<N> _graph;
+  DirectedGraph<N> _graph;
 
   /**
    * The index used to uniquely identify the depth of nodes.
@@ -356,7 +356,9 @@ class DirectedGraph_SccFinder<N> {
   /**
    * Initialize a newly created finder.
    */
-  DirectedGraph_SccFinder(this._graph) : super();
+  DirectedGraph_SccFinder(DirectedGraph<N> graph) : super() {
+    this._graph = graph;
+  }
 
   /**
    * Return a list containing the nodes that are part of the strongly connected component that

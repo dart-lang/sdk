@@ -433,7 +433,7 @@ class SdkLibrariesReader {
   /**
    * A flag indicating whether the dart2js path should be used when it is available.
    */
-  final bool _useDart2jsPaths;
+  bool _useDart2jsPaths = false;
 
   /**
    * Initialize a newly created library reader to use the dart2js path if the given value is
@@ -441,7 +441,9 @@ class SdkLibrariesReader {
    *
    * @param useDart2jsPaths `true` if the dart2js path should be used when it is available
    */
-  SdkLibrariesReader(this._useDart2jsPaths);
+  SdkLibrariesReader(bool useDart2jsPaths) {
+    this._useDart2jsPaths = useDart2jsPaths;
+  }
 
   /**
    * Return the library map read from the given source.

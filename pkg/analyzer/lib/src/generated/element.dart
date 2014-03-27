@@ -731,73 +731,73 @@ abstract class ElementAnnotation {
  * The enumeration `ElementKind` defines the various kinds of elements in the element model.
  */
 class ElementKind extends Enum<ElementKind> {
-  static const ElementKind ANGULAR_FILTER = const ElementKind('ANGULAR_FILTER', 0, "Angular filter");
+  static final ElementKind ANGULAR_FILTER = new ElementKind('ANGULAR_FILTER', 0, "Angular filter");
 
-  static const ElementKind ANGULAR_COMPONENT = const ElementKind('ANGULAR_COMPONENT', 1, "Angular component");
+  static final ElementKind ANGULAR_COMPONENT = new ElementKind('ANGULAR_COMPONENT', 1, "Angular component");
 
-  static const ElementKind ANGULAR_CONTROLLER = const ElementKind('ANGULAR_CONTROLLER', 2, "Angular controller");
+  static final ElementKind ANGULAR_CONTROLLER = new ElementKind('ANGULAR_CONTROLLER', 2, "Angular controller");
 
-  static const ElementKind ANGULAR_DIRECTIVE = const ElementKind('ANGULAR_DIRECTIVE', 3, "Angular directive");
+  static final ElementKind ANGULAR_DIRECTIVE = new ElementKind('ANGULAR_DIRECTIVE', 3, "Angular directive");
 
-  static const ElementKind ANGULAR_PROPERTY = const ElementKind('ANGULAR_PROPERTY', 4, "Angular property");
+  static final ElementKind ANGULAR_PROPERTY = new ElementKind('ANGULAR_PROPERTY', 4, "Angular property");
 
-  static const ElementKind ANGULAR_SCOPE_PROPERTY = const ElementKind('ANGULAR_SCOPE_PROPERTY', 5, "Angular scope property");
+  static final ElementKind ANGULAR_SCOPE_PROPERTY = new ElementKind('ANGULAR_SCOPE_PROPERTY', 5, "Angular scope property");
 
-  static const ElementKind ANGULAR_SELECTOR = const ElementKind('ANGULAR_SELECTOR', 6, "Angular selector");
+  static final ElementKind ANGULAR_SELECTOR = new ElementKind('ANGULAR_SELECTOR', 6, "Angular selector");
 
-  static const ElementKind ANGULAR_VIEW = const ElementKind('ANGULAR_VIEW', 7, "Angular view");
+  static final ElementKind ANGULAR_VIEW = new ElementKind('ANGULAR_VIEW', 7, "Angular view");
 
-  static const ElementKind CLASS = const ElementKind('CLASS', 8, "class");
+  static final ElementKind CLASS = new ElementKind('CLASS', 8, "class");
 
-  static const ElementKind COMPILATION_UNIT = const ElementKind('COMPILATION_UNIT', 9, "compilation unit");
+  static final ElementKind COMPILATION_UNIT = new ElementKind('COMPILATION_UNIT', 9, "compilation unit");
 
-  static const ElementKind CONSTRUCTOR = const ElementKind('CONSTRUCTOR', 10, "constructor");
+  static final ElementKind CONSTRUCTOR = new ElementKind('CONSTRUCTOR', 10, "constructor");
 
-  static const ElementKind DYNAMIC = const ElementKind('DYNAMIC', 11, "<dynamic>");
+  static final ElementKind DYNAMIC = new ElementKind('DYNAMIC', 11, "<dynamic>");
 
-  static const ElementKind EMBEDDED_HTML_SCRIPT = const ElementKind('EMBEDDED_HTML_SCRIPT', 12, "embedded html script");
+  static final ElementKind EMBEDDED_HTML_SCRIPT = new ElementKind('EMBEDDED_HTML_SCRIPT', 12, "embedded html script");
 
-  static const ElementKind ERROR = const ElementKind('ERROR', 13, "<error>");
+  static final ElementKind ERROR = new ElementKind('ERROR', 13, "<error>");
 
-  static const ElementKind EXPORT = const ElementKind('EXPORT', 14, "export directive");
+  static final ElementKind EXPORT = new ElementKind('EXPORT', 14, "export directive");
 
-  static const ElementKind EXTERNAL_HTML_SCRIPT = const ElementKind('EXTERNAL_HTML_SCRIPT', 15, "external html script");
+  static final ElementKind EXTERNAL_HTML_SCRIPT = new ElementKind('EXTERNAL_HTML_SCRIPT', 15, "external html script");
 
-  static const ElementKind FIELD = const ElementKind('FIELD', 16, "field");
+  static final ElementKind FIELD = new ElementKind('FIELD', 16, "field");
 
-  static const ElementKind FUNCTION = const ElementKind('FUNCTION', 17, "function");
+  static final ElementKind FUNCTION = new ElementKind('FUNCTION', 17, "function");
 
-  static const ElementKind GETTER = const ElementKind('GETTER', 18, "getter");
+  static final ElementKind GETTER = new ElementKind('GETTER', 18, "getter");
 
-  static const ElementKind HTML = const ElementKind('HTML', 19, "html");
+  static final ElementKind HTML = new ElementKind('HTML', 19, "html");
 
-  static const ElementKind IMPORT = const ElementKind('IMPORT', 20, "import directive");
+  static final ElementKind IMPORT = new ElementKind('IMPORT', 20, "import directive");
 
-  static const ElementKind LABEL = const ElementKind('LABEL', 21, "label");
+  static final ElementKind LABEL = new ElementKind('LABEL', 21, "label");
 
-  static const ElementKind LIBRARY = const ElementKind('LIBRARY', 22, "library");
+  static final ElementKind LIBRARY = new ElementKind('LIBRARY', 22, "library");
 
-  static const ElementKind LOCAL_VARIABLE = const ElementKind('LOCAL_VARIABLE', 23, "local variable");
+  static final ElementKind LOCAL_VARIABLE = new ElementKind('LOCAL_VARIABLE', 23, "local variable");
 
-  static const ElementKind METHOD = const ElementKind('METHOD', 24, "method");
+  static final ElementKind METHOD = new ElementKind('METHOD', 24, "method");
 
-  static const ElementKind NAME = const ElementKind('NAME', 25, "<name>");
+  static final ElementKind NAME = new ElementKind('NAME', 25, "<name>");
 
-  static const ElementKind PARAMETER = const ElementKind('PARAMETER', 26, "parameter");
+  static final ElementKind PARAMETER = new ElementKind('PARAMETER', 26, "parameter");
 
-  static const ElementKind PREFIX = const ElementKind('PREFIX', 27, "import prefix");
+  static final ElementKind PREFIX = new ElementKind('PREFIX', 27, "import prefix");
 
-  static const ElementKind SETTER = const ElementKind('SETTER', 28, "setter");
+  static final ElementKind SETTER = new ElementKind('SETTER', 28, "setter");
 
-  static const ElementKind TOP_LEVEL_VARIABLE = const ElementKind('TOP_LEVEL_VARIABLE', 29, "top level variable");
+  static final ElementKind TOP_LEVEL_VARIABLE = new ElementKind('TOP_LEVEL_VARIABLE', 29, "top level variable");
 
-  static const ElementKind FUNCTION_TYPE_ALIAS = const ElementKind('FUNCTION_TYPE_ALIAS', 30, "function type alias");
+  static final ElementKind FUNCTION_TYPE_ALIAS = new ElementKind('FUNCTION_TYPE_ALIAS', 30, "function type alias");
 
-  static const ElementKind TYPE_PARAMETER = const ElementKind('TYPE_PARAMETER', 31, "type parameter");
+  static final ElementKind TYPE_PARAMETER = new ElementKind('TYPE_PARAMETER', 31, "type parameter");
 
-  static const ElementKind UNIVERSE = const ElementKind('UNIVERSE', 32, "<universe>");
+  static final ElementKind UNIVERSE = new ElementKind('UNIVERSE', 32, "<universe>");
 
-  static const List<ElementKind> values = const [
+  static final List<ElementKind> values = [
       ANGULAR_FILTER,
       ANGULAR_COMPONENT,
       ANGULAR_CONTROLLER,
@@ -849,14 +849,16 @@ class ElementKind extends Enum<ElementKind> {
   /**
    * The name displayed in the UI for this kind of element.
    */
-  final String displayName;
+  String displayName;
 
   /**
    * Initialize a newly created element kind to have the given display name.
    *
    * @param displayName the name displayed in the UI for this kind of element
    */
-  const ElementKind(String name, int ordinal, this.displayName) : super(name, ordinal);
+  ElementKind(String name, int ordinal, String displayName) : super(name, ordinal) {
+    this.displayName = displayName;
+  }
 }
 
 /**
@@ -1985,35 +1987,35 @@ class AngularPropertyKind extends Enum<AngularPropertyKind> {
    * interpolated if it contains binding {{}} syntax and assigned to the expression. (cost: 0
    * watches)
    */
-  static const AngularPropertyKind ATTR = const AngularPropertyKind('ATTR', 0);
+  static final AngularPropertyKind ATTR = new AngularPropertyKind('ATTR', 0);
 
   /**
    * `&` - Treat the DOM attribute value as an expression. Assign a closure function into the field.
    * This allows the component to control the invocation of the closure. This is useful for passing
    * expressions into controllers which act like callbacks. (cost: 0 watches)
    */
-  static const AngularPropertyKind CALLBACK = const AngularPropertyKind('CALLBACK', 1);
+  static final AngularPropertyKind CALLBACK = new AngularPropertyKind('CALLBACK', 1);
 
   /**
    * `=>` - Treat the DOM attribute value as an expression. Set up a watch, which will read the
    * expression in the attribute and assign the value to destination expression. (cost: 1 watch)
    */
-  static const AngularPropertyKind ONE_WAY = const AngularPropertyKind('ONE_WAY', 2);
+  static final AngularPropertyKind ONE_WAY = new AngularPropertyKind('ONE_WAY', 2);
 
   /**
    * `=>!` - Treat the DOM attribute value as an expression. Set up a one time watch on expression.
    * Once the expression turns not null it will no longer update. (cost: 1 watches until not null,
    * then 0 watches)
    */
-  static const AngularPropertyKind ONE_WAY_ONE_TIME = const AngularPropertyKind('ONE_WAY_ONE_TIME', 3);
+  static final AngularPropertyKind ONE_WAY_ONE_TIME = new AngularPropertyKind('ONE_WAY_ONE_TIME', 3);
 
   /**
    * `<=>` - Treat the DOM attribute value as an expression. Set up a watch on both outside as well
    * as component scope to keep the source and destination in sync. (cost: 2 watches)
    */
-  static const AngularPropertyKind TWO_WAY = const AngularPropertyKind_TWO_WAY('TWO_WAY', 4);
+  static final AngularPropertyKind TWO_WAY = new AngularPropertyKind_TWO_WAY('TWO_WAY', 4);
 
-  static const List<AngularPropertyKind> values = const [ATTR, CALLBACK, ONE_WAY, ONE_WAY_ONE_TIME, TWO_WAY];
+  static final List<AngularPropertyKind> values = [ATTR, CALLBACK, ONE_WAY, ONE_WAY_ONE_TIME, TWO_WAY];
 
   /**
    * Returns `true` if property of this kind calls field getter.
@@ -2025,11 +2027,11 @@ class AngularPropertyKind extends Enum<AngularPropertyKind> {
    */
   bool callsSetter() => true;
 
-  const AngularPropertyKind(String name, int ordinal) : super(name, ordinal);
+  AngularPropertyKind(String name, int ordinal) : super(name, ordinal);
 }
 
 class AngularPropertyKind_TWO_WAY extends AngularPropertyKind {
-  const AngularPropertyKind_TWO_WAY(String name, int ordinal) : super(name, ordinal);
+  AngularPropertyKind_TWO_WAY(String name, int ordinal) : super(name, ordinal);
 
   @override
   bool callsGetter() => true;
@@ -2565,13 +2567,13 @@ class AuxiliaryElements {
    * The element based on propagated type information, or `null` if the AST structure has not
    * been resolved or if this identifier could not be resolved.
    */
-  final ExecutableElement propagatedElement;
+  ExecutableElement propagatedElement;
 
   /**
    * The element associated with this identifier based on static type information, or `null`
    * if the AST structure has not been resolved or if this identifier could not be resolved.
    */
-  final ExecutableElement staticElement;
+  ExecutableElement staticElement;
 
   /**
    * Create the [AuxiliaryElements] with a static and propagated [ExecutableElement].
@@ -2579,7 +2581,10 @@ class AuxiliaryElements {
    * @param staticElement the static element
    * @param propagatedElement the propagated element
    */
-  AuxiliaryElements(this.staticElement, this.propagatedElement);
+  AuxiliaryElements(ExecutableElement staticElement, ExecutableElement propagatedElement) {
+    this.staticElement = staticElement;
+    this.propagatedElement = propagatedElement;
+  }
 }
 
 /**
@@ -3663,7 +3668,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /**
    * The element representing the field, variable, or constructor being used as an annotation.
    */
-  final Element element;
+  Element element;
 
   /**
    * An empty array of annotations.
@@ -3697,7 +3702,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
    * @param element the element representing the field, variable, or constructor being used as an
    *          annotation
    */
-  ElementAnnotationImpl(this.element);
+  ElementAnnotationImpl(Element element) {
+    this.element = element;
+  }
 
   @override
   bool get isDeprecated {
@@ -3798,8 +3805,9 @@ abstract class ElementImpl implements Element {
    * @param nameOffset the offset of the name of this element in the file that contains the
    *          declaration of this element
    */
-  ElementImpl(String name, this.nameOffset) {
+  ElementImpl(String name, int nameOffset) {
     this._name = StringUtilities.intern(name);
+    this.nameOffset = nameOffset;
   }
 
   @override
@@ -4262,12 +4270,12 @@ class ElementPair {
   /**
    * The first [Element]
    */
-  final Element _first;
+  Element _first;
 
   /**
    * The second [Element]
    */
-  final Element _second;
+  Element _second;
 
   /**
    * The sole constructor for this class, taking two [Element]s.
@@ -4275,7 +4283,10 @@ class ElementPair {
    * @param first the first element
    * @param second the second element
    */
-  ElementPair(this._first, this._second);
+  ElementPair(Element first, Element second) {
+    this._first = first;
+    this._second = second;
+  }
 
   @override
   bool operator ==(Object object) {
@@ -4950,7 +4961,7 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
   /**
    * The analysis context in which this library is defined.
    */
-  final AnalysisContext context;
+  AnalysisContext context;
 
   /**
    * The scripts contained in or referenced from script tags in the HTML file.
@@ -4974,7 +4985,9 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
    * @param context the analysis context in which the HTML file is defined
    * @param name the name of this element
    */
-  HtmlElementImpl(this.context, String name) : super(name, -1);
+  HtmlElementImpl(AnalysisContext context, String name) : super(name, -1) {
+    this.context = context;
+  }
 
   @override
   accept(ElementVisitor visitor) => visitor.visitHtmlElement(this);
@@ -5110,13 +5123,13 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   /**
    * A flag indicating whether this label is associated with a `switch` statement.
    */
-  final bool _onSwitchStatement;
+  bool _onSwitchStatement = false;
 
   /**
    * A flag indicating whether this label is associated with a `switch` member (`case`
    * or `default`).
    */
-  final bool _onSwitchMember;
+  bool _onSwitchMember = false;
 
   /**
    * An empty array of label elements.
@@ -5131,7 +5144,10 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
    *          statement
    * @param onSwitchMember `true` if this label is associated with a `switch` member
    */
-  LabelElementImpl(Identifier name, this._onSwitchStatement, this._onSwitchMember) : super.forNode(name);
+  LabelElementImpl(Identifier name, bool onSwitchStatement, bool onSwitchMember) : super.forNode(name) {
+    this._onSwitchStatement = onSwitchStatement;
+    this._onSwitchMember = onSwitchMember;
+  }
 
   @override
   accept(ElementVisitor visitor) => visitor.visitLabelElement(this);
@@ -5207,7 +5223,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /**
    * The analysis context in which this library is defined.
    */
-  final AnalysisContext context;
+  AnalysisContext context;
 
   /**
    * The compilation unit that defines this library.
@@ -5246,7 +5262,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * @param context the analysis context in which the library is defined
    * @param name the name of this element
    */
-  LibraryElementImpl(this.context, LibraryIdentifier name) : super.forNode(name);
+  LibraryElementImpl(AnalysisContext context, LibraryIdentifier name) : super.forNode(name) {
+    this.context = context;
+  }
 
   @override
   accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
@@ -5744,58 +5762,58 @@ class Modifier extends Enum<Modifier> {
   /**
    * Indicates that the modifier 'abstract' was applied to the element.
    */
-  static const Modifier ABSTRACT = const Modifier('ABSTRACT', 0);
+  static final Modifier ABSTRACT = new Modifier('ABSTRACT', 0);
 
   /**
    * Indicates that the modifier 'const' was applied to the element.
    */
-  static const Modifier CONST = const Modifier('CONST', 1);
+  static final Modifier CONST = new Modifier('CONST', 1);
 
   /**
    * Indicates that the modifier 'factory' was applied to the element.
    */
-  static const Modifier FACTORY = const Modifier('FACTORY', 2);
+  static final Modifier FACTORY = new Modifier('FACTORY', 2);
 
   /**
    * Indicates that the modifier 'final' was applied to the element.
    */
-  static const Modifier FINAL = const Modifier('FINAL', 3);
+  static final Modifier FINAL = new Modifier('FINAL', 3);
 
   /**
    * Indicates that the pseudo-modifier 'get' was applied to the element.
    */
-  static const Modifier GETTER = const Modifier('GETTER', 4);
+  static final Modifier GETTER = new Modifier('GETTER', 4);
 
   /**
    * A flag used for libraries indicating that the defining compilation unit contains at least one
    * import directive whose URI uses the "dart-ext" scheme.
    */
-  static const Modifier HAS_EXT_URI = const Modifier('HAS_EXT_URI', 5);
+  static final Modifier HAS_EXT_URI = new Modifier('HAS_EXT_URI', 5);
 
-  static const Modifier MIXIN = const Modifier('MIXIN', 6);
+  static final Modifier MIXIN = new Modifier('MIXIN', 6);
 
-  static const Modifier REFERENCES_SUPER = const Modifier('REFERENCES_SUPER', 7);
+  static final Modifier REFERENCES_SUPER = new Modifier('REFERENCES_SUPER', 7);
 
   /**
    * Indicates that the pseudo-modifier 'set' was applied to the element.
    */
-  static const Modifier SETTER = const Modifier('SETTER', 8);
+  static final Modifier SETTER = new Modifier('SETTER', 8);
 
   /**
    * Indicates that the modifier 'static' was applied to the element.
    */
-  static const Modifier STATIC = const Modifier('STATIC', 9);
+  static final Modifier STATIC = new Modifier('STATIC', 9);
 
   /**
    * Indicates that the element does not appear in the source code but was implicitly created. For
    * example, if a class does not define any constructors, an implicit zero-argument constructor
    * will be created and it will be marked as being synthetic.
    */
-  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 10);
+  static final Modifier SYNTHETIC = new Modifier('SYNTHETIC', 10);
 
-  static const Modifier TYPEDEF = const Modifier('TYPEDEF', 11);
+  static final Modifier TYPEDEF = new Modifier('TYPEDEF', 11);
 
-  static const List<Modifier> values = const [
+  static final List<Modifier> values = [
       ABSTRACT,
       CONST,
       FACTORY,
@@ -5809,7 +5827,7 @@ class Modifier extends Enum<Modifier> {
       SYNTHETIC,
       TYPEDEF];
 
-  const Modifier(String name, int ordinal) : super(name, ordinal);
+  Modifier(String name, int ordinal) : super(name, ordinal);
 }
 
 /**
@@ -5871,7 +5889,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   /**
    * The analysis context in which the multiply defined elements are defined.
    */
-  final AnalysisContext context;
+  AnalysisContext context;
 
   /**
    * The name of the conflicting elements.
@@ -5881,7 +5899,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   /**
    * A list containing all of the elements that conflict.
    */
-  final List<Element> conflictingElements;
+  List<Element> conflictingElements;
 
   /**
    * Initialize a newly created element to represent a list of conflicting elements.
@@ -5889,8 +5907,10 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
    * @param context the analysis context in which the multiply defined elements are defined
    * @param conflictingElements the elements that conflict
    */
-  MultiplyDefinedElementImpl(this.context, this.conflictingElements) {
+  MultiplyDefinedElementImpl(AnalysisContext context, List<Element> conflictingElements) {
+    this.context = context;
     _name = conflictingElements[0].name;
+    this.conflictingElements = conflictingElements;
   }
 
   @override
@@ -6754,15 +6774,20 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
  * Information about Angular application.
  */
 class AngularApplication {
-  final Source entryPoint;
+  Source entryPoint;
 
-  final Set<Source> _librarySources;
+  Set<Source> _librarySources;
 
-  final List<AngularElement> elements;
+  List<AngularElement> elements;
 
-  final List<Source> elementSources;
+  List<Source> elementSources;
 
-  AngularApplication(this.entryPoint, this._librarySources, this.elements, this.elementSources);
+  AngularApplication(Source entryPoint, Set<Source> librarySources, List<AngularElement> elements, List<Source> elementSources) {
+    this.entryPoint = entryPoint;
+    this._librarySources = librarySources;
+    this.elements = elements;
+    this.elementSources = elementSources;
+  }
 
   /**
    * Checks if this application depends on the library with the given [Source].
@@ -6777,7 +6802,7 @@ class AngularComponentElementImpl extends AngularHasSelectorElementImpl implemen
   /**
    * The offset of the defining <code>NgComponent</code> annotation.
    */
-  final int _annotationOffset;
+  int _annotationOffset = 0;
 
   /**
    * The array containing all of the properties declared by this component.
@@ -6821,7 +6846,9 @@ class AngularComponentElementImpl extends AngularHasSelectorElementImpl implemen
    * @param nameOffset the offset of the name of this element in the file that contains the
    *          declaration of this element
    */
-  AngularComponentElementImpl(String name, int nameOffset, this._annotationOffset) : super(name, nameOffset);
+  AngularComponentElementImpl(String name, int nameOffset, int annotationOffset) : super(name, nameOffset) {
+    this._annotationOffset = annotationOffset;
+  }
 
   @override
   accept(ElementVisitor visitor) => visitor.visitAngularComponentElement(this);
@@ -6897,7 +6924,7 @@ class AngularDirectiveElementImpl extends AngularHasSelectorElementImpl implemen
   /**
    * The offset of the annotation that defines this directive.
    */
-  final int _offset;
+  int _offset = 0;
 
   /**
    * The array containing all of the properties declared by this directive.
@@ -6909,7 +6936,9 @@ class AngularDirectiveElementImpl extends AngularHasSelectorElementImpl implemen
    *
    * @param offset the offset of the annotation that defines this directive
    */
-  AngularDirectiveElementImpl(this._offset) : super(null, -1);
+  AngularDirectiveElementImpl(int offset) : super(null, -1) {
+    this._offset = offset;
+  }
 
   @override
   accept(ElementVisitor visitor) => visitor.visitAngularDirectiveElement(this);
@@ -7107,7 +7136,7 @@ class AngularScopePropertyElementImpl extends AngularElementImpl implements Angu
   /**
    * The type of the property
    */
-  final DartType type;
+  DartType type;
 
   /**
    * Initialize a newly created Angular scope property to have the given name.
@@ -7116,7 +7145,9 @@ class AngularScopePropertyElementImpl extends AngularElementImpl implements Angu
    * @param nameOffset the offset of the name of this element in the file that contains the
    *          declaration of this element
    */
-  AngularScopePropertyElementImpl(String name, int nameOffset, this.type) : super(name, nameOffset);
+  AngularScopePropertyElementImpl(String name, int nameOffset, DartType type) : super(name, nameOffset) {
+    this.type = type;
+  }
 
   @override
   accept(ElementVisitor visitor) => visitor.visitAngularScopePropertyElement(this);
@@ -7168,12 +7199,12 @@ class AngularViewElementImpl extends AngularElementImpl implements AngularViewEl
   /**
    * The HTML template URI.
    */
-  final String templateUri;
+  String templateUri;
 
   /**
    * The offset of the [templateUri] in the [getSource].
    */
-  final int templateUriOffset;
+  int templateUriOffset = 0;
 
   /**
    * The HTML template source.
@@ -7183,7 +7214,10 @@ class AngularViewElementImpl extends AngularElementImpl implements AngularViewEl
   /**
    * Initialize a newly created Angular view.
    */
-  AngularViewElementImpl(this.templateUri, this.templateUriOffset) : super(null, -1);
+  AngularViewElementImpl(String templateUri, int templateUriOffset) : super(null, -1) {
+    this.templateUri = templateUri;
+    this.templateUriOffset = templateUriOffset;
+  }
 
   @override
   accept(ElementVisitor visitor) => visitor.visitAngularViewElement(this);
@@ -7219,11 +7253,14 @@ class HasAttributeSelectorElementImpl extends AngularSelectorElementImpl impleme
  * Combination of [AngularTagSelectorElementImpl] and [HasAttributeSelectorElementImpl].
  */
 class IsTagHasAttributeSelectorElementImpl extends AngularSelectorElementImpl {
-  final String tagName;
+  String tagName;
 
-  final String attributeName;
+  String attributeName;
 
-  IsTagHasAttributeSelectorElementImpl(this.tagName, this.attributeName) : super(null, -1);
+  IsTagHasAttributeSelectorElementImpl(String tagName, String attributeName) : super(null, -1) {
+    this.tagName = tagName;
+    this.attributeName = attributeName;
+  }
 
   @override
   bool apply(XmlTagNode node) => node.tag == tagName && node.getAttribute(attributeName) != null;
@@ -7497,12 +7534,12 @@ abstract class Member implements Element {
   /**
    * The element on which the parameterized element was created.
    */
-  final Element _baseElement;
+  Element _baseElement;
 
   /**
    * The type in which the element is defined.
    */
-  final ParameterizedType _definingType;
+  ParameterizedType _definingType;
 
   /**
    * Initialize a newly created element to represent the member of the given parameterized type.
@@ -7510,7 +7547,10 @@ abstract class Member implements Element {
    * @param baseElement the element on which the parameterized element was created
    * @param definingType the type in which the element is defined
    */
-  Member(this._baseElement, this._definingType);
+  Member(Element baseElement, ParameterizedType definingType) {
+    this._baseElement = baseElement;
+    this._definingType = definingType;
+  }
 
   @override
   String computeDocumentationComment() => _baseElement.computeDocumentationComment();
@@ -9489,12 +9529,12 @@ abstract class TypeImpl implements DartType {
    * The element representing the declaration of this type, or `null` if the type has not, or
    * cannot, be associated with an element.
    */
-  final Element _element;
+  Element _element;
 
   /**
    * The name of this type, or `null` if the type does not have a name.
    */
-  final String name;
+  String name;
 
   /**
    * An empty array of types.
@@ -9507,7 +9547,10 @@ abstract class TypeImpl implements DartType {
    * @param element the element representing the declaration of the type
    * @param name the name of the type
    */
-  TypeImpl(this._element, this.name);
+  TypeImpl(Element element, String name) {
+    this._element = element;
+    this.name = name;
+  }
 
   @override
   String get displayName => name;
@@ -9633,13 +9676,16 @@ abstract class TypeImpl implements DartType {
 }
 
 class TypeImpl_TypePair {
-  final DartType _firstType;
+  DartType _firstType;
 
-  final DartType _secondType;
+  DartType _secondType;
 
   int _cachedHashCode = 0;
 
-  TypeImpl_TypePair(this._firstType, this._secondType);
+  TypeImpl_TypePair(DartType firstType, DartType secondType) {
+    this._firstType = firstType;
+    this._secondType = secondType;
+  }
 
   @override
   bool operator ==(Object object) {
