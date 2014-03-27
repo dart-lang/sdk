@@ -7,8 +7,8 @@
 // The original test/main has been commented out and we have a test/main which
 // throws an error to ensure that this file is not executed as part of the
 // test.
-// 
-// When issue14236_test.dart fails, you must regenerate it using the VM 
+//
+// When issue14236_test.dart fails, you must regenerate it using the VM
 // with your changes. You should understand what in your change makes
 // regeneration of the snapshot necessary.
 // Steps for regenerating:
@@ -28,7 +28,7 @@ test(SendPort replyTo) {
 }
 */
 
-test() {
+test(dummy) {
   Expect.fail("Don't expect this to run at all");
 }
 
