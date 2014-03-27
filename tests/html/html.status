@@ -147,11 +147,13 @@ xsltprocessor_test/supported: Fail
 
 [ $runtime == ie11 ]
 custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
+canvasrenderingcontext2d_test/arc: Pass, Fail # Pixel unexpected value. Please triage this failure.
 
 # IE11 Feature support statuses-
 # These results not yet noted in platform support annotations.
 # All changes should be accompanied by platform support annotation changes.
 audiobuffersourcenode_test/supported: Fail
+audiobuffersourcenode_test/functional: Pass, Fail
 audiocontext_test/supported: Fail
 crypto_test/supported: Fail
 css_test/supportsPointConversions: Fail
@@ -174,6 +176,7 @@ input_element_test/supported_week: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 media_stream_test/supported_media: Fail
+mutationobserver_test/supported: Pass, Fail
 rtc_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
