@@ -251,7 +251,6 @@ mirrors/hierarchy_test: Fail # TODO(ahe): This test is slightly broken. http://d
 mirrors/mixin_application_test/01: Fail, OK # TODO(ahe): Slight broken test to ensure test coverage on dart2js.
 mirrors/intercepted_object_test: Fail, OK # TODO(ahe): Slight broken test to ensure test coverage on dart2js.
 mirrors/typedef_test/01: Fail, OK # Incorrect dart2js behavior.
-mirrors/deferred_mirrors_metadata_test: Fail # Issue 17521
 
 mirrors/generic_local_function_test: RuntimeError # Issue 14913
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
