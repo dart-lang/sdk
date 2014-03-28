@@ -19,9 +19,8 @@ class FunctionRefElement extends ServiceRefElement {
     ServiceMap refMap = ref;
     hasParent = (refMap != null && refMap['parent'] != null);
     hasClass = (refMap != null &&
-                refMap['class'] != null &&
-                refMap['class']['name'] != null &&
-                refMap['class']['name'] != '::');
+                refMap['owner'] != null &&
+                refMap['owner'].serviceType == 'Class');
   }
 
   @observable bool hasParent = false;

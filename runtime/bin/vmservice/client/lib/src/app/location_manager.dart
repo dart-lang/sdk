@@ -18,8 +18,14 @@ class LocationManager extends Observable {
       // Request the current anchor.
       requestCurrentHash();
     });
-    // Set the default hash.
-    window.location.hash = defaultHash;
+
+    if (window.location.hash == '') {
+      // Fresh start, load the vm page.
+      window.location.hash = defaultHash;
+    } else {
+      // The page is being reloaded.
+      requestCurrentHash();
+    }
   }
 
   /// Clear the current hash.

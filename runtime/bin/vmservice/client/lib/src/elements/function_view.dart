@@ -26,14 +26,13 @@ class FunctionViewElement extends ObservatoryElement {
       return "${_getQualifiedName(parent)}.${function['user_name']}";
     }
     var cls = (function != null &&
-               function['class'] != null &&
-               function['class']['user_name'] != null &&
-               function['class']['user_name'] != '::'
-               ? function['class'] : null);
+               function['owner'] != null &&
+               function['owner'].serviceType == 'Class'
+               ? function['owner'] : null);
     if (cls != null) {
       return "${cls['user_name']}.${function['user_name']}";
     }
-    return "${function['username']}";
+    return "${function['user_name']}";
   }
 
   void functionChanged(oldValue) {

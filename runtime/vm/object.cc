@@ -6389,7 +6389,12 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
   }
   jsobj.AddProperty("name", internal_name);
   jsobj.AddProperty("user_name", user_name);
-  jsobj.AddProperty("class", cls);
+  if (cls.IsTopLevel()) {
+    const Library& library = Library::Handle(cls.library());
+    jsobj.AddProperty("owner", library);
+  } else {
+    jsobj.AddProperty("owner", cls);
+  }
   const Function& parent = Function::Handle(parent_function());
   if (!parent.IsNull()) {
     jsobj.AddProperty("parent", parent);
@@ -6712,7 +6717,12 @@ void Field::PrintToJSONStream(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("value", valueObj);
   }
 
-  jsobj.AddProperty("owner", cls);
+  if (cls.IsTopLevel()) {
+    const Library& library = Library::Handle(cls.library());
+    jsobj.AddProperty("owner", library);
+  } else {
+    jsobj.AddProperty("owner", cls);
+  }
 
   AbstractType& declared_type = AbstractType::Handle(type());
   jsobj.AddProperty("declared_type", declared_type);
@@ -6739,6 +6749,12 @@ void Field::PrintToJSONStream(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("guard_length", "variable");
   } else {
     jsobj.AddProperty("guard_length", guarded_list_length());
+  }
+  const Class& origin_cls = Class::Handle(origin());
+  const Script& script = Script::Handle(origin_cls.script());
+  if (!script.IsNull()) {
+    jsobj.AddProperty("script", script);
+    jsobj.AddProperty("token_pos", token_pos());
   }
 }
 

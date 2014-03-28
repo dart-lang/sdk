@@ -2,6 +2,7 @@
   <link rel="import" href="class_ref.html">
   <link rel="import" href="code_ref.html">
   <link rel="import" href="function_ref.html">
+  <link rel="import" href="library_ref.html">
   <link rel="import" href="observatory_element.html">
   <link rel="import" href="nav_bar.html">
   <link rel="import" href="script_ref.html">
@@ -33,11 +34,11 @@
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ function.isolate }}"></isolate-nav-menu>
-      <template if="{{ function['owner']['type'] == '@Class' }}">
+      <template if="{{ function['owner'].serviceType == 'Class' }}">
         <!-- TODO(turnidge): Add library nav menu here. -->
         <class-nav-menu cls="{{ function['owner'] }}"></class-nav-menu>
       </template>
-      <template if="{{ function['owner']['type'] == '@Library' }}">
+      <template if="{{ function['owner'].serviceType == 'Library' }}">
         <library-nav-menu library="{{ function['owner'] }}"></library-nav-menu>
       </template>
       <nav-menu link="." anchor="{{ function.name }}" last="{{ true }}"></nav-menu>
@@ -64,20 +65,21 @@
             </div>
           </div>
         </template>
-        <template if="{{ function['parent'] == null &&
-                         function['class'] != null }}">
-          <div class="memberItem">
-            <div class="memberName">parent class</div>
-            <div class="memberValue">
-              <class-ref ref="{{ function['class'] }}"></class-ref>
-            </div>
+        <div class="memberItem">
+          <div class="memberName">owner</div>
+          <div class="memberValue">
+            <template if="{{ function['owner'].serviceType == 'Class' }}">
+              <class-ref ref="{{ function['owner'] }}"></class-ref>
+            </template>
+            <template if="{{ function['owner'].serviceType != 'Class' }}">
+              <library-ref ref="{{ function['owner'] }}"></library-ref>
+            </template>
           </div>
-        </template>
+        </div>
         <div class="memberItem">
           <div class="memberName">script</div>
           <div class="memberValue">
-            <script-ref ref="{{ function['script'] }}">
-            </script-ref>
+            <script-ref ref="{{ function['script'] }}"></script-ref>
           </div>
         </div>
 

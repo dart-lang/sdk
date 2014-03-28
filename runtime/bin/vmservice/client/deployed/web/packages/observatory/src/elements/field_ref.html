@@ -4,16 +4,20 @@
 <link rel="import" href="service_ref.html">
 </head>
 <polymer-element name="field-ref" extends="service-ref">
-<template>
-<div>
-  <template if="{{ ref['final'] }}"> final </template>
-  <template if="{{ ref['const'] }}"> const </template>
-  <template if="{{ (ref['declared_type']['name'] == 'dynamic' && !ref['final'] && !ref['const']) }}">
-  var
+  <template>
+    <div>
+      <template if="{{ ref['static'] }}">static</template>
+      <template if="{{ ref['final'] }}">final</template>
+      <template if="{{ ref['const'] }}">const</template>
+      <template if="{{ (ref['declared_type']['name'] == 'dynamic' &&
+                        !ref['final'] && !ref['const']) }}">
+        var
+      </template>
+      <template if="{{ (ref['declared_type']['name'] != 'dynamic') }}">
+        <instance-ref ref="{{ ref['declared_type'] }}"></instance-ref>
+      </template>
+      <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
+    </div>
   </template>
-  <template if="{{ (ref['declared_type']['name'] != 'dynamic') }}">
-    <instance-ref ref="{{ ref['declared_type'] }}"></instance-ref>
-  </template>
-  <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
-</div>
-</template> <script type="application/dart" src="field_ref.dart"></script> </polymer-element>
+  <script type="application/dart" src="field_ref.dart"></script>
+</polymer-element>

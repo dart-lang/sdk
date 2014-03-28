@@ -3,6 +3,7 @@
   <link rel="import" href="error_view.html">
   <link rel="import" href="eval_box.html">
   <link rel="import" href="field_ref.html">
+  <link rel="import" href="function_ref.html">
   <link rel="import" href="instance_ref.html">
   <link rel="import" href="observatory_element.html">
   <link rel="import" href="nav_bar.html">
@@ -77,6 +78,15 @@
               <div class="memberValue">
                 <class-ref ref="{{ instance['type_class'] }}">
                 </class-ref>
+              </div>
+            </div>
+          </template>
+          <template if="{{ instance['closureFunc'] != null }}">
+            <div class="memberItem">
+              <div class="memberName">closure function</div>
+              <div class="memberValue">
+                <function-ref ref="{{ instance['closureFunc'] }}">
+                </function-ref>
               </div>
             </div>
           </template>

@@ -5,7 +5,7 @@
 <polymer-element name="function-ref" extends="service-ref">
   <template><!-- These comments are here to allow newlines.
      --><template if="{{ qualified && !hasParent && hasClass }}"><!--
-       --><class-ref ref="{{ ref['class'] }}"></class-ref>.</template><!--
+       --><class-ref ref="{{ ref['owner'] }}"></class-ref>.</template><!--
      --><template if="{{ qualified && hasParent }}"><!--
        --><function-ref ref="{{ ref['parent'] }}" qualified="{{ true }}">
           </function-ref>.<!--

@@ -148,10 +148,6 @@ class ObservatoryElement extends PolymerElement {
     return type == 'Instance';
   }
 
-  bool isClosure(String type) {
-    return type == 'Closure';
-  }
-
   bool isDouble(String type) {
     return type == 'Double';
   }
@@ -172,7 +168,6 @@ class ObservatoryElement extends PolymerElement {
               'Biginit',
               'Bool',
               'String',
-              'Closure',
 	      'Double',
               'Instance',
               'GrowableObjectArray',
