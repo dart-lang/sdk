@@ -3808,6 +3808,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
 
 
 void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
+                                   const Class& toplevel_class,
                                    intptr_t metadata_pos) {
   TRACE_PARSER("ParseClassDeclaration");
   bool is_patch = false;
@@ -3910,7 +3911,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     cls.set_is_abstract();
   }
   if (metadata_pos >= 0) {
-    library_.AddClassMetadata(cls, metadata_pos);
+    library_.AddClassMetadata(cls, toplevel_class, metadata_pos);
   }
 
   const bool is_mixin_declaration = (CurrentToken() == Token::kASSIGN);
@@ -4109,6 +4110,7 @@ void Parser::CheckConstructors(ClassDesc* class_desc) {
 
 void Parser::ParseMixinAppAlias(
     const GrowableObjectArray& pending_classes,
+    const Class& toplevel_class,
     intptr_t metadata_pos) {
   TRACE_PARSER("ParseMixinAppAlias");
   const intptr_t classname_pos = TokenPos();
@@ -4161,7 +4163,7 @@ void Parser::ParseMixinAppAlias(
   ExpectSemicolon();
   pending_classes.Add(mixin_application, Heap::kOld);
   if (metadata_pos >= 0) {
-    library_.AddClassMetadata(mixin_application, metadata_pos);
+    library_.AddClassMetadata(mixin_application, toplevel_class, metadata_pos);
   }
 }
 
@@ -4207,6 +4209,7 @@ bool Parser::IsMixinAppAlias() {
 
 
 void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
+                          const Class& toplevel_class,
                           intptr_t metadata_pos) {
   TRACE_PARSER("ParseTypedef");
   ExpectToken(Token::kTYPEDEF);
@@ -4215,7 +4218,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
     if (FLAG_warn_mixin_typedef) {
       Warning("deprecated mixin application typedef");
     }
-    ParseMixinAppAlias(pending_classes, metadata_pos);
+    ParseMixinAppAlias(pending_classes, toplevel_class, metadata_pos);
     return;
   }
 
@@ -4322,7 +4325,9 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
   ASSERT(!function_type_alias.is_finalized());
   pending_classes.Add(function_type_alias, Heap::kOld);
   if (metadata_pos >= 0) {
-    library_.AddClassMetadata(function_type_alias, metadata_pos);
+    library_.AddClassMetadata(function_type_alias,
+                              toplevel_class,
+                              metadata_pos);
   }
 }
 
@@ -5182,17 +5187,17 @@ void Parser::ParseTopLevel() {
     set_current_class(cls);  // No current class.
     intptr_t metadata_pos = SkipMetadata();
     if (CurrentToken() == Token::kCLASS) {
-      ParseClassDeclaration(pending_classes, metadata_pos);
+      ParseClassDeclaration(pending_classes, toplevel_class, metadata_pos);
     } else if ((CurrentToken() == Token::kTYPEDEF) &&
                (LookaheadToken(1) != Token::kLPAREN)) {
       set_current_class(toplevel_class);
-      ParseTypedef(pending_classes, metadata_pos);
+      ParseTypedef(pending_classes, toplevel_class, metadata_pos);
     } else if ((CurrentToken() == Token::kABSTRACT) &&
         (LookaheadToken(1) == Token::kCLASS)) {
-      ParseClassDeclaration(pending_classes, metadata_pos);
+      ParseClassDeclaration(pending_classes, toplevel_class, metadata_pos);
     } else if (is_patch_source() && IsLiteral("patch") &&
                (LookaheadToken(1) == Token::kCLASS)) {
-      ParseClassDeclaration(pending_classes, metadata_pos);
+      ParseClassDeclaration(pending_classes, toplevel_class, metadata_pos);
     } else {
       set_current_class(toplevel_class);
       if (IsVariableDeclaration()) {

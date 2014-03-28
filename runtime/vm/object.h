@@ -2575,7 +2575,9 @@ class Library : public Object {
 
   void AddExport(const Namespace& ns) const;
 
-  void AddClassMetadata(const Class& cls, intptr_t token_pos) const;
+  void AddClassMetadata(const Class& cls,
+                        const Class& toplevel_class,
+                        intptr_t token_pos) const;
   void AddFieldMetadata(const Field& field, intptr_t token_pos) const;
   void AddFunctionMetadata(const Function& func, intptr_t token_pos) const;
   void AddLibraryMetadata(const Class& cls, intptr_t token_pos) const;

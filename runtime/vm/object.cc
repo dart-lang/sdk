@@ -8078,8 +8078,14 @@ void Library::AddMetadata(const Class& cls,
 }
 
 
-void Library::AddClassMetadata(const Class& cls, intptr_t token_pos) const {
-  AddMetadata(cls, String::Handle(MakeClassMetaName(cls)), token_pos);
+void Library::AddClassMetadata(const Class& cls,
+                               const Class& toplevel_class,
+                               intptr_t token_pos) const {
+  // We use the toplevel class as the owner of a class's metadata field because
+  // a class's metadata is in scope of the library, not the class.
+  AddMetadata(toplevel_class,
+              String::Handle(MakeClassMetaName(cls)),
+              token_pos);
 }
 
 

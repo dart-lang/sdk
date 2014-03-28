@@ -180,6 +180,7 @@ async/stream_asyncmap_test: RuntimeError # Timer interface not supported: dartbu
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Pass, Slow # Issue 12029.
 mirrors/metadata_nested_constructor_call_test/none: RuntimeError # Issue 17187
+mirrors/metadata_scope_test/none: RuntimeError # Issue 17187
 
 [ $compiler == dart2js ]
 convert/chunked_conversion_utf88_test: Slow, Pass
@@ -320,6 +321,7 @@ mirrors/repeated_private_anon_mixin_app_test: StaticWarning, OK # Intentional li
 mirrors/removed_api_test: StaticWarning, OK # Deliberately refers to undeclared members.
 
 mirrors/deferred_mirrors_metadata_test: Fail # Issue 17522
+mirrors/metadata_scope_test/01: MissingCompileTimeError # Issue 17894
 
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
 async/*deferred*: Skip # Issue 17458

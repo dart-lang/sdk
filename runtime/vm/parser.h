@@ -334,11 +334,14 @@ class Parser : public ValueObject {
   // Support for parsing of scripts.
   void ParseTopLevel();
   void ParseClassDeclaration(const GrowableObjectArray& pending_classes,
+                             const Class& toplevel_class,
                              intptr_t metadata_pos);
   void ParseClassDefinition(const Class& cls);
   void ParseMixinAppAlias(const GrowableObjectArray& pending_classes,
+                          const Class& toplevel_class,
                           intptr_t metadata_pos);
   void ParseTypedef(const GrowableObjectArray& pending_classes,
+                    const Class& toplevel_class,
                     intptr_t metadata_pos);
   void ParseTopLevelVariable(TopLevel* top_level, intptr_t metadata_pos);
   void ParseTopLevelFunction(TopLevel* top_level, intptr_t metadata_pos);
