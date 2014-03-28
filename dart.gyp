@@ -125,7 +125,6 @@
       'dependencies': [
         'create_sdk',
         'packages',
-        'try',
       ],
     },
     {
