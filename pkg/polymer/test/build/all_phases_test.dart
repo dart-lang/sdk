@@ -4,16 +4,19 @@
 
 library polymer.test.build.all_phases_test;
 
+import 'package:code_transformers/tests.dart' show testingDartSdkDirectory;
 import 'package:polymer/src/build/common.dart';
 import 'package:polymer/src/build/script_compactor.dart' show MAIN_HEADER;
 import 'package:polymer/transformer.dart';
+import 'package:smoke/codegen/generator.dart' show DEFAULT_IMPORTS;
 import 'package:unittest/compact_vm_config.dart';
 
 import 'common.dart';
 
 void main() {
   useCompactVMConfiguration();
-  var phases = new PolymerTransformerGroup(new TransformOptions()).phases;
+  var phases = createDeployPhases(new TransformOptions(),
+      sdkDir: testingDartSdkDirectory);
 
   testPhases('no changes', phases, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
@@ -49,8 +52,11 @@ void main() {
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
           import 'a.dart' as i0;
+          ${DEFAULT_IMPORTS.join('\n')}
 
           void main() {
+            useGeneratedCode(new StaticConfiguration(
+                checkedMode: false));
             configureForDeployment([
               ]);
             i0.main();
@@ -76,8 +82,11 @@ void main() {
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
           import 'test.html.0.dart' as i0;
+          ${DEFAULT_IMPORTS.join('\n')}
 
           void main() {
+            useGeneratedCode(new StaticConfiguration(
+                checkedMode: false));
             configureForDeployment([
               ]);
             i0.main();
@@ -122,8 +131,11 @@ void main() {
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
           import 'a.dart' as i0;
+          ${DEFAULT_IMPORTS.join('\n')}
 
           void main() {
+            useGeneratedCode(new StaticConfiguration(
+                checkedMode: false));
             configureForDeployment([
               ]);
             i0.main();
@@ -134,11 +146,11 @@ void main() {
       // These should not be emitted multiple times. See:
       // https://code.google.com/p/dart/issues/detail?id=17197
       '$onlyOne (web/test.html 0 81)',
-      '$onlyOne (web/test.html 7 27)',
-      '$onlyOne (web/test.html 14 15)',
+      '$onlyOne (web/test.html 8 27)',
+      '$onlyOne (web/test.html 16 15)',
       '$moreNotSupported (web/test.html 0 81)',
-      '$moreNotSupported (web/test.html 7 27)',
-      '$moreNotSupported (web/test.html 14 15)'
+      '$moreNotSupported (web/test.html 8 27)',
+      '$moreNotSupported (web/test.html 16 15)'
     ]);
 
   testPhases('with imports', phases, {
@@ -166,8 +178,11 @@ void main() {
           '''$MAIN_HEADER
           import 'index.html.0.dart' as i0;
           import 'b.dart' as i1;
+          ${DEFAULT_IMPORTS.join('\n')}
 
           void main() {
+            useGeneratedCode(new StaticConfiguration(
+                checkedMode: false));
             configureForDeployment([
               ]);
             i1.main();
@@ -181,6 +196,7 @@ void main() {
 String _sampleObservable(String className, String fieldName) => '''
 library ${className}_$fieldName;
 import 'package:observe/observe.dart';
+export 'package:polymer/init.dart';
 
 class $className extends Observable {
   @observable int $fieldName;
@@ -191,7 +207,8 @@ class $className extends Observable {
 String _sampleObservableOutput(String className, String field,
     {bool includeMain: false}) =>
     "library ${className}_$field;\n"
-    "import 'package:observe/observe.dart';\n\n"
+    "import 'package:observe/observe.dart';\n"
+    "export 'package:polymer/init.dart';\n\n"
     "class $className extends ChangeNotifier {\n"
     "  @reflectable @observable int get $field => __\$$field; "
       "int __\$$field; "

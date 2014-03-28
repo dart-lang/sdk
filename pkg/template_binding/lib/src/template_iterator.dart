@@ -17,13 +17,21 @@ part of template_binding;
 // See: https://github.com/polymer/TemplateBinding/issues/59
 bool _toBoolean(value) => null != value && false != value;
 
+// Dart note: this was added to decouple the MustacheTokens.parse function from
+// the rest of template_binding.
+_getDelegateFactory(name, node, delegate) {
+  if (delegate == null) return null;
+  return (pathString) => delegate.prepareBinding(pathString, name, node);
+}
+
 _InstanceBindingMap _getBindings(Node node, BindingDelegate delegate) {
   if (node is Element) {
     return _parseAttributeBindings(node, delegate);
   }
 
   if (node is Text) {
-    var tokens = MustacheTokens.parse(node.text, 'text', node, delegate);
+    var tokens = MustacheTokens.parse(node.text,
+        _getDelegateFactory('text', node, delegate));
     if (tokens != null) return new _InstanceBindingMap(['text', tokens]);
   }
 
@@ -46,7 +54,7 @@ MustacheTokens _parseWithDefault(Element element, String name,
 
   var v = element.attributes[name];
   if (v == '') v = '{{}}';
-  return MustacheTokens.parse(v, name, element, delegate);
+  return MustacheTokens.parse(v, _getDelegateFactory(name, element, delegate));
 }
 
 _InstanceBindingMap _parseAttributeBindings(Element element,
@@ -72,7 +80,8 @@ _InstanceBindingMap _parseAttributeBindings(Element element,
       return;
     }
 
-    var tokens = MustacheTokens.parse(value, name, element, delegate);
+    var tokens = MustacheTokens.parse(value,
+        _getDelegateFactory(name, element, delegate));
     if (tokens != null) {
       if (bindings == null) bindings = [];
       bindings..add(name)..add(tokens);
@@ -88,7 +97,8 @@ _InstanceBindingMap _parseAttributeBindings(Element element,
 
     // Treat <template if> as <template bind if>
     if (result._if != null && result._bind == null && result._repeat == null) {
-      result._bind = MustacheTokens.parse('{{}}', 'bind', element, delegate);
+      result._bind = MustacheTokens.parse('{{}}',
+          _getDelegateFactory('bind', element, delegate));
     }
 
     return result;

@@ -6,6 +6,8 @@ impact polymer: custom_element, html_import, observe, shadow_dom,
 and template_binding.
 
 #### Pub version 0.10.0-dev
+  * The output of pub-build no longer uses mirrors. We replace all uses of
+    mirrors with code generation.
   * Interop with polymer-js elements now works.
   * Polymer polyfills are now consolidated in package:web_components, which is
     identical to platform.js from http://polymer-project.org.

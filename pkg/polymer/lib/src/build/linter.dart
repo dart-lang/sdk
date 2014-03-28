@@ -214,14 +214,14 @@ class _LinterVisitor extends TreeVisitor {
       _logger.error('Missing tag name of the custom element. Please include an '
           'attribute like \'name="your-tag-name"\'.',
           span: node.sourceSpan);
-    } else if (!_isCustomTag(tagName)) {
+    } else if (!isCustomTagName(tagName)) {
       _logger.error('Invalid name "$tagName". Custom element names must have '
           'at least one dash and can\'t be any of the following names: '
-          '${_invalidTagNames.keys.join(", ")}.',
+          '${invalidTagNames.keys.join(", ")}.',
           span: node.sourceSpan);
     }
 
-    if (_elements[extendsTag] == null && _isCustomTag(extendsTag)) {
+    if (_elements[extendsTag] == null && isCustomTagName(extendsTag)) {
       _logger.warning('custom element with name "$extendsTag" not found.',
           span: node.sourceSpan);
     }
@@ -232,10 +232,8 @@ class _LinterVisitor extends TreeVisitor {
 
       // names='a b c' or names='a,b,c'
       // record each name for publishing
-      for (var attr in attrs.split(attrs.contains(',') ? ',' : ' ')) {
-        // remove excess ws
-        attr = attr.trim();
-        if (!_validateCustomAttributeName(attr, attrsSpan)) break;
+      for (var attr in attrs.split(ATTRIBUTES_REGEX)) {
+        if (!_validateCustomAttributeName(attr.trim(), attrsSpan)) break;
       }
     }
 
@@ -299,7 +297,7 @@ class _LinterVisitor extends TreeVisitor {
     var nodeTag = node.localName;
     var hasIsAttribute;
     var customTagName;
-    if (_isCustomTag(nodeTag)) {
+    if (isCustomTagName(nodeTag)) {
       // <fancy-button>
       customTagName = nodeTag;
       hasIsAttribute = false;
@@ -385,27 +383,6 @@ class _LinterVisitor extends TreeVisitor {
           span: node.attributeSpans[name]);
     }
   }
-}
-
-
-// These names have meaning in SVG or MathML, so they aren't allowed as custom
-// tags.
-var _invalidTagNames = const {
-  'annotation-xml': '',
-  'color-profile': '',
-  'font-face': '',
-  'font-face-src': '',
-  'font-face-uri': '',
-  'font-face-format': '',
-  'font-face-name': '',
-  'missing-glyph': '',
-};
-
-/// Returns true if this is a valid custom element name. See:
-/// <https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/custom/index.html#dfn-custom-element-name>
-bool _isCustomTag(String name) {
-  if (name == null || !name.contains('-')) return false;
-  return !_invalidTagNames.containsKey(name);
 }
 
 const String USE_INIT_DART =

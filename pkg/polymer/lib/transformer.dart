@@ -28,7 +28,7 @@ class PolymerTransformerGroup implements TransformerGroup {
   final Iterable<Iterable> phases;
 
   PolymerTransformerGroup(TransformOptions options)
-      : phases = _createDeployPhases(options);
+      : phases = createDeployPhases(options);
 
   PolymerTransformerGroup.asPlugin(BarbackSettings settings)
       : this(_parseSettings(settings));
@@ -69,12 +69,13 @@ _readEntrypoints(value) {
 /// comes first (other than linter, if [options.linter] is enabled), which
 /// allows the rest of the HTML-processing phases to operate only on HTML that
 /// is actually imported.
-List<List<Transformer>> _createDeployPhases(TransformOptions options) {
+List<List<Transformer>> createDeployPhases(
+    TransformOptions options, {String sdkDir}) {
   var phases = options.lint ? [[new Linter(options)]] : [];
   return phases..addAll([
     [new ImportInliner(options)],
     [new ObservableTransformer()],
-    [new ScriptCompactor(options)],
+    [new ScriptCompactor(options, sdkDir: sdkDir)],
     [new PolyfillInjector(options)],
     [new BuildFilter(options)]
   ]);

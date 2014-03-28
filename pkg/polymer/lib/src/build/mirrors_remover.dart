@@ -23,16 +23,17 @@ class MirrorsRemover extends Transformer {
     return transform.primaryInput.readAsString().then((code) {
       // Note: this rewrite is highly-coupled with how polymer.dart is
       // written. Make sure both are updated in sync.
-      var start = code.indexOf('@MirrorsUsed');
+      var start = code.indexOf('@MirrorsUsed(');
       if (start == -1) _error();
       var end = code.indexOf('show MirrorsUsed;', start);
       if (end == -1) _error();
+      end = code.indexOf('\n', end);
       var loaderImport = code.indexOf(
           "import 'src/mirror_loader.dart' as loader;", end);
       if (loaderImport == -1) _error();
       var sb = new StringBuffer()
           ..write(code.substring(0, start))
-          ..write(code.susbtring(end)
+          ..write(code.substring(end)
               .replaceAll('src/mirror_loader.dart', 'src/static_loader.dart'));
 
       transform.addOutput(new Asset.fromString(id, sb.toString()));

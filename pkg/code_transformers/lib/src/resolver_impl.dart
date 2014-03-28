@@ -6,7 +6,9 @@ library code_transformer.src.resolver_impl;
 
 import 'dart:async';
 import 'package:analyzer/analyzer.dart' show parseCompilationUnit;
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/ast.dart' hide ConstantEvaluator;
+import 'package:analyzer/src/generated/constant.dart' show ConstantEvaluator,
+       EvaluationResult;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -33,7 +35,7 @@ class ResolverImpl implements Resolver {
   final Map<AssetId, _AssetBasedSource> sources =
       <AssetId, _AssetBasedSource>{};
 
-  final AnalysisContext _context =
+  final InternalAnalysisContext _context =
       AnalysisEngine.instance.createAnalysisContext();
 
   /// Transform for which this is currently updating, or null when not updating.
@@ -225,6 +227,12 @@ class ResolverImpl implements Resolver {
         .expand((unit) => unit.functions)
         .firstWhere((fn) => fn.name == name,
             orElse: () => null);
+  }
+
+  EvaluationResult evaluateConstant(
+      LibraryElement library, Expression expression) {
+    return new ConstantEvaluator(library.source, _context.typeProvider)
+        .evaluate(expression);
   }
 
   Uri getImportUri(LibraryElement lib, {AssetId from}) =>
