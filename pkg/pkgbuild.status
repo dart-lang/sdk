@@ -16,8 +16,6 @@ pkg/browser: PubGetError
 
 [ $use_public_packages ]
 samples/third_party/todomvc: Fail # Issue 17324
-pkg/polymer: Fail # observe with analyzer 0.13.0 has not been published yet.
-pkg/template_binding: Fail # depends on observe -dev.
 
 [ $builder_tag == russian ]
 samples/pop_pop_win: Fail # Issue 16356
