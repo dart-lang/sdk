@@ -26,6 +26,7 @@ docgen/test/typedef_test: Skip # Way too slow
 
 [ $runtime == vm && $mode == debug]
 docgen/test/only_lib_content_in_pkg_test: Skip # Slow
+polymer/test/build/all_phases_test: Skip # Slow
 
 [ $runtime == vm && ( $arch == simarm || $arch == simmips ) ]
 docgen/test/only_lib_content_in_pkg_test: Skip # slow
