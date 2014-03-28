@@ -17,7 +17,7 @@ main() {
   var entryPoint = new AssetId('a', 'web/main.dart');
   var resolvers = new Resolvers(testingDartSdkDirectory);
 
-  Future validateResolver({Map<String, String> inputs, void validator(Resolver),
+  Future validateResolver({Map<String, String> inputs, validator(Resolver),
       List<String> messages: const[]}) {
     return applyTransformers(
           [[new TestTransformer(resolvers, entryPoint, validator)]],
@@ -118,15 +118,30 @@ main() {
           });
     });
 
+    test('handles missing files', () {
+      return validateResolver(
+          inputs: {
+            'a|web/main.dart': '''
+              import 'package:b/missing.dart';
+
+              main() {
+              } ''',
+          },
+          validator: (resolver) {
+            var lib = resolver.getLibrary(entryPoint);
+            expect(lib.importedLibraries.length, 1);
+          });
+    });
+
     test('should update on changed package imports', () {
       return validateResolver(
           inputs: {
             'a|web/main.dart': '''
-              import 'package:b/b.dart';
+              import 'package:b/missing.dart';
 
               main() {
               } ''',
-            'b|lib/b.dart': '''
+            'b|lib/missing.dart': '''
               library b;
               class Bar {}
               ''',
@@ -143,14 +158,11 @@ main() {
       return validateResolver(
           inputs: {
             'a|web/main.dart': '''
-              import 'package:b/b.dart';
+              import 'package:b/missing.dart';
 
               main() {
               } ''',
           },
-          messages: [
-            'error: Unable to find asset for "package:b/b.dart"',
-          ],
           validator: (resolver) {
             var lib = resolver.getLibrary(entryPoint);
             expect(lib.importedLibraries.length, 1);
@@ -169,8 +181,8 @@ main() {
           messages: [
             // First from the AST walker
             'error: absolute paths not allowed: "/b.dart" (web/main.dart 0 14)',
-            // Then two from the resolver.
             'error: absolute paths not allowed: "/b.dart"',
+            // TODO: remove this when analyzer is updated.
             'error: absolute paths not allowed: "/b.dart"',
           ],
           validator: (resolver) {
@@ -346,7 +358,5 @@ class TestTransformer extends Transformer with ResolverTransformer {
   Future<bool> isPrimary(Asset input) =>
       new Future.value(input.id == primary);
 
-  applyResolver(Transform transform, Resolver resolver) {
-    return validator(resolver);
-  }
+  applyResolver(Transform transform, Resolver resolver) => validator(resolver);
 }

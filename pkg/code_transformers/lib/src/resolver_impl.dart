@@ -80,7 +80,7 @@ class ResolverImpl implements Resolver {
     // Can only have one resolve in progress at a time, so chain the current
     // resolution to be after the last one.
     var phaseComplete = new Completer();
-    var future = _lastPhaseComplete.then((_) {
+    var future = _lastPhaseComplete.whenComplete(() {
       _currentPhaseComplete = phaseComplete;
       return _performResolve(transform,
         entryPoints == null ? [transform.primaryInput.id] : entryPoints);
@@ -129,8 +129,12 @@ class ResolverImpl implements Resolver {
         source.dependentAssets.where((id) => !visited.contains(id))
             .forEach(processAsset);
       }, onError: (e) {
-        _context.applyChanges(new ChangeSet()..removedSource(sources[assetId]));
-        sources.remove(assetId);
+        var source = sources[assetId];
+        if (source != null && source.exists()) {
+          _context.applyChanges(
+              new ChangeSet()..removedSource(source));
+          sources[assetId].updateContents(null);
+        }
       }));
     }
     entryPoints.forEach(processAsset);
@@ -140,10 +144,13 @@ class ResolverImpl implements Resolver {
     return visiting.future.then((_) {
       var changeSet = new ChangeSet();
       toUpdate.forEach((pending) => pending.apply(changeSet));
-      var unreachableAssets = new Set.from(sources.keys).difference(visited);
+      var unreachableAssets = sources.keys.toSet()
+          .difference(visited)
+          .map((id) => sources[id]);
       for (var unreachable in unreachableAssets) {
-        changeSet.removedSource(sources[unreachable]);
-        sources.remove(unreachable);
+        changeSet.removedSource(unreachable);
+        unreachable.updateContents(null);
+        sources.remove(unreachable.assetId);
       }
 
       // Update the analyzer context with the latest sources
@@ -322,8 +329,11 @@ class _AssetBasedSource extends Source {
   }
 
   /// Contents of the file.
-  TimestampedData<String> get contents =>
-      new TimestampedData<String>(modificationStamp, _contents);
+  TimestampedData<String> get contents {
+    if (!exists()) throw new StateError('$assetId does not exist');
+
+    return new TimestampedData<String>(modificationStamp, _contents);
+  }
 
   /// Contents of the file.
   String get rawContents => _contents;
@@ -336,7 +346,7 @@ class _AssetBasedSource extends Source {
   /// Gets all imports/parts/exports which resolve to assets (non-Dart files).
   Iterable<AssetId> get dependentAssets => _dependentAssets;
 
-  bool exists() => true;
+  bool exists() => _contents != null;
 
   bool operator ==(Object other) =>
       other is _AssetBasedSource && assetId == other.assetId;
@@ -409,10 +419,16 @@ class _AssetUriResolver implements UriResolver {
 
   Source resolveAbsolute(Uri uri) {
     var assetId = _resolve(null, uri.toString(), logger, null);
+    if (assetId == null) {
+      logger.error('Unable to resolve asset ID for "$uri"');
+      return null;
+    }
     var source = _resolver.sources[assetId];
-    /// All resolved assets should be available by this point.
+    // Analyzer expects that sources which are referenced but do not exist yet
+    // still exist, so just make an empty source.
     if (source == null) {
-      logger.error('Unable to find asset for "$uri"');
+      source = new _AssetBasedSource(assetId, _resolver);
+      _resolver.sources[assetId] = source;
     }
     return source;
   }
@@ -578,7 +594,7 @@ class FutureGroup<E> {
   }
 
   /**
-   * A Future that complets with a List of the values from all the added
+   * A Future that completes with a List of the values from all the added
    * tasks, when they have all completed.
    *
    * If any task fails, this Future will receive the error. Only the first

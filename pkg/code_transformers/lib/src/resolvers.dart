@@ -68,9 +68,10 @@ abstract class ResolverTransformer implements Transformer {
   ///    }
   Future applyToEntryPoints(Transform transform, [List<AssetId> entryPoints]) {
     return resolvers.get(transform, entryPoints).then((resolver) {
-      return new Future.value(applyResolver(transform, resolver)).then((_) {
-        resolver.release();
-      });
+      return new Future(() => applyResolver(transform, resolver))
+        .whenComplete(() {
+          resolver.release();
+        });
     });
   }
 
