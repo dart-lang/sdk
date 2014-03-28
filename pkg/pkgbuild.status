@@ -12,8 +12,8 @@ pkg/docgen: Pass, Slow
 
 [ $use_repository_packages ]
 pkg/analyzer: PubGetError
-pkg/args: PubGetError
 pkg/browser: PubGetError
+pkg/intl: PubGetError
 
 [ $use_public_packages ]
 samples/third_party/todomvc: Fail # Issue 17324
