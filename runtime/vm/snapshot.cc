@@ -598,7 +598,7 @@ RawLibrary* SnapshotReader::NewLibrary() {
 
 
 RawLibraryPrefix* SnapshotReader::NewLibraryPrefix() {
-  ALLOC_NEW_OBJECT(LibraryPrefix, Object::library_prefix_class());
+  ALLOC_NEW_OBJECT(LibraryPrefix, object_store()->library_prefix_class());
 }
 
 

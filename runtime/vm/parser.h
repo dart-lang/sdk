@@ -47,6 +47,7 @@ class ParsedFunction : public ZoneAllocated {
         saved_current_context_var_(NULL),
         saved_entry_context_var_(NULL),
         expression_temp_var_(NULL),
+        deferred_prefixes_(NULL),
         first_parameter_index_(0),
         first_stack_local_index_(0),
         num_copied_params_(0),
@@ -108,6 +109,10 @@ class ParsedFunction : public ZoneAllocated {
   static LocalVariable* CreateExpressionTempVar(intptr_t token_pos);
   LocalVariable* EnsureExpressionTemp();
 
+  bool HasDeferredPrefixes() const { return deferred_prefixes_ != NULL; }
+  GrowableObjectArray* DeferredPrefixes() const { return deferred_prefixes_; }
+  void AddDeferredPrefix(const LibraryPrefix& prefix);
+
   int first_parameter_index() const { return first_parameter_index_; }
   int first_stack_local_index() const { return first_stack_local_index_; }
   int num_copied_params() const { return num_copied_params_; }
@@ -124,6 +129,7 @@ class ParsedFunction : public ZoneAllocated {
   LocalVariable* saved_current_context_var_;
   LocalVariable* saved_entry_context_var_;
   LocalVariable* expression_temp_var_;
+  GrowableObjectArray* deferred_prefixes_;
 
   int first_parameter_index_;
   int first_stack_local_index_;
@@ -356,7 +362,8 @@ class Parser : public ValueObject {
   void ResolveTypeFromClass(const Class& cls,
                             ClassFinalizer::FinalizationKind finalization,
                             AbstractType* type);
-  RawAbstractType* ParseType(ClassFinalizer::FinalizationKind finalization);
+  RawAbstractType* ParseType(ClassFinalizer::FinalizationKind finalization,
+                             bool allow_deferred_type = false);
   void ParseTypeParameters(const Class& cls);
   RawTypeArguments* ParseTypeArguments(
       ClassFinalizer::FinalizationKind finalization);

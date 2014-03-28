@@ -579,6 +579,14 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           function.SetCode(code);
           ASSERT(CodePatcher::CodeIsPatchable(code));
         }
+        if (parsed_function->HasDeferredPrefixes()) {
+          GrowableObjectArray* prefixes = parsed_function->DeferredPrefixes();
+          LibraryPrefix& prefix = LibraryPrefix::Handle();
+          for (intptr_t i = 0; i < prefixes->Length(); i++) {
+            prefix ^= prefixes->At(i);
+            prefix.RegisterDependentCode(code);
+          }
+        }
       }
       is_compiled = true;
       done = true;

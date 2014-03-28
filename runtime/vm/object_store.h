@@ -69,6 +69,11 @@ class ObjectStore {
     function_impl_type_ = value.raw();
   }
 
+  RawClass* library_prefix_class() const { return library_prefix_class_; }
+  void set_library_prefix_class(const Class& value) {
+    library_prefix_class_ = value.raw();
+  }
+
   RawClass* type_class() const { return type_class_; }
   void set_type_class(const Class& value) { type_class_ = value.raw(); }
 
@@ -431,6 +436,7 @@ class ObjectStore {
   RawType* null_type_;
   RawType* function_type_;
   RawType* function_impl_type_;
+  RawClass* library_prefix_class_;
   RawClass* type_class_;
   RawClass* type_ref_class_;
   RawClass* type_parameter_class_;
