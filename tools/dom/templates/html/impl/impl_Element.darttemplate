@@ -121,8 +121,7 @@ class _ChildrenElementList extends ListBase<Element>
   }
 
   void clear() {
-    // It is unclear if we want to keep non element nodes?
-    _element.text = '';
+    _element._clearChildren();
   }
 
   Element removeAt(int index) {

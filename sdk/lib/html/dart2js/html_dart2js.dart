@@ -8313,8 +8313,7 @@ class _ChildrenElementList extends ListBase<Element>
   }
 
   void clear() {
-    // It is unclear if we want to keep non element nodes?
-    _element.text = '';
+    _element._clearChildren();
   }
 
   Element removeAt(int index) {
@@ -19667,7 +19666,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
   }
 
   void clear() {
-    _this.text = '';
+    _this._clearChildren();
   }
 
   void operator []=(int index, Node value) {
@@ -19786,6 +19785,12 @@ class Node extends EventTarget native "Node" {
       for (var node in newNodes) {
         this.insertBefore(node, refChild);
       }
+    }
+  }
+
+  void _clearChildren() {
+    while (firstChild != null) {
+      _removeChild(firstChild);
     }
   }
 

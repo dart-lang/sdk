@@ -8818,8 +8818,7 @@ class _ChildrenElementList extends ListBase<Element>
   }
 
   void clear() {
-    // It is unclear if we want to keep non element nodes?
-    _element.text = '';
+    _element._clearChildren();
   }
 
   Element removeAt(int index) {
@@ -21407,7 +21406,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
   }
 
   void clear() {
-    _this.text = '';
+    _this._clearChildren();
   }
 
   void operator []=(int index, Node value) {
@@ -21526,6 +21525,12 @@ class Node extends EventTarget {
       for (var node in newNodes) {
         this.insertBefore(node, refChild);
       }
+    }
+  }
+
+  void _clearChildren() {
+    while (firstChild != null) {
+      _removeChild(firstChild);
     }
   }
 
@@ -28907,13 +28912,13 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
