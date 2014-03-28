@@ -60,8 +60,9 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
   Future<bool> isPrimary(Asset asset) {
     if (asset.id.extension != ".dart") return new Future.value(false);
 
-    if (!["benchmark", "example", "test", "web"]
-        .any((dir) => asset.id.path.startsWith("$dir/"))) {
+    // These should only contain libraries. For efficiency's sake, we don't
+    // look for entrypoints in there.
+    if (["asset/", "lib/"].any(asset.id.path.startsWith)) {
       return new Future.value(false);
     }
 

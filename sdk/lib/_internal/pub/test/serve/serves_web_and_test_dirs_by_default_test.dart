@@ -4,9 +4,9 @@
 
 library pub_tests;
 
-import '../../descriptor.dart' as d;
-import '../../test_pub.dart';
-import '../utils.dart';
+import '../descriptor.dart' as d;
+import '../test_pub.dart';
+import 'utils.dart';
 
 main() {
   initConfig();

@@ -10,56 +10,38 @@ import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 
 import '../barback/build_environment.dart';
-import '../command.dart';
 import '../exit_codes.dart' as exit_codes;
 import '../io.dart';
 import '../log.dart' as log;
 import '../utils.dart';
+import 'barback.dart';
 
 final _arrow = getSpecial('\u2192', '=>');
 
-/// The set of top level directories in the entrypoint package that can be
-/// built.
-final _allowedBuildDirectories = new Set<String>.from([
-  "benchmark", "bin", "example", "test", "web"
-]);
-
 /// Handles the `build` pub command.
-class BuildCommand extends PubCommand {
+class BuildCommand extends BarbackCommand {
   String get description => "Apply transformers to build a package.";
   String get usage => "pub build [options] [directories...]";
   List<String> get aliases => const ["deploy", "settle-up"];
-  bool get takesArguments => true;
 
   // TODO(nweiz): make this configurable.
   /// The path to the application's build output directory.
   String get target => 'build';
 
-  /// The build mode.
-  BarbackMode get mode => new BarbackMode(commandOptions["mode"]);
+  BarbackMode get defaultMode => BarbackMode.RELEASE;
+
+  List<String> get defaultSourceDirectories => ["web"];
 
   /// The number of files that have been built and written to disc so far.
   int builtFiles = 0;
-
-  /// The names of the top-level build directories that will be built.
-  final buildDirectories = new Set<String>();
 
   BuildCommand() {
     commandParser.addOption("format",
         help: "How output should be displayed.",
         allowed: ["text", "json"], defaultsTo: "text");
-
-    commandParser.addOption("mode", defaultsTo: BarbackMode.RELEASE.toString(),
-        help: "Mode to run transformers in.");
-
-    commandParser.addFlag("all", help: "Build all buildable directories.",
-        defaultsTo: false, negatable: false);
   }
 
-  Future onRun() {
-    log.json.enabled = commandOptions["format"] == "json";
-
-    _parseBuildDirectories();
+  Future onRunTransformerCommand() {
     cleanDir(target);
 
     var errorsJson = [];
@@ -97,7 +79,7 @@ class BuildCommand extends PubCommand {
         // TODO(rnystrom): We don't actually need to bind servers for these, we
         // just need to add them to barback's sources. Add support to
         // BuildEnvironment for going the latter without the former.
-        return Future.wait(buildDirectories.map(
+        return Future.wait(sourceDirectories.map(
             (dir) => environment.serveDirectory(dir))).then((_) {
 
           return environment.barback.getAllAssets();
@@ -137,71 +119,6 @@ class BuildCommand extends PubCommand {
     });
   }
 
-  /// Parses the command-line arguments to determine the set of top-level
-  /// directories to build.
-  ///
-  /// If there are no arguments to `pub build`, this will just be "web".
-  ///
-  /// If the `--all` flag is set, then it will be all buildable directories
-  /// that exist.
-  ///
-  /// Otherwise, all arguments should be the names of directories to include.
-  ///
-  /// Throws an exception if the arguments are invalid.
-  void _parseBuildDirectories() {
-    if (commandOptions["all"]) {
-      if (commandOptions.rest.isNotEmpty) {
-        usageError(
-            'Build directory names are not allowed if "--all" is passed.');
-      }
-
-      // Include every build directory that exists in the package.
-      var allowed = _allowedBuildDirectories.where(
-          (d) => dirExists(path.join(entrypoint.root.dir, d)));
-
-      if (allowed.isEmpty) {
-        var buildDirs = toSentence(ordered(_allowedBuildDirectories.map(
-            (name) => '"$name"')));
-        dataError('There are no buildable directories.\n'
-                  'The supported directories are $buildDirs.');
-      }
-
-      buildDirectories.addAll(allowed);
-      return;
-    }
-
-    buildDirectories.addAll(commandOptions.rest);
-
-    // If no directory were specified, default to "web".
-    if (buildDirectories.isEmpty) {
-      buildDirectories.add("web");
-    }
-
-    // Make sure the arguments are known directories.
-    var disallowed = buildDirectories.where(
-        (dir) => !_allowedBuildDirectories.contains(dir));
-    if (disallowed.isNotEmpty) {
-      var dirs = pluralize("directory", disallowed.length,
-          plural: "directories");
-      var names = toSentence(ordered(disallowed).map((name) => '"$name"'));
-      var allowed = toSentence(ordered(_allowedBuildDirectories.map(
-          (name) => '"$name"')));
-      usageError('Unsupported build $dirs $names.\n'
-                 'The allowed directories are $allowed.');
-    }
-
-    // Make sure all of the build directories exist.
-    var missing = buildDirectories.where(
-        (dir) => !dirExists(path.join(entrypoint.root.dir, dir)));
-
-    if (missing.length == 1) {
-      dataError('Directory "${missing.single}" does not exist.');
-    } else if (missing.isNotEmpty) {
-      var names = toSentence(ordered(missing).map((name) => '"$name"'));
-      dataError('Directories $names do not exist.');
-    }
-  }
-
   /// Writes [asset] to the appropriate build directory.
   ///
   /// If [asset] is in the special "assets" directory, writes it to every
@@ -219,7 +136,7 @@ class BuildCommand extends PubCommand {
     // top-level build directories.
     if (path.isWithin("assets", destPath) ||
         path.isWithin("packages", destPath)) {
-      return Future.wait(buildDirectories.map((buildDir) =>
+      return Future.wait(sourceDirectories.map((buildDir) =>
           _writeOutputFile(asset, path.join(buildDir, destPath))));
     }
 

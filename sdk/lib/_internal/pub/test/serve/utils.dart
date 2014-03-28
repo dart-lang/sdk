@@ -358,6 +358,13 @@ Future expectWebSocketError(String method, Map params, errorCode,
   }, "send $method with $params to web socket and expect error $errorCode");
 }
 
+/// Validates that [root] was not bound to a port when pub serve started.
+Future expectNotServed(String root) {
+  return schedule(() {
+    expect(_ports.containsKey(root), isFalse);
+  });
+}
+
 /// The next id to use for a JSON-RPC 2.0 request.
 var _rpcId = 0;
 

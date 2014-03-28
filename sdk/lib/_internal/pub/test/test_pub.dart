@@ -383,10 +383,12 @@ void scheduleSymlink(String target, String symlink) {
 /// Runs Pub with [args] and validates that its results match [output] (or
 /// [outputJson]), [error], and [exitCode].
 ///
+/// [output] and [error] can be [String]s, [RegExp]s, or [Matcher]s.
+///
 /// If [outputJson] is given, validates that pub outputs stringified JSON
 /// matching that object, which can be a literal JSON object or any other
 /// [Matcher].
-void schedulePub({List args, Pattern output, Pattern error, outputJson,
+void schedulePub({List args, output, error, outputJson,
     Future<Uri> tokenEndpoint, int exitCode: exit_codes.SUCCESS}) {
   // Cannot pass both output and outputJson.
   assert(output == null || outputJson == null);
@@ -737,71 +739,61 @@ Map packageVersionApiMap(Map pubspec, {bool full: false}) {
   return map;
 }
 
-/// Compares the [actual] output from running pub with [expected]. For [String]
-/// patterns, ignores leading and trailing whitespace differences and tries to
-/// report the offending difference in a nice way. For other [Pattern]s, just
-/// reports whether the output contained the pattern.
-void _validateOutput(List<String> failures, String pipe, Pattern expected,
+/// Compares the [actual] output from running pub with [expected].
+///
+/// If [expected] is a [String], ignores leading and trailing whitespace
+/// differences and tries to report the offending difference in a nice way.
+///
+/// If it's a [RegExp] or [Matcher], just reports whether the output matches.
+void _validateOutput(List<String> failures, String pipe, expected,
                      String actual) {
   if (expected == null) return;
 
-  var actualLines = actual.split("\n");
-  if (expected is RegExp) {
-    _validateOutputRegex(failures, pipe, expected, actualLines);
+  if (expected is String) {
+    _validateOutputString(failures, pipe, expected, actual);
   } else {
-    _validateOutputString(failures, pipe, expected, actualLines);
-  }
-}
-
-void _validateOutputRegex(List<String> failures, String pipe,
-                          RegExp expected, List<String> actual) {
-  var actualText = actual.join('\n');
-  if (actualText.contains(expected)) return;
-
-  if (actual.length == 0) {
-    failures.add('Expected $pipe to match "${expected.pattern}" but got none.');
-  } else {
-    failures.add('Expected $pipe to match "${expected.pattern}" but got:');
-    failures.addAll(actual.map((line) => '| $line'));
+    if (expected is RegExp) expected = matches(expected);
+    expect(actual, expected);
   }
 }
 
 void _validateOutputString(List<String> failures, String pipe,
-                           String expectedText, List<String> actual) {
-  final expected = expectedText.split('\n');
+                           String expected, String actual) {
+  var actualLines = actual.split("\n");
+  var expectedLines = expected.split("\n");
 
   // Strip off the last line. This lets us have expected multiline strings
   // where the closing ''' is on its own line. It also fixes '' expected output
   // to expect zero lines of output, not a single empty line.
-  if (expected.last.trim() == '') {
-    expected.removeLast();
+  if (expectedLines.last.trim() == '') {
+    expectedLines.removeLast();
   }
 
   var results = [];
   var failed = false;
 
   // Compare them line by line to see which ones match.
-  var length = max(expected.length, actual.length);
+  var length = max(expectedLines.length, actualLines.length);
   for (var i = 0; i < length; i++) {
-    if (i >= actual.length) {
+    if (i >= actualLines.length) {
       // Missing output.
       failed = true;
-      results.add('? ${expected[i]}');
-    } else if (i >= expected.length) {
+      results.add('? ${expectedLines[i]}');
+    } else if (i >= expectedLines.length) {
       // Unexpected extra output.
       failed = true;
-      results.add('X ${actual[i]}');
+      results.add('X ${actualLines[i]}');
     } else {
-      var expectedLine = expected[i].trim();
-      var actualLine = actual[i].trim();
+      var expectedLine = expectedLines[i].trim();
+      var actualLine = actualLines[i].trim();
 
       if (expectedLine != actualLine) {
         // Mismatched lines.
         failed = true;
-        results.add('X ${actual[i]}');
+        results.add('X ${actualLines[i]}');
       } else {
         // Output is OK, but include it in case other lines are wrong.
-        results.add('| ${actual[i]}');
+        results.add('| ${actualLines[i]}');
       }
     }
   }
@@ -809,7 +801,7 @@ void _validateOutputString(List<String> failures, String pipe,
   // If any lines mismatched, show the expected and actual.
   if (failed) {
     failures.add('Expected $pipe:');
-    failures.addAll(expected.map((line) => '| $line'));
+    failures.addAll(expectedLines.map((line) => '| $line'));
     failures.add('Got:');
     failures.addAll(results);
   }

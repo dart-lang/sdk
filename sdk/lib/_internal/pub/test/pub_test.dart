@@ -87,10 +87,10 @@ main() {
     schedulePub(args: ['cache', '--help'],
         output: '''
           Work with the system cache.
-          
+
           Usage: pub cache <subcommand>
           -h, --help    Print usage information for this command.
-          
+
           Available subcommands:
             add   Install a package.
      ''');
@@ -105,7 +105,7 @@ main() {
     schedulePub(args: ['quylthulg'],
         error: '''
         Could not find a command named "quylthulg".
-   
+
         Available commands:
           build      Apply transformers to build a package.
           cache      Work with the system cache.
@@ -124,7 +124,7 @@ main() {
     schedulePub(args: ['cache', 'quylthulg'],
         error: '''
         Could not find a subcommand named "quylthulg" for "pub cache".
-   
+
         Usage: pub cache <subcommand>
         -h, --help    Print usage information for this command.
 
@@ -214,11 +214,15 @@ main() {
           output: '''
             Run a local web development server.
 
-            By default, this serves "web/" and "test/", but an explicit list of 
+            By default, this serves "web/" and "test/", but an explicit list of
             directories to serve can be provided as well.
 
             Usage: pub serve [directories...]
             -h, --help               Print usage information for this command.
+                --mode               Mode to run transformers in.
+                                     (defaults to "debug")
+
+                --all                Use all default source directories.
                 --hostname           The hostname to listen on.
                                      (defaults to "localhost")
 
@@ -229,8 +233,6 @@ main() {
                                      (defaults to on)
 
                 --[no-]force-poll    Force the use of a polling filesystem watcher.
-                --mode               Mode to run transformers in.
-                                     (defaults to "debug")
             ''');
     });
 
@@ -270,7 +272,7 @@ main() {
 
             Usage: pub cache <subcommand>
             -h, --help    Print usage information for this command.
-    
+
             Available subcommands:
               add   Install a package.
             ''',

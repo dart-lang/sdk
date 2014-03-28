@@ -10,15 +10,19 @@ import '../../serve/utils.dart';
 
 main() {
   initConfig();
-  integration("ignores a Dart entrypoint outside web", () {
+  integration("ignores Dart entrypoints in lib and asset", () {
     d.dir(appPath, [
       d.appPubspec(),
+      d.dir("asset", [
+        d.file("main.dart", "void main() => print('hello');")
+      ]),
       d.dir("lib", [
         d.file("main.dart", "void main() => print('hello');")
       ])
     ]).create();
 
     pubServe();
+    requestShould404("assets/myapp/main.dart.js");
     requestShould404("packages/myapp/main.dart.js");
     endPubServe();
   });
