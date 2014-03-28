@@ -45,6 +45,7 @@ class MessageParser {
   const char* Params() const;
   bool HasParam(const char* name) const;
   intptr_t GetIntParam(const char* name) const;
+  int64_t GetInt64Param(const char* name) const;
   intptr_t GetOptIntParam(const char* name, intptr_t default_val) const;
 
   // GetStringParam mallocs the buffer that it returns. Caller must free.
