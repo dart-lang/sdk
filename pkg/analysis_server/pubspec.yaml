@@ -10,4 +10,4 @@ dependencies:
   args: any
   logging: any
 dev_dependencies:
-  unittest: any
+  unittest: '>=0.10.0 <0.12.0'

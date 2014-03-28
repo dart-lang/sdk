@@ -4,10 +4,10 @@
 
 library test.protocol;
 
-import 'package:analysis_server/src/protocol.dart';
-import 'package:unittest/matcher.dart';
-import 'package:unittest/unittest.dart';
 import 'dart:convert';
+
+import 'package:analysis_server/src/protocol.dart';
+import 'package:unittest/unittest.dart';
 
 main() {
   group('Notification', () {

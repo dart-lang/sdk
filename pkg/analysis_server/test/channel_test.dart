@@ -8,7 +8,6 @@ import 'dart:async';
 
 import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:unittest/matcher.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';

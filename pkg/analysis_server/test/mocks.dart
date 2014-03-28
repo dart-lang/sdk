@@ -10,7 +10,7 @@ import 'dart:io';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:unittest/matcher.dart';
+import 'package:matcher/matcher.dart';
 
 /**
  * Answer the absolute path the the SDK relative to the currently running

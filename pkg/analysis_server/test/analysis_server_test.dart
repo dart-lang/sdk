@@ -9,7 +9,6 @@ import 'dart:async';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:unittest/matcher.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
