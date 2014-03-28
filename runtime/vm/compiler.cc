@@ -515,6 +515,10 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           sinking->DetachMaterializations();
         }
 
+        // Compute and store graph informations (call & instruction counts)
+        // to be later used by the inliner.
+        FlowGraphInliner::CollectGraphInfo(flow_graph, true);
+
         // Perform register allocation on the SSA graph.
         FlowGraphAllocator allocator(*flow_graph);
         allocator.AllocateRegisters();

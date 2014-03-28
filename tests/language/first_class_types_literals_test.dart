@@ -15,6 +15,17 @@ sameType(a, b) {
 }
 
 main() {
+  void foo(a) {}
+
+  // Test that literals can be used in different contexts.
+  [int];
+  ([int]);
+  foo([int]);
+  [int].length;
+  ({1: int});
+  foo({1: int});
+  ({1: int}).keys;
+
   // Test type literals.
   Expect.equals(int, int);
   Expect.notEquals(int, num);

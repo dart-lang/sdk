@@ -256,8 +256,10 @@ List<String> listDir(String dir, {bool recursive: false,
   isHidden(part) => part.startsWith(".") && part != "." && part != "..";
 
   if (!includeHidden) {
-    entities = entities.where(
-        (entity) => !path.split(entity.path).any(isHidden));
+    entities = entities.where((entity) {
+      assert(entity.path.startsWith(dir));
+      return !path.split(entity.path.substring(dir.length + 1)).any(isHidden);
+    });
   }
 
   return entities.map((entity) => entity.path).toList();

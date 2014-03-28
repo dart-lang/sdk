@@ -1055,7 +1055,7 @@ void Assembler::divpd(XmmRegister dst, XmmRegister src) {
   EmitREX_RB(dst, src);
   EmitUint8(0x0F);
   EmitUint8(0x5E);
-  EmitXmmRegisterOperand(dst & 6, src);
+  EmitXmmRegisterOperand(dst & 7, src);
 }
 
 
