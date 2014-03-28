@@ -13,7 +13,7 @@ import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
 
-main(List<String> args) {
+main() {
   group('AnalysisServer', () {
     setUp(AnalysisServerTest.setUp);
 //    test('createContext', AnalysisServerTest.createContext);
