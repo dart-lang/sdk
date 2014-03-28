@@ -256,6 +256,8 @@ matcher/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
 barback/test/too_many_open_files_test: Skip # 14220
 third_party/html5lib/test/tokenizer_test: Pass, Slow
 docgen/test/generate_json_test: Skip # Issue 17003
+polymer/test/build/script_compactor_test: Skip # Slow
+polymer/test/build/all_phases_test: Skip # Slow
 
 [ $arch == simarm && $checked ]
 watcher/test/directory_watcher/linux_test: Skip # Issue 16118
