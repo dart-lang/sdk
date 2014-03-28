@@ -7,6 +7,8 @@ library mocks;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/protocol.dart';
@@ -82,7 +84,7 @@ class MockServerChannel implements ServerCommunicationChannel {
   }
 
   @override
-  void listen(void onRequest(Request request), {void onError(), void onDone()}) {
+  void listen(void onRequest(Request request), {Function onError, void onDone()}) {
     requestController.stream.listen(onRequest, onError: onError, onDone: onDone);
   }
 

@@ -5,6 +5,8 @@
 library test.domain.context;
 
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_context.dart';
 import 'package:analysis_server/src/domain_server.dart';
@@ -16,6 +18,7 @@ import 'mocks.dart';
 main() {
   group('ContextDomainHandlerTest', () {
     test('applyChanges', ContextDomainHandlerTest.applyChanges);
+    test('createChangeSet', ContextDomainHandlerTest.createChangeSet);
     test('setOptions', ContextDomainHandlerTest.setOptions);
     test('setPrioritySources_empty', ContextDomainHandlerTest.setPrioritySources_empty);
     test('setPrioritySources_nonEmpty', ContextDomainHandlerTest.setPrioritySources_nonEmpty);
@@ -31,14 +34,31 @@ class ContextDomainHandlerTest {
 
     Request request = new Request('0', ContextDomainHandler.APPLY_CHANGES_NAME);
     request.setParameter(ContextDomainHandler.CONTEXT_ID_PARAM, contextId);
-    // TODO (danrubel) convert ChangeSet to Map
-//    request.setParameter(ContextDomainHandler.CHANGES_PARAM, changeSet);
-    request.setParameter(ContextDomainHandler.CHANGES_PARAM, new Map());
+    request.setParameter(ContextDomainHandler.CHANGES_PARAM, {
+      ContextDomainHandler.ADDED_PARAM : ['ffile:/one.dart'],
+      ContextDomainHandler.MODIFIED_PARAM : ['ffile:/two.dart'],
+      ContextDomainHandler.REMOVED_PARAM : ['ffile:/three.dart']
+    });
     Response response = handler.handleRequest(request);
     expect(response.toJson(), equals({
       Response.ID: '0',
       Response.ERROR: null
     }));
+  }
+
+  static void createChangeSet() {
+    AnalysisServer server = new AnalysisServer(new MockServerChannel());
+    Request request = new Request('0', ContextDomainHandler.APPLY_CHANGES_NAME);
+    ContextDomainHandler handler = new ContextDomainHandler(server);
+    SourceFactory sourceFactory = new SourceFactory([new FileUriResolver()]);
+    ChangeSet changeSet = handler.createChangeSet(request, sourceFactory, {
+      ContextDomainHandler.ADDED_PARAM : ['ffile:/one.dart'],
+      ContextDomainHandler.MODIFIED_PARAM : [],
+      ContextDomainHandler.REMOVED_PARAM : ['ffile:/two.dart', 'ffile:/three.dart']
+    });
+    expect(changeSet.addedSources, hasLength(equals(1)));
+    expect(changeSet.changedSources, hasLength(equals(0)));
+    expect(changeSet.removedSources, hasLength(equals(2)));
   }
 
   static void setOptions() {

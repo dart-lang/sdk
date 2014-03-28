@@ -327,8 +327,8 @@ class Response {
 }
 
 /**
- * Instances of the class [RequestError] represent information about an error that
- * occurred while attempting to respond to a [Request].
+ * Instances of the class [RequestError] represent information about an error
+ * that occurred while attempting to respond to a [Request].
  */
 class RequestError {
   /**
