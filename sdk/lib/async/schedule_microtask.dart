@@ -31,6 +31,7 @@ void _asyncRunCallback() {
   try {
     _asyncRunCallbackLoop();
   } catch (e) {
+    print('microtask error ${e.stackTrace}'); // TODO(efortuna): Remove this.
     _AsyncRun._scheduleImmediate(_asyncRunCallback);
     _nextCallback = _nextCallback.next;
     rethrow;
