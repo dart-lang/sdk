@@ -5,12 +5,10 @@
 library code_transformers.test.resolver_test;
 
 import 'dart:async';
-import 'dart:io' show File, Platform;
 
 import 'package:barback/barback.dart';
 import 'package:code_transformers/resolver.dart';
 import 'package:code_transformers/tests.dart';
-import 'package:path/path.dart' as path;
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 

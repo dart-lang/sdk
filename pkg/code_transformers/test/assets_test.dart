@@ -5,13 +5,10 @@
 library code_transformers.test.assets_test;
 
 import 'dart:async';
-import 'dart:io' show File, Platform;
 
 import 'package:barback/barback.dart';
 import 'package:code_transformers/assets.dart';
-import 'package:code_transformers/resolver.dart';
 import 'package:code_transformers/tests.dart';
-import 'package:path/path.dart' as path;
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 
@@ -19,7 +16,7 @@ main() {
   useCompactVMConfiguration();
 
 
-  Future testAssetUri(String name,
+  void testAssetUri(String name,
       {AssetId source, String uri, AssetId result, String message,
       bool errorOnAbsolute: true}) {
     test(name, () {
