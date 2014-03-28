@@ -38,6 +38,7 @@ import 'dart:_foreign_helper' show
     JS_OPERATOR_AS_PREFIX,
     JS_OPERATOR_IS_PREFIX,
     JS_SIGNATURE_NAME,
+    JS_STRING_CONCAT,
     RAW_DART_FUNCTION_REF;
 
 import 'dart:_interceptors';
@@ -776,7 +777,7 @@ class Primitives {
   }
 
   static String stringConcatUnchecked(String string1, String string2) {
-    return JS('String', r'# + #', string1, string2);
+    return JS_STRING_CONCAT(string1, string2);
   }
 
   static String getTimeZoneName(receiver) {

@@ -30,7 +30,8 @@ import 'dart:_js_helper' show allMatchesInStringUnchecked,
                               StringMatch,
                               firstMatchAfter,
                               NoInline;
-import 'dart:_foreign_helper' show JS, JS_EFFECT, JS_INTERCEPTOR_CONSTANT;
+import 'dart:_foreign_helper' show
+    JS, JS_EFFECT, JS_INTERCEPTOR_CONSTANT, JS_STRING_CONCAT;
 import 'dart:math' show Random;
 
 part 'js_array.dart';

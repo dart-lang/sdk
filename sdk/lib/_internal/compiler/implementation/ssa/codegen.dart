@@ -1492,9 +1492,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // list class is instantiated.
         world.registerInstantiatedClass(
             compiler.listClass, work.resolutionTree);
-      } else if (target == backend.jsStringOperatorAdd) {
-        push(new js.Binary('+', object, arguments[0]), node);
-        return;
       } else if (target.isNative() && target.isFunction()
                  && !node.isInterceptedCall) {
         // A direct (i.e. non-interceptor) native call is the result of

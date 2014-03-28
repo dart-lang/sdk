@@ -3319,7 +3319,15 @@ class SsaBuilder extends ResolvedVisitor {
     push(new HForeign(nativeBehavior.codeAst, ssaType, inputs,
                       effects: nativeBehavior.sideEffects,
                       nativeBehavior: nativeBehavior));
-    return;
+  }
+
+  void handleJsStringConcat(ast.Send node) {
+    List<HInstruction> inputs = <HInstruction>[];
+    addGenericSendArgumentsToList(node.arguments, inputs);
+    if (inputs.length != 2) {
+      compiler.internalError(node.argumentsNode, 'Two arguments expected.');
+    }
+    push(new HStringConcat(inputs[0], inputs[1], node, backend.stringType));
   }
 
   void handleForeignJsCurrentIsolateContext(ast.Send node) {
@@ -3610,6 +3618,8 @@ class SsaBuilder extends ResolvedVisitor {
       stack.add(graph.addConstantNull(compiler));
     } else if (name == 'JS_INTERCEPTOR_CONSTANT') {
       handleJsInterceptorConstant(node);
+    } else if (name == 'JS_STRING_CONCAT') {
+      handleJsStringConcat(node);
     } else {
       throw "Unknown foreign: ${selector}";
     }
