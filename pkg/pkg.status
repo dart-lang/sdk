@@ -354,47 +354,8 @@ third_party/angular_tests/browser_test/directive/ng_repeat: Skip # Issue 17152
 third_party/angular_tests/browser_test/change_detection/dirty_checking_change_detector: Skip # Issue 17152
 
 [ $use_repository_packages ]
-analyzer/test/error_test: PubGetError
-analyzer/test/generated/ast_test: PubGetError
-analyzer/test/generated/element_test: PubGetError
-analyzer/test/generated/parser_test: PubGetError
-analyzer/test/generated/resolver_test: PubGetError
-analyzer/test/generated/scanner_test: PubGetError
-analyzer/test/options_test: PubGetError
-analyzer/test/parse_compilation_unit_test: PubGetError
-analyzer/test/services/formatter_test: PubGetError
-args/test/args_test: PubGetError
-args/test/command_test: PubGetError
-args/test/parse_all_test: PubGetError
-args/test/parse_test: PubGetError
-args/test/usage_test: PubGetError
-async/test/stream_zip_test: PubGetError
-async/test/stream_zip_zone_test: PubGetError
-collection/test/algorithms_test: PubGetError
-collection/test/iterable_zip_test: PubGetError
-collection/test/priority_queue_test: PubGetError
-collection/test/unmodifiable_collection_test: PubGetError
-collection/test/wrapper_test: PubGetError
-pkg/intl/test/bidi_format_test: PubGetError
-pkg/intl/test/bidi_utils_test: PubGetError
-pkg/intl/test/date_time_format_file_even_test: PubGetError
-pkg/intl/test/date_time_format_file_odd_test: PubGetError
-pkg/intl/test/date_time_format_local_even_test: PubGetError
-pkg/intl/test/date_time_format_local_odd_test: PubGetError
-pkg/intl/test/date_time_format_uninitialized_test: PubGetError
-pkg/intl/test/find_default_locale_standalone_test: PubGetError
-pkg/intl/test/intl_message_basic_example_test: PubGetError
-pkg/intl/test/intl_test: PubGetError
-pkg/intl/test/message_extraction/examples_parsing_test: PubGetError
-pkg/intl/test/message_extraction/failed_extraction_test: PubGetError
-pkg/intl/test/message_extraction/message_extraction_test: PubGetError
-pkg/intl/test/message_extraction/really_fail_extraction_test: PubGetError
-pkg/intl/test/number_closure_test: PubGetError
-pkg/intl/test/number_format_test: PubGetError
-stack_trace/test/chain_test: PubGetError
-stack_trace/test/frame_test: PubGetError
-stack_trace/test/trace_test: PubGetError
-stack_trace/test/vm_test: PubGetError
+analyzer/test/*: PubGetError
+intl/test/*: PubGetError
 
 [ $runtime == ie9 ]
 polymer: Pass, Fail, Timeout # Issue 16717
