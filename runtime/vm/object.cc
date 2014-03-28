@@ -3861,12 +3861,8 @@ void Class::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("library", Object::Handle(library()));
   const Script& script = Script::Handle(this->script());
   if (!script.IsNull()) {
-    intptr_t line_number = 0;
-    intptr_t column_number = 0;
-    script.GetTokenLocation(token_pos(), &line_number, &column_number);
     jsobj.AddProperty("script", script);
-    jsobj.AddProperty("line", line_number);
-    jsobj.AddProperty("col", column_number);
+    jsobj.AddProperty("tokenPos", token_pos());
   }
   {
     JSONArray interfaces_array(&jsobj, "interfaces");
@@ -6418,8 +6414,8 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
   const Script& script = Script::Handle(this->script());
   if (!script.IsNull()) {
     jsobj.AddProperty("script", script);
-    jsobj.AddProperty("token_pos", token_pos());
-    jsobj.AddProperty("end_token_pos", end_token_pos());
+    jsobj.AddProperty("tokenPos", token_pos());
+    jsobj.AddProperty("endTokenPos", end_token_pos());
   }
 }
 
@@ -7844,6 +7840,7 @@ const char* Script::ToCString() const {
 }
 
 
+// See also Dart_ScriptGetTokenInfo.
 void Script::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
@@ -7860,6 +7857,54 @@ void Script::PrintToJSONStream(JSONStream* stream, bool ref) const {
   }
   const String& source = String::Handle(Source());
   jsobj.AddProperty("source", source.ToCString());
+
+  // Print the line number table
+  {
+    JSONArray tokenPosTable(&jsobj, "tokenPosTable");
+
+    const TokenStream& tokenStream = TokenStream::Handle(tokens());
+    ASSERT(!tokenStream.IsNull());
+    TokenStream::Iterator tokens(tokenStream, 0);
+
+    const String& key = Symbols::Empty();
+    Scanner scanner(source, key);
+    scanner.Scan();
+    while (scanner.current_token().kind != Token::kEOS) {
+      ASSERT(tokens.IsValid());
+      ASSERT(scanner.current_token().kind == tokens.CurrentTokenKind());
+      int current_line = scanner.current_token().position.line;
+
+      // Each entry begins with a line number...
+      JSONArray lineInfo(&tokenPosTable);
+      lineInfo.AddValue(current_line + line_offset());
+
+      // ...and is followed by (token offset, col number) pairs.
+      //
+      // TODO(hausner): Could optimize here by not reporting tokens
+      // that will never be a location used by the debugger, e.g.
+      // braces, semicolons, most keywords etc.
+      while (scanner.current_token().kind != Token::kEOS) {
+        ASSERT(tokens.IsValid());
+        ASSERT(scanner.current_token().kind == tokens.CurrentTokenKind());
+
+        int token_line = scanner.current_token().position.line;
+        if (token_line != current_line) {
+          // We have hit a new line.  Break to the outer loop.
+          break;
+        }
+        lineInfo.AddValue(tokens.CurrentPosition());
+
+        intptr_t column = scanner.current_token().position.column;
+        if (token_line == 1) {
+          // On the first line of the script we must add the column offset.
+          column += col_offset();
+        }
+        lineInfo.AddValue(column);
+        scanner.Scan();
+        tokens.Advance();
+      }
+    }
+  }
 }
 
 

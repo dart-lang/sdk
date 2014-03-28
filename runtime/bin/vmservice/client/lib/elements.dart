@@ -28,6 +28,7 @@ export 'package:observatory/src/elements/library_view.dart';
 export 'package:observatory/src/elements/nav_bar.dart';
 export 'package:observatory/src/elements/observatory_application.dart';
 export 'package:observatory/src/elements/response_viewer.dart';
+export 'package:observatory/src/elements/script_inset.dart';
 export 'package:observatory/src/elements/script_ref.dart';
 export 'package:observatory/src/elements/script_view.dart';
 export 'package:observatory/src/elements/service_ref.dart';

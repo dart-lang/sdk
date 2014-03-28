@@ -67,6 +67,7 @@
     'vmservice/client/deployed/web/packages/observatory/src/elements/observatory_application.html',
     'vmservice/client/deployed/web/packages/observatory/src/elements/observatory_element.html',
     'vmservice/client/deployed/web/packages/observatory/src/elements/response_viewer.html',
+    'vmservice/client/deployed/web/packages/observatory/src/elements/script_inset.html',
     'vmservice/client/deployed/web/packages/observatory/src/elements/script_ref.html',
     'vmservice/client/deployed/web/packages/observatory/src/elements/script_view.html',
     'vmservice/client/deployed/web/packages/observatory/src/elements/service_error_view.html',

@@ -531,7 +531,7 @@
         <div class="memberItem">
           <div class="memberName">script</div>
           <div class="memberValue">
-            <script-ref ref="{{ cls['script'] }}" line="{{ cls['line'] }}">
+            <script-ref ref="{{ cls['script'] }}" pos="{{ cls['tokenPos'] }}">
             </script-ref>
           </div>
         </div>
@@ -934,7 +934,8 @@
         <div class="memberItem">
           <div class="memberName">script</div>
           <div class="memberValue">
-            <script-ref ref="{{ function['script'] }}"></script-ref>
+            <script-ref ref="{{ function['script'] }}" pos="{{ function['tokenPos'] }}">
+            </script-ref>
           </div>
         </div>
 
@@ -1007,6 +1008,37 @@
 </template>
 
 </polymer-element>
+<polymer-element name="script-inset" extends="observatory-element">
+  <template>
+    <style>
+      .sourceInset {
+        padding-left: 15%;
+        padding-right: 15%;
+      }
+      .grayBox {
+        width: 100%;
+        background-color: #f5f5f5;
+        border: 1px solid #ccc;
+        padding: 10px;
+     }
+    </style>
+    <div class="sourceInset">
+      <content></content>
+      <div class="grayBox">
+        <table>
+          <tbody>
+            <tr template="" repeat="{{ line in lines }}">
+              <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{line.line}}</td>
+              <td>&nbsp;</td>
+              <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: pre;">{{line.text}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </template>
+  
+</polymer-element>
 <polymer-element name="isolate-summary" extends="observatory-element">
   <template>
     <div class="row">
@@ -1075,20 +1107,12 @@
         ( <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a> )
       </div>
     </div>
-    <div class="row">
-      <div class="col-md-3">
-      </div>
-      <div class="col-md-6">
-        <template if="{{ isolate.topFrame != null }}">
-          <function-ref ref="{{ isolate.topFrame['function'] }}"></function-ref>
-          (<script-ref ref="{{ isolate.topFrame['script'] }}" line="{{ isolate.topFrame['line'] }}"></script-ref>)
-          <br>
-          <pre>{{ isolate.topFrame['line'] }} &nbsp; {{ isolate.topFrame['lineString'] }}</pre>
-        </template>
-      </div>
-      <div class="col-md-3">
-      </div>
-    </div>
+    <template if="{{ isolate.topFrame != null }}">
+      <script-inset script="{{ isolate.topFrame['script'] }}" pos="{{ isolate.topFrame['tokenPos'] }}">
+        <function-ref ref="{{ isolate.topFrame['function'] }}"></function-ref>
+        (<script-ref ref="{{ isolate.topFrame['script'] }}" pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
+      </script-inset>
+    </template>
   </template>
   
 </polymer-element>
@@ -1194,11 +1218,11 @@
       <hr>
     </template>
 
+    <br>
+
     <template if="{{ isolate.topFrame != null }}">
-      <br>
-      <div class="sourceInset">
-        <pre>          {{ isolate.topFrame['line'] }} &nbsp; {{ isolate.topFrame['lineString'] }}</pre>
-      </div>
+      <script-inset script="{{ isolate.topFrame['script'] }}" pos="{{ isolate.topFrame['tokenPos'] }}">
+      </script-inset>
     </template>
 
     <br>
@@ -1912,7 +1936,7 @@
       </div>
       <div class="col-md-9">
         <function-ref ref="{{ frame['function'] }}"></function-ref>
-        ( <script-ref ref="{{ frame['script'] }}" line="{{ frame['line'] }}">
+        ( <script-ref ref="{{ frame['script'] }}" pos="{{ frame['tokenPos'] }}">
         </script-ref> )
 
         <curly-block>

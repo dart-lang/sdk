@@ -5,6 +5,7 @@
   <link rel="import" href="library_ref.html">
   <link rel="import" href="nav_bar.html">
   <link rel="import" href="observatory_element.html">
+  <link rel="import" href="script_inset.html">
   <link rel="import" href="script_ref.html">
 </head>
 <polymer-element name="isolate-view" extends="observatory-element">
@@ -110,12 +111,12 @@
       <hr>
     </template>
 
+    <br>
+
     <template if="{{ isolate.topFrame != null }}">
-      <br>
-      <div class="sourceInset">
-        <pre>
-          {{ isolate.topFrame['line'] }} &nbsp; {{ isolate.topFrame['lineString'] }}</pre>
-      </div>
+      <script-inset script="{{ isolate.topFrame['script'] }}"
+                    pos="{{ isolate.topFrame['tokenPos'] }}">
+      </script-inset>
     </template>
 
     <br>

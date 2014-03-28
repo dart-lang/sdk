@@ -999,6 +999,39 @@ TEST_CASE(Service_VM) {
 }
 
 
+TEST_CASE(Service_Scripts) {
+  const char* kScript =
+      "var port;\n"  // Set to our mock port by C++.
+      "\n"
+      "main() {\n"
+      "}";
+
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(h_lib);
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port =
+      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
+
+  Instance& service_msg = Instance::Handle();
+  service_msg = Eval(h_lib, "[port, ['scripts', 'dart:test-lib'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_STREQ(
+      "{\"type\":\"Script\",\"id\":\"scripts\\/dart%3Atest-lib\","
+       "\"name\":\"dart:test-lib\",\"user_name\":\"dart:test-lib\","
+       "\"kind\":\"script\","
+       "\"source\":\"var port;\\n\\nmain() {\\n}\","
+       "\"tokenPosTable\":[[1,0,1,1,5,2,9],[3,5,1,6,5,7,6,8,8],[4,10,1]]}",
+      handler.msg());
+}
+
+
 TEST_CASE(Service_Coverage) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.

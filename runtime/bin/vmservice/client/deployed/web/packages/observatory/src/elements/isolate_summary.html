@@ -2,6 +2,7 @@
   <link rel="import" href="function_ref.html">
   <link rel="import" href="isolate_ref.html">
   <link rel="import" href="observatory_element.html">
+  <link rel="import" href="script_inset.html">
   <link rel="import" href="script_ref.html">
 </head>
 <polymer-element name="isolate-summary" extends="observatory-element">
@@ -72,21 +73,14 @@
         ( <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a> )
       </div>
     </div>
-    <div class="row">
-      <div class="col-md-3">
-      </div>
-      <div class="col-md-6">
-        <template if="{{ isolate.topFrame != null }}">
-          <function-ref ref="{{ isolate.topFrame['function'] }}"></function-ref>
-          (<script-ref ref="{{ isolate.topFrame['script'] }}"
-                       line="{{ isolate.topFrame['line'] }}"></script-ref>)
-          <br>
-          <pre>{{ isolate.topFrame['line'] }} &nbsp; {{ isolate.topFrame['lineString'] }}</pre>
-        </template>
-      </div>
-      <div class="col-md-3">
-      </div>
-    </div>
+    <template if="{{ isolate.topFrame != null }}">
+      <script-inset script="{{ isolate.topFrame['script'] }}"
+                    pos="{{ isolate.topFrame['tokenPos'] }}">
+        <function-ref ref="{{ isolate.topFrame['function'] }}"></function-ref>
+        (<script-ref ref="{{ isolate.topFrame['script'] }}"
+                     pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
+      </script-inset>
+    </template>
   </template>
   <script type="application/dart" src="isolate_summary.dart"></script>
 </polymer-element>

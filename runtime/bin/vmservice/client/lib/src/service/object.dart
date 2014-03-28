@@ -99,6 +99,8 @@ abstract class ServiceObject extends Observable {
     return reload();
   }
 
+  Future<ServiceObject> _inProgressReload;
+
   /// Reload [this]. Returns a future which completes to [this] or
   /// a [ServiceError].
   Future<ServiceObject> reload() {
@@ -110,17 +112,23 @@ abstract class ServiceObject extends Observable {
     if (loaded && immutable) {
       return new Future.value(this);
     }
-    return vm.getAsMap(link).then((ObservableMap map) {
-        var mapType = _stripRef(map['type']);
-        if (mapType != _serviceType) {
-          // If the type changes, return a new object instead of
-          // updating the existing one.
-          assert(mapType == 'Error' || mapType == 'Null');
-          return new ServiceObject._fromMap(owner, map);
-        }
-        update(map);
-        return this;
+    if (_inProgressReload == null) {
+      _inProgressReload =  vm.getAsMap(link).then((ObservableMap map) {
+          var mapType = _stripRef(map['type']);
+          if (mapType != _serviceType) {
+            // If the type changes, return a new object instead of
+            // updating the existing one.
+            assert(mapType == 'Error' || mapType == 'Null');
+            return new ServiceObject._fromMap(owner, map);
+          }
+          update(map);
+          return this;
+      }).whenComplete(() {
+          // This reload is complete.
+          _inProgressReload = null;
       });
+    }
+    return _inProgressReload;
   }
 
   /// Update [this] using [map] as a source. [map] can be a reference.
@@ -819,6 +827,14 @@ class Script extends ServiceObject {
 
   Script._empty(ServiceObjectOwner owner) : super._empty(owner);
 
+  /// This function maps a token position to a line number.
+  int tokenToLine(int token) => _tokenToLine[token];
+  Map _tokenToLine;
+
+  /// This function maps a token position to a column number.
+  int tokenToCol(int token) => _tokenToCol[token];
+  Map _tokenToCol;
+
   void _update(ObservableMap map, bool mapIsRef) {
     kind = map['kind'];
     _url = map['name'];
@@ -826,6 +842,26 @@ class Script extends ServiceObject {
     name = _shortUrl;
     vmName = _url;
     _processSource(map['source']);
+    _parseTokenPosTable(map['tokenPosTable']);
+  }
+
+  void _parseTokenPosTable(List<List<int>> table) {
+    if (table == null) {
+      return;
+    }
+    _tokenToLine = {};
+    _tokenToCol = {};
+    for (var line in table) {
+      // Each entry begins with a line number...
+      var lineNumber = line[0];
+      for (var pos = 1; pos < line.length; pos += 2) {
+        // ...and is followed by (token offset, col number) pairs.
+        var tokenOffset = line[pos];
+        var colNumber = line[pos+1];
+        _tokenToLine[tokenOffset] = lineNumber;
+        _tokenToCol[tokenOffset] = colNumber;
+      }
+    }
   }
 
   void _processHits(List scriptHits) {
