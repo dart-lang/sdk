@@ -15,7 +15,7 @@ main() {
     // and then verify that it's actually the correct value.
     // We have no way of getting this reliably for Windows, so it will fail.
     Intl.systemLocale = "xx_YY";
-    var callback = expectAsync1(verifyLocale);
+    var callback = expectAsync(verifyLocale);
     findSystemLocale().then(callback);
   });
 }
