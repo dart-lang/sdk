@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
-import "package:async/stream_zip.dart";
 import "package:unittest/unittest.dart";
 
 // Test that stream listener callbacks all happen in the zone where the
@@ -34,16 +33,16 @@ void testStream(String name, StreamController controller, Stream stream) {
     runZoned(() {
       Zone newZone1 = Zone.current;
       StreamSubscription sub;
-      sub = stream.listen(expectAsync1((v) {
+      sub = stream.listen(expectAsync((v) {
         expect(v, 42);
         expect(Zone.current, newZone1);
         outer.run(() {
-          sub.onData(expectAsync1((v) {
+          sub.onData(expectAsync((v) {
             expect(v, 37);
             expect(Zone.current, newZone1);
             runZoned(() {
               Zone newZone2 = Zone.current;
-              sub.onData(expectAsync1((v) {
+              sub.onData(expectAsync((v) {
                 expect(v, 87);
                 expect(Zone.current, newZone1);
               }));

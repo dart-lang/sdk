@@ -38,7 +38,7 @@ main() {
   testZip(Iterable streams, Iterable expectedData) {
     List data = [];
     Stream zip = new StreamZip(streams);
-    zip.listen(data.add, onDone: expectAsync0(() {
+    zip.listen(data.add, onDone: expectAsync(() {
       expect(data, equals(expectedData));
     }));
   }
@@ -155,7 +155,7 @@ main() {
   });
 
   test("Pause/Resume", () {
-    var done = expectAsync0((){});  // Call to complete test.
+    var done = expectAsync((){});  // Call to complete test.
 
     int sc1p = 0;
     StreamController c1 = new StreamController(
@@ -215,7 +215,7 @@ main() {
     var sz = new StreamZip([s1, s2]);
     int ctr = 0;
     var sub;
-    sub = sz.listen(expectAsync1((v) {
+    sub = sz.listen(expectAsync((v) {
       expect(v, equals([ctr * 2, ctr * 2 + 1]));
       if (ctr == 1) {
         sub.pause(new Future.delayed(const Duration(milliseconds: 25)));
