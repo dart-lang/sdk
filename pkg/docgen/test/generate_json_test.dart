@@ -9,7 +9,6 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:scheduled_test/descriptor.dart' as d;
 import 'package:scheduled_test/scheduled_test.dart';
-import 'package:unittest/matcher.dart';
 
 import 'util.dart';
 import '../lib/docgen.dart' as dg;
