@@ -7,4 +7,5 @@ PACKAGE_ROOT=../../../sdk/lib/_internal/
 
 all:
 	$(SDK_DIR)/bin/dartanalyzer -p $(PACKAGE_ROOT) leap.dart --machine 2>&1\
+	| sed -e "s,$(PWD)/,," \
 	| awk -F'|' '{print $$4 ":" $$5 ":" $$6 ": " $$8}'

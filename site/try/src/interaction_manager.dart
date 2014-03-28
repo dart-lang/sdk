@@ -13,6 +13,9 @@ import 'dart:math' show
     max,
     min;
 
+import 'dart:async' show
+    Future;
+
 import 'package:compiler/implementation/scanner/scannerlib.dart'
   show
     EOF_TOKEN,
@@ -23,6 +26,7 @@ import 'package:compiler/implementation/source_file.dart' show
     StringSourceFile;
 
 import 'compilation.dart' show
+    currentSource,
     scheduleCompilation;
 
 import 'ui.dart' show
@@ -42,6 +46,10 @@ import 'decoration.dart' show
 
 import 'html_to_text.dart' show
     htmlToText;
+
+import 'compilation_unit.dart' show
+    CompilationUnit;
+
 import 'editor.dart' as editor;
 
 import 'mock.dart' as mock;
@@ -77,6 +85,14 @@ abstract class InteractionManager {
   void onMutation(List<MutationRecord> mutations, MutationObserver observer);
 
   void onSelectionChange(Event event);
+
+  /// Called when the content of a CompilationUnit changed.
+  void onCompilationUnitChanged(CompilationUnit unit);
+
+  Future<List<String>> projectFileNames();
+
+  /// Called when the user selected a new project file.
+  void onProjectFileSelected(String projectFile);
 }
 
 /**
@@ -84,6 +100,12 @@ abstract class InteractionManager {
  */
 class InteractionContext extends InteractionManager {
   InteractionState state;
+
+  final Map<String, CompilationUnit> projectFiles = <String, CompilationUnit>{};
+
+  CompilationUnit currentCompilationUnit =
+      // TODO(ahe): Don't use a fake unit.
+      new CompilationUnit('fake', '');
 
   InteractionContext()
       : super.internal() {
@@ -99,6 +121,16 @@ class InteractionContext extends InteractionManager {
   }
 
   void onSelectionChange(Event event) => state.onSelectionChange(event);
+
+  void onCompilationUnitChanged(CompilationUnit unit) {
+    return state.onCompilationUnitChanged(unit);
+  }
+
+  Future<List<String>> projectFileNames() => state.projectFileNames();
+
+  void onProjectFileSelected(String projectFile) {
+    return state.onProjectFileSelected(projectFile);
+  }
 }
 
 abstract class InteractionState implements InteractionManager {
@@ -233,9 +265,10 @@ class InitialState extends InteractionState {
       walk4(mainEditorPane);
     }
 
-    editor.currentSource = mainEditorPane.text;
+    String currentText = mainEditorPane.text;
+    context.currentCompilationUnit.content = currentText;
     mainEditorPane.nodes.clear();
-    mainEditorPane.appendText(editor.currentSource);
+    mainEditorPane.appendText(currentText);
     if (hasSelection) {
       selection.collapse(mainEditorPane.firstChild, anchorOffset);
     }
@@ -280,9 +313,6 @@ class InitialState extends InteractionState {
       }
     }
 
-    window.localStorage['currentSource'] = editor.currentSource;
-    print('Saved source');
-
     // Discard highlighting mutations.
     observer.takeRecords();
   }
@@ -294,6 +324,58 @@ class InitialState extends InteractionState {
     super.onStateChanged(previous);
     scheduleCompilation();
   }
+
+  void onCompilationUnitChanged(CompilationUnit unit) {
+    if (unit == context.currentCompilationUnit) {
+      currentSource = unit.content;
+      print('Saved source');
+      scheduleCompilation();
+    } else {
+      print("Unexpected change to compilation unit '${unit.name}'.");
+    }
+  }
+
+  Future<List<String>> projectFileNames() {
+    return getString('project?list').then((String response) {
+      return new List<String>.from(JSON.decode(response));
+    });
+  }
+
+  void onProjectFileSelected(String projectFile) {
+    // Disable editing whilst fetching data.
+    mainEditorPane.contentEditable = 'false';
+
+    CompilationUnit unit = context.projectFiles[projectFile];
+    Future<CompilationUnit> future;
+    if (unit != null) {
+      // This project file had been fetched already.
+      future = new Future<CompilationUnit>.value(unit);
+    } else {
+      // This project file has to be fetched.
+      future = getString('project/$projectFile').then((String text) {
+        CompilationUnit unit = context.projectFiles[projectFile];
+        if (unit == null) {
+          // Only create a new unit if the value hadn't arrived already.
+          unit = new CompilationUnit(projectFile, text);
+          context.projectFiles[projectFile] = unit;
+        }
+        return unit;
+      });
+    }
+    future.then((CompilationUnit unit) {
+      mainEditorPane
+          ..contentEditable = 'true'
+          ..nodes.clear();
+      observer.takeRecords(); // Discard mutations.
+
+      // Install the code, which will trigger a call to onMutation.
+      mainEditorPane.appendText(unit.content);
+    });
+  }
+}
+
+Future<String> getString(uri) {
+  return new Future<String>.sync(() => HttpRequest.getString('$uri'));
 }
 
 class PendingInputState extends InitialState {

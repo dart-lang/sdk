@@ -16,7 +16,8 @@ import 'dart:isolate' show
 
 import 'compilation.dart' show
     compilerIsolate,
-    compilerPort;
+    compilerPort,
+    currentSource;
 
 import 'isolate_legacy.dart' show
     spawnDomFunction,
@@ -50,8 +51,8 @@ checkHttpRequest(SendPort replyTo) {
 
 main() {
   UserOption.storage = window.localStorage;
-  if (window.localStorage['currentSource'] == null) {
-    window.localStorage['currentSource'] = EXAMPLE_HELLO;
+  if (currentSource == null) {
+    currentSource = EXAMPLE_HELLO;
   }
 
   buildUI();

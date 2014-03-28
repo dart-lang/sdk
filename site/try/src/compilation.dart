@@ -11,7 +11,8 @@ import 'dart:html' show
     IFrameElement,
     MessageEvent,
     Url,
-    Worker;
+    Worker,
+    window;
 
 import 'dart:async' show
     Timer;
@@ -22,7 +23,6 @@ import 'dart:isolate' show
 
 import 'editor.dart' show
     addDiagnostic,
-    currentSource,
     isMalformedInput;
 
 import 'run.dart' show
@@ -62,6 +62,13 @@ const String PRIVATE_SCHEME = 'org-trydart';
 
 SendPort compilerPort;
 Timer compilerTimer;
+
+// TODO(ahe): Remove this.
+String get currentSource => window.localStorage['currentSource'];
+
+void set currentSource(String text) {
+  window.localStorage['currentSource'] = text;
+}
 
 void scheduleCompilation() {
   if (compilationPaused) return;

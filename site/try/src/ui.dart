@@ -11,8 +11,6 @@ import 'dart:async' show
     Timer,
     scheduleMicrotask;
 
-import 'dart:convert' show JSON;
-
 import 'cache.dart' show
     onLoad,
     updateCacheStatus;
@@ -38,6 +36,12 @@ import 'settings.dart';
 import 'user_option.dart';
 
 import 'messages.dart' show messages;
+
+import 'compilation_unit.dart' show
+    CompilationUnit;
+
+import 'compilation.dart' show
+    currentSource;
 
 // TODO(ahe): Make internal to buildUI once all interactions have been moved to
 // the manager.
@@ -91,6 +95,8 @@ void onCodeChange(Event event) {
 
 buildUI() {
   interaction = new InteractionManager();
+
+  CompilationUnit.onChanged.listen(interaction.onCompilationUnitChanged);
 
   window.localStorage['currentSample'] = '$currentSample';
 
@@ -208,7 +214,7 @@ buildUI() {
           mainEditorPane, childList: true, characterData: true, subtree: true);
 
   scheduleMicrotask(() {
-    mainEditorPane.appendText(window.localStorage['currentSource']);
+    mainEditorPane.appendText(currentSource);
   });
 
   // You cannot install event handlers on window.applicationCache
@@ -229,27 +235,21 @@ buildCode(InteractionManager interaction) {
   var htmlGroup = new OptGroupElement()..label = 'HTML';
   var benchmarkGroup = new OptGroupElement()..label = 'Benchmarks';
 
-  new Future(() => HttpRequest.getString('project?list').then(
-  (String response) {
+  interaction.projectFileNames().then((List<String> names) {
     OptionElement none = new OptionElement()
         ..appendText('--')
         ..disabled = true;
-    codePicker.append(none);
-    for (String projectFile in JSON.decode(response)) {
-      codePicker.append(buildTab(projectFile, projectFile, (_) {
-        mainEditorPane.contentEditable = 'false';
-        HttpRequest.getString('project/$projectFile').then((String text) {
-          mainEditorPane
-              ..contentEditable = 'true'
-              ..nodes.clear();
-          observer.takeRecords();
-          mainEditorPane.appendText(text);
-        });
+    codePicker
+        ..append(none)
+        ..style.visibility = 'visible'
+        ..selectedIndex = 0;
+
+    for (String name in names) {
+      codePicker.append(buildTab(name, name, (event) {
+        interaction.onProjectFileSelected(name);
       }));
     }
-    codePicker.style.visibility = 'visible';
-    codePicker.selectedIndex = 0;
-  })).catchError((error) {
+  }).catchError((error) {
     codePicker.style.visibility = 'visible';
     print(error);
     OptionElement none = new OptionElement()

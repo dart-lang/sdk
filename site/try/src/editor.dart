@@ -120,7 +120,6 @@ Element getElementAtSelection() {
 }
 
 bool isMalformedInput = false;
-String currentSource = "";
 
 addDiagnostic(String kind, String message, int begin, int end) {
   observer.disconnect();
