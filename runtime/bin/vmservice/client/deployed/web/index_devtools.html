@@ -1175,7 +1175,8 @@
               @
               <function-ref ref="{{ isolate.topFrame['function'] }}">
               </function-ref>
-              (<script-ref ref="{{ isolate.topFrame['script'] }}" line="{{ isolate.topFrame['line'] }}"></script-ref>)
+              (<script-ref ref="{{ isolate.topFrame['script'] }}" pos="{{ isolate.topFrame['tokenPos'] }}">
+              </script-ref>)
             </template>
 
             <template if="{{ isolate.idle }}">
