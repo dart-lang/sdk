@@ -129,14 +129,6 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
   const Array& results = Array::Handle(Array::New(non_implicit_param_count));
   const Array& args = Array::Handle(Array::New(9));
 
-  // Return for synthetic functions and getters.
-  if (func.IsGetterFunction() ||
-      func.IsImplicitConstructor() ||
-      func.IsImplicitGetterFunction() ||
-      func.IsImplicitSetterFunction()) {
-    return results.raw();
-  }
-
   Smi& pos = Smi::Handle();
   String& name = String::Handle();
   Instance& param = Instance::Handle();
@@ -149,32 +141,52 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
   // of functions because some have no body, e.g. signature functions.
   EnsureConstructorsAreCompiled(func);
 
-  // Reparse the function for the following information:
-  // * The default value of a parameter.
-  // * Whether a parameters has been deflared as final.
-  // * Any metadata associated with the parameter.
-  const Object& result = Object::Handle(Parser::ParseFunctionParameters(func));
-  if (result.IsError()) {
-    ThrowInvokeError(Error::Cast(result));
-    UNREACHABLE();
+  bool has_extra_parameter_info = true;
+  if (non_implicit_param_count == 0) {
+    has_extra_parameter_info = false;
+  }
+  if (func.IsImplicitConstructor()) {
+    // This covers the default constructor and forwarding constructors.
+    has_extra_parameter_info = false;
+  }
+
+  Array& param_descriptor = Array::Handle();
+  if (has_extra_parameter_info) {
+    // Reparse the function for the following information:
+    // * The default value of a parameter.
+    // * Whether a parameters has been deflared as final.
+    // * Any metadata associated with the parameter.
+    const Object& result =
+        Object::Handle(Parser::ParseFunctionParameters(func));
+    if (result.IsError()) {
+      ThrowInvokeError(Error::Cast(result));
+      UNREACHABLE();
+    }
+    param_descriptor ^= result.raw();
+    ASSERT(param_descriptor.Length() ==
+           (Parser::kParameterEntrySize * non_implicit_param_count));
   }
 
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(func)));
   args.SetAt(2, owner_mirror);
 
-  const Array& param_descriptor = Array::Cast(result);
-  ASSERT(param_descriptor.Length() ==
-         (Parser::kParameterEntrySize * non_implicit_param_count));
+  if (!has_extra_parameter_info) {
+    is_final ^= Bool::True().raw();
+    default_value = Object::null();
+    metadata = Object::null();
+  }
+
   for (intptr_t i = 0; i < non_implicit_param_count; i++) {
     pos ^= Smi::New(i);
     name ^= func.ParameterNameAt(implicit_param_count + i);
-    is_final ^= param_descriptor.At(
-        i * Parser::kParameterEntrySize + Parser::kParameterIsFinalOffset);
-    default_value = param_descriptor.At(
-        i * Parser::kParameterEntrySize + Parser::kParameterDefaultValueOffset);
-    metadata = param_descriptor.At(
-        i * Parser::kParameterEntrySize + Parser::kParameterMetadataOffset);
-
+    if (has_extra_parameter_info) {
+      is_final ^= param_descriptor.At(i * Parser::kParameterEntrySize +
+          Parser::kParameterIsFinalOffset);
+      default_value = param_descriptor.At(i * Parser::kParameterEntrySize +
+          Parser::kParameterDefaultValueOffset);
+      metadata = param_descriptor.At(i * Parser::kParameterEntrySize +
+          Parser::kParameterMetadataOffset);
+    }
     ASSERT(default_value.IsNull() || default_value.IsInstance());
 
     // Arguments 0 (referent) and 2 (owner) are the same for all parameters. See
@@ -349,10 +361,12 @@ static RawInstance* CreateClassMirror(const Class& cls,
   const Array& args = Array::Handle(Array::New(8));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(cls)));
   args.SetAt(1, type);
-  // We do not set the names of anonymous mixin applications because the mirrors
+  // Note that the VM does not consider mixin application aliases to be mixin
+  // applications, so this only covers anonymous mixin applications. We do not
+  // set the names of anonymous mixin applications here because the mirrors
   // use a different naming convention than the VM (lib.S with lib.M and S&M
   // respectively).
-  if (!cls.IsAnonymousMixinApplication()) {
+  if (!cls.IsMixinApplication()) {
     args.SetAt(2, String::Handle(cls.Name()));
   }
   args.SetAt(3, owner_mirror);
@@ -1314,9 +1328,11 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 2) {
       const Class& klass = Class::Cast(entry);
       // We filter out function signature classes and dynamic.
       // TODO(12478): Should not need to filter out dynamic.
+      // Note that the VM does not consider mixin application aliases to be
+      // mixin applications.
       if (!klass.IsCanonicalSignatureClass() &&
           !klass.IsDynamicClass() &&
-          !klass.IsAnonymousMixinApplication()) {
+          !klass.IsMixinApplication()) {
         type = klass.DeclarationType();
         member_mirror = CreateClassMirror(klass,
                                           type,

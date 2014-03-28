@@ -3198,9 +3198,6 @@ bool Class::IsMixinApplication() const {
   return mixin() != Type::null();
 }
 
-bool Class::IsAnonymousMixinApplication() const {
-  return IsMixinApplication() && !is_mixin_app_alias();
-}
 
 void Class::set_patch_class(const Class& cls) const {
   ASSERT(patch_class() == Class::null());
@@ -9076,7 +9073,7 @@ void Library::PrintToJSONStream(JSONStream* stream, bool ref) const {
     while (class_iter.HasNext()) {
       klass = class_iter.GetNextClass();
       if (!klass.IsCanonicalSignatureClass() &&
-          !klass.IsAnonymousMixinApplication()) {
+          !klass.IsMixinApplication()) {
         jsarr.AddValue(klass);
       }
     }

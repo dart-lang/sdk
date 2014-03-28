@@ -817,8 +817,8 @@ class Class : public Object {
   RawType* mixin() const { return raw_ptr()->mixin_; }
   void set_mixin(const Type& value) const;
 
+  // Note this returns false for mixin application aliases.
   bool IsMixinApplication() const;
-  bool IsAnonymousMixinApplication() const;
 
   RawClass* patch_class() const {
     return raw_ptr()->patch_class_;
