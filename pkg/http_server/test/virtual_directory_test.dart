@@ -193,9 +193,9 @@ void main() {
         var virDir = new VirtualDirectory(dir.path);
         virDir.allowDirectoryListing = true;
 
-        virDir.directoryHandler = protectAsync2((dir2, request) {
+        virDir.directoryHandler = (dir2, request) {
           fail('not expected');
-        });
+        };
 
         return getStatusCodeForVirtDir(virDir, '/dir', followRedirects: false)
           .then((result) {
