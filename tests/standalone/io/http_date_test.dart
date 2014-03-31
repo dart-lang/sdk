@@ -44,6 +44,7 @@ void testFormatParseHttpDate() {
 
   test(1999, DateTime.JUNE, 11, 18, 46, 53, "Fri, 11 Jun 1999 18:46:53 GMT");
   test(1970, DateTime.JANUARY, 1, 0, 0, 0, "Thu, 1 Jan 1970 00:00:00 GMT");
+  test(1970, DateTime.JANUARY, 1, 9, 9, 9, "Thu, 1 Jan 1970 09:09:09 GMT");
   test(2012, DateTime.MARCH, 5, 23, 59, 59, "Mon, 5 Mar 2012 23:59:59 GMT");
 }
 
