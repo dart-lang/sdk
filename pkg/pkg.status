@@ -36,8 +36,6 @@ third_party/html5lib/test/tokenizer_test: Pass, Slow
 docgen/test/generate_json_test: Skip # Issue 17003
 polymer/test/build/script_compactor_test: Skip # Slow
 polymer/test/build/all_phases_test: Skip # Slow
-
-[ $runtime == vm && $mode == debug && ( $arch == simarm || $arch == simmips ) ]
 code_transformers/test/resolver_test: Skip # Issue 17908
 
 [ $compiler == dart2js ]
