@@ -489,3 +489,5 @@ deferred_shadow_load_library_test: Fail
 deferred_closurize_load_library_test: Fail
 deferred_load_library_wrong_args_test/01: Fail
 deferred_load_library_wrong_args_test/none: Fail
+deferred_load_inval_code_test: Fail
+
