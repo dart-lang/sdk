@@ -5671,8 +5671,6 @@ class SsaBuilder extends ResolvedVisitor {
  * Visitor that handles generation of string literals (LiteralString,
  * StringInterpolation), and otherwise delegates to the given visitor for
  * non-literal subexpressions.
- * TODO(lrn): Consider whether to handle compile time constant int/boolean
- * expressions as well.
  */
 class StringBuilderVisitor extends ast.Visitor {
   final SsaBuilder builder;
@@ -5685,6 +5683,8 @@ class StringBuilderVisitor extends ast.Visitor {
 
   StringBuilderVisitor(this.builder, this.diagnosticNode);
 
+  Compiler get compiler => builder.compiler;
+
   void visit(ast.Node node) {
     node.accept(this);
   }
@@ -5696,11 +5696,31 @@ class StringBuilderVisitor extends ast.Visitor {
   void visitExpression(ast.Node node) {
     node.accept(builder);
     HInstruction expression = builder.pop();
-    if (!expression.isConstantString()) {
-      expression = new HStringify(expression, node, builder.backend.stringType);
-      builder.add(expression);
+
+    // We want to use HStringify when:
+    //   1. The value is known to be a primitive type, because it might get
+    //      constant-folded and codegen has some tricks with JavaScript
+    //      conversions.
+    //   2. The value can be primitive, because the library stringifier has
+    //      fast-path code for most primitives.
+    if (expression.canBePrimitive(compiler)) {
+      append(stringify(node, expression));
+      return;
     }
-    result = (result == null) ? expression : concat(result, expression);
+
+    // If the `toString` method is guaranteed to return a string we can call it
+    // directly.
+    Selector selector =
+        new TypedSelector(expression.instructionType,
+            new Selector.call('toString', null, 0));
+    TypeMask type = TypeMaskFactory.inferredTypeForSelector(selector, compiler);
+    if (type.containsOnlyString(compiler)) {
+      builder.pushInvokeDynamic(node, selector, <HInstruction>[expression]);
+      append(builder.pop());
+      return;
+    }
+
+    append(stringify(node, expression));
   }
 
   void visitStringInterpolation(ast.StringInterpolation node) {
@@ -5720,9 +5740,20 @@ class StringBuilderVisitor extends ast.Visitor {
      node.visitChildren(this);
   }
 
+  void append(HInstruction expression) {
+    result = (result == null) ? expression : concat(result, expression);
+  }
+
   HInstruction concat(HInstruction left, HInstruction right) {
     HInstruction instruction = new HStringConcat(
         left, right, diagnosticNode, builder.backend.stringType);
+    builder.add(instruction);
+    return instruction;
+  }
+
+  HInstruction stringify(ast.Node node, HInstruction expression) {
+    HInstruction instruction =
+        new HStringify(expression, node, builder.backend.stringType);
     builder.add(instruction);
     return instruction;
   }

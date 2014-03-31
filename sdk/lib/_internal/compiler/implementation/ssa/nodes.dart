@@ -858,8 +858,13 @@ abstract class HInstruction implements Spannable {
 
   bool canBePrimitiveNumber(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
+    // TODO(sra): It should be possible to test only jsDoubleClass and
+    // jsUInt31Class, since all others are superclasses of these two.
     return instructionType.contains(backend.jsNumberClass, compiler)
         || instructionType.contains(backend.jsIntClass, compiler)
+        || instructionType.contains(backend.jsPositiveIntClass, compiler)
+        || instructionType.contains(backend.jsUInt32Class, compiler)
+        || instructionType.contains(backend.jsUInt31Class, compiler)
         || instructionType.contains(backend.jsDoubleClass, compiler);
   }
 
