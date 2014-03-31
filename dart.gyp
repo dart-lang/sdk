@@ -37,7 +37,7 @@
       'target_name': 'create_sdk',
       'type': 'none',
       'dependencies': [
-        'create_sdk.gyp:create_sdk',
+        'create_sdk.gyp:create_sdk_internal',
       ],
     },
     {

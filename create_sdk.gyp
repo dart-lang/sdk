@@ -5,7 +5,7 @@
 {
   'targets': [
     {
-      'target_name': 'create_sdk',
+      'target_name': 'create_sdk_internal',
       'type': 'none',
       'dependencies': [
         'runtime/dart-runtime.gyp:dart',

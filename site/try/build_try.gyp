@@ -9,7 +9,7 @@
       'type': 'none',
       'dependencies': [
         '../../runtime/dart-runtime.gyp:dart',
-        '../../create_sdk.gyp:create_sdk',
+        '../../create_sdk.gyp:create_sdk_internal',
       ],
       'variables': {
         'try_dart_static_files': [
