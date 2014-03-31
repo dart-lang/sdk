@@ -9,7 +9,7 @@
       'type': 'none',
       'dependencies': [
         'analyzer',
-        'create_sdk.gyp:create_sdk',
+        'create_sdk',
         'dart2js',
         'editor',
         'packages',
@@ -31,6 +31,13 @@
         'packages',
         'runtime/dart-runtime.gyp:test_extension',
         'runtime/dart-runtime.gyp:sample_extension',
+      ],
+    },
+    {
+      'target_name': 'create_sdk',
+      'type': 'none',
+      'dependencies': [
+        'create_sdk.gyp:create_sdk',
       ],
     },
     {
@@ -61,7 +68,7 @@
       'target_name': 'dart2dart_bot',
       'type': 'none',
       'dependencies': [
-        'create_sdk.gyp:create_sdk',
+        'create_sdk',
         'packages',
       ],
     },
@@ -72,7 +79,7 @@
       'target_name': 'dartc_bot',
       'type': 'none',
       'dependencies': [
-        'create_sdk.gyp:create_sdk',
+        'create_sdk',
         'packages',
       ],
     },
@@ -83,7 +90,7 @@
       'target_name': 'dart2js_bot',
       'type': 'none',
       'dependencies': [
-        'create_sdk.gyp:create_sdk',
+        'create_sdk',
         'packages',
         'try',
       ],
@@ -101,7 +108,7 @@
       'dependencies': [
         'editor/build/generated/editor_deps.gyp:editor_deps',
 
-        # This dependency on create_sdk.gyp:create_sdk does not mean that the
+        # This dependency on create_sdk does not mean that the
         # Editor is rebuilt if the SDK is. It only means that when you build
         # the Editor, you should also build the SDK. If we wanted to
         # make sure that the editor is rebuilt when the SDK is, we
@@ -110,7 +117,7 @@
         # This is the desired behavior as we would otherwise have to
         # rebuild the editor each time the VM, dart2js, or library
         # code changes.
-        'create_sdk.gyp:create_sdk',
+        'create_sdk',
       ],
       'actions': [
         {
