@@ -1,3 +1,8 @@
+## 0.10.1+1
+
+* Updated `http` version constraint from `">=0.9.0 <0.10.0"` to
+  `">=0.9.0 <0.11.0"`
+
 ## 0.10.1
 
 * Add a `StreamMatcher.hasMatch` method.
