@@ -47,7 +47,7 @@ main() {
     port.close();
   });
   test('NonDOMIsolates', () {
-    var callback = expectAsync0((){});
+    var callback = expectAsync((){});
     var response = new isolate.ReceivePort();
     var remote = isolate.Isolate.spawn(isolateEntry, response.sendPort);
     response.first.then((port) {

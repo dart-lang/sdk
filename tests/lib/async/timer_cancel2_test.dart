@@ -17,6 +17,6 @@ main() {
     }
 
     cancelTimer = new Timer.periodic(const Duration(milliseconds: 1),
-                                     expectAsync1(cancelHandler));
+                                     expectAsync(cancelHandler));
   });
 }

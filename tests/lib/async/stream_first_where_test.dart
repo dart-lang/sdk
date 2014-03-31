@@ -22,7 +22,7 @@ main() {
   test("firstWhere with super class", () {
     StreamController c = new StreamController<B>();
     Future f = c.stream.firstWhere((x) => false, defaultValue: () => const A());
-    f.then(expectAsync1((v) { Expect.equals(const A(), v); }));
+    f.then(expectAsync((v) { Expect.equals(const A(), v); }));
     sentEvents.replay(c);
   });
 }

@@ -37,7 +37,7 @@ main() {
     var url = canvas.toDataUrl();
 
     var img = new ImageElement();
-    img.onLoad.listen(expectAsync1((_) {
+    img.onLoad.listen(expectAsync((_) {
       expect(img.complete, true);
     }));
     img.onError.listen((_) {

@@ -17,7 +17,7 @@ void main() {
 
   test('performanceTesting', () {
     Timer.run(BENCHMARK_SUITE.runBenchmarks);
-    Timer.run(expectAsync0(testForCompletion));
+    Timer.run(expectAsync(testForCompletion));
   });
 }
 

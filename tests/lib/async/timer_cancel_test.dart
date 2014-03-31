@@ -28,17 +28,17 @@ main() {
       expect(repeatTimer, 1);
     }
 
-    cancelTimer = new Timer(ms * 1000, expectAsync0(unreachable, count: 0));
+    cancelTimer = new Timer(ms * 1000, expectAsync(unreachable, count: 0));
     cancelTimer.cancel();
-    new Timer(ms * 1000, expectAsync0(handler));
-    cancelTimer = new Timer(ms * 2000, expectAsync0(unreachable, count: 0));
+    new Timer(ms * 1000, expectAsync(handler));
+    cancelTimer = new Timer(ms * 2000, expectAsync(unreachable, count: 0));
     repeatTimer = 0;
-    new Timer.periodic(ms * 1500, expectAsync1(repeatHandler));
+    new Timer.periodic(ms * 1500, expectAsync(repeatHandler));
   });
 
   test("cancel timer with same time", () {
     var t2;
-    var t1 = new Timer(ms * 0, expectAsync0(() => t2.cancel()));
-    t2 = new Timer(ms * 0, expectAsync0(t1.cancel, count: 0));
+    var t1 = new Timer(ms * 0, expectAsync(() => t2.cancel()));
+    t2 = new Timer(ms * 0, expectAsync(t1.cancel, count: 0));
   });
 }

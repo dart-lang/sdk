@@ -13,7 +13,7 @@ import '../../pkg/unittest/lib/unittest.dart';
 main() {
   test('isolate fromUri - send and reply', () {
     ReceivePort port = new ReceivePort();
-    port.first.then(expectAsync1((msg) {
+    port.first.then(expectAsync((msg) {
       expect(msg, equals('re: hi'));
     }));
 

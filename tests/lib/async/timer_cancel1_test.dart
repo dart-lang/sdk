@@ -21,8 +21,8 @@ main() {
     }
 
     cancelerTimer = new Timer(const Duration(milliseconds: 1),
-                              expectAsync0(handler));
+                              expectAsync(handler));
     canceleeTimer = new Timer(const Duration(milliseconds: 1000),
-                              expectAsync0(unreachable, count: 0));
+                              expectAsync(unreachable, count: 0));
   });
 }

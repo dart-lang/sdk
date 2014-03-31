@@ -31,7 +31,7 @@ main() {
 
   test('constructKeyEvent', () {
     var stream = KeyEvent.keyPressEvent.forTarget(document.body);
-    var subscription = stream.listen(expectAsync1((keyEvent) {
+    var subscription = stream.listen(expectAsync((keyEvent) {
       expect(keyEvent.charCode, 97);
       expect(keyEvent.keyCode, 65);
     }));
@@ -41,7 +41,7 @@ main() {
     // Capital "A":
     stream.add(new KeyEvent('keydown', keyCode: 16, charCode: 0));
 
-    subscription = stream.listen(expectAsync1((keyEvent) {
+    subscription = stream.listen(expectAsync((keyEvent) {
       expect(keyEvent.charCode, 65);
       expect(keyEvent.keyCode, 65);
     }));
@@ -56,17 +56,17 @@ main() {
     var streamPress = KeyEvent.keyPressEvent.forTarget(document.body);
     var streamUp = KeyEvent.keyUpEvent.forTarget(document.body);
 
-    var subscription = streamDown.listen(expectAsync1((keyEvent) {
+    var subscription = streamDown.listen(expectAsync((keyEvent) {
       expect(keyEvent.keyCode, isIn([16, 191]));
       expect(keyEvent.charCode, 0);
     }, count: 2));
 
-    var subscription2 = streamPress.listen(expectAsync1((keyEvent) {
+    var subscription2 = streamPress.listen(expectAsync((keyEvent) {
       expect(keyEvent.keyCode, 23);
       expect(keyEvent.charCode, 63);
     }));
 
-    var subscription3 = streamUp.listen(expectAsync1((keyEvent) {
+    var subscription3 = streamUp.listen(expectAsync((keyEvent) {
       expect(keyEvent.keyCode, isIn([16, 191]));
       expect(keyEvent.charCode, 0);
     }, count: 2));
@@ -84,7 +84,7 @@ main() {
   });
 
   test('KeyEventKeyboardEvent', () {
-    window.onKeyDown.listen(expectAsync1((KeyboardEvent event) {
+    window.onKeyDown.listen(expectAsync((KeyboardEvent event) {
       expect(event.keyCode, 16);
     }));
     var streamDown = KeyEvent.keyDownEvent.forTarget(document.body);

@@ -63,12 +63,12 @@ main() {
     _message = 0;
 
     _stopwatch1.start();
-    new Timer(TIMEOUT1, expectAsync0(timeoutHandler1));
+    new Timer(TIMEOUT1, expectAsync(timeoutHandler1));
     _stopwatch2.start();
-    new Timer(TIMEOUT2, expectAsync0(timeoutHandler2));
+    new Timer(TIMEOUT2, expectAsync(timeoutHandler2));
     _stopwatch3.start();
-    new Timer(TIMEOUT3, expectAsync0(timeoutHandler3));
+    new Timer(TIMEOUT3, expectAsync(timeoutHandler3));
     _stopwatch4.start();
-    new Timer(TIMEOUT4, expectAsync0(timeoutHandler4));
+    new Timer(TIMEOUT4, expectAsync(timeoutHandler4));
   });
 }

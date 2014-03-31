@@ -78,7 +78,7 @@ void main() {
         xhr.open('POST',
             '${window.location.protocol}//${window.location.host}/echo');
 
-        xhr.onLoad.listen(expectAsync1((e) {
+        xhr.onLoad.listen(expectAsync((e) {
           expect(xhr.responseText.contains(blobString), true);
         }));
         xhr.onError.listen((e) {

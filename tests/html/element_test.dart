@@ -774,14 +774,14 @@ main() {
       document.body.append(selectorOne);
       document.body.append(selectorTwo);
 
-      document.body.onClick.matches('.selector').listen(expectAsync1(
+      document.body.onClick.matches('.selector').listen(expectAsync(
           (Event event) {
         expect(event.currentTarget, document.body);
         expect(event.target, clickOne);
         expect(event.matchingTarget, selectorOne);
       }));
 
-      selectorOne.onClick.matches('.selector').listen(expectAsync1(
+      selectorOne.onClick.matches('.selector').listen(expectAsync(
           (Event event) {
         expect(event.currentTarget, selectorOne);
         expect(event.target, clickOne);

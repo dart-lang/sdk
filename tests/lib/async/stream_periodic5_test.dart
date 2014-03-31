@@ -39,6 +39,6 @@ main() {
           subscription.resume();
         });
       } 
-    }, onDone: expectAsync0(() { }));
+    }, onDone: expectAsync(() { }));
   });
 }

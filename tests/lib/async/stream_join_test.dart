@@ -13,7 +13,7 @@ import "package:expect/expect.dart";
 main() {
   test("join-empty", () {
     StreamController c = new StreamController();
-    c.stream.join("X").then(expectAsync1(
+    c.stream.join("X").then(expectAsync(
       (String s) => expect(s, equals(""))
     ));
     c.close();
@@ -21,7 +21,7 @@ main() {
 
   test("join-single", () {
     StreamController c = new StreamController();
-    c.stream.join("X").then(expectAsync1(
+    c.stream.join("X").then(expectAsync(
       (String s) => expect(s, equals("foo"))
     ));
     c.add("foo");
@@ -30,7 +30,7 @@ main() {
 
   test("join-three", () {
     StreamController c = new StreamController();
-    c.stream.join("X").then(expectAsync1(
+    c.stream.join("X").then(expectAsync(
       (String s) => expect(s, equals("fooXbarXbaz"))
     ));
     c.add("foo");
@@ -41,7 +41,7 @@ main() {
 
   test("join-three-non-string", () {
     StreamController c = new StreamController();
-    c.stream.join("X").then(expectAsync1(
+    c.stream.join("X").then(expectAsync(
       (String s) => expect(s, equals("fooXbarXbaz"))
     ));
     c.add(new Foo("foo"));
@@ -52,7 +52,7 @@ main() {
 
   test("join-error", () {
     StreamController c = new StreamController();
-    c.stream.join("X").catchError(expectAsync1(
+    c.stream.join("X").catchError(expectAsync(
       (String s) => expect(s, equals("BAD!"))
     ));
     c.add(new Foo("foo"));

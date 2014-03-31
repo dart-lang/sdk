@@ -27,7 +27,7 @@ void main([args, port]) {
     Future spawn = Isolate.spawn(echo, port.sendPort);
     var caught_exception = false;
     var stream = port.asBroadcastStream();
-    stream.first.then(expectAsync1((snd) {
+    stream.first.then(expectAsync((snd) {
       try {
         snd.send(function);
       } catch (e) {
@@ -37,7 +37,7 @@ void main([args, port]) {
       if (caught_exception) {
         port.close();
       } else {
-        stream.first.then(expectAsync1((msg) {
+        stream.first.then(expectAsync((msg) {
           print("from worker ${msg}");
         }));
       }

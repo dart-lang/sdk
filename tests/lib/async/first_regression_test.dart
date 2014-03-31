@@ -26,6 +26,6 @@ main() {
     new Stream.fromIterable([1, 2])
         .transform(new DoubleTransformer())
         .first
-        .then(expectAsync1((e) {}));
+        .then(expectAsync((e) {}));
   });
 }

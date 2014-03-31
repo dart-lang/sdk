@@ -11,7 +11,7 @@ main() {
     Timer t;
 
     t = new Timer(const Duration(seconds: 1),
-                  expectAsync0(() => expect(t.isActive, equals(false))));
+                  expectAsync(() => expect(t.isActive, equals(false))));
     expect(t.isActive, equals(true));
   });
 
@@ -29,14 +29,14 @@ main() {
     }
 
     t = new Timer.periodic(new Duration(milliseconds: 1),
-                           expectAsync1(checkActive, count: 3));
+                           expectAsync(checkActive, count: 3));
     expect(t.isActive, equals(true));
   });
 
   test("timer cancel test", () {
     Timer timer = new Timer(const Duration(seconds: 1),
                             () => fail("Should not be reached."));
-    Timer.run(expectAsync0(() {
+    Timer.run(expectAsync(() {
       expect(timer.isActive, equals(true));
       timer.cancel();
       expect(timer.isActive, equals(false));

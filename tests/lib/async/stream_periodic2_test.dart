@@ -14,7 +14,7 @@ main() {
                                         (x) => x);
     int receivedCount = 0;
     var subscription;
-    subscription = stream.listen(expectAsync1((data) {
+    subscription = stream.listen(expectAsync((data) {
       expect(data, receivedCount);
       receivedCount++;
       if (receivedCount == 5) subscription.cancel();

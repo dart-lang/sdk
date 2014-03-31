@@ -16,7 +16,7 @@ main() {
   test("simpleDone", () {
     StreamController c = new StreamController(sync: true);
     Stream out = c.stream.handleError((x){}).handleError((x){});
-    out.listen((v){}, onDone: expectAsync0(() {}));
+    out.listen((v){}, onDone: expectAsync(() {}));
     // Should not throw.
     c.close();
   });
@@ -27,7 +27,7 @@ main() {
     Events input = new Events.fromIterable([1, 2, 3, 4, 5, 6, 7]);
     Events actual = new Events.capture(
         c.stream.map((x) => x * 2).where((x) => x > 5).skip(2).take(2));
-    actual.onDone(expectAsync0(() {
+    actual.onDone(expectAsync(() {
       Expect.listEquals(expected.events, actual.events);
     }));
     input.replay(c);
@@ -39,7 +39,7 @@ main() {
     Events input = new Events.fromIterable([1, 2, 3, 4, 5, 6, 7]);
     Events actual = new Events.capture(
         c.stream.map((x) => x * 2).where((x) => x > 5).skip(2).take(2));
-    actual.onDone(expectAsync0(() {
+    actual.onDone(expectAsync(() {
       Expect.listEquals(expected.events, actual.events);
     }));
     actual.pause();
@@ -53,7 +53,7 @@ main() {
       .transform(new StreamTransformer.fromHandlers(
                      handleData: (element, sink) { sink.add(element); },
                      handleDone: (sink) { sink.close(); }))
-      .listen(expectAsync1((e) => expect(e, equals("foo"))));
+      .listen(expectAsync((e) => expect(e, equals("foo"))));
 
     controller.add("foo");
     // Should not crash.

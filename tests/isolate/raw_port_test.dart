@@ -25,7 +25,7 @@ main([args, port]) {
   test("raw receive", () {
     RawReceivePort port = new RawReceivePort();
     Isolate.spawn(remote, port.sendPort);
-    port.handler = expectAsync1((v) {
+    port.handler = expectAsync((v) {
       expect(v, "reply");
       port.close();
     });
@@ -34,9 +34,9 @@ main([args, port]) {
   test("raw receive twice - change handler", () {
     RawReceivePort port = new RawReceivePort();
     Isolate.spawn(remote2, port.sendPort);
-    port.handler = expectAsync1((v) {
+    port.handler = expectAsync((v) {
       expect(v, "reply 1");
-      port.handler = expectAsync1((v) {
+      port.handler = expectAsync((v) {
         expect(v, "reply 2");
         port.close();
       });
@@ -46,18 +46,18 @@ main([args, port]) {
   test("from-raw-port", () {
     RawReceivePort rawPort = new RawReceivePort();
     Isolate.spawn(remote, rawPort.sendPort);
-    rawPort.handler = expectAsync1((v) {
+    rawPort.handler = expectAsync((v) {
       expect(v, "reply");
       ReceivePort port = new ReceivePort.fromRawReceivePort(rawPort);
       Isolate.spawn(remote, rawPort.sendPort);
       Isolate.spawn(remote, port.sendPort);
       int ctr = 2;
-      port.listen(expectAsync1((v) {
+      port.listen(expectAsync((v) {
                     expect(v, "reply");
                     ctr--;
                     if (ctr == 0) port.close();
                   }, count: 2),
-                  onDone: expectAsync0((){}));
+                  onDone: expectAsync((){}));
     });
   });
 }

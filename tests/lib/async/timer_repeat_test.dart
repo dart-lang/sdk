@@ -30,6 +30,6 @@ main() {
     iteration = 0;
     startTime = new DateTime.now().millisecondsSinceEpoch;
     timer = new Timer.periodic(TIMEOUT,
-        expectAsync1(timeoutHandler, count: ITERATIONS));
+        expectAsync(timeoutHandler, count: ITERATIONS));
   });
 }

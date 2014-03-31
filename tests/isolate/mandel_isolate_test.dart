@@ -20,7 +20,7 @@ void main([args, port]) {
   configuration.timeout = const Duration(seconds: 480);
   test("Render Mandelbrot in parallel", () {
     final state = new MandelbrotState();
-    state._validated.future.then(expectAsync1((result) {
+    state._validated.future.then(expectAsync((result) {
       expect(result, isTrue);
     }));
     for (int i = 0; i < min(ISOLATES, N); i++) state.startClient(i);

@@ -19,7 +19,7 @@ class IterableTest<T> {
       Events expected = new Events.fromIterable(iterable);
       Stream<T> stream = new Stream<T>.fromIterable(iterable);
       Events actual = new Events.capture(stream);
-      actual.onDone(expectAsync0(() {
+      actual.onDone(expectAsync(() {
         Expect.listEquals(expected.events, actual.events);
       }));
     });
@@ -39,7 +39,7 @@ main() {
   Iterable<int> iter = new Iterable.generate(25, (i) => i * 2);
 
   test("iterable-toList", () {
-    new Stream.fromIterable(iter).toList().then(expectAsync1((actual) {
+    new Stream.fromIterable(iter).toList().then(expectAsync((actual) {
       List expected = iter.toList();
       Expect.equals(25, expected.length);
       Expect.listEquals(expected, actual);
@@ -50,7 +50,7 @@ main() {
     new Stream.fromIterable(iter)
       .map((i) => i * 3)
       .toList()
-      .then(expectAsync1((actual) {
+      .then(expectAsync((actual) {
          List expected = iter.map((i) => i * 3).toList();
          Expect.listEquals(expected, actual);
       }));
@@ -67,7 +67,7 @@ main() {
       if (value == 20) {
         subscription.pause(new Future.delayed(duration, () {}));
       }
-    }, onDone: expectAsync0(() {
+    }, onDone: expectAsync(() {
       actual.close();
       Events expected = new Events.fromIterable(iter);
       Expect.listEquals(expected.events, actual.events);
@@ -89,7 +89,7 @@ main() {
     var c = new StreamController();
     var sink = c.sink;
 
-    var done = expectAsync0((){}, count: 2);
+    var done = expectAsync((){}, count: 2);
 
     // if this goes first, test failed (hanged). Swapping addStream and toList
     // made failure go away.
@@ -113,7 +113,7 @@ main() {
     var c = new StreamController();
     var sink = c.sink;
 
-    var done = expectAsync0((){}, count: 2);
+    var done = expectAsync((){}, count: 2);
 
     var data = [], errors = [];
     c.stream.listen(data.add, onError: errors.add, onDone: () {
@@ -135,7 +135,7 @@ main() {
 
     var c = new StreamController();
 
-    var done = expectAsync0((){}, count: 2);
+    var done = expectAsync((){}, count: 2);
 
     var data = [], errors = [];
     c.stream.listen(data.add, onError: errors.add, onDone: () {

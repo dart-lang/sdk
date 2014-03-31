@@ -24,10 +24,10 @@ void main([args, port]) {
   test("send", () {
     ReceivePort init = new ReceivePort();
     Isolate.spawn(entry, init.sendPort);
-    init.first.then(expectAsync1((port) {
+    init.first.then(expectAsync((port) {
       ReceivePort reply = new ReceivePort();
       port.send([99, reply.sendPort]);
-      reply.listen(expectAsync1((message) {
+      reply.listen(expectAsync((message) {
         expect(message, 99 + 87);
         reply.close();
       }));

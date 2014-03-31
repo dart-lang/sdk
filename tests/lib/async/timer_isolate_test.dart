@@ -28,7 +28,7 @@ main() {
 
     ReceivePort port = new ReceivePort();
 
-    port.first.then(expectAsync1((msg) {
+    port.first.then(expectAsync((msg) {
       expect("timer_fired", msg);
       int endTime = (new DateTime.now()).millisecondsSinceEpoch;
       expect(endTime - startTime + safetyMargin, greaterThanOrEqualTo(TIMEOUT.inMilliseconds));

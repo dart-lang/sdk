@@ -86,7 +86,7 @@ main() {
     document.body.children.add(element);
 
     // Need to wait one tick after the element has been added to the page.
-    new Timer(const Duration(milliseconds: 10), expectAsync0(() {
+    new Timer(const Duration(milliseconds: 10), expectAsync(() {
       element.style.textDecoration = 'underline';
       var style = element.getComputedStyle();
       expect(style.textDecoration, contains('underline'));

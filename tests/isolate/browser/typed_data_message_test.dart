@@ -98,13 +98,13 @@ void main([args, port]) {
       for (int i = 0; i < elements.length; i++) {
         var sentObject = elements[i];
         var idx = i;
-        sendReceive(remote, sentObject).then(expectAsync1((var receivedObject) {
+        sendReceive(remote, sentObject).then(expectAsync((var receivedObject) {
           VerifyObject(idx, receivedObject);
         }));
       }
 
       // Shutdown the MessageServer.
-      sendReceive(remote, -1).then(expectAsync1((int message) {
+      sendReceive(remote, -1).then(expectAsync((int message) {
           expect(message, elements.length);
         }));
     });

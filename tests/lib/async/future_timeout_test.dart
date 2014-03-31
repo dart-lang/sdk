@@ -12,7 +12,7 @@ main() {
     Completer completer = new Completer();
     Future timedOut = completer.future.timeout(
         const Duration(milliseconds: 5), onTimeout: () => 42);
-    timedOut.then(expectAsync1((v) {
+    timedOut.then(expectAsync((v) {
       expect(v, 42);
     }));
   });
@@ -24,7 +24,7 @@ main() {
     Timer timer = new Timer(const Duration(seconds: 1), () {
       completer.complete(-1);
     });
-    timedOut.then(expectAsync1((v) {
+    timedOut.then(expectAsync((v) {
       expect(v, 42);
     }));
   });
@@ -36,7 +36,7 @@ main() {
     });
     Future timedOut = completer.future.timeout(
         const Duration(seconds: 1), onTimeout: () => -1);
-    timedOut.then(expectAsync1((v) {
+    timedOut.then(expectAsync((v) {
       expect(v, 42);
     }));
   });
@@ -46,7 +46,7 @@ main() {
     completer.complete(42);
     Future timedOut = completer.future.timeout(
         const Duration(milliseconds: 5), onTimeout: () => -1);
-    timedOut.then(expectAsync1((v) {
+    timedOut.then(expectAsync((v) {
       expect(v, 42);
     }));
   });
@@ -55,7 +55,7 @@ main() {
     Completer completer = new Completer();
     Future timedOut = completer.future.timeout(
         const Duration(milliseconds: 5), onTimeout: () { throw "EXN1"; });
-    timedOut.catchError(expectAsync2((e, s) {
+    timedOut.catchError(expectAsync((e, s) {
       expect(e, "EXN1");
     }));
   });
@@ -67,7 +67,7 @@ main() {
     Timer timer = new Timer(const Duration(seconds: 1), () {
       completer.completeError("EXN2");
     });
-    timedOut.then(expectAsync1((v) {
+    timedOut.then(expectAsync((v) {
       expect(v, 42);
     }));
   });
@@ -79,7 +79,7 @@ main() {
     });
     Future timedOut = completer.future.timeout(
         const Duration(seconds: 1), onTimeout: () => -1);
-    timedOut.catchError(expectAsync2((e, s) {
+    timedOut.catchError(expectAsync((e, s) {
       expect(e, "EXN3");
     }));
   });
@@ -90,7 +90,7 @@ main() {
     completer.completeError("EXN4");
     Future timedOut = completer.future.timeout(
         const Duration(milliseconds: 5), onTimeout: () => -1);
-    timedOut.catchError(expectAsync2((e, s) {
+    timedOut.catchError(expectAsync((e, s) {
       expect(e, "EXN4");
     }));
   });
@@ -100,7 +100,7 @@ main() {
     Completer completer = new Completer();
     Future timedOut = completer.future.timeout(
         const Duration(milliseconds: 5), onTimeout: () => result);
-    timedOut.then(expectAsync1((v) {
+    timedOut.then(expectAsync((v) {
       expect(v, 42);
     }));
   });
@@ -110,7 +110,7 @@ main() {
     Completer completer = new Completer();
     Future timedOut = completer.future.timeout(
         const Duration(milliseconds: 5), onTimeout: () => result);
-    timedOut.catchError(expectAsync2((e, s) {
+    timedOut.catchError(expectAsync((e, s) {
       expect(e, "EXN5");
     }));
   });
@@ -123,7 +123,7 @@ main() {
       result.complete(42);
       return result.future;
     });
-    timedOut.then(expectAsync1((v) {
+    timedOut.then(expectAsync((v) {
       expect(v, 42);
     }));
   });
@@ -136,7 +136,7 @@ main() {
       result.completeError("EXN6");
       return result.future;
     });
-    timedOut.catchError(expectAsync2((e, s) {
+    timedOut.catchError(expectAsync((e, s) {
       expect(e, "EXN6");
     }));
   });
@@ -158,7 +158,7 @@ main() {
           registerCallDelta++;  // Increment calls to register.
           expect(origin, forked);
           expect(self, forked);
-          return expectAsync0(() { registerCallDelta--; return f(); });
+          return expectAsync(() { registerCallDelta--; return f(); });
         }
     ));
     Completer completer = new Completer();
@@ -167,7 +167,7 @@ main() {
       timedOut = completer.future.timeout(const Duration(milliseconds: 5),
                                           onTimeout: callback);
     });
-    timedOut.then(expectAsync1((v) {
+    timedOut.then(expectAsync((v) {
       expect(callbackCalled, true);
       expect(registerCallDelta, 0);
       expect(Zone.current, initialZone);
@@ -179,7 +179,7 @@ main() {
     Completer completer = new Completer();
     Future timedOut = completer.future.timeout(
         const Duration(milliseconds: 5));
-    timedOut.catchError(expectAsync2((e, s) {
+    timedOut.catchError(expectAsync((e, s) {
       expect(e, new isInstanceOf<TimeoutException>());
       expect(e.duration, const Duration(milliseconds: 5));
       expect(s, null);

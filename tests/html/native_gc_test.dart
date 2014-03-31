@@ -47,7 +47,7 @@ main() {
       triggerMajorGC();
     }
 
-    testDiv.onClick.listen(expectAsync1((e) {}));
+    testDiv.onClick.listen(expectAsync((e) {}));
     window.postMessage(message, '*');
   });
 }

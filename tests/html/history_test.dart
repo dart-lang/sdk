@@ -43,8 +43,8 @@ main() {
         expect(window.location.href.endsWith('dummy2'), isTrue);
 
         // Need to wait a frame or two to let the pushState events occur.
-        new Timer(const Duration(milliseconds: 100), expectAsync0(() {
-          window.onPopState.first.then(expectAsync1((_){
+        new Timer(const Duration(milliseconds: 100), expectAsync(() {
+          window.onPopState.first.then(expectAsync((_){
             expect(window.history.length, length);
             expect(window.location.href.endsWith('dummy1'), isTrue);
           }));

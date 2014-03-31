@@ -13,17 +13,17 @@ main() {
     // Check that Timers don't run before the async callbacks.
     bool timerCallbackExecuted = false;
 
-    scheduleMicrotask(expectAsync0(() {
+    scheduleMicrotask(expectAsync(() {
       Expect.isFalse(timerCallbackExecuted);
     }));
 
-    Timer.run(expectAsync0(() { timerCallbackExecuted = true; }));
+    Timer.run(expectAsync(() { timerCallbackExecuted = true; }));
 
-    scheduleMicrotask(expectAsync0(() {
+    scheduleMicrotask(expectAsync(() {
       Expect.isFalse(timerCallbackExecuted);
     }));
 
-    scheduleMicrotask(expectAsync0(() {
+    scheduleMicrotask(expectAsync(() {
       // Busy loop.
       var sum = 1;
       var sw = new Stopwatch()..start();
@@ -31,12 +31,12 @@ main() {
         sum++;
       }
       if (sum == 0) throw "bad";  // Just to use the result.
-      scheduleMicrotask(expectAsync0(() {
+      scheduleMicrotask(expectAsync(() {
         Expect.isFalse(timerCallbackExecuted);
       }));
     }));
 
-    scheduleMicrotask(expectAsync0(() {
+    scheduleMicrotask(expectAsync(() {
       Expect.isFalse(timerCallbackExecuted);
     }));
   });

@@ -19,7 +19,7 @@ void main([args, port]) {
   test('message - reply chain', () {
     ReceivePort port = new ReceivePort();
     Isolate.spawn(child, ['hi', port.sendPort]);
-    port.listen(expectAsync1((msg) {
+    port.listen(expectAsync((msg) {
       port.close();
       expect(msg, equals('re: hi'));
     }));

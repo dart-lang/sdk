@@ -64,7 +64,7 @@ class StreamProtocolTest {
         onListen: _onListen,
         onCancel: _onCancel);
     _controllerStream = _controller.stream;
-    _onComplete = expectAsync0((){
+    _onComplete = expectAsync((){
       _onComplete = null;  // Being null marks the test as being complete.
     });
   }
@@ -78,7 +78,7 @@ class StreamProtocolTest {
         onResume: _onResume,
         onCancel: _onCancel);
     _controllerStream = _controller.stream;
-    _onComplete = expectAsync0((){
+    _onComplete = expectAsync((){
       _onComplete = null;  // Being null marks the test as being complete.
     });
   }
@@ -94,7 +94,7 @@ class StreamProtocolTest {
     _controllerStream = _controller.stream.asBroadcastStream(
         onListen: _onBroadcastListen,
         onCancel: _onBroadcastCancel);
-    _onComplete = expectAsync0((){
+    _onComplete = expectAsync((){
       _onComplete = null;  // Being null marks the test as being complete.
     });
   }
@@ -373,11 +373,11 @@ class Event {
   Function _action;
   StackTrace _stackTrace;
   Event(void action())
-      : _action = (action == null) ? null : expectAsync0(action) {
+      : _action = (action == null) ? null : expectAsync(action) {
     try { throw 0; } catch (_, s) { _stackTrace = s; }
   }
   Event.broadcast(void action(StreamSubscription sub))
-      : _action = (action == null) ? null : expectAsync1(action) {
+      : _action = (action == null) ? null : expectAsync(action) {
     try { throw 0; } catch (_, s) { _stackTrace = s; }
   }
 

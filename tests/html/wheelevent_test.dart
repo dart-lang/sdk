@@ -16,7 +16,7 @@ main() {
     var element = new DivElement();
     var eventType = Element.mouseWheelEvent.getEventType(element);
 
-    element.onMouseWheel.listen(expectAsync1((e) {
+    element.onMouseWheel.listen(expectAsync((e) {
       expect(e.screen.x, 100);
       expect(e.deltaX, 0);
       expect(e.deltaY.toDouble(), 240.0);
@@ -33,7 +33,7 @@ main() {
     var element = new DivElement();
     var eventType = Element.mouseWheelEvent.getEventType(element);
 
-    element.onMouseWheel.listen(expectAsync1((e) {
+    element.onMouseWheel.listen(expectAsync((e) {
       expect(e.screen.x, 100);
       expect(e.deltaX, 0);
       expect(e.deltaY.toDouble(), 240.0);

@@ -29,8 +29,8 @@ main() {
         element.style.background = 'red';
         element.style.transition = 'opacity .1s';
 
-        new Timer(const Duration(milliseconds: 100), expectAsync0(() {
-          element.onTransitionEnd.first.then(expectAsync1((e) {
+        new Timer(const Duration(milliseconds: 100), expectAsync(() {
+          element.onTransitionEnd.first.then(expectAsync((e) {
             expect(e is TransitionEvent, isTrue);
             expect(e.propertyName, 'opacity');
           }));

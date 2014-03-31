@@ -28,7 +28,7 @@ void timeoutHandler() {
     timeout = timeout - DECREASE;
     Duration duration = new Duration(milliseconds: timeout);
     startTime = (new DateTime.now()).millisecondsSinceEpoch;
-    new Timer(duration, expectAsync0(timeoutHandler));
+    new Timer(duration, expectAsync(timeoutHandler));
   }
 }
 
@@ -38,6 +38,6 @@ main() {
     timeout = STARTTIMEOUT;
     Duration duration = new Duration(milliseconds: timeout);
     startTime = (new DateTime.now()).millisecondsSinceEpoch;
-    new Timer(duration, expectAsync0(timeoutHandler));
+    new Timer(duration, expectAsync(timeoutHandler));
   });
 }
