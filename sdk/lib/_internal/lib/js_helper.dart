@@ -150,7 +150,8 @@ class JSInvocationMirror implements Invocation {
 
   List get positionalArguments {
     if (isGetter) return const [];
-    var argumentCount = _arguments.length - _namedArgumentNames.length;
+    var argumentCount =
+        _arguments.length - _namedArgumentNames.length;
     if (argumentCount == 0) return const [];
     var list = [];
     for (var index = 0 ; index < argumentCount ; index++) {
