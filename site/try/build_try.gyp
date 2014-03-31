@@ -3,6 +3,16 @@
 # BSD-style license that can be found in the LICENSE
 
 {
+  'variables' : {
+    'script_suffix%': '',
+  },
+  'conditions' : [
+    ['OS=="win"', {
+      'variables' : {
+        'script_suffix': '.bat',
+      },
+    }],
+  ],
   'targets': [
     {
       'target_name': 'try_site',
@@ -74,7 +84,7 @@
             '<(SHARED_INTERMEDIATE_DIR)/leap.dart.js',
           ],
           'action': [
-            '<(PRODUCT_DIR)/dart-sdk/bin/dart2js',
+            '<(PRODUCT_DIR)/dart-sdk/bin/dart2js<(script_suffix)',
             '-p../../sdk/lib/_internal/',
             '-Denable_ir=false',
             'src/leap.dart',
