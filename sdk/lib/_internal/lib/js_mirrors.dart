@@ -341,7 +341,13 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
       // TODO(ahe): What receiver to use?
       throw new NoSuchMethodError(this, fieldName, [], null);
     }
-    return reflect(mirror._getField(this));
+    if (mirror is! MethodMirror) return reflect(mirror._getField(this));
+    JsMethodMirror methodMirror = mirror;
+    if (methodMirror.isGetter) return reflect(mirror._getField(this));
+    assert(methodMirror.isRegularMethod);
+    String getter = JS("", "#['\$getter']", methodMirror._jsFunction);
+    if (getter == null) throw new UnimplementedError();
+    return reflect(JS("", "#()", getter));
   }
 
   InstanceMirror invoke(Symbol memberName,
@@ -351,15 +357,20 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
       throw new UnsupportedError('Named arguments are not implemented.');
     }
     JsDeclarationMirror mirror = __members[memberName];
-    if (mirror == null) {
+
+    if (mirror is JsMethodMirror && !mirror.canInvokeReflectively()) {
+      throwInvalidReflectionError(n(memberName));
+    }
+    if (mirror == null || mirror is JsMethodMirror && mirror.isSetter) {
       // TODO(ahe): What receiver to use?
       throw new NoSuchMethodError(
           this, memberName, positionalArguments, namedArguments);
     }
-    if (mirror is JsMethodMirror && !mirror.canInvokeReflectively()) {
-      throwInvalidReflectionError(n(memberName));
+    if (mirror is JsMethodMirror && !mirror.isGetter) {
+      return reflect(mirror._invoke(positionalArguments, namedArguments));
     }
-    return reflect(mirror._invoke(positionalArguments, namedArguments));
+    return getField(memberName)
+        .invoke(#call, positionalArguments, namedArguments);
   }
 
   _loadField(String name) {
@@ -813,61 +824,61 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
   InstanceMirror invoke(Symbol memberName,
                         List positionalArguments,
                         [Map<Symbol,dynamic> namedArguments]) {
-    String name = n(memberName);
-    String reflectiveName;
-    if (namedArguments != null && !namedArguments.isEmpty) {
-      var interceptor = getInterceptor(reflectee);
-
-      var jsFunction = JS('', '#[# + "*"]', interceptor, name);
-      if (jsFunction == null) {
-        // TODO(ahe): Invoke noSuchMethod.
-        throw new UnimplementedNoSuchMethodError(
-            'Invoking noSuchMethod with named arguments not implemented');
-      }
-      ReflectionInfo info = new ReflectionInfo(jsFunction);
-      if (jsFunction == null) {
-        // TODO(ahe): Invoke noSuchMethod.
-        throw new UnimplementedNoSuchMethodError(
-            'Invoking noSuchMethod with named arguments not implemented');
-      }
-
-      positionalArguments = new List.from(positionalArguments);
-      // Check the number of positional arguments is valid.
-      if (info.requiredParameterCount != positionalArguments.length) {
-        // TODO(ahe): Invoke noSuchMethod.
-        throw new UnimplementedNoSuchMethodError(
-            'Invoking noSuchMethod with named arguments not implemented');
-      }
-      var defaultArguments = new Map();
-      for (int i = 0; i < info.optionalParameterCount; i++) {
-        var parameterName = info.parameterName(i + info.requiredParameterCount);
-        var defaultValue =
-            getMetadata(info.defaultValue(i + info.requiredParameterCount));
-        defaultArguments[parameterName] = defaultValue;
-      }
-      namedArguments.forEach((Symbol symbol, value) {
-        String parameter = n(symbol);
-        if (defaultArguments.containsKey(parameter)) {
-          defaultArguments[parameter] = value;
-        } else {
-          // Extraneous named argument.
-          // TODO(ahe): Invoke noSuchMethod.
-          throw new UnimplementedNoSuchMethodError(
-              'Invoking noSuchMethod with named arguments not implemented');
-        }
-      });
-      positionalArguments.addAll(defaultArguments.values);
-      // TODO(ahe): Handle intercepted methods.
-      return reflect(
-          JS('', '#.apply(#, #)', jsFunction, reflectee, positionalArguments));
-    } else {
-      reflectiveName =
-          JS('String', '# + ":" + # + ":0"', name, positionalArguments.length);
-    }
+    if (namedArguments == null) namedArguments = const {};
     // We can safely pass positionalArguments to _invoke as it will wrap it in
     // a JSArray if needed.
-    return _invoke(memberName, JSInvocationMirror.METHOD, reflectiveName,
-                   positionalArguments);
+    return _invoke(memberName, JSInvocationMirror.METHOD,
+                   positionalArguments, namedArguments);
+  }
+
+  InstanceMirror _invokeMethodWithNamedArguments(
+      String reflectiveName,
+      List positionalArguments, Map<Symbol,dynamic> namedArguments) {
+    assert(namedArguments.isNotEmpty);
+    var interceptor = getInterceptor(reflectee);
+
+    var jsFunction = JS('', '#[#]', interceptor, reflectiveName);
+    if (jsFunction == null) {
+      // TODO(ahe): Invoke noSuchMethod.
+      throw new UnimplementedNoSuchMethodError(
+          'Invoking noSuchMethod with named arguments not implemented');
+    }
+    ReflectionInfo info = new ReflectionInfo(jsFunction);
+    if (jsFunction == null) {
+      // TODO(ahe): Invoke noSuchMethod.
+      throw new UnimplementedNoSuchMethodError(
+          'Invoking noSuchMethod with named arguments not implemented');
+    }
+
+    positionalArguments = new List.from(positionalArguments);
+    // Check the number of positional arguments is valid.
+    if (info.requiredParameterCount != positionalArguments.length) {
+      // TODO(ahe): Invoke noSuchMethod.
+      throw new UnimplementedNoSuchMethodError(
+          'Invoking noSuchMethod with named arguments not implemented');
+    }
+    var defaultArguments = new Map();
+    for (int i = 0; i < info.optionalParameterCount; i++) {
+      var parameterName = info.parameterName(i + info.requiredParameterCount);
+      var defaultValue =
+          getMetadata(info.defaultValue(i + info.requiredParameterCount));
+      defaultArguments[parameterName] = defaultValue;
+    }
+    namedArguments.forEach((Symbol symbol, value) {
+      String parameter = n(symbol);
+      if (defaultArguments.containsKey(parameter)) {
+        defaultArguments[parameter] = value;
+      } else {
+        // Extraneous named argument.
+        // TODO(ahe): Invoke noSuchMethod.
+        throw new UnimplementedNoSuchMethodError(
+            'Invoking noSuchMethod with named arguments not implemented');
+      }
+    });
+    positionalArguments.addAll(defaultArguments.values);
+    // TODO(ahe): Handle intercepted methods.
+    return reflect(
+        JS('', '#.apply(#, #)', jsFunction, reflectee, positionalArguments));
   }
 
   /// Grabs hold of the class-specific invocation cache for the reflectee.
@@ -885,55 +896,92 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     return cache;
   }
 
-  /// Invoke the member specified through name and type on the reflectee.
-  /// As a side-effect, this populates the class-specific invocation cache
-  /// for the reflectee.
-  InstanceMirror _invoke(Symbol name,
-                         int type,
-                         String reflectiveName,
-                         List arguments) {
+  String _computeReflectiveName(Symbol symbolName, int type,
+                                List positionalArguments,
+                                Map<Symbol, dynamic> namedArguments) {
+    String name = n(symbolName);
+    switch (type) {
+      case JSInvocationMirror.GETTER: return name;
+      case JSInvocationMirror.SETTER: return '$name=';
+      case JSInvocationMirror.METHOD:
+        if (namedArguments.isNotEmpty) return '$name*';
+        int nbArgs = positionalArguments.length as int;
+        return "$name:$nbArgs:0";
+    }
+    throw new RuntimeError("Could not compute reflective name for $name");
+  }
+
+  /**
+   * Returns a `CachedInvocation` or `CachedNoSuchMethodInvocation` for the
+   * given member.
+   *
+   * Caches the result.
+   */
+  _getCachedInvocation(Symbol name, int type, String reflectiveName,
+      List positionalArguments, Map<Symbol,dynamic> namedArguments) {
+
     var cache = _classInvocationCache;
     var cacheEntry = JsCache.fetch(cache, reflectiveName);
     var result;
-    Invocation invocation;
     if (cacheEntry == null) {
       disableTreeShaking();
       String mangledName = reflectiveNames[reflectiveName];
       List<String> argumentNames = const [];
-      if (type == JSInvocationMirror.METHOD) {
-        // Note: [argumentNames] are not what the user actually provided, it is
-        // always all the named parameters.
-        argumentNames = reflectiveName.split(':').skip(3).toList();
-      }
 
       // TODO(ahe): We don't need to create an invocation mirror here. The
       // logic from JSInvocationMirror.getCachedInvocation could easily be
       // inlined here.
-      invocation = createUnmangledInvocationMirror(
-          name, mangledName, type, arguments, argumentNames);
+      Invocation invocation = createUnmangledInvocationMirror(
+          name, mangledName, type, positionalArguments, argumentNames);
 
       cacheEntry =
           JSInvocationMirror.getCachedInvocation(invocation, reflectee);
       JsCache.update(cache, reflectiveName, cacheEntry);
     }
+    return cacheEntry;
+  }
+
+  /// Invoke the member specified through name and type on the reflectee.
+  /// As a side-effect, this populates the class-specific invocation cache
+  /// for the reflectee.
+  InstanceMirror _invoke(Symbol name,
+                         int type,
+                         List positionalArguments,
+                         Map<Symbol,dynamic> namedArguments) {
+    String reflectiveName =
+        _computeReflectiveName(name, type, positionalArguments, namedArguments);
+
+    if (namedArguments.isNotEmpty) {
+      // TODO(floitsch): first, make sure it's not a getter.
+      return _invokeMethodWithNamedArguments(
+          reflectiveName, positionalArguments, namedArguments);
+    }
+    var cacheEntry = _getCachedInvocation(
+        name, type, reflectiveName, positionalArguments, namedArguments);
+
     if (cacheEntry.isNoSuchMethod) {
-      if (invocation == null) {
-        String mangledName = reflectiveNames[reflectiveName];
-        // TODO(ahe): Get the argument names.
-        List<String> argumentNames = [];
-        invocation = createUnmangledInvocationMirror(
-            name, mangledName, type, arguments, argumentNames);
+      // Could be that we want to invoke a getter, or get a method.
+      if (type == JSInvocationMirror.METHOD && _instanceFieldExists(name)) {
+        return getField(name).invoke(
+            #call, positionalArguments, namedArguments);
+      } else if (type == JSInvocationMirror.GETTER) {
+        // TODO(floitsch): Check if a method exists and we should create a
+        // bound closure.
       }
+
+      String mangledName = reflectiveNames[reflectiveName];
+      // TODO(ahe): Get the argument names.
+      List<String> argumentNames = [];
+      Invocation invocation = createUnmangledInvocationMirror(
+          name, mangledName, type, positionalArguments, argumentNames);
       return reflect(cacheEntry.invokeOn(reflectee, invocation));
     } else {
-      return reflect(cacheEntry.invokeOn(reflectee, arguments));
+      return reflect(cacheEntry.invokeOn(reflectee, positionalArguments));
     }
   }
 
   InstanceMirror setField(Symbol fieldName, Object arg) {
-    String reflectiveName = '${n(fieldName)}=';
-    _invoke(
-        s(reflectiveName), JSInvocationMirror.SETTER, reflectiveName, [arg]);
+    _invoke(fieldName, JSInvocationMirror.SETTER, [arg], const {});
     return reflect(arg);
   }
 
@@ -960,6 +1008,15 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
   /// benefit from "map transitions" in the underlying JavaScript
   /// engine to speed up cache probing.
   var _getterCache = 4;
+
+  bool _instanceFieldExists(Symbol name) {
+    int getterType = JSInvocationMirror.GETTER;
+    String getterName =
+        _computeReflectiveName(name, getterType, const [], const {});
+    var getterCacheEntry = _getCachedInvocation(
+        name, getterType, getterName, const [], const {});
+    return !getterCacheEntry.isNoSuchMethod;
+  }
 
   InstanceMirror getField(Symbol fieldName) {
     // BUG(16400): This should be a labelled block, but that makes
@@ -993,8 +1050,9 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
   InstanceMirror _getFieldSlow(Symbol fieldName) {
     // First do the slow-case getter invocation. As a side-effect of this,
     // the invocation cache is filled in so we can query it afterwards.
+    var result =
+        _invoke(fieldName, JSInvocationMirror.GETTER, const [], const {});
     String name = n(fieldName);
-    var result = _invoke(fieldName, JSInvocationMirror.GETTER, name, const []);
     var cacheEntry = JsCache.fetch(_classInvocationCache, name);
     if (cacheEntry.isNoSuchMethod) {
       return result;
@@ -1720,6 +1778,13 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     throw new NoSuchMethodError(this, setterSymbol(fieldName), [arg], null);
   }
 
+  bool _staticFieldExists(Symbol fieldName) {
+    JsVariableMirror mirror = __variables[fieldName];
+    if (mirror != null) return mirror.isStatic;
+    JsMethodMirror getter = __getters[fieldName];
+    return getter != null && getter.isStatic;
+  }
+
   InstanceMirror getField(Symbol fieldName) {
     JsVariableMirror mirror = __variables[fieldName];
     if (mirror != null && mirror.isStatic) {
@@ -1735,6 +1800,21 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       } else {
         return reflect(JS('', '#[#]', JS_CURRENT_ISOLATE(), jsName));
       }
+    }
+    JsMethodMirror getter = __getters[fieldName];
+    if (getter != null && getter.isStatic) {
+      return reflect(getter._invoke(const [], const {}));
+    }
+    // If the fieldName designates a static function we have to return
+    // its closure.
+    JsMethodMirror method = __methods[fieldName];
+    if (method != null && method.isStatic) {
+      // We invoke the same getter that Dart code would execute. During
+      // initialization we have stored that getter on the function (so that
+      // we can find it more easily here).
+      String getter = JS("", "#['\$getter']", method._jsFunction);
+      if (getter == null) throw new UnimplementedError();
+      return reflect(JS("", "#()", getter));
     }
     // TODO(ahe): What receiver to use?
     throw new NoSuchMethodError(this, fieldName, null, null);
@@ -1836,6 +1916,11 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       throw new UnsupportedError('Named arguments are not implemented.');
     }
     JsMethodMirror mirror = __methods[memberName];
+
+    if (mirror == null && _staticFieldExists(memberName)) {
+      return getField(memberName)
+          .invoke(#call, positionalArguments, namedArguments);
+    }
     if (mirror == null || !mirror.isStatic) {
       // TODO(ahe): What receiver to use?
       throw new NoSuchMethodError(

@@ -20,9 +20,9 @@ testSync() {
 
   C c = new C();
   InstanceMirror im = reflect(c);
-  result = im.getField(#instanceMethod);
-  Expect.isTrue(result.reflectee is Function, "Should be closure");
-  Expect.equals("A+B+C", result.reflectee('A', 'B', 'C'));
+  result = im.getField(#instanceMethod);                             /// 00: ok
+  Expect.isTrue(result.reflectee is Function, "Should be closure");  /// 00: continued
+  Expect.equals("A+B+C", result.reflectee('A', 'B', 'C'));           /// 00: continued
 
   ClassMirror cm = reflectClass(C);
   result = cm.getField(#staticFunction);
