@@ -6,6 +6,7 @@ third_party/pkg/route_hierarchical: Fail
 
 samples/third_party/angular_todo: Pass, Slow
 samples/third_party/dromaeo: Pass, Slow
+samples/third_party/todomvc_performance: Pass, Slow
 samples/pop_pop_win: Pass, Slow
 samples/searchable_list: Pass, Slow
 pkg/docgen: Pass, Slow
