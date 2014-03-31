@@ -291,6 +291,10 @@ self.importScripts("$url");
   }
 
   void consolePrint(message) {
+    if (window.parent != window) {
+      // Test support.
+      window.parent.postMessage('$message\n', '/');
+    }
     console.appendText('$message\n');
   }
 }
