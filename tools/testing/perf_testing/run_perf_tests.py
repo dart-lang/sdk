@@ -78,6 +78,30 @@ class TestRunner(object):
       print stderr
     return output, stderr
 
+  def RunBrowserPerfRunnerCmd(self, browser, url_path, file_path_to_test_code,
+      trace_file, code_root=''):
+    command_list = [os.path.join(DART_REPO_LOC, utils.GetBuildRoot(
+        utils.GuessOS(), 'release', 'ia32'), 'dart-sdk', 'bin', 'dart'),
+        '--package-root=%s' % os.path.join(file_path_to_test_code, 'packages'),
+        os.path.join(file_path_to_test_code, 'packages',
+        'browser_controller', 'browser_perf_testing.dart'), '--browser',
+        browser, '--test_path=%s' % url_path]
+    if code_root != '':
+      command_list += ['--code_root=%s' % code_root]
+
+    if browser == 'dartium':
+      dartium_path = os.path.join(DART_REPO_LOC, 'client', 'tests', 'dartium')
+      if platform.system() == 'Windows':
+        dartium_path = os.path.join(dartium_path, 'chrome.exe');
+      elif platform.system() == 'Darwin':
+        dartium_path = os.path.join(dartium_path, 'Chromium.app', 'Contents',
+            'MacOS', 'Chromium')
+      else:
+        dartium_path = os.path.join(dartium_path, 'chrome')
+      command_list += ['--executable=%s' % dartium_path]
+
+    self.RunCmd(command_list, trace_file, append=True)
+
   def TimeCmd(self, cmd):
     """Determine the amount of (real) time it takes to execute a given
     command."""
@@ -176,7 +200,7 @@ class TestRunner(object):
       shutil.rmtree(os.path.join(os.getcwd(),
                     utils.GetBuildRoot(utils.GuessOS())),
                     onerror=TestRunner._OnRmError)
-      lines = self.RunCmd([os.path.join('.', 'tools', 'build.py'), '-m',
+      lines = self.RunCmd(['python', os.path.join('tools', 'build.py'), '-m',
                             'release', '--arch=ia32', 'create_sdk'])
 
       for line in lines:
@@ -721,16 +745,17 @@ class DromaeoTest(RuntimePerformanceTest):
         return
 
       # Build tests.
-      # TODO(efortuna): Make the pub functionality a separate function.
       current_path = os.getcwd()
       os.chdir(os.path.join(DART_REPO_LOC, 'samples', 'third_party',
           'dromaeo'))
-      self.test.test_runner.RunCmd([os.path.join(DART_REPO_LOC,
-          utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32'),
-          'dart-sdk', 'bin', 'pub'), 'install']) # TODO: pub upgrade?
+      # Note: This uses debug on purpose, so that we can also run performance
+      # tests on pure Dart applications in Dartium. Pub --debug simply also
+      # moves the .dart files to the build directory. To ensure effective
+      # comparison, though, ensure that minify: true is set in your transformer
+      # compilation step in your pubspec.
       stdout, _ = self.test.test_runner.RunCmd([os.path.join(DART_REPO_LOC,
           utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32'),
-          'dart-sdk', 'bin', 'pub'), 'build'])
+          'dart-sdk', 'bin', 'pub'), 'build', '--mode=debug'])
       os.chdir(current_path)
       if 'failed' in stdout:
         return
@@ -751,16 +776,9 @@ class DromaeoTest(RuntimePerformanceTest):
               '-dart' if version_name == 'dart_html' else '-js',
               version)])
 
-          self.test.test_runner.RunCmd(
-              [os.path.join(DART_REPO_LOC, utils.GetBuildRoot(
-               utils.GuessOS(), 'release', 'ia32'), 'dart-sdk', 'bin', 'dart'),
-               '--package-root=%s' % os.path.join(DART_REPO_LOC, 'samples',
-               'third_party', 'dromaeo', 'packages'), os.path.join(
-               DART_REPO_LOC, 'samples', 'third_party', 'dromaeo', 'packages',
-               'browser_controller', 'browser_perf_testing.dart'),
-               '--browser', browser,
-               '--test_path', url_path], self.test.trace_file,
-               append=True)
+          self.test.test_runner.RunBrowserPerfRunnerCmd(browser, url_path,
+              os.path.join(DART_REPO_LOC, 'samples', 'third_party', 'dromaeo'),
+              self.test.trace_file)
 
     @staticmethod
     def GetDromaeoUrlQuery(browser, version):
@@ -817,10 +835,121 @@ class DromaeoTest(RuntimePerformanceTest):
       self.CalculateGeometricMean(browser, version, revision_num)
       return upload_success
 
+class TodoMVCTester(BrowserTester):
+    @staticmethod
+    def GetVersions():
+      return ['js', 'dart2js_html', 'dart_html']
+
+    @staticmethod
+    def GetBenchmarks():
+      return ['TodoMVCstartup']
+
+class TodoMVCStartupTest(RuntimePerformanceTest):
+  """Start up TodoMVC and see how long it takes to start."""
+  def __init__(self, test_runner):
+    super(TodoMVCStartupTest, self).__init__(
+        self.Name(),
+        BrowserTester.GetBrowsers(True),
+        'browser',
+        TodoMVCTester.GetVersions(),
+        TodoMVCTester.GetBenchmarks(), test_runner,
+        self.TodoMVCStartupTester(self),
+        self.TodoMVCFileProcessor(self))
+
+  @staticmethod
+  def Name():
+    return 'todoMvcStartup'
+
+  class TodoMVCStartupTester(BrowserTester):
+    def RunTests(self):
+      """Run dromaeo in the browser."""
+      success, _, _ = self.test.test_runner.GetArchive('dartium')
+      if not success:
+        # Unable to download dartium. Try later.
+        return
+
+      dromaeo_path = os.path.join('samples', 'third_party', 'dromaeo')
+      current_path = os.getcwd()
+
+      os.chdir(os.path.join(DART_REPO_LOC, 'samples', 'third_party',
+          'todomvc_performance'))
+      self.test.test_runner.RunCmd([os.path.join(DART_REPO_LOC,
+          utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32'),
+          'dart-sdk', 'bin', 'pub'), 'build', '--mode=debug'])
+      os.chdir('js_todomvc');
+      self.test.test_runner.RunCmd([os.path.join(DART_REPO_LOC,
+          utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32'),
+          'dart-sdk', 'bin', 'pub'), 'get'])
+
+      versions = TodoMVCTester.GetVersions()
+
+      for browser in BrowserTester.GetBrowsers():
+        for version_name in versions:
+          if not self.test.IsValidCombination(browser, version_name):
+            continue
+          self.test.trace_file = os.path.join(TOP_LEVEL_DIR,
+              'tools', 'testing', 'perf_testing', self.test.result_folder_name,
+              'todoMvcStartup-%s-%s-%s' % (self.test.cur_time, browser,
+              version_name))
+          self.AddSvnRevisionToTrace(self.test.trace_file, browser)
+
+          if version_name == 'js':
+            code_root = os.path.join(DART_REPO_LOC, 'samples', 'third_party',
+                'todomvc_performance', 'js_todomvc')
+            self.test.test_runner.RunBrowserPerfRunnerCmd(browser,
+                '/code_root/index.html', code_root, self.test.trace_file,
+                code_root)
+          else:
+            self.test.test_runner.RunBrowserPerfRunnerCmd(browser,
+                '/code_root/build/web/startup-performance.html', os.path.join(
+                DART_REPO_LOC, 'samples', 'third_party', 'todomvc_performance'),
+                self.test.trace_file)
+
+  class TodoMVCFileProcessor(Processor):
+    def ProcessFile(self, afile, should_post_file):
+      """Comb through the html to find the performance results.
+      Returns: True if we successfully posted our data to storage."""
+      parts = afile.split('-')
+      browser = parts[2]
+      version = parts[3]
+
+      bench_dict = self.test.values_dict[browser][version]
+
+      f = self.OpenTraceFile(afile, should_post_file)
+      lines = f.readlines()
+      i = 0
+      revision_num = 0
+      revision_pattern = r'Revision: (\d+)'
+      result_pattern = r'The startup time is (\d+)'
+
+      upload_success = True
+      for line in lines:
+        rev = re.match(revision_pattern, line.strip().replace('"', ''))
+        if rev:
+          revision_num = int(rev.group(1))
+          continue
+
+        results = re.search(result_pattern, line)
+        if results:
+          score = float(results.group(1))
+          name = TodoMVCTester.GetBenchmarks()[0]
+          bench_dict[name] += [float(score)]
+          self.test.revision_dict[browser][version][name] += \
+              [revision_num]
+          if not self.test.test_runner.no_upload and should_post_file:
+            upload_success = upload_success and self.ReportResults(
+                name, score, browser, version, revision_num,
+                self.GetScoreType(name))
+
+      f.close()
+      self.CalculateGeometricMean(browser, version, revision_num)
+      return upload_success
+
+
 class TestBuilder(object):
   """Construct the desired test object."""
   available_suites = dict((suite.Name(), suite) for suite in [
-      DromaeoTest])
+      DromaeoTest, TodoMVCStartupTest])
 
   @staticmethod
   def MakeTest(test_name, test_runner):
