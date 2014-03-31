@@ -90,7 +90,7 @@ class DictionaryTypeMask extends MapTypeMask {
         }
       });
       return new DictionaryTypeMask(newForwardTo, null, null,
-                                    keyType, valueType, mappings);
+                                    newKeyType, newValueType, mappings);
     } else if (other.isMap &&
                (other.keyType != null) &&
                (other.valueType != null)) {
