@@ -9,8 +9,7 @@
       'type': 'none',
       'dependencies': [
         '../../runtime/dart-runtime.gyp:dart',
-        # Concern: there should really be a dependency on
-        # ../../dart.gyp:create_sdk, but this is reported as a cycle by GYP.
+        '../../create_sdk.gyp:create_sdk',
       ],
       'variables': {
         'try_dart_static_files': [
