@@ -54,6 +54,14 @@ Future startServer() {
         return;
       }
 
+      if (path == '/no-content-length') {
+        response.statusCode = 200;
+        response.contentLength = -1;
+        response.write('body');
+        response.close();
+        return;
+      }
+
       new ByteStream(request).toBytes().then((requestBodyBytes) {
         var outputEncoding;
         var encodingName = request.uri.queryParameters['response-encoding'];

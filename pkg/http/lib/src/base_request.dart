@@ -115,12 +115,10 @@ abstract class BaseRequest {
     var client = new Client();
     return client.send(this).then((response) {
       var stream = onDone(response.stream, client.close);
-      var contentLength = response.contentLength < 0 ?
-          null : response.contentLength;
       return new StreamedResponse(
           new ByteStream(stream),
           response.statusCode,
-          contentLength: contentLength,
+          contentLength: response.contentLength,
           request: response.request,
           headers: response.headers,
           isRedirect: response.isRedirect,
