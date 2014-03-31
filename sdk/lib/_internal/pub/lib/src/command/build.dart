@@ -24,9 +24,8 @@ class BuildCommand extends BarbackCommand {
   String get usage => "pub build [options] [directories...]";
   List<String> get aliases => const ["deploy", "settle-up"];
 
-  // TODO(nweiz): make this configurable.
   /// The path to the application's build output directory.
-  String get target => 'build';
+  String get outputDirectory => commandOptions["output"];
 
   BarbackMode get defaultMode => BarbackMode.RELEASE;
 
@@ -39,10 +38,14 @@ class BuildCommand extends BarbackCommand {
     commandParser.addOption("format",
         help: "How output should be displayed.",
         allowed: ["text", "json"], defaultsTo: "text");
+
+    commandParser.addOption("output", abbr: "o",
+        help: "Directory to write build outputs to.",
+        defaultsTo: "build");
   }
 
   Future onRunTransformerCommand() {
-    cleanDir(target);
+    cleanDir(outputDirectory);
 
     var errorsJson = [];
     var logJson = [];
@@ -93,11 +96,11 @@ class BuildCommand extends BarbackCommand {
         return Future.wait(assets.map(_writeAsset)).then((_) {
           builtFiles += _copyBrowserJsFiles(dart2JSEntrypoints);
           log.message('Built $builtFiles ${pluralize('file', builtFiles)} '
-              'to "$target".');
+              'to "$outputDirectory".');
 
           log.json.message({
             "buildResult": "success",
-            "outputDirectory": target,
+            "outputDirectory": outputDirectory,
             "numFiles": builtFiles,
             "log": logJson
           });
@@ -189,7 +192,7 @@ class BuildCommand extends BarbackCommand {
   /// directory.
   Future _writeOutputFile(Asset asset, String relativePath) {
     builtFiles++;
-    var destPath = path.join(target, relativePath);
+    var destPath = path.join(outputDirectory, relativePath);
     ensureDir(path.dirname(destPath));
     return createFileFromStream(asset.read(), destPath);
   }
@@ -232,7 +235,7 @@ class BuildCommand extends BarbackCommand {
   /// under `packages/browser/`.
   void _addBrowserJs(String directory, String name) {
     var jsPath = path.join(entrypoint.root.dir,
-        target, directory, 'packages', 'browser', '$name.js');
+        outputDirectory, directory, 'packages', 'browser', '$name.js');
     ensureDir(path.dirname(jsPath));
 
     // TODO(rnystrom): This won't work if we get rid of symlinks and the top
