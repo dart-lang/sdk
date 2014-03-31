@@ -10,9 +10,9 @@ import "test_suite.dart";
 import "compiler_configuration.dart" show CompilerConfiguration;
 import "runtime_configuration.dart" show RuntimeConfiguration;
 
-List<String> defaultTestSelectors =
+const List<String> defaultTestSelectors =
     const ['samples', 'standalone', 'corelib', 'co19', 'language',
-           'isolate', 'vm', 'html', 'json', 'benchmark_smoke',
+           'isolate', 'vm', 'html', 'benchmark_smoke',
            'utils', 'lib', 'pkg', 'analyze_library'];
 
 /**
@@ -675,7 +675,7 @@ Note: currently only implemented for dart2js.''',
     var selectors = configuration['selectors'];
     if (selectors is !Map) {
       if (selectors == null) {
-        selectors = new List.from(defaultTestSelectors);
+        selectors = defaultTestSelectors;
       }
       Map<String, RegExp> selectorMap = new Map<String, RegExp>();
       for (var i = 0; i < selectors.length; i++) {
