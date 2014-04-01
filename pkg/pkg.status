@@ -193,16 +193,16 @@ intl/test/date_time_format_http_request_test: Fail # TODO(kasperl): Please triag
 
 [ $browser ]
 analysis_server/test/*: Skip # Uses dart:io.
+analyzer/test/error_test: Fail, OK # Uses dart:io.
 analyzer/test/generated/ast_test: Fail, OK # Uses dart:io.
+analyzer/test/generated/element_test: Fail, OK # Uses dart:io.
 analyzer/test/generated/element_test: Fail, OK # Uses dart:io.
 analyzer/test/generated/parser_test: Fail, OK # Uses dart:io.
 analyzer/test/generated/resolver_test: Fail, OK # Uses dart:io.
-analyzer/test/error_test: Fail, OK # Uses dart:io.
-analyzer/test/generated/element_test: Fail, OK # Uses dart:io.
 analyzer/test/generated/resolver_test: Fail, OK # Uses dart:io.
 analyzer/test/options_test: Fail, OK # Uses dart:io.
-analyzer/test/services/formatter_test: Fail, OK # Uses dart:io.
 analyzer/test/parse_compilation_unit_test: Fail, OK # Uses dart:io.
+analyzer/test/services/formatter_test: Fail, OK # Uses dart:io.
 barback/test/*: Fail, OK # Uses dart:io.
 code_transformers/test/*: Skip # Uses dart:io.
 http/test/client_test: Fail, OK # Uses dart:io.
@@ -216,10 +216,10 @@ http_server/test/*: Fail, OK # Uses dart:io.
 intl/test/date_time_format_file_even_test: Fail, OK # Uses dart:io.
 intl/test/date_time_format_file_odd_test: Fail, OK # Uses dart:io.
 intl/test/find_default_locale_standalone_test: Fail, OK # Uses dart:io.
-intl/test/message_extraction/message_extraction_test: Fail, OK # Uses dart:io.
-intl/test/message_extraction/failed_extraction_test: Fail, OK # Users dart:io
-intl/test/message_extraction/really_fail_extraction_test: Fail, OK # Users dart:io
 intl/test/message_extraction/examples_parsing_test: Fail, OK # Users dart:io
+intl/test/message_extraction/failed_extraction_test: Fail, OK # Users dart:io
+intl/test/message_extraction/message_extraction_test: Fail, OK # Uses dart:io.
+intl/test/message_extraction/really_fail_extraction_test: Fail, OK # Users dart:io
 oauth2/test/authorization_code_grant_test: Fail, OK # Uses dart:io.
 oauth2/test/client_test: Fail, OK # Uses dart:io.
 oauth2/test/credentials_test: Fail, OK # Uses dart:io.
@@ -227,10 +227,11 @@ oauth2/test/handle_access_token_response_test: Fail, OK # Uses dart:io.
 observe/test/transformer_test: Fail, OK # Uses dart:io.
 path/test/io_test: Fail, OK # Uses dart:io.
 polymer/test/build/*: Fail, OK # Uses dart:io.
-smoke/test/codegen/recorder_test: Skip # Uses dart:io.
+shelf/test/shelf_io_test: Fail, OK # Uses dart:io
 smoke/test/codegen/end_to_end_test: Skip # Uses dart:io.
-third_party/angular_tests/vm_test: Skip # Uses dart:io
+smoke/test/codegen/recorder_test: Skip # Uses dart:io.
 third_party/angular_tests/browser_test/core_dom/cookies: Fail # Issue 16337
+third_party/angular_tests/vm_test: Skip # Uses dart:io
 watcher/test/*: Fail, OK # Uses dart:io.
 
 scheduled_test/test/descriptor/*: Fail # http://dartbug.com/8440
