@@ -7572,6 +7572,82 @@ RawString* Script::GenerateSource() const {
 }
 
 
+RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
+  const GrowableObjectArray& info =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  const String& source = String::Handle(Source());
+  const String& key = Symbols::Empty();
+  const Object& line_separator = Object::Handle();
+  const TokenStream& tkns = TokenStream::Handle(tokens());
+  ASSERT(!tkns.IsNull());
+  TokenStream::Iterator tkit(tkns, 0, TokenStream::Iterator::kAllTokens);
+  int current_line = -1;
+  Scanner s(source, key);
+  s.Scan();
+  bool skippedNewline = false;
+  while (tkit.CurrentTokenKind() != Token::kEOS) {
+    if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
+      // Skip newlines from the token stream.
+      skippedNewline = true;
+      tkit.Advance();
+      continue;
+    }
+    if (s.current_token().kind != tkit.CurrentTokenKind()) {
+      // Suppose we have a multiline string with interpolation:
+      //
+      // 10    '''
+      // 11    bar
+      // 12    baz
+      // 13    foo is $foo
+      // 14    '''
+      //
+      // In the token stream, this becomes something like:
+      //
+      // 10    string('bar\nbaz\nfoo is\n')
+      // 11    newline
+      // 12    newline
+      // 13    string('') interpol_var(foo) string('\n')
+      // 14
+      //
+      // In order to keep the token iterator and the scanner in sync,
+      // we need to skip the extra empty string before the
+      // interpolation.
+      if (skippedNewline &&
+          (s.current_token().kind == Token::kINTERPOL_VAR ||
+           s.current_token().kind == Token::kINTERPOL_START) &&
+          tkit.CurrentTokenKind() == Token::kSTRING) {
+        const String& tokenValue = String::Handle(tkit.CurrentLiteral());
+        if (tokenValue.Length() == 0) {
+          tkit.Advance();
+        }
+      }
+    }
+    skippedNewline = false;
+    ASSERT(s.current_token().kind == tkit.CurrentTokenKind());
+    int token_line = s.current_token().position.line;
+    if (token_line != current_line) {
+      // emit line
+      info.Add(line_separator);
+      info.Add(Smi::Handle(Smi::New(token_line + line_offset())));
+      current_line = token_line;
+    }
+    // TODO(hausner): Could optimize here by not reporting tokens
+    // that will never be a location used by the debugger, e.g.
+    // braces, semicolons, most keywords etc.
+    info.Add(Smi::Handle(Smi::New(tkit.CurrentPosition())));
+    int column = s.current_token().position.column;
+    // On the first line of the script we must add the column offset.
+    if (token_line == 1) {
+      column += col_offset();
+    }
+    info.Add(Smi::Handle(Smi::New(column)));
+    tkit.Advance();
+    s.Scan();
+  }
+  return info.raw();
+}
+
+
 const char* Script::GetKindAsCString() const {
   switch (kind()) {
     case RawScript::kScriptTag:
@@ -7861,46 +7937,27 @@ void Script::PrintToJSONStream(JSONStream* stream, bool ref) const {
   {
     JSONArray tokenPosTable(&jsobj, "tokenPosTable");
 
-    const TokenStream& tokenStream = TokenStream::Handle(tokens());
-    ASSERT(!tokenStream.IsNull());
-    TokenStream::Iterator tokens(tokenStream, 0);
+    const GrowableObjectArray& lineNumberArray =
+        GrowableObjectArray::Handle(GenerateLineNumberArray());
+    Object& value = Object::Handle();
+    intptr_t pos = 0;
 
-    const String& key = Symbols::Empty();
-    Scanner scanner(source, key);
-    scanner.Scan();
-    while (scanner.current_token().kind != Token::kEOS) {
-      ASSERT(tokens.IsValid());
-      ASSERT(scanner.current_token().kind == tokens.CurrentTokenKind());
-      int current_line = scanner.current_token().position.line;
+    // Skip leading null.
+    ASSERT(lineNumberArray.Length() > 0);
+    value = lineNumberArray.At(pos);
+    ASSERT(value.IsNull());
+    pos++;
 
-      // Each entry begins with a line number...
+    while (pos < lineNumberArray.Length()) {
       JSONArray lineInfo(&tokenPosTable);
-      lineInfo.AddValue(current_line + line_offset());
-
-      // ...and is followed by (token offset, col number) pairs.
-      //
-      // TODO(hausner): Could optimize here by not reporting tokens
-      // that will never be a location used by the debugger, e.g.
-      // braces, semicolons, most keywords etc.
-      while (scanner.current_token().kind != Token::kEOS) {
-        ASSERT(tokens.IsValid());
-        ASSERT(scanner.current_token().kind == tokens.CurrentTokenKind());
-
-        int token_line = scanner.current_token().position.line;
-        if (token_line != current_line) {
-          // We have hit a new line.  Break to the outer loop.
+      while (pos < lineNumberArray.Length()) {
+        value = lineNumberArray.At(pos);
+        pos++;
+        if (value.IsNull()) {
           break;
         }
-        lineInfo.AddValue(tokens.CurrentPosition());
-
-        intptr_t column = scanner.current_token().position.column;
-        if (token_line == 1) {
-          // On the first line of the script we must add the column offset.
-          column += col_offset();
-        }
-        lineInfo.AddValue(column);
-        scanner.Scan();
-        tokens.Advance();
+        const Smi& smi = Smi::Cast(value);
+        lineInfo.AddValue(smi.Value());
       }
     }
   }

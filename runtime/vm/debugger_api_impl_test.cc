@@ -2078,4 +2078,64 @@ TEST_CASE(Debug_ListSuperType) {
   EXPECT(super_type == Dart_Null());
 }
 
+TEST_CASE(Debug_ScriptGetTokenInfo_Basic) {
+  const char* kScriptChars =
+      "var foo;\n"
+      "\n"
+      "main() {\n"
+      "}";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  intptr_t libId = -1;
+  EXPECT_VALID(Dart_LibraryId(lib, &libId));
+  Dart_Handle scriptUrl = NewString(TestCase::url());
+  Dart_Handle tokens = Dart_ScriptGetTokenInfo(libId, scriptUrl);
+  EXPECT_VALID(tokens);
+
+  Dart_Handle tokens_string = Dart_ToString(tokens);
+  EXPECT_VALID(tokens_string);
+  const char* tokens_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(tokens_string, &tokens_cstr));
+  EXPECT_STREQ(
+      "[null, 1, 0, 1, 1, 5, 2, 8,"
+      " null, 3, 5, 1, 6, 5, 7, 6, 8, 8,"
+      " null, 4, 10, 1]",
+      tokens_cstr);
+}
+
+TEST_CASE(Debug_ScriptGetTokenInfo_MultiLineInterpolation) {
+  const char* kScriptChars =
+      "var foo = 'hello world';\n"
+      "\n"
+      "void test() {\n"
+      "  return '''\n"
+      "foo=$foo"
+      "''';\n"
+      "}\n"
+      "\n"
+      "main() {\n"
+      "}";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  intptr_t libId = -1;
+  EXPECT_VALID(Dart_LibraryId(lib, &libId));
+  Dart_Handle scriptUrl = NewString(TestCase::url());
+  Dart_Handle tokens = Dart_ScriptGetTokenInfo(libId, scriptUrl);
+  EXPECT_VALID(tokens);
+
+  Dart_Handle tokens_string = Dart_ToString(tokens);
+  EXPECT_VALID(tokens_string);
+  const char* tokens_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(tokens_string, &tokens_cstr));
+  EXPECT_STREQ(
+      "[null, 1, 0, 1, 1, 5, 2, 9, 3, 11, 4, 24,"
+      " null, 3, 7, 1, 8, 6, 9, 10, 10, 11, 11, 13,"
+      " null, 4, 13, 3, 14, 10,"
+      " null, 5, 17, 5, 18, 9, 19, 12,"
+      " null, 6, 21, 1,"
+      " null, 8, 24, 1, 25, 5, 26, 6, 27, 8,"
+      " null, 9, 29, 1]",
+      tokens_cstr);
+}
+
 }  // namespace dart
