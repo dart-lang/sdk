@@ -22,10 +22,6 @@ mixin_forwarding_constructor2_test: Fail # Issue 13641
 
 # Issue 17521
 deferred_constraints_constants_test/default_argument2: Fail
-deferred_constraints_constants_test/metadata1: Fail
-deferred_constraints_constants_test/metadata3: Fail
-deferred_constraints_constants_test/metadata2: Fail
-
 
 # These test use the old syntax, and will be phased out.
 deferred_constraints_type_annotation_old_syntax_test/as_operation: Fail, Ok

@@ -906,6 +906,13 @@ RawArray* Parser::EvaluateMetadata() {
     if (!IsIdentifier()) {
       ExpectIdentifier("identifier expected");
     }
+    // Reject expressions with deferred library prefix eagerly.
+    Object& obj = Object::Handle(library_.LookupLocalObject(*CurrentLiteral()));
+    if (!obj.IsNull() && obj.IsLibraryPrefix()) {
+      if (LibraryPrefix::Cast(obj).is_deferred_load()) {
+        ErrorMsg("Metadata must be compile-time constant");
+      }
+    }
     AstNode* expr = NULL;
     if ((LookaheadToken(1) == Token::kLPAREN) ||
         ((LookaheadToken(1) == Token::kPERIOD) &&
@@ -9247,8 +9254,11 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
     obj = prefix.LookupObject(ident);
   } else {
     // Remember that this function depends on an import prefix of an
-    // unloaded deferred library.
-    parsed_function()->AddDeferredPrefix(prefix);
+    // unloaded deferred library. Note that parsed_function() can be
+    // NULL when parsing expressions outside the scope of a function.
+    if (parsed_function() != NULL) {
+      parsed_function()->AddDeferredPrefix(prefix);
+    }
   }
   if (obj.IsNull()) {
     // Unresolved prefixed primary identifier.
