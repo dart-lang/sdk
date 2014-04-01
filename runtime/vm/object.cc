@@ -12711,28 +12711,18 @@ const char* Instance::ToCString() const {
 }
 
 
-const char* Instance::ToUserCString(intptr_t max_len, intptr_t nesting) const {
-  if (IsNull()) {
-    return "null";
-  } else if (raw() == Object::sentinel().raw()) {
-    return "<not initialized>";
-  } else if (raw() == Object::transition_sentinel().raw()) {
-    return "<being initialized>";
-  } else {
-    return ToCString();
-  }
-}
-
-
 void Instance::PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const {
   jsobj->AddProperty("type", JSONType(ref));
   Class& cls = Class::Handle(this->clazz());
   jsobj->AddProperty("class", cls);
+  // TODO(turnidge): Provide the type arguments here too.
   if (ref) {
     return;
   }
 
-  jsobj->AddProperty("size", raw()->Size());
+  if (raw()->IsHeapObject()) {
+    jsobj->AddProperty("size", raw()->Size());
+  }
 
   // Walk the superclass chain, adding all instance fields.
   {
@@ -12775,25 +12765,17 @@ void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
   if (IsNull()) {
     jsobj.AddProperty("type", ref ? "@Null" : "Null");
     jsobj.AddProperty("id", "objects/null");
-    jsobj.AddProperty("preview", "null");
+    jsobj.AddProperty("valueAsString", "null");
     return;
   } else if (raw() == Object::sentinel().raw()) {
     jsobj.AddProperty("type", ref ? "@Null" : "Null");
     jsobj.AddProperty("id", "objects/not-initialized");
-    jsobj.AddProperty("preview", "<not initialized>");
+    jsobj.AddProperty("valueAsString", "<not initialized>");
     return;
   } else if (raw() == Object::transition_sentinel().raw()) {
     jsobj.AddProperty("type", ref ? "@Null" : "Null");
     jsobj.AddProperty("id", "objects/being-initialized");
-    jsobj.AddProperty("preview", "<being initialized>");
-    return;
-  } else if (raw() == Symbols::OptimizedOut().raw()) {
-    // TODO(turnidge): This is a hack.  The user could have this
-    // special string in their program.  Fixing this involves updating
-    // the debugging api a bit.
-    jsobj.AddProperty("type", ref ? "@Null" : "Null");
-    jsobj.AddProperty("id", "objects/optimized-out");
-    jsobj.AddProperty("preview", "<optimized out>");
+    jsobj.AddProperty("valueAsString", "<being initialized>");
     return;
   }
 
@@ -12805,7 +12787,6 @@ void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("closureFunc", closureFunc);
   }
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
-  jsobj.AddProperty("preview", ToUserCString(40));
   if (ref) {
     return;
   }
@@ -14523,7 +14504,12 @@ const char* Number::ToCString() const {
 
 
 void Number::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Instance::PrintToJSONStream(stream, ref);
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  jsobj.AddProperty("valueAsString", ToCString());
 }
 
 
@@ -14965,11 +14951,9 @@ const char* Smi::ToCString() const {
 
 void Smi::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(ref));
+  PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddPropertyF("id", "objects/int-%" Pd "", Value());
-  class Class& cls = Class::Handle(this->clazz());
-  jsobj.AddProperty("class", cls);
-  jsobj.AddPropertyF("preview", "%" Pd "", Value());
+  jsobj.AddPropertyF("valueAsString", "%" Pd "", Value());
 }
 
 
@@ -16198,7 +16182,7 @@ intptr_t String::EscapedStringLen(intptr_t too_long) const {
 }
 
 
-const char* String::ToUserCString(intptr_t max_len, intptr_t nesting) const {
+const char* String::ToUserCString(intptr_t max_len) const {
   // Compute the needed length for the buffer.
   const intptr_t escaped_len = EscapedStringLen(max_len);
   intptr_t print_len = escaped_len;
@@ -16235,7 +16219,21 @@ const char* String::ToUserCString(intptr_t max_len, intptr_t nesting) const {
 
 
 void String::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Instance::PrintToJSONStream(stream, ref);
+  JSONObject jsobj(stream);
+  if (raw() == Symbols::OptimizedOut().raw()) {
+    // TODO(turnidge): This is a hack.  The user could have this
+    // special string in their program.  Fixing this involves updating
+    // the debugging api a bit.
+    jsobj.AddProperty("type", ref ? "@Null" : "Null");
+    jsobj.AddProperty("id", "objects/optimized-out");
+    jsobj.AddProperty("valueAsString", "<optimized out>");
+    return;
+  }
+  PrintSharedInstanceJSON(&jsobj, ref);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  jsobj.AddProperty("valueAsString", ToUserCString(1024));
 }
 
 
@@ -17033,7 +17031,7 @@ void Bool::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddPropertyF("id", "objects/bool-%s", str);
   class Class& cls = Class::Handle(this->clazz());
   jsobj.AddProperty("class", cls);
-  jsobj.AddPropertyF("preview", "%s", str);
+  jsobj.AddPropertyF("valueAsString", "%s", str);
 }
 
 
@@ -17349,106 +17347,6 @@ const char* GrowableObjectArray::ToCString() const {
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, Length());
   return chars;
-}
-
-
-const char* GrowableObjectArray::ToUserCString(intptr_t max_len,
-                                               intptr_t nesting) const {
-  if (Length() == 0) {
-    return "[]";
-  }
-  if (nesting > 3) {
-    return "[...]";
-  }
-
-  Isolate* isolate = Isolate::Current();
-  Zone* zone = isolate->current_zone();
-  Object& obj = Object::Handle(isolate);
-  Instance& element = Instance::Handle(isolate);
-
-  // Pre-print the suffix that we will use if the string is truncated.
-  // It is important to know the suffix length when deciding where to
-  // limit the list.
-  const intptr_t kMaxTruncSuffixLen = 16;
-  char trunc_suffix[kMaxTruncSuffixLen];
-  intptr_t trunc_suffix_len;
-  if (nesting == 0) {
-    trunc_suffix_len = OS::SNPrint(trunc_suffix, 16, "...](length:%" Pd ")",
-                                   Length());
-  } else {
-    trunc_suffix_len = OS::SNPrint(trunc_suffix, 16, "...]");
-  }
-  bool truncate = false;
-
-  const int kMaxPrintElements = 128;
-  const char* strings[kMaxPrintElements];
-  intptr_t print_len = 1;  // +1 for "["
-
-  // Figure out how many elements will fit in the string.
-  int i = 0;
-  while (i < Length()) {
-    if (i == kMaxPrintElements) {
-      if (i < Length()) {
-        truncate = true;
-      }
-      break;
-    }
-    obj = At(i);
-    if (!obj.IsNull() && !obj.IsInstance()) {
-      UNREACHABLE();
-      return "[<invalid list>]";
-    }
-    element ^= obj.raw();
-
-    // Choose max child length.  This is chosen so that it is small
-    // enough to maybe fit but not so small that we can't print
-    // anything.
-    int child_max_len = max_len - print_len;
-    if ((i + 1) < Length()) {
-      child_max_len -= (trunc_suffix_len + 1);  // 1 for ","
-    } else {
-      child_max_len -= 1;  // 1 for "]"
-    }
-    if (child_max_len < 8) {
-      child_max_len = 8;
-    }
-
-    strings[i] = element.ToUserCString(child_max_len,  nesting + 1);
-    print_len += strlen(strings[i]) + 1;  // +1 for "," or "]"
-    i++;
-    if (print_len > max_len) {
-      truncate = true;
-      break;
-    }
-  }
-  if (truncate) {
-    // Go backwards until there is enough room for the truncation suffix.
-    while (i >= 0 && (print_len + trunc_suffix_len) > max_len) {
-      i--;
-      print_len -= (strlen(strings[i]) + 1);  // +1 for ","
-    }
-  }
-
-  // Finally, allocate and print the string.
-  int num_to_print = i;
-  char* buffer = zone->Alloc<char>(print_len + 1);  // +1 for "\0"
-  intptr_t pos = 0;
-  buffer[pos++] = '[';
-  for (i = 0; i < num_to_print; i++) {
-    if ((i + 1) == Length()) {
-      pos += OS::SNPrint((buffer + pos), (max_len + 1 - pos),
-                         "%s]", strings[i]);
-    } else {
-      pos += OS::SNPrint((buffer + pos), (max_len + 1 - pos),
-                         "%s,", strings[i]);
-    }
-  }
-  if (i < Length()) {
-    pos += OS::SNPrint((buffer + pos), (max_len + 1 - pos), "%s", trunc_suffix);
-  }
-  ASSERT(pos <= max_len);
-  buffer[pos] = '\0';
-  return buffer;
 }
 
 

@@ -40,9 +40,9 @@ class InstanceRefElement extends ServiceRefElement {
     assert(ref is ServiceMap);
     if (expand) {
       ref.reload().then((result) {
-        if (result['preview'] != null) {
-          result.name = result['preview'];
-          result.vmName = result['preview'];
+        if (result['valueAsString'] != null) {
+          result.name = result['valueAsString'];
+          result.vmName = result['valueAsString'];
         }
         ref = result;
         notifyPropertyChange(#ref, 0, 1);

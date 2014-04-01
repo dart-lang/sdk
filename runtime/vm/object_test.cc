@@ -3923,55 +3923,40 @@ TEST_CASE(ToUserCString) {
       "var toolong2 = "
       "'0123456789012345678901234567890123\\t567890123456789howdy';\n"
       "var toolong3 = "
-      "'012345678901234567890123456789\\u0001567890123456789howdy';\n"
-      "\n"
-      "class _Cobra { }\n"
-      "var instance = new _Cobra();\n"
-      "\n"
-      "var empty_list = [];\n"
-      "var simple_list = [1,2,'otter'];\n"
-      "var nested_list = [[[[1]]],[2,'otter']];\n"
-      "var deeply_nested_list = [[[[[1]]]],[2,'otter']];\n"
-      "var toolong_list = "
-      "['0123456789','0123456789','0123456789','0123456789'];\n"
-      "var toolong2_list = [toolong];\n"
-      "var justenough_list = [0,1,2,3,4,0,1,2,3,4,0,1,2,3,4,0,1,2,99];"
-      "var toolong3_list = [0,1,2,3,4,0,1,2,3,4,0,1,2,3,4,0,1,2,3,4];"
-      "\n"
-      "var simple_map = {1: 2, 2: 'otter'};\n";
+      "'012345678901234567890123456789\\u0001567890123456789howdy';\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
 
-  Instance& obj = Instance::Handle();
+  String& obj = String::Handle();
   Dart_Handle result;
 
   // Simple string.
   result = Dart_GetField(lib, NewString("simple"));
   EXPECT_VALID(result);
   obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("\"simple\"", obj.ToUserCString());
+  EXPECT_STREQ("\"simple\"", obj.ToUserCString(40));
 
   // Escaped chars.
   result = Dart_GetField(lib, NewString("escapes"));
   EXPECT_VALID(result);
   obj ^= Api::UnwrapHandle(result);
   EXPECT_STREQ("\"stuff\\n\\r\\f\\b\\t\\v'\\\"\\$stuff\"",
-               obj.ToUserCString());
+               obj.ToUserCString(40));
 
   // U-escaped chars.
   result = Dart_GetField(lib, NewString("uescapes"));
   EXPECT_VALID(result);
   obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("\"stuff\\u0001\\u0002stuff\"", obj.ToUserCString());
+  EXPECT_STREQ("\"stuff\\u0001\\u0002stuff\"", obj.ToUserCString(40));
 
   // Truncation.
   result = Dart_GetField(lib, NewString("toolong"));
   EXPECT_VALID(result);
   obj ^= Api::UnwrapHandle(result);
   EXPECT_STREQ("\"01234567890123456789012345678901234\"...",
-               obj.ToUserCString());
+               obj.ToUserCString(40));
 
-  // Truncation.  Custom limit.
+  // Truncation, shorter.
   result = Dart_GetField(lib, NewString("toolong"));
   EXPECT_VALID(result);
   obj ^= Api::UnwrapHandle(result);
@@ -3982,80 +3967,14 @@ TEST_CASE(ToUserCString) {
   EXPECT_VALID(result);
   obj ^= Api::UnwrapHandle(result);
   EXPECT_STREQ("\"0123456789012345678901234567890123\"...",
-               obj.ToUserCString());
+               obj.ToUserCString(40));
 
   // Truncation, limit is in u-escape
   result = Dart_GetField(lib, NewString("toolong3"));
   EXPECT_VALID(result);
   obj ^= Api::UnwrapHandle(result);
   EXPECT_STREQ("\"012345678901234567890123456789\"...",
-               obj.ToUserCString());
-
-  // Instance of a class.
-  result = Dart_GetField(lib, NewString("instance"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("Instance of '_Cobra'", obj.ToUserCString());
-
-  // Empty list.
-  result = Dart_GetField(lib, NewString("empty_list"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("[]", obj.ToUserCString());
-
-  // Simple list.
-  result = Dart_GetField(lib, NewString("simple_list"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("[1,2,\"otter\"]", obj.ToUserCString());
-
-  // Nested list.
-  result = Dart_GetField(lib, NewString("nested_list"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("[[[[1]]],[2,\"otter\"]]", obj.ToUserCString());
-
-  // Deeply ested list.
-  result = Dart_GetField(lib, NewString("deeply_nested_list"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("[[[[[...]]]],[2,\"otter\"]]", obj.ToUserCString());
-
-  // Truncation.
-  result = Dart_GetField(lib, NewString("toolong_list"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("[\"0123456789\",\"012345\"...,...](length:4)",
-               obj.ToUserCString());
-
-  // More truncation.
-  result = Dart_GetField(lib, NewString("toolong2_list"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("[\"012345678901234567890123456789012\"...]",
-               obj.ToUserCString());
-
-  // Just fits.
-  result = Dart_GetField(lib, NewString("justenough_list"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("[0,1,2,3,4,0,1,2,3,4,0,1,2,3,4,0,1,2,99]",
-               obj.ToUserCString());
-
-  // Just too big, small elements.
-  result = Dart_GetField(lib, NewString("toolong3_list"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("[0,1,2,3,4,0,1,2,3,4,0,1,...](length:20)",
-               obj.ToUserCString());
-
-  // Simple map.
-  //
-  // TODO(turnidge): Consider showing something like: {1: 2, 2: 'otter'}
-  result = Dart_GetField(lib, NewString("simple_map"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("Instance of '_LinkedHashMap'", obj.ToUserCString());
+               obj.ToUserCString(40));
 }
 
 

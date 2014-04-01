@@ -1118,7 +1118,7 @@ static void PrintPseudoNull(JSONStream* js,
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Null");
   jsobj.AddProperty("id", id);
-  jsobj.AddProperty("preview", preview);
+  jsobj.AddProperty("valueAsString", preview);
 }
 
 

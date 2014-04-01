@@ -377,7 +377,7 @@ TEST_CASE(Service_Objects) {
   handler.filterMsg("name");
   EXPECT_STREQ(
       "{\"type\":\"Null\",\"id\":\"objects\\/null\","
-      "\"preview\":\"null\"}",
+      "\"valueAsString\":\"null\"}",
       handler.msg());
 
   // not initialized
@@ -387,7 +387,7 @@ TEST_CASE(Service_Objects) {
   handler.filterMsg("name");
   EXPECT_STREQ(
       "{\"type\":\"Null\",\"id\":\"objects\\/not-initialized\","
-      "\"preview\":\"<not initialized>\"}",
+      "\"valueAsString\":\"<not initialized>\"}",
       handler.msg());
 
   // being initialized
@@ -397,7 +397,7 @@ TEST_CASE(Service_Objects) {
   handler.filterMsg("name");
   EXPECT_STREQ(
       "{\"type\":\"Null\",\"id\":\"objects\\/being-initialized\","
-      "\"preview\":\"<being initialized>\"}",
+      "\"valueAsString\":\"<being initialized>\"}",
       handler.msg());
 
   // optimized out
@@ -407,7 +407,7 @@ TEST_CASE(Service_Objects) {
   handler.filterMsg("name");
   EXPECT_STREQ(
       "{\"type\":\"Null\",\"id\":\"objects\\/optimized-out\","
-      "\"preview\":\"<optimized out>\"}",
+      "\"valueAsString\":\"<optimized out>\"}",
       handler.msg());
 
   // collected
@@ -417,7 +417,7 @@ TEST_CASE(Service_Objects) {
   handler.filterMsg("name");
   EXPECT_STREQ(
       "{\"type\":\"Null\",\"id\":\"objects\\/collected\","
-      "\"preview\":\"<collected>\"}",
+      "\"valueAsString\":\"<collected>\"}",
       handler.msg());
 
   // expired
@@ -427,7 +427,7 @@ TEST_CASE(Service_Objects) {
   handler.filterMsg("name");
   EXPECT_STREQ(
       "{\"type\":\"Null\",\"id\":\"objects\\/expired\","
-      "\"preview\":\"<expired>\"}",
+      "\"valueAsString\":\"<expired>\"}",
       handler.msg());
 
   // bool
@@ -438,7 +438,7 @@ TEST_CASE(Service_Objects) {
   EXPECT_STREQ(
       "{\"type\":\"Bool\",\"id\":\"objects\\/bool-true\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/46\","
-      "\"user_name\":\"bool\"},\"preview\":\"true\"}",
+      "\"user_name\":\"bool\"},\"valueAsString\":\"true\"}",
       handler.msg());
 
   // int
@@ -447,9 +447,12 @@ TEST_CASE(Service_Objects) {
   handler.HandleNextMessage();
   handler.filterMsg("name");
   EXPECT_STREQ(
-      "{\"type\":\"Smi\",\"id\":\"objects\\/int-123\","
+      "{\"type\":\"Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"user_name\":\"int\"},\"preview\":\"123\"}",
+      "\"user_name\":\"int\"},"
+      "\"fields\":[],"
+      "\"id\":\"objects\\/int-123\","
+      "\"valueAsString\":\"123\"}",
       handler.msg());
 
   // object id ring / valid
@@ -458,11 +461,12 @@ TEST_CASE(Service_Objects) {
   handler.HandleNextMessage();
   handler.filterMsg("name");
   handler.filterMsg("size");
+  handler.filterMsg("id");
   EXPECT_STREQ(
       "{\"type\":\"String\","
-      "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/60\","
+      "\"class\":{\"type\":\"@Class\","
       "\"user_name\":\"String\"},\"fields\":[],"
-      "\"id\":\"objects\\/1\",\"preview\":\"\\\"value\\\"\"}",
+      "\"valueAsString\":\"\\\"value\\\"\"}",
       handler.msg());
 
   // object id ring / invalid => expired
@@ -472,7 +476,7 @@ TEST_CASE(Service_Objects) {
   handler.filterMsg("name");
   EXPECT_STREQ(
       "{\"type\":\"Null\",\"id\":\"objects\\/expired\","
-      "\"preview\":\"<expired>\"}",
+      "\"valueAsString\":\"<expired>\"}",
       handler.msg());
 
   // expired/eval => error
@@ -495,9 +499,11 @@ TEST_CASE(Service_Objects) {
   handler.HandleNextMessage();
   handler.filterMsg("name");
   EXPECT_STREQ(
-      "{\"type\":\"@Smi\",\"id\":\"objects\\/int-222\","
+      "{\"type\":\"@Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"user_name\":\"int\"},\"preview\":\"222\"}",
+      "\"user_name\":\"int\"},"
+      "\"id\":\"objects\\/int-222\","
+      "\"valueAsString\":\"222\"}",
       handler.msg());
 
   // eval returning null works
@@ -508,7 +514,8 @@ TEST_CASE(Service_Objects) {
   handler.HandleNextMessage();
   handler.filterMsg("name");
   EXPECT_STREQ(
-      "{\"type\":\"@Null\",\"id\":\"objects\\/null\",\"preview\":\"null\"}",
+      "{\"type\":\"@Null\",\"id\":\"objects\\/null\","
+      "\"valueAsString\":\"null\"}",
       handler.msg());
 
   // object id ring / invalid => expired
@@ -592,9 +599,10 @@ TEST_CASE(Service_Libraries) {
   handler.HandleNextMessage();
   handler.filterMsg("name");
   EXPECT_STREQ(
-      "{\"type\":\"@Smi\",\"id\":\"objects\\/int-54320\","
+      "{\"type\":\"@Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"user_name\":\"int\"},\"preview\":\"54320\"}",
+      "\"user_name\":\"int\"},\"id\":\"objects\\/int-54320\","
+      "\"valueAsString\":\"54320\"}",
       handler.msg());
 }
 
@@ -666,9 +674,11 @@ TEST_CASE(Service_Classes) {
   handler.HandleNextMessage();
   handler.filterMsg("name");
   EXPECT_STREQ(
-      "{\"type\":\"@Smi\",\"id\":\"objects\\/int-111235\","
+      "{\"type\":\"@Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"user_name\":\"int\"},\"preview\":\"111235\"}",
+      "\"user_name\":\"int\"},"
+      "\"id\":\"objects\\/int-111235\","
+      "\"valueAsString\":\"111235\"}",
       handler.msg());
 
   // Request function 0 from class A.

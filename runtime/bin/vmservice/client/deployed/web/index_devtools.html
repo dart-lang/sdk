@@ -298,14 +298,14 @@
       </template>
 
       <template if="{{ isNull(ref.serviceType) }}">
-        <div title="{{ hoverText }}">{{ ref['preview'] }}</div>
+        <div title="{{ hoverText }}">{{ ref['valueAsString'] }}</div>
       </template>
 
       <template if="{{ (isString(ref.serviceType) ||
                         isBool(ref.serviceType) ||
                         isInt(ref.serviceType)) ||
                         isDouble(ref.serviceType)) }}">
-        <a href="{{ url }}">{{ ref['preview'] }}</a>
+        <a href="{{ url }}">{{ ref['valueAsString'] }}</a>
       </template>
 
       <template if="{{ (isType(ref.serviceType)) }}">
@@ -1375,10 +1375,10 @@
               </class-ref>
             </div>
           </div>
-          <template if="{{ instance['preview'] != null }}">
+          <template if="{{ instance['valueAsString'] != null }}">
             <div class="memberItem">
-              <div class="memberName">preview</div>
-              <div class="memberValue">{{ instance['preview'] }}</div>
+              <div class="memberName">value</div>
+              <div class="memberValue">{{ instance['valueAsString'] }}</div>
             </div>
           </template>
           <div class="memberItem">

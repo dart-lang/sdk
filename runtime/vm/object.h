@@ -4042,14 +4042,6 @@ class Instance : public Object {
   // error object if evaluating the expression fails.
   RawObject* Evaluate(const String& expr) const;
 
-  // Returns a string representation of this instance in a form
-  // that is suitable for an end user.
-  //
-  // max_len is advisory, and the returned string may exceed this max
-  // length.
-  virtual const char* ToUserCString(intptr_t max_len = 40,
-                                    intptr_t nesting = 0) const;
-
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawInstance));
   }
@@ -5139,6 +5131,9 @@ class String : public Instance {
 
   void ToUTF8(uint8_t* utf8_array, intptr_t array_len) const;
 
+  // Produces a quoted, escaped, (possibly) truncated string.
+  const char* ToUserCString(intptr_t max_len) const;
+
   // Copies the string characters into the provided external array
   // and morphs the string object into an external string object.
   // The remaining unused part of the original string object is marked as
@@ -5148,10 +5143,6 @@ class String : public Instance {
                           intptr_t length,
                           void* peer,
                           Dart_PeerFinalizer cback) const;
-
-  // Produces a quoted, escaped, (possibly) truncated string.
-  const char* ToUserCString(intptr_t max_len = 40,
-                            intptr_t nesting = 0) const;
 
   // Creates a new String object from a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
@@ -5898,11 +5889,6 @@ class GrowableObjectArray : public Instance {
     UNREACHABLE();
     return Instance::null();
   }
-
-  // Produces a readable representation of this array, e.g. '[1,2,3]',
-  // subject to length limits.
-  const char* ToUserCString(intptr_t max_len = 40,
-                            intptr_t nesting = 0) const;
 
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(RawGrowableObjectArray, type_arguments_);
