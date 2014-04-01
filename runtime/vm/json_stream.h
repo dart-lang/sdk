@@ -56,6 +56,12 @@ class JSONStream : ValueObject {
 
   const char* LookupOption(const char* key) const;
 
+  bool HasOption(const char* key) const;
+
+  // Returns true if there is an option with key and value, false
+  // otherwise.
+  bool OptionIs(const char* key, const char* value) const;
+
   const char* command() const { return command_; }
   const char** arguments() const { return arguments_; }
   const char** option_keys() const { return option_keys_; }

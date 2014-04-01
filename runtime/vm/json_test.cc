@@ -312,4 +312,25 @@ TEST_CASE(JSON_JSONStream_EscapedString) {
 }
 
 
+TEST_CASE(JSON_JSONStream_Options) {
+  const char* arguments[] = {"a", "b", "c"};
+  const char* option_keys[] = {"dog", "cat"};
+  const char* option_values[] = {"apple", "banana"};
+
+  JSONStream js;
+  EXPECT(js.num_arguments() == 0);
+  js.SetArguments(&arguments[0], 3);
+  EXPECT(js.num_arguments() == 3);
+  EXPECT_STREQ("a", js.command());
+
+  EXPECT(js.num_options() == 0);
+  js.SetOptions(&option_keys[0], &option_values[0], 3);
+  EXPECT(js.num_options() == 3);
+  EXPECT(!js.HasOption("lizard"));
+  EXPECT(js.HasOption("dog"));
+  EXPECT(js.HasOption("cat"));
+  EXPECT(js.OptionIs("cat", "banana"));
+  EXPECT(!js.OptionIs("dog", "banana"));
+}
+
 }  // namespace dart

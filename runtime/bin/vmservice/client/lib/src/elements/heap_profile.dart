@@ -241,7 +241,8 @@ class HeapProfileElement extends ObservatoryElement {
     if (profile == null) {
       return;
     }
-    profile.isolate.get('/allocationprofile/reset').then((ServiceMap response) {
+    var isolate = profile.isolate;
+    isolate.get('/allocationprofile?reset=true').then((ServiceMap response) {
       assert(response['type'] == 'AllocationProfile');
       profile = response;
     }).catchError((e, st) {

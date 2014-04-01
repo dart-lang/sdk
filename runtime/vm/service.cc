@@ -1461,24 +1461,34 @@ static bool HandleCoverage(Isolate* isolate, JSONStream* js) {
 
 
 static bool HandleAllocationProfile(Isolate* isolate, JSONStream* js) {
-  if (js->num_arguments() == 2) {
-    const char* sub_command = js->GetArgument(1);
-    if (!strcmp(sub_command, "reset")) {
-      isolate->class_table()->ResetAllocationAccumulators();
-      isolate->class_table()->AllocationProfilePrintToJSONStream(js);
-      return true;
-    } else if (!strcmp(sub_command, "fullgc")) {
-      isolate->heap()->CollectAllGarbage();
-      isolate->class_table()->AllocationProfilePrintToJSONStream(js);
-      return true;
-    } else {
-      PrintError(js, "Unrecognized subcommand '%s'", sub_command);
-      return true;
-    }
-  }
+  bool should_reset_accumulator = false;
+  bool should_collect = false;
   if (js->num_arguments() != 1) {
     PrintError(js, "Command too long");
     return true;
+  }
+  if (js->HasOption("reset")) {
+    if (js->OptionIs("reset", "true")) {
+      should_reset_accumulator = true;
+    } else {
+      PrintError(js, "Unrecognized reset option '%s'",
+                 js->LookupOption("reset"));
+      return true;
+    }
+  }
+  if (js->HasOption("gc")) {
+    if (js->OptionIs("gc", "full")) {
+      should_collect = true;
+    } else {
+      PrintError(js, "Unrecognized gc option '%s'", js->LookupOption("gc"));
+      return true;
+    }
+  }
+  if (should_reset_accumulator) {
+    isolate->class_table()->ResetAllocationAccumulators();
+  }
+  if (should_collect) {
+    isolate->heap()->CollectAllGarbage();
   }
   isolate->class_table()->AllocationProfilePrintToJSONStream(js);
   return true;

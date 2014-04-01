@@ -1114,6 +1114,45 @@ TEST_CASE(Service_AllocationProfile) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"AllocationProfile\"", handler.msg());
+
+  // Too long.
+  service_msg = Eval(h_lib, "[port, ['allocationprofile', 'foo'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
+
+  // Bad gc option.
+  service_msg = Eval(h_lib, "[port, ['allocationprofile'], ['gc'], ['cat']]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
+
+  // Bad reset option.
+  service_msg = Eval(h_lib, "[port, ['allocationprofile'], ['reset'], ['ff']]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
+
+  // Good reset.
+  service_msg =
+      Eval(h_lib, "[port, ['allocationprofile'], ['reset'], ['true']]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"AllocationProfile\"", handler.msg());
+
+  // Good GC.
+  service_msg =
+      Eval(h_lib, "[port, ['allocationprofile'], ['gc'], ['full']]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"AllocationProfile\"", handler.msg());
+
+  // Good GC and reset.
+  service_msg = Eval(h_lib,
+      "[port, ['allocationprofile'], ['gc', 'reset'], ['full', 'true']]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"AllocationProfile\"", handler.msg());
 }
 
 

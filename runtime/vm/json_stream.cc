@@ -139,6 +139,20 @@ const char* JSONStream::LookupOption(const char* key) const {
 }
 
 
+bool JSONStream::HasOption(const char* key) const {
+  ASSERT(key);
+  return LookupOption(key) != NULL;
+}
+
+
+bool JSONStream::OptionIs(const char* key, const char* value) const {
+  ASSERT(key);
+  ASSERT(value);
+  const char* key_value = LookupOption(key);
+  return (key_value != NULL) && (strcmp(key_value, value) == 0);
+}
+
+
 void JSONStream::Clear() {
   buffer_.Clear();
   open_objects_ = 0;
@@ -302,6 +316,10 @@ void JSONStream::set_reply_port(Dart_Port port) {
 
 
 void JSONStream::SetArguments(const char** arguments, intptr_t num_arguments) {
+  if (num_arguments > 0) {
+    // Set command.
+    command_ = arguments[0];
+  }
   arguments_ = arguments;
   num_arguments_ = num_arguments;
 }
