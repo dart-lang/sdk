@@ -674,11 +674,6 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
   if (pipe(fds) != 0) {
     return -1;
   }
-  if (!FDUtils::SetNonBlocking(fds[0])) {
-    VOID_TEMP_FAILURE_RETRY(close(fds[0]));
-    VOID_TEMP_FAILURE_RETRY(close(fds[1]));
-    return -1;
-  }
   ThreadSignalBlocker blocker(kSignalsCount, kSignals);
   MutexLocker lock(signal_mutex);
   SignalInfo* handler = signal_handlers;
@@ -700,8 +695,10 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
     }
     int status = sigaction(signal, &act, NULL);
     if (status < 0) {
+      int err = errno;
       VOID_TEMP_FAILURE_RETRY(close(fds[0]));
       VOID_TEMP_FAILURE_RETRY(close(fds[1]));
+      errno = err;
       return -1;
     }
   }
