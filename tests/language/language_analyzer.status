@@ -185,10 +185,6 @@ override_inheritance_no_such_method_test/03: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/04: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/05: StaticWarning # Issue 16132
 
-# missing warning for unimplemented getter/setter
-override_inheritance_abstract_test/13: MissingStaticWarning # Issue 16133
-override_inheritance_abstract_test/26: MissingStaticWarning # Issue 16133
-
 # unexpected warning for override
 override_inheritance_abstract_test/27: StaticWarning # Issue 16134
 override_inheritance_generic_test/03: StaticWarning # Issue 16134
