@@ -275,6 +275,20 @@ class HInstructionStringifier implements HVisitor<String> {
     return 'field set ${temporaryId(node.receiver)}.$fieldName to $valueId';
   }
 
+  String visitReadModifyWrite(HReadModifyWrite node) {
+    String fieldName = node.element.name;
+    String receiverId = temporaryId(node.receiver);
+    String op = node.jsOp;
+    if (node.isAssignOp) {
+      String valueId = temporaryId(node.value);
+      return 'field-update $receiverId.$fieldName $op= $valueId';
+    } else if (node.isPreOp) {
+      return 'field-update $op$receiverId.$fieldName';
+    } else {
+      return 'field-update $receiverId.$fieldName$op';
+    }
+  }
+
   String visitLocalGet(HLocalGet node) {
     String localName = node.element.name;
     return 'local get ${temporaryId(node.local)}.$localName';

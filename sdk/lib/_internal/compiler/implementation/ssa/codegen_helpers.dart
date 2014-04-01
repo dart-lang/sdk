@@ -26,7 +26,7 @@ class SsaInstructionSelection extends HBaseVisitor {
     while (instruction != null) {
       HInstruction next = instruction.next;
       HInstruction replacement = instruction.accept(this);
-      if (replacement != instruction) {
+      if (replacement != instruction && replacement != null) {
         block.rewrite(instruction, replacement);
 
         // If the replacement instruction does not know its source element, use
@@ -136,6 +136,118 @@ class SsaInstructionSelection extends HBaseVisitor {
     }
 
     return node;
+  }
+
+  HInstruction visitFieldSet(HFieldSet setter) {
+    // Pattern match
+    //     t1 = x.f; t2 = t1 + 1; x.f = t2; use(t2)   -->  ++x.f
+    //     t1 = x.f; t2 = t1 op y; x.f = t2; use(t2)  -->  x.f op= y
+    //     t1 = x.f; t2 = t1 + 1; x.f = t2; use(t1)   -->  x.f++
+    HBasicBlock block = setter.block;
+    HInstruction op = setter.value;
+    HInstruction receiver = setter.receiver;
+
+    bool isMatchingRead(HInstruction candidate) {
+      if (candidate is HFieldGet) {
+        if (candidate.element != setter.element) return false;
+        if (candidate.receiver != setter.receiver) return false;
+        // Recognize only three instructions in sequence in the same block.  This
+        // could be broadened to allow non-interfering interleaved instructions.
+        if (op.block != block) return false;
+        if (candidate.block != block) return false;
+        if (setter.previous != op) return false;
+        if (op.previous != candidate) return false;
+        return true;
+      }
+      return false;
+    }
+
+    HInstruction noMatchingRead() {
+      // If we have other HFieldSet optimizations, they go here.
+      return null;
+    }
+
+    HInstruction replaceOp(HInstruction replacement, HInstruction getter) {
+      block.addBefore(setter, replacement);
+      block.remove(setter);
+      block.rewrite(op, replacement);
+      block.remove(op);
+      block.remove(getter);
+      return null;
+    }
+
+    HInstruction plusOrMinus(String assignOp, String incrementOp) {
+      HInvokeBinary binary = op;
+      HInstruction left = binary.left;
+      HInstruction right = binary.right;
+      if (isMatchingRead(left)) {
+        if (left.usedBy.length == 1) {
+          if (right is HConstant && right.constant.isOne) {
+            HInstruction rmw = new HReadModifyWrite.preOp(
+                setter.element, incrementOp, receiver, op.instructionType);
+            return replaceOp(rmw, left);
+          } else {
+            HInstruction rmw = new HReadModifyWrite.assignOp(
+                setter.element,
+                assignOp,
+                receiver, right, op.instructionType);
+            return replaceOp(rmw, left);
+          }
+        } else if (op.usedBy.length == 1 &&
+                   right is HConstant &&
+                   right.constant.isOne) {
+          HInstruction rmw = new HReadModifyWrite.postOp(
+              setter.element, incrementOp, receiver, op.instructionType);
+          block.addAfter(left, rmw);
+          block.remove(setter);
+          block.remove(op);
+          block.rewrite(left, rmw);
+          block.remove(left);
+          return null;
+        }
+      }
+      return noMatchingRead();
+    }
+
+    HInstruction simple(String assignOp,
+                        HInstruction left, HInstruction right) {
+      if (isMatchingRead(left)) {
+        if (left.usedBy.length == 1) {
+          HInstruction rmw = new HReadModifyWrite.assignOp(
+              setter.element,
+              assignOp,
+              receiver, right, op.instructionType);
+          return replaceOp(rmw, left);
+        }
+      }
+      return noMatchingRead();
+    }
+
+    HInstruction simpleBinary(String assignOp) {
+      HInvokeBinary binary = op;
+      return simple(assignOp, binary.left, binary.right);
+    }
+
+    HInstruction bitop(String assignOp) {
+      // HBitAnd, HBitOr etc. are more difficult because HBitAnd(a.x, y)
+      // sometimes needs to be forced to unsigned: a.x = (a.x & y) >>> 0.
+      if (op.isUInt31(compiler)) return simpleBinary(assignOp);
+      return noMatchingRead();
+    }
+
+    if (op is HAdd) return plusOrMinus('+', '++');
+    if (op is HSubtract) return plusOrMinus('-', '--');
+
+    if (op is HStringConcat) return simple('+', op.left, op.right);
+
+    if (op is HMultiply) return simpleBinary('*');
+    if (op is HDivide) return simpleBinary('/');
+
+    if (op is HBitAnd) return bitop('&');
+    if (op is HBitOr) return bitop('|');
+    if (op is HBitXor) return bitop('^');
+
+    return noMatchingRead();
   }
 }
 

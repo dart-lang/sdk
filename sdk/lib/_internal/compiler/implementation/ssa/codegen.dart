@@ -1687,6 +1687,22 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         node);
   }
 
+  visitReadModifyWrite(HReadModifyWrite node) {
+    Element element = node.element;
+    world.registerFieldSetter(element);
+    String name = backend.namer.instanceFieldPropertyName(element);
+    use(node.receiver);
+    js.Expression fieldReference = new js.PropertyAccess.field(pop(), name);
+    if (node.isPreOp) {
+      push(new js.Prefix(node.jsOp, fieldReference), node);
+    } else if (node.isPostOp) {
+      push(new js.Postfix(node.jsOp, fieldReference), node);
+    } else {
+      use(node.value);
+      push(new js.Assignment.compound(fieldReference, node.jsOp, pop()), node);
+    }
+  }
+
   visitLocalGet(HLocalGet node) {
     use(node.receiver);
   }
