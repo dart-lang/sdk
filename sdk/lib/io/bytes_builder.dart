@@ -8,20 +8,24 @@ part of dart.io;
  * Builds a list of bytes, allowing bytes and lists of bytes to be added at the
  * end.
  *
- * Used to efficiently collect bytes and lists of bytes, using an internal
- * buffer. Note that it's optimized for IO, using an initial buffer of 1K bytes.
+ * Used to efficiently collect bytes and lists of bytes.
  */
-class BytesBuilder {
-  // Start with 1024 bytes.
-  static const int _INIT_SIZE = 1024;
-
-  int _length = 0;
-  Uint8List _buffer;
-
+abstract class BytesBuilder {
   /**
    * Construct a new empty [BytesBuilder].
+   *
+   * If [copy] is true, the data is always copied when added to the list. If
+   * it [copy] is false, the data is only copied if needed. That means that if
+   * the lists are changed after added to the [BytesBuilder], it may effect the
+   * output. Default is `true`.
    */
-  BytesBuilder();
+  factory BytesBuilder({bool copy: true}) {
+    if (copy) {
+      return new _CopyingBytesBuilder();
+    } else {
+      return new _BytesBuilder();
+    }
+  }
 
   /**
    * Appends [bytes] to the current contents of the builder.
@@ -29,6 +33,59 @@ class BytesBuilder {
    * Each value of [bytes] will be bit-representation truncated to the range
    * 0 .. 255.
    */
+  void add(List<int> bytes);
+
+  /**
+   * Append [byte] to the current contents of the builder.
+   *
+   * The [byte] will be bit-representation truncated to the range 0 .. 255.
+   */
+  void addByte(int byte);
+
+  /**
+   * Returns the contents of `this` and clears `this`.
+   *
+   * The list returned is a view of the the internal buffer, limited to the
+   * [length].
+   */
+  List<int> takeBytes();
+
+  /**
+   * Returns a copy of the current contents of the builder.
+   *
+   * Leaves the contents of the builder intact.
+   */
+  List<int> toBytes();
+
+  /**
+   * The number of bytes in the builder.
+   */
+  int get length;
+
+  /**
+   * Returns `true` if the buffer is empty.
+   */
+  bool get isEmpty;
+
+  /**
+   * Returns `true` if the buffer is not empty.
+   */
+  bool get isNotEmpty;
+
+  /**
+   * Clear the contents of the builder.
+   */
+  void clear();
+}
+
+
+class _CopyingBytesBuilder implements BytesBuilder {
+  // Start with 1024 bytes.
+  static const int _INIT_SIZE = 1024;
+
+  int _length = 0;
+  Uint8List _buffer;
+
   void add(List<int> bytes) {
     int bytesLength = bytes.length;
     if (bytesLength == 0) return;
@@ -56,19 +113,8 @@ class BytesBuilder {
     _length = required;
   }
 
-  /**
-   * Append [byte] to the current contents of the builder.
-   *
-   * The [byte] will be bit-representation truncated to the range 0 .. 255.
-   */
   void addByte(int byte) => add([byte]);
 
-  /**
-   * Returns the contents of `this` and clears `this`.
-   *
-   * The list returned is a view of the the internal buffer, limited to the
-   * [length].
-   */
   List<int> takeBytes() {
     if (_buffer == null) return new Uint8List(0);
     var buffer = new Uint8List.view(_buffer.buffer, 0, _length);
@@ -76,35 +122,18 @@ class BytesBuilder {
     return buffer;
   }
 
-  /**
-   * Returns a copy of the current contents of the builder.
-   *
-   * Leaves the contents of the builder intact.
-   */
   List<int> toBytes() {
     if (_buffer == null) return new Uint8List(0);
     return new Uint8List.fromList(
         new Uint8List.view(_buffer.buffer, 0, _length));
   }
 
-  /**
-   * The number of bytes in the builder.
-   */
   int get length => _length;
 
-  /**
-   * Returns `true` if the buffer is empty.
-   */
   bool get isEmpty => _length == 0;
 
-  /**
-   * Returns `true` if the buffer is not empty.
-   */
   bool get isNotEmpty => _length != 0;
 
-  /**
-   * Clear the contents of the builder.
-   */
   void clear() {
     _length = 0;
     _buffer = null;
@@ -118,5 +147,60 @@ class BytesBuilder {
     x |= x >> 8;
     x |= x >> 16;
     return x + 1;
+  }
+}
+
+
+class _BytesBuilder implements BytesBuilder {
+  int _length = 0;
+  final List _chunks = [];
+
+  void add(List<int> bytes) {
+    if (bytes is! Uint8List) {
+      bytes = new Uint8List.fromList(bytes);
+    }
+    _chunks.add(bytes);
+    _length += bytes.length;
+  }
+
+  void addByte(int byte) => add([byte]);
+
+  List<int> takeBytes() {
+    if (_chunks.length == 0) return new Uint8List(0);
+    if (_chunks.length == 1) {
+      var buffer = _chunks.single;
+      clear();
+      return buffer;
+    }
+    var buffer = new Uint8List(_length);
+    int offset = 0;
+    for (var chunk in _chunks) {
+      buffer.setRange(offset, offset + chunk.length, chunk);
+      offset += chunk.length;
+    }
+    clear();
+    return buffer;
+  }
+
+  List<int> toBytes() {
+    if (_chunks.length == 0) return new Uint8List(0);
+    var buffer = new Uint8List(_length);
+    int offset = 0;
+    for (var chunk in _chunks) {
+      buffer.setRange(offset, offset + chunk.length, chunk);
+      offset += chunk.length;
+    }
+    return buffer;
+  }
+
+  int get length => _length;
+
+  bool get isEmpty => _length == 0;
+
+  bool get isNotEmpty => _length != 0;
+
+  void clear() {
+    _length = 0;
+    _chunks.clear();
   }
 }

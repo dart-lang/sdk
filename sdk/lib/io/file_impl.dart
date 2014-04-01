@@ -436,29 +436,51 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<List<int>> readAsBytes() {
-    Completer<List<int>> completer = new Completer<List<int>>();
-    var builder = new BytesBuilder();
-    openRead().listen(
-      (d) => builder.add(d),
-      onDone: () {
-        completer.complete(builder.takeBytes());
-      },
-      onError: (e, StackTrace stackTrace) {
-        completer.completeError(e, stackTrace);
-      },
-      cancelOnError: true);
-    return completer.future;
+    Future<List<int>> readDataChunked(file) {
+      var builder = new BytesBuilder(copy: false);
+      var completer = new Completer();
+      void read() {
+        file.read(_BLOCK_SIZE).then((data) {
+          if (data.length > 0) builder.add(data);
+          if (data.length == _BLOCK_SIZE) {
+            read();
+          } else {
+            completer.complete(builder.takeBytes());
+          }
+        }, onError: completer.completeError);
+      }
+      read();
+      return completer.future;
+    }
+
+    return open().then((file) {
+      return file.length().then((length) {
+        if (length == 0) {
+          // May be character device, try to read it in chunks.
+          return readDataChunked(file);
+        }
+        return file.read(length);
+      }).whenComplete(file.close);
+    });
   }
 
   List<int> readAsBytesSync() {
     var opened = openSync();
-    var builder = new BytesBuilder();
     var data;
-    while ((data = opened.readSync(_BLOCK_SIZE)).length > 0) {
-      builder.add(data);
+    var length = opened.lengthSync();
+    if (length == 0) {
+      // May be character device, try to read it in chunks.
+      var builder = new BytesBuilder(copy: false);
+      do {
+        data = opened.readSync(_BLOCK_SIZE);
+        if (data.length > 0) builder.add(data);
+      } while (data.length == _BLOCK_SIZE);
+      data = builder.takeBytes();
+    } else {
+      data = opened.readSync(length);
     }
     opened.closeSync();
-    return builder.takeBytes();
+    return data;
   }
 
   String _tryDecode(List<int> bytes, Encoding encoding) {

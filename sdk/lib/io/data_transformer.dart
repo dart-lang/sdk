@@ -434,7 +434,7 @@ class ZLibDecoder extends Converter<List<int>, List<int>> {
 
 
 class _BufferSink extends ByteConversionSink {
-  final BytesBuilder builder = new BytesBuilder();
+  final BytesBuilder builder = new BytesBuilder(copy: false);
 
   void add(List<int> chunk) {
     builder.add(chunk);

@@ -85,23 +85,11 @@ void _makeHttpRequest(String uri) {
         })
         .then((HttpClientResponse response) {
           // Only create a ByteBuilder, if multiple chunks are received.
-          var bufferOrBuilder;
+          var builder = new BytesBuilder(copy: false);
           response.listen(
-            (data) {
-              if (bufferOrBuilder == null) {
-                bufferOrBuilder = data;
-              } else {
-                if (bufferOrBuilder is! BytesBuilder) {
-                  bufferOrBuilder = new BytesBuilder()
-                      ..add(bufferOrBuilder);
-                }
-                bufferOrBuilder.add(data);
-              }
-            },
+            builder.add,
             onDone: () {
-              var data = bufferOrBuilder;
-              if (data is BytesBuilder) data = data.takeBytes();
-              _requestCompleted(data, response);
+              _requestCompleted(builder.takeBytes(), response);
               // Close the client to stop any timers currently held alive.
               _client.close();
             },
