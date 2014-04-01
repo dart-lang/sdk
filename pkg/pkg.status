@@ -81,6 +81,7 @@ polymer/test/event_path_test: Skip #uses dart:html
 polymer/test/events_test: Skip #uses dart:html
 polymer/test/instance_attrs_test: Skip #uses dart:html
 polymer/test/js_interop_test: Skip #uses dart:html
+polymer/test/mirror_loader_test: Skip # uses dart:html
 polymer/test/nested_binding_test: Skip # uses dart:html
 polymer/test/noscript_test: Skip #uses dart:html
 polymer/test/prop_attr_bind_reflection_test: Skip #uses dart:html
@@ -184,6 +185,7 @@ polymer/example/canonicalization/test/dev2_test: Fail, OK # tests development on
 polymer/example/canonicalization/test/dev3_test: Fail, OK # tests development only behavior
 polymer/example/canonicalization/test/dir/dev_test: Fail, OK # tests development only behavior
 polymer/example/canonicalization/test/dir/dev2_test: Fail, OK # tests development only behavior
+polymer/test/mirror_loader_test: Fail, OK # tests development only behavior
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 docgen/test/single_library_test: Fail # TODO(kasperl): Please triage.

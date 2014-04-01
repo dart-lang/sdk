@@ -162,7 +162,8 @@ void _loadLibrary(String uriString, List<Function> initializers) {
 
 void _loadCustomTags(LibraryMirror lib, ClassMirror cls,
     LinkedHashMap registerFns) {
-  if (cls == null || cls.reflectedType == HtmlElement) return;
+  if (cls == null) return;
+  if (cls.hasReflectedType && cls.reflectedType == HtmlElement) return;
 
   // Register superclass first.
   _loadCustomTags(lib, cls.superclass, registerFns);
@@ -176,6 +177,13 @@ void _loadCustomTags(LibraryMirror lib, ClassMirror cls,
 
   var meta = _getCustomTagMetadata(cls);
   if (meta == null) return;
+
+  if (!cls.hasReflectedType) {
+    var name = MirrorSystem.getName(cls.simpleName);
+    new Completer().completeError(new UnsupportedError('Custom element classes '
+        'cannot have type-parameters: $name'));
+    return;
+  }
 
   registerFns.putIfAbsent(cls.reflectedType, () =>
       () => Polymer.register(meta.tagName, cls.reflectedType));
