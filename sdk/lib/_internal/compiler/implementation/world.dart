@@ -273,4 +273,9 @@ class World {
   bool getCannotThrow(Element element) {
     return elementsThatCannotThrow.contains(element);
   }
+
+  void registerImplicitSuperCall(TreeElements elements,
+                                 FunctionElement superConstructor) {
+    elements.otherDependencies.add(superConstructor);
+  }
 }

@@ -453,6 +453,7 @@ class ResolverTask extends CompilerTask {
       }
       if (element.isSynthesized) {
         if (isConstructor) {
+          TreeElements elements = _ensureTreeElements(element);
           Element target = element.targetConstructor;
           // Ensure the signature of the synthesized element is
           // resolved. This is the only place where the resolver is
@@ -460,11 +461,13 @@ class ResolverTask extends CompilerTask {
           element.computeSignature(compiler);
           if (!target.isErroneous()) {
             compiler.enqueuer.resolution.registerStaticUse(target);
+            compiler.world.registerImplicitSuperCall(elements, target);
           }
+          return elements;
         } else {
           assert(element.isDeferredLoaderGetter());
+          return _ensureTreeElements(element);
         }
-        return _ensureTreeElements(element);
       }
       element.parseNode(compiler);
       element.computeSignature(compiler);
@@ -1377,7 +1380,8 @@ class InitializerResolver {
                                        functionNode,
                                        className,
                                        constructorSelector);
-
+      visitor.compiler.world
+         .registerImplicitSuperCall(visitor.mapping, calledConstructor);
       visitor.world.registerStaticUse(calledConstructor);
     }
   }
