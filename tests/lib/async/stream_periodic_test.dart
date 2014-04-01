@@ -6,7 +6,7 @@
 library dart.test.stream_from_iterable;
 
 import "dart:async";
-import '../../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
 
 main() {
   test("stream-periodic1", () {

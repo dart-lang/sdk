@@ -7,7 +7,7 @@ library stream_single_test;
 
 import "package:expect/expect.dart";
 import 'dart:async';
-import '../../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
 
 main() {
   test("subscription.asStream success", () {

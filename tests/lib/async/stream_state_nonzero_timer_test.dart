@@ -8,7 +8,7 @@
 library stream_state_nonzero_timer_test;
 
 import "dart:async";
-import "../../../pkg/unittest/lib/unittest.dart";
+import "package:unittest/unittest.dart";
 import "stream_state_helper.dart";
 
 const ms5 = const Duration(milliseconds: 5);
