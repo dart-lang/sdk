@@ -362,10 +362,4 @@ interface Window : EventTarget {};
 [Suppressed]
 interface Promise {};
 
-[Suppressed]
-interface InstallEvent {};
-
-[Suppressed]
-interface InstallPhaseEvent {};
-
 Element implements GlobalEventHandlers;
