@@ -511,11 +511,6 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   DartType visitCascade(Cascade node) {
     analyze(node.expression);
-    if (node.expression.asCascadeReceiver() == null) {
-      // TODO(karlklose): bug: expressions of the form e..x = y do not have
-      // a CascadeReceiver as expression currently.
-      return types.dynamicType;
-    }
     return popCascadeType();
   }
 
