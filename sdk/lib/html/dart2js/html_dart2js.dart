@@ -14337,32 +14337,6 @@ class HtmlDocument extends Document native "HTMLDocument" {
    * This custom element can also be instantiated via HTML using the syntax
    * `<input is="x-bar"></input>`
    *
-   * The [nativeTagName] parameter is needed by platforms without native support
-   * when subclassing a native type other than:
-   *
-   * * HtmlElement
-   * * SvgElement
-   * * AnchorElement
-   * * AudioElement
-   * * ButtonElement
-   * * CanvasElement
-   * * DivElement
-   * * ImageElement
-   * * InputElement
-   * * LIElement
-   * * LabelElement
-   * * MenuElement
-   * * MeterElement
-   * * OListElement
-   * * OptionElement
-   * * OutputElement
-   * * ParagraphElement
-   * * PreElement
-   * * ProgressElement
-   * * SelectElement
-   * * SpanElement
-   * * UListElement
-   * * VideoElement
    */
   void register(String tag, Type customElementClass, {String extendsTag}) {
     _registerCustomElement(JS('', 'window'), this, tag, customElementClass,
@@ -14404,6 +14378,28 @@ class HtmlDocument extends Document native "HTMLDocument" {
   @Experimental()
   Stream<Event> get onVisibilityChange =>
       visibilityChangeEvent.forTarget(this);
+
+  /// Creates an element upgrader which can be used to change the Dart wrapper
+  /// type for elements.
+  ///
+  /// The type specified must be a subclass of HtmlElement, when an element is
+  /// upgraded then the created constructor will be invoked on that element.
+  ///
+  /// If the type is not a direct subclass of HtmlElement then the extendsTag
+  /// parameter must be provided.
+  @Experimental()
+  ElementUpgrader createElementUpgrader(Type type, {String extendsTag}) {
+    return new _JSElementUpgrader(this, type, extendsTag);
+  }
+}
+
+/// A utility for changing the Dart wrapper type for elements.
+abstract class ElementUpgrader {
+  /// Upgrade the specified element to be of the Dart type this was created for.
+  ///
+  /// After upgrading the element passed in is invalid and the returned value
+  /// should be used instead.
+  Element upgrade(Element element);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35264,7 +35260,7 @@ void _registerCustomElement(context, document, String tag, Type type,
   if (extendsTagName == null) {
     if (baseClassName != 'HTMLElement') {
       throw new UnsupportedError('Class must provide extendsTag if base '
-          'native class is not HTMLElement');
+          'native class is not HtmlElement');
     }
   } else {
     if (!JS('bool', '(#.createElement(#) instanceof window[#])',
@@ -35304,6 +35300,63 @@ void _registerCustomElement(context, document, String tag, Type type,
 //// Called by Element.created to do validation & initialization.
 void _initializeCustomElement(Element e) {
   // TODO(blois): Add validation that this is only in response to an upgrade.
+}
+
+/// Dart2JS implementation of ElementUpgrader
+class _JSElementUpgrader implements ElementUpgrader {
+  var _interceptor;
+  var _constructor;
+  var _nativeType;
+
+  _JSElementUpgrader(Document document, Type type, String extendsTag) {
+    var interceptorClass = findInterceptorConstructorForType(type);
+    if (interceptorClass == null) {
+      throw new ArgumentError(type);
+    }
+
+    _constructor = findConstructorForNativeSubclassType(type, 'created');
+    if (_constructor == null) {
+      throw new ArgumentError("$type has no constructor called 'created'");
+    }
+
+    // Workaround for 13190- use an article element to ensure that HTMLElement's
+    // interceptor is resolved correctly.
+    getNativeInterceptor(new Element.tag('article'));
+
+    var baseClassName = findDispatchTagForInterceptorClass(interceptorClass);
+    if (baseClassName == null) {
+      throw new ArgumentError(type);
+    }
+
+    if (extendsTag == null) {
+      if (baseClassName != 'HTMLElement') {
+        throw new UnsupportedError('Class must provide extendsTag if base '
+            'native class is not HtmlElement');
+      }
+      _nativeType = HtmlElement;
+    } else {
+      var element = document.createElement(extendsTag);
+      if (!JS('bool', '(# instanceof window[#])',
+          element, baseClassName)) {
+        throw new UnsupportedError(
+            'extendsTag does not match base native class');
+      }
+      _nativeType = element.runtimeType;
+    }
+
+    _interceptor = JS('=Object', '#.prototype', interceptorClass);
+  }
+
+  Element upgrade(Element element) {
+    // Only exact type matches are supported- cannot be a subclass.
+    if (element.runtimeType != _nativeType) {
+      throw new ArgumentError('element is not subclass of $_nativeType');
+    }
+
+    setNativeSubclassDispatchRecord(element, _interceptor);
+    JS('', '#(#)', _constructor, element);
+    return element;
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
