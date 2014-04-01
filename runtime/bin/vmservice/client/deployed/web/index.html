@@ -756,6 +756,32 @@
   </template>
   
 </polymer-element>
+<polymer-element name="eval-link">
+  <template>
+    <style>
+      .idle {
+        color: #0489c3;
+        cursor: pointer;
+      }
+      .busy {
+        color: #aaa;
+        cursor: wait;
+      }
+    </style>
+
+    <template if="{{ busy }}">
+      <span class="busy">[evaluate]</span>
+    </template>
+    <template if="{{ !busy }}">
+      <span class="idle"><a on-click="{{ evalNow }}">[evaluate]</a></span>
+    </template>
+    <template if="{{ result != null }}">
+      = <instance-ref ref="{{ result }}"></instance-ref>
+    </template>
+
+  </template>
+  
+</polymer-element>
 <polymer-element name="field-view" extends="observatory-element">
   <template>
     <style>
@@ -1404,6 +1430,15 @@
               </div>
             </div>
           </template>
+
+          <div class="memberItem">&nbsp;</div>
+
+          <div class="memberItem">
+            <div class="memberName">toString()</div>
+            <div class="memberValue">
+              <eval-link callback="{{ eval }}" expr="toString()"></eval-link>
+            </div>
+          </div>
         </div>
       </div>
 

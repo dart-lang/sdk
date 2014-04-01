@@ -1,0 +1,29 @@
+<head>
+  <link rel="import" href="instance_ref.html">
+</head>
+<polymer-element name="eval-link">
+  <template>
+    <style>
+      .idle {
+        color: #0489c3;
+        cursor: pointer;
+      }
+      .busy {
+        color: #aaa;
+        cursor: wait;
+      }
+    </style>
+
+    <template if="{{ busy }}">
+      <span class="busy">[evaluate]</span>
+    </template>
+    <template if="{{ !busy }}">
+      <span class="idle"><a on-click="{{ evalNow }}">[evaluate]</a></span>
+    </template>
+    <template if="{{ result != null }}">
+      = <instance-ref ref="{{ result }}"></instance-ref>
+    </template>
+
+  </template>
+  <script type="application/dart" src="eval_link.dart"></script>
+</polymer-element>

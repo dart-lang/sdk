@@ -47,6 +47,7 @@
     'vmservice/client/deployed/web/packages/observatory/src/elements/curly_block.html',
     'vmservice/client/deployed/web/packages/observatory/src/elements/error_view.html',
     'vmservice/client/deployed/web/packages/observatory/src/elements/eval_box.html',
+    'vmservice/client/deployed/web/packages/observatory/src/elements/eval_link.html',
     'vmservice/client/deployed/web/packages/observatory/src/elements/field_ref.html',
     'vmservice/client/deployed/web/packages/observatory/src/elements/field_view.html',
     'vmservice/client/deployed/web/packages/observatory/src/elements/function_ref.html',

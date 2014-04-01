@@ -2,6 +2,7 @@
   <link rel="import" href="class_ref.html">
   <link rel="import" href="error_view.html">
   <link rel="import" href="eval_box.html">
+  <link rel="import" href="eval_link.html">
   <link rel="import" href="field_ref.html">
   <link rel="import" href="function_ref.html">
   <link rel="import" href="instance_ref.html">
@@ -90,6 +91,15 @@
               </div>
             </div>
           </template>
+
+          <div class="memberItem">&nbsp;</div>
+
+          <div class="memberItem">
+            <div class="memberName">toString()</div>
+            <div class="memberValue">
+              <eval-link callback="{{ eval }}" expr="toString()"></eval-link>
+            </div>
+          </div>
         </div>
       </div>
 
