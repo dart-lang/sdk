@@ -4809,7 +4809,7 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Label do_pow, return_zero;
     __ Bind(&do_call);
     // Before calling check if we could use sqrt instead of pow.
-    __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(-1.0/0.0)));
+    __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(-INFINITY)));
     __ movsd(result, FieldAddress(temp, Double::value_offset()));
     // base == -Infinity -> call pow;
     __ comisd(base, result);
