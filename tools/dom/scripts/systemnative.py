@@ -589,7 +589,7 @@ class DartiumBackend(HtmlDartGenerator):
       to_dart_emitter.Emit(
           '    static Dart_Handle createWrapper(DartDOMData* domData, NativeType* value)\n'
           '    {\n'
-          '        return DartDOMWrapper::createWrapper<Dart$(INTERFACE)>(domData, value);\n'
+          '        return DartDOMWrapper::createWrapper<Dart$(INTERFACE)>(domData, value, Dart$(INTERFACE)::dartClassId);\n'
           '    }\n',
           INTERFACE=self._interface.id)
 
