@@ -263,7 +263,7 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, arch,
              unit_test_flags, arch)
 
   if compiler == 'dart2js' and runtime in ['ie10', 'ie11']:
-    TestStep("%s-%s" % (compiler, runtime), mode, system, compiler, runtime,
+    TestStep(compiler, mode, system, compiler, runtime,
              ['html', 'pkg', 'samples'], flags, arch)
   else:
     # Run the default set of test suites.
