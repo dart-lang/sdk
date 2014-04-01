@@ -140,16 +140,17 @@ def NeedsXterm(compiler, runtime):
                      'ff', 'drt', 'dartium']
 
 
-def TestStepName(name, flags):
+def TestStepName(name, runtime, flags):
   # Filter out flags with '=' as this breaks the /stats feature of the
   # build bot.
   flags = [x for x in flags if not '=' in x]
-  return ('%s tests %s' % (name, ' '.join(flags))).strip()
+  step_name = '%s-%s tests %s' % (name, runtime, ' '.join(flags))
+  return step_name.strip()
 
 
 IsFirstTestStepCall = True
 def TestStep(name, mode, system, compiler, runtime, targets, flags, arch):
-  step_name = TestStepName(name, flags)
+  step_name = TestStepName(name, runtime, flags)
   with bot.BuildStep(step_name, swallow_error=True):
     sys.stdout.flush()
     if NeedsXterm(compiler, runtime) and system == 'linux':
@@ -266,7 +267,7 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, arch,
              ['html', 'pkg', 'samples'], flags, arch)
   else:
     # Run the default set of test suites.
-    TestStep("%s-%s" % (compiler, runtime), mode, system, compiler,
+    TestStep(compiler, mode, system, compiler,
              runtime, [], flags, arch)
 
     if compiler == 'dart2js':
@@ -279,10 +280,10 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, arch,
         # Run the extra tests in checked mode, but only on linux/d8.
         # Other systems have less resources and tend to time out.
         extras_flags = extras_flags + ['--host-checked']
-      TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras,
+      TestStep('dart2js_extra', mode, system, 'dart2js', runtime, extras,
                extras_flags, arch)
 
-      TestStep("try_dart", mode, system, 'dart2js', runtime, ['try'],
+      TestStep('try_dart', mode, system, 'dart2js', runtime, ['try'],
                extras_flags, arch)
 
 
