@@ -301,6 +301,36 @@ PhaseScriptExecution "Action \"upload_sdk_py\"" xcodebuild/dart.build/...
     print '\n'.join(chunk)
 
 
+def NotifyBuildDone(build_config, success):
+  if not success:
+    print "BUILD FAILED"
+
+  sys.stdout.flush()
+
+  if success:
+    message = 'Build succeeded.'
+  else:
+    message = 'Build failed.'
+  title = build_config
+
+  command = None
+  if HOST_OS == 'macos':
+    # Use AppleScript to display a UI non-modal notification.
+    script = 'display notification  "%s" with title "%s" sound name "Glass"' % (
+      message, title)
+    command = "osascript -e '%s' &" % script
+  elif HOST_OS == 'linux':
+    if success:
+      icon = 'dialog-information'
+    else:
+      icon = 'dialog-error'
+    command = "notify-send -i '%s' '%s' '%s' &" % (icon, message, title)
+
+  if command:
+    # Ignore return code, if this command fails, it doesn't matter.
+    os.system(command)
+
+
 def Main():
   utils.ConfigureJava()
   # Parse the options.
@@ -404,8 +434,10 @@ def Main():
             process = subprocess.Popen(args, stdin=None)
           process.wait()
           if process.returncode != 0:
-            print "BUILD FAILED"
+            NotifyBuildDone(build_config, success=False)
             return 1
+          else:
+            NotifyBuildDone(build_config, success=True)
 
   return 0
 
