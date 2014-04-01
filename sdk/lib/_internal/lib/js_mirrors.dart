@@ -386,10 +386,13 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
       String name = _functions[i];
       var jsFunction = JS('', '#[#]', _globalObject, name);
       String unmangledName = mangledGlobalNames[name];
-      if (unmangledName == null) {
+      if (unmangledName == null ||
+          JS('bool', "!!#['getterStub']", jsFunction)) {
         // If there is no unmangledName, [jsFunction] is either a synthetic
         // implementation detail, or something that is excluded
         // by @MirrorsUsed.
+        // If it has a getterStub property it is a synthetic stub.
+        // TODO(floitsch): Remove the getterStub hack.
         continue;
       }
       bool isConstructor = unmangledName.startsWith('new ');

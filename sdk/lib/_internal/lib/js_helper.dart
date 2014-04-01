@@ -183,8 +183,14 @@ class JSInvocationMirror implements Invocation {
     // critical, we might want to dynamically change [interceptedNames]
     // to be a JavaScript object with intercepted names as property
     // instead of a JavaScript array.
+    // TODO(floitsch): we already add stubs (tear-off getters) as properties
+    // in init.interceptedNames.
+    // Finish the transition and always use the object as hashtable.
     bool isIntercepted =
-        JS('int', '#.indexOf(#)', interceptedNames, name) != -1;
+        JS("bool",
+            'Object.prototype.hasOwnProperty.call(init.interceptedNames, #) ||'
+            '#.indexOf(#) !== -1',
+            name, interceptedNames, name);
     if (isIntercepted) {
       receiver = interceptor;
       if (JS('bool', '# === #', object, interceptor)) {
@@ -211,7 +217,12 @@ class JSInvocationMirror implements Invocation {
       isCatchAll = true;
     }
     if (JS('bool', 'typeof # == "function"', method)) {
-      if (!hasReflectableProperty(method)) {
+      // TODO(floitsch): bound or tear-off closure does not guarantee that the
+      // function is reflectable.
+      bool isReflectable = hasReflectableProperty(method) ||
+          object is BoundClosure ||
+          object is TearOffClosure;
+      if (!isReflectable) {
         throwInvalidReflectionError(_symbol_dev.Symbol.getName(memberName));
       }
       if (isCatchAll) {
@@ -1986,6 +1997,7 @@ abstract class Closure implements Function {
         isIntercepted = true;
       }
       trampoline = forwardCallTo(receiver, function, isIntercepted);
+      JS('', '#.\$reflectionInfo = #', trampoline, reflectionInfo);
     } else {
       JS('', '#.\$name = #', prototype, propertyName);
     }
@@ -2023,7 +2035,7 @@ abstract class Closure implements Function {
       }
     }
 
-    JS('', '#["call*"] = #', prototype, function);
+    JS('', '#["call*"] = #', prototype, trampoline);
 
     return constructor;
   }
