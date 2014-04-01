@@ -7,7 +7,8 @@ library shelf.request;
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:collection/wrappers.dart';
+// TODO(kevmoo): use UnmodifiableMapView from SDK once 1.4 ships
+import 'package:collection/wrappers.dart' as pc;
 import 'package:path/path.dart' as p;
 
 import 'message.dart';
@@ -69,7 +70,7 @@ class Request extends Message {
       this.scriptName, this.protocolVersion, this.requestedUri,
       Map<String, String> headers, {Stream<List<int>> body})
       : this.queryString = queryString == null ? '' : queryString,
-        super(new UnmodifiableMapView(new HashMap.from(headers)),
+        super(new pc.UnmodifiableMapView(new HashMap.from(headers)),
             body == null ? new Stream.fromIterable([]) : body) {
     if (method.isEmpty) throw new ArgumentError('method cannot be empty.');
 
