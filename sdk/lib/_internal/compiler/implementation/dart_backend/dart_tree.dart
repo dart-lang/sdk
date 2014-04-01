@@ -54,8 +54,7 @@ class Variable extends Expression {
   ast.Identifier assignIdentifier() {
     assert(identifier == null);
     String name = _newName();
-    identifier = new ast.Identifier(
-        new StringToken.fromString(IDENTIFIER_INFO, name, -1));
+    identifier = Emitter.makeIdentifier(name);
     return identifier;
   }
 
@@ -376,6 +375,40 @@ class Emitter extends Visitor<ast.Node> {
   // tree.
   dart2js.TreeElementMapping treeElements;
 
+  // Tokens needed in the AST.
+  final Token openParen = new BeginGroupToken(OPEN_PAREN_INFO, -1);
+  final Token closeParen = new SymbolToken(CLOSE_PAREN_INFO, -1);
+  final Token openBrace = new BeginGroupToken(OPEN_CURLY_BRACKET_INFO, -1);
+  final Token closeBrace = new SymbolToken(CLOSE_CURLY_BRACKET_INFO, -1);
+  final Token semicolon = new SymbolToken(SEMICOLON_INFO, -1);
+
+  // Helper methods to construct ASTs.
+  static ast.Identifier makeIdentifier(String name) {
+    return new ast.Identifier(
+        new StringToken.fromString(IDENTIFIER_INFO, name, -1));
+  }
+
+  ast.NodeList makeArgumentList(List<ast.Node> arguments) {
+    return new ast.NodeList(openParen,
+                            new Link<ast.Node>.fromList(arguments),
+                            closeParen,
+                            ',');
+  }
+
+  ast.Block makeBlock(List<ast.Node> statements) {
+    return new ast.Block(new ast.NodeList(
+        openBrace, new Link<ast.Node>.fromList(statements), closeBrace));
+  }
+
+  static ast.SendSet makeAssignment(ast.Identifier identifier,
+                                    ast.Expression expression) {
+    return new ast.SendSet(
+        null,
+        identifier,
+        new ast.Operator(new SymbolToken(EQ_INFO, -1)),
+        new ast.NodeList.singleton(expression));
+  }
+
   /**
    * Translate the body of a function to an AST FunctionExpression.
    */
@@ -385,14 +418,9 @@ class Emitter extends Visitor<ast.Node> {
     // Reset the variable index.  This function is not reentrant.
     Variable.counter = 0;
     this.treeElements = treeElements;
-    ast.Identifier name = new ast.Identifier(
-        new StringToken.fromString(IDENTIFIER_INFO, element.name, -1));
+    ast.Identifier name = makeIdentifier(element.name);
 
-    ast.NodeList parameters = new ast.NodeList(
-        new BeginGroupToken(OPEN_PAREN_INFO, -1),
-        const Link<ast.Node>(),
-        new SymbolToken(CLOSE_PAREN_INFO, -1),
-        ',');
+    ast.NodeList parameters = makeArgumentList([]);
     ast.Node body = expr.accept(this);
 
     if (!variables.isEmpty) {
@@ -409,7 +437,7 @@ class Emitter extends Visitor<ast.Node> {
           new ast.NodeList(
               null,
               new Link<ast.Node>.fromList(variables),
-              new SymbolToken(SEMICOLON_INFO, -1),
+              semicolon,
               ','));
       body = concatenate(definitions, body);
     }
@@ -419,14 +447,11 @@ class Emitter extends Visitor<ast.Node> {
       ast.Expression value = (body as ast.Return).expression;
       if (value is ast.LiteralNull) {
         // '{ return null; }' is '{}'.
-        body = new ast.Block(new ast.NodeList(
-            new BeginGroupToken(OPEN_CURLY_BRACKET_INFO, -1),
-            new Link<ast.Node>(),
-            new SymbolToken(CLOSE_CURLY_BRACKET_INFO, -1)));
+        body = makeBlock([]);
       } else {
         // '{ return e; }' is '=> e;'.
         body = new ast.Return(new SymbolToken(FUNCTION_INFO, -1),
-                              new SymbolToken(SEMICOLON_INFO, -1),
+                              semicolon,
                               value);
       }
     }
@@ -434,34 +459,20 @@ class Emitter extends Visitor<ast.Node> {
         ast.Modifiers.EMPTY, null, null);
   }
 
-  static ast.SendSet makeAssignment(ast.Identifier identifier,
-                                    ast.Expression expression) {
-    return new ast.SendSet(
-        null,
-        identifier,
-        new ast.Operator(new SymbolToken(EQ_INFO, -1)),
-        new ast.NodeList.singleton(expression));
-  }
-
-
   /**
    * Translate a list of arguments to an AST NodeList.
    */
-  ast.NodeList makeArgumentList(List<Expression> args) {
+  ast.NodeList translateArguments(List<Expression> args) {
     List<ast.Expression> arguments =
         args.map((e) => e.accept(this)).toList(growable: false);
-    return new ast.NodeList(
-        new BeginGroupToken(OPEN_PAREN_INFO, -1),
-        new Link.fromList(arguments),
-        new SymbolToken(CLOSE_PAREN_INFO, -1),
-        ',');
+    return makeArgumentList(arguments);
   }
 
   /**
    * Concatenate a pair of AST expressions or statements into a single Block
    * statement.
    */
-  static ast.Node concatenate(ast.Node first, ast.Node second) {
+  ast.Node concatenate(ast.Node first, ast.Node second) {
     // This is a convenient but very inefficient way to accumulate statements.
     // The Block and NodeList nodes are not mutable so we can't simply use a
     // Block or NodeList as an accumulator.  Using a List<Node> requires
@@ -469,36 +480,25 @@ class Emitter extends Visitor<ast.Node> {
     // distinction.
     // TODO(kmillikin): If we don't get rid of this Emitter, use a more
     // efficient way to accumulate nodes.
-    Link<ast.Node> statements;
-    if (second is ast.Block) {
-      statements = second.statements.nodes;
-    } else {
-      statements = new Link<ast.Node>();
-      if (second is ast.Expression) {
-        second = new ast.ExpressionStatement(second,
-            new SymbolToken(SEMICOLON_INFO, -1));
+    LinkBuilder<ast.Node> statements = new LinkBuilder<ast.Node>();
+
+    addStatements(ast.Node node) {
+      if (node is ast.Block) {
+        for (var n in node.statements.nodes) {
+          statements.addLast(n);
+        }
+      } else if (node is ast.Expression) {
+          statements.addLast(new ast.ExpressionStatement(node, semicolon));
+      } else {
+        statements.addLast(node);
       }
-      statements = statements.prepend(second);
     }
 
-    if (first is ast.Block) {
-      LinkBuilder<ast.Node> front = new LinkBuilder<ast.Node>();
-      for (var n in first.statements.nodes) {
-        front.addLast(n);
-      }
-      statements = front.toLink(statements);
-    } else {
-      if (first is ast.Expression) {
-        first = new ast.ExpressionStatement(first,
-            new SymbolToken(SEMICOLON_INFO, -1));
-      }
-      statements = statements.prepend(first);
-    }
+    addStatements(first);
+    addStatements(second);
 
-    return new ast.Block(new ast.NodeList(
-        new BeginGroupToken(OPEN_CURLY_BRACKET_INFO, -1),
-        statements,
-        new SymbolToken(CLOSE_CURLY_BRACKET_INFO, -1)));
+    return new ast.Block(
+        new ast.NodeList(openBrace, statements.toLink(), closeBrace));
   }
 
   ast.Node visitVariable(Variable node) {
@@ -521,10 +521,9 @@ class Emitter extends Visitor<ast.Node> {
   }
 
   ast.Node visitInvokeStatic(InvokeStatic node) {
-    ast.Identifier name = new ast.Identifier(
-        new StringToken.fromString(IDENTIFIER_INFO, node.target.name, -1));
+    ast.Identifier name = makeIdentifier(node.target.name);
     ast.Send send =
-        new ast.Send(null, name, makeArgumentList(node.arguments));
+        new ast.Send(null, name, translateArguments(node.arguments));
     treeElements[send] = node.target;
     return send;
   }
@@ -533,7 +532,7 @@ class Emitter extends Visitor<ast.Node> {
     ast.Expression expression = node.value.accept(this);
     return new ast.Return(
         new KeywordToken(Keyword.keywords['return'], -1),
-        new SymbolToken(SEMICOLON_INFO, -1),
+        semicolon,
         expression);
   }
 
