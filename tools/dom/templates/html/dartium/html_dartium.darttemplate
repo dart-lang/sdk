@@ -78,7 +78,6 @@ part '$AUXILIARY_DIR/Validators.dart';
 part '$AUXILIARY_DIR/WrappedList.dart';
 part '$AUXILIARY_DIR/_HttpRequestUtils.dart';
 part '$AUXILIARY_DIR/_ListIterators.dart';
-part '$AUXILIARY_DIR/dartium_CustomElementSupport.dart';
 part '$AUXILIARY_DIR/dartium_KeyEvent.dart';
 part '$AUXILIARY_DIR/dartium_Platform.dart';
 part '$AUXILIARY_DIR/shared_html.dart';

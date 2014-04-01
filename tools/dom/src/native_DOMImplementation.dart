@@ -396,10 +396,48 @@ class _Utils {
 
   static bool isNoSuchMethodError(obj) => obj is NoSuchMethodError;
 
+  static bool _isBuiltinType(ClassMirror cls) {
+    // TODO(vsm): Find a less hackish way to do this.
+    LibraryMirror lib = cls.owner;
+    String libName = lib.uri.toString();
+    return libName.startsWith('dart:');
+  }
+
   static void register(Document document, String tag, Type type,
       String extendsTagName) {
-    var nativeClass = _validateCustomType(type);
+    // TODO(vsm): Move these checks into native code.
+    ClassMirror cls = reflectClass(type);
+    if (_isBuiltinType(cls)) {
+      throw new UnsupportedError("Invalid custom element from ${(cls.owner as LibraryMirror).uri}.");
+    }
+    var className = MirrorSystem.getName(cls.simpleName);
+    var createdConstructor = cls.declarations[new Symbol('$className.created')];
+    if (createdConstructor == null ||
+        createdConstructor is! MethodMirror ||
+        !createdConstructor.isConstructor) {
+      throw new UnsupportedError(
+          'Class is missing constructor $className.created');
+    }
 
+    if (createdConstructor.parameters.length > 0) {
+      throw new UnsupportedError(
+          'Constructor $className.created must take zero arguments');
+    }
+
+    Symbol objectName = reflectClass(Object).qualifiedName;
+    bool isRoot(ClassMirror cls) =>
+        cls == null || cls.qualifiedName == objectName;
+    Symbol elementName = reflectClass(HtmlElement).qualifiedName;
+    bool isElement(ClassMirror cls) =>
+        cls != null && cls.qualifiedName == elementName;
+    ClassMirror superClass = cls.superclass;
+    ClassMirror nativeClass = _isBuiltinType(superClass) ? superClass : null;
+    while(!isRoot(superClass) && !isElement(superClass)) {
+      superClass = superClass.superclass;
+      if (nativeClass == null && _isBuiltinType(superClass)) {
+        nativeClass = superClass;
+      }
+    }
     if (extendsTagName == null) {
       if (nativeClass.reflectedType != HtmlElement) {
         throw new UnsupportedError('Class must provide extendsTag if base '
@@ -416,8 +454,6 @@ class _Utils {
   static Element createElement(Document document, String tagName) native "Utils_createElement";
 
   static void initializeCustomElement(HtmlElement element) native "Utils_initializeCustomElement";
-
-  static void changeElementWrapper(HtmlElement element, Type type) native "Utils_changeElementWrapper";
 }
 
 class _DOMWindowCrossFrame extends NativeFieldWrapperClass2 implements

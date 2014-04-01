@@ -87,7 +87,7 @@ void _registerCustomElement(context, document, String tag, Type type,
   if (extendsTagName == null) {
     if (baseClassName != 'HTMLElement') {
       throw new UnsupportedError('Class must provide extendsTag if base '
-          'native class is not HtmlElement');
+          'native class is not HTMLElement');
     }
   } else {
     if (!JS('bool', '(#.createElement(#) instanceof window[#])',
@@ -127,61 +127,4 @@ void _registerCustomElement(context, document, String tag, Type type,
 //// Called by Element.created to do validation & initialization.
 void _initializeCustomElement(Element e) {
   // TODO(blois): Add validation that this is only in response to an upgrade.
-}
-
-/// Dart2JS implementation of ElementUpgrader
-class _JSElementUpgrader implements ElementUpgrader {
-  var _interceptor;
-  var _constructor;
-  var _nativeType;
-
-  _JSElementUpgrader(Document document, Type type, String extendsTag) {
-    var interceptorClass = findInterceptorConstructorForType(type);
-    if (interceptorClass == null) {
-      throw new ArgumentError(type);
-    }
-
-    _constructor = findConstructorForNativeSubclassType(type, 'created');
-    if (_constructor == null) {
-      throw new ArgumentError("$type has no constructor called 'created'");
-    }
-
-    // Workaround for 13190- use an article element to ensure that HTMLElement's
-    // interceptor is resolved correctly.
-    getNativeInterceptor(new Element.tag('article'));
-
-    var baseClassName = findDispatchTagForInterceptorClass(interceptorClass);
-    if (baseClassName == null) {
-      throw new ArgumentError(type);
-    }
-
-    if (extendsTag == null) {
-      if (baseClassName != 'HTMLElement') {
-        throw new UnsupportedError('Class must provide extendsTag if base '
-            'native class is not HtmlElement');
-      }
-      _nativeType = HtmlElement;
-    } else {
-      var element = document.createElement(extendsTag);
-      if (!JS('bool', '(# instanceof window[#])',
-          element, baseClassName)) {
-        throw new UnsupportedError(
-            'extendsTag does not match base native class');
-      }
-      _nativeType = element.runtimeType;
-    }
-
-    _interceptor = JS('=Object', '#.prototype', interceptorClass);
-  }
-
-  Element upgrade(Element element) {
-    // Only exact type matches are supported- cannot be a subclass.
-    if (element.runtimeType != _nativeType) {
-      throw new ArgumentError('element is not subclass of $_nativeType');
-    }
-
-    setNativeSubclassDispatchRecord(element, _interceptor);
-    JS('', '#(#)', _constructor, element);
-    return element;
-  }
 }
