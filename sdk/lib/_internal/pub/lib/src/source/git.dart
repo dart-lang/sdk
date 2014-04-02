@@ -141,7 +141,7 @@ class GitSource extends Source {
       // fetch" if possible to avoid networking time and errors. See if the
       // revision exists in the repo cache before updating it.
       return _revParse(id).catchError((error) {
-        if (error is! GitException) throw error;
+        if (error is! git.GitException) throw error;
         return _updateRepoCache(id).then((_) => _revParse(id));
       });
     });
