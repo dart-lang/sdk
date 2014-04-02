@@ -241,11 +241,14 @@ class DartBackend extends Backend {
     // Build all top level elements to emit and necessary class members.
     var newTypedefElementCallback, newClassElementCallback;
 
-    processElement(element, elementAst) {
-      new ReferencedElementCollector(
-          compiler,
-          element, elementAst.treeElements,
-          newTypedefElementCallback, newClassElementCallback).collect();
+    void processElement(Element element, ElementAst elementAst) {
+      ReferencedElementCollector collector =
+          new ReferencedElementCollector(compiler,
+                                         element,
+                                         elementAst,
+                                         newTypedefElementCallback,
+                                         newClassElementCallback);
+      collector.collect();
       elementAsts[element] = elementAst;
     }
 
@@ -508,14 +511,14 @@ class EmitterUnparser extends Unparser {
  */
 class ReferencedElementCollector extends Visitor {
   final Compiler compiler;
-  final Element rootElement;
-  final TreeElements treeElements;
+  final Element element;
+  final ElementAst elementAst;
   final newTypedefElementCallback;
   final newClassElementCallback;
 
   ReferencedElementCollector(this.compiler,
-                             this.rootElement,
-                             this.treeElements,
+                             this.element,
+                             this.elementAst,
                              this.newTypedefElementCallback,
                              this.newClassElementCallback);
 
@@ -524,6 +527,7 @@ class ReferencedElementCollector extends Visitor {
   }
 
   visitTypeAnnotation(TypeAnnotation typeAnnotation) {
+    TreeElements treeElements = elementAst.treeElements;
     final DartType type = treeElements.getType(typeAnnotation);
     assert(invariant(typeAnnotation, type != null,
         message: "Missing type for type annotation: $treeElements."));
@@ -534,8 +538,8 @@ class ReferencedElementCollector extends Visitor {
   }
 
   void collect() {
-    compiler.withCurrentElement(rootElement, () {
-      rootElement.parseNode(compiler).accept(this);
+    compiler.withCurrentElement(element, () {
+      elementAst.ast.accept(this);
     });
   }
 }

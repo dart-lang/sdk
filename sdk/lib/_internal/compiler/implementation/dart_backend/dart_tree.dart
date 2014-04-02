@@ -5,6 +5,7 @@
 library dart_tree;
 
 import '../dart2jslib.dart' as dart2js;
+import '../dart_types.dart';
 import '../util/util.dart';
 import '../elements/elements.dart' show FunctionElement, FunctionSignature;
 import '../ir/ir_nodes.dart' as ir;
@@ -455,8 +456,15 @@ class Emitter extends Visitor<ast.Node> {
                               value);
       }
     }
-    return new ast.FunctionExpression(name, parameters, body, null,
-        ast.Modifiers.EMPTY, null, null);
+
+    DartType returnType = element.functionSignature.type.returnType;
+    ast.TypeAnnotation returnTypeAnnotation;
+    if (!returnType.isDynamic) {
+      TypeEmitter typeEmitter = new TypeEmitter();
+      returnTypeAnnotation = returnType.accept(typeEmitter, treeElements);
+    }
+    return new ast.FunctionExpression(name, parameters, body,
+        returnTypeAnnotation, ast.Modifiers.EMPTY, null, null);
   }
 
   /**
@@ -538,6 +546,53 @@ class Emitter extends Visitor<ast.Node> {
 
   ast.Node visitConstant(Constant node) {
     return node.value.accept(constantEmitter);
+  }
+}
+
+class TypeEmitter extends
+    DartTypeVisitor<ast.TypeAnnotation, dart2js.TreeElementMapping> {
+
+  // Supported types are verified at IR construction time.  The unimplemented
+  // emit methods should be unreachable.
+  ast.TypeAnnotation unimplemented() => throw new UnimplementedError();
+
+  ast.TypeAnnotation makeSimpleAnnotation(
+      DartType type,
+      dart2js.TreeElementMapping treeElements) {
+    ast.TypeAnnotation annotation =
+        new ast.TypeAnnotation(Emitter.makeIdentifier(type.toString()), null);
+    treeElements.setType(annotation, type);
+    return annotation;
+  }
+
+  ast.TypeAnnotation visitType(DartType type,
+                               dart2js.TreeElementMapping treeElements) {
+    return unimplemented();
+  }
+
+  ast.TypeAnnotation visitVoidType(VoidType type,
+                                   dart2js.TreeElementMapping treeElements) {
+    return makeSimpleAnnotation(type, treeElements);
+  }
+
+  ast.TypeAnnotation visitInterfaceType(
+      InterfaceType type,
+      dart2js.TreeElementMapping treeElements) {
+    assert(!type.isGeneric);
+    return makeSimpleAnnotation(type, treeElements);
+  }
+
+  ast.TypeAnnotation visitTypedefType(
+      TypedefType type,
+      dart2js.TreeElementMapping treeElements) {
+    assert(!type.isGeneric);
+    return makeSimpleAnnotation(type, treeElements);
+  }
+
+  ast.TypeAnnotation visitDynamicType(
+      DynamicType type,
+      dart2js.TreeElementMapping treeElements) {
+    return unimplemented();
   }
 }
 

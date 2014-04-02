@@ -7,6 +7,7 @@ library dart2js.ir_builder;
 import 'ir_nodes.dart' as ir;
 import '../elements/elements.dart';
 import '../dart2jslib.dart';
+import '../dart_types.dart';
 import '../source_file.dart';
 import '../tree/tree.dart' as ast;
 import '../scanner/scannerlib.dart' show Token;
@@ -105,9 +106,8 @@ class IrBuilderTask extends CompilerTask {
     FunctionSignature signature = function.functionSignature;
     if (signature.parameterCount > 0) return false;
 
-    // TODO(kmillikin): support return types.  With the current Dart Tree
-    // emitter they require constructing an AST and tokens from a type element.
-    if (!signature.type.returnType.isDynamic) return false;
+    SupportedTypeVerifier typeVerifier = new SupportedTypeVerifier();
+    if (!signature.type.returnType.accept(typeVerifier, null)) return false;
 
     // TODO(kmillikin): support getters and setters and static class members.
     // With the current Dart Tree emitter they just require recognizing them
@@ -395,4 +395,19 @@ class IrBuilder extends ResolvedVisitor<ir.Definition> {
   void internalError(String reason, {ast.Node node}) {
     giveup();
   }
+}
+
+// Verify that types are ones that can be reconstructed by the type emitter.
+class SupportedTypeVerifier extends DartTypeVisitor<bool, Null> {
+  bool visitType(DartType type, Null _) => false;
+
+  bool visitVoidType(VoidType type, Null _) => true;
+
+  // Currently, InterfaceType and TypedefType are supported so long as they
+  // do not have type parameters.  They are subclasses of GenericType.
+  bool visitGenericType(GenericType type, Null _) => !type.isGeneric;
+
+  // DynamicType is a subclass of InterfaceType, but it is not currently
+  // supported.
+  bool visitDynamicType(DynamicType type, Null _) => false;
 }
