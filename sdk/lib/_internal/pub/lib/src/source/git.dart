@@ -20,6 +20,10 @@ class GitSource extends Source {
 
   final bool shouldCache = true;
 
+  /// The paths to the canonical clones of repositories for which "git fetch"
+  /// has already been run during this run of pub.
+  final _updatedRepos = new Set<String>();
+
   GitSource();
 
   /// Clones a Git repo to the local filesystem.
@@ -151,8 +155,13 @@ class GitSource extends Source {
   /// [id].
   ///
   /// This assumes that the canonical clone already exists.
-  Future _updateRepoCache(PackageId id) =>
-      git.run(["fetch"], workingDir: _repoCachePath(id));
+  Future _updateRepoCache(PackageId id) {
+    var path = _repoCachePath(id);
+    if (_updatedRepos.contains(path)) return new Future.value();
+    return git.run(["fetch"], workingDir: path).then((_) {
+      _updatedRepos.add(path);
+    });
+  }
 
   /// Runs "git rev-parse" in the canonical clone of the repository referred to
   /// by [id] on the effective ref of [id].
