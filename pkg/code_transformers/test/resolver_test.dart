@@ -170,6 +170,7 @@ main() {
     });
 
     test('should fail on absolute URIs', () {
+      var warningPrefix = 'warning: absolute paths not allowed';
       return validateResolver(
           inputs: {
             'a|web/main.dart': '''
@@ -180,8 +181,8 @@ main() {
           },
           messages: [
             // First from the AST walker
-            'error: absolute paths not allowed: "/b.dart" (web/main.dart 0 14)',
-            'error: absolute paths not allowed: "/b.dart"',
+            '$warningPrefix: "/b.dart" (web/main.dart 0 14)',
+            '$warningPrefix: "/b.dart"',
           ],
           validator: (resolver) {
             var lib = resolver.getLibrary(entryPoint);

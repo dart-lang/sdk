@@ -11,10 +11,18 @@ import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_maps/span.dart' show Span;
 
-/// Create an [AssetId] for a [url] seen in the [source] asset. By default this
-/// is used to resolve relative urls that occur in HTML assets, including
-/// cross-package urls of the form "packages/foo/bar.html". Dart "package:"
-/// urls are not resolved unless [source] is Dart file (has a .dart extension).
+/// Create an [AssetId] for a [url] seen in the [source] asset.
+///
+/// By default this is used to resolve relative urls that occur in HTML assets,
+/// including cross-package urls of the form "packages/foo/bar.html". Dart
+/// "package:" urls are not resolved unless [source] is Dart file (has a .dart
+/// extension).
+///
+/// This function returns null if [url] can't be resolved. We log a warning
+/// message in [logger] if we know the reason why resolution failed. This
+/// happens, for example, when using incorrect paths to reach into another
+/// package, or when [errorsOnAbsolute] is true and the url seems to be
+/// absolute.
 // TODO(sigmund): delete once this is part of barback (dartbug.com/12610)
 AssetId uriToAssetId(AssetId source, String url, TransformLogger logger,
     Span span, {bool errorOnAbsolute: true}) {
@@ -31,7 +39,7 @@ AssetId uriToAssetId(AssetId source, String url, TransformLogger logger,
     }
 
     if (errorOnAbsolute) {
-      logger.error('absolute paths not allowed: "$url"', span: span);
+      logger.warning('absolute paths not allowed: "$url"', span: span);
     }
     return null;
   }
@@ -71,7 +79,7 @@ AssetId uriToAssetId(AssetId source, String url, TransformLogger logger,
       fixedSegments.addAll(sourceSegments.map((_) => '..'));
       fixedSegments.addAll(segments.sublist(index));
       var fixedUrl = urlBuilder.joinAll(fixedSegments);
-      logger.error('Invalid url to reach to another package: $url. Path '
+      logger.warning('Invalid url to reach to another package: $url. Path '
           'reaching to other packages must first reach up all the '
           'way to the $prefix folder. For example, try changing the url above '
           'to: $fixedUrl', span: span);
@@ -90,7 +98,7 @@ AssetId _extractOtherPackageId(int index, List segments,
   if (prefix != 'packages' && prefix != 'assets') return null;
   var folder = prefix == 'packages' ? 'lib' : 'asset';
   if (segments.length < index + 3) {
-    logger.error("incomplete $prefix/ path. It should have at least 3 "
+    logger.warning("incomplete $prefix/ path. It should have at least 3 "
         "segments $prefix/name/path-from-name's-$folder-dir", span: span);
     return null;
   }
