@@ -89,16 +89,11 @@ class XTest extends PolymerElement {
 class MiniModel extends Observable {
   XTest _element;
   @observable final int index;
-  @reflectable Function itemTapAction;
-  _itemTapAction(e, d, n) {
+  @reflectable void itemTapAction(e, d, n) {
     _element._logEvent(e, 'mini-model callback $this');
     e.stopPropagation();
   }
-  MiniModel(this._element, this.index) {
-    // TODO(sigmund): remove this and reflect directly on the method. This is
-    // needed to work around bug 13002
-    itemTapAction = _itemTapAction;
-  }
+  MiniModel(this._element, this.index);
   String toString() => "<mini-model $index>";
 }
 

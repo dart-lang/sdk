@@ -24,15 +24,7 @@ var _logger = new Logger('smoke.mirrors');
 
 /// Implements [ObjectAccessorService] using mirrors.
 class ReflectiveObjectAccessorService implements ObjectAccessorService {
-  read(Object object, Symbol name) {
-    var decl = getDeclaration(object.runtimeType, name);
-    if (decl != null && decl.isMethod) {
-      // TODO(sigmund,jmesserly): remove this once dartbug.com/13002 is fixed.
-      return new _MethodClosure(object, name);
-    } else {
-      return reflect(object).getField(name).reflectee;
-    }
-  }
+  read(Object object, Symbol name) => reflect(object).getField(name).reflectee;
 
   void write(Object object, Symbol name, value) {
     reflect(object).setField(name, value);
@@ -325,25 +317,4 @@ class _MirrorDeclaration implements Declaration {
       ..write(isStatic ? 'static ' : '')
       ..write(annotations)
       ..write(')')).toString();
-}
-
-class _MethodClosure extends Function {
-  final receiver;
-  final Symbol methodName;
-
-  _MethodClosure(this.receiver, this.methodName);
-
-  // Technically we could just use noSuchMethod to implement [call], but we
-  // don't for 3 reasons:
-  //   * noSuchMethod makes the code a lot bigger.
-  //   * even with noSuchMethod, an analyzer bug requires to declare [call] (see
-  //     dartbug.com/16078).
-  //   * having [call] also allows `is` checks to work for functions of 0
-  //     through 3 arguments.  We depend on this in
-  //     `polymer_expressions/lib/eval.dart` to check whether a function is a
-  //     filter (takes a single argument). (Note that it's possible to include
-  //     both [call] and [noSuchMethod], which would make instance-of checks
-  //     work with the signature of [call], but will allow invoking the function
-  //     using [noSuchMethod].
-  call([a, b, c]) => invoke(receiver, methodName, [a, b, c], adjust: true);
 }
