@@ -407,11 +407,11 @@ if (typeof window.Polymer === 'function') {
       var handle = timeout ? setTimeout(fn, timeout) :
           requestAnimationFrame(fn);
       // NOTE: switch on inverting handle to determine which time is used.
-      return timeout ? handle : ~handle;
+      return timeout ? handle : 1 / handle;
     },
     cancelAsync: function(handle) {
-      if (handle < 0) {
-        cancelAnimationFrame(~handle);
+      if (handle < 1) {
+        cancelAnimationFrame(Math.round(1 / handle));
       } else {
         clearTimeout(handle);
       }
@@ -664,8 +664,6 @@ if (typeof window.Polymer === 'function') {
       if ((n$ && n$.length) || (pn$ && pn$.length)) {
         var self = this;
         var o = this._propertyObserver = new CompoundObserver();
-        // keep track of property observer so we can shut it down
-        this.registerObservers([o]);
         for (var i=0, l=n$.length, n; (i<l) && (n=n$[i]); i++) {
           o.addPath(this, n);
           // observer array properties
@@ -708,7 +706,7 @@ if (typeof window.Polymer === 'function') {
         // if we are observing the previous value, stop
         if (Array.isArray(old)) {
           log.observe && console.log('[%s] observeArrayValue: unregister observer [%s]', this.localName, name);
-          this.closeNamedObserver(name + '__array');
+          this.unregisterObserver(name + '__array');
         }
         // if the new value is an array, being observing it
         if (Array.isArray(value)) {
@@ -717,7 +715,7 @@ if (typeof window.Polymer === 'function') {
           observer.open(function(value, old) {
             this.invokeMethod(callbackName, [old]);
           }, this);
-          this.registerNamedObserver(name + '__array', observer);
+          this.registerObserver(name + '__array', observer);
         }
       }
     },
@@ -725,51 +723,42 @@ if (typeof window.Polymer === 'function') {
       // apply Polymer two-way reference binding
       return bindProperties(this, property, observable);
     },
+    unbindAllProperties: function() {
+      if (this._propertyObserver) {
+        this._propertyObserver.close();
+      }
+      this.unregisterObservers();
+    },
+    unbindProperty: function(name) {
+      return this.unregisterObserver(name);
+    },
     invokeMethod: function(method, args) {
       var fn = this[method] || method;
       if (typeof fn === 'function') {
         fn.apply(this, args);
       }
     },
-    registerObservers: function(observers) {
-      this._observers.push(observers);
-    },
-    // observer array items are arrays of observers.
-    closeObservers: function() {
-      for (var i=0, l=this._observers.length; i<l; i++) {
-        this.closeObserverArray(this._observers[i]);
-      }
-      this._observers = [];
-    },
-    closeObserverArray: function(observerArray) {
-      for (var i=0, l=observerArray.length, o; i<l; i++) {
-        o = observerArray[i];
-        if (o && o.close) {
-          o.close();
-        }
-      }
-    },
     // bookkeeping observers for memory management
-    registerNamedObserver: function(name, observer) {
-      var o$ = this._namedObservers || (this._namedObservers = {});
+    registerObserver: function(name, observer) {
+      var o$ = this._observers || (this._observers = {});
       o$[name] = observer;
     },
-    closeNamedObserver: function(name) {
-      var o$ = this._namedObservers;
+    unregisterObserver: function(name) {
+      var o$ = this._observers;
       if (o$ && o$[name]) {
         o$[name].close();
         o$[name] = null;
         return true;
       }
     },
-    closeNamedObservers: function() {
-      if (this._namedObservers) {
-        var keys=Object.keys(this._namedObservers);
+    unregisterObservers: function() {
+      if (this._observers) {
+        var keys=Object.keys(this._observers);
         for (var i=0, l=keys.length, k, o; (i < l) && (k=keys[i]); i++) {
-          o = this._namedObservers[k];
+          o = this._observers[k];
           o.close();
         }
-        this._namedObservers = {};
+        this._observers = {};
       }
     }
   };
@@ -842,33 +831,33 @@ if (typeof window.Polymer === 'function') {
   var mdv = {
     syntax: syntax,
     instanceTemplate: function(template) {
-      var dom = template.createInstance(this, this.syntax);
-      this.registerObservers(dom.bindings_);
-      return dom;
+      return template.createInstance(this, this.syntax);
     },
     bind: function(name, observable, oneTime) {
+      // note: binding is a prepare signal. This allows us to be sure that any
+      // property changes that occur as a result of binding will be observed.
+      if (!this._elementPrepared) {
+        this.prepareElement();
+      }
       var property = this.propertyForAttribute(name);
       if (!property) {
         // TODO(sjmiles): this mixin method must use the special form
         // of `super` installed by `mixinMethod` in declaration/prototype.js
         return this.mixinSuper(arguments);
       } else {
+        // clean out the closets
+        this.unbind(name);
         // use n-way Polymer binding
         var observer = this.bindProperty(property, observable);
+        // stick path on observer so it's available via this.bindings
+        observer.path = observable.path_;
+        // reflect bound property to attribute when binding
+        // to ensure binding is not left on attribute if property
+        // does not update due to not changing.
         this.reflectPropertyToAttribute(property);
-        // NOTE: reflecting binding information is typically required only for
-        // tooling. It has a performance cost so it's opt-in in Node.bind.
-        if (Platform.enableBindingsReflection) {
-          observer.path = observable.path_;
-          this.bindings_ = this.bindings_ || {};
-          this.bindings_[name] = observer;
-        }
-        return observer;
+        return this.bindings[name] = observer;
       }
     },
-    // TODO(sorvell): unbind/unbindAll has been removed, as public api, from
-    // TemplateBinding. We still need to close/dispose of observers but perhaps
-    // we should choose a more explicit name.
     asyncUnbindAll: function() {
       if (!this._unbound) {
         log.unbind && console.log('[%s] asyncUnbindAll', this.localName);
@@ -877,12 +866,18 @@ if (typeof window.Polymer === 'function') {
     },
     unbindAll: function() {
       if (!this._unbound) {
-        this.closeObservers();
-        this.closeNamedObservers();
+        this.unbindAllProperties();
+        this.super();
+        // unbind shadowRoot
+        var root = this.shadowRoot;
+        while (root) {
+          unbindNodeTree(root);
+          root = root.olderShadowRoot;
+        }
         this._unbound = true;
       }
     },
-    cancelUnbindAll: function() {
+    cancelUnbindAll: function(preventCascade) {
       if (this._unbound) {
         log.unbind && console.warn('[%s] already unbound, cannot cancel unbindAll', this.localName);
         return;
@@ -890,6 +885,15 @@ if (typeof window.Polymer === 'function') {
       log.unbind && console.log('[%s] cancelUnbindAll', this.localName);
       if (this._unbindAllJob) {
         this._unbindAllJob = this._unbindAllJob.stop();
+      }
+      // cancel unbinding our shadow tree iff we're not in the process of
+      // cascading our tree (as we do, for example, when the element is inserted).
+      if (!preventCascade) {
+        forNodeTree(this.shadowRoot, function(n) {
+          if (n.cancelUnbindAll) {
+            n.cancelUnbindAll();
+          }
+        });
       }
     }
   };
@@ -926,17 +930,11 @@ if (typeof window.Polymer === 'function') {
  * license that can be found in the LICENSE file.
  */
 (function(scope) {
+  var preparingElements = 0;
 
   var base = {
     PolymerBase: true,
-    job: function(job, callback, wait) {
-      if (typeof job === 'string') {
-        var n = '___' + job;
-        this[n] = Polymer.job.call(this, this[n], callback, wait);
-      } else {
-        return Polymer.job.call(this, job, callback, wait);
-      }
-    },
+    job: Polymer.job,
     super: Polymer.super,
     // user entry point for element has had its createdCallback called
     created: function() {
@@ -946,21 +944,17 @@ if (typeof window.Polymer === 'function') {
     ready: function() {
     },
     createdCallback: function() {
-      if (this.templateInstance && this.templateInstance.model) {
-        console.warn('Attributes on ' + this.localName + ' were data bound ' +
-            'prior to Polymer upgrading the element. This may result in ' +
-            'incorrect binding types.');
-      }
       this.created();
-      this.prepareElement();
+      if (this.ownerDocument.defaultView || this.alwaysPrepare ||
+          preparingElements > 0) {
+        this.prepareElement();
+      }
     },
     // system entry point, do not override
     prepareElement: function() {
       this._elementPrepared = true;
       // install shadowRoots storage
       this.shadowRoots = {};
-      // storage for closeable observers.
-      this._observers = [];
       // install property observers
       this.observeProperties();
       // install boilerplate attributes
@@ -969,8 +963,13 @@ if (typeof window.Polymer === 'function') {
       this.takeAttributes();
       // add event listeners
       this.addHostListeners();
+      // guarantees that while preparing, any
+      // sub-elements are also prepared
+      preparingElements++;
       // process declarative resources
       this.parseDeclarations(this.__proto__);
+      // decrement semaphore
+      preparingElements--;
       // TODO(sorvell): CE polyfill uses unresolved attribute to simulate
       // :unresolved; remove this attribute to be compatible with native
       // CE.
@@ -979,7 +978,10 @@ if (typeof window.Polymer === 'function') {
       this.ready();
     },
     attachedCallback: function() {
-      this.cancelUnbindAll();
+      if (!this._elementPrepared) {
+        this.prepareElement();
+      }
+      this.cancelUnbindAll(true);
       // invoke user action
       if (this.attached) {
         this.attached();
@@ -1040,7 +1042,7 @@ if (typeof window.Polymer === 'function') {
       var template = this.fetchTemplate(elementElement);
       if (template) {
         var root = this.shadowFromTemplate(template);
-        this.shadowRoots[elementElement.name] = root;
+        this.shadowRoots[elementElement.name] = root;        
       }
     },
     // return a shadow-root template (if desired), override for custom behavior
@@ -1052,6 +1054,8 @@ if (typeof window.Polymer === 'function') {
       if (template) {
         // make a shadow root
         var root = this.createShadowRoot();
+        // migrate flag(s)
+        root.resetStyleInheritance = this.resetStyleInheritance;
         // stamp template
         // which includes parsing and applying MDV bindings before being 
         // inserted (to avoid {{}} in attribute values)
@@ -1066,7 +1070,7 @@ if (typeof window.Polymer === 'function') {
       }
     },
     // utility function that stamps a <template> into light-dom
-    lightFromTemplate: function(template, refNode) {
+    lightFromTemplate: function(template) {
       if (template) {
         // TODO(sorvell): mark this element as a lightDOMController so that
         // event listeners on bound nodes inside it will be called on it.
@@ -1079,18 +1083,14 @@ if (typeof window.Polymer === 'function') {
         // e.g. to prevent <img src="images/{{icon}}"> from generating a 404.
         var dom = this.instanceTemplate(template);
         // append to shadow dom
-        if (refNode) {
-          this.insertBefore(dom, refNode);          
-        } else {
-          this.appendChild(dom);
-        }
+        this.appendChild(dom);
         // perform post-construction initialization tasks on ahem, light root
-        this.shadowRootReady(this);
+        this.shadowRootReady(this, template);
         // return the created shadow root
         return dom;
       }
     },
-    shadowRootReady: function(root) {
+    shadowRootReady: function(root, template) {
       // locate nodes with id and store references to them in this.$ hash
       this.marshalNodeReferences(root);
       // set up pointer gestures
@@ -1166,12 +1166,25 @@ if (typeof window.Polymer === 'function') {
     /**
      * Installs external stylesheets and <style> elements with the attribute 
      * polymer-scope='controller' into the scope of element. This is intended
-     * to be a called during custom element construction.
+     * to be a called during custom element construction. Note, this incurs a 
+     * per instance cost and should be used sparingly.
+     *
+     * The need for this type of styling should go away when the shadowDOM spec
+     * addresses these issues:
+     * 
+     * https://www.w3.org/Bugs/Public/show_bug.cgi?id=21391
+     * https://www.w3.org/Bugs/Public/show_bug.cgi?id=21390
+     * https://www.w3.org/Bugs/Public/show_bug.cgi?id=21389
+     * 
+     * @param element The custom element instance into whose controller (parent)
+     * scope styles will be installed.
+     * @param elementElement The <element> containing controller styles.
     */
+    // TODO(sorvell): remove when spec issues are addressed
     installControllerStyles: function() {
       // apply controller styles, but only if they are not yet applied
-      var scope = this.findStyleScope();
-      if (scope && !this.scopeHasNamedStyle(scope, this.localName)) {
+      var scope = this.findStyleController();
+      if (scope && !this.scopeHasElementStyle(scope, STYLE_CONTROLLER_SCOPE)) {
         // allow inherited controller styles
         var proto = getPrototypeOf(this), cssText = '';
         while (proto && proto.element) {
@@ -1179,50 +1192,29 @@ if (typeof window.Polymer === 'function') {
           proto = getPrototypeOf(proto);
         }
         if (cssText) {
-          this.installScopeCssText(cssText, scope);
+          var style = this.element.cssTextToScopeStyle(cssText,
+              STYLE_CONTROLLER_SCOPE);
+          // TODO(sorvell): for now these styles are not shimmed
+          // but we may need to shim them
+          Polymer.applyStyleToScope(style, scope);
         }
       }
     },
-    installScopeStyle: function(style, name, scope) {
-      var scope = scope || this.findStyleScope(), name = name || '';
-      if (scope && !this.scopeHasNamedStyle(scope, this.localName + name)) {
-        var cssText = '';
-        if (style instanceof Array) {
-          for (var i=0, l=style.length, s; (i<l) && (s=style[i]); i++) {
-            cssText += s.textContent + '\n\n';
-          }
-        } else {
-          cssText = style.textContent;
-        }
-        this.installScopeCssText(cssText, scope, name);
-      }
-    },
-    installScopeCssText: function(cssText, scope, name) {
-      scope = scope || this.findStyleScope();
-      name = name || '';
-      if (!scope) {
-        return;
-      }
+    findStyleController: function() {
       if (window.ShadowDOMPolyfill) {
-        cssText = shimCssText(cssText, scope.host);
+        return wrap(document.head);
+      } else {
+        // find the shadow root that contains this element
+        var n = this;
+        while (n.parentNode) {
+          n = n.parentNode;
+        }
+        return n === document ? document.head : n;
       }
-      var style = this.element.cssTextToScopeStyle(cssText,
-          STYLE_CONTROLLER_SCOPE);
-      Polymer.applyStyleToScope(style, scope);
-      // cache that this style has been applied
-      scope._scopeStyles[this.localName + name] = true;
     },
-    findStyleScope: function(node) {
-      // find the shadow root that contains this element
-      var n = node || this;
-      while (n.parentNode) {
-        n = n.parentNode;
-      }
-      return n;
-    },
-    scopeHasNamedStyle: function(scope, name) {
-      scope._scopeStyles = scope._scopeStyles || {};
-      return scope._scopeStyles[name];
+    scopeHasElementStyle: function(scope, descriptor) {
+      var rule = STYLE_SCOPE_ATTRIBUTE + '=' + this.localName + '-' + descriptor;
+      return scope.querySelector('style[' + rule + ']');
     }
   };
   
@@ -1230,16 +1222,6 @@ if (typeof window.Polymer === 'function') {
   // on platforms where the protoype chain is simulated via __proto__ (IE10)
   function getPrototypeOf(prototype) {
     return prototype.__proto__;
-  }
-
-  function shimCssText(cssText, host) {
-    var name = '', is = false;
-    if (host) {
-      name = host.localName;
-      is = host.hasAttribute('is');
-    }
-    var selector = Platform.ShadowCSS.makeScopeSelector(name, is);
-    return Platform.ShadowCSS.shimCssText(cssText, selector);
   }
 
   // exports
@@ -1264,15 +1246,6 @@ if (typeof window.Polymer === 'function') {
 
   // specify an 'own' prototype for tag `name`
   function element(name, prototype) {
-    if (arguments.length === 1 && typeof arguments[0] !== 'string') {
-      prototype = name;
-      var script = document._currentScript;
-      name = script && script.parentNode && script.parentNode.getAttribute ?
-          script.parentNode.getAttribute('name') : '';
-      if (!name) {
-        throw 'Element name could not be inferred.';
-      }
-    }
     if (getRegisteredPrototype[name]) {
       throw 'Already registered (Polymer) prototype for element ' + name;
     }
@@ -1422,7 +1395,7 @@ scope.api.declaration.path = path;
     },
     copySheetAttributes: function(style, link) {
       for (var i=0, a$=link.attributes, l=a$.length, a; (a=a$[i]) && i<l; i++) {
-        if (a.name !== 'rel' && a.name !== 'href') {
+        if (a.name !== 'rel' && a.name !== 'src') {
           style.setAttribute(a.name, a.value);
         }
       }
@@ -1444,6 +1417,14 @@ scope.api.declaration.path = path;
      * element's template.
      * @param elementElement The <element> element to style.
      */
+    // TODO(sorvell): wip... caching and styles handling can probably be removed
+    // We need a scheme to ensure stylesheets are eagerly loaded without 
+    // the creation of an element instance. Here are 2 options for handling this:
+    // 1. create a dummy element with ShadowDOM in dom that includes ALL styles
+    // processed here.
+    // 2. place stylesheets outside the element template. This will allow 
+    // imports to naturally load the sheets. Then at load time, we can remove
+    // the stylesheet from dom.
     installSheets: function() {
       this.cacheSheets();
       this.cacheStyles();
@@ -1554,17 +1535,11 @@ scope.api.declaration.path = path;
 
   function importRuleForSheet(sheet, baseUrl) {
     var href = new URL(sheet.getAttribute('href'), baseUrl).href;
-    return '@import \'' + href + '\';';
+    return '@import \'' + href + '\';'
   }
 
   function applyStyleToScope(style, scope) {
     if (style) {
-      if (scope === document) {
-        scope = document.head;
-      }
-      if (window.ShadowDOMPolyfill) {
-        scope = document.head;
-      }
       // TODO(sorvell): necessary for IE
       // see https://connect.microsoft.com/IE/feedback/details/790212/
       // cloning-a-style-element-and-adding-to-document-produces
@@ -1575,17 +1550,7 @@ scope.api.declaration.path = path;
       if (attr) {
         clone.setAttribute(STYLE_SCOPE_ATTRIBUTE, attr);
       }
-      // TODO(sorvell): probably too brittle; try to figure out 
-      // where to put the element.
-      var refNode = scope.firstElementChild;
-      if (scope === document.head) {
-        var selector = 'style[' + STYLE_SCOPE_ATTRIBUTE + ']';
-        var s$ = document.head.querySelectorAll(selector);
-        if (s$.length) {
-          refNode = s$[s$.length-1].nextElementSibling;
-        }
-      }
-      scope.insertBefore(clone, refNode);
+      scope.appendChild(clone);
     }
   }
 
@@ -1711,6 +1676,7 @@ scope.api.declaration.path = path;
           for (var i=0, ni; ni=names[i]; i++) {
             a.push(ni);
           }
+          //a.push(n);
         }
       }
       if (prototype.publish) {
@@ -2097,8 +2063,8 @@ scope.api.declaration.path = path;
     indexOf: function(element) {
       var i = queueForElement(element).indexOf(element);
       if (i >= 0 && document.contains(element)) {
-        i += (HTMLImports.useNative || HTMLImports.ready) ? 
-          importQueue.length : 1e9;
+        i += (HTMLImports.useNative || HTMLImports.ready) ? importQueue.length :
+            1e9;
       }
       return i;  
     },
@@ -2117,7 +2083,7 @@ scope.api.declaration.path = path;
         //console.warn('queue order wrong', i);
         return;
       }
-      return queueForElement(element).shift();
+      return queueForElement(element).shift();  
     },
     check: function() {
       // next
@@ -2281,10 +2247,9 @@ scope.api.declaration.path = path;
        || this.waitingForResources()) {
           return;
       }
-      // TODO(sorvell): ends up calling '_register' by virtue
-      // of `waitingForQueue` (see below)
       queue.go(this);
     },
+
 
     // TODO(sorvell): refactor, this method is private-ish, but it's being
     // called by the queue object.
