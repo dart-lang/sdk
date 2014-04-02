@@ -105,6 +105,7 @@ String getReflectionDataParser(String classesCollector,
 
     if (getterStubName) {
       f = tearOff(funcs, array, isStatic, name, isIntercepted);
+      f.getterStub = true;
 '''
       /* Used to create an isolate using spawnFunction.*/
 '''
@@ -114,28 +115,29 @@ String getReflectionDataParser(String classesCollector,
       if (getterStubName) functions.push(getterStubName);
       f.\$stubName = getterStubName;
       f.\$callName = null;
+      if (isIntercepted) init.interceptedNames[getterStubName] = true;
     }
     if (isReflectable) {
       for (var i = 0; i < funcs.length; i++) {
         funcs[i].$reflectableField = 1;
         funcs[i].$reflectionInfoField = array;
       }
-    }
-    if (isReflectable) {
+      var mangledNames = isStatic ? init.mangledGlobalNames : init.mangledNames;
       var unmangledName = ${readString("array", "unmangledNameIndex")};
-      var reflectionName =''' // Break long line.
-      ''' unmangledName + ":" + requiredParameterCount +''' // Break long line.
+'''
+      // The function is either a getter, a setter, or a method.
+      // If it is a method, it might also have a tear-off closure.
+      // The unmangledName is the same as the getter-name.
+'''
+      var reflectionName = unmangledName;
+      if (getterStubName) mangledNames[getterStubName] = reflectionName;
+      if (isSetter) {
+        reflectionName += "=";
+      } else if (!isGetter) {
+        reflectionName += ":" + requiredParameterCount +''' // Break long line.
       ''' ":" + optionalParameterCount;
-      if (isGetter) {
-        reflectionName = unmangledName;
-      } else if (isSetter) {
-        reflectionName = unmangledName + "=";
       }
-      if (isStatic) {
-        init.mangledGlobalNames[name] = reflectionName;
-      } else {
-        init.mangledNames[name] = reflectionName;
-      }
+      mangledNames[name] = reflectionName;
       funcs[0].$reflectionNameField = reflectionName;
       funcs[0].$metadataIndexField = unmangledNameIndex + 1;
       if (optionalParameterCount) descriptor[unmangledName + "*"] = funcs[0];
@@ -200,6 +202,7 @@ String getReflectionDataParser(String classesCollector,
   if (!init.statics) init.statics = map();
   if (!init.typeInformation) init.typeInformation = map();
   if (!init.globalFunctions) init.globalFunctions = map();
+  if (!init.interceptedNames) init.interceptedNames = map();
   var libraries = init.libraries;
   var mangledNames = init.mangledNames;
   var mangledGlobalNames = init.mangledGlobalNames;

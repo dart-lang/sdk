@@ -10,6 +10,7 @@ typed_locals_test: Fail
 no_such_method_test: Fail # Wrong Invocation.memberName.
 deferred/deferred_constant_test: Fail # http://dartbug.com/11138
 constant_javascript_semantics4_test: Fail, OK
+mirrors_used_closure_test: Fail # Issue 17939
 
 [ $compiler == dart2js && $runtime == jsshell ]
 mirror_printer_test: Pass, Slow # Issue 16473
