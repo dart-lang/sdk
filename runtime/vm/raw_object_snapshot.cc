@@ -6,6 +6,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/snapshot.h"
+#include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/visitor.h"
 
@@ -709,6 +710,9 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
     *(func.raw()->from() + i) = reader->ReadObjectRef();
   }
 
+  // Set up code pointer with the lazy-compile-stub.
+  func.set_code(Code::Handle(StubCode::LazyCompile_entry()->code()));
+
   return func.raw();
 }
 
@@ -741,7 +745,11 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
-  visitor.VisitPointers(from(), to());
+  visitor.VisitPointers(from(), to_no_code());
+
+  // Write null for the code and unoptimized code.
+  writer->WriteVMIsolateObject(kNullObject);
+  writer->WriteVMIsolateObject(kNullObject);
 }
 
 

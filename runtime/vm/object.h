@@ -1514,8 +1514,9 @@ class Function : public Object {
   void set_parameter_names(const Array& value) const;
 
   // Sets function's code and code's function.
-  void SetCode(const Code& value) const;
-  void  ClearCode() const;
+  void AttachCode(const Code& value) const;
+  void set_code(const Code& value) const;
+  void ClearCode() const;
 
   // Disables optimized code and switches to unoptimized code.
   void SwitchToUnoptimizedCode() const;
@@ -1530,7 +1531,7 @@ class Function : public Object {
   static intptr_t unoptimized_code_offset() {
     return OFFSET_OF(RawFunction, unoptimized_code_);
   }
-  inline bool HasCode() const;
+  bool HasCode() const;
 
   // Returns true if there is at least one debugger breakpoint
   // set in this function.
@@ -2969,9 +2970,6 @@ class Stackmap : public Object {
     ASSERT(InRange(index));
     return GetBit(index);
   }
-
-  RawCode* Code() const { return raw_ptr()->code_; }
-  void SetCode(const dart::Code& code) const;
 
   intptr_t Length() const { return raw_ptr()->length_; }
 
@@ -6680,11 +6678,6 @@ DART_FORCE_INLINE void Object::SetRaw(RawObject* value) {
            vm_isolate_heap->Contains(RawObject::ToAddr(raw_)));
   }
 #endif
-}
-
-
-bool Function::HasCode() const {
-  return raw_ptr()->code_ != Code::null();
 }
 
 

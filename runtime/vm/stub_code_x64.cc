@@ -760,40 +760,19 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ j(EQUAL, &not_closure, Assembler::kNearJump);
 
   // RAX is just the signature function. Load the actual closure function.
-  __ movq(RBX, FieldAddress(R13, Closure::function_offset()));
+  __ movq(RAX, FieldAddress(R13, Closure::function_offset()));
 
   // Load closure context in CTX; note that CTX has already been preserved.
   __ movq(CTX, FieldAddress(R13, Closure::context_offset()));
 
   // Load closure function code in RAX.
-  __ movq(RAX, FieldAddress(RBX, Function::code_offset()));
-  __ cmpq(RAX, R12);
-  Label function_compiled;
-  __ j(NOT_EQUAL, &function_compiled, Assembler::kNearJump);
+  __ movq(RBX, FieldAddress(RAX, Function::code_offset()));
 
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
-  __ EnterStubFrame();
-
-  __ pushq(R10);  // Preserve arguments descriptor array.
-  __ pushq(RBX);  // Preserve read-only function object argument.
-  __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
-  __ popq(RBX);  // Restore read-only function object argument in RBX.
-  __ popq(R10);  // Restore arguments descriptor array.
-  // Restore RAX.
-  __ movq(RAX, FieldAddress(RBX, Function::code_offset()));
-
-  // Remove the stub frame as we are about to jump to the closure function.
-  __ LeaveStubFrame();
-
-  __ Bind(&function_compiled);
-  // RAX: Code.
-  // RBX: Function.
+  // RAX: Function.
   // R10: Arguments descriptor array.
-
-  __ movq(RBX, FieldAddress(RAX, Code::instructions_offset()));
-  __ addq(RBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ jmp(RBX);
+  __ movq(RCX, FieldAddress(RBX, Code::instructions_offset()));
+  __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(RCX);
 
   __ Bind(&not_closure);
   // Call runtime to attempt to resolve and invoke a call method on a
@@ -1494,25 +1473,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // RAX: Target function.
   Label is_compiled;
   __ movq(RCX, FieldAddress(RAX, Function::code_offset()));
-  if (FLAG_collect_code) {
-    // If code might be GC'd, then RBX might be null. If it is, recompile.
-    __ CompareObject(RCX, Object::null_object(), PP);
-    __ j(NOT_EQUAL, &is_compiled, Assembler::kNearJump);
-    __ EnterStubFrame();
-    __ pushq(R10);  // Preserve arguments descriptor array.
-    __ pushq(RBX);  // Preserve IC data object.
-    __ pushq(RAX);  // Pass function.
-    __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
-    __ popq(RAX);  // Restore function.
-    __ popq(RBX);  // Restore IC data array.
-    __ popq(R10);  // Restore arguments descriptor array.
-    __ LeaveStubFrame();
-    __ movq(RCX, FieldAddress(RAX, Function::code_offset()));
-    __ Bind(&is_compiled);
-  }
-  __ movq(RAX, FieldAddress(RCX, Code::instructions_offset()));
-  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ jmp(RAX);
+  __ movq(RCX, FieldAddress(RCX, Code::instructions_offset()));
+  __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(RCX);
 
   __ Bind(&get_class_id_as_smi);
   Label not_smi;
@@ -1655,32 +1618,16 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
           Immediate(Smi::RawValue(Smi::kMaxValue)));
   __ Bind(&increment_done);
 
-  Label target_is_compiled;
-  // Get function and call it, if possible.
-  __ movq(R13, Address(R12, target_offset));
-  __ movq(RAX, FieldAddress(R13, Function::code_offset()));
-  __ LoadObject(R12, Object::null_object(), PP);
-  __ cmpq(RAX, R12);
-  __ j(NOT_EQUAL, &target_is_compiled, Assembler::kNearJump);
-
-  __ EnterStubFrame();
-  __ pushq(R13);  // Preserve target function.
-  __ pushq(RBX);  // Preserve IC data object.
-  __ pushq(R13);  // Pass function.
-  __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
-  __ popq(RAX);  // Discard argument.
-  __ popq(RBX);  // Restore IC data object.
-  __ popq(R13);  // Restore target function.
-  __ LeaveStubFrame();
-  __ movq(RAX, FieldAddress(R13, Function::code_offset()));
-
-  __ Bind(&target_is_compiled);
-  // RAX: Target code.
-  __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
-  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   // Load arguments descriptor into R10.
   __ movq(R10, FieldAddress(RBX, ICData::arguments_descriptor_offset()));
-  __ jmp(RAX);
+
+  // Get function and call it, if possible.
+  __ movq(RAX, Address(R12, target_offset));
+  __ movq(RCX, FieldAddress(RAX, Function::code_offset()));
+  // RCX: Target code.
+  __ movq(RCX, FieldAddress(RCX, Code::instructions_offset()));
+  __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(RCX);
 }
 
 
@@ -1691,21 +1638,25 @@ void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 }
 
 
-// Stub for calling the CompileFunction runtime call.
-// RCX: IC-Data.
-// RDX: Arguments descriptor.
+// Stub for compiling a function and jumping to the compiled code.
+// RCX: IC-Data (for methods).
+// R10: Arguments descriptor.
 // RAX: Function.
-void StubCode::GenerateCompileFunctionRuntimeCallStub(Assembler* assembler) {
+void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ EnterStubFrame();
-  __ pushq(RDX);  // Preserve arguments descriptor array.
-  __ pushq(RCX);  // Preserve IC data object.
+  __ pushq(R10);  // Preserve arguments descriptor array.
+  __ pushq(RBX);  // Preserve IC data object.
   __ pushq(RAX);  // Pass function.
   __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
   __ popq(RAX);  // Restore function.
-  __ popq(RCX);  // Restore IC data array.
-  __ popq(RDX);  // Restore arguments descriptor array.
+  __ popq(RBX);  // Restore IC data array.
+  __ popq(R10);  // Restore arguments descriptor array.
   __ LeaveStubFrame();
-  __ ret();
+
+  __ movq(RAX, FieldAddress(RAX, Function::code_offset()));
+  __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
+  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(RAX);
 }
 
 

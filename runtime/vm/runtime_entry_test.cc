@@ -26,7 +26,7 @@ const Function& RegisterFakeFunction(const char* name, const Code& code) {
   owner_class.SetFunctions(functions);
   Library& lib = Library::Handle(Library::CoreLibrary());
   lib.AddClass(owner_class);
-  function.SetCode(code);
+  function.AttachCode(code);
   return function;
 }
 

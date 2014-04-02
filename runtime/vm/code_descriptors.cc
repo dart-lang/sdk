@@ -71,7 +71,6 @@ RawArray* StackmapTableBuilder::FinalizeStackmaps(const Code& code) {
   for (intptr_t i = 0; i < num_entries; i++) {
     stack_map_ = MapAt(i);
     stack_map_.SetPC(entry_point + stack_map_.PC());
-    stack_map_.SetCode(code);
   }
   return Array::MakeArray(list_);
 }

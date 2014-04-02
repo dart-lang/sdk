@@ -1364,28 +1364,13 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
   __ movq(RAX, FieldAddress(RDI, RCX, TIMES_8, base + kWordSize));
-  __ movq(RBX, FieldAddress(RAX, Function::code_offset()));
-  if (FLAG_collect_code) {
-    // If we are collecting code, the code object may be null.
-    Label is_compiled;
-    const Immediate& raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    __ cmpq(RBX, raw_null);
-    __ j(NOT_EQUAL, &is_compiled, Assembler::kNearJump);
-    __ call(&StubCode::CompileFunctionRuntimeCallLabel());
-    AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
-                         Isolate::kNoDeoptId,
-                         token_pos);
-    RecordSafepoint(locs);
-    __ movq(RBX, FieldAddress(RAX, Function::code_offset()));
-    __ Bind(&is_compiled);
-  }
-  __ movq(RAX, FieldAddress(RBX, Code::instructions_offset()));
+  __ movq(RCX, FieldAddress(RAX, Function::code_offset()));
+  __ movq(RCX, FieldAddress(RCX, Code::instructions_offset()));
   __ LoadObject(RBX, ic_data, PP);
   __ LoadObject(R10, arguments_descriptor, PP);
   __ AddImmediate(
-      RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag), PP);
-  __ call(RAX);
+      RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag), PP);
+  __ call(RCX);
   AddCurrentDescriptor(PcDescriptors::kOther, Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
   AddDeoptIndexAtCall(Isolate::ToDeoptAfter(deopt_id), token_pos);

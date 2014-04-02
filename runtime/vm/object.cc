@@ -667,7 +667,7 @@ void Object::InitOnce() {
     PcDescriptors::initializeHandle(
         empty_descriptors_,
         reinterpret_cast<RawPcDescriptors*>(address + kHeapObjectTag));
-    empty_descriptors_->raw_ptr()->length_ = Smi::New(0);
+    empty_descriptors_->raw_ptr()->length_ = 0;
   }
 
 
@@ -4800,16 +4800,26 @@ bool Function::HasBreakpoint() const {
 }
 
 
-void Function::SetCode(const Code& value) const {
+void Function::set_code(const Code& value) const {
   StorePointer(&raw_ptr()->code_, value.raw());
+}
+
+void Function::AttachCode(const Code& value) const {
+  set_code(value);
   ASSERT(Function::Handle(value.function()).IsNull() ||
     (value.function() == this->raw()));
   value.set_owner(*this);
 }
 
 
+bool Function::HasCode() const {
+  ASSERT(raw_ptr()->code_ != Code::null());
+  return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code();
+}
+
+
 void Function::ClearCode() const {
-  StorePointer(&raw_ptr()->code_, Code::null());
+  StorePointer(&raw_ptr()->code_, StubCode::LazyCompile_entry()->code());
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
 }
 
@@ -4836,7 +4846,7 @@ void Function::SwitchToUnoptimizedCode() const {
   // Patch entry of the optimized code.
   CodePatcher::PatchEntry(current_code);
   // Use previously compiled unoptimized code.
-  SetCode(Code::Handle(unoptimized_code()));
+  AttachCode(Code::Handle(unoptimized_code()));
   CodePatcher::RestoreEntry(Code::Handle(unoptimized_code()));
 }
 
@@ -5853,6 +5863,7 @@ RawFunction* Function::New(const String& name,
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
     result.set_data(data);
   }
+  result.set_code(Code::Handle(StubCode::LazyCompile_entry()->code()));
   return result.raw();
 }
 
@@ -5865,8 +5876,7 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   const PatchClass& clone_owner =
       PatchClass::Handle(PatchClass::New(new_owner, origin));
   clone.set_owner(clone_owner);
-  clone.StorePointer(&clone.raw_ptr()->code_, Code::null());
-  clone.StorePointer(&clone.raw_ptr()->unoptimized_code_, Code::null());
+  clone.ClearCode();
   clone.set_usage_counter(0);
   clone.set_deoptimization_counter(0);
   clone.set_optimized_instruction_count(0);
@@ -5893,6 +5903,7 @@ RawFunction* Function::NewClosureFunction(const String& name,
                     parent_owner,
                     token_pos));
   result.set_parent_function(parent);
+
   return result.raw();
 }
 
@@ -9798,14 +9809,12 @@ void Instructions::PrintToJSONStream(JSONStream* stream, bool ref) const {
 
 
 intptr_t PcDescriptors::Length() const {
-  return Smi::Value(raw_ptr()->length_);
+  return raw_ptr()->length_;
 }
 
 
 void PcDescriptors::SetLength(intptr_t value) const {
-  // This is only safe because we create a new Smi, which does not cause
-  // heap allocation.
-  raw_ptr()->length_ = Smi::New(value);
+  raw_ptr()->length_ = value;
 }
 
 
@@ -10004,11 +10013,6 @@ uword PcDescriptors::GetPcForKind(Kind kind) const {
     }
   }
   return 0;
-}
-
-
-void Stackmap::SetCode(const dart::Code& code) const {
-  StorePointer(&raw_ptr()->code_, code.raw());
 }
 
 

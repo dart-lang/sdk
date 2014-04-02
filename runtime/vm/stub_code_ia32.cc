@@ -773,38 +773,17 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ j(EQUAL, &not_closure, Assembler::kNearJump);
 
   // EAX is just the signature function. Load the actual closure function.
-  __ movl(ECX, FieldAddress(EDI, Closure::function_offset()));
+  __ movl(EAX, FieldAddress(EDI, Closure::function_offset()));
 
   // Load closure context in CTX; note that CTX has already been preserved.
   __ movl(CTX, FieldAddress(EDI, Closure::context_offset()));
 
-  // Load closure function code in EAX.
-  __ movl(EAX, FieldAddress(ECX, Function::code_offset()));
-  __ cmpl(EAX, raw_null);
-  Label function_compiled;
-  __ j(NOT_EQUAL, &function_compiled, Assembler::kNearJump);
+  // EBX: Code (compiled code or lazy compile stub).
+  __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
 
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
-  __ EnterStubFrame();
-
-  __ pushl(EDX);  // Preserve arguments descriptor array.
-  __ pushl(ECX);  // Preserve read-only function object argument.
-  __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
-  __ popl(ECX);  // Restore read-only function object argument in ECX.
-  __ popl(EDX);  // Restore arguments descriptor array.
-  // Restore EAX.
-  __ movl(EAX, FieldAddress(ECX, Function::code_offset()));
-
-  // Remove the stub frame as we are about to jump to the closure function.
-  __ LeaveFrame();
-
-  __ Bind(&function_compiled);
-  // EAX: Code.
-  // ECX: Function.
+  // EAX: Function.
   // EDX: Arguments descriptor array.
-
-  __ movl(ECX, FieldAddress(EAX, Code::instructions_offset()));
+  __ movl(ECX, FieldAddress(EBX, Code::instructions_offset()));
   __ addl(ECX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(ECX);
 
@@ -1508,27 +1487,10 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   __ Bind(&call_target_function);
   // EAX: Target function.
-  Label is_compiled;
   __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
-  if (FLAG_collect_code) {
-    // If code might be GC'd, then EBX might be null. If it is, recompile.
-    __ cmpl(EBX, raw_null);
-    __ j(NOT_EQUAL, &is_compiled, Assembler::kNearJump);
-    __ EnterStubFrame();
-    __ pushl(EDX);  // Preserve arguments descriptor array.
-    __ pushl(ECX);  // Preserve IC data object.
-    __ pushl(EAX);  // Pass function.
-    __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
-    __ popl(EAX);  // Restore function.
-    __ popl(ECX);  // Restore IC data array.
-    __ popl(EDX);  // Restore arguments descriptor array.
-    __ LeaveFrame();
-    __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
-    __ Bind(&is_compiled);
-  }
-  __ movl(EAX, FieldAddress(EBX, Code::instructions_offset()));
-  __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ jmp(EAX);
+  __ movl(EBX, FieldAddress(EBX, Code::instructions_offset()));
+  __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(EBX);
 
   // Instance in EAX, return its class-id in EAX as Smi.
   __ Bind(&get_class_id_as_smi);
@@ -1672,32 +1634,17 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ movl(Address(EBX, count_offset), Immediate(Smi::RawValue(Smi::kMaxValue)));
   __ Bind(&increment_done);
 
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label target_is_compiled;
-  // Get function and call it, if possible.
-  __ movl(EDI, Address(EBX, target_offset));
-  __ movl(EAX, FieldAddress(EDI, Function::code_offset()));
-  __ cmpl(EAX, raw_null);
-  __ j(NOT_EQUAL, &target_is_compiled, Assembler::kNearJump);
-  __ EnterStubFrame();
-  __ pushl(EDI);  // Preserve target function.
-  __ pushl(ECX);  // Preserve IC data object.
-  __ pushl(EDI);  // Pass function.
-  __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
-  __ popl(EAX);  // Discard argument.
-  __ popl(ECX);  // Restore IC data object.
-  __ popl(EDI);  // Restore target function.
-  __ LeaveFrame();
-  __ movl(EAX, FieldAddress(EDI, Function::code_offset()));
-
-  __ Bind(&target_is_compiled);
-  // EAX: Target code.
-  __ movl(EAX, FieldAddress(EAX, Code::instructions_offset()));
-  __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   // Load arguments descriptor into EDX.
   __ movl(EDX, FieldAddress(ECX, ICData::arguments_descriptor_offset()));
-  __ jmp(EAX);
+
+  // Get function and call it, if possible.
+  __ movl(EAX, Address(EBX, target_offset));
+  __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
+
+  // EBX: Target code.
+  __ movl(EBX, FieldAddress(EBX, Code::instructions_offset()));
+  __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(EBX);
 }
 
 
@@ -1708,11 +1655,11 @@ void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 }
 
 
-// Stub for calling the CompileFunction runtime call.
-// ECX: IC-Data.
+// Stub for compiling a function and jumping to the compiled code.
+// ECX: IC-Data (for methods).
 // EDX: Arguments descriptor.
 // EAX: Function.
-void StubCode::GenerateCompileFunctionRuntimeCallStub(Assembler* assembler) {
+void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ pushl(EDX);  // Preserve arguments descriptor array.
   __ pushl(ECX);  // Preserve IC data object.
@@ -1722,7 +1669,11 @@ void StubCode::GenerateCompileFunctionRuntimeCallStub(Assembler* assembler) {
   __ popl(ECX);  // Restore IC data array.
   __ popl(EDX);  // Restore arguments descriptor array.
   __ LeaveFrame();
-  __ ret();
+
+  __ movl(EAX, FieldAddress(EAX, Function::code_offset()));
+  __ movl(EAX, FieldAddress(EAX, Code::instructions_offset()));
+  __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(EAX);
 }
 
 

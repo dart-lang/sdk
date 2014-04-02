@@ -1330,26 +1330,11 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // be invoked as a normal Dart function.
   __ movl(EAX, FieldAddress(EDI, ECX, TIMES_4, base + kWordSize));
   __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
-  if (FLAG_collect_code) {
-    // If we are collecting code, the code object may be null.
-    Label is_compiled;
-    const Immediate& raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    __ cmpl(EBX, raw_null);
-    __ j(NOT_EQUAL, &is_compiled, Assembler::kNearJump);
-    __ call(&StubCode::CompileFunctionRuntimeCallLabel());
-    AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
-                         Isolate::kNoDeoptId,
-                         token_pos);
-    RecordSafepoint(locs);
-    __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
-    __ Bind(&is_compiled);
-  }
-  __ movl(EAX, FieldAddress(EBX, Code::instructions_offset()));
+  __ movl(EBX, FieldAddress(EBX, Code::instructions_offset()));
   __ LoadObject(ECX, ic_data);
   __ LoadObject(EDX, arguments_descriptor);
-  __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ call(EAX);
+  __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ call(EBX);
   AddCurrentDescriptor(PcDescriptors::kOther, Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
   AddDeoptIndexAtCall(Isolate::ToDeoptAfter(deopt_id), token_pos);

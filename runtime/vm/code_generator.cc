@@ -1219,7 +1219,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
       // code.
       uword optimized_entry =
           Instructions::Handle(optimized_code.instructions()).EntryPoint();
-      function.SetCode(original_code);
+      function.AttachCode(original_code);
       frame->set_pc(optimized_entry);
     }
   }

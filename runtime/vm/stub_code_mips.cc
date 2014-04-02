@@ -908,42 +908,16 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ beq(T0, T7, &not_closure);
 
   // T0 is just the signature function. Load the actual closure function.
-  __ lw(T2, FieldAddress(T1, Closure::function_offset()));
+  __ lw(T0, FieldAddress(T1, Closure::function_offset()));
 
   // Load closure context in CTX; note that CTX has already been preserved.
   __ lw(CTX, FieldAddress(T1, Closure::context_offset()));
 
-  Label function_compiled;
-  // Load closure function code in T0.
-  __ lw(T0, FieldAddress(T2, Function::code_offset()));
-  __ bne(T0, T7, &function_compiled);
-
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
-  __ EnterStubFrame();
-
-  // Preserve arguments descriptor array and read-only function object argument.
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(S4, Address(SP, 1 * kWordSize));
-  __ sw(T2, Address(SP, 0 * kWordSize));
-  __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
-  __ TraceSimMsg("GenerateCallClosureFunctionStub return");
-  // Restore arguments descriptor array and read-only function object argument.
-  __ lw(T2, Address(SP, 0 * kWordSize));
-  __ lw(S4, Address(SP, 1 * kWordSize));
-  __ addiu(SP, SP, Immediate(2 * kWordSize));
-  // Restore T0.
-  __ lw(T0, FieldAddress(T2, Function::code_offset()));
-
-  // Remove the stub frame as we are about to jump to the closure function.
-  __ LeaveStubFrame();
-
-  __ Bind(&function_compiled);
-  // T0: Code.
-  // S4: Arguments descriptor array.
-  __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
-  __ AddImmediate(T0, Instructions::HeaderSize() - kHeapObjectTag);
-  __ jr(T0);
+  // Load closure function code in T2.
+  __ lw(T2, FieldAddress(T0, Function::code_offset()));
+  __ lw(T2, FieldAddress(T2, Code::instructions_offset()));
+  __ AddImmediate(T2, Instructions::HeaderSize() - kHeapObjectTag);
+  __ jr(T2);
 
   __ Bind(&not_closure);
   // Call runtime to attempt to resolve and invoke a call method on a
@@ -1738,29 +1712,13 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ sw(T1, Address(T0, count_offset));
 
   __ Bind(&call_target_function);
-  // T3: Target function.
+  // T0 <- T3: Target function.
+  __ mov(T0, T3);
   Label is_compiled;
-  __ lw(T4, FieldAddress(T3, Function::code_offset()));
-  if (FLAG_collect_code) {
-    __ BranchNotEqual(T4, reinterpret_cast<int32_t>(Object::null()),
-                      &is_compiled);
-    __ EnterStubFrame();
-    __ addiu(SP, SP, Immediate(-3 * kWordSize));
-    __ sw(S5, Address(SP, 2 * kWordSize));  // Preserve IC data.
-    __ sw(S4, Address(SP, 1 * kWordSize));  // Preserve arg desc.
-    __ sw(T3, Address(SP, 0 * kWordSize));  // Function argument.
-    __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
-    __ lw(T3, Address(SP, 0 * kWordSize));  // Restore Function.
-    __ lw(S4, Address(SP, 1 * kWordSize));  // Restore arg desc.
-    __ lw(S5, Address(SP, 2 * kWordSize));  // Restore IC data.
-    __ addiu(SP, SP, Immediate(3 * kWordSize));
-    __ LeaveStubFrame();
-    __ lw(T4, FieldAddress(T3, Function::code_offset()));
-    __ Bind(&is_compiled);
-  }
-  __ lw(T3, FieldAddress(T4, Code::instructions_offset()));
-  __ AddImmediate(T3, Instructions::HeaderSize() - kHeapObjectTag);
-  __ jr(T3);
+  __ lw(T4, FieldAddress(T0, Function::code_offset()));
+  __ lw(T4, FieldAddress(T4, Code::instructions_offset()));
+  __ AddImmediate(T4, Instructions::HeaderSize() - kHeapObjectTag);
+  __ jr(T4);
 
   // Instance in T3, return its class-id in T3 as Smi.
   __ Bind(&get_class_id_as_smi);
@@ -1900,36 +1858,17 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   __ Bind(&increment_done);
 
-  Label target_is_compiled;
-  // Get function and call it, if possible.
-  __ lw(T3, Address(T0, target_offset));
-  __ lw(T4, FieldAddress(T3, Function::code_offset()));
-  __ LoadImmediate(CMPRES1, reinterpret_cast<intptr_t>(Object::null()));
-  __ bne(T4, CMPRES1, &target_is_compiled);
-
-  __ EnterStubFrame();
-  // Preserve target function and IC data object.
-  // Two preserved registers, one argument (function) => 3 slots.
-  __ addiu(SP, SP, Immediate(-3 * kWordSize));
-  __ sw(S5, Address(SP, 2 * kWordSize));  // Preserve IC data.
-  __ sw(T3, Address(SP, 1 * kWordSize));  // Preserve function.
-  __ sw(T3, Address(SP, 0 * kWordSize));  // Function argument.
-  __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
-  __ lw(T3, Address(SP, 1 * kWordSize));  // Restore function.
-  __ lw(S5, Address(SP, 2 * kWordSize));  // Restore IC data.
-  __ addiu(SP, SP, Immediate(3 * kWordSize));
-  // T3: target function.
-  __ lw(T4, FieldAddress(T3, Function::code_offset()));
-  __ LeaveStubFrame();
-
-  __ Bind(&target_is_compiled);
-  // T4: target code.
-  __ lw(T3, FieldAddress(T4, Code::instructions_offset()));
-  __ AddImmediate(T3, Instructions::HeaderSize() - kHeapObjectTag);
-  __ jr(T3);
   // Load arguments descriptor into S4.
-  __ delay_slot()->
-      lw(S4,  FieldAddress(S5, ICData::arguments_descriptor_offset()));
+  __ lw(S4,  FieldAddress(S5, ICData::arguments_descriptor_offset()));
+
+  // Get function and call it, if possible.
+  __ lw(T0, Address(T0, target_offset));
+  __ lw(T4, FieldAddress(T0, Function::code_offset()));
+
+  // T4: target code.
+  __ lw(T4, FieldAddress(T4, Code::instructions_offset()));
+  __ AddImmediate(T4, Instructions::HeaderSize() - kHeapObjectTag);
+  __ jr(T4);
 }
 
 
@@ -1940,11 +1879,11 @@ void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 }
 
 
-// Stub for calling the CompileFunction runtime call.
-// S5: IC-Data.
+// Stub for compiling a function and jumping to the compiled code.
+// S5: IC-Data (for methods).
 // S4: Arguments descriptor.
 // T0: Function.
-void StubCode::GenerateCompileFunctionRuntimeCallStub(Assembler* assembler) {
+void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
   __ sw(S5, Address(SP, 2 * kWordSize));  // Preserve IC data object.
@@ -1954,7 +1893,13 @@ void StubCode::GenerateCompileFunctionRuntimeCallStub(Assembler* assembler) {
   __ lw(T0, Address(SP, 0 * kWordSize));  // Restore function.
   __ lw(S4, Address(SP, 1 * kWordSize));  // Restore args descriptor array.
   __ lw(S5, Address(SP, 2 * kWordSize));  // Restore IC data array.
-  __ LeaveStubFrameAndReturn();
+  __ addiu(SP, SP, Immediate(3 * kWordSize));
+  __ LeaveStubFrame();
+
+  __ lw(T2, FieldAddress(T0, Function::code_offset()));
+  __ lw(T2, FieldAddress(T2, Code::instructions_offset()));
+  __ AddImmediate(T2, Instructions::HeaderSize() - kHeapObjectTag);
+  __ jr(T2);
 }
 
 
