@@ -1,4 +1,11 @@
-# Changelog - unittest
+##0.10.1+2
+
+* Fixed deprecation message for `mock`.
+
+##0.10.1+1
+
+* Fixed CHANGELOG
+* Moved to triple-slash for all doc comments.
 
 ##0.10.1
 
