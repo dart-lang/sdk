@@ -5,10 +5,11 @@
 library script_view_element;
 
 import 'observatory_element.dart';
+import 'package:observatory/elements.dart';
 import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 
-/// Displays an Error response.
+/// Displays an Script response.
 @CustomTag('script-view')
 class ScriptViewElement extends ObservatoryElement {
   @published Script script;
@@ -24,31 +25,9 @@ class ScriptViewElement extends ObservatoryElement {
     script.load();
   }
 
-  void _triggerHitRefresh() {
-    notifyPropertyChange(#hitsStyle, 0, 1);
-  }
-
   showCoverageChanged(oldValue) {
-    _triggerHitRefresh();
-  }
-
-  static const hitStyleNone = 'min-width:32px;';
-  static const hitStyleExecuted = 'min-width:32px;background-color:green';
-  static const hitStyleNotExecuted = 'min-width:32px;background-color:red';
-
-  @observable String hitsStyle(ScriptLine line) {
-    if ((script == null) || !showCoverage) {
-      return hitStyleNone;
-    }
-    var hit = script.hits[line.line];
-    if (hit == null) {
-      return hitStyleNone;
-    }
-    if (hit == 0) {
-      return hitStyleNotExecuted;
-    }
-    assert(hit > 0);
-    return hitStyleExecuted;
+    ScriptInsetElement sie = shadowRoot.querySelector('#scriptInset');
+    sie.coverage = showCoverage;
   }
 
   void refresh(var done) {
@@ -56,9 +35,6 @@ class ScriptViewElement extends ObservatoryElement {
   }
 
   void refreshCoverage(var done) {
-    script.isolate.refreshCoverage().then((_) {
-      _triggerHitRefresh();
-      done();
-    });
+    script.isolate.refreshCoverage().whenComplete(done);
   }
 }

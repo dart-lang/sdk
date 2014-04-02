@@ -1,6 +1,7 @@
 <head>
   <link rel="import" href="nav_bar.html">
   <link rel="import" href="observatory_element.html">
+  <link rel="import" href="script_inset.html">
 </head>
 <polymer-element name="script-view" extends="observatory-element">
 <template>
@@ -20,22 +21,9 @@
     </nav-refresh>
   </nav-bar>
 
-  <div class="row">
-    <div class="col-md-8 col-md-offset-2">
-      <div class="panel-heading">Script source for: {{ script.name }}</div>
-      <div class="panel-body">
-        <table style="width:100%">
-          <tbody>
-          <tr template repeat="{{ line in script.lines }}">
-            <td style="{{ hitsStyle(line) }}">  </td>
-            <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{line.line}}</td>
-            <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: pre;">{{line.text}}</td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+  <script-inset id="scriptInset" script="{{ script }}" pos="{{ script.firstTokenPos }}" endPos="{{ script.lastTokenPos }}">
+  <h1>script {{ script.name }}</h1>
+  </script-inset>
 </template>
 <script type="application/dart" src="script_view.dart"></script>
 </polymer-element>

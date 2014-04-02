@@ -99,7 +99,9 @@ class ServiceObjectViewElement extends ObservatoryElement {
         element.vm = object;
         return element;
       default:
-        return null;
+        JsonViewElement element = new Element.tag('json-view');
+        element.map = object;
+        return element;
     }
   }
 

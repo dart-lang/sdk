@@ -113,7 +113,7 @@ abstract class ServiceObject extends Observable {
       return new Future.value(this);
     }
     if (_inProgressReload == null) {
-      _inProgressReload =  vm.getAsMap(link).then((ObservableMap map) {
+      _inProgressReload = vm.getAsMap(link).then((ObservableMap map) {
           var mapType = _stripRef(map['type']);
           if (mapType != _serviceType) {
             // If the type changes, return a new object instead of
@@ -237,6 +237,14 @@ abstract class VM extends ServiceObjectOwner {
   }
 
   Future<ServiceObject> get(String id) {
+    var parts = id.split('#');
+    assert(parts.length >= 1);
+    // We should never see more than two hashes.
+    assert(parts.length <= 2);
+    // The ID does not include anything after the # (or the # itself).
+    id = parts[0];
+    // I'm serious.
+    assert(!id.contains('#'));
     // Isolates are handled specially, since they can cache sub-objects.
     if (id.startsWith(_isolatesPrefix)) {
       String isolateId = _parseIsolateId(id);
@@ -444,6 +452,7 @@ class TagProfile {
 class Isolate extends ServiceObjectOwner {
   @reflectable VM get vm => owner;
   @reflectable Isolate get isolate => this;
+  @observable ObservableMap counters = toObservable(new ObservableMap());
 
   String get link => _id;
   String get hashLink => '#/$_id';
@@ -525,6 +534,7 @@ class Isolate extends ServiceObjectOwner {
     // Because the coverage data was upgraded into a ServiceObject,
     // the script can be directly accessed.
     Script script = scriptCoverage['script'];
+    assert(_cache.containsValue(script));
     script._processHits(scriptCoverage['hits']);
   }
 
@@ -607,6 +617,28 @@ class Isolate extends ServiceObjectOwner {
       topFrame = null ;
     }
 
+    var countersMap = map['tagCounters'];
+    if (countersMap != null) {
+      var names = countersMap['names'];
+      var counts = countersMap['counters'];
+      assert(names.length == counts.length);
+      var sum = 0;
+      for (var i = 0; i < counts.length; i++) {
+        sum += counts[i];
+      }
+      // TODO: Why does this not work without this?
+      counters = toObservable({});
+      if (sum == 0) {
+        for (var i = 0; i < names.length; i++) {
+          counters[names[i]] = '0.0%';
+        }
+      } else {
+        for (var i = 0; i < names.length; i++) {
+          counters[names[i]] =
+              (counts[i] / sum * 100.0).toStringAsFixed(2) + '%';
+        }
+      }
+    }
     var timerMap = {};
     map['timers'].forEach((timer) {
         timerMap[timer['name']] = timer['time'];
@@ -818,7 +850,8 @@ class Script extends ServiceObject {
   @reflectable final hits = new ObservableMap<int, int>();
   @observable ServiceObject library;
   @observable String kind;
-
+  @observable int firstTokenPos;
+  @observable int lastTokenPos;
   bool get canCache => true;
   bool get immutable => true;
 
@@ -851,6 +884,8 @@ class Script extends ServiceObject {
     }
     _tokenToLine = {};
     _tokenToCol = {};
+    firstTokenPos = null;
+    lastTokenPos = null;
     for (var line in table) {
       // Each entry begins with a line number...
       var lineNumber = line[0];
@@ -858,6 +893,17 @@ class Script extends ServiceObject {
         // ...and is followed by (token offset, col number) pairs.
         var tokenOffset = line[pos];
         var colNumber = line[pos+1];
+        if (firstTokenPos == null) {
+          // Mark first token position.
+          firstTokenPos = tokenOffset;
+          lastTokenPos = tokenOffset;
+        } else {
+          // Keep track of max and min token positions.
+          firstTokenPos = (firstTokenPos <= tokenOffset) ?
+              firstTokenPos : tokenOffset;
+          lastTokenPos = (lastTokenPos >= tokenOffset) ?
+              lastTokenPos : tokenOffset;
+        }
         _tokenToLine[tokenOffset] = lineNumber;
         _tokenToCol[tokenOffset] = colNumber;
       }
@@ -865,10 +911,6 @@ class Script extends ServiceObject {
   }
 
   void _processHits(List scriptHits) {
-    if (!_loaded) {
-      // Eagerly grab script source.
-      load();
-    }
     // Update hits table.
     for (var i = 0; i < scriptHits.length; i += 2) {
       var line = scriptHits[i];
@@ -896,8 +938,6 @@ class Script extends ServiceObject {
       lines.add(new ScriptLine(i + 1, sourceLines[i]));
     }
   }
-
-
 }
 
 class CodeTick {
@@ -1166,6 +1206,8 @@ class Code extends ServiceObject {
     }
     return 0;
   }
+
+  @reflectable bool get isDartCode => kind == CodeKind.Dart;
 }
 
 // Returns true if [map] is a service map. i.e. it has the following keys:

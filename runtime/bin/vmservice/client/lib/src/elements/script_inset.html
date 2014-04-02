@@ -18,15 +18,29 @@
     <div class="sourceInset">
       <content></content>
       <div class="grayBox">
-        <table>
-          <tbody>
-            <tr template repeat="{{ line in lines }}">
-              <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{line.line}}</td>
-              <td>&nbsp;</td>
-              <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: pre;">{{line.text}}</td>
-            </tr>
-          </tbody>
-        </table>
+        <template if="{{ coverage == true }}">
+          <table>
+            <tbody>
+              <tr template repeat="{{ line in lines }}">
+                <td style="{{ hitStyle(line) }}"><span>  </span></td>
+                <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{line.line}}</td>
+                <td>&nbsp;</td>
+                <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: pre;">{{line.text}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </template>
+        <template if="{{ coverage == false }}">
+          <table>
+            <tbody>
+              <tr template repeat="{{ line in lines }}">
+                <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{line.line}}</td>
+                <td>&nbsp;</td>
+                <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: pre;">{{line.text}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </template>
       </div>
     </div>
   </template>

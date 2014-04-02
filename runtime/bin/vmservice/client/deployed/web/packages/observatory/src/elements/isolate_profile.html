@@ -81,6 +81,7 @@
             <td on-click="{{toggleExpanded}}"
                 class="{{ coloring(row) }}"
                 style="{{ padding(row) }}">
+              <span id="expand" style="cursor: pointer;">{{ row.expander }}</span>
               <code-ref ref="{{ row.code }}"></code-ref>
             </td>
             <td class="{{ coloring(row) }}">{{row.columns[0]}}</td>

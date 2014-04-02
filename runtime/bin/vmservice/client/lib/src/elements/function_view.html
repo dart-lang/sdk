@@ -5,6 +5,7 @@
   <link rel="import" href="library_ref.html">
   <link rel="import" href="observatory_element.html">
   <link rel="import" href="nav_bar.html">
+  <link rel="import" href="script_inset.html">
   <link rel="import" href="script_ref.html">
 </head>
 <polymer-element name="function-view" extends="observatory-element">
@@ -128,6 +129,12 @@
          </template>
        </div>
     </div>
+
+    <hr>
+    <script-inset script="{{ function['script'] }}" pos="{{ function['tokenPos'] }}" endPos="{{ function['endTokenPos'] }}">
+    </script-inset>
+
+    <br>
   </template>
   <script type="application/dart" src="function_view.dart"></script>
 </polymer-element>

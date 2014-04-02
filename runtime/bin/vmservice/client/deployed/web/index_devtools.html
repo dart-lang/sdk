@@ -633,9 +633,14 @@
   
 </polymer-element>
 <polymer-element name="code-ref" extends="service-ref">
-<template>
-  <a href="{{ url }}">{{ name }}</a>
-</template>
+  <template>
+    <template if="{{ code.isDartCode }}">
+      <a href="{{ url }}">{{ name }}</a>
+    </template>
+    <template if="{{ !code.isDartCode }}">
+      <span>{{ name }}</span>
+    </template>
+  </template>
 
 </polymer-element><polymer-element name="code-view" extends="observatory-element">
   <template>
@@ -887,6 +892,51 @@
   </template>
   
 </polymer-element>
+<polymer-element name="script-inset" extends="observatory-element">
+  <template>
+    <style>
+      .sourceInset {
+        padding-left: 15%;
+        padding-right: 15%;
+      }
+      .grayBox {
+        width: 100%;
+        background-color: #f5f5f5;
+        border: 1px solid #ccc;
+        padding: 10px;
+     }
+    </style>
+    <div class="sourceInset">
+      <content></content>
+      <div class="grayBox">
+        <template if="{{ coverage == true }}">
+          <table>
+            <tbody>
+              <tr template="" repeat="{{ line in lines }}">
+                <td style="{{ hitStyle(line) }}"><span>  </span></td>
+                <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{line.line}}</td>
+                <td>&nbsp;</td>
+                <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: pre;">{{line.text}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </template>
+        <template if="{{ coverage == false }}">
+          <table>
+            <tbody>
+              <tr template="" repeat="{{ line in lines }}">
+                <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{line.line}}</td>
+                <td>&nbsp;</td>
+                <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: pre;">{{line.text}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </template>
+      </div>
+    </div>
+  </template>
+  
+</polymer-element>
 <polymer-element name="function-view" extends="observatory-element">
   <template>
     <style>
@@ -1007,6 +1057,12 @@
          </template>
        </div>
     </div>
+
+    <hr>
+    <script-inset script="{{ function['script'] }}" pos="{{ function['tokenPos'] }}" endpos="{{ function['endTokenPos'] }}">
+    </script-inset>
+
+    <br>
   </template>
   
 </polymer-element>
@@ -1033,37 +1089,6 @@
 </template>
 
 </polymer-element>
-<polymer-element name="script-inset" extends="observatory-element">
-  <template>
-    <style>
-      .sourceInset {
-        padding-left: 15%;
-        padding-right: 15%;
-      }
-      .grayBox {
-        width: 100%;
-        background-color: #f5f5f5;
-        border: 1px solid #ccc;
-        padding: 10px;
-     }
-    </style>
-    <div class="sourceInset">
-      <content></content>
-      <div class="grayBox">
-        <table>
-          <tbody>
-            <tr template="" repeat="{{ line in lines }}">
-              <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{line.line}}</td>
-              <td>&nbsp;</td>
-              <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: pre;">{{line.text}}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </template>
-  
-</polymer-element>
 <polymer-element name="isolate-summary" extends="observatory-element">
   <template>
     <div class="row">
@@ -1073,9 +1098,7 @@
 
       <div class="col-md-1">{{ isolate.mainPort }}</div>
 
-      <!-- TODO(turnidge): Use function-ref when it can take isolate param -->
       <div class="col-md-4">
-
         <div class="row">
           <isolate-ref ref="{{ isolate }}"></isolate-ref>
         </div>
@@ -1089,33 +1112,6 @@
         </div>
       </div>
 
-      <div class="col-md-2">
-        <div class="row">
-          <div class="col-md-5">{{ isolate.timers['total'] | formatTimePrecise }}</div>
-          <div class="col-md-1"></div>
-          <div class="col-md-3"><p class="text-muted">total</p></div>
-        </div>
-        <div class="row">
-          <div class="col-md-5">{{ isolate.timers['dart'] | formatTimePrecise }}</div>
-          <div class="col-md-1"></div>
-          <div class="col-md-3"><p class="text-muted">dart</p></div>
-        </div>
-        <div class="row">
-          <div class="col-md-5">{{ isolate.timers['compile'] | formatTimePrecise }}</div>
-          <div class="col-md-1"></div>
-          <div class="col-md-3"><p class="text-muted">compile</p></div>
-        </div>
-        <div class="row">
-          <div class="col-md-5">{{ isolate.timers['gc'] | formatTimePrecise }}</div>
-          <div class="col-md-1"></div>
-          <div class="col-md-3"><p class="text-muted">gc</p></div>
-        </div>
-        <div class="row">
-          <div class="col-md-5">{{ isolate.timers['init'] | formatTimePrecise }}</div>
-          <div class="col-md-1"></div>
-          <div class="col-md-3"><p class="text-muted">init</p></div>
-        </div>
-      </div>
       <div class="col-md-2">
         <a href="{{ isolate.relativeHashLink('allocationprofile') }}">
           {{ isolate.newHeapUsed | formatSize }}/{{ isolate.oldHeapUsed | formatSize }}
@@ -1132,6 +1128,13 @@
         ( <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a> )
       </div>
     </div>
+
+    <div class="content">
+      <template repeat="{{ key in isolate.counters.keys }}">
+        <div class="memberValue">{{ key }} ({{ isolate.counters[key] }})</div>
+      </template>
+    </div>
+
     <template if="{{ isolate.topFrame != null }}">
       <script-inset script="{{ isolate.topFrame['script'] }}" pos="{{ isolate.topFrame['tokenPos'] }}">
         <function-ref ref="{{ isolate.topFrame['function'] }}"></function-ref>
@@ -1166,6 +1169,9 @@
       .sourceInset {
         padding-left: 15%;
         padding-right: 15%;
+      }
+      .miniProfileChart {
+        width: 80%;
       }
     </style>
 
@@ -1334,7 +1340,14 @@
     <hr>
 
     <div class="content">
-      <div id="tagProfileChart" class="col-md-8" style="height: 400px"></div>
+      <div class="memberValue">Isolate execution</div>
+      <template repeat="{{ key in isolate.counters.keys }}">
+        <div class="memberValue">{{ key }} ({{ isolate.counters[key] }})</div>
+      </template>
+    </div>
+
+    <div class="content">
+      <div id="tagProfileChart" class="miniProfileChart" style="height: 600px"></div>
     </div>
 
     <hr>
@@ -1507,31 +1520,10 @@
 </polymer-element>
 <polymer-element name="json-view" extends="observatory-element">
   <template>
-    <template bind="" if="{{ valueType == 'Primitive' }}">
-      <span>{{primitiveString}}</span>
-    </template>
-    <template bind="" if="{{ valueType == 'List' }}">
-      <table class="table table-condensed table-bordered">
-        <caption class="text-left">List, {{list.length}}</caption>
-        <tbody>
-          <tr template="" repeat="{{item in list)}}">
-            <th>{{counter}}</th>
-            <td><json-view json="{{item}}"></json-view></td>
-          </tr>
-        </tbody>
-      </table>
-    </template>
-    <template if="{{ valueType == 'Map' }}">
-      <table class="table table-condensed table-bordered">
-        <caption class="text-left">Map, {{keys.length}}</caption>
-        <tbody>
-          <tr template="" repeat="{{key in keys}}">
-            <th>{{key}}</th>
-            <td><json-view json="{{value(key)}}"></json-view></td>
-          </tr>
-        </tbody>
-      </table>
-    </template>
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+    </nav-bar>
+      <pre>{{ mapAsString }}</pre>
   </template>
   
 </polymer-element>
@@ -1833,6 +1825,7 @@
         <tbody>
           <tr template="" repeat="{{row in tree.rows }}" style="{{}}">
             <td on-click="{{toggleExpanded}}" class="{{ coloring(row) }}" style="{{ padding(row) }}">
+              <span id="expand" style="cursor: pointer;">{{ row.expander }}</span>
               <code-ref ref="{{ row.code }}"></code-ref>
             </td>
             <td class="{{ coloring(row) }}">{{row.columns[0]}}</td>
@@ -1929,22 +1922,9 @@
     </nav-refresh>
   </nav-bar>
 
-  <div class="row">
-    <div class="col-md-8 col-md-offset-2">
-      <div class="panel-heading">Script source for: {{ script.name }}</div>
-      <div class="panel-body">
-        <table style="width:100%">
-          <tbody>
-          <tr template="" repeat="{{ line in script.lines }}">
-            <td style="{{ hitsStyle(line) }}">  </td>
-            <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{line.line}}</td>
-            <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: pre;">{{line.text}}</td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+  <script-inset id="scriptInset" script="{{ script }}" pos="{{ script.firstTokenPos }}" endpos="{{ script.lastTokenPos }}">
+  <h1>script {{ script.name }}</h1>
+  </script-inset>
 </template>
 
 </polymer-element>

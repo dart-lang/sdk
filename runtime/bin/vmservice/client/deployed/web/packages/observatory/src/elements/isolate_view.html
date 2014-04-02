@@ -34,6 +34,9 @@
         padding-left: 15%;
         padding-right: 15%;
       }
+      .miniProfileChart {
+        width: 80%;
+      }
     </style>
 
     <nav-bar>
@@ -203,7 +206,14 @@
     <hr>
 
     <div class="content">
-      <div id="tagProfileChart" class="col-md-8" style="height: 400px"></div>
+      <div class="memberValue">Isolate execution</div>
+      <template repeat="{{ key in isolate.counters.keys }}">
+        <div class="memberValue">{{ key }} ({{ isolate.counters[key] }})</div>
+      </template>
+    </div>
+
+    <div class="content">
+      <div id="tagProfileChart" class="miniProfileChart" style="height: 600px"></div>
     </div>
 
     <hr>

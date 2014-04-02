@@ -9,6 +9,11 @@ abstract class TableTreeRow extends Observable {
   @observable final int depth;
   @observable final List<TableTreeRow> children = new List<TableTreeRow>();
   @observable final List<String> columns = [];
+  static const arrowRight = '\u2192';
+  static const arrowDownRight = '\u21b3';
+  // TODO(johnmccutchan): Move expander display decisions into html once
+  // tables and templates are better supported.
+  @observable String expander = arrowRight;
 
   TableTreeRow(TableTreeRow parent) :
       parent = parent,
@@ -22,8 +27,10 @@ abstract class TableTreeRow extends Observable {
     if (changed) {
       // If the state has changed, fire callbacks.
       if (_expanded) {
+        expander = arrowDownRight;
         onShow();
       } else {
+        expander = arrowRight;
         onHide();
       }
     }

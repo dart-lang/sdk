@@ -926,7 +926,10 @@ void Isolate::PrintToJSONStream(JSONStream* stream, bool ref) {
   jsobj.AddProperty("rootLib", lib);
 
   timer_list().PrintTimersToJSONProperty(&jsobj);
-
+  {
+    JSONObject tagCounters(&jsobj, "tagCounters");
+    vm_tag_counters()->PrintToJSONObject(&tagCounters);
+  }
   if (object_store()->sticky_error() != Object::null()) {
     Error& error = Error::Handle(this, object_store()->sticky_error());
     ASSERT(!error.IsNull());
