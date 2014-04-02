@@ -290,20 +290,15 @@ class BuildEnvironment {
   ///
   /// If no server can serve [url], completes to `null`.
   Future<AssetId> getAssetIdForUrl(Uri url) {
-    var iterator = _directories.values.toList().iterator;
-    iterate() {
-      if (!iterator.moveNext()) return null;
-
-      return iterator.current.server.then((server) {
-        if (server.address.host == url.host && server.port == url.port) {
-          return server.urlToId(url);
-        } else {
-          return iterate();
-        }
-      });
-    }
-
-    return syncFuture(iterate);
+    return Future.wait(_directories.values.map((dir) => dir.server))
+        .then((servers) {
+      var server = servers.firstWhere(
+          (server) => server.address.host == url.host &&
+              server.port == url.port,
+          orElse: () => null);
+      if (server == null) return null;
+      return server.urlToId(url);
+    });
   }
 
   /// Determines if [sourcePath] is contained within any of the directories in
