@@ -221,6 +221,10 @@ class PageSpace {
     return page_space_controller_.is_enabled();
   }
 
+  bool NeedExternalGC() {
+    return used_in_words_ + ExternalInWords() > max_capacity_in_words_;
+  }
+
   void WriteProtect(bool read_only);
 
   void AddGCTime(int64_t micros) {

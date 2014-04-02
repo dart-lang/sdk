@@ -214,7 +214,7 @@ void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
       new_space_->Scavenge(invoke_api_callbacks);
       RecordAfterGC();
       PrintStats();
-      if (new_space_->HadPromotionFailure()) {
+      if (new_space_->HadPromotionFailure() || old_space_->NeedExternalGC()) {
         // Old collections should call the API callbacks.
         CollectGarbage(kOld, kInvokeApiCallbacks);
       }
