@@ -7,3 +7,5 @@
   positional.
 
 * Make request headers case-insensitive.
+
+* Make `MultipartRequest` more closely adhere to browsers' encoding conventions.

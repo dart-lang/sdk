@@ -93,7 +93,33 @@ void main() {
 
     expect(request, bodyMatches('''
         --{{boundary}}
-        content-disposition: form-data; name="f%C3%AF%C4%93ld"
+        content-disposition: form-data; name="fïēld"
+
+        value
+        --{{boundary}}--
+        '''));
+  });
+
+  test('with a field name with newlines', () {
+    var request = new http.MultipartRequest('POST', dummyUrl);
+    request.fields['foo\nbar\rbaz\r\nbang'] = 'value';
+
+    expect(request, bodyMatches('''
+        --{{boundary}}
+        content-disposition: form-data; name="foo%0D%0Abar%0D%0Abaz%0D%0Abang"
+
+        value
+        --{{boundary}}--
+        '''));
+  });
+
+  test('with a field name with a quote', () {
+    var request = new http.MultipartRequest('POST', dummyUrl);
+    request.fields['foo"bar'] = 'value';
+
+    expect(request, bodyMatches('''
+        --{{boundary}}
+        content-disposition: form-data; name="foo%22bar"
 
         value
         --{{boundary}}--
@@ -122,7 +148,37 @@ void main() {
     expect(request, bodyMatches('''
         --{{boundary}}
         content-type: text/plain; charset=utf-8
-        content-disposition: form-data; name="file"; filename="f%C3%AFl%C4%93name.txt"
+        content-disposition: form-data; name="file"; filename="fïlēname.txt"
+
+        contents
+        --{{boundary}}--
+        '''));
+  });
+
+  test('with a filename with newlines', () {
+    var request = new http.MultipartRequest('POST', dummyUrl);
+    request.files.add(new http.MultipartFile.fromString('file', 'contents',
+        filename: 'foo\nbar\rbaz\r\nbang'));
+
+    expect(request, bodyMatches('''
+        --{{boundary}}
+        content-type: text/plain; charset=utf-8
+        content-disposition: form-data; name="file"; filename="foo%0D%0Abar%0D%0Abaz%0D%0Abang"
+
+        contents
+        --{{boundary}}--
+        '''));
+  });
+
+  test('with a filename with a quote', () {
+    var request = new http.MultipartRequest('POST', dummyUrl);
+    request.files.add(new http.MultipartFile.fromString('file', 'contents',
+        filename: 'foo"bar'));
+
+    expect(request, bodyMatches('''
+        --{{boundary}}
+        content-type: text/plain; charset=utf-8
+        content-disposition: form-data; name="file"; filename="foo%22bar"
 
         contents
         --{{boundary}}--

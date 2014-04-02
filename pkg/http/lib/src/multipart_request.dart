@@ -13,6 +13,8 @@ import 'byte_stream.dart';
 import 'multipart_file.dart';
 import 'utils.dart';
 
+final _newlineRegExp = new RegExp(r"\r\n|\r|\n");
+
 /// A `multipart/form-data` request. Such a request has both string [fields],
 /// which function as normal form fields, and (potentially streamed) binary
 /// [files].
@@ -61,13 +63,13 @@ class MultipartRequest extends BaseRequest {
 
     fields.forEach((name, value) {
       length += "--".length + _BOUNDARY_LENGTH + "\r\n".length +
-          _headerForField(name, value).length +
+          UTF8.encode(_headerForField(name, value)).length +
           UTF8.encode(value).length + "\r\n".length;
     });
 
     for (var file in _files) {
       length += "--".length + _BOUNDARY_LENGTH + "\r\n".length +
-          _headerForFile(file).length +
+          UTF8.encode(_headerForFile(file)).length +
           file.length + "\r\n".length;
     }
 
@@ -91,8 +93,7 @@ class MultipartRequest extends BaseRequest {
     var controller = new StreamController<List<int>>(sync: true);
 
     void writeAscii(String string) {
-      assert(isPlainAscii(string));
-      controller.add(string.codeUnits);
+      controller.add(UTF8.encode(string));
     }
 
     writeUtf8(String string) => controller.add(UTF8.encode(string));
@@ -133,11 +134,8 @@ class MultipartRequest extends BaseRequest {
   /// Returns the header string for a field. The return value is guaranteed to
   /// contain only ASCII characters.
   String _headerForField(String name, String value) {
-    // http://tools.ietf.org/html/rfc2388 mandates some complex encodings for
-    // field names and file names, but in practice user agents seem to just
-    // URL-encode them so we do the same.
     var header =
-        'content-disposition: form-data; name="${Uri.encodeFull(name)}"';
+        'content-disposition: form-data; name="${_browserEncode(name)}"';
     if (!isPlainAscii(value)) {
       header = '$header\r\ncontent-type: text/plain; charset=utf-8';
     }
@@ -148,12 +146,22 @@ class MultipartRequest extends BaseRequest {
   /// contain only ASCII characters.
   String _headerForFile(MultipartFile file) {
     var header = 'content-type: ${file.contentType}\r\n'
-      'content-disposition: form-data; name="${Uri.encodeFull(file.field)}"';
+      'content-disposition: form-data; name="${_browserEncode(file.field)}"';
 
     if (file.filename != null) {
-      header = '$header; filename="${Uri.encodeFull(file.filename)}"';
+      header = '$header; filename="${_browserEncode(file.filename)}"';
     }
     return '$header\r\n\r\n';
+  }
+
+  /// Encode [value] in the same way browsers do.
+  String _browserEncode(String value) {
+    // http://tools.ietf.org/html/rfc2388 mandates some complex encodings for
+    // field names and file names, but in practice user agents seem not to
+    // follow this at all. Instead, they URL-encode `\r`, `\n`, and `\r\n` as
+    // `\r\n`; URL-encode `"`; and do nothing else (even for `%` or non-ASCII
+    // characters). We follow their behavior.
+    return value.replaceAll(_newlineRegExp, "%0D%0A").replaceAll('"', "%22");
   }
 
   /// Returns a randomly-generated multipart boundary string
