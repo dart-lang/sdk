@@ -113,13 +113,15 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
     } on FormatException catch (ex) {
       // If we got here, we had a path like "/packages" which is a special
       // directory, but not a valid path since it lacks a following package name.
-      notFound(request, ex.message);
+      notFound(request, error: ex.message);
       return;
     }
 
     // See if the asset should be blocked.
     if (allowAsset != null && !allowAsset(id)) {
-      notFound(request, "Asset $id is not available in this configuration.");
+      notFound(request,
+          error: "Asset $id is not available in this configuration.",
+          asset: id);
       return;
     }
 
@@ -156,7 +158,7 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
       }
 
       addResult(new BarbackServerResult._failure(request.uri, id, error));
-      notFound(request, error);
+      notFound(request, asset: id);
     });
   }
 
@@ -200,7 +202,7 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
       if (error is FileSystemException) {
         // Assume this means the asset was a file-backed source asset
         // and we couldn't read it, so treat it like a missing asset.
-        notFound(request, error);
+        notFound(request, error: error.toString(), asset: asset.id);
         return;
       }
 

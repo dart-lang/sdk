@@ -5,8 +5,10 @@
 library pub.barback.base_server;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:barback/barback.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import '../log.dart' as log;
@@ -65,17 +67,41 @@ abstract class BaseServer<T> {
   }
 
   /// Responds to [request] with a 404 response and closes it.
-  void notFound(HttpRequest request, message) {
-    logRequest(request, "404 Not Found");
+  ///
+  /// If [asset] is given, it is the ID of the asset that couldn't be found.
+  void notFound(HttpRequest request, {String error, AssetId asset}) {
+    logRequest(request, "Not Found");
 
     // Force a UTF-8 encoding so that error messages in non-English locales are
     // sent correctly.
     request.response.headers.contentType =
-        ContentType.parse("text/plain; charset=utf-8");
-
+        ContentType.parse("text/html; charset=utf-8");
     request.response.statusCode = 404;
     request.response.reasonPhrase = "Not Found";
-    request.response.write(message);
+
+    // TODO(rnystrom): Apply some styling to make it visually clear that this
+    // error is coming from pub serve itself.
+    request.response.writeln("""
+        <!DOCTYPE html>
+        <head>
+        <title>404 Not Found</title>
+        </head>
+        <body>
+        <h1>404 Not Found</h1>""");
+
+    if (asset != null) {
+      request.response.writeln("<p>Could not find asset "
+          "<code>${HTML_ESCAPE.convert(asset.path)}</code> in package "
+          "<code>${HTML_ESCAPE.convert(asset.package)}</code>.</p>");
+    }
+
+    if (error != null) {
+      request.response.writeln("<p>Error: ${HTML_ESCAPE.convert(error)}</p>");
+    }
+
+    request.response.writeln("""
+        </body>""");
+
     request.response.close();
   }
 

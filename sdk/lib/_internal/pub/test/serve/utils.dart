@@ -204,18 +204,26 @@ void endPubServe() {
 }
 
 /// Schedules an HTTP request to the running pub server with [urlPath] and
+/// invokes [callback] with the response.
+///
+/// [root] indicates which server should be accessed, and defaults to "web".
+Future<http.Response> scheduleRequest(String urlPath, {String root}) {
+  return schedule(() {
+    return http.get(_getServerUrlSync(root, urlPath));
+  }, "request $urlPath");
+}
+
+/// Schedules an HTTP request to the running pub server with [urlPath] and
 /// verifies that it responds with a body that matches [expectation].
 ///
 /// [expectation] may either be a [Matcher] or a string to match an exact body.
 /// [root] indicates which server should be accessed, and defaults to "web".
 /// [headers] may be either a [Matcher] or a map to match an exact headers map.
 void requestShouldSucceed(String urlPath, expectation, {String root, headers}) {
-  schedule(() {
-    return http.get(_getServerUrlSync(root, urlPath)).then((response) {
-      if (expectation != null) expect(response.body, expectation);
-      if (headers != null) expect(response.headers, headers);
-    });
-  }, "request $urlPath");
+  scheduleRequest(urlPath, root: root).then((response) {
+    if (expectation != null) expect(response.body, expectation);
+    if (headers != null) expect(response.headers, headers);
+  });
 }
 
 /// Schedules an HTTP request to the running pub server with [urlPath] and
@@ -223,11 +231,9 @@ void requestShouldSucceed(String urlPath, expectation, {String root, headers}) {
 ///
 /// [root] indicates which server should be accessed, and defaults to "web".
 void requestShould404(String urlPath, {String root}) {
-  schedule(() {
-    return http.get(_getServerUrlSync(root, urlPath)).then((response) {
-      expect(response.statusCode, equals(404));
-    });
-  }, "request $urlPath");
+  scheduleRequest(urlPath, root: root).then((response) {
+    expect(response.statusCode, equals(404));
+  });
 }
 
 /// Schedules an HTTP request to the running pub server with [urlPath] and
@@ -243,7 +249,6 @@ void requestShouldRedirect(String urlPath, redirectTarget, {String root}) {
     request.followRedirects = false;
     return request.send().then((response) {
       expect(response.statusCode ~/ 100, equals(3));
-
       expect(response.headers, containsPair('location', redirectTarget));
     });
   }, "request $urlPath");
