@@ -12,6 +12,7 @@ import 'package:path/path.dart' as path;
 
 import 'command/build.dart';
 import 'command/cache.dart';
+import 'command/deps.dart';
 import 'command/get.dart';
 import 'command/help.dart';
 import 'command/lish.dart';
@@ -22,7 +23,6 @@ import 'command/uploader.dart';
 import 'command/version.dart';
 import 'entrypoint.dart';
 import 'exit_codes.dart' as exit_codes;
-import 'io.dart';
 import 'log.dart' as log;
 import 'system_cache.dart';
 import 'utils.dart';
@@ -243,6 +243,7 @@ _initCommands() {
     'cache': new CacheCommand(),
     'get': new GetCommand(),
     'help': new HelpCommand(),
+    'deps': new DepsCommand(),
     'list-package-dirs': new ListPackageDirsCommand(),
     'publish': new LishCommand(),
     'serve': new ServeCommand(),

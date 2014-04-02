@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// A simple library for rendering a list of files as a directory tree.
-library pub.directory_tree;
+/// A simple library for rendering tree-like structures in ASCII.
+library pub.ascii_tree;
 
 import 'package:path/path.dart' as path;
 
+import 'log.dart' as log;
 import 'utils.dart';
 
-/// Draws a directory tree for the given list of files. Given a list of files
-/// like:
+/// Draws a tree for the given list of files. Given files like:
 ///
 ///     TODO
 ///     example/console_example.dart
@@ -34,7 +34,7 @@ import 'utils.dart';
 ///     test/path_posix_test.dart
 ///     test/path_windows_test.dart
 ///
-/// this will render:
+/// this renders:
 ///
 ///     |-- .gitignore
 ///     |-- README.md
@@ -57,7 +57,10 @@ import 'utils.dart';
 ///         '-- split_test.dart
 ///
 /// If [baseDir] is passed, it will be used as the root of the tree.
-String generateTree(List<String> files, {String baseDir}) {
+///
+/// If [showAllChildren] is `false`, then directories with more than ten items
+/// will have their contents truncated. Defaults to `false`.
+String fromFiles(List<String> files, {String baseDir, bool showAllChildren}) {
   // Parse out the files into a tree of nested maps.
   var root = {};
   for (var file in files) {
@@ -70,8 +73,36 @@ String generateTree(List<String> files, {String baseDir}) {
   }
 
   // Walk the map recursively and render to a string.
+  return fromMap(root, showAllChildren: showAllChildren);
+}
+
+/// Draws a tree from a nested map. Given a map like:
+///
+///     {
+///       "analyzer": {
+///         "args": {
+///           "collection": ""
+///         },
+///         "logging": {}
+///       },
+///       "barback": {}
+///     }
+///
+/// this renders:
+///
+///     analyzer
+///     |-- args
+///     |   '-- collection
+///     '---logging
+///     barback
+///
+/// Items with no children should have an empty map as the value.
+///
+/// If [showAllChildren] is `false`, then directories with more than ten items
+/// will have their contents truncated. Defaults to `false`.
+String fromMap(Map map, {bool showAllChildren}) {
   var buffer = new StringBuffer();
-  _draw(buffer, '', false, null, root);
+  _draw(buffer, "", null, map, showAllChildren: showAllChildren);
   return buffer.toString();
 }
 
@@ -81,9 +112,9 @@ void _drawLine(StringBuffer buffer, String prefix, bool isLastChild,
   buffer.write(prefix);
   if (name != null) {
     if (isLastChild) {
-      buffer.write("'-- ");
+      buffer.write(log.gray("'-- "));
     } else {
-      buffer.write("|-- ");
+      buffer.write(log.gray("|-- "));
     }
   }
 
@@ -94,41 +125,44 @@ void _drawLine(StringBuffer buffer, String prefix, bool isLastChild,
 String _getPrefix(bool isRoot, bool isLast) {
   if (isRoot) return "";
   if (isLast) return "    ";
-  return "|   ";
+  return log.gray("|   ");
 }
 
-void _draw(StringBuffer buffer, String prefix, bool isLast,
-                 String name, Map children) {
+void _draw(StringBuffer buffer, String prefix, String name, Map children,
+           {bool showAllChildren, bool isLast: false}) {
+  if (showAllChildren == null) showAllChildren = false;
+
   // Don't draw a line for the root node.
   if (name != null) _drawLine(buffer, prefix, isLast, name);
 
   // Recurse to the children.
   var childNames = ordered(children.keys);
 
-  _drawChild(bool isLastChild, String child) {
+  drawChild(bool isLastChild, String child) {
     var childPrefix = _getPrefix(name == null, isLast);
-    _draw(buffer, '$prefix$childPrefix', isLastChild, child, children[child]);
+    _draw(buffer, '$prefix$childPrefix', child, children[child],
+        showAllChildren: showAllChildren, isLast: isLastChild);
   }
 
-  if (name == null || childNames.length <= 10) {
+  if (name == null || showAllChildren || childNames.length <= 10) {
     // Not too many, so show all the children.
     for (var i = 0; i < childNames.length; i++) {
-      _drawChild(i == childNames.length - 1, childNames[i]);
+      drawChild(i == childNames.length - 1, childNames[i]);
     }
   } else {
     // Show the first few.
-    _drawChild(false, childNames[0]);
-    _drawChild(false, childNames[1]);
-    _drawChild(false, childNames[2]);
+    drawChild(false, childNames[0]);
+    drawChild(false, childNames[1]);
+    drawChild(false, childNames[2]);
 
     // Elide the middle ones.
     buffer.write(prefix);
     buffer.write(_getPrefix(name == null, isLast));
-    buffer.writeln('| (${childNames.length - 6} more...)');
+    buffer.writeln(log.gray('| (${childNames.length - 6} more...)'));
 
     // Show the last few.
-    _drawChild(false, childNames[childNames.length - 3]);
-    _drawChild(false, childNames[childNames.length - 2]);
-    _drawChild(true, childNames[childNames.length - 1]);
+    drawChild(false, childNames[childNames.length - 3]);
+    drawChild(false, childNames[childNames.length - 2]);
+    drawChild(true, childNames[childNames.length - 1]);
   }
 }

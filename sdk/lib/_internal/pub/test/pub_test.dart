@@ -30,6 +30,7 @@ final USAGE_STRING = """
     Available commands:
       build      Apply transformers to build a package.
       cache      Work with the system cache.
+      deps       Print package dependencies.
       get        Get the current package's dependencies.
       help       Display help information for Pub.
       publish    Publish the current package to pub.dartlang.org.
@@ -109,6 +110,7 @@ main() {
         Available commands:
           build      Apply transformers to build a package.
           cache      Work with the system cache.
+          deps       Print package dependencies.
           get        Get the current package's dependencies.
           help       Display help information for Pub.
           publish    Publish the current package to pub.dartlang.org.
@@ -254,6 +256,7 @@ main() {
             Available commands:
               build      Apply transformers to build a package.
               cache      Work with the system cache.
+              deps       Print package dependencies.
               get        Get the current package's dependencies.
               help       Display help information for Pub.
               publish    Publish the current package to pub.dartlang.org.

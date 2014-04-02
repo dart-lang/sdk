@@ -687,9 +687,9 @@ String prefixLines(String text, {String prefix: '| ', String firstPrefix}) {
   return lines.join('\n');
 }
 
-/// Whether pub is running as a subprocess in an integration test.
-bool get runningAsTest =>
-  Platform.environment.containsKey('_PUB_TESTING');
+/// Whether pub is running as a subprocess in an integration test or in a unit
+/// test that has explicitly set this.
+bool runningAsTest = Platform.environment.containsKey('_PUB_TESTING');
 
 /// Wraps [fn] to guard against several different kinds of stack overflow
 /// exceptions:
