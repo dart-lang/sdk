@@ -1201,6 +1201,7 @@ checkString(value) {
  * The code in [unwrapException] deals with getting the original Dart
  * object out of the wrapper again.
  */
+@NoInline()
 wrapException(ex) {
   if (ex == null) ex = new NullThrownError();
   var wrapper = JS('', 'new Error()');

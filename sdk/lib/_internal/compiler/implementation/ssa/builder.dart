@@ -924,9 +924,10 @@ class SsaBuilder extends ResolvedVisitor {
   bool isReachable = true;
 
   /**
-   * True if we are visiting the expression of a throw statement.
+   * True if we are visiting the expression of a throw statement; we assume this
+   * is a slow path.
    */
-  bool inThrowExpression = false;
+  bool inExpressionOfThrow = false;
 
   /**
    * The loop nesting is consulted when inlining a function invocation in
@@ -1225,11 +1226,11 @@ class SsaBuilder extends ResolvedVisitor {
         return false;
       }
 
+      if (inExpressionOfThrow) return false;
+
       if (element.isSynthesized) return true;
 
       if (cachedCanBeInlined == true) return cachedCanBeInlined;
-
-      if (inThrowExpression) return false;
 
       int numParameters = function.functionSignature.parameterCount;
       int maxInliningNodes;
@@ -2299,12 +2300,12 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   visitThrowExpression(ast.Expression expression) {
-    bool old = inThrowExpression;
+    bool old = inExpressionOfThrow;
     try {
-      inThrowExpression = true;
+      inExpressionOfThrow = true;
       visit(expression);
     } finally {
-      inThrowExpression = old;
+      inExpressionOfThrow = old;
     }
   }
 
