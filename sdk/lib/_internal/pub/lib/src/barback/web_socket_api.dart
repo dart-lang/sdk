@@ -167,25 +167,26 @@ class WebSocketApi {
   /// If the asset is not in a directory being served by pub, returns an error:
   ///
   ///     example/index.html  -> NOT_SERVED error
-  Map _pathToUrls(json_rpc.Parameters params) {
+  Future<Map> _pathToUrls(json_rpc.Parameters params) {
     var assetPath = params["path"].asString;
     var line = params["line"].asIntOr(null);
 
-    var urls = _environment.getUrlsForAssetPath(assetPath);
-    if (urls.isEmpty) {
-      throw new json_rpc.RpcException(_NOT_SERVED,
-          'Asset path "$assetPath" is not currently being served.');
-    }
+    return _environment.getUrlsForAssetPath(assetPath).then((urls) {
+      if (urls.isEmpty) {
+        throw new json_rpc.RpcException(_NOT_SERVED,
+            'Asset path "$assetPath" is not currently being served.');
+      }
 
-    var result = {"urls": urls.map((url) => url.toString()).toList()};
+      var result = {"urls": urls.map((url) => url.toString()).toList()};
 
-    // Map the line.
-    // TODO(rnystrom): Right now, source maps are not supported and it just
-    // passes through the original line. This lets the editor start using
-    // this API before we've fully implemented it. See #12339 and #16061.
-    if (line != null) result["line"] = line;
+      // Map the line.
+      // TODO(rnystrom): Right now, source maps are not supported and it just
+      // passes through the original line. This lets the editor start using
+      // this API before we've fully implemented it. See #12339 and #16061.
+      if (line != null) result["line"] = line;
 
-    return result;
+      return result;
+    });
   }
 
   /// Given a relative directory path within the entrypoint package, binds a

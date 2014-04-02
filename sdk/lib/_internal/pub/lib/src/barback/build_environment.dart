@@ -163,28 +163,31 @@ class BuildEnvironment {
     // See if there is already a server bound to the directory.
     var directory = _directories[rootDirectory];
     if (directory != null) {
-      log.fine('Already serving $rootDirectory on ${directory.server.url}.');
-      return new Future.value(directory.server);
+      return directory.server.then((server) {
+        log.fine('Already serving $rootDirectory on ${server.url}.');
+        return server;
+      });
     }
 
     var port = _basePort;
 
     // If not using an ephemeral port, find the lowest-numbered available one.
     if (port != 0) {
-      var boundPorts = _directories.values
-          .map((directory) => directory.server.port).toSet();
+      var boundPorts = _directories.values.map((directory) => directory.port)
+          .toSet();
       while (boundPorts.contains(port)) {
         port++;
       }
     }
 
-    var buildDirectory = new BuildDirectory(this, rootDirectory);
+    var buildDirectory = new BuildDirectory(
+        this, rootDirectory, _hostname, port);
     _directories[rootDirectory] = buildDirectory;
 
     return _provideDirectorySources(rootPackage, rootDirectory)
         .then((subscription) {
       buildDirectory.watchSubscription = subscription;
-      return buildDirectory.serve(_hostname, port);
+      return buildDirectory.serve();
     });
   }
 
@@ -198,12 +201,14 @@ class BuildEnvironment {
     var directory = _directories.remove(rootDirectory);
     if (directory == null) return new Future.value();
 
-    var url = directory.server.url;
-    return directory.close().then((_) {
-      // Remove the sources from barback, unless some other build directory
-      // includes them.
-      return _removeDirectorySources(rootDirectory);
-    }).then((_) => url);
+    return directory.server.then((server) {
+      var url = server.url;
+      return directory.close().then((_) {
+        // Remove the sources from barback, unless some other build directory
+        // includes them.
+        return _removeDirectorySources(rootDirectory);
+      }).then((_) => url);
+    });
   }
 
   /// Gets the build directory that contains [assetPath] within the entrypoint
@@ -217,39 +222,45 @@ class BuildEnvironment {
           .directory;
 
   /// Return all URLs serving [assetPath] in this environment.
-  List<Uri> getUrlsForAssetPath(String assetPath) {
+  Future<List<Uri>> getUrlsForAssetPath(String assetPath) {
     // Check the three (mutually-exclusive) places the path could be pointing.
-    var urls = _lookUpPathInServerRoot(assetPath);
-    if (urls.isEmpty) urls = _lookUpPathInPackagesDirectory(assetPath);
-    if (urls.isEmpty) urls = _lookUpPathInDependency(assetPath);
-    return urls.toList();
+    return _lookUpPathInServerRoot(assetPath).then((urls) {
+      if (urls.isNotEmpty) return urls;
+      return _lookUpPathInPackagesDirectory(assetPath);
+    }).then((urls) {
+      if (urls.isNotEmpty) return urls;
+      return _lookUpPathInDependency(assetPath);
+    });
   }
 
   /// Look up [assetPath] in the root directories of servers running in the
   /// entrypoint package.
-  Iterable<Uri> _lookUpPathInServerRoot(String assetPath) {
+  Future<List<Uri>> _lookUpPathInServerRoot(String assetPath) {
     // Find all of the servers whose root directories contain the asset and
     // generate appropriate URLs for each.
-    return _directories.values
+    return Future.wait(_directories.values
         .where((dir) => path.isWithin(dir.directory, assetPath))
         .map((dir) {
       var relativePath = path.relative(assetPath, from: dir.directory);
-      return dir.server.url.resolveUri(path.toUri(relativePath));
-    });
+      return dir.server.then((server) =>
+          server.url.resolveUri(path.toUri(relativePath)));
+    }));
   }
 
   /// Look up [assetPath] in the "packages" directory in the entrypoint package.
-  Iterable<Uri> _lookUpPathInPackagesDirectory(String assetPath) {
+  Future<List<Uri>> _lookUpPathInPackagesDirectory(String assetPath) {
     var components = path.split(path.relative(assetPath));
     if (components.first != "packages") return [];
     if (!graph.packages.containsKey(components[1])) return [];
-    return _directories.values.map((dir) =>
-        dir.server.url.resolveUri(path.toUri(assetPath)));
+    return Future.wait(_directories.values.map((dir) {
+      return dir.server.then((server) =>
+          server.url.resolveUri(path.toUri(assetPath)));
+    }));
   }
 
   /// Look up [assetPath] in the "lib" or "asset" directory of a dependency
   /// package.
-  Iterable<Uri> _lookUpPathInDependency(String assetPath) {
+  Future<List<Uri>> _lookUpPathInDependency(String assetPath) {
     for (var package in graph.packages.values) {
       var libDir = path.join(package.dir, 'lib');
       var assetDir = path.join(package.dir, 'asset');
@@ -265,7 +276,9 @@ class BuildEnvironment {
         continue;
       }
 
-      return _directories.values.map((dir) => dir.server.url.resolveUri(uri));
+      return Future.wait(_directories.values.map((dir) {
+        return dir.server.then((server) => server.url.resolveUri(uri));
+      }));
     }
 
     return [];

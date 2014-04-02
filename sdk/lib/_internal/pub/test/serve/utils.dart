@@ -293,8 +293,33 @@ Future _ensureWebSocket() {
   return WebSocket.connect("ws://127.0.0.1:$_adminPort").then((socket) {
     _webSocket = socket;
     // TODO(rnystrom): Works around #13913.
-    _webSocketBroadcastStream = _webSocket.asBroadcastStream();
+    _webSocketBroadcastStream = _webSocket.map(JSON.decode).asBroadcastStream();
   });
+}
+
+/// Sends a JSON RPC 2.0 request to the running pub serve's web socket
+/// connection.
+///
+/// This calls a method named [method] with the given [params]. [params] may
+/// contain Futures, in which case this will wait until they've completed before
+/// sending the request.
+///
+/// This schedules the request, but doesn't block the schedule on the response.
+/// It returns the response as a [Future].
+Future<Map> webSocketRequest(String method, Map params) {
+  var completer = new Completer();
+  schedule(() {
+    return Future.wait([
+      _ensureWebSocket(),
+      awaitObject(params),
+    ]).then((results) {
+      var resolvedParams = results[1];
+      chainToCompleter(
+          currentSchedule.wrapFuture(_jsonRpcRequest(method, resolvedParams)),
+          completer);
+    });
+  }, "send $method with $params to web socket");
+  return completer.future;
 }
 
 /// Sends a JSON RPC 2.0 request to the running pub serve's web socket
@@ -312,17 +337,13 @@ Future _ensureWebSocket() {
 Future<Map> expectWebSocketResult(String method, Map params, result) {
   return schedule(() {
     return Future.wait([
-      _ensureWebSocket(),
-      awaitObject(params),
+      webSocketRequest(method, params),
       awaitObject(result)
     ]).then((results) {
-      var resolvedParams = results[1];
-      var resolvedResult = results[2];
-
-      return _jsonRpcRequest(method, resolvedParams).then((response) {
-        expect(response["result"], resolvedResult);
-        return response["result"];
-      });
+      var response = results[0];
+      var resolvedResult = results[1];
+      expect(response["result"], resolvedResult);
+      return response["result"];
     });
   }, "send $method with $params to web socket and expect $result");
 }
@@ -343,16 +364,9 @@ Future<Map> expectWebSocketResult(String method, Map params, result) {
 Future expectWebSocketError(String method, Map params, errorCode,
     errorMessage) {
   return schedule(() {
-    return Future.wait([
-      _ensureWebSocket(),
-      awaitObject(params)
-    ]).then((results) {
-      var resolvedParams = results[1];
-      return _jsonRpcRequest(method, resolvedParams);
-    }).then((response) {
+    return webSocketRequest(method, params).then((response) {
       expect(response["error"]["code"], errorCode);
       expect(response["error"]["message"], errorMessage);
-
       return response["error"]["data"];
     });
   }, "send $method with $params to web socket and expect error $errorCode");
@@ -380,8 +394,8 @@ Future<Map> _jsonRpcRequest(String method, Map params) {
     "id": id
   }));
 
-  return _webSocketBroadcastStream.first.then((value) {
-    value = JSON.decode(value);
+  return _webSocketBroadcastStream
+      .firstWhere((response) => response["id"] == id).then((value) {
     currentSchedule.addDebugInfo(
         "Web Socket request $method with params $params\n"
         "Result: $value");
