@@ -5,6 +5,7 @@
 library pub_tests;
 
 import 'package:path/path.dart' as path;
+import 'package:scheduled_test/scheduled_test.dart';
 
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
@@ -21,7 +22,7 @@ main() {
 
     var outDir = path.join("out", "dir");
     schedulePub(args: ["build", "-o", outDir],
-        output: new RegExp('Built 1 file to "$outDir".'));
+        output: contains('Built 1 file to "$outDir".'));
 
     d.dir(appPath, [
       d.dir("out", [
