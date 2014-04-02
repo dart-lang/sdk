@@ -318,6 +318,7 @@ third_party/html5lib/test/browser/browser_test: Skip
 
 [ $runtime == safari || $ie ]
 polymer_expressions/test/globals_test: Fail # Issue 16568
+polymer_expressions/test/bindings_test: Fail # Issue 16568
 
 [ $browser ]
 docgen/test/*: Skip  # Uses dart:io
