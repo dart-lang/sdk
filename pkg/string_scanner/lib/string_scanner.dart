@@ -5,6 +5,8 @@
 /// A library for parsing strings using a sequence of patterns.
 library string_scanner;
 
+import 'dart:math' as math;
+
 // TODO(nweiz): Add some integration between this and source maps.
 /// A class that scans through a string using [Pattern]s.
 class StringScanner {
@@ -89,10 +91,38 @@ class StringScanner {
     return _lastMatch != null;
   }
 
-  // TODO(nweiz): Make this handle long lines more gracefully.
-  /// Throws a [FormatException] describing that [name] is expected at the
-  /// current position in the string.
-  void _fail(String name) {
+  /// Throws a [FormatException] with [message] as well as a detailed
+  /// description of the location of the error in the string.
+  ///
+  /// [match] is the match information for the span of the string with which the
+  /// error is associated. This should be a match returned by this scanner's
+  /// [lastMatch] property. By default, the error is associated with the last
+  /// match.
+  ///
+  /// If [position] and/or [length] are passed, they are used as the error span
+  /// instead. If only [length] is passed, [position] defaults to the current
+  /// position; if only [position] is passed, [length] defaults to 1.
+  ///
+  /// It's an error to pass [match] at the same time as [position] or [length].
+  void error(String message, {Match match, int position, int length}) {
+    if (match != null && (position != null || length != null)) {
+      throw new ArgumentError("Can't pass both match and position/length.");
+    }
+
+    if (position != null && position < 0) {
+      throw new RangeError("position must be greater than or equal to 0.");
+    }
+
+    if (length != null && length < 1) {
+      throw new RangeError("length must be greater than or equal to 0.");
+    }
+
+    if (match == null && position == null && length == null) match = lastMatch;
+    if (position == null) {
+      position = match == null ? this.position : match.start;
+    }
+    if (length == null) length = match == null ? 1 : match.end - match.start;
+
     var newlines = "\n".allMatches(string.substring(0, position)).toList();
     var line = newlines.length + 1;
     var column;
@@ -104,10 +134,29 @@ class StringScanner {
       column = position - newlines.last.end + 1;
       lastLine = string.substring(newlines.last.end, position);
     }
-    lastLine += rest.replaceFirst(new RegExp(r"\n.*"), '');
+
+    var remaining = string.substring(position);
+    var nextNewline = remaining.indexOf("\n");
+    if (nextNewline == -1) {
+      lastLine += remaining;
+    } else {
+      length = math.min(length, nextNewline);
+      lastLine += remaining.substring(0, nextNewline);
+    }
+
+    var spaces = new List.filled(column - 1, ' ').join();
+    var underline = new List.filled(length, '^').join();
+
     throw new FormatException(
-        "Expected $name on line $line, column $column.\n"
+        "Error on line $line, column $column: $message\n"
         "$lastLine\n"
-        "${new List.filled(column - 1, ' ').join()}^");
+        "$spaces$underline");
+  }
+
+  // TODO(nweiz): Make this handle long lines more gracefully.
+  /// Throws a [FormatException] describing that [name] is expected at the
+  /// current position in the string.
+  void _fail(String name) {
+    error("expected $name.", position: this.position, length: 1);
   }
 }

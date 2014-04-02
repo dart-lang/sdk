@@ -1,3 +1,7 @@
+## 0.3.0+6
+
+* Added a dependency on the `string_scanner` package.
+
 ## 0.3.0+5
 
 * Updated `pubspec` details for move to Dart SDK.

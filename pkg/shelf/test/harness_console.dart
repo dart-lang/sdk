@@ -21,7 +21,6 @@ import 'request_test.dart' as request;
 import 'response_test.dart' as response;
 import 'shelf_io_test.dart' as shelf_io;
 import 'stack_test.dart' as stack;
-import 'string_scanner_test.dart' as string_scanner;
 
 void main() {
   groupSep = ' - ';
@@ -34,5 +33,4 @@ void main() {
   group('Response', response.main);
   group('shelf_io', shelf_io.main);
   group('Stack', stack.main);
-  group('StringScanner', string_scanner.main);
 }
