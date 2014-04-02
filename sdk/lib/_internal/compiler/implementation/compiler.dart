@@ -359,6 +359,7 @@ abstract class Compiler implements DiagnosticListener {
   final bool enableConcreteTypeInference;
   final bool disableTypeInferenceFlag;
   final bool dumpInfo;
+  final bool useContentSecurityPolicy;
 
   /**
    * The maximum size of a concrete type before it widens to dynamic during
@@ -638,6 +639,7 @@ abstract class Compiler implements DiagnosticListener {
             this.terseDiagnostics: false,
             this.dumpInfo: false,
             this.showPackageWarnings: false,
+            this.useContentSecurityPolicy: false,
             outputProvider,
             List<String> strips: const []})
       : this.analyzeOnly =

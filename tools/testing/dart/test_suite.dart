@@ -343,12 +343,11 @@ abstract class TestSuite {
   String createOutputDirectory(Path testPath, String optionsName) {
     var checked = configuration['checked'] ? '-checked' : '';
     var minified = configuration['minified'] ? '-minified' : '';
-    var csp = configuration['csp'] ? '-csp' : '';
     var sdk = configuration['use_sdk'] ? '-sdk' : '';
     var packages = configuration['use_public_packages']
         ? '-public_packages' : '';
     var dirName = "${configuration['compiler']}-${configuration['runtime']}"
-                  "$checked$minified$csp$packages$sdk";
+                  "$checked$minified$packages$sdk";
     return createGeneratedTestDirectoryHelper(
         "tests", dirName, testPath, optionsName);
   }
@@ -356,10 +355,12 @@ abstract class TestSuite {
   String createCompilationOutputDirectory(Path testPath) {
     var checked = configuration['checked'] ? '-checked' : '';
     var minified = configuration['minified'] ? '-minified' : '';
+    var csp = configuration['csp'] ? '-csp' : '';
     var sdk = configuration['use_sdk'] ? '-sdk' : '';
     var packages = configuration['use_public_packages']
         ? '-public_packages' : '';
-    var dirName = "${configuration['compiler']}$checked$minified$packages$sdk";
+    var dirName = "${configuration['compiler']}"
+                  "$checked$minified$csp$packages$sdk";
     return createGeneratedTestDirectoryHelper(
         "compilations", dirName, testPath, "");
   }
@@ -1151,8 +1152,6 @@ class StandardTestSuite extends TestSuite {
 
       String dartWrapperFilename = '$tempDir/test.dart';
       String compiledDartWrapperFilename = '$compilationTempDir/test.js';
-      String precompiledDartWrapperFilename =
-          '$compilationTempDir/test.precompiled.js';
 
       String content = null;
       Path dir = filePath.directoryPath;
@@ -1201,9 +1200,6 @@ class StandardTestSuite extends TestSuite {
           } else {
             compiledDartWrapperFilename = '$tempDir/$nameNoExt.js';
             var jsFile = '$nameNoExt.js';
-            if (configuration['csp']) {
-              jsFile = '$nameNoExt.precompiled.js';
-            }
             htmlContents = htmlContents.replaceAll('%TEST_SCRIPTS%',
               '<script src="$jsFile"></script>');
           }
@@ -1225,9 +1221,6 @@ class StandardTestSuite extends TestSuite {
         String scriptPath = dartWrapperFilename;
         if (compiler != 'none') {
           scriptPath = compiledDartWrapperFilename;
-          if (configuration['csp']) {
-            scriptPath = precompiledDartWrapperFilename;
-          }
         }
         scriptPath = _createUrlPathFromFile(new Path(scriptPath));
 
@@ -1335,6 +1328,7 @@ class StandardTestSuite extends TestSuite {
       args.add(packageRoot);
     }
     args.add('--out=$outputFile');
+    if (configuration['csp']) args.add('--csp');
     args.add(inputFile);
     args.addAll(optionsFromFile['sharedOptions']);
     if (executable.endsWith('.dart')) {

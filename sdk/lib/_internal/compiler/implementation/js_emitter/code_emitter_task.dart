@@ -1530,6 +1530,14 @@ if (typeof $printHelperName === "function") {
       } else {
         mainBuffer.add('\n');
       }
+
+      if (compiler.useContentSecurityPolicy) {
+        mainBuffer.write(
+            jsAst.prettyPrint(
+                precompiledFunctionAst, compiler,
+                allowVariableMinification: false).getText());
+      }
+
       String assembledCode = mainBuffer.getText();
       String sourceMapTags = "";
       if (generateSourceMap) {
@@ -1544,15 +1552,31 @@ if (typeof $printHelperName === "function") {
           ..close();
       compiler.assembledCode = assembledCode;
 
-      mainBuffer.write(
-          jsAst.prettyPrint(
-              precompiledFunctionAst, compiler,
-              allowVariableMinification: false).getText());
+      if (!compiler.useContentSecurityPolicy) {
+        mainBuffer.write("""
+{
+  var message = 
+      'Deprecation: Automatic generation of output for Content Security\\n' +
+      'Policy is deprecated and will be removed with the next development\\n' +
+      'release. Use the --csp option to generate CSP restricted output.';
+  if (typeof dartPrint == "function") {
+    dartPrint(message);
+  } else if (typeof console == "object" && typeof console.log == "function") {
+    console.log(message);
+  } else if (typeof print == "function") {
+    print(message);
+  }
+}\n""");
 
-      compiler.outputProvider('', 'precompiled.js')
-          ..add(mainBuffer.getText())
-          ..close();
+        mainBuffer.write(
+            jsAst.prettyPrint(
+                precompiledFunctionAst, compiler,
+                allowVariableMinification: false).getText());
 
+        compiler.outputProvider('', 'precompiled.js')
+            ..add(mainBuffer.getText())
+            ..close();
+      }
       emitDeferredCode();
 
     });

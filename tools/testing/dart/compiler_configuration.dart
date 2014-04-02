@@ -248,21 +248,15 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       CommandBuilder commandBuilder,
       List arguments,
       Map<String, String> environmentOverrides) {
-    String normalOutput = '$tempDir/out.js';
-    String cspOutput = '$tempDir/out.precompiled.js';
     return new CommandArtifact(
         <Command>[
             this.computeCompilationCommand(
-                normalOutput,
+                '$tempDir/out.js',
                 buildDir,
                 CommandBuilder.instance,
                 arguments,
                 environmentOverrides)],
-        // dart2js always produce both out.js and out.precompiled.js. To avoid
-        // recompiling the CSP version, we always tell the CompilationCommand
-        // to track the timestamp of out.js, but select which one to run based
-        // on CSP mode.
-        isCsp ? cspOutput : normalOutput,
+        '$tempDir/out.js',
         'application/javascript');
   }
 
