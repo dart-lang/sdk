@@ -2300,7 +2300,7 @@ void RawFloat64x2::WriteTo(SnapshotWriter* writer,
 
 
 #define TYPED_DATA_READ(setter, type)                                          \
-  for (intptr_t i = 0; i < lengthInBytes; i += element_size) {                 \
+  for (intptr_t i = 0; i < length_in_bytes; i += element_size) {               \
     result.Set##setter(i, reader->Read<type>());                               \
   }                                                                            \
 
@@ -2322,17 +2322,15 @@ RawTypedData* TypedData::ReadFrom(SnapshotReader* reader,
 
   // Setup the array elements.
   intptr_t element_size = ElementSizeInBytes(cid);
-  intptr_t lengthInBytes = len * element_size;
+  intptr_t length_in_bytes = len * element_size;
   switch (cid) {
     case kTypedDataInt8ArrayCid:
-      TYPED_DATA_READ(Int8, int8_t);
-      break;
     case kTypedDataUint8ArrayCid:
-      TYPED_DATA_READ(Uint8, uint8_t);
+    case kTypedDataUint8ClampedArrayCid: {
+      uint8_t* data = reinterpret_cast<uint8_t*>(result.DataAddr(0));
+      reader->ReadBytes(data, length_in_bytes);
       break;
-    case kTypedDataUint8ClampedArrayCid:
-      TYPED_DATA_READ(Uint8, uint8_t);
-      break;
+    }
     case kTypedDataInt16ArrayCid:
       TYPED_DATA_READ(Int16, int16_t);
       break;
@@ -2414,14 +2412,12 @@ void RawTypedData::WriteTo(SnapshotWriter* writer,
   // Write out the array elements.
   switch (cid) {
     case kTypedDataInt8ArrayCid:
-      TYPED_DATA_WRITE(int8_t);
-      break;
     case kTypedDataUint8ArrayCid:
-      TYPED_DATA_WRITE(uint8_t);
+    case kTypedDataUint8ClampedArrayCid: {
+      uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data_);
+      writer->WriteBytes(data, len);
       break;
-    case kTypedDataUint8ClampedArrayCid:
-      TYPED_DATA_WRITE(uint8_t);
-      break;
+    }
     case kTypedDataInt16ArrayCid:
       TYPED_DATA_WRITE(int16_t);
       break;
