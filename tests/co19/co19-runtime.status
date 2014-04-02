@@ -79,3 +79,6 @@ LibTest/collection/ListBase/ListBase_class_A01_t01: Skip # Timeouts
 
 [ $runtime == vm ]
 LibTest/isolate/Isolate/spawn_A02_t01: Skip # co19 issue 667
+
+[ $compiler == none && $runtime == vm && $arch == simarm64 ]
+*: Skip

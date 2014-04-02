@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(zra): Remove when tests are ready to enable.
+#include "platform/globals.h"
+#if !defined(TARGET_ARCH_ARM64)
+
 #include "vm/assembler.h"
 #include "vm/bigint_operations.h"
 #include "vm/class_finalizer.h"
@@ -4009,3 +4013,5 @@ TEST_CASE(PrintToJSONStream) {
 }
 
 }  // namespace dart
+
+#endif  // !defined(TARGET_ARCH_ARM64)

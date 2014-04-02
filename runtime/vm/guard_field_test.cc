@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(zra): Remove when tests are ready to enable.
+#include "platform/globals.h"
+#if !defined(TARGET_ARCH_ARM64)
+
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
 #include "vm/intermediate_language.h"
@@ -270,3 +274,5 @@ TEST_CASE(GuardFieldConstructor2Test) {
 }
 
 }  // namespace dart
+
+#endif  // !defined(TARGET_ARCH_ARM64)

@@ -18,6 +18,7 @@
       ['"<(target_arch)"=="x64"', { 'dart_target_arch': 'X64', }],
       ['"<(target_arch)"=="arm"', { 'dart_target_arch': 'ARM', }],
       ['"<(target_arch)"=="simarm"', { 'dart_target_arch': 'SIMARM', }],
+      ['"<(target_arch)"=="simarm64"', { 'dart_target_arch': 'SIMARM64', }],
       ['"<(target_arch)"=="mips"', { 'dart_target_arch': 'MIPS', }],
       ['"<(target_arch)"=="simmips"', { 'dart_target_arch': 'SIMMIPS', }],
       [ 'OS=="linux"', { 'dart_target_os': 'Linux', } ],
@@ -56,6 +57,13 @@
         'abstract': 1,
         'defines': [
           'TARGET_ARCH_ARM',
+        ]
+      },
+
+      'Dart_simarm64_Base': {
+        'abstract': 1,
+        'defines': [
+          'TARGET_ARCH_ARM64',
         ]
       },
 
@@ -146,6 +154,27 @@
           'Dart_Base', 'Dart_simarm_Base', 'Dart_Release',
           'Dart_<(dart_target_os)_Base',
           'Dart_<(dart_target_os)_simarm_Base',
+          'Dart_<(dart_target_os)_Release',
+        ],
+      },
+
+      'DebugSIMARM64': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_simarm64_Base', 'Dart_Debug',
+          'Dart_<(dart_target_os)_Base',
+          'Dart_<(dart_target_os)_simarm64_Base',
+          'Dart_<(dart_target_os)_Debug',
+        ],
+        'defines': [
+          'DEBUG',
+        ],
+      },
+
+      'ReleaseSIMARM64': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_simarm64_Base', 'Dart_Release',
+          'Dart_<(dart_target_os)_Base',
+          'Dart_<(dart_target_os)_simarm64_Base',
           'Dart_<(dart_target_os)_Release',
         ],
       },

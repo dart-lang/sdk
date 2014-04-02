@@ -49,6 +49,15 @@
         ],
       },
 
+      'Dart_Linux_simarm64_Base': {
+        'abstract': 1,
+        'cflags': [ '-O3', '-m64', '-msse2' ],
+        'ldflags': [ '-m64', ],
+        'defines': [
+          'ARM64_FLOAT_ABI_HARD',
+        ],
+      },
+
       # ARM cross-build
       'Dart_Linux_xarm_Base': {
         'abstract': 1,

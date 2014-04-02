@@ -67,6 +67,14 @@
           ]}],
         ],
       },
+      # Added by Dart.
+      'Dart_simarm64_Base': {
+        'defines': [
+          'NSS_X86_OR_X64',
+          'NSS_X64',
+          'NSS_USE_64',
+        ],
+      },
     },
     'conditions': [
       ['OS=="win"', {

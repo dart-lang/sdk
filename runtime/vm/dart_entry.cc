@@ -58,12 +58,22 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   ASSERT(!code.IsNull());
   ASSERT(Isolate::Current()->no_callback_scope_depth() == 0);
 #if defined(USING_SIMULATOR)
+#if defined(ARCH_IS_64_BIT)
+  // TODO(zra): Change to intptr_t so we have only one case.
+    return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
+        reinterpret_cast<int64_t>(entrypoint),
+        static_cast<int64_t>(code.EntryPoint()),
+        reinterpret_cast<int64_t>(&arguments_descriptor),
+        reinterpret_cast<int64_t>(&arguments),
+        reinterpret_cast<int64_t>(&context)));
+#else
     return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
         reinterpret_cast<int32_t>(entrypoint),
         static_cast<int32_t>(code.EntryPoint()),
         reinterpret_cast<int32_t>(&arguments_descriptor),
         reinterpret_cast<int32_t>(&arguments),
         reinterpret_cast<int32_t>(&context)));
+#endif
 #else
     return entrypoint(code.EntryPoint(),
                       arguments_descriptor,

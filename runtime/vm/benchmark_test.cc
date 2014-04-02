@@ -8,6 +8,7 @@
 #include "bin/file.h"
 
 #include "platform/assert.h"
+#include "platform/globals.h"
 
 #include "vm/dart_api_impl.h"
 #include "vm/stack_frame.h"
@@ -30,6 +31,8 @@ void Benchmark::RunAll(const char* executable) {
   }
 }
 
+// TODO(zra): Remove when tests are ready to enable.
+#if !defined(TARGET_ARCH_ARM64)
 
 //
 // Measure compile of all functions in dart core lib classes.
@@ -577,5 +580,7 @@ BENCHMARK(SimpleMessage) {
   int64_t elapsed_time = timer.TotalElapsedTime();
   benchmark->set_score(elapsed_time);
 }
+
+#endif  // !defined(TARGET_ARCH_ARM64)
 
 }  // namespace dart

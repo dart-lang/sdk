@@ -107,7 +107,8 @@ class TestOptionsParser {
               'arch',
               'The architecture to run tests for',
               ['-a', '--arch'],
-              ['all', 'ia32', 'x64', 'simarm', 'simmips', 'arm', 'mips'],
+              ['all', 'ia32', 'x64', 'arm', 'mips',
+               'simarm', 'simarm64', 'simmips'],
               'ia32'),
           new _TestOptionSpecification(
               'system',
@@ -634,7 +635,7 @@ Note: currently only implemented for dart2js.''',
   List<Map> _expandConfigurations(Map configuration) {
     // Expand the pseudo-values such as 'all'.
     if (configuration['arch'] == 'all') {
-      configuration['arch'] = 'ia32,x64,simarm,simmips';
+      configuration['arch'] = 'ia32,x64,simarm,simarm64,simmips';
     }
     if (configuration['mode'] == 'all') {
       configuration['mode'] = 'debug,release';

@@ -7,6 +7,8 @@
 
 #include "include/dart_api.h"
 
+#include "platform/globals.h"
+
 #include "vm/ast.h"
 #include "vm/dart.h"
 #include "vm/globals.h"
@@ -130,8 +132,12 @@
   }
 
 
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
-#if defined(HOST_ARCH_ARM) || defined(HOST_ARCH_MIPS)
+#if defined(TARGET_ARCH_ARM) ||                                                \
+    defined(TARGET_ARCH_MIPS) ||                                               \
+    defined(TARGET_ARCH_ARM64)
+#if defined(HOST_ARCH_ARM) ||                                                  \
+    defined(HOST_ARCH_MIPS) ||                                                 \
+    defined(HOST_ARCH_ARM64)
 // Running on actual ARM or MIPS hardware, execute code natively.
 #define EXECUTE_TEST_CODE_INT32(name, entry) reinterpret_cast<name>(entry)()
 #define EXECUTE_TEST_CODE_INT64_LL(name, entry, long_arg0, long_arg1)          \
@@ -144,9 +150,16 @@
     reinterpret_cast<name>(entry)(double_arg)
 #else
 // Not running on ARM or MIPS hardware, call simulator to execute code.
+#if defined(ARCH_IS_64_BIT)
+// TODO(zra): Supply more macros for 64-bit as tests are added for ARM64.
+#define EXECUTE_TEST_CODE_INT32(name, entry)                                   \
+  static_cast<int32_t>(Simulator::Current()->Call(                             \
+      bit_cast<int64_t, uword>(entry), 0, 0, 0, 0))
+#else
 #define EXECUTE_TEST_CODE_INT32(name, entry)                                   \
   static_cast<int32_t>(Simulator::Current()->Call(                             \
       bit_cast<int32_t, uword>(entry), 0, 0, 0, 0))
+#endif
 #define EXECUTE_TEST_CODE_INT64_LL(name, entry, long_arg0, long_arg1)          \
   static_cast<int64_t>(Simulator::Current()->Call(                             \
       bit_cast<int32_t, uword>(entry),                                         \

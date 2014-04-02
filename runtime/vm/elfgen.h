@@ -403,6 +403,9 @@ void ElfGen::AddELFHeader(int shoff) {
   WriteShort(&header_, kEM_X86_64);  // e_machine
 #elif defined(TARGET_ARCH_ARM)
   WriteShort(&header_, kEM_ARM);  // e_machine
+#elif defined(TARGET_ARCH_ARM64)
+  // TODO(zra): Find the right ARM64 constant.
+  WriteShort(&header_, kEM_ARM);  // e_machine
 #elif defined(TARGET_ARCH_MIPS)
   WriteShort(&header_, kEM_MIPS);  // e_machine
 #else

@@ -21,6 +21,14 @@
 #include "vm/simulator_arm.h"
 #endif
 
+#elif defined(TARGET_ARCH_ARM64)
+#if defined(HOST_ARCH_ARM64)
+// No simulator used.
+#else
+#define USING_SIMULATOR 1
+#include "vm/simulator_arm64.h"
+#endif
+
 #elif defined(TARGET_ARCH_MIPS)
 #if defined(HOST_ARCH_MIPS)
 // No simulator used.
