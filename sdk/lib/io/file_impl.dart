@@ -175,16 +175,16 @@ class _FileStream extends Stream<List<int>> {
 class _FileStreamConsumer extends StreamConsumer<List<int>> {
   File _file;
   Future<RandomAccessFile> _openFuture;
-  StreamSubscription _subscription;
 
   _FileStreamConsumer(File this._file, FileMode mode) {
     _openFuture = _file.open(mode: mode);
   }
 
   Future<File> addStream(Stream<List<int>> stream) {
-    Completer<File> completer = new Completer<File>();
+    Completer<File> completer = new Completer<File>.sync();
     _openFuture
       .then((openedFile) {
+        var _subscription;
         void error(e, [StackTrace stackTrace]) {
           _subscription.cancel();
           openedFile.close();
@@ -530,18 +530,14 @@ class _File extends FileSystemEntity implements File {
   Future<File> writeAsBytes(List<int> bytes,
                             {FileMode mode: FileMode.WRITE,
                              bool flush: false}) {
-    try {
-      IOSink sink = openWrite(mode: mode);
-      sink.add(bytes);
-      if (flush) {
-        sink.flush().then((_) => sink.close());
-      } else {
-        sink.close();
-      }
-      return sink.done.then((_) => this);
-    } catch (e) {
-      return new Future.error(e);
-    }
+    return open(mode: mode).then((file) {
+      return file.writeFrom(bytes, 0, bytes.length)
+          .then((_) {
+            if (flush) return file.flush().then((_) => this);
+            return this;
+          })
+          .whenComplete(file.close);
+    });
   }
 
   void writeAsBytesSync(List<int> bytes,
@@ -923,7 +919,8 @@ class _RandomAccessFile implements RandomAccessFile {
 
   void _checkAvailable() {
     if (_asyncDispatched) {
-      throw new FileSystemException("An async operation is currently pending", path);
+      throw new FileSystemException("An async operation is currently pending",
+                                    path);
     }
     if (closed) {
       throw new FileSystemException("File closed", path);
