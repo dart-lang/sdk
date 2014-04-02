@@ -181,7 +181,7 @@ class OldWebSocketApi {
   ///
   /// This does *not* currently check to ensure the asset actually exists. It
   /// only maps what the corresponding asset *should* be for that URL.
-  Map _urlToAssetId(Map command) {
+  Future<Map> _urlToAssetId(Map command) {
     var urlString = _validateString(command, "url");
     var url;
     try {
@@ -195,25 +195,26 @@ class OldWebSocketApi {
     // If a line number was given, map it to the output line.
     var line = _validateOptionalInt(command, "line");
 
-    var id = _environment.getAssetIdForUrl(url);
-    if (id == null) {
-      throw new _WebSocketException(_ErrorCode.NOT_SERVED,
-          '"${url.host}:${url.port}" is not being served by pub.');
-    }
+    return _environment.getAssetIdForUrl(url).then((id) {
+      if (id == null) {
+        throw new _WebSocketException(_ErrorCode.NOT_SERVED,
+            '"${url.host}:${url.port}" is not being served by pub.');
+      }
 
-    // TODO(rnystrom): When this is hooked up to actually talk to barback to
-    // see if assets exist, consider supporting implicit index.html at that
-    // point.
+      // TODO(rnystrom): When this is hooked up to actually talk to barback to
+      // see if assets exist, consider supporting implicit index.html at that
+      // point.
 
-    var result = {"package": id.package, "path": id.path};
+      var result = {"package": id.package, "path": id.path};
 
-    // Map the line.
-    // TODO(rnystrom): Right now, source maps are not supported and it just
-    // passes through the original line. This lets the editor start using
-    // this API before we've fully implemented it. See #12339 and #16061.
-    if (line != null) result["line"] = line;
+      // Map the line.
+      // TODO(rnystrom): Right now, source maps are not supported and it just
+      // passes through the original line. This lets the editor start using
+      // this API before we've fully implemented it. See #12339 and #16061.
+      if (line != null) result["line"] = line;
 
-    return result;
+      return result;
+    });
   }
 
   /// Given a path on the filesystem, returns the URLs served by pub that can be

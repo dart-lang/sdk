@@ -18,6 +18,7 @@ import '../log.dart' as log;
 import '../package.dart';
 import '../package_graph.dart';
 import '../sdk.dart' as sdk;
+import '../utils.dart';
 import 'admin_server.dart';
 import 'build_directory.dart';
 import 'dart_forwarding_transformer.dart';
@@ -250,8 +251,8 @@ class BuildEnvironment {
   /// Look up [assetPath] in the "packages" directory in the entrypoint package.
   Future<List<Uri>> _lookUpPathInPackagesDirectory(String assetPath) {
     var components = path.split(path.relative(assetPath));
-    if (components.first != "packages") return [];
-    if (!graph.packages.containsKey(components[1])) return [];
+    if (components.first != "packages") return new Future.value([]);
+    if (!graph.packages.containsKey(components[1])) return new Future.value([]);
     return Future.wait(_directories.values.map((dir) {
       return dir.server.then((server) =>
           server.url.resolveUri(path.toUri(assetPath)));
@@ -281,21 +282,28 @@ class BuildEnvironment {
       }));
     }
 
-    return [];
+    return new Future.value([]);
   }
 
   /// Given a URL to an asset served by this environment, returns the ID of the
   /// asset that would be accessed by that URL.
   ///
-  /// If no server can serve [url], returns `null`.
-  AssetId getAssetIdForUrl(Uri url) {
-    var directory = _directories.values.firstWhere(
-        (dir) => dir.server.address.host == url.host &&
-            dir.server.port == url.port,
-        orElse: () => null);
-    if (directory == null) return null;
+  /// If no server can serve [url], completes to `null`.
+  Future<AssetId> getAssetIdForUrl(Uri url) {
+    var iterator = _directories.values.toList().iterator;
+    iterate() {
+      if (!iterator.moveNext()) return null;
 
-    return directory.server.urlToId(url);
+      return iterator.current.server.then((server) {
+        if (server.address.host == url.host && server.port == url.port) {
+          return server.urlToId(url);
+        } else {
+          return iterate();
+        }
+      });
+    }
+
+    return syncFuture(iterate);
   }
 
   /// Determines if [sourcePath] is contained within any of the directories in
