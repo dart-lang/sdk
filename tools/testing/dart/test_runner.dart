@@ -2607,6 +2607,7 @@ class TestCaseCompleter {
 
   TestCaseCompleter(this.graph, this.enqueuer, this.commandQueue) {
     var eventCondition = graph.events.where;
+    bool finishedRemainingTestCases = false;
 
     // Store all the command outputs -- they will be delivered synchronously
     // (i.e. before state changes in the graph)
@@ -2614,6 +2615,7 @@ class TestCaseCompleter {
       _outputs[output.command] = output;
     }, onDone: () {
       _completeTestCasesIfPossible(new List.from(enqueuer.remainingTestCases));
+      finishedRemainingTestCases = true;
       assert(enqueuer.remainingTestCases.isEmpty);
       _checkDone();
     });
@@ -2622,7 +2624,8 @@ class TestCaseCompleter {
     // changes.
     eventCondition((event) => event is dgraph.StateChangedEvent)
         .listen((dgraph.StateChangedEvent event) {
-          if (event.from == dgraph.NodeState.Processing) {
+          if (event.from == dgraph.NodeState.Processing &&
+              !finishedRemainingTestCases ) {
             var command = event.node.userData;
 
             assert(COMPLETED_STATES.contains(event.to));
@@ -2653,7 +2656,7 @@ class TestCaseCompleter {
     }
   }
 
-  void _completeTestCasesIfPossible(Iterable<TestCase> testCases){
+  void _completeTestCasesIfPossible(Iterable<TestCase> testCases) {
     // Update TestCases with command outputs
     for (TestCase test in testCases) {
       for (var icommand in test.commands) {
