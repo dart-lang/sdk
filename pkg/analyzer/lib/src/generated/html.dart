@@ -26,7 +26,7 @@ class Token {
   /**
    * The offset from the beginning of the file to the first character in the token.
    */
-  int _offset = 0;
+  final int offset;
 
   /**
    * The previous token in the token stream.
@@ -41,7 +41,7 @@ class Token {
   /**
    * The type of the token.
    */
-  TokenType _type;
+  final TokenType type;
 
   /**
    * The lexeme represented by this token.
@@ -63,10 +63,8 @@ class Token {
    * @param offset the offset from the beginning of the file to the first character in the token
    * @param value the lexeme represented by this token (not `null`)
    */
-  Token.con2(TokenType type, int offset, String value) {
-    this._type = type;
+  Token.con2(this.type, this.offset, String value) {
     this._value = StringUtilities.intern(value);
-    this._offset = offset;
   }
 
   /**
@@ -76,7 +74,7 @@ class Token {
    * @return the offset from the beginning of the file to the first character after last character
    *         of the token
    */
-  int get end => _offset + length;
+  int get end => offset + length;
 
   /**
    * Return the number of characters in the node's source range.
@@ -98,20 +96,6 @@ class Token {
    * @return the next token in the token stream
    */
   Token get next => _next;
-
-  /**
-   * Return the offset from the beginning of the file to the first character in the token.
-   *
-   * @return the offset from the beginning of the file to the first character in the token
-   */
-  int get offset => _offset;
-
-  /**
-   * Answer the token type for the receiver.
-   *
-   * @return the token type (not `null`)
-   */
-  TokenType get type => _type;
 
   /**
    * Return `true` if this token is a synthetic token. A synthetic token is a token that was
@@ -144,11 +128,9 @@ class Token {
  * characters.
  */
 class RawXmlExpression extends XmlExpression {
-  Expression expression;
+  final Expression expression;
 
-  RawXmlExpression(Expression expression) {
-    this.expression = expression;
-  }
+  RawXmlExpression(this.expression);
 
   @override
   int get end => expression.end;
@@ -621,7 +603,7 @@ abstract class XmlNode {
     builder.append("Attempt to create recursive structure: ");
     XmlNode current = newParent;
     while (current != null) {
-      if (current != newParent) {
+      if (!identical(current, newParent)) {
         builder.append(" -> ");
       }
       if (identical(current, this)) {
@@ -684,7 +666,7 @@ abstract class AbstractScanner {
   /**
    * The source being scanned.
    */
-  Source source;
+  final Source source;
 
   /**
    * The token pointing to the head of the linked list of tokens.
@@ -711,8 +693,7 @@ abstract class AbstractScanner {
    *
    * @param source the source being scanned
    */
-  AbstractScanner(Source source) {
-    this.source = source;
+  AbstractScanner(this.source) {
     _tokens = new Token.con1(TokenType.EOF, -1);
     _tokens.setNext(_tokens);
     _tail = _tokens;
@@ -1002,7 +983,7 @@ class StringScanner extends AbstractScanner {
   /**
    * The string from which characters will be read.
    */
-  String _string;
+  final String _string;
 
   /**
    * The number of characters in the string.
@@ -1020,9 +1001,8 @@ class StringScanner extends AbstractScanner {
    * @param source the source being scanned
    * @param string the string from which characters will be read
    */
-  StringScanner(Source source, String string) : super(source) {
-    this._string = string;
-    this._stringLength = string.length;
+  StringScanner(Source source, this._string) : super(source) {
+    this._stringLength = _string.length;
     this._charOffset = -1;
   }
 
@@ -1062,7 +1042,7 @@ class ToSourceVisitor implements XmlVisitor<Object> {
   /**
    * The writer to which the source is to be written.
    */
-  PrintWriter _writer;
+  final PrintWriter _writer;
 
   /**
    * Initialize a newly created visitor to write source code representing the visited nodes to the
@@ -1070,9 +1050,7 @@ class ToSourceVisitor implements XmlVisitor<Object> {
    *
    * @param writer the writer to which the source is to be written
    */
-  ToSourceVisitor(PrintWriter writer) {
-    this._writer = writer;
-  }
+  ToSourceVisitor(this._writer);
 
   @override
   Object visitHtmlScriptTagNode(HtmlScriptTagNode node) => visitXmlTagNode(node);
@@ -1144,31 +1122,31 @@ class TokenType extends Enum<TokenType> {
   /**
    * The type of the token that marks the end of the input.
    */
-  static final TokenType EOF = new TokenType_EOF('EOF', 0, "");
+  static const TokenType EOF = const TokenType_EOF('EOF', 0, "");
 
-  static final TokenType EQ = new TokenType('EQ', 1, "=");
+  static const TokenType EQ = const TokenType('EQ', 1, "=");
 
-  static final TokenType GT = new TokenType('GT', 2, ">");
+  static const TokenType GT = const TokenType('GT', 2, ">");
 
-  static final TokenType LT_SLASH = new TokenType('LT_SLASH', 3, "</");
+  static const TokenType LT_SLASH = const TokenType('LT_SLASH', 3, "</");
 
-  static final TokenType LT = new TokenType('LT', 4, "<");
+  static const TokenType LT = const TokenType('LT', 4, "<");
 
-  static final TokenType SLASH_GT = new TokenType('SLASH_GT', 5, "/>");
+  static const TokenType SLASH_GT = const TokenType('SLASH_GT', 5, "/>");
 
-  static final TokenType COMMENT = new TokenType('COMMENT', 6, null);
+  static const TokenType COMMENT = const TokenType('COMMENT', 6, null);
 
-  static final TokenType DECLARATION = new TokenType('DECLARATION', 7, null);
+  static const TokenType DECLARATION = const TokenType('DECLARATION', 7, null);
 
-  static final TokenType DIRECTIVE = new TokenType('DIRECTIVE', 8, null);
+  static const TokenType DIRECTIVE = const TokenType('DIRECTIVE', 8, null);
 
-  static final TokenType STRING = new TokenType('STRING', 9, null);
+  static const TokenType STRING = const TokenType('STRING', 9, null);
 
-  static final TokenType TAG = new TokenType('TAG', 10, null);
+  static const TokenType TAG = const TokenType('TAG', 10, null);
 
-  static final TokenType TEXT = new TokenType('TEXT', 11, null);
+  static const TokenType TEXT = const TokenType('TEXT', 11, null);
 
-  static final List<TokenType> values = [
+  static const List<TokenType> values = const [
       EOF,
       EQ,
       GT,
@@ -1186,15 +1164,13 @@ class TokenType extends Enum<TokenType> {
    * The lexeme that defines this type of token, or `null` if there is more than one possible
    * lexeme for this type of token.
    */
-  String lexeme;
+  final String lexeme;
 
-  TokenType(String name, int ordinal, String lexeme) : super(name, ordinal) {
-    this.lexeme = lexeme;
-  }
+  const TokenType(String name, int ordinal, this.lexeme) : super(name, ordinal);
 }
 
 class TokenType_EOF extends TokenType {
-  TokenType_EOF(String name, int ordinal, String arg0) : super(name, ordinal, arg0);
+  const TokenType_EOF(String name, int ordinal, String arg0) : super(name, ordinal, arg0);
 
   @override
   String toString() => "-eof-";
@@ -1204,11 +1180,11 @@ class TokenType_EOF extends TokenType {
  * Instances of `XmlAttributeNode` represent name/value pairs owned by an [XmlTagNode].
  */
 class XmlAttributeNode extends XmlNode {
-  Token _name;
+  final Token _name;
 
-  Token equals;
+  final Token equals;
 
-  Token _value;
+  final Token _value;
 
   List<XmlExpression> expressions = XmlExpression.EMPTY_ARRAY;
 
@@ -1220,11 +1196,7 @@ class XmlAttributeNode extends XmlNode {
    * @param equals the equals sign or `null` if none
    * @param value the value token (not `null`)
    */
-  XmlAttributeNode(Token name, Token equals, Token value) {
-    this._name = name;
-    this.equals = equals;
-    this._value = value;
-  }
+  XmlAttributeNode(this._name, this.equals, this._value);
 
   @override
   accept(XmlVisitor visitor) => visitor.visitXmlAttributeNode(this);
@@ -1374,7 +1346,7 @@ class XmlParser {
   /**
    * The source being parsed.
    */
-  Source source;
+  final Source source;
 
   /**
    * The next token to be parsed.
@@ -1386,9 +1358,7 @@ class XmlParser {
    *
    * @param source the source being parsed
    */
-  XmlParser(Source source) {
-    this.source = source;
-  }
+  XmlParser(this.source);
 
   /**
    * Create a node representing an attribute.
@@ -1435,9 +1405,9 @@ class XmlParser {
     List<XmlTagNode> tagNodes = new List<XmlTagNode>();
     TokenType type = _currentToken.type;
     while (type != TokenType.EOF) {
-      if (identical(type, TokenType.LT)) {
+      if (type == TokenType.LT) {
         tagNodes.add(_parseTagNode());
-      } else if (identical(type, TokenType.DECLARATION) || identical(type, TokenType.DIRECTIVE) || identical(type, TokenType.COMMENT)) {
+      } else if (type == TokenType.DECLARATION || type == TokenType.DIRECTIVE || type == TokenType.COMMENT) {
         // ignored tokens
         _currentToken = _currentToken.next;
       } else {
@@ -1481,7 +1451,7 @@ class XmlParser {
     _currentToken = _currentToken.next;
     // Equals sign
     Token equals;
-    if (identical(_currentToken.type, TokenType.EQ)) {
+    if (_currentToken.type == TokenType.EQ) {
       equals = _currentToken;
       _currentToken = _currentToken.next;
     } else {
@@ -1490,7 +1460,7 @@ class XmlParser {
     }
     // String value
     Token value;
-    if (identical(_currentToken.type, TokenType.STRING)) {
+    if (_currentToken.type == TokenType.STRING) {
       value = _currentToken;
       _currentToken = _currentToken.next;
     } else {
@@ -1508,12 +1478,12 @@ class XmlParser {
    */
   List<XmlAttributeNode> _parseAttributes() {
     TokenType type = _currentToken.type;
-    if (identical(type, TokenType.GT) || identical(type, TokenType.SLASH_GT) || identical(type, TokenType.EOF)) {
+    if (type == TokenType.GT || type == TokenType.SLASH_GT || type == TokenType.EOF) {
       return XmlTagNode.NO_ATTRIBUTES;
     }
     List<XmlAttributeNode> attributes = new List<XmlAttributeNode>();
     while (type != TokenType.GT && type != TokenType.SLASH_GT && type != TokenType.EOF) {
-      if (identical(type, TokenType.TAG)) {
+      if (type == TokenType.TAG) {
         attributes.add(_parseAttribute());
       } else {
         _reportUnexpectedToken();
@@ -1532,14 +1502,14 @@ class XmlParser {
    */
   List<XmlTagNode> _parseChildTagNodes() {
     TokenType type = _currentToken.type;
-    if (identical(type, TokenType.LT_SLASH) || identical(type, TokenType.EOF)) {
+    if (type == TokenType.LT_SLASH || type == TokenType.EOF) {
       return XmlTagNode.NO_TAG_NODES;
     }
     List<XmlTagNode> nodes = new List<XmlTagNode>();
     while (type != TokenType.LT_SLASH && type != TokenType.EOF) {
-      if (identical(type, TokenType.LT)) {
+      if (type == TokenType.LT) {
         nodes.add(_parseTagNode());
-      } else if (identical(type, TokenType.COMMENT)) {
+      } else if (type == TokenType.COMMENT) {
         // ignored token
         _currentToken = _currentToken.next;
       } else {
@@ -1563,7 +1533,7 @@ class XmlParser {
     _currentToken = _currentToken.next;
     // Get the tag or create a synthetic tag and report an error
     Token tag;
-    if (identical(_currentToken.type, TokenType.TAG)) {
+    if (_currentToken.type == TokenType.TAG) {
       tag = _currentToken;
       _currentToken = _currentToken.next;
     } else {
@@ -1574,7 +1544,7 @@ class XmlParser {
     List<XmlAttributeNode> attributes = _parseAttributes();
     // Token ending attribute list
     Token attributeEnd;
-    if (identical(_currentToken.type, TokenType.GT) || identical(_currentToken.type, TokenType.SLASH_GT)) {
+    if (_currentToken.type == TokenType.GT || _currentToken.type == TokenType.SLASH_GT) {
       attributeEnd = _currentToken;
       _currentToken = _currentToken.next;
     } else {
@@ -1582,14 +1552,14 @@ class XmlParser {
       attributeEnd = _insertSyntheticToken(TokenType.SLASH_GT);
     }
     // If the node has no children, then return the node
-    if (identical(attributeEnd.type, TokenType.SLASH_GT) || isSelfClosing(tag)) {
+    if (attributeEnd.type == TokenType.SLASH_GT || isSelfClosing(tag)) {
       return createTagNode(nodeStart, tag, attributes, attributeEnd, XmlTagNode.NO_TAG_NODES, _currentToken, null, attributeEnd);
     }
     // Parse the child tag nodes
     List<XmlTagNode> tagNodes = _parseChildTagNodes();
     // Token ending child tag nodes
     Token contentEnd;
-    if (identical(_currentToken.type, TokenType.LT_SLASH)) {
+    if (_currentToken.type == TokenType.LT_SLASH) {
       contentEnd = _currentToken;
       _currentToken = _currentToken.next;
     } else {
@@ -1600,7 +1570,7 @@ class XmlParser {
     }
     // Closing tag
     Token closingTag;
-    if (identical(_currentToken.type, TokenType.TAG)) {
+    if (_currentToken.type == TokenType.TAG) {
       closingTag = _currentToken;
       _currentToken = _currentToken.next;
     } else {
@@ -1609,7 +1579,7 @@ class XmlParser {
     }
     // Token ending node
     Token nodeEnd;
-    if (identical(_currentToken.type, TokenType.GT)) {
+    if (_currentToken.type == TokenType.GT) {
       nodeEnd = _currentToken;
       _currentToken = _currentToken.next;
     } else {
@@ -1644,12 +1614,12 @@ class XmlTagNode extends XmlNode {
   /**
    * The starting [TokenType#LT] token (not `null`).
    */
-  Token nodeStart;
+  final Token nodeStart;
 
   /**
    * The [TokenType#TAG] token after the starting '&lt;' (not `null`).
    */
-  Token _tag;
+  final Token _tag;
 
   /**
    * The attributes contained by the receiver (not `null`, contains no `null`s).
@@ -1661,7 +1631,7 @@ class XmlTagNode extends XmlNode {
    * `null`). The token may be the same token as [nodeEnd] if there are no child
    * [tagNodes].
    */
-  Token attributeEnd;
+  final Token attributeEnd;
 
   /**
    * The tag nodes contained in the receiver (not `null`, contains no `null`s).
@@ -1677,18 +1647,18 @@ class XmlTagNode extends XmlNode {
    * the stream [TokenType#LT_SLASH] token after the content, or `null` if there is no
    * content and the attributes ended with [TokenType#SLASH_GT].
    */
-  Token contentEnd;
+  final Token contentEnd;
 
   /**
    * The closing [TokenType#TAG] after the child elements or `null` if there is no
    * content and the attributes ended with [TokenType#SLASH_GT]
    */
-  Token closingTag;
+  final Token closingTag;
 
   /**
    * The ending [TokenType#GT] or [TokenType#SLASH_GT] token (not `null`).
    */
-  Token nodeEnd;
+  final Token nodeEnd;
 
   /**
    * The expressions that are embedded in the tag's content.
@@ -1719,15 +1689,9 @@ class XmlTagNode extends XmlNode {
    * @param nodeEnd the ending [TokenType#GT] or [TokenType#SLASH_GT] token (not
    *          `null`)
    */
-  XmlTagNode(Token nodeStart, Token tag, List<XmlAttributeNode> attributes, Token attributeEnd, List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag, Token nodeEnd) {
-    this.nodeStart = nodeStart;
-    this._tag = tag;
+  XmlTagNode(this.nodeStart, this._tag, List<XmlAttributeNode> attributes, this.attributeEnd, List<XmlTagNode> tagNodes, this.contentEnd, this.closingTag, this.nodeEnd) {
     this._attributes = becomeParentOfAll(attributes, ifEmpty: NO_ATTRIBUTES);
-    this.attributeEnd = attributeEnd;
     this._tagNodes = becomeParentOfAll(tagNodes, ifEmpty: NO_TAG_NODES);
-    this.contentEnd = contentEnd;
-    this.closingTag = closingTag;
-    this.nodeEnd = nodeEnd;
   }
 
   @override
@@ -1791,7 +1755,7 @@ class XmlTagNode extends XmlNode {
       return content;
     }
     JavaStringBuilder buffer = new JavaStringBuilder();
-    while (token != contentEnd) {
+    while (!identical(token, contentEnd)) {
       buffer.append(token.lexeme);
       token = token.next;
     }
@@ -1867,7 +1831,7 @@ class HtmlParser extends XmlParser {
   /**
    * The error listener to which errors will be reported.
    */
-  AnalysisErrorListener _errorListener;
+  final AnalysisErrorListener _errorListener;
 
   static String _APPLICATION_DART_IN_DOUBLE_QUOTES = "\"application/dart\"";
 
@@ -1917,9 +1881,7 @@ class HtmlParser extends XmlParser {
    * @param source the source being parsed
    * @param errorListener the error listener to which errors will be reported
    */
-  HtmlParser(Source source, AnalysisErrorListener errorListener) : super(source) {
-    this._errorListener = errorListener;
-  }
+  HtmlParser(Source source, this._errorListener) : super(source);
 
   /**
    * Parse the given tokens.
@@ -1991,13 +1953,13 @@ class HtmlUnit extends XmlNode {
   /**
    * The first token in the token stream that was parsed to form this HTML unit.
    */
-  Token beginToken;
+  final Token beginToken;
 
   /**
    * The last token in the token stream that was parsed to form this compilation unit. This token
    * should always have a type of [TokenType.EOF].
    */
-  Token endToken;
+  final Token endToken;
 
   /**
    * The tag nodes contained in the receiver (not `null`, contains no `null`s).
@@ -2012,10 +1974,8 @@ class HtmlUnit extends XmlNode {
    * @param endToken the last token in the token stream which should be of type
    *          [TokenType.EOF]
    */
-  HtmlUnit(Token beginToken, List<XmlTagNode> tagNodes, Token endToken) {
-    this.beginToken = beginToken;
+  HtmlUnit(this.beginToken, List<XmlTagNode> tagNodes, this.endToken) {
     this._tagNodes = becomeParentOfAll(tagNodes);
-    this.endToken = endToken;
   }
 
   @override

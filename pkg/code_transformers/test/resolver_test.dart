@@ -182,8 +182,6 @@ main() {
             // First from the AST walker
             'error: absolute paths not allowed: "/b.dart" (web/main.dart 0 14)',
             'error: absolute paths not allowed: "/b.dart"',
-            // TODO: remove this when analyzer is updated.
-            'error: absolute paths not allowed: "/b.dart"',
           ],
           validator: (resolver) {
             var lib = resolver.getLibrary(entryPoint);

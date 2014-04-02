@@ -284,15 +284,15 @@ abstract class InstrumentationBuilder {
  */
 class InstrumentationLevel extends Enum<InstrumentationLevel> {
   /** Recording all instrumented information */
-  static final InstrumentationLevel EVERYTHING = new InstrumentationLevel('EVERYTHING', 0);
+  static const InstrumentationLevel EVERYTHING = const InstrumentationLevel('EVERYTHING', 0);
 
   /** Recording only metrics */
-  static final InstrumentationLevel METRICS = new InstrumentationLevel('METRICS', 1);
+  static const InstrumentationLevel METRICS = const InstrumentationLevel('METRICS', 1);
 
   /** Nothing recorded */
-  static final InstrumentationLevel OFF = new InstrumentationLevel('OFF', 2);
+  static const InstrumentationLevel OFF = const InstrumentationLevel('OFF', 2);
 
-  static final List<InstrumentationLevel> values = [EVERYTHING, METRICS, OFF];
+  static const List<InstrumentationLevel> values = const [EVERYTHING, METRICS, OFF];
 
   static InstrumentationLevel fromString(String str) {
     if (str == "EVERYTHING") {
@@ -307,7 +307,7 @@ class InstrumentationLevel extends Enum<InstrumentationLevel> {
     throw new IllegalArgumentException("Unrecognised InstrumentationLevel");
   }
 
-  InstrumentationLevel(String name, int ordinal) : super(name, ordinal);
+  const InstrumentationLevel(String name, int ordinal) : super(name, ordinal);
 }
 
 /**

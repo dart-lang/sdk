@@ -386,6 +386,10 @@ bool javaBooleanAnd(bool a, bool b) {
   return a && b;
 }
 
+int javaByte(Object o) {
+  return (o as int) & 0xFF;
+}
+
 class JavaStringBuilder {
   StringBuffer sb = new StringBuffer();
   String toString() => sb.toString();
@@ -421,7 +425,7 @@ abstract class Enum<E extends Enum> implements Comparable<E> {
   final String name;
   /// The position in the enum declaration.
   final int ordinal;
-  Enum(this.name, this.ordinal);
+  const Enum(this.name, this.ordinal);
   int get hashCode => ordinal;
   String toString() => name;
   int compareTo(E other) => ordinal - other.ordinal;

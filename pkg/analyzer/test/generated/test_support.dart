@@ -26,7 +26,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
   /**
    * The source being parsed.
    */
-  String _rawSource;
+  final String _rawSource;
 
   /**
    * The source being parsed after inserting a marker at the beginning and end of the range of the
@@ -52,14 +52,13 @@ class GatheringErrorListener implements AnalysisErrorListener {
   /**
    * Initialize a newly created error listener to collect errors.
    */
-  GatheringErrorListener() : super();
+  GatheringErrorListener() : this.con1(null);
 
   /**
    * Initialize a newly created error listener to collect errors.
    */
-  GatheringErrorListener.con1(String rawSource) {
-    this._rawSource = rawSource;
-    this._markedSource = rawSource;
+  GatheringErrorListener.con1(this._rawSource) {
+    this._markedSource = _rawSource;
   }
 
   /**
@@ -210,7 +209,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
     int expectedErrorCount = 0;
     int expectedWarningCount = 0;
     for (ErrorSeverity severity in expectedSeverities) {
-      if (identical(severity, ErrorSeverity.ERROR)) {
+      if (severity == ErrorSeverity.ERROR) {
         expectedErrorCount++;
       } else {
         expectedWarningCount++;
@@ -219,7 +218,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
     int actualErrorCount = 0;
     int actualWarningCount = 0;
     for (AnalysisError error in _errors) {
-      if (identical(error.errorCode.errorSeverity, ErrorSeverity.ERROR)) {
+      if (error.errorCode.errorSeverity == ErrorSeverity.ERROR) {
         actualErrorCount++;
       } else {
         actualWarningCount++;

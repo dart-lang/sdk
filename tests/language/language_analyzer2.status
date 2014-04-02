@@ -185,10 +185,6 @@ override_inheritance_no_such_method_test/03: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/04: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/05: StaticWarning # Issue 16132
 
-# missing warning for unimplemented getter/setter
-override_inheritance_abstract_test/13: MissingStaticWarning # Issue 16133
-override_inheritance_abstract_test/26: MissingStaticWarning # Issue 16133
-
 # unexpected warning for override
 override_inheritance_abstract_test/27: StaticWarning # Issue 16134
 override_inheritance_generic_test/03: StaticWarning # Issue 16134
@@ -489,3 +485,5 @@ deferred_shadow_load_library_test: Fail
 deferred_closurize_load_library_test: Fail
 deferred_load_library_wrong_args_test/01: Fail
 deferred_load_library_wrong_args_test/none: Fail
+deferred_load_inval_code_test: Fail
+

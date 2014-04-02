@@ -879,22 +879,22 @@ class AnalysisResult {
    * The change notices associated with this result, or `null` if there were no changes and
    * there is no more work to be done.
    */
-  List<ChangeNotice> _notices;
+  final List<ChangeNotice> _notices;
 
   /**
    * The number of milliseconds required to determine which task was to be performed.
    */
-  int getTime = 0;
+  final int getTime;
 
   /**
    * The name of the class of the task that was performed.
    */
-  String taskClassName;
+  final String taskClassName;
 
   /**
    * The number of milliseconds required to perform the task.
    */
-  int performTime = 0;
+  final int performTime;
 
   /**
    * Initialize a newly created analysis result to have the given values.
@@ -904,12 +904,7 @@ class AnalysisResult {
    * @param taskClassName the name of the class of the task that was performed
    * @param performTime the number of milliseconds required to perform the task
    */
-  AnalysisResult(List<ChangeNotice> notices, int getTime, String taskClassName, int performTime) {
-    this._notices = notices;
-    this.getTime = getTime;
-    this.taskClassName = taskClassName;
-    this.performTime = performTime;
-  }
+  AnalysisResult(this._notices, this.getTime, this.taskClassName, this.performTime);
 
   /**
    * Return the change notices associated with this result, or `null` if there were no changes
@@ -1149,7 +1144,7 @@ class AnalysisCache {
   /**
    * The policy used to determine which pieces of data to remove from the cache.
    */
-  CacheRetentionPolicy _retentionPolicy;
+  final CacheRetentionPolicy _retentionPolicy;
 
   /**
    * A list containing the most recently accessed sources with the most recently used at the end of
@@ -1167,9 +1162,8 @@ class AnalysisCache {
    * @param retentionPolicy the policy used to determine which pieces of data to remove from the
    *          cache
    */
-  AnalysisCache(int maxCacheSize, CacheRetentionPolicy retentionPolicy) {
+  AnalysisCache(int maxCacheSize, this._retentionPolicy) {
     this._maxCacheSize = maxCacheSize;
-    this._retentionPolicy = retentionPolicy;
     _recentlyUsed = new List<Source>();
   }
 
@@ -1315,9 +1309,9 @@ class AnalysisCache {
     for (int i = 0; i < _recentlyUsed.length; i++) {
       Source source = _recentlyUsed[i];
       RetentionPriority priority = _retentionPolicy.getAstPriority(source, _sourceMap[source]);
-      if (identical(priority, RetentionPriority.LOW)) {
+      if (priority == RetentionPriority.LOW) {
         return _recentlyUsed.removeAt(i);
-      } else if (identical(priority, RetentionPriority.MEDIUM) && sourceToRemove < 0) {
+      } else if (priority == RetentionPriority.MEDIUM && sourceToRemove < 0) {
         sourceToRemove = i;
       }
     }
@@ -1354,7 +1348,7 @@ class CacheState extends Enum<CacheState> {
    * Valid Transitions:
    * * [INVALID] if a source was modified that might cause the data to be computable
    */
-  static final CacheState ERROR = new CacheState('ERROR', 0);
+  static const CacheState ERROR = const CacheState('ERROR', 0);
 
   /**
    * The data is not in the cache because it was flushed from the cache in order to control memory
@@ -1364,7 +1358,7 @@ class CacheState extends Enum<CacheState> {
    * * [IN_PROCESS] if the data is being recomputed
    * * [INVALID] if a source was modified that causes the data to need to be recomputed
    */
-  static final CacheState FLUSHED = new CacheState('FLUSHED', 1);
+  static const CacheState FLUSHED = const CacheState('FLUSHED', 1);
 
   /**
    * The data might or might not be in the cache but is in the process of being recomputed.
@@ -1373,7 +1367,7 @@ class CacheState extends Enum<CacheState> {
    * * [ERROR] if an exception occurred while trying to compute the data
    * * [VALID] if the data was successfully computed and stored in the cache
    */
-  static final CacheState IN_PROCESS = new CacheState('IN_PROCESS', 2);
+  static const CacheState IN_PROCESS = const CacheState('IN_PROCESS', 2);
 
   /**
    * The data is not in the cache and needs to be recomputed so that results can be reported.
@@ -1381,7 +1375,7 @@ class CacheState extends Enum<CacheState> {
    * Valid Transitions:
    * * [IN_PROCESS] if an attempt is being made to recompute the data
    */
-  static final CacheState INVALID = new CacheState('INVALID', 3);
+  static const CacheState INVALID = const CacheState('INVALID', 3);
 
   /**
    * The data is in the cache and up-to-date.
@@ -1390,11 +1384,11 @@ class CacheState extends Enum<CacheState> {
    * * [FLUSHED] if the data is removed in order to manage memory usage
    * * [INVALID] if a source was modified in such a way as to invalidate the previous data
    */
-  static final CacheState VALID = new CacheState('VALID', 4);
+  static const CacheState VALID = const CacheState('VALID', 4);
 
-  static final List<CacheState> values = [ERROR, FLUSHED, IN_PROCESS, INVALID, VALID];
+  static const List<CacheState> values = const [ERROR, FLUSHED, IN_PROCESS, INVALID, VALID];
 
-  CacheState(String name, int ordinal) : super(name, ordinal);
+  const CacheState(String name, int ordinal) : super(name, ordinal);
 }
 
 /**
@@ -1712,26 +1706,21 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   CacheState _launchableState = CacheState.INVALID;
 
   /**
-   * An integer holding bit masks such as [LAUNCHABLE] and [CLIENT_CODE].
-   */
-  int _bitmask = 0;
-
-  /**
    * The error produced while performing Angular resolution, or an empty array if there are no
    * errors if the error are not currently cached.
    */
   List<AnalysisError> _angularErrors = AnalysisError.NO_ERRORS;
 
   /**
-   * The index of the bit in the [bitmask] indicating that this library is launchable: that
-   * the file has a main method.
+   * The index of the flag indicating whether this library is launchable (whether the file has a
+   * main method).
    */
   static int _LAUNCHABLE_INDEX = 1;
 
   /**
-   * The index of the bit in the [bitmask] indicating that the library is client code: that
-   * the library depends on the html library. If the library is not "client code", then it is
-   * referred to as "server code".
+   * The index of the flag indicating whether the library is client code (whether the library
+   * depends on the html library). If the library is not "client code", then it is referred to as
+   * "server code".
    */
   static int _CLIENT_CODE_INDEX = 2;
 
@@ -1749,11 +1738,11 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * Flush any AST structures being maintained by this entry.
    */
   void flushAstStructures() {
-    if (identical(_tokenStreamState, CacheState.VALID)) {
+    if (_tokenStreamState == CacheState.VALID) {
       _tokenStreamState = CacheState.FLUSHED;
       _tokenStream = null;
     }
-    if (identical(_parsedUnitState, CacheState.VALID)) {
+    if (_parsedUnitState == CacheState.VALID) {
       _parsedUnitState = CacheState.FLUSHED;
       _parsedUnitAccessed = false;
       _parsedUnit = null;
@@ -1782,7 +1771,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   @override
   CompilationUnit get anyParsedCompilationUnit {
-    if (identical(_parsedUnitState, CacheState.VALID)) {
+    if (_parsedUnitState == CacheState.VALID) {
       _parsedUnitAccessed = true;
       return _parsedUnit;
     }
@@ -1793,7 +1782,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   CompilationUnit get anyResolvedCompilationUnit {
     DartEntryImpl_ResolutionState state = _resolutionState;
     while (state != null) {
-      if (identical(state._resolvedUnitState, CacheState.VALID)) {
+      if (state._resolvedUnitState == CacheState.VALID) {
         return state._resolvedUnit;
       }
       state = state._nextState;
@@ -1801,6 +1790,13 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     ;
     return null;
   }
+
+  /**
+   * Return a list containing the libraries that are known to contain this part.
+   *
+   * @return a list containing the libraries that are known to contain this part
+   */
+  List<Source> get containingLibraries => _containingLibraries;
 
   @override
   SourceKind get kind => _sourceKind;
@@ -1827,7 +1823,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * @return a compilation unit that can be modified by the reconciler
    */
   CompilationUnit get resolvableCompilationUnit {
-    if (identical(_parsedUnitState, CacheState.VALID)) {
+    if (_parsedUnitState == CacheState.VALID) {
       if (_parsedUnitAccessed) {
         return _parsedUnit.accept(new AstCloner()) as CompilationUnit;
       }
@@ -1839,7 +1835,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     }
     DartEntryImpl_ResolutionState state = _resolutionState;
     while (state != null) {
-      if (identical(state._resolvedUnitState, CacheState.VALID)) {
+      if (state._resolvedUnitState == CacheState.VALID) {
         return state._resolvedUnit.accept(new AstCloner()) as CompilationUnit;
       }
       state = state._nextState;
@@ -1921,9 +1917,9 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     } else if (identical(descriptor, DartEntry.INCLUDED_PARTS)) {
       return _includedParts;
     } else if (identical(descriptor, DartEntry.IS_CLIENT)) {
-      return BooleanArray.get(_bitmask, _CLIENT_CODE_INDEX);
+      return getFlag(_CLIENT_CODE_INDEX);
     } else if (identical(descriptor, DartEntry.IS_LAUNCHABLE)) {
-      return BooleanArray.get(_bitmask, _LAUNCHABLE_INDEX);
+      return getFlag(_LAUNCHABLE_INDEX);
     } else if (identical(descriptor, DartEntry.PARSE_ERRORS)) {
       return _parseErrors;
     } else if (identical(descriptor, DartEntry.PARSED_UNIT)) {
@@ -1980,56 +1976,56 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   @override
   bool hasInvalidData(DataDescriptor descriptor) {
     if (identical(descriptor, DartEntry.ELEMENT)) {
-      return identical(_elementState, CacheState.INVALID);
+      return _elementState == CacheState.INVALID;
     } else if (identical(descriptor, DartEntry.EXPORTED_LIBRARIES)) {
-      return identical(_exportedLibrariesState, CacheState.INVALID);
+      return _exportedLibrariesState == CacheState.INVALID;
     } else if (identical(descriptor, DartEntry.IMPORTED_LIBRARIES)) {
-      return identical(_importedLibrariesState, CacheState.INVALID);
+      return _importedLibrariesState == CacheState.INVALID;
     } else if (identical(descriptor, DartEntry.INCLUDED_PARTS)) {
-      return identical(_includedPartsState, CacheState.INVALID);
+      return _includedPartsState == CacheState.INVALID;
     } else if (identical(descriptor, DartEntry.IS_CLIENT)) {
-      return identical(_clientServerState, CacheState.INVALID);
+      return _clientServerState == CacheState.INVALID;
     } else if (identical(descriptor, DartEntry.IS_LAUNCHABLE)) {
-      return identical(_launchableState, CacheState.INVALID);
+      return _launchableState == CacheState.INVALID;
     } else if (identical(descriptor, DartEntry.PARSE_ERRORS)) {
-      return identical(_parseErrorsState, CacheState.INVALID);
+      return _parseErrorsState == CacheState.INVALID;
     } else if (identical(descriptor, DartEntry.PARSED_UNIT)) {
-      return identical(_parsedUnitState, CacheState.INVALID);
+      return _parsedUnitState == CacheState.INVALID;
     } else if (identical(descriptor, DartEntry.PUBLIC_NAMESPACE)) {
-      return identical(_publicNamespaceState, CacheState.INVALID);
+      return _publicNamespaceState == CacheState.INVALID;
     } else if (identical(descriptor, DartEntry.SCAN_ERRORS)) {
-      return identical(_scanErrorsState, CacheState.INVALID);
+      return _scanErrorsState == CacheState.INVALID;
     } else if (identical(descriptor, DartEntry.SOURCE_KIND)) {
-      return identical(_sourceKindState, CacheState.INVALID);
+      return _sourceKindState == CacheState.INVALID;
     } else if (identical(descriptor, DartEntry.TOKEN_STREAM)) {
-      return identical(_tokenStreamState, CacheState.INVALID);
+      return _tokenStreamState == CacheState.INVALID;
     } else if (identical(descriptor, DartEntry.RESOLUTION_ERRORS) || identical(descriptor, DartEntry.RESOLVED_UNIT) || identical(descriptor, DartEntry.VERIFICATION_ERRORS) || identical(descriptor, DartEntry.HINTS)) {
       DartEntryImpl_ResolutionState state = _resolutionState;
       while (state != null) {
         if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
-          return identical(state._resolutionErrorsState, CacheState.INVALID);
+          return state._resolutionErrorsState == CacheState.INVALID;
         } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
-          return identical(state._resolvedUnitState, CacheState.INVALID);
+          return state._resolvedUnitState == CacheState.INVALID;
         } else if (identical(descriptor, DartEntry.VERIFICATION_ERRORS)) {
-          return identical(state._verificationErrorsState, CacheState.INVALID);
+          return state._verificationErrorsState == CacheState.INVALID;
         } else if (identical(descriptor, DartEntry.HINTS)) {
-          return identical(state._hintsState, CacheState.INVALID);
+          return state._hintsState == CacheState.INVALID;
         }
       }
       return false;
     } else {
-      return identical(super.getState(descriptor), CacheState.INVALID);
+      return super.getState(descriptor) == CacheState.INVALID;
     }
   }
 
   @override
   bool get hasResolvableCompilationUnit {
-    if (identical(_parsedUnitState, CacheState.VALID)) {
+    if (_parsedUnitState == CacheState.VALID) {
       return true;
     }
     DartEntryImpl_ResolutionState state = _resolutionState;
     while (state != null) {
-      if (identical(state._resolvedUnitState, CacheState.VALID)) {
+      if (state._resolvedUnitState == CacheState.VALID) {
         return true;
       }
       state = state._nextState;
@@ -2065,10 +2061,10 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * Invalidate all of the resolution information associated with the compilation unit.
    */
   void invalidateAllResolutionInformation() {
-    if (identical(_parsedUnitState, CacheState.FLUSHED)) {
+    if (_parsedUnitState == CacheState.FLUSHED) {
       DartEntryImpl_ResolutionState state = _resolutionState;
       while (state != null) {
-        if (identical(state._resolvedUnitState, CacheState.VALID)) {
+        if (state._resolvedUnitState == CacheState.VALID) {
           _parsedUnit = state._resolvedUnit;
           _parsedUnitAccessed = true;
           _parsedUnitState = CacheState.VALID;
@@ -2151,25 +2147,25 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * invalidated before they could be recorded.
    */
   void recordParseNotInProcess() {
-    if (identical(getState(SourceEntry.LINE_INFO), CacheState.IN_PROCESS)) {
+    if (getState(SourceEntry.LINE_INFO) == CacheState.IN_PROCESS) {
       setState(SourceEntry.LINE_INFO, CacheState.INVALID);
     }
-    if (identical(_sourceKindState, CacheState.IN_PROCESS)) {
+    if (_sourceKindState == CacheState.IN_PROCESS) {
       _sourceKindState = CacheState.INVALID;
     }
-    if (identical(_parseErrorsState, CacheState.IN_PROCESS)) {
+    if (_parseErrorsState == CacheState.IN_PROCESS) {
       _parseErrorsState = CacheState.INVALID;
     }
-    if (identical(_parsedUnitState, CacheState.IN_PROCESS)) {
+    if (_parsedUnitState == CacheState.IN_PROCESS) {
       _parsedUnitState = CacheState.INVALID;
     }
-    if (identical(_exportedLibrariesState, CacheState.IN_PROCESS)) {
+    if (_exportedLibrariesState == CacheState.IN_PROCESS) {
       _exportedLibrariesState = CacheState.INVALID;
     }
-    if (identical(_importedLibrariesState, CacheState.IN_PROCESS)) {
+    if (_importedLibrariesState == CacheState.IN_PROCESS) {
       _importedLibrariesState = CacheState.INVALID;
     }
-    if (identical(_includedPartsState, CacheState.IN_PROCESS)) {
+    if (_includedPartsState == CacheState.IN_PROCESS) {
       _includedPartsState = CacheState.INVALID;
     }
   }
@@ -2182,7 +2178,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   void recordResolutionError() {
     _element = null;
     _elementState = CacheState.ERROR;
-    _bitmask = 0;
+    clearFlags([_LAUNCHABLE_INDEX, _CLIENT_CODE_INDEX]);
     _clientServerState = CacheState.ERROR;
     _launchableState = CacheState.ERROR;
     _publicNamespace = null;
@@ -2195,16 +2191,16 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * invalidated before they could be recorded.
    */
   void recordResolutionNotInProcess() {
-    if (identical(_elementState, CacheState.IN_PROCESS)) {
+    if (_elementState == CacheState.IN_PROCESS) {
       _elementState = CacheState.INVALID;
     }
-    if (identical(_clientServerState, CacheState.IN_PROCESS)) {
+    if (_clientServerState == CacheState.IN_PROCESS) {
       _clientServerState = CacheState.INVALID;
     }
-    if (identical(_launchableState, CacheState.IN_PROCESS)) {
+    if (_launchableState == CacheState.IN_PROCESS) {
       _launchableState = CacheState.INVALID;
     }
-    if (identical(_publicNamespaceState, CacheState.IN_PROCESS)) {
+    if (_publicNamespaceState == CacheState.IN_PROCESS) {
       _publicNamespaceState = CacheState.INVALID;
     }
     _resolutionState.recordResolutionNotInProcess();
@@ -2245,13 +2241,13 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * invalidated before they could be recorded.
    */
   void recordScanNotInProcess() {
-    if (identical(getState(SourceEntry.LINE_INFO), CacheState.IN_PROCESS)) {
+    if (getState(SourceEntry.LINE_INFO) == CacheState.IN_PROCESS) {
       setState(SourceEntry.LINE_INFO, CacheState.INVALID);
     }
-    if (identical(_scanErrorsState, CacheState.IN_PROCESS)) {
+    if (_scanErrorsState == CacheState.IN_PROCESS) {
       _scanErrorsState = CacheState.INVALID;
     }
-    if (identical(_tokenStreamState, CacheState.IN_PROCESS)) {
+    if (_tokenStreamState == CacheState.IN_PROCESS) {
       _tokenStreamState = CacheState.INVALID;
     }
   }
@@ -2322,17 +2318,17 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       _includedParts = updatedValue(state, _includedParts, Source.EMPTY_ARRAY);
       _includedPartsState = state;
     } else if (identical(descriptor, DartEntry.IS_CLIENT)) {
-      _bitmask = _updatedValueOfFlag(state, _bitmask, _CLIENT_CODE_INDEX);
+      _updateValueOfFlag(_CLIENT_CODE_INDEX, state);
       _clientServerState = state;
     } else if (identical(descriptor, DartEntry.IS_LAUNCHABLE)) {
-      _bitmask = _updatedValueOfFlag(state, _bitmask, _LAUNCHABLE_INDEX);
+      _updateValueOfFlag(_LAUNCHABLE_INDEX, state);
       _launchableState = state;
     } else if (identical(descriptor, DartEntry.PARSE_ERRORS)) {
       _parseErrors = updatedValue(state, _parseErrors, AnalysisError.NO_ERRORS);
       _parseErrorsState = state;
     } else if (identical(descriptor, DartEntry.PARSED_UNIT)) {
       CompilationUnit newUnit = updatedValue(state, _parsedUnit, null);
-      if (newUnit != _parsedUnit) {
+      if (!identical(newUnit, _parsedUnit)) {
         _parsedUnitAccessed = false;
       }
       _parsedUnit = newUnit;
@@ -2399,10 +2395,10 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       _includedParts = value == null ? Source.EMPTY_ARRAY : (value as List<Source>);
       _includedPartsState = CacheState.VALID;
     } else if (identical(descriptor, DartEntry.IS_CLIENT)) {
-      _bitmask = BooleanArray.set(_bitmask, _CLIENT_CODE_INDEX, value as bool);
+      setFlag(_CLIENT_CODE_INDEX, value as bool);
       _clientServerState = CacheState.VALID;
     } else if (identical(descriptor, DartEntry.IS_LAUNCHABLE)) {
-      _bitmask = BooleanArray.set(_bitmask, _LAUNCHABLE_INDEX, value as bool);
+      setFlag(_LAUNCHABLE_INDEX, value as bool);
       _launchableState = CacheState.VALID;
     } else if (identical(descriptor, DartEntry.PARSE_ERRORS)) {
       _parseErrors = value == null ? AnalysisError.NO_ERRORS : (value as List<AnalysisError>);
@@ -2483,12 +2479,11 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     _publicNamespace = other._publicNamespace;
     _clientServerState = other._clientServerState;
     _launchableState = other._launchableState;
-    _bitmask = other._bitmask;
     _angularErrors = other._angularErrors;
   }
 
   @override
-  bool get hasErrorState => super.hasErrorState || identical(_scanErrorsState, CacheState.ERROR) || identical(_tokenStreamState, CacheState.ERROR) || identical(_sourceKindState, CacheState.ERROR) || identical(_parsedUnitState, CacheState.ERROR) || identical(_parseErrorsState, CacheState.ERROR) || identical(_importedLibrariesState, CacheState.ERROR) || identical(_exportedLibrariesState, CacheState.ERROR) || identical(_includedPartsState, CacheState.ERROR) || identical(_elementState, CacheState.ERROR) || identical(_publicNamespaceState, CacheState.ERROR) || identical(_clientServerState, CacheState.ERROR) || identical(_launchableState, CacheState.ERROR) || _resolutionState.hasErrorState;
+  bool get hasErrorState => super.hasErrorState || _scanErrorsState == CacheState.ERROR || _tokenStreamState == CacheState.ERROR || _sourceKindState == CacheState.ERROR || _parsedUnitState == CacheState.ERROR || _parseErrorsState == CacheState.ERROR || _importedLibrariesState == CacheState.ERROR || _exportedLibrariesState == CacheState.ERROR || _includedPartsState == CacheState.ERROR || _elementState == CacheState.ERROR || _publicNamespaceState == CacheState.ERROR || _clientServerState == CacheState.ERROR || _launchableState == CacheState.ERROR || _resolutionState.hasErrorState;
 
   @override
   void writeOn(JavaStringBuilder builder) {
@@ -2530,7 +2525,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   void _discardCachedResolutionInformation() {
     _element = null;
     _elementState = CacheState.INVALID;
-    _bitmask = 0;
+    clearFlags([_LAUNCHABLE_INDEX, _CLIENT_CODE_INDEX]);
     _clientServerState = CacheState.INVALID;
     _launchableState = CacheState.INVALID;
     _publicNamespace = null;
@@ -2563,24 +2558,22 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   /**
-   * Given that one of the flags is being transitioned to the given state, return the value of the
-   * flags that should be kept in the cache.
+   * Given that the specified flag is being transitioned to the given state, set the value of the
+   * flag to the value that should be kept in the cache.
    *
-   * @param state the state to which the data is being transitioned
-   * @param currentValue the value of the flags before the transition
-   * @param bitMask the mask used to access the bit whose state is being set
-   * @return the value of the data that should be kept in the cache
+   * @param index the index of the flag whose state is being set
+   * @param state the state to which the value is being transitioned
    */
-  int _updatedValueOfFlag(CacheState state, int currentValue, int bitIndex) {
-    if (identical(state, CacheState.VALID)) {
+  void _updateValueOfFlag(int index, CacheState state) {
+    if (state == CacheState.VALID) {
       throw new IllegalArgumentException("Use setValue() to set the state to VALID");
-    } else if (identical(state, CacheState.IN_PROCESS)) {
+    } else if (state != CacheState.IN_PROCESS) {
       //
-      // We can leave the current value in the cache for any 'get' methods to access.
+      // If the value is in process, we can leave the current value in the cache for any 'get'
+      // methods to access.
       //
-      return currentValue;
+      setFlag(index, false);
     }
-    return BooleanArray.set(currentValue, bitIndex, false);
   }
 }
 
@@ -2671,7 +2664,7 @@ class DartEntryImpl_ResolutionState {
    * Flush any AST structures being maintained by this state.
    */
   void flushAstStructures() {
-    if (identical(_resolvedUnitState, CacheState.VALID)) {
+    if (_resolvedUnitState == CacheState.VALID) {
       _resolvedUnitState = CacheState.FLUSHED;
       _resolvedUnit = null;
     }
@@ -2680,7 +2673,7 @@ class DartEntryImpl_ResolutionState {
     }
   }
 
-  bool get hasErrorState => identical(_resolvedUnitState, CacheState.ERROR) || identical(_resolutionErrorsState, CacheState.ERROR) || identical(_verificationErrorsState, CacheState.ERROR) || identical(_hintsState, CacheState.ERROR) || (_nextState != null && _nextState.hasErrorState);
+  bool get hasErrorState => _resolvedUnitState == CacheState.ERROR || _resolutionErrorsState == CacheState.ERROR || _verificationErrorsState == CacheState.ERROR || _hintsState == CacheState.ERROR || (_nextState != null && _nextState.hasErrorState);
 
   /**
    * Invalidate all of the resolution information associated with the compilation unit.
@@ -2722,16 +2715,16 @@ class DartEntryImpl_ResolutionState {
    * were invalidated before they could be recorded.
    */
   void recordResolutionNotInProcess() {
-    if (identical(_resolvedUnitState, CacheState.IN_PROCESS)) {
+    if (_resolvedUnitState == CacheState.IN_PROCESS) {
       _resolvedUnitState = CacheState.INVALID;
     }
-    if (identical(_resolutionErrorsState, CacheState.IN_PROCESS)) {
+    if (_resolutionErrorsState == CacheState.IN_PROCESS) {
       _resolutionErrorsState = CacheState.INVALID;
     }
-    if (identical(_verificationErrorsState, CacheState.IN_PROCESS)) {
+    if (_verificationErrorsState == CacheState.IN_PROCESS) {
       _verificationErrorsState = CacheState.INVALID;
     }
-    if (identical(_hintsState, CacheState.IN_PROCESS)) {
+    if (_hintsState == CacheState.IN_PROCESS) {
       _hintsState = CacheState.INVALID;
     }
     if (_nextState != null) {
@@ -2770,16 +2763,14 @@ class DataDescriptor<E> {
   /**
    * The name of the descriptor, used for debugging purposes.
    */
-  String _name;
+  final String _name;
 
   /**
    * Initialize a newly created descriptor to have the given name.
    *
    * @param name the name of the descriptor
    */
-  DataDescriptor(String name) {
-    this._name = name;
-  }
+  DataDescriptor(this._name);
 
   @override
   String toString() => _name;
@@ -2990,18 +2981,18 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
    * Flush any AST structures being maintained by this entry.
    */
   void flushAstStructures() {
-    if (identical(_parsedUnitState, CacheState.VALID)) {
+    if (_parsedUnitState == CacheState.VALID) {
       _parsedUnitState = CacheState.FLUSHED;
       _parsedUnit = null;
     }
-    if (identical(_resolvedUnitState, CacheState.VALID)) {
+    if (_resolvedUnitState == CacheState.VALID) {
       _resolvedUnitState = CacheState.FLUSHED;
       _resolvedUnit = null;
     }
-    if (identical(_angularEntryState, CacheState.VALID)) {
+    if (_angularEntryState == CacheState.VALID) {
       _angularEntryState = CacheState.FLUSHED;
     }
-    if (identical(_angularErrorsState, CacheState.VALID)) {
+    if (_angularErrorsState == CacheState.VALID) {
       _angularErrorsState = CacheState.FLUSHED;
     }
   }
@@ -3037,11 +3028,11 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
 
   @override
   ht.HtmlUnit get anyParsedUnit {
-    if (identical(_parsedUnitState, CacheState.VALID)) {
+    if (_parsedUnitState == CacheState.VALID) {
       //      parsedUnitAccessed = true;
       return _parsedUnit;
     }
-    if (identical(_resolvedUnitState, CacheState.VALID)) {
+    if (_resolvedUnitState == CacheState.VALID) {
       //      resovledUnitAccessed = true;
       return _resolvedUnit;
     }
@@ -3283,7 +3274,7 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   }
 
   @override
-  bool get hasErrorState => super.hasErrorState || identical(_parsedUnitState, CacheState.ERROR) || identical(_resolvedUnitState, CacheState.ERROR) || identical(_parseErrorsState, CacheState.ERROR) || identical(_resolutionErrorsState, CacheState.ERROR) || identical(_referencedLibrariesState, CacheState.ERROR) || identical(_elementState, CacheState.ERROR) || identical(_angularErrorsState, CacheState.ERROR) || identical(_hintsState, CacheState.ERROR);
+  bool get hasErrorState => super.hasErrorState || _parsedUnitState == CacheState.ERROR || _resolvedUnitState == CacheState.ERROR || _parseErrorsState == CacheState.ERROR || _resolutionErrorsState == CacheState.ERROR || _referencedLibrariesState == CacheState.ERROR || _elementState == CacheState.ERROR || _angularErrorsState == CacheState.ERROR || _hintsState == CacheState.ERROR;
 
   @override
   void writeOn(JavaStringBuilder builder) {
@@ -3321,24 +3312,24 @@ class RetentionPriority extends Enum<RetentionPriority> {
    * A priority indicating that a given piece of data can be removed from the cache without
    * reservation.
    */
-  static final RetentionPriority LOW = new RetentionPriority('LOW', 0);
+  static const RetentionPriority LOW = const RetentionPriority('LOW', 0);
 
   /**
    * A priority indicating that a given piece of data should not be removed from the cache unless
    * there are no sources for which the corresponding data has a lower priority. Currently used for
    * data that is needed in order to finish some outstanding analysis task.
    */
-  static final RetentionPriority MEDIUM = new RetentionPriority('MEDIUM', 1);
+  static const RetentionPriority MEDIUM = const RetentionPriority('MEDIUM', 1);
 
   /**
    * A priority indicating that a given piece of data should not be removed from the cache.
    * Currently used for data related to a priority source.
    */
-  static final RetentionPriority HIGH = new RetentionPriority('HIGH', 2);
+  static const RetentionPriority HIGH = const RetentionPriority('HIGH', 2);
 
-  static final List<RetentionPriority> values = [LOW, MEDIUM, HIGH];
+  static const List<RetentionPriority> values = const [LOW, MEDIUM, HIGH];
 
-  RetentionPriority(String name, int ordinal) : super(name, ordinal);
+  const RetentionPriority(String name, int ordinal) : super(name, ordinal);
 }
 
 /**
@@ -3366,6 +3357,14 @@ abstract class SourceEntry {
    * @return the exception that caused one or more values to be uncomputable
    */
   AnalysisException get exception;
+
+  /**
+   * Return `true` if the source was explicitly added to the context or `false` if the
+   * source was implicitly added because it was referenced by another source.
+   *
+   * @return `true` if the source was explicitly added to the context
+   */
+  bool get explicitlyAdded;
 
   /**
    * Return the kind of the source, or `null` if the kind is not currently cached.
@@ -3420,6 +3419,11 @@ abstract class SourceEntryImpl implements SourceEntry {
   int _modificationTime = 0;
 
   /**
+   * A bit-encoding of boolean flags associated with this element.
+   */
+  int _flags = 0;
+
+  /**
    * The exception that caused one or more values to have a state of [CacheState#ERROR].
    */
   AnalysisException exception;
@@ -3446,6 +3450,12 @@ abstract class SourceEntryImpl implements SourceEntry {
   LineInfo _lineInfo;
 
   /**
+   * The index of the flag indicating whether the source was explicitly added to the context or
+   * whether the source was implicitly added because it was referenced by another source.
+   */
+  static int _EXPLICITLY_ADDED_FLAG = 0;
+
+  /**
    * Fix the state of the [exception] to match the current state of the entry.
    */
   void fixExceptionState() {
@@ -3461,6 +3471,15 @@ abstract class SourceEntryImpl implements SourceEntry {
       exception = null;
     }
   }
+
+  /**
+   * Return `true` if the source was explicitly added to the context or `false` if the
+   * source was implicitly added because it was referenced by another source.
+   *
+   * @return `true` if the source was explicitly added to the context
+   */
+  @override
+  bool get explicitlyAdded => getFlag(_EXPLICITLY_ADDED_FLAG);
 
   @override
   int get modificationTime => _modificationTime;
@@ -3505,6 +3524,15 @@ abstract class SourceEntryImpl implements SourceEntry {
   void recordContentError() {
     _content = null;
     _contentState = CacheState.ERROR;
+  }
+
+  /**
+   * Set whether the source was explicitly added to the context to match the given value.
+   *
+   * @param explicitlyAdded `true` if the source was explicitly added to the context
+   */
+  void set explicitlyAdded(bool explicitlyAdded) {
+    setFlag(_EXPLICITLY_ADDED_FLAG, explicitlyAdded);
   }
 
   /**
@@ -3561,12 +3589,24 @@ abstract class SourceEntryImpl implements SourceEntry {
   }
 
   /**
+   * Set the value of all of the flags with the given indexes to false.
+   *
+   * @param indexes the indexes of the flags whose value is to be set to false
+   */
+  void clearFlags(List<int> indexes) {
+    for (int i = 0; i < indexes.length; i++) {
+      _flags = BooleanArray.set(_flags, indexes[i], false);
+    }
+  }
+
+  /**
    * Copy the information from the given cache entry.
    *
    * @param entry the cache entry from which information will be copied
    */
   void copyFrom(SourceEntryImpl entry) {
     _modificationTime = entry._modificationTime;
+    _flags = entry._flags;
     exception = entry.exception;
     _contentState = entry._contentState;
     _content = entry._content;
@@ -3575,11 +3615,29 @@ abstract class SourceEntryImpl implements SourceEntry {
   }
 
   /**
+   * Return the value of the flag with the given index.
+   *
+   * @param index the index of the flag whose value is to be returned
+   * @return the value of the flag with the given index
+   */
+  bool getFlag(int index) => BooleanArray.get(_flags, index);
+
+  /**
    * Return `true` if the state of any data value is [CacheState#ERROR].
    *
    * @return `true` if the state of any data value is [CacheState#ERROR]
    */
-  bool get hasErrorState => identical(_contentState, CacheState.ERROR) || identical(_lineInfoState, CacheState.ERROR);
+  bool get hasErrorState => _contentState == CacheState.ERROR || _lineInfoState == CacheState.ERROR;
+
+  /**
+   * Set the value of the flag with the given index to the given value.
+   *
+   * @param index the index of the flag whose value is to be returned
+   * @param value the value of the flag with the given index
+   */
+  void setFlag(int index, bool value) {
+    _flags = BooleanArray.set(_flags, index, value);
+  }
 
   /**
    * Given that some data is being transitioned to the given state, return the value that should be
@@ -3591,9 +3649,9 @@ abstract class SourceEntryImpl implements SourceEntry {
    * @return the value of the data that should be kept in the cache
    */
   Object updatedValue(CacheState state, Object currentValue, Object defaultValue) {
-    if (identical(state, CacheState.VALID)) {
+    if (state == CacheState.VALID) {
       throw new IllegalArgumentException("Use setValue() to set the state to VALID");
-    } else if (identical(state, CacheState.IN_PROCESS)) {
+    } else if (state == CacheState.IN_PROCESS) {
       //
       // We can leave the current value in the cache for any 'get' methods to access.
       //
@@ -3660,7 +3718,7 @@ class AnalysisContentStatisticsImpl implements AnalysisContentStatistics {
       _dataMap[rowName] = row;
     }
     row._incState(state);
-    if (identical(state, CacheState.ERROR)) {
+    if (state == CacheState.ERROR) {
       AnalysisException exception = dartEntry.exception;
       if (exception != null) {
         _exceptions.add(exception);
@@ -3670,7 +3728,7 @@ class AnalysisContentStatisticsImpl implements AnalysisContentStatistics {
 }
 
 class AnalysisContentStatisticsImpl_CacheRowImpl implements AnalysisContentStatistics_CacheRow {
-  String name;
+  final String name;
 
   int _errorCount = 0;
 
@@ -3682,9 +3740,7 @@ class AnalysisContentStatisticsImpl_CacheRowImpl implements AnalysisContentStati
 
   int _validCount = 0;
 
-  AnalysisContentStatisticsImpl_CacheRowImpl(String name) {
-    this.name = name;
-  }
+  AnalysisContentStatisticsImpl_CacheRowImpl(this.name);
 
   @override
   bool operator ==(Object obj) => obj is AnalysisContentStatisticsImpl_CacheRowImpl && obj.name == name;
@@ -3708,19 +3764,19 @@ class AnalysisContentStatisticsImpl_CacheRowImpl implements AnalysisContentStati
   int get hashCode => name.hashCode;
 
   void _incState(CacheState state) {
-    if (identical(state, CacheState.ERROR)) {
+    if (state == CacheState.ERROR) {
       _errorCount++;
     }
-    if (identical(state, CacheState.FLUSHED)) {
+    if (state == CacheState.FLUSHED) {
       _flushedCount++;
     }
-    if (identical(state, CacheState.IN_PROCESS)) {
+    if (state == CacheState.IN_PROCESS) {
       _inProcessCount++;
     }
-    if (identical(state, CacheState.INVALID)) {
+    if (state == CacheState.INVALID) {
       _invalidCount++;
     }
-    if (identical(state, CacheState.VALID)) {
+    if (state == CacheState.VALID) {
       _validCount++;
     }
   }
@@ -3901,9 +3957,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _cache.put(source, dartCopy);
         SourcePriority priority = SourcePriority.UNKNOWN;
         SourceKind kind = dartCopy.kind;
-        if (identical(kind, SourceKind.LIBRARY)) {
+        if (kind == SourceKind.LIBRARY) {
           priority = SourcePriority.LIBRARY;
-        } else if (identical(kind, SourceKind.PART)) {
+        } else if (kind == SourceKind.PART) {
           priority = SourcePriority.NORMAL_PART;
         }
         _workManager.add(source, priority);
@@ -3959,7 +4015,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         dartEntry = _getReadableDartEntry(source);
         ListUtilities.addAll(errors, _getDartParseData(source, dartEntry, DartEntry.PARSE_ERRORS));
         dartEntry = _getReadableDartEntry(source);
-        if (identical(dartEntry.getValue(DartEntry.SOURCE_KIND), SourceKind.LIBRARY)) {
+        if (dartEntry.getValue(DartEntry.SOURCE_KIND) == SourceKind.LIBRARY) {
           ListUtilities.addAll(errors, _getDartResolutionData(source, source, dartEntry, DartEntry.RESOLUTION_ERRORS));
           dartEntry = _getReadableDartEntry(source);
           ListUtilities.addAll(errors, _getDartVerificationData(source, source, dartEntry, DartEntry.VERIFICATION_ERRORS));
@@ -4187,7 +4243,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         List<Source> librarySources = getLibrariesContaining(source);
         for (MapEntry<Source, SourceEntry> entry in _cache.entrySet()) {
           SourceEntry sourceEntry = entry.getValue();
-          if (identical(sourceEntry.kind, SourceKind.HTML)) {
+          if (sourceEntry.kind == SourceKind.HTML) {
             List<Source> referencedLibraries = (sourceEntry as HtmlEntry).getValue(HtmlEntry.REFERENCED_LIBRARIES);
             if (_containsAny(referencedLibraries, librarySources)) {
               htmlSources.add(entry.getKey());
@@ -4223,7 +4279,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     for (MapEntry<Source, SourceEntry> entry in _cache.entrySet()) {
       Source source = entry.getKey();
       SourceEntry sourceEntry = entry.getValue();
-      if (identical(sourceEntry.kind, SourceKind.LIBRARY) && !source.isInSystemLibrary) {
+      if (sourceEntry.kind == SourceKind.LIBRARY && !source.isInSystemLibrary) {
         //          DartEntry dartEntry = (DartEntry) sourceEntry;
         //          if (dartEntry.getValue(DartEntry.IS_LAUNCHABLE) && dartEntry.getValue(DartEntry.IS_CLIENT)) {
         sources.add(source);
@@ -4240,7 +4296,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     for (MapEntry<Source, SourceEntry> entry in _cache.entrySet()) {
       Source source = entry.getKey();
       SourceEntry sourceEntry = entry.getValue();
-      if (identical(sourceEntry.kind, SourceKind.LIBRARY) && !source.isInSystemLibrary) {
+      if (sourceEntry.kind == SourceKind.LIBRARY && !source.isInSystemLibrary) {
         //          DartEntry dartEntry = (DartEntry) sourceEntry;
         //          if (dartEntry.getValue(DartEntry.IS_LAUNCHABLE) && !dartEntry.getValue(DartEntry.IS_CLIENT)) {
         sources.add(source);
@@ -4263,7 +4319,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     List<Source> dependentLibraries = new List<Source>();
     for (MapEntry<Source, SourceEntry> entry in _cache.entrySet()) {
       SourceEntry sourceEntry = entry.getValue();
-      if (identical(sourceEntry.kind, SourceKind.LIBRARY)) {
+      if (sourceEntry.kind == SourceKind.LIBRARY) {
         if (_contains((sourceEntry as DartEntry).getValue(DartEntry.EXPORTED_LIBRARIES), librarySource)) {
           dependentLibraries.add(entry.getKey());
         }
@@ -4433,7 +4489,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         statistics.putCacheItem(dartEntry, DartEntry.PARSE_ERRORS);
         statistics.putCacheItem(dartEntry, DartEntry.PARSED_UNIT);
         statistics.putCacheItem(dartEntry, DartEntry.SOURCE_KIND);
-        if (identical(kind, SourceKind.LIBRARY)) {
+        if (kind == SourceKind.LIBRARY) {
           statistics.putCacheItem(dartEntry, DartEntry.ELEMENT);
           statistics.putCacheItem(dartEntry, DartEntry.EXPORTED_LIBRARIES);
           statistics.putCacheItem(dartEntry, DartEntry.IMPORTED_LIBRARIES);
@@ -4789,11 +4845,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             if (source == unitSource) {
               unitEntry = dartCopy;
             }
-            if (_generateSdkErrors || !source.isInSystemLibrary) {
-              ChangeNoticeImpl notice = _getNotice(source);
-              notice.compilationUnit = unit;
-              notice.setErrors(dartCopy.allErrors, lineInfo);
-            }
+            ChangeNoticeImpl notice = _getNotice(source);
+            notice.compilationUnit = unit;
+            notice.setErrors(dartCopy.allErrors, lineInfo);
           }
         }
       } else {
@@ -4916,11 +4970,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             if (source == unitSource) {
               unitEntry = dartCopy;
             }
-            if (_generateSdkErrors || !source.isInSystemLibrary) {
-              ChangeNoticeImpl notice = _getNotice(source);
-              notice.compilationUnit = unit;
-              notice.setErrors(dartCopy.allErrors, lineInfo);
-            }
+            ChangeNoticeImpl notice = _getNotice(source);
+            notice.compilationUnit = unit;
+            notice.setErrors(dartCopy.allErrors, lineInfo);
           }
         }
       } else {
@@ -5370,23 +5422,25 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   /**
    * Create a [GenerateDartErrorsTask] for the given source, marking the verification errors
-   * as being in-process.
+   * as being in-process. The compilation unit and the library can be the same if the compilation
+   * unit is the defining compilation unit of the library.
    *
-   * @param source the source whose content is to be verified
-   * @param dartEntry the entry for the source
-   * @param librarySource the source for the library containing the source
+   * @param unitSource the source for the compilation unit to be verified
+   * @param unitEntry the entry for the compilation unit
+   * @param librarySource the source for the library containing the compilation unit
    * @param libraryEntry the entry for the library
    * @return task data representing the created task
    */
-  AnalysisContextImpl_TaskData _createGenerateDartErrorsTask(Source source, DartEntry dartEntry, Source librarySource, SourceEntry libraryEntry) {
-    if (dartEntry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource) != CacheState.VALID || libraryEntry.getState(DartEntry.ELEMENT) != CacheState.VALID) {
+  AnalysisContextImpl_TaskData _createGenerateDartErrorsTask(Source unitSource, DartEntry unitEntry, Source librarySource, DartEntry libraryEntry) {
+    if (unitEntry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource) != CacheState.VALID || libraryEntry.getState(DartEntry.ELEMENT) != CacheState.VALID) {
+      return _createResolveDartLibraryTask(librarySource, libraryEntry);
     }
-    CompilationUnit unit = dartEntry.getValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource);
+    CompilationUnit unit = unitEntry.getValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource);
     LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
-    DartEntryImpl dartCopy = dartEntry.writableCopy;
+    DartEntryImpl dartCopy = unitEntry.writableCopy;
     dartCopy.setStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource, CacheState.IN_PROCESS);
-    _cache.put(source, dartCopy);
-    return new AnalysisContextImpl_TaskData(new GenerateDartErrorsTask(this, source, dartCopy.modificationTime, unit, libraryElement), false);
+    _cache.put(unitSource, dartCopy);
+    return new AnalysisContextImpl_TaskData(new GenerateDartErrorsTask(this, unitSource, dartCopy.modificationTime, unit, libraryElement), false);
   }
 
   /**
@@ -5585,18 +5639,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * object that was created, or `null` if the source should not be tracked by this context.
    *
    * @param source the source for which an information object is being created
+   * @param explicitlyAdded `true` if the source was explicitly added to the context
    * @return the source information object that was created
    */
-  SourceEntry _createSourceEntry(Source source) {
+  SourceEntry _createSourceEntry(Source source, bool explicitlyAdded) {
     String name = source.shortName;
     if (AnalysisEngine.isHtmlFileName(name)) {
       HtmlEntryImpl htmlEntry = new HtmlEntryImpl();
       htmlEntry.modificationTime = getModificationStamp(source);
+      htmlEntry.explicitlyAdded = explicitlyAdded;
       _cache.put(source, htmlEntry);
       return htmlEntry;
     } else {
       DartEntryImpl dartEntry = new DartEntryImpl();
       dartEntry.modificationTime = getModificationStamp(source);
+      dartEntry.explicitlyAdded = explicitlyAdded;
       _cache.put(source, dartEntry);
       return dartEntry;
     }
@@ -5935,7 +5992,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         if (sourceEntry is DartEntry) {
           DartEntry dartEntry = sourceEntry;
           if (!dartEntry.hasResolvableCompilationUnit) {
-            if (identical(dartEntry.getState(DartEntry.PARSED_UNIT), CacheState.ERROR)) {
+            if (dartEntry.getState(DartEntry.PARSED_UNIT) == CacheState.ERROR) {
               sourcesToRemove.add(source);
             } else {
               AnalysisContextImpl_TaskData taskData = _createParseDartTask(source, dartEntry);
@@ -6016,24 +6073,24 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return new AnalysisContextImpl_TaskData(null, false);
     }
     CacheState contentState = sourceEntry.getState(SourceEntry.CONTENT);
-    if (identical(contentState, CacheState.INVALID)) {
+    if (contentState == CacheState.INVALID) {
       return _createGetContentTask(source, sourceEntry);
-    } else if (identical(contentState, CacheState.IN_PROCESS)) {
+    } else if (contentState == CacheState.IN_PROCESS) {
       // We are already in the process of getting the content. There's nothing else we can do with
       // this source until that's complete.
       return new AnalysisContextImpl_TaskData(null, true);
-    } else if (identical(contentState, CacheState.ERROR)) {
+    } else if (contentState == CacheState.ERROR) {
       // We have done all of the analysis we can for this source because we cannot get its content.
       return new AnalysisContextImpl_TaskData(null, false);
     }
     if (sourceEntry is DartEntry) {
       DartEntry dartEntry = sourceEntry;
       CacheState scanErrorsState = dartEntry.getState(DartEntry.SCAN_ERRORS);
-      if (identical(scanErrorsState, CacheState.INVALID) || (isPriority && identical(scanErrorsState, CacheState.FLUSHED))) {
+      if (scanErrorsState == CacheState.INVALID || (isPriority && scanErrorsState == CacheState.FLUSHED)) {
         return _createScanDartTask(source, dartEntry);
       }
       CacheState parseErrorsState = dartEntry.getState(DartEntry.PARSE_ERRORS);
-      if (identical(parseErrorsState, CacheState.INVALID) || (isPriority && identical(parseErrorsState, CacheState.FLUSHED))) {
+      if (parseErrorsState == CacheState.INVALID || (isPriority && parseErrorsState == CacheState.FLUSHED)) {
         return _createParseDartTask(source, dartEntry);
       }
       if (isPriority && parseErrorsState != CacheState.ERROR) {
@@ -6042,20 +6099,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         }
       }
       SourceKind kind = dartEntry.getValue(DartEntry.SOURCE_KIND);
-      if (identical(kind, SourceKind.UNKNOWN)) {
+      if (kind == SourceKind.UNKNOWN) {
         return _createParseDartTask(source, dartEntry);
-      } else if (identical(kind, SourceKind.LIBRARY)) {
+      } else if (kind == SourceKind.LIBRARY) {
         CacheState elementState = dartEntry.getState(DartEntry.ELEMENT);
-        if (identical(elementState, CacheState.INVALID)) {
+        if (elementState == CacheState.INVALID) {
           return _createResolveDartLibraryTask(source, dartEntry);
         }
       }
       List<Source> librariesContaining = dartEntry.getValue(DartEntry.CONTAINING_LIBRARIES);
       for (Source librarySource in librariesContaining) {
-        SourceEntry libraryEntry = _cache.get(librarySource);
-        if (libraryEntry is DartEntry) {
+        SourceEntry librarySourceEntry = _cache.get(librarySource);
+        if (librarySourceEntry is DartEntry) {
+          DartEntry libraryEntry = librarySourceEntry;
           CacheState elementState = libraryEntry.getState(DartEntry.ELEMENT);
-          if (identical(elementState, CacheState.INVALID) || (isPriority && identical(elementState, CacheState.FLUSHED))) {
+          if (elementState == CacheState.INVALID || (isPriority && elementState == CacheState.FLUSHED)) {
             //return createResolveDartLibraryTask(librarySource, (DartEntry) libraryEntry);
             DartEntryImpl libraryCopy = libraryEntry.writableCopy;
             libraryCopy.setState(DartEntry.ELEMENT, CacheState.IN_PROCESS);
@@ -6063,7 +6121,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             return new AnalysisContextImpl_TaskData(new ResolveDartLibraryTask(this, source, librarySource), false);
           }
           CacheState resolvedUnitState = dartEntry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource);
-          if (identical(resolvedUnitState, CacheState.INVALID) || (isPriority && identical(resolvedUnitState, CacheState.FLUSHED))) {
+          if (resolvedUnitState == CacheState.INVALID || (isPriority && resolvedUnitState == CacheState.FLUSHED)) {
             //
             // The commented out lines below are an optimization that doesn't quite work yet. The
             // problem is that if the source was not resolved because it wasn't part of any library,
@@ -6081,12 +6139,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           }
           if (_generateSdkErrors || !source.isInSystemLibrary) {
             CacheState verificationErrorsState = dartEntry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource);
-            if (identical(verificationErrorsState, CacheState.INVALID) || (isPriority && identical(verificationErrorsState, CacheState.FLUSHED))) {
+            if (verificationErrorsState == CacheState.INVALID || (isPriority && verificationErrorsState == CacheState.FLUSHED)) {
               return _createGenerateDartErrorsTask(source, dartEntry, librarySource, libraryEntry);
             }
             if (hintsEnabled) {
               CacheState hintsState = dartEntry.getStateInLibrary(DartEntry.HINTS, librarySource);
-              if (identical(hintsState, CacheState.INVALID) || (isPriority && identical(hintsState, CacheState.FLUSHED))) {
+              if (hintsState == CacheState.INVALID || (isPriority && hintsState == CacheState.FLUSHED)) {
                 return _createGenerateDartHintsTask(source, dartEntry, librarySource, libraryEntry);
               }
             }
@@ -6096,7 +6154,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     } else if (sourceEntry is HtmlEntry) {
       HtmlEntry htmlEntry = sourceEntry;
       CacheState parseErrorsState = htmlEntry.getState(HtmlEntry.PARSE_ERRORS);
-      if (identical(parseErrorsState, CacheState.INVALID) || (isPriority && identical(parseErrorsState, CacheState.FLUSHED))) {
+      if (parseErrorsState == CacheState.INVALID || (isPriority && parseErrorsState == CacheState.FLUSHED)) {
         return _createParseHtmlTask(source, htmlEntry);
       }
       if (isPriority && parseErrorsState != CacheState.ERROR) {
@@ -6106,7 +6164,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         }
       }
       CacheState resolvedUnitState = htmlEntry.getState(HtmlEntry.RESOLVED_UNIT);
-      if (identical(resolvedUnitState, CacheState.INVALID) || (isPriority && identical(resolvedUnitState, CacheState.FLUSHED))) {
+      if (resolvedUnitState == CacheState.INVALID || (isPriority && resolvedUnitState == CacheState.FLUSHED)) {
         return _createResolveHtmlTask(source, htmlEntry);
       }
       //
@@ -6115,12 +6173,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (_options.analyzeAngular) {
         // Try to resolve the HTML as an Angular entry point.
         CacheState angularEntryState = htmlEntry.getState(HtmlEntry.ANGULAR_ENTRY);
-        if (identical(angularEntryState, CacheState.INVALID) || (isPriority && identical(angularEntryState, CacheState.FLUSHED))) {
+        if (angularEntryState == CacheState.INVALID || (isPriority && angularEntryState == CacheState.FLUSHED)) {
           return _createResolveAngularEntryHtmlTask(source, htmlEntry);
         }
         // Try to resolve the HTML as an Angular application part.
         CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
-        if (identical(angularErrorsState, CacheState.INVALID) || (isPriority && identical(angularErrorsState, CacheState.FLUSHED))) {
+        if (angularErrorsState == CacheState.INVALID || (isPriority && angularErrorsState == CacheState.FLUSHED)) {
           return _createResolveAngularComponentTemplateTask(source, htmlEntry);
         }
       }
@@ -6153,7 +6211,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   DartEntry _getReadableDartEntry(Source source) {
     SourceEntry sourceEntry = _cache.get(source);
     if (sourceEntry == null) {
-      sourceEntry = _createSourceEntry(source);
+      sourceEntry = _createSourceEntry(source, false);
     }
     if (sourceEntry is DartEntry) {
       return sourceEntry as DartEntry;
@@ -6171,7 +6229,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   HtmlEntry _getReadableHtmlEntry(Source source) {
     SourceEntry sourceEntry = _cache.get(source);
     if (sourceEntry == null) {
-      sourceEntry = _createSourceEntry(source);
+      sourceEntry = _createSourceEntry(source, false);
     }
     if (sourceEntry is HtmlEntry) {
       return sourceEntry as HtmlEntry;
@@ -6188,7 +6246,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   SourceEntry _getReadableSourceEntry(Source source) {
     SourceEntry sourceEntry = _cache.get(source);
     if (sourceEntry == null) {
-      sourceEntry = _createSourceEntry(source);
+      sourceEntry = _createSourceEntry(source, false);
     }
     return sourceEntry;
   }
@@ -6214,7 +6272,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     SourceEntry sourceEntry = _cache.get(element.source);
     if (sourceEntry is DartEntry) {
       DartEntry dartEntry = sourceEntry;
-      if (identical(dartEntry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource), CacheState.VALID)) {
+      if (dartEntry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource) == CacheState.VALID) {
         return new TimestampedData<CompilationUnit>(dartEntry.modificationTime, dartEntry.getValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource));
       }
     }
@@ -6230,7 +6288,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   List<Source> _getSources(SourceKind kind) {
     List<Source> sources = new List<Source>();
     for (MapEntry<Source, SourceEntry> entry in _cache.entrySet()) {
-      if (identical(entry.getValue().kind, kind)) {
+      if (entry.getValue().kind == kind) {
         sources.add(entry.getKey());
       }
     }
@@ -6256,12 +6314,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (sourceEntry is DartEntry) {
       DartEntry dartEntry = sourceEntry;
       CacheState scanErrorsState = dartEntry.getState(DartEntry.SCAN_ERRORS);
-      if (identical(scanErrorsState, CacheState.INVALID) || (isPriority && identical(scanErrorsState, CacheState.FLUSHED))) {
+      if (scanErrorsState == CacheState.INVALID || (isPriority && scanErrorsState == CacheState.FLUSHED)) {
         sources.add(source);
         return;
       }
       CacheState parseErrorsState = dartEntry.getState(DartEntry.PARSE_ERRORS);
-      if (identical(parseErrorsState, CacheState.INVALID) || (isPriority && identical(parseErrorsState, CacheState.FLUSHED))) {
+      if (parseErrorsState == CacheState.INVALID || (isPriority && parseErrorsState == CacheState.FLUSHED)) {
         sources.add(source);
         return;
       }
@@ -6275,12 +6333,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         SourceEntry libraryEntry = _cache.get(librarySource);
         if (libraryEntry is DartEntry) {
           CacheState elementState = libraryEntry.getState(DartEntry.ELEMENT);
-          if (identical(elementState, CacheState.INVALID) || (isPriority && identical(elementState, CacheState.FLUSHED))) {
+          if (elementState == CacheState.INVALID || (isPriority && elementState == CacheState.FLUSHED)) {
             sources.add(source);
             return;
           }
           CacheState resolvedUnitState = dartEntry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource);
-          if (identical(resolvedUnitState, CacheState.INVALID) || (isPriority && identical(resolvedUnitState, CacheState.FLUSHED))) {
+          if (resolvedUnitState == CacheState.INVALID || (isPriority && resolvedUnitState == CacheState.FLUSHED)) {
             LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
             if (libraryElement != null) {
               sources.add(source);
@@ -6288,7 +6346,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             }
           }
           CacheState verificationErrorsState = dartEntry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource);
-          if (identical(verificationErrorsState, CacheState.INVALID) || (isPriority && identical(verificationErrorsState, CacheState.FLUSHED))) {
+          if (verificationErrorsState == CacheState.INVALID || (isPriority && verificationErrorsState == CacheState.FLUSHED)) {
             LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
             if (libraryElement != null) {
               sources.add(source);
@@ -6297,7 +6355,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           }
           if (hintsEnabled) {
             CacheState hintsState = dartEntry.getStateInLibrary(DartEntry.HINTS, librarySource);
-            if (identical(hintsState, CacheState.INVALID) || (isPriority && identical(hintsState, CacheState.FLUSHED))) {
+            if (hintsState == CacheState.INVALID || (isPriority && hintsState == CacheState.FLUSHED)) {
               LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
               if (libraryElement != null) {
                 sources.add(source);
@@ -6310,19 +6368,19 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     } else if (sourceEntry is HtmlEntry) {
       HtmlEntry htmlEntry = sourceEntry;
       CacheState parsedUnitState = htmlEntry.getState(HtmlEntry.PARSED_UNIT);
-      if (identical(parsedUnitState, CacheState.INVALID) || (isPriority && identical(parsedUnitState, CacheState.FLUSHED))) {
+      if (parsedUnitState == CacheState.INVALID || (isPriority && parsedUnitState == CacheState.FLUSHED)) {
         sources.add(source);
         return;
       }
       CacheState resolvedUnitState = htmlEntry.getState(HtmlEntry.RESOLVED_UNIT);
-      if (identical(resolvedUnitState, CacheState.INVALID) || (isPriority && identical(resolvedUnitState, CacheState.FLUSHED))) {
+      if (resolvedUnitState == CacheState.INVALID || (isPriority && resolvedUnitState == CacheState.FLUSHED)) {
         sources.add(source);
         return;
       }
       // Angular
       if (_options.analyzeAngular) {
         CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
-        if (identical(angularErrorsState, CacheState.INVALID) || (isPriority && identical(angularErrorsState, CacheState.FLUSHED))) {
+        if (angularErrorsState == CacheState.INVALID || (isPriority && angularErrorsState == CacheState.FLUSHED)) {
           AngularApplication entryInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_ENTRY);
           if (entryInfo != null) {
             sources.add(source);
@@ -6347,6 +6405,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * <b>Note:</b> This method must only be invoked while we are synchronized on [cacheLock].
    */
   void _invalidateAllResolutionInformation() {
+    Map<Source, List<Source>> oldPartMap = new Map<Source, List<Source>>();
     for (MapEntry<Source, SourceEntry> mapEntry in _cache.entrySet()) {
       Source source = mapEntry.getKey();
       SourceEntry sourceEntry = mapEntry.getValue();
@@ -6356,13 +6415,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         mapEntry.setValue(htmlCopy);
       } else if (sourceEntry is DartEntry) {
         DartEntry dartEntry = sourceEntry;
-        _removeFromParts(source, dartEntry);
+        oldPartMap[source] = dartEntry.getValue(DartEntry.INCLUDED_PARTS);
         DartEntryImpl dartCopy = dartEntry.writableCopy;
         dartCopy.invalidateAllResolutionInformation();
         mapEntry.setValue(dartCopy);
         _workManager.add(source, SourcePriority.UNKNOWN);
       }
     }
+    _removeFromPartsUsingMap(oldPartMap);
   }
 
   /**
@@ -6409,10 +6469,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       dartCopy.setValue(DartEntry.ANGULAR_ERRORS, AnalysisError.NO_ERRORS);
       _cache.put(elementSource, dartCopy);
       // notify about (disappeared) Angular errors
-      if (_generateSdkErrors || !elementSource.isInSystemLibrary) {
-        ChangeNoticeImpl notice = _getNotice(elementSource);
-        notice.setErrors(dartCopy.allErrors, dartEntry.getValue(SourceEntry.LINE_INFO));
-      }
+      ChangeNoticeImpl notice = _getNotice(elementSource);
+      notice.setErrors(dartCopy.allErrors, dartEntry.getValue(SourceEntry.LINE_INFO));
     }
   }
 
@@ -6426,33 +6484,22 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * re-accessed after this method returns.
    *
    * @param librarySource the source of the library being invalidated
-   * @param writer the writer to which debugging information should be written
    */
-  void _invalidateLibraryResolution(Source librarySource, PrintStringWriter writer) {
-    // TODO(brianwilkerson) This could be optimized. There's no need to flush all of these caches if
-    // the public namespace hasn't changed, which will be a fairly common case. The question is
+  void _invalidateLibraryResolution(Source librarySource) {
+    // TODO(brianwilkerson) This could be optimized. There's no need to flush all of these entries
+    // if the public namespace hasn't changed, which will be a fairly common case. The question is
     // whether we can afford the time to compute the namespace to look for differences.
     DartEntry libraryEntry = _getReadableDartEntry(librarySource);
     if (libraryEntry != null) {
       List<Source> includedParts = libraryEntry.getValue(DartEntry.INCLUDED_PARTS);
       DartEntryImpl libraryCopy = libraryEntry.writableCopy;
-      //      long oldTime = libraryCopy.getModificationTime();
       libraryCopy.invalidateAllResolutionInformation();
       _cache.put(librarySource, libraryCopy);
       _workManager.add(librarySource, SourcePriority.LIBRARY);
-      //      if (writer != null) {
-      //        writer.println("  Invalidated library source: " + debuggingString(librarySource)
-      //            + " (previously modified at " + oldTime + ")");
-      //      }
       for (Source partSource in includedParts) {
         SourceEntry partEntry = _cache.get(partSource);
         if (partEntry is DartEntry) {
           DartEntryImpl partCopy = partEntry.writableCopy;
-          //          oldTime = partCopy.getModificationTime();
-          if (partEntry != libraryCopy) {
-            partCopy.removeContainingLibrary(librarySource);
-            _workManager.add(librarySource, SourcePriority.NORMAL_PART);
-          }
           partCopy.invalidateAllResolutionInformation();
           _cache.put(partSource, partCopy);
         }
@@ -6562,10 +6609,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         dartCopy.setValue(DartEntry.ANGULAR_ERRORS, task.getErrors(elementSource));
         _cache.put(elementSource, dartCopy);
         // notify about Dart errors
-        if (_generateSdkErrors || !elementSource.isInSystemLibrary) {
-          ChangeNoticeImpl notice = _getNotice(elementSource);
-          notice.setErrors(dartCopy.allErrors, computeLineInfo(elementSource));
-        }
+        ChangeNoticeImpl notice = _getNotice(elementSource);
+        notice.setErrors(dartCopy.allErrors, computeLineInfo(elementSource));
       }
     }
     // remember Angular entry point
@@ -6624,10 +6669,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       DartEntryImpl dartCopy = dartEntry.writableCopy;
       if (thrownException == null) {
         dartCopy.setValueInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource, task.errors);
-        if (_generateSdkErrors || !source.isInSystemLibrary) {
-          ChangeNoticeImpl notice = _getNotice(source);
-          notice.setErrors(dartCopy.allErrors, dartCopy.getValue(SourceEntry.LINE_INFO));
-        }
+        ChangeNoticeImpl notice = _getNotice(source);
+        notice.setErrors(dartCopy.allErrors, dartCopy.getValue(SourceEntry.LINE_INFO));
       } else {
         dartCopy.setStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource, CacheState.ERROR);
       }
@@ -6726,10 +6769,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         DartEntryImpl dartCopy = dartEntry.writableCopy;
         if (thrownException == null) {
           dartCopy.setValueInLibrary(DartEntry.HINTS, librarySource, results.data);
-          if (_generateSdkErrors || !unitSource.isInSystemLibrary) {
-            ChangeNoticeImpl notice = _getNotice(unitSource);
-            notice.setErrors(dartCopy.allErrors, dartCopy.getValue(SourceEntry.LINE_INFO));
-          }
+          ChangeNoticeImpl notice = _getNotice(unitSource);
+          notice.setErrors(dartCopy.allErrors, dartCopy.getValue(SourceEntry.LINE_INFO));
         } else {
           dartCopy.setStateInLibrary(DartEntry.HINTS, librarySource, CacheState.ERROR);
         }
@@ -6738,7 +6779,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         dartEntry = dartCopy;
       } else {
         _logInformation2("Generated hints discarded for ${_debuggingString(unitSource)}; sourceTime = ${sourceTime}, resultTime = ${resultTime}, cacheTime = ${dartEntry.modificationTime}", thrownException);
-        if (identical(dartEntry.getStateInLibrary(DartEntry.HINTS, librarySource), CacheState.IN_PROCESS)) {
+        if (dartEntry.getStateInLibrary(DartEntry.HINTS, librarySource) == CacheState.IN_PROCESS) {
           DartEntryImpl dartCopy = dartEntry.writableCopy;
           if (thrownException == null || resultTime >= 0) {
             //
@@ -6816,10 +6857,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   DartEntry _recordIncrementalAnalysisTaskResults(IncrementalAnalysisTask task) {
     CompilationUnit unit = task.compilationUnit;
     if (unit != null) {
-      if (_generateSdkErrors || !task.source.isInSystemLibrary) {
-        ChangeNoticeImpl notice = _getNotice(task.source);
-        notice.compilationUnit = unit;
-      }
+      ChangeNoticeImpl notice = _getNotice(task.source);
+      notice.compilationUnit = unit;
       _incrementalAnalysisCache = IncrementalAnalysisCache.cacheResult(task.cache, unit);
     }
     return null;
@@ -6860,21 +6899,35 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _removeFromParts(source, dartEntry);
       DartEntryImpl dartCopy = dartEntry.writableCopy;
       if (thrownException == null) {
-        if (task.hasPartOfDirective && !task.hasLibraryDirective) {
+        if (task.hasNonPartOfDirective) {
+          dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
+          dartCopy.containingLibrary = source;
+          _workManager.add(source, SourcePriority.LIBRARY);
+        } else if (task.hasPartOfDirective) {
           dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.PART);
           dartCopy.removeContainingLibrary(source);
           _workManager.add(source, SourcePriority.NORMAL_PART);
         } else {
-          dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
-          dartCopy.containingLibrary = source;
-          _workManager.add(source, SourcePriority.LIBRARY);
+          // The file contains no directives.
+          List<Source> containingLibraries = dartCopy.containingLibraries;
+          if (containingLibraries.length > 1 || (containingLibraries.length == 1 && containingLibraries[0] != source)) {
+            dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.PART);
+            dartCopy.removeContainingLibrary(source);
+            _workManager.add(source, SourcePriority.NORMAL_PART);
+          } else {
+            dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
+            dartCopy.containingLibrary = source;
+            _workManager.add(source, SourcePriority.LIBRARY);
+          }
         }
         List<Source> newParts = task.includedSources;
         for (int i = 0; i < newParts.length; i++) {
           Source partSource = newParts[i];
           DartEntry partEntry = _getReadableDartEntry(partSource);
-          if (partEntry != null && partEntry != dartEntry) {
+          if (partEntry != null && !identical(partEntry, dartEntry)) {
             DartEntryImpl partCopy = partEntry.writableCopy;
+            // TODO(brianwilkerson) Change the kind of the "part" if it was marked as a library
+            // and it has no directives.
             partCopy.addContainingLibrary(source);
             _cache.put(partSource, partCopy);
           }
@@ -6885,10 +6938,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         dartCopy.setValue(DartEntry.IMPORTED_LIBRARIES, task.importedSources);
         dartCopy.setValue(DartEntry.INCLUDED_PARTS, newParts);
         _cache.storedAst(source);
-        if (_generateSdkErrors || !source.isInSystemLibrary) {
-          ChangeNoticeImpl notice = _getNotice(source);
-          notice.setErrors(dartCopy.allErrors, task.lineInfo);
-        }
+        ChangeNoticeImpl notice = _getNotice(source);
+        notice.setErrors(dartCopy.allErrors, task.lineInfo);
         // Verify that the incrementally parsed and resolved unit in the incremental cache
         // is structurally equivalent to the fully parsed unit
         _incrementalAnalysisCache = IncrementalAnalysisCache.verifyStructure(_incrementalAnalysisCache, source, task.compilationUnit);
@@ -6973,10 +7024,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         htmlCopy.setValue(HtmlEntry.PARSE_ERRORS, task.errors);
         htmlCopy.setValue(HtmlEntry.REFERENCED_LIBRARIES, task.referencedLibraries);
         _cache.storedAst(source);
-        if (_generateSdkErrors || !source.isInSystemLibrary) {
-          ChangeNoticeImpl notice = _getNotice(source);
-          notice.setErrors(htmlCopy.allErrors, lineInfo);
-        }
+        ChangeNoticeImpl notice = _getNotice(source);
+        notice.setErrors(htmlCopy.allErrors, lineInfo);
       } else {
         htmlCopy.recordParseError();
         _cache.removedAst(source);
@@ -7060,11 +7109,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (thrownException == null) {
         htmlCopy.setValue(HtmlEntry.ANGULAR_ERRORS, task.resolutionErrors);
         // notify about errors
-        if (_generateSdkErrors || !source.isInSystemLibrary) {
-          ChangeNoticeImpl notice = _getNotice(source);
-          notice.htmlUnit = task.resolvedUnit;
-          notice.setErrors(htmlCopy.allErrors, htmlCopy.getValue(SourceEntry.LINE_INFO));
-        }
+        ChangeNoticeImpl notice = _getNotice(source);
+        notice.htmlUnit = task.resolvedUnit;
+        notice.setErrors(htmlCopy.allErrors, htmlCopy.getValue(SourceEntry.LINE_INFO));
       } else {
         htmlCopy.recordResolutionError();
       }
@@ -7144,11 +7191,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         htmlCopy.setValue(HtmlEntry.RESOLVED_UNIT, task.resolvedUnit);
         _recordAngularEntryPoint(htmlCopy, task);
         _cache.storedAst(source);
-        if (_generateSdkErrors || !source.isInSystemLibrary) {
-          ChangeNoticeImpl notice = _getNotice(source);
-          notice.htmlUnit = task.resolvedUnit;
-          notice.setErrors(htmlCopy.allErrors, htmlCopy.getValue(SourceEntry.LINE_INFO));
-        }
+        ChangeNoticeImpl notice = _getNotice(source);
+        notice.htmlUnit = task.resolvedUnit;
+        notice.setErrors(htmlCopy.allErrors, htmlCopy.getValue(SourceEntry.LINE_INFO));
       } else {
         htmlCopy.recordResolutionError();
       }
@@ -7309,11 +7354,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         htmlCopy.setValue(HtmlEntry.ELEMENT, task.element);
         htmlCopy.setValue(HtmlEntry.RESOLUTION_ERRORS, task.resolutionErrors);
         _cache.storedAst(source);
-        if (_generateSdkErrors || !source.isInSystemLibrary) {
-          ChangeNoticeImpl notice = _getNotice(source);
-          notice.htmlUnit = task.resolvedUnit;
-          notice.setErrors(htmlCopy.allErrors, htmlCopy.getValue(SourceEntry.LINE_INFO));
-        }
+        ChangeNoticeImpl notice = _getNotice(source);
+        notice.htmlUnit = task.resolvedUnit;
+        notice.setErrors(htmlCopy.allErrors, htmlCopy.getValue(SourceEntry.LINE_INFO));
       } else {
         htmlCopy.recordResolutionError();
         _cache.removedAst(source);
@@ -7396,10 +7439,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         dartCopy.setValue(DartEntry.SCAN_ERRORS, task.errors);
         _cache.storedAst(source);
         _workManager.add(source, SourcePriority.NORMAL_PART);
-        if (_generateSdkErrors || !source.isInSystemLibrary) {
-          ChangeNoticeImpl notice = _getNotice(source);
-          notice.setErrors(dartEntry.allErrors, lineInfo);
-        }
+        ChangeNoticeImpl notice = _getNotice(source);
+        notice.setErrors(dartEntry.allErrors, lineInfo);
       } else {
         _removeFromParts(source, dartEntry);
         dartCopy.recordScanError();
@@ -7454,13 +7495,43 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     for (int i = 0; i < oldParts.length; i++) {
       Source partSource = oldParts[i];
       DartEntry partEntry = _getReadableDartEntry(partSource);
-      if (partEntry != null && partEntry != dartEntry) {
+      if (partEntry != null && !identical(partEntry, dartEntry)) {
         DartEntryImpl partCopy = partEntry.writableCopy;
         partCopy.removeContainingLibrary(librarySource);
-        if (partCopy.librariesContaining.length == 0 && !exists(partSource)) {
+        if (partCopy.containingLibraries.length == 0 && !exists(partSource)) {
           _cache.remove(partSource);
         } else {
           _cache.put(partSource, partCopy);
+        }
+      }
+    }
+  }
+
+  /**
+   * Remove the given libraries that are keys in the given map from the list of containing libraries
+   * for each of the parts in the corresponding value.
+   *
+   * <b>Note:</b> This method must only be invoked while we are synchronized on [cacheLock].
+   *
+   * @param oldPartMap the table containing the parts associated with each library
+   */
+  void _removeFromPartsUsingMap(Map<Source, List<Source>> oldPartMap) {
+    for (MapEntry<Source, List<Source>> entry in getMapEntrySet(oldPartMap)) {
+      Source librarySource = entry.getKey();
+      List<Source> oldParts = entry.getValue();
+      for (int i = 0; i < oldParts.length; i++) {
+        Source partSource = oldParts[i];
+        if (partSource != librarySource) {
+          DartEntry partEntry = _getReadableDartEntry(partSource);
+          if (partEntry != null) {
+            DartEntryImpl partCopy = partEntry.writableCopy;
+            partCopy.removeContainingLibrary(librarySource);
+            if (partCopy.containingLibraries.length == 0 && !exists(partSource)) {
+              _cache.remove(partSource);
+            } else {
+              _cache.put(partSource, partCopy);
+            }
+          }
         }
       }
     }
@@ -7496,12 +7567,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   bool _sourceAvailable(Source source) {
     SourceEntry sourceEntry = _cache.get(source);
     if (sourceEntry == null) {
-      sourceEntry = _createSourceEntry(source);
+      sourceEntry = _createSourceEntry(source, true);
     } else {
       SourceEntryImpl sourceCopy = sourceEntry.writableCopy;
-      //      long oldTime = sourceCopy.getModificationTime();
-      sourceCopy.modificationTime = getModificationStamp(source);
-      // TODO(brianwilkerson) Understand why we're not invalidating the cache.
+      int newTime = getModificationStamp(source);
+      sourceCopy.modificationTime = newTime;
+      sourceCopy.explicitlyAdded = true;
+      // TODO(brianwilkerson) Understand why we're not invalidating the cached data.
       _cache.put(source, sourceCopy);
     }
     if (sourceEntry is HtmlEntry) {
@@ -7522,16 +7594,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (sourceEntry == null || sourceEntry.modificationTime == getModificationStamp(source)) {
       // Either we have removed this source, in which case we don't care that it is changed, or we
       // have already invalidated the cache and don't need to invalidate it again.
-      //      if (sourceEntry == null) {
-      //        logInformation("Modified source, but there is no entry: " + debuggingString(source));
-      //      } else {
-      //        logInformation("Modified source, but modification time matches: " + debuggingString(source));
-      //      }
       return;
     }
     if (sourceEntry is HtmlEntry) {
       HtmlEntryImpl htmlCopy = sourceEntry.writableCopy;
-      //      long oldTime = htmlCopy.getModificationTime();
       htmlCopy.modificationTime = getModificationStamp(source);
       _invalidateAngularResolution(htmlCopy);
       htmlCopy.invalidateAllInformation();
@@ -7547,10 +7613,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           librariesToInvalidate.add(dependentLibrary);
         }
       }
-      PrintStringWriter writer = new PrintStringWriter();
       for (Source library in librariesToInvalidate) {
         //    for (Source library : containingLibraries) {
-        _invalidateLibraryResolution(library, writer);
+        _invalidateLibraryResolution(library);
       }
       _removeFromParts(source, _cache.get(source) as DartEntry);
       DartEntryImpl dartCopy = (_cache.get(source) as DartEntry).writableCopy;
@@ -7568,7 +7633,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @param source the source that has been deleted
    */
   void _sourceRemoved(Source source) {
-    PrintStringWriter writer = new PrintStringWriter();
     SourceEntry sourceEntry = _cache.get(source);
     if (sourceEntry is HtmlEntry) {
       HtmlEntryImpl htmlCopy = sourceEntry.writableCopy;
@@ -7582,7 +7646,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         }
       }
       for (Source librarySource in libraries) {
-        _invalidateLibraryResolution(librarySource, writer);
+        _invalidateLibraryResolution(librarySource);
       }
     }
     _cache.remove(source);
@@ -8216,7 +8280,7 @@ class AnalysisContextImpl_CycleBuilder {
       return Source.EMPTY_ARRAY;
     }
     CacheState exportState = dartEntry.getState(descriptor);
-    if (identical(exportState, CacheState.ERROR)) {
+    if (exportState == CacheState.ERROR) {
       return Source.EMPTY_ARRAY;
     } else if (exportState != CacheState.VALID) {
       if (_taskData == null) {
@@ -8243,13 +8307,13 @@ class AnalysisContextImpl_TaskData {
   /**
    * The task that is to be performed.
    */
-  AnalysisTask task;
+  final AnalysisTask task;
 
   /**
    * A flag indicating whether the associated source is blocked waiting for its contents to be
    * loaded.
    */
-  bool _blocked = false;
+  final bool _blocked;
 
   /**
    * Initialize a newly created data holder.
@@ -8258,10 +8322,7 @@ class AnalysisContextImpl_TaskData {
    * @param blocked `true` if the associated source is blocked waiting for its contents to
    *          be loaded
    */
-  AnalysisContextImpl_TaskData(AnalysisTask task, bool blocked) {
-    this.task = task;
-    this._blocked = blocked;
-  }
+  AnalysisContextImpl_TaskData(this.task, this._blocked);
 
   /**
    * Return `true` if the associated source is blocked waiting for its contents to be
@@ -8289,12 +8350,12 @@ class AnalysisErrorInfoImpl implements AnalysisErrorInfo {
   /**
    * The analysis errors associated with a source, or `null` if there are no errors.
    */
-  List<AnalysisError> errors;
+  final List<AnalysisError> errors;
 
   /**
    * The line information associated with the errors, or `null` if there are no errors.
    */
-  LineInfo lineInfo;
+  final LineInfo lineInfo;
 
   /**
    * Initialize an newly created error info with the errors and line information
@@ -8302,10 +8363,7 @@ class AnalysisErrorInfoImpl implements AnalysisErrorInfo {
    * @param errors the errors as a result of analysis
    * @param lineinfo the line info for the errors
    */
-  AnalysisErrorInfoImpl(List<AnalysisError> errors, LineInfo lineInfo) {
-    this.errors = errors;
-    this.lineInfo = lineInfo;
-  }
+  AnalysisErrorInfoImpl(this.errors, this.lineInfo);
 }
 
 /**
@@ -8401,7 +8459,7 @@ class ChangeNoticeImpl implements ChangeNotice {
   /**
    * The source for which the result is being reported.
    */
-  Source source;
+  final Source source;
 
   /**
    * The fully resolved AST that changed as a result of the analysis, or `null` if the AST was
@@ -8436,9 +8494,7 @@ class ChangeNoticeImpl implements ChangeNotice {
    *
    * @param source the source for which the change is being reported
    */
-  ChangeNoticeImpl(Source source) {
-    this.source = source;
-  }
+  ChangeNoticeImpl(this.source);
 
   @override
   List<AnalysisError> get errors => _errors;
@@ -8891,13 +8947,13 @@ class IncrementalAnalysisCache {
     return cache;
   }
 
-  Source librarySource;
+  final Source librarySource;
 
-  Source source;
+  final Source source;
 
-  String oldContents;
+  final String oldContents;
 
-  CompilationUnit resolvedUnit;
+  final CompilationUnit resolvedUnit;
 
   String _newContents;
 
@@ -8907,11 +8963,7 @@ class IncrementalAnalysisCache {
 
   int _newLength = 0;
 
-  IncrementalAnalysisCache(Source librarySource, Source source, CompilationUnit resolvedUnit, String oldContents, String newContents, int offset, int oldLength, int newLength) {
-    this.librarySource = librarySource;
-    this.source = source;
-    this.resolvedUnit = resolvedUnit;
-    this.oldContents = oldContents;
+  IncrementalAnalysisCache(this.librarySource, this.source, this.resolvedUnit, this.oldContents, String newContents, int offset, int oldLength, int newLength) {
     this._newContents = newContents;
     this._offset = offset;
     this._oldLength = oldLength;
@@ -10006,7 +10058,7 @@ class ResolvableCompilationUnit extends TimestampedData<CompilationUnit> {
   /**
    * The source of the compilation unit.
    */
-  Source _source;
+  final Source source;
 
   /**
    * Initialize a newly created holder to hold the given values.
@@ -10014,7 +10066,7 @@ class ResolvableCompilationUnit extends TimestampedData<CompilationUnit> {
    * @param modificationTime the modification time of the source from which the AST was created
    * @param unit the AST that was created from the source
    */
-  ResolvableCompilationUnit.con1(int modificationTime, CompilationUnit unit) : super(modificationTime, unit);
+  ResolvableCompilationUnit.con1(int modificationTime, CompilationUnit unit) : this.con2(modificationTime, unit, null);
 
   /**
    * Initialize a newly created holder to hold the given values.
@@ -10023,9 +10075,7 @@ class ResolvableCompilationUnit extends TimestampedData<CompilationUnit> {
    * @param unit the AST that was created from the source
    * @param source the source of the compilation unit
    */
-  ResolvableCompilationUnit.con2(int modificationTime, CompilationUnit unit, Source source) : super(modificationTime, unit) {
-    this._source = source;
-  }
+  ResolvableCompilationUnit.con2(int modificationTime, CompilationUnit unit, this.source) : super(modificationTime, unit);
 
   /**
    * Return the AST that was created from the source.
@@ -10033,13 +10083,6 @@ class ResolvableCompilationUnit extends TimestampedData<CompilationUnit> {
    * @return the AST that was created from the source
    */
   CompilationUnit get compilationUnit => data;
-
-  /**
-   * Return the source of the compilation unit.
-   *
-   * @return the source of the compilation unit
-   */
-  Source get source => _source;
 }
 
 /**
@@ -10074,31 +10117,31 @@ class SourcePriority extends Enum<SourcePriority> {
    * resolved. These parts are given a higher priority because there is a high probability that
    * their AST structure is still in the cache and therefore would not need to be re-created.
    */
-  static final SourcePriority PRIORITY_PART = new SourcePriority('PRIORITY_PART', 0);
+  static const SourcePriority PRIORITY_PART = const SourcePriority('PRIORITY_PART', 0);
 
   /**
    * Used for a Dart source that is known to be a library.
    */
-  static final SourcePriority LIBRARY = new SourcePriority('LIBRARY', 1);
+  static const SourcePriority LIBRARY = const SourcePriority('LIBRARY', 1);
 
   /**
    * Used for a Dart source whose kind is unknown.
    */
-  static final SourcePriority UNKNOWN = new SourcePriority('UNKNOWN', 2);
+  static const SourcePriority UNKNOWN = const SourcePriority('UNKNOWN', 2);
 
   /**
    * Used for a Dart source that is known to be a part but whose library has not yet been resolved.
    */
-  static final SourcePriority NORMAL_PART = new SourcePriority('NORMAL_PART', 3);
+  static const SourcePriority NORMAL_PART = const SourcePriority('NORMAL_PART', 3);
 
   /**
    * Used for an HTML source.
    */
-  static final SourcePriority HTML = new SourcePriority('HTML', 4);
+  static const SourcePriority HTML = const SourcePriority('HTML', 4);
 
-  static final List<SourcePriority> values = [PRIORITY_PART, LIBRARY, UNKNOWN, NORMAL_PART, HTML];
+  static const List<SourcePriority> values = const [PRIORITY_PART, LIBRARY, UNKNOWN, NORMAL_PART, HTML];
 
-  SourcePriority(String name, int ordinal) : super(name, ordinal);
+  const SourcePriority(String name, int ordinal) : super(name, ordinal);
 }
 
 /**
@@ -10109,12 +10152,12 @@ class TimestampedData<E> {
   /**
    * The modification time of the source from which the data was created.
    */
-  int modificationTime = 0;
+  final int modificationTime;
 
   /**
    * The data that was created from the source.
    */
-  E data;
+  final E data;
 
   /**
    * Initialize a newly created holder to hold the given values.
@@ -10122,10 +10165,7 @@ class TimestampedData<E> {
    * @param modificationTime the modification time of the source from which the data was created
    * @param unit the data that was created from the source
    */
-  TimestampedData(int modificationTime, E data) {
-    this.modificationTime = modificationTime;
-    this.data = data;
-  }
+  TimestampedData(this.modificationTime, this.data);
 }
 
 /**
@@ -10318,17 +10358,14 @@ class AngularExpression {
   /**
    * The [Expression] to apply filters to.
    */
-  Expression expression;
+  final Expression expression;
 
   /**
    * The filters to apply.
    */
-  List<AngularFilterNode> filters;
+  final List<AngularFilterNode> filters;
 
-  AngularExpression(Expression expression, List<AngularFilterNode> filters) {
-    this.expression = expression;
-    this.filters = filters;
-  }
+  AngularExpression(this.expression, this.filters);
 
   /**
    * Return the offset of the character immediately following the last character of this node's
@@ -10382,22 +10419,19 @@ class AngularFilterArgument {
   /**
    * The [TokenType#COLON] token.
    */
-  Token token;
+  final Token token;
 
   /**
    * The argument expression.
    */
-  Expression expression;
+  final Expression expression;
 
   /**
    * The optional sub-[Expression]s.
    */
   List<Expression> subExpressions = Expression.EMPTY_ARRAY;
 
-  AngularFilterArgument(Token token, Expression expression) {
-    this.token = token;
-    this.expression = expression;
-  }
+  AngularFilterArgument(this.token, this.expression);
 }
 
 /**
@@ -10407,23 +10441,19 @@ class AngularFilterNode {
   /**
    * The [TokenType#BAR] token.
    */
-  Token token;
+  final Token token;
 
   /**
    * The name of the filter.
    */
-  SimpleIdentifier name;
+  final SimpleIdentifier name;
 
   /**
    * The arguments for this filter.
    */
-  List<AngularFilterArgument> arguments;
+  final List<AngularFilterArgument> arguments;
 
-  AngularFilterNode(Token token, SimpleIdentifier name, List<AngularFilterArgument> arguments) {
-    this.token = token;
-    this.name = name;
-    this.arguments = arguments;
-  }
+  AngularFilterNode(this.token, this.name, this.arguments);
 }
 
 /**
@@ -10544,17 +10574,17 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
     return sources;
   }
 
-  InternalAnalysisContext _context;
+  final InternalAnalysisContext _context;
 
   TypeProvider _typeProvider;
 
   AngularHtmlUnitResolver_FilteringAnalysisErrorListener _errorListener;
 
-  Source _source;
+  final Source _source;
 
-  LineInfo _lineInfo;
+  final LineInfo _lineInfo;
 
-  ht.HtmlUnit _unit;
+  final ht.HtmlUnit _unit;
 
   List<AngularElement> _angularElements;
 
@@ -10578,13 +10608,9 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
 
   Scope _nameScope;
 
-  AngularHtmlUnitResolver(InternalAnalysisContext context, AnalysisErrorListener errorListener, Source source, LineInfo lineInfo, ht.HtmlUnit unit) {
-    this._context = context;
-    this._typeProvider = context.typeProvider;
+  AngularHtmlUnitResolver(this._context, AnalysisErrorListener errorListener, this._source, this._lineInfo, this._unit) {
+    this._typeProvider = _context.typeProvider;
     this._errorListener = new AngularHtmlUnitResolver_FilteringAnalysisErrorListener(errorListener);
-    this._source = source;
-    this._lineInfo = lineInfo;
-    this._unit = unit;
   }
 
   /**
@@ -10795,7 +10821,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
       while (filterToken.type != TokenType.EOF) {
         // skip ":"
         Token colonToken = filterToken;
-        if (identical(colonToken.type, TokenType.COLON)) {
+        if (colonToken.type == TokenType.COLON) {
           filterToken = filterToken.next;
         } else {
           _reportErrorForToken(AngularCode.MISSING_FILTER_COLON, colonToken, []);
@@ -10988,7 +11014,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
     ht.Token token = node.attributeEnd;
     ht.Token endToken = node.endToken;
     bool inChild = false;
-    while (token != endToken) {
+    while (!identical(token, endToken)) {
       for (ht.XmlTagNode child in node.tagNodes) {
         if (identical(token, child.beginToken)) {
           inChild = true;
@@ -10999,7 +11025,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
           break;
         }
       }
-      if (!inChild && identical(token.type, ht.TokenType.TEXT)) {
+      if (!inChild && token.type == ht.TokenType.TEXT) {
         _parseEmbeddedExpressions(expressions, token);
       }
       token = token.next;
@@ -11098,7 +11124,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
     List<Token> tokens = [];
     tokens.add(token);
     while (token.type != TokenType.EOF) {
-      if (identical(token.type, TokenType.BAR)) {
+      if (token.type == TokenType.BAR) {
         tokens.add(token);
         Token eofToken = new Token(TokenType.EOF, 0);
         token.previous.setNext(eofToken);
@@ -11119,11 +11145,9 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
 }
 
 class AngularHtmlUnitResolver_FilteringAnalysisErrorListener implements AnalysisErrorListener {
-  AnalysisErrorListener _listener;
+  final AnalysisErrorListener _listener;
 
-  AngularHtmlUnitResolver_FilteringAnalysisErrorListener(AnalysisErrorListener listener) {
-    this._listener = listener;
-  }
+  AngularHtmlUnitResolver_FilteringAnalysisErrorListener(this._listener);
 
   @override
   void onError(AnalysisError error) {
@@ -11183,17 +11207,14 @@ class AngularMoustacheXmlExpression extends AngularXmlExpression {
   /**
    * The offset of the first character of the opening delimiter.
    */
-  int _openingOffset = 0;
+  final int _openingOffset;
 
   /**
    * The offset of the first character of the closing delimiter.
    */
-  int _closingOffset = 0;
+  final int _closingOffset;
 
-  AngularMoustacheXmlExpression(int openingOffset, int closingOffset, AngularExpression expression) : super(expression) {
-    this._openingOffset = openingOffset;
-    this._closingOffset = closingOffset;
-  }
+  AngularMoustacheXmlExpression(this._openingOffset, this._closingOffset, AngularExpression expression) : super(expression);
 
   @override
   int get end => _closingOffset + CLOSING_DELIMITER_LENGTH;
@@ -11229,11 +11250,9 @@ abstract class AngularXmlExpression extends ht.XmlExpression {
   /**
    * The expression that is enclosed between the delimiters.
    */
-  AngularExpression expression;
+  final AngularExpression expression;
 
-  AngularXmlExpression(AngularExpression expression) {
-    this.expression = expression;
-  }
+  AngularXmlExpression(this.expression);
 
   @override
   ht.XmlExpression_Reference getReference(int offset) {
@@ -11322,11 +11341,9 @@ abstract class ExpressionVisitor extends ht.RecursiveXmlVisitor<Object> {
  * attributes as expressions.
  */
 class NgComponentElementProcessor extends NgDirectiveProcessor {
-  AngularComponentElement _element;
+  final AngularComponentElement _element;
 
-  NgComponentElementProcessor(AngularComponentElement element) {
-    this._element = element;
-  }
+  NgComponentElementProcessor(this._element);
 
   @override
   void apply(AngularHtmlUnitResolver resolver, ht.XmlTagNode node) {
@@ -11354,11 +11371,9 @@ class NgComponentElementProcessor extends NgDirectiveProcessor {
  * [NgControllerElementProcessor] applies [AngularControllerElement].
  */
 class NgControllerElementProcessor extends NgProcessor {
-  AngularControllerElement _element;
+  final AngularControllerElement _element;
 
-  NgControllerElementProcessor(AngularControllerElement element) {
-    this._element = element;
-  }
+  NgControllerElementProcessor(this._element);
 
   @override
   void apply(AngularHtmlUnitResolver resolver, ht.XmlTagNode node) {
@@ -11378,11 +11393,9 @@ class NgControllerElementProcessor extends NgProcessor {
  * attributes as expressions.
  */
 class NgDirectiveElementProcessor extends NgDirectiveProcessor {
-  AngularDirectiveElement _element;
+  final AngularDirectiveElement _element;
 
-  NgDirectiveElementProcessor(AngularDirectiveElement element) {
-    this._element = element;
-  }
+  NgDirectiveElementProcessor(this._element);
 
   @override
   void apply(AngularHtmlUnitResolver resolver, ht.XmlTagNode node) {
@@ -11576,7 +11589,7 @@ abstract class AnalysisTask {
   /**
    * The context in which the task is to be performed.
    */
-  InternalAnalysisContext context;
+  final InternalAnalysisContext context;
 
   /**
    * The exception that was thrown while performing this task, or `null` if the task completed
@@ -11589,9 +11602,7 @@ abstract class AnalysisTask {
    *
    * @param context the context in which the task is to be performed
    */
-  AnalysisTask(InternalAnalysisContext context) {
-    this.context = context;
-  }
+  AnalysisTask(this.context);
 
   /**
    * Use the given visitor to visit this task.
@@ -11793,22 +11804,22 @@ class GenerateDartErrorsTask extends AnalysisTask {
   /**
    * The source for which errors and warnings are to be produced.
    */
-  Source source;
+  final Source source;
 
   /**
    * The time at which the contents of the source were last modified.
    */
-  int modificationTime = 0;
+  final int modificationTime;
 
   /**
    * The compilation unit used to resolve the dependencies.
    */
-  CompilationUnit _unit;
+  final CompilationUnit _unit;
 
   /**
    * The element model for the library containing the source.
    */
-  LibraryElement libraryElement;
+  final LibraryElement libraryElement;
 
   /**
    * The errors that were generated for the source.
@@ -11824,12 +11835,7 @@ class GenerateDartErrorsTask extends AnalysisTask {
    * @param unit the compilation unit used to resolve the dependencies
    * @param libraryElement the element model for the library containing the source
    */
-  GenerateDartErrorsTask(InternalAnalysisContext context, Source source, int modificationTime, CompilationUnit unit, LibraryElement libraryElement) : super(context) {
-    this.source = source;
-    this.modificationTime = modificationTime;
-    this._unit = unit;
-    this.libraryElement = libraryElement;
-  }
+  GenerateDartErrorsTask(InternalAnalysisContext context, this.source, this.modificationTime, this._unit, this.libraryElement) : super(context);
 
   @override
   accept(AnalysisTaskVisitor visitor) => visitor.visitGenerateDartErrorsTask(this);
@@ -11877,12 +11883,12 @@ class GenerateDartHintsTask extends AnalysisTask {
    * The compilation units that comprise the library, with the defining compilation unit appearing
    * first in the array.
    */
-  List<TimestampedData<CompilationUnit>> _units;
+  final List<TimestampedData<CompilationUnit>> _units;
 
   /**
    * The element model for the library being analyzed.
    */
-  LibraryElement libraryElement;
+  final LibraryElement libraryElement;
 
   /**
    * A table mapping the sources that were analyzed to the hints that were generated for the
@@ -11898,10 +11904,7 @@ class GenerateDartHintsTask extends AnalysisTask {
    *          unit appearing first in the array
    * @param libraryElement the element model for the library being analyzed
    */
-  GenerateDartHintsTask(InternalAnalysisContext context, List<TimestampedData<CompilationUnit>> units, LibraryElement libraryElement) : super(context) {
-    this._units = units;
-    this.libraryElement = libraryElement;
-  }
+  GenerateDartHintsTask(InternalAnalysisContext context, this._units, this.libraryElement) : super(context);
 
   @override
   accept(AnalysisTaskVisitor visitor) => visitor.visitGenerateDartHintsTask(this);
@@ -11961,7 +11964,7 @@ class GetContentTask extends AnalysisTask {
   /**
    * The source to be read.
    */
-  Source source;
+  final Source source;
 
   /**
    * A flag indicating whether this task is complete.
@@ -11985,11 +11988,10 @@ class GetContentTask extends AnalysisTask {
    * @param source the source to be parsed
    * @param contentData the time-stamped contents of the source
    */
-  GetContentTask(InternalAnalysisContext context, Source source) : super(context) {
+  GetContentTask(InternalAnalysisContext context, this.source) : super(context) {
     if (source == null) {
       throw new IllegalArgumentException("Cannot get contents of null source");
     }
-    this.source = source;
   }
 
   @override
@@ -12045,7 +12047,7 @@ class IncrementalAnalysisTask extends AnalysisTask {
   /**
    * The information used to perform incremental analysis.
    */
-  IncrementalAnalysisCache cache;
+  final IncrementalAnalysisCache cache;
 
   /**
    * The compilation unit that was produced by incrementally updating the existing unit.
@@ -12058,9 +12060,7 @@ class IncrementalAnalysisTask extends AnalysisTask {
    * @param context the context in which the task is to be performed
    * @param cache the incremental analysis cache used to perform the analysis
    */
-  IncrementalAnalysisTask(InternalAnalysisContext context, IncrementalAnalysisCache cache) : super(context) {
-    this.cache = cache;
-  }
+  IncrementalAnalysisTask(InternalAnalysisContext context, this.cache) : super(context);
 
   @override
   accept(AnalysisTaskVisitor visitor) => visitor.visitIncrementalAnalysisTask(this);
@@ -12137,24 +12137,60 @@ class IncrementalAnalysisTask extends AnalysisTask {
  */
 class ParseDartTask extends AnalysisTask {
   /**
+   * Return the result of resolving the URI of the given URI-based directive against the URI of the
+   * given library, or `null` if the URI is not valid.
+   *
+   * @param context the context in which the resolution is to be performed
+   * @param librarySource the source representing the library containing the directive
+   * @param directive the directive which URI should be resolved
+   * @param errorListener the error listener to which errors should be reported
+   * @return the result of resolving the URI against the URI of the library
+   */
+  static Source resolveSource(AnalysisContext analysisContext, Source librarySource, UriBasedDirective directive, AnalysisErrorListener errorListener) {
+    StringLiteral uriLiteral = directive.uri;
+    if (uriLiteral is StringInterpolation) {
+      errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION, []));
+      return null;
+    }
+    String uriContent = uriLiteral.stringValue.trim();
+    directive.uriContent = uriContent;
+    if (directive is ImportDirective && uriContent.startsWith(_DART_EXT_SCHEME)) {
+      return null;
+    }
+    try {
+      String encodedUriContent = Uri.encodeFull(uriContent);
+      parseUriWithException(encodedUriContent);
+      Source source = analysisContext.sourceFactory.resolveUri(librarySource, encodedUriContent);
+      if (!analysisContext.exists(source)) {
+        errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_DOES_NOT_EXIST, [uriContent]));
+      }
+      directive.source = source;
+      return source;
+    } on URISyntaxException catch (exception) {
+      errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.INVALID_URI, [uriContent]));
+    }
+    return null;
+  }
+
+  /**
    * The source to be parsed.
    */
-  Source source;
+  final Source source;
 
   /**
    * The time at which the contents of the source were last modified.
    */
-  int modificationTime = 0;
+  final int modificationTime;
 
   /**
    * The head of the token stream used for parsing.
    */
-  Token _tokenStream;
+  final Token _tokenStream;
 
   /**
    * The line information associated with the source.
    */
-  LineInfo lineInfo;
+  final LineInfo lineInfo;
 
   /**
    * The compilation unit that was produced by parsing the source.
@@ -12162,14 +12198,14 @@ class ParseDartTask extends AnalysisTask {
   CompilationUnit _unit;
 
   /**
-   * A flag indicating whether the source contains a 'library' directive.
-   */
-  bool _containsLibraryDirective = false;
-
-  /**
    * A flag indicating whether the source contains a 'part of' directive.
    */
   bool _containsPartOfDirective = false;
+
+  /**
+   * A flag indicating whether the source contains any directive other than a 'part of' directive.
+   */
+  bool _containsNonPartOfDirective = false;
 
   /**
    * A set containing the sources referenced by 'export' directives.
@@ -12205,12 +12241,7 @@ class ParseDartTask extends AnalysisTask {
    * @param tokenStream the head of the token stream used for parsing
    * @param lineInfo the line information associated with the source
    */
-  ParseDartTask(InternalAnalysisContext context, Source source, int modificationTime, Token tokenStream, LineInfo lineInfo) : super(context) {
-    this.source = source;
-    this.modificationTime = modificationTime;
-    this._tokenStream = tokenStream;
-    this.lineInfo = lineInfo;
-  }
+  ParseDartTask(InternalAnalysisContext context, this.source, this.modificationTime, this._tokenStream, this.lineInfo) : super(context);
 
   @override
   accept(AnalysisTaskVisitor visitor) => visitor.visitParseDartTask(this);
@@ -12256,12 +12287,12 @@ class ParseDartTask extends AnalysisTask {
   List<Source> get includedSources => _toArray(_includedSources);
 
   /**
-   * Return `true` if the source contains a 'library' directive, or `false` if the task
-   * has not yet been performed or if an exception occurred.
+   * Return `true` if the source contains any directive other than a 'part of' directive, or
+   * `false` if the task has not yet been performed or if an exception occurred.
    *
-   * @return `true` if the source contains a 'library' directive
+   * @return `true` if the source contains any directive other than a 'part of' directive
    */
-  bool get hasLibraryDirective => _containsLibraryDirective;
+  bool get hasNonPartOfDirective => _containsNonPartOfDirective;
 
   /**
    * Return `true` if the source contains a 'part of' directive, or `false` if the task
@@ -12291,68 +12322,34 @@ class ParseDartTask extends AnalysisTask {
       parser.parseFunctionBodies = context.analysisOptions.analyzeFunctionBodies;
       _unit = parser.parseCompilationUnit(_tokenStream);
       _unit.lineInfo = lineInfo;
-      _errors = errorListener.getErrorsForSource(source);
+      AnalysisContext analysisContext = context;
       for (Directive directive in _unit.directives) {
-        if (directive is ExportDirective) {
-          Source exportSource = _resolveSource(source, directive, errorListener);
-          if (exportSource != null) {
-            _exportedSources.add(exportSource);
-          }
-        } else if (directive is ImportDirective) {
-          Source importSource = _resolveSource(source, directive, errorListener);
-          if (importSource != null) {
-            _importedSources.add(importSource);
-          }
-        } else if (directive is LibraryDirective) {
-          _containsLibraryDirective = true;
-        } else if (directive is PartDirective) {
-          Source partSource = _resolveSource(source, directive, errorListener);
-          if (partSource != null && partSource != source) {
-            _includedSources.add(partSource);
-          }
-        } else if (directive is PartOfDirective) {
+        if (directive is PartOfDirective) {
           _containsPartOfDirective = true;
+        } else {
+          _containsNonPartOfDirective = true;
+          if (directive is ExportDirective) {
+            Source exportSource = resolveSource(analysisContext, source, directive, errorListener);
+            if (exportSource != null) {
+              _exportedSources.add(exportSource);
+            }
+          } else if (directive is ImportDirective) {
+            Source importSource = resolveSource(analysisContext, source, directive, errorListener);
+            if (importSource != null) {
+              _importedSources.add(importSource);
+            }
+          } else if (directive is PartDirective) {
+            Source partSource = resolveSource(analysisContext, source, directive, errorListener);
+            if (partSource != null && partSource != source) {
+              _includedSources.add(partSource);
+            }
+          }
         }
       }
+      _errors = errorListener.getErrorsForSource(source);
     } finally {
       timeCounterParse.stop();
     }
-  }
-
-  /**
-   * Return the result of resolving the URI of the given URI-based directive against the URI of the
-   * given library, or `null` if the URI is not valid.
-   *
-   * @param librarySource the source representing the library containing the directive
-   * @param directive the directive which URI should be resolved
-   * @param errorListener the error listener to which errors should be reported
-   * @return the result of resolving the URI against the URI of the library
-   */
-  Source _resolveSource(Source librarySource, UriBasedDirective directive, AnalysisErrorListener errorListener) {
-    StringLiteral uriLiteral = directive.uri;
-    if (uriLiteral is StringInterpolation) {
-      errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION, []));
-      return null;
-    }
-    String uriContent = uriLiteral.stringValue.trim();
-    directive.uriContent = uriContent;
-    if (directive is ImportDirective && uriContent.startsWith(_DART_EXT_SCHEME)) {
-      return null;
-    }
-    try {
-      String encodedUriContent = Uri.encodeFull(uriContent);
-      parseUriWithException(encodedUriContent);
-      AnalysisContext analysisContext = context;
-      Source source = analysisContext.sourceFactory.resolveUri(librarySource, encodedUriContent);
-      if (!analysisContext.exists(source)) {
-        errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_DOES_NOT_EXIST, [uriContent]));
-      }
-      directive.source = source;
-      return source;
-    } on URISyntaxException catch (exception) {
-      errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.INVALID_URI, [uriContent]));
-    }
-    return null;
   }
 
   /**
@@ -12377,17 +12374,17 @@ class ParseHtmlTask extends AnalysisTask {
   /**
    * The source to be parsed.
    */
-  Source source;
+  final Source source;
 
   /**
    * The time at which the contents of the source were last modified.
    */
-  int modificationTime = 0;
+  final int modificationTime;
 
   /**
    * The contents of the source.
    */
-  String _content;
+  final String _content;
 
   /**
    * The line information that was produced.
@@ -12427,11 +12424,7 @@ class ParseHtmlTask extends AnalysisTask {
    * @param modificationTime the time at which the contents of the source were last modified
    * @param content the contents of the source
    */
-  ParseHtmlTask(InternalAnalysisContext context, Source source, int modificationTime, String content) : super(context) {
-    this.source = source;
-    this.modificationTime = modificationTime;
-    this._content = content;
-  }
+  ParseHtmlTask(InternalAnalysisContext context, this.source, this.modificationTime, this._content) : super(context);
 
   @override
   accept(AnalysisTaskVisitor visitor) => visitor.visitParseHtmlTask(this);
@@ -12483,6 +12476,7 @@ class ParseHtmlTask extends AnalysisTask {
       _lineInfo = new LineInfo(scanner.lineStarts);
       RecordingErrorListener errorListener = new RecordingErrorListener();
       _unit = new ht.HtmlParser(source, errorListener).parse(token, _lineInfo);
+      _unit.accept(new RecursiveXmlVisitor_ParseHtmlTask_internalPerform(this, errorListener));
       _errors = errorListener.getErrorsForSource(source);
       _referencedLibraries = librarySources;
     } on JavaException catch (exception) {
@@ -12502,6 +12496,39 @@ class ParseHtmlTask extends AnalysisTask {
       return Source.EMPTY_ARRAY;
     }
     return new List.from(libraries);
+  }
+
+  /**
+   * Resolves directives in the given [CompilationUnit].
+   */
+  void _resolveScriptDirectives(CompilationUnit script, AnalysisErrorListener errorListener) {
+    if (script == null) {
+      return;
+    }
+    AnalysisContext analysisContext = context;
+    for (Directive directive in script.directives) {
+      if (directive is ExportDirective) {
+        ParseDartTask.resolveSource(analysisContext, source, directive, errorListener);
+      } else if (directive is ImportDirective) {
+        ParseDartTask.resolveSource(analysisContext, source, directive, errorListener);
+      } else if (directive is PartDirective) {
+        ParseDartTask.resolveSource(analysisContext, source, directive, errorListener);
+      }
+    }
+  }
+}
+
+class RecursiveXmlVisitor_ParseHtmlTask_internalPerform extends ht.RecursiveXmlVisitor<Object> {
+  final ParseHtmlTask ParseHtmlTask_this;
+
+  RecordingErrorListener errorListener;
+
+  RecursiveXmlVisitor_ParseHtmlTask_internalPerform(this.ParseHtmlTask_this, this.errorListener) : super();
+
+  @override
+  Object visitHtmlScriptTagNode(ht.HtmlScriptTagNode node) {
+    ParseHtmlTask_this._resolveScriptDirectives(node.script, errorListener);
+    return null;
   }
 }
 
@@ -12543,27 +12570,27 @@ class ResolveAngularComponentTemplateTask extends AnalysisTask {
   /**
    * The source to be resolved.
    */
-  Source source;
+  final Source source;
 
   /**
    * The time at which the contents of the source were last modified.
    */
-  int modificationTime = 0;
+  final int modificationTime;
 
   /**
    * The HTML unit to be resolved.
    */
-  ht.HtmlUnit _unit;
+  final ht.HtmlUnit _unit;
 
   /**
    * The [AngularComponentElement] to resolve template for.
    */
-  AngularComponentElement _component;
+  final AngularComponentElement _component;
 
   /**
    * The Angular application to resolve in context of.
    */
-  AngularApplication _application;
+  final AngularApplication _application;
 
   /**
    * The [HtmlUnit] that was resolved by this task.
@@ -12585,13 +12612,7 @@ class ResolveAngularComponentTemplateTask extends AnalysisTask {
    * @param component the component that uses this HTML template, not `null`
    * @param application the Angular application to resolve in context of
    */
-  ResolveAngularComponentTemplateTask(InternalAnalysisContext context, Source source, int modificationTime, ht.HtmlUnit unit, AngularComponentElement component, AngularApplication application) : super(context) {
-    this.source = source;
-    this.modificationTime = modificationTime;
-    this._unit = unit;
-    this._component = component;
-    this._application = application;
-  }
+  ResolveAngularComponentTemplateTask(InternalAnalysisContext context, this.source, this.modificationTime, this._unit, this._component, this._application) : super(context);
 
   @override
   accept(AnalysisTaskVisitor visitor) => visitor.visitResolveAngularComponentTemplateTask(this);
@@ -12638,17 +12659,17 @@ class ResolveAngularEntryHtmlTask extends AnalysisTask {
   /**
    * The source to be resolved.
    */
-  Source source;
+  final Source source;
 
   /**
    * The time at which the contents of the source were last modified.
    */
-  int modificationTime = 0;
+  final int modificationTime;
 
   /**
    * The HTML unit to be resolved.
    */
-  ht.HtmlUnit _unit;
+  final ht.HtmlUnit _unit;
 
   /**
    * The listener to record errors.
@@ -12678,11 +12699,7 @@ class ResolveAngularEntryHtmlTask extends AnalysisTask {
    * @param modificationTime the time at which the contents of the source were last modified
    * @param unit the HTML unit to be resolved
    */
-  ResolveAngularEntryHtmlTask(InternalAnalysisContext context, Source source, int modificationTime, ht.HtmlUnit unit) : super(context) {
-    this.source = source;
-    this.modificationTime = modificationTime;
-    this._unit = unit;
-  }
+  ResolveAngularEntryHtmlTask(InternalAnalysisContext context, this.source, this.modificationTime, this._unit) : super(context);
 
   @override
   accept(AnalysisTaskVisitor visitor) => visitor.visitResolveAngularEntryHtmlTask(this);
@@ -12751,17 +12768,17 @@ class ResolveDartLibraryCycleTask extends AnalysisTask {
    * The source representing the file whose compilation unit is to be returned. TODO(brianwilkerson)
    * This should probably be removed, but is being left in for now to ease the transition.
    */
-  Source unitSource;
+  final Source unitSource;
 
   /**
    * The source representing the library to be resolved.
    */
-  Source librarySource;
+  final Source librarySource;
 
   /**
    * The libraries that are part of the cycle containing the library to be resolved.
    */
-  List<ResolvableLibrary> _librariesInCycle;
+  final List<ResolvableLibrary> _librariesInCycle;
 
   /**
    * The library resolver holding information about the libraries that were resolved.
@@ -12777,11 +12794,7 @@ class ResolveDartLibraryCycleTask extends AnalysisTask {
    * @param librariesInCycle the libraries that are part of the cycle containing the library to be
    *          resolved
    */
-  ResolveDartLibraryCycleTask(InternalAnalysisContext context, Source unitSource, Source librarySource, List<ResolvableLibrary> librariesInCycle) : super(context) {
-    this.unitSource = unitSource;
-    this.librarySource = librarySource;
-    this._librariesInCycle = librariesInCycle;
-  }
+  ResolveDartLibraryCycleTask(InternalAnalysisContext context, this.unitSource, this.librarySource, this._librariesInCycle) : super(context);
 
   @override
   accept(AnalysisTaskVisitor visitor) => visitor.visitResolveDartLibraryCycleTask(this);
@@ -12815,12 +12828,12 @@ class ResolveDartLibraryTask extends AnalysisTask {
   /**
    * The source representing the file whose compilation unit is to be returned.
    */
-  Source unitSource;
+  final Source unitSource;
 
   /**
    * The source representing the library to be resolved.
    */
-  Source librarySource;
+  final Source librarySource;
 
   /**
    * The library resolver holding information about the libraries that were resolved.
@@ -12834,10 +12847,7 @@ class ResolveDartLibraryTask extends AnalysisTask {
    * @param unitSource the source representing the file whose compilation unit is to be returned
    * @param librarySource the source representing the library to be resolved
    */
-  ResolveDartLibraryTask(InternalAnalysisContext context, Source unitSource, Source librarySource) : super(context) {
-    this.unitSource = unitSource;
-    this.librarySource = librarySource;
-  }
+  ResolveDartLibraryTask(InternalAnalysisContext context, this.unitSource, this.librarySource) : super(context);
 
   @override
   accept(AnalysisTaskVisitor visitor) => visitor.visitResolveDartLibraryTask(this);
@@ -12872,12 +12882,12 @@ class ResolveDartUnitTask extends AnalysisTask {
   /**
    * The source that is to be resolved.
    */
-  Source source;
+  final Source source;
 
   /**
    * The element model for the library containing the source.
    */
-  LibraryElement _libraryElement;
+  final LibraryElement _libraryElement;
 
   /**
    * The time at which the contents of the source were last modified.
@@ -12896,10 +12906,7 @@ class ResolveDartUnitTask extends AnalysisTask {
    * @param source the source to be parsed
    * @param libraryElement the element model for the library containing the source
    */
-  ResolveDartUnitTask(InternalAnalysisContext context, Source source, LibraryElement libraryElement) : super(context) {
-    this.source = source;
-    this._libraryElement = libraryElement;
-  }
+  ResolveDartUnitTask(InternalAnalysisContext context, this.source, this._libraryElement) : super(context);
 
   @override
   accept(AnalysisTaskVisitor visitor) => visitor.visitResolveDartUnitTask(this);
@@ -13015,17 +13022,17 @@ class ResolveHtmlTask extends AnalysisTask {
   /**
    * The source to be resolved.
    */
-  Source source;
+  final Source source;
 
   /**
    * The time at which the contents of the source were last modified.
    */
-  int modificationTime = 0;
+  final int modificationTime;
 
   /**
    * The HTML unit to be resolved.
    */
-  ht.HtmlUnit _unit;
+  final ht.HtmlUnit _unit;
 
   /**
    * The [HtmlUnit] that was resolved by this task.
@@ -13050,11 +13057,7 @@ class ResolveHtmlTask extends AnalysisTask {
    * @param modificationTime the time at which the contents of the source were last modified
    * @param unit the HTML unit to be resolved
    */
-  ResolveHtmlTask(InternalAnalysisContext context, Source source, int modificationTime, ht.HtmlUnit unit) : super(context) {
-    this.source = source;
-    this.modificationTime = modificationTime;
-    this._unit = unit;
-  }
+  ResolveHtmlTask(InternalAnalysisContext context, this.source, this.modificationTime, this._unit) : super(context);
 
   @override
   accept(AnalysisTaskVisitor visitor) => visitor.visitResolveHtmlTask(this);
@@ -13104,17 +13107,17 @@ class ScanDartTask extends AnalysisTask {
   /**
    * The source to be scanned.
    */
-  Source source;
+  final Source source;
 
   /**
    * The time at which the contents of the source were last modified.
    */
-  int modificationTime = 0;
+  final int modificationTime;
 
   /**
    * The contents of the source.
    */
-  String _content;
+  final String _content;
 
   /**
    * The token stream that was produced by scanning the source.
@@ -13139,11 +13142,7 @@ class ScanDartTask extends AnalysisTask {
    * @param modificationTime the time at which the contents of the source were last modified
    * @param content the contents of the source
    */
-  ScanDartTask(InternalAnalysisContext context, Source source, int modificationTime, String content) : super(context) {
-    this.source = source;
-    this.modificationTime = modificationTime;
-    this._content = content;
-  }
+  ScanDartTask(InternalAnalysisContext context, this.source, this.modificationTime, this._content) : super(context);
 
   @override
   accept(AnalysisTaskVisitor visitor) => visitor.visitScanDartTask(this);
