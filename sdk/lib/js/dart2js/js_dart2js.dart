@@ -370,12 +370,12 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     }
   }
 
-  _checkRange(int start, int end) {
-    if (start < 0 || start > this.length) {
-      throw new RangeError.range(start, 0, this.length);
+  static _checkRange(int start, int end, int length) {
+    if (start < 0 || start > length) {
+      throw new RangeError.range(start, 0, length);
     }
-    if (end < start || end > this.length) {
-      throw new RangeError.range(end, start, this.length);
+    if (end < start || end > length) {
+      throw new RangeError.range(end, start, length);
     }
   }
 
@@ -399,7 +399,15 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     super[index] = value;
   }
 
-  int get length => super['length'];
+  int get length {
+    // Check the length honours the List contract.
+    var len = JS('', '#.length', _jsObject);
+    // JavaScript arrays have lengths which are unsigned 32-bit integers.
+    if (JS('bool', 'typeof # === "number" && (# >>> 0) === #', len, len, len)) {
+      return JS('int', '#', len);
+    }
+    throw new StateError('Bad JsArray length');
+  }
 
   void set length(int length) { super['length'] = length; }
 
@@ -433,12 +441,12 @@ class JsArray<E> extends JsObject with ListMixin<E> {
   }
 
   void removeRange(int start, int end) {
-    _checkRange(start, end);
+    _checkRange(start, end, length);
     callMethod('splice', [start, end - start]);
   }
 
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
-    _checkRange(start, end);
+    _checkRange(start, end, length);
     int length = end - start;
     if (length == 0) return;
     if (skipCount < 0) throw new ArgumentError(skipCount);
@@ -489,8 +497,9 @@ final _dartProxyCtor = JS('', 'function DartObject(o) { this.o = o; }');
 dynamic _convertToJS(dynamic o) {
   if (o == null) {
     return null;
-  } else if (o is String || o is num || o is bool
-      || o is Blob || o is Event || o is KeyRange || o is ImageData
+  } else if (o is String || o is num || o is bool) {
+    return o;
+  } else if (o is Blob || o is Event || o is KeyRange || o is ImageData
       || o is Node || o is TypedData || o is Window) {
     return o;
   } else if (o is DateTime) {
