@@ -11,6 +11,22 @@ import 'dart:io';
 import 'io.dart';
 import 'log.dart' as log;
 
+/// An exception thrown because a git command failed.
+class GitException implements Exception {
+  /// The arguments to the git command.
+  final List<String> args;
+
+  /// The standard error emitted by git.
+  final String stderr;
+
+  String get message => 'Git error. Command: git ${args.join(" ")}\n$stderr';
+
+  GitException(Iterable<String> args, this.stderr)
+      : args = args.toList();
+
+  String toString() => message;
+}
+
 /// Tests whether or not the git command-line app is available for use.
 Future<bool> get isInstalled {
   if (_isGitInstalledCache != null) {
@@ -28,10 +44,7 @@ Future<List<String>> run(List<String> args,
     return runProcess(git, args, workingDir: workingDir,
         environment: environment);
   }).then((result) {
-    if (!result.success) throw new Exception(
-        'Git error. Command: git ${args.join(" ")}\n'
-        '${result.stderr.join("\n")}');
-
+    if (!result.success) throw new GitException(args, result.stderr.join("\n"));
     return result.stdout;
   });
 }

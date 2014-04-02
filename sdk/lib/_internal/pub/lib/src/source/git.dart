@@ -45,7 +45,7 @@ class GitSource extends Source {
       }
 
       ensureDir(path.join(systemCacheRoot, 'cache'));
-      return _ensureRepoCache(id);
+      return _ensureRevision(id);
     }).then((_) => systemCacheDirectory(id)).then((path) {
       revisionCachePath = path;
       if (entryExists(revisionCachePath)) return null;
@@ -61,7 +61,7 @@ class GitSource extends Source {
 
   /// Returns the path to the revision-specific cache of [id].
   Future<String> systemCacheDirectory(PackageId id) {
-    return _revisionAt(id).then((rev) {
+    return _ensureRevision(id).then((rev) {
       var revisionCacheName = '${id.name}-$rev';
       return path.join(systemCacheRoot, revisionCacheName);
     });
@@ -107,7 +107,7 @@ class GitSource extends Source {
 
   /// Attaches a specific commit to [id] to disambiguate it.
   Future<PackageId> resolveId(PackageId id) {
-    return _revisionAt(id).then((revision) {
+    return _ensureRevision(id).then((revision) {
       var description = {'url': _getUrl(id), 'ref': _getRef(id)};
       description['resolved-ref'] = revision;
       return new PackageId(id.name, name, id.version, description);
@@ -117,22 +117,50 @@ class GitSource extends Source {
   // TODO(keertip): Implement getCachedPackages().
 
   /// Ensure that the canonical clone of the repository referred to by [id] (the
-  /// one in `<system cache>/git/cache`) exists and is up-to-date. Returns a
-  /// future that completes once this is finished and throws an exception if it
-  /// fails.
-  Future _ensureRepoCache(PackageId id) {
+  /// one in `<system cache>/git/cache`) exists and contains the revision
+  /// referred to by [id].
+  ///
+  /// Returns a future that completes to the hash of the revision identified by
+  /// [id].
+  Future<String> _ensureRevision(PackageId id) {
     return syncFuture(() {
       var path = _repoCachePath(id);
-      if (!entryExists(path)) return _clone(_getUrl(id), path, mirror: true);
-      return git.run(["fetch"], workingDir: path).then((result) => null);
+      if (!entryExists(path)) {
+        return _clone(_getUrl(id), path, mirror: true)
+            .then((_) => _revParse(id));
+      }
+
+      // If [id] didn't come from a lockfile, it may be using a symbolic
+      // reference. We want to get the latest version of that reference.
+      var description = id.description;
+      if (description is! Map || !description.containsKey('resolved-ref')) {
+        return _updateRepoCache(id).then((_) => _revParse(id));
+      }
+
+      // If [id] did come from a lockfile, then we want to avoid running "git
+      // fetch" if possible to avoid networking time and errors. See if the
+      // revision exists in the repo cache before updating it.
+      return _revParse(id).catchError((error) {
+        if (error is! GitException) throw error;
+        return _updateRepoCache(id).then((_) => _revParse(id));
+      });
     });
   }
 
-  /// Returns a future that completes to the revision hash of [id].
-  Future<String> _revisionAt(PackageId id) {
-    return _ensureRepoCache(id).then((_) =>
-        git.run(["rev-parse", _getEffectiveRef(id)],
-            workingDir: _repoCachePath(id)).then((result) => result[0]));
+  /// Runs "git fetch" in the canonical clone of the repository referred to by
+  /// [id].
+  ///
+  /// This assumes that the canonical clone already exists.
+  Future _updateRepoCache(PackageId id) =>
+      git.run(["fetch"], workingDir: _repoCachePath(id));
+
+  /// Runs "git rev-parse" in the canonical clone of the repository referred to
+  /// by [id] on the effective ref of [id].
+  ///
+  /// This assumes that the canonical clone already exists.
+  Future<String> _revParse(PackageId id) {
+    return git.run(["rev-parse", _getEffectiveRef(id)],
+        workingDir: _repoCachePath(id)).then((result) => result.first);
   }
 
   /// Clones the repo at the URI [from] to the path [to] on the local
