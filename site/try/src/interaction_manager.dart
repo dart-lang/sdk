@@ -50,6 +50,9 @@ import 'html_to_text.dart' show
 import 'compilation_unit.dart' show
     CompilationUnit;
 
+import 'selection.dart' show
+    TrySelection;
+
 import 'editor.dart' as editor;
 
 import 'mock.dart' as mock;
@@ -199,8 +202,9 @@ class InitialState extends InteractionState {
   void onMutation(List<MutationRecord> mutations, MutationObserver observer) {
     print('onMutation');
 
-    for (Element element in mainEditorPane.querySelectorAll(
-             'a.diagnostic>span, .dart-code-completion, .hazed-suggestion')) {
+    List<Node> highlighting = mainEditorPane.querySelectorAll(
+        'a.diagnostic>span, .dart-code-completion, .hazed-suggestion');
+    for (Element element in highlighting) {
       element.remove();
     }
 
@@ -223,24 +227,11 @@ class InitialState extends InteractionState {
       }
     }
 
-    int globalOffset = -1;
-    if (anchorOffset != -1) {
-      int offset = 0;
-      TreeWalker walker = new TreeWalker(mainEditorPane, NodeFilter.SHOW_TEXT);
-      for (Node node = walker.nextNode();
-           node != null; node = walker.nextNode()) {
-        CharacterData text = node;
-        if (anchorNode == text) {
-          globalOffset = anchorOffset + offset;
-          break;
-        }
-        offset += text.data.length;
-      }
-    }
-
     String currentText = mainEditorPane.text;
+    TrySelection trySelection =
+        new TrySelection(mainEditorPane, selection, currentText);
+
     context.currentCompilationUnit.content = currentText;
-    mainEditorPane.nodes.clear();
 
     editor.seenIdentifiers = new Set<String>.from(mock.identifiers);
 
@@ -250,7 +241,8 @@ class InitialState extends InteractionState {
     //   + offset  + charOffset  + globalOffset   + (charOffset + charCount)
     //   v         v             v                v
     // do          identifier_abcdefghijklmnopqrst
-    for (Token token = tokenize(currentText); token.kind != EOF_TOKEN;
+    for (Token token = tokenize(currentText);
+         token.kind != EOF_TOKEN;
          token = token.next) {
       int charOffset = token.charOffset;
       int charCount = token.charCount;
@@ -261,41 +253,27 @@ class InitialState extends InteractionState {
       if (decoration == null) continue;
 
       // Add a node for text before current token.
-      if (charOffset - offset > 0) {
-        nodes.add(new Text(currentText.substring(offset, charOffset)));
-        if (offset <= globalOffset && globalOffset < charOffset) {
-          anchorNode = nodes.last;
-          anchorOffset = globalOffset - offset;
-        }
-      }
+      trySelection.addNodeFromSubstring(offset, charOffset, nodes);
 
       // Add a node for current token.
-      Text text =
-          new Text(currentText.substring(charOffset, charOffset + charCount));
-      nodes.add(decoration.applyTo(text));
-      if (charOffset <= globalOffset && globalOffset < charOffset + charCount) {
-        anchorNode = text;
-        anchorOffset = globalOffset - charOffset;
-      }
+      trySelection.addNodeFromSubstring(
+          charOffset, charOffset + charCount, nodes, decoration);
+
       offset = charOffset + charCount;
     }
 
-    if (offset < currentText.length) {
-      // Add a node for anything after the last (decorated) token.
-      nodes.add(new Text(currentText.substring(offset)));
-      if (offset <= globalOffset) {
-        anchorNode = nodes.last;
-        anchorOffset = globalOffset - offset;
-      }
-    }
+    // Add a node for anything after the last (decorated) token.
+    trySelection.addNodeFromSubstring(offset, currentText.length, nodes);
 
+    // Ensure text always ends with a newline.
     if (!currentText.endsWith('\n')) {
       nodes.add(new Text('\n'));
     }
-    mainEditorPane.nodes.addAll(nodes);
-    if (anchorOffset >= 0) {
-      selection.collapse(anchorNode, anchorOffset);
-    }
+
+    mainEditorPane
+        ..nodes.clear()
+        ..nodes.addAll(nodes);
+    trySelection.adjust(selection);
 
     // Discard highlighting mutations.
     observer.takeRecords();
