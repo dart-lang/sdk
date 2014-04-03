@@ -4778,7 +4778,7 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Register temp = locs()->temp(kObjectTempIndex).reg();
     XmmRegister zero_temp = locs()->temp(kDoubleTempIndex).fpu_reg();
 
-    Label do_call, check_base, return_nan;
+    Label try_sqrt, check_base, return_nan;
     __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(0)));
     __ movsd(zero_temp, FieldAddress(temp, Double::value_offset()));
     __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(1)));
@@ -4799,7 +4799,7 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Note: 'base' could be NaN.
     __ comisd(exp, base);
     // Neither 'exp' nor 'base' is NaN.
-    __ j(PARITY_ODD, &do_call, Assembler::kNearJump);
+    __ j(PARITY_ODD, &try_sqrt, Assembler::kNearJump);
     // Return NaN.
     __ Bind(&return_nan);
     __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(NAN)));
@@ -4807,8 +4807,8 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ jmp(&skip_call);
 
     Label do_pow, return_zero;
-    __ Bind(&do_call);
-    // Before calling check if we could use sqrt instead of pow.
+    __ Bind(&try_sqrt);
+    // Before calling pow, check if we could use sqrt instead of pow.
     __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(-INFINITY)));
     __ movsd(result, FieldAddress(temp, Double::value_offset()));
     // base == -Infinity -> call pow;

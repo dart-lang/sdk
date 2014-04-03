@@ -1,6 +1,7 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--optimization-counter-threshold=5
 
 library math_test;
 import "package:expect/expect.dart";
@@ -53,7 +54,7 @@ var samples = [
   Infinity
 ];
 
-main() {
+test() {
   // Tests of pow(x, y):
   for (var d in samples) {
     // if `y` is zero (0.0 or -0.0), the result is always 1.0.
@@ -156,3 +157,6 @@ main() {
   Expect.identical(Infinity, pow(-0.0, -9223372036854775809));
 }
 
+main() {
+  for (int i = 0; i < 10; i++) test();
+}

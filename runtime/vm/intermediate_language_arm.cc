@@ -4930,13 +4930,17 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(bool opt) const {
 
 void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // For pow-function return NaN if exponent is NaN.
-  Label do_call, skip_call;
+  Label skip_call;
   if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
     // Pseudo code:
-    // if (exponent == 0.0) return 0.0;
+    // if (exponent == 0.0) return 1.0;
     // if (base == 1.0) return 1.0;
     // if (base.isNaN || exponent.isNaN) {
     //    return double.NAN;
+    // }
+    // if (base != -Infinity && exponent == 0.5) {
+    //   if (base == 0.0) return 0.0;
+    //   return sqrt(value);
     // }
     DRegister base = EvenDRegisterOf(locs()->in(0).fpu_reg());
     DRegister exp = EvenDRegisterOf(locs()->in(1).fpu_reg());
@@ -4944,27 +4948,62 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Register temp = locs()->temp(0).reg();
     DRegister saved_base = EvenDRegisterOf(locs()->temp(1).fpu_reg());
     ASSERT((base == result) && (result != saved_base));
-    Label check_base_is_one;
-    // Check if exponent is 0.0 -> return 1.0;
+
+    Label try_sqrt, check_base, return_nan;
     __ vmovd(saved_base, base);
-    __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(0)));
-    __ LoadDFromOffset(DTMP, temp, Double::value_offset() - kHeapObjectTag);
-    __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(1)));
-    __ LoadDFromOffset(result, temp, Double::value_offset() - kHeapObjectTag);
+    __ LoadDImmediate(DTMP, 0.0, temp);
+    __ LoadDImmediate(result, 1.0, temp);
+    // exponent == 0.0 -> return 1.0;
     __ vcmpd(exp, DTMP);
     __ vmstat();
-    __ b(&check_base_is_one, VS);  // NaN -> not zero.
+    __ b(&check_base, VS);  // NaN -> check base.
     __ b(&skip_call, EQ);  // exp is 0.0, result is 1.0.
 
-    __ Bind(&check_base_is_one);
+    __ Bind(&check_base);
+    // Note: 'exp' could be NaN.
+    // base == 1.0 -> return 1.0;
     __ vcmpd(saved_base, result);
     __ vmstat();
-    __ vmovd(result, saved_base, VS);  // base is NaN, return NaN.
-    __ b(&skip_call, VS);
-    __ b(&skip_call, EQ);  // base and result are 1.0.
+    __ b(&return_nan, VS);
+    __ b(&skip_call, EQ);  // base is 1.0, result is 1.0.
+
+    __ vcmpd(saved_base, exp);
+    __ b(&try_sqrt, VC);  // // Neither 'exp' nor 'base' is NaN.
+
+    __ Bind(&return_nan);
+    __ LoadDImmediate(result, NAN, temp);
+    __ b(&skip_call);
+
+    Label do_pow, return_zero;
+    __ Bind(&try_sqrt);
+
+    // Before calling pow, check if we could use sqrt instead of pow.
+    __ LoadDImmediate(result, -INFINITY, temp);
+
+    // base == -Infinity -> call pow;
+    __ vcmpd(saved_base, result);
+    __ b(&do_pow, EQ);
+
+    // exponent == 0.5 ?
+    __ LoadDImmediate(result, 0.5, temp);
+    __ vcmpd(exp, result);
+    __ b(&do_pow, NE);
+
+    // base == 0 -> return 0;
+    __ vcmpd(base, DTMP);
+    __ b(&return_zero, EQ);
+
+    __ vsqrtd(result, saved_base);
+    __ b(&skip_call);
+
+    __ Bind(&return_zero);
+    __ vmovd(result, DTMP);
+    __ b(&skip_call);
+
+    __ Bind(&do_pow);
     __ vmovd(base, saved_base);  // Restore base.
   }
-  __ Bind(&do_call);
+
   if (InputCount() == 2) {
     // Args must be in D0 and D1, so move arg from Q1(== D3:D2) to D1.
     __ vmovd(D1, D2);
