@@ -11,12 +11,55 @@ import 'dart:convert' show
     JSON,
     UTF8;
 
-const Map<int, String> FsEventNames = const <int, String>{
-  FileSystemEvent.CREATE: 'create',
-  FileSystemEvent.DELETE: 'delete',
-  FileSystemEvent.MODIFY: 'modify',
-  FileSystemEvent.MOVE: 'move',
-};
+class WatchHandler {
+  final WebSocket socket;
+
+  final Set<String> watchedFiles;
+
+  static final Set<WatchHandler> handlers = new Set<WatchHandler>();
+
+  static const Map<int, String> fsEventNames = const <int, String>{
+    FileSystemEvent.CREATE: 'create',
+    FileSystemEvent.DELETE: 'delete',
+    FileSystemEvent.MODIFY: 'modify',
+    FileSystemEvent.MOVE: 'move',
+  };
+
+  WatchHandler(this.socket, Iterable<String> watchedFiles)
+      : this.watchedFiles = watchedFiles.toSet();
+
+  handleFileSystemEvent(FileSystemEvent event) {
+    String type = event.isDirectory ? 'directory' : 'file';
+    String eventType = fsEventNames[event.type];
+    if (eventType == null) eventType = 'unknown';
+    socket.add(JSON.encode({eventType: [event.path]}));
+  }
+
+  onData(_) {
+    // TODO(ahe): Move POST code here?
+  }
+
+  onDone() {
+    handlers.remove(this);
+  }
+
+  static handleWebSocket(WebSocket socket) {
+    Conversation.ensureProjectWatcher();
+    Conversation.listProjectFiles().then((List<String> files) {
+      socket.add(JSON.encode({'create': files}));
+      WatchHandler handler = new WatchHandler(socket, files);
+      handlers.add(handler);
+      socket.listen(
+          handler.onData, cancelOnError: true, onDone: handler.onDone);
+    });
+  }
+
+  static onFileSystemEvent(FileSystemEvent event) {
+    for (WatchHandler handler in handlers) {
+      handler.handleFileSystemEvent(event);
+    }
+  }
+}
 
 /// Represents a "project" command. These commands are accessed from the URL
 /// "/project?name".
@@ -60,7 +103,7 @@ It is safe to delete tag '$GIT_TAG' if you don't need the backup.""";
 
   static Stream<FileSystemEvent> projectChanges;
 
-  static final Set<WebSocket> sockets = new Set<WebSocket>();
+  static final Map<String, String> gitEnv = computeGitEnv();
 
   Conversation(this.request, this.response);
 
@@ -120,7 +163,7 @@ It is safe to delete tag '$GIT_TAG' if you don't need the backup.""";
     return future.then((List<FileSystemEntity> entries) {
       return entries
           .map((e) => e.path)
-          .where((p) => !p.endsWith('~') && p.startsWith(nativeDir))
+          .where((p) => p.endsWith('.dart') && p.startsWith(nativeDir))
           .map((p) => p.substring(nativeDir.length))
           .map((p) => new Uri.file(p).path).toList();
     });
@@ -146,6 +189,17 @@ It is safe to delete tag '$GIT_TAG' if you don't need the backup.""";
     }
     String commands = COMMANDS.map((c) => c.name).join("', '");
     badRequest("Valid commands are: '$commands'");
+  }
+
+  handleSocket() {
+    if (request.uri.path == '/ws/watch') {
+      WebSocketTransformer.upgrade(request).then(WatchHandler.handleWebSocket);
+    } else {
+      response.done
+          .then(onClosed)
+          .catchError(onError);
+      notFound(request.uri.path);
+    }
   }
 
   handle() {
@@ -235,60 +289,51 @@ It is safe to delete tag '$GIT_TAG' if you don't need the backup.""";
 
   // Back up the file [path] using git.
   static void backup(String path) {
-    // Save the git index (aka staging area).
-    String savedIndex = git('write-tree');
+    // Reset the index.
+    git('read-tree', ['HEAD']);
 
-    String localModifications = null;
+    // Save modifications in index.
+    git('update-index', ['--add', path]);
 
-    try {
+    // If the file isn't modified, don't back it up.
+    if (checkGit('diff', ['--cached', '--quiet'])) return;
 
-      // Reset the index.
-      git('read-tree', ['HEAD']);
+    String localModifications = git('write-tree');
 
-      // Save modifications in index.
-      git('update-index', ['--add', path]);
+    String tag = 'refs/tags/$GIT_TAG';
+    var arguments = ['-m', COMMIT_MESSAGE, localModifications];
 
-      if (!checkGit('diff', ['--cached', '--quiet'])) {
-        // If the file is modified, back it up.
-        localModifications = git('write-tree');
-      }
-    } finally {
+    if (checkGit('rev-parse',  ['-q', '--verify', tag])) {
+      // The tag already exists.
 
-      // Restore the saved index.
-      git('read-tree', [savedIndex]);
-    }
-
-    if (localModifications != null) {
-      String tag = 'refs/tags/$GIT_TAG';
-      var arguments = ['-p', 'HEAD', '-m', COMMIT_MESSAGE, localModifications];
-
-      if (checkGit('rev-parse',  ['-q', '--verify', tag])) {
-        // The tag already exists.
-
-        if (checkGit('diff-tree', ['--quiet', localModifications, tag])) {
-          // localModifications are identical to the last backup.
-          return;
-        }
-
-        // Use the tag as a parent.
-        arguments = ['-p', tag]..addAll(arguments);
+      if (checkGit('diff-tree', ['--quiet', localModifications, tag])) {
+        // localModifications are identical to the last backup.
+        return;
       }
 
-      // Commit the local modifcations.
-      String commit = git('commit-tree', arguments);
+      // Use the tag as a parent.
+      arguments = ['-p', tag]..addAll(arguments);
 
-      // Create or update the tag.
-      git('tag', ['-f', GIT_TAG, commit]);
+      String headCommit = git('rev-parse', ['HEAD']);
+      String mergeBase = git('merge-base', [tag, 'HEAD']);
+      if (headCommit != mergeBase) {
+        arguments = ['-p', 'HEAD']..addAll(arguments);
+      }
+    } else {
+      arguments = ['-p', 'HEAD']..addAll(arguments);
     }
+
+    // Commit the local modifcations.
+    String commit = git('commit-tree', arguments);
+
+    // Create or update the tag.
+    git('tag', ['-f', GIT_TAG, commit]);
   }
 
   static String git(String command,
                     [List<String> arguments = const <String> []]) {
-    // TODO(ahe): All git commands must use a custom index.  This is set
-    // through GIT_INDEX_FILE.  Use 'git rev-parse --git-dir' to find the git
-    // directory, then create the custom index file using 'git read-tree HEAD'
-    // if it doesn't exist.
-    ProcessResult result = run('git', <String>[command]..addAll(arguments));
+    ProcessResult result =
+        run('git', <String>[command]..addAll(arguments), gitEnv);
     if (result.exitCode != 0) {
       throw 'git error: ${result.stdout}\n${result.stderr}';
     }
@@ -297,30 +342,33 @@ It is safe to delete tag '$GIT_TAG' if you don't need the backup.""";
 
   static bool checkGit(String command,
                        [List<String> arguments = const <String> []]) {
-    return run('git', <String>[command]..addAll(arguments)).exitCode == 0;
+    return
+        run('git', <String>[command]..addAll(arguments), gitEnv).exitCode == 0;
   }
 
-  static ProcessResult run(String executable, List<String> arguments) {
+  static Map<String, String> computeGitEnv() {
+    ProcessResult result = run('git', ['rev-parse', '--git-dir'], null);
+    if (result.exitCode != 0) {
+      throw 'git error: ${result.stdout}\n${result.stderr}';
+    }
+    String gitDir = result.stdout.trim();
+    return <String, String>{ 'GIT_INDEX_FILE': '$gitDir/try_dart_backup' };
+  }
+
+  static ProcessResult run(String executable,
+                           List<String> arguments,
+                           Map<String, String> environment) {
     // print('Running $executable ${arguments.join(" ")}');
-    return Process.runSync(executable, arguments);
+    return Process.runSync(executable, arguments, environment: environment);
   }
 
   static onRequest(HttpRequest request) {
+    Conversation conversation = new Conversation(request, request.response);
     if (WebSocketTransformer.isUpgradeRequest(request)) {
-      WebSocketTransformer.upgrade(request).then(handleWebSocket);
+      conversation.handleSocket();
     } else {
-      new Conversation(request, request.response).handle();
+      conversation.handle();
     }
-  }
-
-  static handleWebSocket(WebSocket socket) {
-    ensureProjectWatcher();
-    listProjectFiles().then((List<String> files) {
-      socket.add(JSON.encode({'create': files}));
-      sockets.add(socket);
-      socket.listen(
-          null, cancelOnError: true, onDone: () => sockets.remove(socket));
-    });
   }
 
   static ensureProjectWatcher() {
@@ -328,14 +376,7 @@ It is safe to delete tag '$GIT_TAG' if you don't need the backup.""";
     String nativeDir = projectRoot.toFilePath();
     Directory dir = new Directory(nativeDir);
     projectChanges = dir.watch();
-    projectChanges.listen((FileSystemEvent event) {
-      String type = event.isDirectory ? 'directory' : 'file';
-      String eventType = FsEventNames[event.type];
-      if (eventType == null) eventType = 'unknown';
-      for (WebSocket socket in sockets) {
-        socket.add(JSON.encode({eventType: [event.path]}));
-      }
-    });
+    projectChanges.listen(WatchHandler.onFileSystemEvent);
   }
 
   static onError(error) {

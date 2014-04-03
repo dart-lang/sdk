@@ -311,7 +311,7 @@ class InitialState extends InteractionState {
   void postProjectFileUpdate(CompilationUnit unit) {
     onError(ProgressEvent event) {
       HttpRequest request = event.target;
-      window.alert(request.responseText);
+      window.alert("Couldn't save '${unit.name}': ${request.responseText}");
     }
     new HttpRequest()
         ..open("POST", "/project/${unit.name}")
@@ -321,7 +321,7 @@ class InitialState extends InteractionState {
 
   Future<List<String>> projectFileNames() {
     return getString('project?list').then((String response) {
-      WebSocket socket = new WebSocket('ws://127.0.0.1:9090');
+      WebSocket socket = new WebSocket('ws://127.0.0.1:9090/ws/watch');
       socket.onMessage.listen((MessageEvent e) {
         print(e.data);
       });
