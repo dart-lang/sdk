@@ -8,16 +8,15 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
 
-import 'package:stack_trace/stack_trace.dart';
+import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'scheduled_test.dart';
 import 'src/scheduled_server/handler.dart';
 import 'src/utils.dart';
 
-typedef Future ScheduledHandler(HttpRequest request);
-
-/// A class representing an [HttpServer] that's scheduled to run in the course
-/// of the test. This class allows the server's request handling to be scheduled
+/// A class representing an HTTP server that's scheduled to run in the course of
+/// the test. This class allows the server's request handling to be scheduled
 /// synchronously.
 ///
 /// The server expects requests to be received in the order [handle] is called,
@@ -48,10 +47,9 @@ class ScheduledServer {
 
     var scheduledServer;
     scheduledServer = new ScheduledServer._(schedule(() {
-      return Chain.track(HttpServer.bind("127.0.0.1", 0)).then((server) {
-        Chain.track(server).listen(scheduledServer._handleRequest,
-            onError: currentSchedule.signalError);
-        currentSchedule.onComplete.schedule(server.close);
+      return shelf_io.serve(scheduledServer._handleRequest, "127.0.0.1", 0)
+          .then((server) {
+        currentSchedule.onComplete.schedule(() => server.close(force: true));
         return server;
       });
     }, "starting '$description'"), description);
@@ -73,34 +71,34 @@ class ScheduledServer {
   /// The request must be received at the point in the schedule at which
   /// [handle] was called, or in the task immediately prior (to allow for
   /// non-deterministic asynchronicity). Otherwise, an error will be thrown.
-  void handle(String method, String path, ScheduledHandler fn) {
+  void handle(String method, String path, shelf.Handler fn) {
     var handler = new Handler(this, method, path, fn);
     _handlers.add(handler);
     schedule(() {
       handler.ready = true;
-      return handler.result.catchError((e) {
-        // Close the server so that we don't leave a dangling request.
-        _server.then((s) => s.close(force: true));
-        throw e;
-      });
+      return handler.result;
     }, "'$description' waiting for $method $path");
   }
 
-  /// The handler for incoming [HttpRequest]s to this server. This dispatches
-  /// the request to the first handler in the queue. It's that handler's
-  /// responsibility to check that the method/path are correct and that it's
-  /// being run at the correct time.
-  void _handleRequest(HttpRequest request) {
-    wrapFuture(syncFuture(() {
+  /// The handler for incoming [shelf.Request]s to this server.
+  ///
+  /// This dispatches the request to the first handler in the queue. It's that
+  /// handler's responsibility to check that the method/path are correct and
+  /// that it's being run at the correct time.
+  Future<shelf.Response> _handleRequest(shelf.Request request) {
+    return wrapFuture(syncFuture(() {
       if (_handlers.isEmpty) {
-        fail("'$description' received ${request.method} ${request.uri.path} "
+        fail("'$description' received ${request.method} ${request.pathInfo} "
              "when no more requests were expected.");
       }
       return _handlers.removeFirst().fn(request);
-    }).catchError((e) {
-      // Close the server so that we don't leave a dangling request.
-      _server.then((s) => s.close(force: true));
-      throw e;
-    }), 'receiving ${request.method} ${request.uri}');
+    }), 'receiving ${request.method} ${request.pathInfo}').catchError((error) {
+      // Don't let errors bubble up to the shelf handler. It will print them to
+      // stderr, but the user will already be notified via the scheduled_test
+      // infrastructure.
+      return new shelf.Response.internalServerError(
+          body: error.toString(),
+          headers: {'content-type': 'text/plain'});
+    });
   }
 }

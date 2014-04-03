@@ -1,3 +1,8 @@
+## 0.11.0
+
+* `ScheduledServer.handle` now takes a `shelf.Handler` rather than a custom
+  handler class.
+
 ## 0.10.1+1
 
 * Updated `http` version constraint from `">=0.9.0 <0.10.0"` to

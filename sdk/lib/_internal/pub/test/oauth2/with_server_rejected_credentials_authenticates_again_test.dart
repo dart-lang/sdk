@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:scheduled_test/scheduled_server.dart';
 import 'package:scheduled_test/scheduled_test.dart';
+import 'package:shelf/shelf.dart' as shelf;
 
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
@@ -22,14 +23,12 @@ main() {
     confirmPublish(pub);
 
     server.handle('GET', '/api/packages/versions/new', (request) {
-      var response = request.response;
-      response.statusCode = 401;
-      response.headers.set('www-authenticate', 'Bearer error="invalid_token",'
-          ' error_description="your token sucks"');
-      response.write(JSON.encode({
-        'error': {'message': 'your token sucks'}
-      }));
-      response.close();
+      return new shelf.Response(401,
+          body: JSON.encode({'error': {'message': 'your token sucks'}}),
+          headers: {
+        'www-authenticate': 'Bearer error="invalid_token",'
+            ' error_description="your token sucks"'
+      });
     });
 
     pub.stderr.expect('OAuth2 authorization failed (your token sucks).');

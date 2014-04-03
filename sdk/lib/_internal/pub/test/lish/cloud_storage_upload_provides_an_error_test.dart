@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
+import 'package:shelf/shelf.dart' as shelf;
 
 import '../../lib/src/io.dart';
 import '../descriptor.dart' as d;
@@ -25,13 +26,10 @@ main() {
     handleUploadForm(server);
 
     server.handle('POST', '/upload', (request) {
-      return drainStream(request).then((_) {
-        request.response.statusCode = 400;
-        request.response.headers.contentType =
-            new ContentType('application', 'xml');
-        request.response.write('<Error><Message>Your request sucked.'
-            '</Message></Error>');
-        request.response.close();
+      return drainStream(request.read()).then((_) {
+        return new shelf.Response.notFound(
+            '<Error><Message>Your request sucked.</Message></Error>',
+            headers: {'content-type': 'application/xml'});
       });
     });
 

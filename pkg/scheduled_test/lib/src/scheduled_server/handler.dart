@@ -6,6 +6,8 @@ library scheduled_server.handler;
 
 import 'dart:async';
 
+import 'package:shelf/shelf.dart' as shelf;
+
 import '../../scheduled_server.dart';
 import '../../scheduled_test.dart';
 import '../utils.dart';
@@ -22,8 +24,8 @@ class Handler {
   final String path;
 
   /// The function to run to handle the request.
-  ScheduledHandler get fn => _fn;
-  ScheduledHandler _fn;
+  shelf.Handler get fn => _fn;
+  shelf.Handler _fn;
 
   /// The scheduled task immediately prior to this handler. If this task is
   /// running when this handler receives a request, it should wait until the
@@ -41,28 +43,31 @@ class Handler {
   /// Whether it's time for the handler to receive its request.
   var ready = false;
 
-  Handler(this.server, this.method, this.path, ScheduledHandler fn) {
+  Handler(this.server, this.method, this.path, shelf.Handler fn) {
     _fn = (request) {
       return _waitForTask().then((_) {
         if (!ready) {
-          fail("'${server.description}' received "
-               "$method $path earlier than expected.");
+          fail("'${server.description}' received $method $path earlier than "
+              "expected.");
         }
 
+        var description = "'${server.description}' handling ${request.method} "
+            "${request.pathInfo}";
         // Use a nested call to [schedule] to help the user tell the difference
         // between a test failing while waiting for a handler and a test failing
         // while executing a handler.
         chainToCompleter(schedule(() {
           return syncFuture(() {
-            if (request.method != method || request.uri.path != path) {
+            if (request.method != method || request.pathInfo != path) {
               fail("'${server.description}' expected $method $path, "
-                   "but got ${request.method} ${request.uri.path}.");
+                   "but got ${request.method} ${request.pathInfo}.");
             }
 
             return fn(request);
           });
-        }, "'${server.description}' handling ${request.method} ${request.uri}"),
-            _resultCompleter);
+        }, description), _resultCompleter);
+
+        return _resultCompleter.future;
       });
     };
   }

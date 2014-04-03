@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:scheduled_test/scheduled_server.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/src/mock_clock.dart' as mock_clock;
+import 'package:shelf/shelf.dart' as shelf;
 
 import 'metatest.dart';
 import 'utils.dart';
@@ -20,176 +21,94 @@ void main(_, message) {
 
   setUpTimeout();
 
-  expectTestsPass("a server with no handlers does nothing", () {
-    test('test', () => new ScheduledServer());
+  expectTestPasses("a server with no handlers does nothing",
+      () => new ScheduledServer());
+
+  expectServerError("a server with no handlers that receives a request throws "
+      "an error", () {
+    var server = new ScheduledServer();
+    expect(server.url.then((url) => http.read(url.resolve('/hello'))),
+        completion(equals('Hello, test!')));
+  }, "'scheduled server 0' received GET /hello when no more requests were "
+      "expected.");
+
+  expectTestPasses("a handler runs when it's hit", () {
+    var server = new ScheduledServer();
+    expect(server.url.then((url) => http.read(url.resolve('/hello'))),
+        completion(equals('Hello, test!')));
+
+    server.handle('GET', '/hello',
+        (request) => new shelf.Response.ok('Hello, test!'));
   });
 
-  expectTestsPass("a server with no handlers that receives a request throws an "
-      "error", () {
-    var errors;
-    test('test 1', () {
-      currentSchedule.onException.schedule(() {
-        errors = currentSchedule.errors;
-      });
+  expectTestPasses("a handler blocks the schedule on the returned future", () {
+    var blockedOnFuture = false;
+    var server = new ScheduledServer();
+    expect(server.url.then((url) => http.read(url.resolve('/hello'))),
+        completion(equals('Hello, test!')));
 
-      var server = new ScheduledServer();
-      expect(server.url.then((url) => http.read(url.resolve('/hello'))),
-          completion(equals('Hello, test!')));
-    });
-
-    test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, 2);
-      expect(errors[0].error.toString(), equals("'scheduled server 0' received "
-          "GET /hello when no more requests were expected."));
-      expect(errors[1].error, new isInstanceOf<HttpException>());
-    });
-  }, passing: ['test 2']);
-
-  expectTestsPass("a handler runs when it's hit", () {
-    test('test', () {
-      var server = new ScheduledServer();
-      expect(server.url.then((url) => http.read(url.resolve('/hello'))),
-          completion(equals('Hello, test!')));
-
-      server.handle('GET', '/hello', (request) {
-        request.response.write('Hello, test!');
-        request.response.close();
+    server.handle('GET', '/hello', (request) {
+      return pumpEventQueue().then((_) {
+        blockedOnFuture = true;
+        return new shelf.Response.ok('Hello, test!');
       });
     });
+
+    schedule(() => expect(blockedOnFuture, isTrue));
   });
 
-  expectTestsPass("a handler blocks the schedule on the returned future", () {
-    test('test', () {
-      var blockedOnFuture = false;
-      var server = new ScheduledServer();
-      expect(server.url.then((url) => http.read(url.resolve('/hello'))),
-          completion(equals('Hello, test!')));
+  expectServerError("a handler fails if it's hit too early", () {
+    var server = new ScheduledServer();
+    var response = server.url.then((url) => http.read(url.resolve('/hello')));
+    expect(response, completion(equals('Hello, test!')));
 
-      server.handle('GET', '/hello', (request) {
-        request.response.write('Hello, test!');
-        request.response.close();
-        return pumpEventQueue().then((_) {
-          blockedOnFuture = true;
-        });
-      });
+    // Block the schedule until we're sure the request has hit the server.
+    schedule(() => response);
 
-      schedule(() => expect(blockedOnFuture, isTrue));
-    });
-  });
+    // Add an additional task here so that when the previous task hits the
+    // server, it will be considered too early. Otherwise we'd hit the heuristic
+    // of allowing the server to be hit in the immediately prior task.
+    schedule(() => null);
 
-  expectTestsPass("a handler fails if it's hit too early", () {
-    var errors;
-    test('test 1', () {
-      currentSchedule.onException.schedule(() {
-        errors = currentSchedule.errors;
-      });
+    server.handle('GET', '/hello',
+        (request) => new shelf.Response.ok('Hello, test!'));
+  }, "'scheduled server 0' received GET /hello earlier than expected.");
 
-      var server = new ScheduledServer();
-      var response = server.url.then((url) => http.read(url.resolve('/hello')));
-      expect(response, completion(equals('Hello, test!')));
-
-      // Block the schedule until we're sure the request has hit the server.
-      schedule(() => response);
-
-      // Add a task's worth of space to avoid hitting the heuristic of waiting
-      // for the immediately-preceding task.
-      schedule(() => null);
-
-      server.handle('GET', '/hello', (request) {
-        request.response.write('Hello, test!');
-        request.response.close();
-      });
-    });
-
-    test('test 2', () {
-      // TODO(nweiz): There can be three errors due to issue 9151. The
-      // HttpException is reported without a stack trace, and so when it's
-      // wrapped twice it registers as a different exception each time (because
-      // it's given an ad-hoc stack trace). Always expect two exceptions when
-      // issue 9151 is fixed.
-      expect(errors.length, inInclusiveRange(2, 3));
-      expect(errors[0].error.toString(), equals(
-          "'scheduled server 0' received GET /hello earlier than expected."));
-      expect(errors[1].error, new isInstanceOf<HttpException>());
-      if (errors.length > 2) {
-        expect(errors[2].error, new isInstanceOf<HttpException>());
-      }
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-    });
-  }, passing: ['test 2']);
-
-  expectTestsPass("a handler waits for the immediately prior task to complete "
+  expectTestPasses("a handler waits for the immediately prior task to complete "
       "before checking if it's too early", () {
-    test('test', () {
-      var server = new ScheduledServer();
-      expect(server.url.then((url) => http.read(url.resolve('/hello'))),
-          completion(equals('Hello, test!')));
+    var server = new ScheduledServer();
+    expect(server.url.then((url) => http.read(url.resolve('/hello'))),
+        completion(equals('Hello, test!')));
 
-      // Sleeping here is unfortunate, but we want to be sure that the HTTP
-      // request hits the server during this test without actually blocking the
-      // task on the request completing.
-      //
-      // This is also a potential race condition, but hopefully a local HTTP
-      // request won't take 1s.
-      schedule(() => new Future.delayed(new Duration(seconds: 1)));
+    // Sleeping here is unfortunate, but we want to be sure that the HTTP
+    // request hits the server during this test without actually blocking the
+    // task on the request completing.
+    //
+    // This is also a potential race condition, but hopefully a local HTTP
+    // request won't take 500ms.
+    schedule(() => new Future.delayed(new Duration(milliseconds: 500)));
 
-      server.handle('GET', '/hello', (request) {
-        request.response.write('Hello, test!');
-        request.response.close();
-      });
-    });
+    server.handle('GET', '/hello',
+        (request) => new shelf.Response.ok('Hello, test!'));
   });
 
-  expectTestsPass("a handler fails if the url is wrong", () {
-    var errors;
-    test('test 1', () {
-      currentSchedule.onException.schedule(() {
-        errors = currentSchedule.errors;
-      });
+  expectServerError("a handler fails if the url is wrong", () {
+    var server = new ScheduledServer();
+    expect(server.url.then((url) => http.read(url.resolve('/hello'))),
+        completion(equals('Hello, test!')));
 
-      var server = new ScheduledServer();
-      expect(server.url.then((url) => http.read(url.resolve('/hello'))),
-          completion(equals('Hello, test!')));
+    server.handle('GET', '/goodbye',
+        (request) => new shelf.Response.ok('Goodbye, test!'));
+  }, "'scheduled server 0' expected GET /goodbye, but got GET /hello.");
 
-      server.handle('GET', '/goodbye', (request) {
-        request.response.write('Goodbye, test!');
-        request.response.close();
-      });
-    });
+  expectServerError("a handler fails if the method is wrong", () {
+    var server = new ScheduledServer();
+    expect(server.url.then((url) => http.head(url.resolve('/hello'))),
+        completes);
 
-    test('test 2', () {
-      expect(errors.length, 2);
-      expect(errors[0].error.toString(), equals(
-          "'scheduled server 0' expected GET /goodbye, but got GET /hello."));
-      expect(errors[1].error, new isInstanceOf<HttpException>());
-    });
-  }, passing: ['test 2']);
-
-  expectTestsPass("a handler fails if the method is wrong", () {
-    var errors;
-    test('test 1', () {
-      currentSchedule.onException.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      var server = new ScheduledServer();
-      expect(server.url.then((url) => http.head(url.resolve('/hello'))),
-          completes);
-
-      server.handle('GET', '/hello', (request) {
-        request.response.write('Hello, test!');
-        request.response.close();
-      });
-    });
-
-    test('test 2', () {
-      expect(errors.length, 2);
-      expect(errors[0].error.toString(), equals(
-          "'scheduled server 0' expected GET /hello, but got HEAD /hello."));
-      expect(errors[1].error, new isInstanceOf<HttpException>());
-    });
-  }, passing: ['test 2']);
+    server.handle('GET', '/hello',
+        (request) => new shelf.Response.ok('Hello, test!'));
+  }, "'scheduled server 0' expected GET /hello, but got HEAD /hello.");
 
   expectTestsPass("a handler times out waiting to be hit", () {
     var clock = mock_clock.mock()..run();
@@ -204,10 +123,8 @@ void main(_, message) {
 
       var server = new ScheduledServer();
 
-      server.handle('GET', '/hello', (request) {
-        request.response.write('Hello, test!');
-        request.response.close();
-      });
+      server.handle('GET', '/hello',
+          (request) => new shelf.Response.ok('Hello, test!'));
     });
 
     test('test 2', () {
@@ -219,95 +136,75 @@ void main(_, message) {
     });
   }, passing: ['test 2']);
 
-  expectTestsPass("multiple handlers in series respond to requests in series",
+  expectTestPasses("multiple handlers in series respond to requests in series",
       () {
-    test('test', () {
-      var server = new ScheduledServer();
-      expect(server.url.then((url) {
-        return http.read(url.resolve('/hello/1')).then((response) {
-          expect(response, equals('Hello, request 1!'));
-          return http.read(url.resolve('/hello/2'));
-        }).then((response) {
-          expect(response, equals('Hello, request 2!'));
-          return http.read(url.resolve('/hello/3'));
-        }).then((response) => expect(response, equals('Hello, request 3!')));
-      }), completes);
+    var server = new ScheduledServer();
+    expect(server.url.then((url) {
+      return http.read(url.resolve('/hello/1')).then((response) {
+        expect(response, equals('Hello, request 1!'));
+        return http.read(url.resolve('/hello/2'));
+      }).then((response) {
+        expect(response, equals('Hello, request 2!'));
+        return http.read(url.resolve('/hello/3'));
+      }).then((response) => expect(response, equals('Hello, request 3!')));
+    }), completes);
 
-      server.handle('GET', '/hello/1', (request) {
-        request.response.write('Hello, request 1!');
-        request.response.close();
-      });
+    server.handle('GET', '/hello/1',
+        (request) => new shelf.Response.ok('Hello, request 1!'));
 
-      server.handle('GET', '/hello/2', (request) {
-        request.response.write('Hello, request 2!');
-        request.response.close();
-      });
+    server.handle('GET', '/hello/2',
+        (request) => new shelf.Response.ok('Hello, request 2!'));
 
-      server.handle('GET', '/hello/3', (request) {
-        request.response.write('Hello, request 3!');
-        request.response.close();
-      });
-    });
+    server.handle('GET', '/hello/3',
+        (request) => new shelf.Response.ok('Hello, request 3!'));
   });
 
-  expectTestsPass("a server that receives a request after all its handlers "
+  expectServerError("a server that receives a request after all its handlers "
       "have run throws an error", () {
-    var errors;
-    test('test 1', () {
-      currentSchedule.onException.schedule(() {
-        errors = currentSchedule.errors;
-      });
+    var server = new ScheduledServer();
+    expect(server.url.then((url) {
+      return http.read(url.resolve('/hello/1')).then((response) {
+        expect(response, equals('Hello, request 1!'));
+        return http.read(url.resolve('/hello/2'));
+      }).then((response) {
+        expect(response, equals('Hello, request 2!'));
+        return http.read(url.resolve('/hello/3'));
+      }).then((response) => expect(response, equals('Hello, request 3!')));
+    }), completes);
 
-      var server = new ScheduledServer();
-      expect(server.url.then((url) {
-        return http.read(url.resolve('/hello/1')).then((response) {
-          expect(response, equals('Hello, request 1!'));
-          return http.read(url.resolve('/hello/2'));
-        }).then((response) {
-          expect(response, equals('Hello, request 2!'));
-          return http.read(url.resolve('/hello/3'));
-        }).then((response) => expect(response, equals('Hello, request 3!')));
-      }), completes);
+    server.handle('GET', '/hello/1',
+        (request) => new shelf.Response.ok('Hello, request 1!'));
 
-      server.handle('GET', '/hello/1', (request) {
-        request.response.write('Hello, request 1!');
-        request.response.close();
-      });
+    server.handle('GET', '/hello/2',
+        (request) => new shelf.Response.ok('Hello, request 2!'));
+  }, "'scheduled server 0' received GET /hello/3 when no more requests were "
+      "expected.");
 
-      server.handle('GET', '/hello/2', (request) {
-        request.response.write('Hello, request 2!');
-        request.response.close();
-      });
-    });
+  expectServerError("an error in a handler doesn't cause a timeout", () {
+    var server = new ScheduledServer();
+    expect(server.url.then((url) => http.read(url.resolve('/hello'))),
+        completion(equals('Hello, test!')));
 
-    test('test 2', () {
-      expect(errors.length, 2);
-      expect(errors[0].error.toString(), equals("'scheduled server 0' received "
-          "GET /hello/3 when no more requests were expected."));
-      expect(errors[1].error, new isInstanceOf<HttpException>());
-    });
-  }, passing: ['test 2']);
+    server.handle('GET', '/hello', (request) => fail('oh no'));
+  }, 'oh no');
+}
 
-  expectTestsPass("an error in a handler doesn't cause a timeout", () {
-    var errors;
-    test('test 1', () {
-      currentSchedule.onException.schedule(() {
-        errors = currentSchedule.errors;
-      });
+/// Creates a metatest that runs [testBody], captures its schedule errors, and
+/// asserts that it throws an error with the given [errorMessage].
+void expectServerError(String description, void testBody(),
+    String errorMessage) {
+  expectTestFails(description, testBody, (errors) {
+    // There can be between one and three errors here. The first is the
+    // expected server error. The second is an HttpException that may occur if
+    // the server is closed fast enough after the error. The third is due to
+    // issue 9151: the HttpException is reported without a stack trace, and so
+    // when it's wrapped twice it registers as a different exception each time
+    // (because it's given an ad-hoc stack trace).
+    expect(errors.length, inInclusiveRange(1, 3));
+    expect(errors[0].error.toString(), equals(errorMessage));
 
-      var server = new ScheduledServer();
-      expect(server.url.then((url) => http.read(url.resolve('/hello'))),
-          completion(equals('Hello, test!')));
-
-      server.handle('GET', '/hello', (request) {
-        fail('oh no');
-      });
-    });
-
-    test('test 2', () {
-      expect(errors.length, 2);
-      expect(errors[0].error.toString(), equals('oh no'));
-      expect(errors[1].error, new isInstanceOf<HttpException>());
-    });
-  }, passing: ['test 2']);
+    for (var i = 1; i < errors.length; i++) {
+      expect(errors[i].error, new isInstanceOf<HttpException>());
+    }
+  });
 }

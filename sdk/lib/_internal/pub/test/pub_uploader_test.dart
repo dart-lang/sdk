@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_server.dart';
 import 'package:scheduled_test/scheduled_test.dart';
+import 'package:shelf/shelf.dart' as shelf;
 
 import '../lib/src/exit_codes.dart' as exit_codes;
 import '../lib/src/io.dart';
@@ -61,16 +62,13 @@ main() {
     var pub = startPubUploader(server, ['--package', 'pkg', 'add', 'email']);
 
     server.handle('POST', '/api/packages/pkg/uploaders', (request) {
-      expect(new ByteStream(request).toBytes().then((bodyBytes) {
-        expect(new String.fromCharCodes(bodyBytes), equals('email=email'));
+      return request.readAsString().then((body) {
+        expect(body, equals('email=email'));
 
-        request.response.headers.contentType =
-            new ContentType("application", "json");
-        request.response.write(JSON.encode({
+        return new shelf.Response.ok(JSON.encode({
           'success': {'message': 'Good job!'}
-        }));
-        request.response.close();
-      }), completes);
+        }), headers: {'content-type': 'application/json'});
+      });
     });
 
     pub.stdout.expect('Good job!');
@@ -83,12 +81,9 @@ main() {
     var pub = startPubUploader(server, ['--package', 'pkg', 'remove', 'email']);
 
     server.handle('DELETE', '/api/packages/pkg/uploaders/email', (request) {
-      request.response.headers.contentType =
-          new ContentType("application", "json");
-      request.response.write(JSON.encode({
+      return new shelf.Response.ok(JSON.encode({
         'success': {'message': 'Good job!'}
-      }));
-      request.response.close();
+      }), headers: {'content-type': 'application/json'});
     });
 
     pub.stdout.expect('Good job!');
@@ -103,11 +98,9 @@ main() {
     var pub = startPubUploader(server, ['add', 'email']);
 
     server.handle('POST', '/api/packages/test_pkg/uploaders', (request) {
-      request.response.headers.contentType =
-          new ContentType("application", "json");
-      request.response.write(JSON.encode({
+      return new shelf.Response.ok(JSON.encode({
         'success': {'message': 'Good job!'}
-      }));
+      }), headers: {'content-type': 'application/json'});
       request.response.close();
     });
 
@@ -121,13 +114,9 @@ main() {
     var pub = startPubUploader(server, ['--package', 'pkg', 'add', 'email']);
 
     server.handle('POST', '/api/packages/pkg/uploaders', (request) {
-      request.response.statusCode = 400;
-      request.response.headers.contentType =
-          new ContentType("application", "json");
-      request.response.write(JSON.encode({
-        'error': {'message': 'Bad job!'}
-      }));
-      request.response.close();
+      return new shelf.Response(400,
+          body: JSON.encode({'error': {'message': 'Bad job!'}}),
+          headers: {'content-type': 'application/json'});
     });
 
     pub.stderr.expect('Bad job!');
@@ -141,13 +130,9 @@ main() {
         ['--package', 'pkg', 'remove', 'e/mail']);
 
     server.handle('DELETE', '/api/packages/pkg/uploaders/e%2Fmail', (request) {
-      request.response.statusCode = 400;
-      request.response.headers.contentType =
-          new ContentType("application", "json");
-      request.response.write(JSON.encode({
-        'error': {'message': 'Bad job!'}
-      }));
-      request.response.close();
+      return new shelf.Response(400,
+          body: JSON.encode({'error': {'message': 'Bad job!'}}),
+          headers: {'content-type': 'application/json'});
     });
 
     pub.stderr.expect('Bad job!');
@@ -159,10 +144,8 @@ main() {
     d.credentialsFile(server, 'access token').create();
     var pub = startPubUploader(server, ['--package', 'pkg', 'add', 'email']);
 
-    server.handle('POST', '/api/packages/pkg/uploaders', (request) {
-      request.response.write("{not json");
-      request.response.close();
-    });
+    server.handle('POST', '/api/packages/pkg/uploaders',
+        (request) => new shelf.Response.ok("{not json"));
 
     pub.stderr.expect(emitsLines(
         'Invalid server response:\n'
@@ -175,10 +158,8 @@ main() {
     d.credentialsFile(server, 'access token').create();
     var pub = startPubUploader(server, ['--package', 'pkg', 'remove', 'email']);
 
-    server.handle('DELETE', '/api/packages/pkg/uploaders/email', (request) {
-      request.response.write("{not json");
-      request.response.close();
-    });
+    server.handle('DELETE', '/api/packages/pkg/uploaders/email',
+        (request) => new shelf.Response.ok("{not json"));
 
     pub.stderr.expect(emitsLines(
         'Invalid server response:\n'
