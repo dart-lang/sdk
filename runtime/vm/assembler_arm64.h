@@ -118,6 +118,7 @@ class Operand : public ValueObject {
     ASSERT((rm != R31) && (rm != SP));
     const Register crm = ConcreteRegister(rm);
     encoding_ = (static_cast<int32_t>(crm) << kRmShift);
+    type_ = Shifted;
   }
 
   Operand(Register rm, Shift shift, int32_t imm) {
@@ -259,12 +260,34 @@ class Assembler : public ValueObject {
   static bool IsSafe(const Object& object) { return true; }
   static bool IsSafeSmi(const Object& object) { return object.IsSmi(); }
 
+  // Addition and subtraction.
   void add(Register rd, Register rn, Operand o) {
     AddSubHelper(kDoubleWord, false, false, rd, rn, o);
   }
   void addw(Register rd, Register rn, Operand o) {
     AddSubHelper(kWord, false, false, rd, rn, o);
   }
+  void sub(Register rd, Register rn, Operand o) {
+    AddSubHelper(kDoubleWord, false, true, rd, rn, o);
+  }
+
+  // Move wide immediate.
+  void movk(Register rd, int32_t imm, int32_t hw_idx) {
+    ASSERT(rd != SP);
+    const Register crd = ConcreteRegister(rd);
+    EmitMoveWideOp(MOVK, crd, imm, hw_idx, kDoubleWord);
+  }
+  void movn(Register rd, int32_t imm, int32_t hw_idx) {
+    ASSERT(rd != SP);
+    const Register crd = ConcreteRegister(rd);
+    EmitMoveWideOp(MOVN, crd, imm, hw_idx, kDoubleWord);
+  }
+  void movz(Register rd, int32_t imm, int32_t hw_idx) {
+    ASSERT(rd != SP);
+    const Register crd = ConcreteRegister(rd);
+    EmitMoveWideOp(MOVZ, crd, imm, hw_idx, kDoubleWord);
+  }
+
 
   // Function return.
   void ret(Register rn = R30) {
@@ -303,15 +326,13 @@ class Assembler : public ValueObject {
     if (o.type() == Operand::Immediate) {
       ASSERT((rd != ZR) && (rn != ZR));
       EmitAddSubImmOp(subtract ? SUBI : ADDI, crd, crn, o, os, set_flags);
+    } else if (o.type() == Operand::Shifted) {
+      ASSERT((rd != SP) && (rn != SP));
+      EmitAddSubShiftExtOp(subtract ? SUB : ADD, crd, crn, o, os, set_flags);
     } else {
-      if (o.type() == Operand::Shifted) {
-        ASSERT((rd != SP) && (rn != SP));
-        EmitAddSubShiftExtOp(subtract ? SUB : ADD, crd, crn, o, os, set_flags);
-      } else {
-        ASSERT(o.type() == Operand::Extended);
-        ASSERT((rd != SP) && (rn != ZR));
-        EmitAddSubShiftExtOp(subtract ? SUB : ADD, crd, crn, o, os, set_flags);
-      }
+      ASSERT(o.type() == Operand::Extended);
+      ASSERT((rd != SP) && (rn != ZR));
+      EmitAddSubShiftExtOp(subtract ? SUB : ADD, crd, crn, o, os, set_flags);
     }
   }
 
@@ -330,9 +351,9 @@ class Assembler : public ValueObject {
 
   void EmitAddSubShiftExtOp(AddSubShiftExtOp op,
                             Register rd, Register rn, Operand o,
-                            OperandSize os, bool set_flags) {
-    ASSERT((os == kDoubleWord) || (os == kWord));
-    const int32_t size = (os == kDoubleWord) ? B31 : 0;
+                            OperandSize sz, bool set_flags) {
+    ASSERT((sz == kDoubleWord) || (sz == kWord));
+    const int32_t size = (sz == kDoubleWord) ? B31 : 0;
     const int32_t s = set_flags ? B29 : 0;
     const int32_t encoding =
         op | size | s |
@@ -345,6 +366,20 @@ class Assembler : public ValueObject {
   void EmitUnconditionalBranchRegOp(UnconditionalBranchRegOp op, Register rn) {
     const int32_t encoding =
         op | (static_cast<int32_t>(rn) << kRnShift);
+    Emit(encoding);
+  }
+
+  void EmitMoveWideOp(MoveWideOp op, Register rd, int32_t imm, int32_t hw_idx,
+                      OperandSize sz) {
+    ASSERT(Utils::IsUint(16, imm));
+    ASSERT((hw_idx >= 0) && (hw_idx <= 3));
+    ASSERT((sz == kDoubleWord) || (sz == kWord));
+    const int32_t size = (sz == kDoubleWord) ? B31 : 0;
+    const int32_t encoding =
+        op | size |
+        (static_cast<int32_t>(rd) << kRdShift) |
+        (hw_idx << kHWShift) |
+        (imm << kImm16Shift);
     Emit(encoding);
   }
 

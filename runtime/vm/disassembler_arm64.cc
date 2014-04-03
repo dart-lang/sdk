@@ -30,7 +30,7 @@ class ARM64Decoder : public ValueObject {
   void Print(const char* str);
 
   // Printing of common values.
-  void PrintRegister(int reg);
+  void PrintRegister(int reg, R31Type r31t);
   void PrintShiftExtendRm(Instr* instr);
   void PrintS(Instr* instr);
 
@@ -89,10 +89,15 @@ static const char* reg_names[kNumberOfCpuRegisters] = {
 
 
 // Print the register name according to the active name converter.
-void ARM64Decoder::PrintRegister(int reg) {
+void ARM64Decoder::PrintRegister(int reg, R31Type r31t) {
   ASSERT(0 <= reg);
   ASSERT(reg < kNumberOfCpuRegisters);
-  Print(reg_names[reg]);
+  if ((reg == 31)) {
+    const char* rstr = (r31t == R31IsZR) ? "zr" : "sp";
+    Print(rstr);
+  } else {
+    Print(reg_names[reg]);
+  }
 }
 
 
@@ -118,7 +123,7 @@ void ARM64Decoder::PrintShiftExtendRm(Instr* instr) {
   Extend extend = instr->ExtendTypeField();
   int extend_shift_amount = instr->ExtShiftAmountField();
 
-  PrintRegister(rm);
+  PrintRegister(rm, R31IsZR);
 
   if (instr->IsShift() && (shift == LSL) && (shift_amount == 0)) {
     // Special case for using rm only.
@@ -127,14 +132,14 @@ void ARM64Decoder::PrintShiftExtendRm(Instr* instr) {
   if (instr->IsShift()) {
     // by immediate
     if ((shift == ROR) && (shift_amount == 0)) {
-      Print(", RRX");
+      Print(" RRX");
       return;
     } else if (((shift == LSR) || (shift == ASR)) && (shift_amount == 0)) {
       shift_amount = 32;
     }
     buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
                                remaining_size_in_buffer(),
-                               ", %s #%d",
+                               " %s #%d",
                                shift_names[shift],
                                shift_amount);
   } else {
@@ -142,7 +147,7 @@ void ARM64Decoder::PrintShiftExtendRm(Instr* instr) {
     // by register
     buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
                                remaining_size_in_buffer(),
-                               ", %s",
+                               " %s",
                                extend_names[extend]);
     if (((instr->SFField() == 1) && (extend == UXTX)) ||
         ((instr->SFField() == 0) && (extend == UXTW))) {
@@ -162,15 +167,15 @@ int ARM64Decoder::FormatRegister(Instr* instr, const char* format) {
   ASSERT(format[0] == 'r');
   if (format[1] == 'n') {  // 'rn: Rn register
     int reg = instr->RnField();
-    PrintRegister(reg);
+    PrintRegister(reg, instr->RnMode());
     return 2;
   } else if (format[1] == 'd') {  // 'rd: Rd register
     int reg = instr->RdField();
-    PrintRegister(reg);
+    PrintRegister(reg, instr->RdMode());
     return 2;
   } else if (format[1] == 'm') {  // 'rm: Rm register
     int reg = instr->RmField();
-    PrintRegister(reg);
+    PrintRegister(reg, R31IsZR);
     return 2;
   }
   UNREACHABLE();
@@ -237,6 +242,17 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
     case 'r': {
       return FormatRegister(instr, format);
     }
+    case 'h': {
+      ASSERT(STRING_STARTS_WITH(format, "hw"));
+      const int shift = instr->HWField() << 4;
+      if (shift != 0) {
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                   remaining_size_in_buffer(),
+                                   "lsl %d",
+                                   shift);
+      }
+      return 2;
+    }
     default: {
       UNREACHABLE();
       break;
@@ -274,13 +290,13 @@ void ARM64Decoder::Unknown(Instr* instr) {
 void ARM64Decoder::DecodeMoveWide(Instr* instr) {
   switch (instr->Bits(29, 2)) {
     case 0:
-      Format(instr, "movn'sf 'rd, 'imm16");
+      Format(instr, "movn'sf 'rd, 'imm16 'hw");
       break;
     case 2:
-      Format(instr, "movz'sf 'rd, 'imm16");
+      Format(instr, "movz'sf 'rd, 'imm16 'hw");
       break;
     case 3:
-      Format(instr, "movk'sf 'rd, 'imm16");
+      Format(instr, "movk'sf 'rd, 'imm16 'hw");
       break;
     default:
       Unknown(instr);

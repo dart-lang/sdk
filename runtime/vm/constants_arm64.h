@@ -281,7 +281,7 @@ enum MoveWideOp {
 
 // C3.5.1
 enum AddSubShiftExtOp {
-  AddSubShiftExtMask = 0x1f200000,
+  AddSubShiftExtMask = 0x1f000000,
   AddSubShiftExtFixed = DPRegisterFixed | B24,
   ADD = AddSubShiftExtFixed,
   SUB = AddSubShiftExtFixed | B30,
@@ -362,6 +362,9 @@ enum InstructionFields {
   kImm12ShiftBits = 2,
   kImm16Shift = 5,
   kImm16Bits = 16,
+
+  kHWShift = 21,
+  kHWBits = 2,
 
   // Shift and Extend.
   kShiftExtendShift = 21,
@@ -448,6 +451,7 @@ class Instr {
 
   inline int Imm12ShiftField() const {
     return Bits(kImm12ShiftShift, kImm12ShiftBits); }
+  inline int HWField() const { return Bits(kHWShift, kHWBits); }
 
   // Shift and Extend.
   inline bool IsShift() const { return (Bit(kShiftExtendShift) == 0); }

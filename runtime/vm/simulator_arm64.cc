@@ -291,44 +291,77 @@ void Simulator::SetVFlag(bool val) {
 
 
 void Simulator::DecodeMoveWide(Instr* instr) {
-  UnimplementedInstruction(instr);
+  const Register rd = instr->RdField();
+  const int hw = instr->HWField();
+  const int64_t shift = hw << 4;
+  const int64_t shifted_imm =
+      static_cast<uint64_t>(instr->Imm16Field()) << shift;
+
+  if (instr->SFField()) {
+    if (instr->Bits(29, 2) == 0) {
+      // Format(instr, "movn'sf 'rd, 'imm16 'hw");
+      set_register(rd, ~shifted_imm, instr->RdMode());
+    } else if (instr->Bits(29, 2) == 2) {
+      // Format(instr, "movz'sf 'rd, 'imm16 'hw");
+      set_register(rd, shifted_imm, instr->RdMode());
+    } else if (instr->Bits(29, 2) == 3) {
+      // Format(instr, "movk'sf 'rd, 'imm16 'hw");
+      const int64_t rd_val = get_register(rd, instr->RdMode());
+      const int64_t result = (rd_val & ~(0xffffL << shift)) | shifted_imm;
+      set_register(rd, result, instr->RdMode());
+    } else {
+      UnimplementedInstruction(instr);
+    }
+  } else if ((hw & 0x2) == 0) {
+    if (instr->Bits(29, 2) == 0) {
+      // Format(instr, "movn'sf 'rd, 'imm16 'hw");
+      set_wregister(rd, ~shifted_imm & kWRegMask,  instr->RdMode());
+    } else if (instr->Bits(29, 2) == 2) {
+      // Format(instr, "movz'sf 'rd, 'imm16 'hw");
+      set_wregister(rd, shifted_imm & kWRegMask, instr->RdMode());
+    } else if (instr->Bits(29, 2) == 3) {
+      // Format(instr, "movk'sf 'rd, 'imm16 'hw");
+      const int32_t rd_val = get_wregister(rd, instr->RdMode());
+      const int32_t result = (rd_val & ~(0xffffL << shift)) | shifted_imm;
+      set_wregister(rd, result, instr->RdMode());
+    } else {
+      UnimplementedInstruction(instr);
+    }
+  } else {
+    // Dest is 32 bits, but shift is more than 32.
+    UnimplementedInstruction(instr);
+  }
 }
 
 
 void Simulator::DecodeAddSubImm(Instr* instr) {
-  switch (instr->Bit(30)) {
-    case 0: {
-      // Format(instr, "addi'sf's 'rd, 'rn, 'imm12s");
-      const Register rd = instr->RdField();
-      const Register rn = instr->RnField();
-      const uint32_t imm = (instr->Bit(22) == 1) ? (instr->Imm12Field() << 12)
-                                                 : (instr->Imm12Field());
-      if (instr->SFField()) {
-        // 64-bit add.
-        const int64_t rn_val = get_register(rn, instr->RnMode());
-        const int64_t alu_out = rn_val + imm;
-        set_register(rd, alu_out, instr->RdMode());
-        if (instr->HasS()) {
-          SetNZFlagsX(alu_out);
-          SetCFlag(CarryFromX(rn_val, imm));
-          SetVFlag(OverflowFromX(alu_out, rn_val, imm, true));
-        }
-      } else {
-        // 32-bit add.
-        const int32_t rn_val = get_wregister(rn, instr->RnMode());
-        const int32_t alu_out = rn_val + imm;
-        set_wregister(rd, alu_out, instr->RdMode());
-        if (instr->HasS()) {
-          SetNZFlagsW(alu_out);
-          SetCFlag(CarryFromW(rn_val, imm));
-          SetVFlag(OverflowFromW(alu_out, rn_val, imm, true));
-        }
-      }
-      break;
+  bool addition = (instr->Bit(30) == 0);
+  // Format(instr, "addi'sf's 'rd, 'rn, 'imm12s");
+  // Format(instr, "subi'sf's 'rd, 'rn, 'imm12s");
+  const Register rd = instr->RdField();
+  const Register rn = instr->RnField();
+  const uint32_t imm = (instr->Bit(22) == 1) ? (instr->Imm12Field() << 12)
+                                             : (instr->Imm12Field());
+  if (instr->SFField()) {
+    // 64-bit add.
+    const int64_t rn_val = get_register(rn, instr->RnMode());
+    const int64_t alu_out = addition ? (rn_val + imm) : (rn_val - imm);
+    set_register(rd, alu_out, instr->RdMode());
+    if (instr->HasS()) {
+      SetNZFlagsX(alu_out);
+      SetCFlag(CarryFromX(rn_val, imm));
+      SetVFlag(OverflowFromX(alu_out, rn_val, imm, addition));
     }
-    default:
-      UnimplementedInstruction(instr);
-      break;
+  } else {
+    // 32-bit add.
+    const int32_t rn_val = get_wregister(rn, instr->RnMode());
+    const int32_t alu_out = addition ? (rn_val + imm) : (rn_val - imm);
+    set_wregister(rd, alu_out, instr->RdMode());
+    if (instr->HasS()) {
+      SetNZFlagsW(alu_out);
+      SetCFlag(CarryFromW(rn_val, imm));
+      SetVFlag(OverflowFromW(alu_out, rn_val, imm, addition));
+    }
   }
 }
 
