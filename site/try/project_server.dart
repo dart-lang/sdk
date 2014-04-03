@@ -11,6 +11,13 @@ import 'dart:convert' show
     JSON,
     UTF8;
 
+const Map<int, String> FsEventNames = const <int, String>{
+  FileSystemEvent.CREATE: 'create',
+  FileSystemEvent.DELETE: 'delete',
+  FileSystemEvent.MODIFY: 'modify',
+  FileSystemEvent.MOVE: 'move',
+};
+
 /// Represents a "project" command. These commands are accessed from the URL
 /// "/project?name".
 class ProjectCommand {
@@ -50,6 +57,10 @@ It is safe to delete tag '$GIT_TAG' if you don't need the backup.""";
   static const List<ProjectCommand> COMMANDS = const <ProjectCommand>[
       const ProjectCommand('list', const {'list': null}, handleProjectList),
   ];
+
+  static Stream<FileSystemEvent> projectChanges;
+
+  static final Set<WebSocket> sockets = new Set<WebSocket>();
 
   Conversation(this.request, this.response);
 
@@ -102,16 +113,21 @@ It is safe to delete tag '$GIT_TAG' if you don't need the backup.""";
     return false;
   }
 
-  static handleProjectList(Conversation self) {
+  static Future<List<String>> listProjectFiles() {
     String nativeDir = projectRoot.toFilePath();
     Directory dir = new Directory(nativeDir);
     var future = dir.list(recursive: true, followLinks: false).toList();
-    future.then((List<FileSystemEntity> entries) {
-      List<String> files = entries
+    return future.then((List<FileSystemEntity> entries) {
+      return entries
           .map((e) => e.path)
           .where((p) => !p.endsWith('~') && p.startsWith(nativeDir))
           .map((p) => p.substring(nativeDir.length))
           .map((p) => new Uri.file(p).path).toList();
+    });
+  }
+
+  static handleProjectList(Conversation self) {
+    listProjectFiles().then((List<String> files) {
       self.response
           ..write(JSON.encode(files))
           ..close();
@@ -166,7 +182,6 @@ It is safe to delete tag '$GIT_TAG' if you don't need the backup.""";
     }
 
     String filePath = root.resolve('.$path').toFilePath();
-
     switch (request.method) {
       case 'GET':
         return handleGet(filePath, dartType);
@@ -269,6 +284,10 @@ It is safe to delete tag '$GIT_TAG' if you don't need the backup.""";
 
   static String git(String command,
                     [List<String> arguments = const <String> []]) {
+    // TODO(ahe): All git commands must use a custom index.  This is set
+    // through GIT_INDEX_FILE.  Use 'git rev-parse --git-dir' to find the git
+    // directory, then create the custom index file using 'git read-tree HEAD'
+    // if it doesn't exist.
     ProcessResult result = run('git', <String>[command]..addAll(arguments));
     if (result.exitCode != 0) {
       throw 'git error: ${result.stdout}\n${result.stderr}';
@@ -287,7 +306,36 @@ It is safe to delete tag '$GIT_TAG' if you don't need the backup.""";
   }
 
   static onRequest(HttpRequest request) {
-    new Conversation(request, request.response).handle();
+    if (WebSocketTransformer.isUpgradeRequest(request)) {
+      WebSocketTransformer.upgrade(request).then(handleWebSocket);
+    } else {
+      new Conversation(request, request.response).handle();
+    }
+  }
+
+  static handleWebSocket(WebSocket socket) {
+    ensureProjectWatcher();
+    listProjectFiles().then((List<String> files) {
+      socket.add(JSON.encode({'create': files}));
+      sockets.add(socket);
+      socket.listen(
+          null, cancelOnError: true, onDone: () => sockets.remove(socket));
+    });
+  }
+
+  static ensureProjectWatcher() {
+    if (projectChanges != null) return;
+    String nativeDir = projectRoot.toFilePath();
+    Directory dir = new Directory(nativeDir);
+    projectChanges = dir.watch();
+    projectChanges.listen((FileSystemEvent event) {
+      String type = event.isDirectory ? 'directory' : 'file';
+      String eventType = FsEventNames[event.type];
+      if (eventType == null) eventType = 'unknown';
+      for (WebSocket socket in sockets) {
+        socket.add(JSON.encode({eventType: [event.path]}));
+      }
+    });
   }
 
   static onError(error) {

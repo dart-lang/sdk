@@ -321,6 +321,10 @@ class InitialState extends InteractionState {
 
   Future<List<String>> projectFileNames() {
     return getString('project?list').then((String response) {
+      WebSocket socket = new WebSocket('ws://127.0.0.1:9090');
+      socket.onMessage.listen((MessageEvent e) {
+        print(e.data);
+      });
       return new List<String>.from(JSON.decode(response));
     });
   }
