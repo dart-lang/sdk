@@ -59,7 +59,7 @@
 ///       UserAgentClient(this.userAgent, this._inner);
 ///
 ///       Future<StreamedResponse> send(BaseRequest request) {
-///         request.headers[HttpHeaders.USER_AGENT] = userAgent;
+///         request.headers['user-agent'] = userAgent;
 ///         return _inner.send(request);
 ///       }
 ///     }
@@ -79,6 +79,7 @@ export 'src/base_request.dart';
 export 'src/base_response.dart';
 export 'src/byte_stream.dart';
 export 'src/client.dart';
+export 'src/exception.dart';
 export 'src/multipart_file.dart';
 export 'src/multipart_request.dart';
 export 'src/request.dart';
@@ -171,7 +172,7 @@ Future<Response> delete(url, {Map<String, String> headers}) =>
 /// be a [Uri] or a [String], and returns a Future that completes to the body of
 /// the response as a [String].
 ///
-/// The Future will emit an [HttpException] if the response doesn't have a
+/// The Future will emit a [ClientException] if the response doesn't have a
 /// success status code.
 ///
 /// This automatically initializes a new [Client] and closes that client once
@@ -187,7 +188,7 @@ Future<String> read(url, {Map<String, String> headers}) =>
 /// be a [Uri] or a [String], and returns a Future that completes to the body of
 /// the response as a list of bytes.
 ///
-/// The Future will emit an [HttpException] if the response doesn't have a
+/// The Future will emit a [ClientException] if the response doesn't have a
 /// success status code.
 ///
 /// This automatically initializes a new [Client] and closes that client once

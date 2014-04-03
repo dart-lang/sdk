@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 
@@ -136,7 +137,7 @@ and include the results in a bug report on http://dartbug.com/new.
 /// Returns the appropriate exit code for [exception], falling back on 1 if no
 /// appropriate exit code could be found.
 int chooseExitCode(exception) {
-  if (exception is HttpException || exception is HttpException ||
+  if (exception is HttpException || exception is http.ClientException ||
       exception is SocketException || exception is PubHttpException) {
     return exit_codes.UNAVAILABLE;
   } else if (exception is FormatException || exception is DataException) {

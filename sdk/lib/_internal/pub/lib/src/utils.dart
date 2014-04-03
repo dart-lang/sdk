@@ -15,6 +15,7 @@ import 'dart:mirrors';
 
 import "package:analyzer/analyzer.dart";
 import "package:crypto/crypto.dart";
+import "package:http/http.dart" as http;
 import 'package:path/path.dart' as path;
 import "package:stack_trace/stack_trace.dart";
 
@@ -833,6 +834,8 @@ void fail(String message, [innerError, StackTrace innerTrace]) {
 /// All the names of user-facing exceptions.
 final _userFacingExceptions = new Set<String>.from([
   'ApplicationException',
+  // This refers to http.ClientException.
+  'ClientException',
   // Errors coming from the Dart analyzer are probably caused by syntax errors
   // in user code, so they're user-facing.
   'AnalyzerError', 'AnalyzerErrorGroup',
@@ -840,7 +843,7 @@ final _userFacingExceptions = new Set<String>.from([
   // invalid import.
   'IsolateSpawnException',
   // TODO(nweiz): clean up the dart:io errors when issue 9955 is fixed.
-  'FileSystemException', 'HttpException', 'HttpException', 'OSError',
+  'FileSystemException', 'HttpException', 'OSError',
   'ProcessException', 'SocketException', 'WebSocketException'
 ]);
 
@@ -859,7 +862,7 @@ bool isUserFacingException(error) {
     error is IsolateSpawnException ||
     error is FileSystemException ||
     error is HttpException ||
-    error is HttpException ||
+    error is http.ClientException ||
     error is OSError ||
     error is ProcessException ||
     error is SocketException ||

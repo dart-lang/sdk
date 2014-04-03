@@ -1,3 +1,11 @@
+## 0.11.0
+
+* Change `MultipartFile.contentType` from `dart:io`'s `ContentType` type to
+  `http_parser`'s `MediaType` type.
+
+* Exceptions are now of type `ClientException` rather than `dart:io`'s
+  `HttpException`.
+
 ## 0.10.0
 
 * Make `BaseRequest.contentLength` and `BaseResponse.contentLength` use `null`

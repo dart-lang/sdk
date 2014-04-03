@@ -11,6 +11,7 @@ import 'package:stack_trace/stack_trace.dart';
 
 import 'base_client.dart';
 import 'base_request.dart';
+import 'exception.dart';
 import 'streamed_response.dart';
 
 /// A `dart:io`-based HTTP client. This is the default client.
@@ -47,7 +48,9 @@ class IOClient extends BaseClient {
       var contentLength = response.contentLength == -1 ?
           null : response.contentLength;
       return new StreamedResponse(
-          response,
+          response.handleError((error) =>
+              throw new ClientException(error.message, error.uri),
+              test: (error) => error is HttpException),
           response.statusCode,
           contentLength: contentLength,
           request: request,
@@ -55,6 +58,9 @@ class IOClient extends BaseClient {
           isRedirect: response.isRedirect,
           persistentConnection: response.persistentConnection,
           reasonPhrase: response.reasonPhrase);
+    }).catchError((error) {
+      if (error is! HttpException) throw error;
+      throw new ClientException(error.message, error.uri);
     });
   }
 

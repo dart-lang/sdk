@@ -92,7 +92,7 @@ abstract class Client {
   /// can be a [Uri] or a [String], and returns a Future that completes to the
   /// body of the response as a String.
   ///
-  /// The Future will emit an [HttpException] if the response doesn't have a
+  /// The Future will emit a [ClientException] if the response doesn't have a
   /// success status code.
   ///
   /// For more fine-grained control over the request and response, use [send] or
@@ -103,7 +103,7 @@ abstract class Client {
   /// can be a [Uri] or a [String], and returns a Future that completes to the
   /// body of the response as a list of bytes.
   ///
-  /// The Future will emit an [HttpException] if the response doesn't have a
+  /// The Future will emit a [ClientException] if the response doesn't have a
   /// success status code.
   ///
   /// For more fine-grained control over the request and response, use [send] or

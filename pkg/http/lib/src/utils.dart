@@ -62,8 +62,7 @@ List<String> split1(String toSplit, String pattern) {
 /// Returns the [Encoding] that corresponds to [charset]. Returns [fallback] if
 /// [charset] is null or if no [Encoding] was found that corresponds to
 /// [charset].
-Encoding encodingForCharset(
-    String charset, [Encoding fallback = LATIN1]) {
+Encoding encodingForCharset(String charset, [Encoding fallback = LATIN1]) {
   if (charset == null) return fallback;
   var encoding = Encoding.getByName(charset);
   return encoding == null ? fallback : encoding;

@@ -29,7 +29,7 @@ final _newlineRegExp = new RegExp(r"\r\n|\r|\n");
 ///     request.files.add(new http.MultipartFile.fromFile(
 ///         'package',
 ///         new File('build/package.tar.gz'),
-///         contentType: new ContentType('application', 'x-tar'));
+///         contentType: new MediaType('application', 'x-tar'));
 ///     request.send().then((response) {
 ///       if (response.statusCode == 200) print("Uploaded!");
 ///     });

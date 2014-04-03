@@ -5,9 +5,10 @@
 library multipart_file;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
+import 'dart:convert';
 
+import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 
@@ -28,7 +29,7 @@ class MultipartFile {
   final String filename;
 
   /// The content-type of the file. Defaults to `application/octet-stream`.
-  final ContentType contentType;
+  final MediaType contentType;
 
   /// The stream that will emit the file's contents.
   final ByteStream _stream;
@@ -44,17 +45,17 @@ class MultipartFile {
   /// [contentType] currently defaults to `application/octet-stream`, but in the
   /// future may be inferred from [filename].
   MultipartFile(this.field, Stream<List<int>> stream, this.length,
-      {this.filename, ContentType contentType})
+      {this.filename, MediaType contentType})
     : this._stream = toByteStream(stream),
       this.contentType = contentType != null ? contentType :
-          new ContentType("application", "octet-stream");
+          new MediaType("application", "octet-stream");
 
   /// Creates a new [MultipartFile] from a byte array.
   ///
   /// [contentType] currently defaults to `application/octet-stream`, but in the
   /// future may be inferred from [filename].
   factory MultipartFile.fromBytes(String field, List<int> value,
-      {String filename, ContentType contentType}) {
+      {String filename, MediaType contentType}) {
     var stream = new ByteStream.fromBytes(value);
     return new MultipartFile(field, stream, value.length,
         filename: filename,
@@ -68,16 +69,11 @@ class MultipartFile {
   /// [contentType] currently defaults to `text/plain; charset=utf-8`, but in
   /// the future may be inferred from [filename].
   factory MultipartFile.fromString(String field, String value,
-      {String filename, ContentType contentType}) {
-    contentType = contentType == null ? new ContentType("text", "plain")
+      {String filename, MediaType contentType}) {
+    contentType = contentType == null ? new MediaType("text", "plain")
                                       : contentType;
-    var charset = contentType.charset;
-    var encoding = encodingForCharset(contentType.charset, UTF8);
-    // Make a new contentType with ensured charset.
-    contentType = new ContentType(contentType.primaryType,
-                                  contentType.subType,
-                                  charset: encoding.name,
-                                  parameters: contentType.parameters);
+    var encoding = encodingForCharset(contentType.parameters['charset'], UTF8);
+    contentType = contentType.change(parameters: {'charset': encoding.name});
 
     return new MultipartFile.fromBytes(field, encoding.encode(value),
         filename: filename,
@@ -91,7 +87,7 @@ class MultipartFile {
   /// defaults to `application/octet-stream`, but in the future may be inferred
   /// from [filename].
   static Future<MultipartFile> fromPath(String field, String filePath,
-      {String filename, ContentType contentType}) {
+      {String filename, MediaType contentType}) {
     if (filename == null) filename = path.basename(filePath);
     var file = new File(filePath);
     return Chain.track(file.length()).then((length) {

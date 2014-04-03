@@ -298,7 +298,7 @@ main() {
 
     test('read throws an error for a 4** status code', () {
       expect(startServer().then((_) {
-        expect(http.read(serverUrl.resolve('/error')), throwsHttpException);
+        expect(http.read(serverUrl.resolve('/error')), throwsClientException);
       }), completes);
     });
 
@@ -326,7 +326,8 @@ main() {
 
     test('readBytes throws an error for a 4** status code', () {
       expect(startServer().then((_) {
-        expect(http.readBytes(serverUrl.resolve('/error')), throwsHttpException);
+        expect(http.readBytes(serverUrl.resolve('/error')),
+            throwsClientException);
       }), completes);
     });
   });
