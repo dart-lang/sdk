@@ -82,7 +82,7 @@ class NumberFormat {
    * of formatting then there will only ever be one number being formatted
    * at a time. In languages with threads we'd need to pass this on the stack.
    */
-  StringBuffer _buffer;
+  final StringBuffer _buffer = new StringBuffer();
 
   /**
    * Create a number format that prints using [newPattern] as it applies in
@@ -146,13 +146,12 @@ class NumberFormat {
     if (number.isNaN) return symbols.NAN;
     if (number.isInfinite) return "${_signPrefix(number)}${symbols.INFINITY}";
 
-    _newBuffer();
     _add(_signPrefix(number));
     _formatNumber(number.abs() * _multiplier);
     _add(_signSuffix(number));
 
     var result = _buffer.toString();
-    _buffer = null;
+    _buffer.clear();
     return result;
   }
 
@@ -250,13 +249,12 @@ class NumberFormat {
     // If the int part is larger than 2^52 and we're on Javascript (so it's
     // really a float) it will lose precision, so pad out the rest of it
     // with zeros. Check for Javascript by seeing if an integer is double.
-    var paddingDigits = new StringBuffer();
+    var paddingDigits = '';
     if (1 is double && intValue > _maxInt) {
         var howManyDigitsTooBig = (log(intValue) / LN10).ceil() - 16;
         var divisor = pow(10, howManyDigitsTooBig).round();
-        for (var each in new List(howManyDigitsTooBig.toInt())) {
-          paddingDigits.write(symbols.ZERO_DIGIT);
-        }
+        paddingDigits = symbols.ZERO_DIGIT * howManyDigitsTooBig.toInt();
+
         intValue = (intValue / divisor).truncate();
     }
     var integerDigits = "${intValue}${paddingDigits}".codeUnits;
@@ -306,12 +304,6 @@ class NumberFormat {
    */
   bool _hasPrintableIntegerPart(int intValue) =>
       intValue > 0 || minimumIntegerDigits > 0;
-
-  /**
-   * Create a new empty buffer. See comment on [_buffer] variable for why
-   * we have it as an instance variable rather than passing it on the stack.
-   */
-  void _newBuffer() { _buffer = new StringBuffer(); }
 
   /** A group of methods that provide support for writing digits and other
    * required characters into [_buffer] easily.
@@ -447,8 +439,10 @@ class _NumberFormatParser {
     }
   }
 
-  /** Variable used in parsing prefixes and suffixes to keep track of
-   * whether or not we are in a quoted region. */
+  /**
+   * Variable used in parsing prefixes and suffixes to keep track of
+   * whether or not we are in a quoted region.
+   */
   bool inQuote = false;
 
   /**
@@ -516,28 +510,21 @@ class _NumberFormatParser {
   }
 
   /** Variables used in [_parseTrunk] and [parseTrunkCharacter]. */
-  var decimalPos;
-  var digitLeftCount;
-  var zeroDigitCount;
-  var digitRightCount;
-  var groupingCount;
-  var trunk;
+  var decimalPos = -1;
+  var digitLeftCount = 0;
+  var zeroDigitCount = 0;
+  var digitRightCount = 0;
+  var groupingCount = -1;
 
   /**
    * Parse the "trunk" portion of the pattern, the piece that doesn't include
    * positive or negative prefixes or suffixes.
    */
   String _parseTrunk() {
-    decimalPos = -1;
-    digitLeftCount = 0;
-    zeroDigitCount = 0;
-    digitRightCount = 0;
-    groupingCount = -1;
-
     var loop = true;
-    trunk = new StringBuffer();
+    var trunk = new StringBuffer();
     while (pattern.current != null && loop) {
-      loop = parseTrunkCharacter();
+      loop = parseTrunkCharacter(trunk);
     }
 
     if (zeroDigitCount == 0 && digitLeftCount > 0 && decimalPos >= 0) {
@@ -596,7 +583,7 @@ class _NumberFormatParser {
    * continue to look for additional trunk characters or false if we have
    * reached the end.
    */
-  bool parseTrunkCharacter() {
+  bool parseTrunkCharacter(trunk) {
     var ch = pattern.current;
     switch (ch) {
       case _PATTERN_DIGIT:
@@ -697,12 +684,29 @@ class _StringIterable extends IterableBase<String> {
  */
 class _StringIterator implements Iterator<String> {
   final String input;
-  int index = -1;
-  inBounds(i) => i >= 0 && i < input.length;
-  _StringIterator(this.input);
-  String get current => inBounds(index) ? input[index] : null;
+  int nextIndex = 0;
+  String _current = null;
 
-  bool moveNext() => inBounds(++index);
-  String get peek => inBounds(index + 1) ? input[index + 1] : null;
+  _StringIterator(input) : input = _validate(input);
+
+  String get current => _current;
+
+  bool moveNext() {
+    if (nextIndex >= input.length) {
+      _current = null;
+      return false;
+    }
+    _current = input[nextIndex++];
+    return true;
+  }
+
+  String get peek => nextIndex >= input.length ? null : input[nextIndex];
+
   Iterator<String> get iterator => this;
+
+  static String _validate(input) {
+    if (input is! String) throw new ArgumentError(input);
+    return input;
+  }
+
 }
