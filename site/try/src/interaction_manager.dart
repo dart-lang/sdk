@@ -137,8 +137,16 @@ class InteractionContext extends InteractionManager {
 }
 
 abstract class InteractionState implements InteractionManager {
+  InteractionContext get context;
+
+  void set state(InteractionState newState);
+
   void onStateChanged(InteractionState previous) {
     print('State change ${previous.runtimeType} -> ${runtimeType}.');
+  }
+
+  void transitionToInitialState() {
+    state = new InitialState(context);
   }
 }
 
@@ -288,20 +296,27 @@ class InitialState extends InteractionState {
   }
 
   void onCompilationUnitChanged(CompilationUnit unit) {
-    // TODO(ahe): POST the result back to the project server using something
-    // like this:
-    //
-    // new HttpRequest()
-    //     ..open("POST", "/project/...")
-    //     ..send(unit.content);
-
     if (unit == context.currentCompilationUnit) {
       currentSource = unit.content;
-      print('Saved source');
+      print("Saved source of '${unit.name}'");
+      if (context.projectFiles.containsKey(unit.name)) {
+        postProjectFileUpdate(unit);
+      }
       scheduleCompilation();
     } else {
       print("Unexpected change to compilation unit '${unit.name}'.");
     }
+  }
+
+  void postProjectFileUpdate(CompilationUnit unit) {
+    onError(ProgressEvent event) {
+      HttpRequest request = event.target;
+      window.alert(request.responseText);
+    }
+    new HttpRequest()
+        ..open("POST", "/project/${unit.name}")
+        ..onError.listen(onError)
+        ..send(unit.content);
   }
 
   Future<List<String>> projectFileNames() {
@@ -319,6 +334,8 @@ class InitialState extends InteractionState {
     if (unit != null) {
       // This project file had been fetched already.
       future = new Future<CompilationUnit>.value(unit);
+
+      // TODO(ahe): Probably better to fetch the sources again.
     } else {
       // This project file has to be fetched.
       future = getString('project/$projectFile').then((String text) {
@@ -327,6 +344,10 @@ class InitialState extends InteractionState {
           // Only create a new unit if the value hadn't arrived already.
           unit = new CompilationUnit(projectFile, text);
           context.projectFiles[projectFile] = unit;
+        } else {
+          // TODO(ahe): Probably better to overwrite sources. Create a new
+          // unit?
+          // The server should push updates to the client.
         }
         return unit;
       });
@@ -337,10 +358,15 @@ class InitialState extends InteractionState {
           ..nodes.clear();
       observer.takeRecords(); // Discard mutations.
 
+      transitionToInitialState();
+      context.currentCompilationUnit = unit;
+
       // Install the code, which will trigger a call to onMutation.
       mainEditorPane.appendText(unit.content);
     });
   }
+
+  void transitionToInitialState() {}
 }
 
 Future<String> getString(uri) {
@@ -627,6 +653,10 @@ class CodeCompletionState extends InitialState {
     return new DivElement()
         ..classes.add('dart-entry')
         ..appendText(completion);
+  }
+
+  void transitionToInitialState() {
+    endCompletion();
   }
 }
 
