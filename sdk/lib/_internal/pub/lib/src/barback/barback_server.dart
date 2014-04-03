@@ -17,7 +17,6 @@ import '../log.dart' as log;
 import '../utils.dart';
 import 'base_server.dart';
 import 'build_environment.dart';
-import 'old_web_socket_api.dart';
 
 /// Callback for determining if an asset with [id] should be served or not.
 typedef bool AllowAsset(AssetId id);
@@ -95,13 +94,6 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
 
   /// Handles an HTTP request.
   void handleRequest(HttpRequest request) {
-    // TODO(rnystrom): Remove this when the Editor is using the admin server.
-    // port. See #17640.
-    if (WebSocketTransformer.isUpgradeRequest(request)) {
-      _handleWebSocket(request);
-      return;
-    }
-
     if (request.method != "GET" && request.method != "HEAD") {
       methodNotAllowed(request);
       return;
@@ -160,20 +152,6 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
       addResult(new BarbackServerResult._failure(request.uri, id, error));
       notFound(request, asset: id);
     });
-  }
-
-  // TODO(rnystrom): Remove this when the Editor is using the admin server.
-  // port. See #17640.
-  /// Creates a web socket for [request] which should be an upgrade request.
-  void _handleWebSocket(HttpRequest request) {
-    Chain.track(WebSocketTransformer.upgrade(request)).then((socket) {
-      _webSockets.add(socket);
-      var api = new OldWebSocketApi(socket, environment);
-
-      return api.listen().whenComplete(() {
-        _webSockets.remove(api);
-      });
-    }).catchError(addError);
   }
 
   /// Serves the body of [asset] on [request]'s response stream.
