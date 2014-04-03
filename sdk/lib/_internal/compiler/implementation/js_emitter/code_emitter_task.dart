@@ -1439,22 +1439,17 @@ mainBuffer.add(r'''
       // [emitOneShotInterceptors] have been called.
       emitCompileTimeConstants(mainBuffer, mainOutputUnit);
 
-      // Write a javascript mapping from Deferred import load ids (derrived from
-      // the import prefix.) to a list of lists of js hunks to load.
+      // We write a javascript mapping from DeferredLibrary elements
+      // (really their String argument) to the js hunk to load.
       // TODO(sigurdm): Create a syntax tree for this.
       // TODO(sigurdm): Also find out where to place it.
       mainBuffer.write("\$.libraries_to_load = {");
-      for (String loadId in compiler.deferredLoadTask.hunksToLoad.keys) {
+      for (String constant in compiler.deferredLoadTask.hunksToLoad.keys) {
         // TODO(sigurdm): Escape these strings.
-        mainBuffer.write('"$loadId":[');
-        for (List<OutputUnit> outputUnits in
-            compiler.deferredLoadTask.hunksToLoad[loadId]) {
-          mainBuffer.write("[");
-          for (OutputUnit outputUnit in outputUnits) {
-            mainBuffer
-              .write('"${outputUnit.partFileName(compiler)}.part.js", ');
-          }
-          mainBuffer.write("],");
+        mainBuffer.write('"$constant":[');
+        for (OutputUnit outputUnit in
+            compiler.deferredLoadTask.hunksToLoad[constant]) {
+          mainBuffer.write('"${outputUnit.partFileName(compiler)}.part.js", ');
         }
         mainBuffer.write("],\n");
       }

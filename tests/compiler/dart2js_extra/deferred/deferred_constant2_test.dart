@@ -13,7 +13,8 @@ const lazy = const DeferredLibrary('deferred_class_library2');
 
 main() {
   asyncStart();
-  lazy.load().then((_) {
+  lazy.load().then((bool didLoad) {
+    Expect.isTrue(didLoad);
     Expect.equals(499, lib.C1.value);
     asyncEnd();
   });

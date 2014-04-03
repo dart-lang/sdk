@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:unittest/unittest.dart';
 
 @a import 'deferred_in_isolate_lib.dart' as lib1;
-@b import 'deferred_library.dart' as lib2;
+@b import 'deferred_api_library.dart' as lib2;
 
 const a = const DeferredLibrary("lib1");
 const b = const DeferredLibrary("NonExistingFile", uri: "wrong/");

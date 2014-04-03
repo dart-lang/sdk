@@ -3223,34 +3223,39 @@ String getIsolateAffinityTag(String name) {
   return JS('String', 'init.getIsolateTag(#)', name);
 }
 
-typedef Future<Null> LoadLibraryFunctionType();
+typedef Future<bool> LoadLibraryFunctionType();
 
 LoadLibraryFunctionType _loadLibraryWrapper(String loadId) {
   return () => loadDeferredLibrary(loadId);
 }
 
-final Map<String, Future<Null>> _loadedLibraries = <String, Future<Null>>{};
+final Map<String, Future<bool>> _loadedLibraries = <String, Future<bool>>{};
 
 Future<bool> loadDeferredLibrary(String loadId, [String uri]) {
-
-  List<List<String>> hunkLists = JS('JSExtendableArray|Null',
-      '\$.libraries_to_load[#]', loadId);
-  if (hunkLists == null) return new Future.value(null);
-
-  return Future.forEach(hunkLists, (hunkNames) {
-    Iterable<Future<Null>> allLoads =
-        hunkNames.map((hunkName) => _loadHunk(hunkName, uri));
-    return Future.wait(allLoads).then((_) => null);
+  List hunkNames = new List();
+  if (JS('bool', '\$.libraries_to_load[#] === undefined', loadId)) {
+    return new Future(() => false);
+  }
+  for (int index = 0;
+       index < JS('int', '\$.libraries_to_load[#].length', loadId);
+       ++index) {
+    hunkNames.add(JS('String', '\$.libraries_to_load[#][#]',
+                     loadId, index));
+  }
+  Iterable<Future<bool>> allLoads =
+      hunkNames.map((hunkName) => _loadHunk(hunkName, uri));
+  return Future.wait(allLoads).then((results) {
+    return results.any((x) => x);
   });
 }
 
-Future<Null> _loadHunk(String hunkName, String uri) {
+Future<bool> _loadHunk(String hunkName, String uri) {
   // TODO(ahe): Validate libraryName.  Kasper points out that you want
   // to be able to experiment with the effect of toggling @DeferLoad,
   // so perhaps we should silently ignore "bad" library names.
-  Future<Null> future = _loadedLibraries[hunkName];
+  Future<bool> future = _loadedLibraries[hunkName];
   if (future != null) {
-    return future.then((_) => null);
+    return future.then((_) => false);
   }
 
   if (uri == null) {
@@ -3262,7 +3267,7 @@ Future<Null> _loadHunk(String hunkName, String uri) {
   if (Primitives.isJsshell || Primitives.isD8) {
     // TODO(ahe): Move this code to a JavaScript command helper script that is
     // not included in generated output.
-    return _loadedLibraries[hunkName] = new Future<Null>(() {
+    return _loadedLibraries[hunkName] = new Future<bool>(() {
       try {
         // Create a new function to avoid getting access to current function
         // context.
@@ -3270,14 +3275,14 @@ Future<Null> _loadHunk(String hunkName, String uri) {
       } catch (error, stackTrace) {
         throw new DeferredLoadException("Loading $uri failed.");
       }
-      return null;
+      return true;
     });
   } else if (isWorker()) {
     // We are in a web worker. Load the code with an XMLHttpRequest.
-    return _loadedLibraries[hunkName] = new Future<Null>(() {
-      Completer completer = new Completer<Null>();
+    return _loadedLibraries[hunkName] = new Future<bool>(() {
+      Completer completer = new Completer<bool>();
       enterJsAsync();
-      Future<Null> leavingFuture = completer.future.whenComplete(() {
+      Future<bool> leavingFuture = completer.future.whenComplete(() {
         leaveJsAsync();
       });
 
@@ -3302,7 +3307,7 @@ Future<Null> _loadHunk(String hunkName, String uri) {
             new DeferredLoadException("Evaluating $uri failed."));
           return;
         }
-        completer.complete(null);
+        completer.complete(true);
       }, 1));
 
       var fail = convertDartClosureToJS((event) {
@@ -3316,15 +3321,15 @@ Future<Null> _loadHunk(String hunkName, String uri) {
     });
   }
   // We are in a dom-context.
-  return _loadedLibraries[hunkName] = new Future<Null>(() {
-    Completer completer = new Completer<Null>();
+  return _loadedLibraries[hunkName] = new Future<bool>(() {
+    Completer completer = new Completer<bool>();
     // Inject a script tag.
     var script = JS('', 'document.createElement("script")');
     JS('', '#.type = "text/javascript"', script);
     JS('', '#.src = #', script, uri);
     JS('', '#.addEventListener("load", #, false)',
        script, convertDartClosureToJS((event) {
-      completer.complete(null);
+      completer.complete(true);
     }, 1));
     JS('', '#.addEventListener("error", #, false)',
        script, convertDartClosureToJS((event) {

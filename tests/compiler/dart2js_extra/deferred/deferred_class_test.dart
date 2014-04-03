@@ -19,7 +19,8 @@ main() {
   Expect.isNull(x);
   int counter = 0;
   asyncStart();
-  lazy.load().then((_) {
+  lazy.load().then((bool didLoad) {
+    Expect.isTrue(didLoad);
     Expect.equals(1, ++counter);
     print('deferred_class_library was loaded');
     x = new lib.MyClass();
@@ -29,7 +30,8 @@ main() {
   Expect.equals(0, counter);
   Expect.isNull(x);
   asyncStart();
-  lazy.load().then((_) {
+  lazy.load().then((bool didLoad) {
+    Expect.isFalse(didLoad);
     Expect.equals(2, ++counter);
     print('deferred_class_library was loaded');
     x = new lib.MyClass();

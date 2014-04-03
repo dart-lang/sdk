@@ -13,7 +13,8 @@ const lazy = const DeferredLibrary('deferred_class_library2');
 
 main() {
   asyncStart();
-  lazy.load().then((_) {
+  lazy.load().then((bool didLoad) {
+    Expect.isTrue(didLoad);
     // Only Gee2.n888 to make sure no other constant pulls in its super.
     Expect.equals(888, new lib.Gee2.n888().value);
     asyncEnd();
