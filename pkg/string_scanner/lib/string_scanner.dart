@@ -7,6 +7,11 @@ library string_scanner;
 
 import 'dart:math' as math;
 
+/// When compiled to JS, forward slashes are always escaped in [RegExp.pattern].
+///
+/// See issue 17998.
+final _slashAutoEscape = new RegExp("/").pattern == "\\/";
+
 // TODO(nweiz): Add some integration between this and source maps.
 /// A class that scans through a string using [Pattern]s.
 class StringScanner {
@@ -65,7 +70,9 @@ class StringScanner {
 
     if (name == null) {
       if (pattern is RegExp) {
-        name = "/${pattern.pattern.replaceAll("/", "\\/")}/";
+        var source = pattern.pattern;
+        if (!_slashAutoEscape) source = source.replaceAll("/", "\\/");
+        name = "/$source/";
       } else {
         name = pattern.toString()
             .replaceAll("\\", "\\\\").replaceAll('"', '\\"');
