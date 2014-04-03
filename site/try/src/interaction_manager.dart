@@ -288,6 +288,13 @@ class InitialState extends InteractionState {
   }
 
   void onCompilationUnitChanged(CompilationUnit unit) {
+    // TODO(ahe): POST the result back to the project server using something
+    // like this:
+    //
+    // new HttpRequest()
+    //     ..open("POST", "/project/...")
+    //     ..send(unit.content);
+
     if (unit == context.currentCompilationUnit) {
       currentSource = unit.content;
       print('Saved source');

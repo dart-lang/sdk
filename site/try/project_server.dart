@@ -6,7 +6,10 @@ library trydart.projectServer;
 
 import 'dart:io';
 
-import 'dart:convert' show JSON, HtmlEscape;
+import 'dart:convert' show
+    HtmlEscape,
+    JSON,
+    UTF8;
 
 /// Represents a "project" command. These commands are accessed from the URL
 /// "/project?name".
@@ -30,6 +33,13 @@ class Conversation {
   static const String PACKAGES_PATH = '/packages';
 
   static const String CONTENT_TYPE = HttpHeaders.CONTENT_TYPE;
+
+  static const String GIT_TAG = 'try_dart_backup';
+
+  static const String COMMIT_MESSAGE = """
+Automated backup.
+
+It is safe to delete tag '$GIT_TAG' if you don't need the backup.""";
 
   static Uri documentRoot = Uri.base;
 
@@ -65,6 +75,15 @@ class Conversation {
     response.statusCode = HttpStatus.BAD_REQUEST;
     response.write(htmlInfo("Bad request",
                             "Bad request '${request.uri}': $problem"));
+    response.close();
+  }
+
+  internalError(error, stack) {
+    print(error);
+    if (stack != null) print(stack);
+    response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+    response.write(htmlInfo("Internal Server Error",
+                            "Internal Server Error: $error\n$stack"));
     response.close();
   }
 
@@ -145,9 +164,24 @@ class Conversation {
       root = packageRoot;
       path = path.substring(PACKAGES_PATH.length);
     }
-    var f = new File(root.resolve('.$path').toFilePath());
+
+    String filePath = root.resolve('.$path').toFilePath();
+
+    switch (request.method) {
+      case 'GET':
+        return handleGet(filePath, dartType);
+      case 'POST':
+        return handlePost(filePath);
+      default:
+        String method = const HtmlEscape().convert(request.method);
+        return badRequest("Unsupported method: '$method'");
+    }
+  }
+
+  void handleGet(String path, String dartType) {
+    var f = new File(path);
     f.exists().then((bool exists) {
-      if (!exists) return notFound(path);
+      if (!exists) return notFound(request.uri);
       if (path.endsWith('.html')) {
         response.headers.set(CONTENT_TYPE, 'text/html');
       } else if (path.endsWith('.dart')) {
@@ -161,6 +195,95 @@ class Conversation {
       }
       f.openRead().pipe(response).catchError(onError);
     });
+  }
+
+  handlePost(String path) {
+    // The data is sent using a dart:html HttpRequest (aka XMLHttpRequest).
+    // According to http://xhr.spec.whatwg.org/, strings are always encoded as
+    // UTF-8.
+    request.transform(UTF8.decoder).join().then((String data) {
+      // The rest of this method is synchronous. This guarantees that we don't
+      // make conflicting git changes in response to multiple POST requests.
+      try {
+        backup(path);
+      } catch (e, stack) {
+        return internalError(e, stack);
+      }
+
+      new File(path).writeAsStringSync(data);
+
+      response
+          ..statusCode = HttpStatus.OK
+          ..close();
+    });
+  }
+
+  // Back up the file [path] using git.
+  static void backup(String path) {
+    // Save the git index (aka staging area).
+    String savedIndex = git('write-tree');
+
+    String localModifications = null;
+
+    try {
+
+      // Reset the index.
+      git('read-tree', ['HEAD']);
+
+      // Save modifications in index.
+      git('update-index', ['--add', path]);
+
+      if (!checkGit('diff', ['--cached', '--quiet'])) {
+        // If the file is modified, back it up.
+        localModifications = git('write-tree');
+      }
+    } finally {
+
+      // Restore the saved index.
+      git('read-tree', [savedIndex]);
+    }
+
+    if (localModifications != null) {
+      String tag = 'refs/tags/$GIT_TAG';
+      var arguments = ['-p', 'HEAD', '-m', COMMIT_MESSAGE, localModifications];
+
+      if (checkGit('rev-parse',  ['-q', '--verify', tag])) {
+        // The tag already exists.
+
+        if (checkGit('diff-tree', ['--quiet', localModifications, tag])) {
+          // localModifications are identical to the last backup.
+          return;
+        }
+
+        // Use the tag as a parent.
+        arguments = ['-p', tag]..addAll(arguments);
+      }
+
+      // Commit the local modifcations.
+      String commit = git('commit-tree', arguments);
+
+      // Create or update the tag.
+      git('tag', ['-f', GIT_TAG, commit]);
+    }
+  }
+
+  static String git(String command,
+                    [List<String> arguments = const <String> []]) {
+    ProcessResult result = run('git', <String>[command]..addAll(arguments));
+    if (result.exitCode != 0) {
+      throw 'git error: ${result.stdout}\n${result.stderr}';
+    }
+    return result.stdout.trim();
+  }
+
+  static bool checkGit(String command,
+                       [List<String> arguments = const <String> []]) {
+    return run('git', <String>[command]..addAll(arguments)).exitCode == 0;
+  }
+
+  static ProcessResult run(String executable, List<String> arguments) {
+    // print('Running $executable ${arguments.join(" ")}');
+    return Process.runSync(executable, arguments);
   }
 
   static onRequest(HttpRequest request) {
@@ -187,7 +310,7 @@ class Conversation {
 </head>
 <body>
 <h1>$title</h1>
-<p>$text</p>
+<p style='white-space:pre'>$text</p>
 </body>
 </html>
 """;
