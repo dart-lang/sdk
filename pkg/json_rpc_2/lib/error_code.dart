@@ -22,7 +22,7 @@ const INVALID_REQUEST = -32600;
 /// unavailable.
 const METHOD_NOT_FOUND = -32601;
 
-/// An error code indicating that the request paramaters are invalid for the
+/// An error code indicating that the request parameters are invalid for the
 /// requested method.
 const INVALID_PARAMS = -32602;
 
