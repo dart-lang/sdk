@@ -34,13 +34,10 @@ class DeferredLibrary {
   /**
    * Ensure that [libraryName] has been loaded.
    *
-   * The value of the returned future is true if this invocation of
-   * [load] caused the library to be loaded.
-   *
    * If the library fails to load, the Future will complete with a
    * DeferredLoadException.
    */
-  external Future<bool> load();
+  external Future<Null> load();
 }
 
 /**
