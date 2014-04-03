@@ -41,7 +41,7 @@ void installErrorHandlerOn(IFrameElement iframe) {
   }]);
 }
 
-void onIframeLoaded(ErrorEvent event) {
+void onIframeLoaded(Event event) {
   installErrorHandlerOn(event.target);
 }
 
